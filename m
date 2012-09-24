@@ -1,49 +1,31 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: am33xx: clk: Update clkdev table to add mcasp
- alias
-Date: Mon, 24 Sep 2012 20:57:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209242057210.25811@utopia.booyaka.com>
-References: <1348509399-3391-1-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1209241832430.24053@utopia.booyaka.com> <20120924184924.GI28835@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: tidspbridge build fails
+Date: Mon, 24 Sep 2012 14:04:17 -0700
+Message-ID: <20120924210417.GL28835@atomide.com>
+References: <CAOSRfZ7FsVw+MOUfGZZFiCrg2Ec1iSgypdY=Lijzn_x8NpkhLw@mail.gmail.com>
+ <loom.20120924T183345-467@post.gmane.org>
+ <20120924170054.GE28835@atomide.com>
+ <loom.20120924T205603-818@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39757 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709Ab2IXU5l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 16:57:41 -0400
-In-Reply-To: <20120924184924.GI28835@atomide.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:32593 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750706Ab2IXVEU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 17:04:20 -0400
+Content-Disposition: inline
+In-Reply-To: <loom.20120924T205603-818@post.gmane.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Selso LIBERADO <sli@cioinfoindus.fr>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, 24 Sep 2012, Tony Lindgren wrote:
-
-> * Paul Walmsley <paul@pwsan.com> [120924 11:34]:
-> > On Mon, 24 Sep 2012, Vaibhav Hiremath wrote:
+* Selso LIBERADO <sli@cioinfoindus.fr> [120924 11:58]:
+> Tony Lindgren <tony <at> atomide.com> writes:
+> ...
 > > 
-> > > After Rajendra's common-clock preparation series,
-> > > commit (a1978ef4da1 - ARM: omap: hwmod: get rid of
-> > > all omap_clk_get_by_name usage) the clkdev table need to
-> > > update with an entry for clocks used by hwmod to have
-> > > clock name same as the alias.
-> > > 
-> > > Without this, the clk_get() in omap_hwmod would fail.
-> > > 
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > 
-> > Tony, if you want to take this, it's
-> > 
-> > Acked-by: Paul Walmsley <paul@pwsan.com>
-> > 
-> > otherwise we'll wait for -rc1.
-> 
-> Please just go ahead and queue it as a fix.
-> 
-> We should get a fixes branch in before -rc1 is tagged
-> so -rc1 works for us.
+> OK. I sent it.
 
-OK, will send a pull request once devel-late goes upstream.
+OK thanks!
 
-
-- Paul
+Tony
