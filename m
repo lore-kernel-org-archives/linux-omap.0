@@ -1,188 +1,94 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3] ARM: OMAP4: twl-common: Support for additional devices on i2c1 bus
-Date: Mon, 24 Sep 2012 12:24:48 +0300
-Message-ID: <1348478688-5737-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:57299 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753026Ab2IXJXv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Sep 2012 05:23:51 -0400
-Received: by oago6 with SMTP id o6so5179801oag.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 02:23:50 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Mon, 24 Sep 2012 15:11:34 +0530
+Message-ID: <CAMQu2gwZE+oXg6YfCj_Ua0PQxAk8ADjCga193UKMDTBTgoo4fw@mail.gmail.com>
+References: <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com> <20120920220130.GN2449@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com> <20120920232114.GO2449@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com> <20120921185827.GC2454@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com> <20120921195717.GD2454@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209221836070.10663@utopia.booyaka.com> <20120922201043.GE2934@linux.vnet.ibm.com>
+ <20120922215923.GA13161@linux.vnet.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120922215923.GA13161@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com
+Cc: Paul Walmsley <paul@pwsan.com>, "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On OMAP4 the i2c1 bus is dedicated for the PMIC and audio related devices.
-Manufacturers can opt to use different codec than twl6040 and also can add
-audio related IC to the bus (external amplifier for example on SDP4430).
+On Sun, Sep 23, 2012 at 3:29 AM, Paul E. McKenney
+<paulmck@linux.vnet.ibm.com> wrote:
+> On Sat, Sep 22, 2012 at 01:10:43PM -0700, Paul E. McKenney wrote:
+>> On Sat, Sep 22, 2012 at 06:42:08PM +0000, Paul Walmsley wrote:
+>> > On Fri, 21 Sep 2012, Paul E. McKenney wrote:
 
-Make it possible to add different set of additional devices to i2c1 bus on
-OMAP4 boards.
+[...]
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hi Tony,
+>
+> And here is a patch.  I am still having trouble reproducing the problem,
+> but figured that I should avoid serializing things.
+>
+>                                                         Thanx, Paul
+>
+> ------------------------------------------------------------------------
+>
+>  b/kernel/rcutree.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> rcu: Fix day-one dyntick-idle stall-warning bug
+>
+> Each grace period is supposed to have at least one callback waiting
+> for that grace period to complete.  However, if CONFIG_NO_HZ=n, an
+> extra callback-free grace period is no big problem -- it will chew up
+> a tiny bit of CPU time, but it will complete normally.  In contrast,
+> CONFIG_NO_HZ=y kernels have the potential for all the CPUs to go to
+> sleep indefinitely, in turn indefinitely delaying completion of the
+> callback-free grace period.  Given that nothing is waiting on this grace
+> period, this is also not a problem.
+>
+> Unless RCU CPU stall warnings are also enabled, as they are in recent
+> kernels.  In this case, if a CPU wakes up after at least one minute
+> of inactivity, an RCU CPU stall warning will result.  The reason that
+> no one noticed until quite recently is that most systems have enough
+> OS noise that they will never remain absolutely idle for a full minute.
+> But there are some embedded systems with cut-down userspace configurations
+> that get into this mode quite easily.
+>
+> All this begs the question of exactly how a callback-free grace period
+> gets started in the first place.  This can happen due to the fact that
+> CPUs do not necessarily agree on which grace period is in progress.
+> If a CPU still believes that the grace period that just completed is
+> still ongoing, it will believe that it has callbacks that need to wait
+> for another grace period, never mind the fact that the grace period
+> that they were waiting for just completed.  This CPU can therefore
+> erroneously decide to start a new grace period.
+>
+> Once this CPU notices that the earlier grace period completed, it will
+> invoke its callbacks.  It then won't have any callbacks left.  If no
+> other CPU has any callbacks, we now have a callback-free grace period.
+>
+> This commit therefore makes CPUs check more carefully before starting a
+> new grace period.  This new check relies on an array of tail pointers
+> into each CPU's list of callbacks.  If the CPU is up to date on which
+> grace periods have completed, it checks to see if any callbacks follow
+> the RCU_DONE_TAIL segment, otherwise it checks to see if any callbacks
+> follow the RCU_WAIT_TAIL segment.  The reason that this works is that
+> the RCU_WAIT_TAIL segment will be promoted to the RCU_DONE_TAIL segment
+> as soon as the CPU figures out that the old grace period has ended.
+>
+> This change is to cpu_needs_another_gp(), which is called in a number
+> of places.  The only one that really matters is in rcu_start_gp(), where
+> the root rcu_node structure's ->lock is held, which prevents any
+> other CPU from starting or completing a grace period, so that the
+> comparison that determines whether the CPU is missing the completion
+> of a grace period is stable.
+>
+> Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
+> Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+>
+As already confirmed by Paul W and others, I too no longer see the rcu dumps
+any more with above patch. Thanks a lot for the fix.
 
-I have refreshed the patch on top of arm-soc/for-next branch. Would it be
-possible to queue this patch via arm-soc so it will be in 3.7-rc1 already?
-Originally this patch was sent for 3.6...
-
-Regards,
-Peter
-
- arch/arm/mach-omap2/board-4430sdp.c    | 12 +++++++++--
- arch/arm/mach-omap2/board-omap4panda.c | 12 +++++++++--
- arch/arm/mach-omap2/twl-common.c       | 37 ++++++++++------------------------
- arch/arm/mach-omap2/twl-common.h       |  3 ++-
- 4 files changed, 33 insertions(+), 31 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 6fe9079..7c1a662 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -545,6 +545,14 @@ static struct twl6040_platform_data twl6040_data = {
- 	.audpwron_gpio	= 127,
- };
- 
-+static struct i2c_board_info __initdata sdp4430_i2c_1_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("twl6040", 0x4b),
-+		.irq = OMAP44XX_IRQ_SYS_2N,
-+		.platform_data = &twl6040_data,
-+	},
-+};
-+
- static struct twl4030_platform_data sdp4430_twldata = {
- 	/* Regulators */
- 	.vusim		= &sdp4430_vusim,
-@@ -578,8 +586,8 @@ static int __init omap4_i2c_init(void)
- 			TWL_COMMON_REGULATOR_CLK32KG |
- 			TWL_COMMON_REGULATOR_V1V8 |
- 			TWL_COMMON_REGULATOR_V2V1);
--	omap4_pmic_init("twl6030", &sdp4430_twldata,
--			&twl6040_data, 119 + OMAP44XX_IRQ_GIC_START);
-+	omap4_pmic_init("twl6030", &sdp4430_twldata, sdp4430_i2c_1_boardinfo,
-+			ARRAY_SIZE(sdp4430_i2c_1_boardinfo));
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
- 				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 8ebb16c..eb7a9a8 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -264,6 +264,14 @@ static struct twl6040_platform_data twl6040_data = {
- 	.audpwron_gpio	= 127,
- };
- 
-+static struct i2c_board_info __initdata panda_i2c_1_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("twl6040", 0x4b),
-+		.irq = OMAP44XX_IRQ_SYS_2N,
-+		.platform_data = &twl6040_data,
-+	},
-+};
-+
- /* Panda board uses the common PMIC configuration */
- static struct twl4030_platform_data omap4_panda_twldata;
- 
-@@ -291,8 +299,8 @@ static int __init omap4_panda_i2c_init(void)
- 			TWL_COMMON_REGULATOR_CLK32KG |
- 			TWL_COMMON_REGULATOR_V1V8 |
- 			TWL_COMMON_REGULATOR_V2V1);
--	omap4_pmic_init("twl6030", &omap4_panda_twldata,
--			&twl6040_data, 119 + OMAP44XX_IRQ_GIC_START);
-+	omap4_pmic_init("twl6030", &omap4_panda_twldata, panda_i2c_1_boardinfo,
-+			ARRAY_SIZE(panda_i2c_1_boardinfo));
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	/*
- 	 * Bus 3 is attached to the DVI port where devices like the pico DLP
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 040f480..e279732 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -40,16 +40,6 @@ static struct i2c_board_info __initdata pmic_i2c_board_info = {
- 	.flags		= I2C_CLIENT_WAKE,
- };
- 
--static struct i2c_board_info __initdata omap4_i2c1_board_info[] = {
--	{
--		.addr		= 0x48,
--		.flags		= I2C_CLIENT_WAKE,
--	},
--	{
--		I2C_BOARD_INFO("twl6040", 0x4b),
--	},
--};
--
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- static int twl_set_voltage(void *data, int target_uV)
- {
-@@ -79,30 +69,25 @@ void __init omap_pmic_init(int bus, u32 clkrate,
- 
- void __init omap4_pmic_init(const char *pmic_type,
- 		    struct twl4030_platform_data *pmic_data,
--		    struct twl6040_platform_data *twl6040_data, int twl6040_irq)
-+		    struct i2c_board_info *devices, int nr_devices)
- {
- 	/* PMIC part*/
- 	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
--	strncpy(omap4_i2c1_board_info[0].type, pmic_type,
--		sizeof(omap4_i2c1_board_info[0].type));
--	omap4_i2c1_board_info[0].irq = 7 + OMAP44XX_IRQ_GIC_START;
--	omap4_i2c1_board_info[0].platform_data = pmic_data;
--
--	/* TWL6040 audio IC part */
--	omap4_i2c1_board_info[1].irq = twl6040_irq;
--	omap4_i2c1_board_info[1].platform_data = twl6040_data;
--
--	omap_register_i2c_bus(1, 400, omap4_i2c1_board_info, 2);
-+	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
- 
-+	/* Register additional devices on i2c1 bus if needed */
-+	if (devices)
-+		i2c_register_board_info(1, devices, nr_devices);
- }
- 
- void __init omap_pmic_late_init(void)
- {
--	/* Init the OMAP TWL parameters (if PMIC has been registered) */
--	if (pmic_i2c_board_info.irq)
--		omap3_twl_init();
--	if (omap4_i2c1_board_info[0].irq)
--		omap4_twl_init();
-+	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
-+	if (!pmic_i2c_board_info.irq)
-+		return;
-+
-+	omap3_twl_init();
-+	omap4_twl_init();
- }
- 
- #if defined(CONFIG_ARCH_OMAP3)
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index d109c09..2256efe 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -32,6 +32,7 @@
- 
- struct twl4030_platform_data;
- struct twl6040_platform_data;
-+struct i2c_board_info;
- 
- void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
- 		    struct twl4030_platform_data *pmic_data);
-@@ -51,7 +52,7 @@ static inline void omap3_pmic_init(const char *pmic_type,
- 
- void omap4_pmic_init(const char *pmic_type,
- 		    struct twl4030_platform_data *pmic_data,
--		    struct twl6040_platform_data *audio_data, int twl6040_irq);
-+		    struct i2c_board_info *devices, int nr_devices);
- 
- void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 			   u32 pdata_flags, u32 regulators_flags);
--- 
-1.7.12
-
+Regards
+Santosh
