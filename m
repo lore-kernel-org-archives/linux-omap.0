@@ -1,163 +1,198 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH] ARM: OMAP: hwmod: align the SmartReflex fck names
-Date: Mon, 24 Sep 2012 16:35:52 +0200
-Message-ID: <1348497352-6464-1-git-send-email-j-pihet@ti.com>
-References: <1348134503-28220-1-git-send-email-j-pihet@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3] ARM: OMAP4: twl-common: Support for additional
+ devices on i2c1 bus
+Date: Mon, 24 Sep 2012 08:43:15 -0700
+Message-ID: <20120924154315.GY28835@atomide.com>
+References: <1348478688-5737-1-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:60825 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752410Ab2IXOgF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 10:36:05 -0400
-Received: by weyt9 with SMTP id t9so250028wey.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 07:36:03 -0700 (PDT)
-In-Reply-To: <1348134503-28220-1-git-send-email-j-pihet@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20384 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756513Ab2IXPnS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 11:43:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1348478688-5737-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com
-Cc: Jean Pihet <j-pihet@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Rename the smartreflex fck names for consistency and better readability;
-rename the clock aliases for use by the SmartReflex driver, with the
-"smartreflex.%d" format.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [120924 02:24]:
+> On OMAP4 the i2c1 bus is dedicated for the PMIC and audio related devices.
+> Manufacturers can opt to use different codec than twl6040 and also can add
+> audio related IC to the bus (external amplifier for example on SDP4430).
+> 
+> Make it possible to add different set of additional devices to i2c1 bus on
+> OMAP4 boards.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+> Hi Tony,
+> 
+> I have refreshed the patch on top of arm-soc/for-next branch. Would it be
+> possible to queue this patch via arm-soc so it will be in 3.7-rc1 already?
+> Originally this patch was sent for 3.6...
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/clock33xx_data.c       |   12 ++++++------
- arch/arm/mach-omap2/clock3xxx_data.c       |   12 ++++++------
- arch/arm/mach-omap2/clock44xx_data.c       |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
- 4 files changed, 19 insertions(+), 19 deletions(-)
+Yes sorry the platform code has been been badly ignored
+lately.. Let's see if we can still get it in now that there's
+-rc7 tagged.
 
-diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
-index 25bbcc7..a328f12 100644
---- a/arch/arm/mach-omap2/clock33xx_data.c
-+++ b/arch/arm/mach-omap2/clock33xx_data.c
-@@ -548,16 +548,16 @@ static struct clk mcasp1_fck = {
- 	.recalc		= &followparent_recalc,
- };
- 
--static struct clk smartreflex0_fck = {
--	.name		= "smartreflex0_fck",
-+static struct clk smartreflex_mpu_fck = {
-+	.name		= "smartreflex_mpu_fck",
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.parent		= &sys_clkin_ck,
- 	.ops		= &clkops_null,
- 	.recalc		= &followparent_recalc,
- };
- 
--static struct clk smartreflex1_fck = {
--	.name		= "smartreflex1_fck",
-+static struct clk smartreflex_core_fck = {
-+	.name		= "smartreflex_core_fck",
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.parent		= &sys_clkin_ck,
- 	.ops		= &clkops_null,
-@@ -1034,8 +1034,8 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
- 	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
- 	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
--	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
--	CLK(NULL,	"smartreflex1_fck",	&smartreflex1_fck,	CK_AM33XX),
-+	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_fck,	CK_AM33XX),
-+	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_AM33XX),
- 	CLK(NULL,	"gpt1_fck",		&timer1_fck,	CK_AM33XX),
- 	CLK(NULL,	"gpt2_fck",		&timer2_fck,	CK_AM33XX),
- 	CLK(NULL,	"gpt3_fck",		&timer3_fck,	CK_AM33XX),
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 83bed9a..a197cf2 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3050,8 +3050,8 @@ static struct clk traceclk_fck = {
- /* SR clocks */
- 
- /* SmartReflex fclk (VDD1) */
--static struct clk sr1_fck = {
--	.name		= "sr1_fck",
-+static struct clk smartreflex_mpu_iva_fck = {
-+	.name		= "smartreflex_mpu_iva_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &sys_ck,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
-@@ -3061,8 +3061,8 @@ static struct clk sr1_fck = {
- };
- 
- /* SmartReflex fclk (VDD2) */
--static struct clk sr2_fck = {
--	.name		= "sr2_fck",
-+static struct clk smartreflex_core_fck = {
-+	.name		= "smartreflex_core_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &sys_ck,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
-@@ -3447,8 +3447,8 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"atclk_fck",	&atclk_fck,	CK_3XXX),
- 	CLK(NULL,	"traceclk_src_fck", &traceclk_src_fck, CK_3XXX),
- 	CLK(NULL,	"traceclk_fck",	&traceclk_fck,	CK_3XXX),
--	CLK(NULL,	"sr1_fck",	&sr1_fck,	CK_34XX | CK_36XX),
--	CLK(NULL,	"sr2_fck",	&sr2_fck,	CK_34XX | CK_36XX),
-+	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_iva_fck,	CK_34XX | CK_36XX),
-+	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_3XXX),
- 	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index d7f55e4..9cc1112 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3224,9 +3224,9 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"slimbus2_fclk_0",		&slimbus2_fclk_0,	CK_443X),
- 	CLK(NULL,	"slimbus2_slimbus_clk",		&slimbus2_slimbus_clk,	CK_443X),
- 	CLK(NULL,	"slimbus2_fck",			&slimbus2_fck,	CK_443X),
--	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
--	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
--	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
-+	CLK(NULL,	"smartreflex.0",		&smartreflex_core_fck,	CK_443X),
-+	CLK(NULL,	"smartreflex.1",		&smartreflex_iva_fck,	CK_443X),
-+	CLK(NULL,	"smartreflex.2",		&smartreflex_mpu_fck,	CK_443X),
- 	CLK(NULL,	"timer1_fck",			&timer1_fck,	CK_443X),
- 	CLK(NULL,	"timer10_fck",			&timer10_fck,	CK_443X),
- 	CLK(NULL,	"timer11_fck",			&timer11_fck,	CK_443X),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index c9e3820..2b2b8fc 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1359,7 +1359,7 @@ static struct omap_hwmod_irq_info omap3_smartreflex_mpu_irqs[] = {
- static struct omap_hwmod omap34xx_sr1_hwmod = {
- 	.name		= "smartreflex_mpu_iva",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
--	.main_clk	= "sr1_fck",
-+	.main_clk	= "smartreflex_mpu_iva_fck",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
-@@ -1377,7 +1377,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
- static struct omap_hwmod omap36xx_sr1_hwmod = {
- 	.name		= "smartreflex_mpu_iva",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
--	.main_clk	= "sr1_fck",
-+	.main_clk	= "smartreflex_mpu_iva_fck",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
-@@ -1404,7 +1404,7 @@ static struct omap_hwmod_irq_info omap3_smartreflex_core_irqs[] = {
- static struct omap_hwmod omap34xx_sr2_hwmod = {
- 	.name		= "smartreflex_core",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
--	.main_clk	= "sr2_fck",
-+	.main_clk	= "smartreflex_core_fck",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
-@@ -1422,7 +1422,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
- static struct omap_hwmod omap36xx_sr2_hwmod = {
- 	.name		= "smartreflex_core",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
--	.main_clk	= "sr2_fck",
-+	.main_clk	= "smartreflex_core_fck",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
--- 
-1.7.7.6
+Regards,
 
+Tony
+
+ 
+>  arch/arm/mach-omap2/board-4430sdp.c    | 12 +++++++++--
+>  arch/arm/mach-omap2/board-omap4panda.c | 12 +++++++++--
+>  arch/arm/mach-omap2/twl-common.c       | 37 ++++++++++------------------------
+>  arch/arm/mach-omap2/twl-common.h       |  3 ++-
+>  4 files changed, 33 insertions(+), 31 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 6fe9079..7c1a662 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -545,6 +545,14 @@ static struct twl6040_platform_data twl6040_data = {
+>  	.audpwron_gpio	= 127,
+>  };
+>  
+> +static struct i2c_board_info __initdata sdp4430_i2c_1_boardinfo[] = {
+> +	{
+> +		I2C_BOARD_INFO("twl6040", 0x4b),
+> +		.irq = OMAP44XX_IRQ_SYS_2N,
+> +		.platform_data = &twl6040_data,
+> +	},
+> +};
+> +
+>  static struct twl4030_platform_data sdp4430_twldata = {
+>  	/* Regulators */
+>  	.vusim		= &sdp4430_vusim,
+> @@ -578,8 +586,8 @@ static int __init omap4_i2c_init(void)
+>  			TWL_COMMON_REGULATOR_CLK32KG |
+>  			TWL_COMMON_REGULATOR_V1V8 |
+>  			TWL_COMMON_REGULATOR_V2V1);
+> -	omap4_pmic_init("twl6030", &sdp4430_twldata,
+> -			&twl6040_data, 119 + OMAP44XX_IRQ_GIC_START);
+> +	omap4_pmic_init("twl6030", &sdp4430_twldata, sdp4430_i2c_1_boardinfo,
+> +			ARRAY_SIZE(sdp4430_i2c_1_boardinfo));
+>  	omap_register_i2c_bus(2, 400, NULL, 0);
+>  	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
+>  				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index 8ebb16c..eb7a9a8 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -264,6 +264,14 @@ static struct twl6040_platform_data twl6040_data = {
+>  	.audpwron_gpio	= 127,
+>  };
+>  
+> +static struct i2c_board_info __initdata panda_i2c_1_boardinfo[] = {
+> +	{
+> +		I2C_BOARD_INFO("twl6040", 0x4b),
+> +		.irq = OMAP44XX_IRQ_SYS_2N,
+> +		.platform_data = &twl6040_data,
+> +	},
+> +};
+> +
+>  /* Panda board uses the common PMIC configuration */
+>  static struct twl4030_platform_data omap4_panda_twldata;
+>  
+> @@ -291,8 +299,8 @@ static int __init omap4_panda_i2c_init(void)
+>  			TWL_COMMON_REGULATOR_CLK32KG |
+>  			TWL_COMMON_REGULATOR_V1V8 |
+>  			TWL_COMMON_REGULATOR_V2V1);
+> -	omap4_pmic_init("twl6030", &omap4_panda_twldata,
+> -			&twl6040_data, 119 + OMAP44XX_IRQ_GIC_START);
+> +	omap4_pmic_init("twl6030", &omap4_panda_twldata, panda_i2c_1_boardinfo,
+> +			ARRAY_SIZE(panda_i2c_1_boardinfo));
+>  	omap_register_i2c_bus(2, 400, NULL, 0);
+>  	/*
+>  	 * Bus 3 is attached to the DVI port where devices like the pico DLP
+> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+> index 040f480..e279732 100644
+> --- a/arch/arm/mach-omap2/twl-common.c
+> +++ b/arch/arm/mach-omap2/twl-common.c
+> @@ -40,16 +40,6 @@ static struct i2c_board_info __initdata pmic_i2c_board_info = {
+>  	.flags		= I2C_CLIENT_WAKE,
+>  };
+>  
+> -static struct i2c_board_info __initdata omap4_i2c1_board_info[] = {
+> -	{
+> -		.addr		= 0x48,
+> -		.flags		= I2C_CLIENT_WAKE,
+> -	},
+> -	{
+> -		I2C_BOARD_INFO("twl6040", 0x4b),
+> -	},
+> -};
+> -
+>  #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+>  static int twl_set_voltage(void *data, int target_uV)
+>  {
+> @@ -79,30 +69,25 @@ void __init omap_pmic_init(int bus, u32 clkrate,
+>  
+>  void __init omap4_pmic_init(const char *pmic_type,
+>  		    struct twl4030_platform_data *pmic_data,
+> -		    struct twl6040_platform_data *twl6040_data, int twl6040_irq)
+> +		    struct i2c_board_info *devices, int nr_devices)
+>  {
+>  	/* PMIC part*/
+>  	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
+> -	strncpy(omap4_i2c1_board_info[0].type, pmic_type,
+> -		sizeof(omap4_i2c1_board_info[0].type));
+> -	omap4_i2c1_board_info[0].irq = 7 + OMAP44XX_IRQ_GIC_START;
+> -	omap4_i2c1_board_info[0].platform_data = pmic_data;
+> -
+> -	/* TWL6040 audio IC part */
+> -	omap4_i2c1_board_info[1].irq = twl6040_irq;
+> -	omap4_i2c1_board_info[1].platform_data = twl6040_data;
+> -
+> -	omap_register_i2c_bus(1, 400, omap4_i2c1_board_info, 2);
+> +	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
+>  
+> +	/* Register additional devices on i2c1 bus if needed */
+> +	if (devices)
+> +		i2c_register_board_info(1, devices, nr_devices);
+>  }
+>  
+>  void __init omap_pmic_late_init(void)
+>  {
+> -	/* Init the OMAP TWL parameters (if PMIC has been registered) */
+> -	if (pmic_i2c_board_info.irq)
+> -		omap3_twl_init();
+> -	if (omap4_i2c1_board_info[0].irq)
+> -		omap4_twl_init();
+> +	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
+> +	if (!pmic_i2c_board_info.irq)
+> +		return;
+> +
+> +	omap3_twl_init();
+> +	omap4_twl_init();
+>  }
+>  
+>  #if defined(CONFIG_ARCH_OMAP3)
+> diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+> index d109c09..2256efe 100644
+> --- a/arch/arm/mach-omap2/twl-common.h
+> +++ b/arch/arm/mach-omap2/twl-common.h
+> @@ -32,6 +32,7 @@
+>  
+>  struct twl4030_platform_data;
+>  struct twl6040_platform_data;
+> +struct i2c_board_info;
+>  
+>  void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+>  		    struct twl4030_platform_data *pmic_data);
+> @@ -51,7 +52,7 @@ static inline void omap3_pmic_init(const char *pmic_type,
+>  
+>  void omap4_pmic_init(const char *pmic_type,
+>  		    struct twl4030_platform_data *pmic_data,
+> -		    struct twl6040_platform_data *audio_data, int twl6040_irq);
+> +		    struct i2c_board_info *devices, int nr_devices);
+>  
+>  void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+>  			   u32 pdata_flags, u32 regulators_flags);
+> -- 
+> 1.7.12
+> 
