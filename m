@@ -1,81 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: ARM: OMAP: fix new sparse warnings
-Date: Mon, 24 Sep 2012 23:09:32 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209242308100.10406@utopia.booyaka.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 08/15] tidspbridge: Fix VM_PFNMAP mapping
+Date: Tue, 25 Sep 2012 01:11:15 +0200
+Message-ID: <2509239.EghAKueIs0@avalon>
+References: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com> <1348056423-25573-9-git-send-email-laurent.pinchart@ideasonboard.com> <CAMP44s2TTTotajCVE5WRwZPGQmFjzJNhuHBhJwMc45ttuDn6yQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40091 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706Ab2IXXJd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 19:09:33 -0400
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49766 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930Ab2IXXKk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 19:10:40 -0400
+In-Reply-To: <CAMP44s2TTTotajCVE5WRwZPGQmFjzJNhuHBhJwMc45ttuDn6yQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@ti.com>
 
+Hi Felipe,
 
-Commit e54adb1e79762d3591459e5b0e9b9ff578e33fdb ("ARM: OMAP: omap3evm:
-cleanup revision bits") adds a new sparse[1] warning:
+On Friday 21 September 2012 20:37:40 Felipe Contreras wrote:
+> On Wed, Sep 19, 2012 at 2:06 PM, Laurent Pinchart wrote:
+> > VMAs marked with the VM_PFNMAP flag have no struct page associated with
+> > the memory PFNs. Don't call get_page()/put_page() on the pages
+> > supposedly associated with the PFNs.
+> 
+> I don't see anything wrong with the patch, but I think there's a lot
+> of changes, and perhaps a bit more of explanation of how it's doing
+> this might help.
 
-arch/arm/mach-omap2/board-omap3evm.c:90:4: warning: symbol 'get_omap3_evm_rev' was not declared. Should it be static?
+I'll make the commit message more explicit.
 
-This symbol no longer appears to be used outside this file, so mark it
-static and remove the export.
+> Also, it seems to be reordering match_exact_map_obj(), which messes up the
+> diff a bit.
 
-Commit 801475ccb2b2c1928b22aec4b9e5285d9e347602 ("ARM: OMAP: move
-debug_card_init() function") results in the following new sparse[1]
-warning:
+That's because match_exact_map_obj() logically belonged to 
+remove_mapping_information(), but now belongs to find_dsp_mapping(). I've 
+split the commit in two, I'll send the result in reply to this e-mail. Please 
+let me know if you like that better.
 
-arch/arm/plat-omap/debug-devices.c:71:12: warning: symbol 'debug_card_init' was not declared. Should it be static?
-
-Fix by including the proper header file.
-
-...
-
-1. https://sparse.wiki.kernel.org/index.php/Main_Page
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>
----
-
-Will queue this with devel-late-fixes.
-
- arch/arm/mach-omap2/board-omap3evm.c |    3 +--
- arch/arm/plat-omap/debug-devices.c   |    2 ++
- 2 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b94873d..f229aab 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -87,11 +87,10 @@ enum {
- 
- static u8 omap3_evm_version;
- 
--u8 get_omap3_evm_rev(void)
-+static u8 get_omap3_evm_rev(void)
- {
- 	return omap3_evm_version;
- }
--EXPORT_SYMBOL(get_omap3_evm_rev);
- 
- static void __init omap3_evm_get_revision(void)
- {
-diff --git a/arch/arm/plat-omap/debug-devices.c b/arch/arm/plat-omap/debug-devices.c
-index c7a4c09..5e4f722 100644
---- a/arch/arm/plat-omap/debug-devices.c
-+++ b/arch/arm/plat-omap/debug-devices.c
-@@ -17,6 +17,8 @@
- 
- #include <mach/hardware.h>
- 
-+#include <plat/debug-devices.h>
-+
- /* Many OMAP development platforms reuse the same "debug board"; these
-  * platforms include H2, H3, H4, and Perseus2.
-  */
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
