@@ -1,63 +1,57 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [RFC PATCH 01/13] ARM: davinci: move private EDMA API to
- arm/common
-Date: Mon, 24 Sep 2012 02:44:35 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA8D0DF@DBDE01.ent.ti.com>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com>
- <1348152226-13588-2-git-send-email-mporter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: PRCM/runtime PM patches for 3.7
+Date: Sun, 23 Sep 2012 20:04:13 -0700
+Message-ID: <20120924030413.GX28835@atomide.com>
+References: <alpine.DEB.2.00.1209240058530.31370@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1348152226-13588-2-git-send-email-mporter@ti.com>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: "Porter, Matt" <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31175 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753465Ab2IXDEQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Sep 2012 23:04:16 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1209240058530.31370@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 20, 2012 at 20:13:34, Porter, Matt wrote:
-> Move mach-davinci/dma.c to common/edma.c so it can be used
-> by OMAP (specifically AM33xx atm) as well. This just moves
-> the private EDMA API but does not support OMAP.
+* Paul Walmsley <paul@pwsan.com> [120923 18:01]:
+> Hi Tony
 > 
-> Signed-off-by: Matt Porter <mporter@ti.com>
-> ---
->  arch/arm/Kconfig                           |    1 +
->  arch/arm/common/Kconfig                    |    3 +
->  arch/arm/common/Makefile                   |    1 +
->  arch/arm/common/edma.c                     | 1588 ++++++++++++++++++++++++++++
->  arch/arm/include/asm/mach/edma.h           |  267 +++++
->  arch/arm/mach-davinci/Makefile             |    2 +-
->  arch/arm/mach-davinci/devices.c            |    3 +-
->  arch/arm/mach-davinci/dm355.c              |    2 +-
->  arch/arm/mach-davinci/dm365.c              |    2 +-
->  arch/arm/mach-davinci/dm644x.c             |    2 +-
->  arch/arm/mach-davinci/dm646x.c             |    2 +-
->  arch/arm/mach-davinci/dma.c                | 1588 ----------------------------
-
-
->  arch/arm/mach-davinci/include/mach/asp.h   |    2 +-
-
-This will clash with patch "ASoC/ARM: Davinci: McASP: split asp header
-into platform and audio specific" queued in ASoC tree by Mark Brown 
-tree (Auio - ASoC Tree)
-
-I forgot to mention this last time.  Sorry
-
->  arch/arm/mach-davinci/include/mach/da8xx.h |    3 +-
->  arch/arm/mach-davinci/include/mach/edma.h  |  267 -----
->  arch/arm/mach-davinci/include/mach/spi.h   |    2 +-
->  arch/arm/plat-omap/Kconfig                 |    1 +
->  17 files changed, 1872 insertions(+), 1864 deletions(-)
->  create mode 100644 arch/arm/common/edma.c
->  create mode 100644 arch/arm/include/asm/mach/edma.h
->  delete mode 100644 arch/arm/mach-davinci/dma.c
->  delete mode 100644 arch/arm/mach-davinci/include/mach/edma.h
+> The following changes since commit 1e2ee2a60df5c3ab74dd1c9155fb01b5bc6f807d:
 > 
-...snip...
-...snip...
+>   Merge tag 'omap-devel-am33xx-for-v3.7' into test_v3.6-rc6_ocb3.7_cff3.7_odaf3.7 (2012-09-23 17:16:04 -0600)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-c-2-for-3.7
+> 
+> for you to fetch changes up to 76a5d9bfc42d60e9a672e0cae776157a60970f4e:
+> 
+>   ARM: OMAP4460/4470: PMU: Enable PMU for OMAP4460/70 (2012-09-23 17:28:30 -0600)
+> 
+> ----------------------------------------------------------------
+> OMAP patches intended for the 3.7 merge window:
+> 
+> - Runtime PM conversions for the GPMC and RNG IP blocks
+> - Preparation patches for the OMAP common clock framework conversion
+> - clkdev alias additions required by other drivers
+> - Performance Monitoring Unit (PMU) support for OMAP2, 3, and non-4430 OMAP4
+> - OMAP hwmod code and data improvements
+> - Preparation patches for the IOMMU runtime PM conversion
+> - Preparation patches for OMAP4 full-chip retention support
+> 
+> Based on a merge of v3.6-rc6, the omap-cleanup-b-for-3.7 tag
+> (7852ec0536ca39cefffc6301dc77f8ae55592926),the cleanup-fixes-for-v3.7
+> tag (de6ca33a96a6bf61fcb91d3d399703e19ead9d1e), and the
+> omap-devel-am33xx-for-v3.7 tag
+> (11964f53eb4d9ce59a058be9999d9cfcb1ced878), due to dependencies.
 
+Thanks, yeah this one works. Pulled into devel-late branch.
 
-Regards, 
-Gururaja
+Regards,
+
+Tony
