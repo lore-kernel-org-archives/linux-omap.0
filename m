@@ -1,56 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: tidspbridge build fails
-Date: Mon, 24 Sep 2012 10:00:54 -0700
-Message-ID: <20120924170054.GE28835@atomide.com>
-References: <CAOSRfZ7FsVw+MOUfGZZFiCrg2Ec1iSgypdY=Lijzn_x8NpkhLw@mail.gmail.com>
- <loom.20120924T183345-467@post.gmane.org>
+Subject: Re: [PATCH] ARM: OMAP2+: serial: Change MAX_HSUART_PORTS to 6
+Date: Mon, 24 Sep 2012 10:18:29 -0700
+Message-ID: <20120924171829.GF28835@atomide.com>
+References: <1340182169-3840-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:30533 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751417Ab2IXRA5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 13:00:57 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53483 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752835Ab2IXRSc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 13:18:32 -0400
 Content-Disposition: inline
-In-Reply-To: <loom.20120924T183345-467@post.gmane.org>
+In-Reply-To: <1340182169-3840-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Selso LIBERADO <sli@cioinfoindus.fr>
-Cc: linux-omap@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com
 
-* Selso LIBERADO <sli@cioinfoindus.fr> [120924 09:46]:
-> Joni Lapilainen <joni.lapilainen <at> gmail.com> writes:
-> 
-> > 
-> > Building tidspbridge fails:
-> > 
-> >   CC [M]  drivers/staging/tidspbridge/core/tiomap3430.o
-> > drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_brd_start':
-> > drivers/staging/tidspbridge/core/tiomap3430.c:421:25: error:
-> > 'OMAP343X_CTRL_BASE' undeclared (first use in this function)
-> > drivers/staging/tidspbridge/core/tiomap3430.c:421:25: note: each
-> > undeclared identifier is reported only once for each function it
-> > appears in
-> > make[3]: *** [drivers/staging/tidspbridge/core/tiomap3430.o] Error 1
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo <at> vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
-> 
-> This definition has moved to : arch/arm/mach-omap2/omap34xx.h
-> I don't know if we can include directly this file in tiomap3430.c (I'm newbie)
+* AnilKumar Ch <anilkumar@ti.com> [120620 01:54]:
+> Extends the maximum number of UART ports to 6 from 4 because AM335X
+> device have six UART ports.
 
-No we should not, that should be private to arch/arm/mach-omap2.
- 
-> However there is still the symbole  OMAP34XX_WDT3_BASE in
-> 'drivers/staging/tidspbridge/core/wdt.c' that is not resolved.
-
-OK it's probably best to define that locally there or in some
-drivers/staging/tidispbridge header whatever the code is doing
-with it.. Care to do a patch for it? 
+Sorry for the delay, looks like this one is still
+valid. I'll apply this.
 
 Regards,
 
 Tony
+ 
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/omap-serial.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+> index 1a52725..71eca9c 100644
+> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
+> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+> @@ -54,7 +54,7 @@
+>  
+>  #define OMAP_UART_DMA_CH_FREE	-1
+>  
+> -#define OMAP_MAX_HSUART_PORTS	4
+> +#define OMAP_MAX_HSUART_PORTS	6
+>  
+>  #define MSR_SAVE_FLAGS		UART_MSR_ANY_DELTA
+>  
+> -- 
+> 1.7.9.5
+> 
