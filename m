@@ -1,63 +1,86 @@
-From: Yegor Yefremov <yegorslists@googlemail.com>
-Subject: Re: [PATCH] arm: make FORCE_MAX_ZONEORDER configurable for TI AM33XX
-Date: Mon, 24 Sep 2012 21:05:11 +0200
-Message-ID: <CAGm1_ks_GvSTH8DJ6d3R5OjPNEOhQ39hNo4grg1Pn-NqFX5VKQ@mail.gmail.com>
-References: <1341325242-17638-1-git-send-email-yegorslists@googlemail.com> <20120924171858.GG28835@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.6-rc7
+Date: Mon, 24 Sep 2012 19:21:11 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209241919130.25811@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:51258 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757679Ab2IXTFc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 15:05:32 -0400
-Received: by wgbdr13 with SMTP id dr13so3976661wgb.1
-        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 12:05:31 -0700 (PDT)
-In-Reply-To: <20120924171858.GG28835@atomide.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:39554 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932131Ab2IXTVM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 15:21:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Dejan Gacnik <dejan.gacnik@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Mon, Sep 24, 2012 at 7:18 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * yegorslists@googlemail.com <yegorslists@googlemail.com> [120703 07:26]:
->> From: Yegor Yefremov <yegorslists@googlemail.com>
->>
->> FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
->> of consistent DMA memory (da8xx frame buffer driver).
->
-> Sorry for the delay on this one, looks like this one is
-> still valid. I'll apply it.
 
-Thanks.
+Here are some basic OMAP boot and power management test results for 
+v3.6-rc6:
 
-Yegor
+   http://www.pwsan.com/omap/testlogs/test_v3.6-rc6/20120918101040/
 
->> Signed-off-by: Dejan Gacnik <dejan.gacnik@gmail.com>
->> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
->> ---
->>  arch/arm/Kconfig |    5 +++--
->>  1 files changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->> index e876819..ff14c1e 100644
->> --- a/arch/arm/Kconfig
->> +++ b/arch/arm/Kconfig
->> @@ -1725,8 +1725,9 @@ config HW_PERF_EVENTS
->>  source "mm/Kconfig"
->>
->>  config FORCE_MAX_ZONEORDER
->> -     int "Maximum zone order" if ARCH_SHMOBILE
->> -     range 11 64 if ARCH_SHMOBILE
->> +     int "Maximum zone order"
->> +     depends on ARCH_SHMOBILE || SOC_AM33XX
->> +     range 11 64 if ARCH_SHMOBILE || SOC_AM33XX
->>       default "9" if SA1111
->>       default "11"
->>       help
->> --
->> 1.7.7
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Some observations:
+
+Boot tests:
+
+* CM-T3517: L3 in-band error with IPSS during boot
+  - Cause unknown but see 
+http://marc.info/?l=linux-omap&m=134833869730129&w=2
+  - Longstanding issue; does not occur on the 3517EVM
+
+* 3517EVM & CM-T3517: boot hangs               
+  - Probably due to the use of NFS root; there are likely some Kconfig,
+    board file, and PM issues with EMAC
+
+PM tests:
+
+* 37xx EVM: CORE not entering dynamic off-idle
+  - Cause unknown; dynamic retention-idle seems to work; system suspend to 
+    off works
+
+* 3730 Beagle XM: does not serial wake from off-idle suspend when console
+  UART doesn't clock gate ("debug ignore_loglevel")
+  - Not shown in the current test logs; cause unknown
+
+* 4430ES2 Panda: UART corruption during long transmit buffers
+  - Presumably due to either a missing hardware workaround or a bug in
+    the OMAP serial driver
+
+Other:
+
+* RCU stall messages appear if boards are booted into a minimal userspace
+  and left to sit for a few minutes
+  - Fixed by http://marc.info/?l=linux-arm-kernel&m=134835120600590&w=2
+
+
+Changes from v3.6-rc6 (test 20120918101040):
+(see http://www.pwsan.com/omap/testlogs/test_v3.6-rc6/20120918101040/ )
+
+- Added comments about RCU stalls, appearing since at least v3.6-rc3
+
+- Updated CM-T3517 "USB OTG" (really IPSS) comment
+
+object size (delta in bytes from test_v3.6-rc6 (5698bd757d55b1bb87edd1a9744ab09c142abfc2)):
+  text 	  data 	   bss 	 total 	kernel
+  -328 	   +72 	     0 	  -256 	2430_testconfig
+   -16 	   +16 	     0 	     0 	5912osk_testconfig
+  -376 	   +72 	     0 	  -304 	am33xx_testconfig
+   +64 	   +32 	     0 	   +96 	n800_b_testconfig
+   +80 	   +64 	     0 	  +144 	n800_multi_omap2xxx
+   +80 	   +32 	     0 	  +112 	n800_testconfig
+   +72 	   +80 	     0 	  +152 	omap1510_defconfig
+   +40 	   +16 	     0 	   +56 	omap1_defconfig
+   +80 	   +64 	     0 	  +144 	omap2_4_testconfig
+  -376 	   +40 	     0 	  -336 	omap2plus_defconfig
+  -376 	   +72 	     0 	  -304 	omap2plus_defconfig_cpupm
+   +20 	   +72 	     0 	   +92 	omap2plus_no_pm
+   +20 	    +8 	     0 	   +28 	omap3_4_testconfig
+  +140 	   +72 	     0 	  +212 	omap3_testconfig
+   +20 	   +40 	     0 	   +60 	omap4_testconfig
+   -40 	   +72 	     0 	   +32 	rmk_omap3430_ldp_oldconfig
+  -200 	    +8 	     0 	  -192 	rmk_omap4430_sdp_oldconfig
+
+
+
+- Paul
