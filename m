@@ -1,237 +1,219 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/9] OMAPDSS: DSI: improve DSI clock calcs for DISPC
-Date: Mon, 24 Sep 2012 16:58:31 +0300
-Message-ID: <1348495119-8262-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/9] OMAPDSS: Add basic omap5 features to dss and dispc
+Date: Mon, 24 Sep 2012 16:58:32 +0300
+Message-ID: <1348495119-8262-3-git-send-email-tomi.valkeinen@ti.com>
 References: <1348495119-8262-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:39974 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755481Ab2IXN6v (ORCPT
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:39380 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755503Ab2IXN64 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:58:51 -0400
-Received: by lbbgj3 with SMTP id gj3so6750026lbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 06:58:48 -0700 (PDT)
+	Mon, 24 Sep 2012 09:58:56 -0400
+Received: by lbbgj3 with SMTP id gj3so6750187lbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 06:58:53 -0700 (PDT)
 In-Reply-To: <1348495119-8262-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Commit ee144e645a081daad5de1ccac77f0a0e98e6a67b added
-dsi_pll_calc_ddrfreq() which calculates PLL dividers based on given DSI
-bus clock speed. The function works ok, but it can be improved for the
-DISPC clock calc.
+From: Archit Taneja <archit@ti.com>
 
-The current version calculates the clock going from the PLL to the DISPC
-simply by setting the clock as close to DISPC maximum as possible, and
-the pixel clock is calculated based on that.
+Add basic omap5 features for dss and dispc.
 
-This patch changes the function to calculate DISPC clock more
-dynamically, iterating through different DISPC clocks and pixel clock
-values, and thus we'll get more suitable pixel clocks.
-
+Signed-off-by: Archit Taneja <archit@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |  144 ++++++++++++++++++++++++++++++++---------
- 1 file changed, 113 insertions(+), 31 deletions(-)
+ drivers/video/omap2/dss/dispc.c        |    2 +
+ drivers/video/omap2/dss/dss.c          |    8 +++
+ drivers/video/omap2/dss/dss_features.c |   93 ++++++++++++++++++++++++++++++++
+ 3 files changed, 103 insertions(+)
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 8d815e3..8d47fb7 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -1454,26 +1454,17 @@ found:
- }
- 
- static int dsi_pll_calc_ddrfreq(struct platform_device *dsidev,
--		unsigned long req_clk, struct dsi_clock_info *cinfo)
-+		unsigned long req_clkin4ddr, struct dsi_clock_info *cinfo)
- {
- 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
- 	struct dsi_clock_info cur, best;
--	unsigned long dss_sys_clk, max_dss_fck, max_dsi_fck;
--	unsigned long req_clkin4ddr;
- 
- 	DSSDBG("dsi_pll_calc_ddrfreq\n");
- 
--	dss_sys_clk = clk_get_rate(dsi->sys_clk);
--
--	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
--	max_dsi_fck = dss_feat_get_param_max(FEAT_PARAM_DSI_FCK);
--
- 	memset(&best, 0, sizeof(best));
- 	memset(&cur, 0, sizeof(cur));
- 
--	cur.clkin = dss_sys_clk;
--
--	req_clkin4ddr = req_clk * 4;
-+	cur.clkin = clk_get_rate(dsi->sys_clk);
- 
- 	for (cur.regn = 1; cur.regn < dsi->regn_max; ++cur.regn) {
- 		cur.fint = cur.clkin / cur.regn;
-@@ -1503,18 +1494,107 @@ static int dsi_pll_calc_ddrfreq(struct platform_device *dsidev,
- 		}
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index d512c38..e52c5778 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -3829,6 +3829,8 @@ static int __init dispc_init_features(struct device *dev)
+ 			src = &omap34xx_rev3_0_dispc_feats;
+ 	} else if (cpu_is_omap44xx()) {
+ 		src = &omap44xx_dispc_feats;
++	} else if (soc_is_omap54xx()) {
++		src = &omap44xx_dispc_feats;
+ 	} else {
+ 		return -ENODEV;
  	}
- found:
--	best.regm_dispc = DIV_ROUND_UP(best.clkin4ddr, max_dss_fck);
--	best.dsi_pll_hsdiv_dispc_clk = best.clkin4ddr / best.regm_dispc;
--
--	best.regm_dsi = DIV_ROUND_UP(best.clkin4ddr, max_dsi_fck);
--	best.dsi_pll_hsdiv_dsi_clk = best.clkin4ddr / best.regm_dsi;
--
- 	if (cinfo)
- 		*cinfo = best;
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 759dbee..4524c17 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -123,6 +123,12 @@ static const struct dss_features omap44xx_dss_feats __initconst = {
+ 	.clk_name		=	"dpll_per_m5x2_ck",
+ };
  
- 	return 0;
- }
- 
-+static void dsi_pll_calc_dsi_fck(struct platform_device *dsidev,
-+		struct dsi_clock_info *cinfo)
-+{
-+	unsigned long max_dsi_fck;
++static const struct dss_features omap54xx_dss_feats __initconst = {
++	.fck_div_max		=	64,
++	.dss_fck_multiplier	=	1,
++	.clk_name		=	"dpll_per_h12x2_ck",
++};
 +
-+	max_dsi_fck = dss_feat_get_param_max(FEAT_PARAM_DSI_FCK);
-+
-+	cinfo->regm_dsi = DIV_ROUND_UP(cinfo->clkin4ddr, max_dsi_fck);
-+	cinfo->dsi_pll_hsdiv_dsi_clk = cinfo->clkin4ddr / cinfo->regm_dsi;
-+}
-+
-+static int dsi_pll_calc_dispc_fck(struct platform_device *dsidev,
-+		unsigned long req_pck, struct dsi_clock_info *cinfo,
-+		struct dispc_clock_info *dispc_cinfo)
-+{
-+	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
-+	unsigned regm_dispc, best_regm_dispc;
-+	unsigned long dispc_clk, best_dispc_clk;
-+	int min_fck_per_pck;
-+	unsigned long max_dss_fck;
-+	struct dispc_clock_info best_dispc;
-+	bool match;
-+
-+	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
-+
-+	min_fck_per_pck = CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK;
-+
-+	if (min_fck_per_pck &&
-+			req_pck * min_fck_per_pck > max_dss_fck) {
-+		DSSERR("Requested pixel clock not possible with the current "
-+				"OMAP2_DSS_MIN_FCK_PER_PCK setting. Turning "
-+				"the constraint off.\n");
-+		min_fck_per_pck = 0;
-+	}
-+
-+retry:
-+	best_regm_dispc = 0;
-+	best_dispc_clk = 0;
-+	memset(&best_dispc, 0, sizeof(best_dispc));
-+	match = false;
-+
-+	for (regm_dispc = 1; regm_dispc < dsi->regm_dispc_max; ++regm_dispc) {
-+		struct dispc_clock_info cur_dispc;
-+
-+		dispc_clk = cinfo->clkin4ddr / regm_dispc;
-+
-+		/* this will narrow down the search a bit,
-+		 * but still give pixclocks below what was
-+		 * requested */
-+		if (dispc_clk  < req_pck)
-+			break;
-+
-+		if (dispc_clk > max_dss_fck)
-+			continue;
-+
-+		if (min_fck_per_pck && dispc_clk < req_pck * min_fck_per_pck)
-+			continue;
-+
-+		match = true;
-+
-+		dispc_find_clk_divs(req_pck, dispc_clk, &cur_dispc);
-+
-+		if (abs(cur_dispc.pck - req_pck) <
-+				abs(best_dispc.pck - req_pck)) {
-+			best_regm_dispc = regm_dispc;
-+			best_dispc_clk = dispc_clk;
-+			best_dispc = cur_dispc;
-+
-+			if (cur_dispc.pck == req_pck)
-+				goto found;
-+		}
-+	}
-+
-+	if (!match) {
-+		if (min_fck_per_pck) {
-+			DSSERR("Could not find suitable clock settings.\n"
-+					"Turning FCK/PCK constraint off and"
-+					"trying again.\n");
-+			min_fck_per_pck = 0;
-+			goto retry;
-+		}
-+
-+		DSSERR("Could not find suitable clock settings.\n");
-+
-+		return -EINVAL;
-+	}
-+found:
-+	cinfo->regm_dispc = best_regm_dispc;
-+	cinfo->dsi_pll_hsdiv_dispc_clk = best_dispc_clk;
-+
-+	*dispc_cinfo = best_dispc;
-+
-+	return 0;
-+}
-+
- int dsi_pll_set_clock_div(struct platform_device *dsidev,
- 		struct dsi_clock_info *cinfo)
+ static inline void dss_write_reg(const struct dss_reg idx, u32 val)
  {
-@@ -4188,33 +4268,35 @@ int omapdss_dsi_set_clocks(struct omap_dss_device *dssdev,
+ 	__raw_writel(val, dss.base + idx.idx);
+@@ -740,6 +746,8 @@ static int __init dss_init_features(struct device *dev)
+ 		src = &omap3630_dss_feats;
+ 	else if (cpu_is_omap44xx())
+ 		src = &omap44xx_dss_feats;
++	else if (soc_is_omap54xx())
++		src = &omap54xx_dss_feats;
+ 	else
+ 		return -ENODEV;
  
- 	mutex_lock(&dsi->lock);
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index c26fc1f..af4775a 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -106,6 +106,21 @@ static const struct dss_reg_field omap4_dss_reg_fields[] = {
+ 	[FEAT_REG_DSIPLL_REGM_DSI]		= { 30, 26 },
+ };
  
--	r = dsi_pll_calc_ddrfreq(dsidev, ddr_clk, &cinfo);
-+	/* Calculate PLL output clock */
-+	r = dsi_pll_calc_ddrfreq(dsidev, ddr_clk * 4, &cinfo);
- 	if (r)
- 		goto err;
++static const struct dss_reg_field omap5_dss_reg_fields[] = {
++	[FEAT_REG_FIRHINC]			= { 12, 0 },
++	[FEAT_REG_FIRVINC]			= { 28, 16 },
++	[FEAT_REG_FIFOLOWTHRESHOLD]		= { 15, 0 },
++	[FEAT_REG_FIFOHIGHTHRESHOLD]		= { 31, 16 },
++	[FEAT_REG_FIFOSIZE]			= { 15, 0 },
++	[FEAT_REG_HORIZONTALACCU]		= { 10, 0 },
++	[FEAT_REG_VERTICALACCU]			= { 26, 16 },
++	[FEAT_REG_DISPC_CLK_SWITCH]		= { 9, 7 },
++	[FEAT_REG_DSIPLL_REGN]			= { 8, 1 },
++	[FEAT_REG_DSIPLL_REGM]			= { 20, 9 },
++	[FEAT_REG_DSIPLL_REGM_DISPC]		= { 25, 21 },
++	[FEAT_REG_DSIPLL_REGM_DSI]		= { 30, 26 },
++};
++
+ static const enum omap_display_type omap2_dss_supported_displays[] = {
+ 	/* OMAP_DSS_CHANNEL_LCD */
+ 	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI,
+@@ -144,6 +159,19 @@ static const enum omap_display_type omap4_dss_supported_displays[] = {
+ 	OMAP_DISPLAY_TYPE_DSI,
+ };
  
--	dssdev->clocks.dsi.regn = cinfo.regn;
--	dssdev->clocks.dsi.regm = cinfo.regm;
--	dssdev->clocks.dsi.regm_dispc = cinfo.regm_dispc;
--	dssdev->clocks.dsi.regm_dsi = cinfo.regm_dsi;
-+	/* Calculate PLL's DSI clock */
-+	dsi_pll_calc_dsi_fck(dsidev, &cinfo);
++static const enum omap_display_type omap5_dss_supported_displays[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
++	OMAP_DISPLAY_TYPE_DSI,
++
++	/* OMAP_DSS_CHANNEL_DIGIT */
++	OMAP_DISPLAY_TYPE_HDMI | OMAP_DISPLAY_TYPE_DPI,
++
++	/* OMAP_DSS_CHANNEL_LCD2 */
++	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
++	OMAP_DISPLAY_TYPE_DSI,
++};
++
+ static const enum omap_color_mode omap2_dss_supported_color_modes[] = {
+ 	/* OMAP_DSS_GFX */
+ 	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
+@@ -298,6 +326,14 @@ static const char * const omap4_dss_clk_source_names[] = {
+ 	[OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI]	= "PLL2_CLK2",
+ };
  
-+	/* Calculate PLL's DISPC clock and pck & lck divs */
-+	pck = cinfo.clkin4ddr / 16 * (dsi->num_lanes_used - 1) * 8 / bpp;
-+	DSSDBG("finding dispc dividers for pck %lu\n", pck);
-+	r = dsi_pll_calc_dispc_fck(dsidev, pck, &cinfo, &dispc_cinfo);
-+	if (r)
-+		goto err;
++static const char * const omap5_dss_clk_source_names[] = {
++	[OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "DPLL_DSI1_A_CLK1",
++	[OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]	= "DPLL_DSI1_A_CLK2",
++	[OMAP_DSS_CLK_SRC_FCK]			= "DSS_CLK",
++	[OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC]	= "DPLL_DSI1_C_CLK1",
++	[OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI]	= "DPLL_DSI1_C_CLK2",
++};
++
+ static const struct dss_param_range omap2_dss_param_range[] = {
+ 	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
+ 	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
+@@ -349,6 +385,22 @@ static const struct dss_param_range omap4_dss_param_range[] = {
+ 	[FEAT_PARAM_MGR_HEIGHT]			= { 1, 2048 },
+ };
  
-+	/* Calculate LP clock */
- 	dsi_fclk = cinfo.dsi_pll_hsdiv_dsi_clk;
- 	lp_clk_div = DIV_ROUND_UP(dsi_fclk, lp_clk * 2);
++static const struct dss_param_range omap5_dss_param_range[] = {
++	[FEAT_PARAM_DSS_FCK]			= { 0, 200000000 },
++	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
++	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 8) - 1 },
++	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 12) - 1 },
++	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 5) - 1 },
++	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 5) - 1 },
++	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
++	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
++	[FEAT_PARAM_DSI_FCK]			= { 0, 170000000 },
++	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
++	[FEAT_PARAM_LINEWIDTH]			= { 1, 2048 },
++	[FEAT_PARAM_MGR_WIDTH]			= { 1, 2048 },
++	[FEAT_PARAM_MGR_HEIGHT]			= { 1, 2048 },
++};
++
+ static const enum dss_feat_id omap2_dss_feat_list[] = {
+ 	FEAT_LCDENABLEPOL,
+ 	FEAT_LCDENABLESIGNAL,
+@@ -450,6 +502,25 @@ static const enum dss_feat_id omap4_dss_feat_list[] = {
+ 	FEAT_BURST_2D,
+ };
  
--	dssdev->clocks.dsi.lp_clk_div = lp_clk_div;
--
--	/* pck = TxByteClkHS * datalanes * 8 / bitsperpixel */
--
--	pck = cinfo.clkin4ddr / 16 * (dsi->num_lanes_used - 1) * 8 / bpp;
--
--	DSSDBG("finding dispc dividers for pck %lu\n", pck);
-+	dssdev->clocks.dsi.regn = cinfo.regn;
-+	dssdev->clocks.dsi.regm = cinfo.regm;
-+	dssdev->clocks.dsi.regm_dispc = cinfo.regm_dispc;
-+	dssdev->clocks.dsi.regm_dsi = cinfo.regm_dsi;
++static const enum dss_feat_id omap5_dss_feat_list[] = {
++	FEAT_MGR_LCD2,
++	FEAT_CORE_CLK_DIV,
++	FEAT_LCD_CLK_SRC,
++	FEAT_DSI_DCS_CMD_CONFIG_VC,
++	FEAT_DSI_VC_OCP_WIDTH,
++	FEAT_DSI_GNQ,
++	FEAT_HDMI_CTS_SWMODE,
++	FEAT_HDMI_AUDIO_USE_MCLK,
++	FEAT_HANDLE_UV_SEPARATE,
++	FEAT_ATTR2,
++	FEAT_CPR,
++	FEAT_PRELOAD,
++	FEAT_FIR_COEF_V,
++	FEAT_ALPHA_FREE_ZORDER,
++	FEAT_FIFO_MERGE,
++	FEAT_BURST_2D,
++};
++
+ /* OMAP2 DSS Features */
+ static const struct omap_dss_features omap2_dss_features = {
+ 	.reg_fields = omap2_dss_reg_fields,
+@@ -570,6 +641,26 @@ static const struct omap_dss_features omap4_dss_features = {
+ 	.burst_size_unit = 16,
+ };
  
--	dispc_find_clk_divs(pck, cinfo.dsi_pll_hsdiv_dispc_clk, &dispc_cinfo);
-+	dssdev->clocks.dsi.lp_clk_div = lp_clk_div;
- 
- 	dssdev->clocks.dispc.channel.lck_div = dispc_cinfo.lck_div;
- 	dssdev->clocks.dispc.channel.pck_div = dispc_cinfo.pck_div;
- 
--
- 	dssdev->clocks.dispc.dispc_fclk_src = OMAP_DSS_CLK_SRC_FCK;
- 
- 	dssdev->clocks.dispc.channel.lcd_clk_src =
++/* OMAP5 DSS Features */
++static const struct omap_dss_features omap5_dss_features = {
++	.reg_fields = omap5_dss_reg_fields,
++	.num_reg_fields = ARRAY_SIZE(omap5_dss_reg_fields),
++
++	.features = omap5_dss_feat_list,
++	.num_features = ARRAY_SIZE(omap5_dss_feat_list),
++
++	.num_mgrs = 3,
++	.num_ovls = 4,
++	.supported_displays = omap5_dss_supported_displays,
++	.supported_color_modes = omap4_dss_supported_color_modes,
++	.overlay_caps = omap4_dss_overlay_caps,
++	.clksrc_names = omap5_dss_clk_source_names,
++	.dss_params = omap5_dss_param_range,
++	.supported_rotation_types = OMAP_DSS_ROT_DMA | OMAP_DSS_ROT_TILER,
++	.buffer_size_unit = 16,
++	.burst_size_unit = 16,
++};
++
+ #if defined(CONFIG_OMAP4_DSS_HDMI)
+ /* HDMI OMAP4 Functions*/
+ static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
+@@ -707,6 +798,8 @@ void dss_features_init(void)
+ 		omap_current_dss_features = &omap4430_es2_0_1_2_dss_features;
+ 	else if (cpu_is_omap44xx())
+ 		omap_current_dss_features = &omap4_dss_features;
++	else if (soc_is_omap54xx())
++		omap_current_dss_features = &omap5_dss_features;
+ 	else
+ 		DSSWARN("Unsupported OMAP version");
+ }
 -- 
 1.7.9.5
 
