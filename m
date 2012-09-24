@@ -1,76 +1,58 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 00/15] tidspbridge driver MMU-related cleanups
-Date: Tue, 25 Sep 2012 01:15:16 +0200
-Message-ID: <5440295.qvmhmnK8Sf@avalon>
-References: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAB-zwWixOeCPoV=F1E8t7_6AdgCTLQhC72_G35+dSnaJsTwonA@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] arm: make FORCE_MAX_ZONEORDER configurable for TI
+	AM33XX
+Date: Tue, 25 Sep 2012 00:16:19 +0100
+Message-ID: <20120924231619.GA28941@n2100.arm.linux.org.uk>
+References: <1341325242-17638-1-git-send-email-yegorslists@googlemail.com> <20120924171858.GG28835@atomide.com> <CAGm1_ks_GvSTH8DJ6d3R5OjPNEOhQ39hNo4grg1Pn-NqFX5VKQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49791 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861Ab2IXXOk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 19:14:40 -0400
-In-Reply-To: <CAB-zwWixOeCPoV=F1E8t7_6AdgCTLQhC72_G35+dSnaJsTwonA@mail.gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39455 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750778Ab2IXXQ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 19:16:27 -0400
+Content-Disposition: inline
+In-Reply-To: <CAGm1_ks_GvSTH8DJ6d3R5OjPNEOhQ39hNo4grg1Pn-NqFX5VKQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Yegor Yefremov <yegorslists@googlemail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Dejan Gacnik <dejan.gacnik@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-Hi Omar,
-
-On Friday 21 September 2012 11:18:56 Ramirez Luna, Omar wrote:
-> On Wed, Sep 19, 2012 at 7:06 AM, Laurent Pinchart wrote:
-> > Hello,
-> > 
-> > Here's the second version of my tidspbridge MMU-related cleanup patches.
-> > The first version has been sent privately only, don't try to search the
-> > mailing list archive for it :-)
-> > 
-> > Replacing hw/hw_mmu.c and part of core/tiomap3430.c with generic IOMMU
-> > calls should be less difficult now. Anyone would like to give it a try?
-> > 
-> > Laurent Pinchart (14):
-> >   tidspbridge: hw_mmu: Reorder functions to avoid forward declarations
-> >   tidspbridge: hw_mmu: Removed unused functions
-> >   tidspbridge: tiomap3430: Reorder functions to avoid forward
-> >     declarations
-> >   tidspbridge: tiomap3430: Remove unneeded dev_context local variables
-> >   tidspbridge: tiomap3430: Factor out common page release code
-> >   tidspbridge: tiomap3430: Remove ul_ prefix
-> >   tidspbridge: tiomap3430: Remove unneeded local variables
-> >   tidspbridge: Fix VM_PFNMAP mapping
-> >   tidspbridge: Remove unused hw_mmu_map_attrs_t::donotlockmpupage field
-> >   arm: omap: iommu: Include required headers in iommu.h and iopgtable.h
-> >   tidspbridge: Use constants defined in IOMMU platform headers
-> >   tidspbridge: Simplify pte_update and mem_map_vmalloc functions
-> >   tidspbridge: Use correct types to describe physical, MPU, DSP
-> >     addresses
-> >   tidspbridge: Replace hw_mmu_map_attrs_t structure with a prot
-> >     bitfield
+On Mon, Sep 24, 2012 at 09:05:11PM +0200, Yegor Yefremov wrote:
+> On Mon, Sep 24, 2012 at 7:18 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * yegorslists@googlemail.com <yegorslists@googlemail.com> [120703 07:26]:
+> >> From: Yegor Yefremov <yegorslists@googlemail.com>
+> >>
+> >> FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
+> >> of consistent DMA memory (da8xx frame buffer driver).
+> >
+> > Sorry for the delay on this one, looks like this one is
+> > still valid. I'll apply it.
 > 
-> Thanks, tested on beagle-xM, they look good!
+> Thanks.
 > 
-> Can you submit them to Greg KH and devel@driverdev.osuosl.org,
-> preferably with a 'staging:' prefix along with the current subject.
-
-I'll do that after getting Felipe's feedback (as well as yours if possible 
-:-)) on the VM_PFNMAP patch split that I've posted today.
-
-> The only thing of concern is that:
-> ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
+> Yegor
 > 
-> Might be taking a different path than these to mainline[1].
-> 
-> Cheers,
-> 
-> Omar
-> 
-> ---
-> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg76319.html
+> >> Signed-off-by: Dejan Gacnik <dejan.gacnik@gmail.com>
+> >> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+> >> ---
+> >>  arch/arm/Kconfig |    5 +++--
+> >>  1 files changed, 3 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> >> index e876819..ff14c1e 100644
+> >> --- a/arch/arm/Kconfig
+> >> +++ b/arch/arm/Kconfig
+> >> @@ -1725,8 +1725,9 @@ config HW_PERF_EVENTS
+> >>  source "mm/Kconfig"
+> >>
+> >>  config FORCE_MAX_ZONEORDER
+> >> -     int "Maximum zone order" if ARCH_SHMOBILE
+> >> -     range 11 64 if ARCH_SHMOBILE
+> >> +     int "Maximum zone order"
+> >> +     depends on ARCH_SHMOBILE || SOC_AM33XX
+> >> +     range 11 64 if ARCH_SHMOBILE || SOC_AM33XX
+> >>       default "9" if SA1111
+> >>       default "11"
 
--- 
-Regards,
-
-Laurent Pinchart
-
+NAK.  This patch breaks SA1111 platforms.  To see why, read the patch.
