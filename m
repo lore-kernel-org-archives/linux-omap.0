@@ -1,50 +1,109 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 0/9] OMAPDSS: OMAP5 related patches
-Date: Mon, 24 Sep 2012 16:58:30 +0300
-Message-ID: <1348495119-8262-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/9] OMAPDSS: move dss feats to the end of dss.c
+Date: Mon, 24 Sep 2012 16:58:33 +0300
+Message-ID: <1348495119-8262-4-git-send-email-tomi.valkeinen@ti.com>
+References: <1348495119-8262-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:36074 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754900Ab2IXN6t (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:59194 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755481Ab2IXN6z (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:58:49 -0400
-Received: by lbbgj3 with SMTP id gj3so6749994lbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 06:58:46 -0700 (PDT)
+	Mon, 24 Sep 2012 09:58:55 -0400
+Received: by lbbgj3 with SMTP id gj3so6750180lbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 06:58:53 -0700 (PDT)
+In-Reply-To: <1348495119-8262-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+Move dss_features to the end of dss.c the same way they are in dispc.c,
+so that we don't have to declare prototypes for static feat-related
+functions.
 
-This series adds basic OMAP5 DSS functionality, mainly related to DSS core, DPI
-and DSI.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dss.c |   60 ++++++++++++++++++++---------------------
+ 1 file changed, 30 insertions(+), 30 deletions(-)
 
- Tomi
-
-Archit Taneja (1):
-  OMAPDSS: Add basic omap5 features to dss and dispc
-
-Tomi Valkeinen (8):
-  OMAPDSS: DSI: improve DSI clock calcs for DISPC
-  OMAPDSS: move dss feats to the end of dss.c
-  OMAPDSS: Add support for DPI source selection
-  OMAPDSS: DSI: Add FEAT_DSI_PLL_SELFREQDCO
-  OMAPDSS: DSI: Add FEAT_DSI_PLL_REFSEL
-  OMAPDSS: DSI: Add new linebuffer size for OMAP5
-  OMAPDSS: DSI: Add code to disable PHY DCC
-  OMAPDSS: DSI: make OMAP2_DSS_DSI depend on ARCH_OMAP5
-
- drivers/video/omap2/dss/Kconfig        |    2 +-
- drivers/video/omap2/dss/dispc.c        |    2 +
- drivers/video/omap2/dss/dpi.c          |    5 +
- drivers/video/omap2/dss/dsi.c          |  167 +++++++++++++++++++++++++-------
- drivers/video/omap2/dss/dss.c          |  121 ++++++++++++++++++-----
- drivers/video/omap2/dss/dss.h          |    1 +
- drivers/video/omap2/dss/dss_features.c |   96 ++++++++++++++++++
- drivers/video/omap2/dss/dss_features.h |    3 +
- 8 files changed, 337 insertions(+), 60 deletions(-)
-
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 4524c17..660813b 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -99,36 +99,6 @@ static const char * const dss_generic_clk_source_names[] = {
+ 	[OMAP_DSS_CLK_SRC_FCK]			= "DSS_FCK",
+ };
+ 
+-static const struct dss_features omap24xx_dss_feats __initconst = {
+-	.fck_div_max		=	16,
+-	.dss_fck_multiplier	=	2,
+-	.clk_name		=	NULL,
+-};
+-
+-static const struct dss_features omap34xx_dss_feats __initconst = {
+-	.fck_div_max		=	16,
+-	.dss_fck_multiplier	=	2,
+-	.clk_name		=	"dpll4_m4_ck",
+-};
+-
+-static const struct dss_features omap3630_dss_feats __initconst = {
+-	.fck_div_max		=	32,
+-	.dss_fck_multiplier	=	1,
+-	.clk_name		=	"dpll4_m4_ck",
+-};
+-
+-static const struct dss_features omap44xx_dss_feats __initconst = {
+-	.fck_div_max		=	32,
+-	.dss_fck_multiplier	=	1,
+-	.clk_name		=	"dpll_per_m5x2_ck",
+-};
+-
+-static const struct dss_features omap54xx_dss_feats __initconst = {
+-	.fck_div_max		=	64,
+-	.dss_fck_multiplier	=	1,
+-	.clk_name		=	"dpll_per_h12x2_ck",
+-};
+-
+ static inline void dss_write_reg(const struct dss_reg idx, u32 val)
+ {
+ 	__raw_writel(val, dss.base + idx.idx);
+@@ -727,6 +697,36 @@ void dss_debug_dump_clocks(struct seq_file *s)
+ }
+ #endif
+ 
++static const struct dss_features omap24xx_dss_feats __initconst = {
++	.fck_div_max		=	16,
++	.dss_fck_multiplier	=	2,
++	.clk_name		=	NULL,
++};
++
++static const struct dss_features omap34xx_dss_feats __initconst = {
++	.fck_div_max		=	16,
++	.dss_fck_multiplier	=	2,
++	.clk_name		=	"dpll4_m4_ck",
++};
++
++static const struct dss_features omap3630_dss_feats __initconst = {
++	.fck_div_max		=	32,
++	.dss_fck_multiplier	=	1,
++	.clk_name		=	"dpll4_m4_ck",
++};
++
++static const struct dss_features omap44xx_dss_feats __initconst = {
++	.fck_div_max		=	32,
++	.dss_fck_multiplier	=	1,
++	.clk_name		=	"dpll_per_m5x2_ck",
++};
++
++static const struct dss_features omap54xx_dss_feats __initconst = {
++	.fck_div_max		=	64,
++	.dss_fck_multiplier	=	1,
++	.clk_name		=	"dpll_per_h12x2_ck",
++};
++
+ static int __init dss_init_features(struct device *dev)
+ {
+ 	const struct dss_features *src;
 -- 
 1.7.9.5
 
