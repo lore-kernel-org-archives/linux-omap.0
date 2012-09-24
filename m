@@ -1,71 +1,49 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Mon, 24 Sep 2012 15:00:23 -0700
-Message-ID: <20120924220023.GG2477@linux.vnet.ibm.com>
-References: <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <alpine.DEB.2.00.1209211740170.8839@utopia.booyaka.com>
- <20120921212054.GE2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209212240190.31812@utopia.booyaka.com>
- <20120922000537.GH2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209221813330.10663@utopia.booyaka.com>
- <20120922195253.GD2934@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209222214120.22590@utopia.booyaka.com>
- <20120922231733.GI2934@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209242142490.4521@utopia.booyaka.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Omar Ramirez Luna <omar.ramirez@copitl.com>
+Subject: Re: tidspbridge build fails
+Date: Mon, 24 Sep 2012 17:13:46 -0500
+Message-ID: <CAJ6Av5M4BWy709qLLz5HOjXL87GjTqyF6qQku-DSW1B2hNJxJQ@mail.gmail.com>
+References: <CAOSRfZ7FsVw+MOUfGZZFiCrg2Ec1iSgypdY=Lijzn_x8NpkhLw@mail.gmail.com>
+	<loom.20120924T183345-467@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from e33.co.us.ibm.com ([32.97.110.151]:57449 "EHLO
-	e33.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab2IXWAo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 18:00:44 -0400
-Received: from /spool/local
-	by e33.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-omap@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Mon, 24 Sep 2012 16:00:43 -0600
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209242142490.4521@utopia.booyaka.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:52721 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750787Ab2IXWNs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 18:13:48 -0400
+Received: by ieak13 with SMTP id k13so12308107iea.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 15:13:46 -0700 (PDT)
+In-Reply-To: <loom.20120924T183345-467@post.gmane.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>
+To: Selso LIBERADO <sli@cioinfoindus.fr>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com
 
-On Mon, Sep 24, 2012 at 09:54:00PM +0000, Paul Walmsley wrote:
-> On Sat, 22 Sep 2012, Paul E. McKenney wrote:
-> 
-> > On Sat, Sep 22, 2012 at 10:20:19PM +0000, Paul Walmsley wrote:
-> > > On Sat, 22 Sep 2012, Paul E. McKenney wrote:
-> > >
-> > > > This thing has been in the kernel since about 2004, not sure why you 
-> > > > didn't hit it earlier.
-> > > 
-> > > One other data point in that regard - noticed the warnings don't appear 
-> > > when the board is booted with:
-> > > 
-> > > commit 4fa3b6cb1bc8c14b81b4c8ffdfd3f2500a7e9367
-> > > Author: Paul E. McKenney <paul.mckenney@linaro.org>
-> > > Date:   Tue Jun 5 15:53:53 2012 -0700
-> > > 
-> > >     rcu: Fix qlen_lazy breakage
-> > 
-> > You lost me on this one.  This is already in mainline, so if you were
-> > using (say) 3.6-rc6, you would already have this commit applied.
-> 
-> If I check out a kernel at this commit 
-> 4fa3b6cb1bc8c14b81b4c8ffdfd3f2500a7e9367 + the 
-> zero-callback-in-tickless-idle diagnostic patch, build and boot it, then 
-> the stall warnings don't appear (in 25 minutes of testing).
-> 
-> Messages from the diagnostic patch indicate that the kernel is entering 
-> idle during a grace period with no RCU callbacks, though.
-> 
-> This is not a big deal and does not need any further attention.  Just 
-> wanted to place a time boundary on the point when these messages started 
-> appearing.  (It is unlikely to be an optimal bound: i.e., there are 
-> probably later commits where the warnings also don't appear.)
+Hi,
 
-Ah, got it, thank you!
+On Mon, Sep 24, 2012 at 11:37 AM, Selso LIBERADO <sli@cioinfoindus.fr> wrote:
+...
+>>   CC [M]  drivers/staging/tidspbridge/core/tiomap3430.o
+>> drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_brd_start':
+>> drivers/staging/tidspbridge/core/tiomap3430.c:421:25: error:
+>> 'OMAP343X_CTRL_BASE' undeclared (first use in this function)
+>> drivers/staging/tidspbridge/core/tiomap3430.c:421:25: note: each
+>> undeclared identifier is reported only once for each function it
+>> appears in
+>> make[3]: *** [drivers/staging/tidspbridge/core/tiomap3430.o] Error 1
+...
+> This definition has moved to : arch/arm/mach-omap2/omap34xx.h
+> I don't know if we can include directly this file in tiomap3430.c (I'm newbie)
+>
+> However there is still the symbole  OMAP34XX_WDT3_BASE in
+> 'drivers/staging/tidspbridge/core/wdt.c' that is not resolved.
 
-							Thanx, Paul
+This should be solved by Tony's patch:
 
+https://patchwork.kernel.org/patch/1435311/
+
+Right now it is on staging-next.
+
+Regards,
+
+Omar
