@@ -1,66 +1,56 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
-Date: Mon, 24 Sep 2012 12:39:42 +0530
-Message-ID: <CAP05o4+gA6nRV6d3HETObJFccNcjNwNE5+LAut6zb7Msgu1hLQ@mail.gmail.com>
-References: <CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
-	<20120723140830.GA8155@arwen.pp.htv.fi>
-	<CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
-	<CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com>
-	<CAP05o4LRS=svfTsNV45CcToKT7XcZ+et3+fmYzJ7xMLhidtCOA@mail.gmail.com>
-	<20120813140928.GH14781@arwen.pp.htv.fi>
-	<CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com>
-	<CAP05o4K5f5xUdfT2V7m+Jp9D74btPMz1bB6eYCnkBBpsZqP9tA@mail.gmail.com>
-	<CAP05o4KaQFvOBwQoVy_-Ve=T_fwDw-SEyO8DCtfuX-r5ryiOeA@mail.gmail.com>
-	<alpine.DEB.2.00.1209192030270.5264@utopia.booyaka.com>
-	<20120921220720.GY28670@sortiz-mobl>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator
+ driver to omap_usb2
+Date: Mon, 24 Sep 2012 14:13:46 +0530
+Message-ID: <CAAe_U6K1RXA3b5u9WvE=2VoXym9Vj3KM7c0J27jKz+2KrV4tsg@mail.gmail.com>
+References: <1346943430-18236-1-git-send-email-kishon@ti.com>
+	<1346943430-18236-3-git-send-email-kishon@ti.com>
+	<CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:60750 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755104Ab2IXHJo (ORCPT
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:49939 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755233Ab2IXInx (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Sep 2012 03:09:44 -0400
-Received: by vcbfo13 with SMTP id fo13so5931759vcb.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 00:09:42 -0700 (PDT)
-In-Reply-To: <20120921220720.GY28670@sortiz-mobl>
+	Mon, 24 Sep 2012 04:43:53 -0400
+Received: by vcbfo13 with SMTP id fo13so5999544vcb.19
+        for <linux-omap@vger.kernel.org>; Mon, 24 Sep 2012 01:43:46 -0700 (PDT)
+In-Reply-To: <CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Paul Walmsley <paul@pwsan.com>, parthab@india.ti.com, linux-omap@vger.kernel.org, Linux USB Devel <linux-usb@vger.kernel.org>
+To: Rabin Vincent <rabin@rab.in>
+Cc: b-cousson@ti.com, tony@atomide.com, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-On Sat, Sep 22, 2012 at 3:37 AM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> Hi Paul,
->
-> On Wed, Sep 19, 2012 at 08:39:40PM +0000, Paul Walmsley wrote:
+Hi,
+
+On Sat, Sep 22, 2012 at 3:03 AM, Rabin Vincent <rabin@rab.in> wrote:
+> 2012/9/6 Kishon Vijay Abraham I <kishon@ti.com>:
+>> All the PHY configuration other than VBUS, ID GND and OTG SRP are removed
+>> from twl6030. The phy configurations are taken care by the dedicated
+>> usb2 phy driver. So twl6030 is made as comparator driver for VBUS and
+>> ID detection.
 >>
->> Hi Samuel,
->>
->> I've queued patch 1 of this series for 3.7, which should go upstream via
->> the OMAP -> arm-soc path.  Also asked Keshava to re-send patch 5 to me
->> once patches 2-4 have been merged.
->>
->> It's up to you how to handle patches 2-4.  The series is a good step
->> forward for us in terms of cleanup.  But what is probably worthwhile at
->> some point is for that USB TLL "phy" code (added in patch 2) to be moved
->> into some place like drivers/usb/phy, since it's not MFD-related.
-> That would be ideal, yes. I kept patches 2-4 as they're alreeady going in the
-> right direction (I dropped patches 1 and 5).
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 >
-> Thanks for the heads up.
->
-> Cheers,
-> Samuel.
->
-> --
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
+> USB doesn't work on pandaboard on linux-next, and bisection shows this
+> patch.  Unfortunately, I can't provide a dmesg log because USB is the
+> only way I currently have to get one out(!), but presumably it's because
+> this omap-usb2 device is never registered?  Looks like this breaks
+> non-dt USB on pandaboard; is that intended?
 
+Yes. omap-usb2 is *only* dt supported (New drivers shouldn't have the
+old non-dt support).
+Some patches are queued only for 3.7.
 
-thanks paul and Samuel
+In case you want to use MUSB please use these patches on linux-next..
+[PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
+[PATCH] ARM: OMAP2+: hwmod data: Fix ocp2scp_usb_phy and usb_host_hs
+entries (from Benoit)
+[PATCH 0/2] ARM: dts: Add subnode for ocp2scp (patch series)
+[PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB (patch series)
 
-regards
-keshava
+Pls note all these patches are queued for 3.7
 
-regards
-keshava
+Thanks
+Kishon
