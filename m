@@ -1,86 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.6-rc7
-Date: Mon, 24 Sep 2012 19:21:11 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209241919130.25811@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V3 6/8] ARM: OMAP4: Route PMU IRQs to CTI IRQs
+Date: Mon, 24 Sep 2012 14:46:10 -0500
+Message-ID: <5060B882.3060007@ti.com>
+References: <1347290626-21164-1-git-send-email-jon-hunter@ti.com> <1347290626-21164-7-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1209201655060.12583@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39554 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932131Ab2IXTVM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 15:21:12 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37178 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750770Ab2IXTqT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Sep 2012 15:46:19 -0400
+In-Reply-To: <alpine.DEB.2.00.1209201655060.12583@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Woodruff Richard <r-woodruff2@ti.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
 
-Here are some basic OMAP boot and power management test results for 
-v3.6-rc6:
+On 09/20/2012 11:59 AM, Paul Walmsley wrote:
+> Hi
+> 
+> On Mon, 10 Sep 2012, Jon Hunter wrote:
+> 
+>> From: Ming Lei <ming.lei@canonical.com>
+>>
+>> For OMAP4430 there are no dedicate PMU interrupts, however, PMU events can be
+>> routed to via the CTI IRQs. This allows tools such as PERF and OPROFILE to work
+>> on OMAP4430.
+>>
+>> The idea is from Woodruff Richard in the disscussion about "Oprofile on
+>> Pandaboard / Omap4" on pandaboard@googlegroups.com.
+>>
+>> Ming's original patch was called "arm: omap4: support pmu" [1] and has been
+>> renamed and modified by Jon Hunter. There main differences from the original
+>> patch are ...
+>>
+>> 1. Instead of only configuring the CTI interrupt once during boot, the
+>>    interrupts are configured everytime the the PMU is used. The reason for this
+>>    is because during power transitions the CTI logic state will be lost and so
+>>    we will need to configure the interrupts everytime they are used. This is
+>>    accomplished by using the PM runtime callbacks which will be called whenever
+>>    the PMU is used.
+>> 2. Assign the PMU events to different cross triggering channels. This prevents
+>>    a single PMU event generating interrupts to both CPUs and hence can cause
+>>    spurious interrupts to occur. Reported by Ming [2].
+>>
+>> [1] http://marc.info/?l=linux-arm-kernel&m=132227620816504&w=2
+>> [2] http://permalink.gmane.org/gmane.linux.linaro.devel/10532
+> 
+> Spent some time with this one here.  At this point I don't think I can 
+> queue it.  It's got hardcoded IRQ numbers and address information for the 
+> CTI, and mixes the CTI and PMU programming.  A few months ago we might 
+> have gotten away with this, but now it seems best to do this one cleanly.
+> Probably the CTI control should be moved off into mach-omap2/omap4-cti.c 
+> or somewhere into drivers/ if possible.  So let's revisit this for 3.8.
 
-   http://www.pwsan.com/omap/testlogs/test_v3.6-rc6/20120918101040/
+Ok, no problem, I can't say I was thrilled with the implementation so
+probably best to re-think some more. How about adding the cross-trigger
+interface as a hwmod for omap4 to store the base address and interrupt
+number?
 
-Some observations:
-
-Boot tests:
-
-* CM-T3517: L3 in-band error with IPSS during boot
-  - Cause unknown but see 
-http://marc.info/?l=linux-omap&m=134833869730129&w=2
-  - Longstanding issue; does not occur on the 3517EVM
-
-* 3517EVM & CM-T3517: boot hangs               
-  - Probably due to the use of NFS root; there are likely some Kconfig,
-    board file, and PM issues with EMAC
-
-PM tests:
-
-* 37xx EVM: CORE not entering dynamic off-idle
-  - Cause unknown; dynamic retention-idle seems to work; system suspend to 
-    off works
-
-* 3730 Beagle XM: does not serial wake from off-idle suspend when console
-  UART doesn't clock gate ("debug ignore_loglevel")
-  - Not shown in the current test logs; cause unknown
-
-* 4430ES2 Panda: UART corruption during long transmit buffers
-  - Presumably due to either a missing hardware workaround or a bug in
-    the OMAP serial driver
-
-Other:
-
-* RCU stall messages appear if boards are booted into a minimal userspace
-  and left to sit for a few minutes
-  - Fixed by http://marc.info/?l=linux-arm-kernel&m=134835120600590&w=2
-
-
-Changes from v3.6-rc6 (test 20120918101040):
-(see http://www.pwsan.com/omap/testlogs/test_v3.6-rc6/20120918101040/ )
-
-- Added comments about RCU stalls, appearing since at least v3.6-rc3
-
-- Updated CM-T3517 "USB OTG" (really IPSS) comment
-
-object size (delta in bytes from test_v3.6-rc6 (5698bd757d55b1bb87edd1a9744ab09c142abfc2)):
-  text 	  data 	   bss 	 total 	kernel
-  -328 	   +72 	     0 	  -256 	2430_testconfig
-   -16 	   +16 	     0 	     0 	5912osk_testconfig
-  -376 	   +72 	     0 	  -304 	am33xx_testconfig
-   +64 	   +32 	     0 	   +96 	n800_b_testconfig
-   +80 	   +64 	     0 	  +144 	n800_multi_omap2xxx
-   +80 	   +32 	     0 	  +112 	n800_testconfig
-   +72 	   +80 	     0 	  +152 	omap1510_defconfig
-   +40 	   +16 	     0 	   +56 	omap1_defconfig
-   +80 	   +64 	     0 	  +144 	omap2_4_testconfig
-  -376 	   +40 	     0 	  -336 	omap2plus_defconfig
-  -376 	   +72 	     0 	  -304 	omap2plus_defconfig_cpupm
-   +20 	   +72 	     0 	   +92 	omap2plus_no_pm
-   +20 	    +8 	     0 	   +28 	omap3_4_testconfig
-  +140 	   +72 	     0 	  +212 	omap3_testconfig
-   +20 	   +40 	     0 	   +60 	omap4_testconfig
-   -40 	   +72 	     0 	   +32 	rmk_omap3430_ldp_oldconfig
-  -200 	    +8 	     0 	  -192 	rmk_omap4430_sdp_oldconfig
+Cheers
+Jon
 
 
-
-- Paul
