@@ -1,40 +1,50 @@
-From: yegorslists@googlemail.com
-Subject: [PATCH] arm: increase FORCE_MAX_ZONEORDER for TI AM33XX
-Date: Tue, 25 Sep 2012 10:44:04 +0200
-Message-ID: <1348562644-14447-1-git-send-email-yegorslists@googlemail.com>
+From: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Subject: Re: [PATCH v2] arm: make FORCE_MAX_ZONEORDER configurable for TI
+ AM33XX
+Date: Tue, 25 Sep 2012 10:46:34 +0200
+Message-ID: <50616F6A.80100@visionsystems.de>
+References: <1348561590-13361-1-git-send-email-yegorslists@googlemail.com> <20120925083245.GH31374@n2100.arm.linux.org.uk>
+Reply-To: yegor_sub1@visionsystems.de
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.vscom.de ([62.145.30.242]:40903 "EHLO
+Received: from ns.visionsystems.de ([62.145.30.242]:40918 "EHLO
 	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753744Ab2IYIo1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 04:44:27 -0400
+	with ESMTP id S1753478Ab2IYIqu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 04:46:50 -0400
+In-Reply-To: <20120925083245.GH31374@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Yegor Yefremov <yegorslists@googlemail.com>, Dejan Gacnik <dejan.gacnik@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: yegorslists@googlemail.com, linux-omap@vger.kernel.org, Dejan Gacnik <dejan.gacnik@gmail.com>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+On 25.09.2012 10:32, Russell King - ARM Linux wrote:
+> On Tue, Sep 25, 2012 at 10:26:30AM +0200, yegorslists@googlemail.com wrote:
+>> From: Yegor Yefremov <yegorslists@googlemail.com>
+>>
+>> FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
+>> of consistent DMA memory (da8xx frame buffer driver).
+> 
+> Okay, so the patch description says "This needs to be 12 on this platform".
+> 
+>>  config FORCE_MAX_ZONEORDER
+>> -	int "Maximum zone order" if ARCH_SHMOBILE
+>> -	range 11 64 if ARCH_SHMOBILE
+>> +	int "Maximum zone order" if ARCH_SHMOBILE || SOC_AM33XX
+>> +	range 11 64 if ARCH_SHMOBILE || SOC_AM33XX
+> 
+> but you leave it up to the user to select something that may not be
+> suitable.  Wouldn't _just_ adding:
+> 
+> 	default "12" if SOC_AM33XX
+> 
+> after the "range", and making no other changes be good enough and match
+> what the patch description says?
 
-FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
-of consistent DMA memory (da8xx frame buffer driver).
+You're right. As we don't allocate anything, but increase the possible size, it shouldn't break anything. Tony is it O.K. with you?
 
-Signed-off-by: Dejan Gacnik <dejan.gacnik@gmail.com>
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
----
- arch/arm/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Patch sent.
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 2f88d8d..06d489e 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1768,6 +1768,7 @@ source "mm/Kconfig"
- config FORCE_MAX_ZONEORDER
- 	int "Maximum zone order" if ARCH_SHMOBILE
- 	range 11 64 if ARCH_SHMOBILE
-+	default "12" if SOC_AM33XX
- 	default "9" if SA1111
- 	default "11"
- 	help
--- 
-1.7.7
+Yegor
 
