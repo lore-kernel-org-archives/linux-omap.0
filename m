@@ -1,316 +1,254 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 19/21] ARM: OMAP3+: PM: introduce a central pmic control
-Date: Tue, 25 Sep 2012 19:33:51 +0300
-Message-ID: <1348590833-12335-20-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 18/21] ARM: OMAP4: OPP: add OMAP4460 definitions
+Date: Tue, 25 Sep 2012 19:33:50 +0300
+Message-ID: <1348590833-12335-19-git-send-email-t-kristo@ti.com>
 References: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44064 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44059 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758052Ab2IYQej (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 12:34:39 -0400
+	id S1758126Ab2IYQeg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 12:34:36 -0400
 In-Reply-To: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, Nishanth Menon <nm@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Since we are starting to use multiple PMICs in various combinations,
-use the existing .omap_chip = OMAP_CHIP_INIT() to mark the
-structures we are interested in using per OMAP device we
-are currently running on. This mapping is based on the default
-device recommendations from TI. Boards using custom PMICs now
-have an opportunity to register their own custom mapping.
+Add OMAP4460 OPP definitions for voltage and frequencies based on
+OMAP4460 ES1.0 DM Operating Condition Addendum Version 0.1
 
-With this we no longer need omap4_twl_init and omap3_twl_int
-instead we introduce a registration mechanism which is PMIC
-generic and move twl implementation to use the same. This allows
-for future OMAP4460 support where there is a mixture of
-PMIC combinations used.
+The following exceptions are present:
+* Smartreflex support is still on experimental mode: the gains and min
+  limits are currently pending characterization data. Currently OMAP4430 values
+  are used.
+* Efuse offset for core OPP100-OV setting is not clear in documentation.
+* IVA OPPs beyond OPP100 are disabled due to the delta between max OMAP4460
+  current requirements and Phoenix Max supply on VCORE2 in the default
+  configuration - boards which have supply which can support this should
+  explicitly call opp_enable and enable the same.
+* MPU OPPs > OPPTURBO can easily be detected using a efuse burnt - currently
+  disabled pending clock changes to support DCC feature.
 
+[nm@ti.com: cleanups and updates from Datamanual]
 Signed-off-by: Nishanth Menon <nm@ti.com>
-[t-kristo@ti.com: moved code under twl-common, other minor cleanups]
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+[t-kristo@ti.com: rebased to linux-3.6-rc5]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c   |   81 ++++++++++++++++++++++----------------
- arch/arm/mach-omap2/pm.h         |    9 +---
- arch/arm/mach-omap2/twl-common.c |   58 +++++++++++++++++++++++++--
- arch/arm/mach-omap2/twl-common.h |   27 +++++++++++++
- 4 files changed, 129 insertions(+), 46 deletions(-)
+ arch/arm/mach-omap2/control.h                 |    1 +
+ arch/arm/mach-omap2/omap_opp_data.h           |    9 ++-
+ arch/arm/mach-omap2/opp4xxx_data.c            |   98 ++++++++++++++++++++++---
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |   12 ++-
+ 4 files changed, 103 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index 7ff9667..f6ee038 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -19,8 +19,8 @@
- #include <linux/i2c/twl.h>
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index b8cdc85..6f97eae 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -201,6 +201,7 @@
+ #define OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO	0x249
+ #define OMAP44XX_CONTROL_FUSE_CORE_OPP50	0x254
+ #define OMAP44XX_CONTROL_FUSE_CORE_OPP100	0x257
++#define OMAP44XX_CONTROL_FUSE_CORE_OPP100OV	0x25A
  
- #include "voltage.h"
--
- #include "pm.h"
-+#include "twl-common.h"
+ /* AM35XX only CONTROL_GENERAL register offsets */
+ #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
+diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
+index c784c12..18a750e 100644
+--- a/arch/arm/mach-omap2/omap_opp_data.h
++++ b/arch/arm/mach-omap2/omap_opp_data.h
+@@ -89,8 +89,11 @@ extern struct omap_volt_data omap34xx_vddcore_volt_data[];
+ extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
+ extern struct omap_volt_data omap36xx_vddcore_volt_data[];
  
- #define OMAP3_SRI2C_SLAVE_ADDR		0x12
- #define OMAP3_VDD_MPU_SR_CONTROL_REG	0x00
-@@ -170,7 +170,7 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
- 	.uv_to_vsel		= twl4030_uv_to_vsel,
+-extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
+-extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
+-extern struct omap_volt_data omap44xx_vdd_core_volt_data[];
++extern struct omap_volt_data omap443x_vdd_mpu_volt_data[];
++extern struct omap_volt_data omap443x_vdd_iva_volt_data[];
++extern struct omap_volt_data omap443x_vdd_core_volt_data[];
++extern struct omap_volt_data omap446x_vdd_mpu_volt_data[];
++extern struct omap_volt_data omap446x_vdd_iva_volt_data[];
++extern struct omap_volt_data omap446x_vdd_core_volt_data[];
+ 
+ #endif		/* __ARCH_ARM_MACH_OMAP2_OMAP_OPP_DATA_H */
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+index c95415d..4054849 100644
+--- a/arch/arm/mach-omap2/opp4xxx_data.c
++++ b/arch/arm/mach-omap2/opp4xxx_data.c
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP4 OPP table definitions.
+  *
+- * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2010-2012 Texas Instruments Incorporated - http://www.ti.com/
+  *	Nishanth Menon
+  *	Kevin Hilman
+  *	Thara Gopinath
+@@ -36,7 +36,7 @@
+ #define OMAP4430_VDD_MPU_OPPTURBO_UV		1313000
+ #define OMAP4430_VDD_MPU_OPPNITRO_UV		1375000
+ 
+-struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
++struct omap_volt_data omap443x_vdd_mpu_volt_data[] = {
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16),
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
+@@ -48,7 +48,7 @@ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
+ #define OMAP4430_VDD_IVA_OPP100_UV		1188000
+ #define OMAP4430_VDD_IVA_OPPTURBO_UV		1300000
+ 
+-struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
++struct omap_volt_data omap443x_vdd_iva_volt_data[] = {
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16),
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
+@@ -58,14 +58,14 @@ struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
+ #define OMAP4430_VDD_CORE_OPP50_UV		1025000
+ #define OMAP4430_VDD_CORE_OPP100_UV		1200000
+ 
+-struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
++struct omap_volt_data omap443x_vdd_core_volt_data[] = {
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16),
+ 	VOLT_DATA_DEFINE(0, 0, 0, 0),
  };
  
--static struct omap_voltdm_pmic omap4_mpu_pmic = {
-+static struct omap_voltdm_pmic twl6030_vcore1_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
-@@ -188,7 +188,7 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
+ 
+-static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
++static struct omap_opp_def __initdata omap443x_opp_def_list[] = {
+ 	/* MPU OPP1 - OPP50 */
+ 	OPP_INITIALIZER("mpu", true, 300000000, OMAP4430_VDD_MPU_OPP50_UV),
+ 	/* MPU OPP2 - OPP100 */
+@@ -87,6 +87,82 @@ static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
+ 	/* TODO: add DSP, aess, fdif, gpu */
  };
  
--static struct omap_voltdm_pmic omap4_iva_pmic = {
-+static struct omap_voltdm_pmic twl6030_vcore2_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
-@@ -206,7 +206,7 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
- };
- 
--static struct omap_voltdm_pmic omap4_core_pmic = {
-+static struct omap_voltdm_pmic twl6030_vcore3_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
-@@ -224,31 +224,9 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
- 	.uv_to_vsel		= twl6030_uv_to_vsel,
- };
- 
--int __init omap4_twl_init(void)
-+static int __init twl_set_sr(struct voltagedomain *voltdm)
- {
--	struct voltagedomain *voltdm;
--
--	if (!cpu_is_omap44xx())
--		return -ENODEV;
--
--	voltdm = voltdm_lookup("mpu");
--	omap_voltage_register_pmic(voltdm, &omap4_mpu_pmic);
--
--	voltdm = voltdm_lookup("iva");
--	omap_voltage_register_pmic(voltdm, &omap4_iva_pmic);
--
--	voltdm = voltdm_lookup("core");
--	omap_voltage_register_pmic(voltdm, &omap4_core_pmic);
--
--	return 0;
--}
--
--int __init omap3_twl_init(void)
--{
--	struct voltagedomain *voltdm;
--
--	if (!cpu_is_omap34xx())
--		return -ENODEV;
-+	int r = 0;
- 
- 	/*
- 	 * The smartreflex bit on twl4030 specifies if the setting of voltage
-@@ -260,15 +238,50 @@ int __init omap3_twl_init(void)
- 	 * voltage scaling will not function on TWL over I2C_SR.
- 	 */
- 	if (!twl_sr_enable_autoinit)
--		omap3_twl_set_sr_bit(true);
-+		r = omap3_twl_set_sr_bit(true);
- 
--	voltdm = voltdm_lookup("mpu_iva");
--	omap_voltage_register_pmic(voltdm, &omap3_mpu_pmic);
-+	return r;
-+}
- 
--	voltdm = voltdm_lookup("core");
--	omap_voltage_register_pmic(voltdm, &omap3_core_pmic);
-+static __initdata struct omap_pmic_map omap_twl_map[] = {
-+	{
-+		.name = "mpu_iva",
-+		.cpu = PMIC_CPU_OMAP3,
-+		.pmic_data = &omap3_mpu_pmic,
-+		.special_action = twl_set_sr,
-+	},
-+	{
-+		.name = "core",
-+		.cpu = PMIC_CPU_OMAP3,
-+		.pmic_data = &omap3_core_pmic,
-+	},
-+	{
-+		.name = "mpu",
-+		.cpu = PMIC_CPU_OMAP4430,
-+		.pmic_data = &twl6030_vcore1_pmic,
-+	},
-+	{
-+		.name = "core",
-+		.cpu = PMIC_CPU_OMAP4430,
-+		.pmic_data = &twl6030_vcore3_pmic,
-+	},
-+	{
-+		.name = "core",
-+		.cpu = PMIC_CPU_OMAP4460,
-+		.pmic_data = &twl6030_vcore1_pmic,
-+	},
-+	{
-+		.name = "iva",
-+		.cpu = PMIC_CPU_OMAP44XX,
-+		.pmic_data = &twl6030_vcore2_pmic,
-+	},
-+	/* Terminator */
-+	{ .name = NULL, .pmic_data = NULL},
++#define OMAP4460_VDD_MPU_OPP50_UV		1025000
++#define OMAP4460_VDD_MPU_OPP100_UV		1200000
++#define OMAP4460_VDD_MPU_OPPTURBO_UV		1313000
++#define OMAP4460_VDD_MPU_OPPNITRO_UV		1375000
++
++struct omap_volt_data omap446x_vdd_mpu_volt_data[] = {
++	VOLT_DATA_DEFINE(OMAP4460_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
++	VOLT_DATA_DEFINE(OMAP4460_VDD_MPU_OPP100_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16),
++	VOLT_DATA_DEFINE(OMAP4460_VDD_MPU_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
++	VOLT_DATA_DEFINE(OMAP4460_VDD_MPU_OPPNITRO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27),
++	VOLT_DATA_DEFINE(0, 0, 0, 0),
 +};
- 
--	return 0;
-+int __init omap_twl_init(void)
-+{
-+	return omap_pmic_register_data(omap_twl_map);
- }
- 
++
++#define OMAP4460_VDD_IVA_OPP50_UV		1025000
++#define OMAP4460_VDD_IVA_OPP100_UV		1200000
++#define OMAP4460_VDD_IVA_OPPTURBO_UV		1313000
++#define OMAP4460_VDD_IVA_OPPNITRO_UV		1375000
++
++struct omap_volt_data omap446x_vdd_iva_volt_data[] = {
++	VOLT_DATA_DEFINE(OMAP4460_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
++	VOLT_DATA_DEFINE(OMAP4460_VDD_IVA_OPP100_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16),
++	VOLT_DATA_DEFINE(OMAP4460_VDD_IVA_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
++	VOLT_DATA_DEFINE(OMAP4460_VDD_IVA_OPPNITRO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPNITRO, 0xfa, 0x23),
++	VOLT_DATA_DEFINE(0, 0, 0, 0),
++};
++
++#define OMAP4460_VDD_CORE_OPP50_UV		1025000
++#define OMAP4460_VDD_CORE_OPP100_UV		1200000
++#define OMAP4460_VDD_CORE_OPP100_OV_UV		1250000
++
++struct omap_volt_data omap446x_vdd_core_volt_data[] = {
++	VOLT_DATA_DEFINE(OMAP4460_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
++	VOLT_DATA_DEFINE(OMAP4460_VDD_CORE_OPP100_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16),
++	VOLT_DATA_DEFINE(OMAP4460_VDD_CORE_OPP100_OV_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100OV, 0xf9, 0x16),
++	VOLT_DATA_DEFINE(0, 0, 0, 0),
++};
++
++static struct omap_opp_def __initdata omap446x_opp_def_list[] = {
++	/* MPU OPP1 - OPP50 */
++	OPP_INITIALIZER("mpu", true, 350000000, OMAP4460_VDD_MPU_OPP50_UV),
++	/* MPU OPP2 - OPP100 */
++	OPP_INITIALIZER("mpu", true, 700000000, OMAP4460_VDD_MPU_OPP100_UV),
++	/* MPU OPP3 - OPP-Turbo */
++	OPP_INITIALIZER("mpu", true, 920000000, OMAP4460_VDD_MPU_OPPTURBO_UV),
++	/*
++	 * MPU OPP4 - OPP-Nitro + Disabled as the reference schematics
++	 * recommends TPS623631 - confirm and enable the opp in board file
++	 * XXX: May be we should enable these based on mpu capability and
++	 * Exception board files disable it...
++	 */
++	OPP_INITIALIZER("mpu", false, 1200000000, OMAP4460_VDD_MPU_OPPNITRO_UV),
++	/* MPU OPP4 - OPP-Nitro SpeedBin */
++	OPP_INITIALIZER("mpu", false, 1500000000, OMAP4460_VDD_MPU_OPPNITRO_UV),
++	/* L3 OPP1 - OPP50 */
++	OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4460_VDD_CORE_OPP50_UV),
++	/* L3 OPP2 - OPP100 */
++	OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4460_VDD_CORE_OPP100_UV),
++	/* IVA OPP1 - OPP50 */
++	OPP_INITIALIZER("iva", true, 133000000, OMAP4460_VDD_IVA_OPP50_UV),
++	/* IVA OPP2 - OPP100 */
++	OPP_INITIALIZER("iva", true, 266100000, OMAP4460_VDD_IVA_OPP100_UV),
++	/*
++	 * IVA OPP3 - OPP-Turbo + Disabled as the reference schematics
++	 * recommends Phoenix VCORE2 which can supply only 600mA - so the ones
++	 * above this OPP frequency, even though OMAP is capable, should be
++	 * enabled by board file which is sure of the chip power capability
++	 */
++	OPP_INITIALIZER("iva", false, 332000000, OMAP4460_VDD_IVA_OPPTURBO_UV),
++	/* IVA OPP4 - OPP-Nitro */
++	OPP_INITIALIZER("iva", false, 430000000, OMAP4460_VDD_IVA_OPPNITRO_UV),
++	/* IVA OPP5 - OPP-Nitro SpeedBin*/
++	OPP_INITIALIZER("iva", false, 500000000, OMAP4460_VDD_IVA_OPPNITRO_UV),
++
++	/* TODO: add DSP, aess, fdif, gpu */
++};
++
  /**
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index d070ac6..26ac43c 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -122,15 +122,10 @@ static inline void omap_enable_smartreflex_on_init(void) {}
+  * omap4_opp_init() - initialize omap4 opp table
+  */
+@@ -94,12 +170,12 @@ int __init omap4_opp_init(void)
+ {
+ 	int r = -ENODEV;
+ 
+-	if (!cpu_is_omap443x())
+-		return r;
+-
+-	r = omap_init_opp_table(omap44xx_opp_def_list,
+-			ARRAY_SIZE(omap44xx_opp_def_list));
+-
++	if (cpu_is_omap443x())
++		r = omap_init_opp_table(omap443x_opp_def_list,
++			ARRAY_SIZE(omap443x_opp_def_list));
++	else if (cpu_is_omap446x())
++		r = omap_init_opp_table(omap446x_opp_def_list,
++			ARRAY_SIZE(omap446x_opp_def_list));
+ 	return r;
+ }
+ device_initcall(omap4_opp_init);
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index 7da35a6..b893c8e 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -104,9 +104,15 @@ void __init omap44xx_voltagedomains_init(void)
+ 	 * for the currently-running IC
+ 	 */
+ #ifdef CONFIG_PM_OPP
+-	omap4_voltdm_mpu.volt_data = omap44xx_vdd_mpu_volt_data;
+-	omap4_voltdm_iva.volt_data = omap44xx_vdd_iva_volt_data;
+-	omap4_voltdm_core.volt_data = omap44xx_vdd_core_volt_data;
++	if (cpu_is_omap443x()) {
++		omap4_voltdm_mpu.volt_data = omap443x_vdd_mpu_volt_data;
++		omap4_voltdm_iva.volt_data = omap443x_vdd_iva_volt_data;
++		omap4_voltdm_core.volt_data = omap443x_vdd_core_volt_data;
++	} else if (cpu_is_omap446x()) {
++		omap4_voltdm_mpu.volt_data = omap446x_vdd_mpu_volt_data;
++		omap4_voltdm_iva.volt_data = omap446x_vdd_iva_volt_data;
++		omap4_voltdm_core.volt_data = omap446x_vdd_core_volt_data;
++	}
  #endif
  
- #ifdef CONFIG_TWL4030_CORE
--extern int omap3_twl_init(void);
--extern int omap4_twl_init(void);
-+extern int omap_twl_init(void);
- extern int omap3_twl_set_sr_bit(bool enable);
- #else
--static inline int omap3_twl_init(void)
--{
--	return -EINVAL;
--}
--static inline int omap4_twl_init(void)
-+static inline int omap_twl_init(void)
- {
- 	return -EINVAL;
- }
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index db5ff66..4a9ca89 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -97,11 +97,7 @@ void __init omap4_pmic_init(const char *pmic_type,
- 
- void __init omap_pmic_late_init(void)
- {
--	/* Init the OMAP TWL parameters (if PMIC has been registered) */
--	if (pmic_i2c_board_info.irq)
--		omap3_twl_init();
--	if (omap4_i2c1_board_info[0].irq)
--		omap4_twl_init();
-+	omap_twl_init();
- }
- 
- #if defined(CONFIG_ARCH_OMAP3)
-@@ -538,3 +534,55 @@ void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 		pmic_data->v2v1 = &omap4_v2v1_idata;
- }
- #endif /* CONFIG_ARCH_OMAP4 */
-+
-+/**
-+ * omap_pmic_register_data() - Register the PMIC information to OMAP mapping
-+ * @omap_pmic_maps:    array ending with a empty element representing the maps
-+ */
-+int __init omap_pmic_register_data(struct omap_pmic_map *map)
-+{
-+	struct voltagedomain *voltdm;
-+	int r;
-+
-+	if (!map)
-+		return 0;
-+
-+	while (map->name) {
-+		if (cpu_is_omap34xx() && !(map->cpu & PMIC_CPU_OMAP3))
-+			goto next;
-+
-+		if (cpu_is_omap443x() && !(map->cpu & PMIC_CPU_OMAP4430))
-+			goto next;
-+
-+		if (cpu_is_omap446x() && !(map->cpu & PMIC_CPU_OMAP4460))
-+			goto next;
-+
-+		voltdm = voltdm_lookup(map->name);
-+		if (IS_ERR_OR_NULL(voltdm)) {
-+			pr_err("%s: unable to find map %s\n", __func__,
-+				map->name);
-+			goto next;
-+		}
-+		if (IS_ERR_OR_NULL(map->pmic_data)) {
-+			pr_warn("%s: domain[%s] has no pmic data\n",
-+					__func__, map->name);
-+			goto next;
-+		}
-+
-+		r = omap_voltage_register_pmic(voltdm, map->pmic_data);
-+		if (r) {
-+			pr_warn("%s: domain[%s] register returned %d\n",
-+					__func__, map->name, r);
-+			goto next;
-+		}
-+		if (map->special_action) {
-+			r = map->special_action(voltdm);
-+			WARN(r, "%s: domain[%s] action returned %d\n", __func__,
-+				map->name, r);
-+		}
-+next:
-+		map++;
-+	}
-+
-+	return 0;
-+}
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index 8fe71cf..c501b55 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -2,6 +2,7 @@
- #define __OMAP_PMIC_COMMON__
- 
- #include <plat/irqs.h>
-+#include "voltage.h"
- 
- #define TWL_COMMON_PDATA_USB		(1 << 0)
- #define TWL_COMMON_PDATA_BCI		(1 << 1)
-@@ -59,4 +60,30 @@ void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- void omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 			   u32 pdata_flags, u32 regulators_flags);
- 
-+/**
-+ * struct omap_pmic_map - Describe the OMAP PMIC data for OMAP
-+ * @name:		name of the voltage domain
-+ * @pmic_data:		pmic data associated with it
-+ * @cpu:		CPUs this PMIC data is valid for
-+ * @special_action:	callback for any specific action to take for that map
-+ *
-+ * Since we support multiple PMICs each potentially functioning on multiple
-+ * OMAP devices, we describe the parameters in a map allowing us to reuse the
-+ * data as necessary.
-+ */
-+struct omap_pmic_map {
-+	char			*name;
-+	struct omap_voltdm_pmic	*pmic_data;
-+	u32			cpu;
-+	int			(*special_action)(struct voltagedomain *);
-+};
-+
-+#define PMIC_CPU_OMAP3		(1 << 0)
-+#define PMIC_CPU_OMAP4430	(1 << 1)
-+#define PMIC_CPU_OMAP4460	(1 << 2)
-+#define PMIC_CPU_OMAP44XX	(PMIC_CPU_OMAP4430 | PMIC_CPU_OMAP4460)
-+
-+extern int omap_pmic_register_data(struct omap_pmic_map *map);
-+extern void omap_pmic_data_init(void);
-+
- #endif /* __OMAP_PMIC_COMMON__ */
+ 	omap4_voltdm_mpu.vp_param = &omap4_mpu_vp_data;
 -- 
 1.7.4.1
 
