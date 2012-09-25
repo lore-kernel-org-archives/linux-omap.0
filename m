@@ -1,92 +1,34 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not
-	suspended.
-Date: Tue, 25 Sep 2012 11:59:13 +0100
-Message-ID: <20120925105913.GM31374@n2100.arm.linux.org.uk>
-References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com> <CAKdam572krJZcayRdJ_AciCUZH3LuzD9yoHenhxrB6j9xDZ6JQ@mail.gmail.com> <20120925083029.GG31374@n2100.arm.linux.org.uk> <20120925083118.GI9137@arwen.pp.htv.fi> <20120925091228.GI31374@n2100.arm.linux.org.uk> <20120925091112.GK9137@arwen.pp.htv.fi> <20120925092118.GJ31374@n2100.arm.linux.org.uk> <CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com>
+From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
+Subject: RE: query on [PATCH 2/3] usb: otg: add device tree support to otg
+ library
+Date: Tue, 25 Sep 2012 11:05:27 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E9557@DBDE01.ent.ti.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A93E9E8319@DBDE01.ent.ti.com>
+	<50617138.2040507@pengutronix.de>
+ <CAAe_U6+axH=ZkQLiuAfkhvmNFjUVvXag=MewhsA1T3bYFLgfpg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAe_U6+axH=ZkQLiuAfkhvmNFjUVvXag=MewhsA1T3bYFLgfpg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Right, let's get this thread back onto a constructive footing and try
-to understand the problems here.
-
-On Tue, Sep 25, 2012 at 03:26:06PM +0530, Poddar, Sourav wrote:
-> The issue was observed at serial init itself in the N800 board and the
-> log does not show up much.
-> http://www.pwsan.com/omap/testlogs/test_tty_next_e36851d0/20120910020323/boot/2420n800/2420n800_log.txt
-
-Right, so output stops when ttyO2 is initialized.
-
-> What we thought the problem might be with n800 is that it tries to
-> resume when it didn't suspend before.
-> 
-> There are two ways through which we thought of handling this issue:
-> 
-> a) set device as active before enabling pm (which will prevent
-> 
-> pm_runtime_set_active(dev);
-> pm_runtime_enable(dev);
-> 
-> OR
-> 
-> b) adding a "suspended" flag to struct omap_uart_port which gets set on
-> suspend and cleared on resume. Then on resume you can check:
-> 
-> if (!up->suspended)
->         return 0;
-> 
-> But using "pm_runtime_set_active" approach breaks things even on
-> beagle board xm, though it works fine on Panda.
-
-Right, so now the question becomes - what is different on the Beagle Board
-that prevents solution (a) from working - or put it another way, have we
-uncovered _another_ bug.
-
-For N800, for ttyO0 and ttyO1 which aren't in use, it may be correct.
-We don't know for certain.  For ttyO2, the port is clearly already in
-use as it's being used for console output.  So that means it's _not_
-in suspended state, and therefore the initial runtime PM state is
-wrong.
-
-For Beagleboard - who knows, we have no information on that.  All we
-know is that your (a) sequence causes a regression.
-
-Anyway, let's analyse the code paths.  What is pm_runtime_get_sync()
-doing?  Well, it calls __pm_runtime_resume(, RPM_GET_PUT).  That alters
-the parent device's state (which doesn't matter for this, as the platform
-device is a child of the main platform device, which has no runtime PM.)
-
-It then calls the resume callback (from the pm domain/type/class/bus/
-driver) and then does an idle check.
-
-OMAP devices have a pm domain, so this is the candidate for the callback
-at this level, which gets us into _od_runtime_resume().  This calls
-omap_device_enable() before then moving on to the driver's runtime resume
-method, and at that point the runtime PM resume is complete.
-
-So, with your (a) solution, what's different is that we omit calling
-omap_device_enable().  Therefore, my hunch is the reason that Beagleboard
-doesn't work is because it doesn't like missing that call.
-
-I bet if you do this:
-
-	omap_device_enable(dev);
-	pm_runtime_set_active(dev);
-	pm_runtime_enable(dev);
-
-that this will solve your problem, and Beagleboard will continue working.
-
-What we have is a mismatch in both your case, and the Beagleboard case,
-between the real state of the hardware, the runtime PM state, and the
-OMAP hwmod state, and the above should bring all those states entirely
-into line with each other for _every_ case.  It doesn't need any hacks
-to prevent resume callbacks without prior suspends (which, incidentally,
-the runtime PM core already guarantees provided you get the initial
-state correct.)
+T24gVHVlLCBTZXAgMjUsIDIwMTIgYXQgMTY6MjE6MzksIEFCUkFIQU0sIEtJU0hPTiBWSUpBWSB3
+cm90ZToNCj4gT24gVHVlLCBTZXAgMjUsIDIwMTIgYXQgMjoyNCBQTSwgTWFyYyBLbGVpbmUtQnVk
+ZGUgPG1rbEBwZW5ndXRyb25peC5kZT4gd3JvdGU6DQoNCj4gPiBJJ20gaW50ZXJlc3RlZCBpbiB0
+byBnZXQgdGhlc2UgcGF0Y2hlcyBpbnRvIHRoZSBrZXJuZWwgc29vbi4gS2lzaG9uIGFueQ0KPiA+
+IG5ld3Mgb24gdGhpcyBwYXRjaD8NCj4gPg0KPiA+PiBTb21ldGhpbmcgbGlrZSB0aGlzIHdvdWxk
+IGJlIHJlcXVpcmVkIGZvciBVU0Igc3VwcG9ydA0KPiA+PiBvbiBiZWFnbGUgYm9uZSAoQU0zMzVY
+KSwgd2hpY2ggaGFzIDIgcGh5J3Mgb2Ygc2FtZSB0eXBlLg0KPiA+Pg0KPiA+PiBPciBpcyB0aGUg
+cGxhbiB0byB1c2UgZ2VuZXJpYyBwaHkgZnJhbWV3b3JrIGluc3RlYWQgPw0KPiA+DQo+ID4gWWVz
+LCBLaXNob24ncyBwYXRjaGVzIGxvb2sgbW9yZSBnZW5lcmljIHRoYW4gbWluZS4NCj4gV2lsbCBw
+b3N0IHRoZSBuZXh0IHZlcnNpb24gYnkgdGhpcyB3ZWVrLg0KDQpUaGFua3MgTWFyYyBhbmQgS2lz
+aG9uDQoNClJlZ2FyZHMNCkFmemFsDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
