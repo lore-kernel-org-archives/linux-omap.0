@@ -1,49 +1,41 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not
-	suspended.
-Date: Tue, 25 Sep 2012 09:30:29 +0100
-Message-ID: <20120925083029.GG31374@n2100.arm.linux.org.uk>
-References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com> <CAKdam572krJZcayRdJ_AciCUZH3LuzD9yoHenhxrB6j9xDZ6JQ@mail.gmail.com>
+Subject: Re: [PATCH v2] arm: make FORCE_MAX_ZONEORDER configurable for TI
+	AM33XX
+Date: Tue, 25 Sep 2012 09:32:45 +0100
+Message-ID: <20120925083245.GH31374@n2100.arm.linux.org.uk>
+References: <1348561590-13361-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39688 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39693 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750854Ab2IYIau (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 04:30:50 -0400
+	with ESMTP id S1752760Ab2IYIcu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 04:32:50 -0400
 Content-Disposition: inline
-In-Reply-To: <CAKdam572krJZcayRdJ_AciCUZH3LuzD9yoHenhxrB6j9xDZ6JQ@mail.gmail.com>
+In-Reply-To: <1348561590-13361-1-git-send-email-yegorslists@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: gregkh@linuxfoundation.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com, linux-kernel@vger.kernel.org, balbi@ti.com, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
+To: yegorslists@googlemail.com
+Cc: linux-omap@vger.kernel.org, Dejan Gacnik <dejan.gacnik@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-On Tue, Sep 25, 2012 at 01:52:03PM +0530, Poddar, Sourav wrote:
-> Hi Greg,
+On Tue, Sep 25, 2012 at 10:26:30AM +0200, yegorslists@googlemail.com wrote:
+> From: Yegor Yefremov <yegorslists@googlemail.com>
 > 
-> Ping on this?
-> 
-> On Tue, Sep 18, 2012 at 6:10 PM, Sourav Poddar <sourav.poddar@ti.com> wrote:
-> > Greg's tty-next is not booting on 2420 based N800. The failure is
-> > observed at serial init itself. The reason might be that n800 tries to
-> > resume even though it is not suspended before.
+> FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
+> of consistent DMA memory (da8xx frame buffer driver).
 
-How is this happening?  I think that needs proper investigation - or if
-it's had more investigation, then the results needs to be included in
-the commit description so that everyone can understand the issue here.
+Okay, so the patch description says "This needs to be 12 on this platform".
 
-We should not be resuming a device which hasn't been suspended.  Maybe
-the runtime PM enable sequence is wrong, and that's what should be fixed
-instead?  
+>  config FORCE_MAX_ZONEORDER
+> -	int "Maximum zone order" if ARCH_SHMOBILE
+> -	range 11 64 if ARCH_SHMOBILE
+> +	int "Maximum zone order" if ARCH_SHMOBILE || SOC_AM33XX
+> +	range 11 64 if ARCH_SHMOBILE || SOC_AM33XX
 
-This sequence in the probe() function:
+but you leave it up to the user to select something that may not be
+suitable.  Wouldn't _just_ adding:
 
-        pm_runtime_irq_safe(&pdev->dev);
-        pm_runtime_enable(&pdev->dev);
-        pm_runtime_get_sync(&pdev->dev);
+	default "12" if SOC_AM33XX
 
-would enable runtime PM while the s/w state indicates that it's disabled,
-and then that pm_runtime_get_sync() will want to resume the device.  See
-the section "5. Runtime PM Initialization, Device Probing and Removal"
-in Documentation/power/runtime_pm.txt, specifically the second paragraph
-of that section.
+after the "range", and making no other changes be good enough and match
+what the patch description says?
