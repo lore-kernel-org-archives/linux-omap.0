@@ -1,344 +1,267 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 06/18] OMAPDSS: DISPC: Don't pass channel out when configuring overlays
-Date: Tue, 25 Sep 2012 11:49:41 +0530
-Message-ID: <1348553993-8083-7-git-send-email-archit@ti.com>
+Subject: [PATCH v2 07/18] OMAPDSS: DIPSC: Relax scaling limitations when in memory to memory mode
+Date: Tue, 25 Sep 2012 11:49:42 +0530
+Message-ID: <1348553993-8083-8-git-send-email-archit@ti.com>
 References: <1347538505-25359-1-git-send-email-archit@ti.com>
  <1348553993-8083-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48589 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41902 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753161Ab2IYGUP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 02:20:15 -0400
+	id S1753172Ab2IYGUS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 02:20:18 -0400
 In-Reply-To: <1348553993-8083-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-dispc_ovl_setup_common() is to be used by both overlays and writeback. We pass
-channel out to figure out what manager the overlay is connected to, to determine
-the pixel clock rate. This is used to decide the scaling limitations for that
-overlay.
+The scalers of overlays and writeback do not have any constraints on downscale
+ratio when operating in memory to memory mode.
 
-writeback doesn't have a channel out, it has a channel in field which tells
-where writeback gets its input from. These are 2 different fields, and this
-prevents us reusing the overlay configuration code for writeback.
+This is because in memory to memory mode, we aren't connected to a display which
+needs data output at the rate of pixel clock. The scalers can perform as much
+downscaling as needed, the rate at which the scaler outputs is adjusted
+accordingly.
 
-To overcome this, we now pass omap_plane to overlay related functions rather
-than passing channel out. We create helper functions which can derive pclk/lclk
-from the omap_plane id.
+Relax constraints related to downscaling based on whether the input overlays are
+connected to writeback in memory to memory mode. We pass a mem_to_mem boolean
+parameter to dispc_ovl_setup() from APPLY. This is currently set to false, this
+will later be configured to the correct value based on whether the overlay is
+connected to writeback or not. Do the same later for writeback when writeback is
+configured.
+
+In the scaling calculation code, we calculate the minimum amount of core clock we
+need to achieve the required downscaling. If we are in memory to memory mode, we
+set this to a very small value(1 in this case), this value would always be
+lesser than the actual DISPC core clock value, and hence the scaling checks
+would succeed.
+
+We take care that pixel clock isn't calculated for writeback and the overlays
+connected to it when in memory to memory mode. A pixel clock in such cases
+doesn't make sense.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |  115 ++++++++++++++++++++++-----------------
- 1 file changed, 66 insertions(+), 49 deletions(-)
+ drivers/video/omap2/dss/apply.c |    2 +-
+ drivers/video/omap2/dss/dispc.c |   60 ++++++++++++++++++++++++++-------------
+ drivers/video/omap2/dss/dss.h   |    3 +-
+ 3 files changed, 44 insertions(+), 21 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index 2b1fa85..19d66f4 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -584,7 +584,7 @@ static void dss_ovl_write_regs(struct omap_overlay *ovl)
+ 
+ 	replication = dss_ovl_use_replication(mp->lcd_config, oi->color_mode);
+ 
+-	r = dispc_ovl_setup(ovl->id, oi, replication, &mp->timings);
++	r = dispc_ovl_setup(ovl->id, oi, replication, &mp->timings, false);
+ 	if (r) {
+ 		/*
+ 		 * We can't do much here, as this function can be called from
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 782de44..edb31fd 100644
+index edb31fd..ba65ebd 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -86,13 +86,13 @@ struct dispc_features {
- 	u16 sw_max;
- 	u16 vp_max;
- 	u16 hp_max;
--	int (*calc_scaling) (enum omap_channel channel,
-+	int (*calc_scaling) (enum omap_plane plane,
- 		const struct omap_video_timings *mgr_timings,
+@@ -91,9 +91,10 @@ struct dispc_features {
  		u16 width, u16 height, u16 out_width, u16 out_height,
  		enum omap_color_mode color_mode, bool *five_taps,
  		int *x_predecim, int *y_predecim, int *decim_x, int *decim_y,
- 		u16 pos_x, unsigned long *core_clk);
--	unsigned long (*calc_core_clk) (enum omap_channel channel,
-+	unsigned long (*calc_core_clk) (enum omap_plane plane,
- 		u16 width, u16 height, u16 out_width, u16 out_height);
+-		u16 pos_x, unsigned long *core_clk);
++		u16 pos_x, unsigned long *core_clk, bool mem_to_mem);
+ 	unsigned long (*calc_core_clk) (enum omap_plane plane,
+-		u16 width, u16 height, u16 out_width, u16 out_height);
++		u16 width, u16 height, u16 out_width, u16 out_height,
++		bool mem_to_mem);
  	u8 num_fifos;
  
-@@ -236,6 +236,8 @@ static const struct {
- };
- 
- static void _omap_dispc_set_irqs(void);
-+static unsigned long dispc_plane_pclk_rate(enum omap_plane plane);
-+static unsigned long dispc_plane_lclk_rate(enum omap_plane plane);
- 
- static inline void dispc_write_reg(const u16 idx, u32 val)
- {
-@@ -1919,22 +1921,19 @@ static void calc_tiler_rotation_offset(u16 screen_width, u16 width,
-  * This function is used to avoid synclosts in OMAP3, because of some
-  * undocumented horizontal position and timing related limitations.
-  */
--static int check_horiz_timing_omap3(enum omap_channel channel,
-+static int check_horiz_timing_omap3(enum omap_plane plane,
- 		const struct omap_video_timings *t, u16 pos_x,
- 		u16 width, u16 height, u16 out_width, u16 out_height)
- {
- 	int DS = DIV_ROUND_UP(height, out_height);
--	unsigned long nonactive, lclk, pclk;
-+	unsigned long nonactive;
- 	static const u8 limits[3] = { 8, 10, 20 };
- 	u64 val, blank;
-+	unsigned long pclk = dispc_plane_pclk_rate(plane);
-+	unsigned long lclk = dispc_plane_lclk_rate(plane);
- 	int i;
- 
- 	nonactive = t->x_res + t->hfp + t->hsw + t->hbp - out_width;
--	pclk = dispc_mgr_pclk_rate(channel);
--	if (dss_mgr_is_lcd(channel))
--		lclk = dispc_mgr_lclk_rate(channel);
--	else
--		lclk = dispc_fclk_rate();
- 
- 	i = 0;
- 	if (out_height < height)
-@@ -1971,13 +1970,14 @@ static int check_horiz_timing_omap3(enum omap_channel channel,
- 	return 0;
+ 	/* swap GFX & WB fifos */
+@@ -2012,7 +2013,7 @@ static unsigned long calc_core_clk_five_taps(enum omap_plane plane,
  }
  
--static unsigned long calc_core_clk_five_taps(enum omap_channel channel,
-+static unsigned long calc_core_clk_five_taps(enum omap_plane plane,
- 		const struct omap_video_timings *mgr_timings, u16 width,
- 		u16 height, u16 out_width, u16 out_height,
- 		enum omap_color_mode color_mode)
+ static unsigned long calc_core_clk_24xx(enum omap_plane plane, u16 width,
+-		u16 height, u16 out_width, u16 out_height)
++		u16 height, u16 out_width, u16 out_height, bool mem_to_mem)
  {
- 	u32 core_clk = 0;
--	u64 tmp, pclk = dispc_mgr_pclk_rate(channel);
-+	u64 tmp;
-+	unsigned long pclk = dispc_plane_pclk_rate(plane);
+ 	unsigned long pclk = dispc_plane_pclk_rate(plane);
  
- 	if (height <= out_height && width <= out_width)
- 		return (unsigned long) pclk;
-@@ -2011,10 +2011,10 @@ static unsigned long calc_core_clk_five_taps(enum omap_channel channel,
- 	return core_clk;
+@@ -2023,7 +2024,7 @@ static unsigned long calc_core_clk_24xx(enum omap_plane plane, u16 width,
  }
  
--static unsigned long calc_core_clk_24xx(enum omap_channel channel, u16 width,
-+static unsigned long calc_core_clk_24xx(enum omap_plane plane, u16 width,
- 		u16 height, u16 out_width, u16 out_height)
- {
--	unsigned long pclk = dispc_mgr_pclk_rate(channel);
-+	unsigned long pclk = dispc_plane_pclk_rate(plane);
- 
- 	if (height > out_height && width > out_width)
- 		return pclk * 4;
-@@ -2022,11 +2022,11 @@ static unsigned long calc_core_clk_24xx(enum omap_channel channel, u16 width,
- 		return pclk * 2;
- }
- 
--static unsigned long calc_core_clk_34xx(enum omap_channel channel, u16 width,
-+static unsigned long calc_core_clk_34xx(enum omap_plane plane, u16 width,
- 		u16 height, u16 out_width, u16 out_height)
+ static unsigned long calc_core_clk_34xx(enum omap_plane plane, u16 width,
+-		u16 height, u16 out_width, u16 out_height)
++		u16 height, u16 out_width, u16 out_height, bool mem_to_mem)
  {
  	unsigned int hf, vf;
--	unsigned long pclk = dispc_mgr_pclk_rate(channel);
-+	unsigned long pclk = dispc_plane_pclk_rate(plane);
- 
- 	/*
- 	 * FIXME how to determine the 'A' factor
-@@ -2049,10 +2049,10 @@ static unsigned long calc_core_clk_34xx(enum omap_channel channel, u16 width,
- 	return pclk * vf * hf;
+ 	unsigned long pclk = dispc_plane_pclk_rate(plane);
+@@ -2050,9 +2051,20 @@ static unsigned long calc_core_clk_34xx(enum omap_plane plane, u16 width,
  }
  
--static unsigned long calc_core_clk_44xx(enum omap_channel channel, u16 width,
-+static unsigned long calc_core_clk_44xx(enum omap_plane plane, u16 width,
- 		u16 height, u16 out_width, u16 out_height)
+ static unsigned long calc_core_clk_44xx(enum omap_plane plane, u16 width,
+-		u16 height, u16 out_width, u16 out_height)
++		u16 height, u16 out_width, u16 out_height, bool mem_to_mem)
  {
--	unsigned long pclk = dispc_mgr_pclk_rate(channel);
-+	unsigned long pclk = dispc_plane_pclk_rate(plane);
+-	unsigned long pclk = dispc_plane_pclk_rate(plane);
++	unsigned long pclk;
++
++	/*
++	 * If the overlay/writeback is in mem to mem mode, there are no
++	 * downscaling limitations with respect to pixel clock, return 1 as
++	 * required core clock to represent that we have sufficient enough
++	 * core clock to do maximum downscaling
++	 */
++	if (mem_to_mem)
++		return 1;
++
++	pclk = dispc_plane_pclk_rate(plane);
  
  	if (width > out_width)
  		return DIV_ROUND_UP(pclk, out_width) * width;
-@@ -2060,7 +2060,7 @@ static unsigned long calc_core_clk_44xx(enum omap_channel channel, u16 width,
- 		return pclk;
- }
- 
--static int dispc_ovl_calc_scaling_24xx(enum omap_channel channel,
-+static int dispc_ovl_calc_scaling_24xx(enum omap_plane plane,
- 		const struct omap_video_timings *mgr_timings,
+@@ -2065,7 +2077,7 @@ static int dispc_ovl_calc_scaling_24xx(enum omap_plane plane,
  		u16 width, u16 height, u16 out_width, u16 out_height,
  		enum omap_color_mode color_mode, bool *five_taps,
-@@ -2072,12 +2072,13 @@ static int dispc_ovl_calc_scaling_24xx(enum omap_channel channel,
- 	int min_factor = min(*decim_x, *decim_y);
- 	const int maxsinglelinewidth =
- 			dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
-+
- 	*five_taps = false;
- 
- 	do {
+ 		int *x_predecim, int *y_predecim, int *decim_x, int *decim_y,
+-		u16 pos_x, unsigned long *core_clk)
++		u16 pos_x, unsigned long *core_clk, bool mem_to_mem)
+ {
+ 	int error;
+ 	u16 in_width, in_height;
+@@ -2079,7 +2091,7 @@ static int dispc_ovl_calc_scaling_24xx(enum omap_plane plane,
  		in_height = DIV_ROUND_UP(height, *decim_y);
  		in_width = DIV_ROUND_UP(width, *decim_x);
--		*core_clk = dispc.feat->calc_core_clk(channel, in_width,
-+		*core_clk = dispc.feat->calc_core_clk(plane, in_width,
- 				in_height, out_width, out_height);
+ 		*core_clk = dispc.feat->calc_core_clk(plane, in_width,
+-				in_height, out_width, out_height);
++				in_height, out_width, out_height, mem_to_mem);
  		error = (in_width > maxsinglelinewidth || !*core_clk ||
  			*core_clk > dispc_core_clk_rate());
-@@ -2100,7 +2101,7 @@ static int dispc_ovl_calc_scaling_24xx(enum omap_channel channel,
- 	return 0;
- }
- 
--static int dispc_ovl_calc_scaling_34xx(enum omap_channel channel,
-+static int dispc_ovl_calc_scaling_34xx(enum omap_plane plane,
- 		const struct omap_video_timings *mgr_timings,
+ 		if (error) {
+@@ -2106,7 +2118,7 @@ static int dispc_ovl_calc_scaling_34xx(enum omap_plane plane,
  		u16 width, u16 height, u16 out_width, u16 out_height,
  		enum omap_color_mode color_mode, bool *five_taps,
-@@ -2116,18 +2117,19 @@ static int dispc_ovl_calc_scaling_34xx(enum omap_channel channel,
- 	do {
- 		in_height = DIV_ROUND_UP(height, *decim_y);
- 		in_width = DIV_ROUND_UP(width, *decim_x);
--		*core_clk = calc_core_clk_five_taps(channel, mgr_timings,
-+		*core_clk = calc_core_clk_five_taps(plane, mgr_timings,
- 			in_width, in_height, out_width, out_height, color_mode);
- 
--		error = check_horiz_timing_omap3(channel, mgr_timings, pos_x,
--			in_width, in_height, out_width, out_height);
-+		error = check_horiz_timing_omap3(plane, mgr_timings,
-+				pos_x, in_width, in_height, out_width,
-+				out_height);
- 
- 		if (in_width > maxsinglelinewidth)
- 			if (in_height > out_height &&
- 						in_height < out_height * 2)
+ 		int *x_predecim, int *y_predecim, int *decim_x, int *decim_y,
+-		u16 pos_x, unsigned long *core_clk)
++		u16 pos_x, unsigned long *core_clk, bool mem_to_mem)
+ {
+ 	int error;
+ 	u16 in_width, in_height;
+@@ -2130,7 +2142,8 @@ static int dispc_ovl_calc_scaling_34xx(enum omap_plane plane,
  				*five_taps = false;
  		if (!*five_taps)
--			*core_clk = dispc.feat->calc_core_clk(channel, in_width,
-+			*core_clk = dispc.feat->calc_core_clk(plane, in_width,
- 					in_height, out_width, out_height);
+ 			*core_clk = dispc.feat->calc_core_clk(plane, in_width,
+-					in_height, out_width, out_height);
++					in_height, out_width, out_height,
++					mem_to_mem);
  
  		error = (error || in_width > maxsinglelinewidth * 2 ||
-@@ -2145,7 +2147,7 @@ static int dispc_ovl_calc_scaling_34xx(enum omap_channel channel,
- 		}
- 	} while (*decim_x <= *x_predecim && *decim_y <= *y_predecim && error);
- 
--	if (check_horiz_timing_omap3(channel, mgr_timings, pos_x, width, height,
-+	if (check_horiz_timing_omap3(plane, mgr_timings, pos_x, width, height,
- 		out_width, out_height)){
- 			DSSERR("horizontal timing too tight\n");
- 			return -EINVAL;
-@@ -2164,7 +2166,7 @@ static int dispc_ovl_calc_scaling_34xx(enum omap_channel channel,
- 	return 0;
- }
- 
--static int dispc_ovl_calc_scaling_44xx(enum omap_channel channel,
-+static int dispc_ovl_calc_scaling_44xx(enum omap_plane plane,
- 		const struct omap_video_timings *mgr_timings,
+ 			(in_width > maxsinglelinewidth && *five_taps) ||
+@@ -2171,7 +2184,7 @@ static int dispc_ovl_calc_scaling_44xx(enum omap_plane plane,
  		u16 width, u16 height, u16 out_width, u16 out_height,
  		enum omap_color_mode color_mode, bool *five_taps,
-@@ -2176,9 +2178,10 @@ static int dispc_ovl_calc_scaling_44xx(enum omap_channel channel,
- 	u16 in_height = DIV_ROUND_UP(height, *decim_y);
+ 		int *x_predecim, int *y_predecim, int *decim_x, int *decim_y,
+-		u16 pos_x, unsigned long *core_clk)
++		u16 pos_x, unsigned long *core_clk, bool mem_to_mem)
+ {
+ 	u16 in_width, in_width_max;
+ 	int decim_x_min = *decim_x;
+@@ -2179,8 +2192,13 @@ static int dispc_ovl_calc_scaling_44xx(enum omap_plane plane,
  	const int maxsinglelinewidth =
  				dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
-+	unsigned long pclk = dispc_plane_pclk_rate(plane);
-+
-+	in_width_max = dispc_core_clk_rate() / DIV_ROUND_UP(pclk, out_width);
+ 	unsigned long pclk = dispc_plane_pclk_rate(plane);
++	const int maxdownscale = dss_feat_get_param_max(FEAT_PARAM_DOWNSCALE);
  
--	in_width_max = dispc_core_clk_rate() /
--			DIV_ROUND_UP(dispc_mgr_pclk_rate(channel), out_width);
+-	in_width_max = dispc_core_clk_rate() / DIV_ROUND_UP(pclk, out_width);
++	if (mem_to_mem)
++		in_width_max = DIV_ROUND_UP(out_width, maxdownscale);
++	else
++		in_width_max = dispc_core_clk_rate() /
++					DIV_ROUND_UP(pclk, out_width);
+ 
  	*decim_x = DIV_ROUND_UP(width, in_width_max);
  
- 	*decim_x = *decim_x > decim_x_min ? *decim_x : decim_x_min;
-@@ -2195,13 +2198,13 @@ static int dispc_ovl_calc_scaling_44xx(enum omap_channel channel,
- 		return -EINVAL;
+@@ -2199,7 +2217,7 @@ static int dispc_ovl_calc_scaling_44xx(enum omap_plane plane,
  	}
  
--	*core_clk = dispc.feat->calc_core_clk(channel, in_width, in_height,
-+	*core_clk = dispc.feat->calc_core_clk(plane, in_width, in_height,
- 				out_width, out_height);
+ 	*core_clk = dispc.feat->calc_core_clk(plane, in_width, in_height,
+-				out_width, out_height);
++				out_width, out_height, mem_to_mem);
  	return 0;
  }
  
- static int dispc_ovl_calc_scaling(enum omap_plane plane,
--		enum omap_overlay_caps caps, enum omap_channel channel,
-+		enum omap_overlay_caps caps,
+@@ -2208,7 +2226,7 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
  		const struct omap_video_timings *mgr_timings,
  		u16 width, u16 height, u16 out_width, u16 out_height,
  		enum omap_color_mode color_mode, bool *five_taps,
-@@ -2240,9 +2243,9 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 	if (decim_y > *y_predecim || out_height > height * 8)
- 		return -EINVAL;
+-		int *x_predecim, int *y_predecim, u16 pos_x)
++		int *x_predecim, int *y_predecim, u16 pos_x, bool mem_to_mem)
+ {
+ 	const int maxdownscale = dss_feat_get_param_max(FEAT_PARAM_DOWNSCALE);
+ 	const int max_decim_limit = 16;
+@@ -2245,7 +2263,8 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
  
--	ret = dispc.feat->calc_scaling(channel, mgr_timings, width, height,
--		out_width, out_height, color_mode, five_taps, x_predecim,
--		y_predecim, &decim_x, &decim_y, pos_x, &core_clk);
-+	ret = dispc.feat->calc_scaling(plane, mgr_timings, width, height,
-+		out_width, out_height, color_mode, five_taps,
-+		x_predecim, y_predecim, &decim_x, &decim_y, pos_x, &core_clk);
+ 	ret = dispc.feat->calc_scaling(plane, mgr_timings, width, height,
+ 		out_width, out_height, color_mode, five_taps,
+-		x_predecim, y_predecim, &decim_x, &decim_y, pos_x, &core_clk);
++		x_predecim, y_predecim, &decim_x, &decim_y, pos_x, &core_clk,
++		mem_to_mem);
  	if (ret)
  		return ret;
  
-@@ -2263,12 +2266,11 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- }
- 
- static int dispc_ovl_setup_common(enum omap_plane plane,
--		enum omap_channel channel, enum omap_overlay_caps caps,
--		u32 paddr, u32 p_uv_addr, u16 screen_width, int pos_x,
--		int pos_y, u16 width, u16 height, u16 out_width, u16 out_height,
--		enum omap_color_mode color_mode, u8 rotation, bool mirror,
--		u8 zorder, u8 pre_mult_alpha, u8 global_alpha,
--		enum omap_dss_rotation_type rotation_type,
-+		enum omap_overlay_caps caps, u32 paddr, u32 p_uv_addr,
-+		u16 screen_width, int pos_x, int pos_y, u16 width, u16 height,
-+		u16 out_width, u16 out_height, enum omap_color_mode color_mode,
-+		u8 rotation, bool mirror, u8 zorder, u8 pre_mult_alpha,
-+		u8 global_alpha, enum omap_dss_rotation_type rotation_type,
- 		bool replication, const struct omap_video_timings *mgr_timings)
+@@ -2271,7 +2290,8 @@ static int dispc_ovl_setup_common(enum omap_plane plane,
+ 		u16 out_width, u16 out_height, enum omap_color_mode color_mode,
+ 		u8 rotation, bool mirror, u8 zorder, u8 pre_mult_alpha,
+ 		u8 global_alpha, enum omap_dss_rotation_type rotation_type,
+-		bool replication, const struct omap_video_timings *mgr_timings)
++		bool replication, const struct omap_video_timings *mgr_timings,
++		bool mem_to_mem)
  {
  	bool five_taps = true;
-@@ -2307,10 +2309,9 @@ static int dispc_ovl_setup_common(enum omap_plane plane,
- 	if (!dss_feat_color_mode_supported(plane, color_mode))
- 		return -EINVAL;
+ 	bool fieldmode = 0;
+@@ -2311,7 +2331,8 @@ static int dispc_ovl_setup_common(enum omap_plane plane,
  
--	r = dispc_ovl_calc_scaling(plane, caps, channel, mgr_timings,
--			in_width, in_height, out_width, out_height,
--			color_mode, &five_taps, &x_predecim, &y_predecim,
--			pos_x);
-+	r = dispc_ovl_calc_scaling(plane, caps, mgr_timings, in_width,
-+			in_height, out_width, out_height, color_mode,
-+			&five_taps, &x_predecim, &y_predecim, pos_x);
+ 	r = dispc_ovl_calc_scaling(plane, caps, mgr_timings, in_width,
+ 			in_height, out_width, out_height, color_mode,
+-			&five_taps, &x_predecim, &y_predecim, pos_x);
++			&five_taps, &x_predecim, &y_predecim, pos_x,
++			mem_to_mem);
  	if (r)
  		return r;
  
-@@ -2422,12 +2423,11 @@ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
- 		oi->pos_y, oi->width, oi->height, oi->out_width, oi->out_height,
- 		oi->color_mode, oi->rotation, oi->mirror, channel, replication);
+@@ -2409,7 +2430,8 @@ static int dispc_ovl_setup_common(enum omap_plane plane,
+ }
  
--	r = dispc_ovl_setup_common(plane, channel, ovl->caps, oi->paddr,
--		oi->p_uv_addr, oi->screen_width, oi->pos_x, oi->pos_y,
--		oi->width, oi->height, oi->out_width, oi->out_height,
--		oi->color_mode, oi->rotation, oi->mirror, oi->zorder,
--		oi->pre_mult_alpha, oi->global_alpha, oi->rotation_type,
--		replication, mgr_timings);
-+	r = dispc_ovl_setup_common(plane, ovl->caps, oi->paddr, oi->p_uv_addr,
-+		oi->screen_width, oi->pos_x, oi->pos_y, oi->width, oi->height,
-+		oi->out_width, oi->out_height, oi->color_mode, oi->rotation,
-+		oi->mirror, oi->zorder, oi->pre_mult_alpha, oi->global_alpha,
-+		oi->rotation_type, replication, mgr_timings);
+ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
+-		bool replication, const struct omap_video_timings *mgr_timings)
++		bool replication, const struct omap_video_timings *mgr_timings,
++		bool mem_to_mem)
+ {
+ 	int r;
+ 	struct omap_overlay *ovl = omap_dss_get_overlay(plane);
+@@ -2427,7 +2449,7 @@ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
+ 		oi->screen_width, oi->pos_x, oi->pos_y, oi->width, oi->height,
+ 		oi->out_width, oi->out_height, oi->color_mode, oi->rotation,
+ 		oi->mirror, oi->zorder, oi->pre_mult_alpha, oi->global_alpha,
+-		oi->rotation_type, replication, mgr_timings);
++		oi->rotation_type, replication, mgr_timings, mem_to_mem);
  
  	return r;
  }
-@@ -2987,6 +2987,23 @@ unsigned long dispc_core_clk_rate(void)
- 	return fclk / lcd;
- }
- 
-+static unsigned long dispc_plane_pclk_rate(enum omap_plane plane)
-+{
-+	enum omap_channel channel = dispc_ovl_get_channel_out(plane);
-+
-+	return dispc_mgr_pclk_rate(channel);
-+}
-+
-+static unsigned long dispc_plane_lclk_rate(enum omap_plane plane)
-+{
-+	enum omap_channel channel = dispc_ovl_get_channel_out(plane);
-+
-+	if (dss_mgr_is_lcd(channel))
-+		return dispc_mgr_lclk_rate(channel);
-+	else
-+		return dispc_fclk_rate();
-+
-+}
- static void dispc_dump_clocks_channel(struct seq_file *s, enum omap_channel channel)
- {
- 	int lcd, pcd;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 43210b8..04a1eda 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -441,7 +441,8 @@ void dispc_ovl_compute_fifo_thresholds(enum omap_plane plane,
+ 		u32 *fifo_low, u32 *fifo_high, bool use_fifomerge,
+ 		bool manual_update);
+ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
+-		bool replication, const struct omap_video_timings *mgr_timings);
++		bool replication, const struct omap_video_timings *mgr_timings,
++		bool mem_to_mem);
+ int dispc_ovl_enable(enum omap_plane plane, bool enable);
+ void dispc_ovl_set_channel_out(enum omap_plane plane,
+ 		enum omap_channel channel);
 -- 
 1.7.9.5
 
