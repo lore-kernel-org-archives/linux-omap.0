@@ -1,107 +1,42 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 10/21] ARM: OMAP: TWL: change the vddmin / vddmax voltages to spec
-Date: Tue, 25 Sep 2012 19:33:42 +0300
-Message-ID: <1348590833-12335-11-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 12/21] ARM: OMAP: beagle: set oscillator startup time to 10ms for rev c4
+Date: Tue, 25 Sep 2012 19:33:44 +0300
+Message-ID: <1348590833-12335-13-git-send-email-t-kristo@ti.com>
 References: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44030 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60228 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758052Ab2IYQeW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 12:34:22 -0400
+	id S1758042Ab2IYQe0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 12:34:26 -0400
 In-Reply-To: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-As vddmin / vddmax voltages for the pmic only describe the pmic
-capabilities now, change the voltages to be according to spec.
-TWL data manuals give following values:
-
-TWL4030 (SWCS019L) : VDD1: 600mV ... 1450mV, VDD2: 600mV ... 1500mV
-TWL5030 (SWCS030E) : VDD1: 600mV ... 1450mV, VDD2: 600mV ... 1500mV
-TWL6030 (SWCS045A) : 0V ... 2100mV
+Based on the oscillator datasheet for this device.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c |   27 ++++++++++-----------------
- 1 files changed, 10 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index dca1d66..188f210 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -145,8 +145,8 @@ static struct omap_voltdm_pmic omap3_mpu_pmic = {
- 	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP3430_VP1_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP3430_VP1_VLIMITTO_VDDMAX,
-+	.vddmin			= 600000,
-+	.vddmax			= 1450000,
- 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP3_VDD_MPU_SR_CONTROL_REG,
-@@ -162,8 +162,8 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
- 	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP3430_VP2_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP3430_VP2_VLIMITTO_VDDMAX,
-+	.vddmin			= 600000,
-+	.vddmax			= 1450000,
- 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP3_VDD_CORE_SR_CONTROL_REG,
-@@ -179,8 +179,8 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
-+	.vddmin			= 0,
-+	.vddmax			= 2100000,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_MPU_SR_VOLT_REG,
-@@ -197,8 +197,8 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
-+	.vddmin			= 0,
-+	.vddmax			= 2100000,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_IVA_SR_VOLT_REG,
-@@ -215,8 +215,8 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
- 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
--	.vddmin			= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
--	.vddmax			= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
-+	.vddmin			= 0,
-+	.vddmax			= 2100000,
- 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
- 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
- 	.volt_reg_addr		= OMAP4_VDD_CORE_SR_VOLT_REG,
-@@ -251,13 +251,6 @@ int __init omap3_twl_init(void)
- 	if (!cpu_is_omap34xx())
- 		return -ENODEV;
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 0d2a45f..304fc48 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -486,6 +486,9 @@ static void __init beagle_opp_init(void)
+ 			opp_disable(mpu_dev, 720000000);
+ 			opp_disable(iva_dev, 520000000);
+ 		}
++
++		/* Set oscillator startup time to 10ms, shutdown not used */
++		omap_pm_setup_oscillator(10000, ULONG_MAX);
+ 	}
  
--	if (cpu_is_omap3630()) {
--		omap3_mpu_pmic.vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
--		omap3_mpu_pmic.vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
--		omap3_core_pmic.vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
--		omap3_core_pmic.vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
--	}
--
- 	/*
- 	 * The smartreflex bit on twl4030 specifies if the setting of voltage
- 	 * is done over the I2C_SR path. Since this setting is independent of
+ 	/* Custom OPP enabled for all xM versions */
 -- 
 1.7.4.1
 
