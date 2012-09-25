@@ -1,80 +1,68 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 01/11] ARM: OMAP: clockdomain: Fix locking on _clkdm_clk_hwmod_enable / disable
-Date: Tue, 25 Sep 2012 19:05:32 +0300
-Message-ID: <1348589142-11983-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 06/11] ARM: OMAP: clockdomain: add support for preventing autodep delete
+Date: Tue, 25 Sep 2012 19:05:37 +0300
+Message-ID: <1348589142-11983-7-git-send-email-t-kristo@ti.com>
 References: <1348589142-11983-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48068 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48085 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754277Ab2IYQF4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 12:05:56 -0400
+	id S1757362Ab2IYQGE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 12:06:04 -0400
 In-Reply-To: <1348589142-11983-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Previously the code only acquired spinlock after increasing / decreasing
-the usecount value, which is wrong. This leaves a small window where
-a task switch may occur between the check of the usecount and the actual
-wakeup / sleep of the domain. Fixed by moving the spinlock locking before
-the usecount access. Left the usecount as atomic_t if someone wants an
-easy access to the parameter through atomic_read.
+Some clockdomains bug out if their autodeps are deleted before idle.
+This happens namely with OMAP3 PER domain, it will bug out if it
+doesn't have wakedeps enabled when it enters off-mode. This patch
+adds support for new flag 'CLKDM_NO_AUTODEP_DISABLE' which does this.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clockdomain.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c |    3 +++
+ arch/arm/mach-omap2/clockdomain.h |    4 ++++
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 8664f5a..173905d 100644
+index 7715353..4f01c8f 100644
 --- a/arch/arm/mach-omap2/clockdomain.c
 +++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -914,15 +914,18 @@ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
- 	if (!clkdm || !arch_clkdm || !arch_clkdm->clkdm_clk_enable)
- 		return -EINVAL;
+@@ -201,6 +201,9 @@ void _clkdm_del_autodeps(struct clockdomain *clkdm)
+ 	if (!autodeps || clkdm->flags & CLKDM_NO_AUTODEPS)
+ 		return;
  
-+	spin_lock_irqsave(&clkdm->lock, flags);
++	if (clkdm->flags & CLKDM_NO_AUTODEP_DISABLE)
++		return;
 +
- 	/*
- 	 * For arch's with no autodeps, clkcm_clk_enable
- 	 * should be called for every clock instance or hwmod that is
- 	 * enabled, so the clkdm can be force woken up.
- 	 */
--	if ((atomic_inc_return(&clkdm->usecount) > 1) && autodeps)
-+	if ((atomic_inc_return(&clkdm->usecount) > 1) && autodeps) {
-+		spin_unlock_irqrestore(&clkdm->lock, flags);
- 		return 0;
-+	}
+ 	for (autodep = autodeps; autodep->clkdm.ptr; autodep++) {
+ 		if (IS_ERR(autodep->clkdm.ptr))
+ 			continue;
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 5601dc1..9b8733e 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -34,6 +34,9 @@
+  * CLKDM_ACTIVE_WITH_MPU: The PRCM guarantees that this clockdomain is
+  *     active whenever the MPU is active.  True for interconnects and
+  *     the WKUP clockdomains.
++ * CLKDM_NO_AUTODEP_DISABLE: Prevent clockdomain code from deleting autodeps.
++ *     Needed for PER domain on omap3, as it will bug out with off-mode if
++ *     wakedeps are removed.
+  */
+ #define CLKDM_CAN_FORCE_SLEEP			(1 << 0)
+ #define CLKDM_CAN_FORCE_WAKEUP			(1 << 1)
+@@ -41,6 +44,7 @@
+ #define CLKDM_CAN_DISABLE_AUTO			(1 << 3)
+ #define CLKDM_NO_AUTODEPS			(1 << 4)
+ #define CLKDM_ACTIVE_WITH_MPU			(1 << 5)
++#define CLKDM_NO_AUTODEP_DISABLE		(1 << 6)
  
--	spin_lock_irqsave(&clkdm->lock, flags);
- 	arch_clkdm->clkdm_clk_enable(clkdm);
- 	pwrdm_state_switch(clkdm->pwrdm.ptr);
- 	spin_unlock_irqrestore(&clkdm->lock, flags);
-@@ -939,15 +942,19 @@ static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
- 	if (!clkdm || !arch_clkdm || !arch_clkdm->clkdm_clk_disable)
- 		return -EINVAL;
- 
-+	spin_lock_irqsave(&clkdm->lock, flags);
-+
- 	if (atomic_read(&clkdm->usecount) == 0) {
-+		spin_unlock_irqrestore(&clkdm->lock, flags);
- 		WARN_ON(1); /* underflow */
- 		return -ERANGE;
- 	}
- 
--	if (atomic_dec_return(&clkdm->usecount) > 0)
-+	if (atomic_dec_return(&clkdm->usecount) > 0) {
-+		spin_unlock_irqrestore(&clkdm->lock, flags);
- 		return 0;
-+	}
- 
--	spin_lock_irqsave(&clkdm->lock, flags);
- 	arch_clkdm->clkdm_clk_disable(clkdm);
- 	pwrdm_state_switch(clkdm->pwrdm.ptr);
- 	spin_unlock_irqrestore(&clkdm->lock, flags);
+ #define CLKDM_CAN_HWSUP		(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
+ #define CLKDM_CAN_SWSUP		(CLKDM_CAN_FORCE_SLEEP | CLKDM_CAN_FORCE_WAKEUP)
 -- 
 1.7.4.1
 
