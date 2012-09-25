@@ -1,68 +1,46 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 05/10] ARM: OMAP: clockdomain: add support for preventing autodep delete
-Date: Tue, 25 Sep 2012 12:32:40 +0300
-Message-ID: <1348565565-14744-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 04/10] ARM: OMAP3: set autoidle flag for sdrc_ick
+Date: Tue, 25 Sep 2012 12:32:39 +0300
+Message-ID: <1348565565-14744-5-git-send-email-t-kristo@ti.com>
 References: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33045 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754468Ab2IYJdG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 05:33:06 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:43967 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754411Ab2IYJdF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 05:33:05 -0400
 In-Reply-To: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Some clockdomains bug out if their autodeps are deleted before idle.
-This happens namely with OMAP3 PER domain, it will bug out if it
-doesn't have wakedeps enabled when it enters off-mode. This patch
-adds support for new flag 'CLKDM_NO_AUTODEP_DISABLE' which does this.
+sdrc_ick doesn't have autoidle flag on HW, but is always automatically
+idled. Thus mark the autoidle flag statically as true for it to reflect
+hardware behavior. The clock will no longer show as active in usecount
+dumps and will allow the voltdm->sleep / wakeup calls to work properly.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clockdomain.c |    3 +++
- arch/arm/mach-omap2/clockdomain.h |    4 ++++
- 2 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 8c8518c..2fa433a 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -201,6 +201,9 @@ void _clkdm_del_autodeps(struct clockdomain *clkdm)
- 	if (!autodeps || clkdm->flags & CLKDM_NO_AUTODEPS)
- 		return;
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 83bed9a..1ddc7fc 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -1739,6 +1739,7 @@ static struct clk sdrc_ick = {
+ 	.flags		= ENABLE_ON_INIT,
+ 	.clkdm_name	= "core_l3_clkdm",
+ 	.recalc		= &followparent_recalc,
++	.autoidle	= true,
+ };
  
-+	if (clkdm->flags & CLKDM_NO_AUTODEP_DISABLE)
-+		return;
-+
- 	for (autodep = autodeps; autodep->clkdm.ptr; autodep++) {
- 		if (IS_ERR(autodep->clkdm.ptr))
- 			continue;
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 5601dc1..9b8733e 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -34,6 +34,9 @@
-  * CLKDM_ACTIVE_WITH_MPU: The PRCM guarantees that this clockdomain is
-  *     active whenever the MPU is active.  True for interconnects and
-  *     the WKUP clockdomains.
-+ * CLKDM_NO_AUTODEP_DISABLE: Prevent clockdomain code from deleting autodeps.
-+ *     Needed for PER domain on omap3, as it will bug out with off-mode if
-+ *     wakedeps are removed.
-  */
- #define CLKDM_CAN_FORCE_SLEEP			(1 << 0)
- #define CLKDM_CAN_FORCE_WAKEUP			(1 << 1)
-@@ -41,6 +44,7 @@
- #define CLKDM_CAN_DISABLE_AUTO			(1 << 3)
- #define CLKDM_NO_AUTODEPS			(1 << 4)
- #define CLKDM_ACTIVE_WITH_MPU			(1 << 5)
-+#define CLKDM_NO_AUTODEP_DISABLE		(1 << 6)
- 
- #define CLKDM_CAN_HWSUP		(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
- #define CLKDM_CAN_SWSUP		(CLKDM_CAN_FORCE_SLEEP | CLKDM_CAN_FORCE_WAKEUP)
+ static struct clk gpmc_fck = {
 -- 
 1.7.4.1
 
