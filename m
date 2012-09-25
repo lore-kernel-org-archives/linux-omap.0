@@ -1,46 +1,91 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 07/10] ARM: OMAP4: clock data: set autoidle flag for dss_fck
-Date: Tue, 25 Sep 2012 12:32:42 +0300
-Message-ID: <1348565565-14744-8-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 08/10] ARM: OMAP4: hwmod: add support for hwmod autoidle flag
+Date: Tue, 25 Sep 2012 12:32:43 +0300
+Message-ID: <1348565565-14744-9-git-send-email-t-kristo@ti.com>
 References: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33053 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:33055 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754411Ab2IYJdI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 05:33:08 -0400
+	with ESMTP id S1754468Ab2IYJdJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 05:33:09 -0400
 In-Reply-To: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-dss_fck is currently being used improperly within the hwmod database
-as an interface clock for DSS hwmods. This causes the dss_fck to
-be enabled even if the dss powerdomain itself is idle, resulting
-in wrong data within the powerdomain usecounts. Marked dss_fck as
-autoidle which makes the clock to disappear from usecounts for now.
-This patch can be reverted once the interface clocks for DSS hwmods
-have been properly fixed.
+If a hwmod is in HWAUTO mode, it will idle automatically and should not
+be accounted for in the clkdm / pwrdm usecounts. Thus, flag modules in
+such mode as autoidle during init, and ignore these in subsequent
+usecount calculations.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c            |    6 ++++++
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 +++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 ++
+ 3 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index d7f55e4..95834d7 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -1408,6 +1408,7 @@ static struct clk dss_fck = {
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.parent		= &l3_div_ck,
- 	.recalc		= &followparent_recalc,
-+	.autoidle	= true,
- };
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 2fa433a..0ee7d09a 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -1055,6 +1055,9 @@ int clkdm_hwmod_enable(struct clockdomain *clkdm, struct omap_hwmod *oh)
+ 	if (!oh)
+ 		return -EINVAL;
  
- static struct clk efuse_ctrl_cust_fck = {
++	if (oh->flags & HWMOD_AUTOIDLE)
++		return 0;
++
+ 	return _clkdm_clk_hwmod_enable(clkdm);
+ }
+ 
+@@ -1086,6 +1089,9 @@ int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh)
+ 	if (!oh)
+ 		return -EINVAL;
+ 
++	if (oh->flags & HWMOD_AUTOIDLE)
++		return 0;
++
+ 	return _clkdm_clk_hwmod_disable(clkdm);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index f826917..6807b02 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2377,6 +2377,9 @@ static int __init _register(struct omap_hwmod *oh)
+ 	INIT_LIST_HEAD(&oh->slave_ports);
+ 	spin_lock_init(&oh->_lock);
+ 
++	if (cpu_is_omap44xx() && oh->prcm.omap4.modulemode == MODULEMODE_HWCTRL)
++		oh->flags |= HWMOD_AUTOIDLE;
++
+ 	oh->_state = _HWMOD_STATE_REGISTERED;
+ 
+ 	/*
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 0f840a9..36130f9 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -440,6 +440,7 @@ struct omap_hwmod_omap4_prcm {
+  *     in order to complete the reset. Optional clocks will be disabled
+  *     again after the reset.
+  * HWMOD_16BIT_REG: Module has 16bit registers
++ * HWMOD_AUTOIDLE: Module is controlled automatically by hardware
+  */
+ #define HWMOD_SWSUP_SIDLE			(1 << 0)
+ #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
+@@ -450,6 +451,7 @@ struct omap_hwmod_omap4_prcm {
+ #define HWMOD_NO_IDLEST				(1 << 6)
+ #define HWMOD_CONTROL_OPT_CLKS_IN_RESET		(1 << 7)
+ #define HWMOD_16BIT_REG				(1 << 8)
++#define HWMOD_AUTOIDLE				(1 << 9)
+ 
+ /*
+  * omap_hwmod._int_flags definitions
 -- 
 1.7.4.1
 
