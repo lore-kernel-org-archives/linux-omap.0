@@ -1,40 +1,54 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 10/11] ARM: OMAP4: hwmod data: set mpu hwmod modulemode to hwauto
-Date: Tue, 25 Sep 2012 19:05:41 +0300
-Message-ID: <1348589142-11983-11-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 07/11] ARM: OMAP3: do not delete per_clkdm autodeps during idle
+Date: Tue, 25 Sep 2012 19:05:38 +0300
+Message-ID: <1348589142-11983-8-git-send-email-t-kristo@ti.com>
 References: <1348589142-11983-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57707 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757381Ab2IYQGK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 12:06:10 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48088 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757357Ab2IYQGE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 12:06:04 -0400
 In-Reply-To: <1348589142-11983-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This makes sure it is handled as autoidle type by the usecounting.
+Previously, PER clock domain was always enabled, as the usecounts
+for this domain incorrectly always showed positive value. On HW
+level though, the domain enters idle as it is set in HW supervised
+mode. Now, when the usecounts reflect real values, PER domain
+will be put to HWSUP sleep mode, which means its autodeps are deleted.
+Removing wakedeps for PER domain will cause multiple problems.
+First of all, coming back from idle, PER domain remains idle as the
+wakedeps have been disabled for the domain, and this causes a crash
+with the GPIO code, as the resume code attempts to access domain
+which is not active. Just enabling the interface clocks for the GPIO
+does not help, as they are autoidled and don't bring the domain out
+of idle. Secondly, there are multiple erratas for omap3, which say
+that the wakedeps should be enabled for the PER domain, see e.g.
+errata i582 for omap3630.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clockdomains3xxx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 2d13b33..367de25 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2492,6 +2492,7 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_MPU_MPU_CLKCTRL_OFFSET,
- 			.context_offs = OMAP4_RM_MPU_MPU_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
- 		},
- 	},
- };
+diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+index 56089c4..3b3c524 100644
+--- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+@@ -370,7 +370,7 @@ static struct clockdomain usbhost_am35x_clkdm = {
+ static struct clockdomain per_clkdm = {
+ 	.name		= "per_clkdm",
+ 	.pwrdm		= { .name = "per_pwrdm" },
+-	.flags		= CLKDM_CAN_HWSUP_SWSUP,
++	.flags		= CLKDM_CAN_HWSUP_SWSUP | CLKDM_NO_AUTODEP_DISABLE,
+ 	.dep_bit	= OMAP3430_EN_PER_SHIFT,
+ 	.wkdep_srcs	= per_wkdeps,
+ 	.sleepdep_srcs	= per_sleepdeps,
 -- 
 1.7.4.1
 
