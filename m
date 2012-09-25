@@ -1,56 +1,136 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 00/21] ARM: OMAP3+: auto retention support
-Date: Tue, 25 Sep 2012 19:33:32 +0300
-Message-ID: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 02/21] ARM: OMAP: voltage: renamed vp_vddmin and vp_vddmax fields
+Date: Tue, 25 Sep 2012 19:33:34 +0300
+Message-ID: <1348590833-12335-3-git-send-email-t-kristo@ti.com>
+References: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59732 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757454Ab2IYQeH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 12:34:07 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:60197 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757695Ab2IYQeJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 12:34:09 -0400
+In-Reply-To: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Hi,
+These are now called vddmin and vddmax, as these fields will be used
+globally for selecting voltage ranges for a pmic channel, and not
+only for voltage processor.
 
-This set applies on top of linux-3.6-rc5 + func-pwrst code (from Jean) +
-omap4 core retention set (from me) + PM usecounting changes set (from me).
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/omap_twl.c |   28 ++++++++++++++--------------
+ arch/arm/mach-omap2/voltage.h  |    4 ++--
+ arch/arm/mach-omap2/vp.c       |    4 ++--
+ 3 files changed, 18 insertions(+), 18 deletions(-)
 
-Changes compared to previous version:
-- Added proper OMAP4 auto-retention support (now that the PM usecount set
-  below supports OMAP4 also properly)
-- Merged TPS6236x support to this set (patches 16,18-20), without this
-  there will be an issue with patch #21, as panda board will misbehave
-  without TPS support and auto-ret enabled
-- Patch #15 fixes the addressing of voltage channels for OMAP4, without this
-  the voltage channels either end up changing wrong voltage channel or not
-  changing anything at all
-- Patch #16 is new based on the discussion earlier on the separate TPS set
-  * uses proper I2C parameters based on board data, this is still in a data
-    table though, as calculating these runtime would be rather complicated
-    (if even possible, as it requires some higher order mathematics according
-     to my understanding)
-- Patch #17 enables high speed I2C communication for voltage channel on OMAP4
-  (this now works thanks to patch #16)
-- Patch #18 is needed for 4460 boards, otherwise the boot-up OPP detection
-  fails and voltage control doesn't work at all on 4460 boards
-- Patch #19 was pulled from the TPS support set
-- Patch #20 was pulled from the TPS support set, with following changes:
-  * board setup for the GPIOs was sanitized a bit
-  * dropped a number of unused defines from the code
-
-Working branch available:
-git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
-branch: mainline-3.6-rc5-omap-auto-ret-v7
-
-Testing done:
-- hw used: omap3 beagle rev c4, omap4460 gp panda, omap4430 emu blaze
-- suspend + cpuidle
-- measured core + mpu voltage rails on all setups to verify that the
-  voltage transitions work properly during idle
-
--Tero
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index df4e7c3..c38a530 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -149,8 +149,8 @@ static struct omap_voltdm_pmic omap3_mpu_pmic = {
+ 	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP3430_VP1_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP3430_VP1_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP3430_VP1_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP3430_VP1_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP3_VDD_MPU_SR_CONTROL_REG,
+@@ -170,8 +170,8 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
+ 	.vp_erroroffset		= OMAP3_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP3_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP3_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP3430_VP2_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP3430_VP2_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP3430_VP2_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP3430_VP2_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP3_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP3_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP3_VDD_CORE_SR_CONTROL_REG,
+@@ -191,8 +191,8 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
+ 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP4_VP_MPU_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP4_VP_MPU_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP4_VDD_MPU_SR_VOLT_REG,
+@@ -213,8 +213,8 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
+ 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP4_VP_IVA_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP4_VP_IVA_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP4_VDD_IVA_SR_VOLT_REG,
+@@ -235,8 +235,8 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
+ 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
+ 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
+ 	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
+-	.vp_vddmin		= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
+-	.vp_vddmax		= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
++	.vddmin			= OMAP4_VP_CORE_VLIMITTO_VDDMIN,
++	.vddmax			= OMAP4_VP_CORE_VLIMITTO_VDDMAX,
+ 	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
+ 	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+ 	.volt_reg_addr		= OMAP4_VDD_CORE_SR_VOLT_REG,
+@@ -272,10 +272,10 @@ int __init omap3_twl_init(void)
+ 		return -ENODEV;
+ 
+ 	if (cpu_is_omap3630()) {
+-		omap3_mpu_pmic.vp_vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
+-		omap3_mpu_pmic.vp_vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
+-		omap3_core_pmic.vp_vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
+-		omap3_core_pmic.vp_vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
++		omap3_mpu_pmic.vddmin = OMAP3630_VP1_VLIMITTO_VDDMIN;
++		omap3_mpu_pmic.vddmax = OMAP3630_VP1_VLIMITTO_VDDMAX;
++		omap3_core_pmic.vddmin = OMAP3630_VP2_VLIMITTO_VDDMIN;
++		omap3_core_pmic.vddmax = OMAP3630_VP2_VLIMITTO_VDDMAX;
+ 	}
+ 
+ 	/*
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 622ec4b..2242735 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -147,8 +147,8 @@ struct omap_voltdm_pmic {
+ 	u8 vp_erroroffset;
+ 	u8 vp_vstepmin;
+ 	u8 vp_vstepmax;
+-	u32 vp_vddmin;
+-	u32 vp_vddmax;
++	u32 vddmin;
++	u32 vddmax;
+ 	u8 vp_timeout_us;
+ 	bool i2c_high_speed;
+ 	u8 i2c_mcode;
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index 40b3dcc..c585dfb 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -58,8 +58,8 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 	sys_clk_rate = voltdm->sys_clk.rate / 1000;
+ 
+ 	timeout = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
+-	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmin);
+-	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vddmax);
++	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmin);
++	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmax);
+ 
+ 	waittime = DIV_ROUND_UP(voltdm->pmic->step_size * sys_clk_rate,
+ 				1000 * voltdm->pmic->slew_rate);
+-- 
+1.7.4.1
 
