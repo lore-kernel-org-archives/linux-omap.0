@@ -1,77 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] ARM: OMAP: counter: add locking to
- read_persistent_clock
-Date: Tue, 25 Sep 2012 08:17:55 -0700
-Message-ID: <20120925151755.GA4840@atomide.com>
-References: <1347434081-11469-1-git-send-email-r.sricharan@ti.com>
- <87d31bj5jq.fsf@deeprootsystems.com>
- <20120925012243.GR28835@atomide.com>
- <CAJ7qFSd89Ry9KmHSqB+r9YVZxjUA55MsW4RUBf6=8FSTzxOFsA@mail.gmail.com>
+Subject: Re: [PATCH v2] arm: make FORCE_MAX_ZONEORDER configurable for TI
+ AM33XX
+Date: Tue, 25 Sep 2012 08:27:06 -0700
+Message-ID: <20120925152705.GB4840@atomide.com>
+References: <1348561590-13361-1-git-send-email-yegorslists@googlemail.com>
+ <20120925083245.GH31374@n2100.arm.linux.org.uk>
+ <50616F6A.80100@visionsystems.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53795 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754361Ab2IYPSC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 11:18:02 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:63025 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756310Ab2IYP1R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 11:27:17 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJ7qFSd89Ry9KmHSqB+r9YVZxjUA55MsW4RUBf6=8FSTzxOFsA@mail.gmail.com>
+In-Reply-To: <50616F6A.80100@visionsystems.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "R, Sricharan" <r.sricharan@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, Colin Cross <ccross@android.com>
+To: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, yegorslists@googlemail.com, linux-omap@vger.kernel.org, Dejan Gacnik <dejan.gacnik@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-* R, Sricharan <r.sricharan@ti.com> [120925 00:44]:
-> Hi Tony,
+* Yegor Yefremov <yegor_sub1@visionsystems.de> [120925 01:47]:
+> On 25.09.2012 10:32, Russell King - ARM Linux wrote:
+> > On Tue, Sep 25, 2012 at 10:26:30AM +0200, yegorslists@googlemail.com wrote:
+> >> From: Yegor Yefremov <yegorslists@googlemail.com>
+> >>
+> >> FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
+> >> of consistent DMA memory (da8xx frame buffer driver).
+> > 
+> > Okay, so the patch description says "This needs to be 12 on this platform".
+> > 
+> >>  config FORCE_MAX_ZONEORDER
+> >> -	int "Maximum zone order" if ARCH_SHMOBILE
+> >> -	range 11 64 if ARCH_SHMOBILE
+> >> +	int "Maximum zone order" if ARCH_SHMOBILE || SOC_AM33XX
+> >> +	range 11 64 if ARCH_SHMOBILE || SOC_AM33XX
+> > 
+> > but you leave it up to the user to select something that may not be
+> > suitable.  Wouldn't _just_ adding:
+> > 
+> > 	default "12" if SOC_AM33XX
+> > 
+> > after the "range", and making no other changes be good enough and match
+> > what the patch description says?
 > 
-> [snip..]
-> 
-> >> > index dbf1e03..2bc51fb 100644
-> >> > --- a/arch/arm/plat-omap/counter_32k.c
-> >> > +++ b/arch/arm/plat-omap/counter_32k.c
-> >> > @@ -55,22 +55,29 @@ static u32 notrace omap_32k_read_sched_clock(void)
-> >> >   * nsecs and adds to a monotonically increasing timespec.
-> >> >   */
-> >> >  static struct timespec persistent_ts;
-> >> > -static cycles_t cycles, last_cycles;
-> >> > +static cycles_t cycles;
-> >> >  static unsigned int persistent_mult, persistent_shift;
-> >> > +static DEFINE_SPINLOCK(read_persistent_clock_lock);
-> >> > +
-> >> >  static void omap_read_persistent_clock(struct timespec *ts)
-> >> >  {
-> >> >     unsigned long long nsecs;
-> >> > -   cycles_t delta;
-> >> > -   struct timespec *tsp = &persistent_ts;
-> >> > +   cycles_t last_cycles;
-> >> > +   unsigned long flags;
-> >> > +
-> >> > +   spin_lock_irqsave(&read_persistent_clock_lock, flags);
-> >> >
-> >> >     last_cycles = cycles;
-> >> >     cycles = sync32k_cnt_reg ? __raw_readl(sync32k_cnt_reg) : 0;
-> >> > -   delta = cycles - last_cycles;
-> >> >
-> >> > -   nsecs = clocksource_cyc2ns(delta, persistent_mult, persistent_shift);
-> >> > +   nsecs = clocksource_cyc2ns(cycles - last_cycles,
-> >> > +                                   persistent_mult, persistent_shift);
-> >
-> > ..I think there's another bug here where cycles - last_cycles
-> > returns wrong value when the timer wraps around as cycles_t is
-> > 64 bits and the counter is 32 bits. It seems it's been there
-> > since when the read_persistent_clock was added with commit
-> > d92cfcbe (OMAP: timekeeping: time should not stop during suspend)?
-> >
-> > It seems that after this patch cycles should not be cycles_t
-> > but u32, and the result of cycles - last_cycles should also
-> > be u32.
-> >
->  cycles_t is defined as  typedef unsigned long cycles_t;
->  Am i missing something here ?
+> You're right. As we don't allocate anything, but increase the possible size, it shouldn't break anything. Tony is it O.K. with you?
 
-Oh right, cycles_t is unsigned long, it's OK then. Must
-have grepped for it from some other arch.
-
-Regards,
+Sure.
 
 Tony
