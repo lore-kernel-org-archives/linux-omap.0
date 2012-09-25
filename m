@@ -1,89 +1,64 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [PATCH 1/5] drivers: usb: phy: add a new driver for omap usb2 phy
-Date: Tue, 25 Sep 2012 15:36:20 +0530
-Message-ID: <CAAe_U6+2Vxd8F_JMafm41+0SnZSrZCa_9VKRbdB200BUHw5vEQ@mail.gmail.com>
-References: <1346943430-18236-1-git-send-email-kishon@ti.com>
-	<1346943430-18236-2-git-send-email-kishon@ti.com>
-	<50605CFB.5090402@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Powering OMAP's pins
+Date: Tue, 25 Sep 2012 13:21:14 +0300
+Message-ID: <1348568474.2342.35.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <50605CFB.5090402@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: grant.likely@secretlab.ca, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-CRPx/Mji039uTHfmzqFh"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:60695 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754009Ab2IYKVU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 06:21:20 -0400
+Received: by lbon3 with SMTP id n3so127983lbo.19
+        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 03:21:17 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Hi,
 
-On Mon, Sep 24, 2012 at 6:45 PM, Rob Herring <robherring2@gmail.com> wrote:
-> On 09/06/2012 09:57 AM, Kishon Vijay Abraham I wrote:
->> All phy related programming like enabling/disabling the clocks, powering
->> on/off the phy is taken care of by this driver. It is also used for OTG
->> related functionality like srp.
->>
->> This also includes device tree support for usb2 phy driver and
->> the documentation with device tree binding information is updated.
->>
->> Currently writing to control module register is taken care in this
->> driver which will be removed once the control module driver is in place.
->>
->> Cc: Felipe Balbi <balbi@ti.com>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  Documentation/devicetree/bindings/usb/usb-phy.txt |   17 ++
->>  drivers/usb/phy/Kconfig                           |    9 +
->>  drivers/usb/phy/Makefile                          |    1 +
->>  drivers/usb/phy/omap-usb2.c                       |  271 +++++++++++++++++++++
->>  include/linux/usb/omap_usb.h                      |   46 ++++
->>  include/linux/usb/phy_companion.h                 |   34 +++
->>  6 files changed, 378 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/usb/usb-phy.txt
->>  create mode 100644 drivers/usb/phy/omap-usb2.c
->>  create mode 100644 include/linux/usb/omap_usb.h
->>  create mode 100644 include/linux/usb/phy_companion.h
->>
->> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
->> new file mode 100644
->> index 0000000..80d4148
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
->
-> This is a very generic name...
->
->> @@ -0,0 +1,17 @@
->> +USB PHY
->> +
->> +OMAP USB2 PHY
->> +
->> +Required properties:
->> + - compatible: Should be "ti,omap-usb2"
->
-> ...for a specific phy. However, I do think a generic binding to describe
-> host ctrlr to phy connections is needed.
->
->> + - reg : Address and length of the register set for the device. Also
->> +add the address of control module dev conf register until a driver for
->> +control module is added
->
-> The dts should describe the h/w, not what you need for the current
-> driver. The 2nd reg field does not belong here.
+--=-CRPx/Mji039uTHfmzqFh
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Indeed. This was discussed and agreed upon as a interim solution till
-we have a control module driver in place to write to the control
-module register.
->
->> +
->> +This is usually a subnode of ocp2scp to which it is connected.
->
-> How is usb port to phy connection described?
-Currently the usb controller to phy connection is established only by
-type. We have a couple of patches being currently discussed in the
-list to establish the connection by phandle.
+Hi Tony,
 
-https://patchwork.kernel.org/patch/1457801/ (Generic PHY Framework:
-devm_of_phy_get())
-http://www.spinics.net/lists/linux-usb/msg69547.html
+Each pin of OMAP requires a particular power to be enabled for the pin
+to function (Ball Characteristics table from data manual). Is there a
+plan how this is managed with pinctrl? Currently each driver needs to
+make sure the correct regulators are enabled for the pins it uses, which
+is platform specific and messy.
 
-Thanks
-Kishon
+As a driver maintainer, I would wish that the pins would just get
+enabled automatically when I call pm_runtime_get()...
+
+ Tomi
+
+
+--=-CRPx/Mji039uTHfmzqFh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQYYWaAAoJEPo9qoy8lh71zTgQAJrqKh2UtsL9kdf2buTPM1RY
+6hTK/Gvdhkgtoe+u7w1h+oKybVCtLdB2KQKf1jowdhy6XYpQ0CFg0bOWcsfX1lxr
+sOQnjxBnivRutUPyCxOpaids6tyNdZSHIvYGSnKaxXAFVOqYgLUoSL8L3ioEyQcB
+9WhROTCSWU7axUjuRmLulZKgPPCOJzuUFYs1iA1vtQV1Sq8NgXhyRbjdeGM6rkBI
+Jr4nKoqyateE5PjCY093I4EUAe9o1biNnc99HgZqEGDEuEn/VzHOqmB75CKB2cx1
+zfmhmHGbJ3FTvlI9spOSsqS6CigQ1x6uNsf/HFibOlWSlZZ/QCjz/H49Xffsy9y9
+t7yCF5NUeZk9t0B6P2I+l7fXL8NtwJ089Bc6c+VaInjNjK/DRPCd6QEAB83y36hp
++jeHo+2s8HTFM+qAbnNfeOD+CN+YoCdkYfNhzV62CKjokwdIMm3leMzD7Kk9w8FJ
+v+4fmOUBP2yfR0q96Ho8JGkqDUoxjZbukXR0QUE8T9nBPjSHXRDHlp46I9jscCQO
+HZN/2Je4XPb57hL3cMGGqYv7MIzQ6fLE/fPwxmhRoPF9VrMGITuraLDysyNSAZdZ
+ynZLoJxj5c5m9A/aC+S1ehddEf/YgJdwHTI0iX1dgDS+HRma0/Sj9YX16h4vXvmk
+Mp6MNpLyIbaELHOhOQ1B
+=Ml1x
+-----END PGP SIGNATURE-----
+
+--=-CRPx/Mji039uTHfmzqFh--
+
