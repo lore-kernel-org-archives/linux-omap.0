@@ -1,75 +1,58 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: query on [PATCH 2/3] usb: otg: add device tree support to otg
- library
-Date: Tue, 25 Sep 2012 10:54:16 +0200
-Message-ID: <50617138.2040507@pengutronix.de>
-References: <C8443D0743D26F4388EA172BF4E2A7A93E9E8319@DBDE01.ent.ti.com>
+From: Philippe De Swert <philippedeswert@gmail.com>
+Subject: Re: [PATCH 1/1] usb: Include generic_interrupt for OMAP2_PLUS
+Date: Tue, 25 Sep 2012 12:09:30 +0300
+Message-ID: <CAPsFW+T_ezWAxO9StSf9cu9nJ6Gw8T9Dk1H3g6+bwJ-PKtn-cQ@mail.gmail.com>
+References: <1348487604-7202-1-git-send-email-philippe.deswert@jollamobile.com>
+	<20120924121538.GH2892@arwen.pp.htv.fi>
+	<CAPsFW+RTLpgXFOOh9fD=K1wCPMpBe4MummhWoqEBEEYYzMay=Q@mail.gmail.com>
+	<20120924130216.GA5603@arwen.pp.htv.fi>
+	<20120924160914.GB28835@atomide.com>
+	<20120925080420.GH9137@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig6E1050132AE6CB04A9236201"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59095 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105Ab2IYIy2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 04:54:28 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9E8319@DBDE01.ent.ti.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:57109 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab2IYJJc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 05:09:32 -0400
+In-Reply-To: <20120925080420.GH9137@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "Balbi, Felipe" <balbi@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Philippe De Swert <philippe.deswert@jollamobile.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Sergei Shtylyov <sshtylyov@ru.mvista.com>, heikki.krogerus@linux.intel.com, kishon@ti.com, marek.vasut@gmail.com, leoli@freescale.com, s.hauer@pengutronix.de, shubhrajyoti@ti.com, nsekhar@ti.com, notasas@gmail.com, vikram.pandita@ti.com, ravibabu@ti.com, mina86@mina86.com, praveen.nadahally@stericsson.com, mian.yousaf.kaukab@stericsson.com
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig6E1050132AE6CB04A9236201
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi,
+On 25/09/2012, Felipe Balbi <balbi@ti.com> wrote:
+>> > > Not a mention of CONFIG_SOC_OMAP2430 and  CONFIG_SOC_OMAP3430 did not
+>> > > get set (while it is not a 3430 but a 3630 I am using). Maybe
+>> > > CONFIG_ARCH_OMAP3 would have been a better choice then?
+>> >
+>> > that's quite f**ked up. Tony, why doesn't SOC_OMAP3430 get set for all
+>> > OMAP3 boards ? And another question: why don't we have a matching
+>> > SOC_OMAP3530, SOC_OMAP3630 and so on ?
+>>
+>> ARCH_OMAP3 will probably eventually just disappear and
+>> be replaced with ARCH_OMAP2PLUS + SOC_XXXX. But there's
+>> no need to do it right now as most of that should be
+>> internal to arch/arm/mach-omap2 anyways. I would just
+>> set the driver to depend on ARCH_OMAP2PLUS, and rely on
+>> the platform_data and DT to do something if specified.
+>> That means that on 2420 musb should not probe unless
+>> tusb6010 in specified.
+>>
+>> It seems that things like fifo_mode and generic_interrupt
+>> can all be set during the probe based on the platform_data
+>> or DT passed information?
+>
+> Then maybe it's best to just remove the ifdefs and always provide
+> generic_interrupt() ?
+>
+> Anyone against it ?
 
-Hi Afzal,
+Well it seems there are only two drivers that use it omap2430 and
+ux500. Maybe we somehow link it to the drivers that need it? (I might
+have missed other drivers but it looks like it is just those two)
 
-On 09/25/2012 10:47 AM, Mohammed, Afzal wrote:
-> This is a query regarding patch,
-> "usb: otg: add device tree support to otg library" [1]
->=20
-> It seems there is so far no consensus on this change.
+Regards,
 
-After I have posted this patch, Kishon had posted a better solution [2].
-We discussed the patch, but he has not posted any updates since then.
-
-> Do you have ideas to proceed on this ? is there something
-> that I can help you to proceed on this ?
-
-I'm interested in to get these patches into the kernel soon. Kishon any
-news on this patch?
-
-> Something like this would be required for USB support
-> on beagle bone (AM335X), which has 2 phy's of same type.
->=20
-> Or is the plan to use generic phy framework instead ?
-
-Yes, Kishon's patches look more generic than mine.
-
-Marc
-
-[2] https://patchwork.kernel.org/patch/1457801/
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---------------enig6E1050132AE6CB04A9236201
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iEYEARECAAYFAlBhcTsACgkQjTAFq1RaXHOZZwCeO/x5Yfzoj3x2NeoCGHzuqUNX
-u70An3Kt2/19nSlZfYWuybYbcNMM13Oy
-=JKJb
------END PGP SIGNATURE-----
-
---------------enig6E1050132AE6CB04A9236201--
+Philippe
