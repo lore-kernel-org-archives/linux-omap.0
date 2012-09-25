@@ -1,34 +1,60 @@
-From: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>
-Subject: RE: query on [PATCH 2/3] usb: otg: add device tree support to otg
- library
-Date: Tue, 25 Sep 2012 11:05:27 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E9557@DBDE01.ent.ti.com>
-References: <C8443D0743D26F4388EA172BF4E2A7A93E9E8319@DBDE01.ent.ti.com>
-	<50617138.2040507@pengutronix.de>
- <CAAe_U6+axH=ZkQLiuAfkhvmNFjUVvXag=MewhsA1T3bYFLgfpg@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not
+	suspended.
+Date: Tue, 25 Sep 2012 12:07:03 +0100
+Message-ID: <20120925110703.GN31374@n2100.arm.linux.org.uk>
+References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com> <CAKdam572krJZcayRdJ_AciCUZH3LuzD9yoHenhxrB6j9xDZ6JQ@mail.gmail.com> <20120925083029.GG31374@n2100.arm.linux.org.uk> <20120925083118.GI9137@arwen.pp.htv.fi> <20120925091228.GI31374@n2100.arm.linux.org.uk> <20120925091112.GK9137@arwen.pp.htv.fi> <20120925092118.GJ31374@n2100.arm.linux.org.uk> <20120925094815.GL9137@arwen.pp.htv.fi> <20120925102958.GL31374@n2100.arm.linux.org.uk> <20120925103652.GN9137@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAe_U6+axH=ZkQLiuAfkhvmNFjUVvXag=MewhsA1T3bYFLgfpg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39851 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503Ab2IYLHV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 07:07:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20120925103652.GN9137@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Poddar, Sourav" <sourav.poddar@ti.com>, gregkh@linuxfoundation.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
 
-T24gVHVlLCBTZXAgMjUsIDIwMTIgYXQgMTY6MjE6MzksIEFCUkFIQU0sIEtJU0hPTiBWSUpBWSB3
-cm90ZToNCj4gT24gVHVlLCBTZXAgMjUsIDIwMTIgYXQgMjoyNCBQTSwgTWFyYyBLbGVpbmUtQnVk
-ZGUgPG1rbEBwZW5ndXRyb25peC5kZT4gd3JvdGU6DQoNCj4gPiBJJ20gaW50ZXJlc3RlZCBpbiB0
-byBnZXQgdGhlc2UgcGF0Y2hlcyBpbnRvIHRoZSBrZXJuZWwgc29vbi4gS2lzaG9uIGFueQ0KPiA+
-IG5ld3Mgb24gdGhpcyBwYXRjaD8NCj4gPg0KPiA+PiBTb21ldGhpbmcgbGlrZSB0aGlzIHdvdWxk
-IGJlIHJlcXVpcmVkIGZvciBVU0Igc3VwcG9ydA0KPiA+PiBvbiBiZWFnbGUgYm9uZSAoQU0zMzVY
-KSwgd2hpY2ggaGFzIDIgcGh5J3Mgb2Ygc2FtZSB0eXBlLg0KPiA+Pg0KPiA+PiBPciBpcyB0aGUg
-cGxhbiB0byB1c2UgZ2VuZXJpYyBwaHkgZnJhbWV3b3JrIGluc3RlYWQgPw0KPiA+DQo+ID4gWWVz
-LCBLaXNob24ncyBwYXRjaGVzIGxvb2sgbW9yZSBnZW5lcmljIHRoYW4gbWluZS4NCj4gV2lsbCBw
-b3N0IHRoZSBuZXh0IHZlcnNpb24gYnkgdGhpcyB3ZWVrLg0KDQpUaGFua3MgTWFyYyBhbmQgS2lz
-aG9uDQoNClJlZ2FyZHMNCkFmemFsDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Sep 25, 2012 at 01:37:03PM +0300, Felipe Balbi wrote:
+> On Tue, Sep 25, 2012 at 11:29:58AM +0100, Russell King - ARM Linux wrote:
+> > Because you are accusing me of potentially breaking your beagleboard
+> > for merely suggesting further investigation and a better commit message.
+> 
+> Where did I accuse you of anyting ? I just mentioned we experienced a
+> regression with beagleboard XM when using pm_runtime_set_active().
+
+I quote:
+:> But should we cause a regression to beagleboard XM because of that ?
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+I say again: I was _only_ suggesting further investigation, yet you
+were mouthing off about causing a regression to beagleboard "because
+of that", effectively saying that no, we should not do any further
+investigation and this is the only fix.
+
+> To add extra info, here you go:
+
+Finally, something constructive.
+
+> We pinged Paul and asked if he had seen that before, he had no
+> pointers... Because Documentation/power/runtime_pm.txt was using a
+> mystruct->is_suspended flag, we just decided to follow the same
+> "design" since no-one was able to suggest why pm_runtime_set_active()
+> was breaking beagleXM nor how it was supposed to actually work.
+> 
+> Reading the code: pm_runtime_set_active() would tell pm_runtime core
+> the device is actually active by setting runtime_status to RPM_ACTIVE,
+> thus the following pm_runtime_get_sync() wouldn't actually call
+> runtime_resume() callback, but it would increment usage_counter.
+> 
+> I can't see why this would fail on beagleXM, but it does and we'd like
+> to hear in which situations this could fail...
+
+Well, I've just spent five minutes analysing the code paths - which I
+hadn't looked at before - and I've pointed out what's probably causing
+the problem for Beagle.  I think you owe me an appology over your
+aggressive attitude towards my suggestions that there needed to be
+some further investigation.
