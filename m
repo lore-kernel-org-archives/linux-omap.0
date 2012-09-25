@@ -1,134 +1,61 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/1] usb: Include generic_interrupt for OMAP2_PLUS
-Date: Tue, 25 Sep 2012 11:04:21 +0300
-Message-ID: <20120925080420.GH9137@arwen.pp.htv.fi>
-References: <1348487604-7202-1-git-send-email-philippe.deswert@jollamobile.com>
- <20120924121538.GH2892@arwen.pp.htv.fi>
- <CAPsFW+RTLpgXFOOh9fD=K1wCPMpBe4MummhWoqEBEEYYzMay=Q@mail.gmail.com>
- <20120924130216.GA5603@arwen.pp.htv.fi>
- <20120924160914.GB28835@atomide.com>
-Reply-To: balbi@ti.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] arm: make FORCE_MAX_ZONEORDER configurable for TI
+	AM33XX
+Date: Tue, 25 Sep 2012 09:14:49 +0100
+Message-ID: <20120925081449.GF31374@n2100.arm.linux.org.uk>
+References: <1341325242-17638-1-git-send-email-yegorslists@googlemail.com> <20120924171858.GG28835@atomide.com> <CAGm1_ks_GvSTH8DJ6d3R5OjPNEOhQ39hNo4grg1Pn-NqFX5VKQ@mail.gmail.com> <20120924231619.GA28941@n2100.arm.linux.org.uk> <20120925003758.GP28835@atomide.com> <506165CA.7070406@visionsystems.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/9ZOS6odDaRI+0hI"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:49462 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753545Ab2IYIJR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 04:09:17 -0400
-Received: by lbbgj3 with SMTP id gj3so7935958lbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 01:09:14 -0700 (PDT)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39659 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753542Ab2IYIO6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 04:14:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20120924160914.GB28835@atomide.com>
+In-Reply-To: <506165CA.7070406@visionsystems.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Philippe De Swert <philippedeswert@gmail.com>, Philippe De Swert <philippe.deswert@jollamobile.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Sergei Shtylyov <sshtylyov@ru.mvista.com>, heikki.krogerus@linux.intel.com, kishon@ti.com, marek.vasut@gmail.com, leoli@freescale.com, s.hauer@pengutronix.de, shubhrajyoti@ti.com, nsekhar@ti.com, notasas@gmail.com, vikram.pandita@ti.com, ravibabu@ti.com, mina86@mina86.com, praveen.nadahally@stericsson.com, mian.yousaf.kaukab@stericsson.com
+To: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Cc: Tony Lindgren <tony@atomide.com>, Yegor Yefremov <yegorslists@googlemail.com>, linux-omap@vger.kernel.org, Dejan Gacnik <dejan.gacnik@gmail.com>, linux-arm-kernel@lists.infradead.org
 
+On Tue, Sep 25, 2012 at 10:05:30AM +0200, Yegor Yefremov wrote:
+> How should I change the patch to make it proper? SA1111 is broken anyway:
 
---/9ZOS6odDaRI+0hI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+No it isn't.  This is what it produces _today_, and has done for the last
+5-10 years without modification
 
-Hi,
+# CONFIG_CLEANCACHE is not set
+# CONFIG_FRONTSWAP is not set
+CONFIG_FORCE_MAX_ZONEORDER=9
+CONFIG_LEDS=y
+CONFIG_LEDS_CPU=y
 
-On Mon, Sep 24, 2012 at 09:09:14AM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [120924 06:08]:
-> > Hi,
-> >=20
-> > On Mon, Sep 24, 2012 at 03:54:22PM +0300, Philippe De Swert wrote:
-> > > Hi,
-> > >=20
-> > > On 24/09/2012, Felipe Balbi <balbi@ti.com> wrote:
-> > > > SoB's mail doesn't From mail.
-> > >=20
-> > > Well still in the progress of migrating of my personal to work laptop.
-> > > Since the patch does not seem correct the replacement will have
-> > > matching addresses.
-> > >=20
-> > > >> /*----------------------------------------------------------------=
----------*/
-> > > >>
-> > > >>  #if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_SOC_OMAP3430) =
-|| \
-> > > >> -	defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500)
-> > > >> +	defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500) || \
-> > > >> +	defined(CONFIG_ARCH_OMAP2PLUS)
-> > > >
-> > > > Weird, how can you build OMAP2PLUS without SOC_OMAPXXXX ??
-> > >=20
-> > > It seems entirely possible. I quickly tried to look if it got defined
-> > > somewhere and it does not seem to be set anywhere.  That is why I got
-> > > the impression it was replaced by CONFIG_ARCH_OMAP2PLUS. I'll dig
-> > > deeper to find out why SOC_OMAPXXXX is not set if it should be.
-> > >=20
-> > > From the .config I got (used menuconfig)
-> > >=20
-> > > #
-> > > # TI OMAP2/3/4 Specific Features
-> > > #
-> > > CONFIG_ARCH_OMAP2PLUS_TYPICAL=3Dy
-> > > CONFIG_SOC_HAS_OMAP2_SDRC=3Dy
-> > > # CONFIG_ARCH_OMAP2 is not set
-> > > CONFIG_ARCH_OMAP3=3Dy
-> > > # CONFIG_ARCH_OMAP4 is not set
-> > > # CONFIG_SOC_OMAP5 is not set
-> > > # CONFIG_SOC_OMAP3430 is not set
-> > > # CONFIG_SOC_TI81XX is not set
-> > > # CONFIG_SOC_AM33XX is not set
-> > > CONFIG_OMAP_PACKAGE_CBB=3Dy
-> > >=20
-> > > Not a mention of CONFIG_SOC_OMAP2430 and  CONFIG_SOC_OMAP3430 did not
-> > > get set (while it is not a 3430 but a 3630 I am using). Maybe
-> > > CONFIG_ARCH_OMAP3 would have been a better choice then?
-> >=20
-> > that's quite f**ked up. Tony, why doesn't SOC_OMAP3430 get set for all
-> > OMAP3 boards ? And another question: why don't we have a matching
-> > SOC_OMAP3530, SOC_OMAP3630 and so on ?
->=20
-> ARCH_OMAP3 will probably eventually just disappear and
-> be replaced with ARCH_OMAP2PLUS + SOC_XXXX. But there's
-> no need to do it right now as most of that should be
-> internal to arch/arm/mach-omap2 anyways. I would just
-> set the driver to depend on ARCH_OMAP2PLUS, and rely on
-> the platform_data and DT to do something if specified.
-> That means that on 2420 musb should not probe unless
-> tusb6010 in specified.
->=20
-> It seems that things like fifo_mode and generic_interrupt
-> can all be set during the probe based on the platform_data
-> or DT passed information?
+> config FORCE_MAX_ZONEORDER
+>         int "Maximum zone order" if ARCH_SHMOBILE
+>         range 11 64 if ARCH_SHMOBILE
+>         default "9" if SA1111
+>         default "11"
+> 
+> AFAIK if ARCH_SHMOBILE defines dependency on ARCH_SHMOBILE,
 
-Then maybe it's best to just remove the ifdefs and always provide
-generic_interrupt() ?
+No it doens't.
 
-Anyone against it ?
+	int "Maximum zone order" if ARCH_SHMOBILE
 
---=20
-balbi
+is far from being the same as:
 
---/9ZOS6odDaRI+0hI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+	int "Maximum zone order"
+	depends on ARCH_SHMOBILE
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+The former defines a condition upon which the option is offered in GUIs -
+or to put it another way, it defines the visibility of the option.
 
-iQIcBAEBAgAGBQJQYWWEAAoJEIaOsuA1yqREqgoP/3elzpkZfKV/rkF9VLl1U+Wm
-KYuUz8TT/G8+RXdh5EPo7UZK98xSRhyggQDdtA/FenYhCikSUk5fSayF6VbVNJJx
-Em1e/xd6++t2ViaoAkkbUQheeyPPSj5UfnmkWNz7mNswOql+Xxso2XiNJERhVUYy
-l54in6ml9wmuX9uOKFvpZ4Bckrl/8esB4mFNIGzRcYB40rDWxNFsUGGwFZJuNIfc
-U37hrrkuEwWTWc9zv40kvYg7xTvGP2FRCJuH4gh31+FbraIN+TA3I8pwFAxiupm9
-jOWYR+XNmOniSLpm7rghbMKGLAKdWzBS3SDxkQHU6gUbQ1cWt40iKfFG/bRpzjyk
-VyMj1ACsFwbWt3hlVZj3bdqx3pOG7AT81CtYW5Bk3JC1ZaqTPVFCR6aU+GiPVVJM
-COuzM7Scl9oF671f5HGiBeF2CKDR2mqBJNKISdSwkwLRicRMVo2o0JHn63dswd1Y
-SCBftNGn1407fcsAQnEBZQfXc/ZGJWDMYZ3euRqvJwsk3LGQUsOzijExcRTfqDvM
-9Zkx2lJbOiYDYD/7bescBM9crI5wEb1/HH0sUSmySVycjtRgrMgXO+FsD04FrxT+
-JO12/lG3EG7kZnXf+n9aR8kEADHGNK+6dATCbDusP/L9yDz7FoH53iJjbJOI9K0T
-bB9Tw4qflL37082r4yOm
-=1SXT
------END PGP SIGNATURE-----
+The latter defines a dependency which must be met for the option to be
+both visible and appear in the resulting configuration file.
 
---/9ZOS6odDaRI+0hI--
+> so SA1111 won't be evaluated (at least if I select SA1111
+
+And did you check that SA1111 remains selected?  I bet you didn't.  Or
+maybe you tested your patched version.  Whatever.  The original works,
+and has been known to work for years.  Your patch breaks it.  It's
+really as simple as that.
