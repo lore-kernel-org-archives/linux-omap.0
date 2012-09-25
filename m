@@ -1,218 +1,248 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 02/10] ARM: OMAP3+: voltage: add support for voltagedomain usecounts
-Date: Tue, 25 Sep 2012 12:32:37 +0300
-Message-ID: <1348565565-14744-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 03/10] ARM: OMAP3: add manual control for mpu / core pwrdm usecounting
+Date: Tue, 25 Sep 2012 12:32:38 +0300
+Message-ID: <1348565565-14744-4-git-send-email-t-kristo@ti.com>
 References: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52376 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52378 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754396Ab2IYJdD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 05:33:03 -0400
+	id S1754404Ab2IYJdE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 05:33:04 -0400
 In-Reply-To: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-These are updated based on powerdomain usecounts. Also added support
-for voltdm->sleep and voltdm->wakeup calls that will be invoked once
-voltagedomain enters sleep or wakes up based on usecount numbers. These
-will be used for controlling voltage scaling functionality.
+mpu / core powerdomain usecounts are now statically increased
+by 1 during MPU activity. This allows the domains to reflect
+actual usage, and will allow the usecount to reach 0 just before
+all CPUs are ready to idle. Proper powerdomain usecounts are
+propageted to voltagedomain level also, and will allow vc
+callbacks to be triggered at right point of time.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |   17 +++++++++-
- arch/arm/mach-omap2/voltage.c     |   62 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/voltage.h     |   13 ++++++++
- 3 files changed, 91 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/common.h              |    6 ++
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   72 ++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/omap-smp.c            |    2 +
+ arch/arm/mach-omap2/pm34xx.c              |   21 ++++++++
+ 4 files changed, 100 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index ba49029..ca54aec 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -1475,10 +1477,16 @@ int pwrdm_state_switch(struct powerdomain *pwrdm)
-  */
- void pwrdm_clkdm_enable(struct powerdomain *pwrdm)
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 6ea837a..a445a02 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -292,6 +292,8 @@ extern int omap4_finish_suspend(unsigned long cpu_state);
+ extern void omap4_cpu_resume(void);
+ extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
+ extern u32 omap4_mpuss_read_prev_context_state(void);
++extern void omap4_pm_cpu_online(void);
++extern void omap4_pm_cpu_offline(void);
+ #else
+ static inline int omap4_enter_lowpower(unsigned int cpu,
+ 					unsigned int power_state)
+@@ -323,6 +325,10 @@ static inline u32 omap4_mpuss_read_prev_context_state(void)
  {
-+	unsigned long flags;
-+
- 	if (!pwrdm)
- 		return;
- 
--	atomic_inc(&pwrdm->usecount);
-+	if (atomic_inc_return(&pwrdm->usecount) == 1) {
-+		spin_lock_irqsave(&pwrdm->lock, flags);
-+		voltdm_pwrdm_enable(pwrdm->voltdm.ptr);
-+		spin_unlock_irqrestore(&pwrdm->lock, flags);
-+	}
- }
- 
- /**
-@@ -1492,12 +1500,19 @@ void pwrdm_clkdm_enable(struct powerdomain *pwrdm)
- void pwrdm_clkdm_disable(struct powerdomain *pwrdm)
- {
- 	int val;
-+	unsigned long flags;
- 
- 	if (!pwrdm)
- 		return;
- 
- 	val = atomic_dec_return(&pwrdm->usecount);
- 
-+	if (!val) {
-+		spin_lock_irqsave(&pwrdm->lock, flags);
-+		voltdm_pwrdm_disable(pwrdm->voltdm.ptr);
-+		spin_unlock_irqrestore(&pwrdm->lock, flags);
-+	}
-+
- 	WARN_ON(val < 0);
- }
- 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 4dc60e8..9eb1a4b 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -340,6 +340,67 @@ int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
- }
- 
- /**
-+ * voltdm_pwrdm_enable - increase usecount for a voltagedomain
-+ * @voltdm: struct voltagedomain * to increase count for
-+ *
-+ * Increases usecount for a given voltagedomain. If the usecount reaches
-+ * 1, the domain is awakened from idle and the function will call the
-+ * voltagedomain->wakeup callback for this domain.
-+ */
-+void voltdm_pwrdm_enable(struct voltagedomain *voltdm)
-+{
-+	unsigned long flags;
-+
-+	if (!voltdm)
-+		return;
-+
-+	if (atomic_inc_return(&voltdm->usecount) == 1 && voltdm->wakeup) {
-+		spin_lock_irqsave(&voltdm->lock, flags);
-+		voltdm->wakeup(voltdm);
-+		spin_unlock_irqrestore(&voltdm->lock, flags);
-+	}
-+}
-+
-+/**
-+ * voltdm_pwrdm_disable - decrease usecount for a voltagedomain
-+ * @voltdm: struct voltagedomain * to decrease count for
-+ *
-+ * Decreases the usecount for a given voltagedomain. If the usecount
-+ * reaches zero, the domain can idle and the function will call the
-+ * voltagedomain->sleep callback, and calculate the overall target
-+ * state for the voltagedomain.
-+ */
-+void voltdm_pwrdm_disable(struct voltagedomain *voltdm)
-+{
-+	u8 target_state = PWRDM_POWER_OFF;
-+	int state;
-+	struct powerdomain *pwrdm;
-+	int val;
-+	unsigned long flags;
-+
-+	if (!voltdm)
-+		return;
-+
-+	val = atomic_dec_return(&voltdm->usecount);
-+
-+	WARN_ON(val < 0);
-+
-+	if (val == 0) {
-+		spin_lock_irqsave(&voltdm->lock, flags);
-+		/* Determine target state for voltdm */
-+		list_for_each_entry(pwrdm, &voltdm->pwrdm_list, voltdm_node) {
-+			state = pwrdm_read_next_pwrst(pwrdm);
-+			if (state > target_state)
-+				target_state = state;
-+		}
-+		voltdm->target_state = target_state;
-+		if (voltdm->sleep)
-+			voltdm->sleep(voltdm);
-+		spin_unlock_irqrestore(&voltdm->lock, flags);
-+	}
-+}
-+
-+/**
-  * voltdm_for_each_pwrdm - call function for each pwrdm in a voltdm
-  * @voltdm: struct voltagedomain * to iterate over
-  * @fn: callback function *
-@@ -402,6 +463,7 @@ static int _voltdm_register(struct voltagedomain *voltdm)
- 	INIT_LIST_HEAD(&voltdm->pwrdm_list);
- 	list_add(&voltdm->node, &voltdm_list);
- 
-+	spin_lock_init(&voltdm->lock);
- 	pr_debug("voltagedomain: registered %s\n", voltdm->name);
- 
  	return 0;
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 0ac2caf..7f4f99d 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -15,6 +15,7 @@
- #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
- 
- #include <linux/err.h>
-+#include <linux/spinlock.h>
- 
- #include <plat/voltage.h>
- 
-@@ -56,10 +57,14 @@ struct omap_vfsm_instance {
-  * @pwrdm_list: list_head linking all powerdomains in this voltagedomain
-  * @vc: pointer to VC channel associated with this voltagedomain
-  * @vp: pointer to VP associated with this voltagedomain
-+ * @usecount: number of users for this voltagedomain
-+ * @target_state: calculated target state for the children of this domain
-  * @read: read a VC/VP register
-  * @write: write a VC/VP register
-  * @read: read-modify-write a VC/VP register
-  * @sys_clk: system clock name/frequency, used for various timing calculations
-+ * @sleep: function to call once the domain enters idle
-+ * @wakeup: function to call once the domain wakes up from idle
-  * @scale: function used to scale the voltage of the voltagedomain
-  * @nominal_volt: current nominal voltage for this voltage domain
-  * @volt_data: voltage table having the distinct voltages supported
-@@ -75,6 +80,9 @@ struct voltagedomain {
- 	struct omap_vp_instance *vp;
- 	struct omap_voltdm_pmic *pmic;
- 
-+	atomic_t usecount;
-+	u8 target_state;
+ }
 +
- 	/* VC/VP register access functions: SoC specific */
- 	u32 (*read) (u8 offset);
- 	void (*write) (u32 val, u8 offset);
-@@ -85,11 +93,14 @@ struct voltagedomain {
- 		u32 rate;
- 	} sys_clk;
++static inline void omap4_pm_cpu_online(void) { }
++
++static inline void omap4_pm_cpu_offline(void) { }
+ #endif
  
-+	void (*sleep) (struct voltagedomain *voltdm);
-+	void (*wakeup) (struct voltagedomain *voltdm);
- 	int (*scale) (struct voltagedomain *voltdm,
- 		      unsigned long target_volt);
- 
- 	u32 nominal_volt;
- 	struct omap_volt_data *volt_data;
-+	spinlock_t lock;
+ struct omap_sdrc_params;
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 230bdcd..0ad2337 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -72,8 +72,9 @@ struct omap4_cpu_pm_info {
  };
  
+ static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
+-static struct powerdomain *mpuss_pd;
++static struct powerdomain *mpuss_pd, *core_pd;
+ static void __iomem *sar_base;
++static atomic_t __initdata init_cpu_online_count;
+ 
+ /*
+  * Program the wakeup routine address for the CPU0 and CPU1
+@@ -216,6 +217,50 @@ static void save_l2x0_context(void)
+ #endif
+ 
  /**
-@@ -145,6 +156,8 @@ extern void omap44xx_voltagedomains_init(void);
- struct voltagedomain *voltdm_lookup(const char *name);
- void voltdm_init(struct voltagedomain **voltdm_list);
- int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
-+void voltdm_pwrdm_enable(struct voltagedomain *voltdm);
-+void voltdm_pwrdm_disable(struct voltagedomain *voltdm);
- int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
- 		    void *user);
- int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
++ * omap4_pm_cpu_online - increase the number of online CPUs
++ *
++ * This function increases the usecounts for MPU and CORE powerdomains,
++ * which allows the domains to properly reflect usage with online CPUs
++ * also. CORE powerdomain usecount is increased, as MPU is using memories,
++ * which are powered through CORE powerdomain (SDRAM). If this function is
++ * called before PM init has completed (mpuss_pd / core_pd are not defined),
++ * a temporary init time variable is increased instead; its contents
++ * will be moved to the powerdomain usecounts once PM init completes.
++ */
++void omap4_pm_cpu_online(void)
++{
++	if (!mpuss_pd || !core_pd) {
++		atomic_inc(&init_cpu_online_count);
++		return;
++	}
++
++	pwrdm_clkdm_enable(mpuss_pd);
++	pwrdm_clkdm_enable(core_pd);
++}
++
++/**
++ * omap4_pm_cpu_offline - decrease the number of online CPUs
++ *
++ * This function decreases the usecounts for MPU and CORE powerdomains,
++ * which allows the domains to properly reflect usage with online CPUs
++ * also. CORE powerdomain usecount is decreased, as MPU is using memories,
++ * which are powered through CORE powerdomain (SDRAM). If this function is
++ * called before PM init has completed (mpuss_pd / core_pd are not defined),
++ * a temporary init time variable is increased instead; its contents
++ * will be moved to the powerdomain usecounts once PM init completes.
++ */
++void omap4_pm_cpu_offline(void)
++{
++	if (!mpuss_pd || !core_pd) {
++		atomic_dec(&init_cpu_online_count);
++		return;
++	}
++
++	pwrdm_clkdm_disable(mpuss_pd);
++	pwrdm_clkdm_disable(core_pd);
++}
++
++/**
+  * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
+  * The purpose of this function is to manage low power programming
+  * of OMAP4 MPUSS subsystem
+@@ -274,11 +319,17 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	scu_pwrst_prepare(cpu, power_state);
+ 	l2x0_pwrst_prepare(cpu, save_state);
+ 
++	/* Decrement usecounts for MPU and CORE pd as we are entering idle */
++	omap4_pm_cpu_offline();
++
+ 	/*
+ 	 * Call low level function  with targeted low power state.
+ 	 */
+ 	cpu_suspend(save_state, omap4_finish_suspend);
+ 
++	/* Increment usecounts for MPU and CORE pd as we are leaving idle */
++	omap4_pm_cpu_online();
++
+ 	/*
+ 	 * Restore the CPUx power state to ON otherwise CPUx
+ 	 * power domain can transitions to programmed low power
+@@ -315,6 +366,8 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+ 	set_cpu_wakeup_addr(cpu, virt_to_phys(pm_info->secondary_startup));
+ 	scu_pwrst_prepare(cpu, power_state);
+ 
++	omap4_pm_cpu_offline();
++
+ 	/*
+ 	 * CPU never retuns back if targeted power state is OFF mode.
+ 	 * CPU ONLINE follows normal CPU ONLINE ptah via
+@@ -322,6 +375,8 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+ 	 */
+ 	omap4_finish_suspend(cpu_state);
+ 
++	omap4_pm_cpu_online();
++
+ 	set_cpu_next_pwrst(cpu, PWRDM_FUNC_PWRST_ON);
+ 	return 0;
+ }
+@@ -386,9 +441,24 @@ int __init omap4_mpuss_init(void)
+ 		pr_err("Failed to lookup MPUSS power domain\n");
+ 		return -ENODEV;
+ 	}
++	core_pd = pwrdm_lookup("core_pwrdm");
++	if (!core_pd) {
++		pr_err("Failed to lookup CORE power domain\n");
++		return -ENODEV;
++	}
+ 	pwrdm_clear_all_prev_pwrst(mpuss_pd);
+ 	mpuss_clear_prev_logic_pwrst();
+ 
++	/* Notify pwrdm usecounters about active CPU */
++	omap4_pm_cpu_online();
++
++	/*
++	 * If CPUs became online / offline during init time, push
++	 * the pending counter updates also.
++	 */
++	while (atomic_dec_return(&init_cpu_online_count) >= 0)
++		omap4_pm_cpu_online();
++
+ 	/* Save device type on scratchpad for low level code to use */
+ 	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+ 		__raw_writel(1, sar_base + OMAP_TYPE_OFFSET);
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index b9738e2..f296e35 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -71,6 +71,8 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
+ 	 */
+ 	gic_secondary_init(0);
+ 
++	omap4_pm_cpu_online();
++
+ 	/*
+ 	 * Synchronise with the boot thread.
+ 	 */
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 5b6505f..7a423f7 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -294,6 +294,14 @@ void omap_sram_idle(void)
+ 	omap3_intc_prepare_idle();
+ 
+ 	/*
++	 * CPU going offline, update pwrdm counters. Core pwrdm
++	 * count is decreased as MPU is using SDRAM which resides
++	 * under core pwrdm.
++	 */
++	pwrdm_clkdm_disable(mpu_pwrdm);
++	pwrdm_clkdm_disable(core_pwrdm);
++
++	/*
+ 	 * On EMU/HS devices ROM code restores a SRDC value
+ 	 * from scratchpad which has automatic self refresh on timeout
+ 	 * of AUTO_CNT = 1 enabled. This takes care of erratum ID i443.
+@@ -324,6 +332,12 @@ void omap_sram_idle(void)
+ 	    core_next_state == PWRDM_FUNC_PWRST_OFF)
+ 		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
+ 
++	/*
++	 * CPU is coming back online, increase pwrdm usecounts
++	 */
++	pwrdm_clkdm_enable(mpu_pwrdm);
++	pwrdm_clkdm_enable(core_pwrdm);
++
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_FUNC_PWRST_ON) {
+ 		core_prev_state = pwrdm_read_prev_fpwrst(core_pwrdm);
+@@ -718,6 +732,13 @@ int __init omap3_pm_init(void)
+ 	omap_pm_suspend = omap3_pm_suspend;
+ #endif
+ 
++	/*
++	 * CPU online, increase pwrdm usecounts for MPU and CORE domains.
++	 * MPU is using memory subsystem which resides in CORE domain.
++	 */
++	pwrdm_clkdm_enable(mpu_pwrdm);
++	pwrdm_clkdm_enable(core_pwrdm);
++
+ 	arm_pm_idle = omap3_pm_idle;
+ 	omap3_idle_init();
+ 
 -- 
 1.7.4.1
 
