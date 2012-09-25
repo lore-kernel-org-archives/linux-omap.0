@@ -1,65 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Powering OMAP's pins
-Date: Tue, 25 Sep 2012 12:07:21 -0700
-Message-ID: <20120925190721.GD4840@atomide.com>
-References: <1348568474.2342.35.camel@deskari>
- <20120925153806.GC4840@atomide.com>
- <1348592700.2342.49.camel@deskari>
+From: Christian Hoffmann <email@christianhoffmann.info>
+Subject: Re: CPU_IDLE causes random reboots on custom 4430
+Date: Tue, 25 Sep 2012 23:10:08 +0200
+Message-ID: <50621DB0.9090607@christianhoffmann.info>
+References: <505CEEFD.1080507@gmail.com> <CAMQu2gwwU2QYAmn+WY19t5krOJeEUF7YT03FojLbQcfo3h4BmQ@mail.gmail.com> <505DF146.6050100@gmail.com> <CAMQu2gw=Tki8uk_65w9iu645LY798Fr_GMHydF5XfZf8Xch5Yg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:31488 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753465Ab2IYTHY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 15:07:24 -0400
-Content-Disposition: inline
-In-Reply-To: <1348592700.2342.49.camel@deskari>
+Received: from [88.175.101.52] ([88.175.101.52]:42798 "EHLO
+	christianhoffmann.info" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1757997Ab2IYVKh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 17:10:37 -0400
+In-Reply-To: <CAMQu2gw=Tki8uk_65w9iu645LY798Fr_GMHydF5XfZf8Xch5Yg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Chris Hoffmann <chrmhoffmann@gmail.com>, linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120925 10:06]:
-> On Tue, 2012-09-25 at 08:38 -0700, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [120925 03:22]:
-> > > Hi Tony,
-> > > 
-> > > Each pin of OMAP requires a particular power to be enabled for the pin
-> > > to function (Ball Characteristics table from data manual). Is there a
-> > > plan how this is managed with pinctrl? Currently each driver needs to
-> > > make sure the correct regulators are enabled for the pins it uses, which
-> > > is platform specific and messy.
-> > > 
-> > > As a driver maintainer, I would wish that the pins would just get
-> > > enabled automatically when I call pm_runtime_get()...
-> > 
-> > Hmm can you clarify a bit what exactly do you want to do there
-> > with pm_runtime_get()? Call the regulator framework?
-> 
-> Well, I'm not very familiar with pinctrl, but if I've understood right,
-> a set of pins are assigned to a driver in DT data (or wherever, that's
-> not relevant). Those pins should be automatically configured and enabled
-> when the driver uses pm_runtime_get() to enable its hardware.
-> 
-> And if I've also understood right, the pinctrl discussions related to
-> omap have only dealt with pin muxing itself. But that's not enough to
-> get the pin functional, but the relevant regulator needs to be enabled
-> also.
-> 
-> So when I call pm_runtime_get in the omapdss driver, I imagine that the
-> runtime PM and pinctrl would together handle muxing the pins for
-> omapdss's use, and also enable the relevant regulators to make the pins
-> usable.
+On 09/23/2012 06:11 PM, Shilimkar, Santosh wrote:
+> On Sat, Sep 22, 2012 at 10:41 PM, Chris Hoffmann <chrmhoffmann@gmail.com> wrote:
+>> On 09/22/2012 07:45 AM, Shilimkar, Santosh wrote:
+>>>
+>>> On Sat, Sep 22, 2012 at 4:19 AM, Chris Hoffmann <chrmhoffmann@gmail.com>
+>>> wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> We're trying to get a custom 4430 board (aka. nook tablet with OMAP4430
+>>>> ES2.3 HS TWL6030 ES2.1) working with p-android-omap-3.0 on android jelly
+>>>> bean. The board works quite well, but we experience random hangs and the
+>>>> watchdog kicks the board to reboot.
+>>>>
+>>> On the same kernel, you should have support for the persistent log. You
+>>> might
+>>> want to check the output. That should give you pointers on what CPU was
+>>> doing before the freeze which resulted in reboot.
+>>
+>>
+>> Hi,
+>>
+>> I have some problems to provide logs. If I add -DDEBUG to cpuidle44xx.o the
+>> problem doesn't seem to occur. It could be that printk-ing alleviates the
+>> issue.
+>>
+>> Also the watchdog seems to shutdown the device rather than rebooting it (or
+>> it hangs?) and then I can't provide /proc/last_kmsg.
+>>
+>> How could I provide more info?
+>>
+> Check if you have "/sys/kernel/debug/persistent_trace" available on
+> your kernel. This generally helps whenever there are hangs, the last
+> call stack is stored on memory and on the reboot it can be cat'ed to
+> see if some useful information about hang is available.
 
-But aren't these regulators something that potentially are dynamically
-configured by the driver? For example, vdds_(sd)mmc1 depends on which
-card is plugged in.
+Hi Santosh, all,
 
-So to me it seesm that it's best to define the regulators and claim them
-by the driver using them rather than try to use automatically. It's
-sort of the same situation as with GPIO pins?
+the p-android-omap-3.0 doesn't have the persistent_trace but I was able 
+to backport it from 3.4 without major issues (only tricky part is that 
+in p-android-3.4 there's no apparent user of that device in omapzoom 
+kernel).
 
-Regards,
+The problem is now that the omap-watchdog doesn't kick the device to 
+reboot but rather to shutdown, so I still have no trace. Soft-rebooting 
+shows that I can get persistent_trace.
 
-Tony
+Switching the persistent tracer to ecc=true does not help as it seems to 
+overload the device completely when activating the tracing.
+
+Rgds,
+Chris
+
+
 
