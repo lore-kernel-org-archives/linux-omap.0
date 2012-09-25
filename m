@@ -1,103 +1,155 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not suspended.
-Date: Tue, 25 Sep 2012 15:26:06 +0530
-Message-ID: <CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com>
-References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com>
-	<CAKdam572krJZcayRdJ_AciCUZH3LuzD9yoHenhxrB6j9xDZ6JQ@mail.gmail.com>
-	<20120925083029.GG31374@n2100.arm.linux.org.uk>
-	<20120925083118.GI9137@arwen.pp.htv.fi>
-	<20120925091228.GI31374@n2100.arm.linux.org.uk>
-	<20120925091112.GK9137@arwen.pp.htv.fi>
-	<20120925092118.GJ31374@n2100.arm.linux.org.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: Cleanup DSSDBG with dynamic pr_debug function
+Date: Tue, 25 Sep 2012 12:57:36 +0300
+Message-ID: <1348567056.2342.28.camel@deskari>
+References: <1348552998-6596-1-git-send-email-cmahapatra@ti.com>
+	 <1348554291.2342.8.camel@deskari>
+	 <CAF0AtAukV_5FXXc79yuXr50+1XXWNiFKdN5MWLgRy2N6Ux-adg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120925092118.GJ31374@n2100.arm.linux.org.uk>
-Sender: linux-serial-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-SbNWpPWqhfUoX2ZpWIu3"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:49332 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754510Ab2IYJ5m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 05:57:42 -0400
+Received: by lbon3 with SMTP id n3so104230lbo.19
+        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 02:57:38 -0700 (PDT)
+In-Reply-To: <CAF0AtAukV_5FXXc79yuXr50+1XXWNiFKdN5MWLgRy2N6Ux-adg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
 
-On Tue, Sep 25, 2012 at 2:51 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Sep 25, 2012 at 12:11:14PM +0300, Felipe Balbi wrote:
->> On Tue, Sep 25, 2012 at 10:12:28AM +0100, Russell King - ARM Linux wrote:
->> > On Tue, Sep 25, 2012 at 11:31:20AM +0300, Felipe Balbi wrote:
->> > > On Tue, Sep 25, 2012 at 09:30:29AM +0100, Russell King - ARM Linux wrote:
->> > > > How is this happening?  I think that needs proper investigation - or if
->> > > > it's had more investigation, then the results needs to be included in
->> > > > the commit description so that everyone can understand the issue here.
->> > > >
->> > > > We should not be resuming a device which hasn't been suspended.  Maybe
->> > > > the runtime PM enable sequence is wrong, and that's what should be fixed
->> > > > instead?
->> > > >
->> > > > This sequence in the probe() function:
->> > > >
->> > > >         pm_runtime_irq_safe(&pdev->dev);
->> > > >         pm_runtime_enable(&pdev->dev);
->> > > >         pm_runtime_get_sync(&pdev->dev);
->> > > >
->> > > > would enable runtime PM while the s/w state indicates that it's disabled,
->> > > > and then that pm_runtime_get_sync() will want to resume the device.  See
->> > > > the section "5. Runtime PM Initialization, Device Probing and Removal"
->> > > > in Documentation/power/runtime_pm.txt, specifically the second paragraph
->> > > > of that section.
->> > >
->> > > that was tested. It worked in pandaboard but didn't work on beagleboard
->> > > XM. Sourav tried to start a discussion about that, but it simply died...
->> > >
->> > > In any case, pm_runtime_get_sync() in probe will always call
->> > > runtime_resume callback, right ?
->> >
->> > Well, if the runtime PM state says it's suspended, and then you enable
->> > runtime PM, the first call to pm_runtime_get_sync() will trigger a resume
->> > attempt.  The patch description is complaining about resume events without
->> > there being a preceding suspend event.
->> >
->> > This could well be why.
->>
->> that's most likely, of course. But should we cause a regression to
->> beagleboard XM because of that ?
->
-> What would cause a regression on beagleboard XM?  I have not suggested
-> any change other than more investigation of the issue and a fuller patch
-> description - yet you're screaming (idiotically IMHO) that mere
-> investigation would break beagleboard.
->
-> Well, if it's _that_ fragile, that mere investigation of this issue by
-> someone elsewhere on the planet would break your beagleboard, maybe it
-> deserves to be broken!
+--=-SbNWpPWqhfUoX2ZpWIu3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The issue was observed at serial init itself in the N800 board and the
-log does not
-show up much.
-http://www.pwsan.com/omap/testlogs/test_tty_next_e36851d0/20120910020323/boot/2420n800/2420n800_log.txt
- What we thought the problem might be with n800 is that it tries to
-resume when it didn't suspend before.
+On Tue, 2012-09-25 at 15:00 +0530, Mahapatra, Chandrabhanu wrote:
 
-There are two ways through which we thought of handling this issue:
+> > This debug message is even less meaningful than the overlay number =3D)=
+.
+> > Again, I think either keep the DSSDBGF, or print something sensible,
+> > like "entering ULPS".
+> >
+>=20
+> I dont think it would be wise enough to update code for one and keep
+> the older version for another when both DSSDBG and DSSDBGF are almost
+> one and the same. Its better to add something meaningful to the prints
+> as you have mentioned like "writing ovl %d regs" and "DSI entering
+> ULPS".
 
-a) set device as active before enabling pm (which will prevent
+I didn't mean to leave DSSDBGF unchanged. I meant that it should work as
+it works now, printing the func name, but using pr_debug.
 
-pm_runtime_set_active(dev);
-pm_runtime_enable(dev);
+> >>
+> >>       WARN_ON(!dsi_bus_is_locked(dsidev));
+> >>
+> >> @@ -4184,7 +4180,7 @@ int omapdss_dsi_set_clocks(struct omap_dss_devic=
+e *dssdev,
+> >>       unsigned long pck;
+> >>       int r;
+> >>
+> >> -     DSSDBGF("ddr_clk %lu, lp_clk %lu", ddr_clk, lp_clk);
+> >> +     DSSDBG("ddr_clk %lu, lp_clk %lu", ddr_clk, lp_clk);
+> >>
+> >>       mutex_lock(&dsi->lock);
+> >>
+> >> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/d=
+ss.h
+> >> index 5e9fd769..3a2caab 100644
+> >> --- a/drivers/video/omap2/dss/dss.h
+> >> +++ b/drivers/video/omap2/dss/dss.h
+> >> @@ -29,38 +29,20 @@
+> >>
+> >>  #ifdef DEBUG
+> >>  extern bool dss_debug;
+> >
+> > You still left the dss_debug option here, even if it's not used by the
+> > DSSDBG anymore. What's your plan about this?
+> >
+> >  Tomi
+> >
+>=20
+> dss_debug and DEBUG need to remain here as it is being used by
+> functions omap_dispc_irq_handler() and _dsi_print_reset_status() in
 
-OR
+It would be good to clean all this in one patch series.
 
-b) adding a "suspended" flag to struct omap_uart_port which gets set on
-suspend and cleared on resume. Then on resume you can check:
+> dispc.c and dsi.c. I am little bit unsure of how to deal with it.
+> There could be a single print in omap_dispc_irq_handler() but it is a
+> bit tricky in _dsi_print_reset_status().
+>=20
+> May be a macro like this one can be used in _dsi_print_reset_status()
+>=20
+> #define DSI_FLD_GET(fld, start, end)\
+>       FLD_GET(dsi_read_reg(dsidev, DSI_##fld), start, end);
+>=20
+> pr_debug("PLL (%d) CIO (%d) \n PHY (%x%x%x, %d, %d, %d) \n",
+>                  DSI_FLD_GET(PLL_STATUS, 0, 0),
+>                  DSI_FLD_GET(COMPLEXIO_CFG1, 29, 29),
+>                  DSI_FLD_GET(DSIPHY_CFG5, bo, bo),
+>                  DSI_FLD_GET(DSIPHY_CFG5, b1, b1),
+>    ..................................................);
+> This could be defined at the beginning of the function and later at its e=
+nd.
 
-if (!up->suspended)
-        return 0;
+Yes, I think something like that could work. I don't see any problem
+with having temporary helper macros to help creating the debug message.
 
-But using "pm_runtime_set_active" approach breaks things even on
-beagle board xm,  though
-it works fine on Panda.
-Therefore, we used the "suspended" flag approach.
+> As you had previously mentioned a print like
+>=20
+> #define PIS(x) (status & DSI_IRQ_##x) ? (#x " ") : ""
+>=20
+> pr_debug("DSI IRQ: 0x%x: %s%s%s",
+>         status,
+>         PIS(WAKEUP),
+>         PIS(RESYNC),
+>         PIS(PLL_LOCK));
+>=20
+> could help in print_irq_status() but I am still unsure how to deal
+> with conditional statements in print_irq_status() like
+> if (dss_has_feature(FEAT_MGR_LCD3))
+>                 PIS(SYNC_LOST3);
+> Should we use approach like
+>=20
+> pr_debug("DSI IRQ: 0x%x: %s%s%s%s...",
+>         status,
+>         PIS(WAKEUP),
+>         PIS(RESYNC),
+>         PIS(PLL_LOCK)
+>         dss_has_feature(FEAT_MGR_LCD3) ? PIS(SYNC_LOST3) : ""
+>   ...................................... );
 
-So. I just wanted to get some feedback from community about how using
-"pm_runtime_set_active"
-behaves differently in omap3 and omap4.
+Yes, that looks fine to me.
+
+ Tomi
+
+
+--=-SbNWpPWqhfUoX2ZpWIu3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQYYAQAAoJEPo9qoy8lh71kdwP/3jEFGD/0Z+jeXPTT+TcPyj2
+nnOm8kHoSZrZFNI02KqM3zimqNNIvdZkRbfvlq2KdUOqlqLmMrshndVUYZVqYsHm
+YZL8vwBpaYfvdDom2a7ur6La8dw6lX7JwMp1uMfdpRTVbo76ksZm9BQWB76af52C
+Vu1+JLRzH/N3/Kwa3WSIWSxPZebm3ttlwzhJwWi7ptAqFCUzq1qXa3j8LWU+sJbk
+1Ir1N4zCERWxmNuosFChLrSULe5I9QRLOhq4JNffYCQxPNbQztKOrOCNJZytGXpT
++TyCdHzRVSOsPmmu7+6KvRdwm+OO7IC3/3xgOFGbOWPBF42+Ujz59OUyA7LFUQsz
+m+tWEJPKbdrzAMAD27+fggc35m8N17qSbCuL342kgN1s5vArMBknANkd8sfZ5Z6E
+CSacLMVjO+kg5o0qgfjWGMmCI3wcPtIauPJGGfg66dGOcUMYfJJ4O2K+Cx9yq+j+
+aYimX6tfDqL/f/vlqE5dK/JrafRDw41k21Vv6qCcbIkz/TNg7YmMV4QSaKRawBKP
+R3t3/NJ31fb36AAYYBBj/hqKogGvz4ESZ0iQqpkPevXEiOqqnzsYvrFfAndBvPO+
+BQ9Oq53QNMoRWJ1DNkALQD2LaYVhSRXfPg2+VxTUusZGQhbSABZmbUrqfbcS7Sea
+k9lWN1Di8Qggucll5Kwi
+=LO1B
+-----END PGP SIGNATURE-----
+
+--=-SbNWpPWqhfUoX2ZpWIu3--
+
