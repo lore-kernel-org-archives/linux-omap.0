@@ -1,76 +1,113 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: DISPC: Add predecimation limit for TILER based
- rotations
-Date: Tue, 25 Sep 2012 16:40:54 +0300
-Message-ID: <1348580454.2342.40.camel@deskari>
-References: <1348468707-5142-1-git-send-email-cmahapatra@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv5 00/10] ARM: OMAP: PM usecounting changes
+Date: Tue, 25 Sep 2012 17:17:56 +0300
+Message-ID: <1348582676.10702.302.camel@sokoban>
+References: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
+	 <506186E9.7070908@ti.com> <1348574001.10702.291.camel@sokoban>
+	 <5061A22B.1030603@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-qDssQnSI5OWYN5zN5SQ9"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:50592 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754593Ab2IYNk7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 09:40:59 -0400
-Received: by lbon3 with SMTP id n3so130716lbo.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 06:40:56 -0700 (PDT)
-In-Reply-To: <1348468707-5142-1-git-send-email-cmahapatra@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49770 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753156Ab2IYOSB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 10:18:01 -0400
+In-Reply-To: <5061A22B.1030603@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
+On Tue, 2012-09-25 at 17:53 +0530, Rajendra Nayak wrote:
+> On Tuesday 25 September 2012 05:23 PM, Tero Kristo wrote:
+> > On Tue, 2012-09-25 at 15:56 +0530, Rajendra Nayak wrote:
+> >> Hi Tero,
+> >>
+> >> On Tuesday 25 September 2012 03:02 PM, Tero Kristo wrote:
+> >>> Hi,
+> >>>
+> >>> Changes compared to previous version:
+> >>
+> >> Did you get a chance to look at the issue I reported about autodeps?
+> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg72876.html
+> >
+> > Not really, I didn't think that bug report was meant for me, I kind of
+> > thought it only happened with your set. But now looking at your email in
+> > detail, I guess you are saying there is a bug in this code (the one that
+> > touches iclk stuff), which causes the USB / DSS domains to follow
+> > MPU/CORE, is that right?
+> 
+> Yes, basically the autodeps remain set, even while the module is not in
+> use at all, which causes them to come in and out of sleep along with MPU.
 
---=-qDssQnSI5OWYN5zN5SQ9
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Actually I think I accidentally fixed this problem with the latest rev,
+due to the fact that I am using generic clkdm_clk_enable / disable calls
+from iclk now.
 
-On Mon, 2012-09-24 at 12:08 +0530, Chandrabhanu Mahapatra wrote:
-> In OMAP4 and OMAP5 when TILER 2D burst mode is used, a maximum of one lin=
-e can
-> be skipped as per the respective TRMs. The MBlockStride OCP signal, which=
- is
-> sum of ROWINC and image width in memory, is only 17 bits wide. In 2D mode=
- TILER
-> supports 8192, 16384, 32768 and 65536 values of MBlockStride. In case whe=
-n 2 or
-> more lines are skipped the ROWINC value exceeds 65536 resulting in OCP er=
-rors.
-> So, maximum vertical predecimation achievable is 2.
->=20
-> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-> ---
->  drivers/video/omap2/dss/dispc.c |    9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
+I also just tested this (while fixing the complaint from Russell), and
+it looks like both USB and DSS pwrdms are remaining nicely idle on
+OMAP3.
 
-Thanks, looks fine to me.
+-Tero
 
- Tomi
+> 
+> >
+> > -Tero
+> >
+> >>
+> >> regards,
+> >> Rajendra
+> >>
+> >>>
+> >>> - Fixed OMAP4 support (patches 7-10)
+> >>> - Dropped debugging support from this set for now
+> >>> - Rebased on top of 3.6-rc5 + func-pwrst + omap4-ret code
+> >>>     (omap4 support easier to test with these)
+> >>> - Patch #1:
+> >>>     * dropped clkdm_usecount_inc / clkdm_usecount_dec APIs
+> >>>     * clkdm_clk_enable / disable are used now instead
+> >>>     * some code ordering changed for the new setup to work properly
+> >>>     * changed BUG_ON calls to WARN_ON
+> >>> - Patch #2:
+> >>>     * added spinlock for protecting voltdm callbacks
+> >>>     * pwrdm lock extended to protect pwrdm callbacks
+> >>> - Patch #3:
+> >>>     * dropped generic API call for the cpu pwrdm idle / wakeup
+> >>>     * instead use pwrdm_clkdm_enable / disable calls directly from PM code
+> >>>     * omap4 support fixed to work properly with SMP, added omap4 specific
+> >>>       CPU pwrdm idle / wakeup calls for this purpose
+> >>> - Patch #4:
+> >>>     * no changes
+> >>>     * added 'Reviewed-by' tag for Rajendra
+> >>> - Patch #5:
+> >>>     * no changes, just rebase
+> >>> - Patch #6:
+> >>>     * no changes
+> >>>
+> >>> Tested with OMAP3 beagle, omap4460 GP panda + omap4430 EMU blaze boards.
+> >>>
+> >>> I will be posting new versions for the voltdm fixes + auto retention +
+> >>> panda board tps6236x support code later on today, which are based on top
+> >>> of this set.
+> >>>
+> >>> Branch also available here:
+> >>>
+> >>> git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+> >>> branch: mainline-3.6-rc5-pwrdm-changes-v5
+> >>>
+> >>> -Tero
+> >>>
+> >>>
+> >>> --
+> >>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> >>> the body of a message to majordomo@vger.kernel.org
+> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>
+> >>
+> >
+> >
+> 
 
-
---=-qDssQnSI5OWYN5zN5SQ9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQYbRmAAoJEPo9qoy8lh7160UP/RyXLZNmyr/dltMOFbXQ3y0A
-26I2vHT0fIfWQuUl/+Xi2kHj83AQTd3x1j8AxitBtiCe2dbk5ub78+tSg2f2rbSp
-JNFxqn40SHd0mehWjHig/z7tgCnRbC+0T55IWgib4utGMIQZuw7TE6vYHNlVCle6
-wOGe7maFs1C1lVDaqbcf39PNb6+anMtK6vfk6jbvWnOXITLkMZkJ0EVT1ffagTQq
-sTz/33EwU41i3aKaTnZ1vPOu4STCfzeln4tialmw0pHWbYiSBpjGWx1GVdGqjd1V
-ujR1LLQHmfVB7U7QK4tfFTi9ZfRKIPqZeKSV5kvuS2t8tT5B0ryq/PCo5HiIw28H
-ZyMvZ3qV95u71btwSRFNMP7xgUEW7JitzuUw0CjZ43i/C/rFJYoNIYgvxV2e2+lw
-HHksynGFfkUZAZEMTM4tjvbnp8OinTaOZIbIRSV0P17dKr53b3JGVxXY0lQEKpC9
-gUxTZU7eSuZWV5YRnQT5zWBSYD3kl71T77Bht38HxGzMXqIKcSfUJ/YlHdFg4lgq
-EC3XvdJ/tx47mpfZ8MME5KhtcYDOBwek+GkMPXgbeEFXecAPbotcORVKOLsSl/lB
-6Jo+Fk6LCO/3a1X1BjWmkGA4S/qj44peneaQPU7X9CluKVjXsCnOPDfexBi9fqd2
-rsYb2/gNuAhOqyAuaL0c
-=WyRC
------END PGP SIGNATURE-----
-
---=-qDssQnSI5OWYN5zN5SQ9--
 
