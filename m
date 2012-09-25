@@ -1,191 +1,74 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 04/21] ARM: OMAP3: VC: calculate ramp times
-Date: Tue, 25 Sep 2012 19:33:36 +0300
-Message-ID: <1348590833-12335-5-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 05/21] ARM: OMAP4: voltage: add support for VOLTSETUP_x_OFF register
+Date: Tue, 25 Sep 2012 19:33:37 +0300
+Message-ID: <1348590833-12335-6-git-send-email-t-kristo@ti.com>
 References: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44020 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757718Ab2IYQeQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 12:34:16 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59743 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757954Ab2IYQeO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 12:34:14 -0400
 In-Reply-To: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-OMAP3 VC code now uses voltage deltas + slew rates for calculating actual
-ramp times for voltage changes. Previously a static value was used.
-Two calculation methods are provided: i2c_timings and off_timings.
-I2C timings are used during retention or off mode transition which
-is initiated over I2C, and OFF timings are used if PMIC signal
-(nsleep) is used to control all the off mode voltages at the same time.
+OMAP4 has two VOLTSETUP registers. One is controlling retention and
+sleep voltage setup times, the other one off mode setup times. Both
+of these need to be setup for stable behavior of the device.
+The code setting up the new register will be added in the next
+patch.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/vc.c |  108 ++++++++++++++++++++++++++++++++++++++-------
- arch/arm/mach-omap2/vc.h |    1 -
- 2 files changed, 91 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/voltage.h                 |    2 ++
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    3 +++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index a1e0fd6..bba0d7c 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -206,29 +206,109 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 94c6919..01ab2e5 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -41,12 +41,14 @@ struct powerdomain;
+  * data
+  * @voltsetup_mask: SETUP_TIME* bitmask in the PRM_VOLTSETUP* register
+  * @voltsetup_reg: register offset of PRM_VOLTSETUP from PRM base
++ * @voltsetup_off_reg: register offset of PRM_VOLTSETUP_OFF from PRM base
+  *
+  * XXX What about VOLTOFFSET/VOLTCTRL?
+  */
+ struct omap_vfsm_instance {
+ 	u32 voltsetup_mask;
+ 	u8 voltsetup_reg;
++	u8 voltsetup_off_reg;
+ };
  
--static void __init omap3_vfsm_init(struct voltagedomain *voltdm)
-+/**
-+ * omap3_set_i2c_timings - sets i2c sleep timings for a channel
-+ * @voltdm: channel to configure
-+ * @off_mode: select whether retention or off mode values used
-+ *
-+ * Calculates and sets up voltage controller to use I2C based
-+ * voltage scaling for sleep modes. This can be used for either off mode
-+ * or retention. Off mode has additionally an option to use sys_off_mode
-+ * pad, which uses a global signal to program the whole power IC to
-+ * off-mode.
-+ */
-+static void omap3_set_i2c_timings(struct voltagedomain *voltdm, bool off_mode)
- {
-+	unsigned long voltsetup1;
-+	u32 tgt_volt;
-+
-+	if (off_mode)
-+		tgt_volt = voltdm->vc_param->off;
-+	else
-+		tgt_volt = voltdm->vc_param->ret;
-+
-+	voltsetup1 = (voltdm->vc_param->on - tgt_volt) /
-+			voltdm->pmic->slew_rate;
-+
-+	voltsetup1 = voltsetup1 * voltdm->sys_clk.rate / 8 / 1000000 + 1;
-+
-+	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
-+		voltsetup1 << __ffs(voltdm->vfsm->voltsetup_mask),
-+		voltdm->vfsm->voltsetup_reg);
-+
- 	/*
--	 * Voltage Manager FSM parameters init
--	 * XXX This data should be passed in from the board file
-+	 * pmic is not controlling the voltage scaling during retention,
-+	 * thus set voltsetup2 to 0
- 	 */
--	voltdm->write(OMAP3_CLKSETUP, OMAP3_PRM_CLKSETUP_OFFSET);
--	voltdm->write(OMAP3_VOLTOFFSET, OMAP3_PRM_VOLTOFFSET_OFFSET);
--	voltdm->write(OMAP3_VOLTSETUP2, OMAP3_PRM_VOLTSETUP2_OFFSET);
-+	voltdm->write(0, OMAP3_PRM_VOLTSETUP2_OFFSET);
- }
+ /**
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index a2d7d9c..7da35a6 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -34,14 +34,17 @@
  
--static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
-+/**
-+ * omap3_set_off_timings - sets off-mode timings for a channel
-+ * @voltdm: channel to configure
-+ *
-+ * Calculates and sets up off-mode timings for a channel. Off-mode
-+ * can use either I2C based voltage scaling, or alternatively
-+ * sys_off_mode pad can be used to send a global command to power IC.
-+ * This function first checks which mode is being used, and calls
-+ * omap3_set_i2c_timings() if the system is using I2C control mode.
-+ * sys_off_mode has the additional benefit that voltages can be
-+ * scaled to zero volt level with TWL4030 / TWL5030, I2C can only
-+ * scale to 600mV.
-+ */
-+static void omap3_set_off_timings(struct voltagedomain *voltdm)
- {
--	static bool is_initialized;
-+	unsigned long clksetup;
-+	unsigned long voltsetup2;
-+	unsigned long voltsetup2_old;
-+	u32 val;
+ static const struct omap_vfsm_instance omap4_vdd_mpu_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
++	.voltsetup_off_reg = OMAP4_PRM_VOLTSETUP_MPU_OFF_OFFSET,
+ };
  
--	if (is_initialized)
-+	/* check if sys_off_mode is used to control off-mode voltages */
-+	val = voltdm->read(OMAP3_PRM_VOLTCTRL_OFFSET);
-+	if (!(val & OMAP3430_SEL_OFF_MASK)) {
-+		/* No, omap is controlling them over I2C */
-+		omap3_set_i2c_timings(voltdm, true);
- 		return;
-+	}
+ static const struct omap_vfsm_instance omap4_vdd_iva_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET,
++	.voltsetup_off_reg = OMAP4_PRM_VOLTSETUP_IVA_OFF_OFFSET,
+ };
  
--	omap3_vfsm_init(voltdm);
-+	clksetup = voltdm->read(OMAP3_PRM_CLKSETUP_OFFSET);
+ static const struct omap_vfsm_instance omap4_vdd_core_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSET,
++	.voltsetup_off_reg = OMAP4_PRM_VOLTSETUP_CORE_OFF_OFFSET,
+ };
  
--	is_initialized = true;
-+	/* voltsetup 2 in us */
-+	voltsetup2 = voltdm->vc_param->on / voltdm->pmic->slew_rate;
-+
-+	/* convert to 32k clk cycles */
-+	voltsetup2 = DIV_ROUND_UP(voltsetup2 * 32768, 1000000);
-+
-+	voltsetup2_old = voltdm->read(OMAP3_PRM_VOLTSETUP2_OFFSET);
-+
-+	/*
-+	 * Update voltsetup2 if higher than current value (needed because
-+	 * we have multiple channels with different ramp times), also
-+	 * update voltoffset always to value recommended by TRM
-+	 */
-+	if (voltsetup2 > voltsetup2_old) {
-+		voltdm->write(voltsetup2, OMAP3_PRM_VOLTSETUP2_OFFSET);
-+		voltdm->write(clksetup - voltsetup2,
-+			OMAP3_PRM_VOLTOFFSET_OFFSET);
-+	} else
-+		voltdm->write(clksetup - voltsetup2_old,
-+			OMAP3_PRM_VOLTOFFSET_OFFSET);
-+
-+	/*
-+	 * omap is not controlling voltage scaling during off-mode,
-+	 * thus set voltsetup1 to 0
-+	 */
-+	voltdm->rmw(voltdm->vfsm->voltsetup_mask, 0,
-+		voltdm->vfsm->voltsetup_reg);
-+
-+	/* voltoffset must be clksetup minus voltsetup2 according to TRM */
-+	voltdm->write(clksetup - voltsetup2, OMAP3_PRM_VOLTOFFSET_OFFSET);
- }
- 
-+static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
-+{
-+	omap3_set_off_timings(voltdm);
-+}
- 
- /* OMAP4 specific voltage init functions */
- static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
-@@ -339,7 +419,6 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	vc->i2c_slave_addr = voltdm->pmic->i2c_slave_addr;
- 	vc->volt_reg_addr = voltdm->pmic->volt_reg_addr;
- 	vc->cmd_reg_addr = voltdm->pmic->cmd_reg_addr;
--	vc->setup_time = voltdm->pmic->volt_setup_time;
- 
- 	/* Configure the i2c slave address for this VC */
- 	voltdm->rmw(vc->smps_sa_mask,
-@@ -378,11 +457,6 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	/* Channel configuration */
- 	omap_vc_config_channel(voltdm);
- 
--	/* Configure the setup times */
--	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
--		    vc->setup_time << __ffs(voltdm->vfsm->voltsetup_mask),
--		    voltdm->vfsm->voltsetup_reg);
--
- 	omap_vc_i2c_init(voltdm);
- 
- 	if (cpu_is_omap34xx())
-diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
-index 7618b69..91c8d75 100644
---- a/arch/arm/mach-omap2/vc.h
-+++ b/arch/arm/mach-omap2/vc.h
-@@ -86,7 +86,6 @@ struct omap_vc_channel {
- 	u16 i2c_slave_addr;
- 	u16 volt_reg_addr;
- 	u16 cmd_reg_addr;
--	u16 setup_time;
- 	u8 cfg_channel;
- 	bool i2c_high_speed;
- 
+ static struct voltagedomain omap4_voltdm_mpu = {
 -- 
 1.7.4.1
 
