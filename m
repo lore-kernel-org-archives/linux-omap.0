@@ -1,49 +1,56 @@
-From: Vinod Koul <vinod.koul@linux.intel.com>
-Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a
- slave DMA channel
-Date: Tue, 25 Sep 2012 10:05:01 +0530
-Message-ID: <1348547701.1943.190.camel@vkoul-udesk3>
-References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
-	 <1347662517-4210-3-git-send-email-jon-hunter@ti.com>
-	 <1347852805.1943.130.camel@vkoul-udesk3> <201209171159.27359.arnd@arndb.de>
-	 <20120917223619.GC12445@n2100.arm.linux.org.uk>
-	 <1347938035.1943.162.camel@vkoul-udesk3>  <5060DDEB.4000600@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 0/9] OMAPDSS: OMAP5 related patches
+Date: Tue, 25 Sep 2012 10:50:29 +0530
+Message-ID: <50613F1D.30006@ti.com>
+References: <1348495119-8262-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:27408 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751327Ab2IYEkc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 00:40:32 -0400
-In-Reply-To: <5060DDEB.4000600@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47069 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751953Ab2IYFU2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 01:20:28 -0400
+In-Reply-To: <1348495119-8262-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Dan Williams <djbw@fb.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Mon, 2012-09-24 at 17:25 -0500, Jon Hunter wrote:
-> > For DT bindings, I think the binding itself shouldn't change based on my
-> > work but I would like these same bindings to help build the DMA engine
-> > code mappings.
-> > 
-> > Now would it make sense to NOT merge these changes for 3.7 and postpone
-> > to 3.8. I can host these patches on a topic branch and merge them when
-> > we are ready. I plan to spend some good amount of time on my work this
-> > week so we should be ready pretty soon.
-> > One these changes are merged, users can start moving to this scheme.
-> 
-> I just wanted to see how things are progressing your side. Did you
-> create a topic branch for this? If so let me know where I can find it, I
-> did not find a branch on your infradead git tree.
-> 
-> I wanted to pull in the latest patches for some testing. 
-Sorry for delay, I had everything ready, but couldn't manage to commit
-and push. I have pushed to topic/dmaengine_dt, it is pushing out now...
+On Monday 24 September 2012 07:28 PM, Tomi Valkeinen wrote:
+> Hi,
+>
+> This series adds basic OMAP5 DSS functionality, mainly related to DSS core, DPI
+> and DSI.
 
-This has your two patches, my fix for build breakage, and Matt's typo
-patch. This is based on my next.
+Looks good to me.
 
--- 
-~Vinod
+Archit
+
+>
+>   Tomi
+>
+> Archit Taneja (1):
+>    OMAPDSS: Add basic omap5 features to dss and dispc
+>
+> Tomi Valkeinen (8):
+>    OMAPDSS: DSI: improve DSI clock calcs for DISPC
+>    OMAPDSS: move dss feats to the end of dss.c
+>    OMAPDSS: Add support for DPI source selection
+>    OMAPDSS: DSI: Add FEAT_DSI_PLL_SELFREQDCO
+>    OMAPDSS: DSI: Add FEAT_DSI_PLL_REFSEL
+>    OMAPDSS: DSI: Add new linebuffer size for OMAP5
+>    OMAPDSS: DSI: Add code to disable PHY DCC
+>    OMAPDSS: DSI: make OMAP2_DSS_DSI depend on ARCH_OMAP5
+>
+>   drivers/video/omap2/dss/Kconfig        |    2 +-
+>   drivers/video/omap2/dss/dispc.c        |    2 +
+>   drivers/video/omap2/dss/dpi.c          |    5 +
+>   drivers/video/omap2/dss/dsi.c          |  167 +++++++++++++++++++++++++-------
+>   drivers/video/omap2/dss/dss.c          |  121 ++++++++++++++++++-----
+>   drivers/video/omap2/dss/dss.h          |    1 +
+>   drivers/video/omap2/dss/dss_features.c |   96 ++++++++++++++++++
+>   drivers/video/omap2/dss/dss_features.h |    3 +
+>   8 files changed, 337 insertions(+), 60 deletions(-)
+>
 
