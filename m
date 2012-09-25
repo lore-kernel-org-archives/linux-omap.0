@@ -1,85 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 2/3] omap platform and board related late patches
- for v3.7 merge window
-Date: Mon, 24 Sep 2012 20:31:36 -0700
-Message-ID: <20120925033136.GS28835@atomide.com>
-References: <pull-1348521952-285145>
- <E1TGGAI-0000D1-T0@merlin.infradead.org>
- <20120925003953.GQ28835@atomide.com>
+From: Vinod Koul <vinod.koul@linux.intel.com>
+Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a
+ slave DMA channel
+Date: Tue, 25 Sep 2012 10:05:01 +0530
+Message-ID: <1348547701.1943.190.camel@vkoul-udesk3>
+References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
+	 <1347662517-4210-3-git-send-email-jon-hunter@ti.com>
+	 <1347852805.1943.130.camel@vkoul-udesk3> <201209171159.27359.arnd@arndb.de>
+	 <20120917223619.GC12445@n2100.arm.linux.org.uk>
+	 <1347938035.1943.162.camel@vkoul-udesk3>  <5060DDEB.4000600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58934 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752118Ab2IYDbm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Sep 2012 23:31:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20120925003953.GQ28835@atomide.com>
+Received: from mga14.intel.com ([143.182.124.37]:27408 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751327Ab2IYEkc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 00:40:32 -0400
+In-Reply-To: <5060DDEB.4000600@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Dan Williams <djbw@fb.com>
 
-* Tony Lindgren <tony@atomide.com> [120924 17:41]:
-> * Tony Lindgren <tony@atomide.com> [120924 14:30]:
-> > The following changes since commit 0e70156de4c8465bfb8cb45cdc1bbc2fa474ce14:
+On Mon, 2012-09-24 at 17:25 -0500, Jon Hunter wrote:
+> > For DT bindings, I think the binding itself shouldn't change based on my
+> > work but I would like these same bindings to help build the DMA engine
+> > code mappings.
 > > 
-> >   ARM: OMAP2+: Make omap4-keypad.h local (2012-09-20 15:04:04 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-board-late-v2-for-v3.7
-> > 
-> > for you to fetch changes up to ead53717d9ab28c942b9adf66f8c02442dbfbc8a:
-> > 
-> >   arm: make FORCE_MAX_ZONEORDER configurable for TI AM33XX (2012-09-24 10:32:39 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > These board and platform related patches have been posted
-> > quite a while ago but have somehow fallen though the cracks
-> > as most of the focus has been making things to work with
-> > device tree. As the first patch depends on sparse IRQ
-> > related removal of irqs.h and related header moves, these
-> > are based on omap-cleanup-local-headers-for-v3.7 tag.
+> > Now would it make sense to NOT merge these changes for 3.7 and postpone
+> > to 3.8. I can host these patches on a topic branch and merge them when
+> > we are ready. I plan to spend some good amount of time on my work this
+> > week so we should be ready pretty soon.
+> > One these changes are merged, users can start moving to this scheme.
 > 
-> Let's scrap this pull request, Russell noted that Yegor's patch
-> breaks sa1111.
+> I just wanted to see how things are progressing your side. Did you
+> create a topic branch for this? If so let me know where I can find it, I
+> did not find a branch on your infradead git tree.
+> 
+> I wanted to pull in the latest patches for some testing. 
+Sorry for delay, I had everything ready, but couldn't manage to commit
+and push. I have pushed to topic/dmaengine_dt, it is pushing out now...
 
-Here's the updated pull request with just the top patch dropped.
+This has your two patches, my fix for build breakage, and Matt's typo
+patch. This is based on my next.
 
-Tony
+-- 
+~Vinod
 
-
-The following changes since commit 0e70156de4c8465bfb8cb45cdc1bbc2fa474ce14:
-
-  ARM: OMAP2+: Make omap4-keypad.h local (2012-09-20 15:04:04 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-board-late-v3-for-v3.7
-
-for you to fetch changes up to cfc55bcc1f78395872d41c50f6a3129c4b42289e:
-
-  ARM: OMAP2+: serial: Change MAX_HSUART_PORTS to 6 (2012-09-24 10:32:39 -0700)
-
-----------------------------------------------------------------
-These board and platform related patches have been posted
-quite a while ago but have somehow fallen though the cracks
-as most of the focus has been making things to work with
-device tree. As the first patch depends on sparse IRQ
-related removal of irqs.h and related header moves, these
-are based on omap-cleanup-local-headers-for-v3.7 tag.
-
-----------------------------------------------------------------
-AnilKumar Ch (1):
-      ARM: OMAP2+: serial: Change MAX_HSUART_PORTS to 6
-
-Peter Ujfalusi (1):
-      ARM: OMAP4: twl-common: Support for additional devices on i2c1 bus
-
- arch/arm/mach-omap2/board-4430sdp.c           |   12 ++++++--
- arch/arm/mach-omap2/board-omap4panda.c        |   12 ++++++--
- arch/arm/mach-omap2/twl-common.c              |   37 ++++++++-----------------
- arch/arm/mach-omap2/twl-common.h              |    3 +-
- arch/arm/plat-omap/include/plat/omap-serial.h |    2 +-
- 5 files changed, 34 insertions(+), 32 deletions(-)
