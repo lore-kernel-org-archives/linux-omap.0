@@ -1,78 +1,77 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 16/18] OMAPDSS: DISPC: Configure writeback FIFOs
-Date: Tue, 25 Sep 2012 17:50:52 +0300
-Message-ID: <1348584652.21717.7.camel@lappyti>
-References: <1347538505-25359-1-git-send-email-archit@ti.com>
-	 <1348553993-8083-1-git-send-email-archit@ti.com>
-	 <1348553993-8083-17-git-send-email-archit@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2] ARM: OMAP: counter: add locking to
+ read_persistent_clock
+Date: Tue, 25 Sep 2012 08:17:55 -0700
+Message-ID: <20120925151755.GA4840@atomide.com>
+References: <1347434081-11469-1-git-send-email-r.sricharan@ti.com>
+ <87d31bj5jq.fsf@deeprootsystems.com>
+ <20120925012243.GR28835@atomide.com>
+ <CAJ7qFSd89Ry9KmHSqB+r9YVZxjUA55MsW4RUBf6=8FSTzxOFsA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-/BG6wGrE22j7iPzsUcJQ"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:48727 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752676Ab2IYOu6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 10:50:58 -0400
-Received: by lbon3 with SMTP id n3so241331lbo.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 07:50:55 -0700 (PDT)
-In-Reply-To: <1348553993-8083-17-git-send-email-archit@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53795 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754361Ab2IYPSC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 11:18:02 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJ7qFSd89Ry9KmHSqB+r9YVZxjUA55MsW4RUBf6=8FSTzxOFsA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "R, Sricharan" <r.sricharan@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, Colin Cross <ccross@android.com>
 
+* R, Sricharan <r.sricharan@ti.com> [120925 00:44]:
+> Hi Tony,
+> 
+> [snip..]
+> 
+> >> > index dbf1e03..2bc51fb 100644
+> >> > --- a/arch/arm/plat-omap/counter_32k.c
+> >> > +++ b/arch/arm/plat-omap/counter_32k.c
+> >> > @@ -55,22 +55,29 @@ static u32 notrace omap_32k_read_sched_clock(void)
+> >> >   * nsecs and adds to a monotonically increasing timespec.
+> >> >   */
+> >> >  static struct timespec persistent_ts;
+> >> > -static cycles_t cycles, last_cycles;
+> >> > +static cycles_t cycles;
+> >> >  static unsigned int persistent_mult, persistent_shift;
+> >> > +static DEFINE_SPINLOCK(read_persistent_clock_lock);
+> >> > +
+> >> >  static void omap_read_persistent_clock(struct timespec *ts)
+> >> >  {
+> >> >     unsigned long long nsecs;
+> >> > -   cycles_t delta;
+> >> > -   struct timespec *tsp = &persistent_ts;
+> >> > +   cycles_t last_cycles;
+> >> > +   unsigned long flags;
+> >> > +
+> >> > +   spin_lock_irqsave(&read_persistent_clock_lock, flags);
+> >> >
+> >> >     last_cycles = cycles;
+> >> >     cycles = sync32k_cnt_reg ? __raw_readl(sync32k_cnt_reg) : 0;
+> >> > -   delta = cycles - last_cycles;
+> >> >
+> >> > -   nsecs = clocksource_cyc2ns(delta, persistent_mult, persistent_shift);
+> >> > +   nsecs = clocksource_cyc2ns(cycles - last_cycles,
+> >> > +                                   persistent_mult, persistent_shift);
+> >
+> > ..I think there's another bug here where cycles - last_cycles
+> > returns wrong value when the timer wraps around as cycles_t is
+> > 64 bits and the counter is 32 bits. It seems it's been there
+> > since when the read_persistent_clock was added with commit
+> > d92cfcbe (OMAP: timekeeping: time should not stop during suspend)?
+> >
+> > It seems that after this patch cycles should not be cycles_t
+> > but u32, and the result of cycles - last_cycles should also
+> > be u32.
+> >
+>  cycles_t is defined as  typedef unsigned long cycles_t;
+>  Am i missing something here ?
 
---=-/BG6wGrE22j7iPzsUcJQ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Oh right, cycles_t is unsigned long, it's OK then. Must
+have grepped for it from some other arch.
 
-On Tue, 2012-09-25 at 11:49 +0530, Archit Taneja wrote:
-> Extend the DISPC fifo functions to also configure the writeback FIFO thre=
-sholds.
->=20
-> The most optimal configuration for writeback is to push out data to the
-> interconnect the moment writeback pushes enough pixels in the FIFO to for=
-m a
-> burst. This reduces the chance of writeback overflowing it's FIFO.
+Regards,
 
-Hmm, why is this optimal?
-
-The FIFO for WB is the output fifo, right? In mem-to-mem mode the whole
-WB pipeline can stall, so the fifo can't overflow? If so, isn't it
-better to collect more data and flush all that to the memory, instead of
-sending each burst-size piece one by one?
-
-Then again, if the input side is reading pixels from the memory all the
-time, even if the output fifo helps to keep the output side idle for
-longer periods, it probably doesn't help as the input side keeps the
-memory bus awake.
-
- Tomi
-
-
---=-/BG6wGrE22j7iPzsUcJQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQYcTMAAoJEPo9qoy8lh712kkP/3OovpBy+so/ua3DOFGofrsP
-sb+g+SHl/kjLx72yFmhD3ENptxjovmbPFK5Hk16kA0K/krlwgKvQWTf3vyThkHZu
-Hb2Dv8IPqtK9Wk5nh8DsRGlINt1qAREXqXbFFfiS4TcOrywKYFDchqpqk7IsSI+z
-jqSUt1o0nun/UQzc9fgC47RmfOBTw9McPQI86Q7CYJPWiGyLYN2in588Pl2hdq/T
-hYbLgkSwA4Ae4qPHMnjxwInOo1SH8TrSE9dTHOL3j2WsuAuQHDOnA/rxnmgv+ACs
-TtZwyVuplv8/6FS/XAvaTFmGPAcTZ7oQ7+QY2MZ8Q76U3jHVQHA3jHRigDmxqsBB
-AglitTLjMmtC6EmMYCgKoi9+F/b6zuUfLtp7PGWveTF49rfg0764dWyWfGHw/auI
-+15Jx9GDiaeaZphBCQRVAqfVuiCSKSn3HJfW1w3xtKhBoB1ObexjA4qazuGhQ6uI
-ubXiNLA4NuEz4nw6wKxynYRgGCEE0CdyjnjCslKnuHyePuikUXLOTxs4U8Ka40JR
-Vku9H8RmzMmdGd9ytYupoaJ8l6dLWljrKqng5TfIx3R4pYRZOPMOJjbIhcEQJV6U
-DxjvAYIfpXRjN/s5ygIfW7C+oSU7xTvx1Dfa/CyZNRZUWt9FAl5nZRLXEOyxzbhB
-NlC0ZCGsGYdOHNS+SMiC
-=lqOm
------END PGP SIGNATURE-----
-
---=-/BG6wGrE22j7iPzsUcJQ--
-
+Tony
