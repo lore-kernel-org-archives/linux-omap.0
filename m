@@ -1,89 +1,46 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not suspended.
-Date: Tue, 25 Sep 2012 13:52:03 +0530
-Message-ID: <CAKdam572krJZcayRdJ_AciCUZH3LuzD9yoHenhxrB6j9xDZ6JQ@mail.gmail.com>
-References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: yegorslists@googlemail.com
+Subject: [PATCH v2] arm: make FORCE_MAX_ZONEORDER configurable for TI AM33XX
+Date: Tue, 25 Sep 2012 10:26:30 +0200
+Message-ID: <1348561590-13361-1-git-send-email-yegorslists@googlemail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38723 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753603Ab2IYIWF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 04:22:05 -0400
-Received: by vbbff1 with SMTP id ff1so7068364vbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 01:22:03 -0700 (PDT)
-In-Reply-To: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com>
+Received: from ns.visionsystems.de ([62.145.30.242]:32826 "EHLO
+	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753959Ab2IYI1B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 04:27:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: gregkh@linuxfoundation.org
-Cc: alan@linux.intel.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, balbi@ti.com, paul@pwsan.com, Sourav Poddar <sourav.poddar@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Yegor Yefremov <yegorslists@googlemail.com>, Dejan Gacnik <dejan.gacnik@gmail.com>
 
-Hi Greg,
+From: Yegor Yefremov <yegorslists@googlemail.com>
 
-Ping on this?
+FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
+of consistent DMA memory (da8xx frame buffer driver).
 
-On Tue, Sep 18, 2012 at 6:10 PM, Sourav Poddar <sourav.poddar@ti.com> wrote:
-> Greg's tty-next is not booting on 2420 based N800. The failure is
-> observed at serial init itself. The reason might be that n800 tries to
-> resume even though it is not suspended before.
->
-> Reported-by: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
-> This patch is developed on top of greg's tty-next branch
-> CommitId: e740d8f tty: serial: Samsung: Fix return value +
-> the following patch which I have already posted to the mailing list.
-> http://comments.gmane.org/gmane.linux.ports.arm.omap/84729
->
->  drivers/tty/serial/omap-serial.c |   11 ++++++++++-
->  1 files changed, 10 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index 3c05c5e..bc355f2 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -110,6 +110,7 @@ struct uart_omap_port {
->         u32                     calc_latency;
->         struct work_struct      qos_work;
->         struct pinctrl          *pins;
-> +       unsigned int            suspended:1;
->  };
->
->  #define to_uart_omap_port(p)   ((container_of((p), struct uart_omap_port, port)))
-> @@ -1545,14 +1546,20 @@ static int serial_omap_runtime_suspend(struct device *dev)
->         up->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
->         schedule_work(&up->qos_work);
->
-> +       up->suspended = true;
-> +
->         return 0;
->  }
->
->  static int serial_omap_runtime_resume(struct device *dev)
->  {
->         struct uart_omap_port *up = dev_get_drvdata(dev);
-> +       u32 loss_cnt;
-> +
-> +       if (!up->suspended)
-> +               return 0;
->
-> -       u32 loss_cnt = serial_omap_get_context_loss_count(up);
-> +       loss_cnt = serial_omap_get_context_loss_count(up);
->
->         if (up->context_loss_cnt != loss_cnt)
->                 serial_omap_restore_context(up);
-> @@ -1560,6 +1567,8 @@ static int serial_omap_runtime_resume(struct device *dev)
->         up->latency = up->calc_latency;
->         schedule_work(&up->qos_work);
->
-> +       up->suspended = false;
-> +
->         return 0;
->  }
->  #endif
-> --
-> 1.7.1
->
+Signed-off-by: Dejan Gacnik <dejan.gacnik@gmail.com>
+Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+---
+Changes:
+	v2: fix SA1111 breakage
 
-~Sourav
+ arch/arm/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 2f88d8d..b5f242e 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1766,8 +1766,8 @@ config HW_PERF_EVENTS
+ source "mm/Kconfig"
+ 
+ config FORCE_MAX_ZONEORDER
+-	int "Maximum zone order" if ARCH_SHMOBILE
+-	range 11 64 if ARCH_SHMOBILE
++	int "Maximum zone order" if ARCH_SHMOBILE || SOC_AM33XX
++	range 11 64 if ARCH_SHMOBILE || SOC_AM33XX
+ 	default "9" if SA1111
+ 	default "11"
+ 	help
+-- 
+1.7.7
+
