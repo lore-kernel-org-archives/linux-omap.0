@@ -1,440 +1,88 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 20/21] ARM: OMAP2+ PM: Add support for TPS62361
-Date: Tue, 25 Sep 2012 19:33:52 +0300
-Message-ID: <1348590833-12335-21-git-send-email-t-kristo@ti.com>
-References: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Powering OMAP's pins
+Date: Tue, 25 Sep 2012 20:05:00 +0300
+Message-ID: <1348592700.2342.49.camel@deskari>
+References: <1348568474.2342.35.camel@deskari>
+	 <20120925153806.GC4840@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-FRX0w9nSUMImn2mOZASH"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50064 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758180Ab2IYQem (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 12:34:42 -0400
-In-Reply-To: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:37148 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757401Ab2IYRFG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 13:05:06 -0400
+Received: by lbon3 with SMTP id n3so443246lbo.19
+        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 10:05:02 -0700 (PDT)
+In-Reply-To: <20120925153806.GC4840@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>, Nishanth Menon <nm@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-From: Vishwanath BS <vishwanath.bs@ti.com>
 
-TPS62361 is a new PMIC used with OMAP4460 on SDP4430 platform
-and panda board ES to supply MPU VDD.
-Rest of the VDDs continue to be supplied via TWL6030.
+--=-FRX0w9nSUMImn2mOZASH
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-As part of this, the following have been moved to common
-location in voltage.h
-OMAP4_VP_CONFIG_ERROROFFSET, OMAP4_VP_VSTEPMIN_VSTEPMIN,
-OMAP4_VP_VSTEPMAX_VSTEPMAX, OMAP4_VP_VLIMITTO_TIMEOUT_US
+On Tue, 2012-09-25 at 08:38 -0700, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120925 03:22]:
+> > Hi Tony,
+> >=20
+> > Each pin of OMAP requires a particular power to be enabled for the pin
+> > to function (Ball Characteristics table from data manual). Is there a
+> > plan how this is managed with pinctrl? Currently each driver needs to
+> > make sure the correct regulators are enabled for the pins it uses, whic=
+h
+> > is platform specific and messy.
+> >=20
+> > As a driver maintainer, I would wish that the pins would just get
+> > enabled automatically when I call pm_runtime_get()...
+>=20
+> Hmm can you clarify a bit what exactly do you want to do there
+> with pm_runtime_get()? Call the regulator framework?
 
-[nm@ti.com: cleaned up TPS to handle board variations]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-[t-kristo@ti.com: minor cleanup, added panda board support, dropped
- some unused code from the patch]
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/Kconfig            |    9 ++
- arch/arm/mach-omap2/Makefile           |    1 +
- arch/arm/mach-omap2/board-4430sdp.c    |   10 ++
- arch/arm/mach-omap2/board-omap4panda.c |    8 ++
- arch/arm/mach-omap2/omap_tps6236x.c    |  214 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_twl.c         |    5 -
- arch/arm/mach-omap2/twl-common.c       |    1 +
- arch/arm/mach-omap2/twl-common.h       |   16 +++
- arch/arm/mach-omap2/voltage.h          |    5 +
- 9 files changed, 264 insertions(+), 5 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_tps6236x.c
+Well, I'm not very familiar with pinctrl, but if I've understood right,
+a set of pins are assigned to a driver in DT data (or wherever, that's
+not relevant). Those pins should be automatically configured and enabled
+when the driver uses pm_runtime_get() to enable its hardware.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index fcd4e85..be65336 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -352,6 +352,7 @@ config MACH_OMAP_4430SDP
- 	select OMAP_PACKAGE_CBL
- 	select OMAP_PACKAGE_CBS
- 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
-+	select OMAP_TPS6236X
- 
- config MACH_OMAP4_PANDA
- 	bool "OMAP4 Panda Board"
-@@ -360,6 +361,7 @@ config MACH_OMAP4_PANDA
- 	select OMAP_PACKAGE_CBL
- 	select OMAP_PACKAGE_CBS
- 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
-+	select OMAP_TPS6236X
- 
- config OMAP3_EMU
- 	bool "OMAP3 debugging peripherals"
-@@ -402,6 +404,13 @@ config OMAP4_ERRATA_I688
- 	  In MPU case, L3 T2ASYNC FIFO and DDR T2ASYNC FIFO needs to be drained.
- 	  IO barrier ensure that there is no synchronisation loss on initiators
- 	  operating on both interconnect port simultaneously.
-+
-+config OMAP_TPS6236X
-+	bool "OMAP4 support for TPS6236X power IC"
-+	help
-+	  TPS62361 is a PMIC used with OMAP4460 to supply MPU VDD voltage.
-+	  Rest of the VDDs continue to be supplied via TWL6030.
-+
- endmenu
- 
- endif
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f6a24b3..0e183a1 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -24,6 +24,7 @@ obj-y += mcbsp.o
- endif
- 
- obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
-+obj-$(CONFIG_OMAP_TPS6236X)		+= omap_tps6236x.o
- obj-$(CONFIG_SOC_HAS_OMAP2_SDRC)	+= sdrc.o
- 
- # SMP support ONLY available for OMAP4
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index ad8a7d9..bebef07 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -64,6 +64,8 @@
- #define GPIO_WIFI_PMENA		54
- #define GPIO_WIFI_IRQ		53
- 
-+#define TPS62361_GPIO   7
-+
- static const int sdp4430_keymap[] = {
- 	KEY(0, 0, KEY_E),
- 	KEY(0, 1, KEY_R),
-@@ -904,6 +906,14 @@ static void __init omap_4430sdp_init(void)
- 		pr_err("Keypad initialization failed: %d\n", status);
- 
- 	omap_4430sdp_display_init();
-+
-+	if (cpu_is_omap446x()) {
-+		/* Vsel0 = gpio, vsel1 = gnd */
-+		status = omap_tps6236x_board_setup(true, TPS62361_GPIO, -1,
-+						   -1, 0);
-+		if (status)
-+			pr_err("TPS62361 initialization failed: %d\n", status);
-+	}
- }
- 
- MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 70f6d1d..57431e0 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -57,6 +57,7 @@
- #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
- #define HDMI_GPIO_HPD  63 /* Hotplug detect */
-+#define TPS62361_GPIO 7 /* Vsel0 control for TPS62361 */
- 
- /* wl127x BT, FM, GPS connectivity chip */
- static struct ti_st_plat_data wilink_platform_data = {
-@@ -513,6 +514,13 @@ static void __init omap4_panda_init(void)
- 	omap4_ehci_init();
- 	usb_musb_init(&musb_board_data);
- 	omap4_panda_display_init();
-+	if (cpu_is_omap446x()) {
-+		/* vsel0 = gpio, vsel1 = gnd */
-+		ret = omap_tps6236x_board_setup(true, TPS62361_GPIO, -1,
-+						-1, 0);
-+		if (ret)
-+			pr_err("TPS62361 initialization failed: %d\n", ret);
-+	}
- }
- 
- MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
-diff --git a/arch/arm/mach-omap2/omap_tps6236x.c b/arch/arm/mach-omap2/omap_tps6236x.c
-new file mode 100644
-index 0000000..6564f3d
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap_tps6236x.c
-@@ -0,0 +1,214 @@
-+/*
-+ * OMAP and TPS6236x specific initialization
-+ *
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ * Vishwanath BS
-+ * Nishanth Menon
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/gpio.h>
-+#include <linux/i2c/twl.h>
-+
-+#include "pm.h"
-+#include "vc.h"
-+#include "mux.h"
-+#include "twl-common.h"
-+
-+/* Voltage limits supported */
-+#define MIN_VOLTAGE_TPS62360_62_UV	770000
-+#define MAX_VOLTAGE_TPS62360_62_UV	1400000
-+
-+#define MIN_VOLTAGE_TPS62361_UV		500000
-+#define MAX_VOLTAGE_TPS62361_UV		1770000
-+
-+/*
-+ * This is the voltage delta between 2 values in voltage register.
-+ * when switching voltage V1 to V2, TPS62361 can ramp up or down
-+ * initially with step sizes of 20mV with a last step of 10mV.
-+ * In the case of TPS6236[0|2], it is a constant 10mV steps
-+ * we choose the 10mV step for linearity when SR is configured.
-+ */
-+#define STEP_SIZE_TPS6236X		10000
-+
-+/* I2C access parameters */
-+#define I2C_TPS6236X_SLAVE_ADDR		0x60
-+
-+#define REG_TPS6236X_SET_0		0x00
-+
-+#define MODE_TPS6236X_AUTO_PFM_PWM	0x00
-+
-+/* We use Auto PFM/PWM mode currently seems to have the best trade off */
-+#define VOLTAGE_PFM_MODE_VAL		MODE_TPS6236X_AUTO_PFM_PWM
-+
-+/* Which register do we use by default? */
-+static int __initdata default_reg = -1;
-+
-+/**
-+ * _bd_setup - sets up single GPIO line for configuring PMIC
-+ * @name: driver name
-+ * @gpio_vsel: GPIO used for controlling PMIC VSEL signal
-+ * @hw_pull: hardware pull setup
-+ *
-+ * Sets up a single GPIO line for configuring TPS6236X PMIC. This selects
-+ * the I2C register address that is used for voltage control. If a GPIO is
-+ * provided, it is always driven to low.
-+ */
-+static int __init _bd_setup(char *name, int gpio_vsel, int hw_pull)
-+{
-+	int r;
-+
-+	/* If hardwired, do not touch GPIO */
-+	if (hw_pull != -1)
-+		return 0;
-+
-+	r = omap_mux_init_gpio(gpio_vsel, OMAP_PIN_OUTPUT);
-+	if (r) {
-+		pr_err("%s: unable to mux gpio%d=%d\n", __func__,
-+			gpio_vsel, r);
-+		goto out;
-+	}
-+
-+	r = gpio_request(gpio_vsel, name);
-+	if (r) {
-+		pr_err("%s: unable to req gpio%d=%d\n", __func__,
-+			gpio_vsel, r);
-+		goto out;
-+	}
-+
-+	/* Drive gpio to 0 */
-+	r = gpio_direction_output(gpio_vsel, 0);
-+	if (r) {
-+		pr_err("%s: unable to drive gpio%d=%d\n", __func__,
-+			gpio_vsel, r);
-+		gpio_free(gpio_vsel);
-+		goto out;
-+	}
-+out:
-+	return r;
-+}
-+
-+static unsigned long tps6236x_vsel_to_uv(const u8 vsel);
-+static u8 tps6236x_uv_to_vsel(unsigned long uv);
-+
-+static struct omap_voltdm_pmic omap4_mpu_pmic = {
-+	.slew_rate		= 8000,
-+	.step_size		= STEP_SIZE_TPS6236X,
-+	.vddmin			= MIN_VOLTAGE_TPS62361_UV,
-+	.vddmax			= MAX_VOLTAGE_TPS62361_UV,
-+	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
-+	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
-+	.vp_vstepmax		= OMAP4_VP_VSTEPMAX_VSTEPMAX,
-+	.vp_timeout_us		= OMAP4_VP_VLIMITTO_TIMEOUT_US,
-+	.i2c_slave_addr		= I2C_TPS6236X_SLAVE_ADDR,
-+	.volt_reg_addr		= REG_TPS6236X_SET_0,
-+	.cmd_reg_addr		= REG_TPS6236X_SET_0,
-+	.i2c_high_speed		= true,
-+	.vsel_to_uv		= tps6236x_vsel_to_uv,
-+	.uv_to_vsel		= tps6236x_uv_to_vsel,
-+};
-+
-+static unsigned long tps6236x_vsel_to_uv(const u8 vsel)
-+{
-+	return omap4_mpu_pmic.vddmin +
-+		(STEP_SIZE_TPS6236X * (vsel & ~VOLTAGE_PFM_MODE_VAL));
-+}
-+
-+static u8 tps6236x_uv_to_vsel(unsigned long uv)
-+{
-+	if (!uv)
-+		return 0;
-+
-+	/* Round off requests to limits */
-+	if (uv > omap4_mpu_pmic.vddmax) {
-+		pr_err("%s:Request for overvoltage[%ld] than supported[%u]\n",
-+				__func__, uv, omap4_mpu_pmic.vddmax);
-+		uv = omap4_mpu_pmic.vddmax;
-+	}
-+	if (uv < omap4_mpu_pmic.vddmin) {
-+		pr_err("%s:Request for undervoltage[%ld] than supported[%u]\n",
-+				__func__, uv, omap4_mpu_pmic.vddmin);
-+		uv = omap4_mpu_pmic.vddmin;
-+	}
-+	return DIV_ROUND_UP(uv - omap4_mpu_pmic.vddmin, STEP_SIZE_TPS6236X) |
-+			VOLTAGE_PFM_MODE_VAL;
-+}
-+
-+static __initdata struct omap_pmic_map omap_tps_map[] = {
-+	{
-+		.name = "mpu",
-+		.cpu = PMIC_CPU_OMAP4460,
-+		.pmic_data = &omap4_mpu_pmic,
-+	},
-+	/* Terminator */
-+	{ .name = NULL, .pmic_data = NULL},
-+};
-+
-+int __init omap_tps6236x_init(void)
-+{
-+	struct omap_pmic_map *map;
-+
-+	/* Without registers, I wont proceed */
-+	if (default_reg == -1)
-+		return -EINVAL;
-+
-+	map = omap_tps_map;
-+
-+	/* setup all the pmic's voltage addresses to the default one */
-+	while (map->name) {
-+		map->pmic_data->volt_reg_addr = default_reg;
-+		map->pmic_data->cmd_reg_addr = default_reg;
-+		map++;
-+	}
-+
-+	return omap_pmic_register_data(omap_tps_map);
-+}
-+
-+/**
-+ * omap_tps6236x_board_setup() - provide the board config for TPS connect
-+ * @use_62361:	Do we use TPS62361 variant?
-+ * @gpio_vsel0:	If using GPIO to control VSEL0, provide gpio number, else -1
-+ * @gpio_vsel1:	If using GPIO to control VSEL1, provide gpio number, else -1
-+ * @hw_pull0:	If not using gpio, provide hardware pull for the pin (high=1)
-+ * @hw_pull1:	If not using gpio, provide hardware pull for the pin (high=1)
-+ *
-+ * TPS6236x variants of PMIC can be hooked in numerous combinations on to the
-+ * board. Some platforms can choose to hardwire and save on a GPIO for other
-+ * uses, while others may hook a single line for GPIO control and may ground
-+ * the other line. support these configurations.
-+ */
-+int __init omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
-+		int gpio_vsel1, int hw_pull0, int hw_pull1)
-+{
-+	int r;
-+	int vsel0 = 0, vsel1 = 0;
-+
-+	r = _bd_setup("tps6236x_vsel0", gpio_vsel0, hw_pull0);
-+	if (r)
-+		goto out;
-+	r = _bd_setup("tps6236x_vsel1", gpio_vsel1, hw_pull1);
-+	if (r) {
-+		if (gpio_vsel0 != -1)
-+			gpio_free(gpio_vsel0);
-+		goto out;
-+	}
-+
-+	if (hw_pull0 != -1)
-+		vsel0 = hw_pull0;
-+	if (hw_pull1 != -1)
-+		vsel1 = hw_pull1;
-+
-+	default_reg = ((vsel1 & 0x1) << 1) | (vsel0 & 0x1);
-+
-+	if (!use_62361) {
-+		omap4_mpu_pmic.vddmin = MIN_VOLTAGE_TPS62360_62_UV;
-+		omap4_mpu_pmic.vddmax = MAX_VOLTAGE_TPS62360_62_UV;
-+	}
-+out:
-+	return r;
-+}
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index f6ee038..885e8ab 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -38,11 +38,6 @@
- #define OMAP4_VDD_CORE_SR_VOLT_REG	0x61
- #define OMAP4_VDD_CORE_SR_CMD_REG	0x62
- 
--#define OMAP4_VP_CONFIG_ERROROFFSET	0x00
--#define OMAP4_VP_VSTEPMIN_VSTEPMIN	0x01
--#define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
--#define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
--
- static bool is_offset_valid;
- static u8 smps_offset;
- /*
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 4a9ca89..06f6f77 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -98,6 +98,7 @@ void __init omap4_pmic_init(const char *pmic_type,
- void __init omap_pmic_late_init(void)
- {
- 	omap_twl_init();
-+	omap_tps6236x_init();
- }
- 
- #if defined(CONFIG_ARCH_OMAP3)
-diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
-index c501b55..61dc3cb 100644
---- a/arch/arm/mach-omap2/twl-common.h
-+++ b/arch/arm/mach-omap2/twl-common.h
-@@ -86,4 +86,20 @@ struct omap_pmic_map {
- extern int omap_pmic_register_data(struct omap_pmic_map *map);
- extern void omap_pmic_data_init(void);
- 
-+#ifdef CONFIG_OMAP_TPS6236X
-+extern int omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
-+			int gpio_vsel1, int hw_pull0, int hw_pull1);
-+extern int omap_tps6236x_init(void);
-+#else
-+static inline int omap_tps6236x_board_setup(bool use_62361, int gpio_vsel0,
-+			int gpio_vsel1, int pull0, int pull1)
-+{
-+	return -EINVAL;
-+}
-+static inline int omap_tps6236x_init(void)
-+{
-+	return -EINVAL;
-+}
-+#endif
-+
- #endif /* __OMAP_PMIC_COMMON__ */
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index d51bcd1..5238dfd 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -125,6 +125,11 @@ struct voltagedomain {
- #define OMAP4_VP_CORE_VLIMITTO_VDDMIN	830000
- #define OMAP4_VP_CORE_VLIMITTO_VDDMAX	1200000
- 
-+#define OMAP4_VP_CONFIG_ERROROFFSET	0x00
-+#define OMAP4_VP_VSTEPMIN_VSTEPMIN	0x01
-+#define OMAP4_VP_VSTEPMAX_VSTEPMAX	0x04
-+#define OMAP4_VP_VLIMITTO_TIMEOUT_US	200
-+
- /**
-  * struct omap_voltdm_pmic - PMIC specific data required by voltage driver.
-  * @slew_rate:	PMIC slew rate (in uv/us)
--- 
-1.7.4.1
+And if I've also understood right, the pinctrl discussions related to
+omap have only dealt with pin muxing itself. But that's not enough to
+get the pin functional, but the relevant regulator needs to be enabled
+also.
+
+So when I call pm_runtime_get in the omapdss driver, I imagine that the
+runtime PM and pinctrl would together handle muxing the pins for
+omapdss's use, and also enable the relevant regulators to make the pins
+usable.
+
+ Tomi
+
+
+--=-FRX0w9nSUMImn2mOZASH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQYeQ8AAoJEPo9qoy8lh719lUP/ittg2y8jh/cnpuoAVwJka0G
+FNjMpcTcYKThomaiNeJJtgKI64UHn3ovTW5n8hcUtIWjFT+qkCBXVOOt/TjlwuvM
+AzQPTiPgWx1BVhjScHw4B+UycJ+lKubkxsQlZhZBSgG4HfUtAJ6b4MF0gV5VUoO5
+GLHLofRcrgxQR+1NtLYh2l8HVvi+VizagYv9Gb7d5diqY0dtEVgeQMFGqAYm1TS8
++gR2UVGDXzXXHPKur78HQNBtceP82x+ApFdGLiN3B5AOHxWF6KIoeWDduPcChIhc
+CN1q9gMJ3plOa1GbyCjckjxfMiyBgfBxCYxzl2KzIqA/skq8PhShsgIJoqVR6/3Y
+OtI/Gv43M2NDflVYCue8ui4D7RihO0xuWv/lo8ml9QgxcsKOP8CNxy4gwLxcZR6j
+AaYDOdBwFJGBNPwu4sVddpKAJdRAFRC1Zl7BnTWzO6M2zdAtYujJm2QxeisZM7nj
+hXKfo7pxxwRgDo0FCXM+09pSY9pCMir3QDRk4fg2ujvhkNoIiqaS1t5axm2plV2p
+O29F0Xd2HlPv7Eza6JelyV6+A8r6bo6QOUSyOYMtPhqMa6KmL6YV2CBKhUyf0mTe
+fiUulY96T9SxvV7FW3TUrjNQpYsHCp/W9iGS4J4C37oBHDKfyZpvw4VVB3/vD+xF
+lRn7h8xbcigj99498aXP
+=gBXn
+-----END PGP SIGNATURE-----
+
+--=-FRX0w9nSUMImn2mOZASH--
 
