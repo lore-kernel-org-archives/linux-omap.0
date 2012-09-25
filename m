@@ -1,84 +1,102 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 13/18] OMAPDSS: DISPC: Add function to set channel in for writeback
-Date: Tue, 25 Sep 2012 11:49:48 +0530
-Message-ID: <1348553993-8083-14-git-send-email-archit@ti.com>
+Subject: [PATCH v2 15/18] OMAPDSS: DISPC: Configure writeback specific parameters in dispc_wb_setup()
+Date: Tue, 25 Sep 2012 11:49:50 +0530
+Message-ID: <1348553993-8083-16-git-send-email-archit@ti.com>
 References: <1347538505-25359-1-git-send-email-archit@ti.com>
  <1348553993-8083-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48604 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48610 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753228Ab2IYGUg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 02:20:36 -0400
+	id S1753180Ab2IYGUl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 02:20:41 -0400
 In-Reply-To: <1348553993-8083-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Writeback can take input from either one of the overlays, or one of the overlay
-managers. Add an enum which represents the channel_in for writeback, and maps
-to the register field programming.
+Configure some of the writeback specific parameters in dispc_wb_setup(). The
+writeback parameters configured are:
 
-Add a function to configure channel in for writeback. This will be used later in
-APPLY.
+truncation: This needs to be set if the color depth input to writeback is more
+than the color depth of the color mode we want to store in memory.
+
+writeback mode: This configures whether we want to use writeback in mem to mem
+or capture mode. This information will be directly passed by APPLY later.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |    7 +++++++
- drivers/video/omap2/dss/dss.h   |   13 +++++++++++++
- 2 files changed, 20 insertions(+)
+ drivers/video/omap2/dss/dispc.c |   28 ++++++++++++++++++++++++++--
+ drivers/video/omap2/dss/dss.h   |    2 +-
+ 2 files changed, 27 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index d9ca7bf..6d482f5 100644
+index 2e5f033..ca28a88 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -983,6 +983,13 @@ static enum omap_channel dispc_ovl_get_channel_out(enum omap_plane plane)
- 	return channel;
+@@ -2480,13 +2480,15 @@ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
  }
  
-+void dispc_wb_set_channel_in(enum dss_writeback_channel channel)
-+{
-+	enum omap_plane plane = OMAP_DSS_WB;
-+
-+	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), channel, 18, 16);
-+}
-+
- static void dispc_ovl_set_burst_size(enum omap_plane plane,
- 		enum omap_burst_size burst_size)
+ int dispc_wb_setup(const struct omap_dss_writeback_info *wi,
+-		const struct omap_video_timings *mgr_timings)
++		bool mem_to_mem, const struct omap_video_timings *mgr_timings)
  {
+ 	int r;
++	u32 l;
+ 	enum omap_plane plane = OMAP_DSS_WB;
+ 	const int pos_x = 0, pos_y = 0;
+ 	const u8 zorder = 0, global_alpha = 0;
+ 	const bool replication = false;
++	bool truncation;
+ 	int in_width = mgr_timings->x_res;
+ 	int in_height = mgr_timings->y_res;
+ 	enum omap_overlay_caps caps =
+@@ -2501,7 +2503,29 @@ int dispc_wb_setup(const struct omap_dss_writeback_info *wi,
+ 		wi->buf_width, pos_x, pos_y, in_width, in_height, wi->width,
+ 		wi->height, wi->color_mode, wi->rotation, wi->mirror, zorder,
+ 		wi->pre_mult_alpha, global_alpha, wi->rotation_type,
+-		replication, mgr_timings, false);
++		replication, mgr_timings, mem_to_mem);
++
++	switch (wi->color_mode) {
++	case OMAP_DSS_COLOR_RGB16:
++	case OMAP_DSS_COLOR_RGB24P:
++	case OMAP_DSS_COLOR_ARGB16:
++	case OMAP_DSS_COLOR_RGBA16:
++	case OMAP_DSS_COLOR_RGB12U:
++	case OMAP_DSS_COLOR_ARGB16_1555:
++	case OMAP_DSS_COLOR_XRGB16_1555:
++	case OMAP_DSS_COLOR_RGBX16:
++		truncation = true;
++		break;
++	default:
++		truncation = false;
++		break;
++	}
++
++	/* setup extra DISPC_WB_ATTRIBUTES */
++	l = dispc_read_reg(DISPC_OVL_ATTRIBUTES(plane));
++	l = FLD_MOD(l, truncation, 10, 10);	/* TRUNCATIONENABLE */
++	l = FLD_MOD(l, mem_to_mem, 19, 19);	/* WRITEBACKMODE */
++	dispc_write_reg(DISPC_OVL_ATTRIBUTES(plane), l);
+ 
+ 	return r;
+ }
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 04a1eda..872e420 100644
+index 1a09f00..442c06a 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -113,6 +113,17 @@ enum dss_dsi_content_type {
- 	DSS_DSI_CONTENT_GENERIC,
- };
+@@ -484,7 +484,7 @@ void dispc_mgr_setup(enum omap_channel channel,
  
-+enum dss_writeback_channel {
-+	DSS_WB_LCD1_MGR =	0,
-+	DSS_WB_LCD2_MGR =	1,
-+	DSS_WB_TV_MGR =		2,
-+	DSS_WB_OVL0 =		3,
-+	DSS_WB_OVL1 =		4,
-+	DSS_WB_OVL2 =		5,
-+	DSS_WB_OVL3 =		6,
-+	DSS_WB_LCD3_MGR =	7,
-+};
-+
- struct dss_clock_info {
- 	/* rates that we get with dividers below */
- 	unsigned long fck;
-@@ -471,6 +482,8 @@ int dispc_mgr_get_clock_div(enum omap_channel channel,
- void dispc_mgr_setup(enum omap_channel channel,
- 		struct omap_overlay_manager_info *info);
+ void dispc_wb_set_channel_in(enum dss_writeback_channel channel);
+ int dispc_wb_setup(const struct omap_dss_writeback_info *wi,
+-		const struct omap_video_timings *timings);
++		bool mem_to_mem, const struct omap_video_timings *timings);
  
-+void dispc_wb_set_channel_in(enum dss_writeback_channel channel);
-+
  /* VENC */
  #ifdef CONFIG_OMAP2_DSS_VENC
- int venc_init_platform_driver(void) __init;
 -- 
 1.7.9.5
 
