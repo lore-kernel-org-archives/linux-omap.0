@@ -1,254 +1,170 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 18/21] ARM: OMAP4: OPP: add OMAP4460 definitions
-Date: Tue, 25 Sep 2012 19:33:50 +0300
-Message-ID: <1348590833-12335-19-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 21/21] ARM: OMAP4: vc: auto retention support
+Date: Tue, 25 Sep 2012 19:33:53 +0300
+Message-ID: <1348590833-12335-22-git-send-email-t-kristo@ti.com>
 References: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44059 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758126Ab2IYQeg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 12:34:36 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59788 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758126Ab2IYQem (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 12:34:42 -0400
 In-Reply-To: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, Nishanth Menon <nm@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+This patch adds callbacks for the voltdm sleep / wakeups, which are now
+used for enabling / disabling auto retention voltage control. Once a
+voltage domain is ready to idle, its auto retention mode is enabled.
 
-Add OMAP4460 OPP definitions for voltage and frequencies based on
-OMAP4460 ES1.0 DM Operating Condition Addendum Version 0.1
-
-The following exceptions are present:
-* Smartreflex support is still on experimental mode: the gains and min
-  limits are currently pending characterization data. Currently OMAP4430 values
-  are used.
-* Efuse offset for core OPP100-OV setting is not clear in documentation.
-* IVA OPPs beyond OPP100 are disabled due to the delta between max OMAP4460
-  current requirements and Phoenix Max supply on VCORE2 in the default
-  configuration - boards which have supply which can support this should
-  explicitly call opp_enable and enable the same.
-* MPU OPPs > OPPTURBO can easily be detected using a efuse burnt - currently
-  disabled pending clock changes to support DCC feature.
-
-[nm@ti.com: cleanups and updates from Datamanual]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-[t-kristo@ti.com: rebased to linux-3.6-rc5]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/control.h                 |    1 +
- arch/arm/mach-omap2/omap_opp_data.h           |    9 ++-
- arch/arm/mach-omap2/opp4xxx_data.c            |   98 ++++++++++++++++++++++---
- arch/arm/mach-omap2/voltagedomains44xx_data.c |   12 ++-
- 4 files changed, 103 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/prm-regbits-44xx.h |    5 +++
+ arch/arm/mach-omap2/vc.c               |   52 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/vc.h               |    4 ++
+ arch/arm/mach-omap2/vc44xx_data.c      |    6 ++++
+ 4 files changed, 67 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index b8cdc85..6f97eae 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -201,6 +201,7 @@
- #define OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO	0x249
- #define OMAP44XX_CONTROL_FUSE_CORE_OPP50	0x254
- #define OMAP44XX_CONTROL_FUSE_CORE_OPP100	0x257
-+#define OMAP44XX_CONTROL_FUSE_CORE_OPP100OV	0x25A
+diff --git a/arch/arm/mach-omap2/prm-regbits-44xx.h b/arch/arm/mach-omap2/prm-regbits-44xx.h
+index 3cb247b..15b9599 100644
+--- a/arch/arm/mach-omap2/prm-regbits-44xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-44xx.h
+@@ -81,6 +81,11 @@
+ #define OMAP4430_AIPOFF_MASK						(1 << 8)
  
- /* AM35XX only CONTROL_GENERAL register offsets */
- #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
-diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
-index c784c12..18a750e 100644
---- a/arch/arm/mach-omap2/omap_opp_data.h
-+++ b/arch/arm/mach-omap2/omap_opp_data.h
-@@ -89,8 +89,11 @@ extern struct omap_volt_data omap34xx_vddcore_volt_data[];
- extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
- extern struct omap_volt_data omap36xx_vddcore_volt_data[];
- 
--extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
--extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
--extern struct omap_volt_data omap44xx_vdd_core_volt_data[];
-+extern struct omap_volt_data omap443x_vdd_mpu_volt_data[];
-+extern struct omap_volt_data omap443x_vdd_iva_volt_data[];
-+extern struct omap_volt_data omap443x_vdd_core_volt_data[];
-+extern struct omap_volt_data omap446x_vdd_mpu_volt_data[];
-+extern struct omap_volt_data omap446x_vdd_iva_volt_data[];
-+extern struct omap_volt_data omap446x_vdd_core_volt_data[];
- 
- #endif		/* __ARCH_ARM_MACH_OMAP2_OMAP_OPP_DATA_H */
-diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-index c95415d..4054849 100644
---- a/arch/arm/mach-omap2/opp4xxx_data.c
-+++ b/arch/arm/mach-omap2/opp4xxx_data.c
-@@ -1,7 +1,7 @@
- /*
-  * OMAP4 OPP table definitions.
-  *
-- * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2010-2012 Texas Instruments Incorporated - http://www.ti.com/
-  *	Nishanth Menon
-  *	Kevin Hilman
-  *	Thara Gopinath
-@@ -36,7 +36,7 @@
- #define OMAP4430_VDD_MPU_OPPTURBO_UV		1313000
- #define OMAP4430_VDD_MPU_OPPNITRO_UV		1375000
- 
--struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
-+struct omap_volt_data omap443x_vdd_mpu_volt_data[] = {
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16),
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
-@@ -48,7 +48,7 @@ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
- #define OMAP4430_VDD_IVA_OPP100_UV		1188000
- #define OMAP4430_VDD_IVA_OPPTURBO_UV		1300000
- 
--struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
-+struct omap_volt_data omap443x_vdd_iva_volt_data[] = {
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16),
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
-@@ -58,14 +58,14 @@ struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
- #define OMAP4430_VDD_CORE_OPP50_UV		1025000
- #define OMAP4430_VDD_CORE_OPP100_UV		1200000
- 
--struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
-+struct omap_volt_data omap443x_vdd_core_volt_data[] = {
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16),
- 	VOLT_DATA_DEFINE(0, 0, 0, 0),
- };
- 
- 
--static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
-+static struct omap_opp_def __initdata omap443x_opp_def_list[] = {
- 	/* MPU OPP1 - OPP50 */
- 	OPP_INITIALIZER("mpu", true, 300000000, OMAP4430_VDD_MPU_OPP50_UV),
- 	/* MPU OPP2 - OPP100 */
-@@ -87,6 +87,82 @@ static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
- 	/* TODO: add DSP, aess, fdif, gpu */
- };
- 
-+#define OMAP4460_VDD_MPU_OPP50_UV		1025000
-+#define OMAP4460_VDD_MPU_OPP100_UV		1200000
-+#define OMAP4460_VDD_MPU_OPPTURBO_UV		1313000
-+#define OMAP4460_VDD_MPU_OPPNITRO_UV		1375000
+ /* Used by PRM_VOLTCTRL */
++#define OMAP4430_AUTO_CTRL_VDD_DISABLED					0
++#define OMAP4430_AUTO_CTRL_VDD_SLEEP					1
++#define OMAP4430_AUTO_CTRL_VDD_RET					2
 +
-+struct omap_volt_data omap446x_vdd_mpu_volt_data[] = {
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_MPU_OPP100_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16),
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_MPU_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_MPU_OPPNITRO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+};
-+
-+#define OMAP4460_VDD_IVA_OPP50_UV		1025000
-+#define OMAP4460_VDD_IVA_OPP100_UV		1200000
-+#define OMAP4460_VDD_IVA_OPPTURBO_UV		1313000
-+#define OMAP4460_VDD_IVA_OPPNITRO_UV		1375000
-+
-+struct omap_volt_data omap446x_vdd_iva_volt_data[] = {
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_IVA_OPP100_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16),
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_IVA_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_IVA_OPPNITRO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPNITRO, 0xfa, 0x23),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+};
-+
-+#define OMAP4460_VDD_CORE_OPP50_UV		1025000
-+#define OMAP4460_VDD_CORE_OPP100_UV		1200000
-+#define OMAP4460_VDD_CORE_OPP100_OV_UV		1250000
-+
-+struct omap_volt_data omap446x_vdd_core_volt_data[] = {
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_CORE_OPP100_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16),
-+	VOLT_DATA_DEFINE(OMAP4460_VDD_CORE_OPP100_OV_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100OV, 0xf9, 0x16),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+};
-+
-+static struct omap_opp_def __initdata omap446x_opp_def_list[] = {
-+	/* MPU OPP1 - OPP50 */
-+	OPP_INITIALIZER("mpu", true, 350000000, OMAP4460_VDD_MPU_OPP50_UV),
-+	/* MPU OPP2 - OPP100 */
-+	OPP_INITIALIZER("mpu", true, 700000000, OMAP4460_VDD_MPU_OPP100_UV),
-+	/* MPU OPP3 - OPP-Turbo */
-+	OPP_INITIALIZER("mpu", true, 920000000, OMAP4460_VDD_MPU_OPPTURBO_UV),
-+	/*
-+	 * MPU OPP4 - OPP-Nitro + Disabled as the reference schematics
-+	 * recommends TPS623631 - confirm and enable the opp in board file
-+	 * XXX: May be we should enable these based on mpu capability and
-+	 * Exception board files disable it...
-+	 */
-+	OPP_INITIALIZER("mpu", false, 1200000000, OMAP4460_VDD_MPU_OPPNITRO_UV),
-+	/* MPU OPP4 - OPP-Nitro SpeedBin */
-+	OPP_INITIALIZER("mpu", false, 1500000000, OMAP4460_VDD_MPU_OPPNITRO_UV),
-+	/* L3 OPP1 - OPP50 */
-+	OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4460_VDD_CORE_OPP50_UV),
-+	/* L3 OPP2 - OPP100 */
-+	OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4460_VDD_CORE_OPP100_UV),
-+	/* IVA OPP1 - OPP50 */
-+	OPP_INITIALIZER("iva", true, 133000000, OMAP4460_VDD_IVA_OPP50_UV),
-+	/* IVA OPP2 - OPP100 */
-+	OPP_INITIALIZER("iva", true, 266100000, OMAP4460_VDD_IVA_OPP100_UV),
-+	/*
-+	 * IVA OPP3 - OPP-Turbo + Disabled as the reference schematics
-+	 * recommends Phoenix VCORE2 which can supply only 600mA - so the ones
-+	 * above this OPP frequency, even though OMAP is capable, should be
-+	 * enabled by board file which is sure of the chip power capability
-+	 */
-+	OPP_INITIALIZER("iva", false, 332000000, OMAP4460_VDD_IVA_OPPTURBO_UV),
-+	/* IVA OPP4 - OPP-Nitro */
-+	OPP_INITIALIZER("iva", false, 430000000, OMAP4460_VDD_IVA_OPPNITRO_UV),
-+	/* IVA OPP5 - OPP-Nitro SpeedBin*/
-+	OPP_INITIALIZER("iva", false, 500000000, OMAP4460_VDD_IVA_OPPNITRO_UV),
-+
-+	/* TODO: add DSP, aess, fdif, gpu */
-+};
-+
- /**
-  * omap4_opp_init() - initialize omap4 opp table
-  */
-@@ -94,12 +170,12 @@ int __init omap4_opp_init(void)
- {
- 	int r = -ENODEV;
++/* Used by PRM_VOLTCTRL */
+ #define OMAP4430_AUTO_CTRL_VDD_CORE_L_SHIFT				0
+ #define OMAP4430_AUTO_CTRL_VDD_CORE_L_MASK				(0x3 << 0)
  
--	if (!cpu_is_omap443x())
--		return r;
--
--	r = omap_init_opp_table(omap44xx_opp_def_list,
--			ARRAY_SIZE(omap44xx_opp_def_list));
--
-+	if (cpu_is_omap443x())
-+		r = omap_init_opp_table(omap443x_opp_def_list,
-+			ARRAY_SIZE(omap443x_opp_def_list));
-+	else if (cpu_is_omap446x())
-+		r = omap_init_opp_table(omap446x_opp_def_list,
-+			ARRAY_SIZE(omap446x_opp_def_list));
- 	return r;
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index d217bbf..c607a0c 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -568,11 +568,63 @@ static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
+ 	__raw_writel(val, OMAP4_SCRM_CLKSETUPTIME);
  }
- device_initcall(omap4_opp_init);
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index 7da35a6..b893c8e 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -104,9 +104,15 @@ void __init omap44xx_voltagedomains_init(void)
- 	 * for the currently-running IC
- 	 */
- #ifdef CONFIG_PM_OPP
--	omap4_voltdm_mpu.volt_data = omap44xx_vdd_mpu_volt_data;
--	omap4_voltdm_iva.volt_data = omap44xx_vdd_iva_volt_data;
--	omap4_voltdm_core.volt_data = omap44xx_vdd_core_volt_data;
-+	if (cpu_is_omap443x()) {
-+		omap4_voltdm_mpu.volt_data = omap443x_vdd_mpu_volt_data;
-+		omap4_voltdm_iva.volt_data = omap443x_vdd_iva_volt_data;
-+		omap4_voltdm_core.volt_data = omap443x_vdd_core_volt_data;
-+	} else if (cpu_is_omap446x()) {
-+		omap4_voltdm_mpu.volt_data = omap446x_vdd_mpu_volt_data;
-+		omap4_voltdm_iva.volt_data = omap446x_vdd_iva_volt_data;
-+		omap4_voltdm_core.volt_data = omap446x_vdd_core_volt_data;
-+	}
- #endif
  
- 	omap4_voltdm_mpu.vp_param = &omap4_mpu_vp_data;
++/**
++ * omap4_vc_sleep - voltagedomain sleep entry callback
++ * @voltdm: domain which is entering idle
++ *
++ * This function is called once a voltagedomain is ready to enter idle.
++ * Sets up AUTO_RET / AUTO_SLEEP command to be sent through the I2C
++ * to the PMIC.
++ */
++static void omap4_vc_sleep(struct voltagedomain *voltdm)
++{
++	u32 val;
++	u32 voltctrl;
++
++	switch (voltdm->target_state) {
++	case PWRDM_POWER_OFF:
++	case PWRDM_POWER_RET:
++		val = OMAP4430_AUTO_CTRL_VDD_RET;
++		break;
++	default:
++		val = OMAP4430_AUTO_CTRL_VDD_SLEEP;
++		break;
++	}
++	voltctrl = voltdm->read(OMAP4_PRM_VOLTCTRL_OFFSET);
++
++	voltctrl &= ~(u32)voltdm->vc->voltctrl_mask;
++
++	voltctrl |= val << voltdm->vc->voltctrl_shift;
++
++	voltdm->write(voltctrl, OMAP4_PRM_VOLTCTRL_OFFSET);
++}
++
++/**
++ * omap4_vc_wakeup - voltagedomain wakeup callback
++ * @voltdm: domain which is leaving idle
++ *
++ * This function is called once a voltagedomain is becoming active.
++ * Disables AUTO_RET / AUTO_SLEEP for the domain.
++ */
++static void omap4_vc_wakeup(struct voltagedomain *voltdm)
++{
++	u32 voltctrl;
++
++	voltctrl = voltdm->read(OMAP4_PRM_VOLTCTRL_OFFSET);
++
++	voltctrl &= ~(u32)voltdm->vc->voltctrl_mask;
++
++	voltdm->write(voltctrl, OMAP4_PRM_VOLTCTRL_OFFSET);
++}
++
+ /* OMAP4 specific voltage init functions */
+ static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
+ {
+ 	omap4_set_timings(voltdm, true);
+ 	omap4_set_timings(voltdm, false);
++
++	voltdm->sleep = omap4_vc_sleep;
++	voltdm->wakeup = omap4_vc_wakeup;
+ }
+ 
+ struct i2c_init_data {
+diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+index 91c8d75..8357d57 100644
+--- a/arch/arm/mach-omap2/vc.h
++++ b/arch/arm/mach-omap2/vc.h
+@@ -79,6 +79,8 @@ struct omap_vc_common {
+  * @smps_cmdra_reg: Offset of PRM_VC_SMPS_CMD_RA reg from PRM start
+  * @cfg_channel_reg: VC channel configuration register
+  * @cfg_channel_sa_shift: bit shift for slave address cfg_channel register
++ * @voltctrl_shift: bit shift for voltctrl register field
++ * @voltctrl_mask: bit mask for voltctrl register field
+  * @flags: VC channel-specific flags (optional)
+  */
+ struct omap_vc_channel {
+@@ -100,6 +102,8 @@ struct omap_vc_channel {
+ 	u8 smps_cmdra_reg;
+ 	u8 cfg_channel_reg;
+ 	u8 cfg_channel_sa_shift;
++	u8 voltctrl_shift;
++	u8 voltctrl_mask;
+ 	u8 flags;
+ };
+ 
+diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44xx_data.c
+index 085e5d6..a003a1f 100644
+--- a/arch/arm/mach-omap2/vc44xx_data.c
++++ b/arch/arm/mach-omap2/vc44xx_data.c
+@@ -59,6 +59,8 @@ struct omap_vc_channel omap4_vc_mpu = {
+ 	.smps_volra_mask = OMAP4430_VOLRA_VDD_MPU_L_MASK,
+ 	.smps_cmdra_mask = OMAP4430_CMDRA_VDD_MPU_L_MASK,
+ 	.cfg_channel_sa_shift = OMAP4430_SA_VDD_MPU_L_SHIFT,
++	.voltctrl_shift = OMAP4430_AUTO_CTRL_VDD_MPU_L_SHIFT,
++	.voltctrl_mask = OMAP4430_AUTO_CTRL_VDD_MPU_L_MASK,
+ };
+ 
+ struct omap_vc_channel omap4_vc_iva = {
+@@ -72,6 +74,8 @@ struct omap_vc_channel omap4_vc_iva = {
+ 	.smps_volra_mask = OMAP4430_VOLRA_VDD_IVA_L_MASK,
+ 	.smps_cmdra_mask = OMAP4430_CMDRA_VDD_IVA_L_MASK,
+ 	.cfg_channel_sa_shift = OMAP4430_SA_VDD_IVA_L_SHIFT,
++	.voltctrl_shift = OMAP4430_AUTO_CTRL_VDD_IVA_L_SHIFT,
++	.voltctrl_mask = OMAP4430_AUTO_CTRL_VDD_IVA_L_MASK,
+ };
+ 
+ struct omap_vc_channel omap4_vc_core = {
+@@ -85,6 +89,8 @@ struct omap_vc_channel omap4_vc_core = {
+ 	.smps_volra_mask = OMAP4430_VOLRA_VDD_CORE_L_MASK,
+ 	.smps_cmdra_mask = OMAP4430_CMDRA_VDD_CORE_L_MASK,
+ 	.cfg_channel_sa_shift = OMAP4430_SA_VDD_CORE_L_SHIFT,
++	.voltctrl_shift = OMAP4430_AUTO_CTRL_VDD_CORE_L_SHIFT,
++	.voltctrl_mask = OMAP4430_AUTO_CTRL_VDD_CORE_L_MASK,
+ };
+ 
+ /*
 -- 
 1.7.4.1
 
