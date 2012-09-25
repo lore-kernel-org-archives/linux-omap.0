@@ -1,64 +1,78 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Powering OMAP's pins
-Date: Tue, 25 Sep 2012 13:21:14 +0300
-Message-ID: <1348568474.2342.35.camel@deskari>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCHv5 00/10] ARM: OMAP: PM usecounting changes
+Date: Tue, 25 Sep 2012 15:56:49 +0530
+Message-ID: <506186E9.7070908@ti.com>
+References: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-CRPx/Mji039uTHfmzqFh"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:60695 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754009Ab2IYKVU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 06:21:20 -0400
-Received: by lbon3 with SMTP id n3so127983lbo.19
-        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 03:21:17 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:35714 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753304Ab2IYK1D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 06:27:03 -0400
+In-Reply-To: <1348565565-14744-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
+Hi Tero,
 
---=-CRPx/Mji039uTHfmzqFh
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 25 September 2012 03:02 PM, Tero Kristo wrote:
+> Hi,
+>
+> Changes compared to previous version:
 
-Hi Tony,
+Did you get a chance to look at the issue I reported about autodeps?
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg72876.html
 
-Each pin of OMAP requires a particular power to be enabled for the pin
-to function (Ball Characteristics table from data manual). Is there a
-plan how this is managed with pinctrl? Currently each driver needs to
-make sure the correct regulators are enabled for the pins it uses, which
-is platform specific and messy.
+regards,
+Rajendra
 
-As a driver maintainer, I would wish that the pins would just get
-enabled automatically when I call pm_runtime_get()...
-
- Tomi
-
-
---=-CRPx/Mji039uTHfmzqFh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQYYWaAAoJEPo9qoy8lh71zTgQAJrqKh2UtsL9kdf2buTPM1RY
-6hTK/Gvdhkgtoe+u7w1h+oKybVCtLdB2KQKf1jowdhy6XYpQ0CFg0bOWcsfX1lxr
-sOQnjxBnivRutUPyCxOpaids6tyNdZSHIvYGSnKaxXAFVOqYgLUoSL8L3ioEyQcB
-9WhROTCSWU7axUjuRmLulZKgPPCOJzuUFYs1iA1vtQV1Sq8NgXhyRbjdeGM6rkBI
-Jr4nKoqyateE5PjCY093I4EUAe9o1biNnc99HgZqEGDEuEn/VzHOqmB75CKB2cx1
-zfmhmHGbJ3FTvlI9spOSsqS6CigQ1x6uNsf/HFibOlWSlZZ/QCjz/H49Xffsy9y9
-t7yCF5NUeZk9t0B6P2I+l7fXL8NtwJ089Bc6c+VaInjNjK/DRPCd6QEAB83y36hp
-+jeHo+2s8HTFM+qAbnNfeOD+CN+YoCdkYfNhzV62CKjokwdIMm3leMzD7Kk9w8FJ
-v+4fmOUBP2yfR0q96Ho8JGkqDUoxjZbukXR0QUE8T9nBPjSHXRDHlp46I9jscCQO
-HZN/2Je4XPb57hL3cMGGqYv7MIzQ6fLE/fPwxmhRoPF9VrMGITuraLDysyNSAZdZ
-ynZLoJxj5c5m9A/aC+S1ehddEf/YgJdwHTI0iX1dgDS+HRma0/Sj9YX16h4vXvmk
-Mp6MNpLyIbaELHOhOQ1B
-=Ml1x
------END PGP SIGNATURE-----
-
---=-CRPx/Mji039uTHfmzqFh--
+>
+> - Fixed OMAP4 support (patches 7-10)
+> - Dropped debugging support from this set for now
+> - Rebased on top of 3.6-rc5 + func-pwrst + omap4-ret code
+>    (omap4 support easier to test with these)
+> - Patch #1:
+>    * dropped clkdm_usecount_inc / clkdm_usecount_dec APIs
+>    * clkdm_clk_enable / disable are used now instead
+>    * some code ordering changed for the new setup to work properly
+>    * changed BUG_ON calls to WARN_ON
+> - Patch #2:
+>    * added spinlock for protecting voltdm callbacks
+>    * pwrdm lock extended to protect pwrdm callbacks
+> - Patch #3:
+>    * dropped generic API call for the cpu pwrdm idle / wakeup
+>    * instead use pwrdm_clkdm_enable / disable calls directly from PM code
+>    * omap4 support fixed to work properly with SMP, added omap4 specific
+>      CPU pwrdm idle / wakeup calls for this purpose
+> - Patch #4:
+>    * no changes
+>    * added 'Reviewed-by' tag for Rajendra
+> - Patch #5:
+>    * no changes, just rebase
+> - Patch #6:
+>    * no changes
+>
+> Tested with OMAP3 beagle, omap4460 GP panda + omap4430 EMU blaze boards.
+>
+> I will be posting new versions for the voltdm fixes + auto retention +
+> panda board tps6236x support code later on today, which are based on top
+> of this set.
+>
+> Branch also available here:
+>
+> git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+> branch: mainline-3.6-rc5-pwrdm-changes-v5
+>
+> -Tero
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
