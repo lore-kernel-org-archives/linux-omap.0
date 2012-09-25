@@ -1,88 +1,134 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: [PATCH] arm: make FORCE_MAX_ZONEORDER configurable for TI AM33XX
-Date: Tue, 25 Sep 2012 10:05:30 +0200
-Message-ID: <506165CA.7070406@visionsystems.de>
-References: <1341325242-17638-1-git-send-email-yegorslists@googlemail.com>
- <20120924171858.GG28835@atomide.com>
- <CAGm1_ks_GvSTH8DJ6d3R5OjPNEOhQ39hNo4grg1Pn-NqFX5VKQ@mail.gmail.com>
- <20120924231619.GA28941@n2100.arm.linux.org.uk>
- <20120925003758.GP28835@atomide.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/1] usb: Include generic_interrupt for OMAP2_PLUS
+Date: Tue, 25 Sep 2012 11:04:21 +0300
+Message-ID: <20120925080420.GH9137@arwen.pp.htv.fi>
+References: <1348487604-7202-1-git-send-email-philippe.deswert@jollamobile.com>
+ <20120924121538.GH2892@arwen.pp.htv.fi>
+ <CAPsFW+RTLpgXFOOh9fD=K1wCPMpBe4MummhWoqEBEEYYzMay=Q@mail.gmail.com>
+ <20120924130216.GA5603@arwen.pp.htv.fi>
+ <20120924160914.GB28835@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120925003758.GP28835@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dejan Gacnik <dejan.gacnik@gmail.com>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Yegor Yefremov <yegorslists@googlemail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/9ZOS6odDaRI+0hI"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:49462 "EHLO
+	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753545Ab2IYIJR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 04:09:17 -0400
+Received: by lbbgj3 with SMTP id gj3so7935958lbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 01:09:14 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20120924160914.GB28835@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Philippe De Swert <philippedeswert@gmail.com>, Philippe De Swert <philippe.deswert@jollamobile.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Sergei Shtylyov <sshtylyov@ru.mvista.com>, heikki.krogerus@linux.intel.com, kishon@ti.com, marek.vasut@gmail.com, leoli@freescale.com, s.hauer@pengutronix.de, shubhrajyoti@ti.com, nsekhar@ti.com, notasas@gmail.com, vikram.pandita@ti.com, ravibabu@ti.com, mina86@mina86.com, praveen.nadahally@stericsson.com, mian.yousaf.kaukab@stericsson.com
 
-On 25.09.2012 02:37, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120924 16:17]:
->> On Mon, Sep 24, 2012 at 09:05:11PM +0200, Yegor Yefremov wrote:
->>> On Mon, Sep 24, 2012 at 7:18 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>> * yegorslists@googlemail.com <yegorslists@googlemail.com> [120703 07:26]:
->>>>> From: Yegor Yefremov <yegorslists@googlemail.com>
->>>>>
->>>>> FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
->>>>> of consistent DMA memory (da8xx frame buffer driver).
->>>>
->>>> Sorry for the delay on this one, looks like this one is
->>>> still valid. I'll apply it.
->>>
->>> Thanks.
->>>
->>> Yegor
->>>
->>>>> Signed-off-by: Dejan Gacnik <dejan.gacnik@gmail.com>
->>>>> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
->>>>> ---
->>>>>  arch/arm/Kconfig |    5 +++--
->>>>>  1 files changed, 3 insertions(+), 2 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->>>>> index e876819..ff14c1e 100644
->>>>> --- a/arch/arm/Kconfig
->>>>> +++ b/arch/arm/Kconfig
->>>>> @@ -1725,8 +1725,9 @@ config HW_PERF_EVENTS
->>>>>  source "mm/Kconfig"
->>>>>
->>>>>  config FORCE_MAX_ZONEORDER
->>>>> -     int "Maximum zone order" if ARCH_SHMOBILE
->>>>> -     range 11 64 if ARCH_SHMOBILE
->>>>> +     int "Maximum zone order"
->>>>> +     depends on ARCH_SHMOBILE || SOC_AM33XX
->>>>> +     range 11 64 if ARCH_SHMOBILE || SOC_AM33XX
->>>>>       default "9" if SA1111
->>>>>       default "11"
->>
->> NAK.  This patch breaks SA1111 platforms.  To see why, read the patch.
-> 
-> OK let's drop this.
 
-How should I change the patch to make it proper? SA1111 is broken anyway:
+--/9ZOS6odDaRI+0hI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-config FORCE_MAX_ZONEORDER
-        int "Maximum zone order" if ARCH_SHMOBILE
-        range 11 64 if ARCH_SHMOBILE
-        default "9" if SA1111
-        default "11"
+Hi,
 
-AFAIK if ARCH_SHMOBILE defines dependency on ARCH_SHMOBILE, so SA1111 won't be evaluated (at least if I select SA1111 include/generated/autoconf.h shows "11"). If I add SA1111 to dependency list like this:
+On Mon, Sep 24, 2012 at 09:09:14AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [120924 06:08]:
+> > Hi,
+> >=20
+> > On Mon, Sep 24, 2012 at 03:54:22PM +0300, Philippe De Swert wrote:
+> > > Hi,
+> > >=20
+> > > On 24/09/2012, Felipe Balbi <balbi@ti.com> wrote:
+> > > > SoB's mail doesn't From mail.
+> > >=20
+> > > Well still in the progress of migrating of my personal to work laptop.
+> > > Since the patch does not seem correct the replacement will have
+> > > matching addresses.
+> > >=20
+> > > >> /*----------------------------------------------------------------=
+---------*/
+> > > >>
+> > > >>  #if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_SOC_OMAP3430) =
+|| \
+> > > >> -	defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500)
+> > > >> +	defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500) || \
+> > > >> +	defined(CONFIG_ARCH_OMAP2PLUS)
+> > > >
+> > > > Weird, how can you build OMAP2PLUS without SOC_OMAPXXXX ??
+> > >=20
+> > > It seems entirely possible. I quickly tried to look if it got defined
+> > > somewhere and it does not seem to be set anywhere.  That is why I got
+> > > the impression it was replaced by CONFIG_ARCH_OMAP2PLUS. I'll dig
+> > > deeper to find out why SOC_OMAPXXXX is not set if it should be.
+> > >=20
+> > > From the .config I got (used menuconfig)
+> > >=20
+> > > #
+> > > # TI OMAP2/3/4 Specific Features
+> > > #
+> > > CONFIG_ARCH_OMAP2PLUS_TYPICAL=3Dy
+> > > CONFIG_SOC_HAS_OMAP2_SDRC=3Dy
+> > > # CONFIG_ARCH_OMAP2 is not set
+> > > CONFIG_ARCH_OMAP3=3Dy
+> > > # CONFIG_ARCH_OMAP4 is not set
+> > > # CONFIG_SOC_OMAP5 is not set
+> > > # CONFIG_SOC_OMAP3430 is not set
+> > > # CONFIG_SOC_TI81XX is not set
+> > > # CONFIG_SOC_AM33XX is not set
+> > > CONFIG_OMAP_PACKAGE_CBB=3Dy
+> > >=20
+> > > Not a mention of CONFIG_SOC_OMAP2430 and  CONFIG_SOC_OMAP3430 did not
+> > > get set (while it is not a 3430 but a 3630 I am using). Maybe
+> > > CONFIG_ARCH_OMAP3 would have been a better choice then?
+> >=20
+> > that's quite f**ked up. Tony, why doesn't SOC_OMAP3430 get set for all
+> > OMAP3 boards ? And another question: why don't we have a matching
+> > SOC_OMAP3530, SOC_OMAP3630 and so on ?
+>=20
+> ARCH_OMAP3 will probably eventually just disappear and
+> be replaced with ARCH_OMAP2PLUS + SOC_XXXX. But there's
+> no need to do it right now as most of that should be
+> internal to arch/arm/mach-omap2 anyways. I would just
+> set the driver to depend on ARCH_OMAP2PLUS, and rely on
+> the platform_data and DT to do something if specified.
+> That means that on 2420 musb should not probe unless
+> tusb6010 in specified.
+>=20
+> It seems that things like fifo_mode and generic_interrupt
+> can all be set during the probe based on the platform_data
+> or DT passed information?
 
-depends on ARCH_SHMOBILE || SOC_AM33XX || SA1111
+Then maybe it's best to just remove the ifdefs and always provide
+generic_interrupt() ?
 
-the prompt in "Kernel features" becomes visible, but it doesn't have the default value of "9", but "11".
+Anyone against it ?
 
-Am I missing something?
+--=20
+balbi
 
-Yegor
+--/9ZOS6odDaRI+0hI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQYWWEAAoJEIaOsuA1yqREqgoP/3elzpkZfKV/rkF9VLl1U+Wm
+KYuUz8TT/G8+RXdh5EPo7UZK98xSRhyggQDdtA/FenYhCikSUk5fSayF6VbVNJJx
+Em1e/xd6++t2ViaoAkkbUQheeyPPSj5UfnmkWNz7mNswOql+Xxso2XiNJERhVUYy
+l54in6ml9wmuX9uOKFvpZ4Bckrl/8esB4mFNIGzRcYB40rDWxNFsUGGwFZJuNIfc
+U37hrrkuEwWTWc9zv40kvYg7xTvGP2FRCJuH4gh31+FbraIN+TA3I8pwFAxiupm9
+jOWYR+XNmOniSLpm7rghbMKGLAKdWzBS3SDxkQHU6gUbQ1cWt40iKfFG/bRpzjyk
+VyMj1ACsFwbWt3hlVZj3bdqx3pOG7AT81CtYW5Bk3JC1ZaqTPVFCR6aU+GiPVVJM
+COuzM7Scl9oF671f5HGiBeF2CKDR2mqBJNKISdSwkwLRicRMVo2o0JHn63dswd1Y
+SCBftNGn1407fcsAQnEBZQfXc/ZGJWDMYZ3euRqvJwsk3LGQUsOzijExcRTfqDvM
+9Zkx2lJbOiYDYD/7bescBM9crI5wEb1/HH0sUSmySVycjtRgrMgXO+FsD04FrxT+
+JO12/lG3EG7kZnXf+n9aR8kEADHGNK+6dATCbDusP/L9yDz7FoH53iJjbJOI9K0T
+bB9Tw4qflL37082r4yOm
+=1SXT
+-----END PGP SIGNATURE-----
+
+--/9ZOS6odDaRI+0hI--
