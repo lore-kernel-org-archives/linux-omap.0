@@ -1,15 +1,15 @@
 From: Archit Taneja <archit@ti.com>
 Subject: [PATCH v2 00/18] OMAPDSS: DISPC changes for writeback pipeline
-Date: Tue, 25 Sep 2012 11:48:20 +0530
-Message-ID: <1348553919-7905-1-git-send-email-archit@ti.com>
+Date: Tue, 25 Sep 2012 11:49:35 +0530
+Message-ID: <1348553993-8083-1-git-send-email-archit@ti.com>
 References: <1347538505-25359-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50130 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752827Ab2IYGSk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 02:18:40 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:48573 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752857Ab2IYGT4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Sep 2012 02:19:56 -0400
 In-Reply-To: <1347538505-25359-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
