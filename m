@@ -1,37 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Powering OMAP's pins
-Date: Tue, 25 Sep 2012 08:38:06 -0700
-Message-ID: <20120925153806.GC4840@atomide.com>
-References: <1348568474.2342.35.camel@deskari>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv6 00/11]: ARM: OMAP: PM usecounting changes
+Date: Tue, 25 Sep 2012 19:05:31 +0300
+Message-ID: <1348589142-11983-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19870 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754600Ab2IYPiJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 11:38:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1348568474.2342.35.camel@deskari>
+Received: from devils.ext.ti.com ([198.47.26.153]:57676 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754277Ab2IYQFz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 12:05:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120925 03:22]:
-> Hi Tony,
-> 
-> Each pin of OMAP requires a particular power to be enabled for the pin
-> to function (Ball Characteristics table from data manual). Is there a
-> plan how this is managed with pinctrl? Currently each driver needs to
-> make sure the correct regulators are enabled for the pins it uses, which
-> is platform specific and messy.
-> 
-> As a driver maintainer, I would wish that the pins would just get
-> enabled automatically when I call pm_runtime_get()...
+Hi,
 
-Hmm can you clarify a bit what exactly do you want to do there
-with pm_runtime_get()? Call the regulator framework?
+Changes compared to previous version:
 
-Regards,
+- Added patch #1 for fixing a potential race condition within clockdomain
+  code
+- Fixed patch #3 (old patch #2) regarding a similar race condition within
+  the voltagedomain code
 
-Tony
+Tested with OMAP3 beagle, OMAP4460 GP panda, OMAP4430 EMU blaze devices.
+
+Branch available:
+
+git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+branch: mainline-3.6-rc5-pwrdm-changes-v6
+
+-Tero
+
