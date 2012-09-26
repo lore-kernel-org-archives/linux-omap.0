@@ -1,43 +1,63 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: Powering OMAP's pins
-Date: Wed, 26 Sep 2012 13:46:54 +0200
-Message-ID: <CACRpkdYdZFr=XvsZUwY6dLN6uOj7fN_7StPgCNZNKU46UtMCaA@mail.gmail.com>
-References: <1348568474.2342.35.camel@deskari>
-	<20120925153806.GC4840@atomide.com>
-	<1348592700.2342.49.camel@deskari>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv7 17/21] ARM: OMAP4: TWL: enable high speed mode for
+ PMIC communication
+Date: Wed, 26 Sep 2012 15:06:28 +0300
+Message-ID: <1348661188.1956.1.camel@sokoban>
+References: <1348590833-12335-1-git-send-email-t-kristo@ti.com>
+	 <1348590833-12335-18-git-send-email-t-kristo@ti.com>
+	 <5062E95C.6050903@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:64893 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755944Ab2IZLqy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 07:46:54 -0400
-Received: by vbbff1 with SMTP id ff1so476260vbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 26 Sep 2012 04:46:54 -0700 (PDT)
-In-Reply-To: <1348592700.2342.49.camel@deskari>
+Received: from devils.ext.ti.com ([198.47.26.153]:39298 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753549Ab2IZMGe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 08:06:34 -0400
+In-Reply-To: <5062E95C.6050903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, Sep 25, 2012 at 7:05 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+On Wed, 2012-09-26 at 14:39 +0300, Peter Ujfalusi wrote:
+> Hi Tero,
+> 
+> On 09/25/2012 07:33 PM, Tero Kristo wrote:
+> > With the new parameters, I2C can now be put to high speed mode for
+> > better performance.
+> 
+> We have twl6040 on the same bus. have you tried this with audio enabled?
+> twl6040 is in standard mode (up to 100 kbps) after power up...
 
-> So when I call pm_runtime_get in the omapdss driver, I imagine that the
-> runtime PM and pinctrl would together handle muxing the pins for
-> omapdss's use, and also enable the relevant regulators to make the pins
-> usable.
+No, I don't have capability to try out audio. Can you give it a shot and
+see what happens? Otherwise we probably just have to drop this patch out
+for now.
 
-So we do something like this in the recent patch to the PL022
-SPI driver by setting the pinctrl states inside the runtime suspend
-and resume callbacks:
+-Tero
 
-http://sourceforge.net/mailarchive/forum.php?thread_name=20120920130240.GR17666%40opensource.wolfsonmicro.com&forum_name=spi-devel-general
+> 
+> > 
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_twl.c |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+> > index 611cb63..7ff9667 100644
+> > --- a/arch/arm/mach-omap2/omap_twl.c
+> > +++ b/arch/arm/mach-omap2/omap_twl.c
+> > @@ -218,6 +218,7 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
+> >  	.i2c_slave_addr		= OMAP4_SRI2C_SLAVE_ADDR,
+> >  	.volt_reg_addr		= OMAP4_VDD_CORE_SR_VOLT_REG,
+> >  	.cmd_reg_addr		= OMAP4_VDD_CORE_SR_CMD_REG,
+> > +	.i2c_high_speed		= true,
+> >  	.i2c_pad_load		= 3,
+> >  	.vsel_to_uv		= twl6030_vsel_to_uv,
+> >  	.uv_to_vsel		= twl6030_uv_to_vsel,
+> > 
+> 
+> 
 
-You can very well do clocks and regulators in these functions as well.
 
-Other platforms like shmobile will use runtime pm notifications
-to do all this orthogonally in a central place, which may be
-applicable for OMAP.
-
-Yours,
-Linus Walleij
