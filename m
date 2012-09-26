@@ -1,31 +1,28 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v6 0/7] ARM: OMAP2+: PM: introduce the power domains
- functional states
-Date: Wed, 26 Sep 2012 21:28:55 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209262127230.23731@utopia.booyaka.com>
-References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 0/2] OMAP 3 CSI-2 configuration
+Date: Thu, 27 Sep 2012 00:50:01 +0300
+Message-ID: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:44828 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119Ab2IZV24 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 17:28:56 -0400
-In-Reply-To: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-media-owner@vger.kernel.org
+To: paul@pwsan.com, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-Hi Jean,
+Hi Paul and Laurent,
 
-On Wed, 12 Sep 2012, Jean Pihet wrote:
+This is an update to an old patchset for CSI-2 configuration for OMAP 3430
+and 3630, and the corresponding patch to the ISP driver. Both have been
+tested on the 3630 only so far.
 
-> Here is a re-spin after some comments and suggestions after review and 
-> discussions.
+Additional patches for the N9(50) camera support that mostly aren't yet
+upstreamable, are available in rm696-016/002-devel branch here:
 
-Thanks Jean, I'll take it from here, probably with some changes which I 
-will respond to the individual patches, probably for 3.8.
+<URL:https://git.gitorious.org/omap3camera/mainline.git>
 
+Kind regards,
 
-- Paul
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
