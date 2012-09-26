@@ -1,132 +1,254 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [RFC PATCH 00/13] DMA Engine support for AM33xx
-Date: Wed, 26 Sep 2012 08:26:19 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA8FDA9@DBDE01.ent.ti.com>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com>
- <1BAFE6F6C881BF42822005164F1491C33EA8A79D@DBDE01.ent.ti.com>
- <20120921182211.GE16522@beef>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH] drivers: phy: add generic PHY framework
+Date: Wed, 26 Sep 2012 14:50:20 +0530
+Message-ID: <CAAe_U6LhLhe1+1pcFOxAH0UrWPFzOXx3p-i=sfw8P75kH8uJPQ@mail.gmail.com>
+References: <1347623899-14485-1-git-send-email-kishon@ti.com>
+	<505322E3.4090806@pengutronix.de>
+	<CAAe_U6JVE40aOfP+8y51J=LazQf5pbdvO8GxQBc-78Pv2hCBbA@mail.gmail.com>
+	<5056EE58.50104@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120921182211.GE16522@beef>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Porter, Matt" <mporter@ti.com>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Nori,
- Sekhar" <nsekhar@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infrad>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5056EE58.50104-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: arnd-r2nGTMty4D4@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, richard.zhao-KZfg59tc24xl57MIdRCFDg@public.gmane.org, B29397-KZfg59tc24xl57MIdRCFDg@public.gmane.org, alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, marex-ynQEQJNshbs@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gRnJpLCBTZXAgMjEsIDIwMTIgYXQgMjM6NTI6MTEsIFBvcnRlciwgTWF0dCB3cm90ZToNCj4g
-T24gRnJpLCBTZXAgMjEsIDIwMTIgYXQgMDg6Mjc6MDdBTSArMDAwMCwgSGViYmFyLCBHdXJ1cmFq
-YSB3cm90ZToNCj4gPiBPbiBUaHUsIFNlcCAyMCwgMjAxMiBhdCAyMDoxMzozMywgUG9ydGVyLCBN
-YXR0IHdyb3RlOg0KPiA+ID4gVGhpcyBzZXJpZXMgYWRkcyBETUEgRW5naW5lIHN1cHBvcnQgZm9y
-IEFNMzN4eCwgd2hpY2ggdXNlcw0KPiA+ID4gYW4gRURNQSBETUFDLiBUaGUgRURNQSBETUFDIGhh
-cyBiZWVuIHByZXZpb3VzbHkgc3VwcG9ydGVkIGJ5IG9ubHkNCj4gPiA+IGEgcHJpdmF0ZSBBUEkg
-aW1wbGVtZW50YXRpb24gKG11Y2ggbGlrZSB0aGUgc2l0dWF0aW9uIHdpdGggT01BUA0KPiA+ID4g
-RE1BKSBmb3VuZCBvbiB0aGUgRGFWaW5jaSBmYW1pbHkgb2YgU29Dcy4NCj4gPiA+IA0KPiA+ID4g
-VGhlcmUgYXJlIGEgbWluZC1ib2dnbGluZyBudW1iZXIgb2YgZGVwZW5kZW5jaWVzIGZvciB0aGlz
-IHNlcmllczoNCj4gPiA+IA0KPiA+ID4gCS0gSm9uIEh1bnRlcidzIE9GIERNQSBoZWxwZXJzIHNl
-cmllcw0KPiA+ID4gCSAgaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xNDYxMDYx
-Lw0KPiA+ID4gCSAgaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xNDYxMDUxLw0K
-PiA+ID4gCS0gUGF0Y2ggdG8gYWRkcmVzcyBPRiBETUEgaGVscGVycyBuYW1pbmcgaXNzdWVzOg0K
-PiA+ID4gCSAgaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xNDc3OTIxLw0KPiA+
-ID4gCS0gRURNQSBETUEgRW5naW5lIHdyYXBwZXIgZHJpdmVyIGluIGxpbnV4LW5leHQNCj4gPiA+
-IAkgIGMyZGRlNWY4ZjIwOTVkN2M2MjNmZjM1NjVjMTQ2MmUxOTAyNzIyNzMNCj4gPiA+IAktIEVE
-TUEgRE1BIEVuZ2luZSB3cmFwcGVyIGRyaXZlciBidWcgZml4Og0KPiA+ID4gCSAgaHR0cHM6Ly9w
-YXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xNDc0NDExLyAgDQo+ID4gPiAJLSBBIGh1Z2UgbnVt
-YmVyIG9mIHBhdGNoZXMgaW4gbGludXgtbmV4dCBmb3IgQU0zM3h4IGJvb3QNCj4gPiA+IAkgICh0
-b28gbnVtZXJvdXMgdG8gbGlzdCkNCj4gPiA+IA0KPiA+ID4gVGhlIGFwcHJvYWNoIHRha2VuIGlz
-IHNpbWlsYXIgdG8gaG93IE9NQVAgRE1BIGlzIGJlaW5nIGNvbnZlcnRlZCB0bw0KPiA+ID4gRE1B
-IEVuZ2luZSBzdXBwb3J0LiBXaXRoIHRoZSBmdW5jdGlvbmFsIEVETUEgcHJpdmF0ZSBBUEkgYWxy
-ZWFkeQ0KPiA+ID4gZXhpc3RpbmcgaW4gbWFjaC1kYXZpbmNpL2RtYS5jLCB3ZSBmaXJzdCBtb3Zl
-IHRoYXQgdG8gYW4gQVJNIGNvbW1vbg0KPiA+ID4gYXJlYSBzbyBpdCBjYW4gYmUgc2hhcmVkLiBB
-ZGRpbmcgRFQgYW5kIHJ1bnRpbWUgUE0gc3VwcG9ydCB0byB0aGUNCj4gPiA+IHByaXZhdGUgRURN
-QSBBUEkgaW1wbGVtZW50YXRpb24gYWxsb3dzIGl0IHRvIHJ1biBvbiBBTTMzeHguIEFNMzN4eA0K
-PiA+ID4gKm9ubHkqIGJvb3RzIHVzaW5nIERUIHNvIHdlIGxldmVyYWdlIEpvbidzIGdlbmVyaWMg
-RFQgRE1BIGhlbHBlcnMgdG8NCj4gPiA+IHJlZ2lzdGVyIEVETUEgRE1BQyB3aXRoIHRoZSBvZl9k
-bWEgZnJhbWV3b3JrIGFuZCB0aGVuIGFkZCBzdXBwb3J0DQo+ID4gPiBmb3IgY2FsbGluZyB0aGUg
-ZG1hX3JlcXVlc3Rfc2xhdmVfY2hhbm5lbCgpIEFQSSB0byBib3RoIHRoZSBtbWMNCj4gPiA+IGFu
-ZCBzcGkgZHJpdmVycy4NCj4gPiA+IA0KPiA+ID4gV2hhdCB3b3Jrcz8gV2VsbCwgd2l0aCB0aGlz
-IHNlcmllcyB3ZSBub3cgaGF2ZSBNTUMgYW5kIFNQSSBzdXBwb3J0DQo+ID4gPiBvbiBBTTMzeHgu
-IFRoZSBvbmx5IGNhdmVhdCBmb3IgTU1DIGlzIHRoYXQgdGhlIG1tYzMgY29udHJvbGxlciBoYXMN
-Cj4gPiA+IGl0cyBldmVudHMgb24gdGhlIGNyb3NzYmFyIGFuZCBpcyBub3QgdXNhYmxlIHJpZ2h0
-IG5vdy4NCj4gPiA+IA0KPiA+ID4gVGhpcyBpcyB0ZXN0ZWQgb24gQmVhZ2xlQm9uZSB3aXRoIGEg
-U1BJIGZyYW1lYnVmZmVyIGRyaXZlciBhbmQgU0QNCj4gPiA+IGNhcmQuDQo+ID4gPiANCj4gPiA+
-IEFmdGVyIHRoaXMgc2VyaWVzLCB0aGUgcGxhbiBpcyB0byBjb252ZXJ0IHRoZSBsYXN0IGluLXRy
-ZWUgdXNlcg0KPiA+ID4gb2YgdGhlIHByaXZhdGUgRURNQSBBUEkgKGRhdmluY2ktcGNtL21jYXNw
-KSBhbmQgdGhlbiBlbGltaW5hdGUNCj4gPiA+IHRoZSBwcml2YXRlIEVETUEgQVBJIGJ5IGZvbGRp
-bmcgaXRzIGZ1bmN0aW9uYWxpdHkgaW50bw0KPiA+ID4gZHJpdmVycy9kbWEvZWRtYS5jLg0KPiA+
-ID4gDQo+ID4gPiBUT0RPOg0KPiA+ID4gCWFkZCBBTTMzeHggY3Jvc3NiYXIgc3VwcG9ydCB0byB0
-aGUgcHJpdmF0ZSBFRE1BIEFQSQ0KPiA+ID4gCShhbnkgRURNQSBldmVudHMgb24gdGhlIGNyb3Nz
-YmFyIGFyZSBub3Qgc3VwcG9ydGVkKQ0KPiA+ID4gDQo+ID4gDQo+ID4gDQo+ID4gQ2FuIHlvdSBw
-bGVhc2UgbWVudGlvbiB0aGUgYmFzZSByZXBvIHlvdSBoYXZlIHRha2VuIGFzIHN0YXJ0aW5nIHBv
-aW50Lg0KPiA+IChyZXBvICsgZXh0cmEgcGF0Y2hlcyAuLi4pLg0KPiANCj4gSXQncyBtYWlubGlu
-ZSAzLjYtcmM2IGFuZCB5b3UgY2FuIHNlZSB0aGUgY29tcGxldGUgc2V0IG9mIHBhdGNoZXMNCj4g
-YXQgaHR0cHM6Ly9naXRodWIuY29tL29ocG9ydGVyL2xpbnV4L3RyZWUvZWRtYS1kbWFlbmdpbmUt
-YW0zM3h4LXJmYy12MQ0KPiBhZnRlciBjb21taXQgNTY5OGJkNzU3ZDU1YjFiYjg3ZWRkMWE5NzQ0
-YWIwOWMxNDJhYmZjMg0KPiANCj4gPiBUaGlzIHdpbGwgaGVscCB1cyB0byB0ZXN0IHRoZSBjb2Rl
-Lg0KPiA+IA0KPiA+IFRoaXMgaXMgYmVjYXVzZSBJIGxvb2tlZCBhdCB0aGUgcGF0Y2ggMTIvMTMg
-YW5kIEkgc2VlIHRoYXQgbW1jDQo+ID4gZGV2aWNlLW5vZGUgaXMgbW9kaWZpZWQuIEJ1dCBpbiBt
-YWlubGluZSBJIGRvbuKAmXQgc2VlIGRldmljZSANCj4gPiBub2RlIGZvciBtbWMgKHlldCkuDQo+
-IA0KPiBPb3BzLiBZb3UnbGwgbmVlZCBlNjJhMzMzM2FlNDUwYmNkZWZiZTIyMjI5ZDdiYzI3N2Fl
-MGVmNjQ1IGFuZA0KPiBmZTk3MzA0NTU3ZDJjNmY3ZDBhYWYxZWEwMjhlYTQ4ZmZjYTM2NmE5IHdo
-aWNoIEkgZm9yZ290IHRvIGluY2x1ZGUNCj4gaW4gdGhpcyBzZXJpZXMuIEknbGwgaGF2ZSB0aGVt
-IGluIGZvciB2Mi4NCg0KWWVzdGVyZGF5IEkgdGVzdGVkIGVkbWEgcGF0Y2hlcyBvbiBsYXRlc3Qg
-bGludXgtbmV4dC9tYXN0ZXIgKyBtZXJnZSBvZiANCmxpbnV4LW9tYXAvZm9yXzMuNy9kdHNfcGFy
-dDIuIEJlbG93IGFyZSBteSBvYnNlcnZhdGlvbnMNCg0KMS4gYmFzZWxpbmUgPSBsaW51eC1uZXh0
-L21hc3RlciArIG1lcmdlIG9mIGxpbnV4LW9tYXAvZm9yXzMuNy9kdHNfcGFydDINCjIuIG9uIHRv
-cCBvZiBhYm92ZSBicmFuY2gsIEkgYXBwbGllZCBwYXRjaGVzIFsxLTldLzEzIG9mIHlvdXIgZWRt
-YSANCiAgIHBhdGNoZXMNCjMuIGZldyBwYXRjaGVzIHJlcXVpcmVkIHRyaXZpYWwgY2hhbmdlcyBi
-ZWZvcmUgYXBwbHlpbmcNCjQuIEFwcGxpZWQgZG1hIG9mIHBhdGNoZXMgYXMgeW91IG1lbnRpb25l
-ZA0KNS4gYWRkIGN1c3RvbSBwYXRjaCAoQVJNOiBDVVNUT006IEJ1aWxkIGEgdUltYWdlIHdpdGgg
-ZHRiIGFscmVhZHkgDQogICBhcHBlbmRlZCkNCiAgIEZyb20gaHR0cHM6Ly9naXRodWIuY29tL2h2
-YWliaGF2L2FtMzM1eC1saW51eC9jb21taXQvDQogICAgICAgIDdlNzJmNWVkNGI3MDJjOTM3M2Qx
-OWY3NjI2ZjA3YWUzMWEzODFkNTMjYXJjaC9hcm0vTWFrZWZpbGUNCg0KNi4gTW9kaWZpZWQgOS8x
-MyBwYXRjaCB0byBhcHBseSBwcm9wZXJseSBvbiBsYXRlc3QgYW0zM3h4LmR0c2kuDQoJYS4gRWRt
-YSBwb3J0aW9uIGFzIGl0IGlzDQoJYi4gbW1jIHBvcnRpb24gYXMgYmVsb3cNCgkJbW1jMTogbW1j
-QDQ4MDYwMDAwIHsNCgkJCWNvbXBhdGlibGUgPSAidGksb21hcDMtaHNtbWMiOw0KCQkJdGksaHdt
-b2RzID0gIm1tYzEiOw0KCQkJdGksZHVhbC12b2x0Ow0KCQkJdGksbmVlZHMtc3BlY2lhbC1yZXNl
-dDsNCgkJCWJ1cy13aWR0aCA9IDw0PjsNCgkJCXZtbWMtc3VwcGx5ID0gPCZ2bW1jX3JlZz47DQoJ
-CQlkbWFzID0gPCZlZG1hIDI0DQoJCQkJJmVkbWEgMjU+Ow0KCQkJZG1hLW5hbWVzID0gInR4Iiwg
-InJ4IjsNCgkJfTsNCgljLiBhZGRlZCBtbWMgcGlubXV4IGFzLXdlbGwNCg0KNy4gbWFrZSBDUk9T
-U19DT01QSUxFPWFybS1hcmFnby1saW51eC1nbnVlYWJpLSBBUkNIPWFybSBkaXN0Y2xlYW4NCiAg
-IG1ha2UgQ1JPU1NfQ09NUElMRT1hcm0tYXJhZ28tbGludXgtZ251ZWFiaS0gQVJDSD1hcm0gDQog
-ICBvbWFwMnBsdXNfZGVmY29uZmlnDQoNCjguIGVuYWJsZWQgVElfRURNQSBmcm9tIG1lbnVjb25m
-aWcgKHNpbmNlIGl0IHdhcyBub3QgZW5hYmxlZCBmb3IgDQogICBvbWFwMnBsdXNfZGVmY29uZmln
-DQoNCjkuIG1ha2UgQ1JPU1NfQ09NUElMRT1hcm0tYXJhZ28tbGludXgtZ251ZWFiaS0gQVJDSD1h
-cm0gdUltYWdlDQogICBtYWtlIENST1NTX0NPTVBJTEU9YXJtLWFyYWdvLWxpbnV4LWdudWVhYmkt
-IEFSQ0g9YXJtIA0KICAgdUltYWdlLWR0Yi5hbTMzNXgtZXZtDQoNCldpdGggYWJvdmUgY2hhbmdl
-cywgZWRtYSBwcm9iZSB3YXMgZmFpbGluZyBhdCByZXF1ZXN0X21lbV9yZWdpb24oKSANCkluc2lk
-ZSBsaW51eC1uZXh0L2FyY2gvYXJtL2NvbW1vbi9lZG1hLmMgLS0+IGVkbWFfcHJvYmUoKQ0KDQpJ
-IGhhZCB0byBtb2RpZnkgZWRtYV9wcm9iZSBhcyBiZWxvdw0KDQoNCmRpZmYgLS1naXQgYS9hcmNo
-L2FybS9jb21tb24vZWRtYS5jIGIvYXJjaC9hcm0vY29tbW9uL2VkbWEuYw0KaW5kZXggZjMzN2Y4
-MS4uZWZlMjY3MyAxMDA2NDQNCi0tLSBhL2FyY2gvYXJtL2NvbW1vbi9lZG1hLmMNCisrKyBiL2Fy
-Y2gvYXJtL2NvbW1vbi9lZG1hLmMNCkBAIC0xNTg5LDExICsxNTg5LDExIEBAIHN0YXRpYyBpbnQg
-X19pbml0IGVkbWFfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikNCiAgICAgICAg
-Zm9yIChqID0gMDsgaiA8IEVETUFfTUFYX0NDOyBqKyspIHsNCiAgICAgICAgICAgICAgICBpZiAo
-bm9kZSkgew0KICAgICAgICAgICAgICAgICAgICAgICAgaW50IGVycjsNCi0gICAgICAgICAgICAg
-ICAgICAgICAgIGVyciA9IG9mX2FkZHJlc3NfdG9fcmVzb3VyY2Uobm9kZSwgMCwgJnJlc1tqXSk7
-DQorICAgICAgICAgICAgICAgICAgICAgICBlcnIgPSBvZl9hZGRyZXNzX3RvX3Jlc291cmNlKG5v
-ZGUsIGosICZyZXNbal0pOw0KICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGVycikgew0KICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBkZXZfZXJyKGRldiwNCiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAidW5hYmxlIHRvIGZpbmQgJ3JlZycgcHJvcGVydHlc
-biIpOw0KLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gLUVJTzsNCisgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgLy9yZXR1cm4gLUVJTzsNCiAgICAgICAgICAgICAg
-ICAgICAgICAgIH0NCiAgICAgICAgICAgICAgICAgICAgICAgIHJbal0gPSAmcmVzW2pdOw0KDQoN
-Cg0KV2l0aCB0aGlzIEkgd2FzIGFibGUgdG8gYm9vdCBvbiBhbTMzNXgtZXZtIGFuZCBkbyBhIHN1
-Y2Nlc3NmdWwgTU1DIA0KY29weS1tZDVzdW0tY29tcGFyZSB0ZXN0Lg0KDQpJIGJlbGlldmUgeW91
-IGFyZSBsb29raW5nIGludG8gYWJvdmUgaXNzdWUgaW4geW91ciB2MiB2ZXJzaW9uLg0KDQo+IA0K
-PiAtTWF0dA0KPiANCg0KLi4uc25pcC4uLg0KLi4uc25pcC4uLg0KLi4uc25pcC4uLg0KDQoNClJl
-Z2FyZHMsIA0KR3VydXJhamENCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+Hi,
+
+On Mon, Sep 17, 2012 at 3:03 PM, Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> wrote:
+> On 09/14/2012 03:06 PM, ABRAHAM, KISHON VIJAY wrote:
+>
+> [...]
+>
+>>>> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+>>>> new file mode 100644
+>>>> index 0000000..c55446a
+>>>> --- /dev/null
+>>>> +++ b/drivers/phy/phy-core.c
+>>>> @@ -0,0 +1,437 @@
+>>>> +/*
+>>>> + * phy-core.c  --  Generic Phy framework.
+>>>> + *
+>>>> + * Copyright (C) 2012 Texas Instruments
+>>>> + *
+>>>> + * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>>> + *
+>>>> + * This program is free software; you can redistribute  it and/or modify it
+>>>> + * under  the terms of  the GNU General  Public License as published by the
+>>>> + * Free Software Foundation;  either version 2 of the  License, or (at your
+>>>> + * option) any later version.
+>>>> + *
+>>>> + * This program is distributed in the hope that it will be useful,
+>>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>>> + * GNU General Public License for more details.
+>>>> + *
+>>>> + * You should have received a copy of the GNU General Public License
+>>>> + * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>>>> + */
+>>>> +
+>>>> +#include <linux/kernel.h>
+>>>> +#include <linux/export.h>
+>>>> +#include <linux/module.h>
+>>>> +#include <linux/err.h>
+>>>> +#include <linux/device.h>
+>>>> +#include <linux/slab.h>
+>>>> +#include <linux/of.h>
+>>>> +#include <linux/phy/phy.h>
+>>>> +
+>>>> +static struct class *phy_class;
+>>>> +static LIST_HEAD(phy_list);
+>>>> +static DEFINE_MUTEX(phy_list_mutex);
+>>>> +static LIST_HEAD(phy_bind_list);
+>>>> +
+>>>> +static void devm_phy_release(struct device *dev, void *res)
+>>>> +{
+>>>> +     struct phy *phy = *(struct phy **)res;
+>>>
+>>> What about adding a struct phy_res, doing so,m you don't need these
+>>> casts, and it's easier to add more pointers if needed.
+>>
+>> Wont we still need to do the cast since you get only a void pointer.
+>> Maybe I'm not getting you.
+>
+> As "res" is a void pointer, no need to hast to to a "struct phy_res"
+> pointer, if you think that's unclean code, you can still cast it. But
+> IMHO the code is far more readable.
+>
+>>>> +
+>>>> +     phy_put(phy);
+>>>> +}
+>>>> +
+>>>> +static int devm_phy_match(struct device *dev, void *res, void *match_data)
+>>>> +{
+>>>> +     return res == match_data;
+>>>> +}
+>>>> +
+>>>> +static struct phy *phy_lookup(struct device *dev, u8 index)
+>>>> +{
+>>>> +     struct phy_bind *phy_bind = NULL;
+>>>> +
+>>>> +     list_for_each_entry(phy_bind, &phy_bind_list, list) {
+>>>> +             if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
+>>>> +                             phy_bind->index == index)
+>>>> +                     return phy_bind->phy;
+>>>> +     }
+>>>> +
+>>>> +     return ERR_PTR(-ENODEV);
+>>>> +}
+>>>> +
+>>>> +static struct phy *of_phy_lookup(struct device *dev, struct device_node *node)
+>>>> +{
+>>>> +     int index = 0;
+>>>> +     struct phy  *phy;
+>>>                   ^^
+>>>
+>>> Please remove that stray space.
+>>
+>> Sure.
+>>>
+>>>> +     struct phy_bind *phy_map = NULL;
+>>>> +
+>>>> +     list_for_each_entry(phy_map, &phy_bind_list, list)
+>>>> +             if (!(strcmp(phy_map->dev_name, dev_name(dev))))
+>>>> +                     index++;
+>>>> +
+>>>> +     list_for_each_entry(phy, &phy_list, head) {
+>>>> +             if (node != phy->desc->of_node)
+>>>> +                     continue;
+>>>> +
+>>>> +             phy_map = phy_bind(dev_name(dev), index, dev_name(&phy->dev));
+>>>> +             if (!IS_ERR(phy_map)) {
+>>>> +                     phy_map->phy = phy;
+>>>> +                     phy_map->auto_bind = true;
+>>>> +             }
+>>>> +
+>>>> +             return phy;
+>>>> +     }
+>>>> +
+>>>> +     return ERR_PTR(-ENODEV);
+>>>> +}
+>>>> +
+>>>> +/**
+>>>> + * devm_phy_get - lookup and obtain a reference to a phy.
+>>>> + * @dev: device that requests this phy
+>>>> + * @index: the index of the phy
+>>>> + *
+>>>> + * Gets the phy using phy_get(), and associates a device with it using
+>>>> + * devres. On driver detach, release function is invoked on the devres data,
+>>>> + * then, devres data is freed.
+>>>> + */
+>>>> +struct phy *devm_phy_get(struct device *dev, u8 index)
+>>>> +{
+>>>> +     struct phy **ptr, *phy;
+>>>> +
+>>>> +     ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
+>>>> +     if (!ptr)
+>>>> +             return NULL;
+>>>> +
+>>>> +     phy = phy_get(dev, index);
+>>>> +     if (!IS_ERR(phy)) {
+>>>> +             *ptr = phy;
+>>>> +             devres_add(dev, ptr);
+>>>> +     } else
+>>>> +             devres_free(ptr);
+>>>
+>>> nitpick: when when if has { }, else should have, too.
+>>
+>> Sure.
+>>>
+>>>> +
+>>>> +     return phy;
+>>>> +}
+>>>> +EXPORT_SYMBOL_GPL(devm_phy_get);
+>>>> +
+>>>> +/**
+>>>> + * devm_phy_put - release the PHY
+>>>> + * @dev: device that wants to release this phy
+>>>> + * @phy: the phy returned by devm_phy_get()
+>>>> + *
+>>>> + * destroys the devres associated with this phy and invokes phy_put
+>>>> + * to release the phy.
+>>>> + */
+>>>> +void devm_phy_put(struct device *dev, struct phy *phy)
+>>>> +{
+>>>> +     int r;
+>>>> +
+>>>> +     r = devres_destroy(dev, devm_phy_release, devm_phy_match, phy);
+>>>> +     dev_WARN_ONCE(dev, r, "couldn't find PHY resource\n");
+>>>> +}
+>>>> +EXPORT_SYMBOL_GPL(devm_phy_put);
+>>>> +
+>>>> +/**
+>>>> + * devm_of_phy_get - lookup and obtain a reference to a phy by phandle
+>>>> + * @dev: device that requests this phy
+>>>> + * @phandle: name of the property holding the phy phandle value
+>>>> + *
+>>>> + * Returns the phy driver associated with the given phandle value,
+>>>> + * after getting a refcount to it or -ENODEV if there is no such phy.
+>>>> + * While at that, it also associates the device with the phy using devres.
+>>>> + * On driver detach, release function is invoked on the devres data,
+>>>> + * then, devres data is freed.
+>>>> + */
+>>>> +struct phy *devm_of_phy_get(struct device *dev, const char *phandle)
+>>>
+>>> We should discuss first how the DT binding for a phy should look like. I
+>>> don't like that you hardcode the index (in of_parse_phandle()) to "0".
+>>> Then we have the problem with USB2 and USB3 phys for the same usb device.
+>>
+>> I think then we should modify this API to take *index* which should be
+>> used when we have a single controller using multiple phys. By that
+>> we'll make both dt and non-dt similar in that, both of them will take
+>> this index.
+>
+> That would be a plus.
+>
+>>>
+>>>> +{
+>>>> +     struct phy      *phy = NULL, **ptr;
+>
+> nitpick: stray spaces
+>
+>>>> +     struct device_node *node;
+>>>> +
+>>>> +     if (!dev->of_node) {
+>>>> +             dev_dbg(dev, "device does not have a device node entry\n");
+>>>> +             return ERR_PTR(-EINVAL);
+>>>> +     }
+>>>> +
+>>>> +     node = of_parse_phandle(dev->of_node, phandle, 0);
+>
+> BTW: Is the node freed somewhere?
+>
+>>>> +     if (!node) {
+>>>> +             dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
+>>>> +                     dev->of_node->full_name);
+>>>> +             return ERR_PTR(-ENODEV);
+>>>> +     }
+>>>> +
+>>>> +     ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
+>>>> +     if (!ptr) {
+>>>> +             dev_dbg(dev, "failed to allocate memory for devres\n");
+>>>> +             return ERR_PTR(-ENOMEM);
+>>>> +     }
+>>>> +
+>>>> +     mutex_lock(&phy_list_mutex);
+>>>> +
+>>>> +     phy = of_phy_lookup(dev, node);
+>>>> +     if (IS_ERR(phy) || !try_module_get(phy->dev.driver->owner)) {
+>
+> Where's the corresponding module_put? You should add module_get to the
+> non dt function, too.
+
+Do you think try_module_get() is necessary here? And just figured out
+*this* phy device does not have a associated driver (so
+phy->dev.driver will be NULL).
+
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
