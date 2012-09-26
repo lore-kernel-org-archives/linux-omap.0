@@ -1,40 +1,43 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: replacement for /sys/kernel/debug/omap_mux in DT/pinctrl land ?
-Date: Wed, 26 Sep 2012 13:46:45 +0200
-Message-ID: <D7202A6C-5250-4B55-B3B8-FF15BCCA97AC@dominion.thruhere.net>
-Mime-Version: 1.0 (Mac OS X Mail 6.1 \(1498\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: Powering OMAP's pins
+Date: Wed, 26 Sep 2012 13:46:54 +0200
+Message-ID: <CACRpkdYdZFr=XvsZUwY6dLN6uOj7fN_7StPgCNZNKU46UtMCaA@mail.gmail.com>
+References: <1348568474.2342.35.camel@deskari>
+	<20120925153806.GC4840@atomide.com>
+	<1348592700.2342.49.camel@deskari>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:64475 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755944Ab2IZLqs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 07:46:48 -0400
-Received: by wibhr7 with SMTP id hr7so621553wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 26 Sep 2012 04:46:47 -0700 (PDT)
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:64893 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755944Ab2IZLqy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 07:46:54 -0400
+Received: by vbbff1 with SMTP id ff1so476260vbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 26 Sep 2012 04:46:54 -0700 (PDT)
+In-Reply-To: <1348592700.2342.49.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: List List <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Hi,
+On Tue, Sep 25, 2012 at 7:05 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 
-With a patched 3.6rc7 on my beaglebone I can set the pinmux for pins using pinctrl and that seems to work. On the 3.2 vendor tree there was the omap_mux driver with an awesome debugfs interface:
+> So when I call pm_runtime_get in the omapdss driver, I imagine that the
+> runtime PM and pinctrl would together handle muxing the pins for
+> omapdss's use, and also enable the relevant regulators to make the pins
+> usable.
 
-# cat /sys/kernel/debug/omap_mux/lcd_data0 
-name: lcd_data0.ehrpwm2A (0x44e108a0/0x8a0 = 0x0003), b NA, t NA
-mode: OMAP_PIN_OUTPUT | OMAP_MUX_MODE3
-signals: lcd_data0 | gpmc_a0 | pr1_mii_mt0_clk | ehrpwm2A | NA | pr1_pru1_pru_r30_0 | pr1_pru1_pru_r31_0 | gpio2_6
+So we do something like this in the recent patch to the PL022
+SPI driver by setting the pinctrl states inside the runtime suspend
+and resume callbacks:
 
-Notice how it tells me that it's muxed the PWM in 2 ways: signal name (ehrpwm2A) and register content (0x0003). Compare to pinctrl:
+http://sourceforge.net/mailarchive/forum.php?thread_name=20120920130240.GR17666%40opensource.wolfsonmicro.com&forum_name=spi-devel-general
 
-root@bone-mainline:/sys/kernel/debug/pinctrl/44e10800.pinmux# grep 8a0 *
-pinconf-pins:pin 40 (44e108a0):
-pingroups:pin 40 (44e108a0)
-pinmux-pins:pin 40 (44e108a0): 4a300000.pruss (GPIO UNCLAIMED) function pinmux_pruss_led_pins group pinmux_pruss_led_pins
-pins:pin 40 (44e108a0)  pinctrl-single
+You can very well do clocks and regulators in these functions as well.
 
-What is that pin muxed to? It is part of the 'pinmux_pruss_led_pins' in the DT, but debugfs remains mute on how pin 40 is muxed.
+Other platforms like shmobile will use runtime pm notifications
+to do all this orthogonally in a central place, which may be
+applicable for OMAP.
 
-regards,
-
-Koen
+Yours,
+Linus Walleij
