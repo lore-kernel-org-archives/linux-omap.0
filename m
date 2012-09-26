@@ -1,47 +1,63 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: The USB is not working with SM502 Graphics, but working with
- Intel Pc graphics
-Date: Wed, 26 Sep 2012 06:31:53 -0700
-Message-ID: <20120926133153.GB25454@kroah.com>
-References: <CAO1Rv-YjrxViFBEkSbBLB5YEA0eFEgF5DE06Ri3kcuhWKj7-dA@mail.gmail.com>
- <CAO1Rv-Y7b6rmrGtTasKfSPMHdayd-Amc0wMkTEx_4C3ufK8P2Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:64000 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756433Ab2IZNb5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 09:31:57 -0400
-Received: by pbbrr4 with SMTP id rr4so1892128pbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 26 Sep 2012 06:31:57 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAO1Rv-Y7b6rmrGtTasKfSPMHdayd-Amc0wMkTEx_4C3ufK8P2Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Matt Porter <mporter@ti.com>
+Subject: [RFC PATCH 0/3] uio_pruss support for AM33xx
+Date: Wed, 26 Sep 2012 09:44:28 -0400
+Message-ID: <1348667071-12631-1-git-send-email-mporter@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Thirumalesha N <thiru.linux@gmail.com>
-Cc: balbi@ti.com, arnd@arndb.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Wed, Sep 26, 2012 at 03:09:03PM +0530, Thirumalesha N wrote:
-> Dear Sir/Madam,
-> =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 I'm testing PMC type SM502 based Graphics=
- card which has usb,
-> audio and display interfaces.=A0
->=20
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0I'm using kernel version linux-2.6.21 with=
- redhat enterprise 5.5
-> OS.
+This series enables uio_pruss on AM33xx and it mostly intended to look
+for the proper solution to handling this particular OMAP hwmod which
+contains hardware reset lines.
 
-As you are testing RHEL, please work with Red Hat for this issue, they
-are the only ones tha tcan support it, we can't.  Especially as you are
-paying for that support, you might as well use it :)
+The comment in arch/arm/mach-omap2/omap_hwmod.c:
+	/*
+	 * If an IP block contains HW reset lines and any of them are
+	 * asserted, we let integration code associated with that
+	 * block handle the enable.  We've received very little
+	 * information on what those driver authors need, and until
+	 * detailed information is provided and the driver code is
+	 * posted to the public lists, this is probably the best we
+	 * can do.
+	 */
+is waiting for some information which is at least partially available
+with this uio_pruss driver example.
 
-Good luck,
+The series has some ifdefery to get uio_pruss to build without the
+DaVinci specific sram API, and then some needed DT, pinctrl, and
+runtime PM support so I could actually use the driver on AM33xx.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The approach to deal with the hardware reset (for at least the pruss
+hwmod) was to add a generic omap property to properly define this
+hardware. The implementation simply deasserts any rst lines that
+are called out in the property when the omap_device is
+instantiated. This is not the right implementation as the sequence is
+a bit wrong for pruss since the busy check during the hard reset
+will fail, even though it fails in a benign manner. Ideally, we would
+want the implementation to observe the ti,deassert-hard-reset property
+and use that in omap_hwmod.c:_enable() *after* the module is unidled
+and the clocks active. However, this is actually functional for purposes
+of getting the uio_pruss driver up and running.
+
+
+Matt Porter (3):
+  uio: uio_pruss: port to AM33xx
+  ARM: omap: add DT support for deasserting hardware reset lines
+  ARM: dts: AM33xx PRUSS support
+
+ .../devicetree/bindings/arm/omap/omap.txt          |    2 +
+ Documentation/devicetree/bindings/uio/pruss.txt    |   17 ++++++
+ .../devicetree/bindings/uio/uio_pruss.txt          |   17 ++++++
+ arch/arm/boot/dts/am335x-bone.dts                  |    4 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |   11 ++++
+ arch/arm/plat-omap/omap_device.c                   |   25 +++++++-
+ drivers/uio/Kconfig                                |    4 +-
+ drivers/uio/uio_pruss.c                            |   63 +++++++++++++++++++-
+ 8 files changed, 138 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/uio/pruss.txt
+ create mode 100644 Documentation/devicetree/bindings/uio/uio_pruss.txt
+
+-- 
+1.7.9.5
