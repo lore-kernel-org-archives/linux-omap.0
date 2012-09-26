@@ -1,82 +1,63 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
-Date: Wed, 26 Sep 2012 11:37:08 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA8FF90@DBDE01.ent.ti.com>
-References: <1346764151-21323-1-git-send-email-gururaja.hebbar@ti.com>
- <CANfBPZ-Wb7HE45DTmwsMt-hpJRUevjbjm9-aCR61B4JFULb8Mw@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCHv7 17/21] ARM: OMAP4: TWL: enable high speed mode for PMIC
+ communication
+Date: Wed, 26 Sep 2012 14:39:08 +0300
+Message-ID: <5062E95C.6050903@ti.com>
+References: <1348590833-12335-1-git-send-email-t-kristo@ti.com> <1348590833-12335-18-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "cjb@laptop.org" <cjb@laptop.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57655 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755325Ab2IZLiB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Sep 2012 07:38:01 -0400
+Received: by oagh16 with SMTP id h16so422054oag.19
+        for <linux-omap@vger.kernel.org>; Wed, 26 Sep 2012 04:37:59 -0700 (PDT)
+In-Reply-To: <1348590833-12335-18-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Wed, Sep 12, 2012 at 17:32:38, Hebbar, Gururaja wrote:
-> On Wed, Sep 12, 2012 at 14:19:51, S, Venkatraman wrote:
-> > On Tue, Sep 4, 2012 at 6:39 PM, Hebbar, Gururaja <gururaja.hebbar@ti.com> wrote:
-> > > HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-> > > Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-> > > on the HSMMC IP timing closure done for the high speed cards.
-> > >
-> > > From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
-> > >
-> > > The MMC/SD/SDIO output signals can be driven on either falling edge or
-> > > rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-> > > to reach better timing performance, and thus to increase data transfer
-> > > frequency.
-> > >
-> > > There are few pre-requisites for enabling the HSPE bit
-> > > - Controller should support High-Speed-Enable Bit and
-> > > - Controller should not be using DDR Mode and
-> > > - Controller should advertise that it supports High Speed in
-> > >   capabilities register and
-> > > - MMC/SD clock coming out of controller > 25MHz
-> > >
-> > 
-> > The patch is well written. But then, I don't see a need for a DT
-> > binding for this feature.
-> 
-> My reasons for DT Binding
-> 1. Not all platforms using this driver has this bit (OMAP2)
-> 2. Not all platforms using this driver needs this bit to be enabled (OMAP4)
-> 3. Platforms which require this bit this to be set needs a method to inform 
-> driver.
-> 
-> In order to not disturb old/unsupported platforms, I chose this DT method.
-> 
-> > By definition, HS implies 25MHz or above, so that check seems to be
-> > redundant as well.
-> 
-> There are chances that the platform Max Clock output from HSMMC IP is < than 
-> 25 MHz even if the card is High Speed. In such cases it would be better to
-> Confirm that the Clock output is actually > 25 MHz
-> 
-> Kindly correct me if I am wrong.
-> 
-> > Meanwhile, I'll check with HSPE enabled on OMAP.
-> > 
+Hi Tero,
 
-Gentle Ping. 
+On 09/25/2012 07:33 PM, Tero Kristo wrote:
+> With the new parameters, I2C can now be put to high speed mode for
+> better performance.
 
-Matt Poter recently submitted EDMA related patches as RFC. He confirmed that
-basic mmc is working on AM335x with his edma patches. 
+We have twl6040 on the same bus. have you tried this with audio enabled=
+?
+twl6040 is in standard mode (up to 100 kbps) after power up...
 
-Above patch is required to get High-speed cards working on AM335x.
-
-I haven't seen any review comments for this. Can this be pulled in for 3.7?
-
-> > Regards,
-> > Venkat.
-> > 
-> 
-> 
-> Regards, 
-> Gururaja
-> 
+>=20
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_twl.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/oma=
+p_twl.c
+> index 611cb63..7ff9667 100644
+> --- a/arch/arm/mach-omap2/omap_twl.c
+> +++ b/arch/arm/mach-omap2/omap_twl.c
+> @@ -218,6 +218,7 @@ static struct omap_voltdm_pmic omap4_core_pmic =3D=
+ {
+>  	.i2c_slave_addr		=3D OMAP4_SRI2C_SLAVE_ADDR,
+>  	.volt_reg_addr		=3D OMAP4_VDD_CORE_SR_VOLT_REG,
+>  	.cmd_reg_addr		=3D OMAP4_VDD_CORE_SR_CMD_REG,
+> +	.i2c_high_speed		=3D true,
+>  	.i2c_pad_load		=3D 3,
+>  	.vsel_to_uv		=3D twl6030_vsel_to_uv,
+>  	.uv_to_vsel		=3D twl6030_uv_to_vsel,
+>=20
 
 
-Regards, 
-Gururaja
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
