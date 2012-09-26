@@ -1,248 +1,202 @@
-From: Matt Porter <mporter@ti.com>
-Subject: [RFC PATCH 1/3] uio: uio_pruss: port to AM33xx
-Date: Wed, 26 Sep 2012 09:44:29 -0400
-Message-ID: <1348667071-12631-2-git-send-email-mporter@ti.com>
-References: <1348667071-12631-1-git-send-email-mporter@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1348667071-12631-1-git-send-email-mporter@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Philippe De Swert <philippe.deswert-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Subject: RE: [PATCH 1/1] usb: Include generic_interrupt for OMAP2_PLUS
+Date: Wed, 26 Sep 2012 14:06:16 +0000
+Message-ID: <02DC685EFE4B1942A41870A0F2608047A65157@ORD2MBX02B.mex05.mlsrvr.com>
+References: <1348487604-7202-1-git-send-email-philippe.deswert@jollamobile.com>
+	<20120924121538.GH2892@arwen.pp.htv.fi>
+	<CAPsFW+RTLpgXFOOh9fD=K1wCPMpBe4MummhWoqEBEEYYzMay=Q@mail.gmail.com>
+	<20120924130216.GA5603@arwen.pp.htv.fi>	<20120924160914.GB28835@atomide.com>
+	<20120925080420.GH9137@arwen.pp.htv.fi>
+	<CAPsFW+T_ezWAxO9StSf9cu9nJ6Gw8T9Dk1H3g6+bwJ-PKtn-cQ@mail.gmail.com>,<CAPe0uWoX92e6Hbazji+s9DPiZnfxqE=a=5Hnu39SrD6qZnRWzg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAPe0uWoX92e6Hbazji+s9DPiZnfxqE=a=5Hnu39SrD6qZnRWzg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-GB
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "praveen.nadahally-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org" <praveen.nadahally-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Philippe De Swert <philippedeswert-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, "heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <heikki.krogerus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "kishon-l0cyMroinI0@public.gmane.org" <kishon-l0cyMroinI0@public.gmane.org>, "marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org" <leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <s.hauer-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "shubhrajyoti-l0cyMroinI0@public.gmane.org" <shubhrajyoti-l0cyMroinI0@public.gmane.org>, "nsekhar-l0cyMroinI0@public.gmane.org" <nsekhar-l0cyMroinI0@public.gmane.org>, "notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "vikram.pandita-l0cyMroinI0@public.gmane.org" <vikram.pandita-l0cyMroinI0@public.gmane.org>, "ravibabu-l0cyMroinI0@public.gmane.org" <ravibabu-l0cyMroinI0@public.gmane.org>, "mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org" <mina86-deATy8a+UHjQT0dZR+AlfA@public.gmane.org>, "mian.yousaf.kaukab-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org" <mian.yousaf.kaukab-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Add ifdefery hacks to only use SRAM on Davinci. This
-needs to be cleaned up with a sane generic SRAM allocator
-(like the DT based driver available that can't be used on
-Davinci which is just starting DT conversion) before it
-can go upstream.
+Hi,
+________________________________________
+>On Tue, Sep 25, 2012 at 2:39 PM, Philippe De Swert
+>>> Then maybe it's best to just remove the ifdefs and always provide
+>>> generic_interrupt() ?
+>>>
+>>> Anyone against it ?
+>
+>Providing generic_interrupt seems fine.
+>
+>> Well it seems there are only two drivers that use it omap2430 and
+>> ux500. Maybe we somehow link it to the drivers that need it? (I might
+>> have missed other drivers but it looks like it is just those two)
+>
+>One way I see is that omap2430 and ux500 implement the isr handler
+>in platform glue driver and then call the musb_interrupt() as done in
+>daxxx, amxxx, ti8xxx platforms. Then generic_interrupt can be removed.
 
-Adds DT, pinctrl, and runtime PM support for use on
-AM33xx.
+So something along those lines? (If this is the right way I will resend as a real patch)
 
-Signed-off-by: Matt Porter <mporter@ti.com>
+>From deae78e1084749f340ae8b8aaeca51818d5bfc55 Mon Sep 17 00:00:00 2001
+From: Philippe De Swert <philippe.deswert-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Date: Wed, 26 Sep 2012 17:00:46 +0300
+Subject: [PATCH 1/1] musb: Move generic_interrupt out of the way
+
+Have all musb drivers define their own isr.
+
+Signed-off-by: Philippe De Swert <philippe.deswert-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
 ---
- Documentation/devicetree/bindings/uio/pruss.txt    |   17 ++++++
- .../devicetree/bindings/uio/uio_pruss.txt          |   17 ++++++
- drivers/uio/Kconfig                                |    4 +-
- drivers/uio/uio_pruss.c                            |   63 +++++++++++++++++++-
- 4 files changed, 98 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/uio/pruss.txt
- create mode 100644 Documentation/devicetree/bindings/uio/uio_pruss.txt
+ drivers/usb/musb/musb_core.c |   33 ++-------------------------------
+ drivers/usb/musb/omap2430.c  |   22 ++++++++++++++++++++++
+ drivers/usb/musb/ux500.c     |   21 +++++++++++++++++++++
+ 3 files changed, 45 insertions(+), 31 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/uio/pruss.txt b/Documentation/devicetree/bindings/uio/pruss.txt
-new file mode 100644
-index 0000000..2ac45c5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/uio/pruss.txt
-@@ -0,0 +1,17 @@
-+TI PRUSS device
-+
-+Required properties:
-+- compatible :
-+  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
-+  - "ti,pruss-v2" for AM33xx.
-+- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
-+- ti,hwmods: Name of the hwmod associated to the PRUSS
-+
-+Example:
-+
-+pruss: pruss@4a300000 {
-+	compatible = "ti,pruss-v2";
-+	ti,hwmods = "pruss";
-+	reg = <0x4a300000 0x080000>;
-+	ti,pintc-offset = <0x20000>;
-+};
-diff --git a/Documentation/devicetree/bindings/uio/uio_pruss.txt b/Documentation/devicetree/bindings/uio/uio_pruss.txt
-new file mode 100644
-index 0000000..2ac45c5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/uio/uio_pruss.txt
-@@ -0,0 +1,17 @@
-+TI PRUSS device
-+
-+Required properties:
-+- compatible :
-+  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
-+  - "ti,pruss-v2" for AM33xx.
-+- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
-+- ti,hwmods: Name of the hwmod associated to the PRUSS
-+
-+Example:
-+
-+pruss: pruss@4a300000 {
-+	compatible = "ti,pruss-v2";
-+	ti,hwmods = "pruss";
-+	reg = <0x4a300000 0x080000>;
-+	ti,pintc-offset = <0x20000>;
-+};
-diff --git a/drivers/uio/Kconfig b/drivers/uio/Kconfig
-index 6f3ea9b..8da7d9b 100644
---- a/drivers/uio/Kconfig
-+++ b/drivers/uio/Kconfig
-@@ -96,9 +96,9 @@ config UIO_NETX
- 
- config UIO_PRUSS
- 	tristate "Texas Instruments PRUSS driver"
--	depends on ARCH_DAVINCI_DA850
-+	depends on ARCH_DAVINCI_DA850 || SOC_AM33XX
- 	help
--	  PRUSS driver for OMAPL138/DA850/AM18XX devices
-+	  PRUSS driver for OMAPL138/DA850/AM18XX and AM33XX devices
- 	  PRUSS driver requires user space components, examples and user space
- 	  driver is available from below SVN repo - you may use anonymous login
- 
-diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
-index 33a7a27..326ce40 100644
---- a/drivers/uio/uio_pruss.c
-+++ b/drivers/uio/uio_pruss.c
-@@ -25,7 +25,15 @@
- #include <linux/clk.h>
- #include <linux/dma-mapping.h>
- #include <linux/slab.h>
-+#include <linux/of_address.h>
-+#include <linux/of_device.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/err.h>
-+#include <linux/pm_runtime.h>
-+
-+#ifdef CONFIG_ARCH_DAVINCI_DA850
- #include <mach/sram.h>
-+#endif
- 
- #define DRV_NAME "pruss_uio"
- #define DRV_VERSION "1.0"
-@@ -105,8 +113,10 @@ static void pruss_cleanup(struct platform_device *dev,
- 		dma_free_coherent(&dev->dev, extram_pool_sz, gdev->ddr_vaddr,
- 			gdev->ddr_paddr);
- 	}
-+#ifdef CONFIG_ARCH_DAVINCI_DA850
- 	if (gdev->sram_vaddr)
- 		sram_free(gdev->sram_vaddr, sram_pool_sz);
-+#endif
- 	kfree(gdev->info);
- 	clk_put(gdev->pruss_clk);
- 	kfree(gdev);
-@@ -117,8 +127,10 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 	struct uio_info *p;
- 	struct uio_pruss_dev *gdev;
- 	struct resource *regs_prussio;
-+	struct resource res;
- 	int ret = -ENODEV, cnt = 0, len;
- 	struct uio_pruss_pdata *pdata = dev->dev.platform_data;
-+	struct pinctrl *pinctrl;
- 
- 	gdev = kzalloc(sizeof(struct uio_pruss_dev), GFP_KERNEL);
- 	if (!gdev)
-@@ -129,6 +141,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 		kfree(gdev);
- 		return -ENOMEM;
- 	}
-+#ifdef CONFIG_ARCH_DAVINCI_DA850
- 	/* Power on PRU in case its not done as part of boot-loader */
- 	gdev->pruss_clk = clk_get(&dev->dev, "pruss");
- 	if (IS_ERR(gdev->pruss_clk)) {
-@@ -140,6 +153,28 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 	} else {
- 		clk_enable(gdev->pruss_clk);
- 	}
-+#endif
-+
-+	if (dev->dev.of_node) {
-+		pm_runtime_enable(&dev->dev);
-+		ret = pm_runtime_get_sync(&dev->dev);
-+		if (IS_ERR_VALUE(ret)) {
-+			dev_err(&dev->dev, "pm_runtime_get_sync() failed\n");
-+			return ret;
-+		}
-+
-+		ret = of_address_to_resource(dev->dev.of_node, 0, &res);
-+		if (IS_ERR_VALUE(ret)) {
-+			dev_err(&dev->dev, "failed to parse DT reg\n");
-+			return ret;
-+		}
-+		regs_prussio = &res;
-+	}
-+
-+	pinctrl = devm_pinctrl_get_select_default(&dev->dev);
-+	if (IS_ERR(pinctrl))
-+		dev_warn(&dev->dev,
-+			"pins are not configured from the driver\n");
- 
- 	regs_prussio = platform_get_resource(dev, IORESOURCE_MEM, 0);
- 	if (!regs_prussio) {
-@@ -152,11 +187,13 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 		goto out_free;
- 	}
- 
-+#ifdef CONFIG_ARCH_DAVINCI_DA850
- 	gdev->sram_vaddr = sram_alloc(sram_pool_sz, &(gdev->sram_paddr));
- 	if (!gdev->sram_vaddr) {
- 		dev_err(&dev->dev, "Could not allocate SRAM pool\n");
- 		goto out_free;
- 	}
-+#endif
- 
- 	gdev->ddr_vaddr = dma_alloc_coherent(&dev->dev, extram_pool_sz,
- 				&(gdev->ddr_paddr), GFP_KERNEL | GFP_DMA);
-@@ -172,7 +209,17 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 		goto out_free;
- 	}
- 
--	gdev->pintc_base = pdata->pintc_base;
-+	if (dev->dev.of_node) {
-+		ret = of_property_read_u32(dev->dev.of_node,
-+					   "ti,pintc-offset",
-+					   &gdev->pintc_base);
-+		if (ret < 0) {
-+			dev_err(&dev->dev,
-+				"Can't parse ti,pintc-offset property\n");
-+			goto out_free;
-+		}
-+	} else
-+		gdev->pintc_base = pdata->pintc_base;
- 	gdev->hostirq_start = platform_get_irq(dev, 0);
- 
- 	for (cnt = 0, p = gdev->info; cnt < MAX_PRUSS_EVT; cnt++, p++) {
-@@ -180,6 +227,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 		p->mem[0].size = resource_size(regs_prussio);
- 		p->mem[0].memtype = UIO_MEM_PHYS;
- 
-+#ifdef CONFIG_ARCH_DAVINCI_DA850
- 		p->mem[1].addr = gdev->sram_paddr;
- 		p->mem[1].size = sram_pool_sz;
- 		p->mem[1].memtype = UIO_MEM_PHYS;
-@@ -187,6 +235,11 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 		p->mem[2].addr = gdev->ddr_paddr;
- 		p->mem[2].size = extram_pool_sz;
- 		p->mem[2].memtype = UIO_MEM_PHYS;
-+#else
-+		p->mem[1].addr = gdev->ddr_paddr;
-+		p->mem[1].size = extram_pool_sz;
-+		p->mem[1].memtype = UIO_MEM_PHYS;
-+#endif
- 
- 		p->name = kasprintf(GFP_KERNEL, "pruss_evt%d", cnt);
- 		p->version = DRV_VERSION;
-@@ -218,12 +271,20 @@ static int __devexit pruss_remove(struct platform_device *dev)
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 26f1bef..1d5ee34 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1496,35 +1496,6 @@ static int __devinit musb_core_init(u16 musb_type, struct musb *musb)
  	return 0;
  }
  
-+static const struct of_device_id pruss_dt_ids[] = {
-+	{ .compatible = "ti,pruss-v1", .data = NULL, },
-+	{ .compatible = "ti,pruss-v2", .data = NULL, },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, pruss_dt_ids);
-+
- static struct platform_driver pruss_driver = {
- 	.probe = pruss_probe,
- 	.remove = __devexit_p(pruss_remove),
- 	.driver = {
- 		   .name = DRV_NAME,
- 		   .owner = THIS_MODULE,
-+		   .of_match_table = pruss_dt_ids,
- 		   },
- };
+-/*-------------------------------------------------------------------------*/
+-
+-#if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_SOC_OMAP3430) || \
+-	defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500)
+-
+-static irqreturn_t generic_interrupt(int irq, void *__hci)
+-{
+-	unsigned long	flags;
+-	irqreturn_t	retval = IRQ_NONE;
+-	struct musb	*musb = __hci;
+-
+-	spin_lock_irqsave(&musb->lock, flags);
+-
+-	musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
+-	musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
+-	musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
+-
+-	if (musb->int_usb || musb->int_tx || musb->int_rx)
+-		retval = musb_interrupt(musb);
+-
+-	spin_unlock_irqrestore(&musb->lock, flags);
+-
+-	return retval;
+-}
+-
+-#else
+-#define generic_interrupt	NULL
+-#endif
+-
+ /*
+  * handle all the irqs defined by the HDRC core. for now we expect:  other
+  * irq sources (phy, dma, etc) will be handled first, musb->int_* values
+@@ -1907,7 +1878,8 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	musb->ops = plat->platform_ops;
  
+ 	/* The musb_platform_init() call:
+-	 *   - adjusts musb->mregs and musb->isr if needed,
++	 *   - adjusts musb->mregs if needed 
++	 *   - sets the musb->isr 
+ 	 *   - may initialize an integrated tranceiver
+ 	 *   - initializes musb->xceiv, usually by otg_get_phy()
+ 	 *   - stops powering VBUS
+@@ -1917,7 +1889,6 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	 * external/discrete ones in various flavors (twl4030 family,
+ 	 * isp1504, non-OTG, etc) mostly hooking up through ULPI.
+ 	 */
+-	musb->isr = generic_interrupt;
+ 	status = musb_platform_init(musb);
+ 	if (status < 0)
+ 		goto fail1;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 5fdb9da..5461619d 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -306,6 +306,26 @@ static void omap_musb_mailbox_work(struct work_struct *mailbox_work)
+ 	omap_musb_set_mailbox(glue);
+ }
+ 
++static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
++{
++        unsigned long   flags;
++        irqreturn_t     retval = IRQ_NONE;
++        struct musb     *musb = __hci;
++
++        spin_lock_irqsave(&musb->lock, flags);
++
++        musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
++        musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
++        musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
++
++        if (musb->int_usb || musb->int_tx || musb->int_rx)
++                retval = musb_interrupt(musb);
++
++        spin_unlock_irqrestore(&musb->lock, flags);
++
++        return retval;
++}
++
+ static int omap2430_musb_init(struct musb *musb)
+ {
+ 	u32 l;
+@@ -325,6 +345,8 @@ static int omap2430_musb_init(struct musb *musb)
+ 		return -ENODEV;
+ 	}
+ 
++	musb->isr = omap2430_musb_interrupt;
++
+ 	status = pm_runtime_get_sync(dev);
+ 	if (status < 0) {
+ 		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
+diff --git a/drivers/usb/musb/ux500.c b/drivers/usb/musb/ux500.c
+index a8c0fad..ec9aaec 100644
+--- a/drivers/usb/musb/ux500.c
++++ b/drivers/usb/musb/ux500.c
+@@ -36,6 +36,26 @@ struct ux500_glue {
+ };
+ #define glue_to_musb(g)	platform_get_drvdata(g->musb)
+ 
++static irqreturn_t ux500_musb_interrupt(int irq, void *__hci)
++{
++        unsigned long   flags;
++        irqreturn_t     retval = IRQ_NONE;
++        struct musb     *musb = __hci;
++
++        spin_lock_irqsave(&musb->lock, flags);
++
++        musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
++        musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
++        musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
++
++        if (musb->int_usb || musb->int_tx || musb->int_rx)
++                retval = musb_interrupt(musb);
++
++        spin_unlock_irqrestore(&musb->lock, flags);
++
++        return retval;
++}
++
+ static int ux500_musb_init(struct musb *musb)
+ {
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+@@ -43,6 +63,7 @@ static int ux500_musb_init(struct musb *musb)
+ 		pr_err("HS USB OTG: no transceiver configured\n");
+ 		return -ENODEV;
+ 	}
++	musb->isr = ux500_musb_interrupt;
+ 
+ 	return 0;
+ }
 -- 
-1.7.9.5
+1.7.10.4
+
+
+Cheers,
+
+Philippe--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
