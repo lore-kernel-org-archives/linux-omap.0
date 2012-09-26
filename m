@@ -1,189 +1,195 @@
 From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V2 1/2] OMAPDSS: Cleanup DSSDBG with dynamic pr_debug function
-Date: Wed, 26 Sep 2012 10:45:45 +0530
-Message-ID: <3dd176d7eff4749842449f0f80b86abdadd5e28e.1348636132.git.cmahapatra@ti.com>
+Subject: [PATCH V2 2/2] OMAPDSS: Remove dss_debug variable
+Date: Wed, 26 Sep 2012 10:46:02 +0530
+Message-ID: <79ccb18ca1c45477e4d8cb77ee240090be06cda9.1348636132.git.cmahapatra@ti.com>
 References: <1348552998-6596-1-git-send-email-cmahapatra@ti.com> <cover.1348636132.git.cmahapatra@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44894 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537Ab2IZFSE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 01:18:04 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60643 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751781Ab2IZFSP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Sep 2012 01:18:15 -0400
 In-Reply-To: <cover.1348636132.git.cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-The printk in DSSDBG function definition is replaced with dynamic debug enabled
-pr_debug(). The use of dynamic debugging provides more flexibility as each debug
-statement can be enabled or disabled dynamically on basis of source filename,
-line number, module name etc. by writing to a control file in debugfs
-filesystem. For better understanding please refer to
-Documentation/dynamic-debug-howto.txt.
-
-The DSSDBGF() differs from DSSDBG() by providing function name. However,
-function name, line number, module name and thread ID can be printed through
-dynamic debug by setting appropriate flags 'f','l','m' and 't' in the debugfs
-control file. So, DSSDBGF instances are replaced with DSSDBG.
+The debug prints in omap_dispc_unregister_isr() and _dsi_print_reset_status()
+are replaced with dynamic debug enabled pr_debug(). So, as the final dependency
+on dss_debug variable is replaced with dyndbg, the dss_debug variable is
+removed.
 
 Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
 ---
- drivers/video/omap2/dss/apply.c |    8 ++++----
- drivers/video/omap2/dss/dsi.c   |   12 ++++++------
- drivers/video/omap2/dss/dss.h   |   34 ++++++++--------------------------
- 3 files changed, 18 insertions(+), 36 deletions(-)
+ drivers/video/omap2/dss/core.c  |    5 -----
+ drivers/video/omap2/dss/dispc.c |   39 ++++++++++++++-------------------------
+ drivers/video/omap2/dss/dsi.c   |   37 ++++++++++++++-----------------------
+ drivers/video/omap2/dss/dss.h   |    4 ----
+ 4 files changed, 28 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index 6354bb8..e92f5fb 100644
---- a/drivers/video/omap2/dss/apply.c
-+++ b/drivers/video/omap2/dss/apply.c
-@@ -559,7 +559,7 @@ static void dss_ovl_write_regs(struct omap_overlay *ovl)
- 	struct mgr_priv_data *mp;
- 	int r;
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 58bd9c2..5d77c86 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -52,11 +52,6 @@ static char *def_disp_name;
+ module_param_named(def_disp, def_disp_name, charp, 0);
+ MODULE_PARM_DESC(def_disp, "default display name");
  
--	DSSDBGF("%d", ovl->id);
-+	DSSDBG("writing ovl %d regs", ovl->id);
+-#ifdef DEBUG
+-bool dss_debug;
+-module_param_named(debug, dss_debug, bool, 0644);
+-#endif
+-
+ /* REGULATORS */
  
- 	if (!op->enabled || !op->info_dirty)
- 		return;
-@@ -594,7 +594,7 @@ static void dss_ovl_write_regs_extra(struct omap_overlay *ovl)
- 	struct ovl_priv_data *op = get_ovl_priv(ovl);
- 	struct mgr_priv_data *mp;
+ struct regulator *dss_get_vdds_dsi(void)
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 1121823..6c813a6 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -3447,34 +3447,26 @@ int omap_dispc_unregister_isr(omap_dispc_isr_t isr, void *arg, u32 mask)
+ }
+ EXPORT_SYMBOL(omap_dispc_unregister_isr);
  
--	DSSDBGF("%d", ovl->id);
-+	DSSDBG("writing ovl %d regs extra", ovl->id);
- 
- 	if (!op->extra_info_dirty)
- 		return;
-@@ -618,7 +618,7 @@ static void dss_mgr_write_regs(struct omap_overlay_manager *mgr)
- 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
- 	struct omap_overlay *ovl;
- 
--	DSSDBGF("%d", mgr->id);
-+	DSSDBG("writing mgr %d regs", mgr->id);
- 
- 	if (!mp->enabled)
- 		return;
-@@ -644,7 +644,7 @@ static void dss_mgr_write_regs_extra(struct omap_overlay_manager *mgr)
+-#ifdef DEBUG
+ static void print_irq_status(u32 status)
  {
- 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
- 
--	DSSDBGF("%d", mgr->id);
-+	DSSDBG("writing mgr %d regs extra", mgr->id);
- 
- 	if (!mp->extra_info_dirty)
+ 	if ((status & dispc.irq_error_mask) == 0)
  		return;
+ 
+-	printk(KERN_DEBUG "DISPC IRQ: 0x%x: ", status);
+-
+-#define PIS(x) \
+-	if (status & DISPC_IRQ_##x) \
+-		printk(#x " ");
+-	PIS(GFX_FIFO_UNDERFLOW);
+-	PIS(OCP_ERR);
+-	PIS(VID1_FIFO_UNDERFLOW);
+-	PIS(VID2_FIFO_UNDERFLOW);
+-	if (dss_feat_get_num_ovls() > 3)
+-		PIS(VID3_FIFO_UNDERFLOW);
+-	PIS(SYNC_LOST);
+-	PIS(SYNC_LOST_DIGIT);
+-	if (dss_has_feature(FEAT_MGR_LCD2))
+-		PIS(SYNC_LOST2);
+-	if (dss_has_feature(FEAT_MGR_LCD3))
+-		PIS(SYNC_LOST3);
++#define PIS(x) (status & DISPC_IRQ_##x) ? (#x " ") : ""
++
++	pr_debug("DISPC IRQ: 0x%x: %s%s%s%s%s%s%s%s%s\n",
++		status,
++		PIS(OCP_ERR),
++		PIS(GFX_FIFO_UNDERFLOW),
++		PIS(VID1_FIFO_UNDERFLOW),
++		PIS(VID2_FIFO_UNDERFLOW),
++		dss_feat_get_num_ovls() > 3 ? PIS(VID3_FIFO_UNDERFLOW) : "",
++		PIS(SYNC_LOST),
++		PIS(SYNC_LOST_DIGIT),
++		dss_has_feature(FEAT_MGR_LCD2) ? PIS(SYNC_LOST2) : "",
++		dss_has_feature(FEAT_MGR_LCD3) ? PIS(SYNC_LOST3) : "");
+ #undef PIS
+-
+-	printk("\n");
+ }
+-#endif
+ 
+ /* Called from dss.c. Note that we don't touch clocks here,
+  * but we presume they are on because we got an IRQ. However,
+@@ -3507,10 +3499,7 @@ static irqreturn_t omap_dispc_irq_handler(int irq, void *arg)
+ 	spin_unlock(&dispc.irq_stats_lock);
+ #endif
+ 
+-#ifdef DEBUG
+-	if (dss_debug)
+-		print_irq_status(irqstatus);
+-#endif
++	print_irq_status(irqstatus);
+ 	/* Ack the interrupt. Do it here before clocks are possibly turned
+ 	 * off */
+ 	dispc_write_reg(DISPC_IRQSTATUS, irqstatus);
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 8d815e3..18834f3 100644
+index 18834f3..ed7ff72 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -1525,7 +1525,7 @@ int dsi_pll_set_clock_div(struct platform_device *dsidev,
- 	u8 regn_start, regn_end, regm_start, regm_end;
- 	u8 regm_dispc_start, regm_dispc_end, regm_dsi_start, regm_dsi_end;
+@@ -1100,28 +1100,16 @@ static inline void dsi_enable_pll_clock(struct platform_device *dsidev,
+ 	}
+ }
  
--	DSSDBGF();
-+	DSSDBG("DSI PLL clock config starts");
- 
- 	dsi->current_cinfo.clkin = cinfo->clkin;
- 	dsi->current_cinfo.fint = cinfo->fint;
-@@ -2334,7 +2334,7 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
- 	int r;
- 	u32 l;
- 
--	DSSDBGF();
-+	DSSDBG("DSI CIO init starts");
- 
- 	r = dss_dsi_enable_pads(dsi->module_id, dsi_get_lane_mask(dssdev));
- 	if (r)
-@@ -2686,7 +2686,7 @@ static void dsi_vc_initial_config(struct platform_device *dsidev, int channel)
+-#ifdef DEBUG
+ static void _dsi_print_reset_status(struct platform_device *dsidev)
  {
- 	u32 r;
+ 	u32 l;
+ 	int b0, b1, b2;
  
--	DSSDBGF("%d", channel);
-+	DSSDBG("Initial Config of Virtual Channel %d", channel);
+-	if (!dss_debug)
+-		return;
+-
+ 	/* A dummy read using the SCP interface to any DSIPHY register is
+ 	 * required after DSIPHY reset to complete the reset of the DSI complex
+ 	 * I/O. */
+ 	l = dsi_read_reg(dsidev, DSI_DSIPHY_CFG5);
  
- 	r = dsi_read_reg(dsidev, DSI_VC_CTRL(channel));
+-	printk(KERN_DEBUG "DSI resets: ");
+-
+-	l = dsi_read_reg(dsidev, DSI_PLL_STATUS);
+-	printk("PLL (%d) ", FLD_GET(l, 0, 0));
+-
+-	l = dsi_read_reg(dsidev, DSI_COMPLEXIO_CFG1);
+-	printk("CIO (%d) ", FLD_GET(l, 29, 29));
+-
+ 	if (dss_has_feature(FEAT_DSI_REVERSE_TXCLKESC)) {
+ 		b0 = 28;
+ 		b1 = 27;
+@@ -1132,18 +1120,21 @@ static void _dsi_print_reset_status(struct platform_device *dsidev)
+ 		b2 = 26;
+ 	}
  
-@@ -2718,7 +2718,7 @@ static int dsi_vc_config_source(struct platform_device *dsidev, int channel,
- 	if (dsi->vc[channel].source == source)
- 		return 0;
+-	l = dsi_read_reg(dsidev, DSI_DSIPHY_CFG5);
+-	printk("PHY (%x%x%x, %d, %d, %d)\n",
+-			FLD_GET(l, b0, b0),
+-			FLD_GET(l, b1, b1),
+-			FLD_GET(l, b2, b2),
+-			FLD_GET(l, 29, 29),
+-			FLD_GET(l, 30, 30),
+-			FLD_GET(l, 31, 31));
++#define DSI_FLD_GET(fld, start, end)\
++	FLD_GET(dsi_read_reg(dsidev, DSI_##fld), start, end)
++
++	pr_debug("DSI resets: PLL (%d) CIO (%d) PHY (%x%x%x, %d, %d, %d)\n",
++		DSI_FLD_GET(PLL_STATUS, 0, 0),
++		DSI_FLD_GET(COMPLEXIO_CFG1, 29, 29),
++		DSI_FLD_GET(DSIPHY_CFG5, b0, b0),
++		DSI_FLD_GET(DSIPHY_CFG5, b1, b1),
++		DSI_FLD_GET(DSIPHY_CFG5, b2, b2),
++		DSI_FLD_GET(DSIPHY_CFG5, 29, 29),
++		DSI_FLD_GET(DSIPHY_CFG5, 30, 30),
++		DSI_FLD_GET(DSIPHY_CFG5, 31, 31));
++
++#undef DSI_FLD_GET
+ }
+-#else
+-#define _dsi_print_reset_status(x)
+-#endif
  
--	DSSDBGF("%d", channel);
-+	DSSDBG("Source Config of Virtual Channel %d", channel);
- 
- 	dsi_sync_vc(dsidev, channel);
- 
-@@ -3475,7 +3475,7 @@ static int dsi_enter_ulps(struct platform_device *dsidev)
- 	int r, i;
- 	unsigned mask;
- 
--	DSSDBGF();
-+	DSSDBG("Entering ULPS");
- 
- 	WARN_ON(!dsi_bus_is_locked(dsidev));
- 
-@@ -4184,7 +4184,7 @@ int omapdss_dsi_set_clocks(struct omap_dss_device *dssdev,
- 	unsigned long pck;
- 	int r;
- 
--	DSSDBGF("ddr_clk %lu, lp_clk %lu", ddr_clk, lp_clk);
-+	DSSDBG("Setting DSI clocks: ddr_clk %lu, lp_clk %lu", ddr_clk, lp_clk);
- 
- 	mutex_lock(&dsi->lock);
- 
+ static inline int dsi_if_enable(struct platform_device *dsidev, bool enable)
+ {
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 5e9fd769..3a2caab 100644
+index 3a2caab..0015803 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -29,38 +29,20 @@
- 
- #ifdef DEBUG
- extern bool dss_debug;
--#ifdef DSS_SUBSYS_NAME
--#define DSSDBG(format, ...) \
--	if (dss_debug) \
--		printk(KERN_DEBUG "omapdss " DSS_SUBSYS_NAME ": " format, \
--		## __VA_ARGS__)
--#else
--#define DSSDBG(format, ...) \
--	if (dss_debug) \
--		printk(KERN_DEBUG "omapdss: " format, ## __VA_ARGS__)
+@@ -27,10 +27,6 @@
+ #define DEBUG
  #endif
  
--#ifdef DSS_SUBSYS_NAME
--#define DSSDBGF(format, ...) \
--	if (dss_debug) \
--		printk(KERN_DEBUG "omapdss " DSS_SUBSYS_NAME \
--				": %s(" format ")\n", \
--				__func__, \
--				## __VA_ARGS__)
--#else
--#define DSSDBGF(format, ...) \
--	if (dss_debug) \
--		printk(KERN_DEBUG "omapdss: " \
--				": %s(" format ")\n", \
--				__func__, \
--				## __VA_ARGS__)
-+#ifdef pr_fmt
-+#undef pr_fmt
+-#ifdef DEBUG
+-extern bool dss_debug;
+-#endif
+-
+ #ifdef pr_fmt
+ #undef pr_fmt
  #endif
- 
--#else /* DEBUG */
--#define DSSDBG(format, ...)
--#define DSSDBGF(format, ...)
-+#ifdef DSS_SUBSYS_NAME
-+#define pr_fmt(fmt) DSS_SUBSYS_NAME ": " fmt
-+#else
-+#define pr_fmt(fmt) fmt
- #endif
- 
-+#define DSSDBG(format, ...) \
-+	pr_debug(format, ## __VA_ARGS__)
- 
- #ifdef DSS_SUBSYS_NAME
- #define DSSERR(format, ...) \
 -- 
 1.7.10
 
