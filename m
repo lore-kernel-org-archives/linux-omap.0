@@ -1,30 +1,31 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH 1/3] uio: uio_pruss: port to AM33xx
-Date: Wed, 26 Sep 2012 14:10:19 -0700
-Message-ID: <20120926211019.GB16674@kroah.com>
-References: <1348667071-12631-1-git-send-email-mporter@ti.com>
- <1348667071-12631-2-git-send-email-mporter@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v6 0/7] ARM: OMAP2+: PM: introduce the power domains
+ functional states
+Date: Wed, 26 Sep 2012 21:28:55 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209262127230.23731@utopia.booyaka.com>
+References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1348667071-12631-2-git-send-email-mporter@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:44828 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119Ab2IZV24 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 17:28:56 -0400
+In-Reply-To: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Sep 26, 2012 at 09:44:29AM -0400, Matt Porter wrote:
-> Add ifdefery hacks to only use SRAM on Davinci. This
-> needs to be cleaned up with a sane generic SRAM allocator
-> (like the DT based driver available that can't be used on
-> Davinci which is just starting DT conversion) before it
-> can go upstream.
-> 
-> Adds DT, pinctrl, and runtime PM support for use on
-> AM33xx.
+Hi Jean,
 
-Ick, that's really messy, no other way to do this in a "cleaner"
-fashion?
+On Wed, 12 Sep 2012, Jean Pihet wrote:
 
-greg k-h
+> Here is a re-spin after some comments and suggestions after review and 
+> discussions.
+
+Thanks Jean, I'll take it from here, probably with some changes which I 
+will respond to the individual patches, probably for 3.8.
+
+
+- Paul
