@@ -1,72 +1,79 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH V2 7/7] ARM: OMAP: Add DT support for timer driver
-Date: Wed, 26 Sep 2012 11:11:40 -0500
-Message-ID: <5063293C.1080404@gmail.com>
-References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com> <1347579091-3794-8-git-send-email-jon-hunter@ti.com> <50632497.2070103@ti.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: replacement for /sys/kernel/debug/omap_mux in DT/pinctrl land ?
+Date: Wed, 26 Sep 2012 12:15:46 -0400
+Message-ID: <20120926161546.GC5641@beef>
+References: <D7202A6C-5250-4B55-B3B8-FF15BCCA97AC@dominion.thruhere.net>
+ <20120926125658.GA5641@beef>
+ <CACRpkdYqVC4Vou+0Mn1OmQg8vPxDULDcFDD0yV5nassqkE1Zag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:44505 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755297Ab2IZQLn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 12:11:43 -0400
-Received: by obbuo13 with SMTP id uo13so736128obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 26 Sep 2012 09:11:43 -0700 (PDT)
-In-Reply-To: <50632497.2070103@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdYqVC4Vou+0Mn1OmQg8vPxDULDcFDD0yV5nassqkE1Zag@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Koen Kooi <koen@dominion.thruhere.net>, List List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 09/26/2012 10:51 AM, Jon Hunter wrote:
-> Hi Rob,
+On Wed, Sep 26, 2012 at 03:03:27PM +0200, Linus Walleij wrote:
+> On Wed, Sep 26, 2012 at 2:56 PM, Matt Porter <mporter@ti.com> wrote:
+> > Adding Linus W. and lkml.
+> > On Wed, Sep 26, 2012 at 01:46:45PM +0200, Koen Kooi wrote:
+> >> Hi,
+> >>
+> >> With a patched 3.6rc7 on my beaglebone I can set the pinmux for pins using pinctrl and that seems to work. On the 3.2 vendor tree there was the omap_mux driver with an awesome debugfs interface:
+> >>
+> >> # cat /sys/kernel/debug/omap_mux/lcd_data0
+> >> name: lcd_data0.ehrpwm2A (0x44e108a0/0x8a0 = 0x0003), b NA, t NA
+> >> mode: OMAP_PIN_OUTPUT | OMAP_MUX_MODE3
+> >> signals: lcd_data0 | gpmc_a0 | pr1_mii_mt0_clk | ehrpwm2A | NA | pr1_pru1_pru_r30_0 | pr1_pru1_pru_r31_0 | gpio2_6
+> >>
+> >> Notice how it tells me that it's muxed the PWM in 2 ways: signal name (ehrpwm2A) and register content (0x0003). Compare to pinctrl:
+> >>
+> >> root@bone-mainline:/sys/kernel/debug/pinctrl/44e10800.pinmux# grep 8a0 *
+> >> pinconf-pins:pin 40 (44e108a0):
+> >> pingroups:pin 40 (44e108a0)
+> >> pinmux-pins:pin 40 (44e108a0): 4a300000.pruss (GPIO UNCLAIMED) function pinmux_pruss_led_pins group pinmux_pruss_led_pins
+> >> pins:pin 40 (44e108a0)  pinctrl-single
+> >>
+> >> What is that pin muxed to? It is part of the 'pinmux_pruss_led_pins' in the DT, but debugfs remains mute on how pin 40 is muxed.
+> >
+> > It does seem like a pretty big gap in the pinctrl/pinmux debugfs
+> > interface when viewed from an OMAP perspective. Ideally there would
+> > be a pinctrl/pinmux hook to the pinmux driver to provide the detailed
+> > h/w specific pin state info.
+> 
+> So add the hooks you need?
+ 
+Ok. :)
 
+> I assume you are using Tony's pinctrl-single driver, so Tony is the one to ask.
 
+Yes, so roughly for pinctrl-single I have the following...likely broken
+for arbitrary register sizes but a starting point. Tony, any thoughts
+about this?
 
->>  #define OMAP3_32K_SOURCE	"omap_32k_fck"
->>  #define OMAP4_32K_SOURCE	"sys_32k_ck"
->>  
->> +#define TIMER_PROP_ALWON	"ti,timer-alwon"
->> +
-> 
-> I see you made the following comment [1] here ...
-> 
-> "It would be easier to follow the code if you use the strings directly
-> (and you do in some places)."
-> 
-> I could avoid the above definition.
-> 
->>  #ifdef CONFIG_OMAP_32K_TIMER
->>  #define OMAP2_CLKEV_SOURCE	OMAP2_32K_SOURCE
->>  #define OMAP3_CLKEV_SOURCE	OMAP3_32K_SOURCE
->>  #define OMAP4_CLKEV_SOURCE	OMAP4_32K_SOURCE
->>  #define OMAP3_SECURE_TIMER	12
->> +#define TIMER_PROP_SECURE	"ti,timer-secure"
->>  #else
->>  #define OMAP2_CLKEV_SOURCE	OMAP2_MPU_SOURCE
->>  #define OMAP3_CLKEV_SOURCE	OMAP3_MPU_SOURCE
->>  #define OMAP4_CLKEV_SOURCE	OMAP4_MPU_SOURCE
->>  #define OMAP3_SECURE_TIMER	1
->> +#define TIMER_PROP_SECURE	TIMER_PROP_ALWON
->>  #endif
-> 
-> Are you ok, with having the TIMER_PROP_SECURE definition or would you
-> prefer I handle this differently? This is dependent on the kernel config.\
+Koen: you just need a userspace tool that groks the raw data for human
+consumption. The nice thing is that the old omap_mux implementation had
+plenty of OMAP-isms in the parser that didn't apply to AM33xx. A
+userspace tool can do a better job of parsing on a per-part basis.
 
-Yes, that's fine.
-
-Rob
-
-> 
-> Cheers
-> Jon
-> 
-> [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/84458/focus=84982
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
-
+--- a/drivers/pinctrl/pinctrl-single.c
++++ b/drivers/pinctrl/pinctrl-single.c
+@@ -246,7 +246,15 @@ static void pcs_pin_dbg_show(struct pinctrl_dev *pctldev,
+ 					struct seq_file *s,
+ 					unsigned offset)
+ {
+-	seq_printf(s, " " DRIVER_NAME);
++	struct pcs_device *pcs;
++	unsigned val;
++
++	pcs = pinctrl_dev_get_drvdata(pctldev);
++
++	val = pcs->read(pcs->base + offset);
++	val &= pcs->fmask;
++
++	seq_printf(s, "%08x %s " , val, DRIVER_NAME);
+ }
+ 
+ static void pcs_dt_free_map(struct pinctrl_dev *pctldev,
