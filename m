@@ -1,60 +1,266 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 0/2] OMAP: mailbox initial device tree support
-Date: Wed, 26 Sep 2012 16:27:25 -0700
-Message-ID: <50638F5D.8070508@ti.com>
-References: <1347494898-16671-1-git-send-email-omar.luna@linaro.org> <1347494898-16671-4-git-send-email-omar.luna@linaro.org> <CALLhW=4d8zxekkeGr1S52aGbufyk-vGeE9REYhDSt8pnap_Dxw@mail.gmail.com>
+From: "Hans J. Koch" <hjk@hansjkoch.de>
+Subject: Re: [RFC PATCH 1/3] uio: uio_pruss: port to AM33xx
+Date: Thu, 27 Sep 2012 01:51:18 +0200
+Message-ID: <20120926235117.GD4776@local>
+References: <1348667071-12631-1-git-send-email-mporter@ti.com>
+ <1348667071-12631-2-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CALLhW=4d8zxekkeGr1S52aGbufyk-vGeE9REYhDSt8pnap_Dxw@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1348667071-12631-2-git-send-email-mporter@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Porter <mporter@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Omar,
+On Wed, Sep 26, 2012 at 09:44:29AM -0400, Matt Porter wrote:
+> Add ifdefery hacks to only use SRAM on Davinci. This
+> needs to be cleaned up with a sane generic SRAM allocator
+> (like the DT based driver available that can't be used on
+> Davinci which is just starting DT conversion) before it
+> can go upstream.
 
-On 9/26/2012 3:21 PM, Omar Ramirez Luna wrote:
-> Hi Benoit,
->
-> On 12 September 2012 19:08, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
->> To allow mailbox driver to function with device tree.
->>
->> Tested in OMAP4 and OMAP3. OMAP2 untested.
->>
->> Patch: arm/dts: OMAP2+: Add mailbox nodes, was Acked by Benoit
->> however it seems it wasn't picked up, so resend.
->>
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69121.html
->>
->> Patch: OMAP: mailbox: add device tree support, there wasn't an
->> opposition other than to cleanup the driver too, however I got
->> quite some patches to send before continuing the cleanup.
->>
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69338.html
->>
->> Omar Ramirez Luna (2):
->>    OMAP: mailbox: add device tree support
->>    arm/dts: OMAP2+: Add mailbox nodes
->>
->>   .../devicetree/bindings/arm/omap/mailbox.txt       |    9 +++++++++
->>   arch/arm/boot/dts/omap2.dtsi                       |    5 +++++
->>   arch/arm/boot/dts/omap3.dtsi                       |    5 +++++
->>   arch/arm/boot/dts/omap4.dtsi                       |    5 +++++
->>   arch/arm/mach-omap2/devices.c                      |    3 +++
->>   arch/arm/mach-omap2/mailbox.c                      |   12 ++++++++++++
->>   6 files changed, 39 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/arm/omap/mailbox.txt
->
-> Ping. I'm in the understanding that these go through your tree, am I right?
+I agree with that ;-)
+Needing lots of ifdefs in *.c files is usually a bad sign...
 
-Since it is too late for 3.7, you should probably do two more things:
-- move the mailbox driver outside mach-omap2
-- move the nr_mbox information in the driver as well instead of the 
-hwmod for the DT boot.
+Thanks anyway for posting, it's good to have things like that in the archives.
 
+And please make driver code and documentation updates separate patches in the
+future.
 
-Regards,
-Benoit
+Hans
 
+> 
+> Adds DT, pinctrl, and runtime PM support for use on
+> AM33xx.
+> 
+> Signed-off-by: Matt Porter <mporter@ti.com>
+> ---
+>  Documentation/devicetree/bindings/uio/pruss.txt    |   17 ++++++
+>  .../devicetree/bindings/uio/uio_pruss.txt          |   17 ++++++
+>  drivers/uio/Kconfig                                |    4 +-
+>  drivers/uio/uio_pruss.c                            |   63 +++++++++++++++++++-
+>  4 files changed, 98 insertions(+), 3 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/uio/pruss.txt
+>  create mode 100644 Documentation/devicetree/bindings/uio/uio_pruss.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/uio/pruss.txt b/Documentation/devicetree/bindings/uio/pruss.txt
+> new file mode 100644
+> index 0000000..2ac45c5
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/uio/pruss.txt
+> @@ -0,0 +1,17 @@
+> +TI PRUSS device
+> +
+> +Required properties:
+> +- compatible :
+> +  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
+> +  - "ti,pruss-v2" for AM33xx.
+> +- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
+> +- ti,hwmods: Name of the hwmod associated to the PRUSS
+> +
+> +Example:
+> +
+> +pruss: pruss@4a300000 {
+> +	compatible = "ti,pruss-v2";
+> +	ti,hwmods = "pruss";
+> +	reg = <0x4a300000 0x080000>;
+> +	ti,pintc-offset = <0x20000>;
+> +};
+> diff --git a/Documentation/devicetree/bindings/uio/uio_pruss.txt b/Documentation/devicetree/bindings/uio/uio_pruss.txt
+> new file mode 100644
+> index 0000000..2ac45c5
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/uio/uio_pruss.txt
+> @@ -0,0 +1,17 @@
+> +TI PRUSS device
+> +
+> +Required properties:
+> +- compatible :
+> +  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
+> +  - "ti,pruss-v2" for AM33xx.
+> +- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
+> +- ti,hwmods: Name of the hwmod associated to the PRUSS
+> +
+> +Example:
+> +
+> +pruss: pruss@4a300000 {
+> +	compatible = "ti,pruss-v2";
+> +	ti,hwmods = "pruss";
+> +	reg = <0x4a300000 0x080000>;
+> +	ti,pintc-offset = <0x20000>;
+> +};
+> diff --git a/drivers/uio/Kconfig b/drivers/uio/Kconfig
+> index 6f3ea9b..8da7d9b 100644
+> --- a/drivers/uio/Kconfig
+> +++ b/drivers/uio/Kconfig
+> @@ -96,9 +96,9 @@ config UIO_NETX
+>  
+>  config UIO_PRUSS
+>  	tristate "Texas Instruments PRUSS driver"
+> -	depends on ARCH_DAVINCI_DA850
+> +	depends on ARCH_DAVINCI_DA850 || SOC_AM33XX
+>  	help
+> -	  PRUSS driver for OMAPL138/DA850/AM18XX devices
+> +	  PRUSS driver for OMAPL138/DA850/AM18XX and AM33XX devices
+>  	  PRUSS driver requires user space components, examples and user space
+>  	  driver is available from below SVN repo - you may use anonymous login
+>  
+> diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
+> index 33a7a27..326ce40 100644
+> --- a/drivers/uio/uio_pruss.c
+> +++ b/drivers/uio/uio_pruss.c
+> @@ -25,7 +25,15 @@
+>  #include <linux/clk.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/slab.h>
+> +#include <linux/of_address.h>
+> +#include <linux/of_device.h>
+> +#include <linux/pinctrl/consumer.h>
+> +#include <linux/err.h>
+> +#include <linux/pm_runtime.h>
+> +
+> +#ifdef CONFIG_ARCH_DAVINCI_DA850
+>  #include <mach/sram.h>
+> +#endif
+>  
+>  #define DRV_NAME "pruss_uio"
+>  #define DRV_VERSION "1.0"
+> @@ -105,8 +113,10 @@ static void pruss_cleanup(struct platform_device *dev,
+>  		dma_free_coherent(&dev->dev, extram_pool_sz, gdev->ddr_vaddr,
+>  			gdev->ddr_paddr);
+>  	}
+> +#ifdef CONFIG_ARCH_DAVINCI_DA850
+>  	if (gdev->sram_vaddr)
+>  		sram_free(gdev->sram_vaddr, sram_pool_sz);
+> +#endif
+>  	kfree(gdev->info);
+>  	clk_put(gdev->pruss_clk);
+>  	kfree(gdev);
+> @@ -117,8 +127,10 @@ static int __devinit pruss_probe(struct platform_device *dev)
+>  	struct uio_info *p;
+>  	struct uio_pruss_dev *gdev;
+>  	struct resource *regs_prussio;
+> +	struct resource res;
+>  	int ret = -ENODEV, cnt = 0, len;
+>  	struct uio_pruss_pdata *pdata = dev->dev.platform_data;
+> +	struct pinctrl *pinctrl;
+>  
+>  	gdev = kzalloc(sizeof(struct uio_pruss_dev), GFP_KERNEL);
+>  	if (!gdev)
+> @@ -129,6 +141,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
+>  		kfree(gdev);
+>  		return -ENOMEM;
+>  	}
+> +#ifdef CONFIG_ARCH_DAVINCI_DA850
+>  	/* Power on PRU in case its not done as part of boot-loader */
+>  	gdev->pruss_clk = clk_get(&dev->dev, "pruss");
+>  	if (IS_ERR(gdev->pruss_clk)) {
+> @@ -140,6 +153,28 @@ static int __devinit pruss_probe(struct platform_device *dev)
+>  	} else {
+>  		clk_enable(gdev->pruss_clk);
+>  	}
+> +#endif
+> +
+> +	if (dev->dev.of_node) {
+> +		pm_runtime_enable(&dev->dev);
+> +		ret = pm_runtime_get_sync(&dev->dev);
+> +		if (IS_ERR_VALUE(ret)) {
+> +			dev_err(&dev->dev, "pm_runtime_get_sync() failed\n");
+> +			return ret;
+> +		}
+> +
+> +		ret = of_address_to_resource(dev->dev.of_node, 0, &res);
+> +		if (IS_ERR_VALUE(ret)) {
+> +			dev_err(&dev->dev, "failed to parse DT reg\n");
+> +			return ret;
+> +		}
+> +		regs_prussio = &res;
+> +	}
+> +
+> +	pinctrl = devm_pinctrl_get_select_default(&dev->dev);
+> +	if (IS_ERR(pinctrl))
+> +		dev_warn(&dev->dev,
+> +			"pins are not configured from the driver\n");
+>  
+>  	regs_prussio = platform_get_resource(dev, IORESOURCE_MEM, 0);
+>  	if (!regs_prussio) {
+> @@ -152,11 +187,13 @@ static int __devinit pruss_probe(struct platform_device *dev)
+>  		goto out_free;
+>  	}
+>  
+> +#ifdef CONFIG_ARCH_DAVINCI_DA850
+>  	gdev->sram_vaddr = sram_alloc(sram_pool_sz, &(gdev->sram_paddr));
+>  	if (!gdev->sram_vaddr) {
+>  		dev_err(&dev->dev, "Could not allocate SRAM pool\n");
+>  		goto out_free;
+>  	}
+> +#endif
+>  
+>  	gdev->ddr_vaddr = dma_alloc_coherent(&dev->dev, extram_pool_sz,
+>  				&(gdev->ddr_paddr), GFP_KERNEL | GFP_DMA);
+> @@ -172,7 +209,17 @@ static int __devinit pruss_probe(struct platform_device *dev)
+>  		goto out_free;
+>  	}
+>  
+> -	gdev->pintc_base = pdata->pintc_base;
+> +	if (dev->dev.of_node) {
+> +		ret = of_property_read_u32(dev->dev.of_node,
+> +					   "ti,pintc-offset",
+> +					   &gdev->pintc_base);
+> +		if (ret < 0) {
+> +			dev_err(&dev->dev,
+> +				"Can't parse ti,pintc-offset property\n");
+> +			goto out_free;
+> +		}
+> +	} else
+> +		gdev->pintc_base = pdata->pintc_base;
+>  	gdev->hostirq_start = platform_get_irq(dev, 0);
+>  
+>  	for (cnt = 0, p = gdev->info; cnt < MAX_PRUSS_EVT; cnt++, p++) {
+> @@ -180,6 +227,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
+>  		p->mem[0].size = resource_size(regs_prussio);
+>  		p->mem[0].memtype = UIO_MEM_PHYS;
+>  
+> +#ifdef CONFIG_ARCH_DAVINCI_DA850
+>  		p->mem[1].addr = gdev->sram_paddr;
+>  		p->mem[1].size = sram_pool_sz;
+>  		p->mem[1].memtype = UIO_MEM_PHYS;
+> @@ -187,6 +235,11 @@ static int __devinit pruss_probe(struct platform_device *dev)
+>  		p->mem[2].addr = gdev->ddr_paddr;
+>  		p->mem[2].size = extram_pool_sz;
+>  		p->mem[2].memtype = UIO_MEM_PHYS;
+> +#else
+> +		p->mem[1].addr = gdev->ddr_paddr;
+> +		p->mem[1].size = extram_pool_sz;
+> +		p->mem[1].memtype = UIO_MEM_PHYS;
+> +#endif
+>  
+>  		p->name = kasprintf(GFP_KERNEL, "pruss_evt%d", cnt);
+>  		p->version = DRV_VERSION;
+> @@ -218,12 +271,20 @@ static int __devexit pruss_remove(struct platform_device *dev)
+>  	return 0;
+>  }
+>  
+> +static const struct of_device_id pruss_dt_ids[] = {
+> +	{ .compatible = "ti,pruss-v1", .data = NULL, },
+> +	{ .compatible = "ti,pruss-v2", .data = NULL, },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, pruss_dt_ids);
+> +
+>  static struct platform_driver pruss_driver = {
+>  	.probe = pruss_probe,
+>  	.remove = __devexit_p(pruss_remove),
+>  	.driver = {
+>  		   .name = DRV_NAME,
+>  		   .owner = THIS_MODULE,
+> +		   .of_match_table = pruss_dt_ids,
+>  		   },
+>  };
+>  
+> -- 
+> 1.7.9.5
+> 
+> 
