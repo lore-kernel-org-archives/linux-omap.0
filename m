@@ -1,40 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/2] omap3isp: Configure CSI-2 phy based on platform
- data
-Date: Wed, 26 Sep 2012 15:00:19 -0700
-Message-ID: <20120926220018.GJ4840@atomide.com>
-References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
- <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH v2 0/2] OMAP: mailbox initial device tree support
+Date: Wed, 26 Sep 2012 17:21:24 -0500
+Message-ID: <CALLhW=4d8zxekkeGr1S52aGbufyk-vGeE9REYhDSt8pnap_Dxw@mail.gmail.com>
+References: <1347494898-16671-1-git-send-email-omar.luna@linaro.org>
+	<1347494898-16671-4-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10771 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750895Ab2IZWAY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 18:00:24 -0400
-Content-Disposition: inline
-In-Reply-To: <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1347494898-16671-4-git-send-email-omar.luna@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.luna@linaro.org>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: paul@pwsan.com, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-Moi Sakari
+Hi Benoit,
 
-* Sakari Ailus <sakari.ailus@iki.fi> [120926 14:51]:
-> Configure CSI-2 phy based on platform data in the ISP driver. For that, the
-> new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
-> was configured from the board code.
-> 
-> This patch is dependent on "omap3: Provide means for changing CSI2 PHY
-> configuration".
+On 12 September 2012 19:08, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
+> To allow mailbox driver to function with device tree.
+>
+> Tested in OMAP4 and OMAP3. OMAP2 untested.
+>
+> Patch: arm/dts: OMAP2+: Add mailbox nodes, was Acked by Benoit
+> however it seems it wasn't picked up, so resend.
+>
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69121.html
+>
+> Patch: OMAP: mailbox: add device tree support, there wasn't an
+> opposition other than to cleanup the driver too, however I got
+> quite some patches to send before continuing the cleanup.
+>
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69338.html
+>
+> Omar Ramirez Luna (2):
+>   OMAP: mailbox: add device tree support
+>   arm/dts: OMAP2+: Add mailbox nodes
+>
+>  .../devicetree/bindings/arm/omap/mailbox.txt       |    9 +++++++++
+>  arch/arm/boot/dts/omap2.dtsi                       |    5 +++++
+>  arch/arm/boot/dts/omap3.dtsi                       |    5 +++++
+>  arch/arm/boot/dts/omap4.dtsi                       |    5 +++++
+>  arch/arm/mach-omap2/devices.c                      |    3 +++
+>  arch/arm/mach-omap2/mailbox.c                      |   12 ++++++++++++
+>  6 files changed, 39 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/mailbox.txt
 
-Can you please do one more patch to get rid of the last remaining
-cpu_is_omapxxxx check in drivers/media/platform/omap3isp/isp.c?
-
-That data should come from platform_data (or device tree) as
-we going to make cpu_is_omap privat to mach-omap2.
+Ping. I'm in the understanding that these go through your tree, am I right?
 
 Regards,
 
-Tony
+Omar
