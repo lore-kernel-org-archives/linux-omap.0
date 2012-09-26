@@ -1,62 +1,39 @@
-From: Vikram Narayanan <vikram186@gmail.com>
-Subject: [PATCH] arm/omap: Replace board_ref_clock with enum values
-Date: Wed, 26 Sep 2012 22:12:22 +0530
-Message-ID: <5063306E.8080200@gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V2 0/7] ARM: OMAP2+: Add device-tree support for timers
+Date: Wed, 26 Sep 2012 11:53:34 -0500
+Message-ID: <5063330E.3000203@ti.com>
+References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com> <505A7E0B.30709@ti.com> <20120920235309.GO28835@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:59277 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752173Ab2IZQmc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Sep 2012 12:42:32 -0400
-Received: by padhz1 with SMTP id hz1so591873pad.19
-        for <linux-omap@vger.kernel.org>; Wed, 26 Sep 2012 09:42:32 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:44987 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751777Ab2IZQxo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 26 Sep 2012 12:53:44 -0400
+In-Reply-To: <20120920235309.GO28835@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Use the enum for board_ref_clock from linux/wl12xx.h
 
-Signed-off-by: Vikram Narayanan <vikram186@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
----
-I'm not subscribed to the list. So please keep me in Cc for the replies.
+On 09/20/2012 06:53 PM, Tony Lindgren wrote:
+> * Benoit Cousson <b-cousson@ti.com> [120919 19:24]:
+>> Hi Tony,
+>>
+>> I was about to take the DTS patch, but was wondering if you will pull
+>> the driver changes for 3.7.
+> 
+> I suggest that you do a separate branch on top of Paul's hwmod series
+> when he posts those if that works for you?
 
- arch/arm/mach-omap2/board-omap4panda.c       |    3 +--
- arch/arm/mach-omap2/board-zoom-peripherals.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+Benoit, I see that you have pulled in the DTS patch.
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 70f6d1d..e188765 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -248,8 +248,7 @@ static struct platform_device omap_vwlan_device = {
- };
- 
- static struct wl12xx_platform_data omap_panda_wlan_data  __initdata = {
--	/* PANDA ref clock is 38.4 MHz */
--	.board_ref_clock = 2,
-+	.board_ref_clock = WL12XX_REFCLOCK_38, /* 38.4 MHz */
- };
- 
- static struct twl6040_codec_data twl6040_codec = {
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index b797cb2..499dca7 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -193,8 +193,7 @@ static struct platform_device omap_vwlan_device = {
- };
- 
- static struct wl12xx_platform_data omap_zoom_wlan_data __initdata = {
--	/* ZOOM ref clock is 26 MHz */
--	.board_ref_clock = 1,
-+	.board_ref_clock = WL12XX_REFCLOCK_26, /* 26 MHz */
- };
- 
- static struct omap2_hsmmc_info mmc[] = {
--- 
-1.7.4.1
+Do you guys want me to rebase the remaining patches with Rob's change on
+Tony's master branch and re-submit?
+
+Cheers
+Jon
+
 
