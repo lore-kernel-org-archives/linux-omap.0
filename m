@@ -1,55 +1,87 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH v2 16/18] OMAPDSS: DISPC: Configure writeback FIFOs
-Date: Wed, 26 Sep 2012 11:01:28 +0530
-Message-ID: <50629330.5090902@ti.com>
-References: <1347538505-25359-1-git-send-email-archit@ti.com>  <1348553993-8083-1-git-send-email-archit@ti.com>  <1348553993-8083-17-git-send-email-archit@ti.com> <1348584652.21717.7.camel@lappyti>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/4] usb: phy: omap-usb2: enable 960Mhz clock for omap5
+Date: Wed, 26 Sep 2012 11:10:48 +0530
+Message-ID: <CAAe_U6Kr8t1=T7MGMjAe+1n6S-NncypnPkXYqA2_FtVK=uxULA@mail.gmail.com>
+References: <1348054229-27362-1-git-send-email-kishon@ti.com>
+ <1348054229-27362-5-git-send-email-kishon@ti.com>
+ <20120919115647.GI3772@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45357 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751397Ab2IZFb0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Sep 2012 01:31:26 -0400
-In-Reply-To: <1348584652.21717.7.camel@lappyti>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20120919115647.GI3772-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Tuesday 25 September 2012 08:20 PM, Tomi Valkeinen wrote:
-> On Tue, 2012-09-25 at 11:49 +0530, Archit Taneja wrote:
->> Extend the DISPC fifo functions to also configure the writeback FIFO thresholds.
+Hi,
+
+On Wed, Sep 19, 2012 at 5:26 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> On Wed, Sep 19, 2012 at 05:00:29PM +0530, Kishon Vijay Abraham I wrote:
+>> "usb_otg_ss_refclk960m" is needed by usb2 phy present in omap5. For
+>> omap4, the clk_get of this clock will fail since it does not have this
+>> clock.
 >>
->> The most optimal configuration for writeback is to push out data to the
->> interconnect the moment writeback pushes enough pixels in the FIFO to form a
->> burst. This reduces the chance of writeback overflowing it's FIFO.
+>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  Documentation/devicetree/bindings/usb/usb-phy.txt |    3 +++
+>>  drivers/usb/phy/omap-usb2.c                       |   28 ++++++++++++++++++++-
+>>  2 files changed, 30 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
+>> index 7c5fd89..d5626de 100644
+>> --- a/Documentation/devicetree/bindings/usb/usb-phy.txt
+>> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
+>> @@ -24,6 +24,9 @@ Required properties:
+>>  add the address of control module phy power register until a driver for
+>>  control module is added
+>>
+>> +Optional properties:
+>> + - has960mhzclk: should be added if the phy needs 960mhz clock
+>> +
+>>  This is usually a subnode of ocp2scp to which it is connected.
+>>
+>>  usb3phy@4a084400 {
+>> diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
+>> index d36c282..d6612ba 100644
+>> --- a/drivers/usb/phy/omap-usb2.c
+>> +++ b/drivers/usb/phy/omap-usb2.c
+>> @@ -146,6 +146,7 @@ static int __devinit omap_usb2_probe(struct platform_device *pdev)
+>>       struct omap_usb                 *phy;
+>>       struct usb_otg                  *otg;
+>>       struct resource                 *res;
+>> +     struct device_node              *np = pdev->dev.of_node;
+>>
+>>       phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+>>       if (!phy) {
+>> @@ -190,6 +191,15 @@ static int __devinit omap_usb2_probe(struct platform_device *pdev)
+>>       }
+>>       clk_prepare(phy->wkupclk);
+>>
+>> +     if (of_property_read_bool(np, "has960mhzclk")) {
+>> +             phy->optclk = devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
+>> +             if (IS_ERR(phy->optclk)) {
+>> +                     dev_err(&pdev->dev, "unable to get refclk960m\n");
+>> +                     return PTR_ERR(phy->optclk);
+>> +             }
+>> +             clk_prepare(phy->optclk);
+>> +     }
 >
-> Hmm, why is this optimal?
->
-> The FIFO for WB is the output fifo, right? In mem-to-mem mode the whole
-> WB pipeline can stall, so the fifo can't overflow? If so, isn't it
-> better to collect more data and flush all that to the memory, instead of
-> sending each burst-size piece one by one?
+> instead, can't you just always try to get the clock but ignore the error
+> if it fails ?
 
-I guess this configuration is optimal for capture mode. Where the input 
-side will push out data at the rate of pixel clock, and writeback has to 
-collect this data and flush to memory. Writeback can't stall here.
+This clock is needed for usb2 to work in dwc3 (omap5). So we have to
+report the error in case we dont get the clock no?
 
-About writeback FIFO overflowing in mem-to-mem mode, I'm not totally 
-sure about this. But what you are saying seems valid, writeback would 
-stall the input. So it should be safe to accumulate content in the FIFO, 
-and push out large number of bursts together.
-
->
-> Then again, if the input side is reading pixels from the memory all the
-> time, even if the output fifo helps to keep the output side idle for
-> longer periods, it probably doesn't help as the input side keeps the
-> memory bus awake.
-
-Maybe if the FIFOs are adjusted such that reading of the pixels from 
-input side and writeback flushing out can be done at the same time, then 
-we might idle the memory bus more. I don't know if this is possible though.
-
-Archit
-
+Thanks
+Kishon
