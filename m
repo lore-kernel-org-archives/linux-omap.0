@@ -1,75 +1,53 @@
-From: Christian Hoffmann <email@christianhoffmann.info>
-Subject: Re: CPU_IDLE causes random reboots on custom 4430
-Date: Tue, 25 Sep 2012 23:10:08 +0200
-Message-ID: <50621DB0.9090607@christianhoffmann.info>
-References: <505CEEFD.1080507@gmail.com> <CAMQu2gwwU2QYAmn+WY19t5krOJeEUF7YT03FojLbQcfo3h4BmQ@mail.gmail.com> <505DF146.6050100@gmail.com> <CAMQu2gw=Tki8uk_65w9iu645LY798Fr_GMHydF5XfZf8Xch5Yg@mail.gmail.com>
+From: Omar Ramirez Luna <omar.ramirez@copitl.com>
+Subject: Re: tidspbridge build fails
+Date: Tue, 25 Sep 2012 19:35:36 -0500
+Message-ID: <CAJ6Av5M2fNRvR275rFX4ch+gYuCy+EJDRMex8MGfqLdXxq3QaA@mail.gmail.com>
+References: <CAOSRfZ7FsVw+MOUfGZZFiCrg2Ec1iSgypdY=Lijzn_x8NpkhLw@mail.gmail.com>
+	<loom.20120924T183345-467@post.gmane.org>
+	<CAJ6Av5M4BWy709qLLz5HOjXL87GjTqyF6qQku-DSW1B2hNJxJQ@mail.gmail.com>
+	<loom.20120925T193504-862@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [88.175.101.52] ([88.175.101.52]:42798 "EHLO
-	christianhoffmann.info" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1757997Ab2IYVKh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Sep 2012 17:10:37 -0400
-In-Reply-To: <CAMQu2gw=Tki8uk_65w9iu645LY798Fr_GMHydF5XfZf8Xch5Yg@mail.gmail.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:56190 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751148Ab2IZAfh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Sep 2012 20:35:37 -0400
+Received: by ieak13 with SMTP id k13so94251iea.19
+        for <linux-omap@vger.kernel.org>; Tue, 25 Sep 2012 17:35:36 -0700 (PDT)
+In-Reply-To: <loom.20120925T193504-862@post.gmane.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Chris Hoffmann <chrmhoffmann@gmail.com>, linux-omap@vger.kernel.org
+To: Selso LIBERADO <sli@cioinfoindus.fr>
+Cc: linux-omap@vger.kernel.org
 
-On 09/23/2012 06:11 PM, Shilimkar, Santosh wrote:
-> On Sat, Sep 22, 2012 at 10:41 PM, Chris Hoffmann <chrmhoffmann@gmail.com> wrote:
->> On 09/22/2012 07:45 AM, Shilimkar, Santosh wrote:
->>>
->>> On Sat, Sep 22, 2012 at 4:19 AM, Chris Hoffmann <chrmhoffmann@gmail.com>
->>> wrote:
->>>>
->>>> Hi,
->>>>
->>>> We're trying to get a custom 4430 board (aka. nook tablet with OMAP4430
->>>> ES2.3 HS TWL6030 ES2.1) working with p-android-omap-3.0 on android jelly
->>>> bean. The board works quite well, but we experience random hangs and the
->>>> watchdog kicks the board to reboot.
->>>>
->>> On the same kernel, you should have support for the persistent log. You
->>> might
->>> want to check the output. That should give you pointers on what CPU was
->>> doing before the freeze which resulted in reboot.
->>
->>
->> Hi,
->>
->> I have some problems to provide logs. If I add -DDEBUG to cpuidle44xx.o the
->> problem doesn't seem to occur. It could be that printk-ing alleviates the
->> issue.
->>
->> Also the watchdog seems to shutdown the device rather than rebooting it (or
->> it hangs?) and then I can't provide /proc/last_kmsg.
->>
->> How could I provide more info?
->>
-> Check if you have "/sys/kernel/debug/persistent_trace" available on
-> your kernel. This generally helps whenever there are hangs, the last
-> call stack is stored on memory and on the reboot it can be cat'ed to
-> see if some useful information about hang is available.
+Hi,
 
-Hi Santosh, all,
+On Tue, Sep 25, 2012 at 12:39 PM, Selso LIBERADO <sli@cioinfoindus.fr> wrote:
+> Hi !
+>
+> Here what's happening when applying the patch :
+>
+> sli@SLI-V420:~/developpement/INTERNE/BEAGLEBOARD/logiciel/linux-omap$ git apply
+> --check ../../archive/10-17-staging-tidspbridge-Prepare-for-irqs.h-removal.patch
+> error: patch failed: drivers/staging/tidspbridge/core/wdt.c:25
+> error: drivers/staging/tidspbridge/core/wdt.c: patch does not apply
 
-the p-android-omap-3.0 doesn't have the persistent_trace but I was able 
-to backport it from 3.4 without major issues (only tricky part is that 
-in p-android-3.4 there's no apparent user of that device in omapzoom 
-kernel).
+Yes, got the same had to rework the patch to apply.
 
-The problem is now that the omap-watchdog doesn't kick the device to 
-reboot but rather to shutdown, so I still have no trace. Soft-rebooting 
-shows that I can get persistent_trace.
+If you have the time, you could try:
 
-Switching the persistent tracer to ecc=true does not help as it seems to 
-overload the device completely when activating the tracing.
+git am --3way <patch>
 
-Rgds,
-Chris
+Then resolve the conflicts[1].
 
+> newbie question : Where is the staging-next rep ?
 
+http://git.kernel.org/?p=linux/kernel/git/gregkh/staging.git;a=summary
 
+Regards,
+
+Omar
+
+---
+[1] http://www.kernel.org/pub/software/scm/git/docs/v1.7.3/user-manual.html#resolving-a-merge
