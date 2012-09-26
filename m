@@ -1,35 +1,82 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH v2] arm/dts: AM33XX: Add SPI device tree data
-Date: Wed, 26 Sep 2012 09:47:19 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9A927A@DBDE01.ent.ti.com>
-References: <1347946228-25874-1-git-send-email-avinashphilip@ti.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: RE: [PATCH] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
+Date: Wed, 26 Sep 2012 11:37:08 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA8FF90@DBDE01.ent.ti.com>
+References: <1346764151-21323-1-git-send-email-gururaja.hebbar@ti.com>
+ <CANfBPZ-Wb7HE45DTmwsMt-hpJRUevjbjm9-aCR61B4JFULb8Mw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1347946228-25874-1-git-send-email-avinashphilip@ti.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "cjb@laptop.org" <cjb@laptop.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Benoit,
+On Wed, Sep 12, 2012 at 17:32:38, Hebbar, Gururaja wrote:
+> On Wed, Sep 12, 2012 at 14:19:51, S, Venkatraman wrote:
+> > On Tue, Sep 4, 2012 at 6:39 PM, Hebbar, Gururaja <gururaja.hebbar@ti.com> wrote:
+> > > HSMMC IP on AM33xx need a special setting to handle High-speed cards.
+> > > Other platforms like TI81xx, OMAP4 may need this as-well. This depends
+> > > on the HSMMC IP timing closure done for the high speed cards.
+> > >
+> > > From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
+> > >
+> > > The MMC/SD/SDIO output signals can be driven on either falling edge or
+> > > rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
+> > > to reach better timing performance, and thus to increase data transfer
+> > > frequency.
+> > >
+> > > There are few pre-requisites for enabling the HSPE bit
+> > > - Controller should support High-Speed-Enable Bit and
+> > > - Controller should not be using DDR Mode and
+> > > - Controller should advertise that it supports High Speed in
+> > >   capabilities register and
+> > > - MMC/SD clock coming out of controller > 25MHz
+> > >
+> > 
+> > The patch is well written. But then, I don't see a need for a DT
+> > binding for this feature.
+> 
+> My reasons for DT Binding
+> 1. Not all platforms using this driver has this bit (OMAP2)
+> 2. Not all platforms using this driver needs this bit to be enabled (OMAP4)
+> 3. Platforms which require this bit this to be set needs a method to inform 
+> driver.
+> 
+> In order to not disturb old/unsupported platforms, I chose this DT method.
+> 
+> > By definition, HS implies 25MHz or above, so that check seems to be
+> > redundant as well.
+> 
+> There are chances that the platform Max Clock output from HSMMC IP is < than 
+> 25 MHz even if the card is High Speed. In such cases it would be better to
+> Confirm that the Clock output is actually > 25 MHz
+> 
+> Kindly correct me if I am wrong.
+> 
+> > Meanwhile, I'll check with HSPE enabled on OMAP.
+> > 
 
-On Tue, Sep 18, 2012 at 11:00:28, Philip, Avinash wrote:
-> Add McSPI data node to AM33XX device tree file. The McSPI module (and so
-> as the driver) is reused from OMAP4.
-> 	
-> Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
-> Tested-by: Matt Porter <mporter@ti.com>
+Gentle Ping. 
+
+Matt Poter recently submitted EDMA related patches as RFC. He confirmed that
+basic mmc is working on AM335x with his edma patches. 
+
+Above patch is required to get High-speed cards working on AM335x.
+
+I haven't seen any review comments for this. Can this be pulled in for 3.7?
+
+> > Regards,
+> > Venkat.
+> > 
+> 
+> 
+> Regards, 
+> Gururaja
+> 
 
 
-I haven't received any comments till now for this patch. 
-Do you have any comments for this patch? 
-
-With this patch SPI is working on AM335x SoC in PIO mode.
-
-If no comments, can you pull this patch for 3.7?
-
-Thanks
-Avinash
+Regards, 
+Gururaja
