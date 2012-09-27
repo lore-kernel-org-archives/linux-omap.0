@@ -1,85 +1,30 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/5] drivers: usb: phy: add a new driver for omap usb2
- phy
-Date: Thu, 27 Sep 2012 15:48:42 -0700
-Message-ID: <5064D7CA.1070909@ti.com>
-References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-2-git-send-email-kishon@ti.com> <50605CFB.5090402@gmail.com> <CAAe_U6+2Vxd8F_JMafm41+0SnZSrZCa_9VKRbdB200BUHw5vEQ@mail.gmail.com> <506461A0.4050103@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap3isp: Replace cpu_is_omap3630() with ISP revision
+ check
+Date: Thu, 27 Sep 2012 16:59:37 -0700
+Message-ID: <20120927235936.GV4840@atomide.com>
+References: <20120926220018.GJ4840@atomide.com>
+ <1348756698-23128-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <506461A0.4050103@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, grant.likely@secretlab.ca, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50661 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751121Ab2I0X7k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 19:59:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1348756698-23128-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>, paul@pwsan.com
 
-On 9/27/2012 7:24 AM, Rob Herring wrote:
-> On 09/25/2012 05:06 AM, ABRAHAM, KISHON VIJAY wrote:
->> Hi,
->>
->> On Mon, Sep 24, 2012 at 6:45 PM, Rob Herring <robherring2@gmail.com> wrote:
->>> On 09/06/2012 09:57 AM, Kishon Vijay Abraham I wrote:
->>>> All phy related programming like enabling/disabling the clocks, powering
->>>> on/off the phy is taken care of by this driver. It is also used for OTG
->>>> related functionality like srp.
->>>>
->>>> This also includes device tree support for usb2 phy driver and
->>>> the documentation with device tree binding information is updated.
->>>>
->>>> Currently writing to control module register is taken care in this
->>>> driver which will be removed once the control module driver is in place.
->>>>
->>>> Cc: Felipe Balbi <balbi@ti.com>
->>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>> ---
->>>>   Documentation/devicetree/bindings/usb/usb-phy.txt |   17 ++
->>>>   drivers/usb/phy/Kconfig                           |    9 +
->>>>   drivers/usb/phy/Makefile                          |    1 +
->>>>   drivers/usb/phy/omap-usb2.c                       |  271 +++++++++++++++++++++
->>>>   include/linux/usb/omap_usb.h                      |   46 ++++
->>>>   include/linux/usb/phy_companion.h                 |   34 +++
->>>>   6 files changed, 378 insertions(+)
->>>>   create mode 100644 Documentation/devicetree/bindings/usb/usb-phy.txt
->>>>   create mode 100644 drivers/usb/phy/omap-usb2.c
->>>>   create mode 100644 include/linux/usb/omap_usb.h
->>>>   create mode 100644 include/linux/usb/phy_companion.h
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
->>>> new file mode 100644
->>>> index 0000000..80d4148
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
->>>
->>> This is a very generic name...
->>>
->>>> @@ -0,0 +1,17 @@
->>>> +USB PHY
->>>> +
->>>> +OMAP USB2 PHY
->>>> +
->>>> +Required properties:
->>>> + - compatible: Should be "ti,omap-usb2"
->>>
->>> ...for a specific phy. However, I do think a generic binding to describe
->>> host ctrlr to phy connections is needed.
->>>
->>>> + - reg : Address and length of the register set for the device. Also
->>>> +add the address of control module dev conf register until a driver for
->>>> +control module is added
->>>
->>> The dts should describe the h/w, not what you need for the current
->>> driver. The 2nd reg field does not belong here.
->>
->> Indeed. This was discussed and agreed upon as a interim solution till
->> we have a control module driver in place to write to the control
->> module register.
->
-> Discussed where and agreed by who? I for one do not agree.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [120927 07:38]:
+> Drivers must not rely on cpu_is_omap* macros (they will soon become
+> private). Use the ISP revision instead to identify the hardware.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Yeah, what was tolerated was the addition of that address inside hwmod 
-data, but I do agree that it should not go into DTS.
+Great, thanks for fixing this:
 
-Regards,
-Benoit
-
+Acked-by: Tony Lindgren <tony@atomide.com>
