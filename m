@@ -1,44 +1,32 @@
-From: Jarkko Nikula <jarkko.nikula@jollamobile.com>
-Subject: Re: [PATCH_v2] watchdog: Convert twl4030_wdt to watchdog core
-Date: Thu, 27 Sep 2012 14:48:58 +0300
-Message-ID: <50643D2A.7020402@jollamobile.com>
-References: <20120910215946.GB26184@blackmetal.musicnaut.iki.fi> <1347343270-16881-1-git-send-email-jarkko.nikula@jollamobile.com>
+From: "Singla, Vikas" <vikassingla@ti.com>
+Subject: McSPI : MTD framework Issue
+Date: Thu, 27 Sep 2012 13:36:49 +0000
+Message-ID: <E4A00299C1DD664AADA8ADB84486F36BB9B17C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp160.iad.emailsrvr.com ([207.97.245.160]:55974 "EHLO
-	smtp160.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751071Ab2I0LtA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 07:49:00 -0400
-In-Reply-To: <1347343270-16881-1-git-send-email-jarkko.nikula@jollamobile.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48119 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750747Ab2I0Ngx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 09:36:53 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q8RDapFI026620
+	for <linux-omap@vger.kernel.org>; Thu, 27 Sep 2012 08:36:52 -0500
+Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q8RDapoh003018
+	for <linux-omap@vger.kernel.org>; Thu, 27 Sep 2012 19:06:51 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@jollamobile.com>
-Cc: linux-watchdog@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
+Loading "omap2_mcspi.ko" and "m25p80.ko" modules.
+Trying to remove SPI module(omap2_mcspi.ko) during the I/O of SPI.
+The module should not be removed since it is still in use. 
+But when run this test, bunch of kernel errors occurs. 
+'lsmod' doesn't show the spi module anymore,
+but flash module(m25p80.ko) is still loaded there.
 
-On 09/11/2012 09:01 AM, Jarkko Nikula wrote:
-> Convert the twl4030_wdt watchdog driver to watchdog core.
->
-> While at there use devm_kzalloc and set the default timeout in order to be
-> able test this driver with a simple shell script.
->
-> Signed-off-by: Jarkko Nikula<jarkko.nikula@jollamobile.com>
-> Tested-by: Aaro Koskinen<aaro.koskinen@iki.fi>
-> ---
-> v2:
-> - select WATCHDOG_CORE in Kconfig was accidentally put to to OMAP_WATCHDOG
->    instead of TWL4030_WATCHDOG. Thanks to Aaro Koskinen<aaro.koskinen@iki.fi>
->    for noticing.
-> - Added Aaro's Tested-by
-> ---
->   drivers/watchdog/Kconfig       |    1 +
->   drivers/watchdog/twl4030_wdt.c |  183 ++++++++--------------------------------
->   2 files changed, 35 insertions(+), 149 deletions(-)
->
-Gentle ping if this got lost and if I need to repost, fix, etc.
-
--- 
-Jarkko
+So, trying to create dependencies in SPI Framework and MTD Framework.
+Is this problem seen elsewhere, as I am using Linux 2.6.37+ Image.
