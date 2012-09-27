@@ -1,87 +1,46 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 1/3] usb: otg: nop: add dt support
-Date: Thu, 27 Sep 2012 11:15:05 +0530
-Message-ID: <a1dd07e020850703ed5294db176ea1298d69a4ed.1348722156.git.afzal@ti.com>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH] ARM: OMAP2+: SmartReflex: fix return value check in sr_dev_init()
+Date: Thu, 27 Sep 2012 13:54:22 +0800
+Message-ID: <CAPgLHd_jXBNGNh452sGh5OweX+CdwpcVuWHmnfZKaCt4FnsTuA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37627 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755644Ab2I0FpI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Sep 2012 01:45:08 -0400
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:38591 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751475Ab2I0FyW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 01:54:22 -0400
+Received: by mail-qc0-f174.google.com with SMTP id d3so786900qch.19
+        for <linux-omap@vger.kernel.org>; Wed, 26 Sep 2012 22:54:22 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Ravi Babu <ravibabu@ti.com>
+To: tony@atomide.com, linux@arm.linux.org.uk
+Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: "B, Ravi" <ravibabu@ti.com>
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Added device tree support for nop transceiver driver and updated the
-Documentation with device tree binding information for am33xx platform.
+In case of error, the function voltdm_lookup() returns NULL
+not ERR_PTR(). The IS_ERR() test in the return value check
+should be replaced with NULL test.
 
-Signed-off-by: Ravi Babu <ravibabu@ti.com>
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
+ arch/arm/mach-omap2/sr_device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Hi,
-
-This series is made over over Balbi's usb "master" branch.
-
-It applies cleanly over "musb" branch too.
-
-Regards
-Afzal
-
- Documentation/devicetree/bindings/usb/am33xx-usb.txt |  3 +++
- drivers/usb/otg/nop-usb-xceiv.c                      | 10 ++++++++++
- 2 files changed, 13 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-index ca8fa56..9782585 100644
---- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-@@ -12,3 +12,6 @@ AM33XX MUSB GLUE
-    represents PERIPHERAL.
-  - power : Should be "250". This signifies the controller can supply upto
-    500mA when operating in host mode.
-+
-+NOP USB PHY
-+ - compatible : Should be "nop-xceiv-usb"
-diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
-index e52e35e..64bfbe4 100644
---- a/drivers/usb/otg/nop-usb-xceiv.c
-+++ b/drivers/usb/otg/nop-usb-xceiv.c
-@@ -27,6 +27,7 @@
-  */
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index d033a65..c248b30 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -123,7 +123,7 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
+ 	sr_data->senp_mod = 0x1;
  
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/usb/otg.h>
-@@ -154,12 +155,21 @@ static int __devexit nop_usb_xceiv_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+#ifdef CONFIG_OF
-+static const struct of_device_id nop_xceiv_id_table[] = {
-+	{ .compatible = "nop-xceiv-usb" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, nop_xceiv_id_table);
-+#endif
-+
- static struct platform_driver nop_usb_xceiv_driver = {
- 	.probe		= nop_usb_xceiv_probe,
- 	.remove		= __devexit_p(nop_usb_xceiv_remove),
- 	.driver		= {
- 		.name	= "nop_usb_xceiv",
- 		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(nop_xceiv_id_table),
- 	},
- };
- 
--- 
-1.7.12
+ 	sr_data->voltdm = voltdm_lookup(sr_dev_attr->sensor_voltdm_name);
+-	if (IS_ERR(sr_data->voltdm)) {
++	if (!sr_data->voltdm) {
+ 		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
+ 			__func__, sr_dev_attr->sensor_voltdm_name);
+ 		goto exit;
 
