@@ -1,74 +1,79 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Help needed with remaining plat headers
-Date: Thu, 27 Sep 2012 13:07:26 +0300
-Message-ID: <1348740446.2913.3.camel@deskari>
-References: <20120920232907.GN28835@atomide.com>
+From: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>
+Subject: Re: [PATCH V2 0/2] OMAPDSS: Enable dynamic debug printing
+Date: Thu, 27 Sep 2012 16:20:21 +0530
+Message-ID: <CAF0AtAvT-NnsREJWpRtYAGpYCS06O32tzQwWTDoFp+xepHyX8w@mail.gmail.com>
+References: <1348552998-6596-1-git-send-email-cmahapatra@ti.com>
+	<cover.1348636132.git.cmahapatra@ti.com>
+	<1348669792.2376.51.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-ulSA7l9maO+Q17XN0f5h"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51023 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754494Ab2I0KL5 (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53414 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755846Ab2I0KuW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Sep 2012 06:11:57 -0400
-Received: by bkcjk13 with SMTP id jk13so1474735bkc.19
-        for <linux-omap@vger.kernel.org>; Thu, 27 Sep 2012 03:11:54 -0700 (PDT)
-In-Reply-To: <20120920232907.GN28835@atomide.com>
+	Thu, 27 Sep 2012 06:50:22 -0400
+Received: by pbbrp16 with SMTP id rp16so6103108pbb.1
+        for <linux-omap@vger.kernel.org>; Thu, 27 Sep 2012 03:50:21 -0700 (PDT)
+In-Reply-To: <1348669792.2376.51.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
+On Wed, Sep 26, 2012 at 7:59 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 
---=-ulSA7l9maO+Q17XN0f5h
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> This doesn't work quite correctly. The problem is in dss.h, where we
+> define DEBUG if CONFIG_OMAP2_DSS_DEBUG_SUPPORT is set. The thing is,
+> DEBUG should be defined before including the kernel headers where the
+> pr_debug etc are defined.
+>
+> So if you try the patches without dynamic debugging enabled, you won't
+> get any debug outputs at all, even if CONFIG_OMAP2_DSS_DEBUG_SUPPORT is
+> set.
+>
+> And for dynamic debug, the Kconfig help says:
+>
+> If a source file is compiled with DEBUG flag set, any
+> pr_debug() calls in it are enabled by default, but can be
+> disabled at runtime as below.  Note that DEBUG flag is
+> turned on by many CONFIG_*DEBUG* options.
+>
+> So if we have CONFIG_OMAP2_DSS_DEBUG_SUPPORT set, all the pr_debugs
+> should be enabled by default, which is not the case, again because DEBUG
+> is defined too late.
+>
+> I think setting DEBUG in dss.h should be removed, and instead DEBUG
+> should be set in the makefile if CONFIG_OMAP2_DSS_DEBUG_SUPPORT is set.
+>
+>  Tomi
+>
 
-On Thu, 2012-09-20 at 16:29 -0700, Tony Lindgren wrote:
-> Hi all,
->=20
-> With the recent pull request I sent for v3.7, we now have pretty
-> much all the mach includes fixed up for omap2+ for single zImage
-> support.
->=20
-> We still have quite a few plat headers that we need to sort
-> out manually.
->=20
-> Please take a look at the following list, and reply to this
-> thread if you are working on patches moving one of the headers
-> in the list so we can coordinate things. The rules are simple
+Well the documentation lags in describing about the DEBUG flag. I
+should have checked DYNAMIC_DEBUG in Kconfig and pr_debug definition
+in printk.h file.
 
-> vram.h
-> vrfb.h
+#if defined(CONFIG_DYNAMIC_DEBUG)
+/* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
+#define pr_debug(fmt, ...) \
+        dynamic_pr_debug(fmt, ##__VA_ARGS__)
+#elif defined(DEBUG)
+#define pr_debug(fmt, ...) \
+        printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+#else
+#define pr_debug(fmt, ...) \
+        no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+#endif
 
-I'll work on these ones.
+As per the definition above pr_debug is dynamic with
+CONFIG_DYNAMIC_DEBUG set or else with DEBUG set it is just a normal
+kernel debug printk as you have mentioned.
+I still don't get how even if DEBUG is set before DSSDBG() is defined
+in dss.c pr_debug() fails to enable.
+Well anyways, how to do the same in the Makefile? I tried adding
+ccflags-$(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) += -DEBUG
+to makefile in dss directory but of no use.
 
- Tomi
-
-
---=-ulSA7l9maO+Q17XN0f5h
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQZCVfAAoJEPo9qoy8lh71z0sP/ibjYpFz185tD4v8hhUNDb35
-fqPugBIVmBTcWAjcRn+JtXdYPVgLt48PrR+2eU+d9KOO8X+vWbacuWbH/vWjBxhr
-f3YiZb8g86/DrSgCXhmdTC01XK+NNmASslEa51cnNKVUWLCWaw046R9kK6/m0GKP
-fL7JNllqV/EQCvJLeE+QEoCtwZf9L8BmgZ2SXnk1V/tJ7JEHU8Ze8wWKtWX0OFWK
-k54yJaRwOMg7eLhEsuO2eMpL4FhyvvnP4DJBBmHt7rR935MYKjvkOZ0W4uPB7Rur
-rmsw+Z2q6WvS19zKT48KmGyapvrpVnkPpVeW6lZaPzFL7J8dLiMlsBd6IzHRajH5
-I4r/Km3Gw9B8fZZuyivyb4oAV++5lcbRV5HhJ2K3/rOdLwbI3xy54cVk/ClARS8T
-YtbRJAi2PDc/+kojO+zxwKwCpQBJzI16SC56lOMZwqtkll4NV596ruN/9s81aSoy
-j+tl7s2KDDrhqAsUQVHdtUMqs9dikrtl1HOULzKJjenPKAsKxQbIs7x+0xRYTyXy
-8dk8a7YJnZXRrjyQRO0eZbvWlfJpXJF+SDjC+JWFw/MMS0m0MjTJRsAlnkFE7tbp
-EaB13nDfZvLV7OTD5UoLCTiS+eaUQ06ZH1NiGnWqTMyZjWcLOrOLkLYYInBZxRCD
-tFfyChF7vthnFedadnJL
-=TL7r
------END PGP SIGNATURE-----
-
---=-ulSA7l9maO+Q17XN0f5h--
-
+-- 
+Chandrabhanu Mahapatra
+Texas Instruments India Pvt. Ltd.
