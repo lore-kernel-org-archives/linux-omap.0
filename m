@@ -1,96 +1,169 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Powering OMAP's pins
-Date: Thu, 27 Sep 2012 10:18:54 +0300
-Message-ID: <1348730334.5559.9.camel@lappyti>
-References: <1348568474.2342.35.camel@deskari>
-	 <20120925153806.GC4840@atomide.com> <1348592700.2342.49.camel@deskari>
-	 <20120925190721.GD4840@atomide.com> <1348643142.2376.13.camel@deskari>
-	 <20120926185912.GG4840@atomide.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 1/2] omap3: Provide means for changing CSI2 PHY configuration
+Date: Thu, 27 Sep 2012 11:20:48 +0200
+Message-ID: <2067951.ZTSQvUdPug@avalon>
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk> <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-5rBXnikZASKgSzOsbqte"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:55936 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756340Ab2I0HTD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Sep 2012 03:19:03 -0400
-Received: by bkcjk13 with SMTP id jk13so1236331bkc.19
-        for <linux-omap@vger.kernel.org>; Thu, 27 Sep 2012 00:19:00 -0700 (PDT)
-In-Reply-To: <20120926185912.GG4840@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: paul@pwsan.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
+Hi Sakari,
 
---=-5rBXnikZASKgSzOsbqte
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thanks for the patch.
 
-On Wed, 2012-09-26 at 11:59 -0700, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120926 00:06]:
+On Thursday 27 September 2012 00:50:35 Sakari Ailus wrote:
+> The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
+> the actual CSI-2 receivers outside the ISP itself. Allow changing this
+> configuration from the ISP driver.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-> > So if I want to use parallel dss output, which uses dss_data0 pin,
-> > omapdss driver needs to enable vdda_dsi on omap3430, even though there'=
-s
-> > no other use for vdda_dsi in the parallel output case. But on omap4430
-> > data0 pins seems to be powered by vdds_1p8v. On AM35xx something else.
-> > So either I need to program all those into the omapdss driver, which is
-> > not the right way as they are platform specific things, or I need to
-> > pass some kind of pin data from platform data to omapdss driver, giving
-> > the required regulator for each pin.
->=20
-> Pass the device tree regulators to the DSS driver and enable the
-> ones with runtime PM in the DSS driver? I guess you have the names
-> for those regulatros?
+Just one small comment below, otherwise
 
-Well, yes, I could create a pin->regulator mapping for dss that is
-filled in the DT data.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I just feel this is something that the omapdss driver shouldn't care
-about. The powers for the pins are in no way related to dss.
-=20
-> > And how about the uart1_cts or gpio_70 pins on 3430? Do both uart and
-> > gpio drivers need to have similar kind of platform data, giving the
-> > required regulator so that the pin can be enabled?
->=20
-> Hmm aren't those always enabled with VIO_18?
+> ---
+>  arch/arm/mach-omap2/control.c              |   86 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/control.h              |   15 +++++
+>  arch/arm/mach-omap2/include/mach/control.h |   13 ++++
+>  3 files changed, 114 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/include/mach/control.h
+> 
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index 3223b81..11bb900 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -12,9 +12,12 @@
+>   */
+>  #undef DEBUG
+> 
+> +#include <linux/export.h>
+>  #include <linux/kernel.h>
+>  #include <linux/io.h>
+> 
+> +#include <mach/control.h>
+> +
+>  #include <plat/hardware.h>
+>  #include <plat/sdrc.h>
+> 
+> @@ -607,4 +610,87 @@ int omap3_ctrl_save_padconf(void)
+>  	return 0;
+>  }
+> 
+> +static int omap3630_ctrl_csi2_phy_cfg(u32 phy, u32 flags)
+> +{
+> +	u32 cam_phy_ctrl =
+> +		omap_ctrl_readl(OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+> +	u32 shift, mode;
+> +
+> +	switch (phy) {
+> +	case OMAP3_CTRL_CSI2_PHY1_CCP2B:
+> +		cam_phy_ctrl &= ~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
+> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
+> +		break;
+> +	case OMAP3_CTRL_CSI2_PHY1_CSI2C:
+> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
+> +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
+> +		break;
+> +	case OMAP3_CTRL_CSI2_PHY2_CCP2B:
+> +		cam_phy_ctrl |= OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
+> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
+> +		break;
+> +	case OMAP3_CTRL_CSI2_PHY2_CSI2A:
+> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
+> +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
+> +		break;
+> +	default:
+> +		pr_warn("bad phy %d\n", phy);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Select data/clock or data/strobe mode for CCP2 */
+> +	switch (phy) {
+> +	case OMAP3_CTRL_CSI2_PHY1_CCP2B:
+> +	case OMAP3_CTRL_CSI2_PHY2_CCP2B:
+> +		if (flags & OMAP3_CTRL_CSI2_CFG_CCP2_DATA_STROBE)
+> +			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE;
+> +		else
+> +			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK;
+> +		break;
+> +	}
+> +
+> +	cam_phy_ctrl &= ~(OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK << 
+shift);
+> +	cam_phy_ctrl |= mode << shift;
+> +
+> +	omap_ctrl_writel(cam_phy_ctrl,
+> +			 OMAP3630_CONTROL_CAMERA_PHY_CTRL);
 
-No, 3430 datamanual (OMAP34xx_ES2.0_ES2.1_POP_DM_V_K.pdf) says some uart
-and gpio pins are powered by vdds_dsi, some by vdds_sdi, some gpio pins
-are powered by vdds_csi2, etc.
+This can fit on one line.
 
-I could be mistaken how to HW works (but it does work like that for
-dss), but sounds to me that uart and gpio drivers (and perhaps some
-others, I didn't go through all the pins) need similar pin->regulator
-mapping as you suggested for omapdss.
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap3430_ctrl_csi2_phy_cfg(u32 phy, bool on, u32 flags)
+> +{
+> +	uint32_t csirxfe = OMAP343X_CONTROL_CSIRXFE_PWRDNZ
+> +		| OMAP343X_CONTROL_CSIRXFE_RESET;
+> +
+> +	/* Nothing to configure here. */
+> +	if (phy == OMAP3_CTRL_CSI2_PHY2_CSI2A)
+> +		return 0;
+> +
+> +	if (phy != OMAP3_CTRL_CSI2_PHY1_CCP2B)
+> +		return -EINVAL;
+> +
+> +	if (!on) {
+> +		omap_ctrl_writel(0, OMAP343X_CONTROL_CSIRXFE);
+> +		return 0;
+> +	}
+> +
+> +	if (flags & OMAP3_CTRL_CSI2_CFG_CCP2_DATA_STROBE)
+> +		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
+> +
+> +	omap_ctrl_writel(csirxfe, OMAP343X_CONTROL_CSIRXFE);
+> +
+> +	return 0;
+> +}
+> +
+> +int omap3_ctrl_csi2_phy_cfg(u32 phy, bool on, u32 flags)
+> +{
+> +	if (cpu_is_omap3630() && on)
+> +		return omap3630_ctrl_csi2_phy_cfg(phy, flags);
+> +	if (cpu_is_omap3430())
+> +		return omap3430_ctrl_csi2_phy_cfg(phy, on, flags);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(omap3_ctrl_csi2_phy_cfg);
+> +
+>  #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> index b8cdc85..7b2ee5d 100644
+> --- a/arch/arm/mach-omap2/control.h
+> +++ b/arch/arm/mach-omap2/control.h
+> @@ -132,6 +132,11 @@
+>  #define OMAP343X_CONTROL_MEM_DFTRW1	(OMAP2_CONTROL_GENERAL + 0x000c)
+>  #define OMAP343X_CONTROL_DEVCONF1	(OMAP2_CONTROL_GENERAL + 0x0068)
+>  #define OMAP343X_CONTROL_CSIRXFE		(OMAP2_CONTROL_GENERAL + 0x006c)
+> +#define OMAP343X_CONTROL_CSIRXFE_CSIB_INV	(1 << 7)
+> +#define OMAP343X_CONTROL_CSIRXFE_RESENABLE	(1 << 8)
+> +#define OMAP343X_CONTROL_CSIRXFE_SELFORM	(1 << 10)
+> +#define OMAP343X_CONTROL_CSIRXFE_PWRDNZ		(1 << 12)
+> +#define OMAP343X_CONTROL_CSIRXFE_RESET		(1 << 13)
+>  #define OMAP343X_CONTROL_SEC_STATUS		(OMAP2_CONTROL_GENERAL + 0x0070)
+>  #define OMAP343X_CONTROL_SEC_ERR_STATUS		(OMAP2_CONTROL_GENERAL + 
+0x0074)
+>  #define OMAP343X_CONTROL_SEC_ERR_STATUS_DEBUG	(OMAP2_CONTROL_GENERAL +
+> 0x0078)
 
- Tomi
+-- 
+Regards,
 
-
---=-5rBXnikZASKgSzOsbqte
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQY/3eAAoJEPo9qoy8lh71qRYQAJX6cct0ENjOX1E9UFxlCnNd
-hyt4U7BwvlFfIluvDg5tvP11fhuHTnqKyT0j3OAmpYmbGJYvEJ/O7W2LhSqWZfE7
-se0zw7NOClzKQMkpSHxa5yfHCbhom+f1qzb6GEhFNEIFSCyTBMGcpzAiGyPA/8Xz
-3aPC/45XQSaQWK+ZYIuF/0LAWeF1JgyJkMzE2uqzfRo2mZkpbSBu7CNSwyHbpANw
-n+fvvuhoNW7lw+V1J8kEt3KQLt9VXcMMFOOfKAFE/RrIo/biIqK55oqXWV56Oxto
-u6E8AI1KA49pH+qSMdtZb6EAXnivjickY1/4X6G2I67GKJWAALGx4xo086JlwIfW
-k2zSmDcxHg1V3XBn2KtD2xfSyyQHWr2E3kVaf6BkPrNbRVsSFunWKyVxBOkmJdpq
-ku4MagFaXHUHirMiyvaUmF86pp0apI4k/aRgSH6qEgsbAeDu1ACYoyVQtCyayYgG
-6S7RyUFNy7Wzs/CU7rIdGxirsXRCx83IXIiQKNoyLs1d0AQ05aTsP6wn6kK6MlZ4
-l8Xk/Vlw3cACUcohUZgQaTIQRJulYKT3fXcKRLLoc08aKIcBWg+ZZgqcdjPVmy3k
-6nvEAGniNMTN8SZw5SEG+58W8pT/8cjdtBz0nyJ3y/DR0kb/6qdrZGICBb7+MEe4
-0O8B9IrAW0t1GWvQZhBA
-=JP3R
------END PGP SIGNATURE-----
-
---=-5rBXnikZASKgSzOsbqte--
-
+Laurent Pinchart
