@@ -1,97 +1,86 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 1/5] drivers: usb: phy: add a new driver for omap usb2
- phy
-Date: Thu, 27 Sep 2012 09:24:32 -0500
-Message-ID: <506461A0.4050103@gmail.com>
-References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-2-git-send-email-kishon@ti.com> <50605CFB.5090402@gmail.com> <CAAe_U6+2Vxd8F_JMafm41+0SnZSrZCa_9VKRbdB200BUHw5vEQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAAe_U6+2Vxd8F_JMafm41+0SnZSrZCa_9VKRbdB200BUHw5vEQ@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] omap3isp: Replace cpu_is_omap3630() with ISP revision check
+Date: Thu, 27 Sep 2012 16:38:18 +0200
+Message-ID: <1348756698-23128-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <20120926220018.GJ4840@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51711 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753888Ab2I0Ohm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 10:37:42 -0400
+In-Reply-To: <20120926220018.GJ4840@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>, Tony Lindgren <tony@atomide.com>, paul@pwsan.com
 
-On 09/25/2012 05:06 AM, ABRAHAM, KISHON VIJAY wrote:
-> Hi,
-> 
-> On Mon, Sep 24, 2012 at 6:45 PM, Rob Herring <robherring2@gmail.com> wrote:
->> On 09/06/2012 09:57 AM, Kishon Vijay Abraham I wrote:
->>> All phy related programming like enabling/disabling the clocks, powering
->>> on/off the phy is taken care of by this driver. It is also used for OTG
->>> related functionality like srp.
->>>
->>> This also includes device tree support for usb2 phy driver and
->>> the documentation with device tree binding information is updated.
->>>
->>> Currently writing to control module register is taken care in this
->>> driver which will be removed once the control module driver is in place.
->>>
->>> Cc: Felipe Balbi <balbi@ti.com>
->>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>> ---
->>>  Documentation/devicetree/bindings/usb/usb-phy.txt |   17 ++
->>>  drivers/usb/phy/Kconfig                           |    9 +
->>>  drivers/usb/phy/Makefile                          |    1 +
->>>  drivers/usb/phy/omap-usb2.c                       |  271 +++++++++++++++++++++
->>>  include/linux/usb/omap_usb.h                      |   46 ++++
->>>  include/linux/usb/phy_companion.h                 |   34 +++
->>>  6 files changed, 378 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/usb/usb-phy.txt
->>>  create mode 100644 drivers/usb/phy/omap-usb2.c
->>>  create mode 100644 include/linux/usb/omap_usb.h
->>>  create mode 100644 include/linux/usb/phy_companion.h
->>>
->>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
->>> new file mode 100644
->>> index 0000000..80d4148
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
->>
->> This is a very generic name...
->>
->>> @@ -0,0 +1,17 @@
->>> +USB PHY
->>> +
->>> +OMAP USB2 PHY
->>> +
->>> +Required properties:
->>> + - compatible: Should be "ti,omap-usb2"
->>
->> ...for a specific phy. However, I do think a generic binding to describe
->> host ctrlr to phy connections is needed.
->>
->>> + - reg : Address and length of the register set for the device. Also
->>> +add the address of control module dev conf register until a driver for
->>> +control module is added
->>
->> The dts should describe the h/w, not what you need for the current
->> driver. The 2nd reg field does not belong here.
-> 
-> Indeed. This was discussed and agreed upon as a interim solution till
-> we have a control module driver in place to write to the control
-> module register.
+Drivers must not rely on cpu_is_omap* macros (they will soon become
+private). Use the ISP revision instead to identify the hardware.
 
-Discussed where and agreed by who? I for one do not agree.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isp.c |   25 ++++++++++++++++---------
+ 1 files changed, 16 insertions(+), 9 deletions(-)
 
-Rob
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index d7aa513..6034dca 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1345,10 +1345,7 @@ static int isp_enable_clocks(struct isp_device *isp)
+ 	 * has to be twice of what is set on OMAP3430 to get
+ 	 * the required value for cam_mclk
+ 	 */
+-	if (cpu_is_omap3630())
+-		divisor = 1;
+-	else
+-		divisor = 2;
++	divisor = isp->revision == ISP_REVISION_15_0 ? 1 : 2;
+ 
+ 	r = clk_enable(isp->clock[ISP_CLK_CAM_ICK]);
+ 	if (r) {
+@@ -2093,7 +2090,11 @@ static int __devinit isp_probe(struct platform_device *pdev)
+ 	isp->isp_csiphy1.vdd = regulator_get(&pdev->dev, "VDD_CSIPHY1");
+ 	isp->isp_csiphy2.vdd = regulator_get(&pdev->dev, "VDD_CSIPHY2");
+ 
+-	/* Clocks */
++	/* Clocks
++	 *
++	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
++	 * manually to read the revision before calling __omap3isp_get().
++	 */
+ 	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
+ 	if (ret < 0)
+ 		goto error;
+@@ -2102,6 +2103,16 @@ static int __devinit isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error;
+ 
++	ret = clk_enable(isp->clock[ISP_CLK_CAM_ICK]);
++	if (ret < 0)
++		goto error;
++
++	isp->revision = isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_REVISION);
++	dev_info(isp->dev, "Revision %d.%d found\n",
++		 (isp->revision & 0xf0) >> 4, isp->revision & 0x0f);
++
++	clk_disable(isp->clock[ISP_CLK_CAM_ICK]);
++
+ 	if (__omap3isp_get(isp, false) == NULL) {
+ 		ret = -ENODEV;
+ 		goto error;
+@@ -2112,10 +2123,6 @@ static int __devinit isp_probe(struct platform_device *pdev)
+ 		goto error_isp;
+ 
+ 	/* Memory resources */
+-	isp->revision = isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_REVISION);
+-	dev_info(isp->dev, "Revision %d.%d found\n",
+-		 (isp->revision & 0xf0) >> 4, isp->revision & 0x0f);
+-
+ 	for (m = 0; m < ARRAY_SIZE(isp_res_maps); m++)
+ 		if (isp->revision == isp_res_maps[m].isp_rev)
+ 			break;
+-- 
+Regards,
 
->>
->>> +
->>> +This is usually a subnode of ocp2scp to which it is connected.
->>
->> How is usb port to phy connection described?
-> Currently the usb controller to phy connection is established only by
-> type. We have a couple of patches being currently discussed in the
-> list to establish the connection by phandle.
-> 
-> https://patchwork.kernel.org/patch/1457801/ (Generic PHY Framework:
-> devm_of_phy_get())
-> http://www.spinics.net/lists/linux-usb/msg69547.html
-> 
-> Thanks
-> Kishon
-> 
+Laurent Pinchart
 
