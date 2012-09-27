@@ -1,35 +1,85 @@
-From: Wim Van Sebroeck <wim@iguana.be>
-Subject: Re: [PATCH_v2] watchdog: Convert twl4030_wdt to watchdog core
-Date: Thu, 27 Sep 2012 23:23:12 +0200
-Message-ID: <20120927212312.GJ16482@spo001.leaseweb.com>
-References: <20120910215946.GB26184@blackmetal.musicnaut.iki.fi> <1347343270-16881-1-git-send-email-jarkko.nikula@jollamobile.com> <50643D2A.7020402@jollamobile.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/5] drivers: usb: phy: add a new driver for omap usb2
+ phy
+Date: Thu, 27 Sep 2012 15:48:42 -0700
+Message-ID: <5064D7CA.1070909@ti.com>
+References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-2-git-send-email-kishon@ti.com> <50605CFB.5090402@gmail.com> <CAAe_U6+2Vxd8F_JMafm41+0SnZSrZCa_9VKRbdB200BUHw5vEQ@mail.gmail.com> <506461A0.4050103@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.pc-advies.be ([83.149.101.17]:49586 "EHLO
-	spo001.leaseweb.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754899Ab2I0VXP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 17:23:15 -0400
-Content-Disposition: inline
-In-Reply-To: <50643D2A.7020402@jollamobile.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <506461A0.4050103@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, grant.likely@secretlab.ca, rob@landley.net, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@jollamobile.com>
-Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>
 
-Hi,
+On 9/27/2012 7:24 AM, Rob Herring wrote:
+> On 09/25/2012 05:06 AM, ABRAHAM, KISHON VIJAY wrote:
+>> Hi,
+>>
+>> On Mon, Sep 24, 2012 at 6:45 PM, Rob Herring <robherring2@gmail.com> wrote:
+>>> On 09/06/2012 09:57 AM, Kishon Vijay Abraham I wrote:
+>>>> All phy related programming like enabling/disabling the clocks, powering
+>>>> on/off the phy is taken care of by this driver. It is also used for OTG
+>>>> related functionality like srp.
+>>>>
+>>>> This also includes device tree support for usb2 phy driver and
+>>>> the documentation with device tree binding information is updated.
+>>>>
+>>>> Currently writing to control module register is taken care in this
+>>>> driver which will be removed once the control module driver is in place.
+>>>>
+>>>> Cc: Felipe Balbi <balbi@ti.com>
+>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>> ---
+>>>>   Documentation/devicetree/bindings/usb/usb-phy.txt |   17 ++
+>>>>   drivers/usb/phy/Kconfig                           |    9 +
+>>>>   drivers/usb/phy/Makefile                          |    1 +
+>>>>   drivers/usb/phy/omap-usb2.c                       |  271 +++++++++++++++++++++
+>>>>   include/linux/usb/omap_usb.h                      |   46 ++++
+>>>>   include/linux/usb/phy_companion.h                 |   34 +++
+>>>>   6 files changed, 378 insertions(+)
+>>>>   create mode 100644 Documentation/devicetree/bindings/usb/usb-phy.txt
+>>>>   create mode 100644 drivers/usb/phy/omap-usb2.c
+>>>>   create mode 100644 include/linux/usb/omap_usb.h
+>>>>   create mode 100644 include/linux/usb/phy_companion.h
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
+>>>> new file mode 100644
+>>>> index 0000000..80d4148
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
+>>>
+>>> This is a very generic name...
+>>>
+>>>> @@ -0,0 +1,17 @@
+>>>> +USB PHY
+>>>> +
+>>>> +OMAP USB2 PHY
+>>>> +
+>>>> +Required properties:
+>>>> + - compatible: Should be "ti,omap-usb2"
+>>>
+>>> ...for a specific phy. However, I do think a generic binding to describe
+>>> host ctrlr to phy connections is needed.
+>>>
+>>>> + - reg : Address and length of the register set for the device. Also
+>>>> +add the address of control module dev conf register until a driver for
+>>>> +control module is added
+>>>
+>>> The dts should describe the h/w, not what you need for the current
+>>> driver. The 2nd reg field does not belong here.
+>>
+>> Indeed. This was discussed and agreed upon as a interim solution till
+>> we have a control module driver in place to write to the control
+>> module register.
+>
+> Discussed where and agreed by who? I for one do not agree.
 
-> On 09/11/2012 09:01 AM, Jarkko Nikula wrote:
-> >Convert the twl4030_wdt watchdog driver to watchdog core.
-> >
-> >While at there use devm_kzalloc and set the default timeout in order to be
-> >able test this driver with a simple shell script.
-> >
-> >Signed-off-by: Jarkko Nikula<jarkko.nikula@jollamobile.com>
-> >Tested-by: Aaro Koskinen<aaro.koskinen@iki.fi>
+Yeah, what was tolerated was the addition of that address inside hwmod 
+data, but I do agree that it should not go into DTS.
 
-on my todo list.
-
-Kind regards,
-Wim.
+Regards,
+Benoit
 
