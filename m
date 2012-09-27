@@ -1,41 +1,97 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] usb: phy: add a new driver for usb3 phy
-Date: Thu, 27 Sep 2012 15:18:38 +0100
-Message-ID: <20120927141837.GA26268@n2100.arm.linux.org.uk>
-References: <1348754648-8315-1-git-send-email-kishon@ti.com> <1348754648-8315-2-git-send-email-kishon@ti.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 1/5] drivers: usb: phy: add a new driver for omap usb2
+ phy
+Date: Thu, 27 Sep 2012 09:24:32 -0500
+Message-ID: <506461A0.4050103@gmail.com>
+References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-2-git-send-email-kishon@ti.com> <50605CFB.5090402@gmail.com> <CAAe_U6+2Vxd8F_JMafm41+0SnZSrZCa_9VKRbdB200BUHw5vEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1348754648-8315-2-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAAe_U6+2Vxd8F_JMafm41+0SnZSrZCa_9VKRbdB200BUHw5vEQ@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 27, 2012 at 07:34:07PM +0530, Kishon Vijay Abraham I wrote:
-> +static int omap5_usb_phy_power(struct omap_usb *phy, bool on)
-> +{
-> +	u32 val;
-> +	unsigned long rate;
-> +	struct clk *sys_clk;
-> +
-> +	sys_clk = clk_get(NULL, "sys_clkin");
-> +	if (IS_ERR(sys_clk)) {
-> +		pr_err("%s: unable to get sys_clkin\n", __func__);
-> +		return -EINVAL;
-> +	}
-> +
-> +	rate = clk_get_rate(sys_clk);
-> +	rate = rate/1000000;
-> +	clk_put(sys_clk);
+On 09/25/2012 05:06 AM, ABRAHAM, KISHON VIJAY wrote:
+> Hi,
+> 
+> On Mon, Sep 24, 2012 at 6:45 PM, Rob Herring <robherring2@gmail.com> wrote:
+>> On 09/06/2012 09:57 AM, Kishon Vijay Abraham I wrote:
+>>> All phy related programming like enabling/disabling the clocks, powering
+>>> on/off the phy is taken care of by this driver. It is also used for OTG
+>>> related functionality like srp.
+>>>
+>>> This also includes device tree support for usb2 phy driver and
+>>> the documentation with device tree binding information is updated.
+>>>
+>>> Currently writing to control module register is taken care in this
+>>> driver which will be removed once the control module driver is in place.
+>>>
+>>> Cc: Felipe Balbi <balbi@ti.com>
+>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>> ---
+>>>  Documentation/devicetree/bindings/usb/usb-phy.txt |   17 ++
+>>>  drivers/usb/phy/Kconfig                           |    9 +
+>>>  drivers/usb/phy/Makefile                          |    1 +
+>>>  drivers/usb/phy/omap-usb2.c                       |  271 +++++++++++++++++++++
+>>>  include/linux/usb/omap_usb.h                      |   46 ++++
+>>>  include/linux/usb/phy_companion.h                 |   34 +++
+>>>  6 files changed, 378 insertions(+)
+>>>  create mode 100644 Documentation/devicetree/bindings/usb/usb-phy.txt
+>>>  create mode 100644 drivers/usb/phy/omap-usb2.c
+>>>  create mode 100644 include/linux/usb/omap_usb.h
+>>>  create mode 100644 include/linux/usb/phy_companion.h
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
+>>> new file mode 100644
+>>> index 0000000..80d4148
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
+>>
+>> This is a very generic name...
+>>
+>>> @@ -0,0 +1,17 @@
+>>> +USB PHY
+>>> +
+>>> +OMAP USB2 PHY
+>>> +
+>>> +Required properties:
+>>> + - compatible: Should be "ti,omap-usb2"
+>>
+>> ...for a specific phy. However, I do think a generic binding to describe
+>> host ctrlr to phy connections is needed.
+>>
+>>> + - reg : Address and length of the register set for the device. Also
+>>> +add the address of control module dev conf register until a driver for
+>>> +control module is added
+>>
+>> The dts should describe the h/w, not what you need for the current
+>> driver. The 2nd reg field does not belong here.
+> 
+> Indeed. This was discussed and agreed upon as a interim solution till
+> we have a control module driver in place to write to the control
+> module register.
 
-Actually, you're supposed to hold on to the struct clk all the time your
-driver is making use of that - you're not supposed to drop it.
+Discussed where and agreed by who? I for one do not agree.
 
-That has several advantages: if clk_get() fails, then you're failing
-earlier on (when the driver is being probed) and when some event occurs.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rob
+
+>>
+>>> +
+>>> +This is usually a subnode of ocp2scp to which it is connected.
+>>
+>> How is usb port to phy connection described?
+> Currently the usb controller to phy connection is established only by
+> type. We have a couple of patches being currently discussed in the
+> list to establish the connection by phandle.
+> 
+> https://patchwork.kernel.org/patch/1457801/ (Generic PHY Framework:
+> devm_of_phy_get())
+> http://www.spinics.net/lists/linux-usb/msg69547.html
+> 
+> Thanks
+> Kishon
+> 
+
