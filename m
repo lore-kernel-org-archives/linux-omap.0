@@ -1,46 +1,30 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 2/2] omap3isp: Configure CSI-2 phy based on platform data
-Date: Thu, 27 Sep 2012 11:52:09 +0200
-Message-ID: <2652285.trTHQxlDeP@avalon>
-References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk> <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi> <20120926220018.GJ4840@atomide.com>
+From: BlackBERRY PROMO 2012 <info@admin.org>
+Subject: CONGRATULATIONS!!
+Date: Thu, 27 Sep 2012 10:55:50 +0200
+Message-ID: <12ec3c818912745011168105e6928d79__24308.9904579849$1348739535$gmane$org@prwh.com>
+Reply-To: <davidwalker337@hotmail.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52360 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561Ab2I0Jva (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 05:51:30 -0400
-In-Reply-To: <20120926220018.GJ4840@atomide.com>
+Received: from l41.prwh.com ([91.121.145.11]:42054 "HELO mail.prwh.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754609Ab2I0JwF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Sep 2012 05:52:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, paul@pwsan.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Tony,
+Your Email address is among the (20) Email Addresses that won 
+USD$90,000.00 Dollars, and a BlackBerry Torch 9810 in the ongoing 
+BlackBERRY ASIA PROMO 2012.
 
-On Wednesday 26 September 2012 15:00:19 Tony Lindgren wrote:
-> Moi Sakari
-> 
-> * Sakari Ailus <sakari.ailus@iki.fi> [120926 14:51]:
-> > Configure CSI-2 phy based on platform data in the ISP driver. For that,
-> > the
-> > new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
-> > was configured from the board code.
-> > 
-> > This patch is dependent on "omap3: Provide means for changing CSI2 PHY
-> > configuration".
-> 
-> Can you please do one more patch to get rid of the last remaining
-> cpu_is_omapxxxx check in drivers/media/platform/omap3isp/isp.c?
+For claims, send your Name/Address/Mobile to our E-mail: 
+bbteams2012@admin.in.th
 
-I'm working on that, I'll submit a patch.
+Note: All participants were selected through the internet around the 
+Globe from over 25,000 internet websites and If You Receive This Message 
+in Your Junk or Spam, Its Due To Your Internet Provider.
 
-> That data should come from platform_data (or device tree) as
-> we going to make cpu_is_omap privat to mach-omap2.
 
--- 
-Regards,
-
-Laurent Pinchart
-
+BlackBERRY TEAM ASIA.
