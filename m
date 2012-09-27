@@ -1,155 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 Subject: Re: Help needed with remaining plat headers
-Date: Thu, 27 Sep 2012 13:31:47 -0700
-Message-ID: <20120927203146.GT4840@atomide.com>
-References: <20120920232907.GN28835@atomide.com>
- <20120927202615.GS4840@atomide.com>
+Date: Fri, 28 Sep 2012 02:03:13 +0530
+Message-ID: <CAMQu2gzMKnm25ve6dWxMiLKQEoqDQE6535kXbuh38FCsy8O+9w@mail.gmail.com>
+References: <20120920232907.GN28835@atomide.com> <20120927202615.GS4840@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:31905 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752320Ab2I0Ubt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 16:31:49 -0400
-Content-Disposition: inline
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:55196 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753304Ab2I0Udk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 27 Sep 2012 16:33:40 -0400
+Received: by qcse13 with SMTP id e13so3369000qcs.1
+        for <linux-omap@vger.kernel.org>; Thu, 27 Sep 2012 13:33:34 -0700 (PDT)
 In-Reply-To: <20120927202615.GS4840@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Afzal Mohammed <afzal@ti.com>, Felipe Balbi <balbi@ti.com>, Jon Hunter <jon-hunter@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Kevin Hilman <khilman@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Afzal Mohammed <afzal@ti.com>, Felipe Balbi <balbi@ti.com>, Jon Hunter <jon-hunter@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Lokesh Vutla <lokeshvutla@ti.com>
 
-Missed omap-pm.h and omap-secure.h, see below..
-
-* Tony Lindgren <tony@atomide.com> [120927 13:27]:
+On Fri, Sep 28, 2012 at 1:56 AM, Tony Lindgren <tony@atomide.com> wrote:
+>
 > Please see below a status update on the remaining problem
 > plat headers.
-> 
+>
 > Note that all patches should be against current linux next
 > in this case.
-> 
+>
 > * Tony Lindgren <tony@atomide.com> [120920 16:30]:
-> > 
+> >
 > > $ ls arch/arm/plat-omap/include/plat/
-> > clkdev_omap.h
-> > clock.h
-> 
-> Paul posted patches for the clock headers.
-> 
-> > common.h
-> 
-> I'll make common.h local.
-> 
-> > cpu.h
-> 
-> Making cpu.h local requires getting rid of cpu_is_omap/soc_is_omap
-> usage in drivers for mach-omap2+, so please fix your drivers!
-> 
-> > dma-44xx.h
-> > dma.h
-> 
-> Lokesh will post patches for the dma*.h files.
-> 
-> > dmtimer.h
-> 
-> Jon, can you do a patch for dmtimer.h?
-> 
-> > fpga.h
-> 
-> I'll make fpga.h local to mach-omap1.
-> 
-> > gpmc.h
-> 
-> Afzal, can you do a patch for gpmc.h?
-> 
-> > i2c.h
-> 
-> Will move to platform_data after defining register functions
-> locally.
-> 
-> > iommu2.h
-> > iommu.h
-> > iopgtable.h
-> > iovmm.h
-> 
-> There are io*.h patches posted for these by Ido that need
-> a bit more work to clear out the non-platform-data parts
-> that should be local to the driver.
-> 
-> > led.h
-> 
-> Will move to platform_data.
-> 
-> > mailbox.h
-> 
-> Omar, can you please do a patch that makes mailbox.h
-> suitable for include/linux/platform_data/mailbox-omap.h?
-> 
-> > menelaus.h
-> 
-> Will convert to be suitable for include/linux/platform_data.
-> 
-> > mmc.h
-> 
-> Will convert to be suitable for include/linux/platform_data.
-> 
-> > multi.h
-> 
-> Will make multi.h local.
-> 
-> > omap_device.h
-> > omap_hwmod.h
-> 
-> Will make omap_device.h and omap_hwmod.h local to mach-omap2.
-> 
-> > omap-pm.h
 
-I think Kevin already has some patches to make this local?
+[..]
 
-> > omap-secure.h
+> omap-secure.h
 
-Will make omap-secure.h local.
+Will work with Lokesh to get this one sorted out along with
+dma. It can be made local to mach-omap2.
 
-> > omap-serial.h
-> 
-> Will fix up for platform_data/serial-omap.h.
-> 
-> > prcm.h
-> > sdrc.h
-> 
-> Will make prcm.h and sdrc.h local to mach-omap2.
-> 
-> > serial.h
-> 
-> Will fix up for platform_data/serial-omap.h.
-> 
-> > sram.h
-> 
-> Will make sram.h local.
-> 
-> > tc.h
-> 
-> Will make tc.h local to mach-omap1.
-> 
-> > timex.h
-> 
-> Igor is looking into timex.h.
-> 
-> > uncompress.h
-> 
-> We can just move and disable the DEBUG_LL unless UART
-> address + shift are specified in Kconfig in a generic
-> way. I think this is already possible or patches have
-> been posted to LAKML?
-> 
-> > usb.h
-> 
-> Felipe can you do a patch for this one?
-> 
-> > vram.h
-> > vrfb.h
-> 
-> Tomi will post patches for vr*.h files.
-> 
-> Regards,
-> 
-> Tony
+Regards
+Santosh
