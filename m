@@ -1,275 +1,150 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [RFC PATCH 1/3] uio: uio_pruss: port to AM33xx
-Date: Fri, 28 Sep 2012 14:53:34 -0400
-Message-ID: <20120928185333.GG5641@beef>
-References: <1348667071-12631-1-git-send-email-mporter@ti.com>
- <1348667071-12631-2-git-send-email-mporter@ti.com>
- <20120926235117.GD4776@local>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/5] drivers: usb: phy: add a new driver for omap usb2 phy
+Date: Sat, 29 Sep 2012 00:29:26 +0530
+Message-ID: <CAAe_U6KfcucSHyndadUXiHer4jxYmMkFp1Ur0oNHTjJeOui04g@mail.gmail.com>
+References: <1346943430-18236-1-git-send-email-kishon@ti.com>
+ <1346943430-18236-2-git-send-email-kishon@ti.com>
+ <50605CFB.5090402@gmail.com>
+ <CAAe_U6+2Vxd8F_JMafm41+0SnZSrZCa_9VKRbdB200BUHw5vEQ@mail.gmail.com>
+ <506461A0.4050103@gmail.com> <5064D7CA.1070909@ti.com>
+ <CAAe_U6KHk1nuSBVn-4H397wzUk0cnqGe_H0D8RVqrSFYGJVMCg@mail.gmail.com>
+ <5065BE44.3090903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120926235117.GD4776@local>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hans J. Koch" <hjk@hansjkoch.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <5065BE44.3090903-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 27, 2012 at 01:51:18AM +0200, Hans J. Koch wrote:
-> On Wed, Sep 26, 2012 at 09:44:29AM -0400, Matt Porter wrote:
-> > Add ifdefery hacks to only use SRAM on Davinci. This
-> > needs to be cleaned up with a sane generic SRAM allocator
-> > (like the DT based driver available that can't be used on
-> > Davinci which is just starting DT conversion) before it
-> > can go upstream.
-> 
-> I agree with that ;-)
-> Needing lots of ifdefs in *.c files is usually a bad sign...
-> 
-> Thanks anyway for posting, it's good to have things like that in the archives.
-> 
-> And please make driver code and documentation updates separate patches in the
-> future.
+Hi,
 
-Will separate out on v2.
+On Fri, Sep 28, 2012 at 8:42 PM, Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
+> On 9/28/2012 3:07 AM, ABRAHAM, KISHON VIJAY wrote:
+>>
+>> Hi,
+>>
+>> On Fri, Sep 28, 2012 at 4:18 AM, Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
+>>>
+>>> On 9/27/2012 7:24 AM, Rob Herring wrote:
+>>>>
+>>>>
+>>>> On 09/25/2012 05:06 AM, ABRAHAM, KISHON VIJAY wrote:
+>>>>>
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> On Mon, Sep 24, 2012 at 6:45 PM, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>>> wrote:
+>>>>>>
+>>>>>>
+>>>>>> On 09/06/2012 09:57 AM, Kishon Vijay Abraham I wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> All phy related programming like enabling/disabling the clocks,
+>>>>>>> powering
+>>>>>>> on/off the phy is taken care of by this driver. It is also used for
+>>>>>>> OTG
+>>>>>>> related functionality like srp.
+>>>>>>>
+>>>>>>> This also includes device tree support for usb2 phy driver and
+>>>>>>> the documentation with device tree binding information is updated.
+>>>>>>>
+>>>>>>> Currently writing to control module register is taken care in this
+>>>>>>> driver which will be removed once the control module driver is in
+>>>>>>> place.
+>>>>>>>
+>>>>>>> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>>>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>>>>>> ---
+>>>>>>>    Documentation/devicetree/bindings/usb/usb-phy.txt |   17 ++
+>>>>>>>    drivers/usb/phy/Kconfig                           |    9 +
+>>>>>>>    drivers/usb/phy/Makefile                          |    1 +
+>>>>>>>    drivers/usb/phy/omap-usb2.c                       |  271
+>>>>>>> +++++++++++++++++++++
+>>>>>>>    include/linux/usb/omap_usb.h                      |   46 ++++
+>>>>>>>    include/linux/usb/phy_companion.h                 |   34 +++
+>>>>>>>    6 files changed, 378 insertions(+)
+>>>>>>>    create mode 100644
+>>>>>>> Documentation/devicetree/bindings/usb/usb-phy.txt
+>>>>>>>    create mode 100644 drivers/usb/phy/omap-usb2.c
+>>>>>>>    create mode 100644 include/linux/usb/omap_usb.h
+>>>>>>>    create mode 100644 include/linux/usb/phy_companion.h
+>>>>>>>
+>>>>>>> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt
+>>>>>>> b/Documentation/devicetree/bindings/usb/usb-phy.txt
+>>>>>>> new file mode 100644
+>>>>>>> index 0000000..80d4148
+>>>>>>> --- /dev/null
+>>>>>>> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> This is a very generic name...
+>>>>>>
+>>>>>>> @@ -0,0 +1,17 @@
+>>>>>>> +USB PHY
+>>>>>>> +
+>>>>>>> +OMAP USB2 PHY
+>>>>>>> +
+>>>>>>> +Required properties:
+>>>>>>> + - compatible: Should be "ti,omap-usb2"
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> ...for a specific phy. However, I do think a generic binding to
+>>>>>> describe
+>>>>>> host ctrlr to phy connections is needed.
+>>>>>>
+>>>>>>> + - reg : Address and length of the register set for the device. Also
+>>>>>>> +add the address of control module dev conf register until a driver
+>>>>>>> for
+>>>>>>> +control module is added
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> The dts should describe the h/w, not what you need for the current
+>>>>>> driver. The 2nd reg field does not belong here.
+>>>>>
+>>>>>
+>>>>>
+>>>>> Indeed. This was discussed and agreed upon as a interim solution till
+>>>>> we have a control module driver in place to write to the control
+>>>>> module register.
+>>>>
+>>>>
+>>>>
+>>>> Discussed where and agreed by who? I for one do not agree.
+>>>
+>>>
+>>>
+>>> Yeah, what was tolerated was the addition of that address inside hwmod
+>>> data,
+>>> but I do agree that it should not go into DTS.
+>>
+>>
+>> So how can we handle reg writes to control module until we have a
+>> control module driver. usb2 phy does not have a hwmod data for itself.
+>> Do you think we should add a new hwmod data for usb2 phy and use this
+>> in the usb2phy data node in the dts file?
+>
+>
+> Now, I'm confused... didn't you already do that? What was the hwmod you
+> added?
 
--Matt
+That was in usb_otg_hs (musb glue for omap) for writing to MUSB
+mailbox. This is for usb2 phy for powering on/off the PHY.
 
-> > 
-> > Adds DT, pinctrl, and runtime PM support for use on
-> > AM33xx.
-> > 
-> > Signed-off-by: Matt Porter <mporter@ti.com>
-> > ---
-> >  Documentation/devicetree/bindings/uio/pruss.txt    |   17 ++++++
-> >  .../devicetree/bindings/uio/uio_pruss.txt          |   17 ++++++
-> >  drivers/uio/Kconfig                                |    4 +-
-> >  drivers/uio/uio_pruss.c                            |   63 +++++++++++++++++++-
-> >  4 files changed, 98 insertions(+), 3 deletions(-)
-> >  create mode 100644 Documentation/devicetree/bindings/uio/pruss.txt
-> >  create mode 100644 Documentation/devicetree/bindings/uio/uio_pruss.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/uio/pruss.txt b/Documentation/devicetree/bindings/uio/pruss.txt
-> > new file mode 100644
-> > index 0000000..2ac45c5
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/uio/pruss.txt
-> > @@ -0,0 +1,17 @@
-> > +TI PRUSS device
-> > +
-> > +Required properties:
-> > +- compatible :
-> > +  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
-> > +  - "ti,pruss-v2" for AM33xx.
-> > +- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
-> > +- ti,hwmods: Name of the hwmod associated to the PRUSS
-> > +
-> > +Example:
-> > +
-> > +pruss: pruss@4a300000 {
-> > +	compatible = "ti,pruss-v2";
-> > +	ti,hwmods = "pruss";
-> > +	reg = <0x4a300000 0x080000>;
-> > +	ti,pintc-offset = <0x20000>;
-> > +};
-> > diff --git a/Documentation/devicetree/bindings/uio/uio_pruss.txt b/Documentation/devicetree/bindings/uio/uio_pruss.txt
-> > new file mode 100644
-> > index 0000000..2ac45c5
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/uio/uio_pruss.txt
-> > @@ -0,0 +1,17 @@
-> > +TI PRUSS device
-> > +
-> > +Required properties:
-> > +- compatible :
-> > +  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
-> > +  - "ti,pruss-v2" for AM33xx.
-> > +- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
-> > +- ti,hwmods: Name of the hwmod associated to the PRUSS
-> > +
-> > +Example:
-> > +
-> > +pruss: pruss@4a300000 {
-> > +	compatible = "ti,pruss-v2";
-> > +	ti,hwmods = "pruss";
-> > +	reg = <0x4a300000 0x080000>;
-> > +	ti,pintc-offset = <0x20000>;
-> > +};
-> > diff --git a/drivers/uio/Kconfig b/drivers/uio/Kconfig
-> > index 6f3ea9b..8da7d9b 100644
-> > --- a/drivers/uio/Kconfig
-> > +++ b/drivers/uio/Kconfig
-> > @@ -96,9 +96,9 @@ config UIO_NETX
-> >  
-> >  config UIO_PRUSS
-> >  	tristate "Texas Instruments PRUSS driver"
-> > -	depends on ARCH_DAVINCI_DA850
-> > +	depends on ARCH_DAVINCI_DA850 || SOC_AM33XX
-> >  	help
-> > -	  PRUSS driver for OMAPL138/DA850/AM18XX devices
-> > +	  PRUSS driver for OMAPL138/DA850/AM18XX and AM33XX devices
-> >  	  PRUSS driver requires user space components, examples and user space
-> >  	  driver is available from below SVN repo - you may use anonymous login
-> >  
-> > diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
-> > index 33a7a27..326ce40 100644
-> > --- a/drivers/uio/uio_pruss.c
-> > +++ b/drivers/uio/uio_pruss.c
-> > @@ -25,7 +25,15 @@
-> >  #include <linux/clk.h>
-> >  #include <linux/dma-mapping.h>
-> >  #include <linux/slab.h>
-> > +#include <linux/of_address.h>
-> > +#include <linux/of_device.h>
-> > +#include <linux/pinctrl/consumer.h>
-> > +#include <linux/err.h>
-> > +#include <linux/pm_runtime.h>
-> > +
-> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
-> >  #include <mach/sram.h>
-> > +#endif
-> >  
-> >  #define DRV_NAME "pruss_uio"
-> >  #define DRV_VERSION "1.0"
-> > @@ -105,8 +113,10 @@ static void pruss_cleanup(struct platform_device *dev,
-> >  		dma_free_coherent(&dev->dev, extram_pool_sz, gdev->ddr_vaddr,
-> >  			gdev->ddr_paddr);
-> >  	}
-> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
-> >  	if (gdev->sram_vaddr)
-> >  		sram_free(gdev->sram_vaddr, sram_pool_sz);
-> > +#endif
-> >  	kfree(gdev->info);
-> >  	clk_put(gdev->pruss_clk);
-> >  	kfree(gdev);
-> > @@ -117,8 +127,10 @@ static int __devinit pruss_probe(struct platform_device *dev)
-> >  	struct uio_info *p;
-> >  	struct uio_pruss_dev *gdev;
-> >  	struct resource *regs_prussio;
-> > +	struct resource res;
-> >  	int ret = -ENODEV, cnt = 0, len;
-> >  	struct uio_pruss_pdata *pdata = dev->dev.platform_data;
-> > +	struct pinctrl *pinctrl;
-> >  
-> >  	gdev = kzalloc(sizeof(struct uio_pruss_dev), GFP_KERNEL);
-> >  	if (!gdev)
-> > @@ -129,6 +141,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
-> >  		kfree(gdev);
-> >  		return -ENOMEM;
-> >  	}
-> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
-> >  	/* Power on PRU in case its not done as part of boot-loader */
-> >  	gdev->pruss_clk = clk_get(&dev->dev, "pruss");
-> >  	if (IS_ERR(gdev->pruss_clk)) {
-> > @@ -140,6 +153,28 @@ static int __devinit pruss_probe(struct platform_device *dev)
-> >  	} else {
-> >  		clk_enable(gdev->pruss_clk);
-> >  	}
-> > +#endif
-> > +
-> > +	if (dev->dev.of_node) {
-> > +		pm_runtime_enable(&dev->dev);
-> > +		ret = pm_runtime_get_sync(&dev->dev);
-> > +		if (IS_ERR_VALUE(ret)) {
-> > +			dev_err(&dev->dev, "pm_runtime_get_sync() failed\n");
-> > +			return ret;
-> > +		}
-> > +
-> > +		ret = of_address_to_resource(dev->dev.of_node, 0, &res);
-> > +		if (IS_ERR_VALUE(ret)) {
-> > +			dev_err(&dev->dev, "failed to parse DT reg\n");
-> > +			return ret;
-> > +		}
-> > +		regs_prussio = &res;
-> > +	}
-> > +
-> > +	pinctrl = devm_pinctrl_get_select_default(&dev->dev);
-> > +	if (IS_ERR(pinctrl))
-> > +		dev_warn(&dev->dev,
-> > +			"pins are not configured from the driver\n");
-> >  
-> >  	regs_prussio = platform_get_resource(dev, IORESOURCE_MEM, 0);
-> >  	if (!regs_prussio) {
-> > @@ -152,11 +187,13 @@ static int __devinit pruss_probe(struct platform_device *dev)
-> >  		goto out_free;
-> >  	}
-> >  
-> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
-> >  	gdev->sram_vaddr = sram_alloc(sram_pool_sz, &(gdev->sram_paddr));
-> >  	if (!gdev->sram_vaddr) {
-> >  		dev_err(&dev->dev, "Could not allocate SRAM pool\n");
-> >  		goto out_free;
-> >  	}
-> > +#endif
-> >  
-> >  	gdev->ddr_vaddr = dma_alloc_coherent(&dev->dev, extram_pool_sz,
-> >  				&(gdev->ddr_paddr), GFP_KERNEL | GFP_DMA);
-> > @@ -172,7 +209,17 @@ static int __devinit pruss_probe(struct platform_device *dev)
-> >  		goto out_free;
-> >  	}
-> >  
-> > -	gdev->pintc_base = pdata->pintc_base;
-> > +	if (dev->dev.of_node) {
-> > +		ret = of_property_read_u32(dev->dev.of_node,
-> > +					   "ti,pintc-offset",
-> > +					   &gdev->pintc_base);
-> > +		if (ret < 0) {
-> > +			dev_err(&dev->dev,
-> > +				"Can't parse ti,pintc-offset property\n");
-> > +			goto out_free;
-> > +		}
-> > +	} else
-> > +		gdev->pintc_base = pdata->pintc_base;
-> >  	gdev->hostirq_start = platform_get_irq(dev, 0);
-> >  
-> >  	for (cnt = 0, p = gdev->info; cnt < MAX_PRUSS_EVT; cnt++, p++) {
-> > @@ -180,6 +227,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
-> >  		p->mem[0].size = resource_size(regs_prussio);
-> >  		p->mem[0].memtype = UIO_MEM_PHYS;
-> >  
-> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
-> >  		p->mem[1].addr = gdev->sram_paddr;
-> >  		p->mem[1].size = sram_pool_sz;
-> >  		p->mem[1].memtype = UIO_MEM_PHYS;
-> > @@ -187,6 +235,11 @@ static int __devinit pruss_probe(struct platform_device *dev)
-> >  		p->mem[2].addr = gdev->ddr_paddr;
-> >  		p->mem[2].size = extram_pool_sz;
-> >  		p->mem[2].memtype = UIO_MEM_PHYS;
-> > +#else
-> > +		p->mem[1].addr = gdev->ddr_paddr;
-> > +		p->mem[1].size = extram_pool_sz;
-> > +		p->mem[1].memtype = UIO_MEM_PHYS;
-> > +#endif
-> >  
-> >  		p->name = kasprintf(GFP_KERNEL, "pruss_evt%d", cnt);
-> >  		p->version = DRV_VERSION;
-> > @@ -218,12 +271,20 @@ static int __devexit pruss_remove(struct platform_device *dev)
-> >  	return 0;
-> >  }
-> >  
-> > +static const struct of_device_id pruss_dt_ids[] = {
-> > +	{ .compatible = "ti,pruss-v1", .data = NULL, },
-> > +	{ .compatible = "ti,pruss-v2", .data = NULL, },
-> > +	{},
-> > +};
-> > +MODULE_DEVICE_TABLE(of, pruss_dt_ids);
-> > +
-> >  static struct platform_driver pruss_driver = {
-> >  	.probe = pruss_probe,
-> >  	.remove = __devexit_p(pruss_remove),
-> >  	.driver = {
-> >  		   .name = DRV_NAME,
-> >  		   .owner = THIS_MODULE,
-> > +		   .of_match_table = pruss_dt_ids,
-> >  		   },
-> >  };
-> >  
-> > -- 
-> > 1.7.9.5
-> > 
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Thanks
+Kishon
