@@ -1,44 +1,69 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 0/6] usb: dwc3-omap: add dt support
-Date: Fri, 28 Sep 2012 18:23:09 +0530
-Message-ID: <1348836795-4783-1-git-send-email-kishon@ti.com>
+Subject: [PATCH 3/6] usb: dwc3-omap: Remove explicit writes to SYSCONFIG register
+Date: Fri, 28 Sep 2012 18:23:12 +0530
+Message-ID: <1348836795-4783-4-git-send-email-kishon@ti.com>
+References: <1348836795-4783-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1348836795-4783-1-git-send-email-kishon@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
 To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, kishon@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-This patch series adds dt support to dwc3 core and fixes few minor
-stuff in dwc3-omap glue to get dwc3 working.
+The runtime API's takes care of setting the SYSCONFIG register with
+appropriate values. Hence explicit writes to SYSCONFIG register is
+removed.
 
-While at that it also uses *of_platform* to create the child device
-(dwc3-core) and fixes to use runtime API's to enable clock and write
-to SYSCONFIG register.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/usb/dwc3/dwc3-omap.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
-This patch series is developed on:
-git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git dwc3
-
-These patches were actually tested in
-http://gitorious.org/linux-usb/linux-usb/commits/dwc3 dwc3
-since all the dependent modules is not yet upstreamed.
-
-Kishon Vijay Abraham I (6):
-  usb: dwc3-omap: use of_platform API to create dwc3 core pdev
-  usb: dwc3-omap: use runtime API's to enable clocks
-  usb: dwc3-omap: Remove explicit writes to SYSCONFIG register
-  usb: dwc3-omap: Add an API to write to dwc mailbox
-  usb: dwc3-omap: Minor fixes to get dt working
-  usb: dwc3: core: add dt support for dwc3 core
-
- Documentation/devicetree/bindings/usb/dwc3.txt |   24 ++++
- drivers/usb/dwc3/core.c                        |   14 +-
- drivers/usb/dwc3/dwc3-omap.c                   |  164 ++++++++++++++----------
- include/linux/usb/dwc3-omap.h                  |   30 +++++
- 4 files changed, 160 insertions(+), 72 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/usb/dwc3.txt
- create mode 100644 include/linux/usb/dwc3-omap.h
-
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 6a0e17f..a1704c6 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -77,23 +77,6 @@
+ 
+ /* SYSCONFIG REGISTER */
+ #define USBOTGSS_SYSCONFIG_DMADISABLE		(1 << 16)
+-#define USBOTGSS_SYSCONFIG_STANDBYMODE(x)	((x) << 4)
+-
+-#define USBOTGSS_STANDBYMODE_FORCE_STANDBY	0
+-#define USBOTGSS_STANDBYMODE_NO_STANDBY		1
+-#define USBOTGSS_STANDBYMODE_SMART_STANDBY	2
+-#define USBOTGSS_STANDBYMODE_SMART_WAKEUP	3
+-
+-#define USBOTGSS_STANDBYMODE_MASK		(0x03 << 4)
+-
+-#define USBOTGSS_SYSCONFIG_IDLEMODE(x)		((x) << 2)
+-
+-#define USBOTGSS_IDLEMODE_FORCE_IDLE		0
+-#define USBOTGSS_IDLEMODE_NO_IDLE		1
+-#define USBOTGSS_IDLEMODE_SMART_IDLE		2
+-#define USBOTGSS_IDLEMODE_SMART_WAKEUP		3
+-
+-#define USBOTGSS_IDLEMODE_MASK			(0x03 << 2)
+ 
+ /* IRQ_EOI REGISTER */
+ #define USBOTGSS_IRQ_EOI_LINE_NUMBER		(1 << 0)
+@@ -318,15 +301,6 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+ 	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
+ 
+-	/* Set No-Idle and No-Standby */
+-	reg &= ~(USBOTGSS_STANDBYMODE_MASK
+-			| USBOTGSS_IDLEMODE_MASK);
+-
+-	reg |= (USBOTGSS_SYSCONFIG_STANDBYMODE(USBOTGSS_STANDBYMODE_NO_STANDBY)
+-		| USBOTGSS_SYSCONFIG_IDLEMODE(USBOTGSS_IDLEMODE_NO_IDLE));
+-
+-	dwc3_omap_writel(omap->base, USBOTGSS_SYSCONFIG, reg);
+-
+ 	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
+ 			"dwc3-omap", omap);
+ 	if (ret) {
 -- 
 1.7.10.4
 
