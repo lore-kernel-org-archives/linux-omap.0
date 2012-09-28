@@ -1,69 +1,65 @@
-From: linux@johnea.net
-Subject: Re: Which git to clone for testing prior to submitting bugs?
-Date: Fri, 28 Sep 2012 12:46:04 -0700
-Message-ID: <5065FE7C.9070503@johnea.net>
-References: <50648AA2.2010004@johnea.net> <CAOCHtYitbhOMv+YBaYgdTuYZQpZ_VLoP=QKVS=spmqPxEUkATA@mail.gmail.com> <5064A173.5000909@johnea.net> <CAOCHtYh2DofNoLx1W6ZWy4aKNpQx10P9AbmWbj1yeY1G=ixHPg@mail.gmail.com> <CAOCHtYiido11MG55m601CX2isYJ2oFcubgJ7Wkng=HnkT_DdcQ@mail.gmail.com> <5064B41D.9030709@johnea.net> <CAOCHtYjjczpQ0oJ4zgrExdF7C-OAsfzMLwAEfdExkFG2uiUKgw@mail.gmail.com> <5065F13E.8070306@johnea.net> <CAOCHtYg3zrqO+3Rk6P8K7iit7uO9g4_YHQ870TXbmuEPZEyQ0Q@mail.gmail.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH RESEND 0/5] ARM: dts: AM33XX: Add device tree data
+Date: Fri, 28 Sep 2012 16:48:16 -0400
+Message-ID: <20120928204816.GI5641@beef>
+References: <1348089570-16161-1-git-send-email-anilkumar@ti.com>
+ <B7CE1C39EBFBA0428A012975D4B2FC830B5DF78F@DNCE05.ent.ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA34232@DBDE01.ent.ti.com>
+ <505A3D4C.4090502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from johnea.net ([70.167.123.7]:45940 "EHLO mail.johnea.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030371Ab2I1TqF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Sep 2012 15:46:05 -0400
-Received: from [192.168.1.143] (wsip-70-166-88-164.sd.sd.cox.net [70.166.88.164])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.johnea.net (Postfix) with ESMTPSA id 4514173F188B
-	for <linux-omap@vger.kernel.org>; Fri, 28 Sep 2012 12:46:05 -0700 (PDT)
-In-Reply-To: <CAOCHtYg3zrqO+3Rk6P8K7iit7uO9g4_YHQ870TXbmuEPZEyQ0Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <505A3D4C.4090502@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, 'paul Walmsley' <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "AnilKumar, Chimata" <anilkumar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-On 09/28/2012 12:18 PM, Robert Nelson wrote:
-> Ah, so looking at the config, ARCH switched to omapdrm... It kinda
-> works in v3.5.x, but i'd wait till a few more releases...
->
-> So, based on that config, they have both "CONFIG_FB_OMAP2" and
-> "CONFIG_DRM_OMAP" enabled.. That's a no-no...
->
-> CONFIG_DRM_OMAP
-> http://cateee.net/lkddb/web-lkddb/DRM_OMAP.html
-> depends on: ( CONFIG_DRM&&  ! CONFIG_CONFIG_FB_OMAP2 )&&  (
-> CONFIG_ARCH_OMAP2PLUS )
->
-> Option 1: Stay with omapfb
->
-> CONFIG_FB_OMAP2=m ->  CONFIG_FB_OMAP2=y
-> disable: CONFIG_DRM_OMAP
->
-> Option 2: Go Experimental route with omapdrm
->
-> CONFIG_DRM_OMAP=m
-> CONFIG_DRM_OMAP_NUM_CRTCS=1
->
-> disable: CONFIG_FB_OMAP2
->
->> >  Attached are config.gz from running system and gz'd complete dmesg output
->> >  (hope attachments are OK on the list).
->> >
->> >  There's another 3.5.4 build scheduled on the panda build farm this
->> >  afternoon. If you have any config modification suggestions, they'd be very
->> >  gratefully received.
-> Also, if your running that config on pre-es (omap4430) panda's..
-> CONFIG_OMAP4_ERRATA_I688=y&   CONFIG_ARCH_HAS_BARRIERS=y
->
-> and save your self some debugging time...;)
->
+On Wed, Sep 19, 2012 at 04:46:52PM -0500, Benoit Cousson wrote:
+> + Matt
+> 
+> On 9/19/2012 4:28 PM, AnilKumar, Chimata wrote:
+> >On Thu, Sep 20, 2012 at 02:53:38, Cousson, Benoit wrote:
+> >>+ Paul
+> >>
+> >>Hi Anil,
+> >>
+> >>Thanks for the rebase / repost. I'll pulled the full series if Paul is OK with
+> >>   ARM: OMAP2+: AM33XX: Add clock entries to omap_clk data
+> >>
+> 
+> What about Matt's series to fix the I2C number? Should it be applied
+> on top of that one?
+
+I had the series to fix the GPIO numbering [1]. It's dependent on this
+series which carries the led dts patch. Pantelis has a patch for i2c
+dts numbering in his i2c series [2]. A hunk in that patch has support
+for his i2c pinctrl series mixed in (not sure where that one is due to
+the change to early init) so it doesn't apply cleanly alone on top of
+for_3.7/dts_part2. If you're willing to pick up that i2c renumbering by
+itself I can drop you a patch just for that part.
+
+-Matt
+
+[1] https://patchwork.kernel.org/patch/1433481/
+    https://patchwork.kernel.org/patch/1433471/
+
+[2] https://patchwork.kernel.org/patch/1474001/
+
+> 
 > Regards,
->
-> -- Robert Nelson http://www.rcn-ee.com/
-
-Thanks Robert!
-
-I passed along to the distro devs to include in today's build.
-
-I'll follow up once I'm running the new version...
-
-johnea
+> Benoit
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
