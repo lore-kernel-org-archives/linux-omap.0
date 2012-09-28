@@ -1,108 +1,275 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH V2 0/7] ARM: OMAP2+: Add device-tree support for timers
-Date: Sat, 29 Sep 2012 00:21:10 +0530
-Message-ID: <5065F19E.5020708@ti.com>
-References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com> <505A7E0B.30709@ti.com> <20120920235309.GO28835@atomide.com> <5063330E.3000203@ti.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [RFC PATCH 1/3] uio: uio_pruss: port to AM33xx
+Date: Fri, 28 Sep 2012 14:53:34 -0400
+Message-ID: <20120928185333.GG5641@beef>
+References: <1348667071-12631-1-git-send-email-mporter@ti.com>
+ <1348667071-12631-2-git-send-email-mporter@ti.com>
+ <20120926235117.GD4776@local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58624 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756050Ab2I1Sva (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Sep 2012 14:51:30 -0400
-In-Reply-To: <5063330E.3000203@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120926235117.GD4776@local>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hans J. Koch" <hjk@hansjkoch.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-
-
-On 9/26/2012 10:23 PM, Jon Hunter wrote:
+On Thu, Sep 27, 2012 at 01:51:18AM +0200, Hans J. Koch wrote:
+> On Wed, Sep 26, 2012 at 09:44:29AM -0400, Matt Porter wrote:
+> > Add ifdefery hacks to only use SRAM on Davinci. This
+> > needs to be cleaned up with a sane generic SRAM allocator
+> > (like the DT based driver available that can't be used on
+> > Davinci which is just starting DT conversion) before it
+> > can go upstream.
 > 
-> On 09/20/2012 06:53 PM, Tony Lindgren wrote:
->> * Benoit Cousson <b-cousson@ti.com> [120919 19:24]:
->>> Hi Tony,
->>>
->>> I was about to take the DTS patch, but was wondering if you will pull
->>> the driver changes for 3.7.
->>
->> I suggest that you do a separate branch on top of Paul's hwmod series
->> when he posts those if that works for you?
+> I agree with that ;-)
+> Needing lots of ifdefs in *.c files is usually a bad sign...
 > 
-> Benoit, I see that you have pulled in the DTS patch.
+> Thanks anyway for posting, it's good to have things like that in the archives.
 > 
-> Do you guys want me to rebase the remaining patches with Rob's change on
-> Tony's master branch and re-submit?
-> 
+> And please make driver code and documentation updates separate patches in the
+> future.
 
-Jon,
+Will separate out on v2.
 
-Sorry for delayed response, But I tried using your omap_test application
-to validate this patch series, but it is failing for me.
+-Matt
 
-How did you test it? Are you running same test application at your end?
-
-I am debugging this issue, i just thought I should tell you this before
-its too late.
-
-
-Below is the log -
-
-[root@arago /]# echo 3 > /tmp/omap-test/timer/one
-[   79.612223] omap_dm_timer_request_specific: Please use
-omap_dm_timer_request_by_cap()
-[   79.620636] Timer 3 not available!
-
-[root@arago /]#
-[root@arago /]# echo 3 > /tmp/omap-test/timer/all
-[  135.111949] Testing 48042000.timer with 24000000 Hz clock ...
-[root@arago /]# [  137.457389] Timer read test PASSED! No errors, 100 loops
-[  137.463267] Timer interrupt test PASSED!
-[  137.467650] Testing 48042000.timer with 32768 Hz clock ...
-[  139.816892] Timer read test PASSED! No errors, 100 loops
-[  139.830776] Timer interrupt test PASSED!
-[  139.835245] Testing 48044000.timer with 24000000 Hz clock ...
-[  142.183912] Timer read test PASSED! No errors, 100 loops
-[  142.189734] Timer interrupt test PASSED!
-[  142.194076] Testing 48044000.timer with 32768 Hz clock ...
-[  144.543451] Timer read test PASSED! No errors, 100 loops
-[  144.557334] Timer interrupt test PASSED!
-[  144.561806] Testing 48046000.timer with 24000000 Hz clock ...
-[  146.910469] Timer read test PASSED! No errors, 100 loops
-[  147.910493] Timer interrupt test FAILED! No interrupt occurred in 1 sec
-[  147.917598] Testing 48046000.timer with 32768 Hz clock ...
-[  150.262203] Timer read test PASSED! No errors, 100 loops
-[  151.262049] Timer interrupt test FAILED! No interrupt occurred in 1 sec
-[  151.269298] Testing 48048000.timer with 24000000 Hz clock ...
-[  153.613596] Timer read test PASSED! No errors, 100 loops
-[  154.613618] Timer interrupt test FAILED! No interrupt occurred in 1 sec
-[  154.620725] Testing 48048000.timer with 32768 Hz clock ...
-[  156.965324] Timer read test PASSED! No errors, 100 loops
-[  157.965176] Timer interrupt test FAILED! No interrupt occurred in 1 sec
-[  157.972419] Testing 4804a000.timer with 24000000 Hz clock ...
-
-[root@arago /]# [  160.316753] Timer read test PASSED! No errors, 100 loops
-
-[root@arago /]# [  161.316728] Timer interrupt test FAILED! No interrupt
-occurred in 1 sec
-[  161.323912] Testing 4804a000.timer with 32768 Hz clock ...
-
-[root@arago /]# [  163.668490] Timer read test PASSED! No errors, 100 loops
-[  164.668328] Timer interrupt test FAILED! No interrupt occurred in 1 sec
-[  164.675545] Tested 5 timers, skipped 6 timers and detected 6 errors
-[  164.682202] Test iteration 0 complete in 29 secs
-[  164.687104] Test summary: Iterations 1, Errors 6
-
-
-
-> Cheers
-> Jon
-> 
-> 
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
-> 
+> > 
+> > Adds DT, pinctrl, and runtime PM support for use on
+> > AM33xx.
+> > 
+> > Signed-off-by: Matt Porter <mporter@ti.com>
+> > ---
+> >  Documentation/devicetree/bindings/uio/pruss.txt    |   17 ++++++
+> >  .../devicetree/bindings/uio/uio_pruss.txt          |   17 ++++++
+> >  drivers/uio/Kconfig                                |    4 +-
+> >  drivers/uio/uio_pruss.c                            |   63 +++++++++++++++++++-
+> >  4 files changed, 98 insertions(+), 3 deletions(-)
+> >  create mode 100644 Documentation/devicetree/bindings/uio/pruss.txt
+> >  create mode 100644 Documentation/devicetree/bindings/uio/uio_pruss.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/uio/pruss.txt b/Documentation/devicetree/bindings/uio/pruss.txt
+> > new file mode 100644
+> > index 0000000..2ac45c5
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/uio/pruss.txt
+> > @@ -0,0 +1,17 @@
+> > +TI PRUSS device
+> > +
+> > +Required properties:
+> > +- compatible :
+> > +  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
+> > +  - "ti,pruss-v2" for AM33xx.
+> > +- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
+> > +- ti,hwmods: Name of the hwmod associated to the PRUSS
+> > +
+> > +Example:
+> > +
+> > +pruss: pruss@4a300000 {
+> > +	compatible = "ti,pruss-v2";
+> > +	ti,hwmods = "pruss";
+> > +	reg = <0x4a300000 0x080000>;
+> > +	ti,pintc-offset = <0x20000>;
+> > +};
+> > diff --git a/Documentation/devicetree/bindings/uio/uio_pruss.txt b/Documentation/devicetree/bindings/uio/uio_pruss.txt
+> > new file mode 100644
+> > index 0000000..2ac45c5
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/uio/uio_pruss.txt
+> > @@ -0,0 +1,17 @@
+> > +TI PRUSS device
+> > +
+> > +Required properties:
+> > +- compatible :
+> > +  - "ti,pruss-v1" for AM18xx/OMAP-L138/DA850
+> > +  - "ti,pruss-v2" for AM33xx.
+> > +- ti,pintc-offset : Offset of the PINTC from the PRUSS address base
+> > +- ti,hwmods: Name of the hwmod associated to the PRUSS
+> > +
+> > +Example:
+> > +
+> > +pruss: pruss@4a300000 {
+> > +	compatible = "ti,pruss-v2";
+> > +	ti,hwmods = "pruss";
+> > +	reg = <0x4a300000 0x080000>;
+> > +	ti,pintc-offset = <0x20000>;
+> > +};
+> > diff --git a/drivers/uio/Kconfig b/drivers/uio/Kconfig
+> > index 6f3ea9b..8da7d9b 100644
+> > --- a/drivers/uio/Kconfig
+> > +++ b/drivers/uio/Kconfig
+> > @@ -96,9 +96,9 @@ config UIO_NETX
+> >  
+> >  config UIO_PRUSS
+> >  	tristate "Texas Instruments PRUSS driver"
+> > -	depends on ARCH_DAVINCI_DA850
+> > +	depends on ARCH_DAVINCI_DA850 || SOC_AM33XX
+> >  	help
+> > -	  PRUSS driver for OMAPL138/DA850/AM18XX devices
+> > +	  PRUSS driver for OMAPL138/DA850/AM18XX and AM33XX devices
+> >  	  PRUSS driver requires user space components, examples and user space
+> >  	  driver is available from below SVN repo - you may use anonymous login
+> >  
+> > diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
+> > index 33a7a27..326ce40 100644
+> > --- a/drivers/uio/uio_pruss.c
+> > +++ b/drivers/uio/uio_pruss.c
+> > @@ -25,7 +25,15 @@
+> >  #include <linux/clk.h>
+> >  #include <linux/dma-mapping.h>
+> >  #include <linux/slab.h>
+> > +#include <linux/of_address.h>
+> > +#include <linux/of_device.h>
+> > +#include <linux/pinctrl/consumer.h>
+> > +#include <linux/err.h>
+> > +#include <linux/pm_runtime.h>
+> > +
+> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
+> >  #include <mach/sram.h>
+> > +#endif
+> >  
+> >  #define DRV_NAME "pruss_uio"
+> >  #define DRV_VERSION "1.0"
+> > @@ -105,8 +113,10 @@ static void pruss_cleanup(struct platform_device *dev,
+> >  		dma_free_coherent(&dev->dev, extram_pool_sz, gdev->ddr_vaddr,
+> >  			gdev->ddr_paddr);
+> >  	}
+> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
+> >  	if (gdev->sram_vaddr)
+> >  		sram_free(gdev->sram_vaddr, sram_pool_sz);
+> > +#endif
+> >  	kfree(gdev->info);
+> >  	clk_put(gdev->pruss_clk);
+> >  	kfree(gdev);
+> > @@ -117,8 +127,10 @@ static int __devinit pruss_probe(struct platform_device *dev)
+> >  	struct uio_info *p;
+> >  	struct uio_pruss_dev *gdev;
+> >  	struct resource *regs_prussio;
+> > +	struct resource res;
+> >  	int ret = -ENODEV, cnt = 0, len;
+> >  	struct uio_pruss_pdata *pdata = dev->dev.platform_data;
+> > +	struct pinctrl *pinctrl;
+> >  
+> >  	gdev = kzalloc(sizeof(struct uio_pruss_dev), GFP_KERNEL);
+> >  	if (!gdev)
+> > @@ -129,6 +141,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
+> >  		kfree(gdev);
+> >  		return -ENOMEM;
+> >  	}
+> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
+> >  	/* Power on PRU in case its not done as part of boot-loader */
+> >  	gdev->pruss_clk = clk_get(&dev->dev, "pruss");
+> >  	if (IS_ERR(gdev->pruss_clk)) {
+> > @@ -140,6 +153,28 @@ static int __devinit pruss_probe(struct platform_device *dev)
+> >  	} else {
+> >  		clk_enable(gdev->pruss_clk);
+> >  	}
+> > +#endif
+> > +
+> > +	if (dev->dev.of_node) {
+> > +		pm_runtime_enable(&dev->dev);
+> > +		ret = pm_runtime_get_sync(&dev->dev);
+> > +		if (IS_ERR_VALUE(ret)) {
+> > +			dev_err(&dev->dev, "pm_runtime_get_sync() failed\n");
+> > +			return ret;
+> > +		}
+> > +
+> > +		ret = of_address_to_resource(dev->dev.of_node, 0, &res);
+> > +		if (IS_ERR_VALUE(ret)) {
+> > +			dev_err(&dev->dev, "failed to parse DT reg\n");
+> > +			return ret;
+> > +		}
+> > +		regs_prussio = &res;
+> > +	}
+> > +
+> > +	pinctrl = devm_pinctrl_get_select_default(&dev->dev);
+> > +	if (IS_ERR(pinctrl))
+> > +		dev_warn(&dev->dev,
+> > +			"pins are not configured from the driver\n");
+> >  
+> >  	regs_prussio = platform_get_resource(dev, IORESOURCE_MEM, 0);
+> >  	if (!regs_prussio) {
+> > @@ -152,11 +187,13 @@ static int __devinit pruss_probe(struct platform_device *dev)
+> >  		goto out_free;
+> >  	}
+> >  
+> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
+> >  	gdev->sram_vaddr = sram_alloc(sram_pool_sz, &(gdev->sram_paddr));
+> >  	if (!gdev->sram_vaddr) {
+> >  		dev_err(&dev->dev, "Could not allocate SRAM pool\n");
+> >  		goto out_free;
+> >  	}
+> > +#endif
+> >  
+> >  	gdev->ddr_vaddr = dma_alloc_coherent(&dev->dev, extram_pool_sz,
+> >  				&(gdev->ddr_paddr), GFP_KERNEL | GFP_DMA);
+> > @@ -172,7 +209,17 @@ static int __devinit pruss_probe(struct platform_device *dev)
+> >  		goto out_free;
+> >  	}
+> >  
+> > -	gdev->pintc_base = pdata->pintc_base;
+> > +	if (dev->dev.of_node) {
+> > +		ret = of_property_read_u32(dev->dev.of_node,
+> > +					   "ti,pintc-offset",
+> > +					   &gdev->pintc_base);
+> > +		if (ret < 0) {
+> > +			dev_err(&dev->dev,
+> > +				"Can't parse ti,pintc-offset property\n");
+> > +			goto out_free;
+> > +		}
+> > +	} else
+> > +		gdev->pintc_base = pdata->pintc_base;
+> >  	gdev->hostirq_start = platform_get_irq(dev, 0);
+> >  
+> >  	for (cnt = 0, p = gdev->info; cnt < MAX_PRUSS_EVT; cnt++, p++) {
+> > @@ -180,6 +227,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
+> >  		p->mem[0].size = resource_size(regs_prussio);
+> >  		p->mem[0].memtype = UIO_MEM_PHYS;
+> >  
+> > +#ifdef CONFIG_ARCH_DAVINCI_DA850
+> >  		p->mem[1].addr = gdev->sram_paddr;
+> >  		p->mem[1].size = sram_pool_sz;
+> >  		p->mem[1].memtype = UIO_MEM_PHYS;
+> > @@ -187,6 +235,11 @@ static int __devinit pruss_probe(struct platform_device *dev)
+> >  		p->mem[2].addr = gdev->ddr_paddr;
+> >  		p->mem[2].size = extram_pool_sz;
+> >  		p->mem[2].memtype = UIO_MEM_PHYS;
+> > +#else
+> > +		p->mem[1].addr = gdev->ddr_paddr;
+> > +		p->mem[1].size = extram_pool_sz;
+> > +		p->mem[1].memtype = UIO_MEM_PHYS;
+> > +#endif
+> >  
+> >  		p->name = kasprintf(GFP_KERNEL, "pruss_evt%d", cnt);
+> >  		p->version = DRV_VERSION;
+> > @@ -218,12 +271,20 @@ static int __devexit pruss_remove(struct platform_device *dev)
+> >  	return 0;
+> >  }
+> >  
+> > +static const struct of_device_id pruss_dt_ids[] = {
+> > +	{ .compatible = "ti,pruss-v1", .data = NULL, },
+> > +	{ .compatible = "ti,pruss-v2", .data = NULL, },
+> > +	{},
+> > +};
+> > +MODULE_DEVICE_TABLE(of, pruss_dt_ids);
+> > +
+> >  static struct platform_driver pruss_driver = {
+> >  	.probe = pruss_probe,
+> >  	.remove = __devexit_p(pruss_remove),
+> >  	.driver = {
+> >  		   .name = DRV_NAME,
+> >  		   .owner = THIS_MODULE,
+> > +		   .of_match_table = pruss_dt_ids,
+> >  		   },
+> >  };
+> >  
+> > -- 
+> > 1.7.9.5
+> > 
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
