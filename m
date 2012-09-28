@@ -1,120 +1,88 @@
 From: Matt Porter <mporter@ti.com>
-Subject: [PATCH v2 1/7] uio: uio_pruss: replace private SRAM API with genalloc
-Date: Fri, 28 Sep 2012 15:37:46 -0400
-Message-ID: <1348861072-14507-2-git-send-email-mporter@ti.com>
+Subject: [PATCH v2 6/7] ARM: omap: add DT support for deasserting hardware reset lines
+Date: Fri, 28 Sep 2012 15:37:51 -0400
+Message-ID: <1348861072-14507-7-git-send-email-mporter@ti.com>
 References: <1348861072-14507-1-git-send-email-mporter@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1348861072-14507-1-git-send-email-mporter@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sekhar Nori <nsekhar@ti.com>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the use of the private DaVinci SRAM API in favor
-of genalloc. The pool to be used is provided by platform
-data.
+This optional binding extension allows specification of a hwmod
+and associate hardware reset line which should be deasserted for
+the device to be functional.
+
+The implementation works for reference as to the problem that
+exists for utilizing uio_pruss on AM33xx but is suboptimal. The
+problem is that this deassertion occurs before clocks are enabled
+and we are warned that the hard reset failed. Ideally the list of
+rst lines requested to be deasserted would be cached and used within
+the hwmod enable sequencing (instead of it just returning if any
+hardware reset line is asserted).
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- drivers/uio/Kconfig                     |    1 +
- drivers/uio/uio_pruss.c                 |   24 +++++++++++++++++-------
- include/linux/platform_data/uio_pruss.h |    3 ++-
- 3 files changed, 20 insertions(+), 8 deletions(-)
+ .../devicetree/bindings/arm/omap/omap.txt          |    2 ++
+ arch/arm/plat-omap/omap_device.c                   |   25 ++++++++++++++++++--
+ 2 files changed, 25 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/uio/Kconfig b/drivers/uio/Kconfig
-index 6f3ea9b..c48b938 100644
---- a/drivers/uio/Kconfig
-+++ b/drivers/uio/Kconfig
-@@ -97,6 +97,7 @@ config UIO_NETX
- config UIO_PRUSS
- 	tristate "Texas Instruments PRUSS driver"
- 	depends on ARCH_DAVINCI_DA850
-+	select GENERIC_ALLOCATOR
- 	help
- 	  PRUSS driver for OMAPL138/DA850/AM18XX devices
- 	  PRUSS driver requires user space components, examples and user space
-diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
-index 33a7a27..1b55db3 100644
---- a/drivers/uio/uio_pruss.c
-+++ b/drivers/uio/uio_pruss.c
-@@ -25,7 +25,7 @@
- #include <linux/clk.h>
- #include <linux/dma-mapping.h>
- #include <linux/slab.h>
--#include <mach/sram.h>
-+#include <linux/genalloc.h>
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index d0051a7..3133a4b 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -21,6 +21,8 @@ Required properties:
+ Optional properties:
+ - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
+   during suspend.
++- ti,deassert-hard-reset: list of hwmod and hardware reset line name pairs
++  (ascii strings) to be deasserted upon device instantiation.
  
- #define DRV_NAME "pruss_uio"
- #define DRV_VERSION "1.0"
-@@ -65,10 +65,11 @@ struct uio_pruss_dev {
- 	dma_addr_t sram_paddr;
- 	dma_addr_t ddr_paddr;
- 	void __iomem *prussio_vaddr;
--	void *sram_vaddr;
-+	unsigned long sram_vaddr;
- 	void *ddr_vaddr;
- 	unsigned int hostirq_start;
- 	unsigned int pintc_base;
-+	struct gen_pool *sram_pool;
- };
  
- static irqreturn_t pruss_handler(int irq, struct uio_info *info)
-@@ -106,7 +107,9 @@ static void pruss_cleanup(struct platform_device *dev,
- 			gdev->ddr_paddr);
- 	}
- 	if (gdev->sram_vaddr)
--		sram_free(gdev->sram_vaddr, sram_pool_sz);
-+		gen_pool_free(gdev->sram_pool,
-+			      gdev->sram_vaddr,
-+			      sram_pool_sz);
- 	kfree(gdev->info);
- 	clk_put(gdev->pruss_clk);
- 	kfree(gdev);
-@@ -152,10 +155,17 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 		goto out_free;
- 	}
+ Example:
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index d5f617c..d1ae68c 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -330,8 +330,8 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ 	struct omap_device *od;
+ 	struct omap_hwmod *oh;
+ 	struct device_node *node = pdev->dev.of_node;
+-	const char *oh_name;
+-	int oh_cnt, i, ret = 0;
++	const char *oh_name, *rst_name;
++	int oh_cnt, dstr_cnt, i, ret = 0;
  
--	gdev->sram_vaddr = sram_alloc(sram_pool_sz, &(gdev->sram_paddr));
--	if (!gdev->sram_vaddr) {
--		dev_err(&dev->dev, "Could not allocate SRAM pool\n");
--		goto out_free;
-+	if (pdata->l3ram_pool) {
-+		gdev->sram_pool = pdata->l3ram_pool;
-+		gdev->sram_vaddr =
-+			gen_pool_alloc(gdev->sram_pool, sram_pool_sz);
-+		if (!gdev->sram_vaddr) {
-+			dev_err(&dev->dev, "Could not allocate SRAM pool\n");
-+			goto out_free;
+ 	oh_cnt = of_property_count_strings(node, "ti,hwmods");
+ 	if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
+@@ -376,6 +376,27 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+ 	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
+ 		omap_device_disable_idle_on_suspend(pdev);
+ 
++	dstr_cnt =
++		of_property_count_strings(node, "ti,deassert-hard-reset");
++	if (dstr_cnt > 0) {
++		for (i = 0; i < dstr_cnt; i += 2) {
++			of_property_read_string_index(
++				node, "ti,deassert-hard-reset", i,
++				&oh_name);
++			of_property_read_string_index(
++				node, "ti,deassert-hard-reset", i+1,
++				&rst_name);
++			oh = omap_hwmod_lookup(oh_name);
++			if (!oh) {
++				dev_warn(&pdev->dev,
++				"Cannot parse deassert property for '%s'\n",
++				oh_name);
++				break;
++			}
++			omap_hwmod_deassert_hardreset(oh, rst_name);
 +		}
-+		gdev->sram_paddr =
-+			gen_pool_virt_to_phys(gdev->sram_pool,
-+					      gdev->sram_vaddr);
- 	}
++	}
++
+ 	pdev->dev.pm_domain = &omap_device_pm_domain;
  
- 	gdev->ddr_vaddr = dma_alloc_coherent(&dev->dev, extram_pool_sz,
-diff --git a/include/linux/platform_data/uio_pruss.h b/include/linux/platform_data/uio_pruss.h
-index f39140a..e500fe6 100644
---- a/include/linux/platform_data/uio_pruss.h
-+++ b/include/linux/platform_data/uio_pruss.h
-@@ -20,6 +20,7 @@
- 
- /* To configure the PRUSS INTC base offset for UIO driver */
- struct uio_pruss_pdata {
--	u32	pintc_base;
-+	u32		pintc_base;
-+	struct gen_pool *l3ram_pool;
- };
- #endif /* _UIO_PRUSS_H_ */
+ odbfd_exit1:
 -- 
 1.7.9.5
