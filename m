@@ -1,131 +1,124 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/6] OMAPDSS: add omapdss_version
-Date: Fri, 28 Sep 2012 13:35:22 +0300
-Message-ID: <1348828527-13309-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/6] OMAPDSS: use omapdss_version in dss_features.c
+Date: Fri, 28 Sep 2012 13:35:23 +0300
+Message-ID: <1348828527-13309-3-git-send-email-tomi.valkeinen@ti.com>
 References: <1348828527-13309-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:53510 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753250Ab2I1Kfv (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:37986 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752908Ab2I1Kfx (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Sep 2012 06:35:51 -0400
-Received: by lagh6 with SMTP id h6so966719lag.19
-        for <linux-omap@vger.kernel.org>; Fri, 28 Sep 2012 03:35:49 -0700 (PDT)
+	Fri, 28 Sep 2012 06:35:53 -0400
+Received: by bkcjk13 with SMTP id jk13so3146711bkc.19
+        for <linux-omap@vger.kernel.org>; Fri, 28 Sep 2012 03:35:50 -0700 (PDT)
 In-Reply-To: <1348828527-13309-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Archit Taneja <a0393947@ti.com>, Chandrabhanu Mahapatra <cmahapatra@ti.com>, =?UTF-8?q?Rapha=C3=ABl=20Ass=C3=A9nat?= <raph@8d.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add new enum, omapdss_version, that is used to tell which DSS hardware
-version the SoC has. This enum is initialized during platform init, and
-passed in the platform data to omapdss driver.
-
-Note that the versions are not "continuous", that is, you cannot check
-if the version is less or greater than something, but you need to check
-for exact version match. In other words, this is invalid:
-
-/* test if DSS is 3630 or earlier */
-if (ver <= OMAPDSS_VER_OMAP3630)
-	...
+Pass the omapdss_version to dss_features.c and use it to select the
+proper dss features.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/display.c |   38 ++++++++++++++++++++++++++++++++++++++
- include/video/omapdss.h       |   14 ++++++++++++++
- 2 files changed, 52 insertions(+)
+ drivers/video/omap2/dss/core.c         |    2 +-
+ drivers/video/omap2/dss/dss_features.c |   49 +++++++++++++++++++++-----------
+ drivers/video/omap2/dss/dss_features.h |    2 +-
+ 3 files changed, 34 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index ee40739..33555da 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -284,6 +284,35 @@ err:
- 	return ERR_PTR(r);
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index b2af72d..d94ef9e 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -237,7 +237,7 @@ static int __init omap_dss_probe(struct platform_device *pdev)
+ 
+ 	core.pdev = pdev;
+ 
+-	dss_features_init();
++	dss_features_init(pdata->version);
+ 
+ 	dss_apply_init();
+ 
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index acbc1e1..5936ba7 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -929,29 +929,44 @@ bool dss_feat_rotation_type_supported(enum omap_dss_rotation_type rot_type)
+ 	return omap_current_dss_features->supported_rotation_types & rot_type;
  }
  
-+static enum omapdss_version omap_display_get_version(void)
-+{
-+	if (cpu_is_omap24xx())
-+		return OMAPDSS_VER_OMAP24xx;
-+	else if (cpu_is_omap3630())
-+		return OMAPDSS_VER_OMAP3630;
-+	else if (cpu_is_omap34xx()) {
-+		if (soc_is_am35xx()) {
-+			return OMAPDSS_VER_AM35xx;
-+		} else {
-+			if (omap_rev() < OMAP3430_REV_ES3_0)
-+				return OMAPDSS_VER_OMAP34xx_ES1;
-+			else
-+				return OMAPDSS_VER_OMAP34xx_ES3;
-+		}
-+	} else if (omap_rev() == OMAP4430_REV_ES1_0)
-+		return OMAPDSS_VER_OMAP4430_ES1;
-+	else if (omap_rev() == OMAP4430_REV_ES2_0 ||
-+			omap_rev() == OMAP4430_REV_ES2_1 ||
-+			omap_rev() == OMAP4430_REV_ES2_2)
-+		return OMAPDSS_VER_OMAP4430_ES2;
-+	else if (cpu_is_omap44xx())
-+		return OMAPDSS_VER_OMAP4;
-+	else if (soc_is_omap54xx())
-+		return OMAPDSS_VER_OMAP5;
-+	else
-+		return OMAPDSS_VER_UNKNOWN
-+}
-+
- int __init omap_display_init(struct omap_dss_board_info *board_data)
+-void dss_features_init(void)
++void dss_features_init(enum omapdss_version version)
  {
- 	int r = 0;
-@@ -291,9 +320,18 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- 	int i, oh_count;
- 	const struct omap_dss_hwmod_data *curr_dss_hwmod;
- 	struct platform_device *dss_pdev;
-+	enum omapdss_version ver;
- 
- 	/* create omapdss device */
- 
-+	ver = omap_display_get_version();
+-	if (cpu_is_omap24xx())
++	switch (version) {
++	case OMAPDSS_VER_OMAP24xx:
+ 		omap_current_dss_features = &omap2_dss_features;
+-	else if (cpu_is_omap3630())
++		break;
 +
-+	if (ver == OMAPDSS_VER_UNKNOWN) {
-+		pr_err("DSS not supported on this SoC\n");
-+		return -ENODEV;
++	case OMAPDSS_VER_OMAP34xx_ES1:
++	case OMAPDSS_VER_OMAP34xx_ES3:
++		omap_current_dss_features = &omap3430_dss_features;
++		break;
++
++	case OMAPDSS_VER_OMAP3630:
+ 		omap_current_dss_features = &omap3630_dss_features;
+-	else if (cpu_is_omap34xx()) {
+-		if (soc_is_am35xx()) {
+-			omap_current_dss_features = &am35xx_dss_features;
+-		} else {
+-			omap_current_dss_features = &omap3430_dss_features;
+-		}
+-	}
+-	else if (omap_rev() == OMAP4430_REV_ES1_0)
++		break;
++
++	case OMAPDSS_VER_OMAP4430_ES1:
+ 		omap_current_dss_features = &omap4430_es1_0_dss_features;
+-	else if (omap_rev() == OMAP4430_REV_ES2_0 ||
+-		omap_rev() == OMAP4430_REV_ES2_1 ||
+-		omap_rev() == OMAP4430_REV_ES2_2)
++		break;
++
++	case OMAPDSS_VER_OMAP4430_ES2:
+ 		omap_current_dss_features = &omap4430_es2_0_1_2_dss_features;
+-	else if (cpu_is_omap44xx())
++		break;
++
++	case OMAPDSS_VER_OMAP4:
+ 		omap_current_dss_features = &omap4_dss_features;
+-	else if (soc_is_omap54xx())
++		break;
++
++	case OMAPDSS_VER_OMAP5:
+ 		omap_current_dss_features = &omap5_dss_features;
+-	else
++		break;
++
++	case OMAPDSS_VER_AM35xx:
++		omap_current_dss_features = &am35xx_dss_features;
++		break;
++
++	default:
+ 		DSSWARN("Unsupported OMAP version");
++		break;
 +	}
-+
-+	board_data->version = ver;
- 	board_data->dsi_enable_pads = omap_dsi_enable_pads;
- 	board_data->dsi_disable_pads = omap_dsi_disable_pads;
- 	board_data->get_context_loss_count = omap_pm_get_dev_context_loss_count;
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 3729173..88c8294 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -314,6 +314,19 @@ int dsi_vc_send_bta_sync(struct omap_dss_device *dssdev, int channel);
- int dsi_enable_video_output(struct omap_dss_device *dssdev, int channel);
- void dsi_disable_video_output(struct omap_dss_device *dssdev, int channel);
+ }
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 9218113..14a412e 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -123,7 +123,7 @@ bool dss_feat_rotation_type_supported(enum omap_dss_rotation_type rot_type);
  
-+enum omapdss_version {
-+	OMAPDSS_VER_UNKNOWN = 0,
-+	OMAPDSS_VER_OMAP24xx,
-+	OMAPDSS_VER_OMAP34xx_ES1,	/* OMAP3430 ES1.0, 2.0 */
-+	OMAPDSS_VER_OMAP34xx_ES3,	/* OMAP3430 ES3.0+ */
-+	OMAPDSS_VER_OMAP3630,
-+	OMAPDSS_VER_AM35xx,
-+	OMAPDSS_VER_OMAP4430_ES1,	/* OMAP4430 ES1.0 */
-+	OMAPDSS_VER_OMAP4430_ES2,	/* OMAP4430 ES2.0, 2.1, 2.2 */
-+	OMAPDSS_VER_OMAP4,		/* All other OMAP4s */
-+	OMAPDSS_VER_OMAP5,
-+};
-+
- /* Board specific data */
- struct omap_dss_board_info {
- 	int (*get_context_loss_count)(struct device *dev);
-@@ -323,6 +336,7 @@ struct omap_dss_board_info {
- 	int (*dsi_enable_pads)(int dsi_id, unsigned lane_mask);
- 	void (*dsi_disable_pads)(int dsi_id, unsigned lane_mask);
- 	int (*set_min_bus_tput)(struct device *dev, unsigned long r);
-+	enum omapdss_version version;
- };
- 
- /* Init with the board info */
+ bool dss_has_feature(enum dss_feat_id id);
+ void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end);
+-void dss_features_init(void);
++void dss_features_init(enum omapdss_version version);
+ #if defined(CONFIG_OMAP4_DSS_HDMI)
+ void dss_init_hdmi_ip_ops(struct hdmi_ip_data *ip_data);
+ #endif
 -- 
 1.7.9.5
 
