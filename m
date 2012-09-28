@@ -1,75 +1,193 @@
 From: Matt Porter <mporter@ti.com>
-Subject: [PATCH v2 0/7] uio_pruss cleanup and platform support
-Date: Fri, 28 Sep 2012 15:37:45 -0400
-Message-ID: <1348861072-14507-1-git-send-email-mporter@ti.com>
+Subject: [PATCH v2 2/7] uio: uio_pruss: add support for am33xx
+Date: Fri, 28 Sep 2012 15:37:47 -0400
+Message-ID: <1348861072-14507-3-git-send-email-mporter@ti.com>
+References: <1348861072-14507-1-git-send-email-mporter@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1348861072-14507-1-git-send-email-mporter@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sekhar Nori <nsekhar@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>
 List-Id: linux-omap@vger.kernel.org
 
-Changes since v1:
-	- Replaced uio_pruss private SRAM API use with genalloc
-	- Added DA850 platform device and clock support
-	- Added DA850 L3 RAM gen_pool support
-	- Split out DT binding
+Adds DT, pinctrl, and runtime PM support to enable AM33xx.
 
-This series enables uio_pruss on both DA850 and AM33xx. The driver
-previously was not enabled by any platform and the private SRAM API
-was accessing an invalid SRAM bank for use on DA850. For AM33xx,
-DT, pinctrl, and runtime PM support are added since AM33xx only
-boots via DT.
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ drivers/uio/Kconfig     |    4 +--
+ drivers/uio/uio_pruss.c |   90 +++++++++++++++++++++++++++++++++++++----------
+ 2 files changed, 73 insertions(+), 21 deletions(-)
 
-The AM33xx support requires some help in hwmod due to the following
-comment in arch/arm/mach-omap2/omap_hwmod.c:
-	/*
-	 * If an IP block contains HW reset lines and any of them are
-	 * asserted, we let integration code associated with that
-	 * block handle the enable.  We've received very little
-	 * information on what those driver authors need, and until
-	 * detailed information is provided and the driver code is
-	 * posted to the public lists, this is probably the best we
-	 * can do.
-	 */
-
-The approach to deal with the hardware reset (for at least the pruss
-hwmod) was to add a generic omap property to properly define this
-hardware. The implementation simply deasserts any rst lines that
-are called out in the property when the omap_device is
-instantiated. This is not the ideal implementation as the sequence is
-a bit wrong for pruss since the busy check during the hard reset
-will fail, even though it fails in a benign manner. Ideally, we would
-want the implementation to observe the ti,deassert-hard-reset property
-and use that in omap_hwmod.c:_enable() *after* the module is unidled
-and the clocks active. However, this is actually functional for purposes
-of getting the uio_pruss driver up and running.
-
-Matt Porter (7):
-  uio: uio_pruss: replace private SRAM API with genalloc
-  uio: uio_pruss: add support for am33xx
-  uio: dt: add TI PRUSS binding
-  ARM: davinci: Add support for an L3RAM gen_pool
-  ARM: davinci: Add support for PRUSS on DA850
-  ARM: omap: add DT support for deasserting hardware reset lines
-  ARM: dts: AM33xx PRUSS support
-
- .../devicetree/bindings/arm/omap/omap.txt          |    2 +
- Documentation/devicetree/bindings/uio/pruss.txt    |   17 +++
- arch/arm/boot/dts/am335x-bone.dts                  |    4 +
- arch/arm/boot/dts/am33xx.dtsi                      |   11 ++
- arch/arm/mach-davinci/board-da850-evm.c            |   12 +++
- arch/arm/mach-davinci/da850.c                      |    9 ++
- arch/arm/mach-davinci/devices-da8xx.c              |   66 ++++++++++++
- arch/arm/mach-davinci/include/mach/common.h        |    2 +
- arch/arm/mach-davinci/include/mach/da8xx.h         |    3 +
- arch/arm/mach-davinci/include/mach/sram.h          |    3 +
- arch/arm/mach-davinci/sram.c                       |   28 ++++-
- arch/arm/plat-omap/omap_device.c                   |   25 ++++-
- drivers/uio/Kconfig                                |    5 +-
- drivers/uio/uio_pruss.c                            |  108 +++++++++++++++-----
- include/linux/platform_data/uio_pruss.h            |    3 +-
- 15 files changed, 269 insertions(+), 29 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/uio/pruss.txt
-
+diff --git a/drivers/uio/Kconfig b/drivers/uio/Kconfig
+index c48b938..5db1f34 100644
+--- a/drivers/uio/Kconfig
++++ b/drivers/uio/Kconfig
+@@ -96,10 +96,10 @@ config UIO_NETX
+ 
+ config UIO_PRUSS
+ 	tristate "Texas Instruments PRUSS driver"
+-	depends on ARCH_DAVINCI_DA850
++	depends on ARCH_DAVINCI_DA850 || SOC_AM33XX
+ 	select GENERIC_ALLOCATOR
+ 	help
+-	  PRUSS driver for OMAPL138/DA850/AM18XX devices
++	  PRUSS driver for OMAPL138/DA850/AM18XX and AM33XX devices
+ 	  PRUSS driver requires user space components, examples and user space
+ 	  driver is available from below SVN repo - you may use anonymous login
+ 
+diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
+index 1b55db3..8560958 100644
+--- a/drivers/uio/uio_pruss.c
++++ b/drivers/uio/uio_pruss.c
+@@ -26,6 +26,11 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/genalloc.h>
++#include <linux/of_address.h>
++#include <linux/of_device.h>
++#include <linux/pinctrl/consumer.h>
++#include <linux/err.h>
++#include <linux/pm_runtime.h>
+ 
+ #define DRV_NAME "pruss_uio"
+ #define DRV_VERSION "1.0"
+@@ -120,8 +125,10 @@ static int __devinit pruss_probe(struct platform_device *dev)
+ 	struct uio_info *p;
+ 	struct uio_pruss_dev *gdev;
+ 	struct resource *regs_prussio;
++	struct resource res;
+ 	int ret = -ENODEV, cnt = 0, len;
+ 	struct uio_pruss_pdata *pdata = dev->dev.platform_data;
++	struct pinctrl *pinctrl;
+ 
+ 	gdev = kzalloc(sizeof(struct uio_pruss_dev), GFP_KERNEL);
+ 	if (!gdev)
+@@ -132,18 +139,51 @@ static int __devinit pruss_probe(struct platform_device *dev)
+ 		kfree(gdev);
+ 		return -ENOMEM;
+ 	}
+-	/* Power on PRU in case its not done as part of boot-loader */
+-	gdev->pruss_clk = clk_get(&dev->dev, "pruss");
+-	if (IS_ERR(gdev->pruss_clk)) {
+-		dev_err(&dev->dev, "Failed to get clock\n");
+-		kfree(gdev->info);
+-		kfree(gdev);
+-		ret = PTR_ERR(gdev->pruss_clk);
+-		return ret;
++
++	if (dev->dev.of_node) {
++		pm_runtime_enable(&dev->dev);
++		ret = pm_runtime_get_sync(&dev->dev);
++		if (IS_ERR_VALUE(ret)) {
++			dev_err(&dev->dev, "pm_runtime_get_sync() failed\n");
++			return ret;
++		}
++
++		ret = of_address_to_resource(dev->dev.of_node, 0, &res);
++		if (IS_ERR_VALUE(ret)) {
++			dev_err(&dev->dev, "failed to parse DT reg\n");
++			return ret;
++		}
++		regs_prussio = &res;
++
++		ret = of_property_read_u32(dev->dev.of_node,
++					   "ti,pintc-offset",
++					   &gdev->pintc_base);
++		if (ret < 0) {
++			dev_err(&dev->dev,
++				"Can't parse ti,pintc-offset property\n");
++			goto out_free;
++		}
+ 	} else {
+-		clk_enable(gdev->pruss_clk);
++		/* Power on PRU in case its not done as part of boot-loader */
++		gdev->pruss_clk = clk_get(&dev->dev, "pruss");
++		if (IS_ERR(gdev->pruss_clk)) {
++			dev_err(&dev->dev, "Failed to get clock\n");
++			kfree(gdev->info);
++			kfree(gdev);
++			ret = PTR_ERR(gdev->pruss_clk);
++			return ret;
++		} else {
++			clk_enable(gdev->pruss_clk);
++		}
++		gdev->pintc_base = pdata->pintc_base;
++		gdev->sram_pool = pdata->l3ram_pool;
+ 	}
+ 
++	pinctrl = devm_pinctrl_get_select_default(&dev->dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(&dev->dev,
++			"pins are not configured from the driver\n");
++
+ 	regs_prussio = platform_get_resource(dev, IORESOURCE_MEM, 0);
+ 	if (!regs_prussio) {
+ 		dev_err(&dev->dev, "No PRUSS I/O resource specified\n");
+@@ -155,8 +195,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
+ 		goto out_free;
+ 	}
+ 
+-	if (pdata->l3ram_pool) {
+-		gdev->sram_pool = pdata->l3ram_pool;
++	if (gdev->sram_pool) {
+ 		gdev->sram_vaddr =
+ 			gen_pool_alloc(gdev->sram_pool, sram_pool_sz);
+ 		if (!gdev->sram_vaddr) {
+@@ -182,7 +221,6 @@ static int __devinit pruss_probe(struct platform_device *dev)
+ 		goto out_free;
+ 	}
+ 
+-	gdev->pintc_base = pdata->pintc_base;
+ 	gdev->hostirq_start = platform_get_irq(dev, 0);
+ 
+ 	for (cnt = 0, p = gdev->info; cnt < MAX_PRUSS_EVT; cnt++, p++) {
+@@ -190,13 +228,19 @@ static int __devinit pruss_probe(struct platform_device *dev)
+ 		p->mem[0].size = resource_size(regs_prussio);
+ 		p->mem[0].memtype = UIO_MEM_PHYS;
+ 
+-		p->mem[1].addr = gdev->sram_paddr;
+-		p->mem[1].size = sram_pool_sz;
+-		p->mem[1].memtype = UIO_MEM_PHYS;
+-
+-		p->mem[2].addr = gdev->ddr_paddr;
+-		p->mem[2].size = extram_pool_sz;
+-		p->mem[2].memtype = UIO_MEM_PHYS;
++		if (gdev->sram_vaddr) {
++			p->mem[1].addr = gdev->sram_paddr;
++			p->mem[1].size = sram_pool_sz;
++			p->mem[1].memtype = UIO_MEM_PHYS;
++
++			p->mem[2].addr = gdev->ddr_paddr;
++			p->mem[2].size = extram_pool_sz;
++			p->mem[2].memtype = UIO_MEM_PHYS;
++		} else {
++			p->mem[1].addr = gdev->ddr_paddr;
++			p->mem[1].size = extram_pool_sz;
++			p->mem[1].memtype = UIO_MEM_PHYS;
++		}
+ 
+ 		p->name = kasprintf(GFP_KERNEL, "pruss_evt%d", cnt);
+ 		p->version = DRV_VERSION;
+@@ -228,12 +272,20 @@ static int __devexit pruss_remove(struct platform_device *dev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id pruss_dt_ids[] = {
++	{ .compatible = "ti,pruss-v1", .data = NULL, },
++	{ .compatible = "ti,pruss-v2", .data = NULL, },
++	{},
++};
++MODULE_DEVICE_TABLE(of, pruss_dt_ids);
++
+ static struct platform_driver pruss_driver = {
+ 	.probe = pruss_probe,
+ 	.remove = __devexit_p(pruss_remove),
+ 	.driver = {
+ 		   .name = DRV_NAME,
+ 		   .owner = THIS_MODULE,
++		   .of_match_table = pruss_dt_ids,
+ 		   },
+ };
+ 
 -- 
 1.7.9.5
