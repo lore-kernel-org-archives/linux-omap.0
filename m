@@ -1,94 +1,75 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 2/4] ARM: OMAP: DMA: Move plat/dma hearder to platform_data/dma-omap
-Date: Fri, 28 Sep 2012 14:35:19 -0500
-Message-ID: <5065FBF7.2030704@ti.com>
-References: <1348839609-10456-1-git-send-email-lokeshvutla@ti.com> <1348839609-10456-3-git-send-email-lokeshvutla@ti.com> <20120928145459.GZ4840@atomide.com> <CAMQu2gw9DJSZ4QVvo83atTpnsXyegneuQ2rJKBc+5ioiwEaqaQ@mail.gmail.com> <20120928150538.GB4840@atomide.com> <20120928155443.GA15246@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60847 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030587Ab2I1Tf1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Sep 2012 15:35:27 -0400
-In-Reply-To: <20120928155443.GA15246@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Matt Porter <mporter@ti.com>
+Subject: [PATCH v2 0/7] uio_pruss cleanup and platform support
+Date: Fri, 28 Sep 2012 15:37:45 -0400
+Message-ID: <1348861072-14507-1-git-send-email-mporter@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sekhar Nori <nsekhar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Changes since v1:
+	- Replaced uio_pruss private SRAM API use with genalloc
+	- Added DA850 platform device and clock support
+	- Added DA850 L3 RAM gen_pool support
+	- Split out DT binding
 
-On 09/28/2012 10:54 AM, Russell King - ARM Linux wrote:
-> On Fri, Sep 28, 2012 at 08:05:38AM -0700, Tony Lindgren wrote:
->> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120928 08:02]:
->>> On Fri, Sep 28, 2012 at 8:25 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>>
->>>> * Lokesh Vutla <lokeshvutla@ti.com> [120928 06:41]:
->>>>> Move plat/dma.h header to platform_data/dma-omap.h as
->>>>> part of the single zImage work.
->>>>
->>>> Hmm there's no platform data in this header, just
->>>> exported things for drivers to use. So it should not
->>>> be placed into platform_data.
->>>>
->>>> Maybe it should be #include <asm/mach/dma-omap.h> for now?
->>>>
->>> I wasn't sure either when the file was placed under platform-data.
->>> I agree for now we can keep it mach layer but than means OMAP1 and
->>> OMAP2+ DMA header and source code needs to be split. That
->>> is not so straight forward.
->>
->> No need for that, the path I'm suggesting is located under
->> arch/arm/include/asm/mach, it's not same as include <mach/dma-omap.h>.
->>  
->>> With DMA engine conversion hopefully, we might get rid of the
->>> header eventually, but for now not sure whether we should
->>> go ahead and follow the splitting part.
->>>
->>> Thoughts ?
->>
->> No need for splitting anything :)
->>
->> The other possible location would be just include <linux/dma-omap.h>,
->> but as we all know that will be going away, <asm/mach/dma-omap.h>
->> is probably better.
-> 
-> No, not asm/mach/anything, please.  Let's try to get headers into the
-> right place second time around.
-> 
-> This header appears to contain:
-> 
-> 1. definitions for DMA signals, used by drivers.
-> 
->    This can be eliminated by using DT, platform data, or IORESOURCE_DMA
->    (that's in preference order) which then means that these definitions
->    can live in a header file in arch/arm/mach-omap*/ if at all.
-> 
-> 2. data definitions and structures used by drivers using the legacy OMAP
->    DMA API.
-> 
-> So, it doesn't contain platform data (as said above).  It's not an
-> API definition between core ARM code and ARM platform code, so that
-> rules out arch/arm/include/asm/mach.  Obviously arch/arm/include/asm
-> is out of the question too.
-> 
-> I don't think we have a clear cut place for this to live - and lets
-> be clear that this file will eventually be going away _anyway_ when
-> OMAP is converted 100% to DMA engine.
-> 
-> So, where to put the file?  At the moment, I don't know, it doesn't
-> seem to have an obvious home other than where it currently is, which
-> then gets in the way of the single kernel work.
+This series enables uio_pruss on both DA850 and AM33xx. The driver
+previously was not enabled by any platform and the private SRAM API
+was accessing an invalid SRAM bank for use on DA850. For AM33xx,
+DT, pinctrl, and runtime PM support are added since AM33xx only
+boots via DT.
 
-I am having the same problem with the OMAP dmtimer platform driver that
-the legacy DMA driver has. It is slightly worse as currently it is pure
-custom platform driver. Obviously long-term it would be best to create a
-generic timer driver in drivers/timer/ that other devices and
-architectures could use but we are a long way from that.
+The AM33xx support requires some help in hwmod due to the following
+comment in arch/arm/mach-omap2/omap_hwmod.c:
+	/*
+	 * If an IP block contains HW reset lines and any of them are
+	 * asserted, we let integration code associated with that
+	 * block handle the enable.  We've received very little
+	 * information on what those driver authors need, and until
+	 * detailed information is provided and the driver code is
+	 * posted to the public lists, this is probably the best we
+	 * can do.
+	 */
 
-I know that this is ugly and has probably already been shot-down, but as
-a short-term fix, has creating arch/arm/plat-omap/include/plat-omap been
-NAK'ed for such problematic drivers?
+The approach to deal with the hardware reset (for at least the pruss
+hwmod) was to add a generic omap property to properly define this
+hardware. The implementation simply deasserts any rst lines that
+are called out in the property when the omap_device is
+instantiated. This is not the ideal implementation as the sequence is
+a bit wrong for pruss since the busy check during the hard reset
+will fail, even though it fails in a benign manner. Ideally, we would
+want the implementation to observe the ti,deassert-hard-reset property
+and use that in omap_hwmod.c:_enable() *after* the module is unidled
+and the clocks active. However, this is actually functional for purposes
+of getting the uio_pruss driver up and running.
 
-Cheers
-Jon
+Matt Porter (7):
+  uio: uio_pruss: replace private SRAM API with genalloc
+  uio: uio_pruss: add support for am33xx
+  uio: dt: add TI PRUSS binding
+  ARM: davinci: Add support for an L3RAM gen_pool
+  ARM: davinci: Add support for PRUSS on DA850
+  ARM: omap: add DT support for deasserting hardware reset lines
+  ARM: dts: AM33xx PRUSS support
+
+ .../devicetree/bindings/arm/omap/omap.txt          |    2 +
+ Documentation/devicetree/bindings/uio/pruss.txt    |   17 +++
+ arch/arm/boot/dts/am335x-bone.dts                  |    4 +
+ arch/arm/boot/dts/am33xx.dtsi                      |   11 ++
+ arch/arm/mach-davinci/board-da850-evm.c            |   12 +++
+ arch/arm/mach-davinci/da850.c                      |    9 ++
+ arch/arm/mach-davinci/devices-da8xx.c              |   66 ++++++++++++
+ arch/arm/mach-davinci/include/mach/common.h        |    2 +
+ arch/arm/mach-davinci/include/mach/da8xx.h         |    3 +
+ arch/arm/mach-davinci/include/mach/sram.h          |    3 +
+ arch/arm/mach-davinci/sram.c                       |   28 ++++-
+ arch/arm/plat-omap/omap_device.c                   |   25 ++++-
+ drivers/uio/Kconfig                                |    5 +-
+ drivers/uio/uio_pruss.c                            |  108 +++++++++++++++-----
+ include/linux/platform_data/uio_pruss.h            |    3 +-
+ 15 files changed, 269 insertions(+), 29 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/uio/pruss.txt
+
+-- 
+1.7.9.5
