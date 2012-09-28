@@ -1,57 +1,56 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] usb: phy: add a new driver for usb3 phy
-Date: Fri, 28 Sep 2012 15:10:59 +0530
-Message-ID: <CAAe_U6J_AGArYEj1-sUmEeVkMmbkhp=WZxOuN-y-L6E5SDJM=Q@mail.gmail.com>
-References: <1348754648-8315-1-git-send-email-kishon@ti.com>
- <1348754648-8315-2-git-send-email-kishon@ti.com>
- <20120927141837.GA26268@n2100.arm.linux.org.uk>
+From: "Vutla, Lokesh" <lokeshvutla@ti.com>
+Subject: Re: Help needed with remaining plat headers
+Date: Fri, 28 Sep 2012 15:35:09 +0530
+Message-ID: <CAJ1gdca8+mtWRS13GtxNKRqcQ1OCspvx5SdhjcQKsJNskHi1sg@mail.gmail.com>
+References: <20120920232907.GN28835@atomide.com> <CAJ1gdca9cPA97rbJV_Q5rEQCJydmoRPuGYE1oq1vUhmxdPnEKA@mail.gmail.com>
+ <506565D8.5090509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120927141837.GA26268-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:42354 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751138Ab2I1KFa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Sep 2012 06:05:30 -0400
+Received: by oagh16 with SMTP id h16so2769070oag.19
+        for <linux-omap@vger.kernel.org>; Fri, 28 Sep 2012 03:05:29 -0700 (PDT)
+In-Reply-To: <506565D8.5090509@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi,
+Hi Peter,
 
-On Thu, Sep 27, 2012 at 7:48 PM, Russell King - ARM Linux
-<linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
-> On Thu, Sep 27, 2012 at 07:34:07PM +0530, Kishon Vijay Abraham I wrote:
->> +static int omap5_usb_phy_power(struct omap_usb *phy, bool on)
->> +{
->> +     u32 val;
->> +     unsigned long rate;
->> +     struct clk *sys_clk;
->> +
->> +     sys_clk = clk_get(NULL, "sys_clkin");
->> +     if (IS_ERR(sys_clk)) {
->> +             pr_err("%s: unable to get sys_clkin\n", __func__);
->> +             return -EINVAL;
->> +     }
->> +
->> +     rate = clk_get_rate(sys_clk);
->> +     rate = rate/1000000;
->> +     clk_put(sys_clk);
+On Fri, Sep 28, 2012 at 2:24 PM, Peter Ujfalusi <peter.ujfalusi@ti.com>=
+ wrote:
+> On 09/27/2012 12:57 PM, Vutla, Lokesh wrote:
+>>> clkdev_omap.h
+>>> clock.h
+>>> common.h
+>>> cpu.h
+>>> dma-44xx.h
+>>> dma.h
+>> As a part of clean up I am looking at dma.h and dma-44xx.h files
+>> ll send you patches once cleanup and testing is done.
 >
-> Actually, you're supposed to hold on to the struct clk all the time your
-> driver is making use of that - you're not supposed to drop it.
->
-> That has several advantages: if clk_get() fails, then you're failing
-> earlier on (when the driver is being probed) and when some event occurs.
-
-Ok. Will post a patch fixing it.
+> One note for the dma.h, dma-44xx.h:
+> The audio drivers used to include at least dma.h, but after the dmaen=
+gine
+> conversion the are no longer doing it. The dmaengine for OMAP audio i=
+s going
+> for 3.7. You can see them for some time in linux-next laready.
+Yes I am aware of this.
+I am making patches on linux-next only
 
 Thanks
-Kishon
+Lokesh
+>
+> --
+> P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
