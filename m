@@ -1,183 +1,97 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/6] usb: dwc3-omap: use of_platform API to create dwc3 core
- pdev
-Date: Fri, 28 Sep 2012 18:23:10 +0530
-Message-ID: <1348836795-4783-2-git-send-email-kishon@ti.com>
+Subject: [PATCH 6/6] usb: dwc3: core: add dt support for dwc3 core
+Date: Fri, 28 Sep 2012 18:23:15 +0530
+Message-ID: <1348836795-4783-7-git-send-email-kishon@ti.com>
 References: <1348836795-4783-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1348836795-4783-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Used of_platform_populate() to populate dwc3 core platform_device
-from device tree data. Since now the allocation of unique device id is
-handled be of_*, removed the call to dwc3_get_device_id.
+Added dwc3 support for dwc3 core and update the documentation with
+device tree binding information.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/dwc3/dwc3-omap.c |   63 +++++++++++++++---------------------------
- 1 file changed, 22 insertions(+), 41 deletions(-)
+ Documentation/devicetree/bindings/usb/dwc3.txt |   24 ++++++++++++++++++++++++
+ drivers/usb/dwc3/core.c                        |   14 ++++++++++++--
+ 2 files changed, 36 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/dwc3.txt
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 479dc04..34578de 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -47,6 +47,7 @@
- #include <linux/ioport.h>
- #include <linux/io.h>
- #include <linux/of.h>
-+#include <linux/of_platform.h>
- 
- #include "core.h"
- 
-@@ -130,7 +131,6 @@ struct dwc3_omap {
- 	/* device lock */
- 	spinlock_t		lock;
- 
--	struct platform_device	*dwc3;
- 	struct device		*dev;
- 
- 	int			irq;
-@@ -204,17 +204,24 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
- 	return IRQ_HANDLED;
- }
- 
-+static int dwc3_remove_core(struct device *dev, void *c)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
+diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+new file mode 100644
+index 0000000..87d5eeb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+@@ -0,0 +1,24 @@
++SYNOPSIS DWC3 CORE
 +
-+	platform_device_unregister(pdev);
++DWC3- USB3 CONTROLLER
 +
-+	return 0;
-+}
++Required properties:
++ - compatible: Should be "synopsis,dwc3"
++ - reg : Address and length of the register set for the device
++ - interrupts: Interrupts used by the dwc3 controller.
++ - interrupt-parent: the phandle for the interrupt controller that
++   services interrupts for this device.
 +
- static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- {
- 	struct dwc3_omap_data	*pdata = pdev->dev.platform_data;
- 	struct device_node	*node = pdev->dev.of_node;
++Optional properties:
++ - tx-fifo-resize: determines if the fifo spaces can be reallocated according
++ to use-cases.
++
++This is usually a subnode to DWC3 glue to which it is connected.
++
++dwc3@4a030000 {
++	compatible = "synopsis,dwc3";
++	reg = <0x4a030000 0xcfff>;
++	interrupts = <0 92 4>
++	interrupt-parent = <&gic>
++	tx-fifo-resize;
++};
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 08a5738..0c17a7a 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -484,8 +484,7 @@ static int __devinit dwc3_probe(struct platform_device *pdev)
+ 	else
+ 		dwc->maximum_speed = DWC3_DCFG_SUPERSPEED;
  
--	struct platform_device	*dwc3;
- 	struct dwc3_omap	*omap;
- 	struct resource		*res;
- 	struct device		*dev = &pdev->dev;
+-	if (of_get_property(node, "tx-fifo-resize", NULL))
+-		dwc->needs_fifo_resize = true;
++	dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
  
--	int			devid;
- 	int			size;
- 	int			ret = -ENOMEM;
- 	int			irq;
-@@ -239,7 +246,7 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
- 		dev_err(dev, "missing memory base resource\n");
- 		return -EINVAL;
-@@ -251,34 +258,28 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
--	devid = dwc3_get_device_id();
--	if (devid < 0)
--		return -ENODEV;
--
--	dwc3 = platform_device_alloc("dwc3", devid);
--	if (!dwc3) {
--		dev_err(dev, "couldn't allocate dwc3 device\n");
--		goto err1;
-+	if (node) {
-+		ret = of_platform_populate(node, NULL, NULL, dev);
-+		if (ret) {
-+			dev_err(&pdev->dev,
-+				"failed to add create dwc3 core\n");
-+			return ret;
-+		}
- 	}
- 
- 	context = devm_kzalloc(dev, resource_size(res), GFP_KERNEL);
- 	if (!context) {
- 		dev_err(dev, "couldn't allocate dwc3 context memory\n");
--		goto err2;
-+		goto err1;
- 	}
- 
- 	spin_lock_init(&omap->lock);
--	dma_set_coherent_mask(&dwc3->dev, dev->coherent_dma_mask);
- 
--	dwc3->dev.parent = dev;
--	dwc3->dev.dma_mask = dev->dma_mask;
--	dwc3->dev.dma_parms = dev->dma_parms;
- 	omap->resource_size = resource_size(res);
- 	omap->context	= context;
- 	omap->dev	= dev;
- 	omap->irq	= irq;
- 	omap->base	= base;
--	omap->dwc3	= dwc3;
- 
- 	reg = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
- 
-@@ -323,7 +324,7 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 	if (ret) {
- 		dev_err(dev, "failed to request IRQ #%d --> %d\n",
- 				omap->irq, ret);
--		goto err2;
-+		goto err1;
- 	}
- 
- 	/* enable all IRQs */
-@@ -342,37 +343,17 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 
- 	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_1, reg);
- 
--	ret = platform_device_add_resources(dwc3, pdev->resource,
--			pdev->num_resources);
--	if (ret) {
--		dev_err(dev, "couldn't add resources to dwc3 device\n");
--		goto err2;
--	}
--
--	ret = platform_device_add(dwc3);
--	if (ret) {
--		dev_err(dev, "failed to register dwc3 device\n");
--		goto err2;
--	}
--
- 	return 0;
- 
--err2:
--	platform_device_put(dwc3);
--
- err1:
--	dwc3_put_device_id(devid);
-+	device_for_each_child(&pdev->dev, NULL, dwc3_remove_core);
- 
- 	return ret;
- }
- 
- static int __devexit dwc3_omap_remove(struct platform_device *pdev)
- {
--	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
--
--	platform_device_unregister(omap->dwc3);
--
--	dwc3_put_device_id(omap->dwc3->id);
-+	device_for_each_child(&pdev->dev, NULL, dwc3_remove_core);
- 
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+@@ -602,11 +601,22 @@ static int __devexit dwc3_remove(struct platform_device *pdev)
  	return 0;
  }
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id of_dwc3_matach[] = {
++	{
++		.compatible = "synopsis,dwc3"
++	},
++	{ },
++};
++MODULE_DEVICE_TABLE(of, of_dwc3_matach);
++#endif
++
+ static struct platform_driver dwc3_driver = {
+ 	.probe		= dwc3_probe,
+ 	.remove		= __devexit_p(dwc3_remove),
+ 	.driver		= {
+ 		.name	= "dwc3",
++		.of_match_table	= of_match_ptr(of_dwc3_matach),
+ 	},
+ };
+ 
 -- 
 1.7.10.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
