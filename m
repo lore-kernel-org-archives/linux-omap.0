@@ -1,21 +1,28 @@
-From: Jon Hunter <jon-hunter@ti.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH V2 0/7] ARM: OMAP2+: Add device-tree support for timers
-Date: Fri, 28 Sep 2012 16:30:16 -0500
-Message-ID: <506616E8.9000006@ti.com>
-References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com> <505A7E0B.30709@ti.com> <20120920235309.GO28835@atomide.com> <5063330E.3000203@ti.com> <5065F19E.5020708@ti.com>
+Date: Fri, 28 Sep 2012 16:47:51 -0500
+Message-ID: <50661B07.1040200@ti.com>
+References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
+ <505A7E0B.30709@ti.com> <20120920235309.GO28835@atomide.com>
+ <5063330E.3000203@ti.com> <5065F19E.5020708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43935 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032656Ab2I1Va3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Sep 2012 17:30:29 -0400
-In-Reply-To: <5065F19E.5020708@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <5065F19E.5020708-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
 
 On 09/28/2012 01:51 PM, Vaibhav Hiremath wrote:
@@ -24,7 +31,7 @@ On 09/28/2012 01:51 PM, Vaibhav Hiremath wrote:
 > On 9/26/2012 10:23 PM, Jon Hunter wrote:
 >>
 >> On 09/20/2012 06:53 PM, Tony Lindgren wrote:
->>> * Benoit Cousson <b-cousson@ti.com> [120919 19:24]:
+>>> * Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> [120919 19:24]:
 >>>> Hi Tony,
 >>>>
 >>>> I was about to take the DTS patch, but was wondering if you will pull
@@ -46,13 +53,14 @@ On 09/28/2012 01:51 PM, Vaibhav Hiremath wrote:
 > 
 > How did you test it? Are you running same test application at your end?
 
-Check your email on Sept 14th. I sent you the latest version of the test
-code. I will resend in case it got lost in deep space.
+Sorry, I now see you are using the latest test code! I was too hasty
+when I saw the first error ;-)
 
 > I am debugging this issue, i just thought I should tell you this before
 > its too late.
-> 
-> 
+
+Thanks.
+
 > Below is the log -
 > 
 > [root@arago /]# echo 3 > /tmp/omap-test/timer/one
@@ -60,8 +68,59 @@ code. I will resend in case it got lost in deep space.
 > omap_dm_timer_request_by_cap()
 > [   79.620636] Timer 3 not available!
 
-Yes that's expected as omap_dm_timer_request_specific is not supported
-with DT. Don't spend anytime debugging you just need the latest test.
+This is expected because omap_dm_timer_request_specific() is no longer
+supported. I should remove in the omap-test/timer/one going forward.
+
+> [root@arago /]#
+> [root@arago /]# echo 3 > /tmp/omap-test/timer/all
+> [  135.111949] Testing 48042000.timer with 24000000 Hz clock ...
+> [root@arago /]# [  137.457389] Timer read test PASSED! No errors, 100 loops
+> [  137.463267] Timer interrupt test PASSED!
+> [  137.467650] Testing 48042000.timer with 32768 Hz clock ...
+> [  139.816892] Timer read test PASSED! No errors, 100 loops
+> [  139.830776] Timer interrupt test PASSED!
+> [  139.835245] Testing 48044000.timer with 24000000 Hz clock ...
+> [  142.183912] Timer read test PASSED! No errors, 100 loops
+> [  142.189734] Timer interrupt test PASSED!
+> [  142.194076] Testing 48044000.timer with 32768 Hz clock ...
+> [  144.543451] Timer read test PASSED! No errors, 100 loops
+> [  144.557334] Timer interrupt test PASSED!
+> [  144.561806] Testing 48046000.timer with 24000000 Hz clock ...
+> [  146.910469] Timer read test PASSED! No errors, 100 loops
+> [  147.910493] Timer interrupt test FAILED! No interrupt occurred in 1 sec
+> [  147.917598] Testing 48046000.timer with 32768 Hz clock ...
+> [  150.262203] Timer read test PASSED! No errors, 100 loops
+> [  151.262049] Timer interrupt test FAILED! No interrupt occurred in 1 sec
+> [  151.269298] Testing 48048000.timer with 24000000 Hz clock ...
+> [  153.613596] Timer read test PASSED! No errors, 100 loops
+> [  154.613618] Timer interrupt test FAILED! No interrupt occurred in 1 sec
+> [  154.620725] Testing 48048000.timer with 32768 Hz clock ...
+> [  156.965324] Timer read test PASSED! No errors, 100 loops
+> [  157.965176] Timer interrupt test FAILED! No interrupt occurred in 1 sec
+> [  157.972419] Testing 4804a000.timer with 24000000 Hz clock ...
+> 
+> [root@arago /]# [  160.316753] Timer read test PASSED! No errors, 100 loops
+> 
+> [root@arago /]# [  161.316728] Timer interrupt test FAILED! No interrupt
+> occurred in 1 sec
+> [  161.323912] Testing 4804a000.timer with 32768 Hz clock ...
+> 
+> [root@arago /]# [  163.668490] Timer read test PASSED! No errors, 100 loops
+> [  164.668328] Timer interrupt test FAILED! No interrupt occurred in 1 sec
+> [  164.675545] Tested 5 timers, skipped 6 timers and detected 6 errors
+> [  164.682202] Test iteration 0 complete in 29 secs
+> [  164.687104] Test summary: Iterations 1, Errors 6
+
+What is interesting is that it is the interrupt test that is failing for
+timers 5-7. Any chance there is a problem with the interrupt mapping? I
+checked the documentation for AM335x and I don't see anything obvious
+that is wrong with the binding unless the documentation itself is wrong.
+
+Given that the interrupts work on timers 3 and 4 it appears to be a
+interrupt configuration problem somewhere. We could adapt the test to
+see if an interrupt is pending in the timer peripheral when it fails.
+This would tell us that the timer is working but the interrupt is not
+being enabled correctly in the interrupt controller.
 
 Cheers
 Jon
