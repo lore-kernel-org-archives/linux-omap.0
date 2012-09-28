@@ -1,208 +1,69 @@
-From: Matt Porter <mporter@ti.com>
-Subject: [PATCH v2 5/7] ARM: davinci: Add support for PRUSS on DA850
-Date: Fri, 28 Sep 2012 15:37:50 -0400
-Message-ID: <1348861072-14507-6-git-send-email-mporter@ti.com>
-References: <1348861072-14507-1-git-send-email-mporter@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1348861072-14507-1-git-send-email-mporter@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sekhar Nori <nsekhar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>
+From: linux@johnea.net
+Subject: Re: Which git to clone for testing prior to submitting bugs?
+Date: Fri, 28 Sep 2012 12:46:04 -0700
+Message-ID: <5065FE7C.9070503@johnea.net>
+References: <50648AA2.2010004@johnea.net> <CAOCHtYitbhOMv+YBaYgdTuYZQpZ_VLoP=QKVS=spmqPxEUkATA@mail.gmail.com> <5064A173.5000909@johnea.net> <CAOCHtYh2DofNoLx1W6ZWy4aKNpQx10P9AbmWbj1yeY1G=ixHPg@mail.gmail.com> <CAOCHtYiido11MG55m601CX2isYJ2oFcubgJ7Wkng=HnkT_DdcQ@mail.gmail.com> <5064B41D.9030709@johnea.net> <CAOCHtYjjczpQ0oJ4zgrExdF7C-OAsfzMLwAEfdExkFG2uiUKgw@mail.gmail.com> <5065F13E.8070306@johnea.net> <CAOCHtYg3zrqO+3Rk6P8K7iit7uO9g4_YHQ870TXbmuEPZEyQ0Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from johnea.net ([70.167.123.7]:45940 "EHLO mail.johnea.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030371Ab2I1TqF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Sep 2012 15:46:05 -0400
+Received: from [192.168.1.143] (wsip-70-166-88-164.sd.sd.cox.net [70.166.88.164])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.johnea.net (Postfix) with ESMTPSA id 4514173F188B
+	for <linux-omap@vger.kernel.org>; Fri, 28 Sep 2012 12:46:05 -0700 (PDT)
+In-Reply-To: <CAOCHtYg3zrqO+3Rk6P8K7iit7uO9g4_YHQ870TXbmuEPZEyQ0Q@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Adds PRUSS clock, registers the L3RAM pool, and registers the
-platform device for uio_pruss on DA850.
+On 09/28/2012 12:18 PM, Robert Nelson wrote:
+> Ah, so looking at the config, ARCH switched to omapdrm... It kinda
+> works in v3.5.x, but i'd wait till a few more releases...
+>
+> So, based on that config, they have both "CONFIG_FB_OMAP2" and
+> "CONFIG_DRM_OMAP" enabled.. That's a no-no...
+>
+> CONFIG_DRM_OMAP
+> http://cateee.net/lkddb/web-lkddb/DRM_OMAP.html
+> depends on: ( CONFIG_DRM&&  ! CONFIG_CONFIG_FB_OMAP2 )&&  (
+> CONFIG_ARCH_OMAP2PLUS )
+>
+> Option 1: Stay with omapfb
+>
+> CONFIG_FB_OMAP2=m ->  CONFIG_FB_OMAP2=y
+> disable: CONFIG_DRM_OMAP
+>
+> Option 2: Go Experimental route with omapdrm
+>
+> CONFIG_DRM_OMAP=m
+> CONFIG_DRM_OMAP_NUM_CRTCS=1
+>
+> disable: CONFIG_FB_OMAP2
+>
+>> >  Attached are config.gz from running system and gz'd complete dmesg output
+>> >  (hope attachments are OK on the list).
+>> >
+>> >  There's another 3.5.4 build scheduled on the panda build farm this
+>> >  afternoon. If you have any config modification suggestions, they'd be very
+>> >  gratefully received.
+> Also, if your running that config on pre-es (omap4430) panda's..
+> CONFIG_OMAP4_ERRATA_I688=y&   CONFIG_ARCH_HAS_BARRIERS=y
+>
+> and save your self some debugging time...;)
+>
+> Regards,
+>
+> -- Robert Nelson http://www.rcn-ee.com/
 
-Signed-off-by: Matt Porter <mporter@ti.com>
----
- arch/arm/mach-davinci/board-da850-evm.c    |   12 +++++
- arch/arm/mach-davinci/da850.c              |    9 ++++
- arch/arm/mach-davinci/devices-da8xx.c      |   66 ++++++++++++++++++++++++++++
- arch/arm/mach-davinci/include/mach/da8xx.h |    3 ++
- 4 files changed, 90 insertions(+)
+Thanks Robert!
 
-diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index 1295e61..d4f1720 100644
---- a/arch/arm/mach-davinci/board-da850-evm.c
-+++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -29,6 +29,7 @@
- #include <linux/regulator/machine.h>
- #include <linux/regulator/tps6507x.h>
- #include <linux/input/tps6507x-ts.h>
-+#include <linux/platform_data/uio_pruss.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/flash.h>
- #include <linux/delay.h>
-@@ -42,6 +43,7 @@
- #include <mach/da8xx.h>
- #include <linux/platform_data/mtd-davinci.h>
- #include <mach/mux.h>
-+#include <mach/sram.h>
- #include <linux/platform_data/mtd-davinci-aemif.h>
- #include <linux/platform_data/spi-davinci.h>
- 
-@@ -1253,6 +1255,10 @@ static __init int da850_wl12xx_init(void)
- 
- #endif /* CONFIG_DA850_WL12XX */
- 
-+struct uio_pruss_pdata da8xx_pruss_uio_pdata = {
-+	.pintc_base	= 0x4000,
-+};
-+
- #define DA850EVM_SATA_REFCLKPN_RATE	(100 * 1000 * 1000)
- 
- static __init void da850_evm_init(void)
-@@ -1339,6 +1345,12 @@ static __init void da850_evm_init(void)
- 		pr_warning("da850_evm_init: lcdcntl mux setup failed: %d\n",
- 				ret);
- 
-+	da8xx_pruss_uio_pdata.l3ram_pool = sram_get_l3ram_pool();
-+	ret = da8xx_register_pruss_uio(&da8xx_pruss_uio_pdata);
-+	if (ret)
-+		pr_warning("pruss_uio initialization failed: %d\n",
-+				ret);
-+
- 	/* Handle board specific muxing for LCD here */
- 	ret = davinci_cfg_reg_list(da850_evm_lcdc_pins);
- 	if (ret)
-diff --git a/arch/arm/mach-davinci/da850.c b/arch/arm/mach-davinci/da850.c
-index 6676dee..131c175 100644
---- a/arch/arm/mach-davinci/da850.c
-+++ b/arch/arm/mach-davinci/da850.c
-@@ -212,6 +212,12 @@ static struct clk tptc2_clk = {
- 	.flags		= ALWAYS_ENABLED,
- };
- 
-+static struct clk pruss_clk = {
-+	.name		= "pruss",
-+	.parent		= &pll0_sysclk2,
-+	.lpsc		= DA8XX_LPSC0_PRUSS,
-+};
-+
- static struct clk uart0_clk = {
- 	.name		= "uart0",
- 	.parent		= &pll0_sysclk2,
-@@ -378,6 +384,7 @@ static struct clk_lookup da850_clks[] = {
- 	CLK(NULL,		"tptc1",	&tptc1_clk),
- 	CLK(NULL,		"tpcc1",	&tpcc1_clk),
- 	CLK(NULL,		"tptc2",	&tptc2_clk),
-+	CLK(NULL,		"pruss",	&pruss_clk),
- 	CLK(NULL,		"uart0",	&uart0_clk),
- 	CLK(NULL,		"uart1",	&uart1_clk),
- 	CLK(NULL,		"uart2",	&uart2_clk),
-@@ -1089,6 +1096,8 @@ static struct davinci_soc_info davinci_soc_info_da850 = {
- 	.emac_pdata		= &da8xx_emac_pdata,
- 	.sram_dma		= DA8XX_ARM_RAM_BASE,
- 	.sram_len		= SZ_8K,
-+	.l3ram_dma		= DA8XX_SHARED_RAM_BASE,
-+	.l3ram_len		= SZ_128K,
- };
- 
- void __init da850_init(void)
-diff --git a/arch/arm/mach-davinci/devices-da8xx.c b/arch/arm/mach-davinci/devices-da8xx.c
-index bd2f72b..7c2e0d2 100644
---- a/arch/arm/mach-davinci/devices-da8xx.c
-+++ b/arch/arm/mach-davinci/devices-da8xx.c
-@@ -518,6 +518,72 @@ void __init da8xx_register_mcasp(int id, struct snd_platform_data *pdata)
- 	}
- }
- 
-+#define DA8XX_PRUSS_MEM_BASE		0x01C30000
-+
-+static struct resource da8xx_pruss_resources[] = {
-+	{
-+		.start	= DA8XX_PRUSS_MEM_BASE,
-+		.end	= DA8XX_PRUSS_MEM_BASE + 0xFFFF,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= IRQ_DA8XX_EVTOUT0,
-+		.end	= IRQ_DA8XX_EVTOUT0,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.start	= IRQ_DA8XX_EVTOUT1,
-+		.end	= IRQ_DA8XX_EVTOUT1,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.start	= IRQ_DA8XX_EVTOUT2,
-+		.end	= IRQ_DA8XX_EVTOUT2,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.start	= IRQ_DA8XX_EVTOUT3,
-+		.end	= IRQ_DA8XX_EVTOUT3,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.start	= IRQ_DA8XX_EVTOUT4,
-+		.end	= IRQ_DA8XX_EVTOUT4,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.start	= IRQ_DA8XX_EVTOUT5,
-+		.end	= IRQ_DA8XX_EVTOUT5,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.start	= IRQ_DA8XX_EVTOUT6,
-+		.end	= IRQ_DA8XX_EVTOUT6,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.start	= IRQ_DA8XX_EVTOUT7,
-+		.end	= IRQ_DA8XX_EVTOUT7,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device da8xx_pruss_uio_dev = {
-+	.name		= "pruss_uio",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(da8xx_pruss_resources),
-+	.resource	= da8xx_pruss_resources,
-+	.dev	 =	{
-+		.coherent_dma_mask = 0xffffffff,
-+	}
-+};
-+
-+int __init da8xx_register_pruss_uio(struct uio_pruss_pdata *config)
-+{
-+	da8xx_pruss_uio_dev.dev.platform_data = config;
-+	return platform_device_register(&da8xx_pruss_uio_dev);
-+}
-+
- static const struct display_panel disp_panel = {
- 	QVGA,
- 	16,
-diff --git a/arch/arm/mach-davinci/include/mach/da8xx.h b/arch/arm/mach-davinci/include/mach/da8xx.h
-index c9ee723..5320e12 100644
---- a/arch/arm/mach-davinci/include/mach/da8xx.h
-+++ b/arch/arm/mach-davinci/include/mach/da8xx.h
-@@ -25,6 +25,7 @@
- #include <linux/platform_data/mmc-davinci.h>
- #include <linux/platform_data/usb-davinci.h>
- #include <linux/platform_data/spi-davinci.h>
-+#include <linux/platform_data/uio_pruss.h>
- 
- extern void __iomem *da8xx_syscfg0_base;
- extern void __iomem *da8xx_syscfg1_base;
-@@ -69,6 +70,7 @@ extern unsigned int da850_max_speed;
- #define DA8XX_AEMIF_CS3_BASE	0x62000000
- #define DA8XX_AEMIF_CTL_BASE	0x68000000
- #define DA8XX_ARM_RAM_BASE	0xffff0000
-+#define DA8XX_SHARED_RAM_BASE	0x80000000
- 
- void __init da830_init(void);
- void __init da850_init(void);
-@@ -82,6 +84,7 @@ int da8xx_register_watchdog(void);
- int da8xx_register_usb20(unsigned mA, unsigned potpgt);
- int da8xx_register_usb11(struct da8xx_ohci_root_hub *pdata);
- int da8xx_register_emac(void);
-+int da8xx_register_pruss_uio(struct uio_pruss_pdata *config);
- int da8xx_register_lcdc(struct da8xx_lcdc_platform_data *pdata);
- int da8xx_register_mmcsd0(struct davinci_mmc_config *config);
- int da850_register_mmcsd1(struct davinci_mmc_config *config);
--- 
-1.7.9.5
+I passed along to the distro devs to include in today's build.
+
+I'll follow up once I'm running the new version...
+
+johnea
