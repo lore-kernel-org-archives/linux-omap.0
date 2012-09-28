@@ -1,30 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3isp: Replace cpu_is_omap3630() with ISP revision
- check
-Date: Thu, 27 Sep 2012 16:59:37 -0700
-Message-ID: <20120927235936.GV4840@atomide.com>
-References: <20120926220018.GJ4840@atomide.com>
- <1348756698-23128-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 2/2] omap3isp: Configure CSI-2 phy based on platform
+ data
+Date: Thu, 27 Sep 2012 17:00:04 -0700
+Message-ID: <20120928000001.GW4840@atomide.com>
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
+ <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
+ <20120926220018.GJ4840@atomide.com>
+ <2652285.trTHQxlDeP@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50661 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751121Ab2I0X7k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Sep 2012 19:59:40 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1348756698-23128-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <2652285.trTHQxlDeP@avalon>
+Sender: linux-media-owner@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>, paul@pwsan.com
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, paul@pwsan.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [120927 07:38]:
-> Drivers must not rely on cpu_is_omap* macros (they will soon become
-> private). Use the ISP revision instead to identify the hardware.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [120927 02:52]:
+> Hi Tony,
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> On Wednesday 26 September 2012 15:00:19 Tony Lindgren wrote:
+> > Moi Sakari
+> > 
+> > * Sakari Ailus <sakari.ailus@iki.fi> [120926 14:51]:
+> > > Configure CSI-2 phy based on platform data in the ISP driver. For that,
+> > > the
+> > > new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
+> > > was configured from the board code.
+> > > 
+> > > This patch is dependent on "omap3: Provide means for changing CSI2 PHY
+> > > configuration".
+> > 
+> > Can you please do one more patch to get rid of the last remaining
+> > cpu_is_omapxxxx check in drivers/media/platform/omap3isp/isp.c?
+> 
+> I'm working on that, I'll submit a patch.
 
-Great, thanks for fixing this:
+Thanks acked it.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+
+Tony
