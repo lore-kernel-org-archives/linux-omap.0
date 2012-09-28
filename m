@@ -1,88 +1,114 @@
 From: Matt Porter <mporter@ti.com>
-Subject: [PATCH v2 6/7] ARM: omap: add DT support for deasserting hardware reset lines
-Date: Fri, 28 Sep 2012 15:37:51 -0400
-Message-ID: <1348861072-14507-7-git-send-email-mporter@ti.com>
+Subject: [PATCH v2 4/7] ARM: davinci: Add support for an L3RAM gen_pool
+Date: Fri, 28 Sep 2012 15:37:49 -0400
+Message-ID: <1348861072-14507-5-git-send-email-mporter@ti.com>
 References: <1348861072-14507-1-git-send-email-mporter@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1348861072-14507-1-git-send-email-mporter@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Sekhar Nori <nsekhar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-This optional binding extension allows specification of a hwmod
-and associate hardware reset line which should be deasserted for
-the device to be functional.
-
-The implementation works for reference as to the problem that
-exists for utilizing uio_pruss on AM33xx but is suboptimal. The
-problem is that this deassertion occurs before clocks are enabled
-and we are warned that the hard reset failed. Ideally the list of
-rst lines requested to be deasserted would be cached and used within
-the hwmod enable sequencing (instead of it just returning if any
-hardware reset line is asserted).
+L3RAM (shared SRAM) is needed for use by several drivers.
+This creates a genalloc pool and a hook for the platform code
+to provide the struct gen_pool * in platform data.
 
 Signed-off-by: Matt Porter <mporter@ti.com>
 ---
- .../devicetree/bindings/arm/omap/omap.txt          |    2 ++
- arch/arm/plat-omap/omap_device.c                   |   25 ++++++++++++++++++--
- 2 files changed, 25 insertions(+), 2 deletions(-)
+ arch/arm/mach-davinci/include/mach/common.h |    2 ++
+ arch/arm/mach-davinci/include/mach/sram.h   |    3 +++
+ arch/arm/mach-davinci/sram.c                |   28 ++++++++++++++++++++++++++-
+ 3 files changed, 32 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index d0051a7..3133a4b 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -21,6 +21,8 @@ Required properties:
- Optional properties:
- - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
-   during suspend.
-+- ti,deassert-hard-reset: list of hwmod and hardware reset line name pairs
-+  (ascii strings) to be deasserted upon device instantiation.
+diff --git a/arch/arm/mach-davinci/include/mach/common.h b/arch/arm/mach-davinci/include/mach/common.h
+index bdc4aa8..5a2ea37 100644
+--- a/arch/arm/mach-davinci/include/mach/common.h
++++ b/arch/arm/mach-davinci/include/mach/common.h
+@@ -77,6 +77,8 @@ struct davinci_soc_info {
+ 	struct emac_platform_data	*emac_pdata;
+ 	dma_addr_t			sram_dma;
+ 	unsigned			sram_len;
++	dma_addr_t			l3ram_dma;
++	unsigned			l3ram_len;
+ };
  
+ extern struct davinci_soc_info davinci_soc_info;
+diff --git a/arch/arm/mach-davinci/include/mach/sram.h b/arch/arm/mach-davinci/include/mach/sram.h
+index 111f7cc..1a81e5b 100644
+--- a/arch/arm/mach-davinci/include/mach/sram.h
++++ b/arch/arm/mach-davinci/include/mach/sram.h
+@@ -24,4 +24,7 @@
+ extern void *sram_alloc(size_t len, dma_addr_t *dma);
+ extern void sram_free(void *addr, size_t len);
  
- Example:
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index d5f617c..d1ae68c 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -330,8 +330,8 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 	struct omap_device *od;
- 	struct omap_hwmod *oh;
- 	struct device_node *node = pdev->dev.of_node;
--	const char *oh_name;
--	int oh_cnt, i, ret = 0;
-+	const char *oh_name, *rst_name;
-+	int oh_cnt, dstr_cnt, i, ret = 0;
++/* Get the l3ram struct gen_pool * for use in platform data */
++extern struct gen_pool *sram_get_l3ram_pool(void);
++
+ #endif /* __MACH_SRAM_H */
+diff --git a/arch/arm/mach-davinci/sram.c b/arch/arm/mach-davinci/sram.c
+index db0f778..e609fa3 100644
+--- a/arch/arm/mach-davinci/sram.c
++++ b/arch/arm/mach-davinci/sram.c
+@@ -15,7 +15,12 @@
+ #include <mach/common.h>
+ #include <mach/sram.h>
  
- 	oh_cnt = of_property_count_strings(node, "ti,hwmods");
- 	if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
-@@ -376,6 +376,27 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
- 		omap_device_disable_idle_on_suspend(pdev);
+-static struct gen_pool *sram_pool;
++static struct gen_pool *sram_pool, *l3ram_pool;
++
++struct gen_pool *sram_get_l3ram_pool(void)
++{
++	return l3ram_pool;
++}
  
-+	dstr_cnt =
-+		of_property_count_strings(node, "ti,deassert-hard-reset");
-+	if (dstr_cnt > 0) {
-+		for (i = 0; i < dstr_cnt; i += 2) {
-+			of_property_read_string_index(
-+				node, "ti,deassert-hard-reset", i,
-+				&oh_name);
-+			of_property_read_string_index(
-+				node, "ti,deassert-hard-reset", i+1,
-+				&rst_name);
-+			oh = omap_hwmod_lookup(oh_name);
-+			if (!oh) {
-+				dev_warn(&pdev->dev,
-+				"Cannot parse deassert property for '%s'\n",
-+				oh_name);
-+				break;
-+			}
-+			omap_hwmod_deassert_hardreset(oh, rst_name);
-+		}
+ void *sram_alloc(size_t len, dma_addr_t *dma)
+ {
+@@ -54,6 +59,9 @@ EXPORT_SYMBOL(sram_free);
+ static int __init sram_init(void)
+ {
+ 	unsigned len = davinci_soc_info.sram_len;
++	unsigned l3ram_dma = davinci_soc_info.l3ram_dma;
++	unsigned l3ram_len = davinci_soc_info.l3ram_len;
++	void *l3ram_virt;
+ 	int status = 0;
+ 
+ 	if (len) {
+@@ -65,6 +73,24 @@ static int __init sram_init(void)
+ 	if (sram_pool)
+ 		status = gen_pool_add(sram_pool, SRAM_VIRT, len, -1);
+ 	WARN_ON(status < 0);
++
++	if (l3ram_dma) {
++		l3ram_pool =
++			gen_pool_create(ilog2(SRAM_GRANULARITY), -1);
++		if (!l3ram_pool)
++			status = -ENOMEM;
 +	}
 +
- 	pdev->dev.pm_domain = &omap_device_pm_domain;
- 
- odbfd_exit1:
++	if (l3ram_pool) {
++		l3ram_virt = ioremap(l3ram_dma, l3ram_len);
++		if (l3ram_virt)
++			status = gen_pool_add_virt(l3ram_pool,
++						   (unsigned long)l3ram_virt,
++						   l3ram_dma, l3ram_len, -1);
++		else
++			status = -ENOMEM;
++	}
++
+ 	return status;
+ }
+ core_initcall(sram_init);
 -- 
 1.7.9.5
