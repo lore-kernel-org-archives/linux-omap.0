@@ -1,57 +1,139 @@
 From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V4 1/5] OMAPDSS: Move definition of DEBUG flag to Makefile
-Date: Sat, 29 Sep 2012 16:19:22 +0530
-Message-ID: <fbaf2825628b01a7b660993a83a8f3de37cfcd04.1348914940.git.cmahapatra@ti.com>
+Subject: [PATCH V4 2/5] OMAPDSS: Create new debug config options
+Date: Sat, 29 Sep 2012 16:19:23 +0530
+Message-ID: <af097b99b4d2eab96850fd6d8a0c260917aa4f98.1348914940.git.cmahapatra@ti.com>
 References: <cover.1348826106.git.cmahapatra@ti.com> <cover.1348914940.git.cmahapatra@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39142 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55621 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753724Ab2I2Kvy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 Sep 2012 06:51:54 -0400
+	id S1753724Ab2I2KwA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 Sep 2012 06:52:00 -0400
 In-Reply-To: <cover.1348914940.git.cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-In OMAPDSS the DEBUG flag is set only after the OMAPDSS module is called, for
-which the debugging capabilities are available only after its proper
-initialization. As a result of which tracking of bugs prior to or during initial
-process becomes difficult. So, the definition of DEBUG is being moved to the
-corresponding Makefile.
+The config option CONFIG_OMAP2_DSS_DEBUG_SUPPORT has been removed and replaced
+with CONFIG_OMAP2_DSS_DEBUG and CONFIG_OMAP2_DSS_DEBUGFS. CONFIG_OMAP2_DSS_DEBUG
+enables DEBUG flag and CONFIG_OMAP2_DSS_DEBUGFS enables creation of debugfs for
+OMAPDSS. Both the config options are disabled by default and can be enabled
+independently of one another as per convenience.
 
 Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
 ---
- drivers/video/omap2/dss/Makefile |    1 +
- drivers/video/omap2/dss/dss.h    |    4 ----
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/video/omap2/dss/Kconfig  |   21 +++++++++++++++------
+ drivers/video/omap2/dss/Makefile |    2 +-
+ drivers/video/omap2/dss/core.c   |    6 +++---
+ drivers/video/omap2/dss/dss.c    |    2 +-
+ drivers/video/omap2/dss/dss.h    |    2 +-
+ 5 files changed, 21 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index 80f5390..866a563 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -18,16 +18,25 @@ config OMAP2_VRAM_SIZE
+ 	  You can also set this with "vram=<bytes>" kernel argument, or
+ 	  in the board file.
+ 
+-config OMAP2_DSS_DEBUG_SUPPORT
+-        bool "Debug support"
+-	default y
++config OMAP2_DSS_DEBUG
++	bool "Debug support"
++	default n
++	help
++	  This enables printing of debug messages. Alternatively, debug messages
++	  can also be enabled by setting CONFIG_DYNAMIC_DEBUG and then setting
++	  appropriate flags in <debugfs>/dynamic_debug/control.
++
++config OMAP2_DSS_DEBUGFS
++	bool "Debugfs filesystem support"
++	default n
+ 	help
+-	  This enables debug messages. You need to enable printing
+-	  with 'debug' module parameter.
++	  This enables debugfs for OMAPDSS at <debugfs>/omapdss. This enables
++	  querying about clock configuration and register configuration of dss,
++	  dispc, dsi, hdmi and rfbi.
+ 
+ config OMAP2_DSS_COLLECT_IRQ_STATS
+ 	bool "Collect DSS IRQ statistics"
+-	depends on OMAP2_DSS_DEBUG_SUPPORT
++	depends on OMAP2_DSS_DEBUGFS
+ 	default n
+ 	help
+ 	  Collect DSS IRQ statistics, printable via debugfs.
 diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
-index 4549869..86493e3 100644
+index 86493e3..4070191 100644
 --- a/drivers/video/omap2/dss/Makefile
 +++ b/drivers/video/omap2/dss/Makefile
-@@ -8,3 +8,4 @@ omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
+@@ -8,4 +8,4 @@ omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
  omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
  omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o \
  				    hdmi_panel.o ti_hdmi_4xxx_ip.o
-+ccflags-$(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) += -DDEBUG
+-ccflags-$(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) += -DDEBUG
++ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index b2af72d..1e1f50f 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -138,7 +138,7 @@ int dss_set_min_bus_tput(struct device *dev, unsigned long tput)
+ 		return 0;
+ }
+ 
+-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
++#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUGFS)
+ static int dss_debug_show(struct seq_file *s, void *unused)
+ {
+ 	void (*func)(struct seq_file *) = s->private;
+@@ -193,7 +193,7 @@ int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
+ 
+ 	return 0;
+ }
+-#else /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
++#else /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUGFS */
+ static inline int dss_initialize_debugfs(void)
+ {
+ 	return 0;
+@@ -205,7 +205,7 @@ int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
+ {
+ 	return 0;
+ }
+-#endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
++#endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUGFS */
+ 
+ /* PLATFORM DEVICE */
+ static int omap_dss_pm_notif(struct notifier_block *b, unsigned long v, void *d)
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 2ab1c3e..fe30855 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -746,7 +746,7 @@ static void dss_runtime_put(void)
+ }
+ 
+ /* DEBUGFS */
+-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
++#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUGFS)
+ void dss_debug_dump_clocks(struct seq_file *s)
+ {
+ 	dss_dump_clocks(s);
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 6728892..ffbba7e 100644
+index ffbba7e..a8a1ab4 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -23,10 +23,6 @@
- #ifndef __OMAP2_DSS_H
- #define __OMAP2_DSS_H
+@@ -301,7 +301,7 @@ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
+ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
+ void dss_dump_clocks(struct seq_file *s);
  
--#ifdef CONFIG_OMAP2_DSS_DEBUG_SUPPORT
--#define DEBUG
--#endif
--
- #ifdef DEBUG
- extern bool dss_debug;
- #ifdef DSS_SUBSYS_NAME
+-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
++#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUGFS)
+ void dss_debug_dump_clocks(struct seq_file *s);
+ #endif
+ 
 -- 
 1.7.10
 
