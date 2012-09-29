@@ -1,139 +1,189 @@
 From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V4 2/5] OMAPDSS: Create new debug config options
-Date: Sat, 29 Sep 2012 16:19:23 +0530
-Message-ID: <af097b99b4d2eab96850fd6d8a0c260917aa4f98.1348914940.git.cmahapatra@ti.com>
+Subject: [PATCH V4 3/5] OMAPDSS: Cleanup DSSDBG with dynamic pr_debug function
+Date: Sat, 29 Sep 2012 16:19:24 +0530
+Message-ID: <d125b22d3ca6f2863b3a42426ab395941e8092d8.1348914940.git.cmahapatra@ti.com>
 References: <cover.1348826106.git.cmahapatra@ti.com> <cover.1348914940.git.cmahapatra@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55621 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753724Ab2I2KwA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 29 Sep 2012 06:52:00 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:45418 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753724Ab2I2KwG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Sep 2012 06:52:06 -0400
 In-Reply-To: <cover.1348914940.git.cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-The config option CONFIG_OMAP2_DSS_DEBUG_SUPPORT has been removed and replaced
-with CONFIG_OMAP2_DSS_DEBUG and CONFIG_OMAP2_DSS_DEBUGFS. CONFIG_OMAP2_DSS_DEBUG
-enables DEBUG flag and CONFIG_OMAP2_DSS_DEBUGFS enables creation of debugfs for
-OMAPDSS. Both the config options are disabled by default and can be enabled
-independently of one another as per convenience.
+The printk in DSSDBG function definition is replaced with dynamic debug enabled
+pr_debug(). The use of dynamic debugging provides more flexibility as each debug
+statement can be enabled or disabled dynamically on basis of source filename,
+line number, module name etc., by writing to a control file in debugfs
+filesystem. For better understanding please refer to
+Documentation/dynamic-debug-howto.txt.
+
+The DSSDBGF() differs from DSSDBG() by providing function name. However,
+function name, line number, module name and thread ID can be printed through
+dynamic debug by setting appropriate flags 'f','l','m' and 't' in the debugfs
+control file. So, DSSDBGF instances are replaced with DSSDBG.
 
 Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
 ---
- drivers/video/omap2/dss/Kconfig  |   21 +++++++++++++++------
- drivers/video/omap2/dss/Makefile |    2 +-
- drivers/video/omap2/dss/core.c   |    6 +++---
- drivers/video/omap2/dss/dss.c    |    2 +-
- drivers/video/omap2/dss/dss.h    |    2 +-
- 5 files changed, 21 insertions(+), 12 deletions(-)
+ drivers/video/omap2/dss/apply.c |    8 ++++----
+ drivers/video/omap2/dss/dsi.c   |   12 ++++++------
+ drivers/video/omap2/dss/dss.h   |   34 ++++++++--------------------------
+ 3 files changed, 18 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-index 80f5390..866a563 100644
---- a/drivers/video/omap2/dss/Kconfig
-+++ b/drivers/video/omap2/dss/Kconfig
-@@ -18,16 +18,25 @@ config OMAP2_VRAM_SIZE
- 	  You can also set this with "vram=<bytes>" kernel argument, or
- 	  in the board file.
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index 19d66f4..e923d9f 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -573,7 +573,7 @@ static void dss_ovl_write_regs(struct omap_overlay *ovl)
+ 	struct mgr_priv_data *mp;
+ 	int r;
  
--config OMAP2_DSS_DEBUG_SUPPORT
--        bool "Debug support"
--	default y
-+config OMAP2_DSS_DEBUG
-+	bool "Debug support"
-+	default n
-+	help
-+	  This enables printing of debug messages. Alternatively, debug messages
-+	  can also be enabled by setting CONFIG_DYNAMIC_DEBUG and then setting
-+	  appropriate flags in <debugfs>/dynamic_debug/control.
-+
-+config OMAP2_DSS_DEBUGFS
-+	bool "Debugfs filesystem support"
-+	default n
- 	help
--	  This enables debug messages. You need to enable printing
--	  with 'debug' module parameter.
-+	  This enables debugfs for OMAPDSS at <debugfs>/omapdss. This enables
-+	  querying about clock configuration and register configuration of dss,
-+	  dispc, dsi, hdmi and rfbi.
+-	DSSDBGF("%d", ovl->id);
++	DSSDBG("writing ovl %d regs", ovl->id);
  
- config OMAP2_DSS_COLLECT_IRQ_STATS
- 	bool "Collect DSS IRQ statistics"
--	depends on OMAP2_DSS_DEBUG_SUPPORT
-+	depends on OMAP2_DSS_DEBUGFS
- 	default n
- 	help
- 	  Collect DSS IRQ statistics, printable via debugfs.
-diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
-index 86493e3..4070191 100644
---- a/drivers/video/omap2/dss/Makefile
-+++ b/drivers/video/omap2/dss/Makefile
-@@ -8,4 +8,4 @@ omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
- omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
- omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o \
- 				    hdmi_panel.o ti_hdmi_4xxx_ip.o
--ccflags-$(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) += -DDEBUG
-+ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index b2af72d..1e1f50f 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -138,7 +138,7 @@ int dss_set_min_bus_tput(struct device *dev, unsigned long tput)
+ 	if (!op->enabled || !op->info_dirty)
+ 		return;
+@@ -608,7 +608,7 @@ static void dss_ovl_write_regs_extra(struct omap_overlay *ovl)
+ 	struct ovl_priv_data *op = get_ovl_priv(ovl);
+ 	struct mgr_priv_data *mp;
+ 
+-	DSSDBGF("%d", ovl->id);
++	DSSDBG("writing ovl %d regs extra", ovl->id);
+ 
+ 	if (!op->extra_info_dirty)
+ 		return;
+@@ -632,7 +632,7 @@ static void dss_mgr_write_regs(struct omap_overlay_manager *mgr)
+ 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+ 	struct omap_overlay *ovl;
+ 
+-	DSSDBGF("%d", mgr->id);
++	DSSDBG("writing mgr %d regs", mgr->id);
+ 
+ 	if (!mp->enabled)
+ 		return;
+@@ -658,7 +658,7 @@ static void dss_mgr_write_regs_extra(struct omap_overlay_manager *mgr)
+ {
+ 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+ 
+-	DSSDBGF("%d", mgr->id);
++	DSSDBG("writing mgr %d regs extra", mgr->id);
+ 
+ 	if (!mp->extra_info_dirty)
+ 		return;
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index e37e6d8..b0345f3 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1612,7 +1612,7 @@ int dsi_pll_set_clock_div(struct platform_device *dsidev,
+ 	u8 regn_start, regn_end, regm_start, regm_end;
+ 	u8 regm_dispc_start, regm_dispc_end, regm_dsi_start, regm_dsi_end;
+ 
+-	DSSDBGF();
++	DSSDBG("DSI PLL clock config starts");
+ 
+ 	dsi->current_cinfo.clkin = cinfo->clkin;
+ 	dsi->current_cinfo.fint = cinfo->fint;
+@@ -2431,7 +2431,7 @@ static int dsi_cio_init(struct platform_device *dsidev)
+ 	int r;
+ 	u32 l;
+ 
+-	DSSDBGF();
++	DSSDBG("DSI CIO init starts");
+ 
+ 	r = dss_dsi_enable_pads(dsi->module_id, dsi_get_lane_mask(dsidev));
+ 	if (r)
+@@ -2782,7 +2782,7 @@ static void dsi_vc_initial_config(struct platform_device *dsidev, int channel)
+ {
+ 	u32 r;
+ 
+-	DSSDBGF("%d", channel);
++	DSSDBG("Initial config of virtual channel %d", channel);
+ 
+ 	r = dsi_read_reg(dsidev, DSI_VC_CTRL(channel));
+ 
+@@ -2814,7 +2814,7 @@ static int dsi_vc_config_source(struct platform_device *dsidev, int channel,
+ 	if (dsi->vc[channel].source == source)
  		return 0;
- }
  
--#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUGFS)
- static int dss_debug_show(struct seq_file *s, void *unused)
- {
- 	void (*func)(struct seq_file *) = s->private;
-@@ -193,7 +193,7 @@ int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
+-	DSSDBGF("%d", channel);
++	DSSDBG("Source config of virtual channel %d", channel);
  
- 	return 0;
- }
--#else /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
-+#else /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUGFS */
- static inline int dss_initialize_debugfs(void)
- {
- 	return 0;
-@@ -205,7 +205,7 @@ int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
- {
- 	return 0;
- }
--#endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
-+#endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUGFS */
+ 	dsi_sync_vc(dsidev, channel);
  
- /* PLATFORM DEVICE */
- static int omap_dss_pm_notif(struct notifier_block *b, unsigned long v, void *d)
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 2ab1c3e..fe30855 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -746,7 +746,7 @@ static void dss_runtime_put(void)
- }
+@@ -3572,7 +3572,7 @@ static int dsi_enter_ulps(struct platform_device *dsidev)
+ 	int r, i;
+ 	unsigned mask;
  
- /* DEBUGFS */
--#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUGFS)
- void dss_debug_dump_clocks(struct seq_file *s)
- {
- 	dss_dump_clocks(s);
+-	DSSDBGF();
++	DSSDBG("Entering ULPS");
+ 
+ 	WARN_ON(!dsi_bus_is_locked(dsidev));
+ 
+@@ -4276,7 +4276,7 @@ int omapdss_dsi_set_clocks(struct omap_dss_device *dssdev,
+ 	unsigned long pck;
+ 	int r;
+ 
+-	DSSDBGF("ddr_clk %lu, lp_clk %lu", ddr_clk, lp_clk);
++	DSSDBG("Setting DSI clocks: ddr_clk %lu, lp_clk %lu", ddr_clk, lp_clk);
+ 
+ 	mutex_lock(&dsi->lock);
+ 
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index ffbba7e..a8a1ab4 100644
+index a8a1ab4..8bef7ee 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -301,7 +301,7 @@ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
- const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
- void dss_dump_clocks(struct seq_file *s);
+@@ -25,38 +25,20 @@
  
--#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUGFS)
- void dss_debug_dump_clocks(struct seq_file *s);
+ #ifdef DEBUG
+ extern bool dss_debug;
+-#ifdef DSS_SUBSYS_NAME
+-#define DSSDBG(format, ...) \
+-	if (dss_debug) \
+-		printk(KERN_DEBUG "omapdss " DSS_SUBSYS_NAME ": " format, \
+-		## __VA_ARGS__)
+-#else
+-#define DSSDBG(format, ...) \
+-	if (dss_debug) \
+-		printk(KERN_DEBUG "omapdss: " format, ## __VA_ARGS__)
  #endif
  
+-#ifdef DSS_SUBSYS_NAME
+-#define DSSDBGF(format, ...) \
+-	if (dss_debug) \
+-		printk(KERN_DEBUG "omapdss " DSS_SUBSYS_NAME \
+-				": %s(" format ")\n", \
+-				__func__, \
+-				## __VA_ARGS__)
+-#else
+-#define DSSDBGF(format, ...) \
+-	if (dss_debug) \
+-		printk(KERN_DEBUG "omapdss: " \
+-				": %s(" format ")\n", \
+-				__func__, \
+-				## __VA_ARGS__)
++#ifdef pr_fmt
++#undef pr_fmt
+ #endif
+ 
+-#else /* DEBUG */
+-#define DSSDBG(format, ...)
+-#define DSSDBGF(format, ...)
++#ifdef DSS_SUBSYS_NAME
++#define pr_fmt(fmt) DSS_SUBSYS_NAME ": " fmt
++#else
++#define pr_fmt(fmt) fmt
+ #endif
+ 
++#define DSSDBG(format, ...) \
++	pr_debug(format, ## __VA_ARGS__)
+ 
+ #ifdef DSS_SUBSYS_NAME
+ #define DSSERR(format, ...) \
 -- 
 1.7.10
 
