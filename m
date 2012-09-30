@@ -1,73 +1,60 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP: Move omap_reserve() locally to mach-omap1/2
-Date: Sun, 30 Sep 2012 13:50:22 +0530
-Message-ID: <CAMQu2gxN=gW_Gxr4awuJ4VT6RkZi_qHiTvmjwqbLKvCqb4RoyQ@mail.gmail.com>
-References: <1348839609-10456-1-git-send-email-lokeshvutla@ti.com>
- <1348839609-10456-4-git-send-email-lokeshvutla@ti.com> <20120929193944.GB15246@n2100.arm.linux.org.uk>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 6/6] usb: dwc3: core: add dt support for dwc3 core
+Date: Sun, 30 Sep 2012 18:47:22 +0200
+Message-ID: <5068779A.20402@mvista.com>
+References: <1348836795-4783-1-git-send-email-kishon@ti.com> <1348836795-4783-7-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:46646 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752565Ab2I3IUo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 30 Sep 2012 04:20:44 -0400
-Received: by vcbfo13 with SMTP id fo13so4693526vcb.19
-        for <linux-omap@vger.kernel.org>; Sun, 30 Sep 2012 01:20:43 -0700 (PDT)
-In-Reply-To: <20120929193944.GB15246@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1348836795-4783-7-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, tony@atomide.com
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Sun, Sep 30, 2012 at 1:09 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
+Hello.
+
+On 28-09-2012 14:53, Kishon Vijay Abraham I wrote:
+
+> Added dwc3 support for dwc3 core and update the documentation with
+> device tree binding information.
 >
-> On Fri, Sep 28, 2012 at 07:10:08PM +0530, Lokesh Vutla wrote:
-> > omap_reserve() is a stub for omap1. So creating a
-> > stub locally in mach-omap1. And moving the definition
-> > to mach-omap2.
-> > This helps in moving plat/omap_secure.h local to
-> > mach-omap2
-> >
-> > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> > Acked-by : Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> >  arch/arm/mach-omap1/common.h             |    3 +++
-> >  arch/arm/mach-omap2/common.c             |   20 ++++++++++++++++++++
-> >  arch/arm/mach-omap2/common.h             |    1 +
-> >  arch/arm/plat-omap/common.c              |   17 -----------------
-> >  arch/arm/plat-omap/include/plat/common.h |    1 -
-> >  5 files changed, 24 insertions(+), 18 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
-> > index c2552b2..f7b01f1 100644
-> > --- a/arch/arm/mach-omap1/common.h
-> > +++ b/arch/arm/mach-omap1/common.h
-> > @@ -90,4 +90,7 @@ extern int ocpi_enable(void);
-> >  static inline int ocpi_enable(void) { return 0; }
-> >  #endif
-> >
-> > +static inline void omap_reserve(void)
-> > +{ }
+> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+[...]
+
+> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> index 08a5738..0c17a7a 100644
+> --- a/drivers/usb/dwc3/core.c
+> +++ b/drivers/usb/dwc3/core.c
+[...]
+> @@ -602,11 +601,22 @@ static int __devexit dwc3_remove(struct platform_device *pdev)
+>   	return 0;
+>   }
 >
-> This is the wrong approach.  If OMAP1 doesn't need to do any reservation,
-> then OMAP1 platforms should not be calling omap_reserve() and OMAP1 should
-> not have this defined.
->
-> Just because OMAP2 does something one way does not mean OMAP1 needs to
-> copy it in every detail.
+> +#ifdef CONFIG_OF
+> +static const struct of_device_id of_dwc3_matach[] = {
 
-This patch just updated the code as is. I mean the empty  reserve
-callback already
-exist before this patch.
+     I guess you meant 'of_dwc3_match' here and below?
 
-But I do agree with you. I think we can drop the reserve callback completly from
-OMAP1 board files and then its easier to just make the omap_reserve() local to
-OMAP2+ machines.
 
-Tony,
-Are you ok in dropping OMAP1 reserve callback from all OMAP1 machines ?
+> +	{
+> +		.compatible = "synopsis,dwc3"
+> +	},
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, of_dwc3_matach);
+> +#endif
+> +
+>   static struct platform_driver dwc3_driver = {
+>   	.probe		= dwc3_probe,
+>   	.remove		= __devexit_p(dwc3_remove),
+>   	.driver		= {
+>   		.name	= "dwc3",
+> +		.of_match_table	= of_match_ptr(of_dwc3_matach),
+>   	},
+>   };
+>   
 
-Regards
-Santosh
+WBR, Sergei
+
