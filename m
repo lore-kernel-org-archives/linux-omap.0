@@ -1,65 +1,78 @@
-From: Ido Yariv <ido@wizery.com>
-Subject: Re: [PATCH 2/3] iommu/omap: Merge iommu2.h into iommu.h
-Date: Sun, 30 Sep 2012 13:04:09 -0400
-Message-ID: <20120930170408.GA5745@NoteStation.RenaNet>
-References: <1348204448-30855-1-git-send-email-ido@wizery.com>
- <1348204448-30855-2-git-send-email-ido@wizery.com>
- <20120927195313.GO4840@atomide.com>
- <20120927195526.GP4840@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP: Move omap_reserve() locally to
+ mach-omap1/2
+Date: Sun, 30 Sep 2012 11:05:43 -0700
+Message-ID: <20120930180542.GF4840@atomide.com>
+References: <1348839609-10456-1-git-send-email-lokeshvutla@ti.com>
+ <1348839609-10456-4-git-send-email-lokeshvutla@ti.com>
+ <20120929193944.GB15246@n2100.arm.linux.org.uk>
+ <CAMQu2gxN=gW_Gxr4awuJ4VT6RkZi_qHiTvmjwqbLKvCqb4RoyQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:38632 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916Ab2I3REN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Sep 2012 13:04:13 -0400
-Received: by mail-qa0-f46.google.com with SMTP id c26so1035058qad.19
-        for <linux-omap@vger.kernel.org>; Sun, 30 Sep 2012 10:04:12 -0700 (PDT)
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31511 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751177Ab2I3SFq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Sep 2012 14:05:46 -0400
 Content-Disposition: inline
-In-Reply-To: <20120927195526.GP4840@atomide.com>
+In-Reply-To: <CAMQu2gxN=gW_Gxr4awuJ4VT6RkZi_qHiTvmjwqbLKvCqb4RoyQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Lokesh Vutla <lokeshvutla@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 27, 2012 at 12:55:26PM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [120927 12:54]:
-> > Hi Ido,
-> > 
-> > * Ido Yariv <ido@wizery.com> [120920 22:15]:
-> > > Since iommu is not currently supported on OMAP1, merge plat/iommu2.h into
-> > > iommu.h so only one file would have to move to platform_data/ as part of the
-> > > single zImage effort.
-> > 
-> > Looks like you need patch 2.5/3 in this series too that
-> > makes some of the things defined in iommu.h local.
-> > 
-> > We should only have platform data in include/linux/platform_data,
-> > so things that are private to drivers should be defined in the
-> > driver, and things that are private to arch/arm/mach-omap2 should
-> > defined locally there.
-> > 
-> > Based on a quick grepping of files, looks like these should be
-> > defined in omap-iommu.c driver and not in the platform_data header:
-> > 
-> > struct iotlb_lock
-> > struct iotlb_lock
-> > dev_to_omap_iommu
-> > various register defines
-> > omap_iommu_arch_version
-> > omap_iotlb_cr_to_e
-> > omap_iopgtable_store_entry
-> > omap_iommu_save_ctx
-> > omap_iommu_restore_ctx
-> > omap_foreach_iommu_device
-> > omap_iommu_dump_ctx
-> > omap_dump_tlb_entries
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120930 01:21]:
+> On Sun, Sep 30, 2012 at 1:09 AM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> >
+> > On Fri, Sep 28, 2012 at 07:10:08PM +0530, Lokesh Vutla wrote:
+> > > omap_reserve() is a stub for omap1. So creating a
+> > > stub locally in mach-omap1. And moving the definition
+> > > to mach-omap2.
+> > > This helps in moving plat/omap_secure.h local to
+> > > mach-omap2
+> > >
+> > > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> > > Acked-by : Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap1/common.h             |    3 +++
+> > >  arch/arm/mach-omap2/common.c             |   20 ++++++++++++++++++++
+> > >  arch/arm/mach-omap2/common.h             |    1 +
+> > >  arch/arm/plat-omap/common.c              |   17 -----------------
+> > >  arch/arm/plat-omap/include/plat/common.h |    1 -
+> > >  5 files changed, 24 insertions(+), 18 deletions(-)
+> > >
+> > > diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+> > > index c2552b2..f7b01f1 100644
+> > > --- a/arch/arm/mach-omap1/common.h
+> > > +++ b/arch/arm/mach-omap1/common.h
+> > > @@ -90,4 +90,7 @@ extern int ocpi_enable(void);
+> > >  static inline int ocpi_enable(void) { return 0; }
+> > >  #endif
+> > >
+> > > +static inline void omap_reserve(void)
+> > > +{ }
+> >
+> > This is the wrong approach.  If OMAP1 doesn't need to do any reservation,
+> > then OMAP1 platforms should not be calling omap_reserve() and OMAP1 should
+> > not have this defined.
+> >
+> > Just because OMAP2 does something one way does not mean OMAP1 needs to
+> > copy it in every detail.
 > 
-> And looks like while at it, you can also move plat/iopgtable.h
-> and put it in some drivers/iommu/*.h file that's shared by
-> omap-iommu*.c and omap-iovmm.c drivers ;)
+> This patch just updated the code as is. I mean the empty  reserve
+> callback already
+> exist before this patch.
+> 
+> But I do agree with you. I think we can drop the reserve callback completly from
+> OMAP1 board files and then its easier to just make the omap_reserve() local to
+> OMAP2+ machines.
+> 
+> Tony,
+> Are you ok in dropping OMAP1 reserve callback from all OMAP1 machines ?
 
-Sure thing, I'll post a v2 shortly.
+Sure if it's not doing anything.
 
-Thanks,
-Ido.
+Regards,
+
+Tony
