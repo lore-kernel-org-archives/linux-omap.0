@@ -1,35 +1,35 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv3 1/4] mfd: smsc: Add support for smsc gpio io/keypad
- driver
-Date: Mon, 1 Oct 2012 13:09:07 +0100
-Message-ID: <20121001120907.GK4360@opensource.wolfsonmicro.com>
-References: <1349089282-22105-1-git-send-email-sourav.poddar@ti.com>
- <CAAe_U6+zEGuwMC1yn7O=LXE6PhPvPc2i7DCF0EAprkE8s+-iEw@mail.gmail.com>
- <20121001114454.GA9170@sirena.org.uk>
- <CAAe_U6JX9QDWvWA3KH7E9sOv0EHGkozVONuXDgn+a2MZ4GTE7Q@mail.gmail.com>
+From: jnewma45@bruinmail.slcc.edu
+Subject: Loan offered at 2.5%
+Date: Mon, 01 Oct 2012 11:17:47 +0000 (GMT)
+Message-ID: <fb6ce49751422.50697bdb@mymail.slcc.edu>
+Reply-To: bluelenderloandept@yahoo.com.hk
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAe_U6JX9QDWvWA3KH7E9sOv0EHGkozVONuXDgn+a2MZ4GTE7Q@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com, sameo@linux.intel.com
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cpmail.slcc.edu ([144.35.15.12]:47154 "EHLO cpmail.slcc.edu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929Ab2JAMTA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Oct 2012 08:19:00 -0400
+Content-disposition: inline
+Received: from mymail.slcc.edu (localhost [127.0.0.1])
+ by cpmail.slcc.edu (Sun Java(tm) System Messaging Server 6.3-6.03 (built Mar
+ 14 2008; 32bit)) with ESMTP id <0MB7003D9OPN8H60@cpmail.slcc.edu> for
+ linux-omap@vger.kernel.org; Mon, 01 Oct 2012 05:17:49 -0600 (MDT)
+Content-language: en
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: info@admin.org
 
-On Mon, Oct 01, 2012 at 05:23:15PM +0530, ABRAHAM, KISHON VIJAY wrote:
-> On Mon, Oct 1, 2012 at 5:14 PM, Mark Brown
 
-> > No, this is not at all sensible - if there's an mfd_remove_devices()
-> > function we really ought to be able to use it to remove the children.
-> > If we can't do that we should fix the API usability, not open code the
-> > same stuff in every user.
 
-> What makes more sense to me is extend mfd_add_devices to create child
-> devices from dt data. Then for removing devices, one can use
-> mfd_remove_devices().
+Uw web-mail quota heeft overschreden de set quotum dat is 2 GB. u op dit moment
+draait op 2.3GB.To re-activeren en het verhogen van uw web-mail quota controleer
+en uw web-mail account Om opnieuw te activeren en het verhogen van uw web-mail
+quota op de link hieronder te werken.
 
-Why would that be helpful?  Most platforms don't support DT at all, and
-having the API behave differently depending on the platform doesn't seem
-like a step forwards.  I would really expect any usage of DT to be
-totally orthogonal here.
+ https://docs.google.com/spreadsheet/viewform?formkey=dHR5RTJZNklDN296eUZZMy1ycGJ6cVE6MQ
+ Doet u dit niet kan leiden tot de annulering van uw web-mail account.
+ Bedankt, en sorry voor het ongemak
+
+ Admin / Web-master / lokale host
