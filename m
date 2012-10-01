@@ -1,448 +1,261 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [RFC/PATCHv3 4/4] gpio: smscece: Add support for gpio IO expander feature
-Date: Mon, 1 Oct 2012 16:32:15 +0530
-Message-ID: <1349089335-22192-1-git-send-email-sourav.poddar@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv3 1/4] mfd: smsc: Add support for smsc gpio io/keypad
+ driver
+Date: Mon, 1 Oct 2012 17:00:06 +0530
+Message-ID: <CAAe_U6+zEGuwMC1yn7O=LXE6PhPvPc2i7DCF0EAprkE8s+-iEw@mail.gmail.com>
+References: <1349089282-22105-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, sourav.poddar@ti.com
-Cc: b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1349089282-22105-1-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-smsc can be used as an gpio io expander device also. So adding
-support for configuring smsc pins as a gpio.
+Hi,
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
-Changes since v2:
- - Update the license.
- - Minor ret patch changes.
- drivers/gpio/Kconfig        |    7 +
- drivers/gpio/Makefile       |    1 +
- drivers/gpio/gpio-smscece.c |  381 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 389 insertions(+), 0 deletions(-)
- create mode 100644 drivers/gpio/gpio-smscece.c
+On Mon, Oct 1, 2012 at 4:31 PM, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org> wrote:
+> smsc ece1099 is a keyboard scan or gpio expansion device.
+> The patch create keypad and gpio expander child for this
+> multi function smsc driver.
+>
+> Tested on omap5430 evm with 3.6-rc6 custom kernel.
+Can we have this line in comment section and not in commit log?
 
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index ba7926f..68ea0a4 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -444,6 +444,13 @@ config GPIO_ADP5588_IRQ
- 	  Say yes here to enable the adp5588 to be used as an interrupt
- 	  controller. It requires the driver to be built in the kernel.
- 
-+config GPIO_SMSCECE
-+	tristate "SMSCECE 1099 I2C GPIO expander"
-+	depends on I2C
-+	help
-+	  This option enables support for 18 GPIOs found
-+	  on SMSC ECE 1099 GPIO Expanders.
-+
- comment "PCI GPIO expanders:"
- 
- config GPIO_CS5535
-diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
-index 153cace..7c803c5 100644
---- a/drivers/gpio/Makefile
-+++ b/drivers/gpio/Makefile
-@@ -12,6 +12,7 @@ obj-$(CONFIG_GPIO_74X164)	+= gpio-74x164.o
- obj-$(CONFIG_GPIO_AB8500)	+= gpio-ab8500.o
- obj-$(CONFIG_GPIO_ADP5520)	+= gpio-adp5520.o
- obj-$(CONFIG_GPIO_ADP5588)	+= gpio-adp5588.o
-+obj-$(CONFIG_GPIO_SMSCECE)      += gpio-smscece.o
- obj-$(CONFIG_GPIO_AMD8111)	+= gpio-amd8111.o
- obj-$(CONFIG_GPIO_ARIZONA)	+= gpio-arizona.o
- obj-$(CONFIG_GPIO_BT8XX)	+= gpio-bt8xx.o
-diff --git a/drivers/gpio/gpio-smscece.c b/drivers/gpio/gpio-smscece.c
-new file mode 100644
-index 0000000..54e377a
---- /dev/null
-+++ b/drivers/gpio/gpio-smscece.c
-@@ -0,0 +1,381 @@
-+/*
-+ * GPIO Chip driver for smsc
-+ * SMSC I/O Expander and QWERTY Keypad Controller
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/gpio.h>
-+#include <linux/interrupt.h>
-+#include <linux/irqdomain.h>
-+#include <linux/irq.h>
-+#include <linux/mfd/smsc.h>
-+#include <linux/err.h>
-+
-+struct smsc_gpio {
-+	struct device *dev;
-+	struct smsc *smsc;
-+	struct gpio_chip gpio_chip;
-+	struct mutex lock;	/* protect cached dir, dat_out */
-+	/* protect serialized access to the interrupt controller bus */
-+	struct mutex irq_lock;
-+	struct irq_domain       *irq_domain;
-+	unsigned gpio_start;
-+	int type;
-+	int flags;
-+	int irq;
-+	int irq_base;
-+	unsigned int gpio_base;
-+	unsigned int dat_out[5];
-+	unsigned int dir[5];
-+	unsigned int irq_trig_fall[5];
-+	unsigned int irq_trig_raise[5];
-+	unsigned int int_en[5];
-+	unsigned int irq_mask[5];
-+	unsigned int irq_stat[5];
-+};
-+
-+static int smsc_gpio_get_value(struct gpio_chip *chip, unsigned off)
-+{
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+	unsigned int get;
-+	return !!(smsc_read(sg->dev,
-+		(SMSC_GPIO_DATA_IN_START + SMSC_BANK(off)) & SMSC_BIT(off),
-+					&get));
-+}
-+
-+static void smsc_gpio_set_value(struct gpio_chip *chip,
-+			unsigned off, int val)
-+{
-+	unsigned bank, bit;
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+
-+	bank = SMSC_BANK(off);
-+	bit = SMSC_BIT(off);
-+
-+	mutex_lock(&sg->lock);
-+	if (val)
-+		sg->dat_out[bank] |= bit;
-+	else
-+		sg->dat_out[bank] &= ~bit;
-+
-+	smsc_write(sg->dev, SMSC_GPIO_DATA_OUT_START + bank,
-+			   sg->dat_out[bank]);
-+	mutex_unlock(&sg->lock);
-+}
-+
-+static int smsc_gpio_direction_input(struct gpio_chip *chip, unsigned off)
-+{
-+	unsigned int reg;
-+	struct smsc_gpio *sg =
-+	    container_of(chip, struct smsc_gpio, gpio_chip);
-+	int reg_dir;
-+
-+	mutex_lock(&sg->lock);
-+	reg_dir = SMSC_CFG_START + off;
-+	smsc_read(sg->dev, reg_dir, &reg);
-+	reg |= SMSC_GPIO_INPUT_LOW;
-+	mutex_unlock(&sg->lock);
-+
-+	return smsc_write(sg->dev, reg_dir, reg);
-+}
-+
-+static int smsc_gpio_direction_output(struct gpio_chip *chip,
-+					 unsigned off, int val)
-+{
-+	unsigned int reg;
-+	struct smsc_gpio *sg =
-+	    container_of(chip, struct smsc_gpio, gpio_chip);
-+	int reg_dir;
-+
-+	mutex_lock(&sg->lock);
-+	reg_dir = SMSC_CFG_START + off;
-+	smsc_read(sg->dev, reg_dir, &reg);
-+	reg |= SMSC_GPIO_OUTPUT_PP;
-+	mutex_unlock(&sg->lock);
-+
-+	return smsc_write(sg->dev, reg_dir, reg);
-+}
-+
-+static int smsc_gpio_to_irq(struct gpio_chip *chip, unsigned off)
-+{
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+	return sg->irq_base + off;
-+}
-+
-+static void smsc_irq_bus_lock(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+
-+	mutex_lock(&sg->irq_lock);
-+}
-+
-+static void smsc_irq_bus_sync_unlock(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	int i;
-+
-+	for (i = 0; i < SMSC_BANK(SMSC_MAXGPIO); i++)
-+		if (sg->int_en[i] ^ sg->irq_mask[i]) {
-+			sg->int_en[i] = sg->irq_mask[i];
-+			smsc_write(sg->dev, SMSC_GPIO_INT_MASK_START + i,
-+					   sg->int_en[i]);
-+		}
-+
-+	mutex_unlock(&sg->irq_lock);
-+}
-+
-+static void smsc_irq_mask(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	unsigned gpio = d->irq - sg->irq_base;
-+
-+	sg->irq_mask[SMSC_BANK(gpio)] &= ~SMSC_BIT(gpio);
-+}
-+
-+static void smsc_irq_unmask(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	unsigned gpio = d->irq - sg->irq_base;
-+
-+	sg->irq_mask[SMSC_BANK(gpio)] |= SMSC_BIT(gpio);
-+}
-+
-+static int smsc_irq_set_type(struct irq_data *d, unsigned int type)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	uint16_t gpio = d->irq - sg->irq_base;
-+	unsigned bank, bit;
-+
-+	if ((type & IRQ_TYPE_EDGE_BOTH)) {
-+		dev_err(sg->dev, "irq %d: unsupported type %d\n",
-+			d->irq, type);
-+		return -EINVAL;
-+	}
-+
-+	bank = SMSC_BANK(gpio);
-+	bit = SMSC_BIT(gpio);
-+
-+	if (type & IRQ_TYPE_EDGE_FALLING)
-+		sg->irq_trig_fall[bank] |= bit;
-+	else
-+		sg->irq_trig_fall[bank] &= ~bit;
-+
-+	if (type & IRQ_TYPE_EDGE_RISING)
-+		sg->irq_trig_raise[bank] |= bit;
-+	else
-+		sg->irq_trig_raise[bank] &= ~bit;
-+
-+	smsc_gpio_direction_input(&sg->gpio_chip, gpio);
-+	smsc_write(sg->dev, SMSC_CFG_START + gpio,
-+			sg->irq_trig_fall[bank] | sg->irq_trig_raise[bank]);
-+
-+	return 0;
-+}
-+
-+static struct irq_chip smsc_irq_chip = {
-+	.name			= "smsc",
-+	.irq_mask		= smsc_irq_mask,
-+	.irq_unmask		= smsc_irq_unmask,
-+	.irq_bus_lock		= smsc_irq_bus_lock,
-+	.irq_bus_sync_unlock	= smsc_irq_bus_sync_unlock,
-+	.irq_set_type		= smsc_irq_set_type,
-+};
-+
-+static int smsc_gpio_read_intstat(struct smsc_gpio *sg,
-+				unsigned int *buf, int i)
-+{
-+	int ret = smsc_read(sg->dev,
-+			SMSC_GPIO_INT_STAT_START + i, buf);
-+
-+	if (ret < 0)
-+		dev_err(sg->dev, "Read INT_STAT Error\n");
-+
-+	return ret;
-+}
-+
-+static irqreturn_t smsc_irq_handler(int irq, void *devid)
-+{
-+	struct smsc_gpio *sg = devid;
-+	unsigned int status, bank, pending;
-+	int ret;
-+
-+	smsc_read(sg->dev, GRP_INT_STAT, &status);
-+
-+	if (!(status & SMSC_GPI_INT))
-+		goto out;
-+
-+	for (bank = 0; bank <= SMSC_BANK(SMSC_MAXGPIO);
-+		bank++) {
-+		pending = sg->irq_stat[bank] & sg->irq_mask[bank];
-+		ret = smsc_gpio_read_intstat(sg,
-+				&sg->irq_stat[bank], bank);
-+		if (ret < 0)
-+			memset(&sg->irq_stat[bank], 0,
-+				ARRAY_SIZE(sg->irq_stat));
-+
-+		while (pending) {
-+			unsigned long   bit = __ffs(pending);
-+			unsigned int    irq;
-+
-+			pending &= ~BIT(bit);
-+			irq = bit + sg->irq_base;
-+			handle_nested_irq(irq);
-+		}
-+	}
-+
-+out:
-+	smsc_write(sg->dev, GRP_INT_STAT, status); /* Status is W1C */
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int smsc_irq_setup(struct smsc_gpio *sg)
-+{
-+	unsigned gpio;
-+	int ret;
-+
-+	mutex_init(&sg->irq_lock);
-+
-+	for (gpio = 0; gpio < sg->gpio_chip.ngpio; gpio++) {
-+		int irq = gpio + sg->irq_base;
-+		irq_set_chip_data(irq, sg);
-+		irq_set_chip_and_handler(irq, &smsc_irq_chip,
-+				handle_level_irq);
-+		irq_set_nested_thread(irq, 1);
-+#ifdef CONFIG_ARM
-+		set_irq_flags(irq, IRQF_VALID);
-+#else
-+		irq_set_noprobe(irq);
-+#endif
-+	}
-+
-+	ret = devm_request_threaded_irq(sg->dev, sg->irq, NULL,
-+			smsc_irq_handler, sg->flags,
-+			"smsc_gpio", sg);
-+	if (ret) {
-+		dev_err(sg->dev, "failed to request irq %d\n",
-+			sg->irq);
-+		return ret;
-+	}
-+
-+	sg->gpio_chip.to_irq = smsc_gpio_to_irq;
-+
-+	return 0;
-+}
-+
-+static int __devinit smsc_gpio_probe(struct platform_device *pdev)
-+{
-+	struct smsc_gpio *sg;
-+	struct gpio_chip *gc;
-+	struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
-+	int ret, i, temp;
-+	struct device *dev = &pdev->dev;
-+	struct device_node *np = dev->of_node;
-+	int irq_base;
-+
-+	sg = devm_kzalloc(dev, sizeof(*sg), GFP_KERNEL);
-+	if (sg == NULL) {
-+		dev_err(&pdev->dev, "failed to alloc memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	sg->irq = platform_get_irq(pdev, 0);
-+	if (np) {
-+		of_property_read_u32(np, "gpio,base", &temp);
-+		of_property_read_u32(np, "flags", &sg->flags);
-+	}
-+
-+	gc = &sg->gpio_chip;
-+	gc->direction_input = smsc_gpio_direction_input;
-+	gc->direction_output = smsc_gpio_direction_output;
-+	gc->get = smsc_gpio_get_value;
-+	gc->set = smsc_gpio_set_value;
-+	gc->can_sleep = 1;
-+
-+	gc->base = temp;
-+	gc->ngpio = SMSC_MAXGPIO;
-+	gc->owner = THIS_MODULE;
-+
-+	sg->smsc = smsc;
-+	sg->dev = dev;
-+	mutex_init(&sg->lock);
-+
-+	for (i = 0; i <= SMSC_BANK(SMSC_MAXGPIO); i++)
-+		smsc_read(sg->dev, SMSC_GPIO_DATA_OUT_START + i,
-+					&sg->dat_out[i]);
-+
-+	for (i = 0; i < SMSC_MAXGPIO; i++)
-+		smsc_read(sg->dev, SMSC_CFG_START + i, &sg->dir[i]);
-+
-+	irq_base = irq_alloc_descs(-1, 0, sg->gpio_chip.ngpio, 0);
-+	if (IS_ERR_VALUE(irq_base)) {
-+		dev_err(sg->dev, "Fail to allocate IRQ descs\n");
-+		return irq_base;
-+	}
-+	sg->irq_base = irq_base;
-+
-+	sg->irq_domain = irq_domain_add_legacy(pdev->dev.of_node,
-+		sg->gpio_chip.ngpio, sg->irq_base, 0,
-+			&irq_domain_simple_ops, NULL);
-+
-+	ret = smsc_irq_setup(sg);
-+	if (ret)
-+		goto err;
-+
-+	ret = gpiochip_add(&sg->gpio_chip);
-+	if (ret)
-+		goto err;
-+
-+err:
-+	return ret;
-+}
-+
-+static int __devexit smsc_gpio_remove(struct platform_device *pdev)
-+{
-+	struct smsc_gpio *sg = dev_get_drvdata(&pdev->dev);
-+	int ret;
-+
-+	ret = gpiochip_remove(&sg->gpio_chip);
-+	if (ret) {
-+		dev_err(&pdev->dev, "gpiochip_remove failed %d\n", ret);
-+		return ret;
-+	}
-+
-+	irq_domain_remove(sg->irq_domain);
-+	irq_free_descs(sg->irq_base, sg->gpio_chip.ngpio);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id smsc_gpio_dt_match[] = {
-+	{ .compatible = "smsc,gpio" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, smsc_gpio_dt_match);
-+
-+static struct platform_driver smsc_gpio_driver = {
-+	.driver = {
-+		   .name = "smsc_gpio",
-+		   .of_match_table = of_match_ptr(smsc_gpio_dt_match),
-+		   },
-+	.probe = smsc_gpio_probe,
-+	.remove = __devexit_p(smsc_gpio_remove),
-+};
-+
-+module_platform_driver(smsc_gpio_driver);
-+
-+MODULE_AUTHOR("Sourav Poddar <sourav.poddar@ti.com>");
-+MODULE_DESCRIPTION("GPIO SMSC Driver");
-+MODULE_LICENSE("GPL v2");
--- 
-1.7.1
+>
+> Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+> ---
+> Changes since v2:
+>  - Change the cache type, max register assignment
+>  - remove of_device_table, since i2c based device gets
+> probed according to i2c_device_id through dt.
+>  - Modify the remove function
+>  - Minor return patch cleanups.
+>  Documentation/smsc_ece1099.txt |   56 ++++++++++++++++++++
+>  drivers/mfd/Kconfig            |   12 ++++
+>  drivers/mfd/Makefile           |    1 +
+>  drivers/mfd/smsc-ece1099.c     |  113 ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/mfd/smsc.h       |  109 ++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 291 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/smsc_ece1099.txt
+>  create mode 100644 drivers/mfd/smsc-ece1099.c
+>  create mode 100644 include/linux/mfd/smsc.h
+>
+> diff --git a/Documentation/smsc_ece1099.txt b/Documentation/smsc_ece1099.txt
+> new file mode 100644
+> index 0000000..6b492e8
+> --- /dev/null
+> +++ b/Documentation/smsc_ece1099.txt
+> @@ -0,0 +1,56 @@
+> +What is smsc-ece1099?
+> +----------------------
+> +
+> +The ECE1099 is a 40-Pin 3.3V Keyboard Scan Expansion
+> +or GPIO Expansion device. The device supports a keyboard
+> +scan matrix of 23x8. The device is connected to a Master
+> +via the SMSC BC-Link interface or via the SMBus.
+> +Keypad scan Input(KSI) and Keypad Scan Output(KSO) signals
+> +are multiplexed with GPIOs.
+> +
+> +Interrupt generation
+> +--------------------
+> +
+> +Interrupts can be generated by an edge detection on a GPIO
+> +pin or an edge detection on one of the bus interface pins.
+> +Interrupts can also be detected on the keyboard scan interface.
+> +The bus interrupt pin (BC_INT# or SMBUS_INT#) is asserted if
+> +any bit in one of the Interrupt Status registers is 1 and
+> +the corresponding Interrupt Mask bit is also 1.
+> +
+> +In order for software to determine which device is the source
+> +of an interrupt, it should first read the Group Interrupt Status Register
+> +to determine which Status register group is a source for the interrupt.
+> +Software should read both the Status register and the associated Mask register,
+> +then AND the two values together. Bits that are 1 in the result of the AND
+> +are active interrupts. Software clears an interrupt by writing a 1 to the
+> +corresponding bit in the Status register.
+> +
+> +Communication Protocol
+> +----------------------
+> +
+> +- SMbus slave Interface
+> +       The host processor communicates with the ECE1099 device
+> +       through a series of read/write registers via the SMBus
+> +       interface. SMBus is a serial communication protocol between
+> +       a computer host and its peripheral devices. The SMBus data
+> +       rate is 10KHz minimum to 400 KHz maximum
+> +
+> +- Slave Bus Interface
+> +       The ECE1099 device SMBus implementation is a subset of the
+> +       SMBus interface to the host. The device is a slave-only SMBus device.
+> +       The implementation in the device is a subset of SMBus since it
+> +       only supports four protocols.
+> +
+> +       The Write Byte, Read Byte, Send Byte, and Receive Byte protocols are the
+> +       only valid SMBus protocols for the device.
+> +
+> +- BC-LinkTM Interface
+> +       The BC-Link is a proprietary bus that allows communication
+> +       between a Master device and a Companion device. The Master
+> +       device uses this serial bus to read and write registers
+> +       located on the Companion device. The bus comprises three signals,
+> +       BC_CLK, BC_DAT and BC_INT#. The Master device always provides the
+> +       clock, BC_CLK, and the Companion device is the source for an
+> +       independent asynchronous interrupt signal, BC_INT#. The ECE1099
+> +       supports BC-Link speeds up to 24MHz.
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index b1a1462..dedc874 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -385,6 +385,18 @@ config MFD_T7L66XB
+>         help
+>           Support for Toshiba Mobile IO Controller T7L66XB
+>
+> +config MFD_SMSC
+> +       bool "Support for the SMSC ECE1099 series chips"
+> +       depends on I2C=y
+> +       select MFD_CORE
+> +       select REGMAP_I2C
+> +       help
+> +        If you say yes here you get support for the
+> +        ece1099 chips from SMSC.
+> +
+> +        To compile this driver as a module, choose M here: the
+> +        module will be called smsc.
+*bool* attribute for MFD_SMSC, does not allow to select the driver as
+module. use *trisate* instead.
+> +
+>  config MFD_TC6387XB
+>         bool "Support Toshiba TC6387XB"
+>         depends on ARM && HAVE_CLK
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index 79dd22d..3323345 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -77,6 +77,7 @@ obj-$(CONFIG_EZX_PCAP)                += ezx-pcap.o
+>  obj-$(CONFIG_MCP)              += mcp-core.o
+>  obj-$(CONFIG_MCP_SA11X0)       += mcp-sa11x0.o
+>  obj-$(CONFIG_MCP_UCB1200)      += ucb1x00-core.o
+> +obj-$(CONFIG_MFD_SMSC)        += smsc-ece1099.o
+>  obj-$(CONFIG_MCP_UCB1200_TS)   += ucb1x00-ts.o
+>
+>  ifeq ($(CONFIG_SA1100_ASSABET),y)
+> diff --git a/drivers/mfd/smsc-ece1099.c b/drivers/mfd/smsc-ece1099.c
+> new file mode 100644
+> index 0000000..220aec2
+> --- /dev/null
+> +++ b/drivers/mfd/smsc-ece1099.c
+> @@ -0,0 +1,113 @@
+> +/*
+> + * TI SMSC MFD Driver
+> + *
+> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
+> + *
+> + * Author: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify it
+> + *  under  the terms of the GNU General  Public License as published by the
+> + *  Free Software Foundation;  GPL v2.
+> + *
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/moduleparam.h>
+> +#include <linux/init.h>
+> +#include <linux/slab.h>
+> +#include <linux/i2c.h>
+> +#include <linux/gpio.h>
+> +#include <linux/workqueue.h>
+> +#include <linux/irq.h>
+> +#include <linux/regmap.h>
+> +#include <linux/err.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/mfd/smsc.h>
+> +#include <linux/of_platform.h>
+> +
+> +static struct regmap_config smsc_regmap_config = {
+> +               .reg_bits = 8,
+> +               .val_bits = 8,
+> +               .max_register = SMSC_VEN_ID_H,
+> +               .cache_type = REGCACHE_RBTREE,
+> +};
+> +
+> +static int smsc_i2c_probe(struct i2c_client *i2c,
+> +                       const struct i2c_device_id *id)
+> +{
+> +       struct device_node              *node = i2c->dev.of_node;
+> +       struct smsc *smsc;
+> +       int devid, rev, venid_l, venid_h;
+> +       int ret = 0;
+> +
+> +       smsc = devm_kzalloc(&i2c->dev, sizeof(struct smsc),
+> +                               GFP_KERNEL);
+> +       if (!smsc) {
+> +               dev_err(&i2c->dev, "smsc mfd driver memory allocation failed\n");
+> +               return -ENOMEM;
+> +       }
+> +
+> +       smsc->regmap = devm_regmap_init_i2c(i2c, &smsc_regmap_config);
+> +       if (IS_ERR(smsc->regmap)) {
+> +               ret = PTR_ERR(smsc->regmap);
+> +               goto err;
+> +       }
+> +
+> +       i2c_set_clientdata(i2c, smsc);
+> +       smsc->dev = &i2c->dev;
+> +
+> +#ifdef CONFIG_OF
+> +       of_property_read_u32(node, "clock", &smsc->clk);
+This functions need not come under macro.
+> +#endif
+> +
+> +       regmap_read(smsc->regmap, SMSC_DEV_ID, &devid);
+> +       regmap_read(smsc->regmap, SMSC_DEV_REV, &rev);
+> +       regmap_read(smsc->regmap, SMSC_VEN_ID_L, &venid_l);
+> +       regmap_read(smsc->regmap, SMSC_VEN_ID_H, &venid_h);
+> +
+> +       dev_info(&i2c->dev, "SMSCxxx devid: %02x rev: %02x venid: %02x\n",
+> +               devid, rev, (venid_h << 8) | venid_l);
+dev_info makes the boot noisy.
+> +
+> +       ret = regmap_write(smsc->regmap, SMSC_CLK_CTRL, smsc->clk);
+> +       if (ret)
+> +               goto err;
+> +
+> +#ifdef CONFIG_OF
+> +       if (node)
+> +               ret = of_platform_populate(node, NULL, NULL, &i2c->dev);
+of_platform_populate() need not come under macro.
+> +#endif
+> +
+> +err:
+> +       return ret;
+> +}
+> +
+> +static int smsc_i2c_remove(struct i2c_client *i2c)
+> +{
+> +       struct smsc *smsc = i2c_get_clientdata(i2c);
+> +
+> +       mfd_remove_devices(smsc->dev);
+IMO, this should have resulted in an abort (hint: see
+mfd_remove_devices_fn()). Trying to do mfd_remove_devices without
+mfd_add_devices(). Use device_for_each_child here to remove the
+device.
+
+Thanks
+Kishon
