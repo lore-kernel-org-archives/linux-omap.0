@@ -1,93 +1,144 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Mon, 1 Oct 2012 07:03:47 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
- <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
+From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Subject: [PATCH V5 2/5] OMAPDSS: Create new debug config options
+Date: Mon, 1 Oct 2012 13:18:00 +0530
+Message-ID: <1349077680-13559-1-git-send-email-cmahapatra@ti.com>
+References: <af097b99b4d2eab96850fd6d8a0c260917aa4f98.1348914940.git.cmahapatra@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33856 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750953Ab2JAHvE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Oct 2012 03:51:04 -0400
+In-Reply-To: <af097b99b4d2eab96850fd6d8a0c260917aa4f98.1348914940.git.cmahapatra@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-+Don Aisheng
+The config option CONFIG_OMAP2_DSS_DEBUG_SUPPORT has been removed and replaced
+with CONFIG_OMAP2_DSS_DEBUG and CONFIG_OMAP2_DSS_DEBUGFS. CONFIG_OMAP2_DSS_DEBUG
+enables DEBUG flag and CONFIG_OMAP2_DSS_DEBUGFS enables creation of debugfs for
+OMAPDSS. Both the config options are disabled by default and can be enabled
+independently of one another as per convenience.
 
-On Tue, Sep 11, 2012 at 01:10:12, Linus Walleij wrote:
-> On Sat, Sep 1, 2012 at 10:16 AM, AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> wrote:
-> 
-> > Adopt pinctrl support to leds-gpio driver based on leds-gpio
-> > device pointer, pinctrl driver configure SoC pins to GPIO
-> > mode according to definitions provided in .dts file.
-> >
-> > Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-> 
-> So looking back at this after Stephen posed a real good
-> question, when you say "configure SoC pins to GPIO
-> mode", does that mean anything else than to mux them into
-> GPIO mode?
->
+Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+---
+changes from V4 to V5
+ * added "depends on DEBUG_FS" to OMAP2_DSS_DEBUGFS defintion in Kconfig so that
+   CONFIG_OMAP2_DSS_DEBUGFS check become cleaner
 
-pinctrl-single.c driver sets mux mode as well as pin configuration
-like pull-up/pull-down, input/output and slew rate.
+ drivers/video/omap2/dss/Kconfig  |   22 ++++++++++++++++------
+ drivers/video/omap2/dss/Makefile |    2 +-
+ drivers/video/omap2/dss/core.c   |    6 +++---
+ drivers/video/omap2/dss/dss.c    |    2 +-
+ drivers/video/omap2/dss/dss.h    |    2 +-
+ 5 files changed, 22 insertions(+), 12 deletions(-)
 
-> In that case, have you considered augmenting
-> pinctrl-single.c to implement .gpio_request_enable()
-> .gpio_disable_free() and maybe also .gpio_set_direction()
-> in its struct pinmux_ops pinmux backend?
-> 
-> If not, why?
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index 80f5390..7052487 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -18,16 +18,26 @@ config OMAP2_VRAM_SIZE
+ 	  You can also set this with "vram=<bytes>" kernel argument, or
+ 	  in the board file.
+ 
+-config OMAP2_DSS_DEBUG_SUPPORT
+-        bool "Debug support"
+-	default y
++config OMAP2_DSS_DEBUG
++	bool "Debug support"
++	default n
++	help
++	  This enables printing of debug messages. Alternatively, debug messages
++	  can also be enabled by setting CONFIG_DYNAMIC_DEBUG and then setting
++	  appropriate flags in <debugfs>/dynamic_debug/control.
++
++config OMAP2_DSS_DEBUGFS
++	bool "Debugfs filesystem support"
++	depends on DEBUG_FS
++	default n
+ 	help
+-	  This enables debug messages. You need to enable printing
+-	  with 'debug' module parameter.
++	  This enables debugfs for OMAPDSS at <debugfs>/omapdss. This enables
++	  querying about clock configuration and register configuration of dss,
++	  dispc, dsi, hdmi and rfbi.
+ 
+ config OMAP2_DSS_COLLECT_IRQ_STATS
+ 	bool "Collect DSS IRQ statistics"
+-	depends on OMAP2_DSS_DEBUG_SUPPORT
++	depends on OMAP2_DSS_DEBUGFS
+ 	default n
+ 	help
+ 	  Collect DSS IRQ statistics, printable via debugfs.
+diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
+index 86493e3..4070191 100644
+--- a/drivers/video/omap2/dss/Makefile
++++ b/drivers/video/omap2/dss/Makefile
+@@ -8,4 +8,4 @@ omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
+ omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
+ omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o \
+ 				    hdmi_panel.o ti_hdmi_4xxx_ip.o
+-ccflags-$(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) += -DDEBUG
++ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index b2af72d..826d64f 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -138,7 +138,7 @@ int dss_set_min_bus_tput(struct device *dev, unsigned long tput)
+ 		return 0;
+ }
+ 
+-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
++#if defined(CONFIG_OMAP2_DSS_DEBUGFS)
+ static int dss_debug_show(struct seq_file *s, void *unused)
+ {
+ 	void (*func)(struct seq_file *) = s->private;
+@@ -193,7 +193,7 @@ int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
+ 
+ 	return 0;
+ }
+-#else /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
++#else /* CONFIG_OMAP2_DSS_DEBUGFS */
+ static inline int dss_initialize_debugfs(void)
+ {
+ 	return 0;
+@@ -205,7 +205,7 @@ int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
+ {
+ 	return 0;
+ }
+-#endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
++#endif /* CONFIG_OMAP2_DSS_DEBUGFS */
+ 
+ /* PLATFORM DEVICE */
+ static int omap_dss_pm_notif(struct notifier_block *b, unsigned long v, void *d)
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 2ab1c3e..3954742 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -746,7 +746,7 @@ static void dss_runtime_put(void)
+ }
+ 
+ /* DEBUGFS */
+-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
++#if defined(CONFIG_OMAP2_DSS_DEBUGFS)
+ void dss_debug_dump_clocks(struct seq_file *s)
+ {
+ 	dss_dump_clocks(s);
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index ffbba7e..685275e 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -301,7 +301,7 @@ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
+ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
+ void dss_dump_clocks(struct seq_file *s);
+ 
+-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
++#if defined(CONFIG_OMAP2_DSS_DEBUGFS)
+ void dss_debug_dump_clocks(struct seq_file *s);
+ #endif
+ 
+-- 
+1.7.10
 
-Recently, I have gone through the details on implementing
-gpio_request_enable in pinctrl-single driver. To add this
-functionality we have to add gpio_range's to pinctrl driver.
-
-AM335x EVM supports total 128 GPIO pins (4 banks) and these
-are randomly distributed across AM33XX SoC pins.
-
-These are the concerns/questions I have:-
-1. I haven't added yet but it will come to more than 30-40
-pinctrl_gpio_range entries
-2. If the silicon package is changed then these will change.
-3. If the GPIO driver is common for multiple SoCs then these
-entries will be more & more over SoC specific and driver has
-to change every time the gpio_range changes. 
-
-   I have gone through the "Don Aisheng" patch series, which
-adds "pinctrl_dt_add_gpio_ranges" support but not accepted
-yet. With this patch series we can overcome the driver changes.
-
-4. The current pinctrl driver has support for these APIs
-pinctrl_request_gpio(), pinctrl_free_gpio(),
-pinctrl_gpio_direction_input/output()
-no API for slew rate control, pulled down/up control
-how can we handle this?
-5. pinctrl-single driver has to modify to provide separate handles
-for pinmux and pinconfig. And we need separate pin configuration
-bit masks and values/flags to take care of pull-up/down, slew rate,
-receiver in/out and mux mode control.
-6. This is for my understanding, on which node do we have to add
-pinctrl data i.e., pin mux-mode data. In leds-gpio node (mostly not)
-and if it is in gpio node then how can we pass pinmux data with
-the existing API pinctrl_request_gpio(gpio);? Here we are passing
-only gpio number.
-
-Few more driver patches are pending along with this (leds-gpio DT
-data additions according to this patch, similarly other drivers
-like matrix keypad and volume keys)
-
-Thanks
-AnilKumar
