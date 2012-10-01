@@ -1,15 +1,15 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 6/6] usb: dwc3: core: add dt support for dwc3 core
-Date: Mon, 1 Oct 2012 10:40:12 +0530
-Message-ID: <CAAe_U6Lt-+HQ5ZZ3xGsfhCqcOewWGprBCYc31qbZE_uUK7VtvA@mail.gmail.com>
-References: <1348836795-4783-1-git-send-email-kishon@ti.com>
- <1348836795-4783-7-git-send-email-kishon@ti.com>
- <5068779A.20402@mvista.com>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Mon, 1 Oct 2012 07:03:47 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+ <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5068779A.20402-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -20,45 +20,74 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
 Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 Sender: "devicetree-discuss"
  <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
++Don Aisheng
 
-On Sun, Sep 30, 2012 at 10:17 PM, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org> wrote:
-> Hello.
+On Tue, Sep 11, 2012 at 01:10:12, Linus Walleij wrote:
+> On Sat, Sep 1, 2012 at 10:16 AM, AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> wrote:
+> 
+> > Adopt pinctrl support to leds-gpio driver based on leds-gpio
+> > device pointer, pinctrl driver configure SoC pins to GPIO
+> > mode according to definitions provided in .dts file.
+> >
+> > Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+> 
+> So looking back at this after Stephen posed a real good
+> question, when you say "configure SoC pins to GPIO
+> mode", does that mean anything else than to mux them into
+> GPIO mode?
 >
->
-> On 28-09-2012 14:53, Kishon Vijay Abraham I wrote:
->
->> Added dwc3 support for dwc3 core and update the documentation with
->> device tree binding information.
->>
->> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
->
-> [...]
->
->
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index 08a5738..0c17a7a 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->
-> [...]
->
->> @@ -602,11 +601,22 @@ static int __devexit dwc3_remove(struct
->> platform_device *pdev)
->>         return 0;
->>   }
->>
->> +#ifdef CONFIG_OF
->> +static const struct of_device_id of_dwc3_matach[] = {
->
->
->     I guess you meant 'of_dwc3_match' here and below?
 
-indeed.. will re-post the patch..
+pinctrl-single.c driver sets mux mode as well as pin configuration
+like pull-up/pull-down, input/output and slew rate.
+
+> In that case, have you considered augmenting
+> pinctrl-single.c to implement .gpio_request_enable()
+> .gpio_disable_free() and maybe also .gpio_set_direction()
+> in its struct pinmux_ops pinmux backend?
+> 
+> If not, why?
+
+Recently, I have gone through the details on implementing
+gpio_request_enable in pinctrl-single driver. To add this
+functionality we have to add gpio_range's to pinctrl driver.
+
+AM335x EVM supports total 128 GPIO pins (4 banks) and these
+are randomly distributed across AM33XX SoC pins.
+
+These are the concerns/questions I have:-
+1. I haven't added yet but it will come to more than 30-40
+pinctrl_gpio_range entries
+2. If the silicon package is changed then these will change.
+3. If the GPIO driver is common for multiple SoCs then these
+entries will be more & more over SoC specific and driver has
+to change every time the gpio_range changes. 
+
+   I have gone through the "Don Aisheng" patch series, which
+adds "pinctrl_dt_add_gpio_ranges" support but not accepted
+yet. With this patch series we can overcome the driver changes.
+
+4. The current pinctrl driver has support for these APIs
+pinctrl_request_gpio(), pinctrl_free_gpio(),
+pinctrl_gpio_direction_input/output()
+no API for slew rate control, pulled down/up control
+how can we handle this?
+5. pinctrl-single driver has to modify to provide separate handles
+for pinmux and pinconfig. And we need separate pin configuration
+bit masks and values/flags to take care of pull-up/down, slew rate,
+receiver in/out and mux mode control.
+6. This is for my understanding, on which node do we have to add
+pinctrl data i.e., pin mux-mode data. In leds-gpio node (mostly not)
+and if it is in gpio node then how can we pass pinmux data with
+the existing API pinctrl_request_gpio(gpio);? Here we are passing
+only gpio number.
+
+Few more driver patches are pending along with this (leds-gpio DT
+data additions according to this patch, similarly other drivers
+like matrix keypad and volume keys)
 
 Thanks
-Kishon
+AnilKumar
