@@ -1,69 +1,155 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 3/7] usb: dwc3-omap: use runtime API's to enable clocks
-Date: Mon, 1 Oct 2012 15:55:03 +0530
-Message-ID: <1349087107-18229-4-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 5/7] usb: dwc3-omap: Add an API to write to dwc mailbox
+Date: Mon, 1 Oct 2012 15:55:05 +0530
+Message-ID: <1349087107-18229-6-git-send-email-kishon@ti.com>
 References: <1349087107-18229-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1349087107-18229-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1349087107-18229-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Before accessing any register, runtime API's should be invoked to enable
-the clocks. runtime API's are added here to prevent abort during register
-access.
+Add an API in the omap glue layer to write to the mailbox register which
+can be used by comparator driver(twl). To pass the detection of the attached
+device (signified by VBUS, ID) to the dwc3 core, dwc3 core has to write
+to the mailbox regiter.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/usb/dwc3/dwc3-omap.c  |   59 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/dwc3-omap.h |   30 +++++++++++++++++++++
+ 2 files changed, 89 insertions(+)
+ create mode 100644 include/linux/usb/dwc3-omap.h
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index cb4037a..850a0cf 100644
+index d417bec..c19affa 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
 @@ -43,6 +43,7 @@
  #include <linux/spinlock.h>
  #include <linux/platform_device.h>
  #include <linux/platform_data/dwc3-omap.h>
-+#include <linux/pm_runtime.h>
++#include <linux/usb/dwc3-omap.h>
+ #include <linux/pm_runtime.h>
  #include <linux/dma-mapping.h>
  #include <linux/ioport.h>
- #include <linux/io.h>
-@@ -272,6 +273,13 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+@@ -126,6 +127,8 @@ struct dwc3_omap {
+ 	u32			dma_status:1;
+ };
+ 
++struct dwc3_omap		*_omap;
++
+ static inline u32 dwc3_omap_readl(void __iomem *base, u32 offset)
+ {
+ 	return readl(base + offset);
+@@ -136,6 +139,56 @@ static inline void dwc3_omap_writel(void __iomem *base, u32 offset, u32 value)
+ 	writel(value, base + offset);
+ }
+ 
++void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
++{
++	u32			val;
++	struct dwc3_omap	*omap = _omap;
++
++	switch (status) {
++	case OMAP_DWC3_ID_GROUND:
++		dev_dbg(omap->dev, "ID GND\n");
++
++		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
++		val &= ~(USBOTGSS_UTMI_OTG_STATUS_IDDIG
++				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_SESSEND);
++		val |= USBOTGSS_UTMI_OTG_STATUS_SESSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT;
++		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
++		break;
++
++	case OMAP_DWC3_VBUS_VALID:
++		dev_dbg(omap->dev, "VBUS Connect\n");
++
++		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
++		val &= ~USBOTGSS_UTMI_OTG_STATUS_SESSEND;
++		val |= USBOTGSS_UTMI_OTG_STATUS_IDDIG
++				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_SESSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT;
++		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
++		break;
++
++	case OMAP_DWC3_ID_FLOAT:
++	case OMAP_DWC3_VBUS_OFF:
++		dev_dbg(omap->dev, "VBUS Disconnect\n");
++
++		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
++		val &= ~(USBOTGSS_UTMI_OTG_STATUS_SESSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT);
++		val |= USBOTGSS_UTMI_OTG_STATUS_SESSEND
++				| USBOTGSS_UTMI_OTG_STATUS_IDDIG;
++		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
++		break;
++
++	default:
++		dev_dbg(omap->dev, "ID float\n");
++	}
++
++	return;
++}
++EXPORT_SYMBOL_GPL(dwc3_omap_mailbox);
+ 
+ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
+ {
+@@ -256,6 +309,12 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
  	omap->irq	= irq;
  	omap->base	= base;
  
-+	pm_runtime_enable(dev);
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0) {
-+		dev_err(dev, "get_sync failed with err %d\n", ret);
-+		return ret;
-+	}
++	/*
++	 * REVISIT if we ever have two instances of the wrapper, we will be
++	 * in big trouble
++	 */
++	_omap	= omap;
 +
- 	reg = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
- 
- 	utmi_mode = of_get_property(node, "utmi-mode", &size);
-@@ -348,6 +356,8 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 
- static int __devexit dwc3_omap_remove(struct platform_device *pdev)
- {
-+	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
- 	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
- 
- 	return 0;
+ 	pm_runtime_enable(dev);
+ 	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0) {
+diff --git a/include/linux/usb/dwc3-omap.h b/include/linux/usb/dwc3-omap.h
+new file mode 100644
+index 0000000..6ebcf73
+--- /dev/null
++++ b/include/linux/usb/dwc3-omap.h
+@@ -0,0 +1,30 @@
++/*
++ * Copyright (C) 2011-2012 by Texas Instruments
++ *
++ * The Inventra Controller Driver for Linux is free software; you
++ * can redistribute it and/or modify it under the terms of the GNU
++ * General Public License version 2 as published by the Free Software
++ * Foundation.
++ */
++
++#ifndef __DWC3_OMAP_H__
++#define __DWC3_OMAP_H__
++
++enum omap_dwc3_vbus_id_status {
++	OMAP_DWC3_UNKNOWN = 0,
++	OMAP_DWC3_ID_GROUND,
++	OMAP_DWC3_ID_FLOAT,
++	OMAP_DWC3_VBUS_VALID,
++	OMAP_DWC3_VBUS_OFF,
++};
++
++#if (defined(CONFIG_USB_DWC3) || defined(CONFIG_USB_DWC3_MODULE))
++void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status);
++#else
++static inline void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
++{
++	return;
++}
++#endif
++
++#endif	/* __DWC3_OMAP_H__ */
 -- 
 1.7.9.5
+
