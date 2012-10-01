@@ -1,51 +1,75 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Mon, 1 Oct 2012 06:28:44 -0700
-Message-ID: <20121001132844.GA2558@linux.vnet.ibm.com>
-References: <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <20120920232114.GO2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
- <20120921185827.GC2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
- <20120921195717.GD2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209221836070.10663@utopia.booyaka.com>
- <20120922201043.GE2934@linux.vnet.ibm.com>
- <20120922215923.GA13161@linux.vnet.ibm.com>
- <CACRpkdb2f18vwv9qXZkypPxM4UwyeTrDs4+JnpFtYRCzADzFPQ@mail.gmail.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Ben Gardiner <bengardiner@nanometrics.ca>
+Subject: Re: [PATCH v2 4/7] ARM: davinci: Add support for an L3RAM gen_pool
+Date: Mon, 1 Oct 2012 09:50:11 -0400
+Message-ID: <CAPcSpELdAK6=O8HG9FJXG_t88eymZO1f3wxzFqmR-faUn4jx4g@mail.gmail.com>
+References: <1348861072-14507-1-git-send-email-mporter@ti.com>
+	<1348861072-14507-5-git-send-email-mporter@ti.com>
+	<506986B2.1030000@ti.com>
+	<20121001123242.GJ5641@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from e31.co.us.ibm.com ([32.97.110.149]:52435 "EHLO
-	e31.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836Ab2JAN3c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 09:29:32 -0400
-Received: from /spool/local
-	by e31.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-omap@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Mon, 1 Oct 2012 07:29:23 -0600
-Content-Disposition: inline
-In-Reply-To: <CACRpkdb2f18vwv9qXZkypPxM4UwyeTrDs4+JnpFtYRCzADzFPQ@mail.gmail.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:50522 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445Ab2JANuM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 09:50:12 -0400
+Received: by vbbff1 with SMTP id ff1so5314769vbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 01 Oct 2012 06:50:11 -0700 (PDT)
+In-Reply-To: <20121001123242.GJ5641@beef>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
+To: "Nori, Sekhar" <nsekhar@ti.com>, Matt Porter <mporter@ti.com>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Subhasish Ghosh <subhasish@mistralsolutions.com>
 
-On Mon, Oct 01, 2012 at 10:55:11AM +0200, Linus Walleij wrote:
-> On Sat, Sep 22, 2012 at 11:59 PM, Paul E. McKenney
-> <paulmck@linux.vnet.ibm.com> wrote:
-> 
-> > rcu: Fix day-one dyntick-idle stall-warning bug
-> 
-> As mentioned in another thread this solves the same problem for ux500.
-> Reported/Tested-by: Linus Walleij <linus.walleij@linaro.org>
-> 
-> But now it appears that this commit didn't make it into v3.6 so
-> it definately needs to be tagged with Cc: stable@kernel.org
-> before it gets merged since the stall warnings are kinda scary.
+On Mon, Oct 1, 2012 at 8:32 AM, Matt Porter <mporter@ti.com> wrote:
+> On Mon, Oct 01, 2012 at 05:34:02PM +0530, Sekhar Nori wrote:
+>> Hi Matt,
+>>
+>> On 9/29/2012 1:07 AM, Matt Porter wrote:
+>> > L3RAM (shared SRAM) is needed for use by several drivers.
+>> > This creates a genalloc pool and a hook for the platform code
+>> > to provide the struct gen_pool * in platform data.
+>> >
+>> > Signed-off-by: Matt Porter <mporter@ti.com>
+>>
+>> I am not sure if any of the DaVinci devices have a need to allocate from
+>> *both* ARM RAM and shared RAM. Shared RAM is not present on all DaVinci
+>> devices AFAIR, and on DA850, there is just 8KB ARM RAM so I am not sure
+>> if there is much point in trying to allocate from there.
+>>
+>> Can you instead see if Ben's earlier patch[1] to use shared RAM for SRAM
+>> allocation on DA850 makes sense for your case? If yes, can you repost
+>> with Ben's patch included in your series instead of this patch? I would
+>> prefer that over creating a new pool for shared RAM.
+>
+> Hrm, I did look at Ben's earlier patch. The reason I added a separate
+> pool mostly was so I didn't have to touch the PM code at all. That can
+> continue using the private SRAM API with the ARM RAM as it is now. The
+> idea here was to allow that to be separate since no other bus masters
+> can access the ARM RAM anyway and do something that didn't require
+> regression testing PM. Also, I figured there's really no reason to use
+> even a tiny bit of the shared SRAM on PM if we have that ARM RAM there
+> and working fine for that use case.
+> [...]
 
-Ingo submitting this to Linus Torvalds earlier today, so we should be
-able to send to stable shortly.
+I agree with Matt. Preserving the use of the ARM RAM (8K on L138 -- as
+you said, Sekhar) in any fashion is preferable to moving suspend
+support into shared RAM. There is more of it (128K on L138) but also
+more pressure on allocations there since there are more clients.
 
-							Thanx, Paul
+I appreciate that you are trying to preserve prior efforts in
+attempted merging of SRAM support -- thank you for that; however, that
+patch [1] was just an import of Subashish Ghosh's patch [2]  -- I
+chose _that_ implementation option then mainly because I imagined it
+would be the least risky to get accepted upstream and not because of
+any particular technical merits.
 
+Best Regards,
+Ben Gardiner
+
+[1] https://patchwork.kernel.org/patch/840552/
+[2] https://patchwork.kernel.org/patch/549351/
+
+---
+Nanometrics Inc.
+http://www.nanometrics.ca
