@@ -1,155 +1,96 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2 5/7] usb: dwc3-omap: Add an API to write to dwc mailbox
-Date: Mon, 1 Oct 2012 15:55:05 +0530
-Message-ID: <1349087107-18229-6-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 7/7] usb: dwc3: core: add dt support for dwc3 core
+Date: Mon, 1 Oct 2012 15:55:07 +0530
+Message-ID: <1349087107-18229-8-git-send-email-kishon@ti.com>
 References: <1349087107-18229-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1349087107-18229-1-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1349087107-18229-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add an API in the omap glue layer to write to the mailbox register which
-can be used by comparator driver(twl). To pass the detection of the attached
-device (signified by VBUS, ID) to the dwc3 core, dwc3 core has to write
-to the mailbox regiter.
+Added dwc3 support for dwc3 core and update the documentation with
+device tree binding information.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/dwc3/dwc3-omap.c  |   59 +++++++++++++++++++++++++++++++++++++++++
- include/linux/usb/dwc3-omap.h |   30 +++++++++++++++++++++
- 2 files changed, 89 insertions(+)
- create mode 100644 include/linux/usb/dwc3-omap.h
+ Documentation/devicetree/bindings/usb/dwc3.txt |   23 +++++++++++++++++++++++
+ drivers/usb/dwc3/core.c                        |   14 ++++++++++++--
+ 2 files changed, 35 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/dwc3.txt
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index d417bec..c19affa 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -43,6 +43,7 @@
- #include <linux/spinlock.h>
- #include <linux/platform_device.h>
- #include <linux/platform_data/dwc3-omap.h>
-+#include <linux/usb/dwc3-omap.h>
- #include <linux/pm_runtime.h>
- #include <linux/dma-mapping.h>
- #include <linux/ioport.h>
-@@ -126,6 +127,8 @@ struct dwc3_omap {
- 	u32			dma_status:1;
- };
- 
-+struct dwc3_omap		*_omap;
+diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+new file mode 100644
+index 0000000..9ec9316
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+@@ -0,0 +1,23 @@
++synopsys DWC3 CORE
 +
- static inline u32 dwc3_omap_readl(void __iomem *base, u32 offset)
- {
- 	return readl(base + offset);
-@@ -136,6 +139,56 @@ static inline void dwc3_omap_writel(void __iomem *base, u32 offset, u32 value)
- 	writel(value, base + offset);
++DWC3- USB3 CONTROLLER
++
++Required properties:
++ - compatible: must be "synopsys,dwc3"
++ - reg : Address and length of the register set for the device
++ - interrupts: Interrupts used by the dwc3 controller.
++ - interrupt-parent: the phandle for the interrupt controller that
++   services interrupts for this device.
++
++Optional properties:
++ - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
++
++This is usually a subnode to DWC3 glue to which it is connected.
++
++dwc3@4a030000 {
++	compatible = "synopsys,dwc3";
++	reg = <0x4a030000 0xcfff>;
++	interrupts = <0 92 4>
++	interrupt-parent = <&gic>
++	tx-fifo-resize;
++};
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 08a5738..4335a17 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -484,8 +484,7 @@ static int __devinit dwc3_probe(struct platform_device *pdev)
+ 	else
+ 		dwc->maximum_speed = DWC3_DCFG_SUPERSPEED;
+ 
+-	if (of_get_property(node, "tx-fifo-resize", NULL))
+-		dwc->needs_fifo_resize = true;
++	dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
+ 
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+@@ -602,11 +601,22 @@ static int __devexit dwc3_remove(struct platform_device *pdev)
+ 	return 0;
  }
  
-+void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
-+{
-+	u32			val;
-+	struct dwc3_omap	*omap = _omap;
-+
-+	switch (status) {
-+	case OMAP_DWC3_ID_GROUND:
-+		dev_dbg(omap->dev, "ID GND\n");
-+
-+		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
-+		val &= ~(USBOTGSS_UTMI_OTG_STATUS_IDDIG
-+				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
-+				| USBOTGSS_UTMI_OTG_STATUS_SESSEND);
-+		val |= USBOTGSS_UTMI_OTG_STATUS_SESSVALID
-+				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT;
-+		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
-+		break;
-+
-+	case OMAP_DWC3_VBUS_VALID:
-+		dev_dbg(omap->dev, "VBUS Connect\n");
-+
-+		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
-+		val &= ~USBOTGSS_UTMI_OTG_STATUS_SESSEND;
-+		val |= USBOTGSS_UTMI_OTG_STATUS_IDDIG
-+				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
-+				| USBOTGSS_UTMI_OTG_STATUS_SESSVALID
-+				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT;
-+		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
-+		break;
-+
-+	case OMAP_DWC3_ID_FLOAT:
-+	case OMAP_DWC3_VBUS_OFF:
-+		dev_dbg(omap->dev, "VBUS Disconnect\n");
-+
-+		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
-+		val &= ~(USBOTGSS_UTMI_OTG_STATUS_SESSVALID
-+				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
-+				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT);
-+		val |= USBOTGSS_UTMI_OTG_STATUS_SESSEND
-+				| USBOTGSS_UTMI_OTG_STATUS_IDDIG;
-+		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
-+		break;
-+
-+	default:
-+		dev_dbg(omap->dev, "ID float\n");
-+	}
-+
-+	return;
-+}
-+EXPORT_SYMBOL_GPL(dwc3_omap_mailbox);
- 
- static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
- {
-@@ -256,6 +309,12 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 	omap->irq	= irq;
- 	omap->base	= base;
- 
-+	/*
-+	 * REVISIT if we ever have two instances of the wrapper, we will be
-+	 * in big trouble
-+	 */
-+	_omap	= omap;
-+
- 	pm_runtime_enable(dev);
- 	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0) {
-diff --git a/include/linux/usb/dwc3-omap.h b/include/linux/usb/dwc3-omap.h
-new file mode 100644
-index 0000000..6ebcf73
---- /dev/null
-+++ b/include/linux/usb/dwc3-omap.h
-@@ -0,0 +1,30 @@
-+/*
-+ * Copyright (C) 2011-2012 by Texas Instruments
-+ *
-+ * The Inventra Controller Driver for Linux is free software; you
-+ * can redistribute it and/or modify it under the terms of the GNU
-+ * General Public License version 2 as published by the Free Software
-+ * Foundation.
-+ */
-+
-+#ifndef __DWC3_OMAP_H__
-+#define __DWC3_OMAP_H__
-+
-+enum omap_dwc3_vbus_id_status {
-+	OMAP_DWC3_UNKNOWN = 0,
-+	OMAP_DWC3_ID_GROUND,
-+	OMAP_DWC3_ID_FLOAT,
-+	OMAP_DWC3_VBUS_VALID,
-+	OMAP_DWC3_VBUS_OFF,
++#ifdef CONFIG_OF
++static const struct of_device_id of_dwc3_match[] = {
++	{
++		.compatible = "synopsys,dwc3"
++	},
++	{ },
 +};
-+
-+#if (defined(CONFIG_USB_DWC3) || defined(CONFIG_USB_DWC3_MODULE))
-+void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status);
-+#else
-+static inline void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
-+{
-+	return;
-+}
++MODULE_DEVICE_TABLE(of, of_dwc3_match);
 +#endif
 +
-+#endif	/* __DWC3_OMAP_H__ */
+ static struct platform_driver dwc3_driver = {
+ 	.probe		= dwc3_probe,
+ 	.remove		= __devexit_p(dwc3_remove),
+ 	.driver		= {
+ 		.name	= "dwc3",
++		.of_match_table	= of_match_ptr(of_dwc3_match),
+ 	},
+ };
+ 
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
