@@ -1,59 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Help needed with remaining plat headers
-Date: Mon, 01 Oct 2012 12:34:07 +0300
-Message-ID: <5069638F.1000402@ti.com>
-References: <20120920232907.GN28835@atomide.com> <20120927202615.GS4840@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9F522B@DBDE01.ent.ti.com> <CAJ1gdcaU2AcbAJvkFKFGdscZfzMMQRuAmjk6Nf+p-EGhRx4+GQ@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V3 0/8] ARM: OMAP4: Add PMU Support
+Date: Mon, 1 Oct 2012 10:45:17 +0100
+Message-ID: <20121001094517.GC20812@mudshark.cambridge.arm.com>
+References: <1347290626-21164-1-git-send-email-jon-hunter@ti.com>
+ <alpine.DEB.2.00.1209201714260.12583@utopia.booyaka.com>
+ <20120920210932.GB22307@mudshark.cambridge.arm.com>
+ <5060D462.4040209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:39881 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752538Ab2JAJc6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 05:32:58 -0400
-Received: by obbuo13 with SMTP id uo13so4732442obb.19
-        for <linux-omap@vger.kernel.org>; Mon, 01 Oct 2012 02:32:57 -0700 (PDT)
-In-Reply-To: <CAJ1gdcaU2AcbAJvkFKFGdscZfzMMQRuAmjk6Nf+p-EGhRx4+GQ@mail.gmail.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:64133 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752458Ab2JAJpe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 05:45:34 -0400
+Content-Disposition: inline
+In-Reply-To: <5060D462.4040209@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Vutla, Lokesh" <lokeshvutla@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Ming Lei <ming.lei@canonical.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-Hi,
+On Mon, Sep 24, 2012 at 10:45:06PM +0100, Jon Hunter wrote:
+> On 09/20/2012 04:09 PM, Will Deacon wrote:
+> > On Thu, Sep 20, 2012 at 06:17:02PM +0100, Paul Walmsley wrote:
+> >> Have queued most of these for 3.7 with the exception of the OMAP4430 
+> >> CTI-related patches (which look to me like 3.8 material) and the PM 
+> >> runtime suspend/resume patch (which looks to me like 3.7-rc material) -- 
+> >> assuming this series makes it in for 3.7 ... 
+> > 
+> > Ok, thanks for queueing what you did.
+> > 
+> > Jon -- could you pick the pieces up from what's left please and shout if
+> > you need anything from me?
+> 
+> Yes will do.
 
-On 09/28/2012 09:58 AM, Vutla, Lokesh wrote:
-> Hi,
-> I see a module build failure in linux-next tree.
-> Any one else facing this issue or I am missing something.
-> Using master branch on
-> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
-> Below is the log .
->=20
-> $ make modules -j 10
-> ERROR: "snd_hwparams_to_dma_slave_config"
-> [sound/soc/omap/snd-soc-omap.ko] undefined!
-> ERROR: "snd_dmaengine_pcm_pointer" [sound/soc/omap/snd-soc-omap.ko] u=
-ndefined!
-> ERROR: "snd_dmaengine_pcm_open" [sound/soc/omap/snd-soc-omap.ko] unde=
-fined!
-> ERROR: "snd_dmaengine_pcm_close" [sound/soc/omap/snd-soc-omap.ko] und=
-efined!
-> ERROR: "snd_dmaengine_pcm_get_chan" [sound/soc/omap/snd-soc-omap.ko] =
-undefined!
-> ERROR: "snd_dmaengine_pcm_trigger" [sound/soc/omap/snd-soc-omap.ko] u=
-ndefined!
-> make[1]: *** [__modpost] Error 1
-> make: *** [modules] Error 2
+Great, thanks! Do you want me to do anything with my perf/omap4 branch? Now
+that we have 3.6, I can try rebasing it but I don't know if it's worth the
+effort if some of the patches are being reworked. Of course, I'm happy to
+pick newer versions if they're available.
 
-I have sent a patch fixing this (which also affect other platforms as w=
-ell):
-http://mailman.alsa-project.org/pipermail/alsa-devel/2012-October/05590=
-2.html
+Cheers,
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Will
