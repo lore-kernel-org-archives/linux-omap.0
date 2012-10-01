@@ -1,117 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Mon, 1 Oct 2012 08:44:52 -0700
-Message-ID: <20121001154451.GI4840@atomide.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
- <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
- <CACRpkdZ_NxST-oJ=MWC5L=r8uQD_71eHUVUR85v4jfsYpqz=UQ@mail.gmail.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [RFC PATCH 10/13] spi: omap2-mcspi: dma_request_slave_channel()
+ support for DT platforms
+Date: Mon, 1 Oct 2012 12:37:24 -0400
+Message-ID: <20121001163723.GN5641@beef>
+References: <1348152226-13588-1-git-send-email-mporter@ti.com>
+ <1348152226-13588-11-git-send-email-mporter@ti.com>
+ <20120920220931.GJ28835@atomide.com>
+ <201209210816.01473.arnd@arndb.de>
+ <20120921154247.GZ28835@atomide.com>
+ <20120921183729.GI16522@beef>
+ <1348738594.1648.9.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdZ_NxST-oJ=MWC5L=r8uQD_71eHUVUR85v4jfsYpqz=UQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "dong.aisheng@linaro.org" <dong.aisheng@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "AnilKumar, Chimata" <anilkumar@ti.com>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>
+In-Reply-To: <1348738594.1648.9.camel@vkoul-udesk3>
+Sender: linux-doc-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Chris Ball <cjb@laptop.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [121001 01:25]:
-> On Mon, Oct 1, 2012 at 9:03 AM, AnilKumar, Chimata <anilkumar@ti.com> wrote:
-> 
-> >    I have gone through the "Don Aisheng" patch series, which
-> > adds "pinctrl_dt_add_gpio_ranges" support but not accepted
-> > yet. With this patch series we can overcome the driver changes.
-> 
-> OK then this is the direction we need to go.
-> 
-> > 4. The current pinctrl driver has support for these APIs
-> > pinctrl_request_gpio(), pinctrl_free_gpio(),
-> > pinctrl_gpio_direction_input/output()
-> > no API for slew rate control, pulled down/up control
-> > how can we handle this?
-> 
-> You are not supposed to handle that from the GPIO level
-> of the API. That is supposed to be handled by pinctrl.
-> 
-> These two subsystems are orthogonal, with the exception
-> of the above calls. If you need to pass more information
-> between the GPIO and pinctrl interfaces it usually means
-> you're doing something wrong.
-> 
-> The reason why pinctrl was created in the first place
-> was that Grant didn't like that we started to shoehorn all
-> kind of pin control into the GPIO subsystem.
+On Thu, Sep 27, 2012 at 03:06:34PM +0530, Vinod Koul wrote:
+> On Fri, 2012-09-21 at 14:37 -0400, Matt Porter wrote:
+> > On Fri, Sep 21, 2012 at 08:42:47AM -0700, Tony Lindgren wrote:
+> > > 
+> > > Can't we come up with a version of dma_request_slave_channel that works
+> > > both ways for now:
+> > > 
+> > > 	mcspi_dma->dma_rx =
+> > > 		dma_request_slave_channel_compat(mask, omap_dma_filter_fn, &sig,
+> > > 					&master->dev, mcspi_dma->dma_rx_ch_name);
+> > > 	...			
+> > > 
+> > > Then it's just question of patching away two lines later on rather than
+> > > having to add all this if else to all the drivers first, then patching
+> > > it away again.
+> > 
+> > I think that something like that is workable with the implementation
+> > simply checking for of_node to do the right thing.
+> Yes, I think it would be better to have common API but underneath two
+> implementations in transitional phase.
 
-Agreed.
- 
-> > 5. pinctrl-single driver has to modify to provide separate handles
-> > for pinmux and pinconfig. And we need separate pin configuration
-> > bit masks and values/flags to take care of pull-up/down, slew rate,
-> > receiver in/out and mux mode control.
-> 
-> OK that is typical pinctrl driver implementation work.
-> I hope Tony can advice on this?
+Ok, I'll implement something for discussion in the v2 series.
 
-I think we're best off to just stick to alternative named modes
-passed from device tree. For example, for GPIO wake-ups you can
-have named modes such as "default", "enabled" and "idle" where
-"idle" muxes things for GPIO wake-ups for the duration of idle.
-
-It seems that should also work for leds-gpio. And you can
-define more named modes as needed.
-
-You really don't want the client driver or the GPIO driver doing
-things like pull-up/down automatically as that is board specific and
-can also depend on things like externall pull resistors.
-
-> > 6. This is for my understanding, on which node do we have to add
-> > pinctrl data i.e., pin mux-mode data. In leds-gpio node (mostly not)
-> > and if it is in gpio node then how can we pass pinmux data with
-> > the existing API pinctrl_request_gpio(gpio);? Here we are passing
-> > only gpio number.
-> 
-> So with the pinctrl_request_gpio() call you are requesting a single
-> pin to be used as GPIO, nothing else.
-> 
-> No additional data should be passed with that call.
-
-Yeah I agree.
- 
-> Implementing it is up to the pinctrl driver, the pinctrl subsystem
-> API does not say anything about how this should be done, but
-> there are a few examples.
->
-> The pinctrl maps of muxes and config from the pin control
-> subsystem are for entire devices, and the single-pin GPIO
-> reservation API is orthogonal to this, please consult
-> Documentation/pinctrl.txt if you are uncertain about what
-> I mean with this, I've really tried to explain it there.
-> 
-> The docs were recently amended to reflect some corner-case
-> GPIO uses, see e.g.:
-> http://marc.info/?l=linux-arm-kernel&m=134763067415678&w=2
-> 
-> > Few more driver patches are pending along with this (leds-gpio DT
-> > data additions according to this patch, similarly other drivers
-> > like matrix keypad and volume keys)
-> 
-> OK so the threshold is that we need to get it right for the first
-> one and then the others will look good too.
-
-It seems we want to keep leds-gpio, gpio framework and pinctrl
-framework generic. It also seems you should be able to do
-what you're describing using the pinctrl named modes.
-
-Regards,
-
-Tony
+-Matt
