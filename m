@@ -1,41 +1,35 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2 4/7] ARM: davinci: Add support for an L3RAM gen_pool
-Date: Mon, 1 Oct 2012 17:34:02 +0530
-Message-ID: <506986B2.1030000@ti.com>
-References: <1348861072-14507-1-git-send-email-mporter@ti.com> <1348861072-14507-5-git-send-email-mporter@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv3 1/4] mfd: smsc: Add support for smsc gpio io/keypad
+ driver
+Date: Mon, 1 Oct 2012 13:09:07 +0100
+Message-ID: <20121001120907.GK4360@opensource.wolfsonmicro.com>
+References: <1349089282-22105-1-git-send-email-sourav.poddar@ti.com>
+ <CAAe_U6+zEGuwMC1yn7O=LXE6PhPvPc2i7DCF0EAprkE8s+-iEw@mail.gmail.com>
+ <20121001114454.GA9170@sirena.org.uk>
+ <CAAe_U6JX9QDWvWA3KH7E9sOv0EHGkozVONuXDgn+a2MZ4GTE7Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1348861072-14507-5-git-send-email-mporter@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAAe_U6JX9QDWvWA3KH7E9sOv0EHGkozVONuXDgn+a2MZ4GTE7Q@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com, sameo@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Matt,
+On Mon, Oct 01, 2012 at 05:23:15PM +0530, ABRAHAM, KISHON VIJAY wrote:
+> On Mon, Oct 1, 2012 at 5:14 PM, Mark Brown
 
-On 9/29/2012 1:07 AM, Matt Porter wrote:
-> L3RAM (shared SRAM) is needed for use by several drivers.
-> This creates a genalloc pool and a hook for the platform code
-> to provide the struct gen_pool * in platform data.
-> 
-> Signed-off-by: Matt Porter <mporter@ti.com>
+> > No, this is not at all sensible - if there's an mfd_remove_devices()
+> > function we really ought to be able to use it to remove the children.
+> > If we can't do that we should fix the API usability, not open code the
+> > same stuff in every user.
 
-I am not sure if any of the DaVinci devices have a need to allocate from
-*both* ARM RAM and shared RAM. Shared RAM is not present on all DaVinci
-devices AFAIR, and on DA850, there is just 8KB ARM RAM so I am not sure
-if there is much point in trying to allocate from there.
+> What makes more sense to me is extend mfd_add_devices to create child
+> devices from dt data. Then for removing devices, one can use
+> mfd_remove_devices().
 
-Can you instead see if Ben's earlier patch[1] to use shared RAM for SRAM
-allocation on DA850 makes sense for your case? If yes, can you repost
-with Ben's patch included in your series instead of this patch? I would
-prefer that over creating a new pool for shared RAM.
-
-Thanks,
-Sekhar
-
-[1] https://patchwork.kernel.org/patch/840552/
-
-Thanks,
-Sekhar
+Why would that be helpful?  Most platforms don't support DT at all, and
+having the API behave differently depending on the platform doesn't seem
+like a step forwards.  I would really expect any usage of DT to be
+totally orthogonal here.
