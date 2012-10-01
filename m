@@ -1,132 +1,107 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH V2 6/7] ARM: OMAP2+: Move omap_reserve() locally to mach-omap2
-Date: Tue, 2 Oct 2012 00:17:05 +0530
-Message-ID: <1349117226-4980-7-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH V2 7/7] ARM: OMAP: Move plat/omap-secure.h locally to mach-omap2
+Date: Tue, 2 Oct 2012 00:17:06 +0530
+Message-ID: <1349117226-4980-8-git-send-email-lokeshvutla@ti.com>
 References: <1349117226-4980-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37043 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37046 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473Ab2JASro (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 14:47:44 -0400
+	with ESMTP id S1751493Ab2JASrq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 14:47:46 -0400
 In-Reply-To: <1349117226-4980-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, lokeshvutla@ti.com
 
-omap_reserve() callback is defned only for mach-omap2.
-So, moving definition of omap_reserve() to mach-omap2.
-This helps is moving plat/omap_secure.h local to
-mach-omap2
+Moving plat/omap-secure.h locally to mach-omap2/
+as part of single zImage work
 
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 ---
- arch/arm/mach-omap2/common.c             |   20 ++++++++++++++++++++
- arch/arm/mach-omap2/common.h             |    1 +
- arch/arm/plat-omap/common.c              |   21 ---------------------
- arch/arm/plat-omap/include/plat/common.h |    1 -
- 4 files changed, 21 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/common.c                  |    2 +-
+ arch/arm/mach-omap2/omap-secure.c             |    1 -
+ arch/arm/mach-omap2/omap-secure.h             |    7 +++++++
+ arch/arm/mach-omap2/omap4-common.c            |    2 +-
+ arch/arm/plat-omap/include/plat/omap-secure.h |   14 --------------
+ 5 files changed, 9 insertions(+), 17 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat/omap-secure.h
 
 diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-index 17950c6..4ce0d63 100644
+index 4ce0d63..b0f21b7 100644
 --- a/arch/arm/mach-omap2/common.c
 +++ b/arch/arm/mach-omap2/common.c
-@@ -16,8 +16,11 @@
- #include <linux/init.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/platform_data/dsp-omap.h>
+@@ -19,7 +19,6 @@
+ #include <linux/platform_data/dsp-omap.h>
  
  #include <plat/clock.h>
-+#include <plat/omap-secure.h>
-+#include <plat/vram.h>
+-#include <plat/omap-secure.h>
+ #include <plat/vram.h>
  
  #include "soc.h"
- #include "iomap.h"
-@@ -200,3 +203,20 @@ void __init omap5_map_io(void)
- 	omap5_map_common_io();
- }
- #endif
-+
-+/*
-+ * Stub function for OMAP2 so that common files
-+ * continue to build when custom builds are used
-+ */
-+int __weak omap_secure_ram_reserve_memblock(void)
-+{
-+	return 0;
-+}
-+
-+void __init omap_reserve(void)
-+{
-+	omap_vram_reserve_sdram_memblock();
-+	omap_dsp_reserve_sdram_memblock();
-+	omap_secure_ram_reserve_memblock();
-+	omap_barrier_reserve_memblock();
-+}
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 7045e4d..e84c589 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -338,6 +338,7 @@ extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 				      struct omap_sdrc_params *sdrc_cs1);
- struct omap2_hsmmc_info;
- extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
-+extern void omap_reserve(void);
+@@ -27,6 +26,7 @@
+ #include "common.h"
+ #include "sdrc.h"
+ #include "control.h"
++#include "omap-secure.h"
  
- #endif /* __ASSEMBLER__ */
- #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index b388e87..aa23d49 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -17,32 +17,11 @@
- #include <linux/dma-mapping.h>
+ /* Global address base setup code */
  
- #include <plat/common.h>
--#include <plat/vram.h>
--#include <linux/platform_data/dsp-omap.h>
- #include <plat-omap/dma-omap.h>
+diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
+index a004cb9..98624fe 100644
+--- a/arch/arm/mach-omap2/omap-secure.c
++++ b/arch/arm/mach-omap2/omap-secure.c
+@@ -18,7 +18,6 @@
+ #include <asm/cacheflush.h>
+ #include <asm/memblock.h>
  
 -#include <plat/omap-secure.h>
--
--void __init omap_reserve(void)
--{
--	omap_vram_reserve_sdram_memblock();
--	omap_dsp_reserve_sdram_memblock();
--	omap_secure_ram_reserve_memblock();
--	omap_barrier_reserve_memblock();
--}
--
- void __init omap_init_consistent_dma_size(void)
- {
- #ifdef CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE
- 	init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
- #endif
- }
--
--/*
-- * Stub function for OMAP2 so that common files
-- * continue to build when custom builds are used
-- */
--int __weak omap_secure_ram_reserve_memblock(void)
--{
--	return 0;
--}
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index d1cb6f5..cb337c3 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -34,7 +34,6 @@ extern int __init omap_init_clocksource_32k(void __iomem *vbase);
+ #include "omap-secure.h"
  
- extern void __init omap_check_revision(void);
+ static phys_addr_t omap_secure_memblock_base;
+diff --git a/arch/arm/mach-omap2/omap-secure.h b/arch/arm/mach-omap2/omap-secure.h
+index c90a435..0e72917 100644
+--- a/arch/arm/mach-omap2/omap-secure.h
++++ b/arch/arm/mach-omap2/omap-secure.h
+@@ -52,6 +52,13 @@ extern u32 omap_secure_dispatcher(u32 idx, u32 flag, u32 nargs,
+ 				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
+ extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
+ extern phys_addr_t omap_secure_ram_mempool_base(void);
++extern int omap_secure_ram_reserve_memblock(void);
  
--extern void omap_reserve(void);
- extern int omap_dss_reset(struct omap_hwmod *);
++#ifdef CONFIG_OMAP4_ERRATA_I688
++extern int omap_barrier_reserve_memblock(void);
++#else
++static inline void omap_barrier_reserve_memblock(void)
++{ }
++#endif
+ #endif /* __ASSEMBLER__ */
+ #endif /* OMAP_ARCH_OMAP_SECURE_H */
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index e1f2897..ae57b63 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -26,7 +26,6 @@
+ #include <asm/memblock.h>
  
- void omap_sram_init(void);
+ #include <plat/sram.h>
+-#include <plat/omap-secure.h>
+ #include <plat/mmc.h>
+ 
+ #include "omap-wakeupgen.h"
+@@ -35,6 +34,7 @@
+ #include "common.h"
+ #include "hsmmc.h"
+ #include "omap4-sar-layout.h"
++#include "omap-secure.h"
+ 
+ #ifdef CONFIG_CACHE_L2X0
+ static void __iomem *l2cache_base;
+diff --git a/arch/arm/plat-omap/include/plat/omap-secure.h b/arch/arm/plat-omap/include/plat/omap-secure.h
+deleted file mode 100644
+index 0e4acd2..0000000
 -- 
 1.7.10.4
 
