@@ -1,83 +1,64 @@
-From: "Vutla, Lokesh" <lokeshvutla@ti.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP: Move omap_reserve() locally to mach-omap1/2
-Date: Mon, 1 Oct 2012 10:31:28 +0530
-Message-ID: <CAJ1gdcZORu+bAS4m16y948znKOo1Bon3bb5VDHh=tR8ULq2_AA@mail.gmail.com>
-References: <1348839609-10456-1-git-send-email-lokeshvutla@ti.com>
- <1348839609-10456-4-git-send-email-lokeshvutla@ti.com> <20120929193944.GB15246@n2100.arm.linux.org.uk>
- <CAMQu2gxN=gW_Gxr4awuJ4VT6RkZi_qHiTvmjwqbLKvCqb4RoyQ@mail.gmail.com> <20120930180542.GF4840@atomide.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 6/6] usb: dwc3: core: add dt support for dwc3 core
+Date: Mon, 1 Oct 2012 10:40:12 +0530
+Message-ID: <CAAe_U6Lt-+HQ5ZZ3xGsfhCqcOewWGprBCYc31qbZE_uUK7VtvA@mail.gmail.com>
+References: <1348836795-4783-1-git-send-email-kishon@ti.com>
+ <1348836795-4783-7-git-send-email-kishon@ti.com>
+ <5068779A.20402@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:51029 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750738Ab2JAFBu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 01:01:50 -0400
-Received: by vbbff1 with SMTP id ff1so4957483vbb.19
-        for <linux-omap@vger.kernel.org>; Sun, 30 Sep 2012 22:01:49 -0700 (PDT)
-In-Reply-To: <20120930180542.GF4840@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <5068779A.20402-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Sun, Sep 30, 2012 at 11:35 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120930 01:21]:
->> On Sun, Sep 30, 2012 at 1:09 AM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> >
->> > On Fri, Sep 28, 2012 at 07:10:08PM +0530, Lokesh Vutla wrote:
->> > > omap_reserve() is a stub for omap1. So creating a
->> > > stub locally in mach-omap1. And moving the definition
->> > > to mach-omap2.
->> > > This helps in moving plat/omap_secure.h local to
->> > > mach-omap2
->> > >
->> > > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->> > > Acked-by : Santosh Shilimkar <santosh.shilimkar@ti.com>
->> > > ---
->> > >  arch/arm/mach-omap1/common.h             |    3 +++
->> > >  arch/arm/mach-omap2/common.c             |   20 ++++++++++++++++++++
->> > >  arch/arm/mach-omap2/common.h             |    1 +
->> > >  arch/arm/plat-omap/common.c              |   17 -----------------
->> > >  arch/arm/plat-omap/include/plat/common.h |    1 -
->> > >  5 files changed, 24 insertions(+), 18 deletions(-)
->> > >
->> > > diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
->> > > index c2552b2..f7b01f1 100644
->> > > --- a/arch/arm/mach-omap1/common.h
->> > > +++ b/arch/arm/mach-omap1/common.h
->> > > @@ -90,4 +90,7 @@ extern int ocpi_enable(void);
->> > >  static inline int ocpi_enable(void) { return 0; }
->> > >  #endif
->> > >
->> > > +static inline void omap_reserve(void)
->> > > +{ }
->> >
->> > This is the wrong approach.  If OMAP1 doesn't need to do any reservation,
->> > then OMAP1 platforms should not be calling omap_reserve() and OMAP1 should
->> > not have this defined.
->> >
->> > Just because OMAP2 does something one way does not mean OMAP1 needs to
->> > copy it in every detail.
->>
->> This patch just updated the code as is. I mean the empty  reserve
->> callback already
->> exist before this patch.
->>
->> But I do agree with you. I think we can drop the reserve callback completly from
->> OMAP1 board files and then its easier to just make the omap_reserve() local to
->> OMAP2+ machines.
->>
->> Tony,
->> Are you ok in dropping OMAP1 reserve callback from all OMAP1 machines ?
+Hi,
+
+On Sun, Sep 30, 2012 at 10:17 PM, Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org> wrote:
+> Hello.
 >
-> Sure if it's not doing anything.
-Ok, Ill drop omap_reserve() callback from all OMAP1 machines and
-repost the patches..
+>
+> On 28-09-2012 14:53, Kishon Vijay Abraham I wrote:
+>
+>> Added dwc3 support for dwc3 core and update the documentation with
+>> device tree binding information.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
+>
+> [...]
+>
+>
+>> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+>> index 08a5738..0c17a7a 100644
+>> --- a/drivers/usb/dwc3/core.c
+>> +++ b/drivers/usb/dwc3/core.c
+>
+> [...]
+>
+>> @@ -602,11 +601,22 @@ static int __devexit dwc3_remove(struct
+>> platform_device *pdev)
+>>         return 0;
+>>   }
+>>
+>> +#ifdef CONFIG_OF
+>> +static const struct of_device_id of_dwc3_matach[] = {
+>
+>
+>     I guess you meant 'of_dwc3_match' here and below?
+
+indeed.. will re-post the patch..
 
 Thanks
-Lokesh
->
-> Regards,
->
-> Tony
+Kishon
