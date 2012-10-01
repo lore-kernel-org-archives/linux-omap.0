@@ -1,66 +1,43 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 6/7] usb: dwc3-omap: Minor fixes to get dt working
-Date: Mon, 01 Oct 2012 20:00:41 +0200
-Message-ID: <5069DA49.7030901@mvista.com>
-References: <1349087107-18229-1-git-send-email-kishon@ti.com> <1349087107-18229-7-git-send-email-kishon@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.6-rc7
+Date: Mon, 1 Oct 2012 18:34:13 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210011832420.2160@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209241919130.25811@utopia.booyaka.com> <50645A1D.5040108@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1349087107-18229-7-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1150428557-1349116453=:2160"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:54275 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752564Ab2JASeO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 14:34:14 -0400
+In-Reply-To: <50645A1D.5040108@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 01-10-2012 12:25, Kishon Vijay Abraham I wrote:
+--843723315-1150428557-1349116453=:2160
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> Includes few minor fixes in dwc3-omap like populating the compatible
-> string in a correct way, extracting the utmi-mode property properly and
-> changing the index of get_irq since irq of core is removed from hwmod
-> entry.
-> Also updated the documentation with dwc3-omap device tree binding
-> information.
->
-> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
-> ---
->   drivers/usb/dwc3/dwc3-omap.c |    8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-> index c19affa..25bd847 100644
-> --- a/drivers/usb/dwc3/dwc3-omap.c
-> +++ b/drivers/usb/dwc3/dwc3-omap.c
-> @@ -277,13 +277,13 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
->
->   	platform_set_drvdata(pdev, omap);
->
-> -	irq = platform_get_irq(pdev, 1);
-> +	irq = platform_get_irq(pdev, 0);
->   	if (irq<  0) {
->   		dev_err(dev, "missing IRQ resource\n");
->   		return -EINVAL;
->   	}
->
-> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->   	if (!res) {
->   		dev_err(dev, "missing memory base resource\n");
->   		return -EINVAL;
-> @@ -326,7 +326,7 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
->
->   	utmi_mode = of_get_property(node, "utmi-mode",&size);
->   	if (utmi_mode&&  size == sizeof(*utmi_mode)) {
-> -		reg |= *utmi_mode;
-> +		reg |= be32_to_cpup(utmi_mode);
+On Thu, 27 Sep 2012, Igor Grinberg wrote:
 
-    Why not just use of_property_read_u32() instead of all this?
+> On 09/24/12 21:21, Paul Walmsley wrote:
+> >=20
+> > * 3517EVM & CM-T3517: boot hangs              =20
+> >   - Probably due to the use of NFS root; there are likely some Kconfig,
+> >     board file, and PM issues with EMAC
+>=20
+> Have you tried the nohlt boot parameter?
+> It looks like the wfi is killing those SoCs once you use EMAC.
 
-WBR, Sergei
+Haven't had the chance to do much debugging here yet.  M=E5ns and Mark Gree=
+r=20
+also suggested there may be a board file/Kconfig problem here that
+should be checked.  Right now am just testing mainline.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
+--843723315-1150428557-1349116453=:2160--
