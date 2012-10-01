@@ -1,59 +1,54 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Mon, 1 Oct 2012 21:59:37 +0200
-Message-ID: <CACRpkdaib2M1_UwSbyUG8qwZC2h7xaT5VU7WMj=y+h4S4LianQ@mail.gmail.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
-	<CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
-	<331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
-	<CACRpkdZ_NxST-oJ=MWC5L=r8uQD_71eHUVUR85v4jfsYpqz=UQ@mail.gmail.com>
-	<20121001154451.GI4840@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.6
+Date: Mon, 1 Oct 2012 20:12:09 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210011957180.2160@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1210011923120.2160@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:52756 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751267Ab2JAT7i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 15:59:38 -0400
-Received: by weyt9 with SMTP id t9so3153988wey.19
-        for <linux-omap@vger.kernel.org>; Mon, 01 Oct 2012 12:59:37 -0700 (PDT)
-In-Reply-To: <20121001154451.GI4840@atomide.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:54456 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752223Ab2JAUMK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 16:12:10 -0400
+In-Reply-To: <alpine.DEB.2.00.1210011923120.2160@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stephen Warren <swarren@wwwdotorg.org>, Grant Likely <grant.likely@secretlab.ca>, "dong.aisheng@linaro.org" <dong.aisheng@linaro.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Oct 1, 2012 at 5:44 PM, Tony Lindgren <tony@atomide.com> wrote:
+On Mon, 1 Oct 2012, Paul Walmsley wrote:
 
->> OK that is typical pinctrl driver implementation work.
->> I hope Tony can advice on this?
->
-> I think we're best off to just stick to alternative named modes
-> passed from device tree. For example, for GPIO wake-ups you can
-> have named modes such as "default", "enabled" and "idle" where
-> "idle" muxes things for GPIO wake-ups for the duration of idle.
->
-> It seems that should also work for leds-gpio. And you can
-> define more named modes as needed.
+> Kernel size/memory differences
+> ------------------------------
+> 
+> vmlinux object size
+> (delta in bytes from test_v3.5 (28a33cbc24e4256c143dce96c7d93bf423229f92)):
+>   text    data     bss   total  kernel
+> +106549 +17784   +2380  +126713 2430_testconfig
+> +38971   +5296    +920  +45187  5912osk_testconfig
+> +98563  +30344    -316  +128591 am33xx_testconfig
+> +63542  +14584   +1992  +80118  n800_b_testconfig
+> +58180  +14808   +1988  +74976  n800_multi_omap2xxx
+> +39388  +15672   +1960  +57020  n800_testconfig
+> +49048   +5328    +920  +55296  omap1510_defconfig
+> +45816   +5264    +952  +52032  omap1_defconfig
+> +42090  +15360    -156  +57294  omap2_4_testconfig
+> +121890 +23480   +2884  +148254 omap2plus_defconfig
+> +125042 +23624   +2884  +151550 omap2plus_defconfig_cpupm
+> +54593  +21360    -380  +75573  omap2plus_no_pm
+> +83137  +23760    -316  +106581 omap3_4_testconfig
+> +55217  +21576   +1036  +77829  omap3_testconfig
+> +62061  +18840      +4  +80905  omap4_testconfig
+> +86789  +21608   +1380  +109777 rmk_omap3430_ldp_oldconfig
+> +96177  -14216    +208  +82169  rmk_omap4430_sdp_oldconfig
+
+One comment about some of these vmlinux sizes.  Due to the way the configs 
+are generated, the AM33xx data is being included into some of the kernels 
+that shouldn't have it.  So for configs like omap3_4_testconfig or 
+omap2_4_testconfig, that AM33xx data accounts for about 12K of the 'data' 
+column that wasn't intended.
+
+Kconfig handling in the scripts here needs some work; with luck, will 
+address that during this development cycle.
 
 
-This is what we're doing for ux500 and should be a good model.
-
-> You really don't want the client driver or the GPIO driver doing
-> things like pull-up/down automatically as that is board specific and
-> can also depend on things like externall pull resistors.
-
-Nope. We've had instances of people getting bad leakage
-because of pulling down a line where there is already a
-pull-down resistor on the board :-(
-
->> OK so the threshold is that we need to get it right for the first
->> one and then the others will look good too.
->
-> It seems we want to keep leds-gpio, gpio framework and pinctrl
-> framework generic. It also seems you should be able to do
-> what you're describing using the pinctrl named modes.
-
-I think so too.
-
-Yours,
-Linus Walleij
+- Paul
