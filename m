@@ -1,59 +1,54 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+From: Samuel Ortiz <sameo@linux.intel.com>
 Subject: Re: [PATCHv3 1/4] mfd: smsc: Add support for smsc gpio io/keypad
  driver
-Date: Mon, 1 Oct 2012 17:23:15 +0530
-Message-ID: <CAAe_U6JX9QDWvWA3KH7E9sOv0EHGkozVONuXDgn+a2MZ4GTE7Q@mail.gmail.com>
+Date: Mon, 1 Oct 2012 14:03:43 +0200
+Message-ID: <20121001120343.GG12231@sortiz-mobl>
 References: <1349089282-22105-1-git-send-email-sourav.poddar@ti.com>
- <CAAe_U6+zEGuwMC1yn7O=LXE6PhPvPc2i7DCF0EAprkE8s+-iEw@mail.gmail.com>
- <20121001114454.GA9170@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121001114454.GA9170-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1349089282-22105-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Sourav,
 
-On Mon, Oct 1, 2012 at 5:14 PM, Mark Brown
-<broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org> wrote:
-> On Mon, Oct 01, 2012 at 05:00:06PM +0530, ABRAHAM, KISHON VIJAY wrote:
->> On Mon, Oct 1, 2012 at 4:31 PM, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org> wrote:
->
-> Delete irrelevant context from your replies, it makes it much easier to
-> find new text.
->
->> > +static int smsc_i2c_remove(struct i2c_client *i2c)
->> > +{
->> > +       struct smsc *smsc = i2c_get_clientdata(i2c);
->> > +
->> > +       mfd_remove_devices(smsc->dev);
->
->> IMO, this should have resulted in an abort (hint: see
->> mfd_remove_devices_fn()). Trying to do mfd_remove_devices without
->> mfd_add_devices(). Use device_for_each_child here to remove the
->> device.
->
-> No, this is not at all sensible - if there's an mfd_remove_devices()
-> function we really ought to be able to use it to remove the children.
-> If we can't do that we should fix the API usability, not open code the
-> same stuff in every user.
+On Mon, Oct 01, 2012 at 04:31:22PM +0530, Sourav Poddar wrote:
+> smsc ece1099 is a keyboard scan or gpio expansion device.
+> The patch create keypad and gpio expander child for this
+> multi function smsc driver.
+> 
+> Tested on omap5430 evm with 3.6-rc6 custom kernel.
+> 
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+> Changes since v2:
+>  - Change the cache type, max register assignment
+>  - remove of_device_table, since i2c based device gets 
+> probed according to i2c_device_id through dt.
+>  - Modify the remove function
+>  - Minor return patch cleanups.
+>  Documentation/smsc_ece1099.txt |   56 ++++++++++++++++++++
+>  drivers/mfd/Kconfig            |   12 ++++
+>  drivers/mfd/Makefile           |    1 +
+>  drivers/mfd/smsc-ece1099.c     |  113 ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/mfd/smsc.h       |  109 ++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 291 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/smsc_ece1099.txt
+>  create mode 100644 drivers/mfd/smsc-ece1099.c
+>  create mode 100644 include/linux/mfd/smsc.h
+Applied with a warning fix for the !CONFIG_OF case.
 
-What makes more sense to me is extend mfd_add_devices to create child
-devices from dt data. Then for removing devices, one can use
-mfd_remove_devices().
+Cheers,
+Samuel.
 
-Thanks
-Kishon
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
