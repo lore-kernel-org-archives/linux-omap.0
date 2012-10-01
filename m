@@ -1,50 +1,75 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [RFC PATCH 08/13] mmc: omap_hsmmc: limit max_segs with the EDMA
- DMAC
-Date: Mon, 1 Oct 2012 12:39:55 -0400
-Message-ID: <20121001163955.GO5641@beef>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com>
- <1348152226-13588-9-git-send-email-mporter@ti.com>
- <CANfBPZ81anOy8fWgKM1PgCtB4V2pEp2x1Qi4x1uPsq7QieMN5g@mail.gmail.com>
- <20120921184721.GD31374@n2100.arm.linux.org.uk>
- <1348738868.1648.13.camel@vkoul-udesk3>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: Which git to clone for testing prior to submitting bugs?
+Date: Mon, 1 Oct 2012 11:50:26 -0500
+Message-ID: <CAOCHtYh4nCU0nBSk2XtbH3ZW4-J2EQoG61f4fOKsz66981ud6w@mail.gmail.com>
+References: <50648AA2.2010004@johnea.net>
+	<CAOCHtYitbhOMv+YBaYgdTuYZQpZ_VLoP=QKVS=spmqPxEUkATA@mail.gmail.com>
+	<5064A173.5000909@johnea.net>
+	<CAOCHtYh2DofNoLx1W6ZWy4aKNpQx10P9AbmWbj1yeY1G=ixHPg@mail.gmail.com>
+	<CAOCHtYiido11MG55m601CX2isYJ2oFcubgJ7Wkng=HnkT_DdcQ@mail.gmail.com>
+	<5064B41D.9030709@johnea.net>
+	<CAOCHtYjjczpQ0oJ4zgrExdF7C-OAsfzMLwAEfdExkFG2uiUKgw@mail.gmail.com>
+	<5065F13E.8070306@johnea.net>
+	<CAOCHtYg3zrqO+3Rk6P8K7iit7uO9g4_YHQ870TXbmuEPZEyQ0Q@mail.gmail.com>
+	<5065FE7C.9070503@johnea.net>
+	<5069AF54.3000001@johnea.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1348738868.1648.13.camel@vkoul-udesk3>
-Sender: linux-doc-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "S, Venkatraman" <svenkatr@ti.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Sekhar Nori <nsekhar@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kerne>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:56253 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753312Ab2JAQu1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 12:50:27 -0400
+Received: by vcbfo13 with SMTP id fo13so5847789vcb.19
+        for <linux-omap@vger.kernel.org>; Mon, 01 Oct 2012 09:50:27 -0700 (PDT)
+In-Reply-To: <5069AF54.3000001@johnea.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: johnea <me@johnea.net>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Sep 27, 2012 at 03:11:08PM +0530, Vinod Koul wrote:
-> On Fri, 2012-09-21 at 19:47 +0100, Russell King - ARM Linux wrote:
-> > On Fri, Sep 21, 2012 at 10:45:29PM +0530, S, Venkatraman wrote:
-> > > On Thu, Sep 20, 2012 at 8:13 PM, Matt Porter <mporter@ti.com> wrote:
-> > > > The EDMA DMAC has a hardware limitation that prevents supporting
-> > > > scatter gather lists with any number of segments. Since the EDMA
-> > > > DMA Engine driver sets the maximum segments to 16, we do the
-> > > > same.
-> > > >
-> > > > Note: this can be removed once the DMA Engine API supports an
-> > > > API to query the DMAC's segment limitations.
-> > > >
-> > > 
-> > > I wouldn't want to bind the properties of EDMA to omap_hsmmc as this patch
-> > > suggests. Why don't we have a max_segs property, which when explicitly specified
-> > > in DT, will override the default ?
-> > 
-> > Why not have a generic way that DMA engine can export these kinds of
-> > properties?
-> We discussed this at KS. I was of opinion that  DMA engine should export
-> controller and channel capabilities as part of the channel it returns.
-> 
-> Some folks had an opinion that they already know how to use controller
-> so may not be very helpful, but if it is going to help (which I think),
-> i have a patch for this :)
+> Good morning,
+>
+> We opted for the "Stay with omapfb", and disabled CONFIG_DRM_OMAP.
+>
+> Now the dev tree is showing all 3 fb devices, but still no video out 8-(
+>
+> Boot messages include:
+>
+> [root@apm002 johnea]# dmesg | grep omapfb
+> [    0.000000] Kernel command line: console=ttyO2,115200n8 mpurate=auto
+> buddy=spidev camera=none vram=18MB omapfb.mode=dvi
+> omapfb.vram=0:6M,1:6M,2:6M omapdss.def_disp=dvi root=/dev/mmcblk0p2
+> rootfstype=ext2 rootwait
+> [    3.165069] omapfb omapfb: no driver for display: dvi
+> [    3.165130] omapfb omapfb: no driver for display: lcd
+> [    3.165161] omapfb omapfb: cannot parse default modes
+>
+> The "cannot parse default modes" message was eliminated by removing
+> "omapfb.vram=0:6M,1:6M,2:6M" from the boot params.
+>
+> This made me wonder if the omapfb boot params expected by 3.5.4 had changed.
+> So I tried a bunch of different permutations of boot params, with no effect
+> other than eliminating the "default modes" message mentioned above.
+>
+> I tried digging into the source to determine currently accepted omapfb boot
+> params, but had no success.
+>
+> It seems like we're really close. The latest config.gz and tar'd dmesg from
+> the running system are attached.
+>
+> Thank You again! for any advise on config, boot param, or other changes that
+> could make beagle DVI video work with 3.5.4...
 
-Anything you can show at this point? ;) I'd be happy to drop the half-hack
-for a real API. If not, I'm going to carry that to v2 atm.
+You guys are very close... Your "config-3.5.4-archarm-3" config just
+needed one more change:
 
--Matt
+CONFIG_PANEL_TFP410=m -> CONFIG_PANEL_TFP410=y
+
+Tested on my Beagle xM...
+
+Regards,
+
+-- 
+Robert Nelson
+http://www.rcn-ee.com/
