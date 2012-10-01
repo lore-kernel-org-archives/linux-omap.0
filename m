@@ -1,54 +1,38 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.6
-Date: Mon, 1 Oct 2012 20:12:09 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210011957180.2160@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1210011923120.2160@utopia.booyaka.com>
+From: linux@johnea.net
+Subject: Re: Which git to clone for testing prior to submitting bugs?
+Date: Mon, 01 Oct 2012 14:16:01 -0700
+Message-ID: <506A0811.1050400@johnea.net>
+References: <50648AA2.2010004@johnea.net> <CAOCHtYitbhOMv+YBaYgdTuYZQpZ_VLoP=QKVS=spmqPxEUkATA@mail.gmail.com> <5064A173.5000909@johnea.net> <CAOCHtYh2DofNoLx1W6ZWy4aKNpQx10P9AbmWbj1yeY1G=ixHPg@mail.gmail.com> <CAOCHtYiido11MG55m601CX2isYJ2oFcubgJ7Wkng=HnkT_DdcQ@mail.gmail.com> <5064B41D.9030709@johnea.net> <CAOCHtYjjczpQ0oJ4zgrExdF7C-OAsfzMLwAEfdExkFG2uiUKgw@mail.gmail.com> <5065F13E.8070306@johnea.net> <CAOCHtYg3zrqO+3Rk6P8K7iit7uO9g4_YHQ870TXbmuEPZEyQ0Q@mail.gmail.com> <5065FE7C.9070503@johnea.net> <5069AF54.3000001@johnea.net> <CAOCHtYh4nCU0nBSk2XtbH3ZW4-J2EQoG61f4fOKsz66981ud6w@mail.gmail.com> <5069CB71.4030106@johnea.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:54456 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752223Ab2JAUMK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 16:12:10 -0400
-In-Reply-To: <alpine.DEB.2.00.1210011923120.2160@utopia.booyaka.com>
+Received: from johnea.net ([70.167.123.7]:56055 "EHLO mail.johnea.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751904Ab2JAVQE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Oct 2012 17:16:04 -0400
+Received: from [192.168.1.143] (wsip-70-166-88-164.sd.sd.cox.net [70.166.88.164])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.johnea.net (Postfix) with ESMTPSA id 96D9C73F188B
+	for <linux-omap@vger.kernel.org>; Mon,  1 Oct 2012 14:16:02 -0700 (PDT)
+In-Reply-To: <5069CB71.4030106@johnea.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-On Mon, 1 Oct 2012, Paul Walmsley wrote:
+On 10/01/2012 09:57 AM, linux@johnea.net wrote:
+> On 10/01/2012 09:50 AM, Robert Nelson wrote:
+>> You guys are very close... Your "config-3.5.4-archarm-3" config just
+>> needed one more change:
+>>
+>> CONFIG_PANEL_TFP410=m ->   CONFIG_PANEL_TFP410=y
+>
 
-> Kernel size/memory differences
-> ------------------------------
-> 
-> vmlinux object size
-> (delta in bytes from test_v3.5 (28a33cbc24e4256c143dce96c7d93bf423229f92)):
->   text    data     bss   total  kernel
-> +106549 +17784   +2380  +126713 2430_testconfig
-> +38971   +5296    +920  +45187  5912osk_testconfig
-> +98563  +30344    -316  +128591 am33xx_testconfig
-> +63542  +14584   +1992  +80118  n800_b_testconfig
-> +58180  +14808   +1988  +74976  n800_multi_omap2xxx
-> +39388  +15672   +1960  +57020  n800_testconfig
-> +49048   +5328    +920  +55296  omap1510_defconfig
-> +45816   +5264    +952  +52032  omap1_defconfig
-> +42090  +15360    -156  +57294  omap2_4_testconfig
-> +121890 +23480   +2884  +148254 omap2plus_defconfig
-> +125042 +23624   +2884  +151550 omap2plus_defconfig_cpupm
-> +54593  +21360    -380  +75573  omap2plus_no_pm
-> +83137  +23760    -316  +106581 omap3_4_testconfig
-> +55217  +21576   +1036  +77829  omap3_testconfig
-> +62061  +18840      +4  +80905  omap4_testconfig
-> +86789  +21608   +1380  +109777 rmk_omap3430_ldp_oldconfig
-> +96177  -14216    +208  +82169  rmk_omap4430_sdp_oldconfig
+That did it! We've got X running on BeagleboardxM DVI with 3.5.4.
 
-One comment about some of these vmlinux sizes.  Due to the way the configs 
-are generated, the AM33xx data is being included into some of the kernels 
-that shouldn't have it.  So for configs like omap3_4_testconfig or 
-omap2_4_testconfig, that AM33xx data accounts for about 12K of the 'data' 
-column that wasn't intended.
+We're also starting testing of 3.6.0 this afternoon, since it's official now. Although the main thing for my application was having buddy=spidev and working DVI video in the same kernel, which we now have with 3.5.4.
 
-Kconfig handling in the scripts here needs some work; with luck, will 
-address that during this development cycle.
+Thank you again Robert for your patient support!
 
-
-- Paul
+johnea
