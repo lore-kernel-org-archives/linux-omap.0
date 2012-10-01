@@ -1,7 +1,8 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 6/7] usb: dwc3-omap: Minor fixes to get dt working
-Date: Mon, 1 Oct 2012 15:55:06 +0530
-Message-ID: <1349087107-18229-7-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 4/7] usb: dwc3-omap: Remove explicit writes to SYSCONFIG
+ register
+Date: Mon, 1 Oct 2012 15:55:04 +0530
+Message-ID: <1349087107-18229-5-git-send-email-kishon@ti.com>
 References: <1349087107-18229-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,55 +22,58 @@ Sender: "devicetree-discuss"
 To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Includes few minor fixes in dwc3-omap like populating the compatible
-string in a correct way, extracting the utmi-mode property properly and
-changing the index of get_irq since irq of core is removed from hwmod
-entry.
-Also updated the documentation with dwc3-omap device tree binding
-information.
+The runtime API's takes care of setting the SYSCONFIG register with
+appropriate values. Hence explicit writes to SYSCONFIG register is
+removed.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/dwc3/dwc3-omap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index c19affa..25bd847 100644
+index 850a0cf..d417bec 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -277,13 +277,13 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+@@ -77,23 +77,6 @@
  
- 	platform_set_drvdata(pdev, omap);
+ /* SYSCONFIG REGISTER */
+ #define USBOTGSS_SYSCONFIG_DMADISABLE		(1 << 16)
+-#define USBOTGSS_SYSCONFIG_STANDBYMODE(x)	((x) << 4)
+-
+-#define USBOTGSS_STANDBYMODE_FORCE_STANDBY	0
+-#define USBOTGSS_STANDBYMODE_NO_STANDBY		1
+-#define USBOTGSS_STANDBYMODE_SMART_STANDBY	2
+-#define USBOTGSS_STANDBYMODE_SMART_WAKEUP	3
+-
+-#define USBOTGSS_STANDBYMODE_MASK		(0x03 << 4)
+-
+-#define USBOTGSS_SYSCONFIG_IDLEMODE(x)		((x) << 2)
+-
+-#define USBOTGSS_IDLEMODE_FORCE_IDLE		0
+-#define USBOTGSS_IDLEMODE_NO_IDLE		1
+-#define USBOTGSS_IDLEMODE_SMART_IDLE		2
+-#define USBOTGSS_IDLEMODE_SMART_WAKEUP		3
+-
+-#define USBOTGSS_IDLEMODE_MASK			(0x03 << 2)
  
--	irq = platform_get_irq(pdev, 1);
-+	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
- 		dev_err(dev, "missing IRQ resource\n");
- 		return -EINVAL;
- 	}
+ /* IRQ_EOI REGISTER */
+ #define USBOTGSS_IRQ_EOI_LINE_NUMBER		(1 << 0)
+@@ -309,15 +292,6 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+ 	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
- 		dev_err(dev, "missing memory base resource\n");
- 		return -EINVAL;
-@@ -326,7 +326,7 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 
- 	utmi_mode = of_get_property(node, "utmi-mode", &size);
- 	if (utmi_mode && size == sizeof(*utmi_mode)) {
--		reg |= *utmi_mode;
-+		reg |= be32_to_cpup(utmi_mode);
- 	} else {
- 		if (!pdata) {
- 			dev_dbg(dev, "missing platform data\n");
-@@ -398,7 +398,7 @@ static int __devexit dwc3_omap_remove(struct platform_device *pdev)
- 
- static const struct of_device_id of_dwc3_matach[] = {
- 	{
--		"ti,dwc3",
-+		.compatible =	"ti,dwc3"
- 	},
- 	{ },
- };
+-	/* Set No-Idle and No-Standby */
+-	reg &= ~(USBOTGSS_STANDBYMODE_MASK
+-			| USBOTGSS_IDLEMODE_MASK);
+-
+-	reg |= (USBOTGSS_SYSCONFIG_STANDBYMODE(USBOTGSS_STANDBYMODE_NO_STANDBY)
+-		| USBOTGSS_SYSCONFIG_IDLEMODE(USBOTGSS_IDLEMODE_NO_IDLE));
+-
+-	dwc3_omap_writel(omap->base, USBOTGSS_SYSCONFIG, reg);
+-
+ 	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
+ 			"dwc3-omap", omap);
+ 	if (ret) {
 -- 
 1.7.9.5
