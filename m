@@ -1,378 +1,223 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH V2 2/7] ARM: OMAP1: DMA: Moving OMAP1 DMA channel definitions to mach-omap1
-Date: Tue, 2 Oct 2012 00:17:01 +0530
-Message-ID: <1349117226-4980-3-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH V2 5/7] ARM: OMAP1: Remove omap_reserve() callback for all omap1 boards
+Date: Tue, 2 Oct 2012 00:17:04 +0530
+Message-ID: <1349117226-4980-6-git-send-email-lokeshvutla@ti.com>
 References: <1349117226-4980-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35928 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46612 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751264Ab2JASr3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 1 Oct 2012 14:47:29 -0400
+	id S1751373Ab2JASrn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 1 Oct 2012 14:47:43 -0400
 In-Reply-To: <1349117226-4980-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, lokeshvutla@ti.com
 
-Some of the omap1 dma channel definitions are used by some drivers.
-For moving omap1 dma channel definitions to mach-omap1/, the used
-ones should be defined locally to driver. Driver can eliminate it
-by using DT, platform data, or IORESOURCE_DMA.
-And moving OMAP1 DMA channel definitions to mach-omap1
+omap_reserve() is a stub for omap1. So dropping
+omap_reserve callback from all OMAP1 board files.
 
 Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 ---
- arch/arm/mach-omap1/board-h2.c                   |    1 +
- arch/arm/mach-omap1/board-palmte.c               |    1 +
- arch/arm/mach-omap1/board-palmtt.c               |    1 +
- arch/arm/mach-omap1/board-palmz71.c              |    1 +
- arch/arm/mach-omap1/board-sx1.c                  |    1 +
- arch/arm/mach-omap1/devices.c                    |    1 +
- arch/arm/mach-omap1/dma.c                        |    2 +
- arch/arm/mach-omap1/dma.h                        |   83 ++++++++++++++++++++++
- arch/arm/mach-omap1/lcd_dma.c                    |    2 +
- arch/arm/mach-omap1/mcbsp.c                      |    1 +
- arch/arm/plat-omap/include/plat/dma.h            |   66 -----------------
- drivers/media/platform/omap/omap_vout_vrfb.c     |    2 +
- drivers/media/platform/soc_camera/omap1_camera.c |    1 +
- drivers/mmc/host/omap.c                          |    4 ++
- drivers/usb/gadget/omap_udc.c                    |    2 +
- 15 files changed, 103 insertions(+), 66 deletions(-)
- create mode 100644 arch/arm/mach-omap1/dma.h
+ arch/arm/mach-omap1/board-ams-delta.c |    1 -
+ arch/arm/mach-omap1/board-fsample.c   |    1 -
+ arch/arm/mach-omap1/board-generic.c   |    1 -
+ arch/arm/mach-omap1/board-h2.c        |    1 -
+ arch/arm/mach-omap1/board-h3.c        |    1 -
+ arch/arm/mach-omap1/board-htcherald.c |    1 -
+ arch/arm/mach-omap1/board-innovator.c |    1 -
+ arch/arm/mach-omap1/board-nokia770.c  |    1 -
+ arch/arm/mach-omap1/board-osk.c       |    1 -
+ arch/arm/mach-omap1/board-palmte.c    |    1 -
+ arch/arm/mach-omap1/board-palmtt.c    |    1 -
+ arch/arm/mach-omap1/board-palmz71.c   |    1 -
+ arch/arm/mach-omap1/board-perseus2.c  |    1 -
+ arch/arm/mach-omap1/board-sx1.c       |    1 -
+ arch/arm/mach-omap1/board-voiceblue.c |    1 -
+ 15 files changed, 15 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 9518bf5..e50b022 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -613,7 +613,6 @@ MACHINE_START(AMS_DELTA, "Amstrad E3 (Delta)")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= ams_delta_map_io,
+ 	.init_early	= omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= ams_delta_init,
+ 	.init_late	= ams_delta_init_late,
+diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+index 4b6de70..acd3ba6 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -362,7 +362,6 @@ MACHINE_START(OMAP_FSAMPLE, "OMAP730 F-Sample")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap_fsample_map_io,
+ 	.init_early	= omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= omap_fsample_init,
+ 	.init_late	= omap1_init_late,
+diff --git a/arch/arm/mach-omap1/board-generic.c b/arch/arm/mach-omap1/board-generic.c
+index 4ec579f..608e7d2 100644
+--- a/arch/arm/mach-omap1/board-generic.c
++++ b/arch/arm/mach-omap1/board-generic.c
+@@ -81,7 +81,6 @@ MACHINE_START(OMAP_GENERIC, "Generic OMAP1510/1610/1710")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap16xx_map_io,
+ 	.init_early	= omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap1_init_late,
 diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index a2e53e1..72855ce 100644
+index 4c2cb8e..fdc847d 100644
 --- a/arch/arm/mach-omap1/board-h2.c
 +++ b/arch/arm/mach-omap1/board-h2.c
-@@ -50,6 +50,7 @@
- 
- #include "common.h"
- #include "board-h2.h"
-+#include "dma.h"
- 
- /* At OMAP1610 Innovator the Ethernet is directly connected to CS1 */
- #define OMAP1610_ETHR_START		0x04000300
+@@ -459,7 +459,6 @@ MACHINE_START(OMAP_H2, "TI-H2")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap16xx_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= h2_init,
+ 	.init_late	= omap1_init_late,
+diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
+index 3e638b8..2768f99 100644
+--- a/arch/arm/mach-omap1/board-h3.c
++++ b/arch/arm/mach-omap1/board-h3.c
+@@ -452,7 +452,6 @@ MACHINE_START(OMAP_H3, "TI OMAP1710 H3 board")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap16xx_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= h3_init,
+ 	.init_late	= omap1_init_late,
+diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
+index 87ab208..bd0d6fd 100644
+--- a/arch/arm/mach-omap1/board-htcherald.c
++++ b/arch/arm/mach-omap1/board-htcherald.c
+@@ -600,7 +600,6 @@ MACHINE_START(HERALD, "HTC Herald")
+ 	.atag_offset    = 0x100,
+ 	.map_io         = htcherald_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq       = omap1_init_irq,
+ 	.init_machine   = htcherald_init,
+ 	.init_late	= omap1_init_late,
+diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+index db5f7d2..1b7a62e 100644
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -454,7 +454,6 @@ MACHINE_START(OMAP_INNOVATOR, "TI-Innovator")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= innovator_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= innovator_init,
+ 	.init_late	= omap1_init_late,
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index 7d5c06d..6b24394 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -251,7 +251,6 @@ MACHINE_START(NOKIA770, "Nokia 770")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap16xx_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= omap_nokia770_init,
+ 	.init_late	= omap1_init_late,
+diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
+index 5973945..8fd78f7 100644
+--- a/arch/arm/mach-omap1/board-osk.c
++++ b/arch/arm/mach-omap1/board-osk.c
+@@ -606,7 +606,6 @@ MACHINE_START(OMAP_OSK, "TI-OSK")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap16xx_map_io,
+ 	.init_early	= omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= osk_init,
+ 	.init_late	= omap1_init_late,
 diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index 1c578d5..75ac3cd 100644
+index eac94c2..caa1023 100644
 --- a/arch/arm/mach-omap1/board-palmte.c
 +++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -45,6 +45,7 @@
- #include <mach/usb.h>
- 
- #include "common.h"
-+#include "dma.h"
- 
- #define PALMTE_USBDETECT_GPIO	0
- #define PALMTE_USB_OR_DC_GPIO	1
+@@ -265,7 +265,6 @@ MACHINE_START(OMAP_PALMTE, "OMAP310 based Palm Tungsten E")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap15xx_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= omap_palmte_init,
+ 	.init_late	= omap1_init_late,
 diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
-index 9715809..14e1847 100644
+index 3c06c0b..38e75a7 100644
 --- a/arch/arm/mach-omap1/board-palmtt.c
 +++ b/arch/arm/mach-omap1/board-palmtt.c
-@@ -45,6 +45,7 @@
- #include <mach/usb.h>
- 
- #include "common.h"
-+#include "dma.h"
- 
- #define PALMTT_USBDETECT_GPIO	0
- #define PALMTT_CABLE_GPIO	1
+@@ -311,7 +311,6 @@ MACHINE_START(OMAP_PALMTT, "OMAP1510 based Palm Tungsten|T")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap15xx_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= omap_palmtt_init,
+ 	.init_late	= omap1_init_late,
 diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index e311032..e403bc9 100644
+index be16edd..41e8726 100644
 --- a/arch/arm/mach-omap1/board-palmz71.c
 +++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -47,6 +47,7 @@
- #include <mach/usb.h>
- 
- #include "common.h"
-+#include "dma.h"
- 
- #define PALMZ71_USBDETECT_GPIO	0
- #define PALMZ71_PENIRQ_GPIO	6
+@@ -327,7 +327,6 @@ MACHINE_START(OMAP_PALMZ71, "OMAP310 based Palm Zire71")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap15xx_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= omap_palmz71_init,
+ 	.init_late	= omap1_init_late,
+diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+index 198b054..5fc074a 100644
+--- a/arch/arm/mach-omap1/board-perseus2.c
++++ b/arch/arm/mach-omap1/board-perseus2.c
+@@ -324,7 +324,6 @@ MACHINE_START(OMAP_PERSEUS2, "OMAP730 Perseus2")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap_perseus2_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= omap_perseus2_init,
+ 	.init_late	= omap1_init_late,
 diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 13bf2cc..1248fcc 100644
+index f4c5db9..b2bcf31 100644
 --- a/arch/arm/mach-omap1/board-sx1.c
 +++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -45,6 +45,7 @@
- #include <mach/usb.h>
- 
- #include "common.h"
-+#include "dma.h"
- 
- /* Write to I2C device */
- int sx1_i2c_write_byte(u8 devaddr, u8 regoffset, u8 value)
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 0cc54dd..890db8f 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -30,6 +30,7 @@
- 
- #include "common.h"
- #include "clock.h"
-+#include "dma.h"
- 
- #if defined(CONFIG_SND_SOC) || defined(CONFIG_SND_SOC_MODULE)
- 
-diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
-index 29007fe..40f1dc4 100644
---- a/arch/arm/mach-omap1/dma.c
-+++ b/arch/arm/mach-omap1/dma.c
-@@ -30,6 +30,8 @@
- 
- #include <mach/irqs.h>
- 
-+#include "dma.h"
-+
- #define OMAP1_DMA_BASE			(0xfffed800)
- #define OMAP1_LOGICAL_DMA_CH_COUNT	17
- #define OMAP1_DMA_STRIDE		0x40
-diff --git a/arch/arm/mach-omap1/dma.h b/arch/arm/mach-omap1/dma.h
-new file mode 100644
-index 0000000..da6345d
---- /dev/null
-+++ b/arch/arm/mach-omap1/dma.h
-@@ -0,0 +1,83 @@
-+/*
-+ *  OMAP1 DMA channel definitions
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#ifndef __OMAP1_DMA_CHANNEL_H
-+#define __OMAP1_DMA_CHANNEL_H
-+
-+/* DMA channels for omap1 */
-+#define OMAP_DMA_NO_DEVICE		0
-+#define OMAP_DMA_MCSI1_TX		1
-+#define OMAP_DMA_MCSI1_RX		2
-+#define OMAP_DMA_I2C_RX			3
-+#define OMAP_DMA_I2C_TX			4
-+#define OMAP_DMA_EXT_NDMA_REQ		5
-+#define OMAP_DMA_EXT_NDMA_REQ2		6
-+#define OMAP_DMA_UWIRE_TX		7
-+#define OMAP_DMA_MCBSP1_TX		8
-+#define OMAP_DMA_MCBSP1_RX		9
-+#define OMAP_DMA_MCBSP3_TX		10
-+#define OMAP_DMA_MCBSP3_RX		11
-+#define OMAP_DMA_UART1_TX		12
-+#define OMAP_DMA_UART1_RX		13
-+#define OMAP_DMA_UART2_TX		14
-+#define OMAP_DMA_UART2_RX		15
-+#define OMAP_DMA_MCBSP2_TX		16
-+#define OMAP_DMA_MCBSP2_RX		17
-+#define OMAP_DMA_UART3_TX		18
-+#define OMAP_DMA_UART3_RX		19
-+#define OMAP_DMA_CAMERA_IF_RX		20
-+#define OMAP_DMA_MMC_TX			21
-+#define OMAP_DMA_MMC_RX			22
-+#define OMAP_DMA_NAND			23
-+#define OMAP_DMA_IRQ_LCD_LINE		24
-+#define OMAP_DMA_MEMORY_STICK		25
-+#define OMAP_DMA_USB_W2FC_RX0		26
-+#define OMAP_DMA_USB_W2FC_RX1		27
-+#define OMAP_DMA_USB_W2FC_RX2		28
-+#define OMAP_DMA_USB_W2FC_TX0		29
-+#define OMAP_DMA_USB_W2FC_TX1		30
-+#define OMAP_DMA_USB_W2FC_TX2		31
-+
-+/* These are only for 1610 */
-+#define OMAP_DMA_CRYPTO_DES_IN		32
-+#define OMAP_DMA_SPI_TX			33
-+#define OMAP_DMA_SPI_RX			34
-+#define OMAP_DMA_CRYPTO_HASH		35
-+#define OMAP_DMA_CCP_ATTN		36
-+#define OMAP_DMA_CCP_FIFO_NOT_EMPTY	37
-+#define OMAP_DMA_CMT_APE_TX_CHAN_0	38
-+#define OMAP_DMA_CMT_APE_RV_CHAN_0	39
-+#define OMAP_DMA_CMT_APE_TX_CHAN_1	40
-+#define OMAP_DMA_CMT_APE_RV_CHAN_1	41
-+#define OMAP_DMA_CMT_APE_TX_CHAN_2	42
-+#define OMAP_DMA_CMT_APE_RV_CHAN_2	43
-+#define OMAP_DMA_CMT_APE_TX_CHAN_3	44
-+#define OMAP_DMA_CMT_APE_RV_CHAN_3	45
-+#define OMAP_DMA_CMT_APE_TX_CHAN_4	46
-+#define OMAP_DMA_CMT_APE_RV_CHAN_4	47
-+#define OMAP_DMA_CMT_APE_TX_CHAN_5	48
-+#define OMAP_DMA_CMT_APE_RV_CHAN_5	49
-+#define OMAP_DMA_CMT_APE_TX_CHAN_6	50
-+#define OMAP_DMA_CMT_APE_RV_CHAN_6	51
-+#define OMAP_DMA_CMT_APE_TX_CHAN_7	52
-+#define OMAP_DMA_CMT_APE_RV_CHAN_7	53
-+#define OMAP_DMA_MMC2_TX		54
-+#define OMAP_DMA_MMC2_RX		55
-+#define OMAP_DMA_CRYPTO_DES_OUT		56
-+
-+#endif /* __OMAP1_DMA_CHANNEL_H */
-diff --git a/arch/arm/mach-omap1/lcd_dma.c b/arch/arm/mach-omap1/lcd_dma.c
-index ed42628..9a54d3b 100644
---- a/arch/arm/mach-omap1/lcd_dma.c
-+++ b/arch/arm/mach-omap1/lcd_dma.c
-@@ -32,6 +32,8 @@
- #include <mach/hardware.h>
- #include <mach/lcdc.h>
- 
-+#include "dma.h"
-+
- int omap_lcd_dma_running(void)
- {
- 	/*
-diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-index bdc2e75..b92f15a 100644
---- a/arch/arm/mach-omap1/mcbsp.c
-+++ b/arch/arm/mach-omap1/mcbsp.c
-@@ -27,6 +27,7 @@
- #include <mach/irqs.h>
- 
- #include "iomap.h"
-+#include "dma.h"
- 
- #define DPS_RSTCT2_PER_EN	(1 << 0)
- #define DSP_RSTCT2_WD_PER_EN	(1 << 1)
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index e413bd8..972897f 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -23,74 +23,8 @@
- 
- #include <linux/platform_device.h>
- 
--/*
-- * TODO: These dma channel defines should go away once all
-- * the omap drivers hwmod adapted.
-- */
--
- #define INT_DMA_LCD			25
- 
--/* DMA channels for omap1 */
--#define OMAP_DMA_NO_DEVICE		0
--#define OMAP_DMA_MCSI1_TX		1
--#define OMAP_DMA_MCSI1_RX		2
--#define OMAP_DMA_I2C_RX			3
--#define OMAP_DMA_I2C_TX			4
--#define OMAP_DMA_EXT_NDMA_REQ		5
--#define OMAP_DMA_EXT_NDMA_REQ2		6
--#define OMAP_DMA_UWIRE_TX		7
--#define OMAP_DMA_MCBSP1_TX		8
--#define OMAP_DMA_MCBSP1_RX		9
--#define OMAP_DMA_MCBSP3_TX		10
--#define OMAP_DMA_MCBSP3_RX		11
--#define OMAP_DMA_UART1_TX		12
--#define OMAP_DMA_UART1_RX		13
--#define OMAP_DMA_UART2_TX		14
--#define OMAP_DMA_UART2_RX		15
--#define OMAP_DMA_MCBSP2_TX		16
--#define OMAP_DMA_MCBSP2_RX		17
--#define OMAP_DMA_UART3_TX		18
--#define OMAP_DMA_UART3_RX		19
--#define OMAP_DMA_CAMERA_IF_RX		20
--#define OMAP_DMA_MMC_TX			21
--#define OMAP_DMA_MMC_RX			22
--#define OMAP_DMA_NAND			23
--#define OMAP_DMA_IRQ_LCD_LINE		24
--#define OMAP_DMA_MEMORY_STICK		25
--#define OMAP_DMA_USB_W2FC_RX0		26
--#define OMAP_DMA_USB_W2FC_RX1		27
--#define OMAP_DMA_USB_W2FC_RX2		28
--#define OMAP_DMA_USB_W2FC_TX0		29
--#define OMAP_DMA_USB_W2FC_TX1		30
--#define OMAP_DMA_USB_W2FC_TX2		31
--
--/* These are only for 1610 */
--#define OMAP_DMA_CRYPTO_DES_IN		32
--#define OMAP_DMA_SPI_TX			33
--#define OMAP_DMA_SPI_RX			34
--#define OMAP_DMA_CRYPTO_HASH		35
--#define OMAP_DMA_CCP_ATTN		36
--#define OMAP_DMA_CCP_FIFO_NOT_EMPTY	37
--#define OMAP_DMA_CMT_APE_TX_CHAN_0	38
--#define OMAP_DMA_CMT_APE_RV_CHAN_0	39
--#define OMAP_DMA_CMT_APE_TX_CHAN_1	40
--#define OMAP_DMA_CMT_APE_RV_CHAN_1	41
--#define OMAP_DMA_CMT_APE_TX_CHAN_2	42
--#define OMAP_DMA_CMT_APE_RV_CHAN_2	43
--#define OMAP_DMA_CMT_APE_TX_CHAN_3	44
--#define OMAP_DMA_CMT_APE_RV_CHAN_3	45
--#define OMAP_DMA_CMT_APE_TX_CHAN_4	46
--#define OMAP_DMA_CMT_APE_RV_CHAN_4	47
--#define OMAP_DMA_CMT_APE_TX_CHAN_5	48
--#define OMAP_DMA_CMT_APE_RV_CHAN_5	49
--#define OMAP_DMA_CMT_APE_TX_CHAN_6	50
--#define OMAP_DMA_CMT_APE_RV_CHAN_6	51
--#define OMAP_DMA_CMT_APE_TX_CHAN_7	52
--#define OMAP_DMA_CMT_APE_RV_CHAN_7	53
--#define OMAP_DMA_MMC2_TX		54
--#define OMAP_DMA_MMC2_RX		55
--#define OMAP_DMA_CRYPTO_DES_OUT		56
--
- /* DMA channels for 24xx */
- #define OMAP24XX_DMA_NO_DEVICE		0
- #define OMAP24XX_DMA_XTI_DMA		1	/* S_DMA_0 */
-diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
-index 4be26abf6c..11d7a29 100644
---- a/drivers/media/platform/omap/omap_vout_vrfb.c
-+++ b/drivers/media/platform/omap/omap_vout_vrfb.c
-@@ -22,6 +22,8 @@
- #include "omap_voutdef.h"
- #include "omap_voutlib.h"
- 
-+#define OMAP_DMA_NO_DEVICE	0
-+
- /*
-  * Function for allocating video buffers
-  */
-diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
-index fa08c76..3046dba 100644
---- a/drivers/media/platform/soc_camera/omap1_camera.c
-+++ b/drivers/media/platform/soc_camera/omap1_camera.c
-@@ -40,6 +40,7 @@
- #define DRIVER_NAME		"omap1-camera"
- #define DRIVER_VERSION		"0.0.2"
- 
-+#define OMAP_DMA_CAMERA_IF_RX		20
- 
- /*
-  * ---------------------------------------------------------------------------
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 48ad361..b2cf37b 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -84,6 +84,10 @@
- #define OMAP_MMC_CMDTYPE_AC	2
- #define OMAP_MMC_CMDTYPE_ADTC	3
- 
-+#define OMAP_DMA_MMC_TX		21
-+#define OMAP_DMA_MMC_RX		22
-+#define OMAP_DMA_MMC2_TX	54
-+#define OMAP_DMA_MMC2_RX	55
- 
- #define DRIVER_NAME "mmci-omap"
- 
-diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
-index 2a4749c..024c0b9 100644
---- a/drivers/usb/gadget/omap_udc.c
-+++ b/drivers/usb/gadget/omap_udc.c
-@@ -61,6 +61,8 @@
- #define	DRIVER_DESC	"OMAP UDC driver"
- #define	DRIVER_VERSION	"4 October 2004"
- 
-+#define OMAP_DMA_USB_W2FC_TX0		29
-+
- /*
-  * The OMAP UDC needs _very_ early endpoint setup:  before enabling the
-  * D+ pullup to allow enumeration.  That's too early for the gadget
+@@ -404,7 +404,6 @@ MACHINE_START(SX1, "OMAP310 based Siemens SX1")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap15xx_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= omap_sx1_init,
+ 	.init_late	= omap1_init_late,
+diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
+index ad75e34..1a21101 100644
+--- a/arch/arm/mach-omap1/board-voiceblue.c
++++ b/arch/arm/mach-omap1/board-voiceblue.c
+@@ -286,7 +286,6 @@ MACHINE_START(VOICEBLUE, "VoiceBlue OMAP5910")
+ 	.atag_offset	= 0x100,
+ 	.map_io		= omap15xx_map_io,
+ 	.init_early     = omap1_init_early,
+-	.reserve	= omap_reserve,
+ 	.init_irq	= omap1_init_irq,
+ 	.init_machine	= voiceblue_init,
+ 	.init_late	= omap1_init_late,
 -- 
 1.7.10.4
 
