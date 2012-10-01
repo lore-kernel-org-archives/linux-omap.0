@@ -1,87 +1,59 @@
-From: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
-Subject: Re: [PATCH] usb: otg: Resolving a config conflict between
- omap4030_usb/omap6030 and usb_musb_omap2plus
-Date: Mon, 1 Oct 2012 11:31:11 +0200 (CEST)
-Message-ID: <alpine.DEB.2.01.1210011122540.3150@pmeerw.net>
-References: <1349082638-6380-1-git-send-email-jrm.kurtz@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Help needed with remaining plat headers
+Date: Mon, 01 Oct 2012 12:34:07 +0300
+Message-ID: <5069638F.1000402@ti.com>
+References: <20120920232907.GN28835@atomide.com> <20120927202615.GS4840@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9F522B@DBDE01.ent.ti.com> <CAJ1gdcaU2AcbAJvkFKFGdscZfzMMQRuAmjk6Nf+p-EGhRx4+GQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1349082638-6380-1-git-send-email-jrm.kurtz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jerome Kurtz <jrm.kurtz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, anisse-fwwRqrJYcP2HXe+LvDLADg@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:39881 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752538Ab2JAJc6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 05:32:58 -0400
+Received: by obbuo13 with SMTP id uo13so4732442obb.19
+        for <linux-omap@vger.kernel.org>; Mon, 01 Oct 2012 02:32:57 -0700 (PDT)
+In-Reply-To: <CAJ1gdcaU2AcbAJvkFKFGdscZfzMMQRuAmjk6Nf+p-EGhRx4+GQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Vutla, Lokesh" <lokeshvutla@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>
 
-Hello,
+Hi,
 
-> From: Jerome Kurtz <jrm.kurtz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> 
-> When I try to compile with TWL6030_USB=y, TWL4030_USB=y and
-> USB_MUSB_OMAP2PLUS=m, I get the following error:
+On 09/28/2012 09:58 AM, Vutla, Lokesh wrote:
+> Hi,
+> I see a module build failure in linux-next tree.
+> Any one else facing this issue or I am missing something.
+> Using master branch on
+> git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+> Below is the log .
+>=20
+> $ make modules -j 10
+> ERROR: "snd_hwparams_to_dma_slave_config"
+> [sound/soc/omap/snd-soc-omap.ko] undefined!
+> ERROR: "snd_dmaengine_pcm_pointer" [sound/soc/omap/snd-soc-omap.ko] u=
+ndefined!
+> ERROR: "snd_dmaengine_pcm_open" [sound/soc/omap/snd-soc-omap.ko] unde=
+fined!
+> ERROR: "snd_dmaengine_pcm_close" [sound/soc/omap/snd-soc-omap.ko] und=
+efined!
+> ERROR: "snd_dmaengine_pcm_get_chan" [sound/soc/omap/snd-soc-omap.ko] =
+undefined!
+> ERROR: "snd_dmaengine_pcm_trigger" [sound/soc/omap/snd-soc-omap.ko] u=
+ndefined!
+> make[1]: *** [__modpost] Error 1
+> make: *** [modules] Error 2
 
-there is an earlier patch here: 
-https://patchwork.kernel.org/patch/1370291/
+I have sent a patch fixing this (which also affect other platforms as w=
+ell):
+http://mailman.alsa-project.org/pipermail/alsa-devel/2012-October/05590=
+2.html
 
-and an alternative fix here: 
-https://patchwork.kernel.org/patch/1409671/
-
-regards, p.
-
-
-> drivers/built-in.o: In function `twl4030_usb_irq':
-> /home/xxx/kernel/linux/drivers/usb/otg/twl4030-usb.c:518: undefined
-> reference to `omap_musb_mailbox'
-> drivers/built-in.o: In function `twl6030_usb_irq':
-> /home/xxx/kernel/linux/drivers/usb/otg/twl6030-usb.c:272: undefined
-> reference to `omap_musb_mailbox'
-> /home/xxx/kernel/linux/drivers/usb/otg/twl6030-usb.c:277: undefined
-> reference to `omap_musb_mailbox'
-> drivers/built-in.o: In function `twl6030_usbotg_irq':
-> /home/xxx/kernel/linux/drivers/usb/otg/twl6030-usb.c:306: undefined
-> reference to `omap_musb_mailbox'
-> drivers/built-in.o: In function `twl4030_usb_phy_init':
-> /home/xxx/kernel/linux/drivers/usb/otg/twl4030-usb.c:540: undefined
-> reference to `omap_musb_mailbox'
-> make: *** [vmlinux] Error 1
-> 
-> To solve this we must add to depends of TWL4030_USB and TWL6030_USB
-> the option : USB_MUSB_OMAP2PLUS as done here.
-> 
-> Signed-off-by: Jerome Kurtz <jrm.kurtz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/usb/otg/Kconfig |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
-> index 13fd1ddf..62ea57b 100644
-> --- a/drivers/usb/otg/Kconfig
-> +++ b/drivers/usb/otg/Kconfig
-> @@ -58,7 +58,7 @@ config USB_ULPI_VIEWPORT
->  
->  config TWL4030_USB
->  	tristate "TWL4030 USB Transceiver Driver"
-> -	depends on TWL4030_CORE && REGULATOR_TWL4030
-> +	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
->  	select USB_OTG_UTILS
->  	help
->  	  Enable this to support the USB OTG transceiver on TWL4030
-> @@ -68,7 +68,7 @@ config TWL4030_USB
->  
->  config TWL6030_USB
->  	tristate "TWL6030 USB Transceiver Driver"
-> -	depends on TWL4030_CORE
-> +	depends on TWL4030_CORE &&  USB_MUSB_OMAP2PLUS
->  	select USB_OTG_UTILS
->  	help
->  	  Enable this to support the USB OTG transceiver on TWL6030
-> 
-
--- 
-
-Peter Meerwald
-+43-664-2444418 (mobile)
+--=20
+P=E9ter
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
