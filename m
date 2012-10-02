@@ -1,31 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.6-rc7
-Date: Mon, 1 Oct 2012 23:28:09 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210012318460.26402@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1209241919130.25811@utopia.booyaka.com> <50645A1D.5040108@compulab.co.il>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Beagleboard xM crashes when being set to 800MHz with smartreflex on linux-omap-3.6-rc6
+Date: Mon, 01 Oct 2012 17:00:25 -0700
+Message-ID: <87391xbv52.fsf@deeprootsystems.com>
+References: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:55050 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753785Ab2JAX2K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 19:28:10 -0400
-In-Reply-To: <50645A1D.5040108@compulab.co.il>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:64516 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757723Ab2JBAA1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Oct 2012 20:00:27 -0400
+Received: by pbbrr4 with SMTP id rr4so8234597pbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 01 Oct 2012 17:00:27 -0700 (PDT)
+In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
+	(Maximilian Schwerin's message of "Fri, 21 Sep 2012 08:45:16 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Maximilian Schwerin <Maximilian.Schwerin@tigris.de>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, 27 Sep 2012, Igor Grinberg wrote:
+"Maximilian Schwerin" <Maximilian.Schwerin@tigris.de> writes:
 
-> Have you tried the nohlt boot parameter?
-> It looks like the wfi is killing those SoCs once you use EMAC.
+> Hi,
+>
+> I've just built a linux-omap kernel at 3.6-rc6 using omap2plus_defconfig
+> as basis for the kernel config.
+>
+> When I enable smartreflex and switch to 800MHz via
+>
+> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
+> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
+> cpufreq-set -f 800MHz
+>
+> the board crashes. If I switch to 800MHz and enable smartreflex later
+> nothing happens. This used to work in my 3.3 based kernel.
 
-Just tried with nohlt.  Didn't help on CM-T3517 with either NFS or MMC 
-root, nor with the 3517EVM with NFS root.  But I was able to get the 
-3517EVM booting to userspace with MMC root.  Looks like the CM-T3517 board 
-file is missing the MMC setup code, so would guess that adding that back 
-in would help.
+SmartReflex is kwown to be unstable in mainline and there are several
+errata that still need fixing for it to be stable.
+
+I strongly recommend you simply leave SR disabled.
+
+Kevin
 
 
- - Paul
