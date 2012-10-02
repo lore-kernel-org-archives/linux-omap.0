@@ -1,63 +1,140 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [PATCHv3 1/4] mfd: smsc: Add support for smsc gpio io/keypad driver
-Date: Wed, 3 Oct 2012 00:42:12 +0530
-Message-ID: <CAAe_U6LFOzSe9PDnFhjk4G5vXjoz3QSBM99NL4okjq2s5V0t3Q@mail.gmail.com>
-References: <1349089282-22105-1-git-send-email-sourav.poddar@ti.com>
-	<CAAe_U6+zEGuwMC1yn7O=LXE6PhPvPc2i7DCF0EAprkE8s+-iEw@mail.gmail.com>
-	<20121001114454.GA9170@sirena.org.uk>
-	<CAAe_U6JX9QDWvWA3KH7E9sOv0EHGkozVONuXDgn+a2MZ4GTE7Q@mail.gmail.com>
-	<20121001120907.GK4360@opensource.wolfsonmicro.com>
-	<CAAe_U6K6nAjsZUOk2rBFweWHtJmcLF7EJDpu9O6FXrq3tzv3yg@mail.gmail.com>
-	<20121002123856.GX4360@opensource.wolfsonmicro.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] ASoC: ams-delta: Convert to use
+	snd_soc_register_card()
+Date: Tue, 02 Oct 2012 23:07:30 +0200
+Message-ID: <3016923.ExzrZjbreL@vclass>
+References: <20120906073633.GC22330@opensource.wolfsonmicro.com>
+ <1347823023-24922-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:33921 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751204Ab2JBTMO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Oct 2012 15:12:14 -0400
-Received: by vcbfo13 with SMTP id fo13so7366287vcb.19
-        for <linux-omap@vger.kernel.org>; Tue, 02 Oct 2012 12:12:13 -0700 (PDT)
-In-Reply-To: <20121002123856.GX4360@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1347823023-24922-1-git-send-email-jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com, sameo@linux.intel.com
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tue, Oct 2, 2012 at 6:08 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Mon, Oct 01, 2012 at 08:54:23PM +0530, ABRAHAM, KISHON VIJAY wrote:
->> On Mon, Oct 1, 2012 at 5:39 PM, Mark Brown
->
->> > Why would that be helpful?  Most platforms don't support DT at all, and
->
->> I'm not sure how to put it correctly. All I'm trying to tell is mfd is
->> a framework that exposes a set of API's to create and remove a device
->> among others. If a mfd child device is not created using mfd API,
->> it'll be unfair to expect that child be removed properly using mfd
->> API. Like in this patch, the device is created using
->> of_platform_populate (not a mfd API) but is removed using
->> mfd_remove_devices (mfd API) [which should result in an abort].
->
-> That doesn't sound terribly clever, no, though it's not immediately
-> clear to me if the non-clever bit is using mfd_remove_devices() or
-> of_platform_populate().
->
->> This means mfd framework does not have an API to create a device from
->> dt data or so do I think since of_platform_populate() is used. Thats
->> why I suggested the idea of extending mfd_add_devices() (or adding a
->> new API in mfd framework) to create child devices from dt data so that
->> we'll have API's in mfd framework to both create and delete a device.
->
-> The trouble that always exists with representing MFD children in DT is
-> that unless you've got a usefully reusable IP block which is clearly
-> separate from the chip integration you end up essentially just dumping
-> the Linux data structures into DT which often doesn't leave you with
-> something which describes the hardware.
-
-indeed!
-
-Thanks
-Kishon
+RG5pYSBuaWVkemllbGEsIDE2IHdyemXFm25pYSAyMDEyIDIxOjE3OjAzIEphbnVzeiBLcnp5c3p0
+b2ZpayBwaXN6ZToKPiBUaGUgb2xkIG1ldGhvZCBvZiByZWdpc3RlcmluZyB3aXRoIHRoZSBBU29D
+IGNvcmUgYnkgY3JlYXRpbmcgYQo+ICJzb2MtYXVkaW8iIHBsYXRmb3JtIGRldmljZSBubyBsb25n
+ZXIgd29ya3MgZm9yIEFtc3RyYWQgRGVsdGEgc291bmQgY2FyZAo+IGFmdGVyIHJlY2VudCBjaGFu
+Z2VzIHRvIGRydmRhdGEgaGFuZGxpbmcgKGNvbW1pdAo+IDA5OThkMDYzMTAwMTI4OGE1OTc0YWZj
+MGIyYTVmNTY4YmNkZWNiNGQsICdkZXZpY2UtY29yZTogRW5zdXJlIGRydmRhdGEgPQo+IE5VTEwg
+d2hlbiBubyBkcml2ZXIgaXMgYm91bmQnLgo+IAo+IFVzZSBzbmRfc29jX3JlZ2lzdGVyX2NhcmQo
+KSBtZXRob2QgaW5zdGVhZCwgYXMgc3VnZ2VzdGVkIGJ5IHRoZSBBU29DCj4gY29yZSBnZW5lcmF0
+ZWQgd2FybmluZyBtZXNzYWdlLCBhbmQgbW92ZSBib3RoIHRoZSBjYXJkIGFuZCBjb2RlYwo+IHBs
+YXRmb3JtIGRldmljZSByZWdpc3RyYXRpb24gdG8gdGhlIGFyY2ggYm9hcmQgZmlsZSB3aGVyZSB0
+aG9zZSBiZWxvbmcuCgpIaSBNYXJrLApJcyBzb21ldGhpbmcgd3Jvbmcgd2l0aCB0aGlzIHBhdGNo
+PyBBbnkgY2hhbmNlIGZvciBpdCB0byBmaW5kIGl0cyB3YXkgaW50byAzLjc/CgpUaGFua3MsCkph
+bnVzegoKPiBDcmVhdGVkIGFuZCB0ZXN0ZWQgYWdhaW5zdCBsaW51eC0zLjYtcmM1Lgo+IAo+IFNp
+Z25lZC1vZmYtYnk6IEphbnVzeiBLcnp5c3p0b2ZpayA8amtyenlzenRAdGlzLmljbmV0LnBsPgo+
+IC0tLQo+IE9uIFRodSwgNiBTZXAgMjAxMiAxNTozNjozNSBNYXJrIEJyb3duIHdyb3RlOgo+ID4g
+T24gU2F0LCBTZXAgMDEsIDIwMTIgYXQgMTE6MDk6MThBTSArMDIwMCwgSmFudXN6IEtyenlzenRv
+ZmlrIHdyb3RlOgo+ID4gCj4gPiA+IEkgc2VlIHlvdXIgcG9pbnQsIGhvd2V2ZXIgZm9yIG5vdyBJ
+IGNhbiBzZWUgbm8gYmV0dGVyIHdheSBvZiByZWZlcmVuY2luZyAKPiA+ID4gdGhlIGRhdGEgKG9m
+IHR5cGUgc3RydWN0IHNuZF9zb2NfY2FyZCkgdGhlbiBwYXNzaW5nIGl0IHRvIAo+ID4gPiBzbmRf
+c29jX3JlZ2lzdGVyX2NhcmQoKS4gQnV0IGZvciB0aGlzIHRvIHdvcmssIEkgd291bGQgaGF2ZSB0
+byByZWdpc3RlciAKPiA+ID4gc3VjY2Vzc2Z1bGx5IGFuIGFtcy1kZWx0YSBzcGVjaWZpYyBwbGF0
+Zm9ybSBkZXZpY2UgZmlyc3QsIG5vdCB0aGUgc29jLQo+ID4gPiBhdWRpby4gVGhpcywgZXZlbiBp
+ZiBzdGlsbCBkb25lIGZyb20gdGhlIHNvdW5kL3NvYy9vbWFwL2Ftcy1kZWx0YS5jLCBub3QgCj4g
+PiA+IGZyb20gYW4gYXJjaCBib2FyZCBmaWxlLCB3b3VsZCByZXF1aXJlIG5vdyBub3QgZXhpc3Rp
+bmcgYW1zLWRlbHRhIEFTb0MgCj4gPiA+IHBsYXRmb3JtIGRyaXZlciBwcm9iZS9yZW1vdmUgY2Fs
+bGJhY2tzIGF0IGxlYXN0LiBJJ20gc3RpbGwgbm90IGNvbnZpbmNlZCAKPiA+ID4gaWYgc3VjaCBt
+b2RpZmljYXRpb24gd291bGQgYmUgYWNjZXB0YWJsZSBpbiB0aGUgbWlkZGxlIG9mIHRoZSByYyBj
+eWNsZS4KPiA+IAo+ID4gPiBJZiB0aGVyZSBpcyBhIHNpbXBsZXIsIGxlc3MgaW50cnVzaXZlIHdh
+eSB0byBkbyB0aGlzLCB0aGVuIHNvcnJ5LCBJIAo+ID4gPiBzdGlsbCBjYW4ndCBzZWUgaXQuCj4g
+PiAKPiA+IExpa2UgSSBhbHJlYWR5IHNhaWQganVzdCBtYWtlIGl0IGEgc3RhdGljIHZhcmlhYmxl
+Lgo+IAo+IE1hcmssCj4gU29ycnksIEkgd2FzIHN0aWxsIG5vdCBhYmxlIHRvIHVuZGVyc3RhbmQg
+d2hhdCB5b3UgYWN0dWFsbHkgbWVhbnQsIGFuZAo+IHRvIGNvbWUgb3V0IHdpdGggYSB3b3JraW5n
+IGZpeCBvdGhlciB0aGFuIEkgaW5pdGlhbGx5IHByb3Bvc2VkLiBJZiB3aGF0Cj4gSSd2ZSBwcmVw
+YXJlZCBub3cgaXMgbm90IGFjY2VwdGFibGUgYXMgYSBmaXgsIHRoYW4gaGFyZCBsdWNrLCBwbGVh
+c2UKPiBjb25zaWRlciBxdWV1ZWluZyBpdCBmb3IgMy43LCBhbmQgMy42IG11c3QgZ28gd2l0aCBB
+bXN0cmFkIERlbHRhIHNvdW5kCj4gbm90IHdvcmtpbmcgdW5sZXNzIHNvbWVvbmUgZWxzZSBpcyBz
+dGlsbCBhYmxlIHRvIGZpeCBpdC4KPiAKPiBUb255LAo+IFBsZWFzZSBnaXZlIHlvdXIgYWNrIG9u
+IHRoZSBhcmNoL2FybS9tYWNoLW9tYXAxIGJpdHMgaWYgYWNjZXB0YWJsZS4gSQo+IGJlbGlldmUg
+dGhlcmUgc2hvdWxkIGJlIG5vIG1lcmdlIGNvbmZsaWN0cyBpZiB0aGlzIGNoYW5nZSBnb2VzIHRo
+cm91Z2gKPiBzb3VuZC9zb2MuCj4gCj4gVGhhbmtzLAo+IEphbnVzego+IAo+ICBhcmNoL2FybS9t
+YWNoLW9tYXAxL2JvYXJkLWFtcy1kZWx0YS5jIHwgICAxMiArKysrKysKPiAgc291bmQvc29jL29t
+YXAvYW1zLWRlbHRhLmMgICAgICAgICAgICB8ICAgNjMgKysrKysrKysrKysrKysrLS0tLS0tLS0t
+LS0tLS0tLS0KPiAgMiBmaWxlcyBjaGFuZ2VkLCA0MiBpbnNlcnRpb25zKCspLCAzMyBkZWxldGlv
+bnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1hbXMtZGVs
+dGEuYyBiL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtYW1zLWRlbHRhLmMKPiBpbmRleCBjNTM0
+Njk4Li41YWI5YzZiIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtYW1z
+LWRlbHRhLmMKPiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWFtcy1kZWx0YS5jCj4g
+QEAgLTQ0NCwxNiArNDQ0LDI4IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcDFfY2FtX3BsYXRmb3JtX2Rh
+dGEgYW1zX2RlbHRhX2NhbWVyYV9wbGF0Zm9ybV9kYXRhID0gewo+ICAJLmxjbGtfa2h6X21heAk9
+IDEzMzQsCQkvKiByZXN1bHRzIGluIDVmcHMgQ0lGLCAxMGZwcyBRQ0lGICovCj4gIH07Cj4gIAo+
+ICtzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSBhbXNfZGVsdGFfYXVkaW9fZGV2aWNlID0g
+ewo+ICsJLm5hbWUgICA9ICJhbXMtZGVsdGEtYXVkaW8iLAo+ICsJLmlkICAgICA9IC0xLAo+ICt9
+Owo+ICsKPiArc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgY3gyMDQ0Ml9jb2RlY19kZXZp
+Y2UgPSB7Cj4gKwkubmFtZSAgID0gImN4MjA0NDItY29kZWMiLAo+ICsJLmlkICAgICA9IC0xLAo+
+ICt9Owo+ICsKPiAgc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmFtc19kZWx0YV9kZXZp
+Y2VzW10gX19pbml0ZGF0YSA9IHsKPiAgCSZsYXRjaDFfZ3Bpb19kZXZpY2UsCj4gIAkmbGF0Y2gy
+X2dwaW9fZGV2aWNlLAo+ICAJJmFtc19kZWx0YV9rcF9kZXZpY2UsCj4gIAkmYW1zX2RlbHRhX2Nh
+bWVyYV9kZXZpY2UsCj4gKwkmYW1zX2RlbHRhX2F1ZGlvX2RldmljZSwKPiAgfTsKPiAgCj4gIHN0
+YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpsYXRlX2RldmljZXNbXSBfX2luaXRkYXRhID0g
+ewo+ICAJJmFtc19kZWx0YV9uYW5kX2RldmljZSwKPiAgCSZhbXNfZGVsdGFfbGNkX2RldmljZSwK
+PiArCSZjeDIwNDQyX2NvZGVjX2RldmljZSwKPiAgfTsKPiAgCj4gIHN0YXRpYyB2b2lkIF9faW5p
+dCBhbXNfZGVsdGFfaW5pdCh2b2lkKQo+IGRpZmYgLS1naXQgYS9zb3VuZC9zb2Mvb21hcC9hbXMt
+ZGVsdGEuYyBiL3NvdW5kL3NvYy9vbWFwL2Ftcy1kZWx0YS5jCj4gaW5kZXggN2Q0ZmE4ZS4uN2Ix
+OGI3NCAxMDA2NDQKPiAtLS0gYS9zb3VuZC9zb2Mvb21hcC9hbXMtZGVsdGEuYwo+ICsrKyBiL3Nv
+dW5kL3NvYy9vbWFwL2Ftcy1kZWx0YS5jCj4gQEAgLTU3NSw1NiArNTc1LDUzIEBAIHN0YXRpYyBz
+dHJ1Y3Qgc25kX3NvY19jYXJkIGFtc19kZWx0YV9hdWRpb19jYXJkID0gewo+ICB9Owo+ICAKPiAg
+LyogTW9kdWxlIGluaXQvZXhpdCAqLwo+IC1zdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSAq
+YW1zX2RlbHRhX2F1ZGlvX3BsYXRmb3JtX2RldmljZTsKPiAtc3RhdGljIHN0cnVjdCBwbGF0Zm9y
+bV9kZXZpY2UgKmN4MjA0NDJfcGxhdGZvcm1fZGV2aWNlOwo+IC0KPiAtc3RhdGljIGludCBfX2lu
+aXQgYW1zX2RlbHRhX21vZHVsZV9pbml0KHZvaWQpCj4gK3N0YXRpYyBfX2RldmluaXQgaW50IGFt
+c19kZWx0YV9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICB7Cj4gKwlzdHJ1
+Y3Qgc25kX3NvY19jYXJkICpjYXJkID0gJmFtc19kZWx0YV9hdWRpb19jYXJkOwo+ICAJaW50IHJl
+dDsKPiAgCj4gLQlpZiAoIShtYWNoaW5lX2lzX2Ftc19kZWx0YSgpKSkKPiAtCQlyZXR1cm4gLUVO
+T0RFVjsKPiAtCj4gLQlhbXNfZGVsdGFfYXVkaW9fcGxhdGZvcm1fZGV2aWNlID0KPiAtCQkJcGxh
+dGZvcm1fZGV2aWNlX2FsbG9jKCJzb2MtYXVkaW8iLCAtMSk7Cj4gLQlpZiAoIWFtc19kZWx0YV9h
+dWRpb19wbGF0Zm9ybV9kZXZpY2UpCj4gLQkJcmV0dXJuIC1FTk9NRU07Cj4gKwljYXJkLT5kZXYg
+PSAmcGRldi0+ZGV2Owo+ICAKPiAtCXBsYXRmb3JtX3NldF9kcnZkYXRhKGFtc19kZWx0YV9hdWRp
+b19wbGF0Zm9ybV9kZXZpY2UsCj4gLQkJCQkmYW1zX2RlbHRhX2F1ZGlvX2NhcmQpOwo+IC0KPiAt
+CXJldCA9IHBsYXRmb3JtX2RldmljZV9hZGQoYW1zX2RlbHRhX2F1ZGlvX3BsYXRmb3JtX2Rldmlj
+ZSk7Cj4gLQlpZiAocmV0KQo+IC0JCWdvdG8gZXJyOwo+IC0KPiAtCS8qCj4gLQkgKiBDb2RlYyBw
+bGF0Zm9ybSBkZXZpY2UgY291bGQgYmUgcmVnaXN0ZXJlZCBmcm9tIGVsc2V3aGVyZSAoYm9hcmQ/
+KSwKPiAtCSAqIGJ1dCBJIGRvIGl0IGhlcmUgYXMgaXQgbWFrZXMgc2Vuc2Ugb25seSBpZiB1c2Vk
+IHdpdGggdGhlIGNhcmQuCj4gLQkgKi8KPiAtCWN4MjA0NDJfcGxhdGZvcm1fZGV2aWNlID0KPiAt
+CQlwbGF0Zm9ybV9kZXZpY2VfcmVnaXN0ZXJfc2ltcGxlKCJjeDIwNDQyLWNvZGVjIiwgLTEsIE5V
+TEwsIDApOwo+ICsJcmV0ID0gc25kX3NvY19yZWdpc3Rlcl9jYXJkKGNhcmQpOwo+ICsJaWYgKHJl
+dCkgewo+ICsJCWRldl9lcnIoJnBkZXYtPmRldiwgInNuZF9zb2NfcmVnaXN0ZXJfY2FyZCBmYWls
+ZWQgKCVkKVxuIiwgcmV0KTsKPiArCQljYXJkLT5kZXYgPSBOVUxMOwo+ICsJCXJldHVybiByZXQ7
+Cj4gKwl9Cj4gIAlyZXR1cm4gMDsKPiAtZXJyOgo+IC0JcGxhdGZvcm1fZGV2aWNlX3B1dChhbXNf
+ZGVsdGFfYXVkaW9fcGxhdGZvcm1fZGV2aWNlKTsKPiAtCXJldHVybiByZXQ7Cj4gIH0KPiAtbGF0
+ZV9pbml0Y2FsbChhbXNfZGVsdGFfbW9kdWxlX2luaXQpOwo+ICAKPiAtc3RhdGljIHZvaWQgX19l
+eGl0IGFtc19kZWx0YV9tb2R1bGVfZXhpdCh2b2lkKQo+ICtzdGF0aWMgaW50IF9fZGV2ZXhpdCBh
+bXNfZGVsdGFfcmVtb3ZlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4gIHsKPiArCXN0
+cnVjdCBzbmRfc29jX2NhcmQgKmNhcmQgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKPiAr
+Cj4gIAlpZiAodHR5X3VucmVnaXN0ZXJfbGRpc2MoTl9WMjUzKSAhPSAwKQo+IC0JCWRldl93YXJu
+KCZhbXNfZGVsdGFfYXVkaW9fcGxhdGZvcm1fZGV2aWNlLT5kZXYsCj4gKwkJZGV2X3dhcm4oJnBk
+ZXYtPmRldiwKPiAgCQkJImZhaWxlZCB0byB1bnJlZ2lzdGVyIFYyNTMgbGluZSBkaXNjaXBsaW5l
+XG4iKTsKPiAgCj4gIAlzbmRfc29jX2phY2tfZnJlZV9ncGlvcygmYW1zX2RlbHRhX2hvb2tfc3dp
+dGNoLAo+ICAJCQlBUlJBWV9TSVpFKGFtc19kZWx0YV9ob29rX3N3aXRjaF9ncGlvcyksCj4gIAkJ
+CWFtc19kZWx0YV9ob29rX3N3aXRjaF9ncGlvcyk7Cj4gIAo+IC0JcGxhdGZvcm1fZGV2aWNlX3Vu
+cmVnaXN0ZXIoY3gyMDQ0Ml9wbGF0Zm9ybV9kZXZpY2UpOwo+IC0JcGxhdGZvcm1fZGV2aWNlX3Vu
+cmVnaXN0ZXIoYW1zX2RlbHRhX2F1ZGlvX3BsYXRmb3JtX2RldmljZSk7Cj4gKwlzbmRfc29jX3Vu
+cmVnaXN0ZXJfY2FyZChjYXJkKTsKPiArCWNhcmQtPmRldiA9IE5VTEw7Cj4gKwlyZXR1cm4gMDsK
+PiAgfQo+IC1tb2R1bGVfZXhpdChhbXNfZGVsdGFfbW9kdWxlX2V4aXQpOwo+ICsKPiArI2RlZmlu
+ZSBEUlZfTkFNRSAiYW1zLWRlbHRhLWF1ZGlvIgo+ICsKPiArc3RhdGljIHN0cnVjdCBwbGF0Zm9y
+bV9kcml2ZXIgYW1zX2RlbHRhX2RyaXZlciA9IHsKPiArCS5kcml2ZXIgPSB7Cj4gKwkJLm5hbWUg
+PSBEUlZfTkFNRSwKPiArCQkub3duZXIgPSBUSElTX01PRFVMRSwKPiArCX0sCj4gKwkucHJvYmUg
+PSBhbXNfZGVsdGFfcHJvYmUsCj4gKwkucmVtb3ZlID0gX19kZXZleGl0X3AoYW1zX2RlbHRhX3Jl
+bW92ZSksCj4gK307Cj4gKwo+ICttb2R1bGVfcGxhdGZvcm1fZHJpdmVyKGFtc19kZWx0YV9kcml2
+ZXIpOwo+ICAKPiAgTU9EVUxFX0FVVEhPUigiSmFudXN6IEtyenlzenRvZmlrIDxqa3J6eXN6dEB0
+aXMuaWNuZXQucGw+Iik7Cj4gIE1PRFVMRV9ERVNDUklQVElPTigiQUxTQSBTb0MgZHJpdmVyIGZv
+ciBBbXN0cmFkIEUzIChEZWx0YSkgdmlkZW9waG9uZSIpOwo+ICBNT0RVTEVfTElDRU5TRSgiR1BM
+Iik7Cj4gK01PRFVMRV9BTElBUygicGxhdGZvcm06IiBEUlZfTkFNRSk7Cj4gCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBs
+aXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9yZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2pl
+Y3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1kZXZlbAo=
