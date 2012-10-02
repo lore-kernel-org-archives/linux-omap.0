@@ -1,98 +1,37 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH v2 8/9] ARM: OMAP: iommu: add device tree support
-Date: Tue, 2 Oct 2012 17:25:23 -0400
-Message-ID: <20121002212523.GA11180@beef>
-References: <1347479152-588-1-git-send-email-omar.luna@linaro.org>
- <1347479152-588-9-git-send-email-omar.luna@linaro.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] ARM: OMAP: omap_device: fix return value check in omap_device_build_ss()
+Date: Tue, 02 Oct 2012 14:36:52 -0700
+Message-ID: <87lifo8sjv.fsf@deeprootsystems.com>
+References: <CAPgLHd8ys7uU8wBhMF7JWZEDAddOnGo4vHPu1V_+Q3__WWK-3g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1347479152-588-9-git-send-email-omar.luna@linaro.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:64263 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756548Ab2JBVgw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Oct 2012 17:36:52 -0400
+Received: by padhz1 with SMTP id hz1so5639563pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 02 Oct 2012 14:36:52 -0700 (PDT)
+In-Reply-To: <CAPgLHd8ys7uU8wBhMF7JWZEDAddOnGo4vHPu1V_+Q3__WWK-3g@mail.gmail.com>
+	(Wei Yongjun's message of "Fri, 21 Sep 2012 14:32:04 +0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, grant.likely@secretlab.ca, rob.herring@calxeda.com, yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Wed, Sep 12, 2012 at 02:45:51PM -0500, Omar Ramirez Luna wrote:
-> Adapt driver to use DT if provided.
+Wei Yongjun <weiyj.lk@gmail.com> writes:
 
-Hi Omar,
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> In case of error, the function omap_device_alloc() returns ERR_PTR()
+> and never returns NULL pointer. The NULL test in the return value
+> check should be replaced with IS_ERR().
+>
+> dpatch engine is used to auto generated this patch.
+> (https://github.com/weiyj/dpatch)
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-I'm interested in making use of the assert/deassert APIs you exposed in
-this series on AM335x for the pruss hwmod which has one hardreset
-line. I have the same situation where I need to get it deasserted before
-I do any runtime PM. See my comments below...
+Thanks, queueing this for v3.7-rc.
 
-> +static int __devinit
-> +iommu_add_platform_data_from_dt(struct platform_device *pdev)
-> +{
-> +	struct iommu_platform_data *pdata;
-> +	struct device_node *node = pdev->dev.of_node;
-> +	struct omap_hwmod *oh;
-> +	struct omap_mmu_dev_attr *a;
-> +	int ret = 0;
-> +
-> +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		return -ENOMEM;
-> +
-> +	of_property_read_string(node, "ti,hwmods", &pdata->name);
-> +	oh = omap_hwmod_lookup(pdata->name);
-> +	if (!oh) {
-> +		dev_err(&pdev->dev, "Cannot lookup hwmod '%s'\n", pdata->name);
-> +		ret = -ENODEV;
-> +		goto out;
-> +	}
-> +
-> +	a = (struct omap_mmu_dev_attr *)oh->dev_attr;
-> +	pdata->nr_tlb_entries = a->nr_tlb_entries;
-> +	pdata->da_start = a->da_start;
-> +	pdata->da_end = a->da_end;
-> +
-> +	if (oh->rst_lines_cnt == 1) {
-> +		pdata->reset_name = oh->rst_lines->name;
-> +		pdata->assert_reset = omap_device_assert_hardreset;
-> +		pdata->deassert_reset = omap_device_deassert_hardreset;
-> +	}
-> +
-> +	ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
-> +	if (ret)
-> +		dev_err(&pdev->dev, "Cannot add pdata for %s\n", pdata->name);
-> +
-> +out:
-> +	kfree(pdata);
-> +
-> +	return ret;
-> +}
-
-I can see why you went this path with the iommu driver as it already had
-some integration code present here. I have some concerns going forward
-about how this should be long-term. Take any platform booting only with
-DT populated, we'd like to avoid having to use this approach where
-platform private APIs are called via pdata. In fact, it's going to makes
-thing ugly to carry any sort of pdata for a driver that's otherwise
-driven exclusively from DT.
-
-For AM335x, I can implement this approach, but it means adding some
-pruss specific integration code just to have it create the pdata for
-reset_name and assert/deassert.
-
->From reading all the threads on hardresets and OMAP, it seems we may not
-be able to come up with a generic OMAP handler for these resets and
-that's really reflected in the fact that this API exists. So given that,
-it reasons that OMAP isn't the only one needing a reset API for drivers.
-I'm thinking that (as trivial as it may seem), this support may need to
-move to a reset subsystem such that drivers have a clean way to access
-reset resources in an SoC.
-
-I'm curious if you or others have thought about where this needs to go
-next. When I first thought about a reset subsystem it seemed to trivial
-to bother with but looking at the reasoning behind the power_seq
-subsystem, it seems to have similar justification to get this machine
-specific logic out of the platform code and under standardized control
-of the driver. We have resources that are manipulated outside of the IP
-block but need to be controlled at the driver level and probably should
-have a common driver API that isn't OMAP specific and tied to pdata.
-
--Matt
+Kevin
