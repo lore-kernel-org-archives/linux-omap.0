@@ -1,111 +1,86 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv3 1/4] mfd: smsc: Add support for smsc gpio io/keypad
- driver
-Date: Tue, 2 Oct 2012 16:44:02 +0300
-Message-ID: <20121002134400.GA12125@arwen.pp.htv.fi>
-References: <1349089282-22105-1-git-send-email-sourav.poddar@ti.com>
- <CAAe_U6+zEGuwMC1yn7O=LXE6PhPvPc2i7DCF0EAprkE8s+-iEw@mail.gmail.com>
- <20121001114454.GA9170@sirena.org.uk>
- <CAAe_U6JX9QDWvWA3KH7E9sOv0EHGkozVONuXDgn+a2MZ4GTE7Q@mail.gmail.com>
- <20121001120907.GK4360@opensource.wolfsonmicro.com>
- <CAAe_U6K6nAjsZUOk2rBFweWHtJmcLF7EJDpu9O6FXrq3tzv3yg@mail.gmail.com>
- <20121002123856.GX4360@opensource.wolfsonmicro.com>
- <20121002124321.GD30762@arwen.pp.htv.fi>
- <20121002125819.GY4360@opensource.wolfsonmicro.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Ben Gardiner <bengardiner@nanometrics.ca>
+Subject: Re: [PATCH v2 4/7] ARM: davinci: Add support for an L3RAM gen_pool
+Date: Tue, 2 Oct 2012 11:51:52 -0400
+Message-ID: <CAPcSpEL+EQ4eGmKQSbiVDn9Pqs+4puS3oEa7YjKFU4Bz8x3MRg@mail.gmail.com>
+References: <1348861072-14507-1-git-send-email-mporter@ti.com>
+	<1348861072-14507-5-git-send-email-mporter@ti.com>
+	<506986B2.1030000@ti.com>
+	<20121001123242.GJ5641@beef>
+	<CAPcSpELdAK6=O8HG9FJXG_t88eymZO1f3wxzFqmR-faUn4jx4g@mail.gmail.com>
+	<506ACC77.9090604@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7019998178662665156=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121002125819.GY4360-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <506ACC77.9090604@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Matt Porter <mporter@ti.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Subhasish Ghosh <subhasish@mistralsolutions.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Oct 2, 2012 at 7:13 AM, Sekhar Nori <nsekhar@ti.com> wrote:
+> On 10/1/2012 7:20 PM, Ben Gardiner wrote:
+>> On Mon, Oct 1, 2012 at 8:32 AM, Matt Porter <mporter@ti.com> wrote:
+>>> On Mon, Oct 01, 2012 at 05:34:02PM +0530, Sekhar Nori wrote:
+>>>> Hi Matt,
+>>>>
+>>>> On 9/29/2012 1:07 AM, Matt Porter wrote:
+>>>>> L3RAM (shared SRAM) is needed for use by several drivers.
+>>>>> This creates a genalloc pool and a hook for the platform code
+>>>>> to provide the struct gen_pool * in platform data.
+>>>>>
+>>>>> Signed-off-by: Matt Porter <mporter@ti.com>
+>>>>
+>>>> I am not sure if any of the DaVinci devices have a need to allocate from
+>>>> *both* ARM RAM and shared RAM. Shared RAM is not present on all DaVinci
+>>>> devices AFAIR, and on DA850, there is just 8KB ARM RAM so I am not sure
+>>>> if there is much point in trying to allocate from there.
+>>>>
+>>>> Can you instead see if Ben's earlier patch[1] to use shared RAM for SRAM
+>>>> allocation on DA850 makes sense for your case? If yes, can you repost
+>>>> with Ben's patch included in your series instead of this patch? I would
+>>>> prefer that over creating a new pool for shared RAM.
+>>>
+>>> Hrm, I did look at Ben's earlier patch. The reason I added a separate
+>>> pool mostly was so I didn't have to touch the PM code at all. That can
+>>> continue using the private SRAM API with the ARM RAM as it is now. The
+>>> idea here was to allow that to be separate since no other bus masters
+>>> can access the ARM RAM anyway and do something that didn't require
+>>> regression testing PM. Also, I figured there's really no reason to use
+>>> even a tiny bit of the shared SRAM on PM if we have that ARM RAM there
+>>> and working fine for that use case.
+>>> [...]
+>>
+>> I agree with Matt. Preserving the use of the ARM RAM (8K on L138 -- as
+>> you said, Sekhar) in any fashion is preferable to moving suspend
+>> support into shared RAM. There is more of it (128K on L138) but also
+>> more pressure on allocations there since there are more clients.
+>
+> There is where I would like to see more information on who the potential
+> clients are. Even if DSP takes away 64K of the shared RAM on OMAP-L138,
+> there should be more than enough for PM, Audio and PRU. I haven't
+> checked the PM code size lately but it should be fairly small and I can
+> check the actual number if that helps. So, adding a new pool just to
+> save on those bytes doesn't sound like helping a lot.
 
---===============7019998178662665156==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
-Content-Disposition: inline
+Good points. I suppose that the list would decrease also on L138 if
+davinci-pcm ping-pong buffers were removed from SRAM.
 
+>> I appreciate that you are trying to preserve prior efforts in
+>> attempted merging of SRAM support -- thank you for that; however, that
+>> patch [1] was just an import of Subashish Ghosh's patch [2]  -- I
+>> chose _that_ implementation option then mainly because I imagined it
+>> would be the least risky to get accepted upstream and not because of
+>> any particular technical merits.
+>
+> Its not a question of prior effort since Matt has already put in the
+> effort too. I am yet unconvinced that we need to add support to manage
+> two blocks of SoC internal RAM on DA850 in the kernel today. That's all.
 
---CE+1k2dSO48ffgeK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Understood. Thank you, Sekhar.
 
-Hi,
+Best Regards,
+Ben Gardiner
 
-On Tue, Oct 02, 2012 at 01:58:20PM +0100, Mark Brown wrote:
-> On Tue, Oct 02, 2012 at 03:43:22PM +0300, Felipe Balbi wrote:
->=20
-> > BTW, OTOH writing all children into the DT actually describes the HW,
-> > no ? And depending on the device I feel it'd be better to write that
->=20
-> Well, it depends on the hardware.  Some hardware has a bunch of nice,
-> neat IPs which can usefully be reproduced and which map sensibly onto OS
-> abstractions but a lot of it doesn't and frequently the abstractions
-> which Linux wants to use don't bear a huge resemblance to the hardware
-> (and Linux's ideas can change over time, as with the clock API being
-> factored out for example).
->=20
-> > data to DT. Think of twlxxxx (TI's PMICs), we might have completely
-> > unrelated drivers using one of TWL's GPIO lines as an interrupt source.
->=20
-> > If that particular children isn't listed in DT, it can't be used as an
-> > interrupt-parent, right ?
->=20
-> You can have the interrupt controller there without having to list every
-> IP in the device, just make the parent device the interrupt controller
-> to DT.
-
-fair enough, thanks ;-)
-
---=20
-balbi
-
---CE+1k2dSO48ffgeK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQau+gAAoJEIaOsuA1yqREuZ0QAIoB5fehsY09bdFte9fouqQs
-TVFxWhnzgNcpzswXn/HiwbuM2NuqMZcLOfbOeyXtHz80+xDwvzxWeijMrSJcPWE2
-IxwbrfuEjpdtKpBjpAQ+Sg5l1f4sT4FKTOTkoEqiO18Et6Bd8kiG00UGEk0YXNlx
-WJqbFCCTOIvKEmWUp4iqOMLgcEJxYsezXa0wj+dRqu4uwRtXiqRcHFVRPWFU1bBg
-edEPd1OouLB6eB4NyYLjrNmsMz1pJ9xwSClviRSB142xip5+pzmguCinDEJ6U224
-4xpZLO3iUmFyFwVt1JVIpeu5+GFIxQzvGXmAScIldLLv5PehkimZtIzHlehsaEV9
-wZXjOp6KC7nD8fx7toOT9Uk18vkPfvvVvEhR4Z8a6wLM493/SUvKV1UliawsbG19
-wMFr0WHcZlTkPD5Hir98f47iflhS2/Z55QZWEcquVv8ZEK6xMp/GOYsdboqJDmcM
-2X3gzoLfDm5/JOhtfMGG7nfLNqX+LJvHnqpdot3+xvvdYYrrvyFz5/gH/hswtFZz
-1+bgOWmD+3y0dtTRv/bJEGsO9kUqcerircfjtyryF4EoDyrcK+vuuiZ57DR6eb0+
-FMFVUvToQFDXCCYXiSG31XJB8r/vO6gVk/vseDqO+pfcHCfd0AjNbJadP/BKI+xl
-srqApwYFsjn70Go+AhkS
-=u8pA
------END PGP SIGNATURE-----
-
---CE+1k2dSO48ffgeK--
-
---===============7019998178662665156==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============7019998178662665156==--
+---
+Nanometrics Inc.
+http://www.nanometrics.ca
