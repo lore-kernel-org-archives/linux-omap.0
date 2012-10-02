@@ -1,68 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/5] [media] omap3isp: Fix compilation error in
- ispreg.h
-Date: Tue, 2 Oct 2012 09:31:58 -0700
-Message-ID: <20121002163158.GR4840@atomide.com>
+Subject: Re: [PATCH v2 2/5] iommu/omap: Merge iommu2.h into iommu.h
+Date: Tue, 2 Oct 2012 09:40:21 -0700
+Message-ID: <20121002164021.GS4840@atomide.com>
 References: <20120927195526.GP4840@atomide.com>
  <1349131591-10804-1-git-send-email-ido@wizery.com>
+ <1349131591-10804-2-git-send-email-ido@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35131 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754984Ab2JBQcG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Oct 2012 12:32:06 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:45739 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932095Ab2JBQk1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Oct 2012 12:40:27 -0400
 Content-Disposition: inline
-In-Reply-To: <1349131591-10804-1-git-send-email-ido@wizery.com>
+In-Reply-To: <1349131591-10804-2-git-send-email-ido@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ido Yariv <ido@wizery.com>
 Cc: Russell King <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
 * Ido Yariv <ido@wizery.com> [121001 15:48]:
-> Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
-> mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
-> includes omap34xx.h.
-> 
-> Instead of moving omap34xx to platform_data, simply add the two
-> definitions the driver needs and remove the include altogether.
-> 
-> Signed-off-by: Ido Yariv <ido@wizery.com>
+> Since iommu is not supported on OMAP1 and will not likely to ever be
+> supported, merge plat/iommu2.h into iommu.h so only one file would have
+> to move to platform_data/ as part of the single zImage effort.
 
-I'm assuming that Mauro picks this one up, sorry
-for breaking it.
+Thanks I'll be applying patches 2 - 5 once we have -rc1 available.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
 
-> ---
->  drivers/media/platform/omap3isp/ispreg.h | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
-> index 084ea77..e2c57f3 100644
-> --- a/drivers/media/platform/omap3isp/ispreg.h
-> +++ b/drivers/media/platform/omap3isp/ispreg.h
-> @@ -27,13 +27,13 @@
->  #ifndef OMAP3_ISP_REG_H
->  #define OMAP3_ISP_REG_H
->  
-> -#include <plat/omap34xx.h>
-> -
-> -
->  #define CM_CAM_MCLK_HZ			172800000	/* Hz */
->  
->  /* ISP Submodules offset */
->  
-> +#define L4_34XX_BASE			0x48000000
-> +#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
-> +
->  #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
->  #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
->  
-> -- 
-> 1.7.11.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
