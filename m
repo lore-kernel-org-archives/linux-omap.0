@@ -1,84 +1,68 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH v2 4/7] ARM: davinci: Add support for an L3RAM gen_pool
-Date: Tue, 2 Oct 2012 12:20:31 -0400
-Message-ID: <20121002162031.GQ5641@beef>
-References: <1348861072-14507-1-git-send-email-mporter@ti.com>
- <1348861072-14507-5-git-send-email-mporter@ti.com>
- <506986B2.1030000@ti.com>
- <20121001123242.GJ5641@beef>
- <CAPcSpELdAK6=O8HG9FJXG_t88eymZO1f3wxzFqmR-faUn4jx4g@mail.gmail.com>
- <506ACC77.9090604@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/5] [media] omap3isp: Fix compilation error in
+ ispreg.h
+Date: Tue, 2 Oct 2012 09:31:58 -0700
+Message-ID: <20121002163158.GR4840@atomide.com>
+References: <20120927195526.GP4840@atomide.com>
+ <1349131591-10804-1-git-send-email-ido@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35131 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754984Ab2JBQcG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Oct 2012 12:32:06 -0400
 Content-Disposition: inline
-In-Reply-To: <506ACC77.9090604@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Ben Gardiner <bengardiner@nanometrics.ca>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Subhasish Ghosh <subhasish@mistralsolutions.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <1349131591-10804-1-git-send-email-ido@wizery.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ido Yariv <ido@wizery.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-On Tue, Oct 02, 2012 at 04:43:59PM +0530, Sekhar Nori wrote:
-> On 10/1/2012 7:20 PM, Ben Gardiner wrote:
-> > On Mon, Oct 1, 2012 at 8:32 AM, Matt Porter <mporter@ti.com> wrote:
-> >> On Mon, Oct 01, 2012 at 05:34:02PM +0530, Sekhar Nori wrote:
-> >>> Hi Matt,
-> >>>
-> >>> On 9/29/2012 1:07 AM, Matt Porter wrote:
-> >>>> L3RAM (shared SRAM) is needed for use by several drivers.
-> >>>> This creates a genalloc pool and a hook for the platform code
-> >>>> to provide the struct gen_pool * in platform data.
-> >>>>
-> >>>> Signed-off-by: Matt Porter <mporter@ti.com>
-> >>>
-> >>> I am not sure if any of the DaVinci devices have a need to allocate from
-> >>> *both* ARM RAM and shared RAM. Shared RAM is not present on all DaVinci
-> >>> devices AFAIR, and on DA850, there is just 8KB ARM RAM so I am not sure
-> >>> if there is much point in trying to allocate from there.
-> >>>
-> >>> Can you instead see if Ben's earlier patch[1] to use shared RAM for SRAM
-> >>> allocation on DA850 makes sense for your case? If yes, can you repost
-> >>> with Ben's patch included in your series instead of this patch? I would
-> >>> prefer that over creating a new pool for shared RAM.
-> >>
-> >> Hrm, I did look at Ben's earlier patch. The reason I added a separate
-> >> pool mostly was so I didn't have to touch the PM code at all. That can
-> >> continue using the private SRAM API with the ARM RAM as it is now. The
-> >> idea here was to allow that to be separate since no other bus masters
-> >> can access the ARM RAM anyway and do something that didn't require
-> >> regression testing PM. Also, I figured there's really no reason to use
-> >> even a tiny bit of the shared SRAM on PM if we have that ARM RAM there
-> >> and working fine for that use case.
-> >> [...]
-> > 
-> > I agree with Matt. Preserving the use of the ARM RAM (8K on L138 -- as
-> > you said, Sekhar) in any fashion is preferable to moving suspend
-> > support into shared RAM. There is more of it (128K on L138) but also
-> > more pressure on allocations there since there are more clients.
+* Ido Yariv <ido@wizery.com> [121001 15:48]:
+> Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
+> mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
+> includes omap34xx.h.
 > 
-> There is where I would like to see more information on who the potential
-> clients are. Even if DSP takes away 64K of the shared RAM on OMAP-L138,
-> there should be more than enough for PM, Audio and PRU. I haven't
-> checked the PM code size lately but it should be fairly small and I can
-> check the actual number if that helps. So, adding a new pool just to
-> save on those bytes doesn't sound like helping a lot.
-
-The only wildcard is PRU usage due to the small per-PRU memory on PRUss
-v1...though no sense in speculating further until somebody demonstrates a
-need.
-
-> > I appreciate that you are trying to preserve prior efforts in
-> > attempted merging of SRAM support -- thank you for that; however, that
-> > patch [1] was just an import of Subashish Ghosh's patch [2]  -- I
-> > chose _that_ implementation option then mainly because I imagined it
-> > would be the least risky to get accepted upstream and not because of
-> > any particular technical merits.
+> Instead of moving omap34xx to platform_data, simply add the two
+> definitions the driver needs and remove the include altogether.
 > 
-> Its not a question of prior effort since Matt has already put in the
-> effort too. I am yet unconvinced that we need to add support to manage
-> two blocks of SoC internal RAM on DA850 in the kernel today. That's all.
+> Signed-off-by: Ido Yariv <ido@wizery.com>
 
-Yeah, I've come to agree with that. If somebody ends up needing that
-extra 8K of local ram on L138 then they can add support.
+I'm assuming that Mauro picks this one up, sorry
+for breaking it.
 
--Matt
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> ---
+>  drivers/media/platform/omap3isp/ispreg.h | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+> index 084ea77..e2c57f3 100644
+> --- a/drivers/media/platform/omap3isp/ispreg.h
+> +++ b/drivers/media/platform/omap3isp/ispreg.h
+> @@ -27,13 +27,13 @@
+>  #ifndef OMAP3_ISP_REG_H
+>  #define OMAP3_ISP_REG_H
+>  
+> -#include <plat/omap34xx.h>
+> -
+> -
+>  #define CM_CAM_MCLK_HZ			172800000	/* Hz */
+>  
+>  /* ISP Submodules offset */
+>  
+> +#define L4_34XX_BASE			0x48000000
+> +#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+> +
+>  #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
+>  #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
+>  
+> -- 
+> 1.7.11.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
