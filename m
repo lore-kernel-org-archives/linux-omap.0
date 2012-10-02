@@ -1,62 +1,172 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] ARM: OMAP2+: SmartReflex: fix return value check in sr_dev_init()
-Date: Tue, 02 Oct 2012 14:37:22 -0700
-Message-ID: <87haqc8sj1.fsf@deeprootsystems.com>
-References: <CAPgLHd_jXBNGNh452sGh5OweX+CdwpcVuWHmnfZKaCt4FnsTuA@mail.gmail.com>
-	<CAORVsuUcOFKFoOuxZqPJR=WSsTouqBH3EP4Xu82o515ofGbn+w@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: hwmod: align the SmartReflex fck names
+Date: Tue, 02 Oct 2012 14:49:31 -0700
+Message-ID: <87626s8rys.fsf@deeprootsystems.com>
+References: <1348134503-28220-1-git-send-email-j-pihet@ti.com>
+	<1348497352-6464-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:38159 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756582Ab2JBVhW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Oct 2012 17:37:22 -0400
-Received: by dakn41 with SMTP id n41so937216dak.19
-        for <linux-omap@vger.kernel.org>; Tue, 02 Oct 2012 14:37:22 -0700 (PDT)
-In-Reply-To: <CAORVsuUcOFKFoOuxZqPJR=WSsTouqBH3EP4Xu82o515ofGbn+w@mail.gmail.com>
-	(Jean Pihet's message of "Fri, 28 Sep 2012 12:41:35 +0200")
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:48888 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932392Ab2JBVtc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Oct 2012 17:49:32 -0400
+Received: by pbbrr4 with SMTP id rr4so9180167pbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 02 Oct 2012 14:49:31 -0700 (PDT)
+In-Reply-To: <1348497352-6464-1-git-send-email-j-pihet@ti.com> (Jean Pihet's
+	message of "Mon, 24 Sep 2012 16:35:52 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Wei Yongjun <weiyj.lk@gmail.com>, tony@atomide.com, linux@arm.linux.org.uk, yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
 Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-> Hello,
->
-> On Thu, Sep 27, 2012 at 7:54 AM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
->> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->>
->> In case of error, the function voltdm_lookup() returns NULL
->> not ERR_PTR(). The IS_ERR() test in the return value check
->> should be replaced with NULL test.
->>
->> dpatch engine is used to auto generate this patch.
->> (https://github.com/weiyj/dpatch)
->>
->> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->> ---
->>  arch/arm/mach-omap2/sr_device.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
->> index d033a65..c248b30 100644
->> --- a/arch/arm/mach-omap2/sr_device.c
->> +++ b/arch/arm/mach-omap2/sr_device.c
->> @@ -123,7 +123,7 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
->>         sr_data->senp_mod = 0x1;
->>
->>         sr_data->voltdm = voltdm_lookup(sr_dev_attr->sensor_voltdm_name);
->> -       if (IS_ERR(sr_data->voltdm)) {
->> +       if (!sr_data->voltdm) {
->>                 pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
->>                         __func__, sr_dev_attr->sensor_voltdm_name);
->>                 goto exit;
->
-> This looks good, so here is the ack:
-> Acked-by: Jean Pihet <j-pihet@ti.com>
->
+> Rename the smartreflex fck names for consistency and better readability;
+> rename the clock aliases for use by the SmartReflex driver, with the
+> "smartreflex.%d" format.
 
-Thanks, queuing this one for v3.7-rc.
+hmm, do we even need the clkdev nodes anymore?  The driver isn't
+directly accessing the fclk at all, so it seems like these could be
+removed now.
 
 Kevin
+
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock33xx_data.c       |   12 ++++++------
+>  arch/arm/mach-omap2/clock3xxx_data.c       |   12 ++++++------
+>  arch/arm/mach-omap2/clock44xx_data.c       |    6 +++---
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
+>  4 files changed, 19 insertions(+), 19 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+> index 25bbcc7..a328f12 100644
+> --- a/arch/arm/mach-omap2/clock33xx_data.c
+> +++ b/arch/arm/mach-omap2/clock33xx_data.c
+> @@ -548,16 +548,16 @@ static struct clk mcasp1_fck = {
+>  	.recalc		= &followparent_recalc,
+>  };
+>  
+> -static struct clk smartreflex0_fck = {
+> -	.name		= "smartreflex0_fck",
+> +static struct clk smartreflex_mpu_fck = {
+> +	.name		= "smartreflex_mpu_fck",
+>  	.clkdm_name	= "l4_wkup_clkdm",
+>  	.parent		= &sys_clkin_ck,
+>  	.ops		= &clkops_null,
+>  	.recalc		= &followparent_recalc,
+>  };
+>  
+> -static struct clk smartreflex1_fck = {
+> -	.name		= "smartreflex1_fck",
+> +static struct clk smartreflex_core_fck = {
+> +	.name		= "smartreflex_core_fck",
+>  	.clkdm_name	= "l4_wkup_clkdm",
+>  	.parent		= &sys_clkin_ck,
+>  	.ops		= &clkops_null,
+> @@ -1034,8 +1034,8 @@ static struct omap_clk am33xx_clks[] = {
+>  	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
+>  	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
+>  	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
+> -	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
+> -	CLK(NULL,	"smartreflex1_fck",	&smartreflex1_fck,	CK_AM33XX),
+> +	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_fck,	CK_AM33XX),
+> +	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_AM33XX),
+>  	CLK(NULL,	"gpt1_fck",		&timer1_fck,	CK_AM33XX),
+>  	CLK(NULL,	"gpt2_fck",		&timer2_fck,	CK_AM33XX),
+>  	CLK(NULL,	"gpt3_fck",		&timer3_fck,	CK_AM33XX),
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index 83bed9a..a197cf2 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3050,8 +3050,8 @@ static struct clk traceclk_fck = {
+>  /* SR clocks */
+>  
+>  /* SmartReflex fclk (VDD1) */
+> -static struct clk sr1_fck = {
+> -	.name		= "sr1_fck",
+> +static struct clk smartreflex_mpu_iva_fck = {
+> +	.name		= "smartreflex_mpu_iva_fck",
+>  	.ops		= &clkops_omap2_dflt_wait,
+>  	.parent		= &sys_ck,
+>  	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+> @@ -3061,8 +3061,8 @@ static struct clk sr1_fck = {
+>  };
+>  
+>  /* SmartReflex fclk (VDD2) */
+> -static struct clk sr2_fck = {
+> -	.name		= "sr2_fck",
+> +static struct clk smartreflex_core_fck = {
+> +	.name		= "smartreflex_core_fck",
+>  	.ops		= &clkops_omap2_dflt_wait,
+>  	.parent		= &sys_ck,
+>  	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+> @@ -3447,8 +3447,8 @@ static struct omap_clk omap3xxx_clks[] = {
+>  	CLK(NULL,	"atclk_fck",	&atclk_fck,	CK_3XXX),
+>  	CLK(NULL,	"traceclk_src_fck", &traceclk_src_fck, CK_3XXX),
+>  	CLK(NULL,	"traceclk_fck",	&traceclk_fck,	CK_3XXX),
+> -	CLK(NULL,	"sr1_fck",	&sr1_fck,	CK_34XX | CK_36XX),
+> -	CLK(NULL,	"sr2_fck",	&sr2_fck,	CK_34XX | CK_36XX),
+> +	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_iva_fck,	CK_34XX | CK_36XX),
+> +	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_34XX | CK_36XX),
+>  	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_34XX | CK_36XX),
+>  	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_3XXX),
+>  	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_3XXX),
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index d7f55e4..9cc1112 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -3224,9 +3224,9 @@ static struct omap_clk omap44xx_clks[] = {
+>  	CLK(NULL,	"slimbus2_fclk_0",		&slimbus2_fclk_0,	CK_443X),
+>  	CLK(NULL,	"slimbus2_slimbus_clk",		&slimbus2_slimbus_clk,	CK_443X),
+>  	CLK(NULL,	"slimbus2_fck",			&slimbus2_fck,	CK_443X),
+> -	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
+> -	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
+> -	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
+> +	CLK(NULL,	"smartreflex.0",		&smartreflex_core_fck,	CK_443X),
+> +	CLK(NULL,	"smartreflex.1",		&smartreflex_iva_fck,	CK_443X),
+> +	CLK(NULL,	"smartreflex.2",		&smartreflex_mpu_fck,	CK_443X),
+>  	CLK(NULL,	"timer1_fck",			&timer1_fck,	CK_443X),
+>  	CLK(NULL,	"timer10_fck",			&timer10_fck,	CK_443X),
+>  	CLK(NULL,	"timer11_fck",			&timer11_fck,	CK_443X),
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index c9e3820..2b2b8fc 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -1359,7 +1359,7 @@ static struct omap_hwmod_irq_info omap3_smartreflex_mpu_irqs[] = {
+>  static struct omap_hwmod omap34xx_sr1_hwmod = {
+>  	.name		= "smartreflex_mpu_iva",
+>  	.class		= &omap34xx_smartreflex_hwmod_class,
+> -	.main_clk	= "sr1_fck",
+> +	.main_clk	= "smartreflex_mpu_iva_fck",
+>  	.prcm		= {
+>  		.omap2 = {
+>  			.prcm_reg_id = 1,
+> @@ -1377,7 +1377,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+>  static struct omap_hwmod omap36xx_sr1_hwmod = {
+>  	.name		= "smartreflex_mpu_iva",
+>  	.class		= &omap36xx_smartreflex_hwmod_class,
+> -	.main_clk	= "sr1_fck",
+> +	.main_clk	= "smartreflex_mpu_iva_fck",
+>  	.prcm		= {
+>  		.omap2 = {
+>  			.prcm_reg_id = 1,
+> @@ -1404,7 +1404,7 @@ static struct omap_hwmod_irq_info omap3_smartreflex_core_irqs[] = {
+>  static struct omap_hwmod omap34xx_sr2_hwmod = {
+>  	.name		= "smartreflex_core",
+>  	.class		= &omap34xx_smartreflex_hwmod_class,
+> -	.main_clk	= "sr2_fck",
+> +	.main_clk	= "smartreflex_core_fck",
+>  	.prcm		= {
+>  		.omap2 = {
+>  			.prcm_reg_id = 1,
+> @@ -1422,7 +1422,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
+>  static struct omap_hwmod omap36xx_sr2_hwmod = {
+>  	.name		= "smartreflex_core",
+>  	.class		= &omap36xx_smartreflex_hwmod_class,
+> -	.main_clk	= "sr2_fck",
+> +	.main_clk	= "smartreflex_core_fck",
+>  	.prcm		= {
+>  		.omap2 = {
+>  			.prcm_reg_id = 1,
