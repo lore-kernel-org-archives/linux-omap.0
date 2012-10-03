@@ -1,107 +1,61 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 1/7] ARM: omap: add 3630 PRM register definitions
-Date: Wed, 3 Oct 2012 18:26:08 -0700
-Message-ID: <1349313974-5473-2-git-send-email-mturquette@ti.com>
-References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 1/4] cpufreq: OMAP: ensure valid clock rate before scaling
+Date: Wed,  3 Oct 2012 16:00:26 -0700
+Message-ID: <1349305229-28480-2-git-send-email-khilman@deeprootsystems.com>
+References: <1349305229-28480-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46764 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754586Ab2JDB0i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Oct 2012 21:26:38 -0400
-In-Reply-To: <1349313974-5473-1-git-send-email-mturquette@ti.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:50617 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932443Ab2JCXAe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 19:00:34 -0400
+Received: by pbbrr4 with SMTP id rr4so10334005pbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 16:00:34 -0700 (PDT)
+In-Reply-To: <1349305229-28480-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@ti.com>, Mike Turquette <mturquette@linaro.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org
 
-OMAP3630 supports an Adaptive Body-Bias ldo as well as some MPU
-interrupts related to voltage control that are not present on OMAP34XX.
-This patch adds the offsets, register addresses, bitfield shifts and
-masks to support this feature.
+From: Kevin Hilman <khilman@ti.com>
 
-Signed-off-by: Mike Turquette <mturquette@ti.com>
-Signed-off-by: Mike Turquette <mturquette@linaro.org>
+Ensure the clock rate that will be used is a valid one before
+attempting to scale the voltage.  Currently the driver assumes it has
+a valid frequency from the OPP table, but boards using different
+system oscillators might not have exact matches with the OPP table,
+and result in a failing call to clk_set_rate().
+
+This is particularily bad because the voltage may be scaled even
+though the frequency is not.  This will obviously lead to some
+unpredictable behavior, especially if the frequency is high and
+the voltage is dropped.
+
+Thanks to Joni Lapilainen for reporting crashes seen on 3430/n900.
+
+Reported-by: Joni Lapilainen <joni.lapilainen@gmail.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/prm-regbits-34xx.h |   34 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm2xxx_3xxx.h     |    4 ++++
- 2 files changed, 38 insertions(+)
+ drivers/cpufreq/omap-cpufreq.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-index 64c087a..0309ff6 100644
---- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-@@ -216,6 +216,12 @@
- /* PRM_SYSCONFIG specific bits */
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index 65f8e9a..0fe395a 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -108,6 +108,14 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	}
  
- /* PRM_IRQSTATUS_MPU specific bits */
-+#define OMAP3630_VC_BYPASS_ACK_ST_SHIFT			28
-+#define OMAP3630_VC_BYPASS_ACK_ST_MASK			(1 << 28)
-+#define OMAP3630_VC_VP1_ACK_ST_SHIFT			27
-+#define OMAP3630_VC_VP1_ACK_ST_MASK			(1 << 27)
-+#define OMAP3630_ABB_LDO_TRANXDONE_ST_SHIFT		26
-+#define OMAP3630_ABB_LDO_TRANXDONE_ST_MASK		(1 << 26)
- #define OMAP3430ES2_SND_PERIPH_DPLL_ST_SHIFT		25
- #define OMAP3430ES2_SND_PERIPH_DPLL_ST_MASK		(1 << 25)
- #define OMAP3430_VC_TIMEOUTERR_ST_MASK			(1 << 24)
-@@ -248,6 +254,12 @@
- #define OMAP3430_FS_USB_WKUP_ST_MASK			(1 << 1)
+ 	freq = freqs.new * 1000;
++	ret = clk_round_rate(mpu_clk, freq);
++	if (IS_ERR_VALUE(ret)) {
++		dev_warn(mpu_dev,
++			 "CPUfreq: Cannot find matching frequency for %lu\n",
++			 freq);
++		return ret;
++	}
++	freq = ret;
  
- /* PRM_IRQENABLE_MPU specific bits */
-+#define OMAP3630_VC_BYPASS_ACK_EN_SHIFT				28
-+#define OMAP3630_VC_BYPASS_ACK_EN_MASK				(1 << 28)
-+#define OMAP3630_VC_VP1_ACK_EN_SHIFT				27
-+#define OMAP3630_VC_VP1_ACK_EN_MASK				(1 << 27)
-+#define OMAP3630_ABB_LDO_TRANXDONE_EN_SHIFT			26
-+#define OMAP3630_ABB_LDO_TRANXDONE_EN_MASK			(1 << 26)
- #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_SHIFT		25
- #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_MASK		(1 << 25)
- #define OMAP3430_VC_TIMEOUTERR_EN_MASK				(1 << 24)
-@@ -587,6 +599,28 @@
- 
- /* PRM_VP2_STATUS specific bits */
- 
-+/* PRM_LDO_ABB_SETUP specific bits */
-+#define OMAP3630_SR2_IN_TRANSITION_SHIFT		6
-+#define OMAP3630_SR2_IN_TRANSITION_MASK			(1 << 6)
-+#define OMAP3630_SR2_STATUS_SHIFT			3
-+#define OMAP3630_SR2_STATUS_MASK			(3 << 3)
-+#define OMAP3630_OPP_CHANGE_SHIFT			2
-+#define OMAP3630_OPP_CHANGE_MASK			(1 << 2)
-+#define OMAP3630_OPP_SEL_SHIFT				0
-+#define OMAP3630_OPP_SEL_MASK				(3 << 0)
-+
-+/* PRM_LDO_ABB_CTRL specific bits */
-+#define OMAP3630_SR2_WTCNT_VALUE_SHIFT			8
-+#define OMAP3630_SR2_WTCNT_VALUE_MASK			(0xff << 8)
-+#define OMAP3630_SLEEP_RBB_SEL_SHIFT			3
-+#define OMAP3630_SLEEP_RBB_SEL_MASK			(1 << 3)
-+#define OMAP3630_ACTIVE_FBB_SEL_SHIFT			2
-+#define OMAP3630_ACTIVE_FBB_SEL_MASK			(1 << 2)
-+#define OMAP3630_ACTIVE_RBB_SEL_SHIFT			1
-+#define OMAP3630_ACTIVE_RBB_SEL_MASK			(1 << 1)
-+#define OMAP3630_SR2EN_SHIFT				0
-+#define OMAP3630_SR2EN_MASK				(1 << 0)
-+
- /* RM_RSTST_NEON specific bits */
- 
- /* PM_WKDEP_NEON specific bits */
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index c19d249..c9eea9a 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -167,6 +167,10 @@
- #define OMAP3430_PRM_VP2_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
- #define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
- #define OMAP3430_PRM_VP2_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
-+#define OMAP3_PRM_LDO_ABB_SETUP_OFFSET	0x00f0
-+#define OMAP3630_PRM_LDO_ABB_SETUP	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00f0)
-+#define OMAP3_PRM_LDO_ABB_CTRL_OFFSET	0x00f4
-+#define OMAP3630_PRM_LDO_ABB_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00f4)
- 
- #define OMAP3_PRM_CLKSEL_OFFSET	0x0040
- #define OMAP3430_PRM_CLKSEL		OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0040)
+ 	if (mpu_reg) {
+ 		opp = opp_find_freq_ceil(mpu_dev, &freq);
 -- 
-1.7.9.5
+1.7.9.2
 
