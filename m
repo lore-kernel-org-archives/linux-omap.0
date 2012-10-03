@@ -1,65 +1,122 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Wed, 3 Oct 2012 14:36:10 +0200
-Message-ID: <CACRpkdaeu3JaLqSbqETT=D0mdUu5VpwRpS_Xohd6M963rw8QMg@mail.gmail.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
- <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
- <CACRpkdZ_NxST-oJ=MWC5L=r8uQD_71eHUVUR85v4jfsYpqz=UQ@mail.gmail.com>
- <20121001154451.GI4840@atomide.com>
- <CACRpkdaib2M1_UwSbyUG8qwZC2h7xaT5VU7WMj=y+h4S4LianQ@mail.gmail.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA3F22E@DBDE01.ent.ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: SmartReflex: pass device dependent data
+ via platform data
+Date: Wed, 3 Oct 2012 15:05:26 +0200
+Message-ID: <CAORVsuWKMHbqKvJ6x3dY0Kz_f2va4O8-fTmazF5tpNp1qLUgPg@mail.gmail.com>
+References: <1348152453-30532-1-git-send-email-j-pihet@ti.com>
+ <1348496201-6378-1-git-send-email-j-pihet@ti.com>
+ <1348496201-6378-3-git-send-email-j-pihet@ti.com>
+ <877gr87bxj.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA3F22E-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Cc: "dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <877gr87bxj.fsf@deeprootsystems.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: tony@atomide.com, J Keerthy <j-keerthy@ti.com>, Anton Vorontsov <cbou@mail.ru>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 3, 2012 at 12:52 PM, AnilKumar, Chimata <anilkumar-l0cyMroinI0@public.gmane.org> wrote:
-> On Tue, Oct 02, 2012 at 01:29:37, Linus Walleij wrote:
+Hi Kevin,
 
->> This is what we're doing for ux500 and should be a good model.
+On Wed, Oct 3, 2012 at 12:21 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Hi Jean,
 >
-> I have looked into this, but not seen any named modes.
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>
+>> Remove the device dependent settings (cpu_is_xxx(), IP fck etc.)
+>> from the driver code and pass them instead via the platform
+>> data.
+>> This allows a clean separation of the driver code and the platform
+>> code, as required by the move of the platform header files to
+>> include/linux/platform_data.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>
+> Could you make pdata change and the clock change should be two different
+> patches?  Also, your previous patch to align SR clock names should be
+> combined with the changes made here.
+>
+> Some comments on the clock change below...
+>
+>> ---
+>>  arch/arm/mach-omap2/sr_device.c   |   13 ++++++++++++
+>>  drivers/power/avs/smartreflex.c   |   40 ++++++++++--------------------------
+>>  include/linux/power/smartreflex.h |   14 +++++++++++-
+>>  3 files changed, 36 insertions(+), 31 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+>> index d033a65..2885a77 100644
+>> --- a/arch/arm/mach-omap2/sr_device.c
+>> +++ b/arch/arm/mach-omap2/sr_device.c
+>> @@ -122,6 +122,19 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
+>>       sr_data->senn_mod = 0x1;
+>>       sr_data->senp_mod = 0x1;
+>>
+>> +     if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+>> +             sr_data->err_weight = OMAP3430_SR_ERRWEIGHT;
+>> +             sr_data->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
+>> +             sr_data->accum_data = OMAP3430_SR_ACCUMDATA;
+>> +             if (!(strcmp(sr_data->name, "smartreflex_mpu"))) {
+>> +                     sr_data->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
+>> +                     sr_data->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
+>> +             } else {
+>> +                     sr_data->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
+>> +                     sr_data->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
+>> +             }
+>> +     }
+>> +
+>>       sr_data->voltdm = voltdm_lookup(sr_dev_attr->sensor_voltdm_name);
+>>       if (IS_ERR(sr_data->voltdm)) {
+>>               pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
+>> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+>> index 92f6728..7c03c90 100644
+>> --- a/drivers/power/avs/smartreflex.c
+>> +++ b/drivers/power/avs/smartreflex.c
+>> @@ -128,17 +128,16 @@ static irqreturn_t sr_interrupt(int irq, void *data)
+>>
+>>  static void sr_set_clk_length(struct omap_sr *sr)
+>>  {
+>> +     char fck_name[16]; /* "smartreflex.0" fits in 16 chars */
+>>       struct clk *sys_ck;
+>>       u32 sys_clk_speed;
+>>
+>> -     if (cpu_is_omap34xx())
+>> -             sys_ck = clk_get(NULL, "sys_ck");
+>> -     else
+>> -             sys_ck = clk_get(NULL, "sys_clkin_ck");
+>> +     sprintf(fck_name, "smartreflex.%d", sr->srid);
+>
+> hmm, isn't this the same as dev_name(&sr->pdev.dev) ?
+Yes. Atfer the previous patch "ARM: OMAP: hwmod: align the SmartReflex
+fck names" there is a direct mapping between the device name and the
+IP functional clock. Note: the mapping is based on the order of the
+hwmod entries and so it is important not to move them around.
 
-OK maybe it's not easy to find. If you look into:
-arch/arm/mach-ux500/board-mop500-pins.c
-you find our work in progress. Note that this is not (yet)
-using device tree. (We want to migrate all our pinctrl
-stuff first, then do DT.)
+> Combined with your earlier patch to align clock names, this should just
+> be:
+>
+>         sys_ck = clk_get(&sr->pdev.dev, "fck");
+Great! That works great and the code is much more elegant.
 
-So for example this macro:
+> Also note that you've changed this from sys_clk to the SR functional
+> clock, which seems to be the same clock on 34xx and 44xx, but that change
+> should be clearly documented in the changelog.
+Ok.
 
-#define DB8500_PIN(pin,conf,dev) \
-        PIN_MAP_CONFIGS_PIN_DEFAULT(dev, "pinctrl-db8500", pin, conf)
+Updated patch in a bit.
 
-Will define a config for the "default" mode for a certain
-pin.
+>
+> Kevin
 
-This:
-
-#define DB8500_PIN_SLEEP(pin, conf, dev) \
-        PIN_MAP_CONFIGS_PIN(dev, PINCTRL_STATE_SLEEP, "pinctrl-db8500", \
-                            pin, conf)
-
-Will mutatis mutandis define a "sleep" mode for a pin.
-
-Sorry for the macros. We'll get rid of them in the DT.
-(Now that Stephen has patched in preprocessing it will
-even look good.)
-
-Yours,
-Linus Walleij
+Thanks for reviewing,
+Jean
