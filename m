@@ -1,171 +1,221 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 2/2] ARM: OMAP: SmartReflex: pass device dependent data via platform data
-Date: Wed,  3 Oct 2012 15:32:13 +0200
-Message-ID: <1349271133-18458-1-git-send-email-j-pihet@ti.com>
-References: <1348496201-6378-3-git-send-email-j-pihet@ti.com>
+From: Philippe De Swert <philippe.deswert@jollamobile.com>
+Subject: RE: [PATCH 1/1] usb: Include generic_interrupt for OMAP2_PLUS
+Date: Wed, 3 Oct 2012 13:45:33 +0000
+Message-ID: <02DC685EFE4B1942A41870A0F2608047A6570C@ORD2MBX02B.mex05.mlsrvr.com>
+References: <1348487604-7202-1-git-send-email-philippe.deswert@jollamobile.com>
+	<20120924121538.GH2892@arwen.pp.htv.fi>
+	<CAPsFW+RTLpgXFOOh9fD=K1wCPMpBe4MummhWoqEBEEYYzMay=Q@mail.gmail.com>
+	<20120924130216.GA5603@arwen.pp.htv.fi>	<20120924160914.GB28835@atomide.com>
+	<20120925080420.GH9137@arwen.pp.htv.fi>
+	<CAPsFW+T_ezWAxO9StSf9cu9nJ6Gw8T9Dk1H3g6+bwJ-PKtn-cQ@mail.gmail.com>,<CAPe0uWoX92e6Hbazji+s9DPiZnfxqE=a=5Hnu39SrD6qZnRWzg@mail.gmail.com>,<02DC685EFE4B1942A41870A0F2608047A65157@ORD2MBX02B.mex05.mlsrvr.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:37103 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932215Ab2JCNcF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 09:32:05 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hq12so2515835wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 06:32:04 -0700 (PDT)
-In-Reply-To: <1348496201-6378-3-git-send-email-j-pihet@ti.com>
+Received: from smtp150.dfw.emailsrvr.com ([67.192.241.150]:49406 "EHLO
+	smtp150.dfw.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755249Ab2JCNqR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 09:46:17 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp25.relay.dfw1a.emailsrvr.com (SMTP Server) with ESMTP id 2F5B12D05D3
+	for <linux-omap@vger.kernel.org>; Wed,  3 Oct 2012 09:46:17 -0400 (EDT)
+Received: from smtp136.ord.emailsrvr.com (smtp136.ord.emailsrvr.com [173.203.6.136])
+	by smtp25.relay.dfw1a.emailsrvr.com (SMTP Server) with ESMTPS id CC1932D01FC
+	for <linux-omap@vger.kernel.org>; Wed,  3 Oct 2012 09:46:15 -0400 (EDT)
+In-Reply-To: <02DC685EFE4B1942A41870A0F2608047A65157@ORD2MBX02B.mex05.mlsrvr.com>
+Content-Language: en-GB
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Anton Vorontsov <cbou@mail.ru>, Kevin Hilman <khilman@ti.com>
-Cc: J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
+To: "praveen.nadahally@stericsson.com" <praveen.nadahally@stericsson.com>, Philippe De Swert <philippedeswert@gmail.com>
+Cc: "balbi@ti.com" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, "heikki.krogerus@linux.intel.com" <heikki.krogerus@linux.intel.com>, "kishon@ti.com" <kishon@ti.com>, "marek.vasut@gmail.com" <marek.vasut@gmail.com>, "leoli@freescale.com" <leoli@freescale.com>, "s.hauer@pengutronix.de" <s.hauer@pengutronix.de>, "shubhrajyoti@ti.com" <shubhrajyoti@ti.com>, "nsekhar@ti.com" <nsekhar@ti.com>, "notasas@gmail.com" <notasas@gmail.com>, "vikram.pandita@ti.com" <vikram.pandita@ti.com>, "ravibabu@ti.com" <ravibabu@ti.com>, "mina86@mina86.com" <mina86@mina86.com>, "mian.yousaf.kaukab@stericsson.com" <mian.yousaf.kaukab@stericsson.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+Hi all,
 
-Remove the device dependent code (ex. cpu_is_xxx()) and settings
-from the driver code and instead pass them via the platform
-data. This allows a clean separation of the driver code and the platform
-code, as required by the move of the platform header files to
-include/linux/platform_data.
+On 26/09/2012, Philippe De Swert <philippe.deswert@jollamobile.com> wrote:
+> Hi,
+> ________________________________________
+>>On Tue, Sep 25, 2012 at 2:39 PM, Philippe De Swert
+>>>> Then maybe it's best to just remove the ifdefs and always provide
+>>>> generic_interrupt() ?
+>>>>
+>>>> Anyone against it ?
+>>
+>>Providing generic_interrupt seems fine.
+>>
+>>> Well it seems there are only two drivers that use it omap2430 and
+>>> ux500. Maybe we somehow link it to the drivers that need it? (I might
+>>> have missed other drivers but it looks like it is just those two)
+>>
+>>One way I see is that omap2430 and ux500 implement the isr handler
+>>in platform glue driver and then call the musb_interrupt() as done in
+>>daxxx, amxxx, ti8xxx platforms. Then generic_interrupt can be removed.
+> 
+> So something along those lines? (If this is the right way I will resend as a
+> real patch)
 
-Note about the smartreflex functional clocks: the smartreflex fclks
-are derived from sys_clk and are named "smartreflex.%d". Since the
-smartreflex device names and the functional clock names are identical
-the device driver code uses them to control the functional clocks.
+So any comments on the approach here (see patch kept below)? Or should I immediately send it as a new patch to get the comments? I sent it in this thread as it also solves the issue I have. 
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/sr_device.c   |   13 +++++++++++++
- drivers/power/avs/smartreflex.c   |   38 +++++++++----------------------------
- include/linux/power/smartreflex.h |   14 ++++++++++++--
- 3 files changed, 34 insertions(+), 31 deletions(-)
+BTW: CONFIG_SOC_OMAP3430 could be easily removed as it only changes minor things in the musb stack. It would clean up the code and get rid of this very misleading option as it has nothing to do with any OMAP3430 soc specific handling.
 
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index cbeae56..06de443 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -121,6 +121,19 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- 	sr_data->senn_mod = 0x1;
- 	sr_data->senp_mod = 0x1;
- 
-+	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
-+		sr_data->err_weight = OMAP3430_SR_ERRWEIGHT;
-+		sr_data->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
-+		sr_data->accum_data = OMAP3430_SR_ACCUMDATA;
-+		if (!(strcmp(sr_data->name, "smartreflex_mpu"))) {
-+			sr_data->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
-+			sr_data->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
-+		} else {
-+			sr_data->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
-+			sr_data->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
-+		}
-+	}
-+
- 	sr_data->voltdm = voltdm_lookup(sr_dev_attr->sensor_voltdm_name);
- 	if (IS_ERR(sr_data->voltdm)) {
- 		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
-diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-index 24768a2..829467f 100644
---- a/drivers/power/avs/smartreflex.c
-+++ b/drivers/power/avs/smartreflex.c
-@@ -133,14 +133,11 @@ static void sr_set_clk_length(struct omap_sr *sr)
- 	struct clk *sys_ck;
- 	u32 sys_clk_speed;
- 
--	if (cpu_is_omap34xx())
--		sys_ck = clk_get(NULL, "sys_ck");
--	else
--		sys_ck = clk_get(NULL, "sys_clkin_ck");
-+	sys_ck = clk_get(&sr->pdev->dev, "fck");
- 
- 	if (IS_ERR(sys_ck)) {
--		dev_err(&sr->pdev->dev, "%s: unable to get sys clk\n",
--			__func__);
-+		dev_err(&sr->pdev->dev, "%s: unable to get smartreflex fck %s\n",
-+				__func__, dev_name(&sr->pdev->dev));
- 		return;
- 	}
- 
-@@ -170,28 +167,6 @@ static void sr_set_clk_length(struct omap_sr *sr)
- 	}
- }
- 
--static void sr_set_regfields(struct omap_sr *sr)
--{
--	/*
--	 * For time being these values are defined in smartreflex.h
--	 * and populated during init. May be they can be moved to board
--	 * file or pmic specific data structure. In that case these structure
--	 * fields will have to be populated using the pdata or pmic structure.
--	 */
--	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
--		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
--		sr->accum_data = OMAP3430_SR_ACCUMDATA;
--		if (!(strcmp(sr->name, "smartreflex_mpu_iva"))) {
--			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
--			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
--		} else {
--			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
--			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
--		}
--	}
--}
--
- static void sr_start_vddautocomp(struct omap_sr *sr)
- {
- 	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
-@@ -924,8 +899,14 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	sr_info->nvalue_count = pdata->nvalue_count;
- 	sr_info->senn_mod = pdata->senn_mod;
- 	sr_info->senp_mod = pdata->senp_mod;
-+	sr_info->err_weight = pdata->err_weight;
-+	sr_info->err_maxlimit = pdata->err_maxlimit;
-+	sr_info->accum_data = pdata->accum_data;
-+	sr_info->senn_avgweight = pdata->senn_avgweight;
-+	sr_info->senp_avgweight = pdata->senp_avgweight;
- 	sr_info->autocomp_active = false;
- 	sr_info->ip_type = pdata->ip_type;
-+
- 	sr_info->base = ioremap(mem->start, resource_size(mem));
- 	if (!sr_info->base) {
- 		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
-@@ -937,7 +918,6 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		sr_info->irq = irq->start;
- 
- 	sr_set_clk_length(sr_info);
--	sr_set_regfields(sr_info);
- 
- 	list_add(&sr_info->node, &sr_list);
- 
-diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
-index 4a496eb..c0f44c2 100644
---- a/include/linux/power/smartreflex.h
-+++ b/include/linux/power/smartreflex.h
-@@ -260,8 +260,13 @@ struct omap_sr_nvalue_table {
-  *
-  * @name:		instance name
-  * @ip_type:		Smartreflex IP type.
-- * @senp_mod:		SENPENABLE value for the sr
-- * @senn_mod:		SENNENABLE value for sr
-+ * @senp_mod:		SENPENABLE value of the sr CONFIG register
-+ * @senn_mod:		SENNENABLE value for sr CONFIG register
-+ * @err_weight		ERRWEIGHT value of the sr ERRCONFIG register
-+ * @err_maxlimit	ERRMAXLIMIT value of the sr ERRCONFIG register
-+ * @accum_data		ACCUMDATA value of the sr CONFIG register
-+ * @senn_avgweight	SENNAVGWEIGHT value of the sr AVGWEIGHT register
-+ * @senp_avgweight	SENPAVGWEIGHT value of the sr AVGWEIGHT register
-  * @nvalue_count:	Number of distinct nvalues in the nvalue table
-  * @enable_on_init:	whether this sr module needs to enabled at
-  *			boot up or not.
-@@ -274,6 +279,11 @@ struct omap_sr_data {
- 	int				ip_type;
- 	u32				senp_mod;
- 	u32				senn_mod;
-+	u32				err_weight;
-+	u32				err_maxlimit;
-+	u32				accum_data;
-+	u32				senn_avgweight;
-+	u32				senp_avgweight;
- 	int				nvalue_count;
- 	bool				enable_on_init;
- 	struct omap_sr_nvalue_table	*nvalue_table;
--- 
-1.7.10.4
+Regards,
 
+Philippe
+
+ 
+> From deae78e1084749f340ae8b8aaeca51818d5bfc55 Mon Sep 17 00:00:00 2001
+> From: Philippe De Swert <philippe.deswert@jollamobile.com>
+> Date: Wed, 26 Sep 2012 17:00:46 +0300
+> Subject: [PATCH 1/1] musb: Move generic_interrupt out of the way
+> 
+> Have all musb drivers define their own isr.
+> 
+> Signed-off-by: Philippe De Swert <philippe.deswert@jollamobile.com>
+> ---
+>  drivers/usb/musb/musb_core.c |   33 ++-------------------------------
+>  drivers/usb/musb/omap2430.c  |   22 ++++++++++++++++++++++
+>  drivers/usb/musb/ux500.c     |   21 +++++++++++++++++++++
+>  3 files changed, 45 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 26f1bef..1d5ee34 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1496,35 +1496,6 @@ static int __devinit musb_core_init(u16 musb_type,
+> struct musb *musb)
+>  	return 0;
+>  }
+>  
+> -/*-------------------------------------------------------------------------*/
+> -
+> -#if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_SOC_OMAP3430) || \
+> -	defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500)
+> -
+> -static irqreturn_t generic_interrupt(int irq, void *__hci)
+> -{
+> -	unsigned long	flags;
+> -	irqreturn_t	retval = IRQ_NONE;
+> -	struct musb	*musb = __hci;
+> -
+> -	spin_lock_irqsave(&musb->lock, flags);
+> -
+> -	musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
+> -	musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
+> -	musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
+> -
+> -	if (musb->int_usb || musb->int_tx || musb->int_rx)
+> -		retval = musb_interrupt(musb);
+> -
+> -	spin_unlock_irqrestore(&musb->lock, flags);
+> -
+> -	return retval;
+> -}
+> -
+> -#else
+> -#define generic_interrupt	NULL
+> -#endif
+> -
+>  /*
+>   * handle all the irqs defined by the HDRC core. for now we expect:  other
+>   * irq sources (phy, dma, etc) will be handled first, musb->int_* values
+> @@ -1907,7 +1878,8 @@ musb_init_controller(struct device *dev, int nIrq,
+> void __iomem *ctrl)
+>  	musb->ops = plat->platform_ops;
+>  
+>  	/* The musb_platform_init() call:
+> -	 *   - adjusts musb->mregs and musb->isr if needed,
+> +	 *   - adjusts musb->mregs if needed 
+> +	 *   - sets the musb->isr 
+>  	 *   - may initialize an integrated tranceiver
+>  	 *   - initializes musb->xceiv, usually by otg_get_phy()
+>  	 *   - stops powering VBUS
+> @@ -1917,7 +1889,6 @@ musb_init_controller(struct device *dev, int nIrq,
+> void __iomem *ctrl)
+>  	 * external/discrete ones in various flavors (twl4030 family,
+>  	 * isp1504, non-OTG, etc) mostly hooking up through ULPI.
+>  	 */
+> -	musb->isr = generic_interrupt;
+>  	status = musb_platform_init(musb);
+>  	if (status < 0)
+>  		goto fail1;
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 5fdb9da..5461619d 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -306,6 +306,26 @@ static void omap_musb_mailbox_work(struct work_struct
+> *mailbox_work)
+>  	omap_musb_set_mailbox(glue);
+>  }
+>  
+> +static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
+> +{
+> +        unsigned long   flags;
+> +        irqreturn_t     retval = IRQ_NONE;
+> +        struct musb     *musb = __hci;
+> +
+> +        spin_lock_irqsave(&musb->lock, flags);
+> +
+> +        musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
+> +        musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
+> +        musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
+> +
+> +        if (musb->int_usb || musb->int_tx || musb->int_rx)
+> +                retval = musb_interrupt(musb);
+> +
+> +        spin_unlock_irqrestore(&musb->lock, flags);
+> +
+> +        return retval;
+> +}
+> +
+>  static int omap2430_musb_init(struct musb *musb)
+>  {
+>  	u32 l;
+> @@ -325,6 +345,8 @@ static int omap2430_musb_init(struct musb *musb)
+>  		return -ENODEV;
+>  	}
+>  
+> +	musb->isr = omap2430_musb_interrupt;
+> +
+>  	status = pm_runtime_get_sync(dev);
+>  	if (status < 0) {
+>  		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
+> diff --git a/drivers/usb/musb/ux500.c b/drivers/usb/musb/ux500.c
+> index a8c0fad..ec9aaec 100644
+> --- a/drivers/usb/musb/ux500.c
+> +++ b/drivers/usb/musb/ux500.c
+> @@ -36,6 +36,26 @@ struct ux500_glue {
+>  };
+>  #define glue_to_musb(g)	platform_get_drvdata(g->musb)
+>  
+> +static irqreturn_t ux500_musb_interrupt(int irq, void *__hci)
+> +{
+> +        unsigned long   flags;
+> +        irqreturn_t     retval = IRQ_NONE;
+> +        struct musb     *musb = __hci;
+> +
+> +        spin_lock_irqsave(&musb->lock, flags);
+> +
+> +        musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
+> +        musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
+> +        musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
+> +
+> +        if (musb->int_usb || musb->int_tx || musb->int_rx)
+> +                retval = musb_interrupt(musb);
+> +
+> +        spin_unlock_irqrestore(&musb->lock, flags);
+> +
+> +        return retval;
+> +}
+> +
+>  static int ux500_musb_init(struct musb *musb)
+>  {
+>  	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+> @@ -43,6 +63,7 @@ static int ux500_musb_init(struct musb *musb)
+>  		pr_err("HS USB OTG: no transceiver configured\n");
+>  		return -ENODEV;
+>  	}
+> +	musb->isr = ux500_musb_interrupt;
+>  
+>  	return 0;
+>  }
+> -- 
+> 1.7.10.4
