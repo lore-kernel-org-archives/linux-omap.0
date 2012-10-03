@@ -1,80 +1,146 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Converting vrfb.c
-Date: Wed, 3 Oct 2012 11:41:50 -0700
-Message-ID: <20121003184149.GG4840@atomide.com>
-References: <1348833847.2437.36.camel@deskari>
- <20120928150052.GA4840@atomide.com>
+From: Ivan Djelic <ivan.djelic@parrot.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP2: gpmc: Add support for BCH ECC scheme
+Date: Wed, 3 Oct 2012 20:54:58 +0200
+Message-ID: <20121003185458.GA27502@parrot.com>
+References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
+ <1349274589-11389-4-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48856 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S964794Ab2JCSlx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 14:41:53 -0400
+Received: from co202.xi-lite.net ([149.6.83.202]:35545 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756529Ab2JCSzE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Oct 2012 14:55:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20120928150052.GA4840@atomide.com>
+In-Reply-To: <1349274589-11389-4-git-send-email-avinashphilip@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: "Philip, Avinash" <avinashphilip@ti.com>
+Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "afzal@ti.com" <afzal@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-Hi,
-
-* Tony Lindgren <tony@atomide.com> [120928 08:02]:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120928 05:05]:
-> > Hi,
-> > 
-> > I'm a bit at loss how to deal with drivers/video/omap2/vrfb.c.
-> > 
-> > VRFB is part of the SDRAM controller on OMAP2 and OMAP3. vrfb.c uses the
-> > following functions from sdrc.h:
-> > 
-> > omap2_sms_write_rot_control();
-> > omap2_sms_write_rot_size();
-> > omap2_sms_write_rot_physical_ba();
-> > 
-> > There are no other dependencies to the sdrc.c.
-> > 
-> > Those functions are quite simple:
-> > 
-> > void omap2_sms_write_rot_control(u32 val, unsigned ctx)
-> > {
-> > 	sms_write_reg(val, SMS_ROT_CONTROL(ctx));
-> > }
-> > 
-> > void omap2_sms_write_rot_size(u32 val, unsigned ctx)
-> > {
-> > 	sms_write_reg(val, SMS_ROT_SIZE(ctx));
-> > }
-> > 
-> > void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx)
-> > {
-> > 	sms_write_reg(val, SMS_ROT_PHYSICAL_BA(ctx));
-> > }
-> > 
-> > vrfb.c is in turn used by omapfb and omap v4l2 driver.
-> > 
-> > 
-> > So... Should I just remove the sdrc.h dependency and make vrfb.c ioremap
-> > those SMS registers itself? Those three registers are VRFB specific, so
-> > they are not used by anyone else. In that case I'd need to pass the SMS
-> > base address to vrfb.c somehow.
-> > 
-> > Or should I have some kind of platform data passed to vrfb.c, which
-> > contains func pointers to the above three functions?
-> > 
-> > Or should vrfb.c be moved into mach-omap2/? But then how would omapfb
-> > call it? Passing vrfb functions as pointers in omapfb platform data?
+On Wed, Oct 03, 2012 at 03:29:48PM +0100, Philip, Avinash wrote:
+> Add support for BCH ECC scheme to gpmc driver and also enabling multi
+> sector read/write. This helps in doing single shot NAND page read and
+> write.
 > 
-> Maybe just export those functions in sdrc.c for now? Eventually
-> that should be just a regular device driver too..
+> ECC engine configurations
+> BCH 4 bit support
+> 1. write => ECC engine configured in wrap mode 6 and with ecc_size0 as 32.
+> 2. read  => ECC engine configured in wrap mode 1 and with ecc_size0 as
+> 13 and ecc_size1 as 1.
+> 
+> BCH 8 bit support
+> 1. write => ECC engine configured in wrap mode 6 and with ecc_size0 as 32.
+> 2. read  => ECC engine configured in wrap mode 1 and with ecc_size0 as
+> 26 and ecc_size1 as 2.
+> 
+> Note: For BCH8 ECC bytes set to 14 to make compatible with RBL.
+> 
 
-Actually, if you're only using it to save and restore the hw
-context, why don't you let mach-omap2/sdrc.c do it based on runtime
-PM calls? It already has omap2_sms_save/restore_context.
- 
-> Or maybe Paul has some better ideas?
+Hi Philip,
 
-Regards,
+I have a few comments/questions below,
 
-Tony
+(...)
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 72428bd..c9bc3cf 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/io.h>
+>  #include <linux/module.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/mtd/nand.h>
+>  
+>  #include <asm/mach-types.h>
+>  #include <plat/gpmc.h>
+> @@ -83,6 +84,18 @@
+>  #define ENABLE_PREFETCH		(0x1 << 7)
+>  #define DMA_MPU_MODE		2
+>  
+> +/* GPMC ecc engine settings for read */
+> +#define BCH_WRAPMODE_1		1	/* BCH wrap mode 6 */
+
+Comment should say "mode 1".
+
+(...)
+>  /**
+> + * gpmc_calculate_ecc_bch	- Generate ecc bytes per block of 512 data bytes for entire page
+> + * @cs:  chip select number
+> + * @dat: The pointer to data on which ECC is computed
+> + * @ecc: The ECC output buffer
+> + */
+> +int gpmc_calculate_ecc_bch(int cs, const u_char *dat, u_char *ecc)
+> +{
+> +	int i, eccbchtsel;
+> +	u32 nsectors, reg, bch_val1, bch_val2, bch_val3, bch_val4;
+> +
+> +	if (gpmc_ecc_used != cs)
+> +		return -EINVAL;
+> +
+> +	/* read number of sectors for ecc to be calculated */
+> +	nsectors = ((gpmc_read_reg(GPMC_ECC_CONFIG) >> 4) & 0x7) + 1;
+> +	/*
+> +	 * find BCH scheme used
+> +	 * 0 -> BCH4
+> +	 * 1 -> BCH8
+> +	 */
+> +	eccbchtsel = ((gpmc_read_reg(GPMC_ECC_CONFIG) >> 12) & 0x3);
+> +
+> +	/* update ecc bytes for entire page */
+> +	for (i = 0; i < nsectors; i++) {
+> +
+> +		reg = GPMC_ECC_BCH_RESULT_0 + 16 * i;
+> +
+> +		/* Read hw-computed remainder */
+> +		bch_val1 = gpmc_read_reg(reg + 0);
+> +		bch_val2 = gpmc_read_reg(reg + 4);
+> +		if (eccbchtsel) {
+> +			bch_val3 = gpmc_read_reg(reg + 8);
+> +			bch_val4 = gpmc_read_reg(reg + 12);
+> +		}
+> +
+> +		if (eccbchtsel) {
+> +			/* BCH8 ecc scheme */
+> +			*ecc++ = (bch_val4 & 0xFF);
+> +			*ecc++ = ((bch_val3 >> 24) & 0xFF);
+> +			*ecc++ = ((bch_val3 >> 16) & 0xFF);
+> +			*ecc++ = ((bch_val3 >> 8) & 0xFF);
+> +			*ecc++ = (bch_val3 & 0xFF);
+> +			*ecc++ = ((bch_val2 >> 24) & 0xFF);
+> +			*ecc++ = ((bch_val2 >> 16) & 0xFF);
+> +			*ecc++ = ((bch_val2 >> 8) & 0xFF);
+> +			*ecc++ = (bch_val2 & 0xFF);
+> +			*ecc++ = ((bch_val1 >> 24) & 0xFF);
+> +			*ecc++ = ((bch_val1 >> 16) & 0xFF);
+> +			*ecc++ = ((bch_val1 >> 8) & 0xFF);
+> +			*ecc++ = (bch_val1 & 0xFF);
+> +			/* 14th byte of ecc not used */
+> +			*ecc++ = 0;
+> +		} else {
+> +			/* BCH4 ecc scheme */
+> +			*ecc++ = ((bch_val2 >> 12) & 0xFF);
+> +			*ecc++ = ((bch_val2 >> 4) & 0xFF);
+> +			*ecc++ = (((bch_val2 & 0xF) << 4) |
+> +					((bch_val1 >> 28) & 0xF));
+> +			*ecc++ = ((bch_val1 >> 20) & 0xFF);
+> +			*ecc++ = ((bch_val1 >> 12) & 0xFF);
+> +			*ecc++ = ((bch_val1 >> 4) & 0xFF);
+> +			*ecc++ = ((bch_val1 & 0xF) << 4);
+> +		}
+> +	}
+> +
+> +	gpmc_ecc_used = -EINVAL;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(gpmc_calculate_ecc_bch);
+
+Here you introduce a function very similar to gpmc_calculate_ecc_bch4 and
+gpmc_calculate_ecc_bch8, but without the added benefit (IMHO) of the constant
+polynomial that allows to get an ecc sequence of 0xFFs for a buffer filled with
+0xFFs. Why ?
+If using the ELM prevents you from reusing gpmc_calculate_ecc_bch[48], could you explain in which way ?
+
+Best regards,
+--
+Ivan
