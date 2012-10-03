@@ -1,60 +1,65 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 1/3] serial: omap: Make context_loss_cnt signed
-Date: Wed, 3 Oct 2012 17:24:36 +0530
-Message-ID: <1349265278-27763-1-git-send-email-shubhrajyoti@ti.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Wed, 3 Oct 2012 14:36:10 +0200
+Message-ID: <CACRpkdaeu3JaLqSbqETT=D0mdUu5VpwRpS_Xohd6M963rw8QMg@mail.gmail.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+ <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
+ <CACRpkdZ_NxST-oJ=MWC5L=r8uQD_71eHUVUR85v4jfsYpqz=UQ@mail.gmail.com>
+ <20121001154451.GI4840@atomide.com>
+ <CACRpkdaib2M1_UwSbyUG8qwZC2h7xaT5VU7WMj=y+h4S4LianQ@mail.gmail.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA3F22E@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-serial@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sourav.poddar@ti.com, Shubhrajyoti D <shubhrajyoti@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA3F22E-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Cc: "dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-get_context_loss_count returns an int however it is stored in
-unsigned integer context_loss_cnt . This patch tries to make
-context_loss_cnt int. So that in case of errors the value
-(which may be negative) is not interpreted wrongly.
+On Wed, Oct 3, 2012 at 12:52 PM, AnilKumar, Chimata <anilkumar-l0cyMroinI0@public.gmane.org> wrote:
+> On Tue, Oct 02, 2012 at 01:29:37, Linus Walleij wrote:
 
-In serial_omap_runtime_resume in case of errors returned by
-get_context_loss_count print a warning and do a restore.
+>> This is what we're doing for ux500 and should be a good model.
+>
+> I have looked into this, but not seen any named modes.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/tty/serial/omap-serial.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+OK maybe it's not easy to find. If you look into:
+arch/arm/mach-ux500/board-mop500-pins.c
+you find our work in progress. Note that this is not (yet)
+using device tree. (We want to migrate all our pinctrl
+stuff first, then do DT.)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 6ede6fd..fd0fb8c 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -96,7 +96,7 @@ struct uart_omap_port {
- 	unsigned char		msr_saved_flags;
- 	char			name[20];
- 	unsigned long		port_activity;
--	u32			context_loss_cnt;
-+	int			context_loss_cnt;
- 	u32			errata;
- 	u8			wakeups_enabled;
- 	unsigned int		irq_pending:1;
-@@ -1556,11 +1556,15 @@ static int serial_omap_runtime_resume(struct device *dev)
- {
- 	struct uart_omap_port *up = dev_get_drvdata(dev);
- 
--	u32 loss_cnt = serial_omap_get_context_loss_count(up);
-+	int loss_cnt = serial_omap_get_context_loss_count(up);
- 
--	if (up->context_loss_cnt != loss_cnt)
-+	if (loss_cnt < 0) {
-+		dev_err(dev, "serial_omap_get_context_loss_count failed : %d\n",
-+			loss_cnt);
- 		serial_omap_restore_context(up);
--
-+	} else if (up->context_loss_cnt != loss_cnt) {
-+		serial_omap_restore_context(up);
-+	}
- 	up->latency = up->calc_latency;
- 	schedule_work(&up->qos_work);
- 
--- 
-1.7.5.4
+So for example this macro:
 
+#define DB8500_PIN(pin,conf,dev) \
+        PIN_MAP_CONFIGS_PIN_DEFAULT(dev, "pinctrl-db8500", pin, conf)
+
+Will define a config for the "default" mode for a certain
+pin.
+
+This:
+
+#define DB8500_PIN_SLEEP(pin, conf, dev) \
+        PIN_MAP_CONFIGS_PIN(dev, PINCTRL_STATE_SLEEP, "pinctrl-db8500", \
+                            pin, conf)
+
+Will mutatis mutandis define a "sleep" mode for a pin.
+
+Sorry for the macros. We'll get rid of them in the DT.
+(Now that Stephen has patched in preprocessing it will
+even look good.)
+
+Yours,
+Linus Walleij
