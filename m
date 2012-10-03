@@ -1,68 +1,36 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: [RFC][PATCH 0/5] Introduce .get_voltage callback into voltdm
-Date: Wed, 3 Oct 2012 18:16:00 -0700
-Message-ID: <1349313365-5262-1-git-send-email-mturquette@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 09/17] serial/8250: Limit the omap workarounds to omap1
+Date: Wed, 3 Oct 2012 15:26:22 -0700
+Message-ID: <20121003222622.GK4840@atomide.com>
+References: <20120911052934.29637.9190.stgit@muffinssi.local>
+ <20120911053104.29637.95283.stgit@muffinssi.local>
+ <20120911174234.45919fd3@bob.linux.org.uk>
+ <20120911164023.GE23092@atomide.com>
+ <20120911201919.58d44dcb@bob.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46431 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932203Ab2JDBQw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Oct 2012 21:16:52 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120911201919.58d44dcb@bob.linux.org.uk>
+Sender: linux-serial-owner@vger.kernel.org
+To: Alan Cox <alan@linux.intel.com>
+Cc: linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-From: Mike Turquette <mturquette@linaro.org>
+* Alan Cox <alan@linux.intel.com> [120911 12:02]:
+> > > Even better would be if for other cases is_omap_port and friends
+> > > returned 0...
+> > 
+> > Yes it seems that those macros could be moved from plat-omap/serial.h
+> > to live in drivers/tty/serial/8250/8250.h? Or do you have some better
+> > place in mind?
+> 
+> I've not looked at it enough to decide if it's doable or not. I'm happy
+> either way - both patches are progress the right way!
 
-This series creates a new callback for struct voltagedomain,
-.get_voltage.  This fetches the voltage from hardware, if possible, and
-returns it to the caller.  We use this call to populate
-voltdm->nominal_volt at boot time.
+FYI, I'll send something along these lines as a separate patch as
+"[PATCH] tty/serial/8250: Make omap hardware workarounds local to 8250.h"
 
-The need for this came out of the Adaptive Body-Bias patches.  There is
-a corner case where voltdm->nominal_volt is zero at boot, but the ABB
-pre-scale function needs to know the current voltage as a part of its
-logic.  Without this series voltdm->nominal_volt will be zero until
-after voltdm->scale completes, which is too late for the ABB pre-scale
-logic.
+Regards,
 
-It is possible to have ABB without this series.  In the event that
-voltdm->nominal_volt is zero then the ABB pre-scale function can simply
-return early.  However this opens up a condition that burns power
-needlessly:
-
-1) The bootloader enables Forward Body-Bias mode on the ABB ldo and runs
-the voltage domain at a high OPP
-
-2) Linux boots and the first transition of that voltage domain is to a
-lower OPP.
-
-3) The voltage of that vdd is unknown so the ABB pre-scale function
-returns early and FBB is left enabled at an OPP that would otherwise not
-need it.
-
-This scenario is not validated and is best avoided.  This series is one
-step towards that.
-
-Mike Turquette (5):
-  ARM: omap: vc: replace data_shift with data_mask
-  ARM: omap: introduce .get_voltage callback
-  ARM: omap: vc: .get_voltage callback
-  ARM: omap: vp: .get_voltage callback
-  ARM: omap: initialize voltdm->nominal_volt
-
- arch/arm/mach-omap2/vc.c          |   23 ++++++++++++++++++++++-
- arch/arm/mach-omap2/vc.h          |    3 ++-
- arch/arm/mach-omap2/vc3xxx_data.c |    2 +-
- arch/arm/mach-omap2/vc44xx_data.c |    2 +-
- arch/arm/mach-omap2/voltage.c     |   13 +++++++++++++
- arch/arm/mach-omap2/voltage.h     |    1 +
- arch/arm/mach-omap2/vp.c          |   22 ++++++++++++++++++++++
- arch/arm/mach-omap2/vp.h          |    1 +
- 8 files changed, 63 insertions(+), 4 deletions(-)
-
--- 
-1.7.9.5
-
+Tony
