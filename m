@@ -1,47 +1,81 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 0/2] ARM: OMAP: SmartReflex: pass device dependent data via platform data
-Date: Wed,  3 Oct 2012 17:47:55 +0200
-Message-ID: <1349279277-7634-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:44695 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932317Ab2JCPrk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 11:47:40 -0400
-Received: by wgbdr13 with SMTP id dr13so6246930wgb.1
-        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 08:47:39 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: SmartReflex: pass device dependent data
+ via platform data
+Date: Wed, 3 Oct 2012 17:51:27 +0200
+Message-ID: <CAORVsuX6HS6GPSjq8+htPg8XcFAshCa3s=9fCRQZ=arBTGEOQQ@mail.gmail.com>
+References: <1348496201-6378-3-git-send-email-j-pihet@ti.com>
+ <1349271133-18458-1-git-send-email-j-pihet@ti.com>
+ <87391v39zn.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87391v39zn.fsf@deeprootsystems.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: tony@atomide.com, J Keerthy <j-keerthy@ti.com>, Anton Vorontsov <cbou@mail.ru>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbou@mail.ru>
-Cc: J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+Kevin,
 
-Remove the device dependent code (ex. cpu_is_xxx()) and settings
-from the driver code and instead pass them via the platform
-data. This allows a clean separation of the driver code and the platform
-code, as required by the move of the platform header files to
-include/linux/platform_data.
+On Wed, Oct 3, 2012 at 4:29 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> jean.pihet@newoldbits.com writes:
+>
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> Remove the device dependent code (ex. cpu_is_xxx()) and settings
+>> from the driver code and instead pass them via the platform
+>> data. This allows a clean separation of the driver code and the platform
+>> code, as required by the move of the platform header files to
+>> include/linux/platform_data.
+>>
+>> Note about the smartreflex functional clocks: the smartreflex fclks
+>> are derived from sys_clk and are named "smartreflex.%d". Since the
+>> smartreflex device names and the functional clock names are identical
+>> the device driver code uses them to control the functional clocks.
+>
+> Thanks for adding this part.
+>
+> One more nit below, then please resend this patch as a combined series
+> with the "align fclk names" patch.
+Just re-sent the new series.
 
-Note about the smartreflex functional clocks: the smartreflex fclks
-are derived from sys_clk and are renamed "smartreflex.%d". Since the
-smartreflex device names and the functional clock names are identical
-the device driver code uses them to control the functional clocks.
+> (note: The previous patch 1 from this
+> series I've queued separately as a fix for v3.7-rc.  )
+Thanks! The new series is based on mainline 3.6.0 with this patch applied.
 
-Based on mainline 3.6.0. Boot tested on OMAP3&4 platforms.
-										
-Jean Pihet (2):
-  ARM: OMAP: hwmod: align the SmartReflex fck names
-  ARM: OMAP: SmartReflex: pass device dependent data via platform data
+...
+>> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+>> index 24768a2..829467f 100644
+>> --- a/drivers/power/avs/smartreflex.c
+>> +++ b/drivers/power/avs/smartreflex.c
+>> @@ -133,14 +133,11 @@ static void sr_set_clk_length(struct omap_sr *sr)
+>>       struct clk *sys_ck;
+>>       u32 sys_clk_speed;
+>>
+>> -     if (cpu_is_omap34xx())
+>> -             sys_ck = clk_get(NULL, "sys_ck");
+>> -     else
+>> -             sys_ck = clk_get(NULL, "sys_clkin_ck");
+>> +     sys_ck = clk_get(&sr->pdev->dev, "fck");
+>
+> nit: since this isn't the sys_clk anymore, could you s/sys_ck/fck/  ?
+Done!
 
- arch/arm/mach-omap2/clock33xx_data.c       |   12 +++----
- arch/arm/mach-omap2/clock3xxx_data.c       |   12 +++----
- arch/arm/mach-omap2/clock44xx_data.c       |    6 ++--
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++---
- arch/arm/mach-omap2/sr_device.c            |   13 +++++++
- drivers/power/avs/smartreflex.c            |   54 +++++++++-------------------
- include/linux/power/smartreflex.h          |   14 ++++++--
- 7 files changed, 61 insertions(+), 58 deletions(-)
+>
+> Thanks,
+>
+> Kevin
+>
 
--- 
-1.7.10.4
-
+Thanks,
+Jean
