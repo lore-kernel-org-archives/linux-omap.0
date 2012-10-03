@@ -1,62 +1,80 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: hwmod: align the SmartReflex fck names
-Date: Wed, 3 Oct 2012 20:19:28 +0200
-Message-ID: <CAORVsuUCwGYjUjAuxZQb+en9SLE066OFJ3AOgSQou7JEyu5cjg@mail.gmail.com>
-References: <1349279277-7634-1-git-send-email-j-pihet@ti.com>
-	<1349279277-7634-2-git-send-email-j-pihet@ti.com>
-	<20121003170059.GD4840@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Converting vrfb.c
+Date: Wed, 3 Oct 2012 11:41:50 -0700
+Message-ID: <20121003184149.GG4840@atomide.com>
+References: <1348833847.2437.36.camel@deskari>
+ <20120928150052.GA4840@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:39084 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756521Ab2JCSTa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 14:19:30 -0400
-Received: by lbon3 with SMTP id n3so6485917lbo.19
-        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 11:19:29 -0700 (PDT)
-In-Reply-To: <20121003170059.GD4840@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48856 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S964794Ab2JCSlx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 14:41:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20120928150052.GA4840@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbou@mail.ru>, J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Hi Tony,
+Hi,
 
-On Wed, Oct 3, 2012 at 7:00 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [121003 08:48]:
->> @@ -1036,8 +1036,8 @@ static struct omap_clk am33xx_clks[] = {
->>       CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
->>       CLK("NULL",     "mmc2_fck",             &mmc2_fck,      CK_AM33XX),
->>       CLK(NULL,       "mmu_fck",              &mmu_fck,       CK_AM33XX),
->> -     CLK(NULL,       "smartreflex0_fck",     &smartreflex0_fck,      CK_AM33XX),
->> -     CLK(NULL,       "smartreflex1_fck",     &smartreflex1_fck,      CK_AM33XX),
->> +     CLK(NULL,       "smartreflex.0",        &smartreflex_mpu_fck,   CK_AM33XX),
->> +     CLK(NULL,       "smartreflex.1",        &smartreflex_core_fck,  CK_AM33XX),
->>       CLK(NULL,       "timer1_fck",           &timer1_fck,    CK_AM33XX),
->>       CLK(NULL,       "timer2_fck",           &timer2_fck,    CK_AM33XX),
->>       CLK(NULL,       "timer3_fck",           &timer3_fck,    CK_AM33XX),
->
-> I think this should be something like this instead:
->
->         CLK("smartreflex.0",    "fck",  &smartreflex_mpu_fck,   CK_AM33XX),
->         CLK("smartreflex.1",    "fck",  &smartreflex_core_fck,  CK_AM33XX),
->
-> Where the first one is the dev name, the second one is the
-> alias you want to use in the client driver?
-Ok, thanks for the suggestion.
+* Tony Lindgren <tony@atomide.com> [120928 08:02]:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120928 05:05]:
+> > Hi,
+> > 
+> > I'm a bit at loss how to deal with drivers/video/omap2/vrfb.c.
+> > 
+> > VRFB is part of the SDRAM controller on OMAP2 and OMAP3. vrfb.c uses the
+> > following functions from sdrc.h:
+> > 
+> > omap2_sms_write_rot_control();
+> > omap2_sms_write_rot_size();
+> > omap2_sms_write_rot_physical_ba();
+> > 
+> > There are no other dependencies to the sdrc.c.
+> > 
+> > Those functions are quite simple:
+> > 
+> > void omap2_sms_write_rot_control(u32 val, unsigned ctx)
+> > {
+> > 	sms_write_reg(val, SMS_ROT_CONTROL(ctx));
+> > }
+> > 
+> > void omap2_sms_write_rot_size(u32 val, unsigned ctx)
+> > {
+> > 	sms_write_reg(val, SMS_ROT_SIZE(ctx));
+> > }
+> > 
+> > void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx)
+> > {
+> > 	sms_write_reg(val, SMS_ROT_PHYSICAL_BA(ctx));
+> > }
+> > 
+> > vrfb.c is in turn used by omapfb and omap v4l2 driver.
+> > 
+> > 
+> > So... Should I just remove the sdrc.h dependency and make vrfb.c ioremap
+> > those SMS registers itself? Those three registers are VRFB specific, so
+> > they are not used by anyone else. In that case I'd need to pass the SMS
+> > base address to vrfb.c somehow.
+> > 
+> > Or should I have some kind of platform data passed to vrfb.c, which
+> > contains func pointers to the above three functions?
+> > 
+> > Or should vrfb.c be moved into mach-omap2/? But then how would omapfb
+> > call it? Passing vrfb functions as pointers in omapfb platform data?
+> 
+> Maybe just export those functions in sdrc.c for now? Eventually
+> that should be just a regular device driver too..
 
-It works however I get a ' smartreflex.0: alias fck already exists'
-warning at boot, coming from _add_hwmod_clocks_clkdev (called from
-omap_device_alloc).
-Since an "fck" is implicitly added for every device (in
-_add_hwmod_clocks_clkdev) I replaced "fck" in the alias definition by
-NULL but the warning is still present.
+Actually, if you're only using it to save and restore the hw
+context, why don't you let mach-omap2/sdrc.c do it based on runtime
+PM calls? It already has omap2_sms_save/restore_context.
+ 
+> Or maybe Paul has some better ideas?
 
-What do you think? /me dives into the omap_device code for details...
+Regards,
 
-> Regards,
->
-> Tony
-
-Thanks,
-Jean
+Tony
