@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 1/2] ARM: OMAP: hwmod: align the SmartReflex fck names
-Date: Wed,  3 Oct 2012 17:47:56 +0200
-Message-ID: <1349279277-7634-2-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 2/2] ARM: OMAP: SmartReflex: pass device dependent data via platform data
+Date: Wed,  3 Oct 2012 17:47:57 +0200
+Message-ID: <1349279277-7634-3-git-send-email-j-pihet@ti.com>
 References: <1349279277-7634-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:59497 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932383Ab2JCPrl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 11:47:41 -0400
-Received: by wibhr7 with SMTP id hr7so2638104wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 08:47:40 -0700 (PDT)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:33572 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932383Ab2JCPrq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 11:47:46 -0400
+Received: by weyt9 with SMTP id t9so4397871wey.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 08:47:44 -0700 (PDT)
 In-Reply-To: <1349279277-7634-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,148 +18,178 @@ Cc: J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Rename the smartreflex fck names for consistency and better readability;
-rename the clock aliases for use by the SmartReflex driver, with the
-"smartreflex.%d" format.
+Remove the device dependent code (ex. cpu_is_xxx()) and settings
+from the driver code and instead pass them via the platform
+data. This allows a clean separation of the driver code and the platform
+code, as required by the move of the platform header files to
+include/linux/platform_data.
+
+Note about the smartreflex functional clocks: the smartreflex fclks
+are derived from sys_clk and are named "smartreflex.%d". Since the
+smartreflex device names and the functional clock names are identical
+the device driver code uses them to control the functional clocks.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/clock33xx_data.c       |   12 ++++++------
- arch/arm/mach-omap2/clock3xxx_data.c       |   12 ++++++------
- arch/arm/mach-omap2/clock44xx_data.c       |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++++----
- 4 files changed, 19 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/sr_device.c   |   13 +++++++++
+ drivers/power/avs/smartreflex.c   |   54 ++++++++++++-------------------------
+ include/linux/power/smartreflex.h |   14 ++++++++--
+ 3 files changed, 42 insertions(+), 39 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
-index 2026311..851fc54 100644
---- a/arch/arm/mach-omap2/clock33xx_data.c
-+++ b/arch/arm/mach-omap2/clock33xx_data.c
-@@ -548,16 +548,16 @@ static struct clk mcasp1_fck = {
- 	.recalc		= &followparent_recalc,
- };
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index cbeae56..06de443 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -121,6 +121,19 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
+ 	sr_data->senn_mod = 0x1;
+ 	sr_data->senp_mod = 0x1;
  
--static struct clk smartreflex0_fck = {
--	.name		= "smartreflex0_fck",
-+static struct clk smartreflex_mpu_fck = {
-+	.name		= "smartreflex_mpu_fck",
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.parent		= &sys_clkin_ck,
- 	.ops		= &clkops_null,
- 	.recalc		= &followparent_recalc,
- };
++	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
++		sr_data->err_weight = OMAP3430_SR_ERRWEIGHT;
++		sr_data->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
++		sr_data->accum_data = OMAP3430_SR_ACCUMDATA;
++		if (!(strcmp(sr_data->name, "smartreflex_mpu"))) {
++			sr_data->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
++			sr_data->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
++		} else {
++			sr_data->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
++			sr_data->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
++		}
++	}
++
+ 	sr_data->voltdm = voltdm_lookup(sr_dev_attr->sensor_voltdm_name);
+ 	if (IS_ERR(sr_data->voltdm)) {
+ 		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
+diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+index 24768a2..c983e85 100644
+--- a/drivers/power/avs/smartreflex.c
++++ b/drivers/power/avs/smartreflex.c
+@@ -130,24 +130,21 @@ static irqreturn_t sr_interrupt(int irq, void *data)
  
--static struct clk smartreflex1_fck = {
--	.name		= "smartreflex1_fck",
-+static struct clk smartreflex_core_fck = {
-+	.name		= "smartreflex_core_fck",
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.parent		= &sys_clkin_ck,
- 	.ops		= &clkops_null,
-@@ -1036,8 +1036,8 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
- 	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
- 	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
--	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
--	CLK(NULL,	"smartreflex1_fck",	&smartreflex1_fck,	CK_AM33XX),
-+	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_fck,	CK_AM33XX),
-+	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_AM33XX),
- 	CLK(NULL,	"timer1_fck",		&timer1_fck,	CK_AM33XX),
- 	CLK(NULL,	"timer2_fck",		&timer2_fck,	CK_AM33XX),
- 	CLK(NULL,	"timer3_fck",		&timer3_fck,	CK_AM33XX),
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 700317a..796a1dc 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3050,8 +3050,8 @@ static struct clk traceclk_fck = {
- /* SR clocks */
+ static void sr_set_clk_length(struct omap_sr *sr)
+ {
+-	struct clk *sys_ck;
+-	u32 sys_clk_speed;
++	struct clk *fck;
++	u32 fclk_speed;
  
- /* SmartReflex fclk (VDD1) */
--static struct clk sr1_fck = {
--	.name		= "sr1_fck",
-+static struct clk smartreflex_mpu_iva_fck = {
-+	.name		= "smartreflex_mpu_iva_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &sys_ck,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
-@@ -3061,8 +3061,8 @@ static struct clk sr1_fck = {
- };
+-	if (cpu_is_omap34xx())
+-		sys_ck = clk_get(NULL, "sys_ck");
+-	else
+-		sys_ck = clk_get(NULL, "sys_clkin_ck");
++	fck = clk_get(&sr->pdev->dev, "fck");
  
- /* SmartReflex fclk (VDD2) */
--static struct clk sr2_fck = {
--	.name		= "sr2_fck",
-+static struct clk smartreflex_core_fck = {
-+	.name		= "smartreflex_core_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &sys_ck,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
-@@ -3448,8 +3448,8 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"atclk_fck",	&atclk_fck,	CK_3XXX),
- 	CLK(NULL,	"traceclk_src_fck", &traceclk_src_fck, CK_3XXX),
- 	CLK(NULL,	"traceclk_fck",	&traceclk_fck,	CK_3XXX),
--	CLK(NULL,	"sr1_fck",	&sr1_fck,	CK_34XX | CK_36XX),
--	CLK(NULL,	"sr2_fck",	&sr2_fck,	CK_34XX | CK_36XX),
-+	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_iva_fck,	CK_34XX | CK_36XX),
-+	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_3XXX),
- 	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 500682c..b9b988a 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3224,9 +3224,9 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"slimbus2_fclk_0",		&slimbus2_fclk_0,	CK_443X),
- 	CLK(NULL,	"slimbus2_slimbus_clk",		&slimbus2_slimbus_clk,	CK_443X),
- 	CLK(NULL,	"slimbus2_fck",			&slimbus2_fck,	CK_443X),
--	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
--	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
--	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
-+	CLK(NULL,	"smartreflex.0",		&smartreflex_core_fck,	CK_443X),
-+	CLK(NULL,	"smartreflex.1",		&smartreflex_iva_fck,	CK_443X),
-+	CLK(NULL,	"smartreflex.2",		&smartreflex_mpu_fck,	CK_443X),
- 	CLK(NULL,	"timer1_fck",			&timer1_fck,	CK_443X),
- 	CLK(NULL,	"timer10_fck",			&timer10_fck,	CK_443X),
- 	CLK(NULL,	"timer11_fck",			&timer11_fck,	CK_443X),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 94b38af..f1095a6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1368,7 +1368,7 @@ static struct omap_hwmod_irq_info omap3_smartreflex_mpu_irqs[] = {
- static struct omap_hwmod omap34xx_sr1_hwmod = {
- 	.name		= "smartreflex_mpu_iva",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
--	.main_clk	= "sr1_fck",
-+	.main_clk	= "smartreflex_mpu_iva_fck",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
-@@ -1386,7 +1386,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
- static struct omap_hwmod omap36xx_sr1_hwmod = {
- 	.name		= "smartreflex_mpu_iva",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
--	.main_clk	= "sr1_fck",
-+	.main_clk	= "smartreflex_mpu_iva_fck",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
-@@ -1413,7 +1413,7 @@ static struct omap_hwmod_irq_info omap3_smartreflex_core_irqs[] = {
- static struct omap_hwmod omap34xx_sr2_hwmod = {
- 	.name		= "smartreflex_core",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
--	.main_clk	= "sr2_fck",
-+	.main_clk	= "smartreflex_core_fck",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
-@@ -1431,7 +1431,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
- static struct omap_hwmod omap36xx_sr2_hwmod = {
- 	.name		= "smartreflex_core",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
--	.main_clk	= "sr2_fck",
-+	.main_clk	= "smartreflex_core_fck",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
+-	if (IS_ERR(sys_ck)) {
+-		dev_err(&sr->pdev->dev, "%s: unable to get sys clk\n",
+-			__func__);
++	if (IS_ERR(fck)) {
++		dev_err(&sr->pdev->dev, "%s: unable to get smartreflex fck %s\n",
++				__func__, dev_name(&sr->pdev->dev));
+ 		return;
+ 	}
+ 
+-	sys_clk_speed = clk_get_rate(sys_ck);
+-	clk_put(sys_ck);
++	fclk_speed = clk_get_rate(fck);
++	clk_put(fck);
+ 
+-	switch (sys_clk_speed) {
++	switch (fclk_speed) {
+ 	case 12000000:
+ 		sr->clk_length = SRCLKLENGTH_12MHZ_SYSCLK;
+ 		break;
+@@ -164,34 +161,12 @@ static void sr_set_clk_length(struct omap_sr *sr)
+ 		sr->clk_length = SRCLKLENGTH_38MHZ_SYSCLK;
+ 		break;
+ 	default:
+-		dev_err(&sr->pdev->dev, "%s: Invalid sysclk value: %d\n",
+-			__func__, sys_clk_speed);
++		dev_err(&sr->pdev->dev, "%s: Invalid fclk rate: %d\n",
++			__func__, fclk_speed);
+ 		break;
+ 	}
+ }
+ 
+-static void sr_set_regfields(struct omap_sr *sr)
+-{
+-	/*
+-	 * For time being these values are defined in smartreflex.h
+-	 * and populated during init. May be they can be moved to board
+-	 * file or pmic specific data structure. In that case these structure
+-	 * fields will have to be populated using the pdata or pmic structure.
+-	 */
+-	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+-		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
+-		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
+-		sr->accum_data = OMAP3430_SR_ACCUMDATA;
+-		if (!(strcmp(sr->name, "smartreflex_mpu_iva"))) {
+-			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
+-			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
+-		} else {
+-			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
+-			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
+-		}
+-	}
+-}
+-
+ static void sr_start_vddautocomp(struct omap_sr *sr)
+ {
+ 	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
+@@ -924,8 +899,14 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 	sr_info->nvalue_count = pdata->nvalue_count;
+ 	sr_info->senn_mod = pdata->senn_mod;
+ 	sr_info->senp_mod = pdata->senp_mod;
++	sr_info->err_weight = pdata->err_weight;
++	sr_info->err_maxlimit = pdata->err_maxlimit;
++	sr_info->accum_data = pdata->accum_data;
++	sr_info->senn_avgweight = pdata->senn_avgweight;
++	sr_info->senp_avgweight = pdata->senp_avgweight;
+ 	sr_info->autocomp_active = false;
+ 	sr_info->ip_type = pdata->ip_type;
++
+ 	sr_info->base = ioremap(mem->start, resource_size(mem));
+ 	if (!sr_info->base) {
+ 		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
+@@ -937,7 +918,6 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 		sr_info->irq = irq->start;
+ 
+ 	sr_set_clk_length(sr_info);
+-	sr_set_regfields(sr_info);
+ 
+ 	list_add(&sr_info->node, &sr_list);
+ 
+diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
+index 4a496eb..c0f44c2 100644
+--- a/include/linux/power/smartreflex.h
++++ b/include/linux/power/smartreflex.h
+@@ -260,8 +260,13 @@ struct omap_sr_nvalue_table {
+  *
+  * @name:		instance name
+  * @ip_type:		Smartreflex IP type.
+- * @senp_mod:		SENPENABLE value for the sr
+- * @senn_mod:		SENNENABLE value for sr
++ * @senp_mod:		SENPENABLE value of the sr CONFIG register
++ * @senn_mod:		SENNENABLE value for sr CONFIG register
++ * @err_weight		ERRWEIGHT value of the sr ERRCONFIG register
++ * @err_maxlimit	ERRMAXLIMIT value of the sr ERRCONFIG register
++ * @accum_data		ACCUMDATA value of the sr CONFIG register
++ * @senn_avgweight	SENNAVGWEIGHT value of the sr AVGWEIGHT register
++ * @senp_avgweight	SENPAVGWEIGHT value of the sr AVGWEIGHT register
+  * @nvalue_count:	Number of distinct nvalues in the nvalue table
+  * @enable_on_init:	whether this sr module needs to enabled at
+  *			boot up or not.
+@@ -274,6 +279,11 @@ struct omap_sr_data {
+ 	int				ip_type;
+ 	u32				senp_mod;
+ 	u32				senn_mod;
++	u32				err_weight;
++	u32				err_maxlimit;
++	u32				accum_data;
++	u32				senn_avgweight;
++	u32				senp_avgweight;
+ 	int				nvalue_count;
+ 	bool				enable_on_init;
+ 	struct omap_sr_nvalue_table	*nvalue_table;
 -- 
 1.7.10.4
 
