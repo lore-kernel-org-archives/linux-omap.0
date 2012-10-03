@@ -1,49 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: ASoC: Fix wrong include for McPDM
-Date: Wed, 3 Oct 2012 09:52:14 -0700
-Message-ID: <20121003165213.GC4840@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: hwmod: align the SmartReflex fck names
+Date: Wed, 3 Oct 2012 10:00:59 -0700
+Message-ID: <20121003170059.GD4840@atomide.com>
+References: <1349279277-7634-1-git-send-email-j-pihet@ti.com>
+ <1349279277-7634-2-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:62044 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:24242 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S965019Ab2JCQwU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 12:52:20 -0400
+	with ESMTP id S964888Ab2JCRBC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 13:01:02 -0400
 Content-Disposition: inline
+In-Reply-To: <1349279277-7634-2-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbou@mail.ru>, J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-McPDM needs platt/cpu.h for omap_rev and not omap_hwmod.h.
-Drivers must not include omap_hwmod.h at, it will be
-private to mach-omap2 soon. Fix the problem before other
-drivers will also start including omap_hwmod.h.
+* jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [121003 08:48]:
+> @@ -1036,8 +1036,8 @@ static struct omap_clk am33xx_clks[] = {
+>  	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
+>  	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
+>  	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
+> -	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
+> -	CLK(NULL,	"smartreflex1_fck",	&smartreflex1_fck,	CK_AM33XX),
+> +	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_fck,	CK_AM33XX),
+> +	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_AM33XX),
+>  	CLK(NULL,	"timer1_fck",		&timer1_fck,	CK_AM33XX),
+>  	CLK(NULL,	"timer2_fck",		&timer2_fck,	CK_AM33XX),
+>  	CLK(NULL,	"timer3_fck",		&timer3_fck,	CK_AM33XX),
 
-Note that also plat/cpu.h will be going away, so the
-omap_rev check needs to be replaced with mcpdm-watchdog
-flag from platform_data or DT.
+I think this should be something like this instead:
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+	CLK("smartreflex.0",	"fck",	&smartreflex_mpu_fck,	CK_AM33XX),
+	CLK("smartreflex.1",	"fck",	&smartreflex_core_fck,	CK_AM33XX),
 
----
+Where the first one is the dev name, the second one is the
+alias you want to use in the client driver?
 
-Can you guys please queue this as fix for -rc1?
+Regards,
 
-This removes and unnecessary dependency for making
-omap_hwmod.h local to mach-omap2.
-
-Then I'm hoping Peter will remove the plat/cpu.h
-dependency for v3.8 merge window ;)
-
---- a/sound/soc/omap/omap-mcpdm.c
-+++ b/sound/soc/omap/omap-mcpdm.c
-@@ -40,7 +40,7 @@
- #include <sound/pcm_params.h>
- #include <sound/soc.h>
- 
--#include <plat/omap_hwmod.h>
-+#include <plat/cpu.h>
- #include "omap-mcpdm.h"
- #include "omap-pcm.h"
- 
+Tony
