@@ -1,200 +1,87 @@
-From: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Subject: [RESEND][PATCH] ASoC: ams-delta: Convert to use
-	snd_soc_register_card()
-Date: Wed, 03 Oct 2012 12:46:57 +0200
-Message-ID: <1582731.dIkBtAuyKn@vclass>
-References: <20120906073633.GC22330@opensource.wolfsonmicro.com>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Wed, 3 Oct 2012 10:52:32 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA3F22E@DBDE01.ent.ti.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+ <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
+ <CACRpkdZ_NxST-oJ=MWC5L=r8uQD_71eHUVUR85v4jfsYpqz=UQ@mail.gmail.com>
+ <20121001154451.GI4840@atomide.com>
+ <CACRpkdaib2M1_UwSbyUG8qwZC2h7xaT5VU7WMj=y+h4S4LianQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120906073633.GC22330@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CACRpkdaib2M1_UwSbyUG8qwZC2h7xaT5VU7WMj=y+h4S4LianQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <dong.aisheng-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The old method of registering with the ASoC core by creating a
-"soc-audio" platform device no longer works for Amstrad Delta sound card
-after recent changes to drvdata handling (commit
-0998d0631001288a5974afc0b2a5f568bcdecb4d, 'device-core: Ensure drvdata =
-NULL when no driver is bound'.
-
-Use snd_soc_register_card() method instead, as suggested by the ASoC
-core generated warning message, and move both the card and codec
-platform device registration to the arch board file where those belong.
-
-Created and tested against linux-3.6-rc5.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
-On Thu, 6 Sep 2012 15:36:35 Mark Brown wrote:
-> On Sat, Sep 01, 2012 at 11:09:18AM +0200, Janusz Krzysztofik wrote:
+On Tue, Oct 02, 2012 at 01:29:37, Linus Walleij wrote:
+> On Mon, Oct 1, 2012 at 5:44 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
 > 
-> > I see your point, however for now I can see no better way of referencing 
-> > the data (of type struct snd_soc_card) then passing it to 
-> > snd_soc_register_card(). But for this to work, I would have to register 
-> > successfully an ams-delta specific platform device first, not the soc-
-> > audio. This, even if still done from the sound/soc/omap/ams-delta.c, not 
-> > from an arch board file, would require now not existing ams-delta ASoC 
-> > platform driver probe/remove callbacks at least. I'm still not convinced 
-> > if such modification would be acceptable in the middle of the rc cycle.
+> >> OK that is typical pinctrl driver implementation work.
+> >> I hope Tony can advice on this?
+> >
+> > I think we're best off to just stick to alternative named modes
+> > passed from device tree. For example, for GPIO wake-ups you can
+> > have named modes such as "default", "enabled" and "idle" where
+> > "idle" muxes things for GPIO wake-ups for the duration of idle.
+> >
+
+In this case we need to add three different values according
+to three modes (default, enabled, idle) and for each node.
+
+> > It seems that should also work for leds-gpio. And you can
+> > define more named modes as needed.
+
+If we want to implement pinctrl_gpio functionality we have to
+separate "function-mask" bits to
+
+1. pinmux-mask
+2. pinconf-mask, to make it generic we need following bit masks
+	a. receiver enable/disable bit
+	b. slew rate fast/slow bit
+	c. pull-up/down bit
+	....
+
+I have gone through nvidia pinctrl dt data (tegra20-seaboard.dts,
+node drive_sdio1) which has different pinconfig values, those
+are mapping to pinconf values.
+
+With the above bit masks and function-mask we can identify
+pull-up/down, slow/high speed slew rate and direction in/out.
+
+(or)
+
+Named modes:-
+
+Are you saying named modes like this?
+default-input-up
+default-input-down
+default-output-up
+default-output-down
+
+This 1, 2 and 2.a or named modes are required to implement
+pinctrl_gpio_direction_input/output and
+pinctrl_request/free_gpio.
+
 > 
-> > If there is a simpler, less intrusive way to do this, then sorry, I 
-> > still can't see it.
 > 
-> Like I already said just make it a static variable.
+> This is what we're doing for ux500 and should be a good model.
 
-Mark,
-Sorry, I was still not able to understand what you actually meant, and
-to come out with a working fix other than I initially proposed. If what
-I've prepared now is not acceptable as a fix, than hard luck, please
-consider queueing it for 3.7, and 3.6 must go with Amstrad Delta sound
-not working unless someone else is still able to fix it.
+I have looked into this, but not seen any named modes.
 
-Tony,
-Please give your ack on the arch/arm/mach-omap1 bits if acceptable. I
-believe there should be no merge conflicts if this change goes through
-sound/soc.
-
-Thanks,
-Janusz
-
- arch/arm/mach-omap1/board-ams-delta.c |   12 ++++++
- sound/soc/omap/ams-delta.c            |   63 +++++++++++++++-----------------
- 2 files changed, 42 insertions(+), 33 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index c534698..5ab9c6b 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -444,16 +444,28 @@ static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
- 	.lclk_khz_max	= 1334,		/* results in 5fps CIF, 10fps QCIF */
- };
- 
-+static struct platform_device ams_delta_audio_device = {
-+	.name   = "ams-delta-audio",
-+	.id     = -1,
-+};
-+
-+static struct platform_device cx20442_codec_device = {
-+	.name   = "cx20442-codec",
-+	.id     = -1,
-+};
-+
- static struct platform_device *ams_delta_devices[] __initdata = {
- 	&latch1_gpio_device,
- 	&latch2_gpio_device,
- 	&ams_delta_kp_device,
- 	&ams_delta_camera_device,
-+	&ams_delta_audio_device,
- };
- 
- static struct platform_device *late_devices[] __initdata = {
- 	&ams_delta_nand_device,
- 	&ams_delta_lcd_device,
-+	&cx20442_codec_device,
- };
- 
- static void __init ams_delta_init(void)
-diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
-index 7d4fa8e..7b18b74 100644
---- a/sound/soc/omap/ams-delta.c
-+++ b/sound/soc/omap/ams-delta.c
-@@ -575,56 +575,53 @@ static struct snd_soc_card ams_delta_audio_card = {
- };
- 
- /* Module init/exit */
--static struct platform_device *ams_delta_audio_platform_device;
--static struct platform_device *cx20442_platform_device;
--
--static int __init ams_delta_module_init(void)
-+static __devinit int ams_delta_probe(struct platform_device *pdev)
- {
-+	struct snd_soc_card *card = &ams_delta_audio_card;
- 	int ret;
- 
--	if (!(machine_is_ams_delta()))
--		return -ENODEV;
--
--	ams_delta_audio_platform_device =
--			platform_device_alloc("soc-audio", -1);
--	if (!ams_delta_audio_platform_device)
--		return -ENOMEM;
-+	card->dev = &pdev->dev;
- 
--	platform_set_drvdata(ams_delta_audio_platform_device,
--				&ams_delta_audio_card);
--
--	ret = platform_device_add(ams_delta_audio_platform_device);
--	if (ret)
--		goto err;
--
--	/*
--	 * Codec platform device could be registered from elsewhere (board?),
--	 * but I do it here as it makes sense only if used with the card.
--	 */
--	cx20442_platform_device =
--		platform_device_register_simple("cx20442-codec", -1, NULL, 0);
-+	ret = snd_soc_register_card(card);
-+	if (ret) {
-+		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
-+		card->dev = NULL;
-+		return ret;
-+	}
- 	return 0;
--err:
--	platform_device_put(ams_delta_audio_platform_device);
--	return ret;
- }
--late_initcall(ams_delta_module_init);
- 
--static void __exit ams_delta_module_exit(void)
-+static int __devexit ams_delta_remove(struct platform_device *pdev)
- {
-+	struct snd_soc_card *card = platform_get_drvdata(pdev);
-+
- 	if (tty_unregister_ldisc(N_V253) != 0)
--		dev_warn(&ams_delta_audio_platform_device->dev,
-+		dev_warn(&pdev->dev,
- 			"failed to unregister V253 line discipline\n");
- 
- 	snd_soc_jack_free_gpios(&ams_delta_hook_switch,
- 			ARRAY_SIZE(ams_delta_hook_switch_gpios),
- 			ams_delta_hook_switch_gpios);
- 
--	platform_device_unregister(cx20442_platform_device);
--	platform_device_unregister(ams_delta_audio_platform_device);
-+	snd_soc_unregister_card(card);
-+	card->dev = NULL;
-+	return 0;
- }
--module_exit(ams_delta_module_exit);
-+
-+#define DRV_NAME "ams-delta-audio"
-+
-+static struct platform_driver ams_delta_driver = {
-+	.driver = {
-+		.name = DRV_NAME,
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = ams_delta_probe,
-+	.remove = __devexit_p(ams_delta_remove),
-+};
-+
-+module_platform_driver(ams_delta_driver);
- 
- MODULE_AUTHOR("Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>");
- MODULE_DESCRIPTION("ALSA SoC driver for Amstrad E3 (Delta) videophone");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DRV_NAME);
--- 
-1.7.3.4
+Thanks
+AnilKumar
