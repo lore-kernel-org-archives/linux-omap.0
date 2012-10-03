@@ -1,82 +1,136 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: Re: [PATCH v2 8/9] ARM: OMAP: iommu: add device tree support
-Date: Wed, 3 Oct 2012 16:13:33 -0500
-Message-ID: <CALLhW=4oawfGqSDHAVgh_SPqB4Ugeyw6MjoaNDVkxSJcJd4Tpg@mail.gmail.com>
-References: <1347479152-588-1-git-send-email-omar.luna@linaro.org>
-	<1347479152-588-9-git-send-email-omar.luna@linaro.org>
-	<20121002212523.GA11180@beef>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20121002212523.GA11180@beef>
-Sender: linux-doc-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] ARM: OMAP2+: PM: MPU DVFS: use generic CPU device for MPU-SS
+Date: Wed,  3 Oct 2012 15:24:15 -0700
+Message-ID: <1349303055-27741-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:60564 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754475Ab2JCWYS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 18:24:18 -0400
+Received: by padhz1 with SMTP id hz1so6789916pad.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 15:24:17 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-Hi Matt,
+From: Kevin Hilman <khilman@ti.com>
 
-On 2 October 2012 16:25, Matt Porter <mporter@ti.com> wrote:
-...
-> I can see why you went this path with the iommu driver as it already had
-> some integration code present here. I have some concerns going forward
-> about how this should be long-term. Take any platform booting only with
-> DT populated, we'd like to avoid having to use this approach where
-> platform private APIs are called via pdata. In fact, it's going to makes
-> thing ugly to carry any sort of pdata for a driver that's otherwise
-> driven exclusively from DT.
->
-> For AM335x, I can implement this approach, but it means adding some
-> pruss specific integration code just to have it create the pdata for
-> reset_name and assert/deassert.
+Currently, a dummy omap_device is created for the MPU sub-system so
+that a device node exists for MPU DVFS.  Specifically, for the
+association of MPU OPPs to a device node, and so that a voltage
+regulator can be mapped to a device node.
 
-Yes I agree, it looks a bit ugly for devices that have more than one
-reset line name too, but right now there is no other way to keep the
-reset names and also provide flexibility to the driver to control them
-in a given order.
+For drivers to get a handle to this device node, an OMAP-specific API
+has been used.  However, the kernel already has device nodes for the
+CPU(s) in the system, so we can use those instead of an OMAP-specific
+dummy device and then drivers (like OMAP CPUfreq) can use generic
+APIs.
 
-> From reading all the threads on hardresets and OMAP, it seems we may not
-> be able to come up with a generic OMAP handler for these resets and
-> that's really reflected in the fact that this API exists. So given that,
-> it reasons that OMAP isn't the only one needing a reset API for drivers.
-> I'm thinking that (as trivial as it may seem), this support may need to
-> move to a reset subsystem such that drivers have a clean way to access
-> reset resources in an SoC.
+To use the existing CPU device nodes, modify the OPP creation and
+regulator registration to use the CPU0 device node for registraion.
 
-Well, there was a point where the OMAP hwmod code contained the reset
-code and at least for me it was working fine, with iommu and ipu
-processor, just with a minor misleading warning print... however then
-this code got stripped out and since there appeared to be people
-needing to handle their reset lines in unknown ways it was advised
-that everybody should implement their own reset functions, but in my
-case I could reuse most of the disabled code at the expense of almost
-duplicating _enable (omap_hwmod) function while waiting all the reset
-line users started asking for changes.
+NOTE: this patch always uses CPU0 as the device node.  On all
+      OMAPs today, MPU DVFS scales all CPUs together, so this will
+      not be a problem, but this assumption will need to be changed
+      if independently scalable CPUs are introduced.
 
-> I'm curious if you or others have thought about where this needs to go
-> next.
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Applies on current Linus master.
+Targetted for v3.7-rc1 so CPUfreq driver can be cleaned of plat includes
+(follow on series)
 
-I haven't planned for a reset subsystem or a more generic
-implementation, although I have been looking for a way to avoid using
-the pdata function pointers.
+ arch/arm/mach-omap2/opp.c        |   23 +++++++++++++++++------
+ arch/arm/mach-omap2/pm.c         |   11 ++++++++++-
+ arch/arm/mach-omap2/twl-common.c |    2 +-
+ 3 files changed, 28 insertions(+), 8 deletions(-)
 
-> When I first thought about a reset subsystem it seemed to trivial
-> to bother with but looking at the reasoning behind the power_seq
-> subsystem, it seems to have similar justification to get this machine
-> specific logic out of the platform code and under standardized control
-> of the driver.
+diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+index 45ad7f7..58e16ae 100644
+--- a/arch/arm/mach-omap2/opp.c
++++ b/arch/arm/mach-omap2/opp.c
+@@ -18,6 +18,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/opp.h>
++#include <linux/cpu.h>
+ 
+ #include <plat/omap_device.h>
+ 
+@@ -62,13 +63,23 @@ int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+ 				__func__, i);
+ 			return -EINVAL;
+ 		}
+-		oh = omap_hwmod_lookup(opp_def->hwmod_name);
+-		if (!oh || !oh->od) {
+-			pr_debug("%s: no hwmod or odev for %s, [%d] cannot add OPPs.\n",
+-				 __func__, opp_def->hwmod_name, i);
+-			continue;
++
++		if (!strncmp(opp_def->hwmod_name, "mpu", 3)) {
++			/* 
++			 * All current OMAPs share voltage rail and
++			 * clock source, so CPU0 is used to represent
++			 * the MPU-SS.
++			 */
++			dev = get_cpu_device(0);
++		} else {
++			oh = omap_hwmod_lookup(opp_def->hwmod_name);
++			if (!oh || !oh->od) {
++				pr_debug("%s: no hwmod or odev for %s, [%d] cannot add OPPs.\n",
++					 __func__, opp_def->hwmod_name, i);
++				continue;
++			}
++			dev = &oh->od->pdev->dev;
+ 		}
+-		dev = &oh->od->pdev->dev;
+ 
+ 		r = opp_add(dev, opp_def->freq, opp_def->u_volt);
+ 		if (r) {
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 939bd6f..173c2be 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -16,6 +16,7 @@
+ #include <linux/opp.h>
+ #include <linux/export.h>
+ #include <linux/suspend.h>
++#include <linux/cpu.h>
+ 
+ #include <asm/system_misc.h>
+ 
+@@ -168,7 +169,15 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+ 		goto exit;
+ 	}
+ 
+-	dev = omap_device_get_by_hwmod_name(oh_name);
++	if (!strncmp(oh_name, "mpu", 3))
++		/* 
++		 * All current OMAPs share voltage rail and clock
++		 * source, so CPU0 is used to represent the MPU-SS.
++		 */
++		dev = get_cpu_device(0);
++	else
++		dev = omap_device_get_by_hwmod_name(oh_name);
++
+ 	if (IS_ERR(dev)) {
+ 		pr_err("%s: Unable to get dev pointer for hwmod %s\n",
+ 			__func__, oh_name);
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 45f7741..3f5eacc 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -158,7 +158,7 @@ static struct regulator_init_data omap3_vpll2_idata = {
+ };
+ 
+ static struct regulator_consumer_supply omap3_vdd1_supply[] = {
+-	REGULATOR_SUPPLY("vcc", "mpu.0"),
++	REGULATOR_SUPPLY("vcc", "cpu0"),
+ };
+ 
+ static struct regulator_consumer_supply omap3_vdd2_supply[] = {
+-- 
+1.7.9.2
 
-IMHO, the reset code even if made a subsystem or a library, would
-still need to interface with machine specific code and definitions
-(say omap_hwmod), so I don't see much difference in making the
-omap_device reset handlers as exported symbols for the time being,
-with acceptance of the owners of omap_device code.
-
-And then if power_seq makes it to mainline perhaps extending it to
-handle deassert, assert and softreset events, but then again this
-would have the same hooks to omap_hwmod which is the one with the prcm
-information.
-
-Regards,
-
-Omar
