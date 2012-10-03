@@ -1,1294 +1,433 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 5/6] ARM: OMAP: remove plat/clock.h
-Date: Wed, 3 Oct 2012 02:40:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210030230450.5736@utopia.booyaka.com>
-References: <20120927162800.21755.62891.stgit@dusk.lan> <20120927163333.21755.48035.stgit@dusk.lan> <20121002231446.GU4840@atomide.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCHv3 2/4] Input: keypad: Add smsc ece1099 keypad driver
+Date: Wed, 3 Oct 2012 11:26:46 +0530
+Message-ID: <CAKdam55BEQi9tJb1yzKJWNhO7sHrW5NFHfsZjicw2NGYDEFovQ@mail.gmail.com>
+References: <1349089310-22134-1-git-send-email-sourav.poddar@ti.com>
+	<20121002061829.GA3853@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43927 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291Ab2JCCkl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Oct 2012 22:40:41 -0400
-In-Reply-To: <20121002231446.GU4840@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121002061829.GA3853@core.coreip.homeip.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2 Oct 2012, Tony Lindgren wrote:
+Hi Dmitry,
 
-> But you can see where the duplicates are with:
-> 
-> $ grep -rc 'include "clock.h"' arch/arm/*omap*/* | grep ":2"
+On Tue, Oct 2, 2012 at 11:48 AM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> Hi Sourav,
+>
+> On Mon, Oct 01, 2012 at 04:31:50PM +0530, Sourav Poddar wrote:
+>> From: G, Manjunath Kondaiah <manjugk@ti.com>
+>>
+>> SMSC ECE1099 is a keyboard scan or GPIO expansion device.The device
+>> supports a keypad scan matrix of 23*8.This driver uses this
+>> device as a keypad driver.
+>>
+>> Tested on omap5430 evm with 3.6-rc6 custom kernel.
+>>
+>> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Cc: Felipe Balbi <balbi@ti.com>
+>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>> Acked-by: Felipe Balbi <balbi@ti.com>
+>> ---
+>> Changes since v2:
+>>  - Replace magic numbers through driver variable.
+>>  - Provide comments for some initialisation done in probe.
+>>  drivers/input/keyboard/Kconfig               |   11 +
+>>  drivers/input/keyboard/Makefile              |    1 +
+>>  drivers/input/keyboard/smsc-ece1099-keypad.c |  304 ++++++++++++++++++++++++++
+>>  3 files changed, 316 insertions(+), 0 deletions(-)
+>>  create mode 100644 drivers/input/keyboard/smsc-ece1099-keypad.c
+>>
+>> diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
+>> index c50fa75..b03a39c 100644
+>> --- a/drivers/input/keyboard/Kconfig
+>> +++ b/drivers/input/keyboard/Kconfig
+>> @@ -593,6 +593,17 @@ config KEYBOARD_TWL4030
+>>         To compile this driver as a module, choose M here: the
+>>         module will be called twl4030_keypad.
+>>
+>> +config KEYBOARD_SMSC
+>> +       tristate "SMSC ECE1099 keypad support"
+>
+> Should also select INPUT_MATRIXKMAP.
+>
+Yes, will include in the next version.
+>> +       depends on I2C
+>> +       help
+>> +         Say Y here if your board use the smsc keypad controller
+>> +         for omap5 defconfig. It's safe to say enable this
+>> +         even on boards that don't use the keypad controller.
+>> +
+>> +         To compile this driver as a module, choose M here: the
+>> +         module will be called smsc-ece1099-keypad.
+>> +
+>>  config KEYBOARD_XTKBD
+>>       tristate "XT keyboard"
+>>       select SERIO
+>> diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
+>> index 44e7600..0f2aa26 100644
+>> --- a/drivers/input/keyboard/Makefile
+>> +++ b/drivers/input/keyboard/Makefile
+>> @@ -52,5 +52,6 @@ obj-$(CONFIG_KEYBOARD_TC3589X)              += tc3589x-keypad.o
+>>  obj-$(CONFIG_KEYBOARD_TEGRA)         += tegra-kbc.o
+>>  obj-$(CONFIG_KEYBOARD_TNETV107X)     += tnetv107x-keypad.o
+>>  obj-$(CONFIG_KEYBOARD_TWL4030)               += twl4030_keypad.o
+>> +obj-$(CONFIG_KEYBOARD_SMSC)            += smsc-ece1099-keypad.o
+>>  obj-$(CONFIG_KEYBOARD_XTKBD)         += xtkbd.o
+>>  obj-$(CONFIG_KEYBOARD_W90P910)               += w90p910_keypad.o
+>> diff --git a/drivers/input/keyboard/smsc-ece1099-keypad.c b/drivers/input/keyboard/smsc-ece1099-keypad.c
+>> new file mode 100644
+>> index 0000000..15dc147
+>> --- /dev/null
+>> +++ b/drivers/input/keyboard/smsc-ece1099-keypad.c
+>> @@ -0,0 +1,304 @@
+>> +/*
+>> + * SMSC_ECE1099 Keypad driver
+>> + *
+>> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#include <linux/i2c.h>
+>> +#include <linux/kernel.h>
+>> +#include <linux/module.h>
+>> +#include <linux/init.h>
+>> +#include <linux/interrupt.h>
+>> +#include <linux/input.h>
+>> +#include <linux/gpio.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/jiffies.h>
+>> +#include <linux/input/matrix_keypad.h>
+>> +#include <linux/delay.h>
+>> +#include <linux/mfd/core.h>
+>> +#include <linux/mfd/smsc.h>
+>> +#include <linux/of_gpio.h>
+>> +#include <linux/of.h>
+>> +
+>> +#define KEYPRESS_TIME          200
+>> +
+>> +struct smsc_keypad {
+>> +     struct smsc *smsc;
+>> +     struct matrix_keymap_data *keymap_data;
+>> +     unsigned int last_key_state[16];
+>> +     unsigned int last_col;
+>> +     unsigned int last_key_ms[16];
+>> +     unsigned short *keymap;
+>> +     struct i2c_client *client;
+>> +     struct input_dev *input;
+>> +     int rows, cols;
+>> +     int row_shift;
+>> +     bool no_autorepeat;
+>> +     unsigned        irq;
+>> +     struct device *dev;
+>> +};
+>> +
+>> +static void smsc_kp_scan(struct smsc_keypad *kp)
+>> +{
+>> +     struct input_dev *input = kp->input;
+>> +     int i, j;
+>> +     int row, col;
+>> +     int temp, code;
+>> +     unsigned int new_state[16];
+>> +     unsigned int bits_changed;
+>> +     int this_ms;
+>> +
+>> +     smsc_write(kp->dev, SMSC_KP_INT_MASK, 0x00);
+>> +     smsc_write(kp->dev, SMSC_KP_INT_STAT, 0xFF);
+>> +
+>> +     /* Scan for row and column */
+>> +     for (i = 0; i < kp->cols; i++) {
+>> +             smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_EVAL + i);
+>> +             /* Read Row Status */
+>> +             smsc_read(kp->dev, SMSC_KP_IN, &temp);
+>> +             if (temp == 0xFF)
+>> +                     continue;
+>> +
+>> +             col = i;
+>> +             for (j = 0; j < kp->rows; j++) {
+>> +                     if ((temp & 0x01) != 0x00) {
+>> +                             temp = temp >> 1;
+>> +                             continue;
+>> +                     }
+>> +
+>> +                     row = j;
+>> +                     new_state[col] =  (1 << row);
+>> +                     bits_changed = kp->last_key_state[col] ^ new_state[col];
+>> +                     this_ms = jiffies_to_msecs(jiffies);
+>> +                     if (bits_changed != 0 || (!bits_changed &&
+>> +                                     ((this_ms - kp->last_key_ms[col]) >= KEYPRESS_TIME))) {
+>> +                             code = MATRIX_SCAN_CODE(row, col, kp->row_shift);
+>> +                             input_event(input, EV_MSC, MSC_SCAN, code);
+>> +                             input_report_key(input, kp->keymap[code], 1);
+>> +                             input_report_key(input, kp->keymap[code], 0);
+>> +                             kp->last_key_state[col] = new_state[col];
+>> +                             if (kp->last_col != col)
+>> +                                     kp->last_key_state[kp->last_col] = 0;
+>> +                             kp->last_key_ms[col] = this_ms;
+>> +                     }
+>> +                     temp = temp >> 1;
+>> +             }
+>> +     }
+>> +     input_sync(input);
+>> +
+>> +     smsc_write(kp->dev, SMSC_KP_INT_MASK, 0xFF);
+>> +
+>> +     /* Set up Low Power Mode (Wake-up) (0xFB) */
+>> +     smsc_write(kp->dev, SMSC_WKUP_CTRL, SMSC_KP_SET_LOW_PWR);
+>> +
+>> +     /*Enable Keypad Scan (generate interrupt on key press) (0x40)*/
+>> +     smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_ALL_LOW);
+>> +}
+>> +
+>> +static irqreturn_t do_kp_irq(int irq, void *_kp)
+>> +{
+>> +     struct smsc_keypad *kp = _kp;
+>> +     int int_status;
+>> +
+>> +     smsc_read(kp->dev, SMSC_KP_INT_STAT, &int_status);
+>> +     if (int_status)
+>> +             smsc_kp_scan(kp);
+>> +
+>> +     return IRQ_HANDLED;
+>> +}
+>> +
+>> +#ifdef CONFIG_OF
+>> +static int __devinit smsc_keypad_parse_dt(struct device *dev,
+>> +                             struct smsc_keypad *kp)
+>> +{
+>> +     struct device_node *np = dev->of_node;
+>> +
+>> +     if (!np) {
+>> +             dev_err(dev, "missing DT data");
+>> +             return -EINVAL;
+>> +     }
+>> +
+>> +     of_property_read_u32(np, "keypad,num-rows", &kp->rows);
+>> +     of_property_read_u32(np, "keypad,num-columns", &kp->cols);
+>> +     if (!kp->rows || !kp->cols) {
+>> +             dev_err(dev, "number of keypad rows/columns not specified\n");
+>> +             return -EINVAL;
+>> +     }
+>> +
+>> +     if (of_property_read_bool(np, "linux,input-no-autorepeat"))
+>> +             kp->no_autorepeat = true;
+>> +
+>> +     return 0;
+>> +}
+>> +#else
+>> +static inline int smsc_keypad_parse_dt(struct device *dev,
+>> +                             struct smsc_keypad *kp)
+>> +{
+>> +     return -ENOSYS;
+>> +}
+>> +#endif
+>> +
+>> +static int __devinit
+>> +smsc_probe(struct platform_device *pdev)
+>> +{
+>> +     struct device *dev = &pdev->dev;
+>> +     struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
+>> +     struct input_dev *input;
+>> +     struct smsc_keypad *kp;
+>> +     int ret = 0, error;
+>> +     int col, i, max_keys, row_shift;
+>> +     int irq;
+>> +     int addr;
+>> +
+>> +     kp = devm_kzalloc(dev, sizeof(*kp), GFP_KERNEL);
+>> +
+>> +     input = input_allocate_device();
+>> +     if (!kp || !input) {
+>> +             error = -ENOMEM;
+>> +             goto err1;
+>> +     }
+>> +
+>> +     error = smsc_keypad_parse_dt(&pdev->dev, kp);
+>
+> It doe snot look like the driver is useful without DT... Should it
+> simply depend on OF and not even provide !OF stubs?
+>
+Yes, the idea was to make this driver completely dt specific.
 
-OK thanks.  Updated the patch here, and planning to wait until 3.7-rc1 is 
-out before sending a pull request for 3.8 cleanup.
-
-
-- Paul
-
-From: Paul Walmsley <paul@pwsan.com>
-Date: Wed, 26 Sep 2012 17:55:04 -0600
-Subject: [PATCH] ARM: OMAP: remove plat/clock.h
-
-Remove arch/arm/plat-omap/include/plat/clock.h by merging it into
-arch/arm/mach-omap1/clock.h and arch/arm/mach-omap2/clock.h.
-The goal here is to facilitate ARM single image kernels by removing
-includes via the "plat/" symlink.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-[tony@atomide.com: fixed to remove duplicate clock.h includes]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap1/board-nokia770.c         |    2 +-
- arch/arm/mach-omap1/clock.c                  |    1 -
- arch/arm/mach-omap1/clock.h                  |  153 ++++++++++++-
- arch/arm/mach-omap1/clock_data.c             |    1 -
- arch/arm/mach-omap1/pm.c                     |    2 +-
- arch/arm/mach-omap2/clkt2xxx_apll.c          |    1 -
- arch/arm/mach-omap2/clkt2xxx_dpll.c          |    2 -
- arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |    1 -
- arch/arm/mach-omap2/clkt2xxx_osc.c           |    2 -
- arch/arm/mach-omap2/clkt2xxx_sys.c           |    2 -
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    1 -
- arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |    1 -
- arch/arm/mach-omap2/clkt_clksel.c            |    2 -
- arch/arm/mach-omap2/clkt_dpll.c              |    2 -
- arch/arm/mach-omap2/clkt_iclk.c              |    1 -
- arch/arm/mach-omap2/clock.c                  |    1 -
- arch/arm/mach-omap2/clock.h                  |  284 ++++++++++++++++++++++-
- arch/arm/mach-omap2/clock2430.c              |    2 -
- arch/arm/mach-omap2/clock2xxx.c              |    2 -
- arch/arm/mach-omap2/clock34xx.c              |    2 -
- arch/arm/mach-omap2/clock3517.c              |    2 -
- arch/arm/mach-omap2/clock36xx.c              |    2 -
- arch/arm/mach-omap2/clock3xxx.c              |    2 -
- arch/arm/mach-omap2/clockdomain.c            |    2 +-
- arch/arm/mach-omap2/clockdomain.h            |    2 +-
- arch/arm/mach-omap2/common.c                 |    2 +-
- arch/arm/mach-omap2/dpll3xxx.c               |    2 -
- arch/arm/mach-omap2/dpll44xx.c               |    2 -
- arch/arm/mach-omap2/omap_hwmod.c             |    2 +-
- arch/arm/mach-omap2/pm-debug.c               |    2 +-
- arch/arm/mach-omap2/pm24xx.c                 |    2 +-
- arch/arm/mach-omap2/sdram-nokia.c            |    2 +-
- arch/arm/mach-omap2/sdrc.c                   |    2 +-
- arch/arm/mach-omap2/sdrc2xxx.c               |    1 -
- arch/arm/plat-omap/counter_32k.c             |    1 -
- arch/arm/plat-omap/include/plat/clock.h      |  309 --------------------------
- arch/arm/plat-omap/omap_device.c             |    1 -
- 37 files changed, 445 insertions(+), 358 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/plat/clock.h
-
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index ec01f03..fef0a93 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -29,7 +29,7 @@
- #include <plat/keypad.h>
- #include <plat/lcd_mipid.h>
- #include <plat/mmc.h>
--#include <plat/clock.h>
-+#include "clock.h"
- 
- #include <mach/hardware.h>
- #include <mach/usb.h>
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 76c3f13..3bd98d6 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -24,7 +24,6 @@
- 
- #include <plat/cpu.h>
- #include <plat/usb.h>
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/clkdev_omap.h>
- 
-diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-index 3d04f4f..155ddd9 100644
---- a/arch/arm/mach-omap1/clock.h
-+++ b/arch/arm/mach-omap1/clock.h
-@@ -14,8 +14,159 @@
- #define __ARCH_ARM_MACH_OMAP1_CLOCK_H
- 
- #include <linux/clk.h>
-+#include <linux/list.h>
- 
--#include <plat/clock.h>
-+struct module;
-+struct clk;
-+
-+/* Temporary, needed during the common clock framework conversion */
-+#define __clk_get_name(clk)	(clk->name)
-+#define __clk_get_parent(clk)	(clk->parent)
-+#define __clk_get_rate(clk)	(clk->rate)
-+
-+/**
-+ * struct clkops - some clock function pointers
-+ * @enable: fn ptr that enables the current clock in hardware
-+ * @disable: fn ptr that enables the current clock in hardware
-+ * @find_idlest: function returning the IDLEST register for the clock's IP blk
-+ * @find_companion: function returning the "companion" clk reg for the clock
-+ * @allow_idle: fn ptr that enables autoidle for the current clock in hardware
-+ * @deny_idle: fn ptr that disables autoidle for the current clock in hardware
-+ *
-+ * A "companion" clk is an accompanying clock to the one being queried
-+ * that must be enabled for the IP module connected to the clock to
-+ * become accessible by the hardware.  Neither @find_idlest nor
-+ * @find_companion should be needed; that information is IP
-+ * block-specific; the hwmod code has been created to handle this, but
-+ * until hwmod data is ready and drivers have been converted to use PM
-+ * runtime calls in place of clk_enable()/clk_disable(), @find_idlest and
-+ * @find_companion must, unfortunately, remain.
-+ */
-+struct clkops {
-+	int			(*enable)(struct clk *);
-+	void			(*disable)(struct clk *);
-+	void			(*find_idlest)(struct clk *, void __iomem **,
-+					       u8 *, u8 *);
-+	void			(*find_companion)(struct clk *, void __iomem **,
-+						  u8 *);
-+	void			(*allow_idle)(struct clk *);
-+	void			(*deny_idle)(struct clk *);
-+};
-+
-+/*
-+ * struct clk.flags possibilities
-+ *
-+ * XXX document the rest of the clock flags here
-+ *
-+ * CLOCK_CLKOUTX2: (OMAP4 only) DPLL CLKOUT and CLKOUTX2 GATE_CTRL
-+ *     bits share the same register.  This flag allows the
-+ *     omap4_dpllmx*() code to determine which GATE_CTRL bit field
-+ *     should be used.  This is a temporary solution - a better approach
-+ *     would be to associate clock type-specific data with the clock,
-+ *     similar to the struct dpll_data approach.
-+ */
-+#define ENABLE_REG_32BIT	(1 << 0)	/* Use 32-bit access */
-+#define CLOCK_IDLE_CONTROL	(1 << 1)
-+#define CLOCK_NO_IDLE_PARENT	(1 << 2)
-+#define ENABLE_ON_INIT		(1 << 3)	/* Enable upon framework init */
-+#define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
-+#define CLOCK_CLKOUTX2		(1 << 5)
-+
-+/**
-+ * struct clk - OMAP struct clk
-+ * @node: list_head connecting this clock into the full clock list
-+ * @ops: struct clkops * for this clock
-+ * @name: the name of the clock in the hardware (used in hwmod data and debug)
-+ * @parent: pointer to this clock's parent struct clk
-+ * @children: list_head connecting to the child clks' @sibling list_heads
-+ * @sibling: list_head connecting this clk to its parent clk's @children
-+ * @rate: current clock rate
-+ * @enable_reg: register to write to enable the clock (see @enable_bit)
-+ * @recalc: fn ptr that returns the clock's current rate
-+ * @set_rate: fn ptr that can change the clock's current rate
-+ * @round_rate: fn ptr that can round the clock's current rate
-+ * @init: fn ptr to do clock-specific initialization
-+ * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-+ * @usecount: number of users that have requested this clock to be enabled
-+ * @fixed_div: when > 0, this clock's rate is its parent's rate / @fixed_div
-+ * @flags: see "struct clk.flags possibilities" above
-+ * @rate_offset: bitshift for rate selection bitfield (OMAP1 only)
-+ * @src_offset: bitshift for source selection bitfield (OMAP1 only)
-+ *
-+ * XXX @rate_offset, @src_offset should probably be removed and OMAP1
-+ * clock code converted to use clksel.
-+ *
-+ * XXX @usecount is poorly named.  It should be "enable_count" or
-+ * something similar.  "users" in the description refers to kernel
-+ * code (core code or drivers) that have called clk_enable() and not
-+ * yet called clk_disable(); the usecount of parent clocks is also
-+ * incremented by the clock code when clk_enable() is called on child
-+ * clocks and decremented by the clock code when clk_disable() is
-+ * called on child clocks.
-+ *
-+ * XXX @clkdm, @usecount, @children, @sibling should be marked for
-+ * internal use only.
-+ *
-+ * @children and @sibling are used to optimize parent-to-child clock
-+ * tree traversals.  (child-to-parent traversals use @parent.)
-+ *
-+ * XXX The notion of the clock's current rate probably needs to be
-+ * separated from the clock's target rate.
-+ */
-+struct clk {
-+	struct list_head	node;
-+	const struct clkops	*ops;
-+	const char		*name;
-+	struct clk		*parent;
-+	struct list_head	children;
-+	struct list_head	sibling;	/* node for children */
-+	unsigned long		rate;
-+	void __iomem		*enable_reg;
-+	unsigned long		(*recalc)(struct clk *);
-+	int			(*set_rate)(struct clk *, unsigned long);
-+	long			(*round_rate)(struct clk *, unsigned long);
-+	void			(*init)(struct clk *);
-+	u8			enable_bit;
-+	s8			usecount;
-+	u8			fixed_div;
-+	u8			flags;
-+	u8			rate_offset;
-+	u8			src_offset;
-+#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
-+	struct dentry		*dent;	/* For visible tree hierarchy */
-+#endif
-+};
-+
-+struct clk_functions {
-+	int		(*clk_enable)(struct clk *clk);
-+	void		(*clk_disable)(struct clk *clk);
-+	long		(*clk_round_rate)(struct clk *clk, unsigned long rate);
-+	int		(*clk_set_rate)(struct clk *clk, unsigned long rate);
-+	int		(*clk_set_parent)(struct clk *clk, struct clk *parent);
-+	void		(*clk_allow_idle)(struct clk *clk);
-+	void		(*clk_deny_idle)(struct clk *clk);
-+	void		(*clk_disable_unused)(struct clk *clk);
-+};
-+
-+extern int mpurate;
-+
-+extern int clk_init(struct clk_functions *custom_clocks);
-+extern void clk_preinit(struct clk *clk);
-+extern int clk_register(struct clk *clk);
-+extern void clk_reparent(struct clk *child, struct clk *parent);
-+extern void clk_unregister(struct clk *clk);
-+extern void propagate_rate(struct clk *clk);
-+extern void recalculate_root_clocks(void);
-+extern unsigned long followparent_recalc(struct clk *clk);
-+extern void clk_enable_init_clocks(void);
-+unsigned long omap_fixed_divisor_recalc(struct clk *clk);
-+extern struct clk *omap_clk_get_by_name(const char *name);
-+extern int omap_clk_enable_autoidle_all(void);
-+extern int omap_clk_disable_autoidle_all(void);
-+
-+extern const struct clkops clkops_null;
-+
-+extern struct clk dummy_ck;
- 
- int omap1_clk_init(void);
- void omap1_clk_late_init(void);
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index 53e166c..f5033a0 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -22,7 +22,6 @@
- 
- #include <asm/mach-types.h>  /* for machine_is_* */
- 
--#include <plat/clock.h>
- #include <plat/cpu.h>
- #include <plat/clkdev_omap.h>
- #include <plat/sram.h>	/* for omap_sram_reprogram_clock() */
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index b2560d3..7049415 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -50,7 +50,7 @@
- #include <asm/mach/irq.h>
- 
- #include <plat/cpu.h>
--#include <plat/clock.h>
-+#include "clock.h"
- #include <plat/sram.h>
- #include <plat/tc.h>
- #include <plat/mux.h>
-diff --git a/arch/arm/mach-omap2/clkt2xxx_apll.c b/arch/arm/mach-omap2/clkt2xxx_apll.c
-index c2d15212..73a1414 100644
---- a/arch/arm/mach-omap2/clkt2xxx_apll.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_apll.c
-@@ -21,7 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/prcm.h>
- 
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/clkt2xxx_dpll.c b/arch/arm/mach-omap2/clkt2xxx_dpll.c
-index 1502a7b..0890ba9 100644
---- a/arch/arm/mach-omap2/clkt2xxx_dpll.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_dpll.c
-@@ -14,8 +14,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-24xx.h"
-diff --git a/arch/arm/mach-omap2/clkt2xxx_dpllcore.c b/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
-index 4ae4392..8de67a5 100644
---- a/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
-@@ -25,7 +25,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_osc.c b/arch/arm/mach-omap2/clkt2xxx_osc.c
-index c346092..e177737 100644
---- a/arch/arm/mach-omap2/clkt2xxx_osc.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_osc.c
-@@ -23,8 +23,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock2xxx.h"
- #include "prm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/clkt2xxx_sys.c b/arch/arm/mach-omap2/clkt2xxx_sys.c
-index 8693cfd..46683b3 100644
---- a/arch/arm/mach-omap2/clkt2xxx_sys.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_sys.c
-@@ -22,8 +22,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock2xxx.h"
- #include "prm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index 3524f0e..b601e49 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -33,7 +33,6 @@
- #include <linux/cpufreq.h>
- #include <linux/slab.h>
- 
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- 
-diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-index 7c6da2f..f5ae26e 100644
---- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-+++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-@@ -21,7 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- 
-diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2/clkt_clksel.c
-index eaed390..58afd7b 100644
---- a/arch/arm/mach-omap2/clkt_clksel.c
-+++ b/arch/arm/mach-omap2/clkt_clksel.c
-@@ -45,8 +45,6 @@
- #include <linux/io.h>
- #include <linux/bug.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- 
- /* Private functions */
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index 8041114..8463cc3 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -21,8 +21,6 @@
- 
- #include <asm/div64.h>
- 
--#include <plat/clock.h>
--
- #include "soc.h"
- #include "clock.h"
- #include "cm-regbits-24xx.h"
-diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/arch/arm/mach-omap2/clkt_iclk.c
-index 3d43fba..7c8d41e 100644
---- a/arch/arm/mach-omap2/clkt_iclk.c
-+++ b/arch/arm/mach-omap2/clkt_iclk.c
-@@ -14,7 +14,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/prcm.h>
- 
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 33f5b5d..8b30759 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -26,7 +26,6 @@
- 
- #include <asm/cpu.h>
- 
--#include <plat/clock.h>
- #include <plat/prcm.h>
- 
- #include <trace/events/power.h>
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 35ec5f3..c3bf8c2 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -17,8 +17,290 @@
- #define __ARCH_ARM_MACH_OMAP2_CLOCK_H
- 
- #include <linux/kernel.h>
-+#include <linux/list.h>
-+
-+struct module;
-+struct clk;
-+struct clockdomain;
-+
-+/* Temporary, needed during the common clock framework conversion */
-+#define __clk_get_name(clk)	(clk->name)
-+#define __clk_get_parent(clk)	(clk->parent)
-+#define __clk_get_rate(clk)	(clk->rate)
-+
-+/**
-+ * struct clkops - some clock function pointers
-+ * @enable: fn ptr that enables the current clock in hardware
-+ * @disable: fn ptr that enables the current clock in hardware
-+ * @find_idlest: function returning the IDLEST register for the clock's IP blk
-+ * @find_companion: function returning the "companion" clk reg for the clock
-+ * @allow_idle: fn ptr that enables autoidle for the current clock in hardware
-+ * @deny_idle: fn ptr that disables autoidle for the current clock in hardware
-+ *
-+ * A "companion" clk is an accompanying clock to the one being queried
-+ * that must be enabled for the IP module connected to the clock to
-+ * become accessible by the hardware.  Neither @find_idlest nor
-+ * @find_companion should be needed; that information is IP
-+ * block-specific; the hwmod code has been created to handle this, but
-+ * until hwmod data is ready and drivers have been converted to use PM
-+ * runtime calls in place of clk_enable()/clk_disable(), @find_idlest and
-+ * @find_companion must, unfortunately, remain.
-+ */
-+struct clkops {
-+	int			(*enable)(struct clk *);
-+	void			(*disable)(struct clk *);
-+	void			(*find_idlest)(struct clk *, void __iomem **,
-+					       u8 *, u8 *);
-+	void			(*find_companion)(struct clk *, void __iomem **,
-+						  u8 *);
-+	void			(*allow_idle)(struct clk *);
-+	void			(*deny_idle)(struct clk *);
-+};
-+
-+/* struct clksel_rate.flags possibilities */
-+#define RATE_IN_242X		(1 << 0)
-+#define RATE_IN_243X		(1 << 1)
-+#define RATE_IN_3430ES1		(1 << 2)	/* 3430ES1 rates only */
-+#define RATE_IN_3430ES2PLUS	(1 << 3)	/* 3430 ES >= 2 rates only */
-+#define RATE_IN_36XX		(1 << 4)
-+#define RATE_IN_4430		(1 << 5)
-+#define RATE_IN_TI816X		(1 << 6)
-+#define RATE_IN_4460		(1 << 7)
-+#define RATE_IN_AM33XX		(1 << 8)
-+#define RATE_IN_TI814X		(1 << 9)
-+
-+#define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
-+#define RATE_IN_34XX		(RATE_IN_3430ES1 | RATE_IN_3430ES2PLUS)
-+#define RATE_IN_3XXX		(RATE_IN_34XX | RATE_IN_36XX)
-+#define RATE_IN_44XX		(RATE_IN_4430 | RATE_IN_4460)
-+
-+/* RATE_IN_3430ES2PLUS_36XX includes 34xx/35xx with ES >=2, and all 36xx/37xx */
-+#define RATE_IN_3430ES2PLUS_36XX	(RATE_IN_3430ES2PLUS | RATE_IN_36XX)
-+
-+
-+/**
-+ * struct clksel_rate - register bitfield values corresponding to clk divisors
-+ * @val: register bitfield value (shifted to bit 0)
-+ * @div: clock divisor corresponding to @val
-+ * @flags: (see "struct clksel_rate.flags possibilities" above)
-+ *
-+ * @val should match the value of a read from struct clk.clksel_reg
-+ * AND'ed with struct clk.clksel_mask, shifted right to bit 0.
-+ *
-+ * @div is the divisor that should be applied to the parent clock's rate
-+ * to produce the current clock's rate.
-+ */
-+struct clksel_rate {
-+	u32			val;
-+	u8			div;
-+	u16			flags;
-+};
-+
-+/**
-+ * struct clksel - available parent clocks, and a pointer to their divisors
-+ * @parent: struct clk * to a possible parent clock
-+ * @rates: available divisors for this parent clock
-+ *
-+ * A struct clksel is always associated with one or more struct clks
-+ * and one or more struct clksel_rates.
-+ */
-+struct clksel {
-+	struct clk		 *parent;
-+	const struct clksel_rate *rates;
-+};
-+
-+/**
-+ * struct dpll_data - DPLL registers and integration data
-+ * @mult_div1_reg: register containing the DPLL M and N bitfields
-+ * @mult_mask: mask of the DPLL M bitfield in @mult_div1_reg
-+ * @div1_mask: mask of the DPLL N bitfield in @mult_div1_reg
-+ * @clk_bypass: struct clk pointer to the clock's bypass clock input
-+ * @clk_ref: struct clk pointer to the clock's reference clock input
-+ * @control_reg: register containing the DPLL mode bitfield
-+ * @enable_mask: mask of the DPLL mode bitfield in @control_reg
-+ * @last_rounded_rate: cache of the last rate result of omap2_dpll_round_rate()
-+ * @last_rounded_m: cache of the last M result of omap2_dpll_round_rate()
-+ * @max_multiplier: maximum valid non-bypass multiplier value (actual)
-+ * @last_rounded_n: cache of the last N result of omap2_dpll_round_rate()
-+ * @min_divider: minimum valid non-bypass divider value (actual)
-+ * @max_divider: maximum valid non-bypass divider value (actual)
-+ * @modes: possible values of @enable_mask
-+ * @autoidle_reg: register containing the DPLL autoidle mode bitfield
-+ * @idlest_reg: register containing the DPLL idle status bitfield
-+ * @autoidle_mask: mask of the DPLL autoidle mode bitfield in @autoidle_reg
-+ * @freqsel_mask: mask of the DPLL jitter correction bitfield in @control_reg
-+ * @idlest_mask: mask of the DPLL idle status bitfield in @idlest_reg
-+ * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
-+ * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
-+ * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
-+ * @flags: DPLL type/features (see below)
-+ *
-+ * Possible values for @flags:
-+ * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
-+ *
-+ * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
-+ *
-+ * XXX Some DPLLs have multiple bypass inputs, so it's not technically
-+ * correct to only have one @clk_bypass pointer.
-+ *
-+ * XXX The runtime-variable fields (@last_rounded_rate, @last_rounded_m,
-+ * @last_rounded_n) should be separated from the runtime-fixed fields
-+ * and placed into a different structure, so that the runtime-fixed data
-+ * can be placed into read-only space.
-+ */
-+struct dpll_data {
-+	void __iomem		*mult_div1_reg;
-+	u32			mult_mask;
-+	u32			div1_mask;
-+	struct clk		*clk_bypass;
-+	struct clk		*clk_ref;
-+	void __iomem		*control_reg;
-+	u32			enable_mask;
-+	unsigned long		last_rounded_rate;
-+	u16			last_rounded_m;
-+	u16			max_multiplier;
-+	u8			last_rounded_n;
-+	u8			min_divider;
-+	u16			max_divider;
-+	u8			modes;
-+	void __iomem		*autoidle_reg;
-+	void __iomem		*idlest_reg;
-+	u32			autoidle_mask;
-+	u32			freqsel_mask;
-+	u32			idlest_mask;
-+	u32			dco_mask;
-+	u32			sddiv_mask;
-+	u8			auto_recal_bit;
-+	u8			recal_en_bit;
-+	u8			recal_st_bit;
-+	u8			flags;
-+};
-+
-+/*
-+ * struct clk.flags possibilities
-+ *
-+ * XXX document the rest of the clock flags here
-+ *
-+ * CLOCK_CLKOUTX2: (OMAP4 only) DPLL CLKOUT and CLKOUTX2 GATE_CTRL
-+ *     bits share the same register.  This flag allows the
-+ *     omap4_dpllmx*() code to determine which GATE_CTRL bit field
-+ *     should be used.  This is a temporary solution - a better approach
-+ *     would be to associate clock type-specific data with the clock,
-+ *     similar to the struct dpll_data approach.
-+ */
-+#define ENABLE_REG_32BIT	(1 << 0)	/* Use 32-bit access */
-+#define CLOCK_IDLE_CONTROL	(1 << 1)
-+#define CLOCK_NO_IDLE_PARENT	(1 << 2)
-+#define ENABLE_ON_INIT		(1 << 3)	/* Enable upon framework init */
-+#define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
-+#define CLOCK_CLKOUTX2		(1 << 5)
-+
-+/**
-+ * struct clk - OMAP struct clk
-+ * @node: list_head connecting this clock into the full clock list
-+ * @ops: struct clkops * for this clock
-+ * @name: the name of the clock in the hardware (used in hwmod data and debug)
-+ * @parent: pointer to this clock's parent struct clk
-+ * @children: list_head connecting to the child clks' @sibling list_heads
-+ * @sibling: list_head connecting this clk to its parent clk's @children
-+ * @rate: current clock rate
-+ * @enable_reg: register to write to enable the clock (see @enable_bit)
-+ * @recalc: fn ptr that returns the clock's current rate
-+ * @set_rate: fn ptr that can change the clock's current rate
-+ * @round_rate: fn ptr that can round the clock's current rate
-+ * @init: fn ptr to do clock-specific initialization
-+ * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-+ * @usecount: number of users that have requested this clock to be enabled
-+ * @fixed_div: when > 0, this clock's rate is its parent's rate / @fixed_div
-+ * @flags: see "struct clk.flags possibilities" above
-+ * @clksel_reg: for clksel clks, register va containing src/divisor select
-+ * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-+ * @clksel: for clksel clks, pointer to struct clksel for this clock
-+ * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-+ * @clkdm_name: clockdomain name that this clock is contained in
-+ * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-+ * @rate_offset: bitshift for rate selection bitfield (OMAP1 only)
-+ * @src_offset: bitshift for source selection bitfield (OMAP1 only)
-+ *
-+ * XXX @rate_offset, @src_offset should probably be removed and OMAP1
-+ * clock code converted to use clksel.
-+ *
-+ * XXX @usecount is poorly named.  It should be "enable_count" or
-+ * something similar.  "users" in the description refers to kernel
-+ * code (core code or drivers) that have called clk_enable() and not
-+ * yet called clk_disable(); the usecount of parent clocks is also
-+ * incremented by the clock code when clk_enable() is called on child
-+ * clocks and decremented by the clock code when clk_disable() is
-+ * called on child clocks.
-+ *
-+ * XXX @clkdm, @usecount, @children, @sibling should be marked for
-+ * internal use only.
-+ *
-+ * @children and @sibling are used to optimize parent-to-child clock
-+ * tree traversals.  (child-to-parent traversals use @parent.)
-+ *
-+ * XXX The notion of the clock's current rate probably needs to be
-+ * separated from the clock's target rate.
-+ */
-+struct clk {
-+	struct list_head	node;
-+	const struct clkops	*ops;
-+	const char		*name;
-+	struct clk		*parent;
-+	struct list_head	children;
-+	struct list_head	sibling;	/* node for children */
-+	unsigned long		rate;
-+	void __iomem		*enable_reg;
-+	unsigned long		(*recalc)(struct clk *);
-+	int			(*set_rate)(struct clk *, unsigned long);
-+	long			(*round_rate)(struct clk *, unsigned long);
-+	void			(*init)(struct clk *);
-+	u8			enable_bit;
-+	s8			usecount;
-+	u8			fixed_div;
-+	u8			flags;
-+	void __iomem		*clksel_reg;
-+	u32			clksel_mask;
-+	const struct clksel	*clksel;
-+	struct dpll_data	*dpll_data;
-+	const char		*clkdm_name;
-+	struct clockdomain	*clkdm;
-+#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
-+	struct dentry		*dent;	/* For visible tree hierarchy */
-+#endif
-+};
-+
-+struct clk_functions {
-+	int		(*clk_enable)(struct clk *clk);
-+	void		(*clk_disable)(struct clk *clk);
-+	long		(*clk_round_rate)(struct clk *clk, unsigned long rate);
-+	int		(*clk_set_rate)(struct clk *clk, unsigned long rate);
-+	int		(*clk_set_parent)(struct clk *clk, struct clk *parent);
-+	void		(*clk_allow_idle)(struct clk *clk);
-+	void		(*clk_deny_idle)(struct clk *clk);
-+	void		(*clk_disable_unused)(struct clk *clk);
-+};
-+
-+extern int mpurate;
-+
-+extern int clk_init(struct clk_functions *custom_clocks);
-+extern void clk_preinit(struct clk *clk);
-+extern int clk_register(struct clk *clk);
-+extern void clk_reparent(struct clk *child, struct clk *parent);
-+extern void clk_unregister(struct clk *clk);
-+extern void propagate_rate(struct clk *clk);
-+extern void recalculate_root_clocks(void);
-+extern unsigned long followparent_recalc(struct clk *clk);
-+extern void clk_enable_init_clocks(void);
-+unsigned long omap_fixed_divisor_recalc(struct clk *clk);
-+extern struct clk *omap_clk_get_by_name(const char *name);
-+extern int omap_clk_enable_autoidle_all(void);
-+extern int omap_clk_disable_autoidle_all(void);
-+
-+extern const struct clkops clkops_null;
-+
-+extern struct clk dummy_ck;
- 
--#include <plat/clock.h>
- 
- /* CM_CLKSEL2_PLL.CORE_CLK_SRC bits (2XXX) */
- #define CORE_CLK_SRC_32K		0x0
-diff --git a/arch/arm/mach-omap2/clock2430.c b/arch/arm/mach-omap2/clock2430.c
-index a8e3261..850f83e 100644
---- a/arch/arm/mach-omap2/clock2430.c
-+++ b/arch/arm/mach-omap2/clock2430.c
-@@ -21,8 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "soc.h"
- #include "iomap.h"
- #include "clock.h"
-diff --git a/arch/arm/mach-omap2/clock2xxx.c b/arch/arm/mach-omap2/clock2xxx.c
-index e92be1fc..5feee16 100644
---- a/arch/arm/mach-omap2/clock2xxx.c
-+++ b/arch/arm/mach-omap2/clock2xxx.c
-@@ -22,8 +22,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "soc.h"
- #include "clock.h"
- #include "clock2xxx.h"
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 1fc96b9..baaaa42 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -21,8 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock34xx.h"
- #include "cm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/clock3517.c b/arch/arm/mach-omap2/clock3517.c
-index 2e97d08..8020905 100644
---- a/arch/arm/mach-omap2/clock3517.c
-+++ b/arch/arm/mach-omap2/clock3517.c
-@@ -21,8 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock3517.h"
- #include "cm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/clock36xx.c b/arch/arm/mach-omap2/clock36xx.c
-index 0c5e25e..0e1e9e4 100644
---- a/arch/arm/mach-omap2/clock36xx.c
-+++ b/arch/arm/mach-omap2/clock36xx.c
-@@ -22,8 +22,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "clock.h"
- #include "clock36xx.h"
- 
-diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
-index 83bb014..3e8aca2 100644
---- a/arch/arm/mach-omap2/clock3xxx.c
-+++ b/arch/arm/mach-omap2/clock3xxx.c
-@@ -21,8 +21,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
--
- #include "soc.h"
- #include "clock.h"
- #include "clock3xxx.h"
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index cbb87913..32dbcbc 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -27,7 +27,7 @@
- 
- #include <linux/bitops.h>
- 
--#include <plat/clock.h>
-+#include "clock.h"
- #include "clockdomain.h"
- 
- /* clkdm_list contains all registered struct clockdomains */
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 629576b..79e4503 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -18,7 +18,7 @@
- #include <linux/spinlock.h>
- 
- #include "powerdomain.h"
--#include <plat/clock.h>
-+#include "clock.h"
- #include <plat/omap_hwmod.h>
- #include <plat/cpu.h>
- 
-diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-index 8e43c4d8..bc2ea50 100644
---- a/arch/arm/mach-omap2/common.c
-+++ b/arch/arm/mach-omap2/common.c
-@@ -18,7 +18,7 @@
- #include <linux/io.h>
- 
- #include <plat/mux.h>
--#include <plat/clock.h>
-+#include "clock.h"
- 
- #include "soc.h"
- #include "iomap.h"
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index 814e180..eacf51f 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -28,8 +28,6 @@
- #include <linux/bitops.h>
- #include <linux/clkdev.h>
- 
--#include <plat/clock.h>
--
- #include "soc.h"
- #include "clock.h"
- #include "cm2xxx_3xxx.h"
-diff --git a/arch/arm/mach-omap2/dpll44xx.c b/arch/arm/mach-omap2/dpll44xx.c
-index 09d0ccc..5854da1 100644
---- a/arch/arm/mach-omap2/dpll44xx.c
-+++ b/arch/arm/mach-omap2/dpll44xx.c
-@@ -15,8 +15,6 @@
- #include <linux/io.h>
- #include <linux/bitops.h>
- 
--#include <plat/clock.h>
--
- #include "soc.h"
- #include "clock.h"
- #include "clock44xx.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 6af64bb..1dd97fc 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -139,7 +139,7 @@
- #include <linux/slab.h>
- #include <linux/bootmem.h>
- 
--#include <plat/clock.h>
-+#include "clock.h"
- #include <plat/omap_hwmod.h>
- #include <plat/prcm.h>
- 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 3e1345f..66cdda3 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -27,7 +27,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- 
--#include <plat/clock.h>
-+#include "clock.h"
- #include "powerdomain.h"
- #include "clockdomain.h"
- #include <plat/dmtimer.h>
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 8af6cd6..0308692 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -36,7 +36,7 @@
- #include <asm/mach-types.h>
- #include <asm/system_misc.h>
- 
--#include <plat/clock.h>
-+#include "clock.h"
- #include <plat/sram.h>
- #include <plat/dma.h>
- 
-diff --git a/arch/arm/mach-omap2/sdram-nokia.c b/arch/arm/mach-omap2/sdram-nokia.c
-index 845c4fd..db96066 100644
---- a/arch/arm/mach-omap2/sdram-nokia.c
-+++ b/arch/arm/mach-omap2/sdram-nokia.c
-@@ -18,7 +18,7 @@
- #include <linux/io.h>
- 
- #include "common.h"
--#include <plat/clock.h>
-+#include "clock.h"
- #include <plat/sdrc.h>
- 
- #include "sdram-nokia.h"
-diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-index e3d345f..70971e9 100644
---- a/arch/arm/mach-omap2/sdrc.c
-+++ b/arch/arm/mach-omap2/sdrc.c
-@@ -24,7 +24,7 @@
- #include <linux/io.h>
- 
- #include "common.h"
--#include <plat/clock.h>
-+#include "clock.h"
- #include <plat/sram.h>
- 
- #include <plat/sdrc.h>
-diff --git a/arch/arm/mach-omap2/sdrc2xxx.c b/arch/arm/mach-omap2/sdrc2xxx.c
-index 73e55e4..6e6cb1c 100644
---- a/arch/arm/mach-omap2/sdrc2xxx.c
-+++ b/arch/arm/mach-omap2/sdrc2xxx.c
-@@ -24,7 +24,6 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <plat/clock.h>
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- 
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index 2e826f1..fd04e66 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -23,7 +23,6 @@
- #include <asm/sched_clock.h>
- 
- #include <plat/common.h>
--#include <plat/clock.h>
- 
- /* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
- #define OMAP2_32KSYNCNT_REV_OFF		0x0
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-deleted file mode 100644
-index e2e2d04..0000000
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ /dev/null
-@@ -1,309 +0,0 @@
--/*
-- * OMAP clock: data structure definitions, function prototypes, shared macros
-- *
-- * Copyright (C) 2004-2005, 2008-2010 Nokia Corporation
-- * Written by Tuukka Tikkanen <tuukka.tikkanen@elektrobit.com>
-- * Based on clocks.h by Tony Lindgren, Gordon McNutt and RidgeRun, Inc
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef __ARCH_ARM_OMAP_CLOCK_H
--#define __ARCH_ARM_OMAP_CLOCK_H
--
--#include <linux/list.h>
--
--struct module;
--struct clk;
--struct clockdomain;
--
--/* Temporary, needed during the common clock framework conversion */
--#define __clk_get_name(clk)	(clk->name)
--#define __clk_get_parent(clk)	(clk->parent)
--#define __clk_get_rate(clk)	(clk->rate)
--
--/**
-- * struct clkops - some clock function pointers
-- * @enable: fn ptr that enables the current clock in hardware
-- * @disable: fn ptr that enables the current clock in hardware
-- * @find_idlest: function returning the IDLEST register for the clock's IP blk
-- * @find_companion: function returning the "companion" clk reg for the clock
-- * @allow_idle: fn ptr that enables autoidle for the current clock in hardware
-- * @deny_idle: fn ptr that disables autoidle for the current clock in hardware
-- *
-- * A "companion" clk is an accompanying clock to the one being queried
-- * that must be enabled for the IP module connected to the clock to
-- * become accessible by the hardware.  Neither @find_idlest nor
-- * @find_companion should be needed; that information is IP
-- * block-specific; the hwmod code has been created to handle this, but
-- * until hwmod data is ready and drivers have been converted to use PM
-- * runtime calls in place of clk_enable()/clk_disable(), @find_idlest and
-- * @find_companion must, unfortunately, remain.
-- */
--struct clkops {
--	int			(*enable)(struct clk *);
--	void			(*disable)(struct clk *);
--	void			(*find_idlest)(struct clk *, void __iomem **,
--					       u8 *, u8 *);
--	void			(*find_companion)(struct clk *, void __iomem **,
--						  u8 *);
--	void			(*allow_idle)(struct clk *);
--	void			(*deny_idle)(struct clk *);
--};
--
--#ifdef CONFIG_ARCH_OMAP2PLUS
--
--/* struct clksel_rate.flags possibilities */
--#define RATE_IN_242X		(1 << 0)
--#define RATE_IN_243X		(1 << 1)
--#define RATE_IN_3430ES1		(1 << 2)	/* 3430ES1 rates only */
--#define RATE_IN_3430ES2PLUS	(1 << 3)	/* 3430 ES >= 2 rates only */
--#define RATE_IN_36XX		(1 << 4)
--#define RATE_IN_4430		(1 << 5)
--#define RATE_IN_TI816X		(1 << 6)
--#define RATE_IN_4460		(1 << 7)
--#define RATE_IN_AM33XX		(1 << 8)
--#define RATE_IN_TI814X		(1 << 9)
--
--#define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
--#define RATE_IN_34XX		(RATE_IN_3430ES1 | RATE_IN_3430ES2PLUS)
--#define RATE_IN_3XXX		(RATE_IN_34XX | RATE_IN_36XX)
--#define RATE_IN_44XX		(RATE_IN_4430 | RATE_IN_4460)
--
--/* RATE_IN_3430ES2PLUS_36XX includes 34xx/35xx with ES >=2, and all 36xx/37xx */
--#define RATE_IN_3430ES2PLUS_36XX	(RATE_IN_3430ES2PLUS | RATE_IN_36XX)
--
--
--/**
-- * struct clksel_rate - register bitfield values corresponding to clk divisors
-- * @val: register bitfield value (shifted to bit 0)
-- * @div: clock divisor corresponding to @val
-- * @flags: (see "struct clksel_rate.flags possibilities" above)
-- *
-- * @val should match the value of a read from struct clk.clksel_reg
-- * AND'ed with struct clk.clksel_mask, shifted right to bit 0.
-- *
-- * @div is the divisor that should be applied to the parent clock's rate
-- * to produce the current clock's rate.
-- */
--struct clksel_rate {
--	u32			val;
--	u8			div;
--	u16			flags;
--};
--
--/**
-- * struct clksel - available parent clocks, and a pointer to their divisors
-- * @parent: struct clk * to a possible parent clock
-- * @rates: available divisors for this parent clock
-- *
-- * A struct clksel is always associated with one or more struct clks
-- * and one or more struct clksel_rates.
-- */
--struct clksel {
--	struct clk		 *parent;
--	const struct clksel_rate *rates;
--};
--
--/**
-- * struct dpll_data - DPLL registers and integration data
-- * @mult_div1_reg: register containing the DPLL M and N bitfields
-- * @mult_mask: mask of the DPLL M bitfield in @mult_div1_reg
-- * @div1_mask: mask of the DPLL N bitfield in @mult_div1_reg
-- * @clk_bypass: struct clk pointer to the clock's bypass clock input
-- * @clk_ref: struct clk pointer to the clock's reference clock input
-- * @control_reg: register containing the DPLL mode bitfield
-- * @enable_mask: mask of the DPLL mode bitfield in @control_reg
-- * @last_rounded_rate: cache of the last rate result of omap2_dpll_round_rate()
-- * @last_rounded_m: cache of the last M result of omap2_dpll_round_rate()
-- * @max_multiplier: maximum valid non-bypass multiplier value (actual)
-- * @last_rounded_n: cache of the last N result of omap2_dpll_round_rate()
-- * @min_divider: minimum valid non-bypass divider value (actual)
-- * @max_divider: maximum valid non-bypass divider value (actual)
-- * @modes: possible values of @enable_mask
-- * @autoidle_reg: register containing the DPLL autoidle mode bitfield
-- * @idlest_reg: register containing the DPLL idle status bitfield
-- * @autoidle_mask: mask of the DPLL autoidle mode bitfield in @autoidle_reg
-- * @freqsel_mask: mask of the DPLL jitter correction bitfield in @control_reg
-- * @idlest_mask: mask of the DPLL idle status bitfield in @idlest_reg
-- * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
-- * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
-- * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
-- * @flags: DPLL type/features (see below)
-- *
-- * Possible values for @flags:
-- * DPLL_J_TYPE: "J-type DPLL" (only some 36xx, 4xxx DPLLs)
-- *
-- * @freqsel_mask is only used on the OMAP34xx family and AM35xx.
-- *
-- * XXX Some DPLLs have multiple bypass inputs, so it's not technically
-- * correct to only have one @clk_bypass pointer.
-- *
-- * XXX The runtime-variable fields (@last_rounded_rate, @last_rounded_m,
-- * @last_rounded_n) should be separated from the runtime-fixed fields
-- * and placed into a different structure, so that the runtime-fixed data
-- * can be placed into read-only space.
-- */
--struct dpll_data {
--	void __iomem		*mult_div1_reg;
--	u32			mult_mask;
--	u32			div1_mask;
--	struct clk		*clk_bypass;
--	struct clk		*clk_ref;
--	void __iomem		*control_reg;
--	u32			enable_mask;
--	unsigned long		last_rounded_rate;
--	u16			last_rounded_m;
--	u16			max_multiplier;
--	u8			last_rounded_n;
--	u8			min_divider;
--	u16			max_divider;
--	u8			modes;
--	void __iomem		*autoidle_reg;
--	void __iomem		*idlest_reg;
--	u32			autoidle_mask;
--	u32			freqsel_mask;
--	u32			idlest_mask;
--	u32			dco_mask;
--	u32			sddiv_mask;
--	u8			auto_recal_bit;
--	u8			recal_en_bit;
--	u8			recal_st_bit;
--	u8			flags;
--};
--
--#endif
--
--/*
-- * struct clk.flags possibilities
-- *
-- * XXX document the rest of the clock flags here
-- *
-- * CLOCK_CLKOUTX2: (OMAP4 only) DPLL CLKOUT and CLKOUTX2 GATE_CTRL
-- *     bits share the same register.  This flag allows the
-- *     omap4_dpllmx*() code to determine which GATE_CTRL bit field
-- *     should be used.  This is a temporary solution - a better approach
-- *     would be to associate clock type-specific data with the clock,
-- *     similar to the struct dpll_data approach.
-- */
--#define ENABLE_REG_32BIT	(1 << 0)	/* Use 32-bit access */
--#define CLOCK_IDLE_CONTROL	(1 << 1)
--#define CLOCK_NO_IDLE_PARENT	(1 << 2)
--#define ENABLE_ON_INIT		(1 << 3)	/* Enable upon framework init */
--#define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
--#define CLOCK_CLKOUTX2		(1 << 5)
--
--/**
-- * struct clk - OMAP struct clk
-- * @node: list_head connecting this clock into the full clock list
-- * @ops: struct clkops * for this clock
-- * @name: the name of the clock in the hardware (used in hwmod data and debug)
-- * @parent: pointer to this clock's parent struct clk
-- * @children: list_head connecting to the child clks' @sibling list_heads
-- * @sibling: list_head connecting this clk to its parent clk's @children
-- * @rate: current clock rate
-- * @enable_reg: register to write to enable the clock (see @enable_bit)
-- * @recalc: fn ptr that returns the clock's current rate
-- * @set_rate: fn ptr that can change the clock's current rate
-- * @round_rate: fn ptr that can round the clock's current rate
-- * @init: fn ptr to do clock-specific initialization
-- * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-- * @usecount: number of users that have requested this clock to be enabled
-- * @fixed_div: when > 0, this clock's rate is its parent's rate / @fixed_div
-- * @flags: see "struct clk.flags possibilities" above
-- * @clksel_reg: for clksel clks, register va containing src/divisor select
-- * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
-- * @clksel: for clksel clks, pointer to struct clksel for this clock
-- * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
-- * @clkdm_name: clockdomain name that this clock is contained in
-- * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
-- * @rate_offset: bitshift for rate selection bitfield (OMAP1 only)
-- * @src_offset: bitshift for source selection bitfield (OMAP1 only)
-- *
-- * XXX @rate_offset, @src_offset should probably be removed and OMAP1
-- * clock code converted to use clksel.
-- *
-- * XXX @usecount is poorly named.  It should be "enable_count" or
-- * something similar.  "users" in the description refers to kernel
-- * code (core code or drivers) that have called clk_enable() and not
-- * yet called clk_disable(); the usecount of parent clocks is also
-- * incremented by the clock code when clk_enable() is called on child
-- * clocks and decremented by the clock code when clk_disable() is
-- * called on child clocks.
-- *
-- * XXX @clkdm, @usecount, @children, @sibling should be marked for
-- * internal use only.
-- *
-- * @children and @sibling are used to optimize parent-to-child clock
-- * tree traversals.  (child-to-parent traversals use @parent.)
-- *
-- * XXX The notion of the clock's current rate probably needs to be
-- * separated from the clock's target rate.
-- */
--struct clk {
--	struct list_head	node;
--	const struct clkops	*ops;
--	const char		*name;
--	struct clk		*parent;
--	struct list_head	children;
--	struct list_head	sibling;	/* node for children */
--	unsigned long		rate;
--	void __iomem		*enable_reg;
--	unsigned long		(*recalc)(struct clk *);
--	int			(*set_rate)(struct clk *, unsigned long);
--	long			(*round_rate)(struct clk *, unsigned long);
--	void			(*init)(struct clk *);
--	u8			enable_bit;
--	s8			usecount;
--	u8			fixed_div;
--	u8			flags;
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	void __iomem		*clksel_reg;
--	u32			clksel_mask;
--	const struct clksel	*clksel;
--	struct dpll_data	*dpll_data;
--	const char		*clkdm_name;
--	struct clockdomain	*clkdm;
--#else
--	u8			rate_offset;
--	u8			src_offset;
--#endif
--#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
--	struct dentry		*dent;	/* For visible tree hierarchy */
--#endif
--};
--
--struct clk_functions {
--	int		(*clk_enable)(struct clk *clk);
--	void		(*clk_disable)(struct clk *clk);
--	long		(*clk_round_rate)(struct clk *clk, unsigned long rate);
--	int		(*clk_set_rate)(struct clk *clk, unsigned long rate);
--	int		(*clk_set_parent)(struct clk *clk, struct clk *parent);
--	void		(*clk_allow_idle)(struct clk *clk);
--	void		(*clk_deny_idle)(struct clk *clk);
--	void		(*clk_disable_unused)(struct clk *clk);
--};
--
--extern int mpurate;
--
--extern int clk_init(struct clk_functions *custom_clocks);
--extern void clk_preinit(struct clk *clk);
--extern int clk_register(struct clk *clk);
--extern void clk_reparent(struct clk *child, struct clk *parent);
--extern void clk_unregister(struct clk *clk);
--extern void propagate_rate(struct clk *clk);
--extern void recalculate_root_clocks(void);
--extern unsigned long followparent_recalc(struct clk *clk);
--extern void clk_enable_init_clocks(void);
--unsigned long omap_fixed_divisor_recalc(struct clk *clk);
--extern struct clk *omap_clk_get_by_name(const char *name);
--extern int omap_clk_enable_autoidle_all(void);
--extern int omap_clk_disable_autoidle_all(void);
--
--extern const struct clkops clkops_null;
--
--extern struct clk dummy_ck;
--
--#endif
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 5b69742..bae5663 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -91,7 +91,6 @@
- 
- #include <plat/omap_device.h>
- #include <plat/omap_hwmod.h>
--#include <plat/clock.h>
- 
- /* These parameters are passed to _omap_device_{de,}activate() */
- #define USE_WAKEUP_LAT			0
--- 
-1.7.10.4
-
-
+>> +     if (error)
+>
+> You are leaking input device here.
+>
+True, will include appropriate goto label.
+>> +             return error;
+>> +
+>> +     /* Get the debug Device */
+>> +     kp->input = input;
+>> +     kp->smsc = smsc;
+>> +     kp->irq = platform_get_irq(pdev, 0);
+>> +     kp->dev = dev;
+>> +
+>> +     for (col = 0; col < 16; col++) {
+>> +             kp->last_key_state[col] = 0;
+>> +             kp->last_key_ms[col] = 0;
+>
+> kzalloc should have already taken care of this.
+>
+Ok. Will remove.
+>> +     }
+>> +
+>> +     /* setup input device */
+>> +      __set_bit(EV_KEY, input->evbit);
+>> +
+>> +     /* Enable auto repeat feature of Linux input subsystem */
+>> +     if (!(kp->no_autorepeat))
+>
+> No need for extra parenthesis.
+>
+Will remove.
+>> +             __set_bit(EV_REP, input->evbit);
+>> +
+>> +     input_set_capability(input, EV_MSC, MSC_SCAN);
+>> +     input->name             = "SMSC Keypad";
+>> +     input->phys             = "smsc_keypad/input0";
+>> +     input->dev.parent       = &pdev->dev;
+>> +     input->id.bustype       = BUS_HOST;
+>> +     input->id.vendor        = 0x0001;
+>> +     input->id.product       = 0x0001;
+>> +     input->id.version       = 0x0003;
+>> +
+>> +     error = input_register_device(input);
+>> +     if (error) {
+>> +             dev_err(kp->dev,
+>> +                     "Unable to register twl4030 keypad device\n");
+>> +             goto err1;
+>> +     }
+>> +
+>> +     /* Mask all GPIO interrupts (0x37-0x3B) */
+>> +     for (addr = SMSC_GPIO_INT_MASK_START;
+>> +                     addr < SMSC_GPIO_INT_MASK_START + 4; addr++)
+>> +             smsc_write(dev, addr, 0);
+>> +
+>> +     /* Set all outputs high (0x05-0x09) */
+>> +     for (addr = SMSC_GPIO_DATA_OUT_START;
+>> +                     addr < SMSC_GPIO_DATA_OUT_START + 4; addr++)
+>> +             smsc_write(dev, addr, 0xff);
+>> +
+>> +     /* Clear all GPIO interrupts (0x32-0x36) */
+>> +     for (addr = SMSC_GPIO_INT_STAT_START;
+>> +                     addr < SMSC_GPIO_INT_STAT_START + 4; addr++)
+>> +             smsc_write(dev, addr, 0xff);
+>> +
+>> +     /* Configure the smsc pins as Keyboard scan Input */
+>> +     for (i = 0; i <= kp->rows; i++) {
+>> +             addr = 0x12 + i;
+>> +             smsc_write(dev, addr, SMSC_KP_KSI);
+>> +     }
+>> +
+>> +     /* Configure the smsc pins as Keyboard scan output */
+>> +     for (i = 0; i <= kp->cols; i++) {
+>> +             addr = 0x1A + i;
+>> +             smsc_write(dev, addr, SMSC_KP_KSO);
+>> +     }
+>> +
+>> +     smsc_write(dev, SMSC_KP_INT_STAT, SMSC_KP_SET_HIGH);
+>> +     smsc_write(dev, SMSC_WKUP_CTRL, SMSC_KP_SET_LOW_PWR);
+>> +     smsc_write(dev, SMSC_KP_OUT, SMSC_KSO_ALL_LOW);
+>> +
+>> +     row_shift = get_count_order(kp->cols);
+>> +     max_keys = kp->rows << row_shift;
+>> +
+>> +     kp->row_shift = row_shift;
+>> +     kp->keymap = devm_kzalloc(dev, max_keys * sizeof(kp->keymap[0]),
+>> +                                     GFP_KERNEL);
+>> +     if (!kp->keymap) {
+>> +             dev_err(&pdev->dev, "Not enough memory for keymap\n");
+>> +             error = -ENOMEM;
+>> +     }
+>> +
+>> +     matrix_keypad_build_keymap(NULL, NULL, kp->rows,
+>> +                     kp->cols, kp->keymap, input);
+>
+> Needs error handling I believe.
+>
+True, missed that. Will include.
+>> +
+>> +     /*
+>> +     * This ISR will always execute in kernel thread context because of
+>> +     * the need to access the SMSC over the I2C bus.
+>> +     */
+>> +     ret = devm_request_threaded_irq(dev, kp->irq, NULL, do_kp_irq,
+>> +                     IRQF_TRIGGER_FALLING | IRQF_ONESHOT, pdev->name, kp);
+>> +     if (ret) {
+>> +             dev_dbg(&pdev->dev, "request_irq failed for irq no=%d\n",
+>> +                     irq);
+>> +             goto err2;
+>> +     }
+>> +
+>> +     /* Enable smsc keypad interrupts */
+>> +     ret = smsc_write(dev, SMSC_KP_INT_MASK, 0xff);
+>> +     if (ret < 0)
+>> +             goto err2;
+>> +
+>> +     return 0;
+>> +
+>> +err2:
+>> +     input_unregister_device(input);
+>> +err1:
+>> +     input_free_device(input);
+>
+> Double free.
+>
+I believe what you are trying to say here is that we dont really
+need a " input_unregister_device" (as also I checked in other keypad
+implementations) and do a "unregister_device" in the remove api ??
+>> +     return ret;
+>> +}
+>> +
+>> +static int __devexit smsc_remove(struct platform_device *pdev)
+>> +{
+>> +     struct smsc_keypad *kp = platform_get_drvdata(pdev);
+>> +     input_unregister_device(kp->input);
+>
+> And your kernel goes *BOOM*
+>
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_OF
+>> +static const struct of_device_id smsc_keypad_dt_match[] = {
+>> +     { .compatible = "smsc,keypad" },
+>> +     {},
+>> +};
+>> +MODULE_DEVICE_TABLE(of, smsc_keypad_dt_match);
+>> +#endif
+>> +
+>> +static struct platform_driver smsc_driver = {
+>> +     .driver = {
+>> +             .name   = "smsc-keypad",
+>> +             .of_match_table = of_match_ptr(smsc_keypad_dt_match),
+>> +             .owner  = THIS_MODULE,
+>> +     },
+>> +     .probe          = smsc_probe,
+>> +     .remove         = __devexit_p(smsc_remove),
+>> +};
+>> +
+>> +module_platform_driver(smsc_driver);
+>> +
+>> +MODULE_AUTHOR("G Kondaiah Manjunath <manjugk@ti.com>");
+>> +MODULE_DESCRIPTION("SMSC ECE1099 Keypad driver");
+>> +MODULE_LICENSE("GPL v2");
+>> --
+>> 1.7.1
+>>
+>
+> Thanks.
+>
+> --
+> Dmitry
