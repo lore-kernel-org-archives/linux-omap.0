@@ -1,166 +1,82 @@
-From: Ivan Djelic <ivan.djelic@parrot.com>
-Subject: Re: [PATCH 4/4] mtd: nand: omap2: Add data correction support
-Date: Wed, 3 Oct 2012 21:20:45 +0200
-Message-ID: <20121003192044.GB27502@parrot.com>
-References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
- <1349274589-11389-5-git-send-email-avinashphilip@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH v2 8/9] ARM: OMAP: iommu: add device tree support
+Date: Wed, 3 Oct 2012 16:13:33 -0500
+Message-ID: <CALLhW=4oawfGqSDHAVgh_SPqB4Ugeyw6MjoaNDVkxSJcJd4Tpg@mail.gmail.com>
+References: <1347479152-588-1-git-send-email-omar.luna@linaro.org>
+	<1347479152-588-9-git-send-email-omar.luna@linaro.org>
+	<20121002212523.GA11180@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1349274589-11389-5-git-send-email-avinashphilip@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "afzal@ti.com" <afzal@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20121002212523.GA11180@beef>
+Sender: linux-doc-owner@vger.kernel.org
+To: Matt Porter <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 03, 2012 at 03:29:49PM +0100, Philip, Avinash wrote:
-> ELM module can be used for error correction of BCH 4 & 8 bit. Also
-> support read & write page in one shot by adding custom read_page &
-> write_page methods. This helps in optimizing code.
-> 
-> New structure member "is_elm_used" is added to know the status of
-> whether the ELM module is used for error correction or not.
-> 
-> Note:
-> ECC layout of BCH8 uses 14 bytes for 512 byte of data to make compatible
-> with RBL ECC layout, even though the requirement was only 13 byte. This
-> results a common ecc layout across RBL, U-boot & Linux.
-> 
+Hi Matt,
 
-See a few comments below,
+On 2 October 2012 16:25, Matt Porter <mporter@ti.com> wrote:
+...
+> I can see why you went this path with the iommu driver as it already had
+> some integration code present here. I have some concerns going forward
+> about how this should be long-term. Take any platform booting only with
+> DT populated, we'd like to avoid having to use this approach where
+> platform private APIs are called via pdata. In fact, it's going to makes
+> thing ugly to carry any sort of pdata for a driver that's otherwise
+> driven exclusively from DT.
+>
+> For AM335x, I can implement this approach, but it means adding some
+> pruss specific integration code just to have it create the pdata for
+> reset_name and assert/deassert.
 
-(...)
-> +static int omap_elm_correct_data(struct mtd_info *mtd, u_char *dat,
-> +                               u_char *read_ecc, u_char *calc_ecc)
-> +{
-> +       struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
-> +                       mtd);
-> +       int eccsteps = info->nand.ecc.steps;
-> +       int i , j, stat = 0;
-> +       int eccsize, eccflag, size;
-> +       struct elm_errorvec err_vec[ERROR_VECTOR_MAX];
-> +       u_char *ecc_vec = calc_ecc;
-> +       enum bch_ecc type;
-> +       bool is_error_reported = false;
-> +
-> +       /* initialize elm error vector to zero */
-> +       memset(err_vec, 0, sizeof(err_vec));
-> +       if (info->nand.ecc.strength == BCH8_MAX_ERROR) {
-> +               size = BCH8_SIZE;
-> +               eccsize = BCH8_ECC_OOB_BYTES;
-> +               type = BCH8_ECC;
-> +       } else {
-> +               size = BCH4_SIZE;
-> +               eccsize = BCH4_SIZE;
-> +               type = BCH4_ECC;
-> +       }
-> +
-> +       for (i = 0; i < eccsteps ; i++) {
-> +               eccflag = 0;    /* initialize eccflag */
-> +
-> +               for (j = 0; (j < eccsize); j++) {
-> +                       if (read_ecc[j] != 0xFF) {
-> +                               eccflag = 1;    /* data area is flashed */
+Yes I agree, it looks a bit ugly for devices that have more than one
+reset line name too, but right now there is no other way to keep the
+reset names and also provide flexibility to the driver to control them
+in a given order.
 
-Just a reminder: this way of checking if a page has been programmed is not robust to bitflips,
-so you may get into trouble with UBIFS on a fairly recent device.
+> From reading all the threads on hardresets and OMAP, it seems we may not
+> be able to come up with a generic OMAP handler for these resets and
+> that's really reflected in the fact that this API exists. So given that,
+> it reasons that OMAP isn't the only one needing a reset API for drivers.
+> I'm thinking that (as trivial as it may seem), this support may need to
+> move to a reset subsystem such that drivers have a clean way to access
+> reset resources in an SoC.
 
-(...)
-> @@ -1039,14 +1180,45 @@ static void omap3_enable_hwecc_bch(struct mtd_info *mtd, int mode)
-> 
->         nerrors = info->nand.ecc.strength;
->         dev_width = (chip->options & NAND_BUSWIDTH_16) ? 1 : 0;
-> +#ifdef CONFIG_MTD_NAND_OMAP_BCH
-> +       if (info->is_elm_used) {
-> +               /*
-> +                * Program GPMC to perform correction on (steps * 512) byte
-> +                * sector at a time.
-> +                */
-> +               gpmc_enable_hwecc_bch(info->gpmc_cs, mode, dev_width,
-> +                               info->nand.ecc.steps, nerrors);
-> +               return;
-> +       }
-> +#endif
->         /*
-> -        * Program GPMC to perform correction on one 512-byte sector at a time.
-> -        * Using 4 sectors at a time (i.e. ecc.size = 2048) is also possible and
-> -        * gives a slight (5%) performance gain (but requires additional code).
-> +        * Program GPMC to perform correction on one 512-byte sector at
-> +        * a time.
+Well, there was a point where the OMAP hwmod code contained the reset
+code and at least for me it was working fine, with iommu and ipu
+processor, just with a minor misleading warning print... however then
+this code got stripped out and since there appeared to be people
+needing to handle their reset lines in unknown ways it was advised
+that everybody should implement their own reset functions, but in my
+case I could reuse most of the disabled code at the expense of almost
+duplicating _enable (omap_hwmod) function while waiting all the reset
+line users started asking for changes.
 
-Why removing the comment about 4-sector perf gain ? :-)
+> I'm curious if you or others have thought about where this needs to go
+> next.
 
-(...)
-> @@ -1146,35 +1402,62 @@ static int omap3_init_bch(struct mtd_info *mtd, int ecc_opt)
->                 goto fail;
->         }
-> 
-> -       /* initialize GPMC BCH engine */
-> -       ret = gpmc_init_hwecc_bch(info->gpmc_cs, 1, max_errors);
-> -       if (ret)
-> -               goto fail;
-> -
-> -       /* software bch library is only used to detect and locate errors */
-> -       info->bch = init_bch(13, max_errors, 0x201b /* hw polynomial */);
-> -       if (!info->bch)
-> -               goto fail;
-> +       info->nand.ecc.size = 512;
-> +       info->nand.ecc.hwctl = omap3_enable_hwecc_bch;
-> +       info->nand.ecc.mode = NAND_ECC_HW;
-> +       info->nand.ecc.strength = hw_errors;
-> 
-> -       info->nand.ecc.size    = 512;
-> -       info->nand.ecc.hwctl   = omap3_enable_hwecc_bch;
-> -       info->nand.ecc.correct = omap3_correct_data_bch;
-> -       info->nand.ecc.mode    = NAND_ECC_HW;
-> +       if (info->is_elm_used && (mtd->writesize <= 4096)) {
-> +               enum bch_ecc bch_type;
-> 
-> -       /*
-> -        * The number of corrected errors in an ecc block that will trigger
-> -        * block scrubbing defaults to the ecc strength (4 or 8).
-> -        * Set mtd->bitflip_threshold here to define a custom threshold.
-> -        */
-> +               if (hw_errors == BCH8_MAX_ERROR) {
-> +                       bch_type = BCH8_ECC;
-> +                       info->nand.ecc.bytes = BCH8_SIZE;
-> +               } else {
-> +                       bch_type = BCH4_ECC;
-> +                       info->nand.ecc.bytes = BCH4_SIZE;
-> +               }
-> 
-> -       if (max_errors == 8) {
-> -               info->nand.ecc.strength  = 8;
-> -               info->nand.ecc.bytes     = 13;
-> -               info->nand.ecc.calculate = omap3_calculate_ecc_bch8;
-> +               info->nand.ecc.correct = omap_elm_correct_data;
-> +               info->nand.ecc.calculate = omap3_calculate_ecc_bch;
-> +               info->nand.ecc.read_page = omap_read_page_bch;
-> +               info->nand.ecc.write_page = omap_write_page_bch;
-> +               info->elm_dev = elm_request(bch_type);
-> +               if (!info->elm_dev) {
-> +                       pr_err("Request to elm module failed\n");
-> +                       goto fail;
-> +               }
->         } else {
-> -               info->nand.ecc.strength  = 4;
-> -               info->nand.ecc.bytes     = 7;
-> -               info->nand.ecc.calculate = omap3_calculate_ecc_bch4;
-> +
-> +               /* initialize GPMC BCH engine */
-> +               ret = gpmc_init_hwecc_bch(info->gpmc_cs, 1, max_errors);
-> +               if (ret)
-> +                       goto fail;
-> +
-> +               /*
-> +                * software bch library is only used to detect and
-> +                * locateerrors
+I haven't planned for a reset subsystem or a more generic
+implementation, although I have been looking for a way to avoid using
+the pdata function pointers.
 
-s/locateerrors/locate errors/
+> When I first thought about a reset subsystem it seemed to trivial
+> to bother with but looking at the reasoning behind the power_seq
+> subsystem, it seems to have similar justification to get this machine
+> specific logic out of the platform code and under standardized control
+> of the driver.
 
-BTW, did you check that your patch does not break the software BCH case (i.e. no ELM) ?
+IMHO, the reset code even if made a subsystem or a library, would
+still need to interface with machine specific code and definitions
+(say omap_hwmod), so I don't see much difference in making the
+omap_device reset handlers as exported symbols for the time being,
+with acceptance of the owners of omap_device code.
 
-BR,
---
-Ivan
+And then if power_seq makes it to mainline perhaps extending it to
+handle deassert, assert and softreset events, but then again this
+would have the same hooks to omap_hwmod which is the one with the prcm
+information.
+
+Regards,
+
+Omar
