@@ -1,112 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3.7-rc1] omap zoom2.c: Fix compile error by including
- correct header files
-Date: Wed, 3 Oct 2012 09:31:02 -0700
-Message-ID: <20121003163102.GB4840@atomide.com>
-References: <1349274686-45668-1-git-send-email-tim.gardner@canonical.com>
- <506C5124.3050200@ti.com>
- <20121003155900.GA4840@atomide.com>
+Subject: ASoC: Fix wrong include for McPDM
+Date: Wed, 3 Oct 2012 09:52:14 -0700
+Message-ID: <20121003165213.GC4840@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:62044 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S965019Ab2JCQwU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 12:52:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20121003155900.GA4840@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tim Gardner <tim.gardner@canonical.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [121003 09:00]:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [121003 07:52]:
-> > On 10/03/2012 05:31 PM, Tim Gardner wrote:
-> > > Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > > Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-> > > Cc: Liam Girdwood <lrg@ti.com>
-> > > Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> > > Cc: Jaroslav Kysela <perex@perex.cz>
-> > > Cc: Takashi Iwai <tiwai@suse.de>
-> > > Cc: linux-omap@vger.kernel.org
-> > > Cc: alsa-devel@alsa-project.org
-> > > Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-> > > ---
-> > >  sound/soc/omap/zoom2.c |    3 ++-
-> > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
-> > > index 23de2b2..d0a8c92 100644
-> > > --- a/sound/soc/omap/zoom2.c
-> > > +++ b/sound/soc/omap/zoom2.c
-> > > @@ -27,9 +27,10 @@
-> > >  
-> > >  #include <asm/mach-types.h>
-> > >  #include <mach/hardware.h>
-> > > -#include <mach/gpio.h>
-> > > +#include <linux/gpio.h>
-> > >  #include <mach/board-zoom.h>
-> > >  #include <linux/platform_data/asoc-ti-mcbsp.h>
-> > > +#include <linux/platform_data/gpio-omap.h>
-> > >  
-> > >  /* Register descriptions for twl4030 codec part */
-> > >  #include <linux/mfd/twl4030-audio.h>
-> > > 
-> > 
-> > I have the same patch stashed away for the same issue. Was waiting for rc1 to
-> > send it.
-> 
-> Can you please update the patch to also to remove the
-> "#include <mach/board-zoom.h>" while at it?
-> 
-> AFAIK it's not needed at all and just adds a dependency to asoc with
-> my upcoming plat header cleanup patches.
+McPDM needs platt/cpu.h for omap_rev and not omap_hwmod.h.
+Drivers must not include omap_hwmod.h at, it will be
+private to mach-omap2 soon. Fix the problem before other
+drivers will also start including omap_hwmod.h.
 
-Actually we can also drop "#include <mach/hardware.h>" too,
-it's now empty for mach-omap2. I've updated Tim's patch below
-for you guys to queue via the ASoC fixes. It's against the
-current linux next.
+Note that also plat/cpu.h will be going away, so the
+omap_rev check needs to be replaced with mcpdm-watchdog
+flag from platform_data or DT.
 
-Regards,
-
-Tony
-
-
-From: Tim Gardner <tim.gardner@canonical.com>
-Date: Wed, 3 Oct 2012 08:31:26 -0600
-Subject: [PATCH] omap zoom2.c: Fix compile error by including correct header files
-
-Also drop the includes that are no longer needed and just
-cause problems for the ARM common zImage.
-
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Liam Girdwood <lrg@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: linux-omap@vger.kernel.org
-Cc: alsa-devel@alsa-project.org
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-[tony@atomide.com: updated to drop unneeded headers]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
-index 677b567..1ff6bb9 100644
---- a/sound/soc/omap/zoom2.c
-+++ b/sound/soc/omap/zoom2.c
-@@ -21,15 +21,14 @@
- 
- #include <linux/clk.h>
- #include <linux/platform_device.h>
-+#include <linux/gpio.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
+---
+
+Can you guys please queue this as fix for -rc1?
+
+This removes and unnecessary dependency for making
+omap_hwmod.h local to mach-omap2.
+
+Then I'm hoping Peter will remove the plat/cpu.h
+dependency for v3.8 merge window ;)
+
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -40,7 +40,7 @@
+ #include <sound/pcm_params.h>
  #include <sound/soc.h>
  
- #include <asm/mach-types.h>
--#include <mach/hardware.h>
--#include <mach/gpio.h>
--#include <mach/board-zoom.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
-+#include <linux/platform_data/gpio-omap.h>
+-#include <plat/omap_hwmod.h>
++#include <plat/cpu.h>
+ #include "omap-mcpdm.h"
+ #include "omap-pcm.h"
  
- /* Register descriptions for twl4030 codec part */
- #include <linux/mfd/twl4030-audio.h>
