@@ -1,44 +1,32 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ARM: arch timer: Export 'read_current_timer' symbol
-Date: Wed, 3 Oct 2012 10:13:10 +0100
-Message-ID: <20121003091310.GB22445@mudshark.cambridge.arm.com>
-References: <20121003005218.GA23874@animalcreek.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] ASoC: ams-delta: Convert to use
+	snd_soc_register_card()
+Date: Wed, 3 Oct 2012 11:38:21 +0100
+Message-ID: <20121003103821.GB4360@opensource.wolfsonmicro.com>
+References: <20120906073633.GC22330@opensource.wolfsonmicro.com>
+ <1347823023-24922-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <3016923.ExzrZjbreL@vclass>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:43707 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753057Ab2JCJPK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 05:15:10 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20121003005218.GA23874@animalcreek.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <3016923.ExzrZjbreL@vclass>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>, jonaus01@arm.com
 
-Hi Mark,
+On Tue, Oct 02, 2012 at 11:07:30PM +0200, Janusz Krzysztofik wrote:
 
-On Wed, Oct 03, 2012 at 01:52:18AM +0100, Mark A. Greer wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> 
-> Commit 923df96b9f31b7d08d8438ff9677326d9537accf
-> (ARM: 7451/1: arch timer: implement read_current_timer and get_cycles)
-> modifies get_cycles() such that it calls read_current_timer().
-> Unfortunately, the 'read_current_timer' symbol is not exported so when
-> a driver that calls get_cycles() is built as a module, an undefined
-> reference error occurs.
-> 
-> A good example is the crypto/tcrypt.c (CONFIG_CRYPTO_TEST) driver
-> because it calls get_cycles() and can only be built as a module.
-> 
-> Fix this error by exporting the 'read_current_timer' symbol.
+> Is something wrong with this patch? Any chance for it to find its way into 3.7?
 
-This was already reported over on the kernel-janitors list, I assumed they'd
-CC'd LAK, but it looks like it didn't happen.
-
-  http://marc.info/?l=kernel-janitors&m=134910841909057&w=2
-
-Anyway, I've got a fix in the works (I don't think you need the ifdef).
-
-Will
+I don't have the patch.
