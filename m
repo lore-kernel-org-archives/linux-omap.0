@@ -1,54 +1,47 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCHv3 2/4] Input: keypad: Add smsc ece1099 keypad driver
-Date: Thu, 4 Oct 2012 00:24:26 -0700
-Message-ID: <20121004072426.GB14217@core.coreip.homeip.net>
-References: <1349089310-22134-1-git-send-email-sourav.poddar@ti.com>
- <20121002061829.GA3853@core.coreip.homeip.net>
- <CAKdam55BEQi9tJb1yzKJWNhO7sHrW5NFHfsZjicw2NGYDEFovQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKdam55BEQi9tJb1yzKJWNhO7sHrW5NFHfsZjicw2NGYDEFovQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 0/2] ARM: OMAP: SmartReflex: pass device dependent data via platform data
+Date: Thu,  4 Oct 2012 18:47:09 +0200
+Message-ID: <1349369231-25204-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:40343 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932263Ab2JDQq4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 12:46:56 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hq12so4587302wib.1
+        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 09:46:55 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbou@mail.ru>
+Cc: J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Oct 03, 2012 at 11:26:46AM +0530, Poddar, Sourav wrote:
-> Hi Dmitry,
-> 
-> On Tue, Oct 2, 2012 at 11:48 AM, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
-> > Hi Sourav,
-> >
-> > On Mon, Oct 01, 2012 at 04:31:50PM +0530, Sourav Poddar wrote:
-> >> From: G, Manjunath Kondaiah <manjugk@ti.com>
-> >>
-> >> +
-> >> +     /* Enable smsc keypad interrupts */
-> >> +     ret = smsc_write(dev, SMSC_KP_INT_MASK, 0xff);
-> >> +     if (ret < 0)
-> >> +             goto err2;
-> >> +
-> >> +     return 0;
-> >> +
-> >> +err2:
-> >> +     input_unregister_device(input);
-> >> +err1:
-> >> +     input_free_device(input);
-> >
-> > Double free.
-> >
-> I believe what you are trying to say here is that we dont really
-> need a " input_unregister_device" (as also I checked in other keypad
-> implementations) and do a "unregister_device" in the remove api ??
+From: Jean Pihet <j-pihet@ti.com>
 
-What I was trying to say is that if input device has been registered
-then you need to call input_unregister_device() to unregister and free
-it, otherwise you need to call input_free_device(), but not both.
+Remove the device dependent code (ex. cpu_is_xxx()) and settings
+from the driver code and instead pass them via the platform
+data. This allows a clean separation of the driver code and the platform
+code, as required by the move of the platform header files to
+include/linux/platform_data.
 
-Thanks.
+Note about the smartreflex functional clocks: the smartreflex fclks
+are derived from sys_clk and have the same name as the main_clk from
+the hwmod entry, in order for the SmartReflex driver to request the
+fclk (using clk_get(dev, "fck")).
+
+Based on mainline 3.6.0. Boot tested on OMAP3&4 platforms.
+
+Jean Pihet (2):
+  ARM: OMAP: hwmod: align the SmartReflex fck names
+  ARM: OMAP: SmartReflex: pass device dependent data via platform data
+
+ arch/arm/mach-omap2/clock33xx_data.c       |   12 +++----
+ arch/arm/mach-omap2/clock3xxx_data.c       |   12 +++----
+ arch/arm/mach-omap2/clock44xx_data.c       |    6 ++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 ++---
+ arch/arm/mach-omap2/sr_device.c            |   13 +++++++
+ drivers/power/avs/smartreflex.c            |   54 +++++++++-------------------
+ include/linux/power/smartreflex.h          |   14 ++++++--
+ 7 files changed, 61 insertions(+), 58 deletions(-)
 
 -- 
-Dmitry
+1.7.10.4
+
