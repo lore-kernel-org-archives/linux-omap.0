@@ -1,29 +1,49 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RESEND][PATCH] ASoC: ams-delta: Convert to use
- snd_soc_register_card()
-Date: Thu, 4 Oct 2012 18:50:26 +0100
-Message-ID: <20121004175025.GU4360@opensource.wolfsonmicro.com>
-References: <20120906073633.GC22330@opensource.wolfsonmicro.com>
- <1582731.dIkBtAuyKn@vclass>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 16/16] ARM: OMAP: Make plat/omap-pm.h local to mach-omap2
+Date: Fri, 05 Oct 2012 00:26:32 +0200
+Message-ID: <1444123.SLhQ8KkDRS@avalon>
+References: <20121004213950.26676.21898.stgit@muffinssi.local> <20121004220510.26676.36302.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58898 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1945981Ab2JDRu2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 13:50:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1582731.dIkBtAuyKn@vclass>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39644 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753946Ab2JDWZv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 18:25:51 -0400
+In-Reply-To: <20121004220510.26676.36302.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jmkrzyszt@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>
 
-On Wed, Oct 03, 2012 at 12:46:57PM +0200, Janusz Krzysztofik wrote:
-> The old method of registering with the ASoC core by creating a
-> "soc-audio" platform device no longer works for Amstrad Delta sound card
-> after recent changes to drvdata handling (commit
-> 0998d0631001288a5974afc0b2a5f568bcdecb4d, 'device-core: Ensure drvdata =
-> NULL when no driver is bound'.
+Hi Tony,
 
-Applied, thanks.
+Thanks for the patch.
+
+On Thursday 04 October 2012 15:05:10 Tony Lindgren wrote:
+> We must move this for ARM common zImage support.
+> 
+> Note that neither drivers/media/rc/ir-rx51.c or
+> drivers/media/platform/omap3isp/ispvideo.c need
+> to include omap-pm.h, so this patch removes the
+> include for those files.
+
+drivers/media/platform/omap3isp/ispvideo.c used omap-pm.h APIs in the past, we 
+forgot to remove the #include when we changed that.
+
+For the OMAP3 ISP driver,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+-- 
+Regards,
+
+Laurent Pinchart
+
