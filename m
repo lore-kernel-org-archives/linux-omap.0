@@ -1,353 +1,415 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/16] ARM: OMAP1: Move plat/tc.h to mach/tc.h for omap1
-Date: Thu, 04 Oct 2012 15:04:45 -0700
-Message-ID: <20121004220445.26676.27900.stgit@muffinssi.local>
+Subject: [PATCH 10/16] ARM: OMAP: Make omap_device local to mach-omap2
+Date: Thu, 04 Oct 2012 15:04:56 -0700
+Message-ID: <20121004220456.26676.31050.stgit@muffinssi.local>
 References: <20121004213950.26676.21898.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11144 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751889Ab2JDWEr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 18:04:47 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:28151 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753341Ab2JDWE6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 18:04:58 -0400
 In-Reply-To: <20121004213950.26676.21898.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, linux-pcmcia@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-We cannot keep this in plat as it causes problems
-with the ARM single zImage support.
+Let's make omap_device local to mach-omap2 for
+ARM common zImage support.
 
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: linux-pcmcia@lists.infradead.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-fsample.c         |    2 +-
- arch/arm/mach-omap1/board-h2.c              |    2 +-
- arch/arm/mach-omap1/board-h3.c              |    2 +-
- arch/arm/mach-omap1/board-innovator.c       |    2 +-
- arch/arm/mach-omap1/board-osk.c             |    2 +-
- arch/arm/mach-omap1/board-palmte.c          |    2 +-
- arch/arm/mach-omap1/board-palmtt.c          |    2 +-
- arch/arm/mach-omap1/board-palmz71.c         |    2 +-
- arch/arm/mach-omap1/board-perseus2.c        |    2 +-
- arch/arm/mach-omap1/board-sx1.c             |    2 +-
- arch/arm/mach-omap1/board-voiceblue.c       |    2 +-
- arch/arm/mach-omap1/devices.c               |    2 +-
- arch/arm/mach-omap1/dma.c                   |    2 +-
- arch/arm/mach-omap1/flash.c                 |    2 +-
- arch/arm/mach-omap1/include/mach/hardware.h |    2 +-
- arch/arm/mach-omap1/include/mach/tc.h       |    0 
- arch/arm/mach-omap1/io.c                    |    2 +-
- arch/arm/mach-omap1/pm.c                    |    2 +-
- arch/arm/mach-omap2/board-flash.c           |    1 -
- arch/arm/plat-omap/dma.c                    |   24 ++++++++++++++----------
- drivers/pcmcia/omap_cf.c                    |    2 +-
- 21 files changed, 32 insertions(+), 29 deletions(-)
- rename arch/arm/{plat-omap/include/plat/tc.h => mach-omap1/include/mach/tc.h} (100%)
+ arch/arm/mach-omap1/pm_bus.c                  |    1 -
+ arch/arm/mach-omap2/Makefile                  |    3 ++-
+ arch/arm/mach-omap2/am35xx-emac.c             |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c       |    2 +-
+ arch/arm/mach-omap2/devices.c                 |    2 +-
+ arch/arm/mach-omap2/display.c                 |    2 +-
+ arch/arm/mach-omap2/dma.c                     |    2 +-
+ arch/arm/mach-omap2/drm.c                     |    2 +-
+ arch/arm/mach-omap2/gpio.c                    |    2 +-
+ arch/arm/mach-omap2/gpmc.c                    |    2 +-
+ arch/arm/mach-omap2/hdq1w.c                   |    2 +-
+ arch/arm/mach-omap2/hsmmc.c                   |    2 +-
+ arch/arm/mach-omap2/hwspinlock.c              |    2 +-
+ arch/arm/mach-omap2/i2c.c                     |    2 +-
+ arch/arm/mach-omap2/mcbsp.c                   |    2 +-
+ arch/arm/mach-omap2/msdi.c                    |    2 +-
+ arch/arm/mach-omap2/omap_device.c             |    2 +-
+ arch/arm/mach-omap2/omap_device.h             |    0 
+ arch/arm/mach-omap2/opp.c                     |    2 +-
+ arch/arm/mach-omap2/pm.c                      |    2 +-
+ arch/arm/mach-omap2/pmu.c                     |    2 +-
+ arch/arm/mach-omap2/serial.c                  |    2 +-
+ arch/arm/mach-omap2/sr_device.c               |    2 +-
+ arch/arm/mach-omap2/timer.c                   |    2 +-
+ arch/arm/mach-omap2/usb-host.c                |    2 +-
+ arch/arm/mach-omap2/usb-musb.c                |    2 +-
+ arch/arm/plat-omap/Makefile                   |    1 -
+ arch/arm/plat-omap/omap-pm-noop.c             |    3 ++-
+ 28 files changed, 27 insertions(+), 27 deletions(-)
+ rename arch/arm/{plat-omap/omap_device.c => mach-omap2/omap_device.c} (99%)
+ rename arch/arm/{plat-omap/include/plat/omap_device.h => mach-omap2/omap_device.h} (100%)
 
-diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
-index 6f496df..27cf02d 100644
---- a/arch/arm/mach-omap1/board-fsample.c
-+++ b/arch/arm/mach-omap1/board-fsample.c
-@@ -27,7 +27,7 @@
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
+diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
+index 7868e75..8a74ec5 100644
+--- a/arch/arm/mach-omap1/pm_bus.c
++++ b/arch/arm/mach-omap1/pm_bus.c
+@@ -19,7 +19,6 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
  
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/mux.h>
- #include <mach/flash.h>
- #include <../plat-omap/fpga.h>
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 376f7f2..7aa1627 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -40,7 +40,7 @@
+-#include <plat/omap_device.h>
+ #include <plat/omap-pm.h>
  
- #include <mach/mux.h>
- #include <plat/dma.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/irda.h>
- #include <linux/platform_data/keypad-omap.h>
- #include <mach/flash.h>
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index ededdb7..8f0cc6d 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -41,7 +41,7 @@
- #include <asm/mach/map.h>
+ #ifdef CONFIG_PM_RUNTIME
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fe40d9e..46d9071 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -4,7 +4,8 @@
  
- #include <mach/mux.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <linux/platform_data/keypad-omap.h>
- #include <plat/dma.h>
- #include <mach/flash.h>
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index 5804da7..06eb4e6 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -34,7 +34,7 @@
- #include <mach/mux.h>
- #include <mach/flash.h>
- #include <../plat-omap/fpga.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <linux/platform_data/keypad-omap.h>
- #include <plat/mmc.h>
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer.o pm.o \
+-	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o
++	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
++	 omap_device.o
  
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 5973945..6dc53da 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -48,7 +48,7 @@
- 
- #include <mach/flash.h>
- #include <mach/mux.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- 
- #include <mach/hardware.h>
- #include <mach/usb.h>
-diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index 1c578d5..04edf60 100644
---- a/arch/arm/mach-omap1/board-palmte.c
-+++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -36,7 +36,7 @@
- 
- #include <mach/flash.h>
- #include <mach/mux.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <plat/dma.h>
- #include <mach/irda.h>
- #include <linux/platform_data/keypad-omap.h>
-diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
-index 9715809..dece125 100644
---- a/arch/arm/mach-omap1/board-palmtt.c
-+++ b/arch/arm/mach-omap1/board-palmtt.c
-@@ -37,7 +37,7 @@
- #include <mach/flash.h>
- #include <mach/mux.h>
- #include <plat/dma.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/irda.h>
- #include <linux/platform_data/keypad-omap.h>
- 
-diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index e311032..5326f0b 100644
---- a/arch/arm/mach-omap1/board-palmz71.c
-+++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -39,7 +39,7 @@
- #include <mach/flash.h>
- #include <mach/mux.h>
- #include <plat/dma.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/irda.h>
- #include <linux/platform_data/keypad-omap.h>
- 
-diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
-index a1cdeeb..8fe95cf 100644
---- a/arch/arm/mach-omap1/board-perseus2.c
-+++ b/arch/arm/mach-omap1/board-perseus2.c
-@@ -28,7 +28,7 @@
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
- 
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/mux.h>
- #include <../plat-omap/fpga.h>
- #include <mach/flash.h>
-diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 13bf2cc..7e1e929 100644
---- a/arch/arm/mach-omap1/board-sx1.c
-+++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -38,7 +38,7 @@
- #include <mach/mux.h>
- #include <plat/dma.h>
- #include <mach/irda.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/board-sx1.h>
- 
- #include <mach/hardware.h>
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index ad75e34..6e5dce1 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -34,7 +34,7 @@
- #include <mach/board-voiceblue.h>
- #include <mach/flash.h>
- #include <mach/mux.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- 
- #include <mach/hardware.h>
- #include <mach/usb.h>
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 726c02c..6faae7f 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -19,7 +19,7 @@
- 
- #include <asm/mach/map.h>
- 
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/mux.h>
- #include <plat/dma.h>
- #include <plat/mmc.h>
-diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
-index 29007fe..5f816db 100644
---- a/arch/arm/mach-omap1/dma.c
-+++ b/arch/arm/mach-omap1/dma.c
-@@ -26,7 +26,7 @@
- #include <linux/io.h>
- 
- #include <plat/dma.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- 
- #include <mach/irqs.h>
- 
-diff --git a/arch/arm/mach-omap1/flash.c b/arch/arm/mach-omap1/flash.c
-index 73ae616..b3fb531 100644
---- a/arch/arm/mach-omap1/flash.c
-+++ b/arch/arm/mach-omap1/flash.c
-@@ -10,7 +10,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/map.h>
- 
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/flash.h>
- 
- #include <mach/hardware.h>
-diff --git a/arch/arm/mach-omap1/include/mach/hardware.h b/arch/arm/mach-omap1/include/mach/hardware.h
-index 84248d2..2e60265 100644
---- a/arch/arm/mach-omap1/include/mach/hardware.h
-+++ b/arch/arm/mach-omap1/include/mach/hardware.h
-@@ -51,7 +51,7 @@ extern void omap_writeb(u8 v, u32 pa);
- extern void omap_writew(u16 v, u32 pa);
- extern void omap_writel(u32 v, u32 pa);
- 
--#include <plat/tc.h>
-+#include <mach/tc.h>
- 
- /* Almost all documentation for chip and board memory maps assumes
-  * BM is clear.  Most devel boards have a switch to control booting
-diff --git a/arch/arm/plat-omap/include/plat/tc.h b/arch/arm/mach-omap1/include/mach/tc.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/plat/tc.h
-rename to arch/arm/mach-omap1/include/mach/tc.h
-diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
-index 6a5baab..9a10c40 100644
---- a/arch/arm/mach-omap1/io.c
-+++ b/arch/arm/mach-omap1/io.c
-@@ -17,7 +17,7 @@
- #include <asm/mach/map.h>
- 
- #include <mach/mux.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <plat/dma.h>
- 
- #include "iomap.h"
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index 47ec161..a60b7c3 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -52,7 +52,7 @@
- #include <plat/cpu.h>
- #include <plat/clock.h>
- #include <plat/sram.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
- #include <mach/mux.h>
- #include <plat/dma.h>
- #include <plat/dmtimer.h>
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index 0cabe61..42c4b4e 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -21,7 +21,6 @@
+ # INTCPS IP block support - XXX should be moved to drivers/
+ obj-$(CONFIG_ARCH_OMAP2)		+= irq.o
+diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+index d0c54c5..af11dcd 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.c
++++ b/arch/arm/mach-omap2/am35xx-emac.c
+@@ -18,7 +18,7 @@
+ #include <linux/err.h>
+ #include <linux/davinci_emac.h>
+ #include <asm/system.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include "am35xx.h"
+ #include "control.h"
+ #include "am35xx-emac.h"
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index a08bebc..521244d 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -44,7 +44,7 @@
  #include <plat/gpmc.h>
  #include <linux/platform_data/mtd-nand-omap2.h>
- #include <linux/platform_data/mtd-onenand-omap2.h>
--#include <plat/tc.h>
+ #include <plat/usb.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index c8c2117..2fb4bd1 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -26,7 +26,7 @@
+ #include "iomap.h"
+ #include <plat/dma.h>
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include "omap4-keypad.h"
+ 
+ #include "soc.h"
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 45b5238..15e84c4 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -26,7 +26,7 @@
+ 
+ #include <video/omapdss.h>
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <plat/omap-pm.h>
+ #include "common.h"
+ 
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index ff75abe..cc7d918 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -29,7 +29,7 @@
+ #include <linux/device.h>
+ 
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <plat/dma.h>
+ 
+ #define OMAP2_DMA_STRIDE	0x60
+diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
+index 72e0f01b..67991ea 100644
+--- a/arch/arm/mach-omap2/drm.c
++++ b/arch/arm/mach-omap2/drm.c
+@@ -24,7 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ 
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <plat/omap_hwmod.h>
+ 
+ #if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index d1058f1..2bd2467 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -24,7 +24,7 @@
+ #include <linux/platform_data/gpio-omap.h>
+ 
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <plat/omap-pm.h>
+ 
+ #include "powerdomain.h"
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 8ab1e1b..a63ebc7 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -32,7 +32,7 @@
+ #include <plat/cpu.h>
+ #include <plat/gpmc.h>
+ #include <plat/sdrc.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ 
+ #include "soc.h"
+ #include "common.h"
+diff --git a/arch/arm/mach-omap2/hdq1w.c b/arch/arm/mach-omap2/hdq1w.c
+index e003f2b..a533ce3 100644
+--- a/arch/arm/mach-omap2/hdq1w.c
++++ b/arch/arm/mach-omap2/hdq1w.c
+@@ -28,7 +28,7 @@
+ #include <linux/platform_device.h>
+ 
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include "hdq1w.h"
  
  #include "common.h"
- #include "board-flash.h"
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index c76ed8b..b0cb83f 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -38,7 +38,6 @@
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index dd8e694..b0b11be 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -19,7 +19,7 @@
  
- #include <plat/cpu.h>
+ #include "mmc.h"
+ #include <plat/omap-pm.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+diff --git a/arch/arm/mach-omap2/hwspinlock.c b/arch/arm/mach-omap2/hwspinlock.c
+index 8763c85..5856521 100644
+--- a/arch/arm/mach-omap2/hwspinlock.c
++++ b/arch/arm/mach-omap2/hwspinlock.c
+@@ -22,7 +22,7 @@
+ #include <linux/hwspinlock.h>
+ 
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ 
+ static struct hwspinlock_pdata omap_hwspinlock_pdata __initdata = {
+ 	.base_id = 0,
+diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+index b15416c..03bdb0c 100644
+--- a/arch/arm/mach-omap2/i2c.c
++++ b/arch/arm/mach-omap2/i2c.c
+@@ -23,7 +23,7 @@
+ 
+ #include "common.h"
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <plat/omap-pm.h>
+ 
+ #include "mux.h"
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 37f8f94..9b3a8b8 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -21,7 +21,7 @@
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ 
  #include <plat/dma.h>
--#include <plat/tc.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <linux/pm_runtime.h>
  
  /*
-  * MAX_LOGICAL_DMA_CH_COUNT: the maximum number of logical DMA
-@@ -175,6 +174,7 @@ static inline void set_gdma_dev(int req, int dev)
- #define omap_writel(val, reg)	do {} while (0)
- #endif
+diff --git a/arch/arm/mach-omap2/msdi.c b/arch/arm/mach-omap2/msdi.c
+index 4c80334..133cdc2 100644
+--- a/arch/arm/mach-omap2/msdi.c
++++ b/arch/arm/mach-omap2/msdi.c
+@@ -26,7 +26,7 @@
+ #include <linux/platform_data/gpio-omap.h>
  
-+#ifdef CONFIG_ARCH_OMAP1
- void omap_set_dma_priority(int lch, int dst_port, int priority)
- {
- 	unsigned long reg;
-@@ -203,18 +203,22 @@ void omap_set_dma_priority(int lch, int dst_port, int priority)
- 		l |= (priority & 0xf) << 8;
- 		omap_writel(l, reg);
- 	}
-+}
-+#endif
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include "mmc.h"
  
--	if (cpu_class_is_omap2()) {
--		u32 ccr;
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+void omap_set_dma_priority(int lch, int dst_port, int priority)
-+{
-+	u32 ccr;
+ #include "common.h"
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/mach-omap2/omap_device.c
+similarity index 99%
+rename from arch/arm/plat-omap/omap_device.c
+rename to arch/arm/mach-omap2/omap_device.c
+index cee85a5..30b631f 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/mach-omap2/omap_device.c
+@@ -89,7 +89,7 @@
+ #include <linux/of.h>
+ #include <linux/notifier.h>
  
--		ccr = p->dma_read(CCR, lch);
--		if (priority)
--			ccr |= (1 << 6);
--		else
--			ccr &= ~(1 << 6);
--		p->dma_write(ccr, CCR, lch);
--	}
-+	ccr = p->dma_read(CCR, lch);
-+	if (priority)
-+		ccr |= (1 << 6);
-+	else
-+		ccr &= ~(1 << 6);
-+	p->dma_write(ccr, CCR, lch);
- }
-+#endif
- EXPORT_SYMBOL(omap_set_dma_priority);
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <plat/omap_hwmod.h>
+ #include <plat/clock.h>
  
- void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
-diff --git a/drivers/pcmcia/omap_cf.c b/drivers/pcmcia/omap_cf.c
-index fa74efe..25c4b19 100644
---- a/drivers/pcmcia/omap_cf.c
-+++ b/drivers/pcmcia/omap_cf.c
-@@ -25,7 +25,7 @@
- #include <asm/sizes.h>
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/mach-omap2/omap_device.h
+similarity index 100%
+rename from arch/arm/plat-omap/include/plat/omap_device.h
+rename to arch/arm/mach-omap2/omap_device.h
+diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+index 45ad7f7..b023c8a 100644
+--- a/arch/arm/mach-omap2/opp.c
++++ b/arch/arm/mach-omap2/opp.c
+@@ -19,7 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/opp.h>
  
- #include <mach/mux.h>
--#include <plat/tc.h>
-+#include <mach/tc.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
  
+ #include "omap_opp_data.h"
  
- /* NOTE:  don't expect this to support many I/O cards.  The 16xx chips have
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index abefbc4..bb01ac6 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -20,7 +20,7 @@
+ #include <asm/system_misc.h>
+ 
+ #include <plat/omap-pm.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include "common.h"
+ 
+ #include "prcm-common.h"
+diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
+index 2a79176..4b3230f 100644
+--- a/arch/arm/mach-omap2/pmu.c
++++ b/arch/arm/mach-omap2/pmu.c
+@@ -16,7 +16,7 @@
+ #include <asm/pmu.h>
+ 
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ 
+ static char *omap2_pmu_oh_names[] = {"mpu"};
+ static char *omap3_pmu_oh_names[] = {"mpu", "debugss"};
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 0405c81..6559c48 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -31,7 +31,7 @@
+ #include "common.h"
+ #include <plat/dma.h>
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <plat/omap-pm.h>
+ #include <plat/serial.h>
+ 
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index cbeae56..692b4eb 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -23,7 +23,7 @@
+ #include <linux/slab.h>
+ #include <linux/io.h>
+ 
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ 
+ #include "voltage.h"
+ #include "control.h"
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 8847d6e..0460130 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -44,7 +44,7 @@
+ 
+ #include <asm/arch_timer.h>
+ #include <plat/omap_hwmod.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ #include <plat/dmtimer.h>
+ #include <plat/omap-pm.h>
+ 
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 3c43449..84d8228 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -26,7 +26,7 @@
+ #include <asm/io.h>
+ 
+ #include <plat/usb.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ 
+ #include "mux.h"
+ 
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 51da21c..24f300a 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -26,7 +26,7 @@
+ #include <linux/usb/musb.h>
+ 
+ #include <plat/usb.h>
+-#include <plat/omap_device.h>
++#include "omap_device.h"
+ 
+ #include "am35xx.h"
+ 
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index dacaee0..9c81cf5 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -9,7 +9,6 @@ obj-n :=
+ obj-  :=
+ 
+ # omap_device support (OMAP2+ only at the moment)
+-obj-$(CONFIG_ARCH_OMAP2PLUS) += omap_device.o
+ 
+ obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+ obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index 9f64133..c498dd2 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -24,7 +24,8 @@
+ 
+ /* Interface documentation is in mach/omap-pm.h */
+ #include <plat/omap-pm.h>
+-#include <plat/omap_device.h>
++
++#include "../mach-omap2/omap_device.h"
+ 
+ static bool off_mode_enabled;
+ static int dummy_context_loss_counter;
 
