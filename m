@@ -1,84 +1,93 @@
 From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 1/5] ARM: omap: vc: replace data_shift with data_mask
-Date: Wed, 3 Oct 2012 18:16:01 -0700
-Message-ID: <1349313365-5262-2-git-send-email-mturquette@ti.com>
-References: <1349313365-5262-1-git-send-email-mturquette@ti.com>
+Subject: [PATCH 5/7] ARM: omap: voltage: per-voltage domain ABB data
+Date: Wed, 3 Oct 2012 18:26:12 -0700
+Message-ID: <1349313974-5473-6-git-send-email-mturquette@ti.com>
+References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36596 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933227Ab2JDBQw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 21:16:52 -0400
-In-Reply-To: <1349313365-5262-1-git-send-email-mturquette@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52440 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753867Ab2JDB0o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Oct 2012 21:26:44 -0400
+In-Reply-To: <1349313974-5473-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@ti.com>, Mike Turquette <mturquette@linaro.org>
 
-From: Mike Turquette <mturquette@linaro.org>
+This patch adds struct omap_abb_instance to struct voltagedomain and
+populates the data for those voltage domains that have an ABB ldo on
+both 36xx and 44xx silicon.
 
+Signed-off-by: Mike Turquette <mturquette@ti.com>
 Signed-off-by: Mike Turquette <mturquette@linaro.org>
 ---
- arch/arm/mach-omap2/vc.c          |    2 +-
- arch/arm/mach-omap2/vc.h          |    2 +-
- arch/arm/mach-omap2/vc3xxx_data.c |    2 +-
- arch/arm/mach-omap2/vc44xx_data.c |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 ++
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    3 +++
+ 3 files changed, 6 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 84da34f..2bcac64 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -171,7 +171,7 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 0ded54f..546b3d7 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -73,6 +73,7 @@ struct voltagedomain {
+ 	struct omap_vc_channel *vc;
+ 	const struct omap_vfsm_instance *vfsm;
+ 	struct omap_vp_instance *vp;
++	struct omap_abb_instance *abb;
+ 	struct omap_voltdm_pmic *pmic;
  
- 	vc_valid = vc->common->valid;
- 	vc_bypass_val_reg = vc->common->bypass_val_reg;
--	vc_bypass_value = (target_vsel << vc->common->data_shift) |
-+	vc_bypass_value = (target_vsel << __ffs(vc->common->data_mask)) |
- 		(vc->volt_reg_addr << vc->common->regaddr_shift) |
- 		(vc->i2c_slave_addr << vc->common->slaveaddr_shift);
+ 	/* VC/VP register access functions: SoC specific */
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index d0103c8..f6c8a59 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -26,6 +26,7 @@
+ #include "voltage.h"
+ #include "vc.h"
+ #include "vp.h"
++#include "abb.h"
  
-diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
-index 478bf6b..84a61b1 100644
---- a/arch/arm/mach-omap2/vc.h
-+++ b/arch/arm/mach-omap2/vc.h
-@@ -43,8 +43,8 @@ struct voltagedomain;
- struct omap_vc_common {
- 	u32 cmd_on_mask;
- 	u32 valid;
-+	u32 data_mask;
- 	u8 bypass_val_reg;
--	u8 data_shift;
- 	u8 slaveaddr_shift;
- 	u8 regaddr_shift;
- 	u8 cmd_on_shift;
-diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3xxx_data.c
-index 5d8eaf3..2b35e82 100644
---- a/arch/arm/mach-omap2/vc3xxx_data.c
-+++ b/arch/arm/mach-omap2/vc3xxx_data.c
-@@ -31,7 +31,7 @@
-  */
- static struct omap_vc_common omap3_vc_common = {
- 	.bypass_val_reg	 = OMAP3_PRM_VC_BYPASS_VAL_OFFSET,
--	.data_shift	 = OMAP3430_DATA_SHIFT,
-+	.data_mask	 = OMAP3430_DATA_MASK,
- 	.slaveaddr_shift = OMAP3430_SLAVEADDR_SHIFT,
- 	.regaddr_shift	 = OMAP3430_REGADDR_SHIFT,
- 	.valid		 = OMAP3430_VALID_MASK,
-diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44xx_data.c
-index d70b930..598edc9 100644
---- a/arch/arm/mach-omap2/vc44xx_data.c
-+++ b/arch/arm/mach-omap2/vc44xx_data.c
-@@ -32,7 +32,7 @@
-  */
- static const struct omap_vc_common omap4_vc_common = {
- 	.bypass_val_reg = OMAP4_PRM_VC_VAL_BYPASS_OFFSET,
--	.data_shift = OMAP4430_DATA_SHIFT,
-+	.data_mask = OMAP4430_DATA_MASK,
- 	.slaveaddr_shift = OMAP4430_SLAVEADDR_SHIFT,
- 	.regaddr_shift = OMAP4430_REGADDR_SHIFT,
- 	.valid = OMAP4430_VALID_MASK,
+ /*
+  * VDD data
+@@ -112,6 +113,7 @@ void __init omap3xxx_voltagedomains_init(void)
+ 	if (cpu_is_omap3630()) {
+ 		omap3_voltdm_mpu.volt_data = omap36xx_vddmpu_volt_data;
+ 		omap3_voltdm_core.volt_data = omap36xx_vddcore_volt_data;
++		omap3_voltdm_mpu.abb = &omap36xx_abb_mpu;
+ 	} else {
+ 		omap3_voltdm_mpu.volt_data = omap34xx_vddmpu_volt_data;
+ 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
+diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+index c3115f6..da4c70b 100644
+--- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+@@ -31,6 +31,7 @@
+ #include "omap_opp_data.h"
+ #include "vc.h"
+ #include "vp.h"
++#include "abb.h"
+ 
+ static const struct omap_vfsm_instance omap4_vdd_mpu_vfsm = {
+ 	.voltsetup_reg = OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
+@@ -53,6 +54,7 @@ static struct voltagedomain omap4_voltdm_mpu = {
+ 	.vc = &omap4_vc_mpu,
+ 	.vfsm = &omap4_vdd_mpu_vfsm,
+ 	.vp = &omap4_vp_mpu,
++	.abb = &omap4_abb_mpu,
+ };
+ 
+ static struct voltagedomain omap4_voltdm_iva = {
+@@ -64,6 +66,7 @@ static struct voltagedomain omap4_voltdm_iva = {
+ 	.vc = &omap4_vc_iva,
+ 	.vfsm = &omap4_vdd_iva_vfsm,
+ 	.vp = &omap4_vp_iva,
++	.abb = &omap4_abb_iva,
+ };
+ 
+ static struct voltagedomain omap4_voltdm_core = {
 -- 
 1.7.9.5
 
