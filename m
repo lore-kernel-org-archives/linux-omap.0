@@ -1,111 +1,58 @@
-From: Ivan Djelic <ivan.djelic@parrot.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP2: gpmc: Add support for BCH ECC scheme
-Date: Thu, 4 Oct 2012 14:04:05 +0200
-Message-ID: <20121004120405.GA28840@parrot.com>
-References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
- <1349274589-11389-4-git-send-email-avinashphilip@ti.com>
- <20121003185458.GA27502@parrot.com>
- <518397C60809E147AF5323E0420B992E3E9B4902@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E9B4902@DBDE01.ent.ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 2/2] ASoC: omap-mcpdm: Remove OMAP revision check
+Date: Thu,  4 Oct 2012 11:27:16 +0300
+Message-ID: <1349339236-3622-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1349339236-3622-1-git-send-email-peter.ujfalusi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:51961 "EHLO
+	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932365Ab2JDI0K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 04:26:10 -0400
+Received: by mail-ob0-f174.google.com with SMTP id uo13so195610obb.19
+        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 01:26:09 -0700 (PDT)
+In-Reply-To: <1349339236-3622-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-On Thu, Oct 04, 2012 at 09:03:42AM +0100, Philip, Avinash wrote:
-(...)
-> > > +int gpmc_calculate_ecc_bch(int cs, const u_char *dat, u_char *ecc)
-> > > +{
-> > > +	int i, eccbchtsel;
-> > > +	u32 nsectors, reg, bch_val1, bch_val2, bch_val3, bch_val4;
-> > > +
-> > > +	if (gpmc_ecc_used != cs)
-> > > +		return -EINVAL;
-> > > +
-> > > +	/* read number of sectors for ecc to be calculated */
-> > > +	nsectors = ((gpmc_read_reg(GPMC_ECC_CONFIG) >> 4) & 0x7) + 1;
-> > > +	/*
-> > > +	 * find BCH scheme used
-> > > +	 * 0 -> BCH4
-> > > +	 * 1 -> BCH8
-> > > +	 */
-> > > +	eccbchtsel = ((gpmc_read_reg(GPMC_ECC_CONFIG) >> 12) & 0x3);
-> > > +
-> > > +	/* update ecc bytes for entire page */
-> > > +	for (i = 0; i < nsectors; i++) {
-> > > +
-> > > +		reg = GPMC_ECC_BCH_RESULT_0 + 16 * i;
-> > > +
-> > > +		/* Read hw-computed remainder */
-> > > +		bch_val1 = gpmc_read_reg(reg + 0);
-> > > +		bch_val2 = gpmc_read_reg(reg + 4);
-> > > +		if (eccbchtsel) {
-> > > +			bch_val3 = gpmc_read_reg(reg + 8);
-> > > +			bch_val4 = gpmc_read_reg(reg + 12);
-> > > +		}
-> > > +
-> > > +		if (eccbchtsel) {
-> > > +			/* BCH8 ecc scheme */
-> > > +			*ecc++ = (bch_val4 & 0xFF);
-> > > +			*ecc++ = ((bch_val3 >> 24) & 0xFF);
-> > > +			*ecc++ = ((bch_val3 >> 16) & 0xFF);
-> > > +			*ecc++ = ((bch_val3 >> 8) & 0xFF);
-> > > +			*ecc++ = (bch_val3 & 0xFF);
-> > > +			*ecc++ = ((bch_val2 >> 24) & 0xFF);
-> > > +			*ecc++ = ((bch_val2 >> 16) & 0xFF);
-> > > +			*ecc++ = ((bch_val2 >> 8) & 0xFF);
-> > > +			*ecc++ = (bch_val2 & 0xFF);
-> > > +			*ecc++ = ((bch_val1 >> 24) & 0xFF);
-> > > +			*ecc++ = ((bch_val1 >> 16) & 0xFF);
-> > > +			*ecc++ = ((bch_val1 >> 8) & 0xFF);
-> > > +			*ecc++ = (bch_val1 & 0xFF);
-> > > +			/* 14th byte of ecc not used */
-> > > +			*ecc++ = 0;
-> > > +		} else {
-> > > +			/* BCH4 ecc scheme */
-> > > +			*ecc++ = ((bch_val2 >> 12) & 0xFF);
-> > > +			*ecc++ = ((bch_val2 >> 4) & 0xFF);
-> > > +			*ecc++ = (((bch_val2 & 0xF) << 4) |
-> > > +					((bch_val1 >> 28) & 0xF));
-> > > +			*ecc++ = ((bch_val1 >> 20) & 0xFF);
-> > > +			*ecc++ = ((bch_val1 >> 12) & 0xFF);
-> > > +			*ecc++ = ((bch_val1 >> 4) & 0xFF);
-> > > +			*ecc++ = ((bch_val1 & 0xF) << 4);
-> > > +		}
-> > > +	}
-> > > +
-> > > +	gpmc_ecc_used = -EINVAL;
-> > > +	return 0;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(gpmc_calculate_ecc_bch);
-> > 
-> > Here you introduce a function very similar to gpmc_calculate_ecc_bch4 and
-> > gpmc_calculate_ecc_bch8, but without the added benefit (IMHO) of the constant
-> > polynomial that allows to get an ecc sequence of 0xFFs for a buffer filled with
-> > 0xFFs. Why ?
-> 
-> I don't exactly understand what we benefitted/achieve. In my observation,
-> this API does spare area also written with 0xFF if data area is 0xFFs.
-> So the area looks like erased page again.
+The OMAP revision check is not needed since the watchdog bit is not in use
+on 4430 ES1.0 and have no effect when we set the bit. The watchdog need to
+be enabled on all other revisions.
 
-Precisely. It means you can read the page with ECC enabled without having to check if
-the page has been programmed; it also enables bitflip correction on erased pages.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ sound/soc/omap/omap-mcpdm.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-> > If using the ELM prevents you from reusing gpmc_calculate_ecc_bch[48], could you explain in which way ?
-> 
-> When using gpmc_calculate_ecc_bch[48], calculated ecc values modified.
-> The read sequence we following is
-> Read 512 byte -> read ECC bytes from spare area
-> Now the calculated ECC will be zero if no error is reported. In case of error, a syndrome
-> Polynomial is reported. In either case modifying will corrupt the data.
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index fdf655e..e134b27 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -40,7 +40,6 @@
+ #include <sound/pcm_params.h>
+ #include <sound/soc.h>
+ 
+-#include <plat/cpu.h>
+ #include "omap-mcpdm.h"
+ #include "omap-pcm.h"
+ 
+@@ -258,13 +257,9 @@ static int omap_mcpdm_dai_startup(struct snd_pcm_substream *substream,
+ 	mutex_lock(&mcpdm->mutex);
+ 
+ 	if (!dai->active) {
+-		/* Enable watch dog for ES above ES 1.0 to avoid saturation */
+-		if (omap_rev() != OMAP4430_REV_ES1_0) {
+-			u32 ctrl = omap_mcpdm_read(mcpdm, MCPDM_REG_CTRL);
++		u32 ctrl = omap_mcpdm_read(mcpdm, MCPDM_REG_CTRL);
+ 
+-			omap_mcpdm_write(mcpdm, MCPDM_REG_CTRL,
+-					 ctrl | MCPDM_WD_EN);
+-		}
++		omap_mcpdm_write(mcpdm, MCPDM_REG_CTRL, ctrl | MCPDM_WD_EN);
+ 		omap_mcpdm_open_streams(mcpdm);
+ 	}
+ 	mutex_unlock(&mcpdm->mutex);
+-- 
+1.7.12
 
-It is still possible to retrieve your original error syndrome, even using the technique transforming ECC on erased pages into 0xFFs.
-But I guess you're not interested if you need RBL compatibility.
-
-BR,
---
-Ivan
