@@ -1,77 +1,49 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 7/9] ARM/dts: omap4-panda: pinmux configuration for audio
-Date: Thu,  4 Oct 2012 14:57:26 +0300
-Message-ID: <1349351848-12972-8-git-send-email-peter.ujfalusi@ti.com>
-References: <1349351848-12972-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 1/2] ASoC: Fix wrong include for McPDM
+Date: Thu,  4 Oct 2012 11:27:15 +0300
+Message-ID: <1349339236-3622-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1349339236-3622-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:59970 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755560Ab2JDL4d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 07:56:33 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so333387obb.19
-        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 04:56:32 -0700 (PDT)
-In-Reply-To: <1349351848-12972-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51869 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755563Ab2JDI0I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 04:26:08 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so199537oag.19
+        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 01:26:07 -0700 (PDT)
+In-Reply-To: <1349339236-3622-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-u-boot stopped configuring 'non essential' pins recently. The kernel needs
-to configure the mux for audio needs.
-Since the pinmux for these IPs are static let pinctrl to handle the mux
-configuration for.
-Configuring the mux for: twl6040 (audpwron, irq), McPDM and McBSP1.
+From: Tony Lindgren <tony@atomide.com>
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+McPDM needs platt/cpu.h for omap_rev and not omap_hwmod.h.
+Drivers must not include omap_hwmod.h at, it will be
+private to mach-omap2 soon. Fix the problem before other
+drivers will also start including omap_hwmod.h.
+
+Note that also plat/cpu.h will be going away, so the
+omap_rev check needs to be replaced with mcpdm-watchdog
+flag from platform_data or DT.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap4-panda.dts | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ sound/soc/omap/omap-mcpdm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 771cefd..e8f927c 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -59,6 +59,41 @@
- 	};
- };
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index 7755650..fdf655e 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -40,7 +40,7 @@
+ #include <sound/pcm_params.h>
+ #include <sound/soc.h>
  
-+&omap4_pmx_core {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <
-+			&twl6040_pins
-+			&mcpdm_pins
-+			&mcbsp1_pins
-+	>;
-+
-+	twl6040_pins: pinmux_twl6040_pins {
-+		pinctrl-single,pins = <
-+			0xe0 0x3	/* hdq_sio.gpio_127 OUTPUT | MODE3 */
-+			0x160 0x100	/* sys_nirq2.sys_nirq2 INPUT | MODE0 */
-+		>;
-+	};
-+
-+	mcpdm_pins: pinmux_mcpdm_pins {
-+		pinctrl-single,pins = <
-+			0xc6 0x108	/* abe_pdm_ul_data.abe_pdm_ul_data INPUT PULLDOWN | MODE0 */
-+			0xc8 0x108	/* abe_pdm_dl_data.abe_pdm_dl_data INPUT PULLDOWN | MODE0 */
-+			0xca 0x118	/* abe_pdm_frame.abe_pdm_frame INPUT PULLUP | MODE0 */
-+			0xcc 0x108	/* abe_pdm_lb_clk.abe_pdm_lb_clk INPUT PULLDOWN | MODE0 */
-+			0xce 0x108	/* abe_clks.abe_clks INPUT PULLDOWN | MODE0 */
-+		>;
-+	};
-+
-+	mcbsp1_pins: pinmux_mcbsp1_pins {
-+		pinctrl-single,pins = <
-+			0xbe 0x100	/* abe_mcbsp1_clkx.abe_mcbsp1_clkx INPUT | MODE0 */
-+			0xc0 0x108	/* abe_mcbsp1_dr.abe_mcbsp1_dr INPUT PULLDOWN | MODE0 */
-+			0xc2 0x8		/* abe_mcbsp1_dx.abe_mcbsp1_dx OUTPUT PULLDOWN | MODE0 */
-+			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
-+		>;
-+	};
-+};
-+
- &i2c1 {
- 	clock-frequency = <400000>;
+-#include <plat/omap_hwmod.h>
++#include <plat/cpu.h>
+ #include "omap-mcpdm.h"
+ #include "omap-pcm.h"
  
 -- 
 1.7.12
