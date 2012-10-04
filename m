@@ -1,67 +1,39 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH] ARM: OMAP2+: gpmc: annotate exit sections properly
-Date: Thu, 4 Oct 2012 14:01:57 +0530
-Message-ID: <1349339517-17882-1-git-send-email-afzal@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 0/2] ASoC: omap-mcpdm updates for 3.7
+Date: Thu,  4 Oct 2012 11:27:14 +0300
+Message-ID: <1349339236-3622-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37162 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964998Ab2JDIcF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 4 Oct 2012 04:32:05 -0400
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:41504 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754446Ab2JDI0H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 04:26:07 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so199512oag.19
+        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 01:26:05 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
+To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-compiler complained,
-`gpmc_remove' referenced in section `.data' of arch/arm/mach-omap2/built-in.o: defined in discarded section `.exit.text' of arch/arm/mach-omap2/built-in.o
+Hello Mark, Tony,
 
-Annotate gpmc_remove function and dependents with __devexit.
+Change since v1:
+- Fixed the second patch to keep the omap_mcpdm_open_stream() - after a coffee
 
-Reported-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+The mcpdm driver no longer needs to include any plat/*.h file, clearing the way
+for the single kernel image.
+
+Regards,
+Peter
 ---
+Peter Ujfalusi (1):
+  ASoC: omap-mcpdm: Remove OMAP revision check
 
-Hi,
+Tony Lindgren (1):
+  ASoC: Fix wrong include for McPDM
 
-Section mismatch occured due to my change,
-"ARM: OMAP2+: gpmc: minimal driver support".
-As this change is not yet in vanilla, SHA1 has not been
-mentioned in commit log. Original change that introduced the
-above mentioned warning has as of now swimmed only till
-linux-omap and linux-next.
+ sound/soc/omap/omap-mcpdm.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-This has been generated against linux-next (next-20121003)
-
-Regards
-Afzal
-
- arch/arm/mach-omap2/gpmc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 8ab1e1b..5ac5cf3 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -838,7 +838,7 @@ static int gpmc_setup_irq(void)
- 	return request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
- }
- 
--static __exit int gpmc_free_irq(void)
-+static __devexit int gpmc_free_irq(void)
- {
- 	int i;
- 
-@@ -944,7 +944,7 @@ static __devinit int gpmc_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static __exit int gpmc_remove(struct platform_device *pdev)
-+static __devexit int gpmc_remove(struct platform_device *pdev)
- {
- 	gpmc_free_irq();
- 	gpmc_mem_exit();
 -- 
 1.7.12
 
