@@ -1,401 +1,208 @@
 From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 6/7] ARM: omap: abb: init & transition functions
-Date: Wed, 3 Oct 2012 18:26:13 -0700
-Message-ID: <1349313974-5473-7-git-send-email-mturquette@ti.com>
+Subject: [PATCH 4/7] ARM: omap: opp: add ABB data to voltage tables
+Date: Wed, 3 Oct 2012 18:26:11 -0700
+Message-ID: <1349313974-5473-5-git-send-email-mturquette@ti.com>
 References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36988 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753836Ab2JDB0r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 21:26:47 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:46768 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754586Ab2JDB0l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Oct 2012 21:26:41 -0400
 In-Reply-To: <1349313974-5473-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com, paul@pwsan.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@ti.com>, Mike Turquette <mturquette@linaro.org>
 
-The Adaptive Body-Bias ldo can be set to bypass, Forward Body-Bias or
-Reverse Body-Bias during a voltage transition.  The ABB programming
-sequence depends on whether voltage is scaling up or down.
+The operating mode of the Adaptive Body-Bias ldo is a function of the
+voltage at which the VDD is operating and silicon characteristics.
 
-This patch implements the Adaptive Body-Bias ldo initialization routine
-and the transition sequence which is needed after any voltage scaling
-operation.
+NOMINAL_OPP causes the ABB ldo to be in bypass at that specific voltage.
+FAST_OPP causes the ldo to operate in Forward Body-Bias mode.  SLOW_OPP
+puts the ldo in Reverse Body-Bias mode.
 
-Note that this sequence will need to be revisited someday when the
-various SmartReflex AVS features, fixes and improvements are upstreamed
-and enabled for OMAP2+ kernels.
+This patch models this relationship by adding an opp_sel paramter to
+struct omap_volt_data and populates this data in the 3630 and 4430
+voltage tables.
+
+Not all voltage domains have an ABB ldo and 3430 doesn't have one at
+all.  In such cases voltages are marked with OMAP_ABB_NO_LDO.
 
 Signed-off-by: Mike Turquette <mturquette@ti.com>
 Signed-off-by: Mike Turquette <mturquette@linaro.org>
 ---
- arch/arm/mach-omap2/Makefile |    2 +-
- arch/arm/mach-omap2/abb.c    |  322 ++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/abb.h    |    9 ++
- 3 files changed, 332 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm/mach-omap2/abb.c
+ arch/arm/mach-omap2/omap_opp_data.h       |    5 ++--
+ arch/arm/mach-omap2/opp3xxx_data.c        |   37 +++++++++++++++--------------
+ arch/arm/mach-omap2/opp4xxx_data.c        |   25 +++++++++----------
+ arch/arm/plat-omap/include/plat/voltage.h |    1 +
+ 4 files changed, 36 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 57e053e..a262aaa 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -107,7 +107,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common) prm44xx.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-prcm-4-5-common)
+diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
+index c784c12..1facc52 100644
+--- a/arch/arm/mach-omap2/omap_opp_data.h
++++ b/arch/arm/mach-omap2/omap_opp_data.h
+@@ -71,12 +71,13 @@ struct omap_opp_def {
+  * Initialization wrapper used to define SmartReflex process data
+  * XXX Is this needed?  Just use C99 initializers in data files?
+  */
+-#define VOLT_DATA_DEFINE(_v_nom, _efuse_offs, _errminlimit, _errgain)  \
++#define VOLT_DATA_DEFINE(_v_nom, _efuse_offs, _errminlimit, _errgain, _opp_sel) \
+ {								       \
+ 	.volt_nominal	= _v_nom,				       \
+ 	.sr_efuse_offs	= _efuse_offs,				       \
+ 	.sr_errminlimit = _errminlimit,				       \
+-	.vp_errgain	= _errgain				       \
++	.vp_errgain	= _errgain,				       \
++	.opp_sel	= _opp_sel,				       \
+ }
  
- # OMAP voltage domains
--voltagedomain-common			:= voltage.o vc.o vp.o
-+voltagedomain-common			:= voltage.o vc.o vp.o abb.o
- obj-$(CONFIG_ARCH_OMAP2)		+= $(voltagedomain-common)
- obj-$(CONFIG_ARCH_OMAP2)		+= voltagedomains2xxx_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common)
-diff --git a/arch/arm/mach-omap2/abb.c b/arch/arm/mach-omap2/abb.c
-new file mode 100644
-index 0000000..e8a3ae0
---- /dev/null
-+++ b/arch/arm/mach-omap2/abb.c
-@@ -0,0 +1,322 @@
-+/*
-+ * OMAP Adaptive Body-Bias core
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Mike Turquette <mturquette@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+
+ /* Use this to initialize the default table */
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+index d95f3f9..12fc2da 100644
+--- a/arch/arm/mach-omap2/opp3xxx_data.c
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -24,6 +24,7 @@
+ #include "control.h"
+ #include "omap_opp_data.h"
+ #include "pm.h"
 +#include "abb.h"
-+#include "voltage.h"
-+
-+/**
-+ * omap_abb_set_opp - program ABB ldo based on new voltage
-+ *
-+ * @voltdm - voltage domain that just finished scaling voltage
-+ * @opp_sel - target ABB ldo operating mode
-+ *
-+ * Program the ABB ldo to the new state (if necessary), clearing the
-+ * PRM_IRQSTATUS bit before and after the transition.  Returns 0 on
-+ * success, -ETIMEDOUT otherwise.
-+ */
-+int omap_abb_set_opp(struct voltagedomain *voltdm, u8 opp_sel)
-+{
-+	struct omap_abb_instance *abb = voltdm->abb;
-+	int ret, timeout;
-+
-+	/* bail early if no transition is necessary */
-+	if (opp_sel == abb->_opp_sel)
-+		return 0;
-+
-+	/* clear interrupt status */
-+	timeout = 0;
-+	while (timeout++ < ABB_TRANXDONE_TIMEOUT) {
-+		abb->common->ops->clear_tranxdone(abb->prm_irq_id);
-+
-+		ret = abb->common->ops->check_tranxdone(abb->prm_irq_id);
-+		if (!ret)
-+			break;
-+
-+		udelay(1);
-+	}
-+
-+	if (timeout >= ABB_TRANXDONE_TIMEOUT) {
-+		pr_warn("%s: vdd_%s ABB TRANXDONE timeout\n",
-+				__func__, voltdm->name);
-+		return -ETIMEDOUT;
-+	}
-+
-+	/* program the setup register */
-+	switch (opp_sel) {
-+	case OMAP_ABB_NOMINAL_OPP:
-+		voltdm->rmw(abb->common->active_fbb_sel_mask,
-+				0x0,
-+				abb->setup_offs);
-+		break;
-+	case OMAP_ABB_FAST_OPP:
-+		voltdm->rmw(abb->common->active_fbb_sel_mask,
-+				abb->common->active_fbb_sel_mask,
-+				abb->setup_offs);
-+		break;
-+	}
-+
-+	/* program next state of ABB ldo */
-+	voltdm->rmw(abb->common->opp_sel_mask,
-+			opp_sel << __ffs(abb->common->opp_sel_mask),
-+			abb->ctrl_offs);
-+
-+	/* initiate ABB ldo change */
-+	voltdm->rmw(abb->common->opp_change_mask,
-+			abb->common->opp_change_mask,
-+			abb->ctrl_offs);
-+
-+	/* clear interrupt status */
-+	timeout = 0;
-+	while (timeout++ < ABB_TRANXDONE_TIMEOUT) {
-+		abb->common->ops->clear_tranxdone(abb->prm_irq_id);
-+
-+		ret = abb->common->ops->check_tranxdone(abb->prm_irq_id);
-+		if (!ret)
-+			break;
-+
-+		udelay(1);
-+	}
-+
-+	if (timeout >= ABB_TRANXDONE_TIMEOUT) {
-+		pr_warn("%s: vdd_%s ABB TRANXDONE timeout\n",
-+				__func__, voltdm->name);
-+		return -ETIMEDOUT;
-+	}
-+
-+	/* track internal state */
-+	abb->_opp_sel = opp_sel;
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_abb_pre_scale - ABB transition pre-voltage scale, if needed
-+ *
-+ * @voltdm - voltage domain that is about to scale
-+ * @target_volt - voltage that voltdm is scaling towards
-+ *
-+ * Changes the ABB ldo mode prior to scaling the voltage domain.
-+ * Returns 0 on success, otherwise an error code.
-+ */
-+int omap_abb_pre_scale(struct voltagedomain *voltdm,
-+		unsigned long target_volt)
-+{
-+	struct omap_abb_instance *abb = voltdm->abb;
-+	struct omap_volt_data *cur_volt_data;
-+	struct omap_volt_data *target_volt_data;
-+	u8 opp_sel;
-+
-+	/* sanity */
-+	if (!voltdm)
-+		return -EINVAL;
-+
-+	if (!abb)
-+		return 0;
-+
-+	/*
-+	 * XXX boot-time corner case: voltdm->nominal volt might be zero
-+	 *
-+	 * This implies that we're running at the default PMIC voltage,
-+	 * since voltdm->nominal_volt should have been populated in
-+	 * omap_voltage_late_init if the voltage had been scaled
-+	 * previously.  The best way to fix this is for DT data to pass
-+	 * in PMIC boot voltage.
-+	 *
-+	 * For now, handle this by returning success (0) to not block
-+	 * the rest of the transition.
-+	 */
-+	if (!voltdm->nominal_volt)
-+		return 0;
-+
-+	cur_volt_data = omap_voltage_get_voltdata(voltdm, voltdm->nominal_volt);
-+	target_volt_data = omap_voltage_get_voltdata(voltdm, target_volt);
-+
-+	if (IS_ERR(cur_volt_data))
-+		return PTR_ERR(cur_volt_data);
-+
-+	if (IS_ERR(target_volt_data))
-+		return PTR_ERR(target_volt_data);
-+
-+	/* bail if the sequence is wrong */
-+	if (target_volt_data->volt_nominal > cur_volt_data->volt_nominal)
-+		return 0;
-+
-+	opp_sel = target_volt_data->opp_sel;
-+
-+	/* bail early if no transition is necessary */
-+	if (opp_sel == abb->_opp_sel)
-+		return 0;
-+
-+	return omap_abb_set_opp(voltdm, opp_sel);
-+}
-+
-+/**
-+ * omap_abb_post_scale - ABB transition post-voltage scale, if needed
-+ * @voltdm - voltage domain that just finished scaling
-+ * @target_volt - voltage that voltdm is scaling towards
-+ *
-+ * Changes the ABB ldo mode prior to scaling the voltage domain.
-+ * Returns 0 on success, otherwise an error code.
-+ */
-+int omap_abb_post_scale(struct voltagedomain *voltdm,
-+		unsigned long target_volt)
-+{
-+	struct omap_abb_instance *abb = voltdm->abb;
-+	struct omap_volt_data *cur_volt_data;
-+	struct omap_volt_data *target_volt_data;
-+	u8 opp_sel;
-+
-+	/* sanity */
-+	if (!voltdm)
-+		return -EINVAL;
-+
-+	if (!abb)
-+		return 0;
-+
-+	cur_volt_data = omap_voltage_get_voltdata(voltdm, voltdm->nominal_volt);
-+	if (IS_ERR(cur_volt_data))
-+		return PTR_ERR(cur_volt_data);
-+
-+	target_volt_data = omap_voltage_get_voltdata(voltdm, target_volt);
-+	if (IS_ERR(target_volt_data))
-+		return PTR_ERR(target_volt_data);
-+
-+	/* bail if the sequence is wrong */
-+	if (target_volt_data->volt_nominal < cur_volt_data->volt_nominal)
-+		return 0;
-+
-+	opp_sel = target_volt_data->opp_sel;
-+
-+	/* bail early if no transition is necessary */
-+	if (opp_sel == abb->_opp_sel)
-+		return 0;
-+
-+	return omap_abb_set_opp(voltdm, opp_sel);
-+}
-+
-+/*
-+ * omap_abb_enable - enable ABB ldo on a particular voltage domain
-+ *
-+ * @voltdm - pointer to particular voltage domain
-+ */
-+void omap_abb_enable(struct voltagedomain *voltdm)
-+{
-+	struct omap_abb_instance *abb = voltdm->abb;
-+
-+	if (abb->enabled)
-+		return;
-+
-+	abb->enabled = true;
-+
-+	voltdm->rmw(abb->common->sr2en_mask, abb->common->sr2en_mask,
-+			abb->setup_offs);
-+}
-+
-+/*
-+ * omap_abb_disable - disable ABB ldo on a particular voltage domain
-+ *
-+ * @voltdm - pointer to particular voltage domain
-+ *
-+ * Included for completeness.  Not currently used but will be needed in the
-+ * future if ABB is converted to a loadable module.
-+ */
-+void omap_abb_disable(struct voltagedomain *voltdm)
-+{
-+	struct omap_abb_instance *abb = voltdm->abb;
-+
-+	if (!abb->enabled)
-+		return;
-+
-+	abb->enabled = false;
-+
-+	voltdm->rmw(abb->common->sr2en_mask,
-+			(0 << __ffs(abb->common->sr2en_mask)),
-+			abb->setup_offs);
-+}
-+
-+/*
-+ * omap_abb_init - Initialize an ABB ldo instance
-+ *
-+ * @voltdm: voltage domain upon which ABB ldo resides
-+ *
-+ * Initializes an individual ABB ldo for Forward Body-Bias.  FBB is used to
-+ * insure stability at higher voltages.  Note that some older OMAP chips have a
-+ * Reverse Body-Bias mode meant to save power at low voltage, but that mode is
-+ * unsupported and phased out on newer chips.
-+ */
-+void __init omap_abb_init(struct voltagedomain *voltdm)
-+{
-+	struct omap_abb_instance *abb = voltdm->abb;
-+	u32 sys_clk_rate;
-+	u32 sr2_wt_cnt_val;
-+	u32 clock_cycles;
-+	u32 settling_time;
-+	u32 val;
-+
-+	if (IS_ERR_OR_NULL(abb))
-+		return;
-+
-+	/*
-+	 * SR2_WTCNT_VALUE is the settling time for the ABB ldo after a
-+	 * transition and must be programmed with the correct time at boot.
-+	 * The value programmed into the register is the number of SYS_CLK
-+	 * clock cycles that match a given wall time profiled for the ldo.
-+	 * This value depends on:
-+	 * settling time of ldo in micro-seconds (varies per OMAP family)
-+	 * # of clock cycles per SYS_CLK period (varies per OMAP family)
-+	 * the SYS_CLK frequency in MHz (varies per board)
-+	 * The formula is:
-+	 *
-+	 *                      ldo settling time (in micro-seconds)
-+	 * SR2_WTCNT_VALUE = ------------------------------------------
-+	 *                   (# system clock cycles) * (sys_clk period)
-+	 *
-+	 * Put another way:
-+	 *
-+	 * SR2_WTCNT_VALUE = settling time / (# SYS_CLK cycles / SYS_CLK rate))
-+	 *
-+	 * To avoid dividing by zero multiply both "# clock cycles" and
-+	 * "settling time" by 10 such that the final result is the one we want.
-+	 */
-+
-+	/* convert SYS_CLK rate to MHz & prevent divide by zero */
-+	sys_clk_rate = DIV_ROUND_CLOSEST(voltdm->sys_clk.rate, 1000000);
-+	clock_cycles = abb->common->clock_cycles * 10;
-+	settling_time = abb->common->settling_time * 10;
-+
-+	/* calculate cycle rate */
-+	clock_cycles = DIV_ROUND_CLOSEST(clock_cycles, sys_clk_rate);
-+
-+	/* calulate SR2_WTCNT_VALUE */
-+	sr2_wt_cnt_val = DIV_ROUND_CLOSEST(settling_time, clock_cycles);
-+
-+	voltdm->rmw(abb->common->sr2_wtcnt_value_mask,
-+			(sr2_wt_cnt_val << __ffs(abb->common->sr2_wtcnt_value_mask)),
-+			abb->setup_offs);
-+
-+	/* did bootloader set OPP_SEL? */
-+	val = voltdm->read(abb->ctrl_offs);
-+	val &= abb->common->opp_sel_mask;
-+	abb->_opp_sel = val >> __ffs(abb->common->opp_sel_mask);
-+
-+	/* enable the ldo if not done by bootloader */
-+	val = voltdm->read(abb->setup_offs);
-+	val &= abb->common->sr2en_mask;
-+	if (val)
-+		abb->enabled = true;
-+	else
-+		omap_abb_enable(voltdm);
-+
-+	return;
-+}
-diff --git a/arch/arm/mach-omap2/abb.h b/arch/arm/mach-omap2/abb.h
-index 2acc187..b18305f 100644
---- a/arch/arm/mach-omap2/abb.h
-+++ b/arch/arm/mach-omap2/abb.h
-@@ -82,4 +82,13 @@ extern struct omap_abb_instance omap36xx_abb_mpu;
- extern struct omap_abb_instance omap4_abb_mpu;
- extern struct omap_abb_instance omap4_abb_iva;
  
-+void omap_abb_init(struct voltagedomain *voltdm);
-+void omap_abb_enable(struct voltagedomain *voltdm);
-+void omap_abb_disble(struct voltagedomain *voltdm);
-+int omap_abb_set_opp(struct voltagedomain *voltdm, u8 opp_sel);
-+int omap_abb_pre_scale(struct voltagedomain *voltdm,
-+		unsigned long target_volt);
-+int omap_abb_post_scale(struct voltagedomain *voltdm,
-+		unsigned long target_volt);
-+
- #endif
+ /* 34xx */
+ 
+@@ -36,12 +37,12 @@
+ #define OMAP3430_VDD_MPU_OPP5_UV		1350000
+ 
+ struct omap_volt_data omap34xx_vddmpu_volt_data[] = {
+-	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD1, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD1, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD1, 0xf9, 0x18),
+-	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP4_UV, OMAP343X_CONTROL_FUSE_OPP4_VDD1, 0xf9, 0x18),
+-	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP5_UV, OMAP343X_CONTROL_FUSE_OPP5_VDD1, 0xf9, 0x18),
+-	VOLT_DATA_DEFINE(0, 0, 0, 0),
++	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD1, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD1, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD1, 0xf9, 0x18, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP4_UV, OMAP343X_CONTROL_FUSE_OPP4_VDD1, 0xf9, 0x18, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP5_UV, OMAP343X_CONTROL_FUSE_OPP5_VDD1, 0xf9, 0x18, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
+ };
+ 
+ /* VDD2 */
+@@ -51,10 +52,10 @@ struct omap_volt_data omap34xx_vddmpu_volt_data[] = {
+ #define OMAP3430_VDD_CORE_OPP3_UV		1150000
+ 
+ struct omap_volt_data omap34xx_vddcore_volt_data[] = {
+-	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD2, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD2, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD2, 0xf9, 0x18),
+-	VOLT_DATA_DEFINE(0, 0, 0, 0),
++	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD2, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD2, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD2, 0xf9, 0x18, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
+ };
+ 
+ /* 36xx */
+@@ -67,11 +68,11 @@ struct omap_volt_data omap34xx_vddcore_volt_data[] = {
+ #define OMAP3630_VDD_MPU_OPP1G_UV		1375000
+ 
+ struct omap_volt_data omap36xx_vddmpu_volt_data[] = {
+-	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD1, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD1, 0xf9, 0x16),
+-	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP120_UV, OMAP3630_CONTROL_FUSE_OPP120_VDD1, 0xfa, 0x23),
+-	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP1G_UV, OMAP3630_CONTROL_FUSE_OPP1G_VDD1, 0xfa, 0x27),
+-	VOLT_DATA_DEFINE(0, 0, 0, 0),
++	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD1, 0xf4, 0x0c, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD1, 0xf9, 0x16, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP120_UV, OMAP3630_CONTROL_FUSE_OPP120_VDD1, 0xfa, 0x23, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP1G_UV, OMAP3630_CONTROL_FUSE_OPP1G_VDD1, 0xfa, 0x27, OMAP_ABB_FAST_OPP),
++	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
+ };
+ 
+ /* VDD2 */
+@@ -80,9 +81,9 @@ struct omap_volt_data omap36xx_vddmpu_volt_data[] = {
+ #define OMAP3630_VDD_CORE_OPP100_UV		1200000
+ 
+ struct omap_volt_data omap36xx_vddcore_volt_data[] = {
+-	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD2, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD2, 0xf9, 0x16),
+-	VOLT_DATA_DEFINE(0, 0, 0, 0),
++	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD2, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD2, 0xf9, 0x16, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
+ };
+ 
+ /* OPP data */
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+index c95415d..c9b8e8a 100644
+--- a/arch/arm/mach-omap2/opp4xxx_data.c
++++ b/arch/arm/mach-omap2/opp4xxx_data.c
+@@ -25,6 +25,7 @@
+ #include "control.h"
+ #include "omap_opp_data.h"
+ #include "pm.h"
++#include "abb.h"
+ 
+ /*
+  * Structures containing OMAP4430 voltage supported and various
+@@ -37,11 +38,11 @@
+ #define OMAP4430_VDD_MPU_OPPNITRO_UV		1375000
+ 
+ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16),
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPNITRO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27),
+-	VOLT_DATA_DEFINE(0, 0, 0, 0),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPNITRO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27, OMAP_ABB_FAST_OPP),
++	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
+ };
+ 
+ #define OMAP4430_VDD_IVA_OPP50_UV		1013000
+@@ -49,19 +50,19 @@ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
+ #define OMAP4430_VDD_IVA_OPPTURBO_UV		1300000
+ 
+ struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16),
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
+-	VOLT_DATA_DEFINE(0, 0, 0, 0),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23, OMAP_ABB_NOMINAL_OPP),
++	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
+ };
+ 
+ #define OMAP4430_VDD_CORE_OPP50_UV		1025000
+ #define OMAP4430_VDD_CORE_OPP100_UV		1200000
+ 
+ struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
+-	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16),
+-	VOLT_DATA_DEFINE(0, 0, 0, 0),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16, OMAP_ABB_NO_LDO),
++	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
+ };
+ 
+ 
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index 5be4d5d..dd7b1f8 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -28,6 +28,7 @@ struct omap_volt_data {
+ 	u32	sr_efuse_offs;
+ 	u8	sr_errminlimit;
+ 	u8	vp_errgain;
++	u8	opp_sel;
+ };
+ struct voltagedomain;
+ 
 -- 
 1.7.9.5
 
