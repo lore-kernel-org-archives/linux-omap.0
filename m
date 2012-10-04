@@ -1,118 +1,130 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Converting vrfb.c
-Date: Thu, 04 Oct 2012 12:18:58 +0200
-Message-ID: <1349345938.32558.0.camel@lappyti>
-References: <1348833847.2437.36.camel@deskari>
-	 <20120928150052.GA4840@atomide.com> <20121003184149.GG4840@atomide.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: hwmod: align the SmartReflex fck names
+Date: Thu, 4 Oct 2012 18:49:50 +0200
+Message-ID: <CAORVsuXqyRSZ7J8XsUC_YhxDRDzc006HU6sqhgA8N5OKU0CESg@mail.gmail.com>
+References: <1349279277-7634-1-git-send-email-j-pihet@ti.com>
+	<1349279277-7634-2-git-send-email-j-pihet@ti.com>
+	<20121003170059.GD4840@atomide.com>
+	<87ehlfvzxz.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Xeu93SjA7EWra59BraDM"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:37115 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752715Ab2JDKTI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 06:19:08 -0400
-Received: by mail-lb0-f174.google.com with SMTP id n3so220241lbo.19
-        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 03:19:05 -0700 (PDT)
-In-Reply-To: <20121003184149.GG4840@atomide.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:64849 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752486Ab2JDQtv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 12:49:51 -0400
+Received: by mail-lb0-f174.google.com with SMTP id n3so557544lbo.19
+        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 09:49:50 -0700 (PDT)
+In-Reply-To: <87ehlfvzxz.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anton Vorontsov <cbou@mail.ru>, J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
+
+Hi Kevin,
+
+On Thu, Oct 4, 2012 at 2:33 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Tony Lindgren <tony@atomide.com> writes:
+>
+>> * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [121003 08:48]:
+>>> @@ -1036,8 +1036,8 @@ static struct omap_clk am33xx_clks[] = {
+>>>      CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
+>>>      CLK("NULL",     "mmc2_fck",             &mmc2_fck,      CK_AM33XX),
+>>>      CLK(NULL,       "mmu_fck",              &mmu_fck,       CK_AM33XX),
+>>> -    CLK(NULL,       "smartreflex0_fck",     &smartreflex0_fck,      CK_AM33XX),
+>>> -    CLK(NULL,       "smartreflex1_fck",     &smartreflex1_fck,      CK_AM33XX),
+>>> +    CLK(NULL,       "smartreflex.0",        &smartreflex_mpu_fck,   CK_AM33XX),
+>>> +    CLK(NULL,       "smartreflex.1",        &smartreflex_core_fck,  CK_AM33XX),
+>>>      CLK(NULL,       "timer1_fck",           &timer1_fck,    CK_AM33XX),
+>>>      CLK(NULL,       "timer2_fck",           &timer2_fck,    CK_AM33XX),
+>>>      CLK(NULL,       "timer3_fck",           &timer3_fck,    CK_AM33XX),
+>>
+>> I think this should be something like this instead:
+>>
+>>       CLK("smartreflex.0",    "fck",  &smartreflex_mpu_fck,   CK_AM33XX),
+>>       CLK("smartreflex.1",    "fck",  &smartreflex_core_fck,  CK_AM33XX),
+>>
+>> Where the first one is the dev name, the second one is the
+>> alias you want to use in the client driver?
+>
+> Actually, the omap_device creation will create this kind of alias for
+> you, with the device name populated etc, so adding device names here
+> isn't necessary.
+>
+> For omap_devices where drivers are always using clk_get(dev, ...),
+> the name in the initial clkdev table here really doesn't matter.
+>
+> However, for core code that needs to do a clk_get(NULL, "name"), then
+> this name matters.  In chatting with Paul offline, he mentioned part of
+> the CCF conversion will be using clk_get(NULL, ...) on the main_clk
+> listed in each hwmod.  For that reason, it's important that this string
+> match the name in the hwmod.
+That makes it clear. Thanks for looking at it!
+
+> I belive the patch below should make this compatible with any future
+> use.
+Sure. The driver uses clk_get(dev, "fck") to request the fcuntional
+clock of the device.
 
 
---=-Xeu93SjA7EWra59BraDM
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> Jean, can you fold this into $SUBJECT patch?
+Sure!
 
-On Wed, 2012-10-03 at 11:41 -0700, Tony Lindgren wrote:
-> Hi,
->=20
-> * Tony Lindgren <tony@atomide.com> [120928 08:02]:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [120928 05:05]:
-> > > Hi,
-> > >=20
-> > > I'm a bit at loss how to deal with drivers/video/omap2/vrfb.c.
-> > >=20
-> > > VRFB is part of the SDRAM controller on OMAP2 and OMAP3. vrfb.c uses =
-the
-> > > following functions from sdrc.h:
-> > >=20
-> > > omap2_sms_write_rot_control();
-> > > omap2_sms_write_rot_size();
-> > > omap2_sms_write_rot_physical_ba();
-> > >=20
-> > > There are no other dependencies to the sdrc.c.
-> > >=20
-> > > Those functions are quite simple:
-> > >=20
-> > > void omap2_sms_write_rot_control(u32 val, unsigned ctx)
-> > > {
-> > > 	sms_write_reg(val, SMS_ROT_CONTROL(ctx));
-> > > }
-> > >=20
-> > > void omap2_sms_write_rot_size(u32 val, unsigned ctx)
-> > > {
-> > > 	sms_write_reg(val, SMS_ROT_SIZE(ctx));
-> > > }
-> > >=20
-> > > void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx)
-> > > {
-> > > 	sms_write_reg(val, SMS_ROT_PHYSICAL_BA(ctx));
-> > > }
-> > >=20
-> > > vrfb.c is in turn used by omapfb and omap v4l2 driver.
-> > >=20
-> > >=20
-> > > So... Should I just remove the sdrc.h dependency and make vrfb.c iore=
-map
-> > > those SMS registers itself? Those three registers are VRFB specific, =
-so
-> > > they are not used by anyone else. In that case I'd need to pass the S=
-MS
-> > > base address to vrfb.c somehow.
-> > >=20
-> > > Or should I have some kind of platform data passed to vrfb.c, which
-> > > contains func pointers to the above three functions?
-> > >=20
-> > > Or should vrfb.c be moved into mach-omap2/? But then how would omapfb
-> > > call it? Passing vrfb functions as pointers in omapfb platform data?
-> >=20
-> > Maybe just export those functions in sdrc.c for now? Eventually
-> > that should be just a regular device driver too..
->=20
-> Actually, if you're only using it to save and restore the hw
-> context, why don't you let mach-omap2/sdrc.c do it based on runtime
-> PM calls? It already has omap2_sms_save/restore_context.
+I just re-sent a new version of the 2 patches.
 
-No, the functions are used to configure the rotation parameters whenever
-the user asks for a new rotation.
+>
+> Thanks,
+>
+> Kevin
 
- Tomi
+Thanks,
+Jean
 
-
---=-Xeu93SjA7EWra59BraDM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQbWKSAAoJEPo9qoy8lh71vA8QAI8LSONmOe7+0E5/pm+Wi/4v
-Nrvg7bbs92PdWFwDRQHIHctO6A1TV8xZ5HaU7Gql9F/35j3hgB84RijMoUJcKJkG
-BZDpc6YIn3UM6GzEMsgAtLT/gsQGePohmv+NHS48XDCGftyT5CD2GQ3chTmXOz0+
-eu1s7yhIwVh0D1wP6I+VzYuHMG6iSbvbb30gwNTPzftRBKTRlzD4ZpxeEg/F23H7
-3Cne9skl8p9O9DGm/lNnHgoQlFDEDbGqaKshqkIz7fumsG9jafS2mNtuVPTWaUnk
-vY7CIF9Ln654voZKk+DLUw+8vYPcLhKuTeRjtPm89whPML4fvM2tP6rNNytEkMsO
-/ErJGKIk6Qvhr3mK3//QV5I23xLYZQCwu75aMaTOTTw7XJ2Ryj0Ke6/FJ1DFlULi
-9IWLpqk7CoVV2e5sLUS6c9KkvYYnoS5LbSSSAGs1lhl0lcAtSeR9E1P9LlpEAnXl
-j2cEIJPDHdL+L836DieMDALqYSwDX5ryBq3Uf8E6kYuPzERH6gmnpVSiI6rxcE3k
-NdP1df+Dt2ktJhEoLCyY6Ml3YPstuVtwOvG9w6JaiHuVMNxgX/uJgpRNLEYBN009
-FUqZj8l74U7umGx5pWUDdEaNdOQZj+wHe4V46StUtppMhtfFdJlLL2/+gYLfrNch
-d7U2l9X13jbItFBckWiB
-=7g7B
------END PGP SIGNATURE-----
-
---=-Xeu93SjA7EWra59BraDM--
-
+>
+>
+> diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+> index 6de3dc7..8a16504 100644
+> --- a/arch/arm/mach-omap2/clock33xx_data.c
+> +++ b/arch/arm/mach-omap2/clock33xx_data.c
+> @@ -1034,8 +1034,8 @@ static struct omap_clk am33xx_clks[] = {
+>         CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
+>         CLK("NULL",     "mmc2_fck",             &mmc2_fck,      CK_AM33XX),
+>         CLK(NULL,       "mmu_fck",              &mmu_fck,       CK_AM33XX),
+> -       CLK(NULL,       "smartreflex.0",        &smartreflex_mpu_fck,   CK_AM33XX),
+> -       CLK(NULL,       "smartreflex.1",        &smartreflex_core_fck,  CK_AM33XX),
+> +       CLK(NULL,       "smartreflex_mpu_fck",  &smartreflex_mpu_fck,   CK_AM33XX),
+> +       CLK(NULL,       "smartreflex_core_fck", &smartreflex_core_fck,  CK_AM33XX),
+>         CLK(NULL,       "timer1_fck",           &timer1_fck,    CK_AM33XX),
+>         CLK(NULL,       "timer2_fck",           &timer2_fck,    CK_AM33XX),
+>         CLK(NULL,       "timer3_fck",           &timer3_fck,    CK_AM33XX),
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index a197cf2..191d261 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3447,8 +3447,8 @@ static struct omap_clk omap3xxx_clks[] = {
+>         CLK(NULL,       "atclk_fck",    &atclk_fck,     CK_3XXX),
+>         CLK(NULL,       "traceclk_src_fck", &traceclk_src_fck, CK_3XXX),
+>         CLK(NULL,       "traceclk_fck", &traceclk_fck,  CK_3XXX),
+> -       CLK(NULL,       "smartreflex.0",        &smartreflex_mpu_iva_fck,       CK_34XX | CK_36XX),
+> -       CLK(NULL,       "smartreflex.1",        &smartreflex_core_fck,  CK_34XX | CK_36XX),
+> +       CLK(NULL,       "smartreflex_mpu_iva_fck", &smartreflex_mpu_iva_fck,    CK_34XX | CK_36XX),
+> +       CLK(NULL,       "smartreflex_core_fck", &smartreflex_core_fck,  CK_34XX | CK_36XX),
+>         CLK(NULL,       "sr_l4_ick",    &sr_l4_ick,     CK_34XX | CK_36XX),
+>         CLK(NULL,       "secure_32k_fck", &secure_32k_fck, CK_3XXX),
+>         CLK(NULL,       "gpt12_fck",    &gpt12_fck,     CK_3XXX),
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index 9cc1112..19e0c1e 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -3224,8 +3224,8 @@ static struct omap_clk omap44xx_clks[] = {
+>         CLK(NULL,       "slimbus2_fclk_0",              &slimbus2_fclk_0,       CK_443X),
+>         CLK(NULL,       "slimbus2_slimbus_clk",         &slimbus2_slimbus_clk,  CK_443X),
+>         CLK(NULL,       "slimbus2_fck",                 &slimbus2_fck,  CK_443X),
+> -       CLK(NULL,       "smartreflex.0",                &smartreflex_core_fck,  CK_443X),
+> -       CLK(NULL,       "smartreflex.1",                &smartreflex_iva_fck,   CK_443X),
+> +       CLK(NULL,       "smartreflex_core_fck",         &smartreflex_core_fck,  CK_443X),
+> +       CLK(NULL,       "smartreflex_mpu_fck",          &smartreflex_iva_fck,   CK_443X),
+>         CLK(NULL,       "smartreflex.2",                &smartreflex_mpu_fck,   CK_443X),
+>         CLK(NULL,       "timer1_fck",                   &timer1_fck,    CK_443X),
+>         CLK(NULL,       "timer10_fck",                  &timer10_fck,   CK_443X),
