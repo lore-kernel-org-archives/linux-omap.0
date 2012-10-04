@@ -1,261 +1,107 @@
 From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 3/7] ARM: omap: Adaptive Body-Bias structures & data
-Date: Wed, 3 Oct 2012 18:26:10 -0700
-Message-ID: <1349313974-5473-4-git-send-email-mturquette@ti.com>
+Subject: [PATCH 1/7] ARM: omap: add 3630 PRM register definitions
+Date: Wed, 3 Oct 2012 18:26:08 -0700
+Message-ID: <1349313974-5473-2-git-send-email-mturquette@ti.com>
 References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34906 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46764 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754586Ab2JDB0m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Oct 2012 21:26:42 -0400
+	id S1754586Ab2JDB0i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Oct 2012 21:26:38 -0400
 In-Reply-To: <1349313974-5473-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com, paul@pwsan.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@ti.com>, Mike Turquette <mturquette@linaro.org>
 
-Starting with OMAP36XX, some voltage domains have an ldo for biasing
-voltage to the transistors within that domain.
-
-This ldo has three modes of operation.  The first is Forward Body-Bias
-mode (FBB) which boosts performance of transistors at high OPPs by
-providng a positive voltage bias.  This comes at a cost of power.
-
-The second mode is Reverse Body-Bias or RBB.  This mode provides a
-negative voltage bias which saves on static leakage at lower OPPs.
-
-Finally ABB can also be bypassed (the default state) in which case it
-will just follow the voltage of the VP/VC.
-
-This patch introduces the data structures needed to represent the ABB
-ldo's in the voltage layer, and populates the appropriate data for 3630
-and OMAP4.
-
-Not all voltage domains have an ABB ldo; on OMAP36XX the CORE voltage
-domain does not have an ABB ldo, and there are none on OMAP34xx.  In
-such cases the voltage data will be marked with OMAP_ABB_NO_LDO.
+OMAP3630 supports an Adaptive Body-Bias ldo as well as some MPU
+interrupts related to voltage control that are not present on OMAP34XX.
+This patch adds the offsets, register addresses, bitfield shifts and
+masks to support this feature.
 
 Signed-off-by: Mike Turquette <mturquette@ti.com>
 Signed-off-by: Mike Turquette <mturquette@linaro.org>
 ---
- arch/arm/mach-omap2/Makefile       |    6 ++-
- arch/arm/mach-omap2/abb.h          |   85 ++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/abb36xx_data.c |   39 +++++++++++++++++
- arch/arm/mach-omap2/abb44xx_data.c |   45 +++++++++++++++++++
- 4 files changed, 173 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap2/abb.h
- create mode 100644 arch/arm/mach-omap2/abb36xx_data.c
- create mode 100644 arch/arm/mach-omap2/abb44xx_data.c
+ arch/arm/mach-omap2/prm-regbits-34xx.h |   34 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h     |    4 ++++
+ 2 files changed, 38 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 34c2c7f..57e053e 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -95,11 +95,13 @@ endif
- # PRCM
- omap-prcm-4-5-common			=  prcm.o cminst44xx.o cm44xx.o \
- 					   prcm_mpu44xx.o prminst44xx.o \
--					   vc44xx_data.o vp44xx_data.o
-+					   vc44xx_data.o vp44xx_data.o \
-+					   abb44xx_data.o
- obj-y					+= prm_common.o
- obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
--obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
-+obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o \
-+					   abb36xx_data.o
- obj-$(CONFIG_SOC_AM33XX)		+= prcm.o prm33xx.o cm33xx.o
- obj-$(CONFIG_ARCH_OMAP4)		+= $(omap-prcm-4-5-common) prm44xx.o
- obj-$(CONFIG_SOC_OMAP5)			+= $(omap-prcm-4-5-common)
-diff --git a/arch/arm/mach-omap2/abb.h b/arch/arm/mach-omap2/abb.h
-new file mode 100644
-index 0000000..2acc187
---- /dev/null
-+++ b/arch/arm/mach-omap2/abb.h
-@@ -0,0 +1,85 @@
-+/*
-+ * OMAP Adaptive Body-Bias structure and macro definitions
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Mike Turquette <mturquette@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+index 64c087a..0309ff6 100644
+--- a/arch/arm/mach-omap2/prm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -216,6 +216,12 @@
+ /* PRM_SYSCONFIG specific bits */
+ 
+ /* PRM_IRQSTATUS_MPU specific bits */
++#define OMAP3630_VC_BYPASS_ACK_ST_SHIFT			28
++#define OMAP3630_VC_BYPASS_ACK_ST_MASK			(1 << 28)
++#define OMAP3630_VC_VP1_ACK_ST_SHIFT			27
++#define OMAP3630_VC_VP1_ACK_ST_MASK			(1 << 27)
++#define OMAP3630_ABB_LDO_TRANXDONE_ST_SHIFT		26
++#define OMAP3630_ABB_LDO_TRANXDONE_ST_MASK		(1 << 26)
+ #define OMAP3430ES2_SND_PERIPH_DPLL_ST_SHIFT		25
+ #define OMAP3430ES2_SND_PERIPH_DPLL_ST_MASK		(1 << 25)
+ #define OMAP3430_VC_TIMEOUTERR_ST_MASK			(1 << 24)
+@@ -248,6 +254,12 @@
+ #define OMAP3430_FS_USB_WKUP_ST_MASK			(1 << 1)
+ 
+ /* PRM_IRQENABLE_MPU specific bits */
++#define OMAP3630_VC_BYPASS_ACK_EN_SHIFT				28
++#define OMAP3630_VC_BYPASS_ACK_EN_MASK				(1 << 28)
++#define OMAP3630_VC_VP1_ACK_EN_SHIFT				27
++#define OMAP3630_VC_VP1_ACK_EN_MASK				(1 << 27)
++#define OMAP3630_ABB_LDO_TRANXDONE_EN_SHIFT			26
++#define OMAP3630_ABB_LDO_TRANXDONE_EN_MASK			(1 << 26)
+ #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_SHIFT		25
+ #define OMAP3430ES2_SND_PERIPH_DPLL_RECAL_EN_MASK		(1 << 25)
+ #define OMAP3430_VC_TIMEOUTERR_EN_MASK				(1 << 24)
+@@ -587,6 +599,28 @@
+ 
+ /* PRM_VP2_STATUS specific bits */
+ 
++/* PRM_LDO_ABB_SETUP specific bits */
++#define OMAP3630_SR2_IN_TRANSITION_SHIFT		6
++#define OMAP3630_SR2_IN_TRANSITION_MASK			(1 << 6)
++#define OMAP3630_SR2_STATUS_SHIFT			3
++#define OMAP3630_SR2_STATUS_MASK			(3 << 3)
++#define OMAP3630_OPP_CHANGE_SHIFT			2
++#define OMAP3630_OPP_CHANGE_MASK			(1 << 2)
++#define OMAP3630_OPP_SEL_SHIFT				0
++#define OMAP3630_OPP_SEL_MASK				(3 << 0)
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_ABB_H
-+#define __ARCH_ARM_MACH_OMAP2_ABB_H
++/* PRM_LDO_ABB_CTRL specific bits */
++#define OMAP3630_SR2_WTCNT_VALUE_SHIFT			8
++#define OMAP3630_SR2_WTCNT_VALUE_MASK			(0xff << 8)
++#define OMAP3630_SLEEP_RBB_SEL_SHIFT			3
++#define OMAP3630_SLEEP_RBB_SEL_MASK			(1 << 3)
++#define OMAP3630_ACTIVE_FBB_SEL_SHIFT			2
++#define OMAP3630_ACTIVE_FBB_SEL_MASK			(1 << 2)
++#define OMAP3630_ACTIVE_RBB_SEL_SHIFT			1
++#define OMAP3630_ACTIVE_RBB_SEL_MASK			(1 << 1)
++#define OMAP3630_SR2EN_SHIFT				0
++#define OMAP3630_SR2EN_MASK				(1 << 0)
 +
-+#include <linux/kernel.h>
-+
-+#include "voltage.h"
-+
-+/* NOMINAL_OPP bypasses the ABB ldo, FAST_OPP sets it to Forward Body-Bias */
-+#define OMAP_ABB_NOMINAL_OPP	0
-+#define OMAP_ABB_FAST_OPP	1
-+#define OMAP_ABB_NO_LDO		(~0)
-+
-+/* Time for the ABB ldo to settle after transition (in micro-seconds) */
-+#define ABB_TRANXDONE_TIMEOUT	50
-+
-+/*
-+ * struct omap_abb_ops - per-OMAP operations needed for ABB transition
-+ *
-+ * @check_tranxdone: return status of ldo transition from PRM_IRQSTATUS
-+ * @clear_tranxdone: clear ABB transition status bit from PRM_IRQSTATUS
-+ */
-+struct omap_abb_ops {
-+	u32 (*check_tranxdone)(u8 irq_id);
-+	void (*clear_tranxdone)(u8 irq_id);
-+};
-+
-+/*
-+ * struct omap_abb_common - ABB data common to an OMAP family
-+ *
-+ * @opp_sel_mask: CTRL reg uses this to program next state of ldo
-+ * @opp_change_mask: CTRL reg uses this to initiate ldo state change
-+ * @sr2_wtcnt_value_mask: SETUP reg uses this to program ldo settling time
-+ * @sr2en_mask: SETUP reg uses this to enable/disable ldo
-+ * @active_fbb_sel_mask: SETUP reg uses this to enable/disable FBB operation
-+ * @settling_time: number of micro-seconds it takes for ldo to transition
-+ * @clock_cycles: settling_time is counted in multiples of clock cycles
-+ * @ops: pointer to common ops for manipulating PRM_IRQSTATUS bits
-+ */
-+struct omap_abb_common {
-+	u32 opp_sel_mask;
-+	u32 opp_change_mask;
-+	u32 sr2_wtcnt_value_mask;
-+	u32 sr2en_mask;
-+	u32 active_fbb_sel_mask;
-+	unsigned long settling_time;
-+	unsigned long clock_cycles;
-+	const struct omap_abb_ops *ops;
-+};
-+
-+/*
-+ * struct omap_abb_instance - data for each instance of ABB ldo
-+ *
-+ * @setup_offs: PRM register offset for initial configuration of ABB ldo
-+ * @ctrl_offs: PRM register offset for active programming of ABB ldo
-+ * @prm_irq_id: IRQ handle used to resolve IRQSTATUS offset & masks
-+ * @enabled: track whether ABB ldo is enabled or disabled
-+ * @common: pointer to common data for all ABB ldo's
-+ * @_opp_sel: internally track last programmed state of ABB ldo.  DO NOT USE
-+ */
-+struct omap_abb_instance {
-+	u8 setup_offs;
-+	u8 ctrl_offs;
-+	u8 prm_irq_id;
-+	bool enabled;
-+	const struct omap_abb_common *common;
-+	u8 _opp_sel;
-+};
-+
-+extern struct omap_abb_instance omap36xx_abb_mpu;
-+
-+extern struct omap_abb_instance omap4_abb_mpu;
-+extern struct omap_abb_instance omap4_abb_iva;
-+
-+#endif
-diff --git a/arch/arm/mach-omap2/abb36xx_data.c b/arch/arm/mach-omap2/abb36xx_data.c
-new file mode 100644
-index 0000000..21c9267
---- /dev/null
-+++ b/arch/arm/mach-omap2/abb36xx_data.c
-@@ -0,0 +1,39 @@
-+/*
-+ * OMAP36xx Adaptive Body-Bias (ABB) data
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Mike Turquette <mturquette@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include "abb.h"
-+#include "vp.h"
-+#include "prm2xxx_3xxx.h"
-+#include "prm-regbits-34xx.h"
-+
-+static const struct omap_abb_ops omap36xx_abb_ops = {
-+	.check_tranxdone   = &omap3_prm_abb_check_txdone,
-+	.clear_tranxdone   = &omap3_prm_abb_clear_txdone,
-+};
-+
-+static const struct omap_abb_common omap36xx_abb_common = {
-+	.opp_sel_mask		= OMAP3630_OPP_SEL_MASK,
-+	.opp_change_mask	= OMAP3630_OPP_CHANGE_MASK,
-+	.sr2en_mask		= OMAP3630_SR2EN_MASK,
-+	.active_fbb_sel_mask	= OMAP3630_ACTIVE_FBB_SEL_MASK,
-+	.sr2_wtcnt_value_mask	= OMAP3630_SR2_WTCNT_VALUE_MASK,
-+	.settling_time		= 30,
-+	.clock_cycles		= 8,
-+	.ops			= &omap36xx_abb_ops,
-+};
-+
-+/* SETUP & CTRL registers swapped names in OMAP4; thus 36xx looks strange */
-+struct omap_abb_instance omap36xx_abb_mpu = {
-+	.setup_offs		= OMAP3_PRM_LDO_ABB_CTRL_OFFSET,
-+	.ctrl_offs		= OMAP3_PRM_LDO_ABB_SETUP_OFFSET,
-+	.prm_irq_id		= OMAP3_VP_VDD_MPU_ID,
-+	.common			= &omap36xx_abb_common,
-+};
-diff --git a/arch/arm/mach-omap2/abb44xx_data.c b/arch/arm/mach-omap2/abb44xx_data.c
-new file mode 100644
-index 0000000..d7ff0c5
---- /dev/null
-+++ b/arch/arm/mach-omap2/abb44xx_data.c
-@@ -0,0 +1,45 @@
-+/*
-+ * OMAP44xx Adaptive Body-Bias (ABB) data
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Mike Turquette <mturquette@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include "abb.h"
-+#include "vp.h"
-+#include "prm44xx.h"
-+#include "prm-regbits-44xx.h"
-+
-+static const struct omap_abb_ops omap4_abb_ops = {
-+	.check_tranxdone   = &omap4_prm_abb_check_txdone,
-+	.clear_tranxdone   = &omap4_prm_abb_clear_txdone,
-+};
-+
-+static const struct omap_abb_common omap4_abb_common = {
-+	.opp_sel_mask		= OMAP4430_OPP_SEL_MASK,
-+	.opp_change_mask	= OMAP4430_OPP_CHANGE_MASK,
-+	.sr2en_mask		= OMAP4430_SR2EN_MASK,
-+	.active_fbb_sel_mask	= OMAP4430_ACTIVE_FBB_SEL_MASK,
-+	.sr2_wtcnt_value_mask	= OMAP4430_SR2_WTCNT_VALUE_MASK,
-+	.settling_time		= 50,
-+	.clock_cycles		= 16,
-+	.ops			= &omap4_abb_ops,
-+};
-+
-+struct omap_abb_instance omap4_abb_mpu = {
-+	.setup_offs		= OMAP4_PRM_LDO_ABB_MPU_SETUP_OFFSET,
-+	.ctrl_offs		= OMAP4_PRM_LDO_ABB_MPU_CTRL_OFFSET,
-+	.prm_irq_id		= OMAP4_VP_VDD_MPU_ID,
-+	.common			= &omap4_abb_common,
-+};
-+
-+struct omap_abb_instance omap4_abb_iva = {
-+	.setup_offs		= OMAP4_PRM_LDO_ABB_IVA_SETUP_OFFSET,
-+	.ctrl_offs		= OMAP4_PRM_LDO_ABB_IVA_CTRL_OFFSET,
-+	.prm_irq_id		= OMAP4_VP_VDD_IVA_ID,
-+	.common			= &omap4_abb_common,
-+};
+ /* RM_RSTST_NEON specific bits */
+ 
+ /* PM_WKDEP_NEON specific bits */
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+index c19d249..c9eea9a 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
+@@ -167,6 +167,10 @@
+ #define OMAP3430_PRM_VP2_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
+ #define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
+ #define OMAP3430_PRM_VP2_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
++#define OMAP3_PRM_LDO_ABB_SETUP_OFFSET	0x00f0
++#define OMAP3630_PRM_LDO_ABB_SETUP	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00f0)
++#define OMAP3_PRM_LDO_ABB_CTRL_OFFSET	0x00f4
++#define OMAP3630_PRM_LDO_ABB_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00f4)
+ 
+ #define OMAP3_PRM_CLKSEL_OFFSET	0x0040
+ #define OMAP3430_PRM_CLKSEL		OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0040)
 -- 
 1.7.9.5
 
