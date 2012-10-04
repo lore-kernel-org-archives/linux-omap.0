@@ -1,97 +1,102 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Converting vrfb.c
-Date: Thu, 4 Oct 2012 09:33:25 -0700
-Message-ID: <20121004163324.GB3874@atomide.com>
-References: <1348833847.2437.36.camel@deskari>
- <20120928150052.GA4840@atomide.com>
- <20121003184149.GG4840@atomide.com>
- <1349345938.32558.0.camel@lappyti>
+Subject: [PATCH 08/16] ARM: OMAP2: Move plat/menelaus.h to
+ linux/mfd/menelaus.h
+Date: Thu, 04 Oct 2012 15:04:52 -0700
+Message-ID: <20121004220451.26676.62349.stgit@muffinssi.local>
+References: <20121004213950.26676.21898.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19697 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1946047Ab2JDQd1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 12:33:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1349345938.32558.0.camel@lappyti>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:28027 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753341Ab2JDWEx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 18:04:53 -0400
+In-Reply-To: <20121004213950.26676.21898.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [121004 03:20]:
-> On Wed, 2012-10-03 at 11:41 -0700, Tony Lindgren wrote:
-> > Hi,
-> > 
-> > * Tony Lindgren <tony@atomide.com> [120928 08:02]:
-> > > * Tomi Valkeinen <tomi.valkeinen@ti.com> [120928 05:05]:
-> > > > Hi,
-> > > > 
-> > > > I'm a bit at loss how to deal with drivers/video/omap2/vrfb.c.
-> > > > 
-> > > > VRFB is part of the SDRAM controller on OMAP2 and OMAP3. vrfb.c uses the
-> > > > following functions from sdrc.h:
-> > > > 
-> > > > omap2_sms_write_rot_control();
-> > > > omap2_sms_write_rot_size();
-> > > > omap2_sms_write_rot_physical_ba();
-> > > > 
-> > > > There are no other dependencies to the sdrc.c.
-> > > > 
-> > > > Those functions are quite simple:
-> > > > 
-> > > > void omap2_sms_write_rot_control(u32 val, unsigned ctx)
-> > > > {
-> > > > 	sms_write_reg(val, SMS_ROT_CONTROL(ctx));
-> > > > }
-> > > > 
-> > > > void omap2_sms_write_rot_size(u32 val, unsigned ctx)
-> > > > {
-> > > > 	sms_write_reg(val, SMS_ROT_SIZE(ctx));
-> > > > }
-> > > > 
-> > > > void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx)
-> > > > {
-> > > > 	sms_write_reg(val, SMS_ROT_PHYSICAL_BA(ctx));
-> > > > }
-> > > > 
-> > > > vrfb.c is in turn used by omapfb and omap v4l2 driver.
-> > > > 
-> > > > 
-> > > > So... Should I just remove the sdrc.h dependency and make vrfb.c ioremap
-> > > > those SMS registers itself? Those three registers are VRFB specific, so
-> > > > they are not used by anyone else. In that case I'd need to pass the SMS
-> > > > base address to vrfb.c somehow.
-> > > > 
-> > > > Or should I have some kind of platform data passed to vrfb.c, which
-> > > > contains func pointers to the above three functions?
-> > > > 
-> > > > Or should vrfb.c be moved into mach-omap2/? But then how would omapfb
-> > > > call it? Passing vrfb functions as pointers in omapfb platform data?
-> > > 
-> > > Maybe just export those functions in sdrc.c for now? Eventually
-> > > that should be just a regular device driver too..
-> > 
-> > Actually, if you're only using it to save and restore the hw
-> > context, why don't you let mach-omap2/sdrc.c do it based on runtime
-> > PM calls? It already has omap2_sms_save/restore_context.
-> 
-> No, the functions are used to configure the rotation parameters whenever
-> the user asks for a new rotation.
+We can move menelaus.h to live with other mfd headers to
+get it out of plat for ARM common zImage support.
 
-OK. If vrfb.c is the only user of these registers, I suggest you
-request_mem_region + ioremap the SMS registers directly in vrfb.c.
-You can pass the extra io area passed in platform data or from
-device tree. And the extra io area is not passed, do nothing.
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/board-h4.c             |    2 +-
+ arch/arm/mach-omap2/board-n8x0.c           |    2 +-
+ drivers/mfd/menelaus.c                     |    2 +-
+ include/linux/mfd/menelaus.h               |    2 --
+ 4 files changed, 3 insertions(+), 5 deletions(-)
+ rename arch/arm/plat-omap/include/plat/menelaus.h => include/linux/mfd/menelaus.h (96%)
 
-The reason why I think it's better to ioremap independent register
-ranges diretly in the driver is that we can avoid exporting omap
-specific functions like sms_read/write.
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 8d04bf8..3977a02 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -26,12 +26,12 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/input/matrix_keypad.h>
++#include <linux/mfd/menelaus.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include <plat/menelaus.h>
+ #include <plat/dma.h>
+ #include <plat/gpmc.h>
+ #include "debug-devices.h"
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index d95f727..e3e8325 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -22,13 +22,13 @@
+ #include <linux/usb/musb.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/mtd-onenand-omap2.h>
++#include <linux/mfd/menelaus.h>
+ #include <sound/tlv320aic3x.h>
+ 
+ #include <asm/mach/arch.h>
+ #include <asm/mach-types.h>
+ 
+ #include "common.h"
+-#include <plat/menelaus.h>
+ #include <plat/mmc.h>
+ 
+ #include "mux.h"
+diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+index 55d5899..998ce8c 100644
+--- a/drivers/mfd/menelaus.c
++++ b/drivers/mfd/menelaus.c
+@@ -41,11 +41,11 @@
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
+ #include <linux/slab.h>
++#include <linux/mfd/menelaus.h>
+ 
+ #include <asm/mach/irq.h>
+ 
+ #include <asm/gpio.h>
+-#include <plat/menelaus.h>
+ 
+ #define DRIVER_NAME			"menelaus"
+ 
+diff --git a/arch/arm/plat-omap/include/plat/menelaus.h b/include/linux/mfd/menelaus.h
+similarity index 96%
+rename from arch/arm/plat-omap/include/plat/menelaus.h
+rename to include/linux/mfd/menelaus.h
+index 4a970ec..f097e89 100644
+--- a/arch/arm/plat-omap/include/plat/menelaus.h
++++ b/include/linux/mfd/menelaus.h
+@@ -1,6 +1,4 @@
+ /*
+- * arch/arm/plat-omap/include/mach/menelaus.h
+- *
+  * Functions to access Menelaus power management chip
+  */
+ 
 
-Of course we probably also need also a core SDRC driver eventually
-for clocking and saving and restoring the state etc.
-
-Regards,
-
-Tony
