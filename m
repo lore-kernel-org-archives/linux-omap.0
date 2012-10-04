@@ -1,197 +1,84 @@
-From: Praveena Nadahally <praveen.nadahally@stericsson.com>
-Subject: Re: [PATCH 1/1] usb: Include generic_interrupt for OMAP2_PLUS
-Date: Thu, 4 Oct 2012 10:22:09 +0530
-Message-ID: <CAPe0uWpPDa1DPaD-7QD1pVq6qxODUYVR+qWEjyY+3vpukJxDhA@mail.gmail.com>
-References: <1348487604-7202-1-git-send-email-philippe.deswert@jollamobile.com>
-	<20120924121538.GH2892@arwen.pp.htv.fi>
-	<CAPsFW+RTLpgXFOOh9fD=K1wCPMpBe4MummhWoqEBEEYYzMay=Q@mail.gmail.com>
-	<20120924130216.GA5603@arwen.pp.htv.fi>
-	<20120924160914.GB28835@atomide.com>
-	<20120925080420.GH9137@arwen.pp.htv.fi>
-	<CAPsFW+T_ezWAxO9StSf9cu9nJ6Gw8T9Dk1H3g6+bwJ-PKtn-cQ@mail.gmail.com>
-	<CAPe0uWoX92e6Hbazji+s9DPiZnfxqE=a=5Hnu39SrD6qZnRWzg@mail.gmail.com>
-	<02DC685EFE4B1942A41870A0F2608047A65157@ORD2MBX02B.mex05.mlsrvr.com>
-	<02DC685EFE4B1942A41870A0F2608047A6570C@ORD2MBX02B.mex05.mlsrvr.com>
-Reply-To: praveen.nadahally@stericsson.com
+From: Mike Turquette <mturquette@ti.com>
+Subject: [PATCH 1/5] ARM: omap: vc: replace data_shift with data_mask
+Date: Wed, 3 Oct 2012 18:16:01 -0700
+Message-ID: <1349313365-5262-2-git-send-email-mturquette@ti.com>
+References: <1349313365-5262-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:56467 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582Ab2JDEwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 00:52:12 -0400
-In-Reply-To: <02DC685EFE4B1942A41870A0F2608047A6570C@ORD2MBX02B.mex05.mlsrvr.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:36596 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933227Ab2JDBQw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 21:16:52 -0400
+In-Reply-To: <1349313365-5262-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philippe De Swert <philippe.deswert@jollamobile.com>, balbi@ti.com
-Cc: Philippe De Swert <philippedeswert@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, "heikki.krogerus@linux.intel.com" <heikki.krogerus@linux.intel.com>, "kishon@ti.com" <kishon@ti.com>, "marek.vasut@gmail.com" <marek.vasut@gmail.com>, "leoli@freescale.com" <leoli@freescale.com>, "s.hauer@pengutronix.de" <s.hauer@pengutronix.de>, "shubhrajyoti@ti.com" <shubhrajyoti@ti.com>, "nsekhar@ti.com" <nsekhar@ti.com>, "notasas@gmail.com" <notasas@gmail.com>, "vikram.pandita@ti.com" <vikram.pandita@ti.com>, "ravibabu@ti.com" <ravibabu@ti.com>, "mina86@mina86.com" <mina86@mina86.com>, "mian.yousaf.kaukab@stericsson.com" <mian.yousaf.kaukab@stericsson.com>
+To: khilman@deeprootsystems.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-On Wed, Oct 3, 2012 at 7:15 PM, Philippe De Swert
-<philippe.deswert@jollamobile.com> wrote:
+From: Mike Turquette <mturquette@linaro.org>
 
-> So any comments on the approach here (see patch kept below)? Or should I immediately send it as a new patch to get the comments? I sent it in this thread as it also solves the issue I have.
+Signed-off-by: Mike Turquette <mturquette@linaro.org>
+---
+ arch/arm/mach-omap2/vc.c          |    2 +-
+ arch/arm/mach-omap2/vc.h          |    2 +-
+ arch/arm/mach-omap2/vc3xxx_data.c |    2 +-
+ arch/arm/mach-omap2/vc44xx_data.c |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-Patch is fine for me. Not sure if Felipe has some comments.
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 84da34f..2bcac64 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -171,7 +171,7 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+ 
+ 	vc_valid = vc->common->valid;
+ 	vc_bypass_val_reg = vc->common->bypass_val_reg;
+-	vc_bypass_value = (target_vsel << vc->common->data_shift) |
++	vc_bypass_value = (target_vsel << __ffs(vc->common->data_mask)) |
+ 		(vc->volt_reg_addr << vc->common->regaddr_shift) |
+ 		(vc->i2c_slave_addr << vc->common->slaveaddr_shift);
+ 
+diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+index 478bf6b..84a61b1 100644
+--- a/arch/arm/mach-omap2/vc.h
++++ b/arch/arm/mach-omap2/vc.h
+@@ -43,8 +43,8 @@ struct voltagedomain;
+ struct omap_vc_common {
+ 	u32 cmd_on_mask;
+ 	u32 valid;
++	u32 data_mask;
+ 	u8 bypass_val_reg;
+-	u8 data_shift;
+ 	u8 slaveaddr_shift;
+ 	u8 regaddr_shift;
+ 	u8 cmd_on_shift;
+diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3xxx_data.c
+index 5d8eaf3..2b35e82 100644
+--- a/arch/arm/mach-omap2/vc3xxx_data.c
++++ b/arch/arm/mach-omap2/vc3xxx_data.c
+@@ -31,7 +31,7 @@
+  */
+ static struct omap_vc_common omap3_vc_common = {
+ 	.bypass_val_reg	 = OMAP3_PRM_VC_BYPASS_VAL_OFFSET,
+-	.data_shift	 = OMAP3430_DATA_SHIFT,
++	.data_mask	 = OMAP3430_DATA_MASK,
+ 	.slaveaddr_shift = OMAP3430_SLAVEADDR_SHIFT,
+ 	.regaddr_shift	 = OMAP3430_REGADDR_SHIFT,
+ 	.valid		 = OMAP3430_VALID_MASK,
+diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44xx_data.c
+index d70b930..598edc9 100644
+--- a/arch/arm/mach-omap2/vc44xx_data.c
++++ b/arch/arm/mach-omap2/vc44xx_data.c
+@@ -32,7 +32,7 @@
+  */
+ static const struct omap_vc_common omap4_vc_common = {
+ 	.bypass_val_reg = OMAP4_PRM_VC_VAL_BYPASS_OFFSET,
+-	.data_shift = OMAP4430_DATA_SHIFT,
++	.data_mask = OMAP4430_DATA_MASK,
+ 	.slaveaddr_shift = OMAP4430_SLAVEADDR_SHIFT,
+ 	.regaddr_shift = OMAP4430_REGADDR_SHIFT,
+ 	.valid = OMAP4430_VALID_MASK,
+-- 
+1.7.9.5
 
-> BTW: CONFIG_SOC_OMAP3430 could be easily removed as it only changes minor things in the musb stack. It would clean up the code and get rid of this very misleading option as it has nothing to do with any OMAP3430 soc specific handling.
-
-It would be better if some OMAP3430 users can comment on this.
-
-
->> From deae78e1084749f340ae8b8aaeca51818d5bfc55 Mon Sep 17 00:00:00 2001
->> From: Philippe De Swert <philippe.deswert@jollamobile.com>
->> Date: Wed, 26 Sep 2012 17:00:46 +0300
->> Subject: [PATCH 1/1] musb: Move generic_interrupt out of the way
->>
->> Have all musb drivers define their own isr.
->>
->> Signed-off-by: Philippe De Swert <philippe.deswert@jollamobile.com>
->> ---
->>  drivers/usb/musb/musb_core.c |   33 ++-------------------------------
->>  drivers/usb/musb/omap2430.c  |   22 ++++++++++++++++++++++
->>  drivers/usb/musb/ux500.c     |   21 +++++++++++++++++++++
->>  3 files changed, 45 insertions(+), 31 deletions(-)
->>
->> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
->> index 26f1bef..1d5ee34 100644
->> --- a/drivers/usb/musb/musb_core.c
->> +++ b/drivers/usb/musb/musb_core.c
->> @@ -1496,35 +1496,6 @@ static int __devinit musb_core_init(u16 musb_type,
->> struct musb *musb)
->>       return 0;
->>  }
->>
->> -/*-------------------------------------------------------------------------*/
->> -
->> -#if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_SOC_OMAP3430) || \
->> -     defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500)
->> -
->> -static irqreturn_t generic_interrupt(int irq, void *__hci)
->> -{
->> -     unsigned long   flags;
->> -     irqreturn_t     retval = IRQ_NONE;
->> -     struct musb     *musb = __hci;
->> -
->> -     spin_lock_irqsave(&musb->lock, flags);
->> -
->> -     musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
->> -     musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
->> -     musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
->> -
->> -     if (musb->int_usb || musb->int_tx || musb->int_rx)
->> -             retval = musb_interrupt(musb);
->> -
->> -     spin_unlock_irqrestore(&musb->lock, flags);
->> -
->> -     return retval;
->> -}
->> -
->> -#else
->> -#define generic_interrupt    NULL
->> -#endif
->> -
->>  /*
->>   * handle all the irqs defined by the HDRC core. for now we expect:  other
->>   * irq sources (phy, dma, etc) will be handled first, musb->int_* values
->> @@ -1907,7 +1878,8 @@ musb_init_controller(struct device *dev, int nIrq,
->> void __iomem *ctrl)
->>       musb->ops = plat->platform_ops;
->>
->>       /* The musb_platform_init() call:
->> -      *   - adjusts musb->mregs and musb->isr if needed,
->> +      *   - adjusts musb->mregs if needed
->> +      *   - sets the musb->isr
->>        *   - may initialize an integrated tranceiver
->>        *   - initializes musb->xceiv, usually by otg_get_phy()
->>        *   - stops powering VBUS
->> @@ -1917,7 +1889,6 @@ musb_init_controller(struct device *dev, int nIrq,
->> void __iomem *ctrl)
->>        * external/discrete ones in various flavors (twl4030 family,
->>        * isp1504, non-OTG, etc) mostly hooking up through ULPI.
->>        */
->> -     musb->isr = generic_interrupt;
->>       status = musb_platform_init(musb);
->>       if (status < 0)
->>               goto fail1;
->> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
->> index 5fdb9da..5461619d 100644
->> --- a/drivers/usb/musb/omap2430.c
->> +++ b/drivers/usb/musb/omap2430.c
->> @@ -306,6 +306,26 @@ static void omap_musb_mailbox_work(struct work_struct
->> *mailbox_work)
->>       omap_musb_set_mailbox(glue);
->>  }
->>
->> +static irqreturn_t omap2430_musb_interrupt(int irq, void *__hci)
->> +{
->> +        unsigned long   flags;
->> +        irqreturn_t     retval = IRQ_NONE;
->> +        struct musb     *musb = __hci;
->> +
->> +        spin_lock_irqsave(&musb->lock, flags);
->> +
->> +        musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
->> +        musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
->> +        musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
->> +
->> +        if (musb->int_usb || musb->int_tx || musb->int_rx)
->> +                retval = musb_interrupt(musb);
->> +
->> +        spin_unlock_irqrestore(&musb->lock, flags);
->> +
->> +        return retval;
->> +}
->> +
->>  static int omap2430_musb_init(struct musb *musb)
->>  {
->>       u32 l;
->> @@ -325,6 +345,8 @@ static int omap2430_musb_init(struct musb *musb)
->>               return -ENODEV;
->>       }
->>
->> +     musb->isr = omap2430_musb_interrupt;
->> +
->>       status = pm_runtime_get_sync(dev);
->>       if (status < 0) {
->>               dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
->> diff --git a/drivers/usb/musb/ux500.c b/drivers/usb/musb/ux500.c
->> index a8c0fad..ec9aaec 100644
->> --- a/drivers/usb/musb/ux500.c
->> +++ b/drivers/usb/musb/ux500.c
->> @@ -36,6 +36,26 @@ struct ux500_glue {
->>  };
->>  #define glue_to_musb(g)      platform_get_drvdata(g->musb)
->>
->> +static irqreturn_t ux500_musb_interrupt(int irq, void *__hci)
->> +{
->> +        unsigned long   flags;
->> +        irqreturn_t     retval = IRQ_NONE;
->> +        struct musb     *musb = __hci;
->> +
->> +        spin_lock_irqsave(&musb->lock, flags);
->> +
->> +        musb->int_usb = musb_readb(musb->mregs, MUSB_INTRUSB);
->> +        musb->int_tx = musb_readw(musb->mregs, MUSB_INTRTX);
->> +        musb->int_rx = musb_readw(musb->mregs, MUSB_INTRRX);
->> +
->> +        if (musb->int_usb || musb->int_tx || musb->int_rx)
->> +                retval = musb_interrupt(musb);
->> +
->> +        spin_unlock_irqrestore(&musb->lock, flags);
->> +
->> +        return retval;
->> +}
->> +
->>  static int ux500_musb_init(struct musb *musb)
->>  {
->>       musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
->> @@ -43,6 +63,7 @@ static int ux500_musb_init(struct musb *musb)
->>               pr_err("HS USB OTG: no transceiver configured\n");
->>               return -ENODEV;
->>       }
->> +     musb->isr = ux500_musb_interrupt;
->>
->>       return 0;
->>  }
->> --
->> 1.7.10.4
