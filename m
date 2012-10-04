@@ -1,187 +1,155 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/16] ARM: OMAP: Make plat/common.h local to mach-omap1 and
- mach-omap2
-Date: Thu, 04 Oct 2012 15:04:40 -0700
-Message-ID: <20121004220440.26676.32717.stgit@muffinssi.local>
-References: <20121004213950.26676.21898.stgit@muffinssi.local>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next, working on 3.2
+Date: Thu, 04 Oct 2012 10:18:04 -0700
+Message-ID: <87vcequpf7.fsf@deeprootsystems.com>
+References: <20120504155255.140b4e3f@skate> <87397fewso.fsf@ti.com>
+	<20120504175124.GI5613@atomide.com> <878vh78q7b.fsf@ti.com>
+	<20121004180747.3b342904@skate>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11078 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751591Ab2JDWEl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 18:04:41 -0400
-In-Reply-To: <20121004213950.26676.21898.stgit@muffinssi.local>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:47523 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756206Ab2JDRSC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 13:18:02 -0400
+Received: by mail-da0-f46.google.com with SMTP id n41so334092dak.19
+        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 10:18:01 -0700 (PDT)
+In-Reply-To: <20121004180747.3b342904@skate> (Thomas Petazzoni's message of
+	"Thu, 4 Oct 2012 18:07:47 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>, Gregory =?utf-8?Q?Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Michael Opdenacker <michael.opdenacker@free-electrons.com>, Maxime Ripard <maxime.ripard@free-electrons.com>
 
-We cannot keep this in plat/common.h for common zImage support.
+Hi Thomas,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap1/common.h                       |    2 +-
- arch/arm/mach-omap2/cm33xx.c                       |    2 +-
- arch/arm/mach-omap2/common.h                       |    2 +-
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    2 +-
- arch/arm/mach-omap2/prm33xx.c                      |    2 +-
- arch/arm/mach-omap2/prm_common.c                   |    2 +-
- arch/arm/plat-omap/common.c                        |    2 +-
- arch/arm/plat-omap/common.h                        |    7 ++-----
- arch/arm/plat-omap/counter_32k.c                   |    2 +-
- 10 files changed, 11 insertions(+), 14 deletions(-)
- rename arch/arm/plat-omap/{include/plat/common.h => common.h} (92%)
+Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
 
-diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
-index 306b7ac..9f2d8b6 100644
---- a/arch/arm/mach-omap1/common.h
-+++ b/arch/arm/mach-omap1/common.h
-@@ -26,7 +26,7 @@
- #ifndef __ARCH_ARM_MACH_OMAP1_COMMON_H
- #define __ARCH_ARM_MACH_OMAP1_COMMON_H
- 
--#include <plat/common.h>
-+#include "../plat-omap/common.h"
- #include <linux/mtd/mtd.h>
- #include <linux/i2c-omap.h>
- 
-diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
-index 13f56eaf..b4938ab 100644
---- a/arch/arm/mach-omap2/cm33xx.c
-+++ b/arch/arm/mach-omap2/cm33xx.c
-@@ -22,7 +22,7 @@
- #include <linux/err.h>
- #include <linux/io.h>
- 
--#include <plat/common.h>
-+#include "../plat-omap/common.h"
- 
- #include "cm.h"
- #include "cm33xx.h"
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index a68b421..d3cd625 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -36,7 +36,7 @@
- 
- #include <plat/cpu.h>
- #include <plat/serial.h>
--#include <plat/common.h>
-+#include "../plat-omap/common.h"
- 
- #include "i2c.h"
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-index 8851bbb..62ae397 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-@@ -12,7 +12,7 @@
- #include <plat/omap_hwmod.h>
- #include <plat/serial.h>
- #include <plat/dma.h>
--#include <plat/common.h>
-+#include "../plat-omap/common.h"
- #include "hdq1w.h"
- 
- #include "omap_hwmod_common_data.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 964d61d..d59c5ea 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -29,8 +29,8 @@
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- #include <plat/mmc.h>
- #include <plat/dmtimer.h>
--#include <plat/common.h>
- #include <plat/iommu.h>
-+#include "../plat-omap/common.h"
- 
- #include "omap_hwmod_common_data.h"
- #include "cm1_44xx.h"
-diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
-index e7dbb6c..624ade5 100644
---- a/arch/arm/mach-omap2/prm33xx.c
-+++ b/arch/arm/mach-omap2/prm33xx.c
-@@ -19,7 +19,7 @@
- #include <linux/err.h>
- #include <linux/io.h>
- 
--#include <plat/common.h>
-+#include "../plat-omap/common.h"
- 
- #include "common.h"
- #include "prm33xx.h"
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 6b4d332..6fabbd8 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -24,7 +24,7 @@
- #include <linux/interrupt.h>
- #include <linux/slab.h>
- 
--#include <plat/common.h>
-+#include "../plat-omap/common.h"
- #include <plat/prcm.h>
- 
- #include "prm2xxx_3xxx.h"
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 111315a..cfea68c 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -16,7 +16,7 @@
- #include <linux/io.h>
- #include <linux/dma-mapping.h>
- 
--#include <plat/common.h>
-+#include "common.h"
- #include <plat/vram.h>
- #include <linux/platform_data/dsp-omap.h>
- #include <plat/dma.h>
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/common.h
-similarity index 92%
-rename from arch/arm/plat-omap/include/plat/common.h
-rename to arch/arm/plat-omap/common.h
-index 55c0f8b..e196d13 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/common.h
-@@ -1,7 +1,5 @@
- /*
-- * arch/arm/plat-omap/include/mach/common.h
-- *
-- * Header for code common to all OMAP machines.
-+ * Header for shared OMAP code in plat-omap.
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-@@ -27,13 +25,12 @@
- #ifndef __ARCH_ARM_MACH_OMAP_COMMON_H
- #define __ARCH_ARM_MACH_OMAP_COMMON_H
- 
--#include <plat/omap_hwmod.h>
--
- extern int __init omap_init_clocksource_32k(void __iomem *vbase);
- 
- extern void __init omap_check_revision(void);
- 
- extern void omap_reserve(void);
-+struct omap_hwmod;
- extern int omap_dss_reset(struct omap_hwmod *);
- 
- void omap_sram_init(void);
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index 2e826f1..f43dbc3 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -22,7 +22,7 @@
- #include <asm/mach/time.h>
- #include <asm/sched_clock.h>
- 
--#include <plat/common.h>
-+#include "common.h"
- #include <plat/clock.h>
- 
- /* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
+> Kevin,
+>
+> Reviving an old thread.
+>
+> On Fri, 04 May 2012 16:46:32 -0700, Kevin Hilman wrote:
+>
+>> >> Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
+>> >> 
+>> >> > I have an IGEPv2 revision 6 board, which uses the DM3730 OMAP3.
+>> >> > With 3.2 omap2plus_defconfig, the system boots fine and have a
+>> >> > working shell on ttyO2. On either 3.3, 3.4-rc5 or
+>> >> > arm-soc/for-next from Arnd, the system boots all the way up to
+>> >> > showing the shell prompt, but I can't type any character, as if
+>> >> > UART RX was broken.
+>> >> 
+>> >> On v3.4-rc, can you see if reverting
+>> >> bce492c04ba8fc66a4ea0a52b181ba255daaaf54 has any effect?
+>> >> 
+>> >> That patch had some unfortunate side effects, but I haven't seen
+>> >> the problem you see, so I'm not sure if it's related.
+>> >
+>> > Reverting bce492c04ba8fc66a4ea0a52b181ba255daaaf54 is a broken
+>> > solution like you mentioned. But if it helps, then the proper fix
+>> > is to add muxing to board-*.c files for the uart pins and use
+>> > omap_serial_init_port for each uart instead of omap_serial_init.
+>> > That should fix the wake-up issues too.
+>> 
+>> I agree on the final solution, but just wanted to see if the missing
+>> mux (and thus disabled runtime PM) is what's causing the problem.
+>
+> FWIW, I tried the recently released 3.6 kernel on this platform
+> (IGEPv2, OMAP3-based), and I still see the same problem. Upon Tony's
+> suggestion, I tried to add some code in board-igep0020.c similar to the
+> one in board-n8x0.c to do the appropriate UART2 muxing, but it doesn't
+> seem to improve the situation. I did the following change (note that I
+> tried with both .name = "uart2_rx_irrx.uart2_rx_irrx" and .name =
+> "uart3_rx_irrx.uart3_rx_irrx"). On this board, the console is on ttyO2.
+> This is with the plain omap2plus_defconfig, so CONFIG_OMAP_MUX is
+> enabled.
+>
+> Any idea of things to try? This board has been broken since 3.2, so I'd
+> like to get it fixed at some point :-)
 
+Can you dump the UART mux registers on a working kernel and compare them
+to the broken one? (Table 7-4 in the 34xx public TRM[1] will list all
+the mux registers.)  Maybe the bootloader code for that board will shed
+some light as well since it will be setting the muxing too.
+
+If the console uart is ttyO2 (UART3 in TI docs), then the interesting
+registers will be any of the padconf registers in that table that
+contain 'uart3'.  e.g. for UART3 RX:
+
+CONTROL_PADCONF_DSS_DATA4 (mode 2)
+CONTROL_PADCONF_UART3_RTS_SD (mode 0)
+CONTROL_PADCONF_HSUSB0_DATA1  (mode 2)
+                              
+omap_mux has some useful debugfs output under <debugfs>/omap_mux.  For
+example:
+
+# cd /sys/kernel/debug/omap_mux
+# cat dss_data4
+# cat uart3_rx_irrx
+# cat hsusb0_data1
+
+would provide a very useful comparison between a working kernel and a
+non-working one.
+
+Kevin
+
+[1] http://www.ti.com/pdfs/wtbu/OMAP34xx_ES3.1.x_PUBLIC_TRM_vZV.zip
+
+> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+> index 2821448..568f13e 100644
+> --- a/arch/arm/mach-omap2/board-igep0020.c
+> +++ b/arch/arm/mach-omap2/board-igep0020.c
+> @@ -558,6 +558,43 @@ static struct omap_board_mux board_mux[] __initdata = {
+>  	OMAP3_MUX(MCSPI1_CS2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
+>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>  };
+> +
+> +static struct omap_device_pad serial2_pads[] __initdata = {
+> +	{
+> +		.name	= "uart2_rx_irrx.uart2_rx_irrx",
+> +		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
+> +		.enable	= OMAP_MUX_MODE0,
+> +		.idle	= OMAP_MUX_MODE3	/* Mux as GPIO for idle */
+> +	},
+> +};
+> +
+> +static inline void board_serial_init(void)
+> +{
+> +	struct omap_board_data bdata;
+> +
+> +	bdata.flags = 0;
+> +	bdata.pads = NULL;
+> +	bdata.pads_cnt = 0;
+> +
+> +	bdata.id = 0;
+> +	omap_serial_init_port(&bdata, NULL);
+> +
+> +	bdata.id = 1;
+> +	omap_serial_init_port(&bdata, NULL);
+> +
+> +	bdata.id = 2;
+> +	bdata.pads = serial2_pads;
+> +	bdata.pads_cnt = ARRAY_SIZE(serial2_pads);
+> +	omap_serial_init_port(&bdata, NULL);
+> +}
+> +
+> +#else
+> +
+> +static inline void board_serial_init(void)
+> +{
+> +	omap_serial_init();
+> +}
+> +
+>  #endif
+>  
+>  #if defined(CONFIG_LIBERTAS_SDIO) || defined(CONFIG_LIBERTAS_SDIO_MODULE)
+> @@ -621,7 +658,7 @@ static void __init igep_init(void)
+>  	/* Register I2C busses and drivers */
+>  	igep_i2c_init();
+>  	platform_add_devices(igep_devices, ARRAY_SIZE(igep_devices));
+> -	omap_serial_init();
+> +	board_serial_init();
+>  	omap_sdrc_init(m65kxxxxam_sdrc_params,
+>  				  m65kxxxxam_sdrc_params);
+>  	usb_musb_init(NULL);
