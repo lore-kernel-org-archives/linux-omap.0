@@ -1,208 +1,69 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 4/7] ARM: omap: opp: add ABB data to voltage tables
-Date: Wed, 3 Oct 2012 18:26:11 -0700
-Message-ID: <1349313974-5473-5-git-send-email-mturquette@ti.com>
-References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH 0/6] OMAPDSS: remove cpu_is_* calls
+Date: Thu, 04 Oct 2012 10:33:38 +0900
+Message-ID: <005d01cda1d0$47a249e0$d6e6dda0$%han@samsung.com>
+References: <1348828527-13309-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46768 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754586Ab2JDB0l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Oct 2012 21:26:41 -0400
-In-Reply-To: <1349313974-5473-1-git-send-email-mturquette@ti.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:35719 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755194Ab2JDBeH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 21:34:07 -0400
+In-reply-to: <1348828527-13309-1-git-send-email-tomi.valkeinen@ti.com>
+Content-language: ko
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@ti.com>, Mike Turquette <mturquette@linaro.org>
+To: 'Tomi Valkeinen' <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, 'Archit Taneja' <a0393947@ti.com>, 'Chandrabhanu Mahapatra' <cmahapatra@ti.com>, =?UTF-8?Q?'Rapha=C3=ABl_Ass=C3=A9nat'?= <raph@8d.com>, 'Tony Lindgren' <tony@atomide.com>, 'Jingoo Han' <jg1.han@samsung.com>
 
-The operating mode of the Adaptive Body-Bias ldo is a function of the
-voltage at which the VDD is operating and silicon characteristics.
+On Friday, September 28, 2012 7:35 PM Tomi Valkeinen wrote
+> 
+> Hi,
+> 
+> This series adds an omapdss_version enum that is passed via platform data to
+> omapdss driver. This version identifier is then used instead of cpu_is_*()
+> calls.
 
-NOMINAL_OPP causes the ABB ldo to be in bypass at that specific voltage.
-FAST_OPP causes the ldo to operate in Forward Body-Bias mode.  SLOW_OPP
-puts the ldo in Reverse Body-Bias mode.
+Hi Tomi,
 
-This patch models this relationship by adding an opp_sel paramter to
-struct omap_volt_data and populates this data in the 3630 and 4430
-voltage tables.
+As you mentioned, cpu_is_*() is not preferable in driver.
+Actually, I thought so, when I saw the OMAPDSS driver a few months ago.
+Anyway, it looks good. :)
 
-Not all voltage domains have an ABB ldo and 3430 doesn't have one at
-all.  In such cases voltages are marked with OMAP_ABB_NO_LDO.
+Best regards,
+Jingoo Han
 
-Signed-off-by: Mike Turquette <mturquette@ti.com>
-Signed-off-by: Mike Turquette <mturquette@linaro.org>
----
- arch/arm/mach-omap2/omap_opp_data.h       |    5 ++--
- arch/arm/mach-omap2/opp3xxx_data.c        |   37 +++++++++++++++--------------
- arch/arm/mach-omap2/opp4xxx_data.c        |   25 +++++++++----------
- arch/arm/plat-omap/include/plat/voltage.h |    1 +
- 4 files changed, 36 insertions(+), 32 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
-index c784c12..1facc52 100644
---- a/arch/arm/mach-omap2/omap_opp_data.h
-+++ b/arch/arm/mach-omap2/omap_opp_data.h
-@@ -71,12 +71,13 @@ struct omap_opp_def {
-  * Initialization wrapper used to define SmartReflex process data
-  * XXX Is this needed?  Just use C99 initializers in data files?
-  */
--#define VOLT_DATA_DEFINE(_v_nom, _efuse_offs, _errminlimit, _errgain)  \
-+#define VOLT_DATA_DEFINE(_v_nom, _efuse_offs, _errminlimit, _errgain, _opp_sel) \
- {								       \
- 	.volt_nominal	= _v_nom,				       \
- 	.sr_efuse_offs	= _efuse_offs,				       \
- 	.sr_errminlimit = _errminlimit,				       \
--	.vp_errgain	= _errgain				       \
-+	.vp_errgain	= _errgain,				       \
-+	.opp_sel	= _opp_sel,				       \
- }
- 
- /* Use this to initialize the default table */
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index d95f3f9..12fc2da 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -24,6 +24,7 @@
- #include "control.h"
- #include "omap_opp_data.h"
- #include "pm.h"
-+#include "abb.h"
- 
- /* 34xx */
- 
-@@ -36,12 +37,12 @@
- #define OMAP3430_VDD_MPU_OPP5_UV		1350000
- 
- struct omap_volt_data omap34xx_vddmpu_volt_data[] = {
--	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD1, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD1, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD1, 0xf9, 0x18),
--	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP4_UV, OMAP343X_CONTROL_FUSE_OPP4_VDD1, 0xf9, 0x18),
--	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP5_UV, OMAP343X_CONTROL_FUSE_OPP5_VDD1, 0xf9, 0x18),
--	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD1, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD1, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD1, 0xf9, 0x18, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP4_UV, OMAP343X_CONTROL_FUSE_OPP4_VDD1, 0xf9, 0x18, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP5_UV, OMAP343X_CONTROL_FUSE_OPP5_VDD1, 0xf9, 0x18, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
- };
- 
- /* VDD2 */
-@@ -51,10 +52,10 @@ struct omap_volt_data omap34xx_vddmpu_volt_data[] = {
- #define OMAP3430_VDD_CORE_OPP3_UV		1150000
- 
- struct omap_volt_data omap34xx_vddcore_volt_data[] = {
--	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD2, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD2, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD2, 0xf9, 0x18),
--	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP1_UV, OMAP343X_CONTROL_FUSE_OPP1_VDD2, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP2_UV, OMAP343X_CONTROL_FUSE_OPP2_VDD2, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP3_UV, OMAP343X_CONTROL_FUSE_OPP3_VDD2, 0xf9, 0x18, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
- };
- 
- /* 36xx */
-@@ -67,11 +68,11 @@ struct omap_volt_data omap34xx_vddcore_volt_data[] = {
- #define OMAP3630_VDD_MPU_OPP1G_UV		1375000
- 
- struct omap_volt_data omap36xx_vddmpu_volt_data[] = {
--	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD1, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD1, 0xf9, 0x16),
--	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP120_UV, OMAP3630_CONTROL_FUSE_OPP120_VDD1, 0xfa, 0x23),
--	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP1G_UV, OMAP3630_CONTROL_FUSE_OPP1G_VDD1, 0xfa, 0x27),
--	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD1, 0xf4, 0x0c, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD1, 0xf9, 0x16, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP120_UV, OMAP3630_CONTROL_FUSE_OPP120_VDD1, 0xfa, 0x23, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP1G_UV, OMAP3630_CONTROL_FUSE_OPP1G_VDD1, 0xfa, 0x27, OMAP_ABB_FAST_OPP),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
- };
- 
- /* VDD2 */
-@@ -80,9 +81,9 @@ struct omap_volt_data omap36xx_vddmpu_volt_data[] = {
- #define OMAP3630_VDD_CORE_OPP100_UV		1200000
- 
- struct omap_volt_data omap36xx_vddcore_volt_data[] = {
--	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD2, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD2, 0xf9, 0x16),
--	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP50_UV, OMAP3630_CONTROL_FUSE_OPP50_VDD2, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP100_UV, OMAP3630_CONTROL_FUSE_OPP100_VDD2, 0xf9, 0x16, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
- };
- 
- /* OPP data */
-diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-index c95415d..c9b8e8a 100644
---- a/arch/arm/mach-omap2/opp4xxx_data.c
-+++ b/arch/arm/mach-omap2/opp4xxx_data.c
-@@ -25,6 +25,7 @@
- #include "control.h"
- #include "omap_opp_data.h"
- #include "pm.h"
-+#include "abb.h"
- 
- /*
-  * Structures containing OMAP4430 voltage supported and various
-@@ -37,11 +38,11 @@
- #define OMAP4430_VDD_MPU_OPPNITRO_UV		1375000
- 
- struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
--	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16),
--	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
--	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPNITRO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27),
--	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP100, 0xf9, 0x16, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPNITRO_UV, OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27, OMAP_ABB_FAST_OPP),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
- };
- 
- #define OMAP4430_VDD_IVA_OPP50_UV		1013000
-@@ -49,19 +50,19 @@ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
- #define OMAP4430_VDD_IVA_OPPTURBO_UV		1300000
- 
- struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
--	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16),
--	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
--	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP100, 0xf9, 0x16, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV, OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23, OMAP_ABB_NOMINAL_OPP),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
- };
- 
- #define OMAP4430_VDD_CORE_OPP50_UV		1025000
- #define OMAP4430_VDD_CORE_OPP100_UV		1200000
- 
- struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
--	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
--	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16),
--	VOLT_DATA_DEFINE(0, 0, 0, 0),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP100, 0xf9, 0x16, OMAP_ABB_NO_LDO),
-+	VOLT_DATA_DEFINE(0, 0, 0, 0, 0),
- };
- 
- 
-diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
-index 5be4d5d..dd7b1f8 100644
---- a/arch/arm/plat-omap/include/plat/voltage.h
-+++ b/arch/arm/plat-omap/include/plat/voltage.h
-@@ -28,6 +28,7 @@ struct omap_volt_data {
- 	u32	sr_efuse_offs;
- 	u8	sr_errminlimit;
- 	u8	vp_errgain;
-+	u8	opp_sel;
- };
- struct voltagedomain;
- 
--- 
-1.7.9.5
+> 
+> After these, omapdss no longer contains any plat/ or mach/ includes. omapfb,
+> vrfb and vram still do, though.
+> 
+>  Tomi
+> 
+> Tomi Valkeinen (6):
+>   OMAPDSS: add omapdss_version
+>   OMAPDSS: use omapdss_version in dss_features.c
+>   OMAPDSS: DISPC: use omapdss_version
+>   OMAPDSS: DSS: use omapdss_version
+>   OMAPDSS: HDMI: use omapdss_version
+>   OMAPDSS: remove <plat/cpu.h> includes
+> 
+>  arch/arm/mach-omap2/display.c          |   38 +++++++++++++++++++
+>  drivers/video/omap2/dss/core.c         |    2 +-
+>  drivers/video/omap2/dss/dispc.c        |   41 +++++++++++++-------
+>  drivers/video/omap2/dss/dss.c          |   39 +++++++++++++------
+>  drivers/video/omap2/dss/dss_features.c |   64 ++++++++++++++++++++++----------
+>  drivers/video/omap2/dss/dss_features.h |    5 ++-
+>  drivers/video/omap2/dss/hdmi.c         |    3 +-
+>  include/video/omapdss.h                |   14 +++++++
+>  8 files changed, 157 insertions(+), 49 deletions(-)
+> 
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
