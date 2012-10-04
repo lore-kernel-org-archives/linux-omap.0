@@ -1,92 +1,114 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 3/4] cpufreq: OMAP: fix clock usage to be SoC independent, remove plat/ includes
-Date: Wed,  3 Oct 2012 16:00:28 -0700
-Message-ID: <1349305229-28480-4-git-send-email-khilman@deeprootsystems.com>
-References: <1349305229-28480-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: hwmod: align the SmartReflex fck names
+Date: Wed, 03 Oct 2012 17:33:12 -0700
+Message-ID: <87ehlfvzxz.fsf@deeprootsystems.com>
+References: <1349279277-7634-1-git-send-email-j-pihet@ti.com>
+	<1349279277-7634-2-git-send-email-j-pihet@ti.com>
+	<20121003170059.GD4840@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:47064 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932466Ab2JCXAi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 19:00:38 -0400
-Received: by mail-da0-f46.google.com with SMTP id n41so1430950dak.19
-        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 16:00:38 -0700 (PDT)
-In-Reply-To: <1349305229-28480-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:45191 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964795Ab2JDAdM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 20:33:12 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so17004pbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 17:33:11 -0700 (PDT)
+In-Reply-To: <20121003170059.GD4840@atomide.com> (Tony Lindgren's message of
+	"Wed, 3 Oct 2012 10:00:59 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anton Vorontsov <cbou@mail.ru>, J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+Tony Lindgren <tony@atomide.com> writes:
 
-OMAP core code now has SoC-independent clock alias for the scalable
-CPU clock.  Using it means driver is SoC independent and will work for
-AM3xxx SoCs as well as OMAP1/3/4.
+> * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [121003 08:48]:
+>> @@ -1036,8 +1036,8 @@ static struct omap_clk am33xx_clks[] = {
+>>  	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
+>>  	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
+>>  	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
+>> -	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
+>> -	CLK(NULL,	"smartreflex1_fck",	&smartreflex1_fck,	CK_AM33XX),
+>> +	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_fck,	CK_AM33XX),
+>> +	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_AM33XX),
+>>  	CLK(NULL,	"timer1_fck",		&timer1_fck,	CK_AM33XX),
+>>  	CLK(NULL,	"timer2_fck",		&timer2_fck,	CK_AM33XX),
+>>  	CLK(NULL,	"timer3_fck",		&timer3_fck,	CK_AM33XX),
+>
+> I think this should be something like this instead:
+>
+> 	CLK("smartreflex.0",	"fck",	&smartreflex_mpu_fck,	CK_AM33XX),
+> 	CLK("smartreflex.1",	"fck",	&smartreflex_core_fck,	CK_AM33XX),
+>
+> Where the first one is the dev name, the second one is the
+> alias you want to use in the client driver?
 
-While here, remove some unnecessary plat/ includes that are
-interfering with multi-subarch ARM kernels.
+Actually, the omap_device creation will create this kind of alias for
+you, with the device name populated etc, so adding device names here
+isn't necessary.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-[tony@atomide.com: updated already changed clock aliases]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-[khilman@ti.com: minor shortlog/changelog updates]
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- drivers/cpufreq/omap-cpufreq.c |   19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
+For omap_devices where drivers are always using clk_get(dev, ...),
+the name in the initial clkdev table here really doesn't matter.
 
-diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
-index 7d4d455..5d1f5e4 100644
---- a/drivers/cpufreq/omap-cpufreq.c
-+++ b/drivers/cpufreq/omap-cpufreq.c
-@@ -30,19 +30,14 @@
- #include <asm/smp_plat.h>
- #include <asm/cpu.h>
- 
--#include <plat/clock.h>
--#include <plat/common.h>
- #include <plat/omap_device.h>
- 
--#include <mach/hardware.h>
--
- /* OPP tolerance in percentage */
- #define	OPP_TOLERANCE	4
- 
- static struct cpufreq_frequency_table *freq_table;
- static atomic_t freq_table_users = ATOMIC_INIT(0);
- static struct clk *mpu_clk;
--static char *mpu_clk_name;
- static struct device *mpu_dev;
- static struct regulator *mpu_reg;
- 
-@@ -179,7 +174,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
- {
- 	int result = 0;
- 
--	mpu_clk = clk_get(NULL, mpu_clk_name);
-+	mpu_clk = clk_get(NULL, "cpufreq_ck");
- 	if (IS_ERR(mpu_clk))
- 		return PTR_ERR(mpu_clk);
- 
-@@ -260,18 +255,6 @@ static struct cpufreq_driver omap_driver = {
- 
- static int __init omap_cpufreq_init(void)
- {
--	if (cpu_is_omap24xx())
--		mpu_clk_name = "virt_prcm_set";
--	else if (cpu_is_omap34xx())
--		mpu_clk_name = "dpll1_ck";
--	else if (cpu_is_omap44xx())
--		mpu_clk_name = "dpll_mpu_ck";
--
--	if (!mpu_clk_name) {
--		pr_err("%s: unsupported Silicon?\n", __func__);
--		return -EINVAL;
--	}
--
- 	mpu_dev = omap_device_get_by_hwmod_name("mpu");
- 	if (IS_ERR(mpu_dev)) {
- 		pr_warning("%s: unable to get the mpu device\n", __func__);
--- 
-1.7.9.2
+However, for core code that needs to do a clk_get(NULL, "name"), then
+this name matters.  In chatting with Paul offline, he mentioned part of
+the CCF conversion will be using clk_get(NULL, ...) on the main_clk
+listed in each hwmod.  For that reason, it's important that this string
+match the name in the hwmod.
 
+I belive the patch below should make this compatible with any future
+use.
+
+Jean, can you fold this into $SUBJECT patch?
+
+Thanks,
+
+Kevin
+
+
+diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+index 6de3dc7..8a16504 100644
+--- a/arch/arm/mach-omap2/clock33xx_data.c
++++ b/arch/arm/mach-omap2/clock33xx_data.c
+@@ -1034,8 +1034,8 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
+ 	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
+ 	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
+-	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_fck,	CK_AM33XX),
+-	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_AM33XX),
++	CLK(NULL,	"smartreflex_mpu_fck",	&smartreflex_mpu_fck,	CK_AM33XX),
++	CLK(NULL,	"smartreflex_core_fck",	&smartreflex_core_fck,	CK_AM33XX),
+ 	CLK(NULL,	"timer1_fck",		&timer1_fck,	CK_AM33XX),
+ 	CLK(NULL,	"timer2_fck",		&timer2_fck,	CK_AM33XX),
+ 	CLK(NULL,	"timer3_fck",		&timer3_fck,	CK_AM33XX),
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index a197cf2..191d261 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3447,8 +3447,8 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"atclk_fck",	&atclk_fck,	CK_3XXX),
+ 	CLK(NULL,	"traceclk_src_fck", &traceclk_src_fck, CK_3XXX),
+ 	CLK(NULL,	"traceclk_fck",	&traceclk_fck,	CK_3XXX),
+-	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_iva_fck,	CK_34XX | CK_36XX),
+-	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_34XX | CK_36XX),
++	CLK(NULL,	"smartreflex_mpu_iva_fck", &smartreflex_mpu_iva_fck,	CK_34XX | CK_36XX),
++	CLK(NULL,	"smartreflex_core_fck",	&smartreflex_core_fck,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_3XXX),
+ 	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_3XXX),
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 9cc1112..19e0c1e 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3224,8 +3224,8 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"slimbus2_fclk_0",		&slimbus2_fclk_0,	CK_443X),
+ 	CLK(NULL,	"slimbus2_slimbus_clk",		&slimbus2_slimbus_clk,	CK_443X),
+ 	CLK(NULL,	"slimbus2_fck",			&slimbus2_fck,	CK_443X),
+-	CLK(NULL,	"smartreflex.0",		&smartreflex_core_fck,	CK_443X),
+-	CLK(NULL,	"smartreflex.1",		&smartreflex_iva_fck,	CK_443X),
++	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
++	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_iva_fck,	CK_443X),
+ 	CLK(NULL,	"smartreflex.2",		&smartreflex_mpu_fck,	CK_443X),
+ 	CLK(NULL,	"timer1_fck",			&timer1_fck,	CK_443X),
+ 	CLK(NULL,	"timer10_fck",			&timer10_fck,	CK_443X),
