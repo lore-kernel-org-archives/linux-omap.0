@@ -1,191 +1,554 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 15/16] ARM: OMAP: Move plat/omap-serial.h to
- linux/platform_data/serial-omap.h
-Date: Thu, 04 Oct 2012 15:05:08 -0700
-Message-ID: <20121004220508.26676.98612.stgit@muffinssi.local>
+Subject: [PATCH 13/16] ARM: OMAP: Split uncompress.h to mach-omap1 and
+ mach-omap2
+Date: Thu, 04 Oct 2012 15:05:03 -0700
+Message-ID: <20121004220503.26676.33780.stgit@muffinssi.local>
 References: <20121004213950.26676.21898.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:28298 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753341Ab2JDWFF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 18:05:05 -0400
 In-Reply-To: <20121004213950.26676.21898.stgit@muffinssi.local>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Alan Cox <alan@linux.intel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-We cannot keep this in plat for ARM common zImage work.
-Some of the defines are local to the omap-serial.c driver,
-so move the defines there.
+This allows us to eventually move omap2+ to generic
+debug code that's configured in Kconfig for the port.
 
-Also rename DRIVER_NAME to OMAP_SERIAL_DRIVER_NAME to avoid
-confusion.
-
-Note that patch depends on at least omap patch
-"ARM: OMAP: Split plat/serial.h for omap1 and omap2+".
-
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Govindraj.R <govindraj.raja@ti.com>
-Cc: linux-serial@vger.kernel.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/serial.c                  |    5 ++-
- drivers/tty/serial/omap-serial.c              |   35 ++++++++++++++++++++--
- include/linux/platform_data/serial-omap.h     |   40 +------------------------
- 3 files changed, 36 insertions(+), 44 deletions(-)
- rename arch/arm/plat-omap/include/plat/omap-serial.h => include/linux/platform_data/serial-omap.h (67%)
+ arch/arm/mach-omap1/include/mach/uncompress.h |  121 +++++++++++++++
+ arch/arm/mach-omap2/include/mach/uncompress.h |  175 +++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/uncompress.h  |  204 -------------------------
+ 3 files changed, 292 insertions(+), 208 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat/uncompress.h
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 777d504..60374a4 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -26,8 +26,9 @@
- #include <linux/slab.h>
- #include <linux/pm_runtime.h>
- #include <linux/console.h>
-+#include <linux/serial_core.h>
-+#include <linux/platform_data/serial-omap.h>
- 
--#include <plat/omap-serial.h>
- #include "common.h"
- #include <plat/dma.h>
- #include "omap_hwmod.h"
-@@ -293,7 +294,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 		info = omap_serial_default_info;
- 
- 	oh = uart->oh;
--	name = DRIVER_NAME;
-+	name = OMAP_SERIAL_DRIVER_NAME;
- 
- 	omap_up.dma_enabled = info->dma_enabled;
- 	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 6ede6fd..cc431a2 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -38,11 +38,11 @@
- #include <linux/serial_core.h>
- #include <linux/irq.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pm_qos.h>
- #include <linux/of.h>
- #include <linux/gpio.h>
- #include <linux/pinctrl/consumer.h>
--
--#include <plat/omap-serial.h>
-+#include <linux/platform_data/serial-omap.h>
- 
- #define UART_BUILD_REVISION(x, y)	(((x) << 8) | (y))
- 
-@@ -71,6 +71,35 @@
- #define OMAP_UART_MVR_MAJ_SHIFT		8
- #define OMAP_UART_MVR_MIN_MASK		0x3f
- 
-+#define OMAP_MODE13X_SPEED	230400
-+
-+#define OMAP_UART_SCR_TX_EMPTY	0x08
-+
-+/* WER = 0x7F
-+ * Enable module level wakeup in WER reg
-+ */
-+#define OMAP_UART_WER_MOD_WKUP	0X7F
-+
-+/* Enable XON/XOFF flow control on output */
-+#define OMAP_UART_SW_TX		0x8
-+
-+/* Enable XON/XOFF flow control on input */
-+#define OMAP_UART_SW_RX		0x2
-+
-+#define OMAP_UART_SYSC_RESET	0X07
-+#define OMAP_UART_TCR_TRIG	0X0F
-+#define OMAP_UART_SW_CLR	0XF0
-+#define OMAP_UART_FIFO_CLR	0X06
-+
-+#define OMAP_UART_DMA_CH_FREE	-1
-+
-+#define OMAP_MAX_HSUART_PORTS	6
-+
-+#define MSR_SAVE_FLAGS		UART_MSR_ANY_DELTA
-+
-+#define UART_ERRATA_i202_MDR1_ACCESS	BIT(0)
-+#define UART_ERRATA_i291_DMA_FORCEIDLE	BIT(1)
-+
- struct uart_omap_port {
- 	struct uart_port	port;
- 	struct uart_omap_dma	uart_dma;
-@@ -1588,7 +1617,7 @@ static struct platform_driver serial_omap_driver = {
- 	.probe          = serial_omap_probe,
- 	.remove         = __devexit_p(serial_omap_remove),
- 	.driver		= {
--		.name	= DRIVER_NAME,
-+		.name	= OMAP_SERIAL_DRIVER_NAME,
- 		.pm	= &serial_omap_dev_pm_ops,
- 		.of_match_table = of_match_ptr(omap_serial_of_match),
- 	},
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/include/linux/platform_data/serial-omap.h
-similarity index 67%
-rename from arch/arm/plat-omap/include/plat/omap-serial.h
-rename to include/linux/platform_data/serial-omap.h
-index f4a4cd0..512aae9 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/include/linux/platform_data/serial-omap.h
-@@ -14,14 +14,7 @@
-  * (at your option) any later version.
-  */
- 
--#ifndef __OMAP_SERIAL_H__
--#define __OMAP_SERIAL_H__
--
--#include <linux/serial_core.h>
--#include <linux/device.h>
--#include <linux/pm_qos.h>
--
--#define DRIVER_NAME	"omap_uart"
-+#define OMAP_SERIAL_DRIVER_NAME	"omap_uart"
- 
+diff --git a/arch/arm/mach-omap1/include/mach/uncompress.h b/arch/arm/mach-omap1/include/mach/uncompress.h
+index 0ff22dc..e9eb834 100644
+--- a/arch/arm/mach-omap1/include/mach/uncompress.h
++++ b/arch/arm/mach-omap1/include/mach/uncompress.h
+@@ -1,5 +1,122 @@
  /*
-  * Use tty device name as ttyO, [O -> OMAP]
-@@ -30,35 +23,6 @@
+- * arch/arm/mach-omap1/include/mach/uncompress.h
++ * arch/arm/plat-omap/include/mach/uncompress.h
++ *
++ * Serial port stubs for kernel decompress status messages
++ *
++ * Initially based on:
++ * linux-2.4.15-rmk1-dsplinux1.6/arch/arm/plat-omap/include/mach1510/uncompress.h
++ * Copyright (C) 2000 RidgeRun, Inc.
++ * Author: Greg Lonnon <glonnon@ridgerun.com>
++ *
++ * Rewritten by:
++ * Author: <source@mvista.com>
++ * 2004 (c) MontaVista Software, Inc.
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
   */
- #define OMAP_SERIAL_NAME	"ttyO"
  
--#define OMAP_MODE13X_SPEED	230400
--
--#define OMAP_UART_SCR_TX_EMPTY	0x08
--
--/* WER = 0x7F
-- * Enable module level wakeup in WER reg
+-#include <plat/uncompress.h>
++#include <linux/types.h>
++#include <linux/serial_reg.h>
++
++#include <asm/memory.h>
++#include <asm/mach-types.h>
++
++#include <plat/serial.h>
++
++#define MDR1_MODE_MASK			0x07
++
++volatile u8 *uart_base;
++int uart_shift;
++
++/*
++ * Store the DEBUG_LL uart number into memory.
++ * See also debug-macro.S, and serial.c for related code.
++ */
++static void set_omap_uart_info(unsigned char port)
++{
++	/*
++	 * Get address of some.bss variable and round it down
++	 * a la CONFIG_AUTO_ZRELADDR.
++	 */
++	u32 ram_start = (u32)&uart_shift & 0xf8000000;
++	u32 *uart_info = (u32 *)(ram_start + OMAP_UART_INFO_OFS);
++	*uart_info = port;
++}
++
++static void putc(int c)
++{
++	if (!uart_base)
++		return;
++
++	/* Check for UART 16x mode */
++	if ((uart_base[UART_OMAP_MDR1 << uart_shift] & MDR1_MODE_MASK) != 0)
++		return;
++
++	while (!(uart_base[UART_LSR << uart_shift] & UART_LSR_THRE))
++		barrier();
++	uart_base[UART_TX << uart_shift] = c;
++}
++
++static inline void flush(void)
++{
++}
++
++/*
++ * Macros to configure UART1 and debug UART
++ */
++#define _DEBUG_LL_ENTRY(mach, dbg_uart, dbg_shft, dbg_id)		\
++	if (machine_is_##mach()) {					\
++		uart_base = (volatile u8 *)(dbg_uart);			\
++		uart_shift = (dbg_shft);				\
++		port = (dbg_id);					\
++		set_omap_uart_info(port);				\
++		break;							\
++	}
++
++#define DEBUG_LL_OMAP7XX(p, mach)					\
++	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP7XX_PORT_SHIFT,	\
++		OMAP1UART##p)
++
++#define DEBUG_LL_OMAP1(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP1UART##p)
++
++static inline void arch_decomp_setup(void)
++{
++	int port = 0;
++
++	/*
++	 * Initialize the port based on the machine ID from the bootloader.
++	 * Note that we're using macros here instead of switch statement
++	 * as machine_is functions are optimized out for the boards that
++	 * are not selected.
++	 */
++	do {
++		/* omap7xx/8xx based boards using UART1 with shift 0 */
++		DEBUG_LL_OMAP7XX(1, herald);
++		DEBUG_LL_OMAP7XX(1, omap_perseus2);
++
++		/* omap15xx/16xx based boards using UART1 */
++		DEBUG_LL_OMAP1(1, ams_delta);
++		DEBUG_LL_OMAP1(1, nokia770);
++		DEBUG_LL_OMAP1(1, omap_h2);
++		DEBUG_LL_OMAP1(1, omap_h3);
++		DEBUG_LL_OMAP1(1, omap_innovator);
++		DEBUG_LL_OMAP1(1, omap_osk);
++		DEBUG_LL_OMAP1(1, omap_palmte);
++		DEBUG_LL_OMAP1(1, omap_palmz71);
++
++		/* omap15xx/16xx based boards using UART2 */
++		DEBUG_LL_OMAP1(2, omap_palmtt);
++
++		/* omap15xx/16xx based boards using UART3 */
++		DEBUG_LL_OMAP1(3, sx1);
++	} while (0);
++}
++
++/*
++ * nothing to do
++ */
++#define arch_decomp_wdog()
+diff --git a/arch/arm/mach-omap2/include/mach/uncompress.h b/arch/arm/mach-omap2/include/mach/uncompress.h
+index 78e0557..226c757 100644
+--- a/arch/arm/mach-omap2/include/mach/uncompress.h
++++ b/arch/arm/mach-omap2/include/mach/uncompress.h
+@@ -1,5 +1,176 @@
+ /*
+- * arch/arm/mach-omap2/include/mach/uncompress.h
++ * arch/arm/plat-omap/include/mach/uncompress.h
++ *
++ * Serial port stubs for kernel decompress status messages
++ *
++ * Initially based on:
++ * linux-2.4.15-rmk1-dsplinux1.6/arch/arm/plat-omap/include/mach1510/uncompress.h
++ * Copyright (C) 2000 RidgeRun, Inc.
++ * Author: Greg Lonnon <glonnon@ridgerun.com>
++ *
++ * Rewritten by:
++ * Author: <source@mvista.com>
++ * 2004 (c) MontaVista Software, Inc.
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
+  */
+ 
+-#include <plat/uncompress.h>
++#include <linux/types.h>
++#include <linux/serial_reg.h>
++
++#include <asm/memory.h>
++#include <asm/mach-types.h>
++
++#include <plat/serial.h>
++
++#define MDR1_MODE_MASK			0x07
++
++volatile u8 *uart_base;
++int uart_shift;
++
++/*
++ * Store the DEBUG_LL uart number into memory.
++ * See also debug-macro.S, and serial.c for related code.
++ */
++static void set_omap_uart_info(unsigned char port)
++{
++	/*
++	 * Get address of some.bss variable and round it down
++	 * a la CONFIG_AUTO_ZRELADDR.
++	 */
++	u32 ram_start = (u32)&uart_shift & 0xf8000000;
++	u32 *uart_info = (u32 *)(ram_start + OMAP_UART_INFO_OFS);
++	*uart_info = port;
++}
++
++static void putc(int c)
++{
++	if (!uart_base)
++		return;
++
++	/* Check for UART 16x mode */
++	if ((uart_base[UART_OMAP_MDR1 << uart_shift] & MDR1_MODE_MASK) != 0)
++		return;
++
++	while (!(uart_base[UART_LSR << uart_shift] & UART_LSR_THRE))
++		barrier();
++	uart_base[UART_TX << uart_shift] = c;
++}
++
++static inline void flush(void)
++{
++}
++
++/*
++ * Macros to configure UART1 and debug UART
++ */
++#define _DEBUG_LL_ENTRY(mach, dbg_uart, dbg_shft, dbg_id)		\
++	if (machine_is_##mach()) {					\
++		uart_base = (volatile u8 *)(dbg_uart);			\
++		uart_shift = (dbg_shft);				\
++		port = (dbg_id);					\
++		set_omap_uart_info(port);				\
++		break;							\
++	}
++
++#define DEBUG_LL_OMAP2(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP2_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP2UART##p)
++
++#define DEBUG_LL_OMAP3(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP3_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP3UART##p)
++
++#define DEBUG_LL_OMAP4(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP4_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP4UART##p)
++
++#define DEBUG_LL_OMAP5(p, mach)						\
++	_DEBUG_LL_ENTRY(mach, OMAP5_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		OMAP5UART##p)
++/* Zoom2/3 shift is different for UART1 and external port */
++#define DEBUG_LL_ZOOM(mach)						\
++	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
++
++#define DEBUG_LL_TI81XX(p, mach)					\
++	_DEBUG_LL_ENTRY(mach, TI81XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		TI81XXUART##p)
++
++#define DEBUG_LL_AM33XX(p, mach)					\
++	_DEBUG_LL_ENTRY(mach, AM33XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
++		AM33XXUART##p)
++
++static inline void arch_decomp_setup(void)
++{
++	int port = 0;
++
++	/*
++	 * Initialize the port based on the machine ID from the bootloader.
++	 * Note that we're using macros here instead of switch statement
++	 * as machine_is functions are optimized out for the boards that
++	 * are not selected.
++	 */
++	do {
++		/* omap2 based boards using UART1 */
++		DEBUG_LL_OMAP2(1, omap_2430sdp);
++		DEBUG_LL_OMAP2(1, omap_apollon);
++		DEBUG_LL_OMAP2(1, omap_h4);
++
++		/* omap2 based boards using UART3 */
++		DEBUG_LL_OMAP2(3, nokia_n800);
++		DEBUG_LL_OMAP2(3, nokia_n810);
++		DEBUG_LL_OMAP2(3, nokia_n810_wimax);
++
++		/* omap3 based boards using UART1 */
++		DEBUG_LL_OMAP2(1, omap3evm);
++		DEBUG_LL_OMAP3(1, omap_3430sdp);
++		DEBUG_LL_OMAP3(1, omap_3630sdp);
++		DEBUG_LL_OMAP3(1, omap3530_lv_som);
++		DEBUG_LL_OMAP3(1, omap3_torpedo);
++
++		/* omap3 based boards using UART3 */
++		DEBUG_LL_OMAP3(3, cm_t35);
++		DEBUG_LL_OMAP3(3, cm_t3517);
++		DEBUG_LL_OMAP3(3, cm_t3730);
++		DEBUG_LL_OMAP3(3, craneboard);
++		DEBUG_LL_OMAP3(3, devkit8000);
++		DEBUG_LL_OMAP3(3, igep0020);
++		DEBUG_LL_OMAP3(3, igep0030);
++		DEBUG_LL_OMAP3(3, nokia_rm680);
++		DEBUG_LL_OMAP3(3, nokia_rm696);
++		DEBUG_LL_OMAP3(3, nokia_rx51);
++		DEBUG_LL_OMAP3(3, omap3517evm);
++		DEBUG_LL_OMAP3(3, omap3_beagle);
++		DEBUG_LL_OMAP3(3, omap3_pandora);
++		DEBUG_LL_OMAP3(3, omap_ldp);
++		DEBUG_LL_OMAP3(3, overo);
++		DEBUG_LL_OMAP3(3, touchbook);
++
++		/* omap4 based boards using UART3 */
++		DEBUG_LL_OMAP4(3, omap_4430sdp);
++		DEBUG_LL_OMAP4(3, omap4_panda);
++
++		/* omap5 based boards using UART3 */
++		DEBUG_LL_OMAP5(3, omap5_sevm);
++
++		/* zoom2/3 external uart */
++		DEBUG_LL_ZOOM(omap_zoom2);
++		DEBUG_LL_ZOOM(omap_zoom3);
++
++		/* TI8168 base boards using UART3 */
++		DEBUG_LL_TI81XX(3, ti8168evm);
++
++		/* TI8148 base boards using UART1 */
++		DEBUG_LL_TI81XX(1, ti8148evm);
++
++		/* AM33XX base boards using UART1 */
++		DEBUG_LL_AM33XX(1, am335xevm);
++	} while (0);
++}
++
++/*
++ * nothing to do
++ */
++#define arch_decomp_wdog()
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+deleted file mode 100644
+index 7f7b112..0000000
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ /dev/null
+@@ -1,204 +0,0 @@
+-/*
+- * arch/arm/plat-omap/include/mach/uncompress.h
+- *
+- * Serial port stubs for kernel decompress status messages
+- *
+- * Initially based on:
+- * linux-2.4.15-rmk1-dsplinux1.6/arch/arm/plat-omap/include/mach1510/uncompress.h
+- * Copyright (C) 2000 RidgeRun, Inc.
+- * Author: Greg Lonnon <glonnon@ridgerun.com>
+- *
+- * Rewritten by:
+- * Author: <source@mvista.com>
+- * 2004 (c) MontaVista Software, Inc.
+- *
+- * This file is licensed under the terms of the GNU General Public License
+- * version 2. This program is licensed "as is" without any warranty of any
+- * kind, whether express or implied.
 - */
--#define OMAP_UART_WER_MOD_WKUP	0X7F
 -
--/* Enable XON/XOFF flow control on output */
--#define OMAP_UART_SW_TX		0x8
+-#include <linux/types.h>
+-#include <linux/serial_reg.h>
 -
--/* Enable XON/XOFF flow control on input */
--#define OMAP_UART_SW_RX		0x2
+-#include <asm/memory.h>
+-#include <asm/mach-types.h>
 -
--#define OMAP_UART_SYSC_RESET	0X07
--#define OMAP_UART_TCR_TRIG	0X0F
--#define OMAP_UART_SW_CLR	0XF0
--#define OMAP_UART_FIFO_CLR	0X06
+-#include <plat/serial.h>
 -
--#define OMAP_UART_DMA_CH_FREE	-1
+-#define MDR1_MODE_MASK			0x07
 -
--#define OMAP_MAX_HSUART_PORTS	6
+-volatile u8 *uart_base;
+-int uart_shift;
 -
--#define MSR_SAVE_FLAGS		UART_MSR_ANY_DELTA
+-/*
+- * Store the DEBUG_LL uart number into memory.
+- * See also debug-macro.S, and serial.c for related code.
+- */
+-static void set_omap_uart_info(unsigned char port)
+-{
+-	/*
+-	 * Get address of some.bss variable and round it down
+-	 * a la CONFIG_AUTO_ZRELADDR.
+-	 */
+-	u32 ram_start = (u32)&uart_shift & 0xf8000000;
+-	u32 *uart_info = (u32 *)(ram_start + OMAP_UART_INFO_OFS);
+-	*uart_info = port;
+-}
 -
--#define UART_ERRATA_i202_MDR1_ACCESS	BIT(0)
--#define UART_ERRATA_i291_DMA_FORCEIDLE	BIT(1)
+-static void putc(int c)
+-{
+-	if (!uart_base)
+-		return;
 -
- struct omap_uart_port_info {
- 	bool			dma_enabled;	/* To specify DMA Mode */
- 	unsigned int		uartclk;	/* UART clock rate */
-@@ -102,5 +66,3 @@ struct uart_omap_dma {
- 	unsigned int		rx_poll_rate;
- 	unsigned int		rx_timeout;
- };
+-	/* Check for UART 16x mode */
+-	if ((uart_base[UART_OMAP_MDR1 << uart_shift] & MDR1_MODE_MASK) != 0)
+-		return;
 -
--#endif /* __OMAP_SERIAL_H__ */
+-	while (!(uart_base[UART_LSR << uart_shift] & UART_LSR_THRE))
+-		barrier();
+-	uart_base[UART_TX << uart_shift] = c;
+-}
+-
+-static inline void flush(void)
+-{
+-}
+-
+-/*
+- * Macros to configure UART1 and debug UART
+- */
+-#define _DEBUG_LL_ENTRY(mach, dbg_uart, dbg_shft, dbg_id)		\
+-	if (machine_is_##mach()) {					\
+-		uart_base = (volatile u8 *)(dbg_uart);			\
+-		uart_shift = (dbg_shft);				\
+-		port = (dbg_id);					\
+-		set_omap_uart_info(port);				\
+-		break;							\
+-	}
+-
+-#define DEBUG_LL_OMAP7XX(p, mach)					\
+-	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP7XX_PORT_SHIFT,	\
+-		OMAP1UART##p)
+-
+-#define DEBUG_LL_OMAP1(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP1_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP1UART##p)
+-
+-#define DEBUG_LL_OMAP2(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP2_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP2UART##p)
+-
+-#define DEBUG_LL_OMAP3(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP3_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP3UART##p)
+-
+-#define DEBUG_LL_OMAP4(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP4_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP4UART##p)
+-
+-#define DEBUG_LL_OMAP5(p, mach)						\
+-	_DEBUG_LL_ENTRY(mach, OMAP5_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+-		OMAP5UART##p)
+-/* Zoom2/3 shift is different for UART1 and external port */
+-#define DEBUG_LL_ZOOM(mach)						\
+-	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
+-
+-#define DEBUG_LL_TI81XX(p, mach)					\
+-	_DEBUG_LL_ENTRY(mach, TI81XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+-		TI81XXUART##p)
+-
+-#define DEBUG_LL_AM33XX(p, mach)					\
+-	_DEBUG_LL_ENTRY(mach, AM33XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
+-		AM33XXUART##p)
+-
+-static inline void arch_decomp_setup(void)
+-{
+-	int port = 0;
+-
+-	/*
+-	 * Initialize the port based on the machine ID from the bootloader.
+-	 * Note that we're using macros here instead of switch statement
+-	 * as machine_is functions are optimized out for the boards that
+-	 * are not selected.
+-	 */
+-	do {
+-		/* omap7xx/8xx based boards using UART1 with shift 0 */
+-		DEBUG_LL_OMAP7XX(1, herald);
+-		DEBUG_LL_OMAP7XX(1, omap_perseus2);
+-
+-		/* omap15xx/16xx based boards using UART1 */
+-		DEBUG_LL_OMAP1(1, ams_delta);
+-		DEBUG_LL_OMAP1(1, nokia770);
+-		DEBUG_LL_OMAP1(1, omap_h2);
+-		DEBUG_LL_OMAP1(1, omap_h3);
+-		DEBUG_LL_OMAP1(1, omap_innovator);
+-		DEBUG_LL_OMAP1(1, omap_osk);
+-		DEBUG_LL_OMAP1(1, omap_palmte);
+-		DEBUG_LL_OMAP1(1, omap_palmz71);
+-
+-		/* omap15xx/16xx based boards using UART2 */
+-		DEBUG_LL_OMAP1(2, omap_palmtt);
+-
+-		/* omap15xx/16xx based boards using UART3 */
+-		DEBUG_LL_OMAP1(3, sx1);
+-
+-		/* omap2 based boards using UART1 */
+-		DEBUG_LL_OMAP2(1, omap_2430sdp);
+-		DEBUG_LL_OMAP2(1, omap_apollon);
+-		DEBUG_LL_OMAP2(1, omap_h4);
+-
+-		/* omap2 based boards using UART3 */
+-		DEBUG_LL_OMAP2(3, nokia_n800);
+-		DEBUG_LL_OMAP2(3, nokia_n810);
+-		DEBUG_LL_OMAP2(3, nokia_n810_wimax);
+-
+-		/* omap3 based boards using UART1 */
+-		DEBUG_LL_OMAP2(1, omap3evm);
+-		DEBUG_LL_OMAP3(1, omap_3430sdp);
+-		DEBUG_LL_OMAP3(1, omap_3630sdp);
+-		DEBUG_LL_OMAP3(1, omap3530_lv_som);
+-		DEBUG_LL_OMAP3(1, omap3_torpedo);
+-
+-		/* omap3 based boards using UART3 */
+-		DEBUG_LL_OMAP3(3, cm_t35);
+-		DEBUG_LL_OMAP3(3, cm_t3517);
+-		DEBUG_LL_OMAP3(3, cm_t3730);
+-		DEBUG_LL_OMAP3(3, craneboard);
+-		DEBUG_LL_OMAP3(3, devkit8000);
+-		DEBUG_LL_OMAP3(3, igep0020);
+-		DEBUG_LL_OMAP3(3, igep0030);
+-		DEBUG_LL_OMAP3(3, nokia_rm680);
+-		DEBUG_LL_OMAP3(3, nokia_rm696);
+-		DEBUG_LL_OMAP3(3, nokia_rx51);
+-		DEBUG_LL_OMAP3(3, omap3517evm);
+-		DEBUG_LL_OMAP3(3, omap3_beagle);
+-		DEBUG_LL_OMAP3(3, omap3_pandora);
+-		DEBUG_LL_OMAP3(3, omap_ldp);
+-		DEBUG_LL_OMAP3(3, overo);
+-		DEBUG_LL_OMAP3(3, touchbook);
+-
+-		/* omap4 based boards using UART3 */
+-		DEBUG_LL_OMAP4(3, omap_4430sdp);
+-		DEBUG_LL_OMAP4(3, omap4_panda);
+-
+-		/* omap5 based boards using UART3 */
+-		DEBUG_LL_OMAP5(3, omap5_sevm);
+-
+-		/* zoom2/3 external uart */
+-		DEBUG_LL_ZOOM(omap_zoom2);
+-		DEBUG_LL_ZOOM(omap_zoom3);
+-
+-		/* TI8168 base boards using UART3 */
+-		DEBUG_LL_TI81XX(3, ti8168evm);
+-
+-		/* TI8148 base boards using UART1 */
+-		DEBUG_LL_TI81XX(1, ti8148evm);
+-
+-		/* AM33XX base boards using UART1 */
+-		DEBUG_LL_AM33XX(1, am335xevm);
+-	} while (0);
+-}
+-
+-/*
+- * nothing to do
+- */
+-#define arch_decomp_wdog()
 
