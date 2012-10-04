@@ -1,136 +1,418 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] ARM: OMAP2+: PM: MPU DVFS: use generic CPU device for MPU-SS
-Date: Wed,  3 Oct 2012 15:24:15 -0700
-Message-ID: <1349303055-27741-1-git-send-email-khilman@deeprootsystems.com>
+From: Dimitar Dimitrov <dinuxbg@gmail.com>
+Subject: Re: [PATCH 6/7] ARM: omap: abb: init & transition functions
+Date: Wed, 3 Oct 2012 19:26:31 -0700
+Message-ID: <CAPOMJ_Pb_Yq-sZMdt7PsVy14Er_=qf8duuS7=aFFscyZgZxArg@mail.gmail.com>
+References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
+	<1349313974-5473-7-git-send-email-mturquette@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:60564 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754475Ab2JCWYS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 18:24:18 -0400
-Received: by padhz1 with SMTP id hz1so6789916pad.19
-        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 15:24:17 -0700 (PDT)
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:57301 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752386Ab2JDC0c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 22:26:32 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so7666iea.19
+        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 19:26:31 -0700 (PDT)
+In-Reply-To: <1349313974-5473-7-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-From: Kevin Hilman <khilman@ti.com>
+On Wed, Oct 3, 2012 at 6:26 PM, Mike Turquette <mturquette@ti.com> wrote:
+> The Adaptive Body-Bias ldo can be set to bypass, Forward Body-Bias or
+> Reverse Body-Bias during a voltage transition.  The ABB programming
+> sequence depends on whether voltage is scaling up or down.
+>
+> This patch implements the Adaptive Body-Bias ldo initialization routine
+> and the transition sequence which is needed after any voltage scaling
+> operation.
+>
+> Note that this sequence will need to be revisited someday when the
+> various SmartReflex AVS features, fixes and improvements are upstreamed
+> and enabled for OMAP2+ kernels.
+>
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
+> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+> ---
+>  arch/arm/mach-omap2/Makefile |    2 +-
+>  arch/arm/mach-omap2/abb.c    |  322 ++++++++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/abb.h    |    9 ++
+>  3 files changed, 332 insertions(+), 1 deletion(-)
+>  create mode 100644 arch/arm/mach-omap2/abb.c
+>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 57e053e..a262aaa 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -107,7 +107,7 @@ obj-$(CONFIG_ARCH_OMAP4)            += $(omap-prcm-4-5-common) prm44xx.o
+>  obj-$(CONFIG_SOC_OMAP5)                        += $(omap-prcm-4-5-common)
+>
+>  # OMAP voltage domains
+> -voltagedomain-common                   := voltage.o vc.o vp.o
+> +voltagedomain-common                   := voltage.o vc.o vp.o abb.o
+>  obj-$(CONFIG_ARCH_OMAP2)               += $(voltagedomain-common)
+>  obj-$(CONFIG_ARCH_OMAP2)               += voltagedomains2xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP3)               += $(voltagedomain-common)
+> diff --git a/arch/arm/mach-omap2/abb.c b/arch/arm/mach-omap2/abb.c
+> new file mode 100644
+> index 0000000..e8a3ae0
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/abb.c
+> @@ -0,0 +1,322 @@
+> +/*
+> + * OMAP Adaptive Body-Bias core
+> + *
+> + * Copyright (C) 2011 Texas Instruments, Inc.
+> + * Mike Turquette <mturquette@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/delay.h>
+> +
+> +#include "abb.h"
+> +#include "voltage.h"
+> +
+> +/**
+> + * omap_abb_set_opp - program ABB ldo based on new voltage
+> + *
+> + * @voltdm - voltage domain that just finished scaling voltage
+> + * @opp_sel - target ABB ldo operating mode
+> + *
+> + * Program the ABB ldo to the new state (if necessary), clearing the
+> + * PRM_IRQSTATUS bit before and after the transition.  Returns 0 on
+> + * success, -ETIMEDOUT otherwise.
+> + */
+> +int omap_abb_set_opp(struct voltagedomain *voltdm, u8 opp_sel)
+> +{
+> +       struct omap_abb_instance *abb = voltdm->abb;
+> +       int ret, timeout;
+> +
+> +       /* bail early if no transition is necessary */
+> +       if (opp_sel == abb->_opp_sel)
+> +               return 0;
+> +
+> +       /* clear interrupt status */
+> +       timeout = 0;
+> +       while (timeout++ < ABB_TRANXDONE_TIMEOUT) {
+> +               abb->common->ops->clear_tranxdone(abb->prm_irq_id);
+> +
+> +               ret = abb->common->ops->check_tranxdone(abb->prm_irq_id);
+> +               if (!ret)
+> +                       break;
+> +
+> +               udelay(1);
+> +       }
+> +
+> +       if (timeout >= ABB_TRANXDONE_TIMEOUT) {
+> +               pr_warn("%s: vdd_%s ABB TRANXDONE timeout\n",
+> +                               __func__, voltdm->name);
+> +               return -ETIMEDOUT;
+> +       }
+> +
+> +       /* program the setup register */
+> +       switch (opp_sel) {
+> +       case OMAP_ABB_NOMINAL_OPP:
+> +               voltdm->rmw(abb->common->active_fbb_sel_mask,
+> +                               0x0,
+> +                               abb->setup_offs);
+> +               break;
+> +       case OMAP_ABB_FAST_OPP:
+> +               voltdm->rmw(abb->common->active_fbb_sel_mask,
+> +                               abb->common->active_fbb_sel_mask,
+> +                               abb->setup_offs);
+> +               break;
+> +       }
+> +
+> +       /* program next state of ABB ldo */
+> +       voltdm->rmw(abb->common->opp_sel_mask,
+> +                       opp_sel << __ffs(abb->common->opp_sel_mask),
+> +                       abb->ctrl_offs);
+> +
+> +       /* initiate ABB ldo change */
+> +       voltdm->rmw(abb->common->opp_change_mask,
+> +                       abb->common->opp_change_mask,
+> +                       abb->ctrl_offs);
+> +
+> +       /* clear interrupt status */
+> +       timeout = 0;
+> +       while (timeout++ < ABB_TRANXDONE_TIMEOUT) {
+> +               abb->common->ops->clear_tranxdone(abb->prm_irq_id);
+> +
+> +               ret = abb->common->ops->check_tranxdone(abb->prm_irq_id);
+> +               if (!ret)
+> +                       break;
+> +
+> +               udelay(1);
+> +       }
+> +
+> +       if (timeout >= ABB_TRANXDONE_TIMEOUT) {
+> +               pr_warn("%s: vdd_%s ABB TRANXDONE timeout\n",
+> +                               __func__, voltdm->name);
+> +               return -ETIMEDOUT;
+> +       }
+> +
+> +       /* track internal state */
+> +       abb->_opp_sel = opp_sel;
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+> + * omap_abb_pre_scale - ABB transition pre-voltage scale, if needed
+> + *
+> + * @voltdm - voltage domain that is about to scale
+> + * @target_volt - voltage that voltdm is scaling towards
+> + *
+> + * Changes the ABB ldo mode prior to scaling the voltage domain.
+> + * Returns 0 on success, otherwise an error code.
+> + */
+> +int omap_abb_pre_scale(struct voltagedomain *voltdm,
+> +               unsigned long target_volt)
+> +{
+> +       struct omap_abb_instance *abb = voltdm->abb;
+> +       struct omap_volt_data *cur_volt_data;
+> +       struct omap_volt_data *target_volt_data;
+> +       u8 opp_sel;
+> +
+> +       /* sanity */
+> +       if (!voltdm)
+> +               return -EINVAL;
+> +
+> +       if (!abb)
+> +               return 0;
+> +
+> +       /*
+> +        * XXX boot-time corner case: voltdm->nominal volt might be zero
+> +        *
+> +        * This implies that we're running at the default PMIC voltage,
+> +        * since voltdm->nominal_volt should have been populated in
+> +        * omap_voltage_late_init if the voltage had been scaled
+> +        * previously.  The best way to fix this is for DT data to pass
+> +        * in PMIC boot voltage.
+> +        *
+> +        * For now, handle this by returning success (0) to not block
+> +        * the rest of the transition.
+> +        */
+> +       if (!voltdm->nominal_volt)
+> +               return 0;
+> +
+> +       cur_volt_data = omap_voltage_get_voltdata(voltdm, voltdm->nominal_volt);
+> +       target_volt_data = omap_voltage_get_voltdata(voltdm, target_volt);
+> +
+> +       if (IS_ERR(cur_volt_data))
+> +               return PTR_ERR(cur_volt_data);
+> +
+> +       if (IS_ERR(target_volt_data))
+> +               return PTR_ERR(target_volt_data);
+> +
+> +       /* bail if the sequence is wrong */
+> +       if (target_volt_data->volt_nominal > cur_volt_data->volt_nominal)
+> +               return 0;
+> +
+> +       opp_sel = target_volt_data->opp_sel;
+> +
+> +       /* bail early if no transition is necessary */
+> +       if (opp_sel == abb->_opp_sel)
+> +               return 0;
+> +
+> +       return omap_abb_set_opp(voltdm, opp_sel);
+> +}
+> +
+> +/**
+> + * omap_abb_post_scale - ABB transition post-voltage scale, if needed
+> + * @voltdm - voltage domain that just finished scaling
+> + * @target_volt - voltage that voltdm is scaling towards
+> + *
+> + * Changes the ABB ldo mode prior to scaling the voltage domain.
+> + * Returns 0 on success, otherwise an error code.
+> + */
+> +int omap_abb_post_scale(struct voltagedomain *voltdm,
+> +               unsigned long target_volt)
+> +{
+> +       struct omap_abb_instance *abb = voltdm->abb;
+> +       struct omap_volt_data *cur_volt_data;
+> +       struct omap_volt_data *target_volt_data;
+> +       u8 opp_sel;
+> +
+> +       /* sanity */
+> +       if (!voltdm)
+> +               return -EINVAL;
+> +
+> +       if (!abb)
+> +               return 0;
+> +
+> +       cur_volt_data = omap_voltage_get_voltdata(voltdm, voltdm->nominal_volt);
+> +       if (IS_ERR(cur_volt_data))
+> +               return PTR_ERR(cur_volt_data);
+> +
+> +       target_volt_data = omap_voltage_get_voltdata(voltdm, target_volt);
+> +       if (IS_ERR(target_volt_data))
+> +               return PTR_ERR(target_volt_data);
+> +
+> +       /* bail if the sequence is wrong */
+> +       if (target_volt_data->volt_nominal < cur_volt_data->volt_nominal)
+> +               return 0;
+> +
+> +       opp_sel = target_volt_data->opp_sel;
+> +
+> +       /* bail early if no transition is necessary */
+> +       if (opp_sel == abb->_opp_sel)
+> +               return 0;
+> +
+> +       return omap_abb_set_opp(voltdm, opp_sel);
+> +}
+> +
+> +/*
+> + * omap_abb_enable - enable ABB ldo on a particular voltage domain
+> + *
+> + * @voltdm - pointer to particular voltage domain
+> + */
+> +void omap_abb_enable(struct voltagedomain *voltdm)
+> +{
+> +       struct omap_abb_instance *abb = voltdm->abb;
+> +
+> +       if (abb->enabled)
+> +               return;
+> +
+> +       abb->enabled = true;
+> +
+> +       voltdm->rmw(abb->common->sr2en_mask, abb->common->sr2en_mask,
+> +                       abb->setup_offs);
+> +}
+> +
+> +/*
+> + * omap_abb_disable - disable ABB ldo on a particular voltage domain
+> + *
+> + * @voltdm - pointer to particular voltage domain
+> + *
+> + * Included for completeness.  Not currently used but will be needed in the
+> + * future if ABB is converted to a loadable module.
+> + */
+> +void omap_abb_disable(struct voltagedomain *voltdm)
+> +{
+> +       struct omap_abb_instance *abb = voltdm->abb;
+> +
+> +       if (!abb->enabled)
+> +               return;
+> +
+> +       abb->enabled = false;
+> +
+> +       voltdm->rmw(abb->common->sr2en_mask,
+> +                       (0 << __ffs(abb->common->sr2en_mask)),
+> +                       abb->setup_offs);
+> +}
+> +
+> +/*
+> + * omap_abb_init - Initialize an ABB ldo instance
+> + *
+> + * @voltdm: voltage domain upon which ABB ldo resides
+> + *
+> + * Initializes an individual ABB ldo for Forward Body-Bias.  FBB is used to
+> + * insure stability at higher voltages.  Note that some older OMAP chips have a
+> + * Reverse Body-Bias mode meant to save power at low voltage, but that mode is
+> + * unsupported and phased out on newer chips.
+> + */
+> +void __init omap_abb_init(struct voltagedomain *voltdm)
+> +{
+> +       struct omap_abb_instance *abb = voltdm->abb;
+> +       u32 sys_clk_rate;
+> +       u32 sr2_wt_cnt_val;
+> +       u32 clock_cycles;
+> +       u32 settling_time;
+> +       u32 val;
+> +
+> +       if (IS_ERR_OR_NULL(abb))
+> +               return;
+> +
+> +       /*
+> +        * SR2_WTCNT_VALUE is the settling time for the ABB ldo after a
+> +        * transition and must be programmed with the correct time at boot.
+> +        * The value programmed into the register is the number of SYS_CLK
+> +        * clock cycles that match a given wall time profiled for the ldo.
+> +        * This value depends on:
+> +        * settling time of ldo in micro-seconds (varies per OMAP family)
+> +        * # of clock cycles per SYS_CLK period (varies per OMAP family)
+> +        * the SYS_CLK frequency in MHz (varies per board)
+> +        * The formula is:
+> +        *
+> +        *                      ldo settling time (in micro-seconds)
+> +        * SR2_WTCNT_VALUE = ------------------------------------------
+> +        *                   (# system clock cycles) * (sys_clk period)
+> +        *
+> +        * Put another way:
+> +        *
+> +        * SR2_WTCNT_VALUE = settling time / (# SYS_CLK cycles / SYS_CLK rate))
+> +        *
+> +        * To avoid dividing by zero multiply both "# clock cycles" and
+> +        * "settling time" by 10 such that the final result is the one we want.
+> +        */
+> +
+> +       /* convert SYS_CLK rate to MHz & prevent divide by zero */
+> +       sys_clk_rate = DIV_ROUND_CLOSEST(voltdm->sys_clk.rate, 1000000);
+There is a possible small rounding error here. Depending on
+SYS_CLK_rate value, you might loose significant digits when converting
+from Hz to MHz.
 
-Currently, a dummy omap_device is created for the MPU sub-system so
-that a device node exists for MPU DVFS.  Specifically, for the
-association of MPU OPPs to a device node, and so that a voltage
-regulator can be mapped to a device node.
+Also, wouldn't it be safer to do all multiplications first and then
+divisions, like:
+SR2_WTCNT_VALUE = ((settling time * SYS_CLK_rate_kHz) / # SYS_CLK
+cycles  ) / 1000
 
-For drivers to get a handle to this device node, an OMAP-specific API
-has been used.  However, the kernel already has device nodes for the
-CPU(s) in the system, so we can use those instead of an OMAP-specific
-dummy device and then drivers (like OMAP CPUfreq) can use generic
-APIs.
-
-To use the existing CPU device nodes, modify the OPP creation and
-regulator registration to use the CPU0 device node for registraion.
-
-NOTE: this patch always uses CPU0 as the device node.  On all
-      OMAPs today, MPU DVFS scales all CPUs together, so this will
-      not be a problem, but this assumption will need to be changed
-      if independently scalable CPUs are introduced.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Applies on current Linus master.
-Targetted for v3.7-rc1 so CPUfreq driver can be cleaned of plat includes
-(follow on series)
-
- arch/arm/mach-omap2/opp.c        |   23 +++++++++++++++++------
- arch/arm/mach-omap2/pm.c         |   11 ++++++++++-
- arch/arm/mach-omap2/twl-common.c |    2 +-
- 3 files changed, 28 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
-index 45ad7f7..58e16ae 100644
---- a/arch/arm/mach-omap2/opp.c
-+++ b/arch/arm/mach-omap2/opp.c
-@@ -18,6 +18,7 @@
-  */
- #include <linux/module.h>
- #include <linux/opp.h>
-+#include <linux/cpu.h>
- 
- #include <plat/omap_device.h>
- 
-@@ -62,13 +63,23 @@ int __init omap_init_opp_table(struct omap_opp_def *opp_def,
- 				__func__, i);
- 			return -EINVAL;
- 		}
--		oh = omap_hwmod_lookup(opp_def->hwmod_name);
--		if (!oh || !oh->od) {
--			pr_debug("%s: no hwmod or odev for %s, [%d] cannot add OPPs.\n",
--				 __func__, opp_def->hwmod_name, i);
--			continue;
-+
-+		if (!strncmp(opp_def->hwmod_name, "mpu", 3)) {
-+			/* 
-+			 * All current OMAPs share voltage rail and
-+			 * clock source, so CPU0 is used to represent
-+			 * the MPU-SS.
-+			 */
-+			dev = get_cpu_device(0);
-+		} else {
-+			oh = omap_hwmod_lookup(opp_def->hwmod_name);
-+			if (!oh || !oh->od) {
-+				pr_debug("%s: no hwmod or odev for %s, [%d] cannot add OPPs.\n",
-+					 __func__, opp_def->hwmod_name, i);
-+				continue;
-+			}
-+			dev = &oh->od->pdev->dev;
- 		}
--		dev = &oh->od->pdev->dev;
- 
- 		r = opp_add(dev, opp_def->freq, opp_def->u_volt);
- 		if (r) {
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 939bd6f..173c2be 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -16,6 +16,7 @@
- #include <linux/opp.h>
- #include <linux/export.h>
- #include <linux/suspend.h>
-+#include <linux/cpu.h>
- 
- #include <asm/system_misc.h>
- 
-@@ -168,7 +169,15 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
- 		goto exit;
- 	}
- 
--	dev = omap_device_get_by_hwmod_name(oh_name);
-+	if (!strncmp(oh_name, "mpu", 3))
-+		/* 
-+		 * All current OMAPs share voltage rail and clock
-+		 * source, so CPU0 is used to represent the MPU-SS.
-+		 */
-+		dev = get_cpu_device(0);
-+	else
-+		dev = omap_device_get_by_hwmod_name(oh_name);
-+
- 	if (IS_ERR(dev)) {
- 		pr_err("%s: Unable to get dev pointer for hwmod %s\n",
- 			__func__, oh_name);
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 45f7741..3f5eacc 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -158,7 +158,7 @@ static struct regulator_init_data omap3_vpll2_idata = {
- };
- 
- static struct regulator_consumer_supply omap3_vdd1_supply[] = {
--	REGULATOR_SUPPLY("vcc", "mpu.0"),
-+	REGULATOR_SUPPLY("vcc", "cpu0"),
- };
- 
- static struct regulator_consumer_supply omap3_vdd2_supply[] = {
--- 
-1.7.9.2
-
+> +       clock_cycles = abb->common->clock_cycles * 10;
+> +       settling_time = abb->common->settling_time * 10;
+> +
+> +       /* calculate cycle rate */
+> +       clock_cycles = DIV_ROUND_CLOSEST(clock_cycles, sys_clk_rate);
+> +
+> +       /* calulate SR2_WTCNT_VALUE */
+> +       sr2_wt_cnt_val = DIV_ROUND_CLOSEST(settling_time, clock_cycles);
+> +
+> +       voltdm->rmw(abb->common->sr2_wtcnt_value_mask,
+> +                       (sr2_wt_cnt_val << __ffs(abb->common->sr2_wtcnt_value_mask)),
+> +                       abb->setup_offs);
+> +
+> +       /* did bootloader set OPP_SEL? */
+> +       val = voltdm->read(abb->ctrl_offs);
+> +       val &= abb->common->opp_sel_mask;
+> +       abb->_opp_sel = val >> __ffs(abb->common->opp_sel_mask);
+> +
+> +       /* enable the ldo if not done by bootloader */
+> +       val = voltdm->read(abb->setup_offs);
+> +       val &= abb->common->sr2en_mask;
+> +       if (val)
+> +               abb->enabled = true;
+> +       else
+> +               omap_abb_enable(voltdm);
+> +
+> +       return;
+> +}
+> diff --git a/arch/arm/mach-omap2/abb.h b/arch/arm/mach-omap2/abb.h
+> index 2acc187..b18305f 100644
+> --- a/arch/arm/mach-omap2/abb.h
+> +++ b/arch/arm/mach-omap2/abb.h
+> @@ -82,4 +82,13 @@ extern struct omap_abb_instance omap36xx_abb_mpu;
+>  extern struct omap_abb_instance omap4_abb_mpu;
+>  extern struct omap_abb_instance omap4_abb_iva;
+>
+> +void omap_abb_init(struct voltagedomain *voltdm);
+> +void omap_abb_enable(struct voltagedomain *voltdm);
+> +void omap_abb_disble(struct voltagedomain *voltdm);
+> +int omap_abb_set_opp(struct voltagedomain *voltdm, u8 opp_sel);
+> +int omap_abb_pre_scale(struct voltagedomain *voltdm,
+> +               unsigned long target_volt);
+> +int omap_abb_post_scale(struct voltagedomain *voltdm,
+> +               unsigned long target_volt);
+> +
+>  #endif
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
