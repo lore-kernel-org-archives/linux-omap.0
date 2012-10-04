@@ -1,83 +1,59 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 4/5] ARM: omap: vp: .get_voltage callback
-Date: Wed, 3 Oct 2012 18:16:04 -0700
-Message-ID: <1349313365-5262-5-git-send-email-mturquette@ti.com>
-References: <1349313365-5262-1-git-send-email-mturquette@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 2/2] ASoC: omap-mcpdm: Remove OMAP revision check
+Date: Thu,  4 Oct 2012 11:15:09 +0300
+Message-ID: <1349338509-3440-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1349338509-3440-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46432 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933233Ab2JDBQx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 3 Oct 2012 21:16:53 -0400
-In-Reply-To: <1349313365-5262-1-git-send-email-mturquette@ti.com>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:53057 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755330Ab2JDIOG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 04:14:06 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so192229oag.19
+        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 01:14:04 -0700 (PDT)
+In-Reply-To: <1349338509-3440-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Mike Turquette <mturquette@ti.com>
+To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-From: Mike Turquette <mturquette@linaro.org>
+The OMAP revision check is not needed since the watchdog bit is not in use
+on 4430 ES1.0 and have no effect when we set the bit. The watchdog need to
+be enabled on all other revisions.
 
-Implement the voltdm->get_voltage callback for the voltage processor
-driver.  This reads the INITVOLTAGE field corresponding to each VP and
-returns the voltage, after converting it from vsel format.
-
-If INITVOLTAGE is zero (the reset value) then the caller must interpret
-this as the PMIC running at the default power-on voltage.  In such a
-case DT data for the PMIC is necessary to know the voltage.
-
-Signed-off-by: Mike Turquette <mturquette@ti.com>
-Signed-off-by: Mike Turquette <mturquette@linaro.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/vp.c |   22 ++++++++++++++++++++++
- arch/arm/mach-omap2/vp.h |    1 +
- 2 files changed, 23 insertions(+)
+ sound/soc/omap/omap-mcpdm.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index f95c1ba..63dc03e 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -9,6 +9,28 @@
- #include "prm-regbits-44xx.h"
- #include "prm44xx.h"
+diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
+index fdf655e..8f5edc8 100644
+--- a/sound/soc/omap/omap-mcpdm.c
++++ b/sound/soc/omap/omap-mcpdm.c
+@@ -40,7 +40,6 @@
+ #include <sound/pcm_params.h>
+ #include <sound/soc.h>
  
-+unsigned long omap_vp_get_init_voltage(struct voltagedomain *voltdm)
-+{
-+	struct omap_vp_instance *vp = voltdm->vp;
-+	u32 vpconfig;
-+	u8 vsel;
-+	unsigned long volt;
-+
-+	/* sanity */
-+	if (!voltdm->pmic || !voltdm->pmic->vsel_to_uv
-+			|| !voltdm->read || !voltdm->write)
-+		return 0;
-+
-+	vpconfig = voltdm->read(vp->vpconfig);
-+	vpconfig &= vp->common->vpconfig_initvoltage_mask;
-+
-+	vsel = vpconfig >> __ffs(vp->common->vpconfig_initvoltage_mask);
-+
-+	volt = voltdm->pmic->vsel_to_uv(vsel);
-+
-+	return volt;
-+}
-+
- static u32 _vp_set_init_voltage(struct voltagedomain *voltdm, u32 volt)
- {
- 	struct omap_vp_instance *vp = voltdm->vp;
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index 7c155d2..0747a78 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -120,6 +120,7 @@ extern struct omap_vp_instance omap4_vp_core;
- void omap_vp_init(struct voltagedomain *voltdm);
- void omap_vp_enable(struct voltagedomain *voltdm);
- void omap_vp_disable(struct voltagedomain *voltdm);
-+unsigned long omap_vp_get_init_voltage(struct voltagedomain *voltdm);
- int omap_vp_forceupdate_scale(struct voltagedomain *voltdm,
- 			      unsigned long target_volt);
- int omap_vp_update_errorgain(struct voltagedomain *voltdm,
+-#include <plat/cpu.h>
+ #include "omap-mcpdm.h"
+ #include "omap-pcm.h"
+ 
+@@ -258,14 +257,9 @@ static int omap_mcpdm_dai_startup(struct snd_pcm_substream *substream,
+ 	mutex_lock(&mcpdm->mutex);
+ 
+ 	if (!dai->active) {
+-		/* Enable watch dog for ES above ES 1.0 to avoid saturation */
+-		if (omap_rev() != OMAP4430_REV_ES1_0) {
+-			u32 ctrl = omap_mcpdm_read(mcpdm, MCPDM_REG_CTRL);
++		u32 ctrl = omap_mcpdm_read(mcpdm, MCPDM_REG_CTRL);
+ 
+-			omap_mcpdm_write(mcpdm, MCPDM_REG_CTRL,
+-					 ctrl | MCPDM_WD_EN);
+-		}
+-		omap_mcpdm_open_streams(mcpdm);
++		omap_mcpdm_write(mcpdm, MCPDM_REG_CTRL, ctrl | MCPDM_WD_EN);
+ 	}
+ 	mutex_unlock(&mcpdm->mutex);
+ 
 -- 
-1.7.9.5
+1.7.12
 
