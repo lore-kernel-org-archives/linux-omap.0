@@ -1,101 +1,97 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [GIT PULL] remoteproc for 3.7
-Date: Thu, 4 Oct 2012 11:36:44 +0200
-Message-ID: <CAK=Wgbb4uxRQPioho_sGZ2ycrfqzadLgnYQZfQMasRzfo6ohyA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 9/9] ARM/dts: omap5-evm: pinmux configuration for audio
+Date: Thu,  4 Oct 2012 14:57:28 +0300
+Message-ID: <1349351848-12972-10-git-send-email-peter.ujfalusi@ti.com>
+References: <1349351848-12972-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:52509 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755293Ab2JDJhF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 05:37:05 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so503300iea.19
-        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 02:37:04 -0700 (PDT)
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:32835 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755588Ab2JDL4h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 07:56:37 -0400
+Received: by mail-ob0-f174.google.com with SMTP id uo13so333451obb.19
+        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 04:56:36 -0700 (PDT)
+In-Reply-To: <1349351848-12972-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: =?ISO-8859-1?Q?Sjur_Br=E6ndeland?= <sjur.brandeland@stericsson.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, "Gutierrez, Juan" <jgutierrez@ti.com>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, Emil Goode <emilgoode@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Linus,
+u-boot stopped configuring 'non essential' pins recently. The kernel needs
+to configure the mux for audio needs.
+Since the pinmux for these IPs are static let pinctrl to handle the mux
+configuration for.
+Configuring the mux for: twl6040 (audpwron), McPDM, DMIC, McBSP1 and McBSP2.
 
-Please pull remoteproc 3.7 material, thanks.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/boot/dts/omap5-evm.dts | 54 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
-PS - I recently found an annoying typo in the subject of one of the
-patches, but I decided to accept it over doing a rebase.
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index 825e607..c663eba 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -27,6 +27,60 @@
+ 
+ };
+ 
++&omap5_pmx_core {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++			&twl6040_pins
++			&mcpdm_pins
++			&dmic_pins
++			&mcbsp1_pins
++			&mcbsp2_pins
++	>;
++
++	twl6040_pins: pinmux_twl6040_pins {
++		pinctrl-single,pins = <
++			0x18a 0x6	/* perslimbus2_clock.gpio5_145 OUTPUT | MODE6 */
++		>;
++	};
++
++	mcpdm_pins: pinmux_mcpdm_pins {
++		pinctrl-single,pins = <
++			0x142 0x108	/* abe_clks.abe_clks INPUT PULLDOWN | MODE0 */
++			0x15c 0x108	/* abemcpdm_ul_data.abemcpdm_ul_data INPUT PULLDOWN | MODE0 */
++			0x15e 0x108	/* abemcpdm_dl_data.abemcpdm_dl_data INPUT PULLDOWN | MODE0 */
++			0x160 0x118	/* abemcpdm_frame.abemcpdm_frame INPUT PULLUP | MODE0 */
++			0x162 0x108	/* abemcpdm_lb_clk.abemcpdm_lb_clk INPUT PULLDOWN | MODE0 */
++		>;
++	};
++
++	dmic_pins: pinmux_dmic_pins {
++		pinctrl-single,pins = <
++			0x144 0x100	/* abedmic_din1.abedmic_din1 INPUT | MODE0 */
++			0x146 0x100	/* abedmic_din2.abedmic_din2 INPUT | MODE0 */
++			0x148 0x100	/* abedmic_din3.abedmic_din3 INPUT | MODE0 */
++			0x14a 0		/* abedmic_clk1.abedmic_clk1 OUTPUT | MODE0 */
++		>;
++	};
++
++	mcbsp1_pins: pinmux_mcbsp1_pins {
++		pinctrl-single,pins = <
++			0x14c 0x101	/* abedmic_clk2.abemcbsp1_fsx INPUT | MODE1 */
++			0x14e 0x9	/* abedmic_clk3.abemcbsp1_dx OUTPUT PULLDOWN | MODE1 */
++			0x150 0x101	/* abeslimbus1_clock.abemcbsp1_clkx INPUT | MODE0 */
++			0x152 0x109	/* abeslimbus1_data.abemcbsp1_dr INPUT PULLDOWN | MODE1 */
++		>;
++	};
++
++	mcbsp2_pins: pinmux_mcbsp2_pins {
++		pinctrl-single,pins = <
++			0x154 0x108	/* abemcbsp2_dr.abemcbsp2_dr INPUT PULLDOWN | MODE0 */
++			0x156 0x8	/* abemcbsp2_dx.abemcbsp2_dx OUTPUT PULLDOWN | MODE0 */
++			0x158 0x100	/* abemcbsp2_fsx.abemcbsp2_fsx INPUT | MODE0 */
++			0x15a 0x100	/* abemcbsp2_clkx.abemcbsp2_clkx INPUT | MODE0 */
++		>;
++	};
++};
++
+ &mmc1 {
+ 	vmmc-supply = <&vmmcsd_fixed>;
+ 	bus-width = <4>;
+-- 
+1.7.12
 
-The following changes since commit 55d512e245bc7699a8800e23df1a24195dd0=
-8217:
-
-  Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
-tags/remoteproc-for-3.7
-
-for you to fetch changes up to d09f53a735bae43806a77754312a45d3f1198342=
-:
-
-  remoteproc: Fix use of format specifyer (2012-10-02 10:14:43 +0200)
-
-----------------------------------------------------------------
-- Remoteproc Recovery - by Fernando Guzman Lugo - when a remote process=
-or
-  crash is detected, this mechanism will remove all virtio children
-  devices, wait until their drivers let go, hard reset the remote
-  processor and reload the firmware (resulting in the relevant virtio
-  children devices re-added). Essentially the entire software stack
-  is reset, together with the relevant hardware, so users don't have
-  to reset the entire phone.
-- STE Modem driver is added - by Sjur Br=E6ndeland
-- OMAP DSP boot address support is added - by Juan Gutierrez
-- A handful of fixes/cleanups - Sjur Br=E6ndeland, Dan Carpenter, Emil =
-Goode
-
-----------------------------------------------------------------
-Dan Carpenter (3):
-      remoteproc: snprintf() can return more than was printed
-      remoteproc: return -EFAULT on copy_from_user failure
-      remoteproc: fix a potential NULL-dereference on cleanup
-
-Emil Goode (1):
-      remoteproc: Fix use of format specifyer
-
-=46ernando Guzman Lugo (3):
-      remoteproc: add rproc_report_crash function to notify rproc crash=
-es
-      remoteproc: add actual recovery implementation
-      remoteproc: create a 'recovery' debugfs entry
-
-Juan Gutierrez (1):
-      remoteproc/omap: set bootaddr support
-
-Ohad Ben-Cohen (1):
-      remoteproc: select VIRTIO to avoid build breakage
-
-Sjur Br=E6ndeland (3):
-      remoteproc: Add dependency to HAS_DMA
-      remtoteproc: maintain max notifyid
-      remoteproc: Add STE modem driver
-
- Documentation/remoteproc.txt                 |   7 +
- arch/arm/plat-omap/include/plat/remoteproc.h |   2 +
- drivers/remoteproc/Kconfig                   |  14 ++
- drivers/remoteproc/Makefile                  |   1 +
- drivers/remoteproc/omap_remoteproc.c         |   3 +
- drivers/remoteproc/remoteproc_core.c         | 209 +++++++++++++----
- drivers/remoteproc/remoteproc_debugfs.c      |  85 ++++++-
- drivers/remoteproc/remoteproc_internal.h     |   1 +
- drivers/remoteproc/ste_modem_rproc.c         | 322 +++++++++++++++++++=
-++++++++
- include/linux/remoteproc.h                   |  24 ++
- include/linux/ste_modem_shm.h                |  56 +++++
- 11 files changed, 682 insertions(+), 42 deletions(-)
- create mode 100644 drivers/remoteproc/ste_modem_rproc.c
- create mode 100644 include/linux/ste_modem_shm.h
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
