@@ -1,114 +1,76 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: hwmod: align the SmartReflex fck names
-Date: Wed, 03 Oct 2012 17:33:12 -0700
-Message-ID: <87ehlfvzxz.fsf@deeprootsystems.com>
-References: <1349279277-7634-1-git-send-email-j-pihet@ti.com>
-	<1349279277-7634-2-git-send-email-j-pihet@ti.com>
-	<20121003170059.GD4840@atomide.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: [RFC][PATCH v4? 0/7] Adaptive Body-Bias for OMAP
+Date: Wed, 3 Oct 2012 18:26:07 -0700
+Message-ID: <1349313974-5473-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:45191 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964795Ab2JDAdM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 20:33:12 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr4so17004pbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 03 Oct 2012 17:33:11 -0700 (PDT)
-In-Reply-To: <20121003170059.GD4840@atomide.com> (Tony Lindgren's message of
-	"Wed, 3 Oct 2012 10:00:59 -0700")
+Received: from devils.ext.ti.com ([198.47.26.153]:36965 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754093Ab2JDB0g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Oct 2012 21:26:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anton Vorontsov <cbou@mail.ru>, J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
+To: khilman@deeprootsystems.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-Tony Lindgren <tony@atomide.com> writes:
+From: Mike Turquette <mturquette@linaro.org>
 
-> * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [121003 08:48]:
->> @@ -1036,8 +1036,8 @@ static struct omap_clk am33xx_clks[] = {
->>  	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
->>  	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
->>  	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
->> -	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
->> -	CLK(NULL,	"smartreflex1_fck",	&smartreflex1_fck,	CK_AM33XX),
->> +	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_fck,	CK_AM33XX),
->> +	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_AM33XX),
->>  	CLK(NULL,	"timer1_fck",		&timer1_fck,	CK_AM33XX),
->>  	CLK(NULL,	"timer2_fck",		&timer2_fck,	CK_AM33XX),
->>  	CLK(NULL,	"timer3_fck",		&timer3_fck,	CK_AM33XX),
->
-> I think this should be something like this instead:
->
-> 	CLK("smartreflex.0",	"fck",	&smartreflex_mpu_fck,	CK_AM33XX),
-> 	CLK("smartreflex.1",	"fck",	&smartreflex_core_fck,	CK_AM33XX),
->
-> Where the first one is the dev name, the second one is the
-> alias you want to use in the client driver?
+Adaptive Body-Bias ldos are present for some voltage domains starting
+with OMAP3630.  They have three modes of operation:
 
-Actually, the omap_device creation will create this kind of alias for
-you, with the device name populated etc, so adding device names here
-isn't necessary.
+ * Bypass - the default, it just follows the vdd voltage
+ * Foward Body-Bias - applies voltage bias to increase transistor
+   performance at the cost of power.  Used to operate safely at high
+   OPPs
+ * Reverse Body-Bias - applies voltage bias to decrease leakage and save
+   power.  Used to save power at lower OPPs
 
-For omap_devices where drivers are always using clk_get(dev, ...),
-the name in the initial clkdev table here really doesn't matter.
+This series adds the ABB code and per-voltage domain data for OMAP3630
+and OMAP4430.  Newer OMAP4 chips and OMAP5 will need this data populated
+once those platforms have OPP and voltage tables.  The voltage domain
+scaling sequence is modified use these new functions.
 
-However, for core code that needs to do a clk_get(NULL, "name"), then
-this name matters.  In chatting with Paul offline, he mentioned part of
-the CCF conversion will be using clk_get(NULL, ...) on the main_clk
-listed in each hwmod.  For that reason, it's important that this string
-match the name in the hwmod.
+This series build on top my previous series, "Introduce .get_voltage
+callback into voltdm"[1].  While not strictly necessary that series does
+take some steps to eliminate one combination of ABB and VP/VC modes that
+is out-of-spec.
 
-I belive the patch below should make this compatible with any future
-use.
+[1] http://marc.info/?l=linux-omap&m=134931341818379&w=2
 
-Jean, can you fold this into $SUBJECT patch?
+Mike Turquette (7):
+  ARM: omap: add 3630 PRM register definitions
+  ARM: omap: add ABB PRM_IRQSTATUS handlers
+  ARM: omap: Adaptive Body-Bias structures & data
+  ARM: omap: opp: add ABB data to voltage tables
+  ARM: omap: voltage: per-voltage domain ABB data
+  ARM: omap: abb: init & transition functions
+  ARM: omap: voltage: add ABB to voltage scaling
 
-Thanks,
+ arch/arm/mach-omap2/Makefile                  |    8 +-
+ arch/arm/mach-omap2/abb.c                     |  322 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/abb.h                     |   94 ++++++++
+ arch/arm/mach-omap2/abb36xx_data.c            |   39 +++
+ arch/arm/mach-omap2/abb44xx_data.c            |   45 ++++
+ arch/arm/mach-omap2/omap_opp_data.h           |    5 +-
+ arch/arm/mach-omap2/opp3xxx_data.c            |   37 +--
+ arch/arm/mach-omap2/opp4xxx_data.c            |   25 +-
+ arch/arm/mach-omap2/prm-regbits-34xx.h        |   34 +++
+ arch/arm/mach-omap2/prm2xxx_3xxx.c            |   36 +++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h            |    8 +
+ arch/arm/mach-omap2/prm44xx.c                 |   44 ++++
+ arch/arm/mach-omap2/prm44xx.h                 |    4 +
+ arch/arm/mach-omap2/voltage.c                 |   28 ++-
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    3 +
+ arch/arm/plat-omap/include/plat/voltage.h     |    1 +
+ 18 files changed, 699 insertions(+), 37 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/abb.c
+ create mode 100644 arch/arm/mach-omap2/abb.h
+ create mode 100644 arch/arm/mach-omap2/abb36xx_data.c
+ create mode 100644 arch/arm/mach-omap2/abb44xx_data.c
 
-Kevin
+-- 
+1.7.9.5
 
-
-diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
-index 6de3dc7..8a16504 100644
---- a/arch/arm/mach-omap2/clock33xx_data.c
-+++ b/arch/arm/mach-omap2/clock33xx_data.c
-@@ -1034,8 +1034,8 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
- 	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
- 	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
--	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_fck,	CK_AM33XX),
--	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_AM33XX),
-+	CLK(NULL,	"smartreflex_mpu_fck",	&smartreflex_mpu_fck,	CK_AM33XX),
-+	CLK(NULL,	"smartreflex_core_fck",	&smartreflex_core_fck,	CK_AM33XX),
- 	CLK(NULL,	"timer1_fck",		&timer1_fck,	CK_AM33XX),
- 	CLK(NULL,	"timer2_fck",		&timer2_fck,	CK_AM33XX),
- 	CLK(NULL,	"timer3_fck",		&timer3_fck,	CK_AM33XX),
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index a197cf2..191d261 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3447,8 +3447,8 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"atclk_fck",	&atclk_fck,	CK_3XXX),
- 	CLK(NULL,	"traceclk_src_fck", &traceclk_src_fck, CK_3XXX),
- 	CLK(NULL,	"traceclk_fck",	&traceclk_fck,	CK_3XXX),
--	CLK(NULL,	"smartreflex.0",	&smartreflex_mpu_iva_fck,	CK_34XX | CK_36XX),
--	CLK(NULL,	"smartreflex.1",	&smartreflex_core_fck,	CK_34XX | CK_36XX),
-+	CLK(NULL,	"smartreflex_mpu_iva_fck", &smartreflex_mpu_iva_fck,	CK_34XX | CK_36XX),
-+	CLK(NULL,	"smartreflex_core_fck",	&smartreflex_core_fck,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_3XXX),
- 	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 9cc1112..19e0c1e 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3224,8 +3224,8 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"slimbus2_fclk_0",		&slimbus2_fclk_0,	CK_443X),
- 	CLK(NULL,	"slimbus2_slimbus_clk",		&slimbus2_slimbus_clk,	CK_443X),
- 	CLK(NULL,	"slimbus2_fck",			&slimbus2_fck,	CK_443X),
--	CLK(NULL,	"smartreflex.0",		&smartreflex_core_fck,	CK_443X),
--	CLK(NULL,	"smartreflex.1",		&smartreflex_iva_fck,	CK_443X),
-+	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
-+	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_iva_fck,	CK_443X),
- 	CLK(NULL,	"smartreflex.2",		&smartreflex_mpu_fck,	CK_443X),
- 	CLK(NULL,	"timer1_fck",			&timer1_fck,	CK_443X),
- 	CLK(NULL,	"timer10_fck",			&timer10_fck,	CK_443X),
