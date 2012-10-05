@@ -1,45 +1,77 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/3] ocp2scp: add non-dt support
-Date: Fri, 5 Oct 2012 15:37:05 +0530
-Message-ID: <1349431628-2819-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 2/3] ARM: OMAP4: add _dev_attr_ to ocp2scp for representing usb_phy
+Date: Fri, 5 Oct 2012 15:37:07 +0530
+Message-ID: <1349431628-2819-3-git-send-email-kishon@ti.com>
+References: <1349431628-2819-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1349431628-2819-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, kishon@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch series allows ocp2scp driver to create its child devices
-from the platform data.
+In order to reflect devices(usb_phy) attached to ocp2scp bus, ocp2scp
+is assigned a device attribute to represent the attached devices.
 
-In omap platforms, usb phy is connected to ocp2scp and usb phy is needed
-for MUSB to be functional. When ocp2scp driver was added, it had only dt
-support which means it wont create usb phy devices for non-dt boot.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-This patch series adds non-dt support to ocp2scp and this series is needed
-for getting MUSB functioanl in non-dt boot.
-
-This patch series is rebased on linux-next. Let me know if it had to be
-based on some other tree.
-
-Did a quick testing for g_zero enumeration in panda board.
-
-Kishon Vijay Abraham I (3):
-  drivers: bus: ocp2scp: add pdata support
-  ARM: OMAP4: add _dev_attr_ to ocp2scp for representing usb_phy
-  ARM: OMAP: ocp2scp: create omap device for ocp2scp
-
- arch/arm/mach-omap2/devices.c              |   72 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28 +++++++++++
- drivers/bus/omap-ocp2scp.c                 |   67 ++++++++++++++++++++++++--
- include/linux/platform_data/omap_ocp2scp.h |   31 ++++++++++++
- 4 files changed, 195 insertions(+), 3 deletions(-)
- create mode 100644 include/linux/platform_data/omap_ocp2scp.h
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 652d028..cf579b5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -21,6 +21,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/power/smartreflex.h>
++#include <linux/platform_data/omap_ocp2scp.h>
+ 
+ #include <plat/omap_hwmod.h>
+ #include <plat/i2c.h>
+@@ -2681,6 +2682,32 @@ static struct omap_hwmod_class omap44xx_ocp2scp_hwmod_class = {
+ 	.sysc	= &omap44xx_ocp2scp_sysc,
+ };
+ 
++/* ocp2scp dev_attr */
++static struct resource omap44xx_usb_phy_and_pll_addrs[] = {
++	{
++		.name		= "usb_phy",
++		.start		= 0x4a0ad080,
++		.end		= 0x4a0ae000,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		/* XXX: Remove this once control module driver is in place */
++		.name		= "ctrl_dev",
++		.start		= 0x4a002300,
++		.end		= 0x4a002303,
++		.flags		= IORESOURCE_MEM,
++	},
++	{ }
++};
++
++static struct omap_ocp2scp_dev ocp2scp_dev_attr[] = {
++	{
++		.drv_name       = "omap-usb2",
++		.res		= omap44xx_usb_phy_and_pll_addrs,
++	},
++	{ }
++};
++
+ /* ocp2scp_usb_phy */
+ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod = {
+ 	.name		= "ocp2scp_usb_phy",
+@@ -2694,6 +2721,7 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod = {
+ 			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
++	.dev_attr	= ocp2scp_dev_attr,
+ };
+ 
+ /*
 -- 
 1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
