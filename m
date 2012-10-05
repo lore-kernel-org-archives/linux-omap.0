@@ -1,125 +1,64 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: OMAP4 clock/pm fixes [was: [PATCH v4 2/3] ARM: omap: hwmod: get
- rid of all omap_clk_get_by_name usage
-Date: Fri, 5 Oct 2012 15:16:49 +0530
-Message-ID: <506EAC89.2070307@ti.com>
-References: <1346230576-20004-1-git-send-email-rnayak@ti.com> <1346230576-20004-3-git-send-email-rnayak@ti.com> <CAJOA=zM2sFsrdohooKp1+zsV_AK6dKnoN37+Gs2oskBUK4J00w@mail.gmail.com> <503F26A4.3050902@ti.com> <503F5517.4010100@ti.com> <1346344933.2327.43.camel@deskari> <5040586D.2020406@ti.com> <1346397309.18766.5.camel@lappyti> <504073CF.6010804@ti.com> <1346401643.32389.4.camel@deskari> <504075A0.7010708@ti.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next,
+ working on 3.2
+Date: Fri, 5 Oct 2012 12:01:46 +0200
+Message-ID: <CAAwP0s2HTZNYP2qNkqnus9veh1qXH-V3gDU_qBBxRR6o2W+=OA@mail.gmail.com>
+References: <20120504155255.140b4e3f@skate> <87397fewso.fsf@ti.com>
+ <20120504175124.GI5613@atomide.com> <878vh78q7b.fsf@ti.com>
+ <20121004180747.3b342904@skate> <87vcequpf7.fsf@deeprootsystems.com>
+ <20121004221118.4316181d@skate> <CAKQ2WVp71=ULs_yK7Tkuo=8F4hATq0YCQ6RtV0ziJQQmnrib_g@mail.gmail.com>
+ <20121004225704.0c08c862@skate> <87wqz5u97g.fsf@deeprootsystems.com>
+ <CAAwP0s1+_GT=TtVKg8ARtfqDYm_AZ-D34KG_j3SLWz0yzZKJtQ@mail.gmail.com> <20121005101009.7ed1fe85@skate>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33822 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755213Ab2JEJq6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Oct 2012 05:46:58 -0400
-In-Reply-To: <504075A0.7010708@ti.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:43476 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755227Ab2JEKCH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 06:02:07 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so1519612oag.19
+        for <linux-omap@vger.kernel.org>; Fri, 05 Oct 2012 03:02:06 -0700 (PDT)
+In-Reply-To: <20121005101009.7ed1fe85@skate>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Turquette, Mike" <mturquette@ti.com>
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@iseebcn.com>, linux-omap@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Michael Opdenacker <michael.opdenacker@free-electrons.com>
 
-Hi,
+On Fri, Oct 5, 2012 at 10:10 AM, Thomas Petazzoni
+<thomas.petazzoni@free-electrons.com> wrote:
+>
+> On Fri, 5 Oct 2012 09:32:07 +0200, Javier Martinez Canillas wrote:
+>
+>> As Enric said, u-boot has SPL and NAND support for IGEP since
+>> v2012.10-rc1. I just tried kernel a 3.6 with u-boot v2012.10-rc2 and
+>> it works for me.
+>
+> Ok, I'll try this out.
+>
+>> But I agree that the kernel shouldn't do any assumptions about the
+>> bootloader setting correctly the omap mux. Could you please share your
+>> bootloader that makes the kernel to fail (or your IGEP NAND patches on
+>> top of u-boot U-boot 2011.12) so I can reproduce the issue and try to
+>> fix it?
+>
+> Ok, I'm using the X-Loader from git://git.igep.es/pub/scm/x-loader.git,
+> tag v1.4.4-3, on top of which I apply
+> http://git.free-electrons.com/training-materials/plain/lab-data/sysdev/u-boot/x-loader-1.4.4-3-igep-nand-support.patch
+> to add support for the NAND-based IGEPv2 rev6.
+>
+> In terms of U-Boot, I use U-Boot 2011.12, on top of which I apply
+> http://git.free-electrons.com/training-materials/plain/lab-data/sysdev/u-boot/u-boot-2011.12-igep-nand-support.patch
+> to add support for the NAND-based IGEPv2 rev6.
+>
+> To make things easier if you don't need to rebuild those, I've put
+> online pre-built binaries of X-Loader and U-Boot I'm using:
+> http://free-electrons.com/~thomas/pub/igep-serial-problem/.
+>
+> Thanks,
+>
+> Thomas
 
-On Friday 31 August 2012 01:58 PM, Archit Taneja wrote:
-> On Friday 31 August 2012 01:57 PM, Tomi Valkeinen wrote:
->> On Fri, 2012-08-31 at 13:50 +0530, Archit Taneja wrote:
->>> On Friday 31 August 2012 12:45 PM, Tomi Valkeinen wrote:
->>>> On Fri, 2012-08-31 at 11:53 +0530, Archit Taneja wrote:
->>>>
->>>>> The only little problem was that during bootup, when hwmods are setup,
->>>>> only the 'parent' hwmod was able to get reset properly, all the other
->>>>> 'child' hwmods don't have modulemode bits tied to them, and hence
->>>>> weren't able to reset. So we got some error prints.
->>>>>
->>>>> Once DSS driver kicks in, the driver ensures the parent is enabled for
->>>>> any child to be enabled, so we don't face the issue again.
->>>>>
->>>>> So, if DSS driver is not built in, and if the bootloader left DSS in a
->>>>> bad state, the DSS clocks might remain messed up all the time since
->>>>> hwmod fwk wasn't able to reset them.
->>>>>
->>>>> I think this is why we didn't proceed with remove "dss_fck" as a slave
->>>>> clock. If this issue is minor, we could go ahead and remove it.
->>>>
->>>> I wonder if we could handle this with a custom reset function. We
->>>> already have a reset func for dss core. If I remember right, the main
->>>> point for that is the fact that omap4 doesn't have a softreset for dss
->>>> core, so we manually write the default values to registers.
->>>>
->>>> For omap2/3 this would be simple: skip the resets for all other dss
->>>> submodules, and dss core's reset would enable all the clocks and set
->>>> the
->>>> softreset bit. This would reset all the submodules also.
->>>>
->>>> Omap4 is more tricky. I guess we'd need to enable all the clocks, clear
->>>> manually dss core's registers, and then set softreset bits in all the
->>>> submodules. So in this case dss core would need to have information
->>>> about the other submodules.
->>>
->>> The is a good idea. I don't clearly understand your approach though. Are
->>> you saying we have a custom reset function for only dss core? And reset
->>> the submodules in it manually?
->>
->> Yes.
->>
->>> An alternative approach would be to implement custom reset functions for
->>> each submodule(or each hwmod), and in the beginning of every reset
->>> function, add a hack to enable MODULEMODE bits(since we don't want hwmod
->>> fwk to touch MODULEMODE for the DSS submodules), and then set the soft
->>> reset bits.
->>
->> I thought about that also. We'd need reset functions for all of them,
->> and for omap2/3 we'd just reset the submodules again as they have
->> already been reset with the dss core reset.
->>
->> The dss submodule resets are a bit linked. For omap2/3 the connection is
->> obvious as dss core reset resets also the submodules, and for omap4 we
->> have this requirement for the modulemode. That's why I though it'd be
->> perhaps cleaner to handle the reset of the DSS block as a whole, in one
->> place.
->>
->>> Your approach would ensure that we get a clean reset of DSS, but it
->>> would still give the annoying prints when each of the submodule tries to
->>> reset itself.
->>
->> The other submodules would not be reset by the hwmod framework at all,
->> so there wouldn't be prints. I think there's a flag for that.
+Perfect, I'll try it and let you know if I find a fix for the issue.
 
-Sorry for bringing up an old thread. I was working on cleaning up the 
-OMAP4 DSS related clock/pm issues, hence brought it up.
-
-We were discussing here on how to setting up and reset the OMAP4 DSS 
-submodules correctly without tying the MODULEMODE bits to the 
-corresponding hwmods.
-
-Tomi, your suggestion was to do soft resets for the submodules manually 
-in the dss_core hwmod's custom reset function itself, and use the flag 
-HWMOD_INIT_NO_RESET to prevent _reset() being called.
-
-However, this won't still resolve the issue of the errors we see a 
-bootup. The function _setup_reset() looks like this:
-
-static int _setup_reset(struct omap_hwmod *oh)
-{
-	...
-	r = _enable(oh);
-	if (r) {
-                  pr_warning("omap_hwmod: %s: cannot be enabled for
-			reset (%d)\n", oh->name, oh->_state);
-                         return -EINVAL;
-                 }
-	...
-
-	if (!(oh->flags & HWMOD_INIT_NO_RESET))
-		r = _reset(oh);
-
-	...
-}
-
-So, even if we have ask hwmod not to reset the DSS submodules, it will 
-still try to enable them, and we can't enable them since MODULEMODE 
-isn't tied to them. I don't see how we can get a clean reset done for 
-the DSS submodules without making some changes in hwmod framework.
-
-Archit
-
+Thanks a lot!
+Javier
