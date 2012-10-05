@@ -1,74 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in
- HYP mode
-Date: Fri, 5 Oct 2012 13:08:22 -0700
-Message-ID: <20121005200822.GQ3874@atomide.com>
-References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com>
- <1347036934-8519-3-git-send-email-marc.zyngier@arm.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH v2 0/7] uio_pruss cleanup and platform support
+Date: Fri, 5 Oct 2012 17:28:26 -0400
+Message-ID: <20121005212826.GN11149@beef>
+References: <1348861072-14507-1-git-send-email-mporter@ti.com>
+ <20121003150058.GB11180@beef>
+ <1BAFE6F6C881BF42822005164F1491C33EA9C6B7@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57779 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754021Ab2JEUIa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 16:08:30 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1347036934-8519-3-git-send-email-marc.zyngier@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EA9C6B7@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Russell King <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Linux OMAP List <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, Dave Martin <dave.martin@linaro.org>, Nicolas Pitre <nico@fluxnic.net>, linux-omap@vger.kernel.org
 
-Hi,
-
-* Marc Zyngier <marc.zyngier@arm.com> [120907 10:04]:
-> From: Dave Martin <dave.martin@linaro.org>
+On Fri, Oct 05, 2012 at 04:43:56AM +0000, Hebbar, Gururaja wrote:
+> Matt,
 > 
-> This patch does two things:
+> On Wed, Oct 03, 2012 at 20:30:58, Porter, Matt wrote:
+> > On Fri, Sep 28, 2012 at 03:37:45PM -0400, Matt Porter wrote:
+> > > Changes since v1:
+> > > 	- Replaced uio_pruss private SRAM API use with genalloc
+> > > 	- Added DA850 platform device and clock support
+> > > 	- Added DA850 L3 RAM gen_pool support
+> > > 	- Split out DT binding
+> > > 
+> > > This series enables uio_pruss on both DA850 and AM33xx. The driver
+> > > previously was not enabled by any platform and the private SRAM API
+> > > was accessing an invalid SRAM bank for use on DA850. For AM33xx,
+> > > DT, pinctrl, and runtime PM support are added since AM33xx only
+> > > boots via DT.
+> > 
+> > I'm dropping AM33xx/OMAP support from v3 for this series 
 > 
->   * Ensure that asynchronous aborts are masked at kernel entry.
->     The bootloader should be masking these anyway, but this reduces
->     the damage window just in case it doesn't.
+> Just for my clarification, I believe you will be taking up AM33xx/OMAP 
+> SRAM support later once you have completed supporting DaVinci. Right?
+
+There's no SRAM support for uio_pruss to be handled for AM33xx, but I
+will be posting a separate series with the DT portion and some alternate
+hard reset handling implementation. I find the private OMAP reset api to
+be very ugly but we might have to go with that for now. I didn't want
+the OMAP hard reset portion to hold up the more important part of this
+cleanup.
+
+-Matt
+
+> > since the
+> > focus has turned to fixing Davinci SRAM to provide genalloc support
+> > and the associated use of that in the driver.
+> > 
+> > I'll have a separate series with AM33xx support since dealing cleanly
+> > with external resets on OMAP is a bigger issue.
+> > 
+> > -Matt
+> > _______________________________________________
+> > Davinci-linux-open-source mailing list
+> > Davinci-linux-open-source@linux.davincidsp.com
+> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+> > 
 > 
->   * Enter svc mode via exception return to ensure that CPU state is
->     properly serialised.  This does not matter when switching from
->     an ordinary privileged mode ("PL1" modes in ARMv7-AR rev C
->     parlance), but it potentially does matter when switching from a
->     another privileged mode such as hyp mode.
 > 
-> This should allow the kernel to boot safely either from svc mode or
-> hyp mode, even if no support for use of the ARM Virtualization
-> Extensions is built into the kernel.
-> 
-> Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-
-Just bisected this down in linux-next for breaking booting of
-my omap2420 ARMv6 based n8x0..
-
-> --- a/arch/arm/kernel/head.S
-> +++ b/arch/arm/kernel/head.S
-> @@ -83,8 +83,12 @@ ENTRY(stext)
->   THUMB(	.thumb			)	@ switch to Thumb now.
->   THUMB(1:			)
->  
-> -	setmode	PSR_F_BIT | PSR_I_BIT | SVC_MODE, r9 @ ensure svc mode
-> -						@ and irqs disabled
-> +#ifdef CONFIG_ARM_VIRT_EXT
-> +	bl	__hyp_stub_install
-> +#endif
-> +	@ ensure svc mode and all interrupts masked
-> +	safe_svcmode_maskall r9
-> +
->  	mrc	p15, 0, r9, c0, c0		@ get processor id
->  	bl	__lookup_processor_type		@ r5=procinfo r9=cpuid
->  	movs	r10, r5				@ invalid processor (r5=0)?
-
-..and looks like undoing this part fixes it. Any ideas?
-
-I quickly tried disabling ARCH_OMAP3 and ARCH_OMAP4 so it's
-ARMv6 but that does not help.
-
-Regards,
-
-Tony
+> Regards, 
+> Gururaja
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
