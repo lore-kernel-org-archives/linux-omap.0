@@ -1,70 +1,95 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 07/16] ARM: OMAP: Make plat/sram.h local to plat-omap
-Date: Fri, 5 Oct 2012 08:58:51 -0500
-Message-ID: <506EE79B.8040507@ti.com>
-References: <20121004213950.26676.21898.stgit@muffinssi.local> <20121004220449.26676.54281.stgit@muffinssi.local>
+From: Ivan Djelic <ivan.djelic@parrot.com>
+Subject: Re: [PATCH 4/4] mtd: nand: omap2: Add data correction support
+Date: Fri, 5 Oct 2012 16:23:38 +0200
+Message-ID: <20121005142338.GA7199@parrot.com>
+References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
+ <1349274589-11389-5-git-send-email-avinashphilip@ti.com>
+ <20121003192044.GB27502@parrot.com>
+ <518397C60809E147AF5323E0420B992E3E9B8A65@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44852 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752056Ab2JEN7C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Oct 2012 09:59:02 -0400
-In-Reply-To: <20121004220449.26676.54281.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <518397C60809E147AF5323E0420B992E3E9B8A65@DBDE01.ent.ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Philip, Avinash" <avinashphilip@ti.com>
+Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Tony,
-
-On 10/04/2012 05:04 PM, Tony Lindgren wrote:
-> We can move this from plat to be local to plat-omap
-> for common ARM zImage support.
+On Fri, Oct 05, 2012 at 09:51:50AM +0100, Philip, Avinash wrote:
+> On Thu, Oct 04, 2012 at 15:51:03, Philip, Avinash wrote:
+> > On Thu, Oct 04, 2012 at 00:50:45, Ivan Djelic wrote:
+> > > On Wed, Oct 03, 2012 at 03:29:49PM +0100, Philip, Avinash wrote:
+> > > > ELM module can be used for error correction of BCH 4 & 8 bit. Also
+> > > > support read & write page in one shot by adding custom read_page &
+> > > > write_page methods. This helps in optimizing code.
+> > > > 
+> > > > New structure member "is_elm_used" is added to know the status of
+> > > > whether the ELM module is used for error correction or not.
+> > > > 
+> > > > Note:
+> > > > ECC layout of BCH8 uses 14 bytes for 512 byte of data to make compatible
+> > > > with RBL ECC layout, even though the requirement was only 13 byte. This
+> > > > results a common ecc layout across RBL, U-boot & Linux.
+> > > > 
+> > > 
+> > > See a few comments below,
+> > > 
+> > > (...)
+> > > > +static int omap_elm_correct_data(struct mtd_info *mtd, u_char *dat,
+> > > > +                               u_char *read_ecc, u_char *calc_ecc)
+> > > > +{
+> > > > +       struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+> > > > +                       mtd);
+> > > > +       int eccsteps = info->nand.ecc.steps;
+> > > > +       int i , j, stat = 0;
+> > > > +       int eccsize, eccflag, size;
+> > > > +       struct elm_errorvec err_vec[ERROR_VECTOR_MAX];
+> > > > +       u_char *ecc_vec = calc_ecc;
+> > > > +       enum bch_ecc type;
+> > > > +       bool is_error_reported = false;
+> > > > +
+> > > > +       /* initialize elm error vector to zero */
+> > > > +       memset(err_vec, 0, sizeof(err_vec));
+> > > > +       if (info->nand.ecc.strength == BCH8_MAX_ERROR) {
+> > > > +               size = BCH8_SIZE;
+> > > > +               eccsize = BCH8_ECC_OOB_BYTES;
+> > > > +               type = BCH8_ECC;
+> > > > +       } else {
+> > > > +               size = BCH4_SIZE;
+> > > > +               eccsize = BCH4_SIZE;
+> > > > +               type = BCH4_ECC;
+> > > > +       }
+> > > > +
+> > > > +       for (i = 0; i < eccsteps ; i++) {
+> > > > +               eccflag = 0;    /* initialize eccflag */
+> > > > +
+> > > > +               for (j = 0; (j < eccsize); j++) {
+> > > > +                       if (read_ecc[j] != 0xFF) {
+> > > > +                               eccflag = 1;    /* data area is flashed */
+> > > 
+> > > Just a reminder: this way of checking if a page has been programmed is not robust to bitflips,
+> > > so you may get into trouble with UBIFS on a fairly recent device.
 > 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap1/clock.c                  |    3 -
->  arch/arm/mach-omap1/clock_data.c             |    3 -
->  arch/arm/mach-omap1/devices.c                |    2 
->  arch/arm/mach-omap1/pm.c                     |    3 -
->  arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |    3 -
->  arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    3 -
->  arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |    3 -
->  arch/arm/mach-omap2/io.c                     |    3 -
->  arch/arm/mach-omap2/omap4-common.c           |    4 -
->  arch/arm/mach-omap2/pm24xx.c                 |    3 -
->  arch/arm/mach-omap2/pm34xx.c                 |    3 -
->  arch/arm/mach-omap2/sdrc.c                   |    2 
->  arch/arm/mach-omap2/sdrc2xxx.c               |    2 
->  arch/arm/mach-omap2/sleep34xx.S              |    2 
->  arch/arm/plat-omap/common.h                  |    2 
->  arch/arm/plat-omap/include/plat/sram.h       |  105 -------------------------
->  arch/arm/plat-omap/sram.c                    |    1 
->  arch/arm/plat-omap/sram.h                    |  109 +++++++++++++++++++++++++-
->  18 files changed, 130 insertions(+), 126 deletions(-)
->  delete mode 100644 arch/arm/plat-omap/include/plat/sram.h
+> Sorry I missed this point.
 > 
-> diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-> index 638f407..b15d4ee 100644
-> --- a/arch/arm/mach-omap1/clock.c
-> +++ b/arch/arm/mach-omap1/clock.c
-> @@ -24,11 +24,12 @@
->  #include <plat/cpu.h>
->  #include <plat/usb.h>
->  #include <plat/clock.h>
-> -#include <plat/sram.h>
->  #include <plat/clkdev_omap.h>
->  
->  #include <mach/hardware.h>
->  
-> +#include "../plat-omap/sram.h"
+> Here we were checking data in spare area (only in ecc layout 14*4 for BCH8) is 0xFF. If all data
+> in spare area is 0xFF, conclude that the page is erased & no need of error correction. In case
+> of bit flip present in spare area, page will be reported as uncorrectable.
+> But I am not understand understand " trouble with UBIFS on a fairly recent device".
+> Can you little elaborativ
 
-Any reason why you did not put this in
-arch/arm/plat-omap/include/plat-omap/ like we were discussing for dma
-and dmtimers headers? Then it can be just "#include <plat-omap/sram.h>".
-Just curious ...
+There are at least 2 potential problems when reading an erased page with bitflips:
 
-Cheers
-Jon
+1. bitflip in data area and no bitflip in spare area (all 0xff)
+Your code will not perform any ECC correction.
+UBIFS does not like finding bitflips in empty pages, see for instance
+http://lists.infradead.org/pipermail/linux-mtd/2012-March/040328.html.
+
+2. bitflip in ECC bytes in spare area
+Your code will report an uncorrectable error upon reading; if this happens while reading a partially programmed UBI block,
+I guess you will lose data.
+
+BR,
+--
+Ivan
