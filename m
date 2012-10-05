@@ -1,46 +1,65 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP: SmartReflex: pass device dependent data via platform data
-Date: Thu, 04 Oct 2012 16:40:20 -0700
-Message-ID: <87r4pdst5n.fsf@deeprootsystems.com>
-References: <1349369231-25204-1-git-send-email-j-pihet@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: MUSB regression in linux next at least for pandboard
+Date: Thu, 4 Oct 2012 18:39:10 -0700
+Message-ID: <20121005013910.GI3874@atomide.com>
+References: <20121004173107.GD3874@atomide.com>
+ <20121004175742.GB9702@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:33661 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752260Ab2JDXkS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 19:40:18 -0400
-Received: by mail-da0-f46.google.com with SMTP id n41so470811dak.19
-        for <linux-omap@vger.kernel.org>; Thu, 04 Oct 2012 16:40:18 -0700 (PDT)
-In-Reply-To: <1349369231-25204-1-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Thu, 4 Oct 2012 18:47:09 +0200")
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49058 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756000Ab2JEBjN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Oct 2012 21:39:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20121004175742.GB9702@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Anton Vorontsov <cbou@mail.ru>, J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org
 
-jean.pihet@newoldbits.com writes:
+* Felipe Balbi <balbi@ti.com> [121004 11:04]:
+> Hi,
+> 
+> On Thu, Oct 04, 2012 at 10:31:08AM -0700, Tony Lindgren wrote:
+> > Hi Felipe & Kishon,
+> > 
+> > Looks like musb is broken at least on pandaboard es
+> > in current linux next while it works with v3.6:
+> > 
+> > [    1.933074] musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
+> > [    1.939422] unable to find transceiver of type USB2 PHYrouping on.  Total pages: 251648
+> > [    1.945190] HS USB OTG: no transceiver configured
+> > [    1.950134] musb-hdrc musb-hdrc.0: musb_init_controller failed with status -19
+> > [    1.958160] couldn't find an available UDC
+> > 
+> > I do have CONFIG_OMAP_USB2 set.
+> > 
+> > Note that we won't be able to flip omap4 over to be
+> > device tree only probably until v3.9 because of the
+> > bindings we're still missing from usability point of
+> > view. So this regression should be fixed.
+> 
+> I see. Kishon, can you cook a patch adding platform_data until we
+> actually move to DT-only for OMAP4 ?
+> 
+> > Also on the EHCI port, I've seen issues where unplugging
+> > the cable hangs kernel with an infinite loop. But that happens
+> > only occasionally, sorry does not seem to happen right
+> > now so no output to paste here. Or maybe this issue
+> > has already been fixed?
+> 
+> Keshava, would you have time to look into this for this -rc cycle ?
 
-> From: Jean Pihet <j-pihet@ti.com>
->
-> Remove the device dependent code (ex. cpu_is_xxx()) and settings
-> from the driver code and instead pass them via the platform
-> data. This allows a clean separation of the driver code and the platform
-> code, as required by the move of the platform header files to
-> include/linux/platform_data.
->
-> Note about the smartreflex functional clocks: the smartreflex fclks
-> are derived from sys_clk and have the same name as the main_clk from
-> the hwmod entry, in order for the SmartReflex driver to request the
-> fclk (using clk_get(dev, "fck")).
->
-> Based on mainline 3.6.0. Boot tested on OMAP3&4 platforms.
+Also, can you guys also please do a patch to move plat/usb.h to
+include/linux/platform_data/usb-omap.h that only contains
+platform data? The init functions should be in local usb.h under
+arch/arm/*omap*/*. Then also please remove the cpu_is_omap usage
+from drivers/mfd/omap-usb-host.c if not done already.
 
-Thanks, queuing this version for v3.8 (branch: for_3.8/pm/sr)
+These are needed to make plat/cpu.h local to mach-omap*
+for the ARM common zImage support.
 
-Kevin
+Thanks,
 
-P.S. in the future, It helps reviewers and maintainers if there's some
-versioning in the patches (e.g. PATCH v3 0/2]), especially when updated
-versions come in quick succession.  Thanks.
-
+Tony
