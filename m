@@ -1,281 +1,87 @@
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Subject: Re: [PATCH 14/24] USB: ohci: merge ohci_finish_controller_resume
- with ohci_resume
-Date: Fri, 5 Oct 2012 09:42:00 +0200
-Message-ID: <506E8F48.8040205@atmel.com>
-References: <1349363872-27004-1-git-send-email-florian@openwrt.org> <1349363872-27004-15-git-send-email-florian@openwrt.org>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next,
+ working on 3.2
+Date: Fri, 5 Oct 2012 10:06:19 +0200
+Message-ID: <20121005100619.13345be0@skate>
+References: <20120504155255.140b4e3f@skate>
+	<87397fewso.fsf@ti.com>
+	<20120504175124.GI5613@atomide.com>
+	<878vh78q7b.fsf@ti.com>
+	<20121004180747.3b342904@skate>
+	<87vcequpf7.fsf@deeprootsystems.com>
+	<20121004221118.4316181d@skate>
+	<877gr5vnv0.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1349363872-27004-15-git-send-email-florian@openwrt.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <florian@openwrt.org>
-Cc: stern@rowland.harvard.edu, Kukjin Kim <kgene.kim@samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Lennert Buytenhek <kernel@wantstofly.org>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.free-electrons.com ([88.190.12.23]:49493 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519Ab2JEIGd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 04:06:33 -0400
+In-Reply-To: <877gr5vnv0.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Enric Balletbo i Serra <eballetbo@iseebcn.com>, Gregory =?UTF-8?B?Q2zDqW1lbnQ=?= <gregory.clement@free-electrons.com>, Michael Opdenacker <michael.opdenacker@free-electrons.com>, Maxime Ripard <maxime.ripard@free-electrons.com>
 
-On 10/04/2012 05:17 PM, Florian Fainelli :
-> Merge ohci_finish_controller_resume with ohci_resume as suggested by Alan
-> Stern. Since ohci_finish_controller_resume no longer exists, update the
-> various OHCI drivers to call ohci_resume() instead. Some drivers used to set
-> themselves the bit HCD_FLAG_HW_ACCESSIBLE, which is now handled by
-> ohci_resume().
+Kevin,
+
+On Thu, 04 Oct 2012 16:06:27 -0700, Kevin Hilman wrote:
+
+> > It seems they are exactly the same, unless my eyes missed
+> > something, of course.
 > 
-> Signed-off-by: Florian Fainelli <florian@openwrt.org>
-> ---
->  drivers/usb/host/ohci-at91.c     |    2 +-
+> The example I gave was only for the UART3 RX, you should dump the
+> UART3 TX pins as.  Using the omap_mux debugfs, you can see all of the
+> potential pins where uart3_tx can be routed:
 
-Seems ok for AT91, so
+Well, UART3 TX seems to be working fine. Do RX and TX have mutual
+influence in terms of pin muxing?
 
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-
-Thanks Florian, bye,
-
->  drivers/usb/host/ohci-ep93xx.c   |    2 +-
->  drivers/usb/host/ohci-exynos.c   |    5 +----
->  drivers/usb/host/ohci-hcd.c      |   41 +++++++++++++++++++++++++++++++++++--
->  drivers/usb/host/ohci-hub.c      |   42 --------------------------------------
->  drivers/usb/host/ohci-omap.c     |    2 +-
->  drivers/usb/host/ohci-platform.c |    2 +-
->  drivers/usb/host/ohci-pxa27x.c   |    2 +-
->  drivers/usb/host/ohci-s3c2410.c  |    3 +--
->  drivers/usb/host/ohci-spear.c    |    2 +-
->  drivers/usb/host/ohci-tmio.c     |    2 +-
->  11 files changed, 48 insertions(+), 57 deletions(-)
+> Yes, that tells me where UART3 is expected to be mux'd on the board.
+> So you can ignore the dss_data* and husb_data* files above and focus
+> on uart3*
 > 
-> diff --git a/drivers/usb/host/ohci-at91.c b/drivers/usb/host/ohci-at91.c
-> index 0bf72f9..908d84a 100644
-> --- a/drivers/usb/host/ohci-at91.c
-> +++ b/drivers/usb/host/ohci-at91.c
-> @@ -705,7 +705,7 @@ static int ohci_hcd_at91_drv_resume(struct platform_device *pdev)
->  	if (!clocked)
->  		at91_start_clock();
->  
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  	return 0;
->  }
->  #else
-> diff --git a/drivers/usb/host/ohci-ep93xx.c b/drivers/usb/host/ohci-ep93xx.c
-> index dbfbd1d..a982f04 100644
-> --- a/drivers/usb/host/ohci-ep93xx.c
-> +++ b/drivers/usb/host/ohci-ep93xx.c
-> @@ -194,7 +194,7 @@ static int ohci_hcd_ep93xx_drv_resume(struct platform_device *pdev)
->  
->  	ep93xx_start_hc(&pdev->dev);
->  
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  	return 0;
->  }
->  #endif
-> diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-exynos.c
-> index fc3091b..53c5a989 100644
-> --- a/drivers/usb/host/ohci-exynos.c
-> +++ b/drivers/usb/host/ohci-exynos.c
-> @@ -252,10 +252,7 @@ static int exynos_ohci_resume(struct device *dev)
->  	if (pdata && pdata->phy_init)
->  		pdata->phy_init(pdev, S5P_USB_PHY_HOST);
->  
-> -	/* Mark hardware accessible again as we are out of D3 state by now */
-> -	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
-> -
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  
->  	return 0;
->  }
-> diff --git a/drivers/usb/host/ohci-hcd.c b/drivers/usb/host/ohci-hcd.c
-> index 5d30992..568bdb3 100644
-> --- a/drivers/usb/host/ohci-hcd.c
-> +++ b/drivers/usb/host/ohci-hcd.c
-> @@ -1003,13 +1003,50 @@ static int __maybe_unused ohci_suspend(struct usb_hcd *hcd, bool do_wakeup)
->  
->  static int __maybe_unused ohci_resume(struct usb_hcd *hcd, bool hibernated)
->  {
-> +	struct ohci_hcd		*ohci = hcd_to_ohci(hcd);
-> +	int			port;
-> +	bool			need_reinit = false;
-> +
->  	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
->  
->  	/* Make sure resume from hibernation re-enumerates everything */
->  	if (hibernated)
-> -		ohci_usb_reset(hcd_to_ohci(hcd));
-> +		ohci_usb_reset(ohci);
-> +
-> +	/* See if the controller is already running or has been reset */
-> +	ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
-> +	if (ohci->hc_control & (OHCI_CTRL_IR | OHCI_SCHED_ENABLES)) {
-> +		need_reinit = true;
-> +	} else {
-> +		switch (ohci->hc_control & OHCI_CTRL_HCFS) {
-> +		case OHCI_USB_OPER:
-> +		case OHCI_USB_RESET:
-> +			need_reinit = true;
-> +		}
-> +	}
-> +
-> +	/* If needed, reinitialize and suspend the root hub */
-> +	if (need_reinit) {
-> +		spin_lock_irq(&ohci->lock);
-> +		ohci_rh_resume(ohci);
-> +		ohci_rh_suspend(ohci, 0);
-> +		spin_unlock_irq(&ohci->lock);
-> +	}
-> +
-> +	/* Normally just turn on port power and enable interrupts */
-> +	else {
-> +		ohci_dbg(ohci, "powerup ports\n");
-> +		for (port = 0; port < ohci->num_ports; port++)
-> +			ohci_writel(ohci, RH_PS_PPS,
-> +					&ohci->regs->roothub.portstatus[port]);
-> +
-> +		ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrenable);
-> +		ohci_readl(ohci, &ohci->regs->intrenable);
-> +		msleep(20);
-> +	}
-> +
-> +	usb_hcd_resume_root_hub(hcd);
->  
-> -	ohci_finish_controller_resume(hcd);
->  	return 0;
->  }
->  
-> diff --git a/drivers/usb/host/ohci-hub.c b/drivers/usb/host/ohci-hub.c
-> index 2f3619e..db09dae 100644
-> --- a/drivers/usb/host/ohci-hub.c
-> +++ b/drivers/usb/host/ohci-hub.c
-> @@ -316,48 +316,6 @@ static int ohci_bus_resume (struct usb_hcd *hcd)
->  	return rc;
->  }
->  
-> -/* Carry out the final steps of resuming the controller device */
-> -static void __maybe_unused ohci_finish_controller_resume(struct usb_hcd *hcd)
-> -{
-> -	struct ohci_hcd		*ohci = hcd_to_ohci(hcd);
-> -	int			port;
-> -	bool			need_reinit = false;
-> -
-> -	/* See if the controller is already running or has been reset */
-> -	ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
-> -	if (ohci->hc_control & (OHCI_CTRL_IR | OHCI_SCHED_ENABLES)) {
-> -		need_reinit = true;
-> -	} else {
-> -		switch (ohci->hc_control & OHCI_CTRL_HCFS) {
-> -		case OHCI_USB_OPER:
-> -		case OHCI_USB_RESET:
-> -			need_reinit = true;
-> -		}
-> -	}
-> -
-> -	/* If needed, reinitialize and suspend the root hub */
-> -	if (need_reinit) {
-> -		spin_lock_irq(&ohci->lock);
-> -		ohci_rh_resume(ohci);
-> -		ohci_rh_suspend(ohci, 0);
-> -		spin_unlock_irq(&ohci->lock);
-> -	}
-> -
-> -	/* Normally just turn on port power and enable interrupts */
-> -	else {
-> -		ohci_dbg(ohci, "powerup ports\n");
-> -		for (port = 0; port < ohci->num_ports; port++)
-> -			ohci_writel(ohci, RH_PS_PPS,
-> -					&ohci->regs->roothub.portstatus[port]);
-> -
-> -		ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrenable);
-> -		ohci_readl(ohci, &ohci->regs->intrenable);
-> -		msleep(20);
-> -	}
-> -
-> -	usb_hcd_resume_root_hub(hcd);
-> -}
-> -
->  /* Carry out polling-, autostop-, and autoresume-related state changes */
->  static int ohci_root_hub_state_changes(struct ohci_hcd *ohci, int changed,
->  		int any_connected, int rhsc_status)
-> diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-> index f8b2d91..9fab4d8 100644
-> --- a/drivers/usb/host/ohci-omap.c
-> +++ b/drivers/usb/host/ohci-omap.c
-> @@ -530,7 +530,7 @@ static int ohci_omap_resume(struct platform_device *dev)
->  	ohci->next_statechange = jiffies;
->  
->  	omap_ohci_clock_power(1);
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  	return 0;
->  }
->  
-> diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
-> index 1caaf65..99d1755 100644
-> --- a/drivers/usb/host/ohci-platform.c
-> +++ b/drivers/usb/host/ohci-platform.c
-> @@ -203,7 +203,7 @@ static int ohci_platform_resume(struct device *dev)
->  			return err;
->  	}
->  
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  	return 0;
->  }
->  
-> diff --git a/drivers/usb/host/ohci-pxa27x.c b/drivers/usb/host/ohci-pxa27x.c
-> index 77f4402..8bffde3 100644
-> --- a/drivers/usb/host/ohci-pxa27x.c
-> +++ b/drivers/usb/host/ohci-pxa27x.c
-> @@ -591,7 +591,7 @@ static int ohci_hcd_pxa27x_drv_resume(struct device *dev)
->  	/* Select Power Management Mode */
->  	pxa27x_ohci_select_pmm(ohci, inf->port_mode);
->  
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  	return 0;
->  }
->  
-> diff --git a/drivers/usb/host/ohci-s3c2410.c b/drivers/usb/host/ohci-s3c2410.c
-> index 664c869..8af53c6 100644
-> --- a/drivers/usb/host/ohci-s3c2410.c
-> +++ b/drivers/usb/host/ohci-s3c2410.c
-> @@ -524,8 +524,7 @@ static int ohci_hcd_s3c2410_drv_resume(struct device *dev)
->  
->  	s3c2410_start_hc(pdev, hcd);
->  
-> -	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  
->  	return 0;
->  }
-> diff --git a/drivers/usb/host/ohci-spear.c b/drivers/usb/host/ohci-spear.c
-> index fc7305e..d607be3 100644
-> --- a/drivers/usb/host/ohci-spear.c
-> +++ b/drivers/usb/host/ohci-spear.c
-> @@ -231,7 +231,7 @@ static int spear_ohci_hcd_drv_resume(struct platform_device *dev)
->  	ohci->next_statechange = jiffies;
->  
->  	spear_start_ohci(ohci_p);
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  	return 0;
->  }
->  #endif
-> diff --git a/drivers/usb/host/ohci-tmio.c b/drivers/usb/host/ohci-tmio.c
-> index 60c2b07..2c9ab8f 100644
-> --- a/drivers/usb/host/ohci-tmio.c
-> +++ b/drivers/usb/host/ohci-tmio.c
-> @@ -352,7 +352,7 @@ static int ohci_hcd_tmio_drv_resume(struct platform_device *dev)
->  
->  	spin_unlock_irqrestore(&tmio->lock, flags);
->  
-> -	ohci_finish_controller_resume(hcd);
-> +	ohci_resume(hcd, false);
->  
->  	return 0;
->  }
-> 
+> So to summarize, in /sys/kernel/debug/omap_mux, just do a 'cat uart3*'
+> on a working and non-working board and see if there are any
+> differences.
 
+3.2 (working)
 
+name: uart3_cts_rctx.uart3_cts_rctx (0x4800219a/0x16a = 0x0108), b h18, t NA
+mode: OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0
+signals: uart3_cts_rctx | NA | NA | NA | gpio_163 | NA | NA | safe_mode
+name: uart3_rts_sd.uart3_rts_sd (0x4800219c/0x16c = 0x0000), b h19, t NA
+mode: OMAP_PIN_OUTPUT | OMAP_MUX_MODE0
+signals: uart3_rts_sd | NA | NA | NA | gpio_164 | NA | NA | safe_mode
+name: uart3_rx_irrx.uart3_rx_irrx (0x4800219e/0x16e = 0x0100), b h20, t NA
+mode: OMAP_PIN_INPUT | OMAP_MUX_MODE0
+signals: uart3_rx_irrx | NA | NA | NA | gpio_165 | NA | NA | safe_mode
+name: uart3_tx_irtx.uart3_tx_irtx (0x480021a0/0x170 = 0x0000), b h21, t NA
+mode: OMAP_PIN_OUTPUT | OMAP_MUX_MODE0
+signals: uart3_tx_irtx | NA | NA | NA | gpio_166 | NA | NA | safe_mode
+
+3.6 (not working)
+
+name: uart3_cts_rctx.uart3_cts_rctx (0x4800219a/0x16a = 0x0108), b h18, t NA
+mode: OMAP_PIN_INPUT_PULLDOWN | OMAP_MUX_MODE0
+signals: uart3_cts_rctx | NA | NA | NA | gpio_163 | NA | NA | safe_mode
+name: uart3_rts_sd.uart3_rts_sd (0x4800219c/0x16c = 0x0000), b h19, t NA
+mode: OMAP_PIN_OUTPUT | OMAP_MUX_MODE0
+signals: uart3_rts_sd | NA | NA | NA | gpio_164 | NA | NA | safe_mode
+name: uart3_rx_irrx.uart3_rx_irrx (0x4800219e/0x16e = 0x0100), b h20, t NA
+mode: OMAP_PIN_INPUT | OMAP_MUX_MODE0
+signals: uart3_rx_irrx | NA | NA | NA | gpio_165 | NA | NA | safe_mode
+name: uart3_tx_irtx.uart3_tx_irtx (0x480021a0/0x170 = 0x0000), b h21, t NA
+mode: OMAP_PIN_OUTPUT | OMAP_MUX_MODE0
+signals: uart3_tx_irtx | NA | NA | NA | gpio_166 | NA | NA | safe_mode
+
+Best regards,
+
+Thomas
 -- 
-Nicolas Ferre
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
