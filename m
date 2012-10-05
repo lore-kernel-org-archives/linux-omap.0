@@ -1,53 +1,29 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 09.5/16] mmc: omap: Remove cpu_is_omap usage from the driver
-Date: Fri, 05 Oct 2012 14:23:10 -0400
-Message-ID: <87ipaog4mp.fsf@octavius.laptop.org>
-References: <20121004213950.26676.21898.stgit@muffinssi.local>
-	<20121004220454.26676.10131.stgit@muffinssi.local>
-	<20121005180840.GN3874@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] gpio/gpio-omap: Use existing pointer to struct device
+Date: Fri, 05 Oct 2012 12:05:44 -0700
+Message-ID: <87ehlcsprr.fsf@deeprootsystems.com>
+References: <1349429858-17943-1-git-send-email-tklauser@distanz.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:60801 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932868Ab2JESXP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Oct 2012 14:23:15 -0400
-In-Reply-To: <20121005180840.GN3874@atomide.com> (Tony Lindgren's message of
-	"Fri, 5 Oct 2012 11:08:40 -0700")
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:33710 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988Ab2JETFk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 15:05:40 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so2172733pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 05 Oct 2012 12:05:39 -0700 (PDT)
+In-Reply-To: <1349429858-17943-1-git-send-email-tklauser@distanz.ch> (Tobias
+	Klauser's message of "Fri, 5 Oct 2012 11:37:38 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Venkatraman S <svenkatr@ti.com>
+To: Tobias Klauser <tklauser@distanz.ch>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org
 
-Hi Tony,
+Tobias Klauser <tklauser@distanz.ch> writes:
 
-On Fri, Oct 05 2012, Tony Lindgren wrote:
-> This is needed for the ARM common zImage support.
+> A pointer to "pdev->dev" is already stored in "dev", so use it in
+> devm_kzalloc.
 >
-> We can use the existing slot features to pass omap1
-> specific options to the driver. For omap2 we don't
-> want to pass anything new as that will be eventually
-> moved to use device tree based init.
->
-> Note that this patch depends on earlier patch that
-> moves plat/mmc.h into include/linux/platform_data.
->
-> Cc: Chris Ball <cjb@laptop.org>
-> Cc: Venkatraman S <svenkatr@ti.com>
-> Cc: linux-mmc@vger.kernel.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> ---
->
-> Chris, I can set up a minimal immutable branch with omap
-> header changes that you can also pull into MMC tree if these
-> two MMC patches look ackable to you.
+> Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
 
-Thanks, sounds good.
-
-Acked-by: Chris Ball <cjb@laptop.org>
-
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Acked-by: Kevin Hilman <khilman@ti.com>
