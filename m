@@ -1,205 +1,143 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: MUSB regression in linux next at least for pandboard
-Date: Fri, 5 Oct 2012 09:27:17 -0700
-Message-ID: <20121005162717.GL3874@atomide.com>
-References: <20121004173107.GD3874@atomide.com>
- <20121004175742.GB9702@arwen.pp.htv.fi>
- <20121005013910.GI3874@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap DSS cmdline resolution not working for HDMI?
+Date: Fri, 5 Oct 2012 09:43:09 -0700
+Message-ID: <20121005164308.GM3874@atomide.com>
+References: <20121004175604.GE3874@atomide.com>
+ <1349435094.2401.17.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="k1lZvvs/B4yU6o8G"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20121005013910.GI3874-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
-
---k1lZvvs/B4yU6o8G
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65531 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752255Ab2JEQnL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 12:43:11 -0400
 Content-Disposition: inline
+In-Reply-To: <1349435094.2401.17.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [121004 18:41]:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [121005 04:06]:
+> On Thu, 2012-10-04 at 10:56 -0700, Tony Lindgren wrote:
+> > Hi,
 > > 
-> > > Also on the EHCI port, I've seen issues where unplugging
-> > > the cable hangs kernel with an infinite loop. But that happens
-> > > only occasionally, sorry does not seem to happen right
-> > > now so no output to paste here. Or maybe this issue
-> > > has already been fixed?
+> > FYI, looks like for some reason DSS command line is not
+> > working for HDMI while it works for DSS. On my panda es
+> > I'm trying to set my motorola lapdock resolution from
+> > cmdline with:
+> > 
+> > omapdss.def_disp=hdmi omapfb.mode=hdmi:1366x768@60
+> > 
+> > But it does not seem to do anything and resolution is
+> > VGA. If I change the cable to DVI port this works:
+> > 
+> > omapdss.def_disp=dvi omapfb.mode=dvi:1366x768@60
+> > 
+> > Any ideas? This is with current linux next.
+> 
+> That's because our HDMI only supports certain timings. To be honest, I
+> don't really understand this restriction, as I believe the hardware
+> should be able to use more or less any timings just like DVI.
+> 
+> The 1366x768@60 mode is parsed with fbdev functions, which returns a
+> video timings. These timings are then given to the HDMI driver, which
+> tries to find matching timings from its timing table. And when it
+> doesn't find a match, it fails.
+> 
+> This is a known problem, and the hdmi driver would really need some love
+> in other aspects also. I'm not sure what would be the best way to
+> improve this without doing major rewrites. Perhaps the check in the hdmi
+> driver could be more relaxed, but that needs some careful thought.
 
-Looks like the system eventually recovers from the EHCI issue
-after about fivew minutes or so of spamming the logs. It seems
-the ehci-omap errors are:
+OK, I'll take a look when I have a chance.
+ 
+> > I can change the HDMI resolution OK from userspace with:
+> > 
+> > echo "1" > /sys/devices/platform/omapdss/display1/enabled
+> > echo "0" > /sys/devices/platform/omapdss/overlay0/enabled
+> > echo "tv" > /sys/devices/platform/omapdss/overlay0/manager
+> > echo "1" > /sys/devices/platform/omapdss/overlay0/enabled
+> > echo "85500,1366/70/213/143,768/3/24/3" > /sys/devices/platform/omapdss/display1/timings
+> 
+> That's because the above line has timings that are in the hdmi driver's
+> table. They are somewhat different than what fbdev gives for
+> "1366x768@60".
 
-[62934.201538] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 31
-[62934.201660] ehci-omap ehci-omap.0: devpath 1.3.7 ep0out 3strikes
-[62934.201873] ehci-omap ehci-omap.0: reused qh ea5632c0 schedule
+OK
+ 
+> > The reason to use HDMI instead of DVI here is that HDMI
+> > also has the speakers on the lapdock ;)
+> > 
+> > Then I'm able to switch between HDMI panel and DVI panel
+> > just fine using overlay0. I don't know if getting both
+> > HDMI and DVI to work the same time using overlay1 is
+> > supposed to work, but trying use overlay1 produces the
+> > following:
+> 
+> HDMI and DVI cannot be used reliably at the same time, due to a HW issue
+> we've had unresolved for a long time. Luckily, it was solved this week
+> and we'll have a patch for next merge window to get this working.
 
-More data below.
+That's nice, I'll give that a try at some point.
+ 
+> > echo "1" > /sys/devices/platform/omapdss/display0/enabled
+> > echo "0" > /sys/devices/platform/omapdss/overlay1/enabled
+> > echo "lcd2" > /sys/devices/platform/omapdss/overlay1/manager
+> > echo "1" > /sys/devices/platform/omapdss/overlay1/enabled
+> > echo "170666,1920/336/128/208,1200/38/1/3" > /sys/devices/platform/omapdss/display0/timings
+> > 
+> > [  816.446044] omapdss DPI: Could not find exact pixel clock. Requested 23500 kHz, got 23630 kHz
+> > [  881.639221] omapdss APPLY: timeout in wait_pending_extra_info_updates
+> > [  958.946594] ------------[ cut here ]------------
+> > [  958.953277] WARNING: at drivers/bus/omap_l3_noc.c:97 l3_interrupt_handler+0xc0/0x184()
+> > [  958.965576] L3 standard error: TARGET:DMM2 at address 0x0
+> > ...
+> 
+> Having said the above, I don't quite know where this error comes from...
+> Tiler (DMM) is not even used by omapfb.
+
+Looks like somehow also output_size won't change when changing
+display output from DVI to HDMI.
+
+If I boot with DVI panel at 1600x1200, then try to switch to the
+HDMI monitor with the following script:
+
+#!/bin/sh
+
+export dvi=display0
+export hdmi=display1
+export overlay=overlay0
+
+echo 0 > /sys/devices/platform/omapdss/$dvi/enabled
+echo 1 > /sys/devices/platform/omapdss/$hdmi/enabled
+echo "85500,1366/70/213/143,768/3/24/3" > /sys/devices/platform/omapdss/$hdmi/timings
+echo 0 > /sys/devices/platform/omapdss/$overlay/enabled
+echo tv > /sys/devices/platform/omapdss/$overlay/manager
+#echo "1366,768" > /sys/devices/platform/omapdss/$overlay/output_size
+echo 1 > /sys/devices/platform/omapdss/$overlay/enabled
+cat /sys/devices/platform/omapdss/$hdmi/timings
+cat /sys/devices/platform/omapdss/$overlay/output_size
+
+I get the following which may provide more clues:
+
+[64370.820312] omapdss DISPC error: SYNC_LOST on channel tv, restarting the output with video overlays dd
+[64370.831024] omapdss OVERLAY error: overlay 0 horizontally not inside the display area (0 + 1600 >= 13)
+[64370.840972] omapdss APPLY error: failed to enable manager 1: check_settings failed
+[64370.849670] omapdss HDMI error: failed to power on device
+[64370.855407] omapdss error: failed to power on
+[64370.862487] omapdss OVERLAY error: overlay 0 horizontally not inside the display area (0 + 1600 >= 13)
+[64370.872436] omapdss APPLY error: failed to enable manager 1: check_settings failed
+[64370.880798] omapdss HDMI error: failed to power on device
+[64370.886505] omapdss error: failed to power on
+85500,1366/70/213/143,768/3/24/3
+1600,1200
+
+FYI, I'm also seeing the DVI monitor blank out on it's own for
+about a second or so on regular basis every 10 minutes or so.
+No idea what's causing that, maybe it's a reminder to take
+a short break :)
 
 Regards,
 
 Tony
-
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename=panda-ehci-hang-on-unplug
-
-...
-[62927.200012] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
-[62927.215606] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 25
-[62927.220092] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 22
-[62927.225738] ehci-omap ehci-omap.0: devpath 1.3.7 ep0out 3strikes
-[62927.232238] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 17
-[62927.236633] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
-[62927.241119] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
-[62927.251098] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
-[62927.258605] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 12
-[62927.264343] usb 1-1.3.7.5: link qh8-0e01/ea5632c0 start 6 [1/2 us]
-[62927.274353] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 17
-[62927.276092] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 24
-[62927.280700] usb 1-1.3.7: clear tt 4 (0120) error -71
-[62927.289245] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62927.292633] usb 1-1.3.7: clear tt buffer port 4, a18 ep0 t00080248
-[62927.296356] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
-[62927.302368] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
-[62927.307098] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 24
-[62927.308258] hid-generic 0003:047D:1020.000C: can't reset device, ehci-omap.0-1.3.7.4/input0, status -1
-[62927.317230] usb 1-1.3.7: clear tt buffer port 5, a26 ep0 t00080248
-[62927.322357] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
-[62927.324981] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
-[62927.330718] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 9
-[62927.336364] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 20
-[62927.348114] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 31
-[62927.349090] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
-[62927.356475] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
-[62927.368469] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62927.372253] usb 1-1.3.7: clear tt buffer port 4, a18 ep0 t00080248
-[62926.616607] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
-[62926.622863] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 10
-[62926.627746] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
-[62926.628112] ehci-omap ehci-omap.0: devpath 1.3.7.4 ep0out 3strikes
-[62926.639404] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 14
-[62926.643737] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
-[62926.651123] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 15
-[62926.655609] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
-[62926.660125] usb 1-1.3.7: clear tt buffer port 4, a18 ep0 t00080248
-[62926.667480] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 15
-[62926.669982] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 1
-[62926.680603] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
-[62926.686126] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 14
-[62926.693237] usb 1-1.3.7: clear tt buffer port 5, a26 ep0 t00080248
-[62926.694091] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
-[62926.706359] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62926.709350] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
-[62926.712554] usb 1-1.3.7: clear tt 4 (0120) error -71
-[62926.714599] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 16
-[62926.720855] ehci-omap ehci-omap.0: devpath 1.3.7.5 ep0out 3strikes
-[62926.729248] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62926.732238] usb 1-1.3.7: clear tt buffer port 4, a18 ep0 t00080248
-[62926.736358] ehci-omap ehci-omap.0: devpath 1.3.7 ep0out 3strikes
-[62926.742736] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 9
-[62926.755615] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 27
-[62926.756744] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62926.763610] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
-[62926.769226] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
-[62926.780609] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62926.782745] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
-[62926.789978] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
-[62926.801605] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 11
-[62926.804626] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62926.809844] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
-[62926.815734] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
-[62926.828979] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
-[62926.829101] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
-[62926.840118] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 20
-[62926.851745] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 28
-[62926.855987] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 28
-[62926.863220] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 13
-[62926.876251] ehci-omap ehci-omap.0: devpath 1.3.7.4 ep0out 3strikes
-[62926.876403] hid-generic 0003:047D:1020.000C: can't reset device, ehci-omap.0-1.3.7.4/input0, status -1
-[62926.897125] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
-[62926.903747] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
-[62926.920989] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
-...
-
-After waiting for several minutes, it stops, and dmesg shows:
-
-# dmesg | grep -i omap
-[62934.193389] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62934.193542] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
-[62934.193664] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
-[62934.193786] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
-[62934.194030] ehci-omap ehci-omap.0: reused qh ed0fbdc0 schedule
-[62934.194122] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
-[62934.194274] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
-[62934.194396] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 8
-[62934.194519] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 9
-[62934.194641] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 10
-[62934.194793] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 11
-[62934.194915] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 12
-[62934.195037] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 13
-[62934.195159] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 14
-[62934.195281] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 15
-[62934.195404] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 16
-[62934.195526] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 17
-[62934.195648] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
-[62934.195770] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
-[62934.195892] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 20
-[62934.196014] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 21
-[62934.196166] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 22
-[62934.196289] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 23
-[62934.196411] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 24
-[62934.196533] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 25
-[62934.196655] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
-[62934.196777] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 27
-[62934.196899] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 28
-[62934.197021] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
-[62934.197143] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 30
-[62934.197265] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 31
-[62934.197418] ehci-omap ehci-omap.0: devpath 1.3.7.5 ep0out 3strikes
-1.3.7.5/input0, status -71
-[62934.197784] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 1
-[62934.197906] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
-[62934.198028] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
-[62934.198150] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
-[62934.198272] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
-[62934.198394] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
-[62934.198516] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
-[62934.198638] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 8
-[62934.198791] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 9
-[62934.198913] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 10
-[62934.199035] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 11
-[62934.199157] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 12
-[62934.199279] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 13
-[62934.199401] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 14
-[62934.199523] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 15
-[62934.199645] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 16
-[62934.199768] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 17
-[62934.199890] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
-[62934.200042] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
-[62934.200042] ehci-omap ehci-omap.0: detected XactErr len 0/4 retry 1
-[62934.200164] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 20
-[62934.200164] ehci-omap ehci-omap.0: detected XactErr len 0/4 retry 2
-[62934.200286] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 21
-[62934.200286] ehci-omap ehci-omap.0: detected XactErr len 0/4 retry 3
-[62934.200408] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 22
-[62934.200531] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 23
-[62934.200653] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 24
-[62934.200775] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 25
-[62934.200897] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
-[62934.201019] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 27
-[62934.201141] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 28
-[62934.201263] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
-[62934.201416] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 30
-[62934.201538] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 31
-[62934.201660] ehci-omap ehci-omap.0: devpath 1.3.7 ep0out 3strikes
-[62934.201873] ehci-omap ehci-omap.0: reused qh ea5632c0 schedule
-...
-
---k1lZvvs/B4yU6o8G--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
