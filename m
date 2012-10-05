@@ -1,108 +1,175 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 11/15] ARM: OMAP2+: gpmc: nand register helper bch update
-Date: Fri, 5 Oct 2012 21:24:32 +0530
-Message-ID: <4ba6dff22def5d5e00d4b7270164ce5e0d71a3c1.1349450454.git.afzal@ti.com>
+Subject: [PATCH 12/15] mtd: nand: omap: handle gpmc bch[48]
+Date: Fri, 5 Oct 2012 21:24:38 +0530
+Message-ID: <dc678b08468e16200bef05e8927526916fb4459e.1349450454.git.afzal@ti.com>
 References: <cover.1349450454.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52647 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49270 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756330Ab2JEPyo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Oct 2012 11:54:44 -0400
+	id S1756419Ab2JEPyu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Oct 2012 11:54:50 -0400
 In-Reply-To: <cover.1349450454.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-Update helper function that provides gpmc-nand register
-details for nand driver with bch register information.
-Using this nand driver can be made self sufficient to
-handle remaining gpmc-nand operations by itself instead
-of relying on gpmc exported nand functions.
+gpmc-nand bch registers are now available in driver,
+make use of it to handle bch[48] instead of relying
+on gpmc exported functions.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c                   | 18 +++++++++++++++++-
- include/linux/platform_data/mtd-nand-omap2.h |  7 ++++++-
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/omap2.c | 95 +++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 86 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 3a73196..eb577c5 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -61,6 +61,9 @@
- #define GPMC_ECC_SIZE_CONFIG	0x1fc
- #define GPMC_ECC1_RESULT        0x200
- #define GPMC_ECC_BCH_RESULT_0   0x240   /* not available on OMAP2 */
-+#define	GPMC_ECC_BCH_RESULT_1	0x244	/* not available on OMAP2 */
-+#define	GPMC_ECC_BCH_RESULT_2	0x248	/* not available on OMAP2 */
-+#define	GPMC_ECC_BCH_RESULT_3	0x24c	/* not available on OMAP2 */
- 
- /* GPMC ECC control settings */
- #define GPMC_ECC_CTRL_ECCCLEAR		0x100
-@@ -84,6 +87,7 @@
- 
- #define GPMC_CS0_OFFSET		0x60
- #define GPMC_CS_SIZE		0x30
-+#define	GPMC_BCH_SIZE		0x10
- 
- #define GPMC_MEM_START		0x00000000
- #define GPMC_MEM_END		0x3FFFFFFF
-@@ -779,6 +783,8 @@ EXPORT_SYMBOL(gpmc_prefetch_reset);
- 
- void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index f0a1b1d..e3fc8d7 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -106,6 +106,7 @@
+ #define	CS_MASK				0x7
+ #define	ENABLE_PREFETCH			(0x1 << 7)
+ #define	DMA_MPU_MODE_SHIFT		2
++#define	ECCSIZE0_SHIFT			12
+ #define	ECCSIZE1_SHIFT			22
+ #define	ECC1RESULTSIZE			0x1
+ #define	ECCCLEAR			0x100
+@@ -1034,19 +1035,45 @@ static int omap_dev_ready(struct mtd_info *mtd)
+ static void omap3_enable_hwecc_bch(struct mtd_info *mtd, int mode)
  {
-+	int i;
+ 	int nerrors;
+-	unsigned int dev_width;
++	unsigned int dev_width, nsectors;
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 						   mtd);
+ 	struct nand_chip *chip = mtd->priv;
++	u32 val;
+ 
+ 	nerrors = (info->nand.ecc.bytes == 13) ? 8 : 4;
+ 	dev_width = (chip->options & NAND_BUSWIDTH_16) ? 1 : 0;
++	nsectors = 1;
+ 	/*
+ 	 * Program GPMC to perform correction on one 512-byte sector at a time.
+ 	 * Using 4 sectors at a time (i.e. ecc.size = 2048) is also possible and
+ 	 * gives a slight (5%) performance gain (but requires additional code).
+ 	 */
+-	(void)gpmc_enable_hwecc_bch(info->gpmc_cs, mode, dev_width, 1, nerrors);
 +
- 	reg->gpmc_status = gpmc_base + GPMC_STATUS;
- 	reg->gpmc_nand_command = gpmc_base + GPMC_CS0_OFFSET +
- 				GPMC_CS_NAND_COMMAND + GPMC_CS_SIZE * cs;
-@@ -794,7 +800,17 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
- 	reg->gpmc_ecc_control = gpmc_base + GPMC_ECC_CONTROL;
- 	reg->gpmc_ecc_size_config = gpmc_base + GPMC_ECC_SIZE_CONFIG;
- 	reg->gpmc_ecc1_result = gpmc_base + GPMC_ECC1_RESULT;
--	reg->gpmc_bch_result0 = gpmc_base + GPMC_ECC_BCH_RESULT_0;
++	writel(ECC1, info->reg.gpmc_ecc_control);
 +
-+	for (i = 0; i < GPMC_BCH_NUM_REMAINDER; i++) {
-+		reg->gpmc_bch_result0[i] = gpmc_base + GPMC_ECC_BCH_RESULT_0 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result1[i] = gpmc_base + GPMC_ECC_BCH_RESULT_1 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result2[i] = gpmc_base + GPMC_ECC_BCH_RESULT_2 +
-+					   GPMC_BCH_SIZE * i;
-+		reg->gpmc_bch_result3[i] = gpmc_base + GPMC_ECC_BCH_RESULT_3 +
-+					   GPMC_BCH_SIZE * i;
-+	}
++	/*
++	 * When using BCH, sector size is hardcoded to 512 bytes.
++	 * Here we are using wrapping mode 6 both for reading and writing, with:
++	 *  size0 = 0  (no additional protected byte in spare area)
++	 *  size1 = 32 (skip 32 nibbles = 16 bytes per sector in spare area)
++	 */
++	val = (32 << ECCSIZE1_SHIFT) | (0 << ECCSIZE0_SHIFT);
++	writel(val, info->reg.gpmc_ecc_size_config);
++
++	/* BCH configuration */
++	val = ((1                        << 16) | /* enable BCH */
++	       (((nerrors == 8) ? 1 : 0) << 12) | /* 8 or 4 bits */
++	       (0x06                     <<  8) | /* wrap mode = 6 */
++	       (dev_width                <<  7) | /* bus width */
++	       (((nsectors-1) & 0x7)     <<  4) | /* number of sectors */
++	       (info->gpmc_cs            <<  1) | /* ECC CS */
++	       (0x1));                            /* enable ECC */
++
++	writel(val, info->reg.gpmc_ecc_config);
++
++	/* clear ecc and enable bits */
++	writel(ECCCLEAR | ECC1, info->reg.gpmc_ecc_control);
  }
  
- int gpmc_get_client_irq(unsigned irq_config)
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index e1965fe..24d32ca 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -13,6 +13,8 @@
- 
- #include <linux/mtd/partitions.h>
- 
-+#define	GPMC_BCH_NUM_REMAINDER	8
+ /**
+@@ -1060,7 +1087,31 @@ static int omap3_calculate_ecc_bch4(struct mtd_info *mtd, const u_char *dat,
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 						   mtd);
+-	return gpmc_calculate_ecc_bch4(info->gpmc_cs, dat, ecc_code);
++	unsigned long nsectors, val1, val2;
 +
- enum nand_io {
- 	NAND_OMAP_PREFETCH_POLLED = 0,	/* prefetch polled mode, default */
- 	NAND_OMAP_POLLED,		/* polled mode, without prefetch */
-@@ -43,7 +45,10 @@ struct gpmc_nand_regs {
- 	void __iomem	*gpmc_ecc_control;
- 	void __iomem	*gpmc_ecc_size_config;
- 	void __iomem	*gpmc_ecc1_result;
--	void __iomem	*gpmc_bch_result0;
-+	void __iomem	*gpmc_bch_result0[GPMC_BCH_NUM_REMAINDER];
-+	void __iomem	*gpmc_bch_result1[GPMC_BCH_NUM_REMAINDER];
-+	void __iomem	*gpmc_bch_result2[GPMC_BCH_NUM_REMAINDER];
-+	void __iomem	*gpmc_bch_result3[GPMC_BCH_NUM_REMAINDER];
- };
++	nsectors = ((readl(info->reg.gpmc_ecc_config) >> 4) & 0x7) + 1;
++
++	for (i = 0; i < nsectors; i++) {
++
++		/* Read hw-computed remainder */
++		val1 = readl(info->reg.gpmc_bch_result0[i]);
++		val2 = readl(info->reg.gpmc_bch_result1[i]);
++
++		/*
++		 * Add constant polynomial to remainder, in order to get an ecc
++		 * sequence of 0xFFs for a buffer filled with 0xFFs; and
++		 * left-justify the resulting polynomial.
++		 */
++		*ecc++ = 0x28 ^ ((val2 >> 12) & 0xFF);
++		*ecc++ = 0x13 ^ ((val2 >>  4) & 0xFF);
++		*ecc++ = 0xcc ^ (((val2 & 0xF) << 4)|((val1 >> 28) & 0xF));
++		*ecc++ = 0x39 ^ ((val1 >> 20) & 0xFF);
++		*ecc++ = 0x96 ^ ((val1 >> 12) & 0xFF);
++		*ecc++ = 0xac ^ ((val1 >> 4) & 0xFF);
++		*ecc++ = 0x7f ^ ((val1 & 0xF) << 4);
++	}
++
++	return 0;
+ }
  
- struct omap_nand_platform_data {
+ /**
+@@ -1074,7 +1125,38 @@ static int omap3_calculate_ecc_bch8(struct mtd_info *mtd, const u_char *dat,
+ {
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 						   mtd);
+-	return gpmc_calculate_ecc_bch8(info->gpmc_cs, dat, ecc_code);
++	unsigned long nsectors, reg, val1, val2, val3, val4;
++
++	nsectors = ((readl(info->reg.gpmc_ecc_config) >> 4) & 0x7) + 1;
++
++	for (i = 0; i < nsectors; i++) {
++
++		/* Read hw-computed remainder */
++		val1 = readl(info->reg.gpmc_bch_result0[i]);
++		val2 = readl(info->reg.gpmc_bch_result1[i]);
++		val3 = readl(info->reg.gpmc_bch_result2[i]);
++		val4 = readl(info->reg.gpmc_bch_result3[i]);
++
++		/*
++		 * Add constant polynomial to remainder, in order to get an ecc
++		 * sequence of 0xFFs for a buffer filled with 0xFFs.
++		 */
++		*ecc++ = 0xef ^ (val4 & 0xFF);
++		*ecc++ = 0x51 ^ ((val3 >> 24) & 0xFF);
++		*ecc++ = 0x2e ^ ((val3 >> 16) & 0xFF);
++		*ecc++ = 0x09 ^ ((val3 >> 8) & 0xFF);
++		*ecc++ = 0xed ^ (val3 & 0xFF);
++		*ecc++ = 0x93 ^ ((val2 >> 24) & 0xFF);
++		*ecc++ = 0x9a ^ ((val2 >> 16) & 0xFF);
++		*ecc++ = 0xc2 ^ ((val2 >> 8) & 0xFF);
++		*ecc++ = 0x97 ^ (val2 & 0xFF);
++		*ecc++ = 0x79 ^ ((val1 >> 24) & 0xFF);
++		*ecc++ = 0xe5 ^ ((val1 >> 16) & 0xFF);
++		*ecc++ = 0x24 ^ ((val1 >> 8) & 0xFF);
++		*ecc++ = 0xb5 ^ (val1 & 0xFF);
++	}
++
++	return 0;
+ }
+ 
+ /**
+@@ -1147,11 +1229,6 @@ static int omap3_init_bch(struct mtd_info *mtd, int ecc_opt)
+ 		goto fail;
+ 	}
+ 
+-	/* initialize GPMC BCH engine */
+-	ret = gpmc_init_hwecc_bch(info->gpmc_cs, 1, max_errors);
+-	if (ret)
+-		goto fail;
+-
+ 	/* software bch library is only used to detect and locate errors */
+ 	info->bch = init_bch(13, max_errors, 0x201b /* hw polynomial */);
+ 	if (!info->bch)
 -- 
 1.7.12
 
