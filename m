@@ -1,120 +1,37 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH V4 4/5] OMAPDSS: Replace multi part debug prints with
- pr_debug
-Date: Fri, 05 Oct 2012 15:33:53 +0300
-Message-ID: <1349440433.5836.0.camel@deskari>
-References: <cover.1348826106.git.cmahapatra@ti.com>
-	 <cover.1348914940.git.cmahapatra@ti.com>
-	 <8fb0b3848f5d6148889f2b5160b8aa40e764f409.1348914940.git.cmahapatra@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: OMAP4 clock/pm fixes [was: [PATCH v4 2/3] ARM: omap: hwmod: get
+ rid of all omap_clk_get_by_name usage
+Date: Fri, 5 Oct 2012 18:07:38 +0530
+Message-ID: <506ED492.5010709@ti.com>
+References: <1346230576-20004-1-git-send-email-rnayak@ti.com> <1346230576-20004-3-git-send-email-rnayak@ti.com> <CAJOA=zM2sFsrdohooKp1+zsV_AK6dKnoN37+Gs2oskBUK4J00w@mail.gmail.com> <503F26A4.3050902@ti.com> <503F5517.4010100@ti.com> <1346344933.2327.43.camel@deskari> <5040586D.2020406@ti.com> <1346397309.18766.5.camel@lappyti> <504073CF.6010804@ti.com> <1346401643.32389.4.camel@deskari> <504075A0.7010708@ti.com> <506EAC89.2070307@ti.com> <506ED079.70700@ti.com> <506ED29E.7070403@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-t94y7/dOEZp7pJDtvPDe"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:34121 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932479Ab2JEMd7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 08:33:59 -0400
-Received: by mail-la0-f46.google.com with SMTP id h6so851721lag.19
-        for <linux-omap@vger.kernel.org>; Fri, 05 Oct 2012 05:33:56 -0700 (PDT)
-In-Reply-To: <8fb0b3848f5d6148889f2b5160b8aa40e764f409.1348914940.git.cmahapatra@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40744 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932493Ab2JEMhq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Oct 2012 08:37:46 -0400
+In-Reply-To: <506ED29E.7070403@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Turquette, Mike" <mturquette@ti.com>
 
+On Friday 05 October 2012 05:59 PM, Archit Taneja wrote:
+> The other not so good option to make DSS PM work would be to add
+> OCPIF_SWSUP_IDLE flag to our l3_main_2__dss_* slave interfaces(which
+> have the hack "dss_fck" as slave clock). I gave this approach a try,
+> that too isn't working so well. When I disable DSS, I get
+> CM_DSS_DSS_CLKCTRL.IDLEST as 0x1, and
+> CM_DSS_CLKSTCTRL.CLKACTIVITY_DSS_L3_ICLK is set. I wonder why that's
+> happening.
 
---=-t94y7/dOEZp7pJDtvPDe
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I have seen DSS get stuck in transition, with just a clkdm state toggle
+(from say HWSUP to SWWKUP) while its optional clocks are not running.
+Thats probably whats happening now.
 
-On Sat, 2012-09-29 at 16:19 +0530, Chandrabhanu Mahapatra wrote:
-> The omap_dispc_unregister_isr() and _dsi_print_reset_status() consist of =
-a
-> number of debug prints which need to be enabled all at once or none at al=
-l. So,
-> these debug prints in corresponding functions are replaced with one dynam=
-ic
-> debug enabled pr_debug() each.
->=20
-> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-> ---
->  drivers/video/omap2/dss/dispc.c |   32 +++++++++++++-------------------
->  drivers/video/omap2/dss/dsi.c   |   30 ++++++++++++++----------------
->  2 files changed, 27 insertions(+), 35 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/di=
-spc.c
-> index a173a94..67d9f3b 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -3675,26 +3675,20 @@ static void print_irq_status(u32 status)
->  	if ((status & dispc.irq_error_mask) =3D=3D 0)
->  		return;
-> =20
-> -	printk(KERN_DEBUG "DISPC IRQ: 0x%x: ", status);
-> -
-> -#define PIS(x) \
-> -	if (status & DISPC_IRQ_##x) \
-> -		printk(#x " ");
-> -	PIS(GFX_FIFO_UNDERFLOW);
-> -	PIS(OCP_ERR);
-> -	PIS(VID1_FIFO_UNDERFLOW);
-> -	PIS(VID2_FIFO_UNDERFLOW);
-> -	if (dss_feat_get_num_ovls() > 3)
-> -		PIS(VID3_FIFO_UNDERFLOW);
-> -	PIS(SYNC_LOST);
-> -	PIS(SYNC_LOST_DIGIT);
-> -	if (dss_has_feature(FEAT_MGR_LCD2))
-> -		PIS(SYNC_LOST2);
-> -	if (dss_has_feature(FEAT_MGR_LCD3))
-> -		PIS(SYNC_LOST3);
-> +#define PIS(x) (status & DISPC_IRQ_##x) ? (#x " ") : ""
-> +
-> +	pr_debug("DISPC IRQ: 0x%x: %s%s%s%s%s%s%s%s%s\n",
-> +		status,
-> +		PIS(OCP_ERR),
-> +		PIS(GFX_FIFO_UNDERFLOW),
-> +		PIS(VID1_FIFO_UNDERFLOW),
-> +		PIS(VID2_FIFO_UNDERFLOW),
-> +		dss_feat_get_num_ovls() > 3 ? PIS(VID3_FIFO_UNDERFLOW) : "",
-> +		PIS(SYNC_LOST),
-> +		PIS(SYNC_LOST_DIGIT),
-> +		dss_has_feature(FEAT_MGR_LCD2) ? PIS(SYNC_LOST2) : "",
-> +		dss_has_feature(FEAT_MGR_LCD3) ? PIS(SYNC_LOST3) : "");
->  #undef PIS
-> -
-> -	printk("\n");
->  }
->  #endif
-
-There's similar irq printing code in dsi.c that should also be converted
-to the above style.
-
- Tomi
-
-
---=-t94y7/dOEZp7pJDtvPDe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQbtOxAAoJEPo9qoy8lh71pncP/3CIWb370Ny3+wD8KQJhf4o+
-5qFNr5X/EyG+d8HVihC6VGLKe3xy0ca+avUDbPuiVRiat4M5o1fLvYSkKDVjBM/B
-3grPRYUDs4xJmm0jhTRP4JejZzXM9WFvZyBnXU9JTDcxwPQJ0MDofV8kDVWgvKy/
-KOEXF2kQveAhl+mliQoBqR6n147Yu03TQbfNAgaEWswtKpMVBTLg7zyFYVrUqk6+
-uhhI0LlEvTWw3IO3oDlLITIZBrqNlfTsufUole0opwAV79fEIfvfbOOb0yTiw1E3
-890Fq4GJ2pFJVDmV4UJw1km18q9Grlz2y3Kx3lIZRXEHUvGbQ8jhI0ndtsQ8N77f
-XFMqH0yYjYMUzix/5YsPx6seErpKQqAbiShzo2bjjeME3rVsV5egQrvLIfNnS2Dz
-8GkRzYxdbfT7Gz9KDw5X+SviQKNrdbuPmPbf+1uqXlbxoXayw/xW6dMmiUd2OMd3
-IH5TeoBHsV8/s4uH9tYZ9c3pzkFpzsYLMHzTOkZYrV4mRjKHXUn0h0mNRHQmWAsI
-iGLQuz+boGJjbTIDvWV6mPep/FrCpvWCnzjfEiJA7Ee1b4vmJWcidzNBfNi7B1aA
-cg4E7WkCJigmnIlWrBeDbWBljC7CW8znpj6tK4fpURJyYEyKpMdNCi/UKo0WmdMS
-UMdYkuPrG+xro02ADML3
-=Xt61
------END PGP SIGNATURE-----
-
---=-t94y7/dOEZp7pJDtvPDe--
-
+Did you try keeping the modulemode enabled and see if it really gates
+DSS/system sleep. I remember testing with Teros CORE ret/off patches
+and I was always seeing DSS modulemode enabled but it wasn't gating
+sleep.
