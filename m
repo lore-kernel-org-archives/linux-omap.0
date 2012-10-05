@@ -1,54 +1,50 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 01/15] ARM: OMAP2+: gpmc: annotate exit sections properly
-Date: Fri, 5 Oct 2012 21:23:20 +0530
-Message-ID: <a517afd9ed3be069b475caae791156b9c4663849.1349450454.git.afzal@ti.com>
+Subject: [PATCH 02/15] mtd: onenand: omap: cleanup gpmc dependency
+Date: Fri, 5 Oct 2012 21:23:29 +0530
+Message-ID: <77643c064b9d0d639f75f793130bb40768b015e1.1349450454.git.afzal@ti.com>
 References: <cover.1349450454.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41173 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754065Ab2JEPxb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 11:53:31 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:52545 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755091Ab2JEPxk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Oct 2012 11:53:40 -0400
 In-Reply-To: <cover.1349450454.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-compiler complained,
-`gpmc_remove' referenced in section `.data' of arch/arm/mach-omap2/built-in.o: defined in discarded section `.exit.text' of arch/arm/mach-omap2/built-in.o
+requesting, freeing gpmc cs is now handled fully
+by gpmc, remove left out gpmc dependency as well
+as unnecessary include of gpmc.h
 
-Annotate gpmc_remove function and dependents with __devexit.
-
-Reported-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/onenand/omap2.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 2cbdcb9..163458d 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -886,7 +886,7 @@ static int gpmc_setup_irq(void)
- 	return request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
- }
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 1961be9..d7ef2c9 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -38,7 +38,6 @@
+ #include <linux/regulator/consumer.h>
  
--static __exit int gpmc_free_irq(void)
-+static __devexit int gpmc_free_irq(void)
- {
- 	int i;
+ #include <asm/mach/flash.h>
+-#include <plat/gpmc.h>
+ #include <linux/platform_data/mtd-onenand-omap2.h>
+ #include <asm/gpio.h>
  
-@@ -992,7 +992,7 @@ static __devinit int gpmc_probe(struct platform_device *pdev)
+@@ -803,7 +802,6 @@ static int __devexit omap2_onenand_remove(struct platform_device *pdev)
+ 	}
+ 	iounmap(c->onenand.base);
+ 	release_mem_region(c->phys_base, c->mem_size);
+-	gpmc_cs_free(c->gpmc_cs);
+ 	kfree(c);
+ 
  	return 0;
- }
- 
--static __exit int gpmc_remove(struct platform_device *pdev)
-+static __devexit int gpmc_remove(struct platform_device *pdev)
- {
- 	gpmc_free_irq();
- 	gpmc_mem_exit();
 -- 
 1.7.12
 
