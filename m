@@ -1,147 +1,91 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v8 5/6] ARM: OMAP2+: GPMC: Remove unused OneNAND get_freq() platform function
-Date: Fri, 5 Oct 2012 21:09:42 +0530
-Message-ID: <c63eee143064189145d9e791931b594a882727ee.1349444936.git.afzal@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v8 0/6] OMAP-GPMC cleanup for generic timing
+Date: Fri, 5 Oct 2012 15:41:56 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9F7451@DBDE01.ent.ti.com>
 References: <cover.1349444935.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39927 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751455Ab2JEPj5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Oct 2012 11:39:57 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40493 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751433Ab2JEPmP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 11:42:15 -0400
 In-Reply-To: <cover.1349444935.git.afzal@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
+To: Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Jon Hunter <jon-hunter@ti.com>
-
-A platform function pointer for getting the frequency of a OneNAND device
-was added so that a platform could specify a custom function for returning
-the frequency and not just rely on the OneNAND version to determine the
-frequency. However, this platform function pointer is not currently being
-used and I am not sure if it ever has.
-
-OneNAND devices are not so common these days and as far as I know not being
-used with new devices. Therefore, it is most likely that this get_freq()
-function pointer will not be used and so remove it.
-
-Given that the get_freq() function pointer is not used, neither is the
-clk_dep variable and so all references to it can also be removed.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/mach-omap2/gpmc-onenand.c              | 39 ++++---------------------
- include/linux/platform_data/mtd-onenand-omap2.h |  8 -----
- 2 files changed, 5 insertions(+), 42 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index e1328f5..ac06e90 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -139,21 +139,10 @@ static void set_onenand_cfg(void __iomem *onenand_base)
- }
- 
- static int omap2_onenand_get_freq(struct omap_onenand_platform_data *cfg,
--				  void __iomem *onenand_base, bool *clk_dep)
-+				  void __iomem *onenand_base)
- {
- 	u16 ver = readw(onenand_base + ONENAND_REG_VERSION_ID);
--	int freq = 0;
--
--	if (cfg->get_freq) {
--		struct onenand_freq_info fi;
--
--		fi.maf_id = readw(onenand_base + ONENAND_REG_MANUFACTURER_ID);
--		fi.dev_id = readw(onenand_base + ONENAND_REG_DEVICE_ID);
--		fi.ver_id = ver;
--		freq = cfg->get_freq(&fi, clk_dep);
--		if (freq)
--			return freq;
--	}
-+	int freq;
- 
- 	switch ((ver >> 4) & 0xf) {
- 	case 0:
-@@ -181,7 +170,7 @@ static int omap2_onenand_get_freq(struct omap_onenand_platform_data *cfg,
- 
- static struct gpmc_timings
- omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
--				int freq, bool clk_dep)
-+				int freq)
- {
- 	struct gpmc_timings t;
- 	const int t_cer  = 15;
-@@ -259,22 +248,6 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
- 	else
- 		latency = 4;
- 
--	if (clk_dep) {
--		if (gpmc_clk_ns < 12) { /* >83Mhz */
--			t_ces   = 3;
--			t_avds  = 4;
--		} else if (gpmc_clk_ns < 15) { /* >66Mhz */
--			t_ces   = 5;
--			t_avds  = 4;
--		} else if (gpmc_clk_ns < 25) { /* >40Mhz */
--			t_ces   = 6;
--			t_avds  = 5;
--		} else {
--			t_ces   = 7;
--			t_avds  = 7;
--		}
--	}
--
- 	/* Set synchronous read timings */
- 	memset(&t, 0, sizeof(t));
- 
-@@ -381,16 +354,14 @@ static int omap2_onenand_setup_sync(void __iomem *onenand_base, int *freq_ptr)
- {
- 	int ret, freq = *freq_ptr;
- 	struct gpmc_timings t;
--	bool clk_dep = false;
- 
- 	if (!freq) {
- 		/* Very first call freq is not known */
--		freq = omap2_onenand_get_freq(gpmc_onenand_data,
--						onenand_base, &clk_dep);
-+		freq = omap2_onenand_get_freq(gpmc_onenand_data, onenand_base);
- 		set_onenand_cfg(onenand_base);
- 	}
- 
--	t = omap2_onenand_calc_sync_timings(gpmc_onenand_data, freq, clk_dep);
-+	t = omap2_onenand_calc_sync_timings(gpmc_onenand_data, freq);
- 
- 	ret = gpmc_set_sync_mode(gpmc_onenand_data->cs, &t);
- 	if (IS_ERR_VALUE(ret))
-diff --git a/include/linux/platform_data/mtd-onenand-omap2.h b/include/linux/platform_data/mtd-onenand-omap2.h
-index 2858667..21bb0ff 100644
---- a/include/linux/platform_data/mtd-onenand-omap2.h
-+++ b/include/linux/platform_data/mtd-onenand-omap2.h
-@@ -15,20 +15,12 @@
- #define ONENAND_SYNC_READ	(1 << 0)
- #define ONENAND_SYNC_READWRITE	(1 << 1)
- 
--struct onenand_freq_info {
--	u16			maf_id;
--	u16			dev_id;
--	u16			ver_id;
--};
--
- struct omap_onenand_platform_data {
- 	int			cs;
- 	int			gpio_irq;
- 	struct mtd_partition	*parts;
- 	int			nr_parts;
- 	int			(*onenand_setup)(void __iomem *, int *freq_ptr);
--	int		(*get_freq)(const struct onenand_freq_info *freq_info,
--				    bool *clk_dep);
- 	int			dma_channel;
- 	u8			flags;
- 	u8			regulator_can_sleep;
--- 
-1.7.12
-
+KyBKb24gYW5kIFBhdWwNCg0KT24gRnJpLCBPY3QgMDUsIDIwMTIgYXQgMjE6MDQ6NTcsIE1vaGFt
+bWVkLCBBZnphbCB3cm90ZToNCj4gSGksDQo+IA0KPiBUaGlzIHNlcmllcyBwcmVwYXJlcyBncG1j
+IGZvciBnZW5lcmljIHRpbWluZy4gdjcgb2YgdGhpcyBzZXJpZXMgd2FzDQo+IG5hbWVkICJPTUFQ
+LUdQTUM6IGdlbmVyaWMgdGltZSBjYWxjLCBwcmVwYXJlIGZvciBkcml2ZXIiLiBnZW5lcmljDQo+
+IHRpbWluZyByb3V0aW5lIGhhcyBiZWVuIHJlbW92ZWQgZnJvbSB0aGlzIHNlcmllcy4gZ2VuZXJp
+YyB0aW1pbmcNCj4gd2lsbCBiZSBwb3N0ZWQgYXMgYSBuZXcgc2VwYXJhdGUgc2VyaWVzIHNob3J0
+bHkuDQo+IA0KPiBUaGlzIHJlYXJyYW5nZW1lbnQgaGFzIGJlZW4gZG9uZSBzbyB0aGF0IGdlbmVy
+aWMgdGltaW5nIHNlcmllcyB3aWxsDQo+IGhhcHBlbiBvbiB0b3Agb2YgYW5vdGhlciBjbGVhbnVw
+IHNlcmllcyByZXF1aXJlZCBmb3IgY29tbW9uIGFybSB6SW1hZ2UuDQo+IEJvdGggd2lsbCBmb2xs
+b3cgc2hvcnRseS4gSW50ZW50aW9uIGlzIHRvIG1ha2UgZWFzeSBwYXRoIGZvciBjb21tb24NCj4g
+YXJtIHpJbWFnZSBjbGVhbnVwLg0KPiANCj4gVGhpcyBzZXJpZXMgY29udGFpbnMgbWlub3IgY2xl
+YW51cHMgdGhhdCB3ZXJlIGxvdyBoYW5naW5nIGZydWl0cw0KPiBjYW1lIGFjcm9zcyB1cG9uIGlt
+cGxlbWVudGluZyBnZW5lcmljIHRpbWluZyByb3V0aW5lLg0KPiANCj4gVGhpcyBzZXJpZXMgaXMg
+c2FtZSBhcyB2NywgZXhjZXB0IHRoYXQgbGFzdCA0IHBhdGNoZXMgaW4gdjcgaGFzIGJlZW4NCj4g
+cmVtb3ZlZCBmcm9tIHRoaXMgc2VyaWVzICh0aG9zZSA0IHBhdGNoZXMgd2VyZSBmb3IgZ2VuZXJp
+YyB0aW1pbmcpDQo+IA0KPiBUaGlzIHNlcmllcyBpcyBhdmFpbGFibGUNCj4gICAgICAgICBAIGdp
+dDovL2dpdG9yaW91cy5vcmcveDAxNDg0MDYtcHVibGljL2xpbnV4LWtlcm5lbC5naXQgZ3BtYy1w
+cmVwLXY4DQo+IGFuZCBpcyBiYXNlZCBvbg0KPiAgICAgICAgIGxpbnV4LW5leHQgKG5leHQtMjAx
+MjEwMDUpDQo+IA0KPiBSZWdhcmRzDQo+IEFmemFsDQo+IA0KPiB2ODoNCj4gCVJlbW92ZSBnZW5l
+cmljIHRpbWluZyBjb252ZXJzaW9uIHBhdGNoZXMNCj4gDQo+IHY3Og0KPiAgICAgICAgIDEuIFVz
+ZSBwaWNvc2Vjb25kcyB0aHJvdWdob3V0IGdlbmVyaWMgdGltaW5nIHJvdXRpbmUgdG8gcHJldmVu
+dA0KPiAgICAgICAgICByb3VuZGluZyBlcnJvci4NCj4gCTIuIERvY3VtZW50YXRpb24gb24gZ3Bt
+YyB0aW1pbmdzDQo+ICAgICAgICAgMy4gUmVtb3ZlIHJlZHVuZGFudCByb3VuZGluZyBvZiBuYW5k
+IHRpbWluZ3MgKGEgbmV3IHBhdGNoKQ0KPiANCj4gdjY6DQo+ICAgICAgICAgMS4gR2VuZXJpYyB0
+aW1pbmcgY2FsY3VsYXRpb24sIG1vdmUgZXhpc3RpbmcgdXNlcnMgb2YgY3VzdG9tDQo+ICAgICAg
+ICAgIGNhbGN1bGF0aW9uIHRvIHVzZSB0aGUgbmV3IGdlbmVyaWMgb25lDQo+ICAgICAgICAgMi4g
+U2V0IE9uZU5BTkQgcGFydCB0byBhc3luYyBtb2RlIGJlZm9yZSBncG1jIGNvbmZpZ3VyYXRpb24N
+Cj4gICAgICAgICAzLiBNb3ZlIGV4dHJhIGRlbGF5IHRpbWUgdXNlciBoYW5kbGluZyB0byBwcm9w
+ZXIgcGF0Y2gNCj4gICAgICAgICAgKDMvMTAgLT4gMi8xMCkNCj4gICAgICAgICA0LiBNb2RpZnkg
+bmFuZCBpbml0IGZvciBPTUFQM0VWTSB0b28gYXMgc3VwcG9ydCBnb3QgYWRkZWQNCj4gdjU6DQo+
+ICAgICAgICAgVXNlIGZsYWdzIGZvciBzeW5jX3JlYWQvd3JpdGUsIGh2LCB2aGYNCj4gdjQ6DQo+
+ICAgICAgICAgUmVvcmdhbml6ZSBPbmVOQU5EIHNldF9zeW5jL2FzeW5jIGZ1bmN0aW9ucyBpbiBh
+IGJldHRlciB3YXkNCj4gdjM6DQo+ICAgICAgICAgMS4gUmVmYWN0b3IgT25lTkFORCBzZXRfc3lu
+Yy9hc3luYyBmdW5jdGlvbnMgdG8gc2VwYXJhdGUgb3V0DQo+ICAgICAgICAgIHRpbWluZyBhbmQg
+Y29uZmlndXJhdGlvbnMNCj4gICAgICAgICAyLiBIYW5kbGUgYm9vbCB0eXBlIHRpbWluZ3MgdG9v
+DQo+ICAgICAgICAgMy4gU3dhcCBwYXRjaGVzIDIgJiAzIGR1ZSB0byBkZXBlbmRlbmN5IG9mIE9u
+ZU5BTkQgY2hhbmdlIG9uDQo+ICAgICAgICAgIG5ld2x5IGFkZGVkIGJvb2wgdHlwZSB0aW1pbmdz
+DQo+IHYyOg0KPiAgICAgICAgIDEuIE1ha2UgdXNlIG9mIHRpbWluZyBhcGkgZm9yIHNldHRpbmcg
+Y2xvY2sgYWN0aXZhdGlvbiB0aW1lLA0KPiAgICAgICAgICBhbmQgcmVtb3ZlIGRpcmVjdCB3cml0
+aW5nIHRvIHJlZ2lzdGVyIGZvciBjbG9jayBhY3RpdmF0aW9uLg0KPiAgICAgICAgIDIuIE1vdmUg
+ZW5zdXJpbmcgdGhhdCBhc3luYyBtb2RlIGluIE9uZU5BTkQgaGFzIGJlZW4gc2V0dXAgZnJvbQ0K
+PiAgICAgICAgICBzZXRfc3luYyB0byBzZXR1cCBmdW5jdGlvbiwgaW1wcm92ZSBjb21taXQgbWVz
+c2FnZQ0KPiANCj4gDQo+IEFmemFsIE1vaGFtbWVkICg1KToNCj4gICBBUk06IE9NQVAyKzogbmFu
+ZDogdW5pZnkgaW5pdCBmdW5jdGlvbnMNCj4gICBBUk06IE9NQVAyKzogbmFuZDogcmVtb3ZlIHJl
+ZHVuZGFudCByb3VuZGluZw0KPiAgIEFSTTogT01BUDIrOiBncG1jOiBoYW5kbGUgYWRkaXRpb25h
+bCB0aW1pbmdzDQo+ICAgQVJNOiBPTUFQMis6IG9uZW5hbmQ6IHJlZmFjdG9yIGZvciBjbGFyaXR5
+DQo+ICAgQVJNOiBPTUFQMis6IGdwbWM6IHJlbW92ZSBjcyMgaW4gc3luYyBjbGsgZGl2IGNhbGMN
+Cj4gDQo+IEpvbiBIdW50ZXIgKDEpOg0KPiAgIEFSTTogT01BUDIrOiBHUE1DOiBSZW1vdmUgdW51
+c2VkIE9uZU5BTkQgZ2V0X2ZyZXEoKSBwbGF0Zm9ybSBmdW5jdGlvbg0KPiANCj4gIGFyY2gvYXJt
+L21hY2gtb21hcDIvYm9hcmQtZGV2a2l0ODAwMC5jICAgICAgICAgIHwgICA4ICstDQo+ICBhcmNo
+L2FybS9tYWNoLW9tYXAyL2JvYXJkLWZsYXNoLmMgICAgICAgICAgICAgICB8ICA0NSArKy0tLQ0K
+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1mbGFzaC5oICAgICAgICAgICAgICAgfCAgIDYg
+Ky0NCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaWdlcDAwMjAuYyAgICAgICAgICAgIHwg
+ICAyICstDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLWxkcC5jICAgICAgICAgICAgICAg
+ICB8ICAgNCArLQ0KPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM2JlYWdsZS5jICAg
+ICAgICAgfCAgIDggKy0NCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNldm0uYyAg
+ICAgICAgICAgIHwgICA4ICstDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzdG91
+Y2hib29rLmMgICAgICB8ICAgOCArLQ0KPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vdmVy
+by5jICAgICAgICAgICAgICAgfCAgIDcgKy0NCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQt
+em9vbS5jICAgICAgICAgICAgICAgIHwgICA1ICstDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL2Nv
+bW1vbi1ib2FyZC1kZXZpY2VzLmMgICAgICB8ICA0NSAtLS0tLQ0KPiAgYXJjaC9hcm0vbWFjaC1v
+bWFwMi9jb21tb24tYm9hcmQtZGV2aWNlcy5oICAgICAgfCAgIDEgLQ0KPiAgYXJjaC9hcm0vbWFj
+aC1vbWFwMi9ncG1jLW5hbmQuYyAgICAgICAgICAgICAgICAgfCAgMzAgKystDQo+ICBhcmNoL2Fy
+bS9tYWNoLW9tYXAyL2dwbWMtb25lbmFuZC5jICAgICAgICAgICAgICB8IDIzMiArKysrKysrKysr
+KystLS0tLS0tLS0tLS0NCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy5jICAgICAgICAgICAg
+ICAgICAgICAgIHwgIDUyICsrKysrLQ0KPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi91c2ItdHVzYjYw
+MTAuYyAgICAgICAgICAgICAgfCAgIDMgKy0NCj4gIGFyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRl
+L3BsYXQvZ3BtYy5oICAgICAgICAgIHwgIDIxICsrLQ0KPiAgaW5jbHVkZS9saW51eC9wbGF0Zm9y
+bV9kYXRhL210ZC1vbmVuYW5kLW9tYXAyLmggfCAgIDggLQ0KPiAgMTggZmlsZXMgY2hhbmdlZCwg
+MjYyIGluc2VydGlvbnMoKyksIDIzMSBkZWxldGlvbnMoLSkNCj4gDQo+IC0tIA0KPiAxLjcuMTIN
+Cj4gDQo+IA0KDQo=
