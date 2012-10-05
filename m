@@ -1,61 +1,79 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 05/15] ARM: OMAP2+: onenand: connected soc info in pdata
-Date: Fri, 5 Oct 2012 21:23:54 +0530
-Message-ID: <6065bed749924f28a3d268145d1b7c980a3c97eb.1349450454.git.afzal@ti.com>
+Subject: [PATCH 06/15] mtd: onenand: omap: use pdata info instead of cpu_is
+Date: Fri, 5 Oct 2012 21:24:00 +0530
+Message-ID: <860ba92c34cbb490beccd5442087087c1751a6a2.1349450454.git.afzal@ti.com>
 References: <cover.1349450454.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40806 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40821 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755843Ab2JEPyE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Oct 2012 11:54:04 -0400
+	id S1755843Ab2JEPyM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 5 Oct 2012 11:54:12 -0400
 In-Reply-To: <cover.1349450454.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-onenand driver needs to know whether soc is falling under
-34xx family to properly handle onenand. But driver is not
-supposed to do cpu_is_* check, hence educate platform data
-with this information. Driver can make use of it to avoid
+platform data now contains a field to indicate whether
+soc belongs to omap34xx family, use it instead of
 cpu_is_* check.
+
+This helps in removing dependency of platform specific
+header file - cpu.h
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c              | 5 +++++
- include/linux/platform_data/mtd-onenand-omap2.h | 1 +
- 2 files changed, 6 insertions(+)
+ drivers/mtd/onenand/omap2.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 544d501..f0b677a 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -409,6 +409,11 @@ void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
- 		gpmc_onenand_data->flags |= ONENAND_SYNC_READ;
- 	}
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index d7ef2c9..959f465 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -42,7 +42,6 @@
+ #include <asm/gpio.h>
  
-+	if (cpu_is_omap34xx())
-+		gpmc_onenand_data->flags |= ONENAND_IN_OMAP34XX;
-+	else
-+		gpmc_onenand_data->flags &= ~ONENAND_IN_OMAP34XX;
-+
- 	err = gpmc_cs_request(gpmc_onenand_data->cs, ONENAND_IO_SIZE,
- 				(unsigned long *)&gpmc_onenand_resource.start);
- 	if (err < 0) {
-diff --git a/include/linux/platform_data/mtd-onenand-omap2.h b/include/linux/platform_data/mtd-onenand-omap2.h
-index 21bb0ff..ef9c60d 100644
---- a/include/linux/platform_data/mtd-onenand-omap2.h
-+++ b/include/linux/platform_data/mtd-onenand-omap2.h
-@@ -14,6 +14,7 @@
+ #include <plat/dma.h>
+-#include <plat/cpu.h>
  
- #define ONENAND_SYNC_READ	(1 << 0)
- #define ONENAND_SYNC_READWRITE	(1 << 1)
-+#define	ONENAND_IN_OMAP34XX	(1 << 2)
+ #define DRIVER_NAME "omap2-onenand"
  
- struct omap_onenand_platform_data {
- 	int			cs;
+@@ -62,6 +61,7 @@ struct omap2_onenand {
+ 	int freq;
+ 	int (*setup)(void __iomem *base, int *freq_ptr);
+ 	struct regulator *regulator;
++	u8 flags;
+ };
+ 
+ static void omap2_onenand_dma_cb(int lch, u16 ch_status, void *data)
+@@ -154,7 +154,7 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
+ 		if (!(syscfg & ONENAND_SYS_CFG1_IOBE)) {
+ 			syscfg |= ONENAND_SYS_CFG1_IOBE;
+ 			write_reg(c, syscfg, ONENAND_REG_SYS_CFG1);
+-			if (cpu_is_omap34xx())
++			if (c->flags & ONENAND_IN_OMAP34XX)
+ 				/* Add a delay to let GPIO settle */
+ 				syscfg = read_reg(c, ONENAND_REG_SYS_CFG1);
+ 		}
+@@ -638,6 +638,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
+ 
+ 	init_completion(&c->irq_done);
+ 	init_completion(&c->dma_done);
++	c->flags = pdata->flags;
+ 	c->gpmc_cs = pdata->cs;
+ 	c->gpio_irq = pdata->gpio_irq;
+ 	c->dma_channel = pdata->dma_channel;
+@@ -728,7 +729,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
+ 	this = &c->onenand;
+ 	if (c->dma_channel >= 0) {
+ 		this->wait = omap2_onenand_wait;
+-		if (cpu_is_omap34xx()) {
++		if (c->flags & ONENAND_IN_OMAP34XX) {
+ 			this->read_bufferram = omap3_onenand_read_bufferram;
+ 			this->write_bufferram = omap3_onenand_write_bufferram;
+ 		} else {
 -- 
 1.7.12
 
