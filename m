@@ -1,275 +1,204 @@
-From: Florian Fainelli <florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>
-Subject: [PATCH 15/32 v2] USB: ohci: merge ohci_finish_controller_resume with ohci_resume
-Date: Fri,  5 Oct 2012 18:20:47 +0200
-Message-ID: <1349454064-11606-16-git-send-email-florian@openwrt.org>
-References: <1349454064-11606-1-git-send-email-florian@openwrt.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: MUSB regression in linux next at least for pandboard
+Date: Fri, 5 Oct 2012 09:27:17 -0700
+Message-ID: <20121005162717.GL3874@atomide.com>
+References: <20121004173107.GD3874@atomide.com>
+ <20121004175742.GB9702@arwen.pp.htv.fi>
+ <20121005013910.GI3874@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="k1lZvvs/B4yU6o8G"
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1349454064-11606-1-git-send-email-florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20121005013910.GI3874-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Fainelli <florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Lennert Buytenhek <kernel-OLH4Qvv75CYX/NnBR394Jw@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Merge ohci_finish_controller_resume with ohci_resume as suggested by Alan
-Stern. Since ohci_finish_controller_resume no longer exists, update the
-various OHCI drivers to call ohci_resume() instead. Some drivers used to set
-themselves the bit HCD_FLAG_HW_ACCESSIBLE, which is now handled by
-ohci_resume().
 
-Acked-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Acked-by: Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Florian Fainelli <florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>
----
-Changes since v1:
-- added Nicolas and Jingoo's Acked-by
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
- drivers/usb/host/ohci-at91.c     |    2 +-
- drivers/usb/host/ohci-ep93xx.c   |    2 +-
- drivers/usb/host/ohci-exynos.c   |    5 +----
- drivers/usb/host/ohci-hcd.c      |   41 +++++++++++++++++++++++++++++++++++--
- drivers/usb/host/ohci-hub.c      |   42 --------------------------------------
- drivers/usb/host/ohci-omap.c     |    2 +-
- drivers/usb/host/ohci-platform.c |    2 +-
- drivers/usb/host/ohci-pxa27x.c   |    2 +-
- drivers/usb/host/ohci-s3c2410.c  |    3 +--
- drivers/usb/host/ohci-spear.c    |    2 +-
- drivers/usb/host/ohci-tmio.c     |    2 +-
- 11 files changed, 48 insertions(+), 57 deletions(-)
+* Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [121004 18:41]:
+> > 
+> > > Also on the EHCI port, I've seen issues where unplugging
+> > > the cable hangs kernel with an infinite loop. But that happens
+> > > only occasionally, sorry does not seem to happen right
+> > > now so no output to paste here. Or maybe this issue
+> > > has already been fixed?
 
-diff --git a/drivers/usb/host/ohci-at91.c b/drivers/usb/host/ohci-at91.c
-index 0bf72f9..908d84a 100644
---- a/drivers/usb/host/ohci-at91.c
-+++ b/drivers/usb/host/ohci-at91.c
-@@ -705,7 +705,7 @@ static int ohci_hcd_at91_drv_resume(struct platform_device *pdev)
- 	if (!clocked)
- 		at91_start_clock();
- 
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 	return 0;
- }
- #else
-diff --git a/drivers/usb/host/ohci-ep93xx.c b/drivers/usb/host/ohci-ep93xx.c
-index dbfbd1d..a982f04 100644
---- a/drivers/usb/host/ohci-ep93xx.c
-+++ b/drivers/usb/host/ohci-ep93xx.c
-@@ -194,7 +194,7 @@ static int ohci_hcd_ep93xx_drv_resume(struct platform_device *pdev)
- 
- 	ep93xx_start_hc(&pdev->dev);
- 
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 	return 0;
- }
- #endif
-diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-exynos.c
-index fc3091b..53c5a989 100644
---- a/drivers/usb/host/ohci-exynos.c
-+++ b/drivers/usb/host/ohci-exynos.c
-@@ -252,10 +252,7 @@ static int exynos_ohci_resume(struct device *dev)
- 	if (pdata && pdata->phy_init)
- 		pdata->phy_init(pdev, S5P_USB_PHY_HOST);
- 
--	/* Mark hardware accessible again as we are out of D3 state by now */
--	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
--
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 
- 	return 0;
- }
-diff --git a/drivers/usb/host/ohci-hcd.c b/drivers/usb/host/ohci-hcd.c
-index acf8c83..d97dc48 100644
---- a/drivers/usb/host/ohci-hcd.c
-+++ b/drivers/usb/host/ohci-hcd.c
-@@ -1005,13 +1005,50 @@ static int __maybe_unused ohci_suspend(struct usb_hcd *hcd, bool do_wakeup)
- 
- static int __maybe_unused ohci_resume(struct usb_hcd *hcd, bool hibernated)
- {
-+	struct ohci_hcd		*ohci = hcd_to_ohci(hcd);
-+	int			port;
-+	bool			need_reinit = false;
-+
- 	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
- 
- 	/* Make sure resume from hibernation re-enumerates everything */
- 	if (hibernated)
--		ohci_usb_reset(hcd_to_ohci(hcd));
-+		ohci_usb_reset(ohci);
-+
-+	/* See if the controller is already running or has been reset */
-+	ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
-+	if (ohci->hc_control & (OHCI_CTRL_IR | OHCI_SCHED_ENABLES)) {
-+		need_reinit = true;
-+	} else {
-+		switch (ohci->hc_control & OHCI_CTRL_HCFS) {
-+		case OHCI_USB_OPER:
-+		case OHCI_USB_RESET:
-+			need_reinit = true;
-+		}
-+	}
-+
-+	/* If needed, reinitialize and suspend the root hub */
-+	if (need_reinit) {
-+		spin_lock_irq(&ohci->lock);
-+		ohci_rh_resume(ohci);
-+		ohci_rh_suspend(ohci, 0);
-+		spin_unlock_irq(&ohci->lock);
-+	}
-+
-+	/* Normally just turn on port power and enable interrupts */
-+	else {
-+		ohci_dbg(ohci, "powerup ports\n");
-+		for (port = 0; port < ohci->num_ports; port++)
-+			ohci_writel(ohci, RH_PS_PPS,
-+					&ohci->regs->roothub.portstatus[port]);
-+
-+		ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrenable);
-+		ohci_readl(ohci, &ohci->regs->intrenable);
-+		msleep(20);
-+	}
-+
-+	usb_hcd_resume_root_hub(hcd);
- 
--	ohci_finish_controller_resume(hcd);
- 	return 0;
- }
- 
-diff --git a/drivers/usb/host/ohci-hub.c b/drivers/usb/host/ohci-hub.c
-index 2f3619e..db09dae 100644
---- a/drivers/usb/host/ohci-hub.c
-+++ b/drivers/usb/host/ohci-hub.c
-@@ -316,48 +316,6 @@ static int ohci_bus_resume (struct usb_hcd *hcd)
- 	return rc;
- }
- 
--/* Carry out the final steps of resuming the controller device */
--static void __maybe_unused ohci_finish_controller_resume(struct usb_hcd *hcd)
--{
--	struct ohci_hcd		*ohci = hcd_to_ohci(hcd);
--	int			port;
--	bool			need_reinit = false;
--
--	/* See if the controller is already running or has been reset */
--	ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
--	if (ohci->hc_control & (OHCI_CTRL_IR | OHCI_SCHED_ENABLES)) {
--		need_reinit = true;
--	} else {
--		switch (ohci->hc_control & OHCI_CTRL_HCFS) {
--		case OHCI_USB_OPER:
--		case OHCI_USB_RESET:
--			need_reinit = true;
--		}
--	}
--
--	/* If needed, reinitialize and suspend the root hub */
--	if (need_reinit) {
--		spin_lock_irq(&ohci->lock);
--		ohci_rh_resume(ohci);
--		ohci_rh_suspend(ohci, 0);
--		spin_unlock_irq(&ohci->lock);
--	}
--
--	/* Normally just turn on port power and enable interrupts */
--	else {
--		ohci_dbg(ohci, "powerup ports\n");
--		for (port = 0; port < ohci->num_ports; port++)
--			ohci_writel(ohci, RH_PS_PPS,
--					&ohci->regs->roothub.portstatus[port]);
--
--		ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrenable);
--		ohci_readl(ohci, &ohci->regs->intrenable);
--		msleep(20);
--	}
--
--	usb_hcd_resume_root_hub(hcd);
--}
--
- /* Carry out polling-, autostop-, and autoresume-related state changes */
- static int ohci_root_hub_state_changes(struct ohci_hcd *ohci, int changed,
- 		int any_connected, int rhsc_status)
-diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
-index f8b2d91..9fab4d8 100644
---- a/drivers/usb/host/ohci-omap.c
-+++ b/drivers/usb/host/ohci-omap.c
-@@ -530,7 +530,7 @@ static int ohci_omap_resume(struct platform_device *dev)
- 	ohci->next_statechange = jiffies;
- 
- 	omap_ohci_clock_power(1);
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 	return 0;
- }
- 
-diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
-index 1caaf65..99d1755 100644
---- a/drivers/usb/host/ohci-platform.c
-+++ b/drivers/usb/host/ohci-platform.c
-@@ -203,7 +203,7 @@ static int ohci_platform_resume(struct device *dev)
- 			return err;
- 	}
- 
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 	return 0;
- }
- 
-diff --git a/drivers/usb/host/ohci-pxa27x.c b/drivers/usb/host/ohci-pxa27x.c
-index 77f4402..8bffde3 100644
---- a/drivers/usb/host/ohci-pxa27x.c
-+++ b/drivers/usb/host/ohci-pxa27x.c
-@@ -591,7 +591,7 @@ static int ohci_hcd_pxa27x_drv_resume(struct device *dev)
- 	/* Select Power Management Mode */
- 	pxa27x_ohci_select_pmm(ohci, inf->port_mode);
- 
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 	return 0;
- }
- 
-diff --git a/drivers/usb/host/ohci-s3c2410.c b/drivers/usb/host/ohci-s3c2410.c
-index 664c869..8af53c6 100644
---- a/drivers/usb/host/ohci-s3c2410.c
-+++ b/drivers/usb/host/ohci-s3c2410.c
-@@ -524,8 +524,7 @@ static int ohci_hcd_s3c2410_drv_resume(struct device *dev)
- 
- 	s3c2410_start_hc(pdev, hcd);
- 
--	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 
- 	return 0;
- }
-diff --git a/drivers/usb/host/ohci-spear.c b/drivers/usb/host/ohci-spear.c
-index fc7305e..d607be3 100644
---- a/drivers/usb/host/ohci-spear.c
-+++ b/drivers/usb/host/ohci-spear.c
-@@ -231,7 +231,7 @@ static int spear_ohci_hcd_drv_resume(struct platform_device *dev)
- 	ohci->next_statechange = jiffies;
- 
- 	spear_start_ohci(ohci_p);
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 	return 0;
- }
- #endif
-diff --git a/drivers/usb/host/ohci-tmio.c b/drivers/usb/host/ohci-tmio.c
-index 60c2b07..2c9ab8f 100644
---- a/drivers/usb/host/ohci-tmio.c
-+++ b/drivers/usb/host/ohci-tmio.c
-@@ -352,7 +352,7 @@ static int ohci_hcd_tmio_drv_resume(struct platform_device *dev)
- 
- 	spin_unlock_irqrestore(&tmio->lock, flags);
- 
--	ohci_finish_controller_resume(hcd);
-+	ohci_resume(hcd, false);
- 
- 	return 0;
- }
--- 
-1.7.9.5
+Looks like the system eventually recovers from the EHCI issue
+after about fivew minutes or so of spamming the logs. It seems
+the ehci-omap errors are:
 
+[62934.201538] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 31
+[62934.201660] ehci-omap ehci-omap.0: devpath 1.3.7 ep0out 3strikes
+[62934.201873] ehci-omap ehci-omap.0: reused qh ea5632c0 schedule
+
+More data below.
+
+Regards,
+
+Tony
+
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename=panda-ehci-hang-on-unplug
+
+...
+[62927.200012] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
+[62927.215606] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 25
+[62927.220092] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 22
+[62927.225738] ehci-omap ehci-omap.0: devpath 1.3.7 ep0out 3strikes
+[62927.232238] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 17
+[62927.236633] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
+[62927.241119] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
+[62927.251098] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
+[62927.258605] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 12
+[62927.264343] usb 1-1.3.7.5: link qh8-0e01/ea5632c0 start 6 [1/2 us]
+[62927.274353] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 17
+[62927.276092] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 24
+[62927.280700] usb 1-1.3.7: clear tt 4 (0120) error -71
+[62927.289245] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62927.292633] usb 1-1.3.7: clear tt buffer port 4, a18 ep0 t00080248
+[62927.296356] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
+[62927.302368] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
+[62927.307098] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 24
+[62927.308258] hid-generic 0003:047D:1020.000C: can't reset device, ehci-omap.0-1.3.7.4/input0, status -1
+[62927.317230] usb 1-1.3.7: clear tt buffer port 5, a26 ep0 t00080248
+[62927.322357] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
+[62927.324981] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
+[62927.330718] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 9
+[62927.336364] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 20
+[62927.348114] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 31
+[62927.349090] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
+[62927.356475] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
+[62927.368469] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62927.372253] usb 1-1.3.7: clear tt buffer port 4, a18 ep0 t00080248
+[62926.616607] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
+[62926.622863] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 10
+[62926.627746] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
+[62926.628112] ehci-omap ehci-omap.0: devpath 1.3.7.4 ep0out 3strikes
+[62926.639404] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 14
+[62926.643737] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
+[62926.651123] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 15
+[62926.655609] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
+[62926.660125] usb 1-1.3.7: clear tt buffer port 4, a18 ep0 t00080248
+[62926.667480] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 15
+[62926.669982] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 1
+[62926.680603] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
+[62926.686126] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 14
+[62926.693237] usb 1-1.3.7: clear tt buffer port 5, a26 ep0 t00080248
+[62926.694091] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
+[62926.706359] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62926.709350] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
+[62926.712554] usb 1-1.3.7: clear tt 4 (0120) error -71
+[62926.714599] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 16
+[62926.720855] ehci-omap ehci-omap.0: devpath 1.3.7.5 ep0out 3strikes
+[62926.729248] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62926.732238] usb 1-1.3.7: clear tt buffer port 4, a18 ep0 t00080248
+[62926.736358] ehci-omap ehci-omap.0: devpath 1.3.7 ep0out 3strikes
+[62926.742736] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 9
+[62926.755615] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 27
+[62926.756744] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62926.763610] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
+[62926.769226] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
+[62926.780609] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62926.782745] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
+[62926.789978] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
+[62926.801605] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 11
+[62926.804626] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62926.809844] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
+[62926.815734] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
+[62926.828979] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
+[62926.829101] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
+[62926.840118] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 20
+[62926.851745] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 28
+[62926.855987] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 28
+[62926.863220] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 13
+[62926.876251] ehci-omap ehci-omap.0: devpath 1.3.7.4 ep0out 3strikes
+[62926.876403] hid-generic 0003:047D:1020.000C: can't reset device, ehci-omap.0-1.3.7.4/input0, status -1
+[62926.897125] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
+[62926.903747] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
+[62926.920989] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
+...
+
+After waiting for several minutes, it stops, and dmesg shows:
+
+# dmesg | grep -i omap
+[62934.193389] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62934.193542] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
+[62934.193664] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
+[62934.193786] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
+[62934.194030] ehci-omap ehci-omap.0: reused qh ed0fbdc0 schedule
+[62934.194122] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
+[62934.194274] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
+[62934.194396] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 8
+[62934.194519] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 9
+[62934.194641] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 10
+[62934.194793] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 11
+[62934.194915] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 12
+[62934.195037] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 13
+[62934.195159] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 14
+[62934.195281] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 15
+[62934.195404] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 16
+[62934.195526] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 17
+[62934.195648] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
+[62934.195770] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
+[62934.195892] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 20
+[62934.196014] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 21
+[62934.196166] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 22
+[62934.196289] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 23
+[62934.196411] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 24
+[62934.196533] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 25
+[62934.196655] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
+[62934.196777] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 27
+[62934.196899] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 28
+[62934.197021] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
+[62934.197143] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 30
+[62934.197265] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 31
+[62934.197418] ehci-omap ehci-omap.0: devpath 1.3.7.5 ep0out 3strikes
+1.3.7.5/input0, status -71
+[62934.197784] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 1
+[62934.197906] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 2
+[62934.198028] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 3
+[62934.198150] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 4
+[62934.198272] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 5
+[62934.198394] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 6
+[62934.198516] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 7
+[62934.198638] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 8
+[62934.198791] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 9
+[62934.198913] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 10
+[62934.199035] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 11
+[62934.199157] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 12
+[62934.199279] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 13
+[62934.199401] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 14
+[62934.199523] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 15
+[62934.199645] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 16
+[62934.199768] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 17
+[62934.199890] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 18
+[62934.200042] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 19
+[62934.200042] ehci-omap ehci-omap.0: detected XactErr len 0/4 retry 1
+[62934.200164] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 20
+[62934.200164] ehci-omap ehci-omap.0: detected XactErr len 0/4 retry 2
+[62934.200286] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 21
+[62934.200286] ehci-omap ehci-omap.0: detected XactErr len 0/4 retry 3
+[62934.200408] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 22
+[62934.200531] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 23
+[62934.200653] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 24
+[62934.200775] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 25
+[62934.200897] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 26
+[62934.201019] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 27
+[62934.201141] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 28
+[62934.201263] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 29
+[62934.201416] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 30
+[62934.201538] ehci-omap ehci-omap.0: detected XactErr len 0/8 retry 31
+[62934.201660] ehci-omap ehci-omap.0: devpath 1.3.7 ep0out 3strikes
+[62934.201873] ehci-omap ehci-omap.0: reused qh ea5632c0 schedule
+...
+
+--k1lZvvs/B4yU6o8G--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
