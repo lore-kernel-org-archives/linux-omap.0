@@ -1,98 +1,65 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: ocp2scp: create omap device for ocp2scp
-Date: Sat, 06 Oct 2012 00:30:01 +0200
-Message-ID: <506F5F69.6040104@mvista.com>
-References: <1349431628-2819-1-git-send-email-kishon@ti.com> <1349431628-2819-4-git-send-email-kishon@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/9] ARM: dts/OMAP: Pinmux audio configuration for
+ OMAP4+
+Date: Fri, 5 Oct 2012 16:03:55 -0700
+Message-ID: <20121005230354.GS3874@atomide.com>
+References: <1349351848-12972-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1349431628-2819-4-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:16155 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752242Ab2JEXD6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 19:03:58 -0400
+Content-Disposition: inline
+In-Reply-To: <1349351848-12972-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Hello.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [121004 04:57]:
+> Hello,
+> 
+> u-boot recently stopped configuring 'non essential' pin mux. This change leaves
+> the audio essential pins in non configured state which prevents the use of audio.
+> The following series makes sure that the needed pins are configured correctly by
+> the kernel on OMAP4 and OMAP5.
+> 
+> Tony: can this series queued for 3.7?
 
-On 05-10-2012 12:07, Kishon Vijay Abraham I wrote:
+Let's see if that's possible to avoid mysterious bug reports
+of things not working.
 
-> Platfrom device for ocp2scp is created using omap_device_build in
-> devices file. This is used for both omap4(musb) and omap5(dwc3).
->
-> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+If we can't merge it, then it might be worth adding a warning
+that bails out early after some pin is checked or similar.
+
+Regards,
+
+Tony
+ 
+> Regards,
+> Peter
 > ---
->   arch/arm/mach-omap2/devices.c |   72 +++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 72 insertions(+)
->
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index c8c2117..e2ba505 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-[...]
-> @@ -613,6 +614,76 @@ static void omap_init_vout(void)
-[...]
-
-> +static void omap_init_ocp2scp(void)
-> +{
-> +	struct omap_hwmod	*oh;
-> +	struct platform_device	*pdev;
-> +	int			bus_id = -1, dev_cnt = 0, i;
-> +	struct omap_ocp2scp_dev	*ocp2scp_dev;
-> +	const char		*oh_name, *name;
-> +	struct omap_ocp2scp_platform_data *pdata;
-> +
-> +	oh_name = "ocp2scp_usb_phy";
-> +	name	= "omap-ocp2scp";
-> +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (!oh) {
-> +		pr_err("%s: could not find omap_hwmod for %s\n", __func__,
-> +								oh_name);
-> +		return;
-> +	}
-> +
-> +	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata) {
-> +		pr_err("%s: No memory for ocp2scp pdata\n", __func__);
-> +		return;
-> +	}
-> +
-> +	ocp2scp_dev = oh->dev_attr;
-> +	dev_cnt = count_ocp2scp_devices(ocp2scp_dev);
-> +
-> +	if (!dev_cnt) {
-> +		pr_err("%s: No devices connected to ocp2scp\n", __func__);
-> +		return;
-
-    Don't you leak 'pdata' here?
-
-> +	}
-> +
-> +	pdata->devices = kzalloc(sizeof(struct omap_ocp2scp_dev *)
-> +					* dev_cnt, GFP_KERNEL);
-> +	if (!pdata->devices) {
-> +		pr_err("%s: No memory for ocp2scp pdata devices\n", __func__);
-> +		return;
-> +	}
-> +
-> +	for (i = 0; i<  dev_cnt; i++, ocp2scp_dev++)
-> +		pdata->devices[i] = ocp2scp_dev;
-> +
-> +	pdata->dev_cnt	= dev_cnt;
-> +
-> +	pdev = omap_device_build(name, bus_id, oh, pdata, sizeof(*pdata), NULL,
-> +								0, false);
-> +	if (IS_ERR(pdev)) {
-> +		pr_err("Could not build omap_device for %s %s\n",
-> +						name, oh_name);
-> +		return;
-
-    Don't you leak 'pdata' and 'pdata->devices' here?
-
-
-> +	}
-> +}
->
-
-WBR,  Sergei
+> Peter Ujfalusi (9):
+>   ARM: OMAP: board-4430-sdp: Pin mux configuration for audio needs
+>   ARM: OMAP: board-omap4panda: Pin mux configuration for audio needs
+>   ARM/dts: omap4-panda: Disable unused audio IPs
+>   ARM/dts: omap4-sdp: Disable unused McBSP3
+>   ARM/dts: omap5-evm: Disable unused McBSP3
+>   ARM/dts: omap4-sdp: pinmux configuration for audio
+>   ARM/dts: omap4-panda: pinmux configuration for audio
+>   ARM/dts: Add pinctrl driver entries for omap5
+>   ARM/dts: omap5-evm: pinmux configuration for audio
+> 
+>  arch/arm/boot/dts/omap4-panda.dts      | 47 +++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4-sdp.dts        | 57 +++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap5-evm.dts        | 58 ++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap5.dtsi           | 17 ++++++++++
+>  arch/arm/mach-omap2/board-4430sdp.c    | 26 +++++++++++++++
+>  arch/arm/mach-omap2/board-omap4panda.c | 15 +++++++++
+>  6 files changed, 220 insertions(+)
+> 
+> -- 
+> 1.7.12
+> 
