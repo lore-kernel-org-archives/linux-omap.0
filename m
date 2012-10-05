@@ -1,69 +1,129 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH v2 0/7] uio_pruss cleanup and platform support
-Date: Fri, 5 Oct 2012 17:28:26 -0400
-Message-ID: <20121005212826.GN11149@beef>
-References: <1348861072-14507-1-git-send-email-mporter@ti.com>
- <20121003150058.GB11180@beef>
- <1BAFE6F6C881BF42822005164F1491C33EA9C6B7@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: Re: [PATCH] i2c: i2c-omap: fix interrupt flood during resume
+Date: Fri, 05 Oct 2012 15:07:12 -0700
+Message-ID: <87boggmv3j.fsf@deeprootsystems.com>
+References: <1349427316-24990-1-git-send-email-kalle.jokiniemi@jollamobile.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EA9C6B7@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Russell King <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Linux OMAP List <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1349427316-24990-1-git-send-email-kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+	(Kalle Jokiniemi's message of "Fri, 5 Oct 2012 11:55:16 +0300")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 05, 2012 at 04:43:56AM +0000, Hebbar, Gururaja wrote:
-> Matt,
-> 
-> On Wed, Oct 03, 2012 at 20:30:58, Porter, Matt wrote:
-> > On Fri, Sep 28, 2012 at 03:37:45PM -0400, Matt Porter wrote:
-> > > Changes since v1:
-> > > 	- Replaced uio_pruss private SRAM API use with genalloc
-> > > 	- Added DA850 platform device and clock support
-> > > 	- Added DA850 L3 RAM gen_pool support
-> > > 	- Split out DT binding
-> > > 
-> > > This series enables uio_pruss on both DA850 and AM33xx. The driver
-> > > previously was not enabled by any platform and the private SRAM API
-> > > was accessing an invalid SRAM bank for use on DA850. For AM33xx,
-> > > DT, pinctrl, and runtime PM support are added since AM33xx only
-> > > boots via DT.
-> > 
-> > I'm dropping AM33xx/OMAP support from v3 for this series 
-> 
-> Just for my clarification, I believe you will be taking up AM33xx/OMAP 
-> SRAM support later once you have completed supporting DaVinci. Right?
++Grygorii (who's been working on various I2C related suspend/resume
+           issues also)
 
-There's no SRAM support for uio_pruss to be handled for AM33xx, but I
-will be posting a separate series with the DT portion and some alternate
-hard reset handling implementation. I find the private OMAP reset api to
-be very ugly but we might have to go with that for now. I didn't want
-the OMAP hard reset portion to hold up the more important part of this
-cleanup.
+Hi Kalle,
 
--Matt
+Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> writes:
 
-> > since the
-> > focus has turned to fixing Davinci SRAM to provide genalloc support
-> > and the associated use of that in the driver.
-> > 
-> > I'll have a separate series with AM33xx support since dealing cleanly
-> > with external resets on OMAP is a bigger issue.
-> > 
-> > -Matt
-> > _______________________________________________
-> > Davinci-linux-open-source mailing list
-> > Davinci-linux-open-source@linux.davincidsp.com
-> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> > 
-> 
-> 
-> Regards, 
-> Gururaja
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+> The resume_noirq enables interrupts one-by-one starting from
+> first one. Now if the wake up event for suspend came from i2c
+> device, the i2c bus irq gets enabled before the threaded
+> i2c device irq, causing a flood of i2c bus interrupts as the
+> threaded irq that should clear the event is not enabled yet.
+
+Ugh, another reason we need some sort of driver dependency tracking in the
+driver model.
+
+> Fixed the issue by adding suspend_late and resume_early
+> functions that keep i2c bus interrupts disabled until
+> resume_noirq has run completely.
+
+Hmm, any reason we couldn't put the disable in the .suspend_noirq
+callback?  The reason being is that other drivers might use I2C in their
+suspend or late_suspend callbacks.  I'm not aware of any using I2C in
+their late_suspend callbacks in mainline, but in theory I2C should work
+all the way through the late callbacks.
+
+I know it might look strange to have a disable_irq() in the noirq
+callback, since IRQs are already disabled at that point, but a comment
+stating that it's just there to balance the (re)enable in the
+early_resume callback should be clear.
+
+Some other minor comments below...
+
+> Issue was detected doing a wake up from autosleep with
+> twl4030 power key on N9. Patch tested on N9.
+>
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |   37 +++++++++++++++++++++++++++++++++++++
+>  1 files changed, 37 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 801df60..b77b0c2 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1158,6 +1158,35 @@ omap_i2c_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_SUSPEND
+
+This should be CONFIG_PM_SLEEP in order to cover hibernation also.
+
+> +static int omap_i2c_suspend_late(struct device *dev)
+> +{
+> +
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> +
+> +	/*
+> +	 * The noirq_resume enables the interrupts one by one,
+> +	 * this causes a interrupt flood if the SW irq actually reading
+> +	 * event from i2c device is enabled only after i2c bus irq, as the
+> +	 * irq that should clear the event is still disabled. We have to
+> +	 * disable the bus irq until all other irqs have been enabled.
+> +	 */
+
+This comment probably belongs in the resume handler.
+
+> +	disable_irq(_dev->irq);
+> +	return 0;
+> +}
+> +
+> +static int omap_i2c_resume_early(struct device *dev)
+> +{
+> +
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> +
+> +	enable_irq(_dev->irq);
+> +
+> +	return 0;
+> +}
+> +#endif
+>  #ifdef CONFIG_PM_RUNTIME
+>  static int omap_i2c_runtime_suspend(struct device *dev)
+>  {
+> @@ -1178,10 +1207,18 @@ static int omap_i2c_runtime_resume(struct device *dev)
+>  
+>  	return 0;
+>  }
+> +#endif
+>  
+> +#if defined(CONFIG_SUSPEND) || defined(CONFIG_PM_RUNTIME)
+
+#ifdef CONFIG_PM will cover this
+
+>  static struct dev_pm_ops omap_i2c_pm_ops = {
+> +#ifdef CONFIG_SUSPEND
+
+again, CONFIG_PM_SLEEP here
+
+> +	.suspend_late = omap_i2c_suspend_late,
+> +	.resume_early = omap_i2c_resume_early,
+> +#endif
+> +#ifdef CONFIG_PM_RUNTIME
+>  	.runtime_suspend = omap_i2c_runtime_suspend,
+>  	.runtime_resume = omap_i2c_runtime_resume,
+> +#endif
+>  };
+>  #define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
+>  #else
+
+Kevin
