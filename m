@@ -1,260 +1,276 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 4/4] ARM: OMAP2+: tusb6010: generic timing calculation
-Date: Fri, 5 Oct 2012 21:31:21 +0530
-Message-ID: <f7844b2b61f7432195f5fa30c89a940737e260aa.1349450723.git.afzal@ti.com>
-References: <cover.1349450723.git.afzal@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41247 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756577Ab2JEQBb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Oct 2012 12:01:31 -0400
-In-Reply-To: <cover.1349450723.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Florian Fainelli <florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>
+Subject: [PATCH 15/32 v2] USB: ohci: merge ohci_finish_controller_resume with ohci_resume
+Date: Fri,  5 Oct 2012 18:20:47 +0200
+Message-ID: <1349454064-11606-16-git-send-email-florian@openwrt.org>
+References: <1349454064-11606-1-git-send-email-florian@openwrt.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1349454064-11606-1-git-send-email-florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Florian Fainelli <florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Lennert Buytenhek <kernel-OLH4Qvv75CYX/NnBR394Jw@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-Generic gpmc timing calculation helper is available now, use
-it instead of custom timing calculation.
+Merge ohci_finish_controller_resume with ohci_resume as suggested by Alan
+Stern. Since ohci_finish_controller_resume no longer exists, update the
+various OHCI drivers to call ohci_resume() instead. Some drivers used to set
+themselves the bit HCD_FLAG_HW_ACCESSIBLE, which is now handled by
+ohci_resume().
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Acked-by: Jingoo Han <jg1.han-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Acked-by: Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Florian Fainelli <florian-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>
 ---
- arch/arm/mach-omap2/usb-tusb6010.c | 182 +++++++++----------------------------
- 1 file changed, 44 insertions(+), 138 deletions(-)
+Changes since v1:
+- added Nicolas and Jingoo's Acked-by
 
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index 8ee73fc..4c7d7b5 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -26,182 +26,88 @@ static u8		async_cs, sync_cs;
- static unsigned		refclk_psec;
+ drivers/usb/host/ohci-at91.c     |    2 +-
+ drivers/usb/host/ohci-ep93xx.c   |    2 +-
+ drivers/usb/host/ohci-exynos.c   |    5 +----
+ drivers/usb/host/ohci-hcd.c      |   41 +++++++++++++++++++++++++++++++++++--
+ drivers/usb/host/ohci-hub.c      |   42 --------------------------------------
+ drivers/usb/host/ohci-omap.c     |    2 +-
+ drivers/usb/host/ohci-platform.c |    2 +-
+ drivers/usb/host/ohci-pxa27x.c   |    2 +-
+ drivers/usb/host/ohci-s3c2410.c  |    3 +--
+ drivers/usb/host/ohci-spear.c    |    2 +-
+ drivers/usb/host/ohci-tmio.c     |    2 +-
+ 11 files changed, 48 insertions(+), 57 deletions(-)
+
+diff --git a/drivers/usb/host/ohci-at91.c b/drivers/usb/host/ohci-at91.c
+index 0bf72f9..908d84a 100644
+--- a/drivers/usb/host/ohci-at91.c
++++ b/drivers/usb/host/ohci-at91.c
+@@ -705,7 +705,7 @@ static int ohci_hcd_at91_drv_resume(struct platform_device *pdev)
+ 	if (!clocked)
+ 		at91_start_clock();
  
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ #else
+diff --git a/drivers/usb/host/ohci-ep93xx.c b/drivers/usb/host/ohci-ep93xx.c
+index dbfbd1d..a982f04 100644
+--- a/drivers/usb/host/ohci-ep93xx.c
++++ b/drivers/usb/host/ohci-ep93xx.c
+@@ -194,7 +194,7 @@ static int ohci_hcd_ep93xx_drv_resume(struct platform_device *pdev)
  
--/* t2_ps, when quantized to fclk units, must happen no earlier than
-- * the clock after after t1_NS.
-- *
-- * Return a possibly updated value of t2_ps, converted to nsec.
-- */
--static unsigned
--next_clk(unsigned t1_NS, unsigned t2_ps, unsigned fclk_ps)
+ 	ep93xx_start_hc(&pdev->dev);
+ 
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ #endif
+diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-exynos.c
+index fc3091b..53c5a989 100644
+--- a/drivers/usb/host/ohci-exynos.c
++++ b/drivers/usb/host/ohci-exynos.c
+@@ -252,10 +252,7 @@ static int exynos_ohci_resume(struct device *dev)
+ 	if (pdata && pdata->phy_init)
+ 		pdata->phy_init(pdev, S5P_USB_PHY_HOST);
+ 
+-	/* Mark hardware accessible again as we are out of D3 state by now */
+-	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
+-
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/usb/host/ohci-hcd.c b/drivers/usb/host/ohci-hcd.c
+index acf8c83..d97dc48 100644
+--- a/drivers/usb/host/ohci-hcd.c
++++ b/drivers/usb/host/ohci-hcd.c
+@@ -1005,13 +1005,50 @@ static int __maybe_unused ohci_suspend(struct usb_hcd *hcd, bool do_wakeup)
+ 
+ static int __maybe_unused ohci_resume(struct usb_hcd *hcd, bool hibernated)
+ {
++	struct ohci_hcd		*ohci = hcd_to_ohci(hcd);
++	int			port;
++	bool			need_reinit = false;
++
+ 	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
+ 
+ 	/* Make sure resume from hibernation re-enumerates everything */
+ 	if (hibernated)
+-		ohci_usb_reset(hcd_to_ohci(hcd));
++		ohci_usb_reset(ohci);
++
++	/* See if the controller is already running or has been reset */
++	ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
++	if (ohci->hc_control & (OHCI_CTRL_IR | OHCI_SCHED_ENABLES)) {
++		need_reinit = true;
++	} else {
++		switch (ohci->hc_control & OHCI_CTRL_HCFS) {
++		case OHCI_USB_OPER:
++		case OHCI_USB_RESET:
++			need_reinit = true;
++		}
++	}
++
++	/* If needed, reinitialize and suspend the root hub */
++	if (need_reinit) {
++		spin_lock_irq(&ohci->lock);
++		ohci_rh_resume(ohci);
++		ohci_rh_suspend(ohci, 0);
++		spin_unlock_irq(&ohci->lock);
++	}
++
++	/* Normally just turn on port power and enable interrupts */
++	else {
++		ohci_dbg(ohci, "powerup ports\n");
++		for (port = 0; port < ohci->num_ports; port++)
++			ohci_writel(ohci, RH_PS_PPS,
++					&ohci->regs->roothub.portstatus[port]);
++
++		ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrenable);
++		ohci_readl(ohci, &ohci->regs->intrenable);
++		msleep(20);
++	}
++
++	usb_hcd_resume_root_hub(hcd);
+ 
+-	ohci_finish_controller_resume(hcd);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/host/ohci-hub.c b/drivers/usb/host/ohci-hub.c
+index 2f3619e..db09dae 100644
+--- a/drivers/usb/host/ohci-hub.c
++++ b/drivers/usb/host/ohci-hub.c
+@@ -316,48 +316,6 @@ static int ohci_bus_resume (struct usb_hcd *hcd)
+ 	return rc;
+ }
+ 
+-/* Carry out the final steps of resuming the controller device */
+-static void __maybe_unused ohci_finish_controller_resume(struct usb_hcd *hcd)
 -{
--	unsigned	t1_ps = t1_NS * 1000;
--	unsigned	t1_f, t2_f;
+-	struct ohci_hcd		*ohci = hcd_to_ohci(hcd);
+-	int			port;
+-	bool			need_reinit = false;
 -
--	if ((t1_ps + fclk_ps) < t2_ps)
--		return t2_ps / 1000;
+-	/* See if the controller is already running or has been reset */
+-	ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
+-	if (ohci->hc_control & (OHCI_CTRL_IR | OHCI_SCHED_ENABLES)) {
+-		need_reinit = true;
+-	} else {
+-		switch (ohci->hc_control & OHCI_CTRL_HCFS) {
+-		case OHCI_USB_OPER:
+-		case OHCI_USB_RESET:
+-			need_reinit = true;
+-		}
+-	}
 -
--	t1_f = (t1_ps + fclk_ps - 1) / fclk_ps;
--	t2_f = (t2_ps + fclk_ps - 1) / fclk_ps;
+-	/* If needed, reinitialize and suspend the root hub */
+-	if (need_reinit) {
+-		spin_lock_irq(&ohci->lock);
+-		ohci_rh_resume(ohci);
+-		ohci_rh_suspend(ohci, 0);
+-		spin_unlock_irq(&ohci->lock);
+-	}
 -
--	if (t1_f >= t2_f)
--		t2_f = t1_f + 1;
+-	/* Normally just turn on port power and enable interrupts */
+-	else {
+-		ohci_dbg(ohci, "powerup ports\n");
+-		for (port = 0; port < ohci->num_ports; port++)
+-			ohci_writel(ohci, RH_PS_PPS,
+-					&ohci->regs->roothub.portstatus[port]);
 -
--	return (t2_f * fclk_ps) / 1000;
+-		ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrenable);
+-		ohci_readl(ohci, &ohci->regs->intrenable);
+-		msleep(20);
+-	}
+-
+-	usb_hcd_resume_root_hub(hcd);
 -}
 -
- /* NOTE:  timings are from tusb 6010 datasheet Rev 1.8, 12-Sept 2006 */
+ /* Carry out polling-, autostop-, and autoresume-related state changes */
+ static int ohci_root_hub_state_changes(struct ohci_hcd *ohci, int changed,
+ 		int any_connected, int rhsc_status)
+diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+index f8b2d91..9fab4d8 100644
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -530,7 +530,7 @@ static int ohci_omap_resume(struct platform_device *dev)
+ 	ohci->next_statechange = jiffies;
  
--static int tusb_set_async_mode(unsigned sysclk_ps, unsigned fclk_ps)
-+static int tusb_set_async_mode(unsigned sysclk_ps)
- {
-+	struct gpmc_device_timings dev_t;
- 	struct gpmc_timings	t;
- 	unsigned		t_acsnh_advnh = sysclk_ps + 3000;
--	unsigned		tmp;
--
--	memset(&t, 0, sizeof(t));
--
--	/* CS_ON = t_acsnh_acsnl */
--	t.cs_on = 8;
--	/* ADV_ON = t_acsnh_advnh - t_advn */
--	t.adv_on = next_clk(t.cs_on, t_acsnh_advnh - 7000, fclk_ps);
--
--	/*
--	 * READ ... from omap2420 TRM fig 12-13
--	 */
--
--	/* ADV_RD_OFF = t_acsnh_advnh */
--	t.adv_rd_off = next_clk(t.adv_on, t_acsnh_advnh, fclk_ps);
--
--	/* OE_ON = t_acsnh_advnh + t_advn_oen (then wait for nRDY) */
--	t.oe_on = next_clk(t.adv_on, t_acsnh_advnh + 1000, fclk_ps);
--
--	/* ACCESS = counters continue only after nRDY */
--	tmp = t.oe_on * 1000 + 300;
--	t.access = next_clk(t.oe_on, tmp, fclk_ps);
--
--	/* OE_OFF = after data gets sampled */
--	tmp = t.access * 1000;
--	t.oe_off = next_clk(t.access, tmp, fclk_ps);
--
--	t.cs_rd_off = t.oe_off;
--
--	tmp = t.cs_rd_off * 1000 + 7000 /* t_acsn_rdy_z */;
--	t.rd_cycle = next_clk(t.cs_rd_off, tmp, fclk_ps);
--
--	/*
--	 * WRITE ... from omap2420 TRM fig 12-15
--	 */
- 
--	/* ADV_WR_OFF = t_acsnh_advnh */
--	t.adv_wr_off = t.adv_rd_off;
-+	memset(&dev_t, 0, sizeof(dev_t));
- 
--	/* WE_ON = t_acsnh_advnh + t_advn_wen (then wait for nRDY) */
--	t.we_on = next_clk(t.adv_wr_off, t_acsnh_advnh + 1000, fclk_ps);
-+	dev_t.mux = true;
- 
--	/* WE_OFF = after data gets sampled */
--	tmp = t.we_on * 1000 + 300;
--	t.we_off = next_clk(t.we_on, tmp, fclk_ps);
-+	dev_t.t_ceasu = 8 * 1000;
-+	dev_t.t_avdasu = t_acsnh_advnh - 7000;
-+	dev_t.t_ce_avd = 1000;
-+	dev_t.t_avdp_r = t_acsnh_advnh;
-+	dev_t.t_oeasu = t_acsnh_advnh + 1000;
-+	dev_t.t_oe = 300;
-+	dev_t.t_cez_r = 7000;
-+	dev_t.t_cez_w = dev_t.t_cez_r;
-+	dev_t.t_avdp_w = t_acsnh_advnh;
-+	dev_t.t_weasu = t_acsnh_advnh + 1000;
-+	dev_t.t_wpl = 300;
-+	dev_t.cyc_aavdh_we = 1;
- 
--	t.cs_wr_off = t.we_off;
--
--	tmp = t.cs_wr_off * 1000 + 7000 /* t_acsn_rdy_z */;
--	t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
-+	gpmc_calc_timings(&t, &dev_t);
- 
- 	return gpmc_cs_set_timings(async_cs, &t);
+ 	omap_ohci_clock_power(1);
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
  }
  
--static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
-+static int tusb_set_sync_mode(unsigned sysclk_ps)
- {
-+	struct gpmc_device_timings dev_t;
- 	struct gpmc_timings	t;
- 	unsigned		t_scsnh_advnh = sysclk_ps + 3000;
--	unsigned		tmp;
--
--	memset(&t, 0, sizeof(t));
--	t.cs_on = 8;
--
--	/* ADV_ON = t_acsnh_advnh - t_advn */
--	t.adv_on = next_clk(t.cs_on, t_scsnh_advnh - 7000, fclk_ps);
--
--	/* GPMC_CLK rate = fclk rate / div */
--	t.sync_clk = 11100 /* 11.1 nsec */;
--	tmp = (t.sync_clk + fclk_ps - 1) / fclk_ps;
--	if (tmp > 4)
--		return -ERANGE;
--	if (tmp == 0)
--		tmp = 1;
--	t.page_burst_access = (fclk_ps * tmp) / 1000;
--
--	/*
--	 * READ ... based on omap2420 TRM fig 12-19, 12-20
--	 */
--
--	/* ADV_RD_OFF = t_scsnh_advnh */
--	t.adv_rd_off = next_clk(t.adv_on, t_scsnh_advnh, fclk_ps);
--
--	/* OE_ON = t_scsnh_advnh + t_advn_oen * fclk_ps (then wait for nRDY) */
--	tmp = (t.adv_rd_off * 1000) + (3 * fclk_ps);
--	t.oe_on = next_clk(t.adv_on, tmp, fclk_ps);
--
--	/* ACCESS = number of clock cycles after t_adv_eon */
--	tmp = (t.oe_on * 1000) + (5 * fclk_ps);
--	t.access = next_clk(t.oe_on, tmp, fclk_ps);
--
--	/* OE_OFF = after data gets sampled */
--	tmp = (t.access * 1000) + (1 * fclk_ps);
--	t.oe_off = next_clk(t.access, tmp, fclk_ps);
- 
--	t.cs_rd_off = t.oe_off;
--
--	tmp = t.cs_rd_off * 1000 + 7000 /* t_scsn_rdy_z */;
--	t.rd_cycle = next_clk(t.cs_rd_off, tmp, fclk_ps);
--
--	/*
--	 * WRITE ... based on omap2420 TRM fig 12-21
--	 */
--
--	/* ADV_WR_OFF = t_scsnh_advnh */
--	t.adv_wr_off = t.adv_rd_off;
--
--	/* WE_ON = t_scsnh_advnh + t_advn_wen * fclk_ps (then wait for nRDY) */
--	tmp = (t.adv_wr_off * 1000) + (3 * fclk_ps);
--	t.we_on = next_clk(t.adv_wr_off, tmp, fclk_ps);
--
--	/* WE_OFF = number of clock cycles after t_adv_wen */
--	tmp = (t.we_on * 1000) + (6 * fclk_ps);
--	t.we_off = next_clk(t.we_on, tmp, fclk_ps);
--
--	t.cs_wr_off = t.we_off;
--
--	tmp = t.cs_wr_off * 1000 + 7000 /* t_scsn_rdy_z */;
--	t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
--
--	t.clk_activation = gpmc_ticks_to_ns(1);
-+	memset(&dev_t, 0, sizeof(dev_t));
-+
-+	dev_t.mux = true;
-+	dev_t.sync_read = true;
-+	dev_t.sync_write = true;
-+
-+	dev_t.clk = 11100;
-+	dev_t.t_bacc = 1000;
-+	dev_t.t_ces = 1000;
-+	dev_t.t_ceasu = 8 * 1000;
-+	dev_t.t_avdasu = t_scsnh_advnh - 7000;
-+	dev_t.t_ce_avd = 1000;
-+	dev_t.t_avdp_r = t_scsnh_advnh;
-+	dev_t.cyc_aavdh_oe = 3;
-+	dev_t.cyc_oe = 5;
-+	dev_t.t_ce_rdyz = 7000;
-+	dev_t.t_avdp_w = t_scsnh_advnh;
-+	dev_t.cyc_aavdh_we = 3;
-+	dev_t.cyc_wpl = 6;
-+	dev_t.t_ce_rdyz = 7000;
-+
-+	gpmc_calc_timings(&t, &dev_t);
- 
- 	return gpmc_cs_set_timings(sync_cs, &t);
- }
- 
--extern unsigned long gpmc_get_fclk_period(void);
--
- /* tusb driver calls this when it changes the chip's clocking */
- int tusb6010_platform_retime(unsigned is_refclk)
- {
- 	static const char	error[] =
- 		KERN_ERR "tusb6010 %s retime error %d\n";
- 
--	unsigned	fclk_ps = gpmc_get_fclk_period();
- 	unsigned	sysclk_ps;
- 	int		status;
- 
--	if (!refclk_psec || fclk_ps == 0)
-+	if (!refclk_psec)
- 		return -ENODEV;
- 
- 	sysclk_ps = is_refclk ? refclk_psec : TUSB6010_OSCCLK_60;
- 
--	status = tusb_set_async_mode(sysclk_ps, fclk_ps);
-+	status = tusb_set_async_mode(sysclk_ps);
- 	if (status < 0) {
- 		printk(error, "async", status);
- 		goto done;
+diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
+index 1caaf65..99d1755 100644
+--- a/drivers/usb/host/ohci-platform.c
++++ b/drivers/usb/host/ohci-platform.c
+@@ -203,7 +203,7 @@ static int ohci_platform_resume(struct device *dev)
+ 			return err;
  	}
--	status = tusb_set_sync_mode(sysclk_ps, fclk_ps);
-+	status = tusb_set_sync_mode(sysclk_ps);
- 	if (status < 0)
- 		printk(error, "sync", status);
- done:
+ 
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/host/ohci-pxa27x.c b/drivers/usb/host/ohci-pxa27x.c
+index 77f4402..8bffde3 100644
+--- a/drivers/usb/host/ohci-pxa27x.c
++++ b/drivers/usb/host/ohci-pxa27x.c
+@@ -591,7 +591,7 @@ static int ohci_hcd_pxa27x_drv_resume(struct device *dev)
+ 	/* Select Power Management Mode */
+ 	pxa27x_ohci_select_pmm(ohci, inf->port_mode);
+ 
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/host/ohci-s3c2410.c b/drivers/usb/host/ohci-s3c2410.c
+index 664c869..8af53c6 100644
+--- a/drivers/usb/host/ohci-s3c2410.c
++++ b/drivers/usb/host/ohci-s3c2410.c
+@@ -524,8 +524,7 @@ static int ohci_hcd_s3c2410_drv_resume(struct device *dev)
+ 
+ 	s3c2410_start_hc(pdev, hcd);
+ 
+-	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/usb/host/ohci-spear.c b/drivers/usb/host/ohci-spear.c
+index fc7305e..d607be3 100644
+--- a/drivers/usb/host/ohci-spear.c
++++ b/drivers/usb/host/ohci-spear.c
+@@ -231,7 +231,7 @@ static int spear_ohci_hcd_drv_resume(struct platform_device *dev)
+ 	ohci->next_statechange = jiffies;
+ 
+ 	spear_start_ohci(ohci_p);
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ #endif
+diff --git a/drivers/usb/host/ohci-tmio.c b/drivers/usb/host/ohci-tmio.c
+index 60c2b07..2c9ab8f 100644
+--- a/drivers/usb/host/ohci-tmio.c
++++ b/drivers/usb/host/ohci-tmio.c
+@@ -352,7 +352,7 @@ static int ohci_hcd_tmio_drv_resume(struct platform_device *dev)
+ 
+ 	spin_unlock_irqrestore(&tmio->lock, flags);
+ 
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 
+ 	return 0;
+ }
 -- 
-1.7.12
+1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
