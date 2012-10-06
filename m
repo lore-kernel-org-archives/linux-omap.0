@@ -1,55 +1,102 @@
-From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP: convert I2C driver to PM QoS for MPU latency
- constraints
-Date: Sat, 6 Oct 2012 13:46:14 +0200
-Message-ID: <20121006114614.GB10164@pengutronix.de>
-References: <1348157283-24119-1-git-send-email-j-pihet@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [RFC 00/24] OMAP serial driver flow control fixes, and preparation
+	for DMA engine conversion
+Date: Sat, 6 Oct 2012 13:38:03 +0100
+Message-ID: <20121006123803.GD15246@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wq9mPyueHGvFACwf"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1348157283-24119-1-git-send-email-j-pihet-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
-
---wq9mPyueHGvFACwf
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47193 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752368Ab2JFMj2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 08:39:28 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Thu, Sep 20, 2012 at 06:08:03PM +0200, Jean Pihet wrote:
-> Convert the driver from the outdated omap_pm_set_max_mpu_wakeup_lat
-> API to the new PM QoS API.
-> Since the constraint is on the MPU subsystem, use the PM_QOS_CPU_DMA_LATE=
-NCY
-> class of PM QoS. The resulting MPU constraints are used by cpuidle to
-> decide the next power state of the MPU subsystem.
->=20
-> The I2C device latency timing is derived from the FIFO size and the
-> clock speed and so is applicable to all OMAP SoCs.
->=20
-> Signed-off-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
+Hi,
 
-Applied to -next, thanks!
+This series of patches fixes multiple flow control issues with the OMAP
+serial driver, and prepares the driver for DMA engine conversion.  We
+require hardware assisted flow control to work properly for DMA support
+otherwise we have no way to properly pause the transmitter.
 
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+This is generated against v3.6, and has been developed mainly by testing
+on the OMAP4430 SDP platform.
 
---wq9mPyueHGvFACwf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Flow control seems to be really broken in the OMAP serial driver as things
+stand today.  It just about works with software flow control because the
+generic serial core layer is inserting those characters, but only when the
+legacy DMA support is not being used.  Otherwise, flow control is
+completely non-functional.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Issues identified in the OMAP serial driver are:
+- set_mctrl() can only assert modem control lines, once asserted it
+  is not possible to deassert them.
+- IXOFF controls sending of XON/XOFF characters, not the reception of
+  these sequences.
+- IXON controls the recognition of XON/XOFF characters, not the transmission
+  of the same.
+- Wrong bitmasks for hardware assisted software flow control.  Bit 2
+  in EFR enables sending of XON2/XOFF2 which are never set.
+- No point comparing received characters against XOFF2 ('special character
+  detect') as XOFF2 is not set.
+- Fix multiple places where bits 6 and 5 of MCR are attempted to be
+  altered, but because EFR ECB is unset, these bits remain unaffected.
+  This effectively prevents us accessing the right XON/XOFF/TCR/TLR
+  registers.
+- Remove unnecessary read-backs of EFR/MCR/LCR registers - these registers
+  don't change beneath us, they are configuration registers which hold their
+  values.  Not only does this simplify the code, but it makes it more
+  readable, and more importantly ensures that we work from a consistent
+  state where ->efr never has ECB set, and ->mcr never has the TCRTLR
+  bit set.
+- Fix disablement of hardware flow control and IXANY modes; once enabled
+  these could never be disabled because nothing in the code ever clears
+  these configuration bits.
 
-iEYEARECAAYFAlBwGgUACgkQD27XaX1/VRvgngCfcfkDWK/FdK+HjbKVq/Bl5/GJ
-HiQAn1veQAvl4OTensBE133GKXxRzKbR
-=Gfq7
------END PGP SIGNATURE-----
+Once that lot is fixed, these patches expand serial_core to permit hardware
+assisted flow control by:
+- adding throttle/unthrottle callbacks into low level serial drivers,
+  which allow them to take whatever action is necessary with hardware
+  assisted flow control to throttle the remote end.  In the case of
+  OMAP serial, this means disabling the RX interrupts so that the FIFO
+  fills to the watermark.
 
---wq9mPyueHGvFACwf--
+We then have a number of cleanups to the OMAP serial code to make the
+set_termios() function clearer and less prone to the kinds of mistakes
+identified above.  This results in a great simplification of the flow
+control configuration code.
+
+The OMAP serial driver hacks around with the transmit buffer allocation;
+lets clean that up so that drivers can cleanly allocate their transmitter
+buffer using coherent memory if that's what they desire.
+
+Finally, the last few patches clean up the plat/omap-serial.h header file,
+moving most of its contents into the OMAP serial driver itself.  Most of
+this is private to the OMAP serial driver and should never have been
+shared with anything else.
+
+I have omitted to include the conversion of the transmit paths to DMA
+engine.  Even with all the above fixed, it has issues when DMA transmit
+is in progress, and a program issues a TCSETS call (as `less' does after
+it has written its prompt.)  At the moment, this causes lots of junk to
+be emitted from the serial port when issuing `dmesg | less' which sometimes
+brings the port to a complete halt.
+
+As the OMAP DMA hardware does not have a clean pause when performing a
+MEM->DEV transfer (it discards its FIFO) I do not see a solution to this,
+which probably means that we can _not_ ever support transmit DMA on OMAP
+platforms.
+
+This means the xmit buffer allocation patches are not that useful unless
+a solution to that can be found.
+
+Now, the remaining question is, how much of this patch set do we think
+about merging, and when.  Given that flow control in this driver has been
+broken for a very long time, and no one has apparantly noticed, I don't
+think there's any urgency to this, so given its size, my preference would
+be to queue it up for the next merge window.  The thing that would worry
+me about applying some of the initial patches is that they may change
+the behaviour today and make any problems here more visible.
