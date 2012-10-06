@@ -1,8 +1,7 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [RFC 11/24] SERIAL: core: add throttle/unthrottle callbacks for
- hardware assisted flow control
-Date: Sat, 06 Oct 2012 13:42:44 +0100
-Message-ID: <E1TKTiO-0002n7-En@rmk-PC.arm.linux.org.uk>
+Subject: [RFC 12/24] SERIAL: omap: fix hardware assisted flow control
+Date: Sat, 06 Oct 2012 13:43:04 +0100
+Message-ID: <E1TKTii-0002nC-SV@rmk-PC.arm.linux.org.uk>
 References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
 Return-path: <linux-serial-owner@vger.kernel.org>
 In-Reply-To: <20121006123803.GD15246@n2100.arm.linux.org.uk>
@@ -11,93 +10,83 @@ To: Tony Lindgren <tony@atomide.com>, Alan Cox <alan@linux.intel.com>, Greg Kroa
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add two callbacks for hardware assisted flow control; we need to know
-when the tty layers want us to stop and restart due to their buffer
-levels.
+When the UART device has hardware flow control enabled, it ignores the
+MCR RTS bit in the MCR register, and keeps RTS asserted as long as we
+continue to read characters from the UART receiver FIFO.  This means
+that when the TTY buffers become full, the UART doesn't tell the remote
+end to stop sending, which causes the TTY layer to start dropping
+characters.
 
-Call a driver specific throttle/unthrottle function if and only if the
-driver indicates that it is using an enabled hardware assisted flow
-control method, otherwise fall back to the non-hardware assisted
-methods.
+A similar problem exists with software flow control.  We need the FIFO
+register to fill when software flow control is enabled to provoke the
+UART to send the XOFF character.
+
+Fix this by implementing the throttle/unthrottle callbacks, and use
+these to disable receiver interrupts.  This in turn means that the UART
+FIFO will fill, which will then cause the UART's hardware to deassert
+the RTS signal and/or send the XOFF character, stopping the remote end.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/tty/serial/serial_core.c |   31 +++++++++++++++++++++++++++----
- include/linux/serial_core.h      |    2 ++
- 2 files changed, 29 insertions(+), 4 deletions(-)
+ drivers/tty/serial/omap-serial.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
-index 02b10bc..4dd609e 100644
---- a/drivers/tty/serial/serial_core.c
-+++ b/drivers/tty/serial/serial_core.c
-@@ -610,27 +610,50 @@ static void uart_send_xchar(struct tty_struct *tty, char ch)
- static void uart_throttle(struct tty_struct *tty)
- {
- 	struct uart_state *state = tty->driver_data;
-+	struct uart_port *port = state->uart_port;
-+	uint32_t mask = 0;
- 
- 	if (I_IXOFF(tty))
-+		mask |= UPF_SOFT_FLOW;
-+	if (tty->termios->c_cflag & CRTSCTS)
-+		mask |= UPF_HARD_FLOW;
-+
-+	if (port->flags & mask) {
-+		port->ops->throttle(port);
-+		mask &= ~port->flags;
-+	}
-+
-+	if (mask & UPF_SOFT_FLOW)
- 		uart_send_xchar(tty, STOP_CHAR(tty));
- 
--	if (tty->termios->c_cflag & CRTSCTS)
--		uart_clear_mctrl(state->uart_port, TIOCM_RTS);
-+	if (mask & UPF_HARD_FLOW)
-+		uart_clear_mctrl(port, TIOCM_RTS);
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 6314827..ab5a5e0 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -373,6 +373,34 @@ static void serial_omap_start_tx(struct uart_port *port)
+ 	omap_start_dma(up->uart_dma.tx_dma_channel);
  }
  
- static void uart_unthrottle(struct tty_struct *tty)
++static void serial_omap_throttle(struct uart_port *port)
++{
++	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	unsigned long flags;
++
++	pm_runtime_get_sync(&up->pdev->dev);
++	spin_lock_irqsave(&up->port.lock, flags);
++	up->ier &= ~(UART_IER_RLSI | UART_IER_RDI);
++	serial_out(up, UART_IER, up->ier);
++	spin_unlock_irqrestore(&up->port.lock, flags);
++	pm_runtime_mark_last_busy(&up->pdev->dev);
++	pm_runtime_put_autosuspend(&up->pdev->dev);
++}
++
++static void serial_omap_unthrottle(struct uart_port *port)
++{
++	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	unsigned long flags;
++
++	pm_runtime_get_sync(&up->pdev->dev);
++	spin_lock_irqsave(&up->port.lock, flags);
++	up->ier |= UART_IER_RLSI | UART_IER_RDI;
++	serial_out(up, UART_IER, up->ier);
++	spin_unlock_irqrestore(&up->port.lock, flags);
++	pm_runtime_mark_last_busy(&up->pdev->dev);
++	pm_runtime_put_autosuspend(&up->pdev->dev);
++}
++
+ static unsigned int check_modem_status(struct uart_omap_port *up)
  {
- 	struct uart_state *state = tty->driver_data;
- 	struct uart_port *port = state->uart_port;
-+	uint32_t mask = 0;
- 
--	if (I_IXOFF(tty)) {
-+	if (I_IXOFF(tty))
-+		mask |= UPF_SOFT_FLOW;
-+	if (tty->termios->c_cflag & CRTSCTS)
-+		mask |= UPF_HARD_FLOW;
-+
-+	if (port->flags & mask) {
-+		port->ops->unthrottle(port);
-+		mask &= ~port->flags;
-+	}
-+
-+	if (mask & UPF_SOFT_FLOW) {
- 		if (port->x_char)
- 			port->x_char = 0;
- 		else
- 			uart_send_xchar(tty, START_CHAR(tty));
- 	}
- 
--	if (tty->termios->c_cflag & CRTSCTS)
-+	if (mask & UPF_HARD_FLOW)
- 		uart_set_mctrl(port, TIOCM_RTS);
+ 	unsigned int status;
+@@ -985,6 +1013,7 @@ static void serial_omap_config_port(struct uart_port *port, int flags)
+ 	dev_dbg(up->port.dev, "serial_omap_config_port+%d\n",
+ 							up->port.line);
+ 	up->port.type = PORT_OMAP;
++	up->port.flags |= UPF_SOFT_FLOW | UPF_HARD_FLOW;
  }
  
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index 8e8500e..b17d4c9 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -240,6 +240,8 @@ struct uart_ops {
- 	unsigned int	(*get_mctrl)(struct uart_port *);
- 	void		(*stop_tx)(struct uart_port *);
- 	void		(*start_tx)(struct uart_port *);
-+	void		(*throttle)(struct uart_port *);
-+	void		(*unthrottle)(struct uart_port *);
- 	void		(*send_xchar)(struct uart_port *, char ch);
- 	void		(*stop_rx)(struct uart_port *);
- 	void		(*enable_ms)(struct uart_port *);
+ static int
+@@ -1181,6 +1210,8 @@ static struct uart_ops serial_omap_pops = {
+ 	.get_mctrl	= serial_omap_get_mctrl,
+ 	.stop_tx	= serial_omap_stop_tx,
+ 	.start_tx	= serial_omap_start_tx,
++	.throttle	= serial_omap_throttle,
++	.unthrottle	= serial_omap_unthrottle,
+ 	.stop_rx	= serial_omap_stop_rx,
+ 	.enable_ms	= serial_omap_enable_ms,
+ 	.break_ctl	= serial_omap_break_ctl,
 -- 
 1.7.4.4
 
