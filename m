@@ -1,41 +1,113 @@
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [RFC 24/24] SERIAL: omap: remove OMAP_UART_SYSC_RESET and
- OMAP_UART_FIFO_CLR
-Date: Sat, 06 Oct 2012 13:47:08 +0100
-Message-ID: <E1TKTme-0002nz-5E@rmk-PC.arm.linux.org.uk>
-References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in HYP
+ mode
+Date: Sat, 6 Oct 2012 10:06:00 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1210060955230.16518@xanadu.home>
+References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com> <1347036934-8519-3-git-send-email-marc.zyngier@arm.com> <20121005200822.GQ3874@atomide.com> <6d3553bfe8a2d1ac88cab852100616a7@localhost>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47355 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752699Ab2JFMrP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 08:47:15 -0400
-In-Reply-To: <20121006123803.GD15246@n2100.arm.linux.org.uk>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:53718 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719Ab2JFOGE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 10:06:04 -0400
+Received: by mail-qc0-f174.google.com with SMTP id d3so1771897qch.19
+        for <linux-omap@vger.kernel.org>; Sat, 06 Oct 2012 07:06:02 -0700 (PDT)
+In-Reply-To: <6d3553bfe8a2d1ac88cab852100616a7@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Tony Lindgren <tony@atomide.com>, Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-OMAP_UART_SYSC_RESET and OMAP_UART_FIFO_CLR are unused, remove them.
+On Sat, 6 Oct 2012, Marc Zyngier wrote:
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/plat-omap/include/plat/omap-serial.h |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+> Hi Tony,
+> 
+> On Fri, 5 Oct 2012 13:08:22 -0700, Tony Lindgren <tony@atomide.com> wrote:
+> > Hi,
+> > 
+> > * Marc Zyngier <marc.zyngier@arm.com> [120907 10:04]:
+> >> From: Dave Martin <dave.martin@linaro.org>
+> >> 
+> >> This patch does two things:
+> >> 
+> >>   * Ensure that asynchronous aborts are masked at kernel entry.
+> >>     The bootloader should be masking these anyway, but this reduces
+> >>     the damage window just in case it doesn't.
+> >> 
+> >>   * Enter svc mode via exception return to ensure that CPU state is
+> >>     properly serialised.  This does not matter when switching from
+> >>     an ordinary privileged mode ("PL1" modes in ARMv7-AR rev C
+> >>     parlance), but it potentially does matter when switching from a
+> >>     another privileged mode such as hyp mode.
+> >> 
+> >> This should allow the kernel to boot safely either from svc mode or
+> >> hyp mode, even if no support for use of the ARM Virtualization
+> >> Extensions is built into the kernel.
+> >> 
+> >> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+> >> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> > 
+> > Just bisected this down in linux-next for breaking booting of
+> > my omap2420 ARMv6 based n8x0..
+> > 
+> >> --- a/arch/arm/kernel/head.S
+> >> +++ b/arch/arm/kernel/head.S
+> >> @@ -83,8 +83,12 @@ ENTRY(stext)
+> >>   THUMB(	.thumb			)	@ switch to Thumb now.
+> >>   THUMB(1:			)
+> >>  
+> >> -	setmode	PSR_F_BIT | PSR_I_BIT | SVC_MODE, r9 @ ensure svc mode
+> >> -						@ and irqs disabled
+> >> +#ifdef CONFIG_ARM_VIRT_EXT
+> >> +	bl	__hyp_stub_install
+> >> +#endif
+> >> +	@ ensure svc mode and all interrupts masked
+> >> +	safe_svcmode_maskall r9
+> >> +
+> >>  	mrc	p15, 0, r9, c0, c0		@ get processor id
+> >>  	bl	__lookup_processor_type		@ r5=procinfo r9=cpuid
+> >>  	movs	r10, r5				@ invalid processor (r5=0)?
+> > 
+> > ..and looks like undoing this part fixes it. Any ideas?
+> > 
+> > I quickly tried disabling ARCH_OMAP3 and ARCH_OMAP4 so it's
+> > ARMv6 but that does not help.
+> 
+> If you compiled for v6 only, we can safely exclude __hyp_stub_install, and
+> I assume that you get past the decompressor.
+> 
+> If so, that indicates some side effect of the safe_svcmode_maskall macro,
+> and I suspect the "movs pc, lr" bit.
 
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index bad00f1..da2e51f 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -32,9 +32,6 @@
-  */
- #define OMAP_SERIAL_NAME	"ttyO"
- 
--#define OMAP_UART_SYSC_RESET	0X07
--#define OMAP_UART_FIFO_CLR	0X06
--
- struct omap_uart_port_info {
- 	bool			dma_enabled;	/* To specify DMA Mode */
- 	unsigned int		uartclk;	/* UART clock rate */
--- 
-1.7.4.4
+That would be surprizing if the "movs pc, lr" was to blame.  This should 
+work on all architectures.
 
+However the A bit might be to blame.
+
+> Can you try the attached patch? It basically falls back to the previous
+> behaviour if not entered in HYP mode.
+
+This is likely to work of course.  However I think we should try to 
+pinpoint the exact problem i.e. whether it is the A bit or the "movs pc, 
+lr" which makes a difference (it is unlikely to be both).
+
+So I was about to suggest to test this patch as well:
+
+diff --git a/arch/arm/include/asm/assembler.h b/arch/arm/include/asm/assembler.h
+index 683a1e6b60..118e22ee46 100644
+--- a/arch/arm/include/asm/assembler.h
++++ b/arch/arm/include/asm/assembler.h
+@@ -254,8 +254,7 @@
+ 	mov	lr , \reg
+ 	and	lr , lr , #MODE_MASK
+ 	cmp	lr , #HYP_MODE
+-	orr	\reg , \reg , #PSR_A_BIT | PSR_I_BIT | PSR_F_BIT
+-	bic	\reg , \reg , #MODE_MASK
++	mov	\reg , #PSR_I_BIT | PSR_F_BIT
+ 	orr	\reg , \reg , #SVC_MODE
+ THUMB(	orr	\reg , \reg , #PSR_T_BIT	)
+ 	msr	spsr_cxsf, \reg
+
+
+Nicolas
