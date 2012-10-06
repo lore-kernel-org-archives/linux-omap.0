@@ -1,73 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in
- HYP mode
-Date: Sat, 6 Oct 2012 09:00:32 -0700
-Message-ID: <20121006160031.GC3874@atomide.com>
-References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com>
- <1347036934-8519-3-git-send-email-marc.zyngier@arm.com>
- <20121005200822.GQ3874@atomide.com>
- <6d3553bfe8a2d1ac88cab852100616a7@localhost>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in HYP mode
+Date: Sat, 06 Oct 2012 18:06:51 +0200
+Message-ID: <5d2c2df8247d9f028727f9a8b712d3d4@localhost>
+References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com> <1347036934-8519-3-git-send-email-marc.zyngier@arm.com> <20121005200822.GQ3874@atomide.com> <6d3553bfe8a2d1ac88cab852100616a7@localhost> <20121006144252.GY3874@atomide.com> <alpine.LFD.2.02.1210061129080.16518@xanadu.home> <20121006154052.GB3874@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:30969 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755869Ab2JFQAi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 12:00:38 -0400
-Content-Disposition: inline
-In-Reply-To: <6d3553bfe8a2d1ac88cab852100616a7@localhost>
+Received: from inca-roads.misterjones.org ([213.251.177.50]:56684 "EHLO
+	inca-roads.misterjones.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754411Ab2JFQG4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 12:06:56 -0400
+In-Reply-To: <20121006154052.GB3874@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 
-* Marc Zyngier <marc.zyngier@arm.com> [121006 03:19]:
+On Sat, 6 Oct 2012 08:40:52 -0700, Tony Lindgren <tony@atomide.com> wrote:
+> * Nicolas Pitre <nicolas.pitre@linaro.org> [121006 08:33]:
+>> On Sat, 6 Oct 2012, Tony Lindgren wrote:
+>> 
+>> > * Marc Zyngier <marc.zyngier@arm.com> [121006 03:19]:
+>> > 
+>> > > If so, that indicates some side effect of the safe_svcmode_maskall
+>> > > macro,
+>> > > and I suspect the "movs pc, lr" bit.
+>> > > 
+>> > > Can you try the attached patch? It basically falls back to the
+>> > > previous
+>> > > behaviour if not entered in HYP mode.
+>> > 
+>> > Yes, with this it boots OK.
+>> 
+>> OK. In that case, I suggest this patch be sent to Russell to fix this 
+>> issue so he could push the ARM stuff to Linus ASAP.
+>> 
+>> Acked-by: Nicolas Pitre <nico@linaro.org>
 > 
-> If so, that indicates some side effect of the safe_svcmode_maskall macro,
-> and I suspect the "movs pc, lr" bit.
+> Yes we can come back to this:
 > 
-> Can you try the attached patch? It basically falls back to the previous
-> behaviour if not entered in HYP mode.
-...
+> Tested-by: Tony Lindgren <tony@atomide.com>
 
-> diff --git a/arch/arm/include/asm/assembler.h b/arch/arm/include/asm/assembler.h
-> index 658a15d..b21b97f 100644
-> --- a/arch/arm/include/asm/assembler.h
-> +++ b/arch/arm/include/asm/assembler.h
-> @@ -254,16 +254,17 @@
->  	mov	lr , \reg
->  	and	lr , lr , #MODE_MASK
->  	cmp	lr , #HYP_MODE
-> -	orr	\reg , \reg , #PSR_A_BIT | PSR_I_BIT | PSR_F_BIT
-> +	orr	\reg , \reg , #PSR_I_BIT | PSR_F_BIT
->  	bic	\reg , \reg , #MODE_MASK
->  	orr	\reg , \reg , #SVC_MODE
->  THUMB(	orr	\reg , \reg , #PSR_T_BIT	)
-> -	msr	spsr_cxsf, \reg
-> -	adr	lr, BSYM(2f)
->  	bne	1f
-> +	orr	\reg, \reg, #PSR_A_BIT
-> +	adr	lr, BSYM(2f)
-> +	msr	spsr_cxsf, \reg
->  	__MSR_ELR_HYP(14)
->  	__ERET
-> -1:	movs	pc, lr
-> +1:	msr	cpsr_c, \reg
->  2:
->  .endm
->  
+Now in Russell's patch system as #7549/1.
 
-The minimal version of this that still boots on my n800 is just
-the last change of the above patch:
+Thanks a lot for your help on this both of you.
 
---- a/arch/arm/include/asm/assembler.h
-+++ b/arch/arm/include/asm/assembler.h
-@@ -263,7 +263,7 @@ THUMB(	orr	\reg , \reg , #PSR_T_BIT	)
- 	bne	1f
- 	__MSR_ELR_HYP(14)
- 	__ERET
--1:	movs	pc, lr
-+1:	msr	cpsr_c, \reg
- 2:
- .endm
- 
+        M.
+-- 
+Fast, cheap, reliable. Pick two.
