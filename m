@@ -1,113 +1,108 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in HYP
- mode
-Date: Sat, 6 Oct 2012 10:06:00 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1210060955230.16518@xanadu.home>
-References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com> <1347036934-8519-3-git-send-email-marc.zyngier@arm.com> <20121005200822.GQ3874@atomide.com> <6d3553bfe8a2d1ac88cab852100616a7@localhost>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC 00/24] OMAP serial driver flow control fixes, and
+	preparation for DMA engine conversion
+Date: Sat, 6 Oct 2012 15:23:51 +0100
+Message-ID: <20121006142351.GE15246@n2100.arm.linux.org.uk>
+References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:53718 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750719Ab2JFOGE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 10:06:04 -0400
-Received: by mail-qc0-f174.google.com with SMTP id d3so1771897qch.19
-        for <linux-omap@vger.kernel.org>; Sat, 06 Oct 2012 07:06:02 -0700 (PDT)
-In-Reply-To: <6d3553bfe8a2d1ac88cab852100616a7@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121006123803.GD15246@n2100.arm.linux.org.uk>
+Sender: linux-serial-owner@vger.kernel.org
+To: Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>, Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On Sat, 6 Oct 2012, Marc Zyngier wrote:
-
-> Hi Tony,
+On Sat, Oct 06, 2012 at 01:38:03PM +0100, Russell King - ARM Linux wrote:
+> Hi,
 > 
-> On Fri, 5 Oct 2012 13:08:22 -0700, Tony Lindgren <tony@atomide.com> wrote:
-> > Hi,
-> > 
-> > * Marc Zyngier <marc.zyngier@arm.com> [120907 10:04]:
-> >> From: Dave Martin <dave.martin@linaro.org>
-> >> 
-> >> This patch does two things:
-> >> 
-> >>   * Ensure that asynchronous aborts are masked at kernel entry.
-> >>     The bootloader should be masking these anyway, but this reduces
-> >>     the damage window just in case it doesn't.
-> >> 
-> >>   * Enter svc mode via exception return to ensure that CPU state is
-> >>     properly serialised.  This does not matter when switching from
-> >>     an ordinary privileged mode ("PL1" modes in ARMv7-AR rev C
-> >>     parlance), but it potentially does matter when switching from a
-> >>     another privileged mode such as hyp mode.
-> >> 
-> >> This should allow the kernel to boot safely either from svc mode or
-> >> hyp mode, even if no support for use of the ARM Virtualization
-> >> Extensions is built into the kernel.
-> >> 
-> >> Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> >> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> > 
-> > Just bisected this down in linux-next for breaking booting of
-> > my omap2420 ARMv6 based n8x0..
-> > 
-> >> --- a/arch/arm/kernel/head.S
-> >> +++ b/arch/arm/kernel/head.S
-> >> @@ -83,8 +83,12 @@ ENTRY(stext)
-> >>   THUMB(	.thumb			)	@ switch to Thumb now.
-> >>   THUMB(1:			)
-> >>  
-> >> -	setmode	PSR_F_BIT | PSR_I_BIT | SVC_MODE, r9 @ ensure svc mode
-> >> -						@ and irqs disabled
-> >> +#ifdef CONFIG_ARM_VIRT_EXT
-> >> +	bl	__hyp_stub_install
-> >> +#endif
-> >> +	@ ensure svc mode and all interrupts masked
-> >> +	safe_svcmode_maskall r9
-> >> +
-> >>  	mrc	p15, 0, r9, c0, c0		@ get processor id
-> >>  	bl	__lookup_processor_type		@ r5=procinfo r9=cpuid
-> >>  	movs	r10, r5				@ invalid processor (r5=0)?
-> > 
-> > ..and looks like undoing this part fixes it. Any ideas?
-> > 
-> > I quickly tried disabling ARCH_OMAP3 and ARCH_OMAP4 so it's
-> > ARMv6 but that does not help.
+> This series of patches fixes multiple flow control issues with the OMAP
+> serial driver, and prepares the driver for DMA engine conversion.  We
+> require hardware assisted flow control to work properly for DMA support
+> otherwise we have no way to properly pause the transmitter.
 > 
-> If you compiled for v6 only, we can safely exclude __hyp_stub_install, and
-> I assume that you get past the decompressor.
+> This is generated against v3.6, and has been developed mainly by testing
+> on the OMAP4430 SDP platform.
 > 
-> If so, that indicates some side effect of the safe_svcmode_maskall macro,
-> and I suspect the "movs pc, lr" bit.
+> Flow control seems to be really broken in the OMAP serial driver as things
+> stand today.  It just about works with software flow control because the
+> generic serial core layer is inserting those characters, but only when the
+> legacy DMA support is not being used.  Otherwise, flow control is
+> completely non-functional.
+> 
+> Issues identified in the OMAP serial driver are:
+> - set_mctrl() can only assert modem control lines, once asserted it
+>   is not possible to deassert them.
+> - IXOFF controls sending of XON/XOFF characters, not the reception of
+>   these sequences.
+> - IXON controls the recognition of XON/XOFF characters, not the transmission
+>   of the same.
+> - Wrong bitmasks for hardware assisted software flow control.  Bit 2
+>   in EFR enables sending of XON2/XOFF2 which are never set.
+> - No point comparing received characters against XOFF2 ('special character
+>   detect') as XOFF2 is not set.
+> - Fix multiple places where bits 6 and 5 of MCR are attempted to be
+>   altered, but because EFR ECB is unset, these bits remain unaffected.
+>   This effectively prevents us accessing the right XON/XOFF/TCR/TLR
+>   registers.
+> - Remove unnecessary read-backs of EFR/MCR/LCR registers - these registers
+>   don't change beneath us, they are configuration registers which hold their
+>   values.  Not only does this simplify the code, but it makes it more
+>   readable, and more importantly ensures that we work from a consistent
+>   state where ->efr never has ECB set, and ->mcr never has the TCRTLR
+>   bit set.
+> - Fix disablement of hardware flow control and IXANY modes; once enabled
+>   these could never be disabled because nothing in the code ever clears
+>   these configuration bits.
+> 
+> Once that lot is fixed, these patches expand serial_core to permit hardware
+> assisted flow control by:
+> - adding throttle/unthrottle callbacks into low level serial drivers,
+>   which allow them to take whatever action is necessary with hardware
+>   assisted flow control to throttle the remote end.  In the case of
+>   OMAP serial, this means disabling the RX interrupts so that the FIFO
+>   fills to the watermark.
+> 
+> We then have a number of cleanups to the OMAP serial code to make the
+> set_termios() function clearer and less prone to the kinds of mistakes
+> identified above.  This results in a great simplification of the flow
+> control configuration code.
+> 
+> The OMAP serial driver hacks around with the transmit buffer allocation;
+> lets clean that up so that drivers can cleanly allocate their transmitter
+> buffer using coherent memory if that's what they desire.
+> 
+> Finally, the last few patches clean up the plat/omap-serial.h header file,
+> moving most of its contents into the OMAP serial driver itself.  Most of
+> this is private to the OMAP serial driver and should never have been
+> shared with anything else.
+> 
+> I have omitted to include the conversion of the transmit paths to DMA
+> engine.  Even with all the above fixed, it has issues when DMA transmit
+> is in progress, and a program issues a TCSETS call (as `less' does after
+> it has written its prompt.)  At the moment, this causes lots of junk to
+> be emitted from the serial port when issuing `dmesg | less' which sometimes
+> brings the port to a complete halt.
+> 
+> As the OMAP DMA hardware does not have a clean pause when performing a
+> MEM->DEV transfer (it discards its FIFO) I do not see a solution to this,
+> which probably means that we can _not_ ever support transmit DMA on OMAP
+> platforms.
+> 
+> This means the xmit buffer allocation patches are not that useful unless
+> a solution to that can be found.
+> 
+> Now, the remaining question is, how much of this patch set do we think
+> about merging, and when.  Given that flow control in this driver has been
+> broken for a very long time, and no one has apparantly noticed, I don't
+> think there's any urgency to this, so given its size, my preference would
+> be to queue it up for the next merge window.  The thing that would worry
+> me about applying some of the initial patches is that they may change
+> the behaviour today and make any problems here more visible.
 
-That would be surprizing if the "movs pc, lr" was to blame.  This should 
-work on all architectures.
-
-However the A bit might be to blame.
-
-> Can you try the attached patch? It basically falls back to the previous
-> behaviour if not entered in HYP mode.
-
-This is likely to work of course.  However I think we should try to 
-pinpoint the exact problem i.e. whether it is the A bit or the "movs pc, 
-lr" which makes a difference (it is unlikely to be both).
-
-So I was about to suggest to test this patch as well:
-
-diff --git a/arch/arm/include/asm/assembler.h b/arch/arm/include/asm/assembler.h
-index 683a1e6b60..118e22ee46 100644
---- a/arch/arm/include/asm/assembler.h
-+++ b/arch/arm/include/asm/assembler.h
-@@ -254,8 +254,7 @@
- 	mov	lr , \reg
- 	and	lr , lr , #MODE_MASK
- 	cmp	lr , #HYP_MODE
--	orr	\reg , \reg , #PSR_A_BIT | PSR_I_BIT | PSR_F_BIT
--	bic	\reg , \reg , #MODE_MASK
-+	mov	\reg , #PSR_I_BIT | PSR_F_BIT
- 	orr	\reg , \reg , #SVC_MODE
- THUMB(	orr	\reg , \reg , #PSR_T_BIT	)
- 	msr	spsr_cxsf, \reg
-
-
-Nicolas
+I'll add another point to this: serial_omap_restore_context() makes no
+attempt to restore neither the protected bits in the MCR register nor
+the contents of the TCR and TLR registers.  So, hardware assisted flow
+control probably won't work at all well after a context loss event.
+When I work out how to test this, I'll see about cooking up yet another
+fix to this driver.
