@@ -1,51 +1,48 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in HYP mode
-Date: Sat, 06 Oct 2012 18:06:51 +0200
-Message-ID: <5d2c2df8247d9f028727f9a8b712d3d4@localhost>
-References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com> <1347036934-8519-3-git-send-email-marc.zyngier@arm.com> <20121005200822.GQ3874@atomide.com> <6d3553bfe8a2d1ac88cab852100616a7@localhost> <20121006144252.GY3874@atomide.com> <alpine.LFD.2.02.1210061129080.16518@xanadu.home> <20121006154052.GB3874@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC 20/24] SERIAL: core: add xmit buffer allocation callbacks
+Date: Sat, 6 Oct 2012 17:51:36 +0100
+Message-ID: <20121006165136.GC28061@n2100.arm.linux.org.uk>
+References: <20121006123803.GD15246@n2100.arm.linux.org.uk> <E1TKTlL-0002ni-MB@rmk-PC.arm.linux.org.uk> <20121006164956.2956375c@pyramind.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from inca-roads.misterjones.org ([213.251.177.50]:56684 "EHLO
-	inca-roads.misterjones.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754411Ab2JFQG4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 12:06:56 -0400
-In-Reply-To: <20121006154052.GB3874@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47551 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751463Ab2JFQxC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 12:53:02 -0400
+Content-Disposition: inline
+In-Reply-To: <20121006164956.2956375c@pyramind.ukuu.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
 
-On Sat, 6 Oct 2012 08:40:52 -0700, Tony Lindgren <tony@atomide.com> wrote:
-> * Nicolas Pitre <nicolas.pitre@linaro.org> [121006 08:33]:
->> On Sat, 6 Oct 2012, Tony Lindgren wrote:
->> 
->> > * Marc Zyngier <marc.zyngier@arm.com> [121006 03:19]:
->> > 
->> > > If so, that indicates some side effect of the safe_svcmode_maskall
->> > > macro,
->> > > and I suspect the "movs pc, lr" bit.
->> > > 
->> > > Can you try the attached patch? It basically falls back to the
->> > > previous
->> > > behaviour if not entered in HYP mode.
->> > 
->> > Yes, with this it boots OK.
->> 
->> OK. In that case, I suggest this patch be sent to Russell to fix this 
->> issue so he could push the ARM stuff to Linus ASAP.
->> 
->> Acked-by: Nicolas Pitre <nico@linaro.org>
+On Sat, Oct 06, 2012 at 04:49:56PM +0100, Alan Cox wrote:
+> On Sat, 06 Oct 2012 13:45:47 +0100
+> Russell King <rmk+kernel@arm.linux.org.uk> wrote:
 > 
-> Yes we can come back to this:
+> > This allows drivers (such as OMAP serial) to allocate and free their
+> > transmit buffers in a sane manner, rather than working around the
+> > buffer allocation provided by serial_core.
 > 
-> Tested-by: Tony Lindgren <tony@atomide.com>
+> I think this just illustrates how broken the serial_core layering is in
+> that drivers can't treat it as a library but get constrained by it.
+> 
+> Fine for now and actually probably a useful hook to begin removing the
+> circ buffers for the kernel generic kfifo and other work that needs doing
+> eventually.
 
-Now in Russell's patch system as #7549/1.
+Yes, I was thinking about turning the 'default' buffer allocation into
+a library call which drivers would set, but I felt that's just asking
+for a big patch and problems with new drivers appearing.
 
-Thanks a lot for your help on this both of you.
+We could transition it by providing a default buffer allocation call,
+converting all the drivers, and then making that call mandatory.  That
+probably would then give us a better path to convert to kfifo.
 
-        M.
--- 
-Fast, cheap, reliable. Pick two.
+The view that serial_core should be a library is one that Ted mentioned
+when I created serial_core originally - I disagreed at the time, and
+I still believe it would've ended up being much more complex - and
+hairy - to go that route at that time.  Maybe as things have moved
+forward in the tty layer that's changed, but I've been out of tty stuff
+for too long to properly comment.
