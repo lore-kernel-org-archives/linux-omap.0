@@ -1,75 +1,82 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [RFC 19/24] SERIAL: omap: simplify (2)
-Date: Sat, 06 Oct 2012 13:45:27 +0100
-Message-ID: <E1TKTl1-0002ne-8K@rmk-PC.arm.linux.org.uk>
+Subject: [RFC 20/24] SERIAL: core: add xmit buffer allocation callbacks
+Date: Sat, 06 Oct 2012 13:45:47 +0100
+Message-ID: <E1TKTlL-0002ni-MB@rmk-PC.arm.linux.org.uk>
 References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47330 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756032Ab2JFMp4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 08:45:56 -0400
 In-Reply-To: <20121006123803.GD15246@n2100.arm.linux.org.uk>
-Sender: linux-serial-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-Simplify:
-	- set ECB
-	...
-	- LCR mode A
-	- clear TCRTLR
-	- LCR mode B
-	- clear ECB
-	- set ECB and update other bits
-	- LCR mode A
-	- update XONANY
-
-to:
-	- set ECB
-	...
-	- LCR mode B
-	- set ECB and update other bits
-	- LCR mode A
-	- update XONANY and clear TCRTLR
+This allows drivers (such as OMAP serial) to allocate and free their
+transmit buffers in a sane manner, rather than working around the
+buffer allocation provided by serial_core.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/tty/serial/omap-serial.c |   11 +++--------
- 1 files changed, 3 insertions(+), 8 deletions(-)
+ drivers/tty/serial/serial_core.c |   23 ++++++++++++++++-------
+ include/linux/serial_core.h      |    2 ++
+ 2 files changed, 18 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index e786eac..b497187 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -896,11 +896,6 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 		up->efr &= ~(UART_EFR_CTS | UART_EFR_RTS);
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index 4dd609e..53274ae 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -147,12 +147,18 @@ static int uart_port_startup(struct tty_struct *tty, struct uart_state *state,
+ 	 * buffer.
+ 	 */
+ 	if (!state->xmit.buf) {
+-		/* This is protected by the per port mutex */
+-		page = get_zeroed_page(GFP_KERNEL);
+-		if (!page)
+-			return -ENOMEM;
++		if (uport->ops->alloc_xmit) {
++			retval = uport->ops->alloc_xmit(uport, &state->xmit);
++			if (retval)
++				return retval;
++		} else {
++			/* This is protected by the per port mutex */
++			page = get_zeroed_page(GFP_KERNEL);
++			if (!page)
++				return -ENOMEM;
+ 
+-		state->xmit.buf = (unsigned char *) page;
++			state->xmit.buf = (unsigned char *) page;
++		}
+ 		uart_circ_clear(&state->xmit);
  	}
  
--	/* Disable access to TCR/TLR */
--	serial_out(up, UART_MCR, up->mcr);
--	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
--	serial_out(up, UART_EFR, up->efr);
--
- 	/* clear SW control mode bits */
- 	up->efr &= OMAP_UART_SW_CLR;
- 
-@@ -920,9 +915,6 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	if (termios->c_iflag & IXOFF)
- 		up->efr |= OMAP_UART_SW_TX;
- 
--	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
--	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
--
- 	/*
- 	 * IXANY Flag:
- 	 * Enable any character to restart output.
-@@ -934,6 +926,9 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	else
- 		up->mcr &= ~UART_MCR_XONANY;
- 
-+	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-+	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
-+	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
- 	serial_out(up, UART_MCR, up->mcr);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
- 	serial_out(up, UART_EFR, up->efr);
+@@ -257,7 +263,10 @@ static void uart_shutdown(struct tty_struct *tty, struct uart_state *state)
+ 	 * Free the transmit buffer page.
+ 	 */
+ 	if (state->xmit.buf) {
+-		free_page((unsigned long)state->xmit.buf);
++		if (uport->ops->free_xmit)
++			uport->ops->free_xmit(uport, &state->xmit);
++		else
++			free_page((unsigned long)state->xmit.buf);
+ 		state->xmit.buf = NULL;
+ 	}
+ }
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index b17d4c9..ebe9af1 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -248,6 +248,8 @@ struct uart_ops {
+ 	void		(*break_ctl)(struct uart_port *, int ctl);
+ 	int		(*startup)(struct uart_port *);
+ 	void		(*shutdown)(struct uart_port *);
++	int		(*alloc_xmit)(struct uart_port *, struct circ_buf *);
++	void		(*free_xmit)(struct uart_port *, struct circ_buf *);
+ 	void		(*flush_buffer)(struct uart_port *);
+ 	void		(*set_termios)(struct uart_port *, struct ktermios *new,
+ 				       struct ktermios *old);
 -- 
 1.7.4.4
 
