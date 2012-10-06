@@ -1,89 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in
- HYP mode
-Date: Fri, 5 Oct 2012 20:06:43 -0700
-Message-ID: <20121006030643.GX3874@atomide.com>
-References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com>
- <1347036934-8519-3-git-send-email-marc.zyngier@arm.com>
- <20121005200822.GQ3874@atomide.com>
- <20121005230908.GC15246@n2100.arm.linux.org.uk>
- <20121005232325.GV3874@atomide.com>
- <20121005235046.GW3874@atomide.com>
- <alpine.LFD.2.02.1210052124380.16518@xanadu.home>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next,
+ working on 3.2
+Date: Sat, 6 Oct 2012 11:04:51 +0200
+Message-ID: <CAFqH_52RP=E9QgGgmEQ3vuQEx32V2KsRSMn62rrto0bxAW_OEw@mail.gmail.com>
+References: <20120504155255.140b4e3f@skate>
+	<87397fewso.fsf@ti.com>
+	<20120504175124.GI5613@atomide.com>
+	<878vh78q7b.fsf@ti.com>
+	<20121004180747.3b342904@skate>
+	<87vcequpf7.fsf@deeprootsystems.com>
+	<20121004221118.4316181d@skate>
+	<CAKQ2WVp71=ULs_yK7Tkuo=8F4hATq0YCQ6RtV0ziJQQmnrib_g@mail.gmail.com>
+	<20121004225704.0c08c862@skate>
+	<87wqz5u97g.fsf@deeprootsystems.com>
+	<CAAwP0s1+_GT=TtVKg8ARtfqDYm_AZ-D34KG_j3SLWz0yzZKJtQ@mail.gmail.com>
+	<20121005101009.7ed1fe85@skate>
+	<CAAwP0s2HTZNYP2qNkqnus9veh1qXH-V3gDU_qBBxRR6o2W+=OA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:11901 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750738Ab2JFDGs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Oct 2012 23:06:48 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.02.1210052124380.16518@xanadu.home>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:35156 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750738Ab2JFJEw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 05:04:52 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2594617pad.19
+        for <linux-omap@vger.kernel.org>; Sat, 06 Oct 2012 02:04:51 -0700 (PDT)
+In-Reply-To: <CAAwP0s2HTZNYP2qNkqnus9veh1qXH-V3gDU_qBBxRR6o2W+=OA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Marc Zyngier <marc.zyngier@arm.com>, Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Michael Opdenacker <michael.opdenacker@free-electrons.com>
 
-* Nicolas Pitre <nicolas.pitre@linaro.org> [121005 18:33]:
-> On Fri, 5 Oct 2012, Tony Lindgren wrote:
-> 
-> > * Tony Lindgren <tony@atomide.com> [121005 16:27]:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [121005 16:10]:
-> > > > On Fri, Oct 05, 2012 at 01:08:22PM -0700, Tony Lindgren wrote:
-> > > > > Just bisected this down in linux-next for breaking booting of
-> > > > > my omap2420 ARMv6 based n8x0..
-> > > > > 
-> > > > > > --- a/arch/arm/kernel/head.S
-> > > > > > +++ b/arch/arm/kernel/head.S
-> > > > > > @@ -83,8 +83,12 @@ ENTRY(stext)
-> > > > > >   THUMB(	.thumb			)	@ switch to Thumb now.
-> > > > > >   THUMB(1:			)
-> > > > > >  
-> > > > > > -	setmode	PSR_F_BIT | PSR_I_BIT | SVC_MODE, r9 @ ensure svc mode
-> > > > > > -						@ and irqs disabled
-> > > > > > +#ifdef CONFIG_ARM_VIRT_EXT
-> > > > > > +	bl	__hyp_stub_install
-> > > > > > +#endif
-> > > > > > +	@ ensure svc mode and all interrupts masked
-> > > > > > +	safe_svcmode_maskall r9
-> > > > > > +
-> > > > > >  	mrc	p15, 0, r9, c0, c0		@ get processor id
-> > > > > >  	bl	__lookup_processor_type		@ r5=procinfo r9=cpuid
-> > > > > >  	movs	r10, r5				@ invalid processor (r5=0)?
-> > > > > 
-> > > > > ..and looks like undoing this part fixes it. Any ideas?
-> > > > > 
-> > > > > I quickly tried disabling ARCH_OMAP3 and ARCH_OMAP4 so it's
-> > > > > ARMv6 but that does not help.
-> > 
-> > The same kernel boots on 2430sdp, which is the same ARMv6 core
-> > as 2430 if I remember correctly. So this hints that it has something
-> > to do with the bits set differently by the bootloader?
-> 
-> Possibly.
-> 
-> What if you apply this on top:
-> 
-> diff --git a/arch/arm/include/asm/assembler.h b/arch/arm/include/asm/assembler.h
-> index 683a1e6b60..b276c26e19 100644
-> --- a/arch/arm/include/asm/assembler.h
-> +++ b/arch/arm/include/asm/assembler.h
-> @@ -254,8 +254,7 @@
->  	mov	lr , \reg
->  	and	lr , lr , #MODE_MASK
->  	cmp	lr , #HYP_MODE
-> -	orr	\reg , \reg , #PSR_A_BIT | PSR_I_BIT | PSR_F_BIT
-> -	bic	\reg , \reg , #MODE_MASK
-> +	mov	\reg , #PSR_A_BIT | PSR_I_BIT | PSR_F_BIT
->  	orr	\reg , \reg , #SVC_MODE
->  THUMB(	orr	\reg , \reg , #PSR_T_BIT	)
->  	msr	spsr_cxsf, \reg
-> 
-> 
-> 
+2012/10/5 Javier Martinez Canillas <martinez.javier@gmail.com>:
+> On Fri, Oct 5, 2012 at 10:10 AM, Thomas Petazzoni
+> <thomas.petazzoni@free-electrons.com> wrote:
+>>
+>> On Fri, 5 Oct 2012 09:32:07 +0200, Javier Martinez Canillas wrote:
+>>
+>>> As Enric said, u-boot has SPL and NAND support for IGEP since
+>>> v2012.10-rc1. I just tried kernel a 3.6 with u-boot v2012.10-rc2 and
+>>> it works for me.
+>>
+>> Ok, I'll try this out.
+>>
+>>> But I agree that the kernel shouldn't do any assumptions about the
+>>> bootloader setting correctly the omap mux. Could you please share your
+>>> bootloader that makes the kernel to fail (or your IGEP NAND patches on
+>>> top of u-boot U-boot 2011.12) so I can reproduce the issue and try to
+>>> fix it?
+>>
+>> Ok, I'm using the X-Loader from git://git.igep.es/pub/scm/x-loader.git,
+>> tag v1.4.4-3, on top of which I apply
+>> http://git.free-electrons.com/training-materials/plain/lab-data/sysdev/u-boot/x-loader-1.4.4-3-igep-nand-support.patch
+>> to add support for the NAND-based IGEPv2 rev6.
+>>
+>> In terms of U-Boot, I use U-Boot 2011.12, on top of which I apply
+>> http://git.free-electrons.com/training-materials/plain/lab-data/sysdev/u-boot/u-boot-2011.12-igep-nand-support.patch
+>> to add support for the NAND-based IGEPv2 rev6.
+>>
+>> To make things easier if you don't need to rebuild those, I've put
+>> online pre-built binaries of X-Loader and U-Boot I'm using:
+>> http://free-electrons.com/~thomas/pub/igep-serial-problem/.
+>>
+>> Thanks,
+>>
+>> Thomas
+>
+> Perfect, I'll try it and let you know if I find a fix for the issue.
+>
 
-Thanks but that does not seem to help.
+Sorry if someone receives this email twice, I had some problems to
+send this email and Mail Delivery Subsystem tells me
+that the Delivery to the following recipient has been delayed.
+
+Also I tried and works for me which make me think that could be a
+hardware issue. Please make sure that pins 6, 8 and 9 of the J990
+header are not connected. I'm noticed that some US-to-RS232 converters
+had problems with this. If you use the IDC10 to DB9 cable take a look
+at this article:
+
+   http://labs.isee.biz/index.php/How_to_setup_the_IDC10_cable
+
+If it's a hardware issue, then , why it worked before 3.2 ? Well, I'm
+not sure, but maybe the mux is different for pins of uart1 that are
+connected to J990 and causes the problem. If you see at the schematic
+you'll see that J990
+
+          x -  10  9 - uart1_rx
+uart1_tx -   8   7 - x
+gnd       -   6   5 - gnd
+          x -   4   3 - uart3_tx
+uart3_rx -   2   1 -x
+
+If you use directly a IDC10-to-DB9 without cutting hires from 6 to 10
+note that :
+
+   - pin 6 of IDC10 is forced to gnd which corresponds to pin 6 of DB9
+which is suposed to be used as DSR (Data Set Ready)
+   - pin 8 of IDC10 is connected to uart1_tx which corresponds to pin
+8 of DB9 which is suposed to be used as CTS (Clear to Send)
+   - pin 9 of IDC10 is connected to uart1_rx which corresponds to pin
+9 of DB9 which is suposed to be used as RI (Ring Indicator)
 
 Regards,
-
-Tony
+    Enric
