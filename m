@@ -1,106 +1,128 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: ttyO2 broken on IGEPv2 on 3.3, 3.4-rc5 or arm-soc/for-next,
- working on 3.2
-Date: Sat, 6 Oct 2012 11:04:51 +0200
-Message-ID: <CAFqH_52RP=E9QgGgmEQ3vuQEx32V2KsRSMn62rrto0bxAW_OEw@mail.gmail.com>
-References: <20120504155255.140b4e3f@skate>
-	<87397fewso.fsf@ti.com>
-	<20120504175124.GI5613@atomide.com>
-	<878vh78q7b.fsf@ti.com>
-	<20121004180747.3b342904@skate>
-	<87vcequpf7.fsf@deeprootsystems.com>
-	<20121004221118.4316181d@skate>
-	<CAKQ2WVp71=ULs_yK7Tkuo=8F4hATq0YCQ6RtV0ziJQQmnrib_g@mail.gmail.com>
-	<20121004225704.0c08c862@skate>
-	<87wqz5u97g.fsf@deeprootsystems.com>
-	<CAAwP0s1+_GT=TtVKg8ARtfqDYm_AZ-D34KG_j3SLWz0yzZKJtQ@mail.gmail.com>
-	<20121005101009.7ed1fe85@skate>
-	<CAAwP0s2HTZNYP2qNkqnus9veh1qXH-V3gDU_qBBxRR6o2W+=OA@mail.gmail.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in HYP
+ mode
+Date: Sat, 06 Oct 2012 12:18:23 +0200
+Message-ID: <6d3553bfe8a2d1ac88cab852100616a7@localhost>
+References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com>
+ <1347036934-8519-3-git-send-email-marc.zyngier@arm.com>
+ <20121005200822.GQ3874@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:35156 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750738Ab2JFJEw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 05:04:52 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2594617pad.19
-        for <linux-omap@vger.kernel.org>; Sat, 06 Oct 2012 02:04:51 -0700 (PDT)
-In-Reply-To: <CAAwP0s2HTZNYP2qNkqnus9veh1qXH-V3gDU_qBBxRR6o2W+=OA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="=_34c344971ff8e889eaf1f2717d707cf3"
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20121005200822.GQ3874@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Tony Lindgren <tony@atomide.com>, Michael Opdenacker <michael.opdenacker@free-electrons.com>
 
-2012/10/5 Javier Martinez Canillas <martinez.javier@gmail.com>:
-> On Fri, Oct 5, 2012 at 10:10 AM, Thomas Petazzoni
-> <thomas.petazzoni@free-electrons.com> wrote:
->>
->> On Fri, 5 Oct 2012 09:32:07 +0200, Javier Martinez Canillas wrote:
->>
->>> As Enric said, u-boot has SPL and NAND support for IGEP since
->>> v2012.10-rc1. I just tried kernel a 3.6 with u-boot v2012.10-rc2 and
->>> it works for me.
->>
->> Ok, I'll try this out.
->>
->>> But I agree that the kernel shouldn't do any assumptions about the
->>> bootloader setting correctly the omap mux. Could you please share your
->>> bootloader that makes the kernel to fail (or your IGEP NAND patches on
->>> top of u-boot U-boot 2011.12) so I can reproduce the issue and try to
->>> fix it?
->>
->> Ok, I'm using the X-Loader from git://git.igep.es/pub/scm/x-loader.git,
->> tag v1.4.4-3, on top of which I apply
->> http://git.free-electrons.com/training-materials/plain/lab-data/sysdev/u-boot/x-loader-1.4.4-3-igep-nand-support.patch
->> to add support for the NAND-based IGEPv2 rev6.
->>
->> In terms of U-Boot, I use U-Boot 2011.12, on top of which I apply
->> http://git.free-electrons.com/training-materials/plain/lab-data/sysdev/u-boot/u-boot-2011.12-igep-nand-support.patch
->> to add support for the NAND-based IGEPv2 rev6.
->>
->> To make things easier if you don't need to rebuild those, I've put
->> online pre-built binaries of X-Loader and U-Boot I'm using:
->> http://free-electrons.com/~thomas/pub/igep-serial-problem/.
->>
->> Thanks,
->>
->> Thomas
->
-> Perfect, I'll try it and let you know if I find a fix for the issue.
->
+--=_34c344971ff8e889eaf1f2717d707cf3
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 
-Sorry if someone receives this email twice, I had some problems to
-send this email and Mail Delivery Subsystem tells me
-that the Delivery to the following recipient has been delayed.
+Hi Tony,
 
-Also I tried and works for me which make me think that could be a
-hardware issue. Please make sure that pins 6, 8 and 9 of the J990
-header are not connected. I'm noticed that some US-to-RS232 converters
-had problems with this. If you use the IDC10 to DB9 cable take a look
-at this article:
+On Fri, 5 Oct 2012 13:08:22 -0700, Tony Lindgren <tony@atomide.com> wrote:
+> Hi,
+> 
+> * Marc Zyngier <marc.zyngier@arm.com> [120907 10:04]:
+>> From: Dave Martin <dave.martin@linaro.org>
+>> 
+>> This patch does two things:
+>> 
+>>   * Ensure that asynchronous aborts are masked at kernel entry.
+>>     The bootloader should be masking these anyway, but this reduces
+>>     the damage window just in case it doesn't.
+>> 
+>>   * Enter svc mode via exception return to ensure that CPU state is
+>>     properly serialised.  This does not matter when switching from
+>>     an ordinary privileged mode ("PL1" modes in ARMv7-AR rev C
+>>     parlance), but it potentially does matter when switching from a
+>>     another privileged mode such as hyp mode.
+>> 
+>> This should allow the kernel to boot safely either from svc mode or
+>> hyp mode, even if no support for use of the ARM Virtualization
+>> Extensions is built into the kernel.
+>> 
+>> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> 
+> Just bisected this down in linux-next for breaking booting of
+> my omap2420 ARMv6 based n8x0..
+> 
+>> --- a/arch/arm/kernel/head.S
+>> +++ b/arch/arm/kernel/head.S
+>> @@ -83,8 +83,12 @@ ENTRY(stext)
+>>   THUMB(	.thumb			)	@ switch to Thumb now.
+>>   THUMB(1:			)
+>>  
+>> -	setmode	PSR_F_BIT | PSR_I_BIT | SVC_MODE, r9 @ ensure svc mode
+>> -						@ and irqs disabled
+>> +#ifdef CONFIG_ARM_VIRT_EXT
+>> +	bl	__hyp_stub_install
+>> +#endif
+>> +	@ ensure svc mode and all interrupts masked
+>> +	safe_svcmode_maskall r9
+>> +
+>>  	mrc	p15, 0, r9, c0, c0		@ get processor id
+>>  	bl	__lookup_processor_type		@ r5=procinfo r9=cpuid
+>>  	movs	r10, r5				@ invalid processor (r5=0)?
+> 
+> ..and looks like undoing this part fixes it. Any ideas?
+> 
+> I quickly tried disabling ARCH_OMAP3 and ARCH_OMAP4 so it's
+> ARMv6 but that does not help.
 
-   http://labs.isee.biz/index.php/How_to_setup_the_IDC10_cable
+If you compiled for v6 only, we can safely exclude __hyp_stub_install, and
+I assume that you get past the decompressor.
 
-If it's a hardware issue, then , why it worked before 3.2 ? Well, I'm
-not sure, but maybe the mux is different for pins of uart1 that are
-connected to J990 and causes the problem. If you see at the schematic
-you'll see that J990
+If so, that indicates some side effect of the safe_svcmode_maskall macro,
+and I suspect the "movs pc, lr" bit.
 
-          x -  10  9 - uart1_rx
-uart1_tx -   8   7 - x
-gnd       -   6   5 - gnd
-          x -   4   3 - uart3_tx
-uart3_rx -   2   1 -x
+Can you try the attached patch? It basically falls back to the previous
+behaviour if not entered in HYP mode.
 
-If you use directly a IDC10-to-DB9 without cutting hires from 6 to 10
-note that :
+Thanks,
 
-   - pin 6 of IDC10 is forced to gnd which corresponds to pin 6 of DB9
-which is suposed to be used as DSR (Data Set Ready)
-   - pin 8 of IDC10 is connected to uart1_tx which corresponds to pin
-8 of DB9 which is suposed to be used as CTS (Clear to Send)
-   - pin 9 of IDC10 is connected to uart1_rx which corresponds to pin
-9 of DB9 which is suposed to be used as RI (Ring Indicator)
+        M.
+-- 
+Fast, cheap, reliable. Pick two.
+--=_34c344971ff8e889eaf1f2717d707cf3
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii; charset=UTF-8;
+ name=setmode.patch
+Content-Disposition: attachment;
+ filename=setmode.patch
 
-Regards,
-    Enric
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL2luY2x1ZGUvYXNtL2Fzc2VtYmxlci5oIGIvYXJjaC9hcm0v
+aW5jbHVkZS9hc20vYXNzZW1ibGVyLmgKaW5kZXggNjU4YTE1ZC4uYjIxYjk3ZiAxMDA2NDQKLS0t
+IGEvYXJjaC9hcm0vaW5jbHVkZS9hc20vYXNzZW1ibGVyLmgKKysrIGIvYXJjaC9hcm0vaW5jbHVk
+ZS9hc20vYXNzZW1ibGVyLmgKQEAgLTI1NCwxNiArMjU0LDE3IEBACiAJbW92CWxyICwgXHJlZwog
+CWFuZAlsciAsIGxyICwgI01PREVfTUFTSwogCWNtcAlsciAsICNIWVBfTU9ERQotCW9ycglccmVn
+ICwgXHJlZyAsICNQU1JfQV9CSVQgfCBQU1JfSV9CSVQgfCBQU1JfRl9CSVQKKwlvcnIJXHJlZyAs
+IFxyZWcgLCAjUFNSX0lfQklUIHwgUFNSX0ZfQklUCiAJYmljCVxyZWcgLCBccmVnICwgI01PREVf
+TUFTSwogCW9ycglccmVnICwgXHJlZyAsICNTVkNfTU9ERQogVEhVTUIoCW9ycglccmVnICwgXHJl
+ZyAsICNQU1JfVF9CSVQJKQotCW1zcglzcHNyX2N4c2YsIFxyZWcKLQlhZHIJbHIsIEJTWU0oMmYp
+CiAJYm5lCTFmCisJb3JyCVxyZWcsIFxyZWcsICNQU1JfQV9CSVQKKwlhZHIJbHIsIEJTWU0oMmYp
+CisJbXNyCXNwc3JfY3hzZiwgXHJlZwogCV9fTVNSX0VMUl9IWVAoMTQpCiAJX19FUkVUCi0xOglt
+b3ZzCXBjLCBscgorMToJbXNyCWNwc3JfYywgXHJlZwogMjoKIC5lbmRtCiAK
+--=_34c344971ff8e889eaf1f2717d707cf3
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--=_34c344971ff8e889eaf1f2717d707cf3--
