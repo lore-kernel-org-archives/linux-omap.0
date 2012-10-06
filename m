@@ -1,54 +1,46 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 00/24] OMAP serial driver flow control fixes, and
-	preparation for DMA engine conversion
-Date: Sat, 6 Oct 2012 16:35:28 +0100
-Message-ID: <20121006153528.GA28061@n2100.arm.linux.org.uk>
-References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/7] ARM: virt: allow the kernel to be entered in
+ HYP mode
+Date: Sat, 6 Oct 2012 08:40:52 -0700
+Message-ID: <20121006154052.GB3874@atomide.com>
+References: <1347036934-8519-1-git-send-email-marc.zyngier@arm.com>
+ <1347036934-8519-3-git-send-email-marc.zyngier@arm.com>
+ <20121005200822.GQ3874@atomide.com>
+ <6d3553bfe8a2d1ac88cab852100616a7@localhost>
+ <20121006144252.GY3874@atomide.com>
+ <alpine.LFD.2.02.1210061129080.16518@xanadu.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47445 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754898Ab2JFPgn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 11:36:43 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11151 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752584Ab2JFPk6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 11:40:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20121006123803.GD15246@n2100.arm.linux.org.uk>
+In-Reply-To: <alpine.LFD.2.02.1210061129080.16518@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Dave Martin <dave.martin@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-Another issue:
+* Nicolas Pitre <nicolas.pitre@linaro.org> [121006 08:33]:
+> On Sat, 6 Oct 2012, Tony Lindgren wrote:
+> 
+> > * Marc Zyngier <marc.zyngier@arm.com> [121006 03:19]:
+> > 
+> > > If so, that indicates some side effect of the safe_svcmode_maskall macro,
+> > > and I suspect the "movs pc, lr" bit.
+> > > 
+> > > Can you try the attached patch? It basically falls back to the previous
+> > > behaviour if not entered in HYP mode.
+> > 
+> > Yes, with this it boots OK.
+> 
+> OK. In that case, I suggest this patch be sent to Russell to fix this 
+> issue so he could push the ARM stuff to Linus ASAP.
+> 
+> Acked-by: Nicolas Pitre <nico@linaro.org>
 
-serial_omap_set_termios()
-{
-...
-        /* FIFOs and DMA Settings */
- 
-        /* FCR can be changed only when the
-         * baud clock is not running
-         * DLL_REG and DLH_REG set to 0.
-         */
-        serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);     
-        serial_out(up, UART_DLL, 0);
-        serial_out(up, UART_DLM, 0);
-        serial_out(up, UART_LCR, 0);
-...
-        serial_out(up, UART_FCR, up->fcr);
-...
-}
+Yes we can come back to this:
 
-serial_omap_restore_context()
-{
-        serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B); /* Config B mode */
-        serial_out(up, UART_DLL, up->dll);
-        serial_out(up, UART_DLM, up->dlh);
-        serial_out(up, UART_LCR, 0x0); /* Operational mode */
-        serial_out(up, UART_IER, up->ier);
-        serial_out(up, UART_FCR, up->fcr);
-}
-
-Either the comment is wrong, or the code in serial_omap_restore_context()
-is wrong; they can't both be right.  Please can someone let me know which
-is the right version so we can fix that inconsistency.
-
-Thanks.
+Tested-by: Tony Lindgren <tony@atomide.com>
