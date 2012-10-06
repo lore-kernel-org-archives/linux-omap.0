@@ -1,56 +1,121 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [RFC 03/24] SERIAL: omap: remove setting of EFR SCD bit
-Date: Sat, 06 Oct 2012 13:40:01 +0100
-Message-ID: <E1TKTfl-0002mW-BO@rmk-PC.arm.linux.org.uk>
+Subject: [RFC 04/24] SERIAL: omap: fix MCR TCRTLR bit handling
+Date: Sat, 06 Oct 2012 13:40:21 +0100
+Message-ID: <E1TKTg5-0002ma-PI@rmk-PC.arm.linux.org.uk>
 References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47209 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755805Ab2JFMkK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 6 Oct 2012 08:40:10 -0400
+Return-path: <linux-serial-owner@vger.kernel.org>
 In-Reply-To: <20121006123803.GD15246@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-serial-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-The SCD (special character detect) bit enables comparisons with XOFF2,
-which we do not program.  As the XOFF2 character remains unprogrammed,
-there's little point enabling this feature along with its associated
-interrupt.  Remove this.
+The MCR TCRTLR bit can only be changed when ECB is set in the EFR.
+Unfortunately, several places were trying to alter this bit while ECB
+was clear:
+
+- serial_omap_configure_xonxoff() was attempting to clear the bit after
+  explicitly clearing the ECB bit.
+- serial_omap_set_termios() was trying the same trick after setting the
+  SCR, and when trying to change the TCR register when hardware flow
+  control was enabled.
+
+Fix this by ensuring that we always have ECB set whenever the TCRTLR bit
+is changed.
+
+Moreover, we start out by reading the EFR and MCR registers, which may
+have indeterminent bit settings for the ECB and TCRTLR bits.  Ensure
+that these bits always start off in a known state.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/tty/serial/omap-serial.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/tty/serial/omap-serial.c |   32 ++++++++++++++++++--------------
+ 1 files changed, 18 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 4a00733..5333f19 100644
+index 5333f19..391087e 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -700,13 +700,8 @@ serial_omap_configure_xonxoff
+@@ -700,9 +700,10 @@ serial_omap_configure_xonxoff
  	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
  	serial_out(up, UART_TI752_TCR, OMAP_UART_TCR_TRIG);
--	/* Enable special char function UARTi.EFR_REG[5] and
--	 * load the new software flow control mode IXON or IXOFF
--	 * and restore the UARTi.EFR_REG[4] ENHANCED_EN value.
--	 */
--	serial_out(up, UART_EFR, up->efr | UART_EFR_SCD);
-+	serial_out(up, UART_EFR, up->efr);
+-	serial_out(up, UART_EFR, up->efr);
  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
--
  	serial_out(up, UART_MCR, up->mcr & ~UART_MCR_TCRTLR);
++	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
++	serial_out(up, UART_EFR, up->efr);
  	serial_out(up, UART_LCR, up->lcr);
  }
-@@ -838,6 +833,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 
+@@ -720,7 +721,6 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ {
+ 	struct uart_omap_port *up = (struct uart_omap_port *)port;
+ 	unsigned char cval = 0;
+-	unsigned char efr = 0;
+ 	unsigned long flags = 0;
+ 	unsigned int baud, quot;
+ 
+@@ -832,12 +832,12 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 
  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
  
- 	up->efr = serial_in(up, UART_EFR);
-+	up->efr &= ~UART_EFR_SCD;
+-	up->efr = serial_in(up, UART_EFR);
++	up->efr = serial_in(up, UART_EFR) & ~UART_EFR_ECB;
+ 	up->efr &= ~UART_EFR_SCD;
  	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
  
  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+-	up->mcr = serial_in(up, UART_MCR);
++	up->mcr = serial_in(up, UART_MCR) & ~UART_MCR_TCRTLR;
+ 	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+ 	/* FIFO ENABLE, DMA MODE */
+ 
+@@ -857,9 +857,12 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 
+ 	serial_out(up, UART_OMAP_SCR, up->scr);
+ 
+-	serial_out(up, UART_EFR, up->efr);
++	/* Reset UART_MCR_TCRTLR: this must be done with the EFR_ECB bit set */
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+ 	serial_out(up, UART_MCR, up->mcr);
++	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
++	serial_out(up, UART_EFR, up->efr);
++	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+ 
+ 	/* Protocol, Baud Rate, and Interrupt Settings */
+ 
+@@ -900,20 +903,21 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	/* Hardware Flow Control Configuration */
+ 
+ 	if (termios->c_cflag & CRTSCTS) {
+-		efr |= (UART_EFR_CTS | UART_EFR_RTS);
+-		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+-
+-		up->mcr = serial_in(up, UART_MCR);
+-		serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+-
++		/* Enable access to TCR/TLR */
+ 		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+-		up->efr = serial_in(up, UART_EFR);
+ 		serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
++		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
++		serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+ 
+ 		serial_out(up, UART_TI752_TCR, OMAP_UART_TCR_TRIG);
+-		serial_out(up, UART_EFR, efr); /* Enable AUTORTS and AUTOCTS */
+-		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
++
++		/* Enable AUTORTS and AUTOCTS */
++		up->efr |= UART_EFR_CTS | UART_EFR_RTS;
++
++		/* Disable access to TCR/TLR */
+ 		serial_out(up, UART_MCR, up->mcr | UART_MCR_RTS);
++		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
++		serial_out(up, UART_EFR, up->efr);
+ 		serial_out(up, UART_LCR, cval);
+ 	}
+ 
 -- 
 1.7.4.4
 
