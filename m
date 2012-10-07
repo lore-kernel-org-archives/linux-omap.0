@@ -1,53 +1,91 @@
-From: Axel Lin <axel.lin@ingics.com>
-Subject: [PATCH v2] ARM: OMAP: Fix dependency for OMAP_DEBUG_LEDS
-Date: Sun, 07 Oct 2012 18:13:25 +0800
-Message-ID: <1349604805.6017.1.camel@phoenix>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2 1/5] [media] omap3isp: Fix compilation error in
+ ispreg.h
+Date: Sun, 7 Oct 2012 10:17:18 -0300
+Message-ID: <20121007101718.073aed3b@infradead.org>
+References: <20120927195526.GP4840@atomide.com>
+	<1349131591-10804-1-git-send-email-ido@wizery.com>
+	<20121002163158.GR4840@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:48426 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751487Ab2JGKNh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Oct 2012 06:13:37 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr4so3179651pbb.19
-        for <linux-omap@vger.kernel.org>; Sun, 07 Oct 2012 03:13:36 -0700 (PDT)
+Received: from casper.infradead.org ([85.118.1.10]:48633 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab2JGNR1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Oct 2012 09:17:27 -0400
+In-Reply-To: <20121002163158.GR4840@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ido Yariv <ido@wizery.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-This fixes below build error when CONFIG_LEDS_CLASS is not set.
+Em Tue, 2 Oct 2012 09:31:58 -0700
+Tony Lindgren <tony@atomide.com> escreveu:
 
-  LD      init/built-in.o
-arch/arm/plat-omap/built-in.o: In function `fpga_probe':
-arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
-arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
-arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
-arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
-arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
-arch/arm/plat-omap/built-in.o:arch/arm/plat-omap/debug-leds.c:113: more undefined references to `led_classdev_register' follow
-make: *** [vmlinux] Error 1
+> * Ido Yariv <ido@wizery.com> [121001 15:48]:
+> > Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
+> > mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
+> > includes omap34xx.h.
+> > 
+> > Instead of moving omap34xx to platform_data, simply add the two
+> > definitions the driver needs and remove the include altogether.
+> > 
+> > Signed-off-by: Ido Yariv <ido@wizery.com>
+> 
+> I'm assuming that Mauro picks this one up, sorry
+> for breaking it.
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- arch/arm/plat-omap/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+Picked, thanks. 
 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index ca83a76..c262781 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -43,6 +43,7 @@ config OMAP_DEBUG_DEVICES
- 
- config OMAP_DEBUG_LEDS
- 	def_bool y if NEW_LEDS
-+	select LEDS_CLASS
- 	depends on OMAP_DEBUG_DEVICES
- 
- config POWER_AVS_OMAP
--- 
-1.7.9.5
+With regards to the other patches in this series, IMHO, it
+makes more sense to go through arm omap tree, so, for the
+patches on this series that touch at drivers/media/platform/*:
+
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> > ---
+> >  drivers/media/platform/omap3isp/ispreg.h | 6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+> > index 084ea77..e2c57f3 100644
+> > --- a/drivers/media/platform/omap3isp/ispreg.h
+> > +++ b/drivers/media/platform/omap3isp/ispreg.h
+> > @@ -27,13 +27,13 @@
+> >  #ifndef OMAP3_ISP_REG_H
+> >  #define OMAP3_ISP_REG_H
+> >  
+> > -#include <plat/omap34xx.h>
+> > -
+> > -
+> >  #define CM_CAM_MCLK_HZ			172800000	/* Hz */
+> >  
+> >  /* ISP Submodules offset */
+> >  
+> > +#define L4_34XX_BASE			0x48000000
+> > +#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+> > +
+> >  #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
+> >  #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
+> >  
+> > -- 
+> > 1.7.11.4
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 
+
+Cheers,
+Mauro
