@@ -1,26 +1,53 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP: Fix dependency for OMAP_DEBUG_LEDS
-Date: Sun, 7 Oct 2012 09:23:03 +0100
-Message-ID: <20121007082303.GD28061@n2100.arm.linux.org.uk>
-References: <1349596837.15349.2.camel@phoenix>
+From: Axel Lin <axel.lin@ingics.com>
+Subject: [PATCH v2] ARM: OMAP: Fix dependency for OMAP_DEBUG_LEDS
+Date: Sun, 07 Oct 2012 18:13:25 +0800
+Message-ID: <1349604805.6017.1.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47716 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712Ab2JGIXN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Oct 2012 04:23:13 -0400
-Content-Disposition: inline
-In-Reply-To: <1349596837.15349.2.camel@phoenix>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:48426 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487Ab2JGKNh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Oct 2012 06:13:37 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so3179651pbb.19
+        for <linux-omap@vger.kernel.org>; Sun, 07 Oct 2012 03:13:36 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Axel Lin <axel.lin@ingics.com>
-Cc: Bryan Wu <bryan.wu@canonical.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Sun, Oct 07, 2012 at 04:00:37PM +0800, Axel Lin wrote:
->  config OMAP_DEBUG_LEDS
-> -	def_bool y if NEW_LEDS
-> +	default y if LEDS_CLASS
->  	depends on OMAP_DEBUG_DEVICES
+This fixes below build error when CONFIG_LEDS_CLASS is not set.
 
-This change is wrong.  You're making this config entry untyped.
+  LD      init/built-in.o
+arch/arm/plat-omap/built-in.o: In function `fpga_probe':
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/built-in.o:arch/arm/plat-omap/debug-leds.c:113: more undefined references to `led_classdev_register' follow
+make: *** [vmlinux] Error 1
+
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ arch/arm/plat-omap/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index ca83a76..c262781 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -43,6 +43,7 @@ config OMAP_DEBUG_DEVICES
+ 
+ config OMAP_DEBUG_LEDS
+ 	def_bool y if NEW_LEDS
++	select LEDS_CLASS
+ 	depends on OMAP_DEBUG_DEVICES
+ 
+ config POWER_AVS_OMAP
+-- 
+1.7.9.5
+
+
+
