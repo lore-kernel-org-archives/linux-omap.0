@@ -1,30 +1,51 @@
-From: =?utf-8?Q?=C2=A9_2012_Western_Union_Promo?=
-	<marketing@rbadecomunicacao.com.br>
-Subject: Re: Cash Awaiting Pick Up!!!
-Date: Sat, 6 Oct 2012 19:00:46 -0300 (BRT)
-Message-ID: <133844835.46375.1349560846207.JavaMail.root__37692.857188131$1349561524$gmane$org@mail>
-Reply-To: "Mrs. Hillary Florence" <wutransfer@xtra.co.nz>
+From: Axel Lin <axel.lin@ingics.com>
+Subject: [PATCH] ARM: OMAP: Fix dependency for OMAP_DEBUG_LEDS
+Date: Sun, 07 Oct 2012 16:00:37 +0800
+Message-ID: <1349596837.15349.2.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.radio99.com.br ([200.231.179.199]:46852 "EHLO
-	mail.rbadecomunicacao.com.br" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751055Ab2JFWLm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 6 Oct 2012 18:11:42 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bryan Wu <bryan.wu@canonical.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+This fixes below build error:
+  LD      init/built-in.o
+arch/arm/plat-omap/built-in.o: In function `fpga_probe':
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
+arch/arm/plat-omap/built-in.o:arch/arm/plat-omap/debug-leds.c:113: more undefined references to `led_classdev_register' follow
+make: *** [vmlinux] Error 1
 
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+Hi Bryan,
+I think this issue is introduced by commit dafbead
+"ARM: mach-omap1: retire custom LED code".
 
-This is to re-notify you of the =C2=A3500,000.00(POUNDS) was deposited =
-here in the western union office in your name is available for pickup. =
-Contact this email: wutransfer@xtra.co.nz  for your M.T.C.N Numbers.Con=
-tact Person: Mrs. Hillary Florence Email: wutransfer@xtra.co.nz . Mobil=
-e:+447035927183.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Axel
+
+ arch/arm/plat-omap/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index ca83a76..3281377 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -42,7 +42,7 @@ config OMAP_DEBUG_DEVICES
+ 	  For debug cards on TI reference boards.
+ 
+ config OMAP_DEBUG_LEDS
+-	def_bool y if NEW_LEDS
++	default y if LEDS_CLASS
+ 	depends on OMAP_DEBUG_DEVICES
+ 
+ config POWER_AVS_OMAP
+-- 
+1.7.9.5
