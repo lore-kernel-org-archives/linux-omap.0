@@ -1,88 +1,102 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH v2 0/7] uio_pruss cleanup and platform support
-Date: Mon, 8 Oct 2012 05:13:32 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA9DDE7@DBDE01.ent.ti.com>
-References: <1348861072-14507-1-git-send-email-mporter@ti.com>
- <20121003150058.GB11180@beef>
- <1BAFE6F6C881BF42822005164F1491C33EA9C6B7@DBDE01.ent.ti.com>
- <20121005212826.GN11149@beef>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: ocp2scp: create omap device for ocp2scp
+Date: Mon, 8 Oct 2012 10:52:33 +0530
+Message-ID: <50726319.8050900@ti.com>
+References: <1349431628-2819-1-git-send-email-kishon@ti.com> <1349431628-2819-4-git-send-email-kishon@ti.com> <506F5F69.6040104@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48258 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000Ab2JHFOG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 01:14:06 -0400
-In-Reply-To: <20121005212826.GN11149@beef>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <506F5F69.6040104@mvista.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Porter, Matt" <mporter@ti.com>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Russell King <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Linux OMAP List <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Sat, Oct 06, 2012 at 02:58:26, Porter, Matt wrote:
-> On Fri, Oct 05, 2012 at 04:43:56AM +0000, Hebbar, Gururaja wrote:
-> > Matt,
-> > 
-> > On Wed, Oct 03, 2012 at 20:30:58, Porter, Matt wrote:
-> > > On Fri, Sep 28, 2012 at 03:37:45PM -0400, Matt Porter wrote:
-> > > > Changes since v1:
-> > > > 	- Replaced uio_pruss private SRAM API use with genalloc
-> > > > 	- Added DA850 platform device and clock support
-> > > > 	- Added DA850 L3 RAM gen_pool support
-> > > > 	- Split out DT binding
-> > > > 
-> > > > This series enables uio_pruss on both DA850 and AM33xx. The driver
-> > > > previously was not enabled by any platform and the private SRAM API
-> > > > was accessing an invalid SRAM bank for use on DA850. For AM33xx,
-> > > > DT, pinctrl, and runtime PM support are added since AM33xx only
-> > > > boots via DT.
-> > > 
-> > > I'm dropping AM33xx/OMAP support from v3 for this series 
-> > 
-> > Just for my clarification, I believe you will be taking up AM33xx/OMAP 
-> > SRAM support later once you have completed supporting DaVinci. Right?
-> 
-> There's no SRAM support for uio_pruss to be handled for AM33xx, 
+Hi,
 
-Sorry for not being clearer.
+On Saturday 06 October 2012 04:00 AM, Sergei Shtylyov wrote:
+> Hello.
+>
+> On 05-10-2012 12:07, Kishon Vijay Abraham I wrote:
+>
+>> Platfrom device for ocp2scp is created using omap_device_build in
+>> devices file. This is used for both omap4(musb) and omap5(dwc3).
+>>
+>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/devices.c |   72
+>> +++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 72 insertions(+)
+>>
+>> diff --git a/arch/arm/mach-omap2/devices.c
+>> b/arch/arm/mach-omap2/devices.c
+>> index c8c2117..e2ba505 100644
+>> --- a/arch/arm/mach-omap2/devices.c
+>> +++ b/arch/arm/mach-omap2/devices.c
+> [...]
+>> @@ -613,6 +614,76 @@ static void omap_init_vout(void)
+> [...]
+>
+>> +static void omap_init_ocp2scp(void)
+>> +{
+>> +    struct omap_hwmod    *oh;
+>> +    struct platform_device    *pdev;
+>> +    int            bus_id = -1, dev_cnt = 0, i;
+>> +    struct omap_ocp2scp_dev    *ocp2scp_dev;
+>> +    const char        *oh_name, *name;
+>> +    struct omap_ocp2scp_platform_data *pdata;
+>> +
+>> +    oh_name = "ocp2scp_usb_phy";
+>> +    name    = "omap-ocp2scp";
+>> +
+>> +    oh = omap_hwmod_lookup(oh_name);
+>> +    if (!oh) {
+>> +        pr_err("%s: could not find omap_hwmod for %s\n", __func__,
+>> +                                oh_name);
+>> +        return;
+>> +    }
+>> +
+>> +    pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+>> +    if (!pdata) {
+>> +        pr_err("%s: No memory for ocp2scp pdata\n", __func__);
+>> +        return;
+>> +    }
+>> +
+>> +    ocp2scp_dev = oh->dev_attr;
+>> +    dev_cnt = count_ocp2scp_devices(ocp2scp_dev);
+>> +
+>> +    if (!dev_cnt) {
+>> +        pr_err("%s: No devices connected to ocp2scp\n", __func__);
+>> +        return;
+>
+>     Don't you leak 'pdata' here?
+>
+>> +    }
+>> +
+>> +    pdata->devices = kzalloc(sizeof(struct omap_ocp2scp_dev *)
+>> +                    * dev_cnt, GFP_KERNEL);
+>> +    if (!pdata->devices) {
+>> +        pr_err("%s: No memory for ocp2scp pdata devices\n", __func__);
+>> +        return;
+>> +    }
+>> +
+>> +    for (i = 0; i<  dev_cnt; i++, ocp2scp_dev++)
+>> +        pdata->devices[i] = ocp2scp_dev;
+>> +
+>> +    pdata->dev_cnt    = dev_cnt;
+>> +
+>> +    pdev = omap_device_build(name, bus_id, oh, pdata, sizeof(*pdata),
+>> NULL,
+>> +                                0, false);
+>> +    if (IS_ERR(pdev)) {
+>> +        pr_err("Could not build omap_device for %s %s\n",
+>> +                        name, oh_name);
+>> +        return;
+>
+>     Don't you leak 'pdata' and 'pdata->devices' here?
 
-I was referring to adding SRAM support for McASP module on AM335x platform.
+Will re-post the patch fixing it.
 
-
-> but I
-> will be posting a separate series with the DT portion and some alternate
-> hard reset handling implementation. I find the private OMAP reset api to
-> be very ugly but we might have to go with that for now. I didn't want
-> the OMAP hard reset portion to hold up the more important part of this
-> cleanup.
-> 
-> -Matt
-> 
-> > > since the
-> > > focus has turned to fixing Davinci SRAM to provide genalloc support
-> > > and the associated use of that in the driver.
-> > > 
-> > > I'll have a separate series with AM33xx support since dealing cleanly
-> > > with external resets on OMAP is a bigger issue.
-> > > 
-> > > -Matt
-> > > _______________________________________________
-> > > Davinci-linux-open-source mailing list
-> > > Davinci-linux-open-source@linux.davincidsp.com
-> > > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> > > 
-> > 
-> > 
-> > Regards, 
-> > Gururaja
-> > _______________________________________________
-> > Davinci-linux-open-source mailing list
-> > Davinci-linux-open-source@linux.davincidsp.com
-> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> 
-
-
-Regards, 
-Gururaja
+Thanks
+Kishon
