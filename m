@@ -1,409 +1,119 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 08/14] ARM: OMAP2+: nand: header cleanup
-Date: Mon, 8 Oct 2012 11:07:34 +0530
-Message-ID: <54e9d6980d2159855b18fcbec3795c669bd51dce.1349672877.git.afzal@ti.com>
+Subject: [PATCH v2 09/14] mtd: nand: omap: bring in gpmc nand macros
+Date: Mon, 8 Oct 2012 11:07:40 +0530
+Message-ID: <2c357dd43c39a04e7f7fc773e425381fb1b2febe.1349672877.git.afzal@ti.com>
 References: <cover.1349672877.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49118 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55270 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751969Ab2JHFht (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Oct 2012 01:37:49 -0400
+	id S1751969Ab2JHFhw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 01:37:52 -0400
 In-Reply-To: <cover.1349672877.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-For common arm zImage existing nand header file
-in platform specific location was moved to generic
-platform data location, but it contained more than
-platform data, remove it. New local header has been
-created for exposing functions.
-
-Also move gpmc-nand platform data to platform header
-meant for nand from gpmc header file
+Bring onto driver the macros defined in gpmc.h that are
+not necessary outside driver, helps in removing inclusion
+of gpmc.h too. Also remove GPMC prefix on those macros to
+make clear it's independence with gpmc header.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/board-cm-t35.c           |  3 +-
- arch/arm/mach-omap2/board-cm-t3517.c         |  3 +-
- arch/arm/mach-omap2/board-flash.c            |  4 +--
- arch/arm/mach-omap2/board-omap3pandora.c     |  3 +-
- arch/arm/mach-omap2/common-board-devices.c   |  1 -
- arch/arm/mach-omap2/gpmc-nand.c              | 54 +++++++++++++++-------------
- arch/arm/mach-omap2/gpmc-nand.h              | 27 ++++++++++++++
- arch/arm/mach-omap2/gpmc.c                   |  2 ++
- arch/arm/plat-omap/include/plat/gpmc.h       | 28 ++-------------
- include/linux/platform_data/mtd-nand-omap2.h | 41 ++++++++++++++-------
- 10 files changed, 98 insertions(+), 68 deletions(-)
- create mode 100644 arch/arm/mach-omap2/gpmc-nand.h
+ drivers/mtd/nand/omap2.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 376d26e..fef68de 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -53,6 +53,7 @@
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "hsmmc.h"
- #include "common-board-devices.h"
-+#include "gpmc-nand.h"
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index abfc602..f0a1b1d 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -110,6 +110,11 @@
+ #define	ECC1RESULTSIZE			0x1
+ #define	ECCCLEAR			0x100
+ #define	ECC1				0x1
++#define	PREFETCH_FIFOTHRESHOLD_MAX	0x40
++#define	PREFETCH_FIFOTHRESHOLD(val)	((val) << 8)
++#define	PREFETCH_STATUS_COUNT(val)	(val & 0x00003fff)
++#define	PREFETCH_STATUS_FIFO_CNT(val)	((val >> 24) & 0x7F)
++#define	STATUS_BUFF_EMPTY		0x00000001
  
- #define CM_T35_GPIO_PENDOWN		57
- #define SB_T35_USB_HUB_RESET_GPIO	167
-@@ -181,7 +182,7 @@ static struct omap_nand_platform_data cm_t35_nand_data = {
- 
- static void __init cm_t35_init_nand(void)
- {
--	if (gpmc_nand_init(&cm_t35_nand_data) < 0)
-+	if (gpmc_nand_init(&cm_t35_nand_data, NULL) < 0)
- 		pr_err("CM-T35: Unable to register NAND device\n");
- }
- #else
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index 59c0a45..3a19e80 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -49,6 +49,7 @@
- #include "control.h"
- #include "common-board-devices.h"
- #include "am35xx-emac.h"
-+#include "gpmc-nand.h"
- 
- #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
- static struct gpio_led cm_t3517_leds[] = {
-@@ -240,7 +241,7 @@ static struct omap_nand_platform_data cm_t3517_nand_data = {
- 
- static void __init cm_t3517_init_nand(void)
- {
--	if (gpmc_nand_init(&cm_t3517_nand_data) < 0)
-+	if (gpmc_nand_init(&cm_t3517_nand_data, NULL) < 0)
- 		pr_err("CM-T3517: NAND initialization failed\n");
- }
- #else
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index de68fdf..776e57a 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -26,6 +26,7 @@
- #include "common.h"
- #include "board-flash.h"
- #include "gpmc-onenand.h"
-+#include "gpmc-nand.h"
- 
- #define REG_FPGA_REV			0x10
- #define REG_FPGA_DIP_SWITCH_INPUT2	0x60
-@@ -139,10 +140,9 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
- 	board_nand_data.parts		= nand_parts;
- 	board_nand_data.nr_parts	= nr_parts;
- 	board_nand_data.devsize		= nand_type;
--	board_nand_data.gpmc_t		= gpmc_t;
- 
- 	board_nand_data.ecc_opt = OMAP_ECC_HAMMING_CODE_DEFAULT;
--	gpmc_nand_init(&board_nand_data);
-+	gpmc_nand_init(&board_nand_data, gpmc_t);
- }
- #endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
- 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 00a1f4a..f286b4b 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -50,6 +50,7 @@
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "hsmmc.h"
- #include "common-board-devices.h"
-+#include "gpmc-nand.h"
- 
- #define PANDORA_WIFI_IRQ_GPIO		21
- #define PANDORA_WIFI_NRESET_GPIO	23
-@@ -602,7 +603,7 @@ static void __init omap3pandora_init(void)
- 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
- 	usbhs_init(&usbhs_bdata);
- 	usb_musb_init(NULL);
--	gpmc_nand_init(&pandora_nand_data);
-+	gpmc_nand_init(&pandora_nand_data, NULL);
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index 90e0597..ad85609 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -25,7 +25,6 @@
- #include <linux/spi/ads7846.h>
- 
- #include <linux/platform_data/spi-omap2-mcspi.h>
--#include <linux/platform_data/mtd-nand-omap2.h>
- 
- #include "common.h"
- #include "common-board-devices.h"
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 4eceaca..c1b9b1d 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -20,6 +20,10 @@
- #include <plat/gpmc.h>
- 
- #include "soc.h"
-+#include "gpmc-nand.h"
-+
-+/* minimum size for IO mapping */
-+#define	NAND_IO_SIZE	4
- 
- static struct resource gpmc_nand_resource[] = {
- 	{
-@@ -40,37 +44,36 @@ static struct platform_device gpmc_nand_device = {
- 	.resource	= gpmc_nand_resource,
- };
- 
--static int omap2_nand_gpmc_retime(struct omap_nand_platform_data *gpmc_nand_data)
-+static int omap2_nand_gpmc_retime(
-+				struct omap_nand_platform_data *gpmc_nand_data,
-+				struct gpmc_timings *gpmc_t)
- {
- 	struct gpmc_timings t;
- 	int err;
- 
--	if (!gpmc_nand_data->gpmc_t)
--		return 0;
--
- 	memset(&t, 0, sizeof(t));
--	t.sync_clk = gpmc_nand_data->gpmc_t->sync_clk;
--	t.cs_on = gpmc_nand_data->gpmc_t->cs_on;
--	t.adv_on = gpmc_nand_data->gpmc_t->adv_on;
-+	t.sync_clk = gpmc_t->sync_clk;
-+	t.cs_on = gpmc_t->cs_on;
-+	t.adv_on = gpmc_t->adv_on;
- 
- 	/* Read */
--	t.adv_rd_off = gpmc_nand_data->gpmc_t->adv_rd_off;
-+	t.adv_rd_off = gpmc_t->adv_rd_off;
- 	t.oe_on  = t.adv_on;
--	t.access = gpmc_nand_data->gpmc_t->access;
--	t.oe_off = gpmc_nand_data->gpmc_t->oe_off;
--	t.cs_rd_off = gpmc_nand_data->gpmc_t->cs_rd_off;
--	t.rd_cycle = gpmc_nand_data->gpmc_t->rd_cycle;
-+	t.access = gpmc_t->access;
-+	t.oe_off = gpmc_t->oe_off;
-+	t.cs_rd_off = gpmc_t->cs_rd_off;
-+	t.rd_cycle = gpmc_t->rd_cycle;
- 
- 	/* Write */
--	t.adv_wr_off = gpmc_nand_data->gpmc_t->adv_wr_off;
-+	t.adv_wr_off = gpmc_t->adv_wr_off;
- 	t.we_on  = t.oe_on;
- 	if (cpu_is_omap34xx()) {
--		t.wr_data_mux_bus = gpmc_nand_data->gpmc_t->wr_data_mux_bus;
--		t.wr_access = gpmc_nand_data->gpmc_t->wr_access;
-+		t.wr_data_mux_bus = gpmc_t->wr_data_mux_bus;
-+		t.wr_access = gpmc_t->wr_access;
+ /* oob info generated runtime depending on ecc algorithm and layout selected */
+ static struct nand_ecclayout omap_oobinfo;
+@@ -269,7 +274,7 @@ static void omap_write_buf8(struct mtd_info *mtd, const u_char *buf, int len)
+ 		/* wait until buffer is available for write */
+ 		do {
+ 			status = readl(info->reg.gpmc_status) &
+-					GPMC_STATUS_BUFF_EMPTY;
++					STATUS_BUFF_EMPTY;
+ 		} while (!status);
  	}
--	t.we_off = gpmc_nand_data->gpmc_t->we_off;
--	t.cs_wr_off = gpmc_nand_data->gpmc_t->cs_wr_off;
--	t.wr_cycle = gpmc_nand_data->gpmc_t->wr_cycle;
-+	t.we_off = gpmc_t->we_off;
-+	t.cs_wr_off = gpmc_t->cs_wr_off;
-+	t.wr_cycle = gpmc_t->wr_cycle;
- 
- 	/* Configure GPMC */
- 	if (gpmc_nand_data->devsize == NAND_BUSWIDTH_16)
-@@ -87,7 +90,8 @@ static int omap2_nand_gpmc_retime(struct omap_nand_platform_data *gpmc_nand_data
- 	return 0;
  }
- 
--int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data)
-+int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
-+			  struct gpmc_timings *gpmc_t)
- {
- 	int err	= 0;
- 	struct device *dev = &gpmc_nand_device.dev;
-@@ -108,11 +112,13 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data)
- 				gpmc_get_client_irq(GPMC_IRQ_FIFOEVENTENABLE);
- 	gpmc_nand_resource[2].start =
- 				gpmc_get_client_irq(GPMC_IRQ_COUNT_EVENT);
--	 /* Set timings in GPMC */
--	err = omap2_nand_gpmc_retime(gpmc_nand_data);
--	if (err < 0) {
--		dev_err(dev, "Unable to set gpmc timings: %d\n", err);
--		return err;
-+
-+	if (gpmc_t) {
-+		err = omap2_nand_gpmc_retime(gpmc_nand_data, gpmc_t);
-+		if (err < 0) {
-+			dev_err(dev, "Unable to set gpmc timings: %d\n", err);
-+			return err;
-+		}
+@@ -307,7 +312,7 @@ static void omap_write_buf16(struct mtd_info *mtd, const u_char * buf, int len)
+ 		/* wait until buffer is available for write */
+ 		do {
+ 			status = readl(info->reg.gpmc_status) &
+-					GPMC_STATUS_BUFF_EMPTY;
++					STATUS_BUFF_EMPTY;
+ 		} while (!status);
  	}
+ }
+@@ -348,7 +353,7 @@ static void omap_read_buf_pref(struct mtd_info *mtd, u_char *buf, int len)
+ 	} else {
+ 		do {
+ 			r_count = readl(info->reg.gpmc_prefetch_status);
+-			r_count = GPMC_PREFETCH_STATUS_FIFO_CNT(r_count);
++			r_count = PREFETCH_STATUS_FIFO_CNT(r_count);
+ 			r_count = r_count >> 2;
+ 			ioread32_rep(info->nand.IO_ADDR_R, p, r_count);
+ 			p += r_count;
+@@ -395,7 +400,7 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 	} else {
+ 		while (len) {
+ 			w_count = readl(info->reg.gpmc_prefetch_status);
+-			w_count = GPMC_PREFETCH_STATUS_FIFO_CNT(w_count);
++			w_count = PREFETCH_STATUS_FIFO_CNT(w_count);
+ 			w_count = w_count >> 1;
+ 			for (i = 0; (i < w_count) && len; i++, len -= 2)
+ 				iowrite16(*p++, info->nand.IO_ADDR_W);
+@@ -407,7 +412,7 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 		do {
+ 			cpu_relax();
+ 			val = readl(info->reg.gpmc_prefetch_status);
+-			val = GPMC_PREFETCH_STATUS_COUNT(val);
++			val = PREFETCH_STATUS_COUNT(val);
+ 		} while (val && (tim++ < limit));
  
- 	/* Enable RD PIN Monitoring Reg */
-diff --git a/arch/arm/mach-omap2/gpmc-nand.h b/arch/arm/mach-omap2/gpmc-nand.h
-new file mode 100644
-index 0000000..11a377f
---- /dev/null
-+++ b/arch/arm/mach-omap2/gpmc-nand.h
-@@ -0,0 +1,27 @@
-+/*
-+ *  arch/arm/mach-omap2/gpmc-nand.h
-+ *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
-+ */
-+
-+#ifndef	__OMAP2_GPMC_NAND_H
-+#define	__OMAP2_GPMC_NAND_H
-+
-+#include <plat/gpmc.h>
-+#include <linux/platform_data/mtd-nand-omap2.h>
-+
-+#if IS_ENABLED(CONFIG_MTD_NAND_OMAP2)
-+extern int gpmc_nand_init(struct omap_nand_platform_data *d,
-+			  struct gpmc_timings *gpmc_t);
-+#else
-+static inline int gpmc_nand_init(struct omap_nand_platform_data *d,
-+				 struct gpmc_timings *gpmc_t)
-+{
-+	return 0;
-+}
-+#endif
-+
-+#endif
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 163458d..3a73196 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -26,6 +26,8 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
+ 		/* disable and stop the PFPW engine */
+@@ -493,7 +498,7 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
+ 	do {
+ 		cpu_relax();
+ 		val = readl(info->reg.gpmc_prefetch_status);
+-		val = GPMC_PREFETCH_STATUS_COUNT(val);
++		val = PREFETCH_STATUS_COUNT(val);
+ 	} while (val && (tim++ < limit));
  
-+#include <linux/platform_data/mtd-nand-omap2.h>
-+
- #include <asm/mach-types.h>
- #include <plat/gpmc.h>
+ 	/* disable and stop the PFPW engine */
+@@ -556,7 +561,7 @@ static irqreturn_t omap_nand_irq(int this_irq, void *dev)
+ 	u32 bytes;
  
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 1cafbfd..17fc1e7 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -11,6 +11,8 @@
- #ifndef __OMAP2_GPMC_H
- #define __OMAP2_GPMC_H
+ 	bytes = readl(info->reg.gpmc_prefetch_status);
+-	bytes = GPMC_PREFETCH_STATUS_FIFO_CNT(bytes);
++	bytes = PREFETCH_STATUS_FIFO_CNT(bytes);
+ 	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
+ 	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
+ 		if (this_irq == info->gpmc_irq_count)
+@@ -682,7 +687,7 @@ static void omap_write_buf_irq_pref(struct mtd_info *mtd,
+ 	limit = (loops_per_jiffy *  msecs_to_jiffies(OMAP_NAND_TIMEOUT_MS));
+ 	do {
+ 		val = readl(info->reg.gpmc_prefetch_status);
+-		val = GPMC_PREFETCH_STATUS_COUNT(val);
++		val = PREFETCH_STATUS_COUNT(val);
+ 		cpu_relax();
+ 	} while (val && (tim++ < limit));
  
-+#include <linux/platform_data/mtd-nand-omap2.h>
-+
- /* Maximum Number of Chip Selects */
- #define GPMC_CS_NUM		8
- 
-@@ -86,16 +88,6 @@
- #define PREFETCH_FIFOTHRESHOLD_MAX	0x40
- #define PREFETCH_FIFOTHRESHOLD(val)	((val) << 8)
- 
--enum omap_ecc {
--		/* 1-bit ecc: stored at end of spare area */
--	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
--	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
--		/* 1-bit ecc: stored at beginning of spare area as romcode */
--	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
--	OMAP_ECC_BCH4_CODE_HW, /* 4-bit BCH ecc code */
--	OMAP_ECC_BCH8_CODE_HW, /* 8-bit BCH ecc code */
--};
--
- /* bool type time settings */
- struct gpmc_bool_timings {
- 	bool cycle2cyclediffcsen;
-@@ -152,22 +144,6 @@ struct gpmc_timings {
- 	struct gpmc_bool_timings bool_timings;
- };
- 
--struct gpmc_nand_regs {
--	void __iomem	*gpmc_status;
--	void __iomem	*gpmc_nand_command;
--	void __iomem	*gpmc_nand_address;
--	void __iomem	*gpmc_nand_data;
--	void __iomem	*gpmc_prefetch_config1;
--	void __iomem	*gpmc_prefetch_config2;
--	void __iomem	*gpmc_prefetch_control;
--	void __iomem	*gpmc_prefetch_status;
--	void __iomem	*gpmc_ecc_config;
--	void __iomem	*gpmc_ecc_control;
--	void __iomem	*gpmc_ecc_size_config;
--	void __iomem	*gpmc_ecc1_result;
--	void __iomem	*gpmc_bch_result0;
--};
--
- extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
- extern int gpmc_get_client_irq(unsigned irq_config);
- 
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index 1a68c1e..e1965fe 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -8,7 +8,9 @@
-  * published by the Free Software Foundation.
-  */
- 
--#include <plat/gpmc.h>
-+#ifndef	_MTD_NAND_OMAP2_H
-+#define	_MTD_NAND_OMAP2_H
-+
- #include <linux/mtd/partitions.h>
- 
- enum nand_io {
-@@ -18,10 +20,35 @@ enum nand_io {
- 	NAND_OMAP_PREFETCH_IRQ		/* prefetch enabled irq mode */
- };
- 
-+enum omap_ecc {
-+		/* 1-bit ecc: stored at end of spare area */
-+	OMAP_ECC_HAMMING_CODE_DEFAULT = 0, /* Default, s/w method */
-+	OMAP_ECC_HAMMING_CODE_HW, /* gpmc to detect the error */
-+		/* 1-bit ecc: stored at beginning of spare area as romcode */
-+	OMAP_ECC_HAMMING_CODE_HW_ROMCODE, /* gpmc method & romcode layout */
-+	OMAP_ECC_BCH4_CODE_HW, /* 4-bit BCH ecc code */
-+	OMAP_ECC_BCH8_CODE_HW, /* 8-bit BCH ecc code */
-+};
-+
-+struct gpmc_nand_regs {
-+	void __iomem	*gpmc_status;
-+	void __iomem	*gpmc_nand_command;
-+	void __iomem	*gpmc_nand_address;
-+	void __iomem	*gpmc_nand_data;
-+	void __iomem	*gpmc_prefetch_config1;
-+	void __iomem	*gpmc_prefetch_config2;
-+	void __iomem	*gpmc_prefetch_control;
-+	void __iomem	*gpmc_prefetch_status;
-+	void __iomem	*gpmc_ecc_config;
-+	void __iomem	*gpmc_ecc_control;
-+	void __iomem	*gpmc_ecc_size_config;
-+	void __iomem	*gpmc_ecc1_result;
-+	void __iomem	*gpmc_bch_result0;
-+};
-+
- struct omap_nand_platform_data {
- 	int			cs;
- 	struct mtd_partition	*parts;
--	struct gpmc_timings	*gpmc_t;
- 	int			nr_parts;
- 	bool			dev_ready;
- 	enum nand_io		xfer_type;
-@@ -30,14 +57,4 @@ struct omap_nand_platform_data {
- 	struct gpmc_nand_regs	reg;
- };
- 
--/* minimum size for IO mapping */
--#define	NAND_IO_SIZE	4
--
--#if defined(CONFIG_MTD_NAND_OMAP2) || defined(CONFIG_MTD_NAND_OMAP2_MODULE)
--extern int gpmc_nand_init(struct omap_nand_platform_data *d);
--#else
--static inline int gpmc_nand_init(struct omap_nand_platform_data *d)
--{
--	return 0;
--}
- #endif
 -- 
 1.7.12
 
