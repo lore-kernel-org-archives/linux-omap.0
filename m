@@ -1,60 +1,48 @@
-From: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/9] ARM: dts/OMAP: Pinmux audio configuration for OMAP4+
-Date: Mon, 08 Oct 2012 11:00:30 +0300
-Message-ID: <5072881E.2040009@ti.com>
-References: <1349351848-12972-1-git-send-email-peter.ujfalusi@ti.com> <20121005230354.GS3874@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: [PATCH 1/1] ARM: OMAP: Add maintainer entry for IGEP machines
+Date: Mon,  8 Oct 2012 10:47:34 +0200
+Message-ID: <1349686054-7486-1-git-send-email-javier@dowhile0.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:41894 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751113Ab2JHH7G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 03:59:06 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so3443645obb.19
-        for <linux-omap@vger.kernel.org>; Mon, 08 Oct 2012 00:59:05 -0700 (PDT)
-In-Reply-To: <20121005230354.GS3874@atomide.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:52357 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754073Ab2JHIrp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 04:47:45 -0400
+Received: by mail-wi0-f170.google.com with SMTP id hm2so2946082wib.1
+        for <linux-omap@vger.kernel.org>; Mon, 08 Oct 2012 01:47:44 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+Cc: Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>
 
-On 10/06/2012 02:03 AM, Tony Lindgren wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [121004 04:57]:
->> Hello,
->>
->> u-boot recently stopped configuring 'non essential' pin mux. This ch=
-ange leaves
->> the audio essential pins in non configured state which prevents the =
-use of audio.
->> The following series makes sure that the needed pins are configured =
-correctly by
->> the kernel on OMAP4 and OMAP5.
->>
->> Tony: can this series queued for 3.7?
->=20
-> Let's see if that's possible to avoid mysterious bug reports
-> of things not working.
->=20
-> If we can't merge it, then it might be worth adding a warning
-> that bails out early after some pin is checked or similar.
+Enric and I have been mantained this machine and while we
+are moving to device trees, it is good that people cc us
+when reporting bugs or regression on the board file until
+we have proper DT support.
 
-With new enough u-boot the twl6040 fails to probe (mux for nirq2 and po=
-wer
-GPIO is not configured) which leads to no audio on OMAP4/5.
-Adding another warning - and check - does not going to help to clarify =
-the
-situation IMHO.
-We can still enable the CONFIG_SYS_ENABLE_PADS_ALL in u-boot and recomp=
-ile it,
-but this is disabled as default and to be frank there is no guaranty th=
-at this
-is going to be available let's say next week.
+Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 63ce2a2..6b3c58d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -818,6 +818,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kristoffer/linux-hpc.git
+ F:	arch/arm/mach-sa1100/jornada720.c
+ F:	arch/arm/mach-sa1100/include/mach/jornada720.h
+ 
++ARM/IGEP MACHINE SUPPORT
++M:	Enric Balletbo i Serra <eballetbo@gmail.com>
++M:	Javier Martinez Canillas <javier@dowhile0.org>
++L:	linux-omap@vger.kernel.org
++L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
++S:	Maintained
++F:	arch/arm/mach-omap2/board-igep0020.c
++
+ ARM/INCOME PXA270 SUPPORT
+ M:	Marek Vasut <marek.vasut@gmail.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-- 
+1.7.7.6
+
