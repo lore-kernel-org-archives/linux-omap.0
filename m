@@ -1,55 +1,86 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 1/7] usb: dwc3-omap: use device_for_each_child to handle child removal
-Date: Mon, 8 Oct 2012 14:53:50 +0530
-Message-ID: <1349688236-22814-2-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 6/7] usb: dwc3-omap: Minor fixes to get dt working
+Date: Mon, 8 Oct 2012 14:53:55 +0530
+Message-ID: <1349688236-22814-7-git-send-email-kishon@ti.com>
 References: <1349688236-22814-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47118 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751101Ab2JHJYW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 05:24:22 -0400
 In-Reply-To: <1349688236-22814-1-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: sshtylyov@mvista.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sshtylyov@mvista.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Used device_for_each_child() to handle child device (dwc3 core) removal
-during devexit of dwc3 omap.
+Includes few minor fixes in dwc3-omap like populating the compatible
+string in a correct way, extracting the utmi-mode property properly and
+changing the index of get_irq since irq of core is removed from hwmod
+entry.
+Also updated the documentation with dwc3-omap device tree binding
+information.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 479dc04..e335da3 100644
+index c19affa..e5af74b 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -204,6 +204,15 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
- 	return IRQ_HANDLED;
- }
+@@ -259,11 +259,10 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ 	struct resource		*res;
+ 	struct device		*dev = &pdev->dev;
  
-+static int dwc3_omap_remove_core(struct device *dev, void *c)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	platform_device_unregister(pdev);
-+
-+	return 0;
-+}
-+
- static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- {
- 	struct dwc3_omap_data	*pdata = pdev->dev.platform_data;
-@@ -370,9 +379,8 @@ static int __devexit dwc3_omap_remove(struct platform_device *pdev)
- {
- 	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
+-	int			size;
+ 	int			ret = -ENOMEM;
+ 	int			irq;
  
--	platform_device_unregister(omap->dwc3);
--
- 	dwc3_put_device_id(omap->dwc3->id);
-+	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
+-	const u32		*utmi_mode;
++	u32			utmi_mode;
+ 	u32			reg;
  
- 	return 0;
- }
+ 	void __iomem		*base;
+@@ -277,13 +276,13 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, omap);
+ 
+-	irq = platform_get_irq(pdev, 1);
++	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+ 		dev_err(dev, "missing IRQ resource\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+ 		dev_err(dev, "missing memory base resource\n");
+ 		return -EINVAL;
+@@ -324,9 +323,8 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ 
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
+ 
+-	utmi_mode = of_get_property(node, "utmi-mode", &size);
+-	if (utmi_mode && size == sizeof(*utmi_mode)) {
+-		reg |= *utmi_mode;
++	if (!of_property_read_u32(node, "utmi-mode", &utmi_mode)) {
++		reg |= utmi_mode;
+ 	} else {
+ 		if (!pdata) {
+ 			dev_dbg(dev, "missing platform data\n");
+@@ -398,7 +396,7 @@ static int __devexit dwc3_omap_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id of_dwc3_matach[] = {
+ 	{
+-		"ti,dwc3",
++		.compatible =	"ti,dwc3"
+ 	},
+ 	{ },
+ };
 -- 
 1.7.9.5
 
