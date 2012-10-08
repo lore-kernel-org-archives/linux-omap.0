@@ -1,102 +1,121 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: ocp2scp: create omap device for ocp2scp
-Date: Mon, 8 Oct 2012 10:52:33 +0530
-Message-ID: <50726319.8050900@ti.com>
-References: <1349431628-2819-1-git-send-email-kishon@ti.com> <1349431628-2819-4-git-send-email-kishon@ti.com> <506F5F69.6040104@mvista.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v2 00/14] OMAP-GPMC related cleanup for common zImage
+Date: Mon, 8 Oct 2012 11:05:56 +0530
+Message-ID: <cover.1349672877.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <506F5F69.6040104@mvista.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35265 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750799Ab2JHFgV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 01:36:21 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
 Hi,
 
-On Saturday 06 October 2012 04:00 AM, Sergei Shtylyov wrote:
-> Hello.
->
-> On 05-10-2012 12:07, Kishon Vijay Abraham I wrote:
->
->> Platfrom device for ocp2scp is created using omap_device_build in
->> devices file. This is used for both omap4(musb) and omap5(dwc3).
->>
->> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
->> ---
->>   arch/arm/mach-omap2/devices.c |   72
->> +++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 72 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/devices.c
->> b/arch/arm/mach-omap2/devices.c
->> index c8c2117..e2ba505 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
-> [...]
->> @@ -613,6 +614,76 @@ static void omap_init_vout(void)
-> [...]
->
->> +static void omap_init_ocp2scp(void)
->> +{
->> +    struct omap_hwmod    *oh;
->> +    struct platform_device    *pdev;
->> +    int            bus_id = -1, dev_cnt = 0, i;
->> +    struct omap_ocp2scp_dev    *ocp2scp_dev;
->> +    const char        *oh_name, *name;
->> +    struct omap_ocp2scp_platform_data *pdata;
->> +
->> +    oh_name = "ocp2scp_usb_phy";
->> +    name    = "omap-ocp2scp";
->> +
->> +    oh = omap_hwmod_lookup(oh_name);
->> +    if (!oh) {
->> +        pr_err("%s: could not find omap_hwmod for %s\n", __func__,
->> +                                oh_name);
->> +        return;
->> +    }
->> +
->> +    pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
->> +    if (!pdata) {
->> +        pr_err("%s: No memory for ocp2scp pdata\n", __func__);
->> +        return;
->> +    }
->> +
->> +    ocp2scp_dev = oh->dev_attr;
->> +    dev_cnt = count_ocp2scp_devices(ocp2scp_dev);
->> +
->> +    if (!dev_cnt) {
->> +        pr_err("%s: No devices connected to ocp2scp\n", __func__);
->> +        return;
->
->     Don't you leak 'pdata' here?
->
->> +    }
->> +
->> +    pdata->devices = kzalloc(sizeof(struct omap_ocp2scp_dev *)
->> +                    * dev_cnt, GFP_KERNEL);
->> +    if (!pdata->devices) {
->> +        pr_err("%s: No memory for ocp2scp pdata devices\n", __func__);
->> +        return;
->> +    }
->> +
->> +    for (i = 0; i<  dev_cnt; i++, ocp2scp_dev++)
->> +        pdata->devices[i] = ocp2scp_dev;
->> +
->> +    pdata->dev_cnt    = dev_cnt;
->> +
->> +    pdev = omap_device_build(name, bus_id, oh, pdata, sizeof(*pdata),
->> NULL,
->> +                                0, false);
->> +    if (IS_ERR(pdev)) {
->> +        pr_err("Could not build omap_device for %s %s\n",
->> +                        name, oh_name);
->> +        return;
->
->     Don't you leak 'pdata' and 'pdata->devices' here?
+This version(v2) of gpmc related cleanup for common zImage compared to
+initial version, resolves build error upon selecting BCH CONFIG option.
+Also a trivial patch on gpmc header removal from nand driver has been
+squashed with patch that removes nand driver dependency on gpmc header
+file.
 
-Will re-post the patch fixing it.
+This series cleans up omap-gpmc related code so that omap can
+be a part of common zImage.
 
-Thanks
-Kishon
+This series moves gpmc.h from plat-omap/include/plat to mach-omap2
+so that header file is local.
+
+Patches 1-4 qualifies as -rc material.
+
+Patch 1 is an already posted one, has been pulled into this series.
+
+Patches 5-6 removes necessity of cpu.h from onenand driver based
+on Tony's suggestion.
+
+Patches 7 & 8 cleans up the already moved platform data header files
+to contain only platform data. Also gpmc-nand information is moved
+to nand platform data header.
+
+Patches 9-13 makes nand driver independent of gpmc header file
+
+And the final patch localizes gpmc header.
+
+This has been tested on omap3evm.
+
+This series is available
+        @ git://gitorious.org/x0148406-public/linux-kernel.git gpmc-czimage-v2
+and is based on
+        linux-next (next-20121005)
+and is dependent on
+	http://marc.info/?l=linux-omap&m=134945131602622&w=2
+
+Regards
+Afzal
+
+
+Afzal Mohammed (14):
+  ARM: OMAP2+: gpmc: annotate exit sections properly
+  mtd: onenand: omap: cleanup gpmc dependency
+  mtd: nand: omap: free region as per resource size
+  mtd: nand: omap: read nand using register address
+  ARM: OMAP2+: onenand: connected soc info in pdata
+  mtd: onenand: omap: use pdata info instead of cpu_is
+  ARM: OMAP2+: onenand: header cleanup
+  ARM: OMAP2+: nand: header cleanup
+  mtd: nand: omap: bring in gpmc nand macros
+  ARM: OMAP2+: nand: bch capability check
+  ARM: OMAP2+: gpmc: nand register helper bch update
+  mtd: nand: omap: handle gpmc bch[48]
+  ARM: OMAP2+: gpmc: remove exported nand functions
+  ARM: OMAP2+: gpmc: localize gpmc header
+
+ arch/arm/mach-omap2/board-2430sdp.c             |   2 +-
+ arch/arm/mach-omap2/board-3430sdp.c             |   2 +-
+ arch/arm/mach-omap2/board-apollon.c             |   2 +-
+ arch/arm/mach-omap2/board-cm-t35.c              |   5 +-
+ arch/arm/mach-omap2/board-cm-t3517.c            |   5 +-
+ arch/arm/mach-omap2/board-devkit8000.c          |   2 +-
+ arch/arm/mach-omap2/board-flash.c               |   7 +-
+ arch/arm/mach-omap2/board-flash.h               |   2 +-
+ arch/arm/mach-omap2/board-h4.c                  |   2 +-
+ arch/arm/mach-omap2/board-igep0020.c            |   3 +-
+ arch/arm/mach-omap2/board-ldp.c                 |   2 +-
+ arch/arm/mach-omap2/board-n8x0.c                |   1 +
+ arch/arm/mach-omap2/board-omap3beagle.c         |   2 +-
+ arch/arm/mach-omap2/board-omap3logic.c          |   2 +-
+ arch/arm/mach-omap2/board-omap3pandora.c        |   3 +-
+ arch/arm/mach-omap2/board-omap3stalker.c        |   2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c      |   2 +-
+ arch/arm/mach-omap2/board-overo.c               |   2 +-
+ arch/arm/mach-omap2/board-rm680.c               |   3 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c    |   3 +-
+ arch/arm/mach-omap2/board-rx51.c                |   2 +-
+ arch/arm/mach-omap2/board-zoom-debugboard.c     |   2 +-
+ arch/arm/mach-omap2/common-board-devices.c      |   1 -
+ arch/arm/mach-omap2/gpmc-nand.c                 |  81 +++--
+ arch/arm/mach-omap2/gpmc-nand.h                 |  27 ++
+ arch/arm/mach-omap2/gpmc-onenand.c              |   9 +-
+ arch/arm/mach-omap2/gpmc-onenand.h              |  24 ++
+ arch/arm/mach-omap2/gpmc-smc91x.c               |   2 +-
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |   2 +-
+ arch/arm/mach-omap2/gpmc.c                      | 459 ++----------------------
+ arch/arm/mach-omap2/gpmc.h                      | 154 ++++++++
+ arch/arm/mach-omap2/pm34xx.c                    |   2 +-
+ arch/arm/mach-omap2/usb-tusb6010.c              |   2 +-
+ arch/arm/plat-omap/include/plat/gpmc.h          | 209 -----------
+ drivers/mtd/nand/omap2.c                        | 125 +++++--
+ drivers/mtd/onenand/omap2.c                     |   9 +-
+ include/linux/platform_data/mtd-nand-omap2.h    |  46 ++-
+ include/linux/platform_data/mtd-onenand-omap2.h |  20 +-
+ 38 files changed, 472 insertions(+), 758 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc-nand.h
+ create mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
+ create mode 100644 arch/arm/mach-omap2/gpmc.h
+ delete mode 100644 arch/arm/plat-omap/include/plat/gpmc.h
+
+-- 
+1.7.12
+
