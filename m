@@ -1,29 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arch/arm/plat-omap/omap-pm-noop.c: Remove unecessary
- semicolon
-Date: Mon, 8 Oct 2012 14:20:09 -0700
-Message-ID: <20121008212009.GM13011@atomide.com>
-References: <1347986174-30287-1-git-send-email-peter.senna@gmail.com>
- <1347986174-30287-6-git-send-email-peter.senna@gmail.com>
+Subject: Re: [PATCH] AM35xx: Add missing hwmod entry for the HDQ/1-Wire
+ present in AM3505/3517 CPUs.
+Date: Mon, 8 Oct 2012 14:25:35 -0700
+Message-ID: <20121008212534.GN13011@atomide.com>
+References: <20120917145614.GD22993@renkinjitsu.usine.8d.com>
+ <20121008211110.GI13011@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37758 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751441Ab2JHVZh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 17:25:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1347986174-30287-6-git-send-email-peter.senna@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: khilman@ti.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <20121008211110.GI13011@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Raphael Assenat <raph@8d.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-* Peter Senna Tschudin <peter.senna@gmail.com> [120918 09:37]:
-> Found by http://coccinelle.lip6.fr/
+* Tony Lindgren <tony@atomide.com> [121008 14:12]:
+> * Raphael Assenat <raph@8d.com> [120917 07:57]:
+> > This patch adds a missing hwmod entry for the HDQ/1-Wire module present 
+> > in the AM3505/17 CPUs.
+> > 
+> > This restores 1-Wire support to our AM3505 boards. We think it probably
+> > stopped working with commit 96b1b29d37b0ca3ecd424a1fe301406cf525fc04
+> > ARM: OMAP2+: HDQ1W: use omap_device
 > 
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-> ---
->  arch/arm/plat-omap/omap-pm-noop.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+> Thanks applying into fixes.
 
-Thanks applying into omap fixes branch.
+Oops, this is something Paul and Benoit usually pick.
+I have it still in my fixes, let me know if I need to
+drop it.
 
 Regards,
 
