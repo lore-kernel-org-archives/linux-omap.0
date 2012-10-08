@@ -1,48 +1,83 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: [PATCH 1/1] ARM: OMAP: Add maintainer entry for IGEP machines
-Date: Mon,  8 Oct 2012 10:47:34 +0200
-Message-ID: <1349686054-7486-1-git-send-email-javier@dowhile0.org>
+From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
+Subject: AW: Beagleboard xM crashes when being set to 800MHz with smartreflex on linux-omap-3.6-rc6
+Date: Mon, 8 Oct 2012 10:50:00 +0200
+Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E4CC@dolphin.TIGRIS.local>
+References: <87391xbv52.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-MGQQCwjJBm8C2Hp400Yx"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:52357 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754073Ab2JHIrp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 04:47:45 -0400
-Received: by mail-wi0-f170.google.com with SMTP id hm2so2946082wib.1
-        for <linux-omap@vger.kernel.org>; Mon, 08 Oct 2012 01:47:44 -0700 (PDT)
+Received: from www45.your-server.de ([213.133.104.45]:47222 "EHLO
+	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752628Ab2JHIuM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 04:50:12 -0400
+Received: from [217.91.135.48] (helo=IT-AstaroSecurityGateway)
+	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.74)
+	(envelope-from <prvs=0628286935=maximilian.schwerin@tigris.de>)
+	id 1TL92Q-0004fb-Hp
+	for linux-omap@vger.kernel.org; Mon, 08 Oct 2012 10:50:10 +0200
+In-Reply-To: <87391xbv52.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-Enric and I have been mantained this machine and while we
-are moving to device trees, it is good that people cc us
-when reporting bugs or regression on the board file until
-we have proper DT support.
+--=-MGQQCwjJBm8C2Hp400Yx
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
----
- MAINTAINERS |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+> -----Urspr=FCngliche Nachricht-----
+> Von: Kevin Hilman [mailto:khilman@deeprootsystems.com]=20
+> Gesendet: Dienstag, 2. Oktober 2012 02:00
+> An: Maximilian Schwerin
+> Cc: linux-omap@vger.kernel.org
+> Betreff: Re: Beagleboard xM crashes when being set to 800MHz=20
+> with smartreflex on linux-omap-3.6-rc6
+>=20
+> "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de> writes:
+>=20
+> > Hi,
+> >
+> > I've just built a linux-omap kernel at 3.6-rc6 using=20
+> omap2plus_defconfig
+> > as basis for the kernel config.
+> >
+> > When I enable smartreflex and switch to 800MHz via
+> >
+> > echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
+> > echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
+> > cpufreq-set -f 800MHz
+> >
+> > the board crashes. If I switch to 800MHz and enable=20
+> smartreflex later
+> > nothing happens. This used to work in my 3.3 based kernel.
+>=20
+> SmartReflex is kwown to be unstable in mainline and there are several
+> errata that still need fixing for it to be stable.
+>=20
+> I strongly recommend you simply leave SR disabled.
+>=20
+> Kevin
+>=20
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 63ce2a2..6b3c58d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -818,6 +818,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kristoffer/linux-hpc.git
- F:	arch/arm/mach-sa1100/jornada720.c
- F:	arch/arm/mach-sa1100/include/mach/jornada720.h
- 
-+ARM/IGEP MACHINE SUPPORT
-+M:	Enric Balletbo i Serra <eballetbo@gmail.com>
-+M:	Javier Martinez Canillas <javier@dowhile0.org>
-+L:	linux-omap@vger.kernel.org
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-+S:	Maintained
-+F:	arch/arm/mach-omap2/board-igep0020.c
-+
- ARM/INCOME PXA270 SUPPORT
- M:	Marek Vasut <marek.vasut@gmail.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--- 
-1.7.7.6
+So what does this mean for 800MHz and 1GHz? Is this not usable at all? =
+Is there another kernel branch, that supports both frequencies? My =
+customer needs 800MHz and 1GHz.
 
+Cheers, m.=20
+
+--=-MGQQCwjJBm8C2Hp400Yx
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAlByk74ACgkQ6nqkzTWctv5OGQCbBIMEY0rysr1Q4bR9z5/1rB7T
+U88An1CLXmTKtFBRzrJSP3YJto6eVuwQ
+=8hpD
+-----END PGP SIGNATURE-----
+
+--=-MGQQCwjJBm8C2Hp400Yx--
