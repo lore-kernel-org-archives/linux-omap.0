@@ -1,51 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: Add option to configure output line for McSPI
- driver
-Date: Mon, 8 Oct 2012 13:50:53 -0700
-Message-ID: <20121008205052.GB13011@atomide.com>
-References: <y>
- <1348684467-5707-1-git-send-email-stanhu@gmail.com>
+Subject: Re: [PATCH] arm: make FORCE_MAX_ZONEORDER configurable for TI
+ AM33XX
+Date: Mon, 8 Oct 2012 13:55:52 -0700
+Message-ID: <20121008205552.GC13011@atomide.com>
+References: <1341325242-17638-1-git-send-email-yegorslists@googlemail.com>
+ <20120924171858.GG28835@atomide.com>
+ <CAGm1_ks_GvSTH8DJ6d3R5OjPNEOhQ39hNo4grg1Pn-NqFX5VKQ@mail.gmail.com>
+ <20120924231619.GA28941@n2100.arm.linux.org.uk>
+ <20120925003758.GP28835@atomide.com>
+ <506165CA.7070406@visionsystems.de>
+ <20120925081449.GF31374@n2100.arm.linux.org.uk>
+ <50616B21.3070909@visionsystems.de>
+ <CAFoWwXv2GjWt2+sCYqM+vbtJ5xJBJAJMSuZhjKLKtURQ0eziVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:54117 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753963Ab2JHUz6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 16:55:58 -0400
 Content-Disposition: inline
-In-Reply-To: <1348684467-5707-1-git-send-email-stanhu@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stan Hu <stanhu@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@secretlab.ca>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <CAFoWwXv2GjWt2+sCYqM+vbtJ5xJBJAJMSuZhjKLKtURQ0eziVw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dejan =?utf-8?Q?Ga=C4=8Dnik?= <dejan.gacnik@gmail.com>
+Cc: yegor_sub1@visionsystems.de, Russell King - ARM Linux <linux@arm.linux.org.uk>, Yegor Yefremov <yegorslists@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Stan Hu <stanhu@gmail.com> [120926 11:36]:
-> McSPI driver previously assumed that D0 was input (MISO) and D1 was output (MOSI).
-> This forces the hardware designer to wire all SPI peripherals in this way when
-> it should be a software configuration option.
-> 
-> Signed-off-by: Stan Hu <stanhu@gmail.com>
-> ---
->  arch/arm/plat-omap/include/plat/mcspi.h |    2 ++
->  drivers/spi/spi-omap2-mcspi.c           |   11 +++++++++--
->  2 files changed, 11 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-omap/include/plat/mcspi.h
-> index a357eb2..0a6b790 100644
-> --- a/arch/arm/plat-omap/include/plat/mcspi.h
-> +++ b/arch/arm/plat-omap/include/plat/mcspi.h
-> @@ -18,6 +18,8 @@ struct omap2_mcspi_dev_attr {
->  
->  struct omap2_mcspi_device_config {
->  	unsigned turbo_mode:1;
-> +	/* 1 -> [D0 = MOSI, D1 = MISO], otherwise vice versa */
-> +	unsigned d0_is_output:1;
->  };
->  
->  #endif
+* Dejan Ga=C4=8Dnik <dejan.gacnik@gmail.com> [120927 07:13]:
+>=20
+> I and my colleagues have developed a brand new very enhanced board ha=
+ving
+> AM35xx CPU, 512MB DDR2, DVI, true dual Ethernet support (not using PR=
+USS),
+> CAN, SPI, I2C, 7 USBs, etc=E2=80=A6Board is already materialized and =
+operational.
+>=20
+>=20
+> According to our board we have create new machine type in the kernel
+> (version: linux-3.2-psp04.06.00.07.sdk) and all other required stuff =
+to
+> support our board, modify some things, like adding support for dual e=
+th,
+> etc. Our goal is to provide this new board to the market (let say wit=
+h
+> large quantity) and therefore I am wondering how to start or if it is=
+ even
+> possible to transfer our kernel change the main stream of this distro=
+?
+> During this kernel modification process we have been looking to not
+> changing anything in kernel, what could affect other machine types.
 
-FYI, if this did not yet get applied, this header has now been
-moved to linux/platform_data/spi-omap2-mcspi.h. So you may want
-to updated it and repost.
-
-Also, you should probably Cc spi-devel-general@lists.sourceforge.net.
+=46or the mainline kernel, you should go with device tree based booting
+to start with, we are no longer adding new board-*.c files. For older
+distro kernels you need to maintain a separate board-*.c file until
+we have moved everything to use device tree and distros are using
+that kernel.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
