@@ -1,42 +1,61 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 03/14] mtd: nand: omap: free region as per resource size
-Date: Mon, 8 Oct 2012 11:06:56 +0530
-Message-ID: <011a0d90343de9204cfd977381b36cace032482b.1349672877.git.afzal@ti.com>
+Subject: [PATCH v2 05/14] ARM: OMAP2+: onenand: connected soc info in pdata
+Date: Mon, 8 Oct 2012 11:07:11 +0530
+Message-ID: <6065bed749924f28a3d268145d1b7c980a3c97eb.1349672877.git.afzal@ti.com>
 References: <cover.1349672877.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35303 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165Ab2JHFhF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Oct 2012 01:37:05 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:49150 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752506Ab2JHFhW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 01:37:22 -0400
 In-Reply-To: <cover.1349672877.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-memory as is now obtained via resource, upon freeing use
-resource size. This also helps get rid of one macro.
+onenand driver needs to know whether soc is falling under
+34xx family to properly handle onenand. But driver is not
+supposed to do cpu_is_* check, hence educate platform data
+with this information. Driver can make use of it to avoid
+cpu_is_* check.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/mtd/nand/omap2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/mach-omap2/gpmc-onenand.c              | 5 +++++
+ include/linux/platform_data/mtd-onenand-omap2.h | 1 +
+ 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 5b31386..4c33135 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1513,7 +1513,7 @@ static int omap_nand_remove(struct platform_device *pdev)
- 	/* Release NAND device, its internal structures and partitions */
- 	nand_release(&info->mtd);
- 	iounmap(info->nand.IO_ADDR_R);
--	release_mem_region(info->phys_base, NAND_IO_SIZE);
-+	release_mem_region(info->phys_base, info->mem_size);
- 	kfree(info);
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 544d501..f0b677a 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -409,6 +409,11 @@ void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+ 		gpmc_onenand_data->flags |= ONENAND_SYNC_READ;
+ 	}
+ 
++	if (cpu_is_omap34xx())
++		gpmc_onenand_data->flags |= ONENAND_IN_OMAP34XX;
++	else
++		gpmc_onenand_data->flags &= ~ONENAND_IN_OMAP34XX;
++
+ 	err = gpmc_cs_request(gpmc_onenand_data->cs, ONENAND_IO_SIZE,
+ 				(unsigned long *)&gpmc_onenand_resource.start);
+ 	if (err < 0) {
+diff --git a/include/linux/platform_data/mtd-onenand-omap2.h b/include/linux/platform_data/mtd-onenand-omap2.h
+index 21bb0ff..ef9c60d 100644
+--- a/include/linux/platform_data/mtd-onenand-omap2.h
++++ b/include/linux/platform_data/mtd-onenand-omap2.h
+@@ -14,6 +14,7 @@
+ 
+ #define ONENAND_SYNC_READ	(1 << 0)
+ #define ONENAND_SYNC_READWRITE	(1 << 1)
++#define	ONENAND_IN_OMAP34XX	(1 << 2)
+ 
+ struct omap_onenand_platform_data {
+ 	int			cs;
 -- 
 1.7.12
 
