@@ -1,560 +1,764 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 13/14] ARM: OMAP2+: gpmc: remove exported nand functions
-Date: Mon, 8 Oct 2012 11:08:03 +0530
-Message-ID: <12e68d50bc2d163d620169d696a2b909a16c49b0.1349672877.git.afzal@ti.com>
+Subject: [PATCH v2 14/14] ARM: OMAP2+: gpmc: localize gpmc header
+Date: Mon, 8 Oct 2012 11:08:10 +0530
+Message-ID: <b16a67d2527cba70fcab85e1b4ff906ecf65b3ff.1349672877.git.afzal@ti.com>
 References: <cover.1349672877.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35375 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49154 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753205Ab2JHFiQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Oct 2012 01:38:16 -0400
+	id S1752548Ab2JHFiZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 01:38:25 -0400
 In-Reply-To: <cover.1349672877.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-nand driver handles gpmc-nand block fully, hence no more
-users for these exported nand functions, remove it.
+Requirement of gpmc header outside of mach-omap2 has been
+cutoff, move gpmc header file in plat-omap folder to local
+mach-omap2 folder
+
+Objective - common zImage participation of omap
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c             | 432 ---------------------------------
- arch/arm/plat-omap/include/plat/gpmc.h |  31 ---
- 2 files changed, 463 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c          |   2 +-
+ arch/arm/mach-omap2/board-3430sdp.c          |   2 +-
+ arch/arm/mach-omap2/board-apollon.c          |   2 +-
+ arch/arm/mach-omap2/board-cm-t35.c           |   2 +-
+ arch/arm/mach-omap2/board-cm-t3517.c         |   2 +-
+ arch/arm/mach-omap2/board-devkit8000.c       |   2 +-
+ arch/arm/mach-omap2/board-flash.c            |   2 +-
+ arch/arm/mach-omap2/board-flash.h            |   2 +-
+ arch/arm/mach-omap2/board-h4.c               |   2 +-
+ arch/arm/mach-omap2/board-igep0020.c         |   2 +-
+ arch/arm/mach-omap2/board-ldp.c              |   2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c      |   2 +-
+ arch/arm/mach-omap2/board-omap3logic.c       |   2 +-
+ arch/arm/mach-omap2/board-omap3stalker.c     |   2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c   |   2 +-
+ arch/arm/mach-omap2/board-overo.c            |   2 +-
+ arch/arm/mach-omap2/board-rm680.c            |   2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   2 +-
+ arch/arm/mach-omap2/board-rx51.c             |   2 +-
+ arch/arm/mach-omap2/board-zoom-debugboard.c  |   2 +-
+ arch/arm/mach-omap2/gpmc-nand.c              |   3 +-
+ arch/arm/mach-omap2/gpmc-nand.h              |   2 +-
+ arch/arm/mach-omap2/gpmc-onenand.c           |   3 +-
+ arch/arm/mach-omap2/gpmc-smc91x.c            |   2 +-
+ arch/arm/mach-omap2/gpmc-smsc911x.c          |   2 +-
+ arch/arm/mach-omap2/gpmc.c                   |   3 +-
+ arch/arm/mach-omap2/gpmc.h                   | 154 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm34xx.c                 |   2 +-
+ arch/arm/mach-omap2/usb-tusb6010.c           |   2 +-
+ arch/arm/plat-omap/include/plat/gpmc.h       | 154 ---------------------------
+ 30 files changed, 182 insertions(+), 185 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc.h
+ delete mode 100644 arch/arm/plat-omap/include/plat/gpmc.h
 
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 95b384d..49e49d0 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -34,7 +34,7 @@
+ #include <asm/mach/map.h>
+ 
+ #include "common.h"
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <plat/usb.h>
+ #include "gpmc-smc91x.h"
+ 
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 96cd369..5ad0901 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -33,7 +33,7 @@
+ #include <plat/usb.h>
+ #include "common.h"
+ #include <plat/dma.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <video/omapdss.h>
+ #include <video/omap-panel-tfp410.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index cea3aba..8cdd186 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -35,7 +35,7 @@
+ 
+ #include <plat/led.h>
+ #include "common.h"
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ 
+ #include <video/omapdss.h>
+ #include <video/omap-panel-generic-dpi.h>
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index fef68de..73e2ba9 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -40,7 +40,7 @@
+ 
+ #include "common.h"
+ #include <linux/platform_data/mtd-nand-omap2.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <plat/usb.h>
+ #include <video/omapdss.h>
+ #include <video/omap-panel-generic-dpi.h>
+diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
+index 3a19e80..b5495e4 100644
+--- a/arch/arm/mach-omap2/board-cm-t3517.c
++++ b/arch/arm/mach-omap2/board-cm-t3517.c
+@@ -41,7 +41,7 @@
+ #include "common.h"
+ #include <plat/usb.h>
+ #include <linux/platform_data/mtd-nand-omap2.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ 
+ #include "am35xx.h"
+ 
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 9933966..3eedb8f 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -39,7 +39,7 @@
+ #include <asm/mach/flash.h>
+ 
+ #include "common.h"
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ #include <plat/usb.h>
+ #include <video/omapdss.h>
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index 776e57a..c56986f 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -18,7 +18,7 @@
+ #include <linux/io.h>
+ 
+ #include <plat/cpu.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ #include <linux/platform_data/mtd-onenand-omap2.h>
+ #include <plat/tc.h>
+diff --git a/arch/arm/mach-omap2/board-flash.h b/arch/arm/mach-omap2/board-flash.h
+index a3aa5fc..2fb5d41 100644
+--- a/arch/arm/mach-omap2/board-flash.h
++++ b/arch/arm/mach-omap2/board-flash.h
+@@ -12,7 +12,7 @@
+  */
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ 
+ #define PDC_NOR		1
+ #define PDC_NAND	2
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 8d04bf8..65ebf58 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -33,7 +33,6 @@
+ 
+ #include <plat/menelaus.h>
+ #include <plat/dma.h>
+-#include <plat/gpmc.h>
+ #include "debug-devices.h"
+ 
+ #include <video/omapdss.h>
+@@ -42,6 +41,7 @@
+ #include "common.h"
+ #include "mux.h"
+ #include "control.h"
++#include "gpmc.h"
+ 
+ #define H4_FLASH_CS	0
+ #define H4_SMC91X_CS	1
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 83c6efa..9a9a9b5 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -30,7 +30,7 @@
+ #include <asm/mach/arch.h>
+ 
+ #include "common.h"
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <plat/usb.h>
+ 
+ #include <video/omapdss.h>
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 83383f3..e1628cd 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -35,7 +35,7 @@
+ #include <asm/mach/map.h>
+ 
+ #include "common.h"
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <mach/board-zoom.h>
+ #include <plat/usb.h>
+ #include "gpmc-smsc911x.h"
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index f240e21..65eaaee 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -41,7 +41,7 @@
+ #include "common.h"
+ #include <video/omapdss.h>
+ #include <video/omap-panel-tfp410.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ #include <plat/usb.h>
+ #include <plat/omap_device.h>
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index 7bd8253..5cfade2 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -35,7 +35,7 @@
+ #include <asm/mach/map.h>
+ 
+ #include "gpmc-smsc911x.h"
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <plat/sdrc.h>
+ #include <plat/usb.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index c7f3d02..11fcc73 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -40,7 +40,7 @@
+ #include <asm/mach/flash.h>
+ 
+ #include "common.h"
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ #include <plat/usb.h>
+ #include <video/omapdss.h>
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 3f013c8..cd282ae 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -44,7 +44,7 @@
+ #include <asm/system_info.h>
+ 
+ #include "common.h"
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ #include <plat/usb.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index e2cf0f7..3a9d1fa 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -49,7 +49,7 @@
+ #include <video/omapdss.h>
+ #include <video/omap-panel-generic-dpi.h>
+ #include <video/omap-panel-tfp410.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <plat/usb.h>
+ 
+ #include "mux.h"
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index 154cf33..3c3a473 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -25,7 +25,7 @@
+ #include <plat/i2c.h>
+ #include <plat/mmc.h>
+ #include <plat/usb.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include "common.h"
+ #include <plat/serial.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index aa6a2a4..5ba8942 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -32,7 +32,7 @@
+ 
+ #include "common.h"
+ #include <plat/dma.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <plat/omap-pm.h>
+ #include "gpmc-smc91x.h"
+ 
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 7bbb05d..88ba5be 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -25,7 +25,7 @@
+ 
+ #include "common.h"
+ #include <plat/dma.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <plat/usb.h>
+ 
+ #include "mux.h"
+diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+index afb2278..be9f71d 100644
+--- a/arch/arm/mach-omap2/board-zoom-debugboard.c
++++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
+@@ -17,7 +17,7 @@
+ #include <linux/regulator/fixed.h>
+ #include <linux/regulator/machine.h>
+ 
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include "gpmc-smsc911x.h"
+ 
+ #include <mach/board-zoom.h>
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 7983d54..db969a5 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -17,8 +17,7 @@
+ 
+ #include <asm/mach/flash.h>
+ 
+-#include <plat/gpmc.h>
+-
++#include "gpmc.h"
+ #include "soc.h"
+ #include "gpmc-nand.h"
+ 
+diff --git a/arch/arm/mach-omap2/gpmc-nand.h b/arch/arm/mach-omap2/gpmc-nand.h
+index 11a377f..d59e128 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.h
++++ b/arch/arm/mach-omap2/gpmc-nand.h
+@@ -10,7 +10,7 @@
+ #ifndef	__OMAP2_GPMC_NAND_H
+ #define	__OMAP2_GPMC_NAND_H
+ 
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <linux/platform_data/mtd-nand-omap2.h>
+ 
+ #if IS_ENABLED(CONFIG_MTD_NAND_OMAP2)
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index 29671cc..54e2255 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -20,8 +20,7 @@
+ 
+ #include <asm/mach/flash.h>
+ 
+-#include <plat/gpmc.h>
+-
++#include "gpmc.h"
+ #include "soc.h"
+ #include "gpmc-onenand.h"
+ 
+diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
+index 5654753..6eed907 100644
+--- a/arch/arm/mach-omap2/gpmc-smc91x.c
++++ b/arch/arm/mach-omap2/gpmc-smc91x.c
+@@ -17,7 +17,7 @@
+ #include <linux/io.h>
+ #include <linux/smc91x.h>
+ 
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include "gpmc-smc91x.h"
+ 
+ #include "soc.h"
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index 249a0b4..ef99011 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -20,7 +20,7 @@
+ #include <linux/io.h>
+ #include <linux/smsc911x.h>
+ 
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include "gpmc-smsc911x.h"
+ 
+ static struct resource gpmc_smsc911x_resources[] = {
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index eb577c5..1121248 100644
+index 1121248..285070e 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -150,7 +150,6 @@ static struct resource	gpmc_mem_root;
- static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
- static DEFINE_SPINLOCK(gpmc_mem_lock);
- static unsigned int gpmc_cs_map;	/* flag for cs which are initialized */
--static int gpmc_ecc_used = -EINVAL;	/* cs using ecc engine */
- static struct device *gpmc_dev;
- static int gpmc_irq;
- static resource_size_t phys_base, mem_size;
-@@ -171,22 +170,6 @@ static u32 gpmc_read_reg(int idx)
- 	return __raw_readl(gpmc_base + idx);
- }
+@@ -29,15 +29,14 @@
+ #include <linux/platform_data/mtd-nand-omap2.h>
  
--static void gpmc_cs_write_byte(int cs, int idx, u8 val)
--{
--	void __iomem *reg_addr;
--
--	reg_addr = gpmc_base + GPMC_CS0_OFFSET + (cs * GPMC_CS_SIZE) + idx;
--	__raw_writeb(val, reg_addr);
--}
--
--static u8 gpmc_cs_read_byte(int cs, int idx)
--{
--	void __iomem *reg_addr;
--
--	reg_addr = gpmc_base + GPMC_CS0_OFFSET + (cs * GPMC_CS_SIZE) + idx;
--	return __raw_readb(reg_addr);
--}
--
- void gpmc_cs_write_reg(int cs, int idx, u32 val)
- {
- 	void __iomem *reg_addr;
-@@ -563,44 +546,6 @@ void gpmc_cs_free(int cs)
- EXPORT_SYMBOL(gpmc_cs_free);
+ #include <asm/mach-types.h>
+-#include <plat/gpmc.h>
  
- /**
-- * gpmc_read_status - read access request to get the different gpmc status
-- * @cmd: command type
-- * @return status
-- */
--int gpmc_read_status(int cmd)
--{
--	int	status = -EINVAL;
--	u32	regval = 0;
--
--	switch (cmd) {
--	case GPMC_GET_IRQ_STATUS:
--		status = gpmc_read_reg(GPMC_IRQSTATUS);
--		break;
--
--	case GPMC_PREFETCH_FIFO_CNT:
--		regval = gpmc_read_reg(GPMC_PREFETCH_STATUS);
--		status = GPMC_PREFETCH_STATUS_FIFO_CNT(regval);
--		break;
--
--	case GPMC_PREFETCH_COUNT:
--		regval = gpmc_read_reg(GPMC_PREFETCH_STATUS);
--		status = GPMC_PREFETCH_STATUS_COUNT(regval);
--		break;
--
--	case GPMC_STATUS_BUFFER:
--		regval = gpmc_read_reg(GPMC_STATUS);
--		/* 1 : buffer is available to write */
--		status = regval & GPMC_STATUS_BUFF_EMPTY;
--		break;
--
--	default:
--		printk(KERN_ERR "gpmc_read_status: Not supported\n");
--	}
--	return status;
--}
--EXPORT_SYMBOL(gpmc_read_status);
--
--/**
-  * gpmc_cs_configure - write request to configure gpmc
-  * @cs: chip select number
-  * @cmd: command type
-@@ -668,119 +613,6 @@ int gpmc_cs_configure(int cs, int cmd, int wval)
- }
- EXPORT_SYMBOL(gpmc_cs_configure);
+ #include <plat/cpu.h>
+-#include <plat/gpmc.h>
+ #include <plat/sdrc.h>
+ #include <plat/omap_device.h>
  
--/**
-- * gpmc_nand_read - nand specific read access request
-- * @cs: chip select number
-- * @cmd: command type
-- */
--int gpmc_nand_read(int cs, int cmd)
--{
--	int rval = -EINVAL;
--
--	switch (cmd) {
--	case GPMC_NAND_DATA:
--		rval = gpmc_cs_read_byte(cs, GPMC_CS_NAND_DATA);
--		break;
--
--	default:
--		printk(KERN_ERR "gpmc_read_nand_ctrl: Not supported\n");
--	}
--	return rval;
--}
--EXPORT_SYMBOL(gpmc_nand_read);
--
--/**
-- * gpmc_nand_write - nand specific write request
-- * @cs: chip select number
-- * @cmd: command type
-- * @wval: value to write
-- */
--int gpmc_nand_write(int cs, int cmd, int wval)
--{
--	int err = 0;
--
--	switch (cmd) {
--	case GPMC_NAND_COMMAND:
--		gpmc_cs_write_byte(cs, GPMC_CS_NAND_COMMAND, wval);
--		break;
--
--	case GPMC_NAND_ADDRESS:
--		gpmc_cs_write_byte(cs, GPMC_CS_NAND_ADDRESS, wval);
--		break;
--
--	case GPMC_NAND_DATA:
--		gpmc_cs_write_byte(cs, GPMC_CS_NAND_DATA, wval);
--
--	default:
--		printk(KERN_ERR "gpmc_write_nand_ctrl: Not supported\n");
--		err = -EINVAL;
--	}
--	return err;
--}
--EXPORT_SYMBOL(gpmc_nand_write);
--
--
--
--/**
-- * gpmc_prefetch_enable - configures and starts prefetch transfer
-- * @cs: cs (chip select) number
-- * @fifo_th: fifo threshold to be used for read/ write
-- * @dma_mode: dma mode enable (1) or disable (0)
-- * @u32_count: number of bytes to be transferred
-- * @is_write: prefetch read(0) or write post(1) mode
-- */
--int gpmc_prefetch_enable(int cs, int fifo_th, int dma_mode,
--				unsigned int u32_count, int is_write)
--{
--
--	if (fifo_th > PREFETCH_FIFOTHRESHOLD_MAX) {
--		pr_err("gpmc: fifo threshold is not supported\n");
--		return -1;
--	} else if (!(gpmc_read_reg(GPMC_PREFETCH_CONTROL))) {
--		/* Set the amount of bytes to be prefetched */
--		gpmc_write_reg(GPMC_PREFETCH_CONFIG2, u32_count);
--
--		/* Set dma/mpu mode, the prefetch read / post write and
--		 * enable the engine. Set which cs is has requested for.
--		 */
--		gpmc_write_reg(GPMC_PREFETCH_CONFIG1, ((cs << CS_NUM_SHIFT) |
--					PREFETCH_FIFOTHRESHOLD(fifo_th) |
--					ENABLE_PREFETCH |
--					(dma_mode << DMA_MPU_MODE) |
--					(0x1 & is_write)));
--
--		/*  Start the prefetch engine */
--		gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x1);
--	} else {
--		return -EBUSY;
--	}
--
--	return 0;
--}
--EXPORT_SYMBOL(gpmc_prefetch_enable);
--
--/**
-- * gpmc_prefetch_reset - disables and stops the prefetch engine
-- */
--int gpmc_prefetch_reset(int cs)
--{
--	u32 config1;
--
--	/* check if the same module/cs is trying to reset */
--	config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
--	if (((config1 >> CS_NUM_SHIFT) & 0x7) != cs)
--		return -EINVAL;
--
--	/* Stop the PFPW engine */
--	gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x0);
--
--	/* Reset/disable the PFPW engine */
--	gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0x0);
--
--	return 0;
--}
--EXPORT_SYMBOL(gpmc_prefetch_reset);
--
- void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
- {
- 	int i;
-@@ -1145,267 +977,3 @@ void omap3_gpmc_restore_context(void)
- 	}
- }
- #endif /* CONFIG_ARCH_OMAP3 */
--
--/**
-- * gpmc_enable_hwecc - enable hardware ecc functionality
-- * @cs: chip select number
-- * @mode: read/write mode
-- * @dev_width: device bus width(1 for x16, 0 for x8)
-- * @ecc_size: bytes for which ECC will be generated
-- */
--int gpmc_enable_hwecc(int cs, int mode, int dev_width, int ecc_size)
--{
--	unsigned int val;
--
--	/* check if ecc module is in used */
--	if (gpmc_ecc_used != -EINVAL)
--		return -EINVAL;
--
--	gpmc_ecc_used = cs;
--
--	/* clear ecc and enable bits */
--	gpmc_write_reg(GPMC_ECC_CONTROL,
--			GPMC_ECC_CTRL_ECCCLEAR |
--			GPMC_ECC_CTRL_ECCREG1);
--
--	/* program ecc and result sizes */
--	val = ((((ecc_size >> 1) - 1) << 22) | (0x0000000F));
--	gpmc_write_reg(GPMC_ECC_SIZE_CONFIG, val);
--
--	switch (mode) {
--	case GPMC_ECC_READ:
--	case GPMC_ECC_WRITE:
--		gpmc_write_reg(GPMC_ECC_CONTROL,
--				GPMC_ECC_CTRL_ECCCLEAR |
--				GPMC_ECC_CTRL_ECCREG1);
--		break;
--	case GPMC_ECC_READSYN:
--		gpmc_write_reg(GPMC_ECC_CONTROL,
--				GPMC_ECC_CTRL_ECCCLEAR |
--				GPMC_ECC_CTRL_ECCDISABLE);
--		break;
--	default:
--		printk(KERN_INFO "Error: Unrecognized Mode[%d]!\n", mode);
--		break;
--	}
--
--	/* (ECC 16 or 8 bit col) | ( CS  )  | ECC Enable */
--	val = (dev_width << 7) | (cs << 1) | (0x1);
--	gpmc_write_reg(GPMC_ECC_CONFIG, val);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(gpmc_enable_hwecc);
--
--/**
-- * gpmc_calculate_ecc - generate non-inverted ecc bytes
-- * @cs: chip select number
-- * @dat: data pointer over which ecc is computed
-- * @ecc_code: ecc code buffer
-- *
-- * Using non-inverted ECC is considered ugly since writing a blank
-- * page (padding) will clear the ECC bytes. This is not a problem as long
-- * no one is trying to write data on the seemingly unused page. Reading
-- * an erased page will produce an ECC mismatch between generated and read
-- * ECC bytes that has to be dealt with separately.
-- */
--int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code)
--{
--	unsigned int val = 0x0;
--
--	if (gpmc_ecc_used != cs)
--		return -EINVAL;
--
--	/* read ecc result */
--	val = gpmc_read_reg(GPMC_ECC1_RESULT);
--	*ecc_code++ = val;          /* P128e, ..., P1e */
--	*ecc_code++ = val >> 16;    /* P128o, ..., P1o */
--	/* P2048o, P1024o, P512o, P256o, P2048e, P1024e, P512e, P256e */
--	*ecc_code++ = ((val >> 8) & 0x0f) | ((val >> 20) & 0xf0);
--
--	gpmc_ecc_used = -EINVAL;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(gpmc_calculate_ecc);
--
--#ifdef CONFIG_ARCH_OMAP3
--
--/**
-- * gpmc_init_hwecc_bch - initialize hardware BCH ecc functionality
-- * @cs: chip select number
-- * @nsectors: how many 512-byte sectors to process
-- * @nerrors: how many errors to correct per sector (4 or 8)
-- *
-- * This function must be executed before any call to gpmc_enable_hwecc_bch.
-- */
--int gpmc_init_hwecc_bch(int cs, int nsectors, int nerrors)
--{
--	/* check if ecc module is in use */
--	if (gpmc_ecc_used != -EINVAL)
--		return -EINVAL;
--
--	/* support only OMAP3 class */
--	if (!cpu_is_omap34xx()) {
--		printk(KERN_ERR "BCH ecc is not supported on this CPU\n");
--		return -EINVAL;
--	}
--
--	/*
--	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1.
--	 * Other chips may be added if confirmed to work.
--	 */
--	if ((nerrors == 4) &&
--	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0))) {
--		printk(KERN_ERR "BCH 4-bit mode is not supported on this CPU\n");
--		return -EINVAL;
--	}
--
--	/* sanity check */
--	if (nsectors > 8) {
--		printk(KERN_ERR "BCH cannot process %d sectors (max is 8)\n",
--		       nsectors);
--		return -EINVAL;
--	}
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(gpmc_init_hwecc_bch);
--
--/**
-- * gpmc_enable_hwecc_bch - enable hardware BCH ecc functionality
-- * @cs: chip select number
-- * @mode: read/write mode
-- * @dev_width: device bus width(1 for x16, 0 for x8)
-- * @nsectors: how many 512-byte sectors to process
-- * @nerrors: how many errors to correct per sector (4 or 8)
-- */
--int gpmc_enable_hwecc_bch(int cs, int mode, int dev_width, int nsectors,
--			  int nerrors)
--{
--	unsigned int val;
--
--	/* check if ecc module is in use */
--	if (gpmc_ecc_used != -EINVAL)
--		return -EINVAL;
--
--	gpmc_ecc_used = cs;
--
--	/* clear ecc and enable bits */
--	gpmc_write_reg(GPMC_ECC_CONTROL, 0x1);
--
--	/*
--	 * When using BCH, sector size is hardcoded to 512 bytes.
--	 * Here we are using wrapping mode 6 both for reading and writing, with:
--	 *  size0 = 0  (no additional protected byte in spare area)
--	 *  size1 = 32 (skip 32 nibbles = 16 bytes per sector in spare area)
--	 */
--	gpmc_write_reg(GPMC_ECC_SIZE_CONFIG, (32 << 22) | (0 << 12));
--
--	/* BCH configuration */
--	val = ((1                        << 16) | /* enable BCH */
--	       (((nerrors == 8) ? 1 : 0) << 12) | /* 8 or 4 bits */
--	       (0x06                     <<  8) | /* wrap mode = 6 */
--	       (dev_width                <<  7) | /* bus width */
--	       (((nsectors-1) & 0x7)     <<  4) | /* number of sectors */
--	       (cs                       <<  1) | /* ECC CS */
--	       (0x1));                            /* enable ECC */
--
--	gpmc_write_reg(GPMC_ECC_CONFIG, val);
--	gpmc_write_reg(GPMC_ECC_CONTROL, 0x101);
--	return 0;
--}
--EXPORT_SYMBOL_GPL(gpmc_enable_hwecc_bch);
--
--/**
-- * gpmc_calculate_ecc_bch4 - Generate 7 ecc bytes per sector of 512 data bytes
-- * @cs:  chip select number
-- * @dat: The pointer to data on which ecc is computed
-- * @ecc: The ecc output buffer
-- */
--int gpmc_calculate_ecc_bch4(int cs, const u_char *dat, u_char *ecc)
--{
--	int i;
--	unsigned long nsectors, reg, val1, val2;
--
--	if (gpmc_ecc_used != cs)
--		return -EINVAL;
--
--	nsectors = ((gpmc_read_reg(GPMC_ECC_CONFIG) >> 4) & 0x7) + 1;
--
--	for (i = 0; i < nsectors; i++) {
--
--		reg = GPMC_ECC_BCH_RESULT_0 + 16*i;
--
--		/* Read hw-computed remainder */
--		val1 = gpmc_read_reg(reg + 0);
--		val2 = gpmc_read_reg(reg + 4);
--
--		/*
--		 * Add constant polynomial to remainder, in order to get an ecc
--		 * sequence of 0xFFs for a buffer filled with 0xFFs; and
--		 * left-justify the resulting polynomial.
--		 */
--		*ecc++ = 0x28 ^ ((val2 >> 12) & 0xFF);
--		*ecc++ = 0x13 ^ ((val2 >>  4) & 0xFF);
--		*ecc++ = 0xcc ^ (((val2 & 0xF) << 4)|((val1 >> 28) & 0xF));
--		*ecc++ = 0x39 ^ ((val1 >> 20) & 0xFF);
--		*ecc++ = 0x96 ^ ((val1 >> 12) & 0xFF);
--		*ecc++ = 0xac ^ ((val1 >> 4) & 0xFF);
--		*ecc++ = 0x7f ^ ((val1 & 0xF) << 4);
--	}
--
--	gpmc_ecc_used = -EINVAL;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(gpmc_calculate_ecc_bch4);
--
--/**
-- * gpmc_calculate_ecc_bch8 - Generate 13 ecc bytes per block of 512 data bytes
-- * @cs:  chip select number
-- * @dat: The pointer to data on which ecc is computed
-- * @ecc: The ecc output buffer
-- */
--int gpmc_calculate_ecc_bch8(int cs, const u_char *dat, u_char *ecc)
--{
--	int i;
--	unsigned long nsectors, reg, val1, val2, val3, val4;
--
--	if (gpmc_ecc_used != cs)
--		return -EINVAL;
--
--	nsectors = ((gpmc_read_reg(GPMC_ECC_CONFIG) >> 4) & 0x7) + 1;
--
--	for (i = 0; i < nsectors; i++) {
--
--		reg = GPMC_ECC_BCH_RESULT_0 + 16*i;
--
--		/* Read hw-computed remainder */
--		val1 = gpmc_read_reg(reg + 0);
--		val2 = gpmc_read_reg(reg + 4);
--		val3 = gpmc_read_reg(reg + 8);
--		val4 = gpmc_read_reg(reg + 12);
--
--		/*
--		 * Add constant polynomial to remainder, in order to get an ecc
--		 * sequence of 0xFFs for a buffer filled with 0xFFs.
--		 */
--		*ecc++ = 0xef ^ (val4 & 0xFF);
--		*ecc++ = 0x51 ^ ((val3 >> 24) & 0xFF);
--		*ecc++ = 0x2e ^ ((val3 >> 16) & 0xFF);
--		*ecc++ = 0x09 ^ ((val3 >> 8) & 0xFF);
--		*ecc++ = 0xed ^ (val3 & 0xFF);
--		*ecc++ = 0x93 ^ ((val2 >> 24) & 0xFF);
--		*ecc++ = 0x9a ^ ((val2 >> 16) & 0xFF);
--		*ecc++ = 0xc2 ^ ((val2 >> 8) & 0xFF);
--		*ecc++ = 0x97 ^ (val2 & 0xFF);
--		*ecc++ = 0x79 ^ ((val1 >> 24) & 0xFF);
--		*ecc++ = 0xe5 ^ ((val1 >> 16) & 0xFF);
--		*ecc++ = 0x24 ^ ((val1 >> 8) & 0xFF);
--		*ecc++ = 0xb5 ^ (val1 & 0xFF);
--	}
--
--	gpmc_ecc_used = -EINVAL;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(gpmc_calculate_ecc_bch8);
--
--#endif /* CONFIG_ARCH_OMAP3 */
+ #include "soc.h"
+ #include "common.h"
++#include "gpmc.h"
+ 
+ #define	DEVICE_NAME		"omap-gpmc"
+ 
+diff --git a/arch/arm/mach-omap2/gpmc.h b/arch/arm/mach-omap2/gpmc.h
+new file mode 100644
+index 0000000..e08a51a
+--- /dev/null
++++ b/arch/arm/mach-omap2/gpmc.h
+@@ -0,0 +1,154 @@
++/*
++ * General-Purpose Memory Controller for OMAP2
++ *
++ * Copyright (C) 2005-2006 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __OMAP2_GPMC_H
++#define __OMAP2_GPMC_H
++
++#include <linux/platform_data/mtd-nand-omap2.h>
++
++/* Maximum Number of Chip Selects */
++#define GPMC_CS_NUM		8
++
++#define GPMC_CS_CONFIG1		0x00
++#define GPMC_CS_CONFIG2		0x04
++#define GPMC_CS_CONFIG3		0x08
++#define GPMC_CS_CONFIG4		0x0c
++#define GPMC_CS_CONFIG5		0x10
++#define GPMC_CS_CONFIG6		0x14
++#define GPMC_CS_CONFIG7		0x18
++#define GPMC_CS_NAND_COMMAND	0x1c
++#define GPMC_CS_NAND_ADDRESS	0x20
++#define GPMC_CS_NAND_DATA	0x24
++
++/* Control Commands */
++#define GPMC_CONFIG_RDY_BSY	0x00000001
++#define GPMC_CONFIG_DEV_SIZE	0x00000002
++#define GPMC_CONFIG_DEV_TYPE	0x00000003
++#define GPMC_SET_IRQ_STATUS	0x00000004
++#define GPMC_CONFIG_WP		0x00000005
++
++#define GPMC_ENABLE_IRQ		0x0000000d
++
++/* ECC commands */
++#define GPMC_ECC_READ		0 /* Reset Hardware ECC for read */
++#define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
++#define GPMC_ECC_READSYN	2 /* Reset before syndrom is read back */
++
++#define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
++#define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
++#define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
++#define GPMC_CONFIG1_READTYPE_SYNC      (1 << 29)
++#define GPMC_CONFIG1_WRITEMULTIPLE_SUPP (1 << 28)
++#define GPMC_CONFIG1_WRITETYPE_ASYNC    (0 << 27)
++#define GPMC_CONFIG1_WRITETYPE_SYNC     (1 << 27)
++#define GPMC_CONFIG1_CLKACTIVATIONTIME(val) ((val & 3) << 25)
++#define GPMC_CONFIG1_PAGE_LEN(val)      ((val & 3) << 23)
++#define GPMC_CONFIG1_WAIT_READ_MON      (1 << 22)
++#define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
++#define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
++#define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
++#define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
++#define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
++#define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
++#define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
++#define GPMC_CONFIG1_MUXADDDATA         (1 << 9)
++#define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
++#define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
++#define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
++#define GPMC_CONFIG1_FCLK_DIV3          (GPMC_CONFIG1_FCLK_DIV(2))
++#define GPMC_CONFIG1_FCLK_DIV4          (GPMC_CONFIG1_FCLK_DIV(3))
++#define GPMC_CONFIG7_CSVALID		(1 << 6)
++
++#define GPMC_DEVICETYPE_NOR		0
++#define GPMC_DEVICETYPE_NAND		2
++#define GPMC_CONFIG_WRITEPROTECT	0x00000010
++#define WR_RD_PIN_MONITORING		0x00600000
++#define GPMC_IRQ_FIFOEVENTENABLE	0x01
++#define GPMC_IRQ_COUNT_EVENT		0x02
++
++
++/* bool type time settings */
++struct gpmc_bool_timings {
++	bool cycle2cyclediffcsen;
++	bool cycle2cyclesamecsen;
++	bool we_extra_delay;
++	bool oe_extra_delay;
++	bool adv_extra_delay;
++	bool cs_extra_delay;
++	bool time_para_granularity;
++};
++
++/*
++ * Note that all values in this struct are in nanoseconds except sync_clk
++ * (which is in picoseconds), while the register values are in gpmc_fck cycles.
++ */
++struct gpmc_timings {
++	/* Minimum clock period for synchronous mode (in picoseconds) */
++	u32 sync_clk;
++
++	/* Chip-select signal timings corresponding to GPMC_CS_CONFIG2 */
++	u16 cs_on;		/* Assertion time */
++	u16 cs_rd_off;		/* Read deassertion time */
++	u16 cs_wr_off;		/* Write deassertion time */
++
++	/* ADV signal timings corresponding to GPMC_CONFIG3 */
++	u16 adv_on;		/* Assertion time */
++	u16 adv_rd_off;		/* Read deassertion time */
++	u16 adv_wr_off;		/* Write deassertion time */
++
++	/* WE signals timings corresponding to GPMC_CONFIG4 */
++	u16 we_on;		/* WE assertion time */
++	u16 we_off;		/* WE deassertion time */
++
++	/* OE signals timings corresponding to GPMC_CONFIG4 */
++	u16 oe_on;		/* OE assertion time */
++	u16 oe_off;		/* OE deassertion time */
++
++	/* Access time and cycle time timings corresponding to GPMC_CONFIG5 */
++	u16 page_burst_access;	/* Multiple access word delay */
++	u16 access;		/* Start-cycle to first data valid delay */
++	u16 rd_cycle;		/* Total read cycle time */
++	u16 wr_cycle;		/* Total write cycle time */
++
++	u16 bus_turnaround;
++	u16 cycle2cycle_delay;
++
++	u16 wait_monitoring;
++	u16 clk_activation;
++
++	/* The following are only on OMAP3430 */
++	u16 wr_access;		/* WRACCESSTIME */
++	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
++
++	struct gpmc_bool_timings bool_timings;
++};
++
++extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
++extern int gpmc_get_client_irq(unsigned irq_config);
++
++extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
++extern unsigned int gpmc_ps_to_ticks(unsigned int time_ps);
++extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
++extern unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns);
++extern unsigned long gpmc_get_fclk_period(void);
++
++extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
++extern u32 gpmc_cs_read_reg(int cs, int idx);
++extern int gpmc_calc_divider(unsigned int sync_clk);
++extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
++extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
++extern void gpmc_cs_free(int cs);
++extern int gpmc_cs_set_reserved(int cs, int reserved);
++extern int gpmc_cs_reserved(int cs);
++extern void omap3_gpmc_save_context(void);
++extern void omap3_gpmc_restore_context(void);
++extern int gpmc_cs_configure(int cs, int cmd, int wval);
++
++#endif
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index ba670db..ed98f4f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -40,7 +40,7 @@
+ #include "powerdomain.h"
+ #include <plat/sdrc.h>
+ #include <plat/prcm.h>
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ #include <plat/dma.h>
+ 
+ #include "common.h"
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index 7a85ebe..8ee73fc 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -18,7 +18,7 @@
+ 
+ #include <linux/usb/musb.h>
+ 
+-#include <plat/gpmc.h>
++#include "gpmc.h"
+ 
+ #include "mux.h"
+ 
 diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 17fc1e7..e08a51a 100644
+deleted file mode 100644
+index e08a51a..0000000
 --- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -34,15 +34,6 @@
- #define GPMC_SET_IRQ_STATUS	0x00000004
- #define GPMC_CONFIG_WP		0x00000005
- 
--#define GPMC_GET_IRQ_STATUS	0x00000006
--#define GPMC_PREFETCH_FIFO_CNT	0x00000007 /* bytes available in FIFO for r/w */
--#define GPMC_PREFETCH_COUNT	0x00000008 /* remaining bytes to be read/write*/
--#define GPMC_STATUS_BUFFER	0x00000009 /* 1: buffer is available to write */
++++ /dev/null
+@@ -1,154 +0,0 @@
+-/*
+- * General-Purpose Memory Controller for OMAP2
+- *
+- * Copyright (C) 2005-2006 Nokia Corporation
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
 -
--#define GPMC_NAND_COMMAND	0x0000000a
--#define GPMC_NAND_ADDRESS	0x0000000b
--#define GPMC_NAND_DATA		0x0000000c
+-#ifndef __OMAP2_GPMC_H
+-#define __OMAP2_GPMC_H
 -
- #define GPMC_ENABLE_IRQ		0x0000000d
- 
- /* ECC commands */
-@@ -78,15 +69,10 @@
- #define GPMC_DEVICETYPE_NOR		0
- #define GPMC_DEVICETYPE_NAND		2
- #define GPMC_CONFIG_WRITEPROTECT	0x00000010
--#define GPMC_STATUS_BUFF_EMPTY		0x00000001
- #define WR_RD_PIN_MONITORING		0x00600000
--#define GPMC_PREFETCH_STATUS_FIFO_CNT(val)	((val >> 24) & 0x7F)
--#define GPMC_PREFETCH_STATUS_COUNT(val)	(val & 0x00003fff)
- #define GPMC_IRQ_FIFOEVENTENABLE	0x01
- #define GPMC_IRQ_COUNT_EVENT		0x02
- 
--#define PREFETCH_FIFOTHRESHOLD_MAX	0x40
--#define PREFETCH_FIFOTHRESHOLD(val)	((val) << 8)
- 
- /* bool type time settings */
- struct gpmc_bool_timings {
-@@ -161,25 +147,8 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
- extern void gpmc_cs_free(int cs);
- extern int gpmc_cs_set_reserved(int cs, int reserved);
- extern int gpmc_cs_reserved(int cs);
--extern int gpmc_prefetch_enable(int cs, int fifo_th, int dma_mode,
--					unsigned int u32_count, int is_write);
--extern int gpmc_prefetch_reset(int cs);
- extern void omap3_gpmc_save_context(void);
- extern void omap3_gpmc_restore_context(void);
--extern int gpmc_read_status(int cmd);
- extern int gpmc_cs_configure(int cs, int cmd, int wval);
--extern int gpmc_nand_read(int cs, int cmd);
--extern int gpmc_nand_write(int cs, int cmd, int wval);
+-#include <linux/platform_data/mtd-nand-omap2.h>
 -
--int gpmc_enable_hwecc(int cs, int mode, int dev_width, int ecc_size);
--int gpmc_calculate_ecc(int cs, const u_char *dat, u_char *ecc_code);
+-/* Maximum Number of Chip Selects */
+-#define GPMC_CS_NUM		8
 -
--#ifdef CONFIG_ARCH_OMAP3
--int gpmc_init_hwecc_bch(int cs, int nsectors, int nerrors);
--int gpmc_enable_hwecc_bch(int cs, int mode, int dev_width, int nsectors,
--			  int nerrors);
--int gpmc_calculate_ecc_bch4(int cs, const u_char *dat, u_char *ecc);
--int gpmc_calculate_ecc_bch8(int cs, const u_char *dat, u_char *ecc);
--#endif /* CONFIG_ARCH_OMAP3 */
- 
- #endif
+-#define GPMC_CS_CONFIG1		0x00
+-#define GPMC_CS_CONFIG2		0x04
+-#define GPMC_CS_CONFIG3		0x08
+-#define GPMC_CS_CONFIG4		0x0c
+-#define GPMC_CS_CONFIG5		0x10
+-#define GPMC_CS_CONFIG6		0x14
+-#define GPMC_CS_CONFIG7		0x18
+-#define GPMC_CS_NAND_COMMAND	0x1c
+-#define GPMC_CS_NAND_ADDRESS	0x20
+-#define GPMC_CS_NAND_DATA	0x24
+-
+-/* Control Commands */
+-#define GPMC_CONFIG_RDY_BSY	0x00000001
+-#define GPMC_CONFIG_DEV_SIZE	0x00000002
+-#define GPMC_CONFIG_DEV_TYPE	0x00000003
+-#define GPMC_SET_IRQ_STATUS	0x00000004
+-#define GPMC_CONFIG_WP		0x00000005
+-
+-#define GPMC_ENABLE_IRQ		0x0000000d
+-
+-/* ECC commands */
+-#define GPMC_ECC_READ		0 /* Reset Hardware ECC for read */
+-#define GPMC_ECC_WRITE		1 /* Reset Hardware ECC for write */
+-#define GPMC_ECC_READSYN	2 /* Reset before syndrom is read back */
+-
+-#define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+-#define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+-#define GPMC_CONFIG1_READTYPE_ASYNC     (0 << 29)
+-#define GPMC_CONFIG1_READTYPE_SYNC      (1 << 29)
+-#define GPMC_CONFIG1_WRITEMULTIPLE_SUPP (1 << 28)
+-#define GPMC_CONFIG1_WRITETYPE_ASYNC    (0 << 27)
+-#define GPMC_CONFIG1_WRITETYPE_SYNC     (1 << 27)
+-#define GPMC_CONFIG1_CLKACTIVATIONTIME(val) ((val & 3) << 25)
+-#define GPMC_CONFIG1_PAGE_LEN(val)      ((val & 3) << 23)
+-#define GPMC_CONFIG1_WAIT_READ_MON      (1 << 22)
+-#define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
+-#define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
+-#define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
+-#define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
+-#define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
+-#define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
+-#define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
+-#define GPMC_CONFIG1_MUXADDDATA         (1 << 9)
+-#define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
+-#define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
+-#define GPMC_CONFIG1_FCLK_DIV2          (GPMC_CONFIG1_FCLK_DIV(1))
+-#define GPMC_CONFIG1_FCLK_DIV3          (GPMC_CONFIG1_FCLK_DIV(2))
+-#define GPMC_CONFIG1_FCLK_DIV4          (GPMC_CONFIG1_FCLK_DIV(3))
+-#define GPMC_CONFIG7_CSVALID		(1 << 6)
+-
+-#define GPMC_DEVICETYPE_NOR		0
+-#define GPMC_DEVICETYPE_NAND		2
+-#define GPMC_CONFIG_WRITEPROTECT	0x00000010
+-#define WR_RD_PIN_MONITORING		0x00600000
+-#define GPMC_IRQ_FIFOEVENTENABLE	0x01
+-#define GPMC_IRQ_COUNT_EVENT		0x02
+-
+-
+-/* bool type time settings */
+-struct gpmc_bool_timings {
+-	bool cycle2cyclediffcsen;
+-	bool cycle2cyclesamecsen;
+-	bool we_extra_delay;
+-	bool oe_extra_delay;
+-	bool adv_extra_delay;
+-	bool cs_extra_delay;
+-	bool time_para_granularity;
+-};
+-
+-/*
+- * Note that all values in this struct are in nanoseconds except sync_clk
+- * (which is in picoseconds), while the register values are in gpmc_fck cycles.
+- */
+-struct gpmc_timings {
+-	/* Minimum clock period for synchronous mode (in picoseconds) */
+-	u32 sync_clk;
+-
+-	/* Chip-select signal timings corresponding to GPMC_CS_CONFIG2 */
+-	u16 cs_on;		/* Assertion time */
+-	u16 cs_rd_off;		/* Read deassertion time */
+-	u16 cs_wr_off;		/* Write deassertion time */
+-
+-	/* ADV signal timings corresponding to GPMC_CONFIG3 */
+-	u16 adv_on;		/* Assertion time */
+-	u16 adv_rd_off;		/* Read deassertion time */
+-	u16 adv_wr_off;		/* Write deassertion time */
+-
+-	/* WE signals timings corresponding to GPMC_CONFIG4 */
+-	u16 we_on;		/* WE assertion time */
+-	u16 we_off;		/* WE deassertion time */
+-
+-	/* OE signals timings corresponding to GPMC_CONFIG4 */
+-	u16 oe_on;		/* OE assertion time */
+-	u16 oe_off;		/* OE deassertion time */
+-
+-	/* Access time and cycle time timings corresponding to GPMC_CONFIG5 */
+-	u16 page_burst_access;	/* Multiple access word delay */
+-	u16 access;		/* Start-cycle to first data valid delay */
+-	u16 rd_cycle;		/* Total read cycle time */
+-	u16 wr_cycle;		/* Total write cycle time */
+-
+-	u16 bus_turnaround;
+-	u16 cycle2cycle_delay;
+-
+-	u16 wait_monitoring;
+-	u16 clk_activation;
+-
+-	/* The following are only on OMAP3430 */
+-	u16 wr_access;		/* WRACCESSTIME */
+-	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+-
+-	struct gpmc_bool_timings bool_timings;
+-};
+-
+-extern void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs);
+-extern int gpmc_get_client_irq(unsigned irq_config);
+-
+-extern unsigned int gpmc_ns_to_ticks(unsigned int time_ns);
+-extern unsigned int gpmc_ps_to_ticks(unsigned int time_ps);
+-extern unsigned int gpmc_ticks_to_ns(unsigned int ticks);
+-extern unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns);
+-extern unsigned long gpmc_get_fclk_period(void);
+-
+-extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
+-extern u32 gpmc_cs_read_reg(int cs, int idx);
+-extern int gpmc_calc_divider(unsigned int sync_clk);
+-extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
+-extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+-extern void gpmc_cs_free(int cs);
+-extern int gpmc_cs_set_reserved(int cs, int reserved);
+-extern int gpmc_cs_reserved(int cs);
+-extern void omap3_gpmc_save_context(void);
+-extern void omap3_gpmc_restore_context(void);
+-extern int gpmc_cs_configure(int cs, int cmd, int wval);
+-
+-#endif
 -- 
 1.7.12
 
