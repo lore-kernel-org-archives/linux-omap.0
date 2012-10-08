@@ -1,66 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: Trivial driver changes to
- remove include plat/cpu.h
-Date: Mon, 8 Oct 2012 11:09:00 -0700
-Message-ID: <20121008180900.GL3874@atomide.com>
-References: <20121008173452.10603.53886.stgit@muffinssi>
- <20121008173557.10603.18539.stgit@muffinssi>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio/gpio-omap: Use existing pointer to struct device
+Date: Mon, 8 Oct 2012 20:55:37 +0200
+Message-ID: <CACRpkdZhT_SMLtP-hG3pJt6DzXi5Qe4=CPQW3TRsPStpQo0aSA@mail.gmail.com>
+References: <1349429858-17943-1-git-send-email-tklauser@distanz.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20121008173557.10603.18539.stgit@muffinssi>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: alsa-devel@alsa-project.org, Deepak Saxena <dsaxena@plexity.net>, Herbert Xu <herbert@gondor.apana.org.au>, Venkatraman S <svenkatr@ti.com>, Vinod Koul <vinod.koul@intel.com>, Matt Mackall <mpm@selenic.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Chris Ball <cjb@laptop.org>, Dan Williams <djbw@fb.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-crypto@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:53007 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753088Ab2JHSzi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 14:55:38 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so4005291wgb.1
+        for <linux-omap@vger.kernel.org>; Mon, 08 Oct 2012 11:55:37 -0700 (PDT)
+In-Reply-To: <1349429858-17943-1-git-send-email-tklauser@distanz.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tobias Klauser <tklauser@distanz.ch>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [121008 10:37]:
-> Drivers should not use cpu_is_omap or cpu_class_is_omap macros,
-> they should be private to the platform init code. And we'll be
-> removing plat/cpu.h and only have a private soc.h for the
-> arch/arm/*omap* code.
-> 
-> This patch is intended as preparation for the core omap changes
-> and removes the need to include plat/cpu.h from several drivers.
-> This is needed for the ARM common zImage support.
-> 
-> These changes are OK to do because:
-> 
-> - omap-rng.c and hsmmc.c don't need plat/cpu.h
-> 
-> - omap-aes.c and omap-sham.c get the proper platform_data
->   passed to them so they don't need extra checks in the driver
-> 
-> - omap-dma.c and omap-pcm.c can test the arch locally as
->   omap1 and omap2 cannot be compiled together because of
->   conflicting compiler flags
+On Fri, Oct 5, 2012 at 11:37 AM, Tobias Klauser <tklauser@distanz.ch> wrote:
 
+> A pointer to "pdev->dev" is already stored in "dev", so use it in
+> devm_kzalloc.
+>
+> Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
 
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -40,7 +40,6 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/platform_data/mmc-omap.h>
->  #include <mach/hardware.h>
-> -#include <plat/cpu.h>
->  
->  /* OMAP HSMMC Host Controller Registers */
->  #define OMAP_HSMMC_SYSSTATUS	0x0014
+Applied with Kevin's ACK, thanks!
 
-Actually I'll fold this mmc change into an earlier patch
-I've posted as "ARM: OMAP: Split plat/mmc.h into local headers
-and platform_data".
-
-Regards,
-
-Tony
+Yours,
+Linus Walleij
