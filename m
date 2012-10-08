@@ -1,72 +1,108 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 10/14] ARM: OMAP2+: nand: bch capability check
-Date: Mon, 8 Oct 2012 11:07:46 +0530
-Message-ID: <9575950c712e397fa9ddca535d167e6c77e1934d.1349672877.git.afzal@ti.com>
+Subject: [PATCH v2 11/14] ARM: OMAP2+: gpmc: nand register helper bch update
+Date: Mon, 8 Oct 2012 11:07:52 +0530
+Message-ID: <1b75c64a6f2674faa9dce3b3a7ff5793b1f65d0c.1349672877.git.afzal@ti.com>
 References: <cover.1349672877.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49173 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896Ab2JHFh5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 01:37:57 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:55282 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752956Ab2JHFiD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 01:38:03 -0400
 In-Reply-To: <cover.1349672877.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-Capability of bch schemes could be discovered using soc
-revision checks. If soc revision indicates that selected
-ecc scheme is not supported bail out.
+Update helper function that provides gpmc-nand register
+details for nand driver with bch register information.
+Using this nand driver can be made self sufficient to
+handle remaining gpmc-nand operations by itself instead
+of relying on gpmc exported nand functions.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ arch/arm/mach-omap2/gpmc.c                   | 18 +++++++++++++++++-
+ include/linux/platform_data/mtd-nand-omap2.h |  7 ++++++-
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index c1b9b1d..7983d54 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -90,6 +90,27 @@ static int omap2_nand_gpmc_retime(
- 	return 0;
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 3a73196..eb577c5 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -61,6 +61,9 @@
+ #define GPMC_ECC_SIZE_CONFIG	0x1fc
+ #define GPMC_ECC1_RESULT        0x200
+ #define GPMC_ECC_BCH_RESULT_0   0x240   /* not available on OMAP2 */
++#define	GPMC_ECC_BCH_RESULT_1	0x244	/* not available on OMAP2 */
++#define	GPMC_ECC_BCH_RESULT_2	0x248	/* not available on OMAP2 */
++#define	GPMC_ECC_BCH_RESULT_3	0x24c	/* not available on OMAP2 */
+ 
+ /* GPMC ECC control settings */
+ #define GPMC_ECC_CTRL_ECCCLEAR		0x100
+@@ -84,6 +87,7 @@
+ 
+ #define GPMC_CS0_OFFSET		0x60
+ #define GPMC_CS_SIZE		0x30
++#define	GPMC_BCH_SIZE		0x10
+ 
+ #define GPMC_MEM_START		0x00000000
+ #define GPMC_MEM_END		0x3FFFFFFF
+@@ -779,6 +783,8 @@ EXPORT_SYMBOL(gpmc_prefetch_reset);
+ 
+ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+ {
++	int i;
++
+ 	reg->gpmc_status = gpmc_base + GPMC_STATUS;
+ 	reg->gpmc_nand_command = gpmc_base + GPMC_CS0_OFFSET +
+ 				GPMC_CS_NAND_COMMAND + GPMC_CS_SIZE * cs;
+@@ -794,7 +800,17 @@ void gpmc_update_nand_reg(struct gpmc_nand_regs *reg, int cs)
+ 	reg->gpmc_ecc_control = gpmc_base + GPMC_ECC_CONTROL;
+ 	reg->gpmc_ecc_size_config = gpmc_base + GPMC_ECC_SIZE_CONFIG;
+ 	reg->gpmc_ecc1_result = gpmc_base + GPMC_ECC1_RESULT;
+-	reg->gpmc_bch_result0 = gpmc_base + GPMC_ECC_BCH_RESULT_0;
++
++	for (i = 0; i < GPMC_BCH_NUM_REMAINDER; i++) {
++		reg->gpmc_bch_result0[i] = gpmc_base + GPMC_ECC_BCH_RESULT_0 +
++					   GPMC_BCH_SIZE * i;
++		reg->gpmc_bch_result1[i] = gpmc_base + GPMC_ECC_BCH_RESULT_1 +
++					   GPMC_BCH_SIZE * i;
++		reg->gpmc_bch_result2[i] = gpmc_base + GPMC_ECC_BCH_RESULT_2 +
++					   GPMC_BCH_SIZE * i;
++		reg->gpmc_bch_result3[i] = gpmc_base + GPMC_ECC_BCH_RESULT_3 +
++					   GPMC_BCH_SIZE * i;
++	}
  }
  
-+static bool __init gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
-+{
-+	/* support only OMAP3 class */
-+	if (!cpu_is_omap34xx()) {
-+		pr_err("BCH ecc is not supported on this CPU\n");
-+		return 0;
-+	}
-+
-+	/*
-+	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1.
-+	 * Other chips may be added if confirmed to work.
-+	 */
-+	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
-+	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0))) {
-+		pr_err("BCH 4-bit mode is not supported on this CPU\n");
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
- int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
- 			  struct gpmc_timings *gpmc_t)
- {
-@@ -128,6 +149,9 @@ int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+ int gpmc_get_client_irq(unsigned irq_config)
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index e1965fe..24d32ca 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -13,6 +13,8 @@
  
- 	gpmc_update_nand_reg(&gpmc_nand_data->reg, gpmc_nand_data->cs);
+ #include <linux/mtd/partitions.h>
  
-+	if (!gpmc_hwecc_bch_capable(gpmc_nand_data->ecc_opt))
-+		return -EINVAL;
++#define	GPMC_BCH_NUM_REMAINDER	8
 +
- 	err = platform_device_register(&gpmc_nand_device);
- 	if (err < 0) {
- 		dev_err(dev, "Unable to register NAND device\n");
+ enum nand_io {
+ 	NAND_OMAP_PREFETCH_POLLED = 0,	/* prefetch polled mode, default */
+ 	NAND_OMAP_POLLED,		/* polled mode, without prefetch */
+@@ -43,7 +45,10 @@ struct gpmc_nand_regs {
+ 	void __iomem	*gpmc_ecc_control;
+ 	void __iomem	*gpmc_ecc_size_config;
+ 	void __iomem	*gpmc_ecc1_result;
+-	void __iomem	*gpmc_bch_result0;
++	void __iomem	*gpmc_bch_result0[GPMC_BCH_NUM_REMAINDER];
++	void __iomem	*gpmc_bch_result1[GPMC_BCH_NUM_REMAINDER];
++	void __iomem	*gpmc_bch_result2[GPMC_BCH_NUM_REMAINDER];
++	void __iomem	*gpmc_bch_result3[GPMC_BCH_NUM_REMAINDER];
+ };
+ 
+ struct omap_nand_platform_data {
 -- 
 1.7.12
 
