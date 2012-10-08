@@ -1,79 +1,177 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 06/14] mtd: onenand: omap: use pdata info instead of cpu_is
-Date: Mon, 8 Oct 2012 11:07:21 +0530
-Message-ID: <860ba92c34cbb490beccd5442087087c1751a6a2.1349672877.git.afzal@ti.com>
+Subject: [PATCH v2 07/14] ARM: OMAP2+: onenand: header cleanup
+Date: Mon, 8 Oct 2012 11:07:28 +0530
+Message-ID: <4a5b5b27c74ef2a18dfcea7102104924812946b3.1349672877.git.afzal@ti.com>
 References: <cover.1349672877.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35339 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49110 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753157Ab2JHFhd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Oct 2012 01:37:33 -0400
+	id S1752178Ab2JHFhi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 01:37:38 -0400
 In-Reply-To: <cover.1349672877.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-platform data now contains a field to indicate whether
-soc belongs to omap34xx family, use it instead of
-cpu_is_* check.
-
-This helps in removing dependency of platform specific
-header file - cpu.h
+For common arm zImage existing onenand header file
+in platform specific location was moved to generic
+platform data location, but it contained more than
+platform data, remove it. New local header has been
+created for exposing functions.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/mtd/onenand/omap2.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/board-flash.c               |  1 +
+ arch/arm/mach-omap2/board-igep0020.c            |  1 +
+ arch/arm/mach-omap2/board-n8x0.c                |  1 +
+ arch/arm/mach-omap2/board-rm680.c               |  1 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c    |  1 +
+ arch/arm/mach-omap2/gpmc-onenand.c              |  1 +
+ arch/arm/mach-omap2/gpmc-onenand.h              | 24 ++++++++++++++++++++++++
+ include/linux/platform_data/mtd-onenand-omap2.h | 19 +++----------------
+ 8 files changed, 33 insertions(+), 16 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
 
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index d7ef2c9..959f465 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -42,7 +42,6 @@
- #include <asm/gpio.h>
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index f8b30cb..de68fdf 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -25,6 +25,7 @@
  
- #include <plat/dma.h>
--#include <plat/cpu.h>
+ #include "common.h"
+ #include "board-flash.h"
++#include "gpmc-onenand.h"
  
- #define DRIVER_NAME "omap2-onenand"
+ #define REG_FPGA_REV			0x10
+ #define REG_FPGA_DIP_SWITCH_INPUT2	0x60
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index f6b3ed0..83c6efa 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -43,6 +43,7 @@
+ #include "common-board-devices.h"
+ #include "board-flash.h"
+ #include "control.h"
++#include "gpmc-onenand.h"
  
-@@ -62,6 +61,7 @@ struct omap2_onenand {
- 	int freq;
- 	int (*setup)(void __iomem *base, int *freq_ptr);
- 	struct regulator *regulator;
-+	u8 flags;
+ #define IGEP2_SMSC911X_CS       5
+ #define IGEP2_SMSC911X_GPIO     176
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index d95f727..92b1916 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -32,6 +32,7 @@
+ #include <plat/mmc.h>
+ 
+ #include "mux.h"
++#include "gpmc-onenand.h"
+ 
+ #define TUSB6010_ASYNC_CS	1
+ #define TUSB6010_SYNC_CS	4
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index 45997bf..154cf33 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -33,6 +33,7 @@
+ #include "hsmmc.h"
+ #include "sdram-nokia.h"
+ #include "common-board-devices.h"
++#include "gpmc-onenand.h"
+ 
+ static struct regulator_consumer_supply rm680_vemmc_consumers[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1"),
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index ed85fb8..aa6a2a4 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -54,6 +54,7 @@
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "common-board-devices.h"
++#include "gpmc-onenand.h"
+ 
+ #define SYSTEM_REV_B_USES_VAUX3	0x1699
+ #define SYSTEM_REV_S_USES_VAUX3 0x8
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index f0b677a..29671cc 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -23,6 +23,7 @@
+ #include <plat/gpmc.h>
+ 
+ #include "soc.h"
++#include "gpmc-onenand.h"
+ 
+ #define	ONENAND_IO_SIZE	SZ_128K
+ 
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.h b/arch/arm/mach-omap2/gpmc-onenand.h
+new file mode 100644
+index 0000000..216f23a
+--- /dev/null
++++ b/arch/arm/mach-omap2/gpmc-onenand.h
+@@ -0,0 +1,24 @@
++/*
++ *  arch/arm/mach-omap2/gpmc-onenand.h
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ */
++
++#ifndef	__OMAP2_GPMC_ONENAND_H
++#define	__OMAP2_GPMC_ONENAND_H
++
++#include <linux/platform_data/mtd-onenand-omap2.h>
++
++#if IS_ENABLED(CONFIG_MTD_ONENAND_OMAP2)
++extern void gpmc_onenand_init(struct omap_onenand_platform_data *d);
++#else
++#define board_onenand_data	NULL
++static inline void gpmc_onenand_init(struct omap_onenand_platform_data *d)
++{
++}
++#endif
++
++#endif
+diff --git a/include/linux/platform_data/mtd-onenand-omap2.h b/include/linux/platform_data/mtd-onenand-omap2.h
+index ef9c60d..685af7e 100644
+--- a/include/linux/platform_data/mtd-onenand-omap2.h
++++ b/include/linux/platform_data/mtd-onenand-omap2.h
+@@ -9,6 +9,9 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#ifndef	__MTD_ONENAND_OMAP2_H
++#define	__MTD_ONENAND_OMAP2_H
++
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ 
+@@ -27,20 +30,4 @@ struct omap_onenand_platform_data {
+ 	u8			regulator_can_sleep;
+ 	u8			skip_initial_unlocking;
  };
- 
- static void omap2_onenand_dma_cb(int lch, u16 ch_status, void *data)
-@@ -154,7 +154,7 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int state)
- 		if (!(syscfg & ONENAND_SYS_CFG1_IOBE)) {
- 			syscfg |= ONENAND_SYS_CFG1_IOBE;
- 			write_reg(c, syscfg, ONENAND_REG_SYS_CFG1);
--			if (cpu_is_omap34xx())
-+			if (c->flags & ONENAND_IN_OMAP34XX)
- 				/* Add a delay to let GPIO settle */
- 				syscfg = read_reg(c, ONENAND_REG_SYS_CFG1);
- 		}
-@@ -638,6 +638,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 
- 	init_completion(&c->irq_done);
- 	init_completion(&c->dma_done);
-+	c->flags = pdata->flags;
- 	c->gpmc_cs = pdata->cs;
- 	c->gpio_irq = pdata->gpio_irq;
- 	c->dma_channel = pdata->dma_channel;
-@@ -728,7 +729,7 @@ static int __devinit omap2_onenand_probe(struct platform_device *pdev)
- 	this = &c->onenand;
- 	if (c->dma_channel >= 0) {
- 		this->wait = omap2_onenand_wait;
--		if (cpu_is_omap34xx()) {
-+		if (c->flags & ONENAND_IN_OMAP34XX) {
- 			this->read_bufferram = omap3_onenand_read_bufferram;
- 			this->write_bufferram = omap3_onenand_write_bufferram;
- 		} else {
+-
+-#define ONENAND_MAX_PARTITIONS 8
+-
+-#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+-	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+-
+-extern void gpmc_onenand_init(struct omap_onenand_platform_data *d);
+-
+-#else
+-
+-#define board_onenand_data	NULL
+-
+-static inline void gpmc_onenand_init(struct omap_onenand_platform_data *d)
+-{
+-}
+-
+ #endif
 -- 
 1.7.12
 
