@@ -1,25 +1,82 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 00/15] OMAP-GPMC related cleanup for common zImage
-Date: Mon, 8 Oct 2012 05:39:22 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9F7A62@DBDE01.ent.ti.com>
-References: <cover.1349450454.git.afzal@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 2/3] ARM: OMAP4: add _dev_attr_ to ocp2scp for representing usb_phy
+Date: Mon, 8 Oct 2012 11:29:42 +0530
+Message-ID: <1349675983-23803-3-git-send-email-kishon@ti.com>
+References: <1349675983-23803-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49242 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799Ab2JHFje (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 01:39:34 -0400
-In-Reply-To: <cover.1349450454.git.afzal@ti.com>
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50116 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750754Ab2JHGAG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 02:00:06 -0400
+In-Reply-To: <1349675983-23803-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+To: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, kishon@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-SGksDQoNCk9uIEZyaSwgT2N0IDA1LCAyMDEyIGF0IDIxOjIyOjUwLCBNb2hhbW1lZCwgQWZ6YWwg
-d3JvdGU6DQoNCj4gVGhpcyBzZXJpZXMgY2xlYW5zIHVwIG9tYXAtZ3BtYyByZWxhdGVkIGNvZGUg
-c28gdGhhdCBvbWFwIGNhbg0KPiBiZSBhIHBhcnQgb2YgY29tbW9uIHpJbWFnZS4NCg0KVXBvbiBz
-ZWxlY3RpbmcgQkNIIENPTkZJRyBvcHRpb24sIGJ1aWxkIGJyZWFrcywgdXBkYXRlZA0Kc2VyaWVz
-IC0gdjIgdGhhdCBmaXhlcyBpdCBoYXMgYmVlbiBwb3N0ZWQuDQoNClJlZ2FyZHMNCkFmemFsDQo=
+In order to reflect devices(usb_phy) attached to ocp2scp bus, ocp2scp
+is assigned a device attribute to represent the attached devices.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 652d028..cf579b5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -21,6 +21,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/power/smartreflex.h>
++#include <linux/platform_data/omap_ocp2scp.h>
+ 
+ #include <plat/omap_hwmod.h>
+ #include <plat/i2c.h>
+@@ -2681,6 +2682,32 @@ static struct omap_hwmod_class omap44xx_ocp2scp_hwmod_class = {
+ 	.sysc	= &omap44xx_ocp2scp_sysc,
+ };
+ 
++/* ocp2scp dev_attr */
++static struct resource omap44xx_usb_phy_and_pll_addrs[] = {
++	{
++		.name		= "usb_phy",
++		.start		= 0x4a0ad080,
++		.end		= 0x4a0ae000,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		/* XXX: Remove this once control module driver is in place */
++		.name		= "ctrl_dev",
++		.start		= 0x4a002300,
++		.end		= 0x4a002303,
++		.flags		= IORESOURCE_MEM,
++	},
++	{ }
++};
++
++static struct omap_ocp2scp_dev ocp2scp_dev_attr[] = {
++	{
++		.drv_name       = "omap-usb2",
++		.res		= omap44xx_usb_phy_and_pll_addrs,
++	},
++	{ }
++};
++
+ /* ocp2scp_usb_phy */
+ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod = {
+ 	.name		= "ocp2scp_usb_phy",
+@@ -2694,6 +2721,7 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod = {
+ 			.modulemode   = MODULEMODE_HWCTRL,
+ 		},
+ 	},
++	.dev_attr	= ocp2scp_dev_attr,
+ };
+ 
+ /*
+-- 
+1.7.9.5
+
