@@ -1,52 +1,61 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3 1/3] omap3isp: Add CSI configuration registers from
- control block to ISP resources
-Date: Tue, 9 Oct 2012 01:22:02 +0300
-Message-ID: <20121008222202.GH14107@valkosipuli.retiisi.org.uk>
-References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
- <1349640472-1425-1-git-send-email-sakari.ailus@iki.fi>
- <20121008220645.GY13011@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [GIT PULL] ARM: OMAP: CPUfreq fixes for v3.7-rc
+Date: Mon, 08 Oct 2012 15:22:46 -0700
+Message-ID: <878vbg8uyx.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52311 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751108Ab2JHWWH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 18:22:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20121008220645.GY13011@atomide.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:48390 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750937Ab2JHWWr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 18:22:47 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so4417226pbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 08 Oct 2012 15:22:47 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Moikka,
+The following changes since commit 16642a2e7be23bbda013fc32d8f6c68982eab603:
 
-On Mon, Oct 08, 2012 at 03:06:46PM -0700, Tony Lindgren wrote:
-> * Sakari Ailus <sakari.ailus@iki.fi> [121007 13:09]:
-> > Add the registers used to configure the CSI-2 receiver PHY on OMAP3430 and
-> > 3630 and map them in the ISP driver. The register is part of the control
-> > block but it only is needed by the ISP driver.
-> 
-> Just checking.. These do get reserved with request_mem_region()
-> in isp_map_mem_resource() before they get ioremapped, right?
+  Merge tag 'pm-for-3.7-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm (2012-10-02 18:32:35 -0700)
 
-That's right. The code doing that can be found in
-drivers/media/platform/omap3isp/isp.c in a function called
-isp_map_mem_resource().
+are available in the git repository at:
 
-> And camera is the only user for these registers and they are
-> not shared with anything else?
 
-Correct. These registers only contain bits for configuring the CSI-2 PHY
-routing and CCP2 clock/strobe mode.
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/for_3.7-fixes-cpufreq
 
-> If so, then this is OK to merge via the media patches:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+for you to fetch changes up to 24d7b40a60cf19008334bcbcbd98da374d4d9c64:
 
-Thanks! :-)
+  ARM: OMAP2+: PM: MPU DVFS: use generic CPU device for MPU-SS (2012-10-08 14:59:04 -0700)
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+----------------------------------------------------------------
+This series a couple bug fixes and a couple fixes that make this
+driver support recently added OMAP-based SoCs.
+
+The 'get_cpu_device' patch is needed due to a change in the OMAP
+OMAP PM core code which enforces use of get_cpu_device() instead of
+a deprecated OMAP-specific API.
+
+The usage of plat/*.h headers breaks single zImage, so platforms are
+cleaning up and/or removing plat/*.h so the driver needs to be fixed
+accordingly.
+
+This series is based on the merge of Rafael's pm-for-3.7-rc1 tag into
+Linus' master branch: commit 16642a2e7be23bbda013fc32d8f6c68982eab603.
+
+----------------------------------------------------------------
+Kevin Hilman (4):
+      cpufreq: OMAP: ensure valid clock rate before scaling
+      cpufreq: OMAP: remove unused <plat/omap-pm.h>
+      cpufreq: OMAP: use get_cpu_device() instead of omap_device API
+      ARM: OMAP2+: PM: MPU DVFS: use generic CPU device for MPU-SS
+
+Paul Walmsley (1):
+      cpufreq: OMAP: fix clock usage to be SoC independent, remove plat/ includes
+
+ arch/arm/mach-omap2/opp.c        |   23 +++++++++++++++++------
+ arch/arm/mach-omap2/pm.c         |   11 ++++++++++-
+ arch/arm/mach-omap2/twl-common.c |    2 +-
+ drivers/cpufreq/omap-cpufreq.c   |   36 ++++++++++++------------------------
+ 4 files changed, 40 insertions(+), 32 deletions(-)
