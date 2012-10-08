@@ -1,73 +1,159 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 4/7] usb: dwc3-omap: Remove explicit writes to SYSCONFIG register
-Date: Mon, 8 Oct 2012 14:53:53 +0530
-Message-ID: <1349688236-22814-5-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 5/7] usb: dwc3-omap: Add an API to write to dwc mailbox
+Date: Mon, 8 Oct 2012 14:53:54 +0530
+Message-ID: <1349688236-22814-6-git-send-email-kishon@ti.com>
 References: <1349688236-22814-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47119 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39592 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751130Ab2JHJYW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Oct 2012 05:24:22 -0400
+	id S1751101Ab2JHJYb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 05:24:31 -0400
 In-Reply-To: <1349688236-22814-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: sshtylyov@mvista.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-The runtime API's takes care of setting the SYSCONFIG register with
-appropriate values. Hence explicit writes to SYSCONFIG register is
-removed.
+Add an API in the omap glue layer to write to the mailbox register which
+can be used by comparator driver(twl). To pass the detection of the attached
+device (signified by VBUS, ID) to the dwc3 core, dwc3 core has to write
+to the mailbox regiter.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/dwc3/dwc3-omap.c |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ drivers/usb/dwc3/dwc3-omap.c  |   59 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/dwc3-omap.h |   30 +++++++++++++++++++++
+ 2 files changed, 89 insertions(+)
+ create mode 100644 include/linux/usb/dwc3-omap.h
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 850a0cf..d417bec 100644
+index d417bec..c19affa 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -77,23 +77,6 @@
+@@ -43,6 +43,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/dwc3-omap.h>
++#include <linux/usb/dwc3-omap.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/ioport.h>
+@@ -126,6 +127,8 @@ struct dwc3_omap {
+ 	u32			dma_status:1;
+ };
  
- /* SYSCONFIG REGISTER */
- #define USBOTGSS_SYSCONFIG_DMADISABLE		(1 << 16)
--#define USBOTGSS_SYSCONFIG_STANDBYMODE(x)	((x) << 4)
--
--#define USBOTGSS_STANDBYMODE_FORCE_STANDBY	0
--#define USBOTGSS_STANDBYMODE_NO_STANDBY		1
--#define USBOTGSS_STANDBYMODE_SMART_STANDBY	2
--#define USBOTGSS_STANDBYMODE_SMART_WAKEUP	3
--
--#define USBOTGSS_STANDBYMODE_MASK		(0x03 << 4)
--
--#define USBOTGSS_SYSCONFIG_IDLEMODE(x)		((x) << 2)
--
--#define USBOTGSS_IDLEMODE_FORCE_IDLE		0
--#define USBOTGSS_IDLEMODE_NO_IDLE		1
--#define USBOTGSS_IDLEMODE_SMART_IDLE		2
--#define USBOTGSS_IDLEMODE_SMART_WAKEUP		3
--
--#define USBOTGSS_IDLEMODE_MASK			(0x03 << 2)
++struct dwc3_omap		*_omap;
++
+ static inline u32 dwc3_omap_readl(void __iomem *base, u32 offset)
+ {
+ 	return readl(base + offset);
+@@ -136,6 +139,56 @@ static inline void dwc3_omap_writel(void __iomem *base, u32 offset, u32 value)
+ 	writel(value, base + offset);
+ }
  
- /* IRQ_EOI REGISTER */
- #define USBOTGSS_IRQ_EOI_LINE_NUMBER		(1 << 0)
-@@ -309,15 +292,6 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
- 	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
++void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
++{
++	u32			val;
++	struct dwc3_omap	*omap = _omap;
++
++	switch (status) {
++	case OMAP_DWC3_ID_GROUND:
++		dev_dbg(omap->dev, "ID GND\n");
++
++		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
++		val &= ~(USBOTGSS_UTMI_OTG_STATUS_IDDIG
++				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_SESSEND);
++		val |= USBOTGSS_UTMI_OTG_STATUS_SESSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT;
++		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
++		break;
++
++	case OMAP_DWC3_VBUS_VALID:
++		dev_dbg(omap->dev, "VBUS Connect\n");
++
++		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
++		val &= ~USBOTGSS_UTMI_OTG_STATUS_SESSEND;
++		val |= USBOTGSS_UTMI_OTG_STATUS_IDDIG
++				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_SESSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT;
++		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
++		break;
++
++	case OMAP_DWC3_ID_FLOAT:
++	case OMAP_DWC3_VBUS_OFF:
++		dev_dbg(omap->dev, "VBUS Disconnect\n");
++
++		val = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
++		val &= ~(USBOTGSS_UTMI_OTG_STATUS_SESSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_VBUSVALID
++				| USBOTGSS_UTMI_OTG_STATUS_POWERPRESENT);
++		val |= USBOTGSS_UTMI_OTG_STATUS_SESSEND
++				| USBOTGSS_UTMI_OTG_STATUS_IDDIG;
++		dwc3_omap_writel(omap->base, USBOTGSS_UTMI_OTG_STATUS, val);
++		break;
++
++	default:
++		dev_dbg(omap->dev, "ID float\n");
++	}
++
++	return;
++}
++EXPORT_SYMBOL_GPL(dwc3_omap_mailbox);
  
--	/* Set No-Idle and No-Standby */
--	reg &= ~(USBOTGSS_STANDBYMODE_MASK
--			| USBOTGSS_IDLEMODE_MASK);
--
--	reg |= (USBOTGSS_SYSCONFIG_STANDBYMODE(USBOTGSS_STANDBYMODE_NO_STANDBY)
--		| USBOTGSS_SYSCONFIG_IDLEMODE(USBOTGSS_IDLEMODE_NO_IDLE));
--
--	dwc3_omap_writel(omap->base, USBOTGSS_SYSCONFIG, reg);
--
- 	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
- 			"dwc3-omap", omap);
- 	if (ret) {
+ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
+ {
+@@ -256,6 +309,12 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ 	omap->irq	= irq;
+ 	omap->base	= base;
+ 
++	/*
++	 * REVISIT if we ever have two instances of the wrapper, we will be
++	 * in big trouble
++	 */
++	_omap	= omap;
++
+ 	pm_runtime_enable(dev);
+ 	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0) {
+diff --git a/include/linux/usb/dwc3-omap.h b/include/linux/usb/dwc3-omap.h
+new file mode 100644
+index 0000000..6ebcf73
+--- /dev/null
++++ b/include/linux/usb/dwc3-omap.h
+@@ -0,0 +1,30 @@
++/*
++ * Copyright (C) 2011-2012 by Texas Instruments
++ *
++ * The Inventra Controller Driver for Linux is free software; you
++ * can redistribute it and/or modify it under the terms of the GNU
++ * General Public License version 2 as published by the Free Software
++ * Foundation.
++ */
++
++#ifndef __DWC3_OMAP_H__
++#define __DWC3_OMAP_H__
++
++enum omap_dwc3_vbus_id_status {
++	OMAP_DWC3_UNKNOWN = 0,
++	OMAP_DWC3_ID_GROUND,
++	OMAP_DWC3_ID_FLOAT,
++	OMAP_DWC3_VBUS_VALID,
++	OMAP_DWC3_VBUS_OFF,
++};
++
++#if (defined(CONFIG_USB_DWC3) || defined(CONFIG_USB_DWC3_MODULE))
++void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status);
++#else
++static inline void dwc3_omap_mailbox(enum omap_dwc3_vbus_id_status status)
++{
++	return;
++}
++#endif
++
++#endif	/* __DWC3_OMAP_H__ */
 -- 
 1.7.9.5
 
