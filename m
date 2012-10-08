@@ -1,82 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/16] ARM: OMAP: Make plat/sram.h local to plat-omap
-Date: Mon, 8 Oct 2012 09:31:36 -0700
-Message-ID: <20121008163136.GE3874@atomide.com>
-References: <20121004213950.26676.21898.stgit@muffinssi.local>
- <20121004220449.26676.54281.stgit@muffinssi.local>
- <506EE79B.8040507@ti.com>
+Subject: Re: [PATCH 1/1] musb : remove generic_interrupt and have all
+ drivers define the isr on their own. Remove some unneeded
+ CONFIG_SOC_OMAP_3430 instances
+Date: Mon, 8 Oct 2012 09:34:51 -0700
+Message-ID: <20121008163451.GF3874@atomide.com>
+References: <1349369952-7036-1-git-send-email-philippe.deswert@jollamobile.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52705 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753542Ab2JHQbn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 12:31:43 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <506EE79B.8040507@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1349369952-7036-1-git-send-email-philippe.deswert@jollamobile.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Philippe De Swert <philippedeswert@gmail.com>
+Cc: Philippe De Swert <philippe.deswert@jollamobile.com>, Praveena Nadahally <praveen.nadahally@stericsson.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Jon Hunter <jon-hunter@ti.com> [121005 07:00]:
-> Hi Tony,
+* Philippe De Swert <philippedeswert@gmail.com> [121004 10:00]:
+> This patch is based on the discussion of a previous patch to fix an issue
+> where the omap2430 musb driver is not working for N9/N950.
 > 
-> On 10/04/2012 05:04 PM, Tony Lindgren wrote:
-> > We can move this from plat to be local to plat-omap
-> > for common ARM zImage support.
-> > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  arch/arm/mach-omap1/clock.c                  |    3 -
-> >  arch/arm/mach-omap1/clock_data.c             |    3 -
-> >  arch/arm/mach-omap1/devices.c                |    2 
-> >  arch/arm/mach-omap1/pm.c                     |    3 -
-> >  arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |    3 -
-> >  arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    3 -
-> >  arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |    3 -
-> >  arch/arm/mach-omap2/io.c                     |    3 -
-> >  arch/arm/mach-omap2/omap4-common.c           |    4 -
-> >  arch/arm/mach-omap2/pm24xx.c                 |    3 -
-> >  arch/arm/mach-omap2/pm34xx.c                 |    3 -
-> >  arch/arm/mach-omap2/sdrc.c                   |    2 
-> >  arch/arm/mach-omap2/sdrc2xxx.c               |    2 
-> >  arch/arm/mach-omap2/sleep34xx.S              |    2 
-> >  arch/arm/plat-omap/common.h                  |    2 
-> >  arch/arm/plat-omap/include/plat/sram.h       |  105 -------------------------
-> >  arch/arm/plat-omap/sram.c                    |    1 
-> >  arch/arm/plat-omap/sram.h                    |  109 +++++++++++++++++++++++++-
-> >  18 files changed, 130 insertions(+), 126 deletions(-)
-> >  delete mode 100644 arch/arm/plat-omap/include/plat/sram.h
-> > 
-> > diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-> > index 638f407..b15d4ee 100644
-> > --- a/arch/arm/mach-omap1/clock.c
-> > +++ b/arch/arm/mach-omap1/clock.c
-> > @@ -24,11 +24,12 @@
-> >  #include <plat/cpu.h>
-> >  #include <plat/usb.h>
-> >  #include <plat/clock.h>
-> > -#include <plat/sram.h>
-> >  #include <plat/clkdev_omap.h>
-> >  
-> >  #include <mach/hardware.h>
-> >  
-> > +#include "../plat-omap/sram.h"
+> Moving all the interrupt handling to the devices. Avoids inclusion of generic
+> interrupt and breakage due to sometimes misleading CONFIG options. This makes 
+> sure usb always works if on of the subdrivers is chosen. Tested on Nokia N9/N950. 
 > 
-> Any reason why you did not put this in
-> arch/arm/plat-omap/include/plat-omap/ like we were discussing for dma
-> and dmtimers headers? Then it can be just "#include <plat-omap/sram.h>".
-> Just curious ...
+> Partially clean up CONFIG_SOC_OMAP3430 which is not necessary in the cases
+> where I removed it. Also helps with the removal work of those options that 
+> Tony Lindgren predicted would happen at some point.
 
-Because plat-omap/sram.h is still available for (mis)use by drivers
-and there's no need to expose it.
+Thanks looks OK to me:
 
-Eventually our plat-omap/sram.c will be converted to be just a
-device driver using the common sram driver. Then it will need
-a local sram.h and include/platform_data/sram-omap.h for the
-legacy non-dt boot.
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
