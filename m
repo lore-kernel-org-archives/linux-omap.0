@@ -1,40 +1,55 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 00/16] More omap plat header cleanup for v3.8 merge window
-Date: Mon, 8 Oct 2012 14:54:13 +0530
-Message-ID: <50729BBD.2070009@ti.com>
-References: <20121004213950.26676.21898.stgit@muffinssi.local> <50729461.8090504@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 1/7] usb: dwc3-omap: use device_for_each_child to handle child removal
+Date: Mon, 8 Oct 2012 14:53:50 +0530
+Message-ID: <1349688236-22814-2-git-send-email-kishon@ti.com>
+References: <1349688236-22814-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39559 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750820Ab2JHJYU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Oct 2012 05:24:20 -0400
-In-Reply-To: <50729461.8090504@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1349688236-22814-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: sshtylyov@mvista.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday 08 October 2012 02:22 PM, Santosh Shilimkar wrote:
-> Tony,
->
-> On Friday 05 October 2012 03:34 AM, Tony Lindgren wrote:
->> Hi all,
->>
->> Here are some more patches for early merging after -rc1 for v3.8
->> merge window to remove more plat includes for the ARM common
->> zImage support. These are based on top of current linux next +
->> kevin's cpufreq fixes.
->>
-> Have scanned the series and movement looks fine. For the SRAM movement,
-> I just wanted to to check if the builds are fine with errata WA enabled
-> for OMAP4. Do you have a branch where you are stacking up these patches?
->
-Found the branch 'tmp-testing-header-cleanup' which had these patches.
-Did few build test along with the errata related build. No issues seen.
+Used device_for_each_child() to handle child device (dwc3 core) removal
+during devexit of dwc3 omap.
 
-Feel free to add my ack for the series.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/usb/dwc3/dwc3-omap.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 479dc04..e335da3 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -204,6 +204,15 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
+ 	return IRQ_HANDLED;
+ }
+ 
++static int dwc3_omap_remove_core(struct device *dev, void *c)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++
++	platform_device_unregister(pdev);
++
++	return 0;
++}
++
+ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ {
+ 	struct dwc3_omap_data	*pdata = pdev->dev.platform_data;
+@@ -370,9 +379,8 @@ static int __devexit dwc3_omap_remove(struct platform_device *pdev)
+ {
+ 	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
+ 
+-	platform_device_unregister(omap->dwc3);
+-
+ 	dwc3_put_device_id(omap->dwc3->id);
++	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
+
