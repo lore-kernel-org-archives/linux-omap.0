@@ -1,57 +1,104 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: fix return value check in
- realtime_counter_init()
-Date: Mon, 8 Oct 2012 15:01:56 -0700
-Message-ID: <20121008220156.GX13011@atomide.com>
-References: <CAPgLHd_X+vT-AtkHCAmmieEtdQbVz6RcUWogY83qZyvzK_tidA@mail.gmail.com>
+Subject: Re: [PATCH v3 1/3] omap3isp: Add CSI configuration registers from
+ control block to ISP resources
+Date: Mon, 8 Oct 2012 15:06:46 -0700
+Message-ID: <20121008220645.GY13011@atomide.com>
+References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
+ <1349640472-1425-1-git-send-email-sakari.ailus@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:28386 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:34288 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751977Ab2JHWCE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 18:02:04 -0400
+	with ESMTP id S1754172Ab2JHWGs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 18:06:48 -0400
 Content-Disposition: inline
-In-Reply-To: <CAPgLHd_X+vT-AtkHCAmmieEtdQbVz6RcUWogY83qZyvzK_tidA@mail.gmail.com>
+In-Reply-To: <1349640472-1425-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: linux@arm.linux.org.uk, yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-* Wei Yongjun <weiyj.lk@gmail.com> [121007 07:00]:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> In case of error, the function clk_get() returns ERR_PTR()
-> and never returns NULL. The NULL test in the return value
-> check should be replaced with IS_ERR().
+* Sakari Ailus <sakari.ailus@iki.fi> [121007 13:09]:
+> Add the registers used to configure the CSI-2 receiver PHY on OMAP3430 and
+> 3630 and map them in the ISP driver. The register is part of the control
+> block but it only is needed by the ISP driver.
 
-Thanks applying into omap fixes.
+Just checking.. These do get reserved with request_mem_region()
+in isp_map_mem_resource() before they get ioremapped, right?
 
-Tony
+And camera is the only user for these registers and they are
+not shared with anything else?
+
+If so, then this is OK to merge via the media patches:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
  
-> dpatch engine is used to auto generate this patch.
-> (https://github.com/weiyj/dpatch)
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 > ---
->  arch/arm/mach-omap2/timer.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  arch/arm/mach-omap2/devices.c         |   10 ++++++++++
+>  drivers/media/platform/omap3isp/isp.c |    6 ++++--
+>  drivers/media/platform/omap3isp/isp.h |    2 ++
+>  3 files changed, 16 insertions(+), 2 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 8847d6e..44f9aa7 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -378,7 +378,7 @@ static void __init realtime_counter_init(void)
->  		return;
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index c00c689..9e4d5da 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -201,6 +201,16 @@ static struct resource omap3isp_resources[] = {
+>  		.flags		= IORESOURCE_MEM,
+>  	},
+>  	{
+> +		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
+> +		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
+> +		.flags		= IORESOURCE_MEM,
+> +	},
+> +	{
+> +		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
+> +		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
+> +		.flags		= IORESOURCE_MEM,
+> +	},
+> +	{
+>  		.start		= INT_34XX_CAM_IRQ,
+>  		.flags		= IORESOURCE_IRQ,
 >  	}
->  	sys_clk = clk_get(NULL, "sys_clkin_ck");
-> -	if (!sys_clk) {
-> +	if (IS_ERR(sys_clk)) {
->  		pr_err("%s: failed to get system clock handle\n", __func__);
->  		iounmap(base);
->  		return;
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index d7aa513..88fba2c 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -100,7 +100,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
+>  		       1 << OMAP3_ISP_IOMEM_RESZ |
+>  		       1 << OMAP3_ISP_IOMEM_SBL |
+>  		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+> -		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
+> +		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
+> +		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
+>  	},
+>  	{
+>  		.isp_rev = ISP_REVISION_15_0,
+> @@ -117,7 +118,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
+>  		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
+>  		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
+>  		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
+> -		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
+> +		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
+> +		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
+>  	},
+>  };
+>  
+> diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+> index 8be7487..6fed222 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -72,6 +72,8 @@ enum isp_mem_resources {
+>  	OMAP3_ISP_IOMEM_CSI2C_REGS1,
+>  	OMAP3_ISP_IOMEM_CSIPHY1,
+>  	OMAP3_ISP_IOMEM_CSI2C_REGS2,
+> +	OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
+> +	OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
+>  	OMAP3_ISP_IOMEM_LAST
+>  };
+>  
+> -- 
+> 1.7.2.5
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
