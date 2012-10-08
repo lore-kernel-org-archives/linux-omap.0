@@ -1,54 +1,42 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 01/14] ARM: OMAP2+: gpmc: annotate exit sections properly
-Date: Mon, 8 Oct 2012 11:06:43 +0530
-Message-ID: <a517afd9ed3be069b475caae791156b9c4663849.1349672877.git.afzal@ti.com>
+Subject: [PATCH v2 03/14] mtd: nand: omap: free region as per resource size
+Date: Mon, 8 Oct 2012 11:06:56 +0530
+Message-ID: <011a0d90343de9204cfd977381b36cace032482b.1349672877.git.afzal@ti.com>
 References: <cover.1349672877.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55204 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35303 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129Ab2JHFgy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Oct 2012 01:36:54 -0400
+	id S1752165Ab2JHFhF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 01:37:05 -0400
 In-Reply-To: <cover.1349672877.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
-compiler complained,
-`gpmc_remove' referenced in section `.data' of arch/arm/mach-omap2/built-in.o: defined in discarded section `.exit.text' of arch/arm/mach-omap2/built-in.o
+memory as is now obtained via resource, upon freeing use
+resource size. This also helps get rid of one macro.
 
-Annotate gpmc_remove function and dependents with __devexit.
-
-Reported-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/omap2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 2cbdcb9..163458d 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -886,7 +886,7 @@ static int gpmc_setup_irq(void)
- 	return request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
- }
- 
--static __exit int gpmc_free_irq(void)
-+static __devexit int gpmc_free_irq(void)
- {
- 	int i;
- 
-@@ -992,7 +992,7 @@ static __devinit int gpmc_probe(struct platform_device *pdev)
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 5b31386..4c33135 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1513,7 +1513,7 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 	/* Release NAND device, its internal structures and partitions */
+ 	nand_release(&info->mtd);
+ 	iounmap(info->nand.IO_ADDR_R);
+-	release_mem_region(info->phys_base, NAND_IO_SIZE);
++	release_mem_region(info->phys_base, info->mem_size);
+ 	kfree(info);
  	return 0;
  }
- 
--static __exit int gpmc_remove(struct platform_device *pdev)
-+static __devexit int gpmc_remove(struct platform_device *pdev)
- {
- 	gpmc_free_irq();
- 	gpmc_mem_exit();
 -- 
 1.7.12
 
