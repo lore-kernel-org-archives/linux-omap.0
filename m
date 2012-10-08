@@ -1,41 +1,82 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: sort select statements alphanumerically
-Date: Mon, 8 Oct 2012 16:45:30 +0100
-Message-ID: <20121008154530.GG28061@n2100.arm.linux.org.uk>
-References: <E1TKX8k-0006QP-M5@rmk-PC.arm.linux.org.uk>
- <20121008152947.GA6140@S2101-09.ap.freescale.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 07/16] ARM: OMAP: Make plat/sram.h local to plat-omap
+Date: Mon, 8 Oct 2012 09:31:36 -0700
+Message-ID: <20121008163136.GE3874@atomide.com>
+References: <20121004213950.26676.21898.stgit@muffinssi.local>
+ <20121004220449.26676.54281.stgit@muffinssi.local>
+ <506EE79B.8040507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52705 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753542Ab2JHQbn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 12:31:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20121008152947.GA6140@S2101-09.ap.freescale.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Daniel Walker <dwalker@fifo99.com>, Kevin Hilman <khilman@ti.com>, linux-samsung-soc@vger.kernel.org, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Magnus Damm <magnus.damm@gmail.com>, David Brown <davidb@codeaurora.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Alessandro Rubini <rubini@unipv.it>, Stephen Warren <swarren@wwwdotorg.org>, linux-arm-msm@vger.kernel.org, spear-devel@list.st.com, Haojian Zhuang <haojian.zhuang@gmail.com>, Shiraz Hashim <shiraz.hashim@st.com>, Kukjin Kim <kgene.kim@samsung.com>, Ben Dooks <ben-linux@fluff.org>, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Andrew Victor <linux@maxim.org.za>, linux-arm-kernel@lists.infradead.org, davinci-linux-op
+In-Reply-To: <506EE79B.8040507@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, Oct 08, 2012 at 11:29:52PM +0800, Shawn Guo wrote:
-> Russell,
+* Jon Hunter <jon-hunter@ti.com> [121005 07:00]:
+> Hi Tony,
 > 
-> On Sat, Oct 06, 2012 at 05:22:10PM +0100, Russell King wrote:
-> > This commit is likely to change as we get closer to the end of the merge
-> > window, as other changes get merged into Linus' tree.  I will be refreshing
-> > this from time to time, and keeping it out of linux-next, as it will cause
-> > more pain than its worth to put it into linux-next.
->
-> You plan to send this for 3.7 merge window or 3.8?  Hope it's 3.7 since
-> I have a series queued for 3.8 merging plat-mxc into mach-imx which
-> will clash with the patch.
+> On 10/04/2012 05:04 PM, Tony Lindgren wrote:
+> > We can move this from plat to be local to plat-omap
+> > for common ARM zImage support.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mach-omap1/clock.c                  |    3 -
+> >  arch/arm/mach-omap1/clock_data.c             |    3 -
+> >  arch/arm/mach-omap1/devices.c                |    2 
+> >  arch/arm/mach-omap1/pm.c                     |    3 -
+> >  arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |    3 -
+> >  arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    3 -
+> >  arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |    3 -
+> >  arch/arm/mach-omap2/io.c                     |    3 -
+> >  arch/arm/mach-omap2/omap4-common.c           |    4 -
+> >  arch/arm/mach-omap2/pm24xx.c                 |    3 -
+> >  arch/arm/mach-omap2/pm34xx.c                 |    3 -
+> >  arch/arm/mach-omap2/sdrc.c                   |    2 
+> >  arch/arm/mach-omap2/sdrc2xxx.c               |    2 
+> >  arch/arm/mach-omap2/sleep34xx.S              |    2 
+> >  arch/arm/plat-omap/common.h                  |    2 
+> >  arch/arm/plat-omap/include/plat/sram.h       |  105 -------------------------
+> >  arch/arm/plat-omap/sram.c                    |    1 
+> >  arch/arm/plat-omap/sram.h                    |  109 +++++++++++++++++++++++++-
+> >  18 files changed, 130 insertions(+), 126 deletions(-)
+> >  delete mode 100644 arch/arm/plat-omap/include/plat/sram.h
+> > 
+> > diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+> > index 638f407..b15d4ee 100644
+> > --- a/arch/arm/mach-omap1/clock.c
+> > +++ b/arch/arm/mach-omap1/clock.c
+> > @@ -24,11 +24,12 @@
+> >  #include <plat/cpu.h>
+> >  #include <plat/usb.h>
+> >  #include <plat/clock.h>
+> > -#include <plat/sram.h>
+> >  #include <plat/clkdev_omap.h>
+> >  
+> >  #include <mach/hardware.h>
+> >  
+> > +#include "../plat-omap/sram.h"
+> 
+> Any reason why you did not put this in
+> arch/arm/plat-omap/include/plat-omap/ like we were discussing for dma
+> and dmtimers headers? Then it can be just "#include <plat-omap/sram.h>".
+> Just curious ...
 
-3.7, and it's generated by the script given in the commit message, so
-it's easy to regenerate when required (and I intend to do so just before
-I ask Linus to merge it.)
+Because plat-omap/sram.h is still available for (mis)use by drivers
+and there's no need to expose it.
+
+Eventually our plat-omap/sram.c will be converted to be just a
+device driver using the common sram driver. Then it will need
+a local sram.h and include/platform_data/sram-omap.h for the
+legacy non-dt boot.
+
+Regards,
+
+Tony
