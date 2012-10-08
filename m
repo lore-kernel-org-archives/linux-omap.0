@@ -1,70 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: move old debug-devices.c and debug-leds.c
- to be OMAP2+ only for now
-Date: Mon, 8 Oct 2012 15:13:33 -0700
-Message-ID: <20121008221333.GZ13011@atomide.com>
-References: <alpine.DEB.2.00.1210080145080.5736@utopia.booyaka.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v3 1/3] omap3isp: Add CSI configuration registers from
+ control block to ISP resources
+Date: Tue, 9 Oct 2012 01:22:02 +0300
+Message-ID: <20121008222202.GH14107@valkosipuli.retiisi.org.uk>
+References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
+ <1349640472-1425-1-git-send-email-sakari.ailus@iki.fi>
+ <20121008220645.GY13011@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:42397 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752187Ab2JHWNg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 18:13:36 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52311 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751108Ab2JHWWH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 18:22:07 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210080145080.5736@utopia.booyaka.com>
+In-Reply-To: <20121008220645.GY13011@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-* Paul Walmsley <paul@pwsan.com> [121007 18:48]:
+Moikka,
+
+On Mon, Oct 08, 2012 at 03:06:46PM -0700, Tony Lindgren wrote:
+> * Sakari Ailus <sakari.ailus@iki.fi> [121007 13:09]:
+> > Add the registers used to configure the CSI-2 receiver PHY on OMAP3430 and
+> > 3630 and map them in the ISP driver. The register is part of the control
+> > block but it only is needed by the ISP driver.
 > 
-> Commit 801475ccb2b2c1928b22aec4b9e5285d9e347602 ("ARM: OMAP: move
-> debug_card_init() function") results in the following new sparse[1]
-> warning:
+> Just checking.. These do get reserved with request_mem_region()
+> in isp_map_mem_resource() before they get ioremapped, right?
+
+That's right. The code doing that can be found in
+drivers/media/platform/omap3isp/isp.c in a function called
+isp_map_mem_resource().
+
+> And camera is the only user for these registers and they are
+> not shared with anything else?
+
+Correct. These registers only contain bits for configuring the CSI-2 PHY
+routing and CCP2 clock/strobe mode.
+
+> If so, then this is OK to merge via the media patches:
 > 
-> arch/arm/plat-omap/debug-devices.c:71:12: warning: symbol 'debug_card_init' was not declared. Should it be static?
-> 
-> Normally this could be fixed by including the appropriate header file
-> in plat-omap/debug-devices.c, but the header file now exists only in
-> mach-omap2/, so this would require a "sideways include" and is thus
-> impractical.  It turns out that only code in mach-omap2/ currently
-> uses the debug-devices.c and debug-leds.c files, so move them there.
-> In the long term, these devices should be created by DT, and the code
-> should be moved into drivers/ somewhere.
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Hmm are you sure that omap1 is not using debug-leds.c?
-At least the initcall seems like it should run on omap1
-if enabled.
+Thanks! :-)
 
-The sideways include here is OK, it does not get exposed to
-the drivers, it seems that plat-omap is still the right location
-for at least debug-leds.c code.
-
-> rename from arch/arm/plat-omap/debug-leds.c
-> rename to arch/arm/mach-omap2/debug-leds.c
-> index ea29bbe..c12350b 100644
-> --- a/arch/arm/plat-omap/debug-leds.c
-> +++ b/arch/arm/mach-omap2/debug-leds.c
-> @@ -146,11 +146,8 @@ static struct platform_driver led_driver = {
->  
->  static int __init fpga_init(void)
->  {
-> -	if (machine_is_omap_h4()
-> -			|| machine_is_omap_h3()
-> -			|| machine_is_omap_h2()
-> -			|| machine_is_omap_perseus2()
-> -			)
-> +	if (machine_is_omap_h4() || machine_is_omap_h3() ||
-> +	    machine_is_omap_h2() || machine_is_omap_perseus2())
->  		return platform_driver_register(&led_driver);
->  	return 0;
->  }
-
-This looks like it should work fine for the boards using
-the debug leds on omap1 too.
-
-Regards,
-
-Tony
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
