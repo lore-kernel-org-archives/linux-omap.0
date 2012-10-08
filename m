@@ -1,37 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 0/7] ARM: OMAP2+: Add device-tree support for timers
-Date: Mon, 8 Oct 2012 14:10:02 -0700
-Message-ID: <20121008211001.GH13011@atomide.com>
-References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
- <505A7E0B.30709@ti.com>
- <20120920235309.GO28835@atomide.com>
- <5063330E.3000203@ti.com>
- <5065F19E.5020708@ti.com>
- <50661B07.1040200@ti.com>
+Subject: Re: [PATCH] AM35xx: Add missing hwmod entry for the HDQ/1-Wire
+ present in AM3505/3517 CPUs.
+Date: Mon, 8 Oct 2012 14:11:11 -0700
+Message-ID: <20121008211110.GI13011@atomide.com>
+References: <20120917145614.GD22993@renkinjitsu.usine.8d.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:17972 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751286Ab2JHVKI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 17:10:08 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29208 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754710Ab2JHVLN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 17:11:13 -0400
 Content-Disposition: inline
-In-Reply-To: <50661B07.1040200@ti.com>
+In-Reply-To: <20120917145614.GD22993@renkinjitsu.usine.8d.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Raphael Assenat <raph@8d.com>
+Cc: linux-omap@vger.kernel.org
 
-* Jon Hunter <jon-hunter@ti.com> [120928 14:48]:
+* Raphael Assenat <raph@8d.com> [120917 07:57]:
+> This patch adds a missing hwmod entry for the HDQ/1-Wire module present 
+> in the AM3505/17 CPUs.
 > 
-> What is interesting is that it is the interrupt test that is failing for
-> timers 5-7. Any chance there is a problem with the interrupt mapping? I
-> checked the documentation for AM335x and I don't see anything obvious
-> that is wrong with the binding unless the documentation itself is wrong.
+> This restores 1-Wire support to our AM3505 boards. We think it probably
+> stopped working with commit 96b1b29d37b0ca3ecd424a1fe301406cf525fc04
+> ARM: OMAP2+: HDQ1W: use omap_device
 
-This could also be caused by some timers not being able to wake up
-the system from idle?
-
-Regards,
+Thanks applying into fixes.
 
 Tony
