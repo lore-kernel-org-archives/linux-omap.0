@@ -1,99 +1,68 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] usb: otg: isp1301_omap: fix potential NULL pointer dereference
-Date: Mon, 8 Oct 2012 08:46:09 +0800
-Message-ID: <CAPgLHd-21EJ3CMaFVzckj8=iZdBXW=rthttTnseNrfoH+aCcAA@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: ARM: OMAP: fix new sparse warnings
+Date: Mon, 8 Oct 2012 01:42:59 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210080141040.5736@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209242308100.10406@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:54173 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745Ab2JHBm7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Oct 2012 21:42:59 -0400
+In-Reply-To: <alpine.DEB.2.00.1209242308100.10406@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
 
-From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-The dereference should be moved below the NULL test.
+Here's an updated version of this one that drops the debug-devices.c 
+change.   That will be dealt with in a separate patch.
 
-dpatch engine is used to auto generate this patch.
-(https://github.com/weiyj/dpatch)
 
-Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+- Paul
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 7 Oct 2012 13:10:00 -0600
+Subject: [PATCH] ARM: OMAP: omap3evm: fix new sparse warning
+
+Commit e54adb1e79762d3591459e5b0e9b9ff578e33fdb ("ARM: OMAP: omap3evm:
+cleanup revision bits") adds a new sparse[1] warning:
+
+arch/arm/mach-omap2/board-omap3evm.c:90:4: warning: symbol 'get_omap3_evm_rev' was not declared. Should it be static?
+
+This symbol no longer appears to be used outside this file, so mark it
+static and remove the export.
+
+...
+
+1. https://sparse.wiki.kernel.org/index.php/Main_Page
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- drivers/usb/otg/isp1301_omap.c | 32 +++++++++++++++++++++++---------
- 1 file changed, 23 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/board-omap3evm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/usb/otg/isp1301_omap.c b/drivers/usb/otg/isp1301_omap.c
-index ceee211..3a1f8e2 100644
---- a/drivers/usb/otg/isp1301_omap.c
-+++ b/drivers/usb/otg/isp1301_omap.c
-@@ -1279,9 +1279,13 @@ static int isp1301_otg_enable(struct isp1301 *isp)
- static int
- isp1301_set_host(struct usb_otg *otg, struct usb_bus *host)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index c64e565..184ef21 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -88,11 +88,10 @@ enum {
+ 
+ static u8 omap3_evm_version;
+ 
+-u8 get_omap3_evm_rev(void)
++static u8 get_omap3_evm_rev(void)
  {
--	struct isp1301	*isp = container_of(otg->phy, struct isp1301, phy);
-+	struct isp1301 *isp;
+ 	return omap3_evm_version;
+ }
+-EXPORT_SYMBOL(get_omap3_evm_rev);
  
--	if (!otg || isp != the_transceiver)
-+	if (!otg)
-+		return -ENODEV;
-+
-+	isp = container_of(otg->phy, struct isp1301, phy);
-+	if (isp != the_transceiver)
- 		return -ENODEV;
- 
- 	if (!host) {
-@@ -1335,9 +1339,13 @@ isp1301_set_host(struct usb_otg *otg, struct usb_bus *host)
- static int
- isp1301_set_peripheral(struct usb_otg *otg, struct usb_gadget *gadget)
+ static void __init omap3_evm_get_revision(void)
  {
--	struct isp1301	*isp = container_of(otg->phy, struct isp1301, phy);
-+	struct isp1301 *isp;
-+
-+	if (!otg)
-+		return -ENODEV;
- 
--	if (!otg || isp != the_transceiver)
-+	isp = container_of(otg->phy, struct isp1301, phy);
-+	if (isp != the_transceiver)
- 		return -ENODEV;
- 
- 	if (!gadget) {
-@@ -1415,11 +1423,14 @@ isp1301_set_power(struct usb_phy *dev, unsigned mA)
- static int
- isp1301_start_srp(struct usb_otg *otg)
- {
--	struct isp1301	*isp = container_of(otg->phy, struct isp1301, phy);
-+	struct isp1301	*isp;
- 	u32		otg_ctrl;
- 
--	if (!otg || isp != the_transceiver
--			|| isp->phy.state != OTG_STATE_B_IDLE)
-+	if (!otg)
-+		return -ENODEV;
-+
-+	isp = container_of(otg->phy, struct isp1301, phy);
-+	if (isp != the_transceiver || isp->phy.state != OTG_STATE_B_IDLE)
- 		return -ENODEV;
- 
- 	otg_ctrl = omap_readl(OTG_CTRL);
-@@ -1443,10 +1454,13 @@ static int
- isp1301_start_hnp(struct usb_otg *otg)
- {
- #ifdef	CONFIG_USB_OTG
--	struct isp1301	*isp = container_of(otg->phy, struct isp1301, phy);
-+	struct isp1301 *isp;
- 	u32 l;
- 
--	if (!otg || isp != the_transceiver)
-+	if (!otg)
-+		return -ENODEV;
-+	isp = container_of(otg->phy, struct isp1301, phy);
-+	if (isp != the_transceiver)
- 		return -ENODEV;
- 	if (otg->default_a && (otg->host == NULL || !otg->host->b_hnp_enable))
- 		return -ENOTCONN;
+-- 
+1.7.10.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
