@@ -1,42 +1,40 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] ARM: OMAP: convert I2C driver to PM QoS for MPU latency constraints
-Date: Mon, 8 Oct 2012 11:00:46 +0200
-Message-ID: <CAORVsuWv1HmaiYxfJVr1h5_r_+UHxXLVeLoVmH4RuO5egZoqqA@mail.gmail.com>
-References: <1348157283-24119-1-git-send-email-j-pihet@ti.com>
-	<20121006114614.GB10164@pengutronix.de>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 00/16] More omap plat header cleanup for v3.8 merge window
+Date: Mon, 8 Oct 2012 14:54:13 +0530
+Message-ID: <50729BBD.2070009@ti.com>
+References: <20121004213950.26676.21898.stgit@muffinssi.local> <50729461.8090504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:45876 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733Ab2JHJAs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 05:00:48 -0400
-Received: by mail-lb0-f174.google.com with SMTP id n3so2766737lbo.19
-        for <linux-omap@vger.kernel.org>; Mon, 08 Oct 2012 02:00:46 -0700 (PDT)
-In-Reply-To: <20121006114614.GB10164@pengutronix.de>
+Received: from comal.ext.ti.com ([198.47.26.152]:39559 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750820Ab2JHJYU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Oct 2012 05:24:20 -0400
+In-Reply-To: <50729461.8090504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>, linux-i2c@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, Oct 6, 2012 at 1:46 PM, Wolfram Sang <w.sang@pengutronix.de> wrote:
-> On Thu, Sep 20, 2012 at 06:08:03PM +0200, Jean Pihet wrote:
->> Convert the driver from the outdated omap_pm_set_max_mpu_wakeup_lat
->> API to the new PM QoS API.
->> Since the constraint is on the MPU subsystem, use the PM_QOS_CPU_DMA_LATENCY
->> class of PM QoS. The resulting MPU constraints are used by cpuidle to
->> decide the next power state of the MPU subsystem.
->>
->> The I2C device latency timing is derived from the FIFO size and the
->> clock speed and so is applicable to all OMAP SoCs.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+On Monday 08 October 2012 02:22 PM, Santosh Shilimkar wrote:
+> Tony,
 >
-> Applied to -next, thanks!
-Thanks!
+> On Friday 05 October 2012 03:34 AM, Tony Lindgren wrote:
+>> Hi all,
+>>
+>> Here are some more patches for early merging after -rc1 for v3.8
+>> merge window to remove more plat includes for the ARM common
+>> zImage support. These are based on top of current linux next +
+>> kevin's cpufreq fixes.
+>>
+> Have scanned the series and movement looks fine. For the SRAM movement,
+> I just wanted to to check if the builds are fine with errata WA enabled
+> for OMAP4. Do you have a branch where you are stacking up these patches?
+>
+Found the branch 'tmp-testing-header-cleanup' which had these patches.
+Did few build test along with the errata related build. No issues seen.
 
-Jean
->
-> --
-> Pengutronix e.K.                           | Wolfram Sang                |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Feel free to add my ack for the series.
+
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
