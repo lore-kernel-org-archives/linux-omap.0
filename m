@@ -1,291 +1,286 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/2] OMAP: VRFB: convert vrfb to platform device
-Date: Mon,  8 Oct 2012 15:30:28 +0300
-Message-ID: <1349699429-12736-1-git-send-email-tomi.valkeinen@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:56584 "EHLO
-	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752079Ab2JHMap (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 08:30:45 -0400
-Received: by mail-lb0-f174.google.com with SMTP id n3so2900634lbo.19
-        for <linux-omap@vger.kernel.org>; Mon, 08 Oct 2012 05:30:41 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Florian Fainelli <florian@openwrt.org>
+Subject: [PATCH 15/32 v3] USB: ohci: merge ohci_finish_controller_resume with
+ ohci_resume
+Date: Mon,  8 Oct 2012 15:11:29 +0200
+Message-ID: <1349701906-16481-16-git-send-email-florian@openwrt.org>
+References: <1349701906-16481-1-git-send-email-florian@openwrt.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1349701906-16481-1-git-send-email-florian@openwrt.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: stern@rowland.harvard.edu
+Cc: Kukjin Kim <kgene.kim@samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Lennert Buytenhek <kernel@wantstofly.org>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, Florian Fainelli <florian@openwrt.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-This patch converts vrfb library into a platform device, in an effort to
-remove omap dependencies.
+Merge ohci_finish_controller_resume with ohci_resume as suggested by Alan
+Stern. Since ohci_finish_controller_resume no longer exists, update the
+various OHCI drivers to call ohci_resume() instead. Some drivers used to set
+themselves the bit HCD_FLAG_HW_ACCESSIBLE, which is now handled by
+ohci_resume().
 
-The platform device is registered in arch/arm/plat-omap/fb.c and
-assigned resources depending on whether running on omap2 or omap3.
-
-The vrfb driver will parse those resources and use them to access vrfb
-configuration registers and the vrfb virtual rotation areas.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Signed-off-by: Florian Fainelli <florian@openwrt.org>
 ---
- arch/arm/plat-omap/fb.c    |   53 +++++++++++++++++++
- drivers/video/omap2/vrfb.c |  124 +++++++++++++++++++++++++++++++++++++-------
- 2 files changed, 157 insertions(+), 20 deletions(-)
+Changes in v3:
+- rebased against greg's latest usb-next
 
-diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
-index dd6f92c..d231912 100644
---- a/arch/arm/plat-omap/fb.c
-+++ b/arch/arm/plat-omap/fb.c
-@@ -35,6 +35,59 @@
+Changes in v2:
+- added Nicolas and Jingoo's Acked-by
+
+ drivers/usb/host/ohci-at91.c     |    2 +-
+ drivers/usb/host/ohci-ep93xx.c   |    2 +-
+ drivers/usb/host/ohci-exynos.c   |    5 +----
+ drivers/usb/host/ohci-hcd.c      |   41 +++++++++++++++++++++++++++++++++++--
+ drivers/usb/host/ohci-hub.c      |   42 --------------------------------------
+ drivers/usb/host/ohci-omap.c     |    2 +-
+ drivers/usb/host/ohci-platform.c |    2 +-
+ drivers/usb/host/ohci-pxa27x.c   |    2 +-
+ drivers/usb/host/ohci-s3c2410.c  |    3 +--
+ drivers/usb/host/ohci-spear.c    |    2 +-
+ drivers/usb/host/ohci-tmio.c     |    2 +-
+ 11 files changed, 48 insertions(+), 57 deletions(-)
+
+diff --git a/drivers/usb/host/ohci-at91.c b/drivers/usb/host/ohci-at91.c
+index 0bf72f9..908d84a 100644
+--- a/drivers/usb/host/ohci-at91.c
++++ b/drivers/usb/host/ohci-at91.c
+@@ -705,7 +705,7 @@ static int ohci_hcd_at91_drv_resume(struct platform_device *pdev)
+ 	if (!clocked)
+ 		at91_start_clock();
  
- #include <plat/board.h>
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ #else
+diff --git a/drivers/usb/host/ohci-ep93xx.c b/drivers/usb/host/ohci-ep93xx.c
+index dbfbd1d..a982f04 100644
+--- a/drivers/usb/host/ohci-ep93xx.c
++++ b/drivers/usb/host/ohci-ep93xx.c
+@@ -194,7 +194,7 @@ static int ohci_hcd_ep93xx_drv_resume(struct platform_device *pdev)
  
-+#if defined(CONFIG_OMAP2_VRFB)
-+static const struct resource omap2_vrfb_resources[] = {
-+	DEFINE_RES_MEM(0x68008000u, 0x40),
-+	DEFINE_RES_MEM(0x70000000u, 0x4000000),
-+	DEFINE_RES_MEM(0x74000000u, 0x4000000),
-+	DEFINE_RES_MEM(0x78000000u, 0x4000000),
-+	DEFINE_RES_MEM(0x7c000000u, 0x4000000),
-+};
-+
-+static const struct resource omap3_vrfb_resources[] = {
-+	DEFINE_RES_MEM(0x6C000180u, 0xc0),
-+	DEFINE_RES_MEM(0x70000000u, 0x4000000),
-+	DEFINE_RES_MEM(0x74000000u, 0x4000000),
-+	DEFINE_RES_MEM(0x78000000u, 0x4000000),
-+	DEFINE_RES_MEM(0x7c000000u, 0x4000000),
-+	DEFINE_RES_MEM(0xe0000000u, 0x4000000),
-+	DEFINE_RES_MEM(0xe4000000u, 0x4000000),
-+	DEFINE_RES_MEM(0xe8000000u, 0x4000000),
-+	DEFINE_RES_MEM(0xec000000u, 0x4000000),
-+	DEFINE_RES_MEM(0xf0000000u, 0x4000000),
-+	DEFINE_RES_MEM(0xf4000000u, 0x4000000),
-+	DEFINE_RES_MEM(0xf8000000u, 0x4000000),
-+	DEFINE_RES_MEM(0xfc000000u, 0x4000000),
-+};
-+
-+static int __init omap_init_vrfb(void)
-+{
-+	struct platform_device *pdev;
-+	const struct resource *res;
-+	unsigned int num_res;
-+
-+	if (cpu_is_omap24xx()) {
-+		res = omap2_vrfb_resources;
-+		num_res = ARRAY_SIZE(omap2_vrfb_resources);
-+	} else if (cpu_is_omap34xx()) {
-+		res = omap3_vrfb_resources;
-+		num_res = ARRAY_SIZE(omap3_vrfb_resources);
-+	} else {
-+		return 0;
-+	}
-+
-+	pdev = platform_device_register_resndata(NULL, "omapvrfb", -1,
-+			res, num_res, NULL, 0);
-+
-+	if (IS_ERR(pdev))
-+		return PTR_ERR(pdev);
-+	else
-+		return 0;
-+}
-+
-+arch_initcall(omap_init_vrfb);
-+#endif
-+
- #if defined(CONFIG_FB_OMAP) || defined(CONFIG_FB_OMAP_MODULE)
+ 	ep93xx_start_hc(&pdev->dev);
  
- static bool omapfb_lcd_configured;
-diff --git a/drivers/video/omap2/vrfb.c b/drivers/video/omap2/vrfb.c
-index 7e99022..c072e37 100644
---- a/drivers/video/omap2/vrfb.c
-+++ b/drivers/video/omap2/vrfb.c
-@@ -26,9 +26,9 @@
- #include <linux/io.h>
- #include <linux/bitops.h>
- #include <linux/mutex.h>
-+#include <linux/platform_device.h>
- 
- #include <plat/vrfb.h>
--#include <plat/sdrc.h>
- 
- #ifdef DEBUG
- #define DBG(format, ...) pr_debug("VRFB: " format, ## __VA_ARGS__)
-@@ -36,10 +36,10 @@
- #define DBG(format, ...)
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
  #endif
+diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-exynos.c
+index 20a5008..929a494 100644
+--- a/drivers/usb/host/ohci-exynos.c
++++ b/drivers/usb/host/ohci-exynos.c
+@@ -252,10 +252,7 @@ static int exynos_ohci_resume(struct device *dev)
+ 	if (pdata && pdata->phy_init)
+ 		pdata->phy_init(pdev, S5P_USB_PHY_HOST);
  
--#define SMS_ROT_VIRT_BASE(context, rot) \
--	(((context >= 4) ? 0xD0000000 : 0x70000000) \
--	 + (0x4000000 * (context)) \
--	 + (0x1000000 * (rot)))
-+#define SMS_ROT_CONTROL(context)	(0x0 + 0x10 * context)
-+#define SMS_ROT_SIZE(context)		(0x4 + 0x10 * context)
-+#define SMS_ROT_PHYSICAL_BA(context)	(0x8 + 0x10 * context)
-+#define SMS_ROT_VIRT_BASE(rot)		(0x1000000 * (rot))
+-	/* Mark hardware accessible again as we are out of D3 state by now */
+-	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
+-
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
  
- #define OMAP_VRFB_SIZE			(2048 * 2048 * 4)
+ 	return 0;
+ }
+diff --git a/drivers/usb/host/ohci-hcd.c b/drivers/usb/host/ohci-hcd.c
+index 31a4616..8e17f17 100644
+--- a/drivers/usb/host/ohci-hcd.c
++++ b/drivers/usb/host/ohci-hcd.c
+@@ -1007,13 +1007,50 @@ static int __maybe_unused ohci_suspend(struct usb_hcd *hcd, bool do_wakeup)
  
-@@ -53,10 +53,16 @@
- #define SMS_PW_OFFSET		4
- #define SMS_PS_OFFSET		0
- 
--#define VRFB_NUM_CTXS 12
- /* bitmap of reserved contexts */
- static unsigned long ctx_map;
- 
-+struct vrfb_ctx {
-+	u32 base;
-+	u32 physical_ba;
-+	u32 control;
-+	u32 size;
-+};
-+
- static DEFINE_MUTEX(ctx_lock);
- 
- /*
-@@ -65,17 +71,32 @@ static DEFINE_MUTEX(ctx_lock);
-  * we don't need locking, since no drivers will run until after the wake-up
-  * has finished.
-  */
--static struct {
--	u32 physical_ba;
--	u32 control;
--	u32 size;
--} vrfb_hw_context[VRFB_NUM_CTXS];
-+
-+static void __iomem *vrfb_base;
-+
-+static int num_ctxs;
-+static struct vrfb_ctx *ctxs;
-+
-+static void omap2_sms_write_rot_control(u32 val, unsigned ctx)
-+{
-+	__raw_writel(val, vrfb_base + SMS_ROT_CONTROL(ctx));
-+}
-+
-+static void omap2_sms_write_rot_size(u32 val, unsigned ctx)
-+{
-+	__raw_writel(val, vrfb_base + SMS_ROT_SIZE(ctx));
-+}
-+
-+static void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx)
-+{
-+	__raw_writel(val, vrfb_base + SMS_ROT_PHYSICAL_BA(ctx));
-+}
- 
- static inline void restore_hw_context(int ctx)
+ static int __maybe_unused ohci_resume(struct usb_hcd *hcd, bool hibernated)
  {
--	omap2_sms_write_rot_control(vrfb_hw_context[ctx].control, ctx);
--	omap2_sms_write_rot_size(vrfb_hw_context[ctx].size, ctx);
--	omap2_sms_write_rot_physical_ba(vrfb_hw_context[ctx].physical_ba, ctx);
-+	omap2_sms_write_rot_control(ctxs[ctx].control, ctx);
-+	omap2_sms_write_rot_size(ctxs[ctx].size, ctx);
-+	omap2_sms_write_rot_physical_ba(ctxs[ctx].physical_ba, ctx);
- }
++	struct ohci_hcd		*ohci = hcd_to_ohci(hcd);
++	int			port;
++	bool			need_reinit = false;
++
+ 	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
  
- static u32 get_image_width_roundup(u16 width, u8 bytespp)
-@@ -196,9 +217,9 @@ void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
- 	control |= VRFB_PAGE_WIDTH_EXP  << SMS_PW_OFFSET;
- 	control |= VRFB_PAGE_HEIGHT_EXP << SMS_PH_OFFSET;
- 
--	vrfb_hw_context[ctx].physical_ba = paddr;
--	vrfb_hw_context[ctx].size = size;
--	vrfb_hw_context[ctx].control = control;
-+	ctxs[ctx].physical_ba = paddr;
-+	ctxs[ctx].size = size;
-+	ctxs[ctx].control = control;
- 
- 	omap2_sms_write_rot_physical_ba(paddr, ctx);
- 	omap2_sms_write_rot_size(size, ctx);
-@@ -274,11 +295,11 @@ int omap_vrfb_request_ctx(struct vrfb *vrfb)
- 
- 	mutex_lock(&ctx_lock);
- 
--	for (ctx = 0; ctx < VRFB_NUM_CTXS; ++ctx)
-+	for (ctx = 0; ctx < num_ctxs; ++ctx)
- 		if ((ctx_map & (1 << ctx)) == 0)
- 			break;
- 
--	if (ctx == VRFB_NUM_CTXS) {
-+	if (ctx == num_ctxs) {
- 		pr_err("vrfb: no free contexts\n");
- 		r = -EBUSY;
- 		goto out;
-@@ -293,7 +314,7 @@ int omap_vrfb_request_ctx(struct vrfb *vrfb)
- 	vrfb->context = ctx;
- 
- 	for (rot = 0; rot < 4; ++rot) {
--		paddr = SMS_ROT_VIRT_BASE(ctx, rot);
-+		paddr = ctxs[ctx].base + SMS_ROT_VIRT_BASE(rot);
- 		if (!request_mem_region(paddr, OMAP_VRFB_SIZE, "vrfb")) {
- 			pr_err("vrfb: failed to reserve VRFB "
- 					"area for ctx %d, rotation %d\n",
-@@ -314,3 +335,66 @@ out:
- 	return r;
- }
- EXPORT_SYMBOL(omap_vrfb_request_ctx);
+ 	/* Make sure resume from hibernation re-enumerates everything */
+ 	if (hibernated)
+-		ohci_usb_reset(hcd_to_ohci(hcd));
++		ohci_usb_reset(ohci);
 +
-+static int __init vrfb_probe(struct platform_device *pdev)
-+{
-+	struct resource *mem;
-+	int i;
-+
-+	/* first resource is the register res, the rest are vrfb contexts */
-+
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!mem) {
-+		dev_err(&pdev->dev, "can't get vrfb base address\n");
-+		return -EINVAL;
-+	}
-+
-+	vrfb_base = devm_ioremap(&pdev->dev, mem->start, resource_size(mem));
-+	if (!vrfb_base) {
-+		dev_err(&pdev->dev, "can't ioremap vrfb memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	num_ctxs = pdev->num_resources - 1;
-+
-+	ctxs = devm_kzalloc(&pdev->dev,
-+			sizeof(struct vrfb_ctx) * num_ctxs,
-+			GFP_KERNEL);
-+
-+	if (!ctxs)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < num_ctxs; ++i) {
-+		mem = platform_get_resource(pdev, IORESOURCE_MEM, 1 + i);
-+		if (!mem) {
-+			dev_err(&pdev->dev, "can't get vrfb ctx %d address\n",
-+					i);
-+			return -EINVAL;
++	/* See if the controller is already running or has been reset */
++	ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
++	if (ohci->hc_control & (OHCI_CTRL_IR | OHCI_SCHED_ENABLES)) {
++		need_reinit = true;
++	} else {
++		switch (ohci->hc_control & OHCI_CTRL_HCFS) {
++		case OHCI_USB_OPER:
++		case OHCI_USB_RESET:
++			need_reinit = true;
 +		}
-+
-+		ctxs[i].base = mem->start;
 +	}
 +
-+	return 0;
-+}
++	/* If needed, reinitialize and suspend the root hub */
++	if (need_reinit) {
++		spin_lock_irq(&ohci->lock);
++		ohci_rh_resume(ohci);
++		ohci_rh_suspend(ohci, 0);
++		spin_unlock_irq(&ohci->lock);
++	}
 +
-+static struct platform_driver vrfb_driver = {
-+	.driver.name	= "omapvrfb",
-+};
++	/* Normally just turn on port power and enable interrupts */
++	else {
++		ohci_dbg(ohci, "powerup ports\n");
++		for (port = 0; port < ohci->num_ports; port++)
++			ohci_writel(ohci, RH_PS_PPS,
++					&ohci->regs->roothub.portstatus[port]);
 +
-+static int __init vrfb_init(void)
-+{
-+	return platform_driver_probe(&vrfb_driver, &vrfb_probe);
-+}
++		ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrenable);
++		ohci_readl(ohci, &ohci->regs->intrenable);
++		msleep(20);
++	}
 +
-+static void __exit vrfb_exit(void)
-+{
-+	platform_driver_unregister(&vrfb_driver);
-+}
-+
-+module_init(vrfb_init);
-+module_exit(vrfb_exit);
-+
-+MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@ti.com>");
-+MODULE_DESCRIPTION("OMAP VRFB");
-+MODULE_LICENSE("GPL v2");
++	usb_hcd_resume_root_hub(hcd);
+ 
+-	ohci_finish_controller_resume(hcd);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/host/ohci-hub.c b/drivers/usb/host/ohci-hub.c
+index 2f3619e..db09dae 100644
+--- a/drivers/usb/host/ohci-hub.c
++++ b/drivers/usb/host/ohci-hub.c
+@@ -316,48 +316,6 @@ static int ohci_bus_resume (struct usb_hcd *hcd)
+ 	return rc;
+ }
+ 
+-/* Carry out the final steps of resuming the controller device */
+-static void __maybe_unused ohci_finish_controller_resume(struct usb_hcd *hcd)
+-{
+-	struct ohci_hcd		*ohci = hcd_to_ohci(hcd);
+-	int			port;
+-	bool			need_reinit = false;
+-
+-	/* See if the controller is already running or has been reset */
+-	ohci->hc_control = ohci_readl(ohci, &ohci->regs->control);
+-	if (ohci->hc_control & (OHCI_CTRL_IR | OHCI_SCHED_ENABLES)) {
+-		need_reinit = true;
+-	} else {
+-		switch (ohci->hc_control & OHCI_CTRL_HCFS) {
+-		case OHCI_USB_OPER:
+-		case OHCI_USB_RESET:
+-			need_reinit = true;
+-		}
+-	}
+-
+-	/* If needed, reinitialize and suspend the root hub */
+-	if (need_reinit) {
+-		spin_lock_irq(&ohci->lock);
+-		ohci_rh_resume(ohci);
+-		ohci_rh_suspend(ohci, 0);
+-		spin_unlock_irq(&ohci->lock);
+-	}
+-
+-	/* Normally just turn on port power and enable interrupts */
+-	else {
+-		ohci_dbg(ohci, "powerup ports\n");
+-		for (port = 0; port < ohci->num_ports; port++)
+-			ohci_writel(ohci, RH_PS_PPS,
+-					&ohci->regs->roothub.portstatus[port]);
+-
+-		ohci_writel(ohci, OHCI_INTR_MIE, &ohci->regs->intrenable);
+-		ohci_readl(ohci, &ohci->regs->intrenable);
+-		msleep(20);
+-	}
+-
+-	usb_hcd_resume_root_hub(hcd);
+-}
+-
+ /* Carry out polling-, autostop-, and autoresume-related state changes */
+ static int ohci_root_hub_state_changes(struct ohci_hcd *ohci, int changed,
+ 		int any_connected, int rhsc_status)
+diff --git a/drivers/usb/host/ohci-omap.c b/drivers/usb/host/ohci-omap.c
+index 4531d03..733c77c 100644
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -530,7 +530,7 @@ static int ohci_omap_resume(struct platform_device *dev)
+ 	ohci->next_statechange = jiffies;
+ 
+ 	omap_ohci_clock_power(1);
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
+index 1caaf65..99d1755 100644
+--- a/drivers/usb/host/ohci-platform.c
++++ b/drivers/usb/host/ohci-platform.c
+@@ -203,7 +203,7 @@ static int ohci_platform_resume(struct device *dev)
+ 			return err;
+ 	}
+ 
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/host/ohci-pxa27x.c b/drivers/usb/host/ohci-pxa27x.c
+index 2bf1144..156d289 100644
+--- a/drivers/usb/host/ohci-pxa27x.c
++++ b/drivers/usb/host/ohci-pxa27x.c
+@@ -591,7 +591,7 @@ static int ohci_hcd_pxa27x_drv_resume(struct device *dev)
+ 	/* Select Power Management Mode */
+ 	pxa27x_ohci_select_pmm(ohci, inf->port_mode);
+ 
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/usb/host/ohci-s3c2410.c b/drivers/usb/host/ohci-s3c2410.c
+index 0d2309c..281d5c6 100644
+--- a/drivers/usb/host/ohci-s3c2410.c
++++ b/drivers/usb/host/ohci-s3c2410.c
+@@ -524,8 +524,7 @@ static int ohci_hcd_s3c2410_drv_resume(struct device *dev)
+ 
+ 	s3c2410_start_hc(pdev, hcd);
+ 
+-	set_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/usb/host/ohci-spear.c b/drivers/usb/host/ohci-spear.c
+index fc7305e..d607be3 100644
+--- a/drivers/usb/host/ohci-spear.c
++++ b/drivers/usb/host/ohci-spear.c
+@@ -231,7 +231,7 @@ static int spear_ohci_hcd_drv_resume(struct platform_device *dev)
+ 	ohci->next_statechange = jiffies;
+ 
+ 	spear_start_ohci(ohci_p);
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 	return 0;
+ }
+ #endif
+diff --git a/drivers/usb/host/ohci-tmio.c b/drivers/usb/host/ohci-tmio.c
+index 60c2b07..2c9ab8f 100644
+--- a/drivers/usb/host/ohci-tmio.c
++++ b/drivers/usb/host/ohci-tmio.c
+@@ -352,7 +352,7 @@ static int ohci_hcd_tmio_drv_resume(struct platform_device *dev)
+ 
+ 	spin_unlock_irqrestore(&tmio->lock, flags);
+ 
+-	ohci_finish_controller_resume(hcd);
++	ohci_resume(hcd, false);
+ 
+ 	return 0;
+ }
 -- 
 1.7.9.5
-
