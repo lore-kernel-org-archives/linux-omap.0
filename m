@@ -1,49 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP: resolve sparse warning concerning
- debug_card_init()
-Date: Tue, 9 Oct 2012 20:29:16 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210092028080.5736@utopia.booyaka.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv2 1/3] OMAP: VRFB: convert vrfb to platform device
+Date: Tue, 09 Oct 2012 13:37:34 -0700
+Message-ID: <87fw5n1iwh.fsf@deeprootsystems.com>
+References: <1349785827-27055-1-git-send-email-tomi.valkeinen@ti.com>
+	<1349785827-27055-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:58543 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927Ab2JIU3R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 16:29:17 -0400
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:38802 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752391Ab2JIUhf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 16:37:35 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so5588697pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 13:37:35 -0700 (PDT)
+In-Reply-To: <1349785827-27055-2-git-send-email-tomi.valkeinen@ti.com> (Tomi
+	Valkeinen's message of "Tue, 9 Oct 2012 15:30:24 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: tony@atomide.com, grinberg@compulab.co.il
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>
+
+Hi Tomi,
+
+Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+
+> This patch converts vrfb library into a platform device, in an effort to
+> remove omap dependencies.
+>
+> The platform device is registered in arch/arm/plat-omap/fb.c and
+> assigned resources depending on whether running on omap2 or omap3.
+>
+> The vrfb driver will parse those resources and use them to access vrfb
+> configuration registers and the vrfb virtual rotation areas.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+
+[...]
+
+I was having a quick look at this for the context save/restore piece in
+order to understand how this driver's context is being saved/restored.
+
+Looking at mainline, I don't see where omap_vrfb_restore_context() is
+being called currently.  Am I missing something?
+
+Kevin
 
 
-Commit 801475ccb2b2c1928b22aec4b9e5285d9e347602 ("ARM: OMAP: move
-debug_card_init() function") results in the following new sparse
-warning:
-
-arch/arm/plat-omap/debug-devices.c:71:12: warning: symbol 'debug_card_init' was not declared. Should it be static?
-
-Fix by implementing Tony's suggestion to add a "sideways include" to the
-new location of the debug-devices.h file in arch/arm/mach-omap2/.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/debug-devices.c |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/plat-omap/debug-devices.c b/arch/arm/plat-omap/debug-devices.c
-index c7a4c09..5a4678e 100644
---- a/arch/arm/plat-omap/debug-devices.c
-+++ b/arch/arm/plat-omap/debug-devices.c
-@@ -16,6 +16,7 @@
- #include <linux/smc91x.h>
- 
- #include <mach/hardware.h>
-+#include "../mach-omap2/debug-devices.h"
- 
- /* Many OMAP development platforms reuse the same "debug board"; these
-  * platforms include H2, H3, H4, and Perseus2.
--- 
-1.7.10.4
 
