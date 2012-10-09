@@ -1,61 +1,81 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: hwmod data: Add McASP data port address space
-Date: Tue, 9 Oct 2012 09:15:55 -0500
-Message-ID: <5074319B.10903@ti.com>
-References: <1348763614-4298-1-git-send-email-ricardo.neri@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP: warnings/hwmod/clock fixes for pre-3.7-rc1
+Date: Tue, 9 Oct 2012 16:03:59 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210091602390.5736@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40934 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752391Ab2JIOR4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Oct 2012 10:17:56 -0400
-In-Reply-To: <1348763614-4298-1-git-send-email-ricardo.neri@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:57774 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2JIQEA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 12:04:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com
-Cc: Ricardo Neri <ricardo.neri@ti.com>, tony@atomide.com, jon-hunter@ti.com, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Benoit,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Have you had a chance to look at this patch? Maybe you want me to submit 
-it differently or to a different list?
+The following changes since commit 0e51793e162ca432fc5f04178cf82b80a92c2659:
 
-Thanks!
+  Merge branch 'for-linus' of git://git.linaro.org/people/rmk/linux-arm (2012-10-07 21:20:57 +0900)
 
-Ricardo
+are available in the git repository at:
 
-On 09/27/2012 11:33 AM, Ricardo Neri wrote:
-> McASP has a configuration port and a data port. This patch adds the address
-> space entry for the data port as described in the OMAP4 TRM.
->
-> Also, add names to the address spaces.
->
-> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    6 ++++++
->   1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index f31f3bc..cb5b463 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -4951,10 +4951,16 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcasp = {
->
->   static struct omap_hwmod_addr_space omap44xx_mcasp_dma_addrs[] = {
->   	{
-> +		.name		= "cfg",
->   		.pa_start	= 0x49028000,
->   		.pa_end		= 0x490283ff,
->   		.flags		= ADDR_TYPE_RT
->   	},
-> +	{
-> +		.name		= "dat",
-> +		.pa_start	= 0x4902A000,
-> +		.pa_end		= 0x4902Afff,
-> +	},
->   	{ }
->   };
->
->
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-pre3.7
+
+for you to fetch changes up to e9332b6eed82973a8f75f1f3d57babaa331d703c:
+
+  ARM: OMAP4/AM335x: hwmod: fix disable_module regression in hardreset handling (2012-10-08 23:08:15 -0600)
+
+- ----------------------------------------------------------------
+Some OMAP fixes for the 3.7 merge window, fixing mismerges, branch
+integration issues, and bugs after the arm-soc merges.
+
+Basic test logs are available here:
+
+   http://www.pwsan.com/omap/testlogs/devel_late_fixes_3.7/20121009084003/
+
+N800 isn't booting; this is a problem present in the base commit and
+is due to serial driver breakage:
+
+   http://www.spinics.net/lists/arm-kernel/msg196034.html
+
+- ----------------------------------------------------------------
+Jon Hunter (2):
+      ARM: OMAP2+: hwmod data: Fix PMU interrupt definitions
+      ARM: OMAP3: fix workaround for EMU clockdomain
+
+Paul Walmsley (2):
+      ARM: OMAP: omap3evm: fix new sparse warning
+      ARM: OMAP4/AM335x: hwmod: fix disable_module regression in hardreset handling
+
+Vaibhav Hiremath (1):
+      ARM: am33xx: clk: Update clkdev table to add mcasp alias
+
+ arch/arm/mach-omap2/board-omap3evm.c               |    3 +-
+ arch/arm/mach-omap2/clock33xx_data.c               |    2 +
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c         |   44 ++++++++++----------
+ arch/arm/mach-omap2/omap_hwmod.c                   |   31 ++++++++++++--
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    2 +-
+ 6 files changed, 54 insertions(+), 30 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQdEqIAAoJEMePsQ0LvSpLjvYP/RlejvRetwDYUSpwjgre/xfz
+BA+we3wgi/wgZ3xbdlcFKfdj2l+jzLxspr1pt6MSFzZqJJVKPj1xgHCPJZe4QFX3
+waurd+p4OUcO7qKoLQo7up9nfzsI4vnxjyDXjEUCLjAaEq18qqMi4YQEdncotrZU
+hOL8yFE9ol6Ds2dLtTulnxMfqbMILa5ek+NSVWizbQbVPh8opklRQwRSbYmAgCze
+USY410kyP/WVXa1hern5UnyEo4nzVpXAFf4+3LVil05p/vWgB4i/JwUINAYNr1sr
+L1ells+x0z9RKybTNsrDxTQmwY8Jr+TyZJ3uikccFTpqo+TfwcfZN++Qrx+/0Q5z
+GCVB4dp2aH4QLas9yTFGp/3X2BiPx5AwKX9mqhnOR3peq1lBS1D9V+BTmKAHoY6n
+w2XzAF3jpE2qNLnxIym46TJYRHGrc1o6U0U5dHxjQZVx796rgUHEIZEfVznWj6lS
+GaU3b8YQKN3EPKbrdIQ2y5bVEf0SnLdiOjJo+tTVBGhQ7eiVMRN6btYt8Fod2Rlq
+TXleGmDGKUKI43omeALn2fJWgNrm1GIPSPU1aa3TMZQN7qa/FHyAimcY5QOqU+HT
+uCUmsSukw6oIfWvV8hyN/R7AovvqaKYpyPUvxOM09G/WnoRGahk3eFHpUcEGQGqD
+6PQY5o1skH1C4B++o0EL
+=Yvqo
+-----END PGP SIGNATURE-----
