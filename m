@@ -1,139 +1,132 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: omap DSS cmdline resolution not working for HDMI?
-Date: Tue, 09 Oct 2012 16:06:50 +0300
-Message-ID: <1349788010.2409.38.camel@deskari>
-References: <20121004175604.GE3874@atomide.com>
-	 <1349435094.2401.17.camel@deskari> <20121005164308.GM3874@atomide.com>
+From: Sourav <sourav.poddar@ti.com>
+Subject: Re: [RFC 00/24] OMAP serial driver flow control fixes, and preparation
+ for DMA engine conversion
+Date: Tue, 9 Oct 2012 19:04:18 +0530
+Message-ID: <507427DA.6020409@ti.com>
+References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-It76c9iLLx/ImG4+b9nG"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:35315 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753320Ab2JING6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 09:06:58 -0400
-Received: by mail-la0-f46.google.com with SMTP id h6so3008986lag.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 06:06:53 -0700 (PDT)
-In-Reply-To: <20121005164308.GM3874@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38198 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755675Ab2JINef (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Oct 2012 09:34:35 -0400
+In-Reply-To: <20121006123803.GD15246@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+
+Hi,
+
+On Saturday 06 October 2012 06:08 PM, Russell King - ARM Linux wrote:
+> Hi,
+>
+> This series of patches fixes multiple flow control issues with the OMAP
+> serial driver, and prepares the driver for DMA engine conversion.  We
+> require hardware assisted flow control to work properly for DMA support
+> otherwise we have no way to properly pause the transmitter.
+>
+> This is generated against v3.6, and has been developed mainly by testing
+> on the OMAP4430 SDP platform.
+>
+> Flow control seems to be really broken in the OMAP serial driver as things
+> stand today.  It just about works with software flow control because the
+> generic serial core layer is inserting those characters, but only when the
+> legacy DMA support is not being used.  Otherwise, flow control is
+> completely non-functional.
+>
+> Issues identified in the OMAP serial driver are:
+> - set_mctrl() can only assert modem control lines, once asserted it
+>    is not possible to deassert them.
+> - IXOFF controls sending of XON/XOFF characters, not the reception of
+>    these sequences.
+> - IXON controls the recognition of XON/XOFF characters, not the transmission
+>    of the same.
+> - Wrong bitmasks for hardware assisted software flow control.  Bit 2
+>    in EFR enables sending of XON2/XOFF2 which are never set.
+> - No point comparing received characters against XOFF2 ('special character
+>    detect') as XOFF2 is not set.
+> - Fix multiple places where bits 6 and 5 of MCR are attempted to be
+>    altered, but because EFR ECB is unset, these bits remain unaffected.
+>    This effectively prevents us accessing the right XON/XOFF/TCR/TLR
+>    registers.
+> - Remove unnecessary read-backs of EFR/MCR/LCR registers - these registers
+>    don't change beneath us, they are configuration registers which hold their
+>    values.  Not only does this simplify the code, but it makes it more
+>    readable, and more importantly ensures that we work from a consistent
+>    state where ->efr never has ECB set, and ->mcr never has the TCRTLR
+>    bit set.
+> - Fix disablement of hardware flow control and IXANY modes; once enabled
+>    these could never be disabled because nothing in the code ever clears
+>    these configuration bits.
+>
+> Once that lot is fixed, these patches expand serial_core to permit hardware
+> assisted flow control by:
+> - adding throttle/unthrottle callbacks into low level serial drivers,
+>    which allow them to take whatever action is necessary with hardware
+>    assisted flow control to throttle the remote end.  In the case of
+>    OMAP serial, this means disabling the RX interrupts so that the FIFO
+>    fills to the watermark.
+>
+> We then have a number of cleanups to the OMAP serial code to make the
+> set_termios() function clearer and less prone to the kinds of mistakes
+> identified above.  This results in a great simplification of the flow
+> control configuration code.
+>
+> The OMAP serial driver hacks around with the transmit buffer allocation;
+> lets clean that up so that drivers can cleanly allocate their transmitter
+> buffer using coherent memory if that's what they desire.
+>
+> Finally, the last few patches clean up the plat/omap-serial.h header file,
+> moving most of its contents into the OMAP serial driver itself.  Most of
+> this is private to the OMAP serial driver and should never have been
+> shared with anything else.
+>
+> I have omitted to include the conversion of the transmit paths to DMA
+> engine.  Even with all the above fixed, it has issues when DMA transmit
+> is in progress, and a program issues a TCSETS call (as `less' does after
+> it has written its prompt.)  At the moment, this causes lots of junk to
+> be emitted from the serial port when issuing `dmesg | less' which sometimes
+> brings the port to a complete halt.
+>
+> As the OMAP DMA hardware does not have a clean pause when performing a
+> MEM->DEV transfer (it discards its FIFO) I do not see a solution to this,
+> which probably means that we can _not_ ever support transmit DMA on OMAP
+> platforms.
+>
+> This means the xmit buffer allocation patches are not that useful unless
+> a solution to that can be found.
+>
+> Now, the remaining question is, how much of this patch set do we think
+> about merging, and when.  Given that flow control in this driver has been
+> broken for a very long time, and no one has apparantly noticed, I don't
+> think there's any urgency to this, so given its size, my preference would
+> be to queue it up for the next merge window.  The thing that would worry
+> me about applying some of the initial patches is that they may change
+> the behaviour today and make any problems here more visible.
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Boot Tested this patch series against v3.6 tag(applied cleanly) on panda 
+board and
+PM tested(hitting off in Idle and suspend) on omap3630 based beagle board.
+
+Note, I also tested the patches against the current master but only 
+after rebasing, since the current master includes serial patches from 
+Felipe Balbi[1].
+[1] https://lkml.org/lkml/2012/8/24/139
+
+Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+
+Thanks,
+Sourav
 
 
---=-It76c9iLLx/ImG4+b9nG
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2012-10-05 at 09:43 -0700, Tony Lindgren wrote:
-
-> Looks like somehow also output_size won't change when changing
-> display output from DVI to HDMI.
->=20
-> If I boot with DVI panel at 1600x1200, then try to switch to the
-> HDMI monitor with the following script:
->=20
-> #!/bin/sh
->=20
-> export dvi=3Ddisplay0
-> export hdmi=3Ddisplay1
-> export overlay=3Doverlay0
->=20
-> echo 0 > /sys/devices/platform/omapdss/$dvi/enabled
-> echo 1 > /sys/devices/platform/omapdss/$hdmi/enabled
-> echo "85500,1366/70/213/143,768/3/24/3" > /sys/devices/platform/omapdss/$=
-hdmi/timings
-> echo 0 > /sys/devices/platform/omapdss/$overlay/enabled
-> echo tv > /sys/devices/platform/omapdss/$overlay/manager
-> #echo "1366,768" > /sys/devices/platform/omapdss/$overlay/output_size
-> echo 1 > /sys/devices/platform/omapdss/$overlay/enabled
-> cat /sys/devices/platform/omapdss/$hdmi/timings
-> cat /sys/devices/platform/omapdss/$overlay/output_size
->=20
-> I get the following which may provide more clues:
->=20
-> [64370.820312] omapdss DISPC error: SYNC_LOST on channel tv, restarting t=
-he output with video overlays dd
-> [64370.831024] omapdss OVERLAY error: overlay 0 horizontally not inside t=
-he display area (0 + 1600 >=3D 13)
-> [64370.840972] omapdss APPLY error: failed to enable manager 1: check_set=
-tings failed
-> [64370.849670] omapdss HDMI error: failed to power on device
-> [64370.855407] omapdss error: failed to power on
-> [64370.862487] omapdss OVERLAY error: overlay 0 horizontally not inside t=
-he display area (0 + 1600 >=3D 13)
-> [64370.872436] omapdss APPLY error: failed to enable manager 1: check_set=
-tings failed
-> [64370.880798] omapdss HDMI error: failed to power on device
-> [64370.886505] omapdss error: failed to power on
-> 85500,1366/70/213/143,768/3/24/3
-> 1600,1200
-
-Well, it's not that simple =3D). There are three things to consider:
-
-- Framebuffer in the sdram. It has xres and yres parameters.
-- Overlay, and it's input size (from fb) and output sizes (must fit into
-the display).
-- Display, which has certain size depending on video mode.
-
-Only VID overlays can have different input and output sizes, GFX overlay
-does not support scaling.
-
-In the script above you don't change the fb at all. You can do that with
-when the overlay is disabled, for example:
-
-fbset -xres 1366 -vxres 1366 -yres 768 -vyres 768
-
-But that only works if there's enough memory allocated for the
-framebuffer, but that is the case for you if the fb was bigger
-initially. Otherwise you need to set the new size
-with /sys/class/graphics/fb0/size before resizing the fb.
-
-And, of course, the framebuffer cannot be in use at that time by, for
-example, X.
-
-Yes, it's complex! I hope omapdrm will make all things simple, and we
-can forget omapfb. In hindsight, I should've designed omapfb to be much
-simpler, and only use gfx overlay. Making it support all overlays is a
-never ending source for problems and complexity.
-
-> FYI, I'm also seeing the DVI monitor blank out on it's own for
-> about a second or so on regular basis every 10 minutes or so.
-> No idea what's causing that, maybe it's a reminder to take
-> a short break :)
-
-Well that's something different. I've recently done some testing with
-using DSI PLL for generating pixel clock, and I've seen unstabilities
-with that. But perhaps there's something else wrong also, even when
-using the PRCM for pix clock as in your case.
-
-Does your monitor ever report something like bad signal or such?
-
- Tomi
 
 
---=-It76c9iLLx/ImG4+b9nG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQdCFqAAoJEPo9qoy8lh71i7sP/jhwbEbMnwl9b9359nj+3hTd
-yScTUEEx7REsFFI/8s/RrvyT/fqHE4om8u3riyJEZCjZQfDmmEFh7PUU6cg0BhA+
-B4hFulxlI4D1U1n+REvMyMjRd71EO7qbB8c2RHpVJmP/rm/7WBhOH4qLZgV//Aj+
-DnkXpgcT0ssKWm3kUX3N4TaXy6uPm+qyMRMH4pW0wTu96UDzaoK4ctoMRU2YpSr0
-Mk8Hgg+Xfoi24ELw5t1Pnj7mUiGyt8TxPvluyw4PYZqsjzZrJxzVXMYmmH61hzGy
-yUk3pNXFwvysBTDjmvYSwhRP+DTBDoi1MH/ynlR8oUsMoNB4XOhRVhqFcJOpGns4
-DtDX58EvT0cAVzfj/NSF7G88BNi4BRIxQKLbpzp5ZbqxchBHZ7Jgp8EtklJWkqNf
-h5huvA9dO8GjtuYldyMw2U17i4tesiWKhsDeecycu+Do1lOB2HDdfYvIQAJxDRbr
-ZHLzArkxN2/f7e9/xrGYa07TgLRM26MZzZ6MOUTh/I66/sKmNhxJSLUIV0zbyZSd
-HNI8Z49P50H0Skux/3kpHXMCrxnrVxCm7+lS+r399YsqDO5pOYnvN4LoJvHQ5RSm
-9zyEGL5Z8AiHlp0bGfPJbnkNopGojSSN1L2Mc/PygitRkY+u7vk/j+VgNCI9gQv/
-6vgJguCEw8DZ/EYHSNTL
-=kGBW
------END PGP SIGNATURE-----
-
---=-It76c9iLLx/ImG4+b9nG--
 
