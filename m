@@ -1,81 +1,101 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP: warnings/hwmod/clock fixes for pre-3.7-rc1
-Date: Tue, 9 Oct 2012 16:03:59 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210091602390.5736@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/5] omap fixes for v3.7-rc1
+Date: Tue, 9 Oct 2012 11:46:25 -0700
+Message-ID: <30588.9501855292$1349808412@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57774 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab2JIQEA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 12:04:00 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:30012 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755078Ab2JISqc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 14:46:32 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+The following changes since commit 5e090ed7af10729a396a25df43d69a236e789736:
 
-The following changes since commit 0e51793e162ca432fc5f04178cf82b80a92c2659:
-
-  Merge branch 'for-linus' of git://git.linaro.org/people/rmk/linux-arm (2012-10-07 21:20:57 +0900)
+  Merge tag 'soc-late' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2012-10-07 20:55:16 +0900)
 
 are available in the git repository at:
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-pre3.7
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc1/fixes-signed
 
-for you to fetch changes up to e9332b6eed82973a8f75f1f3d57babaa331d703c:
+for you to fetch changes up to 224cd7115abb5b05a5d665551452c271449ce80b:
 
-  ARM: OMAP4/AM335x: hwmod: fix disable_module regression in hardreset handling (2012-10-08 23:08:15 -0600)
+  arm/omap: Replace board_ref_clock with enum values (2012-10-08 18:09:30 -0700)
 
-- ----------------------------------------------------------------
-Some OMAP fixes for the 3.7 merge window, fixing mismerges, branch
-integration issues, and bugs after the arm-soc merges.
+----------------------------------------------------------------
+This branch contains one counter locking fix and an
+alignment fix. Other fixes are warning fixes, fixes
+for return value checks.
 
-Basic test logs are available here:
+I've also included removal of some extra semicolons,
+dropping of some duplicate includes, and an a change
+for wl12xx enumeration that are not strictly fixes
+but would be good to get out of the way for -rc1.
 
-   http://www.pwsan.com/omap/testlogs/devel_late_fixes_3.7/20121009084003/
+----------------------------------------------------------------
+Afzal Mohammed (1):
+      ARM: OMAP2+: gpmc: annotate exit sections properly
 
-N800 isn't booting; this is a problem present in the base commit and
-is due to serial driver breakage:
+Axel Lin (1):
+      ARM: OMAP: OMAP_DEBUG_LEDS needs to select LEDS_CLASS
 
-   http://www.spinics.net/lists/arm-kernel/msg196034.html
+Colin Cross (1):
+      ARM: OMAP: counter: add locking to read_persistent_clock
 
-- ----------------------------------------------------------------
-Jon Hunter (2):
-      ARM: OMAP2+: hwmod data: Fix PMU interrupt definitions
-      ARM: OMAP3: fix workaround for EMU clockdomain
+Peter Senna Tschudin (3):
+      arch/arm/mach-omap1/devices.c: Remove unecessary semicolon
+      arch/arm/mach-omap2: Remove unecessary semicolon
+      arch/arm/plat-omap/omap-pm-noop.c: Remove unecessary semicolon
 
-Paul Walmsley (2):
-      ARM: OMAP: omap3evm: fix new sparse warning
-      ARM: OMAP4/AM335x: hwmod: fix disable_module regression in hardreset handling
+R Sricharan (1):
+      ARM: OMAP2+: Round of the carve out memory requested to section_size
+
+Raphael Assenat (1):
+      AM35xx: Add missing hwmod entry for the HDQ/1-Wire present in AM3505/3517 CPUs.
+
+Shubhrajyoti D (1):
+      ARM: OMAP: rx51: Fix a section mismatch warn
 
 Vaibhav Hiremath (1):
-      ARM: am33xx: clk: Update clkdev table to add mcasp alias
+      ARM: OMAP2+: Add am335x evm and bone targets to common Makefile
 
- arch/arm/mach-omap2/board-omap3evm.c               |    3 +-
- arch/arm/mach-omap2/clock33xx_data.c               |    2 +
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c         |   44 ++++++++++----------
- arch/arm/mach-omap2/omap_hwmod.c                   |   31 ++++++++++++--
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    2 +-
- 6 files changed, 54 insertions(+), 30 deletions(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Vikram Narayanan (1):
+      arm/omap: Replace board_ref_clock with enum values
 
-iQIcBAEBAgAGBQJQdEqIAAoJEMePsQ0LvSpLjvYP/RlejvRetwDYUSpwjgre/xfz
-BA+we3wgi/wgZ3xbdlcFKfdj2l+jzLxspr1pt6MSFzZqJJVKPj1xgHCPJZe4QFX3
-waurd+p4OUcO7qKoLQo7up9nfzsI4vnxjyDXjEUCLjAaEq18qqMi4YQEdncotrZU
-hOL8yFE9ol6Ds2dLtTulnxMfqbMILa5ek+NSVWizbQbVPh8opklRQwRSbYmAgCze
-USY410kyP/WVXa1hern5UnyEo4nzVpXAFf4+3LVil05p/vWgB4i/JwUINAYNr1sr
-L1ells+x0z9RKybTNsrDxTQmwY8Jr+TyZJ3uikccFTpqo+TfwcfZN++Qrx+/0Q5z
-GCVB4dp2aH4QLas9yTFGp/3X2BiPx5AwKX9mqhnOR3peq1lBS1D9V+BTmKAHoY6n
-w2XzAF3jpE2qNLnxIym46TJYRHGrc1o6U0U5dHxjQZVx796rgUHEIZEfVznWj6lS
-GaU3b8YQKN3EPKbrdIQ2y5bVEf0SnLdiOjJo+tTVBGhQ7eiVMRN6btYt8Fod2Rlq
-TXleGmDGKUKI43omeALn2fJWgNrm1GIPSPU1aa3TMZQN7qa/FHyAimcY5QOqU+HT
-uCUmsSukw6oIfWvV8hyN/R7AovvqaKYpyPUvxOM09G/WnoRGahk3eFHpUcEGQGqD
-6PQY5o1skH1C4B++o0EL
-=Yvqo
------END PGP SIGNATURE-----
+Wei Yongjun (4):
+      OMAPDSS: fix return value check in create_dss_pdev()
+      ARM: OMAP: hsmmc: fix return value check in omap_hsmmc_init_one()
+      ARM: OMAP: fix return value check in realtime_counter_init()
+      ARM: OMAP2+: remove duplicated include from board-omap3stalker.c
+
+Yegor Yefremov (1):
+      arm: increase FORCE_MAX_ZONEORDER for TI AM33XX
+
+ arch/arm/Kconfig                             |    1 +
+ arch/arm/boot/dts/Makefile                   |    4 +++-
+ arch/arm/mach-omap1/devices.c                |    2 +-
+ arch/arm/mach-omap2/board-flash.c            |    2 +-
+ arch/arm/mach-omap2/board-omap3stalker.c     |    5 -----
+ arch/arm/mach-omap2/board-omap4panda.c       |    3 +--
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    3 +--
+ arch/arm/mach-omap2/clkt_clksel.c            |    2 +-
+ arch/arm/mach-omap2/display.c                |    2 +-
+ arch/arm/mach-omap2/gpmc.c                   |    4 ++--
+ arch/arm/mach-omap2/hsmmc.c                  |    2 +-
+ arch/arm/mach-omap2/mux.c                    |    2 +-
+ arch/arm/mach-omap2/omap-secure.c            |    4 ++--
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    7 ++++---
+ arch/arm/mach-omap2/pm-debug.c               |    2 +-
+ arch/arm/mach-omap2/timer.c                  |    2 +-
+ arch/arm/plat-omap/Kconfig                   |    1 +
+ arch/arm/plat-omap/counter_32k.c             |   21 ++++++++++++++-------
+ arch/arm/plat-omap/omap-pm-noop.c            |    8 ++++----
+ 20 files changed, 42 insertions(+), 37 deletions(-)
