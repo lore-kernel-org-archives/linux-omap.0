@@ -1,276 +1,80 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 2/3] OMAP: move arch/arm/plat-omap/include/plat/vrfb.h
-Date: Tue,  9 Oct 2012 15:30:25 +0300
-Message-ID: <1349785827-27055-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv2 3/3] OMAP: SDRC: remove VRFB code
+Date: Tue,  9 Oct 2012 15:30:26 +0300
+Message-ID: <1349785827-27055-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1349785827-27055-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:39137 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754103Ab2JIMap (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 08:30:45 -0400
-Received: by mail-la0-f46.google.com with SMTP id h6so2983304lag.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 05:30:42 -0700 (PDT)
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:37470 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754364Ab2JIMar (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 08:30:47 -0400
+Received: by mail-lb0-f174.google.com with SMTP id n3so3680957lbo.19
+        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 05:30:44 -0700 (PDT)
 In-Reply-To: <1349785827-27055-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Now that vrfb driver is not omap dependent anymore, we can move vrfb.h
-from arch/arm/plat-omap/include/plat to include/video/omapvrfb.h.
+Now that VRFB driver handles its registers independently, we can remove
+the VRFB related code from OMAP's sdrc.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- arch/arm/plat-omap/include/plat/vrfb.h    |   66 -----------------------------
- drivers/media/video/omap/omap_vout.c      |    2 +-
- drivers/media/video/omap/omap_vout_vrfb.c |    2 +-
- drivers/media/video/omap/omap_voutdef.h   |    2 +-
- drivers/video/omap2/omapfb/omapfb-ioctl.c |    2 +-
- drivers/video/omap2/omapfb/omapfb-main.c  |    2 +-
- drivers/video/omap2/omapfb/omapfb-sysfs.c |    2 +-
- drivers/video/omap2/vrfb.c                |    2 +-
- include/video/omapvrfb.h                  |   66 +++++++++++++++++++++++++++++
- 9 files changed, 73 insertions(+), 73 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/plat/vrfb.h
- create mode 100644 include/video/omapvrfb.h
+ arch/arm/mach-omap2/sdrc.c             |   16 ----------------
+ arch/arm/plat-omap/include/plat/sdrc.h |    7 -------
+ 2 files changed, 23 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/vrfb.h b/arch/arm/plat-omap/include/plat/vrfb.h
-deleted file mode 100644
-index dafbb77..0000000
---- a/arch/arm/plat-omap/include/plat/vrfb.h
-+++ /dev/null
-@@ -1,66 +0,0 @@
--/*
-- * VRFB Rotation Engine
-- *
-- * Copyright (C) 2009 Nokia Corporation
-- * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License along
-- * with this program; if not, write to the Free Software Foundation, Inc.,
-- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-- */
+diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+index e3d345f..4282e6e 100644
+--- a/arch/arm/mach-omap2/sdrc.c
++++ b/arch/arm/mach-omap2/sdrc.c
+@@ -160,19 +160,3 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 	sdrc_write_reg(l, SDRC_POWER);
+ 	omap2_sms_save_context();
+ }
 -
--#ifndef __OMAP_VRFB_H__
--#define __OMAP_VRFB_H__
+-void omap2_sms_write_rot_control(u32 val, unsigned ctx)
+-{
+-	sms_write_reg(val, SMS_ROT_CONTROL(ctx));
+-}
 -
--#define OMAP_VRFB_LINE_LEN 2048
+-void omap2_sms_write_rot_size(u32 val, unsigned ctx)
+-{
+-	sms_write_reg(val, SMS_ROT_SIZE(ctx));
+-}
 -
--struct vrfb {
--	u8 context;
--	void __iomem *vaddr[4];
--	unsigned long paddr[4];
--	u16 xres;
--	u16 yres;
--	u16 xoffset;
--	u16 yoffset;
--	u8 bytespp;
--	bool yuv_mode;
--};
+-void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx)
+-{
+-	sms_write_reg(val, SMS_ROT_PHYSICAL_BA(ctx));
+-}
 -
--#if defined(CONFIG_OMAP2_VRFB) || defined(CONFIG_OMAP2_VRFB_MODULE)
--extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
--extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
--extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
--		u8 bytespp);
--extern u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp);
--extern u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp);
--extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
--		u16 width, u16 height,
--		unsigned bytespp, bool yuv_mode);
--extern int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot);
--extern void omap_vrfb_restore_context(void);
+diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
+index 36d6a76..c68bab2 100644
+--- a/arch/arm/plat-omap/include/plat/sdrc.h
++++ b/arch/arm/plat-omap/include/plat/sdrc.h
+@@ -94,9 +94,6 @@
+ /* SMS register offsets - read/write with sms_{read,write}_reg() */
+ 
+ #define SMS_SYSCONFIG			0x010
+-#define SMS_ROT_CONTROL(context)	(0x180 + 0x10 * context)
+-#define SMS_ROT_SIZE(context)		(0x184 + 0x10 * context)
+-#define SMS_ROT_PHYSICAL_BA(context)	(0x188 + 0x10 * context)
+ /* REVISIT: fill in other SMS registers here */
+ 
+ 
+@@ -137,10 +134,6 @@ int omap2_sdrc_get_params(unsigned long r,
+ void omap2_sms_save_context(void);
+ void omap2_sms_restore_context(void);
+ 
+-void omap2_sms_write_rot_control(u32 val, unsigned ctx);
+-void omap2_sms_write_rot_size(u32 val, unsigned ctx);
+-void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx);
 -
--#else
--static inline int omap_vrfb_request_ctx(struct vrfb *vrfb) { return 0; }
--static inline void omap_vrfb_release_ctx(struct vrfb *vrfb) {}
--static inline void omap_vrfb_adjust_size(u16 *width, u16 *height,
--		u8 bytespp) {}
--static inline u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
--		{ return 0; }
--static inline u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
--		{ return 0; }
--static inline void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
--		u16 width, u16 height, unsigned bytespp, bool yuv_mode) {}
--static inline int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
--		{ return 0; }
--static inline void omap_vrfb_restore_context(void) {}
--#endif
--#endif /* __VRFB_H */
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index f721fd2..940f39f 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -45,7 +45,7 @@
- #include <media/v4l2-ioctl.h>
+ #ifdef CONFIG_ARCH_OMAP2
  
- #include <plat/dma.h>
--#include <plat/vrfb.h>
-+#include <video/omapvrfb.h>
- #include <video/omapdss.h>
- 
- #include "omap_voutlib.h"
-diff --git a/drivers/media/video/omap/omap_vout_vrfb.c b/drivers/media/video/omap/omap_vout_vrfb.c
-index 4be26abf6c..6c37f92 100644
---- a/drivers/media/video/omap/omap_vout_vrfb.c
-+++ b/drivers/media/video/omap/omap_vout_vrfb.c
-@@ -17,7 +17,7 @@
- #include <media/v4l2-device.h>
- 
- #include <plat/dma.h>
--#include <plat/vrfb.h>
-+#include <video/omapvrfb.h>
- 
- #include "omap_voutdef.h"
- #include "omap_voutlib.h"
-diff --git a/drivers/media/video/omap/omap_voutdef.h b/drivers/media/video/omap/omap_voutdef.h
-index 27a95d2..9ccfe1f 100644
---- a/drivers/media/video/omap/omap_voutdef.h
-+++ b/drivers/media/video/omap/omap_voutdef.h
-@@ -12,7 +12,7 @@
- #define OMAP_VOUTDEF_H
- 
- #include <video/omapdss.h>
--#include <plat/vrfb.h>
-+#include <video/omapvrfb.h>
- 
- #define YUYV_BPP        2
- #define RGB565_BPP      2
-diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-index 606b89f..55a39be 100644
---- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
-+++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -30,7 +30,7 @@
- #include <linux/export.h>
- 
- #include <video/omapdss.h>
--#include <plat/vrfb.h>
-+#include <video/omapvrfb.h>
- #include <plat/vram.h>
- 
- #include "omapfb.h"
-diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index b103793..742a66b 100644
---- a/drivers/video/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -32,7 +32,7 @@
- 
- #include <video/omapdss.h>
- #include <plat/vram.h>
--#include <plat/vrfb.h>
-+#include <video/omapvrfb.h>
- 
- #include "omapfb.h"
- 
-diff --git a/drivers/video/omap2/omapfb/omapfb-sysfs.c b/drivers/video/omap2/omapfb/omapfb-sysfs.c
-index e8d8cc7..17aa174 100644
---- a/drivers/video/omap2/omapfb/omapfb-sysfs.c
-+++ b/drivers/video/omap2/omapfb/omapfb-sysfs.c
-@@ -30,7 +30,7 @@
- #include <linux/omapfb.h>
- 
- #include <video/omapdss.h>
--#include <plat/vrfb.h>
-+#include <video/omapvrfb.h>
- 
- #include "omapfb.h"
- 
-diff --git a/drivers/video/omap2/vrfb.c b/drivers/video/omap2/vrfb.c
-index fda45cc..e4a0450 100644
---- a/drivers/video/omap2/vrfb.c
-+++ b/drivers/video/omap2/vrfb.c
-@@ -28,7 +28,7 @@
- #include <linux/mutex.h>
- #include <linux/platform_device.h>
- 
--#include <plat/vrfb.h>
-+#include <video/omapvrfb.h>
- 
- #ifdef DEBUG
- #define DBG(format, ...) pr_debug("VRFB: " format, ## __VA_ARGS__)
-diff --git a/include/video/omapvrfb.h b/include/video/omapvrfb.h
-new file mode 100644
-index 0000000..dafbb77
---- /dev/null
-+++ b/include/video/omapvrfb.h
-@@ -0,0 +1,66 @@
-+/*
-+ * VRFB Rotation Engine
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
-+
-+#ifndef __OMAP_VRFB_H__
-+#define __OMAP_VRFB_H__
-+
-+#define OMAP_VRFB_LINE_LEN 2048
-+
-+struct vrfb {
-+	u8 context;
-+	void __iomem *vaddr[4];
-+	unsigned long paddr[4];
-+	u16 xres;
-+	u16 yres;
-+	u16 xoffset;
-+	u16 yoffset;
-+	u8 bytespp;
-+	bool yuv_mode;
-+};
-+
-+#if defined(CONFIG_OMAP2_VRFB) || defined(CONFIG_OMAP2_VRFB_MODULE)
-+extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
-+extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
-+extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
-+		u8 bytespp);
-+extern u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp);
-+extern u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp);
-+extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
-+		u16 width, u16 height,
-+		unsigned bytespp, bool yuv_mode);
-+extern int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot);
-+extern void omap_vrfb_restore_context(void);
-+
-+#else
-+static inline int omap_vrfb_request_ctx(struct vrfb *vrfb) { return 0; }
-+static inline void omap_vrfb_release_ctx(struct vrfb *vrfb) {}
-+static inline void omap_vrfb_adjust_size(u16 *width, u16 *height,
-+		u8 bytespp) {}
-+static inline u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
-+		{ return 0; }
-+static inline u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
-+		{ return 0; }
-+static inline void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
-+		u16 width, u16 height, unsigned bytespp, bool yuv_mode) {}
-+static inline int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
-+		{ return 0; }
-+static inline void omap_vrfb_restore_context(void) {}
-+#endif
-+#endif /* __VRFB_H */
+ struct memory_timings {
 -- 
 1.7.9.5
 
