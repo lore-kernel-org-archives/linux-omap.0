@@ -1,132 +1,61 @@
-From: Sourav <sourav.poddar@ti.com>
-Subject: Re: [RFC 00/24] OMAP serial driver flow control fixes, and preparation
- for DMA engine conversion
-Date: Tue, 9 Oct 2012 19:04:18 +0530
-Message-ID: <507427DA.6020409@ti.com>
-References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: hwmod data: Add McASP data port address space
+Date: Tue, 9 Oct 2012 09:15:55 -0500
+Message-ID: <5074319B.10903@ti.com>
+References: <1348763614-4298-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38198 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40934 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755675Ab2JINef (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 9 Oct 2012 09:34:35 -0400
-In-Reply-To: <20121006123803.GD15246@n2100.arm.linux.org.uk>
+	id S1752391Ab2JIOR4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 9 Oct 2012 10:17:56 -0400
+In-Reply-To: <1348763614-4298-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: b-cousson@ti.com
+Cc: Ricardo Neri <ricardo.neri@ti.com>, tony@atomide.com, jon-hunter@ti.com, linux-omap@vger.kernel.org
 
-Hi,
+Hi Benoit,
 
-On Saturday 06 October 2012 06:08 PM, Russell King - ARM Linux wrote:
-> Hi,
->
-> This series of patches fixes multiple flow control issues with the OMAP
-> serial driver, and prepares the driver for DMA engine conversion.  We
-> require hardware assisted flow control to work properly for DMA support
-> otherwise we have no way to properly pause the transmitter.
->
-> This is generated against v3.6, and has been developed mainly by testing
-> on the OMAP4430 SDP platform.
->
-> Flow control seems to be really broken in the OMAP serial driver as things
-> stand today.  It just about works with software flow control because the
-> generic serial core layer is inserting those characters, but only when the
-> legacy DMA support is not being used.  Otherwise, flow control is
-> completely non-functional.
->
-> Issues identified in the OMAP serial driver are:
-> - set_mctrl() can only assert modem control lines, once asserted it
->    is not possible to deassert them.
-> - IXOFF controls sending of XON/XOFF characters, not the reception of
->    these sequences.
-> - IXON controls the recognition of XON/XOFF characters, not the transmission
->    of the same.
-> - Wrong bitmasks for hardware assisted software flow control.  Bit 2
->    in EFR enables sending of XON2/XOFF2 which are never set.
-> - No point comparing received characters against XOFF2 ('special character
->    detect') as XOFF2 is not set.
-> - Fix multiple places where bits 6 and 5 of MCR are attempted to be
->    altered, but because EFR ECB is unset, these bits remain unaffected.
->    This effectively prevents us accessing the right XON/XOFF/TCR/TLR
->    registers.
-> - Remove unnecessary read-backs of EFR/MCR/LCR registers - these registers
->    don't change beneath us, they are configuration registers which hold their
->    values.  Not only does this simplify the code, but it makes it more
->    readable, and more importantly ensures that we work from a consistent
->    state where ->efr never has ECB set, and ->mcr never has the TCRTLR
->    bit set.
-> - Fix disablement of hardware flow control and IXANY modes; once enabled
->    these could never be disabled because nothing in the code ever clears
->    these configuration bits.
->
-> Once that lot is fixed, these patches expand serial_core to permit hardware
-> assisted flow control by:
-> - adding throttle/unthrottle callbacks into low level serial drivers,
->    which allow them to take whatever action is necessary with hardware
->    assisted flow control to throttle the remote end.  In the case of
->    OMAP serial, this means disabling the RX interrupts so that the FIFO
->    fills to the watermark.
->
-> We then have a number of cleanups to the OMAP serial code to make the
-> set_termios() function clearer and less prone to the kinds of mistakes
-> identified above.  This results in a great simplification of the flow
-> control configuration code.
->
-> The OMAP serial driver hacks around with the transmit buffer allocation;
-> lets clean that up so that drivers can cleanly allocate their transmitter
-> buffer using coherent memory if that's what they desire.
->
-> Finally, the last few patches clean up the plat/omap-serial.h header file,
-> moving most of its contents into the OMAP serial driver itself.  Most of
-> this is private to the OMAP serial driver and should never have been
-> shared with anything else.
->
-> I have omitted to include the conversion of the transmit paths to DMA
-> engine.  Even with all the above fixed, it has issues when DMA transmit
-> is in progress, and a program issues a TCSETS call (as `less' does after
-> it has written its prompt.)  At the moment, this causes lots of junk to
-> be emitted from the serial port when issuing `dmesg | less' which sometimes
-> brings the port to a complete halt.
->
-> As the OMAP DMA hardware does not have a clean pause when performing a
-> MEM->DEV transfer (it discards its FIFO) I do not see a solution to this,
-> which probably means that we can _not_ ever support transmit DMA on OMAP
-> platforms.
->
-> This means the xmit buffer allocation patches are not that useful unless
-> a solution to that can be found.
->
-> Now, the remaining question is, how much of this patch set do we think
-> about merging, and when.  Given that flow control in this driver has been
-> broken for a very long time, and no one has apparantly noticed, I don't
-> think there's any urgency to this, so given its size, my preference would
-> be to queue it up for the next merge window.  The thing that would worry
-> me about applying some of the initial patches is that they may change
-> the behaviour today and make any problems here more visible.
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-Boot Tested this patch series against v3.6 tag(applied cleanly) on panda 
-board and
-PM tested(hitting off in Idle and suspend) on omap3630 based beagle board.
+Have you had a chance to look at this patch? Maybe you want me to submit 
+it differently or to a different list?
 
-Note, I also tested the patches against the current master but only 
-after rebasing, since the current master includes serial patches from 
-Felipe Balbi[1].
-[1] https://lkml.org/lkml/2012/8/24/139
+Thanks!
 
-Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+Ricardo
 
-Thanks,
-Sourav
-
-
-
-
-
-
+On 09/27/2012 11:33 AM, Ricardo Neri wrote:
+> McASP has a configuration port and a data port. This patch adds the address
+> space entry for the data port as described in the OMAP4 TRM.
+>
+> Also, add names to the address spaces.
+>
+> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    6 ++++++
+>   1 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index f31f3bc..cb5b463 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -4951,10 +4951,16 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcasp = {
+>
+>   static struct omap_hwmod_addr_space omap44xx_mcasp_dma_addrs[] = {
+>   	{
+> +		.name		= "cfg",
+>   		.pa_start	= 0x49028000,
+>   		.pa_end		= 0x490283ff,
+>   		.flags		= ADDR_TYPE_RT
+>   	},
+> +	{
+> +		.name		= "dat",
+> +		.pa_start	= 0x4902A000,
+> +		.pa_end		= 0x4902Afff,
+> +	},
+>   	{ }
+>   };
+>
+>
