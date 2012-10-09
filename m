@@ -1,27 +1,51 @@
-From: =?UTF-8?B?UMOpdGVyIFVqZmFsdXNp?= <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: Trivial driver changes to remove include
- plat/cpu.h
-Date: Tue, 09 Oct 2012 11:03:10 +0200
-Message-ID: <5073E84E.4090408@ti.com>
-References: <20121008173452.10603.53886.stgit@muffinssi> <20121008173557.10603.18539.stgit@muffinssi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20121008173557.10603.18539.stgit@muffinssi>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Herbert Xu <herbert@gondor.hengli.com.au>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Deepak Saxena <dsaxena@plexity.net>, Chris Ball <cjb@laptop.org>, Matt Mackall <mpm@selenic.com>, Venkatraman S <svenkatr@ti.com>, "David S. Miller" <davem@davemloft.net>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-crypto@vger.kernel.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2 0/3] OMAP: VRFB: convert to platform device
+Date: Tue,  9 Oct 2012 15:30:23 +0300
+Message-ID: <1349785827-27055-1-git-send-email-tomi.valkeinen@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:55003 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754020Ab2JIMak (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 08:30:40 -0400
+Received: by mail-la0-f46.google.com with SMTP id h6so2983245lag.19
+        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 05:30:38 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On 10/08/2012 07:35 PM, Tony Lindgren wrote:
+Hi,
 
-> - omap-dma.c and omap-pcm.c can test the arch locally as
->   omap1 and omap2 cannot be compiled together because of
->   conflicting compiler flags
+This is second version of the patch series. The changes to v1 are:
+* request mem region for VRFB registers
+* declare VRFB resources with names
+* remove unused VRFB code from sdrc
+* vrfb is now tristate, so that it can be built as a module
 
->  sound/soc/omap/omap-pcm.c         |    9 +++++++--
+ Tomi
 
-Tony: is this going to be included in 3.7?
+Tomi Valkeinen (3):
+  OMAP: VRFB: convert vrfb to platform device
+  OMAP: move arch/arm/plat-omap/include/plat/vrfb.h
+  OMAP: SDRC: remove VRFB code
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+ arch/arm/mach-omap2/sdrc.c                |   16 ----
+ arch/arm/plat-omap/fb.c                   |   59 ++++++++++++++
+ arch/arm/plat-omap/include/plat/sdrc.h    |    7 --
+ arch/arm/plat-omap/include/plat/vrfb.h    |   66 ---------------
+ drivers/media/video/omap/omap_vout.c      |    2 +-
+ drivers/media/video/omap/omap_vout_vrfb.c |    2 +-
+ drivers/media/video/omap/omap_voutdef.h   |    2 +-
+ drivers/video/omap2/Kconfig               |    2 +-
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |    2 +-
+ drivers/video/omap2/omapfb/omapfb-main.c  |    2 +-
+ drivers/video/omap2/omapfb/omapfb-sysfs.c |    2 +-
+ drivers/video/omap2/vrfb.c                |  126 ++++++++++++++++++++++++-----
+ include/video/omapvrfb.h                  |   66 +++++++++++++++
+ 13 files changed, 237 insertions(+), 117 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat/vrfb.h
+ create mode 100644 include/video/omapvrfb.h
+
+-- 
+1.7.9.5
+
