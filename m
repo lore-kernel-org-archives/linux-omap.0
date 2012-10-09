@@ -1,51 +1,77 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3 3/3] omap3isp: Configure CSI-2 phy based on platform
- data
-Date: Tue, 9 Oct 2012 09:03:04 +0300
-Message-ID: <20121009060304.GJ14107@valkosipuli.retiisi.org.uk>
+Subject: Re: [PATCH v3 2/3] omap3isp: Add PHY routing configuration
+Date: Tue, 9 Oct 2012 09:08:00 +0300
+Message-ID: <20121009060800.GK14107@valkosipuli.retiisi.org.uk>
 References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
- <1349640472-1425-3-git-send-email-sakari.ailus@iki.fi>
- <1520699.1MmuS9fDen@avalon>
+ <1349640472-1425-2-git-send-email-sakari.ailus@iki.fi>
+ <21772459.IFXEUjhVJS@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52384 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52388 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752756Ab2JIGDJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 02:03:09 -0400
+	by vger.kernel.org with ESMTP id S1753173Ab2JIGIE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 02:08:04 -0400
 Content-Disposition: inline
-In-Reply-To: <1520699.1MmuS9fDen@avalon>
+In-Reply-To: <21772459.IFXEUjhVJS@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
 
-Hi Laurent,
+Hi, Laurent!
 
-Thanks for the comments.
+Thanks for the comments!
 
-On Tue, Oct 09, 2012 at 02:33:28AM +0200, Laurent Pinchart wrote:
+On Tue, Oct 09, 2012 at 02:17:48AM +0200, Laurent Pinchart wrote:
 ...
-> > @@ -248,10 +203,56 @@ static int csiphy_config(struct isp_csiphy *phy,
-> >  	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
-> >  		return -EINVAL;
+> > @@ -32,6 +32,92 @@
+> >  #include "ispreg.h"
+> >  #include "ispcsiphy.h"
 > > 
-> > -	mutex_lock(&phy->mutex);
-> > -	phy->dphy = *dphy;
-> > -	phy->lanes = *lanes;
-> > -	mutex_unlock(&phy->mutex);
-> > +	csiphy_routing_cfg(phy, subdevs->interface, true,
-> > +			   subdevs->bus.ccp2.phy_layer);
+> > +static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
+> > +				    bool ccp2_strobe)
+> > +{
+> > +	u32 cam_phy_ctrl =
 > 
-> As the second argument is always true, it could make sense to remove it (or to 
-> add another call to csiphy_routing_cfg with on set to false).
+> If you call the variable "value" or "ctrl" two statements below could fit on 
+> one line, but that's up to you :-)
 
-That's a good point. In principle another call should be added for 3430 to
-turn the PHY off. That's not being done on the N900.
+I'll call it "reg". :)
 
-I'll see where it could be added.
 
-Regards,
+> > +		isp_reg_readl(phy->isp,
+> > +			      OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
+> > +	u32 shift, mode;
+> > +
+> > +	switch (iface) {
+> > +	case ISP_INTERFACE_CCP2B_PHY1:
+> > +		cam_phy_ctrl &=
+> > +			~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
+> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
+> > +		break;
+> > +	case ISP_INTERFACE_CSI2C_PHY1:
+> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
+> > +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
+> > +		break;
+> > +	case ISP_INTERFACE_CCP2B_PHY2:
+> > +		cam_phy_ctrl |=
+> > +			OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
+> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
+> > +		break;
+> > +	case ISP_INTERFACE_CSI2A_PHY2:
+> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
+> > +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
+> > +		break;
+> > +	default:
+> > +		pr_warn("bad iface %d\n", iface);
+> 
+> As you already know, dev_warn() is a better idea. Can this actually happen ?
+
+I don't think so; it's checked in isp.c in isp_register_entities().. I'll
+remove it.
+
+Cheers.
 
 -- 
 Sakari Ailus
