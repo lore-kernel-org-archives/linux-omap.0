@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/5] omap cpufreq fixes for v3.7-rc1
+Subject: [GIT PULL 5/5] omap asoc regression fixes for v3.7-rc1
 Date: Tue, 9 Oct 2012 11:46:27 -0700
-Message-ID: <E1TLeph-0002oe-7m@merlin.infradead.org>
+Message-ID: <E1TLepo-0002qk-TQ@merlin.infradead.org>
 References: <pull-1349808387-617119>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -29,48 +29,39 @@ The following changes since commit 5e090ed7af10729a396a25df43d69a236e789736:
 are available in the git repository at:
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc1/fixes-cpufreq-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc1/fixes-asoc-regression-signed
 
-for you to fetch changes up to 37fedb4c423ab78639e65a7c15d2f23cb412aa7e:
+for you to fetch changes up to 8bbacc55ba72368d7fdbad06b63d66bd763a428a:
 
-  Merge tag 'for_3.7-fixes-cpufreq' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.7-rc1/fixes-cpufreq (2012-10-08 15:54:14 -0700)
-
-----------------------------------------------------------------
-
-These were agreed to be merged via arm soc tree as Rafael
-is on vacation.
-
->From Kevin Hilman <khilman@deeprootsystems.com>:
-
-This series a couple bug fixes and a couple fixes that make this
-driver support recently added OMAP-based SoCs.
-
-The 'get_cpu_device' patch is needed due to a change in the OMAP
-OMAP PM core code which enforces use of get_cpu_device() instead of
-a deprecated OMAP-specific API.
-
-The usage of plat/*.h headers breaks single zImage, so platforms are
-cleaning up and/or removing plat/*.h so the driver needs to be fixed
-accordingly.
-
-This series is based on the merge of Rafael's pm-for-3.7-rc1 tag into
-Linus' master branch: commit 16642a2e7be23bbda013fc32d8f6c68982eab603.
+  ARM/dts: omap5-evm: pinmux configuration for audio (2012-10-08 16:06:28 -0700)
 
 ----------------------------------------------------------------
-Kevin Hilman (4):
-      cpufreq: OMAP: ensure valid clock rate before scaling
-      cpufreq: OMAP: remove unused <plat/omap-pm.h>
-      cpufreq: OMAP: use get_cpu_device() instead of omap_device API
-      ARM: OMAP2+: PM: MPU DVFS: use generic CPU device for MPU-SS
+This branch contains regression fixes for omap4/5 ASoC
+audio that were caused by the fact that u-boot stopped
+muxing non essential pins.
 
-Paul Walmsley (1):
-      cpufreq: OMAP: fix clock usage to be SoC independent, remove plat/ includes
+As omap audio and dmaengine development happens on
+these platforms, let's make sure they are usable.
 
-Tony Lindgren (1):
-      Merge tag 'for_3.7-fixes-cpufreq' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.7-rc1/fixes-cpufreq
+Of course this should have been fixed earlier and
+not during the -rc cycle.
 
- arch/arm/mach-omap2/opp.c        |   23 +++++++++++++++++------
- arch/arm/mach-omap2/pm.c         |   11 ++++++++++-
- arch/arm/mach-omap2/twl-common.c |    2 +-
- drivers/cpufreq/omap-cpufreq.c   |   36 ++++++++++++------------------------
- 4 files changed, 40 insertions(+), 32 deletions(-)
+----------------------------------------------------------------
+Peter Ujfalusi (9):
+      ARM: OMAP: board-4430-sdp: Pin mux configuration for audio needs
+      ARM: OMAP: board-omap4panda: Pin mux configuration for audio needs
+      ARM/dts: omap4-panda: Disable unused audio IPs
+      ARM/dts: omap4-sdp: Disable unused McBSP3
+      ARM/dts: omap5-evm: Disable unused McBSP3
+      ARM/dts: omap4-sdp: pinmux configuration for audio
+      ARM/dts: omap4-panda: pinmux configuration for audio
+      ARM/dts: Add pinctrl driver entries for omap5
+      ARM/dts: omap5-evm: pinmux configuration for audio
+
+ arch/arm/boot/dts/omap4-panda.dts      |   47 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4-sdp.dts        |   57 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap5-evm.dts        |   58 ++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi           |   17 ++++++++++
+ arch/arm/mach-omap2/board-4430sdp.c    |   26 ++++++++++++++
+ arch/arm/mach-omap2/board-omap4panda.c |   15 +++++++++
+ 6 files changed, 220 insertions(+)
