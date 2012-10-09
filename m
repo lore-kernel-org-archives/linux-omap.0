@@ -1,46 +1,37 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP: move old debug-devices.c and debug-leds.c to
- be OMAP2+ only for now
-Date: Tue, 9 Oct 2012 02:49:55 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210090249240.5736@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1210080145080.5736@utopia.booyaka.com> <20121008221333.GZ13011@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] OMAP-GPMC generic timing migration
+Date: Mon, 8 Oct 2012 20:01:27 -0700
+Message-ID: <20121009030126.GB12552@atomide.com>
+References: <cover.1349450723.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:56322 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753594Ab2JICt4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 22:49:56 -0400
-In-Reply-To: <20121008221333.GZ13011@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17125 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754517Ab2JIDBb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Oct 2012 23:01:31 -0400
+Content-Disposition: inline
+In-Reply-To: <cover.1349450723.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, 8 Oct 2012, Tony Lindgren wrote:
-
-> * Paul Walmsley <paul@pwsan.com> [121007 18:48]:
-> > 
-> > Commit 801475ccb2b2c1928b22aec4b9e5285d9e347602 ("ARM: OMAP: move
-> > debug_card_init() function") results in the following new sparse[1]
-> > warning:
-> > 
-> > arch/arm/plat-omap/debug-devices.c:71:12: warning: symbol 'debug_card_init' was not declared. Should it be static?
-> > 
-> > Normally this could be fixed by including the appropriate header file
-> > in plat-omap/debug-devices.c, but the header file now exists only in
-> > mach-omap2/, so this would require a "sideways include" and is thus
-> > impractical.  It turns out that only code in mach-omap2/ currently
-> > uses the debug-devices.c and debug-leds.c files, so move them there.
-> > In the long term, these devices should be created by DT, and the code
-> > should be moved into drivers/ somewhere.
+* Afzal Mohammed <afzal@ti.com> [121005 09:02]:
 > 
-> Hmm are you sure that omap1 is not using debug-leds.c?
-> At least the initcall seems like it should run on omap1
-> if enabled.
+> Proposed generic routine has been tested on OneNAND (async) on
+> OMAP3EVM rev C (as mainline does not have the OneNAND support for this,
+> local patch were used to test). For other cases of custom timing
+> calculation (tusb6010, smc91x non-muxed, OneNAND sync), generic timing
+> calculation routine was verified by simulating on OMAP3EVM.
 
-Will drop this one for now until we figure out what to do about it.
+Have you tested to make sure this works if you change the
+L3 frequency?
 
+That should probably be tested as a sanity check. Maybe you
+can force the L3 for some test boots for this, I don't think
+we scale it by default.
 
-- Paul
+Regards,
 
+Tony
