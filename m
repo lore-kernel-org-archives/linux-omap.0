@@ -1,63 +1,27 @@
-From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
-Date: Tue, 9 Oct 2012 14:27:20 +0530
-Message-ID: <1349773040-8204-1-git-send-email-hvaibhav@ti.com>
+From: =?UTF-8?B?UMOpdGVyIFVqZmFsdXNp?= <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Trivial driver changes to remove include
+ plat/cpu.h
+Date: Tue, 09 Oct 2012 11:03:10 +0200
+Message-ID: <5073E84E.4090408@ti.com>
+References: <20121008173452.10603.53886.stgit@muffinssi> <20121008173557.10603.18539.stgit@muffinssi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20121008173557.10603.18539.stgit@muffinssi>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Herbert Xu <herbert@gondor.hengli.com.au>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Deepak Saxena <dsaxena@plexity.net>, Chris Ball <cjb@laptop.org>, Matt Mackall <mpm@selenic.com>, Venkatraman S <svenkatr@ti.com>, "David S. Miller" <davem@davemloft.net>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-crypto@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-With recent changes in omap gpmc driver code, in case of DT
-boot mode, where bootloader does not configure gpmc cs space
-will result into kernel BUG() inside gpmc_mem_init() function,
-as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
-gpmc_config7[0].baseaddress is set to '0' on reset.
+On 10/08/2012 07:35 PM, Tony Lindgren wrote:
 
-This use-case is applicable for any board/EVM which doesn't have
-any peripheral connected to gpmc cs0, for example BeagleXM and
-BeagleBone, so DT boot mode fails.
+> - omap-dma.c and omap-pcm.c can test the arch locally as
+>   omap1 and omap2 cannot be compiled together because of
+>   conflicting compiler flags
 
-This patch adds of_have_populated_dt() check before creating
-device, so that for DT boot mode, gpmc probe will not be called
-which is expected behavior, as gpmc is not supported yet from DT.
+>  sound/soc/omap/omap-pcm.c         |    9 +++++++--
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Cc: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
----
-This should go in for rc1, as this breaks AM33xx boot.
+Tony: is this going to be included in 3.7?
 
- arch/arm/mach-omap2/gpmc.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 8ab1e1b..c68f9e1 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -981,6 +981,10 @@ static int __init omap_gpmc_init(void)
- 	struct platform_device *pdev;
- 	char *oh_name = "gpmc";
-
-+	/* If dtb is there, the devices will be created dynamically */
-+	if (of_have_populated_dt())
-+		return -ENODEV;
-+
- 	oh = omap_hwmod_lookup(oh_name);
- 	if (!oh) {
- 		pr_err("Could not look up %s\n", oh_name);
---
-1.7.0.4
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
