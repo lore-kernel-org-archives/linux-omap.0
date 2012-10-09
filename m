@@ -1,38 +1,53 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 1/2] omap3: Provide means for changing CSI2 PHY configuration
-Date: Tue, 09 Oct 2012 13:50:04 -0700
-Message-ID: <87zk3vz7yb.fsf@deeprootsystems.com>
-References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
-	<1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: warnings/hwmod/clock fixes for
+ pre-3.7-rc1
+Date: Tue, 9 Oct 2012 14:43:10 -0700
+Message-ID: <20121009214310.GG12552@atomide.com>
+References: <alpine.DEB.2.00.1210091602390.5736@utopia.booyaka.com>
+ <20121009190252.GD12552@atomide.com>
+ <alpine.DEB.2.00.1210091928180.5736@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:55346 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab2JIUuG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 16:50:06 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so5600995pad.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 13:50:06 -0700 (PDT)
-In-Reply-To: <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi> (Sakari
-	Ailus's message of "Thu, 27 Sep 2012 00:50:35 +0300")
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50146 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756985Ab2JIVnP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 17:43:15 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210091928180.5736@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: paul@pwsan.com, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Sakari,
+* Paul Walmsley <paul@pwsan.com> [121009 12:31]:
+> On Tue, 9 Oct 2012, Tony Lindgren wrote:
+> 
+> > * Paul Walmsley <paul@pwsan.com> [121009 09:05]:
+> > > 
+> > > N800 isn't booting; this is a problem present in the base commit and
+> > > is due to serial driver breakage:
+> > > 
+> > >    http://www.spinics.net/lists/arm-kernel/msg196034.html
+> > 
+> > This might be related also to the n800 booting in sys mode
+> > that causes issues with the recent hyp patches. A fix for
+> > that has been queued, for more info see the thread
+> > "v2 2/7] ARM: virt: allow the kernel to be entered in HYP mode".
+> 
+> Thanks for the pointer.  That one would break the boot quite early, right? 
+> This one has the same symptoms as the serial issue, where it bombs out 
+> after:
+> 
+> [    0.948394] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+> [    0.974273] omap_uart.0: ttyO0 at MMIO 0x4806a000 (irq = 88) is a OMAP UART0
+> [    0.986968] omap_uart.1: ttyO1 at MMIO 0x4806c000 (irq = 89) is a OMAP UART1
+> 
+> (hang)
 
-Sakari Ailus <sakari.ailus@iki.fi> writes:
+Yes the sys mode hangs right away and only prints a few lines
+with earlyprintk.
 
-> The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
-> the actual CSI-2 receivers outside the ISP itself. Allow changing this
-> configuration from the ISP driver.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Regards,
 
-These control module registers (CSIRXFE, CAMERA_PHY_CTRL) are in the
-CORE powerdomain, so they will be lost during off-mode transitions.  So,
-I suspect you'll also want to add them to the save/restore functions in
-control.c in order for this to work across off-mode transitions.
-
-Kevin
+Tony
