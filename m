@@ -1,53 +1,58 @@
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Subject: [PATCH 3.6.0- 6/6] omap_rng: use module_platform_driver macro
-Date: Wed, 10 Oct 2012 19:31:07 +0100
-Message-ID: <1349893867-7548-1-git-send-email-srinivas.kandagatla@st.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3.6.0- 0/6] ARM: use module_platform_driver macro
+Date: Wed, 10 Oct 2012 18:46:44 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210101837440.5736@utopia.booyaka.com>
+References: <1349893796-6947-1-git-send-email-srinivas.kandagatla@st.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:48452 "EHLO
-	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752293Ab2JJScb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Oct 2012 14:32:31 -0400
+Received: from utopia.booyaka.com ([74.50.51.50]:60626 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658Ab2JJSqp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Oct 2012 14:46:45 -0400
+In-Reply-To: <1349893796-6947-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, rnayak@ti.com
-Cc: srinivas.kandagatla@st.com, Hiroshi.DOYU@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, grinberg@compulab.co.il, eric.y.miao@gmail.com, linux-arm-kernel@lists.infradead.org, juha.yrjola@nokia.com
+To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Cc: rnayak@ti.com, Hiroshi.DOYU@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, grinberg@compulab.co.il, eric.y.miao@gmail.com, linux-arm-kernel@lists.infradead.org, juha.yrjola@nokia.com
 
-From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+Hi
 
-This patch removes some code duplication by using
-module_platform_driver.
+On Wed, 10 Oct 2012, Srinivas KANDAGATLA wrote:
 
-Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
----
- drivers/char/hw_random/omap-rng.c |   14 +-------------
- 1 files changed, 1 insertions(+), 13 deletions(-)
+> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+> 
+> Running below Coccinelle lookup pattern like below on the 
+> latest kernel showed about 52 hits. This patch series is a subset 
+> of those 52 patches, so that it will be easy for maintainers to review.
 
-diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
-index a5effd8..29732c6 100644
---- a/drivers/char/hw_random/omap-rng.c
-+++ b/drivers/char/hw_random/omap-rng.c
-@@ -217,19 +217,7 @@ static struct platform_driver omap_rng_driver = {
- 	.probe		= omap_rng_probe,
- 	.remove		= __exit_p(omap_rng_remove),
- };
--
--static int __init omap_rng_init(void)
--{
--	return platform_driver_register(&omap_rng_driver);
--}
--
--static void __exit omap_rng_exit(void)
--{
--	platform_driver_unregister(&omap_rng_driver);
--}
--
--module_init(omap_rng_init);
--module_exit(omap_rng_exit);
-+module_platform_driver(omap_rng_driver);
- 
- MODULE_AUTHOR("Deepak Saxena (and others)");
- MODULE_LICENSE("GPL");
--- 
-1.7.0.4
+so the idea looks okay to me, but several of the patches aren't addressed 
+to the right people.  You can use the MAINTAINERS file to figure out the 
+right place to send them.
 
+The PXA patches need to go to the appropriate PXA people, who are 
+probably:
+
+M:      Eric Miao <eric.y.miao@gmail.com>
+M:      Russell King <linux@arm.linux.org.uk>
+M:      Haojian Zhuang <haojian.zhuang@gmail.com>
+L:      linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+
+The OMAP RNG patch needs to go to 
+
+M:      Deepak Saxena <dsaxena@plexity.net>
+M:      Matt Mackall <mpm@selenic.com>
+M:      Herbert Xu <herbert@gondor.apana.org.au>
+
+As far as the remaining three OMAP patches go, they look okay to me but 
+Tony Lindgren is the maintainer of these files and so he's the right 
+person to merge them.
+
+> Hopefully these patches will get rid of some code duplication in kernel.
+
+One other comment - the description on the patches isn't quite accurate.  
+The patches don't remove code duplication per se, they just replace some 
+boilerplate code with a macro.
+
+
+- Paul
