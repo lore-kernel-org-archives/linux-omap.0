@@ -1,169 +1,59 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 3/3] ARM: dts: EMIF and LPDDR2 device tree data for OMAP5
- boards
-Date: Wed, 10 Oct 2012 17:01:27 +0200
-Message-ID: <50758DC7.3070408@ti.com>
-References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com> <1349870716-25511-4-git-send-email-lokeshvutla@ti.com>
+Subject: Re: [PATCH 2/3] ARM: dts: Correcting size of memory defined for omap5
+Date: Wed, 10 Oct 2012 17:15:02 +0200
+Message-ID: <507590F6.3050702@ti.com>
+References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com> <1349870716-25511-3-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44718 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:45539 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932259Ab2JJPBe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Oct 2012 11:01:34 -0400
-In-Reply-To: <1349870716-25511-4-git-send-email-lokeshvutla@ti.com>
+	with ESMTP id S932264Ab2JJPPJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Oct 2012 11:15:09 -0400
+In-Reply-To: <1349870716-25511-3-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Lokesh Vutla <lokeshvutla@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
 
 On 10/10/2012 02:05 PM, Lokesh Vutla wrote:
-> Device tree data for the EMIF sdram controllers in OMAP5
-> and LPDDR2 memory devices attached to OMAP5 boards.
+> Memory present for omap5 is 2GB. But in dt file
 
-Nit: Could you make a sentence with a verb to explain what you are doing
-in this patch.
+omap5 -> OMAP5
+dt -> dts
 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> ---
->  arch/arm/boot/dts/lpddr2_data.dtsi |   64 +++++++++++++++++++++++++++++++++++-
->  arch/arm/boot/dts/omap5-evm.dts    |   11 +++++++
->  arch/arm/boot/dts/omap5.dtsi       |   18 ++++++++++
->  3 files changed, 92 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/lpddr2_data.dtsi b/arch/arm/boot/dts/lpddr2_data.dtsi
-> index f97f70f..8e8c1bc 100644
-> --- a/arch/arm/boot/dts/lpddr2_data.dtsi
-> +++ b/arch/arm/boot/dts/lpddr2_data.dtsi
-> @@ -3,7 +3,7 @@
->   */
->  
->  / {
-> -	elpida_ECB240ABACN: lpddr2 {
-> +	elpida_ECB240ABACN: lpddr2@0 {
->  		compatible	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
->  		density		= <2048>;
->  		io-width	= <32>;
-> @@ -64,4 +64,66 @@
->  			tDQSCK-max-derated = <6000>;
->  		};
->  	};
-> +
-> +	samsung_K3PE0E000B: lpddr2@1 {
+And this patch is about omap5-evm so you should be more specific in your
+changelog and even in the subject:
 
-I'm confused now, why are you reusing the same lpddr2_data.dtsi file?
-You should create a file per memory. That will make the reuse much easier.
+ARM: dts: omap5-evm: Fix size of memory defined for EVM
 
-If the goal of your first patch was to do that, it is then the wrong
-approach.
+> it is specified as 1GB. Correcting the same
+> in this patch
 
-> +		compatible	= "Samsung,K3PE0E000B","jedec,lpddr2-s4";
-> +		density		= <4096>;
-> +		io-width	= <32>;
-> +
-> +		tRPab-min-tck	= <3>;
-> +		tRCD-min-tck	= <3>;
-> +		tWR-min-tck	= <3>;
-> +		tRASmin-min-tck	= <3>;
-> +		tRRD-min-tck	= <2>;
-> +		tWTR-min-tck	= <2>;
-> +		tXP-min-tck	= <2>;
-> +		tRTP-min-tck	= <2>;
-> +		tCKE-min-tck	= <3>;
-> +		tCKESR-min-tck	= <3>;
-> +		tFAW-min-tck	= <8>;
-> +
-> +		timings_samsung_K3PE0E000B_533mhz: lpddr2-timings@0 {
-> +			compatible	= "jedec,lpddr2-timings";
-> +			min-freq	= <10000000>;
-> +			max-freq	= <533333333>;
-> +			tRPab		= <21000>;
-> +			tRCD		= <18000>;
-> +			tWR		= <15000>;
-> +			tRAS-min	= <42000>;
-> +			tRRD		= <10000>;
-> +			tWTR		= <7500>;
-> +			tXP		= <7500>;
-> +			tRTP		= <7500>;
-> +			tCKESR		= <15000>;
-> +			tDQSCK-max	= <5500>;
-> +			tFAW		= <50000>;
-> +			tZQCS		= <90000>;
-> +			tZQCL		= <360000>;
-> +			tZQinit		= <1000000>;
-> +			tRAS-max-ns	= <70000>;
-> +			tDQSCK-max-derated = <5620>;
-> +		};
-> +
-> +		timings_samsung_K3PE0E000B_266mhz: lpddr2-timings@1 {
-> +			compatible	= "jedec,lpddr2-timings";
-> +			min-freq	= <10000000>;
-> +			max-freq	= <266666666>;
-> +			tRPab		= <21000>;
-> +			tRCD		= <18000>;
-> +			tWR		= <15000>;
-> +			tRAS-min	= <42000>;
-> +			tRRD		= <10000>;
-> +			tWTR		= <7500>;
-> +			tXP		= <7500>;
-> +			tRTP		= <7500>;
-> +			tCKESR		= <15000>;
-> +			tDQSCK-max	= <5500>;
-> +			tFAW		= <50000>;
-> +			tZQCS		= <90000>;
-> +			tZQCL		= <360000>;
-> +			tZQinit		= <1000000>;
-> +			tRAS-max-ns	= <70000>;
-> +			tDQSCK-max-derated = <6000>;
-> +		};
-> +	};
->  };
-> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
-> index 6f87e1a..8a952f8 100644
-> --- a/arch/arm/boot/dts/omap5-evm.dts
-> +++ b/arch/arm/boot/dts/omap5-evm.dts
-> @@ -8,6 +8,7 @@
->  /dts-v1/;
->  
->  /include/ "omap5.dtsi"
-> +/include/ "lpddr2_data.dtsi"
->  
->  / {
->  	model = "TI OMAP5 EVM board";
-> @@ -82,3 +83,13 @@
->  			0x020700d9>;	/* SEARCH */
->  	linux,input-no-autorepeat;
->  };
-> +
-> +&emif1 {
-> +	cs1-used;
-> +	device-handle = <&samsung_K3PE0E000B>;
-> +};
-> +
-> +&emif2 {
-> +	cs1-used;
-> +	device-handle = <&samsung_K3PE0E000B>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index 5db33f4..40b41c2 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -319,5 +319,23 @@
->  			ti,buffer-size = <128>;
->  			ti,hwmods = "mcbsp3";
->  		};
-> +
-> +		emif1: emif@0x4c000000 {
-> +			compatible	= "ti,emif-4d5";
-> +			ti,hwmods	= "emif1";
-> +			phy-type	= <2>;
-> +			hw-caps-read-idle-ctrl;
-> +			hw-caps-ll-interface;
-> +			hw-caps-temp-alert;
-
-You should now add the reg, and interrupt attributes as well.
+No "patch" in the changelog, please add a dot at the end of a sentence
+and make a correct sentence.
 
 Regards,
 Benoit
+
+> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> ---
+>  arch/arm/boot/dts/omap5-evm.dts |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+> index 9c41a3f..6f87e1a 100644
+> --- a/arch/arm/boot/dts/omap5-evm.dts
+> +++ b/arch/arm/boot/dts/omap5-evm.dts
+> @@ -15,7 +15,7 @@
+>  
+>  	memory {
+>  		device_type = "memory";
+> -		reg = <0x80000000 0x40000000>; /* 1 GB */
+> +		reg = <0x80000000 0x80000000>; /* 2 GB */
+>  	};
+>  
+>  	vmmcsd_fixed: fixedregulator-mmcsd {
+> 
 
