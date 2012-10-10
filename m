@@ -1,54 +1,82 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: Beagleboard xM crashes when being set to 800MHz with smartreflex
- on linux-omap-3.6-rc6
-Date: Wed, 10 Oct 2012 12:49:37 +0200
-Message-ID: <CAGGh5h2M30brGOUo98-hkYZL6qf0dHEiZvkA3WBCvDGf4m7wcQ@mail.gmail.com>
-References: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
-	<87391xbv52.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:59090 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab2JJKth (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Oct 2012 06:49:37 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so472121pad.19
-        for <linux-omap@vger.kernel.org>; Wed, 10 Oct 2012 03:49:37 -0700 (PDT)
-In-Reply-To: <87391xbv52.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Subject: [PATCH v2] ARM: OMAP: i2c: fix interrupt flood during resume
+Date: Wed, 10 Oct 2012 14:46:06 +0300
+Message-ID: <1349869566-21756-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org, Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Maximilian Schwerin <Maximilian.Schwerin@tigris.de>, linux-omap@vger.kernel.org
 
-2012/10/2 Kevin Hilman <khilman@deeprootsystems.com>:
-> "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de> writes:
->
->> Hi,
->>
->> I've just built a linux-omap kernel at 3.6-rc6 using omap2plus_defconfig
->> as basis for the kernel config.
->>
->> When I enable smartreflex and switch to 800MHz via
->>
->> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
->> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
->> cpufreq-set -f 800MHz
->>
->> the board crashes. If I switch to 800MHz and enable smartreflex later
->> nothing happens. This used to work in my 3.3 based kernel.
->
-> SmartReflex is kwown to be unstable in mainline and there are several
-> errata that still need fixing for it to be stable.
->
-> I strongly recommend you simply leave SR disabled.
->
-Does it apply to a device always at opp1G ?
-Ie if I boot @1GHz and then enable smart reflex, is it ok ?
+The resume_noirq enables interrupts one-by-one starting from
+first one. Now if the wake up event for suspend came from i2c
+device, the i2c bus irq gets enabled before the threaded
+i2c device irq, causing a flood of i2c bus interrupts as the
+threaded irq that should clear the event is not enabled yet.
 
-> Kevin
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fixed the issue by adding suspend_late and resume_early
+functions that keep i2c bus interrupts disabled until
+resume_noirq has run completely.
+
+Issue was detected doing a wake up from autosleep with
+twl4030 power key on N9. Patch tested on N9.
+
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index a0e49f6..991341b 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1132,6 +1132,36 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ }
+ 
+ #ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
++static int omap_i2c_suspend_noirq(struct device *dev)
++{
++
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
++
++	/* Disabling irq here to balance the enable in resume_early */
++	disable_irq(_dev->irq);
++	return 0;
++}
++
++static int omap_i2c_resume_early(struct device *dev)
++{
++
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
++
++	/*
++	 * The noirq_resume enables the interrupts one by one,
++	 * this causes a interrupt flood if the SW irq actually reading
++	 * event from i2c device is enabled only after i2c bus irq, as the
++	 * irq that should clear the event is still disabled. We have to
++	 * keep the bus irq disabled until all other irqs have been enabled.
++	 */
++	enable_irq(_dev->irq);
++
++	return 0;
++}
++#endif
+ #ifdef CONFIG_PM_RUNTIME
+ static int omap_i2c_runtime_suspend(struct device *dev)
+ {
+@@ -1183,6 +1213,10 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ #endif /* CONFIG_PM_RUNTIME */
+ 
+ static struct dev_pm_ops omap_i2c_pm_ops = {
++#ifdef CONFIG_PM_SLEEP
++	.suspend_noirq = omap_i2c_suspend_noirq,
++	.resume_early = omap_i2c_resume_early,
++#endif
+ 	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
+ 			   omap_i2c_runtime_resume, NULL)
+ };
+-- 
+1.7.4.1
