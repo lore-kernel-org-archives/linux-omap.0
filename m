@@ -1,165 +1,107 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 3/3] ARM: dts: EMIF and LPDDR2 device tree data for OMAP5 boards
-Date: Wed, 10 Oct 2012 17:35:16 +0530
-Message-ID: <1349870716-25511-4-git-send-email-lokeshvutla@ti.com>
-References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com>
+From: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Subject: Re: [PATCH v2] ARM: OMAP: i2c: fix interrupt flood during resume
+Date: Wed, 10 Oct 2012 15:09:09 +0300
+Message-ID: <1349870949.17145.7.camel@kj-X230>
+References: <1349869566-21756-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+	 <1349870051.17145.5.camel@kj-X230>
+Reply-To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51952 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752550Ab2JJMF4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Oct 2012 08:05:56 -0400
-In-Reply-To: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1349870051.17145.5.camel@kj-X230>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, lokeshvutla@ti.com, santosh.shilimkar@ti.com
 
-Device tree data for the EMIF sdram controllers in OMAP5
-and LPDDR2 memory devices attached to OMAP5 boards.
+ke, 2012-10-10 kello 14:54 +0300, Kalle Jokiniemi kirjoitti:
+> ke, 2012-10-10 kello 14:46 +0300, Kalle Jokiniemi kirjoitti:
+> > The resume_noirq enables interrupts one-by-one starting from
+> > first one. Now if the wake up event for suspend came from i2c
+> > device, the i2c bus irq gets enabled before the threaded
+> > i2c device irq, causing a flood of i2c bus interrupts as the
+> > threaded irq that should clear the event is not enabled yet.
+> > 
+> > Fixed the issue by adding suspend_late and resume_early
+> > functions that keep i2c bus interrupts disabled until
+> > resume_noirq has run completely.
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
----
- arch/arm/boot/dts/lpddr2_data.dtsi |   64 +++++++++++++++++++++++++++++++++++-
- arch/arm/boot/dts/omap5-evm.dts    |   11 +++++++
- arch/arm/boot/dts/omap5.dtsi       |   18 ++++++++++
- 3 files changed, 92 insertions(+), 1 deletion(-)
+Ugh, forgot to update commit message. Version 3 coming shortly...
 
-diff --git a/arch/arm/boot/dts/lpddr2_data.dtsi b/arch/arm/boot/dts/lpddr2_data.dtsi
-index f97f70f..8e8c1bc 100644
---- a/arch/arm/boot/dts/lpddr2_data.dtsi
-+++ b/arch/arm/boot/dts/lpddr2_data.dtsi
-@@ -3,7 +3,7 @@
-  */
- 
- / {
--	elpida_ECB240ABACN: lpddr2 {
-+	elpida_ECB240ABACN: lpddr2@0 {
- 		compatible	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
- 		density		= <2048>;
- 		io-width	= <32>;
-@@ -64,4 +64,66 @@
- 			tDQSCK-max-derated = <6000>;
- 		};
- 	};
-+
-+	samsung_K3PE0E000B: lpddr2@1 {
-+		compatible	= "Samsung,K3PE0E000B","jedec,lpddr2-s4";
-+		density		= <4096>;
-+		io-width	= <32>;
-+
-+		tRPab-min-tck	= <3>;
-+		tRCD-min-tck	= <3>;
-+		tWR-min-tck	= <3>;
-+		tRASmin-min-tck	= <3>;
-+		tRRD-min-tck	= <2>;
-+		tWTR-min-tck	= <2>;
-+		tXP-min-tck	= <2>;
-+		tRTP-min-tck	= <2>;
-+		tCKE-min-tck	= <3>;
-+		tCKESR-min-tck	= <3>;
-+		tFAW-min-tck	= <8>;
-+
-+		timings_samsung_K3PE0E000B_533mhz: lpddr2-timings@0 {
-+			compatible	= "jedec,lpddr2-timings";
-+			min-freq	= <10000000>;
-+			max-freq	= <533333333>;
-+			tRPab		= <21000>;
-+			tRCD		= <18000>;
-+			tWR		= <15000>;
-+			tRAS-min	= <42000>;
-+			tRRD		= <10000>;
-+			tWTR		= <7500>;
-+			tXP		= <7500>;
-+			tRTP		= <7500>;
-+			tCKESR		= <15000>;
-+			tDQSCK-max	= <5500>;
-+			tFAW		= <50000>;
-+			tZQCS		= <90000>;
-+			tZQCL		= <360000>;
-+			tZQinit		= <1000000>;
-+			tRAS-max-ns	= <70000>;
-+			tDQSCK-max-derated = <5620>;
-+		};
-+
-+		timings_samsung_K3PE0E000B_266mhz: lpddr2-timings@1 {
-+			compatible	= "jedec,lpddr2-timings";
-+			min-freq	= <10000000>;
-+			max-freq	= <266666666>;
-+			tRPab		= <21000>;
-+			tRCD		= <18000>;
-+			tWR		= <15000>;
-+			tRAS-min	= <42000>;
-+			tRRD		= <10000>;
-+			tWTR		= <7500>;
-+			tXP		= <7500>;
-+			tRTP		= <7500>;
-+			tCKESR		= <15000>;
-+			tDQSCK-max	= <5500>;
-+			tFAW		= <50000>;
-+			tZQCS		= <90000>;
-+			tZQCL		= <360000>;
-+			tZQinit		= <1000000>;
-+			tRAS-max-ns	= <70000>;
-+			tDQSCK-max-derated = <6000>;
-+		};
-+	};
- };
-diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
-index 6f87e1a..8a952f8 100644
---- a/arch/arm/boot/dts/omap5-evm.dts
-+++ b/arch/arm/boot/dts/omap5-evm.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- /include/ "omap5.dtsi"
-+/include/ "lpddr2_data.dtsi"
- 
- / {
- 	model = "TI OMAP5 EVM board";
-@@ -82,3 +83,13 @@
- 			0x020700d9>;	/* SEARCH */
- 	linux,input-no-autorepeat;
- };
-+
-+&emif1 {
-+	cs1-used;
-+	device-handle = <&samsung_K3PE0E000B>;
-+};
-+
-+&emif2 {
-+	cs1-used;
-+	device-handle = <&samsung_K3PE0E000B>;
-+};
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 5db33f4..40b41c2 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -319,5 +319,23 @@
- 			ti,buffer-size = <128>;
- 			ti,hwmods = "mcbsp3";
- 		};
-+
-+		emif1: emif@0x4c000000 {
-+			compatible	= "ti,emif-4d5";
-+			ti,hwmods	= "emif1";
-+			phy-type	= <2>;
-+			hw-caps-read-idle-ctrl;
-+			hw-caps-ll-interface;
-+			hw-caps-temp-alert;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			compatible	= "ti,emif-4d5";
-+			ti,hwmods	= "emif2";
-+			phy-type	= <2>;
-+			hw-caps-read-idle-ctrl;
-+			hw-caps-ll-interface;
-+			hw-caps-temp-alert;
-+		};
- 	};
- };
--- 
-1.7.10.4
+- Kalle
 
+
+> > 
+> > Issue was detected doing a wake up from autosleep with
+> > twl4030 power key on N9. Patch tested on N9.
+> 
+> I did this now on top of latest linux-omap, should apply also to Jean's
+> staging tree. Let me know if something more is needed.
+> 
+> - Kalle
+> 
+> > 
+> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+> > ---
+> >  drivers/i2c/busses/i2c-omap.c |   34 ++++++++++++++++++++++++++++++++++
+> >  1 files changed, 34 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index a0e49f6..991341b 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -1132,6 +1132,36 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+> >  }
+> >  
+> >  #ifdef CONFIG_PM
+> > +#ifdef CONFIG_PM_SLEEP
+> > +static int omap_i2c_suspend_noirq(struct device *dev)
+> > +{
+> > +
+> > +	struct platform_device *pdev = to_platform_device(dev);
+> > +	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> > +
+> > +	/* Disabling irq here to balance the enable in resume_early */
+> > +	disable_irq(_dev->irq);
+> > +	return 0;
+> > +}
+> > +
+> > +static int omap_i2c_resume_early(struct device *dev)
+> > +{
+> > +
+> > +	struct platform_device *pdev = to_platform_device(dev);
+> > +	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> > +
+> > +	/*
+> > +	 * The noirq_resume enables the interrupts one by one,
+> > +	 * this causes a interrupt flood if the SW irq actually reading
+> > +	 * event from i2c device is enabled only after i2c bus irq, as the
+> > +	 * irq that should clear the event is still disabled. We have to
+> > +	 * keep the bus irq disabled until all other irqs have been enabled.
+> > +	 */
+> > +	enable_irq(_dev->irq);
+> > +
+> > +	return 0;
+> > +}
+> > +#endif
+> >  #ifdef CONFIG_PM_RUNTIME
+> >  static int omap_i2c_runtime_suspend(struct device *dev)
+> >  {
+> > @@ -1183,6 +1213,10 @@ static int omap_i2c_runtime_resume(struct device *dev)
+> >  #endif /* CONFIG_PM_RUNTIME */
+> >  
+> >  static struct dev_pm_ops omap_i2c_pm_ops = {
+> > +#ifdef CONFIG_PM_SLEEP
+> > +	.suspend_noirq = omap_i2c_suspend_noirq,
+> > +	.resume_early = omap_i2c_resume_early,
+> > +#endif
+> >  	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
+> >  			   omap_i2c_runtime_resume, NULL)
+> >  };
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
