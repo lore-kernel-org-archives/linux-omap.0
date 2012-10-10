@@ -1,42 +1,35 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
-Date: Wed, 10 Oct 2012 10:00:27 -0400
-Message-ID: <20121010140027.GB13724@beef>
-References: <1349773040-8204-1-git-send-email-hvaibhav@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1349773040-8204-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, Afzal Mohammed <afzal@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Vikas C Sajjan <vikas.sajjan@linaro.org>
+Subject: [PATCH 0/3] USB: dwc3: Add suspend/resume support
+Date: Wed, 10 Oct 2012 19:35:46 +0530
+Message-ID: <1349877949-18872-1-git-send-email-vikas.sajjan@linaro.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout4.samsung.com ([203.254.224.34]:45667 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755954Ab2JJOBH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Oct 2012 10:01:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, balbi@ti.com, Vikas Sajjan <vikas.sajjan@linaro.org>
 
-On Tue, Oct 09, 2012 at 02:27:20PM +0530, Vaibhav Hiremath wrote:
-> With recent changes in omap gpmc driver code, in case of DT
-> boot mode, where bootloader does not configure gpmc cs space
-> will result into kernel BUG() inside gpmc_mem_init() function,
-> as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
-> gpmc_config7[0].baseaddress is set to '0' on reset.
-> 
-> This use-case is applicable for any board/EVM which doesn't have
-> any peripheral connected to gpmc cs0, for example BeagleXM and
-> BeagleBone, so DT boot mode fails.
-> 
-> This patch adds of_have_populated_dt() check before creating
-> device, so that for DT boot mode, gpmc probe will not be called
-> which is expected behavior, as gpmc is not supported yet from DT.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Cc: Afzal Mohammed <afzal@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc Paul Walmsley <paul@pwsan.com>
-> ---
-> This should go in for rc1, as this breaks AM33xx boot.
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
 
-Fixes BeagleBone on mainline.
+This patchset adds suspend/resume functionality to dwc3-core layer
+and xhci-platform driver. It also adds S2R support to dwc3-exynos
+glue layer.
 
-Tested-by: Matt Porter <mporter@ti.com>
+Based on 'usb-next' branch.
 
--Matt
+Vikas Sajjan (3):
+  usb: dwc3: Add the suspend/resume functionality
+  usb: xhci: Add the suspend/resume functionality
+  exynos5: usb: dwc3: Add the suspend/resume functionality
+
+ drivers/usb/dwc3/core.c        |  268 +++++++++++++++++++++++++---------------
+ drivers/usb/dwc3/dwc3-exynos.c |   60 +++++++++
+ drivers/usb/host/xhci-plat.c   |   44 +++++++
+ 3 files changed, 273 insertions(+), 99 deletions(-)
+
+-- 
+1.7.6.5
+
