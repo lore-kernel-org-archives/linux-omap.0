@@ -1,60 +1,101 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 0/3] ARM: dts: EMIF and LPDDR2 device tree data for OMAP5
- boards
-Date: Wed, 10 Oct 2012 17:50:52 +0200
-Message-ID: <5075995C.4060502@ti.com>
-References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com>
+From: Ivan Djelic <ivan.djelic@parrot.com>
+Subject: Re: [PATCH v2 00/14] OMAP-GPMC related cleanup for common zImage
+Date: Wed, 10 Oct 2012 18:38:41 +0200
+Message-ID: <20121010163840.GA13585@parrot.com>
+References: <cover.1349672877.git.afzal@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9F7B0A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37354 "EHLO bear.ext.ti.com"
+Received: from co202.xi-lite.net ([149.6.83.202]:38092 "EHLO co202.xi-lite.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752254Ab2JJPvA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Oct 2012 11:51:00 -0400
-In-Reply-To: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com>
+	id S1755615Ab2JJQiq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Oct 2012 12:38:46 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9F7B0A@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>, "Hunter, Jon" <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-You should CC devicetree-discuss@lists.ozlabs.org for any Device tree
-patches. This is applicable for the whole series.
-
-On 10/10/2012 02:05 PM, Lokesh Vutla wrote:
-> Patch 1:
-> 	Renaming elpida_ecb240abacn.dtsi as lpddr2_data.dtsi
-> Patch 2:
-> 	Correcting size of memory defined for omap5
-> Patch 3:
-> 	EMIF and LPDDR2 device tree data for OMAP5 boards
+On Mon, Oct 08, 2012 at 07:08:08AM +0100, Mohammed, Afzal wrote:
+> Hi Ivan,
 > 
-
-There is not point to list the patch subject in a cover letter.
-You should just introduce the series and ideally give details about the
-test like you have done below.
-
-The cover letter should mostly be written like an email.
-
-Benoit
-
-> Testing:
-> - Boot tested on omap5-sevm board
-> - Built emif as a module
+> On Mon, Oct 08, 2012 at 11:05:56, Mohammed, Afzal wrote:
 > 
-> Lokesh Vutla (3):
->   ARM: dts: Renaming elpida_ecb240abacn.dts as lpddr2_data.dtsi
->   ARM: dts: Correcting size of memory defined for omap5
->   ARM: dts: EMIF and LPDDR2 device tree data for OMAP5 boards
+> > This series cleans up omap-gpmc related code so that omap can
+> > be a part of common zImage.
 > 
->  arch/arm/boot/dts/elpida_ecb240abacn.dtsi |   67 ---------------
->  arch/arm/boot/dts/lpddr2_data.dtsi        |  129 +++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap4-panda.dts         |    2 +-
->  arch/arm/boot/dts/omap4-sdp.dts           |    2 +-
->  arch/arm/boot/dts/omap5-evm.dts           |   13 ++-
->  arch/arm/boot/dts/omap5.dtsi              |   18 ++++
->  6 files changed, 161 insertions(+), 70 deletions(-)
->  delete mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
->  create mode 100644 arch/arm/boot/dts/lpddr2_data.dtsi
+> > This series moves gpmc.h from plat-omap/include/plat to mach-omap2
+> > so that header file is local.
 > 
+> > Patches 7 & 8 cleans up the already moved platform data header files
+> > to contain only platform data. Also gpmc-nand information is moved
+> > to nand platform data header.
+> > 
+> > Patches 9-13 makes nand driver independent of gpmc header file
+> > 
+> > And the final patch localizes gpmc header.
+> 
+> BCH[48] support that you have added on OMAP using gpmc exported
+> symbols has been changed such that nand driver now takes care
+> of BCH support without relying on gpmc exported symbols.
+> 
+> This is more or less a cut & paste of your implementation, which was
+> necessitated now due to common ARM zImage cleanup w.r.t header files.
+> 
+> Please verify that BCH[48] works as earlier with this series.
 
+Hi Afzal,
+
+I ran several mtd regression tests on a Beagle Board on your gpmc-czimage-v2 tag.
+All BCH error correcting tests passed successfully.
+
+I occasionally had weird read errors though, especially when reading blank pages:
+the omap driver returned 512-byte sectors containing something like:
+
+30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+
+instead of:
+
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+
+I was able to reproduce the problem also on l2-mtd tip, albeit less often.
+The problem seems to occur quite randomly, it may be a hardware issue on
+my board...
+
+Anyway, the ECC handling part looks OK to me.
+
+Best regards,
+--
+Ivan
