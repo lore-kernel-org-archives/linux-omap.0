@@ -1,45 +1,43 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 0/3] ARM: dts: EMIF and LPDDR2 device tree data for OMAP5 boards
-Date: Wed, 10 Oct 2012 17:35:13 +0530
-Message-ID: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH 2/3] ARM: dts: Correcting size of memory defined for omap5
+Date: Wed, 10 Oct 2012 17:35:15 +0530
+Message-ID: <1349870716-25511-3-git-send-email-lokeshvutla@ti.com>
+References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46084 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751955Ab2JJMFc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Oct 2012 08:05:32 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:33483 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955Ab2JJMFd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Oct 2012 08:05:33 -0400
+In-Reply-To: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, lokeshvutla@ti.com, santosh.shilimkar@ti.com
 
-Patch 1:
-	Renaming elpida_ecb240abacn.dtsi as lpddr2_data.dtsi
-Patch 2:
-	Correcting size of memory defined for omap5
-Patch 3:
-	EMIF and LPDDR2 device tree data for OMAP5 boards
+Memory present for omap5 is 2GB. But in dt file
+it is specified as 1GB. Correcting the same
+in this patch
 
-Testing:
-- Boot tested on omap5-sevm board
-- Built emif as a module
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ arch/arm/boot/dts/omap5-evm.dts |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Lokesh Vutla (3):
-  ARM: dts: Renaming elpida_ecb240abacn.dts as lpddr2_data.dtsi
-  ARM: dts: Correcting size of memory defined for omap5
-  ARM: dts: EMIF and LPDDR2 device tree data for OMAP5 boards
-
- arch/arm/boot/dts/elpida_ecb240abacn.dtsi |   67 ---------------
- arch/arm/boot/dts/lpddr2_data.dtsi        |  129 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda.dts         |    2 +-
- arch/arm/boot/dts/omap4-sdp.dts           |    2 +-
- arch/arm/boot/dts/omap5-evm.dts           |   13 ++-
- arch/arm/boot/dts/omap5.dtsi              |   18 ++++
- 6 files changed, 161 insertions(+), 70 deletions(-)
- delete mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
- create mode 100644 arch/arm/boot/dts/lpddr2_data.dtsi
-
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index 9c41a3f..6f87e1a 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -15,7 +15,7 @@
+ 
+ 	memory {
+ 		device_type = "memory";
+-		reg = <0x80000000 0x40000000>; /* 1 GB */
++		reg = <0x80000000 0x80000000>; /* 2 GB */
+ 	};
+ 
+ 	vmmcsd_fixed: fixedregulator-mmcsd {
 -- 
 1.7.10.4
 
