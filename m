@@ -1,163 +1,100 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: Re: Issue with _are_all_hardreset_lines_asserted()
-Date: Tue, 9 Oct 2012 21:21:10 -0500
-Message-ID: <CALLhW=6oQHgYhZRPX2UvxS7ehrB+NoC01oYQnBkgriwVcAaoOw@mail.gmail.com>
-References: <506D8C0E.8010600@ti.com>
-	<alpine.DEB.2.00.1210090503470.5736@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv2 1/3] OMAP: VRFB: convert vrfb to platform device
+Date: Wed, 10 Oct 2012 07:07:07 +0300
+Message-ID: <1349842027.5972.8.camel@lappyti>
+References: <1349785827-27055-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1349785827-27055-2-git-send-email-tomi.valkeinen@ti.com>
+	 <87fw5n1iwh.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-deUDns5DsXNLmxr9L9Au"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:58613 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751607Ab2JJCVL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 22:21:11 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fo13so55583vcb.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 19:21:10 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1210090503470.5736@utopia.booyaka.com>
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:59661 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750752Ab2JJEHS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Oct 2012 00:07:18 -0400
+Received: by mail-lb0-f174.google.com with SMTP id n3so124043lbo.19
+        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 21:07:15 -0700 (PDT)
+In-Reply-To: <87fw5n1iwh.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Archit Taneja <a0393947@ti.com>, hvaibhav@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Archit Taneja <archit@ti.com>
 
-Hi,
 
-On 9 October 2012 00:38, Paul Walmsley <paul@pwsan.com> wrote:
-> cc Vaibhav due to the AM33xx change
->
-> Hi
->
-> On Thu, 4 Oct 2012, Archit Taneja wrote:
->
->> I was trying out the linux-next kernel, and I noticed that DSS MODULEMODE bits
->> are never cleared.
->>
->> In _omap4_disable_module(), there is a check:
->>
->>       ...
->>
->>       if (!_are_all_hardreset_lines_asserted(oh))
->>               return 0;
->>
->>       /* MODULEMODE bits cleared here */
->>       ...
->>       ...
->>       ...
->>
->> The function _are_all_hardreset_lines_asserted() returns false if
->> 'oh->rst_lines_cnt == 0', so we bail out from _omap4_disable_module() before
->> clearing the MODULEMODE bits.
->>
->> Is this correct behavior? This would prevent all hwmods who have rst_lines_cnt
->> as 0 to not get their MODULEMODE bits cleared.
->
-> You're right, that looks bogus.  What do you think about the following
-> patch?
+--=-deUDns5DsXNLmxr9L9Au
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I was a little busy creating the patch but seems like Paul beat me to
-it, yes it was a wrong case on disable_module.
+On Tue, 2012-10-09 at 13:37 -0700, Kevin Hilman wrote:
+> Hi Tomi,
+>=20
+> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+>=20
+> > This patch converts vrfb library into a platform device, in an effort t=
+o
+> > remove omap dependencies.
+> >
+> > The platform device is registered in arch/arm/plat-omap/fb.c and
+> > assigned resources depending on whether running on omap2 or omap3.
+> >
+> > The vrfb driver will parse those resources and use them to access vrfb
+> > configuration registers and the vrfb virtual rotation areas.
+> >
+> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+>=20
+> [...]
+>=20
+> I was having a quick look at this for the context save/restore piece in
+> order to understand how this driver's context is being saved/restored.
+>=20
+> Looking at mainline, I don't see where omap_vrfb_restore_context() is
+> being called currently.  Am I missing something?
 
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Mon, 8 Oct 2012 23:08:15 -0600
-> Subject: [PATCH] ARM: OMAP4/AM335x: hwmod: fix disable_module regression in
->  hardreset handling
->
-> Commit eb05f691290e99ee0bd1672317d6add789523c1e ("ARM: OMAP: hwmod:
-> partially un-reset hwmods might not be properly enabled") added code
-> to skip the IP block disable sequence if any hardreset lines were left
-> unasserted.  But this did not handle the case when no hardreset lines
-> were associated with a module, which is the general case.  In that
-> situation, the IP block would be skipped, which is likely to cause PM
-> regressions.
->
-> So, modify _omap4_disable_module() and _am33xx_disable_module() to
-> only bail out early if there are any hardreset lines asserted.  And
-> move the AM33xx test above the actual module disable code to ensure
-> that the behavior is consistent.
+No, the driver is missing something. I noticed the same thing. It seems
+ctx restore for vrfb has never been functional in mainline. I don't
+really have any recollection if this was left out intentionally from
+mainline (possibly because we didn't have a good way to handle it at
+that point), or was it just a mistake.
 
-I think that on _omap4_disable_module() we want to check if the module
-is deasserted rather than if it is asserted.
+Nobody has complained about it, though, so it can't be a major problem
+=3D).
 
-E.g.: If you have 2 hwmods for the same module (ipu with reset "cpu0"
-and mmu_ipu with reset "mmu") controlled by different drivers,
-depending on which one is idled first, the other one will cause L3
-aborts given that the module is already disabled. So, if ipu is idled
-and disabled first, then all tear down operations on iommu will cause
-L3 aborts.
+Vrfb is a platform device/driver after this patch. Do you see any
+problem with handling the context restore in runtime PM's runtime_resume
+callback? Hmm, I guess then we could have a problem if omapdss and
+omapfb are resumed before vrfb.
 
-I created the following:
+Any way to manage the suspend/resume ordering of unrelated (i.e. no
+parent/child relation) devices?
 
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: [PATCH] ARM: OMAP: hwmod: allow hwmods without reset lines to be
- disabled
+ Tomi
 
-_are_all_hardreset_lines_asserted treats hwmods without reset lines
-as always deasserted, this is correct for: _enable, _idle and
-_shutdown paths, however for _omap4_disable_module it might not
-result in the correct behavior, given that:
 
-  - hwmod without reset line can be safely disabled.
-  - hwmod with 1 or more reset lines, must be completely asserted
-    before disabled or be left to integration code to handle it.
+--=-deUDns5DsXNLmxr9L9Au
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Create a function to check for any hwmod to be partially out of
-hardreset and bail of _omap4_disable_module if this is the case.
-Hwmods without reset lines can skip these check and continue.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Reported-by: Archit Taneja <a0393947@ti.com>
-Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
----
- arch/arm/mach-omap2/omap_hwmod.c |   30 ++++++++++++++++++++++++++++--
- 1 file changed, 28 insertions(+), 2 deletions(-)
+iQIcBAABAgAGBQJQdPRrAAoJEPo9qoy8lh71MskP/3YKDWgMC85rKeFjmUu2/KNU
+Amt5+9yht2iZLk2MdqPsuCZUPf3XycKP0PQ32i56jEu4Y9AGMgIsq355r68HZz+/
+5swQCQ8RwkouhgBBegJEy7tgXQBVTAbEygZEu4aAi6eTlbW/JNBzt1RsgpESLLpW
+bTsXK2s4wx+6MUqArEdCt8210cQgMIU9Uzx4v/aKwtdM/Qyi5l1v4EA+NRMnMGyg
+23GBXtHunBK6CAKp7SGucFpUThV+6lCvfeEHPEXCGLnmqz5+RE9q+SLAbZ69NVKW
+8QnGbC6ZDVMAHRkuHKvtxMEzaB6wBnFgtBTmtuEmmD6NVt4iOmD52eB7PxN+KW3I
+BzXU8O91omSv5Hhf5mvKrslKtmZgCXV1A6mUIRQ7NFoMlvGi93qnCoZnHhLETgvZ
+tkI3sGV1se/LAT4BrdZmrYTihvUmcRsOCeaQXD4BT+dkwvAuWFTzpnv3VEUbyMKp
+bkxWh45r/e1demrmWoQd3olJ/kPNqF2Yaj2ds4pHoEPuXVI2rdJfmn8FKmzicvMF
+8iZujOOrcjrOSorlg5Hso0tkgOE4SnDJCJRiQKFJbjaiHQoV193vmGkK4AHgRPjl
+cYzthixSY7oE/UVIB1xZhDMdVBD6WuaC5v35Gr1w13U/hY+sWEJ0ga6CvwFL5W9u
+bMq5qwULGOP3Y0DGdYJ4
+=zHGA
+-----END PGP SIGNATURE-----
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 299ca28..f9d9bfb 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1698,6 +1698,29 @@ static bool
-_are_all_hardreset_lines_asserted(struct omap_hwmod *oh)
- }
+--=-deUDns5DsXNLmxr9L9Au--
 
- /**
-+ * _are_any_hardreset_lines_deasserted - true if part of @oh isn't hard-reset
-+ * @oh: struct omap_hwmod *
-+ *
-+ * If any hardreset line associated with @oh is deasserted, then return true.
-+ * Otherwise, if no hardreset lines associated with @oh are deasserted,
-+ * then return false. This function is used to avoid SOC's disable_module to
-+ * be called while the @oh is still deasserted.
-+ *
-+ * Check for oh->rst_lines_cnt is left to the caller, since a return value
-+ * could mean that a hwmod with no reset lines is deasserted.
-+ */
-+static bool _are_any_hardreset_lines_deasserted(struct omap_hwmod *oh)
-+{
-+	int i;
-+
-+	for (i = 0; i < oh->rst_lines_cnt; i++)
-+		if (_read_hardreset(oh, oh->rst_lines[i].name) == 0)
-+			return true;
-+
-+	return false;
-+}
-+
-+/**
-  * _omap4_disable_module - enable CLKCTRL modulemode on OMAP4
-  * @oh: struct omap_hwmod *
-  *
-@@ -1713,9 +1736,12 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
-
- 	/*
- 	 * Since integration code might still be doing something, only
--	 * disable if all lines are under hardreset.
-+	 * disable if all lines are under hardreset. Explicitly check for
-+	 * reset lines before the call, otherwise the abscence of a reset
-+	 * line is assumed as a deasserted hwmod and won't execute the
-+	 * disable sequence.
- 	 */
--	if (!_are_all_hardreset_lines_asserted(oh))
-+	if (oh->rst_lines_cnt && _are_any_hardreset_lines_deasserted(oh))
- 		return 0;
-
- 	pr_debug("omap_hwmod: %s: %s\n", oh->name, __func__);
--- 
-1.7.9.5
