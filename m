@@ -1,58 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3.6.0- 0/6] ARM: use module_platform_driver macro
-Date: Wed, 10 Oct 2012 18:46:44 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210101837440.5736@utopia.booyaka.com>
-References: <1349893796-6947-1-git-send-email-srinivas.kandagatla@st.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v4 0/3] OMAP 3 CSI-2 configuration
+Date: Wed, 10 Oct 2012 23:01:16 +0300
+Message-ID: <20121010200115.GO14107@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60626 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658Ab2JJSqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Oct 2012 14:46:45 -0400
-In-Reply-To: <1349893796-6947-1-git-send-email-srinivas.kandagatla@st.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53194 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756211Ab2JJUBV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Oct 2012 16:01:21 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Cc: rnayak@ti.com, Hiroshi.DOYU@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, grinberg@compulab.co.il, eric.y.miao@gmail.com, linux-arm-kernel@lists.infradead.org, juha.yrjola@nokia.com
+To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, tony@atomide.com, khilman@deeprootsystems.com
 
-Hi
+Hi all,
 
-On Wed, 10 Oct 2012, Srinivas KANDAGATLA wrote:
+This is an update to an old patchset for CSI-2 configuration for OMAP 3430
+and 3630. The patches have been tested on the 3630 only so far, and I don't
+plan to test them on 3430 in the near future.
 
-> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> 
-> Running below Coccinelle lookup pattern like below on the 
-> latest kernel showed about 52 hits. This patch series is a subset 
-> of those 52 patches, so that it will be easy for maintainers to review.
+Changes made based on Kevin's and Laurent's comments since v3.
 
-so the idea looks okay to me, but several of the patches aren't addressed 
-to the right people.  You can use the MAINTAINERS file to figure out the 
-right place to send them.
+Comments, questions and other kind of feedback is very welcome.
 
-The PXA patches need to go to the appropriate PXA people, who are 
-probably:
+Kind regards,
 
-M:      Eric Miao <eric.y.miao@gmail.com>
-M:      Russell King <linux@arm.linux.org.uk>
-M:      Haojian Zhuang <haojian.zhuang@gmail.com>
-L:      linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-
-The OMAP RNG patch needs to go to 
-
-M:      Deepak Saxena <dsaxena@plexity.net>
-M:      Matt Mackall <mpm@selenic.com>
-M:      Herbert Xu <herbert@gondor.apana.org.au>
-
-As far as the remaining three OMAP patches go, they look okay to me but 
-Tony Lindgren is the maintainer of these files and so he's the right 
-person to merge them.
-
-> Hopefully these patches will get rid of some code duplication in kernel.
-
-One other comment - the description on the patches isn't quite accurate.  
-The patches don't remove code duplication per se, they just replace some 
-boilerplate code with a macro.
-
-
-- Paul
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
