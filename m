@@ -1,63 +1,42 @@
-From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
-Date: Wed, 10 Oct 2012 14:19:40 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB3B573@DBDE01.ent.ti.com>
-References: <1349773040-8204-1-git-send-email-hvaibhav@ti.com>
- <20121010140027.GB13724@beef>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121010140027.GB13724@beef>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>
-Cc: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Matt Porter <mporter@ti.com>
+Subject: [PATCH] ARM: OMAP2+: AM33XX: clock data: fix mcasp entries
+Date: Wed, 10 Oct 2012 10:30:49 -0400
+Message-ID: <1349879449-22657-1-git-send-email-mporter@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
+Cc: Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 10, 2012 at 19:30:27, Porter, Matt wrote:
-> On Tue, Oct 09, 2012 at 02:27:20PM +0530, Vaibhav Hiremath wrote:
-> > With recent changes in omap gpmc driver code, in case of DT
-> > boot mode, where bootloader does not configure gpmc cs space
-> > will result into kernel BUG() inside gpmc_mem_init() function,
-> > as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
-> > gpmc_config7[0].baseaddress is set to '0' on reset.
-> > 
-> > This use-case is applicable for any board/EVM which doesn't have
-> > any peripheral connected to gpmc cs0, for example BeagleXM and
-> > BeagleBone, so DT boot mode fails.
-> > 
-> > This patch adds of_have_populated_dt() check before creating
-> > device, so that for DT boot mode, gpmc probe will not be called
-> > which is expected behavior, as gpmc is not supported yet from DT.
-> > 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-> > Cc: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > Cc Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-> > ---
-> > This should go in for rc1, as this breaks AM33xx boot.
-> 
-> Fixes BeagleBone on mainline.
-> 
-> Tested-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> 
+6ea74cb ARM: OMAP2+: hwmod: get rid of all omap_clk_get_by_name usage
+exposes a bug in the AM33XX clock data for mcasp. After moving to
+clk_get() usage, the _init() of all registered hwmods fails on mcasp0
+due to incorrect clock data causing clk_get() to fail. This causes all
+successive hwmods to fail to _init() leaving them in a bad state.
 
-Thanks Matt and Afzal,
+This patch updates the mcasp clock entries so clk_get() will succeed.
+It is tested on BeagleBone and is needed for 3.7-rc1 to fix AM33xx
+boot.
 
-Tony can this be picked up for rc1?? I know you have already sent pull 
-request for rc1, but by any chance you are planning to send another request?
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/mach-omap2/clock33xx_data.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks,
-Vaibhav
-> -Matt
-> 
+diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+index b87b88c..0a64139 100644
+--- a/arch/arm/mach-omap2/clock33xx_data.c
++++ b/arch/arm/mach-omap2/clock33xx_data.c
+@@ -1033,8 +1033,8 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK("481d0000.d_can",	NULL,		&dcan1_fck,	CK_AM33XX),
+ 	CLK(NULL,	"debugss_ick",		&debugss_ick,	CK_AM33XX),
+ 	CLK(NULL,	"pruss_ocp_gclk",	&pruss_ocp_gclk,	CK_AM33XX),
+-	CLK("davinci-mcasp.0",  NULL,           &mcasp0_fck,    CK_AM33XX),
+-	CLK("davinci-mcasp.1",  NULL,           &mcasp1_fck,    CK_AM33XX),
++	CLK(NULL,	"mcasp0_fck",		&mcasp0_fck,    CK_AM33XX),
++	CLK(NULL,	"mcasp1_fck",		&mcasp1_fck,    CK_AM33XX),
+ 	CLK("NULL",	"mmc2_fck",		&mmc2_fck,	CK_AM33XX),
+ 	CLK(NULL,	"mmu_fck",		&mmu_fck,	CK_AM33XX),
+ 	CLK(NULL,	"smartreflex0_fck",	&smartreflex0_fck,	CK_AM33XX),
+-- 
+1.7.9.5
