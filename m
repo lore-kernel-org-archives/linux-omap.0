@@ -1,40 +1,56 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC 00/24] OMAP serial driver flow control fixes, and preparation for DMA engine conversion
-Date: Wed, 10 Oct 2012 11:29:03 -0700
-Message-ID: <87mwzuxjtc.fsf@deeprootsystems.com>
-References: <20121006123803.GD15246@n2100.arm.linux.org.uk>
-	<507427DA.6020409@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <507427DA.6020409@ti.com> (Sourav's message of "Tue, 9 Oct 2012
-	19:04:18 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Sourav <sourav.poddar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Subject: [PATCH 3.6.0- 0/6] ARM: use module_platform_driver macro
+Date: Wed, 10 Oct 2012 19:29:56 +0100
+Message-ID: <1349893796-6947-1-git-send-email-srinivas.kandagatla@st.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eu1sys200aog101.obsmtp.com ([207.126.144.111]:41908 "EHLO
+	eu1sys200aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751642Ab2JJSbe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Oct 2012 14:31:34 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, rnayak@ti.com
+Cc: srinivas.kandagatla@st.com, Hiroshi.DOYU@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, grinberg@compulab.co.il, eric.y.miao@gmail.com, linux-arm-kernel@lists.infradead.org, juha.yrjola@nokia.com
 
-Hi Sourav,
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-Sourav <sourav.poddar@ti.com> writes:
+Running below Coccinelle lookup pattern like below on the 
+latest kernel showed about 52 hits. This patch series is a subset 
+of those 52 patches, so that it will be easy for maintainers to review.
+Hopefully these patches will get rid of some code duplication in kernel.
 
-[...]
+@  @
+- initfunc(void)
+- { return platform_driver_register(&dr); }
 
-> Boot Tested this patch series against v3.6 tag(applied cleanly) on
-> panda board and
-> PM tested(hitting off in Idle and suspend) on omap3630 based beagle board.
->
-> Note, I also tested the patches against the current master but only
-> after rebasing, since the current master includes serial patches from
-> Felipe Balbi[1].
-> [1] https://lkml.org/lkml/2012/8/24/139
->
-> Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+...
 
-Did you test flow control after off-mode transitons?
+- module_init(initfunc);
+...
 
-Russell indicated that the context save/restore is not saving important
-bits related to HW flow control, so I suspect some more testing,
-specifically of flow control after off-mode is needed.
+- exitfunc(void)
+- { platform_driver_unregister(&dr); }
 
-Kevin
+...
+
+- module_exit(exitfunc);
++ module_platform_driver(dr); 
+
+
+Srinivas Kandagatla (6):
+  ARM/omap1: use module_platform_driver macro
+  ARM/omap2: use module_platform_driver macro
+  ARM/pxa: use module_platform_driver macro
+  ARM/pxa: use module_platform_driver macro
+  ARM/omap: use module_platform_driver macro
+  omap_rng: use module_platform_driver macro
+
+ arch/arm/mach-omap1/mailbox.c     |   14 +-------------
+ arch/arm/mach-omap2/mailbox.c     |   14 +-------------
+ arch/arm/mach-pxa/pxa3xx-ulpi.c   |   13 +------------
+ arch/arm/mach-pxa/tosa-bt.c       |   15 +--------------
+ arch/arm/plat-omap/dmtimer.c      |   13 +------------
+ drivers/char/hw_random/omap-rng.c |   14 +-------------
+ 6 files changed, 6 insertions(+), 77 deletions(-)
+
