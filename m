@@ -1,38 +1,81 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 1/5] omap fixes for v3.7-rc1
-Date: Tue, 9 Oct 2012 16:19:42 -0700
-Message-ID: <CAOesGMgBtEL6aPwbVi7pWPsh75Phdsk=ZUePaxNuXRdxniAw5A@mail.gmail.com>
-References: <50747195.25cf320a.259b.ffffd04bSMTPIN_ADDED@mx.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] rtc: kconfig: fix RTC_INTF defaults connected to RTC_CLASS
+Date: Tue,  9 Oct 2012 17:09:44 -0700
+Message-ID: <1349827784-8646-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:51437 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754686Ab2JIXTp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 19:19:45 -0400
-Received: by mail-lb0-f174.google.com with SMTP id n3so4157400lbo.19
-        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 16:19:43 -0700 (PDT)
-In-Reply-To: <50747195.25cf320a.259b.ffffd04bSMTPIN_ADDED@mx.google.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:34167 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126Ab2JJAJr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Oct 2012 20:09:47 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so5775122pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 09 Oct 2012 17:09:46 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: rtc-linux@googlegroups.com, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Venu Byravarasu <vbyravarasu@nvidia.com>
 
-Hi,
+From: Kevin Hilman <khilman@ti.com>
 
+commit 6b8029fab64164b5895d58d23229b75c82e3a6fc (rtc: kconfig: remove
+unnecessary dependencies) removed various 'depends on RTC_CLASS'
+dependencies but also removed a few 'default RTC_CLASS' statements,
+which actually changed default behavior.
 
-On Tue, Oct 9, 2012 at 11:46 AM, Tony Lindgren <tony@atomide.com> wrote:
-> The following changes since commit 5e090ed7af10729a396a25df43d69a236e789736:
->
->   Merge tag 'soc-late' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2012-10-07 20:55:16 +0900)
->
-> are available in the git repository at:
->
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc1/fixes-signed
+This resulted in the various RTC interfaces (sysfs, proc, dev) all
+being disabled by default, even when RTC_CLASS is enabled:
 
+   # CONFIG_RTC_INTF_SYSFS is not set
+   # CONFIG_RTC_INTF_PROC is not set
+   # CONFIG_RTC_INTF_DEV is not set
 
-Applied 1-5. Thanks!
+which is different from previous behavior (all of these where enabled.)
 
+To fix, add back the 'default RTC_CLASS' statments to each of the
+RTC_INTF_* options.
 
--Olof
+I noticed this because some RTC tests started failing on my TI OMAP
+platforms because /dev/rtc0 was not present anymore, even though the
+driver was present and RTC_CLASS was enabled.
+
+Cc: Venu Byravarasu <vbyravarasu@nvidia.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Targeted as a fix for v3.7-rc.
+Applies on Linus' master, just after merging "Andrew's patch bomb"
+commit 11126c611e10abb18b6f1ed0300c0548c3906b54
+
+ drivers/rtc/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index e069f17..19c03ab 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -59,6 +59,7 @@ comment "RTC interfaces"
+ config RTC_INTF_SYSFS
+ 	boolean "/sys/class/rtc/rtcN (sysfs)"
+ 	depends on SYSFS
++	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your RTCs using sysfs interfaces,
+ 	  /sys/class/rtc/rtc0 through /sys/.../rtcN.
+@@ -68,6 +69,7 @@ config RTC_INTF_SYSFS
+ config RTC_INTF_PROC
+ 	boolean "/proc/driver/rtc (procfs for rtcN)"
+ 	depends on PROC_FS
++	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your system clock RTC through
+ 	  the proc interface, /proc/driver/rtc.
+@@ -79,6 +81,7 @@ config RTC_INTF_PROC
+ 
+ config RTC_INTF_DEV
+ 	boolean "/dev/rtcN (character devices)"
++	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your RTCs using the /dev
+ 	  interfaces, which "udev" sets up as /dev/rtc0 through
+-- 
+1.7.9.2
+
