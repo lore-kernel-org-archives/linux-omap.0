@@ -1,100 +1,190 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH 4/4] mtd: nand: omap2: Add data correction support
-Date: Thu, 11 Oct 2012 05:27:13 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9CB751@DBDE01.ent.ti.com>
-References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
- <1349274589-11389-5-git-send-email-avinashphilip@ti.com>
- <20121003192044.GB27502@parrot.com>
- <518397C60809E147AF5323E0420B992E3E9B8A65@DBDE01.ent.ti.com>
- <20121005142338.GA7199@parrot.com>
- <518397C60809E147AF5323E0420B992E3E9CA829@DBDE01.ent.ti.com>
- <20121010170806.GB13585@parrot.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH 3/3] ARM: dts: EMIF and LPDDR2 device tree data for OMAP5
+ boards
+Date: Thu, 11 Oct 2012 11:46:42 +0530
+Message-ID: <5076644A.10504@ti.com>
+References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com> <1349870716-25511-4-git-send-email-lokeshvutla@ti.com> <50758DC7.3070408@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20121010170806.GB13585@parrot.com>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: Ivan Djelic <ivan.djelic@parrot.com>
-Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59103 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754561Ab2JKGQ4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Oct 2012 02:16:56 -0400
+In-Reply-To: <50758DC7.3070408@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org
 
-On Wed, Oct 10, 2012 at 22:38:06, Ivan Djelic wrote:
-> On Tue, Oct 09, 2012 at 01:36:50PM +0100, Philip, Avinash wrote:
-> (...)
-> > > There are at least 2 potential problems when reading an erased page with bitflips:
-> > > 
-> > > 1. bitflip in data area and no bitflip in spare area (all 0xff)
-> > > Your code will not perform any ECC correction.
-> > > UBIFS does not like finding bitflips in empty pages, see for instance
-> > > http://lists.infradead.org/pipermail/linux-mtd/2012-March/040328.html.
-> > 
-> > In case of error correction using ELM, syndrome vector calculated after reading
-> > Data area & OOB area. So handling of erased page requires a software workaround.
-> > I am planning something as follows.
-> > 
-> > I will first check calculated ecc, which would be zero for non error pages.
-> > Then I would check 0xFF in OOB area (for erased page) by checking number of
-> > bit zeros in OOB area.  If it is 0xFF (number of bit zero count is zero),
-> > set entire page as 0xFF if number of bit zeros is less than max bit flips
-> > (8 or 4) by counting the number of bit zero's in data area.
-> > 
-> > This logic is implemented in fsmc_nand.c
-> > 
-> > See commit
-> > mtd: fsmc: Newly erased page read algorithm implemented
-> > 
-> > > 
-> > > 2. bitflip in ECC bytes in spare area
-> > > Your code will report an uncorrectable error upon reading; if this happens while reading a partially programmed UBI block,
-> > > I guess you will lose data.
-> > 
-> > In case of uncorrectable errors due to bit flips in spare area,
-> > I can go on checking number of bit zero's in data area + OOB area
-> > are less than max bit flips (8 or 4), I can go on setting the entire
-> > page as 0xFF.
-> > 
-> 
-> OK, sounds reasonable.
-> Another simple strategy could use the fact that you add a 14th zero byte to
-> the 13 BCH bytes for RBL compatibility:
++ devicetree-discuss
 
-RBL compatibility (14th byte) is applicable only for BCH8 ecc scheme.
+Hi Benoit,
 
-So I am planning adding an extra byte (0) for BCH4 ecc scheme. So with this
-we can go for same approaches in BCH4 & BCH8 ecc scheme.
+On Wednesday 10 October 2012 08:31 PM, Benoit Cousson wrote:
+> On 10/10/2012 02:05 PM, Lokesh Vutla wrote:
+>> Device tree data for the EMIF sdram controllers in OMAP5
+>> and LPDDR2 memory devices attached to OMAP5 boards.
+>
+> Nit: Could you make a sentence with a verb to explain what you are doing
+> in this patch.
+I am really sorry about this.
+I ll make sure that all patch descriptions will be clear in V2 of this 
+patch series.
 
-If I understood correctly, software BCH ecc scheme is modifying calculated
-ecc data to handle bit flips in erased pages.
+In this patch I am adding device tree data for LPDDR2 memory devices 
+attached to omap5-sevm and also adding device tree data for EMIF sdram 
+controllers in OMAP5.
+>
+>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> ---
+>>   arch/arm/boot/dts/lpddr2_data.dtsi |   64 +++++++++++++++++++++++++++++++++++-
+>>   arch/arm/boot/dts/omap5-evm.dts    |   11 +++++++
+>>   arch/arm/boot/dts/omap5.dtsi       |   18 ++++++++++
+>>   3 files changed, 92 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/boot/dts/lpddr2_data.dtsi b/arch/arm/boot/dts/lpddr2_data.dtsi
+>> index f97f70f..8e8c1bc 100644
+>> --- a/arch/arm/boot/dts/lpddr2_data.dtsi
+>> +++ b/arch/arm/boot/dts/lpddr2_data.dtsi
+>> @@ -3,7 +3,7 @@
+>>    */
+>>
+>>   / {
+>> -	elpida_ECB240ABACN: lpddr2 {
+>> +	elpida_ECB240ABACN: lpddr2@0 {
+>>   		compatible	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
+>>   		density		= <2048>;
+>>   		io-width	= <32>;
+>> @@ -64,4 +64,66 @@
+>>   			tDQSCK-max-derated = <6000>;
+>>   		};
+>>   	};
+>> +
+>> +	samsung_K3PE0E000B: lpddr2@1 {
+>
+> I'm confused now, why are you reusing the same lpddr2_data.dtsi file?
+> You should create a file per memory. That will make the reuse much easier.
+>
+> If the goal of your first patch was to do that, it is then the wrong
+> approach.
+Yes, I wanted to group data for all lppdr2 devices in a single file than 
+creating separate file for each device.
+May be a dumb question, Why can't we group data for all the lpddr2 
+devices in a single file?
+>
+>> +		compatible	= "Samsung,K3PE0E000B","jedec,lpddr2-s4";
+>> +		density		= <4096>;
+>> +		io-width	= <32>;
+>> +
+>> +		tRPab-min-tck	= <3>;
+>> +		tRCD-min-tck	= <3>;
+>> +		tWR-min-tck	= <3>;
+>> +		tRASmin-min-tck	= <3>;
+>> +		tRRD-min-tck	= <2>;
+>> +		tWTR-min-tck	= <2>;
+>> +		tXP-min-tck	= <2>;
+>> +		tRTP-min-tck	= <2>;
+>> +		tCKE-min-tck	= <3>;
+>> +		tCKESR-min-tck	= <3>;
+>> +		tFAW-min-tck	= <8>;
+>> +
+>> +		timings_samsung_K3PE0E000B_533mhz: lpddr2-timings@0 {
+>> +			compatible	= "jedec,lpddr2-timings";
+>> +			min-freq	= <10000000>;
+>> +			max-freq	= <533333333>;
+>> +			tRPab		= <21000>;
+>> +			tRCD		= <18000>;
+>> +			tWR		= <15000>;
+>> +			tRAS-min	= <42000>;
+>> +			tRRD		= <10000>;
+>> +			tWTR		= <7500>;
+>> +			tXP		= <7500>;
+>> +			tRTP		= <7500>;
+>> +			tCKESR		= <15000>;
+>> +			tDQSCK-max	= <5500>;
+>> +			tFAW		= <50000>;
+>> +			tZQCS		= <90000>;
+>> +			tZQCL		= <360000>;
+>> +			tZQinit		= <1000000>;
+>> +			tRAS-max-ns	= <70000>;
+>> +			tDQSCK-max-derated = <5620>;
+>> +		};
+>> +
+>> +		timings_samsung_K3PE0E000B_266mhz: lpddr2-timings@1 {
+>> +			compatible	= "jedec,lpddr2-timings";
+>> +			min-freq	= <10000000>;
+>> +			max-freq	= <266666666>;
+>> +			tRPab		= <21000>;
+>> +			tRCD		= <18000>;
+>> +			tWR		= <15000>;
+>> +			tRAS-min	= <42000>;
+>> +			tRRD		= <10000>;
+>> +			tWTR		= <7500>;
+>> +			tXP		= <7500>;
+>> +			tRTP		= <7500>;
+>> +			tCKESR		= <15000>;
+>> +			tDQSCK-max	= <5500>;
+>> +			tFAW		= <50000>;
+>> +			tZQCS		= <90000>;
+>> +			tZQCL		= <360000>;
+>> +			tZQinit		= <1000000>;
+>> +			tRAS-max-ns	= <70000>;
+>> +			tDQSCK-max-derated = <6000>;
+>> +		};
+>> +	};
+>>   };
+>> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+>> index 6f87e1a..8a952f8 100644
+>> --- a/arch/arm/boot/dts/omap5-evm.dts
+>> +++ b/arch/arm/boot/dts/omap5-evm.dts
+>> @@ -8,6 +8,7 @@
+>>   /dts-v1/;
+>>
+>>   /include/ "omap5.dtsi"
+>> +/include/ "lpddr2_data.dtsi"
+>>
+>>   / {
+>>   	model = "TI OMAP5 EVM board";
+>> @@ -82,3 +83,13 @@
+>>   			0x020700d9>;	/* SEARCH */
+>>   	linux,input-no-autorepeat;
+>>   };
+>> +
+>> +&emif1 {
+>> +	cs1-used;
+>> +	device-handle = <&samsung_K3PE0E000B>;
+>> +};
+>> +
+>> +&emif2 {
+>> +	cs1-used;
+>> +	device-handle = <&samsung_K3PE0E000B>;
+>> +};
+>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>> index 5db33f4..40b41c2 100644
+>> --- a/arch/arm/boot/dts/omap5.dtsi
+>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>> @@ -319,5 +319,23 @@
+>>   			ti,buffer-size = <128>;
+>>   			ti,hwmods = "mcbsp3";
+>>   		};
+>> +
+>> +		emif1: emif@0x4c000000 {
+>> +			compatible	= "ti,emif-4d5";
+>> +			ti,hwmods	= "emif1";
+>> +			phy-type	= <2>;
+>> +			hw-caps-read-idle-ctrl;
+>> +			hw-caps-ll-interface;
+>> +			hw-caps-temp-alert;
+>
+> You should now add the reg, and interrupt attributes as well.
+OK I ll add these fields.
 
-If that is the only reason, whether same logic can go for same ECC calculation
-(remove modification of calculated ecc in case of software ecc correction)
-by adding an extra byte (0) in spare area to handle erased pages.
-
-So can you share if I am missing something?
-
-> 
-> Upon reading:
->  - if this 14th byte is zero (*) => page was programmed: perform ECC
->    correction as usual
->  - else, page was not programmed: do not perform ECC, read entire data+spare
->    area, and set it to 0xff if less than 8 or 4 (max bitflips) zero bits
->    were found
-> 
-> (*) for robustness to bitflip in 14th byte, replace condition
-> "14th byte is zero" by e.g. "14th byte has less than 4 bits set to 1".
-> 
-> What do you think ?
-
-This seems logically good.
-
-Thanks
-Avinash
-
-> 
-> BR,
-> --
-> Ivan
-> 
+Thanks,
+Lokesh
+>
+> Regards,
+> Benoit
+>
 
