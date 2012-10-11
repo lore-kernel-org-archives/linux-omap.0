@@ -1,39 +1,57 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [RFC PATCH v2 00/16] DMA Engine support for AM33xx
-Date: Thu, 11 Oct 2012 17:49:30 -0400
-Message-ID: <20121011214930.GF13724@beef>
-References: <1349982281-10785-1-git-send-email-mporter@ti.com>
- <CACxGe6vL2ieaYN_YhZn9=e7=prwdfwZtgPr4Ei3VMNnViib6XA@mail.gmail.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [RFC][PATCH v4? 0/7] Adaptive Body-Bias for OMAP
+Date: Thu, 11 Oct 2012 15:21:07 -0700
+Message-ID: <20121011222107.2941.62545@nucleus>
+References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
+ <20121011133304.GA19170@kahuna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACxGe6vL2ieaYN_YhZn9=e7=prwdfwZtgPr4Ei3VMNnViib6XA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Robert Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, spi-devel-general@lists.sourceforge.net, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20121011133304.GA19170@kahuna>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 11, 2012 at 10:31:58PM +0100, Grant Likely wrote:
-> Hey Matt,
+Quoting Nishanth Menon (2012-10-11 06:33:04)
+> On 18:26-20121003, Mike Turquette wrote:
+> > From: Mike Turquette <mturquette@linaro.org>
+> [...]
+> > 
+> >  arch/arm/mach-omap2/Makefile                  |    8 +-
+> >  arch/arm/mach-omap2/abb.c                     |  322 +++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/abb.h                     |   94 ++++++++
+> [...]
+> >  arch/arm/plat-omap/include/plat/voltage.h     |    1 +
+> >  18 files changed, 699 insertions(+), 37 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/abb.c
+> >  create mode 100644 arch/arm/mach-omap2/abb.h
+> >  create mode 100644 arch/arm/mach-omap2/abb36xx_data.c
+> >  create mode 100644 arch/arm/mach-omap2/abb44xx_data.c
 > 
-> Do you know now similar are the EDMA engines on the am33xx and am389x? I've
-> been working on am389x upstreaming and I'll try these patches out if it is
-> the same engine.
+> dumb question: with the request to move everything out of mach-omap2
+> directory, do we still want to add more files into mach-omap2?
+> 
 
-Hi Grant,
+Not a dumb question at all.  I approached this problem by modeling it
+after existing voltage layer code (in particular the vp and vc drivers).
 
-It's the same one. am389x/ti816x and am387x/ti814x are part of the same
-architectural family as am33xx. They've just never had a lot of upstream
-support from TI. I heard rumors that you might be working with am389x
-and I'm glad you're confirming that for me! ;)
+My hope is to get it merged as-is and then bundle the abb code up with
+the vp/vc migration to drivers/* when that happens some day.  People
+using omap36xx and above need this code now, so it seems prudent to take
+this approach today.
 
-The only differences between am33xx's implementation and the others is
-going to be the number PaRAM slots, number of TCs, the channel mapping,
-and then the crossbar mapping. As you can see from the TODO list, I
-don't yet support the crossbar, but it'll be in the next version of this
-series. The other items are already covered in the DT binding so it
-should be straightforward to hook this up for am389x assuming your hwmod
-and clock data is good for that part.
+Regards,
+Mike
 
--Matt
+> Regards,
+> NM
