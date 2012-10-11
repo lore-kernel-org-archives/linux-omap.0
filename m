@@ -1,43 +1,48 @@
-From: Peter Meerwald <pmeerw@pmeerw.net>
-Subject: omap3 gpmc: irq-20 could not claim: err -2
-Date: Thu, 11 Oct 2012 11:35:43 +0200 (CEST)
-Message-ID: <alpine.DEB.2.01.1210111118540.25746@pmeerw.net>
+From: Sourav <sourav.poddar@ti.com>
+Subject: Re: [RFC 00/24] OMAP serial driver flow control fixes, and preparation
+ for DMA engine conversion
+Date: Thu, 11 Oct 2012 15:13:43 +0530
+Message-ID: <507694CF.3020204@ti.com>
+References: <20121006123803.GD15246@n2100.arm.linux.org.uk> <507427DA.6020409@ti.com> <87mwzuxjtc.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:45285 "EHLO pmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755562Ab2JKJfr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Oct 2012 05:35:47 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87mwzuxjtc.fsf@deeprootsystems.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Philip Avinash <avinashphilip@ti.com>, Mohammed Afzal <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Hello,
 
-I'm getting the kernel log messages early in the bootup sequence (kernel 
-3.6.1 mainline)
-[    0.121337] GPMC revision 5.0
-[    0.121582] gpmc: irq-20 could not claim: err -22
+Hi Kevin,
+On Wednesday 10 October 2012 11:59 PM, Kevin Hilman wrote:
+> Hi Sourav,
+>
+> Sourav <sourav.poddar@ti.com> writes:
+>
+> [...]
+>
+>> Boot Tested this patch series against v3.6 tag(applied cleanly) on
+>> panda board and
+>> PM tested(hitting off in Idle and suspend) on omap3630 based beagle board.
+>>
+>> Note, I also tested the patches against the current master but only
+>> after rebasing, since the current master includes serial patches from
+>> Felipe Balbi[1].
+>> [1] https://lkml.org/lkml/2012/8/24/139
+>>
+>> Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+> Did you test flow control after off-mode transitons?
+>
+> Russell indicated that the context save/restore is not saving important
+> bits related to HW flow control, so I suspect some more testing,
+> specifically of flow control after off-mode is needed.
+>
+> Kevin
+The testing done was without any flow control enabled.
+I will try to figure out how to do a hardware flow control testing
+and see the status after the off mode.
 
-this is on beagleboard, which is calling omap_nand_flash_init(), so no 
-omap_nand_platform_data specified in board file
+~Sourav
 
-NAND still works since it is operated in NAND_OMAP_PREFETCH_POLLED mode; 
-however, I'd like to try NAND_OMAP_PREFETCH_IRQ to see if it brings any 
-performance gains
-
-just passing NAND_OMAP_PREFETCH_IRQ via gmpc_nand_init() hangs the kernel 
-(I guess since the request_irq() failed earlier)
-
-another question is dev_ready which also seems to depend on IRQ also
-
-can you make any recommendation w.r.t NAND performance on OMAP?
-
-thanks, regards, p.
-
--- 
-
-Peter Meerwald
-+43-664-2444418 (mobile)
