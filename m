@@ -1,41 +1,131 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 0/4] OMAP-GPMC generic timing migration
-Date: Thu, 11 Oct 2012 12:47:22 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9FBC41@DBDE01.ent.ti.com>
-References: <cover.1349450723.git.afzal@ti.com> <5076B166.2020006@gmail.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH V2 3/3] ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
+Date: Thu, 11 Oct 2012 18:17:49 +0530
+Message-ID: <1349959669-16366-4-git-send-email-lokeshvutla@ti.com>
+References: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49947 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:49982 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756108Ab2JKMrc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Oct 2012 08:47:32 -0400
-In-Reply-To: <5076B166.2020006@gmail.com>
-Content-Language: en-US
+	with ESMTP id S1756308Ab2JKMsB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Oct 2012 08:48:01 -0400
+In-Reply-To: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, b-cousson@ti.com, lokeshvutla@ti.com
 
-SGkgRGFuaWVsLA0KDQpPbiBUaHUsIE9jdCAxMSwgMjAxMiBhdCAxNzoxNTo0MiwgRGFuaWVsIE1h
-Y2sgd3JvdGU6DQoNCj4gQWRtaXR0ZWRseSwgSSBsb3N0IHRyYWNrIG9uIHRoZSBtdWx0aXBsZSBH
-UE1DIHNlcmllcyBoZXJlLCBhbmQgdGhleSBhbHNvDQo+IGNhdXNlIG1ham9yIG1lcmdlIGNvbmZs
-aWN0cyB3aXRoIExpbnVzJyBjdXJyZW50IG1hc3RlciBicmFuY2guDQo+IA0KPiBDb3VsZCB5b3Ug
-dGVsbCBtZSB3aGljaCBwYXRjaGVzIEkgbmVlZCBvbiB0b3Agb2Ygc29vbi10by1iZS0zLjctcmMx
-PyBJDQoNClNlcmllcyBbMS0yXSBwbHVzIHRoaXMgc2VyaWVzIHdvdWxkIGJlIHRoZSByZXF1aXJl
-ZC4NCk5vdGUgdGhhdCAxc3QgcGF0Y2ggb2Ygc2VyaWVzIFsyXSBoYXMgYWxyZWFkeSByZWFjaGVk
-IG1haW5saW5lLg0KDQpBbm90aGVyIGVhc3kgd2F5IHdvdWxkIGJlLCBwdWxsLA0KZ2l0Oi8vZ2l0
-b3Jpb3VzLm9yZy94MDE0ODQwNi1wdWJsaWMvbGludXgta2VybmVsLmdpdCBncG1jLXRpbWluZw0K
-DQpnaXQgY2hlY2tvdXQgLWIgZ3BtYyA8bXlyZW1vdGUvZ3BtYy10aW1pbmc+DQpnaXQgcmViYXNl
-IC0tb250byA8TGludXMtY3VycmVudC1tYXN0ZXI+IG5leHQtMjAxMjEwMDUgKG9yICIwODBhYTlj
-IikNCg0KPiB3b3VsZCBsaWtlIHRvIGF1Z21lbnQgdGhpcyB0byBtYWtlIEdQTUMgYXR0YWNoZWQg
-TkFORCBwcm9iYWJsZSBpbiBEVCwgaW4NCj4gY2FzZSB0aGlzIGlzIHN0aWxsIGFuIG9wZW4gdG9w
-aWMuDQoNCkkgd291bGQgYmUgZG9pbmcgZ3BtYyBEVCBjb252ZXJzaW9uIG5leHQuIEhvcGluZyB0
-aGF0IHRoaXMNCnNlcmllcyB0b28gd2lsbCBiZSBwaWNrZWQgdXAgYnkgVG9ueSwgYXMgb25jZSB0
-aGlzIHNlcmllcyBpcw0KYWNjZXB0ZWQsIGR1cmluZyBEVCBjb252ZXJzaW9uIHdlIG5lZWQgbm90
-IHJlbHkgb24NCmF1eGRhdGEgKGEgbGFzdCByZXNvcnQgb3B0aW9uKSBmb3IgdGltaW5ncy4NCg0K
-PiBUaGFua3MgZm9yIHlvdSBoYXJkIHdvcmssDQoNClRoYW5rcywgaXQgd2FzIGEgcGxlYXN1cmUg
-dG8gcmVhZCB0aGUgYWJvdmUuDQoNClJlZ2FyZHMNCkFmemFsDQoNClsxXSBodHRwOi8vbWFyYy5p
-bmZvLz9sPWxpbnV4LW9tYXAmbT0xMzQ5NDUxMzE2MDI2MjImdz0yDQpbMl0gaHR0cDovL21hcmMu
-aW5mby8/bD1saW51eC1vbWFwJm09MTM0OTY3NDU4MzI5NTMxJnc9Mg0KDQo=
+Samsung's K3PE0E000B memory part is used in OMAP5-evm board.
+Adding timings and geometry details for Samsung's memory part and
+attaching the same to device-handle of EMIF1/2.
+
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+---
+ arch/arm/boot/dts/omap5-evm.dts           |   11 +++++
+ arch/arm/boot/dts/samsung_k3pe0e000b.dtsi |   67 +++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+)
+ create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index 6f87e1a..ed1d1b5 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -8,6 +8,7 @@
+ /dts-v1/;
+ 
+ /include/ "omap5.dtsi"
++/include/ "samsung_k3pe0e000b.dtsi"
+ 
+ / {
+ 	model = "TI OMAP5 EVM board";
+@@ -82,3 +83,13 @@
+ 			0x020700d9>;	/* SEARCH */
+ 	linux,input-no-autorepeat;
+ };
++
++&emif1 {
++	cs1-used;
++	device-handle = <&samsung_K3PE0E000B>;
++};
++
++&emif2 {
++	cs1-used;
++	device-handle = <&samsung_K3PE0E000B>;
++};
+diff --git a/arch/arm/boot/dts/samsung_k3pe0e000b.dtsi b/arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+new file mode 100644
+index 0000000..b352d69
+--- /dev/null
++++ b/arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+@@ -0,0 +1,67 @@
++/*
++ * Timings and Geometry for Samsung K3PE0E000B memory part
++ */
++
++/ {
++	samsung_K3PE0E000B: lpddr2 {
++		compatible	= "Samsung,K3PE0E000B","jedec,lpddr2-s4";
++		density		= <4096>;
++		io-width	= <32>;
++
++		tRPab-min-tck	= <3>;
++		tRCD-min-tck	= <3>;
++		tWR-min-tck	= <3>;
++		tRASmin-min-tck	= <3>;
++		tRRD-min-tck	= <2>;
++		tWTR-min-tck	= <2>;
++		tXP-min-tck	= <2>;
++		tRTP-min-tck	= <2>;
++		tCKE-min-tck	= <3>;
++		tCKESR-min-tck	= <3>;
++		tFAW-min-tck	= <8>;
++
++		timings_samsung_K3PE0E000B_533mhz: lpddr2-timings@0 {
++			compatible	= "jedec,lpddr2-timings";
++			min-freq	= <10000000>;
++			max-freq	= <533333333>;
++			tRPab		= <21000>;
++			tRCD		= <18000>;
++			tWR		= <15000>;
++			tRAS-min	= <42000>;
++			tRRD		= <10000>;
++			tWTR		= <7500>;
++			tXP		= <7500>;
++			tRTP		= <7500>;
++			tCKESR		= <15000>;
++			tDQSCK-max	= <5500>;
++			tFAW		= <50000>;
++			tZQCS		= <90000>;
++			tZQCL		= <360000>;
++			tZQinit		= <1000000>;
++			tRAS-max-ns	= <70000>;
++			tDQSCK-max-derated = <6000>;
++		};
++
++		timings_samsung_K3PE0E000B_266mhz: lpddr2-timings@1 {
++			compatible	= "jedec,lpddr2-timings";
++			min-freq	= <10000000>;
++			max-freq	= <266666666>;
++			tRPab		= <21000>;
++			tRCD		= <18000>;
++			tWR		= <15000>;
++			tRAS-min	= <42000>;
++			tRRD		= <10000>;
++			tWTR		= <7500>;
++			tXP		= <7500>;
++			tRTP		= <7500>;
++			tCKESR		= <15000>;
++			tDQSCK-max	= <5500>;
++			tFAW		= <50000>;
++			tZQCS		= <90000>;
++			tZQCL		= <360000>;
++			tZQinit		= <1000000>;
++			tRAS-max-ns	= <70000>;
++			tDQSCK-max-derated = <6000>;
++		};
++	};
++};
+-- 
+1.7.10.4
+
