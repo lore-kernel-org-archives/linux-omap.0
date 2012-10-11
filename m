@@ -1,64 +1,95 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/3] usb: xhci: Add the suspend/resume functionality
-Date: Thu, 11 Oct 2012 12:01:06 +0300
-Message-ID: <20121011090106.GD11439@arwen.pp.htv.fi>
-References: <1349877949-18872-1-git-send-email-vikas.sajjan@linaro.org>
- <1349877949-18872-3-git-send-email-vikas.sajjan@linaro.org>
- <20121011075241.GK10030@arwen.pp.htv.fi>
- <CAD025yQqytufzhcuuOkR9-qAVFLn7EssTCquV4bJEXsqoUZ8Qw@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH 4/4] mtd: nand: omap2: Add data correction support
+Date: Thu, 11 Oct 2012 09:05:38 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9CB982@DBDE01.ent.ti.com>
+References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
+ <1349274589-11389-5-git-send-email-avinashphilip@ti.com>
+ <20121003192044.GB27502@parrot.com>
+ <518397C60809E147AF5323E0420B992E3E9B8A65@DBDE01.ent.ti.com>
+ <20121005142338.GA7199@parrot.com>
+ <518397C60809E147AF5323E0420B992E3E9CA829@DBDE01.ent.ti.com>
+ <20121010170806.GB13585@parrot.com>
+ <518397C60809E147AF5323E0420B992E3E9CB751@DBDE01.ent.ti.com>
+ <20121011082149.GA15609@parrot.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pZs/OQEoSSbxGlYw"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56000 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752664Ab2JKJG1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Oct 2012 05:06:27 -0400
-Content-Disposition: inline
-In-Reply-To: <CAD025yQqytufzhcuuOkR9-qAVFLn7EssTCquV4bJEXsqoUZ8Qw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121011082149.GA15609@parrot.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivan Djelic <ivan.djelic@parrot.com>, "tony@atomide.com" <tony@atomide.com>, "Mohammed, Afzal" <afzal@ti.com>
+Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com
 
---pZs/OQEoSSbxGlYw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Oct 11, 2012 at 13:51:49, Ivan Djelic wrote:
+> On Thu, Oct 11, 2012 at 06:27:13AM +0100, Philip, Avinash wrote:
+> (...)
+> > > Another simple strategy could use the fact that you add a 14th zero byte to
+> > > the 13 BCH bytes for RBL compatibility:
+> > 
+> > RBL compatibility (14th byte) is applicable only for BCH8 ecc scheme.
+> > 
+> > So I am planning adding an extra byte (0) for BCH4 ecc scheme. So with this
+> > we can go for same approaches in BCH4 & BCH8 ecc scheme.
+> > 
+> > If I understood correctly, software BCH ecc scheme is modifying calculated
+> > ecc data to handle bit flips in erased pages.
+> > 
+> > If that is the only reason, whether same logic can go for same ECC calculation
+> > (remove modification of calculated ecc in case of software ecc correction)
+> > by adding an extra byte (0) in spare area to handle erased pages.
+> > 
+> > So can you share if I am missing something?
+> 
+> Yes, the only reason why a constant polynomial is added to hw-generated ECC
+> bytes is to transparently handle bitflips in erased pages.
+> Handling erased pages this way has several benefits over the zero byte hack:
+> - cleaner code, no checking of the zero byte
+> - no expensive scan of data+spare area when reading an erased block: this
+>   step can significantly slow down the initial UBI scan (lots of erased
+>    pages to read)
 
-Hi,
+Thanks for raising this point.
+In order to reduce scan time of data+spare area when reading an erased block,
+we can follow below steps
 
-On Thu, Oct 11, 2012 at 02:22:42PM +0530, Vikas Sajjan wrote:
-> Hi Felipe,
->=20
-> Thanks for the comments, will get back with modifications.
+1. Create a standard ecc vector for erased page & check against it with calculated
+   ecc of erased page.
+2. If the vectors won't match, go for counting bit flips in erased page.
+3. Again filtering of erased page can done by checking zero at fixed locations
+   in spare area.
+Note:
+Reading of bits in erased page should done only for pages having bitflips.
 
-cool, but please avoid top posting ;-)
+> - no need to worry about the (very unlikely) possibility of having more
+>   than 4 bitflips in the zero byte
+> 
+> OTOH, having the same ECC codes for both ELM and non-ELM chips with RBL
+> compatibility sounds nice and would also simplify things.
+> Note: on platforms where we use SW BCH correction, we also use the
+> MLC OMAP boot mode, which is more robust and not compatible
+> with 8-bit/4-bit BCH layouts.
+> 
+> I don't know which way is better for the OMAP community:
+> 1. Unifying ECC modes = loosing the constant polynomial benefits,
+>    but gaining RBL compat and simplifying code
+> 2. Keeping separate ECC modes = code bloat
+> 
+> Tony, do you have an opinion on this ?
+> 
+> BTW, Afzal is submitting a series of patches [1] which are not
+> compatible with your series; is there any plan to merge your patches ?
 
---=20
-balbi
+My next series will be on top Afzal's changes.
 
---pZs/OQEoSSbxGlYw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thanks
+Avinash
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQdorSAAoJEIaOsuA1yqREsnwQAKaIckFmH1cKskXEZxPzwJ4s
-xq+RAoJCIiR9kt83p4N+9OnERn7nSMiE8DaPJHt6+IVBs8/1PfH+h6WMqglJ64zy
-AyJ1b7DutqQzh/h+ZAswEJPswbkMcrf79hgYFTIOILNMvQ+uUqop19dwuWSCUnxk
-4k7y84kqdfIaBUmjercYaeW3xuW227tyWwH5R6a8n1ui4m3X01kzrandi6RAOzmi
-O8UWvOYEGD4+KEYo5IQLrjF3Zlskpb9G20JkZo45GhdclcrLZj0EATMkiuO8yQSr
-uwUqQhQdjFn78OFIK6SX7IsGxwEWnpsL7rgH4/cRexEx/lqs9kiORJtd8xYqCRew
-m51z4q0EXan0/TOU6jasTmzo6UEIJMm8f0pl71Qmpp24fIEc4Fvo1FK+IVahm8Ym
-EFmjxz4K+QmPs/y17rKVlnIioeCckYraI4EUhl9PenOZbacYsoMG5gbiEMPl/brL
-VtzOF+eY/GwEN5r/DeJZ/Osa3Rf0LXnJL/GE1SxEfirhWFl++2Uk0SkEyARQyFw4
-AhybO5x6PdsykrPR7i6Q+elPNQQxtuH9cbYtYf8ZIykccj6UkSPd3rf3cAR5AIxy
-1JT3uA5wwWcM8CJ4nTI+mUfcDCJBK+VqVJwhv5e234vLtZXbsXWZ64GxBMU/ZaiN
-/9TpwTmwkMilvtew3T7g
-=h5iN
------END PGP SIGNATURE-----
-
---pZs/OQEoSSbxGlYw--
+> 
+> BR,
+> --
+> Ivan
+> 
+> [1] http://lists.infradead.org/pipermail/linux-mtd/2012-October/044374.html
+> 
