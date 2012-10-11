@@ -1,134 +1,231 @@
-From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH v2 16/16] ARM: dts: add AM33XX SPI support
-Date: Thu, 11 Oct 2012 15:04:41 -0400
-Message-ID: <1349982281-10785-17-git-send-email-mporter@ti.com>
-References: <1349982281-10785-1-git-send-email-mporter@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] of: dma: fix protection of DMA controller data stored by DMA helpers
+Date: Thu, 11 Oct 2012 14:43:01 -0500
+Message-ID: <1349984581-5427-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1349982281-10785-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49286 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395Ab2JKTna (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Oct 2012 15:43:30 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Arnd Bergmann <arnd@arndb.de>, Jon Hunter <jon-hunter@ti.com>
 
-Adds AM33XX SPI support to the am33xx.dtsi and the BeagleBone
-dts.
+In the current implementation of the OF DMA helpers, read-copy-update (RCU)
+linked lists are being used for storing and accessing the DMA controller data.
+This part of implementation is based upon V2 of the DMA helpers by Nicolas [1].
+During a recent review of RCU, it became apparent that the code is missing the
+required rcu_read_lock()/unlock() calls as well as synchronisation calls before
+freeing any memory protected by RCU.
 
-Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Having looked into adding the appropriate RCU calls to protect the DMA data it
+became apparent that with the current DMA helper implementation, using RCU is
+not as attractive as it may have been before. The main reasons being that ...
+
+1. We need to protect the DMA data around calls to the xlate function.
+2. The of_dma_simple_xlate() function calls the DMA engine function
+   dma_request_channel() which employs a mutex and so could sleep.
+3. The RCU read-side critical sections must not sleep and so we cannot hold
+   an RCU read lock around the xlate function.
+
+Therefore, instead of using RCU, an alternative for this use-case is to employ
+a simple spinlock inconjunction with a usage count variable to keep track of
+how many current users of the DMA data structure there are. With this
+implementation, the DMA data cannot be freed until all current users of the
+DMA data are finished.
+
+This patch is based upon the DMA helpers fix for potential deadlock [2].
+
+[1] http://article.gmane.org/gmane.linux.ports.arm.omap/73622
+[2] http://marc.info/?l=linux-arm-kernel&m=134859982520984&w=2
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts |   17 +++++++++++++++
- arch/arm/boot/dts/am33xx.dtsi     |   43 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 60 insertions(+)
+ drivers/of/dma.c       |   89 ++++++++++++++++++++++++++++++++++++------------
+ include/linux/of_dma.h |    5 +--
+ 2 files changed, 70 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 5510979..23edfd8 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -18,6 +18,17 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
+diff --git a/drivers/of/dma.c b/drivers/of/dma.c
+index 4bed490..59631b2 100644
+--- a/drivers/of/dma.c
++++ b/drivers/of/dma.c
+@@ -19,28 +19,61 @@
+ #include <linux/of_dma.h>
  
-+	am3358_pinmux: pinmux@44e10800 {
-+		spi1_pins: pinmux_spi1_pins {
-+			pinctrl-single,pins = <
-+				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
-+				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
-+				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
-+				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
-+			>;
-+		};
-+	};
+ static LIST_HEAD(of_dma_list);
++static DEFINE_SPINLOCK(of_dma_lock);
+ 
+ /**
+- * of_dma_find_controller - Find a DMA controller in DT DMA helpers list
+- * @np:		device node of DMA controller
++ * of_dma_get_controller - Get a DMA controller in DT DMA helpers list
++ * @dma_spec:	pointer to DMA specifier as found in the device tree
++ *
++ * Finds a DMA controller with matching device node and number for dma cells
++ * in a list of registered DMA controllers. If a match is found the use_count
++ * variable is increased and a valid pointer to the DMA data stored is retuned.
++ * A NULL pointer is returned if no match is found.
+  */
+-static struct of_dma *of_dma_find_controller(struct device_node *np)
++static struct of_dma *of_dma_get_controller(struct of_phandle_args *dma_spec)
+ {
+ 	struct of_dma *ofdma;
+ 
++	spin_lock(&of_dma_lock);
 +
- 	ocp {
- 		uart1: serial@44e09000 {
- 			status = "okay";
-@@ -84,3 +95,9 @@
- &mmc1 {
- 	vmmc-supply = <&ldo3_reg>;
+ 	if (list_empty(&of_dma_list)) {
+-		pr_err("empty DMA controller list\n");
++		spin_unlock(&of_dma_lock);
+ 		return NULL;
+ 	}
+ 
+-	list_for_each_entry_rcu(ofdma, &of_dma_list, of_dma_controllers)
+-		if (ofdma->of_node == np)
++	list_for_each_entry(ofdma, &of_dma_list, of_dma_controllers)
++		if ((ofdma->of_node == dma_spec->np) &&
++		    (ofdma->of_dma_nbcells == dma_spec->args_count)) {
++			ofdma->use_count++;
++			spin_unlock(&of_dma_lock);
+ 			return ofdma;
++		}
++
++	spin_unlock(&of_dma_lock);
++
++	pr_debug("%s: can't find DMA controller %s\n", __func__,
++		 dma_spec->np->full_name);
+ 
+ 	return NULL;
+ }
+ 
+ /**
++ * of_dma_put_controller - Decrement use count for a registered DMA controller
++ * @of_dma:	pointer to DMA controller data
++ *
++ * Decrements the use_count variable in the DMA data structure. This function
++ * should be called only when a valid pointer is returned from
++ * of_dma_get_controller() and no further accesses to data referenced by that
++ * pointer are needed.
++ */
++static void of_dma_put_controller(struct of_dma *ofdma)
++{
++	spin_lock(&of_dma_lock);
++	ofdma->use_count--;
++	spin_unlock(&of_dma_lock);
++}
++
++/**
+  * of_dma_controller_register - Register a DMA controller to DT DMA helpers
+  * @np:			device node of DMA controller
+  * @of_dma_xlate:	translation function which converts a phandle
+@@ -81,9 +114,10 @@ int of_dma_controller_register(struct device_node *np,
+ 	ofdma->of_dma_nbcells = nbcells;
+ 	ofdma->of_dma_xlate = of_dma_xlate;
+ 	ofdma->of_dma_data = data;
++	ofdma->use_count = 0;
+ 
+ 	/* Now queue of_dma controller structure in list */
+-	list_add_tail_rcu(&ofdma->of_dma_controllers, &of_dma_list);
++	list_add_tail(&ofdma->of_dma_controllers, &of_dma_list);
+ 
+ 	return 0;
+ }
+@@ -95,15 +129,32 @@ EXPORT_SYMBOL_GPL(of_dma_controller_register);
+  *
+  * Memory allocated by of_dma_controller_register() is freed here.
+  */
+-void of_dma_controller_free(struct device_node *np)
++int of_dma_controller_free(struct device_node *np)
+ {
+ 	struct of_dma *ofdma;
+ 
+-	ofdma = of_dma_find_controller(np);
+-	if (ofdma) {
+-		list_del_rcu(&ofdma->of_dma_controllers);
+-		kfree(ofdma);
++	spin_lock(&of_dma_lock);
++
++	if (list_empty(&of_dma_list)) {
++		spin_unlock(&of_dma_lock);
++		return -ENODEV;
+ 	}
++
++	list_for_each_entry(ofdma, &of_dma_list, of_dma_controllers)
++		if (ofdma->of_node == np) {
++			if (ofdma->use_count) {
++				spin_unlock(&of_dma_lock);
++				return -EBUSY;
++			}
++
++			list_del(&ofdma->of_dma_controllers);
++			spin_unlock(&of_dma_lock);
++			kfree(ofdma);
++			return 0;
++		}
++
++	spin_unlock(&of_dma_lock);
++	return -ENODEV;
+ }
+ EXPORT_SYMBOL_GPL(of_dma_controller_free);
+ 
+@@ -166,21 +217,15 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+ 		if (of_dma_match_channel(np, name, i, &dma_spec))
+ 			continue;
+ 
+-		ofdma = of_dma_find_controller(dma_spec.np);
+-		if (!ofdma) {
+-			pr_debug("%s: can't find DMA controller %s\n",
+-				 np->full_name, dma_spec.np->full_name);
+-			continue;
+-		}
++		ofdma = of_dma_get_controller(&dma_spec);
+ 
+-		if (dma_spec.args_count != ofdma->of_dma_nbcells) {
+-			pr_debug("%s: wrong #dma-cells for %s\n", np->full_name,
+-				 dma_spec.np->full_name);
++		if (!ofdma)
+ 			continue;
+-		}
+ 
+ 		chan = ofdma->of_dma_xlate(&dma_spec, ofdma);
+ 
++		of_dma_put_controller(ofdma);
++
+ 		of_node_put(dma_spec.np);
+ 
+ 		if (chan)
+diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
+index 67158dd..84b64f8 100644
+--- a/include/linux/of_dma.h
++++ b/include/linux/of_dma.h
+@@ -25,6 +25,7 @@ struct of_dma {
+ 	struct dma_chan		*(*of_dma_xlate)
+ 				(struct of_phandle_args *, struct of_dma *);
+ 	void			*of_dma_data;
++	int			use_count;
  };
-+
-+&spi1 {
-+	status = "okay";
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&spi1_pins>;
-+};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index ef8e105..854235e 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -40,6 +40,15 @@
- 		};
- 	};
  
-+	am3358_pinmux: pinmux@44e10800 {
-+		compatible = "pinctrl-single";
-+		reg = <0x44e10800 0x0238>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-single,register-width = <32>;
-+		pinctrl-single,function-mask = <0x7f>;
-+	};
-+
- 	/*
- 	 * XXX: Use a flat representation of the AM33XX interconnect.
- 	 * The real AM33XX interconnect network is quite complex.Since
-@@ -260,6 +269,40 @@
- 			status = "disabled";
- 		};
+ struct of_dma_filter_info {
+@@ -37,7 +38,7 @@ extern int of_dma_controller_register(struct device_node *np,
+ 		struct dma_chan *(*of_dma_xlate)
+ 		(struct of_phandle_args *, struct of_dma *),
+ 		void *data);
+-extern void of_dma_controller_free(struct device_node *np);
++extern int of_dma_controller_free(struct device_node *np);
+ extern struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+ 						     char *name);
+ extern struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
+@@ -51,7 +52,7 @@ static int of_dma_controller_register(struct device_node *np,
+ 	return -ENODEV;
+ }
  
-+		spi0: spi@48030000 {
-+			compatible = "ti,omap4-mcspi";
-+			ti,hwmods = "spi0";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0x48030000 0x400>;
-+			interrupt-parent = <&intc>;
-+			interrupt = <65>;
-+			dmas = <&edma 16
-+				&edma 17
-+				&edma 18
-+				&edma 19>;
-+			dma-names = "tx0", "rx0", "tx1", "rx1";
-+			ti,spi-num-cs = <2>;
-+			status = "disabled";
-+		};
-+
-+		spi1: spi@481a0000 {
-+			compatible = "ti,omap4-mcspi";
-+			ti,hwmods = "spi1";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0x481a0000 0x400>;
-+			interrupt-parent = <&intc>;
-+			interrupt = <125>;
-+			dmas = <&edma 42
-+				&edma 43
-+				&edma 44
-+				&edma 45>;
-+			dma-names = "tx0", "rx0", "tx1", "rx1";
-+			ti,spi-num-cs = <2>;
-+			status = "disabled";
-+		};
-+
- 		wdt2: wdt@44e35000 {
- 			compatible = "ti,omap3-wdt";
- 			ti,hwmods = "wd_timer2";
+-static void of_dma_controller_free(struct device_node *np)
++static int of_dma_controller_free(struct device_node *np)
+ {
+ }
+ 
 -- 
 1.7.9.5
 
-
-------------------------------------------------------------------------------
-Don't let slow site performance ruin your business. Deploy New Relic APM
-Deploy New Relic app performance management and know exactly
-what is happening inside your Ruby, Python, PHP, Java, and .NET app
-Try New Relic at no cost today and get our sweet Data Nerd shirt too!
-http://p.sf.net/sfu/newrelic-dev2dev
