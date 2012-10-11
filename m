@@ -1,34 +1,101 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
-Date: Thu, 11 Oct 2012 13:29:11 +0530
-Message-ID: <CAM=Q2cuAMNMR5PGZR98OEYWMUrXXxyWXYg4d=3CPAFEv+cWXfg@mail.gmail.com>
-References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 3/3] ARM: dts: EMIF and LPDDR2 device tree data for OMAP5
+ boards
+Date: Thu, 11 Oct 2012 10:11:46 +0200
+Message-ID: <50767F42.9000807@ti.com>
+References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com> <1349870716-25511-4-git-send-email-lokeshvutla@ti.com> <50758DC7.3070408@ti.com> <5076644A.10504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1349871480-25182-1-git-send-email-kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49035 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932253Ab2JKIMI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Oct 2012 04:12:08 -0400
+In-Reply-To: <5076644A.10504@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org
 
-On Wed, Oct 10, 2012 at 5:48 PM, Kalle Jokiniemi
-<kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> wrote:
-> The resume_noirq enables interrupts one-by-one starting from
-> first one. Now if the wake up event for suspend came from i2c
-> device, the i2c bus irq gets enabled before the threaded
-> i2c device irq, causing a flood of i2c bus interrupts as the
-> threaded irq that should clear the event is not enabled yet.
->
-> Fixed the issue by adding suspend_noirq and resume_early
-> functions that keep i2c bus interrupts disabled until
-> resume_noirq has run completely.
->
-> Issue was detected doing a wake up from autosleep with
-> twl4030 power key on N9. Patch tested on N9.
->
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Hi Lokesh,
 
-Thanks for rebasing however since you were actually interested in one
-of the older
-stable releases how about cc stable?
+On 10/11/2012 08:16 AM, Lokesh Vutla wrote:
+> + devicetree-discuss
+> 
+> Hi Benoit,
+> 
+> On Wednesday 10 October 2012 08:31 PM, Benoit Cousson wrote:
+>> On 10/10/2012 02:05 PM, Lokesh Vutla wrote:
+>>> Device tree data for the EMIF sdram controllers in OMAP5
+>>> and LPDDR2 memory devices attached to OMAP5 boards.
+>>
+>> Nit: Could you make a sentence with a verb to explain what you are doing
+>> in this patch.
+> I am really sorry about this.
+> I ll make sure that all patch descriptions will be clear in V2 of this
+> patch series.
+> 
+> In this patch I am adding device tree data for LPDDR2 memory devices
+> attached to omap5-sevm and also adding device tree data for EMIF sdram
+> controllers in OMAP5.
+>>
+>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>> ---
+>>>   arch/arm/boot/dts/lpddr2_data.dtsi |   64
+>>> +++++++++++++++++++++++++++++++++++-
+>>>   arch/arm/boot/dts/omap5-evm.dts    |   11 +++++++
+>>>   arch/arm/boot/dts/omap5.dtsi       |   18 ++++++++++
+>>>   3 files changed, 92 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/lpddr2_data.dtsi
+>>> b/arch/arm/boot/dts/lpddr2_data.dtsi
+>>> index f97f70f..8e8c1bc 100644
+>>> --- a/arch/arm/boot/dts/lpddr2_data.dtsi
+>>> +++ b/arch/arm/boot/dts/lpddr2_data.dtsi
+>>> @@ -3,7 +3,7 @@
+>>>    */
+>>>
+>>>   / {
+>>> -    elpida_ECB240ABACN: lpddr2 {
+>>> +    elpida_ECB240ABACN: lpddr2@0 {
+>>>           compatible    = "Elpida,ECB240ABACN","jedec,lpddr2-s4";
+>>>           density        = <2048>;
+>>>           io-width    = <32>;
+>>> @@ -64,4 +64,66 @@
+>>>               tDQSCK-max-derated = <6000>;
+>>>           };
+>>>       };
+>>> +
+>>> +    samsung_K3PE0E000B: lpddr2@1 {
+>>
+>> I'm confused now, why are you reusing the same lpddr2_data.dtsi file?
+>> You should create a file per memory. That will make the reuse much
+>> easier.
+>>
+>> If the goal of your first patch was to do that, it is then the wrong
+>> approach.
+> Yes, I wanted to group data for all lppdr2 devices in a single file than
+> creating separate file for each device.
+> May be a dumb question, Why can't we group data for all the lpddr2
+> devices in a single file?
+
+Well, why should we do that? What will be the advantage?
+
+That will increase the size of the DTS/DTB with data nobody will care if
+only one type of memory is used on a given platform.
+
+Going in the same direction you can consider adding every OMAP
+description into a single DTS... Does that really make sense?
+
+So clearly there is no point doing that, it will cluttered the OMAP4 DTB
+with useless Samsung memory data. And the same issue for OMAP5 board
+that will contain Elpida memory information. And it will get worst each
+time someone will want to add a new memory in this file.
+
+You should just include the data you need for a given board.
+
+
+Regards,
+Benoit
+
