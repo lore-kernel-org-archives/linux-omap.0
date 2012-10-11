@@ -1,63 +1,53 @@
-From: Ivan Djelic <ivan.djelic@parrot.com>
-Subject: Re: [PATCH 4/4] mtd: nand: omap2: Add data correction support
-Date: Thu, 11 Oct 2012 10:21:49 +0200
-Message-ID: <20121011082149.GA15609@parrot.com>
-References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
- <1349274589-11389-5-git-send-email-avinashphilip@ti.com>
- <20121003192044.GB27502@parrot.com>
- <518397C60809E147AF5323E0420B992E3E9B8A65@DBDE01.ent.ti.com>
- <20121005142338.GA7199@parrot.com>
- <518397C60809E147AF5323E0420B992E3E9CA829@DBDE01.ent.ti.com>
- <20121010170806.GB13585@parrot.com>
- <518397C60809E147AF5323E0420B992E3E9CB751@DBDE01.ent.ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 1/3] ARM: dts: Renaming elpida_ecb240abacn.dtsi as lpddr2_data.dtsi
+Date: Thu, 11 Oct 2012 10:28:10 +0200
+Message-ID: <5076831A.4020701@ti.com>
+References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com> <1349870716-25511-2-git-send-email-lokeshvutla@ti.com> <50758AA0.5080307@ti.com> <5076644D.5050703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E9CB751@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>, tony@atomide.com, afzal@ti.com
-Cc: "dwmw2@infradead.org" <dwmw2@infradead.org>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53852 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751678Ab2JKI2V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Oct 2012 04:28:21 -0400
+In-Reply-To: <5076644D.5050703@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org
 
-On Thu, Oct 11, 2012 at 06:27:13AM +0100, Philip, Avinash wrote:
-(...)
-> > Another simple strategy could use the fact that you add a 14th zero byte to
-> > the 13 BCH bytes for RBL compatibility:
+On 10/11/2012 08:16 AM, Lokesh Vutla wrote:
+> + devicetree-discuss
 > 
-> RBL compatibility (14th byte) is applicable only for BCH8 ecc scheme.
+> Hi Benoit,
 > 
-> So I am planning adding an extra byte (0) for BCH4 ecc scheme. So with this
-> we can go for same approaches in BCH4 & BCH8 ecc scheme.
+> On Wednesday 10 October 2012 08:18 PM, Benoit Cousson wrote:
+>> Hi Lokesh,
+>>
+>> On 10/10/2012 02:05 PM, Lokesh Vutla wrote:
+>>> Renaming elpida_ecb240abacn.dtsi file generic, so that the
+>>> same file can be reused for other parts from different vendors.
+>>
+>> Could you elaborate a little bit?
+>> Are these settings purely reflecting lpddr2 spec timings?
 > 
-> If I understood correctly, software BCH ecc scheme is modifying calculated
-> ecc data to handle bit flips in erased pages.
+> The basic idea is to group data for all the lpddr2 devices in a single
+> file instead of creating separate file for each lpddr2 device.
 > 
-> If that is the only reason, whether same logic can go for same ECC calculation
-> (remove modification of calculated ecc in case of software ecc correction)
-> by adding an extra byte (0) in spare area to handle erased pages.
+> Right now the file elpida_ecb240abacn.dtsi contains only data for
+> lpddr2-s4 2G parts from Elpida.
+> I wanted to add data for lpddr2-s4 4G parts from Samsung.
+> So I renamed the file elpida_ecb240abacn.dtsi as lpddr2_data.dtsi.
 > 
-> So can you share if I am missing something?
+> Please let me know if more clarification is needed.
 
-Yes, the only reason why a constant polynomial is added to hw-generated ECC bytes is to transparently handle bitflips in erased pages.
-Handling erased pages this way has several benefits over the zero byte hack:
-- cleaner code, no checking of the zero byte
-- no expensive scan of data+spare area when reading an erased block: this step can significantly slow down the initial UBI scan (lots of erased pages to read)
-- no need to worry about the (very unlikely) possibility of having more than 4 bitflips in the zero byte
+Well, not anymore... as explained in the previous email, you should not
+do that.
+Keep the Elpida file and create another one for the Samsung part.
+Then each board will be able to select the proper one and include only
+the relevant data.
 
-OTOH, having the same ECC codes for both ELM and non-ELM chips with RBL compatibility sounds nice and would also simplify things.
-Note: on platforms where we use SW BCH correction, we also use the MLC OMAP boot mode, which is more robust and not compatible with 8-bit/4-bit BCH layouts.
+Regards,
+Benoit
 
-I don't know which way is better for the OMAP community:
-1. Unifying ECC modes = loosing the constant polynomial benefits, but gaining RBL compat and simplifying code
-2. Keeping separate ECC modes = code bloat
-
-Tony, do you have an opinion on this ?
-
-BTW, Afzal is submitting a series of patches [1] which are not compatible with your series; is there any plan to merge your patches ?
-
-BR,
---
-Ivan
-
-[1] http://lists.infradead.org/pipermail/linux-mtd/2012-October/044374.html
