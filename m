@@ -1,64 +1,34 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: Error when building modules for omap2plus_defconfig in mainline
-Date: Thu, 11 Oct 2012 13:29:05 +0530
-Message-ID: <50767C49.8080304@ti.com>
-References: <50766EEE.8000006@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
+Date: Thu, 11 Oct 2012 13:29:11 +0530
+Message-ID: <CAM=Q2cuAMNMR5PGZR98OEYWMUrXXxyWXYg4d=3CPAFEv+cWXfg@mail.gmail.com>
+References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48277 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756897Ab2JKH7L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Oct 2012 03:59:11 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9B7x9gc022193
-	for <linux-omap@vger.kernel.org>; Thu, 11 Oct 2012 02:59:10 -0500
-Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9B7x8eZ025697
-	for <linux-omap@vger.kernel.org>; Thu, 11 Oct 2012 13:29:09 +0530 (IST)
-In-Reply-To: <50766EEE.8000006@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1349871480-25182-1-git-send-email-kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, peter.ujfalusi@ti.com
 
-Hi Venkat,
+On Wed, Oct 10, 2012 at 5:48 PM, Kalle Jokiniemi
+<kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> wrote:
+> The resume_noirq enables interrupts one-by-one starting from
+> first one. Now if the wake up event for suspend came from i2c
+> device, the i2c bus irq gets enabled before the threaded
+> i2c device irq, causing a flood of i2c bus interrupts as the
+> threaded irq that should clear the event is not enabled yet.
+>
+> Fixed the issue by adding suspend_noirq and resume_early
+> functions that keep i2c bus interrupts disabled until
+> resume_noirq has run completely.
+>
+> Issue was detected doing a wake up from autosleep with
+> twl4030 power key on N9. Patch tested on N9.
+>
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
 
-On Thursday 11 October 2012 12:32 PM, Venkatraman S wrote:
-> Daily build on Linus's tree is failing for the past 2-3 days
-> make "modules" with omap2plus_defconfig..
->
-> ERROR: "snd_hwparams_to_dma_slave_config"
-> [sound/soc/omap/snd-soc-omap.ko] undefined!
-> ERROR: "snd_dmaengine_pcm_pointer" [sound/soc/omap/snd-soc-omap.ko]
-> undefined!
-> ERROR: "snd_dmaengine_pcm_open" [sound/soc/omap/snd-soc-omap.ko] undefined!
-> ERROR: "snd_dmaengine_pcm_close" [sound/soc/omap/snd-soc-omap.ko]
-> undefined!
-> ERROR: "snd_dmaengine_pcm_get_chan" [sound/soc/omap/snd-soc-omap.ko]
-> undefined!
-> ERROR: "snd_dmaengine_pcm_trigger" [sound/soc/omap/snd-soc-omap.ko]
-> undefined!
-> make[2]: *** [__modpost] Error 1
-> make[1]: *** [modules] Error 2
-> make: *** [sub-make] Error 2
->
-> Just wanted to check if a fix is already on the way for -rc1 or someone
-> is aware of it..
-
-This is already fixed by Peter. Here is the patch
-http://mailman.alsa-project.org/pipermail/alsa-devel/2012-October/055902.html
-
-Thanks
-Lokesh
->
-> Thanks,
-> Venkat.
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Thanks for rebasing however since you were actually interested in one
+of the older
+stable releases how about cc stable?
