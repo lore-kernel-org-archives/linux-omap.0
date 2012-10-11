@@ -1,74 +1,76 @@
-From: Sourav <sourav.poddar@ti.com>
-Subject: Re: [RFC 00/24] OMAP serial driver flow control fixes, and preparation
- for DMA engine conversion
-Date: Thu, 11 Oct 2012 15:51:00 +0530
-Message-ID: <50769D8C.8030401@ti.com>
-References: <20121006123803.GD15246@n2100.arm.linux.org.uk> <507427DA.6020409@ti.com> <87mwzuxjtc.fsf@deeprootsystems.com> <507694CF.3020204@ti.com> <20121011095443.GH28061@n2100.arm.linux.org.uk>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: hwmod data: Add McASP data port address space
+Date: Thu, 11 Oct 2012 12:29:27 +0200
+Message-ID: <50769F87.80104@ti.com>
+References: <1348763614-4298-1-git-send-email-ricardo.neri@ti.com> <5074319B.10903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56400 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756635Ab2JKKVL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Oct 2012 06:21:11 -0400
-In-Reply-To: <20121011095443.GH28061@n2100.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:43080 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758453Ab2JKK3d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Oct 2012 06:29:33 -0400
+In-Reply-To: <5074319B.10903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: tony@atomide.com, jon-hunter@ti.com, linux-omap@vger.kernel.org
 
-Hi Russell,
-On Thursday 11 October 2012 03:24 PM, Russell King - ARM Linux wrote:
-> On Thu, Oct 11, 2012 at 03:13:43PM +0530, Sourav wrote:
->> Hi Kevin,
->> On Wednesday 10 October 2012 11:59 PM, Kevin Hilman wrote:
->>> Hi Sourav,
->>>
->>> Sourav <sourav.poddar@ti.com> writes:
->>>
->>> [...]
->>>
->>>> Boot Tested this patch series against v3.6 tag(applied cleanly) on
->>>> panda board and
->>>> PM tested(hitting off in Idle and suspend) on omap3630 based beagle board.
->>>>
->>>> Note, I also tested the patches against the current master but only
->>>> after rebasing, since the current master includes serial patches from
->>>> Felipe Balbi[1].
->>>> [1] https://lkml.org/lkml/2012/8/24/139
->>>>
->>>> Tested-by: Sourav Poddar <sourav.poddar@ti.com>
->>> Did you test flow control after off-mode transitons?
->>>
->>> Russell indicated that the context save/restore is not saving important
->>> bits related to HW flow control, so I suspect some more testing,
->>> specifically of flow control after off-mode is needed.
->>>
->>> Kevin
->> The testing done was without any flow control enabled.
-> So, as the patch set is about fixing the flow control stuff, would
-> you say that your testing without flow control enabled has much value?
-True. I missed that point while doing the testing. Sorry for that.
-I further looked into it and saw some two options  in my minicom 
-settings(Hardware Flow Control/ Software Flow Control) Which I am 
-thinking are the ones used to enable the flow control ? and they are 
-both set to NO.
+Hi Ricardo,
 
-I already enable software flow control and did the testing on beagle, 
-where things are working fine
-after off mode.
-But if I enable hardware flow control, the teraterm does not allow me to 
-load my fs and uImage from mmc.
-If you have any pointers on how to test hardware flow control, I will 
-like to do that on my beagle board.
+On 10/09/2012 04:15 PM, Ricardo Neri wrote:
+> Hi Benoit,
+> 
+> Have you had a chance to look at this patch? Maybe you want me to submit
+> it differently or to a different list?
 
-Thanks,
-Sourav
+Sorry, I missed it. It looks fine and aligned with what I have done for
+OMAP5. I just have few minors comments.
 
+> 
+> Thanks!
+> 
+> Ricardo
+> 
+> On 09/27/2012 11:33 AM, Ricardo Neri wrote:
+>> McASP has a configuration port and a data port. This patch adds the
+>> address
+>> space entry for the data port as described in the OMAP4 TRM.
+>>
+>> Also, add names to the address spaces.
+>>
+>> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    6 ++++++
+>>   1 files changed, 6 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> index f31f3bc..cb5b463 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> @@ -4951,10 +4951,16 @@ static struct omap_hwmod_ocp_if
+>> omap44xx_l4_abe__mcasp = {
+>>
+>>   static struct omap_hwmod_addr_space omap44xx_mcasp_dma_addrs[] = {
+>>       {
+>> +        .name        = "cfg",
+>>           .pa_start    = 0x49028000,
+>>           .pa_end        = 0x490283ff,
+>>           .flags        = ADDR_TYPE_RT
+>>       },
+>> +    {
+>> +        .name        = "dat",
+>> +        .pa_start    = 0x4902A000,
 
+You should use lower case for hex number.
 
->> I will try to figure out how to do a hardware flow control testing
->> and see the status after the off mode.
-> It's software flow control which isn't properly restored...
+>> +        .pa_end        = 0x4902Afff,
+
+In the data I have, the end is 0x4012a3ff.
+Do we need to extend it to fff?
+
+Regards,
+Benoit
 
