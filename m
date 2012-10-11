@@ -1,60 +1,64 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH 1/3] ARM: dts: Renaming elpida_ecb240abacn.dtsi as lpddr2_data.dtsi
-Date: Thu, 11 Oct 2012 14:01:19 +0530
-Message-ID: <507683D7.1070606@ti.com>
-References: <1349870716-25511-1-git-send-email-lokeshvutla@ti.com> <1349870716-25511-2-git-send-email-lokeshvutla@ti.com> <50758AA0.5080307@ti.com> <5076644D.5050703@ti.com> <5076831A.4020701@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/3] usb: xhci: Add the suspend/resume functionality
+Date: Thu, 11 Oct 2012 12:01:06 +0300
+Message-ID: <20121011090106.GD11439@arwen.pp.htv.fi>
+References: <1349877949-18872-1-git-send-email-vikas.sajjan@linaro.org>
+ <1349877949-18872-3-git-send-email-vikas.sajjan@linaro.org>
+ <20121011075241.GK10030@arwen.pp.htv.fi>
+ <CAD025yQqytufzhcuuOkR9-qAVFLn7EssTCquV4bJEXsqoUZ8Qw@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pZs/OQEoSSbxGlYw"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53998 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56000 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754169Ab2JKIba (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Oct 2012 04:31:30 -0400
-In-Reply-To: <5076831A.4020701@ti.com>
+	id S1752664Ab2JKJG1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Oct 2012 05:06:27 -0400
+Content-Disposition: inline
+In-Reply-To: <CAD025yQqytufzhcuuOkR9-qAVFLn7EssTCquV4bJEXsqoUZ8Qw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com
 
-On Thursday 11 October 2012 01:58 PM, Benoit Cousson wrote:
-> On 10/11/2012 08:16 AM, Lokesh Vutla wrote:
->> + devicetree-discuss
->>
->> Hi Benoit,
->>
->> On Wednesday 10 October 2012 08:18 PM, Benoit Cousson wrote:
->>> Hi Lokesh,
->>>
->>> On 10/10/2012 02:05 PM, Lokesh Vutla wrote:
->>>> Renaming elpida_ecb240abacn.dtsi file generic, so that the
->>>> same file can be reused for other parts from different vendors.
->>>
->>> Could you elaborate a little bit?
->>> Are these settings purely reflecting lpddr2 spec timings?
->>
->> The basic idea is to group data for all the lpddr2 devices in a single
->> file instead of creating separate file for each lpddr2 device.
->>
->> Right now the file elpida_ecb240abacn.dtsi contains only data for
->> lpddr2-s4 2G parts from Elpida.
->> I wanted to add data for lpddr2-s4 4G parts from Samsung.
->> So I renamed the file elpida_ecb240abacn.dtsi as lpddr2_data.dtsi.
->>
->> Please let me know if more clarification is needed.
->
-> Well, not anymore... as explained in the previous email, you should not
-> do that.
-> Keep the Elpida file and create another one for the Samsung part.
-> Then each board will be able to select the proper one and include only
-> the relevant data.
-OK, Ill agree with you.
-I ll do the changes and post the V2.
+--pZs/OQEoSSbxGlYw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Lokesh
->
-> Regards,
-> Benoit
->
+Hi,
 
+On Thu, Oct 11, 2012 at 02:22:42PM +0530, Vikas Sajjan wrote:
+> Hi Felipe,
+>=20
+> Thanks for the comments, will get back with modifications.
+
+cool, but please avoid top posting ;-)
+
+--=20
+balbi
+
+--pZs/OQEoSSbxGlYw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQdorSAAoJEIaOsuA1yqREsnwQAKaIckFmH1cKskXEZxPzwJ4s
+xq+RAoJCIiR9kt83p4N+9OnERn7nSMiE8DaPJHt6+IVBs8/1PfH+h6WMqglJ64zy
+AyJ1b7DutqQzh/h+ZAswEJPswbkMcrf79hgYFTIOILNMvQ+uUqop19dwuWSCUnxk
+4k7y84kqdfIaBUmjercYaeW3xuW227tyWwH5R6a8n1ui4m3X01kzrandi6RAOzmi
+O8UWvOYEGD4+KEYo5IQLrjF3Zlskpb9G20JkZo45GhdclcrLZj0EATMkiuO8yQSr
+uwUqQhQdjFn78OFIK6SX7IsGxwEWnpsL7rgH4/cRexEx/lqs9kiORJtd8xYqCRew
+m51z4q0EXan0/TOU6jasTmzo6UEIJMm8f0pl71Qmpp24fIEc4Fvo1FK+IVahm8Ym
+EFmjxz4K+QmPs/y17rKVlnIioeCckYraI4EUhl9PenOZbacYsoMG5gbiEMPl/brL
+VtzOF+eY/GwEN5r/DeJZ/Osa3Rf0LXnJL/GE1SxEfirhWFl++2Uk0SkEyARQyFw4
+AhybO5x6PdsykrPR7i6Q+elPNQQxtuH9cbYtYf8ZIykccj6UkSPd3rf3cAR5AIxy
+1JT3uA5wwWcM8CJ4nTI+mUfcDCJBK+VqVJwhv5e234vLtZXbsXWZ64GxBMU/ZaiN
+/9TpwTmwkMilvtew3T7g
+=h5iN
+-----END PGP SIGNATURE-----
+
+--pZs/OQEoSSbxGlYw--
