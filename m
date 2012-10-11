@@ -1,135 +1,94 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 00/24] OMAP serial driver flow control fixes, and
-	preparation for DMA engine conversion
-Date: Thu, 11 Oct 2012 12:08:48 +0100
-Message-ID: <20121011110848.GI28061@n2100.arm.linux.org.uk>
-References: <20121006123803.GD15246@n2100.arm.linux.org.uk> <507427DA.6020409@ti.com> <87mwzuxjtc.fsf@deeprootsystems.com> <507694CF.3020204@ti.com> <20121011095443.GH28061@n2100.arm.linux.org.uk> <50769D8C.8030401@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH 0/4] OMAP-GPMC generic timing migration
+Date: Thu, 11 Oct 2012 13:45:42 +0200
+Message-ID: <5076B166.2020006@gmail.com>
+References: <cover.1349450723.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50769D8C.8030401@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Sourav <sourav.poddar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Alan Cox <alan@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:38078 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754578Ab2JKLpq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Oct 2012 07:45:46 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so912933bkc.19
+        for <linux-omap@vger.kernel.org>; Thu, 11 Oct 2012 04:45:45 -0700 (PDT)
+In-Reply-To: <cover.1349450723.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Oct 11, 2012 at 03:51:00PM +0530, Sourav wrote:
-> True. I missed that point while doing the testing. Sorry for that.
-> I further looked into it and saw some two options  in my minicom  
-> settings(Hardware Flow Control/ Software Flow Control) Which I am  
-> thinking are the ones used to enable the flow control ? and they are  
-> both set to NO.
->
-> I already enable software flow control and did the testing on beagle,  
-> where things are working fine
-> after off mode.
-> But if I enable hardware flow control, the teraterm does not allow me to  
-> load my fs and uImage from mmc.
-> If you have any pointers on how to test hardware flow control, I will  
-> like to do that on my beagle board.
+Hi,
 
-Okay, it sounds like I need to do a teach-in on flow control...
+On 05.10.2012 18:00, Afzal Mohammed wrote:
+> This series provides a generic gpmc timing calculation routine. There
+> were three peripherals (OneNAND, tusb6010, smc91x) using custom timing
+> calculations, they are migrated to use the generic timing calculation.
+> 
+> Such a generic routine would help create a driver out of gpmc platform
+> code, which would be peripheral agnostic and thus lead to DT finally.
+> Input to generic timing calculation routine would be gpmc peripheral
+> timings, output - translated timings that gpmc can understand. Later,
+> to DT'ify, gpmc peripheral timings could be passed through DT. Input
+> timings that has been used here are selected such that it represents
+> those that are present in peripheral timing datasheets.
 
-First, hardware flow control.  Hardware flow control is operated by two
-signals: RTS and CTS.
+Admittedly, I lost track on the multiple GPMC series here, and they also
+cause major merge conflicts with Linus' current master branch.
 
-In conventional setups, CTS is an input to the transmitter, and controls
-whether the transmitter may start the transmission of a new character.
-If CTS is deasserted, the transmitter will stop after the completion of
-the previous character.  When hardware flow control is disabled, the
-transmitter ignores this signal.
-
-RTS is an output, and is generally used to control the remote transmitter.
-(There are setups where RTS means something else, but the kernel doesn't
-support other schemes directly.)  RTS is asserted when either hardware
-flow control is disabled, or there is sufficient space to receive more
-characters from the remote end.
-
-This is a symetrical setup, so that two UARTs connected together using
-this scheme will have the RTS of one connected to the CTS of the other.
-This way, each can signal whether characters should be transmitted.
-
-So, in minicom, when hardware flow control is disabled, your hosts
-transmitter will ignore the state of the CTS signal, and will hold its
-RTS asserted.
-
-If hardware flow control in minicom is enabled, then that tells the
-kernel (and possibly hardware) to take note of the CTS signal, and pause
-transmission when CTS is deasserted.  It will also cause the RTS signal
-to be manipulated according to available buffer space on the receive
-side.
-
-Obviously minicom will try to ensure that any characters received are
-displayed as quickly as possible, so it's unlikely that the receive side
-will fill up.
-
-When you're logged into a system via a serial line, the hardware flow
-control state is controlled by the CRTSCTS termios flag.  That can be
-seen and manipulated by stty.  stty -a to see all flags.  stty -crtscts
-to disable, stty crtscts to enable.
+Could you tell me which patches I need on top of soon-to-be-3.7-rc1? I
+would like to augment this to make GPMC attached NAND probable in DT, in
+case this is still an open topic.
 
 
-Now, for software flow control.  It operates in the same way as above,
-but instead of a hardware signal reporting the state, characters are
-embedded into the stream.
+Thanks for you hard work,
+Daniel
 
-In normal situations, these characters are the standard ^Q (noramlly XON)
-and ^S (XOFF) characters.  You'll find that works in gnome-terminals,
-xterms, and many places because it's part of the standard terminal
-interface.  You can type these characters into minicom with or without
-software flow control disabled; it just passes them through unmodified.
 
-When software flow control is enabled, and the tty receive buffers start
-to fill up, the kernel will queue a high-priority XOFF character for the
-UART to transmit to the remote end.  Once the tty buffers have emptied
-sufficiently, it will queue a high-priority XON character.  If software
-flow control is disabled, it will ignore this.
 
-When hardware assisted software flow control is enabled, this will be
-done by the hardware itself in response to the UART FIFO filling up and
-emptying.
 
-For the target, software flow control has more configuration options:
+> This series has been created by pulling out last 4 patches in v7
+> of the series,
+> "OMAP-GPMC: generic time calc, prepare for driver"
+> This was done to have easy path for common zImage gpmc cleanup patches.
+> 
+> Proposed generic routine has been tested on OneNAND (async) on
+> OMAP3EVM rev C (as mainline does not have the OneNAND support for this,
+> local patch were used to test). For other cases of custom timing
+> calculation (tusb6010, smc91x non-muxed, OneNAND sync), generic timing
+> calculation routine was verified by simulating on OMAP3EVM.
+> 
+> This series is available
+>         @ git://gitorious.org/x0148406-public/linux-kernel.git gpmc-timing-v1
+> and is based on
+>         linux-next (next-20121005)
+> and is dependent on
+> 	http://marc.info/?l=linux-omap&m=134945131602622&w=2
+> 	http://marc.info/?l=linux-omap&m=134945239306131&w=2
+> 
+> This series as such is only the first version, but these patches has
+> already undergone one change before being made as this series. The
+> change was in using ps instead of ns to prevent rounding errors.
+> Also along with this series documentation has been improved.
+> 
+> Regards
+> Afzal
+> 
+> 
+> Afzal Mohammed (4):
+>   ARM: OMAP2+: gpmc: generic timing calculation
+>   ARM: OMAP2+: onenand: generic timing calculation
+>   ARM: OMAP2+: smc91x: generic timing calculation
+>   ARM: OMAP2+: tusb6010: generic timing calculation
+> 
+>  Documentation/bus-devices/ti-gpmc.txt | 122 +++++++++++++
+>  arch/arm/mach-omap2/gpmc-onenand.c    | 124 +++++--------
+>  arch/arm/mach-omap2/gpmc-smc91x.c     |  43 ++---
+>  arch/arm/mach-omap2/gpmc.c            | 325 ++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/gpmc.h            | 102 ++++++++---
+>  arch/arm/mach-omap2/usb-tusb6010.c    | 182 +++++--------------
+>  6 files changed, 633 insertions(+), 265 deletions(-)
+>  create mode 100644 Documentation/bus-devices/ti-gpmc.txt
+> 
 
-	ixon: controls whether the transmitter starts/stops on reception
-		of xon/xoff characters
-	ixoff: controls the generation of xon/xoff characters
-	ixany: permits any received character (including xon) to restart
-		transmission
-	stop <char>: sets the xoff character to the specified character
-	start <char>: sets the xon character to the specified character
-
-xon and xoff default to ^Q and ^S respectively, there's no need to
-'initialize' them prior to use.  So, to enable software flow control
-(which is probably already enabled on the target):
-
-	stty ixon ixoff
-
-and then you can type ^S and ^Q into minicom to stop/start the target's
-transmit output.
-
-Finally, to make the target's input buffer fill up, arrange for the
-target not to read from the controlling tty at all.  sleep 120 will
-do that for two minutes, after which the input will be gobbled up by
-the shell (which it'll try to interpret as commands.)  So, probably
-better to do:
-
-	sleep 120; echo Finished; cat >/dev/null
-
-instead, and then send lots of data, and check whether the transmission
-stops, whether the right xon/xoff characters are transmitted, and whether
-any overrun errors are reported.
-
-Going the other way, you can suspend minicom (^a z) and then arrange for
-the target to send lots of data, and again check what happens.
-
-There's a gotcha there though: with standard 8250-based serial ports,
-we have /proc/tty/driver/serial which gives easy access to the port
-statistics.  With USB stuff, those statistics are not available, so it
-becomes much harder to test.  You have to arrange for the target to send
-a known pattern, and find some way to check at the host end that it was
-correctly received, including over the flow control events.
-
-No characters should be lost when flow control is being used; after
-all, that's the whole point of the facility.
