@@ -1,164 +1,64 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/3] usb: xhci: Add the suspend/resume functionality
-Date: Thu, 11 Oct 2012 10:52:41 +0300
-Message-ID: <20121011075241.GK10030@arwen.pp.htv.fi>
-References: <1349877949-18872-1-git-send-email-vikas.sajjan@linaro.org>
- <1349877949-18872-3-git-send-email-vikas.sajjan@linaro.org>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: Error when building modules for omap2plus_defconfig in mainline
+Date: Thu, 11 Oct 2012 13:29:05 +0530
+Message-ID: <50767C49.8080304@ti.com>
+References: <50766EEE.8000006@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="W2ydbIOJmkm74tJ2"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1349877949-18872-3-git-send-email-vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vikas C Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:48277 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756897Ab2JKH7L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Oct 2012 03:59:11 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9B7x9gc022193
+	for <linux-omap@vger.kernel.org>; Thu, 11 Oct 2012 02:59:10 -0500
+Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9B7x8eZ025697
+	for <linux-omap@vger.kernel.org>; Thu, 11 Oct 2012 13:29:09 +0530 (IST)
+In-Reply-To: <50766EEE.8000006@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, peter.ujfalusi@ti.com
 
+Hi Venkat,
 
---W2ydbIOJmkm74tJ2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thursday 11 October 2012 12:32 PM, Venkatraman S wrote:
+> Daily build on Linus's tree is failing for the past 2-3 days
+> make "modules" with omap2plus_defconfig..
+>
+> ERROR: "snd_hwparams_to_dma_slave_config"
+> [sound/soc/omap/snd-soc-omap.ko] undefined!
+> ERROR: "snd_dmaengine_pcm_pointer" [sound/soc/omap/snd-soc-omap.ko]
+> undefined!
+> ERROR: "snd_dmaengine_pcm_open" [sound/soc/omap/snd-soc-omap.ko] undefined!
+> ERROR: "snd_dmaengine_pcm_close" [sound/soc/omap/snd-soc-omap.ko]
+> undefined!
+> ERROR: "snd_dmaengine_pcm_get_chan" [sound/soc/omap/snd-soc-omap.ko]
+> undefined!
+> ERROR: "snd_dmaengine_pcm_trigger" [sound/soc/omap/snd-soc-omap.ko]
+> undefined!
+> make[2]: *** [__modpost] Error 1
+> make[1]: *** [modules] Error 2
+> make: *** [sub-make] Error 2
+>
+> Just wanted to check if a fix is already on the way for -rc1 or someone
+> is aware of it..
 
-On Wed, Oct 10, 2012 at 07:35:48PM +0530, Vikas C Sajjan wrote:
-> From: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->=20
-> Adding the suspend and resume functionality for the XHCI driver
->=20
-> Signed-off-by: Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Vikas C Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> CC: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-> ---
->  drivers/usb/host/xhci-plat.c |   44 ++++++++++++++++++++++++++++++++++++=
-++++++
->  1 files changed, 44 insertions(+), 0 deletions(-)
->=20
-> diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-> index df90fe5..384cf4d 100644
-> --- a/drivers/usb/host/xhci-plat.c
-> +++ b/drivers/usb/host/xhci-plat.c
-> @@ -185,11 +185,55 @@ static int xhci_plat_remove(struct platform_device =
-*dev)
->  	return 0;
->  }
-> =20
-> +#ifdef CONFIG_PM
-> +static int xhci_plat_suspend(struct device *dev)
-> +{
-> +	struct usb_hcd		*hcd;
-> +	struct xhci_hcd		*xhci;
-> +
-> +	hcd =3D dev_get_drvdata(dev);
+This is already fixed by Peter. Here is the patch
+http://mailman.alsa-project.org/pipermail/alsa-devel/2012-October/055902.html
 
-make it a single line, together with declaration.
+Thanks
+Lokesh
+>
+> Thanks,
+> Venkat.
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> +	if (!hcd)
-> +		return -EINVAL;
-
-remove this.
-
-> +	xhci =3D hcd_to_xhci(hcd);
-
-make it a single line, together with declaration.
-
-> +	/* Make sure that the HCD Core as set state HC_STATE_SUSPENDED */
-
-HCD Core *HAS* set ??? I think this also deserves a "to" after "state":
-
-	/* Make sure HCD Core has set state to HC_STATE_SUSPENDED */
-
-> +	if (hcd->state !=3D HC_STATE_SUSPENDED ||
-> +		xhci->shared_hcd->state !=3D HC_STATE_SUSPENDED)
-> +		return -EINVAL;
-> +
-> +	return xhci_suspend(xhci);
-> +}
-> +
-> +static int xhci_plat_resume(struct device *dev)
-> +{
-> +	struct usb_hcd		*hcd;
-> +	struct xhci_hcd		*xhci;
-> +
-> +	hcd =3D dev_get_drvdata(dev);
-
-make it a single line, together with declaration.
-
-
-> +	if (!hcd)
-> +		return -EINVAL;
-
-remove this.
-
-> +
-> +	xhci =3D hcd_to_xhci(hcd);
-
-make it a single line, together with declaration.
-
-> +	return xhci_resume(xhci, 0);
-> +}
-
-this should look like:
-
-static int xhci_plat_resume(struct device *dev)
-{
-	struct usb_hcd		*hcd =3D dev_get_drvdata(dev);
-	struct xhci_hcd		*xhci =3D hcd_to_xhci(hcd);
-
-	return xhci_resume(xhci, 0);
-}
-
-> +static const struct dev_pm_ops xhci_plat_pm_ops =3D {
-> +	.suspend		=3D xhci_plat_suspend,
-> +	.resume			=3D xhci_plat_resume,
-> +};
-
-#define XHCI_PLAT_PM_OPS	(&xhci_plat_pm_ops)
-#else
-#define XHCI_PLAT_PM_OPS	NULL
-#endif
-
-> +#endif
-> +
->  static struct platform_driver usb_xhci_driver =3D {
->  	.probe	=3D xhci_plat_probe,
->  	.remove	=3D xhci_plat_remove,
->  	.driver	=3D {
->  		.name =3D "xhci-hcd",
-> +#ifdef CONFIG_PM
-> +		.pm =3D &xhci_plat_pm_ops,
-> +#endif
-
-		.pm =3D XHCI_PLAT_PM_OPS,
-
---=20
-balbi
-
---W2ydbIOJmkm74tJ2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQdnrJAAoJEIaOsuA1yqREfyUP/0+sj9JmQcjVpYS65WvqmLu2
-1rUU86vJL3dE4z47uHCM0Ac0yUh2M0mjFfUPiXYqx3QVne9DfVZ6vCmnWDX1WUI1
-XgCzjQ7znm8IhoohufcZmjLK3Fdre1iGCevCpCcf46pJ757mc2Jul7VQJx/fqccd
-0U+bTwwEyD7zbewV4g+q6J6vlW1UfQl2J81HJW4ITs4JAPv7ID0lqR5PTwGs7FUd
-KdkTLpydgcWS3JB1DEmpt3zhJqHUTG/IZiK6xVE8BEWu325psTlVpA7WRw6z0lg5
-Kw0EWxk07w4UAL7fCqqkFLNKhEeCjk35/aeZ3eMuIFB0RZ5zydRLt5HbQ8aLY77W
-ba4Xc1W2kClUcpEmdSkTixMugqmgJEsSN46ha8raub4J9dU/NmkZd6FY5nF4iHT7
-w/Jpr+J2CpVaPR6m0UFXBaQl5olqBP3EM6gtJo2V/zs+1H4LhH1pro8UxLY64wKd
-qeIRn+QUhBt9IOp8GE+SiEIgEATcgLKVPzCVLZGPbGltNdmvazTWdgpJvrzM4ueE
-A+Dc17Qh8JiTbJ5Omk2GVQHCxsBPbCJP+wshGailzXMWkLkyMm9S1x9LFxqQwqrK
-I0w9k1RFmrPVfGs6L780+mjNMCDXcMSSN9bE3kxkAeKXbo96POBZuLQJgTKfDxLS
-vKDqKjsQI2E/PJoZRTXK
-=c3Lp
------END PGP SIGNATURE-----
-
---W2ydbIOJmkm74tJ2--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
