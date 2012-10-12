@@ -1,62 +1,90 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH 4/4] MMC: omap_hsmmc: add DT property for max bus frequency
-Date: Fri, 12 Oct 2012 17:26:43 +0200
-Message-ID: <507836B3.1020809@gmail.com>
-References: <1350039495-360-1-git-send-email-zonque@gmail.com> <1350039495-360-5-git-send-email-zonque@gmail.com> <50783671.1090308@gmail.com>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH 1/2] ARM: config: sort select statements alphanumerically
+Date: Fri, 12 Oct 2012 10:08:32 -0400
+Message-ID: <20121012140832.GO12330@titan.lakedaemon.net>
+References: <20121012132553.GK28061@n2100.arm.linux.org.uk>
+ <E1TMfFr-0001Kt-W5@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:45770 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759740Ab2JLP0r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 11:26:47 -0400
-In-Reply-To: <50783671.1090308@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <E1TMfFr-0001Kt-W5@rmk-PC.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Daniel Walker <dwalker@fifo99.com>, Kevin Hilman <khilman@ti.com>, linux-samsung-soc@vger.kernel.org, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Magnus Damm <magnus.damm@gmail.com>, David Brown <davidb@codeaurora.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Alessandro Rubini <rubini@unipv.it>, Stephen Warren <swarren@wwwdotorg.org>, linux-arm-msm@vger.kernel.org, spear-devel@list.st.com, Haojian Zhuang <haojian.zhuang@gmail.com>, Shiraz Hashim <shiraz.hashim@st.com>, Kukjin Kim <kgene.kim@samsung.com>, Ben Dooks <ben-linux@fluff.org>, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Andrew Victor <linux@maxim.org.za>, linux-arm-kernel@lists.infradead.org, davinci-linux-op
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: linux-mmc@vger.kernel.org, Venkatraman S <svenkatr@ti.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org
 
-On 12.10.2012 17:25, Rob Herring wrote:
-> On 10/12/2012 05:58 AM, Daniel Mack wrote:
->> Maximum bus frequency can be limited by external circuitry like level
->> shifters etc. Allow passing this value from DT.
->>
->> Signed-off-by: Daniel Mack <zonque@gmail.com>
->> Cc: Venkatraman S <svenkatr@ti.com>
->> Cc: Chris Ball <cjb@laptop.org>
->> Cc: Grant Likely <grant.likely@secretlab.ca>
->> Cc: Rob Herring <rob.herring@calxeda.com>
->> Cc: linux-omap@vger.kernel.org
->> ---
->>  drivers/mmc/host/omap_hsmmc.c | 5 ++++-
->>  1 file changed, 4 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index 86f0759..4650ef7 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -1676,7 +1676,7 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
->>  {
->>  	struct omap_mmc_platform_data *pdata;
->>  	struct device_node *np = dev->of_node;
->> -	u32 bus_width;
->> +	u32 bus_width, max_freq;
->>  
->>  	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
->>  	if (!pdata)
->> @@ -1703,6 +1703,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
->>  	if (of_find_property(np, "ti,needs-special-reset", NULL))
->>  		pdata->slots[0].features |= HSMMC_HAS_UPDATED_RESET;
->>  
->> +	if (!of_property_read_u32(np, "max-frequency", &max_freq))
->> +		pdata->max_freq = max_freq;
->> +
+On Fri, Oct 12, 2012 at 02:26:19PM +0100, Russell King wrote:
+> As suggested by Andrew Morton:
 > 
-> Is this property documented?
+>   This is a pet peeve of mine.  Any time there's a long list of items
+>   (header file inclusions, kconfig entries, array initalisers, etc) and
+>   someone wants to add a new item, they *always* go and stick it at the
+>   end of the list.
+> 
+>   Guys, don't do this.  Either put the new item into a randomly-chosen
+>   position or, probably better, alphanumerically sort the list.
+> 
+> lets sort all our select statements alphanumerically.  This commit was
+> created by the following perl:
+> 
+> while (<>) {
+>         while (/\\\s*$/) {
+>                 $_ .= <>;
+>         }
+>         undef %selects if /^\s*config\s+/;
+>         if (/^\s+select\s+(\w+).*/) {
+>                 if (defined($selects{$1})) {
+>                         if ($selects{$1} eq $_) {
+>                                 print STDERR "Warning: removing duplicated $1 entry\n";
+>                         } else {
+>                                 print STDERR "Error: $1 differently selected\n".
+>                                         "\tOld: $selects{$1}\n".
+>                                         "\tNew: $_\n";
+>                                 exit 1;
+>                         }
+>                 }
+>                 $selects{$1} = $_;
+>                 next;
+>         }
+>         if (%selects and (/^\s*$/ or /^\s+help/)) {
+>                 foreach $k (sort (keys %selects)) {
+>                         print "$selects{$k}";
+>                 }
+>                 undef %selects;
+>         }
+>         print;
+> }
+> if (%selects) {
+>         foreach $k (sort (keys %selects)) {
+>                 print "$selects{$k}";
+>         }
+> }
+> 
+> It found two duplicates:
+> 
+> Warning: removing duplicated S5P_SETUP_MIPIPHY entry
+> Warning: removing duplicated HARDIRQS_SW_RESEND entry
+> 
+> and they are identical duplicates, hence the shrinkage in the diffstat
+> of two lines.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Yes, in the generic part. Forgot to mention that.
+For ARCH_DOVE, ARCH_KIRKWOOD, ARCH_MV78XX0, ARCH_ORION5X, PLAT_ORION,
+and PLAT_ORION_LEGACY:
 
-  Documentation/devicetree/bindings/mmc/mmc.txt
+Acked-by: Jason Cooper <jason@lakedaemon.net>
 
+thx,
 
+Jason.
