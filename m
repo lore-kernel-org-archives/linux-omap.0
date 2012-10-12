@@ -1,66 +1,129 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC PATCH v2 08/16] ARM: omap: add hsmmc am33xx specific init
-Date: Fri, 12 Oct 2012 09:17:53 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EAA6374@DBDE01.ent.ti.com>
-References: <1349982281-10785-1-git-send-email-mporter@ti.com>
-	<1349982281-10785-9-git-send-email-mporter@ti.com>
+From: "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
+Date: Fri, 12 Oct 2012 10:18:37 +0000
+Message-ID: <902E09E6452B0E43903E4F2D568737AB2C87B0@DNCE04.ent.ti.com>
+References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>,<87ipag90om.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1349982281-10785-9-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87ipag90om.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Nori,
-	Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Datta, Shubhrajyoti" <shubhrajyoti-l0cyMroinI0@public.gmane.org>, "Kankroliwala, Huzefa" <huzefank-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Matt
+Hi All,
 
-On Fri, Oct 12, 2012 at 00:34:33, Porter, Matt wrote:
-> AM33xx requires special handling in hsmmc initialization
-> platform glue.
+Sorry, for the late reply.
++ CC Huzefa Kankroliwala - who is I2C driver owner on Android Kernel 3.4.
 
-Since AM335x boots mainly through DT, do we still need this patch.
-This function will be called in case of initializing hsmmc with
-Platform data. 
+Regarding this patch -  from my point of view, it fixes corner case and not an issue in general.
+Let take a look on resume sequence:
+   - platform resume
+   - syscore resume
+   - resume_noirq
+   - enable IRQs - resume_device_irqs()
+     |- at this point IRQ handler will be invoked if IRQ state is IRQS_PENDING.
+     |- so, the I2C device IRQ handler may be called at time when I2C adapter IRQ is still disabled and, as result, the I2C device IRQ-handler may fail. (I2C device and I2C adapter may use different physical IRQ lines)
+   - resume_late
+     |- enable I2C bus IRQ
 
-> 
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Possibly, the better way is to enable/disable I2C bus IRQ when needed - in our case in omap_i2c_xfer().
+We use such approach in Android kernel 3.4
+(http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=1445a4d3b587c164bd30d108b61760aaaa07365e)
+
+Grygorii
+________________________________________
+From: Kevin Hilman [khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org]
+Sent: Friday, October 12, 2012 12:08 AM
+To: Kalle Jokiniemi
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org; ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Strashko, Grygorii; Datta, Shubhrajyoti
+Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
+
+Hi Kalle,
+
+Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> writes:
+
+> The resume_noirq enables interrupts one-by-one starting from
+> first one. Now if the wake up event for suspend came from i2c
+> device, the i2c bus irq gets enabled before the threaded
+> i2c device irq, causing a flood of i2c bus interrupts as the
+> threaded irq that should clear the event is not enabled yet.
+>
+> Fixed the issue by adding suspend_noirq and resume_early
+> functions that keep i2c bus interrupts disabled until
+> resume_noirq has run completely.
+>
+> Issue was detected doing a wake up from autosleep with
+> twl4030 power key on N9. Patch tested on N9.
+>
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+
+This version looks good, thanks for the extra comments.
+
+Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Tested-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+
+Wolfram, This should also probably be Cc'd to stable since it affects
+earlier kernels as well.  Thanks,
+
+Kevin
+
 > ---
->  arch/arm/mach-omap2/hsmmc.c |    7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-
-..snip..
-..snip..
-
->  	name = "omap_hsmmc";
->  	res = snprintf(oh_name, MAX_OMAP_MMC_HWMOD_NAME_LEN,
-> -- 
-> 1.7.9.5
-> 
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
-> 
-
-
-Regards, 
-Gururaja
-
-------------------------------------------------------------------------------
-Don't let slow site performance ruin your business. Deploy New Relic APM
-Deploy New Relic app performance management and know exactly
-what is happening inside your Ruby, Python, PHP, Java, and .NET app
-Try New Relic at no cost today and get our sweet Data Nerd shirt too!
-http://p.sf.net/sfu/newrelic-dev2dev
+>  drivers/i2c/busses/i2c-omap.c |   34 ++++++++++++++++++++++++++++++++++
+>  1 files changed, 34 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index a0e49f6..991341b 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1132,6 +1132,36 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+>  }
+>
+>  #ifdef CONFIG_PM
+> +#ifdef CONFIG_PM_SLEEP
+> +static int omap_i2c_suspend_noirq(struct device *dev)
+> +{
+> +
+> +     struct platform_device *pdev = to_platform_device(dev);
+> +     struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> +
+> +     /* Disabling irq here to balance the enable in resume_early */
+> +     disable_irq(_dev->irq);
+> +     return 0;
+> +}
+> +
+> +static int omap_i2c_resume_early(struct device *dev)
+> +{
+> +
+> +     struct platform_device *pdev = to_platform_device(dev);
+> +     struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+> +
+> +     /*
+> +      * The noirq_resume enables the interrupts one by one,
+> +      * this causes a interrupt flood if the SW irq actually reading
+> +      * event from i2c device is enabled only after i2c bus irq, as the
+> +      * irq that should clear the event is still disabled. We have to
+> +      * keep the bus irq disabled until all other irqs have been enabled.
+> +      */
+> +     enable_irq(_dev->irq);
+> +
+> +     return 0;
+> +}
+> +#endif
+>  #ifdef CONFIG_PM_RUNTIME
+>  static int omap_i2c_runtime_suspend(struct device *dev)
+>  {
+> @@ -1183,6 +1213,10 @@ static int omap_i2c_runtime_resume(struct device *dev)
+>  #endif /* CONFIG_PM_RUNTIME */
+>
+>  static struct dev_pm_ops omap_i2c_pm_ops = {
+> +#ifdef CONFIG_PM_SLEEP
+> +     .suspend_noirq = omap_i2c_suspend_noirq,
+> +     .resume_early = omap_i2c_resume_early,
+> +#endif
+>       SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
+>                          omap_i2c_runtime_resume, NULL)
+>  };
