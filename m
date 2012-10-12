@@ -1,84 +1,90 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix spurious IRQs: disable/enable IRQ at INTC
- when idle
-Date: Sat, 13 Oct 2012 01:00:04 +0530
-Message-ID: <CAM=Q2csm0Eh9F6d1wKhEfOOtG+aY+Fh8D-dKPC0RMbKupVQHYQ@mail.gmail.com>
-References: <1350067225-24589-1-git-send-email-khilman@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not suspended.
+Date: Fri, 12 Oct 2012 13:32:34 -0700
+Message-ID: <87lifbwhwd.fsf@deeprootsystems.com>
+References: <20120925091228.GI31374@n2100.arm.linux.org.uk>
+	<20120925091112.GK9137@arwen.pp.htv.fi>
+	<20120925092118.GJ31374@n2100.arm.linux.org.uk>
+	<CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com>
+	<87ipas2y4h.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.1210111748010.5736@utopia.booyaka.com>
+	<50784458.9080806@ti.com> <877gqv7imt.fsf@deeprootsystems.com>
+	<20121012164202.GQ28061@n2100.arm.linux.org.uk>
+	<877gqv4lmt.fsf@deeprootsystems.com>
+	<20121012185426.GS28061@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1350067225-24589-1-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Huzefa Kankroliwala <huzefank-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:44602 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574Ab2JLUch (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 16:32:37 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so3152389pad.19
+        for <linux-omap@vger.kernel.org>; Fri, 12 Oct 2012 13:32:37 -0700 (PDT)
+In-Reply-To: <20121012185426.GS28061@n2100.arm.linux.org.uk> (Russell King's
+	message of "Fri, 12 Oct 2012 19:54:26 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sourav <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, tony@atomide.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
 
-On Sat, Oct 13, 2012 at 12:10 AM, Kevin Hilman
-<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> wrote:
-> From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
->
-> Currently, runtime PM is used to keep the device enabled only during
-> active transfers and for a configurable runtime PM autosuspend timout
-> after an xfer.
->
-> In addition to idling the device, driver's ->runtime_suspend() method
-> currently disables device interrupts when idle.  However, on some SoCs
-> (notably OMAP4+), the I2C hardware may shared with other coprocessors.
-> This means that the MPU will still recieve interrupts if a coprocessor
-> is using the I2C device.  To avoid this, also disable interrupts at
-> the MPU INTC when idling the device in ->runtime_suspend() (and
-> re-enable them in ->runtime_resume().)  This part based on an original
-> patch from Shubhrajyoti Datta.  NOTE: for proper sharing the I2C with
-> a coprocessor, this driver still needs hwspinlock support added.
->
-> This change is also meant to address an issue reported by Kalle
-> Jokiniemi where I2C bus interrupt may be enabled before an I2C device
-> interrupt handler (e.g. just after noirq resume phase) causing an
-> interrupt flood on the I2C bus interrupt before the device interrupt
-> is enabled (e.g. interrupts coming from devices on I2C connected PMIC
-> before the PMIC chained hanlder is enabled.)  This problem is addresed
-> by ensuring that the I2C bus interrupt left disabled until an I2C xfer
-> is requested.
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-Looks good to me.
-Will wait for Kalle though.
+> On Fri, Oct 12, 2012 at 10:59:22AM -0700, Kevin Hilman wrote:
+>> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+>> 
+>> > On Fri, Oct 12, 2012 at 09:35:54AM -0700, Kevin Hilman wrote:
+>> >> Sourav <sourav.poddar@ti.com> writes:
+>> >> > diff --git a/drivers/tty/serial/omap-serial.c
+>> >> > b/drivers/tty/serial/omap-serial.c
+>> >> > index 6ede6fd..3fbc7f7 100644
+>> >> > --- a/drivers/tty/serial/omap-serial.c
+>> >> > +++ b/drivers/tty/serial/omap-serial.c
+>> >> > @@ -1414,6 +1414,7 @@ static int __devinit serial_omap_probe(struct
+>> >> > platform_device *pdev)
+>> >> >         INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
+>> >> >
+>> >> >         platform_set_drvdata(pdev, up);
+>> >> > +       pm_runtime_set_active(&pdev->dev);
+>> >> 
+>> >> NAK.
+>> >> 
+>> >> This will obviously break platforms where the UARTs are not active
+>> >> before driver loads.
+>> >
+>> > I thought I had proposed a solution for this issue, which was this
+>> > sequence:
+>> >
+>> >         omap_device_enable(dev);                                                
+>> >         pm_runtime_set_active(dev);                                             
+>> >         pm_runtime_enable(dev);                                                 
+>> >
+>> > Yes, I can understand people not liking the omap_device_enable()
+>> > there, but I also notice that the email suggesting that never got a
+>> > reply either - not even a "I tried this and it doesn't work" or "it
+>> > does work".
+>> 
+>> Yes, that solution would work (though I didn't actually try it.)
+>> 
+>> However, we can't use omap_device_enable() in the driver.  We're trying
+>> to clean all the drivers of OMAP-specific APIs.  That being said,
+>> something similar could be done in the device/board init code to ensure
+>> the UART HW is in the state that the driver is expecting it, but again,
+>> that would just mask the real problem which is that a (re)init of the
+>> console UART on 2420/n800 is causing output to disappear.
+>
+> See my more expansive suggestion just posted.
+>
+> Whatever way, this discrepancy between runtime PM state and actual device
+> state is what is biting you, and it is that which needs fixing.  
 
->
-> Cc: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
-> Cc: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>
-> Cc: Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>,
-> Cc: Huzefa Kankroliwala <huzefank-l0cyMroinI0@public.gmane.org>
-> Cc: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index db31eae..e6413e8 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1255,6 +1255,7 @@ static int omap_i2c_runtime_suspend(struct device *dev)
->                 /* Flush posted write */
->                 omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
->         }
-> +       disable_irq(_dev->irq);
->
->         return 0;
->  }
-> @@ -1275,6 +1276,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
->                 omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
->         }
->
-> +       enable_irq(_dev->irq);
-> +
->         /*
->          * Don't write to this register if the IE state is 0 as it can
->          * cause deadlock.
-> --
-> 1.7.9.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm not conviced (yet) that a mismatch is the root cause.  Yes, that's
+what the author of $SUBJECT patch assumed and stated, but I'm not
+pursuaded.  
+
+If it's an improperly configured mux issue, then the UART will break
+whenever the device is actually omap_device_enable'd, whether in the
+driver or in the bus layer.
+
+Kevin
+
