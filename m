@@ -1,43 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP4: Fix twd_local_timer_register regression
-Date: Fri, 12 Oct 2012 09:51:49 -0700
-Message-ID: <20121012165149.GE30339@atomide.com>
+Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about
+ serial stuff)
+Date: Fri, 12 Oct 2012 09:56:17 -0700
+Message-ID: <20121012165616.GF30339@atomide.com>
+References: <20121012155434.GO28061@n2100.arm.linux.org.uk>
+ <20121012162452.GD30339@atomide.com>
+ <5078469E.1030707@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56644 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59851 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932548Ab2JLQvy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 12:51:54 -0400
+	with ESMTP id S1755674Ab2JLQ4W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 12:56:22 -0400
 Content-Disposition: inline
+In-Reply-To: <5078469E.1030707@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Afzal Mohammed <afzal@ti.com>, =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
 
-Commit 7d7e1eba (ARM: OMAP2+: Prepare for irqs.h removal)
-changed the interrupts to allow enabling sparse IRQ, but
-accidentally added the omap3 INTC base to the local IRQ.
-This causes the following:
+* Benoit Cousson <b-cousson@ti.com> [121012 09:36]:
+> Hi Tony,
+> 
+> On 10/12/2012 06:24 PM, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [121012 08:56]:
+> >> For those who don't bother looking at my kautobuild boot tests on the OMAP
+> >> boards I have, here's the errors which get spat out at boot time.  Note
+> >> that some of these I've reported in the past, and one of them is missing
+> >> a newline character at the end of its string.
+> > 
+> > Thanks, let's get those fixed ASAP.
+> >  
+> >> twd: can't register interrupt 45 (-22)
+> >> twd_local_timer_register failed -22
 
-twd: can't register interrupt 45 (-22)
-twd_local_timer_register failed -22
-
-The right fix is to not add any base, as it is a local
-timer. For the OMAP44XX_IRQ_LOCALWDT we had defined earlier
-there are no users, so no need to fix that.
-
-Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -467,7 +467,7 @@ OMAP_SYS_TIMER(3_am33xx)
- #ifdef CONFIG_ARCH_OMAP4
- #ifdef CONFIG_LOCAL_TIMERS
- static DEFINE_TWD_LOCAL_TIMER(twd_local_timer,
--			      OMAP44XX_LOCAL_TWD_BASE, 29 + OMAP_INTC_START);
-+			      OMAP44XX_LOCAL_TWD_BASE, 29);
- #endif
+Posted a fix for this as "ARM: OMAP4: Fix twd_local_timer_register
+regression".
  
- static void __init omap4_timer_init(void)
+> > Hmm I think this regression was caused by my sparse IRQ changes,
+> > looks like I have a typo using OMAP_INTC_START in stead of the
+> > GIC base. Will do a patch for this.
+> > 
+> >> omap_hwmod: mcpdm: cannot be enabled for reset (3)
+> > 
+> > Paul, Benoit, care to take a look at this?
+> 
+> Yeah, that one is a warning. The mcpdm is not accessible at boot time if
+> the external clock (from twl6040) is not enabled.
+> 
+> Paul introduced a HWMOD_EXT_OPT_MAIN_CLK flag to avoid the warning [1],
+> but it looks like that code is not merged.
+> I'll check where that patch is stuck.
+
+Thanks, seems like that would be OK to do during the early -rc
+cycle to fix the warning.
+
+Regards,
+
+Tony
+ 
+> [1]
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-June/103019.html
