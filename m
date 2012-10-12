@@ -1,75 +1,86 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not
-	suspended.
-Date: Fri, 12 Oct 2012 19:54:26 +0100
-Message-ID: <20121012185426.GS28061@n2100.arm.linux.org.uk>
-References: <20120925091228.GI31374@n2100.arm.linux.org.uk> <20120925091112.GK9137@arwen.pp.htv.fi> <20120925092118.GJ31374@n2100.arm.linux.org.uk> <CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com> <87ipas2y4h.fsf@deeprootsystems.com> <alpine.DEB.2.00.1210111748010.5736@utopia.booyaka.com> <50784458.9080806@ti.com> <877gqv7imt.fsf@deeprootsystems.com> <20121012164202.GQ28061@n2100.arm.linux.org.uk> <877gqv4lmt.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
+Date: Fri, 12 Oct 2012 12:04:36 -0700
+Message-ID: <87txtzy0jf.fsf@deeprootsystems.com>
+References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+	<87ipag90om.fsf@deeprootsystems.com>
+	<902E09E6452B0E43903E4F2D568737AB2C87B0@DNCE04.ent.ti.com>
+	<87d30n7o9q.fsf@deeprootsystems.com>
+	<902E09E6452B0E43903E4F2D568737AB2C8C9F@DNCE04.ent.ti.com>
+	<87r4p363ps.fsf@deeprootsystems.com>
+	<CAM=Q2csQ7dVWUi2vrRMCQ653t_GxtXqH2yGMjY9YAkvA+_i9WA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51560 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754484Ab2JLSyq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 14:54:46 -0400
-Content-Disposition: inline
-In-Reply-To: <877gqv4lmt.fsf@deeprootsystems.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:60913 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752493Ab2JLTEb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 15:04:31 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so3096490pad.19
+        for <linux-omap@vger.kernel.org>; Fri, 12 Oct 2012 12:04:31 -0700 (PDT)
+In-Reply-To: <CAM=Q2csQ7dVWUi2vrRMCQ653t_GxtXqH2yGMjY9YAkvA+_i9WA@mail.gmail.com>
+	(Shubhrajyoti Datta's message of "Fri, 12 Oct 2012 23:41:23 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Sourav <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, tony@atomide.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
+To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Cc: "Strashko, Grygorii" <grygorii.strashko@ti.com>, Kalle Jokiniemi <kalle.jokiniemi@jollamobile.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "w.sang@pengutronix.de" <w.sang@pengutronix.de>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "Kankroliwala, Huzefa" <huzefank@ti.com>
 
-On Fri, Oct 12, 2012 at 10:59:22AM -0700, Kevin Hilman wrote:
-> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
-> 
-> > On Fri, Oct 12, 2012 at 09:35:54AM -0700, Kevin Hilman wrote:
-> >> Sourav <sourav.poddar@ti.com> writes:
-> >> > diff --git a/drivers/tty/serial/omap-serial.c
-> >> > b/drivers/tty/serial/omap-serial.c
-> >> > index 6ede6fd..3fbc7f7 100644
-> >> > --- a/drivers/tty/serial/omap-serial.c
-> >> > +++ b/drivers/tty/serial/omap-serial.c
-> >> > @@ -1414,6 +1414,7 @@ static int __devinit serial_omap_probe(struct
-> >> > platform_device *pdev)
-> >> >         INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
-> >> >
-> >> >         platform_set_drvdata(pdev, up);
-> >> > +       pm_runtime_set_active(&pdev->dev);
-> >> 
-> >> NAK.
-> >> 
-> >> This will obviously break platforms where the UARTs are not active
-> >> before driver loads.
-> >
-> > I thought I had proposed a solution for this issue, which was this
-> > sequence:
-> >
-> >         omap_device_enable(dev);                                                
-> >         pm_runtime_set_active(dev);                                             
-> >         pm_runtime_enable(dev);                                                 
-> >
-> > Yes, I can understand people not liking the omap_device_enable()
-> > there, but I also notice that the email suggesting that never got a
-> > reply either - not even a "I tried this and it doesn't work" or "it
-> > does work".
-> 
-> Yes, that solution would work (though I didn't actually try it.)
-> 
-> However, we can't use omap_device_enable() in the driver.  We're trying
-> to clean all the drivers of OMAP-specific APIs.  That being said,
-> something similar could be done in the device/board init code to ensure
-> the UART HW is in the state that the driver is expecting it, but again,
-> that would just mask the real problem which is that a (re)init of the
-> console UART on 2420/n800 is causing output to disappear.
+Shubhrajyoti Datta <omaplinuxkernel@gmail.com> writes:
 
-See my more expansive suggestion just posted.
+> On Fri, Oct 12, 2012 at 10:13 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> "Strashko, Grygorii" <grygorii.strashko@ti.com> writes:
+>>
+>>> Hi Kevin,
+>>>
+>>> yep, [1] is the same fix - thanks.
+>>
+>>> Hi Kalle,
+>>>
+>>> i've applied these changes and PM runtime fix on top of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git (omap2plus_defconfig)
+>>> Could you check it with your use case, pls? (just to be sure that idea is right)
+>>
+>> I think the ideas is right, but [1] introduces more potential problems
+>> since it disables the IRQ at the INTC well before being disabled at the
+>> device.
+> I fail to see this point. Current driver supports master mode only.
+> So unless there is a msg queued by the core. May be no interrupts should fire.
+>
+> what I mean
+>
+> msg -> conf -> intr -> completion/error  -> autosuspend.
+>
+>>  With runtime PM autosuspend timeouts, that means any IRQs
+>> firing during the autosuspend delay will be lost, which basically
+>> nullifies the use of autosuspend.
+>
+> so I do not expect any interrupts between completion/error -> autosuspend.
 
-Whatever way, this discrepancy between runtime PM state and actual device
-state is what is biting you, and it is that which needs fixing.  It's
-fairly easy to fix given the right design, one which several other bus
-types are already using.
+Runtime PM is designed for concurrent users (hence the usecounting.)
+The I2C driver may not fully support this, since there is a single bus
+to share, but the usage of runtime PM currently allows multiple users to
+do runtime PM get/put (though in this driver they will block in the
+wait_for_bb.)
 
-Given the route that OMAP went down when adopting runtime PM, it's going
-to be a big change across many drivers, because there's no way to gradually
-transition them, but that's unfortunately one of the results of ignoring
-requirements of the layers being used.  Sooner or later the oversights
-come back to haunt.  Just make sure it's not the ghost of Jaws.
+So the fundamental problem in doing the enable/disable IRQ in the xfer
+function, and not the runtime PM callbacks is that you're ignoring the
+runtime PM usecount.  You're assuming that the 'get' is *always*
+incrementing the usecount from zero to 1, and the 'put' is *always* a
+transition from 1 to zero.  This may be the case in current usage and
+tests, but does not have to be the case.
+
+Even if that never happens in practice, it can in theory, and to me
+leads to confusing code.  It simply doesn't make sense in terms of
+readability to disable the IRQ at the INTC in xfer, and disable IRQs at
+the device level in the runtime PM callback.
+
+To put it more simply: anything that needs to be done when the I2C is
+about to be idled/enabled should be done in the runtime PM callbacks.
+
+Please have a look at the patch I just sent[1].  In addition to making
+it more readable (IMO), it elminates the need for an extra disable_irq()
+in probe.
+
+Kevin
+
+[1] http://marc.info/?l=linux-omap&m=135006723121147&w=2
