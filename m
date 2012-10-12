@@ -1,41 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not
- suspended.
-Date: Fri, 12 Oct 2012 14:51:56 -0700
-Message-ID: <20121012215156.GL30339@atomide.com>
-References: <20120925092118.GJ31374@n2100.arm.linux.org.uk>
- <CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com>
- <87ipas2y4h.fsf@deeprootsystems.com>
- <alpine.DEB.2.00.1210111748010.5736@utopia.booyaka.com>
- <50784458.9080806@ti.com>
- <877gqv7imt.fsf@deeprootsystems.com>
- <20121012164202.GQ28061@n2100.arm.linux.org.uk>
- <877gqv4lmt.fsf@deeprootsystems.com>
- <20121012185426.GS28061@n2100.arm.linux.org.uk>
- <87lifbwhwd.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87lifbwhwd.fsf@deeprootsystems.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Sourav <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
+From: Rob Clark <rob.clark@linaro.org>
+Subject: [PATCH] drm/omap: fix issue w/ fb attached to multiple CRTCs
+Date: Fri, 12 Oct 2012 18:58:02 -0500
+Message-ID: <1350086282-12463-1-git-send-email-rob.clark@linaro.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:46457 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437Ab2JLX7Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 19:59:16 -0400
+Received: by mail-ob0-f174.google.com with SMTP id uo13so3374903obb.19
+        for <linux-omap@vger.kernel.org>; Fri, 12 Oct 2012 16:59:15 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [121012 13:34]:
->
-> I'm not conviced (yet) that a mismatch is the root cause.  Yes, that's
-> what the author of $SUBJECT patch assumed and stated, but I'm not
-> pursuaded.  
-> 
-> If it's an improperly configured mux issue, then the UART will break
-> whenever the device is actually omap_device_enable'd, whether in the
-> driver or in the bus layer.
+From: Rob Clark <rob@ti.com>
 
-I tried booting n800 here with CONFIG_OMAP_MUX disabled, and no
-change. Serial console output stops right when the console initializes.
+When the fb is detached from one CRTC/plane, paddr was set back to
+zero.  But really we don't want to do this because the fb could still
+be attached to other CRTC/plane(s).  This originally worked like this
+to catch cases of freeing a pinned fb (but with the refcnt'ing this
+should no longer be needed).  Also, there is checking in the GEM code
+for freeing a pinned GEM object, so this extra level of checking is
+redundant.
 
-Regards,
+Signed-off-by: Rob Clark <rob@ti.com>
+---
+ drivers/staging/omapdrm/omap_fb.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Tony
+diff --git a/drivers/staging/omapdrm/omap_fb.c b/drivers/staging/omapdrm/omap_fb.c
+index 446801d..75d2ff1 100644
+--- a/drivers/staging/omapdrm/omap_fb.c
++++ b/drivers/staging/omapdrm/omap_fb.c
+@@ -253,6 +253,7 @@ int omap_framebuffer_replace(struct drm_framebuffer *a,
+ 	int ret = 0, i, na, nb;
+ 	struct omap_framebuffer *ofba = to_omap_framebuffer(a);
+ 	struct omap_framebuffer *ofbb = to_omap_framebuffer(b);
++	uint32_t pinned_mask = 0;
+ 
+ 	na = a ? drm_format_num_planes(a->pixel_format) : 0;
+ 	nb = b ? drm_format_num_planes(b->pixel_format) : 0;
+@@ -263,25 +264,24 @@ int omap_framebuffer_replace(struct drm_framebuffer *a,
+ 		pa = (i < na) ? &ofba->planes[i] : NULL;
+ 		pb = (i < nb) ? &ofbb->planes[i] : NULL;
+ 
+-		if (pa) {
++		if (pa)
+ 			unpin(arg, pa->bo);
+-			pa->paddr = 0;
+-		}
+ 
+ 		if (pb && !ret) {
+ 			ret = omap_gem_get_paddr(pb->bo, &pb->paddr, true);
+-			if (!ret)
++			if (!ret) {
+ 				omap_gem_dma_sync(pb->bo, DMA_TO_DEVICE);
++				pinned_mask |= (1 << i);
++			}
+ 		}
+ 	}
+ 
+ 	if (ret) {
+ 		/* something went wrong.. unpin what has been pinned */
+ 		for (i = 0; i < nb; i++) {
+-			struct plane *pb = &ofba->planes[i];
+-			if (pb->paddr) {
++			if (pinned_mask & (1 << i)) {
++				struct plane *pb = &ofba->planes[i];
+ 				unpin(arg, pb->bo);
+-				pb->paddr = 0;
+ 			}
+ 		}
+ 	}
+-- 
+1.7.9.5
+
