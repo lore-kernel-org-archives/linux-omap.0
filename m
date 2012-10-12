@@ -1,95 +1,66 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH 1/4] usb: phy: add a new driver for usb3 phy
-Date: Fri, 12 Oct 2012 14:38:26 +0530
-Message-ID: <5077DE0A.4000301@ti.com>
-References: <1348054229-27362-1-git-send-email-kishon@ti.com> <1348054229-27362-2-git-send-email-kishon@ti.com> <20121011005944.GX12552@atomide.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [RFC PATCH v2 08/16] ARM: omap: add hsmmc am33xx specific init
+Date: Fri, 12 Oct 2012 09:17:53 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EAA6374@DBDE01.ent.ti.com>
+References: <1349982281-10785-1-git-send-email-mporter@ti.com>
+	<1349982281-10785-9-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20121011005944.GX12552@atomide.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Moiz Sonasath <m-sonasath@ti.com>
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1349982281-10785-9-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Nori,
+	Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Matt
 
-On Thursday 11 October 2012 06:29 AM, Tony Lindgren wrote:
-> Hi,
->
-> * Kishon Vijay Abraham I <kishon@ti.com> [120919 04:32]:
->> Added a driver for usb3 phy that handles the interaction between usb phy
->> device and dwc3 controller.
->>
->> This also includes device tree support for usb3 phy driver and
->> the documentation with device tree binding information is updated.
->>
->> Currently writing to control module register is taken care in this
->> driver which will be removed once the control module driver is in place.
->
-> You may be able to set up the control module register with one
-> of the following Linux standard frameworks:
->
-> 1. Fixed regulator defined in mach-omap2/control.c
+On Fri, Oct 12, 2012 at 00:34:33, Porter, Matt wrote:
+> AM33xx requires special handling in hsmmc initialization
+> platform glue.
 
-Is it control.c?
->
->     In this case the PHY driver can pick up the regulator by name.
+Since AM335x boots mainly through DT, do we still need this patch.
+This function will be called in case of initializing hsmmc with
+Platform data. 
 
-Do you mean we have to define something like fixed_voltage_config 
-defined in board-4430sdp.c?
- From whatever I could make out from regulator/fixed.c, 
-enabling/disabling of regulator is done using only gpio. I'm not sure 
-how we can use that to write to control module register.
->
-> 2. A mux mapped with pinctrl framework using pinctrl-single,bits
->     binding
->
->     And in this case the PHY driver can request the named pinctrl
->     states like "enabled" and "disabled".
->
->> --- a/Documentation/devicetree/bindings/usb/usb-phy.txt
->> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
->> @@ -15,3 +15,21 @@ usb2phy@4a0ad080 {
->>   	reg = <0x4a0ad080 0x58>,
->>   	      <0x4a002300 0x4>;
->>   };
->
-> The comments also apply to the omap_usb2.c driver for
-> 0x4a002300 above.
->
->> +
->> +OMAP USB3 PHY
->> +
->> +Required properties:
->> + - compatible: Should be "ti,omap-usb3"
->> + - reg : Address and length of the register set for the device. Also
->> +add the address of control module phy power register until a driver for
->> +control module is added
->> +
->> +This is usually a subnode of ocp2scp to which it is connected.
->> +
->> +usb3phy@4a084400 {
->> +	compatible = "ti,omap-usb3";
->> +	reg = <0x0x4a084400 0x80>,
->> +	      <0x4a084800 0x64>,
->> +	      <0x4a084c00 0x40>,
->> +	      <0x4a002370 0x4>;
->> +};
->
-> And register 0x4a002370 here. Care to post some info what the
-> 0x4a002370 register bits do? Is that same as CONTROL_DEV_CONF
-> on omap4, or does it have other bits there too?
+> 
+> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/hsmmc.c |    7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
 
-It's CONTROL_PHY_POWER_USB register and it's structure looks like this.
-31:22 USB_PWRCTL_CLK_FREQ
-21:14 USB_PWRCTL_CLK_CMD
-13:0 RESERVED
+..snip..
+..snip..
 
-CLK_CMD takes values to power up/down the TX and RX in various combinations.
+>  	name = "omap_hsmmc";
+>  	res = snprintf(oh_name, MAX_OMAP_MMC_HWMOD_NAME_LEN,
+> -- 
+> 1.7.9.5
+> 
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+> 
 
-And CLK_FREQ takes values for clock configuration.
 
-Thanks
-Kishon
+Regards, 
+Gururaja
+
+------------------------------------------------------------------------------
+Don't let slow site performance ruin your business. Deploy New Relic APM
+Deploy New Relic app performance management and know exactly
+what is happening inside your Ruby, Python, PHP, Java, and .NET app
+Try New Relic at no cost today and get our sweet Data Nerd shirt too!
+http://p.sf.net/sfu/newrelic-dev2dev
