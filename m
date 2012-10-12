@@ -1,7 +1,7 @@
 From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: [PATCH v3 5/6] ARM: OMAP: iommu: add device tree support
-Date: Thu, 11 Oct 2012 20:06:14 -0500
-Message-ID: <1350003977-32744-10-git-send-email-omar.luna@linaro.org>
+Subject: [PATCH v3 3/6] ARM: OMAP: iommu: pm runtime save and restore context
+Date: Thu, 11 Oct 2012 20:06:10 -0500
+Message-ID: <1350003977-32744-6-git-send-email-omar.luna@linaro.org>
 References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
 Return-path: <linux-doc-owner@vger.kernel.org>
 In-Reply-To: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
@@ -10,159 +10,73 @@ To: Tony Lindgren <tony@atomide.com>, Joerg Roedel <joerg.roedel@amd.com>
 Cc: Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.luna@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
-Adapt driver to use DT if provided.
+Save and restore context during pm runtime transitions.
+
+For now, the previous API for this purpose will trigger
+pm runtime functions, and will be left as exported symbol
+for compatibility with it's only user.
 
 Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
 ---
- .../devicetree/bindings/arm/omap/iommu.txt         |   10 +++
- arch/arm/mach-omap2/omap-iommu.c                   |    4 ++
- drivers/iommu/omap-iommu.c                         |   65 +++++++++++++++++++-
- 3 files changed, 78 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/iommu.txt
+ drivers/iommu/omap-iommu.c |   29 +++++++++++++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/iommu.txt b/Documentation/devicetree/bindings/arm/omap/iommu.txt
-new file mode 100644
-index 0000000..2bb780f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/iommu.txt
-@@ -0,0 +1,10 @@
-+* MMU (Memory Management Unit)
-+
-+MMU present in OMAP subsystems.
-+
-+Required properties:
-+ compatible : should be "ti,omap3-iommu" for OMAP3 MMUs
-+ compatible : should be "ti,omap4-iommu" for OMAP4 MMUs
-+
-+Optional properties:
-+ None
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index 82a422a..4d6145d 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -11,6 +11,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/err.h>
- #include <linux/slab.h>
-@@ -29,6 +30,9 @@ static int __init omap_iommu_dev_init(struct omap_hwmod *oh, void *unused)
- 	struct omap_mmu_dev_attr *a = (struct omap_mmu_dev_attr *)oh->dev_attr;
- 	static int i;
- 
-+	if (of_have_populated_dt())
-+		return 0;
-+
- 	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		return -ENOMEM;
 diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index e266ad7..946366f 100644
+index 37644c4..875e894 100644
 --- a/drivers/iommu/omap-iommu.c
 +++ b/drivers/iommu/omap-iommu.c
-@@ -21,12 +21,15 @@
- #include <linux/mutex.h>
- #include <linux/spinlock.h>
- #include <linux/pm_runtime.h>
-+#include <linux/of.h>
+@@ -97,7 +97,7 @@ void omap_iommu_save_ctx(struct device *dev)
+ {
+ 	struct omap_iommu *obj = dev_to_omap_iommu(dev);
  
- #include <asm/cacheflush.h>
+-	arch_iommu->save_ctx(obj);
++	pm_runtime_put_sync(obj->dev);
+ }
+ EXPORT_SYMBOL_GPL(omap_iommu_save_ctx);
  
- #include <plat/iommu.h>
+@@ -109,7 +109,7 @@ void omap_iommu_restore_ctx(struct device *dev)
+ {
+ 	struct omap_iommu *obj = dev_to_omap_iommu(dev);
  
- #include <plat/iopgtable.h>
-+#include <plat/omap_device.h>
-+#include <plat/omap_hwmod.h>
+-	arch_iommu->restore_ctx(obj);
++	pm_runtime_get_sync(obj->dev);
+ }
+ EXPORT_SYMBOL_GPL(omap_iommu_restore_ctx);
  
- #define for_each_iotlb_cr(obj, n, __i, cr)				\
- 	for (__i = 0;							\
-@@ -916,13 +919,63 @@ static void omap_iommu_detach(struct omap_iommu *obj)
- /*
-  *	OMAP Device MMU(IOMMU) detection
-  */
-+static int __devinit
-+iommu_add_platform_data_from_dt(struct platform_device *pdev)
+@@ -1008,11 +1008,36 @@ static int __devexit omap_iommu_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int omap_iommu_runtime_suspend(struct device *dev)
 +{
-+	struct iommu_platform_data *pdata;
-+	struct device_node *node = pdev->dev.of_node;
-+	struct omap_hwmod *oh;
-+	struct omap_mmu_dev_attr *a;
-+	int ret = 0;
++	struct omap_iommu *obj = to_iommu(dev);
 +
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return -ENOMEM;
++	arch_iommu->save_ctx(obj);
 +
-+	of_property_read_string(node, "ti,hwmods", &pdata->name);
-+	oh = omap_hwmod_lookup(pdata->name);
-+	if (!oh) {
-+		dev_err(&pdev->dev, "Cannot lookup hwmod '%s'\n", pdata->name);
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+
-+	a = (struct omap_mmu_dev_attr *)oh->dev_attr;
-+	pdata->nr_tlb_entries = a->nr_tlb_entries;
-+	pdata->da_start = a->da_start;
-+	pdata->da_end = a->da_end;
-+
-+	if (oh->rst_lines_cnt == 1) {
-+		pdata->reset_name = oh->rst_lines->name;
-+		pdata->assert_reset = omap_device_assert_hardreset;
-+		pdata->deassert_reset = omap_device_deassert_hardreset;
-+	}
-+
-+	ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
-+	if (ret)
-+		dev_err(&pdev->dev, "Cannot add pdata for %s\n", pdata->name);
-+
-+out:
-+	kfree(pdata);
-+
-+	return ret;
++	return 0;
 +}
 +
- static int __devinit omap_iommu_probe(struct platform_device *pdev)
- {
- 	int err = -ENODEV;
- 	int irq;
- 	struct omap_iommu *obj;
- 	struct resource *res;
--	struct iommu_platform_data *pdata = pdev->dev.platform_data;
-+	struct iommu_platform_data *pdata;
++static int omap_iommu_runtime_resume(struct device *dev)
++{
++	struct omap_iommu *obj = to_iommu(dev);
 +
-+	if (of_have_populated_dt()) {
-+		err = iommu_add_platform_data_from_dt(pdev);
-+		if (err)
-+			return err;
-+	}
++	arch_iommu->restore_ctx(obj);
 +
-+	pdata = pdev->dev.platform_data;
- 
- 	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
- 	if (!obj)
-@@ -1031,12 +1084,22 @@ static const struct dev_pm_ops iommu_pm_ops = {
- 			   NULL)
- };
- 
-+#if defined(CONFIG_OF)
-+static const struct of_device_id omap_iommu_of_match[] = {
-+	{ .compatible = "ti,omap3-iommu" },
-+	{ .compatible = "ti,omap4-iommu" },
-+	{ },
++	return 0;
++}
++
++static const struct dev_pm_ops iommu_pm_ops = {
++	SET_RUNTIME_PM_OPS(omap_iommu_runtime_suspend,
++			   omap_iommu_runtime_resume,
++			   NULL)
 +};
-+MODULE_DEVICE_TABLE(of, omap_iommu_of_match);
-+#endif
 +
  static struct platform_driver omap_iommu_driver = {
  	.probe	= omap_iommu_probe,
  	.remove	= __devexit_p(omap_iommu_remove),
  	.driver	= {
  		.name	= "omap-iommu",
- 		.pm	= &iommu_pm_ops,
-+		.of_match_table = of_match_ptr(omap_iommu_of_match),
++		.pm	= &iommu_pm_ops,
  	},
  };
  
