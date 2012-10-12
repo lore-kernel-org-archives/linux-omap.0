@@ -1,62 +1,37 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
-Date: Fri, 12 Oct 2012 23:41:23 +0530
-Message-ID: <CAM=Q2csQ7dVWUi2vrRMCQ653t_GxtXqH2yGMjY9YAkvA+_i9WA@mail.gmail.com>
-References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
-	<87ipag90om.fsf@deeprootsystems.com>
-	<902E09E6452B0E43903E4F2D568737AB2C87B0@DNCE04.ent.ti.com>
-	<87d30n7o9q.fsf@deeprootsystems.com>
-	<902E09E6452B0E43903E4F2D568737AB2C8C9F@DNCE04.ent.ti.com>
-	<87r4p363ps.fsf@deeprootsystems.com>
+From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: config: sort select statements alphanumerically
+Date: Fri, 12 Oct 2012 20:14:22 +0200
+Message-ID: <CACRpkdZ2UwuaRg2j_qjd2tyx1PtE-RHu+bQaS9=-gDaV-LzCtg@mail.gmail.com>
+References: <20121012132553.GK28061@n2100.arm.linux.org.uk>
+	<E1TMfFr-0001Kt-W5@rmk-PC.arm.linux.org.uk>
+	<CACRpkdba1q52bEDcWsd47QwXA-DNhq6PENf2M-tvZ6znYu+5yw@mail.gmail.com>
+	<20121012144119.GM28061@n2100.arm.linux.org.uk>
+	<20121012144832.GN28061@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87r4p363ps.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Datta, Shubhrajyoti" <shubhrajyoti-l0cyMroinI0@public.gmane.org>, "Kankroliwala, Huzefa" <huzefank-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20121012144832.GN28061-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Daniel Walker <dwalker-zu3NM2574RrQT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Srinidhi Kasagar <srinidhi.kasagar-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Brown <davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alessandro Rubini <rubini-9wsNiZum9E8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shiraz Hashim <shiraz.hashim-qxv4g6HH51o@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.orgA
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 12, 2012 at 10:13 PM, Kevin Hilman
-<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> wrote:
-> "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org> writes:
->
->> Hi Kevin,
->>
->> yep, [1] is the same fix - thanks.
->
->> Hi Kalle,
->>
->> i've applied these changes and PM runtime fix on top of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git (omap2plus_defconfig)
->> Could you check it with your use case, pls? (just to be sure that idea is right)
->
-> I think the ideas is right, but [1] introduces more potential problems
-> since it disables the IRQ at the INTC well before being disabled at the
-> device.
-I fail to see this point. Current driver supports master mode only.
-So unless there is a msg queued by the core. May be no interrupts should fire.
+On Fri, Oct 12, 2012 at 4:48 PM, Russell King - ARM Linux
+<linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
 
-what I mean
+> Instead, here's the updated script:
 
-msg -> conf -> intr -> completion/error  -> autosuspend.
+Works like a charm, the result compiles and boots nicely.
+Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
->  With runtime PM autosuspend timeouts, that means any IRQs
-> firing during the autosuspend delay will be lost, which basically
-> nullifies the use of autosuspend.
-
-so I do not expect any interrupts between completion/error -> autosuspend.
-
->
-> Since Shubhrajyoti didn't respond to my runtime PM comments on the
-> original patch,
-
-my apologies for the delay.
-
-> I'll respin this patch by moving the INTC disable/enable
-> into the runtime PM callbacks and make the changelog a bit more clear.
->
-> Grygorii, that pm_runtime_resume() change is needed to.  Can you spin a
-> patch with just that change with a nice descriptive changelog about why
-> it is needed?  Thanks.
->
-> Kevin
+Yours,
+Linus Walleij
