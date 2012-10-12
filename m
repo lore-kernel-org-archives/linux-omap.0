@@ -1,136 +1,238 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP3/4: iommu: adapt to runtime pm
-Date: Fri, 12 Oct 2012 23:25:05 +0200
-Message-ID: <CAMP44s3wTYTFgSw7r+77zb0fxMSjo1R69Zx0nyM6Hgy2h=Gggw@mail.gmail.com>
-References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
-	<1350003977-32744-5-git-send-email-omar.luna@linaro.org>
-	<CAMP44s2LTGPnXQuetVLV1tA8w90gUtoJ5coucBUZsbqb3vFnng@mail.gmail.com>
-	<CALLhW=5k=tAXo_5ri2WgetRgju9rC_Wm-o9-pfHSNqpe6FU5qQ@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/2] tidspbridge: Refactor mapping find/remove operations
+Date: Fri, 12 Oct 2012 23:32:02 +0200
+Message-ID: <32932849.mzoVLgpiLb@avalon>
+References: <2509239.EghAKueIs0@avalon> <1348528386-4627-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CALLhW=5k=tAXo_5ri2WgetRgju9rC_Wm-o9-pfHSNqpe6FU5qQ@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40085 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752414Ab2JLVbR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 17:31:17 -0400
+In-Reply-To: <1348528386-4627-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Oct 12, 2012 at 7:46 PM, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
-> On 12 October 2012 02:48, Felipe Contreras <felipe.contreras@gmail.com> wrote:
->> I already made most of these comments, but here they go again.
->
-> I replied to all, but here it goes again:
+Hi Felipe, Omar,
 
-Mostly, but not all :)
+Could I please get your feedback on this patch and 2/2 ? They try to split 
+08/15 in easier to review chunks.
 
->>> @@ -142,11 +142,10 @@ static int iommu_enable(struct omap_iommu *obj)
->>>                 }
->>>         }
->>>
->>> -       clk_enable(obj->clk);
->>> +       pm_runtime_get_sync(obj->dev);
->>>
->>>         err = arch_iommu->enable(obj);
->>>
->>> -       clk_disable(obj->clk);
->>
->> The device will never go to sleep, until iommu_disable is called.
->> clk_enable -> pm_runtime_get_sync, clk_disable pm_runtime_put.
->
-> Which is what you want... why would you want your iommu to be disabled
-> if the client of that iommu could request a translation?
-
-That's the whole point of *dynamic* pm; _when_ the client wants to
-request a translation, _then_ the device is waken up, which is what I
-believe the code currently does.
-
-After your patch, even if I don't use the camera, or the DSP, the
-iommu devices will be enabled, and will be consuming energy *all the
-time*. Which I don't think is what we want.
-
-I'm not saying I have a solution, I'm simply saying that's what's
-going to happen if I'm correct.
-
-> Remember that these iommus, sit along of other processors not on the
-> main processor side. So, this code should enable it for the other
-> processor to use, and there is no point where the processor can say
-> "I'm not using it, shut it down" or "I'm using it, turn it on" in the
-> middle of execution, other than suspend/resume and if supported,
-> autosuspend.
-
-I understand, but perhaps there should be?
-
->>> @@ -288,7 +285,7 @@ static int load_iotlb_entry(struct omap_iommu *obj, struct iotlb_entry *e)
->>>         if (!obj || !obj->nr_tlb_entries || !e)
->>>                 return -EINVAL;
->>>
->>> -       clk_enable(obj->clk);
->>> +       pm_runtime_get_sync(obj->dev);
->>>
->>>         iotlb_lock_get(obj, &l);
->>>         if (l.base == obj->nr_tlb_entries) {
->>> @@ -318,7 +315,7 @@ static int load_iotlb_entry(struct omap_iommu *obj, struct iotlb_entry *e)
->>>
->>>         cr = iotlb_alloc_cr(obj, e);
->>>         if (IS_ERR(cr)) {
->>> -               clk_disable(obj->clk);
->>> +               pm_runtime_put_sync(obj->dev);
->>>                 return PTR_ERR(cr);
->>>         }
->>
->> If I'm correct, the above pm_runtime_get/put are redundant, because
->> the count can't possibly reach 0 because of the reason I explained
->> before.
->>
->> The same for all the cases below.
->
-> You can access this paths through debugfs, some of them doesn't work
-> if the module is not enabled first, but in future if you just want to
-> idle the iommu withouth freeing, these are needed to debug.
->
-> BTW, the next patch in the series: ARM: OMAP: iommu: pm runtime save
-> and restore context, let's you do a pm_runtime_[enable|put] through
-> save/restore ctx functions, which is just for compatibility on how isp
-> code uses the save and restore code.
-
-All right, it has been some time since I've touched pm code, so if you say so.
-
->>> @@ -1009,7 +1001,8 @@ static int __devexit omap_iommu_remove(struct platform_device *pdev)
->>>         release_mem_region(res->start, resource_size(res));
->>>         iounmap(obj->regbase);
->>>
->>> -       clk_put(obj->clk);
->>> +       pm_runtime_disable(obj->dev);
->>
->> This will turn on the device unnecessarily, wasting power, and there's
->> no need for that, kfree will take care of that without resuming.
->
-> Left aside the aesthetics of having balanced calls, the device will be
-> enabled if there was a pending resume to be executed, otherwise it
-> won't, kfree won't increment the disable_depth counter and I don't
-> think that freeing the pointer is enough reason to ignore
-> pm_runtime_disable.
-
-You are doing __pm_runtime_disable(dev, true), kfree will do
-__pm_runtime_disable(dev, false), which is what we want. Both will
-decrement the disable_depth.
-
-But at least you agree that there's a chance that the device will be waken up.
-
->> Also, I still think that something like this is needed:
-> ...
->> +static struct clk cam_fck = {
->> +       .name           = "cam_fck",
->> +       .ops            = &clkops_omap2_iclk_dflt,
->> +       .parent         = &l3_ick,
->> +       .enable_reg     = OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_ICLKEN),
->
-> a cam_fck name to enable the ick?
-
-Yeap, according to the TRM. Take a look at 12.3 Camera ISP Integration
-Fig 12-50.
-
-Cheers.
-
+On Tuesday 25 September 2012 01:13:05 Laurent Pinchart wrote:
+> Split the remove_mapping_information() function into find_dsp_mapping()
+> to locate the mapping and remove_mapping_information() to remove it.
+> Rename find_containing_mapping() to find_mpu_mapping() and share the
+> search code between find_dsp_mapping() and find_mpu_mapping().
+> 
+> This prepares the driver for VM_PFNMAP support.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/staging/tidspbridge/rmgr/proc.c |  116 ++++++++++++++--------------
+>  1 files changed, 59 insertions(+), 57 deletions(-)
+> 
+> diff --git a/drivers/staging/tidspbridge/rmgr/proc.c
+> b/drivers/staging/tidspbridge/rmgr/proc.c index 7e4f12f..64b1bba 100644
+> --- a/drivers/staging/tidspbridge/rmgr/proc.c
+> +++ b/drivers/staging/tidspbridge/rmgr/proc.c
+> @@ -145,47 +145,67 @@ static struct dmm_map_object *add_mapping_info(struct
+> process_context *pr_ctxt, return map_obj;
+>  }
+> 
+> -static int match_exact_map_obj(struct dmm_map_object *map_obj,
+> -					u32 dsp_addr, u32 size)
+> +static void remove_mapping_information(struct process_context *pr_ctxt,
+> +				       struct dmm_map_object *map_obj)
+>  {
+> -	if (map_obj->dsp_addr == dsp_addr && map_obj->size != size)
+> -		pr_err("%s: addr match (0x%x), size don't (0x%x != 0x%x)\n",
+> -				__func__, dsp_addr, map_obj->size, size);
+> +	if (map_obj == NULL)
+> +		return;
+> 
+> -	return map_obj->dsp_addr == dsp_addr &&
+> -		map_obj->size == size;
+> +	pr_debug("%s: match, deleting map info\n", __func__);
+> +
+> +	spin_lock(&pr_ctxt->dmm_map_lock);
+> +	list_del(&map_obj->link);
+> +	spin_unlock(&pr_ctxt->dmm_map_lock);
+> +
+> +	kfree(map_obj->dma_info.sg);
+> +	kfree(map_obj->pages);
+> +	kfree(map_obj);
+>  }
+> 
+> -static void remove_mapping_information(struct process_context *pr_ctxt,
+> -						u32 dsp_addr, u32 size)
+> +static struct dmm_map_object *
+> +find_mapping(struct process_context *pr_ctxt, u32 addr, u32 size,
+> +	     int (*match)(struct dmm_map_object *, u32, u32))
+>  {
+>  	struct dmm_map_object *map_obj;
+> 
+> -	pr_debug("%s: looking for virt 0x%x size 0x%x\n", __func__,
+> -							dsp_addr, size);
+> -
+>  	spin_lock(&pr_ctxt->dmm_map_lock);
+>  	list_for_each_entry(map_obj, &pr_ctxt->dmm_map_list, link) {
+> -		pr_debug("%s: candidate: mpu_addr 0x%x virt 0x%x size 0x%x\n",
+> -							__func__,
+> -							map_obj->mpu_addr,
+> -							map_obj->dsp_addr,
+> -							map_obj->size);
+> -
+> -		if (match_exact_map_obj(map_obj, dsp_addr, size)) {
+> -			pr_debug("%s: match, deleting map info\n", __func__);
+> -			list_del(&map_obj->link);
+> -			kfree(map_obj->dma_info.sg);
+> -			kfree(map_obj->pages);
+> -			kfree(map_obj);
+> +		pr_debug("%s: candidate: mpu_addr 0x%x dsp_addr 0x%x size 0x%x\n",
+> +			 __func__, map_obj->mpu_addr, map_obj->dsp_addr,
+> +			 map_obj->size);
+> +
+> +		if (match(map_obj, addr, size)) {
+> +			pr_debug("%s: match!\n", __func__);
+>  			goto out;
+>  		}
+> -		pr_debug("%s: candidate didn't match\n", __func__);
+> +
+> +		pr_debug("%s: no match!\n", __func__);
+>  	}
+> 
+> -	pr_err("%s: failed to find given map info\n", __func__);
+> +	map_obj = NULL;
+>  out:
+>  	spin_unlock(&pr_ctxt->dmm_map_lock);
+> +	return map_obj;
+> +}
+> +
+> +static int match_exact_map_obj(struct dmm_map_object *map_obj,
+> +					u32 dsp_addr, u32 size)
+> +{
+> +	if (map_obj->dsp_addr == dsp_addr && map_obj->size != size)
+> +		pr_err("%s: addr match (0x%x), size don't (0x%x != 0x%x)\n",
+> +				__func__, dsp_addr, map_obj->size, size);
+> +
+> +	return map_obj->dsp_addr == dsp_addr &&
+> +		map_obj->size == size;
+> +}
+> +
+> +static struct dmm_map_object *
+> +find_dsp_mapping(struct process_context *pr_ctxt, u32 dsp_addr, u32 size)
+> +{
+> +	pr_debug("%s: looking for virt 0x%x size 0x%x\n", __func__,
+> +		 dsp_addr, size);
+> +
+> +	return find_mapping(pr_ctxt, dsp_addr, size, match_exact_map_obj);
+>  }
+> 
+>  static int match_containing_map_obj(struct dmm_map_object *map_obj,
+> @@ -197,33 +217,13 @@ static int match_containing_map_obj(struct
+> dmm_map_object *map_obj, mpu_addr + size <= map_obj_end;
+>  }
+> 
+> -static struct dmm_map_object *find_containing_mapping(
+> -				struct process_context *pr_ctxt,
+> -				u32 mpu_addr, u32 size)
+> +static struct dmm_map_object *
+> +find_mpu_mapping(struct process_context *pr_ctxt, u32 mpu_addr, u32 size)
+>  {
+> -	struct dmm_map_object *map_obj;
+>  	pr_debug("%s: looking for mpu_addr 0x%x size 0x%x\n", __func__,
+> -						mpu_addr, size);
+> +		 mpu_addr, size);
+> 
+> -	spin_lock(&pr_ctxt->dmm_map_lock);
+> -	list_for_each_entry(map_obj, &pr_ctxt->dmm_map_list, link) {
+> -		pr_debug("%s: candidate: mpu_addr 0x%x virt 0x%x size 0x%x\n",
+> -						__func__,
+> -						map_obj->mpu_addr,
+> -						map_obj->dsp_addr,
+> -						map_obj->size);
+> -		if (match_containing_map_obj(map_obj, mpu_addr, size)) {
+> -			pr_debug("%s: match!\n", __func__);
+> -			goto out;
+> -		}
+> -
+> -		pr_debug("%s: no match!\n", __func__);
+> -	}
+> -
+> -	map_obj = NULL;
+> -out:
+> -	spin_unlock(&pr_ctxt->dmm_map_lock);
+> -	return map_obj;
+> +	return find_mapping(pr_ctxt, mpu_addr, size, match_containing_map_obj);
+>  }
+> 
+>  static int find_first_page_in_cache(struct dmm_map_object *map_obj,
+> @@ -755,9 +755,9 @@ int proc_begin_dma(void *hprocessor, void *pmpu_addr,
+> u32 ul_size, mutex_lock(&proc_lock);
+> 
+>  	/* find requested memory are in cached mapping information */
+> -	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
+> +	map_obj = find_mpu_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
+>  	if (!map_obj) {
+> -		pr_err("%s: find_containing_mapping failed\n", __func__);
+> +		pr_err("%s: find_mpu_mapping failed\n", __func__);
+>  		status = -EFAULT;
+>  		goto no_map;
+>  	}
+> @@ -795,9 +795,9 @@ int proc_end_dma(void *hprocessor, void *pmpu_addr, u32
+> ul_size, mutex_lock(&proc_lock);
+> 
+>  	/* find requested memory are in cached mapping information */
+> -	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
+> +	map_obj = find_mpu_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
+>  	if (!map_obj) {
+> -		pr_err("%s: find_containing_mapping failed\n", __func__);
+> +		pr_err("%s: find_mpu_mapping failed\n", __func__);
+>  		status = -EFAULT;
+>  		goto no_map;
+>  	}
+> @@ -1273,7 +1273,7 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32
+> ul_size, u32 size_align;
+>  	int status = 0;
+>  	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+> -	struct dmm_map_object *map_obj;
+> +	struct dmm_map_object *map_obj = NULL;
+>  	u32 tmp_addr = 0;
+> 
+>  #ifdef CONFIG_TIDSPBRIDGE_CACHE_LINE_CHECK
+> @@ -1324,7 +1324,7 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32
+> ul_size, /* Mapped address = MSB of VA | LSB of PA */
+>  		*pp_map_addr = (void *) tmp_addr;
+>  	} else {
+> -		remove_mapping_information(pr_ctxt, tmp_addr, size_align);
+> +		remove_mapping_information(pr_ctxt, map_obj);
+>  		dmm_un_map_memory(dmm_mgr, va_align, &size_align);
+>  	}
+>  	mutex_unlock(&proc_lock);
+> @@ -1600,6 +1600,7 @@ int proc_un_map(void *hprocessor, void *map_addr,
+>  {
+>  	int status = 0;
+>  	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+> +	struct dmm_map_object *map_obj;
+>  	struct dmm_object *dmm_mgr;
+>  	u32 va_align;
+>  	u32 size_align;
+> @@ -1637,7 +1638,8 @@ int proc_un_map(void *hprocessor, void *map_addr,
+>  	 * from dmm_map_list, so that mapped memory resource tracking
+>  	 * remains uptodate
+>  	 */
+> -	remove_mapping_information(pr_ctxt, (u32) map_addr, size_align);
+> +	map_obj = find_dsp_mapping(pr_ctxt, (u32) map_addr, size_align);
+> +	remove_mapping_information(pr_ctxt, map_obj);
+> 
+>  unmap_failed:
+>  	mutex_unlock(&proc_lock);
 -- 
-Felipe Contreras
+Regards,
+
+Laurent Pinchart
+
