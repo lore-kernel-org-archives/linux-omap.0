@@ -1,71 +1,42 @@
-From: Sourav <sourav.poddar@ti.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not suspended.
-Date: Fri, 12 Oct 2012 21:54:56 +0530
-Message-ID: <50784458.9080806@ti.com>
-References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com> <CAKdam572krJZcayRdJ_AciCUZH3LuzD9yoHenhxrB6j9xDZ6JQ@mail.gmail.com> <20120925083029.GG31374@n2100.arm.linux.org.uk> <20120925083118.GI9137@arwen.pp.htv.fi> <20120925091228.GI31374@n2100.arm.linux.org.uk> <20120925091112.GK9137@arwen.pp.htv.fi> <20120925092118.GJ31374@n2100.arm.linux.org.uk> <CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com> <87ipas2y4h.fsf@deeprootsystems.com> <alpine.DEB.2.00.1210111748010.5736@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about
+	serial stuff)
+Date: Fri, 12 Oct 2012 17:31:06 +0100
+Message-ID: <20121012163106.GP28061@n2100.arm.linux.org.uk>
+References: <20121012155434.GO28061@n2100.arm.linux.org.uk> <20121012162452.GD30339@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1210111748010.5736@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, gregkh@linuxfoundation.org, tony@atomide.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51475 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755465Ab2JLQbM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 12:31:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20121012162452.GD30339@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Afzal Mohammed <afzal@ti.com>, =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
 
-Hi Paul,
+On Fri, Oct 12, 2012 at 09:24:52AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [121012 08:56]:
+> > As of today, I've rebased my serial changes as far forward as I dare at
+> > the moment (to the commit before removal of DMA), and then merged it
+> > into the latest trees from armsoc and myself, fixing up all the horrid
+> > conflicts. I've finally got it to a stage where at least it compiles,
+> > but unfortunately something has broken serial output from userspace
+> > quite badly to the point that it doesn't work.
+> > 
+> > I know that my serial changes were fine before I tried rebasing them (the
+> > set I posted to the mailing list certainly did work) so I suspect that
+> > it's down to incompatibilities between the fixes done by others (who didn't
+> > really understand all issues involved) and those done by myself.
+> 
+> Have you been able to locate the breaking patches, maybe those could
+> be reverted?
 
-There are
-On Thursday 11 October 2012 11:58 PM, Paul Walmsley wrote:
-> Hi Sourav, Felipe,
->
-> any progress on fixing the N800 problem?  Would be good to keep it booting
-> since we use it as our primary 2420 test platform.
->
->
-> - Paul
-The patch sent inlined below might help us to get rid of the serial init 
-issue.
-Unfortunately, I dont have a N800 board with me to test it and will require
-your help to do so.
------------
-From: Sourav Poddar <sourav.poddar@ti.com>
-Date: Wed, 1 Aug 2012 15:44:12 +0530
-Subject: [RFT/PATCH] serial: omap: Fix N800 serial init issue.
-
-
-This patch might solve the N800 serial init issue.
-
-This patch will also give pointers if there is any mux settings issue 
-with N800 OR
-a mismatch between the initial harware state, runtime PM state and omap 
-hwmod state.
-
-I don't have a N800 schematics to check about the mux settings getting used.
-
-The observation on beagle board XM with this patch on different boards 
-looks flaky,
-so your feedback on beagle board will also be very helpful.
-
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
-  drivers/tty/serial/omap-serial.c |    1 +
-  1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/tty/serial/omap-serial.c 
-b/drivers/tty/serial/omap-serial.c
-index 6ede6fd..3fbc7f7 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1414,6 +1414,7 @@ static int __devinit serial_omap_probe(struct 
-platform_device *pdev)
-         INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
-
-         platform_set_drvdata(pdev, up);
-+       pm_runtime_set_active(&pdev->dev);
-         pm_runtime_enable(&pdev->dev);
-         pm_runtime_use_autosuspend(&pdev->dev);
-         pm_runtime_set_autosuspend_delay(&pdev->dev,
--- 
-1.7.1
+Not yet; I'll look into it this weekend.  I've only recently got stuff
+back into a state where the kautobuild kernels don't error out during
+the build for the OMAP and SA11x0 stuff.  OMAP ended up in that
+situation because of the duplicated serial efforts causing rather
+disgusting and horrid conflicts.
