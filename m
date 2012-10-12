@@ -1,90 +1,89 @@
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH 1/2] ARM: config: sort select statements alphanumerically
-Date: Fri, 12 Oct 2012 10:08:32 -0400
-Message-ID: <20121012140832.GO12330@titan.lakedaemon.net>
-References: <20121012132553.GK28061@n2100.arm.linux.org.uk>
- <E1TMfFr-0001Kt-W5@rmk-PC.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Errors at boot time from OMAP4430SDP (and a whinge about serial
+	stuff)
+Date: Fri, 12 Oct 2012 16:54:34 +0100
+Message-ID: <20121012155434.GO28061@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51457 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1945918Ab2JLPyi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 11:54:38 -0400
 Content-Disposition: inline
-In-Reply-To: <E1TMfFr-0001Kt-W5@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Daniel Walker <dwalker@fifo99.com>, Kevin Hilman <khilman@ti.com>, linux-samsung-soc@vger.kernel.org, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Magnus Damm <magnus.damm@gmail.com>, David Brown <davidb@codeaurora.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Alessandro Rubini <rubini@unipv.it>, Stephen Warren <swarren@wwwdotorg.org>, linux-arm-msm@vger.kernel.org, spear-devel@list.st.com, Haojian Zhuang <haojian.zhuang@gmail.com>, Shiraz Hashim <shiraz.hashim@st.com>, Kukjin Kim <kgene.kim@samsung.com>, Ben Dooks <ben-linux@fluff.org>, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Andrew Victor <linux@maxim.org.za>, linux-arm-kernel@lists.infradead.org, davinci-linux-op
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Fri, Oct 12, 2012 at 02:26:19PM +0100, Russell King wrote:
-> As suggested by Andrew Morton:
-> 
->   This is a pet peeve of mine.  Any time there's a long list of items
->   (header file inclusions, kconfig entries, array initalisers, etc) and
->   someone wants to add a new item, they *always* go and stick it at the
->   end of the list.
-> 
->   Guys, don't do this.  Either put the new item into a randomly-chosen
->   position or, probably better, alphanumerically sort the list.
-> 
-> lets sort all our select statements alphanumerically.  This commit was
-> created by the following perl:
-> 
-> while (<>) {
->         while (/\\\s*$/) {
->                 $_ .= <>;
->         }
->         undef %selects if /^\s*config\s+/;
->         if (/^\s+select\s+(\w+).*/) {
->                 if (defined($selects{$1})) {
->                         if ($selects{$1} eq $_) {
->                                 print STDERR "Warning: removing duplicated $1 entry\n";
->                         } else {
->                                 print STDERR "Error: $1 differently selected\n".
->                                         "\tOld: $selects{$1}\n".
->                                         "\tNew: $_\n";
->                                 exit 1;
->                         }
->                 }
->                 $selects{$1} = $_;
->                 next;
->         }
->         if (%selects and (/^\s*$/ or /^\s+help/)) {
->                 foreach $k (sort (keys %selects)) {
->                         print "$selects{$k}";
->                 }
->                 undef %selects;
->         }
->         print;
-> }
-> if (%selects) {
->         foreach $k (sort (keys %selects)) {
->                 print "$selects{$k}";
->         }
-> }
-> 
-> It found two duplicates:
-> 
-> Warning: removing duplicated S5P_SETUP_MIPIPHY entry
-> Warning: removing duplicated HARDIRQS_SW_RESEND entry
-> 
-> and they are identical duplicates, hence the shrinkage in the diffstat
-> of two lines.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+For those who don't bother looking at my kautobuild boot tests on the OMAP
+boards I have, here's the errors which get spat out at boot time.  Note
+that some of these I've reported in the past, and one of them is missing
+a newline character at the end of its string.
 
-For ARCH_DOVE, ARCH_KIRKWOOD, ARCH_MV78XX0, ARCH_ORION5X, PLAT_ORION,
-and PLAT_ORION_LEGACY:
+twd: can't register interrupt 45 (-22)
+twd_local_timer_register failed -22
+omap_hwmod: mcpdm: cannot be enabled for reset (3)
+omap-gpmc omap-gpmc: error: clk_get
+omap-gpmc: probe of omap-gpmc failed with error -2
+Error setting wl12xx data: -38
+omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
+omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
+omap_hsmmc omap_hsmmc.4: Failed to get debounce clk
+twl6040-codec twl6040-codec: ASoC: Failed to create Capture debugfs file
+omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
+omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
+mmc1: host does not support reading read-only switch. assuming write-enable.
 
-Acked-by: Jason Cooper <jason@lakedaemon.net>
+As of today, I've rebased my serial changes as far forward as I dare at
+the moment (to the commit before removal of DMA), and then merged it
+into the latest trees from armsoc and myself, fixing up all the horrid
+conflicts. I've finally got it to a stage where at least it compiles,
+but unfortunately something has broken serial output from userspace
+quite badly to the point that it doesn't work.
 
-thx,
+I know that my serial changes were fine before I tried rebasing them (the
+set I posted to the mailing list certainly did work) so I suspect that
+it's down to incompatibilities between the fixes done by others (who didn't
+really understand all issues involved) and those done by myself.
 
-Jason.
+Unfortunately, the series of patches to fix the register writes and bits
+to enable hardware assisted software flow control which have gone into
+mainline have actually made the situation much worse - now the hardware
+can end up with IXANY stuck on, and no way to turn off hardware assisted
+software flow control - which is bad news for binary serial protocols.
+It would have been far better to leave the driver as-is - at least the
+software flow control would have been dealt correctly by the generic tty
+layer.  Instead, we have a worse situation today...
+
+While I may be the ex-maintainer of serial-core, given that I had already
+investigated the issues there and had an understanding of the problems,
+-and that was known-, copying me with the patches before they went into
+mainline would've been the decent thing to have done, so that someone
+with the knowledge of the breakage could have said "yes lets take those
+patches" and "no, those shouldn't go in because it'll cause breakage"
+such as I describe above.
+
+I know how this situation arose; TI are desperate to get rid of the legacy
+OMAP DMA API, and wanted me to look at the crypto drivers for DMA engine
+support.  In the mean time, they silently took the serial issues away from
+me and gave them other people to look at.  Reality is, I could have sorted
+out the serial issues while I wait for responses from Dan Williams on the
+async tx API issues.
+
+Eventually, I got bored of waiting for Dan's responses, that I looked at
+the serial issues anyway, and produced _my_ patch set which fixes the
+issues _properly_, so at least I can say that I had done something producive.
+The sad thing is, most of that is now having to be reworked to sort out an
+entirely new set of problems caused by TI's attitude towards this stuff,
+and this rework is consuming a lot more time than it needed to.
+
+As for Dan, an update for the situation from Monday's call.  I have a reply
+to my email I sent during that call, and Dan is looking at getting back up
+to speed with DMA engine stuff - but he no longer has the hardware.  He
+seems to want to keep hold of the responsibility for that, so I think we're
+rather stuck at the moment over anything OMAP which uses the crypto stuff.
+
+That's fine for the time being; the schedule for the removal of the legacy
+OMAP DMA stuff that I put into feature-removal.txt says "2013" and I _never_
+intended that to mean the start of 2013.
