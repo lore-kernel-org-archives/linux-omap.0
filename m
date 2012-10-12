@@ -1,87 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] usb: phy: add a new driver for usb3 phy
-Date: Fri, 12 Oct 2012 08:03:43 -0700
-Message-ID: <20121012150342.GA30339@atomide.com>
-References: <1348054229-27362-1-git-send-email-kishon@ti.com>
- <1348054229-27362-2-git-send-email-kishon@ti.com>
- <20121011005944.GX12552@atomide.com>
- <5077DE0A.4000301@ti.com>
+Subject: Re: [PATCH 1/2] ARM: config: sort select statements alphanumerically
+Date: Fri, 12 Oct 2012 08:09:47 -0700
+Message-ID: <20121012150945.GB30339@atomide.com>
+References: <20121012132553.GK28061@n2100.arm.linux.org.uk>
+ <E1TMfFr-0001Kt-W5@rmk-PC.arm.linux.org.uk>
+ <CACRpkdba1q52bEDcWsd47QwXA-DNhq6PENf2M-tvZ6znYu+5yw@mail.gmail.com>
+ <20121012144119.GM28061@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <5077DE0A.4000301@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: kishon <kishon@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Moiz Sonasath <m-sonasath@ti.com>
+In-Reply-To: <20121012144119.GM28061@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-sh@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Daniel Walker <dwalker@fifo99.com>, Kevin Hilman <khilman@ti.com>, linux-samsung-soc@vger.kernel.org, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Magnus Damm <magnus.damm@gmail.com>, David Brown <davidb@codeaurora.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Alessandro Rubini <rubini@unipv.it>, Stephen Warren <swarren@wwwdotorg.org>, linux-arm-msm@vger.kernel.org, spear-devel@list.st.com, Sekhar Nori <nsekhar@ti.com>, Shiraz Hashim <shiraz.hashim@st.com>, Kukjin Kim <kgene.kim@samsung.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Andrew Victor <linux@maxim.org.za>, linux-arm-kernel@lists.infradead.org, davinci-li
 List-Id: linux-omap@vger.kernel.org
 
-* kishon <kishon@ti.com> [121012 02:10]:
-> Hi Tony,
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [121012 07:44]:
+> On Fri, Oct 12, 2012 at 04:04:28PM +0200, Linus Walleij wrote:
+> > On Fri, Oct 12, 2012 at 3:26 PM, Russell King
+> > <rmk+kernel@arm.linux.org.uk> wrote:
+> > 
+> > > As suggested by Andrew Morton:
+> > >
+> > >   This is a pet peeve of mine.  Any time there's a long list of items
+> > >   (header file inclusions, kconfig entries, array initalisers, etc) and
+> > >   someone wants to add a new item, they *always* go and stick it at the
+> > >   end of the list.
+> > >
+> > >   Guys, don't do this.  Either put the new item into a randomly-chosen
+> > >   position or, probably better, alphanumerically sort the list.
+> > >
+> > > lets sort all our select statements alphanumerically.  This commit was
+> > > created by the following perl:
+> > 
+> > I applied this and tried to configure the Nomadik defconfig,
+> > and I get this, sadly:
 > 
-> On Thursday 11 October 2012 06:29 AM, Tony Lindgren wrote:
-> >Hi,
-> >
-> >* Kishon Vijay Abraham I <kishon@ti.com> [120919 04:32]:
-> >>Added a driver for usb3 phy that handles the interaction between usb phy
-> >>device and dwc3 controller.
-> >>
-> >>This also includes device tree support for usb3 phy driver and
-> >>the documentation with device tree binding information is updated.
-> >>
-> >>Currently writing to control module register is taken care in this
-> >>driver which will be removed once the control module driver is in place.
-> >
-> >You may be able to set up the control module register with one
-> >of the following Linux standard frameworks:
-> >
-> >1. Fixed regulator defined in mach-omap2/control.c
-> 
-> Is it control.c?
+> Yes, I've just fixed those.  Unfortunately, the patch is soo large that
+> it trips the mailing list size limit, and has to be manually approved,
+> so I'm not sure I can call on the list maintainers again today to do the
+> approval thing.
 
-Hmm after looking into it more we're missing one piece of the puzzle
-to handle SCM regulators, which is omap-scm-regulator.c :)
-I'll do a minimal DT only version of that.
+After applying these two patches and manually running:
 
-> >    In this case the PHY driver can pick up the regulator by name.
-> 
-> Do you mean we have to define something like fixed_voltage_config
-> defined in board-4430sdp.c?
-> From whatever I could make out from regulator/fixed.c,
-> enabling/disabling of regulator is done using only gpio. I'm not
-> sure how we can use that to write to control module register.
+$ git checkout-index -f arch/arm/mach-pxa/Kconfig
+$ git checkout-index -f arch/arm/mach-footbridge/Kconfig
 
-Yes you're right, we're missing omap-scm-regulator.c, then it will
-be trivial to select the regulator from DT like we have for the
-twl-regulator.c.
+It builds just fine for omaps, so for omaps:
 
-> >>+usb3phy@4a084400 {
-> >>+	compatible = "ti,omap-usb3";
-> >>+	reg = <0x0x4a084400 0x80>,
-> >>+	      <0x4a084800 0x64>,
-> >>+	      <0x4a084c00 0x40>,
-> >>+	      <0x4a002370 0x4>;
-> >>+};
-> >
-> >And register 0x4a002370 here. Care to post some info what the
-> >0x4a002370 register bits do? Is that same as CONTROL_DEV_CONF
-> >on omap4, or does it have other bits there too?
-> 
-> It's CONTROL_PHY_POWER_USB register and it's structure looks like this.
-> 31:22 USB_PWRCTL_CLK_FREQ
-> 21:14 USB_PWRCTL_CLK_CMD
-> 13:0 RESERVED
-> 
-> CLK_CMD takes values to power up/down the TX and RX in various combinations.
-> 
-> And CLK_FREQ takes values for clock configuration.
-
-Oh, it's a clock. Then it would be best to set it up using the
-common clock framework and have the clock registered by the
-SCM core driver when those are available.
-
-Maybe please just add a comment for that for later on?
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
