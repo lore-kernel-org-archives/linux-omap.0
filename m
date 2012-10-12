@@ -1,14 +1,20 @@
 From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: [PATCH v3 2/6] ARM: OMAP3/4: iommu: adapt to runtime pm
-Date: Thu, 11 Oct 2012 20:06:08 -0500
-Message-ID: <1350003977-32744-4-git-send-email-omar.luna@linaro.org>
+Subject: [PATCH 2/6] ARM: OMAP3/4: iommu: adapt to runtime pm
+Date: Thu, 11 Oct 2012 20:06:09 -0500
+Message-ID: <1350003977-32744-5-git-send-email-omar.luna@linaro.org>
 References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:51729 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759559Ab2JLBGg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Oct 2012 21:06:36 -0400
+Received: by mail-ob0-f174.google.com with SMTP id uo13so2384903obb.19
+        for <linux-omap@vger.kernel.org>; Thu, 11 Oct 2012 18:06:36 -0700 (PDT)
 In-Reply-To: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
-Sender: linux-doc-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Joerg Roedel <joerg.roedel@amd.com>
 Cc: Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.luna@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
-List-Id: linux-omap@vger.kernel.org
 
 Use runtime PM functionality interfaced with hwmod enable/idle
 functions, to replace direct clock operations and sysconfig
