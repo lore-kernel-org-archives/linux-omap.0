@@ -1,90 +1,136 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not suspended.
-Date: Fri, 12 Oct 2012 13:32:34 -0700
-Message-ID: <87lifbwhwd.fsf@deeprootsystems.com>
-References: <20120925091228.GI31374@n2100.arm.linux.org.uk>
-	<20120925091112.GK9137@arwen.pp.htv.fi>
-	<20120925092118.GJ31374@n2100.arm.linux.org.uk>
-	<CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com>
-	<87ipas2y4h.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.1210111748010.5736@utopia.booyaka.com>
-	<50784458.9080806@ti.com> <877gqv7imt.fsf@deeprootsystems.com>
-	<20121012164202.GQ28061@n2100.arm.linux.org.uk>
-	<877gqv4lmt.fsf@deeprootsystems.com>
-	<20121012185426.GS28061@n2100.arm.linux.org.uk>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP3/4: iommu: adapt to runtime pm
+Date: Fri, 12 Oct 2012 23:25:05 +0200
+Message-ID: <CAMP44s3wTYTFgSw7r+77zb0fxMSjo1R69Zx0nyM6Hgy2h=Gggw@mail.gmail.com>
+References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
+	<1350003977-32744-5-git-send-email-omar.luna@linaro.org>
+	<CAMP44s2LTGPnXQuetVLV1tA8w90gUtoJ5coucBUZsbqb3vFnng@mail.gmail.com>
+	<CALLhW=5k=tAXo_5ri2WgetRgju9rC_Wm-o9-pfHSNqpe6FU5qQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:44602 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751574Ab2JLUch (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 16:32:37 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so3152389pad.19
-        for <linux-omap@vger.kernel.org>; Fri, 12 Oct 2012 13:32:37 -0700 (PDT)
-In-Reply-To: <20121012185426.GS28061@n2100.arm.linux.org.uk> (Russell King's
-	message of "Fri, 12 Oct 2012 19:54:26 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CALLhW=5k=tAXo_5ri2WgetRgju9rC_Wm-o9-pfHSNqpe6FU5qQ@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sourav <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, tony@atomide.com, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
-
-> On Fri, Oct 12, 2012 at 10:59:22AM -0700, Kevin Hilman wrote:
->> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
->> 
->> > On Fri, Oct 12, 2012 at 09:35:54AM -0700, Kevin Hilman wrote:
->> >> Sourav <sourav.poddar@ti.com> writes:
->> >> > diff --git a/drivers/tty/serial/omap-serial.c
->> >> > b/drivers/tty/serial/omap-serial.c
->> >> > index 6ede6fd..3fbc7f7 100644
->> >> > --- a/drivers/tty/serial/omap-serial.c
->> >> > +++ b/drivers/tty/serial/omap-serial.c
->> >> > @@ -1414,6 +1414,7 @@ static int __devinit serial_omap_probe(struct
->> >> > platform_device *pdev)
->> >> >         INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
->> >> >
->> >> >         platform_set_drvdata(pdev, up);
->> >> > +       pm_runtime_set_active(&pdev->dev);
->> >> 
->> >> NAK.
->> >> 
->> >> This will obviously break platforms where the UARTs are not active
->> >> before driver loads.
->> >
->> > I thought I had proposed a solution for this issue, which was this
->> > sequence:
->> >
->> >         omap_device_enable(dev);                                                
->> >         pm_runtime_set_active(dev);                                             
->> >         pm_runtime_enable(dev);                                                 
->> >
->> > Yes, I can understand people not liking the omap_device_enable()
->> > there, but I also notice that the email suggesting that never got a
->> > reply either - not even a "I tried this and it doesn't work" or "it
->> > does work".
->> 
->> Yes, that solution would work (though I didn't actually try it.)
->> 
->> However, we can't use omap_device_enable() in the driver.  We're trying
->> to clean all the drivers of OMAP-specific APIs.  That being said,
->> something similar could be done in the device/board init code to ensure
->> the UART HW is in the state that the driver is expecting it, but again,
->> that would just mask the real problem which is that a (re)init of the
->> console UART on 2420/n800 is causing output to disappear.
+On Fri, Oct 12, 2012 at 7:46 PM, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
+> On 12 October 2012 02:48, Felipe Contreras <felipe.contreras@gmail.com> wrote:
+>> I already made most of these comments, but here they go again.
 >
-> See my more expansive suggestion just posted.
+> I replied to all, but here it goes again:
+
+Mostly, but not all :)
+
+>>> @@ -142,11 +142,10 @@ static int iommu_enable(struct omap_iommu *obj)
+>>>                 }
+>>>         }
+>>>
+>>> -       clk_enable(obj->clk);
+>>> +       pm_runtime_get_sync(obj->dev);
+>>>
+>>>         err = arch_iommu->enable(obj);
+>>>
+>>> -       clk_disable(obj->clk);
+>>
+>> The device will never go to sleep, until iommu_disable is called.
+>> clk_enable -> pm_runtime_get_sync, clk_disable pm_runtime_put.
 >
-> Whatever way, this discrepancy between runtime PM state and actual device
-> state is what is biting you, and it is that which needs fixing.  
+> Which is what you want... why would you want your iommu to be disabled
+> if the client of that iommu could request a translation?
 
-I'm not conviced (yet) that a mismatch is the root cause.  Yes, that's
-what the author of $SUBJECT patch assumed and stated, but I'm not
-pursuaded.  
+That's the whole point of *dynamic* pm; _when_ the client wants to
+request a translation, _then_ the device is waken up, which is what I
+believe the code currently does.
 
-If it's an improperly configured mux issue, then the UART will break
-whenever the device is actually omap_device_enable'd, whether in the
-driver or in the bus layer.
+After your patch, even if I don't use the camera, or the DSP, the
+iommu devices will be enabled, and will be consuming energy *all the
+time*. Which I don't think is what we want.
 
-Kevin
+I'm not saying I have a solution, I'm simply saying that's what's
+going to happen if I'm correct.
 
+> Remember that these iommus, sit along of other processors not on the
+> main processor side. So, this code should enable it for the other
+> processor to use, and there is no point where the processor can say
+> "I'm not using it, shut it down" or "I'm using it, turn it on" in the
+> middle of execution, other than suspend/resume and if supported,
+> autosuspend.
+
+I understand, but perhaps there should be?
+
+>>> @@ -288,7 +285,7 @@ static int load_iotlb_entry(struct omap_iommu *obj, struct iotlb_entry *e)
+>>>         if (!obj || !obj->nr_tlb_entries || !e)
+>>>                 return -EINVAL;
+>>>
+>>> -       clk_enable(obj->clk);
+>>> +       pm_runtime_get_sync(obj->dev);
+>>>
+>>>         iotlb_lock_get(obj, &l);
+>>>         if (l.base == obj->nr_tlb_entries) {
+>>> @@ -318,7 +315,7 @@ static int load_iotlb_entry(struct omap_iommu *obj, struct iotlb_entry *e)
+>>>
+>>>         cr = iotlb_alloc_cr(obj, e);
+>>>         if (IS_ERR(cr)) {
+>>> -               clk_disable(obj->clk);
+>>> +               pm_runtime_put_sync(obj->dev);
+>>>                 return PTR_ERR(cr);
+>>>         }
+>>
+>> If I'm correct, the above pm_runtime_get/put are redundant, because
+>> the count can't possibly reach 0 because of the reason I explained
+>> before.
+>>
+>> The same for all the cases below.
+>
+> You can access this paths through debugfs, some of them doesn't work
+> if the module is not enabled first, but in future if you just want to
+> idle the iommu withouth freeing, these are needed to debug.
+>
+> BTW, the next patch in the series: ARM: OMAP: iommu: pm runtime save
+> and restore context, let's you do a pm_runtime_[enable|put] through
+> save/restore ctx functions, which is just for compatibility on how isp
+> code uses the save and restore code.
+
+All right, it has been some time since I've touched pm code, so if you say so.
+
+>>> @@ -1009,7 +1001,8 @@ static int __devexit omap_iommu_remove(struct platform_device *pdev)
+>>>         release_mem_region(res->start, resource_size(res));
+>>>         iounmap(obj->regbase);
+>>>
+>>> -       clk_put(obj->clk);
+>>> +       pm_runtime_disable(obj->dev);
+>>
+>> This will turn on the device unnecessarily, wasting power, and there's
+>> no need for that, kfree will take care of that without resuming.
+>
+> Left aside the aesthetics of having balanced calls, the device will be
+> enabled if there was a pending resume to be executed, otherwise it
+> won't, kfree won't increment the disable_depth counter and I don't
+> think that freeing the pointer is enough reason to ignore
+> pm_runtime_disable.
+
+You are doing __pm_runtime_disable(dev, true), kfree will do
+__pm_runtime_disable(dev, false), which is what we want. Both will
+decrement the disable_depth.
+
+But at least you agree that there's a chance that the device will be waken up.
+
+>> Also, I still think that something like this is needed:
+> ...
+>> +static struct clk cam_fck = {
+>> +       .name           = "cam_fck",
+>> +       .ops            = &clkops_omap2_iclk_dflt,
+>> +       .parent         = &l3_ick,
+>> +       .enable_reg     = OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_ICLKEN),
+>
+> a cam_fck name to enable the ick?
+
+Yeap, according to the TRM. Take a look at 12.3 Camera ISP Integration
+Fig 12-50.
+
+Cheers.
+
+-- 
+Felipe Contreras
