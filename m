@@ -1,64 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about
- serial stuff)
-Date: Fri, 12 Oct 2012 09:56:17 -0700
-Message-ID: <20121012165616.GF30339@atomide.com>
-References: <20121012155434.GO28061@n2100.arm.linux.org.uk>
- <20121012162452.GD30339@atomide.com>
- <5078469E.1030707@ti.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: RE: [RFT/PATCH] serial: omap: prevent resume if device is not
+	suspended.
+Date: Fri, 12 Oct 2012 17:29:55 +0000
+Message-ID: <FEB1293C1A07484EA4E9721B32981131CC2362@DBDE01.ent.ti.com>
+References: <20120925083029.GG31374@n2100.arm.linux.org.uk>
+ <20120925083118.GI9137@arwen.pp.htv.fi>
+ <20120925091228.GI31374@n2100.arm.linux.org.uk>
+ <20120925091112.GK9137@arwen.pp.htv.fi>
+ <20120925092118.GJ31374@n2100.arm.linux.org.uk>
+ <CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com>
+ <87ipas2y4h.fsf@deeprootsystems.com>
+ <alpine.DEB.2.00.1210111748010.5736@utopia.booyaka.com>
+ <50784458.9080806@ti.com>
+ <877gqv7imt.fsf@deeprootsystems.com>,<20121012164202.GQ28061@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59851 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755674Ab2JLQ4W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 12:56:22 -0400
-Content-Disposition: inline
-In-Reply-To: <5078469E.1030707@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121012164202.GQ28061@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Balbi, Felipe" <balbi@ti.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "alan@linux.intel.com" <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Afzal Mohammed <afzal@ti.com>, =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
 
-* Benoit Cousson <b-cousson@ti.com> [121012 09:36]:
-> Hi Tony,
-> 
-> On 10/12/2012 06:24 PM, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [121012 08:56]:
-> >> For those who don't bother looking at my kautobuild boot tests on the OMAP
-> >> boards I have, here's the errors which get spat out at boot time.  Note
-> >> that some of these I've reported in the past, and one of them is missing
-> >> a newline character at the end of its string.
-> > 
-> > Thanks, let's get those fixed ASAP.
-> >  
-> >> twd: can't register interrupt 45 (-22)
-> >> twd_local_timer_register failed -22
+Hi Russell,
+________________________________________
+From: Russell King - ARM Linux [linux@arm.linux.org.uk]
+Sent: Friday, October 12, 2012 10:12 PM
+To: Kevin Hilman
+Cc: Poddar, Sourav; Paul Walmsley; Balbi, Felipe; gregkh@linuxfoundation.org; tony@atomide.com; linux-kernel@vger.kernel.org; Shilimkar, Santosh; linux-serial@vger.kernel.org; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; alan@linux.intel.com
+Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not  suspended.
 
-Posted a fix for this as "ARM: OMAP4: Fix twd_local_timer_register
-regression".
- 
-> > Hmm I think this regression was caused by my sparse IRQ changes,
-> > looks like I have a typo using OMAP_INTC_START in stead of the
-> > GIC base. Will do a patch for this.
-> > 
-> >> omap_hwmod: mcpdm: cannot be enabled for reset (3)
-> > 
-> > Paul, Benoit, care to take a look at this?
-> 
-> Yeah, that one is a warning. The mcpdm is not accessible at boot time if
-> the external clock (from twl6040) is not enabled.
-> 
-> Paul introduced a HWMOD_EXT_OPT_MAIN_CLK flag to avoid the warning [1],
-> but it looks like that code is not merged.
-> I'll check where that patch is stuck.
+On Fri, Oct 12, 2012 at 09:35:54AM -0700, Kevin Hilman wrote:
+> Sourav <sourav.poddar@ti.com> writes:
+> > diff --git a/drivers/tty/serial/omap-serial.c
+> > b/drivers/tty/serial/omap-serial.c
+> > index 6ede6fd..3fbc7f7 100644
+> > --- a/drivers/tty/serial/omap-serial.c
+> > +++ b/drivers/tty/serial/omap-serial.c
+> > @@ -1414,6 +1414,7 @@ static int __devinit serial_omap_probe(struct
+> > platform_device *pdev)
+> >         INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
+> >
+> >         platform_set_drvdata(pdev, up);
+> > +       pm_runtime_set_active(&pdev->dev);
+>
+> NAK.
+>
+> This will obviously break platforms where the UARTs are not active
+> before driver loads.
 
-Thanks, seems like that would be OK to do during the early -rc
-cycle to fix the warning.
+I thought I had proposed a solution for this issue, which was this
+sequence:
 
-Regards,
+        omap_device_enable(dev);
+        pm_runtime_set_active(dev);
+        pm_runtime_enable(dev);
 
-Tony
- 
-> [1]
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-June/103019.html
+Yes, I can understand people not liking the omap_device_enable()
+there, but I also notice that the email suggesting that never got a
+reply either - not even a "I tried this and it doesn't work" or "it
+does work".
+
+Sorry for the late reply on this. I tried this sequence and it worked perfectly fine on
+panda and beagle. 
+
+As such, it seems this issue isn't making any progress as we had
+already established that merely doing a "pm_runtime_set_active()"
+before "pm_runtime_enable()" was going to break other platforms.
+
+ I was  trying to analyse your explanations on this and since omap_device_enable is not generally 
+recommended,  I was trying to see if anything else can be done to get around this.
+
+I send this patch for N800 testing so  as to see how it behaves. (We are suspecting that there might be
+mux setting issue also with N800).   
+
+~Sourav
