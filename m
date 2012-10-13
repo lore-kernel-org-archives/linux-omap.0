@@ -1,58 +1,37 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/4] MMC: omap_hsmmc: set platform data after probe from DT node
-Date: Sat, 13 Oct 2012 13:37:20 +0100
-Message-ID: <1c7b8951-3bf2-4433-8c6a-9d70ef47b3c4@email.android.com>
-References: <1350039495-360-1-git-send-email-zonque@gmail.com> <1350039495-360-2-git-send-email-zonque@gmail.com> <5078295E.2090803@gmail.com> <50782F82.8060206@ti.com> <507833ED.8060903@gmail.com> <507835E9.9020200@ti.com> <ae718323-6d65-4e69-b8f9-6382c6299294@email.android.com> <507920E0.2050104@gmail.com> <CACxGe6tGYrO8Z0MxiOV+rjBprRxzT-4v6CiBh8wV0Avufd0doA@mail.gmail.com> <50792BF7.5020908@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix twd_local_timer_register regression
+Date: Sat, 13 Oct 2012 18:19:06 +0530
+Message-ID: <50796342.2060907@ti.com>
+References: <20121012165149.GE30339@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:61346 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753329Ab2JMMjO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Oct 2012 08:39:14 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so2175249wey.19
-        for <linux-omap@vger.kernel.org>; Sat, 13 Oct 2012 05:39:12 -0700 (PDT)
-In-Reply-To: <50792BF7.5020908@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34288 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753390Ab2JMMtU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Oct 2012 08:49:20 -0400
+In-Reply-To: <20121012165149.GE30339@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Balaji T K <balajitk@ti.com>, linux-mmc@vger.kernel.org, Venkatraman S <svenkatr@ti.com>, Chris Ball <cjb@laptop.org>, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
-
-
-Daniel Mack <zonque@gmail.com> wrote:
-
->On 13.10.2012 10:48, Grant Likely wrote:
->> 
->> somedriver_probe(struct platform_device *pdev)
->> {
->>       struct somedriver_private *somedriver;
->> 
->>       somedriver = devm_kzalloc(sizeof (*somedriver), GFP_KERNEL);
->>       somedriver->pdata = pdev->platform_data;
->>       if (OF)
->>               somedriver->pdata = devm_kzalloc(sizeof
->> (*somedriver->pdata), GFP_KERNEL);
->> }
->> 
->> The bonus with using devm_kzalloc is the driver doesn't even need to
->> do anything special to undo these allocations on failure or release.
->> :-)
+On Friday 12 October 2012 10:21 PM, Tony Lindgren wrote:
+> Commit 7d7e1eba (ARM: OMAP2+: Prepare for irqs.h removal)
+> changed the interrupts to allow enabling sparse IRQ, but
+> accidentally added the omap3 INTC base to the local IRQ.
+> This causes the following:
 >
->Ok, understood. Will keep an eye on this in the future. Thanks again
->for
->the explanation.
+> twd: can't register interrupt 45 (-22)
+> twd_local_timer_register failed -22
 >
->For this particular driver, this means that both my and Balaji's ways
->of
->fixing this are wrong?
+> The right fix is to not add any base, as it is a local
+> timer. For the OMAP44XX_IRQ_LOCALWDT we had defined earlier
+> there are no users, so no need to fix that.
+>
+> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Balaji's patch looks fine since it uses a local copy of the platform data structure. It appears that the driver is already creating a local copy and Balaji is just bug fixing call sites that aren't using it yet.
-
-g.
-
--- 
-Grant Likely, P.Eng.
-Secret Lab Technologies Ltd.
