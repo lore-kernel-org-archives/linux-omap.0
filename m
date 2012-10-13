@@ -1,69 +1,37 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH 1/2] USB: dwc3-exynos: Add support for device tree
-Date: Sat, 13 Oct 2012 19:24:31 +0530
-Message-ID: <50797297.7070102@ti.com>
-References: <1350136052-25583-1-git-send-email-gautam.vivek@samsung.com> <1350136052-25583-2-git-send-email-gautam.vivek@samsung.com>
+From: Sekhar Nori <nori.sekhar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: config: sort select statements alphanumerically
+Date: Sat, 13 Oct 2012 20:26:28 +0530
+Message-ID: <CAKG51UAdCWR7zGr4R3wUr4Lr4MauqGBr1j=VkQcpNywhqRvnMw@mail.gmail.com>
+References: <20121012132553.GK28061@n2100.arm.linux.org.uk>
+	<E1TMfFr-0001Kt-W5@rmk-PC.arm.linux.org.uk>
+	<CACRpkdba1q52bEDcWsd47QwXA-DNhq6PENf2M-tvZ6znYu+5yw@mail.gmail.com>
+	<20121012144119.GM28061@n2100.arm.linux.org.uk>
+	<20121012144832.GN28061@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56821 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752838Ab2JMNyy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 13 Oct 2012 09:54:54 -0400
-In-Reply-To: <1350136052-25583-2-git-send-email-gautam.vivek@samsung.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20121012144832.GN28061-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Daniel Walker <dwalker-zu3NM2574RrQT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Srinidhi Kasagar <srinidhi.kasagar-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Brown <davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alessandro Rubini <rubini-9wsNiZum9E8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shiraz Hashim <shiraz.hashim-qxv4g6HH51o@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, linux-tegra@vg
 List-Id: linux-omap@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gregkh@linuxfoundation.org, balbi@ti.com, rob.herring@calxeda.com, thomas.abraham@linaro.org, av.tikhomirov@samsung.com
 
-Hi,
+On Fri, Oct 12, 2012 at 8:18 PM, Russell King - ARM Linux
+<linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
+> Instead, here's the updated script:
 
-On Saturday 13 October 2012 07:17 PM, Vivek Gautam wrote:
-> This patch adds support to parse probe data for
-> dwc3 driver for exynos using device tree
->
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
-> ---
->   drivers/usb/dwc3/dwc3-exynos.c |   22 ++++++++++++++++++++++
->   1 files changed, 22 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-> index ca65978..78e6219 100644
-> --- a/drivers/usb/dwc3/dwc3-exynos.c
-> +++ b/drivers/usb/dwc3/dwc3-exynos.c
-> @@ -21,6 +21,7 @@
->   #include <linux/clk.h>
->   #include <linux/usb/otg.h>
->   #include <linux/usb/nop-usb-xceiv.h>
-> +#include <linux/of.h>
->
->   #include "core.h"
->
-> @@ -87,6 +88,8 @@ err1:
->   	return ret;
->   }
->
-> +static u64 dwc3_exynos_dma_mask = DMA_BIT_MASK(32);
-> +
->   static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
->   {
->   	struct dwc3_exynos_data	*pdata = pdev->dev.platform_data;
-> @@ -103,6 +106,16 @@ static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
->   		goto err0;
->   	}
->
-> +	/*
-> +	 * Right now device-tree probed devices don't get dma_mask set.
-> +	 * Since shared usb code relies on it, set it here for now.
-> +	 * Once we move to full device tree support this will vanish off.
-> +	 */
-> +	if (!pdev->dev.dma_mask)
-> +		pdev->dev.dma_mask = &dwc3_exynos_dma_mask;
-> +	if (!pdev->dev.coherent_dma_mask)
-> +		pdev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
+Tested build and boot on DA850 and DM365. For the DaVinci changes:
 
-of/platform.c shows coherent_dma_mask is set for dt.
+Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
 
-Thanks
-Kishon
+Thanks,
+Sekhar
