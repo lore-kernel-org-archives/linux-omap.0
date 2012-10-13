@@ -1,78 +1,56 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH] drm/omap: fix issue w/ fb attached to multiple CRTCs
-Date: Fri, 12 Oct 2012 18:58:02 -0500
-Message-ID: <1350086282-12463-1-git-send-email-rob.clark@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:46457 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751437Ab2JLX7Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Oct 2012 19:59:16 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so3374903obb.19
-        for <linux-omap@vger.kernel.org>; Fri, 12 Oct 2012 16:59:15 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 1/4] MMC: omap_hsmmc: set platform data after probe from DT node
+Date: Sat, 13 Oct 2012 01:05:01 +0100
+Message-ID: <ae718323-6d65-4e69-b8f9-6382c6299294@email.android.com>
+References: <1350039495-360-1-git-send-email-zonque@gmail.com> <1350039495-360-2-git-send-email-zonque@gmail.com> <5078295E.2090803@gmail.com> <50782F82.8060206@ti.com> <507833ED.8060903@gmail.com> <507835E9.9020200@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <507835E9.9020200@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>, Daniel Mack <zonque@gmail.com>
+Cc: linux-mmc@vger.kernel.org, Venkatraman S <svenkatr@ti.com>, Chris Ball <cjb@laptop.org>, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-From: Rob Clark <rob@ti.com>
 
-When the fb is detached from one CRTC/plane, paddr was set back to
-zero.  But really we don't want to do this because the fb could still
-be attached to other CRTC/plane(s).  This originally worked like this
-to catch cases of freeing a pinned fb (but with the refcnt'ing this
-should no longer be needed).  Also, there is checking in the GEM code
-for freeing a pinned GEM object, so this extra level of checking is
-redundant.
 
-Signed-off-by: Rob Clark <rob@ti.com>
----
- drivers/staging/omapdrm/omap_fb.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+Balaji T K <balajitk@ti.com> wrote:
 
-diff --git a/drivers/staging/omapdrm/omap_fb.c b/drivers/staging/omapdrm/omap_fb.c
-index 446801d..75d2ff1 100644
---- a/drivers/staging/omapdrm/omap_fb.c
-+++ b/drivers/staging/omapdrm/omap_fb.c
-@@ -253,6 +253,7 @@ int omap_framebuffer_replace(struct drm_framebuffer *a,
- 	int ret = 0, i, na, nb;
- 	struct omap_framebuffer *ofba = to_omap_framebuffer(a);
- 	struct omap_framebuffer *ofbb = to_omap_framebuffer(b);
-+	uint32_t pinned_mask = 0;
- 
- 	na = a ? drm_format_num_planes(a->pixel_format) : 0;
- 	nb = b ? drm_format_num_planes(b->pixel_format) : 0;
-@@ -263,25 +264,24 @@ int omap_framebuffer_replace(struct drm_framebuffer *a,
- 		pa = (i < na) ? &ofba->planes[i] : NULL;
- 		pb = (i < nb) ? &ofbb->planes[i] : NULL;
- 
--		if (pa) {
-+		if (pa)
- 			unpin(arg, pa->bo);
--			pa->paddr = 0;
--		}
- 
- 		if (pb && !ret) {
- 			ret = omap_gem_get_paddr(pb->bo, &pb->paddr, true);
--			if (!ret)
-+			if (!ret) {
- 				omap_gem_dma_sync(pb->bo, DMA_TO_DEVICE);
-+				pinned_mask |= (1 << i);
-+			}
- 		}
- 	}
- 
- 	if (ret) {
- 		/* something went wrong.. unpin what has been pinned */
- 		for (i = 0; i < nb; i++) {
--			struct plane *pb = &ofba->planes[i];
--			if (pb->paddr) {
-+			if (pinned_mask & (1 << i)) {
-+				struct plane *pb = &ofba->planes[i];
- 				unpin(arg, pb->bo);
--				pb->paddr = 0;
- 			}
- 		}
- 	}
+>On Friday 12 October 2012 08:44 PM, Daniel Mack wrote:
+>> On 12.10.2012 16:56, Balaji T K wrote:
+>>> On Friday 12 October 2012 07:59 PM, Daniel Mack wrote:
+>>>> On 12.10.2012 12:58, Daniel Mack wrote:
+>>>>> diff --git a/drivers/mmc/host/omap_hsmmc.c
+>b/drivers/mmc/host/omap_hsmmc.c
+>>>>> index 19ccb59..4b70823 100644
+>>>>> --- a/drivers/mmc/host/omap_hsmmc.c
+>>>>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>>>>> @@ -1728,6 +1728,7 @@ static int __devinit omap_hsmmc_probe(struct
+>platform_device *pdev)
+>>>>>    			const u16 *offsetp = match->data;
+>>>>>    			pdata->reg_offset = *offsetp;
+>>>>>    		}
+>>>>> +		pdev->dev.platform_data = pdata;
+>>>>>    	}
+>>>>>
+>>>>>    	if (pdata == NULL) {
+>>>>>
+>>>>
+>>>> FWIW, this is the Oops I see without this patch:
+>>> Hi,
+>>> Shouldn't pdev->dev.platform_data be set to NULL on _remove ?
+>>
+>> Why?
+>
+>To make sure on second insmod it is NULL, When built as module,
+>So that of_get_hsmmc_pdata is called to create pdata.
+
+Actually the driver should *never* modify the value of dev->platform_data. Ever. Make a copy instead.
+
+g.
+
 -- 
-1.7.9.5
-
+Grant Likely, P.Eng.
+Secret Lab Technologies Ltd.
