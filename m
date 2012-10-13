@@ -1,37 +1,34 @@
-From: info@usarmy.com
-Subject: Dear Friend ,
-Date: Sat, 13 Oct 2012 17:26:58 +0530
-Message-ID: <201210131157.q9DBrFP6014282@mailchk-m03.uwaterloo.ca>
-Reply-To: jason.kane1010@gmail.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 0/2] ARM: sort configuration files
+Date: Sat, 13 Oct 2012 17:42:57 +0100
+Message-ID: <20121013164257.GV28061@n2100.arm.linux.org.uk>
+References: <20121012132553.GK28061@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailservices.uwaterloo.ca ([129.97.128.141]:39015 "EHLO
-	mailchk-m03.uwaterloo.ca" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753735Ab2JMPyz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 13 Oct 2012 11:54:55 -0400
-Content-Description: Mail message body
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20121012132553.GK28061@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, linux-samsung-soc@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, spear-devel@list.st.com
+Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Sekhar Nori <nsekhar@ti.com>, Daniel Walker <dwalker@fifo99.com>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, David Brown <davidb@codeaurora.org>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Alessandro Rubini <rubini@unipv.it>, Stephen Warren <swarren@wwwdotorg.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Shiraz Hashim <shiraz.hashim@st.com>, Ben Dooks <ben-linux@fluff.org>, Barry Song <baohua.song@csr.com>, Andrew Victor <linux@maxim.org.za>, Eric Miao <eric.y.miao@gmail.com>, Bryan Huntsman <bryanh@codeaurora.org>, Paul Mundt <lethal@linux-sh.org>, Viresh Kumar <viresh.linux@gmail.com>, Sascha Hauer <kernel@pengutronix.de>S
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <info@usarmy.com>
 
-I am Sgt Jason H .Kane , A US Army serving in the 3rd Infantry Division in Iraq. Now in Afghanistan I want you to read this mail carefully and understand it.
+On Fri, Oct 12, 2012 at 02:25:53PM +0100, Russell King - ARM Linux wrote:
+> Here's a version updated to the kernel as of 7am UTC today.  Two patches
+> follow, the second fixes the order of the platform choice.
 
-In 2003, my men and I found over $900 million in Saddam Hussein's hideout in Baghdad, we sent some back to the Iraq government after counting it in a classified location, but we also kept some behind for ourselves. Some of the money we shared among ourselves worth over $200 million, I kept my own share for a while in a secured place.
+Ok folks, that's it, I'm not taking any further acks on this because
+I've now sent the last batch of changes to Linus.  This consists of
+just these two patches, plus David Howells UAPI changes. And that will
+be it for this merge window.
 
-I need someone to help me receive it , since i have found a secured way of getting the package out of Iraq for you to pick up through the help of a Red Cross Society or pilots that enjoy some immunities with us while in Iraq  .
-
-I do not know for how long I will remain here as I have been lucky to survive 3 suicide bomb attacks by Afghanistan Militant which one of my leg was amputed , i know my survival was an act of God and Pure Divine intervention from God .
-
-I need someone I can trust, since i have already lost a box of gold to someone that said he will help me, I won't like to make the same mistake. The total amount of money is $7.5 million.
-
-View the below link to verify/confirm my statement.
-
-http://news.bbc.co.uk/2/hi/middle_east/2988455.stm
-
-If you can handle this deal let me know immediately, you will receive 20% of the money , all you need to do is to find a safe place where you can keep the box till i leave Afghanistan .
-
-Regards,
-Sgt Jason H .Kane
+Thanks to all those who tested.
