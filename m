@@ -1,37 +1,99 @@
-From: info@usarmy.com
-Subject: Dear Friend ,
-Date: Sat, 13 Oct 2012 19:02:46 +0530
-Message-ID: <201210131332.q9DDUHdd000318__25505.5696623915$1350135247$gmane$org@mailchk-m04.uwaterloo.ca>
-Reply-To: jason.kane1010@gmail.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: vfp: fix save and restore when running on
+	pre-VFPv3 and CONFIG_VFPv3 set
+Date: Sat, 13 Oct 2012 14:36:54 +0100
+Message-ID: <20121013133654.GU28061@n2100.arm.linux.org.uk>
+References: <alpine.DEB.2.00.1210130441300.5736@utopia.booyaka.com> <20121013090255.GT28061@n2100.arm.linux.org.uk> <yw1xr4p2myre.fsf@unicorn.mansr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailservices.uwaterloo.ca ([129.97.128.141]:47725 "EHLO
-	mailchk-m04.uwaterloo.ca" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750925Ab2JMNds convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 13 Oct 2012 09:33:48 -0400
-Content-Description: Mail message body
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51790 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240Ab2JMNhQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Oct 2012 09:37:16 -0400
+Content-Disposition: inline
+In-Reply-To: <yw1xr4p2myre.fsf@unicorn.mansr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <info@usarmy.com>
+To: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans.rullgard@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Dave Martin <dave.martin@linaro.org>
 
-I am Sgt Jason H .Kane , A US Army serving in the 3rd Infantry Division in Iraq. Now in Afghanistan I want you to read this mail carefully and understand it.
+On Sat, Oct 13, 2012 at 11:50:45AM +0100, M=E5ns Rullg=E5rd wrote:
+> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+>=20
+> > On Sat, Oct 13, 2012 at 04:46:18AM +0000, Paul Walmsley wrote:
+> >>=20
+> >> After commit 846a136881b8f73c1f74250bf6acfaa309cab1f2 ("ARM: vfp: =
+fix
+> >> saving d16-d31 vfp registers on v6+ kernels"), the OMAP 2430SDP bo=
+ard
+> >> started crashing during boot with omap2plus_defconfig:
+> >>=20
+> >> [    3.875122] mmcblk0: mmc0:e624 SD04G 3.69 GiB
+> >> [    3.915954]  mmcblk0: p1
+> >> [    4.086639] Internal error: Oops - undefined instruction: 0 [#1=
+] SMP ARM
+> >> [    4.093719] Modules linked in:
+> >> [    4.096954] CPU: 0    Not tainted  (3.6.0-02232-g759e00b #570)
+> >> [    4.103149] PC is at vfp_reload_hw+0x1c/0x44
+> >> [    4.107666] LR is at __und_usr_fault_32+0x0/0x8
+> >>=20
+> >> It turns out that the context save/restore fix unmasked a latent b=
+ug in=20
+> >> commit 5aaf254409f8d58229107b59507a8235b715a960 ("ARM: 6203/1: Mak=
+e VFPv3=20
+> >> usable on ARMv6").  When CONFIG_VFPv3 is set, but the kernel is bo=
+oted on=20
+> >> a pre-VFPv3 core, the code attempts to save and restore the d16-d3=
+1 VFP=20
+> >> registers.  These are only present on non-D16 VFPv3+, so the kerne=
+l dies=20
+> >> with an undefined instruction exception.  The kernel didn't crash =
+before=20
+> >> commit 846a136 because the save and restore code only touched d0-d=
+15,=20
+> >> present on all VFP.
+> >>=20
+> >> Fix to save and restore the d16-d31 registers only if they are
+> >> present.
+> >
+> > No.  VFPv3D16 HWCAP means that the VFP supports just 16 double regi=
+sters
+> > - and it communicates this information to userspace.  If this bit i=
+s clear,
+> > and the VFP only has 16 double registers, then _that_ is a bug.
+>=20
+> That bit will be clear on VFPv2 (because it's not v3), and this has o=
+nly
+> 16 D registers.  The high D registers are present if (vfpv3 && !vfpv3=
+d16).
+> Pre-calculating this to avoid doing it in the context save/restore co=
+de
+> is probably a good idea.
 
-In 2003, my men and I found over $900 million in Saddam Hussein's hideout in Baghdad, we sent some back to the Iraq government after counting it in a classified location, but we also kept some behind for ourselves. Some of the money we shared among ourselves worth over $200 million, I kept my own share for a while in a secured place.
+No.  What we should do in that case is get away from this mixed logic.
+The HWCAP fields should _always_ be telling us what we have, not what
+we don't have.  So, this means we should have VFPv3 and VFPv4 bits,
+but also VFPD16 to say "yes, we have d16-d31 registers too".
 
-I need someone to help me receive it , since i have found a secured way of getting the package out of Iraq for you to pick up through the help of a Red Cross Society or pilots that enjoy some immunities with us while in Iraq  .
+And, these bits should be set as follows:
 
-I do not know for how long I will remain here as I have been lucky to survive 3 suicide bomb attacks by Afghanistan Militant which one of my leg was amputed , i know my survival was an act of God and Pure Divine intervention from God .
+	VFP architecture	flags
+	VFPv2			VFP
+	VFPv3d16		VFP|VFPv3|VFPv3D16
+	VFPv3			VFP|VFPv3|VFPD16
+	VFPv4			VFP|VFPv3|VFPv4|VFPD16
 
-I need someone I can trust, since i have already lost a box of gold to someone that said he will help me, I won't like to make the same mistake. The total amount of money is $7.5 million.
-
-View the below link to verify/confirm my statement.
-
-http://news.bbc.co.uk/2/hi/middle_east/2988455.stm
-
-If you can handle this deal let me know immediately, you will receive 20% of the money , all you need to do is to find a safe place where you can keep the box till i leave Afghanistan .
-
-Regards,
-Sgt Jason H .Kane
+whereas, at the present time we have the silly situation where VFPv3D16
+gives us two bits of information.  Note that the above combination sort=
+s
+this out for ever, and doesn't involve any userspace changes, and makes
+this stuff much more sane - and ends up giving everyone exactly what th=
+ey
+need to make the appropriate decisions.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
