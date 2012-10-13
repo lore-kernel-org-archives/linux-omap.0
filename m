@@ -1,37 +1,37 @@
-From: Sekhar Nori <nori.sekhar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] ARM: config: sort select statements alphanumerically
-Date: Sat, 13 Oct 2012 20:26:28 +0530
-Message-ID: <CAKG51UAdCWR7zGr4R3wUr4Lr4MauqGBr1j=VkQcpNywhqRvnMw@mail.gmail.com>
-References: <20121012132553.GK28061@n2100.arm.linux.org.uk>
-	<E1TMfFr-0001Kt-W5@rmk-PC.arm.linux.org.uk>
-	<CACRpkdba1q52bEDcWsd47QwXA-DNhq6PENf2M-tvZ6znYu+5yw@mail.gmail.com>
-	<20121012144119.GM28061@n2100.arm.linux.org.uk>
-	<20121012144832.GN28061@n2100.arm.linux.org.uk>
+From: info@usarmy.com
+Subject: Dear Friend ,
+Date: Sat, 13 Oct 2012 17:26:58 +0530
+Message-ID: <201210131157.q9DBrFP6014282@mailchk-m03.uwaterloo.ca>
+Reply-To: jason.kane1010@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20121012144832.GN28061-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, Daniel Walker <dwalker-zu3NM2574RrQT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Srinidhi Kasagar <srinidhi.kasagar-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Brown <davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Jean-Christophe Plagniol-Villard <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, Alessandro Rubini <rubini-9wsNiZum9E8@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, spear-devel-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Shiraz Hashim <shiraz.hashim-qxv4g6HH51o@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, linux-tegra@vg
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailservices.uwaterloo.ca ([129.97.128.141]:39015 "EHLO
+	mailchk-m03.uwaterloo.ca" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753735Ab2JMPyz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 13 Oct 2012 11:54:55 -0400
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <info@usarmy.com>
 
-On Fri, Oct 12, 2012 at 8:18 PM, Russell King - ARM Linux
-<linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
-> Instead, here's the updated script:
+I am Sgt Jason H .Kane , A US Army serving in the 3rd Infantry Division in Iraq. Now in Afghanistan I want you to read this mail carefully and understand it.
 
-Tested build and boot on DA850 and DM365. For the DaVinci changes:
+In 2003, my men and I found over $900 million in Saddam Hussein's hideout in Baghdad, we sent some back to the Iraq government after counting it in a classified location, but we also kept some behind for ourselves. Some of the money we shared among ourselves worth over $200 million, I kept my own share for a while in a secured place.
 
-Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
+I need someone to help me receive it , since i have found a secured way of getting the package out of Iraq for you to pick up through the help of a Red Cross Society or pilots that enjoy some immunities with us while in Iraq  .
 
-Thanks,
-Sekhar
+I do not know for how long I will remain here as I have been lucky to survive 3 suicide bomb attacks by Afghanistan Militant which one of my leg was amputed , i know my survival was an act of God and Pure Divine intervention from God .
+
+I need someone I can trust, since i have already lost a box of gold to someone that said he will help me, I won't like to make the same mistake. The total amount of money is $7.5 million.
+
+View the below link to verify/confirm my statement.
+
+http://news.bbc.co.uk/2/hi/middle_east/2988455.stm
+
+If you can handle this deal let me know immediately, you will receive 20% of the money , all you need to do is to find a safe place where you can keep the box till i leave Afghanistan .
+
+Regards,
+Sgt Jason H .Kane
