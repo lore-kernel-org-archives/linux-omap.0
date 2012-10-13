@@ -1,133 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: vfp: fix save and restore when running on pre-VFPv3
- and CONFIG_VFPv3 set
-Date: Sat, 13 Oct 2012 04:46:18 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210130441300.5736@utopia.booyaka.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH 1/4] MMC: omap_hsmmc: set platform data after probe from
+ DT node
+Date: Sat, 13 Oct 2012 10:05:52 +0200
+Message-ID: <507920E0.2050104@gmail.com>
+References: <1350039495-360-1-git-send-email-zonque@gmail.com> <1350039495-360-2-git-send-email-zonque@gmail.com> <5078295E.2090803@gmail.com> <50782F82.8060206@ti.com> <507833ED.8060903@gmail.com> <507835E9.9020200@ti.com> <ae718323-6d65-4e69-b8f9-6382c6299294@email.android.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38539 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384Ab2JMEqT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Oct 2012 00:46:19 -0400
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:43407 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751786Ab2JMIGI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Oct 2012 04:06:08 -0400
+In-Reply-To: <ae718323-6d65-4e69-b8f9-6382c6299294@email.android.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Dave Martin <dave.martin@linaro.org>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Balaji T K <balajitk@ti.com>, linux-mmc@vger.kernel.org, Venkatraman S <svenkatr@ti.com>, Chris Ball <cjb@laptop.org>, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org
+
+Hi Grant,
+
+On 13.10.2012 02:05, Grant Likely wrote:
+> 
+> 
+> Balaji T K <balajitk@ti.com> wrote:
+> 
+>> On Friday 12 October 2012 08:44 PM, Daniel Mack wrote:
+>>> On 12.10.2012 16:56, Balaji T K wrote:
+>>>> On Friday 12 October 2012 07:59 PM, Daniel Mack wrote:
+>>>>> On 12.10.2012 12:58, Daniel Mack wrote:
+>>>>>> diff --git a/drivers/mmc/host/omap_hsmmc.c
+>> b/drivers/mmc/host/omap_hsmmc.c
+>>>>>> index 19ccb59..4b70823 100644 ---
+>>>>>> a/drivers/mmc/host/omap_hsmmc.c +++
+>>>>>> b/drivers/mmc/host/omap_hsmmc.c @@ -1728,6 +1728,7 @@
+>>>>>> static int __devinit omap_hsmmc_probe(struct
+>> platform_device *pdev)
+>>>>>> const u16 *offsetp = match->data; pdata->reg_offset =
+>>>>>> *offsetp; } +		pdev->dev.platform_data = pdata; }
+>>>>>> 
+>>>>>> if (pdata == NULL) {
+>>>>>> 
+>>>>> 
+>>>>> FWIW, this is the Oops I see without this patch:
+>>>> Hi, Shouldn't pdev->dev.platform_data be set to NULL on _remove
+>>>> ?
+>>> 
+>>> Why?
+>> 
+>> To make sure on second insmod it is NULL, When built as module, So
+>> that of_get_hsmmc_pdata is called to create pdata.
+> 
+> Actually the driver should *never* modify the value of
+> dev->platform_data. Ever.
+
+That's interesting, because many drivers do this, especially since they
+were converted to DT probing. Mostly because that way, the platform data
+logic in callback functions can be reused, and often the platform
+specific data is only stored in pdata and taken from there during the
+lifetime of a device.
+
+Is there any particular reason why this approach is frowned upon?
+
+> Make a copy instead.
+
+A copy of what exactly? Of all members of the legacy pdata you mean?
 
 
-After commit 846a136881b8f73c1f74250bf6acfaa309cab1f2 ("ARM: vfp: fix
-saving d16-d31 vfp registers on v6+ kernels"), the OMAP 2430SDP board
-started crashing during boot with omap2plus_defconfig:
-
-[    3.875122] mmcblk0: mmc0:e624 SD04G 3.69 GiB
-[    3.915954]  mmcblk0: p1
-[    4.086639] Internal error: Oops - undefined instruction: 0 [#1] SMP ARM
-[    4.093719] Modules linked in:
-[    4.096954] CPU: 0    Not tainted  (3.6.0-02232-g759e00b #570)
-[    4.103149] PC is at vfp_reload_hw+0x1c/0x44
-[    4.107666] LR is at __und_usr_fault_32+0x0/0x8
-
-It turns out that the context save/restore fix unmasked a latent bug in 
-commit 5aaf254409f8d58229107b59507a8235b715a960 ("ARM: 6203/1: Make VFPv3 
-usable on ARMv6").  When CONFIG_VFPv3 is set, but the kernel is booted on 
-a pre-VFPv3 core, the code attempts to save and restore the d16-d31 VFP 
-registers.  These are only present on non-D16 VFPv3+, so the kernel dies 
-with an undefined instruction exception.  The kernel didn't crash before 
-commit 846a136 because the save and restore code only touched d0-d15, 
-present on all VFP.
-
-Fix to save and restore the d16-d31 registers only if they are
-present.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Martin <dave.martin@linaro.org>
----
- arch/arm/include/asm/vfp.h       |    6 ++++++
- arch/arm/include/asm/vfpmacros.h |    8 ++++----
- arch/arm/vfp/vfpmodule.c         |   10 ++++++++++
- 3 files changed, 20 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/include/asm/vfp.h b/arch/arm/include/asm/vfp.h
-index f4ab34f..5689798 100644
---- a/arch/arm/include/asm/vfp.h
-+++ b/arch/arm/include/asm/vfp.h
-@@ -82,3 +82,9 @@
- #define VFPOPDESC_UNUSED_BIT	(24)
- #define VFPOPDESC_UNUSED_MASK	(0xFF << VFPOPDESC_UNUSED_BIT)
- #define VFPOPDESC_OPDESC_MASK	(~(VFPOPDESC_LENGTH_MASK | VFPOPDESC_UNUSED_MASK))
-+
-+#ifndef __ASSEMBLER__
-+#include <linux/types.h>
-+
-+extern u32 vfp_has_d16_d31;
-+#endif
-diff --git a/arch/arm/include/asm/vfpmacros.h b/arch/arm/include/asm/vfpmacros.h
-index 6a6f1e4..11496a9 100644
---- a/arch/arm/include/asm/vfpmacros.h
-+++ b/arch/arm/include/asm/vfpmacros.h
-@@ -25,9 +25,9 @@
- #endif
- #ifdef CONFIG_VFPv3
- #if __LINUX_ARM_ARCH__ <= 6
--	ldr	\tmp, =elf_hwcap		    @ may not have MVFR regs
-+	ldr	\tmp, =vfp_has_d16_d31		    @ have VFP regs d16-d31?
- 	ldr	\tmp, [\tmp, #0]
--	tst	\tmp, #HWCAP_VFPv3D16
-+	cmp	\tmp, #1
- 	ldceql	p11, cr0, [\base],#32*4		    @ FLDMIAD \base!, {d16-d31}
- 	addne	\base, \base, #32*4		    @ step over unused register space
- #else
-@@ -49,9 +49,9 @@
- #endif
- #ifdef CONFIG_VFPv3
- #if __LINUX_ARM_ARCH__ <= 6
--	ldr	\tmp, =elf_hwcap		    @ may not have MVFR regs
-+	ldr	\tmp, =vfp_has_d16_d31		    @ have VFP regs d16-d31?
- 	ldr	\tmp, [\tmp, #0]
--	tst	\tmp, #HWCAP_VFPv3D16
-+	cmp	\tmp, #1
- 	stceql	p11, cr0, [\base],#32*4		    @ FSTMIAD \base!, {d16-d31}
- 	addne	\base, \base, #32*4		    @ step over unused register space
- #else
-diff --git a/arch/arm/vfp/vfpmodule.c b/arch/arm/vfp/vfpmodule.c
-index c834b32..929b53b 100644
---- a/arch/arm/vfp/vfpmodule.c
-+++ b/arch/arm/vfp/vfpmodule.c
-@@ -58,6 +58,12 @@ unsigned int VFP_arch;
- union vfp_state *vfp_current_hw_state[NR_CPUS];
- 
- /*
-+ * If the VFP on this ARM core has registers d16-d31, vfp_has_d16_d31 will
-+ * be set to 1; otherwise, 0.  Only valid after startup.
-+ */
-+u32 vfp_has_d16_d31;
-+
-+/*
-  * Is 'thread's most up to date state stored in this CPUs hardware?
-  * Must be called from non-preemptible context.
-  */
-@@ -691,6 +697,8 @@ static int __init vfp_init(void)
- 		thread_register_notifier(&vfp_notifier_block);
- 		vfp_pm_init();
- 
-+		vfp_has_d16_d31 = 0;
-+
- 		/*
- 		 * We detected VFP, and the support code is
- 		 * in place; report VFP support to userspace.
-@@ -706,6 +714,8 @@ static int __init vfp_init(void)
- 			 */
- 			if (((fmrx(MVFR0) & MVFR0_A_SIMD_MASK)) == 1)
- 				elf_hwcap |= HWCAP_VFPv3D16;
-+			else
-+				vfp_has_d16_d31 = 1;
- 		}
- #endif
- 		/*
--- 
-1.7.10.4
+Thanks,
+Daniel
 
