@@ -1,90 +1,37 @@
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-Subject: [PATCH v2 3/3] exynos5: usb: dwc3: Add the suspend/resume functionality
-Date: Sat, 13 Oct 2012 18:40:25 +0530
-Message-ID: <1350133825-24181-4-git-send-email-vikas.sajjan@linaro.org>
-References: <1350133825-24181-1-git-send-email-vikas.sajjan@linaro.org>
+From: info@usarmy.com
+Subject: Dear Friend ,
+Date: Sat, 13 Oct 2012 19:02:46 +0530
+Message-ID: <201210131332.q9DDUHdd000318__25505.5696623915$1350135247$gmane$org@mailchk-m04.uwaterloo.ca>
+Reply-To: jason.kane1010@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:47800 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753470Ab2JMNFH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Oct 2012 09:05:07 -0400
-In-reply-to: <1350133825-24181-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mailservices.uwaterloo.ca ([129.97.128.141]:47725 "EHLO
+	mailchk-m04.uwaterloo.ca" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750925Ab2JMNds convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 13 Oct 2012 09:33:48 -0400
+Content-Description: Mail message body
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, balbi@ti.com, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Vikas C Sajjan <vikas.sajjan@linaro.org>, Doug Anderson <dianders@chromium.org>
+To: Recipients <info@usarmy.com>
 
-Adding the suspend and resume functionality to exynos dwc3 driver
+I am Sgt Jason H .Kane , A US Army serving in the 3rd Infantry Division in Iraq. Now in Afghanistan I want you to read this mail carefully and understand it.
 
-Signed-off-by: Abhilash Kesavan <a.kesavan@samsung.com>
-Signed-off-by: Vikas C Sajjan <vikas.sajjan@linaro.org>
-CC: Doug Anderson <dianders@chromium.org>
----
- drivers/usb/dwc3/dwc3-exynos.c |   39 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+), 0 deletions(-)
+In 2003, my men and I found over $900 million in Saddam Hussein's hideout in Baghdad, we sent some back to the Iraq government after counting it in a classified location, but we also kept some behind for ourselves. Some of the money we shared among ourselves worth over $200 million, I kept my own share for a while in a secured place.
 
-diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-index ca65978..2781301 100644
---- a/drivers/usb/dwc3/dwc3-exynos.c
-+++ b/drivers/usb/dwc3/dwc3-exynos.c
-@@ -15,6 +15,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
- #include <linux/platform_device.h>
- #include <linux/platform_data/dwc3-exynos.h>
- #include <linux/dma-mapping.h>
-@@ -200,11 +201,49 @@ static int __devexit dwc3_exynos_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
-+static int dwc3_exynos_suspend(struct device *dev)
-+{
-+	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
-+
-+	BUG_ON(!exynos);
-+
-+	clk_disable(exynos->clk);
-+
-+	return 0;
-+}
-+
-+static int dwc3_exynos_resume(struct device *dev)
-+{
-+	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
-+
-+	BUG_ON(!exynos);
-+
-+	clk_enable(exynos->clk);
-+
-+	/* runtime set active to reflect active state. */
-+	pm_runtime_disable(dev);
-+	pm_runtime_set_active(dev);
-+	pm_runtime_enable(dev);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops dwc3_exynos_pm_ops = {
-+	.suspend		= dwc3_exynos_suspend,
-+	.resume			= dwc3_exynos_resume,
-+};
-+#define DWC3_EXYNOS_DEV_PM_OPS  &(dwc3_exynos_pm_ops)
-+#else
-+#define DWC3_EXYNOS_DEV_PM_OPS  NULL
-+#endif /* CONFIG_PM */
-+
- static struct platform_driver dwc3_exynos_driver = {
- 	.probe		= dwc3_exynos_probe,
- 	.remove		= __devexit_p(dwc3_exynos_remove),
- 	.driver		= {
- 		.name	= "exynos-dwc3",
-+		.pm = DWC3_EXYNOS_DEV_PM_OPS,
- 	},
- };
- 
--- 
-1.7.6.5
+I need someone to help me receive it , since i have found a secured way of getting the package out of Iraq for you to pick up through the help of a Red Cross Society or pilots that enjoy some immunities with us while in Iraq  .
 
+I do not know for how long I will remain here as I have been lucky to survive 3 suicide bomb attacks by Afghanistan Militant which one of my leg was amputed , i know my survival was an act of God and Pure Divine intervention from God .
+
+I need someone I can trust, since i have already lost a box of gold to someone that said he will help me, I won't like to make the same mistake. The total amount of money is $7.5 million.
+
+View the below link to verify/confirm my statement.
+
+http://news.bbc.co.uk/2/hi/middle_east/2988455.stm
+
+If you can handle this deal let me know immediately, you will receive 20% of the money , all you need to do is to find a safe place where you can keep the box till i leave Afghanistan .
+
+Regards,
+Sgt Jason H .Kane
