@@ -1,41 +1,49 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH 0/4] MMC: some omap_hsmmc fixes
-Date: Sat, 13 Oct 2012 11:01:50 +0200
-Message-ID: <50792DFE.9060609@gmail.com>
-References: <1350039495-360-1-git-send-email-zonque@gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: vfp: fix save and restore when running on
+	pre-VFPv3 and CONFIG_VFPv3 set
+Date: Sat, 13 Oct 2012 10:02:55 +0100
+Message-ID: <20121013090255.GT28061@n2100.arm.linux.org.uk>
+References: <alpine.DEB.2.00.1210130441300.5736@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:36983 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752488Ab2JMJB5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Oct 2012 05:01:57 -0400
-In-Reply-To: <1350039495-360-1-git-send-email-zonque@gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51737 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484Ab2JMJDI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 13 Oct 2012 05:03:08 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210130441300.5736@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux MMC List <linux-mmc@vger.kernel.org>, Venkatraman S <svenkatr@ti.com>, Chris Ball <cjb@laptop.org>, Grant Likely <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@stericsson.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Dave Martin <dave.martin@linaro.org>
 
-On 12.10.2012 12:58, Daniel Mack wrote:
-> Here are some assorted patches for the omap_hsmmc driver that I need on
-> top Linus' current development branch to make it work on a AM33xx board.
+On Sat, Oct 13, 2012 at 04:46:18AM +0000, Paul Walmsley wrote:
 > 
-> 1/4 and 2/4 qualify as bug fixes and I'm puzzled that these didn't hit
-> anyone else yet.
+> After commit 846a136881b8f73c1f74250bf6acfaa309cab1f2 ("ARM: vfp: fix
+> saving d16-d31 vfp registers on v6+ kernels"), the OMAP 2430SDP board
+> started crashing during boot with omap2plus_defconfig:
 > 
+> [    3.875122] mmcblk0: mmc0:e624 SD04G 3.69 GiB
+> [    3.915954]  mmcblk0: p1
+> [    4.086639] Internal error: Oops - undefined instruction: 0 [#1] SMP ARM
+> [    4.093719] Modules linked in:
+> [    4.096954] CPU: 0    Not tainted  (3.6.0-02232-g759e00b #570)
+> [    4.103149] PC is at vfp_reload_hw+0x1c/0x44
+> [    4.107666] LR is at __und_usr_fault_32+0x0/0x8
 > 
-> Daniel Mack (4):
->   MMC: omap_hsmmc: set platform data after probe from DT node
->   MMC: omap_hsmmc: fix DMA config block
->   MMC: omap_hsmmc: claim pinctrl at probe time
->   MMC: omap_hsmmc: add DT property for max bus frequency
+> It turns out that the context save/restore fix unmasked a latent bug in 
+> commit 5aaf254409f8d58229107b59507a8235b715a960 ("ARM: 6203/1: Make VFPv3 
+> usable on ARMv6").  When CONFIG_VFPv3 is set, but the kernel is booted on 
+> a pre-VFPv3 core, the code attempts to save and restore the d16-d31 VFP 
+> registers.  These are only present on non-D16 VFPv3+, so the kernel dies 
+> with an undefined instruction exception.  The kernel didn't crash before 
+> commit 846a136 because the save and restore code only touched d0-d15, 
+> present on all VFP.
+> 
+> Fix to save and restore the d16-d31 registers only if they are
+> present.
 
-Ok, so 1/4 and 2/4 will be solved differently upstream, so they can be
-dropped.
-
-The other two remain, and 3/4 got an Acked-by Linus W.
-
-
-Thanks for the feedback,
-Daniel
-
+No.  VFPv3D16 HWCAP means that the VFP supports just 16 double registers
+- and it communicates this information to userspace.  If this bit is clear,
+and the VFP only has 16 double registers, then _that_ is a bug.
