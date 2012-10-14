@@ -1,12 +1,12 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v5 2/3] omap3isp: Add PHY routing configuration
-Date: Sun, 14 Oct 2012 13:31:49 +0300
-Message-ID: <1350210710-15122-2-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH v5 1/3] omap3isp: Add CSI configuration registers from control block to ISP resources
+Date: Sun, 14 Oct 2012 13:31:48 +0300
+Message-ID: <1350210710-15122-1-git-send-email-sakari.ailus@iki.fi>
 References: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54287 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54292 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752344Ab2JNKbx (ORCPT
+	by vger.kernel.org with ESMTP id S1752385Ab2JNKbx (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
 	Sun, 14 Oct 2012 06:31:53 -0400
 In-Reply-To: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
@@ -15,147 +15,76 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: laurent.pinchart@ideasonboard.com, tony@atomide.com, khilman@deeprootsystems.com
 
-Add PHY routing configuration for both 3430 and 3630. Also add register bit
-definitions of CSIRXFE and CAMERA_PHY_CTRL registers on OMAP 3430 and 3630,
-respectively.
+Add the registers used to configure the CSI-2 receiver PHY on OMAP3430 and
+3630 and map them in the ISP driver. The register is part of the control
+block but it only is needed by the ISP driver.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/media/platform/omap3isp/ispcsiphy.c |   89 +++++++++++++++++++++++++++
- drivers/media/platform/omap3isp/ispreg.h    |   22 +++++++
- 2 files changed, 111 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c         |   10 ++++++++++
+ drivers/media/platform/omap3isp/isp.c |    6 ++++--
+ drivers/media/platform/omap3isp/isp.h |    2 ++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index 348f67e..c808b6a 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -32,6 +32,95 @@
- #include "ispreg.h"
- #include "ispcsiphy.h"
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index c00c689..9e4d5da 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -201,6 +201,16 @@ static struct resource omap3isp_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
++		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
++		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
++		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
+ 		.start		= INT_34XX_CAM_IRQ,
+ 		.flags		= IORESOURCE_IRQ,
+ 	}
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 6034dca..972e7b5 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -100,7 +100,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
+ 		       1 << OMAP3_ISP_IOMEM_RESZ |
+ 		       1 << OMAP3_ISP_IOMEM_SBL |
+ 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+-		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
++		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
++		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
+ 	},
+ 	{
+ 		.isp_rev = ISP_REVISION_15_0,
+@@ -117,7 +118,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
+ 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
+ 		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
+ 		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
+-		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
++		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
++		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
+ 	},
+ };
  
-+static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
-+				    bool ccp2_strobe)
-+{
-+	u32 reg = isp_reg_readl(
-+		phy->isp, OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-+	u32 shift, mode;
-+
-+	switch (iface) {
-+	case ISP_INTERFACE_CCP2B_PHY1:
-+		reg &= ~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
-+		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-+		break;
-+	case ISP_INTERFACE_CSI2C_PHY1:
-+		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-+		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
-+		break;
-+	case ISP_INTERFACE_CCP2B_PHY2:
-+		reg |= OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
-+		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
-+		break;
-+	case ISP_INTERFACE_CSI2A_PHY2:
-+		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
-+		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
-+		break;
-+	}
-+
-+	/* Select data/clock or data/strobe mode for CCP2 */
-+	switch (iface) {
-+	case ISP_INTERFACE_CCP2B_PHY1:
-+	case ISP_INTERFACE_CCP2B_PHY2:
-+		if (ccp2_strobe)
-+			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE;
-+		else
-+			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK;
-+	}
-+
-+	reg &= ~(OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK << shift);
-+	reg |= mode << shift;
-+
-+	isp_reg_writel(phy->isp, reg,
-+		       OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-+}
-+
-+static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
-+				    bool ccp2_strobe)
-+{
-+	u32 csirxfe = OMAP343X_CONTROL_CSIRXFE_PWRDNZ
-+		| OMAP343X_CONTROL_CSIRXFE_RESET;
-+
-+	/* Only the CCP2B on PHY1 is configurable. */
-+	if (iface != ISP_INTERFACE_CCP2B_PHY1)
-+		return;
-+
-+	if (!on) {
-+		isp_reg_writel(phy->isp, 0,
-+			       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
-+		return;
-+	}
-+
-+	if (ccp2_strobe)
-+		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
-+
-+	isp_reg_writel(phy->isp, csirxfe,
-+		       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
-+}
-+
-+/**
-+ * Configure OMAP 3 CSI PHY routing.
-+ *
-+ * Note that the underlying routing configuration registers are part
-+ * of the control (SCM) register space and part of the CORE power
-+ * domain on both 3430 and 3630, so they will not hold their contents
-+ * in off-mode.
-+ *
-+ * @phy: relevant phy device
-+ * @iface: ISP_INTERFACE_*
-+ * @on: power on or off
-+ * @ccp2_strobe: false: data/clock, true: data/strobe
-+ */
-+static void csiphy_routing_cfg(struct isp_csiphy *phy, u32 iface, bool on,
-+			       bool ccp2_strobe)
-+{
-+	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL]
-+	    && on)
-+		return csiphy_routing_cfg_3630(phy, iface, ccp2_strobe);
-+	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE])
-+		return csiphy_routing_cfg_3430(phy, iface, on, ccp2_strobe);
-+}
-+
- /*
-  * csiphy_lanes_config - Configuration of CSIPHY lanes.
-  *
-diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
-index e2c57f3..148108b 100644
---- a/drivers/media/platform/omap3isp/ispreg.h
-+++ b/drivers/media/platform/omap3isp/ispreg.h
-@@ -1583,4 +1583,26 @@
- #define ISPCSIPHY_REG2_CCP2_SYNC_PATTERN_MASK		\
- 	(0x7fffff << ISPCSIPHY_REG2_CCP2_SYNC_PATTERN_SHIFT)
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index 8be7487..6fed222 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -72,6 +72,8 @@ enum isp_mem_resources {
+ 	OMAP3_ISP_IOMEM_CSI2C_REGS1,
+ 	OMAP3_ISP_IOMEM_CSIPHY1,
+ 	OMAP3_ISP_IOMEM_CSI2C_REGS2,
++	OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
++	OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
+ 	OMAP3_ISP_IOMEM_LAST
+ };
  
-+/* -----------------------------------------------------------------------------
-+ * CONTROL registers for CSI-2 phy routing
-+ */
-+
-+/* OMAP343X_CONTROL_CSIRXFE */
-+#define OMAP343X_CONTROL_CSIRXFE_CSIB_INV	(1 << 7)
-+#define OMAP343X_CONTROL_CSIRXFE_RESENABLE	(1 << 8)
-+#define OMAP343X_CONTROL_CSIRXFE_SELFORM	(1 << 10)
-+#define OMAP343X_CONTROL_CSIRXFE_PWRDNZ		(1 << 12)
-+#define OMAP343X_CONTROL_CSIRXFE_RESET		(1 << 13)
-+
-+/* OMAP3630_CONTROL_CAMERA_PHY_CTRL */
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT	2
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT	0
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY		0x0
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE 0x1
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK 0x2
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_GPI		0x3
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK		0x3
-+/* CCP2B: set to receive data from PHY2 instead of PHY1 */
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2	(1 << 4)
-+
- #endif	/* OMAP3_ISP_REG_H */
 -- 
 1.7.2.5
 
