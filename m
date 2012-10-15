@@ -1,209 +1,96 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH] ARM: dts: Add am335x-evmsk.dts
-Date: Mon, 15 Oct 2012 18:05:39 +0530
-Message-ID: <1350304539-14933-1-git-send-email-anilkumar@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 0/7] usb: dwc3-omap: add dt support
+Date: Mon, 15 Oct 2012 15:35:08 +0300
+Message-ID: <20121015123508.GP24333@arwen.pp.htv.fi>
+References: <1349688236-22814-1-git-send-email-kishon@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34659 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752262Ab2JOMfp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Oct 2012 08:35:45 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/NwG7NuG0/W8LcLh"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1349688236-22814-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: sshtylyov@mvista.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
 
-Add AM335X EVM-SK device tree source (am335x-sk.dts) file to use
-the am33xx.dtsi SoC file, along with the memory node information.
+--/NwG7NuG0/W8LcLh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Also adds support for tps65910 regulator and lis331dlh accelerometer.
-Following drivers/functionality were tested on AM335x-EVM-SK.
-* I2C
-* TPS65910 regulators
-* lis331dlh accelerometer
+Hi,
 
-AM335x EVM Starter Kit details can be accessed from:
-http://www.ti.com/tool/tmdssk3358
+On Mon, Oct 08, 2012 at 02:53:49PM +0530, Kishon Vijay Abraham I wrote:
+> This patch series adds dt support to dwc3 core and fixes few minor
+> stuff in dwc3-omap glue to get dwc3 working.
+>=20
+> While at that it also uses *of_platform* to create the child device
+> (dwc3-core) and fixes to use runtime API's to enable clock and write
+> to SYSCONFIG register.
+>=20
+> Changes from v2:
+> * Fixed Sergei comment to use of_property_read_u32 insted of of_get_prope=
+rty
+>=20
+> Changes from v1:
+> * made device_for_each_child() as a seperate patch
+> * made all other minor fixes wrt typos and function renames
+>=20
+> This patch series is developed on:
+> git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git dwc3
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
- arch/arm/boot/dts/am335x-evmsk.dts |  166 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 166 insertions(+)
- create mode 100644 arch/arm/boot/dts/am335x-evmsk.dts
+will any of the DT folks review this or should I take it as is ? I'd
+like to keep this in linux-next for a long time for v3.8 merge window.
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-new file mode 100644
-index 0000000..6f53879
---- /dev/null
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -0,0 +1,166 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * AM335x Starter Kit
-+ * http://www.ti.com/tool/tmdssk3358
-+ */
-+
-+/dts-v1/;
-+
-+/include/ "am33xx.dtsi"
-+
-+/ {
-+	model = "TI AM335x EVM-SK";
-+	compatible = "ti,am335x-evmsk", "ti,am33xx";
-+
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply = <&vdd1_reg>;
-+		};
-+	};
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+
-+	ocp {
-+		uart1: serial@44e09000 {
-+			status = "okay";
-+		};
-+
-+		i2c1: i2c@44e0b000 {
-+			status = "okay";
-+			clock-frequency = <400000>;
-+
-+			tps: tps@2d {
-+				reg = <0x2d>;
-+			};
-+
-+			lis331dlh: lis331dlh@18 {
-+				compatible = "st,lis331dlh", "st,lis3lv02d";
-+				reg = <0x18>;
-+				Vdd-supply = <&lis3_reg>;
-+				Vdd_IO-supply = <&lis3_reg>;
-+
-+				st,click-single-x;
-+				st,click-single-y;
-+				st,click-single-z;
-+				st,click-thresh-x = <10>;
-+				st,click-thresh-y = <10>;
-+				st,click-thresh-z = <10>;
-+				st,irq1-click;
-+				st,irq2-click;
-+				st,wakeup-x-lo;
-+				st,wakeup-x-hi;
-+				st,wakeup-y-lo;
-+				st,wakeup-y-hi;
-+				st,wakeup-z-lo;
-+				st,wakeup-z-hi;
-+				st,min-limit-x = <120>;
-+				st,min-limit-y = <120>;
-+				st,min-limit-z = <140>;
-+				st,max-limit-x = <550>;
-+				st,max-limit-y = <550>;
-+				st,max-limit-z = <750>;
-+			};
-+		};
-+	};
-+
-+	vbat: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "vbat";
-+		regulator-min-microvolt = <5000000>;
-+		regulator-max-microvolt = <5000000>;
-+		regulator-boot-on;
-+	};
-+
-+	lis3_reg: fixedregulator@1 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "lis3_reg";
-+		regulator-boot-on;
-+	};
-+};
-+
-+/include/ "tps65910.dtsi"
-+
-+&tps {
-+	vcc1-supply = <&vbat>;
-+	vcc2-supply = <&vbat>;
-+	vcc3-supply = <&vbat>;
-+	vcc4-supply = <&vbat>;
-+	vcc5-supply = <&vbat>;
-+	vcc6-supply = <&vbat>;
-+	vcc7-supply = <&vbat>;
-+	vccio-supply = <&vbat>;
-+
-+	regulators {
-+		vrtc_reg: regulator@0 {
-+			regulator-always-on;
-+		};
-+
-+		vio_reg: regulator@1 {
-+			regulator-always-on;
-+		};
-+
-+		vdd1_reg: regulator@2 {
-+			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
-+			regulator-name = "vdd_mpu";
-+			regulator-min-microvolt = <912500>;
-+			regulator-max-microvolt = <1312500>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		vdd2_reg: regulator@3 {
-+			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
-+			regulator-name = "vdd_core";
-+			regulator-min-microvolt = <912500>;
-+			regulator-max-microvolt = <1150000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		vdd3_reg: regulator@4 {
-+			regulator-always-on;
-+		};
-+
-+		vdig1_reg: regulator@5 {
-+			regulator-always-on;
-+		};
-+
-+		vdig2_reg: regulator@6 {
-+			regulator-always-on;
-+		};
-+
-+		vpll_reg: regulator@7 {
-+			regulator-always-on;
-+		};
-+
-+		vdac_reg: regulator@8 {
-+			regulator-always-on;
-+		};
-+
-+		vaux1_reg: regulator@9 {
-+			regulator-always-on;
-+		};
-+
-+		vaux2_reg: regulator@10 {
-+			regulator-always-on;
-+		};
-+
-+		vaux33_reg: regulator@11 {
-+			regulator-always-on;
-+		};
-+
-+		vmmc_reg: regulator@12 {
-+			regulator-always-on;
-+		};
-+	};
-+};
--- 
-1.7.9.5
+cheers
 
+> Kishon Vijay Abraham I (7):
+>   usb: dwc3-omap: use device_for_each_child to handle child removal
+>   usb: dwc3-omap: use of_platform API to create dwc3 core pdev
+>   usb: dwc3-omap: use runtime API's to enable clocks
+>   usb: dwc3-omap: Remove explicit writes to SYSCONFIG register
+>   usb: dwc3-omap: Add an API to write to dwc mailbox
+>   usb: dwc3-omap: Minor fixes to get dt working
+>   usb: dwc3: core: add dt support for dwc3 core
+>=20
+>  Documentation/devicetree/bindings/usb/dwc3.txt |   23 ++++
+>  drivers/usb/dwc3/core.c                        |   14 +-
+>  drivers/usb/dwc3/dwc3-omap.c                   |  173 +++++++++++++-----=
+------
+>  include/linux/usb/dwc3-omap.h                  |   30 ++++
+>  4 files changed, 160 insertions(+), 80 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/usb/dwc3.txt
+>  create mode 100644 include/linux/usb/dwc3-omap.h
+>=20
+> --=20
+> 1.7.9.5
+>=20
+
+--=20
+balbi
+
+--/NwG7NuG0/W8LcLh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQfAL8AAoJEIaOsuA1yqREKPcQAKfi+shauNPvlbx3aNWcRxPc
+Xll49Fz4c5JHyLJXE/RIJaCz/V/vQR+vsju13VQZwi/WM/uBTAas4m9WTR7pk6nF
+1F/CQnfIlv/fjk86eMZ6aPat6wcTspfK4ZdgewTEcgPwrgChmRuDzZ3JLyIv6c54
+pDSXMhHhCkZy8P+gWIB3IS6YW+5+mN8KEvuylZJwPIBtr4drAxQzOJHIGzewI4JW
+SDdI3S8hiSjdq5nvze0bAoPrSQ5Zf9xvPMtdBaN4rreGdgiEqwa1goSPc5sVUXSC
+ICCS9XJNw8nwAlcOP1AbFzhKtECow3kaae8ifKKLIdTgGaUxL0RVe7f8k8PZohY2
+PqExNdqwFp4sX7RlnNzSbG4uLHvR826WuydmE4Di3vYm4Hzsqd/YAEhNSh97Labi
+0Ctr4P6Axl852gnsbL9lM3dDvQSpMPgIPXbK1wr8RnPWqj8ny7RGl+RiKXKnK+UG
+h/a5aYR9wfJWZBAUfe7ELxdWPqURVYWudta0o9JZn9a5nbrsgj1gz8rkFb2YMS4D
+rD0EHIsDY5BEQNiGYFrR0/277DKTVWSpUYmRuRzFYLeFCtOa395KO2TFyv4tXyMn
+L9YnvxHDIjuvzy1sG3i2EDrznHLthLaz8fQlp1nbAcCy38vzpn0pJfqnrD+IAjKc
+AiLFZkgGQBT/y2SRvrtP
+=zb/u
+-----END PGP SIGNATURE-----
+
+--/NwG7NuG0/W8LcLh--
