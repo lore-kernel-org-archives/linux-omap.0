@@ -1,380 +1,97 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] usb: dwc3: Add the suspend/resume functionality
-Date: Mon, 15 Oct 2012 15:02:55 +0300
-Message-ID: <20121015120255.GC24333@arwen.pp.htv.fi>
-References: <1349877949-18872-1-git-send-email-vikas.sajjan@linaro.org>
- <1349877949-18872-2-git-send-email-vikas.sajjan@linaro.org>
- <5077F7B5.9000509@ti.com>
- <CAD025yRKnLWKzVGneMnudSKHasWw-2Qe8b40VpiFJev=zPiVdw@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [GIT PULL] OMAP-GPMC cleanup for common zImage
+Date: Mon, 15 Oct 2012 17:44:07 +0530
+Message-ID: <1350303247-13495-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8NvZYKFJsRX2Djef"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAD025yRKnLWKzVGneMnudSKHasWw-2Qe8b40VpiFJev=zPiVdw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: kishon <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33670 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752222Ab2JOMOY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Oct 2012 08:14:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, David Woodhouse <David.Woodhouse@intel.com>, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
 
---8NvZYKFJsRX2Djef
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
 
-On Fri, Oct 12, 2012 at 07:24:33PM +0530, Vikas Sajjan wrote:
-> Hi kishon,
->=20
-> On 12 October 2012 16:27, kishon <kishon-l0cyMroinI0@public.gmane.org> wrote:
-> > Hi,
-> >
-> >
-> > On Wednesday 10 October 2012 07:35 PM, Vikas C Sajjan wrote:
-> >>
-> >> From: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >>
-> >> Adding the suspend and resume funtionality to DWC3 core.
-> >>
-> >> Signed-off-by: Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> >> Signed-off-by: Vikas C Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >> CC: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-> >> ---
-> >>   drivers/usb/dwc3/core.c |  268
-> >> +++++++++++++++++++++++++++++-----------------
-> >>   1 files changed, 169 insertions(+), 99 deletions(-)
-> >>
-> >> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> >> index b415c0c..58b51e1 100644
-> >> --- a/drivers/usb/dwc3/core.c
-> >> +++ b/drivers/usb/dwc3/core.c
-> >>
-> >> @@ -70,51 +70,20 @@ MODULE_PARM_DESC(maximum_speed, "Maximum supported
-> >> speed.");
-> >>
-> >>   static DECLARE_BITMAP(dwc3_devs, DWC3_DEVS_POSSIBLE);
-> >>
-> >> -int dwc3_get_device_id(void)
-> >> -{
-> >> -       int             id;
-> >> -
-> >> -again:
-> >> -       id =3D find_first_zero_bit(dwc3_devs, DWC3_DEVS_POSSIBLE);
-> >> -       if (id < DWC3_DEVS_POSSIBLE) {
-> >> -               int old;
-> >> -
-> >> -               old =3D test_and_set_bit(id, dwc3_devs);
-> >> -               if (old)
-> >> -                       goto again;
-> >> -       } else {
-> >> -               pr_err("dwc3: no space for new device\n");
-> >> -               id =3D -ENOMEM;
-> >> -       }
-> >> -
-> >> -       return id;
-> >> -}
-> >> -EXPORT_SYMBOL_GPL(dwc3_get_device_id);
-> >> -
-> >> -void dwc3_put_device_id(int id)
-> >> -{
-> >> -       int                     ret;
-> >> -
-> >> -       if (id < 0)
-> >> -               return;
-> >> -
-> >> -       ret =3D test_bit(id, dwc3_devs);
-> >> -       WARN(!ret, "dwc3: ID %d not in use\n", id);
-> >> -       smp_mb__before_clear_bit();
-> >> -       clear_bit(id, dwc3_devs);
-> >> -}
-> >> -EXPORT_SYMBOL_GPL(dwc3_put_device_id);
-> >> -
-> >> -void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
-> >> +static void __devinit dwc3_cache_hwparams(struct dwc3 *dwc)
-> >>   {
-> >> -       u32 reg;
-> >> +       struct dwc3_hwparams    *parms =3D &dwc->hwparams;
-> >>
-> >> -       reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
-> >> -       reg &=3D ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
-> >> -       reg |=3D DWC3_GCTL_PRTCAPDIR(mode);
-> >> -       dwc3_writel(dwc->regs, DWC3_GCTL, reg);
-> >> +       parms->hwparams0 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS0);
-> >> +       parms->hwparams1 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS1);
-> >> +       parms->hwparams2 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS2);
-> >> +       parms->hwparams3 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS3);
-> >> +       parms->hwparams4 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS4);
-> >> +       parms->hwparams5 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS5);
-> >> +       parms->hwparams6 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS6);
-> >> +       parms->hwparams7 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS7);
-> >> +       parms->hwparams8 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS8);
-> >>   }
-> >> -
-> >>   /**
-> >>    * dwc3_core_soft_reset - Issues core soft reset and PHY reset
-> >>    * @dwc: pointer to our context structure
-> >> @@ -160,6 +129,102 @@ static void dwc3_core_soft_reset(struct dwc3 *dw=
-c)
-> >>         dwc3_writel(dwc->regs, DWC3_GCTL, reg);
-> >>   }
-> >>
-> >> +static int dwc3_core_reset(struct dwc3 *dwc)
-> >> +{
-> >> +       unsigned long   timeout;
-> >> +       u32     reg;
-> >> +
-> >> +       /* issue device SoftReset too */
-> >> +       timeout =3D jiffies + msecs_to_jiffies(500);
-> >> +       dwc3_writel(dwc->regs, DWC3_DCTL, DWC3_DCTL_CSFTRST);
-> >> +       do {
-> >> +               reg =3D dwc3_readl(dwc->regs, DWC3_DCTL);
-> >> +               if (!(reg & DWC3_DCTL_CSFTRST))
-> >> +                       break;
-> >> +
-> >> +               if (time_after(jiffies, timeout)) {
-> >> +                       dev_err(dwc->dev, "Reset Timed Out\n");
-> >> +                       return -ETIMEDOUT;
-> >> +               }
-> >> +
-> >> +               cpu_relax();
-> >> +       } while (true);
-> >> +
-> >> +       dwc3_core_soft_reset(dwc);
-> >> +
-> >> +       dwc3_cache_hwparams(dwc);
-> >> +
-> >> +       reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
-> >> +       reg &=3D ~DWC3_GCTL_SCALEDOWN_MASK;
-> >> +       reg &=3D ~DWC3_GCTL_DISSCRAMBLE;
-> >> +
-> >> +       switch (DWC3_GHWPARAMS1_EN_PWROPT(dwc->hwparams.hwparams1)) {
-> >> +       case DWC3_GHWPARAMS1_EN_PWROPT_CLK:
-> >> +               reg &=3D ~DWC3_GCTL_DSBLCLKGTNG;
-> >> +               break;
-> >> +       default:
-> >> +               dev_dbg(dwc->dev, "No power optimization available\n");
-> >> +       }
-> >> +
-> >> +       /*
-> >>
-> >> +        * WORKAROUND: DWC3 revisions <1.90a have a bug
-> >> +        * where the device can fail to connect at SuperSpeed
-> >> +        * and falls back to high-speed mode which causes
-> >> +        * the device to enter a Connect/Disconnect loop
-> >> +        */
-> >> +       if (dwc->revision < DWC3_REVISION_190A)
-> >> +               reg |=3D DWC3_GCTL_U2RSTECN;
-> >> +
-> >> +       dwc3_writel(dwc->regs, DWC3_GCTL, reg);
-> >> +
-> >> +       return 0;
-> >> +}
-> >> +
-> >> +int dwc3_get_device_id(void)
-> >> +{
-> >> +       int             id;
-> >> +
-> >> +again:
-> >> +       id =3D find_first_zero_bit(dwc3_devs, DWC3_DEVS_POSSIBLE);
-> >> +       if (id < DWC3_DEVS_POSSIBLE) {
-> >> +               int old;
-> >> +
-> >> +               old =3D test_and_set_bit(id, dwc3_devs);
-> >> +               if (old)
-> >> +                       goto again;
-> >> +       } else {
-> >> +               pr_err("dwc3: no space for new device\n");
-> >> +               id =3D -ENOMEM;
-> >> +       }
-> >> +
-> >> +       return id;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(dwc3_get_device_id);
-> >> +
-> >> +void dwc3_put_device_id(int id)
-> >> +{
-> >> +       int                     ret;
-> >> +
-> >> +       if (id < 0)
-> >> +               return;
-> >> +
-> >> +       ret =3D test_bit(id, dwc3_devs);
-> >> +       WARN(!ret, "dwc3: ID %d not in use\n", id);
-> >> +       smp_mb__before_clear_bit();
-> >> +       clear_bit(id, dwc3_devs);
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(dwc3_put_device_id);
-> >> +
-> >> +void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
-> >> +{
-> >> +       u32 reg;
-> >> +
-> >> +       reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
-> >> +       reg &=3D ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
-> >> +       reg |=3D DWC3_GCTL_PRTCAPDIR(mode);
-> >> +       dwc3_writel(dwc->regs, DWC3_GCTL, reg);
-> >> +}
-> >> +
-> >>   /**
-> >>    * dwc3_free_one_event_buffer - Frees one event buffer
-> >>    * @dwc: Pointer to our controller context structure
-> >> @@ -303,20 +368,7 @@ static void dwc3_event_buffers_cleanup(struct dwc3
-> >> *dwc)
-> >>         }
-> >>   }
-> >>
-> >> -static void __devinit dwc3_cache_hwparams(struct dwc3 *dwc)
-> >> -{
-> >> -       struct dwc3_hwparams    *parms =3D &dwc->hwparams;
-> >>
-> >> -       parms->hwparams0 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS0);
-> >> -       parms->hwparams1 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS1);
-> >> -       parms->hwparams2 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS2);
-> >> -       parms->hwparams3 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS3);
-> >> -       parms->hwparams4 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS4);
-> >> -       parms->hwparams5 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS5);
-> >> -       parms->hwparams6 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS6);
-> >> -       parms->hwparams7 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS7);
-> >> -       parms->hwparams8 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS8);
-> >> -}
-> >>
-> >>   /**
-> >>    * dwc3_core_init - Low-level initialization of DWC3 Core
-> >> @@ -326,7 +378,6 @@ static void __devinit dwc3_cache_hwparams(struct d=
-wc3
-> >> *dwc)
-> >>    */
-> >>   static int __devinit dwc3_core_init(struct dwc3 *dwc)
-> >>   {
-> >> -       unsigned long           timeout;
-> >>         u32                     reg;
-> >>         int                     ret;
-> >>
-> >> @@ -339,49 +390,9 @@ static int __devinit dwc3_core_init(struct dwc3 *=
-dwc)
-> >>         }
-> >>         dwc->revision =3D reg;
-> >>
-> >> -       /* issue device SoftReset too */
-> >> -       timeout =3D jiffies + msecs_to_jiffies(500);
-> >> -       dwc3_writel(dwc->regs, DWC3_DCTL, DWC3_DCTL_CSFTRST);
-> >> -       do {
-> >> -               reg =3D dwc3_readl(dwc->regs, DWC3_DCTL);
-> >> -               if (!(reg & DWC3_DCTL_CSFTRST))
-> >> -                       break;
-> >> -
-> >> -               if (time_after(jiffies, timeout)) {
-> >> -                       dev_err(dwc->dev, "Reset Timed Out\n");
-> >> -                       ret =3D -ETIMEDOUT;
-> >> -                       goto err0;
-> >> -               }
-> >> -
-> >> -               cpu_relax();
-> >> -       } while (true);
-> >> -
-> >> -       dwc3_core_soft_reset(dwc);
-> >> -
-> >> -       dwc3_cache_hwparams(dwc);
-> >> -
-> >> -       reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
-> >> -       reg &=3D ~DWC3_GCTL_SCALEDOWN_MASK;
-> >> -       reg &=3D ~DWC3_GCTL_DISSCRAMBLE;
-> >> -
-> >> -       switch (DWC3_GHWPARAMS1_EN_PWROPT(dwc->hwparams.hwparams1)) {
-> >> -       case DWC3_GHWPARAMS1_EN_PWROPT_CLK:
-> >> -               reg &=3D ~DWC3_GCTL_DSBLCLKGTNG;
-> >> -               break;
-> >> -       default:
-> >> -               dev_dbg(dwc->dev, "No power optimization available\n");
-> >> -       }
-> >> -
-> >> -       /*
-> >> -        * WORKAROUND: DWC3 revisions <1.90a have a bug
-> >> -        * where the device can fail to connect at SuperSpeed
-> >> -        * and falls back to high-speed mode which causes
-> >> -        * the device to enter a Connect/Disconnect loop
-> >> -        */
-> >> -       if (dwc->revision < DWC3_REVISION_190A)
-> >> -               reg |=3D DWC3_GCTL_U2RSTECN;
-> >> -
-> >> -       dwc3_writel(dwc->regs, DWC3_GCTL, reg);
-> >> +       ret =3D dwc3_core_reset(dwc);
-> >> +       if (ret < 0)
-> >> +               goto err0;
-> >>
-> >>         ret =3D dwc3_alloc_event_buffers(dwc, DWC3_EVENT_BUFFERS_SIZE);
-> >>         if (ret) {
-> >>
-> >> @@ -622,11 +633,70 @@ static int __devexit dwc3_remove(struct
-> >> platform_device *pdev)
-> >>         return 0;
-> >>   }
-> >>
-> >> +#ifdef CONFIG_PM
-> >> +static int dwc3_core_resume(struct device *dev)
-> >> +{
-> >> +       struct dwc3     *dwc;
-> >> +       int     ret;
-> >> +
-> >> +       dwc =3D dev_get_drvdata(dev);
-> >> +       if (!dwc)
-> >> +               return -EINVAL;
-> >> +
-> >> +       ret =3D dwc3_core_reset(dwc);
-> >
-> >
-> > Do you have to add core_reset because of any issues you observed? In the
-> > ideal working case, you shouldn't have to do reset every-time on resume.
-> >
-> Initially we tested on kernel 3.4 with which we had some issue in detecti=
-ng
-> USB devices on SS hub. But now as you pointed out, we tested after removi=
-ng
-> core_reset  during resume, and it seems to be working fine.
-> Thanks for pointing out, we shall re-confirm and update the new patch-set=
- soon.
->=20
-> > Maybe I have missed your mail so I'm asking Felipe's question again. ho=
-w has
-> > this patch series been tested?
-> >
-> We tested the patch series on 'usb-next' on greg's tree after applying
-> our local patches
-> for exynos5 USB3.0 PHY support and also reverting the patch for dwc3-core
-> "usb: dwc3: add basic PHY support" since our USB3.0 PHY driver is underwa=
-y.
+  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
 
-Yes, the idea of that patch was to simply add basic PHY support to dwc3,
-once PHY drivers where actually available, those should be removed and
-moved over to use the actual PHY driver.
+are available in the git repository at:
 
---=20
-balbi
+  git@gitorious.org:x0148406-public/linux-kernel.git tags/gpmc-czimage
 
---8NvZYKFJsRX2Djef
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+for you to fetch changes up to 3ef5d0071cf6c8b9a00b559232bb700ad59999d7:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+  ARM: OMAP2+: gpmc: localize gpmc header (2012-10-15 14:42:15 +0530)
 
-iQIcBAEBAgAGBQJQe/tvAAoJEIaOsuA1yqRE4IIP/RmhfBKJVprGRCR4LW/V+ke1
-gX+9prL7cj8TWx65A7lZ3SC1jIk5yBJdeiTt3cC8e+3nLx7OMd4gELZE5RmnKprB
-YWW80TmlGdavPoAP5Hq4N49b37WHEzwkoNQwc4jeaWuNZzbGefaeL42jChAOZnMa
-AyTx7Z98KF/qPAKHS43efmvf/fb3OC5PJjXxo/hE3sYksrc2wvqZFNpjWnWKYCJf
-y0m2+su6DQfLkX8qn3eA6435uJASfZH23i54wIPHXaJey6R05cMQRavUgvnLeyEL
-N+/TmZhTqP8gD8QBmDaN7FloyuzOB78ez7hua7oWBWqkhMFW+qCHxet5QsZ3acyc
-5Eb46IczArsWp8CPZmgAQTFmfgNkKGcmTa2WM2jl/GC5xhx/kinL4c3tx0AnvwA+
-+YRuf3aYKa2Gvaiqb8KxFMRhGFuiC0KM+dnphc6AQn4Y5lnhs97Db7wkfv1WCSag
-BaZ1vByp8kCwnBNgZT020/9Ehqftb1VgeeCnfc68+TfikpEIjCs3e2F6KV5q3OPO
-1TP0EL5rP823TwC1CuFAKARod8ROcpf7SsHF0PRYfpRynPRV6zrNhcG3vVzm42OJ
-gK52jYQ4lRzDho8IMWx03yCRylg7kzU+U/7tSSeoLybhV1Rf4n9+t+to2L201ybY
-JNjXtjpHOKd6v7CNVKQ5
-=+KRf
------END PGP SIGNATURE-----
+----------------------------------------------------------------
+gpmc cleanup for common ARM zImage
 
---8NvZYKFJsRX2Djef--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------
+Afzal Mohammed (16):
+      ARM: OMAP2+: nand: unify init functions
+      ARM: OMAP2+: onenand: refactor for clarity
+      ARM: OMAP2+: gpmc: remove cs# in sync clk div calc
+      mtd: onenand: omap: cleanup gpmc dependency
+      mtd: nand: omap: free region as per resource size
+      mtd: nand: omap: read nand using register address
+      ARM: OMAP2+: onenand: connected soc info in pdata
+      mtd: onenand: omap: use pdata info instead of cpu_is
+      ARM: OMAP2+: onenand: header cleanup
+      ARM: OMAP2+: nand: header cleanup
+      mtd: nand: omap: bring in gpmc nand macros
+      ARM: OMAP2+: nand: bch capability check
+      ARM: OMAP2+: gpmc: nand register helper bch update
+      mtd: nand: omap: handle gpmc bch[48]
+      ARM: OMAP2+: gpmc: remove exported nand functions
+      ARM: OMAP2+: gpmc: localize gpmc header
+
+Jon Hunter (1):
+      ARM: OMAP2+: GPMC: Remove unused OneNAND get_freq() platform function
+
+ arch/arm/mach-omap2/board-2430sdp.c                |   2 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |   2 +-
+ arch/arm/mach-omap2/board-apollon.c                |   2 +-
+ arch/arm/mach-omap2/board-cm-t35.c                 |   5 +-
+ arch/arm/mach-omap2/board-cm-t3517.c               |   5 +-
+ arch/arm/mach-omap2/board-devkit8000.c             |  10 +-
+ arch/arm/mach-omap2/board-flash.c                  |  50 +--
+ arch/arm/mach-omap2/board-flash.h                  |   8 +-
+ arch/arm/mach-omap2/board-h4.c                     |   2 +-
+ arch/arm/mach-omap2/board-igep0020.c               |   5 +-
+ arch/arm/mach-omap2/board-ldp.c                    |   6 +-
+ arch/arm/mach-omap2/board-n8x0.c                   |   1 +
+ arch/arm/mach-omap2/board-omap3beagle.c            |  10 +-
+ arch/arm/mach-omap2/board-omap3evm.c               |   8 +-
+ arch/arm/mach-omap2/board-omap3logic.c             |   2 +-
+ arch/arm/mach-omap2/board-omap3pandora.c           |   3 +-
+ arch/arm/mach-omap2/board-omap3stalker.c           |   2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c         |  10 +-
+ arch/arm/mach-omap2/board-overo.c                  |   9 +-
+ arch/arm/mach-omap2/board-rm680.c                  |   3 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   3 +-
+ arch/arm/mach-omap2/board-rx51.c                   |   2 +-
+ arch/arm/mach-omap2/board-zoom-debugboard.c        |   2 +-
+ arch/arm/mach-omap2/board-zoom.c                   |   5 +-
+ arch/arm/mach-omap2/common-board-devices.c         |  46 ---
+ arch/arm/mach-omap2/common-board-devices.h         |   1 -
+ arch/arm/mach-omap2/gpmc-nand.c                    |  85 ++--
+ arch/arm/mach-omap2/gpmc-nand.h                    |  27 ++
+ arch/arm/mach-omap2/gpmc-onenand.c                 | 214 +++++-----
+ arch/arm/mach-omap2/gpmc-onenand.h                 |  24 ++
+ arch/arm/mach-omap2/gpmc-smc91x.c                  |   2 +-
+ arch/arm/mach-omap2/gpmc-smsc911x.c                |   2 +-
+ arch/arm/mach-omap2/gpmc.c                         | 459 +--------------------
+ .../{plat-omap/include/plat => mach-omap2}/gpmc.h  |  61 +--
+ arch/arm/mach-omap2/pm34xx.c                       |   2 +-
+ arch/arm/mach-omap2/usb-tusb6010.c                 |   2 +-
+ drivers/mtd/nand/omap2.c                           | 125 +++++-
+ drivers/mtd/onenand/omap2.c                        |   9 +-
+ include/linux/platform_data/mtd-nand-omap2.h       |  46 ++-
+ include/linux/platform_data/mtd-onenand-omap2.h    |  28 +-
+ 40 files changed, 493 insertions(+), 797 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc-nand.h
+ create mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
+ rename arch/arm/{plat-omap/include/plat => mach-omap2}/gpmc.h (67%)
