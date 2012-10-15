@@ -1,74 +1,45 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: omap DSS fails with tft410 driver panel?
-Date: Mon, 15 Oct 2012 18:08:05 +0200
-Message-ID: <CAFqH_52fKOb1OAqK3O-PkT6j69OOeEF-8LoQg-U+u4dH51V82Q@mail.gmail.com>
-References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com>
-	<5077F771.9080308@ti.com>
+From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [balbi-usb:merge-result-for-greg 59/99]
+ webcam.c:(.text+0x14afec): undefined reference to `config_ep_by_speed'
+Date: Mon, 15 Oct 2012 09:29:14 -0700
+Message-ID: <20121015162914.GB32049@kroah.com>
+References: <20121012163902.GA19120@localhost>
+ <507BC000.10004@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:58720 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753832Ab2JOQIF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 12:08:05 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so4990558pad.19
-        for <linux-omap@vger.kernel.org>; Mon, 15 Oct 2012 09:08:05 -0700 (PDT)
-In-Reply-To: <5077F771.9080308@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <507BC000.10004-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
-Hi Tomi,
+On Mon, Oct 15, 2012 at 09:49:20AM +0200, Sebastian Andrzej Siewior wrote:
+> On 10/12/2012 06:39 PM, Fengguang Wu wrote:
+> >Hi Sebastian,
+> 
+> Hi Fengguang,
+> 
+> >FYI, kernel build failed on
+> >
+> >tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git merge-result-for-greg
+> >head:   23953bde3e4d6aa8780dc054f6ad9882ac63f4f4
+> >commit: 721e2e91945bc2520d57d795dfe1b502ecec567c [59/99] usb: gadget: libcomposite: move composite.c into libcomposite
+> >config: i386-randconfig-b199 (attached as .config)
+> >
+> >All error/warnings:
+> >
+> >drivers/built-in.o: In function `uvc_function_set_alt':
+> 
+> Yes. I accidentally broke this and this still fails in 3.7-rc1. Greg
+> has a patch for this in his tree ("usb: gadget: Make webcam gadget
+> select USB_LIBCOMPOSITE") which fixes this.
 
-Thanks for your answer.
+Yes, now queued up in my tree.
 
-2012/10/12 Tomi Valkeinen <tomi.valkeinen@ti.com>:
-> On 2012-10-11 18:58, Enric Balletbo Serra wrote:
->> Hi all,
->>
->> I see that commit dac8eb5f (OMAPDSS: TFP410: rename dvi files to
->> tfp410) and commit 2e6f2ee7 (OMAPDSS: TFP410: rename dvi -> tfp410)
->> changes the panel driver used on some boards. I tested current
->> linux-next-20101011 kernel with my IGEPv2 board and DSS fails with
->> following error (see http://pastebin.com/VjPGCQDt for full log) :
->>
->>    [   21.222808] omapdss OVERLAY error: check_overlay: paddr cannot be 0
->>    [   21.229583] omapdss OVERLAY error: check_overlay: paddr cannot be 0
->>    [   21.236236] omapfb omapfb: setup_plane failed
->>
->> Before checking what happens there is a known issue with this ?
->
-> Works fine for me, although only with a quite minimal test environment.
->
-
-I tried with a minimal environment (without X) and I don't see the
-error, so looks you've reason and the problem is with my userspace
-application (X). OTOH, I don't see the video output. I remember that
-this worked before, but seems now is broken. I'll check mux and others
-hints to try to solve the problem ..
-
-> Looking at the log, it looks to me that your userspace is trying to
-> configure the overlays, and that somehow leads to the driver getting
-> zero as the fb address.
->
-> I'm guessing that some wrong value is passed when configuring, or
-> missing some step in configuring. However, It should be the omapfb that
-> rejects configuration that would lead to paddr == 0, not omapdss, so
-> there's definitely bug in the error handling of omapfb.
->
-> Can you tell me more what's going on there? I presume the error happens
-> when booting? What userspace component is using omapfb in your setup? X?
-
-Yes, the error occurs while booting, and the rootfs tries to load X server.
-
->
-> If you can, put some debug prints into omapfb-ioctl.c:omapfb_setup_plane
-> to see what code path it takes, and where it goes wrong.
->
-
-First I'll try to get video output without X, then, if you want I can
-debug this problem if you think it's interesting.
-
-Regards,
-    Enric
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
