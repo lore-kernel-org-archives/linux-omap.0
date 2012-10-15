@@ -1,396 +1,380 @@
-From: Sourav <sourav.poddar@ti.com>
-Subject: Re: [PATCHv4] Input: keypad: Add smsc ece1099 keypad driver
-Date: Mon, 15 Oct 2012 16:07:55 +0530
-Message-ID: <507BE783.30700@ti.com>
-References: <1349421986-12467-1-git-send-email-sourav.poddar@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/3] usb: dwc3: Add the suspend/resume functionality
+Date: Mon, 15 Oct 2012 15:02:55 +0300
+Message-ID: <20121015120255.GC24333@arwen.pp.htv.fi>
+References: <1349877949-18872-1-git-send-email-vikas.sajjan@linaro.org>
+ <1349877949-18872-2-git-send-email-vikas.sajjan@linaro.org>
+ <5077F7B5.9000509@ti.com>
+ <CAD025yRKnLWKzVGneMnudSKHasWw-2Qe8b40VpiFJev=zPiVdw@mail.gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1349421986-12467-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8NvZYKFJsRX2Djef"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAD025yRKnLWKzVGneMnudSKHasWw-2Qe8b40VpiFJev=zPiVdw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: kishon <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
-On Friday 05 October 2012 12:56 PM, Sourav Poddar wrote:
-> From: G, Manjunath Kondaiah <manjugk@ti.com>
->
-> SMSC ECE1099 is a keyboard scan or GPIO expansion device.The device
-> supports a keypad scan matrix of 23*8.This driver uses this
-> device as a keypad driver.
->
-> Tested on omap5430 evm with 3.6-rc6 custom kernel.
->
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> ---
-> This patch was posted as a series initially
-> http://www.spinics.net/lists/linux-omap/msg78772.html
->
-> But the parent mfd driver has beeen already picked by mfd maintainer.
-> So this patch can now posted as an standalone patch.
->
-> v3->v4:
-> Fix Dmitry's comments:
->   - Error patch(input_free_device/input_unregister_device).
->   - Few cleanups.
->   - Included INPUT_MATRIXKMAP
->   drivers/input/keyboard/Kconfig               |   12 +
->   drivers/input/keyboard/Makefile              |    1 +
->   drivers/input/keyboard/smsc-ece1099-keypad.c |  303 ++++++++++++++++++++++++++
->   3 files changed, 316 insertions(+), 0 deletions(-)
->   create mode 100644 drivers/input/keyboard/smsc-ece1099-keypad.c
->
-> diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-> index c50fa75..e370b03 100644
-> --- a/drivers/input/keyboard/Kconfig
-> +++ b/drivers/input/keyboard/Kconfig
-> @@ -593,6 +593,18 @@ config KEYBOARD_TWL4030
->   	  To compile this driver as a module, choose M here: the
->   	  module will be called twl4030_keypad.
->   
-> +config KEYBOARD_SMSC
-> +       tristate "SMSC ECE1099 keypad support"
-> +       depends on I2C
-> +       select INPUT_MATRIXKMAP
-> +       help
-> +         Say Y here if your board use the smsc keypad controller
-> +         for omap5 defconfig. It's safe to say enable this
-> +         even on boards that don't use the keypad controller.
-> +
-> +         To compile this driver as a module, choose M here: the
-> +         module will be called smsc-ece1099-keypad.
-> +
->   config KEYBOARD_XTKBD
->   	tristate "XT keyboard"
->   	select SERIO
-> diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
-> index 44e7600..0f2aa26 100644
-> --- a/drivers/input/keyboard/Makefile
-> +++ b/drivers/input/keyboard/Makefile
-> @@ -52,5 +52,6 @@ obj-$(CONFIG_KEYBOARD_TC3589X)		+= tc3589x-keypad.o
->   obj-$(CONFIG_KEYBOARD_TEGRA)		+= tegra-kbc.o
->   obj-$(CONFIG_KEYBOARD_TNETV107X)	+= tnetv107x-keypad.o
->   obj-$(CONFIG_KEYBOARD_TWL4030)		+= twl4030_keypad.o
-> +obj-$(CONFIG_KEYBOARD_SMSC)            += smsc-ece1099-keypad.o
->   obj-$(CONFIG_KEYBOARD_XTKBD)		+= xtkbd.o
->   obj-$(CONFIG_KEYBOARD_W90P910)		+= w90p910_keypad.o
-> diff --git a/drivers/input/keyboard/smsc-ece1099-keypad.c b/drivers/input/keyboard/smsc-ece1099-keypad.c
-> new file mode 100644
-> index 0000000..a4a0dfe
-> --- /dev/null
-> +++ b/drivers/input/keyboard/smsc-ece1099-keypad.c
-> @@ -0,0 +1,303 @@
-> +/*
-> + * SMSC_ECE1099 Keypad driver
-> + *
-> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/i2c.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/input.h>
-> +#include <linux/gpio.h>
-> +#include <linux/slab.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/input/matrix_keypad.h>
-> +#include <linux/delay.h>
-> +#include <linux/mfd/core.h>
-> +#include <linux/mfd/smsc.h>
-> +#include <linux/of_gpio.h>
-> +#include <linux/of.h>
-> +
-> +#define KEYPRESS_TIME          200
-> +
-> +struct smsc_keypad {
-> +	struct smsc *smsc;
-> +	struct matrix_keymap_data *keymap_data;
-> +	unsigned int last_key_state[16];
-> +	unsigned int last_col;
-> +	unsigned int last_key_ms[16];
-> +	unsigned short *keymap;
-> +	struct i2c_client *client;
-> +	struct input_dev *input;
-> +	int rows, cols;
-> +	int row_shift;
-> +	bool no_autorepeat;
-> +	unsigned        irq;
-> +	struct device *dev;
-> +};
-> +
-> +static void smsc_kp_scan(struct smsc_keypad *kp)
-> +{
-> +	struct input_dev *input = kp->input;
-> +	int i, j;
-> +	int row, col;
-> +	int temp, code;
-> +	unsigned int new_state[16];
-> +	unsigned int bits_changed;
-> +	int this_ms;
-> +
-> +	smsc_write(kp->dev, SMSC_KP_INT_MASK, 0x00);
-> +	smsc_write(kp->dev, SMSC_KP_INT_STAT, 0xFF);
-> +
-> +	/* Scan for row and column */
-> +	for (i = 0; i < kp->cols; i++) {
-> +		smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_EVAL + i);
-> +		/* Read Row Status */
-> +		smsc_read(kp->dev, SMSC_KP_IN, &temp);
-> +		if (temp == 0xFF)
-> +			continue;
-> +
-> +		col = i;
-> +		for (j = 0; j < kp->rows; j++) {
-> +			if ((temp & 0x01) != 0x00) {
-> +				temp = temp >> 1;
-> +				continue;
-> +			}
-> +
-> +			row = j;
-> +			new_state[col] =  (1 << row);
-> +			bits_changed = kp->last_key_state[col] ^ new_state[col];
-> +			this_ms = jiffies_to_msecs(jiffies);
-> +			if (bits_changed != 0 || (!bits_changed &&
-> +					((this_ms - kp->last_key_ms[col]) >= KEYPRESS_TIME))) {
-> +				code = MATRIX_SCAN_CODE(row, col, kp->row_shift);
-> +				input_event(input, EV_MSC, MSC_SCAN, code);
-> +				input_report_key(input, kp->keymap[code], 1);
-> +				input_report_key(input, kp->keymap[code], 0);
-> +				kp->last_key_state[col] = new_state[col];
-> +				if (kp->last_col != col)
-> +					kp->last_key_state[kp->last_col] = 0;
-> +				kp->last_key_ms[col] = this_ms;
-> +			}
-> +			temp = temp >> 1;
-> +		}
-> +	}
-> +	input_sync(input);
-> +
-> +	smsc_write(kp->dev, SMSC_KP_INT_MASK, 0xFF);
-> +
-> +	/* Set up Low Power Mode (Wake-up) (0xFB) */
-> +	smsc_write(kp->dev, SMSC_WKUP_CTRL, SMSC_KP_SET_LOW_PWR);
-> +
-> +	/*Enable Keypad Scan (generate interrupt on key press) (0x40)*/
-> +	smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_ALL_LOW);
-> +}
-> +
-> +static irqreturn_t do_kp_irq(int irq, void *_kp)
-> +{
-> +	struct smsc_keypad *kp = _kp;
-> +	int int_status;
-> +
-> +	smsc_read(kp->dev, SMSC_KP_INT_STAT, &int_status);
-> +	if (int_status)
-> +		smsc_kp_scan(kp);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +#ifdef CONFIG_OF
-> +static int __devinit smsc_keypad_parse_dt(struct device *dev,
-> +				struct smsc_keypad *kp)
-> +{
-> +	struct device_node *np = dev->of_node;
-> +
-> +	if (!np) {
-> +		dev_err(dev, "missing DT data");
-> +		return -EINVAL;
-> +	}
-> +
-> +	of_property_read_u32(np, "keypad,num-rows", &kp->rows);
-> +	of_property_read_u32(np, "keypad,num-columns", &kp->cols);
-> +	if (!kp->rows || !kp->cols) {
-> +		dev_err(dev, "number of keypad rows/columns not specified\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (of_property_read_bool(np, "linux,input-no-autorepeat"))
-> +		kp->no_autorepeat = true;
-> +
-> +	return 0;
-> +}
-> +#else
-> +static inline int smsc_keypad_parse_dt(struct device *dev,
-> +				struct smsc_keypad *kp)
-> +{
-> +	return -ENOSYS;
-> +}
-> +#endif
-> +
-> +static int __devinit
-> +smsc_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
-> +	struct input_dev *input;
-> +	struct smsc_keypad *kp;
-> +	int ret = 0;
-> +	int i, max_keys, row_shift;
-> +	int irq;
-> +	int addr;
-> +
-> +	kp = devm_kzalloc(dev, sizeof(*kp), GFP_KERNEL);
-> +
-> +	input = input_allocate_device();
-> +	if (!kp || !input) {
-> +		ret = -ENOMEM;
-> +		goto err1;
-> +	}
-> +
-> +	ret = smsc_keypad_parse_dt(&pdev->dev, kp);
-> +	if (ret)
-> +		goto err1;
-> +
-> +	/* Get the debug Device */
-> +	kp->input = input;
-> +	kp->smsc = smsc;
-> +	kp->irq = platform_get_irq(pdev, 0);
-> +	kp->dev = dev;
-> +
-> +	/* setup input device */
-> +	 __set_bit(EV_KEY, input->evbit);
-> +
-> +	/* Enable auto repeat feature of Linux input subsystem */
-> +	if (!kp->no_autorepeat)
-> +		__set_bit(EV_REP, input->evbit);
-> +
-> +	input_set_capability(input, EV_MSC, MSC_SCAN);
-> +	input->name             = "SMSC Keypad";
-> +	input->phys             = "smsc_keypad/input0";
-> +	input->dev.parent       = &pdev->dev;
-> +	input->id.bustype       = BUS_HOST;
-> +	input->id.vendor        = 0x0001;
-> +	input->id.product       = 0x0001;
-> +	input->id.version       = 0x0003;
-> +
-> +	/* Mask all GPIO interrupts (0x37-0x3B) */
-> +	for (addr = SMSC_GPIO_INT_MASK_START;
-> +			addr < SMSC_GPIO_INT_MASK_START + 4; addr++)
-> +		smsc_write(dev, addr, 0);
-> +
-> +	/* Set all outputs high (0x05-0x09) */
-> +	for (addr = SMSC_GPIO_DATA_OUT_START;
-> +			addr < SMSC_GPIO_DATA_OUT_START + 4; addr++)
-> +		smsc_write(dev, addr, 0xff);
-> +
-> +	/* Clear all GPIO interrupts (0x32-0x36) */
-> +	for (addr = SMSC_GPIO_INT_STAT_START;
-> +			addr < SMSC_GPIO_INT_STAT_START + 4; addr++)
-> +		smsc_write(dev, addr, 0xff);
-> +
-> +	/* Configure the smsc pins as Keyboard scan Input */
-> +	for (i = 0; i <= kp->rows; i++) {
-> +		addr = 0x12 + i;
-> +		smsc_write(dev, addr, SMSC_KP_KSI);
-> +	}
-> +
-> +	/* Configure the smsc pins as Keyboard scan output */
-> +	for (i = 0; i <= kp->cols; i++) {
-> +		addr = 0x1A + i;
-> +		smsc_write(dev, addr, SMSC_KP_KSO);
-> +	}
-> +
-> +	smsc_write(dev, SMSC_KP_INT_STAT, SMSC_KP_SET_HIGH);
-> +	smsc_write(dev, SMSC_WKUP_CTRL, SMSC_KP_SET_LOW_PWR);
-> +	smsc_write(dev, SMSC_KP_OUT, SMSC_KSO_ALL_LOW);
-> +
-> +	row_shift = get_count_order(kp->cols);
-> +	max_keys = kp->rows << row_shift;
-> +
-> +	kp->row_shift = row_shift;
-> +	kp->keymap = devm_kzalloc(dev, max_keys * sizeof(kp->keymap[0]),
-> +					GFP_KERNEL);
-> +	if (!kp->keymap) {
-> +		dev_err(&pdev->dev, "Not enough memory for keymap\n");
-> +		ret = -ENOMEM;
-> +	}
-> +
-> +	ret = matrix_keypad_build_keymap(NULL, NULL, kp->rows,
-> +			kp->cols, kp->keymap, input);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "failed to build keymap\n");
-> +		goto err1;
-> +	}
-> +
-> +	/*
-> +	* This ISR will always execute in kernel thread context because of
-> +	* the need to access the SMSC over the I2C bus.
-> +	*/
-> +	ret = devm_request_threaded_irq(dev, kp->irq, NULL, do_kp_irq,
-> +			IRQF_TRIGGER_FALLING | IRQF_ONESHOT, pdev->name, kp);
-> +	if (ret) {
-> +		dev_dbg(&pdev->dev, "request_irq failed for irq no=%d\n",
-> +			irq);
-> +		goto err1;
-> +	}
-> +
-> +	/* Enable smsc keypad interrupts */
-> +	ret = smsc_write(dev, SMSC_KP_INT_MASK, 0xff);
-> +	if (ret < 0)
-> +		goto err2;
-> +
-> +	ret = input_register_device(input);
-> +	if (ret) {
-> +		dev_err(kp->dev,
-> +			"Unable to register twl4030 keypad device\n");
-> +		goto err2;
-> +	}
-> +
-> +	return 0;
-> +
-> +err2:
-> +	free_irq(kp->irq, kp);
-> +err1:
-> +	input_free_device(input);
-> +	return ret;
-> +}
-> +
-> +static int __devexit smsc_remove(struct platform_device *pdev)
-> +{
-> +	struct smsc_keypad *kp = platform_get_drvdata(pdev);
-> +	input_unregister_device(kp->input);
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id smsc_keypad_dt_match[] = {
-> +	{ .compatible = "smsc,keypad" },
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, smsc_keypad_dt_match);
-> +#endif
-> +
-> +static struct platform_driver smsc_driver = {
-> +	.driver = {
-> +		.name	= "smsc-keypad",
-> +		.of_match_table = of_match_ptr(smsc_keypad_dt_match),
-> +		.owner  = THIS_MODULE,
-> +	},
-> +	.probe		= smsc_probe,
-> +	.remove		= __devexit_p(smsc_remove),
-> +};
-> +
-> +module_platform_driver(smsc_driver);
-> +
-> +MODULE_AUTHOR("G Kondaiah Manjunath <manjugk@ti.com>");
-> +MODULE_DESCRIPTION("SMSC ECE1099 Keypad driver");
-> +MODULE_LICENSE("GPL v2");
-ping on this?
+--8NvZYKFJsRX2Djef
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-~Sourav
+On Fri, Oct 12, 2012 at 07:24:33PM +0530, Vikas Sajjan wrote:
+> Hi kishon,
+>=20
+> On 12 October 2012 16:27, kishon <kishon-l0cyMroinI0@public.gmane.org> wrote:
+> > Hi,
+> >
+> >
+> > On Wednesday 10 October 2012 07:35 PM, Vikas C Sajjan wrote:
+> >>
+> >> From: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> >>
+> >> Adding the suspend and resume funtionality to DWC3 core.
+> >>
+> >> Signed-off-by: Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> >> Signed-off-by: Vikas C Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> >> CC: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+> >> ---
+> >>   drivers/usb/dwc3/core.c |  268
+> >> +++++++++++++++++++++++++++++-----------------
+> >>   1 files changed, 169 insertions(+), 99 deletions(-)
+> >>
+> >> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+> >> index b415c0c..58b51e1 100644
+> >> --- a/drivers/usb/dwc3/core.c
+> >> +++ b/drivers/usb/dwc3/core.c
+> >>
+> >> @@ -70,51 +70,20 @@ MODULE_PARM_DESC(maximum_speed, "Maximum supported
+> >> speed.");
+> >>
+> >>   static DECLARE_BITMAP(dwc3_devs, DWC3_DEVS_POSSIBLE);
+> >>
+> >> -int dwc3_get_device_id(void)
+> >> -{
+> >> -       int             id;
+> >> -
+> >> -again:
+> >> -       id =3D find_first_zero_bit(dwc3_devs, DWC3_DEVS_POSSIBLE);
+> >> -       if (id < DWC3_DEVS_POSSIBLE) {
+> >> -               int old;
+> >> -
+> >> -               old =3D test_and_set_bit(id, dwc3_devs);
+> >> -               if (old)
+> >> -                       goto again;
+> >> -       } else {
+> >> -               pr_err("dwc3: no space for new device\n");
+> >> -               id =3D -ENOMEM;
+> >> -       }
+> >> -
+> >> -       return id;
+> >> -}
+> >> -EXPORT_SYMBOL_GPL(dwc3_get_device_id);
+> >> -
+> >> -void dwc3_put_device_id(int id)
+> >> -{
+> >> -       int                     ret;
+> >> -
+> >> -       if (id < 0)
+> >> -               return;
+> >> -
+> >> -       ret =3D test_bit(id, dwc3_devs);
+> >> -       WARN(!ret, "dwc3: ID %d not in use\n", id);
+> >> -       smp_mb__before_clear_bit();
+> >> -       clear_bit(id, dwc3_devs);
+> >> -}
+> >> -EXPORT_SYMBOL_GPL(dwc3_put_device_id);
+> >> -
+> >> -void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
+> >> +static void __devinit dwc3_cache_hwparams(struct dwc3 *dwc)
+> >>   {
+> >> -       u32 reg;
+> >> +       struct dwc3_hwparams    *parms =3D &dwc->hwparams;
+> >>
+> >> -       reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
+> >> -       reg &=3D ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
+> >> -       reg |=3D DWC3_GCTL_PRTCAPDIR(mode);
+> >> -       dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+> >> +       parms->hwparams0 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS0);
+> >> +       parms->hwparams1 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS1);
+> >> +       parms->hwparams2 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS2);
+> >> +       parms->hwparams3 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS3);
+> >> +       parms->hwparams4 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS4);
+> >> +       parms->hwparams5 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS5);
+> >> +       parms->hwparams6 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS6);
+> >> +       parms->hwparams7 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS7);
+> >> +       parms->hwparams8 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS8);
+> >>   }
+> >> -
+> >>   /**
+> >>    * dwc3_core_soft_reset - Issues core soft reset and PHY reset
+> >>    * @dwc: pointer to our context structure
+> >> @@ -160,6 +129,102 @@ static void dwc3_core_soft_reset(struct dwc3 *dw=
+c)
+> >>         dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+> >>   }
+> >>
+> >> +static int dwc3_core_reset(struct dwc3 *dwc)
+> >> +{
+> >> +       unsigned long   timeout;
+> >> +       u32     reg;
+> >> +
+> >> +       /* issue device SoftReset too */
+> >> +       timeout =3D jiffies + msecs_to_jiffies(500);
+> >> +       dwc3_writel(dwc->regs, DWC3_DCTL, DWC3_DCTL_CSFTRST);
+> >> +       do {
+> >> +               reg =3D dwc3_readl(dwc->regs, DWC3_DCTL);
+> >> +               if (!(reg & DWC3_DCTL_CSFTRST))
+> >> +                       break;
+> >> +
+> >> +               if (time_after(jiffies, timeout)) {
+> >> +                       dev_err(dwc->dev, "Reset Timed Out\n");
+> >> +                       return -ETIMEDOUT;
+> >> +               }
+> >> +
+> >> +               cpu_relax();
+> >> +       } while (true);
+> >> +
+> >> +       dwc3_core_soft_reset(dwc);
+> >> +
+> >> +       dwc3_cache_hwparams(dwc);
+> >> +
+> >> +       reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
+> >> +       reg &=3D ~DWC3_GCTL_SCALEDOWN_MASK;
+> >> +       reg &=3D ~DWC3_GCTL_DISSCRAMBLE;
+> >> +
+> >> +       switch (DWC3_GHWPARAMS1_EN_PWROPT(dwc->hwparams.hwparams1)) {
+> >> +       case DWC3_GHWPARAMS1_EN_PWROPT_CLK:
+> >> +               reg &=3D ~DWC3_GCTL_DSBLCLKGTNG;
+> >> +               break;
+> >> +       default:
+> >> +               dev_dbg(dwc->dev, "No power optimization available\n");
+> >> +       }
+> >> +
+> >> +       /*
+> >>
+> >> +        * WORKAROUND: DWC3 revisions <1.90a have a bug
+> >> +        * where the device can fail to connect at SuperSpeed
+> >> +        * and falls back to high-speed mode which causes
+> >> +        * the device to enter a Connect/Disconnect loop
+> >> +        */
+> >> +       if (dwc->revision < DWC3_REVISION_190A)
+> >> +               reg |=3D DWC3_GCTL_U2RSTECN;
+> >> +
+> >> +       dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+> >> +
+> >> +       return 0;
+> >> +}
+> >> +
+> >> +int dwc3_get_device_id(void)
+> >> +{
+> >> +       int             id;
+> >> +
+> >> +again:
+> >> +       id =3D find_first_zero_bit(dwc3_devs, DWC3_DEVS_POSSIBLE);
+> >> +       if (id < DWC3_DEVS_POSSIBLE) {
+> >> +               int old;
+> >> +
+> >> +               old =3D test_and_set_bit(id, dwc3_devs);
+> >> +               if (old)
+> >> +                       goto again;
+> >> +       } else {
+> >> +               pr_err("dwc3: no space for new device\n");
+> >> +               id =3D -ENOMEM;
+> >> +       }
+> >> +
+> >> +       return id;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(dwc3_get_device_id);
+> >> +
+> >> +void dwc3_put_device_id(int id)
+> >> +{
+> >> +       int                     ret;
+> >> +
+> >> +       if (id < 0)
+> >> +               return;
+> >> +
+> >> +       ret =3D test_bit(id, dwc3_devs);
+> >> +       WARN(!ret, "dwc3: ID %d not in use\n", id);
+> >> +       smp_mb__before_clear_bit();
+> >> +       clear_bit(id, dwc3_devs);
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(dwc3_put_device_id);
+> >> +
+> >> +void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
+> >> +{
+> >> +       u32 reg;
+> >> +
+> >> +       reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
+> >> +       reg &=3D ~(DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_OTG));
+> >> +       reg |=3D DWC3_GCTL_PRTCAPDIR(mode);
+> >> +       dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+> >> +}
+> >> +
+> >>   /**
+> >>    * dwc3_free_one_event_buffer - Frees one event buffer
+> >>    * @dwc: Pointer to our controller context structure
+> >> @@ -303,20 +368,7 @@ static void dwc3_event_buffers_cleanup(struct dwc3
+> >> *dwc)
+> >>         }
+> >>   }
+> >>
+> >> -static void __devinit dwc3_cache_hwparams(struct dwc3 *dwc)
+> >> -{
+> >> -       struct dwc3_hwparams    *parms =3D &dwc->hwparams;
+> >>
+> >> -       parms->hwparams0 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS0);
+> >> -       parms->hwparams1 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS1);
+> >> -       parms->hwparams2 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS2);
+> >> -       parms->hwparams3 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS3);
+> >> -       parms->hwparams4 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS4);
+> >> -       parms->hwparams5 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS5);
+> >> -       parms->hwparams6 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS6);
+> >> -       parms->hwparams7 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS7);
+> >> -       parms->hwparams8 =3D dwc3_readl(dwc->regs, DWC3_GHWPARAMS8);
+> >> -}
+> >>
+> >>   /**
+> >>    * dwc3_core_init - Low-level initialization of DWC3 Core
+> >> @@ -326,7 +378,6 @@ static void __devinit dwc3_cache_hwparams(struct d=
+wc3
+> >> *dwc)
+> >>    */
+> >>   static int __devinit dwc3_core_init(struct dwc3 *dwc)
+> >>   {
+> >> -       unsigned long           timeout;
+> >>         u32                     reg;
+> >>         int                     ret;
+> >>
+> >> @@ -339,49 +390,9 @@ static int __devinit dwc3_core_init(struct dwc3 *=
+dwc)
+> >>         }
+> >>         dwc->revision =3D reg;
+> >>
+> >> -       /* issue device SoftReset too */
+> >> -       timeout =3D jiffies + msecs_to_jiffies(500);
+> >> -       dwc3_writel(dwc->regs, DWC3_DCTL, DWC3_DCTL_CSFTRST);
+> >> -       do {
+> >> -               reg =3D dwc3_readl(dwc->regs, DWC3_DCTL);
+> >> -               if (!(reg & DWC3_DCTL_CSFTRST))
+> >> -                       break;
+> >> -
+> >> -               if (time_after(jiffies, timeout)) {
+> >> -                       dev_err(dwc->dev, "Reset Timed Out\n");
+> >> -                       ret =3D -ETIMEDOUT;
+> >> -                       goto err0;
+> >> -               }
+> >> -
+> >> -               cpu_relax();
+> >> -       } while (true);
+> >> -
+> >> -       dwc3_core_soft_reset(dwc);
+> >> -
+> >> -       dwc3_cache_hwparams(dwc);
+> >> -
+> >> -       reg =3D dwc3_readl(dwc->regs, DWC3_GCTL);
+> >> -       reg &=3D ~DWC3_GCTL_SCALEDOWN_MASK;
+> >> -       reg &=3D ~DWC3_GCTL_DISSCRAMBLE;
+> >> -
+> >> -       switch (DWC3_GHWPARAMS1_EN_PWROPT(dwc->hwparams.hwparams1)) {
+> >> -       case DWC3_GHWPARAMS1_EN_PWROPT_CLK:
+> >> -               reg &=3D ~DWC3_GCTL_DSBLCLKGTNG;
+> >> -               break;
+> >> -       default:
+> >> -               dev_dbg(dwc->dev, "No power optimization available\n");
+> >> -       }
+> >> -
+> >> -       /*
+> >> -        * WORKAROUND: DWC3 revisions <1.90a have a bug
+> >> -        * where the device can fail to connect at SuperSpeed
+> >> -        * and falls back to high-speed mode which causes
+> >> -        * the device to enter a Connect/Disconnect loop
+> >> -        */
+> >> -       if (dwc->revision < DWC3_REVISION_190A)
+> >> -               reg |=3D DWC3_GCTL_U2RSTECN;
+> >> -
+> >> -       dwc3_writel(dwc->regs, DWC3_GCTL, reg);
+> >> +       ret =3D dwc3_core_reset(dwc);
+> >> +       if (ret < 0)
+> >> +               goto err0;
+> >>
+> >>         ret =3D dwc3_alloc_event_buffers(dwc, DWC3_EVENT_BUFFERS_SIZE);
+> >>         if (ret) {
+> >>
+> >> @@ -622,11 +633,70 @@ static int __devexit dwc3_remove(struct
+> >> platform_device *pdev)
+> >>         return 0;
+> >>   }
+> >>
+> >> +#ifdef CONFIG_PM
+> >> +static int dwc3_core_resume(struct device *dev)
+> >> +{
+> >> +       struct dwc3     *dwc;
+> >> +       int     ret;
+> >> +
+> >> +       dwc =3D dev_get_drvdata(dev);
+> >> +       if (!dwc)
+> >> +               return -EINVAL;
+> >> +
+> >> +       ret =3D dwc3_core_reset(dwc);
+> >
+> >
+> > Do you have to add core_reset because of any issues you observed? In the
+> > ideal working case, you shouldn't have to do reset every-time on resume.
+> >
+> Initially we tested on kernel 3.4 with which we had some issue in detecti=
+ng
+> USB devices on SS hub. But now as you pointed out, we tested after removi=
+ng
+> core_reset  during resume, and it seems to be working fine.
+> Thanks for pointing out, we shall re-confirm and update the new patch-set=
+ soon.
+>=20
+> > Maybe I have missed your mail so I'm asking Felipe's question again. ho=
+w has
+> > this patch series been tested?
+> >
+> We tested the patch series on 'usb-next' on greg's tree after applying
+> our local patches
+> for exynos5 USB3.0 PHY support and also reverting the patch for dwc3-core
+> "usb: dwc3: add basic PHY support" since our USB3.0 PHY driver is underwa=
+y.
 
+Yes, the idea of that patch was to simply add basic PHY support to dwc3,
+once PHY drivers where actually available, those should be removed and
+moved over to use the actual PHY driver.
+
+--=20
+balbi
+
+--8NvZYKFJsRX2Djef
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQe/tvAAoJEIaOsuA1yqRE4IIP/RmhfBKJVprGRCR4LW/V+ke1
+gX+9prL7cj8TWx65A7lZ3SC1jIk5yBJdeiTt3cC8e+3nLx7OMd4gELZE5RmnKprB
+YWW80TmlGdavPoAP5Hq4N49b37WHEzwkoNQwc4jeaWuNZzbGefaeL42jChAOZnMa
+AyTx7Z98KF/qPAKHS43efmvf/fb3OC5PJjXxo/hE3sYksrc2wvqZFNpjWnWKYCJf
+y0m2+su6DQfLkX8qn3eA6435uJASfZH23i54wIPHXaJey6R05cMQRavUgvnLeyEL
+N+/TmZhTqP8gD8QBmDaN7FloyuzOB78ez7hua7oWBWqkhMFW+qCHxet5QsZ3acyc
+5Eb46IczArsWp8CPZmgAQTFmfgNkKGcmTa2WM2jl/GC5xhx/kinL4c3tx0AnvwA+
++YRuf3aYKa2Gvaiqb8KxFMRhGFuiC0KM+dnphc6AQn4Y5lnhs97Db7wkfv1WCSag
+BaZ1vByp8kCwnBNgZT020/9Ehqftb1VgeeCnfc68+TfikpEIjCs3e2F6KV5q3OPO
+1TP0EL5rP823TwC1CuFAKARod8ROcpf7SsHF0PRYfpRynPRV6zrNhcG3vVzm42OJ
+gK52jYQ4lRzDho8IMWx03yCRylg7kzU+U/7tSSeoLybhV1Rf4n9+t+to2L201ybY
+JNjXtjpHOKd6v7CNVKQ5
+=+KRf
+-----END PGP SIGNATURE-----
+
+--8NvZYKFJsRX2Djef--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
