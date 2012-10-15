@@ -1,64 +1,71 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH] USB: DWC3: Shutdown usb_phy when removing the device
-Date: Mon, 15 Oct 2012 18:56:13 +0530
-Message-ID: <CAFp+6iGCRop0Q0M4q5Za1F819Wk7cqnBGfgnnnWBkUNcBPyjpg@mail.gmail.com>
-References: <1350136218-25678-1-git-send-email-gautam.vivek@samsung.com>
-	<20121015121403.GK24333@arwen.pp.htv.fi>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 3/7] usb: dwc3-omap: use runtime API's to enable clocks
+Date: Mon, 15 Oct 2012 18:57:56 +0530
+Message-ID: <1350307680-24938-4-git-send-email-kishon@ti.com>
+References: <1350307680-24938-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:46787 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753353Ab2JON0P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 09:26:15 -0400
-In-Reply-To: <20121015121403.GK24333@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1350307680-24938-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, rob.herring@calxeda.com
 
-Hi Felipe,
+Before accessing any register, runtime API's should be invoked to enable
+the clocks. runtime API's are added here to prevent abort during register
+access.
 
-On Mon, Oct 15, 2012 at 5:44 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Sat, Oct 13, 2012 at 07:20:18PM +0530, Vivek Gautam wrote:
->> We do usb_phy_init() while doing core_init() in probe,
->> so adding usb_phy_shutdown() when we do core_exit()
->> while removing the device.
->>
->> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->
-> I believe this needs to be sent to stable too for v3.6, right ?
->
-As i can see, 51e1e7b usb: dwc3: add basic PHY support, is yet to be
-merged in stable. Then only it will be possible to merge this in stable, right ?
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/dwc3/dwc3-omap.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-> please resend with a proper Cc: stable@vger.kernel.org # v3.6 tag
->
->> ---
->>  drivers/usb/dwc3/core.c |    4 ++++
->>  1 files changed, 4 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
->> index b415c0c..c14ebc9 100644
->> --- a/drivers/usb/dwc3/core.c
->> +++ b/drivers/usb/dwc3/core.c
->> @@ -409,6 +409,10 @@ static void dwc3_core_exit(struct dwc3 *dwc)
->>  {
->>       dwc3_event_buffers_cleanup(dwc);
->>       dwc3_free_event_buffers(dwc);
->> +
->> +     usb_phy_shutdown(dwc->usb2_phy);
->> +     usb_phy_shutdown(dwc->usb3_phy);
->> +
->>  }
->>
->>  #define DWC3_ALIGN_MASK              (16 - 1)
->> --
->> 1.7.6.5
->>
->
-> --
-> balbi
-
-Thanks & Regards
-Vivek
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 4aaeec4..1fdf7e2 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -43,6 +43,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/dwc3-omap.h>
++#include <linux/pm_runtime.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/ioport.h>
+ #include <linux/io.h>
+@@ -336,6 +337,13 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ 	omap->irq	= irq;
+ 	omap->base	= base;
+ 
++	pm_runtime_enable(dev);
++	ret = pm_runtime_get_sync(dev);
++	if (ret < 0) {
++		dev_err(dev, "get_sync failed with err %d\n", ret);
++		return ret;
++	}
++
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
+ 
+ 	utmi_mode = of_get_property(node, "utmi-mode", &size);
+@@ -417,6 +425,9 @@ static int __devexit dwc3_omap_remove(struct platform_device *pdev)
+ 	platform_device_unregister(omap->usb2_phy);
+ 	platform_device_unregister(omap->usb3_phy);
+ 
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++
+ 	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
+ 
+ 	return 0;
+-- 
+1.7.9.5
