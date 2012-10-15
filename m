@@ -1,86 +1,85 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] USB: DWC3: Shutdown usb_phy when removing the device
-Date: Mon, 15 Oct 2012 15:14:03 +0300
-Message-ID: <20121015121403.GK24333@arwen.pp.htv.fi>
-References: <1350136218-25678-1-git-send-email-gautam.vivek@samsung.com>
+Subject: Re: [PATCH 1/1] musb : remove generic_interrupt and have all drivers
+ define the isr on their own. Remove some unneeded CONFIG_SOC_OMAP_3430
+ instances
+Date: Mon, 15 Oct 2012 15:15:09 +0300
+Message-ID: <20121015121509.GL24333@arwen.pp.htv.fi>
+References: <1349369952-7036-1-git-send-email-philippe.deswert@jollamobile.com>
+ <20121008163451.GF3874@atomide.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FCF9ydJxlAJsfRTu"
+	protocol="application/pgp-signature"; boundary="RD6GsZsdEJvsf78O"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57337 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33992 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752893Ab2JOMTd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Oct 2012 08:19:33 -0400
+	id S1752388Ab2JOMUu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Oct 2012 08:20:50 -0400
 Content-Disposition: inline
-In-Reply-To: <1350136218-25678-1-git-send-email-gautam.vivek@samsung.com>
+In-Reply-To: <20121008163451.GF3874@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, balbi@ti.com, rob.herring@calxeda.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Philippe De Swert <philippedeswert@gmail.com>, Philippe De Swert <philippe.deswert@jollamobile.com>, Praveena Nadahally <praveen.nadahally@stericsson.com>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
---FCF9ydJxlAJsfRTu
+--RD6GsZsdEJvsf78O
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 13, 2012 at 07:20:18PM +0530, Vivek Gautam wrote:
-> We do usb_phy_init() while doing core_init() in probe,
-> so adding usb_phy_shutdown() when we do core_exit()
-> while removing the device.
->=20
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+Hi,
 
-I believe this needs to be sent to stable too for v3.6, right ?
-
-please resend with a proper Cc: stable@vger.kernel.org # v3.6 tag
-
-> ---
->  drivers/usb/dwc3/core.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+On Mon, Oct 08, 2012 at 09:34:51AM -0700, Tony Lindgren wrote:
+> * Philippe De Swert <philippedeswert@gmail.com> [121004 10:00]:
+> > This patch is based on the discussion of a previous patch to fix an iss=
+ue
+> > where the omap2430 musb driver is not working for N9/N950.
+> >=20
+> > Moving all the interrupt handling to the devices. Avoids inclusion of g=
+eneric
+> > interrupt and breakage due to sometimes misleading CONFIG options. This=
+ makes=20
+> > sure usb always works if on of the subdrivers is chosen. Tested on Noki=
+a N9/N950.=20
+> >=20
+> > Partially clean up CONFIG_SOC_OMAP3430 which is not necessary in the ca=
+ses
+> > where I removed it. Also helps with the removal work of those options t=
+hat=20
+> > Tony Lindgren predicted would happen at some point.
 >=20
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index b415c0c..c14ebc9 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -409,6 +409,10 @@ static void dwc3_core_exit(struct dwc3 *dwc)
->  {
->  	dwc3_event_buffers_cleanup(dwc);
->  	dwc3_free_event_buffers(dwc);
-> +
-> +	usb_phy_shutdown(dwc->usb2_phy);
-> +	usb_phy_shutdown(dwc->usb3_phy);
-> +
->  }
-> =20
->  #define DWC3_ALIGN_MASK		(16 - 1)
-> --=20
-> 1.7.6.5
+> Thanks looks OK to me:
 >=20
+> Acked-by: Tony Lindgren <tony@atomide.com>
+
+Can someone please resend this patch with Tony's Ack ? We have some mail
+server change recently and I lost a few mails in the process :-(
+
+sorry
 
 --=20
 balbi
 
---FCF9ydJxlAJsfRTu
+--RD6GsZsdEJvsf78O
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQe/4LAAoJEIaOsuA1yqREeWgP/2hSFaYwNv6RXMHclDJegGDN
-N65EoCs/SzO6fDrKq5v+NKOrCcIvkvuc0h+yvsROaN/ST0/BoI8umUlC718bhinw
-u888S2cYvtM04CMHEQCY8SuaW+SmTVk53u1TIwT4KhkznPja/pRT1198BdjrI1x4
-K1d252y5K9PzSQhYD9II1LrVbTFwjcCyJTG94ffZCZujE69mUJKtwJDD+grWPSCD
-fQPCNB8nZFqgqkNrWKoUSssMtIakIISggDfjxL3aGka3nJoIOHKckhanlad01RtE
-JBdWgow247TsorHS+VzEx6T1XJinvFC92qJ6cl8z4SIQAoFrAFxuqYKNN8/JRu3Q
-z6iUxmvQBSpKXnLQKoDUT7V+EmPK3bg27fRbzGUOFWc8I5KkX4JGyegbaHFZNvjT
-EiMptMztSQ/maXuY73CDuSyQI+EjSD4zgAby4VXndgvb2rjXXXVbvSy+mgufuZ6X
-avtmC/zSsIS/Bpds3XzzCIWQcA/hka11+OvlGAHY7UKj7ACKomPutxkEt4jOVKuD
-155R8gG0PA5iOtguz9Wzc5nYe/HBWy54HcX1BAEBFmG6+WW2I6Z2JKrCsOgcbg0R
-0GmigwWho5IrAeQuKsgfrsbgGlFI0VJteCzqDOohLZ0/ddK2BzvAn8s27jnQUtv8
-eCLvKh4tq9V0OuwAhfRJ
-=pHyv
+iQIcBAEBAgAGBQJQe/5NAAoJEIaOsuA1yqRESJUP/jKgA7FgG3Ot8FNU/0nsPwG2
+d4HjppmdcFbQ6BtdIjGKZTxMphsqwVHOcPQdVm4oJ1AS1gYu7LwdZmGqRyQMfB9t
+MsrfTCTW35BQEmQ1NwGL8qvofFYGaM9kJEi8sIAUcM/BNxOOsjS9SVUkRqJBTUqB
+5I+gr+igHvjYjEnrZmb6TV4huSZI8DsmQE1SMMsENEmoVlW1P2aNIDDbnatuSirp
+IzeiNVGJQR+ltJ7+fpuLdR+ayuR1cdxAVHJwlTUZnfXxFUGcvN2IS810l5GSnZ6q
+0ImT5Nq7YgtWLNUMeE5GgYW1fvAmeHBll082A1+Fy00yVcmlzWXf3tLOjktjyxwI
+kJEBNhDDieBoDIIvwiBJkR/r03ASBaRDm5IROeqwce7+GPVsfPkLbhtHqGM0ri4h
+5t/yvJBghraqYaHJCo+ZpxZVhKRxySrJC5FoxMYhP3vzspQ2vDaRNvqpCv9lahye
+EUBG1TUWD+aiUXcjnOZoa86AxwqpIJHDygrd4tEL/WcaeJPn+Q6u1R07aprVRFzQ
+6a2koPTvbJvPCJMi3yvMhhkAiLb0qRy+llhO0sLlvmKrRjGBe/7ugpxbcC/1JiRJ
+pkujocuoa8Ypk3r/SXXpoT5Efbfb03+7YBn5VSJG0njqvsIgTMj8q539KQ15/zze
+Au+zElBenHAgtmHebxRC
+=TrBk
 -----END PGP SIGNATURE-----
 
---FCF9ydJxlAJsfRTu--
+--RD6GsZsdEJvsf78O--
