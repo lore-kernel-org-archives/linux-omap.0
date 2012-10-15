@@ -1,52 +1,68 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH] USB: DWC3: Shutdown usb_phy when removing the device
-Date: Mon, 15 Oct 2012 19:22:11 +0530
-Message-ID: <CAFp+6iFg=qvUv7fR-LH_qz4MHwiPTEb=1BHcre5CWgcm6aQwKg@mail.gmail.com>
-References: <1350136218-25678-1-git-send-email-gautam.vivek@samsung.com>
-	<20121015121403.GK24333@arwen.pp.htv.fi>
-	<CAFp+6iGCRop0Q0M4q5Za1F819Wk7cqnBGfgnnnWBkUNcBPyjpg@mail.gmail.com>
-	<20121015132412.GS24333@arwen.pp.htv.fi>
+From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Subject: Re: [GIT PULL] OMAP-GPMC related cleanup for common zImage
+Date: Mon, 15 Oct 2012 16:55:39 +0300
+Message-ID: <1350309339.5769.10.camel@sauron.fi.intel.com>
+References: <1350303247-13495-1-git-send-email-afzal@ti.com>
+	 <1350304405-14762-1-git-send-email-afzal@ti.com>
+Reply-To: artem.bityutskiy@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-IrINF4GWNf40jg5LZpL2"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:44714 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752073Ab2JONwN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 09:52:13 -0400
-In-Reply-To: <20121015132412.GS24333@arwen.pp.htv.fi>
+Received: from mga02.intel.com ([134.134.136.20]:19232 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752073Ab2JONz0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Oct 2012 09:55:26 -0400
+In-Reply-To: <1350304405-14762-1-git-send-email-afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, rob.herring@calxeda.com
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, David Woodhouse <David.Woodhouse@intel.com>, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
 
-On Mon, Oct 15, 2012 at 6:54 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Mon, Oct 15, 2012 at 06:56:13PM +0530, Vivek Gautam wrote:
->> Hi Felipe,
->>
->> On Mon, Oct 15, 2012 at 5:44 PM, Felipe Balbi <balbi@ti.com> wrote:
->> > On Sat, Oct 13, 2012 at 07:20:18PM +0530, Vivek Gautam wrote:
->> >> We do usb_phy_init() while doing core_init() in probe,
->> >> so adding usb_phy_shutdown() when we do core_exit()
->> >> while removing the device.
->> >>
->> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->> >
->> > I believe this needs to be sent to stable too for v3.6, right ?
->> >
->> As i can see, 51e1e7b usb: dwc3: add basic PHY support, is yet to be
->> merged in stable. Then only it will be possible to merge this in
->> stable, right ?
->
-> oh indeed. that was added on v3.7 merge window. My bad. No need to Cc
-> stable, I'll apply this as a fix.
->
-Ok, Thank you.
-> cheers
->
-> --
-> balbi
+--=-IrINF4GWNf40jg5LZpL2
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Regards
-Vivek
+On Mon, 2012-10-15 at 18:03 +0530, Afzal Mohammed wrote:
+> The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd=
+37:
+>=20
+>   Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
+>=20
+> are available in the git repository at:
+>=20
+>   git://gitorious.org/x0148406-public/linux-kernel.git tags/gpmc-czimage
+
+FWIW, the mtd changes look OK, and this stuff is very OMAP-specific, so
+merging everything through the OMAP tree makes a lot of sense. Thanks!
+
+--=20
+Best Regards,
+Artem Bityutskiy
+
+--=-IrINF4GWNf40jg5LZpL2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAABAgAGBQJQfBXbAAoJECmIfjd9wqK0+p4QAK2XQhXJOYgJPlcd71ZfUZLn
+vVSzBvHCH6AvqpLu11xxs1wHih9SokzBei9mUO6Cvoqk+0qPmuv0tFDBMfqcFxQh
+igTg4r8+TOe3RFTslA5JitpMmPuoQrWWoGi/gDziJtQIX/geG6JLhKQuuU7BuGOq
+umhmEj4OY6oMfe+X0ddEp4hzOLfvr68zyiMG9Ke067nig/hdleDgZ4HR/q2BdHA9
+eenqHG2mc6nYVt18E+N9EKPt+TOEMVZTcp6PO47128A4srOKibvZfWDhDYZISp6f
+BuzHzIvpMa5FFWerTdrzTV+Di1lOEWmTH7dQfzc5f4UDOMa4xO4p7k2eInUvid/H
+U4FnUL67GydaXxH2TEYJMi1Q2KUuff31sgXS+GpZew4tHG3f6enRm3I46TJuPVmx
+T73DBaonvoZ93WEs+00TGWYYiUpmlCoMqIcobKKw4UKb+7UfLtNIuPo97noe3s6t
+J8dIkOz9GuOzuB+P29/QfnzAOnfugaDyHmmpCL8nixg4Ua0nNCnd7iaszBdR/RMu
+PlNE+BuCIFhvAuxSyIC8x0U2vwVH83zHl9MQNFM1Bik9kdIe7n9hrBVaA4M7yv01
+iH1yKNtooYlzOP38dG2Ye4cgB9edBmddnL0w47QITDwoKX+y+L+eQufrM6NEu8QO
+DfzUQvxOcTk90EJKTAZw
+=Uz3j
+-----END PGP SIGNATURE-----
+
+--=-IrINF4GWNf40jg5LZpL2--
+
