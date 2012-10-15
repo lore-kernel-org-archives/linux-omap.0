@@ -1,76 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] ARM: vfp: fix save and restore when running on
- pre-VFPv3 and CONFIG_VFPv3 set
-Date: Mon, 15 Oct 2012 10:53:18 -0700
-Message-ID: <20121015175317.GE15569@atomide.com>
-References: <alpine.DEB.2.00.1210130441300.5736@utopia.booyaka.com>
- <20121013090255.GT28061@n2100.arm.linux.org.uk>
- <yw1xr4p2myre.fsf@unicorn.mansr.com>
- <20121013133654.GU28061@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1210150157400.16624@utopia.booyaka.com>
- <CAG5Tg6XqpeRppWbr9-yBmsf+2TobhE5ateMX4crs10grn-tuAA@mail.gmail.com>
- <alpine.DEB.2.00.1210150523190.15973@utopia.booyaka.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH 1/4] mtd: nand: omap2: Update nerrors using ecc.strength
+Date: Mon, 15 Oct 2012 20:56:40 +0200
+Message-ID: <87obk3va1j.fsf@macbook.be.48ers.dk>
+References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
+	<1349274589-11389-2-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17056 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753819Ab2JORx0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 13:53:26 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210150523190.15973@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1349274589-11389-2-git-send-email-avinashphilip@ti.com> (Avinash
+	Philip's message of "Wed, 3 Oct 2012 19:59:46 +0530")
+Sender: linux-doc-owner@vger.kernel.org
+To: "Philip, Avinash" <avinashphilip@ti.com>
+Cc: dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, tony@atomide.com, afzal@ti.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mans Rullgard <mans.rullgard@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Dave Martin <dave.martin@linaro.org>
 
-* Paul Walmsley <paul@pwsan.com> [121014 22:26]:
->=20
-> After commit 846a136881b8f73c1f74250bf6acfaa309cab1f2 ("ARM: vfp: fix
-> saving d16-d31 vfp registers on v6+ kernels"), the OMAP 2430SDP board
-> started crashing during boot with omap2plus_defconfig:
->=20
-> [    3.875122] mmcblk0: mmc0:e624 SD04G 3.69 GiB
-> [    3.915954]  mmcblk0: p1
-> [    4.086639] Internal error: Oops - undefined instruction: 0 [#1] S=
-MP ARM
-> [    4.093719] Modules linked in:
-> [    4.096954] CPU: 0    Not tainted  (3.6.0-02232-g759e00b #570)
-> [    4.103149] PC is at vfp_reload_hw+0x1c/0x44
-> [    4.107666] LR is at __und_usr_fault_32+0x0/0x8
->=20
-> It turns out that the context save/restore fix unmasked a latent bug
-> in commit 5aaf254409f8d58229107b59507a8235b715a960 ("ARM: 6203/1: Mak=
-e
-> VFPv3 usable on ARMv6").  When CONFIG_VFPv3 is set, but the kernel is
-> booted on a pre-VFPv3 core, the code attempts to save and restore the
-> d16-d31 VFP registers.  These are only present on non-D16 VFPv3+, so
-> this results in an undefined instruction exception.  The code didn't
-> crash before commit 846a136 because the save and restore code was
-> only touching d0-d15, present on all VFP.
->=20
-> Fix by implementing a request from Russell King to add a new HWCAP
-> flag that affirmatively indicates the presence of the d16-d31
-> registers:
->=20
->    http://marc.info/?l=3Dlinux-arm-kernel&m=3D135013547905283&w=3D2
->=20
-> and some feedback from M=C3=A5ns to clarify the name of the HWCAP fla=
-g.
->=20
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Dave Martin <dave.martin@linaro.org>
-> Cc: M=C3=A5ns Rullg=C3=A5rd <mans.rullgard@linaro.org>
+>>>>> Philip, Avinash <avinashphilip@ti.com> writes:
 
-This fixes the error above on my 2430sdp:
+ > Update number of errors using nand ecc strength.
+ > Also add macro definitions BCH8_ERROR_MAX & BCH4_ERROR_MAX
 
-Tested-by: Tony Lindgren <tony@atomide.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+ > ---
+ > :100644 100644 5b31386... af511a9... M	drivers/mtd/nand/omap2.c
+ >  drivers/mtd/nand/omap2.c |   12 ++++++++----
+ >  1 files changed, 8 insertions(+), 4 deletions(-)
+
+ > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+ > index 5b31386..af511a9 100644
+ > --- a/drivers/mtd/nand/omap2.c
+ > +++ b/drivers/mtd/nand/omap2.c
+ > @@ -111,6 +111,9 @@
+ >  #define	ECCCLEAR			0x100
+ >  #define	ECC1				0x1
+ 
+ > +#define BCH8_MAX_ERROR		8	/* upto 8 bit coorectable */
+ > +#define BCH4_MAX_ERROR		4	/* upto 4 bit correctable */
+
+First 'correctable' misspelled.
+
+I don't personally think these defines improve readability very much
+compared to to just using 4/8, though.
+
+-- 
+Bye, Peter Korsgaard
