@@ -1,53 +1,76 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 0/7] usb: dwc3-omap: add dt support
-Date: Mon, 15 Oct 2012 18:57:53 +0530
-Message-ID: <1350307680-24938-1-git-send-email-kishon@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] USB: DWC3: Shutdown usb_phy when removing the device
+Date: Mon, 15 Oct 2012 16:24:12 +0300
+Message-ID: <20121015132412.GS24333@arwen.pp.htv.fi>
+References: <1350136218-25678-1-git-send-email-gautam.vivek@samsung.com>
+ <20121015121403.GK24333@arwen.pp.htv.fi>
+ <CAFp+6iGCRop0Q0M4q5Za1F819Wk7cqnBGfgnnnWBkUNcBPyjpg@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sshtylyov@mvista.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VpY0yS1BYpNZumir"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35709 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753479Ab2JON3o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Oct 2012 09:29:44 -0400
+Content-Disposition: inline
+In-Reply-To: <CAFp+6iGCRop0Q0M4q5Za1F819Wk7cqnBGfgnnnWBkUNcBPyjpg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vivek Gautam <gautamvivek1987@gmail.com>
+Cc: balbi@ti.com, Vivek Gautam <gautam.vivek@samsung.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, rob.herring@calxeda.com
 
-This patch series adds dt support to dwc3 core and fixes few minor
-stuff in dwc3-omap glue to get dwc3 working.
+--VpY0yS1BYpNZumir
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-While at that it also uses *of_platform* to create the child device
-(dwc3-core) and fixes to use runtime API's to enable clock and write
-to SYSCONFIG register.
+On Mon, Oct 15, 2012 at 06:56:13PM +0530, Vivek Gautam wrote:
+> Hi Felipe,
+>=20
+> On Mon, Oct 15, 2012 at 5:44 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Sat, Oct 13, 2012 at 07:20:18PM +0530, Vivek Gautam wrote:
+> >> We do usb_phy_init() while doing core_init() in probe,
+> >> so adding usb_phy_shutdown() when we do core_exit()
+> >> while removing the device.
+> >>
+> >> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> >
+> > I believe this needs to be sent to stable too for v3.6, right ?
+> >
+> As i can see, 51e1e7b usb: dwc3: add basic PHY support, is yet to be
+> merged in stable. Then only it will be possible to merge this in
+> stable, right ?
 
-Changes from v3:
-* rebased to latest commit in balbi's tree
-* Fixed few typos in the commit log
-* Added *extern* keyword for dwc3_omap_mailbox function declaration
+oh indeed. that was added on v3.7 merge window. My bad. No need to Cc
+stable, I'll apply this as a fix.
 
-Changes from v2:
-* Fixed Sergei comment to use of_property_read_u32 insted of of_get_property
+cheers
 
-Changes from v1:
-* made device_for_each_child() as a seperate patch
-* made all other minor fixes wrt typos and function renames
+--=20
+balbi
 
-This patch series is developed on:
-git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git dwc3
+--VpY0yS1BYpNZumir
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Kishon Vijay Abraham I (7):
-  usb: dwc3-omap: use device_for_each_child to handle child removal
-  usb: dwc3-omap: use of_platform API to create dwc3 core pdev
-  usb: dwc3-omap: use runtime API's to enable clocks
-  usb: dwc3-omap: Remove explicit writes to SYSCONFIG register
-  usb: dwc3-omap: Add an API to write to dwc mailbox
-  usb: dwc3-omap: Minor fixes to get dt working
-  usb: dwc3: core: add dt support for dwc3 core
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
- Documentation/devicetree/bindings/usb/dwc3.txt |   23 ++++
- drivers/usb/dwc3/core.c                        |   14 +-
- drivers/usb/dwc3/dwc3-omap.c                   |  172 +++++++++++++-----------
- include/linux/usb/dwc3-omap.h                  |   30 +++++
- 4 files changed, 162 insertions(+), 77 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/usb/dwc3.txt
- create mode 100644 include/linux/usb/dwc3-omap.h
+iQIcBAEBAgAGBQJQfA58AAoJEIaOsuA1yqREgdUP/iGdPGbySqLftmuUjEsk+u39
+AbrjAnGw6cHSOK5PQZWg9TtBsNKrbXlH0jkfcGVrFhSFW2RxdgxQdBxMHscn10wk
+A0Gubz3FHqVjEsM7dD2sV3BL0NcsDZmNYSr72VZfIX+aJ1nVAEi/kMDE4PUyDaE3
+SJeV2vH70BHbS4AQrRHy9fq/oM0zUhusqMQQK1POdt+ygUvha01VKFfLfqnegDdk
+IW48IfKDRmSe3gIeMEpQR7sjF3A7g/3ADSVDe62a8zADo80xpBsi76BazyCkS/5k
+soCZi4Pn8xak+NzjyvW6USzi3xaHgmHzyDzQfqVQMxSNYH8beeRtk+nklye9T9wU
+U9OpFE4Il9w6CGQqLbB4T3VUOPvm1CWVXhuXD/+4ibjaW4M3W/zDdt64oYmMAM3j
+Qd0hSaQSC7H65atznvC5ap7bu/w2A/O+CL3l2ovctAggkNdU5j+NaVOb9cdZnEcN
+s20HhEn/Hi76jdpQ5qUKbWBLFa9vK3cRBffv5thRdGd2t1nrcgGJIPKqRNv9P53K
+wJPNk6fV2xOXTPUtG02AO8kGNGTMwJMmKmRvGlC9iLTmLXiydOOCs6HpKx8aDz2x
+HACqFlKHJByt/ivXxT52du4Jwo7NDiMDHtNnJtnrfo9FlRWw63JD6VigOWLEj+iG
+D47nZekJ2cIMKrO7uZn0
+=WpAT
+-----END PGP SIGNATURE-----
 
--- 
-1.7.9.5
+--VpY0yS1BYpNZumir--
