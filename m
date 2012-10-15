@@ -1,118 +1,95 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] usb: dwc3: Add the suspend/resume functionality
-Date: Mon, 15 Oct 2012 15:09:43 +0300
-Message-ID: <20121015120943.GG24333@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 2/3] usb: xhci: Add the suspend/resume functionality
+Date: Mon, 15 Oct 2012 15:10:40 +0300
+Message-ID: <20121015121040.GH24333@arwen.pp.htv.fi>
 References: <1350133825-24181-1-git-send-email-vikas.sajjan@linaro.org>
- <1350133825-24181-2-git-send-email-vikas.sajjan@linaro.org>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1350133825-24181-3-git-send-email-vikas.sajjan@linaro.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="O8XZ+2Hy8Kj8wLPZ"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="Q6STzHxy03qt/hK9"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60267 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752262Ab2JOMQK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Oct 2012 08:16:10 -0400
 Content-Disposition: inline
-In-Reply-To: <1350133825-24181-2-git-send-email-vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, joshi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1350133825-24181-3-git-send-email-vikas.sajjan@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, balbi@ti.com, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Doug Anderson <dianders@chromium.org>
 
---O8XZ+2Hy8Kj8wLPZ
+--Q6STzHxy03qt/hK9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 13, 2012 at 06:40:23PM +0530, Vikas Sajjan wrote:
-> Adding the suspend and resume funtionality to DWC3 core.
+On Sat, Oct 13, 2012 at 06:40:24PM +0530, Vikas Sajjan wrote:
+> Adding the suspend and resume functionality for the XHCI driver
 
-typo -> functionality.
+please do better on your commit log.
 
-Also this is quite lame as a commit log. I'm sure you can do better than
-this.
-
-> Signed-off-by: Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Vikas C Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> CC: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+> Signed-off-by: Abhilash Kesavan <a.kesavan@samsung.com>
+> Signed-off-by: Vikas C Sajjan <vikas.sajjan@linaro.org>
+> CC: Doug Anderson <dianders@chromium.org>
 > ---
->  drivers/usb/dwc3/core.c |   54 +++++++++++++++++++++++++++++++++++++++++=
-++++++
->  1 files changed, 54 insertions(+), 0 deletions(-)
+>  drivers/usb/host/xhci-plat.c |   33 +++++++++++++++++++++++++++++++++
+>  1 files changed, 33 insertions(+), 0 deletions(-)
 >=20
-> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> index b415c0c..0699061 100644
-> --- a/drivers/usb/dwc3/core.c
-> +++ b/drivers/usb/dwc3/core.c
-> @@ -622,11 +622,65 @@ static int __devexit dwc3_remove(struct platform_de=
-vice *pdev)
+> diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+> index df90fe5..15c7c89 100644
+> --- a/drivers/usb/host/xhci-plat.c
+> +++ b/drivers/usb/host/xhci-plat.c
+> @@ -185,11 +185,44 @@ static int xhci_plat_remove(struct platform_device =
+*dev)
 >  	return 0;
 >  }
 > =20
 > +#ifdef CONFIG_PM
-> +static int dwc3_resume(struct device *dev)
+> +static int xhci_plat_suspend(struct device *dev)
 > +{
-> +	struct dwc3	*dwc =3D dev_get_drvdata(dev);
-> +	int	ret;
+> +	struct usb_hcd	*hcd	=3D dev_get_drvdata(dev);
+> +	struct xhci_hcd	*xhci	=3D hcd_to_xhci(hcd);
 > +
-> +	usb_phy_init(dwc->usb2_phy);
-> +	usb_phy_init(dwc->usb3_phy);
+> +	/* Make sure that the HCD Core has set state to HC_STATE_SUSPENDED */
+> +	if (hcd->state !=3D HC_STATE_SUSPENDED ||
+> +		xhci->shared_hcd->state !=3D HC_STATE_SUSPENDED)
+> +		return -EINVAL;
 > +
-> +	ret =3D dwc3_event_buffers_setup(dwc);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	switch (dwc->mode) {
-> +	case DWC3_MODE_DEVICE:
-> +		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
-> +		break;
-> +	case DWC3_MODE_HOST:
-> +		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
-> +		break;
-> +	case DWC3_MODE_DRD:
-> +		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
-> +	}
-
-this is wrong. You should be calling dwc3_core_init(). Databook is very
-clear that we _must_ use a softreset to make sure PHY and DWC3 are in
-sync, otherwise some rather difficult-to-debug bugs might show up.
-
-> +
-> +	/* runtime set active to reflect active state. */
-> +	pm_runtime_disable(dev);
-> +	pm_runtime_set_active(dev);
-> +	pm_runtime_enable(dev);
-> +
-> +	return 0;
+> +	return xhci_suspend(xhci);
 > +}
 > +
-> +static int dwc3_suspend(struct device *dev)
+> +static int xhci_plat_resume(struct device *dev)
 > +{
-> +	struct dwc3	*dwc =3D dev_get_drvdata(dev);
+> +	struct usb_hcd	*hcdi	=3D dev_get_drvdata(dev);
+> +	struct xhci_hcd	*xhci	=3D hcd_to_xhci(hcd);
 > +
-> +	dwc3_event_buffers_cleanup(dwc);
-> +
-> +	usb_phy_shutdown(dwc->usb2_phy);
-> +	usb_phy_shutdown(dwc->usb3_phy);
-> +
-> +	return 0;
+> +	return xhci_resume(xhci, 0);
 > +}
 > +
-> +static const struct dev_pm_ops dwc3_pm_ops =3D {
-> +	.suspend		=3D dwc3_suspend,
-> +	.resume			=3D dwc3_resume,
+> +static const struct dev_pm_ops xhci_plat_pm_ops =3D {
+> +	.suspend		=3D xhci_plat_suspend,
+> +	.resume			=3D xhci_plat_resume,
+
+I believe you should be using SET_SYSTEM_PM_SLEEP_PM_OPS()
+
 > +};
-> +#define DWC3_PM_OPS     &(dwc3_pm_ops)
-> +#else
-> +#define DWC3_PM_OPS     NULL
-> +#endif /* CONFIG_PM */
 > +
->  static struct platform_driver dwc3_driver =3D {
->  	.probe		=3D dwc3_probe,
->  	.remove		=3D __devexit_p(dwc3_remove),
->  	.driver		=3D {
->  		.name	=3D "dwc3",
-> +		.pm =3D DWC3_PM_OPS,
+> +#define XHCI_PLAT_PM_OPS        (&xhci_plat_pm_ops)
+> +#else
+> +#define XHCI_PLAT_PM_OPS        NULL
+> +#endif
+> +
+>  static struct platform_driver usb_xhci_driver =3D {
+>  	.probe	=3D xhci_plat_probe,
+>  	.remove	=3D xhci_plat_remove,
+>  	.driver	=3D {
+>  		.name =3D "xhci-hcd",
+> +		.pm =3D XHCI_PLAT_PM_OPS,
 >  	},
 >  };
-> =20
+>  MODULE_ALIAS("platform:xhci-hcd");
 > --=20
 > 1.7.6.5
 >=20
@@ -120,30 +97,26 @@ sync, otherwise some rather difficult-to-debug bugs might show up.
 --=20
 balbi
 
---O8XZ+2Hy8Kj8wLPZ
+--Q6STzHxy03qt/hK9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQe/0HAAoJEIaOsuA1yqRET24P/2YLuZruuf4FA/Yz3SKJ7GSn
-4FyCIUOdJ7JhftDwtzEGuTG2+j+G2s25+2Ns1VQTtNlrnbjzWdTNUj1uqyoENl8q
-+8IH8Vgve2+LLuTHbEgqBSle3nSVESABFDHYtAD4O/Me6VRev5Rqr8M3E1Z1HXsS
-fU4FuroNzAb+lzXmNv5VC7rB/xjXWtUJxtazTcXIyXe2F6ZTA8Wxo9ZCqjNqPw2l
-t0b0E0xO+s79EEUK+yTgFsZZvjZT2MO3s4RVIV132OnZfa+LJBBh7XhbdW/Knpac
-gb4VEN/zENAKXQ0s/kSaUF9LTti13ZexFD8eMi5JHwffq7XdD8NMLJdmD/D6dmRZ
-ZZcWRoQAzKRHQwcb1pEPjZYQfkvIDyaJoYoI7j+xau3X+ruB66kT3RQOeoj+3SlT
-tUm0D5NrsvO3ZkJB+gXQvi7IL/RLgQ6qmZ7w983UK/HhbIrwd+iqLSeAtlDoLRc/
-5LjBUh3tCMbhH/oKWlG3gvGURt5hJQPR8sbTg+4LyKPdNDqgVsUxj/nJ5MRddZN4
-WRaiUUDLzi6BDW1MzP8IUOcuU3nhyeBan3ie8mG60hBipno1QBevYVQml7EKERq4
-9afw3PrssHxMrLDF2CZ9dw4R52WCkPLCwt/kzwkF9fGnyA7h5FnB+ikG2DgPQo14
-c180zz+3QRn0AL1LYx6X
-=qRc3
+iQIcBAEBAgAGBQJQe/1AAAoJEIaOsuA1yqREJeoP/3h4DFsBEI//sFRQ44ixd2IZ
+7DTAHE/vvO+XVT4Z+CRE8agsG3rQSPqqXNt6yOtUMIrbx2HtWwnvHF8kAdoWjx0t
+Ar6I7ZyrWgNKeyO1cVCPksMiaEvqbS79DvBfEkvsK1jXefTHVoos8YdGQ96uRw3Q
+ZkjSToZ3MeZptGFftqIWIA05MaJwKdxa6F7VvZoQIhrErJtAlDyJV6PkJXHqEB8h
+ezmw3m9E6XXDCD6EObwyQ54BPUVS4ESbFFCZf85kPGLPmMDz3jU76q0TJwRLNLVY
+LtuXhwwI1MVlHya3KKRmJizXcNzQJ3aGO/q8quYTMJ7aZdAHX+MG0wZhahYzsNGB
+ls4Bz7ENaNtrT3fQIzbz4azL41qpzFjT7xnF92ExD7nYLRaDmd2lxehmxMhFFvKw
+qr5yYyGn3YwwjzYdKx3Ygqn07Ic0ENPLMcDGK77Pg/Dy9HjkPYQ9MuBIyc/cecJq
+yWJTm2jP9jD39DWyH7ZgPLSuB5Nrik4P8TNgVbfJcu+Rxo03OdfomlbcM1pkwcoz
+cSGuOlx+1AbX6SKYq7CwzguyydHsE+IcILn5BnI0BqBpi4a/h2WOQQDPkVUsSrQb
+7hxe2vCjfEwM3DkYZt2ee294KxmhQFksj95U66n4DpesDeYdcwBdEsOi2VE7RlMC
+XZElTU9VCP6242qeEfJT
+=xCRH
 -----END PGP SIGNATURE-----
 
---O8XZ+2Hy8Kj8wLPZ--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Q6STzHxy03qt/hK9--
