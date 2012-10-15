@@ -1,59 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] OMAP-GPMC generic timing migration
-Date: Mon, 15 Oct 2012 09:01:55 -0700
-Message-ID: <20121015160154.GB15569@atomide.com>
-References: <cover.1349450723.git.afzal@ti.com>
- <5076B166.2020006@gmail.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9FBC41@DBDE01.ent.ti.com>
- <20121011144756.GB12552@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9FCEC9@DBDE01.ent.ti.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: [PATCH 1/4] MMC: omap_hsmmc: claim pinctrl at probe time
+Date: Mon, 15 Oct 2012 21:35:05 +0530
+Message-ID: <1350317108-10657-1-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20867 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753014Ab2JOQCC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 12:02:02 -0400
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9FCEC9@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, cjb@laptop.org
+Cc: linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>, Venkatraman S <svenkatr@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, David Woodhouse <David.Woodhouse@intel.com>
 
-* Mohammed, Afzal <afzal@ti.com> [121015 05:42]:
-> Hi Tony,
-> 
-> On Thu, Oct 11, 2012 at 20:17:56, Tony Lindgren wrote:
-> > * Mohammed, Afzal <afzal@ti.com> [121011 05:48]:
-> 
-> > After -rc1 is out, let's plan on adding the minimal
-> > set required for removing plat and mach includes from
-> > drivers into a clean-up branch. Afzal, can you maybe
-> > do a pull request for that set against -rc1 when it's
-> > out? Just the minimal set of patches.
-> 
-> Pull request on gpmc cleanup for common ARM zImage has
-> been sent.
+From: Daniel Mack <zonque@gmail.com>
 
-Thanks.
+This allows DT-driven board to set up the pin mux only when the driver
+is in use.
+
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Cc: Venkatraman S <svenkatr@ti.com>
+Cc: Chris Ball <cjb@laptop.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-omap@vger.kernel.org
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Venkatraman S <svenkatr@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 54bfd0c..01eeeae 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -37,6 +37,7 @@
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/pinctrl/consumer.h>
+ #include <linux/pm_runtime.h>
+ #include <mach/hardware.h>
+ #include <plat/mmc.h>
+@@ -1720,6 +1721,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 	const struct of_device_id *match;
+ 	dma_cap_mask_t mask;
+ 	unsigned tx_req, rx_req;
++	struct pinctrl *pinctrl;
  
-> > Yes, then please do a second pull request for what's needed
-> > to apply the minimal DT bindings. For the DT binding, let's
-> > just leave out the timings for now as we can load those from
-> > auxdata. Then the binding for the timings can be added
-> > later on. So just the minimal binding using standard features
-> > for the iorange and interrupt.
-> 
-> Ok, I will keep timings aside for now and proceed with DT
-> (avoiding auxdata usage with generic routine looked to me a
-> saner approach though, with an initial DT'fy delay)
+ 	match = of_match_device(of_match_ptr(omap_mmc_of_match), &pdev->dev);
+ 	if (match) {
+@@ -1923,6 +1925,11 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 
+ 	omap_hsmmc_disable_irq(host);
+ 
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(&pdev->dev,
++			"pins are not configured from the driver\n");
++
+ 	omap_hsmmc_protect_card(host);
+ 
+ 	mmc_add_host(mmc);
+-- 
+1.7.11.1.25.g0e18bef
 
-Oh well if you think it's easier to do the timings too in
-the DT binding, please go ahead with that. It may take some
-longer discussion on the lists for the binding though. But
-up to you.
-
-Regards,
-
-Tony
