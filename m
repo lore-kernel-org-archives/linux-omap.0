@@ -1,80 +1,62 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: hwmod data: gpmc main clk
-Date: Mon, 15 Oct 2012 12:00:42 +0200
-Message-ID: <507BDECA.20101@ti.com>
-References: <1350280063-27422-1-git-send-email-afzal@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
+Date: Mon, 15 Oct 2012 15:41:56 +0530
+Message-ID: <CAM=Q2cuJ-0VSgkBme_Cg8YD2cBG5NZcO6aBeTsPZ_PQGMwJ=bw@mail.gmail.com>
+References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+	<87ipag90om.fsf@deeprootsystems.com>
+	<902E09E6452B0E43903E4F2D568737AB2C87B0@DNCE04.ent.ti.com>
+	<87d30n7o9q.fsf@deeprootsystems.com>
+	<902E09E6452B0E43903E4F2D568737AB2C8C9F@DNCE04.ent.ti.com>
+	<1350282068.17145.42.camel@kj-X230>
+	<1350292602.17145.63.camel@kj-X230>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56411 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751727Ab2JOKAz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Oct 2012 06:00:55 -0400
-In-Reply-To: <1350280063-27422-1-git-send-email-afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1350292602.17145.63.camel@kj-X230>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
+Cc: "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Datta, Shubhrajyoti" <shubhrajyoti-l0cyMroinI0@public.gmane.org>, "Kankroliwala, Huzefa" <huzefank-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Afzal,
+On Mon, Oct 15, 2012 at 2:46 PM, Kalle Jokiniemi
+<kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> wrote:
+> ma, 2012-10-15 kello 09:21 +0300, Kalle Jokiniemi kirjoitti:
+>> Hi,
+>>
+>> pe, 2012-10-12 kello 14:46 +0000, Strashko, Grygorii kirjoitti:
+>> > Hi Kevin,
+>> >
+>> > yep, [1] is the same fix - thanks.
+>> >
+>> > Hi Kalle,
+>> >
+>> > i've applied these changes and PM runtime fix on top of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git (omap2plus_defconfig)
+>> > Could you check it with your use case, pls? (just to be sure that idea is right)
+>>
+>> Odd, it's not working. I'll add some debug prints to see what happens
+>> there.
+>
+> Well, seems after enabling irq 23 in the resume_noirq, someone does
+> i2c_xfer and there is consequent flood of i2c_xfers and interrupts.
+If there is continuous xfers, you could enable debug LL and see who is
+queuing the
+transfers.
 
-On 10/15/2012 07:47 AM, Afzal Mohammed wrote:
-> gpmc has been converted to a driver. It requests clock with
-> con-id "fck", if not available, probe fails. Clock for gpmc
-> device with con-id "fck" is created (aliased) along with
-> hwmod device, and for that to happen, main_clk needs to be
-> specified in hwmod entry, add it for OMAP4.
+>
+> Not sure now how these IRQ numbers get mapped these days, my debug print
+> says it's irq number 72 (UART1 from TRM) that is flooding (although it's
+> printed from the i2c-omap isr function, so it's still I2C bus irq...).
 
-Well, in this case, this is not the preferred way. The hwmod data are supposed to reflect the real HW capabilities.
-We'd better add the alias in the already existing dummy clock node.
+Can you do a cat /proc/interrupts
 
-Here is the patch to do that.
 
-Thanks,
-Benoit
-
----
-From: Benoit Cousson <b-cousson@ti.com>
-Date: Mon, 15 Oct 2012 11:41:42 +0200
-Subject: [PATCH] ARM: OMAP2+: clock data: Add dev-id for the omap-gpmc dummy fck
-
-The GPMC code has been converted to a driver by the following commit:
-
- commit da496873970c57c4b31e186d967933da0ffa0d7c
- Author: Afzal Mohammed <afzal@ti.com>
- Date:   Sun Sep 23 17:28:25 2012 -0600
-
-   ARM: OMAP2+: gpmc: minimal driver support
-
-It now requests a clock with con-id "fck" otherwise the probe will fails.
-
-[    0.342010] omap-gpmc omap-gpmc: error: clk_get
-[    0.346771] omap-gpmc: probe of omap-gpmc failed with error -2
-
-Add the "omap-gmpc" dev-id and fck con-id to the already existing
-gmpc-fck dummy clock.
-
-Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/mach-omap2/clock44xx_data.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index d661d13..6efc30c 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3294,7 +3294,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"auxclk5_src_ck",		&auxclk5_src_ck,	CK_443X),
- 	CLK(NULL,	"auxclk5_ck",			&auxclk5_ck,	CK_443X),
- 	CLK(NULL,	"auxclkreq5_ck",		&auxclkreq5_ck,	CK_443X),
--	CLK(NULL,	"gpmc_ck",			&dummy_ck,	CK_443X),
-+	CLK("omap-gpmc",	"fck",				&dummy_ck,	CK_443X),
- 	CLK("omap_i2c.1",	"ick",				&dummy_ck,	CK_443X),
- 	CLK("omap_i2c.2",	"ick",				&dummy_ck,	CK_443X),
- 	CLK("omap_i2c.3",	"ick",				&dummy_ck,	CK_443X),
--- 
-1.7.0.4
-
+>
+> The irq enabling (in resume_noirq) is still slightly progressing after
+> the flooding starts, but my watchdog kicks in before we get to the
+> finish.
+>
+> Attached my debug prints patch and log. I used also "no_console_suspend"
+> boot option.
+>
+> - Kalle
+>
