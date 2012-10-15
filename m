@@ -1,99 +1,209 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [GIT PULL] OMAP-GPMC related cleanup for common zImage
-Date: Mon, 15 Oct 2012 18:03:25 +0530
-Message-ID: <1350304405-14762-1-git-send-email-afzal@ti.com>
-References: <1350303247-13495-1-git-send-email-afzal@ti.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH] ARM: dts: Add am335x-evmsk.dts
+Date: Mon, 15 Oct 2012 18:05:39 +0530
+Message-ID: <1350304539-14933-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57941 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34659 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753055Ab2JOMdh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Oct 2012 08:33:37 -0400
-In-Reply-To: <1350303247-13495-1-git-send-email-afzal@ti.com>
+	id S1752262Ab2JOMfp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Oct 2012 08:35:45 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, David Woodhouse <David.Woodhouse@intel.com>, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
+To: tony@atomide.com
+Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
 
-The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
+Add AM335X EVM-SK device tree source (am335x-sk.dts) file to use
+the am33xx.dtsi SoC file, along with the memory node information.
 
-  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
+Also adds support for tps65910 regulator and lis331dlh accelerometer.
+Following drivers/functionality were tested on AM335x-EVM-SK.
+* I2C
+* TPS65910 regulators
+* lis331dlh accelerometer
 
-are available in the git repository at:
+AM335x EVM Starter Kit details can be accessed from:
+http://www.ti.com/tool/tmdssk3358
 
-  git://gitorious.org/x0148406-public/linux-kernel.git tags/gpmc-czimage
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ arch/arm/boot/dts/am335x-evmsk.dts |  166 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 166 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-evmsk.dts
 
-for you to fetch changes up to 3ef5d0071cf6c8b9a00b559232bb700ad59999d7:
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+new file mode 100644
+index 0000000..6f53879
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -0,0 +1,166 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * AM335x Starter Kit
++ * http://www.ti.com/tool/tmdssk3358
++ */
++
++/dts-v1/;
++
++/include/ "am33xx.dtsi"
++
++/ {
++	model = "TI AM335x EVM-SK";
++	compatible = "ti,am335x-evmsk", "ti,am33xx";
++
++	cpus {
++		cpu@0 {
++			cpu0-supply = <&vdd1_reg>;
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++	ocp {
++		uart1: serial@44e09000 {
++			status = "okay";
++		};
++
++		i2c1: i2c@44e0b000 {
++			status = "okay";
++			clock-frequency = <400000>;
++
++			tps: tps@2d {
++				reg = <0x2d>;
++			};
++
++			lis331dlh: lis331dlh@18 {
++				compatible = "st,lis331dlh", "st,lis3lv02d";
++				reg = <0x18>;
++				Vdd-supply = <&lis3_reg>;
++				Vdd_IO-supply = <&lis3_reg>;
++
++				st,click-single-x;
++				st,click-single-y;
++				st,click-single-z;
++				st,click-thresh-x = <10>;
++				st,click-thresh-y = <10>;
++				st,click-thresh-z = <10>;
++				st,irq1-click;
++				st,irq2-click;
++				st,wakeup-x-lo;
++				st,wakeup-x-hi;
++				st,wakeup-y-lo;
++				st,wakeup-y-hi;
++				st,wakeup-z-lo;
++				st,wakeup-z-hi;
++				st,min-limit-x = <120>;
++				st,min-limit-y = <120>;
++				st,min-limit-z = <140>;
++				st,max-limit-x = <550>;
++				st,max-limit-y = <550>;
++				st,max-limit-z = <750>;
++			};
++		};
++	};
++
++	vbat: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vbat";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		regulator-boot-on;
++	};
++
++	lis3_reg: fixedregulator@1 {
++		compatible = "regulator-fixed";
++		regulator-name = "lis3_reg";
++		regulator-boot-on;
++	};
++};
++
++/include/ "tps65910.dtsi"
++
++&tps {
++	vcc1-supply = <&vbat>;
++	vcc2-supply = <&vbat>;
++	vcc3-supply = <&vbat>;
++	vcc4-supply = <&vbat>;
++	vcc5-supply = <&vbat>;
++	vcc6-supply = <&vbat>;
++	vcc7-supply = <&vbat>;
++	vccio-supply = <&vbat>;
++
++	regulators {
++		vrtc_reg: regulator@0 {
++			regulator-always-on;
++		};
++
++		vio_reg: regulator@1 {
++			regulator-always-on;
++		};
++
++		vdd1_reg: regulator@2 {
++			/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
++			regulator-name = "vdd_mpu";
++			regulator-min-microvolt = <912500>;
++			regulator-max-microvolt = <1312500>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd2_reg: regulator@3 {
++			/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
++			regulator-name = "vdd_core";
++			regulator-min-microvolt = <912500>;
++			regulator-max-microvolt = <1150000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd3_reg: regulator@4 {
++			regulator-always-on;
++		};
++
++		vdig1_reg: regulator@5 {
++			regulator-always-on;
++		};
++
++		vdig2_reg: regulator@6 {
++			regulator-always-on;
++		};
++
++		vpll_reg: regulator@7 {
++			regulator-always-on;
++		};
++
++		vdac_reg: regulator@8 {
++			regulator-always-on;
++		};
++
++		vaux1_reg: regulator@9 {
++			regulator-always-on;
++		};
++
++		vaux2_reg: regulator@10 {
++			regulator-always-on;
++		};
++
++		vaux33_reg: regulator@11 {
++			regulator-always-on;
++		};
++
++		vmmc_reg: regulator@12 {
++			regulator-always-on;
++		};
++	};
++};
+-- 
+1.7.9.5
 
-  ARM: OMAP2+: gpmc: localize gpmc header (2012-10-15 14:42:15 +0530)
-
-----------------------------------------------------------------
-gpmc cleanup for common ARM zImage
-
-----------------------------------------------------------------
-Afzal Mohammed (16):
-      ARM: OMAP2+: nand: unify init functions
-      ARM: OMAP2+: onenand: refactor for clarity
-      ARM: OMAP2+: gpmc: remove cs# in sync clk div calc
-      mtd: onenand: omap: cleanup gpmc dependency
-      mtd: nand: omap: free region as per resource size
-      mtd: nand: omap: read nand using register address
-      ARM: OMAP2+: onenand: connected soc info in pdata
-      mtd: onenand: omap: use pdata info instead of cpu_is
-      ARM: OMAP2+: onenand: header cleanup
-      ARM: OMAP2+: nand: header cleanup
-      mtd: nand: omap: bring in gpmc nand macros
-      ARM: OMAP2+: nand: bch capability check
-      ARM: OMAP2+: gpmc: nand register helper bch update
-      mtd: nand: omap: handle gpmc bch[48]
-      ARM: OMAP2+: gpmc: remove exported nand functions
-      ARM: OMAP2+: gpmc: localize gpmc header
-
-Jon Hunter (1):
-      ARM: OMAP2+: GPMC: Remove unused OneNAND get_freq() platform function
-
- arch/arm/mach-omap2/board-2430sdp.c                |   2 +-
- arch/arm/mach-omap2/board-3430sdp.c                |   2 +-
- arch/arm/mach-omap2/board-apollon.c                |   2 +-
- arch/arm/mach-omap2/board-cm-t35.c                 |   5 +-
- arch/arm/mach-omap2/board-cm-t3517.c               |   5 +-
- arch/arm/mach-omap2/board-devkit8000.c             |  10 +-
- arch/arm/mach-omap2/board-flash.c                  |  50 +--
- arch/arm/mach-omap2/board-flash.h                  |   8 +-
- arch/arm/mach-omap2/board-h4.c                     |   2 +-
- arch/arm/mach-omap2/board-igep0020.c               |   5 +-
- arch/arm/mach-omap2/board-ldp.c                    |   6 +-
- arch/arm/mach-omap2/board-n8x0.c                   |   1 +
- arch/arm/mach-omap2/board-omap3beagle.c            |  10 +-
- arch/arm/mach-omap2/board-omap3evm.c               |   8 +-
- arch/arm/mach-omap2/board-omap3logic.c             |   2 +-
- arch/arm/mach-omap2/board-omap3pandora.c           |   3 +-
- arch/arm/mach-omap2/board-omap3stalker.c           |   2 +-
- arch/arm/mach-omap2/board-omap3touchbook.c         |  10 +-
- arch/arm/mach-omap2/board-overo.c                  |   9 +-
- arch/arm/mach-omap2/board-rm680.c                  |   3 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c       |   3 +-
- arch/arm/mach-omap2/board-rx51.c                   |   2 +-
- arch/arm/mach-omap2/board-zoom-debugboard.c        |   2 +-
- arch/arm/mach-omap2/board-zoom.c                   |   5 +-
- arch/arm/mach-omap2/common-board-devices.c         |  46 ---
- arch/arm/mach-omap2/common-board-devices.h         |   1 -
- arch/arm/mach-omap2/gpmc-nand.c                    |  85 ++--
- arch/arm/mach-omap2/gpmc-nand.h                    |  27 ++
- arch/arm/mach-omap2/gpmc-onenand.c                 | 214 +++++-----
- arch/arm/mach-omap2/gpmc-onenand.h                 |  24 ++
- arch/arm/mach-omap2/gpmc-smc91x.c                  |   2 +-
- arch/arm/mach-omap2/gpmc-smsc911x.c                |   2 +-
- arch/arm/mach-omap2/gpmc.c                         | 459 +--------------------
- .../{plat-omap/include/plat => mach-omap2}/gpmc.h  |  61 +--
- arch/arm/mach-omap2/pm34xx.c                       |   2 +-
- arch/arm/mach-omap2/usb-tusb6010.c                 |   2 +-
- drivers/mtd/nand/omap2.c                           | 125 +++++-
- drivers/mtd/onenand/omap2.c                        |   9 +-
- include/linux/platform_data/mtd-nand-omap2.h       |  46 ++-
- include/linux/platform_data/mtd-onenand-omap2.h    |  28 +-
- 40 files changed, 493 insertions(+), 797 deletions(-)
- create mode 100644 arch/arm/mach-omap2/gpmc-nand.h
- create mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/gpmc.h (67%)
