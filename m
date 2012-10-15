@@ -1,109 +1,218 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@jollamobile.com>
-Subject: Re: [PATCH] i2c: omap: fix spurious IRQs: disable/enable IRQ at
- INTC when idle
-Date: Mon, 15 Oct 2012 09:25:37 +0300
-Message-ID: <1350282337.17145.45.camel@kj-X230>
-References: <1350067225-24589-1-git-send-email-khilman@deeprootsystems.com>
-	 <CAM=Q2csm0Eh9F6d1wKhEfOOtG+aY+Fh8D-dKPC0RMbKupVQHYQ@mail.gmail.com>
-Reply-To: kalle.jokiniemi@jolla.com
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] i2c: omap: revert "i2c: omap: switch to threaded IRQ
+ support"
+Date: Mon, 15 Oct 2012 10:16:57 +0300
+Message-ID: <20121015071657.GA22818@arwen.pp.htv.fi>
+References: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp170.iad.emailsrvr.com ([207.97.245.170]:46027 "EHLO
-	smtp170.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892Ab2JOGZk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 02:25:40 -0400
-In-Reply-To: <CAM=Q2csm0Eh9F6d1wKhEfOOtG+aY+Fh8D-dKPC0RMbKupVQHYQ@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54599 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262Ab2JOHWo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 03:22:44 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-i2c@vger.kernel.org, Wolfram Sang <w.sang@pengutronix.de>, linux-omap@vger.kernel.org, Grygorii Strashko <grygorii.strashko@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Huzefa Kankroliwala <huzefank@ti.com>, Nishanth Menon <nm@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-i2c@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>, Wolfram Sang <w.sang@pengutronix.de>, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-la, 2012-10-13 kello 01:00 +0530, Shubhrajyoti Datta kirjoitti:
-> On Sat, Oct 13, 2012 at 12:10 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
-> > From: Kevin Hilman <khilman@ti.com>
-> >
-> > Currently, runtime PM is used to keep the device enabled only during
-> > active transfers and for a configurable runtime PM autosuspend timout
-> > after an xfer.
-> >
-> > In addition to idling the device, driver's ->runtime_suspend() method
-> > currently disables device interrupts when idle.  However, on some SoCs
-> > (notably OMAP4+), the I2C hardware may shared with other coprocessors.
-> > This means that the MPU will still recieve interrupts if a coprocessor
-> > is using the I2C device.  To avoid this, also disable interrupts at
-> > the MPU INTC when idling the device in ->runtime_suspend() (and
-> > re-enable them in ->runtime_resume().)  This part based on an original
-> > patch from Shubhrajyoti Datta.  NOTE: for proper sharing the I2C with
-> > a coprocessor, this driver still needs hwspinlock support added.
-> >
-> > This change is also meant to address an issue reported by Kalle
-> > Jokiniemi where I2C bus interrupt may be enabled before an I2C device
-> > interrupt handler (e.g. just after noirq resume phase) causing an
+On Mon, Oct 15, 2012 at 01:51:08AM +0000, Paul Walmsley wrote:
+>=20
+> Commit 3b2f8f82dad7d1f79cdc8fc05bd1c94baf109bde ("i2c: omap: switch to
+> threaded IRQ support") causes communication with I2C devices to fail
+> after system suspend/resume on all OMAP3 devices:
+>=20
+> ...
+> [   40.228576] PM: noirq resume of devices complete after 3.723 msecs
+> [   40.233184] PM: early resume of devices complete after 3.173 msecs
+> [   40.242736] [sched_delayed] sched: RT throttling activated
+> [   41.235046] omap_i2c omap_i2c.1: controller timed out
 
-It is actually in middle of resume_noirq.
+instead of just reverting the patch, I'd rather try to figure out why
+controller times out in that situation.
 
-> > interrupt flood on the I2C bus interrupt before the device interrupt
-> > is enabled (e.g. interrupts coming from devices on I2C connected PMIC
-> > before the PMIC chained hanlder is enabled.)  This problem is addresed
-> > by ensuring that the I2C bus interrupt left disabled until an I2C xfer
-> > is requested.
-> 
-> Looks good to me.
-> Will wait for Kalle though.
+It should make no difference if you're running an IRQ thread or not.
 
-Does not work for me :(
+Do you have any extra debugging information which might help figuring
+out what the issue really is ?
 
-As I said, the issue occurs for me when I enter static suspend (echo mem
-> /sys/power/autosleep or /sys/power/state). I don't think doing this
-just in runtime pm will fix my issue. Or do those handlers get run in
-the normal suspend path as well?
+If the thread is actually at fault, then we need to add IRQF_NO_THREAD
+to the IRQ flags, otherwise same issue will appear if we boot with
+"threadirqs" kernel parameter.
 
-- Kalle
+> [   41.235351] twl: i2c_read failed to transfer all messages
+> [   41.235382] omap_hsmmc omap_hsmmc.0: could not set regulator OCR (-110)
+> [   41.396453] mmc0: error -110 during resume (card was removed?)
+> [   42.391754] omap_i2c omap_i2c.1: controller timed out
+> [   42.391876] twl: i2c_write failed to transfer all messages
+> [   42.391906] twl_rtc: Could not write TWLregister F - error -110
+> [   43.391326] omap_i2c omap_i2c.1: controller timed out
+> [   43.391479] twl: i2c_read failed to transfer all messages
+> [   43.391510] twl_rtc: Could not read TWLregister D - error -110
+> [   43.391540] twl_rtc twl_rtc: twl_rtc_read_time: reading CTRL_REG, erro=
+r -110
+> [   43.392364] PM: resume of devices complete after 3158.935 msecs
+>=20
+> When the root filesystem is on MMC, as in the above example, the
+> card's voltage regulator is not re-enabled and the filesystem becomes
+> inaccessible after resume.
 
-> 
-> >
-> > Cc: Kalle Jokiniemi <kalle.jokiniemi@jollamobile.com>
-> > Cc: Grygorii Strashko <grygorii.strashko@ti.com>
-> > Cc: Shubhrajyoti Datta <shubhrajyoti@ti.com>,
-> > Cc: Huzefa Kankroliwala <huzefank@ti.com>
-> > Cc: Nishanth Menon <nm@ti.com>
-> > Signed-off-by: Kevin Hilman <khilman@ti.com>
-> > ---
-> >  drivers/i2c/busses/i2c-omap.c |    3 +++
-> >  1 file changed, 3 insertions(+)
-> >
-> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> > index db31eae..e6413e8 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -1255,6 +1255,7 @@ static int omap_i2c_runtime_suspend(struct device *dev)
-> >                 /* Flush posted write */
-> >                 omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
-> >         }
-> > +       disable_irq(_dev->irq);
-> >
-> >         return 0;
-> >  }
-> > @@ -1275,6 +1276,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
-> >                 omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-> >         }
-> >
-> > +       enable_irq(_dev->irq);
-> > +
-> >         /*
-> >          * Don't write to this register if the IE state is 0 as it can
-> >          * cause deadlock.
-> > --
-> > 1.7.9.2
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+but it fails because I2C times out and I'd like to understand why,
+before just reverting the patch.
 
+> Fix by reverting the conversion to a threaded IRQ handler.
+>=20
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
+> Cc: Wolfram Sang <w.sang@pengutronix.de>
+> Cc: Ben Dooks <ben-linux@fluff.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |   44 +++++++----------------------------=
+------
+>  1 file changed, 7 insertions(+), 37 deletions(-)
+>=20
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index db31eae..e001c2a 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -180,7 +180,6 @@ enum {
+>  #define I2C_OMAP_ERRATA_I462		(1 << 1)
+> =20
+>  struct omap_i2c_dev {
+> -	spinlock_t		lock;		/* IRQ synchronization */
+>  	struct device		*dev;
+>  	void __iomem		*base;		/* virtual */
+>  	int			irq;
+> @@ -865,35 +864,13 @@ static int omap_i2c_transmit_data(struct omap_i2c_d=
+ev *dev, u8 num_bytes,
+>  }
+> =20
+>  static irqreturn_t
+> -omap_i2c_isr(int irq, void *dev_id)
+> +omap_i2c_isr(int this_irq, void *dev_id)
+>  {
+>  	struct omap_i2c_dev *dev =3D dev_id;
+> -	irqreturn_t ret =3D IRQ_HANDLED;
+> -	u16 mask;
+> -	u16 stat;
+> -
+> -	spin_lock(&dev->lock);
+> -	mask =3D omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+> -	stat =3D omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+> -
+> -	if (stat & mask)
+> -		ret =3D IRQ_WAKE_THREAD;
+> -
+> -	spin_unlock(&dev->lock);
+> -
+> -	return ret;
+> -}
+> -
+> -static irqreturn_t
+> -omap_i2c_isr_thread(int this_irq, void *dev_id)
+> -{
+> -	struct omap_i2c_dev *dev =3D dev_id;
+> -	unsigned long flags;
+>  	u16 bits;
+>  	u16 stat;
+>  	int err =3D 0, count =3D 0;
+> =20
+> -	spin_lock_irqsave(&dev->lock, flags);
+>  	do {
+>  		bits =3D omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+>  		stat =3D omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+> @@ -907,7 +884,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+> =20
+>  		if (!stat) {
+>  			/* my work here is done */
+> -			goto out;
+> +			return IRQ_HANDLED;
+>  		}
+> =20
+>  		dev_dbg(dev->dev, "IRQ (ISR =3D 0x%04x)\n", stat);
+> @@ -1016,8 +993,6 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+>  	omap_i2c_complete_cmd(dev, err);
+> =20
+>  out:
+> -	spin_unlock_irqrestore(&dev->lock, flags);
+> -
+>  	return IRQ_HANDLED;
+>  }
+> =20
+> @@ -1062,6 +1037,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		pdev->dev.platform_data;
+>  	struct device_node	*node =3D pdev->dev.of_node;
+>  	const struct of_device_id *match;
+> +	irq_handler_t isr;
+>  	int irq;
+>  	int r;
+> =20
+> @@ -1110,8 +1086,6 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	dev->dev =3D &pdev->dev;
+>  	dev->irq =3D irq;
+> =20
+> -	spin_lock_init(&dev->lock);
+> -
+>  	platform_set_drvdata(pdev, dev);
+>  	init_completion(&dev->cmd_complete);
+> =20
+> @@ -1166,14 +1140,10 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	/* reset ASAP, clearing any IRQs */
+>  	omap_i2c_init(dev);
+> =20
+> -	if (dev->rev < OMAP_I2C_OMAP1_REV_2)
+> -		r =3D devm_request_irq(&pdev->dev, dev->irq, omap_i2c_omap1_isr,
+> -				IRQF_NO_SUSPEND, pdev->name, dev);
+> -	else
+> -		r =3D devm_request_threaded_irq(&pdev->dev, dev->irq,
+> -				omap_i2c_isr, omap_i2c_isr_thread,
+> -				IRQF_NO_SUSPEND | IRQF_ONESHOT,
+> -				pdev->name, dev);
+> +	isr =3D (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
+> +								   omap_i2c_isr;
+> +	r =3D devm_request_irq(&pdev->dev, dev->irq, isr, IRQF_NO_SUSPEND,
+> +			     pdev->name, dev);
+> =20
+>  	if (r) {
+>  		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
+> --=20
+> 1.7.10.4
 
+--=20
+balbi
+
+--MGYHOYXEY6WxJCY8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQe7hpAAoJEIaOsuA1yqRExcYQAK/nvzpgeDGdE82KKvBmmv2k
+aSpN5y9Tngw+c91QEHNs72Rh41uRoQgUuGuaSrj40mYi1oW05rTjd4eo9w5Srh9e
+LW2Qz4lokSs+7Wqi/0wacTM/XTgU8YaxfM7XbSo5yCmoL5hdjy+EXtAypkOsfxqj
+MUmz5htdcfSoPES6xKTP6mDNPykwwzEfopj0cPDzfQjl18eRNGd1fwVpvlx+gMtO
+PU/nwOvNYKWxz0mjme6KttljcYiATH1nTEqJTN/O3tT8GliCji4uReGynaNdUJto
+4u5HR3qPdpo2eEuEVCnokYP9UJHbAyfJEIaBUlXRIMuGf7lIEky+AGhayswqfVuw
+HHlUKQNCrLO2s6jIM9WgCHJq2abO1Wm5ufiAgsmE8z+o531IHuKDw06V+OnBdhL8
+EYGapaOmiSGUUuToBqZ3NEMjr+LrMdFWGpRBEVmJf1ETEfRGaoLBmPr+oofFFh31
+ldGYmvDMhI2FnCqbTlEQC0ek5WhgtkSpRmITl27tOo2vYydbDTF/rIdB1HOYeDDM
+UtFVBWCtVEsMkATXE8Gx+rnXrkiyIPfXeReqZXHcd1so3vViK8u0vob56KsIPQqC
+mJMuFwugu3oYkTywQgHVGIK+67hKxB2Xn+ywT4ODdnHXnXEgHoObnU1hSJGWbLAj
+H7ajr7/oBGN0XjXkoQeZ
+=3a2d
+-----END PGP SIGNATURE-----
+
+--MGYHOYXEY6WxJCY8--
