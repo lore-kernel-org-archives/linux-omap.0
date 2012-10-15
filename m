@@ -1,78 +1,108 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not suspended.
-Date: Mon, 15 Oct 2012 15:37:17 -0700
-Message-ID: <87391fs6oy.fsf@deeprootsystems.com>
-References: <20120925092118.GJ31374@n2100.arm.linux.org.uk>
-	<CAKdam57bpTJ94Gn=mKVw1Fm-76fVPp3DGjFuNu_HfesybM1hPg@mail.gmail.com>
-	<87ipas2y4h.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.1210111748010.5736@utopia.booyaka.com>
-	<50784458.9080806@ti.com> <877gqv7imt.fsf@deeprootsystems.com>
-	<20121012164202.GQ28061@n2100.arm.linux.org.uk>
-	<877gqv4lmt.fsf@deeprootsystems.com>
-	<20121012185426.GS28061@n2100.arm.linux.org.uk>
-	<87lifbwhwd.fsf@deeprootsystems.com>
-	<20121012215156.GL30339@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/5] ARM: OMAP2+: PRM/CM cleanup series for 3.8
+Date: Mon, 15 Oct 2012 17:05:38 -0600
+Message-ID: <20121015224455.18306.89030.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20121012215156.GL30339@atomide.com> (Tony Lindgren's message of
-	"Fri, 12 Oct 2012 14:51:56 -0700")
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Sourav <sourav.poddar@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:42498 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327Ab2JOXG4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 19:06:56 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Consolidate and remove some PRM/CM code in preparation for a future move
+into drivers/:
 
-> * Kevin Hilman <khilman@deeprootsystems.com> [121012 13:34]:
->>
->> I'm not conviced (yet) that a mismatch is the root cause.  Yes, that's
->> what the author of $SUBJECT patch assumed and stated, but I'm not
->> pursuaded.  
->> 
->> If it's an improperly configured mux issue, then the UART will break
->> whenever the device is actually omap_device_enable'd, whether in the
->> driver or in the bus layer.
->
-> I tried booting n800 here with CONFIG_OMAP_MUX disabled, and no
-> change. Serial console output stops right when the console initializes.
+- Remove some obsolete weak functions that allowed old OMAP4 code to
+  reference OMAP2/3 PRM functions
 
-OK, since it's not mux, and since those who actually maintain this
-driver don't seem to be taking care of this, I did some digging today.
+- Split many of the functions in prm2xxx_3xxx.c and cm2xxx_3xxx.c into
+  2xxx- and 3xxx-specific PRM/CM C files
 
-Russell is right.  It's a mismatch between assumed runtime PM state
-(disabled) and actual HW state.
+- Move low-level powerdomain and clockdomain register access into the
+  appropriate 2xxx- and 3xxx-specific PRM/CM files, and remove
+  {power,clock}domainXXXX.c
 
-During init, all omap_devices are idled by default, so that they are
-correctly in the state that the runtime PM framework will later expect
-them to be.  That is, all devices *except* the console UART.  For that
-one, we use the special hwmod flag to not idle/reset the UART since that
-will cause problems during earlyprintk usage, and the switch between
-the earlyprintk console and the real console driver.
+This series shouldn't have any functional impact.
 
-Since the console uart was left enabled during init, it needs to be
-fully enabled and the runtime PM status set accordingly.
 
-The patch below does this, and works fine on 2420/n810, as well as on
-3530/Overo, 3730/OveroSTORM, 3730/Beagle-XM and 4430/PandaES.
+- Paul
 
-Will send patch with a proper changelog shortly,
+---
 
-Kevin
+prm_cm_split_cleanup_3.8
+   text	   data	    bss	    dec	    hex	filename
+7515444	 696732	5613932	13826108	 d2f83c	vmlinux.omap2plus_defconfig.orig
+7515308	 696724	5613932	13825964	 d2f7ac	vmlinux.omap2plus_defconfig
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 0405c81..37b5dbe 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -327,6 +327,11 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 	if ((console_uart_id == bdata->id) && no_console_suspend)
- 		omap_device_disable_idle_on_suspend(pdev);
- 
-+	if (console_uart_id == bdata->id) {
-+		omap_device_enable(pdev);
-+		pm_runtime_set_active(&pdev->dev);
-+	}
-+
- 	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
- 
- 	oh->dev_attr = uart;
+Paul Walmsley (5):
+      ARM: OMAP2+: PRM: remove PRM weak functions
+      ARM: OMAP2+: PRM: split PRM functions into OMAP2, OMAP3-specific files
+      ARM: OMAP2+: powerdomain/PRM: move the low-level powerdomain functions into PRM
+      ARM: OMAP2+: CM/hwmod: split CM functions into OMAP2, OMAP3-specific files
+      ARM: OMAP2/3: clockdomain/PRM/CM: move the low-level clockdomain functions into PRM/CM
+
+
+ arch/arm/mach-omap2/Makefile               |  108 +++++----
+ arch/arm/mach-omap2/clkt2xxx_apll.c        |    2 
+ arch/arm/mach-omap2/clkt2xxx_dpll.c        |    2 
+ arch/arm/mach-omap2/clock.c                |    3 
+ arch/arm/mach-omap2/clock2420_data.c       |    2 
+ arch/arm/mach-omap2/clock2430.c            |    2 
+ arch/arm/mach-omap2/clock2430_data.c       |    2 
+ arch/arm/mach-omap2/clock34xx.c            |    2 
+ arch/arm/mach-omap2/clock3517.c            |    2 
+ arch/arm/mach-omap2/clock3xxx_data.c       |    2 
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |  339 ----------------------------
+ arch/arm/mach-omap2/clockdomain33xx.c      |   74 ------
+ arch/arm/mach-omap2/clockdomain44xx.c      |  151 ------------
+ arch/arm/mach-omap2/cm2xxx.c               |  253 +++++++++++++++++++++
+ arch/arm/mach-omap2/cm2xxx.h               |   68 ++++++
+ arch/arm/mach-omap2/cm2xxx_3xxx.h          |  118 +++-------
+ arch/arm/mach-omap2/cm33xx.c               |   56 +++++
+ arch/arm/mach-omap2/cm3xxx.c               |  303 ++++++++++++++-----------
+ arch/arm/mach-omap2/cm3xxx.h               |   86 +------
+ arch/arm/mach-omap2/cminst44xx.c           |  139 +++++++++++
+ arch/arm/mach-omap2/control.c              |    4 
+ arch/arm/mach-omap2/omap_hwmod.c           |   51 +++-
+ arch/arm/mach-omap2/pm24xx.c               |    4 
+ arch/arm/mach-omap2/pm34xx.c               |    5 
+ arch/arm/mach-omap2/powerdomain2xxx_3xxx.c |  242 --------------------
+ arch/arm/mach-omap2/powerdomain33xx.c      |  229 -------------------
+ arch/arm/mach-omap2/powerdomain44xx.c      |  285 ------------------------
+ arch/arm/mach-omap2/prm-regbits-24xx.h     |    2 
+ arch/arm/mach-omap2/prm-regbits-34xx.h     |    2 
+ arch/arm/mach-omap2/prm2xxx.c              |   57 +++++
+ arch/arm/mach-omap2/prm2xxx.h              |  128 +++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.c         |  332 +++++++++------------------
+ arch/arm/mach-omap2/prm2xxx_3xxx.h         |  275 ++++++-----------------
+ arch/arm/mach-omap2/prm33xx.c              |  202 +++++++++++++++++
+ arch/arm/mach-omap2/prm3xxx.c              |  268 ++++++++++------------
+ arch/arm/mach-omap2/prm3xxx.h              |  158 +++++++++++++
+ arch/arm/mach-omap2/prm44xx.c              |  275 ++++++++++++++++++++++-
+ arch/arm/mach-omap2/prm_common.c           |   62 -----
+ arch/arm/mach-omap2/sdrc2xxx.c             |    2 
+ arch/arm/mach-omap2/sleep34xx.S            |    4 
+ arch/arm/mach-omap2/sram242x.S             |    4 
+ arch/arm/mach-omap2/sram243x.S             |    4 
+ arch/arm/mach-omap2/sram34xx.S             |    2 
+ 43 files changed, 1973 insertions(+), 2338 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+ delete mode 100644 arch/arm/mach-omap2/clockdomain33xx.c
+ delete mode 100644 arch/arm/mach-omap2/clockdomain44xx.c
+ create mode 100644 arch/arm/mach-omap2/cm2xxx.c
+ create mode 100644 arch/arm/mach-omap2/cm2xxx.h
+ rename arch/arm/mach-omap2/{cm2xxx_3xxx.c => cm3xxx.c} (72%)
+ copy arch/arm/mach-omap2/{cm2xxx_3xxx.h => cm3xxx.h} (50%)
+ delete mode 100644 arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+ delete mode 100644 arch/arm/mach-omap2/powerdomain33xx.c
+ delete mode 100644 arch/arm/mach-omap2/powerdomain44xx.c
+ create mode 100644 arch/arm/mach-omap2/prm2xxx.c
+ create mode 100644 arch/arm/mach-omap2/prm2xxx.h
+ copy arch/arm/mach-omap2/{prm2xxx_3xxx.c => prm3xxx.c} (58%)
+ create mode 100644 arch/arm/mach-omap2/prm3xxx.h
+
