@@ -1,51 +1,85 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH 3/4] ARM: OMAP2: gpmc: Add support for BCH ECC scheme
-Date: Mon, 15 Oct 2012 20:48:30 +0200
-Message-ID: <87vcebvaf5.fsf@macbook.be.48ers.dk>
-References: <1349274589-11389-1-git-send-email-avinashphilip@ti.com>
-	<1349274589-11389-4-git-send-email-avinashphilip@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [balbi-usb:merge-result-for-greg 59/99]
+ webcam.c:(.text+0x14afec): undefined reference to `config_ep_by_speed'
+Date: Mon, 15 Oct 2012 22:18:13 +0300
+Message-ID: <20121015191813.GA373@arwen.pp.htv.fi>
+References: <20121012163902.GA19120@localhost>
+ <507BC000.10004@linutronix.de>
+ <20121015162914.GB32049@kroah.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:63287 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753157Ab2JOS5U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 14:57:20 -0400
-In-Reply-To: <1349274589-11389-4-git-send-email-avinashphilip@ti.com> (Avinash
-	Philip's message of "Wed, 3 Oct 2012 19:59:48 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20121015162914.GB32049-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, tony@atomide.com, afzal@ti.com, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
->>>>> Philip, Avinash <avinashphilip@ti.com> writes:
+--bp/iNruPH9dso1Pn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- > Add support for BCH ECC scheme to gpmc driver and also enabling multi
- > sector read/write. This helps in doing single shot NAND page read and
- > write.
+Hi,
 
- > ECC engine configurations
- > BCH 4 bit support
- > 1. write => ECC engine configured in wrap mode 6 and with ecc_size0 as 32.
- > 2. read  => ECC engine configured in wrap mode 1 and with ecc_size0 as
- > 13 and ecc_size1 as 1.
+On Mon, Oct 15, 2012 at 09:29:14AM -0700, Greg KH wrote:
+> On Mon, Oct 15, 2012 at 09:49:20AM +0200, Sebastian Andrzej Siewior wrote:
+> > On 10/12/2012 06:39 PM, Fengguang Wu wrote:
+> > >Hi Sebastian,
+> >=20
+> > Hi Fengguang,
+> >=20
+> > >FYI, kernel build failed on
+> > >
+> > >tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git me=
+rge-result-for-greg
+> > >head:   23953bde3e4d6aa8780dc054f6ad9882ac63f4f4
+> > >commit: 721e2e91945bc2520d57d795dfe1b502ecec567c [59/99] usb: gadget: =
+libcomposite: move composite.c into libcomposite
+> > >config: i386-randconfig-b199 (attached as .config)
+> > >
+> > >All error/warnings:
+> > >
+> > >drivers/built-in.o: In function `uvc_function_set_alt':
+> >=20
+> > Yes. I accidentally broke this and this still fails in 3.7-rc1. Greg
+> > has a patch for this in his tree ("usb: gadget: Make webcam gadget
+> > select USB_LIBCOMPOSITE") which fixes this.
+>=20
+> Yes, now queued up in my tree.
 
- > BCH 8 bit support
- > 1. write => ECC engine configured in wrap mode 6 and with ecc_size0 as 32.
- > 2. read  => ECC engine configured in wrap mode 1 and with ecc_size0 as
- > 26 and ecc_size1 as 2.
+thanks Greg ;-)
 
- > Note: For BCH8 ECC bytes set to 14 to make compatible with RBL.
+--=20
+balbi
 
-On what device? In the am335x TRM (spruh73f.pdf) figure 26-15 (pg 4273)
-the rom code is documented to not use any padding on the ECC bytes
-(E.G. oob 2..53):
+--bp/iNruPH9dso1Pn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-http://www.ti.com/litv/pdf/spruh73f
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-I see the driver in the u-boot-am33x tree (ti81xx_nand.c) seems to use
-4x14 bytes as well though, so perhaps that's a bug in the documentation
-instead?
+iQIcBAEBAgAGBQJQfGF1AAoJEIaOsuA1yqREx4MQAJAOAUdyJeU2A4MupQWNbDll
+uycD2PidBFWilMK8odkgQLd5O9H2Fx62XxoA8VjKfU1/HjD3fo5SE6HOv4mp0Av7
+Imb1rxOUcH1WE48p/RSD8d4x8eGlCAlE743nYthYFHaOiENDJnsjARlVrk5yj+h2
+EmHZ6RT5VSfIkAlLumd3llcN00JyXcVyDRINy4WTSmZv3WJgBRTKLO8YwEl2Kzav
+2mi6YZhzx57WQXJ9KsY5DM+8jiMBPWIXfrR2j+3AJNifK/j8HZZFG/BEN3s1SeME
+TZJYsXUtNA/gFeXQZBXg3wcYpK7sJOtSqLJ5t6laQp9p8vylinJH1sZeIVgDByS1
+bYaBjzFpHZSvg/3uH4wYOyzXEaqX9+rcFvzMa6SgGcitrOlWP1mAzgP7129HSntq
+x+pF07K228o92YXQHlym3iLsV8drAUy83dnFzxxYKNykIBndx6h2GWz/FMX9kS80
+BZVO7Jz2+J444/0OpDa4OU8xC+/lx629GrdS7GrjJeaHRdrUyNoQaJCZ0Dljs4g+
+3dRHo9lYvm9VqqG0PZB/UJ1aI9J5/owFm92+9lCLcPmyit7ZryOSIy5kQm4oXU6L
+DypR4EO/oNncLkeSY2ppVQ70C3KoSkyhSogGC0BeT2yelforP6wRvjBtEGT3G0zQ
+4hn6Hf2QGgohMAvoCFz8
+=sUyi
+-----END PGP SIGNATURE-----
 
--- 
-Bye, Peter Korsgaard
+--bp/iNruPH9dso1Pn--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
