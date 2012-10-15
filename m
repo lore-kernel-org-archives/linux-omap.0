@@ -1,8 +1,7 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 4/7] usb: dwc3-omap: Remove explicit writes to SYSCONFIG
- register
-Date: Mon, 15 Oct 2012 18:57:57 +0530
-Message-ID: <1350307680-24938-5-git-send-email-kishon@ti.com>
+Subject: [PATCH v4 7/7] usb: dwc3: core: add dt support for dwc3 core
+Date: Mon, 15 Oct 2012 18:58:00 +0530
+Message-ID: <1350307680-24938-8-git-send-email-kishon@ti.com>
 References: <1350307680-24938-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,58 +22,81 @@ To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/D
 Cc: sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The runtime API's takes care of setting the SYSCONFIG register with
-appropriate values. Hence explicit writes to SYSCONFIG register is
-removed.
+Added dwc3 support for dwc3 core and update the documentation with
+device tree binding information.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/dwc3/dwc3-omap.c |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ Documentation/devicetree/bindings/usb/dwc3.txt |   23 +++++++++++++++++++++++
+ drivers/usb/dwc3/core.c                        |   14 ++++++++++++--
+ 2 files changed, 35 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/dwc3.txt
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 1fdf7e2..edc7292 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -80,23 +80,6 @@
+diff --git a/Documentation/devicetree/bindings/usb/dwc3.txt b/Documentation/devicetree/bindings/usb/dwc3.txt
+new file mode 100644
+index 0000000..9ec9316
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/dwc3.txt
+@@ -0,0 +1,23 @@
++synopsys DWC3 CORE
++
++DWC3- USB3 CONTROLLER
++
++Required properties:
++ - compatible: must be "synopsys,dwc3"
++ - reg : Address and length of the register set for the device
++ - interrupts: Interrupts used by the dwc3 controller.
++ - interrupt-parent: the phandle for the interrupt controller that
++   services interrupts for this device.
++
++Optional properties:
++ - tx-fifo-resize: determines if the FIFO *has* to be reallocated.
++
++This is usually a subnode to DWC3 glue to which it is connected.
++
++dwc3@4a030000 {
++	compatible = "synopsys,dwc3";
++	reg = <0x4a030000 0xcfff>;
++	interrupts = <0 92 4>
++	interrupt-parent = <&gic>
++	tx-fifo-resize;
++};
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index b923183..c76d8e9 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -491,8 +491,7 @@ static int __devinit dwc3_probe(struct platform_device *pdev)
+ 	else
+ 		dwc->maximum_speed = DWC3_DCFG_SUPERSPEED;
  
- /* SYSCONFIG REGISTER */
- #define USBOTGSS_SYSCONFIG_DMADISABLE		(1 << 16)
--#define USBOTGSS_SYSCONFIG_STANDBYMODE(x)	((x) << 4)
--
--#define USBOTGSS_STANDBYMODE_FORCE_STANDBY	0
--#define USBOTGSS_STANDBYMODE_NO_STANDBY		1
--#define USBOTGSS_STANDBYMODE_SMART_STANDBY	2
--#define USBOTGSS_STANDBYMODE_SMART_WAKEUP	3
--
--#define USBOTGSS_STANDBYMODE_MASK		(0x03 << 4)
--
--#define USBOTGSS_SYSCONFIG_IDLEMODE(x)		((x) << 2)
--
--#define USBOTGSS_IDLEMODE_FORCE_IDLE		0
--#define USBOTGSS_IDLEMODE_NO_IDLE		1
--#define USBOTGSS_IDLEMODE_SMART_IDLE		2
--#define USBOTGSS_IDLEMODE_SMART_WAKEUP		3
--
--#define USBOTGSS_IDLEMODE_MASK			(0x03 << 2)
+-	if (of_get_property(node, "tx-fifo-resize", NULL))
+-		dwc->needs_fifo_resize = true;
++	dwc->needs_fifo_resize = of_property_read_bool(node, "tx-fifo-resize");
  
- /* IRQ_EOI REGISTER */
- #define USBOTGSS_IRQ_EOI_LINE_NUMBER		(1 << 0)
-@@ -373,15 +356,6 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
- 	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+@@ -619,11 +618,22 @@ static int __devexit dwc3_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
--	/* Set No-Idle and No-Standby */
--	reg &= ~(USBOTGSS_STANDBYMODE_MASK
--			| USBOTGSS_IDLEMODE_MASK);
--
--	reg |= (USBOTGSS_SYSCONFIG_STANDBYMODE(USBOTGSS_STANDBYMODE_NO_STANDBY)
--		| USBOTGSS_SYSCONFIG_IDLEMODE(USBOTGSS_IDLEMODE_NO_IDLE));
--
--	dwc3_omap_writel(omap->base, USBOTGSS_SYSCONFIG, reg);
--
- 	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
- 			"dwc3-omap", omap);
- 	if (ret) {
++#ifdef CONFIG_OF
++static const struct of_device_id of_dwc3_match[] = {
++	{
++		.compatible = "synopsys,dwc3"
++	},
++	{ },
++};
++MODULE_DEVICE_TABLE(of, of_dwc3_match);
++#endif
++
+ static struct platform_driver dwc3_driver = {
+ 	.probe		= dwc3_probe,
+ 	.remove		= __devexit_p(dwc3_remove),
+ 	.driver		= {
+ 		.name	= "dwc3",
++		.of_match_table	= of_match_ptr(of_dwc3_match),
+ 	},
+ };
+ 
 -- 
 1.7.9.5
