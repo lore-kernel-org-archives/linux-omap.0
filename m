@@ -1,57 +1,80 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 1/7] usb: dwc3-omap: use device_for_each_child to handle child removal
-Date: Mon, 15 Oct 2012 18:57:54 +0530
-Message-ID: <1350307680-24938-2-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 4/7] usb: dwc3-omap: Remove explicit writes to SYSCONFIG
+ register
+Date: Mon, 15 Oct 2012 18:57:57 +0530
+Message-ID: <1350307680-24938-5-git-send-email-kishon@ti.com>
 References: <1350307680-24938-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1350307680-24938-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sshtylyov@mvista.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1350307680-24938-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Used device_for_each_child() to handle child device (dwc3 core) removal
-during devexit of dwc3 omap.
+The runtime API's takes care of setting the SYSCONFIG register with
+appropriate values. Hence explicit writes to SYSCONFIG register is
+removed.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/dwc3/dwc3-omap.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/usb/dwc3/dwc3-omap.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
 diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index ee57a10..d51c69c 100644
+index 1fdf7e2..edc7292 100644
 --- a/drivers/usb/dwc3/dwc3-omap.c
 +++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -262,6 +262,15 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
- 	return IRQ_HANDLED;
- }
+@@ -80,23 +80,6 @@
  
-+static int dwc3_omap_remove_core(struct device *dev, void *c)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	platform_device_unregister(pdev);
-+
-+	return 0;
-+}
-+
- static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- {
- 	struct dwc3_omap_data	*pdata = pdev->dev.platform_data;
-@@ -434,11 +443,11 @@ static int __devexit dwc3_omap_remove(struct platform_device *pdev)
- {
- 	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
+ /* SYSCONFIG REGISTER */
+ #define USBOTGSS_SYSCONFIG_DMADISABLE		(1 << 16)
+-#define USBOTGSS_SYSCONFIG_STANDBYMODE(x)	((x) << 4)
+-
+-#define USBOTGSS_STANDBYMODE_FORCE_STANDBY	0
+-#define USBOTGSS_STANDBYMODE_NO_STANDBY		1
+-#define USBOTGSS_STANDBYMODE_SMART_STANDBY	2
+-#define USBOTGSS_STANDBYMODE_SMART_WAKEUP	3
+-
+-#define USBOTGSS_STANDBYMODE_MASK		(0x03 << 4)
+-
+-#define USBOTGSS_SYSCONFIG_IDLEMODE(x)		((x) << 2)
+-
+-#define USBOTGSS_IDLEMODE_FORCE_IDLE		0
+-#define USBOTGSS_IDLEMODE_NO_IDLE		1
+-#define USBOTGSS_IDLEMODE_SMART_IDLE		2
+-#define USBOTGSS_IDLEMODE_SMART_WAKEUP		3
+-
+-#define USBOTGSS_IDLEMODE_MASK			(0x03 << 2)
  
--	platform_device_unregister(omap->dwc3);
- 	platform_device_unregister(omap->usb2_phy);
- 	platform_device_unregister(omap->usb3_phy);
+ /* IRQ_EOI REGISTER */
+ #define USBOTGSS_IRQ_EOI_LINE_NUMBER		(1 << 0)
+@@ -373,15 +356,6 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+ 	reg = dwc3_omap_readl(omap->base, USBOTGSS_SYSCONFIG);
+ 	omap->dma_status = !!(reg & USBOTGSS_SYSCONFIG_DMADISABLE);
  
- 	dwc3_put_device_id(omap->dwc3->id);
-+	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
- 
- 	return 0;
- }
+-	/* Set No-Idle and No-Standby */
+-	reg &= ~(USBOTGSS_STANDBYMODE_MASK
+-			| USBOTGSS_IDLEMODE_MASK);
+-
+-	reg |= (USBOTGSS_SYSCONFIG_STANDBYMODE(USBOTGSS_STANDBYMODE_NO_STANDBY)
+-		| USBOTGSS_SYSCONFIG_IDLEMODE(USBOTGSS_IDLEMODE_NO_IDLE));
+-
+-	dwc3_omap_writel(omap->base, USBOTGSS_SYSCONFIG, reg);
+-
+ 	ret = devm_request_irq(dev, omap->irq, dwc3_omap_interrupt, 0,
+ 			"dwc3-omap", omap);
+ 	if (ret) {
 -- 
 1.7.9.5
