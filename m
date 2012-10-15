@@ -1,45 +1,72 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [balbi-usb:merge-result-for-greg 59/99]
- webcam.c:(.text+0x14afec): undefined reference to `config_ep_by_speed'
-Date: Mon, 15 Oct 2012 09:29:14 -0700
-Message-ID: <20121015162914.GB32049@kroah.com>
-References: <20121012163902.GA19120@localhost>
- <507BC000.10004@linutronix.de>
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: fix spurious IRQs: disable/enable IRQ at INTC when idle
+Date: Mon, 15 Oct 2012 10:31:17 -0700
+Message-ID: <87zk3ntzfe.fsf@deeprootsystems.com>
+References: <1350067225-24589-1-git-send-email-khilman@deeprootsystems.com>
+	<CAM=Q2csm0Eh9F6d1wKhEfOOtG+aY+Fh8D-dKPC0RMbKupVQHYQ@mail.gmail.com>
+	<1350282337.17145.45.camel@kj-X230>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <507BC000.10004-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1350282337.17145.45.camel@kj-X230> (Kalle Jokiniemi's message of
+	"Mon, 15 Oct 2012 09:25:37 +0300")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
+Cc: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Huzefa Kankroliwala <huzefank-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 15, 2012 at 09:49:20AM +0200, Sebastian Andrzej Siewior wrote:
-> On 10/12/2012 06:39 PM, Fengguang Wu wrote:
-> >Hi Sebastian,
-> 
-> Hi Fengguang,
-> 
-> >FYI, kernel build failed on
-> >
-> >tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git merge-result-for-greg
-> >head:   23953bde3e4d6aa8780dc054f6ad9882ac63f4f4
-> >commit: 721e2e91945bc2520d57d795dfe1b502ecec567c [59/99] usb: gadget: libcomposite: move composite.c into libcomposite
-> >config: i386-randconfig-b199 (attached as .config)
-> >
-> >All error/warnings:
-> >
-> >drivers/built-in.o: In function `uvc_function_set_alt':
-> 
-> Yes. I accidentally broke this and this still fails in 3.7-rc1. Greg
-> has a patch for this in his tree ("usb: gadget: Make webcam gadget
-> select USB_LIBCOMPOSITE") which fixes this.
+Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> writes:
 
-Yes, now queued up in my tree.
+> Hi,
+>
+> la, 2012-10-13 kello 01:00 +0530, Shubhrajyoti Datta kirjoitti:
+>> On Sat, Oct 13, 2012 at 12:10 AM, Kevin Hilman
+>> <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> wrote:
+>> > From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+>> >
+>> > Currently, runtime PM is used to keep the device enabled only during
+>> > active transfers and for a configurable runtime PM autosuspend timout
+>> > after an xfer.
+>> >
+>> > In addition to idling the device, driver's ->runtime_suspend() method
+>> > currently disables device interrupts when idle.  However, on some SoCs
+>> > (notably OMAP4+), the I2C hardware may shared with other coprocessors.
+>> > This means that the MPU will still recieve interrupts if a coprocessor
+>> > is using the I2C device.  To avoid this, also disable interrupts at
+>> > the MPU INTC when idling the device in ->runtime_suspend() (and
+>> > re-enable them in ->runtime_resume().)  This part based on an original
+>> > patch from Shubhrajyoti Datta.  NOTE: for proper sharing the I2C with
+>> > a coprocessor, this driver still needs hwspinlock support added.
+>> >
+>> > This change is also meant to address an issue reported by Kalle
+>> > Jokiniemi where I2C bus interrupt may be enabled before an I2C device
+>> > interrupt handler (e.g. just after noirq resume phase) causing an
+>
+> It is actually in middle of resume_noirq.
+>
+>> > interrupt flood on the I2C bus interrupt before the device interrupt
+>> > is enabled (e.g. interrupts coming from devices on I2C connected PMIC
+>> > before the PMIC chained hanlder is enabled.)  This problem is addresed
+>> > by ensuring that the I2C bus interrupt left disabled until an I2C xfer
+>> > is requested.
+>> 
+>> Looks good to me.
+>> Will wait for Kalle though.
+>
+> Does not work for me :(
+>
+> As I said, the issue occurs for me when I enter static suspend (echo mem
+>> /sys/power/autosleep or /sys/power/state). I don't think doing this
+> just in runtime pm will fix my issue. Or do those handlers get run in
+> the normal suspend path as well?
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If the I2C device is still active during the suspend path, these
+handlers will get run by the PM domain code (in omap_device.)  However,
+now that I think about it, the current omap_device PM domain code calls
+these at the noirq level, not the late/early level, so it does not
+address your original problem. :(
+
+I suspect we'll need this and your original patch.
+
+
+Kevin
