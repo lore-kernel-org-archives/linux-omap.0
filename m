@@ -1,101 +1,65 @@
-From: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
-Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
-Date: Mon, 15 Oct 2012 17:10:23 +0300
-Message-ID: <1350310223.2014.10.camel@kj-X230>
-References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
-	 <87ipag90om.fsf@deeprootsystems.com>
-	 <902E09E6452B0E43903E4F2D568737AB2C87B0@DNCE04.ent.ti.com>
-	 <87d30n7o9q.fsf@deeprootsystems.com>
-	 <902E09E6452B0E43903E4F2D568737AB2C8C9F@DNCE04.ent.ti.com>
-	 <1350282068.17145.42.camel@kj-X230> <1350292602.17145.63.camel@kj-X230>
-	 <CAM=Q2cuJ-0VSgkBme_Cg8YD2cBG5NZcO6aBeTsPZ_PQGMwJ=bw@mail.gmail.com>
-Reply-To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: revert "i2c: omap: switch to threaded IRQ
+ support"
+Date: Mon, 15 Oct 2012 15:05:15 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210151452470.15973@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com> <20121015071657.GA22818@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAM=Q2cuJ-0VSgkBme_Cg8YD2cBG5NZcO6aBeTsPZ_PQGMwJ=bw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20121015071657.GA22818-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org, "Strashko, Grygorii" <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Datta, Shubhrajyoti" <shubhrajyoti-l0cyMroinI0@public.gmane.org>, "Kankroliwala, Huzefa" <huzefank-l0cyMroinI0@public.gmane.org>
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-ma, 2012-10-15 kello 15:41 +0530, Shubhrajyoti Datta kirjoitti:
-> On Mon, Oct 15, 2012 at 2:46 PM, Kalle Jokiniemi
-> <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> wrote:
-> > ma, 2012-10-15 kello 09:21 +0300, Kalle Jokiniemi kirjoitti:
-> >> Hi,
-> >>
-> >> pe, 2012-10-12 kello 14:46 +0000, Strashko, Grygorii kirjoitti:
-> >> > Hi Kevin,
-> >> >
-> >> > yep, [1] is the same fix - thanks.
-> >> >
-> >> > Hi Kalle,
-> >> >
-> >> > i've applied these changes and PM runtime fix on top of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git (omap2plus_defconfig)
-> >> > Could you check it with your use case, pls? (just to be sure that idea is right)
-> >>
-> >> Odd, it's not working. I'll add some debug prints to see what happens
-> >> there.
-> >
-> > Well, seems after enabling irq 23 in the resume_noirq, someone does
-> > i2c_xfer and there is consequent flood of i2c_xfers and interrupts.
-> If there is continuous xfers, you could enable debug LL and see who is
-> queuing the
-> transfers.
+Hi
+
+On Mon, 15 Oct 2012, Felipe Balbi wrote:
+
+> On Mon, Oct 15, 2012 at 01:51:08AM +0000, Paul Walmsley wrote:
+> > 
+> > Commit 3b2f8f82dad7d1f79cdc8fc05bd1c94baf109bde ("i2c: omap: switch to
+> > threaded IRQ support") causes communication with I2C devices to fail
+> > after system suspend/resume on all OMAP3 devices:
+> > 
+> > ...
+> > [   40.228576] PM: noirq resume of devices complete after 3.723 msecs
+> > [   40.233184] PM: early resume of devices complete after 3.173 msecs
+> > [   40.242736] [sched_delayed] sched: RT throttling activated
+> > [   41.235046] omap_i2c omap_i2c.1: controller timed out
 > 
-> >
-> > Not sure now how these IRQ numbers get mapped these days, my debug print
-> > says it's irq number 72 (UART1 from TRM) that is flooding (although it's
-> > printed from the i2c-omap isr function, so it's still I2C bus irq...).
+> instead of just reverting the patch, I'd rather try to figure out why
+> controller times out in that situation.
 > 
-> Can you do a cat /proc/interrupts
-
-Yes :)
-
-[root@localhost proc]# cat
-interrupts                                          
-
-CPU0                                                                 
- 20:          0      INTC  gpmc
- 23:          2      INTC  TWL4030-PIH
- 25:          0      INTC  l3-debug-irq
- 26:          0      INTC  l3-app-irq
- 28:      48157      INTC  DMA
- 40:          0      INTC  omap-iommu.0
- 52:          0      INTC  dsp_wdt
- 53:     807807      INTC  gp_timer
- 65:          0      INTC  omap-sham
- 72:       5490      INTC  omap_i2c
- 73:         85      INTC  omap_i2c
- 77:          0      INTC  omap_i2c
- 90:       1069      INTC  OMAP UART2
-102:      55940      INTC  mmc0
-179:       6142      GPIO  omap2-onenand
-306:      44666      PRCM  pm_wkup
-315:          4      PRCM  hwmod_io, pm_io
-338:          0   twl4030  twl4030_gpio
-343:          2   twl4030  twl4030_power
-346:          0   twl4030  twl4030_pwrbutton
-348:          2   twl4030  twl4030_usb
-349:          0   twl4030  rtc0
-
-Hmm, I did not notice that PIH handler before, makes sense now that it
-triggers the flood (irq 23) as it is really the one that passes the
-interrupts to other handlers.
-
-- Kalle
-
+> It should make no difference if you're running an IRQ thread or not.
 > 
-> 
-> >
-> > The irq enabling (in resume_noirq) is still slightly progressing after
-> > the flooding starts, but my watchdog kicks in before we get to the
-> > finish.
-> >
-> > Attached my debug prints patch and log. I used also "no_console_suspend"
-> > boot option.
-> >
-> > - Kalle
-> >
+> Do you have any extra debugging information which might help figuring
+> out what the issue really is ?
+
+As mentioned, the problem can be easily reproduced on OMAP3 is test by 
+running
+
+"echo mem > /sys/power/state"
+
+in userspace when rootfs is on MMC.  Then wake up out of suspend, for 
+example, by hitting ENTER on the serial console.
+
+This needs to be part of the testing before any OMAP patches are posted to 
+the lists -- if for no other reason than because Android kernels enter and 
+exit system suspend frequently as part of their standard usage model.
+
+> If the thread is actually at fault, then we need to add IRQF_NO_THREAD
+> to the IRQ flags, otherwise same issue will appear if we boot with
+> "threadirqs" kernel parameter.
+
+...
+
+> but it fails because I2C times out and I'd like to understand why,
+> before just reverting the patch.
+
+It doesn't matter to me how it's fixed as long as it's fixed quickly 
+during the early 3.7-rcs.  
+
+
+- Paul
