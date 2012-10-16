@@ -1,47 +1,50 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] genirq: provide means to retrigger parent
-Date: Tue, 16 Oct 2012 23:15:02 +0100
-Message-ID: <20121016221502.GY28061@n2100.arm.linux.org.uk>
-References: <1350425269-11489-1-git-send-email-khilman@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Updated status of the removal of plat headers
+Date: Tue, 16 Oct 2012 16:00:41 -0700
+Message-ID: <20121016230040.GP15569@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53670 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754691Ab2JPWPW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 18:15:22 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53450 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755481Ab2JPXAo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 19:00:44 -0400
 Content-Disposition: inline
-In-Reply-To: <1350425269-11489-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Jon Hunter <jon-hunter@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Paul Walmsley <paul@pwsan.com>, Igor Grinberg <grinberg@compulab.co.il>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Tue, Oct 16, 2012 at 03:07:49PM -0700, Kevin Hilman wrote:
-> From: Thomas Gleixner <tglx@linutronix.de>
-> 
-> Attempts to retrigger nested threaded IRQs currently fail because they
-> have no primary handler.  In order to support retrigger of nested
-> IRQs, the parent IRQ needs to be retriggered.
-> 
-> To fix, when an IRQ needs to be resent, if the interrupt has a parent
-> IRQ and runs in the context of the parent IRQ, then resend the parent.
-> 
-> Also, handle_nested_irq() needs to clear the replay flag like the
-> other handlers, otherwise check_irq_resend() will set it and it will
-> never be cleared.  Without clearing, it results in the first resend
-> working fine, but check_irq_resend() returning early on subsequent
-> resends because the replay flag is still set.
-> 
-> Problem discovered on ARM/OMAP platforms where a nested IRQ that's
-> also a wakeup IRQ happens late in suspend and needed to be retriggered
-> during the resume process.
-> 
-> Reported-by: Kevin Hilman <khilman@ti.com>
-> Tested-by: Kevin Hilman <khilman@ti.com>
-> [khilman@ti.com: changelog edits, clear IRQS_REPLAY in handle_nested_irq()]
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Hi all,
 
-Umm, we also have the converse situation.  We have platforms where the
-resend has to be done from the child IRQ, and the parent must not be
-touched.  I hope that doesn't break those.
+Here's a quick status update on the removal of remaining
+#include <plat/*.h> files. Most files are now fixed up, and
+we only have the following remaining:
+
+cpu.h		wrapper only left, will be removed as soon as drivers are fixed
+
+dmtimer.h	Jon is fixing this
+
+mailbox.h	Omar, are you fixing this?
+
+omap-serial.h	this will be dealt with mostly by Russell
+
+prcm.h		Paul has posted patches for this, missing move of the header
+
+sdrc.h		Paul has posted patches for this, missing move of the header
+
+timex.h		Igor is looking into this
+
+usb.h		Felipe, Kishon & Keshawa, are you fixing this?
+
+vram.h		Tomi is fixing this
+
+vrfb.h		Tomi is fixing this
+
+I have not yet posted my omap-for-v3.8/cleanup-headers branch as I'm
+waiting for a minimal tty branch from Greg for the 8250 changes, and
+acks for the menelaus and iommu changes.
+
+Regards,
+
+Tony
