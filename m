@@ -1,59 +1,46 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v5 0/3] OMAP 3 CSI-2 configuration
-Date: Tue, 16 Oct 2012 16:51:40 +0200
-Message-ID: <1651288.n5DBzW1A1K@avalon>
-References: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, khilman@deeprootsystems.com
+From: Kalle Jokiniemi <kalle.jokiniemi@jollamobile.com>
+Subject: [PATCH 1/1] twl4030: Fix chained irq handling on resume from suspend
+Date: Tue, 16 Oct 2012 17:59:35 +0300
+Message-ID: <1350399575-13240-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp130.iad.emailsrvr.com ([207.97.245.130]:38752 "EHLO
+	smtp130.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754905Ab2JPO7m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 10:59:42 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, sameo@linux.intel.com
+Cc: khilman@deeprootsystems.com, omaplinuxkernel@gmail.com, linux-i2c@vger.kernel.org, w.sang@pengutronix.de, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, shubhrajyoti@ti.com, huzefank@ti.com, nm@ti.com, Kalle Jokiniemi <kalle.jokiniemi@jollamobile.com>
 
-Hi Sakari,
+The irqs are enabled one-by-one in pm core resume_noirq phase.
+This leads to situation where the twl4030 primary interrupt
+handler (PIH) is enabled before the chained secondary handlers
+(SIH). As the PIH cannot clear the pending interrupt, and
+SIHs have not been enabled yet, a flood of interrupts hangs
+the device.
 
-Thanks for the patches.
+Fixed the issue by setting the SIH irqs with IRQF_EARLY_RESUME
+flags, so they get enabled before the PIH.
 
-For the whole series,
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@jollamobile.com>
+---
+ drivers/mfd/twl4030-irq.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Tony, do you want to take patch 1/3 in your tree, or can I push the whole 
-series through mine ?
-
-On Sunday 14 October 2012 13:31:22 Sakari Ailus wrote:
-> Hi all,
-> 
-> This is an update to an old patchset for CSI-2 configuration for OMAP 3430
-> and 3630. The patches have been tested on the 3630 only so far, and I don't
-> plan to test them on 3430 in the near future.
-> 
-> I've made changes according to Laurent's suggestions to the patches, with
-> the exception of alignment of a certain line. I think it's exactly as it
-> should be. :-)
-> 
-> I'm not quite certain about the comment regarding the control register state
-> dependency to the CORE power domain, and why exactly this isn't an issue.
-> We know the MPU must stay powered since the ISP can't wake up MPU, but how
-> is this related to CORE? In the end it seems to work.
-> 
-> If you think this should be changed and you also know how, please provide me
-> the text. :-)
-> 
-> 	/*
-> 	 * The PHY configuration is lost in off mode, that's not an
-> 	 * issue since the MPU power domain is forced on whilst the
-> 	 * ISP is in use.
-> 	 */
-> 
-> Comments, questions and other kind of feedback is very welcome.
-> 
-> Kind regards,
-
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index ad733d7..cdd1173 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -672,7 +672,8 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base)
+ 	irq = sih_mod + twl4030_irq_base;
+ 	irq_set_handler_data(irq, agent);
+ 	agent->irq_name = kasprintf(GFP_KERNEL, "twl4030_%s", sih->name);
+-	status = request_threaded_irq(irq, NULL, handle_twl4030_sih, 0,
++	status = request_threaded_irq(irq, NULL, handle_twl4030_sih,
++				      IRQF_EARLY_RESUME,
+ 				      agent->irq_name ?: sih->name, NULL);
+ 
+ 	dev_info(dev, "%s (irq %d) chaining IRQs %d..%d\n", sih->name,
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
