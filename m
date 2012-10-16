@@ -1,141 +1,103 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 10/11] SERIAL: omap: fix MCR TCRTLR bit handling
-Date: Tue, 16 Oct 2012 12:12:27 +0100
-Message-ID: <20121016111227.GW28061@n2100.arm.linux.org.uk>
-References: <20121016101458.GZ21164@n2100.arm.linux.org.uk> <E1TO4tW-0000Wl-SY@rmk-PC.arm.linux.org.uk>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH 6/6] OMAPDSS: HDMI: Create platform device to support
+ audio
+Date: Tue, 16 Oct 2012 06:11:57 -0500
+Message-ID: <507D40FD.10003@ti.com>
+References: <1350350839-30408-1-git-send-email-ricardo.neri@ti.com> <1350350839-30408-7-git-send-email-ricardo.neri@ti.com> <507D2953.8030801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53254 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753908Ab2JPLMm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 07:12:42 -0400
-Content-Disposition: inline
-In-Reply-To: <E1TO4tW-0000Wl-SY@rmk-PC.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:45208 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752693Ab2JPLOD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Oct 2012 07:14:03 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9GBE2Tq014004
+	for <linux-omap@vger.kernel.org>; Tue, 16 Oct 2012 06:14:02 -0500
+Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9GBE1u4032719
+	for <linux-omap@vger.kernel.org>; Tue, 16 Oct 2012 06:14:02 -0500
+In-Reply-To: <507D2953.8030801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+Cc: tomi.valkeinen@ti.com, s-guiriec@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
-On Tue, Oct 16, 2012 at 12:01:06PM +0100, Russell King wrote:
-> The MCR TCRTLR bit can only be changed when ECB is set in the EFR.
-> Unfortunately, several places were trying to alter this bit while ECB
-> was clear:
-> 
-> - serial_omap_configure_xonxoff() was attempting to clear the bit after
->   explicitly clearing the ECB bit.
-> - serial_omap_set_termios() was trying the same trick after setting the
->   SCR, and when trying to change the TCR register when hardware flow
->   control was enabled.
-> 
-> Fix this by ensuring that we always have ECB set whenever the TCRTLR bit
-> is changed.
-> 
-> Moreover, we start out by reading the EFR and MCR registers, which may
-> have indeterminent bit settings for the ECB and TCRTLR bits.  Ensure
-> that these bits always start off in a known state.
+Hi Peter,
 
-Note - this patch unfortunately exposes some of the bugs in their full
-glory as we now write to the correct registers and actually end up
-programming the hardware correctly.
+Thanks for reviewing!
 
-I've reduced the window as far as possible by putting this one next to
-patch 11 which fixes it, but no amount of reordering can hide some kind
-of breakage along the way.
+On 10/16/2012 04:30 AM, P=E9ter Ujfalusi wrote:
+> On 10/16/2012 03:27 AM, Ricardo Neri wrote:
+>> Creating the accessory devices, such as audio, from the HDMI driver
+>> allows to regard HDMI as a single entity with audio an display
+>> functionality. This intends to follow the design of drivers such
+>> as MFD, in which a single entity handles the creation of the accesor=
+y
+>> devices. Such devices are then used by domain-specific drivers; audi=
+o in
+>> this case.
+>>
+>> Also, this is in line with the DT implementation of HDMI, in which w=
+e will
+>> have a single node to describe this feature of the OMAP SoC.
+>
+> ...
+>
+>> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].start =3D res->start;
+>> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].end =3D res->end;
+>> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].flags =3D IORESOURCE_MEM;
+>> +
+>> +	res =3D platform_get_resource(hdmi.pdev, IORESOURCE_DMA, 0);
+>> +	if (!res) {
+>> +		DSSERR("can't get IORESOURCE_DMA HDMI\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/* Pass this resource to audio_pdev */
+>> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].start =3D res->start;
+>> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].end =3D res->end;
+>> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].flags =3D IORESOURCE_DMA;
+>> +
+>> +	/* create platform device for HDMI audio driver */
+>> +	hdmi.audio_pdev =3D platform_device_register_simple(
+>> +							  "omap_hdmi_audio",
+>> +							  -1, hdmi_aud_res,
+>> +							   ARRAY_SIZE(hdmi_aud_res));
+>
+> Should you also update arch/arm/mach-omap2/devices.c to not register =
+the same
+> device?
+> When we do not boot with DT devices.c will create the same device ear=
+lier
+> (without pdata) which will prevent this device to be created and at t=
+he end
+> will prevent omap_hdmi_audio driver to probe due to missing pdata...
 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  drivers/tty/serial/omap-serial.c |   32 ++++++++++++++++++--------------
->  1 files changed, 18 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index 537829f..7cc151c 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -706,9 +706,10 @@ serial_omap_configure_xonxoff
->  	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
->  	serial_out(up, UART_TI752_TCR, OMAP_UART_TCR_TRIG);
-> -	serial_out(up, UART_EFR, up->efr);
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
->  	serial_out(up, UART_MCR, up->mcr & ~UART_MCR_TCRTLR);
-> +	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-> +	serial_out(up, UART_EFR, up->efr);
->  	serial_out(up, UART_LCR, up->lcr);
->  }
->  
-> @@ -729,7 +730,6 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  {
->  	struct uart_omap_port *up = to_uart_omap_port(port);
->  	unsigned char cval = 0;
-> -	unsigned char efr = 0;
->  	unsigned long flags = 0;
->  	unsigned int baud, quot;
->  
-> @@ -839,12 +839,12 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
->  
-> -	up->efr = serial_in(up, UART_EFR);
-> +	up->efr = serial_in(up, UART_EFR) & ~UART_EFR_ECB;
->  	up->efr &= ~UART_EFR_SCD;
->  	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
->  
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
-> -	up->mcr = serial_in(up, UART_MCR);
-> +	up->mcr = serial_in(up, UART_MCR) & ~UART_MCR_TCRTLR;
->  	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
->  	/* FIFO ENABLE, DMA MODE */
->  
-> @@ -863,9 +863,12 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  
->  	serial_out(up, UART_OMAP_SCR, up->scr);
->  
-> -	serial_out(up, UART_EFR, up->efr);
-> +	/* Reset UART_MCR_TCRTLR: this must be done with the EFR_ECB bit set */
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
->  	serial_out(up, UART_MCR, up->mcr);
-> +	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-> +	serial_out(up, UART_EFR, up->efr);
-> +	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
->  
->  	/* Protocol, Baud Rate, and Interrupt Settings */
->  
-> @@ -904,20 +907,21 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  	/* Hardware Flow Control Configuration */
->  
->  	if (termios->c_cflag & CRTSCTS) {
-> -		efr |= (UART_EFR_CTS | UART_EFR_RTS);
-> -		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
-> -
-> -		up->mcr = serial_in(up, UART_MCR);
-> -		serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
-> -
-> +		/* Enable access to TCR/TLR */
->  		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-> -		up->efr = serial_in(up, UART_EFR);
->  		serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
-> +		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
-> +		serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
->  
->  		serial_out(up, UART_TI752_TCR, OMAP_UART_TCR_TRIG);
-> -		serial_out(up, UART_EFR, efr); /* Enable AUTORTS and AUTOCTS */
-> -		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
-> +
-> +		/* Enable AUTORTS and AUTOCTS */
-> +		up->efr |= UART_EFR_CTS | UART_EFR_RTS;
-> +
-> +		/* Disable access to TCR/TLR */
->  		serial_out(up, UART_MCR, up->mcr | UART_MCR_RTS);
-> +		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-> +		serial_out(up, UART_EFR, up->efr);
->  		serial_out(up, UART_LCR, cval);
->  	} else {
->  		/* Disable AUTORTS and AUTOCTS */
-> -- 
-> 1.7.4.4
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Yes, I have already a set of patches to remove the device creation from=
+=20
+devices.c. I decided to send this patch set first to see if Tomi and th=
+e=20
+reviewers are OK with it. After they are accepted I will send the=20
+updates to devices.c and ASoC.
+
+BR
+
+Ricardo
+>
+>> +	if (IS_ERR(hdmi.audio_pdev)) {
+>> +		DSSERR("Can't instantiate hdmi-audio\n");
+>> +		return PTR_ERR(hdmi.audio_pdev);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
