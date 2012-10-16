@@ -1,54 +1,77 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod data: Fix wrong lostcontext_mask
- for OMAP4 l4_abe
-Date: Tue, 16 Oct 2012 10:59:10 -0700
-Message-ID: <20121016175909.GZ15569@atomide.com>
-References: <507D20F2.9060007@ti.com>
+Subject: Re: [PATCH v2 00/14] OMAP-GPMC related cleanup for common zImage
+Date: Tue, 16 Oct 2012 11:06:01 -0700
+Message-ID: <20121016180600.GA15569@atomide.com>
+References: <cover.1349672877.git.afzal@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9F7B0A@DBDE01.ent.ti.com>
+ <20121010163840.GA13585@parrot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47360 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54324 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755016Ab2JPR7O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 13:59:14 -0400
+	with ESMTP id S1754776Ab2JPSGH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 14:06:07 -0400
 Content-Disposition: inline
-In-Reply-To: <507D20F2.9060007@ti.com>
+In-Reply-To: <20121010163840.GA13585@parrot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, Tero Kristo <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Ivan Djelic <ivan.djelic@parrot.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, Artem Bityutskiy <dedekind1@gmail.com>, "Hunter, Jon" <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-* Benoit Cousson <b-cousson@ti.com> [121016 01:56]:
-> The following commit added the support for the lostcontext_mask
-> along with the usage of the flag for l4_abe.
+* Ivan Djelic <ivan.djelic@parrot.com> [121010 09:40]:
 > 
->  commit ce80979aedfce937926a8dd40a1f92fd4bc2fd53
->  Author: Tero Kristo <t-kristo@ti.com>
->  Date:   Sun Sep 23 17:28:19 2012 -0600
+> I ran several mtd regression tests on a Beagle Board on your gpmc-czimage-v2 tag.
+> All BCH error correcting tests passed successfully.
 > 
->     ARM: OMAP4: hwmod data: add support for lostcontext_mask
+> I occasionally had weird read errors though, especially when reading blank pages:
+> the omap driver returned 512-byte sectors containing something like:
 > 
-> Unfortunately, the l4_abe does not contain this memory and thus
-> cannot contain that flag.
+> 30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+> 30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+> 30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+> 30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+> 30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff
+> 30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ff30ffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 > 
-> Remove the flag from the l4_abe hwmod.
+> instead of:
 > 
-> Change as well the mask for omap44xx_aess_hwmod to avoid missing
-> the status in case LOSTMEM_AESSMEM is set. The AESS logic does
-> not support retention and thus only the memory state is useful.
-> It is even mandatory to avoid a crash in the case of the AESS
-> resume.
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+> ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 > 
-> TBD: Ideally each hwmod should contain an extra entry for memory
-> context attached to it. The AESS does contain only one, but some
-> IP like the IVAHD does have three memories with dedicated status.
-> The granularity is never used, but at least one global information
-> for all the memory banks is useful.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
+> I was able to reproduce the problem also on l2-mtd tip, albeit less often.
+> The problem seems to occur quite randomly, it may be a hardware issue on
+> my board...
 
-Thanks applying into omap-for-v3.7-rc1/fixes-part2.
+Things like this typically happen in the GPMC timings are not correct.
+Maybe add #define DEBUG to top of gpmc.c and compare the timings
+before and after Afzal's patches? 
+
+> Anyway, the ECC handling part looks OK to me.
 
 Regards,
 
