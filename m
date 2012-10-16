@@ -1,45 +1,141 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix spurious IRQs: disable/enable IRQ at
- INTC when idle
-Date: Mon, 15 Oct 2012 18:02:24 -0700
-Message-ID: <20121016010223.GL15569@atomide.com>
-References: <1350067225-24589-1-git-send-email-khilman@deeprootsystems.com>
- <CAM=Q2csm0Eh9F6d1wKhEfOOtG+aY+Fh8D-dKPC0RMbKupVQHYQ@mail.gmail.com>
- <1350282337.17145.45.camel@kj-X230>
- <87zk3ntzfe.fsf@deeprootsystems.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH 2/6] ARM: OMAP3/4: iommu: adapt to runtime pm
+Date: Mon, 15 Oct 2012 20:29:29 -0500
+Message-ID: <CALLhW=6_0Rnp7-gNhCexUVzxam54KhoqAF6e8eiH5yo-wKBxzQ@mail.gmail.com>
+References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
+	<1350003977-32744-5-git-send-email-omar.luna@linaro.org>
+	<CAMP44s2LTGPnXQuetVLV1tA8w90gUtoJ5coucBUZsbqb3vFnng@mail.gmail.com>
+	<CALLhW=5k=tAXo_5ri2WgetRgju9rC_Wm-o9-pfHSNqpe6FU5qQ@mail.gmail.com>
+	<CAMP44s3wTYTFgSw7r+77zb0fxMSjo1R69Zx0nyM6Hgy2h=Gggw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87zk3ntzfe.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Huzefa Kankroliwala <huzefank-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAMP44s3wTYTFgSw7r+77zb0fxMSjo1R69Zx0nyM6Hgy2h=Gggw@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> [121015 10:32]:
-> Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> writes:
-> >
-> > Does not work for me :(
-> >
-> > As I said, the issue occurs for me when I enter static suspend (echo mem
-> >> /sys/power/autosleep or /sys/power/state). I don't think doing this
-> > just in runtime pm will fix my issue. Or do those handlers get run in
-> > the normal suspend path as well?
-> 
-> If the I2C device is still active during the suspend path, these
-> handlers will get run by the PM domain code (in omap_device.)  However,
-> now that I think about it, the current omap_device PM domain code calls
-> these at the noirq level, not the late/early level, so it does not
-> address your original problem. :(
-> 
-> I suspect we'll need this and your original patch.
+Hi Felipe,
 
-Have you checked that this is not related to flushing the posted
-write? If it is, reading back any register from the i2c controller
-after writing to it ensures the write actually reaches the i2c
-controller.
+On 12 October 2012 16:25, Felipe Contreras <felipe.contreras@gmail.com> wrote:
+>>>> @@ -142,11 +142,10 @@ static int iommu_enable(struct omap_iommu *obj)
+>>>>                 }
+>>>>         }
+>>>>
+>>>> -       clk_enable(obj->clk);
+>>>> +       pm_runtime_get_sync(obj->dev);
+>>>>
+>>>>         err = arch_iommu->enable(obj);
+>>>>
+>>>> -       clk_disable(obj->clk);
+>>>
+>>> The device will never go to sleep, until iommu_disable is called.
+>>> clk_enable -> pm_runtime_get_sync, clk_disable pm_runtime_put.
+>>
+>> Which is what you want... why would you want your iommu to be disabled
+>> if the client of that iommu could request a translation?
+>
+> That's the whole point of *dynamic* pm; _when_ the client wants to
+> request a translation, _then_ the device is waken up, which is what I
+> believe the code currently does.
 
-Regards,
+No it doesn't, current code is working because the processor and the
+iommu share the same clock, so enabling the processor is implicitly
+guaranteeing that the iommu will be enabled. IMHO, there shouldn't be
+such assumption that you can control both with the same clock.
 
-Tony
+So, once the remote processor is enabled, any "dynamic pm" from iommu
+with current code has no effect because the clock was already enabled
+for the processor.
+
+> After your patch, even if I don't use the camera, or the DSP, the
+> iommu devices will be enabled, and will be consuming energy *all the
+> time*. Which I don't think is what we want.
+
+Wrong, the iommu device will be enabled by pm_runtime_get_sync once
+you decide to attach with iommu_attach_device, if you do not use
+camera or the dsp, you won't turn ON the iommus.
+
+On probe this patch does pm_runtime_enable, however this doesn't mean
+the device is turned ON or resumed or kept ON all the time.
+
+> I'm not saying I have a solution, I'm simply saying that's what's
+> going to happen if I'm correct.
+
+Ok, but that is not what happens here.
+
+>> Remember that these iommus, sit along of other processors not on the
+>> main processor side. So, this code should enable it for the other
+>> processor to use, and there is no point where the processor can say
+>> "I'm not using it, shut it down" or "I'm using it, turn it on" in the
+>> middle of execution, other than suspend/resume and if supported,
+>> autosuspend.
+>
+> I understand, but perhaps there should be?
+
+Autosuspend is a feature missing and should handle the scenario where
+the remote processor can sleep dynamically, this scenario should turn
+off the iommu and the remote processor itself when there is no
+workload but it depends on the remote processor activity not the iommu
+activity.
+
+>>>> @@ -1009,7 +1001,8 @@ static int __devexit omap_iommu_remove(struct platform_device *pdev)
+>>>>         release_mem_region(res->start, resource_size(res));
+>>>>         iounmap(obj->regbase);
+>>>>
+>>>> -       clk_put(obj->clk);
+>>>> +       pm_runtime_disable(obj->dev);
+>>>
+>>> This will turn on the device unnecessarily, wasting power, and there's
+>>> no need for that, kfree will take care of that without resuming.
+>>
+>> Left aside the aesthetics of having balanced calls, the device will be
+>> enabled if there was a pending resume to be executed, otherwise it
+>> won't, kfree won't increment the disable_depth counter and I don't
+>> think that freeing the pointer is enough reason to ignore
+>> pm_runtime_disable.
+>
+> You are doing __pm_runtime_disable(dev, true), kfree will do
+> __pm_runtime_disable(dev, false), which is what we want. Both will
+> decrement the disable_depth.
+
+I'm quite confused here, could you please point me to the kfree snip
+that does __pm_runtime_disable(dev, false)?
+
+> But at least you agree that there's a chance that the device will be waken up.
+
+Of course, if there is a pending resume to be executed, it must honor
+that resume request and then turn off the device before removing the
+iommu, IMHO.
+
+>>> Also, I still think that something like this is needed:
+>> ...
+>>> +static struct clk cam_fck = {
+>>> +       .name           = "cam_fck",
+>>> +       .ops            = &clkops_omap2_iclk_dflt,
+>>> +       .parent         = &l3_ick,
+>>> +       .enable_reg     = OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_ICLKEN),
+>>
+>> a cam_fck name to enable the ick?
+>
+> Yeap, according to the TRM. Take a look at 12.3 Camera ISP Integration
+> Fig 12-50.
+
+What I meant is that, you are using the CM_ICLKEN to enable a clock
+named "cam_fck" which has l3_ick as a parent. And that is not
+consistent with what that register is meant to do, which is:
+
+4.14.1.10 CAM_CM Registers
+
+CM_ICKLEN_CAM
+0x0: CAM_L3_ICK and CAM_L4_ICLK are disabled
+0x1: CAM_L3_ICK and CAM_L4_ICLK are enabled
+
+So, I'm complaining about the name "cam_fck", for an interface clock
+with parent l3_ick. However I don't know why on section 12.3 they
+refer to CAM_FCK to a l3_ick child clock.
+
+Cheers,
+
+Omar
