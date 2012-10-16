@@ -1,165 +1,86 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 1/3] usb: dwc3: Add the suspend/resume functionality
-Date: Tue, 16 Oct 2012 16:53:28 +0300
-Message-ID: <20121016135328.GI21801@arwen.pp.htv.fi>
-References: <1350380738-32473-1-git-send-email-vikas.sajjan@linaro.org>
- <1350380738-32473-2-git-send-email-vikas.sajjan@linaro.org>
- <20121016100656.GB17416@arwen.pp.htv.fi>
- <CAD025yRD+u+z=SEtJvEY+NAdNtg8_cWcCMWaa347e-idmb6GpQ@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] Revert "serial: omap: fix software flow control"
+Date: Tue, 16 Oct 2012 17:09:22 +0300
+Message-ID: <1350396562-32579-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J+eNKFoVC4T1DV3f"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAD025yRD+u+z=SEtJvEY+NAdNtg8_cWcCMWaa347e-idmb6GpQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joshi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux@arm.linux.org.uk, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---J+eNKFoVC4T1DV3f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This reverts commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6
+(serial: omap: fix software flow control).
 
-Hi,
+As Russell has pointed out, that commit isn't fixing
+Software Flow Control at all, and it actually makes
+it even more broken.
 
-On Tue, Oct 16, 2012 at 05:10:39PM +0530, Vikas Sajjan wrote:
-> Hi Felipe,
->=20
-> On 16 October 2012 15:36, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> > Hi,
-> >
-> > On Tue, Oct 16, 2012 at 03:15:36PM +0530, Vikas Sajjan wrote:
-> >> Adds suspend and resume callbacks as part of the power management
-> >> support to DWC3 controller Driver.
-> >> This patch facilitates transition of DWC3 controller between D0 and D3
-> >> power states during suspend/resume cycles.
-> >>
-> >> Signed-off-by: Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-> >> Signed-off-by: Vikas C Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >> CC: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-> >> ---
-> >>  drivers/usb/dwc3/core.c |   44 ++++++++++++++++++++++++++++++++++++++=
-++++++
-> >>  1 files changed, 44 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-> >> index 5db4c76..9f35cf8 100644
-> >> --- a/drivers/usb/dwc3/core.c
-> >> +++ b/drivers/usb/dwc3/core.c
-> >> @@ -621,11 +621,55 @@ static int __devexit dwc3_remove(struct platform=
-_device *pdev)
-> >>       return 0;
-> >>  }
-> >>
-> >> +#ifdef CONFIG_PM_SLEEP
-> >> +static int dwc3_resume(struct device *dev)
-> >> +{
-> >> +     struct dwc3 *dwc =3D dev_get_drvdata(dev);
-> >> +     int     ret;
-> >> +
-> >> +     ret =3D dwc3_core_init(dwc);
-> >> +     if (ret < 0)
-> >> +             return ret;
-> >> +
-> >> +     switch (dwc->mode) {
-> >> +     case DWC3_MODE_DEVICE:
-> >> +             dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
-> >> +             break;
-> >> +     case DWC3_MODE_HOST:
-> >> +             dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
-> >> +             break;
-> >> +     case DWC3_MODE_DRD:
-> >> +             dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
-> >> +     }
-> >> +
-> >> +     /* runtime set active to reflect active state. */
-> >> +     pm_runtime_disable(dev);
-> >> +     pm_runtime_set_active(dev);
-> >> +     pm_runtime_enable(dev);
-> >> +
-> >> +     return 0;
-> >> +}
-> >> +
-> >> +static int dwc3_suspend(struct device *dev)
-> >> +{
-> >> +     struct dwc3 *dwc =3D dev_get_drvdata(dev);
-> >> +
-> >
-> > there is one check you need to do here. If you are playing the
-> > peripheral role, you can't allow suspend unless link is in U3 or you're
-> > not enumerated.
-> >
-> > Have you tested running 'echo mem > /sys/power/state' on your device
-> > while you're transferring data in a USB session with the Host ?
-> >
-> we have tested only when DWC3 is in HOST mode.
+It was agreed to revert this commit and use Russell's
+latest UART patches instead.
 
-I'm very sorry but this isn't enough :-( We need to make sure there are
-no regressions on peripheral role.
+Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
 
-> > I'll ask again, how was this tested ? What did you actually run (which
-> > commands, which use cases have you validated) ? I'm not asking only
-> > which platform you used, I need to know how you exercised this feature,
-> > how did you trigger suspend/resume, in which conditions (enumerated ?
-> > bus suspended ? no cable attached ?), etc.
-> >
-> 1) We have tested by connecting a USB Mouse, USB 2.0 Mass Storage Device =
-and
-> USB 3.0 Mass Storage Device on a SS hub connected on USB 3.0 port to
-> Exynos5250 board, in which DWC3 is configured for HOST mode.
+Hi Greg,
 
-did you have a transfer going through when you suspended ? If you
-didn't, then you haven't stressed well enough.
+you might prefer to do the revert yourself, in that case just
+revert commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6.
 
-> 2) We tested by running  command
-> echo +20  > /sys/class/rtc/rtc0/wakealarm  &&  echo mem > /sys/power/state
+thanks
 
-that's ok, but try something like:
+ arch/arm/plat-omap/include/plat/omap-serial.h |  4 ++--
+ drivers/tty/serial/omap-serial.c              | 12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-# dd if=3D/dev/urandom of=3D/dev/sdXX bs=3D1M count=3D99999999 &
-# echo +20  > /sys/class/rtc/rtc0/wakealarm  &&  echo mem > /sys/power/state
-
-Better yet, generate a big (and I really mean big :-) file with a known
-pattern (make a sequence from 0x00 to 0xff and back to zero, over and
-over again) then write that file to the mass storage device, while
-transfer is on the fly, suspend, then resume and see if transfer
-continues, then later verify the bytes by reading back the data and
-comparing with original source file.
-
-Do this for both Host and Peripheral roles. I have a rather big
-suspicion that it won't work, in which case we need to make sure to
-prevent suspend while transfers are on the fly or do something else.
-
---=20
-balbi
-
---J+eNKFoVC4T1DV3f
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQfWbYAAoJEIaOsuA1yqRERfkP+wWnBcJhBZ9QviKqfKLbKxdc
-GpVAecUWo8RWTdMyo7gU//381NwHqHiTIYbsNYOEZdY9jID9C75m+gk8EBY3YuZI
-u+pLT5+1MBP1x0NkcrYLo/TGjidoFalovZCp7MNEgVmRteqfay5HTf34WA5vG8We
-O1jq8xoG3jApYYOXKKPN099KuWXLBIMoKtGm/ZRd+epGNGIbYXdVkL1NIO5Cvrkp
-HkZqovHIoz9zZA2WtTdV75aXH3C5BPijvF55q+vBIONuIdNHaS/7aYRxRtzRFO0N
-6NYl+010zCxS0/uaigaoeKbpaM7mYakBVQ0Y37qLOM+LGUTG4+A9yQFUFgEq60k7
-VNLi01ID8xRoQQoifDk9s5IlKEOGwg4p1E4A2IC0pngnVUfX5LSEP+5iv8+bT9pJ
-BCXPNOTvDLBSBaNHThMvrJVpZmAMDznxvH1EJosEG0pbtQfKsOhkAYUfH4TCm0GM
-i3eKG9wJeFKPqUzDwNUoqu+1BptJ6Ezb4x28YiZJLcIbh7e2z4K9bOHmqwuut9yr
-YqACWrd+l05lr1DScSVvN9/3fxywDGr8FXTygaqO7ETLEhvZ7PMar+1LSSSb1es7
-qA74JR4yb7SDJ4poLlfmgCuTFN8ikpMpT4gMB1y6gWRsUC8ttH9NWFvOYx+eIt87
-SWHk75fiKzhvf2uvED63
-=/I76
------END PGP SIGNATURE-----
-
---J+eNKFoVC4T1DV3f--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index f4a4cd0..1957a85 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -40,10 +40,10 @@
+ #define OMAP_UART_WER_MOD_WKUP	0X7F
+ 
+ /* Enable XON/XOFF flow control on output */
+-#define OMAP_UART_SW_TX		0x8
++#define OMAP_UART_SW_TX		0x04
+ 
+ /* Enable XON/XOFF flow control on input */
+-#define OMAP_UART_SW_RX		0x2
++#define OMAP_UART_SW_RX		0x04
+ 
+ #define OMAP_UART_SYSC_RESET	0X07
+ #define OMAP_UART_TCR_TRIG	0X0F
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 6ede6fd..6d3d26a 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -671,19 +671,19 @@ serial_omap_configure_xonxoff
+ 
+ 	/*
+ 	 * IXON Flag:
+-	 * Flow control for OMAP.TX
+-	 * OMAP.RX should listen for XON/XOFF
++	 * Enable XON/XOFF flow control on output.
++	 * Transmit XON1, XOFF1
+ 	 */
+ 	if (termios->c_iflag & IXON)
+-		up->efr |= OMAP_UART_SW_RX;
++		up->efr |= OMAP_UART_SW_TX;
+ 
+ 	/*
+ 	 * IXOFF Flag:
+-	 * Flow control for OMAP.RX
+-	 * OMAP.TX should send XON/XOFF
++	 * Enable XON/XOFF flow control on input.
++	 * Receiver compares XON1, XOFF1.
+ 	 */
+ 	if (termios->c_iflag & IXOFF)
+-		up->efr |= OMAP_UART_SW_TX;
++		up->efr |= OMAP_UART_SW_RX;
+ 
+ 	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+-- 
+1.8.0.rc0
