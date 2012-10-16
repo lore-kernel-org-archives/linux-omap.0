@@ -1,149 +1,96 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv4 8/8] ARM: OMAP3: do not delete per_clkdm autodeps during
- idle
-Date: Tue, 16 Oct 2012 07:29:21 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210160603390.9767@utopia.booyaka.com>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com> <1342189185-5306-9-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1209182156330.4747@utopia.booyaka.com> <alpine.DEB.2.00.1209182241400.4747@utopia.booyaka.com>
- <87k3vpek28.fsf@deeprootsystems.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: omap DSS fails with tft410 driver panel?
+Date: Tue, 16 Oct 2012 10:30:28 +0300
+Message-ID: <507D0D14.3070103@ti.com>
+References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com> <5077F771.9080308@ti.com> <CAFqH_52fKOb1OAqK3O-PkT6j69OOeEF-8LoQg-U+u4dH51V82Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig572F9AEC89B05FCACA4D24E1"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43338 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754764Ab2JPH3W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 03:29:22 -0400
-In-Reply-To: <87k3vpek28.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57178 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755063Ab2JPHag (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Oct 2012 03:30:36 -0400
+In-Reply-To: <CAFqH_52fKOb1OAqK3O-PkT6j69OOeEF-8LoQg-U+u4dH51V82Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
+To: Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
+
+--------------enig572F9AEC89B05FCACA4D24E1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+On 2012-10-15 19:08, Enric Balletbo Serra wrote:
+> Hi Tomi,
+>=20
+> Thanks for your answer.
+>=20
+> 2012/10/12 Tomi Valkeinen <tomi.valkeinen@ti.com>:
+>> On 2012-10-11 18:58, Enric Balletbo Serra wrote:
+>>> Hi all,
+>>>
+>>> I see that commit dac8eb5f (OMAPDSS: TFP410: rename dvi files to
+>>> tfp410) and commit 2e6f2ee7 (OMAPDSS: TFP410: rename dvi -> tfp410)
+>>> changes the panel driver used on some boards. I tested current
+>>> linux-next-20101011 kernel with my IGEPv2 board and DSS fails with
+>>> following error (see http://pastebin.com/VjPGCQDt for full log) :
+>>>
+>>>    [   21.222808] omapdss OVERLAY error: check_overlay: paddr cannot =
+be 0
+>>>    [   21.229583] omapdss OVERLAY error: check_overlay: paddr cannot =
+be 0
+>>>    [   21.236236] omapfb omapfb: setup_plane failed
+>>>
+>>> Before checking what happens there is a known issue with this ?
+>>
+>> Works fine for me, although only with a quite minimal test environment=
+=2E
+>>
+>=20
+> I tried with a minimal environment (without X) and I don't see the
+> error, so looks you've reason and the problem is with my userspace
+> application (X). OTOH, I don't see the video output. I remember that
+> this worked before, but seems now is broken. I'll check mux and others
+> hints to try to solve the problem ..
+
+It's not about muxing, but something else. So an earlier kernel works
+with the exact same userspace and kernel boot arguments? Then we
+probably have a bug in the kernel driver. But I can't say much from the
+debug prints, except that probably something goes wrong in the
+SETUP_PLANE ioctl.
+
+If you can, please add debug prints to omapfb-ioctl.c's
+omapfb_setup_plane() and print out the data in the  omapfb_plane_info
+parameter, and also prints to the error code paths in the function.
+
+ Tomi
 
 
-Hi Kevin,
 
-Here's an updated version of this one, with the erratum coverage expanded 
-to include OMAP34xx/35xx.
+--------------enig572F9AEC89B05FCACA4D24E1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-I think this one can replace Tero's "[PATCHv6 06/11] ARM: OMAP: 
-clockdomain: add support for preventing autodep delete" and "[PATCHv6 
-07/11] ARM: OMAP3: do not delete per_clkdm autodeps during idle".  Tero, 
-please let us know if you feel otherwise.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-The patch seems to pass testing on 37xx.  Was not able to really test it 
-on 35xx due to PM regressions in v3.7-rc1.
+iQIcBAEBAgAGBQJQfQ0UAAoJEPo9qoy8lh71JPcP/iiIuA45ByWpfLn0AaopkwnA
+P+kYRqYs1NZptS2khoYhQTvKv0ygVylhRme+xZO3MP2bkK2NBos/L7Lpsq1uJ0vt
+f4wq4d/wgV/yRzu4RDbqxeoXddHQkh4FPSSJbopSep/wEVfIr2OB7LFYRUxpZUy2
+q32T0viHAx7fn+CbC9yaiKZau7vfD7gaSoTVfDnd1LgBBz4uL5V/6ID++r66BHSK
+te2ReG9CIUrlodO8JiEp2jGIMWzY0Rp/pdGYcKTBBs1cjRhmrTlzQOFxphBDRTh+
+fr6xpOUobsgKcld2GagKnpUuf/fQBUHnNnThNpH/B4C2SYzUGB0NXM7+DRlKlNAq
+s7y9DRx8C70i2dqzmqHOTDrSyoSIW+ssJ+yRavbRiOSjQjqigfg0L0uwD/08pr2g
+Rq2vqI93aIr4NVXaa6ibWOKphCGNitMAWjbem2VBeksynVraUBP1uDi2xivfWN84
+C+/0VrozKQ4gCU9vqN6xDqXc0qbz5H6dvl5si/kMSfQlP7dP7EwT7nB2r2pQe+Eq
+rPE6W1W+q6NtNtgezoZ96BwoSVIA6zQjre95cbST/9ronZMH9lLYPBOpOJrASMT5
+Rxi6kl5dBMNGUFnad2Rt8IEqYpthJeGfZiaTBqB3Wl3zRr3+ZAzWproLLJP0m3c8
+uFOrli7IFysYTFW9i3KG
+=6/+J
+-----END PGP SIGNATURE-----
 
-
-- Paul
-
-From: Paul Walmsley <paul@pwsan.com>
-Date: Tue, 16 Oct 2012 00:08:53 -0600
-Subject: [PATCH] ARM: OMAP3: PM: apply part of the erratum i582 workaround
-
-On OMAP34xx/35xx, and OMAP36xx chips with ES < 1.2, if the PER
-powerdomain goes to OSWR or OFF while CORE stays at CSWR or ON, or if,
-upon chip wakeup from OSWR or OFF, the CORE powerdomain goes ON before
-PER, the UART3/4 FIFOs and McBSP2/3 SIDETONE memories will be
-unusable.  This is erratum i582 in the OMAP36xx Silicon Errata
-document.
-
-This patch implements one of several parts of the workaround: the
-addition of the wakeup dependency between the PER and WKUP
-clockdomains, such that PER will wake up at the same time CORE_L3
-does.
-
-This is not a complete workaround.  For it to be complete:
-
-1. the PER powerdomain's next power state must not be set to OSWR or
-   OFF if the CORE powerdomain's next power state is set to CSWR or
-   ON;
-
-2. the UART3/4 FIFO and McBSP2/3 SIDETONE loopback tests should be run
-   if the LASTPOWERSTATEENTERED bits for PER and CORE indicate that
-   PER went OFF while CORE stayed on.  If loopback tests fail, then
-   those devices will be unusable until PER and CORE can undergo a
-   transition from ON to OSWR/OFF and back ON.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/pm.h     |    1 +
- arch/arm/mach-omap2/pm34xx.c |   30 ++++++++++++++++++++++++++++--
- 2 files changed, 29 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 686137d..67d6613 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -91,6 +91,7 @@ extern void omap3_save_scratchpad_contents(void);
- 
- #define PM_RTA_ERRATUM_i608		(1 << 0)
- #define PM_SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
-+#define PM_PER_MEMORIES_ERRATUM_i582	(1 << 2)
- 
- #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
- extern u16 pm34xx_errata;
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c0f8a78..2e0c9e8 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -651,14 +651,17 @@ static void __init pm_errata_configure(void)
- 		/* Enable the l2 cache toggling in sleep logic */
- 		enable_omap3630_toggle_l2_on_restore();
- 		if (omap_rev() < OMAP3630_REV_ES1_2)
--			pm34xx_errata |= PM_SDRC_WAKEUP_ERRATUM_i583;
-+			pm34xx_errata |= (PM_SDRC_WAKEUP_ERRATUM_i583 |
-+					  PM_PER_MEMORIES_ERRATUM_i582);
-+	} else if (cpu_is_omap34xx()) {
-+		pm34xx_errata |= PM_PER_MEMORIES_ERRATUM_i582;
- 	}
- }
- 
- int __init omap3_pm_init(void)
- {
- 	struct power_state *pwrst, *tmp;
--	struct clockdomain *neon_clkdm, *mpu_clkdm;
-+	struct clockdomain *neon_clkdm, *mpu_clkdm, *per_clkdm, *wkup_clkdm;
- 	int ret;
- 
- 	if (!omap3_has_io_chain_ctrl())
-@@ -710,6 +713,8 @@ int __init omap3_pm_init(void)
- 
- 	neon_clkdm = clkdm_lookup("neon_clkdm");
- 	mpu_clkdm = clkdm_lookup("mpu_clkdm");
-+	per_clkdm = clkdm_lookup("per_clkdm");
-+	wkup_clkdm = clkdm_lookup("wkup_clkdm");
- 
- #ifdef CONFIG_SUSPEND
- 	omap_pm_suspend = omap3_pm_suspend;
-@@ -726,6 +731,27 @@ int __init omap3_pm_init(void)
- 	if (IS_PM34XX_ERRATUM(PM_RTA_ERRATUM_i608))
- 		omap3630_ctrl_disable_rta();
- 
-+	/*
-+	 * The UART3/4 FIFO and the sidetone memory in McBSP2/3 are
-+	 * not correctly reset when the PER powerdomain comes back
-+	 * from OFF or OSWR when the CORE powerdomain is kept active.
-+	 * See OMAP36xx Erratum i582 "PER Domain reset issue after
-+	 * Domain-OFF/OSWR Wakeup".  This wakeup dependency is not a
-+	 * complete workaround.  The kernel must also prevent the PER
-+	 * powerdomain from going to OSWR/OFF while the CORE
-+	 * powerdomain is not going to OSWR/OFF.  And if PER last
-+	 * power state was off while CORE last power state was ON, the
-+	 * UART3/4 and McBSP2/3 SIDETONE devices need to run a
-+	 * self-test using their loopback tests; if that fails, those
-+	 * devices are unusable until the PER/CORE can complete a transition
-+	 * from ON to OSWR/OFF and then back to ON.
-+	 *
-+	 * XXX Technically this workaround is only needed if off-mode
-+	 * or OSWR is enabled.
-+	 */
-+	if (IS_PM34XX_ERRATUM(PM_PER_MEMORIES_ERRATUM_i582))
-+		clkdm_add_wkdep(per_clkdm, wkup_clkdm);
-+
- 	clkdm_add_wkdep(neon_clkdm, mpu_clkdm);
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
- 		omap3_secure_ram_storage =
--- 
-1.7.10.4
-
+--------------enig572F9AEC89B05FCACA4D24E1--
