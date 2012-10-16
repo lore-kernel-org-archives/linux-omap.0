@@ -1,108 +1,139 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 1/2] USB: dwc3-exynos: Add support for device tree
-Date: Tue, 16 Oct 2012 12:53:33 +0300
-Message-ID: <20121016095333.GD5548@arwen.pp.htv.fi>
-References: <1350377157-28465-1-git-send-email-gautam.vivek@samsung.com>
- <1350377157-28465-2-git-send-email-gautam.vivek@samsung.com>
+Subject: Re: [PATCH v3 2/3] usb: xhci: Add the suspend/resume functionality
+Date: Tue, 16 Oct 2012 12:59:33 +0300
+Message-ID: <20121016095932.GA17416@arwen.pp.htv.fi>
+References: <1350380738-32473-1-git-send-email-vikas.sajjan@linaro.org>
+ <1350380738-32473-3-git-send-email-vikas.sajjan@linaro.org>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DrWhICOqskFTAXiy"
+	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35725 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42206 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751088Ab2JPJ7L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Oct 2012 05:59:11 -0400
+	id S1752415Ab2JPKFF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Oct 2012 06:05:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1350377157-28465-2-git-send-email-gautam.vivek@samsung.com>
+In-Reply-To: <1350380738-32473-3-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vivek Gautam <gautam.vivek@samsung.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gregkh@linuxfoundation.org, balbi@ti.com, rob.herring@calxeda.com, thomas.abraham@linaro.org, kishon@ti.com, av.tikhomirov@samsung.com
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, balbi@ti.com, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Doug Anderson <dianders@chromium.org>
 
---DrWhICOqskFTAXiy
+--sdtB3X0nJg68CQEu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 16, 2012 at 02:15:56PM +0530, Vivek Gautam wrote:
-> This patch adds support to parse probe data for
-> dwc3-exynos driver using device tree.
+Hi,
+
+On Tue, Oct 16, 2012 at 03:15:37PM +0530, Vikas Sajjan wrote:
+> Adds power management support to XHCI platform driver.
+> This patch facilitates the transition of xHCI host controller
+> between S0 and S3/S4 power states, during suspend/resume cycles.
 >=20
-> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> Signed-off-by: Abhilash Kesavan <a.kesavan@samsung.com>
+> Signed-off-by: Vikas C Sajjan <vikas.sajjan@linaro.org>
+> CC: Doug Anderson <dianders@chromium.org>
 > ---
->  drivers/usb/dwc3/dwc3-exynos.c |   20 ++++++++++++++++++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
+>  drivers/usb/host/xhci-plat.c |   28 ++++++++++++++++++++++++++++
+>  1 files changed, 28 insertions(+), 0 deletions(-)
 >=20
-> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exyno=
-s.c
-> index ca65978..d11ef49 100644
-> --- a/drivers/usb/dwc3/dwc3-exynos.c
-> +++ b/drivers/usb/dwc3/dwc3-exynos.c
-> @@ -21,6 +21,7 @@
->  #include <linux/clk.h>
->  #include <linux/usb/otg.h>
->  #include <linux/usb/nop-usb-xceiv.h>
-> +#include <linux/of.h>
-> =20
->  #include "core.h"
-> =20
-> @@ -87,6 +88,8 @@ err1:
->  	return ret;
+> diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
+> index df90fe5..eaf3a07 100644
+> --- a/drivers/usb/host/xhci-plat.c
+> +++ b/drivers/usb/host/xhci-plat.c
+> @@ -185,11 +185,39 @@ static int xhci_plat_remove(struct platform_device =
+*dev)
+>  	return 0;
 >  }
 > =20
-> +static u64 dwc3_exynos_dma_mask =3D DMA_BIT_MASK(32);
+> +#ifdef CONFIG_PM_SLEEP
+> +static int xhci_plat_suspend(struct device *dev)
+> +{
+> +	struct usb_hcd	*hcd	=3D dev_get_drvdata(dev);
+> +	struct xhci_hcd	*xhci	=3D hcd_to_xhci(hcd);
 > +
->  static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
->  {
->  	struct dwc3_exynos_data	*pdata =3D pdev->dev.platform_data;
-> @@ -103,6 +106,14 @@ static int __devinit dwc3_exynos_probe(struct platfo=
-rm_device *pdev)
->  		goto err0;
->  	}
-> =20
-> +	/*
-> +	 * Right now device-tree probed devices don't get dma_mask set.
-> +	 * Since shared usb code relies on it, set it here for now.
-> +	 * Once we move to full device tree support this will vanish off.
-> +	 */
-> +	if (!pdev->dev.dma_mask)
-> +		pdev->dev.dma_mask =3D &dwc3_exynos_dma_mask;
+> +	/* Make sure that the HCD Core has set state to HC_STATE_SUSPENDED */
+> +	if (hcd->state !=3D HC_STATE_SUSPENDED ||
+> +		xhci->shared_hcd->state !=3D HC_STATE_SUSPENDED)
+> +		return -EINVAL;
+> +
+> +	return xhci_suspend(xhci);
 
-says who ?
+this is pretty much what xhci_pci_suspend() is doing. Sarah, would you
+be ok with a patch such as:
 
-$ git grep -e dma_mask drivers/of/
-drivers/of/platform.c:  dev->dev.dma_mask =3D &dev->archdata.dma_mask;
-drivers/of/platform.c:  dev->archdata.dma_mask =3D 0xffffffffUL;
-drivers/of/platform.c:  dev->dev.coherent_dma_mask =3D DMA_BIT_MASK(32);
-drivers/of/platform.c:  dev->dev.coherent_dma_mask =3D ~0;
-drivers/of/platform.c:  dev->dma_mask =3D ~0;
+usb: host: xhci: move HC_STATE_SUSPENDED check to xhci_suspend()
 
--ECONFUSED
+[ STILL NEED TO WRITE A PROPER COMMIT LOG ]
+
+NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+
+diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
+index 8345d7c..aeb3973 100644
+--- a/drivers/usb/host/xhci-pci.c
++++ b/drivers/usb/host/xhci-pci.c
+@@ -218,15 +218,8 @@ static void xhci_pci_remove(struct pci_dev *dev)
+ static int xhci_pci_suspend(struct usb_hcd *hcd, bool do_wakeup)
+ {
+ 	struct xhci_hcd	*xhci =3D hcd_to_xhci(hcd);
+-	int	retval =3D 0;
+=20
+-	if (hcd->state !=3D HC_STATE_SUSPENDED ||
+-			xhci->shared_hcd->state !=3D HC_STATE_SUSPENDED)
+-		return -EINVAL;
+-
+-	retval =3D xhci_suspend(xhci);
+-
+-	return retval;
++	return xhci_suspend(xhci);
+ }
+=20
+ static int xhci_pci_resume(struct usb_hcd *hcd, bool hibernated)
+diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
+index 8d7fcbb..b85029e 100644
+--- a/drivers/usb/host/xhci.c
++++ b/drivers/usb/host/xhci.c
+@@ -879,6 +879,10 @@ int xhci_suspend(struct xhci_hcd *xhci)
+ 	struct usb_hcd		*hcd =3D xhci_to_hcd(xhci);
+ 	u32			command;
+=20
++	if (hcd->state !=3D HC_STATE_SUSPENDED ||
++			xhci->shared_hcd->state !=3D HC_STATE_SUSPENDED)
++		return -EINVAL;
++
+ 	spin_lock_irq(&xhci->lock);
+ 	clear_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
+ 	clear_bit(HCD_FLAG_HW_ACCESSIBLE, &xhci->shared_hcd->flags);
+
+do you think there is any reason to keep replicating the
+HC_STATE_SUSPENDED test all over the place ?
 
 --=20
 balbi
 
---DrWhICOqskFTAXiy
+--sdtB3X0nJg68CQEu
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQfS6dAAoJEIaOsuA1yqREU70P/31FAZR+jlHuqevWMhskUVtz
-Wrs1kWYn6K/CaHc+H5xLhUuw7OUnWogPngbbu4WbMhS4h/nTPnlOhzdDenz24ZlR
-3pzIYDivgCHVWT3LjTBumsjIqiflH4CrhcTaLbvw1wLVg+H6qmxfefvIUYMvUxl6
-b//ZlHRhr4Rzu9dLy0o4VbFMG8YHwIZf3mNOzELlCWYq1Z23ottTvoFgd4876lac
-qpqwDwX1RnS61wZ+zZ4b6FLWrHzUJSfjnKTEcvIAyZrawYVChnozXP1KWRCkz9pw
-6NqOZ9jxtRKvTXxYGy08QQSqp4AWn2n1uqyc3x7pmYxTGoDRNiJl1vemoBGPTNgv
-mIP0RS7Eghg7ChP5PWszekRBdstzpGPyYuew5KxnKSr2NOCjY1vKz+7bijKPXRho
-DUOFpAqinhsfkgRs4Zsn0UgndZvbpZNcbujIQcw6dyzukKHp2mzRF6tBLIFUd5dB
-d2gR836olwVIIzh7FgMxJb0psywzDCmLYEz0HWyuJDVyfgn8d7e+K/7SPPNuPkK8
-p9FIlXoEezttKlqRxDKuUKKcoWoAZchTDoZVC2+m62/B8BX0+q8FvV1iE2zxrYtn
-X5ieAzE7PBW07uKPziFs/pcKTSK+UrAu6Tytd3Vz0qimMPEn2IUkJsn3WkG1J3uQ
-2H0dQKIysYnPlN4Iv8sN
-=jtd/
+iQIcBAEBAgAGBQJQfTAEAAoJEIaOsuA1yqRE4uEQAIbAdNgb9bQf6/BgXkxn+LXS
+9RNJ53AW1Cl1o6PD6zA6E6mQZExnCfFOfBNQ8cr9eUX6+f6iErZJZFA4FpKGE5DC
+zo13ZALlwaa1ej1TXhsolT4Z+6RfSoil833OssRsFr69J8ORQkyOocCz6ohUlnXq
+0QdLs3SuNiFsK10tvYjNJZJzpWDuG4aRefdjaBvl9ujUQPBiNgYAetvYO0QLUEIB
+IYgEj6x1BjZit4LLspZA+yd7rDak510OpWanfnD0rWreYlmMIx8W2s5CBRqaB1G0
+0Sq+RDjb4Ay10r+55EiJgcHFMWP1IFgXw6irS7XfCvW0AAdt6TzoWIHxmbpAceTP
+52JpbDHQTFkyybSD9obXqOCc498/3yE+sLrOEq/6OYqiE5I3Lx4D/HkN+21lpiZN
+y2nTUhCoa7Rdg0gPDJ1+OK/eC20/GZlBgJPKKvhKx5YTKfLBnSzcL0NI3PmQokBN
+umNwjvIhwpsD5Uw0BBMwQTrSYMTOFYre+lyrUjW/M0cr33M+ETKBPQkgpP74sGmm
+pR1s7RY1s5W61ZXn/CS/zulusyWBL/+LhxwL5zQiqZuo1gtDoEacf0nDP8q505im
+mCCWZqpnLYZEsJkorFm3Nnio04usk0eLJekxyOqm01AnOD2ul+34ua7g37fPVGuu
+zUzUSWVH0Uz95Bf0/la8
+=IyxN
 -----END PGP SIGNATURE-----
 
---DrWhICOqskFTAXiy--
+--sdtB3X0nJg68CQEu--
