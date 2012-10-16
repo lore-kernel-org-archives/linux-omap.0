@@ -1,32 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Revert "serial: omap: fix software flow control"
-Date: Tue, 16 Oct 2012 08:13:59 -0700
-Message-ID: <20121016151357.GN15569@atomide.com>
-References: <1350396562-32579-1-git-send-email-balbi@ti.com>
+From: Sebastien Guiriec <s-guiriec-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] i2c: omap: adopt pinctrl support
+Date: Tue, 16 Oct 2012 17:23:20 +0200
+Message-ID: <1350401000-9453-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1350396562-32579-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux@arm.linux.org.uk, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastien Guiriec <s-guiriec-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [121016 07:16]:
-> This reverts commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6
-> (serial: omap: fix software flow control).
-> 
-> As Russell has pointed out, that commit isn't fixing
-> Software Flow Control at all, and it actually makes
-> it even more broken.
-> 
-> It was agreed to revert this commit and use Russell's
-> latest UART patches instead.
-> 
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+Some GPIO expanders need some early pin control muxing. Due to
+legacy boards sometimes the driver uses subsys_initcall instead of
+module_init. This patch takes advantage of defer probe feature
+and pin control in order to wait until pin control probing before
+GPIO driver probing. It has been tested on OMAP5 board with TCA6424
+driver.
 
-This seems like the best way to go for the -rc series:
+log:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+[0.482299] omap_i2c i2c.15: could not find pctldev for node /ocp/pinmux@4a00
+2840/pinmux_i2c5_pins, deferring probe
+[0.482330] platform i2c.15: Driver omap_i2c requests probe deferral
+[0.484466] Advanced Linux Sound Architecture Driver Initialized.
+
+[4.746917] omap_i2c i2c.15: bus 4 rev2.4.0 at 100 kHz
+[4.755279] gpiochip_find_base: found new base at 477
+[4.761169] gpiochip_add: registered GPIOs 477 to 500 on device: tca6424a
+
+Signed-off-by: Sebastien Guiriec <s-guiriec-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index db31eae..661d8a2 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -44,6 +44,7 @@
+ #include <linux/i2c-omap.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pm_qos.h>
++#include <linux/pinctrl/consumer.h>
+ 
+ /* I2C controller revisions */
+ #define OMAP_I2C_OMAP1_REV_2		0x20
+@@ -213,6 +214,8 @@ struct omap_i2c_dev {
+ 	u16			syscstate;
+ 	u16			westate;
+ 	u16			errata;
++
++	struct pinctrl		*pins;
+ };
+ 
+ static const u8 reg_map_ip_v1[] = {
+@@ -1107,6 +1110,16 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		dev->dtrev = pdata->rev;
+ 	}
+ 
++	dev->pins = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(dev->pins)) {
++		if (PTR_ERR(dev->pins) == -EPROBE_DEFER)
++			return -EPROBE_DEFER;
++
++		dev_warn(&pdev->dev, "did not get pins for i2c error: %li\n",
++			 PTR_ERR(dev->pins));
++		dev->pins = NULL;
++	}
++
+ 	dev->dev = &pdev->dev;
+ 	dev->irq = irq;
+ 
+-- 
+1.7.10.4
