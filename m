@@ -1,64 +1,60 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
-Date: Tue, 16 Oct 2012 14:47:56 -0500
-Message-ID: <507DB9EC.9060407@ti.com>
-References: <cover.1350327320.git.richardcochran@gmail.com> <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about
+ serial stuff)
+Date: Tue, 16 Oct 2012 12:53:02 -0700
+Message-ID: <20121016195302.GJ15569@atomide.com>
+References: <20121012155434.GO28061@n2100.arm.linux.org.uk>
+ <20121012162452.GD30339@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9FCAAF@DBDE01.ent.ti.com>
+ <20121016181252.GE15569@atomide.com>
+ <507DB483.3090906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45382 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932087Ab2JPTsU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Oct 2012 15:48:20 -0400
-In-Reply-To: <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38902 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752356Ab2JPTxI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 15:53:08 -0400
+Content-Disposition: inline
+In-Reply-To: <507DB483.3090906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: netdev@vger.kernel.org, Afzal Mohammed <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, "hvaibhav@ti.com" <hvaibhav@ti.com>, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
 
-
-On 10/15/2012 02:16 PM, Richard Cochran wrote:
-> From: hvaibhav@ti.com <hvaibhav@ti.com>
+* Benoit Cousson <b-cousson@ti.com> [121016 12:26]:
+> Hi Tony,
 > 
-> With recent changes in omap gpmc driver code, in case of DT
-> boot mode, where bootloader does not configure gpmc cs space
-> will result into kernel BUG() inside gpmc_mem_init() function,
-> as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
-> gpmc_config7[0].baseaddress is set to '0' on reset.
-
-I am not sure I completely follow the logic here.
-
-Won't this problem occur if the bootloader does not configure the gpmc
-cs space AND we are not using DT?
-
-Is the csvalid bit set because we are booting from the internal ROM?
-
-I guess I don't see why csvalid bit being set and a base-address of 0x0
-should not be allowed. That should be a valid combination.
-
-One problem I see with gpmc_mem_init() is that it assumes that
-BOOT_ROM_SPACE is 1MB for all devices starting at 0x0 apart from the
-apollon board. For newer devices such as OMAP4, there is only 48KB of
-internal ROM and only mapped to 0x0 when booting from internal ROM. So
-this needs to be fixed.
-
-How much internal ROM does the AM335x have and where is it mapped?
-
-> This use-case is applicable for any board/EVM which doesn't have
-> any peripheral connected to gpmc cs0, for example BeagleXM and
-> BeagleBone, so DT boot mode fails.
+> On 10/16/2012 08:12 PM, Tony Lindgren wrote:
+> > * Mohammed, Afzal <afzal@ti.com> [121014 23:00]:
+> >> Hi,
+> >>
+> >> On Fri, Oct 12, 2012 at 21:54:52, Tony Lindgren wrote:
+> >>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [121012 08:56]:
+> >>
+> >>>> omap-gpmc omap-gpmc: error: clk_get
+> >>>> omap-gpmc: probe of omap-gpmc failed with error -2
+> >>>
+> >>> I think Afzal posted something about this already? Looks
+> >>> like this too could be sparse IRQ related regression..
+> >>
+> >> Patch has been posted to resolve the issue,
+> >> "ARM: OMAP4: hwmod data: gpmc main clk".
+> > 
+> > OK thanks I'll pick that up.
 > 
-> This patch adds of_have_populated_dt() check before creating
-> device, so that for DT boot mode, gpmc probe will not be called
-> which is expected behavior, as gpmc is not supported yet from DT.
+> In fact you should not pick that one, the one I sent superseded it:
+> 
+> [PATCH] ARM: OMAP2+: clock data: Add dev-id for the omap-gpmc dummy fck
 
-Yes, but we do actually still allow some platform devices to be probed
-(such as dmtimers) when booting with DT that don't support DT yet. So
-this change prevents us from using the gpmc on boards when booting with DT.
+OK yeah looks like I have the right one then.
+ 
+> BTW, I cannot find your omap-for-v3.7-rc1/fixes-part2 branch, did you
+> already pushed it?
 
-I am not convinced that this is addressing the underlying problem with
-gpmc_mem_init().
+Not yet, was running randconfig builds on it while I was out for lunch :)
+Just pushed it out.
 
-Cheers
-Jon
+Regards,
+
+Tony
