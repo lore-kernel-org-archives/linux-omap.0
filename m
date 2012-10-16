@@ -1,86 +1,59 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] Revert "serial: omap: fix software flow control"
-Date: Tue, 16 Oct 2012 17:09:22 +0300
-Message-ID: <1350396562-32579-1-git-send-email-balbi@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v5 0/3] OMAP 3 CSI-2 configuration
+Date: Tue, 16 Oct 2012 16:51:40 +0200
+Message-ID: <1651288.n5DBzW1A1K@avalon>
+References: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux@arm.linux.org.uk, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, khilman@deeprootsystems.com
 List-Id: linux-omap@vger.kernel.org
 
-This reverts commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6
-(serial: omap: fix software flow control).
+Hi Sakari,
 
-As Russell has pointed out, that commit isn't fixing
-Software Flow Control at all, and it actually makes
-it even more broken.
+Thanks for the patches.
 
-It was agreed to revert this commit and use Russell's
-latest UART patches instead.
+For the whole series,
 
-Cc: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Hi Greg,
+Tony, do you want to take patch 1/3 in your tree, or can I push the whole 
+series through mine ?
 
-you might prefer to do the revert yourself, in that case just
-revert commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6.
+On Sunday 14 October 2012 13:31:22 Sakari Ailus wrote:
+> Hi all,
+> 
+> This is an update to an old patchset for CSI-2 configuration for OMAP 3430
+> and 3630. The patches have been tested on the 3630 only so far, and I don't
+> plan to test them on 3430 in the near future.
+> 
+> I've made changes according to Laurent's suggestions to the patches, with
+> the exception of alignment of a certain line. I think it's exactly as it
+> should be. :-)
+> 
+> I'm not quite certain about the comment regarding the control register state
+> dependency to the CORE power domain, and why exactly this isn't an issue.
+> We know the MPU must stay powered since the ISP can't wake up MPU, but how
+> is this related to CORE? In the end it seems to work.
+> 
+> If you think this should be changed and you also know how, please provide me
+> the text. :-)
+> 
+> 	/*
+> 	 * The PHY configuration is lost in off mode, that's not an
+> 	 * issue since the MPU power domain is forced on whilst the
+> 	 * ISP is in use.
+> 	 */
+> 
+> Comments, questions and other kind of feedback is very welcome.
+> 
+> Kind regards,
 
-thanks
-
- arch/arm/plat-omap/include/plat/omap-serial.h |  4 ++--
- drivers/tty/serial/omap-serial.c              | 12 ++++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index f4a4cd0..1957a85 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -40,10 +40,10 @@
- #define OMAP_UART_WER_MOD_WKUP	0X7F
- 
- /* Enable XON/XOFF flow control on output */
--#define OMAP_UART_SW_TX		0x8
-+#define OMAP_UART_SW_TX		0x04
- 
- /* Enable XON/XOFF flow control on input */
--#define OMAP_UART_SW_RX		0x2
-+#define OMAP_UART_SW_RX		0x04
- 
- #define OMAP_UART_SYSC_RESET	0X07
- #define OMAP_UART_TCR_TRIG	0X0F
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 6ede6fd..6d3d26a 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -671,19 +671,19 @@ serial_omap_configure_xonxoff
- 
- 	/*
- 	 * IXON Flag:
--	 * Flow control for OMAP.TX
--	 * OMAP.RX should listen for XON/XOFF
-+	 * Enable XON/XOFF flow control on output.
-+	 * Transmit XON1, XOFF1
- 	 */
- 	if (termios->c_iflag & IXON)
--		up->efr |= OMAP_UART_SW_RX;
-+		up->efr |= OMAP_UART_SW_TX;
- 
- 	/*
- 	 * IXOFF Flag:
--	 * Flow control for OMAP.RX
--	 * OMAP.TX should send XON/XOFF
-+	 * Enable XON/XOFF flow control on input.
-+	 * Receiver compares XON1, XOFF1.
- 	 */
- 	if (termios->c_iflag & IXOFF)
--		up->efr |= OMAP_UART_SW_TX;
-+		up->efr |= OMAP_UART_SW_RX;
- 
- 	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
 -- 
-1.8.0.rc0
+Regards,
+
+Laurent Pinchart
