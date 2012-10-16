@@ -1,76 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/6] OMAP: iommu: hwmod, reset handling and runtime
- PM
-Date: Tue, 16 Oct 2012 10:22:59 -0700
-Message-ID: <20121016172258.GT15569@atomide.com>
-References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
+Date: Tue, 16 Oct 2012 10:43:19 -0700
+Message-ID: <20121016174319.GU15569@atomide.com>
+References: <1349773040-8204-1-git-send-email-hvaibhav@ti.com>
+ <20121010140027.GB13724@beef>
+ <79CD15C6BA57404B839C016229A409A83EB3B573@DBDE01.ent.ti.com>
+ <20121010143501.GC13724@beef>
+ <20121010143742.GE13724@beef>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:37060 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755187Ab2JPRXI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 13:23:08 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33727 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755404Ab2JPRnY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 13:43:24 -0400
 Content-Disposition: inline
-In-Reply-To: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
+In-Reply-To: <20121010143742.GE13724@beef>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
+To: Matt Porter <mporter@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Omar Ramirez Luna <omar.luna@linaro.org> [121011 18:07]:
-> These patches are needed for remoteproc to work on OMAP4.
+* Matt Porter <mporter@ti.com> [121010 07:38]:
+> On Wed, Oct 10, 2012 at 10:35:01AM -0400, Matt Porter wrote:
+> > On Wed, Oct 10, 2012 at 02:19:40PM +0000, Vaibhav Hiremath wrote:
+> > > On Wed, Oct 10, 2012 at 19:30:27, Porter, Matt wrote:
+> > > > On Tue, Oct 09, 2012 at 02:27:20PM +0530, Vaibhav Hiremath wrote:
+> > > > > With recent changes in omap gpmc driver code, in case of DT
+> > > > > boot mode, where bootloader does not configure gpmc cs space
+> > > > > will result into kernel BUG() inside gpmc_mem_init() function,
+> > > > > as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
+> > > > > gpmc_config7[0].baseaddress is set to '0' on reset.
+> > > > > 
+> > > > > This use-case is applicable for any board/EVM which doesn't have
+> > > > > any peripheral connected to gpmc cs0, for example BeagleXM and
+> > > > > BeagleBone, so DT boot mode fails.
+> > > > > 
+> > > > > This patch adds of_have_populated_dt() check before creating
+> > > > > device, so that for DT boot mode, gpmc probe will not be called
+> > > > > which is expected behavior, as gpmc is not supported yet from DT.
+> > > > > 
+> > > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > > Cc: Afzal Mohammed <afzal@ti.com>
+> > > > > Cc: Tony Lindgren <tony@atomide.com>
+> > > > > Cc Paul Walmsley <paul@pwsan.com>
+> > > > > ---
+> > > > > This should go in for rc1, as this breaks AM33xx boot.
+> > > > 
+> > > > Fixes BeagleBone on mainline.
+> > > > 
+> > > > Tested-by: Matt Porter <mporter@ti.com>
+> > > > 
+> > > 
+> > > Thanks Matt and Afzal,
+> > > 
+> > > Tony can this be picked up for rc1?? I know you have already sent pull 
+> > > request for rc1, but by any chance you are planning to send another request?
+> > 
+> > I also found a separate problem with the mcasp clock data that's needed
+> > for rc1. I just posted a patch for that as I need both this patch and the
+> > clock data fix to boot from current mainline.
 > 
-> Introduced iommu hwmod support for OMAP3 (iva, isp) and
-> OMAP4 (ipu, dsp), along with the corresponding runtime PM
-> and routines to deassert reset lines, enable/disable clocks
-> and configure sysc registers.
-> 
-> Although IOMMU hwmod patches were already submitted in the past,
-> this series adds few more changes, like:
-> - New reset handling.
-> - Save and restore context code rework.
-> - Device tree bindings for OMAP3 and OMAP4.
-> 
-> For this series I just dropped the patches already included in
-> mainline.
+> Disregard now that you got me pointed to the pull request with this :)
 
-These will need to be rebased on omap-for-v3.8/cleanup-headers-iommu
-when I have that pushed out as that removes plat/*iommu*.h files.
+Thanks applying $Subject patch into omap-for-v3.7-rc1/fixes-part2 and
+ignoring the comments about the mcasp clock as it sounds like the mcasp
+is already fixed.
 
 Regards,
 
 Tony
- 
-> Previous work can be found at:
-> [v2]
->   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg75701.html
-> [v1]
->   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70447.html
-> 
-> [old iteration without reset, save/restore and device tree]
->   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg60133.html
-> 
-> Omar Ramirez Luna (6):
->   ARM: OMAP3/4: iommu: migrate to hwmod framework
->   ARM: OMAP3/4: iommu: adapt to runtime pm
->   ARM: OMAP: iommu: pm runtime save and restore context
->   ARM: OMAP: iommu: optimize save and restore routines
->   ARM: OMAP: iommu: add device tree support
->   arm/dts: OMAP3/4: Add iommu nodes
-> 
->  .../devicetree/bindings/arm/omap/iommu.txt         |   10 ++
->  arch/arm/boot/dts/omap3.dtsi                       |   12 +-
->  arch/arm/boot/dts/omap4.dtsi                       |   17 +-
->  arch/arm/mach-omap2/devices.c                      |    2 +-
->  arch/arm/mach-omap2/iommu2.c                       |   74 ++------
->  arch/arm/mach-omap2/omap-iommu.c                   |  176 +++++---------------
->  arch/arm/plat-omap/include/plat/iommu.h            |   20 ++-
->  arch/arm/plat-omap/include/plat/iommu2.h           |    4 -
->  drivers/iommu/omap-iommu.c                         |  163 ++++++++++++++----
->  9 files changed, 245 insertions(+), 233 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/arm/omap/iommu.txt
-> 
-> -- 
-> 1.7.9.5
-> 
