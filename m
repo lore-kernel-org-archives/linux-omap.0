@@ -1,136 +1,151 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/7] ARM: OMAP2+: PRM: prepare for use of prm_ll_data
- function pointers
-Date: Mon, 15 Oct 2012 19:32:09 -0600
-Message-ID: <20121016013203.21844.65536.stgit@dusk.lan>
+Subject: [PATCH 2/7] ARM: OMAP2+: CM: prepare for use of cm_ll_data function
+ pointers
+Date: Mon, 15 Oct 2012 19:32:10 -0600
+Message-ID: <20121016013209.21844.99036.stgit@dusk.lan>
 References: <20121016012448.21844.92339.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42851 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:42853 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755486Ab2JPBe1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 21:34:27 -0400
+	with ESMTP id S1755501Ab2JPBe2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 21:34:28 -0400
 In-Reply-To: <20121016012448.21844.92339.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-There are several PRM operations which behave similarly across OMAP2+
+There are several CM operations which behave similarly across OMAP2+
 SoCs, but which have slight differences in their underlying
-implementations.  For example, to fetch the SoC's last reset sources,
-different registers are read across OMAP2xxx, 3xxx, and 44xx, and
-different bits are used on each SoC.  But the information returned is
-so similar that a single, common interface for drivers is useful.
+implementations.
 
 This patch creates the support code for this function pointer
 registration process.  No function pointers are included yet, but a
-subsequent patch will create one for the reset source API.
+subsequent patch will create these for the module IDLEST registers.
 
-To illustrate the end goal with the above reset source example, each
-per-SoC driver will use its own low-level implementation function --
-e.g., prm2xxx.c would contain omap2xxx_prm_read_reset_sources().  This
-function would read the appropriate register and remap the register
-bits to a standard set of reset source bits.  When the prm2xxx.c
-driver is loaded, it would register this function with the common PRM
-driver, prm.c.  prm.c would then export a common function,
-omap_prm_read_reset_sources().  Calling it would call through to the
-function pointer for the currently-registered SoC PRM driver.  This
-will allow other drivers to use PRM-provided data and operations
-without needing to know which SoC is currently in use.
+This patch allows other code to use CM-provided data and operations
+without needing to know which SoC is currently in use.  A further
+description of the concept is provided in the patch entitled
+"ARM: OMAP2+: PRM: prepare for use of prm_ll_data function pointers".
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/prm.h        |   11 ++++++++
- arch/arm/mach-omap2/prm_common.c |   52 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+)
+ arch/arm/mach-omap2/Makefile    |    2 +
+ arch/arm/mach-omap2/cm.h        |   12 +++++++
+ arch/arm/mach-omap2/cm_common.c |   71 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 84 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/mach-omap2/cm_common.c
 
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 39d5621..3e51c1d 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -52,5 +52,16 @@
- #define OMAP_POWERSTATE_SHIFT				0
- #define OMAP_POWERSTATE_MASK				(0x3 << 0)
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 3751d56..f7cf382 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -93,7 +93,7 @@ obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
+ endif
  
-+#ifndef __ASSEMBLER__
-+
-+/**
-+ * struct prm_ll_data - fn ptrs to per-SoC PRM function implementations
-+ */
-+struct prm_ll_data {};
-+
-+extern int prm_register(struct prm_ll_data *pld);
-+extern int prm_unregister(struct prm_ll_data *pld);
-+
-+#endif
- 
- #endif
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 0a100d9..8670a3c 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -53,6 +53,13 @@ static struct irq_chip_generic **prcm_irq_chips;
+ # PRCM
+-obj-y					+= prcm.o prm_common.o
++obj-y					+= prcm.o prm_common.o cm_common.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= prm2xxx_3xxx.o prm2xxx.o cm2xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= prm2xxx_3xxx.o prm3xxx.o cm3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index f24e3f7..b3cee91 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -33,4 +33,16 @@
   */
- static struct omap_prcm_irq_setup *prcm_irq_setup;
+ #define MAX_MODULE_DISABLE_TIME		5000
  
-+/*
-+ * prm_ll_data: function pointers to SoC-specific implementations of
-+ * common PRM functions
-+ */
-+static struct prm_ll_data null_prm_ll_data;
-+static struct prm_ll_data *prm_ll_data = &null_prm_ll_data;
-+
- /* Private functions */
- 
- /*
-@@ -318,3 +325,48 @@ err:
- 	omap_prcm_irq_cleanup();
- 	return -ENOMEM;
- }
++# ifndef __ASSEMBLER__
 +
 +/**
-+ * prm_register - register per-SoC low-level data with the PRM
-+ * @pld: low-level per-SoC OMAP PRM data & function pointers to register
-+ *
-+ * Register per-SoC low-level OMAP PRM data and function pointers with
-+ * the OMAP PRM common interface.  The caller must keep the data
-+ * pointed to by @pld valid until it calls prm_unregister() and
-+ * it returns successfully.  Returns 0 upon success, -EINVAL if @pld
-+ * is NULL, or -EEXIST if prm_register() has already been called
-+ * without an intervening prm_unregister().
++ * struct cm_ll_data - fn ptrs to per-SoC CM function implementations
 + */
-+int prm_register(struct prm_ll_data *pld)
++struct cm_ll_data {};
++
++extern int cm_register(struct cm_ll_data *cld);
++extern int cm_unregister(struct cm_ll_data *cld);
++
++# endif
++
+ #endif
+diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
+new file mode 100644
+index 0000000..3246cef
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm_common.c
+@@ -0,0 +1,71 @@
++/*
++ * OMAP2+ common Clock Management (CM) IP block functions
++ *
++ * Copyright (C) 2012 Texas Instruments, Inc.
++ * Paul Walmsley <paul@pwsan.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * XXX This code should eventually be moved to a CM driver.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++
++#include "cm2xxx.h"
++#include "cm3xxx.h"
++#include "cm44xx.h"
++
++/*
++ * cm_ll_data: function pointers to SoC-specific implementations of
++ * common CM functions
++ */
++static struct cm_ll_data null_cm_ll_data;
++static struct cm_ll_data *cm_ll_data = &null_cm_ll_data;
++
++/**
++ * cm_register - register per-SoC low-level data with the CM
++ * @cld: low-level per-SoC OMAP CM data & function pointers to register
++ *
++ * Register per-SoC low-level OMAP CM data and function pointers with
++ * the OMAP CM common interface.  The caller must keep the data
++ * pointed to by @cld valid until it calls cm_unregister() and
++ * it returns successfully.  Returns 0 upon success, -EINVAL if @cld
++ * is NULL, or -EEXIST if cm_register() has already been called
++ * without an intervening cm_unregister().
++ */
++int cm_register(struct cm_ll_data *cld)
 +{
-+	if (!pld)
++	if (!cld)
 +		return -EINVAL;
 +
-+	if (prm_ll_data != &null_prm_ll_data)
++	if (cm_ll_data != &null_cm_ll_data)
 +		return -EEXIST;
 +
-+	prm_ll_data = pld;
++	cm_ll_data = cld;
 +
 +	return 0;
 +}
 +
 +/**
-+ * prm_unregister - unregister per-SoC low-level data & function pointers
-+ * @pld: low-level per-SoC OMAP PRM data & function pointers to unregister
++ * cm_unregister - unregister per-SoC low-level data & function pointers
++ * @cld: low-level per-SoC OMAP CM data & function pointers to unregister
 + *
-+ * Unregister per-SoC low-level OMAP PRM data and function pointers
-+ * that were previously registered with prm_register().  The
-+ * caller may not destroy any of the data pointed to by @pld until
++ * Unregister per-SoC low-level OMAP CM data and function pointers
++ * that were previously registered with cm_register().  The
++ * caller may not destroy any of the data pointed to by @cld until
 + * this function returns successfully.  Returns 0 upon success, or
-+ * -EINVAL if @pld is NULL or if @pld does not match the struct
-+ * prm_ll_data * previously registered by prm_register().
++ * -EINVAL if @cld is NULL or if @cld does not match the struct
++ * cm_ll_data * previously registered by cm_register().
 + */
-+int prm_unregister(struct prm_ll_data *pld)
++int cm_unregister(struct cm_ll_data *cld)
 +{
-+	if (!pld || prm_ll_data != pld)
++	if (!cld || cm_ll_data != cld)
 +		return -EINVAL;
 +
-+	prm_ll_data = &null_prm_ll_data;
++	cm_ll_data = &null_cm_ll_data;
 +
 +	return 0;
 +}
