@@ -1,73 +1,78 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: RT throttling and suspend/resume (was Re: [PATCH] i2c: omap: revert
- "i2c: omap: switch to threaded IRQ support")
-Date: Tue, 16 Oct 2012 14:39:50 -0700
-Message-ID: <87ipaanljt.fsf_-_@deeprootsystems.com>
-References: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com>
- <CAM=Q2csHTbR4rBe1HNr5-M3sG5wgdCv6dCnGLmNQEwo1gjCSGg@mail.gmail.com>
- <20121016133356.GG21801@arwen.pp.htv.fi>
+Subject: Re: [RFC][PATCH v4? 0/7] Adaptive Body-Bias for OMAP
+Date: Tue, 16 Oct 2012 14:50:44 -0700
+Message-ID: <87a9vmnl1n.fsf@deeprootsystems.com>
+References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
+	<20121011133304.GA19170@kahuna> <20121011222107.2941.62545@nucleus>
+	<20121016163225.GQ15569@atomide.com>
+	<20121016170620.21731.52746@nucleus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20121016133356.GG21801@arwen.pp.htv.fi> (Felipe Balbi's message
- of "Tue, 16 Oct 2012 16:33:56 +0300")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Wolfram Sang <w.sang@pengutronix.de>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, linux-i2c@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:58312 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752918Ab2JPVud (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 17:50:33 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so6326008pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Oct 2012 14:50:32 -0700 (PDT)
+In-Reply-To: <20121016170620.21731.52746@nucleus> (Mike Turquette's message of
+	"Tue, 16 Oct 2012 10:06:20 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+ peterz, tglx
+Mike Turquette <mturquette@ti.com> writes:
 
-Felipe Balbi <balbi@ti.com> writes:
+> Quoting Tony Lindgren (2012-10-16 09:32:25)
+>> * Mike Turquette <mturquette@ti.com> [121011 15:27]:
+>> > Quoting Nishanth Menon (2012-10-11 06:33:04)
+>> > > On 18:26-20121003, Mike Turquette wrote:
+>> > > > From: Mike Turquette <mturquette@linaro.org>
+>> > > [...]
+>> > > > 
+>> > > >  arch/arm/mach-omap2/Makefile                  |    8 +-
+>> > > >  arch/arm/mach-omap2/abb.c                     |  322 +++++++++++++++++++++++++
+>> > > >  arch/arm/mach-omap2/abb.h                     |   94 ++++++++
+>> > > [...]
+>> > > >  arch/arm/plat-omap/include/plat/voltage.h     |    1 +
+>> > > >  18 files changed, 699 insertions(+), 37 deletions(-)
+>> > > >  create mode 100644 arch/arm/mach-omap2/abb.c
+>> > > >  create mode 100644 arch/arm/mach-omap2/abb.h
+>> > > >  create mode 100644 arch/arm/mach-omap2/abb36xx_data.c
+>> > > >  create mode 100644 arch/arm/mach-omap2/abb44xx_data.c
+>> > > 
+>> > > dumb question: with the request to move everything out of mach-omap2
+>> > > directory, do we still want to add more files into mach-omap2?
+>> > > 
+>> > 
+>> > Not a dumb question at all.  I approached this problem by modeling it
+>> > after existing voltage layer code (in particular the vp and vc drivers).
+>> > 
+>> > My hope is to get it merged as-is and then bundle the abb code up with
+>> > the vp/vc migration to drivers/* when that happens some day.  People
+>> > using omap36xx and above need this code now, so it seems prudent to take
+>> > this approach today.
+>> 
+>> This is needed, but makes moving the vc code to drivers a bit
+>> more complex.
+>> 
+>> So we also need a plan to move this all to drivers in the follow
+>> up patches. And we need a maintainer for the code. Who is going to
+>> be doing all that?
+>> 
+>
+> Is there already somebody committed to moving vp/vc code out to drivers?
 
-[...]
+Yes, VC/VP is part of the bigger PRM/CM move in progress.
 
-> The problem I see is that even though we properly return IRQ_WAKE_THREAD
-> and wake_up_process() manages to wakeup the IRQ thread (it returns 1),
-> the thread is never scheduled. To make things even worse, ouw irq thread
-> runs once, but doesn't run on a consecutive call. Here's some (rather
-> nasty) debug prints showing the problem:
+For now, I'm ok with adding a little more VC/VP stuff since it's already
+well isolated in the prmXXXX.c files (though it might need a rebase on
+Paul's recent PRM/CM cleanup stuff.)
 
-[...]
+> If so then I can take responsibility for moving the abb code and
+> coordinate with that person.  
 
->> [   88.721923] try_to_wake_up 1411
->> [   88.725189] ===> irq_wake_thread 139: IRQ 72 wake_up_process 0
->> [   88.731292] [sched_delayed] sched: RT throttling activated
-
-This throttling message is the key one.
-
-With RT throttling activated, the IRQ thread will not be run (it
-eventually will be allowed much later on, but by then, the I2C xfers
-have timed out.)
-
-As a quick hack, the throttling can be disabled by seeting the
-sched_rt_runtime to RUNTIME_INF:
-
-        # sysctl -w kernel.sched_rt_runtime_us=-1
-
-and a quick test shows that things go back to working as expected.  But
-we still need to figure out why the throttling is hapenning...
-
-So I started digging into why the RT runtime was so high, and noticed
-that time spent in suspend was being counted as RT runtime!
-
-So spending time in suspend anywhere near sched_rt_runtime (0.95s) will
-cause the RT throttling to always be triggered, and thus prevent IRQ
-threads from running in the resume path.  Ouch.
-
-I think I'm already in over my head in the RT runtime stuff, but
-counting the time spent in suspend as RT runtime smells like a bug to
-me. no?
-
-Peter? Thomas?
+Thanks,
 
 Kevin
