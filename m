@@ -1,38 +1,91 @@
-From: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v3 0/3] USB: dwc3: Add suspend/resume support
-Date: Tue, 16 Oct 2012 15:15:35 +0530
-Message-ID: <1350380738-32473-1-git-send-email-vikas.sajjan@linaro.org>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, joshi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+Subject: [PATCH v3 1/3] usb: dwc3: Add the suspend/resume functionality
+Date: Tue, 16 Oct 2012 15:15:36 +0530
+Message-ID: <1350380738-32473-2-git-send-email-vikas.sajjan@linaro.org>
+References: <1350380738-32473-1-git-send-email-vikas.sajjan@linaro.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:16529 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918Ab2JPJmP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 05:42:15 -0400
+In-reply-to: <1350380738-32473-1-git-send-email-vikas.sajjan@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, balbi@ti.com, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Vikas C Sajjan <vikas.sajjan@linaro.org>, Doug Anderson <dianders@chromium.org>
 
-Changes from v2:
- - Changed CONFIG_PM to CONFIG_PM_SLEEP
- - Used SET_SYSTEM_SLEEP_PM_OPS in dev_pm_ops
- - Modified the commit log for each of the patch 
- - Added dwc3_core_init() during resume and dwc3_core_exit() during suspend in core.c 
+Adds suspend and resume callbacks as part of the power management
+support to DWC3 controller Driver.
+This patch facilitates transition of DWC3 controller between D0 and D3
+power states during suspend/resume cycles.
 
-Based on 'usb-next' of greg's tree.
-Tested USB detection and enumeration across multiple cycles of
-suspend/resume using 2.0 and 3.0 devices on D-link SS hub.
+Signed-off-by: Abhilash Kesavan <a.kesavan@samsung.com>
+Signed-off-by: Vikas C Sajjan <vikas.sajjan@linaro.org>
+CC: Doug Anderson <dianders@chromium.org>
+---
+ drivers/usb/dwc3/core.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 44 insertions(+), 0 deletions(-)
 
-
-Vikas Sajjan (3):
-  usb: dwc3: Add the suspend/resume functionality
-  usb: xhci: Add the suspend/resume functionality
-  exynos5: usb: dwc3: Add suspend/resume functionality
-
- drivers/usb/dwc3/core.c        |   44 ++++++++++++++++++++++++++++++++++++++++
- drivers/usb/dwc3/dwc3-exynos.c |   31 ++++++++++++++++++++++++++++
- drivers/usb/host/xhci-plat.c   |   28 +++++++++++++++++++++++++
- 3 files changed, 103 insertions(+), 0 deletions(-)
-
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 5db4c76..9f35cf8 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -621,11 +621,55 @@ static int __devexit dwc3_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
++static int dwc3_resume(struct device *dev)
++{
++	struct dwc3 *dwc = dev_get_drvdata(dev);
++	int	ret;
++
++	ret = dwc3_core_init(dwc);
++	if (ret < 0)
++		return ret;
++
++	switch (dwc->mode) {
++	case DWC3_MODE_DEVICE:
++		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
++		break;
++	case DWC3_MODE_HOST:
++		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
++		break;
++	case DWC3_MODE_DRD:
++		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_OTG);
++	}
++
++	/* runtime set active to reflect active state. */
++	pm_runtime_disable(dev);
++	pm_runtime_set_active(dev);
++	pm_runtime_enable(dev);
++
++	return 0;
++}
++
++static int dwc3_suspend(struct device *dev)
++{
++	struct dwc3 *dwc = dev_get_drvdata(dev);
++
++	dwc3_core_exit(dwc);
++
++	return 0;
++}
++#endif /* CONFIG_PM_SLEEP */
++
++static const struct dev_pm_ops dwc3_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(dwc3_suspend, dwc3_resume)
++};
++
+ static struct platform_driver dwc3_driver = {
+ 	.probe		= dwc3_probe,
+ 	.remove		= __devexit_p(dwc3_remove),
+ 	.driver		= {
+ 		.name	= "dwc3",
++		.pm	= &dwc3_pm_ops,
+ 	},
+ };
+ 
 -- 
 1.7.6.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
