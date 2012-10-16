@@ -1,62 +1,55 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [RESEND] [PATCH 3.6.0- 3/6] ARM/pxa: use module_platform_driver
- macro
-Date: Tue, 16 Oct 2012 12:59:34 +0200
-Message-ID: <507D3E16.2050901@compulab.co.il>
-References: <1350025880-30551-1-git-send-email-srinivas.kandagatla@st.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: [PATCH 07/11] SERIAL: omap: remove setting of EFR SCD bit
+Date: Tue, 16 Oct 2012 12:00:05 +0100
+Message-ID: <E1TO4sX-0000WM-Io@rmk-PC.arm.linux.org.uk>
+References: <20121016101458.GZ21164@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:44074 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753840Ab2JPK7o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Oct 2012 06:59:44 -0400
-In-Reply-To: <1350025880-30551-1-git-send-email-srinivas.kandagatla@st.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53227 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753810Ab2JPLAO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 07:00:14 -0400
+In-Reply-To: <20121016101458.GZ21164@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Cc: eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, paul@pwsan.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Hiroshi.DOYU@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, juha.yrjola@nokia.com, dsaxena@plexity.net, mpm@selenic.com, herbert@gondor.apana.org.au
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 10/12/12 09:11, Srinivas KANDAGATLA wrote:
-> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> 
-> This patch removes some code duplication by using
-> module_platform_driver.
-> 
-> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+The SCD (special character detect) bit enables comparisons with XOFF2,
+which we do not program.  As the XOFF2 character remains unprogrammed,
+there's little point enabling this feature along with its associated
+interrupt.  Remove this, and ensure that the SCD bit is cleared.
 
-Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ drivers/tty/serial/omap-serial.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-> ---
->  arch/arm/mach-pxa/pxa3xx-ulpi.c |   13 +------------
->  1 files changed, 1 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/mach-pxa/pxa3xx-ulpi.c b/arch/arm/mach-pxa/pxa3xx-ulpi.c
-> index 7dbe3cc..e329cce 100644
-> --- a/arch/arm/mach-pxa/pxa3xx-ulpi.c
-> +++ b/arch/arm/mach-pxa/pxa3xx-ulpi.c
-> @@ -384,18 +384,7 @@ static struct platform_driver pxa3xx_u2d_ulpi_driver = {
->          .probe          = pxa3xx_u2d_probe,
->          .remove         = pxa3xx_u2d_remove,
->  };
-> -
-> -static int pxa3xx_u2d_ulpi_init(void)
-> -{
-> -	return platform_driver_register(&pxa3xx_u2d_ulpi_driver);
-> -}
-> -module_init(pxa3xx_u2d_ulpi_init);
-> -
-> -static void __exit pxa3xx_u2d_ulpi_exit(void)
-> -{
-> -	platform_driver_unregister(&pxa3xx_u2d_ulpi_driver);
-> -}
-> -module_exit(pxa3xx_u2d_ulpi_exit);
-> +module_platform_driver(pxa3xx_u2d_ulpi_driver);
->  
->  MODULE_DESCRIPTION("PXA3xx U2D ULPI driver");
->  MODULE_AUTHOR("Igor Grinberg");
-
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 7c313c2..71db4e6 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -704,13 +704,8 @@ serial_omap_configure_xonxoff
+ 	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+ 	serial_out(up, UART_TI752_TCR, OMAP_UART_TCR_TRIG);
+-	/* Enable special char function UARTi.EFR_REG[5] and
+-	 * load the new software flow control mode IXON or IXOFF
+-	 * and restore the UARTi.EFR_REG[4] ENHANCED_EN value.
+-	 */
+-	serial_out(up, UART_EFR, up->efr | UART_EFR_SCD);
++	serial_out(up, UART_EFR, up->efr);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+-
+ 	serial_out(up, UART_MCR, up->mcr & ~UART_MCR_TCRTLR);
+ 	serial_out(up, UART_LCR, up->lcr);
+ }
+@@ -843,6 +838,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+ 
+ 	up->efr = serial_in(up, UART_EFR);
++	up->efr &= ~UART_EFR_SCD;
+ 	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
+ 
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
 -- 
-Regards,
-Igor.
+1.7.4.4
+
