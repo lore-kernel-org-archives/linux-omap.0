@@ -1,74 +1,71 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: Re: [RFC][PATCH v4? 0/7] Adaptive Body-Bias for OMAP
-Date: Tue, 16 Oct 2012 10:06:20 -0700
-Message-ID: <20121016170620.21731.52746@nucleus>
-References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
- <20121011133304.GA19170@kahuna> <20121011222107.2941.62545@nucleus>
- <20121016163225.GQ15569@atomide.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [RESEND PATCH 2/2] ARM: kexec: Check segment memory addresses
+Date: Tue, 16 Oct 2012 20:09:00 +0300
+Message-ID: <20121016170900.GB1613@blackmetal.musicnaut.iki.fi>
+References: <1348157018-31059-1-git-send-email-will.deacon@arm.com>
+ <1348157018-31059-2-git-send-email-will.deacon@arm.com>
+ <20121016161020.GA1613@blackmetal.musicnaut.iki.fi>
+ <20121016163226.GG23979@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20121016163225.GQ15569@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Nishanth Menon <nm@ti.com>, khilman@deeprootsystems.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:49564 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755344Ab2JPRJD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 13:09:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20121016163226.GG23979@mudshark.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Quoting Tony Lindgren (2012-10-16 09:32:25)
-> * Mike Turquette <mturquette@ti.com> [121011 15:27]:
-> > Quoting Nishanth Menon (2012-10-11 06:33:04)
-> > > On 18:26-20121003, Mike Turquette wrote:
-> > > > From: Mike Turquette <mturquette@linaro.org>
-> > > [...]
-> > > > 
-> > > >  arch/arm/mach-omap2/Makefile                  |    8 +-
-> > > >  arch/arm/mach-omap2/abb.c                     |  322 +++++++++++++++++++++++++
-> > > >  arch/arm/mach-omap2/abb.h                     |   94 ++++++++
-> > > [...]
-> > > >  arch/arm/plat-omap/include/plat/voltage.h     |    1 +
-> > > >  18 files changed, 699 insertions(+), 37 deletions(-)
-> > > >  create mode 100644 arch/arm/mach-omap2/abb.c
-> > > >  create mode 100644 arch/arm/mach-omap2/abb.h
-> > > >  create mode 100644 arch/arm/mach-omap2/abb36xx_data.c
-> > > >  create mode 100644 arch/arm/mach-omap2/abb44xx_data.c
+On Tue, Oct 16, 2012 at 05:32:26PM +0100, Will Deacon wrote:
+> On Tue, Oct 16, 2012 at 05:10:21PM +0100, Aaro Koskinen wrote:
+> > On Thu, Sep 20, 2012 at 05:03:38PM +0100, Will Deacon wrote:
+> > > From: Matthew Leach <matthew.leach@arm.com>
 > > > 
-> > > dumb question: with the request to move everything out of mach-omap2
-> > > directory, do we still want to add more files into mach-omap2?
-> > > 
+> > > Ensure that the memory regions that are set within the segments
+> > > correspond to physical contiguous memory regions.
 > > 
-> > Not a dumb question at all.  I approached this problem by modeling it
-> > after existing voltage layer code (in particular the vp and vc drivers).
+> > This patch seems to break kexec for me in 3.7-rc1 (commit
+> > c564df4db85aac8d1d65a56176a0a25f46138064, bisected).
 > > 
-> > My hope is to get it merged as-is and then bundle the abb code up with
-> > the vp/vc migration to drivers/* when that happens some day.  People
-> > using omap36xx and above need this code now, so it seems prudent to take
-> > this approach today.
+> > kexec -l fails with the following output:
+> > 
+> > kexec_load failed: Invalid argument
+> > entry       = 0x80008000 flags = 280000
+> > nr_segments = 2
+> > segment[0].buf   = 0xc48008
+> > segment[0].bufsz = 230
+> > segment[0].mem   = 0x80001000
+> > segment[0].memsz = 1000
+> > segment[1].buf   = 0xb6a9b008
+> > segment[1].bufsz = 3a4668
+> > segment[1].mem   = 0x80008000
+> > segment[1].memsz = 3a5000
+> > Could not load the kexec kernel: n800-zImage
+> > 
+> > The board is OMAP2420 / Nokia N800.
 > 
-> This is needed, but makes moving the vc code to drivers a bit
-> more complex.
-> 
-> So we also need a plan to move this all to drivers in the follow
-> up patches. And we need a maintainer for the code. Who is going to
-> be doing all that?
-> 
+> Interesting, it sounds like kexec thinks that you don't have contiguous
+> memory from 0x80008000 to 0x803ad000. Can you provide some more information
+> about your physical memory map please?
 
-Is there already somebody committed to moving vp/vc code out to drivers?
-If so then I can take responsibility for moving the abb code and
-coordinate with that person.  If nobody has put the vp/vc migration onto
-their todo list then that is a bigger question.
+Well, I think it's because the patch is wrong. Shouldn't it be:
 
-Regards,
-Mike
+diff --git a/arch/arm/kernel/machine_kexec.c b/arch/arm/kernel/machine_kexec.c
+index e29c333..a80192e 100644
+--- a/arch/arm/kernel/machine_kexec.c
++++ b/arch/arm/kernel/machine_kexec.c
+@@ -47,7 +47,7 @@ int machine_kexec_prepare(struct kimage *image)
+ 
+ 		err = memblock_is_region_memory(current_segment->mem,
+ 						current_segment->memsz);
+-		if (err)
++		if (!err)
+ 			return - EINVAL;
+ 
+ 		err = get_user(header, (__be32*)current_segment->buf);
 
-> Regards,
-> 
-> Tony
+A.
