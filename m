@@ -1,112 +1,81 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] OMAP-GPMC cleanup for common zImage
-Date: Tue, 16 Oct 2012 14:57:43 -0700
-Message-ID: <20121016215743.GN15569@atomide.com>
-References: <1350303247-13495-1-git-send-email-afzal@ti.com>
+Subject: Re: [RFC][PATCH v4? 0/7] Adaptive Body-Bias for OMAP
+Date: Tue, 16 Oct 2012 14:59:00 -0700
+Message-ID: <20121016215859.GO15569@atomide.com>
+References: <1349313974-5473-1-git-send-email-mturquette@ti.com>
+ <20121011133304.GA19170@kahuna>
+ <20121011222107.2941.62545@nucleus>
+ <20121016163225.GQ15569@atomide.com>
+ <20121016170620.21731.52746@nucleus>
+ <87a9vmnl1n.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22220 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751875Ab2JPV5u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 17:57:50 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:21312 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753938Ab2JPV7F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 17:59:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1350303247-13495-1-git-send-email-afzal@ti.com>
+In-Reply-To: <87a9vmnl1n.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, David Woodhouse <David.Woodhouse@intel.com>, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Mike Turquette <mturquette@ti.com>, Nishanth Menon <nm@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Afzal Mohammed <afzal@ti.com> [121015 05:15]:
-> The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
+* Kevin Hilman <khilman@deeprootsystems.com> [121016 14:51]:
+> Mike Turquette <mturquette@ti.com> writes:
 > 
->   Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
+> > Quoting Tony Lindgren (2012-10-16 09:32:25)
+> >> * Mike Turquette <mturquette@ti.com> [121011 15:27]:
+> >> > Quoting Nishanth Menon (2012-10-11 06:33:04)
+> >> > > On 18:26-20121003, Mike Turquette wrote:
+> >> > > > From: Mike Turquette <mturquette@linaro.org>
+> >> > > [...]
+> >> > > > 
+> >> > > >  arch/arm/mach-omap2/Makefile                  |    8 +-
+> >> > > >  arch/arm/mach-omap2/abb.c                     |  322 +++++++++++++++++++++++++
+> >> > > >  arch/arm/mach-omap2/abb.h                     |   94 ++++++++
+> >> > > [...]
+> >> > > >  arch/arm/plat-omap/include/plat/voltage.h     |    1 +
+> >> > > >  18 files changed, 699 insertions(+), 37 deletions(-)
+> >> > > >  create mode 100644 arch/arm/mach-omap2/abb.c
+> >> > > >  create mode 100644 arch/arm/mach-omap2/abb.h
+> >> > > >  create mode 100644 arch/arm/mach-omap2/abb36xx_data.c
+> >> > > >  create mode 100644 arch/arm/mach-omap2/abb44xx_data.c
+> >> > > 
+> >> > > dumb question: with the request to move everything out of mach-omap2
+> >> > > directory, do we still want to add more files into mach-omap2?
+> >> > > 
+> >> > 
+> >> > Not a dumb question at all.  I approached this problem by modeling it
+> >> > after existing voltage layer code (in particular the vp and vc drivers).
+> >> > 
+> >> > My hope is to get it merged as-is and then bundle the abb code up with
+> >> > the vp/vc migration to drivers/* when that happens some day.  People
+> >> > using omap36xx and above need this code now, so it seems prudent to take
+> >> > this approach today.
+> >> 
+> >> This is needed, but makes moving the vc code to drivers a bit
+> >> more complex.
+> >> 
+> >> So we also need a plan to move this all to drivers in the follow
+> >> up patches. And we need a maintainer for the code. Who is going to
+> >> be doing all that?
+> >> 
+> >
+> > Is there already somebody committed to moving vp/vc code out to drivers?
 > 
-> are available in the git repository at:
+> Yes, VC/VP is part of the bigger PRM/CM move in progress.
 > 
->   git@gitorious.org:x0148406-public/linux-kernel.git tags/gpmc-czimage
+> For now, I'm ok with adding a little more VC/VP stuff since it's already
+> well isolated in the prmXXXX.c files (though it might need a rebase on
+> Paul's recent PRM/CM cleanup stuff.)
 > 
-> for you to fetch changes up to 3ef5d0071cf6c8b9a00b559232bb700ad59999d7:
-> 
->   ARM: OMAP2+: gpmc: localize gpmc header (2012-10-15 14:42:15 +0530)
-> 
-> ----------------------------------------------------------------
-> gpmc cleanup for common ARM zImage
-> 
+> > If so then I can take responsibility for moving the abb code and
+> > coordinate with that person.  
 
-Thanks pulling into omap-for-v3.8/cleanup-headers-gpmc
-
-I ended up using the following url instead:
-
-git://gitorious.org/x0148406-public/linux-kernel tags/gpmc-czimage
+Thanks Mike & Kevin, sounds good to me.
 
 Regards,
 
 Tony
-
-> ----------------------------------------------------------------
-> Afzal Mohammed (16):
->       ARM: OMAP2+: nand: unify init functions
->       ARM: OMAP2+: onenand: refactor for clarity
->       ARM: OMAP2+: gpmc: remove cs# in sync clk div calc
->       mtd: onenand: omap: cleanup gpmc dependency
->       mtd: nand: omap: free region as per resource size
->       mtd: nand: omap: read nand using register address
->       ARM: OMAP2+: onenand: connected soc info in pdata
->       mtd: onenand: omap: use pdata info instead of cpu_is
->       ARM: OMAP2+: onenand: header cleanup
->       ARM: OMAP2+: nand: header cleanup
->       mtd: nand: omap: bring in gpmc nand macros
->       ARM: OMAP2+: nand: bch capability check
->       ARM: OMAP2+: gpmc: nand register helper bch update
->       mtd: nand: omap: handle gpmc bch[48]
->       ARM: OMAP2+: gpmc: remove exported nand functions
->       ARM: OMAP2+: gpmc: localize gpmc header
-> 
-> Jon Hunter (1):
->       ARM: OMAP2+: GPMC: Remove unused OneNAND get_freq() platform function
-> 
->  arch/arm/mach-omap2/board-2430sdp.c                |   2 +-
->  arch/arm/mach-omap2/board-3430sdp.c                |   2 +-
->  arch/arm/mach-omap2/board-apollon.c                |   2 +-
->  arch/arm/mach-omap2/board-cm-t35.c                 |   5 +-
->  arch/arm/mach-omap2/board-cm-t3517.c               |   5 +-
->  arch/arm/mach-omap2/board-devkit8000.c             |  10 +-
->  arch/arm/mach-omap2/board-flash.c                  |  50 +--
->  arch/arm/mach-omap2/board-flash.h                  |   8 +-
->  arch/arm/mach-omap2/board-h4.c                     |   2 +-
->  arch/arm/mach-omap2/board-igep0020.c               |   5 +-
->  arch/arm/mach-omap2/board-ldp.c                    |   6 +-
->  arch/arm/mach-omap2/board-n8x0.c                   |   1 +
->  arch/arm/mach-omap2/board-omap3beagle.c            |  10 +-
->  arch/arm/mach-omap2/board-omap3evm.c               |   8 +-
->  arch/arm/mach-omap2/board-omap3logic.c             |   2 +-
->  arch/arm/mach-omap2/board-omap3pandora.c           |   3 +-
->  arch/arm/mach-omap2/board-omap3stalker.c           |   2 +-
->  arch/arm/mach-omap2/board-omap3touchbook.c         |  10 +-
->  arch/arm/mach-omap2/board-overo.c                  |   9 +-
->  arch/arm/mach-omap2/board-rm680.c                  |   3 +-
->  arch/arm/mach-omap2/board-rx51-peripherals.c       |   3 +-
->  arch/arm/mach-omap2/board-rx51.c                   |   2 +-
->  arch/arm/mach-omap2/board-zoom-debugboard.c        |   2 +-
->  arch/arm/mach-omap2/board-zoom.c                   |   5 +-
->  arch/arm/mach-omap2/common-board-devices.c         |  46 ---
->  arch/arm/mach-omap2/common-board-devices.h         |   1 -
->  arch/arm/mach-omap2/gpmc-nand.c                    |  85 ++--
->  arch/arm/mach-omap2/gpmc-nand.h                    |  27 ++
->  arch/arm/mach-omap2/gpmc-onenand.c                 | 214 +++++-----
->  arch/arm/mach-omap2/gpmc-onenand.h                 |  24 ++
->  arch/arm/mach-omap2/gpmc-smc91x.c                  |   2 +-
->  arch/arm/mach-omap2/gpmc-smsc911x.c                |   2 +-
->  arch/arm/mach-omap2/gpmc.c                         | 459 +--------------------
->  .../{plat-omap/include/plat => mach-omap2}/gpmc.h  |  61 +--
->  arch/arm/mach-omap2/pm34xx.c                       |   2 +-
->  arch/arm/mach-omap2/usb-tusb6010.c                 |   2 +-
->  drivers/mtd/nand/omap2.c                           | 125 +++++-
->  drivers/mtd/onenand/omap2.c                        |   9 +-
->  include/linux/platform_data/mtd-nand-omap2.h       |  46 ++-
->  include/linux/platform_data/mtd-onenand-omap2.h    |  28 +-
->  40 files changed, 493 insertions(+), 797 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/gpmc-nand.h
->  create mode 100644 arch/arm/mach-omap2/gpmc-onenand.h
->  rename arch/arm/{plat-omap/include/plat => mach-omap2}/gpmc.h (67%)
