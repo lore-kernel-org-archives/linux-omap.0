@@ -1,153 +1,222 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/7] ARM: OMAP2+: CM: prepare for use of cm_ll_data function
- pointers
-Date: Mon, 15 Oct 2012 19:32:10 -0600
-Message-ID: <20121016013209.21844.99036.stgit@dusk.lan>
+Subject: [PATCH 5/7] ARM: OMAP2+: WDT: move init;
+ add read_reset_sources pdata function pointer
+Date: Mon, 15 Oct 2012 19:32:33 -0600
+Message-ID: <20121016013213.21844.20016.stgit@dusk.lan>
 References: <20121016012448.21844.92339.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42853 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:42860 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755501Ab2JPBe2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 21:34:28 -0400
+	with ESMTP id S1755516Ab2JPBe3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Oct 2012 21:34:29 -0400
 In-Reply-To: <20121016012448.21844.92339.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org
 
-There are several CM operations which behave similarly across OMAP2+
-SoCs, but which have slight differences in their underlying
-implementations.
+The OMAP watchdog timer driver directly calls a function exported by
+code in arch/arm/mach-omap2.  This is not good; it tightly couples
+this driver to the mach-omap2 integration code.  Instead, add a
+temporary platform_data function pointer to abstract this function
+call.  A subsequent patch will convert the watchdog driver to use this
+function pointer.
 
-This patch creates the support code for this function pointer
-registration process.  No function pointers are included yet, but a
-subsequent patch will create these for the module IDLEST registers.
-
-This patch allows other code to use CM-provided data and operations
-without needing to know which SoC is currently in use.  A further
-description of the concept is provided in the patch entitled
-"ARM: OMAP2+: PRM: prepare for use of prm_ll_data function pointers".
+This patch also moves the device creation code out of
+arch/arm/mach-omap2/devices.c and into arch/arm/mach-omap2/wd_timer.c.
+This is another step towards the removal of
+arch/arm/mach-omap2/devices.c.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 ---
- arch/arm/mach-omap2/Makefile    |    2 +
- arch/arm/mach-omap2/cm.h        |   12 +++++++
- arch/arm/mach-omap2/cm_common.c |   71 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 84 insertions(+), 1 deletion(-)
- create mode 100644 arch/arm/mach-omap2/cm_common.c
+ arch/arm/mach-omap1/devices.c               |   21 +++++++++++++--
+ arch/arm/mach-omap2/devices.c               |   26 ------------------
+ arch/arm/mach-omap2/wd_timer.c              |   33 +++++++++++++++++++++++
+ include/linux/platform_data/omap-wd-timer.h |   38 +++++++++++++++++++++++++++
+ 4 files changed, 89 insertions(+), 29 deletions(-)
+ create mode 100644 include/linux/platform_data/omap-wd-timer.h
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 3751d56..f7cf382 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -93,7 +93,7 @@ obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
- endif
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index d3fec92..c3408e7 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -17,6 +17,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/spi/spi.h>
  
- # PRCM
--obj-y					+= prcm.o prm_common.o
-+obj-y					+= prcm.o prm_common.o cm_common.o
- obj-$(CONFIG_ARCH_OMAP2)		+= prm2xxx_3xxx.o prm2xxx.o cm2xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= prm2xxx_3xxx.o prm3xxx.o cm3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
-diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-index f24e3f7..b3cee91 100644
---- a/arch/arm/mach-omap2/cm.h
-+++ b/arch/arm/mach-omap2/cm.h
-@@ -33,4 +33,16 @@
-  */
- #define MAX_MODULE_DISABLE_TIME		5000
++#include <linux/platform_data/omap-wd-timer.h>
++
+ #include <asm/mach/map.h>
  
-+# ifndef __ASSEMBLER__
+ #include <plat/tc.h>
+@@ -439,18 +441,31 @@ static struct resource wdt_resources[] = {
+ };
+ 
+ static struct platform_device omap_wdt_device = {
+-	.name	   = "omap_wdt",
+-	.id	     = -1,
++	.name		= "omap_wdt",
++	.id		= -1,
+ 	.num_resources	= ARRAY_SIZE(wdt_resources),
+ 	.resource	= wdt_resources,
+ };
+ 
+ static int __init omap_init_wdt(void)
+ {
++	struct omap_wd_timer_platform_data pdata;
++	int ret;
 +
-+/**
-+ * struct cm_ll_data - fn ptrs to per-SoC CM function implementations
-+ */
-+struct cm_ll_data {};
+ 	if (!cpu_is_omap16xx())
+ 		return -ENODEV;
+ 
+-	return platform_device_register(&omap_wdt_device);
++	pdata.read_reset_sources = omap1_read_reset_sources;
 +
-+extern int cm_register(struct cm_ll_data *cld);
-+extern int cm_unregister(struct cm_ll_data *cld);
++	ret = platform_device_register(&omap_wdt_device);
++	if (!ret) {
++		ret = platform_device_add_data(&omap_wdt_device, &pdata,
++					       sizeof(pdata));
++		if (ret)
++			platform_device_del(&omap_wdt_device);
++	}
 +
-+# endif
-+
++	return ret;
+ }
+ subsys_initcall(omap_init_wdt);
  #endif
-diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index c8c2117..2ab2c99 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -644,29 +644,3 @@ static int __init omap2_init_devices(void)
+ 	return 0;
+ }
+ arch_initcall(omap2_init_devices);
+-
+-#if defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
+-static int __init omap_init_wdt(void)
+-{
+-	int id = -1;
+-	struct platform_device *pdev;
+-	struct omap_hwmod *oh;
+-	char *oh_name = "wd_timer2";
+-	char *dev_name = "omap_wdt";
+-
+-	if (!cpu_class_is_omap2() || of_have_populated_dt())
+-		return 0;
+-
+-	oh = omap_hwmod_lookup(oh_name);
+-	if (!oh) {
+-		pr_err("Could not look up wd_timer%d hwmod\n", id);
+-		return -EINVAL;
+-	}
+-
+-	pdev = omap_device_build(dev_name, id, oh, NULL, 0, NULL, 0, 0);
+-	WARN(IS_ERR(pdev), "Can't build omap_device for %s:%s.\n",
+-				dev_name, oh->name);
+-	return 0;
+-}
+-subsys_initcall(omap_init_wdt);
+-#endif
+diff --git a/arch/arm/mach-omap2/wd_timer.c b/arch/arm/mach-omap2/wd_timer.c
+index b2f1c67..00ef54c 100644
+--- a/arch/arm/mach-omap2/wd_timer.c
++++ b/arch/arm/mach-omap2/wd_timer.c
+@@ -11,10 +11,14 @@
+ #include <linux/io.h>
+ #include <linux/err.h>
+ 
++#include <linux/platform_data/omap-wd-timer.h>
++
+ #include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
+ 
+ #include "wd_timer.h"
+ #include "common.h"
++#include "prm.h"
+ 
+ /*
+  * In order to avoid any assumptions from bootloader regarding WDT
+@@ -99,3 +103,32 @@ int omap2_wd_timer_reset(struct omap_hwmod *oh)
+ 	return (c == MAX_MODULE_SOFTRESET_WAIT) ? -ETIMEDOUT :
+ 		omap2_wd_timer_disable(oh);
+ }
++
++static int __init omap_init_wdt(void)
++{
++	int id = -1;
++	struct platform_device *pdev;
++	struct omap_hwmod *oh;
++	char *oh_name = "wd_timer2";
++	char *dev_name = "omap_wdt";
++	struct omap_wd_timer_platform_data pdata;
++
++	if (!cpu_class_is_omap2())
++		return 0;
++
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh) {
++		pr_err("Could not look up wd_timer%d hwmod\n", id);
++		return -EINVAL;
++	}
++
++	pdata.read_reset_sources = prm_read_reset_sources;
++
++	pdev = omap_device_build(dev_name, id, oh, &pdata,
++				 sizeof(struct omap_wd_timer_platform_data),
++				 NULL, 0, 0);
++	WARN(IS_ERR(pdev), "Can't build omap_device for %s:%s.\n",
++	     dev_name, oh->name);
++	return 0;
++}
++subsys_initcall(omap_init_wdt);
+diff --git a/include/linux/platform_data/omap-wd-timer.h b/include/linux/platform_data/omap-wd-timer.h
 new file mode 100644
-index 0000000..3246cef
+index 0000000..d75f5f8
 --- /dev/null
-+++ b/arch/arm/mach-omap2/cm_common.c
-@@ -0,0 +1,71 @@
++++ b/include/linux/platform_data/omap-wd-timer.h
+@@ -0,0 +1,38 @@
 +/*
-+ * OMAP2+ common Clock Management (CM) IP block functions
++ * OMAP2+ WDTIMER-specific function prototypes
 + *
 + * Copyright (C) 2012 Texas Instruments, Inc.
-+ * Paul Walmsley <paul@pwsan.com>
++ * Paul Walmsley
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * XXX This code should eventually be moved to a CM driver.
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
++#ifndef __LINUX_PLATFORM_DATA_OMAP_WD_TIMER_H
++#define __LINUX_PLATFORM_DATA_OMAP_WD_TIMER_H
 +
-+#include "cm2xxx.h"
-+#include "cm3xxx.h"
-+#include "cm44xx.h"
++#include <linux/types.h>
 +
 +/*
-+ * cm_ll_data: function pointers to SoC-specific implementations of
-+ * common CM functions
++ * Standardized OMAP reset source bits
++ *
++ * This is a subset of the ones listed in arch/arm/mach-omap2/prm.h
++ * and are the only ones needed in the watchdog driver.
 + */
-+static struct cm_ll_data null_cm_ll_data;
-+static struct cm_ll_data *cm_ll_data = &null_cm_ll_data;
++#define OMAP_MPU_WD_RST_SRC_ID_SHIFT				3
 +
 +/**
-+ * cm_register - register per-SoC low-level data with the CM
-+ * @cld: low-level per-SoC OMAP CM data & function pointers to register
++ * struct omap_wd_timer_platform_data - WDTIMER integration to the host SoC
++ * @read_reset_sources - fn ptr for the SoC to indicate the last reset cause
 + *
-+ * Register per-SoC low-level OMAP CM data and function pointers with
-+ * the OMAP CM common interface.  The caller must keep the data
-+ * pointed to by @cld valid until it calls cm_unregister() and
-+ * it returns successfully.  Returns 0 upon success, -EINVAL if @cld
-+ * is NULL, or -EEXIST if cm_register() has already been called
-+ * without an intervening cm_unregister().
++ * The function pointed to by @read_reset_sources must return its data
++ * in a standard format - search for RST_SRC_ID_SHIFT in
++ * arch/arm/mach-omap2
 + */
-+int cm_register(struct cm_ll_data *cld)
-+{
-+	if (!cld)
-+		return -EINVAL;
++struct omap_wd_timer_platform_data {
++	u32 (*read_reset_sources)(void);
++};
 +
-+	if (cm_ll_data != &null_cm_ll_data)
-+		return -EEXIST;
-+
-+	cm_ll_data = cld;
-+
-+	return 0;
-+}
-+
-+/**
-+ * cm_unregister - unregister per-SoC low-level data & function pointers
-+ * @cld: low-level per-SoC OMAP CM data & function pointers to unregister
-+ *
-+ * Unregister per-SoC low-level OMAP CM data and function pointers
-+ * that were previously registered with cm_register().  The
-+ * caller may not destroy any of the data pointed to by @cld until
-+ * this function returns successfully.  Returns 0 upon success, or
-+ * -EINVAL if @cld is NULL or if @cld does not match the struct
-+ * cm_ll_data * previously registered by cm_register().
-+ */
-+int cm_unregister(struct cm_ll_data *cld)
-+{
-+	if (!cld || cm_ll_data != cld)
-+		return -EINVAL;
-+
-+	cm_ll_data = &null_cm_ll_data;
-+
-+	return 0;
-+}
++#endif
 
 
