@@ -1,103 +1,73 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 6/6] OMAPDSS: HDMI: Create platform device to support
- audio
-Date: Tue, 16 Oct 2012 06:11:57 -0500
-Message-ID: <507D40FD.10003@ti.com>
-References: <1350350839-30408-1-git-send-email-ricardo.neri@ti.com> <1350350839-30408-7-git-send-email-ricardo.neri@ti.com> <507D2953.8030801@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 00/11] Minimum set of omap serial patches to fix merge
+	window breakage
+Date: Tue, 16 Oct 2012 12:20:46 +0100
+Message-ID: <20121016112046.GX28061@n2100.arm.linux.org.uk>
+References: <20121016101458.GZ21164@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45208 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752693Ab2JPLOD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Oct 2012 07:14:03 -0400
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9GBE2Tq014004
-	for <linux-omap@vger.kernel.org>; Tue, 16 Oct 2012 06:14:02 -0500
-Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9GBE1u4032719
-	for <linux-omap@vger.kernel.org>; Tue, 16 Oct 2012 06:14:02 -0500
-In-Reply-To: <507D2953.8030801@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53267 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754213Ab2JPLUt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 07:20:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20121016101458.GZ21164@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Cc: tomi.valkeinen@ti.com, s-guiriec@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Peter,
+On Tue, Oct 16, 2012 at 11:14:58AM +0100, Russell King - ARM Linux wrote:
+> During the merge window, a series of patches from various people went in,
+> allegedly fixing various problems with the OMAP serial driver.
+> 
+> Unfortunately, there was not a full understanding of the issues I brought
+> up here back in April, and so the "fixes", while being individually
+> correct, result in a worse situation with the driver than before.
+> 
+> Specifically, this patch:
+> 
+> commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6
+> Author: Vikram Pandita <vikram.pandita@ti.com>
+> Date:   Thu Sep 6 15:45:37 2012 +0300
+> 
+>     serial: omap: fix software flow control
+> 
+>     Software flow control register bits were not defined correctly.
+> 
+>     Also clarify the IXON and IXOFF logic to reflect what userspace wants.
+> 
+> does what it says on the tin - it fixes the register definitions so that
+> we do end up enabling the right two software flow control bits.
+> 
+> The down side is that there are other bugs in this area which have been
+> exposed.  For example:
+> 
+> 1. the XON/XOFF registers aren't written to; their address is, but we will
+>    not be writing to the right registers because their access rules are not
+>    respected by the driver.  These are by default zero.
+> 
+>    This means that with hardware assisted software flow control enabled,
+>    the port will now transmit an 0x00 byte for XON and XOFF events.
+> 
+> 2. the driver set_termios function is not called for changes in software
+>    flow control settings if not accompanied by some other change.
+> 
+> 3. the there isn't actually a way for the hardware assisted flow control
+>    to be used other than by increasing interrupt latency to cause the
+>    receiver hardware FIFO to fill.  This will cause 0x00 bytes to be
+>    transmitted.
+> 
+> There are two options to resolve this.  The first one is to revert this
+> patch to bring the driver back down to the pre-merge window state.  The
+> other is to apply this series of patches, which frankly I don't think
+> is -rc material, even with the above regressions.
+> 
+> Given that the above regressions were caused by a lack of due care and
+> correct process (I had declared to TI that I had investigated these
+> issues back in April), I believe that the right answer is to revert at
+> least commit 957ee7270d, which should re-hide these other bugs in the
+> driver.
 
-Thanks for reviewing!
-
-On 10/16/2012 04:30 AM, P=E9ter Ujfalusi wrote:
-> On 10/16/2012 03:27 AM, Ricardo Neri wrote:
->> Creating the accessory devices, such as audio, from the HDMI driver
->> allows to regard HDMI as a single entity with audio an display
->> functionality. This intends to follow the design of drivers such
->> as MFD, in which a single entity handles the creation of the accesor=
-y
->> devices. Such devices are then used by domain-specific drivers; audi=
-o in
->> this case.
->>
->> Also, this is in line with the DT implementation of HDMI, in which w=
-e will
->> have a single node to describe this feature of the OMAP SoC.
->
-> ...
->
->> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].start =3D res->start;
->> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].end =3D res->end;
->> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].flags =3D IORESOURCE_MEM;
->> +
->> +	res =3D platform_get_resource(hdmi.pdev, IORESOURCE_DMA, 0);
->> +	if (!res) {
->> +		DSSERR("can't get IORESOURCE_DMA HDMI\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	/* Pass this resource to audio_pdev */
->> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].start =3D res->start;
->> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].end =3D res->end;
->> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].flags =3D IORESOURCE_DMA;
->> +
->> +	/* create platform device for HDMI audio driver */
->> +	hdmi.audio_pdev =3D platform_device_register_simple(
->> +							  "omap_hdmi_audio",
->> +							  -1, hdmi_aud_res,
->> +							   ARRAY_SIZE(hdmi_aud_res));
->
-> Should you also update arch/arm/mach-omap2/devices.c to not register =
-the same
-> device?
-> When we do not boot with DT devices.c will create the same device ear=
-lier
-> (without pdata) which will prevent this device to be created and at t=
-he end
-> will prevent omap_hdmi_audio driver to probe due to missing pdata...
-
-Yes, I have already a set of patches to remove the device creation from=
-=20
-devices.c. I decided to send this patch set first to see if Tomi and th=
-e=20
-reviewers are OK with it. After they are accepted I will send the=20
-updates to devices.c and ASoC.
-
-BR
-
-Ricardo
->
->> +	if (IS_ERR(hdmi.audio_pdev)) {
->> +		DSSERR("Can't instantiate hdmi-audio\n");
->> +		return PTR_ERR(hdmi.audio_pdev);
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note: these patches are not as well validated as my previous set; I
+haven't even build-tested just this set, but only my full set.  YMMV.
