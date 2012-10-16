@@ -1,46 +1,62 @@
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 05/11] SERIAL: omap: allow hardware assisted rts/cts modes to
- be disabled
-Date: Tue, 16 Oct 2012 11:59:24 +0100
-Message-ID: <E1TO4rs-0000WD-Mx@rmk-PC.arm.linux.org.uk>
-References: <20121016101458.GZ21164@n2100.arm.linux.org.uk>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [RESEND] [PATCH 3.6.0- 3/6] ARM/pxa: use module_platform_driver
+ macro
+Date: Tue, 16 Oct 2012 12:59:34 +0200
+Message-ID: <507D3E16.2050901@compulab.co.il>
+References: <1350025880-30551-1-git-send-email-srinivas.kandagatla@st.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53222 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558Ab2JPK7a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 06:59:30 -0400
-In-Reply-To: <20121016101458.GZ21164@n2100.arm.linux.org.uk>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:44074 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753840Ab2JPK7o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Oct 2012 06:59:44 -0400
+In-Reply-To: <1350025880-30551-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Cc: eric.y.miao@gmail.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, paul@pwsan.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Hiroshi.DOYU@nokia.com, tony@atomide.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, juha.yrjola@nokia.com, dsaxena@plexity.net, mpm@selenic.com, herbert@gondor.apana.org.au
 
-There is nothing which clears the auto RTS/CTS bits, so once hardware
-flow control gets enabled, there's no possibility to disable it.
-So, clear these bits when CRTSCTS is cleared.
+On 10/12/12 09:11, Srinivas KANDAGATLA wrote:
+> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+> 
+> This patch removes some code duplication by using
+> module_platform_driver.
+> 
+> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/tty/serial/omap-serial.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+Acked-by: Igor Grinberg <grinberg@compulab.co.il>
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 6ede6fd..c55af63 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -921,6 +921,13 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
- 		serial_out(up, UART_MCR, up->mcr | UART_MCR_RTS);
- 		serial_out(up, UART_LCR, cval);
-+	} else {
-+		/* Disable AUTORTS and AUTOCTS */
-+		up->efr &= ~(UART_EFR_CTS | UART_EFR_RTS);
-+
-+		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-+		serial_out(up, UART_EFR, up->efr);
-+		serial_out(up, UART_LCR, cval);
- 	}
- 
- 	serial_omap_set_mctrl(&up->port, up->port.mctrl);
+> ---
+>  arch/arm/mach-pxa/pxa3xx-ulpi.c |   13 +------------
+>  1 files changed, 1 insertions(+), 12 deletions(-)
+> 
+> diff --git a/arch/arm/mach-pxa/pxa3xx-ulpi.c b/arch/arm/mach-pxa/pxa3xx-ulpi.c
+> index 7dbe3cc..e329cce 100644
+> --- a/arch/arm/mach-pxa/pxa3xx-ulpi.c
+> +++ b/arch/arm/mach-pxa/pxa3xx-ulpi.c
+> @@ -384,18 +384,7 @@ static struct platform_driver pxa3xx_u2d_ulpi_driver = {
+>          .probe          = pxa3xx_u2d_probe,
+>          .remove         = pxa3xx_u2d_remove,
+>  };
+> -
+> -static int pxa3xx_u2d_ulpi_init(void)
+> -{
+> -	return platform_driver_register(&pxa3xx_u2d_ulpi_driver);
+> -}
+> -module_init(pxa3xx_u2d_ulpi_init);
+> -
+> -static void __exit pxa3xx_u2d_ulpi_exit(void)
+> -{
+> -	platform_driver_unregister(&pxa3xx_u2d_ulpi_driver);
+> -}
+> -module_exit(pxa3xx_u2d_ulpi_exit);
+> +module_platform_driver(pxa3xx_u2d_ulpi_driver);
+>  
+>  MODULE_DESCRIPTION("PXA3xx U2D ULPI driver");
+>  MODULE_AUTHOR("Igor Grinberg");
+
 -- 
-1.7.4.4
-
+Regards,
+Igor.
