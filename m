@@ -1,124 +1,95 @@
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [PATCH 10/11] SERIAL: omap: fix MCR TCRTLR bit handling
-Date: Tue, 16 Oct 2012 12:01:06 +0100
-Message-ID: <E1TO4tW-0000Wl-SY@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 11/11] SERIAL: omap: fix hardware assisted flow control
+Date: Tue, 16 Oct 2012 12:01:27 +0100
+Message-ID: <E1TO4tr-0000Wp-Bf@rmk-PC.arm.linux.org.uk>
 References: <20121016101458.GZ21164@n2100.arm.linux.org.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53236 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53238 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558Ab2JPLB3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 07:01:29 -0400
+	with ESMTP id S1753558Ab2JPLBm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 07:01:42 -0400
 In-Reply-To: <20121016101458.GZ21164@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The MCR TCRTLR bit can only be changed when ECB is set in the EFR.
-Unfortunately, several places were trying to alter this bit while ECB
-was clear:
+When the UART device has hardware flow control enabled, it ignores the
+MCR RTS bit in the MCR register, and keeps RTS asserted as long as we
+continue to read characters from the UART receiver FIFO.  This means
+that when the TTY buffers become full, the UART doesn't tell the remote
+end to stop sending, which causes the TTY layer to start dropping
+characters.
 
-- serial_omap_configure_xonxoff() was attempting to clear the bit after
-  explicitly clearing the ECB bit.
-- serial_omap_set_termios() was trying the same trick after setting the
-  SCR, and when trying to change the TCR register when hardware flow
-  control was enabled.
+A similar problem exists with software flow control.  We need the FIFO
+register to fill when software flow control is enabled to provoke the
+UART to send the XOFF character.
 
-Fix this by ensuring that we always have ECB set whenever the TCRTLR bit
-is changed.
-
-Moreover, we start out by reading the EFR and MCR registers, which may
-have indeterminent bit settings for the ECB and TCRTLR bits.  Ensure
-that these bits always start off in a known state.
+Fix this by implementing the throttle/unthrottle callbacks, and use
+these to disable receiver interrupts.  This in turn means that the UART
+FIFO will fill, which will then cause the UART's hardware to deassert
+the RTS signal and/or send the XOFF character, stopping the remote end.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/tty/serial/omap-serial.c |   32 ++++++++++++++++++--------------
- 1 files changed, 18 insertions(+), 14 deletions(-)
+ drivers/tty/serial/omap-serial.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 537829f..7cc151c 100644
+index 7cc151c..aabc94d 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -706,9 +706,10 @@ serial_omap_configure_xonxoff
- 	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
- 	serial_out(up, UART_TI752_TCR, OMAP_UART_TCR_TRIG);
--	serial_out(up, UART_EFR, up->efr);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
- 	serial_out(up, UART_MCR, up->mcr & ~UART_MCR_TCRTLR);
-+	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-+	serial_out(up, UART_EFR, up->efr);
- 	serial_out(up, UART_LCR, up->lcr);
+@@ -303,6 +303,34 @@ static void serial_omap_start_tx(struct uart_port *port)
+ 	pm_runtime_put_autosuspend(up->dev);
  }
  
-@@ -729,7 +730,6 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
++static void serial_omap_throttle(struct uart_port *port)
++{
++	struct uart_omap_port *up = to_uart_omap_port(port);
++	unsigned long flags;
++
++	pm_runtime_get_sync(up->dev);
++	spin_lock_irqsave(&up->port.lock, flags);
++	up->ier &= ~(UART_IER_RLSI | UART_IER_RDI);
++	serial_out(up, UART_IER, up->ier);
++	spin_unlock_irqrestore(&up->port.lock, flags);
++	pm_runtime_mark_last_busy(up->dev);
++	pm_runtime_put_autosuspend(up->dev);
++}
++
++static void serial_omap_unthrottle(struct uart_port *port)
++{
++	struct uart_omap_port *up = to_uart_omap_port(port);
++	unsigned long flags;
++
++	pm_runtime_get_sync(up->dev);
++	spin_lock_irqsave(&up->port.lock, flags);
++	up->ier |= UART_IER_RLSI | UART_IER_RDI;
++	serial_out(up, UART_IER, up->ier);
++	spin_unlock_irqrestore(&up->port.lock, flags);
++	pm_runtime_mark_last_busy(up->dev);
++	pm_runtime_put_autosuspend(up->dev);
++}
++
+ static unsigned int check_modem_status(struct uart_omap_port *up)
  {
- 	struct uart_omap_port *up = to_uart_omap_port(port);
- 	unsigned char cval = 0;
--	unsigned char efr = 0;
- 	unsigned long flags = 0;
- 	unsigned int baud, quot;
+ 	unsigned int status;
+@@ -1000,6 +1028,7 @@ static void serial_omap_config_port(struct uart_port *port, int flags)
+ 	dev_dbg(up->port.dev, "serial_omap_config_port+%d\n",
+ 							up->port.line);
+ 	up->port.type = PORT_OMAP;
++	up->port.flags |= UPF_SOFT_FLOW | UPF_HARD_FLOW;
+ }
  
-@@ -839,12 +839,12 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
- 
--	up->efr = serial_in(up, UART_EFR);
-+	up->efr = serial_in(up, UART_EFR) & ~UART_EFR_ECB;
- 	up->efr &= ~UART_EFR_SCD;
- 	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
- 
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
--	up->mcr = serial_in(up, UART_MCR);
-+	up->mcr = serial_in(up, UART_MCR) & ~UART_MCR_TCRTLR;
- 	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
- 	/* FIFO ENABLE, DMA MODE */
- 
-@@ -863,9 +863,12 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 
- 	serial_out(up, UART_OMAP_SCR, up->scr);
- 
--	serial_out(up, UART_EFR, up->efr);
-+	/* Reset UART_MCR_TCRTLR: this must be done with the EFR_ECB bit set */
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
- 	serial_out(up, UART_MCR, up->mcr);
-+	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-+	serial_out(up, UART_EFR, up->efr);
-+	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
- 
- 	/* Protocol, Baud Rate, and Interrupt Settings */
- 
-@@ -904,20 +907,21 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	/* Hardware Flow Control Configuration */
- 
- 	if (termios->c_cflag & CRTSCTS) {
--		efr |= (UART_EFR_CTS | UART_EFR_RTS);
--		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
--
--		up->mcr = serial_in(up, UART_MCR);
--		serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
--
-+		/* Enable access to TCR/TLR */
- 		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
--		up->efr = serial_in(up, UART_EFR);
- 		serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
-+		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
-+		serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
- 
- 		serial_out(up, UART_TI752_TCR, OMAP_UART_TCR_TRIG);
--		serial_out(up, UART_EFR, efr); /* Enable AUTORTS and AUTOCTS */
--		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
-+
-+		/* Enable AUTORTS and AUTOCTS */
-+		up->efr |= UART_EFR_CTS | UART_EFR_RTS;
-+
-+		/* Disable access to TCR/TLR */
- 		serial_out(up, UART_MCR, up->mcr | UART_MCR_RTS);
-+		serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
-+		serial_out(up, UART_EFR, up->efr);
- 		serial_out(up, UART_LCR, cval);
- 	} else {
- 		/* Disable AUTORTS and AUTOCTS */
+ static int
+@@ -1203,6 +1232,8 @@ static struct uart_ops serial_omap_pops = {
+ 	.get_mctrl	= serial_omap_get_mctrl,
+ 	.stop_tx	= serial_omap_stop_tx,
+ 	.start_tx	= serial_omap_start_tx,
++	.throttle	= serial_omap_throttle,
++	.unthrottle	= serial_omap_unthrottle,
+ 	.stop_rx	= serial_omap_stop_rx,
+ 	.enable_ms	= serial_omap_enable_ms,
+ 	.break_ctl	= serial_omap_break_ctl,
 -- 
 1.7.4.4
 
