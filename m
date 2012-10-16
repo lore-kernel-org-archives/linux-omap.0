@@ -1,74 +1,84 @@
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-Subject: [PATCH v3 2/3] usb: xhci: Add the suspend/resume functionality
-Date: Tue, 16 Oct 2012 15:15:37 +0530
-Message-ID: <1350380738-32473-3-git-send-email-vikas.sajjan@linaro.org>
+From: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH v3 3/3] exynos5: usb: dwc3: Add suspend/resume functionality
+Date: Tue, 16 Oct 2012 15:15:38 +0530
+Message-ID: <1350380738-32473-4-git-send-email-vikas.sajjan@linaro.org>
 References: <1350380738-32473-1-git-send-email-vikas.sajjan@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:49599 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307Ab2JPJnk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 05:43:40 -0400
-In-reply-to: <1350380738-32473-1-git-send-email-vikas.sajjan@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <1350380738-32473-1-git-send-email-vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, joshi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Vikas C Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, sarah.a.sharp@linux.intel.com, balbi@ti.com, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Vikas C Sajjan <vikas.sajjan@linaro.org>, Doug Anderson <dianders@chromium.org>
 
-Adds power management support to XHCI platform driver.
-This patch facilitates the transition of xHCI host controller
-between S0 and S3/S4 power states, during suspend/resume cycles.
+Adds suspend and resume callbacks to exynos dwc3 driver as part of
+power management support.
+This change does gating of dwc3 clock during suspend/resume cycles.
 
-Signed-off-by: Abhilash Kesavan <a.kesavan@samsung.com>
-Signed-off-by: Vikas C Sajjan <vikas.sajjan@linaro.org>
-CC: Doug Anderson <dianders@chromium.org>
+Signed-off-by: Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Vikas C Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+CC: Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
 ---
- drivers/usb/host/xhci-plat.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+ drivers/usb/dwc3/dwc3-exynos.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/host/xhci-plat.c b/drivers/usb/host/xhci-plat.c
-index df90fe5..eaf3a07 100644
---- a/drivers/usb/host/xhci-plat.c
-+++ b/drivers/usb/host/xhci-plat.c
-@@ -185,11 +185,39 @@ static int xhci_plat_remove(struct platform_device *dev)
+diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+index ca65978..8623b70 100644
+--- a/drivers/usb/dwc3/dwc3-exynos.c
++++ b/drivers/usb/dwc3/dwc3-exynos.c
+@@ -15,6 +15,7 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
++#include <linux/pm_runtime.h>
+ #include <linux/platform_device.h>
+ #include <linux/platform_data/dwc3-exynos.h>
+ #include <linux/dma-mapping.h>
+@@ -200,11 +201,41 @@ static int __devexit dwc3_exynos_remove(struct platform_device *pdev)
  	return 0;
  }
  
 +#ifdef CONFIG_PM_SLEEP
-+static int xhci_plat_suspend(struct device *dev)
++static int dwc3_exynos_suspend(struct device *dev)
 +{
-+	struct usb_hcd	*hcd	= dev_get_drvdata(dev);
-+	struct xhci_hcd	*xhci	= hcd_to_xhci(hcd);
++	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
 +
-+	/* Make sure that the HCD Core has set state to HC_STATE_SUSPENDED */
-+	if (hcd->state != HC_STATE_SUSPENDED ||
-+		xhci->shared_hcd->state != HC_STATE_SUSPENDED)
-+		return -EINVAL;
++	clk_disable(exynos->clk);
 +
-+	return xhci_suspend(xhci);
++	return 0;
 +}
 +
-+static int xhci_plat_resume(struct device *dev)
++static int dwc3_exynos_resume(struct device *dev)
 +{
-+	struct usb_hcd	*hcd	= dev_get_drvdata(dev);
-+	struct xhci_hcd	*xhci	= hcd_to_xhci(hcd);
++	struct dwc3_exynos *exynos = dev_get_drvdata(dev);
 +
-+	return xhci_resume(xhci, 0);
++	clk_enable(exynos->clk);
++
++	/* runtime set active to reflect active state. */
++	pm_runtime_disable(dev);
++	pm_runtime_set_active(dev);
++	pm_runtime_enable(dev);
++
++	return 0;
 +}
 +#endif /* CONFIG_PM_SLEEP */
 +
-+static const struct dev_pm_ops xhci_plat_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(xhci_plat_suspend, xhci_plat_resume)
++static const struct dev_pm_ops dwc3_exynos_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(dwc3_exynos_suspend, dwc3_exynos_resume)
 +};
 +
- static struct platform_driver usb_xhci_driver = {
- 	.probe	= xhci_plat_probe,
- 	.remove	= xhci_plat_remove,
- 	.driver	= {
- 		.name = "xhci-hcd",
-+		.pm = &xhci_plat_pm_ops,
+ static struct platform_driver dwc3_exynos_driver = {
+ 	.probe		= dwc3_exynos_probe,
+ 	.remove		= __devexit_p(dwc3_exynos_remove),
+ 	.driver		= {
+ 		.name	= "exynos-dwc3",
++		.pm	= &dwc3_exynos_pm_ops,
  	},
  };
- MODULE_ALIAS("platform:xhci-hcd");
+ 
 -- 
 1.7.6.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
