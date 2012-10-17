@@ -1,41 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv6 01/11] ARM: OMAP: clockdomain: Fix locking on
- _clkdm_clk_hwmod_enable / disable
-Date: Tue, 16 Oct 2012 19:41:10 -0700
-Message-ID: <20121017024109.GR15569@atomide.com>
-References: <1348589142-11983-1-git-send-email-t-kristo@ti.com>
- <1348589142-11983-2-git-send-email-t-kristo@ti.com>
- <alpine.DEB.2.00.1210170224570.9767@utopia.booyaka.com>
+From: Afzal Mohammed <x0148406@ti.com>
+Subject: Re: [PATCH v2 00/14] OMAP-GPMC related cleanup for common zImage
+Date: Wed, 17 Oct 2012 10:59:47 +0530
+Message-ID: <507E424B.8040706@ti.com>
+References: <cover.1349672877.git.afzal@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9F7B0A@DBDE01.ent.ti.com> <20121010163840.GA13585@parrot.com> <20121016180600.GA15569@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61329 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754191Ab2JQClO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 22:41:14 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210170224570.9767@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59840 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751294Ab2JQFaN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Oct 2012 01:30:13 -0400
+In-Reply-To: <20121016180600.GA15569@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Ivan Djelic <ivan.djelic@parrot.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, "Hunter, Jon" <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <dwmw2@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-* Paul Walmsley <paul@pwsan.com> [121016 19:26]:
-> On Tue, 25 Sep 2012, Tero Kristo wrote:
-> 
-> > Previously the code only acquired spinlock after increasing / decreasing
-> > the usecount value, which is wrong. This leaves a small window where
-> > a task switch may occur between the check of the usecount and the actual
-> > wakeup / sleep of the domain. Fixed by moving the spinlock locking before
-> > the usecount access. Left the usecount as atomic_t if someone wants an
-> > easy access to the parameter through atomic_read.
-> > 
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
+Hi Ivan,
 
-OK I'll apply this into omap-for-v3.7-rc1/fixes-take4.
+On Tuesday 16 October 2012 11:36 PM, Tony Lindgren wrote:
+> * Ivan Djelic<ivan.djelic@parrot.com>  [121010 09:40]:
 
-Regards,
+>> I ran several mtd regression tests on a Beagle Board on your gpmc-czimage-v2 tag.
+>> All BCH error correcting tests passed successfully.
 
-Tony
+>> I occasionally had weird read errors though, especially when reading blank pages:
+>> the omap driver returned 512-byte sectors containing something like:
+
+>> I was able to reproduce the problem also on l2-mtd tip, albeit less often.
+>> The problem seems to occur quite randomly, it may be a hardware issue on
+>> my board...
+
+> Things like this typically happen in the GPMC timings are not correct.
+> Maybe add #define DEBUG to top of gpmc.c and compare the timings
+> before and after Afzal's patches?
+
+Latest series for gpmc related cleanup for common zImage removed
+dependency on minor timing cleanups (this series was dependent on
+on another series that did minor timing cleanups).
+
+A pull request for the new series on gpmc cleanup for common zImage
+that does not contain timing related changes and without dependency
+on timing related changes has been sent to Tony (forwarded to you now).
+He has pulled those changes onto l-o in
+"omap-for-v3.8/cleanup-headers-gpmc"
+
+As there are no changes w.r.t timing's in the new series, behaviour
+should be same as without.
+
+>> Anyway, the ECC handling part looks OK to me.
+
+Regards
+Afzal
