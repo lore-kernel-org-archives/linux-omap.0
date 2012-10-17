@@ -1,37 +1,50 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: IS_ERR_OR_NULL - please STOP telling people to use this on a
-	whim
-Date: Wed, 17 Oct 2012 22:33:42 +0100
-Message-ID: <20121017213342.GA28061@n2100.arm.linux.org.uk>
-References: <20121017194157.GM21164@n2100.arm.linux.org.uk> <20121017202848.GF22812@fatphil.org>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: Updated status of the removal of plat headers
+Date: Wed, 17 Oct 2012 16:51:49 -0500
+Message-ID: <507F2875.2050406@ti.com>
+References: <20121016230040.GP15569@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121017202848.GF22812@fatphil.org>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Phil Carmody <pc+lkml@asdf.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38947 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751609Ab2JQVvy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Oct 2012 17:51:54 -0400
+In-Reply-To: <20121016230040.GP15569@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.luna@linaro.org>, Paul Walmsley <paul@pwsan.com>, Igor Grinberg <grinberg@compulab.co.il>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Wed, Oct 17, 2012 at 11:28:48PM +0300, Phil Carmody wrote:
-> So, what to do? It can and has been used sensibly, so I don't think removing
-> it is the best option.
+Hi Tony,
 
-Well, the first thing that needs to be done is a full review of every user
-and fixes applied.
+On 10/16/2012 06:00 PM, Tony Lindgren wrote:
+> Hi all,
+> 
+> Here's a quick status update on the removal of remaining
+> #include <plat/*.h> files. Most files are now fixed up, and
+> we only have the following remaining:
+> 
+> cpu.h		wrapper only left, will be removed as soon as drivers are fixed
+> 
+> dmtimer.h	Jon is fixing this
 
-The second thing is that we need eyes on code _and_ review comments, and
-educate those who are telling people to use IS_ERR_OR_NULL() whenever they
-see an IS_ERR() to think about the code a little more - that's kind of the
-purpose of my email.
+I have patches ready for this. However, as you know I have a few timer
+series cooking at the moment and just sent out the latest timer DT
+series today [1][2].
 
-Unfortunately, it's going to take time to achieve a change, and if I end
-up being the only one who's spotting these errors, I'm going to get
-incredibly pissed off at doing so (because it will feel like I'm being
-ignored when there's a constant stream of it.)
+I have also updated my timer fixes series [3] too, however, I was not
+going to send out until the DT stuff is sorted. At the moment I have
+included the dmtimer header patches with the fixes series as there are
+some dependencies but this series has now grown into a 20+ patch series.
+So if it is easier to manage, I could split this into a fixes series and
+a clean-up series. Or if you only want the header stuff now, I could
+send this and send the fixes and clean-up later.
 
-Another thing would be to work out whether we can get checkpatch to
-detect usage of IS_ERR_OR_NULL(p) followed by PTR_ERR(p) without any
-explicit NULL checks against p in the same block.  That's probably
-going to be interesting to code up in perl.
+Cheers
+Jon
+
+[1] http://marc.info/?l=linux-omap&m=135049690119218&w=2
+[2] http://marc.info/?l=linux-omap&m=135049882020029&w=2
+[3] http://marc.info/?l=linux-arm-kernel&m=134687192121865&w=2
