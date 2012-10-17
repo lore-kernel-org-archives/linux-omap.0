@@ -1,84 +1,70 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
-Date: Wed, 17 Oct 2012 19:02:00 +0300
-Message-ID: <20121017160200.GA6567@arwen.pp.htv.fi>
-References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
- <87ipag90om.fsf@deeprootsystems.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
+Date: Wed, 17 Oct 2012 09:13:48 -0700
+Message-ID: <20121017161348.GT15569@atomide.com>
+References: <cover.1350327320.git.richardcochran@gmail.com>
+ <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com>
+ <20121016174835.GV15569@atomide.com>
+ <507DCA8D.7060309@ti.com>
+ <20121016212647.GM15569@atomide.com>
+ <507EC395.7060409@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87ipag90om.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
---gKMricLos+KVdGMg
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:31744 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756228Ab2JQQN6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 12:13:58 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <507EC395.7060409@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, Afzal Mohammed <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, netdev@vger.kernel.org, "hvaibhav@ti.com" <hvaibhav@ti.com>, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+* Jon Hunter <jon-hunter@ti.com> [121017 07:43]:
+> 
+> On 10/16/2012 04:26 PM, Tony Lindgren wrote:
+> > * Jon Hunter <jon-hunter@ti.com> [121016 14:00]:
+> >> Hi Tony,
+> >>
+> >> On 10/16/2012 12:48 PM, Tony Lindgren wrote:
+> >>> * Richard Cochran <richardcochran@gmail.com> [121015 12:18]:
+> >>>> From: hvaibhav@ti.com <hvaibhav@ti.com>
+> >>>>
+> >>>> With recent changes in omap gpmc driver code, in case of DT
+> >>>> boot mode, where bootloader does not configure gpmc cs space
+> >>>> will result into kernel BUG() inside gpmc_mem_init() function,
+> >>>> as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
+> >>>> gpmc_config7[0].baseaddress is set to '0' on reset.
+> >>>>
+> >>>> This use-case is applicable for any board/EVM which doesn't have
+> >>>> any peripheral connected to gpmc cs0, for example BeagleXM and
+> >>>> BeagleBone, so DT boot mode fails.
+> >>>>
+> >>>> This patch adds of_have_populated_dt() check before creating
+> >>>> device, so that for DT boot mode, gpmc probe will not be called
+> >>>> which is expected behavior, as gpmc is not supported yet from DT.
+> >>>
+> >>> I'm applying this one into omap-for-v3.7-rc1/fixes-part2.
+> >>>
+> >>> Next time, please also cc linux-omap@vger.kernel.org for series
+> >>> like this. I'm sure the people reading the omap list are interested
+> >>> in these.
+> >>
+> >> This patch appears to be masking an underlying issue. How about 
+> >> something like the following ...
+> > 
+> > OK that looks good to me. I'll drop the earlier fix and use
+> > yours instead.
+> 
+> Hi Tony, sorry but I realised now that in my patch that I need to
+> take care of releasing and memory and clocks that were acquired 
+> during the probe. Here is a V2. If you prefer I can create a delta
+> patch also with the previous. 
 
-On Thu, Oct 11, 2012 at 02:08:25PM -0700, Kevin Hilman wrote:
-> Hi Kalle,
->=20
-> Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> writes:
->=20
-> > The resume_noirq enables interrupts one-by-one starting from
-> > first one. Now if the wake up event for suspend came from i2c
-> > device, the i2c bus irq gets enabled before the threaded
-> > i2c device irq, causing a flood of i2c bus interrupts as the
-> > threaded irq that should clear the event is not enabled yet.
-> >
-> > Fixed the issue by adding suspend_noirq and resume_early
-> > functions that keep i2c bus interrupts disabled until
-> > resume_noirq has run completely.
-> >
-> > Issue was detected doing a wake up from autosleep with
-> > twl4030 power key on N9. Patch tested on N9.
-> >
-> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
->=20
-> This version looks good, thanks for the extra comments.
->=20
-> Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-> Tested-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
->=20
-> Wolfram, This should also probably be Cc'd to stable since it affects
-> earlier kernels as well.  Thanks,
+OK thanks I'll update it.
 
-just to make sure we're not fixing the wrong problem... does [1] help in
-any way ?
+Regards,
 
-[1] http://marc.info/?l=3Dlinux-omap&m=3D135048839915719&w=3D2
-
---=20
-balbi
-
---gKMricLos+KVdGMg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQftZ4AAoJEIaOsuA1yqREjEoQAIJxq1IAm4+9FGha13Awlhsa
-d6Gy7GiJLcyliHm9577IHCEUU5wU5B1Xh5vk/ri3Vm8MIz0x33sMjKo+33EPj9Lg
-JeXSsFY0L17uH4qjnq0lS5VJdk3DqkfxaLyCT7OO/G94JzFK5y/TKOOBc+SQ4rjb
-nSOvx7kEiRwfyFJKPJHtk3VgtTrl03/l7DhTxOQ3Ws9JtSeAXjREJRRFY57FzP+c
-XOC892ehqXdMtAWcrsCIJSdFjXYuHT/zLfv+aZWClTStpQJLzQ3qPjF/2+6/C12c
-Phv8jhUZkny6P6EubNAjDJCrneNP0J69b0BI9nc2xTFOTWz7UbttCb0cDWOyPiN/
-qP39gwhVkNOv+ug5DbK8gEpRoB8xgfJxcQRqWkOXAxkErmht/gP7FV6XlGjeLE95
-GQi+QnvbgXc2eEtdu00NORHFMxZX2XduIna0WELBBCHQFczVTt1Aviiigcpz05Z6
-V/h1fzH5+xU/d8+PMEYPQ5aZoota9VN+/aDicIDesFpS/YLIv8TJqVsemLSDmFlq
-OBAXIathulxinzzrcGzHwF7ntoooXMNsYzLqHpRMCnnqyuYSskFxY+01Fr72aR2F
-fUGQmleItruQIlB5KObZMoZ+9uSeIEJwEmByp4hy926AnNrw6JihxW1M/ssfaP8T
-MF/BW7oI4GQmndCl1foS
-=X81s
------END PGP SIGNATURE-----
-
---gKMricLos+KVdGMg--
+Tony
