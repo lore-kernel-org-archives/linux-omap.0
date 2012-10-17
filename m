@@ -1,68 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] OMAP-GPMC generic timing migration
-Date: Wed, 17 Oct 2012 08:53:32 -0700
-Message-ID: <20121017155330.GS15569@atomide.com>
-References: <cover.1349450723.git.afzal@ti.com>
- <5076B166.2020006@gmail.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9FBC41@DBDE01.ent.ti.com>
- <20121011144756.GB12552@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9FCEC9@DBDE01.ent.ti.com>
- <20121015160154.GB15569@atomide.com>
- <507D050D.2090402@ti.com>
- <507E455F.7060703@ti.com>
- <507ECB31.8030006@gmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
+Date: Wed, 17 Oct 2012 19:02:00 +0300
+Message-ID: <20121017160200.GA6567@arwen.pp.htv.fi>
+References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+ <87ipag90om.fsf@deeprootsystems.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:45638 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932304Ab2JQPxq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 11:53:46 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <507ECB31.8030006@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <87ipag90om.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Afzal Mohammed <x0148406@ti.com>, Paul Walmsley <paul@pwsan.com>, David Woodhouse <David.Woodhouse@intel.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Daniel Mack <zonque@gmail.com> [121017 08:15]:
-> Hi Afzal,
-> 
-> On 17.10.2012 07:42, Afzal Mohammed wrote:
-> > On Tuesday 16 October 2012 12:26 PM, Afzal Mohammed wrote:
-> >> I certainly don't think it is easier, rather tougher, cleaner
-> >> as well. One thing that worried me was, if we pursue the
-> >> auxdata path (a last resort option) and later if it is
-> >> objected, we would be back to square one.
-> > 
-> > I commented on auxdata usage without visualising in more
-> > detail how it can be implemented, it was bad of me.
-> > 
-> > I doubt whether auxdata would help here, it seems using
-> > compatible field alone would help in deciding relevant
-> > custom timing routine. Whether we want this kind of
-> > peripheral knowledge in gpmc driver instead of using
-> > generic timing routine has to be decided though.
-> 
-> Maybe slightly off-topic, but still:
-> 
-> When GPMC is used for driving NAND chips that comply to CFI, the timings
-> could actually be derived from the connected peripheral as well. I
-> believe a slowest-possible-mode will have to be selected first for the
-> identication phase.
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I wish.. Just getting things working to the identification phase
-requires quite a bit of configuration for the timings.
- 
-> Another thing that might be worth thinking about is that apart from the
-> GPMC host controller and the peripherals, there could be other
-> components like level shifters or series resistors on the board that
-> limit the maximum speed of transactions. So in fact we might be better
-> off storing all that timing details in the DT, as they are in fact
-> highly application specific.
+Hi,
 
-Yes and the level shifters affect timings too.
+On Thu, Oct 11, 2012 at 02:08:25PM -0700, Kevin Hilman wrote:
+> Hi Kalle,
+>=20
+> Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> writes:
+>=20
+> > The resume_noirq enables interrupts one-by-one starting from
+> > first one. Now if the wake up event for suspend came from i2c
+> > device, the i2c bus irq gets enabled before the threaded
+> > i2c device irq, causing a flood of i2c bus interrupts as the
+> > threaded irq that should clear the event is not enabled yet.
+> >
+> > Fixed the issue by adding suspend_noirq and resume_early
+> > functions that keep i2c bus interrupts disabled until
+> > resume_noirq has run completely.
+> >
+> > Issue was detected doing a wake up from autosleep with
+> > twl4030 power key on N9. Patch tested on N9.
+> >
+> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+>=20
+> This version looks good, thanks for the extra comments.
+>=20
+> Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+> Tested-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+>=20
+> Wolfram, This should also probably be Cc'd to stable since it affects
+> earlier kernels as well.  Thanks,
 
-Regards,
+just to make sure we're not fixing the wrong problem... does [1] help in
+any way ?
 
-Tony
+[1] http://marc.info/?l=3Dlinux-omap&m=3D135048839915719&w=3D2
+
+--=20
+balbi
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQftZ4AAoJEIaOsuA1yqREjEoQAIJxq1IAm4+9FGha13Awlhsa
+d6Gy7GiJLcyliHm9577IHCEUU5wU5B1Xh5vk/ri3Vm8MIz0x33sMjKo+33EPj9Lg
+JeXSsFY0L17uH4qjnq0lS5VJdk3DqkfxaLyCT7OO/G94JzFK5y/TKOOBc+SQ4rjb
+nSOvx7kEiRwfyFJKPJHtk3VgtTrl03/l7DhTxOQ3Ws9JtSeAXjREJRRFY57FzP+c
+XOC892ehqXdMtAWcrsCIJSdFjXYuHT/zLfv+aZWClTStpQJLzQ3qPjF/2+6/C12c
+Phv8jhUZkny6P6EubNAjDJCrneNP0J69b0BI9nc2xTFOTWz7UbttCb0cDWOyPiN/
+qP39gwhVkNOv+ug5DbK8gEpRoB8xgfJxcQRqWkOXAxkErmht/gP7FV6XlGjeLE95
+GQi+QnvbgXc2eEtdu00NORHFMxZX2XduIna0WELBBCHQFczVTt1Aviiigcpz05Z6
+V/h1fzH5+xU/d8+PMEYPQ5aZoota9VN+/aDicIDesFpS/YLIv8TJqVsemLSDmFlq
+OBAXIathulxinzzrcGzHwF7ntoooXMNsYzLqHpRMCnnqyuYSskFxY+01Fr72aR2F
+fUGQmleItruQIlB5KObZMoZ+9uSeIEJwEmByp4hy926AnNrw6JihxW1M/ssfaP8T
+MF/BW7oI4GQmndCl1foS
+=X81s
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
