@@ -1,155 +1,61 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Fwd: [PATCH 5/5] arm/dts: am33xx: Add cpsw and mdio module nodes
- for AM33XX
-Date: Wed, 17 Oct 2012 20:18:14 +0200
-Message-ID: <20121017181813.GB2412@netboy.at.omicron.at>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv3 0/5] OMAP: VRFB: convert to platform device
+Date: Wed, 17 Oct 2012 11:29:26 -0700
+Message-ID: <20121017182926.GW15569@atomide.com>
+References: <1350469102-24888-1-git-send-email-tomi.valkeinen@ti.com>
+ <507E87B7.3070707@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:36714 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846Ab2JQSS1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 14:18:27 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hr7so1068542wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 17 Oct 2012 11:18:26 -0700 (PDT)
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64725 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932419Ab2JQS32 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 14:29:28 -0400
 Content-Disposition: inline
+In-Reply-To: <507E87B7.3070707@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mugunthan V N <mugunthanvnm@ti.com>, tony@atomide.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
-Benoit,
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [121017 03:27]:
+> Hi Tony,
+> 
+> I have pushed this vrfb series and the omapdss version series to:
+> 
+> git://gitorious.org/linux-omap-dss2/linux.git 3.8/dss-version
 
-Would you please take this bugfix for 3.7-rc2? The suggestion to
-mail you came from Toni Lindgren. The context where it came from
-is here:
+I used this branch up to commit 35f70935c64ae229ebd1fc65398ec68d4d803712,
+but left out the x86 compile changes as those seem unrelated to the plat
+issue.
 
-http://lists.arm.linux.org.uk/lurker/message/20121015.191630.bdae3c50.en.html
+> git://gitorious.org/linux-omap-dss2/linux.git 3.8/vrfb-conversion
 
-Thanks,
-Richard
+And then I merged in this branch. I have the merged branch at
+omap-for-v3.8/cleanup-headers-dss.
+ 
+> If they look ok to you and we don't get any other comments, I think
+> these branches can be considered stable and you can pull them.
 
------ Forwarded message from Richard Cochran <richardcochran@gmail.com> -----
+Thanks yes let's consider those frozen and if something needs to
+be fixed it should be done on top of those commits.
+ 
+> After these are merged:
+> 
+> $ git grep -E "(plat/)|(mach/)" drivers/video/omap2/
+> drivers/video/omap2/omapfb/omapfb-ioctl.c:#include <plat/vram.h>
+> drivers/video/omap2/omapfb/omapfb-main.c:#include <plat/vram.h>
+> drivers/video/omap2/vram.c:#include <plat/vram.h>
+> 
+> So the vram stuff should be the only omap dependency left in omapdss and
+> omapfb. I'll start working on that soon.
 
-Date: Mon, 15 Oct 2012 21:16:35 +0200
-From: Richard Cochran <richardcochran@gmail.com>
-To: netdev@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>,
-	David Miller <davem@davemloft.net>,
-	Russell King <linux@arm.linux.org.uk>,
-	Mugunthan V N <mugunthanvnm@ti.com>,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 5/5] arm/dts: am33xx: Add cpsw and mdio module nodes for AM33XX
-X-Mailer: git-send-email 1.7.2.5
+OK thanks a lot. Then there's also the two vout files that
+you may already have patches for:
 
-From: Mugunthan V N <mugunthanvnm@ti.com>
+drivers/media/platform/omap/omap_vout.c
+drivers/media/platform/omap/omap_voutlib.c
 
-Add CPSW and MDIO related device tree data for AM33XX.
-Also enable them into board/evm dts files by providing
-respective phy-id.
+Regards,
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/boot/dts/am335x-bone.dts |    8 ++++++
- arch/arm/boot/dts/am335x-evm.dts  |    8 ++++++
- arch/arm/boot/dts/am33xx.dtsi     |   50 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index c634f87..e233cfa 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -78,3 +78,11 @@
- 		};
- 	};
- };
-+
-+&cpsw_emac0 {
-+	phy_id = "4a101000.mdio:00";
-+};
-+
-+&cpsw_emac1 {
-+	phy_id = "4a101000.mdio:01";
-+};
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 185d632..415c3b3 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -118,3 +118,11 @@
- 		};
- 	};
- };
-+
-+&cpsw_emac0 {
-+	phy_id = "4a101000.mdio:00";
-+};
-+
-+&cpsw_emac1 {
-+	phy_id = "4a101000.mdio:01";
-+};
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index bb31bff..f6bea04 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -210,5 +210,55 @@
- 			interrupt-parent = <&intc>;
- 			interrupts = <91>;
- 		};
-+
-+		mac: ethernet@4A100000 {
-+			compatible = "ti,cpsw";
-+			ti,hwmods = "cpgmac0";
-+			cpdma_channels = <8>;
-+			host_port_no = <0>;
-+			cpdma_reg_ofs = <0x800>;
-+			cpdma_sram_ofs = <0xa00>;
-+			ale_reg_ofs = <0xd00>;
-+			ale_entries = <1024>;
-+			host_port_reg_ofs = <0x108>;
-+			hw_stats_reg_ofs = <0x900>;
-+			bd_ram_ofs = <0x2000>;
-+			bd_ram_size = <0x2000>;
-+			no_bd_ram = <0>;
-+			rx_descs = <64>;
-+			mac_control = <0x20>;
-+			slaves = <2>;
-+			reg = <0x4a100000 0x800
-+				0x4a101200 0x100
-+				0x4a101000 0x100>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			interrupt-parent = <&intc>;
-+			/* c0_rx_thresh_pend c0_rx_pend c0_tx_pend c0_misc_pend*/
-+			interrupts = <40 41 42 43>;
-+			ranges;
-+			cpsw_emac0: slave@0 {
-+				slave_reg_ofs = <0x208>;
-+				sliver_reg_ofs = <0xd80>;
-+				/* Filled in by U-Boot */
-+				mac-address = [ 00 00 00 00 00 00 ];
-+			};
-+			cpsw_emac1: slave@1 {
-+				slave_reg_ofs = <0x308>;
-+				sliver_reg_ofs = <0xdc0>;
-+				/* Filled in by U-Boot */
-+				mac-address = [ 00 00 00 00 00 00 ];
-+			};
-+
-+			davinci_mdio: mdio@4a101000 {
-+				compatible = "ti,davinci_mdio";
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+				ti,hwmods = "davinci_mdio";
-+				bus_freq = <1000000>;
-+				reg = <0x4a101000 0x100>;
-+			};
-+
-+		};
- 	};
- };
--- 
-1.7.2.5
-
-
------ End forwarded message -----
+Tony
