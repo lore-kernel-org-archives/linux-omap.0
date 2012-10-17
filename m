@@ -1,33 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Updated status of the removal of plat headers
-Date: Wed, 17 Oct 2012 00:24:33 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210170023270.9767@utopia.booyaka.com>
-References: <20121016230040.GP15569@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv4 8/8] ARM: OMAP3: do not delete per_clkdm autodeps during idle
+Date: Tue, 16 Oct 2012 17:39:00 -0700
+Message-ID: <877gqqlyor.fsf@deeprootsystems.com>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
+	<1342189185-5306-9-git-send-email-t-kristo@ti.com>
+	<alpine.DEB.2.00.1209182156330.4747@utopia.booyaka.com>
+	<alpine.DEB.2.00.1209182241400.4747@utopia.booyaka.com>
+	<87k3vpek28.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.1210160603390.9767@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:45106 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755844Ab2JQAYe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 20:24:34 -0400
-In-Reply-To: <20121016230040.GP15569@atomide.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:62564 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755476Ab2JQAis (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Oct 2012 20:38:48 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so6521734pbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 16 Oct 2012 17:38:48 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1210160603390.9767@utopia.booyaka.com> (Paul
+	Walmsley's message of "Tue, 16 Oct 2012 07:29:21 +0000 (UTC)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Igor Grinberg <grinberg@compulab.co.il>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi
+Paul Walmsley <paul@pwsan.com> writes:
 
-On Tue, 16 Oct 2012, Tony Lindgren wrote:
+> Hi Kevin,
+>
+> Here's an updated version of this one, with the erratum coverage expanded 
+> to include OMAP34xx/35xx.
+>
+> I think this one can replace Tero's "[PATCHv6 06/11] ARM: OMAP: 
+> clockdomain: add support for preventing autodep delete" and "[PATCHv6 
+> 07/11] ARM: OMAP3: do not delete per_clkdm autodeps during idle".  Tero, 
+> please let us know if you feel otherwise.
+>
+> The patch seems to pass testing on 37xx.  Was not able to really test it 
+> on 35xx due to PM regressions in v3.7-rc1.
 
-> prcm.h		Paul has posted patches for this, missing move of the header
-> 
-> sdrc.h		Paul has posted patches for this, missing move of the header
+With workarounds for some of the other regressions, this passes ret/off
+idle/suspend tests on 3530/Overo, 3730/OveroSTORM and 3730/Beagle-xM.  
 
-Just to clarify these, I've only posted 1 of 2 series to clean up prcm.h.  
-With luck the second one will be posted within a week. 
+Queueing for v3.7-rc.
 
-Also I haven't yet posted a sdrc.h cleanup patch, but it's coming shortly.
+Thanks,
 
-
-- Paul
+Kevin
