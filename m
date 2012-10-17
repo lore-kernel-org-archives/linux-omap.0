@@ -1,270 +1,136 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 9/9] OMAPDSS: DISPC: cleanup lcd/digit enable/disable
-Date: Wed, 17 Oct 2012 20:08:34 +0530
-Message-ID: <507EC2EA.4000402@ti.com>
-References: <1350472835-28727-1-git-send-email-tomi.valkeinen@ti.com> <1350472835-28727-10-git-send-email-tomi.valkeinen@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
+Date: Wed, 17 Oct 2012 09:41:25 -0500
+Message-ID: <507EC395.7060409@ti.com>
+References: <cover.1350327320.git.richardcochran@gmail.com> <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com> <20121016174835.GV15569@atomide.com> <507DCA8D.7060309@ti.com> <20121016212647.GM15569@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45778 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756228Ab2JQOio (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 10:38:44 -0400
-In-Reply-To: <1350472835-28727-10-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20121016212647.GM15569@atomide.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, Afzal Mohammed <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, netdev@vger.kernel.org, "hvaibhav@ti.com" <hvaibhav@ti.com>, David Miller <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
 
-On Wednesday 17 October 2012 04:50 PM, Tomi Valkeinen wrote:
-> We currently have a single function to enable and disable the manager
-> output for LCD and DIGIT. The functions are a bit complex, as handling
-> both enable and disable require some extra steps to ensure that the
-> output is enabled or disabled properly without errors before exiting the
-> function.
->
-> The code can be made simpler to understand by splitting the functions
-> into separate enable and disable functions. We'll also clean up the
-> comments and some parameter names at the same time.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/apply.c |    6 +-
->   drivers/video/omap2/dss/dispc.c |  178 ++++++++++++++++++++++++---------------
->   drivers/video/omap2/dss/dss.h   |    3 +-
->   3 files changed, 116 insertions(+), 71 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-> index ae9f70d..4fff8ac 100644
-> --- a/drivers/video/omap2/dss/apply.c
-> +++ b/drivers/video/omap2/dss/apply.c
-> @@ -772,7 +772,7 @@ void dss_mgr_start_update(struct omap_overlay_manager *mgr)
->   	if (!dss_data.irq_enabled && need_isr())
->   		dss_register_vsync_isr();
->
-> -	dispc_mgr_enable(mgr->id, true);
-> +	dispc_mgr_enable(mgr->id);
->
->   	mgr_clear_shadow_dirty(mgr);
->
-> @@ -1027,7 +1027,7 @@ int dss_mgr_enable(struct omap_overlay_manager *mgr)
->   	spin_unlock_irqrestore(&data_lock, flags);
->
->   	if (!mgr_manual_update(mgr))
-> -		dispc_mgr_enable(mgr->id, true);
-> +		dispc_mgr_enable(mgr->id);
->
->   out:
->   	mutex_unlock(&apply_lock);
-> @@ -1052,7 +1052,7 @@ void dss_mgr_disable(struct omap_overlay_manager *mgr)
->   		goto out;
->
->   	if (!mgr_manual_update(mgr))
-> -		dispc_mgr_enable(mgr->id, false);
-> +		dispc_mgr_disable(mgr->id);
->
->   	spin_lock_irqsave(&data_lock, flags);
->
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> index 82339ad..94f393ec 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -2590,7 +2590,7 @@ int dispc_ovl_enable(enum omap_plane plane, bool enable)
->   	return 0;
->   }
->
-> -static void dispc_disable_isr(void *data, u32 mask)
-> +static void dispc_mgr_disable_isr(void *data, u32 mask)
->   {
->   	struct completion *compl = data;
->   	complete(compl);
-> @@ -2608,122 +2608,166 @@ bool dispc_mgr_is_enabled(enum omap_channel channel)
->   	return !!mgr_fld_read(channel, DISPC_MGR_FLD_ENABLE);
->   }
->
-> -static void dispc_mgr_enable_lcd_out(enum omap_channel channel, bool enable)
-> +static void dispc_mgr_enable_lcd_out(enum omap_channel channel)
->   {
-> -	struct completion frame_done_completion;
-> -	bool is_on;
-> +	_enable_mgr_out(channel, true);
-> +}
-> +
-> +static void dispc_mgr_disable_lcd_out(enum omap_channel channel)
-> +{
-> +	DECLARE_COMPLETION_ONSTACK(framedone_compl);
->   	int r;
->   	u32 irq;
->
-> -	/* When we disable LCD output, we need to wait until frame is done.
-> -	 * Otherwise the DSS is still working, and turning off the clocks
-> -	 * prevents DSS from going to OFF mode */
-> -	is_on = dispc_mgr_is_enabled(channel);
-> +	if (dispc_mgr_is_enabled(channel) == false)
-> +		return;
-> +
-> +	/*
-> +	 * When we disable LCD output, we need to wait for FRAMEDONE to know
-> +	 * that DISPC has finished with the LCD output.
-> +	 */
->
-> -	irq = mgr_desc[channel].framedone_irq;
-> +	irq = dispc_mgr_get_framedone_irq(channel);
->
-> -	if (!enable && is_on) {
-> -		init_completion(&frame_done_completion);
-> +	r = omap_dispc_register_isr(dispc_mgr_disable_isr, &framedone_compl,
-> +			irq);
-> +	if (r)
-> +		DSSERR("failed to register FRAMEDONE isr\n");
->
-> -		r = omap_dispc_register_isr(dispc_disable_isr,
-> -				&frame_done_completion, irq);
-> +	_enable_mgr_out(channel, false);
->
-> -		if (r)
-> -			DSSERR("failed to register FRAMEDONE isr\n");
-> +	/* if we couldn't register for framedone, just sleep and exit */
-> +	if (r) {
-> +		msleep(200);
+On 10/16/2012 04:26 PM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [121016 14:00]:
+>> Hi Tony,
+>>
+>> On 10/16/2012 12:48 PM, Tony Lindgren wrote:
+>>> * Richard Cochran <richardcochran@gmail.com> [121015 12:18]:
+>>>> From: hvaibhav@ti.com <hvaibhav@ti.com>
+>>>>
+>>>> With recent changes in omap gpmc driver code, in case of DT
+>>>> boot mode, where bootloader does not configure gpmc cs space
+>>>> will result into kernel BUG() inside gpmc_mem_init() function,
+>>>> as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
+>>>> gpmc_config7[0].baseaddress is set to '0' on reset.
+>>>>
+>>>> This use-case is applicable for any board/EVM which doesn't have
+>>>> any peripheral connected to gpmc cs0, for example BeagleXM and
+>>>> BeagleBone, so DT boot mode fails.
+>>>>
+>>>> This patch adds of_have_populated_dt() check before creating
+>>>> device, so that for DT boot mode, gpmc probe will not be called
+>>>> which is expected behavior, as gpmc is not supported yet from DT.
+>>>
+>>> I'm applying this one into omap-for-v3.7-rc1/fixes-part2.
+>>>
+>>> Next time, please also cc linux-omap@vger.kernel.org for series
+>>> like this. I'm sure the people reading the omap list are interested
+>>> in these.
+>>
+>> This patch appears to be masking an underlying issue. How about 
+>> something like the following ...
+> 
+> OK that looks good to me. I'll drop the earlier fix and use
+> yours instead.
 
-We sleep for 200 ms if we fail to register for framedone. But we just 
-wait for 100ms for FRAMEDONE to occur. It seems a bit incorrect, both 
-should be kept the same, shouldn't they?
+Hi Tony, sorry but I realised now that in my patch that I need to
+take care of releasing and memory and clocks that were acquired 
+during the probe. Here is a V2. If you prefer I can create a delta
+patch also with the previous. 
 
-> +		return;
->   	}
->
-> -	_enable_mgr_out(channel, enable);
-> +	if (!wait_for_completion_timeout(&framedone_compl,
-> +				msecs_to_jiffies(100)))
-> +		DSSERR("timeout waiting for FRAME DONE\n");
->
-> -	if (!enable && is_on) {
-> -		if (!wait_for_completion_timeout(&frame_done_completion,
-> -					msecs_to_jiffies(100)))
-> -			DSSERR("timeout waiting for FRAME DONE\n");
-> +	r = omap_dispc_unregister_isr(dispc_mgr_disable_isr, &framedone_compl,
-> +			irq);
-> +	if (r)
-> +		DSSERR("failed to unregister FRAMEDONE isr\n");
-> +}
->
-> -		r = omap_dispc_unregister_isr(dispc_disable_isr,
-> -				&frame_done_completion, irq);
-> +static void dispc_digit_out_enable_isr(void *data, u32 mask)
-> +{
-> +	struct completion *compl = data;
->
-> -		if (r)
-> -			DSSERR("failed to unregister FRAMEDONE isr\n");
-> +	/* ignore any sync lost interrupts */
-> +	if (mask & (DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD))
-> +		complete(compl);
-> +}
-> +
-> +static void dispc_mgr_enable_digit_out(void)
-> +{
-> +	DECLARE_COMPLETION_ONSTACK(vsync_compl);
-> +	int r;
-> +	u32 irq_mask;
-> +
-> +	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT) == true)
-> +		return;
-> +
-> +	/*
-> +	 * Digit output produces some sync lost interrupts during the first
-> +	 * frame when enabling. Those need to be ignored, so we register for the
-> +	 * sync lost irq to prevent the error handler from triggering.
-> +	 */
-> +
-> +	irq_mask = dispc_mgr_get_vsync_irq(OMAP_DSS_CHANNEL_DIGIT) |
-> +		dispc_mgr_get_sync_lost_irq(OMAP_DSS_CHANNEL_DIGIT);
-> +
-> +	r = omap_dispc_register_isr(dispc_digit_out_enable_isr, &vsync_compl,
-> +			irq_mask);
-> +	if (r) {
-> +		DSSERR("failed to register %x isr\n", irq_mask);
-> +		return;
->   	}
-> +
-> +	_enable_mgr_out(OMAP_DSS_CHANNEL_DIGIT, true);
-> +
-> +	/* wait for the first evsync */
-> +	if (!wait_for_completion_timeout(&vsync_compl, msecs_to_jiffies(100)))
-> +		DSSERR("timeout waiting for digit out to start\n");
-> +
-> +	r = omap_dispc_unregister_isr(dispc_digit_out_enable_isr, &vsync_compl,
-> +			irq_mask);
-> +	if (r)
-> +		DSSERR("failed to unregister %x isr\n", irq_mask);
->   }
->
-> -static void dispc_mgr_enable_digit_out(bool enable)
-> +static void dispc_mgr_disable_digit_out(void)
->   {
-> -	struct completion frame_done_completion;
-> +	DECLARE_COMPLETION_ONSTACK(framedone_compl);
->   	enum dss_hdmi_venc_clk_source_select src;
->   	int r, i;
->   	u32 irq_mask;
->   	int num_irqs;
->
-> -	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT) == enable)
-> +	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT) == false)
->   		return;
->
->   	src = dss_get_hdmi_venc_clk_source();
->
-> -	if (enable) {
-> -		unsigned long flags;
-> -		/* When we enable digit output, we'll get an extra digit
-> -		 * sync lost interrupt, that we need to ignore */
-> -		spin_lock_irqsave(&dispc.irq_lock, flags);
-> -		dispc.irq_error_mask &= ~DISPC_IRQ_SYNC_LOST_DIGIT;
-> -		_omap_dispc_set_irqs();
-> -		spin_unlock_irqrestore(&dispc.irq_lock, flags);
-> -	}
-> -
-> -	/* When we disable digit output, we need to wait until fields are done.
-> -	 * Otherwise the DSS is still working, and turning off the clocks
-> -	 * prevents DSS from going to OFF mode. And when enabling, we need to
-> -	 * wait for the extra sync losts */
-> -	init_completion(&frame_done_completion);
-> +	/*
-> +	 * When we disable the digit output, we need to wait for FRAMEDONE to
-> +	 * know that DISPC has finished with the output. For analog tv out we'll
-> +	 * use vsync, as omap2/3 don't have framedone for TV.
-> +	 */
->
-> -	if (src == DSS_HDMI_M_PCLK && enable == false) {
-> +	if (src == DSS_HDMI_M_PCLK) {
->   		irq_mask = DISPC_IRQ_FRAMEDONETV;
->   		num_irqs = 1;
->   	} else {
-> -		irq_mask = DISPC_IRQ_EVSYNC_EVEN | DISPC_IRQ_EVSYNC_ODD;
-> -		/* XXX I understand from TRM that we should only wait for the
-> -		 * current field to complete. But it seems we have to wait for
-> -		 * both fields */
-> +		irq_mask = dispc_mgr_get_vsync_irq(OMAP_DSS_CHANNEL_DIGIT);
-> +		/*
-> +		 * We need to wait for both even and odd vsyncs. Note that this
-> +		 * is not totally reliable, as we could get a vsync interrupt
-> +		 * before we disable the output, which leads to timeout in the
-> +		 * wait_for_completion.
-> +		 */
->   		num_irqs = 2;
->   	}
->
-> -	r = omap_dispc_register_isr(dispc_disable_isr, &frame_done_completion,
-> +	r = omap_dispc_register_isr(dispc_mgr_disable_isr, &framedone_compl,
->   			irq_mask);
->   	if (r)
->   		DSSERR("failed to register %x isr\n", irq_mask);
+Cheers
+Jon
 
-We should probably sleep here too as we did for LCD above.
+>From 91f5234d567c07ce1579b50e52de1a1e06ce5c68 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jon-hunter@ti.com>
+Date: Tue, 16 Oct 2012 15:22:58 -0500
+Subject: [PATCH V2] ARM: OMAP2+: Allow kernel to boot even if GPMC fails to
+ reserve memory
 
-Archit
+Currently, if the GPMC driver fails to reserve memory when probed we will
+call BUG() and the kernel will not boot. Instead of calling BUG(), return
+an error from probe and allow kernel to boot.
+
+Boot tested on AM335x beagle bone board and OMAP4430 Panda board.
+
+V2 changes:
+- Ensure that clock and memory resources are released on error.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc.c |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 5ac5cf3..92b5718 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -868,9 +868,9 @@ static void __devexit gpmc_mem_exit(void)
+ 
+ }
+ 
+-static void __devinit gpmc_mem_init(void)
++static int __devinit gpmc_mem_init(void)
+ {
+-	int cs;
++	int cs, rc;
+ 	unsigned long boot_rom_space = 0;
+ 
+ 	/* never allocate the first page, to facilitate bug detection;
+@@ -890,13 +890,21 @@ static void __devinit gpmc_mem_init(void)
+ 		if (!gpmc_cs_mem_enabled(cs))
+ 			continue;
+ 		gpmc_cs_get_memconf(cs, &base, &size);
+-		if (gpmc_cs_insert_mem(cs, base, size) < 0)
+-			BUG();
++		rc = gpmc_cs_insert_mem(cs, base, size);
++		if (IS_ERR_VALUE(rc)) {
++			while (--cs >= 0)
++				if (gpmc_cs_mem_enabled(cs))
++					gpmc_cs_delete_mem(cs);
++			return rc;
++		}
+ 	}
++
++	return 0;
+ }
+ 
+ static __devinit int gpmc_probe(struct platform_device *pdev)
+ {
++	int rc;
+ 	u32 l;
+ 	struct resource *res;
+ 
+@@ -936,7 +944,13 @@ static __devinit int gpmc_probe(struct platform_device *pdev)
+ 	dev_info(gpmc_dev, "GPMC revision %d.%d\n", GPMC_REVISION_MAJOR(l),
+ 		 GPMC_REVISION_MINOR(l));
+ 
+-	gpmc_mem_init();
++	rc = gpmc_mem_init();
++	if (IS_ERR_VALUE(rc)) {
++		clk_disable_unprepare(gpmc_l3_clk);
++		clk_put(gpmc_l3_clk);
++		dev_err(gpmc_dev, "failed to reserve memory\n");
++		return rc;
++	}
+ 
+ 	if (IS_ERR_VALUE(gpmc_setup_irq()))
+ 		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
+-- 
+1.7.9.5
+ 
