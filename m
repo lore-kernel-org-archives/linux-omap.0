@@ -1,36 +1,38 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCH] i2c: omap: adopt pinctrl support
-Date: Wed, 17 Oct 2012 22:05:50 +0530
-Message-ID: <CAM=Q2cu2nA2R_LcMnjkSMJn6coxYQ_EHPSuG9ExbW7pa7fsu8A@mail.gmail.com>
-References: <1350401000-9453-1-git-send-email-s-guiriec@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: move plat-omap/include/plat/sdrc.h into
+ mach-omap2/sdrc.h
+Date: Wed, 17 Oct 2012 10:38:37 -0700
+Message-ID: <20121017173837.GU15569@atomide.com>
+References: <alpine.DEB.2.00.1210170038200.9767@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1350401000-9453-1-git-send-email-s-guiriec@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Jean Delvare <khali@linux-fr.org>, Ben Dooks <ben-linux@fluff.org>, Wolfram Sang <w.sang@pengutronix.de>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19940 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757419Ab2JQRil (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 13:38:41 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210170038200.9767@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Oct 16, 2012 at 8:53 PM, Sebastien Guiriec <s-guiriec@ti.com> wrote:
-> Some GPIO expanders need some early pin control muxing. Due to
-> legacy boards sometimes the driver uses subsys_initcall instead of
-> module_init. This patch takes advantage of defer probe feature
-> and pin control in order to wait until pin control probing before
-> GPIO driver probing. It has been tested on OMAP5 board with TCA6424
-> driver.
->
-> log:
->
-> [0.482299] omap_i2c i2c.15: could not find pctldev for node /ocp/pinmux@4a00
-> 2840/pinmux_i2c5_pins, deferring probe
-> [0.482330] platform i2c.15: Driver omap_i2c requests probe deferral
-> [0.484466] Advanced Linux Sound Architecture Driver Initialized.
->
-> [4.746917] omap_i2c i2c.15: bus 4 rev2.4.0 at 100 kHz
-> [4.755279] gpiochip_find_base: found new base at 477
-> [4.761169] gpiochip_add: registered GPIOs 477 to 500 on device: tca6424a
->
-Thanks,
+* Paul Walmsley <paul@pwsan.com> [121016 17:48]:
+> 
+> Remove arch/arm/plat-omap/include/plat/sdrc.h by folding its contents
+> into arch/arm/mach-omap2/sdrc.h.  The objective is to assist Tony in
+> cleaning out arch/arm/plat-omap/, as his upstreams request.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+> This has a dependency on Tomi's "OMAP: VRFB: convert to platform device" 
+> series.
 
-Acked-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Thanks applying this into omap-for-v3.8/cleanup-headers-dss.
+
+Regards,
+
+Tony
