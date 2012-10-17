@@ -1,51 +1,42 @@
-From: Afzal Mohammed <x0148406@ti.com>
-Subject: Re: [GIT PULL] OMAP-GPMC cleanup for common zImage
-Date: Wed, 17 Oct 2012 11:31:44 +0530
-Message-ID: <507E49C8.5080503@ti.com>
-References: <1350303247-13495-1-git-send-email-afzal@ti.com> <20121016215743.GN15569@atomide.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: discrepancy while save and restore of debounce registers
+Date: Wed, 17 Oct 2012 06:13:25 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EAA9A7C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48268 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752515Ab2JQGCA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 02:02:00 -0400
-In-Reply-To: <20121016215743.GN15569@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, David Woodhouse <David.Woodhouse@intel.com>, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
-
-On Wednesday 17 October 2012 03:27 AM, Tony Lindgren wrote:
-> * Afzal Mohammed<afzal@ti.com>  [121015 05:15]:
->> The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
->>
->>    Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
->>
->> are available in the git repository at:
->>
->>    git@gitorious.org:x0148406-public/linux-kernel.git tags/gpmc-czimage
->>
->> for you to fetch changes up to 3ef5d0071cf6c8b9a00b559232bb700ad59999d7:
->>
->>    ARM: OMAP2+: gpmc: localize gpmc header (2012-10-15 14:42:15 +0530)
->>
->> ----------------------------------------------------------------
->> gpmc cleanup for common ARM zImage
->>
-> Thanks pulling into omap-for-v3.8/cleanup-headers-gpmc
->
-> I ended up using the following url instead:
->
-> git://gitorious.org/x0148406-public/linux-kernel tags/gpmc-czimage
-
-Thanks, realised after sending that wrong url was provided, and then
-sent a new pull request with proper git url as you mentioned above
-(new pull request was seen only in some of the archives, seems
-it didn't reach your mail box also).
-
-Regards
-Afzal
+SGksDQoNCkkgY2FtZSBhY3Jvc3MgYSBwZWN1bGlhciBpc3N1ZSB3aGlsZSB1cGRhdGluZyBHUElP
+IGRlYm91bmNlIHJlZ2lzdGVycyBvbg0KT01BUCBwbGF0Zm9ybS4NCg0KQWNjb3JkaW5nIHRvIG1h
+aW5saW5lIGNvbW1pdCBhZTU0NzM1NGE4ZWQ1OWYxOWI1N2Y3ZTFkZTljNzgxNmVkZmMzNTM3DQoN
+CmdwaW8vb21hcDogc2F2ZSBhbmQgcmVzdG9yZSBkZWJvdW5jZSByZWdpc3RlcnMNCg0KR1BJTyBk
+ZWJvdW5jZSByZWdpc3RlcnMgbmVlZCB0byBiZSBzYXZlZCBhbmQgcmVzdG9yZWQgZm9yIHByb3Bl
+ciBmdW5jdGlvbmluZw0Kb2YgZHJpdmVyLg0KDQouLi4NCkBAIC0xMzYzLDYgKzEzNjksMTIgQEAg
+c3RhdGljIHZvaWQgb21hcF9ncGlvX3Jlc3RvcmVfY29udGV4dChzdHJ1Y3QgZ3Bpb19iYW5rICpi
+YW5rKQ0KICAgICAgICBfX3Jhd193cml0ZWwoYmFuay0+Y29udGV4dC5mYWxsaW5nZGV0ZWN0LA0K
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBiYW5rLT5iYXNlICsgYmFuay0+cmVncy0+
+ZmFsbGluZ2RldGVjdCk7DQogICAgICAgIF9fcmF3X3dyaXRlbChiYW5rLT5jb250ZXh0LmRhdGFv
+dXQsIGJhbmstPmJhc2UgKyBiYW5rLT5yZWdzLT5kYXRhb3V0KTsNCisgICAgICAgaWYgKGJhbmst
+PmRiY2tfZW5hYmxlX21hc2spIHsNCisgICAgICAgICAgICAgICBfX3Jhd193cml0ZWwoYmFuay0+
+Y29udGV4dC5kZWJvdW5jZSwgYmFuay0+YmFzZSArDQorICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgYmFuay0+cmVncy0+ZGVib3VuY2UpOw0KKyAgICAgICAgICAgICAgIF9f
+cmF3X3dyaXRlbChiYW5rLT5jb250ZXh0LmRlYm91bmNlX2VuLA0KKyAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIGJhbmstPmJhc2UgKyBiYW5rLT5yZWdzLT5kZWJvdW5jZV9l
+bik7DQorICAgICAgIH0NCiB9DQoNCg0KRHVlIHRvIGNvcHkvcGFzdGUgb2YgdGhpcyBjb21taXQg
+aW50byBteSBsb2NhbCB0cmVlLCBJIG1pc3NlZCB0aGUgY2hlY2sgZm9yIA0KYmFuay0+ZGJja19l
+bmFibGVfbWFzaywgYW5kIGRpcmVjdGx5IHJlc3RvcmVkIHRoZSBzYXZlZCB2YWx1ZSBmcm9tIGNv
+bnRleHQuDQoNCkFmdGVyIHRoaXMsIEkgc2F3IHJhbmRvbSBjcmFzaGVzIHdoZW4gYWNjZXNzaW5n
+IGRpZmZlcmVudCByZWdpc3RlcnMgKHNvbWV0aW1lcw0KaXRzIE9FIHJlZ2lzdGVyIGFuZCBzb21l
+dGltZSBpdHMgREFUQU9VVCByZWdpc3RlcikuIA0KDQpUaGVzZSBjcmFzaGVzIHdlcmUgc2VlbiBh
+Y3Jvc3MgMm5kIGFuZCBzdWJzZXF1ZW50IHN1c3BlbmQvcmVzdW1lLg0KDQpNeSBkb3VidC9xdWVz
+dGlvbnMgYXJlDQoxLiBXaHkgc2hvdWxkIGRlYm91bmNlIHJlZ2lzdGVycyBiZSB1cGRhdGVkIG9u
+bHkgd2hlbiBpdCdzIGFjY2Vzc2VkIHByZXZpb3VzbHk/DQoNCjIuIFdoYXQgaXMgdGhlIHJlbGF0
+aW9uIGJldHdlZW4gdXBkYXRpbmcgZGVib3VuY2UgcmVnaXN0ZXJzIGFuZCBjcmFzaCBzZWVuIG9u
+DQpvdGhlcnMgcmVnaXN0ZXJzPyANCg0KVGhhbmtzIGluIGFkdmFuY2UgZm9yIHRoZSBzdXBwb3J0
+Lg0KDQpSZWdhcmRzDQpHdXJ1cmFqYQ0KDQoNCg==
