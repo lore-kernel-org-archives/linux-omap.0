@@ -1,73 +1,103 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] Nokia N9/N900/N950 -- mention product names
-Date: Wed, 17 Oct 2012 22:25:25 +0300
-Message-ID: <20121017192525.GD1613@blackmetal.musicnaut.iki.fi>
-References: <1330967337-9634-1-git-send-email-aaro.koskinen@nokia.com>
- <20120501104801.GA23559@elf.ucw.cz>
- <20120504181105.GL5613@atomide.com>
- <20121017183307.GA12560@elf.ucw.cz>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: IS_ERR_OR_NULL - please STOP telling people to use this on a whim
+Date: Wed, 17 Oct 2012 20:41:57 +0100
+Message-ID: <20121017194157.GM21164@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:40421 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757743Ab2JQTZ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 15:25:28 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54314 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754942Ab2JQTmK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 15:42:10 -0400
 Content-Disposition: inline
-In-Reply-To: <20121017183307.GA12560@elf.ucw.cz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Tony Lindgren <tony@atomide.com>, arnd@arndb.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 
-Hi,
+People,
 
-Some minor comments:
+This is not aimed at anyone specifically - but it is aimed at everyone
+who reviews patches to make them aware of this issue, and to modify their
+behaviour.
 
-On Wed, Oct 17, 2012 at 08:33:08PM +0200, Pavel Machek wrote:
-> This adds product names (that most users know) to Kconfig and board
-> comments.
+I'm geting sick and tired of telling people about this.  I've just
+floated the idea of removing IS_ERR_OR_NULL from the kernel tree because
+it's one of the most incorrectly used and abused macros we have in the
+source tree.
 
-Good idea. :-)
+It would be one thing if this was only being done by people who are
+submitting new code, but it's far worse than that.  Reviewers who should
+know better are telling people to use it _incorrectly_.
 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 346fd26..da08226 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -263,14 +263,14 @@ config MACH_NOKIA_N8X0
->  	select MACH_NOKIA_N810_WIMAX
->  
->  config MACH_NOKIA_RM680
-> -	bool "Nokia RM-680/696 board"
-> +	bool "Nokia N9/N950 (RM-680/696) phones"
+Reviewers really need to think about your review comments.  Looking
+through the kernel tree today, I see lots of uses of IS_ERR_OR_NULL(),
+many of them are *buggy*.
 
-This should be "N950/N9 (RM-680/RM-696)" or perhaps for clarity
-"N950 (RM-680) / N9 (RM-696)".
+Take a moment to think about this:
 
->  	depends on ARCH_OMAP3
->  	default y
->  	select OMAP_PACKAGE_CBB
->  	select MACH_NOKIA_RM696
->  
->  config MACH_NOKIA_RX51
-> -	bool "Nokia RX-51 board"
-> +	bool "Nokia N900 phone (RX-51)"
->  	depends on ARCH_OMAP3
->  	default y
->  	select OMAP_PACKAGE_CBB
-> diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
-> index 0ad1bb3b..26965f3 100644
-> --- a/arch/arm/mach-omap2/board-rm680.c
-> +++ b/arch/arm/mach-omap2/board-rm680.c
-> @@ -1,5 +1,5 @@
->  /*
-> - * Board support file for Nokia RM-680/696.
-> + * Board support file for Nokia N9/N950 (aka RM-680/696).
+int error_value(struct device *dev, void *foo)
+{
+	if (IS_ERR_OR_NULL(foo))
+		return PTR_ERR(foo);
+	return 0;
+}
 
-Same here.
+Consider the value this function returns for three arguments:
 
-Thanks,
+1. an errno encoded pointer
+2. a NULL pointer.
+3. a valid pointer.
 
-A.
+If you can't see the problem, then *do* *not* tell anyone to use
+IS_ERR_OR_NULL(), because you do *not* have the understanding necessary
+to make that judgement yourself - you're probably telling people to
+create buggy code.
+
+Here's the list so far of what looks like buggy uses specific to ARM.
+There _are_ others elsewhere in the kernel.
+
+drivers/media/video/s5p-mfc/s5p_mfc.c:  if (IS_ERR_OR_NULL(dev->alloc_ctx[0])) {
+drivers/media/video/s5p-mfc/s5p_mfc.c-          ret = PTR_ERR(dev->alloc_ctx[0]);
+drivers/media/video/s5p-mfc/s5p_mfc.c-          goto err_res;
+drivers/media/video/s5p-mfc/s5p_mfc.c-  }
+--
+drivers/media/video/s5p-mfc/s5p_mfc.c:  if (IS_ERR_OR_NULL(dev->alloc_ctx[1])) {
+drivers/media/video/s5p-mfc/s5p_mfc.c-          ret = PTR_ERR(dev->alloc_ctx[1]);
+drivers/media/video/s5p-mfc/s5p_mfc.c-          goto err_mem_init_ctx_1;
+drivers/media/video/s5p-mfc/s5p_mfc.c-  }
+--
+drivers/staging/omapdrm/omap_dmm_tiler.c:       if (IS_ERR_OR_NULL(txn))
+drivers/staging/omapdrm/omap_dmm_tiler.c-               return PTR_ERR(txn);
+drivers/staging/omapdrm/omap_dmm_tiler.c-
+drivers/staging/omapdrm/omap_dmm_tiler.c-       tcm_for_each_slice(slice, *area, area_s) {
+--
+drivers/staging/omap-thermal/omap-bandgap.c:    if (IS_ERR_OR_NULL(bg_ptr)) {
+drivers/staging/omap-thermal/omap-bandgap.c-            dev_err(&pdev->dev, "failed to fetch platform data\n");
+drivers/staging/omap-thermal/omap-bandgap.c-            return PTR_ERR(bg_ptr);
+drivers/staging/omap-thermal/omap-bandgap.c-    }
+--
+drivers/staging/omap-thermal/omap-thermal-common.c:     if (IS_ERR_OR_NULL(data->omap_thermal)) {
+drivers/staging/omap-thermal/omap-thermal-common.c-             dev_err(bg_ptr->dev, "thermal zone device is NULL\n");
+drivers/staging/omap-thermal/omap-thermal-common.c-             return PTR_ERR(data->omap_thermal);
+drivers/staging/omap-thermal/omap-thermal-common.c-     }
+--
+drivers/staging/omap-thermal/omap-thermal-common.c:     if (IS_ERR_OR_NULL(freq_table)) {
+drivers/staging/omap-thermal/omap-thermal-common.c-             dev_err(bg_ptr->dev,
+drivers/staging/omap-thermal/omap-thermal-common.c-                     "%s: failed to get cpufreq table (%p)\n",
+drivers/staging/omap-thermal/omap-thermal-common.c-                     __func__, freq_table);
+--
+drivers/staging/omap-thermal/omap-thermal-common.c:     if (IS_ERR_OR_NULL(data->cool_dev)) {
+drivers/staging/omap-thermal/omap-thermal-common.c-             dev_err(bg_ptr->dev,
+drivers/staging/omap-thermal/omap-thermal-common.c-                     "Failed to register cpufreq cooling device\n");
+drivers/staging/omap-thermal/omap-thermal-common.c-             return PTR_ERR(data->cool_dev);
+--
+drivers/gpu/drm/exynos/exynos_drm_dmabuf.c:     if (IS_ERR_OR_NULL(sgt)) {
+drivers/gpu/drm/exynos/exynos_drm_dmabuf.c-             ret = PTR_ERR(sgt);
+drivers/gpu/drm/exynos/exynos_drm_dmabuf.c-             goto err_buf_detach;
+drivers/gpu/drm/exynos/exynos_drm_dmabuf.c-     }
+--
+drivers/gpu/drm/exynos/exynos_drm_fbdev.c:      if (IS_ERR_OR_NULL(helper->fb)) {
+drivers/gpu/drm/exynos/exynos_drm_fbdev.c-              DRM_ERROR("failed to create drm framebuffer.\n");
+drivers/gpu/drm/exynos/exynos_drm_fbdev.c-              ret = PTR_ERR(helper->fb);
+drivers/gpu/drm/exynos/exynos_drm_fbdev.c-              goto out;
+--
