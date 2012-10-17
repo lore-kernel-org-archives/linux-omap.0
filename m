@@ -1,75 +1,43 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [PATCH] Nokia N9/N900/N950 -- mention product names
-Date: Wed, 17 Oct 2012 20:33:08 +0200
-Message-ID: <20121017183307.GA12560@elf.ucw.cz>
-References: <1330967337-9634-1-git-send-email-aaro.koskinen@nokia.com>
- <20120501104801.GA23559@elf.ucw.cz>
- <20120504181105.GL5613@atomide.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH 0/2] ARM: OMAP2+: Add device-tree support for 32kHz counter
+Date: Wed, 17 Oct 2012 13:33:21 -0500
+Message-ID: <1350498803-22150-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:35810 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757609Ab2JQSdK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 14:33:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20120504181105.GL5613@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56651 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757623Ab2JQSdj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Oct 2012 14:33:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, arnd@arndb.de
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Hi!
+This series adds device-tree support for the 32kHz counter on OMAP2+ devices,
+which is used as the default kernel clock-source for OMAP devices.
 
-This adds product names (that most users know) to Kconfig and board
-comments.
+Boot tested on OMAP2420 H4, OMAP3430 Beagle Board and OMAP4430 Panda Board
+with and without device-tree present.
 
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Based and dependent upon OMAP2+ series that adds device-tree support for
+DMTIMERs [1].
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 346fd26..da08226 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -263,14 +263,14 @@ config MACH_NOKIA_N8X0
- 	select MACH_NOKIA_N810_WIMAX
- 
- config MACH_NOKIA_RM680
--	bool "Nokia RM-680/696 board"
-+	bool "Nokia N9/N950 (RM-680/696) phones"
- 	depends on ARCH_OMAP3
- 	default y
- 	select OMAP_PACKAGE_CBB
- 	select MACH_NOKIA_RM696
- 
- config MACH_NOKIA_RX51
--	bool "Nokia RX-51 board"
-+	bool "Nokia N900 phone (RX-51)"
- 	depends on ARCH_OMAP3
- 	default y
- 	select OMAP_PACKAGE_CBB
-diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
-index 0ad1bb3b..26965f3 100644
---- a/arch/arm/mach-omap2/board-rm680.c
-+++ b/arch/arm/mach-omap2/board-rm680.c
-@@ -1,5 +1,5 @@
- /*
-- * Board support file for Nokia RM-680/696.
-+ * Board support file for Nokia N9/N950 (aka RM-680/696).
-  *
-  * Copyright (C) 2010 Nokia
-  *
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index 345dd93..b60ca9d 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -1,5 +1,5 @@
- /*
-- * linux/arch/arm/mach-omap2/board-rx51.c
-+ * Board support file for Nokia N900 (aka RX-51).
-  *
-  * Copyright (C) 2007, 2008 Nokia
-  *
+[1] http://marc.info/?l=linux-omap&m=135049690119218&w=2
+
+Jon Hunter (2):
+  ARM: dts: OMAP: Add counter-32k nodes
+  ARM: OMAP2+: Add device-tree support for 32kHz counter
+
+ .../devicetree/bindings/arm/omap/counter32k.txt    |   15 +++++++++++
+ arch/arm/boot/dts/omap2420.dtsi                    |    6 +++++
+ arch/arm/boot/dts/omap2430.dtsi                    |    6 +++++
+ arch/arm/boot/dts/omap3.dtsi                       |    6 +++++
+ arch/arm/boot/dts/omap4.dtsi                       |    6 +++++
+ arch/arm/mach-omap2/timer.c                        |   28 +++++++++++++++++++-
+ 6 files changed, 66 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/counter32k.txt
 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.7.9.5
+
