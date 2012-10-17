@@ -1,48 +1,63 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/NOT FOR MERGING 0/5] OMAP PM patches
-Date: Wed, 17 Oct 2012 18:33:58 +0300
-Message-ID: <1350488043-5053-1-git-send-email-balbi@ti.com>
+Subject: [RFC/NOT FOR MERGING 2/5] arm: omap: don't forcefully runtime suspend a device
+Date: Wed, 17 Oct 2012 18:34:00 +0300
+Message-ID: <1350488043-5053-3-git-send-email-balbi@ti.com>
+References: <1350488043-5053-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49193 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932179Ab2JQPjn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 11:39:43 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:46580 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932203Ab2JQPjr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Oct 2012 11:39:47 -0400
+In-Reply-To: <1350488043-5053-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-Hi guys,
+device drivers should be smart enough to provide
+->suspend/->resume callbacks when needed and they
+should take care of doing whatever needs to be
+done in order to allow a device to be suspended.
 
-this series is actually *REALLY* far from ready, but I wanted
-to ask if I should continue down this track because it really
-looks (to me at least) that OMAP's PM layer took a few uneecessary
-shortcuts.
+Calling pm_runtime_* from system suspend isn't
+the right way to achieve that, as it creates a
+situation where OMAP's PM has different requirements
+and semantics than all other architectures.
 
-I'm trying to understand the reasoning behind that, so bear with
-me for a while.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/plat-omap/omap_device.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-At least patches 1 and 4 look like they could go upstream, but
-please give it a very good review. I will continue to work on
-these if the rest of the community thinks it's valid, otherwise
-I would like to get some explanation for the way OMAP PM layer
-is implemented today.
-
-cheers
-
-Felipe Balbi (5):
-  arm: omap: fix up _od_suspend_noirq and _od_resume_noirq
-  arm: omap: don't forcefully runtime suspend a device
-  arm: omap: introduce other PM methods
-  i2c: omap: don't re-enable IRQs after masking them
-  i2c: omap: introduce suspend/resume methods
-
- arch/arm/plat-omap/omap_device.c | 162 +++++++++++++++++++++++++++++++++++++--
- drivers/i2c/busses/i2c-omap.c    |  70 ++++++++++++-----
- 2 files changed, 207 insertions(+), 25 deletions(-)
-
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 935f416..cd84eac 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -817,11 +817,9 @@ static int _od_suspend_noirq(struct device *dev)
+ 	ret = pm_generic_suspend_noirq(dev);
+ 
+ 	if (!ret && !pm_runtime_status_suspended(dev)) {
+-		if (pm_generic_runtime_suspend(dev) == 0) {
+-			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+-				omap_device_idle(pdev);
+-			od->flags |= OMAP_DEVICE_SUSPENDED;
+-		}
++		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
++			omap_device_idle(pdev);
++		od->flags |= OMAP_DEVICE_SUSPENDED;
+ 	}
+ 
+ 	return ret;
+@@ -841,7 +839,6 @@ static int _od_resume_noirq(struct device *dev)
+ 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+ 		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+ 			omap_device_enable(pdev);
+-		pm_generic_runtime_resume(dev);
+ 	}
+ 
+ 	return pm_generic_resume_noirq(dev);
 -- 
 1.8.0.rc0
 
