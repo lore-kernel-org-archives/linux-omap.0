@@ -1,29 +1,52 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Multimachine uImage and cpufreq-cpu0/cpufreq-omap2 breakage
-Date: Wed, 17 Oct 2012 12:18:22 +0200
-Message-ID: <2371665D-9B6F-4163-B3E3-F24F771C10DA@dominion.thruhere.net>
-Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv3 0/5] OMAP: VRFB: convert to platform device
+Date: Wed, 17 Oct 2012 13:18:17 +0300
+Message-ID: <1350469102-24888-1-git-send-email-tomi.valkeinen@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:58616 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755580Ab2JQKSH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 06:18:07 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so6206583wgb.1
-        for <linux-omap@vger.kernel.org>; Wed, 17 Oct 2012 03:18:06 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:56007 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756022Ab2JQKSe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Oct 2012 06:18:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tony@atomide.com
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+This is the third version of the series. Changes to v2 are:
+* rebased on 3.7-rc1 to resolve conflicts
+* add omap_vrfb_supported() so that cpu_is_* check can be removed from omapfb
 
-I'm currently building 3.7rc1 kernels meant to run on beagleboards (omap3), pandaboards (omap4) and beaglebones (am335x). At the moment I'm only testing it on beaglebone and I noticed a problem with the different cpufreq drivers getting in eachothers way.
+As Kevin Hilman pointed out, the context restore is not functional. I didn't
+touch that, as it's not functional with the current kernel either (and nobody
+has complained, so it can't be that critical).
 
-I patched in cpufreq-cpu0 support for AM335x and that's was working great. After rebasing to 3.7-rc1 it stopped working because cpufreq-omap2 tried to load, failed and made the cpufreq-cpu0 driver error out. The workaround is simple: only enable on driver.
+ Tomi
 
-So my question is: Is this the intended behaviour? I would expect the cpufreq-omap2 driver to not load when booted on am335x using DT, but it is a persistent bugger.
+Tomi Valkeinen (5):
+  OMAP: VRFB: convert vrfb to platform device
+  OMAP: move arch/arm/plat-omap/include/plat/vrfb.h
+  OMAP: SDRC: remove VRFB code
+  OMAPDSS: VRFB: add omap_vrfb_supported()
+  OMAPFB: use omap_vrfb_supported()
 
-Thanks,
+ arch/arm/mach-omap2/sdrc.c                   |   16 ---
+ arch/arm/plat-omap/fb.c                      |   61 +++++++++++
+ arch/arm/plat-omap/include/plat/sdrc.h       |    7 --
+ arch/arm/plat-omap/include/plat/vrfb.h       |   66 ------------
+ drivers/media/platform/omap/omap_vout.c      |    2 +-
+ drivers/media/platform/omap/omap_vout_vrfb.c |    2 +-
+ drivers/media/platform/omap/omap_voutdef.h   |    2 +-
+ drivers/video/omap2/omapfb/omapfb-ioctl.c    |    2 +-
+ drivers/video/omap2/omapfb/omapfb-main.c     |    8 +-
+ drivers/video/omap2/omapfb/omapfb-sysfs.c    |    2 +-
+ drivers/video/omap2/vrfb.c                   |  142 ++++++++++++++++++++++----
+ include/video/omapvrfb.h                     |   68 ++++++++++++
+ 12 files changed, 257 insertions(+), 121 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat/vrfb.h
+ create mode 100644 include/video/omapvrfb.h
 
-Koen
+-- 
+1.7.9.5
+
