@@ -1,42 +1,23 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: discrepancy while save and restore of debounce registers
-Date: Wed, 17 Oct 2012 06:13:25 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EAA9A7C@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+From: test1@cloudservicesinindia.com
+Subject: Delivery Failure
+Date: Wed, 17 Oct 2012 11:51:50 +0530
+Message-ID: <5693CDDC8DED4D50A2A5A26E8FF1F6D9.MAI@cloudservicesinindia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from aisadhesives.com ([202.38.172.156]:54449 "EHLO
+	mail.cloudservicesinindia.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752438Ab2JQGW0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Oct 2012 02:22:26 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-SGksDQoNCkkgY2FtZSBhY3Jvc3MgYSBwZWN1bGlhciBpc3N1ZSB3aGlsZSB1cGRhdGluZyBHUElP
-IGRlYm91bmNlIHJlZ2lzdGVycyBvbg0KT01BUCBwbGF0Zm9ybS4NCg0KQWNjb3JkaW5nIHRvIG1h
-aW5saW5lIGNvbW1pdCBhZTU0NzM1NGE4ZWQ1OWYxOWI1N2Y3ZTFkZTljNzgxNmVkZmMzNTM3DQoN
-CmdwaW8vb21hcDogc2F2ZSBhbmQgcmVzdG9yZSBkZWJvdW5jZSByZWdpc3RlcnMNCg0KR1BJTyBk
-ZWJvdW5jZSByZWdpc3RlcnMgbmVlZCB0byBiZSBzYXZlZCBhbmQgcmVzdG9yZWQgZm9yIHByb3Bl
-ciBmdW5jdGlvbmluZw0Kb2YgZHJpdmVyLg0KDQouLi4NCkBAIC0xMzYzLDYgKzEzNjksMTIgQEAg
-c3RhdGljIHZvaWQgb21hcF9ncGlvX3Jlc3RvcmVfY29udGV4dChzdHJ1Y3QgZ3Bpb19iYW5rICpi
-YW5rKQ0KICAgICAgICBfX3Jhd193cml0ZWwoYmFuay0+Y29udGV4dC5mYWxsaW5nZGV0ZWN0LA0K
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBiYW5rLT5iYXNlICsgYmFuay0+cmVncy0+
-ZmFsbGluZ2RldGVjdCk7DQogICAgICAgIF9fcmF3X3dyaXRlbChiYW5rLT5jb250ZXh0LmRhdGFv
-dXQsIGJhbmstPmJhc2UgKyBiYW5rLT5yZWdzLT5kYXRhb3V0KTsNCisgICAgICAgaWYgKGJhbmst
-PmRiY2tfZW5hYmxlX21hc2spIHsNCisgICAgICAgICAgICAgICBfX3Jhd193cml0ZWwoYmFuay0+
-Y29udGV4dC5kZWJvdW5jZSwgYmFuay0+YmFzZSArDQorICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgYmFuay0+cmVncy0+ZGVib3VuY2UpOw0KKyAgICAgICAgICAgICAgIF9f
-cmF3X3dyaXRlbChiYW5rLT5jb250ZXh0LmRlYm91bmNlX2VuLA0KKyAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIGJhbmstPmJhc2UgKyBiYW5rLT5yZWdzLT5kZWJvdW5jZV9l
-bik7DQorICAgICAgIH0NCiB9DQoNCg0KRHVlIHRvIGNvcHkvcGFzdGUgb2YgdGhpcyBjb21taXQg
-aW50byBteSBsb2NhbCB0cmVlLCBJIG1pc3NlZCB0aGUgY2hlY2sgZm9yIA0KYmFuay0+ZGJja19l
-bmFibGVfbWFzaywgYW5kIGRpcmVjdGx5IHJlc3RvcmVkIHRoZSBzYXZlZCB2YWx1ZSBmcm9tIGNv
-bnRleHQuDQoNCkFmdGVyIHRoaXMsIEkgc2F3IHJhbmRvbSBjcmFzaGVzIHdoZW4gYWNjZXNzaW5n
-IGRpZmZlcmVudCByZWdpc3RlcnMgKHNvbWV0aW1lcw0KaXRzIE9FIHJlZ2lzdGVyIGFuZCBzb21l
-dGltZSBpdHMgREFUQU9VVCByZWdpc3RlcikuIA0KDQpUaGVzZSBjcmFzaGVzIHdlcmUgc2VlbiBh
-Y3Jvc3MgMm5kIGFuZCBzdWJzZXF1ZW50IHN1c3BlbmQvcmVzdW1lLg0KDQpNeSBkb3VidC9xdWVz
-dGlvbnMgYXJlDQoxLiBXaHkgc2hvdWxkIGRlYm91bmNlIHJlZ2lzdGVycyBiZSB1cGRhdGVkIG9u
-bHkgd2hlbiBpdCdzIGFjY2Vzc2VkIHByZXZpb3VzbHk/DQoNCjIuIFdoYXQgaXMgdGhlIHJlbGF0
-aW9uIGJldHdlZW4gdXBkYXRpbmcgZGVib3VuY2UgcmVnaXN0ZXJzIGFuZCBjcmFzaCBzZWVuIG9u
-DQpvdGhlcnMgcmVnaXN0ZXJzPyANCg0KVGhhbmtzIGluIGFkdmFuY2UgZm9yIHRoZSBzdXBwb3J0
-Lg0KDQpSZWdhcmRzDQpHdXJ1cmFqYQ0KDQoNCg==
+
+---------------------------------------------------------------------------------
+The message you sent to aisadhesives.com/weagra was rejected because it would exceed the quota for the mailbox.
+
+The subject of the message follows: 
+Delivery failed
+
+---------------------------------------------------------------------------------
+
