@@ -1,56 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Updated status of the removal of plat headers
-Date: Wed, 17 Oct 2012 15:02:03 -0700
-Message-ID: <20121017220203.GZ15569@atomide.com>
-References: <20121016230040.GP15569@atomide.com>
- <507F2875.2050406@ti.com>
+Subject: [GIT PULL] omap fixes ready to go for v3.7-rc1
+Date: Wed, 17 Oct 2012 15:02:49 -0700
+Message-ID: <20121017220248.GA15569@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:29111 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:30296 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751736Ab2JQWCH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 18:02:07 -0400
+	with ESMTP id S1751736Ab2JQWCy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 18:02:54 -0400
 Content-Disposition: inline
-In-Reply-To: <507F2875.2050406@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.luna@linaro.org>, Paul Walmsley <paul@pwsan.com>, Igor Grinberg <grinberg@compulab.co.il>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Jon Hunter <jon-hunter@ti.com> [121017 14:53]:
-> Hi Tony,
-> 
-> On 10/16/2012 06:00 PM, Tony Lindgren wrote:
-> > Hi all,
-> > 
-> > Here's a quick status update on the removal of remaining
-> > #include <plat/*.h> files. Most files are now fixed up, and
-> > we only have the following remaining:
-> > 
-> > cpu.h		wrapper only left, will be removed as soon as drivers are fixed
-> > 
-> > dmtimer.h	Jon is fixing this
-> 
-> I have patches ready for this. However, as you know I have a few timer
-> series cooking at the moment and just sent out the latest timer DT
-> series today [1][2].
-> 
-> I have also updated my timer fixes series [3] too, however, I was not
-> going to send out until the DT stuff is sorted. At the moment I have
-> included the dmtimer header patches with the fixes series as there are
-> some dependencies but this series has now grown into a 20+ patch series.
-> So if it is easier to manage, I could split this into a fixes series and
-> a clean-up series. Or if you only want the header stuff now, I could
-> send this and send the fixes and clean-up later.
+Hi Arnd & Olof,
 
-When they are ready, two separate pull requests against v3.7-rc1 for fixes
-and cleanup would be perfect.
+Here are the fixes ready to pull, there's at least one more fix in works
+but it still requires minor changes. The two top commits are recent as
+Jon Hunter noticed an issue freeing resources in his fix and I did a
+new branch to swap in the fixed patch.
 
-Thanks,
+Regards,
 
 Tony
- 
-> [1] http://marc.info/?l=linux-omap&m=135049690119218&w=2
-> [2] http://marc.info/?l=linux-omap&m=135049882020029&w=2
-> [3] http://marc.info/?l=linux-arm-kernel&m=134687192121865&w=2
+
+
+The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
+
+  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc1/fixes-take5-signed
+
+for you to fetch changes up to 8119024ef7363591fd958ec89ebfaee7c18209e3:
+
+  ARM: OMAP2+: Allow kernel to boot even if GPMC fails to reserve memory (2012-10-17 09:01:14 -0700)
+
+----------------------------------------------------------------
+A boot problem fix for am33xx beaglebone caused by GPMC,
+a regression fix for local timer, and a clockdomain locking fix.
+Also few minor fixes for boot time and sparse warnings.
+
+----------------------------------------------------------------
+Benoit Cousson (1):
+      ARM: OMAP2+: clock data: Add dev-id for the omap-gpmc dummy fck
+
+Jon Hunter (1):
+      ARM: OMAP2+: Allow kernel to boot even if GPMC fails to reserve memory
+
+Paul Walmsley (1):
+      ARM: OMAP: resolve sparse warning concerning debug_card_init()
+
+Sebastien Guiriec (1):
+      ARM: OMAP4: devices: fixup OMAP4 DMIC platform device error message
+
+Tero Kristo (1):
+      ARM: OMAP: clockdomain: Fix locking on _clkdm_clk_hwmod_enable / disable
+
+Tony Lindgren (1):
+      ARM: OMAP4: Fix twd_local_timer_register regression
+
+ arch/arm/mach-omap2/clock44xx_data.c |    2 +-
+ arch/arm/mach-omap2/clockdomain.c    |   15 +++++++++++----
+ arch/arm/mach-omap2/devices.c        |    2 +-
+ arch/arm/mach-omap2/gpmc.c           |   24 +++++++++++++++++++-----
+ arch/arm/mach-omap2/timer.c          |    2 +-
+ arch/arm/plat-omap/debug-devices.c   |    1 +
+ 6 files changed, 34 insertions(+), 12 deletions(-)
