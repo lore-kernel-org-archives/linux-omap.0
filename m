@@ -1,53 +1,51 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 0/5] ARM: OMAP2+: Add device-tree support for timers
-Date: Wed, 17 Oct 2012 13:03:16 -0500
-Message-ID: <507EF2E4.3050509@ti.com>
-References: <1350496873-21337-1-git-send-email-jon-hunter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Trivial driver changes to remove
+ include plat/cpu.h
+Date: Wed, 17 Oct 2012 11:13:31 -0700
+Message-ID: <20121017181330.GV15569@atomide.com>
+References: <20121008173452.10603.53886.stgit@muffinssi>
+ <20121008173557.10603.18539.stgit@muffinssi>
+ <5073E84E.4090408@ti.com>
+ <20121010001943.GK12552@atomide.com>
+ <20121016000722.GH15569@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52833 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932486Ab2JQSDZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Oct 2012 14:03:25 -0400
-In-Reply-To: <1350496873-21337-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121016000722.GH15569@atomide.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Herbert Xu <herbert@gondor.hengli.com.au>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Deepak Saxena <dsaxena@plexity.net>, Chris Ball <cjb@laptop.org>, Matt Mackall <mpm@selenic.com>, Venkatraman S <svenkatr@ti.com>, "David S. Miller" <davem@davemloft.net>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-crypto@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Hiremath <hvaibhav@ti.com>
 
+* Tony Lindgren <tony@atomide.com> [121015 17:09]:
+> * Tony Lindgren <tony@atomide.com> [121009 17:21]:
+> > * P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com> [121009 02:03]:
+> > > On 10/08/2012 07:35 PM, Tony Lindgren wrote:
+> > >=20
+> > > > - omap-dma.c and omap-pcm.c can test the arch locally as
+> > > >   omap1 and omap2 cannot be compiled together because of
+> > > >   conflicting compiler flags
+> > >=20
+> > > >  sound/soc/omap/omap-pcm.c         |    9 +++++++--
+> > >=20
+> > > Tony: is this going to be included in 3.7?
+> >=20
+> > Hmm I guess we could try to get this out of the way
+> > to cut down the dependencies. Let's if maintainers
+> > of the other affected drivers this is OK for the
+> > -rc series.
+>=20
+> It seems that nobody needs these until for v3.8, so I'll
+> be applying this into omap-for-v3.8/cleanup-headers-prepare
+> branch soon.
+>=20
+> Anybody else care to ack?
 
-On 10/17/2012 01:01 PM, Jon Hunter wrote:
-> This series adds device-tree support for the timers on OMAP2+ devices
-> including AM33xx.
-> 
-> Testing:
-> 1. I have booted tested this series on OMAP2420 H4, OMAP3430 Beagle, OMAP4430
->    Panda and AM335x Beagle Bone with/without ...
->    a). device-tree present
->    b). CONFIG_OMAP_32K_TIMER set
->    c). kernel boot parameter "clocksource=gp_timer" present
-> 2. I have tested the all the timers (not used by the kernel as sys-timers) on
->    OMAP2420 H4, OMAP3430 Beagle and OMAP4430 Panda with/without device-tree with
->    this series. The testing includes ...
->    a. Configuring, starting a timer and checking the counter value is
->       incrementing.
->    b. Testing timer overflow interrupt when timer expires.
->    c. Using different clock sources to operate the timer with.
-> 
-> V3 changes:
-> - Removed definition "TIMER_PROP_ALWON" per Rob Herring's feedback
-> - Updated OMAP system timer (clock-events and clock-source) code so that
->   HWMOD is NOT used for getting resource (memory and interrupt) information
->   when device-tree is present.
-> 
-> V2 changes:
-> - Remove use of device-tree alias property
-> - Migrate OMAP timers to request timers by property instead of device ID
-> - Include OMAP2 support
+OK pushed out now with just that patch in the branch in case
+driver branches need to merge it in too to avoid conflicts.
 
-Forgot to mention that this is based on top of v3.7-rc1.
+Regards,
 
-Cheers
-Jon
+Tony
