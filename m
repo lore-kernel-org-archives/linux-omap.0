@@ -1,162 +1,137 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC/NOT FOR MERGING 1/5] arm: omap: fix up _od_suspend_noirq and _od_resume_noirq
-Date: Thu, 18 Oct 2012 10:42:37 -0700
-Message-ID: <87ipa7d6cy.fsf@deeprootsystems.com>
-References: <1350488043-5053-1-git-send-email-balbi@ti.com>
-	<1350488043-5053-2-git-send-email-balbi@ti.com>
-	<871ugvivso.fsf@deeprootsystems.com>
-	<20121018165525.GA6385@arwen.pp.htv.fi>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [RFC PATCH 2/2] ARM: OMAP4: clock: use omap4_clks_register API
+Date: Thu, 18 Oct 2012 10:53:12 -0700
+Message-ID: <20121018175312.21731.22864@nucleus>
+References: <1350578297-22572-1-git-send-email-grygorii.strashko@ti.com>
+ <1350578297-22572-3-git-send-email-grygorii.strashko@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:43606 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932437Ab2JRRmW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 13:42:22 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr4so8565149pbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 10:42:22 -0700 (PDT)
-In-Reply-To: <20121018165525.GA6385@arwen.pp.htv.fi> (Felipe Balbi's message
-	of "Thu, 18 Oct 2012 19:55:25 +0300")
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:55892 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932406Ab2JRRxV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 13:53:21 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so8514487pad.19
+        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 10:53:21 -0700 (PDT)
+In-Reply-To: <1350578297-22572-3-git-send-email-grygorii.strashko@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>
 
-Felipe Balbi <balbi@ti.com> writes:
+Quoting Grygorii Strashko (2012-10-18 09:38:17)
+> Remove OMAP443x and OMAP446x specific clocks from omap44xx_clks
+> array and add corresponding set of clocks per each SoC:
+>  - struct omap_clk omap44xx_clks[]; - common clocks set for all OMAP4
+>  - struct omap_clk omap443x_clks[]; - specific clocks set for OMAP443x
+>  - struct omap_clk omap446x_clks[]; - specific clocks set for OMAP446x
+>    and don't rely on platform specific flags any more.
+> 
+> Use omap4_clks_register() API to register and init OMAP4 set of
+> clocks.
+> 
+> With this change, we can now safely remove CK_443X/CK_446X etc macro
+> usage. It has not been done in this patch, but if the approach is OK,
+> then, it is possible to do the same.
+> 
 
-> Hi,
->
-> On Thu, Oct 18, 2012 at 09:34:15AM -0700, Kevin Hilman wrote:
->> Felipe Balbi <balbi@ti.com> writes:
->> 
->> > current implementation doesn't take care about
->> > drivers which don't provide *_noirq methods 
->> 
->> The generic ops handle this.  See below.
->> 
->> > and we could fall into a situation where we would suspend/resume
->> > devices even though they haven't asked for it.
->> 
->> The following explanation doesn't explain this, so I dont' follow
->> the "even though they haven't asked for it" part.
->> 
->> > One such case happened with the I2C driver which
->> > was getting suspended during suspend_noirq() just
->> > to be resume right after by any other device doing
->> > an I2C transfer on its suspend method.
->> 
->> In order to be I2C to be runtime resumed after its noirq method has been
->> called, that means the other device is doing an I2C xfer in its noirq
->> method.  That is a bug.
->> 
->> > Signed-off-by: Felipe Balbi <balbi@ti.com>
->> > ---
->> >  arch/arm/plat-omap/omap_device.c | 8 ++++++++
->> >  1 file changed, 8 insertions(+)
->> >
->> > diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
->> > index 7a7d1f2..935f416 100644
->> > --- a/arch/arm/plat-omap/omap_device.c
->> > +++ b/arch/arm/plat-omap/omap_device.c
->> > @@ -804,8 +804,12 @@ static int _od_suspend_noirq(struct device *dev)
->> >  {
->> >  	struct platform_device *pdev = to_platform_device(dev);
->> >  	struct omap_device *od = to_omap_device(pdev);
->> > +	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
->> >  	int ret;
->> >  
->> > +	if (!pm || !pm->suspend_noirq)
->> > +		return 0;
->> > +
->> 
->> you just re implemented pm_generic_suspend_noirq() (c.f. drivers/base/power/generic_ops.c)
->> 
->> >  	/* Don't attempt late suspend on a driver that is not bound */
->> >  	if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER)
->> >  		return 0;
->> > @@ -827,6 +831,10 @@ static int _od_resume_noirq(struct device *dev)
->> >  {
->> >  	struct platform_device *pdev = to_platform_device(dev);
->> >  	struct omap_device *od = to_omap_device(pdev);
->> > +	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
->> > +
->> > +	if (!pm || !pm->resume_noirq)
->> > +		return 0;
->> 
->> and this is basically pm_generic_resume_noirq()
->
-> not true, there is a slight different. Note that you only call
-> pm_generic_resume_noirq() after calling pm_runtime_resume()ing the
-> device:
+In addition to removing CK_443X/CK_446X you could also get rid of struct
+omap_clk completely (arch/arm/plat-omap/include/plat/clkdev_omap.h) and
+the CLK macro by changing the clk array to be of type struct clk_lookup
+and using the CLKDEV_INIT macro.
 
->> static int _od_resume_noirq(struct device *dev)
->> {
->> 	struct platform_device *pdev = to_platform_device(dev);
->> 	struct omap_device *od = to_omap_device(pdev);
->> 
->> 	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
->> 	    !pm_runtime_status_suspended(dev)) {
->> 		od->flags &= ~OMAP_DEVICE_SUSPENDED;
->> 		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
->> 			omap_device_enable(pdev);
->> 		pm_generic_runtime_resume(dev);
->
-> right here. IMHO this is a bug, if the define doesn't implement
-> resume_noirq, it's telling you that it has nothing to do at that time,
+> One additional benefit seen is that the match logic can entirely be
+> skipped.
+> 
 
-This is where the misunderstanding is.  I suggest you have a look
-at commit c03f007a8bf0e092caeb6856a5c8a850df10b974 where this feature
-was added, but I'll try to summarize:
+I wonder if splitting the tables would make initdata any easier.  It
+would be nice to get more functional changes out of this series
+alongside the data reorganization.
 
-The goal is simply this:
+Also have you looked at splitting the tables for OMAP2/3?
 
-If, by the time .suspend_noirq has run, the driver is not already
-runtime suspended, then forcefully runtime suspend it.
+Regards,
+Mike
 
-That's it.
-
-Again, this is required because system suspend disables runtime PM
-transitions at a certain point, if the device is used after that point,
-there is *no other way* for the driver to properly manage the idle
-transition (or, if there is, please explain it to me.)
-
-> so you shouldn't forcefully resume the device.
-
-Note it's only forcefully resumed *if* it was forcefully suspended by
-suspend_noirq.
-
-> If the device dies, then it means that it needs to implement
-> resume_noirq. What you have here, is a "workaround" for badly written
-> device drivers IMHO. 
-
-That's one way of looking at it.  The other way of looking at it is that
-by handling this at the PM domain level, the drivers can be much simpler,
-and thus less likely to get wrong.
-
-But even then, with your proposed changes, I don't think the device will
-be properly idled (including the omap_device_idle) in these important cases:
-
-1) I2C is used by some other device *after* its ->suspend method has
-   been called.
-2) I2C runtime PM is disabled from userspace
-   (echo off > /sys/devices/.../power/control)
-
-but I'll take this up in the I2C driver patch itself.
-
-> Note also, that you could runtime resume devices which don't implement
-> resume_noirq().
-
-Again, this is by design.  
-
-It doesn't matter if the driver has noirq methods.  If it is not yet
-runtime suspended, it is forceably runtime suspended.   The generic
-noirq calls are just there in case the driver has noirq callbacks.
-
-Kevin
-
-> the same is valid for suspend_noirq.
->
->> 	}
->> 
->> 	return pm_generic_resume_noirq(dev);
->> }
+> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock44xx_data.c |   40 ++++++++++++++++++----------------
+>  1 file changed, 21 insertions(+), 19 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index 6efc30c..4060c9c 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -3145,10 +3145,7 @@ static struct omap_clk omap44xx_clks[] = {
+>         CLK(NULL,       "aes1_fck",                     &aes1_fck,      CK_443X),
+>         CLK(NULL,       "aes2_fck",                     &aes2_fck,      CK_443X),
+>         CLK(NULL,       "aess_fck",                     &aess_fck,      CK_443X),
+> -       CLK(NULL,       "bandgap_fclk",                 &bandgap_fclk,  CK_443X),
+> -       CLK(NULL,       "bandgap_ts_fclk",              &bandgap_ts_fclk,       CK_446X),
+>         CLK(NULL,       "des3des_fck",                  &des3des_fck,   CK_443X),
+> -       CLK(NULL,       "div_ts_ck",                    &div_ts_ck,     CK_446X),
+>         CLK(NULL,       "dmic_sync_mux_ck",             &dmic_sync_mux_ck,      CK_443X),
+>         CLK(NULL,       "dmic_fck",                     &dmic_fck,      CK_443X),
+>         CLK(NULL,       "dsp_fck",                      &dsp_fck,       CK_443X),
+> @@ -3346,19 +3343,27 @@ static struct omap_clk omap44xx_clks[] = {
+>         CLK("4903c000.timer",   "timer_sys_ck", &syc_clk_div_ck,        CK_443X),
+>         CLK("4903e000.timer",   "timer_sys_ck", &syc_clk_div_ck,        CK_443X),
+>         CLK(NULL,       "cpufreq_ck",   &dpll_mpu_ck,   CK_443X),
+> +       CLK(NULL,       NULL,           NULL,                   CK_443X),
+> +};
+> +
+> +static struct omap_clk omap443x_clks[] = {
+> +       CLK(NULL,       "bandgap_fclk",         &bandgap_fclk,          CK_443X),
+> +       CLK(NULL,       NULL,           NULL,                   CK_443X),
+> +};
+> +
+> +
+> +static struct omap_clk omap446x_clks[] = {
+> +       CLK(NULL,       "div_ts_ck",            &div_ts_ck,             CK_446X),
+> +       CLK(NULL,       "bandgap_ts_fclk",      &bandgap_ts_fclk,       CK_446X),
+> +       CLK(NULL,       NULL,           NULL,           CK_446X),
+>  };
+>  
+>  int __init omap4xxx_clk_init(void)
+>  {
+> -       struct omap_clk *c;
+> -       u32 cpu_clkflg;
+> -
+>         if (cpu_is_omap443x()) {
+>                 cpu_mask = RATE_IN_4430;
+> -               cpu_clkflg = CK_443X;
+>         } else if (cpu_is_omap446x() || cpu_is_omap447x()) {
+>                 cpu_mask = RATE_IN_4460 | RATE_IN_4430;
+> -               cpu_clkflg = CK_446X | CK_443X;
+>  
+>                 if (cpu_is_omap447x())
+>                         pr_warn("WARNING: OMAP4470 clock data incomplete!\n");
+> @@ -3375,17 +3380,14 @@ int __init omap4xxx_clk_init(void)
+>          * omap2_clk_disable_clkdm_control();
+>          */
+>  
+> -       for (c = omap44xx_clks; c < omap44xx_clks + ARRAY_SIZE(omap44xx_clks);
+> -                                                                         c++)
+> -               clk_preinit(c->lk.clk);
+> -
+> -       for (c = omap44xx_clks; c < omap44xx_clks + ARRAY_SIZE(omap44xx_clks);
+> -                                                                         c++)
+> -               if (c->cpu & cpu_clkflg) {
+> -                       clkdev_add(&c->lk);
+> -                       clk_register(c->lk.clk);
+> -                       omap2_init_clk_clkdm(c->lk.clk);
+> -               }
+> +       omap2_clks_register(omap44xx_clks);
+> +
+> +       if (cpu_is_omap443x())
+> +               omap2_clks_register(omap443x_clks);
+> +       else if (cpu_is_omap446x() || cpu_is_omap447x())
+> +               omap2_clks_register(omap446x_clks);
+> +       else
+> +               return 0;
+>  
+>         /* Disable autoidle on all clocks; let the PM code enable it later */
+>         omap_clk_disable_autoidle_all();
+> -- 
+> 1.7.9.5
