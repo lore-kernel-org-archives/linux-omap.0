@@ -1,86 +1,76 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/2] ARM: dts: OMAP: Add counter-32k nodes
-Date: Thu, 18 Oct 2012 09:27:30 -0500
-Message-ID: <508011D2.30806@ti.com>
-References: <1350498803-22150-1-git-send-email-jon-hunter@ti.com>
- <1350498803-22150-2-git-send-email-jon-hunter@ti.com>
- <508010E1.6010102@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv9 8/8] ARM: OMAP4: USB: power down MUSB PHY if not used
+Date: Thu, 18 Oct 2012 17:39:59 +0300
+Message-ID: <1350571199.2143.53.camel@sokoban>
+References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
+	 <1350552010-28760-9-git-send-email-t-kristo@ti.com>
+	 <20121018103334.GA1449@arwen.pp.htv.fi> <1350562684.2143.52.camel@sokoban>
+	 <20121018135352.GC2739@arwen.pp.htv.fi>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <508010E1.6010102-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60320 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756285Ab2JROkG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 10:40:06 -0400
+In-Reply-To: <20121018135352.GC2739@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>
+
+On Thu, 2012-10-18 at 16:53 +0300, Felipe Balbi wrote:
+> hi,
+> 
+> On Thu, Oct 18, 2012 at 03:18:04PM +0300, Tero Kristo wrote:
+> > > > +static int __init omap4430_phy_power_down(void)
+> > > > +{
+> > > > +	void __iomem *ctrl_base;
+> > > > +
+> > > > +	if (!cpu_is_omap44xx())
+> > > > +		return 0;
+> > > > +
+> > > > +	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
+> > > > +	if (!ctrl_base) {
+> > > > +		pr_err("control module ioremap failed\n");
+> > > > +		return -ENOMEM;
+> > > > +	}
+> > > > +
+> > > > +	/* Power down the phy */
+> > > > +	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+> > > > +
+> > > > +	iounmap(ctrl_base);
+> > > > +
+> > > > +	return 0;
+> > > > +}
+> > > > +early_initcall(omap4430_phy_power_down);
+> > > > +#endif
+> > > 
+> > > I think you could do it even if the driver is enabled.
+> > 
+> > Actually not at least now, it looks like the driver is not controlling
+> > this bit at all, so the driver would fail if we do this.
+> 
+> then we can consider that a bug in the driver. Kishon, I thought you had
+> added SCM address space to PHY driver for this particular reason until
+> we get SCM driver, wasn't it ??
+
+Yes, I would say its a bug in the driver. However we need this disable
+mechanism for the case where we don't have the driver also (which is the
+default config for omap.)
+
+-Tero
+
+> > > Just to make sure I understand the issue right: is the PHY enabled by
+> > > default or did bootloader left this enabled ?
+> > 
+> > The reset value for the register is zero (at least according to TRM), so
+> > it is enabled from boot. Also, I couldn't find any code from the u-boot
+> > that would touch this bit with a quick look.
+> 
+> ok, so it looks like we must do this anyway, thanks ;-)
+> 
 
 
-On 10/18/2012 09:23 AM, Benoit Cousson wrote:
-> Hi Jon,
-> 
-> This looks good to me, I just have a minor nit comment.
-> 
-> On 10/17/2012 08:33 PM, Jon Hunter wrote:
->> Adds the counter-32k timers nodes present in OMAP2/3/4 devices and
->> device-tree binding documentation for OMAP counter-32k.
->>
->> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
->> ---
->>  .../devicetree/bindings/arm/omap/counter32k.txt    |   15 +++++++++++++++
->>  arch/arm/boot/dts/omap2420.dtsi                    |    6 ++++++
->>  arch/arm/boot/dts/omap2430.dtsi                    |    6 ++++++
->>  arch/arm/boot/dts/omap3.dtsi                       |    6 ++++++
->>  arch/arm/boot/dts/omap4.dtsi                       |    6 ++++++
->>  5 files changed, 39 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/arm/omap/counter32k.txt
->>
->> diff --git a/Documentation/devicetree/bindings/arm/omap/counter32k.txt b/Documentation/devicetree/bindings/arm/omap/counter32k.txt
->> new file mode 100644
->> index 0000000..1983fae
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/arm/omap/counter32k.txt
->> @@ -0,0 +1,15 @@
->> +OMAP Counter-32K bindings
->> +
->> +Required properties:
->> +- compatible:	Must be "ti,omap-counter32k" for OMAP controllers
->> +- reg:		Contains timer register address range (base address and length)
->> +- ti,hwmods:	Name of the hwmod associated to the counter, which is typically
->> +		"counter_32k"
->> +
->> +Example:
->> +
->> +counter32k: counter32k@4a304000 {
->> +	compatible = "ti,omap-counter32k";
->> +	reg = <0x4a304000 0x001f>;
->> +	ti,hwmods = "counter_32k";
->> +};
->> diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
->> index 5f68a70..082193f 100644
->> --- a/arch/arm/boot/dts/omap2420.dtsi
->> +++ b/arch/arm/boot/dts/omap2420.dtsi
->> @@ -14,6 +14,12 @@
->>  	compatible = "ti,omap2420", "ti,omap2";
->>  
->>  	ocp {
->> +		counter32k: counter32k@48004000 {
-> 
-> I'd rather use "counter" as generic type to be consistent with the timer
-> type we are already using.
-> 
-> +		counter32k: counter@48004000 {
-
-Sounds good. Will update.
-
-Cheers
-Jon
