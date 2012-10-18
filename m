@@ -1,97 +1,60 @@
-From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Subject: Re: [PATCH v3 2/3] usb: xhci: Add the suspend/resume functionality
-Date: Thu, 18 Oct 2012 07:59:56 -0700
-Message-ID: <20121018145956.GS5378@xanatos>
+From: Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v3 1/3] usb: dwc3: Add the suspend/resume functionality
+Date: Thu, 18 Oct 2012 08:00:09 -0700
+Message-ID: <20121018150009.GT5378@xanatos>
 References: <1350380738-32473-1-git-send-email-vikas.sajjan@linaro.org>
- <1350380738-32473-3-git-send-email-vikas.sajjan@linaro.org>
- <20121016095932.GA17416@arwen.pp.htv.fi>
+ <1350380738-32473-2-git-send-email-vikas.sajjan@linaro.org>
+ <20121016100656.GB17416@arwen.pp.htv.fi>
+ <CAD025yRD+u+z=SEtJvEY+NAdNtg8_cWcCMWaa347e-idmb6GpQ@mail.gmail.com>
+ <20121016135328.GI21801@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24311 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752885Ab2JRPAH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Oct 2012 11:00:07 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20121016095932.GA17416@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20121016135328.GI21801-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Vikas Sajjan <vikas.sajjan-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, joshi-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Abhilash Kesavan <a.kesavan-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Doug Anderson <dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Vikas Sajjan <vikas.sajjan@linaro.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Doug Anderson <dianders@chromium.org>
 
-On Tue, Oct 16, 2012 at 12:59:33PM +0300, Felipe Balbi wrote:
+On Tue, Oct 16, 2012 at 04:53:28PM +0300, Felipe Balbi wrote:
 > Hi,
 > 
-> > +#ifdef CONFIG_PM_SLEEP
-> > +static int xhci_plat_suspend(struct device *dev)
-> > +{
-> > +	struct usb_hcd	*hcd	= dev_get_drvdata(dev);
-> > +	struct xhci_hcd	*xhci	= hcd_to_xhci(hcd);
-> > +
-> > +	/* Make sure that the HCD Core has set state to HC_STATE_SUSPENDED */
-> > +	if (hcd->state != HC_STATE_SUSPENDED ||
-> > +		xhci->shared_hcd->state != HC_STATE_SUSPENDED)
-> > +		return -EINVAL;
-> > +
-> > +	return xhci_suspend(xhci);
+> On Tue, Oct 16, 2012 at 05:10:39PM +0530, Vikas Sajjan wrote:
+> > Hi Felipe, 
+...
+> did you have a transfer going through when you suspended ? If you
+> didn't, then you haven't stressed well enough.
 > 
-> this is pretty much what xhci_pci_suspend() is doing. Sarah, would you
-> be ok with a patch such as:
+> > 2) We tested by running  command
+> > echo +20  > /sys/class/rtc/rtc0/wakealarm  &&  echo mem > /sys/power/state
+> 
+> that's ok, but try something like:
+> 
+> # dd if=/dev/urandom of=/dev/sdXX bs=1M count=99999999 &
+> # echo +20  > /sys/class/rtc/rtc0/wakealarm  &&  echo mem > /sys/power/state
+> 
+> Better yet, generate a big (and I really mean big :-) file with a known
+> pattern (make a sequence from 0x00 to 0xff and back to zero, over and
+> over again) then write that file to the mass storage device, while
+> transfer is on the fly, suspend, then resume and see if transfer
+> continues, then later verify the bytes by reading back the data and
+> comparing with original source file.
+> 
+> Do this for both Host and Peripheral roles. I have a rather big
+> suspicion that it won't work, in which case we need to make sure to
+> prevent suspend while transfers are on the fly or do something else.
 
-Yes, that patch looks fine.
+For system suspend while the DW3 hardware is in host mode, doesn't the
+USB core prevent drivers from submitting URBs just before the
+PCI/platform suspend is called?  Alan?
 
-> usb: host: xhci: move HC_STATE_SUSPENDED check to xhci_suspend()
-> 
-> [ STILL NEED TO WRITE A PROPER COMMIT LOG ]
-> 
-> NYET-Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
-> 
-> diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
-> index 8345d7c..aeb3973 100644
-> --- a/drivers/usb/host/xhci-pci.c
-> +++ b/drivers/usb/host/xhci-pci.c
-> @@ -218,15 +218,8 @@ static void xhci_pci_remove(struct pci_dev *dev)
->  static int xhci_pci_suspend(struct usb_hcd *hcd, bool do_wakeup)
->  {
->  	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
-> -	int	retval = 0;
->  
-> -	if (hcd->state != HC_STATE_SUSPENDED ||
-> -			xhci->shared_hcd->state != HC_STATE_SUSPENDED)
-> -		return -EINVAL;
-> -
-> -	retval = xhci_suspend(xhci);
-> -
-> -	return retval;
-> +	return xhci_suspend(xhci);
->  }
->  
->  static int xhci_pci_resume(struct usb_hcd *hcd, bool hibernated)
-> diff --git a/drivers/usb/host/xhci.c b/drivers/usb/host/xhci.c
-> index 8d7fcbb..b85029e 100644
-> --- a/drivers/usb/host/xhci.c
-> +++ b/drivers/usb/host/xhci.c
-> @@ -879,6 +879,10 @@ int xhci_suspend(struct xhci_hcd *xhci)
->  	struct usb_hcd		*hcd = xhci_to_hcd(xhci);
->  	u32			command;
->  
-> +	if (hcd->state != HC_STATE_SUSPENDED ||
-> +			xhci->shared_hcd->state != HC_STATE_SUSPENDED)
-> +		return -EINVAL;
-> +
->  	spin_lock_irq(&xhci->lock);
->  	clear_bit(HCD_FLAG_HW_ACCESSIBLE, &hcd->flags);
->  	clear_bit(HCD_FLAG_HW_ACCESSIBLE, &xhci->shared_hcd->flags);
-> 
-> do you think there is any reason to keep replicating the
-> HC_STATE_SUSPENDED test all over the place ?
-
-Nope, no reason I can see.  I'm pretty sure I only check the suspended
-state in case the code in the USB core to handle the host controller
-suspend ever breaks for the corner case of the host hardware needing two
-roothubs (USB 2.0 and USB 3.0 in this case).  It doesn't matter if we
-check that in the PCI/platform suspend or in xhci_suspend, as long as it
-gets checked.
+If the USB core doesn't quiesce URBs before system suspend, then we
+probably have a larger issue that the generic xHCI driver should take
+care of.
 
 Sarah Sharp
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
