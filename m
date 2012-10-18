@@ -1,51 +1,53 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: Fwd: [PATCH 2/5] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
- davinci_mdio
-Date: Thu, 18 Oct 2012 20:27:32 +0200
-Message-ID: <20121018182732.GC2350@netboy.at.omicron.at>
-References: <20121017181354.GA2412@netboy.at.omicron.at>
- <alpine.DEB.2.00.1210172337170.30902@utopia.booyaka.com>
- <20121017235045.GB30550@atomide.com>
- <20121018030654.GE2867@netboy.at.omicron.at>
- <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
+Date: Thu, 18 Oct 2012 13:30:31 -0500
+Message-ID: <50804AC7.3000309@ti.com>
+References: <cover.1350327320.git.richardcochran@gmail.com> <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com> <507DB9EC.9060407@ti.com> <79CD15C6BA57404B839C016229A409A83EB43B17@DBDE01.ent.ti.com> <5080315F.8090802@ti.com> <79CD15C6BA57404B839C016229A409A83EB43D0F@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:42099 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080Ab2JRS1n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 14:27:43 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hr7so2443207wib.1
-        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 11:27:42 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41668 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752438Ab2JRSao (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Oct 2012 14:30:44 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB43D0F@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mugunthan V N <mugunthanvnm@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Mohammed, Afzal" <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 18, 2012 at 03:46:15AM +0000, Paul Walmsley wrote:
+
+On 10/18/2012 01:04 PM, Hiremath, Vaibhav wrote:
+> On Thu, Oct 18, 2012 at 22:12:07, Hunter, Jon wrote:
+
+...
+
+>> Yes, but do you also see the bug that is hiding in gpmc_mem_init()?
+>>
+>> My point is to highlight this and not hide it, so that we can fix it
+>> now. Otherwise if we wait until we enable the gpmc driver with DT and
+>> this could hinder the DT migration later.
+>>
 > 
-> It doesn't necessarily mean that the driver is usable in that kernel 
-> release.
+> As I already mentioned in my previous response, your patch is required 
+> irrespective of this patch. I would consider your patch as a cleanup patch.
+> 
+> 
+> Both the patches are independent, your patch is handling the error path 
+> properly, whereas, my patch makes sure that you don't unnecessarily probe 
+> GPMC if you are booting from DT and GPMC node is not present, as described 
+> above.
 
-Well, it should. We have staging for half-baked stuff.
+Your patch hides a bug. That's my point. How do you expect am335x ever
+to support gpmc devices if this bug is not addressed?
 
-> Either way, the patch is likely to make it into the mainline kernel.  
-> It's just that it will probably take a few weeks longer than you might 
-> like.
+So I think that you are over-simplifying it when you say that my patch
+is just a clean-up patch. I agree that it is adding appropriate error
+handling, but it also highlights the presence of a bug by allowing the
+probe to fail.
 
-I don't mind waiting for a driver that is held off because of missing
-background support.
+Anyway, I don't care to debate this any further, we just need to fix
+gpmc_mem_init().
 
-I *do* mind if y'all go merging all kinds of code that has never been
-tested. Those who submit and their reviewers should ensure that the
-code is actually working. Before buying hardware or starting projects,
-I often check what is in mainline. I expect that mainline has been at
-least minimally tested.
-
-Maybe that is just me, or maybe people working on the ARM tree have
-different expectations.
-
-Thanks,
-Richard
+Jon
