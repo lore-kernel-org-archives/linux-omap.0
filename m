@@ -1,47 +1,45 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: Re: [PATCH v3 0/6] OMAP: iommu: hwmod, reset handling and runtime PM
-Date: Wed, 17 Oct 2012 18:52:37 -0500
-Message-ID: <CALLhW=5Fmjhd+w57Dmm2BLmBoHuC7_jprJndkw1dHoVzVu4TOg@mail.gmail.com>
-References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
-	<20121016172258.GT15569@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap fixes ready to go for v3.7-rc1
+Date: Wed, 17 Oct 2012 17:06:56 -0700
+Message-ID: <CAOesGMiuaA7pEJREkkLWMVurXgpHjVNBv7yzG=OLQH=8JDexxQ@mail.gmail.com>
+References: <20121017220248.GA15569@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:49819 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752708Ab2JQXwi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 19:52:38 -0400
-Received: by mail-vb0-f46.google.com with SMTP id ff1so8064845vbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 17 Oct 2012 16:52:38 -0700 (PDT)
-In-Reply-To: <20121016172258.GT15569@atomide.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:64482 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752830Ab2JRAG5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 20:06:57 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so12850004iea.19
+        for <linux-omap@vger.kernel.org>; Wed, 17 Oct 2012 17:06:56 -0700 (PDT)
+In-Reply-To: <20121017220248.GA15569@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 16 October 2012 12:22, Tony Lindgren <tony@atomide.com> wrote:
-> * Omar Ramirez Luna <omar.luna@linaro.org> [121011 18:07]:
->> These patches are needed for remoteproc to work on OMAP4.
->>
->> Introduced iommu hwmod support for OMAP3 (iva, isp) and
->> OMAP4 (ipu, dsp), along with the corresponding runtime PM
->> and routines to deassert reset lines, enable/disable clocks
->> and configure sysc registers.
->>
->> Although IOMMU hwmod patches were already submitted in the past,
->> this series adds few more changes, like:
->> - New reset handling.
->> - Save and restore context code rework.
->> - Device tree bindings for OMAP3 and OMAP4.
->>
->> For this series I just dropped the patches already included in
->> mainline.
+On Wed, Oct 17, 2012 at 3:02 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi Arnd & Olof,
 >
-> These will need to be rebased on omap-for-v3.8/cleanup-headers-iommu
-> when I have that pushed out as that removes plat/*iommu*.h files.
+> Here are the fixes ready to pull, there's at least one more fix in works
+> but it still requires minor changes. The two top commits are recent as
+> Jon Hunter noticed an issue freeing resources in his fix and I did a
+> new branch to swap in the fixed patch.
+>
+> Regards,
+>
+> Tony
+>
+>
+> The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
+>
+>   Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc1/fixes-take5-signed
 
-Ok, will wait and rebase on top of it.
+Pulled into fixes, thanks.
 
-Thanks,
 
-Omar
+-Olof
