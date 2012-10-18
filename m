@@ -1,63 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Fwd: [PATCH 2/5] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
- davinci_mdio
-Date: Thu, 18 Oct 2012 03:46:15 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
-References: <20121017181354.GA2412@netboy.at.omicron.at> <alpine.DEB.2.00.1210172337170.30902@utopia.booyaka.com> <20121017235045.GB30550@atomide.com> <20121018030654.GE2867@netboy.at.omicron.at>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP3/4: iommu: adapt to runtime pm
+Date: Thu, 18 Oct 2012 06:03:16 +0200
+Message-ID: <CAMP44s1TGky2zxC4vb4CFHD-uuKu=vSFZccoQz2JFAShxbiuRA@mail.gmail.com>
+References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
+	<1350003977-32744-5-git-send-email-omar.luna@linaro.org>
+	<CAMP44s2LTGPnXQuetVLV1tA8w90gUtoJ5coucBUZsbqb3vFnng@mail.gmail.com>
+	<CALLhW=5k=tAXo_5ri2WgetRgju9rC_Wm-o9-pfHSNqpe6FU5qQ@mail.gmail.com>
+	<CAMP44s3wTYTFgSw7r+77zb0fxMSjo1R69Zx0nyM6Hgy2h=Gggw@mail.gmail.com>
+	<CALLhW=6_0Rnp7-gNhCexUVzxam54KhoqAF6e8eiH5yo-wKBxzQ@mail.gmail.com>
+	<CAMP44s0LSJhyG89mwJERHW0SsQrU+J4CC6=xhMUR=MSw0dxj-A@mail.gmail.com>
+	<CALLhW=5W2Tkv0sHhsabV9d4hFqQw57f=55HvcPBfAoG1eqLrqA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47775 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752854Ab2JRDqQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Oct 2012 23:46:16 -0400
-In-Reply-To: <20121018030654.GE2867@netboy.at.omicron.at>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CALLhW=5W2Tkv0sHhsabV9d4hFqQw57f=55HvcPBfAoG1eqLrqA@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-On Thu, 18 Oct 2012, Richard Cochran wrote:
+On Thu, Oct 18, 2012 at 1:51 AM, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
+> On 15 October 2012 22:23, Felipe Contreras <felipe.contreras@gmail.com> wrote:
+>>> On probe this patch does pm_runtime_enable, however this doesn't mean
+>>> the device is turned ON or resumed or kept ON all the time.
+>>
+>> In fact it's the other way around; pm_runtime_enable turns off the
+>> power (if it's ON).
+>
+> pm_runtime_enable just decrements the disable_depth counter. Doesn't
+> turn off anything by itself.
 
-> So there has been this cpsw driver since v3.4-rc1~177^2~5
-> 
->    df82859 netdev: driver: ethernet: Add TI CPSW driver
-> 
-> and four people signed off on it, so it must have been working at one
-> point.
+pm_runtime_enable turns on power management, without it the device
+remains in whatever state it booted.
 
-The signoffs just mean that those people are asserting that the code is 
-covered under an appropriate license, or are passing it on through the 
-maintainer hierarchy.  See 
+>> device_del
+>>  device_pm_remove
+>>   pm_runtime_remove
+>>    __pm_runtime_disable <- HERE
+>
+> I'm not entirely convinced _iommu_ follows this path, it doesn't
+> create any devices nor register them... whereas mailbox does create
+> devices and mailbox does follow this path for the devices created
+> which are child devices.
+>
+> So this path won't take care of the omap-iommu device pm_runtime_disable.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=Documentation/SubmittingPatches;h=c379a2a6949f1c1cac04fb6f185c633512f37061;hb=HEAD#l298
+Are you sure? What code-path calls omap_iommu_remove then?
 
-It doesn't necessarily mean that the driver is usable in that kernel 
-release.
+Anyway, it was just an observation. I've seen other code do this.
 
-> Since the device tree make-over, the driver is a derelict, and thus the 
-> present patch is fixing a regression.
-
-Probably the driver was submitted before any SoC integration support was 
-available.  Grepping for 'cpsw' under arch/ turns up only AM33xx.  AM335x 
-didn't have device enumeration support in the mainline kernel until 3.7, 
-via commit a2cfc509bc4eeef9f5c4607b1203f17f22ea2a36 ("ARM: OMAP3+: hwmod: 
-Add AM33XX HWMOD data").  So I don't see how it could have worked with 
-mainline.
-
-> I just want the already merged driver to work with the vanilla
-> kernel. Is that too much to ask?
-
-It's a very reasonable wish and your patches are certainly appreciated.
-
-But it seems that the CPSW has never worked in the mainline kernel.  So 
-this particular patch is not fixing a regression.  Therefore we shouldn't 
-send it upstream during the -rc time period.  Instead we'll schedule it to 
-be sent a few weeks later, during the 3.8 merge window.
-
-Either way, the patch is likely to make it into the mainline kernel.  
-It's just that it will probably take a few weeks longer than you might 
-like.
-
-
-- Paul
+-- 
+Felipe Contreras
