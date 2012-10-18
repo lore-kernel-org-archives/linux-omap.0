@@ -1,66 +1,39 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [RFC] dmaengine: omap-dma: Allow DMA controller to prefetch
- data
-Date: Thu, 18 Oct 2012 16:50:27 -0700
-Message-ID: <20121018235027.GA19313@animalcreek.com>
-References: <20121018222046.GA28541@animalcreek.com>
- <20121018225540.GB28061@n2100.arm.linux.org.uk>
- <20121018232405.GA29064@animalcreek.com>
- <20121018233335.GC28061@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 0/6] OMAP: iommu: hwmod, reset handling and runtime
+ PM
+Date: Thu, 18 Oct 2012 16:52:46 -0700
+Message-ID: <20121018235246.GK30550@atomide.com>
+References: <1350003977-32744-1-git-send-email-omar.luna@linaro.org>
+ <20121016172258.GT15569@atomide.com>
+ <CALLhW=5Fmjhd+w57Dmm2BLmBoHuC7_jprJndkw1dHoVzVu4TOg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:49576 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572Ab2JRXuc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 19:50:32 -0400
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20121018233335.GC28061@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CALLhW=5Fmjhd+w57Dmm2BLmBoHuC7_jprJndkw1dHoVzVu4TOg@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, iommu@lists.linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-On Fri, Oct 19, 2012 at 12:33:35AM +0100, Russell King - ARM Linux wrote:
-> On Thu, Oct 18, 2012 at 04:24:05PM -0700, Mark A. Greer wrote:
-> > On Thu, Oct 18, 2012 at 11:55:40PM +0100, Russell King - ARM Linux wrote:
-> > > On Thu, Oct 18, 2012 at 03:20:46PM -0700, Mark A. Greer wrote:
-> > > > This patch seems fairly stable but I've only tested omap-sham (crypto)
-> > > > and omap_hsmmc (mmc) on an am37x EVM.  I also enabled burst mode but
-> > > > that made the system unstable when exercising either omap-sham or
-> > > > omap_hsmmc.  I'm unaware of any errata that would make this an unwanted
-> > > > modification but I haven't checked all of the SoCs.  Are there other
-> > > > reasons that this should be applied??
-> > > 
-> > > It definitely needs checking with audio, because it will affect the
-> > > pointer position in relation to audio output, and it will have an
-> > > effect on how much audio data is lost over a pause/resume event.
-> > > 
-> > > Unfortunately, the OMAP DMA hardware has no way to do a proper "pause",
-> > > it can only do a "stop" which involves dumping its FIFOs on the floor
-> > > in the case of anything but a DEV->MEM transfer.  So the more data
-> > > held in the DMA hardware, the more is lost on pause.
-> > 
-> > Hmm, interesting.
-> > 
-> > Is there a way to tweak DMA params like this on a per logical channel
-> > basis using the dmaengine API?  I don't see any but I could have missed it.
-> > 
-> > If not, are you open to adding such a thing (e.g., extend 'enum dma_ctrl_flags'
-> > with DMA_ENABL_PREFETCH)?
-> 
-> I would suggest getting some feedback from the ASoC people first, before
-> trying to invent new APIs to work around this stuff.  If they can live
-> with having prefetch enabled on OMAP then there isn't an issue here.  If
-> not, we need a solution to this.
-> 
-> I do not believe that precisely stopping and starting playback across a
-> suspend/resume event is really necessary (it's desirable but the world
-> doesn't collapse if you miss a few samples.)  It could be more of an
-> issue for pause/resume though, but as I say, that's for ASoC people to
-> comment on.
-> 
-> I'm merely pointing out here that we need their feedback here before
-> deciding if there's anything further that needs to happen.
+Omar,
 
-Thanks, I will do that.
+* Omar Ramirez Luna <omar.luna@linaro.org> [121017 16:54]:
+> On 16 October 2012 12:22, Tony Lindgren <tony@atomide.com> wrote:
+>
+> > These will need to be rebased on omap-for-v3.8/cleanup-headers-iommu
+> > when I have that pushed out as that removes plat/*iommu*.h files.
+> 
+> Ok, will wait and rebase on top of it.
+
+Thanks, the related patches are now posted in thread
+"[PATCH v3 0/6] omap iommu changes to remove plat includes".
+
+Also, can you please take a look at the "Updated status of the removal
+of plat headers" thread?
+
+I've tagged you to remove the omap plat/mailbox.h :) 
+
+Regards,
+
+Tony
