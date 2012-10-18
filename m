@@ -1,252 +1,178 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/6] ARM: OMAP: Merge iommu2.h into iommu.h
-Date: Thu, 18 Oct 2012 13:28:36 -0700
-Message-ID: <20121018202835.11834.32495.stgit@muffinssi.local>
+Subject: [PATCH 6/6] ARM: OMAP2+: Move iommu/iovmm headers to platform_data
+Date: Thu, 18 Oct 2012 13:28:51 -0700
+Message-ID: <20121018202851.11834.89709.stgit@muffinssi.local>
 References: <20121018202707.11834.1438.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:12231 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755701Ab2JRU2l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 16:28:41 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59243 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932126Ab2JRU25 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 16:28:57 -0400
 In-Reply-To: <20121018202707.11834.1438.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>
 
-From: Ido Yariv <ido@wizery.com>
+Move iommu/iovmm headers from plat/ to platform_data/ as part of the
+single zImage work.
 
-Since iommu is not supported on OMAP1 and will not likely to ever be
-supported, merge plat/iommu2.h into iommu.h so only one file would have
-to move to platform_data/ as part of the single zImage effort.
+Partially based on an earlier version by Ido Yariv <ido@wizery.com>.
 
 Cc: Joerg Roedel <joerg.roedel@amd.com>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Ido Yariv <ido@wizery.com>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Cc: Omar Ramirez Luna <omar.luna@linaro.org>
-Signed-off-by: Ido Yariv <ido@wizery.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/include/plat/iommu.h  |   88 ++++++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/iommu2.h |   96 ------------------------------
- 2 files changed, 83 insertions(+), 101 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/plat/iommu2.h
+ arch/arm/mach-omap2/devices.c              |    2 +-
+ arch/arm/mach-omap2/omap-iommu.c           |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ drivers/iommu/omap-iommu-debug.c           |    3 +--
+ drivers/iommu/omap-iommu.c                 |    2 +-
+ drivers/iommu/omap-iommu2.c                |    2 +-
+ drivers/iommu/omap-iovmm.c                 |    3 +--
+ drivers/media/platform/omap3isp/ispvideo.c |    1 -
+ include/linux/platform_data/iommu-omap.h   |    0 
+ 10 files changed, 8 insertions(+), 11 deletions(-)
+ rename arch/arm/plat-omap/include/plat/iommu.h => include/linux/platform_data/iommu-omap.h (100%)
 
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index 68b5f03..7e8c7b6 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -13,6 +13,12 @@
- #ifndef __MACH_IOMMU_H
- #define __MACH_IOMMU_H
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index c8c2117..6cd0c2a 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -126,7 +126,7 @@ static struct platform_device omap2cam_device = {
  
-+#include <linux/io.h>
-+
-+#if defined(CONFIG_ARCH_OMAP1)
-+#error "iommu for this processor not implemented yet"
-+#endif
-+
- struct iotlb_entry {
- 	u32 da;
- 	u32 pa;
-@@ -159,11 +165,70 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- #define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
- #define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
+ #if defined(CONFIG_IOMMU_API)
  
--#if defined(CONFIG_ARCH_OMAP1)
--#error "iommu for this processor not implemented yet"
--#else
--#include <plat/iommu2.h>
--#endif
-+/*
-+ * MMU Register offsets
-+ */
-+#define MMU_REVISION		0x00
-+#define MMU_SYSCONFIG		0x10
-+#define MMU_SYSSTATUS		0x14
-+#define MMU_IRQSTATUS		0x18
-+#define MMU_IRQENABLE		0x1c
-+#define MMU_WALKING_ST		0x40
-+#define MMU_CNTL		0x44
-+#define MMU_FAULT_AD		0x48
-+#define MMU_TTB			0x4c
-+#define MMU_LOCK		0x50
-+#define MMU_LD_TLB		0x54
-+#define MMU_CAM			0x58
-+#define MMU_RAM			0x5c
-+#define MMU_GFLUSH		0x60
-+#define MMU_FLUSH_ENTRY		0x64
-+#define MMU_READ_CAM		0x68
-+#define MMU_READ_RAM		0x6c
-+#define MMU_EMU_FAULT_AD	0x70
-+
-+#define MMU_REG_SIZE		256
-+
-+/*
-+ * MMU Register bit definitions
-+ */
-+#define MMU_LOCK_BASE_SHIFT	10
-+#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
-+#define MMU_LOCK_BASE(x)	\
-+	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
-+
-+#define MMU_LOCK_VICT_SHIFT	4
-+#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
-+#define MMU_LOCK_VICT(x)	\
-+	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
-+
-+#define MMU_CAM_VATAG_SHIFT	12
-+#define MMU_CAM_VATAG_MASK \
-+	((~0UL >> MMU_CAM_VATAG_SHIFT) << MMU_CAM_VATAG_SHIFT)
-+#define MMU_CAM_P		(1 << 3)
-+#define MMU_CAM_V		(1 << 2)
-+#define MMU_CAM_PGSZ_MASK	3
-+#define MMU_CAM_PGSZ_1M		(0 << 0)
-+#define MMU_CAM_PGSZ_64K	(1 << 0)
-+#define MMU_CAM_PGSZ_4K		(2 << 0)
-+#define MMU_CAM_PGSZ_16M	(3 << 0)
-+
-+#define MMU_RAM_PADDR_SHIFT	12
-+#define MMU_RAM_PADDR_MASK \
-+	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
-+#define MMU_RAM_ENDIAN_SHIFT	9
-+#define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
-+#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
-+#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
-+#define MMU_RAM_ELSZ_SHIFT	7
-+#define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_ELSZ_16		(1 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_MIXED_SHIFT	6
-+#define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
-+#define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
+-#include <plat/iommu.h>
++#include <linux/platform_data/iommu-omap.h>
+ 
+ static struct resource omap3isp_resources[] = {
+ 	{
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index df298d4..a6a4ff8 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -13,7 +13,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ 
+-#include <plat/iommu.h>
++#include <linux/platform_data/iommu-omap.h>
+ 
+ #include "soc.h"
+ #include "common.h"
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index f67b7ee..621bc71 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -26,8 +26,8 @@
+ #include <plat/mmc.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
++#include <linux/platform_data/iommu-omap.h>
+ #include <plat/dmtimer.h>
+-#include <plat/iommu.h>
+ 
+ #include "am35xx.h"
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 652d028..5850b3e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -27,10 +27,10 @@
+ #include <plat/dma.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
++#include <linux/platform_data/iommu-omap.h>
+ #include <plat/mmc.h>
+ #include <plat/dmtimer.h>
+ #include <plat/common.h>
+-#include <plat/iommu.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ #include "cm1_44xx.h"
+diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
+index d0427bd..d97fbe4 100644
+--- a/drivers/iommu/omap-iommu-debug.c
++++ b/drivers/iommu/omap-iommu-debug.c
+@@ -19,8 +19,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/debugfs.h>
+ #include <linux/omap-iommu.h>
+-
+-#include <plat/iommu.h>
++#include <linux/platform_data/iommu-omap.h>
+ 
+ #include "omap-iopgtable.h"
+ #include "omap-iommu.h"
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index df84087..badc17c 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -26,7 +26,7 @@
+ 
+ #include <asm/cacheflush.h>
+ 
+-#include <plat/iommu.h>
++#include <linux/platform_data/iommu-omap.h>
+ 
+ #include "omap-iopgtable.h"
+ #include "omap-iommu.h"
+diff --git a/drivers/iommu/omap-iommu2.c b/drivers/iommu/omap-iommu2.c
+index 4d8d91d..3642cf2 100644
+--- a/drivers/iommu/omap-iommu2.c
++++ b/drivers/iommu/omap-iommu2.c
+@@ -19,8 +19,8 @@
+ #include <linux/stringify.h>
+ #include <linux/io.h>
+ #include <linux/omap-iommu.h>
++#include <linux/platform_data/iommu-omap.h>
+ 
+-#include <plat/iommu.h>
+ #include "omap-iommu.h"
  
  /*
-  * utilities for super page(16MB, 1MB, 64KB and 4KB)
-@@ -218,4 +283,17 @@ omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
- extern size_t
- omap_dump_tlb_entries(struct omap_iommu *obj, char *buf, ssize_t len);
+diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
+index 3e3b242..46d87569 100644
+--- a/drivers/iommu/omap-iovmm.c
++++ b/drivers/iommu/omap-iovmm.c
+@@ -18,12 +18,11 @@
+ #include <linux/scatterlist.h>
+ #include <linux/iommu.h>
+ #include <linux/omap-iommu.h>
++#include <linux/platform_data/iommu-omap.h>
  
-+/*
-+ * register accessors
-+ */
-+static inline u32 iommu_read_reg(struct omap_iommu *obj, size_t offs)
-+{
-+	return __raw_readl(obj->regbase + offs);
-+}
-+
-+static inline void iommu_write_reg(struct omap_iommu *obj, u32 val, size_t offs)
-+{
-+	__raw_writel(val, obj->regbase + offs);
-+}
-+
- #endif /* __MACH_IOMMU_H */
-diff --git a/arch/arm/plat-omap/include/plat/iommu2.h b/arch/arm/plat-omap/include/plat/iommu2.h
-deleted file mode 100644
-index d4116b5..0000000
---- a/arch/arm/plat-omap/include/plat/iommu2.h
-+++ /dev/null
-@@ -1,96 +0,0 @@
--/*
-- * omap iommu: omap2 architecture specific definitions
-- *
-- * Copyright (C) 2008-2009 Nokia Corporation
-- *
-- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
+ #include <asm/cacheflush.h>
+ #include <asm/mach/map.h>
+ 
+-#include <plat/iommu.h>
 -
--#ifndef __MACH_IOMMU2_H
--#define __MACH_IOMMU2_H
--
--#include <linux/io.h>
--
--/*
-- * MMU Register offsets
-- */
--#define MMU_REVISION		0x00
--#define MMU_SYSCONFIG		0x10
--#define MMU_SYSSTATUS		0x14
--#define MMU_IRQSTATUS		0x18
--#define MMU_IRQENABLE		0x1c
--#define MMU_WALKING_ST		0x40
--#define MMU_CNTL		0x44
--#define MMU_FAULT_AD		0x48
--#define MMU_TTB			0x4c
--#define MMU_LOCK		0x50
--#define MMU_LD_TLB		0x54
--#define MMU_CAM			0x58
--#define MMU_RAM			0x5c
--#define MMU_GFLUSH		0x60
--#define MMU_FLUSH_ENTRY		0x64
--#define MMU_READ_CAM		0x68
--#define MMU_READ_RAM		0x6c
--#define MMU_EMU_FAULT_AD	0x70
--
--#define MMU_REG_SIZE		256
--
--/*
-- * MMU Register bit definitions
-- */
--#define MMU_LOCK_BASE_SHIFT	10
--#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
--#define MMU_LOCK_BASE(x)	\
--	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
--
--#define MMU_LOCK_VICT_SHIFT	4
--#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
--#define MMU_LOCK_VICT(x)	\
--	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
--
--#define MMU_CAM_VATAG_SHIFT	12
--#define MMU_CAM_VATAG_MASK \
--	((~0UL >> MMU_CAM_VATAG_SHIFT) << MMU_CAM_VATAG_SHIFT)
--#define MMU_CAM_P		(1 << 3)
--#define MMU_CAM_V		(1 << 2)
--#define MMU_CAM_PGSZ_MASK	3
--#define MMU_CAM_PGSZ_1M		(0 << 0)
--#define MMU_CAM_PGSZ_64K	(1 << 0)
--#define MMU_CAM_PGSZ_4K		(2 << 0)
--#define MMU_CAM_PGSZ_16M	(3 << 0)
--
--#define MMU_RAM_PADDR_SHIFT	12
--#define MMU_RAM_PADDR_MASK \
--	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
--#define MMU_RAM_ENDIAN_SHIFT	9
--#define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
--#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
--#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
--#define MMU_RAM_ELSZ_SHIFT	7
--#define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_ELSZ_16		(1 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_MIXED_SHIFT	6
--#define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
--#define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
--
--/*
-- * register accessors
-- */
--static inline u32 iommu_read_reg(struct omap_iommu *obj, size_t offs)
--{
--	return __raw_readl(obj->regbase + offs);
--}
--
--static inline void iommu_write_reg(struct omap_iommu *obj, u32 val, size_t offs)
--{
--	__raw_writel(val, obj->regbase + offs);
--}
--
--#endif /* __MACH_IOMMU2_H */
+ #include "omap-iopgtable.h"
+ #include "omap-iommu.h"
+ 
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 2853bef..3bfa245 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -35,7 +35,6 @@
+ #include <linux/omap-iommu.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ioctl.h>
+-#include <plat/iommu.h>
+ #include <plat/omap-pm.h>
+ 
+ #include "ispvideo.h"
+diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/include/linux/platform_data/iommu-omap.h
+similarity index 100%
+rename from arch/arm/plat-omap/include/plat/iommu.h
+rename to include/linux/platform_data/iommu-omap.h
 
