@@ -1,117 +1,138 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: [RFC PATCH 2/2] ARM: OMAP4: clock: use omap4_clks_register API
-Date: Thu, 18 Oct 2012 19:38:17 +0300
-Message-ID: <1350578297-22572-3-git-send-email-grygorii.strashko@ti.com>
-References: <1350578297-22572-1-git-send-email-grygorii.strashko@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
+Date: Thu, 18 Oct 2012 11:42:07 -0500
+Message-ID: <5080315F.8090802@ti.com>
+References: <cover.1350327320.git.richardcochran@gmail.com> <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com> <507DB9EC.9060407@ti.com> <79CD15C6BA57404B839C016229A409A83EB43B17@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39898 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756693Ab2JRQiu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 12:38:50 -0400
-In-Reply-To: <1350578297-22572-1-git-send-email-grygorii.strashko@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41996 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756531Ab2JRQmS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Oct 2012 12:42:18 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB43B17@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Turquette <mturquette@linaro.org>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grygorii Strashko <grygorii.strashko@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Mohammed, Afzal" <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Remove OMAP443x and OMAP446x specific clocks from omap44xx_clks
-array and add corresponding set of clocks per each SoC:
- - struct omap_clk omap44xx_clks[]; - common clocks set for all OMAP4
- - struct omap_clk omap443x_clks[]; - specific clocks set for OMAP443x
- - struct omap_clk omap446x_clks[]; - specific clocks set for OMAP446x
-   and don't rely on platform specific flags any more.
 
-Use omap4_clks_register() API to register and init OMAP4 set of
-clocks.
+On 10/18/2012 11:16 AM, Hiremath, Vaibhav wrote:
+> On Wed, Oct 17, 2012 at 01:17:56, Hunter, Jon wrote:
+>>
+>> On 10/15/2012 02:16 PM, Richard Cochran wrote:
+>>> From: hvaibhav@ti.com <hvaibhav@ti.com>
+>>>
+>>> With recent changes in omap gpmc driver code, in case of DT
+>>> boot mode, where bootloader does not configure gpmc cs space
+>>> will result into kernel BUG() inside gpmc_mem_init() function,
+>>> as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
+>>> gpmc_config7[0].baseaddress is set to '0' on reset.
+>>
+>> I am not sure I completely follow the logic here.
+>>
+>> Won't this problem occur if the bootloader does not configure the gpmc
+>> cs space AND we are not using DT?
+>>
+> 
+> That's what exactly the above comment describes.
 
-With this change, we can now safely remove CK_443X/CK_446X etc macro
-usage. It has not been done in this patch, but if the approach is OK,
-then, it is possible to do the same.
+Hmm ... you said "in the case of DT", but I am saying even "in the case
+WITHOUT DT" this can happen. So I think the subject is mis-leading.
 
-One additional benefit seen is that the match logic can entirely be
-skipped.
+>> Is the csvalid bit set because we are booting from the internal ROM?
+>>
+> 
+> As per TRM, the reset value of the CS0_valis bit is set to 0. I have pasted 
+> TRM statement below -
+> 
+> "Chip-select enable (reset value is 1 for CS[0] and 0 for CS[1-5])."
 
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- arch/arm/mach-omap2/clock44xx_data.c |   40 ++++++++++++++++++----------------
- 1 file changed, 21 insertions(+), 19 deletions(-)
+The above two sentences don't see to agree ...
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 6efc30c..4060c9c 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3145,10 +3145,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"aes1_fck",			&aes1_fck,	CK_443X),
- 	CLK(NULL,	"aes2_fck",			&aes2_fck,	CK_443X),
- 	CLK(NULL,	"aess_fck",			&aess_fck,	CK_443X),
--	CLK(NULL,	"bandgap_fclk",			&bandgap_fclk,	CK_443X),
--	CLK(NULL,	"bandgap_ts_fclk",		&bandgap_ts_fclk,	CK_446X),
- 	CLK(NULL,	"des3des_fck",			&des3des_fck,	CK_443X),
--	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
- 	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
- 	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
- 	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
-@@ -3346,19 +3343,27 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK("4903c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
- 	CLK("4903e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
- 	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
-+	CLK(NULL,	NULL,		NULL,			CK_443X),
-+};
-+
-+static struct omap_clk omap443x_clks[] = {
-+	CLK(NULL,	"bandgap_fclk",		&bandgap_fclk,		CK_443X),
-+	CLK(NULL,	NULL,		NULL,			CK_443X),
-+};
-+
-+
-+static struct omap_clk omap446x_clks[] = {
-+	CLK(NULL,	"div_ts_ck",		&div_ts_ck,		CK_446X),
-+	CLK(NULL,	"bandgap_ts_fclk",	&bandgap_ts_fclk,	CK_446X),
-+	CLK(NULL,	NULL,		NULL,		CK_446X),
- };
- 
- int __init omap4xxx_clk_init(void)
- {
--	struct omap_clk *c;
--	u32 cpu_clkflg;
--
- 	if (cpu_is_omap443x()) {
- 		cpu_mask = RATE_IN_4430;
--		cpu_clkflg = CK_443X;
- 	} else if (cpu_is_omap446x() || cpu_is_omap447x()) {
- 		cpu_mask = RATE_IN_4460 | RATE_IN_4430;
--		cpu_clkflg = CK_446X | CK_443X;
- 
- 		if (cpu_is_omap447x())
- 			pr_warn("WARNING: OMAP4470 clock data incomplete!\n");
-@@ -3375,17 +3380,14 @@ int __init omap4xxx_clk_init(void)
- 	 * omap2_clk_disable_clkdm_control();
- 	 */
- 
--	for (c = omap44xx_clks; c < omap44xx_clks + ARRAY_SIZE(omap44xx_clks);
--									  c++)
--		clk_preinit(c->lk.clk);
--
--	for (c = omap44xx_clks; c < omap44xx_clks + ARRAY_SIZE(omap44xx_clks);
--									  c++)
--		if (c->cpu & cpu_clkflg) {
--			clkdev_add(&c->lk);
--			clk_register(c->lk.clk);
--			omap2_init_clk_clkdm(c->lk.clk);
--		}
-+	omap2_clks_register(omap44xx_clks);
-+
-+	if (cpu_is_omap443x())
-+		omap2_clks_register(omap443x_clks);
-+	else if (cpu_is_omap446x() || cpu_is_omap447x())
-+		omap2_clks_register(omap446x_clks);
-+	else
-+		return 0;
- 
- 	/* Disable autoidle on all clocks; let the PM code enable it later */
- 	omap_clk_disable_autoidle_all();
--- 
-1.7.9.5
+> And same applies to OMAP3 family of devices.
+
+For which boot-modes? All or just the gpmc boot-modes?
+
+My omap3430 beagle has been booting with DT fine for some time and I
+have not encountered this problem even on the latest kernel with the
+gpmc driver present.
+
+>> I guess I don't see why csvalid bit being set and a base-address of 0x0
+>> should not be allowed. That should be a valid combination.
+>>
+> 
+> Yes, agreed.
+> 
+>> One problem I see with gpmc_mem_init() is that it assumes that
+>> BOOT_ROM_SPACE is 1MB for all devices starting at 0x0 apart from the
+>> apollon board. For newer devices such as OMAP4, there is only 48KB of
+>> internal ROM and only mapped to 0x0 when booting from internal ROM. So
+>> this needs to be fixed.
+>>
+>> How much internal ROM does the AM335x have and where is it mapped?
+>>
+> 
+> AM33xx memory map is something like,
+> 
+> Boot ROM  0x4000_0000 0x4001_FFFF 128KB
+>           0x4002_0000 0x4002_BFFF 48KB    32-bit Ex/R(1) - Public
+> Reserved  0x4002_C000 0x400F_FFFF 848KB   Reserved
+> Reserved  0x4010_0000 0x401F_FFFF 1MB     Reserved
+> Reserved  0x4020_0000 0x402E_FFFF 960KB   Reserved
+> Reserved  0x402f_0000 0x4020_03FF 64KB    Reserved
+> SRAM internal 0x402F_0400 0x402F_FFFF    32-bit Ex/R/W(1)
+
+Does the boot ROM get mapped to 0x0, when booting from ROM?
+
+>>> This use-case is applicable for any board/EVM which doesn't have
+>>> any peripheral connected to gpmc cs0, for example BeagleXM and
+>>> BeagleBone, so DT boot mode fails.
+>>>
+>>> This patch adds of_have_populated_dt() check before creating
+>>> device, so that for DT boot mode, gpmc probe will not be called
+>>> which is expected behavior, as gpmc is not supported yet from DT.
+>>
+>> Yes, but we do actually still allow some platform devices to be probed
+>> (such as dmtimers) when booting with DT that don't support DT yet. So
+>> this change prevents us from using the gpmc on boards when booting with DT.
+>>
+> 
+> The idea here was,
+> 
+> In order to use GPMC in meaningful way, where some peripheral is connected 
+> to the GPMC, you must create platform_device for the probe to happen 
+> properly. Now all the devices I know so far, we have gpmc_smsc911x_init(), 
+> omap_nand_flash_init(), etc...
+> These api's are getting called only through machine_desc.init_xxx callbacks,
+> And in case of DT, we have centralized machine_desc definition for all 
+> platforms (board-generic.c). So even though you want to use GPMC for DT boot
+> mode, you can not make use of peripheral without changing board-files to 
+> change to create platform_device.
+> 
+> Does it make sense?
+
+Sure, if you are using one of the generic machine configurations for DT.
+However, while this migration happens people may create their own custom
+machine configurations for DT for testing things like smsc911x.
+
+>> I am not convinced that this is addressing the underlying problem with
+>> gpmc_mem_init().
+>>
+> 
+> The patch you submitted is cleanup patch and is required irrespective of 
+> this patch. I believe this patch is just makes sure that, if you are booting 
+> from DT and you do not have meaningful DT node for GPMC and peripheral 
+> interfaced to it, no point in probing it. 
+> 
+> Does it make any sense???
+
+Yes, but do you also see the bug that is hiding in gpmc_mem_init()?
+
+My point is to highlight this and not hide it, so that we can fix it
+now. Otherwise if we wait until we enable the gpmc driver with DT and
+this could hinder the DT migration later.
+
+Jon
 
