@@ -1,106 +1,67 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: discrepancy while save and restore of debounce registers
-Date: Thu, 18 Oct 2012 05:31:11 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EAAA89B@DBDE01.ent.ti.com>
-References: <1BAFE6F6C881BF42822005164F1491C33EAA9A7C@DBDE01.ent.ti.com>
- <507F1F21.8040206@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH] ARM: dts: AM33XX: Add tsl2550 ambient light sensor DT
+ data
+Date: Thu, 18 Oct 2012 05:46:47 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA53C2B@DBDE01.ent.ti.com>
+References: <1348242551-21293-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <507F1F21.8040206@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:57572 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754091Ab2JRFqz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 01:46:55 -0400
+In-Reply-To: <1348242551-21293-1-git-send-email-anilkumar@ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Jon,
-
-On Thu, Oct 18, 2012 at 02:42:01, Hunter, Jon wrote:
-> Hi Gururaja,
+On Fri, Sep 21, 2012 at 21:19:11, AnilKumar, Chimata wrote:
+> Add tsl2550 ambient light sensor DT data to am335x-evm.dts. In AM335x
+> EVM tsl2550 ambient light sensor is connected to I2C2 bus. So this patch
+> adds child node inside i2c2 node with i2c slave address.
 > 
-> On 10/17/2012 01:13 AM, Hebbar, Gururaja wrote:
-> > Hi,
-> > 
-> > I came across a peculiar issue while updating GPIO debounce registers on
-> > OMAP platform.
-> > 
-> > According to mainline commit ae547354a8ed59f19b57f7e1de9c7816edfc3537
-> > 
-> > gpio/omap: save and restore debounce registers
-> > 
-> > GPIO debounce registers need to be saved and restored for proper functioning
-> > of driver.
-> > 
-> > ...
-> > @@ -1363,6 +1369,12 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
-> >         __raw_writel(bank->context.fallingdetect,
-> >                                 bank->base + bank->regs->fallingdetect);
-> >         __raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
-> > +       if (bank->dbck_enable_mask) {
-> > +               __raw_writel(bank->context.debounce, bank->base +
-> > +                                       bank->regs->debounce);
-> > +               __raw_writel(bank->context.debounce_en,
-> > +                                       bank->base + bank->regs->debounce_en);
-> > +       }
-> >  }
-> > 
-> > 
-> > Due to copy/paste of this commit into my local tree, I missed the check for 
-> > bank->dbck_enable_mask, and directly restored the saved value from context.
-> > 
-> > After this, I saw random crashes when accessing different registers (sometimes
-> > its OE register and sometime its DATAOUT register). 
-> > 
-> > These crashes were seen across 2nd and subsequent suspend/resume.
-> > 
-> > My doubt/questions are
-> > 1. Why should debounce registers be updated only when it's accessed previously?
+> TAOS tsl2550 sensor with two-wire SMBus serial interface. This patch
+> also reduces I2C2 clock frequency to 100KHz from 400KHz because the
+> maximum clock frequency of SMBus is 100KHz.
 > 
-> If debounce is not being used by any of the gpios, then there is no need
-> to restore them as there are no bits set. So this makes sense and saves
-> a couple register writes.
-
-What I want to know is that other than saving register writes, is there any
-other important stuff that specifies this requirement.
-
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-evm.dts |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 > 
-> > 2. What is the relation between updating debounce registers and crash seen on
-> > others registers? 
-> 
-> This I am not sure about. I gave this a quick try on my omap3430 beagle
-> board, but I did not see any side-effects from doing this. However, if
-> you are always restoring the debounce context regardless of whether
-> debounce is being used, then you could be writing bad values to the
-> debounce registers as the context variables bank->context.debouce and
-> bank->context.debouce_en may not initialised. So that is bad. However,
-> that said I am still not sure how this could cause a crash.
-> 
-> Can you share more details on ...
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index 3b1f313..d99aa0f 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -49,7 +49,7 @@
+>  
+>  		i2c2: i2c@4802a000 {
+>  			status = "okay";
+> -			clock-frequency = <400000>;
+> +			clock-frequency = <100000>;
+>  
+>  			lis331dlh: lis331dlh@18 {
+>  				compatible = "st,lis331dlh", "st,lis3lv02d";
+> @@ -79,6 +79,11 @@
+>  				st,max-limit-z = <750>;
+>  			};
+>  
+> +			tsl2550: tsl2550@39 {
+> +				compatible = "taos,tsl2550";
+> +				reg = <0x39>;
+> +			};
+> +
+>  			tmp275: tmp275@48 {
+>  				compatible = "ti,tmp275";
+>  				reg = <0x48>;
 
-Sorry for missing below details in first post.
+Hi Tony/Benoit,
 
-> 1. The OMAP platform you are using?
+If there are no comments in this patch could you please take this in?
 
-I was trying this on TI AM335x platform (repo below). On AM335x EVM board
-
-http://arago-project.org/git/projects/?p=linux-am33x.git;a=shortlog;
-h=refs/heads/v3.2-staging
-
-> 2. What linux distro/environment you are using?
-
-Arago AM335x PSP release (linux 3.2 + am335x patch-set)
-
-> 3. If there are any specific steps to reproduce this 100% of the time?
-
-On top of this tree, try suspend/resume using "echo mem > /syspower/state"
-
-> 
-> Cheers
-> Jon
-> 
-
-
-Regards, 
-Gururaja
+Thanks
+AnilKumar
