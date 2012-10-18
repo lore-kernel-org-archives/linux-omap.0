@@ -1,99 +1,76 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv9 8/8] ARM: OMAP4: USB: power down MUSB PHY if not used
-Date: Thu, 18 Oct 2012 16:53:52 +0300
-Message-ID: <20121018135352.GC2739@arwen.pp.htv.fi>
-References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
- <1350552010-28760-9-git-send-email-t-kristo@ti.com>
- <20121018103334.GA1449@arwen.pp.htv.fi>
- <1350562684.2143.52.camel@sokoban>
-Reply-To: <balbi@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 1/2] ARM: dts: OMAP: Add counter-32k nodes
+Date: Thu, 18 Oct 2012 16:23:29 +0200
+Message-ID: <508010E1.6010102@ti.com>
+References: <1350498803-22150-1-git-send-email-jon-hunter@ti.com> <1350498803-22150-2-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bu8it7iiRSEf40bY"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57886 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755761Ab2JRN72 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 09:59:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1350562684.2143.52.camel@sokoban>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37583 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755810Ab2JROXk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Oct 2012 10:23:40 -0400
+In-Reply-To: <1350498803-22150-2-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
---Bu8it7iiRSEf40bY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Jon,
 
-hi,
+This looks good to me, I just have a minor nit comment.
 
-On Thu, Oct 18, 2012 at 03:18:04PM +0300, Tero Kristo wrote:
-> > > +static int __init omap4430_phy_power_down(void)
-> > > +{
-> > > +	void __iomem *ctrl_base;
-> > > +
-> > > +	if (!cpu_is_omap44xx())
-> > > +		return 0;
-> > > +
-> > > +	ctrl_base =3D ioremap(OMAP443X_SCM_BASE, SZ_1K);
-> > > +	if (!ctrl_base) {
-> > > +		pr_err("control module ioremap failed\n");
-> > > +		return -ENOMEM;
-> > > +	}
-> > > +
-> > > +	/* Power down the phy */
-> > > +	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-> > > +
-> > > +	iounmap(ctrl_base);
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +early_initcall(omap4430_phy_power_down);
-> > > +#endif
-> >=20
-> > I think you could do it even if the driver is enabled.
->=20
-> Actually not at least now, it looks like the driver is not controlling
-> this bit at all, so the driver would fail if we do this.
+On 10/17/2012 08:33 PM, Jon Hunter wrote:
+> Adds the counter-32k timers nodes present in OMAP2/3/4 devices and
+> device-tree binding documentation for OMAP counter-32k.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  .../devicetree/bindings/arm/omap/counter32k.txt    |   15 +++++++++++++++
+>  arch/arm/boot/dts/omap2420.dtsi                    |    6 ++++++
+>  arch/arm/boot/dts/omap2430.dtsi                    |    6 ++++++
+>  arch/arm/boot/dts/omap3.dtsi                       |    6 ++++++
+>  arch/arm/boot/dts/omap4.dtsi                       |    6 ++++++
+>  5 files changed, 39 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/counter32k.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/counter32k.txt b/Documentation/devicetree/bindings/arm/omap/counter32k.txt
+> new file mode 100644
+> index 0000000..1983fae
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/counter32k.txt
+> @@ -0,0 +1,15 @@
+> +OMAP Counter-32K bindings
+> +
+> +Required properties:
+> +- compatible:	Must be "ti,omap-counter32k" for OMAP controllers
+> +- reg:		Contains timer register address range (base address and length)
+> +- ti,hwmods:	Name of the hwmod associated to the counter, which is typically
+> +		"counter_32k"
+> +
+> +Example:
+> +
+> +counter32k: counter32k@4a304000 {
+> +	compatible = "ti,omap-counter32k";
+> +	reg = <0x4a304000 0x001f>;
+> +	ti,hwmods = "counter_32k";
+> +};
+> diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+> index 5f68a70..082193f 100644
+> --- a/arch/arm/boot/dts/omap2420.dtsi
+> +++ b/arch/arm/boot/dts/omap2420.dtsi
+> @@ -14,6 +14,12 @@
+>  	compatible = "ti,omap2420", "ti,omap2";
+>  
+>  	ocp {
+> +		counter32k: counter32k@48004000 {
 
-then we can consider that a bug in the driver. Kishon, I thought you had
-added SCM address space to PHY driver for this particular reason until
-we get SCM driver, wasn't it ??
+I'd rather use "counter" as generic type to be consistent with the timer
+type we are already using.
 
-> > Just to make sure I understand the issue right: is the PHY enabled by
-> > default or did bootloader left this enabled ?
->=20
-> The reset value for the register is zero (at least according to TRM), so
-> it is enabled from boot. Also, I couldn't find any code from the u-boot
-> that would touch this bit with a quick look.
++		counter32k: counter@48004000 {
 
-ok, so it looks like we must do this anyway, thanks ;-)
+Regards,
+Benoit
 
---=20
-balbi
-
---Bu8it7iiRSEf40bY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQgAnwAAoJEIaOsuA1yqREaBYP/RCLsf4/yCsgyCHXH4IJ74DD
-8Wl+5xX5BLRmRmzLEY91mTQvFOuMJ87P0ZW7sMFO3fO8A09U7WUypAISS782XKhF
-4aqlUJmSWPtSZHZhxiep/Eo6gDZbn8waIthVMR8TM6bNtd8eL/G7Ka2l1NkhgQ0g
-rRm1p7RL1/BibBXQbmwVhy7Q0K6O1+E7W6movVCLYpRro/iQEnASgKyWMSNnLUUA
-opuokrH+YwKZ3s6sP0sGzGJqhgjIbV07DTBo1KXkUkewp8nSkZMgtYNbPWpScZcz
-HLBVBduZqswaIqSyxUgneuouOJ1Ot5Vu2BUxJ4wbUUrDGEbEMHWDjoHF+mVpqjmP
-WSSv1zzknrkmg+fy7UL7Wp2HUUV6wPjLLhz30ye+D1u6KCH0/aNhZbnBMGkj49cS
-1SqjgcpkjxPakXvfVT7kgc0lRq6P70ABKZ7AoPFktxZOy35fnJQCuelE8epGKNUL
-wo5MwZ+8UkqwISWJFvnA+270Y+iEjOjExbD03A4ur7QHMYWnEwD73EW5vR4XT+YY
-H6Shhhzbsb0PAmhdY8CCnKJCo3qykozqSfy4d1EomZYw3X8MhwerQzG8vx3AuaG7
-hRNEKcyhUsAe7RTkspnf+7f48nAWdLzIUIYK58M1EMzSEoNBAIacrJ67XVl4dNop
-/tVNWexYjRbVqs5Mi8pu
-=IeE9
------END PGP SIGNATURE-----
-
---Bu8it7iiRSEf40bY--
