@@ -1,68 +1,41 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Date: Thu, 18 Oct 2012 17:56:59 -0300
-Message-ID: <20121018175659.431fe0b1@redhat.com>
-References: <20121018202707.11834.1438.stgit@muffinssi.local>
-	<20121018202842.11834.14375.stgit@muffinssi.local>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC/NOT FOR MERGING 1/5] arm: omap: fix up _od_suspend_noirq and _od_resume_noirq
+Date: Thu, 18 Oct 2012 13:58:02 -0700
+Message-ID: <87hapr4hwl.fsf@deeprootsystems.com>
+References: <1350488043-5053-1-git-send-email-balbi@ti.com>
+	<1350488043-5053-2-git-send-email-balbi@ti.com>
+	<871ugvivso.fsf@deeprootsystems.com>
+	<20121018165525.GA6385@arwen.pp.htv.fi>
+	<87ipa7d6cy.fsf@deeprootsystems.com>
+	<20121018175027.GA7917@arwen.pp.htv.fi>
+	<87vce77hba.fsf@deeprootsystems.com>
+	<20121018193440.GA8609@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20121018202842.11834.14375.stgit@muffinssi.local>
-Sender: linux-media-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org, mchehab@infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49031 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932464Ab2JRU5q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 16:57:46 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so8700400pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 13:57:46 -0700 (PDT)
+In-Reply-To: <20121018193440.GA8609@arwen.pp.htv.fi> (Felipe Balbi's message
+	of "Thu, 18 Oct 2012 22:34:40 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+Felipe Balbi <balbi@ti.com> writes:
 
-Em Thu, 18 Oct 2012 13:28:42 -0700
-Tony Lindgren <tony@atomide.com> escreveu:
+[...]
 
-> Looks like the iommu framework does not have generic functions
-> exported for all the needs yet. The hardware specific functions
-> are defined in files like intel-iommu.h and amd-iommu.h. Follow
-> the same standard for omap-iommu.h.
-> 
-> This is needed because we are removing plat and mach includes
-> for ARM common zImage support. Further work should continue
-> in the iommu framework context as only pure platform data will
-> be communicated from arch/arm/*omap*/* code to the iommu
-> framework.
-> 
-> Cc: Joerg Roedel <joerg.roedel@amd.com>
-> Cc: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Ido Yariv <ido@wizery.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Omar Ramirez Luna <omar.luna@linaro.org>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/iommu2.c               |    1 
->  arch/arm/plat-omap/include/plat/iommu.h    |   10 +--
->  arch/arm/plat-omap/include/plat/iovmm.h    |   89 ----------------------------
->  drivers/iommu/omap-iommu-debug.c           |    2 -
->  drivers/iommu/omap-iommu.c                 |    1 
->  drivers/iommu/omap-iovmm.c                 |   46 ++++++++++++++
->  drivers/media/platform/omap3isp/isp.c      |    1 
->  drivers/media/platform/omap3isp/isp.h      |    2 -
->  drivers/media/platform/omap3isp/ispccdc.c  |    1 
->  drivers/media/platform/omap3isp/ispstat.c  |    1 
->  drivers/media/platform/omap3isp/ispvideo.c |    2 -
+> ps: I'll continue reading the code and further test my series to see
+> if I can understand what you say here.
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+OK.  And please get it working in cases where drivers are using I2C in
+their suspend/resume (and even late/early) paths, and also where device
+runtime PM is disabled from userspace.  All of that works with today's
+code and will not work with your proposed code.
 
-It is better if you send this entire series through the ARM tree, keeping
-this hole series altogether (and avoiding the risk of breaking bisectability
-if it goes through separate trees). So, you can add my ack for those header
-moves for drivers/media/platform/*.
-
-Regards,
-Mauro
-
--- 
-
-Cheers,
-Mauro
+Kevin
