@@ -1,84 +1,117 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 9/9] OMAPDSS: DISPC: cleanup lcd/digit enable/disable
-Date: Thu, 18 Oct 2012 13:09:40 +0300
-Message-ID: <507FD564.6000806@ti.com>
-References: <1350472835-28727-1-git-send-email-tomi.valkeinen@ti.com> <1350472835-28727-10-git-send-email-tomi.valkeinen@ti.com> <507EC2EA.4000402@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv9 8/8] ARM: OMAP4: USB: power down MUSB PHY if not used
+Date: Thu, 18 Oct 2012 13:33:34 +0300
+Message-ID: <20121018103334.GA1449@arwen.pp.htv.fi>
+References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
+ <1350552010-28760-9-git-send-email-t-kristo@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig599D0C9D3C9B32EFC5178784"
+	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52285 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53343 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752559Ab2JRKJq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Oct 2012 06:09:46 -0400
-In-Reply-To: <507EC2EA.4000402@ti.com>
+	id S1755073Ab2JRKjJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Oct 2012 06:39:09 -0400
+Content-Disposition: inline
+In-Reply-To: <1350552010-28760-9-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
---------------enig599D0C9D3C9B32EFC5178784
-Content-Type: text/plain; charset=ISO-8859-1
+--bg08WKrSYDhXBjb5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-10-17 17:38, Archit Taneja wrote:
-> Hi,
+Hi,
+
+On Thu, Oct 18, 2012 at 12:20:10PM +0300, Tero Kristo wrote:
+> Commit c9e4412ab8eb8ef82d645d8749c4ce96ad490007 removed all of the USB
+> PHY functions for OMAP4, but this causes a problem with core retention
+> as the MUSB module remains enabled if omap-usb2 phy driver is not used.
+> This keeps the USB DPLL enabled and prevents l3_init pwrdm from idling.
 >=20
-> On Wednesday 17 October 2012 04:50 PM, Tomi Valkeinen wrote:
-
->> -        if (r)
->> -            DSSERR("failed to register FRAMEDONE isr\n");
->> +    /* if we couldn't register for framedone, just sleep and exit */
->> +    if (r) {
->> +        msleep(200);
+> Fixed by adding a minimal function back that disables the USB PHY in
+> case omap-usb2 driver is not used.
 >=20
-> We sleep for 200 ms if we fail to register for framedone. But we just
-> wait for 100ms for FRAMEDONE to occur. It seems a bit incorrect, both
-> should be kept the same, shouldn't they?
-
-They are just arbitrary numbers, but you're right, it makes more sense
-to have same numbers for both.
-
->> -    r =3D omap_dispc_register_isr(dispc_disable_isr,
->> &frame_done_completion,
->> +    r =3D omap_dispc_register_isr(dispc_mgr_disable_isr, &framedone_c=
-ompl,
->>               irq_mask);
->>       if (r)
->>           DSSERR("failed to register %x isr\n", irq_mask);
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Kishon Vijay Abraham I <kishon@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/omap_phy_internal.c |   27 +++++++++++++++++++++++++=
+++
+>  1 files changed, 27 insertions(+), 0 deletions(-)
 >=20
-> We should probably sleep here too as we did for LCD above.
+> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap=
+2/omap_phy_internal.c
+> index d992db8..6a4b9cf 100644
+> --- a/arch/arm/mach-omap2/omap_phy_internal.c
+> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
+> @@ -33,6 +33,33 @@
+>  #include "soc.h"
+>  #include "control.h"
+> =20
+> +#define CONTROL_DEV_CONF		0x300
+> +#define PHY_PD				0x1
+> +
+> +#ifndef CONFIG_OMAP_USB2
 
-Yep, good point. I'll add that.
+this is a tristate, meaning that can be a module.
 
- Tomi
+> +static int __init omap4430_phy_power_down(void)
+> +{
+> +	void __iomem *ctrl_base;
+> +
+> +	if (!cpu_is_omap44xx())
+> +		return 0;
+> +
+> +	ctrl_base =3D ioremap(OMAP443X_SCM_BASE, SZ_1K);
+> +	if (!ctrl_base) {
+> +		pr_err("control module ioremap failed\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	/* Power down the phy */
+> +	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+> +
+> +	iounmap(ctrl_base);
+> +
+> +	return 0;
+> +}
+> +early_initcall(omap4430_phy_power_down);
+> +#endif
 
+I think you could do it even if the driver is enabled.
 
+Just to make sure I understand the issue right: is the PHY enabled by
+default or did bootloader left this enabled ?
 
+--=20
+balbi
 
---------------enig599D0C9D3C9B32EFC5178784
+--bg08WKrSYDhXBjb5
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQf9VnAAoJEPo9qoy8lh71f2EQAJ6Fkxz0e5W3tsqtSPBs1Z+L
-Lu6HlaUFx4ffs9RPPBzc2ZljxToDQ93pDrrCURiF+FLR7u1q1jY7XUo/mNpofvX0
-ZVFRWvmHyiNwqVqlCPlznRbkEm+06xKEzoIo/DISa2i2xSQt67A5Ky+hqBIu8jYA
-sjUCqO1HNfhiT5wM/mFNLhG3g1DOeI+VstSc5dXqkE404qdND661z/iP/j9munrA
-B9GJDdKHdIl0u98ElpxXlzymfwRl/+a6U8YTFr4h9ftWdO6sPi2bEO8abowTMWB3
-rDytUyY9UbJHQtWHaov865lHRUr8r6Cub/kwbaXMETaJrIGb0Q2jMl+rbOKd7/96
-4d30kteFw8ih2gKddb2KrhL3laSdIfYUP3Bxf2GsYz5SpPj8cVbjyXIa1X11ZUyi
-DfxvSFjkAayJIqQt5lETq6k2pJVH98ah4pTdLPAY1MvpIUIl/h9tG688NXEshgLB
-naxl1JOv9/ZmbxCusOkeyg6vG4tKbSpNk6TblpEKnFOipWsqqAazM3agjqrQazQO
-zgWbRtvzQ+Ws1K1ExEhmnhFPHp4HaGlKD013eGcLJSY2HzMAfcdd4AZ6jG7esT3d
-UtHdVXKOrOSat+sJgkBeWazR+bQ8lcqbR5d9H2/SktMu2ab+ocwhTKwTJEekeb6L
-9U6osxcbihPlntp9lAyi
-=yK20
+iQIcBAEBAgAGBQJQf9r+AAoJEIaOsuA1yqRETPsP/j01FZRbv9oaA6W5qbRfxyAy
+icspkHfBE91+2v6jsSAnRn/LKAfksHeFX2goA/HkmNIJEY+bK5GNwq6XmdhMp3vB
+1piczD6upglU95k2y6rdBbsIOKh5q6K/tgw5aKw8QauRhbnDQ0tP8m1BZqSlCo4F
+cDRIDPecBflhEhVoJQHyw/t1DbhSwGegSWpuX8rSMMjQYCzkInES1BAspQoJux+k
+CjjUio+OxBpaNuUwa18u3nKtJevkyLLsS4zLH1IkRhHo11sWNDRKlxeTUG7AnJaQ
+NrNC0ubabfeQ6dSvAnliMPJ2GevDc9i1FSFGMWv1hBhjDC9mnILi9ZUOoMJcu/Vk
+BhzxVdaNlhdtltSr7CSZ7waXUQSGALYPUmHBLCyoju961t/PBojmWdDYgbGzszyq
+h21YzHQxV0C76UJVNqc8hOnFZ2RhXNg46aeYNZxsyOjOrFSwmd0DUs+Em0STRF/m
+yrVHmFYavWy8JphJ1LJ36Gc9XrPFPkF5OMKN2EOJb/SA9e0ySLCZzdMTFXJvvZ6T
+9omdf0bSWYxZ1SJuhwHxJvsjcZZm42ZpAob1YYcc/vdQ5ubOc82XN1cCb6lbxEWb
+9qRPqhXznLNOLst30ePxq5jjPqx0ATadwJmqkxKhjWqHM37CgLNEWSE2RsPm6Sob
+WF5Qihx+24n5YAFtGks3
+=jpdF
 -----END PGP SIGNATURE-----
 
---------------enig599D0C9D3C9B32EFC5178784--
+--bg08WKrSYDhXBjb5--
