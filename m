@@ -1,82 +1,121 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: discrepancy while save and restore of debounce registers
-Date: Thu, 18 Oct 2012 11:14:56 -0500
-Message-ID: <50802B00.6090907@ti.com>
-References: <1BAFE6F6C881BF42822005164F1491C33EAA9A7C@DBDE01.ent.ti.com> <507F1F21.8040206@ti.com> <1BAFE6F6C881BF42822005164F1491C33EAAA89B@DBDE01.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/5] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
+Date: Thu, 18 Oct 2012 16:16:48 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EB43B17@DBDE01.ent.ti.com>
+References: <cover.1350327320.git.richardcochran@gmail.com>
+ <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com>
+ <507DB9EC.9060407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EAAA89B@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <507DB9EC.9060407@ti.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: "Hunter, Jon" <jon-hunter@ti.com>, Richard Cochran <richardcochran@gmail.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Mohammed, Afzal" <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Gururaja,
+On Wed, Oct 17, 2012 at 01:17:56, Hunter, Jon wrote:
+> 
+> On 10/15/2012 02:16 PM, Richard Cochran wrote:
+> > From: hvaibhav@ti.com <hvaibhav@ti.com>
+> > 
+> > With recent changes in omap gpmc driver code, in case of DT
+> > boot mode, where bootloader does not configure gpmc cs space
+> > will result into kernel BUG() inside gpmc_mem_init() function,
+> > as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
+> > gpmc_config7[0].baseaddress is set to '0' on reset.
+> 
+> I am not sure I completely follow the logic here.
+> 
+> Won't this problem occur if the bootloader does not configure the gpmc
+> cs space AND we are not using DT?
+> 
 
-On 10/18/2012 12:31 AM, Hebbar, Gururaja wrote:
-> Jon,
-> 
-> On Thu, Oct 18, 2012 at 02:42:01, Hunter, Jon wrote:
+That's what exactly the above comment describes.
 
-[snip]
+> Is the csvalid bit set because we are booting from the internal ROM?
+> 
 
->>> My doubt/questions are
->>> 1. Why should debounce registers be updated only when it's accessed previously?
->>
->> If debounce is not being used by any of the gpios, then there is no need
->> to restore them as there are no bits set. So this makes sense and saves
->> a couple register writes.
-> 
-> What I want to know is that other than saving register writes, is there any
-> other important stuff that specifies this requirement.
+As per TRM, the reset value of the CS0_valis bit is set to 0. I have pasted 
+TRM statement below -
 
->From a HW perspective, none that I can see.
+"Chip-select enable (reset value is 1 for CS[0] and 0 for CS[1-5])."
 
->From a SW perspective, yes, as I mentioned if you restore these
-registers without first initialising the context variables where these
-registers are stored, then you may be restoring unknown values to the
-registers and that is bad.
+And same applies to OMAP3 family of devices.
 
->>> 2. What is the relation between updating debounce registers and crash seen on
->>> others registers? 
->>
->> This I am not sure about. I gave this a quick try on my omap3430 beagle
->> board, but I did not see any side-effects from doing this. However, if
->> you are always restoring the debounce context regardless of whether
->> debounce is being used, then you could be writing bad values to the
->> debounce registers as the context variables bank->context.debouce and
->> bank->context.debouce_en may not initialised. So that is bad. However,
->> that said I am still not sure how this could cause a crash.
->>
->> Can you share more details on ...
+> I guess I don't see why csvalid bit being set and a base-address of 0x0
+> should not be allowed. That should be a valid combination.
 > 
-> Sorry for missing below details in first post.
-> 
->> 1. The OMAP platform you are using?
-> 
-> I was trying this on TI AM335x platform (repo below). On AM335x EVM board
-> 
-> http://arago-project.org/git/projects/?p=linux-am33x.git;a=shortlog;
-> h=refs/heads/v3.2-staging
-> 
->> 2. What linux distro/environment you are using?
-> 
-> Arago AM335x PSP release (linux 3.2 + am335x patch-set)
-> 
->> 3. If there are any specific steps to reproduce this 100% of the time?
-> 
-> On top of this tree, try suspend/resume using "echo mem > /syspower/state"
 
-I have a beagle-bone but unfortunately, suspend does not appear to be
-supported in the mainline kernel yet so I am unable to test this on the
-am335x on the mainline.
+Yes, agreed.
 
-Have you compared the gpio driver from your v3.2 branch with the current
-mainline to see how different this code is? Ideally, it would be good to
-test on the mainline kernel for another data point to see if this is
-local to your branch.
+> One problem I see with gpmc_mem_init() is that it assumes that
+> BOOT_ROM_SPACE is 1MB for all devices starting at 0x0 apart from the
+> apollon board. For newer devices such as OMAP4, there is only 48KB of
+> internal ROM and only mapped to 0x0 when booting from internal ROM. So
+> this needs to be fixed.
+> 
+> How much internal ROM does the AM335x have and where is it mapped?
+> 
 
-Cheers
-Jon
+AM33xx memory map is something like,
+
+Boot ROM  0x4000_0000 0x4001_FFFF 128KB
+          0x4002_0000 0x4002_BFFF 48KB    32-bit Ex/R(1) - Public
+Reserved  0x4002_C000 0x400F_FFFF 848KB   Reserved
+Reserved  0x4010_0000 0x401F_FFFF 1MB     Reserved
+Reserved  0x4020_0000 0x402E_FFFF 960KB   Reserved
+Reserved  0x402f_0000 0x4020_03FF 64KB    Reserved
+SRAM internal 0x402F_0400 0x402F_FFFF    32-bit Ex/R/W(1)
+
+
+> > This use-case is applicable for any board/EVM which doesn't have
+> > any peripheral connected to gpmc cs0, for example BeagleXM and
+> > BeagleBone, so DT boot mode fails.
+> > 
+> > This patch adds of_have_populated_dt() check before creating
+> > device, so that for DT boot mode, gpmc probe will not be called
+> > which is expected behavior, as gpmc is not supported yet from DT.
+> 
+> Yes, but we do actually still allow some platform devices to be probed
+> (such as dmtimers) when booting with DT that don't support DT yet. So
+> this change prevents us from using the gpmc on boards when booting with DT.
+> 
+
+The idea here was,
+
+In order to use GPMC in meaningful way, where some peripheral is connected 
+to the GPMC, you must create platform_device for the probe to happen 
+properly. Now all the devices I know so far, we have gpmc_smsc911x_init(), 
+omap_nand_flash_init(), etc...
+These api's are getting called only through machine_desc.init_xxx callbacks,
+And in case of DT, we have centralized machine_desc definition for all 
+platforms (board-generic.c). So even though you want to use GPMC for DT boot
+mode, you can not make use of peripheral without changing board-files to 
+change to create platform_device.
+
+Does it make sense?
+
+> I am not convinced that this is addressing the underlying problem with
+> gpmc_mem_init().
+> 
+
+The patch you submitted is cleanup patch and is required irrespective of 
+this patch. I believe this patch is just makes sure that, if you are booting 
+from DT and you do not have meaningful DT node for GPMC and peripheral 
+interfaced to it, no point in probing it. 
+
+Does it make any sense???
+
+
+On other hand, Your patch is anyway required, as that I would consider as 
+cleanup of existing code (in error handling).
+
+Thanks,
+Vaibhav
+
+> Cheers
+> Jon
+> 
