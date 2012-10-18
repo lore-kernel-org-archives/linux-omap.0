@@ -1,98 +1,82 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH 2/3] RTC: omap-rtc: enable pm_runtime
-Date: Thu, 18 Oct 2012 21:42:55 +0530
-Message-ID: <50802A87.9010409@ti.com>
-References: <1350575631-15523-1-git-send-email-zonque@gmail.com> <1350575631-15523-2-git-send-email-zonque@gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: discrepancy while save and restore of debounce registers
+Date: Thu, 18 Oct 2012 11:14:56 -0500
+Message-ID: <50802B00.6090907@ti.com>
+References: <1BAFE6F6C881BF42822005164F1491C33EAA9A7C@DBDE01.ent.ti.com> <507F1F21.8040206@ti.com> <1BAFE6F6C881BF42822005164F1491C33EAAA89B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38525 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753463Ab2JRQNc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 12:13:32 -0400
-In-Reply-To: <1350575631-15523-2-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EAAA89B@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: rtc-linux@googlegroups.com, a.zummo@towertech.it, koen@dominion.thruhere.net, david-b@pacbell.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hi Gururaja,
 
-
-On 10/18/2012 9:23 PM, Daniel Mack wrote:
-> This is needed as preparation for platforms where using pm runtime usage
-> is mandatory.
+On 10/18/2012 12:31 AM, Hebbar, Gururaja wrote:
+> Jon,
 > 
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> On Thu, Oct 18, 2012 at 02:42:01, Hunter, Jon wrote:
 
-It looks like, you just duplicated effort here.
-RTC patches have been already submitted quite some time back for AM33xx,
-probably you missed to do google before spending time on this.
+[snip]
 
-Patch Series -
-http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg23253.html
-
-
-Denial,
-It would be really helpful if you could test these patches and ack them.
-
-Just FYI, we have bunch of parallel activities going inside team to
-upstream all the patches/module/drivers/features, so to avoid such
-duplication of effort, I suggest you to google for the patches or ping
-on mailing list.
-
-Thanks,
-Vaibhav
-
-> ---
->  drivers/rtc/rtc-omap.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
+>>> My doubt/questions are
+>>> 1. Why should debounce registers be updated only when it's accessed previously?
+>>
+>> If debounce is not being used by any of the gpios, then there is no need
+>> to restore them as there are no bits set. So this makes sense and saves
+>> a couple register writes.
 > 
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index 0b614e3..baa876e 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
-> @@ -17,6 +17,7 @@
->  #include <linux/module.h>
->  #include <linux/ioport.h>
->  #include <linux/delay.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/rtc.h>
->  #include <linux/bcd.h>
->  #include <linux/platform_device.h>
-> @@ -322,6 +323,9 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->  		goto fail;
->  	}
->  
-> +	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_get_sync(&pdev->dev);
-> +
->  	rtc = rtc_device_register(pdev->name, &pdev->dev,
->  			&omap_rtc_ops, THIS_MODULE);
->  	if (IS_ERR(rtc)) {
-> @@ -420,6 +424,8 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
->  		free_irq(omap_rtc_alarm, rtc);
->  
->  	rtc_device_unregister(rtc);
-> +	pm_runtime_put_sync(&pdev->dev);
-> +	pm_runtime_disable(&pdev->dev);
->  	iounmap(rtc_base);
->  	release_mem_region(mem->start, resource_size(mem));
->  	return 0;
-> @@ -442,11 +448,15 @@ static int omap_rtc_suspend(struct platform_device *pdev, pm_message_t state)
->  	else
->  		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
->  
-> +	pm_runtime_put_sync(&pdev->dev);
-> +
->  	return 0;
->  }
->  
->  static int omap_rtc_resume(struct platform_device *pdev)
->  {
-> +	pm_runtime_get_sync(&pdev->dev);
-> +
->  	if (device_may_wakeup(&pdev->dev))
->  		disable_irq_wake(omap_rtc_alarm);
->  	else
+> What I want to know is that other than saving register writes, is there any
+> other important stuff that specifies this requirement.
+
+>From a HW perspective, none that I can see.
+
+>From a SW perspective, yes, as I mentioned if you restore these
+registers without first initialising the context variables where these
+registers are stored, then you may be restoring unknown values to the
+registers and that is bad.
+
+>>> 2. What is the relation between updating debounce registers and crash seen on
+>>> others registers? 
+>>
+>> This I am not sure about. I gave this a quick try on my omap3430 beagle
+>> board, but I did not see any side-effects from doing this. However, if
+>> you are always restoring the debounce context regardless of whether
+>> debounce is being used, then you could be writing bad values to the
+>> debounce registers as the context variables bank->context.debouce and
+>> bank->context.debouce_en may not initialised. So that is bad. However,
+>> that said I am still not sure how this could cause a crash.
+>>
+>> Can you share more details on ...
 > 
+> Sorry for missing below details in first post.
+> 
+>> 1. The OMAP platform you are using?
+> 
+> I was trying this on TI AM335x platform (repo below). On AM335x EVM board
+> 
+> http://arago-project.org/git/projects/?p=linux-am33x.git;a=shortlog;
+> h=refs/heads/v3.2-staging
+> 
+>> 2. What linux distro/environment you are using?
+> 
+> Arago AM335x PSP release (linux 3.2 + am335x patch-set)
+> 
+>> 3. If there are any specific steps to reproduce this 100% of the time?
+> 
+> On top of this tree, try suspend/resume using "echo mem > /syspower/state"
+
+I have a beagle-bone but unfortunately, suspend does not appear to be
+supported in the mainline kernel yet so I am unable to test this on the
+am335x on the mainline.
+
+Have you compared the gpio driver from your v3.2 branch with the current
+mainline to see how different this code is? Ideally, it would be good to
+test on the mainline kernel for another data point to see if this is
+local to your branch.
+
+Cheers
+Jon
