@@ -1,98 +1,83 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/NOT FOR MERGING 4/5] i2c: omap: don't re-enable IRQs after
- masking them
-Date: Thu, 18 Oct 2012 20:07:39 +0300
-Message-ID: <20121018170739.GC6641@arwen.pp.htv.fi>
+Subject: Re: [RFC/NOT FOR MERGING 3/5] arm: omap: introduce other PM methods
+Date: Thu, 18 Oct 2012 20:23:50 +0300
+Message-ID: <20121018172350.GA6914@arwen.pp.htv.fi>
 References: <1350488043-5053-1-git-send-email-balbi@ti.com>
- <1350488043-5053-5-git-send-email-balbi@ti.com>
- <874nlrg101.fsf@deeprootsystems.com>
+ <1350488043-5053-4-git-send-email-balbi@ti.com>
+ <878vb3g14c.fsf@deeprootsystems.com>
+ <20121018170640.GB6641@arwen.pp.htv.fi>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8X7/QrJGcKSMr1RN"
+	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43934 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44812 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757290Ab2JRRNP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Oct 2012 13:13:15 -0400
+	id S932199Ab2JRR30 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Oct 2012 13:29:26 -0400
 Content-Disposition: inline
-In-Reply-To: <874nlrg101.fsf@deeprootsystems.com>
+In-Reply-To: <20121018170640.GB6641@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---8X7/QrJGcKSMr1RN
+--gKMricLos+KVdGMg
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 18, 2012 at 10:10:06AM -0700, Kevin Hilman wrote:
-> Felipe Balbi <balbi@ti.com> writes:
->=20
-> > OMAP I2C driver will re-enable IRQs right after
-> > masking them during suspend.
-> >
-> > That's not what we want. We want to keep IRQs
-> > masked until our resume method is called.
-> >
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  drivers/i2c/busses/i2c-omap.c | 10 ++--------
-> >  1 file changed, 2 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
-p.c
-> > index db31eae..7eeae11 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -1247,14 +1247,8 @@ static int omap_i2c_runtime_suspend(struct devic=
-e *dev)
-> > =20
-> >  	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-> > =20
-> > -	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
-> > -		iv =3D omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
-> > -	} else {
-> > -		omap_i2c_write_reg(_dev, OMAP_I2C_STAT_REG, _dev->iestate);
-> > -
-> > -		/* Flush posted write */
-> > -		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
-> > -	}
->=20
-> Are you sure this re-enables the interrupt?  It looks to me like
-> it's meant to clear the interrupt.   =20
->=20
-> > +	/* Flush posted write */
-> > +	omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
->=20
-> Assuming the above is correct, should this be IE_REG?
+Hi,
 
-indeed. My eyes failed. This patch can be thrown away. My bad.
+On Thu, Oct 18, 2012 at 08:06:40PM +0300, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Thu, Oct 18, 2012 at 10:07:31AM -0700, Kevin Hilman wrote:
+> > Felipe Balbi <balbi@ti.com> writes:
+> >=20
+> > > current omap_device PM implementation defines
+> > > omap-specific *_noirq methods but uses the
+> > > generic versions for all other PM methods.
+> > >
+> > > As it turns out, if a device decides to implement
+> > > non-runtime PM callbacks, we might fall into a
+> > > situation where the hwmod is still idled which
+> > > will generate an abort exception when we try
+> > > to access device's address space while clocks
+> > > are still gated.
+> >=20
+> > Please explain in more detail how this could happen.
+>=20
+> just follow the patchset. If I implement system suspend and I'm not
+> focefully calling runtime_* methods, who will be there to call
+> omap_device_enable() ?
+
+let me rephrase this. If we exit _noirq right in the beginning with the
+extra check I've added, who will call omap_device_enable() ?
 
 --=20
 balbi
 
---8X7/QrJGcKSMr1RN
+--gKMricLos+KVdGMg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQgDdbAAoJEIaOsuA1yqREMKYP/ia/NWBenh+kzw2NoLLsa8eg
-NAYLxEFFk3LJ0rkfSaBMMIfgYFAT7wJdicjN6JNP3lOVV5eIVfiBKdALC620lKEp
-IxbZAgEi9AwTQQsnNnX73OiY7MxZcZLrAhm2cV7alCBgJxxedWcYUgrHBmxQP4b4
-LZVGKACF7kXjAm9FhyuVN5JTPC2aOuzgoR0/spHLtqlbEeoHddzJQ3rQYAdJtoaB
-nzahuNL3L+N4FpYTIbJOeblQlhwHHN6ROhycA9HLO9bgen2lyuJGD8VWTQh8ZE9z
-wWwdiXiZInYqTAYQFJl8ZjWhFzhjMirGZKjh5FNXm9wapEUpvacbmitGjEB+x/5T
-dCsv2PUAcBEqsjo53Ab8kW/3cpGfv62QsVEt3505Ie28T/fsYSsYo1LlpOo4nJsm
-5aTB3AMlnfnDLdORtz8U5srC/u3V3uPIetB4gM7sa4eB/srZdbTBee7EPSVuARq8
-qN9RHrz9+IpW5k1qiFdZZg0nPBggmBbnOxzn0dANLagqytcz8lc2wFx4YYVvEDer
-+e35O8zJXcfJx4wFbmm+/8dIhyqcdi5etKTPT+jJRVtZQeL7pkHj34fTgdrIaptb
-Qds4557rGr21bOR+hbO4sqQwwfPMl2othYp1VuDY5mij+O1Cj68JeRx0+F8aIMgF
-jWT539YsXzuaA23bJBOn
-=stoa
+iQIcBAEBAgAGBQJQgDsmAAoJEIaOsuA1yqRE2ZIP/jf4YxGZfhSPh/zO0hblXcgA
+8D0Hu5zlI0RxIvFK43WIBS4WOWTpEHUT1ZSQClWPsNlDJTzg5lYn4dFeLYrUxAoQ
+zgkGzg37qCvBvKeXJkASWpNCZ6K6XeY8N/zk5oc6T+yAIaWOCCCqAwU8sjniB0Z9
+fN7xCEy/AGO/Z4M9bWFGGdYA+W8XIosEcigpEhtS30bGU/wVJGkIFAI6q9W+oPhi
+qYCaSypMdDztqenQM3dLQSq6QpZvpgYDFTOjkKMraX10QVDsd0WIC3ylVX6vxp09
+mQ2VG0FxTkd+Uldn/eg41HGPGHYYVqgbvrSTqLp9og2AU03m6VVsm6E+sInE0sCn
+SzMAJL1wMXy0oG1tZRAAjqMlwvYQzgloYVOS4iwsF8EkjE1jF7WJ+FSU79hG5SDe
+8l8rLvsY4enTUTsqvj47Y3frepEUoMqQPLJXvMEcmkdtlKhcxQxiVbZFXP5DEXJB
+Nahe9r4ItX/WXIreRLwBjH/W6CyMQLGj5jkwISA9EA1x3A2hbFovG7J6fhZOGc0W
+9a3DPQH17xfKkCAvrWuHS7uMyT7SiGIY3YzdYhL05jlDd2vFgH76QNIHCI3iHbwr
+HhcbaZk3AURnSAGqTafCsANtPazvXqUVxWs1OoGvkMhp3VvI09nHOFS7oeA5T8st
+J+QzPRr8UMobBGKb8+J5
+=NtNe
 -----END PGP SIGNATURE-----
 
---8X7/QrJGcKSMr1RN--
+--gKMricLos+KVdGMg--
