@@ -1,77 +1,57 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH] ARM: dts: AM33XX: Add tsl2550 ambient light sensor DT
- data
-Date: Thu, 18 Oct 2012 10:08:30 +0200
-Message-ID: <507FB8FE.6010003@ti.com>
-References: <1348242551-21293-1-git-send-email-anilkumar@ti.com> <331ABD5ECB02734CA317220B2BBEABC13EA53C2B@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH 2/5] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for davinci_mdio
+Date: Thu, 18 Oct 2012 10:30:36 +0200
+Message-ID: <41EC10C9-F961-40EA-992E-1D765F70BE03@dominion.thruhere.net>
+References: <20121017181354.GA2412@netboy.at.omicron.at> <alpine.DEB.2.00.1210172337170.30902@utopia.booyaka.com> <20121017235045.GB30550@atomide.com> <20121018030654.GE2867@netboy.at.omicron.at>
+Mime-Version: 1.0 (Mac OS X Mail 6.1 \(1498\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35367 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752633Ab2JRIIg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Oct 2012 04:08:36 -0400
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA53C2B@DBDE01.ent.ti.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:62384 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752619Ab2JRIak convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 04:30:40 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hq12so1780104wib.1
+        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 01:30:38 -0700 (PDT)
+In-Reply-To: <20121018030654.GE2867@netboy.at.omicron.at>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-Hi Anil,
 
-On 10/18/2012 07:46 AM, AnilKumar, Chimata wrote:
-> On Fri, Sep 21, 2012 at 21:19:11, AnilKumar, Chimata wrote:
->> Add tsl2550 ambient light sensor DT data to am335x-evm.dts. In AM335x
->> EVM tsl2550 ambient light sensor is connected to I2C2 bus. So this patch
->> adds child node inside i2c2 node with i2c slave address.
->>
->> TAOS tsl2550 sensor with two-wire SMBus serial interface. This patch
->> also reduces I2C2 clock frequency to 100KHz from 400KHz because the
->> maximum clock frequency of SMBus is 100KHz.
->>
->> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->> ---
->>  arch/arm/boot/dts/am335x-evm.dts |    7 ++++++-
->>  1 file changed, 6 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
->> index 3b1f313..d99aa0f 100644
->> --- a/arch/arm/boot/dts/am335x-evm.dts
->> +++ b/arch/arm/boot/dts/am335x-evm.dts
->> @@ -49,7 +49,7 @@
->>  
->>  		i2c2: i2c@4802a000 {
->>  			status = "okay";
->> -			clock-frequency = <400000>;
->> +			clock-frequency = <100000>;
->>  
->>  			lis331dlh: lis331dlh@18 {
->>  				compatible = "st,lis331dlh", "st,lis3lv02d";
->> @@ -79,6 +79,11 @@
->>  				st,max-limit-z = <750>;
->>  			};
->>  
->> +			tsl2550: tsl2550@39 {
->> +				compatible = "taos,tsl2550";
->> +				reg = <0x39>;
->> +			};
->> +
->>  			tmp275: tmp275@48 {
->>  				compatible = "ti,tmp275";
->>  				reg = <0x48>;
+Op 18 okt. 2012, om 05:06 heeft Richard Cochran <richardcochran@gmail.com> het volgende geschreven:
+
+> On Wed, Oct 17, 2012 at 04:50:46PM -0700, Tony Lindgren wrote:
+>> * Paul Walmsley <paul@pwsan.com> [121017 16:39]:
+>>> Hi Richard
+>>> 
+>>> On Wed, 17 Oct 2012, Richard Cochran wrote:
+>>> 
+>>>> Would you please take this bugfix for 3.7-rc2? The suggestion to mail
+>>>> you came from Toni Lindgren. The context where it came from is here:
+>>>> 
+>>>> http://lists.arm.linux.org.uk/lurker/message/20121015.191630.bdae3c50.en.html
+>>> 
+>>> This patch appears to add a new feature, correct?  I don't think the CPSW 
+>>> could have worked in the past without this data present.  So it looks to 
+>>> me like this is 3.8 material, unless Tony would like it to go in sooner?
+>> 
+>> Yeah unless it fixes something, we should just queue it for v3.8 merge
+>> window.
 > 
-> Hi Tony/Benoit,
+> So there has been this cpsw driver since v3.4-rc1~177^2~5
 > 
-> If there are no comments in this patch could you please take this in?
+>   df82859 netdev: driver: ethernet: Add TI CPSW driver
+> 
+> and four people signed off on it, so it must have been working at one
+> point. Since the device tree make-over, the driver is a derelict, and
+> thus the present patch is fixing a regression.
 
-Have you updated the binding documentation to list the device?
+Have a look at the tscadc driver for am335x that has had a few rounds of review. That one lacks DT bindings, so it can't be tested on this DT only platform. That a driver has been accepted in mainline does not mean it works, for am335x it just means that it compiles.
 
-It should be in:
-Documentation/devicetree/bindings/i2c/trivial-devices.txt
+The patches I needed to get cpsw to work on beaglebone: https://github.com/beagleboard/kernel/tree/3.7/patches/cpsw
 
-Please Cc as well the DT ml.
+regards,
 
-Regards,
-Benoit
-
+Koen
