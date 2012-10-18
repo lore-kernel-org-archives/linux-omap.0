@@ -1,133 +1,76 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/NOT FOR MERGING 2/5] arm: omap: don't forcefully runtime
- suspend a device
-Date: Thu, 18 Oct 2012 20:05:50 +0300
-Message-ID: <20121018170550.GA6641@arwen.pp.htv.fi>
+Subject: Re: [RFC/NOT FOR MERGING 3/5] arm: omap: introduce other PM methods
+Date: Thu, 18 Oct 2012 20:06:40 +0300
+Message-ID: <20121018170640.GB6641@arwen.pp.htv.fi>
 References: <1350488043-5053-1-git-send-email-balbi@ti.com>
- <1350488043-5053-3-git-send-email-balbi@ti.com>
- <87fw5bg1f7.fsf@deeprootsystems.com>
+ <1350488043-5053-4-git-send-email-balbi@ti.com>
+ <878vb3g14c.fsf@deeprootsystems.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
+	protocol="application/pgp-signature"; boundary="kXdP64Ggrk/fb43R"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47840 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43855 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932391Ab2JRRLY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Oct 2012 13:11:24 -0400
+	id S932702Ab2JRRMP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Oct 2012 13:12:15 -0400
 Content-Disposition: inline
-In-Reply-To: <87fw5bg1f7.fsf@deeprootsystems.com>
+In-Reply-To: <878vb3g14c.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
---u3/rZRmxL6MmkK24
+--kXdP64Ggrk/fb43R
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Oct 18, 2012 at 10:01:00AM -0700, Kevin Hilman wrote:
+On Thu, Oct 18, 2012 at 10:07:31AM -0700, Kevin Hilman wrote:
 > Felipe Balbi <balbi@ti.com> writes:
 >=20
-> > device drivers should be smart enough to provide
-> > ->suspend/->resume callbacks when needed and they
-> > should take care of doing whatever needs to be
-> > done in order to allow a device to be suspended.
+> > current omap_device PM implementation defines
+> > omap-specific *_noirq methods but uses the
+> > generic versions for all other PM methods.
 > >
-> > Calling pm_runtime_* from system suspend isn't
-> > the right way to achieve that, as it creates a
-> > situation where OMAP's PM has different requirements
-> > and semantics than all other architectures.
-> >
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > As it turns out, if a device decides to implement
+> > non-runtime PM callbacks, we might fall into a
+> > situation where the hwmod is still idled which
+> > will generate an abort exception when we try
+> > to access device's address space while clocks
+> > are still gated.
 >=20
-> NAK
->=20
-> This support is required to handle some restrictions placed on runtime
-> PM and system PM interactions.   Basically, runtime PM transitions are
-> disabled part way through system PM (that itself was a much debated
-> topic last year, but that's how it works today.)
->=20
-> Because of this limitation, drivers that are active during the suspend
-> phase (commonly becasue they are used by [late] suspend methods of other
-> devices) may have multiple runtime PM transitions during static
-> suspend/resume.  These drivers have the problem that after runtime PM
-> has been disabled, even when they pm_runtime_put*, they will not
-> actually be transitioned (and their runtime PM callbacks will not be
-> called.)
->=20
-> So these devices are in a "ready to runtime suspend" state, but they
-> will not transition because runtime PM is disabled.
->=20
-> After your patch, they will still be idled (omap_device_idle), but the
-> driver will have no notification that this has happened because you
-> removed the calling of the runtime PM callbacks.
+> Please explain in more detail how this could happen.
 
-to me this only seems like the driver misses some static PM callbacks
-and some pm_runtime_disable; pm_runtime_set_active; pm_runtime_enable;
-on their system resume methods.
-
-> In the changelog, you seem to be implying that anything the driver
-> should be doing should be done in its suspend/resume callbacks instead
-> of the runtime suspend/resume callbacks (but don't give your reasoning.)
-
-that's not what I implied at all. What I imply is that if driver needs
-to do something during system suspend/resume, then it needs to implement
-those methods. Calling runtime_* methods from system PM looks like a
-workaround for incomplete drivers.
-
-> Using the current approach (which was actually suggested by Rafael), it
-> means many transiactional drivers (like I2C) can be implemented as
-> runtime PM only, and don't need to provide suspend/resume callbacks at
-
-to me that sounds bogus :-s what's the problem of using the same
-function for system suspend and runtime suspend ? (see the last patch of
-the series where I implement I2C system suspend and resume)
-
-> all.  It also means they can be used throughout the suspend/resume path
-> (well until noirq methods.)
-
-fair enough...
-
-> The approach in $SUBJECT patch would mean that drivers should not be
-> used after their suspend method has been called.  That places some
-> severe limitations on drivers like I2C, SPI, HSI, UART etc. that are
-> often used by the suspend/resume methods of other drivers.
-
-I can't see the limitation you talk about. Let's use I2C as an example.
-In order to suspend RTC we need I2C resume, but driver core guarantees
-that parent will only suspend after all children are suspended. If
-that's as far as _noirq, then I2C needs to implement _noirq callbacks.
-
-I don't see the issue because RTC is a child of I2C and will suspend
-before its parent. No ?
+just follow the patchset. If I implement system suspend and I'm not
+focefully calling runtime_* methods, who will be there to call
+omap_device_enable() ?
 
 --=20
 balbi
 
---u3/rZRmxL6MmkK24
+--kXdP64Ggrk/fb43R
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQgDbtAAoJEIaOsuA1yqREdKcP/iTtkvovOtLEQEnya+xBWuaS
-T+6iGEzG0cu3SprcFGigt1t4jAR8zWVgFsCTdRvpB8cTIrYoe/NxAHWuV4NQG4Gn
-T4Q+Nv6225qx91HtABXdflHouWcmIOPkSIhe0X1rUcA51PgP3RXaHMoO0GzZ2FFP
-I2u9kmYLZwYd8ZXDWH51WI3N58xgAfKrEFM6p86kv3gwYX51qfibOGBeTxgaLfs8
-IYa9KmkBf+ix/FEY3RfuvPYjrI7FIVbcKAzVg5+6Uuh1TCWaaxwUBAj5X6yxptkl
-J1s5ZXO8w/aYEGHQMyrwaT7XnRzC4fZ9Z77w6hEOzDXPXMk9HMP2RlOswTqwIK3f
-p6SSZJdOWCFsoPsOQzrZlxIevhkMyLJ1tFIlIYPWd2nRNWRruK6SQlwGN8rqJZvu
-uzNSDRFGjltcFp3uOwAJFS+XgV+AAaPRF8pG3fB++cPiljRjg0V8zTripDoHUASC
-cuHSA+lCTnYIIpzwwwAUa9eBhyITninW6yeksLAlxVPzN1kBPUCQ9FyPnqXfVx+e
-PFgqH3VFY0Cws1fNdL46muypcYqae2fm3xUau7Ji/k5GdBHp/Z+iD6qQl4j0sZjK
-KH0iqzi/FzcfBXtZSZuchFIeeTgnjqLD/u7WiPK7nFbxVvukEdsLoRlEL18UMeDE
-WHOPgWaJBuFi0ug+PCvU
-=bCpI
+iQIcBAEBAgAGBQJQgDcgAAoJEIaOsuA1yqRETCIP/ifeThxUk1pGVo41CY4O4GIe
+/uJrTeO5ZJw3go8h54CWBtCgitmy5uuQq6QfOswm9MWD8yESIwPndjUrLg8ervBP
+qIHHSc/wBGCmO7TlaCeW+cMpCMj/io9EqyuzMs4oLBv3K/AFM0PRLGZ61Ecdxsnc
+gOpSUc3KSBF7odlHTDn0d1Z2g8zNRfBJYSwVXXmv7YB0zSMSyhIv2PNcSiSuOUnB
+bgK4eHkobfm2s4lW8Mb0GgirgzbAVz0tqPEmxSACT3Pn8Qc62iLqa6SGGbSzwTiX
+lvfG/Nv8IZI4nRqLScYnaGOo3VHtamLlXetQaRh9TkNp3+ZSwcUJZKgmjZdWPzVc
+78SQUC/oxcXLHOGnk5OFRHj1Bu3BxZWnAQWNkLnPGIoymA6/4CjmC663OwMiThLG
+mBASClPrzg9/QAYL3YussBvn/zb1oQHpYhq74gN6QQWm8M57/JaxJhM+REn5nB5F
+8ySc93U1OkhNAekaAsJXk/KWgbbbHwjOpqEHHyFKzPIvib9tRx7j+ISC8v74y7qq
+aqbqcHb7aXW3EJldoLDKxDoowjZtMETHeKmRcobZpNn/OKNbX/SCQ0/fPauQ2vbR
+azdUpvL6tfQY5OtCDRmRiAfsXL4m1jqkRdtwk55vi9vukGwLu8lWBzJ6AMkHw0rB
+ERA6a+++LeHJcEM5wb8V
+=Qs5f
 -----END PGP SIGNATURE-----
 
---u3/rZRmxL6MmkK24--
+--kXdP64Ggrk/fb43R--
