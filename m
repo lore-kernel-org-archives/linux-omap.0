@@ -1,58 +1,106 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about serial stuff)
-Date: Thu, 18 Oct 2012 18:58:30 +0200
-Message-ID: <CAK=Wgba_-k0kCHah6t6L4=qt838j30ZRVRbgAdJ1yzHDyA8frw@mail.gmail.com>
-References: <20121012155434.GO28061@n2100.arm.linux.org.uk>
- <20121012162452.GD30339@atomide.com> <CAK=Wgba087mdaYhvKNUAy6H8rAb+owTAz1yqexEtDg+f06kJdg@mail.gmail.com>
- <20121016181038.GC15569@atomide.com> <20121016182642.GF15569@atomide.com>
- <CAK=WgbaQ-0V2htnmyCAzBco-sZVWN3WR2mhABGZNaYU6uM1wgg@mail.gmail.com> <507EA7DB.3070207@compulab.co.il>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC/NOT FOR MERGING 2/5] arm: omap: don't forcefully runtime suspend a device
+Date: Thu, 18 Oct 2012 10:01:00 -0700
+Message-ID: <87fw5bg1f7.fsf@deeprootsystems.com>
+References: <1350488043-5053-1-git-send-email-balbi@ti.com>
+	<1350488043-5053-3-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:59060 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932338Ab2JRQ6w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 12:58:52 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so5714481vcb.19
-        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 09:58:51 -0700 (PDT)
-In-Reply-To: <507EA7DB.3070207@compulab.co.il>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:55131 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932408Ab2JRRAp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 13:00:45 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so8533654pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 10:00:45 -0700 (PDT)
+In-Reply-To: <1350488043-5053-3-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Wed, 17 Oct 2012 18:34:00 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Afzal Mohammed <afzal@ti.com>, =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi Igor,
+Felipe Balbi <balbi@ti.com> writes:
 
-On Wed, Oct 17, 2012 at 2:43 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
-> You are adding declarations inside the common-board-devices.h,
-> but the implementation inside the devices.c.
-> I can see that devices.c has only on-soc devices in it.
-> So, I would expect to have the wl12xx_board_init() function implementation
-> inside the common-board-devices.c file.
+> device drivers should be smart enough to provide
+> ->suspend/->resume callbacks when needed and they
+> should take care of doing whatever needs to be
+> done in order to allow a device to be suspended.
+>
+> Calling pm_runtime_* from system suspend isn't
+> the right way to achieve that, as it creates a
+> situation where OMAP's PM has different requirements
+> and semantics than all other architectures.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-I really don't mind. Tony do you have any preference?
+NAK
 
-> Another minor nit: I don't think you need to mark the declaration as __init,
-> only the implementation, or is it for documenting it so?
+This support is required to handle some restrictions placed on runtime
+PM and system PM interactions.   Basically, runtime PM transitions are
+disabled part way through system PM (that itself was a much debated
+topic last year, but that's how it works today.)
 
-It may be, but I don't really mind removing it. Let's remove it if
-we'll move to common-board-devices.c, otherwise it probably isn't
-worth the noise.
+Because of this limitation, drivers that are active during the suspend
+phase (commonly becasue they are used by [late] suspend methods of other
+devices) may have multiple runtime PM transitions during static
+suspend/resume.  These drivers have the problem that after runtime PM
+has been disabled, even when they pm_runtime_put*, they will not
+actually be transitioned (and their runtime PM callbacks will not be
+called.)
 
-> Instead of the above, wouldn't it be better to have:
-> #if defined(CONFIG_WL12XX_PLATFORM_DATA)
-> int __init wl12xx_board_init(struct wl12xx_platform_data *wlan_data, int irq_gpio)
-> {
-> ...
-> }
-> #else
-> inline int wl12xx_board_init(struct wl12xx_platform_data *wlan_data, int irq_gpio)
-> {
->         return 0;
-> }
-> #endif
+So these devices are in a "ready to runtime suspend" state, but they
+will not transition because runtime PM is disabled.
 
-I think readability-wise we're probably better off without the #ifdef.
+After your patch, they will still be idled (omap_device_idle), but the
+driver will have no notification that this has happened because you
+removed the calling of the runtime PM callbacks.
 
-Thanks,
-Ohad.
+In the changelog, you seem to be implying that anything the driver
+should be doing should be done in its suspend/resume callbacks instead
+of the runtime suspend/resume callbacks (but don't give your reasoning.)
+
+Using the current approach (which was actually suggested by Rafael), it
+means many transiactional drivers (like I2C) can be implemented as
+runtime PM only, and don't need to provide suspend/resume callbacks at
+all.  It also means they can be used throughout the suspend/resume path
+(well until noirq methods.)
+
+The approach in $SUBJECT patch would mean that drivers should not be
+used after their suspend method has been called.  That places some
+severe limitations on drivers like I2C, SPI, HSI, UART etc. that are
+often used by the suspend/resume methods of other drivers.
+
+Kevin
+
+> ---
+>  arch/arm/plat-omap/omap_device.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 935f416..cd84eac 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -817,11 +817,9 @@ static int _od_suspend_noirq(struct device *dev)
+>  	ret = pm_generic_suspend_noirq(dev);
+>  
+>  	if (!ret && !pm_runtime_status_suspended(dev)) {
+> -		if (pm_generic_runtime_suspend(dev) == 0) {
+> -			if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+> -				omap_device_idle(pdev);
+> -			od->flags |= OMAP_DEVICE_SUSPENDED;
+> -		}
+> +		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+> +			omap_device_idle(pdev);
+> +		od->flags |= OMAP_DEVICE_SUSPENDED;
+>  	}
+>
+>  	return ret;
+> @@ -841,7 +839,6 @@ static int _od_resume_noirq(struct device *dev)
+>  		od->flags &= ~OMAP_DEVICE_SUSPENDED;
+>  		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
+>  			omap_device_enable(pdev);
+> -		pm_generic_runtime_resume(dev);
+>  	}
+>  
+>  	return pm_generic_resume_noirq(dev);
