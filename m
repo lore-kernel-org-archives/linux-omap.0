@@ -1,178 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/6] ARM: OMAP2+: Move iommu/iovmm headers to platform_data
-Date: Thu, 18 Oct 2012 13:28:51 -0700
-Message-ID: <20121018202851.11834.89709.stgit@muffinssi.local>
-References: <20121018202707.11834.1438.stgit@muffinssi.local>
+Subject: Re: [PATCH 3/4] ARM: OMAP2+: Move iommu/iovmm headers to
+ platform_data
+Date: Thu, 18 Oct 2012 13:30:29 -0700
+Message-ID: <20121018203028.GE30550@atomide.com>
+References: <20121016003513.19701.71718.stgit@muffinssi.local>
+ <20121016003640.19701.51749.stgit@muffinssi.local>
+ <1418726.Yza1yb71Ul@avalon>
+ <20121018162512.GD30550@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59243 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932126Ab2JRU25 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 16:28:57 -0400
-In-Reply-To: <20121018202707.11834.1438.stgit@muffinssi.local>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:15396 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754659Ab2JRUag (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 16:30:36 -0400
+Content-Disposition: inline
+In-Reply-To: <20121018162512.GD30550@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Move iommu/iovmm headers from plat/ to platform_data/ as part of the
-single zImage work.
+* Tony Lindgren <tony@atomide.com> [121018 09:27]:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121018 06:45]:
+> > Hi,
+> > 
+> > On Monday 15 October 2012 17:36:40 Tony Lindgren wrote:
+> > > From: Ido Yariv <ido@wizery.com>
+> > > 
+> > > Move iommu/iovmm headers from plat/ to platform_data/ as part of the
+> > > single zImage work.
+> > 
+> > Is that really where those headers belong ? iommu-omap.h contains far more 
+> > than platform data, and iovmm-omap.h contains no platform data at all.
+> 
+> Hmm I though that was already fixed by Ido but looks like there are
+> non-platform data things still remaining there.
+> 
+> Looking at arch/arm/mach-omap2/iommu2.c it seems that it should moved to
+> drivers/iommu/omap-iommu2.c and that way most of the header can be local
+> in drivers/iommu/omap-iommu.h. I'll do some patches for that and repost.
 
-Partially based on an earlier version by Ido Yariv <ido@wizery.com>.
+I ended up solving the iovmm-omap.h issue by adding include/linux/omap-iommu.h
+like intel and amd have.
 
-Cc: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Ido Yariv <ido@wizery.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/devices.c              |    2 +-
- arch/arm/mach-omap2/omap-iommu.c           |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
- drivers/iommu/omap-iommu-debug.c           |    3 +--
- drivers/iommu/omap-iommu.c                 |    2 +-
- drivers/iommu/omap-iommu2.c                |    2 +-
- drivers/iommu/omap-iovmm.c                 |    3 +--
- drivers/media/platform/omap3isp/ispvideo.c |    1 -
- include/linux/platform_data/iommu-omap.h   |    0 
- 10 files changed, 8 insertions(+), 11 deletions(-)
- rename arch/arm/plat-omap/include/plat/iommu.h => include/linux/platform_data/iommu-omap.h (100%)
+Reposted the series as "[PATCH v3 0/6] omap iommu changes to remove plat includes".
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c8c2117..6cd0c2a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -126,7 +126,7 @@ static struct platform_device omap2cam_device = {
- 
- #if defined(CONFIG_IOMMU_API)
- 
--#include <plat/iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- static struct resource omap3isp_resources[] = {
- 	{
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index df298d4..a6a4ff8 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -13,7 +13,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- 
--#include <plat/iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- #include "soc.h"
- #include "common.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index f67b7ee..621bc71 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -26,8 +26,8 @@
- #include <plat/mmc.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
-+#include <linux/platform_data/iommu-omap.h>
- #include <plat/dmtimer.h>
--#include <plat/iommu.h>
- 
- #include "am35xx.h"
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 652d028..5850b3e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -27,10 +27,10 @@
- #include <plat/dma.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
-+#include <linux/platform_data/iommu-omap.h>
- #include <plat/mmc.h>
- #include <plat/dmtimer.h>
- #include <plat/common.h>
--#include <plat/iommu.h>
- 
- #include "omap_hwmod_common_data.h"
- #include "cm1_44xx.h"
-diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-index d0427bd..d97fbe4 100644
---- a/drivers/iommu/omap-iommu-debug.c
-+++ b/drivers/iommu/omap-iommu-debug.c
-@@ -19,8 +19,7 @@
- #include <linux/platform_device.h>
- #include <linux/debugfs.h>
- #include <linux/omap-iommu.h>
--
--#include <plat/iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- #include "omap-iopgtable.h"
- #include "omap-iommu.h"
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index df84087..badc17c 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -26,7 +26,7 @@
- 
- #include <asm/cacheflush.h>
- 
--#include <plat/iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- #include "omap-iopgtable.h"
- #include "omap-iommu.h"
-diff --git a/drivers/iommu/omap-iommu2.c b/drivers/iommu/omap-iommu2.c
-index 4d8d91d..3642cf2 100644
---- a/drivers/iommu/omap-iommu2.c
-+++ b/drivers/iommu/omap-iommu2.c
-@@ -19,8 +19,8 @@
- #include <linux/stringify.h>
- #include <linux/io.h>
- #include <linux/omap-iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
--#include <plat/iommu.h>
- #include "omap-iommu.h"
- 
- /*
-diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
-index 3e3b242..46d87569 100644
---- a/drivers/iommu/omap-iovmm.c
-+++ b/drivers/iommu/omap-iovmm.c
-@@ -18,12 +18,11 @@
- #include <linux/scatterlist.h>
- #include <linux/iommu.h>
- #include <linux/omap-iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- #include <asm/cacheflush.h>
- #include <asm/mach/map.h>
- 
--#include <plat/iommu.h>
--
- #include "omap-iopgtable.h"
- #include "omap-iommu.h"
- 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 2853bef..3bfa245 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -35,7 +35,6 @@
- #include <linux/omap-iommu.h>
- #include <media/v4l2-dev.h>
- #include <media/v4l2-ioctl.h>
--#include <plat/iommu.h>
- #include <plat/omap-pm.h>
- 
- #include "ispvideo.h"
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/include/linux/platform_data/iommu-omap.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/plat/iommu.h
-rename to include/linux/platform_data/iommu-omap.h
+Regards,
 
+Tony
