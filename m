@@ -1,76 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.7-rc1
-Date: Thu, 18 Oct 2012 06:48:44 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210180644170.15666@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
+From: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: OMAP: i2c: fix interrupt flood during resume
+Date: Thu, 18 Oct 2012 09:51:13 +0300
+Message-ID: <1350543073.2014.35.camel@kj-X230>
+References: <1349871480-25182-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+	 <87ipag90om.fsf@deeprootsystems.com>
+	 <20121017160200.GA6567@arwen.pp.htv.fi>
+Reply-To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47975 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754351Ab2JRGsp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 02:48:45 -0400
-In-Reply-To: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121017160200.GA6567-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grygorii.strashko-l0cyMroinI0@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 18 Oct 2012, Paul Walmsley wrote:
-
-> Here are some basic OMAP test results for Linux v3.7-rc1.
-> Logs and other details at http://www.pwsan.com/omap/testlogs/test_v3.7-rc1/
-
-A few additional observations missing from the original message.
-
-> Failing tests: needing investigation
-> ------------------------------------
+ke, 2012-10-17 kello 19:02 +0300, Felipe Balbi kirjoitti:
+> Hi,
 > 
-> Boot tests:
+> On Thu, Oct 11, 2012 at 02:08:25PM -0700, Kevin Hilman wrote:
+> > Hi Kalle,
+> > 
+> > Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org> writes:
+> > 
+> > > The resume_noirq enables interrupts one-by-one starting from
+> > > first one. Now if the wake up event for suspend came from i2c
+> > > device, the i2c bus irq gets enabled before the threaded
+> > > i2c device irq, causing a flood of i2c bus interrupts as the
+> > > threaded irq that should clear the event is not enabled yet.
+> > >
+> > > Fixed the issue by adding suspend_noirq and resume_early
+> > > functions that keep i2c bus interrupts disabled until
+> > > resume_noirq has run completely.
+> > >
+> > > Issue was detected doing a wake up from autosleep with
+> > > twl4030 power key on N9. Patch tested on N9.
+> > >
+> > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+> > 
+> > This version looks good, thanks for the extra comments.
+> > 
+> > Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+> > Tested-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+> > 
+> > Wolfram, This should also probably be Cc'd to stable since it affects
+> > earlier kernels as well.  Thanks,
 > 
-> * 2420n800: boot hangs during UART initialization
->   - http://lkml.org/lkml/2012/9/11/454
->   - Various attempts at fixes posted; etiology known; issue still unresolved
-> 
-> * CM-T3517: L3 in-band error with IPSS during boot
->   - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
->   - Longstanding issue; does not occur on the 3517EVM
-> 
-> * 3517EVM & CM-T3517: boot hangs with NFS root
->   - Likely some Kconfig, board file, and PM issues with EMAC
-> 
-> * CM-T3517: boot hangs with MMC boot
->   - Due to missing MMC setup in board file
+> just to make sure we're not fixing the wrong problem... does [1] help in
+> any way ?
 
-* 4430es2panda: clockevents problems early in boot
-  - boots with dummy_timer
-  - no one-shot mode so no-HZ is likely to fail
+Yes, I was fixing the wrong problem, this patch is obsolete. But the
+problem was in the TWL interrupt handling (PIH was run before SIH), not
+in i2c. See my other patch "twl4030: Fix chained irq handling on resume
+from suspend"
 
-* 4460pandaes: boot fails early
-  - Appears to be timer-related
-
-> PM tests:
 > 
-> * 3530es3beagle, 37xxevm, 3730beaglexm: I2C fails during resume from suspend
->   - Causes MMC to become unusable since regulators are not reenabled
->   - Can be worked around by reverting the I2C driver conversion to
->     threaded IRQs:
->     - http://marc.info/?l=linux-i2c&m=135026587102887&w=2
->   - Appears to be due to an accounting problem; under discussion:
->     - http://marc.info/?l=linux-arm-kernel&m=135042360725821&w=2
+> [1] http://marc.info/?l=linux-omap&m=135048839915719&w=2
 > 
-> * 3530es3beagle: hangs during off-mode dynamic idle test
->   - Unknown cause; not investigated
-> 
-> * 37xx EVM: CORE not entering dynamic off-idle
->   - Cause unknown; dynamic retention-idle seems to work; system suspend to 
->     off works
-> 
-> * 3730 Beagle XM: does not serial wake from off-idle suspend when console
->   UART doesn't clock gate ("debug ignore_loglevel")
->   - Not shown in the current test logs; cause unknown
 
-* 4430es2panda: dummy_timer warning messages during resume
-  - Unknown cause; not investigated
+Could be related, though if I understood correctly, that runtime pm
+stuff gets run at noirq phase, so it probably does not help.
 
-
-- Paul
+- Kalle
