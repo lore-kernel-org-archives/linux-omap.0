@@ -1,101 +1,148 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv3 0/5] OMAP: VRFB: convert to platform device
-Date: Thu, 18 Oct 2012 15:45:26 +0300
-Message-ID: <507FF9E6.6010509@ti.com>
-References: <1350469102-24888-1-git-send-email-tomi.valkeinen@ti.com> <507E87B7.3070707@ti.com> <20121017182926.GW15569@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigF5423CF0E1F8212AAA6478ED"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52034 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755015Ab2JRMpd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Oct 2012 08:45:33 -0400
-In-Reply-To: <20121017182926.GW15569@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Matt Porter <mporter@ti.com>
+Subject: [RFC PATCH v3 00/16] DMA Engine support for AM33XX
+Date: Thu, 18 Oct 2012 09:26:39 -0400
+Message-ID: <1350566815-409-1-git-send-email-mporter@ti.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>
+Cc: Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
---------------enigF5423CF0E1F8212AAA6478ED
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Changes since v2:
+	- Rebased on 3.7-rc1
+	- Fixed bug in DT/pdata parsing first found by Gururaja
+	  that turned out to be masked by some toolchains
+	- Dropped unused mach-omap2/devices.c hsmmc patch
+	- Added AM33XX crossbar DMA event mux support
+	- Added am335x-evm support
 
-On 2012-10-17 21:29, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [121017 03:27]:
->> Hi Tony,
->>
->> I have pushed this vrfb series and the omapdss version series to:
->>
->> git://gitorious.org/linux-omap-dss2/linux.git 3.8/dss-version
->=20
-> I used this branch up to commit 35f70935c64ae229ebd1fc65398ec68d4d80371=
-2,
-> but left out the x86 compile changes as those seem unrelated to the pla=
-t
-> issue.
+Changes since v1:
+	- Rebased on top of mainline from 12250d8
+	- Dropped the feature removal schedule patch
+	- Implemented dma_request_slave_channel_compat() and
+	  converted the mmc and spi drivers to use it
+	- Dropped unneeded #address-cells and #size-cells from
+	  EDMA DT support
+	- Moved private EDMA header to linux/platform_data/ and
+	  removed some unneeded definitions
+	- Fixed parsing of optional properties
 
-Ok, you're right.
+TODO:
+	- Add dmaengine support for per-channel caps so the
+	  hack to set the maximum segments can be replaced with
+	  a query to the dmaengine driver
 
->> git://gitorious.org/linux-omap-dss2/linux.git 3.8/vrfb-conversion
->=20
-> And then I merged in this branch. I have the merged branch at
-> omap-for-v3.8/cleanup-headers-dss.
+This series adds DMA Engine support for AM33xx, which uses
+an EDMA DMAC. The EDMA DMAC has been previously supported by only
+a private API implementation (much like the situation with OMAP
+DMA) found on the DaVinci family of SoCs.
 
-Ok.
+The series applies on top of 3.7-rc1 and the following patches:
 
->> If they look ok to you and we don't get any other comments, I think
->> these branches can be considered stable and you can pull them.
->=20
-> Thanks yes let's consider those frozen and if something needs to
-> be fixed it should be done on top of those commits.
-> =20
->> After these are merged:
->>
->> $ git grep -E "(plat/)|(mach/)" drivers/video/omap2/
->> drivers/video/omap2/omapfb/omapfb-ioctl.c:#include <plat/vram.h>
->> drivers/video/omap2/omapfb/omapfb-main.c:#include <plat/vram.h>
->> drivers/video/omap2/vram.c:#include <plat/vram.h>
->>
->> So the vram stuff should be the only omap dependency left in omapdss a=
-nd
->> omapfb. I'll start working on that soon.
->=20
-> OK thanks a lot. Then there's also the two vout files that
-> you may already have patches for:
->=20
-> drivers/media/platform/omap/omap_vout.c
-> drivers/media/platform/omap/omap_voutlib.c
+	- GPMC fails to reserve memory fix:
+	  http://www.spinics.net/lists/linux-omap/msg79675.html
+	- TPS65910 regulator fix:
+	  https://patchwork.kernel.org/patch/1593651/
+	- dmaengine DT support from Vinod's dmaengine_dt branch in
+	  git://git.infradead.org/users/vkoul/slave-dma.git since
+	  027478851791df751176398be02a3b1c5f6aa824
 
-No yet. I hope I find time for those at some point soon =3D).
+The approach taken is similar to how OMAP DMA is being converted to
+DMA Engine support. With the functional EDMA private API already
+existing in mach-davinci/dma.c, we first move that to an ARM common
+area so it can be shared. Adding DT and runtime PM support to the
+private EDMA API implementation allows it to run on AM33xx. AM33xx
+*only* boots using DT so we leverage Jon's generic DT DMA helpers to
+register EDMA DMAC with the of_dma framework and then add support
+for calling the dma_request_slave_channel() API to both the mmc
+and spi drivers.
 
- Tomi
+With this series both BeagleBone and the AM335x EVM have working
+MMC and SPI support.
 
+This is tested on BeagleBone with a SPI framebuffer driver and MMC
+rootfs. A trivial gpio DMA event misc driver was used to test the
+crossbar DMA event support. It is also tested on the AM335x EVM
+with the onboard SPI flash and MMC rootfs. The branch at
+https://github.com/ohporter/linux/tree/edma-dmaengine-v3 has the
+complete series, dependencies, and some test drivers/defconfigs.
 
+Regression testing was done on AM180x-EVM (which also makes use
+of the EDMA dmaengine driver and the EDMA private API) using SD,
+SPI flash, and the onboard audio supported by the ASoC Davinci
+driver.
 
---------------enigF5423CF0E1F8212AAA6478ED
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+After this series, the plan is to convert the last in-tree user
+of the private EDMA API (davinci-pcm/mcasp) and then eliminate
+the private EDMA API by folding its functionality into
+drivers/dma/edma.c.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+Matt Porter (16):
+  dmaengine: edma: fix slave config dependency on direction
+  ARM: davinci: move private EDMA API to arm/common
+  ARM: edma: remove unused transfer controller handlers
+  ARM: edma: add DT and runtime PM support for AM33XX
+  ARM: edma: add AM33XX crossbar event support
+  dmaengine: edma: enable build for AM33XX
+  dmaengine: edma: Add TI EDMA device tree binding
+  ARM: dts: add AM33XX EDMA support
+  dmaengine: add dma_request_slave_channel_compat()
+  mmc: omap_hsmmc: convert to dma_request_slave_channel_compat()
+  mmc: omap_hsmmc: limit max_segs with the EDMA DMAC
+  mmc: omap_hsmmc: add generic DMA request support to the DT binding
+  ARM: dts: add AM33XX MMC support
+  spi: omap2-mcspi: convert to dma_request_slave_channel_compat()
+  spi: omap2-mcspi: add generic DMA request support to the DT binding
+  ARM: dts: add AM33XX SPI support
 
-iQIcBAEBAgAGBQJQf/nmAAoJEPo9qoy8lh71uXUP+wTYlrjimklHUYci6H2BNam4
-JEvoFucJALQ4Uh4k82fMRHglqk7MkH6NHC3c5Y02sSstZ/KcpcsBkGRAnj18B79A
-0PpPwNZfvBlgXiB2o0sBvQW3QPI5JuxWPu/CXshQRSyPqYIuyXmY43vGoictTcXa
-vKHKBZrjwVzJz+r2rnlm66zq+fVM8OW9rqenAW23iwdn7E+aAqCXrS3x4JdZkB9H
-7BiCvQdtRTV98co2KB85yJbxkhIsxAqbY0yFgReBMFJ+7LGeMNahWbfVZPAdwBiV
-NI3ndIJpJINs3KlQWkrfbqbI/WLZpNa9keIxqjU8eCZbjYf7GXkCsnsSHFK4kSFY
-A+cwkm7FJJrvK6WPjhgXqYTf4Vgnf3DI+rlZ2R9TzsBk8n7YktLfajJSLncnPE3i
-DW6ZfNvzftWnZdOGilTib1sOb510HIx4MFEPYeictXi3/0iWhsMqy/Se3wja4dAf
-YaJ3NkVOx8j6fJ0V80J871VYik2VTWsFAJPuhPaWS/G29x/+t9igyeqnBuLI3WyF
-BizIius+RG1v3tRlE0DQVn5XpdLOaZKGsdS9oWKFylkY3P2sN3fBDNq/kok6bEjN
-ZgEGLSdryfItoVxe2nAP5Sdh1HaQzJrDs3zI5EP6IgXgsbCH9sBFVyjmUPz3Z4x8
-ONTcCZTLNp/y6O/IMKls
-=3ZTM
------END PGP SIGNATURE-----
+ Documentation/devicetree/bindings/dma/ti-edma.txt  |   51 +
+ .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   25 +-
+ Documentation/devicetree/bindings/spi/omap-spi.txt |   27 +-
+ arch/arm/Kconfig                                   |    1 +
+ arch/arm/boot/dts/am335x-bone.dts                  |   23 +
+ arch/arm/boot/dts/am335x-evm.dts                   |   15 +
+ arch/arm/boot/dts/am33xx.dtsi                      |  101 ++
+ arch/arm/common/Kconfig                            |    3 +
+ arch/arm/common/Makefile                           |    1 +
+ arch/arm/common/edma.c                             | 1841 ++++++++++++++++++++
+ arch/arm/mach-davinci/Makefile                     |    2 +-
+ arch/arm/mach-davinci/board-da830-evm.c            |    4 +-
+ arch/arm/mach-davinci/board-da850-evm.c            |    8 +-
+ arch/arm/mach-davinci/board-dm646x-evm.c           |    4 +-
+ arch/arm/mach-davinci/board-omapl138-hawk.c        |    8 +-
+ arch/arm/mach-davinci/board-tnetv107x-evm.c        |    2 +-
+ arch/arm/mach-davinci/davinci.h                    |    2 +-
+ arch/arm/mach-davinci/devices-da8xx.c              |    8 +-
+ arch/arm/mach-davinci/devices-tnetv107x.c          |    6 +-
+ arch/arm/mach-davinci/devices.c                    |    7 +-
+ arch/arm/mach-davinci/dm355.c                      |    6 +-
+ arch/arm/mach-davinci/dm365.c                      |    6 +-
+ arch/arm/mach-davinci/dm644x.c                     |    6 +-
+ arch/arm/mach-davinci/dm646x.c                     |    6 +-
+ arch/arm/mach-davinci/dma.c                        | 1588 -----------------
+ arch/arm/mach-davinci/include/mach/da8xx.h         |    2 +-
+ arch/arm/mach-davinci/include/mach/edma.h          |  267 ---
+ arch/arm/plat-omap/Kconfig                         |    1 +
+ drivers/dma/Kconfig                                |    2 +-
+ drivers/dma/edma.c                                 |   57 +-
+ drivers/mmc/host/davinci_mmc.c                     |    1 +
+ drivers/mmc/host/omap_hsmmc.c                      |   20 +-
+ drivers/spi/spi-omap2-mcspi.c                      |   65 +-
+ include/linux/dmaengine.h                          |   10 +
+ include/linux/mfd/davinci_voicecodec.h             |    3 +-
+ include/linux/platform_data/edma.h                 |  199 +++
+ include/linux/platform_data/spi-davinci.h          |    2 +-
+ sound/soc/davinci/davinci-evm.c                    |    1 +
+ sound/soc/davinci/davinci-pcm.c                    |    1 +
+ sound/soc/davinci/davinci-pcm.h                    |    2 +-
+ sound/soc/davinci/davinci-sffsdr.c                 |    6 +-
+ 41 files changed, 2436 insertions(+), 1954 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/dma/ti-edma.txt
+ create mode 100644 arch/arm/common/edma.c
+ delete mode 100644 arch/arm/mach-davinci/dma.c
+ delete mode 100644 arch/arm/mach-davinci/include/mach/edma.h
+ create mode 100644 include/linux/platform_data/edma.h
 
---------------enigF5423CF0E1F8212AAA6478ED--
+-- 
+1.7.9.5
+
