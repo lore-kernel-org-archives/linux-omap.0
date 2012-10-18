@@ -1,67 +1,41 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] ARM: dts: AM33XX: Add tsl2550 ambient light sensor DT
- data
-Date: Thu, 18 Oct 2012 05:46:47 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA53C2B@DBDE01.ent.ti.com>
-References: <1348242551-21293-1-git-send-email-anilkumar@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Only write the sysconfig on idle when necessary
+Date: Thu, 18 Oct 2012 11:19:35 +0530
+Message-ID: <507F986F.90107@ti.com>
+References: <1350504742-19995-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1210172023130.9767@utopia.booyaka.com> <507F16F5.9020803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57572 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57685 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754091Ab2JRFqz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 01:46:55 -0400
-In-Reply-To: <1348242551-21293-1-git-send-email-anilkumar@ti.com>
-Content-Language: en-US
+	id S1754177Ab2JRFtm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Oct 2012 01:49:42 -0400
+In-Reply-To: <507F16F5.9020803@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Sep 21, 2012 at 21:19:11, AnilKumar, Chimata wrote:
-> Add tsl2550 ambient light sensor DT data to am335x-evm.dts. In AM335x
-> EVM tsl2550 ambient light sensor is connected to I2C2 bus. So this patch
-> adds child node inside i2c2 node with i2c slave address.
-> 
-> TAOS tsl2550 sensor with two-wire SMBus serial interface. This patch
-> also reduces I2C2 clock frequency to 100KHz from 400KHz because the
-> maximum clock frequency of SMBus is 100KHz.
-> 
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
->  arch/arm/boot/dts/am335x-evm.dts |    7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 3b1f313..d99aa0f 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -49,7 +49,7 @@
->  
->  		i2c2: i2c@4802a000 {
->  			status = "okay";
-> -			clock-frequency = <400000>;
-> +			clock-frequency = <100000>;
->  
->  			lis331dlh: lis331dlh@18 {
->  				compatible = "st,lis331dlh", "st,lis3lv02d";
-> @@ -79,6 +79,11 @@
->  				st,max-limit-z = <750>;
->  			};
->  
-> +			tsl2550: tsl2550@39 {
-> +				compatible = "taos,tsl2550";
-> +				reg = <0x39>;
-> +			};
-> +
->  			tmp275: tmp275@48 {
->  				compatible = "ti,tmp275";
->  				reg = <0x48>;
+On Thursday 18 October 2012 02:07 AM, Jon Hunter wrote:
+> Ok, thanks. Yes, only updating the register when the cache value changed
+> would not work due to the possibility of context being lost. So
+> Rajendra's change makes sense. However, I think there is room to
+> optimise this.
+>
+> With this change, on idle, the cache value and register value are only
+> updated when needed. This should be safe.
+>
+> Are you looking to go one step further and only update the sysconfig on
+> enabling when the context has been lost? That would require more
+> changes. This was a quick optimisation I saw when reviewing the code.
+>
+> Rajendra, let me know if you have any comments.
 
-Hi Tony/Benoit,
-
-If there are no comments in this patch could you please take this in?
-
-Thanks
-AnilKumar
+Makes sense to me. To handle the more generic case of avoiding all
+reads and writes whenever possible, and making the cache really behave
+like a cache, as Paul suggested, is certainly more work and more
+importantly more testing, as it would rely heavily on the context lost 
+counters to work correctly. I feel there is still some work needed
+around those counters to make them more robust before we start heading
+in that direction.
