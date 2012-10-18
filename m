@@ -1,58 +1,79 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: Fwd: [PATCH 2/5] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
- davinci_mdio
-Date: Thu, 18 Oct 2012 20:44:43 +0200
-Message-ID: <20121018184443.GD2350@netboy.at.omicron.at>
-References: <20121017181354.GA2412@netboy.at.omicron.at>
- <alpine.DEB.2.00.1210172337170.30902@utopia.booyaka.com>
- <20121017235045.GB30550@atomide.com>
- <20121018030654.GE2867@netboy.at.omicron.at>
- <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
+Date: Thu, 18 Oct 2012 13:46:18 -0500
+Message-ID: <50804E7A.5050602@ti.com>
+References: <cover.1350327320.git.richardcochran@gmail.com> <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com> <507DB9EC.9060407@ti.com> <79CD15C6BA57404B839C016229A409A83EB43B17@DBDE01.ent.ti.com> <5080315F.8090802@ti.com> <79CD15C6BA57404B839C016229A409A83EB43D0F@DBDE01.ent.ti.com> <50804AC7.3000309@ti.com> <79CD15C6BA57404B839C016229A409A83EB43DBA@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:43353 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626Ab2JRSo4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 14:44:56 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so5201112wey.19
-        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 11:44:54 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46914 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457Ab2JRSqe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 14:46:34 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB43DBA@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mugunthan V N <mugunthanvnm@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Mohammed, Afzal" <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 18, 2012 at 03:46:15AM +0000, Paul Walmsley wrote:
+
+On 10/18/2012 01:39 PM, Hiremath, Vaibhav wrote:
+> On Fri, Oct 19, 2012 at 00:00:31, Hunter, Jon wrote:
+>>
+>> On 10/18/2012 01:04 PM, Hiremath, Vaibhav wrote:
+>>> On Thu, Oct 18, 2012 at 22:12:07, Hunter, Jon wrote:
+>>
+>> ...
+>>
+>>>> Yes, but do you also see the bug that is hiding in gpmc_mem_init()?
+>>>>
+>>>> My point is to highlight this and not hide it, so that we can fix it
+>>>> now. Otherwise if we wait until we enable the gpmc driver with DT and
+>>>> this could hinder the DT migration later.
+>>>>
+>>>
+>>> As I already mentioned in my previous response, your patch is required 
+>>> irrespective of this patch. I would consider your patch as a cleanup patch.
+>>>
+>>>
+>>> Both the patches are independent, your patch is handling the error path 
+>>> properly, whereas, my patch makes sure that you don't unnecessarily probe 
+>>> GPMC if you are booting from DT and GPMC node is not present, as described 
+>>> above.
+>>
+>> Your patch hides a bug. That's my point. How do you expect am335x ever
+>> to support gpmc devices if this bug is not addressed?
+>>
 > 
-> Probably the driver was submitted before any SoC integration support was 
-> available.  Grepping for 'cpsw' under arch/ turns up only AM33xx.  AM335x 
-> didn't have device enumeration support in the mainline kernel until 3.7, 
-> via commit a2cfc509bc4eeef9f5c4607b1203f17f22ea2a36 ("ARM: OMAP3+: hwmod: 
-> Add AM33XX HWMOD data").  So I don't see how it could have worked with 
-> mainline.
+> Jon,
+> May be my commit description was mis-leading to you.
+> I am not commenting anything on your bug-fix, but do not agree that it is 
+> anything to do with hiding a bug.
 
-...
+So we can agree is disagree on that ;-)
 
-> But it seems that the CPSW has never worked in the mainline kernel.  So 
-> this particular patch is not fixing a regression.  Therefore we shouldn't 
-> send it upstream during the -rc time period.  Instead we'll schedule it to 
-> be sent a few weeks later, during the 3.8 merge window.
+> I only agree with you on one point, if someone wants to change the board-
+> file to use GPMC with DT boot mode, then he will not be able to use it.
+> 
+>> So I think that you are over-simplifying it when you say that my patch
+>> is just a clean-up patch. I agree that it is adding appropriate error
+>> handling, but it also highlights the presence of a bug by allowing the
+>> probe to fail.
+>>
+>> Anyway, I don't care to debate this any further, 
+> 
+> Me neither...
+> 
+>> we just need to fix
+>> gpmc_mem_init().
+>>
+> 
+> Agreed, and that's what your patch rightly doing it.
 
-Let's think about this some more:
+No. My patch does not fix the _actual_ bug, it is still there. Why do
+you think that the probe is still failing for am335x? Without fixing it
+am335x will never be able to support gpmc. So gpmc_mem_init() still
+needs to be fixed.
 
-The driver's commit is from March and is included in v3.4-rc1.
-
-You say it will be working in 3.8, after 3.7 comes out, in about
-December.
-
-So how long does it take between merging code and actually getting it
-working?
-
-Sorry to harp on this so much, but I try out my patches with the tip
-of the appropriate tree before sending them, or when I cannot, at
-least I put into the log "compile tested only" or something like that.
-
-Thanks,
-Richard
+Jon
