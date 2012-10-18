@@ -1,237 +1,182 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/NOT FOR MERGING 1/5] arm: omap: fix up _od_suspend_noirq
- and _od_resume_noirq
-Date: Thu, 18 Oct 2012 20:50:27 +0300
-Message-ID: <20121018175027.GA7917@arwen.pp.htv.fi>
-References: <1350488043-5053-1-git-send-email-balbi@ti.com>
- <1350488043-5053-2-git-send-email-balbi@ti.com>
- <871ugvivso.fsf@deeprootsystems.com>
- <20121018165525.GA6385@arwen.pp.htv.fi>
- <87ipa7d6cy.fsf@deeprootsystems.com>
-Reply-To: <balbi@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/5] ARM: OMAP2+: gpmc: Fix kernel BUG for DT boot mode
+Date: Thu, 18 Oct 2012 18:04:29 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EB43D0F@DBDE01.ent.ti.com>
+References: <cover.1350327320.git.richardcochran@gmail.com>
+ <41d66042625157d089e9c9532030a6831e79c641.1350327324.git.richardcochran@gmail.com>
+ <507DB9EC.9060407@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EB43B17@DBDE01.ent.ti.com>
+ <5080315F.8090802@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49969 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50575 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932125Ab2JRR4D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Oct 2012 13:56:03 -0400
-Content-Disposition: inline
-In-Reply-To: <87ipa7d6cy.fsf@deeprootsystems.com>
+	id S932179Ab2JRSEr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 14:04:47 -0400
+In-Reply-To: <5080315F.8090802@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Mohammed, Afzal" <afzal@ti.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Miller <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---x+6KMIRAuhnl3hBn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Oct 18, 2012 at 22:12:07, Hunter, Jon wrote:
+> 
+> On 10/18/2012 11:16 AM, Hiremath, Vaibhav wrote:
+> > On Wed, Oct 17, 2012 at 01:17:56, Hunter, Jon wrote:
+> >>
+> >> On 10/15/2012 02:16 PM, Richard Cochran wrote:
+> >>> From: hvaibhav@ti.com <hvaibhav@ti.com>
+> >>>
+> >>> With recent changes in omap gpmc driver code, in case of DT
+> >>> boot mode, where bootloader does not configure gpmc cs space
+> >>> will result into kernel BUG() inside gpmc_mem_init() function,
+> >>> as gpmc cs0 gpmc_config7[0].csvalid bit is set to '1' and
+> >>> gpmc_config7[0].baseaddress is set to '0' on reset.
+> >>
+> >> I am not sure I completely follow the logic here.
+> >>
+> >> Won't this problem occur if the bootloader does not configure the gpmc
+> >> cs space AND we are not using DT?
+> >>
+> > 
+> > That's what exactly the above comment describes.
+> 
+> Hmm ... you said "in the case of DT", but I am saying even "in the case
+> WITHOUT DT" this can happen. So I think the subject is mis-leading.
+> 
 
-Hi,
+Ok, may be my above statement was confusing. But the bottom line is,
+We should GPMC without any pre-configuration (either at u-boot or ROM) will 
+have this issue.
 
-On Thu, Oct 18, 2012 at 10:42:37AM -0700, Kevin Hilman wrote:
-> Felipe Balbi <balbi@ti.com> writes:
->=20
-> > Hi,
-> >
-> > On Thu, Oct 18, 2012 at 09:34:15AM -0700, Kevin Hilman wrote:
-> >> Felipe Balbi <balbi@ti.com> writes:
-> >>=20
-> >> > current implementation doesn't take care about
-> >> > drivers which don't provide *_noirq methods=20
-> >>=20
-> >> The generic ops handle this.  See below.
-> >>=20
-> >> > and we could fall into a situation where we would suspend/resume
-> >> > devices even though they haven't asked for it.
-> >>=20
-> >> The following explanation doesn't explain this, so I dont' follow
-> >> the "even though they haven't asked for it" part.
-> >>=20
-> >> > One such case happened with the I2C driver which
-> >> > was getting suspended during suspend_noirq() just
-> >> > to be resume right after by any other device doing
-> >> > an I2C transfer on its suspend method.
-> >>=20
-> >> In order to be I2C to be runtime resumed after its noirq method has be=
-en
-> >> called, that means the other device is doing an I2C xfer in its noirq
-> >> method.  That is a bug.
-> >>=20
-> >> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >> > ---
-> >> >  arch/arm/plat-omap/omap_device.c | 8 ++++++++
-> >> >  1 file changed, 8 insertions(+)
-> >> >
-> >> > diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/o=
-map_device.c
-> >> > index 7a7d1f2..935f416 100644
-> >> > --- a/arch/arm/plat-omap/omap_device.c
-> >> > +++ b/arch/arm/plat-omap/omap_device.c
-> >> > @@ -804,8 +804,12 @@ static int _od_suspend_noirq(struct device *dev)
-> >> >  {
-> >> >  	struct platform_device *pdev =3D to_platform_device(dev);
-> >> >  	struct omap_device *od =3D to_omap_device(pdev);
-> >> > +	const struct dev_pm_ops *pm =3D dev->driver ? dev->driver->pm : NU=
-LL;
-> >> >  	int ret;
-> >> > =20
-> >> > +	if (!pm || !pm->suspend_noirq)
-> >> > +		return 0;
-> >> > +
-> >>=20
-> >> you just re implemented pm_generic_suspend_noirq() (c.f. drivers/base/=
-power/generic_ops.c)
-> >>=20
-> >> >  	/* Don't attempt late suspend on a driver that is not bound */
-> >> >  	if (od->_driver_status !=3D BUS_NOTIFY_BOUND_DRIVER)
-> >> >  		return 0;
-> >> > @@ -827,6 +831,10 @@ static int _od_resume_noirq(struct device *dev)
-> >> >  {
-> >> >  	struct platform_device *pdev =3D to_platform_device(dev);
-> >> >  	struct omap_device *od =3D to_omap_device(pdev);
-> >> > +	const struct dev_pm_ops *pm =3D dev->driver ? dev->driver->pm : NU=
-LL;
-> >> > +
-> >> > +	if (!pm || !pm->resume_noirq)
-> >> > +		return 0;
-> >>=20
-> >> and this is basically pm_generic_resume_noirq()
-> >
-> > not true, there is a slight different. Note that you only call
-> > pm_generic_resume_noirq() after calling pm_runtime_resume()ing the
-> > device:
->=20
-> >> static int _od_resume_noirq(struct device *dev)
-> >> {
-> >> 	struct platform_device *pdev =3D to_platform_device(dev);
-> >> 	struct omap_device *od =3D to_omap_device(pdev);
-> >>=20
-> >> 	if ((od->flags & OMAP_DEVICE_SUSPENDED) &&
-> >> 	    !pm_runtime_status_suspended(dev)) {
-> >> 		od->flags &=3D ~OMAP_DEVICE_SUSPENDED;
-> >> 		if (!(od->flags & OMAP_DEVICE_NO_IDLE_ON_SUSPEND))
-> >> 			omap_device_enable(pdev);
-> >> 		pm_generic_runtime_resume(dev);
-> >
-> > right here. IMHO this is a bug, if the define doesn't implement
-> > resume_noirq, it's telling you that it has nothing to do at that time,
->=20
-> This is where the misunderstanding is.  I suggest you have a look
-> at commit c03f007a8bf0e092caeb6856a5c8a850df10b974 where this feature
-> was added, but I'll try to summarize:
->=20
-> The goal is simply this:
->=20
-> If, by the time .suspend_noirq has run, the driver is not already
-> runtime suspended, then forcefully runtime suspend it.
->=20
-> That's it.
 
-Yes, I got the intention, but to me it looks wrong.
+> >> Is the csvalid bit set because we are booting from the internal ROM?
+> >>
+> > 
+> > As per TRM, the reset value of the CS0_valis bit is set to 0. I have pasted 
+> > TRM statement below -
+> > 
+> > "Chip-select enable (reset value is 1 for CS[0] and 0 for CS[1-5])."
+> 
+> The above two sentences don't see to agree ...
 
-> Again, this is required because system suspend disables runtime PM
-> transitions at a certain point, if the device is used after that point,
-> there is *no other way* for the driver to properly manage the idle
-> transition (or, if there is, please explain it to me.)
+Oops, it was typo mistake. I meant "is set to '1'"
 
-Can you please let me know of any situation where e.g. I2C/SPI would be
-needed after all its children are suspended ?
+> 
+> > And same applies to OMAP3 family of devices.
+> 
+> For which boot-modes? All or just the gpmc boot-modes?
+> 
 
-> > so you shouldn't forcefully resume the device.
->=20
-> Note it's only forcefully resumed *if* it was forcefully suspended by
-> suspend_noirq.
+That's reset value, and I believe it is applicable for all boot modes.
 
-likewise, you shouldn't forcefully runtime suspend a device. The device
-driver needs to be required to provide suspend/resume functions if it
-cares.
+> My omap3430 beagle has been booting with DT fine for some time and I
+> have not encountered this problem even on the latest kernel with the
+> gpmc driver present.
+> 
 
-> > If the device dies, then it means that it needs to implement
-> > resume_noirq. What you have here, is a "workaround" for badly written
-> > device drivers IMHO.=20
->=20
-> That's one way of looking at it.  The other way of looking at it is that
-> by handling this at the PM domain level, the drivers can be much simpler,
-> and thus less likely to get wrong.
+OMAp3430 beagle board has NAND flash available over GPMC-CS0 interface.
 
-You're still bypassing what the PM framework wants us to do, no ? What
-if Rafael decides to drastically change the way system and runtime PM is
-done and it ends up breaking what we have on OMAP ? If we stick to the
-standard, the it's less likely to brea.
+> >> I guess I don't see why csvalid bit being set and a base-address of 0x0
+> >> should not be allowed. That should be a valid combination.
+> >>
+> > 
+> > Yes, agreed.
+> > 
+> >> One problem I see with gpmc_mem_init() is that it assumes that
+> >> BOOT_ROM_SPACE is 1MB for all devices starting at 0x0 apart from the
+> >> apollon board. For newer devices such as OMAP4, there is only 48KB of
+> >> internal ROM and only mapped to 0x0 when booting from internal ROM. So
+> >> this needs to be fixed.
+> >>
+> >> How much internal ROM does the AM335x have and where is it mapped?
+> >>
+> > 
+> > AM33xx memory map is something like,
+> > 
+> > Boot ROM  0x4000_0000 0x4001_FFFF 128KB
+> >           0x4002_0000 0x4002_BFFF 48KB    32-bit Ex/R(1) - Public
+> > Reserved  0x4002_C000 0x400F_FFFF 848KB   Reserved
+> > Reserved  0x4010_0000 0x401F_FFFF 1MB     Reserved
+> > Reserved  0x4020_0000 0x402E_FFFF 960KB   Reserved
+> > Reserved  0x402f_0000 0x4020_03FF 64KB    Reserved
+> > SRAM internal 0x402F_0400 0x402F_FFFF    32-bit Ex/R/W(1)
+> 
+> Does the boot ROM get mapped to 0x0, when booting from ROM?
+> 
 
-> But even then, with your proposed changes, I don't think the device will
-> be properly idled (including the omap_device_idle) in these important cas=
-es:
->=20
-> 1) I2C is used by some other device *after* its ->suspend method has
->    been called.
+I expect, it should be same as OMAP4.
 
-how can that happen ? I2C's ->suspend method will only be called after
-all its children are suspended.
+> >>> This use-case is applicable for any board/EVM which doesn't have
+> >>> any peripheral connected to gpmc cs0, for example BeagleXM and
+> >>> BeagleBone, so DT boot mode fails.
+> >>>
+> >>> This patch adds of_have_populated_dt() check before creating
+> >>> device, so that for DT boot mode, gpmc probe will not be called
+> >>> which is expected behavior, as gpmc is not supported yet from DT.
+> >>
+> >> Yes, but we do actually still allow some platform devices to be probed
+> >> (such as dmtimers) when booting with DT that don't support DT yet. So
+> >> this change prevents us from using the gpmc on boards when booting with DT.
+> >>
+> > 
+> > The idea here was,
+> > 
+> > In order to use GPMC in meaningful way, where some peripheral is connected 
+> > to the GPMC, you must create platform_device for the probe to happen 
+> > properly. Now all the devices I know so far, we have gpmc_smsc911x_init(), 
+> > omap_nand_flash_init(), etc...
+> > These api's are getting called only through machine_desc.init_xxx callbacks,
+> > And in case of DT, we have centralized machine_desc definition for all 
+> > platforms (board-generic.c). So even though you want to use GPMC for DT boot
+> > mode, you can not make use of peripheral without changing board-files to 
+> > change to create platform_device.
+> > 
+> > Does it make sense?
+> 
+> Sure, if you are using one of the generic machine configurations for DT.
+> However, while this migration happens people may create their own custom
+> machine configurations for DT for testing things like smsc911x.
+> 
 
-> 2) I2C runtime PM is disabled from userspace
->    (echo off > /sys/devices/.../power/control)
+If we want to think about all such use-cases, then yes, this patch is not 
+required.
 
-that should not make a difference if you omap_device_idle() is written
-as it should. Maybe what you need is a refactor to provide
-omap_device_idle() and omap_device_runtime_idle(), the latter taking
-care of the case where runtime pm can be disabled from userspace while
-the former idling whenever it's called.
+> >> I am not convinced that this is addressing the underlying problem with
+> >> gpmc_mem_init().
+> >>
+> > 
+> > The patch you submitted is cleanup patch and is required irrespective of 
+> > this patch. I believe this patch is just makes sure that, if you are booting 
+> > from DT and you do not have meaningful DT node for GPMC and peripheral 
+> > interfaced to it, no point in probing it. 
+> > 
+> > Does it make any sense???
+> 
+> Yes, but do you also see the bug that is hiding in gpmc_mem_init()?
+> 
+> My point is to highlight this and not hide it, so that we can fix it
+> now. Otherwise if we wait until we enable the gpmc driver with DT and
+> this could hinder the DT migration later.
+> 
 
-> but I'll take this up in the I2C driver patch itself.
+As I already mentioned in my previous response, your patch is required 
+irrespective of this patch. I would consider your patch as a cleanup patch.
 
-sure :-)
 
-> > Note also, that you could runtime resume devices which don't implement
-> > resume_noirq().
->=20
-> Again, this is by design.
+Both the patches are independent, your patch is handling the error path 
+properly, whereas, my patch makes sure that you don't unnecessarily probe 
+GPMC if you are booting from DT and GPMC node is not present, as described 
+above.
 
-a very weird design IMHO. Either that or I'm really missing something
-here.
 
-> It doesn't matter if the driver has noirq methods.  If it is not yet
-> runtime suspended, it is forceably runtime suspended.   The generic
+Thanks,
+Vaibhav
 
-if it's not yet runtime suspended, you need to call the driver's
-->suspend_* method (depending on the suspend phase you are right now),
-but "reusing" the runtime_suspend method sounds to me like another
-"special OMAP requirement".
+> Jon
+> 
+> 
 
-> noirq calls are just there in case the driver has noirq callbacks.
-
-I get that, but why would you suspend a device which doesn't want to be
-suspended in suspend_noirq(), but using its runtime_suspend method ?
-
-If I2C dies on a suspend/resume transition, it's a bug in the I2C
-driver, no ?
-
---=20
-balbi
-
---x+6KMIRAuhnl3hBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQgEFjAAoJEIaOsuA1yqREopMQAKrnUVmjtLQEN7sUavQQ9z/Q
-COCH8KT9vN/jWoGSG0lKk4noi73gu5/AXV7FwGwXUiUqV8L9cT3kuFV+DLE6/Wbm
-VCpkUEz2UpY55QeUHdncUwPj1pw3ajxf9efxaQ7hw93vZh9UT/FvjZzjHe+DUmPU
-fpZ+YqDPEwUlu5heQAKxEAwrSG/HAIm20DH+efyLlYOep0UKg+h/HcebVbwTMbrH
-+UCEUR1AI1kGkRlBz4eh/HhKxrXusO/Fp1SBrSgVKBDvbKhZGUE81GZi58RGgGVc
-0PnIC21nU7FTQjkkUTjdoUfr+3yq7AJqkiVkjl1zVWqyzn8u25AFRp440MUytbXN
-3UauVc3zBAGwBGyHJ4l7s/Jf9rKcIGbfDZTPmKdlZNiovS6lo8DdRtcqelmDTC46
-/d/FKTU/8iBpNRsvZYcPC/N8tEBJvXksw2O0DC22y2wKp3tiv6n5CtqZN7CBYIfE
-iGNiL7ASDocW5hvYAd2R0xwH6nu6Kp/A5j7Dif/dmGDZU2lhJnQIIDxFxN4G75RO
-NSfzdFq4p/1qrYjM3+O+m7KLPYz0KV9IBQ6Tn24do2dTug1wPeGZR+2bQgqO2GHD
-w1MryqeAJ6TNhBxChDcOidQte4LtOmlaoptBCrrjKLEGh41yD/yIlmZDOTe4j6pT
-0LcZMdj6PWt3Z4AfunU/
-=7WlZ
------END PGP SIGNATURE-----
-
---x+6KMIRAuhnl3hBn--
