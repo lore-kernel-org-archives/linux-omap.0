@@ -1,43 +1,126 @@
 From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH 4/7] ARM: OMAP2+: Remove unnecessary message when no SHA IP is present
-Date: Fri, 19 Oct 2012 14:53:57 -0700
-Message-ID: <1350683640-15044-5-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH 5/7] crypto: omap-sham: Convert to use pm_runtime API
+Date: Fri, 19 Oct 2012 14:53:58 -0700
+Message-ID: <1350683640-15044-6-git-send-email-mgreer@animalcreek.com>
 References: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:45895 "EHLO
+Received: from mail20.dotsterhost.com ([66.11.232.73]:45978 "EHLO
 	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932972Ab2JSVyn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 17:54:43 -0400
+	with ESMTP id S932972Ab2JSVyq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 17:54:46 -0400
 In-Reply-To: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "Mark A. Greer" <mgreer@animalcreek.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Dmitry Kasatkin <dmitry.kasatkin@intel.com>
 
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Remove the error message that prints when there is no SHA IP
-present to make it consistent with all the other IPs.
+Convert the omap-sham crypto driver to use the
+pm_runtime API instead of the clk API.
 
+CC: Kevin Hilman <khilman@deeprootsystems.com>
 CC: Paul Walmsley <paul@pwsan.com>
+CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/devices.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/crypto/omap-sham.c | 25 +++++++------------------
+ 1 file changed, 7 insertions(+), 18 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 40211de..8784812 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -472,8 +472,6 @@ static void __init omap_init_sham(void)
- 		pdev = omap_device_build("omap-sham", -1, oh, NULL, 0, NULL,
- 					 0, 0);
- 		WARN(IS_ERR(pdev), "Can't build omap_device for omap-sham\n");
--	} else {
--		pr_err("%s: platform not supported\n", __func__);
- 	}
- }
+diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+index a3fd6fc..acb85df 100644
+--- a/drivers/crypto/omap-sham.c
++++ b/drivers/crypto/omap-sham.c
+@@ -22,12 +22,12 @@
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+-#include <linux/clk.h>
+ #include <linux/irq.h>
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/scatterlist.h>
+ #include <linux/dma-mapping.h>
++#include <linux/pm_runtime.h>
+ #include <linux/delay.h>
+ #include <linux/crypto.h>
+ #include <linux/cryptohash.h>
+@@ -141,7 +141,6 @@ struct omap_sham_dev {
+ 	struct device		*dev;
+ 	void __iomem		*io_base;
+ 	int			irq;
+-	struct clk		*iclk;
+ 	spinlock_t		lock;
+ 	int			err;
+ 	int			dma;
+@@ -238,8 +237,6 @@ static void omap_sham_copy_ready_hash(struct ahash_request *req)
  
+ static int omap_sham_hw_init(struct omap_sham_dev *dd)
+ {
+-	clk_enable(dd->iclk);
+-
+ 	if (!test_bit(FLAGS_INIT, &dd->flags)) {
+ 		omap_sham_write_mask(dd, SHA_REG_MASK,
+ 			SHA_REG_MASK_SOFTRESET, SHA_REG_MASK_SOFTRESET);
+@@ -653,7 +650,6 @@ static void omap_sham_finish_req(struct ahash_request *req, int err)
+ 	/* atomic operation is not needed here */
+ 	dd->flags &= ~(BIT(FLAGS_BUSY) | BIT(FLAGS_FINAL) | BIT(FLAGS_CPU) |
+ 			BIT(FLAGS_DMA_READY) | BIT(FLAGS_OUTPUT_READY));
+-	clk_disable(dd->iclk);
+ 
+ 	if (req->base.complete)
+ 		req->base.complete(&req->base, err);
+@@ -1198,14 +1194,6 @@ static int __devinit omap_sham_probe(struct platform_device *pdev)
+ 	if (err)
+ 		goto dma_err;
+ 
+-	/* Initializing the clock */
+-	dd->iclk = clk_get(dev, "ick");
+-	if (IS_ERR(dd->iclk)) {
+-		dev_err(dev, "clock intialization failed.\n");
+-		err = PTR_ERR(dd->iclk);
+-		goto clk_err;
+-	}
+-
+ 	dd->io_base = ioremap(dd->phys_base, SZ_4K);
+ 	if (!dd->io_base) {
+ 		dev_err(dev, "can't ioremap\n");
+@@ -1213,11 +1201,12 @@ static int __devinit omap_sham_probe(struct platform_device *pdev)
+ 		goto io_err;
+ 	}
+ 
+-	clk_enable(dd->iclk);
++	pm_runtime_enable(dev);
++	pm_runtime_get_sync(dev);
++
+ 	dev_info(dev, "hw accel on OMAP rev %u.%u\n",
+ 		(omap_sham_read(dd, SHA_REG_REV) & SHA_REG_REV_MAJOR) >> 4,
+ 		omap_sham_read(dd, SHA_REG_REV) & SHA_REG_REV_MINOR);
+-	clk_disable(dd->iclk);
+ 
+ 	spin_lock(&sham.lock);
+ 	list_add_tail(&dd->list, &sham.dev_list);
+@@ -1235,9 +1224,8 @@ err_algs:
+ 	for (j = 0; j < i; j++)
+ 		crypto_unregister_ahash(&algs[j]);
+ 	iounmap(dd->io_base);
++	pm_runtime_disable(dev);
+ io_err:
+-	clk_put(dd->iclk);
+-clk_err:
+ 	omap_sham_dma_cleanup(dd);
+ dma_err:
+ 	if (dd->irq >= 0)
+@@ -1266,7 +1254,8 @@ static int __devexit omap_sham_remove(struct platform_device *pdev)
+ 		crypto_unregister_ahash(&algs[i]);
+ 	tasklet_kill(&dd->done_task);
+ 	iounmap(dd->io_base);
+-	clk_put(dd->iclk);
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
+ 	omap_sham_dma_cleanup(dd);
+ 	if (dd->irq >= 0)
+ 		free_irq(dd->irq, dd);
 -- 
 1.7.12
 
