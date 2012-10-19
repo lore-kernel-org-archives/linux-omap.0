@@ -1,48 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] arm: omap: move OMAP USB platform data to
- <linux/platform_data/omap-usb.h>
-Date: Fri, 19 Oct 2012 08:56:12 -0700
-Message-ID: <20121019155612.GA4730@atomide.com>
-References: <20121016230040.GP15569@atomide.com>
- <1350488838-6289-1-git-send-email-balbi@ti.com>
- <20121017203404.GY15569@atomide.com>
- <20121018054934.GE11137@arwen.pp.htv.fi>
- <20121019014917.GL30550@atomide.com>
- <20121019065500.GD12235@arwen.pp.htv.fi>
+Subject: Re: Fwd: [PATCH 2/5] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
+ davinci_mdio
+Date: Fri, 19 Oct 2012 09:00:41 -0700
+Message-ID: <20121019160041.GB4730@atomide.com>
+References: <20121017181354.GA2412@netboy.at.omicron.at>
+ <alpine.DEB.2.00.1210172337170.30902@utopia.booyaka.com>
+ <20121017235045.GB30550@atomide.com>
+ <20121018030654.GE2867@netboy.at.omicron.at>
+ <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
+ <20121018184443.GD2350@netboy.at.omicron.at>
+ <50806B1D.9040504@ti.com>
+ <20121019061630.GB2983@netboy.at.omicron.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13358 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754695Ab2JSP4R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 11:56:17 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26059 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759127Ab2JSQAq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 12:00:46 -0400
 Content-Disposition: inline
-In-Reply-To: <20121019065500.GD12235@arwen.pp.htv.fi>
+In-Reply-To: <20121019061630.GB2983@netboy.at.omicron.at>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Richard Cochran <richardcochran@gmail.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [121019 00:01]:
-> On Thu, Oct 18, 2012 at 06:49:17PM -0700, Tony Lindgren wrote:
+* Richard Cochran <richardcochran@gmail.com> [121018 23:18]:
+> On Fri, Oct 19, 2012 at 02:18:29AM +0530, Vaibhav Hiremath wrote:
 > > 
-> > Yes. Figured it out, it fails to apply with quilt, but applies
-> > with git.
+> > Another important point is, this driver is also required and used for
+> > Davinci family of devices (arch/mach/mach-davinci/).
 > 
-> probably because of file rename.
-
-Yeh so it seems.
- 
-> > But it does not compile with all configs though, and does
-> > not remove plat/usb.h. Thanks anyways. I'll post a proper
-> > series shortly with your patch fixed up.
+> That is really beside the point. If the code isn't ready yet, then
+> don't merge it.
 > 
-> ok... I'll check it out. I kept the non-static functions in plat/usb.h
-> because they didn't belong on platform_data/usb-omap.h. What should be
-> done with those, then ? move to mach/ ?
+> When I asked about the beaglebone, I was given the impression that it
+> will be ready for v3.7-rc1.  But, as I know realize, at the current
+> rate, it might not even be ready for v3.8.
+> 
+> I don't mind waiting, but please make sure that whatever lands into a
+> release is really, truly working.
 
-I made a clean-up patch that creates local usb.h file for those
-that applies before your patch.
+Indeed. This has been a problem with many of the TI patches in
+general. People are working on separate product trees and then produce
+patches for the mainline kernel that are poorly tested.
+
+The requirement should be: Do your patch on an omap board then send the
+patch from your omap board after booting your board with the patch :)
 
 Regards,
 
