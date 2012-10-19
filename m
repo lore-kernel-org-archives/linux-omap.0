@@ -1,13 +1,13 @@
 From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH 1/7] ARM: OMAP2xxx: hwmod: Convert SHAM crypto device data to hwmod
-Date: Fri, 19 Oct 2012 14:53:54 -0700
-Message-ID: <1350683640-15044-2-git-send-email-mgreer@animalcreek.com>
+Subject: [PATCH 3/7] ARM: OMAP3xxx: hwmod: Convert SHAM crypto device data to hwmod
+Date: Fri, 19 Oct 2012 14:53:56 -0700
+Message-ID: <1350683640-15044-4-git-send-email-mgreer@animalcreek.com>
 References: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:45724 "EHLO
+Received: from mail20.dotsterhost.com ([66.11.232.73]:45844 "EHLO
 	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932972Ab2JSVyi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 17:54:38 -0400
+	with ESMTP id S932972Ab2JSVyl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 17:54:41 -0400
 In-Reply-To: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,186 +16,119 @@ Cc: "Mark A. Greer" <mgreer@animalcreek.com>, Paul Walmsley <paul@pwsan.com>
 
 From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Convert the device data for the OMAP2 SHAM crypto IP from
-explicit platform_data to hwmod.  When bit 1 (OMAP24XX_ST_SHA_MASK)
-of the CM_IDLEST4_CORE register is set, the SHA IP is present.
+Convert the device data for the OMAP3 SHAM2 (SHA1/MD5) crypto IP
+from explicit platform_data to hwmod. When bit 27 (OMAP3430_ST_SHA12_MASK)
+of the CM_IDLEST1_CORE register is 0, the SHA2 IP is present.
 
 CC: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/clock2420_data.c               |  1 +
- arch/arm/mach-omap2/clock2430_data.c               |  1 +
- arch/arm/mach-omap2/devices.c                      | 38 +++++++++-------------
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |  1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |  1 +
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c | 18 ++++++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c | 37 +++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |  2 ++
- 8 files changed, 77 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c       |  1 +
+ arch/arm/mach-omap2/devices.c              | 49 ++++--------------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 60 ++++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+), 41 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index c3cde1a..a09603c 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1905,6 +1905,7 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"vlynq_ick",	&vlynq_ick,	CK_242X),
- 	CLK(NULL,	"vlynq_fck",	&vlynq_fck,	CK_242X),
- 	CLK(NULL,	"des_ick",	&des_ick,	CK_242X),
-+	CLK(NULL,	"sha_ick",	&sha_ick,	CK_242X),
- 	CLK("omap-sham",	"ick",	&sha_ick,	CK_242X),
- 	CLK(NULL,	"sha_ick",	&sha_ick,	CK_242X),
- 	CLK("omap_rng",	"ick",		&rng_ick,	CK_242X),
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index 22404fe..654e314 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -1992,6 +1992,7 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"sdma_ick",	&sdma_ick,	CK_243X),
- 	CLK(NULL,	"sdrc_ick",	&sdrc_ick,	CK_243X),
- 	CLK(NULL,	"des_ick",	&des_ick,	CK_243X),
-+	CLK(NULL,	"sha_ick",	&sha_ick,	CK_242X),
- 	CLK("omap-sham",	"ick",	&sha_ick,	CK_243X),
- 	CLK("omap_rng",	"ick",		&rng_ick,	CK_243X),
- 	CLK(NULL,	"rng_ick",	&rng_ick,	CK_243X),
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 1f42c9d..63f9ec4 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3341,6 +3341,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"mmchs3_ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_34XX | CK_36XX),
+ 	CLK("omap-aes",	"ick",	&aes2_ick,	CK_34XX | CK_36XX),
++	CLK(NULL,	"sha12_ick",	&sha12_ick,	CK_34XX | CK_36XX),
+ 	CLK("omap-sham",	"ick",	&sha12_ick,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"des2_ick",	&des2_ick,	CK_34XX | CK_36XX),
+ 	CLK("omap_hsmmc.1",	"ick",	&mmchs2_ick,	CK_3XXX),
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c8c2117..5b613fa 100644
+index 5b613fa..40211de 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
-@@ -34,6 +34,8 @@
- #include "mux.h"
- #include "control.h"
+@@ -36,6 +36,7 @@
  #include "devices.h"
-+#include "cm2xxx_3xxx.h"
-+#include "cm-regbits-24xx.h"
+ #include "cm2xxx_3xxx.h"
+ #include "cm-regbits-24xx.h"
++#include "cm-regbits-34xx.h"
  
  #define L3_MODULES_MAX_LEN 12
  #define L3_MODULES 3
-@@ -453,24 +455,6 @@ static void omap_init_rng(void)
+@@ -453,40 +454,14 @@ static void omap_init_rng(void)
+ 	WARN(IS_ERR(pdev), "Can't build omap_device for omap_rng\n");
+ }
  
- #if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
- 
--#ifdef CONFIG_ARCH_OMAP2
--static struct resource omap2_sham_resources[] = {
+-#if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static struct resource omap3_sham_resources[] = {
 -	{
--		.start	= OMAP24XX_SEC_SHA1MD5_BASE,
--		.end	= OMAP24XX_SEC_SHA1MD5_BASE + 0x64,
+-		.start	= OMAP34XX_SEC_SHA1MD5_BASE,
+-		.end	= OMAP34XX_SEC_SHA1MD5_BASE + 0x64,
 -		.flags	= IORESOURCE_MEM,
 -	},
 -	{
--		.start	= 51 + OMAP_INTC_START,
+-		.start	= 49 + OMAP_INTC_START,
 -		.flags	= IORESOURCE_IRQ,
+-	},
+-	{
+-		.start	= OMAP34XX_DMA_SHA1MD5_RX,
+-		.flags	= IORESOURCE_DMA,
 -	}
 -};
--static int omap2_sham_resources_sz = ARRAY_SIZE(omap2_sham_resources);
+-static int omap3_sham_resources_sz = ARRAY_SIZE(omap3_sham_resources);
 -#else
--#define omap2_sham_resources		NULL
--#define omap2_sham_resources_sz		0
+-#define omap3_sham_resources		NULL
+-#define omap3_sham_resources_sz		0
 -#endif
 -
- #ifdef CONFIG_ARCH_OMAP3
- static struct resource omap3_sham_resources[] = {
- 	{
-@@ -500,17 +484,27 @@ static struct platform_device sham_device = {
- 
- static void omap_init_sham(void)
+-static struct platform_device sham_device = {
+-	.name		= "omap-sham",
+-	.id		= -1,
+-};
+-
+-static void omap_init_sham(void)
++static void __init omap_init_sham(void)
  {
--	if (cpu_is_omap24xx()) {
--		sham_device.resource = omap2_sham_resources;
--		sham_device.num_resources = omap2_sham_resources_sz;
-+	if (cpu_is_omap24xx() &&
-+	    (omap2_cm_read_mod_reg(CORE_MOD, OMAP24XX_CM_IDLEST4) &
-+						 OMAP24XX_ST_SHA_MASK)) {
-+		struct omap_hwmod *oh;
-+		struct platform_device *pdev;
-+
-+		oh = omap_hwmod_lookup("sham");
-+		if (!oh)
-+			return;
-+
-+		pdev = omap_device_build("omap-sham", -1, oh, NULL, 0, NULL,
-+					 0, 0);
-+		WARN(IS_ERR(pdev), "Can't build omap_device for omap-sham\n");
- 	} else if (cpu_is_omap34xx()) {
- 		sham_device.resource = omap3_sham_resources;
- 		sham_device.num_resources = omap3_sham_resources_sz;
-+		platform_device_register(&sham_device);
+-	if (cpu_is_omap24xx() &&
+-	    (omap2_cm_read_mod_reg(CORE_MOD, OMAP24XX_CM_IDLEST4) &
+-						 OMAP24XX_ST_SHA_MASK)) {
++	if ((cpu_is_omap24xx() &&
++	     (omap2_cm_read_mod_reg(CORE_MOD, OMAP24XX_CM_IDLEST4) &
++						 OMAP24XX_ST_SHA_MASK)) ||
++	    (cpu_is_omap34xx() &&
++	     (!(omap2_cm_read_mod_reg(CORE_MOD, CM_IDLEST1) &
++						 OMAP3430_ST_SHA12_MASK)))) {
+ 		struct omap_hwmod *oh;
+ 		struct platform_device *pdev;
+ 
+@@ -497,18 +472,10 @@ static void omap_init_sham(void)
+ 		pdev = omap_device_build("omap-sham", -1, oh, NULL, 0, NULL,
+ 					 0, 0);
+ 		WARN(IS_ERR(pdev), "Can't build omap_device for omap-sham\n");
+-	} else if (cpu_is_omap34xx()) {
+-		sham_device.resource = omap3_sham_resources;
+-		sham_device.num_resources = omap3_sham_resources_sz;
+-		platform_device_register(&sham_device);
  	} else {
  		pr_err("%s: platform not supported\n", __func__);
- 		return;
+-		return;
  	}
--	platform_device_register(&sham_device);
  }
- #else
- static inline void omap_init_sham(void) { }
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index b5db600..b102a53 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -603,6 +603,7 @@ static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
- 	&omap2420_l4_core__mcbsp2,
- 	&omap2420_l4_core__msdi1,
- 	&omap2xxx_l4_core__rng,
-+	&omap2xxx_l4_core__sham,
- 	&omap2420_l4_core__hdq1w,
- 	&omap2420_l4_wkup__counter_32k,
- 	&omap2420_l3__gpmc,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index c455e41..b1ce7b0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -963,6 +963,7 @@ static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
- 	&omap2430_l4_core__mcbsp5,
- 	&omap2430_l4_core__hdq1w,
- 	&omap2xxx_l4_core__rng,
-+	&omap2xxx_l4_core__sham,
- 	&omap2430_l4_wkup__counter_32k,
- 	&omap2430_l3__gpmc,
- 	NULL,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
-index 1a1287d..bb314c5 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
-@@ -138,6 +138,15 @@ static struct omap_hwmod_addr_space omap2_rng_addr_space[] = {
- 	{ }
- };
+-#else
+-static inline void omap_init_sham(void) { }
+-#endif
  
-+struct omap_hwmod_addr_space omap2xxx_sham_addrs[] = {
-+	{
-+		.pa_start	= 0x480a4000,
-+		.pa_end		= 0x480a4000 + 0x64 - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
- /*
-  * Common interconnect data
-  */
-@@ -389,3 +398,12 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__rng = {
- 	.addr		= omap2_rng_addr_space,
+ #if defined(CONFIG_CRYPTO_DEV_OMAP_AES) || defined(CONFIG_CRYPTO_DEV_OMAP_AES_MODULE)
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index f67b7ee..c09cc60 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3543,6 +3543,65 @@ static struct omap_hwmod_ocp_if omap3xxx_l3_main__gpmc = {
  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
-+
-+/* l4 core -> sham interface */
-+struct omap_hwmod_ocp_if omap2xxx_l4_core__sham = {
-+	.master		= &omap2xxx_l4_core_hwmod,
-+	.slave		= &omap2xxx_sham_hwmod,
-+	.clk		= "sha_ick",
-+	.addr		= omap2xxx_sham_addrs,
-+	.user		= OCP_USER_MPU,
-+};
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index bd9220e..a041670 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -851,3 +851,40 @@ struct omap_hwmod omap2xxx_rng_hwmod = {
- 	.flags		= HWMOD_INIT_NO_RESET,
- 	.class		= &omap2_rng_hwmod_class,
- };
-+
-+/* SHAM */
-+
-+static struct omap_hwmod_class_sysconfig omap2_sham_sysc = {
+ 
++/* l4_core -> SHAM2 (SHA1/MD5) (similar to omap24xx) */
++static struct omap_hwmod_class_sysconfig omap3_sham_sysc = {
 +	.rev_offs	= 0x5c,
 +	.sysc_offs	= 0x60,
 +	.syss_offs	= 0x64,
@@ -204,51 +137,66 @@ index bd9220e..a041670 100644
 +	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap2xxx_sham_class = {
++static struct omap_hwmod_class omap3xxx_sham_class = {
 +	.name	= "sham",
-+	.sysc	= &omap2_sham_sysc,
++	.sysc	= &omap3_sham_sysc,
 +};
 +
-+struct omap_hwmod_irq_info omap2_sham_mpu_irqs[] = {
-+	{ .irq = 51 + OMAP_INTC_START, },
++struct omap_hwmod_irq_info omap3_sham_mpu_irqs[] = {
++	{ .irq = 49 + OMAP_INTC_START, },
 +	{ .irq = -1 }
 +};
 +
-+struct omap_hwmod omap2xxx_sham_hwmod = {
++struct omap_hwmod_dma_info omap3_sham_sdma_reqs[] = {
++	{ .name = "rx", .dma_req = OMAP34XX_DMA_SHA1MD5_RX, },
++	{ .dma_req = -1 }
++};
++
++struct omap_hwmod omap3xxx_sham_hwmod = {
 +	.name		= "sham",
-+	.mpu_irqs	= omap2_sham_mpu_irqs,
-+	.main_clk	= "l4_ck",
++	.mpu_irqs	= omap3_sham_mpu_irqs,
++	.sdma_reqs	= omap3_sham_sdma_reqs,
++	.main_clk	= "sha12_ick",
 +	.prcm		= {
 +		.omap2 = {
 +			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 4,
-+			.module_bit = OMAP24XX_EN_SHA_SHIFT,
-+			.idlest_reg_id = 4,
-+			.idlest_idle_bit = OMAP24XX_ST_SHA_SHIFT,
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_SHA12_SHIFT,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_SHA12_SHIFT,
 +		},
 +	},
-+	.class		= &omap2xxx_sham_class,
++	.class		= &omap3xxx_sham_class,
 +};
-diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
-index 2bc8f17..74a7b7a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
-@@ -78,6 +78,7 @@ extern struct omap_hwmod omap2xxx_mcspi2_hwmod;
- extern struct omap_hwmod omap2xxx_counter_32k_hwmod;
- extern struct omap_hwmod omap2xxx_gpmc_hwmod;
- extern struct omap_hwmod omap2xxx_rng_hwmod;
-+extern struct omap_hwmod omap2xxx_sham_hwmod;
++
++static struct omap_hwmod_addr_space omap3xxx_sham_addrs[] = {
++	{
++		.pa_start	= 0x480c3000,
++		.pa_end		= 0x480c3000 + 0x64 - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_core__sham = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap3xxx_sham_hwmod,
++	.clk		= "sha12_ick",
++	.addr		= omap3xxx_sham_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l3_main__l4_core,
+ 	&omap3xxx_l3_main__l4_per,
+@@ -3590,6 +3649,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap34xx_l4_core__mcspi4,
+ 	&omap3xxx_l4_wkup__counter_32k,
+ 	&omap3xxx_l3_main__gpmc,
++	&omap3xxx_l4_core__sham,
+ 	NULL,
+ };
  
- /* Common interface data across OMAP2xxx */
- extern struct omap_hwmod_ocp_if omap2xxx_l3_main__l4_core;
-@@ -105,6 +106,7 @@ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__dss_dispc;
- extern struct omap_hwmod_ocp_if omap2xxx_l4_core__dss_rfbi;
- extern struct omap_hwmod_ocp_if omap2xxx_l4_core__dss_venc;
- extern struct omap_hwmod_ocp_if omap2xxx_l4_core__rng;
-+extern struct omap_hwmod_ocp_if omap2xxx_l4_core__sham;
- 
- /* Common IP block data */
- extern struct omap_hwmod_dma_info omap2_uart1_sdma_reqs[];
 -- 
 1.7.12
 
