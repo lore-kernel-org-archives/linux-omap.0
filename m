@@ -1,167 +1,93 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 5/6] ARM: OMAP2+: Make some definitions local
-Date: Fri, 19 Oct 2012 11:44:47 +0200
-Message-ID: <2153737.CkcY4HqKKl@avalon>
-References: <20121018202707.11834.1438.stgit@muffinssi.local> <20121018202848.11834.17893.stgit@muffinssi.local>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v2] arm/dts: AM33XX: Add SPI device tree data
+Date: Fri, 19 Oct 2012 10:01:39 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9D18C6@DBDE01.ent.ti.com>
+References: <1347946228-25874-1-git-send-email-avinashphilip@ti.com>
+ <50810E2F.5@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53641 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab2JSJn7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 05:43:59 -0400
-In-Reply-To: <20121018202848.11834.17893.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50810E2F.5@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>
 
-Hi Tony,
+On Fri, Oct 19, 2012 at 13:54:15, Cousson, Benoit wrote:
+> Hi Avinash,
+> 
+> This look good to me except the: status = "disabled".
 
-On Thursday 18 October 2012 13:28:48 Tony Lindgren wrote:
-> From: Ido Yariv <ido@wizery.com>
-> 
-> Move some of the definitions in omap-iommu.h that can be made local to
-> either drivers/iommu.
-> 
-> Cc: Joerg Roedel <joerg.roedel@amd.com>
-> Cc: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Omar Ramirez Luna <omar.luna@linaro.org>
-> Signed-off-by: Ido Yariv <ido@wizery.com>
-> [tony@atomide.com: updated for header changes in the series]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/iommu/omap-iommu.c  |   15 +++++++++++++++
->  drivers/iommu/omap-iommu.h  |   33 +++------------------------------
->  drivers/iommu/omap-iommu2.c |    6 ++++++
->  3 files changed, 24 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index 4db86e1..df84087 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -54,6 +54,21 @@ struct omap_iommu_domain {
->  	spinlock_t lock;
->  };
-> 
-> +#define MMU_LOCK_BASE_SHIFT	10
-> +#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
-> +#define MMU_LOCK_BASE(x)	\
-> +	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
-> +
-> +#define MMU_LOCK_VICT_SHIFT	4
-> +#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
-> +#define MMU_LOCK_VICT(x)	\
-> +	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
-> +
-> +struct iotlb_lock {
-> +	short base;
-> +	short vict;
-> +};
-> +
->  /* accommodate the difference between omap1 and omap2/3 */
->  static const struct iommu_functions *arch_iommu;
-> 
-> diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-> index 8c3378d..2b5f3c0 100644
-> --- a/drivers/iommu/omap-iommu.h
-> +++ b/drivers/iommu/omap-iommu.h
-> @@ -72,11 +72,6 @@ struct cr_regs {
->  	};
->  };
-> 
-> -struct iotlb_lock {
-> -	short base;
-> -	short vict;
-> -};
-> -
->  /* architecture specific functions */
->  struct iommu_functions {
->  	unsigned long	version;
-> @@ -117,13 +112,6 @@ static inline struct omap_iommu
-> *dev_to_omap_iommu(struct device *dev) }
->  #endif
-> 
-> -/* IOMMU errors */
-> -#define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
-> -#define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
-> -#define OMAP_IOMMU_ERR_EMU_MISS		(1 << 2)
-> -#define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
-> -#define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
-> -
+status = "disabled" in soc .dtsi  file to make sure that IP driver
+won't loaded unless if IP used. 
+So from board .dts file status = "okay" should be set if IP being used.
 
-I'll use those in the tidspbridge driver, in patches that I plan to push soon.
+Follows the uart1 case in AM33xx dtsi.
 
-I will apply this patch set on top of mine, see what breaks. Would you like me 
-to propose a modified version of this set, or add additional patches in my set 
-?
+uart1 also sets status = "disabled"; in am33xx.dtsi & set status = "okay";
+in am335x-evm.dts.
 
->  /*
->   * MMU Register offsets
->   */
-> @@ -151,16 +139,6 @@ static inline struct omap_iommu
-> *dev_to_omap_iommu(struct device *dev) /*
->   * MMU Register bit definitions
->   */
-> -#define MMU_LOCK_BASE_SHIFT	10
-> -#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
-> -#define MMU_LOCK_BASE(x)	\
-> -	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
-> -
-> -#define MMU_LOCK_VICT_SHIFT	4
-> -#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
-> -#define MMU_LOCK_VICT(x)	\
-> -	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
-> -
->  #define MMU_CAM_VATAG_SHIFT	12
->  #define MMU_CAM_VATAG_MASK \
->  	((~0UL >> MMU_CAM_VATAG_SHIFT) << MMU_CAM_VATAG_SHIFT)
-> @@ -222,20 +200,15 @@ extern void omap_iotlb_cr_to_e(struct cr_regs *cr,
-> struct iotlb_entry *e); extern int
->  omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e);
-> 
-> -extern int omap_iommu_set_isr(const char *name,
-> -		 int (*isr)(struct omap_iommu *obj, u32 da, u32 iommu_errs,
-> -				    void *priv),
-> -			 void *isr_priv);
-> -
->  extern void omap_iommu_save_ctx(struct device *dev);
->  extern void omap_iommu_restore_ctx(struct device *dev);
-> 
-> -extern int omap_install_iommu_arch(const struct iommu_functions *ops);
-> -extern void omap_uninstall_iommu_arch(const struct iommu_functions *ops);
-> -
->  extern int omap_foreach_iommu_device(void *data,
->  				int (*fn)(struct device *, void *));
-> 
-> +extern int omap_install_iommu_arch(const struct iommu_functions *ops);
-> +extern void omap_uninstall_iommu_arch(const struct iommu_functions *ops);
-> +
->  extern ssize_t
->  omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
->  extern size_t
-> diff --git a/drivers/iommu/omap-iommu2.c b/drivers/iommu/omap-iommu2.c
-> index 066e6b2..4d8d91d 100644
-> --- a/drivers/iommu/omap-iommu2.c
-> +++ b/drivers/iommu/omap-iommu2.c
-> @@ -68,6 +68,12 @@
->  	 ((pgsz) == MMU_CAM_PGSZ_64K) ? 0xffff0000 :	\
->  	 ((pgsz) == MMU_CAM_PGSZ_4K)  ? 0xfffff000 : 0)
-> 
-> +/* IOMMU errors */
-> +#define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
-> +#define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
-> +#define OMAP_IOMMU_ERR_EMU_MISS		(1 << 2)
-> +#define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
-> +#define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
-> 
->  static void __iommu_set_twl(struct omap_iommu *obj, bool on)
->  {
--- 
-Regards,
+Thanks
+Avinash
 
-Laurent Pinchart
-
+> 
+> The "disabled" should be reserved for variant that does not contain the IP.
+> Is it the case here?
+> 
+> Regards,
+> Benoit
+> 
+> On 09/18/2012 07:30 AM, Philip, Avinash wrote:
+> > Add McSPI data node to AM33XX device tree file. The McSPI module (and so
+> > as the driver) is reused from OMAP4.
+> > 
+> > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+> > Tested-by: Matt Porter <mporter@ti.com>
+> > ---
+> > Changes since v1:
+> >         - Corrected reg offset in reg DT entry.
+> > 
+> > :100644 100644 ff3badb... 065fd54... M	arch/arm/boot/dts/am33xx.dtsi
+> >  arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
+> >  1 files changed, 25 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index ff3badb..065fd54 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -219,5 +219,30 @@
+> >  			interrupt-parent = <&intc>;
+> >  			interrupts = <91>;
+> >  		};
+> > +
+> > +		spi0: spi@48030000 {
+> > +			compatible = "ti,omap4-mcspi";
+> > +			#address-cells = <1>;
+> > +			#size-cells = <0>;
+> > +			reg = <0x48030000 0x400>;
+> > +			interrupt-parent = <&intc>;
+> > +			interrupt = <65>;
+> > +			ti,spi-num-cs = <2>;
+> > +			ti,hwmods = "spi0";
+> > +			status = "disabled";
+> > +
+> > +		};
+> > +
+> > +		spi1: spi@481a0000 {
+> > +			compatible = "ti,omap4-mcspi";
+> > +			#address-cells = <1>;
+> > +			#size-cells = <0>;
+> > +			reg = <0x481a0000 0x400>;
+> > +			interrupt-parent = <&intc>;
+> > +			interrupt = <125>;
+> > +			ti,spi-num-cs = <2>;
+> > +			ti,hwmods = "spi1";
+> > +			status = "disabled";
+> > +		};
+> >  	};
+> >  };
+> > 
+> 
+> 
