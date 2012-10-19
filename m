@@ -1,83 +1,40 @@
-From: Christopher Harvey <charvey@matrox.com>
-Subject: [PATCH v2 1/1] mtd: omap: nand: Remove 0xFF's that prefixed 16bit
- NAND commands
-Date: Fri, 19 Oct 2012 13:42:52 -0400
-Message-ID: <20121019174252.GA7831@harvey-pc.matrox.com>
-References: <20121019172457.GA7608@harvey-pc.matrox.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: Updated status of the removal of plat headers
+Date: Fri, 19 Oct 2012 12:43:44 -0500
+Message-ID: <CALLhW=4nx83M2uuyQB9mq0Eu4Po6yOhoG7M_ozJqMa_WSLwZuQ@mail.gmail.com>
+References: <20121016230040.GP15569@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mtxmxout5.matrox.com ([138.11.2.95]:46067 "EHLO
-	mtxmxout5.matrox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938Ab2JSRji (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 13:39:38 -0400
-Received: from venus.matrox.com (venus.matrox.com [192.168.1.30])
-	by mtxmxout5.matrox.com (Postfix) with ESMTP id 6104B1C6B8C
-	for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 13:39:37 -0400 (EDT)
-Received: (from ssmsp@localhost)
-	by venus.matrox.com (8.14.4/8.13.2) id q9JHdbgQ011497
-	for linux-omap@vger.kernel.org; Fri, 19 Oct 2012 13:39:37 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by venus.matrox.com (Postfix) with ESMTP id F3518F4DB8
-	for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 13:39:36 -0400 (EDT)
-Received: from pluton.matrox.com (pluton.matrox.com [192.168.8.7])
-	by venus.matrox.com (Postfix) with ESMTP id D5435F4DB5
-	for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 13:39:36 -0400 (EDT)
-Received: from harvey-pc.matrox.com (dyn-152-224.matrox.com [192.168.152.224])
-	by pluton.matrox.com (Postfix) with ESMTP id C5C127F45A
-	for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 13:39:36 -0400 (EDT)
-Content-Disposition: inline
-In-Reply-To: <20121019172457.GA7608@harvey-pc.matrox.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:43327 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756599Ab2JSRnp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 13:43:45 -0400
+Received: by mail-vc0-f174.google.com with SMTP id fk26so754742vcb.19
+        for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 10:43:45 -0700 (PDT)
+In-Reply-To: <20121016230040.GP15569@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, Igor Grinberg <grinberg@compulab.co.il>, Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-In 16bit NAND mode the GPMC would send the command 0xNN as 0xFFNN
-instead of 0x00NN on the bus. The 0xFFs were actually uninitialized
-bits that were left unset in the GPMC command output register. The
-reason they weren't initialized in 16bit mode is that if the same code
-that writes to this register was used in 8bit mode then 2 commands
-would be output in 8bit mode. One for the low byte, and an extra 0x0
-command for the high byte. This commit uses writew if we're using
-16bit NAND.
+Hi,
 
-Most chips seem fine with the extra 0xFFs, but the ONFI spec says
-otherwise.
+On 16 October 2012 18:00, Tony Lindgren <tony@atomide.com> wrote:
+> Hi all,
+>
+> Here's a quick status update on the removal of remaining
+> #include <plat/*.h> files. Most files are now fixed up, and
+> we only have the following remaining:
+>
+> cpu.h           wrapper only left, will be removed as soon as drivers are fixed
+>
+> dmtimer.h       Jon is fixing this
+>
+> mailbox.h       Omar, are you fixing this?
 
-Signed-off-by: Christopher Harvey <charvey@matrox.com>
----
- drivers/mtd/nand/omap2.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+Yes, I'm taking this.
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 5c8978e..6e1c1e5 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -232,16 +232,20 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
- {
- 	struct omap_nand_info *info = container_of(mtd,
- 					struct omap_nand_info, mtd);
-+	void __iomem *reg;
- 
- 	if (cmd != NAND_CMD_NONE) {
- 		if (ctrl & NAND_CLE)
--			writeb(cmd, info->reg.gpmc_nand_command);
--
-+			reg = info->reg.gpmc_nand_command;
- 		else if (ctrl & NAND_ALE)
--			writeb(cmd, info->reg.gpmc_nand_address);
--
-+			reg = info->reg.gpmc_nand_address;
- 		else /* NAND_NCE */
--			writeb(cmd, info->reg.gpmc_nand_data);
-+			reg = info->reg.gpmc_nand_data;
-+
-+		if (info->nand.options & NAND_BUSWIDTH_16)
-+			writew(cmd, reg);
-+		else
-+			writeb(cmd, reg);
- 	}
- }
- 
--- 
-1.7.8.6
+Regards,
+
+Omar
