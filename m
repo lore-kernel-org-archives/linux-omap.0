@@ -1,123 +1,87 @@
 From: Matt Porter <mporter@ti.com>
-Subject: Re: [RFC PATCH v3 00/16] DMA Engine support for AM33XX
-Date: Fri, 19 Oct 2012 07:15:58 -0400
-Message-ID: <20121019111558.GD25164@beef>
-References: <1350566815-409-1-git-send-email-mporter@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EBD29FC@DBDE01.ent.ti.com>
+Subject: Re: [PATCH v2] arm/dts: AM33XX: Add SPI device tree data
+Date: Fri, 19 Oct 2012 07:30:16 -0400
+Message-ID: <20121019113016.GE25164@beef>
+References: <1347946228-25874-1-git-send-email-avinashphilip@ti.com>
+ <50810E2F.5@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBD29FC@DBDE01.ent.ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.>
+In-Reply-To: <50810E2F.5@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Philip, Avinash" <avinashphilip@ti.com>, linux@arm.linux.org.uk, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 19, 2012 at 10:26:20AM +0000, Bedia, Vaibhav wrote:
-> Hi Matt,
+On Fri, Oct 19, 2012 at 10:24:15AM +0200, Benoit Cousson wrote:
+> Hi Avinash,
 > 
-> On Thu, Oct 18, 2012 at 18:56:39, Porter, Matt wrote:
-> > Changes since v2:
-> > 	- Rebased on 3.7-rc1
-> > 	- Fixed bug in DT/pdata parsing first found by Gururaja
-> > 	  that turned out to be masked by some toolchains
-> > 	- Dropped unused mach-omap2/devices.c hsmmc patch
-> > 	- Added AM33XX crossbar DMA event mux support
-> > 	- Added am335x-evm support
+> This look good to me except the: status = "disabled".
+> 
+> The "disabled" should be reserved for variant that does not contain the IP.
+> Is it the case here?
+
+http://comments.gmane.org/gmane.linux.drivers.devicetree/18968 is what
+I've been going by with the DTS support in the EDMA dmaengine series. It
+does make the most sense to only enable what you need in the
+<board>.dts.
+
+-Matt
+
+> On 09/18/2012 07:30 AM, Philip, Avinash wrote:
+> > Add McSPI data node to AM33XX device tree file. The McSPI module (and so
+> > as the driver) is reused from OMAP4.
 > > 
+> > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+> > Tested-by: Matt Porter <mporter@ti.com>
+> > ---
 > > Changes since v1:
-> > 	- Rebased on top of mainline from 12250d8
-> > 	- Dropped the feature removal schedule patch
-> > 	- Implemented dma_request_slave_channel_compat() and
-> > 	  converted the mmc and spi drivers to use it
-> > 	- Dropped unneeded #address-cells and #size-cells from
-> > 	  EDMA DT support
-> > 	- Moved private EDMA header to linux/platform_data/ and
-> > 	  removed some unneeded definitions
-> > 	- Fixed parsing of optional properties
+> >         - Corrected reg offset in reg DT entry.
 > > 
-> > TODO:
-> > 	- Add dmaengine support for per-channel caps so the
-> > 	  hack to set the maximum segments can be replaced with
-> > 	  a query to the dmaengine driver
+> > :100644 100644 ff3badb... 065fd54... M	arch/arm/boot/dts/am33xx.dtsi
+> >  arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
+> >  1 files changed, 25 insertions(+), 0 deletions(-)
 > > 
-> > This series adds DMA Engine support for AM33xx, which uses
-> > an EDMA DMAC. The EDMA DMAC has been previously supported by only
-> > a private API implementation (much like the situation with OMAP
-> > DMA) found on the DaVinci family of SoCs.
-> > 
-> > The series applies on top of 3.7-rc1 and the following patches:
-> > 
-> > 	- GPMC fails to reserve memory fix:
-> > 	  http://www.spinics.net/lists/linux-omap/msg79675.html
-> > 	- TPS65910 regulator fix:
-> > 	  https://patchwork.kernel.org/patch/1593651/
-> > 	- dmaengine DT support from Vinod's dmaengine_dt branch in
-> > 	  git://git.infradead.org/users/vkoul/slave-dma.git since
-> > 	  027478851791df751176398be02a3b1c5f6aa824
-> > 
-> > The approach taken is similar to how OMAP DMA is being converted to
-> > DMA Engine support. With the functional EDMA private API already
-> > existing in mach-davinci/dma.c, we first move that to an ARM common
-> > area so it can be shared. Adding DT and runtime PM support to the
-> > private EDMA API implementation allows it to run on AM33xx. AM33xx
-> > *only* boots using DT so we leverage Jon's generic DT DMA helpers to
-> > register EDMA DMAC with the of_dma framework and then add support
-> > for calling the dma_request_slave_channel() API to both the mmc
-> > and spi drivers.
-> > 
-> > With this series both BeagleBone and the AM335x EVM have working
-> > MMC and SPI support.
-> > 
-> > This is tested on BeagleBone with a SPI framebuffer driver and MMC
-> > rootfs. A trivial gpio DMA event misc driver was used to test the
-> > crossbar DMA event support. It is also tested on the AM335x EVM
-> > with the onboard SPI flash and MMC rootfs. The branch at
-> > https://github.com/ohporter/linux/tree/edma-dmaengine-v3 has the
-> > complete series, dependencies, and some test drivers/defconfigs.
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index ff3badb..065fd54 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -219,5 +219,30 @@
+> >  			interrupt-parent = <&intc>;
+> >  			interrupts = <91>;
+> >  		};
+> > +
+> > +		spi0: spi@48030000 {
+> > +			compatible = "ti,omap4-mcspi";
+> > +			#address-cells = <1>;
+> > +			#size-cells = <0>;
+> > +			reg = <0x48030000 0x400>;
+> > +			interrupt-parent = <&intc>;
+> > +			interrupt = <65>;
+> > +			ti,spi-num-cs = <2>;
+> > +			ti,hwmods = "spi0";
+> > +			status = "disabled";
+> > +
+> > +		};
+> > +
+> > +		spi1: spi@481a0000 {
+> > +			compatible = "ti,omap4-mcspi";
+> > +			#address-cells = <1>;
+> > +			#size-cells = <0>;
+> > +			reg = <0x481a0000 0x400>;
+> > +			interrupt-parent = <&intc>;
+> > +			interrupt = <125>;
+> > +			ti,spi-num-cs = <2>;
+> > +			ti,hwmods = "spi1";
+> > +			status = "disabled";
+> > +		};
+> >  	};
+> >  };
 > > 
 > 
-> I didn't see all the patches that you posted on edma-dmaengine-v3
-> but I do seem them on edma-dmaengine-am33xx-v3 branch.
-
-I see I referenced the wrong branch in the cover letter. Thanks for
-testing and noticing this. Sorry to make you hunt for the correct
-branch in that repo. ;) 
-
-https://github.com/ohporter/linux/tree/edma-dmaengine-am33xx-v3
-is indeed the correct branch for those wanting to pull this in or
-grab some of the not-to-be-merged drivers I used for testing.
-
-> I added a couple of patches to enable earlyprintk and build the DTB
-> appended kernel image uImage-dtb.am335x-evm
-> 
-> Here's what i see
-> 
-> [...]
-
-<snip>
-
-> [    0.175354] edma: probe of 49000000.edma failed with error -16
-
-I missed an uninitialized pdata case in the bug fixes mentioned in
-the changelog and the folks previously failing the same way didn't
-hit the case I suspect you are hitting. Can you try this and let me
-know how it works?
-
-Thanks,
-Matt
-
-diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
-index b761b7a..b43b327 100644
---- a/arch/arm/common/edma.c
-+++ b/arch/arm/common/edma.c
-@@ -1619,7 +1619,7 @@ static int __init edma_probe(struct platform_device *pdev)
- 
- 	if (node) {
- 		pdata = devm_kzalloc(dev,
--				     sizeof(struct edma_soc_info),
-+				     EDMA_MAX_CC*sizeof(struct edma_soc_info),
- 				     GFP_KERNEL);
- 		edma_of_parse_dt(dev, node, pdata);
- 		info = &pdata;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
