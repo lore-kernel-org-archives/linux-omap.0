@@ -1,47 +1,40 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: Fwd: [PATCH 2/5] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
- davinci_mdio
-Date: Fri, 19 Oct 2012 08:16:30 +0200
-Message-ID: <20121019061630.GB2983@netboy.at.omicron.at>
-References: <20121017181354.GA2412@netboy.at.omicron.at>
- <alpine.DEB.2.00.1210172337170.30902@utopia.booyaka.com>
- <20121017235045.GB30550@atomide.com>
- <20121018030654.GE2867@netboy.at.omicron.at>
- <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
- <20121018184443.GD2350@netboy.at.omicron.at>
- <50806B1D.9040504@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: Multimachine uImage and cpufreq-cpu0/cpufreq-omap2 breakage
+Date: Fri, 19 Oct 2012 06:41:00 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA54B27@DBDE01.ent.ti.com>
+References: <2371665D-9B6F-4163-B3E3-F24F771C10DA@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:34484 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917Ab2JSGQl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 02:16:41 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so119331wgb.1
-        for <linux-omap@vger.kernel.org>; Thu, 18 Oct 2012 23:16:40 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <50806B1D.9040504@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53952 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701Ab2JSGlI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 02:41:08 -0400
+In-Reply-To: <2371665D-9B6F-4163-B3E3-F24F771C10DA@dominion.thruhere.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Mugunthan V N <mugunthanvnm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Fri, Oct 19, 2012 at 02:18:29AM +0530, Vaibhav Hiremath wrote:
+On Wed, Oct 17, 2012 at 15:48:22, Koen Kooi wrote:
+> Hi,
 > 
-> Another important point is, this driver is also required and used for
-> Davinci family of devices (arch/mach/mach-davinci/).
+> I'm currently building 3.7rc1 kernels meant to run on beagleboards (omap3), pandaboards (omap4) and beaglebones (am335x). At the moment I'm only testing it on beaglebone and I noticed a problem with the different cpufreq drivers getting in eachothers way.
+> 
+> I patched in cpufreq-cpu0 support for AM335x and that's was working great. After rebasing to 3.7-rc1 it stopped working because cpufreq-omap2 tried to load, failed and made the cpufreq-cpu0 driver error out. The workaround is simple: only enable on driver.
+> 
+> So my question is: Is this the intended behaviour? I would expect the cpufreq-omap2 driver to not load when booted on am335x using DT, but it is a persistent bugger.
 
-That is really beside the point. If the code isn't ready yet, then
-don't merge it.
+Hi Koen,
 
-When I asked about the beaglebone, I was given the impression that it
-will be ready for v3.7-rc1.  But, as I know realize, at the current
-rate, it might not even be ready for v3.8.
+AFAICS regulator_get() should return NULL if there is no "vcc" regulator
+node and should not proceed further but its proceeding and doing the
+cpufreq_register_driver(), so we are seeing failure for cpu0 driver
+after this.
 
-I don't mind waiting, but please make sure that whatever lands into a
-release is really, truly working.
+clk_get() should be moved to omap_cpufreq_init to avoid this. (Extra
+protection).
 
-Thanks,
-Richard
-
-
+Thanks
+AnilKumar
