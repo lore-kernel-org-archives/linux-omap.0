@@ -1,68 +1,54 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2] ARM: OMAP2: UART: fix console UART mismatched runtime PM status
-Date: Fri, 19 Oct 2012 15:24:30 -0700
-Message-ID: <1350685470-3634-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:49749 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052Ab2JSWYe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 18:24:34 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so672922pad.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 15:24:33 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: Re: RT throttling and suspend/resume (was Re: [PATCH] i2c: omap: revert "i2c: omap: switch to threaded IRQ support")
+Date: Fri, 19 Oct 2012 16:28:16 -0700
+Message-ID: <87a9vijb3j.fsf@deeprootsystems.com>
+References: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com>
+	<CAM=Q2csHTbR4rBe1HNr5-M3sG5wgdCv6dCnGLmNQEwo1gjCSGg@mail.gmail.com>
+	<20121016133356.GG21801@arwen.pp.htv.fi>
+	<87ipaanljt.fsf_-_@deeprootsystems.com>
+	<20121017140002.GI11394@arwen.pp.htv.fi>
+	<20121017143534.GJ11394@arwen.pp.htv.fi>
+	<87txtsitpt.fsf@deeprootsystems.com>
+	<20121018055136.GF11137@arwen.pp.htv.fi>
+	<1350655227.2768.11.camel@twins>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1350655227.2768.11.camel@twins> (Peter Zijlstra's message of
+	"Fri, 19 Oct 2012 16:00:27 +0200")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 
-From: Kevin Hilman <khilman@ti.com>
+Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> writes:
 
-The runtime PM framework assumes that the hardware state of devices
-when initialized is disabled.  For all omap_devices, we idle/disable
-device by default.  However, the console uart uses a "no idle" option
-during omap_device init in order to allow earlyprintk usage to work
-seamlessly during boot.
+> On Thu, 2012-10-18 at 08:51 +0300, Felipe Balbi wrote:
+>> > So the primary question remains: is RT runtime supposed to include the
+>> > time spent suspended?  I suspect not. 
+>> 
+>> you might be right there, though we need Thomas or Peter to answer :-s 
+>
+> re, sorry both tglx and I have been traveling, he still is, I'm trying
+> to play catch-up :-)
 
-Because the hardware is left partially enabled after init (whatever
-the bootloader settings were), the omap_device should later be fully
-initialized (including mux) and the runtime PM framework should be
-told that the device is active, and not disabled so that the hardware
-state is in sync with runtime PM state.
+No worries, thanks for the help.
 
-To fix, after the device has been created/registered, call
-omap_device_enable() to finialize init and use pm_runtime_set_active()
-to tell the runtime PM core the device is enabled.
+> Anyway, yeah I'm somewhat surprised the clock is 'running' when the
+> machine isn't. From what I could gather, this is !x86 hardware, right?
+>
+> x86 explicitly makes sure our clocks are 'stopped' during suspend, see
+> commit cd7240c0b900eb6d690ccee088a6c9b46dae815a.
+>
+> Can you do something similar for ARM? A quick look at
+> arch/arm/kernel/sched_clock.c shows there's already suspend/resume
+> hooks, do they do the wrong thing?
 
-Tested on 2420/n810, 3530/Overo, 3530/Beagle, 3730/OveroSTORM,
-3730/Beagle-xM, 4460/PandaES.
+No, they do the right thing, but only if they're asked by the
+SoC-specific code that registers a sched_clock.  Changing the SoC
+specific code to use the 'needs_suspend' API gets things working
+perfectly.
 
-Suggested-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Applies to v3.7-rc1.
-v2: call omap_device_enable() only after oh->mux has been initialized
-    otherwise, IO ring wakeups not properly enabled.
+Thanks,
 
- arch/arm/mach-omap2/serial.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 0405c81..a507cd6 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -329,6 +329,11 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 
- 	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
- 
-+	if (console_uart_id == bdata->id) {
-+		omap_device_enable(pdev);
-+		pm_runtime_set_active(&pdev->dev);
-+	}
-+
- 	oh->dev_attr = uart;
- 
- 	if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
--- 
-1.7.9.2
-
+Kevin
