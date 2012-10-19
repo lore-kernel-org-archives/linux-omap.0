@@ -1,94 +1,55 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 2/2] ARM: OMAP2+: Add device-tree support for 32kHz counter
-Date: Fri, 19 Oct 2012 10:05:51 -0500
-Message-ID: <1350659151-13898-3-git-send-email-jon-hunter@ti.com>
-References: <1350659151-13898-1-git-send-email-jon-hunter@ti.com>
+From: Afzal Mohammed <x0148406@ti.com>
+Subject: Re: [PATCH 0/4] OMAP-GPMC generic timing migration
+Date: Fri, 19 Oct 2012 21:04:31 +0530
+Message-ID: <50817307.50509@ti.com>
+References: <cover.1349450723.git.afzal@ti.com> <5076B166.2020006@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55331 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56948 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757359Ab2JSPGH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Oct 2012 11:06:07 -0400
-In-Reply-To: <1350659151-13898-1-git-send-email-jon-hunter@ti.com>
+	id S1751910Ab2JSPep (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Oct 2012 11:34:45 -0400
+In-Reply-To: <5076B166.2020006@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
+To: Daniel Mack <zonque@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
-For OMAP devices, the 32kHz counter is the default clock-source for the kernel.
-However, this is not the only possible clock-source the kernel can use for OMAP
-devices.
+Hi Daniel,
 
-When booting with device-tree, if the 32kHz counter is the desired clock-source
-for the kernel, then parse the device-tree blob to ensure that the counter is
-present and if so map memory for the counter using the device-tree of_iomap()
-function so we are no longer reliant on the OMAP HWMOD framework to do this for
-us.
+On Thursday 11 October 2012 05:15 PM, Daniel Mack wrote:
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/timer.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+> Could you tell me which patches I need on top of soon-to-be-3.7-rc1? I
+> would like to augment this to make GPMC attached NAND probable in DT, in
+> case this is still an open topic.
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 9a47f3d..6375dfa 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -159,6 +159,11 @@ static struct of_device_id omap_timer_match[] __initdata = {
- 	{ }
- };
- 
-+static struct of_device_id omap_counter_match[] __initdata = {
-+	{ .compatible = "ti,omap-counter32k", },
-+	{ }
-+};
-+
- /**
-  * omap_get_timer_dt - get a timer using device-tree
-  * @match	- device-tree match structure for matching a device type
-@@ -377,11 +382,26 @@ static u32 notrace dmtimer_read_sched_clock(void)
- static int __init omap2_sync32k_clocksource_init(void)
- {
- 	int ret;
-+	struct device_node *np = NULL;
- 	struct omap_hwmod *oh;
- 	void __iomem *vbase;
- 	const char *oh_name = "counter_32k";
- 
- 	/*
-+	 * If device-tree is present, then search the DT blob
-+	 * to see if the 32kHz counter is supported.
-+	 */
-+	if (of_have_populated_dt()) {
-+		np = omap_get_timer_dt(omap_counter_match, NULL);
-+		if (!np)
-+			return -ENODEV;
-+
-+		of_property_read_string_index(np, "ti,hwmods", 0, &oh_name);
-+		if (!oh_name)
-+			return -ENODEV;
-+	}
-+
-+	/*
- 	 * First check hwmod data is available for sync32k counter
- 	 */
- 	oh = omap_hwmod_lookup(oh_name);
-@@ -390,7 +410,13 @@ static int __init omap2_sync32k_clocksource_init(void)
- 
- 	omap_hwmod_setup_one(oh_name);
- 
--	vbase = omap_hwmod_get_mpu_rt_va(oh);
-+	if (np) {
-+		vbase = of_iomap(np, 0);
-+		of_node_put(np);
-+	} else {
-+		vbase = omap_hwmod_get_mpu_rt_va(oh);
-+	}
-+
- 	if (!vbase) {
- 		pr_warn("%s: failed to get counter_32k resource\n", __func__);
- 		return -ENXIO;
--- 
-1.7.9.5
+In case you can help on making gpmc nand dt probable, please
+proceed. I would be on vacation next week, may be we can
+discuss after I am back.
 
+am335x based boards like beagle bone should be booting on
+l-o master and it has gpmc header cleanup changes with
+minimal driver support.
+
+As I don't have the sufficient time to explain in detail, some
+pointers. Discussion between us [1] hopefully explains it in brief.
+It would be like peripherals connected to gpmc being represented
+as child nodes in dt. gpmc driver probably in probe would have to
+invoke of_platform_populate to create child nodes (for devices like
+nand). And driver would have to be enhanced to configure gpmc
+based on information passed through dt for each child nodes.
+Or roughly have a dt equivalent of driver as in [2].
+
+One issue would be the memory resource creation by gpmc
+driver and which has to be provided to client resource data.
+And a decision has to be taken whether a generic routine is
+going to be used or initially a custom routine invocation
+based on child compatible fields would be sufficient.
+
+Regards
+Afzal
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg74397.html
+[2] git://gitorious.org/x0148406-public/linux-kernel tags/gpmc-drv-v6
