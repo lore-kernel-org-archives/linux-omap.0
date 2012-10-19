@@ -1,41 +1,75 @@
-From: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: RT throttling and suspend/resume (was Re: [PATCH] i2c: omap:
- revert "i2c: omap: switch to threaded IRQ support")
-Date: Fri, 19 Oct 2012 16:00:27 +0200
-Message-ID: <1350655227.2768.11.camel@twins>
-References: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com>
-	 <CAM=Q2csHTbR4rBe1HNr5-M3sG5wgdCv6dCnGLmNQEwo1gjCSGg@mail.gmail.com>
-	 <20121016133356.GG21801@arwen.pp.htv.fi>
-	 <87ipaanljt.fsf_-_@deeprootsystems.com>
-	 <20121017140002.GI11394@arwen.pp.htv.fi>
-	 <20121017143534.GJ11394@arwen.pp.htv.fi>
-	 <87txtsitpt.fsf@deeprootsystems.com>
-	 <20121018055136.GF11137@arwen.pp.htv.fi>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH V4 0/5] ARM: OMAP2+: Add device-tree support for timers
+Date: Fri, 19 Oct 2012 09:58:59 -0500
+Message-ID: <1350658744-13509-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121018055136.GF11137-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54906 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751368Ab2JSO7Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Oct 2012 10:59:16 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Hiremath <hvaibhav@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-On Thu, 2012-10-18 at 08:51 +0300, Felipe Balbi wrote:
-> > So the primary question remains: is RT runtime supposed to include the
-> > time spent suspended?  I suspect not. 
-> 
-> you might be right there, though we need Thomas or Peter to answer :-s 
+This series adds device-tree support for the timers on OMAP2+ devices
+including AM33xx. Based upon v3.7-rc1.
 
-re, sorry both tglx and I have been traveling, he still is, I'm trying
-to play catch-up :-)
+Testing:
+1. I have booted tested this series on OMAP2420 H4, OMAP3430 Beagle, OMAP4430
+   Panda and AM335x Beagle Bone with/without ...
+   a). device-tree present
+   b). CONFIG_OMAP_32K_TIMER set
+   c). kernel boot parameter "clocksource=gp_timer" present
+2. I have tested the all the timers (not used by the kernel as sys-timers) on
+   OMAP2420 H4, OMAP3430 Beagle and OMAP4430 Panda with/without device-tree with
+   this series. The testing includes ...
+   a. Configuring, starting a timer and checking the counter value is
+      incrementing.
+   b. Testing timer overflow interrupt when timer expires.
+   c. Using different clock sources to operate the timer with.
 
-Anyway, yeah I'm somewhat surprised the clock is 'running' when the
-machine isn't. From what I could gather, this is !x86 hardware, right?
+V4 changes:
+- Update timer binding to make "interrupt-parent" a required property. After
+  reviewing the of_irq_find_parent() function it became apparent that it is
+  much more efficient, in terms of parsing the DT blob, to have the interrupt
+  parent defined in the timer binding than globally.
 
-x86 explicitly makes sure our clocks are 'stopped' during suspend, see
-commit cd7240c0b900eb6d690ccee088a6c9b46dae815a.
+V3 changes:
+- Removed definition "TIMER_PROP_ALWON" per Rob Herring's feedback
+- Updated OMAP system timer (clock-events and clock-source) code so that
+  HWMOD is NOT used for getting resource (memory and interrupt) information
+  when device-tree is present.
 
-Can you do something similar for ARM? A quick look at
-arch/arm/kernel/sched_clock.c shows there's already suspend/resume
-hooks, do they do the wrong thing?
+V2 changes:
+- Remove use of device-tree alias property
+- Migrate OMAP timers to request timers by property instead of device ID
+- Include OMAP2 support
+
+Jon Hunter (5):
+  ARM: dts: OMAP: Add timer nodes
+  ARM: OMAP3: Dynamically disable secure timer nodes for secure devices
+  ARM: OMAP: Add function to request a timer by capability
+  ARM: OMAP3: Add generic machine descriptor for boards with OMAP3 GP
+    devices
+  ARM: OMAP: Add DT support for timer driver
+
+ .../devicetree/bindings/arm/omap/timer.txt         |   34 ++++
+ arch/arm/boot/dts/am33xx.dtsi                      |   61 +++++++
+ arch/arm/boot/dts/omap2.dtsi                       |   96 +++++++++++
+ arch/arm/boot/dts/omap2420.dtsi                    |    9 +
+ arch/arm/boot/dts/omap2430.dtsi                    |    9 +
+ arch/arm/boot/dts/omap3.dtsi                       |  107 ++++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   97 +++++++++++
+ arch/arm/mach-omap2/board-generic.c                |   17 ++
+ arch/arm/mach-omap2/timer.c                        |  175 ++++++++++++++++----
+ arch/arm/plat-omap/dmtimer.c                       |   93 ++++++++++-
+ arch/arm/plat-omap/include/plat/dmtimer.h          |    1 +
+ 11 files changed, 661 insertions(+), 38 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/timer.txt
+
+-- 
+1.7.9.5
+
