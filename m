@@ -1,71 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Date: Fri, 19 Oct 2012 09:14:31 -0700
-Message-ID: <20121019161430.GC4730@atomide.com>
+Subject: Re: [PATCH 5/6] ARM: OMAP2+: Make some definitions local
+Date: Fri, 19 Oct 2012 09:17:43 -0700
+Message-ID: <20121019161743.GD4730@atomide.com>
 References: <20121018202707.11834.1438.stgit@muffinssi.local>
- <20121018202842.11834.14375.stgit@muffinssi.local>
- <2071397.IU49JkAq1T@avalon>
+ <20121018202848.11834.17893.stgit@muffinssi.local>
+ <2153737.CkcY4HqKKl@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:32216 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751820Ab2JSQOk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 12:14:40 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:60096 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752282Ab2JSQRv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 12:17:51 -0400
 Content-Disposition: inline
-In-Reply-To: <2071397.IU49JkAq1T@avalon>
+In-Reply-To: <2153737.CkcY4HqKKl@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121019 02:41]:
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121019 02:45]:
+> On Thursday 18 October 2012 13:28:48 Tony Lindgren wrote:
+> > @@ -117,13 +112,6 @@ static inline struct omap_iommu
+> > *dev_to_omap_iommu(struct device *dev) }
+> >  #endif
+> > 
+> > -/* IOMMU errors */
+> > -#define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
+> > -#define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
+> > -#define OMAP_IOMMU_ERR_EMU_MISS		(1 << 2)
+> > -#define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
+> > -#define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
+> > -
 > 
-> Nitpicking, please keep the headers sorted alphabetically, here and in all 
-> locations below (especially the OMAP3 ISP driver).
+> I'll use those in the tidspbridge driver, in patches that I plan to push soon.
 > 
-> (OK, there's already one misplaced #include, but let's not make it worse :-))
+> I will apply this patch set on top of mine, see what breaks. Would you like me 
+> to propose a modified version of this set, or add additional patches in my set 
+> ?
 
-Sure I'll check that.
- 
-> I plan to push cleanup patches for the staging tidspbridge driver that get rid 
-> of the local register definitions and use plat/iommu.h instead. That's 
-> obviously an interim solution as in the long run the driver should use the 
-> IOMMU API, but in the meantime it's a step in the right direction. Would it 
-> then make sense to move all those definitions to include/linux/omap-iommu.h, 
-> not just the ones used by the OMAP3 ISP driver ?
+Sure, let's try to expose only the minimal amount of omap
+iommu things with this patch set so we don't break things.
+Then the iommu development can continue on it's own independent
+of the core omap code except for the platform data.
 
-Well these patches are just intended to fix the platform data interface
-between core ARM code and iommu. At this point I really don't want to
-get involved in the iommu framework.
-
-What you are asking should be coordinated with Joerg and Ohad. Ideally
-the iommu framework would provide the API to the drivers to use, and there
-would not be any need to have include/linux/omap-iommu.h.
-
-If you ask me, I would just rip out the code that's not following the
-iommu API immediately and have it resubmitted in a sane way :)
- 
-> Shouldn't this header be split in include/linux/omap-iommu.h and 
-> include/linux/omap-iovmm.h ? I would also move all the hardware IOVMF flags to 
-> include/linux/omap-iovmm.h, not just the two currently used by the OMAP3 ISP 
-> driver. The software flags can be kept in drivers/iommu/omap-iovmm.c.
-
-I just fixed up things to follow what's being done with the iommu
-framework currently. Probably keeping only omap-iommu.h available is
-the best way to go until the iommu framework provides the interfaces,
-but again that's up to Joerg and Ohad.
- 
-> > +extern void omap_iommu_save_ctx(struct device *dev);
-> > +extern void omap_iommu_restore_ctx(struct device *dev);
-> 
-> Do we really need to prefix functions with 'extern' ?
-
-Yes since they are exported, I just moved them. Again, this is something
-that should be handled eventually via the iommu framework using runtime PM
-and not be exported at all. Again, I would just rip out that code
-if you ask me and replace it with comments until fixed.
+But again, if there are nasty layering violations using this
+code, I would just remove those features. Those things tend to
+just get worse unless they are fixed properly to start with.
 
 Regards,
 
