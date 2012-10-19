@@ -1,71 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about
- serial stuff)
-Date: Fri, 19 Oct 2012 10:07:59 -0700
-Message-ID: <20121019170759.GK4730@atomide.com>
-References: <20121012155434.GO28061@n2100.arm.linux.org.uk>
- <20121012162452.GD30339@atomide.com>
- <CAK=Wgba087mdaYhvKNUAy6H8rAb+owTAz1yqexEtDg+f06kJdg@mail.gmail.com>
- <20121016181038.GC15569@atomide.com>
- <20121016182642.GF15569@atomide.com>
- <CAK=WgbaQ-0V2htnmyCAzBco-sZVWN3WR2mhABGZNaYU6uM1wgg@mail.gmail.com>
- <507EA7DB.3070207@compulab.co.il>
- <CAK=Wgba_-k0kCHah6t6L4=qt838j30ZRVRbgAdJ1yzHDyA8frw@mail.gmail.com>
+From: Christopher Harvey <charvey@matrox.com>
+Subject: [PATCH 1/1] mtd: omap: nand: Remove 0xFF's that prefixed 16bit NAND
+ commands
+Date: Fri, 19 Oct 2012 13:24:57 -0400
+Message-ID: <20121019172457.GA7608@harvey-pc.matrox.com>
+References: <20121019171934.GA7594@harvey-pc.matrox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:42118 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751259Ab2JSRIE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 13:08:04 -0400
+Received: from mtxmxout6.matrox.com ([138.11.2.96]:45362 "EHLO
+	mtxmxout6.matrox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754654Ab2JSRVm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 13:21:42 -0400
+Received: from mars.matrox.com (mars.matrox.com [192.168.1.29])
+	by mtxmxout6.matrox.com (Postfix) with ESMTP id CF0FA1D74FA
+	for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 13:21:41 -0400 (EDT)
+Received: (from ssmsp@localhost)
+	by mars.matrox.com (8.14.4/8.13.2) id q9JHLfRe022119
+	for linux-omap@vger.kernel.org; Fri, 19 Oct 2012 13:21:41 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mars.matrox.com (Postfix) with ESMTP id 5FD5D95218
+	for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 13:21:41 -0400 (EDT)
+Received: from pluton.matrox.com (pluton.matrox.com [192.168.8.7])
+	by mars.matrox.com (Postfix) with ESMTP id 3F51E95215
+	for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 13:21:41 -0400 (EDT)
+Received: from harvey-pc.matrox.com (dyn-152-224.matrox.com [192.168.152.224])
+	by pluton.matrox.com (Postfix) with ESMTP id 27D277F45A
+	for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 13:21:41 -0400 (EDT)
 Content-Disposition: inline
-In-Reply-To: <CAK=Wgba_-k0kCHah6t6L4=qt838j30ZRVRbgAdJ1yzHDyA8frw@mail.gmail.com>
+In-Reply-To: <20121019171934.GA7594@harvey-pc.matrox.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Afzal Mohammed <afzal@ti.com>, =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
+To: linux-omap@vger.kernel.org
 
-* Ohad Ben-Cohen <ohad@wizery.com> [121018 10:00]:
-> Hi Igor,
-> 
-> On Wed, Oct 17, 2012 at 2:43 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
-> > You are adding declarations inside the common-board-devices.h,
-> > but the implementation inside the devices.c.
-> > I can see that devices.c has only on-soc devices in it.
-> > So, I would expect to have the wl12xx_board_init() function implementation
-> > inside the common-board-devices.c file.
-> 
-> I really don't mind. Tony do you have any preference?
+In 16bit NAND mode the GPMC would send the command 0xNN as 0xFFNN
+instead of 0x00NN on the bus. The 0xFFs were actually uninitialized
+bits that were left unset in the GPMC command output register. The
+reason they weren't initialized in 16bit mode is that if the same code
+that writes to this register was used in 8bit mode then 2 commands
+would be output in 8bit mode. One for the low byte, and an extra 0x0
+command for the high byte. This commit uses writew if we're using
+16bit NAND.
 
-Yes common-board-devices.c would be better.
+Most chips seem fine with the extra 0xFFs, but the ONFI spec says
+otherwise.
+
+Signed-off-by: Christopher Harvey <charvey@matrox.com>
+---
+ drivers/mtd/nand/omap2.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 5c8978e..9f429dc 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -232,16 +232,20 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+ {
+ 	struct omap_nand_info *info = container_of(mtd,
+ 					struct omap_nand_info, mtd);
++	void __iomem *reg;
  
-> > Another minor nit: I don't think you need to mark the declaration as __init,
-> > only the implementation, or is it for documenting it so?
-> 
-> It may be, but I don't really mind removing it. Let's remove it if
-> we'll move to common-board-devices.c, otherwise it probably isn't
-> worth the noise.
-
-OK
+ 	if (cmd != NAND_CMD_NONE) {
+ 		if (ctrl & NAND_CLE)
+-			writeb(cmd, info->reg.gpmc_nand_command);
+-
++			reg = info->reg.gpmc_nand_command;
+ 		else if (ctrl & NAND_ALE)
+-			writeb(cmd, info->reg.gpmc_nand_address);
+-
++			reg = info->reg.gpmc_nand_address;
+ 		else /* NAND_NCE */
+-			writeb(cmd, info->reg.gpmc_nand_data);
++			reg = cmd, info->reg.gpmc_nand_data;
++
++		if (info->nand.options & NAND_BUSWIDTH_16)
++			writew(cmd, reg);
++		else
++			writeb(cmd, reg);
+ 	}
+ }
  
-> > Instead of the above, wouldn't it be better to have:
-> > #if defined(CONFIG_WL12XX_PLATFORM_DATA)
-> > int __init wl12xx_board_init(struct wl12xx_platform_data *wlan_data, int irq_gpio)
-> > {
-> > ...
-> > }
-> > #else
-> > inline int wl12xx_board_init(struct wl12xx_platform_data *wlan_data, int irq_gpio)
-> > {
-> >         return 0;
-> > }
-> > #endif
-> 
-> I think readability-wise we're probably better off without the #ifdef.
-
-We could optimize away a minimal amount of code for many configurations
-with the ifdef? :)
-
-Regards,
-
-Tony
+-- 
+1.7.8.6
