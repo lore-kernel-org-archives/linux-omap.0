@@ -1,55 +1,49 @@
-From: Afzal Mohammed <x0148406@ti.com>
-Subject: Re: [PATCH 0/4] OMAP-GPMC generic timing migration
-Date: Fri, 19 Oct 2012 21:04:31 +0530
-Message-ID: <50817307.50509@ti.com>
-References: <cover.1349450723.git.afzal@ti.com> <5076B166.2020006@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] arm: omap: move OMAP USB platform data to
+ <linux/platform_data/omap-usb.h>
+Date: Fri, 19 Oct 2012 08:56:12 -0700
+Message-ID: <20121019155612.GA4730@atomide.com>
+References: <20121016230040.GP15569@atomide.com>
+ <1350488838-6289-1-git-send-email-balbi@ti.com>
+ <20121017203404.GY15569@atomide.com>
+ <20121018054934.GE11137@arwen.pp.htv.fi>
+ <20121019014917.GL30550@atomide.com>
+ <20121019065500.GD12235@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56948 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751910Ab2JSPep (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Oct 2012 11:34:45 -0400
-In-Reply-To: <5076B166.2020006@gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13358 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754695Ab2JSP4R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 11:56:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20121019065500.GD12235@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi Daniel,
+* Felipe Balbi <balbi@ti.com> [121019 00:01]:
+> On Thu, Oct 18, 2012 at 06:49:17PM -0700, Tony Lindgren wrote:
+> > 
+> > Yes. Figured it out, it fails to apply with quilt, but applies
+> > with git.
+> 
+> probably because of file rename.
 
-On Thursday 11 October 2012 05:15 PM, Daniel Mack wrote:
+Yeh so it seems.
+ 
+> > But it does not compile with all configs though, and does
+> > not remove plat/usb.h. Thanks anyways. I'll post a proper
+> > series shortly with your patch fixed up.
+> 
+> ok... I'll check it out. I kept the non-static functions in plat/usb.h
+> because they didn't belong on platform_data/usb-omap.h. What should be
+> done with those, then ? move to mach/ ?
 
-> Could you tell me which patches I need on top of soon-to-be-3.7-rc1? I
-> would like to augment this to make GPMC attached NAND probable in DT, in
-> case this is still an open topic.
+I made a clean-up patch that creates local usb.h file for those
+that applies before your patch.
 
-In case you can help on making gpmc nand dt probable, please
-proceed. I would be on vacation next week, may be we can
-discuss after I am back.
+Regards,
 
-am335x based boards like beagle bone should be booting on
-l-o master and it has gpmc header cleanup changes with
-minimal driver support.
-
-As I don't have the sufficient time to explain in detail, some
-pointers. Discussion between us [1] hopefully explains it in brief.
-It would be like peripherals connected to gpmc being represented
-as child nodes in dt. gpmc driver probably in probe would have to
-invoke of_platform_populate to create child nodes (for devices like
-nand). And driver would have to be enhanced to configure gpmc
-based on information passed through dt for each child nodes.
-Or roughly have a dt equivalent of driver as in [2].
-
-One issue would be the memory resource creation by gpmc
-driver and which has to be provided to client resource data.
-And a decision has to be taken whether a generic routine is
-going to be used or initially a custom routine invocation
-based on child compatible fields would be sufficient.
-
-Regards
-Afzal
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg74397.html
-[2] git://gitorious.org/x0148406-public/linux-kernel tags/gpmc-drv-v6
+Tony
