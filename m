@@ -1,71 +1,181 @@
-From: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Subject: Re: [RFC] dmaengine: omap-dma: Allow DMA controller to prefetch data
-Date: Fri, 19 Oct 2012 14:45:55 +0200
-Message-ID: <50814B83.7090203@ti.com>
-References: <20121018222046.GA28541@animalcreek.com> <20121018225540.GB28061@n2100.arm.linux.org.uk> <20121018232405.GA29064@animalcreek.com> <20121018233335.GC28061@n2100.arm.linux.org.uk>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH v2] arm/dts: AM33XX: Add SPI device tree data
+Date: Fri, 19 Oct 2012 09:51:47 -0400
+Message-ID: <20121019135147.GF25164@beef>
+References: <1347946228-25874-1-git-send-email-avinashphilip@ti.com>
+ <50810E2F.5@ti.com>
+ <20121019113016.GE25164@beef>
+ <50814A5A.8070206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44469 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758601Ab2JSMqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 08:46:45 -0400
-In-Reply-To: <20121018233335.GC28061@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <50814A5A.8070206@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Philip, Avinash" <avinashphilip@ti.com>, linux@arm.linux.org.uk, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Hi,
+On Fri, Oct 19, 2012 at 02:40:58PM +0200, Benoit Cousson wrote:
+> Hi Matt,
+> 
+> On 10/19/2012 01:30 PM, Matt Porter wrote:
+> > On Fri, Oct 19, 2012 at 10:24:15AM +0200, Benoit Cousson wrote:
+> >> Hi Avinash,
+> >>
+> >> This look good to me except the: status = "disabled".
+> >>
+> >> The "disabled" should be reserved for variant that does not contain the IP.
+> >> Is it the case here?
+> > 
+> > http://comments.gmane.org/gmane.linux.drivers.devicetree/18968 is what
+> > I've been going by with the DTS support in the EDMA dmaengine series. It
+> > does make the most sense to only enable what you need in the
+> > <board>.dts.
+> 
+> Thanks, I missed that thread. That being said, there is no real rational
+> :-)
+> It seems to be a preference more than anything else.
 
-On 10/19/2012 01:33 AM, Russell King - ARM Linux wrote:
-> I would suggest getting some feedback from the ASoC people first, bef=
-ore
-> trying to invent new APIs to work around this stuff.  If they can liv=
-e
-> with having prefetch enabled on OMAP then there isn't an issue here. =
- If
-> not, we need a solution to this.
->=20
-> I do not believe that precisely stopping and starting playback across=
- a
-> suspend/resume event is really necessary (it's desirable but the worl=
-d
-> doesn't collapse if you miss a few samples.)  It could be more of an
-> issue for pause/resume though, but as I say, that's for ASoC people t=
-o
-> comment on.
+Ok, agreed. Here's an example to attempt to illustrate why the one true
+preference is to default to disabled. :) Let's say I'm a system developer
+with a custom board in the default enabled model. My board makes use of,
+say, mmc1 and uart1 on am33xx (oh yes, we must fix the numbering that
+doesn't match the TRM) only. In that case, I develop a board.dts
+with:
 
-There is another issue with the prefetch in audio:
-we tend to like to know the position of the DMA and also to know how mu=
-ch data
-we have stored in buffers, FIFOs. This information is used by userspace=
- to do
-echo cancellation and also used by PA for example to do runtime mixing
-directly in the audio buffer. We have means to extract this information=
- from
-McBSP for example (and from tlv320dac33 codec) but AFAIK this informati=
-on can
-not be retrieved from sDMA.
-We could assume that the sDMA FIFO is kept full and report that as a 'd=
-elay'
-or do not account this information.
+	uart2: serial@foo {
+		status = "disabled";
+	};
+	.
+	.
+	.
+	uart6: serial@bar {
+		status = "disabled";
+	};
 
-=46or now I think the cyclic mode should not set the prefetch. If I rec=
-all right
-the cyclic mode is only used by audio at the moment.
+	&mmc1 {
+        	vmmc-supply = <&ldo3_reg>;
+	};
 
-> I'm merely pointing out here that we need their feedback here before
-> deciding if there's anything further that needs to happen.
+	&mmc2 {
+		status = "disabled";
+	};
 
-Thanks Russell, I'll take a look at the implication of the prefetch for=
- audio.
+	&mmc3 {
+		status = "disabled";
+	};
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In the "positive logic" case I would have a board.dts with:
+
+	uart1: serial@foo {
+		status = "okay";
+	};
+
+	&mmc1 {
+		status = "okay";
+        	vmmc-supply = <&ldo3_reg>;
+	};
+	
+In the first case, the fact that there's a board specific property
+present for mmc1 can almost get lost in the sea of disabled peripherals.
+Extend that out to all the other devices that would be disabled in a
+full board.dts and it becomes clear (at least to me) as to how ugly the
+board.dts will become. My concern is that this hardware description will
+quickly become unreadable to a human.
+
+You might say it's unnecessary to disable everything, but in a
+production system the developer is not going to want all these
+unused devices to be instantiated. They may have a common family of
+boards with a common kernel image, all with a separate dtb so they
+can precisely control which items are enabled such that unused drivers
+are not loaded.
+
+So then look at the second case. At least for me, I can look at that in
+the board.dts and I know that this board uses uart1 and mmc1...and
+nothing else. That's a clear and concise hardware description at a
+board level, but I understand that can be just considered a
+preference.
+
+> I'm curious now, why powerpc was not really using that approach?
+
+Good question.
+
+> I'd rather explicitly disable an IP than assuming than it is disabled by
+> default and then enabling it in the board file. But again it is just a
+> different view point, since at the end it will have the same effect.
+
+Well, there's functionality then there's production usability. I'm
+pointing out that there are many cases where the readability (and
+therefore) usability for someone creating a new board is reduced when
+devices default to enabled.
+
+> If we really want the disabled state to be the default state, why is it
+> not disabled in the DT fmwk by default?
+
+I think it's simply answered by the fact that powerpc always took the
+negative logic approach.
+
+-Matt
+
+> >> On 09/18/2012 07:30 AM, Philip, Avinash wrote:
+> >>> Add McSPI data node to AM33XX device tree file. The McSPI module (and so
+> >>> as the driver) is reused from OMAP4.
+> >>>
+> >>> Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+> >>> Tested-by: Matt Porter <mporter@ti.com>
+> >>> ---
+> >>> Changes since v1:
+> >>>         - Corrected reg offset in reg DT entry.
+> >>>
+> >>> :100644 100644 ff3badb... 065fd54... M	arch/arm/boot/dts/am33xx.dtsi
+> >>>  arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
+> >>>  1 files changed, 25 insertions(+), 0 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> >>> index ff3badb..065fd54 100644
+> >>> --- a/arch/arm/boot/dts/am33xx.dtsi
+> >>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> >>> @@ -219,5 +219,30 @@
+> >>>  			interrupt-parent = <&intc>;
+> >>>  			interrupts = <91>;
+> >>>  		};
+> >>> +
+> >>> +		spi0: spi@48030000 {
+> >>> +			compatible = "ti,omap4-mcspi";
+> >>> +			#address-cells = <1>;
+> >>> +			#size-cells = <0>;
+> >>> +			reg = <0x48030000 0x400>;
+> >>> +			interrupt-parent = <&intc>;
+> >>> +			interrupt = <65>;
+> >>> +			ti,spi-num-cs = <2>;
+> >>> +			ti,hwmods = "spi0";
+> >>> +			status = "disabled";
+> >>> +
+> >>> +		};
+> >>> +
+> >>> +		spi1: spi@481a0000 {
+> >>> +			compatible = "ti,omap4-mcspi";
+> >>> +			#address-cells = <1>;
+> >>> +			#size-cells = <0>;
+> >>> +			reg = <0x481a0000 0x400>;
+> >>> +			interrupt-parent = <&intc>;
+> >>> +			interrupt = <125>;
+> >>> +			ti,spi-num-cs = <2>;
+> >>> +			ti,hwmods = "spi1";
+> >>> +			status = "disabled";
+> >>> +		};
+> >>>  	};
+> >>>  };
+> >>>
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
