@@ -1,87 +1,81 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH v2] arm/dts: AM33XX: Add SPI device tree data
-Date: Fri, 19 Oct 2012 07:30:16 -0400
-Message-ID: <20121019113016.GE25164@beef>
-References: <1347946228-25874-1-git-send-email-avinashphilip@ti.com>
- <50810E2F.5@ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>
+Subject: RE: [RFC PATCH v3 00/16] DMA Engine support for AM33XX
+Date: Fri, 19 Oct 2012 12:02:42 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBD2CE1@DBDE01.ent.ti.com>
+References: <1350566815-409-1-git-send-email-mporter@ti.com>
+	<B5906170F1614E41A8A28DE3B8D121433EBD29FC@DBDE01.ent.ti.com>
+	<20121019111558.GD25164@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50810E2F.5@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: "Philip, Avinash" <avinashphilip@ti.com>, linux@arm.linux.org.uk, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20121019111558.GD25164@beef>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>
+Cc: Grant, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Williams <djbw-b10kYP2dOMg@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "Cousson,
+	Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>Rob, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>Linux, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 19, 2012 at 10:24:15AM +0200, Benoit Cousson wrote:
-> Hi Avinash,
+On Fri, Oct 19, 2012 at 16:45:58, Porter, Matt wrote:
+> On Fri, Oct 19, 2012 at 10:26:20AM +0000, Bedia, Vaibhav wrote:
+[...]
+> > 
+> > I didn't see all the patches that you posted on edma-dmaengine-v3
+> > but I do seem them on edma-dmaengine-am33xx-v3 branch.
 > 
-> This look good to me except the: status = "disabled".
+> I see I referenced the wrong branch in the cover letter. Thanks for
+> testing and noticing this. Sorry to make you hunt for the correct
+> branch in that repo. ;) 
 > 
-> The "disabled" should be reserved for variant that does not contain the IP.
-> Is it the case here?
 
-http://comments.gmane.org/gmane.linux.drivers.devicetree/18968 is what
-I've been going by with the DTS support in the EDMA dmaengine series. It
-does make the most sense to only enable what you need in the
-<board>.dts.
+No problem.
 
--Matt
-
-> On 09/18/2012 07:30 AM, Philip, Avinash wrote:
-> > Add McSPI data node to AM33XX device tree file. The McSPI module (and so
-> > as the driver) is reused from OMAP4.
-> > 
-> > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
-> > Tested-by: Matt Porter <mporter@ti.com>
-> > ---
-> > Changes since v1:
-> >         - Corrected reg offset in reg DT entry.
-> > 
-> > :100644 100644 ff3badb... 065fd54... M	arch/arm/boot/dts/am33xx.dtsi
-> >  arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
-> >  1 files changed, 25 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> > index ff3badb..065fd54 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -219,5 +219,30 @@
-> >  			interrupt-parent = <&intc>;
-> >  			interrupts = <91>;
-> >  		};
-> > +
-> > +		spi0: spi@48030000 {
-> > +			compatible = "ti,omap4-mcspi";
-> > +			#address-cells = <1>;
-> > +			#size-cells = <0>;
-> > +			reg = <0x48030000 0x400>;
-> > +			interrupt-parent = <&intc>;
-> > +			interrupt = <65>;
-> > +			ti,spi-num-cs = <2>;
-> > +			ti,hwmods = "spi0";
-> > +			status = "disabled";
-> > +
-> > +		};
-> > +
-> > +		spi1: spi@481a0000 {
-> > +			compatible = "ti,omap4-mcspi";
-> > +			#address-cells = <1>;
-> > +			#size-cells = <0>;
-> > +			reg = <0x481a0000 0x400>;
-> > +			interrupt-parent = <&intc>;
-> > +			interrupt = <125>;
-> > +			ti,spi-num-cs = <2>;
-> > +			ti,hwmods = "spi1";
-> > +			status = "disabled";
-> > +		};
-> >  	};
-> >  };
-> > 
+> https://github.com/ohporter/linux/tree/edma-dmaengine-am33xx-v3
+> is indeed the correct branch for those wanting to pull this in or
+> grab some of the not-to-be-merged drivers I used for testing.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> > I added a couple of patches to enable earlyprintk and build the DTB
+> > appended kernel image uImage-dtb.am335x-evm
+> > 
+> > Here's what i see
+> > 
+> > [...]
+> 
+> <snip>
+> 
+> > [    0.175354] edma: probe of 49000000.edma failed with error -16
+> 
+> I missed an uninitialized pdata case in the bug fixes mentioned in
+> the changelog and the folks previously failing the same way didn't
+> hit the case I suspect you are hitting. Can you try this and let me
+> know how it works?
+> 
+
+That doesn't help :(
+
+Looking at the original crash log, I suspect something is not correct
+with the irq portion, probably in the DT or the driver. 
+
+"genirq: Flags mismatch irq 28. 00000000 (edma) vs. 00000000 (edma)"
+
+The warning below that is coming due to fail case in edma_probe not tracking
+the request_irq status properly and but IMO that's a separate issue.
+
+BTW, I am trying this on the EVM.
+
+Regards,
+Vaibhav
+
+------------------------------------------------------------------------------
+Everyone hates slow websites. So do we.
+Make your web apps faster with AppDynamics
+Download AppDynamics Lite for free today:
+http://p.sf.net/sfu/appdyn_sfd2d_oct
