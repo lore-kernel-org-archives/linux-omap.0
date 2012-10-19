@@ -1,33 +1,55 @@
 From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH] arm/dts: am33xx rtc node
-Date: Fri, 19 Oct 2012 10:54:53 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA00AFC@DBDE01.ent.ti.com>
-References: <1350643825-9657-1-git-send-email-afzal@ti.com>
+Subject: RE: [PATCH 2/3] RTC: omap-rtc: enable pm_runtime
+Date: Fri, 19 Oct 2012 10:58:56 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA00B18@DBDE01.ent.ti.com>
+References: <1350575631-15523-1-git-send-email-zonque@gmail.com>
+ <1350575631-15523-2-git-send-email-zonque@gmail.com>
+ <50802A87.9010409@ti.com> <50802C20.9040408@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EB43BD9@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1350643825-9657-1-git-send-email-afzal@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39695 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756814Ab2JSK7e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 06:59:34 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB43BD9@DBDE01.ent.ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Daniel Mack <zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: "a.zummo@towertech.it" <a.zummo@towertech.it>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "koen@dominion.thruhere.net" <koen@dominion.thruhere.net>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-KyBsaW51eC1vbWFwIGFuZCBEYW5pZWwNCg0KT24gRnJpLCBPY3QgMTksIDIwMTIgYXQgMTY6MjA6
-MjEsIE1vaGFtbWVkLCBBZnphbCB3cm90ZToNCj4gYWRkIGFtMzN4eCBydGMgbm9kZS4NCj4gDQo+
-IFNpZ25lZC1vZmYtYnk6IEFmemFsIE1vaGFtbWVkIDxhZnphbEB0aS5jb20+DQo+IC0tLQ0KPiAN
-Cj4gQmFzZWQgb24gdjMuNy1yYzEsDQo+IERlcGVuZGVudCBvbiBzZXJpZXMgInJ0Yzogb21hcCBk
-dCBzdXBwb3J0IChmb3IgYW0zM3h4KSIsDQo+IChodHRwczovL2xrbWwub3JnL2xrbWwvMjAxMi8x
-MC8xOS8xNjMpDQo+IFRlc3RlZCBvbiBCZWFnbGUgQm9uZS4NCj4gDQo+ICBhcmNoL2FybS9ib290
-L2R0cy9hbTMzeHguZHRzaSB8IDkgKysrKysrKysrDQo+ICAxIGZpbGUgY2hhbmdlZCwgOSBpbnNl
-cnRpb25zKCspDQo+IA0KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvYW0zM3h4LmR0
-c2kgYi9hcmNoL2FybS9ib290L2R0cy9hbTMzeHguZHRzaQ0KPiBpbmRleCBiYjMxYmZmLi4zNTY3
-MTFlIDEwMDY0NA0KPiAtLS0gYS9hcmNoL2FybS9ib290L2R0cy9hbTMzeHguZHRzaQ0KPiArKysg
-Yi9hcmNoL2FybS9ib290L2R0cy9hbTMzeHguZHRzaQ0KPiBAQCAtMjEwLDUgKzIxMCwxNCBAQA0K
-PiAgCQkJaW50ZXJydXB0LXBhcmVudCA9IDwmaW50Yz47DQo+ICAJCQlpbnRlcnJ1cHRzID0gPDkx
-PjsNCj4gIAkJfTsNCj4gKw0KPiArCQlydGMgew0KPiArCQkJY29tcGF0aWJsZSA9ICJ0aSxkYTgz
-MC1ydGMiOw0KPiArCQkJdGksaHdtb2RzID0gInJ0YyI7DQo+ICsJCQlyZWcgPSA8MHg0NGUzZTAw
-MCAweDEwMDA+Ow0KPiArCQkJaW50ZXJydXB0LXBhcmVudCA9IDwmaW50Yz47DQo+ICsJCQlpbnRl
-cnJ1cHRzID0gPDc1DQo+ICsJCQkJICAgICAgNzY+Ow0KPiArCQl9Ow0KPiAgCX07DQo+ICB9Ow0K
-PiAtLSANCj4gMS43LjEyDQo+IA0KPiANCg0K
+SGkgRGFuaWVsLA0KDQpPbiBUaHUsIE9jdCAxOCwgMjAxMiBhdCAyMjowMzoxMywgSGlyZW1hdGgs
+IFZhaWJoYXYgd3JvdGU6DQo+IE9uIFRodSwgT2N0IDE4LCAyMDEyIGF0IDIxOjQ5OjQ0LCBEYW5p
+ZWwgTWFjayB3cm90ZToNCj4gPiBPbiAxOC4xMC4yMDEyIDE4OjEyLCBWYWliaGF2IEhpcmVtYXRo
+IHdyb3RlOg0KDQo+ID4gPiBJdCB3b3VsZCBiZSByZWFsbHkgaGVscGZ1bCBpZiB5b3UgY291bGQg
+dGVzdCB0aGVzZSBwYXRjaGVzIGFuZCBhY2sgdGhlbS4NCg0KPiA+IE9rLCB3aWxsIGRvIHRvbW9y
+cm93LiBXaGF0J3MgbWlzc2luZyB0aGVyZSBpcyBzdXBwb3J0IGZvciB3cml0aW5nIHRvIHRoZQ0K
+PiA+IE9NQVBfUlRDX09TQ19SRUcgKHBhdGggMy8zIGluIG15IHNlcmllcykuIFdvdWxkIGxpa2Ug
+bWUgdG8gcmViYXNlIHRoZQ0KPiA+IGZ1bmN0aW9uYWxpdHk/IEkgbmVlZCB0aGF0a2luZCBvZiBz
+ZXR1cCBmb3IgbXkgYm9hcmQgLi4uDQoNCj4gVGhpcyBpcyBiaXQgdHJpY2t5IGFuZCByZXF1aXJl
+ZCBtb3JlIGRpc2N1c3Npb24gYmVmb3JlIG1lcmdpbmcgaXQsIA0KPiBsZXQgbWUgcmVvcGVuIHRo
+ZSBvbGQgZGlzY3Vzc2lvbiB3aGljaCBJIGhhZCBzdGFydGVkIHNvbWUgdGltZSBiYWNrIC0NCj4g
+DQo+IA0KPiBSVEMgT1NDIGNsb2NrIGlzIHJlcXVpcmVkIHRvIGNvbmZpZ3VyZSBjbG9ja3NvdXJj
+ZSBzeXN0ZW10aW1lciBmb3IgdGhlIA0KPiBrZXJuZWwsIGFuZCBpdCBpcyBpbXBvcnRhbnQgd2hl
+biB5b3UgZ2V0IGludG8gUE0gcmVsYXRlZCBmZWF0dXJlcy4NCj4gDQo+IFBsZWFzZSByZWZlciB0
+aGUgYmVsb3cgY29tbWl0IGZvciBtb3JlIHJlZmVyZW5jZSwNCj4gDQo+IGh0dHA6Ly9tYXJjLmlu
+Zm8vP2w9dS1ib290Jm09MTM1MDU3NzM0NzEzNzk2Jnc9Mg0KDQpOZXdlciB2ZXJzaW9uICh2NCkg
+b2Ygb21hcCBydGMgcGF0Y2hlcyBmb3IgYW0zMzV4IGhhcyBiZWVuDQpwb3N0ZWQsICJydGM6IG9t
+YXAgZHQgc3VwcG9ydCAoZm9yIGFtMzN4eCkiLg0KSW4gY2FzZSB5b3UgY2FuIHRlc3QsIHBsZWFz
+ZSBkbyBpdCBvdmVyIHRoZSBuZXcgc2VyaWVzLg0KDQpZb3Ugd291bGQgbmVlZCBhbHNvIG5lZWQg
+RFQgcGF0Y2ggdGhhdCBhZGRzIERUIG5vZGUgdG8NCnRlc3QgKGl0IGhhcyBiZWVuIHNlcGFyYXRl
+ZCBmcm9tIHRoZSBzZXJpZXMgYXMgaXQgaXMNCmZlbHQgdGhhdCBpdCBzaG91bGQgbm90IGJlIHBh
+cnQgb2Ygc2FtZSBzZXJpZXMpLA0KImFybS9kdHM6IGFtMzN4eCBydGMgbm9kZSINCg0KSWYgeW91
+IGFyZSB1c2luZyBtYWlubGluZSB1Ym9vdCwgeW91IHdvdWxkIG5lZWQgdGhlIGZpeCBhcw0KbWVu
+dGlvbmVkIGJ5IFZhaWJoYXYgSCAoYXMgaW4gdGhlIGxpbmsgaGUgcHJvdmlkZWQgYWJvdmUpLA0K
+ZXhwZWN0aW5nIGl0IHRvIHJlYWNoIHVib290IG1haW5saW5lIHNvb24uDQoNCklmIHRoZSBhYm92
+ZSBpcyBiZWluZyBhdHRlbXB0ZWQgdG8gYWNoaWV2ZSBpbiBLZXJuZWwgaXQNCndvdWxkIGNhdXNl
+IDItMyBzZWNvbmRzIGRlbGF5IGluIGJvb3QgdGltZSAoZWxzZSBpdCBoYWQNCnRvIGJlIG1hZGUg
+YSBtb2R1bGUpLCBwbGVhc2UgcmVmZXIgbGluayBwcm92aWRlZCBieQ0KVmFpYmhhdiBIIGZvciBt
+b3JlIGRldGFpbHMuDQoNCmVsc2UgeW91IGNhbiBkbyBpbiBjdXJyZW50IG1haW5saW5lIHVib290
+LA0KDQptdy5sIDB4NDRlM2UwNmMgMHg4M2U3MGIxMw0KbXcubCAweDQ0ZTNlMDcwIDB4OTVhNGYx
+ZTANCm13LmIgMHg0NGUzZTA1NCAweDQ4DQoNCmFuZCB0aGVuIGJvb3Qga2VybmVsLg0KDQpSZWdh
+cmRzDQpBZnphbA0K
