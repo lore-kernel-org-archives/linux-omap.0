@@ -1,88 +1,348 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/2] omap plat/usb.h removal for v3.8 merge window
-Date: Thu, 18 Oct 2012 19:20:01 -0700
-Message-ID: <20121019021816.6693.65985.stgit@muffinssi.local>
+Subject: [PATCH 2/2] ARM: OMAP: move OMAP USB platform data to
+ <linux/platform_data/omap-usb.h>
+Date: Thu, 18 Oct 2012 19:20:11 -0700
+Message-ID: <20121019022011.6693.5511.stgit@muffinssi.local>
+References: <20121019021816.6693.65985.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53792 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751028Ab2JSCUF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 22:20:05 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:35491 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751028Ab2JSCUO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Oct 2012 22:20:14 -0400
+In-Reply-To: <20121019021816.6693.65985.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, Partha Basak <parthab@india.ti.com>, Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org
 
-Hi all,
+From: Felipe Balbi <balbi@ti.com>
 
-Here are two patches against v3.7-rc1 to remove
-plat/usb.h.
+In order to make single zImage work for ARM architecture,
+we need to make sure we don't depend on private headers.
 
-Once people are happy with these, I'll apply these
-into omap-for-v3.8/cleanup-headers-usb branch so
-usb and mfd trees can also pull these in if needed.
+Move USB platform_data to <linux/platform_data/omap-usb.h>
+and add a minimal drivers/mfd/usb-omap.h.
 
-Regards,
-
-Tony
-
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Partha Basak <parthab@india.ti.com>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+[tony@atomide.com: updated for local mfd/usb-omap.h]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-
-Felipe Balbi (1):
-      ARM: OMAP: move OMAP USB platform data to <linux/platform_data/omap-usb.h>
-
-Tony Lindgren (1):
-      ARM: OMAP2+: Introduce local usb.h
-
-
- arch/arm/mach-omap1/clock.c                  |    1 
- arch/arm/mach-omap2/board-2430sdp.c          |    1 
- arch/arm/mach-omap2/board-3430sdp.c          |    1 
- arch/arm/mach-omap2/board-3630sdp.c          |    1 
- arch/arm/mach-omap2/board-4430sdp.c          |    2 
- arch/arm/mach-omap2/board-am3517crane.c      |    1 
- arch/arm/mach-omap2/board-am3517evm.c        |    2 
- arch/arm/mach-omap2/board-cm-t35.c           |    1 
- arch/arm/mach-omap2/board-cm-t3517.c         |    1 
- arch/arm/mach-omap2/board-devkit8000.c       |    1 
- arch/arm/mach-omap2/board-igep0020.c         |    1 
- arch/arm/mach-omap2/board-ldp.c              |    1 
- arch/arm/mach-omap2/board-omap3beagle.c      |    1 
- arch/arm/mach-omap2/board-omap3evm.c         |    2 
- arch/arm/mach-omap2/board-omap3logic.c       |    1 
- arch/arm/mach-omap2/board-omap3pandora.c     |    1 
- arch/arm/mach-omap2/board-omap3stalker.c     |    1 
- arch/arm/mach-omap2/board-omap3touchbook.c   |    1 
- arch/arm/mach-omap2/board-omap4panda.c       |    2 
- arch/arm/mach-omap2/board-overo.c            |    1 
- arch/arm/mach-omap2/board-rm680.c            |    1 
- arch/arm/mach-omap2/board-rx51.c             |    2 
- arch/arm/mach-omap2/board-ti8168evm.c        |    3 
- arch/arm/mach-omap2/board-zoom-peripherals.c |    1 
- arch/arm/mach-omap2/board-zoom.c             |    1 
- arch/arm/mach-omap2/common.h                 |    2 
- arch/arm/mach-omap2/omap_phy_internal.c      |    4 -
- arch/arm/mach-omap2/twl-common.c             |    1 
- arch/arm/mach-omap2/usb-host.c               |    2 
- arch/arm/mach-omap2/usb-musb.c               |    2 
- arch/arm/mach-omap2/usb-tusb6010.c           |    1 
- arch/arm/mach-omap2/usb.h                    |   82 ++++++++++++
- arch/arm/plat-omap/include/plat/usb.h        |  179 --------------------------
- drivers/mfd/omap-usb-host.c                  |    5 +
- drivers/mfd/omap-usb-tll.c                   |    2 
- drivers/mfd/omap-usb.h                       |    2 
- drivers/usb/host/ehci-omap.c                 |    3 
- drivers/usb/host/ohci-omap3.c                |    1 
- drivers/usb/musb/am35x.c                     |    3 
- drivers/usb/musb/musb_dsps.c                 |    3 
- drivers/usb/musb/omap2430.h                  |    2 
- include/linux/platform_data/usb-omap.h       |   80 ++++++++++++
- 42 files changed, 188 insertions(+), 218 deletions(-)
- create mode 100644 arch/arm/mach-omap2/usb.h
- delete mode 100644 arch/arm/plat-omap/include/plat/usb.h
+ arch/arm/mach-omap2/board-4430sdp.c    |    1 +
+ arch/arm/mach-omap2/board-am3517evm.c  |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c   |    1 +
+ arch/arm/mach-omap2/board-omap4panda.c |    1 +
+ arch/arm/mach-omap2/board-rx51.c       |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c  |    2 +
+ arch/arm/mach-omap2/usb-tusb6010.c     |    1 +
+ arch/arm/mach-omap2/usb.h              |    2 +
+ drivers/mfd/omap-usb-host.c            |    5 +++
+ drivers/mfd/omap-usb-tll.c             |    2 +
+ drivers/mfd/omap-usb.h                 |    2 +
+ drivers/usb/host/ehci-omap.c           |    3 +-
+ drivers/usb/host/ohci-omap3.c          |    1 -
+ drivers/usb/musb/am35x.c               |    3 +-
+ drivers/usb/musb/musb_dsps.c           |    3 +-
+ drivers/usb/musb/omap2430.h            |    2 +
+ include/linux/platform_data/usb-omap.h |   47 ++++++++++++++++++--------------
+ 17 files changed, 48 insertions(+), 30 deletions(-)
  create mode 100644 drivers/mfd/omap-usb.h
- create mode 100644 include/linux/platform_data/usb-omap.h
+ rename arch/arm/plat-omap/include/plat/usb.h => include/linux/platform_data/usb-omap.h (56%)
 
--- 
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 5700fc5..52534ba 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -27,6 +27,7 @@
+ #include <linux/leds.h>
+ #include <linux/leds_pwm.h>
+ #include <linux/platform_data/omap4-keypad.h>
++#include <linux/usb/musb.h>
+ 
+ #include <asm/hardware/gic.h>
+ #include <asm/mach-types.h>
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 0dbeb77..96d6c5a 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -25,6 +25,7 @@
+ #include <linux/can/platform/ti_hecc.h>
+ #include <linux/davinci_emac.h>
+ #include <linux/mmc/host.h>
++#include <linux/usb/musb.h>
+ #include <linux/platform_data/gpio-omap.h>
+ 
+ #include "am35xx.h"
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 6e7e69b..a22a5b6 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -32,6 +32,7 @@
+ #include <linux/spi/ads7846.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/usb/otg.h>
++#include <linux/usb/musb.h>
+ #include <linux/usb/nop-usb-xceiv.h>
+ #include <linux/smsc911x.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 74e39bb..3f0b92a 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -29,6 +29,7 @@
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
+ #include <linux/ti_wilink_st.h>
++#include <linux/usb/musb.h>
+ #include <linux/wl12xx.h>
+ #include <linux/platform_data/omap-abe-twl6040.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 8c4d27e..c2f8f6c 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -17,6 +17,7 @@
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/leds.h>
++#include <linux/usb/musb.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+ #include <asm/mach-types.h>
+diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
+index 4977c77..5e672c2 100644
+--- a/arch/arm/mach-omap2/board-ti8168evm.c
++++ b/arch/arm/mach-omap2/board-ti8168evm.c
+@@ -14,6 +14,8 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/usb/musb.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index 805bea6..5e24289 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -15,6 +15,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/gpio.h>
+ #include <linux/export.h>
++#include <linux/platform_data/usb-omap.h>
+ 
+ #include <linux/usb/musb.h>
+ 
+diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
+index b2c4ff1..9b986ea 100644
+--- a/arch/arm/mach-omap2/usb.h
++++ b/arch/arm/mach-omap2/usb.h
+@@ -1,4 +1,4 @@
+-#include <plat/usb.h>
++#include <linux/platform_data/usb-omap.h>
+ 
+ /* AM35x */
+ /* USB 2.0 PHY Control */
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 23cec57..cebfe0a 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -26,9 +26,12 @@
+ #include <linux/spinlock.h>
+ #include <linux/gpio.h>
+ #include <plat/cpu.h>
+-#include <plat/usb.h>
++#include <linux/platform_device.h>
++#include <linux/platform_data/usb-omap.h>
+ #include <linux/pm_runtime.h>
+ 
++#include "omap-usb.h"
++
+ #define USBHS_DRIVER_NAME	"usbhs_omap"
+ #define OMAP_EHCI_DEVICE	"ehci-omap"
+ #define OMAP_OHCI_DEVICE	"ohci-omap3"
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index 4b7757b..0db0dfa 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -25,8 +25,8 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/err.h>
+-#include <plat/usb.h>
+ #include <linux/pm_runtime.h>
++#include <linux/platform_data/usb-omap.h>
+ 
+ #define USBTLL_DRIVER_NAME	"usbhs_tll"
+ 
+diff --git a/drivers/mfd/omap-usb.h b/drivers/mfd/omap-usb.h
+new file mode 100644
+index 0000000..972aa96
+--- /dev/null
++++ b/drivers/mfd/omap-usb.h
+@@ -0,0 +1,2 @@
++extern int omap_tll_enable(void);
++extern int omap_tll_disable(void);
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index d7fe287..0d5ac36 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -39,12 +39,13 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/usb/ulpi.h>
+-#include <plat/usb.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/gpio.h>
+ #include <linux/clk.h>
+ 
++#include <linux/platform_data/usb-omap.h>
++
+ /* EHCI Register Set */
+ #define EHCI_INSNREG04					(0xA0)
+ #define EHCI_INSNREG04_DISABLE_UNSUSPEND		(1 << 5)
+diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
+index 1b8133b..bd7803d 100644
+--- a/drivers/usb/host/ohci-omap3.c
++++ b/drivers/usb/host/ohci-omap3.c
+@@ -30,7 +30,6 @@
+  */
+ 
+ #include <linux/platform_device.h>
+-#include <plat/usb.h>
+ #include <linux/pm_runtime.h>
+ 
+ /*-------------------------------------------------------------------------*/
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 457f25e..0605fe3 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -34,8 +34,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/usb/nop-usb-xceiv.h>
+-
+-#include <plat/usb.h>
++#include <linux/platform_data/usb-omap.h>
+ 
+ #include "musb_core.h"
+ 
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 444346e..a67af21 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -38,13 +38,12 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/module.h>
+ #include <linux/usb/nop-usb-xceiv.h>
++#include <linux/platform_data/usb-omap.h>
+ 
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/of_address.h>
+ 
+-#include <plat/usb.h>
+-
+ #include "musb_core.h"
+ 
+ #ifdef CONFIG_OF
+diff --git a/drivers/usb/musb/omap2430.h b/drivers/usb/musb/omap2430.h
+index b85f397..8ef6566 100644
+--- a/drivers/usb/musb/omap2430.h
++++ b/drivers/usb/musb/omap2430.h
+@@ -10,7 +10,7 @@
+ #ifndef __MUSB_OMAP243X_H__
+ #define __MUSB_OMAP243X_H__
+ 
+-#include <plat/usb.h>
++#include <linux/platform_data/usb-omap.h>
+ 
+ /*
+  * OMAP2430-specific definitions
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/include/linux/platform_data/usb-omap.h
+similarity index 56%
+rename from arch/arm/plat-omap/include/plat/usb.h
+rename to include/linux/platform_data/usb-omap.h
+index 1dd6522..8570bcf 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/include/linux/platform_data/usb-omap.h
+@@ -1,11 +1,23 @@
+-// include/asm-arm/mach-omap/usb.h
+-
+-#ifndef	__ASM_ARCH_OMAP_USB_H
+-#define	__ASM_ARCH_OMAP_USB_H
+-
+-#include <linux/io.h>
+-#include <linux/platform_device.h>
+-#include <linux/usb/musb.h>
++/*
++ * usb-omap.h - Platform data for the various OMAP USB IPs
++ *
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
++ *
++ * This software is distributed under the terms of the GNU General Public
++ * License ("GPL") version 2, as published by the Free Software Foundation.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ */
+ 
+ #define OMAP3_HS_USB_PORTS	3
+ 
+@@ -26,7 +38,9 @@ enum usbhs_omap_port_mode {
+ 	OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM
+ };
+ 
+-#ifdef CONFIG_ARCH_OMAP2PLUS
++struct usbtll_omap_platform_data {
++	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
++};
+ 
+ struct ehci_hcd_omap_platform_data {
+ 	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+@@ -47,9 +61,6 @@ struct usbhs_omap_platform_data {
+ 	struct ohci_hcd_omap_platform_data	*ohci_data;
+ };
+ 
+-struct usbtll_omap_platform_data {
+-	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
+-};
+ /*-------------------------------------------------------------------------*/
+ 
+ struct omap_musb_board_data {
+@@ -63,11 +74,7 @@ struct omap_musb_board_data {
+ 	void	(*reset)(void);
+ };
+ 
+-enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
+-
+-extern int omap_tll_enable(void);
+-extern int omap_tll_disable(void);
+-
+-#endif
+-
+-#endif	/* __ASM_ARCH_OMAP_USB_H */
++enum musb_interface {
++	MUSB_INTERFACE_ULPI,
++	MUSB_INTERFACE_UTMI
++};
+
