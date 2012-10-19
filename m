@@ -1,55 +1,123 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 2/3] RTC: omap-rtc: enable pm_runtime
-Date: Fri, 19 Oct 2012 10:58:56 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA00B18@DBDE01.ent.ti.com>
-References: <1350575631-15523-1-git-send-email-zonque@gmail.com>
- <1350575631-15523-2-git-send-email-zonque@gmail.com>
- <50802A87.9010409@ti.com> <50802C20.9040408@gmail.com>
- <79CD15C6BA57404B839C016229A409A83EB43BD9@DBDE01.ent.ti.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [RFC PATCH v3 00/16] DMA Engine support for AM33XX
+Date: Fri, 19 Oct 2012 07:15:58 -0400
+Message-ID: <20121019111558.GD25164@beef>
+References: <1350566815-409-1-git-send-email-mporter@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EBD29FC@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39695 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756814Ab2JSK7e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 06:59:34 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB43BD9@DBDE01.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBD29FC@DBDE01.ent.ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "a.zummo@towertech.it" <a.zummo@towertech.it>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "koen@dominion.thruhere.net" <koen@dominion.thruhere.net>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-SGkgRGFuaWVsLA0KDQpPbiBUaHUsIE9jdCAxOCwgMjAxMiBhdCAyMjowMzoxMywgSGlyZW1hdGgs
-IFZhaWJoYXYgd3JvdGU6DQo+IE9uIFRodSwgT2N0IDE4LCAyMDEyIGF0IDIxOjQ5OjQ0LCBEYW5p
-ZWwgTWFjayB3cm90ZToNCj4gPiBPbiAxOC4xMC4yMDEyIDE4OjEyLCBWYWliaGF2IEhpcmVtYXRo
-IHdyb3RlOg0KDQo+ID4gPiBJdCB3b3VsZCBiZSByZWFsbHkgaGVscGZ1bCBpZiB5b3UgY291bGQg
-dGVzdCB0aGVzZSBwYXRjaGVzIGFuZCBhY2sgdGhlbS4NCg0KPiA+IE9rLCB3aWxsIGRvIHRvbW9y
-cm93LiBXaGF0J3MgbWlzc2luZyB0aGVyZSBpcyBzdXBwb3J0IGZvciB3cml0aW5nIHRvIHRoZQ0K
-PiA+IE9NQVBfUlRDX09TQ19SRUcgKHBhdGggMy8zIGluIG15IHNlcmllcykuIFdvdWxkIGxpa2Ug
-bWUgdG8gcmViYXNlIHRoZQ0KPiA+IGZ1bmN0aW9uYWxpdHk/IEkgbmVlZCB0aGF0a2luZCBvZiBz
-ZXR1cCBmb3IgbXkgYm9hcmQgLi4uDQoNCj4gVGhpcyBpcyBiaXQgdHJpY2t5IGFuZCByZXF1aXJl
-ZCBtb3JlIGRpc2N1c3Npb24gYmVmb3JlIG1lcmdpbmcgaXQsIA0KPiBsZXQgbWUgcmVvcGVuIHRo
-ZSBvbGQgZGlzY3Vzc2lvbiB3aGljaCBJIGhhZCBzdGFydGVkIHNvbWUgdGltZSBiYWNrIC0NCj4g
-DQo+IA0KPiBSVEMgT1NDIGNsb2NrIGlzIHJlcXVpcmVkIHRvIGNvbmZpZ3VyZSBjbG9ja3NvdXJj
-ZSBzeXN0ZW10aW1lciBmb3IgdGhlIA0KPiBrZXJuZWwsIGFuZCBpdCBpcyBpbXBvcnRhbnQgd2hl
-biB5b3UgZ2V0IGludG8gUE0gcmVsYXRlZCBmZWF0dXJlcy4NCj4gDQo+IFBsZWFzZSByZWZlciB0
-aGUgYmVsb3cgY29tbWl0IGZvciBtb3JlIHJlZmVyZW5jZSwNCj4gDQo+IGh0dHA6Ly9tYXJjLmlu
-Zm8vP2w9dS1ib290Jm09MTM1MDU3NzM0NzEzNzk2Jnc9Mg0KDQpOZXdlciB2ZXJzaW9uICh2NCkg
-b2Ygb21hcCBydGMgcGF0Y2hlcyBmb3IgYW0zMzV4IGhhcyBiZWVuDQpwb3N0ZWQsICJydGM6IG9t
-YXAgZHQgc3VwcG9ydCAoZm9yIGFtMzN4eCkiLg0KSW4gY2FzZSB5b3UgY2FuIHRlc3QsIHBsZWFz
-ZSBkbyBpdCBvdmVyIHRoZSBuZXcgc2VyaWVzLg0KDQpZb3Ugd291bGQgbmVlZCBhbHNvIG5lZWQg
-RFQgcGF0Y2ggdGhhdCBhZGRzIERUIG5vZGUgdG8NCnRlc3QgKGl0IGhhcyBiZWVuIHNlcGFyYXRl
-ZCBmcm9tIHRoZSBzZXJpZXMgYXMgaXQgaXMNCmZlbHQgdGhhdCBpdCBzaG91bGQgbm90IGJlIHBh
-cnQgb2Ygc2FtZSBzZXJpZXMpLA0KImFybS9kdHM6IGFtMzN4eCBydGMgbm9kZSINCg0KSWYgeW91
-IGFyZSB1c2luZyBtYWlubGluZSB1Ym9vdCwgeW91IHdvdWxkIG5lZWQgdGhlIGZpeCBhcw0KbWVu
-dGlvbmVkIGJ5IFZhaWJoYXYgSCAoYXMgaW4gdGhlIGxpbmsgaGUgcHJvdmlkZWQgYWJvdmUpLA0K
-ZXhwZWN0aW5nIGl0IHRvIHJlYWNoIHVib290IG1haW5saW5lIHNvb24uDQoNCklmIHRoZSBhYm92
-ZSBpcyBiZWluZyBhdHRlbXB0ZWQgdG8gYWNoaWV2ZSBpbiBLZXJuZWwgaXQNCndvdWxkIGNhdXNl
-IDItMyBzZWNvbmRzIGRlbGF5IGluIGJvb3QgdGltZSAoZWxzZSBpdCBoYWQNCnRvIGJlIG1hZGUg
-YSBtb2R1bGUpLCBwbGVhc2UgcmVmZXIgbGluayBwcm92aWRlZCBieQ0KVmFpYmhhdiBIIGZvciBt
-b3JlIGRldGFpbHMuDQoNCmVsc2UgeW91IGNhbiBkbyBpbiBjdXJyZW50IG1haW5saW5lIHVib290
-LA0KDQptdy5sIDB4NDRlM2UwNmMgMHg4M2U3MGIxMw0KbXcubCAweDQ0ZTNlMDcwIDB4OTVhNGYx
-ZTANCm13LmIgMHg0NGUzZTA1NCAweDQ4DQoNCmFuZCB0aGVuIGJvb3Qga2VybmVsLg0KDQpSZWdh
-cmRzDQpBZnphbA0K
+On Fri, Oct 19, 2012 at 10:26:20AM +0000, Bedia, Vaibhav wrote:
+> Hi Matt,
+> 
+> On Thu, Oct 18, 2012 at 18:56:39, Porter, Matt wrote:
+> > Changes since v2:
+> > 	- Rebased on 3.7-rc1
+> > 	- Fixed bug in DT/pdata parsing first found by Gururaja
+> > 	  that turned out to be masked by some toolchains
+> > 	- Dropped unused mach-omap2/devices.c hsmmc patch
+> > 	- Added AM33XX crossbar DMA event mux support
+> > 	- Added am335x-evm support
+> > 
+> > Changes since v1:
+> > 	- Rebased on top of mainline from 12250d8
+> > 	- Dropped the feature removal schedule patch
+> > 	- Implemented dma_request_slave_channel_compat() and
+> > 	  converted the mmc and spi drivers to use it
+> > 	- Dropped unneeded #address-cells and #size-cells from
+> > 	  EDMA DT support
+> > 	- Moved private EDMA header to linux/platform_data/ and
+> > 	  removed some unneeded definitions
+> > 	- Fixed parsing of optional properties
+> > 
+> > TODO:
+> > 	- Add dmaengine support for per-channel caps so the
+> > 	  hack to set the maximum segments can be replaced with
+> > 	  a query to the dmaengine driver
+> > 
+> > This series adds DMA Engine support for AM33xx, which uses
+> > an EDMA DMAC. The EDMA DMAC has been previously supported by only
+> > a private API implementation (much like the situation with OMAP
+> > DMA) found on the DaVinci family of SoCs.
+> > 
+> > The series applies on top of 3.7-rc1 and the following patches:
+> > 
+> > 	- GPMC fails to reserve memory fix:
+> > 	  http://www.spinics.net/lists/linux-omap/msg79675.html
+> > 	- TPS65910 regulator fix:
+> > 	  https://patchwork.kernel.org/patch/1593651/
+> > 	- dmaengine DT support from Vinod's dmaengine_dt branch in
+> > 	  git://git.infradead.org/users/vkoul/slave-dma.git since
+> > 	  027478851791df751176398be02a3b1c5f6aa824
+> > 
+> > The approach taken is similar to how OMAP DMA is being converted to
+> > DMA Engine support. With the functional EDMA private API already
+> > existing in mach-davinci/dma.c, we first move that to an ARM common
+> > area so it can be shared. Adding DT and runtime PM support to the
+> > private EDMA API implementation allows it to run on AM33xx. AM33xx
+> > *only* boots using DT so we leverage Jon's generic DT DMA helpers to
+> > register EDMA DMAC with the of_dma framework and then add support
+> > for calling the dma_request_slave_channel() API to both the mmc
+> > and spi drivers.
+> > 
+> > With this series both BeagleBone and the AM335x EVM have working
+> > MMC and SPI support.
+> > 
+> > This is tested on BeagleBone with a SPI framebuffer driver and MMC
+> > rootfs. A trivial gpio DMA event misc driver was used to test the
+> > crossbar DMA event support. It is also tested on the AM335x EVM
+> > with the onboard SPI flash and MMC rootfs. The branch at
+> > https://github.com/ohporter/linux/tree/edma-dmaengine-v3 has the
+> > complete series, dependencies, and some test drivers/defconfigs.
+> > 
+> 
+> I didn't see all the patches that you posted on edma-dmaengine-v3
+> but I do seem them on edma-dmaengine-am33xx-v3 branch.
+
+I see I referenced the wrong branch in the cover letter. Thanks for
+testing and noticing this. Sorry to make you hunt for the correct
+branch in that repo. ;) 
+
+https://github.com/ohporter/linux/tree/edma-dmaengine-am33xx-v3
+is indeed the correct branch for those wanting to pull this in or
+grab some of the not-to-be-merged drivers I used for testing.
+
+> I added a couple of patches to enable earlyprintk and build the DTB
+> appended kernel image uImage-dtb.am335x-evm
+> 
+> Here's what i see
+> 
+> [...]
+
+<snip>
+
+> [    0.175354] edma: probe of 49000000.edma failed with error -16
+
+I missed an uninitialized pdata case in the bug fixes mentioned in
+the changelog and the folks previously failing the same way didn't
+hit the case I suspect you are hitting. Can you try this and let me
+know how it works?
+
+Thanks,
+Matt
+
+diff --git a/arch/arm/common/edma.c b/arch/arm/common/edma.c
+index b761b7a..b43b327 100644
+--- a/arch/arm/common/edma.c
++++ b/arch/arm/common/edma.c
+@@ -1619,7 +1619,7 @@ static int __init edma_probe(struct platform_device *pdev)
+ 
+ 	if (node) {
+ 		pdata = devm_kzalloc(dev,
+-				     sizeof(struct edma_soc_info),
++				     EDMA_MAX_CC*sizeof(struct edma_soc_info),
+ 				     GFP_KERNEL);
+ 		edma_of_parse_dt(dev, node, pdata);
+ 		info = &pdata;
