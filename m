@@ -1,61 +1,55 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: RT throttling and suspend/resume (was Re: [PATCH] i2c: omap: revert "i2c: omap: switch to threaded IRQ support")
-Date: Fri, 19 Oct 2012 16:54:55 -0700
-Message-ID: <87391ahvao.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com>
-	<CAM=Q2csHTbR4rBe1HNr5-M3sG5wgdCv6dCnGLmNQEwo1gjCSGg@mail.gmail.com>
-	<20121016133356.GG21801@arwen.pp.htv.fi>
-	<87ipaanljt.fsf_-_@deeprootsystems.com>
-	<20121017140002.GI11394@arwen.pp.htv.fi>
-	<20121017143534.GJ11394@arwen.pp.htv.fi>
-	<87txtsitpt.fsf@deeprootsystems.com>
-	<20121018055136.GF11137@arwen.pp.htv.fi>
-	<1350655227.2768.11.camel@twins>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Sat, 20 Oct 2012 06:14:09 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210200611150.9865@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com> <alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:49793 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755709Ab2JSXyi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Oct 2012 19:54:38 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so707819pad.19
-        for <linux-omap@vger.kernel.org>; Fri, 19 Oct 2012 16:54:37 -0700 (PDT)
-In-Reply-To: <1350655227.2768.11.camel@twins> (Peter Zijlstra's message of
-	"Fri, 19 Oct 2012 16:00:27 +0200")
+Received: from utopia.booyaka.com ([74.50.51.50]:53121 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917Ab2JTGOL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Oct 2012 02:14:11 -0400
+In-Reply-To: <alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: balbi@ti.com, Thomas Gleixner <tglx@linutronix.de>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Paul Walmsley <paul@pwsan.com>, linux-i2c@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, Wolfram Sang <w.sang@pengutronix.de>, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
+To: jean.pihet@newoldbits.com
+Cc: balbi@ti.com, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
-Peter Zijlstra <peterz@infradead.org> writes:
+Hi Jean
 
-> On Thu, 2012-10-18 at 08:51 +0300, Felipe Balbi wrote:
->> > So the primary question remains: is RT runtime supposed to include the
->> > time spent suspended?  I suspect not. 
->> 
->> you might be right there, though we need Thomas or Peter to answer :-s 
->
-> re, sorry both tglx and I have been traveling, he still is, I'm trying
-> to play catch-up :-)
->
-> Anyway, yeah I'm somewhat surprised the clock is 'running' when the
-> machine isn't. From what I could gather, this is !x86 hardware, right?
->
-> x86 explicitly makes sure our clocks are 'stopped' during suspend, see
-> commit cd7240c0b900eb6d690ccee088a6c9b46dae815a.
->
-> Can you do something similar for ARM?
+On Fri, 19 Oct 2012, Paul Walmsley wrote:
 
-So I did the same thing for my ARM SoC, and it definitley stops the RT
-throttling.  
+> On Thu, 18 Oct 2012, Paul Walmsley wrote:
+> 
+> > Here are some basic OMAP test results for Linux v3.7-rc1.
+> > Logs and other details at http://www.pwsan.com/omap/testlogs/test_v3.7-rc1/
 
-However, it has the undesriable (IMO) side effect of making timed printk
-output rather unhelpful for debugging suspend/resume since printk time
-stays constant throughout suspend/resume no matter how long you
-sleep. :(
+...
 
-So does that mean we have to choose between useful printk times during
-suspend/resume or functioning IRQ threads during suspend/resume ?
+> > Failing tests: needing investigation
+> > ------------------------------------
+> >
+> > Boot tests:
+> 
+> * 3530ES3 Beagle: I2C timeouts during userspace init
+>   - May be related to the threaded IRQ conversion of the I2C driver
+>   - Unknown cause
 
-Kevin
+This one turned out to be caused by:
 
+commit 3db11feffc1ad2ab9dea27789e6b5b3032827adc
+Author: Jean Pihet <jean.pihet@newoldbits.com>
+Date:   Thu Sep 20 18:08:03 2012 +0200
+
+    ARM: OMAP: convert I2C driver to PM QoS for MPU latency constraints
+
+
+Reverting this commit causes the problem to go away, but since the OMAP PM 
+constraint code was removed as well, it's unlikely that a simple revert is 
+the right thing to do.
+
+Jean could you please investigate and fix this?
+
+
+- Paul
