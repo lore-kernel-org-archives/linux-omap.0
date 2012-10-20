@@ -1,95 +1,129 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v5.1 1/3] omap3isp: Add CSI configuration registers from control block to ISP resources
-Date: Sat, 20 Oct 2012 17:11:17 +0300
-Message-ID: <1350742277-24528-1-git-send-email-sakari.ailus@iki.fi>
-References: <1651288.n5DBzW1A1K@avalon>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Sat, 20 Oct 2012 16:11:36 +0200
+Message-ID: <20121020141136.GA6433@netboy.at.omicron.at>
+References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56596 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753059Ab2JTOLV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 20 Oct 2012 10:11:21 -0400
-In-Reply-To: <1651288.n5DBzW1A1K@avalon>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:53686 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752885Ab2JTOLs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Oct 2012 10:11:48 -0400
+Received: by mail-wi0-f170.google.com with SMTP id hm2so1014796wib.1
+        for <linux-omap@vger.kernel.org>; Sat, 20 Oct 2012 07:11:46 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@deeprootsystems.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Add the registers used to configure the CSI-2 receiver PHY on OMAP3430 and
-3630 and map them in the ISP driver. The register is part of the control
-block but it only is needed by the ISP driver.
+On Thu, Oct 18, 2012 at 05:20:46AM +0000, Paul Walmsley wrote:
+> 
+> Here are some basic OMAP test results for Linux v3.7-rc1.
+> Logs and other details at http://www.pwsan.com/omap/testlogs/test_v3.7-rc1/
+> 
+> 
+> Changes from previous tests
+> ---------------------------
+> 
+> Kernel configs have been reorganized and updated.  AM335x Beaglebone and
+> OMAP4460 Pandaboard-ES boards have been added to the testbed.
+> 
+> 
+> Passing tests
+> -------------
+> 
+> Boot to userspace: 3517evm, 3530es3beagle, 3730beaglexm, 37xxevm,
+>                    4430es2panda, 5912osk, am335xbone
+> 
+> PM ret/off, suspend + dynamic idle: (none)
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
-Hi Laurent,
+BeagleBone Rev. A6 does not boot v3.7-rc1, at least not for me.
+I recently posted the missing patches needed to make it work (but the
+patches are not by me).
 
-Could you replace the patch I sent you with this one? I think there's a tiny
-conflict there since the interrupt number definition suddenly changed.
+Below I include the console log.
 
- arch/arm/mach-omap2/devices.c         |   10 ++++++++++
- drivers/media/platform/omap3isp/isp.c |    6 ++++--
- drivers/media/platform/omap3isp/isp.h |    2 ++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+Thanks,
+Richard
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c8c2117..5f1ee96 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -200,6 +200,16 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-+		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
-+		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
-+		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
- 		.start		= 24 + OMAP_INTC_START,
- 		.flags		= IORESOURCE_IRQ,
- 	}
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 99640d8..5ea5520 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -102,7 +102,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
- 		       1 << OMAP3_ISP_IOMEM_RESZ |
- 		       1 << OMAP3_ISP_IOMEM_SBL |
- 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
-+		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
-+		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
- 	},
- 	{
- 		.isp_rev = ISP_REVISION_15_0,
-@@ -119,7 +120,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
- 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
- 		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
- 		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
--		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
-+		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
-+		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
- 	},
- };
- 
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 8be7487..6fed222 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -72,6 +72,8 @@ enum isp_mem_resources {
- 	OMAP3_ISP_IOMEM_CSI2C_REGS1,
- 	OMAP3_ISP_IOMEM_CSIPHY1,
- 	OMAP3_ISP_IOMEM_CSI2C_REGS2,
-+	OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
-+	OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
- 	OMAP3_ISP_IOMEM_LAST
- };
- 
--- 
-1.7.2.5
+
+U-Boot SPL 2012.10-rc1-00148-g4668a08 (Sep 30 2012 - 09:35:20)
+OMAP SD/MMC: 0
+reading u-boot.img
+reading u-boot.img
+
+
+U-Boot 2012.10-rc1-00148-g4668a08 (Sep 30 2012 - 09:35:20)
+
+I2C:   ready
+DRAM:  256 MiB
+WARNING: Caches not enabled
+MMC:   OMAP SD/MMC: 0, OMAP SD/MMC: 1
+Using default environment
+
+Net:   cpsw
+Hit any key to stop autoboot:  3  0 
+U-Boot# tftp 81000000 uImage
+link up on port 0, speed 100, full duplex
+Using cpsw device
+TFTP from server 192.168.0.12; our IP address is 192.168.0.77
+Filename 'uImage'.
+Load address: 0x81000000
+Loading: #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 ################################
+done
+Bytes transferred = 3822248 (3a52a8 hex)
+U-Boot#    tftp 82000000 beaglebone-initrd.gz
+link up on port 0, speed 100, full duplex
+Using cpsw device
+TFTP from server 192.168.0.12; our IP address is 192.168.0.77
+Filename 'beaglebone-initrd.gz'.
+Load address: 0x82000000
+Loading: #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #################################################################
+	 #############
+done
+Bytes transferred = 2059309 (1f6c2d hex)
+U-Boot#    tftp 80000000 am335x-bone.dtb
+link up on port 0, speed 100, full duplex
+Using cpsw device
+TFTP from server 192.168.0.12; our IP address is 192.168.0.77
+Filename 'am335x-bone.dtb'.
+Load address: 0x80000000
+Loading: #
+done
+Bytes transferred = 4391 (1127 hex)
+U-Boot#    bootm 81000000 - 80000000
+## Booting kernel from Legacy Image at 81000000 ...
+   Image Name:   Linux-3.7.0-rc1
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    3822184 Bytes = 3.6 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+## Flattened Device Tree blob at 80000000
+   Booting using the fdt blob at 0x80000000
+   Loading Kernel Image ... OK
+OK
+   Loading Device Tree to 8fe66000, end 8fe6a126 ... OK
+
+Starting kernel ...
 
