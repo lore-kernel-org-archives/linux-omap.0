@@ -1,54 +1,33 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.7-rc1
-Date: Sat, 20 Oct 2012 06:24:03 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210200614390.9865@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com> <alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
+Subject: Re: OMP35xx booting issue
+Date: Sat, 20 Oct 2012 06:28:52 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210200627180.9865@utopia.booyaka.com>
+References: <CAPjKCR8wzfPxuts4_i-P-X+fru2C-QwZcp_g=w_eHi0SJ_PgiA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53133 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:53140 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904Ab2JTGYE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Oct 2012 02:24:04 -0400
-In-Reply-To: <alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
+	with ESMTP id S1752981Ab2JTG2x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Oct 2012 02:28:53 -0400
+In-Reply-To: <CAPjKCR8wzfPxuts4_i-P-X+fru2C-QwZcp_g=w_eHi0SJ_PgiA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Anil Kumar <anilkumar880@gmail.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, balbi@ti.com
 
-Hi Kevin
+On Sat, 20 Oct 2012, Anil Kumar wrote:
 
-On Fri, 19 Oct 2012, Paul Walmsley wrote:
+> I am trying to boot devkit8000(based on OMP35xx) with kernel 3.6
+> and board stopped booting here (kernel logs  [1]). It looks Paul also
+> faced same type issue or i am missing some some thing ?
 
-> On Thu, 18 Oct 2012, Paul Walmsley wrote:
-> 
-> > Here are some basic OMAP test results for Linux v3.7-rc1.
-> > Logs and other details at http://www.pwsan.com/omap/testlogs/test_v3.7-rc1/
+3.6 boots fine for me on Beagle.
 
-...
+> Waiting for root device /dev/mmcblk0p2...
 
-> > Failing tests: needing investigation
-> > ------------------------------------
-> > 
-
-...
-
-> > PM tests:
->
-> * 3730 Beagle XM: OPPs do not initialize
->   - Several "find_device_opp: Invalid parameters" messages appear on boot; 
->     related warnings follow
->   - Cause unknown
-
-This one seems to be caused by this commit:
-
-commit 24d7b40a60cf19008334bcbcbd98da374d4d9c64
-Author: Kevin Hilman <khilman@ti.com>
-Date:   Thu Sep 6 14:03:08 2012 -0700
-
-    ARM: OMAP2+: PM: MPU DVFS: use generic CPU device for MPU-SS
-    
-Care to take a look at it and fix it?
+You might want to doublecheck the board file you're using and make sure 
+the regulators are configured appropriately.
 
 
 - Paul
