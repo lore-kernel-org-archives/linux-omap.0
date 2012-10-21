@@ -1,19 +1,19 @@
 From: Constantine Shulyupin <const@makelinux.com>
 Subject: booting pandaboard with dtb
-Date: Sun, 21 Oct 2012 23:53:29 +0200
-Message-ID: <CAE7jHC_wotZpWcRTzr9n9S7Xsgb1a7e=u6jKJQAMfJCK7BauWg@mail.gmail.com>
+Date: Mon, 22 Oct 2012 00:28:22 +0200
+Message-ID: <CAE7jHC8v-M48mrA6J3tAzSSHVW+1FBvPzTVW5cWS_oRnj9hduw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:55808 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754649Ab2JUVx3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Oct 2012 17:53:29 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so1887805obb.19
-        for <linux-omap@vger.kernel.org>; Sun, 21 Oct 2012 14:53:29 -0700 (PDT)
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:47774 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932626Ab2JUW2X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Oct 2012 18:28:23 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so1906754oag.19
+        for <linux-omap@vger.kernel.org>; Sun, 21 Oct 2012 15:28:22 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Tim Bird <tim.bird@am.sony.com>, kishon@ti.com
 
 Hi,
 
@@ -22,6 +22,7 @@ latest kernel with omap4-panda.dtb ?
 
 
 Thanks
+
 -- 
 Constantine Shulyupin
 http://www.MakeLinux.com/
