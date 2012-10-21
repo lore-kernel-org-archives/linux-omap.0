@@ -1,77 +1,57 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/7] crypto: omap-sham updates
-Date: Sun, 21 Oct 2012 11:58:36 +0530
-Message-ID: <50839614.1080607@ti.com>
-References: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Sun, 21 Oct 2012 09:35:51 +0200
+Message-ID: <20121021073551.GA4735@netboy.at.omicron.at>
+References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
+ <20121020141136.GA6433@netboy.at.omicron.at>
+ <alpine.DEB.2.00.1210201615170.24497@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33563 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806Ab2JUG3M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Oct 2012 02:29:12 -0400
-In-Reply-To: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:33594 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667Ab2JUHgH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Oct 2012 03:36:07 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so916026wey.19
+        for <linux-omap@vger.kernel.org>; Sun, 21 Oct 2012 00:36:05 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210201615170.24497@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@listse.infradead.orgp
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Mark,
+On Sat, Oct 20, 2012 at 04:27:19PM +0000, Paul Walmsley wrote:
+> Here's the console log from the boot test here:
+> 
+> http://www.pwsan.com/omap/testlogs/test_v3.7-rc1/20121017205513/boot/am335xbone/am335xbone_log.txt
+> 
+> And here's the kernel config and uImage+DTB from the boot test here:
+> 
+> http://www.pwsan.com/omap/testlogs/test_v3.7-rc1/20121017205513/build/am33xx_only/
+> 
+> In terms of differences from your setup, looks like we have different 
+> X-Loader and u-boot; it wouldn't surprise me if we have different kernel 
+> configs too.
 
-On Saturday 20 October 2012 03:23 AM, Mark A. Greer wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
->
-> This series updates the crypto omap-sham driver and supporting
-> infrastructure.
->
-> Notes:
->
-> a) Based on current k.o. c9623de (Merge branch 'v4l_for_linus'
->     of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media)
->
-> b) These have only been tested on an omap2420 h4 and an am37x evm.  If you
->     have different hardware available and a few minutes, please test them.
->     A quick and easy test is to enable tcrypt as a module
->     (CONFIG_CRYPTO_TEST=m), boot, then run 'modprobe tcrypt sec=2 mode=403'.
->     'CONFIG_CRYPTO_SHA1' and 'CONFIG_CRYPTO_DEV_OMAP_SHAM' also have to be
->     enabled.  A quick 'grep omap-sham /proc/interrupts' will tell you if
->     the omap-sham driver was really used.
->
-> c) To test these patches, you will likely need...
->     i) The patch included here:
-> 	   http://marc.info/?l=kernel-janitors&m=134910841909057&w=2
->     ii) This patch from linux-omap/master:
-> 	   27615a9 (ARM: OMAP: Trivial driver changes to remove include
-> 			   plat/cpu.h)
->     iii) This patch from Paul Walmsley:
-> 	   http://www.spinics.net/lists/linux-omap/msg79436.html
->
-> d) If you prefer, a version you can test is available at
->     git@github.com:mgreeraz/linux-mag.git mag/wip/crypto-test
->
-> e) There is a reduction in DMA performance after switching to dmaengine
->     (see http://www.spinics.net/lists/linux-omap/msg79855.html)
->
-> f) Many thanks to Jon Hunter for testing on his omap2420 h4.
->
-> Mark A. Greer (7):
->    ARM: OMAP2xxx: hwmod: Convert SHAM crypto device data to hwmod
->    ARM: OMAP2xxx: hwmod: Add DMA information for SHAM module
->    ARM: OMAP3xxx: hwmod: Convert SHAM crypto device data to hwmod
->    ARM: OMAP2+: Remove unnecessary message when no SHA IP is present
->    crypto: omap-sham: Convert to use pm_runtime API
->    crypto: omap-sham: Add code to use dmaengine API
->    crypto: omap_sham: Remove usage of private DMA API
->
-Thanks for the series and oveall its looks pretty good to me.
-The DMA performance is understandable with need of PREFETCH
-support in OMAP DMA engine driver. IIRC, crypto was the only
-driver used this feature. From the history mostly we need
-to restrict the prefetch usage to applicable client driver
-like crypto and hence adding such parameter/api support
-might be the direction to go forward. Lets see what Peter
-reports for audio as discussed on other thread.
+Paul,
 
-Regards
-Santosh
+You are using an obsolete u-boot and the "legacy" appended dtb
+method. It was my understanding that that way is just a temporary hack
+in case the boot loader does not support dtb.
+
+Now that u-boot has the proper support, using the dtb method is the
+"offical" boot method, AFAICT. At least, that is what people are
+saying on the arm list. So I think that if you want to test whether a
+particular board is booting correctly, it is more useful to try the
+offical method.
+
+People keep saying, the beaglebone works fine with v3.7-rc1, but it
+isn't true. Now v3.7-rc2 is out, and the gpmc issue still has not been
+fixed, and no one is doing anything about it either.
+
+When I read your report, it gave me a much rosier picture than is
+actually the case WRT the beaglebone.
+
+Thanks,
+Richard
