@@ -1,119 +1,72 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH] arm: dts: omap4-sdp: pinmux configuration for keypad
-Date: Mon, 22 Oct 2012 10:26:58 +0200
-Message-ID: <50850352.7020000@ti.com>
-References: <1350890955-29553-1-git-send-email-sourav.poddar@ti.com> <5084F99B.1030709@ti.com> <50850299.7070405@ti.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCHv9 8/8] ARM: OMAP4: USB: power down MUSB PHY if not used
+Date: Mon, 22 Oct 2012 14:24:30 +0530
+Message-ID: <508509C6.10708@ti.com>
+References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>  <1350552010-28760-9-git-send-email-t-kristo@ti.com>  <20121018103334.GA1449@arwen.pp.htv.fi> <1350562684.2143.52.camel@sokoban>  <20121018135352.GC2739@arwen.pp.htv.fi> <1350571199.2143.53.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50850299.7070405@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav <sourav.poddar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50078 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750822Ab2JVIyn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Oct 2012 04:54:43 -0400
+In-Reply-To: <1350571199.2143.53.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-On 10/22/2012 10:23 AM, Sourav wrote:
-> Hi Benoit,
-> On Monday 22 October 2012 01:15 PM, Benoit Cousson wrote:
->> Hi Sourav,
+Hi,
+
+On Thursday 18 October 2012 08:09 PM, Tero Kristo wrote:
+> On Thu, 2012-10-18 at 16:53 +0300, Felipe Balbi wrote:
+>> hi,
 >>
->> On 10/22/2012 09:29 AM, Sourav Poddar wrote:
->>> Currently, omap4 keypad mux settings are done in the board file.
->>> Populate the mux settings in the dts file for the keypad to
->>> work via dt.
->> Have you changed the driver to handle properly the dependency with the
->> pinctrl and thus return EPROBE_DEFER if this is not ready?
-> I have send a patch[1] to the mailing list on the driver changes.
-> http://www.spinics.net/lists/linux-omap/msg79985.html.
-
-Yeah, sorry, I've just seen it :-(.
-
-> Though, I see I have missed the following EPROBE_DEFER check..
-
-Yes, indeed.
-
-> +               if (PTR_ERR(dev->pins) == -EPROBE_DEFER)
-> +                       return -EPROBE_DEFER;
-> Will add for the above patch.
-
-Thanks,
-Benoit
-
->> Seb Guiriec has just sent a patch to do that for the omap-i2c driver
->> ([PATCH] i2c: omap: adopt pinctrl support).
->>
->>> Cc: Felipe Balbi <balbi@ti.com>
->>> Tested on omap4430 sdp with 3.7-rc1.
+>> On Thu, Oct 18, 2012 at 03:18:04PM +0300, Tero Kristo wrote:
+>>>>> +static int __init omap4430_phy_power_down(void)
+>>>>> +{
+>>>>> +	void __iomem *ctrl_base;
+>>>>> +
+>>>>> +	if (!cpu_is_omap44xx())
+>>>>> +		return 0;
+>>>>> +
+>>>>> +	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
+>>>>> +	if (!ctrl_base) {
+>>>>> +		pr_err("control module ioremap failed\n");
+>>>>> +		return -ENOMEM;
+>>>>> +	}
+>>>>> +
+>>>>> +	/* Power down the phy */
+>>>>> +	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+>>>>> +
+>>>>> +	iounmap(ctrl_base);
+>>>>> +
+>>>>> +	return 0;
+>>>>> +}
+>>>>> +early_initcall(omap4430_phy_power_down);
+>>>>> +#endif
+>>>>
+>>>> I think you could do it even if the driver is enabled.
 >>>
->>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
->>> ---
->>>   arch/arm/boot/dts/omap4-sdp.dts |   26 ++++++++++++++++++++++++++
->>>   1 files changed, 26 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/omap4-sdp.dts
->>> b/arch/arm/boot/dts/omap4-sdp.dts
->>> index 5b7e04f..5efb059 100644
->>> --- a/arch/arm/boot/dts/omap4-sdp.dts
->>> +++ b/arch/arm/boot/dts/omap4-sdp.dts
->>> @@ -194,6 +194,27 @@
->>>               0xbc 0x100    /* abe_mcbsp2_fsx.abe_mcbsp2_fsx INPUT |
->>> MODE0 */
->>>           >;
->>>       };
->>> +
->>> +    keypad_pins: pinmux_keypad_pins {
->>> +        pinctrl-single,pins = <
->>> +            0x24 0x4119   /* gpmc_a18.kpd_row6 OMAP_PULL_ENA |
->>> OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
->>> +            0x26 0x4119   /* gpmc_a19.kpd_row6 OMAP_PULL_ENA |
->>> OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
->>> +            0x2c 0x4001   /* gpmc_a22.kpd_col6 OMAP_WAKEUP_EN |
->>> OMAP_MUX_MODE1 */
->>> +            0x2e 0x4001   /* gpmc_a23.kpd_col7 OMAP_WAKEUP_EN |
->>> OMAP_MUX_MODE1 */
->>> +            0x13c 0x4001  /* kpd_col0.kpd_col0 OMAP_WAKEUP_EN |
->>> OMAP_MUX_MODE1 */
->>> +            0x13e 0x4001  /* kpd_col1.kpd_col1 OMAP_WAKEUP_EN |
->>> OMAP_MUX_MODE1 */
->>> +            0x140 0x4001  /* kpd_col2.kpd_col2 OMAP_WAKEUP_EN |
->>> OMAP_MUX_MODE1 */
->>> +            0x142 0x10F   /* kpd_col3.kpd_col3 OMAP_WAKEUP_EN |
->>> OMAP_MUX_MODE1 */
->> Alway use lower case for hexa value.
-> Ok. Will fix and send a new version.
->>> +            0x144 0x4001  /* kpd_col4.kpd_col4 OMAP_WAKEUP_EN |
->>> OMAP_MUX_MODE1 */
->>> +            0x146 0x4001  /* kpd_col5.kpd_col5 OMAP_WAKEUP_EN |
->>> OMAP_MUX_MODE1 */
->>> +            0x148 0xc119  /* kpd_row0.kpd_row0 OMAP_PULL_ENA |
->>> OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
->>> +            0x14a 0x4119  /* kpd_row1.kpd_row1 OMAP_PULL_ENA |
->>> OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
->>> +            0x14c 0x4119  /* kpd_row2.kpd_row2 OMAP_PULL_ENA |
->>> OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
->>> +            0x14e 0x4119  /* kpd_row3.kpd_row3 OMAP_PULL_ENA |
->>> OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
->>> +            0x150 0x4119  /* kpd_row4.kpd_row4 OMAP_PULL_ENA |
->>> OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
->>> +            0x152 0x4119  /* kpd_row5.kpd_row5 OMAP_PULL_ENA |
->>> OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
->>> +        >;
->>> +    };
->>>   };
->>>     &i2c1 {
->>> @@ -406,3 +427,8 @@
->>>   &mcbsp3 {
->>>       status = "disabled";
->>>   };
->>> +
->>> +&keypad {
->>> +        pinctrl-names = "default";
->>> +        pinctrl-0 = <&keypad_pins>;
->>> +};
->> Otherwise that looks good.
+>>> Actually not at least now, it looks like the driver is not controlling
+>>> this bit at all, so the driver would fail if we do this.
 >>
->> Thanks,
->> Benoit
-> Thanks,
-> Sourav
+>> then we can consider that a bug in the driver. Kishon, I thought you had
+>> added SCM address space to PHY driver for this particular reason until
+>> we get SCM driver, wasn't it ??
+>
+> Yes, I would say its a bug in the driver.
+
+No. It's done in the driver (omap_usb_phy_power() in 
+drivers/usb/phy/omap-usb2.c). We explicitly power off the phy during 
+probe in the driver.
+
+However we need this disable
+> mechanism for the case where we don't have the driver also (which is the
+> default config for omap.)
+
+Agree.
+
+Thanks
+Kishon
