@@ -1,76 +1,69 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/9] OMAPDSS: minor fixes & cleanups
-Date: Mon, 22 Oct 2012 09:54:35 +0300
-Message-ID: <5084EDAB.4070402@ti.com>
-References: <1350472835-28727-1-git-send-email-tomi.valkeinen@ti.com> <5084DE3D.1050502@ti.com>
+Subject: Re: [PATCH 2/6] OMAPDSS: Convert to devm_ioremap
+Date: Mon, 22 Oct 2012 10:22:41 +0300
+Message-ID: <5084F441.4060502@ti.com>
+References: <1350350839-30408-1-git-send-email-ricardo.neri@ti.com> <1350350839-30408-3-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enigC2608E308EE6D8067870C02A"
+	boundary="------------enig4C84C2D2EDA607F4E5885D3E"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44547 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57992 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751952Ab2JVGyi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Oct 2012 02:54:38 -0400
-In-Reply-To: <5084DE3D.1050502@ti.com>
+	id S1750783Ab2JVHWo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Oct 2012 03:22:44 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9M7Mi8e017383
+	for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 02:22:44 -0500
+Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9M7MiSX021594
+	for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 02:22:44 -0500
+In-Reply-To: <1350350839-30408-3-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: s-guiriec@ti.com, peter.ujfalusi@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
---------------enigC2608E308EE6D8067870C02A
+--------------enig4C84C2D2EDA607F4E5885D3E
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-10-22 08:48, Archit Taneja wrote:
-> On Wednesday 17 October 2012 04:50 PM, Tomi Valkeinen wrote:
->> Hi,
->>
->> This series contains minor cleanups and fixes for omapdss.
+On 2012-10-16 04:27, Ricardo Neri wrote:
+> Using devm_ioremap provides better memory handling and improves
+> readability.
 >=20
-> This series looks fine to me. I have a related cleanup patch which you
-> may consider adding to the series.
->=20
-> Thanks,
-> Archit
->=20
-> From: Archit Taneja <archit@ti.com>
-> Date: Thu, 18 Oct 2012 16:51:57 +0530
-> Subject: [PATCH] OMAPDSS: Remove acb and acbi fields from omap_dss_devi=
-ce
->=20
-> acbi and acb fields were meant for passive matrix panels which omapdss
-> doesn't
-> support any longer. Remove these fields from omap_dss_device struct.
->=20
-> Signed-off-by: Archit Taneja <archit@ti.com>
+> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 > ---
->  include/video/omapdss.h |    4 ----
->  1 file changed, 4 deletions(-)
+>  drivers/video/omap2/dss/hdmi.c |   11 +++++++----
+>  1 files changed, 7 insertions(+), 4 deletions(-)
 >=20
-> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-> index 88c8294..f39e6aa 100644
-> --- a/include/video/omapdss.h
-> +++ b/include/video/omapdss.h
-> @@ -621,10 +621,6 @@ struct omap_dss_device {
->      struct {
->          struct omap_video_timings timings;
->=20
-> -        int acbi;    /* ac-bias pin transitions per interrupt */
-> -        /* Unit: line clocks */
-> -        int acb;    /* ac-bias pin frequency */
-> -
->          enum omap_dss_dsi_pixel_format dsi_pix_fmt;
->          enum omap_dss_dsi_mode dsi_mode;
->          struct omap_dss_dsi_videomode_timings dsi_vm_timings;
+> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/h=
+dmi.c
+> index 2cba177..6773e2c 100644
+> --- a/drivers/video/omap2/dss/hdmi.c
+> +++ b/drivers/video/omap2/dss/hdmi.c
+> @@ -1010,8 +1010,13 @@ static int __init omapdss_hdmihw_probe(struct pl=
+atform_device *pdev)
+>  		return -EINVAL;
+>  	}
+> =20
+> +	if (!devm_request_mem_region(&pdev->dev, res->start,
+> +				     resource_size(res), "HDMI"))
+> +		return -EBUSY;
+> +
+>  	/* Base address taken from platform */
+> -	hdmi.ip_data.base_wp =3D ioremap(res->start, resource_size(res));
+> +	hdmi.ip_data.base_wp =3D devm_ioremap(&pdev->dev, res->start,
+> +					     resource_size(res));
 
-Thanks, applied to omapdss tree.
+I think you can use devm_request_and_ioremap() here to simplify it even
+more.
 
  Tomi
 
 
 
---------------enigC2608E308EE6D8067870C02A
+--------------enig4C84C2D2EDA607F4E5885D3E
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -79,19 +72,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQhO2rAAoJEPo9qoy8lh71rLAP+wdMqUjpizezLM3vnfoql7Xz
-WNZcZYPQ8qzSBLzQvGD4j0jXzmuDfE9YNTAMMYR099zkqBw3gxuFvr2tNxy8TUrF
-TpVEeE7ssg+Wl35q/MK51cFdR6HAMp+tFtsBuPUgNdFhGRt1IyFDQzMBuM7us3pP
-GbmpAE8ZkOhnsxlfHplCVUhmeedqScP/VUvJihWY52ahzEGsSC1wu+LEnWx+PTET
-USjtXOI0G3KtyzXsmoLEUO/c2rg9za7xzmigC9mqKG6fLA/pfWbY8EWBVtuGaSwl
-FTB4tQaPe56Vt1a9vlVQP2fqg/9NBEBW2LfJrHV6CkmYvJumrSkSLy4N67R2D8wz
-MZKaoW3ZBd/5gBf7dwz7KAu9QLALe/sGiVbreb6Ie3T0p9ni782qfdQYtpXYC759
-XZN4C6lhNsqi9Y5GkzN5aVAGNQJ3KXHzTomKl0mSKzCNtcwKsxKw8QrRLDDVbNFF
-NGmyJOOq4D8exXgJJNLCau+eK2s7B+g2qyfR0BfGYhMa00tWMe14k70YSe2WMfgX
-m+t+4G4mckl5l1azUWlrywmGF78hdvCu2JyAOstGUo/2du6q/IfXo0kYc6NgWNZc
-EVGH//wC6mL+9qPCMqKmkCaME6EgmEFXU2MiQ43zSte/EbryXjQfG0Wi4camRB8/
-S184RPguREhyQ5I7zLl7
-=bKGx
+iQIcBAEBAgAGBQJQhPRBAAoJEPo9qoy8lh716lcQAK3A111IiSv68Y8VXXF5vjOy
+rNTs5SIEoLXGJZbU0HmPIAa9o2QEqV6NM6PP7egwVKDGfn7zzwzk8JGoK5WscU2B
+ap2pPNXEcGRuydZwR780GvVmQsPllvNsQL9C4AY7Rilc69G38V2NeH06Et9tOGLT
+snW3B+KNHcBgBw1ZCIewUh7aodl1J5zqIvgonvgQS8jLPoY9jX4NoRis6TuKjd3a
+gRSFysPbOWguwoV1LoWc326a4TL5388mhhOmNda2OnVCquxtZkhPVTAqJ1WciLtc
+QNy8gI1geYyVuIG6kZVtJyq6ZHn1HVUnwixT4+EgliKkNWt7a+stdyHPisN2P34b
+cAvIJWlDImC7zQo6EX3n0i33IQ0mAjrn5fUpcrrfQfCoTEJUI5xrYF9OgjxEkUyf
+LyDkldZy52wdeo8M/y3r0zCsTcKY2nCaCWQwGONZCosYcOSJpX+KxMHUdkUglHAc
+1tWVyEzL7VgwR8gNnJNi3MAtdG3mtrcrwz62bNeoGsJVyas5yKQuug1yfT04N6Nv
+hMw4TL7zRESauArisauyKk6DIWhBoQzz/0XRO9w4HnlFnCg449FRB3GFtsbeV9sW
+bcQTJT/BsuHCuUqQEznhlPYIPwJiO6g+4rl7vYskk1cpfnZxOyZLDtCjDPie+pdJ
+qIyjac/wImWHcRMTue1B
+=5w55
 -----END PGP SIGNATURE-----
 
---------------enigC2608E308EE6D8067870C02A--
+--------------enig4C84C2D2EDA607F4E5885D3E--
