@@ -1,67 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/7] ARM: OMAP2xxx: hwmod: Convert SHAM crypto device
- data to hwmod
-Date: Mon, 22 Oct 2012 19:49:47 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210221935320.13464@utopia.booyaka.com>
-References: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com> <1350683640-15044-2-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.00.1210201934550.27264@utopia.booyaka.com> <20121022193336.GA1708@animalcreek.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH 0/4] OMAP-GPMC generic timing migration
+Date: Mon, 22 Oct 2012 21:51:41 +0200
+Message-ID: <5085A3CD.7020700@gmail.com>
+References: <cover.1349450723.git.afzal@ti.com> <5076B166.2020006@gmail.com> <50817307.50509@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57065 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394Ab2JVTts (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 15:49:48 -0400
-In-Reply-To: <20121022193336.GA1708@animalcreek.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:48588 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813Ab2JVTvu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 15:51:50 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so1237212bkc.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 12:51:49 -0700 (PDT)
+In-Reply-To: <50817307.50509@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Afzal Mohammed <x0148406@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Mon, 22 Oct 2012, Mark A. Greer wrote:
-
-> On Sat, Oct 20, 2012 at 07:40:19PM +0000, Paul Walmsley wrote:
->
-> > >  static void omap_init_sham(void)
-> > >  {
-> > > -	if (cpu_is_omap24xx()) {
-> > > -		sham_device.resource = omap2_sham_resources;
-> > > -		sham_device.num_resources = omap2_sham_resources_sz;
-> > > +	if (cpu_is_omap24xx() &&
-> > > +	    (omap2_cm_read_mod_reg(CORE_MOD, OMAP24XX_CM_IDLEST4) &
-> > > +						 OMAP24XX_ST_SHA_MASK)) {
-> > 
-> > Hmm.  Not sure I understand the purpose of this CM read.  Don't we want to 
-> > initialize this device unconditionally?
+On 19.10.2012 17:34, Afzal Mohammed wrote:
+> Hi Daniel,
 > 
-> No, the device doesn't exist on all parts.
+> On Thursday 11 October 2012 05:15 PM, Daniel Mack wrote:
+> 
+>> Could you tell me which patches I need on top of soon-to-be-3.7-rc1? I
+>> would like to augment this to make GPMC attached NAND probable in DT, in
+>> case this is still an open topic.
+> 
+> In case you can help on making gpmc nand dt probable, please
+> proceed. I would be on vacation next week, may be we can
+> discuss after I am back.
 
-It should exist on all OMAP2xxx, AFAIK.  (Whether some bootloader 
-firewalled it off is another matter, of course.)
+Enjoy your vacation :)
 
->  This is the only way to tell if its there (AFAIK).
+> am335x based boards like beagle bone should be booting on
+> l-o master and it has gpmc header cleanup changes with
+> minimal driver support.
+> 
+> As I don't have the sufficient time to explain in detail, some
+> pointers. Discussion between us [1] hopefully explains it in brief.
+> It would be like peripherals connected to gpmc being represented
+> as child nodes in dt. gpmc driver probably in probe would have to
+> invoke of_platform_populate to create child nodes (for devices like
+> nand). And driver would have to be enhanced to configure gpmc
+> based on information passed through dt for each child nodes.
+> Or roughly have a dt equivalent of driver as in [2].
 
-Hmm.  I don't think the CM_IDLEST bits work that way, in the general case.  
-They just indicate whether the PRCM considers that IP block to be 
-currently accessible.  So for example if the clocks are disabled to an IP 
-block, the CM_IDLEST bit would indicate that it's not accessible.  The 
-software could then enable the clocks, and the CM_IDLEST bit would 
-indicate that it is accessible.  We use this in the clock framework and 
-hwmod code after enabling clocks to wait until the system considers the IP 
-block accessible.  See for example
-
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/clock.c;h=961ac8f7e13d8c84a1cbb4587255ea685520bd18;hb=HEAD#l80
-
-...
-
-Now it's possible that on some TI chips, the CM_IDLEST bit is tied to the 
-SIdleAck signal originating from the IP block.  (I've been told that on 
-other OMAPs, CM_IDLEST is actually tied to the SIdleReq signal originating 
-from the PRCM, which is not terribly useful...)  So if it's tied to the 
-SIdleAck signal, and the PRCM clocks are enabled, then it might provide an 
-indication of whether the IP block exists on that chip.  But ultimately 
-the IP block might still be firewalled off even if it appears to exist to 
-the PRCM.  So for 3xxx, I'd suggest just adding it to the appropriate 
-GP-specific hwmod init lists, such as omap3xxx_gp_hwmod_ocp_ifs.
+Hmm, not sure if I follow all your thought here, but I cooked up
+something that is straight-forward and works well for me. I'll post them
+now, so we at least have a base for discussions ...
 
 
-- Paul
+Daniel
+
