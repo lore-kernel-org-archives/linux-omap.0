@@ -1,65 +1,54 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: RT throttling and suspend/resume (was Re: [PATCH] i2c: omap: revert "i2c: omap: switch to threaded IRQ support")
-Date: Mon, 22 Oct 2012 09:47:06 -0700
-Message-ID: <87ehkqihdh.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com>
-	<CAM=Q2csHTbR4rBe1HNr5-M3sG5wgdCv6dCnGLmNQEwo1gjCSGg@mail.gmail.com>
-	<20121016133356.GG21801@arwen.pp.htv.fi>
-	<87ipaanljt.fsf_-_@deeprootsystems.com>
-	<20121017140002.GI11394@arwen.pp.htv.fi>
-	<20121017143534.GJ11394@arwen.pp.htv.fi>
-	<87txtsitpt.fsf@deeprootsystems.com>
-	<20121018055136.GF11137@arwen.pp.htv.fi>
-	<1350655227.2768.11.camel@twins> <87391ahvao.fsf@deeprootsystems.com>
-	<1350899541.2768.82.camel@twins>
+Subject: Re: [PATCH] arm: sched: stop sched_clock() during suspend
+Date: Mon, 22 Oct 2012 10:05:25 -0700
+Message-ID: <873916h1yi.fsf@deeprootsystems.com>
+References: <1350906877-19410-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:46454 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095Ab2JVQql (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 12:46:41 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2064702pad.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 09:46:40 -0700 (PDT)
-In-Reply-To: <1350899541.2768.82.camel@twins> (Peter Zijlstra's message of
-	"Mon, 22 Oct 2012 11:52:21 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1350906877-19410-1-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Mon, 22 Oct 2012 14:54:37 +0300")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Andrew Lunn <andrew@lunn.ch>, Linus Walleij <linus.walleij@linaro.org>, Daniel Walker <dwalker@fifo99.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Bryan Huntsman <bryanh@codeaurora.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Ben Dooks <ben-linux@fluff.org>, Alexander Schulz <alex@shark-linux.de>, Andrew Victor <linux@maxim.org.za>, Kyungmin Park <kyungmin.park@samsung.com>, Sascha Hauer <kernel@pengutronix.de>, Olof
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: balbi@ti.com, Thomas Gleixner <tglx@linutronix.de>, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, Paul Walmsley <paul@pwsan.com>, linux-i2c@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, Wolfram Sang <w.sang@pengutronix.de>, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
-Peter Zijlstra <peterz@infradead.org> writes:
++Colin Cross, Barry Song also
 
-> On Fri, 2012-10-19 at 16:54 -0700, Kevin Hilman wrote:
->
->> So I did the same thing for my ARM SoC, and it definitley stops the RT
->> throttling.  
->> 
->> However, it has the undesriable (IMO) side effect of making timed printk
->> output rather unhelpful for debugging suspend/resume since printk time
->> stays constant throughout suspend/resume no matter how long you
->> sleep. :(
->> 
->> So does that mean we have to choose between useful printk times during
->> suspend/resume or functioning IRQ threads during suspend/resume ?
->
-> Urgh.. this was not something I considered. This being primarily the
-> sched_clock infrastructure and such.
->
-> So what exactly is the problem with the suspend resume thing (its not
-> something I've ever debugged), is all you need a clean break between pre
-> and post suspend, or do you need the actual time the machine was gone?
+Felipe Balbi <balbi@ti.com> writes:
 
-I think it's more a question of what people are used to.  I think folks
-used to debugging suspend/resume (at least on ARM) are used to having
-the printk timestamps reflect the amount of time the machine was gone.
+> The scheduler imposes a requirement to sched_clock()
+> which is to stop the clock during suspend, if we don't
+> do that IRQ threads will be rescheduled in the future
+> which might cause transfers to timeout depending on
+> how driver is written.
 
-With a sched_clock() that counts during suspend, that feature doesn't
-work anymore.  I'm not sure that this feature is a deal breaker, but it
-has been convenient.  I see that on x86, it's already normal that
-printk times don't reflect time spent in suspend, so I guess ARM needs
-to adapt.  
+It's not just about IRQ threads, it's about RT throttling.  IOW, not
+just IRQ threads will be postponed, but all RT tasks will be throttled
+temporarily as well.
+
+The changelog should also mention that this has an inconvenient side
+effect of stopping the printk times during suspend.  Based on the
+original thread where this feature was discussed and introduced, some
+platforms wanted to opt out of this behavior[1], so the optional API was
+added.
+
+However, in light of RT throttling, this a correctness issue for process
+accounting, so I agree that this should be done for all platforms
+instead of providing an optional 'needs suspend' version of the API,
+even though it means printk times no longer reflect time spent
+suspended.
+
+After a discussion with peterz on this topic, it seems that x86
+already ensures that sched_clock stops during suspend for similar
+reasons[2].
+
+The question then is whether this is a fix that belongs in v3.7.
+Technically, it is not a regression, so I think this should probably be
+v3.8 material.  If that's the decision, then the threaded IRQ support
+for the OMAP I2C driver needs to be reverted for v3.7 until this fix is merged.
 
 Kevin
 
-
+[1] http://marc.info/?l=linux-arm-kernel&m=134307004508708&w=2
+[2] http://marc.info/?l=linux-arm-kernel&m=135065529907297&w=2
