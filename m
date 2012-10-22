@@ -1,169 +1,99 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: sched: stop sched_clock() during suspend
-Date: Mon, 22 Oct 2012 15:07:22 +0300
-Message-ID: <20121022120722.GV14033@arwen.pp.htv.fi>
-References: <1350906877-19410-1-git-send-email-balbi@ti.com>
-Reply-To: balbi@ti.com
+From: Sourav <sourav.poddar@ti.com>
+Subject: Re: [PATCH 3/4] ARM/dts: omap5: Update UART with address space and
+ interrupts
+Date: Mon, 22 Oct 2012 17:57:00 +0530
+Message-ID: <50853B94.4060308@ti.com>
+References: <1350901328-3525-1-git-send-email-s-guiriec@ti.com> <1350901328-3525-4-git-send-email-s-guiriec@ti.com> <50852AF9.10703@ti.com> <5085348C.60105@ti.com> <508536EA.4020808@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4571428721830882633=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1350906877-19410-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Andrew Lunn <andrew@lunn.ch>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Walker <dwalker@fifo99.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Bryan Huntsman <bryanh@codeaurora.org>, Russell King <rmk+kernel@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Ben Dooks <ben-linux@fluff.org>, Alexander Schulz <alex@shark-linux.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Victor <linux@maxim.org.za>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kyungmin Park <kyungmin.park@samsung.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sascha Hauer <kernel@peng>
-List-Id: linux-omap@vger.kernel.org
-
---===============4571428721830882633==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="185D1s7FREAUfc0L"
-Content-Disposition: inline
-
---185D1s7FREAUfc0L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Oct 22, 2012 at 02:54:37PM +0300, Felipe Balbi wrote:
-> The scheduler imposes a requirement to sched_clock()
-> which is to stop the clock during suspend, if we don't
-> do that IRQ threads will be rescheduled in the future
-> which might cause transfers to timeout depending on
-> how driver is written.
->=20
-> This became an issue on OMAP when we converted omap-i2c.c
-> to use threaded IRQs, it turned out that depending on how
-> much time we spent on suspend, the I2C IRQ thread would
-> end up being rescheduled so far in the future that I2C
-> transfers would timeout and, because omap_hsmmc depends
-> on an I2C-connected device to detect if an MMC card is
-> inserted in the slot, our rootfs would just vanish.
->=20
-> arch/arm/kernel/sched_clock.c already had an optional
-> implementation (sched_clock_needs_suspend()) which would
-> handle scheduler's requirement properly, what this patch
-> does is simply to make that implementation non-optional.
->=20
-> This has been tested with beagleboard XM (OMAP3630) and
-> pandaboard rev A3 (OMAP4430). Suspend to RAM is now working
-> after this patch.
->=20
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-
-just adding more guys to Cc. Please add more if I have missed someone.
-
-> ---
->  arch/arm/include/asm/sched_clock.h |  2 --
->  arch/arm/kernel/sched_clock.c      | 18 ++++--------------
->  2 files changed, 4 insertions(+), 16 deletions(-)
->=20
-> diff --git a/arch/arm/include/asm/sched_clock.h b/arch/arm/include/asm/sc=
-hed_clock.h
-> index 05b8e82..e3f7572 100644
-> --- a/arch/arm/include/asm/sched_clock.h
-> +++ b/arch/arm/include/asm/sched_clock.h
-> @@ -10,7 +10,5 @@
-> =20
->  extern void sched_clock_postinit(void);
->  extern void setup_sched_clock(u32 (*read)(void), int bits, unsigned long=
- rate);
-> -extern void setup_sched_clock_needs_suspend(u32 (*read)(void), int bits,
-> -		unsigned long rate);
-> =20
->  #endif
-> diff --git a/arch/arm/kernel/sched_clock.c b/arch/arm/kernel/sched_clock.c
-> index e21bac2..fc6692e 100644
-> --- a/arch/arm/kernel/sched_clock.c
-> +++ b/arch/arm/kernel/sched_clock.c
-> @@ -107,13 +107,6 @@ static void sched_clock_poll(unsigned long wrap_tick=
-s)
->  	update_sched_clock();
->  }
-> =20
-> -void __init setup_sched_clock_needs_suspend(u32 (*read)(void), int bits,
-> -		unsigned long rate)
-> -{
-> -	setup_sched_clock(read, bits, rate);
-> -	cd.needs_suspend =3D true;
-> -}
-> -
->  void __init setup_sched_clock(u32 (*read)(void), int bits, unsigned long=
- rate)
->  {
->  	unsigned long r, w;
-> @@ -189,18 +182,15 @@ void __init sched_clock_postinit(void)
->  static int sched_clock_suspend(void)
->  {
->  	sched_clock_poll(sched_clock_timer.data);
-> -	if (cd.needs_suspend)
-> -		cd.suspended =3D true;
-> +	cd.suspended =3D true;
->  	return 0;
->  }
-> =20
->  static void sched_clock_resume(void)
->  {
-> -	if (cd.needs_suspend) {
-> -		cd.epoch_cyc =3D read_sched_clock();
-> -		cd.epoch_cyc_copy =3D cd.epoch_cyc;
-> -		cd.suspended =3D false;
-> -	}
-> +	cd.epoch_cyc =3D read_sched_clock();
-> +	cd.epoch_cyc_copy =3D cd.epoch_cyc;
-> +	cd.suspended =3D false;
->  }
-> =20
->  static struct syscore_ops sched_clock_ops =3D {
-> --=20
-> 1.8.0.rc0
->=20
-
---=20
-balbi
-
---185D1s7FREAUfc0L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQhTb6AAoJEIaOsuA1yqREj8gQAIfa9ZGrJTnFNYJs/ED6IMIr
-/oT0wsvGqyXe34Q+ZwTLf3args0IgPK0rgVm/VdFAAi0bOX0r33nKLxtbkwuXWyS
-G/vROlpYxI5Px25T98LbtnNKcjJwQmaDQJmf4/gg6cU9rspfV/417H0Fa7oq7IxC
-/zAjzirPwhw9PzNk9lRItIwP5Vj2WFQI0SX/utkRi8X1HvmwUSQxmOkPLMEezB7g
-fD4UA87XaG+4J8sf1TUWCvV85kmVKZ16B/N8mILQL2QUkfIXm8W8GcyHeF25ciiE
-hHIQjLAvE56cL45ng3MU56G+Vu0Ta5qK67IiVc5VYweqCm2wTpRAB2WlWaA2dANF
-Vvk9g+QHmwMxSVLf9LQ4dmxQFJpdp+HYb4vL+l3g7tgvJBMmYLyeyklV0JEGKo5d
-1M7A56s1RVnbRtH/i+Jlyy7/lN4VUHcJ3ldwQizPsz9tCopCuKtxU2F+vnCTMR5y
-cLW+d/5Rd4wdjMNYMmTKTnuVA9yoLQc29EijKH6YhAN854x8l+e30loz2LS/DxqU
-o7VN10QHGL5Ym2Gs3MBeM6fmS98ld8fXbHANI0XvYNgt78KCkuH5x09CyurNEYbY
-iZQxLUs7hmW3/3a0why7wUq9C4VrMImApZm4n1k6INeB0wUSTnrOnJfBvMirRi1E
-3musyxE3PTpAMBQPM1j9
-=+Nrt
------END PGP SIGNATURE-----
-
---185D1s7FREAUfc0L--
-
-
---===============4571428721830882633==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35660 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753251Ab2JVM0n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 08:26:43 -0400
+In-Reply-To: <508536EA.4020808@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Hi Benoit,
+On Monday 22 October 2012 05:37 PM, Benoit Cousson wrote:
+> On 10/22/2012 01:57 PM, Benoit Cousson wrote:
+>> Hi Sourav,
+>>
+>> On 10/22/2012 01:16 PM, Sourav wrote:
+>>> Hi Sebastien,
+>>> On Monday 22 October 2012 03:52 PM, Sebastien Guiriec wrote:
+>>>> Add base address and interrupt line inside Device Tree data for
+>>> Incomplete sentence!
+>>>> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+>>>> ---
+>>>>    arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++--
+>>>>    1 file changed, 14 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+>>>> index 6c22e1b..413df94 100644
+>>>> --- a/arch/arm/boot/dts/omap5.dtsi
+>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>>>> @@ -237,36 +237,48 @@
+>>>>              uart1: serial@4806a000 {
+>>>>                compatible = "ti,omap4-uart";
+>>>> +            reg = <0x4806a000 0x100>;
+>>>> +            interrupts = <0 72 0x4>;
+>>>>                ti,hwmods = "uart1";
+>>>>                clock-frequency = <48000000>;
+>>>>            };
+>>>>              uart2: serial@4806c000 {
+>>>>                compatible = "ti,omap4-uart";
+>>>> +            reg = <0x4806c000 0x100>;
+>>>> +            interrupts = <0 73 0x4>;
+>>>>                ti,hwmods = "uart2";
+>>>>                clock-frequency = <48000000>;
+>>>>            };
+>>>>              uart3: serial@48020000 {
+>>>>                compatible = "ti,omap4-uart";
+>>>> +            reg = <0x48020000 0x100>;
+>>>> +            interrupts = <0 74 0x4>;
+>>>>                ti,hwmods = "uart3";
+>>>>                clock-frequency = <48000000>;
+>>>>            };
+>>>>              uart4: serial@4806e000 {
+>>>>                compatible = "ti,omap4-uart";
+>>>> +            reg = <0x4806e000 0x100>;
+>>>> +            interrupts = <0 70 0x4>;
+>>>>                ti,hwmods = "uart4";
+>>>>                clock-frequency = <48000000>;
+>>>>            };
+>>>>              uart5: serial@48066000 {
+>>>> -            compatible = "ti,omap5-uart";
+>>>> +            compatible = "ti,omap4-uart";
+>>>> +            reg = <0x48066000 0x100>;
+>>>> +            interrupts = <0 105 0x4>;
+>>> In Omap5 TRM, the interrupt number mentioned for uart5 is 138. How is
+>>> 105 coming?
+>> It is from hwmod and thus from the HW spec. It looks like the TRM is
+>> wrong... or the HW spec :-)
+>>
+>>>>                ti,hwmods = "uart5";
+>>>>                clock-frequency = <48000000>;
+>>>>            };
+>>>>              uart6: serial@48068000 {
+>>>> -            compatible = "ti,omap6-uart";
+>>>> +            compatible = "ti,omap4-uart";
+>>>> +            reg = <0x48068000 0x100>;
+>>>> +            interrupts = <0 106 0x4>;
+>>> Same here, TRM shows this number to be 139 ?
+> In fact, even the TRM (ES1.0 NDA vM) is aligned with these data.
+> Where did you see 138 and 139?
+I looked at Page 6300 of the above TRM, Figure 24-60. Is this place not 
+correct to look
+up for these data?
 
---===============4571428721830882633==--
+> Regards,
+> Benoit
+>
+>
+>
+
