@@ -1,52 +1,91 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
 Subject: Re: OMAP baseline test results for v3.7-rc1
-Date: Mon, 22 Oct 2012 10:21:51 -0700
-Message-ID: <87y5iyfmmo.fsf@deeprootsystems.com>
+Date: Mon, 22 Oct 2012 19:26:45 +0200
+Message-ID: <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com>
 References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
 	<alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
-	<20121019190358.GI1613@blackmetal.musicnaut.iki.fi>
-	<20121019190136.GA4229@arwen.pp.htv.fi>
-	<20121019193847.GJ1613@blackmetal.musicnaut.iki.fi>
+	<alpine.DEB.2.00.1210200611150.9865@utopia.booyaka.com>
+	<CAORVsuUkU3iTTFcXfYJ=_FntjiTR33Gs4z9OsNEn2Cxq7Ef-qA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:35460 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755783Ab2JVRVZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 13:21:25 -0400
-Received: by mail-da0-f46.google.com with SMTP id n41so1477916dak.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 10:21:25 -0700 (PDT)
-In-Reply-To: <20121019193847.GJ1613@blackmetal.musicnaut.iki.fi> (Aaro
-	Koskinen's message of "Fri, 19 Oct 2012 22:38:47 +0300")
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:54930 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755843Ab2JVR0q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 13:26:46 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so3970181iea.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 10:26:45 -0700 (PDT)
+In-Reply-To: <CAORVsuUkU3iTTFcXfYJ=_FntjiTR33Gs4z9OsNEn2Cxq7Ef-qA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: balbi@ti.com, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
-Aaro Koskinen <aaro.koskinen@iki.fi> writes:
-
+On Mon, Oct 22, 2012 at 6:12 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
 > Hi,
 >
-> On Fri, Oct 19, 2012 at 10:01:36PM +0300, Felipe Balbi wrote:
->> On Fri, Oct 19, 2012 at 10:03:58PM +0300, Aaro Koskinen wrote:
->> > FYI, I saw I2C hangs also on Nokia N900 with v3.7-rc1 (omap_i2c
->> > omap_i2c.1: timeout waiting for bus ready). After several reboots they
->> > disappered (kernel binary was the same), and I have been unable to
->> > reproduce them since.
->> 
->> any change you have those logs saved somewhere ? Want to see if it's the
->> same problem triggered by RTC.
+> On Sat, Oct 20, 2012 at 8:14 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>> Hi Jean
+>>
+>> On Fri, 19 Oct 2012, Paul Walmsley wrote:
+>>
+>>> On Thu, 18 Oct 2012, Paul Walmsley wrote:
+>>>
+>>> > Here are some basic OMAP test results for Linux v3.7-rc1.
+>>> > Logs and other details at http://www.pwsan.com/omap/testlogs/test_v3.7-rc1/
+>>
+>> ...
+>>
+>>> > Failing tests: needing investigation
+>>> > ------------------------------------
+>>> >
+>>> > Boot tests:
+>>>
+>>> * 3530ES3 Beagle: I2C timeouts during userspace init
+>>>   - May be related to the threaded IRQ conversion of the I2C driver
+>>>   - Unknown cause
+>>
+>> This one turned out to be caused by:
+>>
+>> commit 3db11feffc1ad2ab9dea27789e6b5b3032827adc
+>> Author: Jean Pihet <jean.pihet@newoldbits.com>
+>> Date:   Thu Sep 20 18:08:03 2012 +0200
+>>
+>>     ARM: OMAP: convert I2C driver to PM QoS for MPU latency constraints
+>>
+>>
+>> Reverting this commit causes the problem to go away, but since the OMAP PM
+>> constraint code was removed as well, it's unlikely that a simple revert is
+>> the right thing to do.
+>>
+>> Jean could you please investigate and fix this?
+> I tried the latest l-o with omap2plus defconfig on my Beagleboard B5
+> (ES2.1) and could not reproduce the problem.
+> I do not have the I2C error messages at boot, nor at user space start
+> up. I tried to read/write the TWL RTC, successfully.
 >
-> I did not save the logs, but now I tried again, I managed to reproduce
-> it after couple boots. The log is below, and after that the there's also
-> one from OK boot for comparison.
+> Another difference is the bootloader images. I have the following:
+> - Texas Instruments X-Loader 1.4.2 (Feb  3 2009 - 15:34:17)
+> - U-Boot 2009.01-dirty (Feb 19 2009 - 12:22:31)
+> Could you send your bootloader images?
 >
-> In the error case, the boot never reaches userspace, just silently hangs
-> (or maybe I just didn't wait enough long).
+> I noticed you have I2C error messages in U-Boot, could that be the
+> cause of the I2C lock-up?
+>
+> On the PM QoS side the commit 3db11fef moves the I2C code from the
+> OMAP PM no-op layer to the PM QoS for CPU and DMA latency, which
+> influences the cpuidle states. However CPU_IDLE is not set in
+> omap2plus_defconfig so there should not be any effect.
+> Do you have CPU_IDLE enabled?
+FYI the issue is not present with CPU_IDLE enabled.
 
-Can you try to revert the threaded IRQ conversion to see if things get
-to working again?  commit 3b2f8f82dad7d1f79cdc8fc05bd1c94baf109bde
+Regards,
+Jean
 
-Thanks,
-
-Kevin
+>
+>>
+>>
+>> - Paul
+>
+> Regards,
+> Jean
