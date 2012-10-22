@@ -1,75 +1,52 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCHv9 8/8] ARM: OMAP4: USB: power down MUSB PHY if not used
-Date: Mon, 22 Oct 2012 14:55:38 +0530
-Message-ID: <50851112.8020002@ti.com>
-References: <1350552010-28760-1-git-send-email-t-kristo@ti.com> <1350552010-28760-9-git-send-email-t-kristo@ti.com> <20121018103334.GA1449@arwen.pp.htv.fi> <1350562684.2143.52.camel@sokoban> <20121018135352.GC2739@arwen.pp.htv.fi> <1350571199.2143.53.camel@sokoban> <508509C6.10708@ti.com> <20121022090723.GE14033@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/8] I2C patches for v3.8 merge window
+Date: Mon, 22 Oct 2012 12:46:50 +0300
+Message-ID: <1350899218-13624-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56184 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752593Ab2JVJZt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 05:25:49 -0400
-In-Reply-To: <20121022090723.GE14033@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: t-kristo@ti.com, linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Hi,
+Hi guys,
 
-On Monday 22 October 2012 02:37 PM, Felipe Balbi wrote:
-> On Mon, Oct 22, 2012 at 02:24:30PM +0530, kishon wrote:
->> Hi,
->>
->> On Thursday 18 October 2012 08:09 PM, Tero Kristo wrote:
->>> On Thu, 2012-10-18 at 16:53 +0300, Felipe Balbi wrote:
->>>> hi,
->>>>
->>>> On Thu, Oct 18, 2012 at 03:18:04PM +0300, Tero Kristo wrote:
->>>>>>> +static int __init omap4430_phy_power_down(void)
->>>>>>> +{
->>>>>>> +	void __iomem *ctrl_base;
->>>>>>> +
->>>>>>> +	if (!cpu_is_omap44xx())
->>>>>>> +		return 0;
->>>>>>> +
->>>>>>> +	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
->>>>>>> +	if (!ctrl_base) {
->>>>>>> +		pr_err("control module ioremap failed\n");
->>>>>>> +		return -ENOMEM;
->>>>>>> +	}
->>>>>>> +
->>>>>>> +	/* Power down the phy */
->>>>>>> +	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
->>>>>>> +
->>>>>>> +	iounmap(ctrl_base);
->>>>>>> +
->>>>>>> +	return 0;
->>>>>>> +}
->>>>>>> +early_initcall(omap4430_phy_power_down);
->>>>>>> +#endif
->>>>>>
->>>>>> I think you could do it even if the driver is enabled.
->>>>>
->>>>> Actually not at least now, it looks like the driver is not controlling
->>>>> this bit at all, so the driver would fail if we do this.
->>>>
->>>> then we can consider that a bug in the driver. Kishon, I thought you had
->>>> added SCM address space to PHY driver for this particular reason until
->>>> we get SCM driver, wasn't it ??
->>>
->>> Yes, I would say its a bug in the driver.
->>
->> No. It's done in the driver (omap_usb_phy_power() in
->> drivers/usb/phy/omap-usb2.c). We explicitly power off the phy during
->> probe in the driver.
->
-> so you also handle enabling the IP later when you need ? That's great,
-> it means we can do the above unconditionally, driver enabled or not.
+here's another series for OMAP I2C driver. There are a few cleanups
+and one very nice new feature: we can now report how many bytes
+we transferred until NACK.
 
-yes.
+Note that the implemementation for OMAP-I2C turned out to be a
+little more complex then I expected, mainly because of the way
+I2C_CNT register behaves and because of the very buggy register
+usage on that driver.
 
-Thanks
-Kishon
+I have boot tested all patches on beagle xM (3630) and pandaboard
+rev A3 (4430), will send boot-logs if anyone wants to see.
+
+All patches are available at [1] if anyone wants an easy way to
+test the patches.
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git i2c-transferred-bytes-on-NACK
+
+Felipe Balbi (7):
+  i2c: omap: no need to access platform_device
+  i2c: omap: reorder exit path of omap_i2c_xfer_msg()
+  i2c: omap: fix error checking
+  i2c: omap: also complete() when stat becomes zero
+  i2c: omap: introduce and use OMAP_I2C_IP_VERSION_3
+  i2c: omap: wait for transfer completion before sending STP bit
+  i2c: omap: implement handling for 'transferred' bytes
+
+Shubhrajyoti D (1):
+  i2c: add 'transferred' field to struct i2c_msg
+
+ arch/arm/mach-omap2/i2c.c                  |   3 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   2 +-
+ drivers/i2c/busses/i2c-omap.c              | 156 ++++++++++++++++-------------
+ include/linux/i2c-omap.h                   |   1 +
+ include/uapi/linux/i2c.h                   |   1 +
+ 5 files changed, 89 insertions(+), 74 deletions(-)
+
+-- 
+1.8.0.rc0
