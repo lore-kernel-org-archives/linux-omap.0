@@ -1,104 +1,123 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/8] I2C patches for v3.8 merge window
-Date: Mon, 22 Oct 2012 16:30:23 +0300
-Message-ID: <20121022133023.GC14033@arwen.pp.htv.fi>
-References: <1350899218-13624-1-git-send-email-balbi@ti.com>
-Reply-To: <balbi@ti.com>
+From: Sourav <sourav.poddar@ti.com>
+Subject: Re: [PATCH 3/4] ARM/dts: omap5: Update UART with address space and
+ interrupts
+Date: Mon, 22 Oct 2012 19:25:22 +0530
+Message-ID: <5085504A.60704@ti.com>
+References: <1350901328-3525-1-git-send-email-s-guiriec@ti.com> <1350901328-3525-4-git-send-email-s-guiriec@ti.com> <50852AF9.10703@ti.com> <5085348C.60105@ti.com> <508536EA.4020808@ti.com> <50853B94.4060308@ti.com> <508540FC.4090107@ti.com> <50854273.5080504@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="y/A/1bIHS6WQt0eA"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37155 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38202 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754198Ab2JVNgU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Oct 2012 09:36:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1350899218-13624-1-git-send-email-balbi@ti.com>
+	id S1754175Ab2JVNzH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Oct 2012 09:55:07 -0400
+In-Reply-To: <50854273.5080504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, w.sang@pengutronix.de, ben-linux@fluff.org, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---y/A/1bIHS6WQt0eA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi Sebestien,
+On Monday 22 October 2012 06:26 PM, Sourav wrote:
+> On Monday 22 October 2012 06:20 PM, Benoit Cousson wrote:
+>> On 10/22/2012 02:27 PM, Sourav wrote:
+>>> Hi Benoit,
+>>> On Monday 22 October 2012 05:37 PM, Benoit Cousson wrote:
+>>>> On 10/22/2012 01:57 PM, Benoit Cousson wrote:
+>>>>> Hi Sourav,
+>>>>>
+>>>>> On 10/22/2012 01:16 PM, Sourav wrote:
+>>>>>> Hi Sebastien,
+>>>>>> On Monday 22 October 2012 03:52 PM, Sebastien Guiriec wrote:
+>>>>>>> Add base address and interrupt line inside Device Tree data for
+>>>>>> Incomplete sentence!
+>>>>>>> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+>>>>>>> ---
+>>>>>>>     arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++--
+>>>>>>>     1 file changed, 14 insertions(+), 2 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/arch/arm/boot/dts/omap5.dtsi
+>>>>>>> b/arch/arm/boot/dts/omap5.dtsi
+>>>>>>> index 6c22e1b..413df94 100644
+>>>>>>> --- a/arch/arm/boot/dts/omap5.dtsi
+>>>>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>>>>>>> @@ -237,36 +237,48 @@
+>>>>>>>               uart1: serial@4806a000 {
+>>>>>>>                 compatible = "ti,omap4-uart";
+>>>>>>> +            reg = <0x4806a000 0x100>;
+>>>>>>> +            interrupts = <0 72 0x4>;
+>>>>>>>                 ti,hwmods = "uart1";
+>>>>>>>                 clock-frequency = <48000000>;
+>>>>>>>             };
+>>>>>>>               uart2: serial@4806c000 {
+>>>>>>>                 compatible = "ti,omap4-uart";
+>>>>>>> +            reg = <0x4806c000 0x100>;
+>>>>>>> +            interrupts = <0 73 0x4>;
+>>>>>>>                 ti,hwmods = "uart2";
+>>>>>>>                 clock-frequency = <48000000>;
+>>>>>>>             };
+>>>>>>>               uart3: serial@48020000 {
+>>>>>>>                 compatible = "ti,omap4-uart";
+>>>>>>> +            reg = <0x48020000 0x100>;
+>>>>>>> +            interrupts = <0 74 0x4>;
+>>>>>>>                 ti,hwmods = "uart3";
+>>>>>>>                 clock-frequency = <48000000>;
+>>>>>>>             };
+>>>>>>>               uart4: serial@4806e000 {
+>>>>>>>                 compatible = "ti,omap4-uart";
+>>>>>>> +            reg = <0x4806e000 0x100>;
+>>>>>>> +            interrupts = <0 70 0x4>;
+>>>>>>>                 ti,hwmods = "uart4";
+>>>>>>>                 clock-frequency = <48000000>;
+>>>>>>>             };
+>>>>>>>               uart5: serial@48066000 {
+>>>>>>> -            compatible = "ti,omap5-uart";
+>>>>>>> +            compatible = "ti,omap4-uart";
+>>>>>>> +            reg = <0x48066000 0x100>;
+>>>>>>> +            interrupts = <0 105 0x4>;
+>>>>>> In Omap5 TRM, the interrupt number mentioned for uart5 is 138. 
+>>>>>> How is
+>>>>>> 105 coming?
+>>>>> It is from hwmod and thus from the HW spec. It looks like the TRM is
+>>>>> wrong... or the HW spec :-)
+>>>>>
+>>>>>>>                 ti,hwmods = "uart5";
+>>>>>>>                 clock-frequency = <48000000>;
+>>>>>>>             };
+>>>>>>>               uart6: serial@48068000 {
+>>>>>>> -            compatible = "ti,omap6-uart";
+>>>>>>> +            compatible = "ti,omap4-uart";
+>>>>>>> +            reg = <0x48068000 0x100>;
+>>>>>>> +            interrupts = <0 106 0x4>;
+>>>>>> Same here, TRM shows this number to be 139 ?
+>>>> In fact, even the TRM (ES1.0 NDA vM) is aligned with these data.
+>>>> Where did you see 138 and 139?
+>>> I looked at Page 6300 of the above TRM, Figure 24-60. Is this place not
+>>> correct to look
+>>> up for these data?
+>> Nope. Well it should be accurate but since it is a diagram, it does not
+>> necessarily reflect the latest integration data like IRQ line.
+>>
+>> You'd better use the table that list all the IRQ per CPU:
+>>
+>> 18.3.2 Interrupt Requests to INTC_MPU
+> Ahh. True. The table does show the numbers to be 105 and 106.
+> Thanks for the pointer.
+>
+> ~Sourav
+>> Regards,
+>> Benoit
+>>
+>
+After fixing the minor comment on the commit log, you can add
 
-On Mon, Oct 22, 2012 at 12:46:50PM +0300, Felipe Balbi wrote:
-> Hi guys,
->=20
-> here's another series for OMAP I2C driver. There are a few cleanups
-> and one very nice new feature: we can now report how many bytes
-> we transferred until NACK.
->=20
-> Note that the implemementation for OMAP-I2C turned out to be a
-> little more complex then I expected, mainly because of the way
-> I2C_CNT register behaves and because of the very buggy register
-> usage on that driver.
->=20
-> I have boot tested all patches on beagle xM (3630) and pandaboard
-> rev A3 (4430), will send boot-logs if anyone wants to see.
->=20
-> All patches are available at [1] if anyone wants an easy way to
-> test the patches.
->=20
-> [1] git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git i2c-trans=
-ferred-bytes-on-NACK
+Acked-by: Sourav Poddar <sourav.poddar@ti.com>
 
-forgot to mention, with [1] I could veridy suspend to ram with boards
-mentioned above.
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-[1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D135090724817604&w=3D2
-
-> Felipe Balbi (7):
->   i2c: omap: no need to access platform_device
->   i2c: omap: reorder exit path of omap_i2c_xfer_msg()
->   i2c: omap: fix error checking
->   i2c: omap: also complete() when stat becomes zero
->   i2c: omap: introduce and use OMAP_I2C_IP_VERSION_3
->   i2c: omap: wait for transfer completion before sending STP bit
->   i2c: omap: implement handling for 'transferred' bytes
->=20
-> Shubhrajyoti D (1):
->   i2c: add 'transferred' field to struct i2c_msg
->=20
->  arch/arm/mach-omap2/i2c.c                  |   3 +-
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   2 +-
->  drivers/i2c/busses/i2c-omap.c              | 156 ++++++++++++++++-------=
-------
->  include/linux/i2c-omap.h                   |   1 +
->  include/uapi/linux/i2c.h                   |   1 +
->  5 files changed, 89 insertions(+), 74 deletions(-)
->=20
-> --=20
-> 1.8.0.rc0
->=20
-
---=20
-balbi
-
---y/A/1bIHS6WQt0eA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQhUpvAAoJEIaOsuA1yqRE6oQP/i7ClKc6nFTZj+JlQf9smQMm
-mjIoyOAJ1i7CdEnS3dmqCv/OXzEXOq0cDeIJ3bcx002ZRCAALGTK7wTR5RHUUjJy
-BLevqk8S1T+udS6nT8C/n348CAlWAt6vctDERERMP7A9tSarpGSjnQRFW18Zvbd6
-LYjxxDFUe5Oacq1cGkwupYFuRPndvpdQHozFp781idijFgMUcLUXysgs8vM5RpIl
-rODk3rzPSkM/cf2e/7QFRqBsHmy77r2sGZ5+90EbHfhGEybevxp6gBepvi7J9Hs6
-dDvtAb6yhCdCpu+wPg8ixXvrHbsBZVKFJqmde83yzhxPx1NicXUC4oUhf/wk2Ib2
-XUHuTOAKTh2L0w2y1ZLdUB4qQlEkLQiGBJlEX7NF6KwcOGm+gmUOps2wTjdEgsMq
-JJIfl4vMSWiT7fuufIXEKHBEEz3YVmkbEgyg983CnA6XazXYbgjfqcDaf//Dm1o1
-YJwP31j8houmJ5/iykOfbd/gwgBt9h644aBO8rQowcyqHYv5kenrfO/5lnES5O65
-7hC3bkzuMhZhg40dkXV7vV3eES1Wb7h2P8sa0dgt5mn1izM5n+t15Af4qzrWbzCS
-PGmYjLMlNZyjxIOfwK/03CZ4FriIizxWtxTNFW/2qxuskw1gHDzn+XJBsI6AYBWW
-W+lNER6wgJBbyw56EaIV
-=LDED
------END PGP SIGNATURE-----
-
---y/A/1bIHS6WQt0eA--
