@@ -1,51 +1,43 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: RT throttling and suspend/resume (was Re: [PATCH] i2c: omap:
- revert "i2c: omap: switch to threaded IRQ support")
-Date: Mon, 22 Oct 2012 11:52:21 +0200
-Message-ID: <1350899541.2768.82.camel@twins>
-References: <alpine.DEB.2.00.1210150148080.16624@utopia.booyaka.com>
- <CAM=Q2csHTbR4rBe1HNr5-M3sG5wgdCv6dCnGLmNQEwo1gjCSGg@mail.gmail.com>
- <20121016133356.GG21801@arwen.pp.htv.fi>
- <87ipaanljt.fsf_-_@deeprootsystems.com>
- <20121017140002.GI11394@arwen.pp.htv.fi>
- <20121017143534.GJ11394@arwen.pp.htv.fi>
- <87txtsitpt.fsf@deeprootsystems.com>
- <20121018055136.GF11137@arwen.pp.htv.fi> <1350655227.2768.11.camel@twins>
- <87391ahvao.fsf@deeprootsystems.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 7/8] i2c: add 'transferred' field to struct i2c_msg
+Date: Mon, 22 Oct 2012 12:46:57 +0300
+Message-ID: <1350899218-13624-8-git-send-email-balbi@ti.com>
+References: <1350899218-13624-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87391ahvao.fsf@deeprootsystems.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Wolfram Sang <w.sang@pengutronix.de>, balbi@ti.com, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, linux-i2c@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1350899218-13624-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 2012-10-19 at 16:54 -0700, Kevin Hilman wrote:
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 
-> So I did the same thing for my ARM SoC, and it definitley stops the RT
-> throttling.  
-> 
-> However, it has the undesriable (IMO) side effect of making timed printk
-> output rather unhelpful for debugging suspend/resume since printk time
-> stays constant throughout suspend/resume no matter how long you
-> sleep. :(
-> 
-> So does that mean we have to choose between useful printk times during
-> suspend/resume or functioning IRQ threads during suspend/resume ?
+In case of a NACK, it's wise to tell our clients
+drivers about how many bytes were actually transferred.
 
-Urgh.. this was not something I considered. This being primarily the
-sched_clock infrastructure and such.
+Support this by adding an extra field to the struct
+i2c_msg which gets incremented the amount of bytes
+actually transferred.
 
-So what exactly is the problem with the suspend resume thing (its not
-something I've ever debugged), is all you need a clean break between pre
-and post suspend, or do you need the actual time the machine was gone?
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+---
+ include/uapi/linux/i2c.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/uapi/linux/i2c.h b/include/uapi/linux/i2c.h
+index 0e949cb..4b35c9b 100644
+--- a/include/uapi/linux/i2c.h
++++ b/include/uapi/linux/i2c.h
+@@ -77,6 +77,7 @@ struct i2c_msg {
+ #define I2C_M_NO_RD_ACK		0x0800	/* if I2C_FUNC_PROTOCOL_MANGLING */
+ #define I2C_M_RECV_LEN		0x0400	/* length will be first received byte */
+ 	__u16 len;		/* msg length				*/
++	__u16 transferred;	/* actual bytes transferred             */
+ 	__u8 *buf;		/* pointer to msg data			*/
+ };
+ 
+-- 
+1.8.0.rc0
