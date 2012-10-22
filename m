@@ -1,95 +1,74 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 3/4] ARM/dts: omap5: Update UART with address space and
- interrupts
-Date: Mon, 22 Oct 2012 14:07:06 +0200
-Message-ID: <508536EA.4020808@ti.com>
-References: <1350901328-3525-1-git-send-email-s-guiriec@ti.com> <1350901328-3525-4-git-send-email-s-guiriec@ti.com> <50852AF9.10703@ti.com> <5085348C.60105@ti.com>
+From: Sourav <sourav.poddar@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP2: UART: fix console UART mismatched runtime
+ PM status
+Date: Mon, 22 Oct 2012 17:43:41 +0530
+Message-ID: <50853875.6020109@ti.com>
+References: <1350685470-3634-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57756 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753539Ab2JVMHN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Oct 2012 08:07:13 -0400
-In-Reply-To: <5085348C.60105@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34747 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828Ab2JVMNc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 08:13:32 -0400
+In-Reply-To: <1350685470-3634-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sourav <sourav.poddar@ti.com>
-Cc: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
 
-On 10/22/2012 01:57 PM, Benoit Cousson wrote:
-> Hi Sourav,
-> 
-> On 10/22/2012 01:16 PM, Sourav wrote:
->> Hi Sebastien,
->> On Monday 22 October 2012 03:52 PM, Sebastien Guiriec wrote:
->>> Add base address and interrupt line inside Device Tree data for
->> Incomplete sentence!
->>> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
->>> ---
->>>   arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++--
->>>   1 file changed, 14 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->>> index 6c22e1b..413df94 100644
->>> --- a/arch/arm/boot/dts/omap5.dtsi
->>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>> @@ -237,36 +237,48 @@
->>>             uart1: serial@4806a000 {
->>>               compatible = "ti,omap4-uart";
->>> +            reg = <0x4806a000 0x100>;
->>> +            interrupts = <0 72 0x4>;
->>>               ti,hwmods = "uart1";
->>>               clock-frequency = <48000000>;
->>>           };
->>>             uart2: serial@4806c000 {
->>>               compatible = "ti,omap4-uart";
->>> +            reg = <0x4806c000 0x100>;
->>> +            interrupts = <0 73 0x4>;
->>>               ti,hwmods = "uart2";
->>>               clock-frequency = <48000000>;
->>>           };
->>>             uart3: serial@48020000 {
->>>               compatible = "ti,omap4-uart";
->>> +            reg = <0x48020000 0x100>;
->>> +            interrupts = <0 74 0x4>;
->>>               ti,hwmods = "uart3";
->>>               clock-frequency = <48000000>;
->>>           };
->>>             uart4: serial@4806e000 {
->>>               compatible = "ti,omap4-uart";
->>> +            reg = <0x4806e000 0x100>;
->>> +            interrupts = <0 70 0x4>;
->>>               ti,hwmods = "uart4";
->>>               clock-frequency = <48000000>;
->>>           };
->>>             uart5: serial@48066000 {
->>> -            compatible = "ti,omap5-uart";
->>> +            compatible = "ti,omap4-uart";
->>> +            reg = <0x48066000 0x100>;
->>> +            interrupts = <0 105 0x4>;
->> In Omap5 TRM, the interrupt number mentioned for uart5 is 138. How is
->> 105 coming?
-> 
-> It is from hwmod and thus from the HW spec. It looks like the TRM is
-> wrong... or the HW spec :-)
-> 
->>>               ti,hwmods = "uart5";
->>>               clock-frequency = <48000000>;
->>>           };
->>>             uart6: serial@48068000 {
->>> -            compatible = "ti,omap6-uart";
->>> +            compatible = "ti,omap4-uart";
->>> +            reg = <0x48068000 0x100>;
->>> +            interrupts = <0 106 0x4>;
->> Same here, TRM shows this number to be 139 ?
+Hi,
+On Saturday 20 October 2012 03:54 AM, Kevin Hilman wrote:
+> From: Kevin Hilman <khilman@ti.com>
+>
+> The runtime PM framework assumes that the hardware state of devices
+> when initialized is disabled.  For all omap_devices, we idle/disable
+> device by default.  However, the console uart uses a "no idle" option
+> during omap_device init in order to allow earlyprintk usage to work
+> seamlessly during boot.
+>
+> Because the hardware is left partially enabled after init (whatever
+> the bootloader settings were), the omap_device should later be fully
+> initialized (including mux) and the runtime PM framework should be
+> told that the device is active, and not disabled so that the hardware
+> state is in sync with runtime PM state.
+>
+> To fix, after the device has been created/registered, call
+> omap_device_enable() to finialize init and use pm_runtime_set_active()
+> to tell the runtime PM core the device is enabled.
+>
+> Tested on 2420/n810, 3530/Overo, 3530/Beagle, 3730/OveroSTORM,
+> 3730/Beagle-xM, 4460/PandaES.
+>
+> Suggested-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Sourav Poddar <sourav.poddar@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Applies to v3.7-rc1.
+> v2: call omap_device_enable() only after oh->mux has been initialized
+>      otherwise, IO ring wakeups not properly enabled.
+>
+>   arch/arm/mach-omap2/serial.c |    5 +++++
+>   1 file changed, 5 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 0405c81..a507cd6 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -329,6 +329,11 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+>   
+>   	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
+>   
+> +	if (console_uart_id == bdata->id) {
+> +		omap_device_enable(pdev);
+> +		pm_runtime_set_active(&pdev->dev);
+> +	}
+> +
+>   	oh->dev_attr = uart;
+>   
+>   	if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
+Tested on 3630/Beagle-xm, 4430/Panda, 4430/Sdp, 5430/Evm.
 
-In fact, even the TRM (ES1.0 NDA vM) is aligned with these data.
-Where did you see 138 and 139?
-
-Regards,
-Benoit
-
-
-
+  Tested-by: Sourav Poddar <sourav.poddar@ti.com>
