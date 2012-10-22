@@ -1,45 +1,54 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH 3/4] ARM: OMAP: gpmc: don't create devices from initcall on DT
-Date: Mon, 22 Oct 2012 21:55:57 +0200
-Message-ID: <1350935758-9215-4-git-send-email-zonque@gmail.com>
-References: <1350935758-9215-1-git-send-email-zonque@gmail.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 2/7] ARM: OMAP2xxx: hwmod: Add DMA information for SHAM
+ module
+Date: Mon, 22 Oct 2012 13:01:03 -0700
+Message-ID: <20121022200103.GE1708@animalcreek.com>
+References: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com>
+ <1350683640-15044-3-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1210201940260.27264@utopia.booyaka.com>
+ <20121022193714.GB1708@animalcreek.com>
+ <alpine.DEB.2.00.1210221950330.13464@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:40382 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752962Ab2JVT42 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Oct 2012 15:56:28 -0400
-In-Reply-To: <1350935758-9215-1-git-send-email-zonque@gmail.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:34135 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756101Ab2JVUBE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 16:01:04 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210221950330.13464@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, jon-hunter@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, Daniel Mack <zonque@gmail.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On DT driven boards, the gpmc node will match the driver. Hence, there's
-no need to do that unconditionally from the initcall.
+On Mon, Oct 22, 2012 at 07:53:06PM +0000, Paul Walmsley wrote:
+> On Mon, 22 Oct 2012, Mark A. Greer wrote:
+> 
+> > On Sat, Oct 20, 2012 at 07:40:44PM +0000, Paul Walmsley wrote:
+> > > On Fri, 19 Oct 2012, Mark A. Greer wrote:
+> > > 
+> > > > From: "Mark A. Greer" <mgreer@animalcreek.com>
+> > > > 
+> > > > Add the DMA information for the OMAP2 SHA module.
+> > > > 
+> > > > CC: Paul Walmsley <paul@pwsan.com>
+> > > > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> > > 
+> > > This can probably be combined with the first patch.
+> > 
+> > I made it a separate patch because the original omap2xxx code didn't
+> > support DMA and I wanted to keep the first patch an apples-apples
+> > conversion and _add_ functionality in this, separate, patch.
+> > 
+> > I prefer 2 patches but if you still want me to combine them, let me know.
+> 
+> OK, I see.  That's fine, then.  Maybe add a sentence about that into the 
+> patch description of #2, that this effectively enables a code path in 
+> the driver that wasn't being used before, and therefore should be in a 
+> separate patch for ease of bisecting?
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
- arch/arm/mach-omap2/gpmc.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+Sure.  After your comment I realized my description was insufficient.
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 60f1cce..1dcb30c 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -844,6 +844,13 @@ static int __init omap_gpmc_init(void)
- 	struct platform_device *pdev;
- 	char *oh_name = "gpmc";
- 
-+	/*
-+	 * if the board boots up with a populated DT, do not
-+	 * manually add the device from this initcall
-+	 */
-+	if (of_have_populated_dt())
-+		return -ENODEV;
-+
- 	oh = omap_hwmod_lookup(oh_name);
- 	if (!oh) {
- 		pr_err("Could not look up %s\n", oh_name);
--- 
-1.7.11.7
-
+Mark
+--
