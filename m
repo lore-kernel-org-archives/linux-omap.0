@@ -1,35 +1,110 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] arm: sched: stop sched_clock() during suspend
-Date: Tue, 23 Oct 2012 00:28:32 +0200
-Message-ID: <CACRpkdY6ox+iJAGdSD=e7Yj55TzDWqOmLqu2fSRXvKJxqwfkhQ@mail.gmail.com>
-References: <1350906877-19410-1-git-send-email-balbi@ti.com>
-	<873916h1yi.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <873916h1yi.fsf@deeprootsystems.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Felipe Balbi <balbi@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Andrew Lunn <andrew@lunn.ch>, Daniel Walker <dwalker@fifo99.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Bryan Huntsman <bryanh@codeaurora.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Ben Dooks <ben-linux@fluff.org>, Alexander Schulz <alex@shark-linux.de>, Andrew Victor <linux@maxim.org.za>, Kyungmin Park <kyungmin.park@samsung.com>, Sascha Hauer <kernel@pengutronix.de>, Olof Johansson <olof@li>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] ARM: OMAP3: Beagle: fix OPP customization and initcall ordering
+Date: Mon, 22 Oct 2012 15:58:39 -0700
+Message-ID: <1350946719-9583-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:50297 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754355Ab2JVW6n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 18:58:43 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2282704pad.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 15:58:42 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Mon, Oct 22, 2012 at 7:05 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
+From: Kevin Hilman <khilman@ti.com>
 
-> However, in light of RT throttling, this a correctness issue for process
-> accounting, so I agree that this should be done for all platforms
-> instead of providing an optional 'needs suspend' version of the API,
-> even though it means printk times no longer reflect time spent
-> suspended.
+After commit 24d7b40a60cf19008334bcbcbd98da374d4d9c64 (ARM: OMAP2+:
+PM: MPU DVFS: use generic CPU device for MPU-SS), OPPs are registered
+using an existing CPU device, not the omap_device for MPU-SS.
 
-Maybe we should get printk() to use the best clocksource
-instead.
+First, fix the board file to use get_cpu_device() as required by the
+above commit, otherwise custom OPPs will be added to the wrong device.
 
-The reason AFAICT that printk() is using sched_clock() is that
-it's supposed to be fast. But now it seems that it's not going
-to return what printk() needs anymore.
+Second, the board files OPP init is called from the its init_machine
+method, and the generic CPU devices are not yet created when
+init_machine is run.  Therefore OPP initialization will fail.  To fix,
+use a device_initcall() for the board file's OPP customization, and
+make the device_initcall board-specific by using a machine_is check.
 
-(Dragging Stultz & Gleixner into this...)
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+v2: add machine_is* check to the device_initcall.
 
-Yours,
-Linus Walleij
+ arch/arm/mach-omap2/board-omap3beagle.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 388c431..60729bf 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -24,6 +24,7 @@
+ #include <linux/input.h>
+ #include <linux/gpio_keys.h>
+ #include <linux/opp.h>
++#include <linux/cpu.h>
+ 
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+@@ -444,12 +445,16 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static void __init beagle_opp_init(void)
++static int __init beagle_opp_init(void)
+ {
+ 	int r = 0;
+ 
+-	/* Initialize the omap3 opp table */
+-	if (omap3_opp_init()) {
++	if (!machine_is_omap3_beagle())
++		return 0;
++
++	/* Initialize the omap3 opp table if not already created. */
++	r = omap3_opp_init();
++	if (IS_ERR_VALUE(r) && (r != -EEXIST)) {
+ 		pr_err("%s: opp default init failed\n", __func__);
+ 		return;
+ 	}
+@@ -458,13 +463,13 @@ static void __init beagle_opp_init(void)
+ 	if (cpu_is_omap3630()) {
+ 		struct device *mpu_dev, *iva_dev;
+ 
+-		mpu_dev = omap_device_get_by_hwmod_name("mpu");
++		mpu_dev = get_cpu_device(0);
+ 		iva_dev = omap_device_get_by_hwmod_name("iva");
+ 
+ 		if (IS_ERR(mpu_dev) || IS_ERR(iva_dev)) {
+ 			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
+ 				__func__, mpu_dev, iva_dev);
+-			return;
++			return -ENODEV;
+ 		}
+ 		/* Enable MPU 1GHz and lower opps */
+ 		r = opp_enable(mpu_dev, 800000000);
+@@ -484,8 +489,9 @@ static void __init beagle_opp_init(void)
+ 			opp_disable(iva_dev, 660000000);
+ 		}
+ 	}
+-	return;
++	return 0;
+ }
++device_initcall(beagle_opp_init);
+ 
+ static void __init omap3_beagle_init(void)
+ {
+@@ -522,8 +528,6 @@ static void __init omap3_beagle_init(void)
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+ 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+-
+-	beagle_opp_init();
+ }
+ 
+ MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
+-- 
+1.8.0
+
