@@ -1,131 +1,122 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH] mmc: omap_hsmmc: introduce omap_hsmmc_prepare/complete
-Date: Mon, 22 Oct 2012 15:59:28 +0300
-Message-ID: <1350910768-8522-1-git-send-email-balbi@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 5/8] i2c: omap: introduce and use OMAP_I2C_IP_VERSION_3
+Date: Mon, 22 Oct 2012 15:05:20 +0200
+Message-ID: <50854490.4060306@ti.com>
+References: <1350899218-13624-1-git-send-email-balbi@ti.com> <1350899218-13624-6-git-send-email-balbi@ti.com> <50853BA8.8000200@ti.com> <20121022122853.GW14033@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37927 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125Ab2JVNFL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 09:05:11 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121022122853.GW14033-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "\\\"Venkatraman S.\\\"" <svenkatr@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-mmc@vger.kernel.org, cjb@laptop.org, Tony Lindgren <tony@atomide.com>, Balaji T K <balajitk@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-prepare() is supposed to prevent new children from
-being registered. On the MMC subsystem, children
-(new cards) registration starts with the card
-detect IRQ.
+On 10/22/2012 02:28 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Oct 22, 2012 at 02:27:20PM +0200, Benoit Cousson wrote:
+>> Hi Felipe,
+>>
+>> On 10/22/2012 11:46 AM, Felipe Balbi wrote:
+>>> on OMAP4+ we want to read IRQSTATUS_RAW register,
+>>> instead of IRQSTATUS. The reason being that IRQSTATUS
+>>> will only contain the bits which were enabled on
+>>> IRQENABLE_SET and that will break when we need to
+>>> poll for a certain bit which wasn't enabled as an
+>>> IRQ source.
+>>>
+>>> One such case is after we finish converting to
+>>> deferred stop bit, we will have to poll for ARDY
+>>> bit before returning control for the client driver
+>>> in order to prevent us from trying to start a
+>>> transfer on a bus which is already busy.
+>>>
+>>> Note, however, that omap-i2c.c needs a big rework
+>>> on register definition and register access. Such
+>>> work will be done in a separate series of patches.
+>>
+>> Do you need OMAP_I2C_IP_VERSION_3 for OMAP4?
+>>
+>> OMAP_I2C_IP_VERSION_2 was already introduced to detect OMAP3630 vs
+>> omap4430 because they were sharing the same IP version..
+>>
+>> /* I2C controller revisions present on specific hardware */
+>> #define OMAP_I2C_REV_ON_2430            0x36
+>> #define OMAP_I2C_REV_ON_3430_3530       0x3C
+>> #define OMAP_I2C_REV_ON_3630_4430       0x40
+>>
+>> So in theory you should not need an extra version.
+> 
+> are you sure that's how they're used ? Looking at the code where we
+> choose reg_map_ip_v1 and reg_map_ip_v2:
+> 
+> 1120         if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
+> 1121                 dev->regs = (u8 *)reg_map_ip_v2;
+> 1122         else
+> 1123                 dev->regs = (u8 *)reg_map_ip_v1;
+> 
+> And looking at reg_map_ip_v1:
+> 
+>  218 static const u8 reg_map_ip_v1[] = {
+>  219         [OMAP_I2C_REV_REG] = 0x00,
+>  220         [OMAP_I2C_IE_REG] = 0x01,
+>  221         [OMAP_I2C_STAT_REG] = 0x02,
+>  222         [OMAP_I2C_IV_REG] = 0x03,
+>  223         [OMAP_I2C_WE_REG] = 0x03,
+>  224         [OMAP_I2C_SYSS_REG] = 0x04,
+>  225         [OMAP_I2C_BUF_REG] = 0x05,
+>  226         [OMAP_I2C_CNT_REG] = 0x06,
+>  227         [OMAP_I2C_DATA_REG] = 0x07,
+>  228         [OMAP_I2C_SYSC_REG] = 0x08,
+>  229         [OMAP_I2C_CON_REG] = 0x09,
+>  230         [OMAP_I2C_OA_REG] = 0x0a,
+>  231         [OMAP_I2C_SA_REG] = 0x0b,
+>  232         [OMAP_I2C_PSC_REG] = 0x0c,
+>  233         [OMAP_I2C_SCLL_REG] = 0x0d,
+>  234         [OMAP_I2C_SCLH_REG] = 0x0e,
+>  235         [OMAP_I2C_SYSTEST_REG] = 0x0f,
+>  236         [OMAP_I2C_BUFSTAT_REG] = 0x10,
+>  237 };
+> 
+> that's really not the register map on OMAP3. That only looks valid for
+> OMAP1.
 
-Move card detect IRQ disabling to prepare() so that
-no new cards will be registered while we're trying
-to suspend.
+No that should be valid as well for OMAP2&3 thanks to the
+OMAP_I2C_FLAG_BUS_SHIFT_2.
 
-Likewise, move card detect IRQ enabling to complete()
-so we only try to register new children after our MMC
-IP is back up.
+It was introduced during DT adaptation:
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
+#ifdef CONFIG_OF
+static struct omap_i2c_bus_platform_data omap3_pdata = {
+        .rev = OMAP_I2C_IP_VERSION_1,
+        .flags = OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
+                 OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
+                 OMAP_I2C_FLAG_BUS_SHIFT_2,
+};
 
-Venkat, do you think the patch below makes sense ?
+static struct omap_i2c_bus_platform_data omap4_pdata = {
+        .rev = OMAP_I2C_IP_VERSION_2,
+};
 
-cheers
+static const struct of_device_id omap_i2c_of_match[] = {
+        {
+                .compatible = "ti,omap4-i2c",
+                .data = &omap4_pdata,
+        },
+        {
+                .compatible = "ti,omap3-i2c",
+                .data = &omap3_pdata,
+        },
+        { },
+};
+MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
+#endif
 
- drivers/mmc/host/omap_hsmmc.c | 45 ++++++++++++++++++++++++-------------------
- 1 file changed, 25 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 54bfd0c..4c8b41e 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2022,6 +2022,26 @@ static int __devexit omap_hsmmc_remove(struct platform_device *pdev)
- }
- 
- #ifdef CONFIG_PM
-+static int omap_hsmmc_prepare(struct device *dev)
-+{
-+	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
-+
-+	if (host->pdata->suspend)
-+		return host->pdata->suspend(dev, host->slot_id);
-+
-+	return 0;
-+}
-+
-+static int omap_hsmmc_complete(struct device *dev)
-+{
-+	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
-+
-+	if (host->pdata->resume)
-+		return host->pdata->resume(dev, host->slot_id);
-+
-+	return 0;
-+}
-+
- static int omap_hsmmc_suspend(struct device *dev)
- {
- 	int ret = 0;
-@@ -2035,23 +2055,10 @@ static int omap_hsmmc_suspend(struct device *dev)
- 
- 	pm_runtime_get_sync(host->dev);
- 	host->suspended = 1;
--	if (host->pdata->suspend) {
--		ret = host->pdata->suspend(dev, host->slot_id);
--		if (ret) {
--			dev_dbg(dev, "Unable to handle MMC board"
--					" level suspend\n");
--			host->suspended = 0;
--			return ret;
--		}
--	}
- 	ret = mmc_suspend_host(host->mmc);
- 
- 	if (ret) {
- 		host->suspended = 0;
--		if (host->pdata->resume) {
--			if (host->pdata->resume(dev, host->slot_id))
--				dev_dbg(dev, "Unmask interrupt failed\n");
--		}
- 		goto err;
- 	}
- 
-@@ -2088,12 +2095,6 @@ static int omap_hsmmc_resume(struct device *dev)
- 	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER))
- 		omap_hsmmc_conf_bus_power(host);
- 
--	if (host->pdata->resume) {
--		ret = host->pdata->resume(dev, host->slot_id);
--		if (ret)
--			dev_dbg(dev, "Unmask interrupt failed\n");
--	}
--
- 	omap_hsmmc_protect_card(host);
- 
- 	/* Notify the core to resume the host */
-@@ -2109,8 +2110,10 @@ static int omap_hsmmc_resume(struct device *dev)
- }
- 
- #else
-+#define omap_hsmmc_prepare	NULL
-+#define omap_hsmmc_complete	NULL
- #define omap_hsmmc_suspend	NULL
--#define omap_hsmmc_resume		NULL
-+#define omap_hsmmc_resume	NULL
- #endif
- 
- static int omap_hsmmc_runtime_suspend(struct device *dev)
-@@ -2138,6 +2141,8 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
- static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
- 	.suspend	= omap_hsmmc_suspend,
- 	.resume		= omap_hsmmc_resume,
-+	.prepare	= omap_hsmmc_prepare,
-+	.complete	= omap_hsmmc_complete,
- 	.runtime_suspend = omap_hsmmc_runtime_suspend,
- 	.runtime_resume = omap_hsmmc_runtime_resume,
- };
--- 
-1.8.0.rc0
+> -ECONFUSED
 
+Well, it is confusing...
+
+Benoit
