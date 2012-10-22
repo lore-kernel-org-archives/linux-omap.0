@@ -1,49 +1,62 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC] ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
-Date: Mon, 22 Oct 2012 14:46:17 -0700
-Message-ID: <87zk3edvti.fsf@deeprootsystems.com>
-References: <1350922532-26338-1-git-send-email-t-kristo@ti.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Mon, 22 Oct 2012 14:56:32 -0700
+Message-ID: <87sj96dvcf.fsf@deeprootsystems.com>
+References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
+	<20121020141136.GA6433@netboy.at.omicron.at>
+	<alpine.DEB.2.00.1210201615170.24497@utopia.booyaka.com>
+	<20121020180123.GA2630@netboy.at.omicron.at>
+	<alpine.DEB.2.00.1210201807170.27264@utopia.booyaka.com>
+	<20121020183724.GA9984@netboy.at.omicron.at>
+	<alpine.DEB.2.00.1210201856020.27264@utopia.booyaka.com>
+	<20121021135143.GA1855@beef>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:45304 "EHLO
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:51229 "EHLO
 	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755742Ab2JVVpv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 17:45:51 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2246388pad.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 14:45:51 -0700 (PDT)
-In-Reply-To: <1350922532-26338-1-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Mon, 22 Oct 2012 19:15:32 +0300")
+	with ESMTP id S1755865Ab2JVV4G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 17:56:06 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2251424pad.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 14:56:06 -0700 (PDT)
+In-Reply-To: <20121021135143.GA1855@beef> (Matt Porter's message of "Sun, 21
+	Oct 2012 09:51:43 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Venkatraman S <svenkatr@ti.com>
+To: Matt Porter <mporter@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Richard Cochran <richardcochran@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tero Kristo <t-kristo@ti.com> writes:
+Matt Porter <mporter@ti.com> writes:
 
-> When waking up from off-mode, some IP blocks are reset automatically by
-> hardware. For this reason, software must wait until the reset has
-> completed before attempting to access the IP block.
+> On Sat, Oct 20, 2012 at 06:58:10PM +0000, Paul Walmsley wrote:
+>> On Sat, 20 Oct 2012, Richard Cochran wrote:
+>> 
+>> > On Sat, Oct 20, 2012 at 06:12:35PM +0000, Paul Walmsley wrote:
+>> > > Just tried omap2plus_defconfig here and the board didn't boot, confirming 
+>> > > your result.  Will add a section to the testlog README.txt about that.
+>> > > 
+>> > > > > In terms of differences from your setup, looks like we have different 
+>> > > > > X-Loader and u-boot; it wouldn't surprise me if we have different kernel 
+>> > > > > configs too.
+>> > 
+>> > I tried both omap2plus_defconfig and your am33xx_only config, and
+>> > neither one work with my (recent) u-boot version.
+>> 
+>> Just sent you the MLO and u-boot.img from here via private E-mail.  Those 
+>> were the files that came with the BeagleBone SD card here.
+>> 
+>> TI also has a u-boot tree for the AM33xx; might be worth trying:
+>> 
+>> git://arago-project.org/git/projects/u-boot-am33x.git
 >
-> This patch fixes for example the bug introduced by commit
-> 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c ("mmc: omap_hsmmc: remove access
-> to SYSCONFIG register"), in which the MMC IP block is reset during
-> off-mode entry, but the code expects the module to be already available
-> during the execution of context restore.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Venkatraman S <svenkatr@ti.com>
+> Use of the vendor tree should be discouraged. The best thing to use
+> is current ToT U-Boot mainline or the v2012.10 stable U-Boot release.
+> X-Loader is deprecated by U-Boot SPL.
 
-I can confirm that this patch the regression in my OMAP3 PM tests where
-suspend test (to retention or off) failed if ran after the off-idle
-test.
+Just FYI for anyone else having an older BeagleBone.
 
-Tested-by: Kevin Hilman <khilman@ti.com>
-
-on 3530/Overo, 3730/OveroSTORM, 3730/Beagle-xM
-
-Thanks Tero for the fix,
+On my Rev A2, using u-boot mainline, neither HEAD or v2012.10 result in
+a working network interface, so you can't netboot/dhcp.
 
 Kevin
+
