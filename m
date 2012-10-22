@@ -1,32 +1,60 @@
-From: kishon <kishon@ti.com>
-Subject: Re: booting pandaboard with dtb
-Date: Mon, 22 Oct 2012 10:59:09 +0530
-Message-ID: <5084D9A5.1060704@ti.com>
-References: <CAE7jHC8v-M48mrA6J3tAzSSHVW+1FBvPzTVW5cWS_oRnj9hduw@mail.gmail.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 0/9] OMAPDSS: minor fixes & cleanups
+Date: Mon, 22 Oct 2012 11:18:45 +0530
+Message-ID: <5084DE3D.1050502@ti.com>
+References: <1350472835-28727-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50852 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51543 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752206Ab2JVF3S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Oct 2012 01:29:18 -0400
-In-Reply-To: <CAE7jHC8v-M48mrA6J3tAzSSHVW+1FBvPzTVW5cWS_oRnj9hduw@mail.gmail.com>
+	id S1753999Ab2JVFs5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Oct 2012 01:48:57 -0400
+In-Reply-To: <1350472835-28727-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Constantine Shulyupin <const@makelinux.com>
-Cc: linux-omap@vger.kernel.org, Tim Bird <tim.bird@am.sony.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
-
-On Monday 22 October 2012 03:58 AM, Constantine Shulyupin wrote:
+On Wednesday 17 October 2012 04:50 PM, Tomi Valkeinen wrote:
 > Hi,
 >
-> Tell me please, which u-boot and u-boot configuration to use to boot
-> latest kernel with omap4-panda.dtb ?
+> This series contains minor cleanups and fixes for omapdss.
 
-denx u-boot (git://git.denx.de/u-boot.git) should do. Do you face any 
-issues?
+This series looks fine to me. I have a related cleanup patch which you 
+may consider adding to the series.
 
-Thanks
-Kishon
+Thanks,
+Archit
+
+From: Archit Taneja <archit@ti.com>
+Date: Thu, 18 Oct 2012 16:51:57 +0530
+Subject: [PATCH] OMAPDSS: Remove acb and acbi fields from omap_dss_device
+
+acbi and acb fields were meant for passive matrix panels which omapdss 
+doesn't
+support any longer. Remove these fields from omap_dss_device struct.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+  include/video/omapdss.h |    4 ----
+  1 file changed, 4 deletions(-)
+
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 88c8294..f39e6aa 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -621,10 +621,6 @@ struct omap_dss_device {
+  	struct {
+  		struct omap_video_timings timings;
+
+-		int acbi;	/* ac-bias pin transitions per interrupt */
+-		/* Unit: line clocks */
+-		int acb;	/* ac-bias pin frequency */
+-
+  		enum omap_dss_dsi_pixel_format dsi_pix_fmt;
+  		enum omap_dss_dsi_mode dsi_mode;
+  		struct omap_dss_dsi_videomode_timings dsi_vm_timings;
+-- 
+1.7.9.5
