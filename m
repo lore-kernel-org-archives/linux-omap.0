@@ -1,58 +1,68 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: HDMI: fix missing unlock on error in hdmi_dump_regs()
-Date: Mon, 22 Oct 2012 09:53:58 +0300
-Message-ID: <5084ED86.5060100@ti.com>
-References: <CAPgLHd--5Y4cq3ieoRSueg-i0boqRa4JqRPL7+cJ0UfesunjoQ@mail.gmail.com>
+Subject: Re: [PATCH 0/9] OMAPDSS: minor fixes & cleanups
+Date: Mon, 22 Oct 2012 09:54:35 +0300
+Message-ID: <5084EDAB.4070402@ti.com>
+References: <1350472835-28727-1-git-send-email-tomi.valkeinen@ti.com> <5084DE3D.1050502@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enig8B566BE12835B26E2E58A777"
+	boundary="------------enigC2608E308EE6D8067870C02A"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45500 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44547 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753027Ab2JVGyO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Oct 2012 02:54:14 -0400
-In-Reply-To: <CAPgLHd--5Y4cq3ieoRSueg-i0boqRa4JqRPL7+cJ0UfesunjoQ@mail.gmail.com>
+	id S1751952Ab2JVGyi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Oct 2012 02:54:38 -0400
+In-Reply-To: <5084DE3D.1050502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: FlorianSchandinat@gmx.de, yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---------------enig8B566BE12835B26E2E58A777
+--------------enigC2608E308EE6D8067870C02A
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-10-21 15:54, Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On 2012-10-22 08:48, Archit Taneja wrote:
+> On Wednesday 17 October 2012 04:50 PM, Tomi Valkeinen wrote:
+>> Hi,
+>>
+>> This series contains minor cleanups and fixes for omapdss.
 >=20
-> Add the missing unlock on the error handling path in function
-> hdmi_dump_regs().
+> This series looks fine to me. I have a related cleanup patch which you
+> may consider adding to the series.
 >=20
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> Thanks,
+> Archit
+>=20
+> From: Archit Taneja <archit@ti.com>
+> Date: Thu, 18 Oct 2012 16:51:57 +0530
+> Subject: [PATCH] OMAPDSS: Remove acb and acbi fields from omap_dss_devi=
+ce
+>=20
+> acbi and acb fields were meant for passive matrix panels which omapdss
+> doesn't
+> support any longer. Remove these fields from omap_dss_device struct.
+>=20
+> Signed-off-by: Archit Taneja <archit@ti.com>
 > ---
-> no test
-> ---
->  drivers/video/omap2/dss/hdmi.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  include/video/omapdss.h |    4 ----
+>  1 file changed, 4 deletions(-)
 >=20
-> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/h=
-dmi.c
-> index a48a7dd..8c9b8b3 100644
-> --- a/drivers/video/omap2/dss/hdmi.c
-> +++ b/drivers/video/omap2/dss/hdmi.c
-> @@ -644,8 +644,10 @@ static void hdmi_dump_regs(struct seq_file *s)
->  {
->  	mutex_lock(&hdmi.lock);
-> =20
-> -	if (hdmi_runtime_get())
-> +	if (hdmi_runtime_get()) {
-> +		mutex_unlock(&hdmi.lock);
->  		return;
-> +	}
-> =20
->  	hdmi.ip_data.ops->dump_wrapper(&hdmi.ip_data, s);
->  	hdmi.ip_data.ops->dump_pll(&hdmi.ip_data, s);
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index 88c8294..f39e6aa 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -621,10 +621,6 @@ struct omap_dss_device {
+>      struct {
+>          struct omap_video_timings timings;
 >=20
+> -        int acbi;    /* ac-bias pin transitions per interrupt */
+> -        /* Unit: line clocks */
+> -        int acb;    /* ac-bias pin frequency */
+> -
+>          enum omap_dss_dsi_pixel_format dsi_pix_fmt;
+>          enum omap_dss_dsi_mode dsi_mode;
+>          struct omap_dss_dsi_videomode_timings dsi_vm_timings;
 
 Thanks, applied to omapdss tree.
 
@@ -60,8 +70,7 @@ Thanks, applied to omapdss tree.
 
 
 
-
---------------enig8B566BE12835B26E2E58A777
+--------------enigC2608E308EE6D8067870C02A
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -70,19 +79,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQhO2KAAoJEPo9qoy8lh71mCIP/0AmolMUIuWbMyFRyPCALqeI
-ILVDdRCHF22oRLJMmdaHeVKEOyDprA+90b3+hzKQygNcqGI8SryHtD4YAkQaosi8
-bB246chDNnm3f3CpfR64aJHBzZ2A/kSJxTiW5wUEj+sUdxijbS5s9MRZtdA/aCkh
-tepuagDGejrcjLl2U978rOj5rY6I2mwMztuYlmRHe/Fpz1d3KOfjKRq2TS7bNBe5
-H4Mqx6796JP2uUtq98pH9y+NKmcIHIRMSIrygvbDKva0PYnuoms2HKNChHUq3lNL
-ijcNHkmUsAISPUiyL2J6r4/7b5685P2xJh9b+V/J7X91p3IgkugpDosfi7vA7xwT
-pyMwsUKFd9ge05VF+uLZuQT0iwMbYaamrEeM6rk3B4F/RyLPP7xZWtdvaM0F6Von
-2PmpJs2TqXwdOFFwEOZf1wMVS1vTBwVgV3iMz/2Tl2YfpgitY0Oht/WSUsgEkoac
-9oJe/A/rVwYrU5QJ0vLqyiCXr6vnFROosVa1NKB/23HBoZcodi9SNxV4oUBAa2fk
-TToE/o9KvISCkl5BREDB0TY1crPu9kcljlkMrHbz8DZwqOMDpjMZ9F4zpezbgXPB
-00zlLchdjUq0vJuJAKgU47wDQ5XxU/MoPDyNAf116d7B3vlrJK2L27NdOIlN4OJ5
-wBDY5beaFZApz/iTp9Hp
-=XKAn
+iQIcBAEBAgAGBQJQhO2rAAoJEPo9qoy8lh71rLAP+wdMqUjpizezLM3vnfoql7Xz
+WNZcZYPQ8qzSBLzQvGD4j0jXzmuDfE9YNTAMMYR099zkqBw3gxuFvr2tNxy8TUrF
+TpVEeE7ssg+Wl35q/MK51cFdR6HAMp+tFtsBuPUgNdFhGRt1IyFDQzMBuM7us3pP
+GbmpAE8ZkOhnsxlfHplCVUhmeedqScP/VUvJihWY52ahzEGsSC1wu+LEnWx+PTET
+USjtXOI0G3KtyzXsmoLEUO/c2rg9za7xzmigC9mqKG6fLA/pfWbY8EWBVtuGaSwl
+FTB4tQaPe56Vt1a9vlVQP2fqg/9NBEBW2LfJrHV6CkmYvJumrSkSLy4N67R2D8wz
+MZKaoW3ZBd/5gBf7dwz7KAu9QLALe/sGiVbreb6Ie3T0p9ni782qfdQYtpXYC759
+XZN4C6lhNsqi9Y5GkzN5aVAGNQJ3KXHzTomKl0mSKzCNtcwKsxKw8QrRLDDVbNFF
+NGmyJOOq4D8exXgJJNLCau+eK2s7B+g2qyfR0BfGYhMa00tWMe14k70YSe2WMfgX
+m+t+4G4mckl5l1azUWlrywmGF78hdvCu2JyAOstGUo/2du6q/IfXo0kYc6NgWNZc
+EVGH//wC6mL+9qPCMqKmkCaME6EgmEFXU2MiQ43zSte/EbryXjQfG0Wi4camRB8/
+S184RPguREhyQ5I7zLl7
+=bKGx
 -----END PGP SIGNATURE-----
 
---------------enig8B566BE12835B26E2E58A777--
+--------------enigC2608E308EE6D8067870C02A--
