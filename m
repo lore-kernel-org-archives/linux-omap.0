@@ -1,74 +1,101 @@
-From: Sourav <sourav.poddar@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP2: UART: fix console UART mismatched runtime
- PM status
-Date: Mon, 22 Oct 2012 17:43:41 +0530
-Message-ID: <50853875.6020109@ti.com>
-References: <1350685470-3634-1-git-send-email-khilman@deeprootsystems.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 0/7] ARM: OMAP: second set of PRM/CM/CGRM cleanup patches
+ for 3.8
+Date: Mon, 22 Oct 2012 14:14:23 +0200
+Message-ID: <5085389F.6070106@ti.com>
+References: <20121016012448.21844.92339.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34747 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:34832 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828Ab2JVMNc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 08:13:32 -0400
-In-Reply-To: <1350685470-3634-1-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1751125Ab2JVMO3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 08:14:29 -0400
+In-Reply-To: <20121016012448.21844.92339.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-On Saturday 20 October 2012 03:54 AM, Kevin Hilman wrote:
-> From: Kevin Hilman <khilman@ti.com>
->
-> The runtime PM framework assumes that the hardware state of devices
-> when initialized is disabled.  For all omap_devices, we idle/disable
-> device by default.  However, the console uart uses a "no idle" option
-> during omap_device init in order to allow earlyprintk usage to work
-> seamlessly during boot.
->
-> Because the hardware is left partially enabled after init (whatever
-> the bootloader settings were), the omap_device should later be fully
-> initialized (including mux) and the runtime PM framework should be
-> told that the device is active, and not disabled so that the hardware
-> state is in sync with runtime PM state.
->
-> To fix, after the device has been created/registered, call
-> omap_device_enable() to finialize init and use pm_runtime_set_active()
-> to tell the runtime PM core the device is enabled.
->
-> Tested on 2420/n810, 3530/Overo, 3530/Beagle, 3730/OveroSTORM,
-> 3730/Beagle-xM, 4460/PandaES.
->
-> Suggested-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Sourav Poddar <sourav.poddar@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+
+Hi Paul,
+
+What is CGRM? Is it a typo?
+
+Regards,
+Benoit
+
+
+On 10/16/2012 03:32 AM, Paul Walmsley wrote:
+> This series removes the omap_prcm_get_reset_sources() function.  This
+> was exported from arch/arm/mach-omap2/prcm.c for use by the OMAP
+> watchdog driver to report the "boot reason".  This series reimplements
+> this using a platform_data function pointer for the time being, but
+> after the upcoming PRM/CM drivers are merged, the watchdog driver can be
+> patched to use an exported function from the drivers.
+> 
+> This series will also be used as a base for other PRM/CM cleanup during the
+> 3.8 time frame, since it adds the prm_register() and prm_unregister() functions.
+> These are called by SoC-specific PRM IP block drivers to register function
+> pointers with the PRM subsystem.
+> 
+> This series changes the format of the watchdog's boot reason data to conform
+> with the watchdog subsystem standard (the WDIOF_* flags).  If users need
+> more detail than that interface provides, either the watchdog interface can
+> be patched, or those users can get that information from the upcoming PRM
+> drivers.
+> 
+> 
+> - Paul
+> 
 > ---
-> Applies to v3.7-rc1.
-> v2: call omap_device_enable() only after oh->mux has been initialized
->      otherwise, IO ring wakeups not properly enabled.
->
->   arch/arm/mach-omap2/serial.c |    5 +++++
->   1 file changed, 5 insertions(+)
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 0405c81..a507cd6 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -329,6 +329,11 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
->   
->   	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
->   
-> +	if (console_uart_id == bdata->id) {
-> +		omap_device_enable(pdev);
-> +		pm_runtime_set_active(&pdev->dev);
-> +	}
-> +
->   	oh->dev_attr = uart;
->   
->   	if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
-Tested on 3630/Beagle-xm, 4430/Panda, 4430/Sdp, 5430/Evm.
+> 
+> prcm_cleanup_b_3.8
+>    text	   data	    bss	    dec	    hex	filename
+> 7519295	 696796	5613996	13830087	 d307c7	vmlinux.omap2plus_defconfig.orig
+> 7520203	 696868	5613996	13831067	 d30b9b	vmlinux.omap2plus_defconfig
+> 
+> Paul Walmsley (7):
+>       ARM: OMAP2+: PRM: prepare for use of prm_ll_data function pointers
+>       ARM: OMAP2+: CM: prepare for use of cm_ll_data function pointers
+>       ARM: OMAP1: create read_reset_sources() function (for initial use by watchdog)
+>       ARM: OMAP2+: PRM: create PRM reset source API for the watchdog timer driver
+>       ARM: OMAP2+: WDT: move init; add read_reset_sources pdata function pointer
+>       watchdog: OMAP: use standard GETBOOTSTATUS interface; use platform_data fn ptr
+>       ARM: OMAP2+: PRCM: remove omap_prcm_get_reset_sources()
+> 
+> 
+>  arch/arm/mach-omap1/common.h                |    2 +
+>  arch/arm/mach-omap1/devices.c               |   21 ++++++-
+>  arch/arm/mach-omap1/reset.c                 |   39 +++++++++++++
+>  arch/arm/mach-omap2/Makefile                |    2 -
+>  arch/arm/mach-omap2/cm.h                    |   12 ++++
+>  arch/arm/mach-omap2/cm_common.c             |   71 +++++++++++++++++++++++
+>  arch/arm/mach-omap2/devices.c               |   26 --------
+>  arch/arm/mach-omap2/prcm.c                  |   12 ----
+>  arch/arm/mach-omap2/prm-regbits-24xx.h      |    4 +
+>  arch/arm/mach-omap2/prm-regbits-34xx.h      |   10 +++
+>  arch/arm/mach-omap2/prm.h                   |   53 +++++++++++++++++
+>  arch/arm/mach-omap2/prm2xxx.c               |   68 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/prm2xxx.h               |    4 +
+>  arch/arm/mach-omap2/prm2xxx_3xxx.h          |    2 +
+>  arch/arm/mach-omap2/prm3xxx.c               |   65 +++++++++++++++++++++
+>  arch/arm/mach-omap2/prm3xxx.h               |    2 +
+>  arch/arm/mach-omap2/prm44xx.c               |   83 ++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/prm44xx.h               |    2 +
+>  arch/arm/mach-omap2/prm_common.c            |   78 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/wd_timer.c              |   33 +++++++++++
+>  arch/arm/plat-omap/include/plat/prcm.h      |    1 
+>  drivers/watchdog/omap_wdt.c                 |   26 ++++----
+>  include/linux/platform_data/omap-wd-timer.h |   38 ++++++++++++
+>  23 files changed, 594 insertions(+), 60 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/cm_common.c
+>  create mode 100644 include/linux/platform_data/omap-wd-timer.h
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-  Tested-by: Sourav Poddar <sourav.poddar@ti.com>
