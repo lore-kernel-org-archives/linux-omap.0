@@ -1,58 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM/dts: omap3: Fix mcbsp2/3 hwmods to be able to
- probe the drivers for audio
-Date: Mon, 22 Oct 2012 13:38:01 -0700
-Message-ID: <20121022203800.GH4730@atomide.com>
-References: <1350552307-10226-1-git-send-email-peter.ujfalusi@ti.com>
- <507FD32C.7010108@ti.com>
- <508530CE.9000703@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Mon, 22 Oct 2012 13:43:34 -0700
+Message-ID: <87hapmfdah.fsf@deeprootsystems.com>
+References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
+	<alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
+	<20121019190358.GI1613@blackmetal.musicnaut.iki.fi>
+	<20121019190136.GA4229@arwen.pp.htv.fi>
+	<20121019193847.GJ1613@blackmetal.musicnaut.iki.fi>
+	<87y5iyfmmo.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61495 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752710Ab2JVUiE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 16:38:04 -0400
-Content-Disposition: inline
-In-Reply-To: <508530CE.9000703@ti.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:40337 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754195Ab2JVUnI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 16:43:08 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2212447pad.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 13:43:08 -0700 (PDT)
+In-Reply-To: <87y5iyfmmo.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Mon, 22 Oct 2012 10:21:51 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com> [121022 04:42]:
-> Hi Tony,
->=20
-> On 10/18/2012 12:00 PM, Benoit Cousson wrote:
-> > On 10/18/2012 11:25 AM, Peter Ujfalusi wrote:
-> >> Fixes the following errors:
-> >> [    2.318084] omap-mcbsp 49022000.mcbsp: invalid rx DMA channel
-> >> [    2.324432] omap-mcbsp 49024000.mcbsp: invalid rx DMA channel
-> >>
-> >> Which is because we failed to link the sidetone hwmod for McBSP2/3=
-=2E The
-> >> missing sidetone hwmod link will prevent omap_device_alloc() to ap=
-pend the
-> >> DMA resources since we - accidentally - end up having the same num=
-ber of
-> >> resources provided from DT (IO/IRQ) as we have in hwmod for the Mc=
-BSP ports
-> >> without the ST resources.
-> >>
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> >=20
-> > Acked-by: Benoit Cousson <b-cousson@ti.com>
->=20
-> Can you take this patch for -rc3?
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-Thanks will apply into omap-for-v3.7-rc2/fixes.
+> Aaro Koskinen <aaro.koskinen@iki.fi> writes:
+>
+>> Hi,
+>>
+>> On Fri, Oct 19, 2012 at 10:01:36PM +0300, Felipe Balbi wrote:
+>>> On Fri, Oct 19, 2012 at 10:03:58PM +0300, Aaro Koskinen wrote:
+>>> > FYI, I saw I2C hangs also on Nokia N900 with v3.7-rc1 (omap_i2c
+>>> > omap_i2c.1: timeout waiting for bus ready). After several reboots they
+>>> > disappered (kernel binary was the same), and I have been unable to
+>>> > reproduce them since.
+>>> 
+>>> any change you have those logs saved somewhere ? Want to see if it's the
+>>> same problem triggered by RTC.
+>>
+>> I did not save the logs, but now I tried again, I managed to reproduce
+>> it after couple boots. The log is below, and after that the there's also
+>> one from OK boot for comparison.
+>>
+>> In the error case, the boot never reaches userspace, just silently hangs
+>> (or maybe I just didn't wait enough long).
+>
+> Can you try to revert the threaded IRQ conversion to see if things get
+> to working again?  commit 3b2f8f82dad7d1f79cdc8fc05bd1c94baf109bde
 
-Regards,
+Nevermind, Paul seems to have already isolated the problem on this one.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
