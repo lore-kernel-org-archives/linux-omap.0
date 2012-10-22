@@ -1,62 +1,84 @@
-From: Sebastien Guiriec <s-guiriec@ti.com>
-Subject: Re: [PATCH 0/4] ARM/dts: Update OMAP5 with address space and interrupts
-Date: Mon, 22 Oct 2012 17:21:13 +0200
-Message-ID: <50856469.8080409@ti.com>
-References: <1350901328-3525-1-git-send-email-s-guiriec@ti.com> <5085541C.5040209@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Mon, 22 Oct 2012 08:50:28 -0700
+Message-ID: <20121022155028.GA13791@core.coreip.homeip.net>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40327 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752384Ab2JVPVU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Oct 2012 11:21:20 -0400
-In-Reply-To: <5085541C.5040209@ti.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:37636 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754813Ab2JVPuf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 11:50:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: tony@atomide.com, b-cousson@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Linus Walleij <linus.walleij@linaro.org>
 
-Hi Benoit,
+Hi Sourav,
 
-On 10/22/2012 04:11 PM, Benoit Cousson wrote:
-> Hi Seb,
->
-> Good work. Thanks for that series.
->
-> Just update it with all the acked-by you've got from the TI driver folks
-> + the minor comment and I'll pull it in the for_3.8/dts branch.
->
-> That's a detail but you should update the subject with "ARM: dts: OMAP5:
-> XXX" prefix for consistency with the latest naming convention.
-Thanks for the information I will update the series. I was thinking that 
-it was the convention according to a past talk. I will update our full 
-audio/display feature tree with this convention.
+On Mon, Oct 22, 2012 at 06:43:00PM +0530, Sourav Poddar wrote:
+> Adapt keypad to use pinctrl framework.
+> 
+> Tested on omap4430 sdp with 3.7-rc1 kernel.
 
->
-> Please, Cc the DT list as well.
->
-> Regards,
-> Benoit
->
-> On 10/22/2012 12:22 PM, Sebastien Guiriec wrote:
->> Since kernel 3.7 the DTS data are not overwriten by hwmod data we can add the address space
->> and interrupt line description inside dtsi file for OMAP5. This serie is updating the
->> current OMAP5 IP with missing entry.
->>
->> It has been tested on OMAP5 with 3.7-audio-display feature tree.
->> - MMC is probing and functional
->> - TWL6041 probing (GPIO/I2C)
->> - booting (UART)
->>
->> Sebastien Guiriec (4):
->>    ARM/dts: omap5: Update GPIO with address space and interrupt
->>    ARM/dts: omap5: Update I2C with address space and interrupts
->>    ARM/dts: omap5: Update UART with address space and interrupts
->>    ARM/dts: omap5: Update MMC with address space and interrupts
->>
->>   arch/arm/boot/dts/omap5.dtsi |   56 +++++++++++++++++++++++++++++++++++++++---
->>   1 file changed, 52 insertions(+), 4 deletions(-)
->>
->
+I do not see anything in the driver that would directly use pinctrl. Is
+there a better place to select default pin configuration; maybe when
+instantiating platform device?
 
+Thanks.
+
+> 
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+> v1->v2
+> - Added "PROBE_DEFER" check 
+>  drivers/input/keyboard/omap4-keypad.c |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+> index c05f98c..502b832 100644
+> --- a/drivers/input/keyboard/omap4-keypad.c
+> +++ b/drivers/input/keyboard/omap4-keypad.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/input.h>
+>  #include <linux/slab.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
+>  
+>  #include <linux/platform_data/omap4-keypad.h>
+>  
+> @@ -76,6 +77,7 @@ enum {
+>  
+>  struct omap4_keypad {
+>  	struct input_dev *input;
+> +	struct pinctrl	*pins;
+>  
+>  	void __iomem *base;
+>  	unsigned int irq;
+> @@ -298,6 +300,15 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+>  		goto err_release_mem;
+>  	}
+>  
+> +	keypad_data->pins = devm_pinctrl_get_select_default(&pdev->dev);
+> +	if (IS_ERR(keypad_data->pins)) {
+> +		if (PTR_ERR(keypad_data->pins) == -EPROBE_DEFER)
+> +			return -EPROBE_DEFER;
+> +
+> +		dev_warn(&pdev->dev, "did not get pins for keypad error: %li\n",
+> +					PTR_ERR(keypad_data->pins));
+> +		keypad_data->pins = NULL;
+> +	}
+>  
+>  	/*
+>  	 * Enable clocks for the keypad module so that we can read
+> -- 
+> 1.7.1
+> 
+
+-- 
+Dmitry
