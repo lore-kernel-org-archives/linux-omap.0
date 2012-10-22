@@ -1,110 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] ARM: OMAP3: Beagle: fix OPP customization and initcall ordering
-Date: Mon, 22 Oct 2012 15:58:39 -0700
-Message-ID: <1350946719-9583-1-git-send-email-khilman@deeprootsystems.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH 2/6] OMAPDSS: Convert to devm_ioremap
+Date: Mon, 22 Oct 2012 17:59:03 -0500
+Message-ID: <5085CFB7.9060907@ti.com>
+References: <1350350839-30408-1-git-send-email-ricardo.neri@ti.com> <1350350839-30408-3-git-send-email-ricardo.neri@ti.com> <5084F441.4060502@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:50297 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355Ab2JVW6n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 18:58:43 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2282704pad.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 15:58:42 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:41260 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751949Ab2JVXBN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 19:01:13 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9MN1DnU007326
+	for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 18:01:13 -0500
+Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9MN1DGx004984
+	for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 18:01:13 -0500
+In-Reply-To: <5084F441.4060502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: s-guiriec@ti.com, peter.ujfalusi@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@ti.com>
+Hi Tomi,
 
-After commit 24d7b40a60cf19008334bcbcbd98da374d4d9c64 (ARM: OMAP2+:
-PM: MPU DVFS: use generic CPU device for MPU-SS), OPPs are registered
-using an existing CPU device, not the omap_device for MPU-SS.
+On 10/22/2012 02:22 AM, Tomi Valkeinen wrote:
+> On 2012-10-16 04:27, Ricardo Neri wrote:
+>> Using devm_ioremap provides better memory handling and improves
+>> readability.
+>>
+>> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+>> ---
+>>   drivers/video/omap2/dss/hdmi.c |   11 +++++++----
+>>   1 files changed, 7 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+>> index 2cba177..6773e2c 100644
+>> --- a/drivers/video/omap2/dss/hdmi.c
+>> +++ b/drivers/video/omap2/dss/hdmi.c
+>> @@ -1010,8 +1010,13 @@ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
+>>   		return -EINVAL;
+>>   	}
+>>
+>> +	if (!devm_request_mem_region(&pdev->dev, res->start,
+>> +				     resource_size(res), "HDMI"))
+>> +		return -EBUSY;
+>> +
+>>   	/* Base address taken from platform */
+>> -	hdmi.ip_data.base_wp = ioremap(res->start, resource_size(res));
+>> +	hdmi.ip_data.base_wp = devm_ioremap(&pdev->dev, res->start,
+>> +					     resource_size(res));
+>
+> I think you can use devm_request_and_ioremap() here to simplify it even
+> more.
 
-First, fix the board file to use get_cpu_device() as required by the
-above commit, otherwise custom OPPs will be added to the wrong device.
+Thanks! I'll use it.
 
-Second, the board files OPP init is called from the its init_machine
-method, and the generic CPU devices are not yet created when
-init_machine is run.  Therefore OPP initialization will fail.  To fix,
-use a device_initcall() for the board file's OPP customization, and
-make the device_initcall board-specific by using a machine_is check.
+BR,
 
-Reported-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-v2: add machine_is* check to the device_initcall.
-
- arch/arm/mach-omap2/board-omap3beagle.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 388c431..60729bf 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -24,6 +24,7 @@
- #include <linux/input.h>
- #include <linux/gpio_keys.h>
- #include <linux/opp.h>
-+#include <linux/cpu.h>
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
-@@ -444,12 +445,16 @@ static struct omap_board_mux board_mux[] __initdata = {
- };
- #endif
- 
--static void __init beagle_opp_init(void)
-+static int __init beagle_opp_init(void)
- {
- 	int r = 0;
- 
--	/* Initialize the omap3 opp table */
--	if (omap3_opp_init()) {
-+	if (!machine_is_omap3_beagle())
-+		return 0;
-+
-+	/* Initialize the omap3 opp table if not already created. */
-+	r = omap3_opp_init();
-+	if (IS_ERR_VALUE(r) && (r != -EEXIST)) {
- 		pr_err("%s: opp default init failed\n", __func__);
- 		return;
- 	}
-@@ -458,13 +463,13 @@ static void __init beagle_opp_init(void)
- 	if (cpu_is_omap3630()) {
- 		struct device *mpu_dev, *iva_dev;
- 
--		mpu_dev = omap_device_get_by_hwmod_name("mpu");
-+		mpu_dev = get_cpu_device(0);
- 		iva_dev = omap_device_get_by_hwmod_name("iva");
- 
- 		if (IS_ERR(mpu_dev) || IS_ERR(iva_dev)) {
- 			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
- 				__func__, mpu_dev, iva_dev);
--			return;
-+			return -ENODEV;
- 		}
- 		/* Enable MPU 1GHz and lower opps */
- 		r = opp_enable(mpu_dev, 800000000);
-@@ -484,8 +489,9 @@ static void __init beagle_opp_init(void)
- 			opp_disable(iva_dev, 660000000);
- 		}
- 	}
--	return;
-+	return 0;
- }
-+device_initcall(beagle_opp_init);
- 
- static void __init omap3_beagle_init(void)
- {
-@@ -522,8 +528,6 @@ static void __init omap3_beagle_init(void)
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
- 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
--
--	beagle_opp_init();
- }
- 
- MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
--- 
-1.8.0
-
+Ricardo
+>
+>   Tomi
+>
+>
