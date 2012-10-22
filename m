@@ -1,109 +1,131 @@
-From: Sourav <sourav.poddar@ti.com>
-Subject: Re: [PATCH 3/4] ARM/dts: omap5: Update UART with address space and
- interrupts
-Date: Mon, 22 Oct 2012 18:26:19 +0530
-Message-ID: <50854273.5080504@ti.com>
-References: <1350901328-3525-1-git-send-email-s-guiriec@ti.com> <1350901328-3525-4-git-send-email-s-guiriec@ti.com> <50852AF9.10703@ti.com> <5085348C.60105@ti.com> <508536EA.4020808@ti.com> <50853B94.4060308@ti.com> <508540FC.4090107@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFC/PATCH] mmc: omap_hsmmc: introduce omap_hsmmc_prepare/complete
+Date: Mon, 22 Oct 2012 15:59:28 +0300
+Message-ID: <1350910768-8522-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37461 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37927 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849Ab2JVM4D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 08:56:03 -0400
-In-Reply-To: <508540FC.4090107@ti.com>
+	with ESMTP id S1751125Ab2JVNFL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 09:05:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+To: "\\\"Venkatraman S.\\\"" <svenkatr@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-mmc@vger.kernel.org, cjb@laptop.org, Tony Lindgren <tony@atomide.com>, Balaji T K <balajitk@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-On Monday 22 October 2012 06:20 PM, Benoit Cousson wrote:
-> On 10/22/2012 02:27 PM, Sourav wrote:
->> Hi Benoit,
->> On Monday 22 October 2012 05:37 PM, Benoit Cousson wrote:
->>> On 10/22/2012 01:57 PM, Benoit Cousson wrote:
->>>> Hi Sourav,
->>>>
->>>> On 10/22/2012 01:16 PM, Sourav wrote:
->>>>> Hi Sebastien,
->>>>> On Monday 22 October 2012 03:52 PM, Sebastien Guiriec wrote:
->>>>>> Add base address and interrupt line inside Device Tree data for
->>>>> Incomplete sentence!
->>>>>> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
->>>>>> ---
->>>>>>     arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++--
->>>>>>     1 file changed, 14 insertions(+), 2 deletions(-)
->>>>>>
->>>>>> diff --git a/arch/arm/boot/dts/omap5.dtsi
->>>>>> b/arch/arm/boot/dts/omap5.dtsi
->>>>>> index 6c22e1b..413df94 100644
->>>>>> --- a/arch/arm/boot/dts/omap5.dtsi
->>>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>>>>> @@ -237,36 +237,48 @@
->>>>>>               uart1: serial@4806a000 {
->>>>>>                 compatible = "ti,omap4-uart";
->>>>>> +            reg = <0x4806a000 0x100>;
->>>>>> +            interrupts = <0 72 0x4>;
->>>>>>                 ti,hwmods = "uart1";
->>>>>>                 clock-frequency = <48000000>;
->>>>>>             };
->>>>>>               uart2: serial@4806c000 {
->>>>>>                 compatible = "ti,omap4-uart";
->>>>>> +            reg = <0x4806c000 0x100>;
->>>>>> +            interrupts = <0 73 0x4>;
->>>>>>                 ti,hwmods = "uart2";
->>>>>>                 clock-frequency = <48000000>;
->>>>>>             };
->>>>>>               uart3: serial@48020000 {
->>>>>>                 compatible = "ti,omap4-uart";
->>>>>> +            reg = <0x48020000 0x100>;
->>>>>> +            interrupts = <0 74 0x4>;
->>>>>>                 ti,hwmods = "uart3";
->>>>>>                 clock-frequency = <48000000>;
->>>>>>             };
->>>>>>               uart4: serial@4806e000 {
->>>>>>                 compatible = "ti,omap4-uart";
->>>>>> +            reg = <0x4806e000 0x100>;
->>>>>> +            interrupts = <0 70 0x4>;
->>>>>>                 ti,hwmods = "uart4";
->>>>>>                 clock-frequency = <48000000>;
->>>>>>             };
->>>>>>               uart5: serial@48066000 {
->>>>>> -            compatible = "ti,omap5-uart";
->>>>>> +            compatible = "ti,omap4-uart";
->>>>>> +            reg = <0x48066000 0x100>;
->>>>>> +            interrupts = <0 105 0x4>;
->>>>> In Omap5 TRM, the interrupt number mentioned for uart5 is 138. How is
->>>>> 105 coming?
->>>> It is from hwmod and thus from the HW spec. It looks like the TRM is
->>>> wrong... or the HW spec :-)
->>>>
->>>>>>                 ti,hwmods = "uart5";
->>>>>>                 clock-frequency = <48000000>;
->>>>>>             };
->>>>>>               uart6: serial@48068000 {
->>>>>> -            compatible = "ti,omap6-uart";
->>>>>> +            compatible = "ti,omap4-uart";
->>>>>> +            reg = <0x48068000 0x100>;
->>>>>> +            interrupts = <0 106 0x4>;
->>>>> Same here, TRM shows this number to be 139 ?
->>> In fact, even the TRM (ES1.0 NDA vM) is aligned with these data.
->>> Where did you see 138 and 139?
->> I looked at Page 6300 of the above TRM, Figure 24-60. Is this place not
->> correct to look
->> up for these data?
-> Nope. Well it should be accurate but since it is a diagram, it does not
-> necessarily reflect the latest integration data like IRQ line.
->
-> You'd better use the table that list all the IRQ per CPU:
->
-> 18.3.2 Interrupt Requests to INTC_MPU
-Ahh. True. The table does show the numbers to be 105 and 106.
-Thanks for the pointer.
+prepare() is supposed to prevent new children from
+being registered. On the MMC subsystem, children
+(new cards) registration starts with the card
+detect IRQ.
 
-~Sourav
-> Regards,
-> Benoit
->
+Move card detect IRQ disabling to prepare() so that
+no new cards will be registered while we're trying
+to suspend.
+
+Likewise, move card detect IRQ enabling to complete()
+so we only try to register new children after our MMC
+IP is back up.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+
+Venkat, do you think the patch below makes sense ?
+
+cheers
+
+ drivers/mmc/host/omap_hsmmc.c | 45 ++++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 54bfd0c..4c8b41e 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2022,6 +2022,26 @@ static int __devexit omap_hsmmc_remove(struct platform_device *pdev)
+ }
+ 
+ #ifdef CONFIG_PM
++static int omap_hsmmc_prepare(struct device *dev)
++{
++	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
++
++	if (host->pdata->suspend)
++		return host->pdata->suspend(dev, host->slot_id);
++
++	return 0;
++}
++
++static int omap_hsmmc_complete(struct device *dev)
++{
++	struct omap_hsmmc_host *host = dev_get_drvdata(dev);
++
++	if (host->pdata->resume)
++		return host->pdata->resume(dev, host->slot_id);
++
++	return 0;
++}
++
+ static int omap_hsmmc_suspend(struct device *dev)
+ {
+ 	int ret = 0;
+@@ -2035,23 +2055,10 @@ static int omap_hsmmc_suspend(struct device *dev)
+ 
+ 	pm_runtime_get_sync(host->dev);
+ 	host->suspended = 1;
+-	if (host->pdata->suspend) {
+-		ret = host->pdata->suspend(dev, host->slot_id);
+-		if (ret) {
+-			dev_dbg(dev, "Unable to handle MMC board"
+-					" level suspend\n");
+-			host->suspended = 0;
+-			return ret;
+-		}
+-	}
+ 	ret = mmc_suspend_host(host->mmc);
+ 
+ 	if (ret) {
+ 		host->suspended = 0;
+-		if (host->pdata->resume) {
+-			if (host->pdata->resume(dev, host->slot_id))
+-				dev_dbg(dev, "Unmask interrupt failed\n");
+-		}
+ 		goto err;
+ 	}
+ 
+@@ -2088,12 +2095,6 @@ static int omap_hsmmc_resume(struct device *dev)
+ 	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER))
+ 		omap_hsmmc_conf_bus_power(host);
+ 
+-	if (host->pdata->resume) {
+-		ret = host->pdata->resume(dev, host->slot_id);
+-		if (ret)
+-			dev_dbg(dev, "Unmask interrupt failed\n");
+-	}
+-
+ 	omap_hsmmc_protect_card(host);
+ 
+ 	/* Notify the core to resume the host */
+@@ -2109,8 +2110,10 @@ static int omap_hsmmc_resume(struct device *dev)
+ }
+ 
+ #else
++#define omap_hsmmc_prepare	NULL
++#define omap_hsmmc_complete	NULL
+ #define omap_hsmmc_suspend	NULL
+-#define omap_hsmmc_resume		NULL
++#define omap_hsmmc_resume	NULL
+ #endif
+ 
+ static int omap_hsmmc_runtime_suspend(struct device *dev)
+@@ -2138,6 +2141,8 @@ static int omap_hsmmc_runtime_resume(struct device *dev)
+ static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+ 	.suspend	= omap_hsmmc_suspend,
+ 	.resume		= omap_hsmmc_resume,
++	.prepare	= omap_hsmmc_prepare,
++	.complete	= omap_hsmmc_complete,
+ 	.runtime_suspend = omap_hsmmc_runtime_suspend,
+ 	.runtime_resume = omap_hsmmc_runtime_resume,
+ };
+-- 
+1.8.0.rc0
 
