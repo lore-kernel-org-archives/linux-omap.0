@@ -1,175 +1,85 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 6/6] OMAPDSS: HDMI: Create platform device to support
- audio
-Date: Mon, 22 Oct 2012 10:40:12 +0300
-Message-ID: <5084F85C.9050508@ti.com>
-References: <1350350839-30408-1-git-send-email-ricardo.neri@ti.com> <1350350839-30408-7-git-send-email-ricardo.neri@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH] arm: dts: omap4-sdp: pinmux configuration for keypad
+Date: Mon, 22 Oct 2012 09:45:31 +0200
+Message-ID: <5084F99B.1030709@ti.com>
+References: <1350890955-29553-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig2210AB0FE4D0256BF82047DC"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47639 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750764Ab2JVHkP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Oct 2012 03:40:15 -0400
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9M7eFTx018300
-	for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 02:40:15 -0500
-Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9M7eFca005739
-	for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 02:40:15 -0500
-In-Reply-To: <1350350839-30408-7-git-send-email-ricardo.neri@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1350890955-29553-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: s-guiriec@ti.com, peter.ujfalusi@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
---------------enig2210AB0FE4D0256BF82047DC
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Sourav,
 
-On 2012-10-16 04:27, Ricardo Neri wrote:
-> Creating the accessory devices, such as audio, from the HDMI driver
-> allows to regard HDMI as a single entity with audio an display
-> functionality. This intends to follow the design of drivers such
-> as MFD, in which a single entity handles the creation of the accesory
-> devices. Such devices are then used by domain-specific drivers; audio i=
-n
-> this case.
->=20
-> Also, this is in line with the DT implementation of HDMI, in which we w=
-ill
-> have a single node to describe this feature of the OMAP SoC.
->=20
-> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+On 10/22/2012 09:29 AM, Sourav Poddar wrote:
+> Currently, omap4 keypad mux settings are done in the board file.
+> Populate the mux settings in the dts file for the keypad to
+> work via dt.
+
+Have you changed the driver to handle properly the dependency with the
+pinctrl and thus return EPROBE_DEFER if this is not ready?
+
+Seb Guiriec has just sent a patch to do that for the omap-i2c driver
+([PATCH] i2c: omap: adopt pinctrl support).
+
+> Cc: Felipe Balbi <balbi@ti.com>
+> Tested on omap4430 sdp with 3.7-rc1.
+> 
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 > ---
->  drivers/video/omap2/dss/hdmi.c |   68 ++++++++++++++++++++++++++++++++=
-++++++++
->  1 files changed, 68 insertions(+), 0 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/h=
-dmi.c
-> index e5be0a5..c62c5ab 100644
-> --- a/drivers/video/omap2/dss/hdmi.c
-> +++ b/drivers/video/omap2/dss/hdmi.c
-> @@ -60,6 +60,9 @@
->  static struct {
->  	struct mutex lock;
->  	struct platform_device *pdev;
-> +#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-> +	struct platform_device *audio_pdev;
-> +#endif
-> =20
->  	struct hdmi_ip_data ip_data;
-> =20
-> @@ -73,6 +76,13 @@ static struct {
->  	struct omap_dss_output output;
->  } hdmi;
-> =20
-> +#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-> +#define HDMI_AUDIO_MEM_RESOURCE 0
-> +#define HDMI_AUDIO_DMA_RESOURCE 1
-
-I don't see much point with these definitions. They are hdmi.c internal,
-so the audio driver can't use them, and so they aren't really fixed.
-
-> +static struct resource hdmi_aud_res[2];
-
-Did you check if the platform_device_register does a copy of these? If
-it does, this can be local to the probe function.
-
-> +#endif
+>  arch/arm/boot/dts/omap4-sdp.dts |   26 ++++++++++++++++++++++++++
+>  1 files changed, 26 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+> index 5b7e04f..5efb059 100644
+> --- a/arch/arm/boot/dts/omap4-sdp.dts
+> +++ b/arch/arm/boot/dts/omap4-sdp.dts
+> @@ -194,6 +194,27 @@
+>  			0xbc 0x100	/* abe_mcbsp2_fsx.abe_mcbsp2_fsx INPUT | MODE0 */
+>  		>;
+>  	};
 > +
+> +	keypad_pins: pinmux_keypad_pins {
+> +		pinctrl-single,pins = <
+> +			0x24 0x4119   /* gpmc_a18.kpd_row6 OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
+> +			0x26 0x4119   /* gpmc_a19.kpd_row6 OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
+> +			0x2c 0x4001   /* gpmc_a22.kpd_col6 OMAP_WAKEUP_EN | OMAP_MUX_MODE1 */
+> +			0x2e 0x4001   /* gpmc_a23.kpd_col7 OMAP_WAKEUP_EN | OMAP_MUX_MODE1 */
+> +			0x13c 0x4001  /* kpd_col0.kpd_col0 OMAP_WAKEUP_EN | OMAP_MUX_MODE1 */
+> +			0x13e 0x4001  /* kpd_col1.kpd_col1 OMAP_WAKEUP_EN | OMAP_MUX_MODE1 */
+> +			0x140 0x4001  /* kpd_col2.kpd_col2 OMAP_WAKEUP_EN | OMAP_MUX_MODE1 */
+> +			0x142 0x10F   /* kpd_col3.kpd_col3 OMAP_WAKEUP_EN | OMAP_MUX_MODE1 */
+
+Alway use lower case for hexa value.
+
+> +			0x144 0x4001  /* kpd_col4.kpd_col4 OMAP_WAKEUP_EN | OMAP_MUX_MODE1 */
+> +			0x146 0x4001  /* kpd_col5.kpd_col5 OMAP_WAKEUP_EN | OMAP_MUX_MODE1 */
+> +			0x148 0xc119  /* kpd_row0.kpd_row0 OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
+> +			0x14a 0x4119  /* kpd_row1.kpd_row1 OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
+> +			0x14c 0x4119  /* kpd_row2.kpd_row2 OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
+> +			0x14e 0x4119  /* kpd_row3.kpd_row3 OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
+> +			0x150 0x4119  /* kpd_row4.kpd_row4 OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
+> +			0x152 0x4119  /* kpd_row5.kpd_row5 OMAP_PULL_ENA | OMAP_PULL_UP | OMAP_WAKEUP_EN | OMAP_MUX_MODE1 | OMAP_INPUT_EN */
+> +		>;
+> +	};
+>  };
+>  
+>  &i2c1 {
+> @@ -406,3 +427,8 @@
+>  &mcbsp3 {
+>  	status = "disabled";
+>  };
 > +
->  /*
->   * Logic for the below structure :
->   * user enters the CEA or VESA timings by specifying the HDMI/DVI code=
-=2E
-> @@ -765,6 +775,50 @@ static void hdmi_put_clocks(void)
->  }
-> =20
->  #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
-> +static int hdmi_probe_audio(struct platform_device *pdev)
-> +{
-> +	struct resource *res;
-> +
-> +	hdmi.audio_pdev =3D ERR_PTR(-EINVAL);
-> +
-> +	res =3D platform_get_resource(hdmi.pdev, IORESOURCE_MEM, 0);
-> +	if (!res) {
-> +		DSSERR("can't get IORESOURCE_MEM HDMI\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	/*
-> +	 * Pass this resource to audio_pdev.
-> +	 * Audio drivers should not remap it
-> +	 */
-> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].start =3D res->start;
-> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].end =3D res->end;
-> +	hdmi_aud_res[HDMI_AUDIO_MEM_RESOURCE].flags =3D IORESOURCE_MEM;
-> +
-> +	res =3D platform_get_resource(hdmi.pdev, IORESOURCE_DMA, 0);
-> +	if (!res) {
-> +		DSSERR("can't get IORESOURCE_DMA HDMI\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* Pass this resource to audio_pdev */
-> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].start =3D res->start;
-> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].end =3D res->end;
-> +	hdmi_aud_res[HDMI_AUDIO_DMA_RESOURCE].flags =3D IORESOURCE_DMA;
-> +
-> +	/* create platform device for HDMI audio driver */
-> +	hdmi.audio_pdev =3D platform_device_register_simple(
-> +							  "omap_hdmi_audio",
-> +							  -1, hdmi_aud_res,
-> +							   ARRAY_SIZE(hdmi_aud_res));
-> +	if (IS_ERR(hdmi.audio_pdev)) {
-> +		DSSERR("Can't instantiate hdmi-audio\n");
-> +		return PTR_ERR(hdmi.audio_pdev);
-> +	}
-> +
-> +	return 0;
-> +}
+> +&keypad {
+> +        pinctrl-names = "default";
+> +        pinctrl-0 = <&keypad_pins>;
+> +};
 
-So, how will this work? All the audio related functions will be removed
-from the (video) hdmi driver, and the audio driver will access the
-registers independently? The audio driver will still need to access the
-video parts, right?
+Otherwise that looks good.
 
-I feel a bit uneasy about giving the same ioremapped register space to
-two independent drivers... If we could split the registers to video and
-audio parts, each driver only ioremapping their respective registers,
-it'd be much better.
-
- Tomi
-
-
-
---------------enig2210AB0FE4D0256BF82047DC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQhPhcAAoJEPo9qoy8lh71UbEP/2IdgdY5/gI11aeI5JEBjb8k
-Zn1ZKoAhB5J64OWKB+c+FFQTxJMpQculLhyg8x50aWQkYvOrXL9qCuaORZ1ayB44
-hiRYVMYBKYTFK5zRUwYdpkL4Gvm33IHs8dVRIMQqj9Kw8v8e2DWehjgkTgtBtV+5
-KhTAEwNSO+4yty2bvSEhkdbz4hVUTXwlDsJoa9RwVmevB/CeYLpo+Vy3Odnsu++5
-TlzGOJgpji+d2x6Bqam8FBGqCdnY2YkK/2msGkx6NJskVREsJMJPQ9CgLtNymxEH
-QuBwAVqU6o4SV76PiNMG/bY+CwxWL5o4aCXoA/kpJZdT2GSYbKOL+uACe9wcS5Uy
-xzHAPvTpK8iac8ZsJ83/CLwRfupPd+FaQ1LszFPMO8uaQdD6hW+kwzJo0Qmd16gQ
-XjXd72BH+hY7B22pAK9vhm5RlRsBrZgszZTEfsmPBGNLOw1iNh4hMZEuOHSCWa8j
-LTi8N/PNxhWJhAwUuXjfo/LyUInXfv+JJz4OOD3ZIHAqjqw0i+vBF413C9PjLsYr
-CitNaQG1MgX3W+lwX7d2o3b1MBmSngbzQM11AnJuqeiaUMiT8kvJch6bFk6QQwJ9
-NppRa7xjxe09muwYvEqWgUU9qazt1GtOlcbIoVpJp39u3Weybufbjg5njKb2yvYn
-VrRik2Q6Alzaxl0+ZdAu
-=uWOM
------END PGP SIGNATURE-----
-
---------------enig2210AB0FE4D0256BF82047DC--
+Thanks,
+Benoit
