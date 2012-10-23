@@ -1,44 +1,33 @@
 From: Mitch Bradley <wmb@firmworks.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap5: Update GPIO with address space
- and interrupts
-Date: Tue, 23 Oct 2012 06:55:30 -1000
-Message-ID: <5086CC02.6070801@firmworks.com>
-References: <1350981432-6750-1-git-send-email-s-guiriec@ti.com> <1350981432-6750-2-git-send-email-s-guiriec@ti.com> <5086AE8E.60106@ti.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 23 Oct 2012 07:02:09 -1000
+Message-ID: <5086CD91.9070101@firmworks.com>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com> <20121022155028.GA13791@core.coreip.homeip.net> <CACRpkdaQ1WfRWrx=RXMVkeFtwdERJsOpVa3DaXBTU2KZdgqhRQ@mail.gmail.com> <508664CA.7000601@ti.com> <CACRpkdbhCS-Vb0DtbTZQ_Zw_8SOh3Bqutme3Y2-QrxNqvMiNNw@mail.gmail.com> <20121023100333.GA24418@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5086AE8E.60106@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Sebastien Guiriec <s-guiriec@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20121023100333.GA24418@arwen.pp.htv.fi>
+Sender: linux-input-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Linus Walleij <linus.walleij@linaro.org>, devicetree-discuss@lists.ozlabs.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 10/23/2012 4:49 AM, Jon Hunter wrote:
+On 10/23/2012 12:03 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> I much prefer having drivers explicitly manage all their resources,
+> which would mean that pinctrl calls need to be done on probe() and, if
+> necessary, during suspend()/resume().
 
-> Therefore, I believe it will improve search time and hence, boot time if
-> we have interrupt-parent defined in each node.
 
-I strongly suspect (based on many years of performance tuning, with
-special focus on boot time) that the time difference will be completely
-insignificant.  The total extra time for walking up the interrupt tree
-for every interrupt in a large system is comparable to the time it takes
-to send a few characters out a UART.  So you can get more improvement
-from eliminating a single printk() than from globally adding per-node
-interrupt-parent.
+Per-driver resource management is certainly convenient when you are
+dealing with a single system, but it becomes difficult to maintain for
+drivers that are shared among many platforms.
 
-Furthermore, the cost of processing all of the interrupt-parent
-properties is probably similar to the cost of the avoided tree walks.
+The industry trend for many years has been consolidation around a single
+programming model per class of device.  For example, SDHCI, EHCI, ATA.
+This trend will only accelerate, as the cost of developing controller IP
+and associated drivers increases.  Such drivers need to be as
+platform-agnostic as possible.
 
-CPU cycles are very fast compared to I/O register accesses, say a factor
-of 100.  Now consider that many modern devices contain embedded
-microcontrollers (SD cards, network interface modules, USB hubs and
-devices, ...), and those devices usually require various delays measured
-in milliseconds, to ensure that the microcontroller is ready for the
-next initialization step.  Those delays are extremely long compared to
-CPU cycles.  Obviously, some of that can be overlapped by careful
-multithreading, but that isn't free either.
-
-The bottom line is that I'm pretty sure that adding per-node
-interrupt-parent would not be worthwhile from the standpoint of speeding
-up boot time.
