@@ -1,106 +1,88 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] gpio/omap: fix off-mode bug: clear debounce clock enable mask on disable
-Date: Tue, 23 Oct 2012 15:00:09 -0700
-Message-ID: <87k3ug7st2.fsf@deeprootsystems.com>
-References: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com>
-	<20121023190914.GA853@arwen.pp.htv.fi>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 1/7] ARM: OMAP2xxx: hwmod: Convert SHAM crypto device
+ data to hwmod
+Date: Tue, 23 Oct 2012 15:02:37 -0700
+Message-ID: <20121023220237.GA19671@animalcreek.com>
+References: <1350683640-15044-1-git-send-email-mgreer@animalcreek.com>
+ <1350683640-15044-2-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1210201934550.27264@utopia.booyaka.com>
+ <20121022193336.GA1708@animalcreek.com>
+ <alpine.DEB.2.00.1210221935320.13464@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:35839 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752631Ab2JWV7m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 17:59:42 -0400
-Received: by mail-da0-f46.google.com with SMTP id n41so2122815dak.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 14:59:41 -0700 (PDT)
-In-Reply-To: <20121023190914.GA853@arwen.pp.htv.fi> (Felipe Balbi's message of
-	"Tue, 23 Oct 2012 22:09:14 +0300")
+Received: from mail20.dotsterhost.com ([66.11.232.73]:43053 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754324Ab2JWWCj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 18:02:39 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210221935320.13464@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Felipe Balbi <balbi@ti.com> writes:
+On Mon, Oct 22, 2012 at 07:49:47PM +0000, Paul Walmsley wrote:
+> On Mon, 22 Oct 2012, Mark A. Greer wrote:
+> 
+> > On Sat, Oct 20, 2012 at 07:40:19PM +0000, Paul Walmsley wrote:
+> >
+> > > >  static void omap_init_sham(void)
+> > > >  {
+> > > > -	if (cpu_is_omap24xx()) {
+> > > > -		sham_device.resource = omap2_sham_resources;
+> > > > -		sham_device.num_resources = omap2_sham_resources_sz;
+> > > > +	if (cpu_is_omap24xx() &&
+> > > > +	    (omap2_cm_read_mod_reg(CORE_MOD, OMAP24XX_CM_IDLEST4) &
+> > > > +						 OMAP24XX_ST_SHA_MASK)) {
+> > > 
+> > > Hmm.  Not sure I understand the purpose of this CM read.  Don't we want to 
+> > > initialize this device unconditionally?
+> > 
+> > No, the device doesn't exist on all parts.
+> 
+> It should exist on all OMAP2xxx, AFAIK.  (Whether some bootloader 
+> firewalled it off is another matter, of course.)
+> 
+> >  This is the only way to tell if its there (AFAIK).
+> 
+> Hmm.  I don't think the CM_IDLEST bits work that way, in the general case.  
+> They just indicate whether the PRCM considers that IP block to be 
+> currently accessible.  So for example if the clocks are disabled to an IP 
+> block, the CM_IDLEST bit would indicate that it's not accessible.  The 
+> software could then enable the clocks, and the CM_IDLEST bit would 
+> indicate that it is accessible.  We use this in the clock framework and 
+> hwmod code after enabling clocks to wait until the system considers the IP 
+> block accessible.  See for example
+> 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/clock.c;h=961ac8f7e13d8c84a1cbb4587255ea685520bd18;hb=HEAD#l80
+> 
+> ...
+> 
+> Now it's possible that on some TI chips, the CM_IDLEST bit is tied to the 
+> SIdleAck signal originating from the IP block.  (I've been told that on 
+> other OMAPs, CM_IDLEST is actually tied to the SIdleReq signal originating 
+> from the PRCM, which is not terribly useful...)  So if it's tied to the 
+> SIdleAck signal, and the PRCM clocks are enabled, then it might provide an 
+> indication of whether the IP block exists on that chip.  But ultimately 
+> the IP block might still be firewalled off even if it appears to exist to 
+> the PRCM.  So for 3xxx, I'd suggest just adding it to the appropriate 
+> GP-specific hwmod init lists, such as omap3xxx_gp_hwmod_ocp_ifs.
 
-> Hi,
->
-> On Tue, Oct 23, 2012 at 11:09:31AM -0700, Kevin Hilman wrote:
->> From: Kevin Hilman <khilman@ti.com>
->> 
->> When debounce clocks are disabled, ensure that the banks
->> dbck_enable_mask is cleared also.  Otherwise, context restore on
->> subsequent off-mode transition will restore previous value from the
->> shadow copies (bank->context.debounce*) leading to mismatch state
->> between driver state and hardware state.
->> 
->> This was discovered when board code was doing
->> 
->>   gpio_request_one()
->>   gpio_set_debounce()
->>   gpio_free()
->> 
->> which was leaving the GPIO debounce settings in a confused state.
->> Then, enabling off mode causing bogus state to be restored, leaving
->> GPIO debounce enabled which then prevented the CORE powerdomain from
->> transitioning.
->> 
->> Reported-by: Paul Walmsley <paul@pwsan.com>
->> Cc: Igor Grinberg <grinberg@compulab.co.il>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->
-> looks like this deserves a Cc: stable@vger.kernel.org tag.
->
+Paul, thank you for the clear explanation.
 
-Agreed.  I think this goes all the way back to v3.5, but would've only
-been seen on boards using a request/gpio_set_debounce/free sequence
-combined with off-mode.
+I've talked to some hardware guys and I have come to the following
+conclusions:
 
-Linus, feel free to add the Cc: stable when commiting.  Thanks.
+a) What you say above about CM_IDLEST is correct.
+b) There seems to be no good way, in general, to tell if the SHA
+   (or AES or RNG or ...) module exists.
+c) The best thing to do is what you suggest and add the SHA hwmod
+   data for all omap2's and omap3 GP's.
 
->> ---
->> Applies on v3.7-rc2, targetted for v3.7.
->> 
->>  drivers/gpio/gpio-omap.c | 1 +
->>  1 file changed, 1 insertion(+)
->> 
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index 94cbc84..dee2856 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -187,6 +187,7 @@ static inline void _gpio_dbck_disable(struct gpio_bank *bank)
->>  		 * to detect events and generate interrupts at least on OMAP3.
->>  		 */
->>  		__raw_writel(0, bank->base + bank->regs->debounce_en);
->> +		bank->dbck_enable_mask = 0;
->
-> shouldn't omap_gpio_restore_context() check for dbck_enabled instead of
-> the mask ? I mean:
->
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 94cbc84..b3a39a7 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1371,7 +1371,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
->  				bank->base + bank->regs->dataout);
->  	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
->  
-> -	if (bank->dbck_enable_mask) {
-> +	if (bank->dbck_enabled) {
->  		__raw_writel(bank->context.debounce, bank->base +
->  					bank->regs->debounce);
->  		__raw_writel(bank->context.debounce_en,
->
-> the outcome would be the same, so it doesn't really matter. Just that,
-> at least to me, it would look better.
+I will respin my patches with everyone's comments addressed later today.
 
-I tried your version, and unfortunately, the outcome is not the same,
-but don't plan to look into why.  $SUBJECT version is targetted and
-tested.  If you want to cleanup the cosmetics here, please do in a
-subsequent patch.  This driver could certainly benefit from more
-readability cleanups.
+Thanks everyone.
 
-> No strong feelings though.
-
-Good.   I'll take that as an Ack.  :)
-
-Kevin
+Mark
+--
