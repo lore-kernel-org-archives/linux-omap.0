@@ -1,43 +1,57 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [RFC] ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
-Date: Tue, 23 Oct 2012 23:20:45 +0530
-Message-ID: <CAM=Q2ctG2Q8o9g7QZEF_uPM+XYXk2tPim-k4Wx7YJzzJHNhVTw@mail.gmail.com>
-References: <1350922532-26338-1-git-send-email-t-kristo@ti.com>
-	<87zk3edvti.fsf@deeprootsystems.com>
-	<CAM=Q2cvLc63tGMG1t1wguiMHqNxcrZ60GF+fHjxc6_8c7rBykw@mail.gmail.com>
-	<87k3uhb26c.fsf@deeprootsystems.com>
+From: Mitch Bradley <wmb@firmworks.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 23 Oct 2012 07:51:22 -1000
+Message-ID: <5086D91A.5080109@firmworks.com>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com> <20121022155028.GA13791@core.coreip.homeip.net> <CACRpkdaQ1WfRWrx=RXMVkeFtwdERJsOpVa3DaXBTU2KZdgqhRQ@mail.gmail.com> <508664CA.7000601@ti.com> <CACRpkdbhCS-Vb0DtbTZQ_Zw_8SOh3Bqutme3Y2-QrxNqvMiNNw@mail.gmail.com> <20121023100333.GA24418@arwen.pp.htv.fi> <5086CD91.9070101@firmworks.com> <20121023172035.GB32167@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:55903 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755017Ab2JWRuq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 13:50:46 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so5699048iea.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 10:50:45 -0700 (PDT)
-In-Reply-To: <87k3uhb26c.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20121023172035.GB32167@arwen.pp.htv.fi>
+Sender: linux-input-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Linus Walleij <linus.walleij@linaro.org>, devicetree-discuss@lists.ozlabs.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Venkatraman S <svenkatr@ti.com>
 
-On Tue, Oct 23, 2012 at 9:39 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Shubhrajyoti Datta <omaplinuxkernel@gmail.com> writes:
-[...]
->
-> Could you please explain what worked and didn't work on each platforms?
->
-> Also, which 3430 did you test on?  If it's SDP, then it has a UART1
-> console, correct?
-idle mode
+Perhaps I misunderstood what you were suggesting.  I thought that, when
+you said "explicitly manage all their resources", you meant that the
+driver should know the platform-specific details about clocks and power
+domains.  That is one possible interpretation of the word "explicit".
 
-set autosuspend for uart
-sleep
+Now I see that you meant that the driver should explicitly call
+abstracted functions.
 
-off count didnt increment on 3430sdp.
 
-hope not hitting any setup at my end.
-
->
-> Kevin
+On 10/23/2012 7:20 AM, Felipe Balbi wrote:
+> HI,
+> 
+> On Tue, Oct 23, 2012 at 07:02:09AM -1000, Mitch Bradley wrote:
+>> On 10/23/2012 12:03 AM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> I much prefer having drivers explicitly manage all their resources,
+>>> which would mean that pinctrl calls need to be done on probe() and, if
+>>> necessary, during suspend()/resume().
+>>
+>>
+>> Per-driver resource management is certainly convenient when you are
+>> dealing with a single system, but it becomes difficult to maintain for
+>> drivers that are shared among many platforms.
+> 
+> why ? look at drivers/usb/dwc3/, we're using that on OMAP, exynos, PCIe
+> and a couple of different FPGA implementations inside TI. Not to mention
+> what other licensees of that IP core might have internally.
+> 
+> So far no problesm with resources at all.
+> 
+> We have frameworks exactly to hide the differences.
+> 
+>> The industry trend for many years has been consolidation around a single
+>> programming model per class of device.  For example, SDHCI, EHCI, ATA.
+>> This trend will only accelerate, as the cost of developing controller IP
+>> and associated drivers increases.  Such drivers need to be as
+>> platform-agnostic as possible.
+> 
+> that's why we have pinctrl framework to abstract the details about pin
+> muxing.
+> 
