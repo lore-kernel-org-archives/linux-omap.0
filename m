@@ -1,57 +1,91 @@
-From: Linus Walleij <linus.walleij@linaro.org>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Tue, 23 Oct 2012 12:29:28 +0200
-Message-ID: <CACRpkdb+f44jw1vTYvJT0bnMOP8XQe8ztDUHiwtS2JHtPWAGXw@mail.gmail.com>
+Date: Tue, 23 Oct 2012 13:29:03 +0300
+Message-ID: <20121023102903.GA24820@arwen.pp.htv.fi>
 References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
-	<20121022155028.GA13791@core.coreip.homeip.net>
-	<CACRpkdaQ1WfRWrx=RXMVkeFtwdERJsOpVa3DaXBTU2KZdgqhRQ@mail.gmail.com>
-	<508664CA.7000601@ti.com>
-	<CACRpkdbhCS-Vb0DtbTZQ_Zw_8SOh3Bqutme3Y2-QrxNqvMiNNw@mail.gmail.com>
-	<20121023100333.GA24418@arwen.pp.htv.fi>
-	<20121023122312.56b23e1c@skate>
+ <20121022155028.GA13791@core.coreip.homeip.net>
+ <CACRpkdaQ1WfRWrx=RXMVkeFtwdERJsOpVa3DaXBTU2KZdgqhRQ@mail.gmail.com>
+ <508664CA.7000601@ti.com>
+ <CACRpkdbhCS-Vb0DtbTZQ_Zw_8SOh3Bqutme3Y2-QrxNqvMiNNw@mail.gmail.com>
+ <20121023100333.GA24418@arwen.pp.htv.fi>
+ <20121023122312.56b23e1c@skate>
+ <CACRpkdb+f44jw1vTYvJT0bnMOP8XQe8ztDUHiwtS2JHtPWAGXw@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5vNYLRcllDrimb99"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121023122312.56b23e1c@skate>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdb+f44jw1vTYvJT0bnMOP8XQe8ztDUHiwtS2JHtPWAGXw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Magnus Damm <damm@opensource.se>, Paul Mundt <lethal@linux-sh.org>
-Cc: balbi@ti.com, Benoit Cousson <b-cousson@ti.com>, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Amit Kucheria <amit.kucheria@linaro.org>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Magnus Damm <damm@opensource.se>, Paul Mundt <lethal@linux-sh.org>, balbi@ti.com, Benoit Cousson <b-cousson@ti.com>, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Amit Kucheria <amit.kucheria@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 23, 2012 at 12:23 PM, Thomas Petazzoni
-<thomas.petazzoni@free-electrons.com> wrote:
->
-> On Tue, 23 Oct 2012 13:03:33 +0300, Felipe Balbi wrote:
->
->> > But it appears that shmobile prefer to get all resources using
->> > bus notifiers.
->> >
->> > So we need to form some kind of consensus ... or live with
->> > the fact that different systems do it different ways. Which will
->> > explode the day we need to use a driver on two systems,
->> > each using the other approach :-)
->>
->> I much prefer having drivers explicitly manage all their resources,
->> which would mean that pinctrl calls need to be done on probe() and, if
->> necessary, during suspend()/resume().
->>
->> Using bus notifiers for that is quite a hack IMHO.
->
-> Agreed. Just like drivers do their ioremap, request_irq and others,
-> they should also request their pin resources using the pinctrl API.
-> Hiding this behind a bus notifier is not nice.
+--5vNYLRcllDrimb99
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So the biggest implementation of the notifier approach to resource
-handling is the SH clock thing:
-drivers/base/power/clock_ops.c
+Hi,
 
-It's made to be generic but AFAICT only SH is using this.
+On Tue, Oct 23, 2012 at 12:29:28PM +0200, Linus Walleij wrote:
+> On Tue, Oct 23, 2012 at 12:23 PM, Thomas Petazzoni
+> <thomas.petazzoni@free-electrons.com> wrote:
+> >
+> > On Tue, 23 Oct 2012 13:03:33 +0300, Felipe Balbi wrote:
+> >
+> >> > But it appears that shmobile prefer to get all resources using
+> >> > bus notifiers.
+> >> >
+> >> > So we need to form some kind of consensus ... or live with
+> >> > the fact that different systems do it different ways. Which will
+> >> > explode the day we need to use a driver on two systems,
+> >> > each using the other approach :-)
+> >>
+> >> I much prefer having drivers explicitly manage all their resources,
+> >> which would mean that pinctrl calls need to be done on probe() and, if
+> >> necessary, during suspend()/resume().
+> >>
+> >> Using bus notifiers for that is quite a hack IMHO.
+> >
+> > Agreed. Just like drivers do their ioremap, request_irq and others,
+> > they should also request their pin resources using the pinctrl API.
+> > Hiding this behind a bus notifier is not nice.
+>=20
+> So the biggest implementation of the notifier approach to resource
+> handling is the SH clock thing:
+> drivers/base/power/clock_ops.c
 
-So according to that paradigm most device resources should
-be handled that way if I understand correctly the basic idea.
+that's different right ? It's just creating the list of clocks, device
+drivers still have to call pm_clk_add().
 
-So let's get Rafael, Paul and Magnus in here to beat us up
-a bit :-)
+That's ok, I guess, otherwise all struct device would allocate memory
+which hardly ever used (so far).
 
-Yours,
-Linus Walleij
+--=20
+balbi
+
+--5vNYLRcllDrimb99
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQhnFvAAoJEIaOsuA1yqREgMsQAJNJcFLikO8MiSiiIpbOyOUf
+IOwqJUSqAx8BGrPQuUYeFWM6INwmmfyvkxvK3/G0gRzVD59hZGq5evMqgWDl/GDg
+TV47q7piCJUC9BadnoAB3q+SmMdSdn87QwID9tWJu1hbdxn2Nd3FofoPxTRjrpuK
+5d26eAHjhXcGP8DAww0AVlnokzepsODHoV9uN3D8UtLqDwQ0+ccLUFhdBd3uVSSV
+5GUkECwT7xvSDkOwyFoJXmMYe3e20mEVRjjs9g0I6Bjb/n7lF2Lw6otOv5mpFoKv
+Lp+gJtvLxJebCGlznMAVWEHNml9tAnTaY0GEpFzpwo2X73tM5cfRRdtuYeLRj1KO
+75a8u459UmAlJKCFDdux1TRKnxjAxZB46vbTCCjjERVAzvQn2kdnVmoH7PbhRkK8
+G+EK/FGpmsI8iyX7Qad0/LzW4XULfzEjUpyZub5sbwW5oRJQFNi9FP6cwoh/YACv
+vWHJpgI/fWT75jzH8ZtnkdHebIcX7Gjsk08tGTTmfv2jFA6WKtztxe5LVFqCuL3x
+eqRZJUtQsepYahRhls3l6m/SbBtuvjvcuBtoDOqSu2owE7BPt1Aj41QKdqfnI9AI
+R9pZePWEg8/eTDa7cJ5AgdVODiniMEaaOudASPwYu659EmK3r9TC4FRocAkeMkJh
+NFvLsVmrbTU7qacqueww
+=uAgI
+-----END PGP SIGNATURE-----
+
+--5vNYLRcllDrimb99--
