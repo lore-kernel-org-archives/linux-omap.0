@@ -1,63 +1,60 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] arm: sched: stop sched_clock() during suspend
-Date: Tue, 23 Oct 2012 07:17:33 -0700
-Message-ID: <87a9vdclxe.fsf@deeprootsystems.com>
-References: <1350906877-19410-1-git-send-email-balbi@ti.com>
- <873916h1yi.fsf@deeprootsystems.com>
- <CACRpkdY6ox+iJAGdSD=e7Yj55TzDWqOmLqu2fSRXvKJxqwfkhQ@mail.gmail.com>
- <20121023092231.GE28061@n2100.arm.linux.org.uk>
+Subject: Re: [RFC] ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
+Date: Tue, 23 Oct 2012 07:28:12 -0700
+Message-ID: <87txtlb6v7.fsf@deeprootsystems.com>
+References: <1350922532-26338-1-git-send-email-t-kristo@ti.com>
+	<alpine.DEB.2.00.1210230745160.32436@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20121023092231.GE28061@n2100.arm.linux.org.uk> (Russell King's
- message of "Tue, 23 Oct 2012 10:22:31 +0100")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Andrew Lunn <andrew@lunn.ch>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Walker <dwalker@fifo99.com>, Thomas Gleixner <tglx@linutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Barry Song <21cnbao@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, John Stultz <john.stultz@linaro.org>, Ben Dooks <ben-linux@fluff.org>, Alexander Schulz <alex@shark-linux.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Victor <linux@maxim.org.za>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Bryan Huntsman <bryanh@codeaurora.org>, Santosh
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:52643 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754563Ab2JWO1p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 10:27:45 -0400
+Received: by mail-da0-f46.google.com with SMTP id n41so1950742dak.19
+        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 07:27:45 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1210230745160.32436@utopia.booyaka.com> (Paul
+	Walmsley's message of "Tue, 23 Oct 2012 07:47:44 +0000 (UTC)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Venkatraman S <svenkatr@ti.com>
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+Paul Walmsley <paul@pwsan.com> writes:
 
-> On Tue, Oct 23, 2012 at 12:28:32AM +0200, Linus Walleij wrote:
->> On Mon, Oct 22, 2012 at 7:05 PM, Kevin Hilman
->> <khilman@deeprootsystems.com> wrote:
->> 
->> > However, in light of RT throttling, this a correctness issue for process
->> > accounting, so I agree that this should be done for all platforms
->> > instead of providing an optional 'needs suspend' version of the API,
->> > even though it means printk times no longer reflect time spent
->> > suspended.
->> 
->> Maybe we should get printk() to use the best clocksource
->> instead.
->> 
->> The reason AFAICT that printk() is using sched_clock() is that
->> it's supposed to be fast. But now it seems that it's not going
->> to return what printk() needs anymore.
+> Hi Tero,
 >
-> No, printk() does not need this.  You think it does, but it doesn't.  What
-> we have is a difference between ARM and x86, and this difference is breaking
-> the scheduler.
+> On Mon, 22 Oct 2012, Tero Kristo wrote:
 >
-> The fact that the printk timestamp increments while suspended is a bug.  It
-> doesn't on x86.
+>> When waking up from off-mode, some IP blocks are reset automatically by
+>> hardware. For this reason, software must wait until the reset has
+>> completed before attempting to access the IP block.
+>> 
+>> This patch fixes for example the bug introduced by commit
+>> 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c ("mmc: omap_hsmmc: remove access
+>> to SYSCONFIG register"), in which the MMC IP block is reset during
+>> off-mode entry, but the code expects the module to be already available
+>> during the execution of context restore.
+>> 
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Cc: Venkatraman S <svenkatr@ti.com>
+>
+> What do you think about these modifications?  The code is quite similar to 
+> what was in the _ocp_softreset() function, so just moved it into a 
+> function.  Also moved the callsite from the end of _enable_sysc() to the 
+> beginning, which makes more sense to me, but would like to get your 
+> opinion.
 
-Russell, I agree that it's a bug, but does it qualify as a something
-you're willing to take for v3.7-rc?
+FYI, after some more testing with this patch, I noticed that this patch
+(and the original from Tero) cause some sluggishness on UART1 console my
+37xx/EVM platform as soon as off-mode is enabled (even without the UART
+autosuspend timeouts enabled.)  I don't see this on any other OMAP3
+platform but all the others I have have UART3 console (in PER), the EVM
+is the only one with UART1 console (in CORE.)
 
-For OMAP, we need to know if this will go for v3.7 or not because
-there's a regression in the OMAP I2C driver, and if this doesn't go in,
-we'll need to revert something in the I2C driver until it does.
-
-Thanks,
+I haven't debugged this any furhter, but thought it should be reported
+before this gets merged.
 
 Kevin
