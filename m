@@ -1,54 +1,46 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about
-	serial stuff)
-Date: Tue, 23 Oct 2012 11:10:36 +0100
-Message-ID: <20121023101036.GA1542@n2100.arm.linux.org.uk>
-References: <20121012155434.GO28061@n2100.arm.linux.org.uk>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] arm: sched: stop sched_clock() during suspend
+Date: Tue, 23 Oct 2012 12:11:21 +0200
+Message-ID: <CACRpkdYiMtriTaKG=nT=7Jg2g0wUN3+JeN90V3jRke0bP2EHrA@mail.gmail.com>
+References: <1350906877-19410-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57260 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932942Ab2JWKKk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 06:10:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20121012155434.GO28061@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1350906877-19410-1-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Fri, Oct 12, 2012 at 04:54:34PM +0100, Russell King - ARM Linux wrote:
-> For those who don't bother looking at my kautobuild boot tests on the OMAP
-> boards I have, here's the errors which get spat out at boot time.  Note
-> that some of these I've reported in the past, and one of them is missing
-> a newline character at the end of its string.
-> 
-> twd: can't register interrupt 45 (-22)
-> twd_local_timer_register failed -22
-> omap_hwmod: mcpdm: cannot be enabled for reset (3)
-> omap-gpmc omap-gpmc: error: clk_get
-> omap-gpmc: probe of omap-gpmc failed with error -2
-> Error setting wl12xx data: -38
-> omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
-> omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
-> omap_hsmmc omap_hsmmc.4: Failed to get debounce clk
-> twl6040-codec twl6040-codec: ASoC: Failed to create Capture debugfs file
-> omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
-> omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
-> mmc1: host does not support reading read-only switch. assuming write-enable.
+On Mon, Oct 22, 2012 at 1:54 PM, Felipe Balbi <balbi@ti.com> wrote:
 
-Here's the latest set of error like messages, thanks to the kautobuild
-system:
+> The scheduler imposes a requirement to sched_clock()
+> which is to stop the clock during suspend, if we don't
+> do that IRQ threads will be rescheduled in the future
+> which might cause transfers to timeout depending on
+> how driver is written.
+>
+> This became an issue on OMAP when we converted omap-i2c.c
+> to use threaded IRQs, it turned out that depending on how
+> much time we spent on suspend, the I2C IRQ thread would
+> end up being rescheduled so far in the future that I2C
+> transfers would timeout and, because omap_hsmmc depends
+> on an I2C-connected device to detect if an MMC card is
+> inserted in the slot, our rootfs would just vanish.
+>
+> arch/arm/kernel/sched_clock.c already had an optional
+> implementation (sched_clock_needs_suspend()) which would
+> handle scheduler's requirement properly, what this patch
+> does is simply to make that implementation non-optional.
+>
+> This has been tested with beagleboard XM (OMAP3630) and
+> pandaboard rev A3 (OMAP4430). Suspend to RAM is now working
+> after this patch.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-omap_hwmod: mcpdm: cannot be enabled for reset (3)
-Error setting wl12xx data: -38
-omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
-omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
-omap_hsmmc omap_hsmmc.4: Failed to get debounce clk
-omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
-omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
-mmc1: host does not support reading read-only switch. assuming write-enable.
+After Russell explains so I get it:
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-This looks much better compared to the previous set, but we could still
-do with getting a "\n" on at least one of those messages...
+Yours,
+Linus Walleij
