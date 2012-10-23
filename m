@@ -1,52 +1,44 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about serial
- stuff)
-Date: Tue, 23 Oct 2012 11:46:08 +0200
-Message-ID: <50866760.3010509@compulab.co.il>
-References: <20121012155434.GO28061@n2100.arm.linux.org.uk> <20121012162452.GD30339@atomide.com> <CAK=Wgba087mdaYhvKNUAy6H8rAb+owTAz1yqexEtDg+f06kJdg@mail.gmail.com> <20121016181038.GC15569@atomide.com> <20121016182642.GF15569@atomide.com> <CAK=WgbaQ-0V2htnmyCAzBco-sZVWN3WR2mhABGZNaYU6uM1wgg@mail.gmail.com> <507EA7DB.3070207@compulab.co.il> <CAK=Wgba_-k0kCHah6t6L4=qt838j30ZRVRbgAdJ1yzHDyA8frw@mail.gmail.com> <20121019170759.GK4730@atomide.com> <CAK=WgbbPmuOgssRRSinsV3rXg7TUa9fpOP-Zg+VatZgqgVYixw@mail.gmail.com> <5086494D.4080205@compulab.co.il> <CAK=WgbZfJ3bg+Xt+HJtaiPHV=7=TK-=93SgB7cNp8XwwZRyB0Q@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 23 Oct 2012 12:04:01 +0200
+Message-ID: <CACRpkdbhCS-Vb0DtbTZQ_Zw_8SOh3Bqutme3Y2-QrxNqvMiNNw@mail.gmail.com>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
+	<20121022155028.GA13791@core.coreip.homeip.net>
+	<CACRpkdaQ1WfRWrx=RXMVkeFtwdERJsOpVa3DaXBTU2KZdgqhRQ@mail.gmail.com>
+	<508664CA.7000601@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:41613 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756963Ab2JWJqO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Oct 2012 05:46:14 -0400
-In-Reply-To: <CAK=WgbZfJ3bg+Xt+HJtaiPHV=7=TK-=93SgB7cNp8XwwZRyB0Q@mail.gmail.com>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:49216 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932557Ab2JWKED (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 06:04:03 -0400
+Received: by mail-wi0-f170.google.com with SMTP id hm2so3031906wib.1
+        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 03:04:01 -0700 (PDT)
+In-Reply-To: <508664CA.7000601@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Afzal Mohammed <afzal@ti.com>, =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
+On Tue, Oct 23, 2012 at 11:35 AM, Benoit Cousson <b-cousson@ti.com> wrote:
+> On 10/23/2012 11:13 AM, Linus Walleij wrote:
 
+>> So Sourav, please tell us a bit about your plans for this
+>> and other drivers!
+>
+> Yeah, this idea is to handle pinctrl from all the drivers, and
+> potentially change the mode during suspend when it is relevant.
 
-On 10/23/12 09:51, Ohad Ben-Cohen wrote:
-> On Tue, Oct 23, 2012 at 9:37 AM, Igor Grinberg <grinberg@compulab.co.il> wrote:
->>> +     ret = wl12xx_set_platform_data(wlan_data);
->>> +     /* bail out silently in case wl12xx isn't configured */
->>> +     if (ret == -ENOSYS)
->>> +             return ret;
->>
->> Since we have the function ifdef'ed, I don't think we need
->> the ENOSYS check, do we?
-> 
-> If we want to be strict, we better not remove it.
-> 
-> It's an interface that hides the internal implementation, and it's
-> just better not to assume anything beyond the return values and their
-> meanings. This way if WLAN folks change something in the future, we
-> don't need to update all the boards code again.
+I'm leaning toward the same approach for ux500.
 
-Well, with this argument, we can add this (and many other checks) to
-many more places in the code...
-I just wanted to point out that most probably ret == -ENOSYS will
-never happen since the #ifdef is added, but no problem from my side,
-it does not hurt to have 4 more lines just in case, right?
+But it appears that shmobile prefer to get all resources using
+bus notifiers.
 
-Thanks for the patch and the explanation!
+So we need to form some kind of consensus ... or live with
+the fact that different systems do it different ways. Which will
+explode the day we need to use a driver on two systems,
+each using the other approach :-)
 
-You have my ack already...
-
--- 
-Regards,
-Igor.
+Yours,
+Linus Walleij
