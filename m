@@ -1,33 +1,93 @@
-From: Mitch Bradley <wmb@firmworks.com>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Tue, 23 Oct 2012 07:02:09 -1000
-Message-ID: <5086CD91.9070101@firmworks.com>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com> <20121022155028.GA13791@core.coreip.homeip.net> <CACRpkdaQ1WfRWrx=RXMVkeFtwdERJsOpVa3DaXBTU2KZdgqhRQ@mail.gmail.com> <508664CA.7000601@ti.com> <CACRpkdbhCS-Vb0DtbTZQ_Zw_8SOh3Bqutme3Y2-QrxNqvMiNNw@mail.gmail.com> <20121023100333.GA24418@arwen.pp.htv.fi>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC] ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
+Date: Tue, 23 Oct 2012 10:03:11 -0700
+Message-ID: <87objt9l4g.fsf@deeprootsystems.com>
+References: <1350922532-26338-1-git-send-email-t-kristo@ti.com>
+	<alpine.DEB.2.00.1210230745160.32436@utopia.booyaka.com>
+	<87txtlb6v7.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20121023100333.GA24418@arwen.pp.htv.fi>
-Sender: linux-input-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Linus Walleij <linus.walleij@linaro.org>, devicetree-discuss@lists.ozlabs.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:51613 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757261Ab2JWRCo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 13:02:44 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2894617pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 10:02:44 -0700 (PDT)
+In-Reply-To: <87txtlb6v7.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Tue, 23 Oct 2012 07:28:12 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Venkatraman S <svenkatr@ti.com>
 
-On 10/23/2012 12:03 AM, Felipe Balbi wrote:
-> Hi,
-> 
-> I much prefer having drivers explicitly manage all their resources,
-> which would mean that pinctrl calls need to be done on probe() and, if
-> necessary, during suspend()/resume().
+Kevin Hilman <khilman@deeprootsystems.com> writes:
+
+> Paul Walmsley <paul@pwsan.com> writes:
+>
+>> Hi Tero,
+>>
+>> On Mon, 22 Oct 2012, Tero Kristo wrote:
+>>
+>>> When waking up from off-mode, some IP blocks are reset automatically by
+>>> hardware. For this reason, software must wait until the reset has
+>>> completed before attempting to access the IP block.
+>>> 
+>>> This patch fixes for example the bug introduced by commit
+>>> 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c ("mmc: omap_hsmmc: remove access
+>>> to SYSCONFIG register"), in which the MMC IP block is reset during
+>>> off-mode entry, but the code expects the module to be already available
+>>> during the execution of context restore.
+>>> 
+>>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>> Cc: Benoit Cousson <b-cousson@ti.com>
+>>> Cc: Venkatraman S <svenkatr@ti.com>
+>>
+>> What do you think about these modifications?  The code is quite similar to 
+>> what was in the _ocp_softreset() function, so just moved it into a 
+>> function.  Also moved the callsite from the end of _enable_sysc() to the 
+>> beginning, which makes more sense to me, but would like to get your 
+>> opinion.
+>
+> FYI, after some more testing with this patch, I noticed that this patch
+> (and the original from Tero) cause some sluggishness on UART1 console my
+> 37xx/EVM platform as soon as off-mode is enabled (even without the UART
+> autosuspend timeouts enabled.)  I don't see this on any other OMAP3
+> platform but all the others I have have UART3 console (in PER), the EVM
+> is the only one with UART1 console (in CORE.)
+
+OK, found it.
+
+The reason for the sluggishness is that the GPIO blocks are timing
+out in the omap_test_timout() calls added in this patch, suggesting that
+they never detect reset done.
+
+Looking at the other user of _wait_softreset_complete made me remember
+that there modules that need their optional clocks enabled in order for
+softreset to work.  It appears that the optional clocks are needed not
+only to initiate a softrest, but also to check SYSS.RESETDONE.
+
+The patch below on top of Paul's version makes the sluggishness disappear.
+
+Kevin
 
 
-Per-driver resource management is certainly convenient when you are
-dealing with a single system, but it becomes difficult to maintain for
-drivers that are shared among many platforms.
 
-The industry trend for many years has been consolidation around a single
-programming model per class of device.  For example, SDHCI, EHCI, ATA.
-This trend will only accelerate, as the cost of developing controller IP
-and associated drivers increases.  Such drivers need to be as
-platform-agnostic as possible.
 
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index f9d8b2a..70267d2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1320,7 +1320,11 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 	 * (off-mode for example), and the drivers require the
+ 	 * IP to be ready when they access it
+ 	 */
++	if (oh->flags & HWMOD_CONTROL_OPT_CLKS_IN_RESET)
++		_enable_optional_clocks(oh);
+ 	_wait_softreset_complete(oh);
++	if (oh->flags & HWMOD_CONTROL_OPT_CLKS_IN_RESET)
++		_disable_optional_clocks(oh);
+ 
+ 	v = oh->_sysc_cache;
+ 	sf = oh->class->sysc->sysc_flags;
