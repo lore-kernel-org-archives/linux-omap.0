@@ -1,97 +1,112 @@
-From: Sebastien Guiriec <s-guiriec@ti.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap5: Update GPIO with address space
- and interrupts
-Date: Tue, 23 Oct 2012 18:15:24 +0200
-Message-ID: <5086C29C.5000209@ti.com>
-References: <1350981432-6750-1-git-send-email-s-guiriec@ti.com> <1350981432-6750-2-git-send-email-s-guiriec@ti.com> <5086AE8E.60106@ti.com> <5086B316.6000001@ti.com> <5086BECA.9070502@ti.com> <5086C0C3.1060305@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 6/6] OMAPDSS: HDMI: Create platform device to support
+ audio
+Date: Tue, 23 Oct 2012 19:17:55 +0300
+Message-ID: <5086C333.9000801@ti.com>
+References: <1350350839-30408-1-git-send-email-ricardo.neri@ti.com> <1350350839-30408-7-git-send-email-ricardo.neri@ti.com> <5084F85C.9050508@ti.com> <5085E957.6060003@ti.com> <50866569.8010409@ti.com> <5086BB01.1080802@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5086C0C3.1060305@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigA7BD79107FE290EF1069D5C8"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:57293 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932946Ab2JWQR5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Oct 2012 12:17:57 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9NGHvlm026671
+	for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 11:17:57 -0500
+Received: from DLEE74.ent.ti.com (dlee74.ent.ti.com [157.170.170.8])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9NGHv8V012727
+	for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 11:17:57 -0500
+In-Reply-To: <5086BB01.1080802@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: s-guiriec@ti.com, peter.ujfalusi@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
-Hi Benoit and John,
+--------------enigA7BD79107FE290EF1069D5C8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On 10/23/2012 06:07 PM, Benoit Cousson wrote:
-> On 10/23/2012 05:59 PM, Jon Hunter wrote:
->>
->> On 10/23/2012 10:09 AM, Benoit Cousson wrote:
->>> On 10/23/2012 04:49 PM, Jon Hunter wrote:
->>>> Hi Seb,
->>>>
->>>> On 10/23/2012 03:37 AM, Sebastien Guiriec wrote:
->>>>> Add base address and interrupt line inside Device Tree data for
->>>>> OMAP5
->>>>>
->>>>> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
->>>>> ---
->>>>>   arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++++
->>>>>   1 file changed, 16 insertions(+)
->>>>>
->>>>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->>>>> index 42c78be..9e39f9f 100644
->>>>> --- a/arch/arm/boot/dts/omap5.dtsi
->>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>>>> @@ -104,6 +104,8 @@
->>>>>
->>>>>   		gpio1: gpio@4ae10000 {
->>>>>   			compatible = "ti,omap4-gpio";
->>>>> +			reg = <0x4ae10000 0x200>;
->>>>> +			interrupts = <0 29 0x4>;
->>>>>   			ti,hwmods = "gpio1";
->>>>>   			gpio-controller;
->>>>>   			#gpio-cells = <2>;
->>>>
->>>> I am wondering if we should add the "interrupt-parent" property to add
->>>> nodes in the device-tree source. I know that today the interrupt-parent
->>>> is being defined globally, but when device-tree maps an interrupt for a
->>>> device it searches for the interrupt-parent starting the current device
->>>> node.
->>>>
->>>> So in other words, for gpio1 it will search the gpio1 binding for
->>>> "interrupt-parent" and if not found move up a level and search again. It
->>>> will keep doing this until it finds the "interrupt-parent".
->>>>
->>>> Therefore, I believe it will improve search time and hence, boot time if
->>>> we have interrupt-parent defined in each node.
->>>
->>> Mmm, I'm not that sure. it will increase the size of the blob, so
->>> increase the time to load it and then to parse it. Where in the current
->>> case, it is just going up to the parent node using the already
->>> un-flatten tree in memory and thus that should not take that much time.
->>
->> Yes it will definitely increase the size, so that could slow things down.
->>
->>> That being said, it might be interesting to benchmark that to see what
->>> is the real impact.
->>
->> Right, I wonder what the key functions are we need to benchmark to get
->> an overall feel for what is best? Right now I am seeing some people add
->> the interrupt-parent for device nodes and others not. Ideally we should
->> be consistent, but at the same time it is probably something that we can
->> easily sort out later. So not a big deal either way.
->
-> For consistency, I'd rather not add it at all for the moment.
-> Later, when we will only support DT boot, people will start complaining
-> about the boot time increase and then we will start optimizing a little
-> bit :-)
+On 2012-10-23 18:42, Ricardo Neri wrote:
 
-I just do it like that to be consistent with what is inside OMAP4 dtsi 
-for those IPs (GPIO/UART/MMC/I2C). Now after checking Peter already add 
-the interrupt-parent for all audio IPs (OMAP3/4/5). But here we need 
-also interrupts name. So here we should try to be consistent.
+>> What registers does the audio side need to access?
+>=20
+> It only needs access to the DMA audio data port. All other operations
+> that the audio driver needs are done through the omapdss audio interfac=
+e.
 
-So I can send back the series for OMAP5 and update the OMAP4 with
-   interrupts-parent = <&gic>
+Hmm, so the audio side only needs the address of one register, for the
+audio data, and this address is given to sDMA? You have
+OMAP_HDMI_AUDIO_DMA_PORT in the audio code, is it the HDMI_WP_AUDIO_DATA
+register?
 
-As of today we are not consistent.
+If so, you could pass only that one address, instead of the whole HDMI
+register space?
 
->
-> Regards,
-> Benoit
->
->
+My point here is that we should make it very clear what the audio side
+can access. If we pass the whole HDMI register space, we should, in
+theory, be prepared to cope with the audio driver changing any register
+there. But if we pass only one register (or certain small ranges), we
+know the rest of the registers are safe.
+
+>> Why are part of the
+>> registers accessed via the hdmi driver API, and some directly? I imagi=
+ne
+>> it'd be better to do either one of those, but not both.
+>=20
+> This is because in the current omapdss audio interface we have no
+> functionality to handle the DMA transfers for audio. Do you think it
+> would be good to explore implementing support for that? At this point i=
+t
+> is not clear for me how to do it without duplicating the functionality
+> that ASoC provides for that.
+
+No, if the common ASoC code provides functionality for this, we should
+at least try to use it.
+
+I was looking at the ti_hdmi_4xxx_ip.h, searching for audio related
+registers by searching "AUD" string. I don't know if it makes any sense
+(you're better to have a say on that), but I think we could pass some of
+the audio registers ranges to the audio driver for use.
+
+For example, the HDMI_WP_AUDIO_* registers are together, we could give
+those to the audio driver if it makes sense. HDMI_CORE_AV_AUD* registers
+are a bit scattered, but... I guess it wouldn't be difficult to pass
+those also, there's still only a couple separate ranges.
+
+But I also have no problem with having the hdmi audio API in the hdmi
+video driver, as we do now. And I think we in any case need a few
+functions, even if we would give the audio driver access to the AUD
+registers.
+
+ Tomi
+
+
+
+--------------enigA7BD79107FE290EF1069D5C8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQhsMzAAoJEPo9qoy8lh71lxoP/2SXUj7iKBm16F5ecNqE7chD
+qgoBuxLrTsBp2k/WNsQov8d8qGs8b6ODBcTm/ze17m8yhKmtYaa2t9FM2ZfdWAV7
+la0dIwXYia/vGNAjU0rf2Chs0s7VWpHcEExbnz5FzmK+p2zho1uC1W61TVWlXY4i
+ZWPzxl/q99fgZRGxuA5ZfeUOIwRVp/41LW1s3GBZ3FRGtL6oCLie2NofRgxUtUHs
+I9uw9dp80c293P6QSk9y0RLBUaL75IyOfO1E+fgnoCOMR07cck4Lu44XyiXKAk5T
+pBiZJKEs4JjjvaoS6+JSBLjw1n8h2iIWSIpqrfzwyNOKMrAldh9iHDRb+UKhAIZ2
+WpnJjJJfcEpCXS1Xn9UnKgbAy0osABqEt1m0KuerhFK1LT177/1cw4HEUqj0ByLQ
+8dQULSkorC39qIFuKfY0oGpS7WUUrhjDhOZuSlDYQ0XkzZiMSKy38PpuJ43SU6Zw
+jwwF/2hN7aNfKWgmW62vAAaswuifzhPlXbtj/7rsWO62Pyc7gYbgQHamY5HFNIEO
+YEW46wtnanPdKApd5Qj/3R5GZeAQ7flcVwwrjsH9ts2w6YNRtikvj+lmzPWG6CX0
+YT5ySvYdRWDwhGrZoe6kvqTWITW85pgXvTiIYtv69r2ZxdsgQeydRHp14kIJaA44
+rbmlI0yGpIkCp4EVb0/P
+=4Yc6
+-----END PGP SIGNATURE-----
+
+--------------enigA7BD79107FE290EF1069D5C8--
