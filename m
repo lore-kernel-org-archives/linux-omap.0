@@ -1,35 +1,41 @@
-From: Wim Van Sebroeck <wim@iguana.be>
-Subject: Re: [PATCH 5/7] ARM: OMAP2+: WDT: move init; add read_reset_sources pdata function pointer (fwd)
-Date: Tue, 23 Oct 2012 10:05:33 +0200
-Message-ID: <20121023080533.GA16482@spo001.leaseweb.com>
-References: <alpine.DEB.2.00.1210180125140.30902@utopia.booyaka.com>
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: [PATCH v2 0/4] ARM: dts: Update OMAP5 with address space and interrupts
+Date: Tue, 23 Oct 2012 10:37:08 +0200
+Message-ID: <1350981432-6750-1-git-send-email-s-guiriec@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.pc-advies.be ([83.149.101.17]:37330 "EHLO
-	spo001.leaseweb.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751728Ab2JWIFf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 04:05:35 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210180125140.30902@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55587 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751817Ab2JWIhX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Oct 2012 04:37:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
+To: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Paul,
+Since kernel 3.7 the DTS data are not overwriten by hwmod data we can add the address space
+and interrupt line description inside dtsi file for OMAP5. This serie is updating the
+current OMAP5 IP with missing entry.
 
-> When you have the opportunity, could you take a look at this patch, and 
-> the subsequent patch 6/7, and ack them if you're okay with them?
+It has been tested on OMAP5 with 3.7-audio-display feature tree.
+- MMC is probing and functional
+- TWL6041 probing (GPIO/I2C)
+- booting (UART)
 
-Signed them off, Acked-by would probably have been better :-).
+Update since v1:
+- Add Ack and review
+- Fix up commit messages.
 
-> We'd like to merge thse as part of a larger cleanup series through the 
-> arm-soc tree.  They like cleanup patches to arrive at the beginning of the 
-> -rc series, which means that we need to have the pull request sent pretty 
-> soon.
+Sebastien Guiriec (4):
+  ARM: dts: omap5: Update GPIO with address space and interrupts
+  ARM: dts: omap5: Update I2C with address space and interrupts
+  ARM: dts: omap5: Update UART with address space and interrupts
+  ARM: dts: omap5: Update MMC with address space and interrupts
 
-Please go ahead. The sooner those ifdefs are gone the better.
+ arch/arm/boot/dts/omap5.dtsi |   56 +++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 52 insertions(+), 4 deletions(-)
 
-Kind regards,
-Wim.
+-- 
+1.7.10.4
+
