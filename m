@@ -1,171 +1,106 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [RFC PATCH 4/6] ARM: OMAP: SmartReflex: provide SoC integration API for VP
-Date: Tue, 23 Oct 2012 16:43:59 -0500
-Message-ID: <1351028641-20832-5-git-send-email-nm@ti.com>
-References: <1351028641-20832-1-git-send-email-nm@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] gpio/omap: fix off-mode bug: clear debounce clock enable mask on disable
+Date: Tue, 23 Oct 2012 15:00:09 -0700
+Message-ID: <87k3ug7st2.fsf@deeprootsystems.com>
+References: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com>
+	<20121023190914.GA853@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45503 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754158Ab2JWVoH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Oct 2012 17:44:07 -0400
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9NLi6mB026726
-	for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 16:44:06 -0500
-Received: from DLEE74.ent.ti.com (dlee74.ent.ti.com [157.170.170.8])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9NLi61S028648
-	for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 16:44:06 -0500
-In-Reply-To: <1351028641-20832-1-git-send-email-nm@ti.com>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:35839 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752631Ab2JWV7m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 17:59:42 -0400
+Received: by mail-da0-f46.google.com with SMTP id n41so2122815dak.19
+        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 14:59:41 -0700 (PDT)
+In-Reply-To: <20121023190914.GA853@arwen.pp.htv.fi> (Felipe Balbi's message of
+	"Tue, 23 Oct 2012 22:09:14 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: l-o <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@ti.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>
+To: balbi@ti.com
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-SoC integration of SmartReflex AVS block is varied. Some use
-Voltage Processor for a hardware loop in certain OMAP SoC (called
-hardware loop), while others have just the AVS block without
-hardware loop automatic calibration mechanism for AVS block
-to talk through. So provide the Voltage Processor API
-to allow for SmartReflex class drivers to use the same.
+Felipe Balbi <balbi@ti.com> writes:
 
-NOTE: SmartReflex class 3 mode of operation mandates VP APIs
-so, refuse to enable AVS driver if corresponding APIs are
-not available.
+> Hi,
+>
+> On Tue, Oct 23, 2012 at 11:09:31AM -0700, Kevin Hilman wrote:
+>> From: Kevin Hilman <khilman@ti.com>
+>> 
+>> When debounce clocks are disabled, ensure that the banks
+>> dbck_enable_mask is cleared also.  Otherwise, context restore on
+>> subsequent off-mode transition will restore previous value from the
+>> shadow copies (bank->context.debounce*) leading to mismatch state
+>> between driver state and hardware state.
+>> 
+>> This was discovered when board code was doing
+>> 
+>>   gpio_request_one()
+>>   gpio_set_debounce()
+>>   gpio_free()
+>> 
+>> which was leaving the GPIO debounce settings in a confused state.
+>> Then, enabling off mode causing bogus state to be restored, leaving
+>> GPIO debounce enabled which then prevented the CORE powerdomain from
+>> transitioning.
+>> 
+>> Reported-by: Paul Walmsley <paul@pwsan.com>
+>> Cc: Igor Grinberg <grinberg@compulab.co.il>
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>
+> looks like this deserves a Cc: stable@vger.kernel.org tag.
+>
 
-As part of this change, remove the inclusion of voltage.h
-which is no longer needed as smartreflex.h includes
-linux/platform_data/voltage-omap.h which contain relevant
-definitions used here.
+Agreed.  I think this goes all the way back to v3.5, but would've only
+been seen on boards using a request/gpio_set_debounce/free sequence
+combined with off-mode.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/smartreflex-class3.c |   16 +++++++++++++---
- arch/arm/mach-omap2/sr_device.c          |    5 +++++
- drivers/power/avs/smartreflex.c          |    2 ++
- include/linux/power/smartreflex.h        |   18 ++++++++++++++++++
- 4 files changed, 38 insertions(+), 3 deletions(-)
+Linus, feel free to add the Cc: stable when commiting.  Thanks.
 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 1da8f03..201e219 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -12,7 +12,6 @@
-  */
- 
- #include <linux/power/smartreflex.h>
--#include "voltage.h"
- 
- static int sr_class3_enable(struct omap_sr *sr)
- {
-@@ -23,15 +22,26 @@ static int sr_class3_enable(struct omap_sr *sr)
- 				__func__, sr->name);
- 		return -ENODATA;
- 	}
-+	if (!sr->soc_ops.vp_enable) {
-+		pr_warn("%s: no VP enable available.Cannot enable %s!!\n",
-+			__func__, sr->name);
-+		return -EINVAL;
-+	}
- 
--	omap_vp_enable(sr->voltdm);
-+	sr->soc_ops.vp_enable(sr->voltdm);
- 	return sr_enable(sr->voltdm, volt);
- }
- 
- static int sr_class3_disable(struct omap_sr *sr, int is_volt_reset)
- {
-+	if (!sr->soc_ops.vp_enable) {
-+		pr_warn("%s: no VP disable available.Cannot disable %s!!\n",
-+			__func__, sr->name);
-+		return -EINVAL;
-+	}
- 	sr_disable_errgen(sr->voltdm);
--	omap_vp_disable(sr->voltdm);
-+
-+	sr->soc_ops.vp_disable(sr->voltdm);
- 	sr_disable(sr->voltdm);
- 	if (is_volt_reset)
- 		voltdm_reset(sr->voltdm);
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-index f8217a5..6aac2c7 100644
---- a/arch/arm/mach-omap2/sr_device.c
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -139,6 +139,11 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
- 
- 	sr_data->enable_on_init = sr_enable_on_init;
- 
-+	if (sr_data->voltdm->vp) {
-+		sr_data->soc_ops.vp_enable = omap_vp_enable;
-+		sr_data->soc_ops.vp_disable = omap_vp_disable;
-+	}
-+
- 	pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
- 				 NULL, 0, 0);
- 	if (IS_ERR(pdev))
-diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-index 24768a2..32a9e3e 100644
---- a/drivers/power/avs/smartreflex.c
-+++ b/drivers/power/avs/smartreflex.c
-@@ -920,6 +920,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	sr_info->pdev = pdev;
- 	sr_info->srid = pdev->id;
- 	sr_info->voltdm = pdata->voltdm;
-+	sr_info->soc_ops.vp_enable =  pdata->soc_ops.vp_enable;
-+	sr_info->soc_ops.vp_disable =  pdata->soc_ops.vp_disable;
- 	sr_info->nvalue_table = pdata->nvalue_table;
- 	sr_info->nvalue_count = pdata->nvalue_count;
- 	sr_info->senn_mod = pdata->senn_mod;
-diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
-index 4a496eb..203fc64 100644
---- a/include/linux/power/smartreflex.h
-+++ b/include/linux/power/smartreflex.h
-@@ -143,6 +143,21 @@
- #define OMAP3430_SR_ERRWEIGHT		0x04
- #define OMAP3430_SR_ERRMAXLIMIT		0x02
- 
-+/**
-+ * struct omap_sr_soc_ops - SoC specific APIs
-+ * @vp_enable:	Voltage Processor enable
-+ * @vp_disable:	Voltage Processor disable
-+ *
-+ * SmartReflex AVS module integration tends to be SoC
-+ * variant. some are integrated with modules like
-+ * Voltage Processor (VP), while, some SoC integration
-+ * donot use VP. Provide that variance here.
-+ */
-+struct omap_sr_soc_ops {
-+	void (*vp_enable)(struct voltagedomain *voltdm);
-+	void (*vp_disable)(struct voltagedomain *voltdm);
-+};
-+
- struct omap_sr {
- 	char				*name;
- 	struct list_head		node;
-@@ -165,6 +180,7 @@ struct omap_sr {
- 	u32				senp_mod;
- 	u32				senn_mod;
- 	void __iomem			*base;
-+	struct omap_sr_soc_ops		soc_ops;
- };
- 
- /**
-@@ -268,6 +284,7 @@ struct omap_sr_nvalue_table {
-  * @nvalue_table:	table containing the  efuse offsets and nvalues
-  *			corresponding to them.
-  * @voltdm:		Pointer to the voltage domain associated with the SR
-+ * @soc_ops:		SoC specific ops to deal with integration variance
-  */
- struct omap_sr_data {
- 	const char			*name;
-@@ -278,6 +295,7 @@ struct omap_sr_data {
- 	bool				enable_on_init;
- 	struct omap_sr_nvalue_table	*nvalue_table;
- 	struct voltagedomain		*voltdm;
-+	struct omap_sr_soc_ops		soc_ops;
- };
- 
- /* Smartreflex module enable/disable interface */
--- 
-1.7.9.5
+>> ---
+>> Applies on v3.7-rc2, targetted for v3.7.
+>> 
+>>  drivers/gpio/gpio-omap.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>> 
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index 94cbc84..dee2856 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -187,6 +187,7 @@ static inline void _gpio_dbck_disable(struct gpio_bank *bank)
+>>  		 * to detect events and generate interrupts at least on OMAP3.
+>>  		 */
+>>  		__raw_writel(0, bank->base + bank->regs->debounce_en);
+>> +		bank->dbck_enable_mask = 0;
+>
+> shouldn't omap_gpio_restore_context() check for dbck_enabled instead of
+> the mask ? I mean:
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 94cbc84..b3a39a7 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1371,7 +1371,7 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+>  				bank->base + bank->regs->dataout);
+>  	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
+>  
+> -	if (bank->dbck_enable_mask) {
+> +	if (bank->dbck_enabled) {
+>  		__raw_writel(bank->context.debounce, bank->base +
+>  					bank->regs->debounce);
+>  		__raw_writel(bank->context.debounce_en,
+>
+> the outcome would be the same, so it doesn't really matter. Just that,
+> at least to me, it would look better.
 
+I tried your version, and unfortunately, the outcome is not the same,
+but don't plan to look into why.  $SUBJECT version is targetted and
+tested.  If you want to cleanup the cosmetics here, please do in a
+subsequent patch.  This driver could certainly benefit from more
+readability cleanups.
+
+> No strong feelings though.
+
+Good.   I'll take that as an Ack.  :)
+
+Kevin
