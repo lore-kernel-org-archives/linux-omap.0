@@ -1,154 +1,60 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] i2c: omap: re-factor omap_i2c_init function
-Date: Tue, 23 Oct 2012 20:57:19 +0530
-Message-ID: <1351006039-24332-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [RFC] ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
+Date: Tue, 23 Oct 2012 21:13:56 +0530
+Message-ID: <CAM=Q2cvLc63tGMG1t1wguiMHqNxcrZ60GF+fHjxc6_8c7rBykw@mail.gmail.com>
+References: <1350922532-26338-1-git-send-email-t-kristo@ti.com>
+	<87zk3edvti.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:37355 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932938Ab2JWPn4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 11:43:56 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so5477330iea.19
+        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 08:43:56 -0700 (PDT)
+In-Reply-To: <87zk3edvti.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Venkatraman S <svenkatr@ti.com>
 
-re-factor omap_i2c_init() so that we can re-use it for resume.
-While at it also remove the bufstate variable as we write it
-in omap_i2c_resize_fifo for every transfer.
+On Tue, Oct 23, 2012 at 3:16 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+>
+>> When waking up from off-mode, some IP blocks are reset automatically by
+>> hardware. For this reason, software must wait until the reset has
+>> completed before attempting to access the IP block.
+>>
+>> This patch fixes for example the bug introduced by commit
+>> 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c ("mmc: omap_hsmmc: remove access
+>> to SYSCONFIG register"), in which the MMC IP block is reset during
+>> off-mode entry, but the code expects the module to be already available
+>> during the execution of context restore.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Cc: Venkatraman S <svenkatr@ti.com>
+>
+> I can confirm that this patch the regression in my OMAP3 PM tests where
+> suspend test (to retention or off) failed if ran after the off-idle
+> test.
+>
+> Tested-by: Kevin Hilman <khilman@ti.com>
+>
+> on 3530/Overo, 3730/OveroSTORM, 3730/Beagle-xM
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
-Applies on Felipe's series
-http://www.spinics.net/lists/linux-omap/msg79995.html
+on 3630/Beagle works.
+However on 3430 on idle path didnot work.
+let me know if i am missing some thing.
 
-Tested with Terro sys fix + Felipe's stop sched_clock() during suspend
-on omap3636 beagle both idle and suspend.
-
-Functional testing on omap4sdp.
-
- drivers/i2c/busses/i2c-omap.c |   68 +++++++++++++++++------------------------
- 1 files changed, 28 insertions(+), 40 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5e5cefb..338cee7 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -209,7 +209,6 @@ struct omap_i2c_dev {
- 	u16			pscstate;
- 	u16			scllstate;
- 	u16			sclhstate;
--	u16			bufstate;
- 	u16			syscstate;
- 	u16			westate;
- 	u16			errata;
-@@ -285,9 +284,26 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 	}
- }
- 
-+static void __omap_i2c_init(struct omap_i2c_dev *dev)
-+{
-+
-+	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-+	/* Setup clock prescaler to obtain approx 12MHz I2C module clock: */
-+	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-+
-+	/* SCL low and high time values */
-+	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-+	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
-+	if (dev->rev >= OMAP_I2C_REV_ON_3430_3530)
-+		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
-+	/* Take the I2C module out of reset: */
-+	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+
-+}
- static int omap_i2c_init(struct omap_i2c_dev *dev)
- {
--	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
-+	u16 psc = 0, scll = 0, sclh = 0;
- 	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
- 	unsigned long fclk_rate = 12000000;
- 	unsigned long timeout;
-@@ -337,11 +353,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			 * REVISIT: Some wkup sources might not be needed.
- 			 */
- 			dev->westate = OMAP_I2C_WE_ALL;
--			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
--							dev->westate);
- 		}
- 	}
--	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 
- 	if (dev->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
- 		/*
-@@ -426,28 +439,18 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 		sclh = fclk_rate / (dev->speed * 2) - 7 + psc;
- 	}
- 
--	/* Setup clock prescaler to obtain approx 12MHz I2C module clock: */
--	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, psc);
--
--	/* SCL low and high time values */
--	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
--	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
--
--	/* Take the I2C module out of reset: */
--	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
--
- 	/* Enable interrupts */
- 	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
- 			OMAP_I2C_IE_NACK | OMAP_I2C_IE_AL)  |
- 			((dev->fifo_size) ? (OMAP_I2C_IE_RDR |
- 				OMAP_I2C_IE_XDR) : 0);
--	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
--	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
--		dev->pscstate = psc;
--		dev->scllstate = scll;
--		dev->sclhstate = sclh;
--		dev->bufstate = buf;
--	}
-+
-+	dev->pscstate = psc;
-+	dev->scllstate = scll;
-+	dev->sclhstate = sclh;
-+
-+	__omap_i2c_init(dev);
-+
- 	return 0;
- }
- 
-@@ -1136,7 +1139,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	if (IS_ERR_VALUE(r))
- 		goto err_free_mem;
- 
--	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-+	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG)  & 0xff;
- 
- 	dev->errata = 0;
- 
-@@ -1268,23 +1271,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
- {
- 	struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
- 
--	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
--		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
--		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
--		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
--		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
--		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
--		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
--		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
--		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
--	}
--
--	/*
--	 * Don't write to this register if the IE state is 0 as it can
--	 * cause deadlock.
--	 */
--	if (_dev->iestate)
--		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
-+	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
-+		__omap_i2c_init(_dev);
- 
- 	return 0;
- }
--- 
-1.7.5.4
+>
+> Thanks Tero for the fix,
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
