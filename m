@@ -1,56 +1,59 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: re-factor omap_i2c_init function
-Date: Tue, 23 Oct 2012 23:34:38 +0530
-Message-ID: <CAM=Q2ct7h=AXQBR=Qwr1QeWoEerXuDykUFmk9vRF85cb9b80JA@mail.gmail.com>
-References: <1351006039-24332-1-git-send-email-shubhrajyoti@ti.com>
-	<20121023171840.GA32167@arwen.pp.htv.fi>
-	<CAM=Q2cs-+O_BFrZFX4fuBooogEZiQO2Zxbm8W40vN9hmampLCA@mail.gmail.com>
-	<20121023175706.GC32517@arwen.pp.htv.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121023175706.GC32517-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] gpio/omap: fix off-mode bug: clear debounce clock enable mask on disable
+Date: Tue, 23 Oct 2012 11:09:31 -0700
+Message-ID: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:44273 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932571Ab2JWSJe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 14:09:34 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so616840pbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 11:09:34 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-On Tue, Oct 23, 2012 at 11:27 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
->
-> On Tue, Oct 23, 2012 at 11:26:15PM +0530, Shubhrajyoti Datta wrote:
->> >> @@ -1268,23 +1271,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
->> >>  {
->> >>       struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
->> >>
->> >> -     if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
->> >> -     }
->> >> -
->> >> -     /*
->> >> -      * Don't write to this register if the IE state is 0 as it can
->> >> -      * cause deadlock.
->> >> -      */
->> >> -     if (_dev->iestate)
->> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
->> >
->> > this part is not on __omap_i2c_init() so you're potentially causing a
->> > regression here.
->>
->> iestate is set at init so cannot be zero. so the check was removed.
->
-> so you never read it back ? Then you need to add a note for that in
-> changelog, since this is a behavior change ;-)
+From: Kevin Hilman <khilman@ti.com>
 
-Indeed will do.
->
->
-> --
-> balbi
+When debounce clocks are disabled, ensure that the banks
+dbck_enable_mask is cleared also.  Otherwise, context restore on
+subsequent off-mode transition will restore previous value from the
+shadow copies (bank->context.debounce*) leading to mismatch state
+between driver state and hardware state.
+
+This was discovered when board code was doing
+
+  gpio_request_one()
+  gpio_set_debounce()
+  gpio_free()
+
+which was leaving the GPIO debounce settings in a confused state.
+Then, enabling off mode causing bogus state to be restored, leaving
+GPIO debounce enabled which then prevented the CORE powerdomain from
+transitioning.
+
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Applies on v3.7-rc2, targetted for v3.7.
+
+ drivers/gpio/gpio-omap.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 94cbc84..dee2856 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -187,6 +187,7 @@ static inline void _gpio_dbck_disable(struct gpio_bank *bank)
+ 		 * to detect events and generate interrupts at least on OMAP3.
+ 		 */
+ 		__raw_writel(0, bank->base + bank->regs->debounce_en);
++		bank->dbck_enable_mask = 0;
+ 
+ 		clk_disable(bank->dbck);
+ 		bank->dbck_enabled = false;
+-- 
+1.8.0
+
