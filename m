@@ -1,65 +1,154 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap5: Update GPIO with address space
- and interrupts
-Date: Tue, 23 Oct 2012 17:09:10 +0200
-Message-ID: <5086B316.6000001@ti.com>
-References: <1350981432-6750-1-git-send-email-s-guiriec@ti.com> <1350981432-6750-2-git-send-email-s-guiriec@ti.com> <5086AE8E.60106@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] i2c: omap: re-factor omap_i2c_init function
+Date: Tue, 23 Oct 2012 20:57:19 +0530
+Message-ID: <1351006039-24332-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5086AE8E.60106@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/23/2012 04:49 PM, Jon Hunter wrote:
-> Hi Seb,
-> 
-> On 10/23/2012 03:37 AM, Sebastien Guiriec wrote:
->> Add base address and interrupt line inside Device Tree data for
->> OMAP5
->>
->> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
->> ---
->>  arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++++
->>  1 file changed, 16 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->> index 42c78be..9e39f9f 100644
->> --- a/arch/arm/boot/dts/omap5.dtsi
->> +++ b/arch/arm/boot/dts/omap5.dtsi
->> @@ -104,6 +104,8 @@
->>  
->>  		gpio1: gpio@4ae10000 {
->>  			compatible = "ti,omap4-gpio";
->> +			reg = <0x4ae10000 0x200>;
->> +			interrupts = <0 29 0x4>;
->>  			ti,hwmods = "gpio1";
->>  			gpio-controller;
->>  			#gpio-cells = <2>;
-> 
-> I am wondering if we should add the "interrupt-parent" property to add
-> nodes in the device-tree source. I know that today the interrupt-parent
-> is being defined globally, but when device-tree maps an interrupt for a
-> device it searches for the interrupt-parent starting the current device
-> node.
-> 
-> So in other words, for gpio1 it will search the gpio1 binding for
-> "interrupt-parent" and if not found move up a level and search again. It
-> will keep doing this until it finds the "interrupt-parent".
-> 
-> Therefore, I believe it will improve search time and hence, boot time if
-> we have interrupt-parent defined in each node.
+re-factor omap_i2c_init() so that we can re-use it for resume.
+While at it also remove the bufstate variable as we write it
+in omap_i2c_resize_fifo for every transfer.
 
-Mmm, I'm not that sure. it will increase the size of the blob, so
-increase the time to load it and then to parse it. Where in the current
-case, it is just going up to the parent node using the already
-un-flatten tree in memory and thus that should not take that much time.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+Applies on Felipe's series
+http://www.spinics.net/lists/linux-omap/msg79995.html
 
-That being said, it might be interesting to benchmark that to see what
-is the real impact.
+Tested with Terro sys fix + Felipe's stop sched_clock() during suspend
+on omap3636 beagle both idle and suspend.
 
-Regards,
-Benoit
+Functional testing on omap4sdp.
+
+ drivers/i2c/busses/i2c-omap.c |   68 +++++++++++++++++------------------------
+ 1 files changed, 28 insertions(+), 40 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 5e5cefb..338cee7 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -209,7 +209,6 @@ struct omap_i2c_dev {
+ 	u16			pscstate;
+ 	u16			scllstate;
+ 	u16			sclhstate;
+-	u16			bufstate;
+ 	u16			syscstate;
+ 	u16			westate;
+ 	u16			errata;
+@@ -285,9 +284,26 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+ 	}
+ }
+ 
++static void __omap_i2c_init(struct omap_i2c_dev *dev)
++{
++
++	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
++	/* Setup clock prescaler to obtain approx 12MHz I2C module clock: */
++	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
++
++	/* SCL low and high time values */
++	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
++	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
++	if (dev->rev >= OMAP_I2C_REV_ON_3430_3530)
++		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
++	/* Take the I2C module out of reset: */
++	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++
++}
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+-	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
++	u16 psc = 0, scll = 0, sclh = 0;
+ 	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+ 	unsigned long fclk_rate = 12000000;
+ 	unsigned long timeout;
+@@ -337,11 +353,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 			 * REVISIT: Some wkup sources might not be needed.
+ 			 */
+ 			dev->westate = OMAP_I2C_WE_ALL;
+-			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+-							dev->westate);
+ 		}
+ 	}
+-	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 
+ 	if (dev->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
+ 		/*
+@@ -426,28 +439,18 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 		sclh = fclk_rate / (dev->speed * 2) - 7 + psc;
+ 	}
+ 
+-	/* Setup clock prescaler to obtain approx 12MHz I2C module clock: */
+-	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, psc);
+-
+-	/* SCL low and high time values */
+-	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
+-	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
+-
+-	/* Take the I2C module out of reset: */
+-	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+-
+ 	/* Enable interrupts */
+ 	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+ 			OMAP_I2C_IE_NACK | OMAP_I2C_IE_AL)  |
+ 			((dev->fifo_size) ? (OMAP_I2C_IE_RDR |
+ 				OMAP_I2C_IE_XDR) : 0);
+-	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+-	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+-		dev->pscstate = psc;
+-		dev->scllstate = scll;
+-		dev->sclhstate = sclh;
+-		dev->bufstate = buf;
+-	}
++
++	dev->pscstate = psc;
++	dev->scllstate = scll;
++	dev->sclhstate = sclh;
++
++	__omap_i2c_init(dev);
++
+ 	return 0;
+ }
+ 
+@@ -1136,7 +1139,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	if (IS_ERR_VALUE(r))
+ 		goto err_free_mem;
+ 
+-	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
++	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG)  & 0xff;
+ 
+ 	dev->errata = 0;
+ 
+@@ -1268,23 +1271,8 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ {
+ 	struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
+ 
+-	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+-		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
+-		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+-	}
+-
+-	/*
+-	 * Don't write to this register if the IE state is 0 as it can
+-	 * cause deadlock.
+-	 */
+-	if (_dev->iestate)
+-		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
++	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
++		__omap_i2c_init(_dev);
+ 
+ 	return 0;
+ }
+-- 
+1.7.5.4
