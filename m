@@ -1,110 +1,53 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Tue, 23 Oct 2012 11:18:12 +0200
-Message-ID: <508660D4.9030507@ti.com>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
- <20121022155028.GA13791@core.coreip.homeip.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] arm: sched: stop sched_clock() during suspend
+Date: Tue, 23 Oct 2012 10:22:31 +0100
+Message-ID: <20121023092231.GE28061@n2100.arm.linux.org.uk>
+References: <1350906877-19410-1-git-send-email-balbi@ti.com>
+ <873916h1yi.fsf@deeprootsystems.com>
+ <CACRpkdY6ox+iJAGdSD=e7Yj55TzDWqOmLqu2fSRXvKJxqwfkhQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121022155028.GA13791-WlK9ik9hQGAhIp7JRqBPierSzoNAToWh@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdY6ox+iJAGdSD=e7Yj55TzDWqOmLqu2fSRXvKJxqwfkhQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Andrew Lunn <andrew@lunn.ch>, Kevin Hilman <khilman@deeprootsystems.com>, Daniel Walker <dwalker@fifo99.com>, Thomas Gleixner <tglx@linutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Barry Song <21cnbao@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, John Stultz <john.stultz@linaro.org>, Ben Dooks <ben-linux@fluff.org>, Alexander Schulz <alex@shark-linux.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Victor <linux@maxim.org.za>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Bryan Huntsman <bryanh@codeaurora.org>, Santosh
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dimitry,
-
-On 10/22/2012 05:50 PM, Dmitry Torokhov wrote:
-> Hi Sourav,
+On Tue, Oct 23, 2012 at 12:28:32AM +0200, Linus Walleij wrote:
+> On Mon, Oct 22, 2012 at 7:05 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
 > 
-> On Mon, Oct 22, 2012 at 06:43:00PM +0530, Sourav Poddar wrote:
->> Adapt keypad to use pinctrl framework.
->>
->> Tested on omap4430 sdp with 3.7-rc1 kernel.
+> > However, in light of RT throttling, this a correctness issue for process
+> > accounting, so I agree that this should be done for all platforms
+> > instead of providing an optional 'needs suspend' version of the API,
+> > even though it means printk times no longer reflect time spent
+> > suspended.
 > 
-> I do not see anything in the driver that would directly use pinctrl. Is
-> there a better place to select default pin configuration; maybe when
-> instantiating platform device?
-
-Why?
-The devm_pinctrl_get_select_default is using the pinctrl.
-That's why it is named "get_select_default" and not "get" only.
-This API ensure that the pin will be set to the default state, and this
-is all we need to do during the probe.
-
-There is no point to change the mux if the driver is not probed, because
-potentially the pin can be use be another driver.
-So probe is the right place to do that for my point of view. Moreover
-with DT we don't have that board static config like we had before to do
-that kind of pin mux init.
-
-But, maybe I'm missing your point.
-
-Regards,
-Benoit
-
-
+> Maybe we should get printk() to use the best clocksource
+> instead.
 > 
-> Thanks.
-> 
->>
->> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->> Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> Signed-off-by: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
->> ---
->> v1->v2
->> - Added "PROBE_DEFER" check 
->>  drivers/input/keyboard/omap4-keypad.c |   11 +++++++++++
->>  1 files changed, 11 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
->> index c05f98c..502b832 100644
->> --- a/drivers/input/keyboard/omap4-keypad.c
->> +++ b/drivers/input/keyboard/omap4-keypad.c
->> @@ -31,6 +31,7 @@
->>  #include <linux/input.h>
->>  #include <linux/slab.h>
->>  #include <linux/pm_runtime.h>
->> +#include <linux/pinctrl/consumer.h>
->>  
->>  #include <linux/platform_data/omap4-keypad.h>
->>  
->> @@ -76,6 +77,7 @@ enum {
->>  
->>  struct omap4_keypad {
->>  	struct input_dev *input;
->> +	struct pinctrl	*pins;
->>  
->>  	void __iomem *base;
->>  	unsigned int irq;
->> @@ -298,6 +300,15 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
->>  		goto err_release_mem;
->>  	}
->>  
->> +	keypad_data->pins = devm_pinctrl_get_select_default(&pdev->dev);
->> +	if (IS_ERR(keypad_data->pins)) {
->> +		if (PTR_ERR(keypad_data->pins) == -EPROBE_DEFER)
->> +			return -EPROBE_DEFER;
->> +
->> +		dev_warn(&pdev->dev, "did not get pins for keypad error: %li\n",
->> +					PTR_ERR(keypad_data->pins));
->> +		keypad_data->pins = NULL;
->> +	}
->>  
->>  	/*
->>  	 * Enable clocks for the keypad module so that we can read
->> -- 
->> 1.7.1
->>
-> 
+> The reason AFAICT that printk() is using sched_clock() is that
+> it's supposed to be fast. But now it seems that it's not going
+> to return what printk() needs anymore.
+
+No, printk() does not need this.  You think it does, but it doesn't.  What
+we have is a difference between ARM and x86, and this difference is breaking
+the scheduler.
+
+The fact that the printk timestamp increments while suspended is a bug.  It
+doesn't on x86.
+
+There's three other functions in the kernel which do return updated time.
+I'm sure one of those can be used to printk() the time passed in suspend
+at resume time, which would give the information required.
