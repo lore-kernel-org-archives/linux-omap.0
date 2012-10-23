@@ -1,132 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 6/6] OMAPDSS: HDMI: Create platform device to support
- audio
-Date: Tue, 23 Oct 2012 12:37:45 +0300
-Message-ID: <50866569.8010409@ti.com>
-References: <1350350839-30408-1-git-send-email-ricardo.neri@ti.com> <1350350839-30408-7-git-send-email-ricardo.neri@ti.com> <5084F85C.9050508@ti.com> <5085E957.6060003@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about serial
+ stuff)
+Date: Tue, 23 Oct 2012 11:46:08 +0200
+Message-ID: <50866760.3010509@compulab.co.il>
+References: <20121012155434.GO28061@n2100.arm.linux.org.uk> <20121012162452.GD30339@atomide.com> <CAK=Wgba087mdaYhvKNUAy6H8rAb+owTAz1yqexEtDg+f06kJdg@mail.gmail.com> <20121016181038.GC15569@atomide.com> <20121016182642.GF15569@atomide.com> <CAK=WgbaQ-0V2htnmyCAzBco-sZVWN3WR2mhABGZNaYU6uM1wgg@mail.gmail.com> <507EA7DB.3070207@compulab.co.il> <CAK=Wgba_-k0kCHah6t6L4=qt838j30ZRVRbgAdJ1yzHDyA8frw@mail.gmail.com> <20121019170759.GK4730@atomide.com> <CAK=WgbbPmuOgssRRSinsV3rXg7TUa9fpOP-Zg+VatZgqgVYixw@mail.gmail.com> <5086494D.4080205@compulab.co.il> <CAK=WgbZfJ3bg+Xt+HJtaiPHV=7=TK-=93SgB7cNp8XwwZRyB0Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigADFB0FC370754792320D5257"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58170 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756956Ab2JWJhs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Oct 2012 05:37:48 -0400
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9N9blNi014313
-	for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 04:37:47 -0500
-Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9N9blv7030029
-	for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 04:37:47 -0500
-In-Reply-To: <5085E957.6060003@ti.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:41613 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756963Ab2JWJqO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Oct 2012 05:46:14 -0400
+In-Reply-To: <CAK=WgbZfJ3bg+Xt+HJtaiPHV=7=TK-=93SgB7cNp8XwwZRyB0Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: s-guiriec@ti.com, peter.ujfalusi@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Afzal Mohammed <afzal@ti.com>, =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
 
---------------enigADFB0FC370754792320D5257
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
 
-On 2012-10-23 03:48, Ricardo Neri wrote:
 
->>> +#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
->>> +#define HDMI_AUDIO_MEM_RESOURCE 0
->>> +#define HDMI_AUDIO_DMA_RESOURCE 1
+On 10/23/12 09:51, Ohad Ben-Cohen wrote:
+> On Tue, Oct 23, 2012 at 9:37 AM, Igor Grinberg <grinberg@compulab.co.il> wrote:
+>>> +     ret = wl12xx_set_platform_data(wlan_data);
+>>> +     /* bail out silently in case wl12xx isn't configured */
+>>> +     if (ret == -ENOSYS)
+>>> +             return ret;
 >>
->> I don't see much point with these definitions. They are hdmi.c interna=
-l,
->> so the audio driver can't use them, and so they aren't really fixed.
->=20
-> I just thought it could make the code more readable; but if the
-> resources array is going to be local, then they are not helpful.
+>> Since we have the function ifdef'ed, I don't think we need
+>> the ENOSYS check, do we?
+> 
+> If we want to be strict, we better not remove it.
+> 
+> It's an interface that hides the internal implementation, and it's
+> just better not to assume anything beyond the return values and their
+> meanings. This way if WLAN folks change something in the future, we
+> don't need to update all the boards code again.
 
-My point was that if the defines as hdmi.c internal, you need to add the
-same defines into the audio code also in order to use them. And then
-we'd have the same defines in two places.
+Well, with this argument, we can add this (and many other checks) to
+many more places in the code...
+I just wanted to point out that most probably ret == -ENOSYS will
+never happen since the #ifdef is added, but no problem from my side,
+it does not hurt to have 4 more lines just in case, right?
 
-Or, if audio code doesn't need them to parse the resources, then they
-aren't really relevant here either, as you are just adding two resources
-to the array, and their order is not important.
+Thanks for the patch and the explanation!
 
->> So, how will this work? All the audio related functions will be remove=
-d
->> from the (video) hdmi driver, and the audio driver will access the
->> registers independently? The audio driver will still need to access th=
-e
->> video parts, right?
-> That could be a new approach, but the idea here is to continue having a=
-n
-> omapdss audio interface for audio drivers to use.
+You have my ack already...
 
-Ok. Do you have a git tree with the audio code working with this
-approach? Or can you just copy paste a few lines showing how the audio
-driver uses this. It'd be easier to understand by seeing that side of
-the code also.
-
-The audio uses sDMA for the transfer?
-
-> The root problem that I am trying to address is that the omapdss audio
-> interface does not have functionality for DMA transfer of audio samples=
-
-> to the HDMI IP. Also, I am not sure how that could be done without
-> duplicating the functionality that ASoC already provides.
-
-Ok. But the audio driver still needs access to the HDMI registers? I'm
-not worried about passing the DMA resource. Video side doesn't use that.
-But video side uses the registers, and both having the same ioremapped
-area could possibly lead both writing to the same register. Or perhaps
-not the same register, but still doing conflicting things at the hw
-level at the same time.
-
->> I feel a bit uneasy about giving the same ioremapped register space to=
-
->> two independent drivers... If we could split the registers to video an=
-d
->> audio parts, each driver only ioremapping their respective registers,
->> it'd be much better.
->=20
-> Fwiw, the audio drivers (at least my audio drivers) will not ioremap.
-> They will just take the DMA request number and port. Maybe spliting the=
-
-> register space into audio and video is not practical as we would endup
-> having many tiny address spaces.
-
-Yes, if there's no clear HDMI block division for video and audio, then
-it doesn't sound good to split them up if we'd have lots of small
-address spaces.
-
-What registers does the audio side need to access? Why are part of the
-registers accessed via the hdmi driver API, and some directly? I imagine
-it'd be better to do either one of those, but not both.
-
- Tomi
-
-
-
---------------enigADFB0FC370754792320D5257
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQhmVpAAoJEPo9qoy8lh71LOQP/RrQCQHiErUSCOuun2TzFQw7
-FIa6UeyrGf1f02howcTeuGj7AvluoUJ+CJ6DO28mCY8XkmMnA0u291uxwbZDGfJf
-qWYAjWqcA+/vr7qcwANDpdt8RzaYitXX/bhlQaDzbB6lmT8y9ilJBm0qFwaNqHxI
-5j4QPxjvOSveSrwFbA98PtzRGUtj9ldZ2qp1uTcffoAci08r53PobQLyBXTYSmLD
-UINwCzbwl7pWj5QgLqBsavl58ZB7B5iLR/DK2htkDyDNGsHiOOvQ7DJZyfMV8qnK
-6zQPUbCWBO4WZubiuuKk2HehnI1BEIMlYlQqTaU2ZBqnUYySQY1ttLExM3jUKB+l
-brM5/wbTaci68TyZXbZaTtyJe8njLKlGDvSrAOk6OAi9zuASHn8aSkZde/vHSxcs
-JDAzn+ybDUtLOF5ui/rthPvrRpXovRIIncIGfvQfEBVdusvNjzQFUFnIAAvJaqeR
-p4BG8Csaod9YLA/odccQvhaUjQKxwsb4U0EUVU2fDGfLBAAbpta2aPaPsfvXwQ5B
-pRVK/FVPm7KCtEzRwnPJ1jtkF0RseVYTGJ72SfT6dWJDjc2pZj+mfMThyhlZR0Kh
-hD5xaIYTtJ0Ai3E96HzyyAVl4RI1BToWRTgFtR4/IqkJ2pDqZPnh6Ez6a4+AKDMm
-Qri2Y3ny+UOKSgPjwJQm
-=1bSJ
------END PGP SIGNATURE-----
-
---------------enigADFB0FC370754792320D5257--
+-- 
+Regards,
+Igor.
