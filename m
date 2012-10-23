@@ -1,90 +1,61 @@
-From: Sebastien Guiriec <s-guiriec@ti.com>
-Subject: [PATCH v2 3/4] ARM: dts: omap5: Update UART with address space and
- interrupts
-Date: Tue, 23 Oct 2012 10:37:11 +0200
-Message-ID: <1350981432-6750-4-git-send-email-s-guiriec@ti.com>
-References: <1350981432-6750-1-git-send-email-s-guiriec@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 23 Oct 2012 11:13:05 +0200
+Message-ID: <CACRpkdaQ1WfRWrx=RXMVkeFtwdERJsOpVa3DaXBTU2KZdgqhRQ@mail.gmail.com>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
+	<20121022155028.GA13791@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1350981432-6750-1-git-send-email-s-guiriec@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:64802 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756707Ab2JWJNH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 05:13:07 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hr7so3386305wib.1
+        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 02:13:05 -0700 (PDT)
+In-Reply-To: <20121022155028.GA13791@core.coreip.homeip.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: tony@atomide.com, b-cousson@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-Add base address and interrupt line inside Device Tree data for
-OMAP5.
+On Mon, Oct 22, 2012 at 5:50 PM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> Hi Sourav,
+>
+> On Mon, Oct 22, 2012 at 06:43:00PM +0530, Sourav Poddar wrote:
+>> Adapt keypad to use pinctrl framework.
+>>
+>> Tested on omap4430 sdp with 3.7-rc1 kernel.
+>
+> I do not see anything in the driver that would directly use pinctrl. Is
+> there a better place to select default pin configuration; maybe when
+> instantiating platform device?
 
-Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
-Reviewed-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+The option is to use pinctrl hogs. Then the pins will be taken,
+muxed and configured by the pin controller itself.
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 6c22e1b..413df94 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -237,36 +237,48 @@
- 
- 		uart1: serial@4806a000 {
- 			compatible = "ti,omap4-uart";
-+			reg = <0x4806a000 0x100>;
-+			interrupts = <0 72 0x4>;
- 			ti,hwmods = "uart1";
- 			clock-frequency = <48000000>;
- 		};
- 
- 		uart2: serial@4806c000 {
- 			compatible = "ti,omap4-uart";
-+			reg = <0x4806c000 0x100>;
-+			interrupts = <0 73 0x4>;
- 			ti,hwmods = "uart2";
- 			clock-frequency = <48000000>;
- 		};
- 
- 		uart3: serial@48020000 {
- 			compatible = "ti,omap4-uart";
-+			reg = <0x48020000 0x100>;
-+			interrupts = <0 74 0x4>;
- 			ti,hwmods = "uart3";
- 			clock-frequency = <48000000>;
- 		};
- 
- 		uart4: serial@4806e000 {
- 			compatible = "ti,omap4-uart";
-+			reg = <0x4806e000 0x100>;
-+			interrupts = <0 70 0x4>;
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
- 		};
- 
- 		uart5: serial@48066000 {
--			compatible = "ti,omap5-uart";
-+			compatible = "ti,omap4-uart";
-+			reg = <0x48066000 0x100>;
-+			interrupts = <0 105 0x4>;
- 			ti,hwmods = "uart5";
- 			clock-frequency = <48000000>;
- 		};
- 
- 		uart6: serial@48068000 {
--			compatible = "ti,omap6-uart";
-+			compatible = "ti,omap4-uart";
-+			reg = <0x48068000 0x100>;
-+			interrupts = <0 106 0x4>;
- 			ti,hwmods = "uart6";
- 			clock-frequency = <48000000>;
- 		};
--- 
-1.7.10.4
+Another option (not implemented) is to use bus notifiers.
+
+(I wrote about this in some other thread but can't find it now.)
+
+Each approach above come with its own set of problems.
+
+If the driver need to handle multiple states like default/idle/sleep
+it is IMO better to put the handling into the driver, so if that
+is what is going to happen also to this driver it could be a good
+idea to actually implement that code upfront and include in
+this submission so as to show that this driver is really going
+to exercise its pins.
+
+But it's also a question of conformity: if other drivers in the
+system is using different states and this is the only one
+using a single "default" state, then it doesn't make sense
+to have just one driver get its pins using hogs, it's just
+inconsistent.
+
+So Sourav, please tell us a bit about your plans for this
+and other drivers!
+
+Yours,
+Linus Walleij
