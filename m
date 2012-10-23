@@ -1,64 +1,71 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
+From: Matt Porter <mporter@ti.com>
 Subject: Re: OMAP baseline test results for v3.7-rc2
-Date: Mon, 22 Oct 2012 18:04:16 -0700
-Message-ID: <87r4oqc833.fsf@deeprootsystems.com>
+Date: Mon, 22 Oct 2012 21:53:46 -0400
+Message-ID: <20121023015346.GB1855@beef>
 References: <alpine.DEB.2.00.1210202125300.774@utopia.booyaka.com>
+ <50857444.9080308@ti.com>
+ <alpine.DEB.2.00.1210221829270.13464@utopia.booyaka.com>
+ <50859505.5010306@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:40500 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755131Ab2JWBDv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 21:03:51 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2346279pad.19
-        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 18:03:50 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1210202125300.774@utopia.booyaka.com> (Paul
-	Walmsley's message of "Sat, 20 Oct 2012 21:26:32 +0000 (UTC)")
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:43930 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756492Ab2JWBxu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Oct 2012 21:53:50 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so4635646iea.19
+        for <linux-omap@vger.kernel.org>; Mon, 22 Oct 2012 18:53:49 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <50859505.5010306@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, grinberg@compulab.co.il
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+Igor
+On Mon, Oct 22, 2012 at 01:48:37PM -0500, Jon Hunter wrote:
+> 
+> On 10/22/2012 01:35 PM, Paul Walmsley wrote:
+> > (including the lists in my reply this time, oops; also adding some more 
+> > detail)
+> > 
+> > On Mon, 22 Oct 2012, Jon Hunter wrote:
+> > 
+> >> On 10/20/2012 04:26 PM, Paul Walmsley wrote:
+> >>
+> >>> Failing tests: fixed by posted patches
+> >>> --------------------------------------
+> >>>
+> >>> Boot tests:
+> >>>
+> >>> * AM335x Beaglebone: omap2plus_defconfig kernels don't boot
+> >>>   - due to a GPMC bug
+> >>>   - Apparently fixed by http://www.spinics.net/lists/arm-kernel/msg200787.html
+> >>
+> >> This is now addressed and I have verified it is booting on v3.7-rc2. The
+> >> following patch address this boot problem ...
+> >>
+> >> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=8119024ef7363591fd958ec89ebfaee7c18209e3
+> > 
+> > Great, thanks, will update the README.  Did you also enable 
+> > CONFIG_ARM_APPENDED_DTB and CONFIG_ARM_ATAG_DTB_COMPAT, or were you able 
+> > to pass the DTB from the bootloader?
+> 
+> Actually, I built u-boot release 2012.10 for the am335x-evm and that
+> worked for the bone board too. So that is what I used. I have not
+> checked with Vaibhav and team if that is what they are using. So with
+> this u-boot I just passed the dtb to the kernel and did not append.
 
-Paul Walmsley <paul@pwsan.com> writes:
+I've mentioned this a few times in various threads...no need to use
+appended DTB on a current U-Boot. Some of us are indeed booting this way
+with the DTB properly passed separately from the bootloader and chosen
+filled out by the bootloader. And yes, am335x_evm_config applies to all
+AM33xx TI EVMs and the BeagleBone board. There's an EEPROM onboard all
+that is used to determine what board is present so a single
+MLO/u-boot.img can be used.
 
-> Here are some basic OMAP test results for Linux v3.7-rc2.
-> Logs and other details at:
->
->     http://www.pwsan.com/omap/testlogs/test_v3.7-rc2/20121020134755/
+BTW, if you pick up an RS-232 cape, you can avoid using the FTDI->UART0
+connection for console and switch to any UART brought out on the Bone
+connectors. This is useful for those using a power controller and
+console server for local automated testing.
 
-[...]
-
-> * 37xx EVM: CORE not entering dynamic off-idle
->   - Cause unknown; dynamic retention-idle seems to work; system suspend to 
->     off works
-
-I got a start on this one, and discovered (using CM_IDLEST1_CORE) that
-SPI1 was not idle when going off.  A quick hack disabling the
-touchscreen showed that after that, core was hitting idle just fine.
-
-I ran out of time today debugging this, but it's definitely realted to
-the GPIO debounce setting for the touchscreen.  Changing it to zero[1]
-makes CORE hit retention again in idle.
-
-Igor, I'm hoping you might know what's going on here since we already
-had some problems with this ads7846 init stuff and you're more familiar
-with this debounce init.
-
-Kevin
-
-[1]
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b9b776b..3afdc50 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -734,7 +734,7 @@ static void __init omap3_evm_init(void)
- 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3evm_nand_partitions,
- 			     ARRAY_SIZE(omap3evm_nand_partitions));
- 
--	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
-+	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 0, NULL);
- 	omap3evm_init_smsc911x();
- 	omap3_evm_display_init();
- 	omap3_evm_wl12xx_init();
+-Matt
