@@ -1,126 +1,163 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about serial
- stuff)
-Date: Tue, 23 Oct 2012 09:37:49 +0200
-Message-ID: <5086494D.4080205@compulab.co.il>
-References: <20121012155434.GO28061@n2100.arm.linux.org.uk> <20121012162452.GD30339@atomide.com> <CAK=Wgba087mdaYhvKNUAy6H8rAb+owTAz1yqexEtDg+f06kJdg@mail.gmail.com> <20121016181038.GC15569@atomide.com> <20121016182642.GF15569@atomide.com> <CAK=WgbaQ-0V2htnmyCAzBco-sZVWN3WR2mhABGZNaYU6uM1wgg@mail.gmail.com> <507EA7DB.3070207@compulab.co.il> <CAK=Wgba_-k0kCHah6t6L4=qt838j30ZRVRbgAdJ1yzHDyA8frw@mail.gmail.com> <20121019170759.GK4730@atomide.com> <CAK=WgbbPmuOgssRRSinsV3rXg7TUa9fpOP-Zg+VatZgqgVYixw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC] ARM: OMAP: hwmod: wait for sysreset complete after enabling
+ hwmod
+Date: Tue, 23 Oct 2012 07:47:44 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210230745160.32436@utopia.booyaka.com>
+References: <1350922532-26338-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:34627 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756707Ab2JWHh5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Oct 2012 03:37:57 -0400
-In-Reply-To: <CAK=WgbbPmuOgssRRSinsV3rXg7TUa9fpOP-Zg+VatZgqgVYixw@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:58134 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756689Ab2JWHrp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 03:47:45 -0400
+In-Reply-To: <1350922532-26338-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Afzal Mohammed <afzal@ti.com>, =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Venkatraman S <svenkatr@ti.com>, khilman@ti.com
 
-On 10/21/12 16:54, Ohad Ben-Cohen wrote:
-> On Fri, Oct 19, 2012 at 7:07 PM, Tony Lindgren <tony@atomide.com> wrote:
-> ...
->> We could optimize away a minimal amount of code for many configurations
->> with the ifdef? :)
+Hi Tero,
+
+On Mon, 22 Oct 2012, Tero Kristo wrote:
+
+> When waking up from off-mode, some IP blocks are reset automatically by
+> hardware. For this reason, software must wait until the reset has
+> completed before attempting to access the IP block.
 > 
-> Sure, here goes (compile tested only):
+> This patch fixes for example the bug introduced by commit
+> 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c ("mmc: omap_hsmmc: remove access
+> to SYSCONFIG register"), in which the MMC IP block is reset during
+> off-mode entry, but the code expects the module to be already available
+> during the execution of context restore.
 > 
->>From 6b82365da2c04986e647d06c285197efece7cb34 Mon Sep 17 00:00:00 2001
-> From: Ohad Ben-Cohen <ohad@wizery.com>
-> Date: Sun, 14 Oct 2012 20:16:01 +0200
-> Subject: [PATCH] ARM: OMAP: don't print any error when wl12xx isn't
->  configured
-> 
-> Stop intimidating users with scary wlan error messages in case wl12xx
-> support wasn't even built.
-> 
-> In addition, when wl12xx_set_platform_data() fails, don't bother
-> registering wl12xx's fixed regulator device (on the relevant
-> boards).
-> 
-> While we're at it, extract the wlan init code to a dedicated function to
-> make (the relevant boards') init code look a bit nicer.
-> 
-> Compile tested only.
-> 
-> Reported-by: Russell King <linux@arm.linux.org.uk>
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Venkatraman S <svenkatr@ti.com>
 
-Apart, from the minor comment below,
-Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+What do you think about these modifications?  The code is quite similar to 
+what was in the _ocp_softreset() function, so just moved it into a 
+function.  Also moved the callsite from the end of _enable_sysc() to the 
+beginning, which makes more sense to me, but would like to get your 
+opinion.
 
-> ---
->  arch/arm/mach-davinci/board-da850-evm.c      |  8 ++-----
->  arch/arm/mach-omap2/board-4430sdp.c          |  7 +++---
->  arch/arm/mach-omap2/board-omap3evm.c         |  6 ++---
->  arch/arm/mach-omap2/board-omap3pandora.c     |  9 +++-----
->  arch/arm/mach-omap2/board-omap4panda.c       | 20 ++++++++++++-----
->  arch/arm/mach-omap2/board-zoom-peripherals.c | 15 ++++++++-----
->  arch/arm/mach-omap2/common-board-devices.c   | 33 ++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/common-board-devices.h   |  2 ++
->  8 files changed, 71 insertions(+), 29 deletions(-)
+- Paul
 
-[...]
+From: Tero Kristo <t-kristo@ti.com>
+Date: Mon, 22 Oct 2012 19:15:32 +0300
+Subject: [PATCH] [RFC] ARM: OMAP: hwmod: wait for sysreset complete after
+ enabling hwmod
 
-> diff --git a/arch/arm/mach-omap2/common-board-devices.c
-> b/arch/arm/mach-omap2/common-board-devices.c
-> index 48daac2..02351e9 100644
-> --- a/arch/arm/mach-omap2/common-board-devices.c
-> +++ b/arch/arm/mach-omap2/common-board-devices.c
-> @@ -23,6 +23,7 @@
->  #include <linux/gpio.h>
->  #include <linux/spi/spi.h>
->  #include <linux/spi/ads7846.h>
-> +#include <linux/wl12xx.h>
-> 
->  #include <linux/platform_data/spi-omap2-mcspi.h>
->  #include <linux/platform_data/mtd-nand-omap2.h>
-> @@ -141,3 +142,35 @@ void __init omap_nand_flash_init(int options,
-> struct mtd_partition *parts,
->  {
->  }
->  #endif
-> +
-> +#ifdef CONFIG_WL12XX_PLATFORM_DATA
-> +int __init wl12xx_board_init(struct wl12xx_platform_data *wlan_data, int gpio)
-> +{
-> +	int ret;
-> +
-> +	wlan_data->irq = gpio_to_irq(gpio);
-> +	if (wlan_data->irq < 0) {
-> +		ret = wlan_data->irq;
-> +		pr_err("wl12xx: gpio_to_irq(%d) failed: %d\n", gpio, ret);
-> +		return ret;
-> +	}
-> +
-> +	ret = wl12xx_set_platform_data(wlan_data);
-> +	/* bail out silently in case wl12xx isn't configured */
-> +	if (ret == -ENOSYS)
-> +		return ret;
+When waking up from off-mode, some IP blocks are reset automatically by
+hardware. For this reason, software must wait until the reset has
+completed before attempting to access the IP block.
 
-Since we have the function ifdef'ed, I don't think we need
-the ENOSYS check, do we?
+This patch fixes for example the bug introduced by commit
+6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c ("mmc: omap_hsmmc: remove access
+to SYSCONFIG register"), in which the MMC IP block is reset during
+off-mode entry, but the code expects the module to be already available
+during the execution of context restore.
 
-> +
-> +	/* bail out verbosely on any other error */
-> +	if (ret) {
-> +		pr_err("error setting wl12xx data: %d\n", ret);
-> +		return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +#else /* !CONFIG_WL12XX_PLATFORM_DATA */
-> +int __init wl12xx_board_init(struct wl12xx_platform_data *wlan_data, int gpio)
-> +{
-> +	return 0;
-> +}
-> +#endif
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Venkatraman S <svenkatr@ti.com>
+[paul@pwsan.com: moved softreset wait code into separate function; call
+ from top of _enable_sysc() rather than the bottom]
 
-[...]
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   56 ++++++++++++++++++++++++++++----------
+ 1 file changed, 42 insertions(+), 14 deletions(-)
 
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 504e0e0..0356a09 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -423,6 +423,38 @@ static int _set_softreset(struct omap_hwmod *oh, u32 *v)
+ }
+ 
+ /**
++ * _wait_softreset_complete - wait for an OCP softreset to complete
++ * @oh: struct omap_hwmod * to wait on
++ *
++ * Wait until the IP block represented by @oh reports that its OCP
++ * softreset is complete.  This can be triggered by software (see
++ * _ocp_softreset()) or by hardware upon returning from off-mode (one
++ * example is HSMMC).  Waits for up to MAX_MODULE_SOFTRESET_WAIT
++ * microseconds.  Returns the number of microseconds waited.
++ */
++static int _wait_softreset_complete(struct omap_hwmod *oh)
++{
++	struct omap_hwmod_class_sysconfig *sysc;
++	u32 softrst_mask;
++	int c = 0;
++
++	sysc = oh->class->sysc;
++
++	if (sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
++		omap_test_timeout((omap_hwmod_read(oh, sysc->syss_offs)
++				   & SYSS_RESETDONE_MASK),
++				  MAX_MODULE_SOFTRESET_WAIT, c);
++	else if (sysc->sysc_flags & SYSC_HAS_RESET_STATUS) {
++		softrst_mask = (0x1 << sysc->sysc_fields->srst_shift);
++		omap_test_timeout(!(omap_hwmod_read(oh, sysc->sysc_offs)
++				    & softrst_mask),
++				  MAX_MODULE_SOFTRESET_WAIT, c);
++	}
++
++	return c;
++}
++
++/**
+  * _set_dmadisable: set OCP_SYSCONFIG.DMADISABLE bit in @v
+  * @oh: struct omap_hwmod *
+  *
+@@ -1283,6 +1315,14 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 	if (!oh->class->sysc)
+ 		return;
+ 
++	/*
++	 * Wait until reset has completed, this is needed as the IP
++	 * block is reset automatically by hardware in some cases
++	 * (off-mode for example), and the drivers require the
++	 * IP to be ready when they access it
++	 */
++	_wait_softreset_complete(oh);
++
+ 	v = oh->_sysc_cache;
+ 	sf = oh->class->sysc->sysc_flags;
+ 
+@@ -1805,7 +1845,7 @@ static int _am33xx_disable_module(struct omap_hwmod *oh)
+  */
+ static int _ocp_softreset(struct omap_hwmod *oh)
+ {
+-	u32 v, softrst_mask;
++	u32 v;
+ 	int c = 0;
+ 	int ret = 0;
+ 
+@@ -1835,19 +1875,7 @@ static int _ocp_softreset(struct omap_hwmod *oh)
+ 	if (oh->class->sysc->srst_udelay)
+ 		udelay(oh->class->sysc->srst_udelay);
+ 
+-	if (oh->class->sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
+-		omap_test_timeout((omap_hwmod_read(oh,
+-						    oh->class->sysc->syss_offs)
+-				   & SYSS_RESETDONE_MASK),
+-				  MAX_MODULE_SOFTRESET_WAIT, c);
+-	else if (oh->class->sysc->sysc_flags & SYSC_HAS_RESET_STATUS) {
+-		softrst_mask = (0x1 << oh->class->sysc->sysc_fields->srst_shift);
+-		omap_test_timeout(!(omap_hwmod_read(oh,
+-						     oh->class->sysc->sysc_offs)
+-				   & softrst_mask),
+-				  MAX_MODULE_SOFTRESET_WAIT, c);
+-	}
+-
++	c = _wait_softreset_complete(oh);
+ 	if (c == MAX_MODULE_SOFTRESET_WAIT)
+ 		pr_warning("omap_hwmod: %s: softreset failed (waited %d usec)\n",
+ 			   oh->name, MAX_MODULE_SOFTRESET_WAIT);
 -- 
-Regards,
-Igor.
+1.7.10.4
+
