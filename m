@@ -1,73 +1,50 @@
-From: Juha Kuikka <juha.kuikka@gmail.com>
-Subject: OMAP NAND driver issue with subpage reads
-Date: Tue, 23 Oct 2012 13:36:54 -0700
-Message-ID: <CAKvrXUpJDuCgeZwuhtcxn0POSntWCm_Lc3YgqF9uVAU6=SjwKg@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: OMAP baseline test results for v3.7-rc2
+Date: Tue, 23 Oct 2012 14:03:43 -0700
+Message-ID: <877gqg99zk.fsf@deeprootsystems.com>
+References: <alpine.DEB.2.00.1210202125300.774@utopia.booyaka.com>
+	<50857444.9080308@ti.com>
+	<alpine.DEB.2.00.1210221829270.13464@utopia.booyaka.com>
+	<50859505.5010306@ti.com> <20121023015346.GB1855@beef>
+	<alpine.DEB.2.00.1210230311490.31118@utopia.booyaka.com>
+	<20121023122436.GC1855@beef> <20121023131153.GE1855@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:53882 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933834Ab2JWUgz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 16:36:55 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so3973942obb.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 13:36:54 -0700 (PDT)
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:52781 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933695Ab2JWVDQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 17:03:16 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so3041599pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 14:03:15 -0700 (PDT)
+In-Reply-To: <20121023131153.GE1855@beef> (Matt Porter's message of "Tue, 23
+	Oct 2012 09:11:53 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Matt Porter <mporter@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+Matt Porter <mporter@ti.com> writes:
 
-There seems to be an issue in the omap nand driver
-(drivers/mtd/nand/omap2.c) concerning sub-page reads (visible when
-using 16bit LP NAND,  SOFT_ECC and UBI).
+[...]
 
-Problem is caused by the omap_read_buf_pref() function using 32bit
-reads from the pre-fetch engine. It takes care of the mis-aligned
-length but not a mis-aligned buffer pointer. Combined with how the
-nand_read_subpage() function aligns the pointer and length to NAND
-width (8 or 16 bits) this can lead to situation where the handling of
-the mis-aligned length in omap_read_buf_pref() causes the pointer to
-not be aligned to 32bits and the data gets corrupted in the read. This
-of course leds to ECC issues.
+> Ok, very quick update...no need to mess around with the eeprom. I just
+> received the official word on what will be supported. Since A2 is
+> pre-release, simply go to http://beagleboard.org/support/rma and fill
+> out the form to have it replaced with the current revision (A6).
+>
+> This applies to *anyone* that received a pre-release A2 board.
 
-The way I see is there are several ways to fix this:
+Hmm, doesn't seem the RMA people are aware of this.  They just rejected
+my request since it's not a "hardware related issue":
 
-1. Change nand_read_subpage() to be more strict about alignment
-2. Change omap_read_buf_pref() to handle any reads (len % 4) || (buf %
-4) with omap_read_bufX() completely
-3. Change omap_read_buf_pref() to use ioread16_rep() since buffer and
-length are already aligned for us.
+   Kevin,
 
-I'm leaning towards #2 because, assuming that the nand driver cannot
-make assumptions of alignment, we need to be able to handle them all
-anyway. The common case of reading big chunks of page data would still
-be fast (since reads are always sub-page aligned) but the special case
-of reading small OOB chunks would be handled gracefully.
+   We only work with hardware related issue here. BeagleBone revision A2
+   was not officially released. We recommend you to work with the
+   community for support in Uboot. You can post your questions at the
+   BeagleBoard Google Groups:
+   https://groups.google.com/forum/?fromgroups=#!forum/beagleboard
 
-Something like this:
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 5c8978e..8a929cf 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -334,13 +334,12 @@ static void omap_read_buf_pref(struct mtd_info
-*mtd, u_char *buf, int len)
-        u32 *p = (u32 *)buf;
-
-        /* take care of subpage reads */
--       if (len % 4) {
-+       if (len % 4 || (unsigned long) buf % 4) {
-                if (info->nand.options & NAND_BUSWIDTH_16)
-                        omap_read_buf16(mtd, buf, len % 4);
-                else
-                        omap_read_buf8(mtd, buf, len % 4);
--               p = (u32 *) (buf + len % 4);
--               len -= len % 4;
-+               return;
-        }
-
-        /* configure and start prefetch transfer */
-
-Comments?
-
- - Juha
+   Regards,
+   RMA Team
