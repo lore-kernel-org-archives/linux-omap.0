@@ -1,19 +1,15 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: OMAP baseline test results for v3.7-rc2
-Date: Tue, 23 Oct 2012 09:11:53 -0400
-Message-ID: <20121023131153.GE1855@beef>
-References: <alpine.DEB.2.00.1210202125300.774@utopia.booyaka.com>
- <50857444.9080308@ti.com>
- <alpine.DEB.2.00.1210221829270.13464@utopia.booyaka.com>
- <50859505.5010306@ti.com> <20121023015346.GB1855@beef>
- <alpine.DEB.2.00.1210230311490.31118@utopia.booyaka.com>
- <20121023122436.GC1855@beef>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] arm: sched: stop sched_clock() during suspend
+Date: Tue, 23 Oct 2012 07:14:48 -0700
+Message-ID: <87mwzdcm1z.fsf@deeprootsystems.com>
+References: <873916h1yi.fsf@deeprootsystems.com>
+ <1350971854-9161-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20121023122436.GC1855@beef>
+In-Reply-To: <1350971854-9161-1-git-send-email-balbi@ti.com> (Felipe Balbi's
+ message of "Tue, 23 Oct 2012 08:57:34 +0300")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -23,53 +19,38 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: khilman@ti.com, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Thomas Gleixner <tglx@linutronix.de>, Tony Lindgren <tony@atomide.com>, linus.walleij@linaro.org, Daniel Walker <dwalker@fifo99.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Barry Song <21cnbao@gmail.com>, Bryan Huntsman <bryanh@codeaurora.org>, Russell King <rmk+kernel@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, John Stultz <john.stultz@linaro.org>, Ben Dooks <ben-linux@fluff.org>, Alexander Schulz <alex@shark-linux.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Victor <linux@maxim.org.za>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kyungmin Park <kyungmin.park@samsung.com>, Santosh
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 23, 2012 at 08:24:36AM -0400, Matt Porter wrote:
-> On Tue, Oct 23, 2012 at 03:15:44AM +0000, Paul Walmsley wrote:
-> > On Mon, 22 Oct 2012, Matt Porter wrote:
-> > 
-> > > I've mentioned this a few times in various threads...no need to use
-> > > appended DTB on a current U-Boot. Some of us are indeed booting this way
-> > > with the DTB properly passed separately from the bootloader and chosen
-> > > filled out by the bootloader. And yes, am335x_evm_config applies to all
-> > > AM33xx TI EVMs and the BeagleBone board. There's an EEPROM onboard all
-> > > that is used to determine what board is present so a single
-> > > MLO/u-boot.img can be used.
-> > 
-> > As Kevin mentioned earlier, this is unfortunately not true for those of us 
-> > with earlier BeagleBoards:
-> > 
-> >    http://marc.info/?l=linux-omap&m=135094296931913&w=2
-> 
-> Yes, we spoke about this a bit.
->  
-> > Do you know what the minimum board revision is that you all are 
-> > supporting in U-boot?
-> 
-> It's not so much a revision as it is getting the right contents in the
-> EEPROM. As it's a community board, it's generally only supported over at
-> beagleboard@googlegroups.com. Jason Kridner recommends posting support
-> questions there (like why isn't my A2 supported in U-Boot?). If there
-> isn't some solution suggested there for updating the A2 I would contact
-> him directly. I have an A1 Bone here that also doesn't work with
-> mainline U-Boot even after configuring the EEPROM. You can try this
-> procedure if you want to write the proper contents in, an A2 may work
-> but for some reason there's no available history on Bone revisions prior
-> to A3. I vaguely recall a lot of chatter around the phy and so forth in
-> the A1 to A2 timeframe so it's entirely possible that your A2 will work
-> with just the eeprom contents programmed. Without it, it's guaranteed to
-> fail as the pin muxing is tied to detecting the board this way. Also,
-> you may need to change <offset>.1 in the below example to <offset>.2 for
-> your eeprom i/o to work as A2 may require an address length of 2.
+Felipe Balbi <balbi@ti.com> writes:
 
-Ok, very quick update...no need to mess around with the eeprom. I just
-received the official word on what will be supported. Since A2 is
-pre-release, simply go to http://beagleboard.org/support/rma and fill
-out the form to have it replaced with the current revision (A6).
+> The scheduler imposes a requirement to sched_clock()
+> which is to stop the clock during suspend, if we don't
+> do that any RT thread will be rescheduled in the future
+> which might cause any sort of problems.
+>
+> This became an issue on OMAP when we converted omap-i2c.c
+> to use threaded IRQs, it turned out that depending on how
+> much time we spent on suspend, the I2C IRQ thread would
+> end up being rescheduled so far in the future that I2C
+> transfers would timeout and, because omap_hsmmc depends
+> on an I2C-connected device to detect if an MMC card is
+> inserted in the slot, our rootfs would just vanish.
+>
+> arch/arm/kernel/sched_clock.c already had an optional
+> implementation (sched_clock_needs_suspend()) which would
+> handle scheduler's requirement properly, what this patch
+> does is simply to make that implementation non-optional.
+>
+> Note that this has the side-effect that printk timings
+> won't reflect the actual time spent on suspend so other
+> methods to measure that will have to be used.
+>
+> This has been tested with beagleboard XM (OMAP3630) and
+> pandaboard rev A3 (OMAP4430). Suspend to RAM is now working
+> after this patch.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-This applies to *anyone* that received a pre-release A2 board.
-
--Matt
+Acked-by: Kevin Hilman <khilman@ti.com>
