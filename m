@@ -1,75 +1,44 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2 1/4] ARM: dts: omap5: Update GPIO with address space
- and interrupts
-Date: Tue, 23 Oct 2012 10:59:06 -0500
-Message-ID: <5086BECA.9070502@ti.com>
-References: <1350981432-6750-1-git-send-email-s-guiriec@ti.com> <1350981432-6750-2-git-send-email-s-guiriec@ti.com> <5086AE8E.60106@ti.com> <5086B316.6000001@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] arm: sched: stop sched_clock() during suspend
+Date: Tue, 23 Oct 2012 17:03:31 +0100
+Message-ID: <20121023160331.GF28061@n2100.arm.linux.org.uk>
+References: <1350906877-19410-1-git-send-email-balbi@ti.com>
+ <873916h1yi.fsf@deeprootsystems.com>
+ <CACRpkdY6ox+iJAGdSD=e7Yj55TzDWqOmLqu2fSRXvKJxqwfkhQ@mail.gmail.com>
+ <20121023092231.GE28061@n2100.arm.linux.org.uk>
+ <87a9vdclxe.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5086B316.6000001@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <87a9vdclxe.fsf@deeprootsystems.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, Daniel Walker <dwalker@fifo99.com>, Thomas Gleixner <tglx@linutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Barry Song <21cnbao@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, John Stultz <john.stultz@linaro.org>, Ben Dooks <ben-linux@fluff.org>, Alexander Schulz <alex@shark-linux.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Victor <linux@maxim.org.za>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Bryan Huntsman <bryanh@codeaurora.org>, Santosh
 List-Id: linux-omap@vger.kernel.org
 
-
-On 10/23/2012 10:09 AM, Benoit Cousson wrote:
-> On 10/23/2012 04:49 PM, Jon Hunter wrote:
->> Hi Seb,
->>
->> On 10/23/2012 03:37 AM, Sebastien Guiriec wrote:
->>> Add base address and interrupt line inside Device Tree data for
->>> OMAP5
->>>
->>> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
->>> ---
->>>  arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++++
->>>  1 file changed, 16 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
->>> index 42c78be..9e39f9f 100644
->>> --- a/arch/arm/boot/dts/omap5.dtsi
->>> +++ b/arch/arm/boot/dts/omap5.dtsi
->>> @@ -104,6 +104,8 @@
->>>  
->>>  		gpio1: gpio@4ae10000 {
->>>  			compatible = "ti,omap4-gpio";
->>> +			reg = <0x4ae10000 0x200>;
->>> +			interrupts = <0 29 0x4>;
->>>  			ti,hwmods = "gpio1";
->>>  			gpio-controller;
->>>  			#gpio-cells = <2>;
->>
->> I am wondering if we should add the "interrupt-parent" property to add
->> nodes in the device-tree source. I know that today the interrupt-parent
->> is being defined globally, but when device-tree maps an interrupt for a
->> device it searches for the interrupt-parent starting the current device
->> node.
->>
->> So in other words, for gpio1 it will search the gpio1 binding for
->> "interrupt-parent" and if not found move up a level and search again. It
->> will keep doing this until it finds the "interrupt-parent".
->>
->> Therefore, I believe it will improve search time and hence, boot time if
->> we have interrupt-parent defined in each node.
+On Tue, Oct 23, 2012 at 07:17:33AM -0700, Kevin Hilman wrote:
+> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+> > No, printk() does not need this.  You think it does, but it doesn't.  What
+> > we have is a difference between ARM and x86, and this difference is breaking
+> > the scheduler.
+> >
+> > The fact that the printk timestamp increments while suspended is a bug.  It
+> > doesn't on x86.
 > 
-> Mmm, I'm not that sure. it will increase the size of the blob, so
-> increase the time to load it and then to parse it. Where in the current
-> case, it is just going up to the parent node using the already
-> un-flatten tree in memory and thus that should not take that much time.
+> Russell, I agree that it's a bug, but does it qualify as a something
+> you're willing to take for v3.7-rc?
 
-Yes it will definitely increase the size, so that could slow things down.
-
-> That being said, it might be interesting to benchmark that to see what
-> is the real impact.
-
-Right, I wonder what the key functions are we need to benchmark to get
-an overall feel for what is best? Right now I am seeing some people add
-the interrupt-parent for device nodes and others not. Ideally we should
-be consistent, but at the same time it is probably something that we can
-easily sort out later. So not a big deal either way.
-
-Cheers
-Jon
+Definitely.  Our current behaviour across suspend for the scheduler is
+wrong.  This is one of the questions I had when I created the sched_clock
+stuff - but no one at the time could answer.  So, now that we have our
+answer, let's get it fixed to conform.
