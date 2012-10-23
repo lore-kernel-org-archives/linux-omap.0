@@ -1,60 +1,57 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: OMAP baseline test results for v3.7-rc2
-Date: Tue, 23 Oct 2012 17:11:51 -0400
-Message-ID: <20121023211151.GF1855@beef>
-References: <alpine.DEB.2.00.1210202125300.774@utopia.booyaka.com>
- <50857444.9080308@ti.com>
- <alpine.DEB.2.00.1210221829270.13464@utopia.booyaka.com>
- <50859505.5010306@ti.com>
- <20121023015346.GB1855@beef>
- <alpine.DEB.2.00.1210230311490.31118@utopia.booyaka.com>
- <20121023122436.GC1855@beef>
- <20121023131153.GE1855@beef>
- <877gqg99zk.fsf@deeprootsystems.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [RFC PATCH 3/6] ARM: OMAP: voltage: move voltdm_reset to platform_data header
+Date: Tue, 23 Oct 2012 16:43:58 -0500
+Message-ID: <1351028641-20832-4-git-send-email-nm@ti.com>
+References: <1351028641-20832-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:37245 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933657Ab2JWVLv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 17:11:51 -0400
-Received: by mail-ia0-f174.google.com with SMTP id y32so3321269iag.19
-        for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 14:11:50 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <877gqg99zk.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37326 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751222Ab2JWVoH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Oct 2012 17:44:07 -0400
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q9NLi6RF012582
+	for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 16:44:06 -0500
+Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q9NLi6mu028655
+	for <linux-omap@vger.kernel.org>; Tue, 23 Oct 2012 16:44:06 -0500
+In-Reply-To: <1351028641-20832-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: l-o <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@ti.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>, Nishanth Menon <nm@ti.com>
 
-On Tue, Oct 23, 2012 at 02:03:43PM -0700, Kevin Hilman wrote:
-> Matt Porter <mporter@ti.com> writes:
-> 
-> [...]
-> 
-> > Ok, very quick update...no need to mess around with the eeprom. I just
-> > received the official word on what will be supported. Since A2 is
-> > pre-release, simply go to http://beagleboard.org/support/rma and fill
-> > out the form to have it replaced with the current revision (A6).
-> >
-> > This applies to *anyone* that received a pre-release A2 board.
-> 
-> Hmm, doesn't seem the RMA people are aware of this.  They just rejected
-> my request since it's not a "hardware related issue":
-> 
->    Kevin,
-> 
->    We only work with hardware related issue here. BeagleBone revision A2
->    was not officially released. We recommend you to work with the
->    community for support in Uboot. You can post your questions at the
->    BeagleBoard Google Groups:
->    https://groups.google.com/forum/?fromgroups=#!forum/beagleboard
-> 
->    Regards,
->    RMA Team
+Move voltdm_reset to include/linux/platform_data/voltage-omap.h
+This is an intermediate step to allow usage of the header by smartreflex
+driver for usage of the same.
 
-That's sad considering the beagleboard.org/BeagleBone hardware designer
-specifically said they would be replaced via this route. *sigh*. Ok, I'll
-go back and share this with him.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/voltage.h              |    1 -
+ include/linux/platform_data/voltage-omap.h |    1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
--Matt
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index af9d469..0665f21 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -149,5 +149,4 @@ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
+ int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+ 			  int (*fn)(struct voltagedomain *voltdm,
+ 				    struct powerdomain *pwrdm));
+-void voltdm_reset(struct voltagedomain *voltdm);
+ #endif
+diff --git a/include/linux/platform_data/voltage-omap.h b/include/linux/platform_data/voltage-omap.h
+index 5be4d5d..4eb3d43 100644
+--- a/include/linux/platform_data/voltage-omap.h
++++ b/include/linux/platform_data/voltage-omap.h
+@@ -36,4 +36,5 @@ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+ unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+ 		unsigned long volt);
++void voltdm_reset(struct voltagedomain *voltdm);
+ #endif
+-- 
+1.7.9.5
+
