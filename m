@@ -1,53 +1,58 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] arm: sched: stop sched_clock() during suspend
-Date: Tue, 23 Oct 2012 10:22:31 +0100
-Message-ID: <20121023092231.GE28061@n2100.arm.linux.org.uk>
-References: <1350906877-19410-1-git-send-email-balbi@ti.com>
- <873916h1yi.fsf@deeprootsystems.com>
- <CACRpkdY6ox+iJAGdSD=e7Yj55TzDWqOmLqu2fSRXvKJxqwfkhQ@mail.gmail.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: RT throttling and suspend/resume (was Re: [PATCH] i2c: omap:
+	revert "i2c: omap: switch to threaded IRQ support")
+Date: Tue, 23 Oct 2012 10:19:49 +0100
+Message-ID: <20121023091949.GD28061@n2100.arm.linux.org.uk>
+References: <20121016133356.GG21801@arwen.pp.htv.fi> <87ipaanljt.fsf_-_@deeprootsystems.com> <20121017140002.GI11394@arwen.pp.htv.fi> <20121017143534.GJ11394@arwen.pp.htv.fi> <87txtsitpt.fsf@deeprootsystems.com> <20121018055136.GF11137@arwen.pp.htv.fi> <1350655227.2768.11.camel@twins> <87391ahvao.fsf@deeprootsystems.com> <1350899541.2768.82.camel@twins> <87ehkqihdh.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CACRpkdY6ox+iJAGdSD=e7Yj55TzDWqOmLqu2fSRXvKJxqwfkhQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Andrew Lunn <andrew@lunn.ch>, Kevin Hilman <khilman@deeprootsystems.com>, Daniel Walker <dwalker@fifo99.com>, Thomas Gleixner <tglx@linutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Barry Song <21cnbao@gmail.com>, Kyungmin Park <kyungmin.park@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, John Stultz <john.stultz@linaro.org>, Ben Dooks <ben-linux@fluff.org>, Alexander Schulz <alex@shark-linux.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Victor <linux@maxim.org.za>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Bryan Huntsman <bryanh@codeaurora.org>, Santosh
+In-Reply-To: <87ehkqihdh.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 23, 2012 at 12:28:32AM +0200, Linus Walleij wrote:
-> On Mon, Oct 22, 2012 at 7:05 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
+On Mon, Oct 22, 2012 at 09:47:06AM -0700, Kevin Hilman wrote:
+> Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> writes:
 > 
-> > However, in light of RT throttling, this a correctness issue for process
-> > accounting, so I agree that this should be done for all platforms
-> > instead of providing an optional 'needs suspend' version of the API,
-> > even though it means printk times no longer reflect time spent
-> > suspended.
+> > On Fri, 2012-10-19 at 16:54 -0700, Kevin Hilman wrote:
+> >
+> >> So I did the same thing for my ARM SoC, and it definitley stops the RT
+> >> throttling.  
+> >> 
+> >> However, it has the undesriable (IMO) side effect of making timed printk
+> >> output rather unhelpful for debugging suspend/resume since printk time
+> >> stays constant throughout suspend/resume no matter how long you
+> >> sleep. :(
+> >> 
+> >> So does that mean we have to choose between useful printk times during
+> >> suspend/resume or functioning IRQ threads during suspend/resume ?
+> >
+> > Urgh.. this was not something I considered. This being primarily the
+> > sched_clock infrastructure and such.
+> >
+> > So what exactly is the problem with the suspend resume thing (its not
+> > something I've ever debugged), is all you need a clean break between pre
+> > and post suspend, or do you need the actual time the machine was gone?
 > 
-> Maybe we should get printk() to use the best clocksource
-> instead.
+> I think it's more a question of what people are used to.  I think folks
+> used to debugging suspend/resume (at least on ARM) are used to having
+> the printk timestamps reflect the amount of time the machine was gone.
 > 
-> The reason AFAICT that printk() is using sched_clock() is that
-> it's supposed to be fast. But now it seems that it's not going
-> to return what printk() needs anymore.
+> With a sched_clock() that counts during suspend, that feature doesn't
+> work anymore.  I'm not sure that this feature is a deal breaker, but it
+> has been convenient.
 
-No, printk() does not need this.  You think it does, but it doesn't.  What
-we have is a difference between ARM and x86, and this difference is breaking
-the scheduler.
+IMHO, this isn't a deal breaker, it's nothing more than cosmetic issue.
+The big hint about the sched_clock() behaviour is partly in the name,
+and the behaviour you get from the scheduler if you don't give it what
+it wants.  The scheduler sets the requirements for sched_clock(), not
+printk, so if we have to fix sched_clock() to get correct behaviour
+from the scheduler, that's what we have to do irrespective of cosmetic
+printk issues.
 
-The fact that the printk timestamp increments while suspended is a bug.  It
-doesn't on x86.
-
-There's three other functions in the kernel which do return updated time.
-I'm sure one of those can be used to printk() the time passed in suspend
-at resume time, which would give the information required.
+And there are many other ways to measure time off in suspend... we have
+at least three other functions which return time, and which will return
+updated time after a resume event.
