@@ -1,77 +1,174 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Wed, 24 Oct 2012 21:58:19 +0300
-Message-ID: <20121024185818.GB772@arwen.pp.htv.fi>
+Date: Wed, 24 Oct 2012 22:10:42 +0300
+Message-ID: <20121024191042.GC772@arwen.pp.htv.fi>
 References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
- <20121024161429.GA16350@core.coreip.homeip.net>
- <CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
- <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+ <20121024161801.GB16350@core.coreip.homeip.net>
+ <20121024165749.GB32220@arwen.pp.htv.fi>
+ <64355430.MNHe7H1cg3@dtor-d630.eng.vmware.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="61jdw2sOBCFtR2d/"
+	protocol="application/pgp-signature"; boundary="S1BNGpv0yoYahz37"
 Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+In-Reply-To: <64355430.MNHe7H1cg3@dtor-d630.eng.vmware.com>
 Sender: linux-input-owner@vger.kernel.org
 To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+Cc: balbi@ti.com, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---61jdw2sOBCFtR2d/
+--S1BNGpv0yoYahz37
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Oct 24, 2012 at 10:28:46AM -0700, Dmitry Torokhov wrote:
-> > for more complex pinctrl use cases. These are my dogfood drivers ...
-> > Most of these will request more than one state and switch the driver
-> > between these different states at runtime, in these examples for power
-> > saving there are states named "default", "sleep" and in the I2C driver
-> > also "idle".
+On Wed, Oct 24, 2012 at 10:58:53AM -0700, Dmitry Torokhov wrote:
+> On Wednesday, October 24, 2012 07:57:49 PM Felipe Balbi wrote:
+> > Hi,
 > >=20
-> > These examples are more typical to how the ux500 platform will
-> > look, also the SKE input driver will move the devise to sleep/default
-> > states but we need to merge PM code before we can do that.
+> > On Wed, Oct 24, 2012 at 09:18:01AM -0700, Dmitry Torokhov wrote:
+> > > On Wed, Oct 24, 2012 at 02:54:23PM +0200, Linus Walleij wrote:
+> > > > On Tue, Oct 23, 2012 at 10:02 PM, Dmitry Torokhov
+> > > >=20
+> > > > <dmitry.torokhov@gmail.com> wrote:
+> > > > > I have seen just in a few days 3 or 4 drivers having exactly the =
+same
+> > > > > change - call to devm_pinctrl_get_select_default(), and I guess I=
+ will
+> > > > > receive the same patches for the rest of input drivers shortly.
+> > > > > This suggests that the operation is done at the wrong level. Do t=
+he
+> > > > > pin configuration as you parse DT data, the same way you set up i=
+2c
+> > > > > devices registers in of_i2c.c, and leave the individual drivers t=
+hat
+> > > > > do
+> > > > > not care about specifics alone.
+> > > >=20
+> > > > Exactly this can be done with pinctrl hogs.
+> > > >=20
+> > > > The problem with that is that it removes the cross-reference
+> > > > between the device and it's pinctrl handle (also from the device
+> > > > tree). Instead the pinctrl handle gets referenced to the pin contro=
+ller
+> > > > itself. So from a modelling perpective this looks a bit ugly.
+> > > >=20
+> > > > So we have two kinds of ugly:
+> > > >=20
+> > > > - Sprinke devm_pinctrl_get_select_default() over all drivers
+> > > >=20
+> > > >   which makes pinctrl handles properly reference their devices
+> > > >=20
+> > > > - Use hogs and loose coupling between pinctrl handles and their
+> > > >=20
+> > > >   devices
+> > > >=20
+> > > > A third alternative as outlined is to use notifiers and some
+> > > > resource core in drivers/base/*
+> > >=20
+> > > OK, so with drivers/base/, have you considered doing default pinctrl
+> > > selection in bus's probe() methods? Yo would select the default
+> > > configuration before starting probing the device and maybe select idle
+> > > when probe fails or device is unbound? That would still keep the link
+> > > between device object and pinctrl and there less busses than device
+> > > drivers out there.
+> >=20
+> > it starts to become confusing after a while. I mean, there's a reason
+> > why all drivers explictly call pm_runtim_enable(), right ?
 >=20
-> I do not say that no drivers should ever touch pinctrl, just that most
-> of them do not have to if you have other layers to the right thing for
-> them.
+> Right. Because not all of them support runtime PM and quite usually their
+> PM methods are not ready to go until initialization is complete. And agai=
+n,
+> the driver here controls its own behavior.
 
-It will be a much bigger mess. Some drivers don't need to care about
-pinctrl because drivers/base handle it for them, while some others will
-need a way to tell drivers/base "hey, don't touch pinctrl at all because
-I know what I'm doing" and that has to happen before probe() too,
-otherwise it's already too late and, according to what you suggest,
-drivers/base will already have touched pinctrl. The only way I see would
-be to add an extra "dont_touch_my_pins" field to every driver structure
-in the kernel. Clearly what you say is nonsense.
+likewise not all devices will need pin muxing, those which do (granted,
+an increasing number of them since transistor size continue to shrink,
+allowing chip manufacturers to pack more features inside a single die,
+while the number of external pins/balls remain the same), will call
+pinctrl to setup muxing right.
+
+> > From a first thought, one could think of just yanking that into bus'
+> > probe() as you may suggest, but sometimes the device is already enabled,
+> > so we need extra tricks:
+> >=20
+> > pm_runtime_set_active();
+> > pm_runtime_enable();
+> > pm_runtime_get();
+> >=20
+> > the same could happen with pinctrl eventually. What if a device needs to
+> > do something else (an errata fix as an example) before requesting
+> > pinctrl's default state ?
+>=20
+> That is a valid concern and we'll need to find a compromise here. As I sa=
+id,
+
+WHAT ?? Silicon erratas are not a valid concern ? Power waste isn't a
+valid concern ? Tell that to the millions of devices shipped with Linux
+everyday. Power usage if it's the top concern in any product, is right
+there as the top five. Likewise for silicon erratas.
+
+Let's face it, just like SW, HW has bugs; the difference is that no
+company will continue to do several spins of an ASIC just because some
+SW engineer doesn't get concerned about a silicon bug. It's just too
+expensive to re-spin the ASIC. And even if we get another revision of
+the ASIC, we still need to support the older version as there might be
+cellphones, laser welding machines, IPTVs and whatever product already
+shipped.
+
+> I am not saying that no driver should ever touch pinctrl. I can see, for
+> example, input drivers actually disabling pins until they are ->open()ed,
+> in addition of doing that at [runtime] suspend/resume. But it would be ni=
+ce
+> if we could have "dumb" drivers not care about pins.
+
+Like I replied on another sub-thread, this will just create exceptions
+to the rule which is far more messy than having a couple of extra lines
+of code in a few drivers. We can even argue that eventually all drivers
+will need to toggle pins in runtime in order to save that extra
+microwatt of runtime power consumption, so why bother adding exceptions ?
+
+In fact, we already have the exception: drivers which don't need to
+fiddle with pin muxing, just don't use pinctrl. The ones you're
+receiving today are the one which, for whatever reason, need to make
+sure pin muxing is right. If it's not toggling in runtime, it might just
+be because $AUTHOR decided that it would be best to do thing in small
+steps (don't we all agree with that ?). Maybe he thought that changing
+pins in runtime could cause problems, so let's get bare minimum in
+mainline and work towards optimizations in parallel.
+
+All in all, I don't see why you're complaining so much about a couple of
+lines of code. Even if it needs to be added to all drivers in tree. So
+what ? As long as pinctrl works fine in multiple platforms, what is done
+for e.g. OMAP2 should work fine in OMAP3/4/5. An even more complex
+example: what works on OMAP, should work on Exynos, Tegra, etc, if the
+same driver is used accross those platforms.
 
 --=20
 balbi
 
---61jdw2sOBCFtR2d/
+--S1BNGpv0yoYahz37
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQiDpKAAoJEIaOsuA1yqREDIsP/0uhC5y1maA2qGHjnTqaWgxv
-DarRiOqoDKkQfsqIzF4D+Vm0pYzmy4u2zODrTZ/OicBIcoc3jzf9EmxeuR3FjQhZ
-KhUY0sxzii/5xSDKVThx2F4H0Cg8AgUCHKf6yq+3CUrQuxEatm30H0q9jJaYAcN7
-mvPEjgiKnd9U/xZqzKkU3OJX5Sblr1DN2Qg4YmHR0jB8QHVIU4p5FHMT7oV668ks
-SQjcvwDIzUc88rR4YkjpWKvWGTllZZnHK0yMbP1T8XRTyU5Gu3DbXM+NeMN7jUMw
-J/x9BOl20zLIhuCRUymidTCD79JP4rLhFS0fUrQN4ZEqXS5iW6ADoJahUa/6BE6s
-78XCqrj+Cwbpdb0/ROe2VK+gkbzFBQSG6GZ0+tOicwG76gnFTd8LJaoO2E+VOafH
-C3m+abV1MuEoNRNtQ4HgF9hmsPitZPujfGcMxGvT+L/H0iJ7ajKdp7A0btvOhrvg
-M+bk6KKY7I/QB0DifHpkBNo0bUNl+84dFekTcBquuV6I6cnMQMQrHKEh5ezFlW+u
-UNVhJ/LqYRLU8oPNwB8lN/fubc29Yrsndk+Y+k6Y3iXT+WLtPghF9H23NRg1tvp8
-9LIeCrGQQH1do3A4F6MOBR6xQkOictl32IlOkPUpVI0JTp9A4P1asencbYDzrfQV
-GX/RvXQmlTh+jtQp2+5S
-=vJXe
+iQIcBAEBAgAGBQJQiD0yAAoJEIaOsuA1yqREwJAP/A26vzUAro0LLA4VS11bijV4
+uJNkzWUvhS0ZN9YCDlU4DVcGUWbuaH5CHFAk0jqHfq8X3caIFRMqxPd84b4Isc7M
+gQn2Jp+RaPsp5aNttMNOexn9OsM0G8ZD5Ro3zoPueP09GPCQ4+Tb4sfp4a59a4d3
+fNEZfvqXdrxfK25e5n45Gs38n5zyNpGbZXaXwjvHFNx1pCG1I4WeHNKeJZ6hNscX
+Kzm1u0u4K2CvTkJrU87B6tMqLg3v4mjUH2cvLmZ2i7yL6G/ZL9qDMx7OuM/sZiK1
+TGy17zZurJ4qb8WVZyz57Y7AmwtvON1twtRR8BqLQ6PpRBPsrUNoJ67BJrsVOKc3
+hoqFFOi5D6qokaCF4OmQ3Yj7S/Q5zYZs9g+79E36jUQxFFChFz4oURJZBqEWxWcB
+7U7uoVQwQ8n9cufxdzErfaUImGFE2RtmkIwUTm/frA9Nj7X5ktCqY2z4vlzPOAKs
+wTS+qSVVw8wF5oauwc1SqH7Sz+/mStaklUeHrU6UuTwdx+l8wWw5VtRIZqgcgVM4
+zwEyZJ3gs7yqW9m5C2O50caMqfXOtdFjLq+nkOQUS5SKR3BVSV1wiSIh66/MgDH1
+c034rvZkJh1XdOL5Hc4GEw9DDR2L30+0Rq1QB5WSbG8Z278QA34Zsu2J0pyYiLew
+BVFR5Xz+mEEKasPlbu9L
+=EAwv
 -----END PGP SIGNATURE-----
 
---61jdw2sOBCFtR2d/--
+--S1BNGpv0yoYahz37--
