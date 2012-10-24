@@ -1,74 +1,87 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 20/20] OMAPDSS: split hdmi muxing function
-Date: Wed, 24 Oct 2012 12:29:11 +0300
-Message-ID: <1351070951-18616-21-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 16/20] OMAPFB: improve mode selection from EDID
+Date: Wed, 24 Oct 2012 12:29:07 +0300
+Message-ID: <1351070951-18616-17-git-send-email-tomi.valkeinen@ti.com>
 References: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47975 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:47965 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934544Ab2JXJ35 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 05:29:57 -0400
+	with ESMTP id S934534Ab2JXJ3u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 05:29:50 -0400
 In-Reply-To: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Ricardo Neri <ricardo.neri@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Split the omap4_hdmi_mux_pads() function into two parts, one handles the
-tpd12s015 gpio muxing, the other handles the hdmi pins.
+The current omapfb code goes over all the modes found from the monitors
+EDID data, and searches for a mode that is compatible with the DSS
+hardware and has the highest x-res.
 
-This is clearer, as hdmi and tpd12s015 are separate devices, and it also
-allows us to mux those separately with DT.
+While this works ok as such, it proves problematic when using DSI PLL
+for pixel clock. Calculating DSI PLL dividers is not the fastest of the
+operations, and while doing it for one mode is usually ok, doing it for
+20 modes is noticable.
+
+Also, the first mode given in the EDID data should be the native mode of
+the monitor, and thus also the best mode, so if that can be used, no
+need to look further.
+
+This patch changes the code to use the first mode that is compatible
+with the DSS hardware.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ricardo Neri <ricardo.neri@ti.com>
 ---
- arch/arm/mach-omap2/display.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 28f5087..282c814e 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -100,17 +100,20 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initconst = {
- 	{ "dss_hdmi", "omapdss_hdmi", -1 },
- };
- 
--static void __init omap4_hdmi_mux_pads(enum omap_hdmi_flags flags)
-+static void __init omap4_tpd12s015_mux_pads(void)
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index fe37039..1017832 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -2256,7 +2256,7 @@ static int omapfb_find_best_mode(struct omap_dss_device *display,
  {
--	u32 reg;
--	u16 control_i2c_1;
--
- 	omap_mux_init_signal("hdmi_cec",
- 			OMAP_PIN_INPUT_PULLUP);
- 	omap_mux_init_signal("hdmi_ddc_scl",
- 			OMAP_PIN_INPUT_PULLUP);
- 	omap_mux_init_signal("hdmi_ddc_sda",
- 			OMAP_PIN_INPUT_PULLUP);
-+}
+ 	struct fb_monspecs *specs;
+ 	u8 *edid;
+-	int r, i, best_xres, best_idx, len;
++	int r, i, best_idx, len;
+ 
+ 	if (!display->driver->read_edid)
+ 		return -ENODEV;
+@@ -2272,7 +2272,6 @@ static int omapfb_find_best_mode(struct omap_dss_device *display,
+ 
+ 	fb_edid_to_monspecs(edid, specs);
+ 
+-	best_xres = 0;
+ 	best_idx = -1;
+ 
+ 	for (i = 0; i < specs->modedb_len; ++i) {
+@@ -2288,16 +2287,20 @@ static int omapfb_find_best_mode(struct omap_dss_device *display,
+ 		if (m->xres == 2880 || m->xres == 1440)
+ 			continue;
+ 
++		if (m->vmode & FB_VMODE_INTERLACED ||
++				m->vmode & FB_VMODE_DOUBLE)
++			continue;
 +
-+static void __init omap4_hdmi_mux_pads(enum omap_hdmi_flags flags)
-+{
-+	u32 reg;
-+	u16 control_i2c_1;
+ 		fb_videomode_to_omap_timings(m, display, &t);
  
- 	/*
- 	 * CONTROL_I2C_1: HDMI_DDC_SDA_PULLUPRESX (bit 28) and
-@@ -161,8 +164,10 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 		r = display->driver->check_timings(display, &t);
+-		if (r == 0 && best_xres < m->xres) {
+-			best_xres = m->xres;
++		if (r == 0) {
+ 			best_idx = i;
++			break;
+ 		}
+ 	}
  
- int __init omap_hdmi_init(enum omap_hdmi_flags flags)
- {
--	if (cpu_is_omap44xx())
-+	if (cpu_is_omap44xx()) {
- 		omap4_hdmi_mux_pads(flags);
-+		omap4_tpd12s015_mux_pads();
-+	}
- 
- 	return 0;
- }
+-	if (best_xres == 0) {
++	if (best_idx == -1) {
+ 		r = -ENOENT;
+ 		goto err2;
+ 	}
 -- 
 1.7.9.5
 
