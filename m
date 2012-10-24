@@ -1,46 +1,104 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] gpio/omap: fix off-mode bug: clear debounce clock enable
- mask on disable
-Date: Wed, 24 Oct 2012 13:03:45 +0530
-Message-ID: <508799D9.6030501@ti.com>
-References: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v2 1/4] ARM: dts: omap5: Update GPIO with address space
+ and interrupts
+Date: Wed, 24 Oct 2012 09:44:14 +0200
+Message-ID: <50879C4E.6020003@ti.com>
+References: <1350981432-6750-1-git-send-email-s-guiriec@ti.com> <1350981432-6750-2-git-send-email-s-guiriec@ti.com> <5086AE8E.60106@ti.com> <5086B316.6000001@ti.com> <5086BECA.9070502@ti.com> <5086C0C3.1060305@ti.com> <5086C29C.5000209@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42463 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934396Ab2JXHd5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 03:33:57 -0400
-In-Reply-To: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5086C29C.5000209@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 23 October 2012 11:39 PM, Kevin Hilman wrote:
-> From: Kevin Hilman <khilman@ti.com>
->
-> When debounce clocks are disabled, ensure that the banks
-> dbck_enable_mask is cleared also.  Otherwise, context restore on
-> subsequent off-mode transition will restore previous value from the
-> shadow copies (bank->context.debounce*) leading to mismatch state
-> between driver state and hardware state.
->
-> This was discovered when board code was doing
->
->    gpio_request_one()
->    gpio_set_debounce()
->    gpio_free()
->
-> which was leaving the GPIO debounce settings in a confused state.
-> Then, enabling off mode causing bogus state to be restored, leaving
-> GPIO debounce enabled which then prevented the CORE powerdomain from
-> transitioning.
->
-> Reported-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Igor Grinberg <grinberg@compulab.co.il>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On 10/23/2012 06:15 PM, Sebastien Guiriec wrote:
+> Hi Benoit and John,
+> 
+> On 10/23/2012 06:07 PM, Benoit Cousson wrote:
+>> On 10/23/2012 05:59 PM, Jon Hunter wrote:
+>>>
+>>> On 10/23/2012 10:09 AM, Benoit Cousson wrote:
+>>>> On 10/23/2012 04:49 PM, Jon Hunter wrote:
+>>>>> Hi Seb,
+>>>>>
+>>>>> On 10/23/2012 03:37 AM, Sebastien Guiriec wrote:
+>>>>>> Add base address and interrupt line inside Device Tree data for
+>>>>>> OMAP5
+>>>>>>
+>>>>>> Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+>>>>>> ---
+>>>>>>   arch/arm/boot/dts/omap5.dtsi |   16 ++++++++++++++++
+>>>>>>   1 file changed, 16 insertions(+)
+>>>>>>
+>>>>>> diff --git a/arch/arm/boot/dts/omap5.dtsi
+>>>>>> b/arch/arm/boot/dts/omap5.dtsi
+>>>>>> index 42c78be..9e39f9f 100644
+>>>>>> --- a/arch/arm/boot/dts/omap5.dtsi
+>>>>>> +++ b/arch/arm/boot/dts/omap5.dtsi
+>>>>>> @@ -104,6 +104,8 @@
+>>>>>>
+>>>>>>           gpio1: gpio@4ae10000 {
+>>>>>>               compatible = "ti,omap4-gpio";
+>>>>>> +            reg = <0x4ae10000 0x200>;
+>>>>>> +            interrupts = <0 29 0x4>;
+>>>>>>               ti,hwmods = "gpio1";
+>>>>>>               gpio-controller;
+>>>>>>               #gpio-cells = <2>;
+>>>>>
+>>>>> I am wondering if we should add the "interrupt-parent" property to add
+>>>>> nodes in the device-tree source. I know that today the
+>>>>> interrupt-parent
+>>>>> is being defined globally, but when device-tree maps an interrupt
+>>>>> for a
+>>>>> device it searches for the interrupt-parent starting the current
+>>>>> device
+>>>>> node.
+>>>>>
+>>>>> So in other words, for gpio1 it will search the gpio1 binding for
+>>>>> "interrupt-parent" and if not found move up a level and search
+>>>>> again. It
+>>>>> will keep doing this until it finds the "interrupt-parent".
+>>>>>
+>>>>> Therefore, I believe it will improve search time and hence, boot
+>>>>> time if
+>>>>> we have interrupt-parent defined in each node.
+>>>>
+>>>> Mmm, I'm not that sure. it will increase the size of the blob, so
+>>>> increase the time to load it and then to parse it. Where in the current
+>>>> case, it is just going up to the parent node using the already
+>>>> un-flatten tree in memory and thus that should not take that much time.
+>>>
+>>> Yes it will definitely increase the size, so that could slow things
+>>> down.
+>>>
+>>>> That being said, it might be interesting to benchmark that to see what
+>>>> is the real impact.
+>>>
+>>> Right, I wonder what the key functions are we need to benchmark to get
+>>> an overall feel for what is best? Right now I am seeing some people add
+>>> the interrupt-parent for device nodes and others not. Ideally we should
+>>> be consistent, but at the same time it is probably something that we can
+>>> easily sort out later. So not a big deal either way.
+>>
+>> For consistency, I'd rather not add it at all for the moment.
+>> Later, when we will only support DT boot, people will start complaining
+>> about the boot time increase and then we will start optimizing a little
+>> bit :-)
+> 
+> I just do it like that to be consistent with what is inside OMAP4 dtsi
+> for those IPs (GPIO/UART/MMC/I2C). Now after checking Peter already add
+> the interrupt-parent for all audio IPs (OMAP3/4/5). But here we need
+> also interrupts name. So here we should try to be consistent.
+> 
+> So I can send back the series for OMAP5 and update the OMAP4 with
+>   interrupts-parent = <&gic>
 
+No, you should not, as explained previously. You'd better remove the one
+already in audio IPs for consistency.
+
+
+Regards,
+Benoit
