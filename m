@@ -1,57 +1,77 @@
-From: Sebastien Guiriec <s-guiriec@ti.com>
-Subject: Re: [PATCH v3 0/4] ARM: dts: Update OMAP5 with address space and
- interrupts
-Date: Wed, 24 Oct 2012 11:27:23 +0200
-Message-ID: <5087B47B.8080009@ti.com>
-References: <1351062434-22514-1-git-send-email-s-guiriec@ti.com> <5087B196.7090804@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/20] OMAPDSS: Misc cleanups/fixes
+Date: Wed, 24 Oct 2012 12:28:51 +0300
+Message-ID: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5087B196.7090804@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48069 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756319Ab2JXJ30 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Oct 2012 05:29:26 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi Benoit,
+Hi,
 
-On 10/24/2012 11:15 AM, Benoit Cousson wrote:
-> Hi Seb,
->
-> Sorry, I missed your previous email, your v2 was the right one.
-> We do have a single INTC in every OMAP, there is no point to repeat the
-> same data hundred times.
-> The DTS are already big enough.
+Here's another series with miscellaneous omapdss cleanups and fixes. I've made
+these during my work with various bigger projects, like using DSI PLL for DVI
+and omapdrm cooperation work.
 
-So in such case we should send a series for audio IP interrupt-parent 
-removal for OMAP3/4/5 dtsi file in order to be coherent.
+The patches are based on current omapdss master, and can also be found from:
 
-Do you want me to do it?
+git://gitorious.org/linux-omap-dss2/linux.git 3.8/misc-2
 
->
-> On 10/24/2012 09:07 AM, Sebastien Guiriec wrote:
->> Since kernel 3.7 the DTS data are not overwriten by hwmod data we can add the address space
->> and interrupt line description inside dtsi file for OMAP5. This serie is updating the
->> current OMAP5 IP with missing entry.
->>
->> It has been tested on OMAP5 with 3.7-audio-display feature tree.
->> - MMC is probing and functional
->> - TWL6041 probing (GPIO/I2C)
->> - booting (UART)
->>
->> Update since v1:
->> - Add Ack and review
->> - Fix up commit messages.
->>
->> Update since v2:
->> - Add interrupt-parent.
->
-> I will take the previous one to avoid the duplication of attributes.
->
-> On top of that I will remove the ones introduce in audio IPs for
-> consistency on OMAP3/4/5 platforms.
->
-> Regards,
-> Benoit
->
+ Tomi
+
+Tomi Valkeinen (20):
+  OMAPDSS: remove omap_dss_device's suspend/resume
+  OMAPDSS: get the dss version from core pdev
+  OMAPDSS: remove dispc_irq_handler declaration
+  OMAPDSS: DISPC: fix dispc_mgr_lclk_rate for DIGIT output
+  OMAPDSS: remove initial display code from omapdss
+  OMAPDSS: DISPC: use dss_feat_get_num_ovls()
+  OMAPDSS: DISPC: rename dispc_mgr_enable/disable to _sync
+  OMAPDSS: DISPC: make _enable_mgr_out public as "dispc_mgr_enable"
+  OMAPDSS: add dispc_ovl_enabled()
+  OMAPDSS: DISPC: Add IRQ enable/status helpers
+  OMAPDSS: HDMI: split power_on/off to two parts
+  OMAPDSS: HDMI: use core power on/off with edid & detect
+  OMAPDSS: HDMI: add 1920x1200 video mode
+  OMAPDSS: HDMI: make hdmi pclk check more permissive
+  OMAPFB: remove use of extended edid block
+  OMAPFB: improve mode selection from EDID
+  OMAPDSS: fix DSI2 PLL clk names
+  OMAPDSS: DISPC: fix loop in error handler
+  OMAPDSS: DISPC: remove dssdev depependency from error handler
+  OMAPDSS: split hdmi muxing function
+
+ arch/arm/mach-omap2/display.c                      |   15 +-
+ drivers/video/omap2/displays/panel-acx565akm.c     |   23 ----
+ drivers/video/omap2/displays/panel-generic-dpi.c   |   36 -----
+ .../omap2/displays/panel-lgphilips-lb035q02.c      |   34 -----
+ drivers/video/omap2/displays/panel-n8x0.c          |   50 -------
+ .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   24 ----
+ drivers/video/omap2/displays/panel-picodlp.c       |   44 ------
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   17 ---
+ drivers/video/omap2/displays/panel-taal.c          |   72 ----------
+ drivers/video/omap2/displays/panel-tfp410.c        |   33 -----
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |   20 ---
+ drivers/video/omap2/dss/apply.c                    |    6 +-
+ drivers/video/omap2/dss/core.c                     |   10 +-
+ drivers/video/omap2/dss/dispc.c                    |  143 +++++++++++---------
+ drivers/video/omap2/dss/display.c                  |   93 ++-----------
+ drivers/video/omap2/dss/dss.c                      |    5 +-
+ drivers/video/omap2/dss/dss.h                      |   13 +-
+ drivers/video/omap2/dss/hdmi.c                     |  122 ++++++++++++-----
+ drivers/video/omap2/dss/hdmi_panel.c               |   78 ++---------
+ drivers/video/omap2/dss/venc_panel.c               |   19 ---
+ drivers/video/omap2/omapfb/omapfb-main.c           |  101 ++++++++++----
+ include/video/omapdss.h                            |    6 +-
+ 22 files changed, 308 insertions(+), 656 deletions(-)
+
+-- 
+1.7.9.5
+
