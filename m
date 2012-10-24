@@ -1,81 +1,46 @@
-From: Sebastien Guiriec <s-guiriec@ti.com>
-Subject: [PATCH v3 2/4] ARM: dts: omap5: Update I2C with address space and interrupts
-Date: Wed, 24 Oct 2012 09:07:12 +0200
-Message-ID: <1351062434-22514-3-git-send-email-s-guiriec@ti.com>
-References: <1351062434-22514-1-git-send-email-s-guiriec@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] gpio/omap: fix off-mode bug: clear debounce clock enable
+ mask on disable
+Date: Wed, 24 Oct 2012 13:03:45 +0530
+Message-ID: <508799D9.6030501@ti.com>
+References: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351062434-22514-1-git-send-email-s-guiriec@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42463 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934396Ab2JXHd5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 03:33:57 -0400
+In-Reply-To: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-arm-kernel@lists.infradead.org
 
-Add base address and interrupt line inside Device Tree data for
-OMAP5
+On Tuesday 23 October 2012 11:39 PM, Kevin Hilman wrote:
+> From: Kevin Hilman <khilman@ti.com>
+>
+> When debounce clocks are disabled, ensure that the banks
+> dbck_enable_mask is cleared also.  Otherwise, context restore on
+> subsequent off-mode transition will restore previous value from the
+> shadow copies (bank->context.debounce*) leading to mismatch state
+> between driver state and hardware state.
+>
+> This was discovered when board code was doing
+>
+>    gpio_request_one()
+>    gpio_set_debounce()
+>    gpio_free()
+>
+> which was leaving the GPIO debounce settings in a confused state.
+> Then, enabling off mode causing bogus state to be restored, leaving
+> GPIO debounce enabled which then prevented the CORE powerdomain from
+> transitioning.
+>
+> Reported-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Igor Grinberg <grinberg@compulab.co.il>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
-Reviewed-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/boot/dts/omap5.dtsi |   19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 737a536..07d2607 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -200,6 +200,9 @@
- 
- 		i2c1: i2c@48070000 {
- 			compatible = "ti,omap4-i2c";
-+			reg = <0x48070000 0x100>;
-+			interrupts = <0 56 0x4>;
-+			interrupt-parent = <&gic>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c1";
-@@ -207,6 +210,9 @@
- 
- 		i2c2: i2c@48072000 {
- 			compatible = "ti,omap4-i2c";
-+			reg = <0x48072000 0x100>;
-+			interrupts = <0 57 0x4>;
-+			interrupt-parent = <&gic>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c2";
-@@ -214,20 +220,29 @@
- 
- 		i2c3: i2c@48060000 {
- 			compatible = "ti,omap4-i2c";
-+			reg = <0x48060000 0x100>;
-+			interrupts = <0 61 0x4>;
-+			interrupt-parent = <&gic>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c3";
- 		};
- 
--		i2c4: i2c@4807A000 {
-+		i2c4: i2c@4807a000 {
- 			compatible = "ti,omap4-i2c";
-+			reg = <0x4807a000 0x100>;
-+			interrupts = <0 62 0x4>;
-+			interrupt-parent = <&gic>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c4";
- 		};
- 
--		i2c5: i2c@4807C000 {
-+		i2c5: i2c@4807c000 {
- 			compatible = "ti,omap4-i2c";
-+			reg = <0x4807c000 0x100>;
-+			interrupts = <0 60 0x4>;
-+			interrupt-parent = <&gic>;
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c5";
--- 
-1.7.10.4
