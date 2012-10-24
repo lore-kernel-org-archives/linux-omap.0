@@ -1,72 +1,90 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [balbi-usb:i2c-transferred-bytes-on-NACK 7/9]
- drivers/media/i2c/adv7604.c:406:9: warning: initialization makes integer
- from pointer without a cast
-Date: Wed, 24 Oct 2012 16:37:20 +0300
-Message-ID: <20121024133720.GF21735@arwen.pp.htv.fi>
-References: <5087e56f.wwcO2kZCKDOco89b%fengguang.wu@intel.com>
- <20121024132323.GA16927@localhost>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: PMU: fix runtime PM enable
+Date: Wed, 24 Oct 2012 09:16:43 -0500
+Message-ID: <5087F84B.9070705@ti.com>
+References: <1351024268-26734-1-git-send-email-jon-hunter@ti.com> <20121024093150.GA23775@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Zi0sgQQBxRFxMTsj"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20121024132323.GA16927@localhost>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44502 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934843Ab2JXOQv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Oct 2012 10:16:51 -0400
+In-Reply-To: <20121024093150.GA23775@mudshark.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
---Zi0sgQQBxRFxMTsj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Will,
 
-Hi,
+On 10/24/2012 04:31 AM, Will Deacon wrote:
+> Hi Jon,
+> 
+> On Tue, Oct 23, 2012 at 09:31:08PM +0100, Jon Hunter wrote:
+>> Commit 7be2958 (ARM: PMU: Add runtime PM Support) updated the ARM PMU code to
+>> use runtime PM which was prototyped and validated on the OMAP devices. In this
+>> commit, there is no call pm_runtime_enable() and for OMAP devices
+>> pm_runtime_enable() is currently being called from the OMAP PMU code when the
+>> PMU device is created. However, there are two problems with this:
+>>
+>> 1. For any other ARM device wishing to use runtime PM for PMU they will need
+>>    to call pm_runtime_enable() for runtime PM to work.
+>> 2. When booting with device-tree and using device-tree to create the PMU
+>>    device, pm_runtime_enable() needs to be called from within the ARM PERF
+>>    driver as we are no longer calling any device specific code to create the
+>>    device. Hence, PMU does not work on OMAP devices that use the runtime PM
+>>    callbacks when using device-tree to create the PMU device.
+>>
+>> Therefore, add a new platform data variable to indicate whether runtime PM is
+>> used and if so call pm_runtime_enable() when the PMU device is registered. Note
+>> that devices using runtime PM may not use the runtime_resume/suspend callbacks
+>> and so we cannot use the presence of these handlers in the platform data to
+>> determine whether we should call pm_runtime_enable().
+> 
+> [...]
+> 
+>> diff --git a/arch/arm/include/asm/pmu.h b/arch/arm/include/asm/pmu.h
+>> index a26170d..50a6c3b 100644
+>> --- a/arch/arm/include/asm/pmu.h
+>> +++ b/arch/arm/include/asm/pmu.h
+>> @@ -36,6 +36,7 @@
+>>  struct arm_pmu_platdata {
+>>  	irqreturn_t (*handle_irq)(int irq, void *dev,
+>>  				  irq_handler_t pmu_handler);
+>> +	bool use_runtime_pm;
+>>  	int (*runtime_resume)(struct device *dev);
+>>  	int (*runtime_suspend)(struct device *dev);
+> 
+> Can we not just use the presence of the resume/suspend function pointers to
+> indicate whether we should enable runtime pm or not? i.e. if they're not
+> NULL, then enable the thing?
 
-On Wed, Oct 24, 2012 at 09:23:23PM +0800, Fengguang Wu wrote:
-> Sorry, this should really be CCed to the media list.
-> I'll use the list recommended by get_maintainer.pl in future.
+I wondered if you would ask that :-)
 
-Actually, I would suggest only testing the following branches from my
-tree:
+Unfortunately, we can't. For example, OMAP3430 and OMAP4460 both require
+runtime_pm to be enabled to turn on the debug sub-system in OMAP for PMU
+to work. However, neither of these devices are using the suspend/resume
+callbacks because the HWMOD framework is doing this for us behind the
+scenes.
 
-dwc3, musb, xceiv, gadget and fixes
+So then you ask, why do we need the resume/suspend callbacks, well we
+will need them for OMAP4430 where in addition to turning on the debug
+sub-system we need to configure the CTI module. Therefore, I had to add
+another plat data variable.
 
-Those are my final branches, everything else is a temporary branch that
-I'm using just so I don't loose some patches, or to make it easy for
-other guys to test patches.
+By the way, I did add a comment in the above changelog about this. See
+the last paragraph, not sure if this is 100% clear.
 
-cheers
+One alternative I had thought about was always calling
+pm_runtime_enable() on registering the PMU device and avoid having a
+use_runtime_pm variable. For ARM platforms that don't use runtime PM the
+pm_runtime_enable() function does nothing. However, I was more concerned
+about adding unnecessary overhead for ARM platforms that are using
+runtime PM but don't need runtime PM for PMU. I don't see any side
+affects on our OMAP2 platform that does not need runtime PM for PMU.
+However, was not sure what is best here.
 
---=20
-balbi
-
---Zi0sgQQBxRFxMTsj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQh+8PAAoJEIaOsuA1yqREvnAQAIA987jPiTqrYPuSIsKXpfrp
-f7Np2irzEtqZ5h2IW74B7CGcyYYcPxjPl4cF47Yo6XwMf8MoSeEbE9O8Y3fQod4w
-X1Vcnie9iauIfoKxuGmGubUIOwFGdWyRZVcVjdm+n3IEGBL4d8QgY4Oc3oFB7EW7
-Fw/r2liaoygMO24IdKIOMkAUtXb6pPUAqwyi+YQGw8miZ/yCnOsVbgj1X2AuPxBH
-N5sTJTy4Yx0+Vm1ROvB2CRq86Iq2cn5ReHmc8mkmHA1SRMWwoUbfWbhh6VBWZtnT
-sbJBrs/31D9DtaQFEG4TTiiJaIIRDpktf02BifI8FPAC1EQwEQGZ3yYWp24oPaiq
-acBbR3pbcOaEigsgRQeKWMePmdBRXTldTDKmVShbLEkp82mMz/rax4sKu8iBp/y0
-6ZnrA3QRuXtZqLs7/DWb5qI35OjQjGRkdnwnbyREbdgssURIB7E2Ym6QQGEhFcVN
-bjUYy4GJXksu9uNWzdsNFM9sm4vXPzWzHVX8PiRzAIjtr1bD9bWRcS5ZixVBPHTR
-DOnPTFzDkHUz+KPBrOXMnNGE81sj+AIrY9Fpig5OGqUV9WSrkQmjlTNS3XP16H1/
-J86FlwjonfnUKzHbWZOyqGGyEgDF4hhvWdTNnI5uGMAqCvaengtWr5LxXLfZ3kEL
-CQjTZe/NpyFYFzunjxnD
-=WeXj
------END PGP SIGNATURE-----
-
---Zi0sgQQBxRFxMTsj--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers
+Jon
