@@ -1,74 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] Revert "serial: omap: fix software flow control"
-Date: Wed, 24 Oct 2012 13:02:55 +0300
-Message-ID: <20121024100254.GG5665@arwen.pp.htv.fi>
-References: <1350396562-32579-1-git-send-email-balbi@ti.com>
- <20121016151357.GN15569@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v3 0/4] ARM: dts: Update OMAP5 with address space and
+ interrupts
+Date: Wed, 24 Oct 2012 12:09:37 +0200
+Message-ID: <5087BE61.6060704@ti.com>
+References: <1351062434-22514-1-git-send-email-s-guiriec@ti.com> <5087B196.7090804@ti.com> <5087B47B.8080009@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lHGcFxmlz1yfXmOs"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121016151357.GN15569@atomide.com>
+In-Reply-To: <5087B47B.8080009@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux@arm.linux.org.uk, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Sebastien Guiriec <s-guiriec@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---lHGcFxmlz1yfXmOs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 10/24/2012 11:27 AM, Sebastien Guiriec wrote:
+> Hi Benoit,
+> 
+> On 10/24/2012 11:15 AM, Benoit Cousson wrote:
+>> Hi Seb,
+>>
+>> Sorry, I missed your previous email, your v2 was the right one.
+>> We do have a single INTC in every OMAP, there is no point to repeat the
+>> same data hundred times.
+>> The DTS are already big enough.
+> 
+> So in such case we should send a series for audio IP interrupt-parent
+> removal for OMAP3/4/5 dtsi file in order to be coherent.
 
-Hi Greg,
+Yes. AM33xx was as well using that in some other IPs.
 
-On Tue, Oct 16, 2012 at 08:13:59AM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [121016 07:16]:
-> > This reverts commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6
-> > (serial: omap: fix software flow control).
-> >=20
-> > As Russell has pointed out, that commit isn't fixing
-> > Software Flow Control at all, and it actually makes
-> > it even more broken.
-> >=20
-> > It was agreed to revert this commit and use Russell's
-> > latest UART patches instead.
-> >=20
-> > Cc: Russell King <linux@arm.linux.org.uk>
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
->=20
-> This seems like the best way to go for the -rc series:
->=20
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> Do you want me to do it?
 
-Any chance you can pick this one up for v3.7-rc3 ?
+Thanks, but I've just done the patch, I'll sent it in a couple of minutes.
 
-cheers
+Benoit
 
---=20
-balbi
-
---lHGcFxmlz1yfXmOs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQh7zOAAoJEIaOsuA1yqREI4IQAKVXiIKQc489tzBZannUfi/w
-yfwWLwedUJZKof0kzdM/dKxqZL+qCilL2u0piuKLnuRzH4GQcVPbuXP+AGx9/766
-V+Ljkltz+09hhRTMZWtxvgWYGYHyZNnveVAYh0bp1u+05XRPsiJLuoXnEfZNkWkU
-2bYSMtTo0qcNaTZkkC3+0ea7mJHysLBXqbnbwcLhdhPGndk1uhinKcQfWuGXZSAe
-/p6emuM0OMpPoqpKy/cnQrgccTYP4nMCMI/NW8LiAuswffMu3ohS8GM4ZBsZp6NK
-+4zetajE70xugcIeOvL30VdIIcVdEjMg+tvXOh8hpYSof3FiUPLXIeKUZuEiDyTy
-HdRHV87OQnS5Zk4TqqJNBSuilpzMKxRSRNYDTXlA3BF12BNTvOj+OkrH/2yAQp68
-lT5Er+tsPdvgb328DLFehs92YKmZafdAKZivSjpxn+mqMbVkvQjd46k+OKcztWKS
-/IuQ/JMO9HxSpWEYOftktO851UOVJnWQ5qUeSlRHYVHc8EMwpA/J61eZWfDV8oEA
-2KQhNlQwTxiAWI4Do0MXOkhdBV049pCL4Wk2WOYMpvFRD/dANqTy/vWRkZhYzjNY
-pSQpiOVEatwU8cojWujJWJJVmjC8UdRnA0dveftU3zFLhUHHruomflWoAZzdIekC
-2OPjOtDE1EQKJj0EvkEE
-=4Hvm
------END PGP SIGNATURE-----
-
---lHGcFxmlz1yfXmOs--
+> 
+>>
+>> On 10/24/2012 09:07 AM, Sebastien Guiriec wrote:
+>>> Since kernel 3.7 the DTS data are not overwriten by hwmod data we can
+>>> add the address space
+>>> and interrupt line description inside dtsi file for OMAP5. This serie
+>>> is updating the
+>>> current OMAP5 IP with missing entry.
+>>>
+>>> It has been tested on OMAP5 with 3.7-audio-display feature tree.
+>>> - MMC is probing and functional
+>>> - TWL6041 probing (GPIO/I2C)
+>>> - booting (UART)
+>>>
+>>> Update since v1:
+>>> - Add Ack and review
+>>> - Fix up commit messages.
+>>>
+>>> Update since v2:
+>>> - Add interrupt-parent.
+>>
+>> I will take the previous one to avoid the duplication of attributes.
+>>
+>> On top of that I will remove the ones introduce in audio IPs for
+>> consistency on OMAP3/4/5 platforms.
+>>
+>> Regards,
+>> Benoit
+>>
+> 
