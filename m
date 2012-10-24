@@ -1,56 +1,86 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] gpio/omap: fix off-mode bug: clear debounce clock enable
- mask on disable
-Date: Wed, 24 Oct 2012 10:56:52 +0200
-Message-ID: <5087AD54.60703@compulab.co.il>
-References: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com> <CACRpkdb_zO0G5hsU5hTqnmD6Zju_xBwdmnk6C=Ok1R7-oNT_iQ@mail.gmail.com>
+Subject: Re: OMAP baseline test results for v3.7-rc2
+Date: Wed, 24 Oct 2012 11:01:02 +0200
+Message-ID: <5087AE4E.7000104@compulab.co.il>
+References: <alpine.DEB.2.00.1210202125300.774@utopia.booyaka.com> <87r4oqc833.fsf@deeprootsystems.com> <87objt8305.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:34785 "EHLO
+Received: from softlayer.compulab.co.il ([50.23.254.55]:37566 "EHLO
 	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933474Ab2JXI46 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Oct 2012 04:56:58 -0400
-In-Reply-To: <CACRpkdb_zO0G5hsU5hTqnmD6Zju_xBwdmnk6C=Ok1R7-oNT_iQ@mail.gmail.com>
+	id S933529Ab2JXJBI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Oct 2012 05:01:08 -0400
+In-Reply-To: <87objt8305.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 10/24/12 10:16, Linus Walleij wrote:
-> On Tue, Oct 23, 2012 at 8:09 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
+On 10/23/12 20:19, Kevin Hilman wrote:
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
 > 
->> From: Kevin Hilman <khilman@ti.com>
+>> +Igor
 >>
->> When debounce clocks are disabled, ensure that the banks
->> dbck_enable_mask is cleared also.  Otherwise, context restore on
->> subsequent off-mode transition will restore previous value from the
->> shadow copies (bank->context.debounce*) leading to mismatch state
->> between driver state and hardware state.
+>> Paul Walmsley <paul@pwsan.com> writes:
 >>
->> This was discovered when board code was doing
+>>> Here are some basic OMAP test results for Linux v3.7-rc2.
+>>> Logs and other details at:
+>>>
+>>>     http://www.pwsan.com/omap/testlogs/test_v3.7-rc2/20121020134755/
 >>
->>   gpio_request_one()
->>   gpio_set_debounce()
->>   gpio_free()
+>> [...]
 >>
->> which was leaving the GPIO debounce settings in a confused state.
->> Then, enabling off mode causing bogus state to be restored, leaving
->> GPIO debounce enabled which then prevented the CORE powerdomain from
->> transitioning.
+>>> * 37xx EVM: CORE not entering dynamic off-idle
+>>>   - Cause unknown; dynamic retention-idle seems to work; system suspend to 
+>>>     off works
 >>
->> Reported-by: Paul Walmsley <paul@pwsan.com>
->> Cc: Igor Grinberg <grinberg@compulab.co.il>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> I got a start on this one, and discovered (using CM_IDLEST1_CORE) that
+>> SPI1 was not idle when going off.  A quick hack disabling the
+>> touchscreen showed that after that, core was hitting idle just fine.
+>>
+>> I ran out of time today debugging this, but it's definitely realted to
+>> the GPIO debounce setting for the touchscreen.  Changing it to zero[1]
+>> makes CORE hit retention again in idle.
 > 
-> Thanks! Applied with Felipe's and Santosh's ACKs.
+> OK, found the root cause of this in the GPIO driver.  Patch submitted:
+> 
+>     http://marc.info/?l=linux-omap&m=135101577925972&w=2
 
-If not too late:
-Acked-by: Igor Grinberg <grinberg@compulab.co.il>
+Ok that one looks good.
 
-Kevin, thanks for the patch and sorry I could not respond on time.
+> 
+> however...
+> 
+>> Igor, I'm hoping you might know what's going on here since we already
+>> had some problems with this ads7846 init stuff and you're more familiar
+>> with this debounce init.
+> 
+> ... board files that are setting debounce values for ads7846 will no
+> longer work.  
+> 
+> Currently, omap_ads7846_init() in common-board-devices.c does this:
+> 
+>    gpio_request_one()
+>    gpio_set_debounce()
+>    gpio_free()                    
+> 
+> because of a bug in the GPIO driver, the debounce settings were sticky
+> and lingered even after the gpio_free().  That bug has been fixed by the
+> above patch, which means the above gpio_set_debounce() is completely
+> pointless because it's followed immediately by a gpio_free().
+> 
+> IMO, the whole GPIO init for the ads7846 needs a rethink as it's
+> currently partially done by common-board-devices.c and done (again) in
+> the ads7846 driver.  If the gpio_free() isn't done in
+> common-board-devices, then the ads7846 driver will currently fail to
+> probe/load becasue it can't request a GPIO line.
+> 
+> Having found and fixed the PM regression, I'll leave the ads7846 cleanup to
+> somone else.
+
+Ok, understood, I'll look into this one soon.
+
 
 -- 
 Regards,
