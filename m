@@ -1,68 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: AM33XX: Fix configuration of dmtimer parent clock
- by dmtimer driver
-Date: Tue, 23 Oct 2012 19:01:31 -0700
-Message-ID: <20121024020130.GD5605@atomide.com>
-References: <1350500155-22525-1-git-send-email-jon-hunter@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH v2 0/7] crypto: omap-sham updates
+Date: Tue, 23 Oct 2012 19:36:00 -0700
+Message-ID: <1351046167-4882-1-git-send-email-mgreer@animalcreek.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:25178 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755566Ab2JXCBg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 22:01:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1350500155-22525-1-git-send-email-jon-hunter@ti.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:56136 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755611Ab2JXCgd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Oct 2012 22:36:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, dmitry.kasatkin@intel.com, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, "Mark A. Greer" <mgreer@animalcreek.com>
 
-* Jon Hunter <jon-hunter@ti.com> [121017 11:57]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> Add dmtimer clock aliases for AM33XX devices so that the parent clock for
-> the dmtimer can be set correctly by the dmtimer driver. Without these clock
-> aliases the dmtimer driver will fail to find the parent clocks for the dmtimer.
-> 
-> Verified that DMTIMERs can be successfully requested on AM335x beagle bone.
-> 
-> Original patch was provided by Vaibhav Hiremath [1]. Changelog and
-> additional verification performed by Jon Hunter.
-> 
-> [1] http://marc.info/?l=linux-omap&m=134693631608018&w=2
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> Tested-by: Jon Hunter <jon-hunter@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Thanks applying into omap-for-v3.7-rc2/fixes.
+Changes since v1:
+	- Removed the check of CM_IDLEST to see if the module exists
+	  and instead add the hwmod data for all omap2's and omap3 GP's.
+	- Placed new sha_ick clk entries after the 'omap-sham' entry
+	  in the clockxxx_data.c files
+	- Removed cpu_is_xxx() checks in
+	  arch/arm/mach-omap2/devices.c:omap_init_sham()
+	- Rebased on the latest k.o. kernel
 
-Regards,
 
-Tony
+This series updates the crypto omap-sham driver and supporting
+infrastructure.
 
-> ---
->  arch/arm/mach-omap2/clock33xx_data.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
-> index 114ab4b..1a45d6b 100644
-> --- a/arch/arm/mach-omap2/clock33xx_data.c
-> +++ b/arch/arm/mach-omap2/clock33xx_data.c
-> @@ -1073,6 +1073,8 @@ static struct omap_clk am33xx_clks[] = {
->  	CLK(NULL,	"gfx_fck_div_ck",	&gfx_fck_div_ck,	CK_AM33XX),
->  	CLK(NULL,	"sysclkout_pre_ck",	&sysclkout_pre_ck,	CK_AM33XX),
->  	CLK(NULL,	"clkout2_ck",		&clkout2_ck,	CK_AM33XX),
-> +	CLK(NULL,	"timer_32k_ck",		&clkdiv32k_ick,	CK_AM33XX),
-> +	CLK(NULL,	"timer_sys_ck",		&sys_clkin_ck,	CK_AM33XX),
->  };
->  
->  int __init am33xx_clk_init(void)
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Notes:
+
+a) Based on current k.o. 2d1f4c8 (Merge branch 'drm-fixes' of
+	git://people.freedesktop.org/~airlied/linux)
+
+b) Since these patches will likely go though the OMAP tree (and not
+   through the crypto tree), it would be nice if the crypto guy(s)
+   would ACK or NACK patches 5-7 which modify the
+   drivers/crypto/omap-sham.c driver.
+
+c) These have only been tested on an omap2420 h4 and an am37x evm.  If you
+   have different hardware available and a few minutes, please test them.
+   A quick and easy test is to enable tcrypt as a module
+   (CONFIG_CRYPTO_TEST=m), boot, then run 'modprobe tcrypt sec=2 mode=403'.
+   'CONFIG_CRYPTO_SHA1' and 'CONFIG_CRYPTO_DEV_OMAP_SHAM' also have to be
+   enabled.  A quick 'grep omap-sham /proc/interrupts' will tell you if
+   the omap-sham driver was really used.
+
+d) To test these patches, you will likely need...
+   i) The patch included here:
+	   http://marc.info/?l=kernel-janitors&m=134910841909057&w=2
+   ii) This patch from linux-omap/master:
+	   27615a9 (ARM: OMAP: Trivial driver changes to remove include
+			   plat/cpu.h)
+   iii) This patch from Paul Walmsley:
+	   http://www.spinics.net/lists/linux-omap/msg79436.html
+
+e) If you prefer, a version you can test is available at
+   git@github.com:mgreeraz/linux-mag.git mag/wip/crypto/test
+
+f) There is a reduction in DMA performance after switching to dmaengine
+   (see http://www.spinics.net/lists/linux-omap/msg79855.html)
+
+g) Many thanks to Jon Hunter for testing on his omap2420 h4.
+
+Mark A. Greer (7):
+  ARM: OMAP2xxx: hwmod: Convert SHAM crypto device data to hwmod
+  ARM: OMAP2xxx: hwmod: Add DMA information for SHAM module
+  ARM: OMAP3xxx: hwmod: Convert SHAM crypto device data to hwmod
+  ARM: OMAP2+: Remove unnecessary message when no SHA IP is present
+  crypto: omap-sham: Convert to use pm_runtime API
+  crypto: omap-sham: Add code to use dmaengine API
+  crypto: omap_sham: Remove usage of private DMA API
+
+ arch/arm/mach-omap2/clock2420_data.c               |   1 +
+ arch/arm/mach-omap2/clock2430_data.c               |   1 +
+ arch/arm/mach-omap2/clock3xxx_data.c               |   1 +
+ arch/arm/mach-omap2/devices.c                      |  81 +++------
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   1 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   1 +
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  18 ++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  43 +++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  60 +++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |   2 +
+ drivers/crypto/omap-sham.c                         | 192 +++++++++++----------
+ 11 files changed, 250 insertions(+), 151 deletions(-)
+
+-- 
+1.7.12
+
+
