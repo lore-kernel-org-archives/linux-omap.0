@@ -1,74 +1,72 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Subject: Re: [balbi-usb:i2c-transferred-bytes-on-NACK 7/9]
  drivers/media/i2c/adv7604.c:406:9: warning: initialization makes integer
  from pointer without a cast
-Date: Wed, 24 Oct 2012 16:36:08 +0300
-Message-ID: <20121024133608.GE21735@arwen.pp.htv.fi>
+Date: Wed, 24 Oct 2012 16:37:20 +0300
+Message-ID: <20121024133720.GF21735@arwen.pp.htv.fi>
 References: <5087e56f.wwcO2kZCKDOco89b%fengguang.wu@intel.com>
-Reply-To: <balbi@ti.com>
+ <20121024132323.GA16927@localhost>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WK3l2KTTmXPVedZ6"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46064 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934752Ab2JXNlv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Oct 2012 09:41:51 -0400
+	protocol="application/pgp-signature"; boundary="Zi0sgQQBxRFxMTsj"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5087e56f.wwcO2kZCKDOco89b%fengguang.wu@intel.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20121024132323.GA16927@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
---WK3l2KTTmXPVedZ6
+--Zi0sgQQBxRFxMTsj
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Oct 24, 2012 at 08:56:15PM +0800, Fengguang Wu wrote:
-> Hi Shubhrajyoti,
->=20
-> FYI, there are new compile warnings show up in
->=20
-> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git i2c-t=
-ransferred-bytes-on-NACK
+On Wed, Oct 24, 2012 at 09:23:23PM +0800, Fengguang Wu wrote:
+> Sorry, this should really be CCed to the media list.
+> I'll use the list recommended by get_maintainer.pl in future.
 
-can you *not* test this branch ? Specially since it has nothing to do
-with USB. I just used kernel.org to backup those patches for me :-)
+Actually, I would suggest only testing the following branches from my
+tree:
 
-Besides, I already got a report related to this and the fixes are just
-waiting to be sent to mainline :-)
+dwc3, musb, xceiv, gadget and fixes
+
+Those are my final branches, everything else is a temporary branch that
+I'm using just so I don't loose some patches, or to make it easy for
+other guys to test patches.
 
 cheers
-
-ps: thanks for the great work guys.
 
 --=20
 balbi
 
---WK3l2KTTmXPVedZ6
+--Zi0sgQQBxRFxMTsj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQh+7IAAoJEIaOsuA1yqREgucP/38Y+CMA/MB2eo7blcQ3rwpy
-rwXjclnymCIIWeimn9Rl68oEDRFxCWpJ750zvvkZsbuyJ41C3YOq7VuZKXdnLlPi
-QpZ+SPKEBUGqBVnXgLJve2WCBCM+qwxSLIXdgx7SkKBo7pMW6yrORF+Ho/Jkq+0l
-jbYyU2c4pgXnyuHtdzYuSqUrE9wcgV6p29lnFXQX7oINkewYTjQ3igcyHUyaJiCH
-WzUFerx2JY93ruVV73tTqWMwg+zH7rvu8s+BLJU24SiRq2E3uuTy44jki0YoOsoh
-GZeuImWEXLcTiJjf7vFI+zdH6W2rcEgGAWoZlVdDmxFlxbnLUfeoG0b/q070Z1GN
-gqgpQePx6/Tr7qwwfB856tj5hL7wI0Ltl2nygNDDXodUF2T0aEFgcg39XaadmlzY
-KvOlJsTTB0nGQBRrwrxOiqAbGlbZOy3eVSNmTWX5ALYtfLakVs+po7m+ES0Kw3tD
-Ih8Nt4XEZ3UDj2AiaSue4DGmW1Ikp+814/iDNXErWXRG6wDQh1rsQFw/YBS3b33x
-V8/8rmHMIcYyRqdnIqeKDh1jTmP8vAGMCn5Twt8kFViw/cmaiwM3U7JNXUhqGnNU
-W109zyrhfxuwSzijbLissHi/r3c+LRgLGv4lkM4AnVYboRh5CQWNsdAcRY0pVUpM
-xTZjJtOVCvKnq8S3xYyl
-=fwyV
+iQIcBAEBAgAGBQJQh+8PAAoJEIaOsuA1yqREvnAQAIA987jPiTqrYPuSIsKXpfrp
+f7Np2irzEtqZ5h2IW74B7CGcyYYcPxjPl4cF47Yo6XwMf8MoSeEbE9O8Y3fQod4w
+X1Vcnie9iauIfoKxuGmGubUIOwFGdWyRZVcVjdm+n3IEGBL4d8QgY4Oc3oFB7EW7
+Fw/r2liaoygMO24IdKIOMkAUtXb6pPUAqwyi+YQGw8miZ/yCnOsVbgj1X2AuPxBH
+N5sTJTy4Yx0+Vm1ROvB2CRq86Iq2cn5ReHmc8mkmHA1SRMWwoUbfWbhh6VBWZtnT
+sbJBrs/31D9DtaQFEG4TTiiJaIIRDpktf02BifI8FPAC1EQwEQGZ3yYWp24oPaiq
+acBbR3pbcOaEigsgRQeKWMePmdBRXTldTDKmVShbLEkp82mMz/rax4sKu8iBp/y0
+6ZnrA3QRuXtZqLs7/DWb5qI35OjQjGRkdnwnbyREbdgssURIB7E2Ym6QQGEhFcVN
+bjUYy4GJXksu9uNWzdsNFM9sm4vXPzWzHVX8PiRzAIjtr1bD9bWRcS5ZixVBPHTR
+DOnPTFzDkHUz+KPBrOXMnNGE81sj+AIrY9Fpig5OGqUV9WSrkQmjlTNS3XP16H1/
+J86FlwjonfnUKzHbWZOyqGGyEgDF4hhvWdTNnI5uGMAqCvaengtWr5LxXLfZ3kEL
+CQjTZe/NpyFYFzunjxnD
+=WeXj
 -----END PGP SIGNATURE-----
 
---WK3l2KTTmXPVedZ6--
+--Zi0sgQQBxRFxMTsj--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
