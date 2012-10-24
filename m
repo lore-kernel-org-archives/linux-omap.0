@@ -1,68 +1,37 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v3 0/4] ARM: dts: Update OMAP5 with address space and
- interrupts
-Date: Wed, 24 Oct 2012 12:09:37 +0200
-Message-ID: <5087BE61.6060704@ti.com>
-References: <1351062434-22514-1-git-send-email-s-guiriec@ti.com> <5087B196.7090804@ti.com> <5087B47B.8080009@ti.com>
+From: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] ARM: dts: OMAP: Move interrupt-parent to the root node
+ to avoid duplication
+Date: Wed, 24 Oct 2012 12:56:46 +0200
+Message-ID: <5087C96E.7020906@ti.com>
+References: <5087BCA6.1020602@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5087B47B.8080009@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51496 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933507Ab2JXK4y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Oct 2012 06:56:54 -0400
+In-Reply-To: <5087BCA6.1020602@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Guiriec, Sebastien" <s-guiriec@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On 10/24/2012 11:27 AM, Sebastien Guiriec wrote:
-> Hi Benoit,
+On 10/24/2012 12:02 PM, Benoit Cousson wrote:
+> The interrupt-parent attribute does not have to be added in each
+> node since the DT framework will check for the parent as well to get it.
 > 
-> On 10/24/2012 11:15 AM, Benoit Cousson wrote:
->> Hi Seb,
->>
->> Sorry, I missed your previous email, your v2 was the right one.
->> We do have a single INTC in every OMAP, there is no point to repeat the
->> same data hundred times.
->> The DTS are already big enough.
+> Create an interrupt-parent for OMAP2, OMAP3, AM33xx and remove the
+> attributes from every nodes that were using it.
 > 
-> So in such case we should send a series for audio IP interrupt-parent
-> removal for OMAP3/4/5 dtsi file in order to be coherent.
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Sebastien Guiriec <s-guiriec@ti.com>
 
-Yes. AM33xx was as well using that in some other IPs.
+Thanks Benoit, looks good from my side.
 
-> Do you want me to do it?
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Thanks, but I've just done the patch, I'll sent it in a couple of minutes.
 
-Benoit
-
-> 
->>
->> On 10/24/2012 09:07 AM, Sebastien Guiriec wrote:
->>> Since kernel 3.7 the DTS data are not overwriten by hwmod data we can
->>> add the address space
->>> and interrupt line description inside dtsi file for OMAP5. This serie
->>> is updating the
->>> current OMAP5 IP with missing entry.
->>>
->>> It has been tested on OMAP5 with 3.7-audio-display feature tree.
->>> - MMC is probing and functional
->>> - TWL6041 probing (GPIO/I2C)
->>> - booting (UART)
->>>
->>> Update since v1:
->>> - Add Ack and review
->>> - Fix up commit messages.
->>>
->>> Update since v2:
->>> - Add interrupt-parent.
->>
->> I will take the previous one to avoid the duplication of attributes.
->>
->> On top of that I will remove the ones introduce in audio IPs for
->> consistency on OMAP3/4/5 platforms.
->>
->> Regards,
->> Benoit
->>
-> 
