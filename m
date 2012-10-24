@@ -1,41 +1,69 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Wed, 24 Oct 2012 12:38:44 -0700
-Message-ID: <4612865.mWDXHX689T@dtor-d630.eng.vmware.com>
+Date: Wed, 24 Oct 2012 22:51:05 +0300
+Message-ID: <20121024195104.GA1175@arwen.pp.htv.fi>
 References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
  <64355430.MNHe7H1cg3@dtor-d630.eng.vmware.com>
  <20121024191042.GC772@arwen.pp.htv.fi>
+ <4612865.mWDXHX689T@dtor-d630.eng.vmware.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121024191042.GC772-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4612865.mWDXHX689T@dtor-d630.eng.vmware.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: balbi@ti.com, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, October 24, 2012 10:10:42 PM Felipe Balbi wrote:
-> > 
-> >
-> > That is a valid concern and we'll need to find a compromise here. As I
-> > said,
-> WHAT ?? Silicon erratas are not a valid concern ? Power waste isn't a
-> valid concern ? Tell that to the millions of devices shipped with Linux
-> everyday. Power usage if it's the top concern in any product, is right
-> there as the top five. Likewise for silicon erratas.
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I think we should come back to this discussion when you get more coffee
-and start parsing other party e-mails properly.
+Hi,
 
--- 
-Dmitry
+On Wed, Oct 24, 2012 at 12:38:44PM -0700, Dmitry Torokhov wrote:
+> On Wednesday, October 24, 2012 10:10:42 PM Felipe Balbi wrote:
+> > >=20
+> > >
+> > > That is a valid concern and we'll need to find a compromise here. As I
+> > > said,
+> > WHAT ?? Silicon erratas are not a valid concern ? Power waste isn't a
+> > valid concern ? Tell that to the millions of devices shipped with Linux
+> > everyday. Power usage if it's the top concern in any product, is right
+> > there as the top five. Likewise for silicon erratas.
+>=20
+> I think we should come back to this discussion when you get more coffee
+> and start parsing other party e-mails properly.
+
+indeed. I really misparsed it. My bad. comments withdrawn.
+
+--=20
+balbi
+
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQiEaoAAoJEIaOsuA1yqRE2kAQAIqVwPdCxEwcs4dAfXY8i1k0
+tTWRZWWRyGq9ZX+usVg24Xnz186bo2FpiCaMNXuhrVFLK7Z5L4mt80BcJSLj+htt
+21j+YJV+y4QHaN29gjJxTjO947VWc1SLjl4ztrlsPdiefFj0KC0NRLTtulAqe40t
+rxfZW5v4dkU/VY11UNkG6ACh+/2DMeefiot7O+hSevh8LPvoPzMoluC73HynVwEp
+tmCC3L1Neg4sfcegHMqNHkzto8NysOVSNrHFS2A68//KalmKp74jWlzw8Edo4iBh
+4HYOdyObMCcVbOWnaZkpPiZtS57JCCfX8VPgEv10Nx5Kh+MxGl+wBCwsDwDS+8sh
+7TWc/nUGTIfaaF8OAjqrFbOhr4+BcIE7/FkngRoMmcHJzRFKELRIAibA+2Vi8YP3
+hVMd4itvmwIvfR4IuEbIrqkGs3D/qD4GxREaiwhJg0d+aQ7v8iUdfgnhRM6YTcjf
+uNVBq/7EodILtfw4v1CJgi1ILrWpCRTAtEUUB4A1HTAfdmF+e2kviUTdnjMxzVqr
+58N66fyO9syUzc7UWXaXbzuzDcUkbPAWLXXiHtbCSbYAGSlZ7VOMDe3nLpbV9C5T
+XicyR2ursdlMJouvUDiFlaoPix+QNLuWRfo+SBb7gmwgcyElRtlJFTy9TJS+EW9r
+p25y75h/VpCAhEm2ZIP0
+=UWgz
+-----END PGP SIGNATURE-----
+
+--IS0zKkzwUGydFO0o--
