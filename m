@@ -1,49 +1,55 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] gpio/omap: fix off-mode bug: clear debounce clock enable
- mask on disable
-Date: Wed, 24 Oct 2012 20:08:52 +0530
-Message-ID: <5087FD7C.1000006@ti.com>
-References: <1351015771-6308-1-git-send-email-khilman@deeprootsystems.com> <CANOLnOOUHJg5W9VbHhnK8ta+Bys_oMpSz9M5jQ0xCeOB1gxtdg@mail.gmail.com> <87pq4854wu.fsf@deeprootsystems.com>
+From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 3/8] i2c: omap: fix error checking
+Date: Wed, 24 Oct 2012 16:41:11 +0200
+Message-ID: <5087FE07.6090504@amarulasolutions.com>
+References: <1350899218-13624-1-git-send-email-balbi@ti.com> <1350899218-13624-4-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34167 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934928Ab2JXOjK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Oct 2012 10:39:10 -0400
-In-Reply-To: <87pq4854wu.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1350899218-13624-4-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 24 October 2012 07:49 PM, Kevin Hilman wrote:
-> Grazvydas Ignotas <notasas@gmail.com> writes:
->
->> On Tue, Oct 23, 2012 at 9:09 PM, Kevin Hilman
->> <khilman@deeprootsystems.com> wrote:
->>> From: Kevin Hilman <khilman@ti.com>
->>>
->>> When debounce clocks are disabled, ensure that the banks
->>> dbck_enable_mask is cleared also.  Otherwise, context restore on
->>> subsequent off-mode transition will restore previous value from the
->>> shadow copies (bank->context.debounce*) leading to mismatch state
->>> between driver state and hardware state.
->>
->> This doesn't look right to me, aren't you effectively disabling
->> debounce forever here? _gpio_dbck_disable is called from
->> omap_gpio_runtime_suspend() and nothing will ever restore
->> dbck_enable_mask back to what it was set by _set_gpio_debounce and
->> debounce functionality is lost.
->
-> Yes, you're right.   Good catch.
->
-> I need a fix that's more targetted to the free/reset path.
->
-Right. Just clearing the debounce mask in omap_gpio_free()
-should do the trick.
+Hi
 
-Regards
-Santosh
+On 10/22/2012 11:46 AM, Felipe Balbi wrote:
+> It's impossible to have Arbitration Lost,
+> Read Overflow, and Tranmist Underflow all
+> asserted at the same time.
+> 
+> Those error conditions are mutually exclusive
+> so what the code should be doing, instead, is
+> check each error flag separataly.
+> 
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index bea0277..e0eab38 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -587,9 +587,9 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  		goto err_i2c_init;
+>  	}
+>  
+> -	/* We have an error */
+> -	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+> -			    OMAP_I2C_STAT_XUDF)) {
+> +	if ((dev->cmd_err & OMAP_I2C_STAT_AL)
+> +			|| (dev->cmd_err & OMAP_I2C_STAT_ROVR)
+> +			|| (dev->cmd_err & OMAP_I2C_STAT_XUDF)) {
 
+Sorry, what is the difference? I didn't understand the optimisation and why now
+is more clear. Can you just add a comment?
+
+Michael
+
+>  		ret = -EIO;
+>  		goto err_i2c_init;
+>  	}
+> 
