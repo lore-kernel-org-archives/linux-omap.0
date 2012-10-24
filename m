@@ -1,69 +1,63 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V3 1/5] ARM: dts: OMAP: Add timer nodes
-Date: Wed, 24 Oct 2012 18:00:37 -0500
-Message-ID: <50887315.2000509@ti.com>
-References: <1350496873-21337-1-git-send-email-jon-hunter@ti.com>
- <1350496873-21337-2-git-send-email-jon-hunter@ti.com>
- <79CD15C6BA57404B839C016229A409A83EB49C1B@DBDE01.ent.ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 5/6] ARM: OMAP2+: Make some definitions local
+Date: Thu, 25 Oct 2012 01:26:04 +0200
+Message-ID: <1682925.XTJ8FK6Z8P@avalon>
+References: <20121018202707.11834.1438.stgit@muffinssi.local> <2153737.CkcY4HqKKl@avalon> <20121019161743.GD4730@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB49C1B-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38218 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755602Ab2JXXZP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 19:25:15 -0400
+In-Reply-To: <20121019161743.GD4730@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>
 
+Ho Tony,
 
-On 10/24/2012 01:17 PM, Hiremath, Vaibhav wrote:
-> On Wed, Oct 17, 2012 at 23:31:09, Hunter, Jon wrote:
->> Add the 12 GP timers nodes present in OMAP2.
->> Add the 12 GP timers nodes present in OMAP3.
->> Add the 11 GP timers nodes present in OMAP4.
->> Add the 7 GP timers nodes present in AM33xx.
->>
->> Add documentation for timer properties specific to OMAP.
->>
->> Please note that for OMAP2/3 devices, there is only one interrupt controller
->> for the ARM CPU (which has the label "intc") and so globally define this as the
->> interrupt parent to save duplicating the interrupt parent for all device nodes.
->>
->> Thanks to Vaibhav Hiremath for creating the AM33xx timer nodes. I have modified
->> Vaibhav's original nodes adding information on which timers support a PWM
->> output.
->>
->> Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
->> ---
->>  .../devicetree/bindings/arm/omap/timer.txt         |   29 ++++++
->>  arch/arm/boot/dts/am33xx.dtsi                      |   61 +++++++++++++
->>  arch/arm/boot/dts/omap2.dtsi                       |   86 ++++++++++++++++++
->>  arch/arm/boot/dts/omap2420.dtsi                    |    8 ++
->>  arch/arm/boot/dts/omap2430.dtsi                    |    8 ++
->>  arch/arm/boot/dts/omap3.dtsi                       |   96 ++++++++++++++++++++
->>  arch/arm/boot/dts/omap4.dtsi                       |   86 ++++++++++++++++++
->>  7 files changed, 374 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/arm/omap/timer.txt
->>
+On Friday 19 October 2012 09:17:43 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121019 02:45]:
+> > On Thursday 18 October 2012 13:28:48 Tony Lindgren wrote:
+> > > @@ -117,13 +112,6 @@ static inline struct omap_iommu
+> > > *dev_to_omap_iommu(struct device *dev) }
+> > > 
+> > >  #endif
+> > > 
+> > > -/* IOMMU errors */
+> > > -#define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
+> > > -#define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
+> > > -#define OMAP_IOMMU_ERR_EMU_MISS		(1 << 2)
+> > > -#define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
+> > > -#define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
+> > > -
+> > 
+> > I'll use those in the tidspbridge driver, in patches that I plan to push
+> > soon.
+> > 
+> > I will apply this patch set on top of mine, see what breaks. Would you
+> > like me to propose a modified version of this set, or add additional
+> > patches in my set ?
 > 
-> Although I have not tested this version of patch series at my end, but 
-> whole patch-series Looks ok to me.
-> 
-> Acked-By: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+> Sure, let's try to expose only the minimal amount of omap iommu things with
+> this patch set so we don't break things. Then the iommu development can
+> continue on it's own independent of the core omap code except for the
+> platform data.
 
-Thanks. I made a couple cosmetic changes in V4 apart from the
-"interrupt-parent" addition which we are now dropping. Care to ACK
-patches 2-5 of V4?
+I'll rebase my DSP patches on top of this patch set then, it will be easier.
 
-Thanks
-Jon
+> But again, if there are nasty layering violations using this code, I would
+> just remove those features. Those things tend to just get worse unless they
+> are fixed properly to start with.
+
+The long-term goal is to move the tidspbridge driver to the IOMMU API, but 
+we'll need a step by step approach.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
