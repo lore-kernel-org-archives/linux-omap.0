@@ -1,69 +1,42 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Wed, 24 Oct 2012 22:51:05 +0300
-Message-ID: <20121024195104.GA1175@arwen.pp.htv.fi>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
- <64355430.MNHe7H1cg3@dtor-d630.eng.vmware.com>
- <20121024191042.GC772@arwen.pp.htv.fi>
- <4612865.mWDXHX689T@dtor-d630.eng.vmware.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Introduce local usb.h
+Date: Wed, 24 Oct 2012 14:49:24 -0700
+Message-ID: <20121024214924.GL5605@atomide.com>
+References: <20121019021816.6693.65985.stgit@muffinssi.local>
+ <20121019022005.6693.98660.stgit@muffinssi.local>
+ <20121019073803.GG12235@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4612865.mWDXHX689T@dtor-d630.eng.vmware.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: balbi@ti.com, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---IS0zKkzwUGydFO0o
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:60543 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1161269Ab2JXVtc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 17:49:32 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20121019073803.GG12235@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, Partha Basak <parthab@india.ti.com>, Alan Stern <stern@rowland.harvard.edu>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org
 
-Hi,
+* Felipe Balbi <balbi@ti.com> [121019 00:45]:
+> On Thu, Oct 18, 2012 at 07:20:05PM -0700, Tony Lindgren wrote:
+> > Let's move what we can from plat/usb.h to the local usb.h
+> > for ARM common zImage support.
+> > 
+> > This is needed so we can remove plat/usb.h for ARM common
+> > zImage support.
+> > 
+> > Cc: Felipe Balbi <balbi@ti.com>
+> 
+> Acked-by: Felipe Balbi <balbi@ti.com>
 
-On Wed, Oct 24, 2012 at 12:38:44PM -0700, Dmitry Torokhov wrote:
-> On Wednesday, October 24, 2012 10:10:42 PM Felipe Balbi wrote:
-> > >=20
-> > >
-> > > That is a valid concern and we'll need to find a compromise here. As I
-> > > said,
-> > WHAT ?? Silicon erratas are not a valid concern ? Power waste isn't a
-> > valid concern ? Tell that to the millions of devices shipped with Linux
-> > everyday. Power usage if it's the top concern in any product, is right
-> > there as the top five. Likewise for silicon erratas.
->=20
-> I think we should come back to this discussion when you get more coffee
-> and start parsing other party e-mails properly.
+Thanks, I've now pushed these two patches on v3.7-rc1 to
+omap-for-v3.8/cleanup-headers-usb branch.
 
-indeed. I really misparsed it. My bad. comments withdrawn.
+Greg and Samuel, in case you need to, it's OK to merge the
+branch above now that plat/usb.h is moved.
 
---=20
-balbi
+Regards,
 
---IS0zKkzwUGydFO0o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQiEaoAAoJEIaOsuA1yqRE2kAQAIqVwPdCxEwcs4dAfXY8i1k0
-tTWRZWWRyGq9ZX+usVg24Xnz186bo2FpiCaMNXuhrVFLK7Z5L4mt80BcJSLj+htt
-21j+YJV+y4QHaN29gjJxTjO947VWc1SLjl4ztrlsPdiefFj0KC0NRLTtulAqe40t
-rxfZW5v4dkU/VY11UNkG6ACh+/2DMeefiot7O+hSevh8LPvoPzMoluC73HynVwEp
-tmCC3L1Neg4sfcegHMqNHkzto8NysOVSNrHFS2A68//KalmKp74jWlzw8Edo4iBh
-4HYOdyObMCcVbOWnaZkpPiZtS57JCCfX8VPgEv10Nx5Kh+MxGl+wBCwsDwDS+8sh
-7TWc/nUGTIfaaF8OAjqrFbOhr4+BcIE7/FkngRoMmcHJzRFKELRIAibA+2Vi8YP3
-hVMd4itvmwIvfR4IuEbIrqkGs3D/qD4GxREaiwhJg0d+aQ7v8iUdfgnhRM6YTcjf
-uNVBq/7EodILtfw4v1CJgi1ILrWpCRTAtEUUB4A1HTAfdmF+e2kviUTdnjMxzVqr
-58N66fyO9syUzc7UWXaXbzuzDcUkbPAWLXXiHtbCSbYAGSlZ7VOMDe3nLpbV9C5T
-XicyR2ursdlMJouvUDiFlaoPix+QNLuWRfo+SBb7gmwgcyElRtlJFTy9TJS+EW9r
-p25y75h/VpCAhEm2ZIP0
-=UWgz
------END PGP SIGNATURE-----
-
---IS0zKkzwUGydFO0o--
+Tony
