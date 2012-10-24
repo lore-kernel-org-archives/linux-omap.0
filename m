@@ -1,150 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 10/20] OMAPDSS: DISPC: Add IRQ enable/status helpers
-Date: Wed, 24 Oct 2012 12:29:01 +0300
-Message-ID: <1351070951-18616-11-git-send-email-tomi.valkeinen@ti.com>
-References: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: PMU: fix runtime PM enable
+Date: Wed, 24 Oct 2012 10:31:50 +0100
+Message-ID: <20121024093150.GA23775@mudshark.cambridge.arm.com>
+References: <1351024268-26734-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59711 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934475Ab2JXJ3l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Oct 2012 05:29:41 -0400
-In-Reply-To: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:45779 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932132Ab2JXJcF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Oct 2012 05:32:05 -0400
+Content-Disposition: inline
+In-Reply-To: <1351024268-26734-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-DISPC irqs need to be handled from the compat layer and also in the
-future by the omapdrm. To make this possible, this patchs adds a set of
-helper functions, so that the irqs can be managed without direct
-register reads/writes.
+Hi Jon,
 
-The following functions are added, and all the current direct reg
-reads/writes are changed to use these.
+On Tue, Oct 23, 2012 at 09:31:08PM +0100, Jon Hunter wrote:
+> Commit 7be2958 (ARM: PMU: Add runtime PM Support) updated the ARM PMU code to
+> use runtime PM which was prototyped and validated on the OMAP devices. In this
+> commit, there is no call pm_runtime_enable() and for OMAP devices
+> pm_runtime_enable() is currently being called from the OMAP PMU code when the
+> PMU device is created. However, there are two problems with this:
+> 
+> 1. For any other ARM device wishing to use runtime PM for PMU they will need
+>    to call pm_runtime_enable() for runtime PM to work.
+> 2. When booting with device-tree and using device-tree to create the PMU
+>    device, pm_runtime_enable() needs to be called from within the ARM PERF
+>    driver as we are no longer calling any device specific code to create the
+>    device. Hence, PMU does not work on OMAP devices that use the runtime PM
+>    callbacks when using device-tree to create the PMU device.
+> 
+> Therefore, add a new platform data variable to indicate whether runtime PM is
+> used and if so call pm_runtime_enable() when the PMU device is registered. Note
+> that devices using runtime PM may not use the runtime_resume/suspend callbacks
+> and so we cannot use the presence of these handlers in the platform data to
+> determine whether we should call pm_runtime_enable().
 
-u32 dispc_read_irqstatus(void);
-void dispc_clear_irqstatus(u32 mask);
-u32 dispc_read_irqenable(void);
-void dispc_write_irqenable(u32 mask);
+[...]
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dispc.c |   44 ++++++++++++++++++++++++++++-----------
- drivers/video/omap2/dss/dss.h   |    4 ++++
- 2 files changed, 36 insertions(+), 12 deletions(-)
+> diff --git a/arch/arm/include/asm/pmu.h b/arch/arm/include/asm/pmu.h
+> index a26170d..50a6c3b 100644
+> --- a/arch/arm/include/asm/pmu.h
+> +++ b/arch/arm/include/asm/pmu.h
+> @@ -36,6 +36,7 @@
+>  struct arm_pmu_platdata {
+>  	irqreturn_t (*handle_irq)(int irq, void *dev,
+>  				  irq_handler_t pmu_handler);
+> +	bool use_runtime_pm;
+>  	int (*runtime_resume)(struct device *dev);
+>  	int (*runtime_suspend)(struct device *dev);
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 3fd60ce..d294873 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -497,7 +497,7 @@ static void dispc_restore_context(void)
- 	if (dss_has_feature(FEAT_MGR_LCD3))
- 		RR(CONTROL3);
- 	/* clear spurious SYNC_LOST_DIGIT interrupts */
--	dispc_write_reg(DISPC_IRQSTATUS, DISPC_IRQ_SYNC_LOST_DIGIT);
-+	dispc_clear_irqstatus(DISPC_IRQ_SYNC_LOST_DIGIT);
- 
- 	/*
- 	 * enable last so IRQs won't trigger before
-@@ -3627,11 +3627,35 @@ int dispc_mgr_get_clock_div(enum omap_channel channel,
- 	return 0;
- }
- 
-+u32 dispc_read_irqstatus(void)
-+{
-+	return dispc_read_reg(DISPC_IRQSTATUS);
-+}
-+
-+void dispc_clear_irqstatus(u32 mask)
-+{
-+	dispc_write_reg(DISPC_IRQSTATUS, mask);
-+}
-+
-+u32 dispc_read_irqenable(void)
-+{
-+	return dispc_read_reg(DISPC_IRQENABLE);
-+}
-+
-+void dispc_write_irqenable(u32 mask)
-+{
-+	u32 old_mask = dispc_read_reg(DISPC_IRQENABLE);
-+
-+	/* clear the irqstatus for newly enabled irqs */
-+	dispc_clear_irqstatus((mask ^ old_mask) & mask);
-+
-+	dispc_write_reg(DISPC_IRQENABLE, mask);
-+}
-+
- /* dispc.irq_lock has to be locked by the caller */
- static void _omap_dispc_set_irqs(void)
- {
- 	u32 mask;
--	u32 old_mask;
- 	int i;
- 	struct omap_dispc_isr_data *isr_data;
- 
-@@ -3646,11 +3670,7 @@ static void _omap_dispc_set_irqs(void)
- 		mask |= isr_data->mask;
- 	}
- 
--	old_mask = dispc_read_reg(DISPC_IRQENABLE);
--	/* clear the irqstatus for newly enabled irqs */
--	dispc_write_reg(DISPC_IRQSTATUS, (mask ^ old_mask) & mask);
--
--	dispc_write_reg(DISPC_IRQENABLE, mask);
-+	dispc_write_irqenable(mask);
- }
- 
- int omap_dispc_register_isr(omap_dispc_isr_t isr, void *arg, u32 mask)
-@@ -3777,8 +3797,8 @@ static irqreturn_t omap_dispc_irq_handler(int irq, void *arg)
- 
- 	spin_lock(&dispc.irq_lock);
- 
--	irqstatus = dispc_read_reg(DISPC_IRQSTATUS);
--	irqenable = dispc_read_reg(DISPC_IRQENABLE);
-+	irqstatus = dispc_read_irqstatus();
-+	irqenable = dispc_read_irqenable();
- 
- 	/* IRQ is not for us */
- 	if (!(irqstatus & irqenable)) {
-@@ -3797,9 +3817,9 @@ static irqreturn_t omap_dispc_irq_handler(int irq, void *arg)
- 
- 	/* Ack the interrupt. Do it here before clocks are possibly turned
- 	 * off */
--	dispc_write_reg(DISPC_IRQSTATUS, irqstatus);
-+	dispc_clear_irqstatus(irqstatus);
- 	/* flush posted write */
--	dispc_read_reg(DISPC_IRQSTATUS);
-+	dispc_read_irqstatus();
- 
- 	/* make a copy and unlock, so that isrs can unregister
- 	 * themselves */
-@@ -4008,7 +4028,7 @@ static void _omap_dispc_initialize_irq(void)
- 
- 	/* there's SYNC_LOST_DIGIT waiting after enabling the DSS,
- 	 * so clear it */
--	dispc_write_reg(DISPC_IRQSTATUS, dispc_read_reg(DISPC_IRQSTATUS));
-+	dispc_clear_irqstatus(dispc_read_irqstatus());
- 
- 	_omap_dispc_set_irqs();
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index be7678c..8bf9047 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -398,6 +398,10 @@ void dpi_uninit_platform_driver(void) __exit;
- int dispc_init_platform_driver(void) __init;
- void dispc_uninit_platform_driver(void) __exit;
- void dispc_dump_clocks(struct seq_file *s);
-+u32 dispc_read_irqstatus(void);
-+void dispc_clear_irqstatus(u32 mask);
-+u32 dispc_read_irqenable(void);
-+void dispc_write_irqenable(u32 mask);
- 
- int dispc_runtime_get(void);
- void dispc_runtime_put(void);
--- 
-1.7.9.5
+Can we not just use the presence of the resume/suspend function pointers to
+indicate whether we should enable runtime pm or not? i.e. if they're not
+NULL, then enable the thing?
 
+Cheers,
+
+Will
