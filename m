@@ -1,57 +1,431 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Wed, 24 Oct 2012 19:18:53 +0200
-Message-ID: <CACRpkdb3ixJWDhJVOX4ZM-xqk37v5k8zhhFGBH-uxgFHHeVEfA@mail.gmail.com>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
-	<20121022155028.GA13791@core.coreip.homeip.net>
-	<508660D4.9030507@ti.com>
-	<20121023200249.GA2712@core.coreip.homeip.net>
-	<CACRpkdYwA7O8AqB8YFCK-c3e6-7FcbhMOiPEUq-cKJni_PO-Ow@mail.gmail.com>
-	<20121024161801.GB16350@core.coreip.homeip.net>
-	<20121024165749.GB32220@arwen.pp.htv.fi>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: dts: OMAP: Move interrupt-parent to the root node
+ to avoid duplication
+Date: Wed, 24 Oct 2012 17:21:52 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EB49B20@DBDE01.ent.ti.com>
+References: <5087BCA6.1020602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121024165749.GB32220@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42560 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756417Ab2JXRWE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 13:22:04 -0400
+In-Reply-To: <5087BCA6.1020602@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On Wed, Oct 24, 2012 at 6:57 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Wed, Oct 24, 2012 at 09:18:01AM -0700, Dmitry Torokhov wrote:
->> OK, so with drivers/base/, have you considered doing default pinctrl
->> selection in bus's probe() methods? Yo would select the default
->> configuration before starting probing the device and maybe select idle
->> when probe fails or device is unbound? That would still keep the link
->> between device object and pinctrl and there less busses than device
->> drivers out there.
->
-> it starts to become confusing after a while. I mean, there's a reason
-> why all drivers explictly call pm_runtim_enable(), right ?
->
-> From a first thought, one could think of just yanking that into bus'
-> probe() as you may suggest, but sometimes the device is already enabled,
-> so we need extra tricks:
->
-> pm_runtime_set_active();
-> pm_runtime_enable();
-> pm_runtime_get();
->
-> the same could happen with pinctrl eventually. What if a device needs to
-> do something else (an errata fix as an example) before requesting
-> pinctrl's default state ?
+On Wed, Oct 24, 2012 at 15:32:14, Cousson, Benoit wrote:
+> The interrupt-parent attribute does not have to be added in each
+> node since the DT framework will check for the parent as well to get it.
+> 
+> Create an interrupt-parent for OMAP2, OMAP3, AM33xx and remove the
+> attributes from every nodes that were using it.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Cc: Sebastien Guiriec <s-guiriec@ti.com>
+> ---
+> 
+> This patch was triggered by the thread about Seb's patch [1].
+> So let's clean the current OMAP/AM stuff right now to be consistent.
+> 
+> The patch applies on top of the for_3.8/dts [2] branch.
+> 
+> Regards,
+> Benoit
+> 
+> [1] https://lkml.org/lkml/2012/10/24/85
+> [2] git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+> 
+> 
+>  arch/arm/boot/dts/am33xx.dtsi   |   17 +----------------
+>  arch/arm/boot/dts/omap2.dtsi    |    1 +
+>  arch/arm/boot/dts/omap2420.dtsi |    2 --
+>  arch/arm/boot/dts/omap2430.dtsi |    5 -----
+>  arch/arm/boot/dts/omap3.dtsi    |    6 +-----
+>  arch/arm/boot/dts/omap4.dtsi    |    6 ------
+>  arch/arm/boot/dts/omap5.dtsi    |    5 -----
+>  7 files changed, 3 insertions(+), 39 deletions(-)
+> 
 
-I can confirm this. Just the ordering between enabling/disabling
-resources like clock/pins/powerdomain screw things up for us
-and even if we can surely centralize parts of this code as such
-into the drivers/base or pm_* namespace we would still need
-explicit calls from the driver.
+Looks good to me.
 
-I'm thinking that maybe the best helpers are actually static
-inline functions in the <linux/pinctrl/consumer.h> header
-rather than moving anything into drivers/base/* if the
-code duplication is the real problem.
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Yours,
-Linus Walleij
+Thanks,
+Vaibhav
+
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 64c2efe..4709269 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -12,6 +12,7 @@
+>  
+>  / {
+>  	compatible = "ti,am33xx";
+> +	interrupt-parent = <&intc>;
+>  
+>  	aliases {
+>  		serial0 = &uart1;
+> @@ -94,7 +95,6 @@
+>  			interrupt-controller;
+>  			#interrupt-cells = <1>;
+>  			reg = <0x44e07000 0x1000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <96>;
+>  		};
+>  
+> @@ -106,7 +106,6 @@
+>  			interrupt-controller;
+>  			#interrupt-cells = <1>;
+>  			reg = <0x4804c000 0x1000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <98>;
+>  		};
+>  
+> @@ -118,7 +117,6 @@
+>  			interrupt-controller;
+>  			#interrupt-cells = <1>;
+>  			reg = <0x481ac000 0x1000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <32>;
+>  		};
+>  
+> @@ -130,7 +128,6 @@
+>  			interrupt-controller;
+>  			#interrupt-cells = <1>;
+>  			reg = <0x481ae000 0x1000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <62>;
+>  		};
+>  
+> @@ -139,7 +136,6 @@
+>  			ti,hwmods = "uart1";
+>  			clock-frequency = <48000000>;
+>  			reg = <0x44e09000 0x2000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <72>;
+>  			status = "disabled";
+>  		};
+> @@ -149,7 +145,6 @@
+>  			ti,hwmods = "uart2";
+>  			clock-frequency = <48000000>;
+>  			reg = <0x48022000 0x2000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <73>;
+>  			status = "disabled";
+>  		};
+> @@ -159,7 +154,6 @@
+>  			ti,hwmods = "uart3";
+>  			clock-frequency = <48000000>;
+>  			reg = <0x48024000 0x2000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <74>;
+>  			status = "disabled";
+>  		};
+> @@ -169,7 +163,6 @@
+>  			ti,hwmods = "uart4";
+>  			clock-frequency = <48000000>;
+>  			reg = <0x481a6000 0x2000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <44>;
+>  			status = "disabled";
+>  		};
+> @@ -179,7 +172,6 @@
+>  			ti,hwmods = "uart5";
+>  			clock-frequency = <48000000>;
+>  			reg = <0x481a8000 0x2000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <45>;
+>  			status = "disabled";
+>  		};
+> @@ -189,7 +181,6 @@
+>  			ti,hwmods = "uart6";
+>  			clock-frequency = <48000000>;
+>  			reg = <0x481aa000 0x2000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <46>;
+>  			status = "disabled";
+>  		};
+> @@ -200,7 +191,6 @@
+>  			#size-cells = <0>;
+>  			ti,hwmods = "i2c1";
+>  			reg = <0x44e0b000 0x1000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <70>;
+>  			status = "disabled";
+>  		};
+> @@ -211,7 +201,6 @@
+>  			#size-cells = <0>;
+>  			ti,hwmods = "i2c2";
+>  			reg = <0x4802a000 0x1000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <71>;
+>  			status = "disabled";
+>  		};
+> @@ -222,7 +211,6 @@
+>  			#size-cells = <0>;
+>  			ti,hwmods = "i2c3";
+>  			reg = <0x4819c000 0x1000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <30>;
+>  			status = "disabled";
+>  		};
+> @@ -231,7 +219,6 @@
+>  			compatible = "ti,omap3-wdt";
+>  			ti,hwmods = "wd_timer2";
+>  			reg = <0x44e35000 0x1000>;
+> -			interrupt-parent = <&intc>;
+>  			interrupts = <91>;
+>  		};
+>  
+> @@ -240,7 +227,6 @@
+>  			ti,hwmods = "d_can0";
+>  			reg = <0x481cc000 0x2000>;
+>  			interrupts = <52>;
+> -			interrupt-parent = <&intc>;
+>  			status = "disabled";
+>  		};
+>  
+> @@ -249,7 +235,6 @@
+>  			ti,hwmods = "d_can1";
+>  			reg = <0x481d0000 0x2000>;
+>  			interrupts = <55>;
+> -			interrupt-parent = <&intc>;
+>  			status = "disabled";
+>  		};
+>  	};
+> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+> index 581cb08..f366482 100644
+> --- a/arch/arm/boot/dts/omap2.dtsi
+> +++ b/arch/arm/boot/dts/omap2.dtsi
+> @@ -12,6 +12,7 @@
+>  
+>  / {
+>  	compatible = "ti,omap2430", "ti,omap2420", "ti,omap2";
+> +	interrupt-parent = <&intc>;
+>  
+>  	aliases {
+>  		serial0 = &uart1;
+> diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+> index bfd76b4..4d5ce91 100644
+> --- a/arch/arm/boot/dts/omap2420.dtsi
+> +++ b/arch/arm/boot/dts/omap2420.dtsi
+> @@ -30,7 +30,6 @@
+>  			interrupts = <59>, /* TX interrupt */
+>  				     <60>; /* RX interrupt */
+>  			interrupt-names = "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,hwmods = "mcbsp1";
+>  		};
+>  
+> @@ -41,7 +40,6 @@
+>  			interrupts = <62>, /* TX interrupt */
+>  				     <63>; /* RX interrupt */
+>  			interrupt-names = "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,hwmods = "mcbsp2";
+>  		};
+>  	};
+> diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+> index 4565d97..fa84532 100644
+> --- a/arch/arm/boot/dts/omap2430.dtsi
+> +++ b/arch/arm/boot/dts/omap2430.dtsi
+> @@ -32,7 +32,6 @@
+>  				     <60>, /* RX interrupt */
+>  				     <61>; /* RX overflow interrupt */
+>  			interrupt-names = "common", "tx", "rx", "rx_overflow";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp1";
+>  		};
+> @@ -45,7 +44,6 @@
+>  				     <62>, /* TX interrupt */
+>  				     <63>; /* RX interrupt */
+>  			interrupt-names = "common", "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp2";
+>  		};
+> @@ -58,7 +56,6 @@
+>  				     <89>, /* TX interrupt */
+>  				     <90>; /* RX interrupt */
+>  			interrupt-names = "common", "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp3";
+>  		};
+> @@ -71,7 +68,6 @@
+>  				     <54>, /* TX interrupt */
+>  				     <55>; /* RX interrupt */
+>  			interrupt-names = "common", "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp4";
+>  		};
+> @@ -84,7 +80,6 @@
+>  				     <81>, /* TX interrupt */
+>  				     <82>; /* RX interrupt */
+>  			interrupt-names = "common", "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp5";
+>  		};
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index f38ea87..955cbdc 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -12,6 +12,7 @@
+>  
+>  / {
+>  	compatible = "ti,omap3430", "ti,omap3";
+> +	interrupt-parent = <&intc>;
+>  
+>  	aliases {
+>  		serial0 = &uart1;
+> @@ -240,7 +241,6 @@
+>  				     <59>, /* TX interrupt */
+>  				     <60>; /* RX interrupt */
+>  			interrupt-names = "common", "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp1";
+>  		};
+> @@ -255,7 +255,6 @@
+>  				     <63>, /* RX interrupt */
+>  				     <4>;  /* Sidetone */
+>  			interrupt-names = "common", "tx", "rx", "sidetone";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <1280>;
+>  			ti,hwmods = "mcbsp2";
+>  		};
+> @@ -270,7 +269,6 @@
+>  				     <90>, /* RX interrupt */
+>  				     <5>;  /* Sidetone */
+>  			interrupt-names = "common", "tx", "rx", "sidetone";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp3";
+>  		};
+> @@ -283,7 +281,6 @@
+>  				     <54>, /* TX interrupt */
+>  				     <55>; /* RX interrupt */
+>  			interrupt-names = "common", "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp4";
+>  		};
+> @@ -296,7 +293,6 @@
+>  				     <81>, /* TX interrupt */
+>  				     <82>; /* RX interrupt */
+>  			interrupt-names = "common", "tx", "rx";
+> -			interrupt-parent = <&intc>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp5";
+>  		};
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 812461e..2ab6e68 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -340,7 +340,6 @@
+>  			      <0x49032000 0x7f>; /* L3 Interconnect */
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 112 0x4>;
+> -			interrupt-parent = <&gic>;
+>  			ti,hwmods = "mcpdm";
+>  		};
+>  
+> @@ -350,7 +349,6 @@
+>  			      <0x4902e000 0x7f>; /* L3 Interconnect */
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 114 0x4>;
+> -			interrupt-parent = <&gic>;
+>  			ti,hwmods = "dmic";
+>  		};
+>  
+> @@ -361,7 +359,6 @@
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 17 0x4>;
+>  			interrupt-names = "common";
+> -			interrupt-parent = <&gic>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp1";
+>  		};
+> @@ -373,7 +370,6 @@
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 22 0x4>;
+>  			interrupt-names = "common";
+> -			interrupt-parent = <&gic>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp2";
+>  		};
+> @@ -385,7 +381,6 @@
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 23 0x4>;
+>  			interrupt-names = "common";
+> -			interrupt-parent = <&gic>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp3";
+>  		};
+> @@ -396,7 +391,6 @@
+>  			reg-names = "mpu";
+>  			interrupts = <0 16 0x4>;
+>  			interrupt-names = "common";
+> -			interrupt-parent = <&gic>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp4";
+>  		};
+> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+> index 42c78be..61a4f2e 100644
+> --- a/arch/arm/boot/dts/omap5.dtsi
+> +++ b/arch/arm/boot/dts/omap5.dtsi
+> @@ -287,7 +287,6 @@
+>  			      <0x49032000 0x7f>; /* L3 Interconnect */
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 112 0x4>;
+> -			interrupt-parent = <&gic>;
+>  			ti,hwmods = "mcpdm";
+>  		};
+>  
+> @@ -297,7 +296,6 @@
+>  			      <0x4902e000 0x7f>; /* L3 Interconnect */
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 114 0x4>;
+> -			interrupt-parent = <&gic>;
+>  			ti,hwmods = "dmic";
+>  		};
+>  
+> @@ -308,7 +306,6 @@
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 17 0x4>;
+>  			interrupt-names = "common";
+> -			interrupt-parent = <&gic>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp1";
+>  		};
+> @@ -320,7 +317,6 @@
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 22 0x4>;
+>  			interrupt-names = "common";
+> -			interrupt-parent = <&gic>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp2";
+>  		};
+> @@ -332,7 +328,6 @@
+>  			reg-names = "mpu", "dma";
+>  			interrupts = <0 23 0x4>;
+>  			interrupt-names = "common";
+> -			interrupt-parent = <&gic>;
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp3";
+>  		};
+> -- 
+> 1.7.0.4
+> 
+
