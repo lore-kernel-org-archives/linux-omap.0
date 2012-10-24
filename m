@@ -1,55 +1,81 @@
-From: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 3/8] i2c: omap: fix error checking
-Date: Wed, 24 Oct 2012 16:41:11 +0200
-Message-ID: <5087FE07.6090504@amarulasolutions.com>
-References: <1350899218-13624-1-git-send-email-balbi@ti.com> <1350899218-13624-4-git-send-email-balbi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: PMU: fix runtime PM enable
+Date: Wed, 24 Oct 2012 10:06:07 -0500
+Message-ID: <508803DF.7020902@ti.com>
+References: <1351024268-26734-1-git-send-email-jon-hunter@ti.com> <20121024093150.GA23775@mudshark.cambridge.arm.com> <5087F84B.9070705@ti.com> <20121024143204.GF7339@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1350899218-13624-4-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47415 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934915Ab2JXPGN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Oct 2012 11:06:13 -0400
+In-Reply-To: <20121024143204.GF7339@mudshark.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi
 
-On 10/22/2012 11:46 AM, Felipe Balbi wrote:
-> It's impossible to have Arbitration Lost,
-> Read Overflow, and Tranmist Underflow all
-> asserted at the same time.
+On 10/24/2012 09:32 AM, Will Deacon wrote:
+> On Wed, Oct 24, 2012 at 03:16:43PM +0100, Jon Hunter wrote:
+>> Hi Will,
+>>
+>> On 10/24/2012 04:31 AM, Will Deacon wrote:
+>>> Can we not just use the presence of the resume/suspend function pointers to
+>>> indicate whether we should enable runtime pm or not? i.e. if they're not
+>>> NULL, then enable the thing?
+>>
+>> I wondered if you would ask that :-)
+>>
+>> Unfortunately, we can't. For example, OMAP3430 and OMAP4460 both require
+>> runtime_pm to be enabled to turn on the debug sub-system in OMAP for PMU
+>> to work. However, neither of these devices are using the suspend/resume
+>> callbacks because the HWMOD framework is doing this for us behind the
+>> scenes.
+>>
+>> So then you ask, why do we need the resume/suspend callbacks, well we
+>> will need them for OMAP4430 where in addition to turning on the debug
+>> sub-system we need to configure the CTI module. Therefore, I had to add
+>> another plat data variable.
 > 
-> Those error conditions are mutually exclusive
-> so what the code should be doing, instead, is
-> check each error flag separataly.
+> Hmmm, now I start to wonder whether your original idea of having separate
+> callbacks for enable/disable irq and resume/suspend doesn't make more sense.
+> Then the CTI magic can go in the irq management code and be totally separate
+> to the PM stuff.
 > 
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+> What do you reckon?
+
+The resume/suspend calls really replaced the enable/disable irq
+callbacks. That still seems like a good approach given that we need
+runtime PM for OMAP and PMU.
+
+The problem is going to be with device-tree. When booting with
+device-tree we will not call the current OMAP specific code that is
+creating the PMU device and calling pm_runtime_enable(). So calling
+pm_runtime_enable() needs to be done somewhere in the PERF driver and
+that's the real problem here.
+
+>> By the way, I did add a comment in the above changelog about this. See
+>> the last paragraph, not sure if this is 100% clear.
 > 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index bea0277..e0eab38 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -587,9 +587,9 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->  		goto err_i2c_init;
->  	}
->  
-> -	/* We have an error */
-> -	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
-> -			    OMAP_I2C_STAT_XUDF)) {
-> +	if ((dev->cmd_err & OMAP_I2C_STAT_AL)
-> +			|| (dev->cmd_err & OMAP_I2C_STAT_ROVR)
-> +			|| (dev->cmd_err & OMAP_I2C_STAT_XUDF)) {
-
-Sorry, what is the difference? I didn't understand the optimisation and why now
-is more clear. Can you just add a comment?
-
-Michael
-
->  		ret = -EIO;
->  		goto err_i2c_init;
->  	}
+> Sorry, I missed that this morning.
 > 
+>> One alternative I had thought about was always calling
+>> pm_runtime_enable() on registering the PMU device and avoid having a
+>> use_runtime_pm variable. For ARM platforms that don't use runtime PM the
+>> pm_runtime_enable() function does nothing. However, I was more concerned
+>> about adding unnecessary overhead for ARM platforms that are using
+>> runtime PM but don't need runtime PM for PMU. I don't see any side
+>> affects on our OMAP2 platform that does not need runtime PM for PMU.
+>> However, was not sure what is best here.
+> 
+> Nah, we should be able to fix this in the platdata, I'd just rather have
+> function pointers instead of state variables in there.
+
+Well, we could pass a pointer to pm_runtime_enable() function in the
+platdata.
+
+Cheers
+Jon
