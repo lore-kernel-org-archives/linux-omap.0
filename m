@@ -1,180 +1,142 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v3] gpio/omap: fix off-mode bug: clear debounce clock
- enable mask on free/reset
-Date: Thu, 25 Oct 2012 17:52:38 -0500
-Message-ID: <5089C2B6.5020606@ti.com>
-References: <1351182858-14045-1-git-send-email-khilman@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 00/13] ARM: OMAP: remove prcm.[ch]
+Date: Thu, 25 Oct 2012 17:21:11 -0600
+Message-ID: <20121025231818.17558.57884.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40439 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750888Ab2JYWwq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 18:52:46 -0400
-In-Reply-To: <1351182858-14045-1-git-send-email-khilman@deeprootsystems.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:38274 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750853Ab2JYXYC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 19:24:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>, Grazvydas Ignotas <notasas@gmail.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
+Remove arch/arm/mach-omap2/prcm.c and
+arch/arm/plat-omap/include/plat/prcm.h.  This is in preparation for
+moving the PRM/CM code to drivers/, although to be fair, these files
+should have been removed a long time ago.
 
-On 10/25/2012 11:34 AM, Kevin Hilman wrote:
-> From: Kevin Hilman <khilman@ti.com>
-> 
-> When a GPIO is freed or shutdown, ensure that the proper bit in
-> dbck_enable_mask is cleared also.  Otherwise, context restore on
-> subsequent off-mode transition will restore previous debounce values
-> from the shadow copies (bank->context.debounce*) leading to mismatch
-> state between driver state and hardware state.
-> 
-> This was discovered when board code was doing
-> 
->   gpio_request_one()
->   gpio_set_debounce()
->   gpio_free()
-> 
-> which was leaving the GPIO debounce settings in a confused state.  If
-> that GPIO bank is subsequently used with off-mode enabled, bogus state
-> would be restored, leaving GPIO debounce enabled which then prevented
-> the CORE powerdomain from transitioning.
-> 
-> To fix, ensure that right bit in bank->dbck_enable_mask is cleared
-> when a GPIO is freed/shutdown so debounce state doesn't persist after
-> free/reset.  If this GPIO is the last debounce-enabled GPIO in the
-> bank, the debounce will also be cut.
-> 
-> Special thanks to Grazvydas Ignotas for pointing out a bug in the
-> first version that would've disabled debounce on any runtime PM
-> transition.
-> 
-> And, special thanks to Jon Hunter for pointing out a bug in the second
-> version which was mistakenly clearing all debounce bits on reset
-> instead of individual GPIOs, as well as suggesting cutting the
-> debounce clock after all debounce bits are cleared.
+Intended for 3.8 cleanup.  Applies on top of the existing PRM/CM split
+cleanup series, and the WDTIMER cleanup series.
 
-... and for introducing yet another bug :-(
- 
-> Tesed on 37xx/EVM board which configures GPIO debounce for the ads7846
-> touchscreen in its board file using the above sequence, and so was
-> failing off-mode tests in dynamic idle.  Verified that off-mode tests
-> are passing with this patch.
-> 
-> Reported-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Igor Grinberg <grinberg@compulab.co.il>
-> Cc: Grazvydas Ignotas <notasas@gmail.com>
-> Cc: Jon Hunter <jon-hunter@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  drivers/gpio/gpio-omap.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 94cbc84..ce1da19 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -539,6 +539,8 @@ static void _reset_gpio(struct gpio_bank *bank, int gpio)
->  	_set_gpio_irqenable(bank, gpio, 0);
->  	_clear_gpio_irqstatus(bank, gpio);
->  	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
-> +	bank->dbck_enable_mask &= ~(GPIO_BIT(bank, gpio));
-> +	_gpio_dbck_disable(bank);
 
-We can't use _gpio_dbck_disable() here. This has been specifically implemented
-for the suspend path and is designed to disable the debounce clock while
-debounce is enabled (which makes sense). Yes this needs to be cleaned up.
+- Paul
 
-I have implemented the following and unit tested. Care to test on your 37xx
-board? Sorry I would do it myself I had one. 
-
-Also not sure if you just wish to squash your patch and mine together.
-This is based on top of yours.
-
-Cheers
-Jon
-
->From 33812f3bd4f7aab1154e7194b7f11fba700a5086 Mon Sep 17 00:00:00 2001
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Thu, 25 Oct 2012 16:00:51 -0500
-Subject: [PATCH] gpio/omap: fix clearing of debounce settings on gpio
- free/reset
-
-When a GPIO is freed or shutdown, we need to ensure that any debounce settings
-are cleared and if the GPIO is the only GPIO in the bank that is currently
-using debounce, then disable the debounce clock as well to save power.
-
-Therefore, introduce a new function called _clear_gpio_debounce() to clear
-any debounce settings when the GPIO is freed or shutdown.
-
-Please note that we cannot use _gpio_dbck_disable() to disable the debounce
-clock because this has been specifically created for the gpio suspend path
-and is intended to shutdown the debounce clock while debounce is enabled.
-
-This has been unit tested on an OMAP3430 Beagle board, by requesting a gpio,
-enabling debounce and then freeing the gpio and checking the register contents,
-the saved register context and the debounce clock state.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   37 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 35 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index ce1da19..d335af1 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -251,6 +251,40 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
- 	}
- }
- 
-+/**
-+ * _clear_gpio_debounce - clear debounce settings for a gpio
-+ * @bank: the gpio bank we're acting upon
-+ * @gpio: the gpio number on this @gpio
-+ *
-+ * If a gpio is using debounce, then clear the debounce enable bit and if
-+ * this is the only gpio in this bank using debounce, then clear the debounce
-+ * time too. The debounce clock will also be disabled when calling this function
-+ * if this is the only gpio in the bank using debounce.
-+ */
-+static void _clear_gpio_debounce(struct gpio_bank *bank, unsigned gpio)
-+{
-+	u32 gpio_bit = GPIO_BIT(bank, gpio);
-+
-+	if (!bank->dbck_flag)
-+		return;
-+
-+	if (!(bank->dbck_enable_mask & gpio_bit))
-+		return;
-+
-+	bank->dbck_enable_mask &= ~gpio_bit;
-+	bank->context.debounce_en &= ~gpio_bit;
-+	__raw_writel(bank->context.debounce_en,
-+		     bank->base + bank->regs->debounce_en);
-+
-+	if (!bank->dbck_enable_mask) {
-+		bank->context.debounce = 0;
-+		__raw_writel(bank->context.debounce, bank->base +
-+			     bank->regs->debounce);
-+		clk_disable(bank->dbck);
-+		bank->dbck_enabled = false;
-+	}
-+}
-+
- static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
- 						unsigned trigger)
- {
-@@ -539,8 +573,7 @@ static void _reset_gpio(struct gpio_bank *bank, int gpio)
- 	_set_gpio_irqenable(bank, gpio, 0);
- 	_clear_gpio_irqstatus(bank, gpio);
- 	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
--	bank->dbck_enable_mask &= ~(GPIO_BIT(bank, gpio));
--	_gpio_dbck_disable(bank);
-+	_clear_gpio_debounce(bank, gpio);
- }
- 
- /* Use disable_irq_wake() and enable_irq_wake() functions from drivers */
--- 
-1.7.9.5
+omap2_prcm_cleanup_3.8
+   text	   data	    bss	    dec	    hex	filename
+7521423	 696876	5613996	13832295	 d31067	vmlinux.omap2plus_defconfig.orig
+7522239	 696612	5613996	13832847	 d3128f	vmlinux.omap2plus_defconfig
+
+Paul Walmsley (13):
+      ARM: OMAP2+: common: remove mach-omap2/common.c and map_common_io code
+      ARM: OMAP2/3: PRM: add SoC reset functions (using the CORE DPLL method)
+      ARM: OMAP2xxx: clock: remove global 'dclk' variable
+      ARM: OMAP2xxx: clock: move virt_prcm_set code into clkt2xxx_virt_prcm_set.c
+      ARM: OMAP2+: PRCM: create SoC-specific chip restart functions
+      ARM: OMAP2+: board files: use SoC-specific system restart functions
+      ARM: OMAP2xxx: APLL/CM: convert to use omap2_cm_wait_module_ready()
+      ARM: OMAP2+: CM/clock: convert _omap2_module_wait_ready() to use SoC-independent CM functions
+      ARM: OMAP2+: PRCM: remove omap2_cm_wait_idlest()
+      ARM: OMAP2+: PRCM: split and relocate the PRM/CM globals setup
+      ARM: OMAP2+: PRCM: consolidate PRCM-related timeout macros
+      ARM: OMAP2+: hwmod: call to _omap4_disable_module() should use the SoC-specific call
+      ARM: OMAP2+: PRCM: remove obsolete prcm.[ch]
+
+
+ arch/arm/mach-omap1/reset.c                  |    2 
+ arch/arm/mach-omap2/Makefile                 |    9 +
+ arch/arm/mach-omap2/am33xx.h                 |    1 
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 
+ arch/arm/mach-omap2/board-3430sdp.c          |    2 
+ arch/arm/mach-omap2/board-3630sdp.c          |    2 
+ arch/arm/mach-omap2/board-4430sdp.c          |    2 
+ arch/arm/mach-omap2/board-am3517crane.c      |    2 
+ arch/arm/mach-omap2/board-am3517evm.c        |    2 
+ arch/arm/mach-omap2/board-apollon.c          |    2 
+ arch/arm/mach-omap2/board-cm-t35.c           |   18 +-
+ arch/arm/mach-omap2/board-cm-t3517.c         |    2 
+ arch/arm/mach-omap2/board-devkit8000.c       |    2 
+ arch/arm/mach-omap2/board-generic.c          |   10 +
+ arch/arm/mach-omap2/board-h4.c               |    2 
+ arch/arm/mach-omap2/board-igep0020.c         |    4 -
+ arch/arm/mach-omap2/board-ldp.c              |    2 
+ arch/arm/mach-omap2/board-n8x0.c             |    6 -
+ arch/arm/mach-omap2/board-omap3beagle.c      |    2 
+ arch/arm/mach-omap2/board-omap3evm.c         |    2 
+ arch/arm/mach-omap2/board-omap3logic.c       |    4 -
+ arch/arm/mach-omap2/board-omap3pandora.c     |    2 
+ arch/arm/mach-omap2/board-omap3stalker.c     |    2 
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    2 
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 
+ arch/arm/mach-omap2/board-overo.c            |    2 
+ arch/arm/mach-omap2/board-rm680.c            |    4 -
+ arch/arm/mach-omap2/board-rx51.c             |    2 
+ arch/arm/mach-omap2/board-ti8168evm.c        |    4 -
+ arch/arm/mach-omap2/board-zoom.c             |    4 -
+ arch/arm/mach-omap2/clkt2xxx_apll.c          |   57 ++-----
+ arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |   36 ++++-
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   70 ++++++++-
+ arch/arm/mach-omap2/clkt_iclk.c              |    1 
+ arch/arm/mach-omap2/clock.c                  |   15 +-
+ arch/arm/mach-omap2/clock.h                  |   28 ----
+ arch/arm/mach-omap2/clock2420_data.c         |   26 +--
+ arch/arm/mach-omap2/clock2430_data.c         |   26 +--
+ arch/arm/mach-omap2/clock2xxx.c              |   16 --
+ arch/arm/mach-omap2/clock2xxx.h              |    9 +
+ arch/arm/mach-omap2/cm-regbits-24xx.h        |    2 
+ arch/arm/mach-omap2/cm.h                     |   20 ++-
+ arch/arm/mach-omap2/cm2xxx.c                 |  128 ++++++++++++++++
+ arch/arm/mach-omap2/cm2xxx.h                 |    4 +
+ arch/arm/mach-omap2/cm2xxx_3xxx.h            |    8 +
+ arch/arm/mach-omap2/cm3xxx.c                 |   66 ++++++++
+ arch/arm/mach-omap2/cm3xxx.h                 |    5 +
+ arch/arm/mach-omap2/cm_common.c              |   70 +++++++++
+ arch/arm/mach-omap2/cminst44xx.h             |    2 
+ arch/arm/mach-omap2/common.c                 |  202 --------------------------
+ arch/arm/mach-omap2/common.h                 |  111 ++------------
+ arch/arm/mach-omap2/control.c                |   10 +
+ arch/arm/mach-omap2/control.h                |    2 
+ arch/arm/mach-omap2/cpuidle34xx.c            |    1 
+ arch/arm/mach-omap2/display.c                |    2 
+ arch/arm/mach-omap2/hdq1w.c                  |    4 -
+ arch/arm/mach-omap2/i2c.c                    |    6 -
+ arch/arm/mach-omap2/id.c                     |    7 +
+ arch/arm/mach-omap2/io.c                     |   87 +++++++++--
+ arch/arm/mach-omap2/mcbsp.c                  |    2 
+ arch/arm/mach-omap2/msdi.c                   |    4 -
+ arch/arm/mach-omap2/omap2-restart.c          |   65 ++++++++
+ arch/arm/mach-omap2/omap3-restart.c          |   36 +++++
+ arch/arm/mach-omap2/omap4-common.c           |   18 ++
+ arch/arm/mach-omap2/omap_hwmod.c             |    8 -
+ arch/arm/mach-omap2/pm34xx.c                 |    1 
+ arch/arm/mach-omap2/powerdomain.c            |    2 
+ arch/arm/mach-omap2/prcm-common.h            |   22 ---
+ arch/arm/mach-omap2/prcm.c                   |  176 -----------------------
+ arch/arm/mach-omap2/prcm_mpu44xx.c           |   17 ++
+ arch/arm/mach-omap2/prcm_mpu44xx.h           |    9 +
+ arch/arm/mach-omap2/prm.h                    |   24 +++
+ arch/arm/mach-omap2/prm2xxx.c                |   15 ++
+ arch/arm/mach-omap2/prm2xxx.h                |    2 
+ arch/arm/mach-omap2/prm2xxx_3xxx.h           |    7 -
+ arch/arm/mach-omap2/prm3xxx.c                |   16 ++
+ arch/arm/mach-omap2/prm3xxx.h                |    2 
+ arch/arm/mach-omap2/prm44xx.c                |    1 
+ arch/arm/mach-omap2/prm_common.c             |   16 ++
+ arch/arm/mach-omap2/prminst44xx.h            |    2 
+ arch/arm/mach-omap2/sdrc.c                   |    8 -
+ arch/arm/mach-omap2/sdrc.h                   |    3 
+ arch/arm/mach-omap2/ti81xx.h                 |    9 +
+ arch/arm/mach-omap2/wd_timer.c               |    5 -
+ arch/arm/plat-omap/include/plat/prcm.h       |   36 -----
+ 85 files changed, 827 insertions(+), 804 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/common.c
+ create mode 100644 arch/arm/mach-omap2/omap2-restart.c
+ create mode 100644 arch/arm/mach-omap2/omap3-restart.c
+ delete mode 100644 arch/arm/mach-omap2/prcm.c
+ delete mode 100644 arch/arm/plat-omap/include/plat/prcm.h
 
