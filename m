@@ -1,133 +1,76 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2] gpio/omap: fix off-mode bug: clear debounce clock
- enable mask on free/reset
-Date: Thu, 25 Oct 2012 08:11:13 -0500
-Message-ID: <50893A71.1030702@ti.com>
-References: <1351098641-23917-1-git-send-email-khilman@deeprootsystems.com> <50887197.8010104@ti.com> <5088E387.2050704@ti.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH 7/8] i2c: add 'transferred' field to struct i2c_msg
+Date: Thu, 25 Oct 2012 14:14:59 +0100
+Message-ID: <20121025131459.GG28061@n2100.arm.linux.org.uk>
+References: <1350899218-13624-1-git-send-email-balbi@ti.com> <1350899218-13624-8-git-send-email-balbi@ti.com> <20121025145748.760c218b@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37367 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759533Ab2JYNLV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Oct 2012 09:11:21 -0400
-In-Reply-To: <5088E387.2050704@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20121025145748.760c218b-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
-
-On 10/25/2012 02:00 AM, Santosh Shilimkar wrote:
-> On Thursday 25 October 2012 04:24 AM, Jon Hunter wrote:
->>
->> On 10/24/2012 12:10 PM, Kevin Hilman wrote:
->>> From: Kevin Hilman <khilman@ti.com>
->>>
->>> When a GPIO bank is freed or shutdown, ensure that the banks
->>> dbck_enable_mask is cleared also.  Otherwise, context restore on
->>> subsequent off-mode transition will restore previous value from the
->>> shadow copies (bank->context.debounce*) leading to mismatch state
->>> between driver state and hardware state.
->>>
->>> This was discovered when board code was doing
->>>
->>>    gpio_request_one()
->>>    gpio_set_debounce()
->>>    gpio_free()
->>>
->>> which was leaving the GPIO debounce settings in a confused state.  If
->>> that GPIO bank is subsequently used with off-mode enabled, bogus state
->>> would be restored, leaving GPIO debounce enabled which then prevented
->>> the CORE powerdomain from transitioning.
->>>
->>> To fix, ensure that bank->dbck_enable_mask is cleared when the bank
->>> is freed/shutdown so debounce state doesn't persist.
-> The freed part is fine but I don't understand why it needs to be done
-> on _a_ gpio irq shutdown callback where IRQs related configuration
-> on that one GPIO needs to be cleared. De-bounce clock is surely not IRQ
-> related configuration.
-
-If we are freeing the IRQs related to gpio and resetting the gpio, then
-I don't see why we should not. We should not leave the debounce clock on
-if these gpios are no longer being used.
-
->>> Special thanks to Grazvydas Ignotas for pointing out a bug in an
->>> earlier version that would've disabled debounce on any runtime PM
->>> transition.
->>>
->>> Reported-by: Paul Walmsley <paul@pwsan.com>
->>> Cc: Igor Grinberg <grinberg@compulab.co.il>
->>> Cc: Grazvydas Ignotas <notasas@gmail.com>
->>> Signed-off-by: Kevin Hilman <khilman@ti.com>
->>> ---
->>> v2: only clear mask in free/shutdown, not in runtime PM paths,
->>>      clarified changelog
->>> Applies on v3.7-rc2.
->>>
->>>   drivers/gpio/gpio-omap.c | 1 +
->>>   1 file changed, 1 insertion(+)
->>>
->>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>> index 94cbc84..113b167 100644
->>> --- a/drivers/gpio/gpio-omap.c
->>> +++ b/drivers/gpio/gpio-omap.c
->>> @@ -539,6 +539,7 @@ static void _reset_gpio(struct gpio_bank *bank,
->>> int gpio)
->>>       _set_gpio_irqenable(bank, gpio, 0);
->>>       _clear_gpio_irqstatus(bank, gpio);
->>>       _set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
->>> +    bank->dbck_enable_mask = 0;
->>>   }
->>
->> Does this need to be ...
->>
->> +    bank->dbck_enable_mask &= ~(GPIO_BIT(bank, gpio));
->> +    _gpio_dbck_disable(bank);
->>
-> Yes, its a per bank clock. There is an alternate. See below.
+On Thu, Oct 25, 2012 at 02:57:48PM +0200, Jean Delvare wrote:
+> Hi Felipe, Shubhrajyoti,
 > 
->> There could be more than one gpio using debounce and so we should only
->> clear the appropriate bit. Also after clearing a bit we could see if we
->> can disable the debounce clock too.
->>
-> When I mentioned the clearing in gpio_free() path will do trick, I had
-> something like below in mind.
+> On Mon, 22 Oct 2012 12:46:57 +0300, Felipe Balbi wrote:
+> > From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> > 
+> > In case of a NACK, it's wise to tell our clients
+> > drivers about how many bytes were actually transferred.
+> > 
+> > Support this by adding an extra field to the struct
+> > i2c_msg which gets incremented the amount of bytes
+> > actually transferred.
+> > 
+> > Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  include/uapi/linux/i2c.h | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/include/uapi/linux/i2c.h b/include/uapi/linux/i2c.h
+> > index 0e949cb..4b35c9b 100644
+> > --- a/include/uapi/linux/i2c.h
+> > +++ b/include/uapi/linux/i2c.h
+> > @@ -77,6 +77,7 @@ struct i2c_msg {
+> >  #define I2C_M_NO_RD_ACK		0x0800	/* if I2C_FUNC_PROTOCOL_MANGLING */
+> >  #define I2C_M_RECV_LEN		0x0400	/* length will be first received byte */
+> >  	__u16 len;		/* msg length				*/
+> > +	__u16 transferred;	/* actual bytes transferred             */
+> >  	__u8 *buf;		/* pointer to msg data			*/
+> >  };
 > 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index dee2856..8574105 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -629,8 +629,10 @@ static void omap_gpio_free(struct gpio_chip *chip,
-> unsigned offset)
->       * If this is the last gpio to be freed in the bank,
->       * disable the bank module.
->       */
-> -    if (!bank->mod_usage)
-> +    if (!bank->mod_usage) {
-> +        bank->dbck_enable_mask = 0;
->          pm_runtime_put(bank->dev);
-> +    }
+> On the principle I am fine with this, however you also need to define
+> who should initialize this field, and to what value.
 
-However, with this we could be leaving the debounce clock on longer than
-needed. I think we need to call _gpio_dbck_disable() each time we free a
-gpio and this function will determine if it can turn off the debounce
-clock.
+You also miss one very very very big point.  This will break every I2C
+using userspace program out there unless it is rebuilt - this change will
+require the exact right version of those userspace programs for the
+kernel that they're being used on.
 
-In fact, there appears to be another bug in the current driver, that we
-do not clear the debounce_en register when freeing the gpio. Your patch
-addresses this, but I think that debounce should be disabled when a gpio
-is freed and not just when the last one is freed.
+Now that we have the userspace API headers separated, this is now much
+easier to detect: a patch which touches a uapi header needs much more
+careful consideration than one which doesn't.
 
-Also, with the above change, can't we still run into the original
-problem? In other words, if a gpio is freed, but there is still another
-one active in the back that is not using debounce, then we could restore
-a incorrect debounce context because we have not clean-up the debounce
-settings?
+So no, strong NAK.  This is not how we treat userspace.
 
-So may be we need to add a _clear_gpio_debounce() function and
-call this when freeing a gpio.
+If we want to change userspace API then we do it in a sane manner, where
+we provide the new functionality in a way that it doesn't break existing
+users.  There's two ways to do this:
 
-Cheers
-Jon
+1. Leave the existing struct alone, introduce a new one with new ioctls.
+   Schedule the removal of the old interfaces for maybe 10 years time.
+
+2. Rename the existing struct (eg struct old_i2c_msg), and create a new
+   struct called i2c_msg.  Rename the existing ioctls to have OLD_ in
+   their names.  Provide the existing ioctls under those names, and
+   make them print a warning once that userspace programs need updating.
+   Schedule the removal of the old interfaces for a shorter number of
+   years than (1);
+
+Remember all those "old" syscalls we have... this is no different from
+those.
