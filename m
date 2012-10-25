@@ -1,97 +1,95 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] i2c: omap: re-factor omap_i2c_init function
-Date: Thu, 25 Oct 2012 10:03:50 +0300
-Message-ID: <20121025070349.GA5259@arwen.pp.htv.fi>
-References: <1351147011-6500-1-git-send-email-shubhrajyoti@ti.com>
- <20121025063608.GA5084@arwen.pp.htv.fi>
- <CAM=Q2cvzQ7fVL1-vUpWZdwhGk3s0GpO3uG3MH9CAzBvyeSftKQ@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH 4/4] OMAP: mtd: gpmc: add DT bindings for GPMC timings
+ and NAND
+Date: Thu, 25 Oct 2012 10:00:27 +0200
+Message-ID: <5088F19B.7050606@gmail.com>
+References: <1350935758-9215-1-git-send-email-zonque@gmail.com> <1350935758-9215-5-git-send-email-zonque@gmail.com> <508895D8.5000701@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAM=Q2cvzQ7fVL1-vUpWZdwhGk3s0GpO3uG3MH9CAzBvyeSftKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:42518 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964780Ab2JYIAg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 04:00:36 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so583910bkc.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 01:00:35 -0700 (PDT)
+In-Reply-To: <508895D8.5000701@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
 
---FCuugMFkClbJLl1L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Jon,
 
-Hi,
+many thanks for your time to look at this.
 
-On Thu, Oct 25, 2012 at 12:23:56PM +0530, Shubhrajyoti Datta wrote:
-> >> @@ -1268,23 +1276,8 @@ static int omap_i2c_runtime_resume(struct devic=
-e *dev)
-> >>  {
-> >>       struct omap_i2c_dev *_dev =3D dev_get_drvdata(dev);
-> >>
-> >> -     if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstat=
-e);
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllst=
-ate);
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhst=
-ate);
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstat=
-e);
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscst=
-ate);
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_=
-EN);
-> >> -     }
-> >> -
-> >> -     /*
-> >> -      * Don't write to this register if the IE state is 0 as it can
-> >> -      * cause deadlock.
-> >> -      */
-> >> -     if (_dev->iestate)
-> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
-> >> +     if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
-> >> +             __omap_i2c_init(_dev);
-> >>
-> >>       return 0;
-> >>  }
-> >
-> > you continue to miss the changes in omap_i2c_xfer_msg() and your
-> > explanation of why not doing it wasn't good enough IMHO.
->=20
-> Will do that . I am preparing a seperate patch for moving the
-> calculation to a seperate function.
+On 25.10.2012 03:28, Jon Hunter wrote:
+> On 10/22/2012 02:55 PM, Daniel Mack wrote:
+>> diff --git a/Documentation/devicetree/bindings/bus/gpmc.txt b/Documentation/devicetree/bindings/bus/gpmc.txt
+>> new file mode 100644
+>> index 0000000..ef1c6e1
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/bus/gpmc.txt
+>> @@ -0,0 +1,59 @@
+>> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
+>> +
+>> +The actual devices are instantiated from the child nodes of a GPMC node.
+>> +
+>> +Required properties:
+>> +
+>> + - compatible: Should be set to "ti,gpmc"
+> 
+> Is this the only required property? I think that "reg" and "ti,hwmods"
+> are probably also required.
 
-why do you need yet another function ? omap_i2c_init() does all
-calculation and __omap_i2c_init() doesn't do any calculations. What's
-the point for yet another function ?
+Well yes, but at least "reg" is commonly omitted as it's part of a more
+"generic" set of properties. But ok, I can add these.
 
---=20
-balbi
+> Also given that we are describing the hardware, I am wondering if the
+> number of chip-selects and wait signals should be defined here too. I
+> recall that different devices had different number of wait pins available.
 
---FCuugMFkClbJLl1L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Hmm, that number is currently hard-coded in GPMC_CS_NUM. It would take
+some effort to make that dynamic but I agree that this would be a good
+thing to have. Afzal?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+>> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> new file mode 100644
+>> index 0000000..6790fcf
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>> @@ -0,0 +1,65 @@
+>> +Device tree bindings for GPMC connected NANDs
+>> +
+>> +GPMC connected NAND (found on OMAP boards) are represented as child nodes of
+>> +the GPMC controller with a name of "nand".
+>> +
+>> +All timing relevant properties are explained in a separate documents - please
+>> +refer to Documentation/devicetree/bindings/bus/gpmc.txt
+>> +
+>> +Required properties:
+>> +
+>> + - reg: The CS line the peripheral is connected to
+> 
+> Is this the only required property? I would have thought that bus-width
+> is needed too.
 
-iQIcBAEBAgAGBQJQiORVAAoJEIaOsuA1yqREXKcQAJOMG185ltstM8rsworPylCc
-Z2I67tx33pKCKuW3WdxtlDzipXYKjxFD8roLfHvp5zgFGdT5O3yUZGq1x260SDkm
-dgHg/tKM/2KvRoWZm2zviybfuBHeXEjdHj+X2YBvr1Ox65mpntvVPoxYXgN57itz
-9ET31l5nkHGj+9Bc0PaY2ylEMA1SyMbWMHCY5Rpcrx+vSkJP8r+1C/8pTIteQfgO
-VMBL6vPfRfFUFUBEcxbpQ8T/BHQD0kBrHR54R9hKqVyLImtno6iVAsoyBzM1KGMy
-rL0/5XWQlmiEvwnpkyCn1HeTrFyS8H5OZp8P1WG0rGHeU3qlosjGruM9iyMtq1nQ
-y1T1z4J82PVLOVAw0hZUobC86FwxkEAklfL2/fAxD7BJcNvbnzUyy2m/4ii3Nadi
-u3W9rZzZ1nTwAn0xBoes4DcUv+lPEt10t59c73qwOCQnwQCcrwOhwNPFfISQIvtO
-UU9XBmut+yupr+ZQw0hvWlKKo11sN2UFThtTU6xJfr297Ack7UeK31IwSvUkjyCf
-Wbuh6y9CsLCN9+UbJzz/fOBGK5pzVkDD5xH6tknu5adeFk1eWTlbTeGEqZXY/yN2
-FcJCmAtY5VapDBU99SaFWK5hB+DLha5LZPsO2UoKW7iUaVLxWpq6IGXF0rMwjg2H
-LPYm+bml0STY/2CCZ+9i
-=vwtM
------END PGP SIGNATURE-----
+I described bus-with in the nand bindings and stated there that it
+defaults to 8 and the only meaningful other value us 16. I did that
+because the value is in fact parsed in the NAND code, but I can as well
+move this around in the documentation.
 
---FCuugMFkClbJLl1L--
+> In general, I am wondering if this should be broken into two patches as
+> you are creating the binding for the gpmc and nand here.
+
+Yes, I thought so too. The thing is that I wanted to keep documentation
+and implementation tightly together, and only the generic parser bits in
+the code doesn't make much sense without any users. Also, the two
+Documentations reference each other, so I thought having them in one
+piece could make reviewing easier. But I can of course also split it if
+that helps.
+
+
+Thanks,
+Daniel
