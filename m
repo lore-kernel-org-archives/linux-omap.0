@@ -1,87 +1,76 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] i2c: omap: ensure writes to dev->buf_len are ordered
-Date: Thu, 25 Oct 2012 09:38:06 -0700
-Message-ID: <8739124idt.fsf@deeprootsystems.com>
-References: <1351155648-20429-1-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH] ARM: PMU: fix runtime PM enable
+Date: Thu, 25 Oct 2012 09:42:21 -0700
+Message-ID: <87vcdy33ma.fsf@deeprootsystems.com>
+References: <1351024268-26734-1-git-send-email-jon-hunter@ti.com>
+	<20121024093150.GA23775@mudshark.cambridge.arm.com>
+	<5087F84B.9070705@ti.com>
+	<20121024143204.GF7339@mudshark.cambridge.arm.com>
+	<508803DF.7020902@ti.com>
+	<20121024172325.GK7339@mudshark.cambridge.arm.com>
+	<5088284D.40404@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:58641 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935860Ab2JYQhf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 12:37:35 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so1288718pad.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 09:37:34 -0700 (PDT)
-In-Reply-To: <1351155648-20429-1-git-send-email-balbi@ti.com> (Felipe Balbi's
-	message of "Thu, 25 Oct 2012 12:00:48 +0300")
+Received: from mail-da0-f46.google.com ([209.85.210.46]:43071 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933227Ab2JYQlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 12:41:50 -0400
+Received: by mail-da0-f46.google.com with SMTP id n41so866913dak.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 09:41:50 -0700 (PDT)
+In-Reply-To: <5088284D.40404@ti.com> (Jon Hunter's message of "Wed, 24 Oct
+	2012 12:41:33 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: w.sang@pengutronix.de, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-i2c@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Will Deacon <will.deacon@arm.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-+Paul
+Jon Hunter <jon-hunter@ti.com> writes:
 
-Felipe Balbi <balbi@ti.com> writes:
+> On 10/24/2012 12:23 PM, Will Deacon wrote:
+>> On Wed, Oct 24, 2012 at 04:06:07PM +0100, Jon Hunter wrote:
+>>> On 10/24/2012 09:32 AM, Will Deacon wrote:
+>>>> Hmmm, now I start to wonder whether your original idea of having separate
+>>>> callbacks for enable/disable irq and resume/suspend doesn't make more sense.
+>>>> Then the CTI magic can go in the irq management code and be totally separate
+>>>> to the PM stuff.
+>>>>
+>>>> What do you reckon?
+>>>
+>>> The resume/suspend calls really replaced the enable/disable irq
+>>> callbacks. That still seems like a good approach given that we need
+>>> runtime PM for OMAP and PMU.
+>> 
+>> Ok, perhaps splitting it up isn't worth it then. I'm still not convinced
+>> either way.
+>
+> Given that we needed to employ runtime PM for OMAP, adding the handlers
+> is a natural progression and fits more with the PM framework model.
+>
+>>>> Nah, we should be able to fix this in the platdata, I'd just rather have
+>>>> function pointers instead of state variables in there.
+>>>
+>>> Well, we could pass a pointer to pm_runtime_enable() function in the
+>>> platdata.
+>> 
+>> What do other drivers do? Grepping around, I see calls to pm_runtime_enable
+>> made in various drivers and, given that you pass the device in there, what's
+>> the problem with us just calling that unconditionally from perf? I know you
+>> said that will work for OMAP, but I'm trying to understand the effect that
+>> has on PM-aware platforms that don't require this for the PMU (since this
+>> seems to be per-device).
+>
+> I had done this initially when testing on OMAP platforms that do and
+> don't require runtime PM for PMU. I don't see any side affect of this,
+> however, may be Kevin could comment on if that is ok. It would be the
+> best approach.
 
-> if we allow compiler reorder our writes, we could
-> fall into a situation where dev->buf_len is reset
-> for no apparent reason.
+Unconditonally enabling runtime PM should be fine.  It may add a slight
+bit of overhead calling runtime PM functions that ultimately do nothing
+(because there are no callbacks), but it will be harmless.
 
-Any chance this would help with the bug Paul found with I2C timeouts on
-beagle userspace startup?
+Personally, I think that would be cleaner.  The less pdata we need, the
+better, IMO.
 
 Kevin
 
-> This bug was found with a simple script which would
-> transfer data to an i2c client from 1 to 1024 bytes
-> (a simple for loop), when we got to transfer sizes
-> bigger than the fifo size, dev->buf_len was reset
-> to zero before we had an oportunity to handle XDR
-> Interrupt. Because dev->buf_len was zero, we entered
-> omap_i2c_transmit_data() to transfer zero bytes,
-> which would mean we would just silently exit
-> omap_i2c_transmit_data() without actually writing
-> anything to DATA register. That would cause XDR
-> IRQ to trigger forever and we would never transfer
-> the remaining bytes.
->
-> After adding the memory barrier, we also drop resetting
-> dev->buf_len to zero in omap_i2c_xfer_msg() because
-> both omap_i2c_transmit_data() and omap_i2c_receive_data()
-> will act until dev->buf_len reaches zero, rendering the
-> other write in omap_i2c_xfer_msg() redundant.
->
-> This patch has been tested with pandaboard for a few
-> iterations of the script mentioned above.
->
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->
-> This bug has been there forever, but it's quite annoying.
-> I think it deserves being pushed upstream during this -rc
-> cycle, but if Wolfram decides to wait until v3.8, I don't
-> mind.
->
->  drivers/i2c/busses/i2c-omap.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index db31eae..1ec4e6e 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -521,6 +521,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->  	/* REVISIT: Could the STB bit of I2C_CON be used with probing? */
->  	dev->buf = msg->buf;
->  	dev->buf_len = msg->len;
-> +	wmb();
->  
->  	omap_i2c_write_reg(dev, OMAP_I2C_CNT_REG, dev->buf_len);
->  
-> @@ -579,7 +580,6 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->  	 */
->  	timeout = wait_for_completion_timeout(&dev->cmd_complete,
->  						OMAP_I2C_TIMEOUT);
-> -	dev->buf_len = 0;
->  	if (timeout == 0) {
->  		dev_err(dev->dev, "controller timed out\n");
->  		omap_i2c_init(dev);
