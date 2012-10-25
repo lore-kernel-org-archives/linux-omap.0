@@ -1,41 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 5/7] ARM: OMAP2+: WDT: move init; add read_reset_sources
- pdata function pointer (fwd)
-Date: Thu, 25 Oct 2012 20:54:00 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210252053250.4745@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1210180125140.30902@utopia.booyaka.com> <20121023080533.GA16482@spo001.leaseweb.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Thu, 25 Oct 2012 21:59:01 +0100
+Message-ID: <20121025205901.GA3827@sirena.org.uk>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
+ <20121024161429.GA16350@core.coreip.homeip.net>
+ <CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
+ <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+ <20121024185818.GB772@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38072 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760258Ab2JYUyA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 16:54:00 -0400
-In-Reply-To: <20121023080533.GA16482@spo001.leaseweb.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20121024185818.GB772-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Wim Van Sebroeck <wim@iguana.be>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-watchdog@vger.kernel.org
 
-Hi Wim,
+On Wed, Oct 24, 2012 at 09:58:19PM +0300, Felipe Balbi wrote:
 
-On Tue, 23 Oct 2012, Wim Van Sebroeck wrote:
+> need a way to tell drivers/base "hey, don't touch pinctrl at all because
+> I know what I'm doing" and that has to happen before probe() too,
+> otherwise it's already too late and, according to what you suggest,
+> drivers/base will already have touched pinctrl. The only way I see would
+> be to add an extra "dont_touch_my_pins" field to every driver structure
+> in the kernel. Clearly what you say is nonsense.
 
-> > When you have the opportunity, could you take a look at this patch, and 
-> > the subsequent patch 6/7, and ack them if you're okay with them?
-> 
-> Signed them off, Acked-by would probably have been better :-).
+I suspect that's not actually a big deal and that if we went down this
+route we'd have the driver take over control from the core code during
+probe() with the core still setting up the default state.
 
-Great!  Will add your Acked-by:s. 
-
-> > We'd like to merge thse as part of a larger cleanup series through the 
-> > arm-soc tree.  They like cleanup patches to arrive at the beginning of the 
-> > -rc series, which means that we need to have the pull request sent pretty 
-> > soon.
-> 
-> Please go ahead. The sooner those ifdefs are gone the better.
-
-Thanks Wim,
-
-
-- Paul
+Personally I do think we want to be factoring bolierplate out of
+drivers, if they're not doing anything constructive with pinctrl they
+should be able to avoid having code for it.  There definitely are issues
+to work through but it seems like we ought to be able to do something.
