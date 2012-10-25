@@ -1,68 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Date: Thu, 25 Oct 2012 14:39:35 -0700
-Message-ID: <20121025213935.GD11928@atomide.com>
-References: <20121025001913.2082.31062.stgit@muffinssi.local>
- <1466344.HbU9q5zM1q@avalon>
- <20121025165643.GP11928@atomide.com>
- <1351198976.2hJjhe5gKC@avalon>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH V2] ARM: OMAP2+: PM: VP: minor pr_warn updates
+Date: Thu, 25 Oct 2012 15:11:24 -0700
+Message-ID: <87pq46qk1f.fsf@deeprootsystems.com>
+References: <1351190236-23443-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26734 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751479Ab2JYVjo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 17:39:44 -0400
-Content-Disposition: inline
-In-Reply-To: <1351198976.2hJjhe5gKC@avalon>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:34825 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737Ab2JYWKx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 18:10:53 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so2323040pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 15:10:52 -0700 (PDT)
+In-Reply-To: <1351190236-23443-1-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Thu, 25 Oct 2012 13:37:16 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121025 13:23]:
-> Hi Tony,
-> 
-> On Thursday 25 October 2012 09:56:44 Tony Lindgren wrote:
-> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121025 01:39]:
-> > > I still think you should split this in two files, omap-iommu.h and omap-
-> > > iovmm.h. The later would just be arch/arm/plat-omap/include/plat/iovmm.h
-> > > moved to include/linux.h.
-> > 
-> > Can you please explain a bit more why you're thinking a separate
-> > omap-iovmm.h is needed in addtion to omap-iommu.h?
-> 
-> The IOVMM API is layered top of the IOMMU API. It's really a separate API, so 
-> two header files make sense. This patch creates a hybrid omap-iommu.h header 
-> with mixed definitions, it just doesn't feel right :-) I won't insist for a 
-> split though, if you think it's better to have a single header we can keep it 
-> that way.
+Nishanth Menon <nm@ti.com> writes:
 
-Yes it's true it's a separate layer. But it's still iommu
-specific. The functions exported by omap-iovmm.c have iommu_
-prefix in the name except for one:
+> change pr_warnings to pr_warn and ensure a newline
+> is present in all messages
+>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_find_iovm_area);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_da_to_va);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vmap);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vunmap);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vmalloc);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vfree);
+Thanks queuing for v3.8 as PM cleanup (branch: for_3.8/cleanup/pm.)
 
-So it should be OK to keep it all in omap-iommu.h file. Let's 
-see hear what..
-
-> > My reasoning for not adding it is that neither intel nor amd needs
-> > more than intel-iommu.h and amd-iommu.h. And hopefully the iommu
-> > framework will eventually provide the API needed. And I'd rather
-> > not be the person introducing this second new file into
-> > include/linux :)
-> > 
-> > Joerg and Ohad, do you have any opinions on this?
-
-..Joerg and Ohad say.
-
-Regards,
-
-Tony
+Kevin
