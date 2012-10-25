@@ -1,55 +1,46 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] omapdss: dss: Fix clocks on OMAP363x
-Date: Thu, 25 Oct 2012 20:42:10 +0200
-Message-ID: <1351190530-16863-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/7] ARM: OMAP2+: WDT: move init; add read_reset_sources
+ pdata function pointer
+Date: Thu, 25 Oct 2012 18:51:02 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210251846130.21193@utopia.booyaka.com>
+References: <20121016012448.21844.92339.stgit@dusk.lan> <20121016013213.21844.20016.stgit@dusk.lan> <20121025153805.GB11623@blackmetal.musicnaut.iki.fi>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53019 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760027Ab2JYSlX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 14:41:23 -0400
+Received: from utopia.booyaka.com ([74.50.51.50]:37761 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161121Ab2JYSvE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 14:51:04 -0400
+In-Reply-To: <20121025153805.GB11623@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org
 
-Commit 185bae1095188aa199c9be64d6030d8dbfc65e0a ("OMAPDSS: DSS: Cleanup
-cpu_is_xxxx checks") broke the DSS clocks configuration by erroneously
-using the clock parameters applicable to all other OMAP34xx SoCs for the
-OMAP363x. This went unnoticed probably because the cpu_is_omap34xx()
-class check wasn't seen as matching the OMAP363x subclass.
+Terve,
 
-Fix it by checking for the OMAP363x subclass before checking for the
-OMAP34xx class.
+On Thu, 25 Oct 2012, Aaro Koskinen wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/video/omap2/dss/dss.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> On Mon, Oct 15, 2012 at 07:32:33PM -0600, Paul Walmsley wrote:
+> > The OMAP watchdog timer driver directly calls a function exported by
+> > code in arch/arm/mach-omap2.  This is not good; it tightly couples
+> > this driver to the mach-omap2 integration code.  Instead, add a
+> > temporary platform_data function pointer to abstract this function
+> > call.  A subsequent patch will convert the watchdog driver to use this
+> > function pointer.
+> 
+> Why a function is needed? Reset cause won't change until the next reset,
+> so it should be enough to read it once during the init and store it into
+> the platform data.
 
-Hi Tomi,
+Once the PRM/CM drivers and DT conversion is complete, this driver won't 
+have any platform_data.  There won't be any watchdog driver initialization 
+code in arch/arm/mach-omap2.  At that point in time, the driver will just 
+call a function from the PRM driver that provides the reset source data.  
 
-The patch has been tested on the Beagleboard-xM and restores the DVI output
-operation. This is a regression fix that should be pushed to v3.7.
+As you say, the watchdog can certainly do this from its probe code; it 
+would be more efficient.  Just didn't want to make that change now; seems 
+like it would be best done as a separate optimization patch.
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 2ab1c3e..0bb7406 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -805,10 +805,10 @@ static int __init dss_init_features(struct device *dev)
- 
- 	if (cpu_is_omap24xx())
- 		src = &omap24xx_dss_feats;
--	else if (cpu_is_omap34xx())
--		src = &omap34xx_dss_feats;
- 	else if (cpu_is_omap3630())
- 		src = &omap3630_dss_feats;
-+	else if (cpu_is_omap34xx())
-+		src = &omap34xx_dss_feats;
- 	else if (cpu_is_omap44xx())
- 		src = &omap44xx_dss_feats;
- 	else if (soc_is_omap54xx())
--- 
-Regards,
 
-Laurent Pinchart
-
+- Paul
