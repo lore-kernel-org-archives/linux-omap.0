@@ -1,326 +1,259 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 13/13] ARM: OMAP2+: PRCM: remove obsolete prcm.[ch]
-Date: Thu, 25 Oct 2012 17:21:23 -0600
-Message-ID: <20121025232122.17558.35828.stgit@dusk.lan>
+Subject: [PATCH 04/13] ARM: OMAP2xxx: clock: move virt_prcm_set code into
+ clkt2xxx_virt_prcm_set.c
+Date: Thu, 25 Oct 2012 17:21:16 -0600
+Message-ID: <20121025232115.17558.12450.stgit@dusk.lan>
 References: <20121025231818.17558.57884.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38300 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38282 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752327Ab2JYXYG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 19:24:06 -0400
+	with ESMTP id S1751485Ab2JYXYC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 19:24:02 -0400
 In-Reply-To: <20121025231818.17558.57884.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-arch/arm/mach-omap2/prcm.c and arch/arm/plat-omap/include/plat/prcm.h
-are now completely unused and can be removed.
+Collect all of the virt_prcm_set-specific clocktype code into
+mach-omap2/clkt2xxx_virt_prcm_set.c.  Remove its dependency on the
+'sclk' and 'vclk' global variables.  Those variables will be removed
+by subsequent patches.
+
+This is part of the process of cleaning up the OMAP2xxx clock code
+and preparing for the removal of the omap_prcm_restart() function.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap1/reset.c            |    2 -
- arch/arm/mach-omap2/Makefile           |    2 +
- arch/arm/mach-omap2/clkt2xxx_apll.c    |    1 -
- arch/arm/mach-omap2/clkt_iclk.c        |    1 -
- arch/arm/mach-omap2/clock.c            |    1 -
- arch/arm/mach-omap2/cpuidle34xx.c      |    1 -
- arch/arm/mach-omap2/io.c               |    1 -
- arch/arm/mach-omap2/omap_hwmod.c       |    1 -
- arch/arm/mach-omap2/pm34xx.c           |    1 -
- arch/arm/mach-omap2/powerdomain.c      |    2 -
- arch/arm/mach-omap2/prcm.c             |   63 --------------------------------
- arch/arm/mach-omap2/prm2xxx.c          |    1 -
- arch/arm/mach-omap2/prm3xxx.c          |    1 -
- arch/arm/mach-omap2/prm44xx.c          |    1 -
- arch/arm/mach-omap2/prm_common.c       |    1 -
- arch/arm/plat-omap/include/plat/prcm.h |   35 ------------------
- 16 files changed, 1 insertion(+), 114 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/prcm.c
- delete mode 100644 arch/arm/plat-omap/include/plat/prcm.h
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   66 +++++++++++++++++++++++---
+ arch/arm/mach-omap2/clock2420_data.c         |   19 ++-----
+ arch/arm/mach-omap2/clock2430_data.c         |   19 ++-----
+ arch/arm/mach-omap2/clock2xxx.h              |    2 +
+ 4 files changed, 70 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/reset.c b/arch/arm/mach-omap1/reset.c
-index a0a9f97..2007d41 100644
---- a/arch/arm/mach-omap1/reset.c
-+++ b/arch/arm/mach-omap1/reset.c
-@@ -4,8 +4,6 @@
- #include <linux/kernel.h>
- #include <linux/io.h>
+diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+index 1b95078..f9c71f3 100644
+--- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
++++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP2xxx DVFS virtual clock functions
+  *
+- * Copyright (C) 2005-2008 Texas Instruments, Inc.
++ * Copyright (C) 2005-2008, 2012 Texas Instruments, Inc.
+  * Copyright (C) 2004-2010 Nokia Corporation
+  *
+  * Contacts:
+@@ -47,6 +47,13 @@
+ const struct prcm_config *curr_prcm_set;
+ const struct prcm_config *rate_table;
  
--#include <plat/prcm.h>
++/*
++ * sys_ck_rate: the rate of the external high-frequency clock
++ * oscillator on the board.  Set by the SoC-specific clock init code.
++ * Once set during a boot, will not change.
++ */
++static unsigned long sys_ck_rate;
++
+ /**
+  * omap2_table_mpu_recalc - just return the MPU speed
+  * @clk: virt_prcm_set struct clk
+@@ -68,15 +75,14 @@ unsigned long omap2_table_mpu_recalc(struct clk *clk)
+ long omap2_round_to_table_rate(struct clk *clk, unsigned long rate)
+ {
+ 	const struct prcm_config *ptr;
+-	long highest_rate, sys_clk_rate;
++	long highest_rate;
+ 
+ 	highest_rate = -EINVAL;
+-	sys_clk_rate = __clk_get_rate(sclk);
+ 
+ 	for (ptr = rate_table; ptr->mpu_speed; ptr++) {
+ 		if (!(ptr->flags & cpu_mask))
+ 			continue;
+-		if (ptr->xtal_speed != sys_clk_rate)
++		if (ptr->xtal_speed != sys_ck_rate)
+ 			continue;
+ 
+ 		highest_rate = ptr->mpu_speed;
+@@ -95,15 +101,12 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
+ 	const struct prcm_config *prcm;
+ 	unsigned long found_speed = 0;
+ 	unsigned long flags;
+-	long sys_clk_rate;
 -
- #include <mach/hardware.h>
+-	sys_clk_rate = __clk_get_rate(sclk);
  
- #include "common.h"
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index aa0f59c..870f63e 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -98,7 +98,7 @@ obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
- endif
+ 	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+ 		if (!(prcm->flags & cpu_mask))
+ 			continue;
  
- # PRCM
--obj-y					+= prcm.o prm_common.o cm_common.o
-+obj-y					+= prm_common.o cm_common.o
- obj-$(CONFIG_ARCH_OMAP2)		+= prm2xxx_3xxx.o prm2xxx.o cm2xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= prm2xxx_3xxx.o prm3xxx.o cm3xxx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
-diff --git a/arch/arm/mach-omap2/clkt2xxx_apll.c b/arch/arm/mach-omap2/clkt2xxx_apll.c
-index d47f6f7..6c8a8fc 100644
---- a/arch/arm/mach-omap2/clkt2xxx_apll.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_apll.c
-@@ -22,7 +22,6 @@
- #include <linux/io.h>
+-		if (prcm->xtal_speed != sys_clk_rate)
++		if (prcm->xtal_speed != sys_ck_rate)
+ 			continue;
  
- #include <plat/clock.h>
--#include <plat/prcm.h>
+ 		if (prcm->mpu_speed <= rate) {
+@@ -169,3 +172,50 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
  
- #include "clock.h"
- #include "clock2xxx.h"
-diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/arch/arm/mach-omap2/clkt_iclk.c
-index 3d43fba..66a7475 100644
---- a/arch/arm/mach-omap2/clkt_iclk.c
-+++ b/arch/arm/mach-omap2/clkt_iclk.c
-@@ -15,7 +15,6 @@
- #include <linux/io.h>
+ 	return 0;
+ }
++
++/**
++ * omap2xxx_clkt_vps_check_bootloader_rate - determine which of the rate
++ * table sets matches the current CORE DPLL hardware rate
++ *
++ * Check the MPU rate set by bootloader.  Sets the 'curr_prcm_set'
++ * global to point to the active rate set when found; otherwise, sets
++ * it to NULL.  No return value;
++ */
++void omap2xxx_clkt_vps_check_bootloader_rates(void)
++{
++	const struct prcm_config *prcm = NULL;
++	unsigned long rate;
++
++	rate = omap2xxx_clk_get_core_rate();
++	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
++		if (!(prcm->flags & cpu_mask))
++			continue;
++		if (prcm->xtal_speed != sys_ck_rate)
++			continue;
++		if (prcm->dpll_speed <= rate)
++			break;
++	}
++	curr_prcm_set = prcm;
++}
++
++/**
++ * omap2xxx_clkt_vps_late_init - store a copy of the sys_ck rate
++ *
++ * Store a copy of the sys_ck rate for later use by the OMAP2xxx DVFS
++ * code.  (The sys_ck rate does not -- or rather, must not -- change
++ * during kernel runtime.)  Must be called after we have a valid
++ * sys_ck rate, but before the virt_prcm_set clock rate is
++ * recalculated.  No return value.
++ */
++void omap2xxx_clkt_vps_late_init(void)
++{
++	struct clk *c;
++
++	c = clk_get(NULL, "sys_ck");
++	if (IS_ERR(c)) {
++		WARN(1, "could not locate sys_ck\n");
++	} else {
++		sys_ck_rate = clk_get_rate(c);
++		clk_put(c);
++	}
++}
+diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+index 69335d3..0cae0f5 100644
+--- a/arch/arm/mach-omap2/clock2420_data.c
++++ b/arch/arm/mach-omap2/clock2420_data.c
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP2420 clock data
+  *
+- * Copyright (C) 2005-2009 Texas Instruments, Inc.
++ * Copyright (C) 2005-2009, 2012 Texas Instruments, Inc.
+  * Copyright (C) 2004-2011 Nokia Corporation
+  *
+  * Contacts:
+@@ -1927,9 +1927,7 @@ static struct omap_clk omap2420_clks[] = {
  
- #include <plat/clock.h>
--#include <plat/prcm.h>
+ int __init omap2420_clk_init(void)
+ {
+-	const struct prcm_config *prcm;
+ 	struct omap_clk *c;
+-	u32 clkrate;
  
- #include "clock.h"
- #include "clock2xxx.h"
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 19acf08..bbd6184 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -26,7 +26,6 @@
- #include <asm/cpu.h>
+ 	prcm_clksrc_ctrl = OMAP2420_PRCM_CLKSRC_CTRL;
+ 	cm_idlest_pll = OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST);
+@@ -1954,20 +1952,13 @@ int __init omap2420_clk_init(void)
+ 		omap2_init_clk_clkdm(c->lk.clk);
+ 	}
  
- #include <plat/clock.h>
--#include <plat/prcm.h>
++	omap2xxx_clkt_vps_late_init();
++
+ 	/* Disable autoidle on all clocks; let the PM code enable it later */
+ 	omap_clk_disable_autoidle_all();
  
- #include <trace/events/power.h>
+-	/* Check the MPU rate set by bootloader */
+-	clkrate = omap2xxx_clk_get_core_rate();
+-	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+-		if (!(prcm->flags & cpu_mask))
+-			continue;
+-		if (prcm->xtal_speed != sys_ck.rate)
+-			continue;
+-		if (prcm->dpll_speed <= clkrate)
+-			break;
+-	}
+-	curr_prcm_set = prcm;
++	/* XXX Can this be done from the virt_prcm_set clk init function? */
++	omap2xxx_clkt_vps_check_bootloader_rates();
  
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index bc27569..bca7a88 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -27,7 +27,6 @@
- #include <linux/export.h>
- #include <linux/cpu_pm.h>
+ 	recalculate_root_clocks();
  
--#include <plat/prcm.h>
- #include "powerdomain.h"
- #include "clockdomain.h"
+diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+index 8d9894c..0c4f719 100644
+--- a/arch/arm/mach-omap2/clock2430_data.c
++++ b/arch/arm/mach-omap2/clock2430_data.c
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP2430 clock data
+  *
+- * Copyright (C) 2005-2009 Texas Instruments, Inc.
++ * Copyright (C) 2005-2009, 2012 Texas Instruments, Inc.
+  * Copyright (C) 2004-2011 Nokia Corporation
+  *
+  * Contacts:
+@@ -2026,9 +2026,7 @@ static struct omap_clk omap2430_clks[] = {
  
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 8573e6c..49b0d8e 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -32,7 +32,6 @@
- #include <plat/omap_hwmod.h>
- #include <plat/multi.h>
- #include <plat/dma.h>
--#include <plat/prcm.h>
+ int __init omap2430_clk_init(void)
+ {
+-	const struct prcm_config *prcm;
+ 	struct omap_clk *c;
+-	u32 clkrate;
  
- #include "soc.h"
- #include "iomap.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 85e8874..ad98d97 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -141,7 +141,6 @@
+ 	prcm_clksrc_ctrl = OMAP2430_PRCM_CLKSRC_CTRL;
+ 	cm_idlest_pll = OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST);
+@@ -2053,20 +2051,13 @@ int __init omap2430_clk_init(void)
+ 		omap2_init_clk_clkdm(c->lk.clk);
+ 	}
  
- #include <plat/clock.h>
- #include <plat/omap_hwmod.h>
--#include <plat/prcm.h>
++	omap2xxx_clkt_vps_late_init();
++
+ 	/* Disable autoidle on all clocks; let the PM code enable it later */
+ 	omap_clk_disable_autoidle_all();
  
- #include "soc.h"
- #include "common.h"
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c0f8a78..26ea418 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -39,7 +39,6 @@
- #include "clockdomain.h"
- #include "powerdomain.h"
- #include <plat/sdrc.h>
--#include <plat/prcm.h>
- #include <plat/gpmc.h>
- #include <plat/dma.h>
+-	/* Check the MPU rate set by bootloader */
+-	clkrate = omap2xxx_clk_get_core_rate();
+-	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+-		if (!(prcm->flags & cpu_mask))
+-			continue;
+-		if (prcm->xtal_speed != sys_ck.rate)
+-			continue;
+-		if (prcm->dpll_speed <= clkrate)
+-			break;
+-	}
+-	curr_prcm_set = prcm;
++	/* XXX Can this be done from the virt_prcm_set clk init function? */
++	omap2xxx_clkt_vps_check_bootloader_rates();
  
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 1678a32..dea62a9 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -29,8 +29,6 @@
+ 	recalculate_root_clocks();
  
- #include <asm/cpu.h>
+diff --git a/arch/arm/mach-omap2/clock2xxx.h b/arch/arm/mach-omap2/clock2xxx.h
+index 19dc0659..25b8d02 100644
+--- a/arch/arm/mach-omap2/clock2xxx.h
++++ b/arch/arm/mach-omap2/clock2xxx.h
+@@ -20,6 +20,8 @@ u32 omap2xxx_get_apll_clkin(void);
+ u32 omap2xxx_get_sysclkdiv(void);
+ void omap2xxx_clk_prepare_for_reboot(void);
+ void omap2xxx_clkt_dpllcore_init(struct clk *clk);
++void omap2xxx_clkt_vps_check_bootloader_rates(void);
++void omap2xxx_clkt_vps_late_init(void);
  
--#include <plat/prcm.h>
--
- #include "powerdomain.h"
- #include "clockdomain.h"
- 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-deleted file mode 100644
-index 8a603fe..0000000
---- a/arch/arm/mach-omap2/prcm.c
-+++ /dev/null
-@@ -1,63 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/prcm.c
-- *
-- * OMAP 24xx Power Reset and Clock Management (PRCM) functions
-- *
-- * Copyright (C) 2005 Nokia Corporation
-- *
-- * Written by Tony Lindgren <tony.lindgren@nokia.com>
-- *
-- * Copyright (C) 2007 Texas Instruments, Inc.
-- * Rajendra Nayak <rnayak@ti.com>
-- *
-- * Some pieces of code Copyright (C) 2005 Texas Instruments, Inc.
-- * Upgraded with OMAP4 support by Abhijit Pagare <abhijitpagare@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/clk.h>
--#include <linux/io.h>
--#include <linux/delay.h>
--#include <linux/export.h>
--
--#include "common.h"
--#include <plat/prcm.h>
--
--#include "clock.h"
--#include "clock2xxx.h"
--#include "cm2xxx_3xxx.h"
--#include "prm2xxx_3xxx.h"
--#include "prm44xx.h"
--#include "prminst44xx.h"
--#include "cminst44xx.h"
--#include "prm-regbits-24xx.h"
--#include "prm-regbits-44xx.h"
--#include "control.h"
--
--
--/*
-- * Stubbed functions so that common files continue to build when
-- * custom builds are used
-- * XXX These are temporary and should be removed at the earliest possible
-- * opportunity
-- */
--int __weak omap4_cminst_wait_module_idle(u8 part, u16 inst, s16 cdoffs,
--					u16 clkctrl_offs)
--{
--	return 0;
--}
--
--void __weak omap4_cminst_module_enable(u8 mode, u8 part, u16 inst,
--				s16 cdoffs, u16 clkctrl_offs)
--{
--}
--
--void __weak omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
--				 u16 clkctrl_offs)
--{
--}
-diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index 1f777bf..bf24fc4 100644
---- a/arch/arm/mach-omap2/prm2xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -20,7 +20,6 @@
- 
- #include "common.h"
- #include <plat/cpu.h>
--#include <plat/prcm.h>
- 
- #include "vp.h"
- #include "powerdomain.h"
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index 5435673..b86116c 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -20,7 +20,6 @@
- 
- #include "common.h"
- #include <plat/cpu.h>
--#include <plat/prcm.h>
- 
- #include "vp.h"
- #include "powerdomain.h"
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index a799e95..6d3467a 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -18,7 +18,6 @@
- #include <linux/err.h>
- #include <linux/io.h>
- 
--#include <plat/prcm.h>
- 
- #include "soc.h"
- #include "iomap.h"
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index c089246..2216505 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -25,7 +25,6 @@
- #include <linux/slab.h>
- 
- #include <plat/common.h>
--#include <plat/prcm.h>
- 
- #include "prm2xxx_3xxx.h"
- #include "prm2xxx.h"
-diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
-deleted file mode 100644
-index 08eda93..0000000
---- a/arch/arm/plat-omap/include/plat/prcm.h
-+++ /dev/null
-@@ -1,35 +0,0 @@
--/*
-- * arch/arm/plat-omap/include/mach/prcm.h
-- *
-- * Access definations for use in OMAP24XX clock and power management
-- *
-- * Copyright (C) 2005 Texas Instruments, Inc.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-- *
-- * XXX This file is deprecated.  The PRCM is an OMAP2+-only subsystem,
-- * so this file doesn't belong in plat-omap/include/plat.  Please
-- * do not add anything new to this file.
-- */
--
--#ifndef __ASM_ARM_ARCH_OMAP_PRCM_H
--#define __ASM_ARM_ARCH_OMAP_PRCM_H
--
--/* XXX To be removed */
--
--#endif
--
--
--
+ #ifdef CONFIG_SOC_OMAP2420
+ int omap2420_clk_init(void);
 
 
