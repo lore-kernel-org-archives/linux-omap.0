@@ -1,49 +1,34 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 0/2] ARM: OMAP2+: Add device-tree support for 32kHz counter
-Date: Thu, 25 Oct 2012 14:24:13 -0500
-Message-ID: <1351193055-12488-1-git-send-email-jon-hunter@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/7] ARM: OMAP2+: WDT: move init; add read_reset_sources
+ pdata function pointer
+Date: Thu, 25 Oct 2012 19:31:06 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210251929500.21193@utopia.booyaka.com>
+References: <20121016012448.21844.92339.stgit@dusk.lan> <20121016013213.21844.20016.stgit@dusk.lan> <20121025153805.GB11623@blackmetal.musicnaut.iki.fi> <alpine.DEB.2.00.1210251846130.21193@utopia.booyaka.com> <20121025185755.GV11928@atomide.com>
+ <alpine.DEB.2.00.1210251908560.21193@utopia.booyaka.com> <20121025191936.GZ11928@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40538 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934197Ab2JYTYh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Oct 2012 15:24:37 -0400
+Received: from utopia.booyaka.com ([74.50.51.50]:37865 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992551Ab2JYTbH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 15:31:07 -0400
+In-Reply-To: <20121025191936.GZ11928@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <rob.herring@calxeda.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org
 
-This series adds device-tree support for the 32kHz counter on OMAP2+ devices,
-which is used as the default kernel clock-source for OMAP devices.
+On Thu, 25 Oct 2012, Tony Lindgren wrote:
 
-Boot tested on OMAP2420 H4, OMAP3430 Beagle Board and OMAP4430 Panda Board
-with and without device-tree present.
+> I wonder if we can now with multiple watchdogs supported to
+> have also PRM/CM implement omap_prcm_wdt_ioctl() that just
+> handles WDIOC_GETBOOTSTATUS and then just remove that handling
+> from the other omap watchdog drivers?
 
-Based and dependent upon OMAP2+ series that adds device-tree support for
-DMTIMERs [1].
+The watchdog ioctl code needs access to internal watchdog state and 
+functions, for example  WDIOC_KEEPALIVE and  WDIOC_SETTIMEOUT.  How would 
+the approach you're thinking of implement those operations?
 
-V3 changes:
-- Correct counter register sizes
 
-V2 changes:
-- Updated counter name in binding per Benoit Cousson's feedback
 
-[1] http://marc.info/?l=linux-omap&m=135065875808614&w=2
-
-Jon Hunter (2):
-  ARM: dts: OMAP: Add counter-32k nodes
-  ARM: OMAP2+: Add device-tree support for 32kHz counter
-
- .../devicetree/bindings/arm/omap/counter.txt       |   15 +++++++++++
- arch/arm/boot/dts/omap2420.dtsi                    |    6 +++++
- arch/arm/boot/dts/omap2430.dtsi                    |    6 +++++
- arch/arm/boot/dts/omap3.dtsi                       |    6 +++++
- arch/arm/boot/dts/omap4.dtsi                       |    6 +++++
- arch/arm/mach-omap2/timer.c                        |   28 +++++++++++++++++++-
- 6 files changed, 66 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/counter.txt
-
--- 
-1.7.9.5
-
+- Paul
