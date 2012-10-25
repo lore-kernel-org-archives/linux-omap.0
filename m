@@ -1,65 +1,180 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: ensure writes to dev->buf_len are ordered
-Date: Thu, 25 Oct 2012 21:03:40 +0300
-Message-ID: <20121025180339.GA18046@arwen.pp.htv.fi>
-References: <1351155648-20429-1-git-send-email-balbi@ti.com>
- <8739124idt.fsf@deeprootsystems.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH] mmc: omap_hsmmc: introduce
+ omap_hsmmc_prepare/complete
+Date: Thu, 25 Oct 2012 21:04:18 +0300
+Message-ID: <20121025180418.GB18046@arwen.pp.htv.fi>
+References: <1350910768-8522-1-git-send-email-balbi@ti.com>
+ <20121022132708.GA14033@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="DBIVS5p969aUjpLe"
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8739124idt.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20121022132708.GA14033@arwen.pp.htv.fi>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "\\\"Venkatraman S.\\\"" <svenkatr@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-mmc@vger.kernel.org, cjb@laptop.org, Tony Lindgren <tony@atomide.com>, Balaji T K <balajitk@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---uAKRQypu60I7Lcqm
+--DBIVS5p969aUjpLe
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Oct 25, 2012 at 09:38:06AM -0700, Kevin Hilman wrote:
-> +Paul
+On Mon, Oct 22, 2012 at 04:27:08PM +0300, Felipe Balbi wrote:
+> On Mon, Oct 22, 2012 at 03:59:28PM +0300, Felipe Balbi wrote:
+> > prepare() is supposed to prevent new children from
+> > being registered. On the MMC subsystem, children
+> > (new cards) registration starts with the card
+> > detect IRQ.
+> >=20
+> > Move card detect IRQ disabling to prepare() so that
+> > no new cards will be registered while we're trying
+> > to suspend.
+> >=20
+> > Likewise, move card detect IRQ enabling to complete()
+> > so we only try to register new children after our MMC
+> > IP is back up.
+> >=20
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > ---
+> >=20
+> > Venkat, do you think the patch below makes sense ?
 >=20
-> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
+> btw, just checked suspend to ram with beagle and panda. We still have
+> our filesystem after waking up.
 >=20
-> > if we allow compiler reorder our writes, we could
-> > fall into a situation where dev->buf_len is reset
-> > for no apparent reason.
+> ps: you will [1] to test it:
 >=20
-> Any chance this would help with the bug Paul found with I2C timeouts on
-> beagle userspace startup?
+> [1] http://marc.info/?l=3Dlinux-arm-kernel&m=3D135090724817604&w=3D2
 
-I replied to the original thread asking the same ;-)
+ping
+
+>=20
+> > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmm=
+c.c
+> > index 54bfd0c..4c8b41e 100644
+> > --- a/drivers/mmc/host/omap_hsmmc.c
+> > +++ b/drivers/mmc/host/omap_hsmmc.c
+> > @@ -2022,6 +2022,26 @@ static int __devexit omap_hsmmc_remove(struct pl=
+atform_device *pdev)
+> >  }
+> > =20
+> >  #ifdef CONFIG_PM
+> > +static int omap_hsmmc_prepare(struct device *dev)
+> > +{
+> > +	struct omap_hsmmc_host *host =3D dev_get_drvdata(dev);
+> > +
+> > +	if (host->pdata->suspend)
+> > +		return host->pdata->suspend(dev, host->slot_id);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int omap_hsmmc_complete(struct device *dev)
+> > +{
+> > +	struct omap_hsmmc_host *host =3D dev_get_drvdata(dev);
+> > +
+> > +	if (host->pdata->resume)
+> > +		return host->pdata->resume(dev, host->slot_id);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >  static int omap_hsmmc_suspend(struct device *dev)
+> >  {
+> >  	int ret =3D 0;
+> > @@ -2035,23 +2055,10 @@ static int omap_hsmmc_suspend(struct device *de=
+v)
+> > =20
+> >  	pm_runtime_get_sync(host->dev);
+> >  	host->suspended =3D 1;
+> > -	if (host->pdata->suspend) {
+> > -		ret =3D host->pdata->suspend(dev, host->slot_id);
+> > -		if (ret) {
+> > -			dev_dbg(dev, "Unable to handle MMC board"
+> > -					" level suspend\n");
+> > -			host->suspended =3D 0;
+> > -			return ret;
+> > -		}
+> > -	}
+> >  	ret =3D mmc_suspend_host(host->mmc);
+> > =20
+> >  	if (ret) {
+> >  		host->suspended =3D 0;
+> > -		if (host->pdata->resume) {
+> > -			if (host->pdata->resume(dev, host->slot_id))
+> > -				dev_dbg(dev, "Unmask interrupt failed\n");
+> > -		}
+> >  		goto err;
+> >  	}
+> > =20
+> > @@ -2088,12 +2095,6 @@ static int omap_hsmmc_resume(struct device *dev)
+> >  	if (!(host->mmc->pm_flags & MMC_PM_KEEP_POWER))
+> >  		omap_hsmmc_conf_bus_power(host);
+> > =20
+> > -	if (host->pdata->resume) {
+> > -		ret =3D host->pdata->resume(dev, host->slot_id);
+> > -		if (ret)
+> > -			dev_dbg(dev, "Unmask interrupt failed\n");
+> > -	}
+> > -
+> >  	omap_hsmmc_protect_card(host);
+> > =20
+> >  	/* Notify the core to resume the host */
+> > @@ -2109,8 +2110,10 @@ static int omap_hsmmc_resume(struct device *dev)
+> >  }
+> > =20
+> >  #else
+> > +#define omap_hsmmc_prepare	NULL
+> > +#define omap_hsmmc_complete	NULL
+> >  #define omap_hsmmc_suspend	NULL
+> > -#define omap_hsmmc_resume		NULL
+> > +#define omap_hsmmc_resume	NULL
+> >  #endif
+> > =20
+> >  static int omap_hsmmc_runtime_suspend(struct device *dev)
+> > @@ -2138,6 +2141,8 @@ static int omap_hsmmc_runtime_resume(struct devic=
+e *dev)
+> >  static struct dev_pm_ops omap_hsmmc_dev_pm_ops =3D {
+> >  	.suspend	=3D omap_hsmmc_suspend,
+> >  	.resume		=3D omap_hsmmc_resume,
+> > +	.prepare	=3D omap_hsmmc_prepare,
+> > +	.complete	=3D omap_hsmmc_complete,
+> >  	.runtime_suspend =3D omap_hsmmc_runtime_suspend,
+> >  	.runtime_resume =3D omap_hsmmc_runtime_resume,
+> >  };
+> > --=20
+> > 1.8.0.rc0
+> >=20
+
 
 --=20
 balbi
 
---uAKRQypu60I7Lcqm
+--DBIVS5p969aUjpLe
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQiX77AAoJEIaOsuA1yqREutMP/2Tj9wYE/fMBxyjsqaLF52T8
-2srE5EjiScGGe8hmy8jC8OoRw2MBunyDNGwxwP1To0/gHjZWZHaP9fl+RUt5G7+S
-aQCOV8rTBr6lPsxFQIa95BeMiEOmtBHf9diuskwadRjuXfemIKfFTUIFf4vwa9F+
-jKLuT6cj3x0H6SCb+lKiBlCojiyrQG5SiILaMe3k9ny8w9VVBenrlb26zL61UAWI
-mPiXHYpzLQp9Atx+yv1OMyfHxwCwH/AIyptzxeuZdKpz1kI8QjRXptXbhnBd4FRn
-RHzXoUO9pHsye2XQAYhiWCRiWoA4iW5EcprAz78jXSbbzjzvxNzqgO1kP7Oaeja4
-TqSLM4SylY5g+HZaZVoZzPyzg/rK6G/aQrnpLUKPcQQou9emO/AKi+UPhHdcbQA/
-RDj3+/UqZUe4aiFCGUN0nDaf+XmGT/h40Kt5n6mi2erGA+PqEuNlqHXUJYNILEx4
-9U+YfKccmnafVfG+i+gSbIa1mYZ1LQp1sAyWs0PmL0byusEL3AgCsrHWMrUHPlxb
-cmFabM7cjqh7MNfE7zbm//hyLwq5xZhutyBOVrfjcPbyAHZYYgEC675XC+1FJ/2F
-7pfxc8gIQnF/JaFMAI1BIWNms8ofe/TaTFEuIxQP1VMg2rWcdwiQE+MuHGnD+3Uk
-IMVtQzOWrF0TP/3EL4aw
-=NhV/
+iQIcBAEBAgAGBQJQiX8iAAoJEIaOsuA1yqREWTQQAJMUwHcjzdkHVhu9CmYbU1Op
+VBtr1VZkiHODROWUGOHTAposk8Hetjf+0FkttS/FT51R605yYBuKJimgkJQ/yfux
+1WMOweWxPWDSXygQ3WmZf3OTrK7SQCO6rnUULamN9V0BeOLlIyuTdRxwfxKP/6Cv
+L5R1e7T8Bb43sKDucuqTqE0IibFMwv/B7PteSPbO48O+GcOAggYhNm3Va2s74hnR
+wtQ94BSs9qtl2DnY4qqh3O3pcLRmAD+oK+RG07MZd/LJG3nOxHiIvJlVTv6aRxmn
+lAmnIRv6v8d8A9/2LuFlfj5Ncb7Yz9ZqzZydPNzUBEQmJfTqyPLBSOuVuIH1Su8N
+dTIogu//fnRdmF4QbVaVHlHXOhE/If0r/tQsuN/0AadAY2vrc52nwrkkoutcXrbM
+DAX2+2cSzB6L+j4125Dh1muVtmmKSaECDTBOJJnQVB0MI/YMeKTtlYoUwYcgnD+g
+6tBJ3jp2aTK4KIMXHl5Lop2VOXxzO5vfju9Tgk63l89MElfEfEd6r08MFuEtfkvi
+pGSo3IQqXmchHx+fUsaVXdzpea8lfzfcfPUdkWIuKbKvGMDdCpviIC1b+LcaLuIO
+9WiIbA3/Omy94+7MYqoZ3cCMt7hRrWLE6gjShAWn/tSwy2G+XigGTTnuEwHJXNwh
+thRqz69EUmACkoZSwpim
+=Rgho
 -----END PGP SIGNATURE-----
 
---uAKRQypu60I7Lcqm--
+--DBIVS5p969aUjpLe--
