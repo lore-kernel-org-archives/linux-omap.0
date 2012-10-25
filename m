@@ -1,61 +1,78 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: Beagleboard xM - play video file : BUG: scheduling while atomic:
- queue1:src/92/0x0000008e , then kernel panic
-Date: Thu, 25 Oct 2012 19:05:22 +0200
-Message-ID: <CAMP44s36Sx4UJO24ZWsmrKv5KWybuHFiqXGMmXSv4SSa7D-f_g@mail.gmail.com>
-References: <7fad4160-e437-4ea3-b140-4c98a04045f4@googlegroups.com>
-	<8d3b5995-b3f7-406b-9172-b3187922dc75@googlegroups.com>
-	<CAMP44s2JnoYHN0a-DQCnj-mtGbZK8q7iFBDFR4MQ4L0-n7DYPw@mail.gmail.com>
-	<01a2f6b7-ee81-4653-b5f3-a53def9301ca@googlegroups.com>
-	<1f842c9c-41cc-415f-ac31-30c85c7f6563@googlegroups.com>
-	<CAMP44s137rkBirwX5smMLUnZe6eS0qft0RzO3=vNoDxKpZE_RQ@mail.gmail.com>
-	<CAJ6Av5Mhn-Me0P3asve8NX00cRKONBL4fe7Pr59r4W-gd+kY+Q@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about serial stuff)
+Date: Thu, 25 Oct 2012 10:24:20 -0700
+Message-ID: <87d30631ob.fsf@deeprootsystems.com>
+References: <20121012155434.GO28061@n2100.arm.linux.org.uk>
+	<20121023101036.GA1542@n2100.arm.linux.org.uk>
+	<20121025010917.GL11928@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:42507 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757202Ab2JYRFX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 13:05:23 -0400
-Received: by mail-oa0-f46.google.com with SMTP id h16so1806876oag.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 10:05:22 -0700 (PDT)
-In-Reply-To: <CAJ6Av5Mhn-Me0P3asve8NX00cRKONBL4fe7Pr59r4W-gd+kY+Q@mail.gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:40545 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935912Ab2JYRXu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 13:23:50 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so2164170pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 10:23:50 -0700 (PDT)
+In-Reply-To: <20121025010917.GL11928@atomide.com> (Tony Lindgren's message of
+	"Wed, 24 Oct 2012 18:09:17 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@copitl.com>
-Cc: Selso Liberado <selso.liberado@gmail.com>, gst-dsp@googlegroups.com, linux-omap@vger.kernel.org, Omar Ramirez Luna <or.rmz1@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tero Kristo <t-kristo@ti.com>
 
-On Thu, Oct 25, 2012 at 12:49 AM, Omar Ramirez Luna
-<omar.ramirez@copitl.com> wrote:
+Tony Lindgren <tony@atomide.com> writes:
 
-> On Wed, Oct 24, 2012 at 10:34 AM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
-
->> Selso, hopefully you don't mind, but I'll forward this to the
->> linux-omap mailing list, as this seems to be an interesting kernel
->> problem in tidspbridge.
->>
->> Omar, any ideas?
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [121023 03:12]:
+>> On Fri, Oct 12, 2012 at 04:54:34PM +0100, Russell King - ARM Linux wrote:
+>> > For those who don't bother looking at my kautobuild boot tests on the OMAP
+>> > boards I have, here's the errors which get spat out at boot time.  Note
+>> > that some of these I've reported in the past, and one of them is missing
+>> > a newline character at the end of its string.
+>> > 
+>> > twd: can't register interrupt 45 (-22)
+>> > twd_local_timer_register failed -22
+>> > omap_hwmod: mcpdm: cannot be enabled for reset (3)
+>> > omap-gpmc omap-gpmc: error: clk_get
+>> > omap-gpmc: probe of omap-gpmc failed with error -2
+>> > Error setting wl12xx data: -38
+>> > omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
+>> > omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
+>> > omap_hsmmc omap_hsmmc.4: Failed to get debounce clk
+>> > twl6040-codec twl6040-codec: ASoC: Failed to create Capture debugfs file
+>> > omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
+>> > omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
+>> > mmc1: host does not support reading read-only switch. assuming write-enable.
+>> 
+>> Here's the latest set of error like messages, thanks to the kautobuild
+>> system:
+>> 
+>> omap_hwmod: mcpdm: cannot be enabled for reset (3)
+>> Error setting wl12xx data: -38
 >
-> I don't see tidspbridge trace paths (but I don't discard something
-> wrong either ;)), however I do see a framebuffer, dss, dispc trace,
-> might be a good point to start checking:
-
-Oops, you are right.
-
->>> CONFIG_TIDSPBRIDGE_CACHE_LINE_CHECK=y
+> That's now fixed up and I've queued it.
 >
-> I wasn't aware that now gst-dsp supported this, might be time to update mine.
+>> omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
+>> omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
+>> omap_hsmmc omap_hsmmc.4: Failed to get debounce clk
+>> omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
+>> omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
+>> mmc1: host does not support reading read-only switch. assuming write-enable.
+>> 
+>> This looks much better compared to the previous set, but we could still
+>> do with getting a "\n" on at least one of those messages...
+>
+> Kevin, do you have a patch for some of this?
+>
 
-Yes, it's supported now. Took me a lot of changes to manage to do it,
-but it's there.
+I'll fix up the missing newline right away.
 
-> Anyway, right now I have lots of debugging enabled and specifically
-> the one that spits "scheduling while atomic" with kernel 3.7-rc2, and
-> I'm not seeing this with the fakesink decode, and the encoder to a
-> file, I don't have framebuffer nor display though.
+I was planning to leave the VC mismatch problem because it's fixed in
+Tero's auto retention series.  However, I haven't been able to get to
+that series yet due to all the regressions/bugfixes, so I'll at least
+pull out the part that fixes up the mistmatch and submit it for v3.7.
 
-It's probably a framebuffer problem =/
+Kevin
 
--- 
-Felipe Contreras
+[1] http://marc.info/?l=linux-omap&m=134859084918176&w=2
+
