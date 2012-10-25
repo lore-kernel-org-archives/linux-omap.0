@@ -1,25 +1,85 @@
 From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/7] i2c: omap: no need to access platform_device
-Date: Thu, 25 Oct 2012 18:11:51 +0530
-Message-ID: <5089338F.4030509@ti.com>
-References: <1350899218-13624-1-git-send-email-balbi@ti.com> <1351167915-15079-1-git-send-email-balbi@ti.com> <1351167915-15079-2-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH v2 2/7] i2c: omap: reorder exit path of omap_i2c_xfer_msg()
+Date: Thu, 25 Oct 2012 18:12:00 +0530
+Message-ID: <50893398.6070004@ti.com>
+References: <1350899218-13624-1-git-send-email-balbi@ti.com> <1351167915-15079-1-git-send-email-balbi@ti.com> <1351167915-15079-3-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1351167915-15079-2-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1351167915-15079-3-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 On Thursday 25 October 2012 05:55 PM, Felipe Balbi wrote:
-> PM callbacks pass our device pointer as argument
-> and we don't need to access the platform_device
-> just to dereference that down to dev->drvdata.
->
-> instead, just use dev_get_drvdata() directly.
+> just a cleanup patch trying to make exit path
+> more straightforward. No changes otherwise.
 >
 > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 > ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+>   drivers/i2c/busses/i2c-omap.c | 26 +++++++++++++++++---------
+>   1 file changed, 17 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index c07d9c4..bea0277 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -505,6 +505,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>   {
+>   	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
+>   	unsigned long timeout;
+> +	int ret;
+You might want to initialize the error value to avoid return 0. Compiler
+might be already cribbing for it
+
+>   	u16 w;
+>
+>   	dev_dbg(dev->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
+> @@ -582,31 +583,38 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>   	dev->buf_len = 0;
+>   	if (timeout == 0) {
+>   		dev_err(dev->dev, "controller timed out\n");
+> -		omap_i2c_init(dev);
+> -		return -ETIMEDOUT;
+> +		ret = -ETIMEDOUT;
+> +		goto err_i2c_init;
+>   	}
+>
+> -	if (likely(!dev->cmd_err))
+> -		return 0;
+> -
+Have you have drooped this check completely ?
+
+>   	/* We have an error */
+>   	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+>   			    OMAP_I2C_STAT_XUDF)) {
+> -		omap_i2c_init(dev);
+> -		return -EIO;
+> +		ret = -EIO;
+> +		goto err_i2c_init;
+>   	}
+>
+>   	if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
+>   		if (msg->flags & I2C_M_IGNORE_NAK)
+>   			return 0;
+> +
+>   		if (stop) {
+>   			w = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
+>   			w |= OMAP_I2C_CON_STP;
+>   			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
+>   		}
+> -		return -EREMOTEIO;
+> +
+> +		ret = -EREMOTEIO;
+> +		goto err;
+>   	}
+> -	return -EIO;
+> +
+> +	return 0;
+With initialized value you can use
+return ret;
+
+Regards
+Santosh
