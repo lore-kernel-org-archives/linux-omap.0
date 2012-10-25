@@ -1,51 +1,57 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about serial
- stuff)
-Date: Thu, 25 Oct 2012 21:35:46 +0530
-Message-ID: <5089635A.5040107@ti.com>
-References: <20121012155434.GO28061@n2100.arm.linux.org.uk> <20121023101036.GA1542@n2100.arm.linux.org.uk> <20121025010917.GL11928@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] mmc: omap_hsmmc: remove warning message for
+ debounce clock
+Date: Thu, 25 Oct 2012 09:12:32 -0700
+Message-ID: <20121025161231.GO11928@atomide.com>
+References: <1351180715-26761-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59282 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758741Ab2JYQF4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Oct 2012 12:05:56 -0400
-In-Reply-To: <20121025010917.GL11928@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44101 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1946300Ab2JYQMf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 12:12:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1351180715-26761-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, svenkatr@ti.com
 
-On Thursday 25 October 2012 06:39 AM, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [121023 03:12]:
->> On Fri, Oct 12, 2012 at 04:54:34PM +0100, Russell King - ARM Linux wrote:
->> omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
->> omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
->> omap_hsmmc omap_hsmmc.4: Failed to get debounce clk
-Hi,
+* Balaji T K <balajitk@ti.com> [121025 09:00]:
+> MMC debounce clock is applicable only for omap2430, warning message gets
+> printed when enable fails for debounce clock. Remove the get debounce clock
+> failure message as it is noisy for other platforms.
+> 
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Posted a patch to remove this warning, as debounce clock is not
-applicable for most platforms and optional for omap2430.
+This would be good to get in during the -rc cycle if possible to remove
+the bogus warnings on non-2430 omaps. But since it's been there for a
+long time, we can wait too if needed.
 
-https://patchwork.kernel.org/patch/1645461/
+Acked-by: Tony Lindgren <tony@atomide.com>
 
->> omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
->> omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
->> mmc1: host does not support reading read-only switch. assuming write-enable.
->>
->> This looks much better compared to the previous set, but we could still
->> do with getting a "\n" on at least one of those messages...
->
-> Kevin, do you have a patch for some of this?
->
-> Regards,
->
-> Tony
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 54bfd0c..9a4ef4d 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1816,7 +1816,6 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+>  	 * MMC can still work without debounce clock.
+>  	 */
+>  	if (IS_ERR(host->dbclk)) {
+> -		dev_warn(mmc_dev(host->mmc), "Failed to get debounce clk\n");
+>  		host->dbclk = NULL;
+>  	} else if (clk_prepare_enable(host->dbclk) != 0) {
+>  		dev_warn(mmc_dev(host->mmc), "Failed to enable debounce clk\n");
+> -- 
+> 1.7.5.4
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
