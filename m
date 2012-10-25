@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 1/7] i2c: omap: no need to access platform_device
-Date: Thu, 25 Oct 2012 15:25:09 +0300
-Message-ID: <1351167915-15079-2-git-send-email-balbi@ti.com>
+Subject: [PATCH v2 7/7] i2c: omap: implement handling for 'transferred' bytes
+Date: Thu, 25 Oct 2012 15:25:15 +0300
+Message-ID: <1351167915-15079-8-git-send-email-balbi@ti.com>
 References: <1350899218-13624-1-git-send-email-balbi@ti.com>
  <1351167915-15079-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
@@ -13,40 +13,65 @@ To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-PM callbacks pass our device pointer as argument
-and we don't need to access the platform_device
-just to dereference that down to dev->drvdata.
+this is important in cases where client driver
+wants to know how many bytes were actually
+transferred.
 
-instead, just use dev_get_drvdata() directly.
+There is one trick here: if transfer is completed,
+meaning I2C_CNT reaches zero, then ARDY will be
+asserted to let SW know that it can program a
+new transfer.
+
+When ARDY is asserted, I2C_CNT is reset to the
+original value (msg->len), which means that
+for a successful message, msg->transferred = msg->len
+and we don't need to spend time with a register
+read.
+
+In case of NACK condition, however, I2C_CNT will
+remain with the end value which is the amount of
+data transferred until NACK condition found on the
+bus inclusive. In this situation, msg->transferred
+needs to be initialized with:
+
+msg->len - read(I2C_CNT) - 1;
+
+This patch implements exactly that handling.
 
 Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/i2c-omap.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index db31eae..c07d9c4 100644
+index 699fa12..d268e92 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1239,8 +1239,7 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
- #ifdef CONFIG_PM_RUNTIME
- static int omap_i2c_runtime_suspend(struct device *dev)
- {
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
-+	struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
- 	u16 iv;
+@@ -588,6 +588,9 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 		goto out;
+ 	}
  
- 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
-@@ -1261,8 +1260,7 @@ static int omap_i2c_runtime_suspend(struct device *dev)
++	msg->transferred = msg->len;
++	wmb();
++
+ 	/* We have an error */
+ 	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+ 			    OMAP_I2C_STAT_XUDF)) {
+@@ -597,6 +600,15 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	}
  
- static int omap_i2c_runtime_resume(struct device *dev)
- {
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
-+	struct omap_i2c_dev *_dev = dev_get_drvdata(dev);
+ 	if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
++		/* In case of a NACK, we need to check how many bytes we
++		 * actually transferred, so we can tell our client driver about
++		 * it.
++		 *
++		 * Let's check it here and overwrite msg->transferred.
++		 */
++		w = omap_i2c_read_reg(dev, OMAP_I2C_CNT_REG);
++		msg->transferred = msg->len - w - 1;
++
+ 		if (msg->flags & I2C_M_IGNORE_NAK)
+ 			return 0;
  
- 	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
- 		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
 -- 
 1.8.0
