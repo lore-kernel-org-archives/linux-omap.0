@@ -1,74 +1,71 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 1/3] drivers: bus: ocp2scp: add pdata support
-Date: Thu, 25 Oct 2012 09:17:22 +0300
-Message-ID: <20121025061722.GB4449@arwen.pp.htv.fi>
-References: <1349675983-23803-1-git-send-email-kishon@ti.com>
- <1349675983-23803-2-git-send-email-kishon@ti.com>
- <20121016165043.GS15569@atomide.com>
- <20121025004806.GK11928@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] drivers: bus: omap_interconnect: Fix rand-config build
+ warning
+Date: Thu, 25 Oct 2012 12:03:06 +0530
+Message-ID: <5088DD22.1050000@ti.com>
+References: <1350480519-1890-1-git-send-email-lokeshvutla@ti.com> <507EB3CC.6060005@ti.com> <20121025003509.GI11928@atomide.com> <20121025004216.GJ11928@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121025004806.GK11928@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60360 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932112Ab2JYGdZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Oct 2012 02:33:25 -0400
+In-Reply-To: <20121025004216.GJ11928@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, olof@lixom.net
 
---yEPQxsgoJgBvi8ip
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thursday 25 October 2012 06:12 AM, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [121024 17:36]:
+>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121017 06:35]:
+>>> (Looping Arnd and Olof)
+>>>
+>>> On Wednesday 17 October 2012 06:58 PM, Lokesh Vutla wrote:
+>>>> When building omap_l3_noc/smx drivers as modules, the following
+>>>> warning appears:
+>>>>
+>>>> CC [M]  drivers/bus/omap_l3_smx.o
+>>>> drivers/bus/omap_l3_smx.c:291: warning: data definition has no type or storage class
+>>>> drivers/bus/omap_l3_smx.c:291: warning: type defaults to 'int' in declaration of 'postcore_initcall_sync'
+>>>> drivers/bus/omap_l3_smx.c:291: warning: parameter names (without types) in function declaration
+>>>> drivers/bus/omap_l3_smx.c:287: warning: 'omap3_l3_init' defined but not used
+>>>> CC [M]  drivers/bus/omap_l3_noc.o
+>>>> drivers/bus/omap_l3_noc.c:260: warning: data definition has no type or storage class
+>>>> drivers/bus/omap_l3_noc.c:260: warning: type defaults to 'int' in declaration of 'arch_initcall_sync'
+>>>> drivers/bus/omap_l3_noc.c:260: warning: parameter names (without types) in function declaration
+>>>> drivers/bus/omap_l3_noc.c:256: warning: 'omap4_l3_init' defined but not used
+>>>>
+>>>> Adding module_init() and macros in omap_l3_noc/smx drivers when building
+>>>> as modules to remove the above warning.
+>>>>
+>>>> Reported-by: Tony Lindgren <tony@atomide.com>
+>>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>>> ---
+>>> Thanks for the fix Lokesh. Looks fine to me.
+>>>
+>>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>
+>> Looks like nobody else has picked this up so I'll queue this along
+>> with few other omap warnings and regressions.
+>
+> Hmm actually this might require some more discussion. If we make
+> it use regular initcalls, then the ugly ifdefs can be left
+> out. Is there a reason to init this early, can't we just use regular
+> initcalls?
+>
+I thought about it. The whole reason we want interconnect errors enabled 
+early in the boot to avoid bad accesses issued on interconnect
+in early boot by various init codes. We managed to discovered many
+init sequence issues where the a driver is trying to access registers
+when clocks are not active, or drivers are using bad mapping. At times
+these errors gets un-noticed because of the behavior of interconnect
+and later causes serious issues. Leaving the driver init late in the
+boot means we can't catch any of the issues happen till the L3 driver
+init happens.
 
-Hi,
+Regards
+Santosh
 
-On Wed, Oct 24, 2012 at 05:48:07PM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [121016 09:53]:
-> > * Kishon Vijay Abraham I <kishon@ti.com> [121007 23:01]:
-> > > ocp2scp was not having pdata support which makes *musb* fail for non-=
-dt
-> > > boot in OMAP platform. The pdata will have information about the devi=
-ces
-> > > that is connected to ocp2scp. ocp2scp driver will now make use of this
-> > > information to create the devices that is attached to ocp2scp.
-> > >=20
-> > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >=20
-> > This fixes the regression on my panda es for musb port:
-> >=20
-> > Acked-by: Tony Lindgren <tony@atomide.com>
->=20
-> Looks like nobody has picked this one up and we need it to
-> fix the musb regression on omap, so I'll queue these up.
-
-I don't seem to have the patches around in any mailbox :-(
-
---=20
-balbi
-
---yEPQxsgoJgBvi8ip
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQiNlyAAoJEIaOsuA1yqREAyIP/iUSBlnbBi0JeX6Z0birF5ip
-Og42T4LcpMxRMDbyd2otbeL20iLE5cyXOthe24AdeMW7ZY765GGDgiUWCxiUl5XM
-H1aBT+SqCNvuOu2Tr1Jdl3ZbivfXSlKRIxK4al9gk3BNQPAsDSwjvci7QlbXld/Z
-ATW0qK72In6VaMI9xBSh74bdf2XKOJi2fMgI4vkw9gcLwCeNMhz6L+AekY0obThC
-xw9I1XIu4jWwgyw2Gt1uebXwHZTjgOMBDZL7ueEw385Yug6Cu71lptWBd/JPD3j3
-pSww0unIMD3NTcr6LvhOfUVHfp+Z8aMS9Mgs9SzG7Fy0ns3a6+JgSwNDN1Uao+Jk
-xK+Dq/76yj3NiM9o6ddtPksJCD+TTbNpVQPyQe43nD0Itf2f3V0swuNHgYY96oDX
-tsgQUwus8qcoknw5M2PBl0o8BI3q2eonM5Fu93Zk+ANw7v19AhaSXbQbErSKretr
-rmY5vdFMeY6fSx0E5h0VogbXC9yxrxgoNCPGH72akIcZd5T01aeVhvfdKMAs978E
-EB3Tv/tLZGMK9bSnduqtbPOeZZ6eshlb6iKBkb2Wo/svo+x++AcbrMY/R6pjsqVk
-lqWfgew0naBC8wrcLAKQzPw938knf1iaR6CHm/MRmLEPUYDc2D0kGsRB+jN6xIYD
-aXmux3jt6u+8ytPC5BfL
-=G2wd
------END PGP SIGNATURE-----
-
---yEPQxsgoJgBvi8ip--
