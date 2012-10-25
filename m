@@ -1,163 +1,69 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v4 2/7] usb: dwc3-omap: use of_platform API to create
- dwc3 core pdev
-Date: Thu, 25 Oct 2012 16:04:44 +0200
-Message-ID: <508946FC.7090704@ti.com>
-References: <1350307680-24938-1-git-send-email-kishon@ti.com> <1350307680-24938-3-git-send-email-kishon@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: OMAP baseline test results for v3.7-rc2
+Date: Thu, 25 Oct 2012 07:14:23 -0700
+Message-ID: <87d30663ls.fsf@deeprootsystems.com>
+References: <alpine.DEB.2.00.1210202125300.774@utopia.booyaka.com>
+	<50857444.9080308@ti.com>
+	<alpine.DEB.2.00.1210221829270.13464@utopia.booyaka.com>
+	<50859505.5010306@ti.com> <20121023015346.GB1855@beef>
+	<alpine.DEB.2.00.1210230311490.31118@utopia.booyaka.com>
+	<20121023122436.GC1855@beef> <20121023131153.GE1855@beef>
+	<877gqg99zk.fsf@deeprootsystems.com> <20121023211151.GF1855@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1350307680-24938-3-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, sshtylyov@mvista.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49778 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751861Ab2JYONw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 10:13:52 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so2038928pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 07:13:52 -0700 (PDT)
+In-Reply-To: <20121023211151.GF1855@beef> (Matt Porter's message of "Tue, 23
+	Oct 2012 17:11:51 -0400")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matt Porter <mporter@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 10/15/2012 03:27 PM, Kishon Vijay Abraham I wrote:
-> Used of_platform_populate() to populate dwc3 core platform_device
-> from device tree data. Since now the allocation of unique device id is
-> handled by of_*, removed the call to dwc3_get_device_id.
+Matt Porter <mporter@ti.com> writes:
 
-Just for my understanding: How are these devices organized exactly?
+> On Tue, Oct 23, 2012 at 02:03:43PM -0700, Kevin Hilman wrote:
+>> Matt Porter <mporter@ti.com> writes:
+>> 
+>> [...]
+>> 
+>> > Ok, very quick update...no need to mess around with the eeprom. I just
+>> > received the official word on what will be supported. Since A2 is
+>> > pre-release, simply go to http://beagleboard.org/support/rma and fill
+>> > out the form to have it replaced with the current revision (A6).
+>> >
+>> > This applies to *anyone* that received a pre-release A2 board.
+>> 
+>> Hmm, doesn't seem the RMA people are aware of this.  They just rejected
+>> my request since it's not a "hardware related issue":
+>> 
+>>    Kevin,
+>> 
+>>    We only work with hardware related issue here. BeagleBone revision A2
+>>    was not officially released. We recommend you to work with the
+>>    community for support in Uboot. You can post your questions at the
+>>    BeagleBoard Google Groups:
+>>    https://groups.google.com/forum/?fromgroups=#!forum/beagleboard
+>> 
+>>    Regards,
+>>    RMA Team
+>
+> That's sad considering the beagleboard.org/BeagleBone hardware designer
+> specifically said they would be replaced via this route. *sigh*. Ok, I'll
+> go back and share this with him.
 
-Do we have : omap_wrapper -> dwc3-omap -> dwc3-core ?
+Just and update...
 
-The DT binding is mentioning some wrapper, but I'm not sure where it
-should be located.
+Something happened behind the scenes (thanks Matt) and they've accepted
+my RMA request.  I'll be sending back my board in order to get a new
+one.
 
-Maybe you should add more documentation on that. Or maybe you do have a
-other series to add that part?
+Thanks,
 
-Regards,
-Benoit
+Kevin
 
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  drivers/usb/dwc3/dwc3-omap.c |   50 +++++++++---------------------------------
->  1 file changed, 10 insertions(+), 40 deletions(-)
-> 
-> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-> index d51c69c..4aaeec4 100644
-> --- a/drivers/usb/dwc3/dwc3-omap.c
-> +++ b/drivers/usb/dwc3/dwc3-omap.c
-> @@ -47,6 +47,7 @@
->  #include <linux/ioport.h>
->  #include <linux/io.h>
->  #include <linux/of.h>
-> +#include <linux/of_platform.h>
->  
->  #include <linux/usb/otg.h>
->  #include <linux/usb/nop-usb-xceiv.h>
-> @@ -133,7 +134,6 @@ struct dwc3_omap {
->  	/* device lock */
->  	spinlock_t		lock;
->  
-> -	struct platform_device	*dwc3;
->  	struct platform_device	*usb2_phy;
->  	struct platform_device	*usb3_phy;
->  	struct device		*dev;
-> @@ -276,12 +276,10 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
->  	struct dwc3_omap_data	*pdata = pdev->dev.platform_data;
->  	struct device_node	*node = pdev->dev.of_node;
->  
-> -	struct platform_device	*dwc3;
->  	struct dwc3_omap	*omap;
->  	struct resource		*res;
->  	struct device		*dev = &pdev->dev;
->  
-> -	int			devid;
->  	int			size;
->  	int			ret = -ENOMEM;
->  	int			irq;
-> @@ -324,34 +322,19 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
->  		return ret;
->  	}
->  
-> -	devid = dwc3_get_device_id();
-> -	if (devid < 0)
-> -		return -ENODEV;
-> -
-> -	dwc3 = platform_device_alloc("dwc3", devid);
-> -	if (!dwc3) {
-> -		dev_err(dev, "couldn't allocate dwc3 device\n");
-> -		goto err1;
-> -	}
-> -
->  	context = devm_kzalloc(dev, resource_size(res), GFP_KERNEL);
->  	if (!context) {
->  		dev_err(dev, "couldn't allocate dwc3 context memory\n");
-> -		goto err2;
-> +		return -ENOMEM;
->  	}
->  
->  	spin_lock_init(&omap->lock);
-> -	dma_set_coherent_mask(&dwc3->dev, dev->coherent_dma_mask);
->  
-> -	dwc3->dev.parent = dev;
-> -	dwc3->dev.dma_mask = dev->dma_mask;
-> -	dwc3->dev.dma_parms = dev->dma_parms;
->  	omap->resource_size = resource_size(res);
->  	omap->context	= context;
->  	omap->dev	= dev;
->  	omap->irq	= irq;
->  	omap->base	= base;
-> -	omap->dwc3	= dwc3;
->  
->  	reg = dwc3_omap_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
->  
-> @@ -396,7 +379,7 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
->  	if (ret) {
->  		dev_err(dev, "failed to request IRQ #%d --> %d\n",
->  				omap->irq, ret);
-> -		goto err2;
-> +		return ret;
->  	}
->  
->  	/* enable all IRQs */
-> @@ -415,28 +398,16 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
->  
->  	dwc3_omap_writel(omap->base, USBOTGSS_IRQENABLE_SET_1, reg);
->  
-> -	ret = platform_device_add_resources(dwc3, pdev->resource,
-> -			pdev->num_resources);
-> -	if (ret) {
-> -		dev_err(dev, "couldn't add resources to dwc3 device\n");
-> -		goto err2;
-> -	}
-> -
-> -	ret = platform_device_add(dwc3);
-> -	if (ret) {
-> -		dev_err(dev, "failed to register dwc3 device\n");
-> -		goto err2;
-> +	if (node) {
-> +		ret = of_platform_populate(node, NULL, NULL, dev);
-> +		if (ret) {
-> +			dev_err(&pdev->dev,
-> +				"failed to add create dwc3 core\n");
-> +			return ret;
-> +		}
->  	}
->  
->  	return 0;
-> -
-> -err2:
-> -	platform_device_put(dwc3);
-> -
-> -err1:
-> -	dwc3_put_device_id(devid);
-> -
-> -	return ret;
->  }
->  
->  static int __devexit dwc3_omap_remove(struct platform_device *pdev)
-> @@ -446,7 +417,6 @@ static int __devexit dwc3_omap_remove(struct platform_device *pdev)
->  	platform_device_unregister(omap->usb2_phy);
->  	platform_device_unregister(omap->usb3_phy);
->  
-> -	dwc3_put_device_id(omap->dwc3->id);
->  	device_for_each_child(&pdev->dev, NULL, dwc3_omap_remove_core);
->  
->  	return 0;
-> 
