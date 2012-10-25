@@ -1,115 +1,97 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2] gpio/omap: fix off-mode bug: clear debounce clock
- enable mask on free/reset
-Date: Thu, 25 Oct 2012 12:30:23 +0530
-Message-ID: <5088E387.2050704@ti.com>
-References: <1351098641-23917-1-git-send-email-khilman@deeprootsystems.com> <50887197.8010104@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] i2c: omap: re-factor omap_i2c_init function
+Date: Thu, 25 Oct 2012 10:03:50 +0300
+Message-ID: <20121025070349.GA5259@arwen.pp.htv.fi>
+References: <1351147011-6500-1-git-send-email-shubhrajyoti@ti.com>
+ <20121025063608.GA5084@arwen.pp.htv.fi>
+ <CAM=Q2cvzQ7fVL1-vUpWZdwhGk3s0GpO3uG3MH9CAzBvyeSftKQ@mail.gmail.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49258 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757458Ab2JYHAm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Oct 2012 03:00:42 -0400
-In-Reply-To: <50887197.8010104@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAM=Q2cvzQ7fVL1-vUpWZdwhGk3s0GpO3uG3MH9CAzBvyeSftKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
-On Thursday 25 October 2012 04:24 AM, Jon Hunter wrote:
->
-> On 10/24/2012 12:10 PM, Kevin Hilman wrote:
->> From: Kevin Hilman <khilman@ti.com>
->>
->> When a GPIO bank is freed or shutdown, ensure that the banks
->> dbck_enable_mask is cleared also.  Otherwise, context restore on
->> subsequent off-mode transition will restore previous value from the
->> shadow copies (bank->context.debounce*) leading to mismatch state
->> between driver state and hardware state.
->>
->> This was discovered when board code was doing
->>
->>    gpio_request_one()
->>    gpio_set_debounce()
->>    gpio_free()
->>
->> which was leaving the GPIO debounce settings in a confused state.  If
->> that GPIO bank is subsequently used with off-mode enabled, bogus state
->> would be restored, leaving GPIO debounce enabled which then prevented
->> the CORE powerdomain from transitioning.
->>
->> To fix, ensure that bank->dbck_enable_mask is cleared when the bank
->> is freed/shutdown so debounce state doesn't persist.
->>
-The freed part is fine but I don't understand why it needs to be done
-on _a_ gpio irq shutdown callback where IRQs related configuration
-on that one GPIO needs to be cleared. De-bounce clock is surely not IRQ
-related configuration.
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> Special thanks to Grazvydas Ignotas for pointing out a bug in an
->> earlier version that would've disabled debounce on any runtime PM
->> transition.
->>
->> Reported-by: Paul Walmsley <paul@pwsan.com>
->> Cc: Igor Grinberg <grinberg@compulab.co.il>
->> Cc: Grazvydas Ignotas <notasas@gmail.com>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> ---
->> v2: only clear mask in free/shutdown, not in runtime PM paths,
->>      clarified changelog
->> Applies on v3.7-rc2.
->>
->>   drivers/gpio/gpio-omap.c | 1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index 94cbc84..113b167 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -539,6 +539,7 @@ static void _reset_gpio(struct gpio_bank *bank, int gpio)
->>   	_set_gpio_irqenable(bank, gpio, 0);
->>   	_clear_gpio_irqstatus(bank, gpio);
->>   	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
->> +	bank->dbck_enable_mask = 0;
->>   }
->
-> Does this need to be ...
->
-> +	bank->dbck_enable_mask &= ~(GPIO_BIT(bank, gpio));
-> +	_gpio_dbck_disable(bank);
->
-Yes, its a per bank clock. There is an alternate. See below.
+Hi,
 
-> There could be more than one gpio using debounce and so we should only
-> clear the appropriate bit. Also after clearing a bit we could see if we
-> can disable the debounce clock too.
->
-When I mentioned the clearing in gpio_free() path will do trick, I had
-something like below in mind.
+On Thu, Oct 25, 2012 at 12:23:56PM +0530, Shubhrajyoti Datta wrote:
+> >> @@ -1268,23 +1276,8 @@ static int omap_i2c_runtime_resume(struct devic=
+e *dev)
+> >>  {
+> >>       struct omap_i2c_dev *_dev =3D dev_get_drvdata(dev);
+> >>
+> >> -     if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstat=
+e);
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllst=
+ate);
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhst=
+ate);
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstat=
+e);
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscst=
+ate);
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_=
+EN);
+> >> -     }
+> >> -
+> >> -     /*
+> >> -      * Don't write to this register if the IE state is 0 as it can
+> >> -      * cause deadlock.
+> >> -      */
+> >> -     if (_dev->iestate)
+> >> -             omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
+> >> +     if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
+> >> +             __omap_i2c_init(_dev);
+> >>
+> >>       return 0;
+> >>  }
+> >
+> > you continue to miss the changes in omap_i2c_xfer_msg() and your
+> > explanation of why not doing it wasn't good enough IMHO.
+>=20
+> Will do that . I am preparing a seperate patch for moving the
+> calculation to a seperate function.
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index dee2856..8574105 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -629,8 +629,10 @@ static void omap_gpio_free(struct gpio_chip *chip, 
-unsigned offset)
-  	 * If this is the last gpio to be freed in the bank,
-  	 * disable the bank module.
-  	 */
--	if (!bank->mod_usage)
-+	if (!bank->mod_usage) {
-+		bank->dbck_enable_mask = 0;
-  		pm_runtime_put(bank->dev);
-+	}
-  }
+why do you need yet another function ? omap_i2c_init() does all
+calculation and __omap_i2c_init() doesn't do any calculations. What's
+the point for yet another function ?
 
-  /*
+--=20
+balbi
 
-This patch should be enough according to me unless and until I am
-missing mask clear need in irq_shutdown path. It will also take
-care of disabling of debounce clock as part of runtime suspend callback.
+--FCuugMFkClbJLl1L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Regards,
-Santosh
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQiORVAAoJEIaOsuA1yqREXKcQAJOMG185ltstM8rsworPylCc
+Z2I67tx33pKCKuW3WdxtlDzipXYKjxFD8roLfHvp5zgFGdT5O3yUZGq1x260SDkm
+dgHg/tKM/2KvRoWZm2zviybfuBHeXEjdHj+X2YBvr1Ox65mpntvVPoxYXgN57itz
+9ET31l5nkHGj+9Bc0PaY2ylEMA1SyMbWMHCY5Rpcrx+vSkJP8r+1C/8pTIteQfgO
+VMBL6vPfRfFUFUBEcxbpQ8T/BHQD0kBrHR54R9hKqVyLImtno6iVAsoyBzM1KGMy
+rL0/5XWQlmiEvwnpkyCn1HeTrFyS8H5OZp8P1WG0rGHeU3qlosjGruM9iyMtq1nQ
+y1T1z4J82PVLOVAw0hZUobC86FwxkEAklfL2/fAxD7BJcNvbnzUyy2m/4ii3Nadi
+u3W9rZzZ1nTwAn0xBoes4DcUv+lPEt10t59c73qwOCQnwQCcrwOhwNPFfISQIvtO
+UU9XBmut+yupr+ZQw0hvWlKKo11sN2UFThtTU6xJfr297Ack7UeK31IwSvUkjyCf
+Wbuh6y9CsLCN9+UbJzz/fOBGK5pzVkDD5xH6tknu5adeFk1eWTlbTeGEqZXY/yN2
+FcJCmAtY5VapDBU99SaFWK5hB+DLha5LZPsO2UoKW7iUaVLxWpq6IGXF0rMwjg2H
+LPYm+bml0STY/2CCZ+9i
+=vwtM
+-----END PGP SIGNATURE-----
+
+--FCuugMFkClbJLl1L--
