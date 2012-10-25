@@ -1,34 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 6/7] watchdog: OMAP: use standard GETBOOTSTATUS interface;
- use platform_data fn ptr
-Date: Thu, 25 Oct 2012 20:16:11 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210252015490.21193@utopia.booyaka.com>
-References: <20121016012448.21844.92339.stgit@dusk.lan> <20121016013233.21844.1279.stgit@dusk.lan> <50899DB9.8050308@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
+Date: Thu, 25 Oct 2012 22:22:48 +0200
+Message-ID: <1351198976.2hJjhe5gKC@avalon>
+References: <20121025001913.2082.31062.stgit@muffinssi.local> <1466344.HbU9q5zM1q@avalon> <20121025165643.GP11928@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37974 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760280Ab2JYUQM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 16:16:12 -0400
-In-Reply-To: <50899DB9.8050308@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57910 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755951Ab2JYUWA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 16:22:00 -0400
+In-Reply-To: <20121025165643.GP11928@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
 
-On Thu, 25 Oct 2012, Jon Hunter wrote:
+Hi Tony,
 
-> > +		if (!pdata->read_reset_sources)
-> > +			return put_user(0, (int __user *)arg);
+On Thursday 25 October 2012 09:56:44 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121025 01:39]:
+> > I still think you should split this in two files, omap-iommu.h and omap-
+> > iovmm.h. The later would just be arch/arm/plat-omap/include/plat/iovmm.h
+> > moved to include/linux.h.
 > 
-> In the case of booting with device-tree, pdata could be null and so
-> should we check for this too? In other words ...
+> Can you please explain a bit more why you're thinking a separate
+> omap-iovmm.h is needed in addtion to omap-iommu.h?
+
+The IOVMM API is layered top of the IOMMU API. It's really a separate API, so 
+two header files make sense. This patch creates a hybrid omap-iommu.h header 
+with mixed definitions, it just doesn't feel right :-) I won't insist for a 
+split though, if you think it's better to have a single header we can keep it 
+that way.
+
+> My reasoning for not adding it is that neither intel nor amd needs
+> more than intel-iommu.h and amd-iommu.h. And hopefully the iommu
+> framework will eventually provide the API needed. And I'd rather
+> not be the person introducing this second new file into
+> include/linux :)
 > 
-> +		if (!pdata || !pdata->read_reset_sources)
-> +			return put_user(0, (int __user *)arg);
+> Joerg and Ohad, do you have any opinions on this?
 
-Thanks, good catch, will integrate that fix.
+-- 
+Regards,
 
+Laurent Pinchart
 
-- Paul
