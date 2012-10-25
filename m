@@ -1,52 +1,68 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH V2] ARM: PMU: fix runtime PM enable
-Date: Thu, 25 Oct 2012 14:38:54 -0700
-Message-ID: <87r4omqljl.fsf@deeprootsystems.com>
-References: <1351196598-26667-1-git-send-email-jon-hunter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
+ include/linux/omap-iommu.h
+Date: Thu, 25 Oct 2012 14:39:35 -0700
+Message-ID: <20121025213935.GD11928@atomide.com>
+References: <20121025001913.2082.31062.stgit@muffinssi.local>
+ <1466344.HbU9q5zM1q@avalon>
+ <20121025165643.GP11928@atomide.com>
+ <1351198976.2hJjhe5gKC@avalon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:63127 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968Ab2JYViX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 17:38:23 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so1463428pad.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 14:38:23 -0700 (PDT)
-In-Reply-To: <1351196598-26667-1-git-send-email-jon-hunter@ti.com> (Jon
-	Hunter's message of "Thu, 25 Oct 2012 15:23:18 -0500")
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26734 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751479Ab2JYVjo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 17:39:44 -0400
+Content-Disposition: inline
+In-Reply-To: <1351198976.2hJjhe5gKC@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Will Deacon <will.deacon@arm.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
 
-Jon Hunter <jon-hunter@ti.com> writes:
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121025 13:23]:
+> Hi Tony,
+> 
+> On Thursday 25 October 2012 09:56:44 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121025 01:39]:
+> > > I still think you should split this in two files, omap-iommu.h and omap-
+> > > iovmm.h. The later would just be arch/arm/plat-omap/include/plat/iovmm.h
+> > > moved to include/linux.h.
+> > 
+> > Can you please explain a bit more why you're thinking a separate
+> > omap-iovmm.h is needed in addtion to omap-iommu.h?
+> 
+> The IOVMM API is layered top of the IOMMU API. It's really a separate API, so 
+> two header files make sense. This patch creates a hybrid omap-iommu.h header 
+> with mixed definitions, it just doesn't feel right :-) I won't insist for a 
+> split though, if you think it's better to have a single header we can keep it 
+> that way.
 
-> Commit 7be2958 (ARM: PMU: Add runtime PM Support) updated the ARM PMU code to
-> use runtime PM which was prototyped and validated on the OMAP devices. In this
-> commit, there is no call pm_runtime_enable() and for OMAP devices
-> pm_runtime_enable() is currently being called from the OMAP PMU code when the
-> PMU device is created. However, there are two problems with this:
->
-> 1. For any other ARM device wishing to use runtime PM for PMU they will need
->    to call pm_runtime_enable() for runtime PM to work.
-> 2. When booting with device-tree and using device-tree to create the PMU
->    device, pm_runtime_enable() needs to be called from within the ARM PERF
->    driver as we are no longer calling any device specific code to create the
->    device. Hence, PMU does not work on OMAP devices that use the runtime PM
->    callbacks when using device-tree to create the PMU device.
->
-> Therefore,  call pm_runtime_enable() directly from the ARM PMU driver when
-> registering the device. For platforms that do not use runtime PM,
-> pm_runtime_enable() does nothing and for platforms that do use runtime PM but
-> may not require it specifically for PMU, this will just add a little overhead
-> when initialising and uninitialising the PMU device.
->
-> Tested with PERF on OMAP2420, OMAP3430 and OMAP4460.
->
-> V2 changes:
-> - Call pm_runtime_enable() unconditionally on registering the PMU device.
->
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Yes it's true it's a separate layer. But it's still iommu
+specific. The functions exported by omap-iovmm.c have iommu_
+prefix in the name except for one:
 
-Acked-by: Kevin Hilman <khilman@ti.com>
+drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_find_iovm_area);
+drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_da_to_va);
+drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vmap);
+drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vunmap);
+drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vmalloc);
+drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vfree);
 
+So it should be OK to keep it all in omap-iommu.h file. Let's 
+see hear what..
+
+> > My reasoning for not adding it is that neither intel nor amd needs
+> > more than intel-iommu.h and amd-iommu.h. And hopefully the iommu
+> > framework will eventually provide the API needed. And I'd rather
+> > not be the person introducing this second new file into
+> > include/linux :)
+> > 
+> > Joerg and Ohad, do you have any opinions on this?
+
+..Joerg and Ohad say.
+
+Regards,
+
+Tony
