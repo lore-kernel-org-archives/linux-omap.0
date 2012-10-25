@@ -1,65 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Errors at boot time from OMAP4430SDP (and a whinge about
- serial stuff)
-Date: Thu, 25 Oct 2012 10:46:27 -0700
-Message-ID: <20121025174627.GU11928@atomide.com>
-References: <20121012155434.GO28061@n2100.arm.linux.org.uk>
- <20121023101036.GA1542@n2100.arm.linux.org.uk>
- <20121025010917.GL11928@atomide.com>
- <87d30631ob.fsf@deeprootsystems.com>
- <871ugm310v.fsf@deeprootsystems.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: PM: add missing newline to VC warning
+ message
+Date: Thu, 25 Oct 2012 12:56:07 -0500
+Message-ID: <20121025175607.GA21937@kahuna>
+References: <1351186501-32223-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12853 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756494Ab2JYRq3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 13:46:29 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36619 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S2992485Ab2JYR4R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Oct 2012 13:56:17 -0400
 Content-Disposition: inline
-In-Reply-To: <871ugm310v.fsf@deeprootsystems.com>
+In-Reply-To: <1351186501-32223-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tero Kristo <t-kristo@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [121025 10:39]:
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
+On 10:35-20121025, Kevin Hilman wrote:
+> From: Kevin Hilman <khilman@ti.com>
 > 
-> > Tony Lindgren <tony@atomide.com> writes:
-> >
-> [...]
+> Add missing newline to warning message to avoid annoying
+> wrapping problems during kernel boot like this one:
 > 
-> >>> omap_hsmmc omap_hsmmc.4: Failed to get debounce clk
-> >>> omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
-> >>> omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
-> >>> mmc1: host does not support reading read-only switch. assuming write-enable.
-> >>> 
-> >>> This looks much better compared to the previous set, but we could still
-> >>> do with getting a "\n" on at least one of those messages...
-> >>
-> >> Kevin, do you have a patch for some of this?
-> >>
-> >
-> > I'll fix up the missing newline right away.
+>    omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
+>    omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
 > 
-> Patch sent.
-
-OK thanks.
+> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/mach-omap2/vc.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+> index 880249b..75878c3 100644
+> --- a/arch/arm/mach-omap2/vc.c
+> +++ b/arch/arm/mach-omap2/vc.c
+> @@ -264,7 +264,7 @@ static void __init omap_vc_i2c_init(struct voltagedomain *voltdm)
+>  
+>  	if (initialized) {
+>  		if (voltdm->pmic->i2c_high_speed != i2c_high_speed)
+> -			pr_warn("%s: I2C config for vdd_%s does not match other channels (%u).",
+> +			pr_warn("%s: I2C config for vdd_%s does not match other channels (%u).\n",
+>  				__func__, voltdm->name, i2c_high_speed);
+>  		return;
+>  	}
+Acked-by: Nishanth Menon <nm@ti.com>
+while we are at it, could we clean up the pr_warning usage back to
+pr_warn as well?
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 880249b..2d66f8c 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -186,7 +186,7 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+ 		loop_cnt++;
  
-> > I was planning to leave the VC mismatch problem because it's fixed in
-> > Tero's auto retention series.  However, I haven't been able to get to
-> > that series yet due to all the regressions/bugfixes, so I'll at least
-> > pull out the part that fixes up the mistmatch and submit it for v3.7.
-> 
-> On closer look, I don't think a quick fix is right for this one. Those
-> I2C config mismatch warnings are legitmate for now, and will be fixed
-> when Tero's series is merged.
-
-OK fine with me.
-
+ 		if (retries_cnt > 10) {
+-			pr_warning("%s: Retry count exceeded\n", __func__);
++			pr_warn("%s: Retry count exceeded\n", __func__);
+ 			return -ETIMEDOUT;
+ 		}
+ 
+-- 
 Regards,
-
-Tony
- 
-
-> > [1] http://marc.info/?l=linux-omap&m=134859084918176&w=2
+Nishanth Menon
