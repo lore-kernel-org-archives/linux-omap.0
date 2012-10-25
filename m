@@ -1,94 +1,88 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/8] i2c: omap: fix error checking
-Date: Thu, 25 Oct 2012 13:10:10 +0300
-Message-ID: <20121025101010.GC21217@arwen.pp.htv.fi>
-References: <1350899218-13624-1-git-send-email-balbi@ti.com>
- <1350899218-13624-4-git-send-email-balbi@ti.com>
- <5087FE07.6090504@amarulasolutions.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Thu, 25 Oct 2012 13:12:12 +0300
+Message-ID: <20121025101212.GD21217@arwen.pp.htv.fi>
+References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
+ <alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
+ <alpine.DEB.2.00.1210200611150.9865@utopia.booyaka.com>
+ <CAORVsuUkU3iTTFcXfYJ=_FntjiTR33Gs4z9OsNEn2Cxq7Ef-qA@mail.gmail.com>
+ <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com>
+ <alpine.DEB.2.00.1210231918500.27211@utopia.booyaka.com>
+ <CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jousvV0MzM2p6OtC"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="DrWhICOqskFTAXiy"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41684 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935163Ab2JYKSH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Oct 2012 06:18:07 -0400
 Content-Disposition: inline
-In-Reply-To: <5087FE07.6090504-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Trimarchi <michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Paul Walmsley <paul@pwsan.com>, balbi@ti.com, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
---jousvV0MzM2p6OtC
+--DrWhICOqskFTAXiy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Oct 24, 2012 at 04:41:11PM +0200, Michael Trimarchi wrote:
-> Hi
->=20
-> On 10/22/2012 11:46 AM, Felipe Balbi wrote:
-> > It's impossible to have Arbitration Lost,
-> > Read Overflow, and Tranmist Underflow all
-> > asserted at the same time.
-> >=20
-> > Those error conditions are mutually exclusive
-> > so what the code should be doing, instead, is
-> > check each error flag separataly.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  drivers/i2c/busses/i2c-omap.c | 6 +++---
-> >  1 file changed, 3 insertions(+), 3 deletions(-)
-> >=20
-> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-oma=
-p.c
-> > index bea0277..e0eab38 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -587,9 +587,9 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *ad=
-ap,
-> >  		goto err_i2c_init;
-> >  	}
-> > =20
-> > -	/* We have an error */
-> > -	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
-> > -			    OMAP_I2C_STAT_XUDF)) {
-> > +	if ((dev->cmd_err & OMAP_I2C_STAT_AL)
-> > +			|| (dev->cmd_err & OMAP_I2C_STAT_ROVR)
-> > +			|| (dev->cmd_err & OMAP_I2C_STAT_XUDF)) {
->=20
-> Sorry, what is the difference? I didn't understand the optimisation
-> and why now is more clear. Can you just add a comment?
+On Tue, Oct 23, 2012 at 09:23:03PM +0200, Jean Pihet wrote:
+> On Tue, Oct 23, 2012 at 9:19 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Mon, 22 Oct 2012, Jean Pihet wrote:
+> >
+> >> On Mon, Oct 22, 2012 at 6:12 PM, Jean Pihet <jean.pihet@newoldbits.com=
+> wrote:
+> >>
+> >> > Do you have CPU_IDLE enabled?
+> >> FYI the issue is not present with CPU_IDLE enabled.
+> >
+> > Hmm, how can you tell?  I thought you weren't able to reproduce it with
+> > CPU_IDLE disabled either?
+> I could not reproduce the issue, with and without CPU_IDLE enabled.
+> What puzzles me is that the PM QoS code only has influence on the
+> states chosen by cpuidle, so the change should not have any impact
+> with CPU_IDLE enabled. I reallt need to reproduce the issue.
+> Let me try with the same setup as yours (bootloader images,
+> omap2pus_defconfig, angstrom roots).
 
-semantically they're not the same, right ? We want to check if each of
-those bits are set, not if all of them are set together.
+I just sent a patch to fix a bug I found on OMAP4 panda but while
+reading this thread again, I think it could be that it's the same bug
+which is just easier to reproduce on Paul's setup.
 
-my 2 cents.
+Paul, Aaro, can you see if [1] makes the problem go away ? that would be
+another reason to push [1] during this -rc cycle.
+
+[1] http://marc.info/?l=3Dlinux-omap&m=3D135115602407925&w=3D2
 
 --=20
 balbi
 
---jousvV0MzM2p6OtC
+--DrWhICOqskFTAXiy
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQiRACAAoJEIaOsuA1yqREWjoP/RXgCgZFjn+0pvNuKFlroTB3
-8Qn5+mS+zeNlPzZBTFVBaCqZ3rgEFUxv3VcA43C+Lmo93NpeFFogXpa2HppdQrke
-E0onuXAPGI1tlRb72BsMzh3xb8NHubzSB2DuTqtGAvKVVYgNU/zPf1dQtkBYnbJX
-upjlclmqgWdD4qVuyEOSEQASt4tL3h5r0l/0zHgTRYPcjjw0VRQPCQlH+8IGXJK+
-KLOchcoe1JHth1voRi/O/060VA+3WSwvEaa5Bcp6QZO74+Jv/CeBF6SuV8W9QxXQ
-bOC1k6SKsB3SKVPVj5ZE3kqDnnBW2Ytg2XkzPyKsJnU84ItGIO1rdd29uMYGp+/O
-8+WEZAECXO8UdRcWZ/Iu+bUXo2c6m4/wJZz4qucvkH5xRV25SZeZPl8Cxe8KeUEj
-g/x09I0KDItn1ftSGnT4FUeVxmlu3kVHiR33sJpZ3eD3k9Atq85Qy42v8THCP+NG
-f9CkCqLtXkOzEIT5gdGoOAxvXFWa/Gwt2oYBB7ib7FrnHz4kobc+sCU5QJyCMo/J
-0QibBHyDBXzfEuIEap8CJZpDbPiBDQJncM1ef5ZoaBj66cTk9cZiUI4MhEr+jIn8
-XtPDZ8Th1T2TC0xyqVdFBuctKxOlu5LjI6tWTTDSyBk0Or1+Bq4SjzzBowtdt7iS
-cjGaDLZ2CPGjlaMJz2XS
-=f2ow
+iQIcBAEBAgAGBQJQiRB8AAoJEIaOsuA1yqRE4AUP/27YEfRAHAZrXCb1W8NjRuGm
+1Z+7Cx8BSs/9nFcfWuW792HonihqmFz9MTqmjaRvny1LbgqisEkRgQNh1Eg8+F0u
+O4SoO7IwLGDg/SSKlDs0gK60zrIIe1+dcmtfLUQrkMXRWHMsLTTZ4/hNtWq2jPdf
+WbiF8CRX3oaCSYB0Bi6q0ausnXbON4mxoPA38JGWJ+K/QSQK+R2690AxFifKD4rq
+zFZeOeFooquGP4Mfe2w33W4tS022BrBwt2lT6js/objuRO3GB+nWo6vR/BcgibPD
+bWPcJFRqyO2S9IIpKe/NNfbqYhGXpWPCpZWOSGQZgpQijoeVC0sJf0j/x8DBZRTW
+HiVu3kp4png5VUHmJeYEdx4rpQd6QeFEXKVYPjQrgnp60N4P5QA6m44fzyeVvlVx
+AYrgzTdkLn6ggjEGUspov0EInhi06MIHd9qJ7yHe8VO+iGzwBrd4VgNJwYviVYp1
+jHMWPGx6BB6+FKmuxt0WgblelHKOTXghzk2OWgGH7A6hj/MaCuUp4YSfK7GDksks
+L9zQHBc9TtkgOhu4q+rthCyNdiS32JwBWbPRYdita6YFxWRoXwDtdVmn2FcdLsvf
+39eD26OTQD5VdgnrPw1QBsfrhwOf6TNlGgTM+kSeyKEP1LUVFxqLF8hfpEGmmasO
+w97bYHqfcU25ToKMB97O
+=R+++
 -----END PGP SIGNATURE-----
 
---jousvV0MzM2p6OtC--
+--DrWhICOqskFTAXiy--
