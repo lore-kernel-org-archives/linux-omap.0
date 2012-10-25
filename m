@@ -1,89 +1,61 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
-Date: Thu, 25 Oct 2012 01:53:32 +0200
-Message-ID: <2126833.cqGngBPXg2@avalon>
-References: <20121018202707.11834.1438.stgit@muffinssi.local> <2071397.IU49JkAq1T@avalon> <20121024223412.GM5605@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: first set of PRM/CM cleanups for 3.8
+Date: Wed, 24 Oct 2012 17:03:35 -0700
+Message-ID: <20121025000334.GF11928@atomide.com>
+References: <alpine.DEB.2.00.1210211912410.26128@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20121024223412.GM5605@atomide.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10072 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756001Ab2JYADi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 20:03:38 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210211912410.26128@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+* Paul Walmsley <paul@pwsan.com> [121021 12:15]:
+> Hi Tony
+> 
+> The following changes since commit 6f0c0580b70c89094b3422ba81118c7b959c7556:
+> 
+>   Linux 3.7-rc2 (2012-10-20 12:11:32 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-cleanup-a-for-3.8
+> 
+> for you to fetch changes up to 2bb2a5d30abb0dc99d074877bfad2056142c730b:
+> 
+>   ARM: OMAP2+: PRM: create PRM reset source API for the watchdog timer driver (2012-10-21 01:01:13 -0600)
+> 
+> ----------------------------------------------------------------
+> The first set of OMAP PRM/CM-related cleanup patches for 3.8.
+> Prepares for the future move of the PRM/CM code to drivers/.  Also
+> includes some prcm.[ch] cleanup patches from the WDTIMER cleanup
+> series that don't need external acks.
+> 
+> Basic test logs for this branch on top of v3.7-rc2 are here:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm_cleanup_a_3.8/20121021123719/
+> 
+> But due to the number of unrelated regressions present in v3.7-rc[12],
+> it's not particularly usable as a testing base.  With reverts, fixes,
+> and workarounds applied as documented in:
+> 
+> http://www.pwsan.com/omap/testlogs/test_v3.7-rc2/20121020134755/README.txt
+> 
+> the following test logs were obtained:
+> 
+> http://www.pwsan.com/omap/testlogs/prcm_cleanup_a_3.8/20121020231757/
+> 
+> which indicate that the series tests cleanly.
 
-On Wednesday 24 October 2012 15:34:12 Tony Lindgren wrote:
-> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121019 02:41]:
-> > On Thursday 18 October 2012 13:28:42 Tony Lindgren wrote:
-> > > --- a/arch/arm/mach-omap2/iommu2.c
-> > > +++ b/arch/arm/mach-omap2/iommu2.c
-> > > @@ -17,6 +17,7 @@
-> > > 
-> > >  #include <linux/module.h>
-> > >  #include <linux/slab.h>
-> > >  #include <linux/stringify.h>
-> > > 
-> > > +#include <linux/omap-iommu.h>
-> > 
-> > Nitpicking, please keep the headers sorted alphabetically, here and in all
-> > locations below (especially the OMAP3 ISP driver).
-> > 
-> > (OK, there's already one misplaced #include, but let's not make it worse
-> > :-))
->
-> This is fixed now.
-> 
-> > > --- /dev/null
-> > > +++ b/include/linux/omap-iommu.h
-> > > @@ -0,0 +1,47 @@
-> > > +/*
-> > > + * omap iommu: simple virtual address space management
-> > > + *
-> > > + * Copyright (C) 2008-2009 Nokia Corporation
-> > > + *
-> > > + * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or modify
-> > > + * it under the terms of the GNU General Public License version 2 as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > 
-> > Missing #ifndef #define ... #endif
-> 
-> I've added it as _OMAP_IOMMU_H_, looks like both intel-iommu.h and
-> amd-iommu.h have it.
-> 
-> Hopefully that's OK for you as a base to do further iommu patches
-> on, updated patch below.
-> 
-> BTW, doing a test compile on v3.7-rc2, I'm seeing the following warnings
-> for omap3isp for isp_video_ioctl_ops:
-> 
-> drivers/media/platform/omap3isp/ispvideo.c:1213: warning: initialization
-> from incompatible pointer type
-> drivers/media/platform/omap3isp/ispccdc.c:2303: warning: initialization
-> from incompatible pointer type
-> drivers/media/platform/omap3isp/ispccdc.c:2304: warning: initialization
-> from incompatible pointer type
-> drivers/media/platform/omap3isp/isph3a_aewb.c:282: warning: initialization
-> from incompatible pointer type
-> drivers/media/platform/omap3isp/isph3a_aewb.c:283: warning: initialization
-> from incompatible pointer type
-> drivers/media/platform/omap3isp/isph3a_af.c:347: warning: initialization
-> from incompatible pointer type
-> drivers/media/platform/omap3isp/isph3a_af.c:348: warning: initialization
-> from incompatible pointer type
-> drivers/media/platform/omap3isp/isphist.c:453: warning: initialization from
-> incompatible pointer type
-> drivers/media/platform/omap3isp/isphist.c:454: warning: initialization from
-> incompatible pointer type
+Thanks pulling into omap-for-v3.8/cleanup-prcm.
 
-I've just sent a pull request to linux-media for v3.7 with fixes for those.
- 
--- 
 Regards,
 
-Laurent Pinchart
+Tony
