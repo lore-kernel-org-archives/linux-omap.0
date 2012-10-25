@@ -1,67 +1,65 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PM: add missing newline to VC warning
- message
-Date: Thu, 25 Oct 2012 12:56:07 -0500
-Message-ID: <20121025175607.GA21937@kahuna>
-References: <1351186501-32223-1-git-send-email-khilman@deeprootsystems.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: ensure writes to dev->buf_len are ordered
+Date: Thu, 25 Oct 2012 21:03:40 +0300
+Message-ID: <20121025180339.GA18046@arwen.pp.htv.fi>
+References: <1351155648-20429-1-git-send-email-balbi@ti.com>
+ <8739124idt.fsf@deeprootsystems.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36619 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992485Ab2JYR4R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Oct 2012 13:56:17 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uAKRQypu60I7Lcqm"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1351186501-32223-1-git-send-email-khilman@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <8739124idt.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 10:35-20121025, Kevin Hilman wrote:
-> From: Kevin Hilman <khilman@ti.com>
-> 
-> Add missing newline to warning message to avoid annoying
-> wrapping problems during kernel boot like this one:
-> 
->    omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
->    omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).Power Management for TI OMAP4.
-> 
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/mach-omap2/vc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-> index 880249b..75878c3 100644
-> --- a/arch/arm/mach-omap2/vc.c
-> +++ b/arch/arm/mach-omap2/vc.c
-> @@ -264,7 +264,7 @@ static void __init omap_vc_i2c_init(struct voltagedomain *voltdm)
->  
->  	if (initialized) {
->  		if (voltdm->pmic->i2c_high_speed != i2c_high_speed)
-> -			pr_warn("%s: I2C config for vdd_%s does not match other channels (%u).",
-> +			pr_warn("%s: I2C config for vdd_%s does not match other channels (%u).\n",
->  				__func__, voltdm->name, i2c_high_speed);
->  		return;
->  	}
-Acked-by: Nishanth Menon <nm@ti.com>
-while we are at it, could we clean up the pr_warning usage back to
-pr_warn as well?
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 880249b..2d66f8c 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -186,7 +186,7 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
- 		loop_cnt++;
- 
- 		if (retries_cnt > 10) {
--			pr_warning("%s: Retry count exceeded\n", __func__);
-+			pr_warn("%s: Retry count exceeded\n", __func__);
- 			return -ETIMEDOUT;
- 		}
- 
--- 
-Regards,
-Nishanth Menon
+--uAKRQypu60I7Lcqm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Thu, Oct 25, 2012 at 09:38:06AM -0700, Kevin Hilman wrote:
+> +Paul
+>=20
+> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
+>=20
+> > if we allow compiler reorder our writes, we could
+> > fall into a situation where dev->buf_len is reset
+> > for no apparent reason.
+>=20
+> Any chance this would help with the bug Paul found with I2C timeouts on
+> beagle userspace startup?
+
+I replied to the original thread asking the same ;-)
+
+--=20
+balbi
+
+--uAKRQypu60I7Lcqm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQiX77AAoJEIaOsuA1yqREutMP/2Tj9wYE/fMBxyjsqaLF52T8
+2srE5EjiScGGe8hmy8jC8OoRw2MBunyDNGwxwP1To0/gHjZWZHaP9fl+RUt5G7+S
+aQCOV8rTBr6lPsxFQIa95BeMiEOmtBHf9diuskwadRjuXfemIKfFTUIFf4vwa9F+
+jKLuT6cj3x0H6SCb+lKiBlCojiyrQG5SiILaMe3k9ny8w9VVBenrlb26zL61UAWI
+mPiXHYpzLQp9Atx+yv1OMyfHxwCwH/AIyptzxeuZdKpz1kI8QjRXptXbhnBd4FRn
+RHzXoUO9pHsye2XQAYhiWCRiWoA4iW5EcprAz78jXSbbzjzvxNzqgO1kP7Oaeja4
+TqSLM4SylY5g+HZaZVoZzPyzg/rK6G/aQrnpLUKPcQQou9emO/AKi+UPhHdcbQA/
+RDj3+/UqZUe4aiFCGUN0nDaf+XmGT/h40Kt5n6mi2erGA+PqEuNlqHXUJYNILEx4
+9U+YfKccmnafVfG+i+gSbIa1mYZ1LQp1sAyWs0PmL0byusEL3AgCsrHWMrUHPlxb
+cmFabM7cjqh7MNfE7zbm//hyLwq5xZhutyBOVrfjcPbyAHZYYgEC675XC+1FJ/2F
+7pfxc8gIQnF/JaFMAI1BIWNms8ofe/TaTFEuIxQP1VMg2rWcdwiQE+MuHGnD+3Uk
+IMVtQzOWrF0TP/3EL4aw
+=NhV/
+-----END PGP SIGNATURE-----
+
+--uAKRQypu60I7Lcqm--
