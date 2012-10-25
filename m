@@ -1,95 +1,84 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH 4/4] OMAP: mtd: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Thu, 25 Oct 2012 10:00:27 +0200
-Message-ID: <5088F19B.7050606@gmail.com>
-References: <1350935758-9215-1-git-send-email-zonque@gmail.com> <1350935758-9215-5-git-send-email-zonque@gmail.com> <508895D8.5000701@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [RFC PATCH 0/6] ARM: OMAP3+: move smartreflex-class3.c to drivers/power/avs
+Date: Thu, 25 Oct 2012 10:21:23 +0200
+Message-ID: <CAORVsuV9tLQCf+higF4kj4dz==T5Ja6Z++s2byDmUjdNsZTC5A@mail.gmail.com>
+References: <1351028641-20832-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:42518 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964780Ab2JYIAg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 04:00:36 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so583910bkc.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 01:00:35 -0700 (PDT)
-In-Reply-To: <508895D8.5000701@ti.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:53087 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756284Ab2JYIVY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 04:21:24 -0400
+Received: by mail-vb0-f46.google.com with SMTP id ff1so1591536vbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 01:21:23 -0700 (PDT)
+In-Reply-To: <1351028641-20832-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
+To: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>
 
-Hi Jon,
+Hi Nishant,
 
-many thanks for your time to look at this.
+On Tue, Oct 23, 2012 at 11:43 PM, Nishanth Menon <nm@ti.com> wrote:
+> smartreflex.c now resides in drivers/power/avs directory, but class driver
+> is in mach-omap2. High time we move it off to drivers/power/avs.
+Great to see the SR fully moved to drivers/.
 
-On 25.10.2012 03:28, Jon Hunter wrote:
-> On 10/22/2012 02:55 PM, Daniel Mack wrote:
->> diff --git a/Documentation/devicetree/bindings/bus/gpmc.txt b/Documentation/devicetree/bindings/bus/gpmc.txt
->> new file mode 100644
->> index 0000000..ef1c6e1
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/bus/gpmc.txt
->> @@ -0,0 +1,59 @@
->> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
->> +
->> +The actual devices are instantiated from the child nodes of a GPMC node.
->> +
->> +Required properties:
->> +
->> + - compatible: Should be set to "ti,gpmc"
-> 
-> Is this the only required property? I think that "reg" and "ti,hwmods"
-> are probably also required.
+After review of the code I am OK with the changes besides remarks sent
+on the patches:
+Acked-by: Jean Pihet <j-pihet@ti.com>
 
-Well yes, but at least "reg" is commonly omitted as it's part of a more
-"generic" set of properties. But ok, I can add these.
+I let Kevin comment on the VC/VP aspect though.
 
-> Also given that we are describing the hardware, I am wondering if the
-> number of chip-selects and wait signals should be defined here too. I
-> recall that different devices had different number of wait pins available.
+> This series *does not* try to fix VP/VC to be voltage regulator OR introduce
+> a new OMAP voltage regulator series. instead, it purely tries to do the minimal
+> changes needed to move code to drivers/power/avs as a start.
+>
+> Baseline: k.org v3.7-rc2
+> Testing: Platform: beagle XM C1 (3730)
+> while [ 1 ]
+> do
+> echo -n "0" >/sys/kernel/debug/smartreflex/smartreflex_core/autocomp
+> date
+> echo -n "1" >/sys/kernel/debug/smartreflex/smartreflex_core/autocomp
+> done
+> Screen capture after the series: on inductor L5 (VDD2 - core):
+> https://plus.google.com/photos/112464029509057661457/albums/5715034179943520193/5802619719180530114
+>
+> RFC for a view if this is ok as an intermediate step.
 
-Hmm, that number is currently hard-coded in GPMC_CS_NUM. It would take
-some effort to make that dynamic but I agree that this would be a good
-thing to have. Afzal?
+Thanks!
+Jean
 
->> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->> new file mode 100644
->> index 0000000..6790fcf
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->> @@ -0,0 +1,65 @@
->> +Device tree bindings for GPMC connected NANDs
->> +
->> +GPMC connected NAND (found on OMAP boards) are represented as child nodes of
->> +the GPMC controller with a name of "nand".
->> +
->> +All timing relevant properties are explained in a separate documents - please
->> +refer to Documentation/devicetree/bindings/bus/gpmc.txt
->> +
->> +Required properties:
->> +
->> + - reg: The CS line the peripheral is connected to
-> 
-> Is this the only required property? I would have thought that bus-width
-> is needed too.
-
-I described bus-with in the nand bindings and stated there that it
-defaults to 8 and the only meaningful other value us 16. I did that
-because the value is in fact parsed in the NAND code, but I can as well
-move this around in the documentation.
-
-> In general, I am wondering if this should be broken into two patches as
-> you are creating the binding for the gpmc and nand here.
-
-Yes, I thought so too. The thing is that I wanted to keep documentation
-and implementation tightly together, and only the generic parser bits in
-the code doesn't make much sense without any users. Also, the two
-Documentations reference each other, so I thought having them in one
-piece could make reviewing easier. But I can of course also split it if
-that helps.
-
-
-Thanks,
-Daniel
+>
+> Nishanth Menon (6):
+>   PM / AVS / OMAP: move Kconfig definition of smartreflex to avs
+>     directory
+>   ARM: OMAP: voltage: remove duplicate header definitions
+>   ARM: OMAP: voltage: move voltdm_reset to platform_data header
+>   ARM: OMAP: SmartReflex: provide SoC integration API for VP
+>   ARM: OMAP: SmartReflex: use pr_warn instead of pr_warning
+>   PM / AVS / OMAP: move Smartreflex-class3 driver to power/avs
+>
+>  arch/arm/mach-omap2/Makefile                       |    1 -
+>  arch/arm/mach-omap2/sr_device.c                    |    5 ++++
+>  arch/arm/mach-omap2/voltage.h                      |    4 ---
+>  arch/arm/plat-omap/Kconfig                         |   31 --------------------
+>  drivers/power/avs/Kconfig                          |   31 ++++++++++++++++++++
+>  drivers/power/avs/Makefile                         |    1 +
+>  .../power/avs}/smartreflex-class3.c                |   20 +++++++++----
+>  drivers/power/avs/smartreflex.c                    |    2 ++
+>  include/linux/platform_data/voltage-omap.h         |    1 +
+>  include/linux/power/smartreflex.h                  |   18 ++++++++++++
+>  10 files changed, 73 insertions(+), 41 deletions(-)
+>  rename {arch/arm/mach-omap2 => drivers/power/avs}/smartreflex-class3.c (75%)
+>
+> Regards,
+> Nishanth Menon
+> --
+> 1.7.9.5
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
