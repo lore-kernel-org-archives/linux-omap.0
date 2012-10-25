@@ -1,77 +1,133 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 4/7] i2c: omap: in case of VERSION_2 read IRQSTATUS_RAW
- but write to IRQSTATUS
-Date: Thu, 25 Oct 2012 18:36:01 +0530
-Message-ID: <50893939.3060302@ti.com>
-References: <1350899218-13624-1-git-send-email-balbi@ti.com> <1351167915-15079-1-git-send-email-balbi@ti.com> <1351167915-15079-5-git-send-email-balbi@ti.com> <50893665.60604@ti.com> <20121025125249.GK21217@arwen.pp.htv.fi>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2] gpio/omap: fix off-mode bug: clear debounce clock
+ enable mask on free/reset
+Date: Thu, 25 Oct 2012 08:11:13 -0500
+Message-ID: <50893A71.1030702@ti.com>
+References: <1351098641-23917-1-git-send-email-khilman@deeprootsystems.com> <50887197.8010104@ti.com> <5088E387.2050704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36429 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759382Ab2JYNGh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 09:06:37 -0400
-In-Reply-To: <20121025125249.GK21217@arwen.pp.htv.fi>
+Received: from bear.ext.ti.com ([192.94.94.41]:37367 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759533Ab2JYNLV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Oct 2012 09:11:21 -0400
+In-Reply-To: <5088E387.2050704@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Benoit Cousson <b-cousson@ti.com>, w.sang@pengutronix.de, ben-linux@fluff.org, michael@amarulasolutions.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Linus Walleij <linus.walleij@linaro.org>, Felipe Balbi <balbi@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
-On Thursday 25 October 2012 06:22 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Thu, Oct 25, 2012 at 06:23:57PM +0530, Santosh Shilimkar wrote:
->> On Thursday 25 October 2012 05:55 PM, Felipe Balbi wrote:
->>> on OMAP4+ we want to read IRQSTATUS_RAW register,
->>> instead of IRQSTATUS. The reason being that IRQSTATUS
->>> will only contain the bits which were enabled on
->>> IRQENABLE_SET and that will break when we need to
->>> poll for a certain bit which wasn't enabled as an
->>> IRQ source.
+
+On 10/25/2012 02:00 AM, Santosh Shilimkar wrote:
+> On Thursday 25 October 2012 04:24 AM, Jon Hunter wrote:
+>>
+>> On 10/24/2012 12:10 PM, Kevin Hilman wrote:
+>>> From: Kevin Hilman <khilman@ti.com>
 >>>
->>> One such case is after we finish converting to
->>> deferred stop bit, we will have to poll for ARDY
->>> bit before returning control for the client driver
->>> in order to prevent us from trying to start a
->>> transfer on a bus which is already busy.
+>>> When a GPIO bank is freed or shutdown, ensure that the banks
+>>> dbck_enable_mask is cleared also.  Otherwise, context restore on
+>>> subsequent off-mode transition will restore previous value from the
+>>> shadow copies (bank->context.debounce*) leading to mismatch state
+>>> between driver state and hardware state.
 >>>
->>> Note, however, that omap-i2c.c needs a big rework
->>> on register definition and register access. Such
->>> work will be done in a separate series of patches.
+>>> This was discovered when board code was doing
 >>>
->>> Cc: Benoit Cousson <b-cousson@ti.com>
->>> Signed-off-by: Felipe Balbi <balbi@ti.com>
+>>>    gpio_request_one()
+>>>    gpio_set_debounce()
+>>>    gpio_free()
+>>>
+>>> which was leaving the GPIO debounce settings in a confused state.  If
+>>> that GPIO bank is subsequently used with off-mode enabled, bogus state
+>>> would be restored, leaving GPIO debounce enabled which then prevented
+>>> the CORE powerdomain from transitioning.
+>>>
+>>> To fix, ensure that bank->dbck_enable_mask is cleared when the bank
+>>> is freed/shutdown so debounce state doesn't persist.
+> The freed part is fine but I don't understand why it needs to be done
+> on _a_ gpio irq shutdown callback where IRQs related configuration
+> on that one GPIO needs to be cleared. De-bounce clock is surely not IRQ
+> related configuration.
+
+If we are freeing the IRQs related to gpio and resetting the gpio, then
+I don't see why we should not. We should not leave the debounce clock on
+if these gpios are no longer being used.
+
+>>> Special thanks to Grazvydas Ignotas for pointing out a bug in an
+>>> earlier version that would've disabled debounce on any runtime PM
+>>> transition.
+>>>
+>>> Reported-by: Paul Walmsley <paul@pwsan.com>
+>>> Cc: Igor Grinberg <grinberg@compulab.co.il>
+>>> Cc: Grazvydas Ignotas <notasas@gmail.com>
+>>> Signed-off-by: Kevin Hilman <khilman@ti.com>
 >>> ---
->>>   drivers/i2c/busses/i2c-omap.c | 12 +++++++++++-
->>>   1 file changed, 11 insertions(+), 1 deletion(-)
+>>> v2: only clear mask in free/shutdown, not in runtime PM paths,
+>>>      clarified changelog
+>>> Applies on v3.7-rc2.
 >>>
->>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->>> index b004126..20f9ad6 100644
->>> --- a/drivers/i2c/busses/i2c-omap.c
->>> +++ b/drivers/i2c/busses/i2c-omap.c
->>> @@ -271,8 +271,18 @@ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+>>>   drivers/gpio/gpio-omap.c | 1 +
+>>>   1 file changed, 1 insertion(+)
 >>>
->>>   static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
->>>   {
->>> -	return __raw_readw(i2c_dev->base +
->>> +	/* if we are OMAP_I2C_IP_VERSION_2, we need to read from
->>> +	 * IRQSTATUS_RAW, but write to IRQSTATUS
->>> +	 */
->>> +	if ((i2c_dev->dtrev == OMAP_I2C_IP_VERSION_2) &&
->>> +			(reg == OMAP_I2C_STAT_REG)) {
->> Doing this check on every I2C register read seems to
->> expensive to me. Can you not sort this in init with some offset
->> which can be 0 or non zero ?  Sorry in case this is already dicussed.
->
-> could be. I didn't go that route because I'm planning a complete rewrite
-> of all register accesses. The way it's done today is completely broken
-> and already expensive (with reg_shift and different map tables and so
-> on).
->
-> If it's really a big of a deal, I can try to find another way, maybe
-> just adding omap_i2c_read_stat() and limit the version check just to
-> I2C_STAT reads would do it for now...
->
-Its a hot path since you read many I2C register reads, so getting
-rid of that additional check will be good.
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index 94cbc84..113b167 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -539,6 +539,7 @@ static void _reset_gpio(struct gpio_bank *bank,
+>>> int gpio)
+>>>       _set_gpio_irqenable(bank, gpio, 0);
+>>>       _clear_gpio_irqstatus(bank, gpio);
+>>>       _set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
+>>> +    bank->dbck_enable_mask = 0;
+>>>   }
+>>
+>> Does this need to be ...
+>>
+>> +    bank->dbck_enable_mask &= ~(GPIO_BIT(bank, gpio));
+>> +    _gpio_dbck_disable(bank);
+>>
+> Yes, its a per bank clock. There is an alternate. See below.
+> 
+>> There could be more than one gpio using debounce and so we should only
+>> clear the appropriate bit. Also after clearing a bit we could see if we
+>> can disable the debounce clock too.
+>>
+> When I mentioned the clearing in gpio_free() path will do trick, I had
+> something like below in mind.
+> 
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index dee2856..8574105 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -629,8 +629,10 @@ static void omap_gpio_free(struct gpio_chip *chip,
+> unsigned offset)
+>       * If this is the last gpio to be freed in the bank,
+>       * disable the bank module.
+>       */
+> -    if (!bank->mod_usage)
+> +    if (!bank->mod_usage) {
+> +        bank->dbck_enable_mask = 0;
+>          pm_runtime_put(bank->dev);
+> +    }
+
+However, with this we could be leaving the debounce clock on longer than
+needed. I think we need to call _gpio_dbck_disable() each time we free a
+gpio and this function will determine if it can turn off the debounce
+clock.
+
+In fact, there appears to be another bug in the current driver, that we
+do not clear the debounce_en register when freeing the gpio. Your patch
+addresses this, but I think that debounce should be disabled when a gpio
+is freed and not just when the last one is freed.
+
+Also, with the above change, can't we still run into the original
+problem? In other words, if a gpio is freed, but there is still another
+one active in the back that is not using debounce, then we could restore
+a incorrect debounce context because we have not clean-up the debounce
+settings?
+
+So may be we need to add a _clear_gpio_debounce() function and
+call this when freeing a gpio.
+
+Cheers
+Jon
