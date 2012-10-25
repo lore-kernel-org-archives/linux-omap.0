@@ -1,40 +1,55 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 1/5] ARM: dts: OMAP: Add timer nodes
-Date: Thu, 25 Oct 2012 13:38:07 -0500
-Message-ID: <5089870F.7040101@ti.com>
-References: <1350496873-21337-1-git-send-email-jon-hunter@ti.com> <1350496873-21337-2-git-send-email-jon-hunter@ti.com> <79CD15C6BA57404B839C016229A409A83EB49C1B@DBDE01.ent.ti.com> <50887315.2000509@ti.com> <79CD15C6BA57404B839C016229A409A83EB4A768@DBDE01.ent.ti.com> <50892E27.7070102@ti.com> <79CD15C6BA57404B839C016229A409A83EB4AB13@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] omapdss: dss: Fix clocks on OMAP363x
+Date: Thu, 25 Oct 2012 20:42:10 +0200
+Message-ID: <1351190530-16863-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38540 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760064Ab2JYSiR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Oct 2012 14:38:17 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB4AB13@DBDE01.ent.ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53019 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760027Ab2JYSlX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 14:41:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
+Commit 185bae1095188aa199c9be64d6030d8dbfc65e0a ("OMAPDSS: DSS: Cleanup
+cpu_is_xxxx checks") broke the DSS clocks configuration by erroneously
+using the clock parameters applicable to all other OMAP34xx SoCs for the
+OMAP363x. This went unnoticed probably because the cpu_is_omap34xx()
+class check wasn't seen as matching the OMAP363x subclass.
 
-On 10/25/2012 10:27 AM, Hiremath, Vaibhav wrote:
+Fix it by checking for the OMAP363x subclass before checking for the
+OMAP34xx class.
 
-...
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/video/omap2/dss/dss.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> Can you merge it to your test module? I am thinking of pushing application 
-> to github for others to use. I believe you are ok with this. I am planning 
-> to push all the application there.
-> 
-> https://github.com/hvaibhav/sample-applications
+Hi Tomi,
 
-Thanks. I have been meaning to do this. I have pushed my latest version
-here [1]. Should include the AM335x fix too. Let me know if this is
-working for you.
+The patch has been tested on the Beagleboard-xM and restores the DVI output
+operation. This is a regression fix that should be pushed to v3.7.
 
-Cheers
-Jon
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 2ab1c3e..0bb7406 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -805,10 +805,10 @@ static int __init dss_init_features(struct device *dev)
+ 
+ 	if (cpu_is_omap24xx())
+ 		src = &omap24xx_dss_feats;
+-	else if (cpu_is_omap34xx())
+-		src = &omap34xx_dss_feats;
+ 	else if (cpu_is_omap3630())
+ 		src = &omap3630_dss_feats;
++	else if (cpu_is_omap34xx())
++		src = &omap34xx_dss_feats;
+ 	else if (cpu_is_omap44xx())
+ 		src = &omap44xx_dss_feats;
+ 	else if (soc_is_omap54xx())
+-- 
+Regards,
 
-[1] https://github.com/jonhunter/omap-test
-
+Laurent Pinchart
 
