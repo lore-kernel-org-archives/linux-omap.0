@@ -1,92 +1,299 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 09/13] ARM: OMAP2+: PRCM: remove omap2_cm_wait_idlest()
-Date: Thu, 25 Oct 2012 17:21:19 -0600
-Message-ID: <20121025232118.17558.54964.stgit@dusk.lan>
+Subject: [PATCH 07/13] ARM: OMAP2xxx: APLL/CM: convert to use
+ omap2_cm_wait_module_ready()
+Date: Thu, 25 Oct 2012 17:21:17 -0600
+Message-ID: <20121025232117.17558.41886.stgit@dusk.lan>
 References: <20121025231818.17558.57884.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38292 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38288 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308Ab2JYXYF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 19:24:05 -0400
+	with ESMTP id S1752292Ab2JYXYE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 19:24:04 -0400
 In-Reply-To: <20121025231818.17558.57884.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Now that all users of mach-omap2/omap2_cm_wait_idlest() have been removed,
-delete the function and its supporting macros and prototypes.
+Convert the OMAP2xxx APLL code to use omap2_cm_wait_module_ready(),
+and move the low-level CM register manipulation functions to
+mach-omap2/cm2xxx.c.  The objectives here are to remove the dependency
+on the deprecated omap2_cm_wait_idlest() function in
+mach-omap2/prcm.c, so that code can be removed later; and move
+low-level register accesses to the CM IP block to the CM code, which
+will soon be moved into drivers/.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/prcm.c             |   39 --------------------------------
- arch/arm/plat-omap/include/plat/prcm.h |    2 --
- 2 files changed, 41 deletions(-)
+ arch/arm/mach-omap2/clkt2xxx_apll.c   |   56 +++++++---------------------
+ arch/arm/mach-omap2/clock2420_data.c  |    1 -
+ arch/arm/mach-omap2/clock2430_data.c  |    1 -
+ arch/arm/mach-omap2/clock2xxx.h       |    2 +
+ arch/arm/mach-omap2/cm-regbits-24xx.h |    2 +
+ arch/arm/mach-omap2/cm2xxx.c          |   65 ++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/cm2xxx_3xxx.h     |    6 +++
+ 7 files changed, 85 insertions(+), 48 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 8cb55d3..827769c 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -44,45 +44,6 @@ void __iomem *cm_base;
- void __iomem *cm2_base;
- void __iomem *prcm_mpu_base;
+diff --git a/arch/arm/mach-omap2/clkt2xxx_apll.c b/arch/arm/mach-omap2/clkt2xxx_apll.c
+index 3d2f67e..d47f6f7 100644
+--- a/arch/arm/mach-omap2/clkt2xxx_apll.c
++++ b/arch/arm/mach-omap2/clkt2xxx_apll.c
+@@ -38,44 +38,16 @@
+ #define APLLS_CLKIN_13MHZ		2
+ #define APLLS_CLKIN_12MHZ		3
  
--#define MAX_MODULE_ENABLE_WAIT		100000
+-void __iomem *cm_idlest_pll;
 -
--/**
-- * omap2_cm_wait_idlest - wait for IDLEST bit to indicate module readiness
-- * @reg: physical address of module IDLEST register
-- * @mask: value to mask against to determine if the module is active
-- * @idlest: idle state indicator (0 or 1) for the clock
-- * @name: name of the clock (for printk)
-- *
-- * Returns 1 if the module indicated readiness in time, or 0 if it
-- * failed to enable in roughly MAX_MODULE_ENABLE_WAIT microseconds.
-- *
-- * XXX This function is deprecated.  It should be removed once the
-- * hwmod conversion is complete.
-- */
--int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
--				const char *name)
+ /* Private functions */
+ 
+-/* Enable an APLL if off */
+-static int omap2_clk_apll_enable(struct clk *clk, u32 status_mask)
 -{
--	int i = 0;
--	int ena = 0;
+-	u32 cval, apll_mask;
 -
--	if (idlest)
--		ena = 0;
--	else
--		ena = mask;
+-	apll_mask = EN_APLL_LOCKED << clk->enable_bit;
 -
--	/* Wait for lock */
--	omap_test_timeout(((__raw_readl(reg) & mask) == ena),
--			  MAX_MODULE_ENABLE_WAIT, i);
+-	cval = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
 -
--	if (i < MAX_MODULE_ENABLE_WAIT)
--		pr_debug("cm: Module associated with clock %s ready after %d loops\n",
--			 name, i);
--	else
--		pr_err("cm: Module associated with clock %s didn't enable in %d tries\n",
--		       name, MAX_MODULE_ENABLE_WAIT);
+-	if ((cval & apll_mask) == apll_mask)
+-		return 0;   /* apll already enabled */
 -
--	return (i < MAX_MODULE_ENABLE_WAIT) ? 1 : 0;
--};
+-	cval &= ~apll_mask;
+-	cval |= apll_mask;
+-	omap2_cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
+-
+-	omap2_cm_wait_idlest(cm_idlest_pll, status_mask,
+-			     OMAP24XX_CM_IDLEST_VAL, __clk_get_name(clk));
+-
+-	/*
+-	 * REVISIT: Should we return an error code if omap2_wait_clock_ready()
+-	 * fails?
+-	 */
+-	return 0;
+-}
+-
+-static int omap2_clk_apll96_enable(struct clk *clk)
++static int _apll96_enable(struct clk *clk)
+ {
+-	return omap2_clk_apll_enable(clk, OMAP24XX_ST_96M_APLL_MASK);
++	return omap2xxx_cm_apll96_enable();
+ }
  
- void __init omap2_set_globals_prcm(void __iomem *prm, void __iomem *cm,
- 				   void __iomem *cm2, void __iomem *prcm_mpu)
-diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
-index a950a83..3ccee9f 100644
---- a/arch/arm/plat-omap/include/plat/prcm.h
-+++ b/arch/arm/plat-omap/include/plat/prcm.h
-@@ -30,8 +30,6 @@
- #include <linux/kernel.h>
- #include <linux/io.h>
+-static int omap2_clk_apll54_enable(struct clk *clk)
++static int _apll54_enable(struct clk *clk)
+ {
+-	return omap2_clk_apll_enable(clk, OMAP24XX_ST_54M_APLL_MASK);
++	return omap2xxx_cm_apll54_enable();
+ }
  
--int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, u8 idlest,
--			 const char *name);
- void __init omap2_set_globals_prcm(void __iomem *prm, void __iomem *cm,
- 				   void __iomem *cm2, void __iomem *prcm_mpu);
+ static void _apll96_allow_idle(struct clk *clk)
+@@ -98,28 +70,28 @@ static void _apll54_deny_idle(struct clk *clk)
+ 	omap2xxx_cm_set_apll54_disable_autoidle();
+ }
  
+-/* Stop APLL */
+-static void omap2_clk_apll_disable(struct clk *clk)
++static void _apll96_disable(struct clk *clk)
+ {
+-	u32 cval;
++	omap2xxx_cm_apll96_disable();
++}
+ 
+-	cval = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+-	cval &= ~(EN_APLL_LOCKED << clk->enable_bit);
+-	omap2_cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
++static void _apll54_disable(struct clk *clk)
++{
++	omap2xxx_cm_apll54_disable();
+ }
+ 
+ /* Public data */
+ 
+ const struct clkops clkops_apll96 = {
+-	.enable		= omap2_clk_apll96_enable,
+-	.disable	= omap2_clk_apll_disable,
++	.enable		= _apll96_enable,
++	.disable	= _apll96_disable,
+ 	.allow_idle	= _apll96_allow_idle,
+ 	.deny_idle	= _apll96_deny_idle,
+ };
+ 
+ const struct clkops clkops_apll54 = {
+-	.enable		= omap2_clk_apll54_enable,
+-	.disable	= omap2_clk_apll_disable,
++	.enable		= _apll54_enable,
++	.disable	= _apll54_disable,
+ 	.allow_idle	= _apll54_allow_idle,
+ 	.deny_idle	= _apll54_deny_idle,
+ };
+diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+index 405a07a..274244f 100644
+--- a/arch/arm/mach-omap2/clock2420_data.c
++++ b/arch/arm/mach-omap2/clock2420_data.c
+@@ -1930,7 +1930,6 @@ int __init omap2420_clk_init(void)
+ 	struct omap_clk *c;
+ 
+ 	prcm_clksrc_ctrl = OMAP2420_PRCM_CLKSRC_CTRL;
+-	cm_idlest_pll = OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST);
+ 	cpu_mask = RATE_IN_242X;
+ 	rate_table = omap2420_rate_table;
+ 
+diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+index 0664fc3..9f5a471 100644
+--- a/arch/arm/mach-omap2/clock2430_data.c
++++ b/arch/arm/mach-omap2/clock2430_data.c
+@@ -2029,7 +2029,6 @@ int __init omap2430_clk_init(void)
+ 	struct omap_clk *c;
+ 
+ 	prcm_clksrc_ctrl = OMAP2430_PRCM_CLKSRC_CTRL;
+-	cm_idlest_pll = OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST);
+ 	cpu_mask = RATE_IN_243X;
+ 	rate_table = omap2430_rate_table;
+ 
+diff --git a/arch/arm/mach-omap2/clock2xxx.h b/arch/arm/mach-omap2/clock2xxx.h
+index 25b8d02..ce809c9 100644
+--- a/arch/arm/mach-omap2/clock2xxx.h
++++ b/arch/arm/mach-omap2/clock2xxx.h
+@@ -35,7 +35,7 @@ int omap2430_clk_init(void);
+ #define omap2430_clk_init()	do { } while(0)
+ #endif
+ 
+-extern void __iomem *prcm_clksrc_ctrl, *cm_idlest_pll;
++extern void __iomem *prcm_clksrc_ctrl;
+ 
+ extern const struct clkops clkops_omap2430_i2chs_wait;
+ extern const struct clkops clkops_oscck;
+diff --git a/arch/arm/mach-omap2/cm-regbits-24xx.h b/arch/arm/mach-omap2/cm-regbits-24xx.h
+index 6862904..11eaf16 100644
+--- a/arch/arm/mach-omap2/cm-regbits-24xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-24xx.h
+@@ -333,7 +333,9 @@
+ #define OMAP24XX_EN_DPLL_MASK				(0x3 << 0)
+ 
+ /* CM_IDLEST_CKGEN */
++#define OMAP24XX_ST_54M_APLL_SHIFT			9
+ #define OMAP24XX_ST_54M_APLL_MASK			(1 << 9)
++#define OMAP24XX_ST_96M_APLL_SHIFT			8
+ #define OMAP24XX_ST_96M_APLL_MASK			(1 << 8)
+ #define OMAP24XX_ST_54M_CLK_MASK			(1 << 6)
+ #define OMAP24XX_ST_12M_CLK_MASK			(1 << 5)
+diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
+index 6416501..e96cd70 100644
+--- a/arch/arm/mach-omap2/cm2xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx.c
+@@ -35,6 +35,9 @@
+ #define OMAP2XXX_APLL_AUTOIDLE_DISABLE			0x0
+ #define OMAP2XXX_APLL_AUTOIDLE_LOW_POWER_STOP		0x3
+ 
++/* CM_IDLEST_PLL bit value offset for APLLs (OMAP2xxx only) */
++#define EN_APLL_LOCKED					3
++
+ static const u8 omap2xxx_cm_idlest_offs[] = {
+ 	CM_IDLEST1, CM_IDLEST2, OMAP2430_CM_IDLEST3, OMAP24XX_CM_IDLEST4
+ };
+@@ -99,7 +102,7 @@ void omap2xxx_cm_set_dpll_auto_low_power_stop(void)
+ }
+ 
+ /*
+- * APLL autoidle control
++ * APLL control
+  */
+ 
+ static void _omap2xxx_set_apll_autoidle(u8 m, u32 mask)
+@@ -136,6 +139,65 @@ void omap2xxx_cm_set_apll96_auto_low_power_stop(void)
+ 				    OMAP24XX_AUTO_96M_MASK);
+ }
+ 
++/* Enable an APLL if off */
++static int _omap2xxx_apll_enable(u8 enable_bit, u8 status_bit)
++{
++	u32 v, m;
++
++	m = EN_APLL_LOCKED << enable_bit;
++
++	v = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
++	if (v & m)
++		return 0;   /* apll already enabled */
++
++	v |= m;
++	omap2_cm_write_mod_reg(v, PLL_MOD, CM_CLKEN);
++
++	omap2xxx_cm_wait_module_ready(PLL_MOD, 1, status_bit);
++
++	/*
++	 * REVISIT: Should we return an error code if
++	 * omap2xxx_cm_wait_module_ready() fails?
++	 */
++	return 0;
++}
++
++/* Stop APLL */
++static void _omap2xxx_apll_disable(u8 enable_bit)
++{
++	u32 v;
++
++	v = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
++	v &= ~(EN_APLL_LOCKED << enable_bit);
++	omap2_cm_write_mod_reg(v, PLL_MOD, CM_CLKEN);
++}
++
++/* Enable an APLL if off */
++int omap2xxx_cm_apll54_enable(void)
++{
++	return _omap2xxx_apll_enable(OMAP24XX_EN_54M_PLL_SHIFT,
++				     OMAP24XX_ST_54M_APLL_SHIFT);
++}
++
++/* Enable an APLL if off */
++int omap2xxx_cm_apll96_enable(void)
++{
++	return _omap2xxx_apll_enable(OMAP24XX_EN_96M_PLL_SHIFT,
++				     OMAP24XX_ST_96M_APLL_SHIFT);
++}
++
++/* Stop APLL */
++void omap2xxx_cm_apll54_disable(void)
++{
++	_omap2xxx_apll_disable(OMAP24XX_EN_54M_PLL_SHIFT);
++}
++
++/* Stop APLL */
++void omap2xxx_cm_apll96_disable(void)
++{
++	_omap2xxx_apll_disable(OMAP24XX_EN_96M_PLL_SHIFT);
++}
++
+ /*
+  *
+  */
+@@ -252,4 +314,3 @@ struct clkdm_ops omap2_clkdm_operations = {
+ 	.clkdm_clk_enable	= omap2xxx_clkdm_clk_enable,
+ 	.clkdm_clk_disable	= omap2xxx_clkdm_clk_disable,
+ };
+-
+diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.h b/arch/arm/mach-omap2/cm2xxx_3xxx.h
+index 0e26bb1..f74a5d1 100644
+--- a/arch/arm/mach-omap2/cm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/cm2xxx_3xxx.h
+@@ -96,6 +96,11 @@ static inline u32 omap2_cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
+ 	return omap2_cm_rmw_mod_reg_bits(bits, 0x0, module, idx);
+ }
+ 
++extern int omap2xxx_cm_apll54_enable(void);
++extern void omap2xxx_cm_apll54_disable(void);
++extern int omap2xxx_cm_apll96_enable(void);
++extern void omap2xxx_cm_apll96_disable(void);
++
+ #endif
+ 
+ /* CM register bits shared between 24XX and 3430 */
+@@ -111,5 +116,4 @@ static inline u32 omap2_cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
+ /* CM_IDLEST_GFX */
+ #define OMAP_ST_GFX_MASK				(1 << 0)
+ 
+-
+ #endif
 
 
