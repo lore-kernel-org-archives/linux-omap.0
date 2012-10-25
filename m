@@ -1,49 +1,128 @@
-From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH 7/8] i2c: add 'transferred' field to struct i2c_msg
-Date: Thu, 25 Oct 2012 15:56:33 +0200
-Message-ID: <20121025155633.609c5554@endymion.delvare>
-References: <1350899218-13624-1-git-send-email-balbi@ti.com>
-	<1350899218-13624-8-git-send-email-balbi@ti.com>
-	<20121025145748.760c218b@endymion.delvare>
-	<20121025131459.GG28061@n2100.arm.linux.org.uk>
-	<20121025154202.41f3cbba@endymion.delvare>
-	<20121025134609.GH28061@n2100.arm.linux.org.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
+ zero
+Date: Thu, 25 Oct 2012 17:00:58 +0300
+Message-ID: <5089461A.9050307@ti.com>
+References: <1331110876-11895-1-git-send-email-archit@ti.com>  <1729342.AddG4HPA3i@avalon> <79CD15C6BA57404B839C016229A409A83180E941@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121025134609.GH28061-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigCF96AA033133308E1FEFF6E5"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40057 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935107Ab2JYOBC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Oct 2012 10:01:02 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83180E941@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Thu, 25 Oct 2012 14:46:09 +0100, Russell King - ARM Linux wrote:
-> On Thu, Oct 25, 2012 at 03:42:02PM +0200, Jean Delvare wrote:
-> > On Thu, 25 Oct 2012 14:14:59 +0100, Russell King - ARM Linux wrote:
-> > > You also miss one very very very big point.  This will break every I2C
-> > > using userspace program out there unless it is rebuilt - this change will
-> > > require the exact right version of those userspace programs for the
-> > > kernel that they're being used on.
-> > 
-> > How that? The extra field is added in a hole, so we don't change the
-> > struct size nor the relative positions of existing fields. Why would
-> > user-space care?
-> 
-> You know the layout of that struct for certain across all Linux supported
-> architectures, including some of the more obscure ones which may not
-> require pointers to be aligned?
+--------------enigCF96AA033133308E1FEFF6E5
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-No I don't, I naively supposed it would be fine. I would expect gcc to
-always align pointers even when the architecture doesn't need them to
-be, for performance reasons, even when it doesn't have to, as long as
-attribute packed isn't used. After all, integers don't _have_ to be
-aligned on x86, but gcc aligns them.
+On 2012-03-09 10:03, Hiremath, Vaibhav wrote:
+> On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
+>> Hi Archit,
+>>
+>> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
+>>> The omap_vout driver tries to set the DSS overlay_info using
+>>> set_overlay_info() when the physical address for the overlay is still=
+ not
+>>> configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_ou=
+t().
+>>>
+>>> The calls to omapvid_init(which internally calls set_overlay_info()) =
+are
+>>> removed from these functions. They don't need to be called as the
+>>> omap_vout_device struct anyway maintains the overlay related changes =
+made.
+>>> Also, remove the explicit call to set_overlay_info() in vidioc_stream=
+on(),
+>>> this was used to set the paddr, this isn't needed as omapvid_init() d=
+oes
+>>> the same thing later.
+>>>
+>>> These changes are required as the DSS2 driver since 3.3 kernel doesn'=
+t let
+>>> you set the overlay info with paddr as 0.
+>>>
+>>> Signed-off-by: Archit Taneja <archit@ti.com>
+>>
+>> Thanks for the patch. This seems to fix memory corruption that would r=
+esult
+>> in sysfs-related crashes such as
+>>
+>> [   31.279541] ------------[ cut here ]------------
+>> [   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x=
+1f8()
+>> [   31.291503] missing sysfs attribute operations for kobject: (null)
+>> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
+>> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c003448=
+8>] (warn_slowpath_common+0x4c/0x64)
+>> [   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0=
+034520>] (warn_slowpath_fmt+0x2c/0x3c)
+>> [   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c0121=
+9bc>] (sysfs_open_file+0x70/0x1f8)
+>> [   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc=
+94>] (__dentry_open+0x1f8/0x30c)
+>> [   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce5=
+8>] (nameidata_to_filp+0x50/0x5c)
+>> [   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db=
+4c0>] (do_last+0x55c/0x6a0)
+>> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (p=
+ath_openat+0xb8/0x37c)
+>> [   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>]=
+ (do_filp_open+0x30/0x7c)
+>> [   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>]=
+ (do_sys_open+0xd8/0x170)
+>> [   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>]=
+ (ret_fast_syscall+0x0/0x3c)
+>> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
+>>
+>> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>
+>=20
+> Thanks Laurent for testing this patch.
+>=20
+>=20
+>> Please push it to v3.3 :-)
+>>
+>=20
+> Will send a pull request today itself.
 
-The original idea of using the hole in the i2c_msg structure is from
-David Brownell, who was apparently familiar with such practice, so I
-assumed it was OK. Actually I still assume it is, until someone comes
-with an supported architecture where it is not.
+Vaibhav, I don't see this crash fix in 3.3, 3.4, 3.5, 3.6 nor in 3.7-rc.
+Are you still maintaining the omap v4l2 driver? Can you finally push
+this fix?
 
--- 
-Jean Delvare
+ Tomi
+
+
+
+--------------enigCF96AA033133308E1FEFF6E5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQiUYaAAoJEPo9qoy8lh71mxAP/AtVXUmmvZ/N4uQkuonH0Tio
+FnxnW2DKlDyHXmIMMdVGuAtI1yIly8asj7a0krcHkA719EA+CILJtDPvUKf0R0x/
+p2+qFjbwOOuRmEcpB5dY/9AJi/gsjJqwdY01BVuHszEB8yYlELm2tYAzjo3UerjA
+TEPiQ+rOd++xt1an8ONpYoZ4NGj981b0IcEY7pNAHZf2Up0SFkZ9aZkIPv7BnD/3
+/SS5637QvYqA+/6Uh3spxQQKqcWBMEd6Fuqcy/ffotNGfrHCGU3DL4gplug932ae
+5UoplYnnzxTmMkfb4c0NEeYVIlgLq8619bN/QNBfn5JqfcIxuXEAVR4v7QoHgs9i
+O5hbHvvvAX+tv2nijj5ROJ1Az8/jDb0JR1V0MCOK5La/uhTmBopC95iR1CvakkBK
+TLcgIVTFOazXtXYAXZ+Xmkodde96dLlMehzpek7widiEWAClnc3bnsx6MhGU9uGd
+2Vm92IzxmdVOA5EFU29mNCwZm6RHZ+m/ZTkF1yYX+5+pJ2e6V/C2viNQ22iPdfXr
+MMbKNBP4FFuOgOPbEbUCauAW3HQVN2Tw9HZdrkwqZujm2a8wKYjkaZ/K6JK0CKxn
+QjXiW5TQHMuFRMvbYqN0V8Rx7K5UZcohgIotAxy6p3yl7NeuvbXDI68IVWNEsUhU
+5xm9GXmSzIID2Sx9+87m
+=vXW9
+-----END PGP SIGNATURE-----
+
+--------------enigCF96AA033133308E1FEFF6E5--
