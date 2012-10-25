@@ -1,75 +1,137 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2] ARM: PMU: fix runtime PM enable
-Date: Thu, 25 Oct 2012 15:23:18 -0500
-Message-ID: <1351196598-26667-1-git-send-email-jon-hunter@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 6/7] watchdog: OMAP: use standard GETBOOTSTATUS interface;
+ use platform_data fn ptr
+Date: Thu, 25 Oct 2012 20:29:26 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210252028330.21193@utopia.booyaka.com>
+References: <20121016012448.21844.92339.stgit@dusk.lan> <20121016013233.21844.1279.stgit@dusk.lan> <50899DB9.8050308@ti.com> <alpine.DEB.2.00.1210252015490.21193@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46347 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992639Ab2JYUXb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 25 Oct 2012 16:23:31 -0400
+Received: from utopia.booyaka.com ([74.50.51.50]:38015 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935981Ab2JYU31 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 16:29:27 -0400
+In-Reply-To: <alpine.DEB.2.00.1210252015490.21193@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Wim Van Sebroeck <wim@iguana.be>, linux-watchdog@vger.kernel.org
 
-Commit 7be2958 (ARM: PMU: Add runtime PM Support) updated the ARM PMU code to
-use runtime PM which was prototyped and validated on the OMAP devices. In this
-commit, there is no call pm_runtime_enable() and for OMAP devices
-pm_runtime_enable() is currently being called from the OMAP PMU code when the
-PMU device is created. However, there are two problems with this:
+On Thu, 25 Oct 2012, Paul Walmsley wrote:
 
-1. For any other ARM device wishing to use runtime PM for PMU they will need
-   to call pm_runtime_enable() for runtime PM to work.
-2. When booting with device-tree and using device-tree to create the PMU
-   device, pm_runtime_enable() needs to be called from within the ARM PERF
-   driver as we are no longer calling any device specific code to create the
-   device. Hence, PMU does not work on OMAP devices that use the runtime PM
-   callbacks when using device-tree to create the PMU device.
+> On Thu, 25 Oct 2012, Jon Hunter wrote:
+> 
+> > In the case of booting with device-tree, pdata could be null and so
+> > should we check for this too? In other words ...
+> > 
+> > +		if (!pdata || !pdata->read_reset_sources)
+> > +			return put_user(0, (int __user *)arg);
+> 
+> Thanks, good catch, will integrate that fix.
 
-Therefore,  call pm_runtime_enable() directly from the ARM PMU driver when
-registering the device. For platforms that do not use runtime PM,
-pm_runtime_enable() does nothing and for platforms that do use runtime PM but
-may not require it specifically for PMU, this will just add a little overhead
-when initialising and uninitialising the PMU device.
+Here's the updated patch.
 
-Tested with PERF on OMAP2420, OMAP3430 and OMAP4460.
+- Paul
 
-V2 changes:
-- Call pm_runtime_enable() unconditionally on registering the PMU device.
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 7 Oct 2012 20:13:26 -0600
+Subject: [PATCH] watchdog: OMAP: use standard GETBOOTSTATUS interface; use
+ platform_data fn ptr
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Previously the OMAP watchdog driver used a non-standard way to report
+the chip reset source via the GETBOOTSTATUS ioctl.  This patch
+converts the driver to use the standard WDIOF_* flags for this
+purpose.
+
+This patch may break existing userspace code that uses the existing
+non-standard data format returned by the OMAP watchdog driver's
+GETBOOTSTATUS ioctl.  To fetch detailed reset source information,
+userspace code will need to retrieve it directly from the CGRM or PRM
+drivers when those are completed.
+
+Previously, to fetch the reset source, the driver either read a
+register outside the watchdog IP block (OMAP1), or called a function
+exported directly from arch/arm/mach-omap2.  Both approaches are
+broken.  This patch also converts the driver to use a platform_data
+function pointer.  This approach is temporary, and is due to the lack
+of drivers for the OMAP16xx+ Clock Generation and Reset Management IP
+block and the OMAP2+ Power and Reset Management IP block.  Once
+drivers are available for those IP blocks, the watchdog driver can be
+converted to call exported drivers from those functions directly.
+At that point, the platform_data function pointer can be removed.
+
+In the short term, this patch is needed to allow the PRM code to be
+removed from arch/arm/mach-omap2 (it is being moved to a driver).
+
+This version integrates a fix from Jon Hunter <jon-hunter@ti.com>
+that avoids a NULL pointer dereference in a DT-only boot.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/kernel/perf_event.c |    1 +
- arch/arm/mach-omap2/pmu.c    |    2 --
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/watchdog/omap_wdt.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/kernel/perf_event.c b/arch/arm/kernel/perf_event.c
-index 1f7166f..5ea182e 100644
---- a/arch/arm/kernel/perf_event.c
-+++ b/arch/arm/kernel/perf_event.c
-@@ -510,6 +510,7 @@ static void __init armpmu_init(struct arm_pmu *armpmu)
- int armpmu_register(struct arm_pmu *armpmu, int type)
+diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+index f5db18db..477a1d4 100644
+--- a/drivers/watchdog/omap_wdt.c
++++ b/drivers/watchdog/omap_wdt.c
+@@ -46,8 +46,8 @@
+ #include <linux/slab.h>
+ #include <linux/pm_runtime.h>
+ #include <mach/hardware.h>
+-#include <plat/cpu.h>
+-#include <plat/prcm.h>
++
++#include <linux/platform_data/omap-wd-timer.h>
+ 
+ #include "omap_wdt.h"
+ 
+@@ -202,8 +202,10 @@ static ssize_t omap_wdt_write(struct file *file, const char __user *data,
+ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
+ 						unsigned long arg)
  {
- 	armpmu_init(armpmu);
-+	pm_runtime_enable(&armpmu->plat_device->dev);
- 	pr_info("enabled with %s PMU driver, %d counters available\n",
- 			armpmu->name, armpmu->num_events);
- 	return perf_pmu_register(&armpmu->pmu, armpmu->name, type);
-diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-index 2a79176..031e2fb 100644
---- a/arch/arm/mach-omap2/pmu.c
-+++ b/arch/arm/mach-omap2/pmu.c
-@@ -57,8 +57,6 @@ static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
- 	if (IS_ERR(omap_pmu_dev))
- 		return PTR_ERR(omap_pmu_dev);
++	struct omap_wd_timer_platform_data *pdata;
+ 	struct omap_wdt_dev *wdev;
+-	int new_margin;
++	u32 rs;
++	int new_margin, bs;
+ 	static const struct watchdog_info ident = {
+ 		.identity = "OMAP Watchdog",
+ 		.options = WDIOF_SETTIMEOUT,
+@@ -211,6 +213,7 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
+ 	};
  
--	pm_runtime_enable(&omap_pmu_dev->dev);
--
- 	return 0;
- }
+ 	wdev = file->private_data;
++	pdata = wdev->dev->platform_data;
  
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
+@@ -219,17 +222,12 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
+ 	case WDIOC_GETSTATUS:
+ 		return put_user(0, (int __user *)arg);
+ 	case WDIOC_GETBOOTSTATUS:
+-#ifdef CONFIG_ARCH_OMAP1
+-		if (cpu_is_omap16xx())
+-			return put_user(__raw_readw(ARM_SYSST),
+-					(int __user *)arg);
+-#endif
+-#ifdef CONFIG_ARCH_OMAP2PLUS
+-		if (cpu_is_omap24xx())
+-			return put_user(omap_prcm_get_reset_sources(),
+-					(int __user *)arg);
+-#endif
+-		return put_user(0, (int __user *)arg);
++		if (!pdata || !pdata->read_reset_sources)
++			return put_user(0, (int __user *)arg);
++		rs = pdata->read_reset_sources();
++		bs = (rs & (1 << OMAP_MPU_WD_RST_SRC_ID_SHIFT)) ?
++			WDIOF_CARDRESET : 0;
++		return put_user(bs, (int __user *)arg);
+ 	case WDIOC_KEEPALIVE:
+ 		spin_lock(&wdt_lock);
+ 		omap_wdt_ping(wdev);
 -- 
-1.7.9.5
+1.7.10.4
 
