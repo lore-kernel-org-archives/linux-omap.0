@@ -1,53 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Date: Wed, 24 Oct 2012 17:25:09 -0700
-Message-ID: <20121025002508.GH11928@atomide.com>
-References: <20121018202707.11834.1438.stgit@muffinssi.local>
- <2071397.IU49JkAq1T@avalon>
- <20121024223412.GM5605@atomide.com>
- <2126833.cqGngBPXg2@avalon>
+Subject: Re: [PATCH] drivers: bus: omap_interconnect: Fix rand-config build
+ warning
+Date: Wed, 24 Oct 2012 17:35:10 -0700
+Message-ID: <20121025003509.GI11928@atomide.com>
+References: <1350480519-1890-1-git-send-email-lokeshvutla@ti.com>
+ <507EB3CC.6060005@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:63343 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752669Ab2JYAZO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 20:25:14 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57467 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755636Ab2JYAfN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 20:35:13 -0400
 Content-Disposition: inline
-In-Reply-To: <2126833.cqGngBPXg2@avalon>
+In-Reply-To: <507EB3CC.6060005@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, olof@lixom.net
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121024 16:54]:
-> On Wednesday 24 October 2012 15:34:12 Tony Lindgren wrote:
-> > 
-> > BTW, doing a test compile on v3.7-rc2, I'm seeing the following warnings
-> > for omap3isp for isp_video_ioctl_ops:
-> > 
-> > drivers/media/platform/omap3isp/ispvideo.c:1213: warning: initialization
-> > from incompatible pointer type
-> > drivers/media/platform/omap3isp/ispccdc.c:2303: warning: initialization
-> > from incompatible pointer type
-> > drivers/media/platform/omap3isp/ispccdc.c:2304: warning: initialization
-> > from incompatible pointer type
-> > drivers/media/platform/omap3isp/isph3a_aewb.c:282: warning: initialization
-> > from incompatible pointer type
-> > drivers/media/platform/omap3isp/isph3a_aewb.c:283: warning: initialization
-> > from incompatible pointer type
-> > drivers/media/platform/omap3isp/isph3a_af.c:347: warning: initialization
-> > from incompatible pointer type
-> > drivers/media/platform/omap3isp/isph3a_af.c:348: warning: initialization
-> > from incompatible pointer type
-> > drivers/media/platform/omap3isp/isphist.c:453: warning: initialization from
-> > incompatible pointer type
-> > drivers/media/platform/omap3isp/isphist.c:454: warning: initialization from
-> > incompatible pointer type
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [121017 06:35]:
+> (Looping Arnd and Olof)
 > 
-> I've just sent a pull request to linux-media for v3.7 with fixes for those.
+> On Wednesday 17 October 2012 06:58 PM, Lokesh Vutla wrote:
+> >When building omap_l3_noc/smx drivers as modules, the following
+> >warning appears:
+> >
+> >CC [M]  drivers/bus/omap_l3_smx.o
+> >drivers/bus/omap_l3_smx.c:291: warning: data definition has no type or storage class
+> >drivers/bus/omap_l3_smx.c:291: warning: type defaults to 'int' in declaration of 'postcore_initcall_sync'
+> >drivers/bus/omap_l3_smx.c:291: warning: parameter names (without types) in function declaration
+> >drivers/bus/omap_l3_smx.c:287: warning: 'omap3_l3_init' defined but not used
+> >CC [M]  drivers/bus/omap_l3_noc.o
+> >drivers/bus/omap_l3_noc.c:260: warning: data definition has no type or storage class
+> >drivers/bus/omap_l3_noc.c:260: warning: type defaults to 'int' in declaration of 'arch_initcall_sync'
+> >drivers/bus/omap_l3_noc.c:260: warning: parameter names (without types) in function declaration
+> >drivers/bus/omap_l3_noc.c:256: warning: 'omap4_l3_init' defined but not used
+> >
+> >Adding module_init() and macros in omap_l3_noc/smx drivers when building
+> >as modules to remove the above warning.
+> >
+> >Reported-by: Tony Lindgren <tony@atomide.com>
+> >Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> >---
+> Thanks for the fix Lokesh. Looks fine to me.
+> 
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OK thanks!
+Looks like nobody else has picked this up so I'll queue this along
+with few other omap warnings and regressions.
+
+Regards,
 
 Tony
