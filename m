@@ -1,63 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] drivers: bus: omap_interconnect: Fix rand-config build
- warning
-Date: Wed, 24 Oct 2012 17:42:17 -0700
-Message-ID: <20121025004216.GJ11928@atomide.com>
-References: <1350480519-1890-1-git-send-email-lokeshvutla@ti.com>
- <507EB3CC.6060005@ti.com>
- <20121025003509.GI11928@atomide.com>
+Subject: Re: [PATCH v2 1/3] drivers: bus: ocp2scp: add pdata support
+Date: Wed, 24 Oct 2012 17:48:07 -0700
+Message-ID: <20121025004806.GK11928@atomide.com>
+References: <1349675983-23803-1-git-send-email-kishon@ti.com>
+ <1349675983-23803-2-git-send-email-kishon@ti.com>
+ <20121016165043.GS15569@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56977 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750894Ab2JYAmU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Oct 2012 20:42:20 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20121025003509.GI11928@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20121016165043.GS15569@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, olof@lixom.net
 
-* Tony Lindgren <tony@atomide.com> [121024 17:36]:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121017 06:35]:
-> > (Looping Arnd and Olof)
+* Tony Lindgren <tony@atomide.com> [121016 09:53]:
+> * Kishon Vijay Abraham I <kishon@ti.com> [121007 23:01]:
+> > ocp2scp was not having pdata support which makes *musb* fail for non-dt
+> > boot in OMAP platform. The pdata will have information about the devices
+> > that is connected to ocp2scp. ocp2scp driver will now make use of this
+> > information to create the devices that is attached to ocp2scp.
 > > 
-> > On Wednesday 17 October 2012 06:58 PM, Lokesh Vutla wrote:
-> > >When building omap_l3_noc/smx drivers as modules, the following
-> > >warning appears:
-> > >
-> > >CC [M]  drivers/bus/omap_l3_smx.o
-> > >drivers/bus/omap_l3_smx.c:291: warning: data definition has no type or storage class
-> > >drivers/bus/omap_l3_smx.c:291: warning: type defaults to 'int' in declaration of 'postcore_initcall_sync'
-> > >drivers/bus/omap_l3_smx.c:291: warning: parameter names (without types) in function declaration
-> > >drivers/bus/omap_l3_smx.c:287: warning: 'omap3_l3_init' defined but not used
-> > >CC [M]  drivers/bus/omap_l3_noc.o
-> > >drivers/bus/omap_l3_noc.c:260: warning: data definition has no type or storage class
-> > >drivers/bus/omap_l3_noc.c:260: warning: type defaults to 'int' in declaration of 'arch_initcall_sync'
-> > >drivers/bus/omap_l3_noc.c:260: warning: parameter names (without types) in function declaration
-> > >drivers/bus/omap_l3_noc.c:256: warning: 'omap4_l3_init' defined but not used
-> > >
-> > >Adding module_init() and macros in omap_l3_noc/smx drivers when building
-> > >as modules to remove the above warning.
-> > >
-> > >Reported-by: Tony Lindgren <tony@atomide.com>
-> > >Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> > >---
-> > Thanks for the fix Lokesh. Looks fine to me.
-> > 
-> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > 
-> Looks like nobody else has picked this up so I'll queue this along
-> with few other omap warnings and regressions.
+> This fixes the regression on my panda es for musb port:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Hmm actually this might require some more discussion. If we make
-it use regular initcalls, then the ugly ifdefs can be left
-out. Is there a reason to init this early, can't we just use regular
-initcalls?
-
-Dropping the patch for now anyways.
+Looks like nobody has picked this one up and we need it to
+fix the musb regression on omap, so I'll queue these up.
 
 Regards,
 
