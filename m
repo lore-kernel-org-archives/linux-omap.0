@@ -1,51 +1,79 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 4/4] OMAP: mtd: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Thu, 25 Oct 2012 08:22:55 -0500
-Message-ID: <50893D2F.6080205@ti.com>
-References: <1350935758-9215-1-git-send-email-zonque@gmail.com> <1350935758-9215-5-git-send-email-zonque@gmail.com> <50889BB2.3090107@ti.com> <508909CC.9000000@gmail.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4 6/7] usb: dwc3-omap: Minor fixes to get dt working
+Date: Thu, 25 Oct 2012 15:41:44 +0200
+Message-ID: <50894198.40003@ti.com>
+References: <1350307680-24938-1-git-send-email-kishon@ti.com>
+ <1350307680-24938-7-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37427 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759522Ab2JYNW7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 09:22:59 -0400
-In-Reply-To: <508909CC.9000000@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1350307680-24938-7-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
 
+Hi Kishon,
 
-On 10/25/2012 04:43 AM, Daniel Mack wrote:
-> Hi Jon,
+On 10/15/2012 03:27 PM, Kishon Vijay Abraham I wrote:
+> Includes few minor fixes in dwc3-omap like populating the compatible
+> string in a correct way, extracting the utmi-mode property properly and
+> changing the index of get_irq since irq of core is removed from hwmod
+> entry.
+> Also updated the documentation with dwc3-omap device tree binding
+> information.
 > 
-> On 25.10.2012 03:53, Jon Hunter wrote:
->>
->> On 10/22/2012 02:55 PM, Daniel Mack wrote:
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/usb/dwc3/dwc3-omap.c |   14 ++++++--------
+>  1 file changed, 6 insertions(+), 8 deletions(-)
 > 
->>> +Example for an AM33xx board:
->>> +
->>> +	gpmc: gpmc@50000000 {
->>> +		compatible = "ti,gpmc";
->>> +		ti,hwmods = "gpmc";
->>> +		reg = <0x50000000 0x1000000>;
->>
->> Nit-pick, that size is quite large for a register range. I recommend
->> looking at the HWMOD data file
->> (arch/arm/mach-omap2/omap_hwmod_33xx_data.c) and see how much space is
->> allocated for the registers (see structure am33xx_gpmc_addr_space).
-> 
-> Yeah but reserving the entire memory as per the reference manual also
-> prvents other from poking around in the same register space. Is there a
-> scenario in which it would of disadvantage to reserve all that memory?
+> diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+> index b84ddf3..10aad46 100644
+> --- a/drivers/usb/dwc3/dwc3-omap.c
+> +++ b/drivers/usb/dwc3/dwc3-omap.c
+> @@ -318,11 +318,10 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+>  	struct resource		*res;
+>  	struct device		*dev = &pdev->dev;
+>  
+> -	int			size;
+>  	int			ret = -ENOMEM;
+>  	int			irq;
+>  
+> -	const u32		*utmi_mode;
+> +	u32			utmi_mode;
+>  	u32			reg;
+>  
+>  	void __iomem		*base;
+> @@ -336,13 +335,13 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
+>  
+>  	platform_set_drvdata(pdev, omap);
+>  
+> -	irq = platform_get_irq(pdev, 1);
+> +	irq = platform_get_irq(pdev, 0);
 
-1. It chews up a large chunk of virtual memory space unnecessarily. For
-   devices not using HIGHMEM and wish to use say 512MB of RAM, virtual
-   memory space can be constrained.
-2. We don't do that today probably because of #1.
+Cannot you use the name of the resource to avoid that kind of trick?
+This is for that reason that we added the resource name in DTS :-)
 
-Cheers
-Jon
+>  	if (irq < 0) {
+>  		dev_err(dev, "missing IRQ resource\n");
+>  		return -EINVAL;
+>  	}
+>  
+> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+
+Same here.
+
+Regards,
+Benoit
