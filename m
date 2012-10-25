@@ -1,299 +1,525 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 07/13] ARM: OMAP2xxx: APLL/CM: convert to use
- omap2_cm_wait_module_ready()
-Date: Thu, 25 Oct 2012 17:21:17 -0600
-Message-ID: <20121025232117.17558.41886.stgit@dusk.lan>
+Subject: [PATCH 10/13] ARM: OMAP2+: PRCM: split and relocate the PRM/CM
+ globals setup
+Date: Thu, 25 Oct 2012 17:21:20 -0600
+Message-ID: <20121025232119.17558.41615.stgit@dusk.lan>
 References: <20121025231818.17558.57884.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38288 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38295 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292Ab2JYXYE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 19:24:04 -0400
+	with ESMTP id S1752321Ab2JYXYF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 19:24:05 -0400
 In-Reply-To: <20121025231818.17558.57884.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Convert the OMAP2xxx APLL code to use omap2_cm_wait_module_ready(),
-and move the low-level CM register manipulation functions to
-mach-omap2/cm2xxx.c.  The objectives here are to remove the dependency
-on the deprecated omap2_cm_wait_idlest() function in
-mach-omap2/prcm.c, so that code can be removed later; and move
-low-level register accesses to the CM IP block to the CM code, which
-will soon be moved into drivers/.
+Split omap2_set_globals_prcm() into PRM, CM, and PRCM_MPU variants, since
+these are all separate IP blocks.  This should make it easier to move the
+PRM, CM, PRCM_MPU code into drivers/ in future patchsets.
+
+At this point arch/arm/plat-omap/include/plat/prcm.h is empty; a
+subsequent patch will remove it, and remove the #include from all the
+files that #include it.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clkt2xxx_apll.c   |   56 +++++++---------------------
- arch/arm/mach-omap2/clock2420_data.c  |    1 -
- arch/arm/mach-omap2/clock2430_data.c  |    1 -
- arch/arm/mach-omap2/clock2xxx.h       |    2 +
- arch/arm/mach-omap2/cm-regbits-24xx.h |    2 +
- arch/arm/mach-omap2/cm2xxx.c          |   65 ++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/cm2xxx_3xxx.h     |    6 +++
- 7 files changed, 85 insertions(+), 48 deletions(-)
+ arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |    2 +
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    2 +
+ arch/arm/mach-omap2/cm.h                     |    8 ++++
+ arch/arm/mach-omap2/cm2xxx_3xxx.h            |    2 +
+ arch/arm/mach-omap2/cm_common.c              |   22 +++++++++++
+ arch/arm/mach-omap2/cminst44xx.h             |    2 +
+ arch/arm/mach-omap2/io.c                     |   51 ++++++++++++++------------
+ arch/arm/mach-omap2/mcbsp.c                  |    2 +
+ arch/arm/mach-omap2/omap4-common.c           |    1 +
+ arch/arm/mach-omap2/prcm-common.h            |   16 --------
+ arch/arm/mach-omap2/prcm.c                   |   19 ----------
+ arch/arm/mach-omap2/prcm_mpu44xx.c           |   17 +++++++++
+ arch/arm/mach-omap2/prcm_mpu44xx.h           |    9 ++++-
+ arch/arm/mach-omap2/prm.h                    |    7 +++-
+ arch/arm/mach-omap2/prm_common.c             |   15 ++++++++
+ arch/arm/mach-omap2/prminst44xx.h            |    2 +
+ arch/arm/plat-omap/include/plat/prcm.h       |    6 +--
+ 17 files changed, 111 insertions(+), 72 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_apll.c b/arch/arm/mach-omap2/clkt2xxx_apll.c
-index 3d2f67e..d47f6f7 100644
---- a/arch/arm/mach-omap2/clkt2xxx_apll.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_apll.c
-@@ -38,44 +38,16 @@
- #define APLLS_CLKIN_13MHZ		2
- #define APLLS_CLKIN_12MHZ		3
+diff --git a/arch/arm/mach-omap2/clkt2xxx_dpllcore.c b/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
+index 38a06d9..53d45bc 100644
+--- a/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
++++ b/arch/arm/mach-omap2/clkt2xxx_dpllcore.c
+@@ -32,7 +32,7 @@
+ #include "clock.h"
+ #include "clock2xxx.h"
+ #include "opp2xxx.h"
+-#include "cm2xxx_3xxx.h"
++#include "cm2xxx.h"
+ #include "cm-regbits-24xx.h"
  
--void __iomem *cm_idlest_pll;
--
- /* Private functions */
+ /* #define DOWN_VARIABLE_DPLL 1 */		/* Experimental */
+diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+index f9c71f3..18ef044 100644
+--- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
++++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+@@ -41,7 +41,7 @@
+ #include "clock.h"
+ #include "clock2xxx.h"
+ #include "opp2xxx.h"
+-#include "cm2xxx_3xxx.h"
++#include "cm2xxx.h"
+ #include "cm-regbits-24xx.h"
  
--/* Enable an APLL if off */
--static int omap2_clk_apll_enable(struct clk *clk, u32 status_mask)
--{
--	u32 cval, apll_mask;
--
--	apll_mask = EN_APLL_LOCKED << clk->enable_bit;
--
--	cval = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
--
--	if ((cval & apll_mask) == apll_mask)
--		return 0;   /* apll already enabled */
--
--	cval &= ~apll_mask;
--	cval |= apll_mask;
--	omap2_cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
--
--	omap2_cm_wait_idlest(cm_idlest_pll, status_mask,
--			     OMAP24XX_CM_IDLEST_VAL, __clk_get_name(clk));
--
--	/*
--	 * REVISIT: Should we return an error code if omap2_wait_clock_ready()
--	 * fails?
--	 */
--	return 0;
--}
--
--static int omap2_clk_apll96_enable(struct clk *clk)
-+static int _apll96_enable(struct clk *clk)
- {
--	return omap2_clk_apll_enable(clk, OMAP24XX_ST_96M_APLL_MASK);
-+	return omap2xxx_cm_apll96_enable();
- }
- 
--static int omap2_clk_apll54_enable(struct clk *clk)
-+static int _apll54_enable(struct clk *clk)
- {
--	return omap2_clk_apll_enable(clk, OMAP24XX_ST_54M_APLL_MASK);
-+	return omap2xxx_cm_apll54_enable();
- }
- 
- static void _apll96_allow_idle(struct clk *clk)
-@@ -98,28 +70,28 @@ static void _apll54_deny_idle(struct clk *clk)
- 	omap2xxx_cm_set_apll54_disable_autoidle();
- }
- 
--/* Stop APLL */
--static void omap2_clk_apll_disable(struct clk *clk)
-+static void _apll96_disable(struct clk *clk)
- {
--	u32 cval;
-+	omap2xxx_cm_apll96_disable();
-+}
- 
--	cval = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
--	cval &= ~(EN_APLL_LOCKED << clk->enable_bit);
--	omap2_cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
-+static void _apll54_disable(struct clk *clk)
-+{
-+	omap2xxx_cm_apll54_disable();
- }
- 
- /* Public data */
- 
- const struct clkops clkops_apll96 = {
--	.enable		= omap2_clk_apll96_enable,
--	.disable	= omap2_clk_apll_disable,
-+	.enable		= _apll96_enable,
-+	.disable	= _apll96_disable,
- 	.allow_idle	= _apll96_allow_idle,
- 	.deny_idle	= _apll96_deny_idle,
- };
- 
- const struct clkops clkops_apll54 = {
--	.enable		= omap2_clk_apll54_enable,
--	.disable	= omap2_clk_apll_disable,
-+	.enable		= _apll54_enable,
-+	.disable	= _apll54_disable,
- 	.allow_idle	= _apll54_allow_idle,
- 	.deny_idle	= _apll54_deny_idle,
- };
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index 405a07a..274244f 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1930,7 +1930,6 @@ int __init omap2420_clk_init(void)
- 	struct omap_clk *c;
- 
- 	prcm_clksrc_ctrl = OMAP2420_PRCM_CLKSRC_CTRL;
--	cm_idlest_pll = OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST);
- 	cpu_mask = RATE_IN_242X;
- 	rate_table = omap2420_rate_table;
- 
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index 0664fc3..9f5a471 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -2029,7 +2029,6 @@ int __init omap2430_clk_init(void)
- 	struct omap_clk *c;
- 
- 	prcm_clksrc_ctrl = OMAP2430_PRCM_CLKSRC_CTRL;
--	cm_idlest_pll = OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST);
- 	cpu_mask = RATE_IN_243X;
- 	rate_table = omap2430_rate_table;
- 
-diff --git a/arch/arm/mach-omap2/clock2xxx.h b/arch/arm/mach-omap2/clock2xxx.h
-index 25b8d02..ce809c9 100644
---- a/arch/arm/mach-omap2/clock2xxx.h
-+++ b/arch/arm/mach-omap2/clock2xxx.h
-@@ -35,7 +35,7 @@ int omap2430_clk_init(void);
- #define omap2430_clk_init()	do { } while(0)
- #endif
- 
--extern void __iomem *prcm_clksrc_ctrl, *cm_idlest_pll;
-+extern void __iomem *prcm_clksrc_ctrl;
- 
- extern const struct clkops clkops_omap2430_i2chs_wait;
- extern const struct clkops clkops_oscck;
-diff --git a/arch/arm/mach-omap2/cm-regbits-24xx.h b/arch/arm/mach-omap2/cm-regbits-24xx.h
-index 6862904..11eaf16 100644
---- a/arch/arm/mach-omap2/cm-regbits-24xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-24xx.h
-@@ -333,7 +333,9 @@
- #define OMAP24XX_EN_DPLL_MASK				(0x3 << 0)
- 
- /* CM_IDLEST_CKGEN */
-+#define OMAP24XX_ST_54M_APLL_SHIFT			9
- #define OMAP24XX_ST_54M_APLL_MASK			(1 << 9)
-+#define OMAP24XX_ST_96M_APLL_SHIFT			8
- #define OMAP24XX_ST_96M_APLL_MASK			(1 << 8)
- #define OMAP24XX_ST_54M_CLK_MASK			(1 << 6)
- #define OMAP24XX_ST_12M_CLK_MASK			(1 << 5)
-diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
-index 6416501..e96cd70 100644
---- a/arch/arm/mach-omap2/cm2xxx.c
-+++ b/arch/arm/mach-omap2/cm2xxx.c
-@@ -35,6 +35,9 @@
- #define OMAP2XXX_APLL_AUTOIDLE_DISABLE			0x0
- #define OMAP2XXX_APLL_AUTOIDLE_LOW_POWER_STOP		0x3
- 
-+/* CM_IDLEST_PLL bit value offset for APLLs (OMAP2xxx only) */
-+#define EN_APLL_LOCKED					3
-+
- static const u8 omap2xxx_cm_idlest_offs[] = {
- 	CM_IDLEST1, CM_IDLEST2, OMAP2430_CM_IDLEST3, OMAP24XX_CM_IDLEST4
- };
-@@ -99,7 +102,7 @@ void omap2xxx_cm_set_dpll_auto_low_power_stop(void)
- }
- 
+ const struct prcm_config *curr_prcm_set;
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index e419ecb..93473f9 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -1,7 +1,7 @@
  /*
-- * APLL autoidle control
-+ * APLL control
-  */
- 
- static void _omap2xxx_set_apll_autoidle(u8 m, u32 mask)
-@@ -136,6 +139,65 @@ void omap2xxx_cm_set_apll96_auto_low_power_stop(void)
- 				    OMAP24XX_AUTO_96M_MASK);
- }
- 
-+/* Enable an APLL if off */
-+static int _omap2xxx_apll_enable(u8 enable_bit, u8 status_bit)
-+{
-+	u32 v, m;
-+
-+	m = EN_APLL_LOCKED << enable_bit;
-+
-+	v = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
-+	if (v & m)
-+		return 0;   /* apll already enabled */
-+
-+	v |= m;
-+	omap2_cm_write_mod_reg(v, PLL_MOD, CM_CLKEN);
-+
-+	omap2xxx_cm_wait_module_ready(PLL_MOD, 1, status_bit);
-+
-+	/*
-+	 * REVISIT: Should we return an error code if
-+	 * omap2xxx_cm_wait_module_ready() fails?
-+	 */
-+	return 0;
-+}
-+
-+/* Stop APLL */
-+static void _omap2xxx_apll_disable(u8 enable_bit)
-+{
-+	u32 v;
-+
-+	v = omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
-+	v &= ~(EN_APLL_LOCKED << enable_bit);
-+	omap2_cm_write_mod_reg(v, PLL_MOD, CM_CLKEN);
-+}
-+
-+/* Enable an APLL if off */
-+int omap2xxx_cm_apll54_enable(void)
-+{
-+	return _omap2xxx_apll_enable(OMAP24XX_EN_54M_PLL_SHIFT,
-+				     OMAP24XX_ST_54M_APLL_SHIFT);
-+}
-+
-+/* Enable an APLL if off */
-+int omap2xxx_cm_apll96_enable(void)
-+{
-+	return _omap2xxx_apll_enable(OMAP24XX_EN_96M_PLL_SHIFT,
-+				     OMAP24XX_ST_96M_APLL_SHIFT);
-+}
-+
-+/* Stop APLL */
-+void omap2xxx_cm_apll54_disable(void)
-+{
-+	_omap2xxx_apll_disable(OMAP24XX_EN_54M_PLL_SHIFT);
-+}
-+
-+/* Stop APLL */
-+void omap2xxx_cm_apll96_disable(void)
-+{
-+	_omap2xxx_apll_disable(OMAP24XX_EN_96M_PLL_SHIFT);
-+}
-+
- /*
+  * OMAP2+ Clock Management prototypes
   *
+- * Copyright (C) 2007-2009 Texas Instruments, Inc.
++ * Copyright (C) 2007-2009, 2012 Texas Instruments, Inc.
+  * Copyright (C) 2007-2009 Nokia Corporation
+  *
+  * Written by Paul Walmsley
+@@ -22,6 +22,12 @@
   */
-@@ -252,4 +314,3 @@ struct clkdm_ops omap2_clkdm_operations = {
- 	.clkdm_clk_enable	= omap2xxx_clkdm_clk_enable,
- 	.clkdm_clk_disable	= omap2xxx_clkdm_clk_disable,
- };
--
+ #define MAX_MODULE_READY_TIME		2000
+ 
++# ifndef __ASSEMBLER__
++extern void __iomem *cm_base;
++extern void __iomem *cm2_base;
++extern void omap2_set_globals_cm(void __iomem *cm, void __iomem *cm2);
++# endif
++
+ /*
+  * MAX_MODULE_DISABLE_TIME: max duration in microseconds to wait for
+  * the PRCM to request that a module enter the inactive state in the
 diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.h b/arch/arm/mach-omap2/cm2xxx_3xxx.h
-index 0e26bb1..f74a5d1 100644
+index f74a5d1..98e6b3c 100644
 --- a/arch/arm/mach-omap2/cm2xxx_3xxx.h
 +++ b/arch/arm/mach-omap2/cm2xxx_3xxx.h
-@@ -96,6 +96,11 @@ static inline u32 omap2_cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
- 	return omap2_cm_rmw_mod_reg_bits(bits, 0x0, module, idx);
- }
+@@ -16,7 +16,7 @@
+ #ifndef __ARCH_ASM_MACH_OMAP2_CM2XXX_3XXX_H
+ #define __ARCH_ASM_MACH_OMAP2_CM2XXX_3XXX_H
  
-+extern int omap2xxx_cm_apll54_enable(void);
-+extern void omap2xxx_cm_apll54_disable(void);
-+extern int omap2xxx_cm_apll96_enable(void);
-+extern void omap2xxx_cm_apll96_disable(void);
+-#include "prcm-common.h"
++#include "cm.h"
+ 
+ /*
+  * Module specific CM register offsets from CM_BASE + domain offset
+diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
+index 561969b..0bab493 100644
+--- a/arch/arm/mach-omap2/cm_common.c
++++ b/arch/arm/mach-omap2/cm_common.c
+@@ -2,7 +2,7 @@
+  * OMAP2+ common Clock Management (CM) IP block functions
+  *
+  * Copyright (C) 2012 Texas Instruments, Inc.
+- * Paul Walmsley <paul@pwsan.com>
++ * Paul Walmsley
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -17,6 +17,7 @@
+ #include "cm2xxx.h"
+ #include "cm3xxx.h"
+ #include "cm44xx.h"
++#include "common.h"
+ 
+ /*
+  * cm_ll_data: function pointers to SoC-specific implementations of
+@@ -25,6 +26,25 @@
+ static struct cm_ll_data null_cm_ll_data;
+ static struct cm_ll_data *cm_ll_data = &null_cm_ll_data;
+ 
++/* cm_base: base virtual address of the CM IP block */
++void __iomem *cm_base;
++
++/* cm2_base: base virtual address of the CM2 IP block (OMAP44xx only) */
++void __iomem *cm2_base;
++
++/**
++ * omap2_set_globals_cm - set the CM/CM2 base addresses (for early use)
++ * @cm: CM base virtual address
++ * @cm2: CM2 base virtual address (if present on the booted SoC)
++ *
++ * XXX Will be replaced when the PRM/CM drivers are completed.
++ */
++void __init omap2_set_globals_cm(void __iomem *cm, void __iomem *cm2)
++{
++	cm_base = cm;
++	cm2_base = cm2;
++}
++
+ /**
+  * cm_split_idlest_reg - split CM_IDLEST reg addr into its components
+  * @idlest_reg: CM_IDLEST* virtual address
+diff --git a/arch/arm/mach-omap2/cminst44xx.h b/arch/arm/mach-omap2/cminst44xx.h
+index d69fdef..bd7bab8 100644
+--- a/arch/arm/mach-omap2/cminst44xx.h
++++ b/arch/arm/mach-omap2/cminst44xx.h
+@@ -38,4 +38,6 @@ extern u32 omap4_cminst_clear_inst_reg_bits(u32 bits, u8 part, s16 inst,
+ extern u32 omap4_cminst_read_inst_reg_bits(u8 part, u16 inst, s16 idx,
+ 					   u32 mask);
+ 
++extern void omap_cm_base_init(void);
 +
  #endif
- 
- /* CM register bits shared between 24XX and 3430 */
-@@ -111,5 +116,4 @@ static inline u32 omap2_cm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
- /* CM_IDLEST_GFX */
- #define OMAP_ST_GFX_MASK				(1 << 0)
- 
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index a52d399..8573e6c 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -48,7 +48,11 @@
+ #include "control.h"
+ #include "cm2xxx.h"
+ #include "cm3xxx.h"
 -
++#include "prm.h"
++#include "cm.h"
++#include "prcm_mpu44xx.h"
++#include "prminst44xx.h"
++#include "cminst44xx.h"
+ /*
+  * The machine specific code may provide the extra mapping besides the
+  * default mapping provided here.
+@@ -387,9 +391,8 @@ void __init omap2420_init_early(void)
+ 			       OMAP2_L3_IO_ADDRESS(OMAP2420_SMS_BASE));
+ 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP242X_CTRL_BASE),
+ 				  NULL);
+-	omap2_set_globals_prcm(OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE),
+-			       NULL, NULL);
++	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE));
++	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE), NULL);
+ 	omap2xxx_check_revision();
+ 	omap2xxx_cm_init();
+ 	omap_common_init_early();
+@@ -417,9 +420,8 @@ void __init omap2430_init_early(void)
+ 			       OMAP2_L3_IO_ADDRESS(OMAP243X_SMS_BASE));
+ 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP243X_CTRL_BASE),
+ 				  NULL);
+-	omap2_set_globals_prcm(OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE),
+-			       NULL, NULL);
++	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE));
++	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE), NULL);
+ 	omap2xxx_check_revision();
+ 	omap2xxx_cm_init();
+ 	omap_common_init_early();
+@@ -451,9 +453,8 @@ void __init omap3_init_early(void)
+ 			       OMAP2_L3_IO_ADDRESS(OMAP343X_SMS_BASE));
+ 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP343X_CTRL_BASE),
+ 				  NULL);
+-	omap2_set_globals_prcm(OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE),
+-			       NULL, NULL);
++	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE));
++	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE), NULL);
+ 	omap3xxx_check_revision();
+ 	omap3xxx_check_features();
+ 	omap3xxx_cm_init();
+@@ -492,9 +493,8 @@ void __init ti81xx_init_early(void)
+ 			      OMAP2_L4_IO_ADDRESS(TI81XX_TAP_BASE));
+ 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(TI81XX_CTRL_BASE),
+ 				  NULL);
+-	omap2_set_globals_prcm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE),
+-			       OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE),
+-			       NULL, NULL);
++	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE));
++	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE), NULL);
+ 	omap3xxx_check_revision();
+ 	ti81xx_check_features();
+ 	omap_common_init_early();
+@@ -556,9 +556,8 @@ void __init am33xx_init_early(void)
+ 			      AM33XX_L4_WK_IO_ADDRESS(AM33XX_TAP_BASE));
+ 	omap2_set_globals_control(AM33XX_L4_WK_IO_ADDRESS(AM33XX_CTRL_BASE),
+ 				  NULL);
+-	omap2_set_globals_prcm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE),
+-			       AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE),
+-			       NULL, NULL);
++	omap2_set_globals_prm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE));
++	omap2_set_globals_cm(AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRCM_BASE), NULL);
+ 	omap3xxx_check_revision();
+ 	ti81xx_check_features();
+ 	omap_common_init_early();
+@@ -578,10 +577,12 @@ void __init omap4430_init_early(void)
+ 			      OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE));
+ 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
+ 				  OMAP2_L4_IO_ADDRESS(OMAP443X_CTRL_BASE));
+-	omap2_set_globals_prcm(OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
++	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE));
++	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP4430_CM_BASE),
++			     OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE));
++	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE));
++	omap_prm_base_init();
++	omap_cm_base_init();
+ 	omap4xxx_check_revision();
+ 	omap4xxx_check_features();
+ 	omap_common_init_early();
+@@ -608,10 +609,12 @@ void __init omap5_init_early(void)
+ 			      OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE));
+ 	omap2_set_globals_control(OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
+ 				  OMAP2_L4_IO_ADDRESS(OMAP54XX_CTRL_BASE));
+-	omap2_set_globals_prcm(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRM_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_AON_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE),
+-			       OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
++	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRM_BASE));
++	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_AON_BASE),
++			     OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE));
++	omap2_set_globals_prcm_mpu(OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE));
++	omap_prm_base_init();
++	omap_cm_base_init();
+ 	omap5xxx_check_revision();
+ 	omap_common_init_early();
+ }
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 37f8f94..3e6e3e9 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -28,7 +28,7 @@
+  * FIXME: Find a mechanism to enable/disable runtime the McBSP ICLK autoidle.
+  * Sidetone needs non-gated ICLK and sidetone autoidle is broken.
+  */
+-#include "cm2xxx_3xxx.h"
++#include "cm3xxx.h"
+ #include "cm-regbits-34xx.h"
+ 
+ static int omap3_enable_st_clock(unsigned int id, bool enable)
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 5348788..f207f88 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -36,6 +36,7 @@
+ #include "common.h"
+ #include "hsmmc.h"
+ #include "prminst44xx.h"
++#include "prcm_mpu44xx.h"
+ #include "omap4-sar-layout.h"
+ 
+ #ifdef CONFIG_CACHE_L2X0
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 72df974..b25a32a 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -421,22 +421,6 @@
+ #define MAX_IOPAD_LATCH_TIME			100
+ 
+ # ifndef __ASSEMBLER__
+-extern void __iomem *prm_base;
+-extern void __iomem *cm_base;
+-extern void __iomem *cm2_base;
+-extern void __iomem *prcm_mpu_base;
+-
+-#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+-extern void omap_prm_base_init(void);
+-extern void omap_cm_base_init(void);
+-#else
+-static inline void omap_prm_base_init(void)
+-{
+-}
+-static inline void omap_cm_base_init(void)
+-{
+-}
+-#endif
+ 
+ /**
+  * struct omap_prcm_irq - describes a PRCM interrupt bit
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 827769c..8a603fe 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -39,25 +39,6 @@
+ #include "prm-regbits-44xx.h"
+ #include "control.h"
+ 
+-void __iomem *prm_base;
+-void __iomem *cm_base;
+-void __iomem *cm2_base;
+-void __iomem *prcm_mpu_base;
+-
+-
+-void __init omap2_set_globals_prcm(void __iomem *prm, void __iomem *cm,
+-				   void __iomem *cm2, void __iomem *prcm_mpu)
+-{
+-	prm_base = prm;
+-	cm_base = cm;
+-	cm2_base = cm2;
+-	prcm_mpu_base = prcm_mpu;
+-
+-	if (cpu_is_omap44xx() || soc_is_omap54xx()) {
+-		omap_prm_base_init();
+-		omap_cm_base_init();
+-	}
+-}
+ 
+ /*
+  * Stubbed functions so that common files continue to build when
+diff --git a/arch/arm/mach-omap2/prcm_mpu44xx.c b/arch/arm/mach-omap2/prcm_mpu44xx.c
+index 928dbd4..c30e44a 100644
+--- a/arch/arm/mach-omap2/prcm_mpu44xx.c
++++ b/arch/arm/mach-omap2/prcm_mpu44xx.c
+@@ -20,6 +20,12 @@
+ #include "prcm_mpu44xx.h"
+ #include "cm-regbits-44xx.h"
+ 
++/*
++ * prcm_mpu_base: the virtual address of the start of the PRCM_MPU IP
++ *   block registers
++ */
++void __iomem *prcm_mpu_base;
++
+ /* PRCM_MPU low-level functions */
+ 
+ u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 reg)
+@@ -43,3 +49,14 @@ u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 reg)
+ 
+ 	return v;
+ }
++
++/**
++ * omap2_set_globals_prcm_mpu - set the MPU PRCM base address (for early use)
++ * @prcm_mpu: PRCM_MPU base virtual address
++ *
++ * XXX Will be replaced when the PRM/CM drivers are completed.
++ */
++void __init omap2_set_globals_prcm_mpu(void __iomem *prcm_mpu)
++{
++	prcm_mpu_base = prcm_mpu;
++}
+diff --git a/arch/arm/mach-omap2/prcm_mpu44xx.h b/arch/arm/mach-omap2/prcm_mpu44xx.h
+index 8a6e250..884af7b 100644
+--- a/arch/arm/mach-omap2/prcm_mpu44xx.h
++++ b/arch/arm/mach-omap2/prcm_mpu44xx.h
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP44xx PRCM MPU instance offset macros
+  *
+- * Copyright (C) 2010 Texas Instruments, Inc.
++ * Copyright (C) 2010, 2012 Texas Instruments, Inc.
+  * Copyright (C) 2010 Nokia Corporation
+  *
+  * Paul Walmsley (paul@pwsan.com)
+@@ -25,6 +25,12 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_PRCM_MPU44XX_H
+ #define __ARCH_ARM_MACH_OMAP2_PRCM_MPU44XX_H
+ 
++#include "common.h"
++
++# ifndef __ASSEMBLER__
++extern void __iomem *prcm_mpu_base;
++# endif
++
+ #define OMAP4430_PRCM_MPU_BASE			0x48243000
+ 
+ #define OMAP44XX_PRCM_MPU_REGADDR(inst, reg)				\
+@@ -98,6 +104,7 @@ extern u32 omap4_prcm_mpu_read_inst_reg(s16 inst, u16 idx);
+ extern void omap4_prcm_mpu_write_inst_reg(u32 val, s16 inst, u16 idx);
+ extern u32 omap4_prcm_mpu_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst,
+ 					    s16 idx);
++extern void __init omap2_set_globals_prcm_mpu(void __iomem *prcm_mpu);
+ # endif
+ 
  #endif
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index c30ab5d..fb7dee2 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP2/3/4 Power/Reset Management (PRM) bitfield definitions
+  *
+- * Copyright (C) 2007-2009 Texas Instruments, Inc.
++ * Copyright (C) 2007-2009, 2012 Texas Instruments, Inc.
+  * Copyright (C) 2010 Nokia Corporation
+  *
+  * Paul Walmsley
+@@ -15,6 +15,11 @@
+ 
+ #include "prcm-common.h"
+ 
++# ifndef __ASSEMBLER__
++extern void __iomem *prm_base;
++extern void omap2_set_globals_prm(void __iomem *prm);
++# endif
++
+ /*
+  * 24XX: PM_PWSTST_CORE, PM_PWSTST_GFX, PM_PWSTST_MPU, PM_PWSTST_DSP
+  *
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index e200e4f..c089246 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -31,6 +31,7 @@
+ #include "prm2xxx.h"
+ #include "prm3xxx.h"
+ #include "prm44xx.h"
++#include "common.h"
+ 
+ /*
+  * OMAP_PRCM_MAX_NR_PENDING_REG: maximum number of PRM_IRQ*_MPU regs
+@@ -55,6 +56,9 @@ static struct irq_chip_generic **prcm_irq_chips;
+  */
+ static struct omap_prcm_irq_setup *prcm_irq_setup;
+ 
++/* prm_base: base virtual address of the PRM IP block */
++void __iomem *prm_base;
++
+ /*
+  * prm_ll_data: function pointers to SoC-specific implementations of
+  * common PRM functions
+@@ -329,6 +333,17 @@ err:
+ }
+ 
+ /**
++ * omap2_set_globals_prm - set the PRM base address (for early use)
++ * @prm: PRM base virtual address
++ *
++ * XXX Will be replaced when the PRM/CM drivers are completed.
++ */
++void __init omap2_set_globals_prm(void __iomem *prm)
++{
++	prm_base = prm;
++}
++
++/**
+  * prm_read_reset_sources - return the sources of the SoC's last reset
+  *
+  * Return a u32 bitmask representing the reset sources that caused the
+diff --git a/arch/arm/mach-omap2/prminst44xx.h b/arch/arm/mach-omap2/prminst44xx.h
+index 46f2efb..a2ede2d 100644
+--- a/arch/arm/mach-omap2/prminst44xx.h
++++ b/arch/arm/mach-omap2/prminst44xx.h
+@@ -30,4 +30,6 @@ extern int omap4_prminst_assert_hardreset(u8 shift, u8 part, s16 inst,
+ extern int omap4_prminst_deassert_hardreset(u8 shift, u8 part, s16 inst,
+ 					    u16 rstctrl_offs);
+ 
++extern void omap_prm_base_init(void);
++
+ #endif
+diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
+index 3ccee9f..08eda93 100644
+--- a/arch/arm/plat-omap/include/plat/prcm.h
++++ b/arch/arm/plat-omap/include/plat/prcm.h
+@@ -27,11 +27,7 @@
+ #ifndef __ASM_ARM_ARCH_OMAP_PRCM_H
+ #define __ASM_ARM_ARCH_OMAP_PRCM_H
+ 
+-#include <linux/kernel.h>
+-#include <linux/io.h>
+-
+-void __init omap2_set_globals_prcm(void __iomem *prm, void __iomem *cm,
+-				   void __iomem *cm2, void __iomem *prcm_mpu);
++/* XXX To be removed */
+ 
+ #endif
+ 
 
 
