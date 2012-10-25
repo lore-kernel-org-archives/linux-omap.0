@@ -1,84 +1,181 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC PATCH 0/6] ARM: OMAP3+: move smartreflex-class3.c to drivers/power/avs
-Date: Thu, 25 Oct 2012 10:21:23 +0200
-Message-ID: <CAORVsuV9tLQCf+higF4kj4dz==T5Ja6Z++s2byDmUjdNsZTC5A@mail.gmail.com>
+Subject: Re: [RFC PATCH 4/6] ARM: OMAP: SmartReflex: provide SoC integration
+ API for VP
+Date: Thu, 25 Oct 2012 10:27:02 +0200
+Message-ID: <CAORVsuWo0Gd1aBqtpJ7+S663a380kbM7jDbEaq37DGfCmEdFgA@mail.gmail.com>
 References: <1351028641-20832-1-git-send-email-nm@ti.com>
+	<1351028641-20832-5-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:53087 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756284Ab2JYIVY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 04:21:24 -0400
-Received: by mail-vb0-f46.google.com with SMTP id ff1so1591536vbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 01:21:23 -0700 (PDT)
-In-Reply-To: <1351028641-20832-1-git-send-email-nm@ti.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:44442 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932829Ab2JYI1D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 04:27:03 -0400
+Received: by mail-vc0-f174.google.com with SMTP id fk26so1571387vcb.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 01:27:02 -0700 (PDT)
+In-Reply-To: <1351028641-20832-5-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@ti.com>
-Cc: l-o <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>
 
-Hi Nishant,
+Nishant,
 
 On Tue, Oct 23, 2012 at 11:43 PM, Nishanth Menon <nm@ti.com> wrote:
-> smartreflex.c now resides in drivers/power/avs directory, but class driver
-> is in mach-omap2. High time we move it off to drivers/power/avs.
-Great to see the SR fully moved to drivers/.
-
-After review of the code I am OK with the changes besides remarks sent
-on the patches:
-Acked-by: Jean Pihet <j-pihet@ti.com>
-
-I let Kevin comment on the VC/VP aspect though.
-
-> This series *does not* try to fix VP/VC to be voltage regulator OR introduce
-> a new OMAP voltage regulator series. instead, it purely tries to do the minimal
-> changes needed to move code to drivers/power/avs as a start.
+> SoC integration of SmartReflex AVS block is varied. Some use
+> Voltage Processor for a hardware loop in certain OMAP SoC (called
+> hardware loop), while others have just the AVS block without
+> hardware loop automatic calibration mechanism for AVS block
+> to talk through. So provide the Voltage Processor API
+> to allow for SmartReflex class drivers to use the same.
 >
-> Baseline: k.org v3.7-rc2
-> Testing: Platform: beagle XM C1 (3730)
-> while [ 1 ]
-> do
-> echo -n "0" >/sys/kernel/debug/smartreflex/smartreflex_core/autocomp
-> date
-> echo -n "1" >/sys/kernel/debug/smartreflex/smartreflex_core/autocomp
-> done
-> Screen capture after the series: on inductor L5 (VDD2 - core):
-> https://plus.google.com/photos/112464029509057661457/albums/5715034179943520193/5802619719180530114
+> NOTE: SmartReflex class 3 mode of operation mandates VP APIs
+> so, refuse to enable AVS driver if corresponding APIs are
+> not available.
 >
-> RFC for a view if this is ok as an intermediate step.
+> As part of this change, remove the inclusion of voltage.h
+> which is no longer needed as smartreflex.h includes
+> linux/platform_data/voltage-omap.h which contain relevant
+> definitions used here.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/smartreflex-class3.c |   16 +++++++++++++---
+>  arch/arm/mach-omap2/sr_device.c          |    5 +++++
+>  drivers/power/avs/smartreflex.c          |    2 ++
+>  include/linux/power/smartreflex.h        |   18 ++++++++++++++++++
+>  4 files changed, 38 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+> index 1da8f03..201e219 100644
+> --- a/arch/arm/mach-omap2/smartreflex-class3.c
+> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
+> @@ -12,7 +12,6 @@
+>   */
+>
+>  #include <linux/power/smartreflex.h>
+> -#include "voltage.h"
+>
+>  static int sr_class3_enable(struct omap_sr *sr)
+>  {
+> @@ -23,15 +22,26 @@ static int sr_class3_enable(struct omap_sr *sr)
+>                                 __func__, sr->name);
+>                 return -ENODATA;
+>         }
+> +       if (!sr->soc_ops.vp_enable) {
+> +               pr_warn("%s: no VP enable available.Cannot enable %s!!\n",
+> +                       __func__, sr->name);
+> +               return -EINVAL;
+> +       }
+>
+> -       omap_vp_enable(sr->voltdm);
+> +       sr->soc_ops.vp_enable(sr->voltdm);
+>         return sr_enable(sr->voltdm, volt);
+>  }
+>
+>  static int sr_class3_disable(struct omap_sr *sr, int is_volt_reset)
+>  {
+> +       if (!sr->soc_ops.vp_enable) {
+This should be ' if (!sr->soc_ops.vp_disbable) {'.
 
-Thanks!
-Jean
-
+> +               pr_warn("%s: no VP disable available.Cannot disable %s!!\n",
+> +                       __func__, sr->name);
+> +               return -EINVAL;
+> +       }
+>         sr_disable_errgen(sr->voltdm);
+> -       omap_vp_disable(sr->voltdm);
+> +
+> +       sr->soc_ops.vp_disable(sr->voltdm);
+>         sr_disable(sr->voltdm);
+>         if (is_volt_reset)
+>                 voltdm_reset(sr->voltdm);
+> diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+> index f8217a5..6aac2c7 100644
+> --- a/arch/arm/mach-omap2/sr_device.c
+> +++ b/arch/arm/mach-omap2/sr_device.c
+> @@ -139,6 +139,11 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
 >
-> Nishanth Menon (6):
->   PM / AVS / OMAP: move Kconfig definition of smartreflex to avs
->     directory
->   ARM: OMAP: voltage: remove duplicate header definitions
->   ARM: OMAP: voltage: move voltdm_reset to platform_data header
->   ARM: OMAP: SmartReflex: provide SoC integration API for VP
->   ARM: OMAP: SmartReflex: use pr_warn instead of pr_warning
->   PM / AVS / OMAP: move Smartreflex-class3 driver to power/avs
+>         sr_data->enable_on_init = sr_enable_on_init;
 >
->  arch/arm/mach-omap2/Makefile                       |    1 -
->  arch/arm/mach-omap2/sr_device.c                    |    5 ++++
->  arch/arm/mach-omap2/voltage.h                      |    4 ---
->  arch/arm/plat-omap/Kconfig                         |   31 --------------------
->  drivers/power/avs/Kconfig                          |   31 ++++++++++++++++++++
->  drivers/power/avs/Makefile                         |    1 +
->  .../power/avs}/smartreflex-class3.c                |   20 +++++++++----
->  drivers/power/avs/smartreflex.c                    |    2 ++
->  include/linux/platform_data/voltage-omap.h         |    1 +
->  include/linux/power/smartreflex.h                  |   18 ++++++++++++
->  10 files changed, 73 insertions(+), 41 deletions(-)
->  rename {arch/arm/mach-omap2 => drivers/power/avs}/smartreflex-class3.c (75%)
+> +       if (sr_data->voltdm->vp) {
+> +               sr_data->soc_ops.vp_enable = omap_vp_enable;
+> +               sr_data->soc_ops.vp_disable = omap_vp_disable;
+> +       }
+> +
+>         pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
+>                                  NULL, 0, 0);
+>         if (IS_ERR(pdev))
+> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
+> index 24768a2..32a9e3e 100644
+> --- a/drivers/power/avs/smartreflex.c
+> +++ b/drivers/power/avs/smartreflex.c
+> @@ -920,6 +920,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+>         sr_info->pdev = pdev;
+>         sr_info->srid = pdev->id;
+>         sr_info->voltdm = pdata->voltdm;
+> +       sr_info->soc_ops.vp_enable =  pdata->soc_ops.vp_enable;
+> +       sr_info->soc_ops.vp_disable =  pdata->soc_ops.vp_disable;
+>         sr_info->nvalue_table = pdata->nvalue_table;
+>         sr_info->nvalue_count = pdata->nvalue_count;
+>         sr_info->senn_mod = pdata->senn_mod;
+> diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
+> index 4a496eb..203fc64 100644
+> --- a/include/linux/power/smartreflex.h
+> +++ b/include/linux/power/smartreflex.h
+> @@ -143,6 +143,21 @@
+>  #define OMAP3430_SR_ERRWEIGHT          0x04
+>  #define OMAP3430_SR_ERRMAXLIMIT                0x02
 >
-> Regards,
-> Nishanth Menon
+> +/**
+> + * struct omap_sr_soc_ops - SoC specific APIs
+> + * @vp_enable: Voltage Processor enable
+> + * @vp_disable:        Voltage Processor disable
+> + *
+> + * SmartReflex AVS module integration tends to be SoC
+> + * variant. some are integrated with modules like
+> + * Voltage Processor (VP), while, some SoC integration
+> + * donot use VP. Provide that variance here.
+> + */
+> +struct omap_sr_soc_ops {
+> +       void (*vp_enable)(struct voltagedomain *voltdm);
+> +       void (*vp_disable)(struct voltagedomain *voltdm);
+> +};
+> +
+>  struct omap_sr {
+>         char                            *name;
+>         struct list_head                node;
+> @@ -165,6 +180,7 @@ struct omap_sr {
+>         u32                             senp_mod;
+>         u32                             senn_mod;
+>         void __iomem                    *base;
+> +       struct omap_sr_soc_ops          soc_ops;
+>  };
+>
+>  /**
+> @@ -268,6 +284,7 @@ struct omap_sr_nvalue_table {
+>   * @nvalue_table:      table containing the  efuse offsets and nvalues
+>   *                     corresponding to them.
+>   * @voltdm:            Pointer to the voltage domain associated with the SR
+> + * @soc_ops:           SoC specific ops to deal with integration variance
+>   */
+>  struct omap_sr_data {
+>         const char                      *name;
+> @@ -278,6 +295,7 @@ struct omap_sr_data {
+>         bool                            enable_on_init;
+>         struct omap_sr_nvalue_table     *nvalue_table;
+>         struct voltagedomain            *voltdm;
+> +       struct omap_sr_soc_ops          soc_ops;
+>  };
+>
+>  /* Smartreflex module enable/disable interface */
 > --
 > 1.7.9.5
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards,
+Jean
