@@ -1,105 +1,74 @@
-From: Vivek Gautam <gautamvivek1987@gmail.com>
-Subject: Re: [PATCH v2 1/2] USB: dwc3-exynos: Add support for device tree
-Date: Thu, 25 Oct 2012 11:37:33 +0530
-Message-ID: <CAFp+6iG1SuJ=wO61=D_pTdRzkM+t62mN3b7=3cZiom8tigyaBQ@mail.gmail.com>
-References: <1350377157-28465-1-git-send-email-gautam.vivek@samsung.com>
-	<1350377157-28465-2-git-send-email-gautam.vivek@samsung.com>
-	<20121016095333.GD5548@arwen.pp.htv.fi>
-	<507D31B3.40707@ti.com>
-	<20121016100838.GC17416@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/3] drivers: bus: ocp2scp: add pdata support
+Date: Thu, 25 Oct 2012 09:17:22 +0300
+Message-ID: <20121025061722.GB4449@arwen.pp.htv.fi>
+References: <1349675983-23803-1-git-send-email-kishon@ti.com>
+ <1349675983-23803-2-git-send-email-kishon@ti.com>
+ <20121016165043.GS15569@atomide.com>
+ <20121025004806.GK11928@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:39908 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751349Ab2JYGHf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 02:07:35 -0400
-In-Reply-To: <20121016100838.GC17416@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121025004806.GK11928@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com, rob.herring@calxeda.com
-Cc: kishon <kishon@ti.com>, av.tikhomirov@samsung.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-usb@vger.kernel.org, Vivek Gautam <gautam.vivek@samsung.com>, linux-omap@vger.kernel.org
+
+--yEPQxsgoJgBvi8ip
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Oct 16, 2012 at 3:38 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Tue, Oct 16, 2012 at 03:36:43PM +0530, kishon wrote:
->> Hi,
->>
->> On Tuesday 16 October 2012 03:23 PM, Felipe Balbi wrote:
->> >On Tue, Oct 16, 2012 at 02:15:56PM +0530, Vivek Gautam wrote:
->> >>This patch adds support to parse probe data for
->> >>dwc3-exynos driver using device tree.
->> >>
->> >>Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
->> >>---
->> >>  drivers/usb/dwc3/dwc3-exynos.c |   20 ++++++++++++++++++++
->> >>  1 files changed, 20 insertions(+), 0 deletions(-)
->> >>
->> >>diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
->> >>index ca65978..d11ef49 100644
->> >>--- a/drivers/usb/dwc3/dwc3-exynos.c
->> >>+++ b/drivers/usb/dwc3/dwc3-exynos.c
->> >>@@ -21,6 +21,7 @@
->> >>  #include <linux/clk.h>
->> >>  #include <linux/usb/otg.h>
->> >>  #include <linux/usb/nop-usb-xceiv.h>
->> >>+#include <linux/of.h>
->> >>
->> >>  #include "core.h"
->> >>
->> >>@@ -87,6 +88,8 @@ err1:
->> >>    return ret;
->> >>  }
->> >>
->> >>+static u64 dwc3_exynos_dma_mask = DMA_BIT_MASK(32);
->> >>+
->> >>  static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
->> >>  {
->> >>    struct dwc3_exynos_data *pdata = pdev->dev.platform_data;
->> >>@@ -103,6 +106,14 @@ static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
->> >>            goto err0;
->> >>    }
->> >>
->> >>+   /*
->> >>+    * Right now device-tree probed devices don't get dma_mask set.
->> >>+    * Since shared usb code relies on it, set it here for now.
->> >>+    * Once we move to full device tree support this will vanish off.
->> >>+    */
->> >>+   if (!pdev->dev.dma_mask)
->> >>+           pdev->dev.dma_mask = &dwc3_exynos_dma_mask;
->> >
->> >says who ?
->> >
->> >$ git grep -e dma_mask drivers/of/
->> >drivers/of/platform.c:  dev->dev.dma_mask = &dev->archdata.dma_mask;
->> >drivers/of/platform.c:  dev->archdata.dma_mask = 0xffffffffUL;
->> >drivers/of/platform.c:  dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
->> >drivers/of/platform.c:  dev->dev.coherent_dma_mask = ~0;
->> >drivers/of/platform.c:  dev->dma_mask = ~0;
->> >
->> >-ECONFUSED
->>
->> dma_mask is set under some ifdef except for "dev->dma_mask = ~0;".
->> However I agree with you for coherent_dma_mask case.
->
-> indeed. Should we try to patch that instead ?
->
-> Rob, should we set dma_mask at the driver or do you have a nicer way to
-> handle it ??
->
-Can i have suggestions here please ? :)
+On Wed, Oct 24, 2012 at 05:48:07PM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [121016 09:53]:
+> > * Kishon Vijay Abraham I <kishon@ti.com> [121007 23:01]:
+> > > ocp2scp was not having pdata support which makes *musb* fail for non-=
+dt
+> > > boot in OMAP platform. The pdata will have information about the devi=
+ces
+> > > that is connected to ocp2scp. ocp2scp driver will now make use of this
+> > > information to create the devices that is attached to ocp2scp.
+> > >=20
+> > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> >=20
+> > This fixes the regression on my panda es for musb port:
+> >=20
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+>=20
+> Looks like nobody has picked this one up and we need it to
+> fix the musb regression on omap, so I'll queue these up.
 
-> --
-> balbi
->
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
->
+I don't seem to have the patches around in any mailbox :-(
 
-Thanks & Regards
-Vivek
+--=20
+balbi
+
+--yEPQxsgoJgBvi8ip
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQiNlyAAoJEIaOsuA1yqREAyIP/iUSBlnbBi0JeX6Z0birF5ip
+Og42T4LcpMxRMDbyd2otbeL20iLE5cyXOthe24AdeMW7ZY765GGDgiUWCxiUl5XM
+H1aBT+SqCNvuOu2Tr1Jdl3ZbivfXSlKRIxK4al9gk3BNQPAsDSwjvci7QlbXld/Z
+ATW0qK72In6VaMI9xBSh74bdf2XKOJi2fMgI4vkw9gcLwCeNMhz6L+AekY0obThC
+xw9I1XIu4jWwgyw2Gt1uebXwHZTjgOMBDZL7ueEw385Yug6Cu71lptWBd/JPD3j3
+pSww0unIMD3NTcr6LvhOfUVHfp+Z8aMS9Mgs9SzG7Fy0ns3a6+JgSwNDN1Uao+Jk
+xK+Dq/76yj3NiM9o6ddtPksJCD+TTbNpVQPyQe43nD0Itf2f3V0swuNHgYY96oDX
+tsgQUwus8qcoknw5M2PBl0o8BI3q2eonM5Fu93Zk+ANw7v19AhaSXbQbErSKretr
+rmY5vdFMeY6fSx0E5h0VogbXC9yxrxgoNCPGH72akIcZd5T01aeVhvfdKMAs978E
+EB3Tv/tLZGMK9bSnduqtbPOeZZ6eshlb6iKBkb2Wo/svo+x++AcbrMY/R6pjsqVk
+lqWfgew0naBC8wrcLAKQzPw938knf1iaR6CHm/MRmLEPUYDc2D0kGsRB+jN6xIYD
+aXmux3jt6u+8ytPC5BfL
+=G2wd
+-----END PGP SIGNATURE-----
+
+--yEPQxsgoJgBvi8ip--
