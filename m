@@ -1,181 +1,431 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC PATCH 4/6] ARM: OMAP: SmartReflex: provide SoC integration
- API for VP
-Date: Thu, 25 Oct 2012 10:27:02 +0200
-Message-ID: <CAORVsuWo0Gd1aBqtpJ7+S663a380kbM7jDbEaq37DGfCmEdFgA@mail.gmail.com>
-References: <1351028641-20832-1-git-send-email-nm@ti.com>
-	<1351028641-20832-5-git-send-email-nm@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
+Date: Thu, 25 Oct 2012 10:39:01 +0200
+Message-ID: <1466344.HbU9q5zM1q@avalon>
+References: <20121025001913.2082.31062.stgit@muffinssi.local> <20121025002056.2082.45221.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:44442 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932829Ab2JYI1D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 04:27:03 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so1571387vcb.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 01:27:02 -0700 (PDT)
-In-Reply-To: <1351028641-20832-5-git-send-email-nm@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36120 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964801Ab2JYIiM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 04:38:12 -0400
+In-Reply-To: <20121025002056.2082.45221.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: l-o <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
 
-Nishant,
+Hi Tony,
 
-On Tue, Oct 23, 2012 at 11:43 PM, Nishanth Menon <nm@ti.com> wrote:
-> SoC integration of SmartReflex AVS block is varied. Some use
-> Voltage Processor for a hardware loop in certain OMAP SoC (called
-> hardware loop), while others have just the AVS block without
-> hardware loop automatic calibration mechanism for AVS block
-> to talk through. So provide the Voltage Processor API
-> to allow for SmartReflex class drivers to use the same.
->
-> NOTE: SmartReflex class 3 mode of operation mandates VP APIs
-> so, refuse to enable AVS driver if corresponding APIs are
-> not available.
->
-> As part of this change, remove the inclusion of voltage.h
-> which is no longer needed as smartreflex.h includes
-> linux/platform_data/voltage-omap.h which contain relevant
-> definitions used here.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+Thanks for the patch.
+
+On Wednesday 24 October 2012 17:20:56 Tony Lindgren wrote:
+> Looks like the iommu framework does not have generic functions
+> exported for all the needs yet. The hardware specific functions
+> are defined in files like intel-iommu.h and amd-iommu.h. Follow
+> the same standard for omap-iommu.h.
+> 
+> This is needed because we are removing plat and mach includes
+> for ARM common zImage support. Further work should continue
+> in the iommu framework context as only pure platform data will
+> be communicated from arch/arm/*omap*/* code to the iommu
+> framework.
+> 
+> Cc: Joerg Roedel <joerg.roedel@amd.com>
+> Cc: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: Ido Yariv <ido@wizery.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Omar Ramirez Luna <omar.luna@linaro.org>
+> Cc: linux-media@vger.kernel.org
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  arch/arm/mach-omap2/smartreflex-class3.c |   16 +++++++++++++---
->  arch/arm/mach-omap2/sr_device.c          |    5 +++++
->  drivers/power/avs/smartreflex.c          |    2 ++
->  include/linux/power/smartreflex.h        |   18 ++++++++++++++++++
->  4 files changed, 38 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-> index 1da8f03..201e219 100644
-> --- a/arch/arm/mach-omap2/smartreflex-class3.c
-> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
-> @@ -12,7 +12,6 @@
->   */
->
->  #include <linux/power/smartreflex.h>
-> -#include "voltage.h"
->
->  static int sr_class3_enable(struct omap_sr *sr)
->  {
-> @@ -23,15 +22,26 @@ static int sr_class3_enable(struct omap_sr *sr)
->                                 __func__, sr->name);
->                 return -ENODATA;
->         }
-> +       if (!sr->soc_ops.vp_enable) {
-> +               pr_warn("%s: no VP enable available.Cannot enable %s!!\n",
-> +                       __func__, sr->name);
-> +               return -EINVAL;
-> +       }
->
-> -       omap_vp_enable(sr->voltdm);
-> +       sr->soc_ops.vp_enable(sr->voltdm);
->         return sr_enable(sr->voltdm, volt);
->  }
->
->  static int sr_class3_disable(struct omap_sr *sr, int is_volt_reset)
->  {
-> +       if (!sr->soc_ops.vp_enable) {
-This should be ' if (!sr->soc_ops.vp_disbable) {'.
-
-> +               pr_warn("%s: no VP disable available.Cannot disable %s!!\n",
-> +                       __func__, sr->name);
-> +               return -EINVAL;
-> +       }
->         sr_disable_errgen(sr->voltdm);
-> -       omap_vp_disable(sr->voltdm);
+>  arch/arm/mach-omap2/iommu2.c               |    1
+>  arch/arm/plat-omap/include/plat/iommu.h    |   10 +--
+>  arch/arm/plat-omap/include/plat/iovmm.h    |   89
+> ---------------------------- drivers/iommu/omap-iommu-debug.c           |  
+>  2 -
+>  drivers/iommu/omap-iommu.c                 |    1
+>  drivers/iommu/omap-iovmm.c                 |   46 ++++++++++++++
+>  drivers/media/platform/omap3isp/isp.c      |    1
+>  drivers/media/platform/omap3isp/isp.h      |    4 -
+>  drivers/media/platform/omap3isp/ispccdc.c  |    1
+>  drivers/media/platform/omap3isp/ispstat.c  |    1
+>  drivers/media/platform/omap3isp/ispvideo.c |    2 -
+>  include/linux/omap-iommu.h                 |   52 ++++++++++++++++
+>  12 files changed, 107 insertions(+), 103 deletions(-)
+>  delete mode 100644 arch/arm/plat-omap/include/plat/iovmm.h
+>  create mode 100644 include/linux/omap-iommu.h
+> 
+> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+> index eefc379..e8116cf 100644
+> --- a/arch/arm/mach-omap2/iommu2.c
+> +++ b/arch/arm/mach-omap2/iommu2.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/device.h>
+>  #include <linux/jiffies.h>
+>  #include <linux/module.h>
+> +#include <linux/omap-iommu.h>
+>  #include <linux/slab.h>
+>  #include <linux/stringify.h>
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/iommu.h
+> b/arch/arm/plat-omap/include/plat/iommu.h index 7e8c7b6..a4b71b1 100644
+> --- a/arch/arm/plat-omap/include/plat/iommu.h
+> +++ b/arch/arm/plat-omap/include/plat/iommu.h
+> @@ -216,13 +216,10 @@ static inline struct omap_iommu
+> *dev_to_omap_iommu(struct device *dev) #define MMU_RAM_PADDR_SHIFT	12
+>  #define MMU_RAM_PADDR_MASK \
+>  	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
+> -#define MMU_RAM_ENDIAN_SHIFT	9
 > +
-> +       sr->soc_ops.vp_disable(sr->voltdm);
->         sr_disable(sr->voltdm);
->         if (is_volt_reset)
->                 voltdm_reset(sr->voltdm);
-> diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
-> index f8217a5..6aac2c7 100644
-> --- a/arch/arm/mach-omap2/sr_device.c
-> +++ b/arch/arm/mach-omap2/sr_device.c
-> @@ -139,6 +139,11 @@ static int __init sr_dev_init(struct omap_hwmod *oh, void *user)
->
->         sr_data->enable_on_init = sr_enable_on_init;
->
-> +       if (sr_data->voltdm->vp) {
-> +               sr_data->soc_ops.vp_enable = omap_vp_enable;
-> +               sr_data->soc_ops.vp_disable = omap_vp_disable;
-> +       }
+>  #define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
+> -#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
+> -#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
+> -#define MMU_RAM_ELSZ_SHIFT	7
+>  #define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
+> -#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
 > +
->         pdev = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
->                                  NULL, 0, 0);
->         if (IS_ERR(pdev))
-> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-> index 24768a2..32a9e3e 100644
-> --- a/drivers/power/avs/smartreflex.c
-> +++ b/drivers/power/avs/smartreflex.c
-> @@ -920,6 +920,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->         sr_info->pdev = pdev;
->         sr_info->srid = pdev->id;
->         sr_info->voltdm = pdata->voltdm;
-> +       sr_info->soc_ops.vp_enable =  pdata->soc_ops.vp_enable;
-> +       sr_info->soc_ops.vp_disable =  pdata->soc_ops.vp_disable;
->         sr_info->nvalue_table = pdata->nvalue_table;
->         sr_info->nvalue_count = pdata->nvalue_count;
->         sr_info->senn_mod = pdata->senn_mod;
-> diff --git a/include/linux/power/smartreflex.h b/include/linux/power/smartreflex.h
-> index 4a496eb..203fc64 100644
-> --- a/include/linux/power/smartreflex.h
-> +++ b/include/linux/power/smartreflex.h
-> @@ -143,6 +143,21 @@
->  #define OMAP3430_SR_ERRWEIGHT          0x04
->  #define OMAP3430_SR_ERRMAXLIMIT                0x02
->
-> +/**
-> + * struct omap_sr_soc_ops - SoC specific APIs
-> + * @vp_enable: Voltage Processor enable
-> + * @vp_disable:        Voltage Processor disable
+>  #define MMU_RAM_ELSZ_16		(1 << MMU_RAM_ELSZ_SHIFT)
+>  #define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
+>  #define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
+> @@ -269,9 +266,6 @@ extern int omap_iommu_set_isr(const char *name,
+>  				    void *priv),
+>  			 void *isr_priv);
+> 
+> -extern void omap_iommu_save_ctx(struct device *dev);
+> -extern void omap_iommu_restore_ctx(struct device *dev);
+> -
+>  extern int omap_install_iommu_arch(const struct iommu_functions *ops);
+>  extern void omap_uninstall_iommu_arch(const struct iommu_functions *ops);
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/iovmm.h
+> b/arch/arm/plat-omap/include/plat/iovmm.h deleted file mode 100644
+> index 498e57c..0000000
+> --- a/arch/arm/plat-omap/include/plat/iovmm.h
+> +++ /dev/null
+> @@ -1,89 +0,0 @@
+> -/*
+> - * omap iommu: simple virtual address space management
+> - *
+> - * Copyright (C) 2008-2009 Nokia Corporation
+> - *
+> - * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License version 2 as
+> - * published by the Free Software Foundation.
+> - */
+> -
+> -#ifndef __IOMMU_MMAP_H
+> -#define __IOMMU_MMAP_H
+> -
+> -#include <linux/iommu.h>
+> -
+> -struct iovm_struct {
+> -	struct omap_iommu	*iommu;	/* iommu object which this belongs to */
+> -	u32			da_start; /* area definition */
+> -	u32			da_end;
+> -	u32			flags; /* IOVMF_: see below */
+> -	struct list_head	list; /* linked in ascending order */
+> -	const struct sg_table	*sgt; /* keep 'page' <-> 'da' mapping */
+> -	void			*va; /* mpu side mapped address */
+> -};
+> -
+> -/*
+> - * IOVMF_FLAGS: attribute for iommu virtual memory area(iovma)
+> - *
+> - * lower 16 bit is used for h/w and upper 16 bit is for s/w.
+> - */
+> -#define IOVMF_SW_SHIFT		16
+> -
+> -/*
+> - * iovma: h/w flags derived from cam and ram attribute
+> - */
+> -#define IOVMF_CAM_MASK		(~((1 << 10) - 1))
+> -#define IOVMF_RAM_MASK		(~IOVMF_CAM_MASK)
+> -
+> -#define IOVMF_PGSZ_MASK		(3 << 0)
+> -#define IOVMF_PGSZ_1M		MMU_CAM_PGSZ_1M
+> -#define IOVMF_PGSZ_64K		MMU_CAM_PGSZ_64K
+> -#define IOVMF_PGSZ_4K		MMU_CAM_PGSZ_4K
+> -#define IOVMF_PGSZ_16M		MMU_CAM_PGSZ_16M
+> -
+> -#define IOVMF_ENDIAN_MASK	(1 << 9)
+> -#define IOVMF_ENDIAN_BIG	MMU_RAM_ENDIAN_BIG
+> -#define IOVMF_ENDIAN_LITTLE	MMU_RAM_ENDIAN_LITTLE
+> -
+> -#define IOVMF_ELSZ_MASK		(3 << 7)
+> -#define IOVMF_ELSZ_8		MMU_RAM_ELSZ_8
+> -#define IOVMF_ELSZ_16		MMU_RAM_ELSZ_16
+> -#define IOVMF_ELSZ_32		MMU_RAM_ELSZ_32
+> -#define IOVMF_ELSZ_NONE		MMU_RAM_ELSZ_NONE
+> -
+> -#define IOVMF_MIXED_MASK	(1 << 6)
+> -#define IOVMF_MIXED		MMU_RAM_MIXED
+> -
+> -/*
+> - * iovma: s/w flags, used for mapping and umapping internally.
+> - */
+> -#define IOVMF_MMIO		(1 << IOVMF_SW_SHIFT)
+> -#define IOVMF_ALLOC		(2 << IOVMF_SW_SHIFT)
+> -#define IOVMF_ALLOC_MASK	(3 << IOVMF_SW_SHIFT)
+> -
+> -/* "superpages" is supported just with physically linear pages */
+> -#define IOVMF_DISCONT		(1 << (2 + IOVMF_SW_SHIFT))
+> -#define IOVMF_LINEAR		(2 << (2 + IOVMF_SW_SHIFT))
+> -#define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
+> -
+> -#define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
+> -
+> -
+> -extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
+> -extern u32
+> -omap_iommu_vmap(struct iommu_domain *domain, struct device *dev, u32 da,
+> -			const struct sg_table *sgt, u32 flags);
+> -extern struct sg_table *omap_iommu_vunmap(struct iommu_domain *domain,
+> -				struct device *dev, u32 da);
+> -extern u32
+> -omap_iommu_vmalloc(struct iommu_domain *domain, struct device *dev,
+> -				u32 da, size_t bytes, u32 flags);
+> -extern void
+> -omap_iommu_vfree(struct iommu_domain *domain, struct device *dev,
+> -				const u32 da);
+> -extern void *omap_da_to_va(struct device *dev, u32 da);
+> -
+> -#endif /* __IOMMU_MMAP_H */
+> diff --git a/drivers/iommu/omap-iommu-debug.c
+> b/drivers/iommu/omap-iommu-debug.c index 0cac372..cf4a0b5 100644
+> --- a/drivers/iommu/omap-iommu-debug.c
+> +++ b/drivers/iommu/omap-iommu-debug.c
+> @@ -18,9 +18,9 @@
+>  #include <linux/uaccess.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/debugfs.h>
+> +#include <linux/omap-iommu.h>
+> 
+>  #include <plat/iommu.h>
+> -#include <plat/iovmm.h>
+> 
+>  #include "omap-iopgtable.h"
+> 
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index f2bbfb0..eadcfde 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/iommu.h>
+> +#include <linux/omap-iommu.h>
+>  #include <linux/mutex.h>
+>  #include <linux/spinlock.h>
+> 
+> diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
+> index b332392..9852101 100644
+> --- a/drivers/iommu/omap-iovmm.c
+> +++ b/drivers/iommu/omap-iovmm.c
+> @@ -17,15 +17,59 @@
+>  #include <linux/device.h>
+>  #include <linux/scatterlist.h>
+>  #include <linux/iommu.h>
+> +#include <linux/omap-iommu.h>
+> 
+>  #include <asm/cacheflush.h>
+>  #include <asm/mach/map.h>
+> 
+>  #include <plat/iommu.h>
+> -#include <plat/iovmm.h>
+> 
+>  #include "omap-iopgtable.h"
+> 
+> +/*
+> + * IOVMF_FLAGS: attribute for iommu virtual memory area(iovma)
 > + *
-> + * SmartReflex AVS module integration tends to be SoC
-> + * variant. some are integrated with modules like
-> + * Voltage Processor (VP), while, some SoC integration
-> + * donot use VP. Provide that variance here.
+> + * lower 16 bit is used for h/w and upper 16 bit is for s/w.
 > + */
-> +struct omap_sr_soc_ops {
-> +       void (*vp_enable)(struct voltagedomain *voltdm);
-> +       void (*vp_disable)(struct voltagedomain *voltdm);
+> +#define IOVMF_SW_SHIFT		16
+> +
+> +/*
+> + * iovma: h/w flags derived from cam and ram attribute
+> + */
+> +#define IOVMF_CAM_MASK		(~((1 << 10) - 1))
+> +#define IOVMF_RAM_MASK		(~IOVMF_CAM_MASK)
+> +
+> +#define IOVMF_PGSZ_MASK		(3 << 0)
+> +#define IOVMF_PGSZ_1M		MMU_CAM_PGSZ_1M
+> +#define IOVMF_PGSZ_64K		MMU_CAM_PGSZ_64K
+> +#define IOVMF_PGSZ_4K		MMU_CAM_PGSZ_4K
+> +#define IOVMF_PGSZ_16M		MMU_CAM_PGSZ_16M
+> +
+> +#define IOVMF_ENDIAN_MASK	(1 << 9)
+> +#define IOVMF_ENDIAN_BIG	MMU_RAM_ENDIAN_BIG
+> +
+> +#define IOVMF_ELSZ_MASK		(3 << 7)
+> +#define IOVMF_ELSZ_16		MMU_RAM_ELSZ_16
+> +#define IOVMF_ELSZ_32		MMU_RAM_ELSZ_32
+> +#define IOVMF_ELSZ_NONE		MMU_RAM_ELSZ_NONE
+> +
+> +#define IOVMF_MIXED_MASK	(1 << 6)
+> +#define IOVMF_MIXED		MMU_RAM_MIXED
+> +
+> +/*
+> + * iovma: s/w flags, used for mapping and umapping internally.
+> + */
+> +#define IOVMF_MMIO		(1 << IOVMF_SW_SHIFT)
+> +#define IOVMF_ALLOC		(2 << IOVMF_SW_SHIFT)
+> +#define IOVMF_ALLOC_MASK	(3 << IOVMF_SW_SHIFT)
+> +
+> +/* "superpages" is supported just with physically linear pages */
+> +#define IOVMF_DISCONT		(1 << (2 + IOVMF_SW_SHIFT))
+> +#define IOVMF_LINEAR		(2 << (2 + IOVMF_SW_SHIFT))
+> +#define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
+> +
+> +#define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
+> +
+>  static struct kmem_cache *iovm_area_cachep;
+> 
+>  /* return the offset of the first scatterlist entry in a sg table */
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 99640d8..7f182f0 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -61,6 +61,7 @@
+>  #include <linux/i2c.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/module.h>
+> +#include <linux/omap-iommu.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/slab.h>
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index 8be7487..8d68669 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -31,11 +31,9 @@
+>  #include <media/v4l2-device.h>
+>  #include <linux/device.h>
+>  #include <linux/io.h>
+> +#include <linux/iommu.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/wait.h>
+> -#include <linux/iommu.h>
+> -#include <plat/iommu.h>
+> -#include <plat/iovmm.h>
+> 
+>  #include "ispstat.h"
+>  #include "ispccdc.h"
+> diff --git a/drivers/media/platform/omap3isp/ispccdc.c
+> b/drivers/media/platform/omap3isp/ispccdc.c index 60181ab..6ae1ffb2 100644
+> --- a/drivers/media/platform/omap3isp/ispccdc.c
+> +++ b/drivers/media/platform/omap3isp/ispccdc.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/device.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/mm.h>
+> +#include <linux/omap-iommu.h>
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+>  #include <media/v4l2-event.h>
+> diff --git a/drivers/media/platform/omap3isp/ispstat.c
+> b/drivers/media/platform/omap3isp/ispstat.c index d7ac76b..35c3823 100644
+> --- a/drivers/media/platform/omap3isp/ispstat.c
+> +++ b/drivers/media/platform/omap3isp/ispstat.c
+> @@ -26,6 +26,7 @@
+>   */
+> 
+>  #include <linux/dma-mapping.h>
+> +#include <linux/omap-iommu.h>
+>  #include <linux/slab.h>
+>  #include <linux/uaccess.h>
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> b/drivers/media/platform/omap3isp/ispvideo.c index a0b737fe..a4b8290 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/mm.h>
+>  #include <linux/module.h>
+> +#include <linux/omap-iommu.h>
+>  #include <linux/pagemap.h>
+>  #include <linux/scatterlist.h>
+>  #include <linux/sched.h>
+> @@ -35,7 +36,6 @@
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-ioctl.h>
+>  #include <plat/iommu.h>
+> -#include <plat/iovmm.h>
+>  #include <plat/omap-pm.h>
+> 
+>  #include "ispvideo.h"
+> diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
+> new file mode 100644
+> index 0000000..cac78de
+> --- /dev/null
+> +++ b/include/linux/omap-iommu.h
+> @@ -0,0 +1,52 @@
+> +/*
+> + * omap iommu: simple virtual address space management
+> + *
+> + * Copyright (C) 2008-2009 Nokia Corporation
+> + *
+> + * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef _INTEL_IOMMU_H_
+> +#define _INTEL_IOMMU_H_
+> +
+> +struct iovm_struct {
+> +	struct omap_iommu	*iommu;	/* iommu object which this belongs to */
+> +	u32			da_start; /* area definition */
+> +	u32			da_end;
+> +	u32			flags; /* IOVMF_: see below */
+> +	struct list_head	list; /* linked in ascending order */
+> +	const struct sg_table	*sgt; /* keep 'page' <-> 'da' mapping */
+> +	void			*va; /* mpu side mapped address */
 > +};
 > +
->  struct omap_sr {
->         char                            *name;
->         struct list_head                node;
-> @@ -165,6 +180,7 @@ struct omap_sr {
->         u32                             senp_mod;
->         u32                             senn_mod;
->         void __iomem                    *base;
-> +       struct omap_sr_soc_ops          soc_ops;
->  };
->
->  /**
-> @@ -268,6 +284,7 @@ struct omap_sr_nvalue_table {
->   * @nvalue_table:      table containing the  efuse offsets and nvalues
->   *                     corresponding to them.
->   * @voltdm:            Pointer to the voltage domain associated with the SR
-> + * @soc_ops:           SoC specific ops to deal with integration variance
->   */
->  struct omap_sr_data {
->         const char                      *name;
-> @@ -278,6 +295,7 @@ struct omap_sr_data {
->         bool                            enable_on_init;
->         struct omap_sr_nvalue_table     *nvalue_table;
->         struct voltagedomain            *voltdm;
-> +       struct omap_sr_soc_ops          soc_ops;
->  };
->
->  /* Smartreflex module enable/disable interface */
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +#define MMU_RAM_ENDIAN_SHIFT	9
+> +#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
+> +#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
+> +#define IOVMF_ENDIAN_LITTLE	MMU_RAM_ENDIAN_LITTLE
+> +#define MMU_RAM_ELSZ_SHIFT	7
+> +#define IOVMF_ELSZ_8		MMU_RAM_ELSZ_8
+> +
+> +struct iommu_domain;
+> +
+> +extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
+> +extern u32
+> +omap_iommu_vmap(struct iommu_domain *domain, struct device *dev, u32 da,
+> +			const struct sg_table *sgt, u32 flags);
+> +extern struct sg_table *omap_iommu_vunmap(struct iommu_domain *domain,
+> +				struct device *dev, u32 da);
+> +extern u32
+> +omap_iommu_vmalloc(struct iommu_domain *domain, struct device *dev,
+> +				u32 da, size_t bytes, u32 flags);
+> +extern void
+> +omap_iommu_vfree(struct iommu_domain *domain, struct device *dev,
+> +				const u32 da);
+> +extern void *omap_da_to_va(struct device *dev, u32 da);
+> +
+> +extern void omap_iommu_save_ctx(struct device *dev);
+> +extern void omap_iommu_restore_ctx(struct device *dev);
+> +
+> +#endif
 
+I still think you should split this in two files, omap-iommu.h and omap-
+iovmm.h. The later would just be arch/arm/plat-omap/include/plat/iovmm.h moved 
+to include/linux.h.
+
+-- 
 Regards,
-Jean
+
+Laurent Pinchart
+
