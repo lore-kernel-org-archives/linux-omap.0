@@ -1,38 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Date: Thu, 25 Oct 2012 09:56:44 -0700
-Message-ID: <20121025165643.GP11928@atomide.com>
-References: <20121025001913.2082.31062.stgit@muffinssi.local>
- <20121025002056.2082.45221.stgit@muffinssi.local>
- <1466344.HbU9q5zM1q@avalon>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: Beagleboard xM - play video file : BUG: scheduling while atomic:
+ queue1:src/92/0x0000008e , then kernel panic
+Date: Thu, 25 Oct 2012 19:05:22 +0200
+Message-ID: <CAMP44s36Sx4UJO24ZWsmrKv5KWybuHFiqXGMmXSv4SSa7D-f_g@mail.gmail.com>
+References: <7fad4160-e437-4ea3-b140-4c98a04045f4@googlegroups.com>
+	<8d3b5995-b3f7-406b-9172-b3187922dc75@googlegroups.com>
+	<CAMP44s2JnoYHN0a-DQCnj-mtGbZK8q7iFBDFR4MQ4L0-n7DYPw@mail.gmail.com>
+	<01a2f6b7-ee81-4653-b5f3-a53def9301ca@googlegroups.com>
+	<1f842c9c-41cc-415f-ac31-30c85c7f6563@googlegroups.com>
+	<CAMP44s137rkBirwX5smMLUnZe6eS0qft0RzO3=vNoDxKpZE_RQ@mail.gmail.com>
+	<CAJ6Av5Mhn-Me0P3asve8NX00cRKONBL4fe7Pr59r4W-gd+kY+Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1466344.HbU9q5zM1q@avalon>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:42507 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757202Ab2JYRFX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 13:05:23 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so1806876oag.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 10:05:22 -0700 (PDT)
+In-Reply-To: <CAJ6Av5Mhn-Me0P3asve8NX00cRKONBL4fe7Pr59r4W-gd+kY+Q@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Omar Ramirez Luna <omar.ramirez@copitl.com>
+Cc: Selso Liberado <selso.liberado@gmail.com>, gst-dsp@googlegroups.com, linux-omap@vger.kernel.org, Omar Ramirez Luna <or.rmz1@gmail.com>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121025 01:39]:
-> 
-> I still think you should split this in two files, omap-iommu.h and omap-
-> iovmm.h. The later would just be arch/arm/plat-omap/include/plat/iovmm.h moved 
-> to include/linux.h.
+On Thu, Oct 25, 2012 at 12:49 AM, Omar Ramirez Luna
+<omar.ramirez@copitl.com> wrote:
 
-Can you please explain a bit more why you're thinking a separate
-omap-iovmm.h is needed in addtion to omap-iommu.h?
+> On Wed, Oct 24, 2012 at 10:34 AM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
 
-My reasoning for not adding it is that neither intel nor amd needs
-more than intel-iommu.h and amd-iommu.h. And hopefully the iommu
-framework will eventually provide the API needed. And I'd rather
-not be the person introducing this second new file into
-include/linux :)
+>> Selso, hopefully you don't mind, but I'll forward this to the
+>> linux-omap mailing list, as this seems to be an interesting kernel
+>> problem in tidspbridge.
+>>
+>> Omar, any ideas?
+>
+> I don't see tidspbridge trace paths (but I don't discard something
+> wrong either ;)), however I do see a framebuffer, dss, dispc trace,
+> might be a good point to start checking:
 
-Joerg and Ohad, do you have any opinions on this?
+Oops, you are right.
 
-Regards,
+>>> CONFIG_TIDSPBRIDGE_CACHE_LINE_CHECK=y
+>
+> I wasn't aware that now gst-dsp supported this, might be time to update mine.
 
-Tony
+Yes, it's supported now. Took me a lot of changes to manage to do it,
+but it's there.
+
+> Anyway, right now I have lots of debugging enabled and specifically
+> the one that spits "scheduling while atomic" with kernel 3.7-rc2, and
+> I'm not seeing this with the fakesink decode, and the encoder to a
+> file, I don't have framebuffer nor display though.
+
+It's probably a framebuffer problem =/
+
+-- 
+Felipe Contreras
