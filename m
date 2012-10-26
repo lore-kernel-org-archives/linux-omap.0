@@ -1,37 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 10/16] ARM: OMAP: Make omap_device local to mach-omap2
-Date: Fri, 26 Oct 2012 20:18:49 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210262016410.11258@utopia.booyaka.com>
-References: <20121004213950.26676.21898.stgit@muffinssi.local> <20121004220456.26676.31050.stgit@muffinssi.local> <alpine.DEB.2.00.1210260124360.11251@utopia.booyaka.com> <20121026163900.GC11908@atomide.com> <alpine.DEB.2.00.1210261701060.3301@utopia.booyaka.com>
- <20121026171059.GG11908@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: fix build, sparse problems in
+ cleanup-headers
+Date: Fri, 26 Oct 2012 13:19:43 -0700
+Message-ID: <20121026201943.GS11908@atomide.com>
+References: <alpine.DEB.2.00.1210262012250.11258@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40931 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966367Ab2JZUSt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 16:18:49 -0400
-In-Reply-To: <20121026171059.GG11908@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43118 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S966367Ab2JZUTp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 16:19:45 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210262012250.11258@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 26 Oct 2012, Tony Lindgren wrote:
-
-> * Paul Walmsley <paul@pwsan.com> [121026 10:03]:
-> > On Fri, 26 Oct 2012, Tony Lindgren wrote:
-> > 
-> > > Can you do a branch on top of omap-for-v3.8/cleanup-headers
-> > > with all these fixes that I can pull in?
-> > 
-> > Yes, will do that today.
+* Paul Walmsley <paul@pwsan.com> [121026 13:16]:
+> Hi Tony,
 > 
-> OK thanks!
+> The following changes since commit 2da8a79f7d81853d00b6a00621aeef7545196084:
+> 
+>   Merge branch 'omap-for-v3.8/cleanup-headers-menelaus' into omap-for-v3.8/cleanup-headers (2012-10-25 12:21:48 -0700)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-cleanup-fixes-a-for-3.8
+> 
+> for you to fetch changes up to 97af08b6e10e06563309728ed2fe8fdd919c5a33:
+> 
+>   ARM: OMAP1: fix sparse warning added by commit 4c98dc6b8ef2f73bdbfa78186db9a76507ba9ea3 (2012-10-26 13:21:48 -0600)
+> 
+> ----------------------------------------------------------------
+> Several fixes for build failures and sparse warnings in the
+> OMAP cleanup-headers branch.  Intended for 3.8 cleanup.
+> 
+> Basic build, boot, and PM test logs are available from here:
+> 
+>     http://www.pwsan.com/omap/testlogs/cleanup-headers-compile-fixes-3.8/20121026132711/
+> 
+> Due to underlying problems in v3.7-rc2, several tests fail.  These
+> failures are unrelated to these patches.
 
-Just sent the pull request.  Are you planning to rebuild cleanup-prcm also 
-when you pull those cleanup-headers fixes in?  Am planning to send another 
-PRCM cleanup pull request next week...
+Thanks pulling into omap-for-v3.8/cleanup-headers.
 
+Regards,
 
-- Paul
+Tony
+ 
+> ----------------------------------------------------------------
+> Paul Walmsley (3):
+>       ARM: OMAP2+: fix build breakage introduced by commit b7754452b3e27716347a528b47b0a1083af32520
+>       ARM: OMAP1: fix build breakage introduced by commit 25c7d49ed48b4843da7dea56a81ae7f620211ee0
+>       ARM: OMAP1: fix sparse warning added by commit 4c98dc6b8ef2f73bdbfa78186db9a76507ba9ea3
+> 
+>  arch/arm/mach-omap1/fpga.c   |    1 +
+>  arch/arm/mach-omap1/pm_bus.c |    2 ++
+>  drivers/mtd/onenand/omap2.c  |   36 ++++++++++++++++++++++++------------
+>  3 files changed, 27 insertions(+), 12 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
