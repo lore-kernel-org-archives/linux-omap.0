@@ -1,85 +1,90 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator
- driver to omap_usb2
-Date: Fri, 26 Oct 2012 17:21:41 +0200
-Message-ID: <508AAA85.6070905@ti.com>
-References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-3-git-send-email-kishon@ti.com> <CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com> <CAAe_U6K1RXA3b5u9WvE=2VoXym9Vj3KM7c0J27jKz+2KrV4tsg@mail.gmail.com> <CAH+eYFAhVE8cAte2PFk3jinV9n3m+eDLtE43QxzRXMScnFGcrA@mail.gmail.com> <508AA94B.10504@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Fri, 26 Oct 2012 17:03:16 +0100
+Message-ID: <20121026160316.GY18814@opensource.wolfsonmicro.com>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
+ <20121024161429.GA16350@core.coreip.homeip.net>
+ <CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
+ <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+ <20121024185818.GB772@arwen.pp.htv.fi>
+ <20121025205901.GA3827@sirena.org.uk>
+ <20121026062008.GA21734@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50590 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933630Ab2JZPVz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 11:21:55 -0400
-In-Reply-To: <508AA94B.10504@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yhqQ34TVR4fE8mPU"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121026062008.GA21734@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Rabin Vincent <rabin@rab.in>, tony@atomide.com, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-Hi Roger,
 
-On 10/26/2012 05:16 PM, Roger Quadros wrote:
-> Hi Kishon & Benoit,
-> 
-> On 09/24/2012 12:06 PM, Rabin Vincent wrote:
->> 2012/9/24 ABRAHAM, KISHON VIJAY <kishon@ti.com>:
->>> On Sat, Sep 22, 2012 at 3:03 AM, Rabin Vincent <rabin@rab.in> wrote:
->>>> USB doesn't work on pandaboard on linux-next, and bisection shows this
->>>> patch.  Unfortunately, I can't provide a dmesg log because USB is the
->>>> only way I currently have to get one out(!), but presumably it's because
->>>> this omap-usb2 device is never registered?  Looks like this breaks
->>>> non-dt USB on pandaboard; is that intended?
->>>
->>> Yes. omap-usb2 is *only* dt supported (New drivers shouldn't have the
->>> old non-dt support).
->>
->> Well, USB used to work fine on Pandaboard without DT before the
->> introduction of "omap-usb2", so one would expected it to continue
->> working (until the board file is completely removed).
->>
->> Anyway, I've moved to DT now.
->>
->>> Some patches are queued only for 3.7.
->>>
->>> In case you want to use MUSB please use these patches on linux-next..
->>> [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
->>> [PATCH] ARM: OMAP2+: hwmod data: Fix ocp2scp_usb_phy and usb_host_hs
->>> entries (from Benoit)
->>> [PATCH 0/2] ARM: dts: Add subnode for ocp2scp (patch series)
->>> [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB (patch series)
->>
->> I got these by merging in Benoit's for_3.7/dts_part2 on top of
->> next-20120921.  Thanks.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> I still can't get musb to work on 3.7-rc2. Apparently it is still
-> missing the patches from Benoit's for_3.7/dts_part2.
-> 
-> Maybe I just need to wait for it to be merged?
+--yhqQ34TVR4fE8mPU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-They are now in a for_3.8/dts. Unfortunately, one patch that was adding
-ctrl_module address in the USB data was rejected and thus I'm not sure
-it will work without that.
+On Fri, Oct 26, 2012 at 09:20:36AM +0300, Felipe Balbi wrote:
+> On Thu, Oct 25, 2012 at 09:59:01PM +0100, Mark Brown wrote:
 
-I think Tony had an idea to map the ctrl_register to regulator fmwk or
-something like that.
+> > I suspect that's not actually a big deal and that if we went down this
+> > route we'd have the driver take over control from the core code during
+> > probe() with the core still setting up the default state.
 
-> Till then, where can I get a tree where musb works on Panda?
-> 
-> Benoit,
-> 
-> FYI, I get merge conflicts when merging 3.7-rc2 on top of Linus's kernel
-> HEAD. Am I missing something?
+> > Personally I do think we want to be factoring bolierplate out of
+> > drivers, if they're not doing anything constructive with pinctrl they
+> > should be able to avoid having code for it.  There definitely are issues
+> > to work through but it seems like we ought to be able to do something.
 
-Yeah, some more patches were merged outside our tree.
-I fixed that. Can you try with the updated branch?
+> IMHO this will come back to bite you in the *ss. Specially when the same
+> driver is shared among multiple revisions of the same SoC or multiple
+> different SoCs.
 
-Regards,
-Benoit
+I'm not entirely sure you fully understood the proposal...
 
+> Hypothetical situation: OMAP4 has keypad as the default pin mode and low
+> power is handled by the HW, so keypad could have pinctlr "boilerplate"
+> factored out. Then comes OMAP5 and low power mode has to be handled by
+> SW for whatever reason (maybe there are more than one low power mode).
+> Then we will need to patch omap4-keypad.c to remove "dont_touch_my_pins"
+> flag and add pinctrl support.
+
+This isn't going to make any practical difference at all, as soon as the
+driver starts using pinctrl explicitly a flag gets set in the driver and
+the default code does nothing more.  The only difference will be that we
+may get a default configuration applied prior to probe.
+
+You could have the driver explicitly set the flag, it would just be one
+extra line, but it seems marginally nicer to just do it.
+
+> When you think of the possibilities of every single driver going
+> throught that it sounds a lot nicer to not make that decision IMHO and
+> keep pinctrl explicit.
+
+I'm just not seeing any impact on drivers that do something interesting
+here.
+
+--yhqQ34TVR4fE8mPU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQirM9AAoJELSic+t+oim9c8UP/jleghlFW4jR1AwJdXkaEddQ
+KYZ3Iw5kZ+4YyHOypGWP9inaMG22ru1Z4d5nvSAMbdUnLI+uQc/nK+mMlEKrKIz0
+B4coXcssBZjN0BVOdfMLhdg03edhUZMB8hZfOl6uqj/YnOeUaMKMuOj+APW9qaAp
+SmEvTG/cljfGx6iCZkNIUvXVNvYUaKQk8qXCH835ETtkX3Dh3GVF32imPATYXTWb
+wTpqe30GJe9rD0Q+vS0ik+HfEU4ZunQdlkYCBW+TGLRgOQka1bN9N3GsP5yuzrmU
+YmW4zpx2cuBL8vFPvZJBJF3lurgK+PhT7fx752qzPEkrDp9PV50jvn+ld0hM5rY9
+q8xWo2+JR+anS1dYEzPG7LzSg7tIhPLmrlIBhmU7oUG0ux0VCJ+dfOLsB0uReC9B
+xe48D7XAGOb+5D9Judn9llQ/mckTYSwiGGcr7VKzTGH+5sPDokrifoRvyqa1oQf7
+cWb44IIw5TKMM33S6Qn2/fzq2Z0ntMHjbf5dK1q+xjAH5Vxp5aXcYOUQQh9LwsQN
+1gsfWEwywDr4uegXkmis+0lsJjcwuOHq3vMevduRW8d3QQ24EjIFth530UtyP7Z9
+BXwA4KcRrp8+NEuFKSKQLvZO5+co3A6l9nE7/PsFgmi4MBAHmTgDtjYzHSo+5jR2
+N4dMrcPlO6jeuRqcBqwR
+=f5GG
+-----END PGP SIGNATURE-----
+
+--yhqQ34TVR4fE8mPU--
