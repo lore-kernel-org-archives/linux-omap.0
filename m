@@ -1,51 +1,104 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/3] ARM: OMAP1: fix build breakage introduced by commit
- 25c7d49ed48b4843da7dea56a81ae7f620211ee0
-Date: Fri, 26 Oct 2012 14:08:27 -0600
-Message-ID: <20121026200826.16521.10431.stgit@dusk.lan>
+Subject: [PATCH 1/3] ARM: OMAP2+: fix build breakage introduced by commit
+ b7754452b3e27716347a528b47b0a1083af32520
+Date: Fri, 26 Oct 2012 14:08:26 -0600
+Message-ID: <20121026200824.16521.51522.stgit@dusk.lan>
 References: <20121026200413.16521.88985.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40893 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40888 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966363Ab2JZUJC (ORCPT
+	with ESMTP id S966361Ab2JZUJC (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 16:09:02 -0400
 In-Reply-To: <20121026200413.16521.88985.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>
 
-Commit 25c7d49ed48b4843da7dea56a81ae7f620211ee0 ("ARM: OMAP: Make
-omap_device local to mach-omap2") broke an OMAP5912-only build here:
+Commit b7754452b3e27716347a528b47b0a1083af32520 ("mtd: onenand: omap:
+use pdata info instead of cpu_is") broke an OMAP3+4 build and an N800
+multi-OMAP2xxx build here:
 
-arch/arm/mach-omap1/pm_bus.c: In function 'omap1_pm_runtime_init':
-arch/arm/mach-omap1/pm_bus.c:69:2: error: implicit declaration of function
-'cpu_class_is_omap1'
-make[1]: *** [arch/arm/mach-omap1/pm_bus.o] Error 1
+drivers/built-in.o: In function `omap2_onenand_probe':
+drivers/mtd/onenand/omap2.c:742: undefined reference to `omap2_onenand_read_bufferram'
+drivers/mtd/onenand/omap2.c:743: undefined reference to `omap2_onenand_write_bufferram'
+drivers/mtd/onenand/omap2.c:742: undefined reference to `omap2_onenand_read_bufferram'
+drivers/mtd/onenand/omap2.c:743: undefined reference to `omap2_onenand_write_bufferram'
 
-Fix by adding a missing include.
+...
+
+drivers/built-in.o: In function `omap2_onenand_probe':
+drivers/mtd/onenand/omap2.c:788: undefined reference to `omap3_onenand_read_bufferram'
+drivers/mtd/onenand/omap2.c:788: undefined reference to `omap3_onenand_write_bufferram'
+
+Fix by declaring static functions for the missing symbols, rather than
+just prototypes.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Afzal Mohammed <afzal@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/pm_bus.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/mtd/onenand/omap2.c |   36 ++++++++++++++++++++++++------------
+ 1 file changed, 24 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
-index 16bf2f9..3f2d396 100644
---- a/arch/arm/mach-omap1/pm_bus.c
-+++ b/arch/arm/mach-omap1/pm_bus.c
-@@ -19,6 +19,8 @@
- #include <linux/clk.h>
- #include <linux/err.h>
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 53069ae..99f96e1 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -445,13 +445,19 @@ out_copy:
  
-+#include "soc.h"
-+
- #ifdef CONFIG_PM_RUNTIME
- static int omap1_pm_runtime_suspend(struct device *dev)
- {
+ #else
+ 
+-int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+-				 unsigned char *buffer, int offset,
+-				 size_t count);
++static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
++					unsigned char *buffer, int offset,
++					size_t count)
++{
++	return -ENOSYS;
++}
+ 
+-int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+-				  const unsigned char *buffer,
+-				  int offset, size_t count);
++static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
++					 const unsigned char *buffer,
++					 int offset, size_t count)
++{
++	return -ENOSYS;
++}
+ 
+ #endif
+ 
+@@ -549,13 +555,19 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+ 
+ #else
+ 
+-int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
+-				 unsigned char *buffer, int offset,
+-				 size_t count);
++static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
++					unsigned char *buffer, int offset,
++					size_t count)
++{
++	return -ENOSYS;
++}
+ 
+-int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
+-				  const unsigned char *buffer,
+-				  int offset, size_t count);
++static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
++					 const unsigned char *buffer,
++					 int offset, size_t count)
++{
++	return -ENOSYS;
++}
+ 
+ #endif
+ 
 
 
