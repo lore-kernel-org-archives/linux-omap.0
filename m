@@ -1,55 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Date: Fri, 26 Oct 2012 11:00:42 -0700
-Message-ID: <20121026180039.GM11908@atomide.com>
-References: <20121025001913.2082.31062.stgit@muffinssi.local>
- <20121025213935.GD11928@atomide.com>
- <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
- <6561916.t72K1L6jg4@avalon>
- <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
+Subject: Re: Fwd: [PATCH 2/5] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
+ davinci_mdio
+Date: Fri, 26 Oct 2012 11:06:28 -0700
+Message-ID: <20121026180627.GN11908@atomide.com>
+References: <20121017181354.GA2412@netboy.at.omicron.at>
+ <alpine.DEB.2.00.1210172337170.30902@utopia.booyaka.com>
+ <20121017235045.GB30550@atomide.com>
+ <20121018030654.GE2867@netboy.at.omicron.at>
+ <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
+ <20121018184443.GD2350@netboy.at.omicron.at>
+ <50806B1D.9040504@ti.com>
+ <20121019061630.GB2983@netboy.at.omicron.at>
+ <20121019160041.GB4730@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EB4B4C7@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48823 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932894Ab2JZSAt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 14:00:49 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:55481 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S965701Ab2JZSGd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 14:06:33 -0400
 Content-Disposition: inline
-In-Reply-To: <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB4B4C7@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, Paul Walmsley <paul@pwsan.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Ohad Ben-Cohen <ohad@wizery.com> [121026 02:56]:
-> Hi Laurent,
+* Hiremath, Vaibhav <hvaibhav@ti.com> [121026 01:24]:
+> On Fri, Oct 19, 2012 at 21:30:41, Tony Lindgren wrote:
+> > * Richard Cochran <richardcochran@gmail.com> [121018 23:18]:
+> > > On Fri, Oct 19, 2012 at 02:18:29AM +0530, Vaibhav Hiremath wrote:
+> > > > 
+> > > > Another important point is, this driver is also required and used for
+> > > > Davinci family of devices (arch/mach/mach-davinci/).
+> > > 
+> > > That is really beside the point. If the code isn't ready yet, then
+> > > don't merge it.
+> > > 
+> > > When I asked about the beaglebone, I was given the impression that it
+> > > will be ready for v3.7-rc1.  But, as I know realize, at the current
+> > > rate, it might not even be ready for v3.8.
+> > > 
+> > > I don't mind waiting, but please make sure that whatever lands into a
+> > > release is really, truly working.
+> > 
+> > Indeed. This has been a problem with many of the TI patches in
+> > general. People are working on separate product trees and then produce
+> > patches for the mainline kernel that are poorly tested.
+> > 
 > 
-> On Fri, Oct 26, 2012 at 11:35 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > That's on my to-do list, as well as porting the OMAP3 ISP driver to videobuf2,
-> > adding DT support, moving to the common clock framework (when that will be
-> > available for the OMAP3), supporting missing V4L2 features, ... All this in my
-> > spare time of course, otherwise it wouldn't be fun, would it ? ;-)
+> Tony,
 > 
-> Hmm, seems like a short to-do list ;)
-
-Sounds Laurent will take care of it :)
-
-> > I would also like to move the tidspbridge to the DMA API, but I think we'll
-> > need to move step by step there, and using the OMAP IOMMU and IOVMM APIs as an
-> > intermediate step would allow splitting patches in reviewable chunks. I know
-> > it's a step backwards in term of OMAP IOMMU usage, but that's in my opinion a
-> > temporary nuisance to make the leap easier.
+> It may not be true always, as we always work simultaneously and there are 
+> high chances that some patches/development is dependent on others from 
+> functionality perspective (especially baseport), but still they are 
+> independent modules (may be for other devices).
 > 
-> Since tidspbridge is in staging I guess it's not a problem, though it
-> sounds to me like using the correct API in the first place is going to
-> make less churn.
+> Lets take a example of AM33xx and OMAP5 here, we started submitting baseport 
+> patches to the list (almost 6-8 months now), not all the patches gets 
+> accepted together in one shot.
+> As you know, when we started pushing AM33xx and OMAP5 baseport patches, we 
+> were at the stage where both DT and hwmod was required. First attempt for 
+> board file submission did not went through, since we decided to force all 
+> new devices migrate to DT, right?
 
-Not related to these patches, but also sounds like we may need to drop
-some staging/tidspbridge code to be able to move forward with the
-ARM common zImage plans. See the "[GIT PULL] omap plat header removal
-for v3.8 merge window, part1" thread for more info.
+I think you guys have done a pretty good job with the am33xx patches
+in general to get the core omap changes merged.
+ 
+> So the criteria initially was, build should not break and submit patches 
+> step-by-step.
+> 
+> Now, with baseport patches submitted to list, individual developer can also 
+> start submitting patches to the respective driver's list, making sure that, 
+> driver doesn't change irrespective of platform. I do not see anything wrong
+> with this, as we always consider driver independent.
+> 
+> In this particular case, note that, all the patches Richard posted recently 
+> are AM33xx SoC integration specific patches only.
+
+Yes now the core omap patches are merged, and people want to use
+the devices with mainline kernel. That's usually good news :)
 
 Regards,
 
