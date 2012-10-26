@@ -1,69 +1,92 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 10/16] ARM: OMAP: Make omap_device local to mach-omap2
-Date: Fri, 26 Oct 2012 09:39:00 -0700
-Message-ID: <20121026163900.GC11908@atomide.com>
-References: <20121004213950.26676.21898.stgit@muffinssi.local>
- <20121004220456.26676.31050.stgit@muffinssi.local>
- <alpine.DEB.2.00.1210260124360.11251@utopia.booyaka.com>
+Subject: Re: [PATCH v2 06/14] mtd: onenand: omap: use pdata info instead of
+ cpu_is
+Date: Fri, 26 Oct 2012 09:40:06 -0700
+Message-ID: <20121026164005.GD11908@atomide.com>
+References: <cover.1349672877.git.afzal@ti.com>
+ <860ba92c34cbb490beccd5442087087c1751a6a2.1349672877.git.afzal@ti.com>
+ <alpine.DEB.2.00.1210260146270.11251@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:44360 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45184 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S965301Ab2JZQjC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 12:39:02 -0400
+	with ESMTP id S965389Ab2JZQkM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 12:40:12 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210260124360.11251@utopia.booyaka.com>
+In-Reply-To: <alpine.DEB.2.00.1210260146270.11251@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Afzal Mohammed <afzal@ti.com>, Artem Bityutskiy <dedekind1@gmail.com>, Jon Hunter <jon-hunter@ti.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [121025 18:28]:
-> Hi Tony
+* Paul Walmsley <paul@pwsan.com> [121025 18:50]:
+> Hi Afzal
 > 
-> On Thu, 4 Oct 2012, Tony Lindgren wrote:
+> On Mon, 8 Oct 2012, Afzal Mohammed wrote:
 > 
-> > Let's make omap_device local to mach-omap2 for
-> > ARM common zImage support.
+> > platform data now contains a field to indicate whether
+> > soc belongs to omap34xx family, use it instead of
+> > cpu_is_* check.
 > > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > This helps in removing dependency of platform specific
+> > header file - cpu.h
+> > 
+> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > 
-> This one breaks a 5912-only build:
+> This one breaks an N800 multi-OMAP build here:
 > 
-> arch/arm/mach-omap1/pm_bus.c: In function 'omap1_pm_runtime_init':
-> arch/arm/mach-omap1/pm_bus.c:69:2: error: implicit declaration of function 
-> 'cpu_class_is_omap1'
-> make[1]: *** [arch/arm/mach-omap1/pm_bus.o] Error 1
+>   LD      init/built-in.o
+> drivers/built-in.o: In function `omap2_onenand_probe':
+> /home/paul/linux-bisect/drivers/mtd/onenand/omap2.c:788: undefined 
+> reference to `omap3_onenand_read_bufferram'
+> /home/paul/linux-bisect/drivers/mtd/onenand/omap2.c:788: undefined 
+> reference to `omap3_onenand_write_bufferram'
+> make: *** [vmlinux] Error 1
 > 
-> Fixed by the usual change; it's below.
+> A fix is below.
 
-Thanks. I've ran randonfigs on the omap-for-v3.8/cleanup-headers,
-but have not seen these.
-
-Can you do a branch on top of omap-for-v3.8/cleanup-headers
-with all these fixes that I can pull in?
+If you can add this too into your fixes branch on top of
+omap-for-v3.8/cleanup-headers that would be nice.
 
 Regards,
 
 Tony
- 
->  arch/arm/mach-omap1/pm_bus.c |    2 ++
->  1 file changed, 2 insertions(+)
+
+> ---
+>  drivers/mtd/onenand/omap2.c |   18 ++++++++++++------
+>  1 file changed, 12 insertions(+), 6 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
-> index 16bf2f9..3f2d396 100644
-> --- a/arch/arm/mach-omap1/pm_bus.c
-> +++ b/arch/arm/mach-omap1/pm_bus.c
-> @@ -19,6 +19,8 @@
->  #include <linux/clk.h>
->  #include <linux/err.h>
+> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+> index 53069ae..f87cf39 100644
+> --- a/drivers/mtd/onenand/omap2.c
+> +++ b/drivers/mtd/onenand/omap2.c
+> @@ -445,13 +445,19 @@ out_copy:
 >  
-> +#include "soc.h"
-> +
->  #ifdef CONFIG_PM_RUNTIME
->  static int omap1_pm_runtime_suspend(struct device *dev)
->  {
+>  #else
+>  
+> -int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> -				 unsigned char *buffer, int offset,
+> -				 size_t count);
+> +static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+> +					unsigned char *buffer, int offset,
+> +					size_t count)
+> +{
+> +	return -ENOSYS;
+> +}
+>  
+> -int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> -				  const unsigned char *buffer,
+> -				  int offset, size_t count);
+> +static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+> +					 const unsigned char *buffer,
+> +					 int offset, size_t count)
+> +{
+> +	return -ENOSYS;
+> +}
+>  
+>  #endif
+>  
 > -- 
 > 1.7.10.4
 > 
