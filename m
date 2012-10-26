@@ -1,59 +1,85 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 10/16] ARM: OMAP: Make omap_device local to mach-omap2
-Date: Fri, 26 Oct 2012 01:27:00 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210260124360.11251@utopia.booyaka.com>
-References: <20121004213950.26676.21898.stgit@muffinssi.local> <20121004220456.26676.31050.stgit@muffinssi.local>
+Subject: Re: [PATCH v2 06/14] mtd: onenand: omap: use pdata info instead of
+ cpu_is
+Date: Fri, 26 Oct 2012 01:48:44 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210260146270.11251@utopia.booyaka.com>
+References: <cover.1349672877.git.afzal@ti.com> <860ba92c34cbb490beccd5442087087c1751a6a2.1349672877.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38774 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38796 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752589Ab2JZB1C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 21:27:02 -0400
-In-Reply-To: <20121004220456.26676.31050.stgit@muffinssi.local>
+	with ESMTP id S1750904Ab2JZBsp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Oct 2012 21:48:45 -0400
+In-Reply-To: <860ba92c34cbb490beccd5442087087c1751a6a2.1349672877.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Jon Hunter <jon-hunter@ti.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org
 
-Hi Tony
+Hi Afzal
 
-On Thu, 4 Oct 2012, Tony Lindgren wrote:
+On Mon, 8 Oct 2012, Afzal Mohammed wrote:
 
-> Let's make omap_device local to mach-omap2 for
-> ARM common zImage support.
+> platform data now contains a field to indicate whether
+> soc belongs to omap34xx family, use it instead of
+> cpu_is_* check.
 > 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> This helps in removing dependency of platform specific
+> header file - cpu.h
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
 
-This one breaks a 5912-only build:
+This one breaks an N800 multi-OMAP build here:
 
-arch/arm/mach-omap1/pm_bus.c: In function 'omap1_pm_runtime_init':
-arch/arm/mach-omap1/pm_bus.c:69:2: error: implicit declaration of function 
-'cpu_class_is_omap1'
-make[1]: *** [arch/arm/mach-omap1/pm_bus.o] Error 1
+  LD      init/built-in.o
+drivers/built-in.o: In function `omap2_onenand_probe':
+/home/paul/linux-bisect/drivers/mtd/onenand/omap2.c:788: undefined 
+reference to `omap3_onenand_read_bufferram'
+/home/paul/linux-bisect/drivers/mtd/onenand/omap2.c:788: undefined 
+reference to `omap3_onenand_write_bufferram'
+make: *** [vmlinux] Error 1
 
-Fixed by the usual change; it's below.
+A fix is below.
 
 
 - Paul
 
----
- arch/arm/mach-omap1/pm_bus.c |    2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
-index 16bf2f9..3f2d396 100644
---- a/arch/arm/mach-omap1/pm_bus.c
-+++ b/arch/arm/mach-omap1/pm_bus.c
-@@ -19,6 +19,8 @@
- #include <linux/clk.h>
- #include <linux/err.h>
+---
+ drivers/mtd/onenand/omap2.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 53069ae..f87cf39 100644
+--- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -445,13 +445,19 @@ out_copy:
  
-+#include "soc.h"
-+
- #ifdef CONFIG_PM_RUNTIME
- static int omap1_pm_runtime_suspend(struct device *dev)
- {
+ #else
+ 
+-int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
+-				 unsigned char *buffer, int offset,
+-				 size_t count);
++static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
++					unsigned char *buffer, int offset,
++					size_t count)
++{
++	return -ENOSYS;
++}
+ 
+-int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
+-				  const unsigned char *buffer,
+-				  int offset, size_t count);
++static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
++					 const unsigned char *buffer,
++					 int offset, size_t count)
++{
++	return -ENOSYS;
++}
+ 
+ #endif
+ 
 -- 
 1.7.10.4
 
