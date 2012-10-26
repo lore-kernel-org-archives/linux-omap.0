@@ -1,48 +1,41 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: Build broken on linus/master?
-Date: Fri, 26 Oct 2012 14:29:28 +0530
-Message-ID: <508A50F0.2030308@ti.com>
-References: <B5906170F1614E41A8A28DE3B8D121433EBE9565@DBDE01.ent.ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: Commit 4f3e8d263 breaks NFS root on Nokia N900
+Date: Fri, 26 Oct 2012 11:59:50 +0300
+Message-ID: <508A5106.1020008@ti.com>
+References: <50898A82.4020403@iki.fi> <20121025185900.GA18473@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33124 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757469Ab2JZI7t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 04:59:49 -0400
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBE9565@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:35790 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757752Ab2JZJAB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Oct 2012 05:00:01 -0400
+In-Reply-To: <20121025185900.GA18473@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: shuah.khan@hp.com, m.szyprowski@samsung.com
-Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: balbi@ti.com
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org
 
-On Friday 26 October 2012 01:18 PM, Bedia, Vaibhav wrote:
+On 10/25/2012 09:59 PM, Felipe Balbi wrote:
 > Hi,
->
-> Compiling the current linus/master (2ab3f29) using omap2plus_defconfig
-> throws up the following error
->
-> $make -j7 uImage
->    CHK     include/generated/uapi/linux/version.h
->    CHK     include/generated/utsrelease.h
-> make[1]: `include/generated/mach-types.h' is up to date.
->    CC      arch/arm/kernel/asm-offsets.s
-> In file included from include/linux/dma-mapping.h:76:0,
->                   from arch/arm/kernel/asm-offsets.c:15:
-> /datalocal/kernel/arch/arm/include/asm/dma-mapping.h: In function 'dma_mapping_error':
-> /datalocal/kernel/arch/arm/include/asm/dma-mapping.h:94:2: error: implicit declaration of function 'debug_dma_mapping_error'
-> make[1]: *** [arch/arm/kernel/asm-offsets.s] Error 1
-> make: *** [prepare0] Error 2
->
-Looks like it might break build on all ARM machines. I just
-noticed a patch adding debug_dma_mapping_error() for aarm64 arch.
+> 
+> On Thu, Oct 25, 2012 at 09:52:50PM +0300, Timo Kokkonen wrote:
+>> Hi,
+>>
+>> There is something wrong with the USB since commit 4f3e8d263. I am no
+>> longer able to boot from an NFS root with that commit applied. The
+>> kernel boots fine, it appears to be able to mount the root over the NFS
+>> but then after that, the USB networking appears to hang. Reverting the
+>> commit in question makes USB networking fully operational again.
+>>
+>> The kernel config and boot logs are attached.
+> 
+> Roger, this is the second big regression because of that patch. I guess
+> it's best to revert that while you work on a better patch. Sounds good ?
+> 
 
-Marek, Shuah,
-Is kernel missing a patch which adds definition of
-debug_dma_mapping_error() to linux/dma-debug.h ?
+Yes let's revert that. should have done more testing. my bad.
 
-I can't seems to find this symbol in kernel grep.
-
-Regards
-Santosh
+regards,
+-roger
