@@ -1,158 +1,88 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
-Date: Fri, 26 Oct 2012 11:03:42 +0300
-Message-ID: <20121026080342.GA23501@arwen.pp.htv.fi>
-References: <1351238130-7158-1-git-send-email-tim.niemeyer@corscience.de>
+Subject: Re: [PATCH v3 1/3] usb: dwc3: Add the suspend/resume functionality
+Date: Fri, 26 Oct 2012 11:13:16 +0300
+Message-ID: <20121026081316.GB23501@arwen.pp.htv.fi>
+References: <20121018150009.GT5378@xanatos>
+ <Pine.LNX.4.44L0.1210181244080.1495-100000@iolanthe.rowland.org>
+ <20121018172936.GB7823@arwen.pp.htv.fi>
+ <CAD025ySWpF-_o4K030Sib2NsZXA3Qcw0MN8qpTZhPn4OR170EQ@mail.gmail.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+	protocol="application/pgp-signature"; boundary="xXmbgvnjoT4axfJE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46912 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34157 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757110Ab2JZIJb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Oct 2012 04:09:31 -0400
+	id S932142Ab2JZITI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Oct 2012 04:19:08 -0400
 Content-Disposition: inline
-In-Reply-To: <1351238130-7158-1-git-send-email-tim.niemeyer@corscience.de>
+In-Reply-To: <CAD025ySWpF-_o4K030Sib2NsZXA3Qcw0MN8qpTZhPn4OR170EQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tim Niemeyer <tim.niemeyer@corscience.de>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: balbi@ti.com, Alan Stern <stern@rowland.harvard.edu>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Doug Anderson <dianders@chromium.org>
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=iso-8859-1
+--xXmbgvnjoT4axfJE
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Oct 26, 2012 at 09:55:30AM +0200, Tim Niemeyer wrote:
-> Adds support for configuring the omap-gpio driver use autosuspend for
-> runtime power management. This can reduce the latency in using it by
-> not suspending the device immediately on idle. If another access takes
-> place before the autosuspend timeout (2 secs), the call to resume the
-> device can return immediately saving some save/ restore cycles.
+On Fri, Oct 26, 2012 at 10:34:22AM +0530, Vikas Sajjan wrote:
+> Hi Felipe,
 >=20
-> I use a gpio to monitor a spi transfer which occurs every 250=B5s. The
-> suspend overhead is to high, so almost every second transfer is lost.
-> This patch fixes that.
+> On 18 October 2012 22:59, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+> > On Thu, Oct 18, 2012 at 12:44:50PM -0400, Alan Stern wrote:
+> >> On Thu, 18 Oct 2012, Sarah Sharp wrote:
+> >>
+> >> > For system suspend while the DW3 hardware is in host mode, doesn't t=
+he
+> >> > USB core prevent drivers from submitting URBs just before the
+> >> > PCI/platform suspend is called?  Alan?
+> >>
+> >> Sure it does.
+> >
+> > ok great, so my concerns is limited to the gadget side ;-) I still want
+> > to see both sides tested, though.
+> >
+> > (sorry guys, but with DWC3 now passing full USB3 certification, I want
+> > to be very careful with patches I accept, specially related to PM ;-)
+> >
+> > --
+> > balbi
 >=20
-> Signed-off-by: Tim Niemeyer <tim.niemeyer@corscience.de>
-> ---
->  drivers/gpio/gpio-omap.c |   23 ++++++++++++++++++-----
->  1 files changed, 18 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 94cbc84..92f48cb 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -31,6 +31,7 @@
->  #include <asm/mach/irq.h>
-> =20
->  #define OFF_MODE	1
-> +#define GPIO_AUTOSUSPEND_TIMEOUT                2000
-> =20
->  static LIST_HEAD(omap_gpio_list);
-> =20
-> @@ -628,8 +629,10 @@ static void omap_gpio_free(struct gpio_chip *chip, u=
-nsigned offset)
->  	 * If this is the last gpio to be freed in the bank,
->  	 * disable the bank module.
->  	 */
-> -	if (!bank->mod_usage)
-> -		pm_runtime_put(bank->dev);
-> +	if (!bank->mod_usage) {
+> Will test both HOST and GADGET mode as per your suggestion and update you.
 
-while at that I would drop this bank->mod_usage nonsense and let
-power core handle reference counting.
-
-> +		pm_runtime_mark_last_busy(bank->dev);
-> +		pm_runtime_put_autosuspend(bank->dev);
-> +	}
->  }
-> =20
->  /*
-> @@ -715,7 +718,8 @@ static void gpio_irq_handler(unsigned int irq, struct=
- irq_desc *desc)
->  exit:
->  	if (!unmasked)
->  		chained_irq_exit(chip, desc);
-> -	pm_runtime_put(bank->dev);
-> +	pm_runtime_mark_last_busy(bank->dev);
-> +	pm_runtime_put_autosuspend(bank->dev);
->  }
-> =20
->  static void gpio_irq_shutdown(struct irq_data *d)
-> @@ -1132,6 +1136,8 @@ static int __devinit omap_gpio_probe(struct platfor=
-m_device *pdev)
-> =20
->  	platform_set_drvdata(pdev, bank);
-> =20
-> +	pm_runtime_use_autosuspend(bank->dev);
-> +	pm_runtime_set_autosuspend_delay(bank->dev, GPIO_AUTOSUSPEND_TIMEOUT);
->  	pm_runtime_enable(bank->dev);
->  	pm_runtime_irq_safe(bank->dev);
->  	pm_runtime_get_sync(bank->dev);
-> @@ -1146,7 +1152,8 @@ static int __devinit omap_gpio_probe(struct platfor=
-m_device *pdev)
->  	if (bank->loses_context)
->  		bank->get_context_loss_count =3D pdata->get_context_loss_count;
-> =20
-> -	pm_runtime_put(bank->dev);
-> +	pm_runtime_mark_last_busy(bank->dev);
-> +	pm_runtime_put_autosuspend(bank->dev);
-> =20
->  	list_add_tail(&bank->node, &omap_gpio_list);
-> =20
-> @@ -1333,7 +1340,13 @@ void omap2_gpio_prepare_for_idle(int pwr_mode)
-> =20
->  		bank->power_mode =3D pwr_mode;
-> =20
-> -		pm_runtime_put_sync_suspend(bank->dev);
-> +		/* direct pm_runtime on pwroff */
-> +		if (pwr_mode)
-
-you also need braces here.
-
-> +			pm_runtime_put_sync_suspend(bank->dev);
-> +		else {
-> +			pm_runtime_mark_last_busy(bank->dev);
-> +			pm_runtime_put_sync_autosuspend(bank->dev);
-> +		}
->  	}
->  }
-> =20
-> --=20
-> 1.7.2.5
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cool, thanks. Hope we can still make it to v3.8. I guess we have about 2
+weeks (maybe 3) to get code to Greg so it soaks in linux-next long
+enough before the merge window opens.
 
 --=20
 balbi
 
---cWoXeonUoKmBZSoM
+--xXmbgvnjoT4axfJE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQikPeAAoJEIaOsuA1yqREGQMP/0ZdD07km0oGV4XnRvFYBnAz
-myec0Fi90y1FIGlXsWufHPccgREnxl9wcs0WIK+yUvAz0S65PdhyhL6a/um8l82s
-ZMWxNhBPcd+WBxkrHBSFuN97CMT5PgvFJTDS0FUXXhGDJvSnaZUbdP0HDorkDOfE
-MmqxS5LJL0T7l5Kz1B0HQTxp+jwwHMhx074R0r14LnMihWDzikRJ44kwRLyHvOxO
-lOXIkcpLpJdIO0pjh627i4WCJBjhmR1MjwfBvOlpBLsbubFlB1H3d9mmvv+1/g08
-v7L/lbZdA7CV9+O4OB+JPyRSeoAuouS1FNx0oRFwUfBKUpIoK3RXPVY+5i8Wp2z7
-7/GuNSO6bZlD/Pq9XLmzzcfeEm30Y2rp8uVWKWZ2b8kYmqm3DgPpoe9FSAdWY0n9
-BswHloaAvre9DYuP2TNoTTETB1gpXoZuqTcNoiQf//QRA9iNq4l3YY3w+MnxhhO2
-eUAWxqHtttbwLfBKjJ9RK1Sp23GzsRyyiUI4Ih7MwU7bHUF1TLHjyh+5J+IVg6LS
-EE033KnHZleImntCz/PdxxH05xOn7B7sx5Ut6BzBm2P/3k8MVQolf9oyKWBjqvhh
-XY/XHZY840zW/rBdu8W9Es8z/ncHcqXi2i/TlAvQB5A/S/lmRds1+kqdDFfXEE4F
-AUWtqJpKsuTzBFOSGATj
-=EE8i
+iQIcBAEBAgAGBQJQikYcAAoJEIaOsuA1yqRE3pMP/1DgH9JvIUfO3sfZrjihML0w
+0iG7elkjuy/8FfVUaEvGhuDNTzZGtxVAuHW3UUXQKCCqudfvTL5afjGx0HkIuTMZ
+Hpdhn3XQsszkDX+iT40pKmUyHtFMPPOSvFjyvEMr+2T7PVtRUP6pELrUuKdrNtM4
+OMihLKoi4kM0txa4XR9LWHjTbg3Fa4WD/As/gBjh0TmPvVTZ49d1hNWl3Z5ukYG/
+9JjHNPw+ryxPyzSFjUIxzDm3/ATOh7jGxPUmQvIhmf0YD08bqmapV5OxJtgKRz+T
+0qVlRCU5E+GGQoswxKcTchvX1VsF1h3djTPqJ3hzPh09pP2eYn3j8BkhqRS4Senq
+8OpxPcr2ZKtYqlfklYAxcA0NzzjtbSr/1FGnJ3dhQfuykRQdGtxatmZj73tGqSX2
+S+rmt3fjjmMqdRoSxrvPSDUOgeRYUPKIsfSfTP3tn+9lmwd6MvkooQqHagukPepX
+V6iroNYb5VUSyYGekkwM83tD9zrXlse+AphOcCkGrNpO+ZGiTelXHcgZ3r7Nr89C
+HVd4hKOwKWUDSyJ5MGVGuTjN6WrzhwZQ3noeCWKieBnQTnw0v3iJDxoEQMyl8P3/
+8i6K2f2VQP5D4/g9Xr1Z6saTYtkKG0QsvfVTGOmU/IZVs3PAWbyhgmyXOnJcTO+N
+eri1a4V7rRnljRH8Tb3V
+=ZSnG
 -----END PGP SIGNATURE-----
 
---cWoXeonUoKmBZSoM--
+--xXmbgvnjoT4axfJE--
