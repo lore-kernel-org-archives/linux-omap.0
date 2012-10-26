@@ -1,104 +1,73 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/3] ARM: OMAP2+: fix build breakage introduced by commit
- b7754452b3e27716347a528b47b0a1083af32520
-Date: Fri, 26 Oct 2012 14:08:26 -0600
-Message-ID: <20121026200824.16521.51522.stgit@dusk.lan>
-References: <20121026200413.16521.88985.stgit@dusk.lan>
+Subject: [GIT PULL] ARM: OMAP: fix build, sparse problems in
+ cleanup-headers
+Date: Fri, 26 Oct 2012 20:14:32 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210262012250.11258@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40888 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40923 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966361Ab2JZUJC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 16:09:02 -0400
-In-Reply-To: <20121026200413.16521.88985.stgit@dusk.lan>
+	with ESMTP id S934045Ab2JZUOd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 16:14:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Commit b7754452b3e27716347a528b47b0a1083af32520 ("mtd: onenand: omap:
-use pdata info instead of cpu_is") broke an OMAP3+4 build and an N800
-multi-OMAP2xxx build here:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-drivers/built-in.o: In function `omap2_onenand_probe':
-drivers/mtd/onenand/omap2.c:742: undefined reference to `omap2_onenand_read_bufferram'
-drivers/mtd/onenand/omap2.c:743: undefined reference to `omap2_onenand_write_bufferram'
-drivers/mtd/onenand/omap2.c:742: undefined reference to `omap2_onenand_read_bufferram'
-drivers/mtd/onenand/omap2.c:743: undefined reference to `omap2_onenand_write_bufferram'
+Hi Tony,
 
-...
+The following changes since commit 2da8a79f7d81853d00b6a00621aeef7545196084:
 
-drivers/built-in.o: In function `omap2_onenand_probe':
-drivers/mtd/onenand/omap2.c:788: undefined reference to `omap3_onenand_read_bufferram'
-drivers/mtd/onenand/omap2.c:788: undefined reference to `omap3_onenand_write_bufferram'
+  Merge branch 'omap-for-v3.8/cleanup-headers-menelaus' into omap-for-v3.8/cleanup-headers (2012-10-25 12:21:48 -0700)
 
-Fix by declaring static functions for the missing symbols, rather than
-just prototypes.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Afzal Mohammed <afzal@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- drivers/mtd/onenand/omap2.c |   36 ++++++++++++++++++++++++------------
- 1 file changed, 24 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index 53069ae..99f96e1 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -445,13 +445,19 @@ out_copy:
- 
- #else
- 
--int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
--				 unsigned char *buffer, int offset,
--				 size_t count);
-+static int omap3_onenand_read_bufferram(struct mtd_info *mtd, int area,
-+					unsigned char *buffer, int offset,
-+					size_t count)
-+{
-+	return -ENOSYS;
-+}
- 
--int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
--				  const unsigned char *buffer,
--				  int offset, size_t count);
-+static int omap3_onenand_write_bufferram(struct mtd_info *mtd, int area,
-+					 const unsigned char *buffer,
-+					 int offset, size_t count)
-+{
-+	return -ENOSYS;
-+}
- 
- #endif
- 
-@@ -549,13 +555,19 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
- 
- #else
- 
--int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
--				 unsigned char *buffer, int offset,
--				 size_t count);
-+static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
-+					unsigned char *buffer, int offset,
-+					size_t count)
-+{
-+	return -ENOSYS;
-+}
- 
--int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
--				  const unsigned char *buffer,
--				  int offset, size_t count);
-+static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
-+					 const unsigned char *buffer,
-+					 int offset, size_t count)
-+{
-+	return -ENOSYS;
-+}
- 
- #endif
- 
+are available in the git repository at:
 
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-cleanup-fixes-a-for-3.8
+
+for you to fetch changes up to 97af08b6e10e06563309728ed2fe8fdd919c5a33:
+
+  ARM: OMAP1: fix sparse warning added by commit 4c98dc6b8ef2f73bdbfa78186db9a76507ba9ea3 (2012-10-26 13:21:48 -0600)
+
+- ----------------------------------------------------------------
+Several fixes for build failures and sparse warnings in the
+OMAP cleanup-headers branch.  Intended for 3.8 cleanup.
+
+Basic build, boot, and PM test logs are available from here:
+
+    http://www.pwsan.com/omap/testlogs/cleanup-headers-compile-fixes-3.8/20121026132711/
+
+Due to underlying problems in v3.7-rc2, several tests fail.  These
+failures are unrelated to these patches.
+
+- ----------------------------------------------------------------
+Paul Walmsley (3):
+      ARM: OMAP2+: fix build breakage introduced by commit b7754452b3e27716347a528b47b0a1083af32520
+      ARM: OMAP1: fix build breakage introduced by commit 25c7d49ed48b4843da7dea56a81ae7f620211ee0
+      ARM: OMAP1: fix sparse warning added by commit 4c98dc6b8ef2f73bdbfa78186db9a76507ba9ea3
+
+ arch/arm/mach-omap1/fpga.c   |    1 +
+ arch/arm/mach-omap1/pm_bus.c |    2 ++
+ drivers/mtd/onenand/omap2.c  |   36 ++++++++++++++++++++++++------------
+ 3 files changed, 27 insertions(+), 12 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQiu6QAAoJEMePsQ0LvSpLY3IQAJtQgiBIsGvk8FuXULl0xmt2
+qftIgTpJ2r4PazBa+I2s3CZmF32vGK3vl2TE4MO+GtACRNgcZEMOuy6I3R2jg9P7
+vl8Q+rZJ/v32KtWDfKGqxr1VjkUFz4qf5lPw3AqxY4nwGabeV7Ni+ys4F3BvNvSR
+l2PtFY1GZZ6l52znHEDMZv2WRnlHyX5G0EFfxIfAxuTIu17d0WIQuI3/ozbwtlp3
+s2wbY0akZPOF+fiMtm9hT7qVHDpqUfvnu6P/7MD41EFzqKWgW9j5qVRNDl2LzWRn
+008Hd4RX6wnTGZguk7lh/v42D1SSf1ls6RJv5rPDKyaXBzexYQUWsg8OC/F9B6iN
+yFMdauSDu45gvY9wJJAUy47IYnhQTHQ5PfvccnmYnymK8QjIpM5rOqGr3qkQ/zyd
+hMbFOxzN1aeGcojnrgiCSCiJYIDtit9gEBoz6DnEYlKqnIuH25OlJi5/uBJ3Y809
+f+Es/ajvTnZrWWA4X44UlqfW1V0WCYfDqpuzAlZVMInKrexghT34bvjMs1gu4iNr
+thnZYhb386L0nD62G2yeUJpsuone2gZpbq1WQ6Mg4PDBrnIibD6BuFsToRxFTRGB
+q2ZfO2Nm21gHmnVivDqs8vo/xJjEn4j6CiKI8VaZUlGg7iu7rtN0Rf7W2YfjG+h/
+noV2yTKqbmtdq8PGcG2/
+=A1XA
+-----END PGP SIGNATURE-----
