@@ -1,100 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omapdss: dss: Fix clocks on OMAP363x
-Date: Fri, 26 Oct 2012 09:17:25 +0300
-Message-ID: <508A2AF5.3080706@ti.com>
-References: <1351190530-16863-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Fri, 26 Oct 2012 09:20:36 +0300
+Message-ID: <20121026062008.GA21734@arwen.pp.htv.fi>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
+ <20121024161429.GA16350@core.coreip.homeip.net>
+ <CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
+ <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+ <20121024185818.GB772@arwen.pp.htv.fi>
+ <20121025205901.GA3827@sirena.org.uk>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig5D352CABC3079049724F1858"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55580 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752196Ab2JZGRe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 02:17:34 -0400
-In-Reply-To: <1351190530-16863-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="ADZbWkCsHQ7r3kzd"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121025205901.GA3827@sirena.org.uk>
+Sender: linux-input-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Felipe Balbi <balbi@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
---------------enig5D352CABC3079049724F1858
-Content-Type: text/plain; charset=ISO-8859-1
+--ADZbWkCsHQ7r3kzd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-10-25 21:42, Laurent Pinchart wrote:
-> Commit 185bae1095188aa199c9be64d6030d8dbfc65e0a ("OMAPDSS: DSS: Cleanup=
+Hi,
 
-> cpu_is_xxxx checks") broke the DSS clocks configuration by erroneously
-> using the clock parameters applicable to all other OMAP34xx SoCs for th=
-e
-> OMAP363x. This went unnoticed probably because the cpu_is_omap34xx()
-> class check wasn't seen as matching the OMAP363x subclass.
+On Thu, Oct 25, 2012 at 09:59:01PM +0100, Mark Brown wrote:
+> On Wed, Oct 24, 2012 at 09:58:19PM +0300, Felipe Balbi wrote:
 >=20
-> Fix it by checking for the OMAP363x subclass before checking for the
-> OMAP34xx class.
+> > need a way to tell drivers/base "hey, don't touch pinctrl at all because
+> > I know what I'm doing" and that has to happen before probe() too,
+> > otherwise it's already too late and, according to what you suggest,
+> > drivers/base will already have touched pinctrl. The only way I see would
+> > be to add an extra "dont_touch_my_pins" field to every driver structure
+> > in the kernel. Clearly what you say is nonsense.
 >=20
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/video/omap2/dss/dss.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+> I suspect that's not actually a big deal and that if we went down this
+> route we'd have the driver take over control from the core code during
+> probe() with the core still setting up the default state.
 >=20
-> Hi Tomi,
->=20
-> The patch has been tested on the Beagleboard-xM and restores the DVI ou=
-tput
-> operation. This is a regression fix that should be pushed to v3.7.
->=20
-> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/ds=
-s.c
-> index 2ab1c3e..0bb7406 100644
-> --- a/drivers/video/omap2/dss/dss.c
-> +++ b/drivers/video/omap2/dss/dss.c
-> @@ -805,10 +805,10 @@ static int __init dss_init_features(struct device=
- *dev)
-> =20
->  	if (cpu_is_omap24xx())
->  		src =3D &omap24xx_dss_feats;
-> -	else if (cpu_is_omap34xx())
-> -		src =3D &omap34xx_dss_feats;
->  	else if (cpu_is_omap3630())
->  		src =3D &omap3630_dss_feats;
-> +	else if (cpu_is_omap34xx())
-> +		src =3D &omap34xx_dss_feats;
->  	else if (cpu_is_omap44xx())
->  		src =3D &omap44xx_dss_feats;
->  	else if (soc_is_omap54xx())
->=20
+> Personally I do think we want to be factoring bolierplate out of
+> drivers, if they're not doing anything constructive with pinctrl they
+> should be able to avoid having code for it.  There definitely are issues
+> to work through but it seems like we ought to be able to do something.
 
-Good catch, thanks. I don't have a 36xx board, so this went unnoticed.
-I'll push it for 3.7-rc.
+IMHO this will come back to bite you in the *ss. Specially when the same
+driver is shared among multiple revisions of the same SoC or multiple
+different SoCs.
 
- Tomi
+Hypothetical situation: OMAP4 has keypad as the default pin mode and low
+power is handled by the HW, so keypad could have pinctlr "boilerplate"
+factored out. Then comes OMAP5 and low power mode has to be handled by
+SW for whatever reason (maybe there are more than one low power mode).
+Then we will need to patch omap4-keypad.c to remove "dont_touch_my_pins"
+flag and add pinctrl support.
 
+When you think of the possibilities of every single driver going
+throught that it sounds a lot nicer to not make that decision IMHO and
+keep pinctrl explicit.
 
+This is not like module_*_driver() macro.
 
---------------enig5D352CABC3079049724F1858
+--=20
+balbi
+
+--ADZbWkCsHQ7r3kzd
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQiir5AAoJEPo9qoy8lh71H58P/19E3mQKM7wsq4WyrDn25BEX
-fO3UqGistWBhQuKcMX7MBWLF9I1v/VbNhxzwfLbhdJOlDQsuGZo0Ve9/keQkEsda
-bmrT5QJo7GFxqhmrizYqWaNHnNIIGJ/J+se0PTGbs/QWClfFCAgMq/DDcVLuzKBs
-49LQjtxTxu0rz2KAVYQWk3BAdw2FnqcWxi0tjtkbHMaHRLOzlmYKlcEcJVSOlzRJ
-aU90VnrTG6LbYKogm++xjCgAge2Ch8eF+WsMhowu0+V3lw3Wl7OVrtLXZVIxHa24
-PavTgEl1h5epSKhnbgHgxf+eqb4KSm7KLsythx8KP4Bj8HcsuJlGHawj3+vJi6iz
-DhV1TdRLxxSYGSyV/H3986EADDgX+W7sroiSwOIxw4wXAKH7dlDg5N6bUd1u7T2d
-QKEaNLpdYbfgtUcawSuDv1++FDfL03dIBXVwYx7mP6x9U6ejsoQIQoV1nsuudYBb
-B+pqpAxRx+DLnEqug9TlUQ+y/nNq4pbmLuU6JcHnb/lfvJP2GKWgLHg6x3gdnlwe
-PQF+uNaPF9kxd7KvR4526/DPAWbUh9Q1r84muyMuB3rgZvZkK54FJdVDhv3m6bx1
-9s+rF7NOpFd07MsvHAXbfhl2xuawI3A2l8lLOFGrVVMf9XEXWI4BNvuSifsxDw4F
-HWT2QSJqmQHm3Bk+E3Bf
-=tS34
+iQIcBAEBAgAGBQJQiiu0AAoJEIaOsuA1yqRERi4P/25UPM0I00rC+y1mzIxVv9Uv
+QUnLm6YLewXTTH/aEBQnJ7e6VCTuLfc8NXjSbGyvOxu1gESeSRPiBSr/meEwI2Cp
+3aXxW/wt3Q4zSzbCzn6o1cN7Gk+2GQWs75kxVepvwMmgIuIg2b826yPFEzCu1DTo
+YzEQz2oESCAGDk+ilLXxZ7J2Ozf6ZWHc8x2xSPQVLL4QgXUVo1ODIh0RSA95g6/4
+pmjj0XtBoNkCSfZHfSa8PL/NISNok4vIanu8bH9TGCmoYOVJIp3ThWk+H6gnMasW
+RqT6H6jMXc0+gRu+1irtnUXrNYyk/VdVvVomWDoGHQhXUuaMec8szm1CzvJpPY7v
+mGVGZSiZaUrnOLYBtx5dYFlLxdkFDlo4Iaec5daBRBVmdoj27DtyRSdNwGqH3vj0
+bW1sDGgld3ZSL2IbTdJkBdFVzUmPlpdFjWCTHpcQhW1BusL/kF4xM1ItxlXyZW1R
+tVFEbKyt2zWy4OfSqmkzV6gp5/kDwCTSDYJeCgymsvYC4BRev/xU7buS5PZ5kAVx
+6HMQwKWe4sGgFYJOv5Fd6MHAvTgtEU/CR9lbAe4fDnEfU5ro7ec/e3Z8evaNLGg0
+mnsBd4o8wxNjAry1JuRffqrT7P5fcf0iU6DmHQooc1eD5Fq/RElgYp+JzvM7/4q5
+YYJ5aOnic6wz5tKqtwWx
+=oMXy
 -----END PGP SIGNATURE-----
 
---------------enig5D352CABC3079049724F1858--
+--ADZbWkCsHQ7r3kzd--
