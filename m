@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] omap plat header removal for v3.8 merge window, part3
+Subject: [GIT PULL 3/3] omap prcm cleanup for v3.8 merge window, part1
 Date: Fri, 26 Oct 2012 14:23:40 -0700
-Message-ID: <E1TRrNm-00084U-TE@merlin.infradead.org>
+Message-ID: <E1TRrO0-00087R-UM@merlin.infradead.org>
 References: <pull-1351286620-406688>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,99 +22,106 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 3d82cbbb3aadb4f8a30e3f614e51be96574a0855:
-
-  ARM: OMAP: Split plat/serial.h for omap1 and omap2+ (2012-10-24 13:34:31 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-headers-part3-signed
-
-for you to fetch changes up to a0212796b58061a9716178d261f318925c246643:
+The following changes since commit a0212796b58061a9716178d261f318925c246643:
 
   Merge tag 'omap-cleanup-fixes-a-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/cleanup-headers (2012-10-26 13:18:19 -0700)
 
-----------------------------------------------------------------
+are available in the git repository at:
 
-Here is the third set of plat header removal for omap2+.
 
-This is based on the following minimal topic branches
-coordinated with the related driver maintainers:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-prcm-part1-take2-signed
 
-omap-for-v3.8/cleanup-headers-usb
-omap-for-v3.8/cleanup-headers-menelaus
+for you to fetch changes up to 7fc54fd3084457c7f11b9e2e1e3fcd19a3badc33:
 
-In addition to that, there are few fixes to the previously
-merged patches that can show up with customized configs.
+  Merge branch 'omap-for-v3.8/cleanup-headers' into omap-for-v3.8/cleanup-prcm (2012-10-26 13:32:22 -0700)
 
 ----------------------------------------------------------------
-Felipe Balbi (1):
-      ARM: OMAP: move OMAP USB platform data to <linux/platform_data/omap-usb.h>
 
-Paul Walmsley (3):
-      ARM: OMAP2+: fix build breakage introduced by commit b7754452b3e27716347a528b47b0a1083af32520
-      ARM: OMAP1: fix build breakage introduced by commit 25c7d49ed48b4843da7dea56a81ae7f620211ee0
-      ARM: OMAP1: fix sparse warning added by commit 4c98dc6b8ef2f73bdbfa78186db9a76507ba9ea3
+>From Paul Walmsley <paul@pwsan.com>:
 
-Tony Lindgren (5):
-      ARM: OMAP2: Move plat/menelaus.h to linux/mfd/menelaus.h
-      ARM: OMAP2+: Introduce local usb.h
-      Merge branch 'omap-for-v3.8/cleanup-headers-usb' into omap-for-v3.8/cleanup-headers
-      Merge branch 'omap-for-v3.8/cleanup-headers-menelaus' into omap-for-v3.8/cleanup-headers
-      Merge tag 'omap-cleanup-fixes-a-for-3.8' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.8/cleanup-headers
+The first set of OMAP PRM/CM-related cleanup patches for 3.8.
+Prepares for the future move of the PRM/CM code to drivers/.  Also
+includes some prcm.[ch] cleanup patches from the WDTIMER cleanup
+series that don't need external acks.
 
- arch/arm/mach-omap1/clock.c                        |    4 +-
- arch/arm/mach-omap1/fpga.c                         |    1 +
- arch/arm/mach-omap1/pm_bus.c                       |    2 +
- arch/arm/mach-omap2/board-2430sdp.c                |    1 -
- arch/arm/mach-omap2/board-3430sdp.c                |    1 -
- arch/arm/mach-omap2/board-3630sdp.c                |    1 -
- arch/arm/mach-omap2/board-4430sdp.c                |    2 +-
- arch/arm/mach-omap2/board-am3517crane.c            |    1 -
- arch/arm/mach-omap2/board-am3517evm.c              |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c                 |    5 +-
- arch/arm/mach-omap2/board-cm-t3517.c               |    1 -
- arch/arm/mach-omap2/board-devkit8000.c             |    1 -
- arch/arm/mach-omap2/board-h4.c                     |    2 +-
- arch/arm/mach-omap2/board-igep0020.c               |    6 +-
- arch/arm/mach-omap2/board-ldp.c                    |    3 +-
- arch/arm/mach-omap2/board-n8x0.c                   |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c            |    7 +-
- arch/arm/mach-omap2/board-omap3evm.c               |    2 +-
- arch/arm/mach-omap2/board-omap3logic.c             |    2 -
- arch/arm/mach-omap2/board-omap3pandora.c           |    1 -
- arch/arm/mach-omap2/board-omap3stalker.c           |    1 -
- arch/arm/mach-omap2/board-omap3touchbook.c         |    1 -
- arch/arm/mach-omap2/board-omap4panda.c             |    4 +-
- arch/arm/mach-omap2/board-overo.c                  |    4 +-
- arch/arm/mach-omap2/board-rm680.c                  |    4 +-
- arch/arm/mach-omap2/board-rx51.c                   |    2 +-
- arch/arm/mach-omap2/board-ti8168evm.c              |    3 +-
- arch/arm/mach-omap2/board-zoom-peripherals.c       |    1 -
- arch/arm/mach-omap2/board-zoom.c                   |    1 -
- arch/arm/mach-omap2/common.h                       |    2 +
- arch/arm/mach-omap2/omap_phy_internal.c            |    4 +-
- arch/arm/mach-omap2/twl-common.c                   |    2 -
- arch/arm/mach-omap2/usb-host.c                     |    3 +-
- arch/arm/mach-omap2/usb-musb.c                     |    3 +-
- arch/arm/mach-omap2/usb-tusb6010.c                 |    1 +
- arch/arm/mach-omap2/usb.h                          |   82 +++++++++
- arch/arm/plat-omap/include/plat/usb.h              |  179 --------------------
- drivers/mfd/menelaus.c                             |    2 +-
- drivers/mfd/omap-usb-host.c                        |    5 +-
- drivers/mfd/omap-usb-tll.c                         |    2 +-
- drivers/mfd/omap-usb.h                             |    2 +
- drivers/mtd/onenand/omap2.c                        |   36 ++--
- drivers/usb/host/ehci-omap.c                       |    3 +-
- drivers/usb/host/ohci-omap3.c                      |    1 -
- drivers/usb/musb/am35x.c                           |    3 +-
- drivers/usb/musb/musb_dsps.c                       |    3 +-
- drivers/usb/musb/omap2430.h                        |    2 +-
- .../include/plat => include/linux/mfd}/menelaus.h  |    2 -
- include/linux/platform_data/usb-omap.h             |   80 +++++++++
- 49 files changed, 231 insertions(+), 254 deletions(-)
- create mode 100644 arch/arm/mach-omap2/usb.h
- delete mode 100644 arch/arm/plat-omap/include/plat/usb.h
- create mode 100644 drivers/mfd/omap-usb.h
- rename {arch/arm/plat-omap/include/plat => include/linux/mfd}/menelaus.h (96%)
- create mode 100644 include/linux/platform_data/usb-omap.h
+----------------------------------------------------------------
+Paul Walmsley (9):
+      ARM: OMAP2+: PRM: remove PRM weak functions
+      ARM: OMAP2+: PRM: split PRM functions into OMAP2, OMAP3-specific files
+      ARM: OMAP2+: powerdomain/PRM: move the low-level powerdomain functions into PRM
+      ARM: OMAP2+: CM/hwmod: split CM functions into OMAP2, OMAP3-specific files
+      ARM: OMAP2/3: clockdomain/PRM/CM: move the low-level clockdomain functions into PRM/CM
+      ARM: OMAP2+: PRM: prepare for use of prm_ll_data function pointers
+      ARM: OMAP2+: CM: prepare for use of cm_ll_data function pointers
+      ARM: OMAP1: create read_reset_sources() function (for initial use by watchdog)
+      ARM: OMAP2+: PRM: create PRM reset source API for the watchdog timer driver
+
+Tony Lindgren (2):
+      Merge tag 'omap-cleanup-a-for-3.8' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.8/cleanup-prcm
+      Merge branch 'omap-for-v3.8/cleanup-headers' into omap-for-v3.8/cleanup-prcm
+
+ arch/arm/mach-omap1/common.h                    |    2 +
+ arch/arm/mach-omap1/reset.c                     |   38 +++
+ arch/arm/mach-omap2/Makefile                    |  110 ++++---
+ arch/arm/mach-omap2/clkt2xxx_apll.c             |    2 +-
+ arch/arm/mach-omap2/clkt2xxx_dpll.c             |    2 +-
+ arch/arm/mach-omap2/clock.c                     |    3 +-
+ arch/arm/mach-omap2/clock2420_data.c            |    2 +-
+ arch/arm/mach-omap2/clock2430.c                 |    2 +-
+ arch/arm/mach-omap2/clock2430_data.c            |    2 +-
+ arch/arm/mach-omap2/clock34xx.c                 |    2 +-
+ arch/arm/mach-omap2/clock3517.c                 |    2 +-
+ arch/arm/mach-omap2/clock3xxx_data.c            |    2 +-
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c      |  341 -------------------
+ arch/arm/mach-omap2/clockdomain33xx.c           |   74 -----
+ arch/arm/mach-omap2/clockdomain44xx.c           |  151 ---------
+ arch/arm/mach-omap2/cm.h                        |   12 +
+ arch/arm/mach-omap2/cm2xxx.c                    |  255 ++++++++++++++
+ arch/arm/mach-omap2/cm2xxx.h                    |   66 ++++
+ arch/arm/mach-omap2/cm2xxx_3xxx.h               |  119 +++----
+ arch/arm/mach-omap2/cm33xx.c                    |   56 ++++
+ arch/arm/mach-omap2/{cm2xxx_3xxx.c => cm3xxx.c} |  307 +++++++++--------
+ arch/arm/mach-omap2/cm3xxx.h                    |   86 +++++
+ arch/arm/mach-omap2/cm_common.c                 |   71 ++++
+ arch/arm/mach-omap2/cminst44xx.c                |  142 +++++++-
+ arch/arm/mach-omap2/control.c                   |    4 +-
+ arch/arm/mach-omap2/omap_hwmod.c                |   51 ++-
+ arch/arm/mach-omap2/pm24xx.c                    |    4 +-
+ arch/arm/mach-omap2/pm34xx.c                    |    5 +-
+ arch/arm/mach-omap2/powerdomain2xxx_3xxx.c      |  242 --------------
+ arch/arm/mach-omap2/powerdomain33xx.c           |  229 -------------
+ arch/arm/mach-omap2/powerdomain44xx.c           |  285 ----------------
+ arch/arm/mach-omap2/prm-regbits-24xx.h          |    6 +-
+ arch/arm/mach-omap2/prm-regbits-34xx.h          |   12 +-
+ arch/arm/mach-omap2/prm.h                       |   53 +++
+ arch/arm/mach-omap2/prm2xxx.c                   |  126 +++++++
+ arch/arm/mach-omap2/prm2xxx.h                   |  132 ++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.c              |  332 +++++++------------
+ arch/arm/mach-omap2/prm2xxx_3xxx.h              |  277 ++++------------
+ arch/arm/mach-omap2/prm33xx.c                   |  202 ++++++++++++
+ arch/arm/mach-omap2/prm3xxx.c                   |  403 +++++++++++++++++++++++
+ arch/arm/mach-omap2/prm3xxx.h                   |  160 +++++++++
+ arch/arm/mach-omap2/prm44xx.c                   |  355 +++++++++++++++++++-
+ arch/arm/mach-omap2/prm44xx.h                   |    2 +
+ arch/arm/mach-omap2/prm_common.c                |  104 +++---
+ arch/arm/mach-omap2/sdrc2xxx.c                  |    2 +-
+ arch/arm/mach-omap2/sleep34xx.S                 |    4 +-
+ arch/arm/mach-omap2/sram242x.S                  |    4 +-
+ arch/arm/mach-omap2/sram243x.S                  |    4 +-
+ arch/arm/mach-omap2/sram34xx.S                  |    2 +-
+ 49 files changed, 2750 insertions(+), 2099 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+ delete mode 100644 arch/arm/mach-omap2/clockdomain33xx.c
+ delete mode 100644 arch/arm/mach-omap2/clockdomain44xx.c
+ create mode 100644 arch/arm/mach-omap2/cm2xxx.c
+ create mode 100644 arch/arm/mach-omap2/cm2xxx.h
+ rename arch/arm/mach-omap2/{cm2xxx_3xxx.c => cm3xxx.c} (72%)
+ create mode 100644 arch/arm/mach-omap2/cm3xxx.h
+ create mode 100644 arch/arm/mach-omap2/cm_common.c
+ delete mode 100644 arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
+ delete mode 100644 arch/arm/mach-omap2/powerdomain33xx.c
+ delete mode 100644 arch/arm/mach-omap2/powerdomain44xx.c
+ create mode 100644 arch/arm/mach-omap2/prm2xxx.c
+ create mode 100644 arch/arm/mach-omap2/prm2xxx.h
+ create mode 100644 arch/arm/mach-omap2/prm3xxx.c
+ create mode 100644 arch/arm/mach-omap2/prm3xxx.h
