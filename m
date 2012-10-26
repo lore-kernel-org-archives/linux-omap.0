@@ -1,55 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 3/3] ARM: OMAP: ocp2scp: create omap device for
- ocp2scp
-Date: Fri, 26 Oct 2012 13:16:31 -0700
-Message-ID: <20121026201631.GR11908@atomide.com>
-References: <1349675983-23803-1-git-send-email-kishon@ti.com>
- <1349675983-23803-4-git-send-email-kishon@ti.com>
- <20121026065012.GC22206@arwen.pp.htv.fi>
- <201210260747.11848.arnd@arndb.de>
- <20121026172140.GJ11908@atomide.com>
- <20121026195958.GB29548@arwen.pp.htv.fi>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 10/16] ARM: OMAP: Make omap_device local to mach-omap2
+Date: Fri, 26 Oct 2012 20:18:49 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210262016410.11258@utopia.booyaka.com>
+References: <20121004213950.26676.21898.stgit@muffinssi.local> <20121004220456.26676.31050.stgit@muffinssi.local> <alpine.DEB.2.00.1210260124360.11251@utopia.booyaka.com> <20121026163900.GC11908@atomide.com> <alpine.DEB.2.00.1210261701060.3301@utopia.booyaka.com>
+ <20121026171059.GG11908@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121026195958.GB29548@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Kishon Vijay Abraham I <kishon@ti.com>, linux@arm.linux.org.uk, b-cousson@ti.com, olof@lixom.net, rdunlap@xenotime.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:40931 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966367Ab2JZUSt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 16:18:49 -0400
+In-Reply-To: <20121026171059.GG11908@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Felipe Balbi <balbi@ti.com> [121026 13:07]:
-> On Fri, Oct 26, 2012 at 10:21:41AM -0700, Tony Lindgren wrote:
-> > * Arnd Bergmann <arnd@arndb.de> [121026 00:48]:
-> > > On Friday 26 October 2012, Felipe Balbi wrote:
-> > > > > +static void omap_init_ocp2scp(void)
-> > > > > +{
-> > > > > +     struct omap_hwmod       *oh;
-> > > > > +     struct platform_device  *pdev;
-> > > > > +     int                     bus_id = -1, dev_cnt = 0, i;
-> > > > > +     struct omap_ocp2scp_dev *ocp2scp_dev;
-> > > > > +     const char              *oh_name, *name;
-> > > > > +     struct omap_ocp2scp_platform_data *pdata;
-> > > > > +
-> > > > > +     oh_name = "ocp2scp_usb_phy";
-> > > > > +     name    = "omap-ocp2scp";
-> > > > 
-> > > > how about adding checks here to return early case we're not running on
-> > > > OMAP4 or OMAP5 ??
-> > > > 
-> > > 
-> > > I suppose even OMAP4-only, since OMAP5 always has DT enabled.
+On Fri, 26 Oct 2012, Tony Lindgren wrote:
+
+> * Paul Walmsley <paul@pwsan.com> [121026 10:03]:
+> > On Fri, 26 Oct 2012, Tony Lindgren wrote:
 > > 
-> > Hmm yes, currently omap_hwmod_lookup(oh_name) produces
-> > bogus errors for other omaps as the hwmod data is only
-> > there for omap4.
+> > > Can you do a branch on top of omap-for-v3.8/cleanup-headers
+> > > with all these fixes that I can pull in?
+> > 
+> > Yes, will do that today.
 > 
-> shouldn't that be fixed too ? I mean, if data isn't just return -ENODEV
-> or something similar.
+> OK thanks!
 
-Yes some kind of checking is needed here.
+Just sent the pull request.  Are you planning to rebuild cleanup-prcm also 
+when you pull those cleanup-headers fixes in?  Am planning to send another 
+PRCM cleanup pull request next week...
 
-Regards,
 
-Tony
+- Paul
