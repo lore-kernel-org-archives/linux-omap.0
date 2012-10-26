@@ -1,48 +1,34 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH v2 5/7] crypto: omap-sham: Convert to use pm_runtime API
-Date: Fri, 26 Oct 2012 10:10:09 -0700
-Message-ID: <20121026171009.GA23528@animalcreek.com>
-References: <1351046167-4882-1-git-send-email-mgreer@animalcreek.com>
- <1351046167-4882-6-git-send-email-mgreer@animalcreek.com>
- <87lieunkat.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 10/16] ARM: OMAP: Make omap_device local to mach-omap2
+Date: Fri, 26 Oct 2012 10:10:59 -0700
+Message-ID: <20121026171059.GG11908@atomide.com>
+References: <20121004213950.26676.21898.stgit@muffinssi.local>
+ <20121004220456.26676.31050.stgit@muffinssi.local>
+ <alpine.DEB.2.00.1210260124360.11251@utopia.booyaka.com>
+ <20121026163900.GC11908@atomide.com>
+ <alpine.DEB.2.00.1210261701060.3301@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:49608 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755816Ab2JZRLC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 13:11:02 -0400
 Content-Disposition: inline
-In-Reply-To: <87lieunkat.fsf@deeprootsystems.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, dmitry.kasatkin@intel.com, rmk+kernel@arm.linux.org.uk, paul@pwsan.com
+In-Reply-To: <alpine.DEB.2.00.1210261701060.3301@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, Oct 25, 2012 at 05:34:02PM -0700, Kevin Hilman wrote:
-> Hi Mark,
-
-Hi Kevin.
-
-> "Mark A. Greer" <mgreer@animalcreek.com> writes:
+* Paul Walmsley <paul@pwsan.com> [121026 10:03]:
+> On Fri, 26 Oct 2012, Tony Lindgren wrote:
 > 
-> > From: "Mark A. Greer" <mgreer@animalcreek.com>
-> >
-> > Convert the omap-sham crypto driver to use the
-> > pm_runtime API instead of the clk API.
-> >
-> > CC: Kevin Hilman <khilman@deeprootsystems.com>
-> > CC: Paul Walmsley <paul@pwsan.com>
-> > CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
-> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> > Can you do a branch on top of omap-for-v3.8/cleanup-headers
+> > with all these fixes that I can pull in?
 > 
-> I can't pretend to fully understand this driver, It looks like the
-> current code is doing a bit more fine-grained clock gating, and leaving
-> the IP clocked only when needed.
-> 
-> The proposed version does a 'get' in probe and a 'put' in remove, which
-> means the IP will always be enabled (and thus preventing low-power
-> states), even when it's not in use.
+> Yes, will do that today.
 
-You're right, and what I did is wrong.  I'll fix this in the next revision.
+OK thanks!
 
-Thanks,
-
-Mark
---
+Tony
