@@ -1,14 +1,14 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] gpio/omap: fix off-mode bug: clear debounce settings on free/reset
-Date: Fri, 26 Oct 2012 14:19:20 -0500
-Message-ID: <1351279161-3778-1-git-send-email-jon-hunter@ti.com>
+Subject: [RESEND][PATCH v4] gpio/omap: fix off-mode bug: clear debounce settings on free/reset
+Date: Fri, 26 Oct 2012 14:20:46 -0500
+Message-ID: <1351279246-3923-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60990 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966098Ab2JZTTj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 15:19:39 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:35462 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966098Ab2JZTU6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Oct 2012 15:20:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
