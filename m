@@ -1,90 +1,49 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Fri, 26 Oct 2012 09:13:20 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB4B619@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
-  <1729342.AddG4HPA3i@avalon>
- <79CD15C6BA57404B839C016229A409A83180E941@DBDE01.ent.ti.com>
- <5089461A.9050307@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
+Date: Fri, 26 Oct 2012 11:35:22 +0200
+Message-ID: <6561916.t72K1L6jg4@avalon>
+References: <20121025001913.2082.31062.stgit@muffinssi.local> <20121025213935.GD11928@atomide.com> <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33734 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853Ab2JZJN0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 05:13:26 -0400
-In-Reply-To: <5089461A.9050307@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-On Thu, Oct 25, 2012 at 19:30:58, Valkeinen, Tomi wrote:
-> On 2012-03-09 10:03, Hiremath, Vaibhav wrote:
-> > On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
-> >> Hi Archit,
-> >>
-> >> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> >>> The omap_vout driver tries to set the DSS overlay_info using
-> >>> set_overlay_info() when the physical address for the overlay is still not
-> >>> configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> >>>
-> >>> The calls to omapvid_init(which internally calls set_overlay_info()) are
-> >>> removed from these functions. They don't need to be called as the
-> >>> omap_vout_device struct anyway maintains the overlay related changes made.
-> >>> Also, remove the explicit call to set_overlay_info() in vidioc_streamon(),
-> >>> this was used to set the paddr, this isn't needed as omapvid_init() does
-> >>> the same thing later.
-> >>>
-> >>> These changes are required as the DSS2 driver since 3.3 kernel doesn't let
-> >>> you set the overlay info with paddr as 0.
-> >>>
-> >>> Signed-off-by: Archit Taneja <archit@ti.com>
-> >>
-> >> Thanks for the patch. This seems to fix memory corruption that would result
-> >> in sysfs-related crashes such as
-> >>
-> >> [   31.279541] ------------[ cut here ]------------
-> >> [   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x1f8()
-> >> [   31.291503] missing sysfs attribute operations for kobject: (null)
-> >> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-> >> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c0034488>] (warn_slowpath_common+0x4c/0x64)
-> >> [   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c)
-> >> [   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>] (sysfs_open_file+0x70/0x1f8)
-> >> [   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>] (__dentry_open+0x1f8/0x30c)
-> >> [   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce58>] (nameidata_to_filp+0x50/0x5c)
-> >> [   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-> >> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (path_openat+0xb8/0x37c)
-> >> [   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c)
-> >> [   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>] (do_sys_open+0xd8/0x170)
-> >> [   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-> >> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
-> >>
-> >> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>
-> > 
-> > Thanks Laurent for testing this patch.
-> > 
-> > 
-> >> Please push it to v3.3 :-)
-> >>
-> > 
-> > Will send a pull request today itself.
+Hi Ohad,
+
+On Friday 26 October 2012 07:50:56 Ohad Ben-Cohen wrote:
+> On Thu, Oct 25, 2012 at 11:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >> > Joerg and Ohad, do you have any opinions on this?
 > 
-> Vaibhav, I don't see this crash fix in 3.3, 3.4, 3.5, 3.6 nor in 3.7-rc.
-> Are you still maintaining the omap v4l2 driver? Can you finally push
-> this fix?
+> I agree that there's some merit in having a separate header file for
+> IOVMM, since it's a different layer from the IOMMU API.
 > 
+> But in reality it's tightly coupled with OMAP's IOMMU, and ideally it
+> really should go away and be replaced with the DMA API.
+> 
+> For this reason, and for the fact that anyway there's only a single
+> user for it (omap3isp) and there will never be any more, maybe we
+> shouldn't pollute include/linux anymore.
+> 
+> Anyone volunteering to remove IOVMM and adapt omap3isp to the DMA API
+> instead ? ;)
 
-Tomi, Sorry for delayed response.
+That's on my to-do list, as well as porting the OMAP3 ISP driver to videobuf2, 
+adding DT support, moving to the common clock framework (when that will be 
+available for the OMAP3), supporting missing V4L2 features, ... All this in my 
+spare time of course, otherwise it wouldn't be fun, would it ? ;-)
 
-Laurent,
-Can you pull up this patch into your next pull request?
+I would also like to move the tidspbridge to the DMA API, but I think we'll 
+need to move step by step there, and using the OMAP IOMMU and IOVMM APIs as an 
+intermediate step would allow splitting patches in reviewable chunks. I know 
+it's a step backwards in term of OMAP IOMMU usage, but that's in my opinion a 
+temporary nuisance to make the leap easier.
 
-Thanks,
-Vaibhav
+-- 
+Regards,
 
-
+Laurent Pinchart
