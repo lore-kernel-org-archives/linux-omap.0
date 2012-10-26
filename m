@@ -1,46 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 3/3] ARM: OMAP: ocp2scp: create omap device for
- ocp2scp
-Date: Fri, 26 Oct 2012 10:21:41 -0700
-Message-ID: <20121026172140.GJ11908@atomide.com>
-References: <1349675983-23803-1-git-send-email-kishon@ti.com>
- <1349675983-23803-4-git-send-email-kishon@ti.com>
- <20121026065012.GC22206@arwen.pp.htv.fi>
- <201210260747.11848.arnd@arndb.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM: OMAP1: CGRM: fix omap1_get_reset_sources() return
+ type
+Date: Fri, 26 Oct 2012 17:27:21 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210261726430.5988@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201210260747.11848.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: balbi@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, linux@arm.linux.org.uk, b-cousson@ti.com, olof@lixom.net, rdunlap@xenotime.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:40495 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932894Ab2JZR1W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 13:27:22 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Arnd Bergmann <arnd@arndb.de> [121026 00:48]:
-> On Friday 26 October 2012, Felipe Balbi wrote:
-> > > +static void omap_init_ocp2scp(void)
-> > > +{
-> > > +     struct omap_hwmod       *oh;
-> > > +     struct platform_device  *pdev;
-> > > +     int                     bus_id = -1, dev_cnt = 0, i;
-> > > +     struct omap_ocp2scp_dev *ocp2scp_dev;
-> > > +     const char              *oh_name, *name;
-> > > +     struct omap_ocp2scp_platform_data *pdata;
-> > > +
-> > > +     oh_name = "ocp2scp_usb_phy";
-> > > +     name    = "omap-ocp2scp";
-> > 
-> > how about adding checks here to return early case we're not running on
-> > OMAP4 or OMAP5 ??
-> > 
-> 
-> I suppose even OMAP4-only, since OMAP5 always has DT enabled.
 
-Hmm yes, currently omap_hwmod_lookup(oh_name) produces
-bogus errors for other omaps as the hwmod data is only
-there for omap4.
+An older version of the patch "ARM: OMAP1: create read_reset_sources()
+function (for initial use by watchdog)" was sent upstream, which used
+the wrong return type for the omap1_get_reset_sources() function.
+Fix it to return a u32, which is what the WDTIMER platform_data
+function pointer read_reset_sources() expects.
 
-Regards,
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap1/common.h |    2 +-
+ arch/arm/mach-omap1/reset.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index d6ac18d..ecd0bb6 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -94,6 +94,6 @@ extern int ocpi_enable(void);
+ static inline int ocpi_enable(void) { return 0; }
+ #endif
+ 
+-extern int omap1_get_reset_sources(void);
++extern u32 omap1_get_reset_sources(void);
+ 
+ #endif /* __ARCH_ARM_MACH_OMAP1_COMMON_H */
+diff --git a/arch/arm/mach-omap1/reset.c b/arch/arm/mach-omap1/reset.c
+index a0a9f97..0df5536 100644
+--- a/arch/arm/mach-omap1/reset.c
++++ b/arch/arm/mach-omap1/reset.c
+@@ -43,7 +43,7 @@ void omap1_restart(char mode, const char *cmd)
+  * Returns bits that represent the last reset source for the SoC.  The
+  * format is standardized across OMAPs for use by the OMAP watchdog.
+  */
+-int omap1_get_reset_sources(void)
++u32 omap1_get_reset_sources(void)
+ {
+ 	int ret = 0;
+ 	u16 rs;
+-- 
+1.7.10.4
+
