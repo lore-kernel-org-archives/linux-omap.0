@@ -1,76 +1,85 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Problem with OHCI on OMAP4430
-Date: Fri, 26 Oct 2012 11:19:39 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1210261057580.6007-100000@iolanthe.rowland.org>
-References: <CANP3njw4=efheeOq9TsusNBwHASSfF7tG_1jYc4aHdW6+sX2zQ@mail.gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator
+ driver to omap_usb2
+Date: Fri, 26 Oct 2012 17:21:41 +0200
+Message-ID: <508AAA85.6070905@ti.com>
+References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-3-git-send-email-kishon@ti.com> <CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com> <CAAe_U6K1RXA3b5u9WvE=2VoXym9Vj3KM7c0J27jKz+2KrV4tsg@mail.gmail.com> <CAH+eYFAhVE8cAte2PFk3jinV9n3m+eDLtE43QxzRXMScnFGcrA@mail.gmail.com> <508AA94B.10504@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:56486 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932078Ab2JZPTl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 11:19:41 -0400
-In-Reply-To: <CANP3njw4=efheeOq9TsusNBwHASSfF7tG_1jYc4aHdW6+sX2zQ@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50590 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933630Ab2JZPVz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 11:21:55 -0400
+In-Reply-To: <508AA94B.10504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mohan V <mohanvforum@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, keshava_mgowda@ti.com
+To: Roger Quadros <rogerq@ti.com>
+Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Rabin Vincent <rabin@rab.in>, tony@atomide.com, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-On Fri, 26 Oct 2012, Mohan V wrote:
+Hi Roger,
 
-> >> When the USB bus is in suspend, a device connected to OHCI port does
-> >> not get detected, whereas the device connected to EHCI port is getting detected.
-> >
-> > Can you provide a dmesg log showing the OHCI problem with
-> > CONFIG_USB_DEBUG enabled?
-> >
-> Please find the attached log (ohci-detect.log), where the device is
-> disconnected from the
-> OHCI port and then does not get detected when connected again.
-> We are using android 3.0 kernel.
-
-I'm not going to be able to help very much with an Android kernel.  
-Does the same problem occur with a vanilla non-Android 3.6 kernel?  If 
-it doesn't, that indicates the problem was caused by some 
-Android-specific changes.
-
-Are you referring to this part of the log?
-
-> ------------------------Device not getting detected when connected---------------------------
+On 10/26/2012 05:16 PM, Roger Quadros wrote:
+> Hi Kishon & Benoit,
 > 
-> / # [  135.621002] usbhs_wakeup: Enabling clocks
-> [  135.625762] usbhs_runtime_resume:++++++
-> [  135.630371] usbhs_runtime_resume:------
-> [  135.638183] USB IO PAD Wakeup event triggered##################
-> [  135.644958] usbhs_runtime_suspend:++++++
-> [  135.649749] usbhs_runtime_suspend:-----
-
-It appears that ohci_irq() didn't run.  Did
-ohci_finish_controller_resume() get called?
-
-My guess is your usbhs_runtime_resume() routine has a bug.  Maybe the 
-usbhs_runtime_suspend() routine does too.
-
-> We sometime see the crash in "ohci_hub_status_data" function. So, when
-> we add the
-> below check at the entry of the function, there is no crash. Please
-> find attached crash log.
-> (ohci-crash.log)
-
-I don't understand the crash log.  What is the cause of the crash?  Is 
-there some error involving spin_lock_irqrestore() in 
-ohci_hub_status_data()
-
->         if (!HC_IS_RUNNING(hcd->state)) {
-> 		return 0;
-> 	}
+> On 09/24/2012 12:06 PM, Rabin Vincent wrote:
+>> 2012/9/24 ABRAHAM, KISHON VIJAY <kishon@ti.com>:
+>>> On Sat, Sep 22, 2012 at 3:03 AM, Rabin Vincent <rabin@rab.in> wrote:
+>>>> USB doesn't work on pandaboard on linux-next, and bisection shows this
+>>>> patch.  Unfortunately, I can't provide a dmesg log because USB is the
+>>>> only way I currently have to get one out(!), but presumably it's because
+>>>> this omap-usb2 device is never registered?  Looks like this breaks
+>>>> non-dt USB on pandaboard; is that intended?
+>>>
+>>> Yes. omap-usb2 is *only* dt supported (New drivers shouldn't have the
+>>> old non-dt support).
+>>
+>> Well, USB used to work fine on Pandaboard without DT before the
+>> introduction of "omap-usb2", so one would expected it to continue
+>> working (until the board file is completely removed).
+>>
+>> Anyway, I've moved to DT now.
+>>
+>>> Some patches are queued only for 3.7.
+>>>
+>>> In case you want to use MUSB please use these patches on linux-next..
+>>> [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
+>>> [PATCH] ARM: OMAP2+: hwmod data: Fix ocp2scp_usb_phy and usb_host_hs
+>>> entries (from Benoit)
+>>> [PATCH 0/2] ARM: dts: Add subnode for ocp2scp (patch series)
+>>> [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB (patch series)
+>>
+>> I got these by merging in Benoit's for_3.7/dts_part2 on top of
+>> next-20120921.  Thanks.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 > 
-> But the device does not get detected subsequently with this change. There is
-> a similar check in ehci-hub.c.
+> I still can't get musb to work on 3.7-rc2. Apparently it is still
+> missing the patches from Benoit's for_3.7/dts_part2.
+> 
+> Maybe I just need to wait for it to be merged?
 
-No, there isn't.  Not since the 3.1 kernel.  In any case, ehci-hcd is 
-different from ohci-hcd; you shouldn't expect their hub_status_data 
-routines to be the same.
+They are now in a for_3.8/dts. Unfortunately, one patch that was adding
+ctrl_module address in the USB data was rejected and thus I'm not sure
+it will work without that.
 
-Alan Stern
+I think Tony had an idea to map the ctrl_register to regulator fmwk or
+something like that.
+
+> Till then, where can I get a tree where musb works on Panda?
+> 
+> Benoit,
+> 
+> FYI, I get merge conflicts when merging 3.7-rc2 on top of Linus's kernel
+> HEAD. Am I missing something?
+
+Yeah, some more patches were merged outside our tree.
+I fixed that. Can you try with the updated branch?
+
+Regards,
+Benoit
 
