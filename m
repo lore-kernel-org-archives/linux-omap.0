@@ -1,69 +1,62 @@
-From: Christopher Harvey <charvey@matrox.com>
-Subject: [PATCH v2] mtd: omap: nand: Remove 0xFF's that prefixed 16bit NAND
- commands
-Date: Fri, 26 Oct 2012 15:36:43 -0400
-Message-ID: <20121026193643.GA21510@harvey-pc.matrox.com>
-References: <20121026193410.GA21474@harvey-pc.matrox.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [RFC][PATCH 0/5] Introduce .get_voltage callback into voltdm
+Date: Fri, 26 Oct 2012 12:40:21 -0700
+Message-ID: <20121026194021.3141.73709@nucleus>
+References: <1349313365-5262-1-git-send-email-mturquette@ti.com>
+ <87fw51hzcg.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mtxmxout9.matrox.com ([138.11.2.99]:42091 "EHLO
-	mtxmxout7.matrox.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S966127Ab2JZTde (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 15:33:34 -0400
-Content-Disposition: inline
-In-Reply-To: <20121026193410.GA21474@harvey-pc.matrox.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87fw51hzcg.fsf@deeprootsystems.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org
 
-In 16bit NAND mode the GPMC would send the command 0xNN as 0xFFNN
-instead of 0x00NN on the bus. The 0xFFs were actually uninitialized
-bits that were left unset in the GPMC command output register. The
-reason they weren't initialized in 16bit mode is that if the same code
-that writes to this register was used in 8bit mode then 2 commands
-would be output in 8bit mode. One for the low byte, and an extra 0x0
-command for the high byte. This commit uses writew if we're using
-16bit NAND.
+Quoting Kevin Hilman (2012-10-26 11:17:51)
+> Hi Mike,
+> 
+> Mike Turquette <mturquette@ti.com> writes:
+> 
+> > From: Mike Turquette <mturquette@linaro.org>
+> >
+> > This series creates a new callback for struct voltagedomain,
+> > .get_voltage.  This fetches the voltage from hardware, if possible, and
+> > returns it to the caller.  We use this call to populate
+> > voltdm->nominal_volt at boot time.
+> 
+> I pointed out a couple nitpicky things on individual patches, but
+> otherwise this direction and motiviation for this series looks OK by me.
+> 
+> Just some minor comments about the structure of the series.  I tend to
+> prefer combining the introduction of a new function with it's usage.  It
+> makes review and understanding much easier, IMO.  If there are reasons
+> to keep them separate, that's fine too.  Just describe the reasons in
+> the cover letter.
+> 
 
-Most chips seem fine with the extra 0xFFs, but the ONFI spec says
-otherwise.
+Will do.  I've thought on this topic a bit more and this approach isn't
+quite robust enough.  For instance it assumes that the kernel's voltage
+scaling approach (vp_forceupdate vs. vc_bypass) matches what the
+bootloader does.  This is of course an unsafe assumption.
 
-Signed-off-by: Christopher Harvey <charvey@matrox.com>
----
- drivers/mtd/nand/omap2.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+Also I've seen the Android guys struggle with this a bit and I'd like to
+review how they approached the problem before sending my next series.
+Couple with upcoming travel I'm not sure how quickly I'll get a V2 on
+the list.
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 5b31386..ae6738f 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -225,16 +225,20 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
- {
- 	struct omap_nand_info *info = container_of(mtd,
- 					struct omap_nand_info, mtd);
-+	void __iomem *reg;
- 
- 	if (cmd != NAND_CMD_NONE) {
- 		if (ctrl & NAND_CLE)
--			writeb(cmd, info->reg.gpmc_nand_command);
--
-+			reg = info->reg.gpmc_nand_command;
- 		else if (ctrl & NAND_ALE)
--			writeb(cmd, info->reg.gpmc_nand_address);
--
-+			reg = info->reg.gpmc_nand_address;
- 		else /* NAND_NCE */
--			writeb(cmd, info->reg.gpmc_nand_data);
-+			reg = info->reg.gpmc_nand_data;
-+
-+		if (info->nand.options & NAND_BUSWIDTH_16)
-+			writew(cmd, reg);
-+		else
-+			writeb(cmd, reg);
- 	}
- }
- 
--- 
-1.7.8.6
+Thanks for reviewing,
+Mike
+
+> Thanks,
+> 
+> Kevin
