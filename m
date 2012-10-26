@@ -1,58 +1,95 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator
- driver to omap_usb2
-Date: Fri, 26 Oct 2012 20:09:43 +0200
-Message-ID: <508AD1E7.3080101@ti.com>
-References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-3-git-send-email-kishon@ti.com> <CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com> <CAAe_U6K1RXA3b5u9WvE=2VoXym9Vj3KM7c0J27jKz+2KrV4tsg@mail.gmail.com> <CAH+eYFAhVE8cAte2PFk3jinV9n3m+eDLtE43QxzRXMScnFGcrA@mail.gmail.com> <508AA94B.10504@ti.com> <508AAA85.6070905@ti.com> <alpine.DEB.2.00.1210261750430.7573@utopia.booyaka.com> <508ACF0B.60808@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/5] ARM: omap: vc: .get_voltage callback
+Date: Fri, 26 Oct 2012 11:13:43 -0700
+Message-ID: <87sj91hzjc.fsf@deeprootsystems.com>
+References: <1349313365-5262-1-git-send-email-mturquette@ti.com>
+	<1349313365-5262-4-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <508ACF0B.60808-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, Rabin Vincent <rabin-66gdRtMMWGc@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:40730 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965748Ab2JZSNK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 14:13:10 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so2939216pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 26 Oct 2012 11:13:09 -0700 (PDT)
+In-Reply-To: <1349313365-5262-4-git-send-email-mturquette@ti.com> (Mike
+	Turquette's message of "Wed, 3 Oct 2012 18:16:03 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>
 
-On 10/26/2012 07:57 PM, Benoit Cousson wrote:
-> Hi Paul,
-> 
-> On 10/26/2012 07:54 PM, Paul Walmsley wrote:
->> On Fri, 26 Oct 2012, Benoit Cousson wrote:
->>
->>> On 10/26/2012 05:16 PM, Roger Quadros wrote:
->>>
->>>> I still can't get musb to work on 3.7-rc2. Apparently it is still
->>>> missing the patches from Benoit's for_3.7/dts_part2.
->>>>
->>>> Maybe I just need to wait for it to be merged?
->>>
->>> They are now in a for_3.8/dts. Unfortunately, one patch that was adding
->>> ctrl_module address in the USB data was rejected and thus I'm not sure
->>> it will work without that.
->>
->> For v3.7-rc timeframe, looks like it's waiting on an ack from you:
->>
->> http://www.spinics.net/lists/arm-kernel/msg201028.html
-> 
-> Oups, I missed that one. But I thought Roger was mentioning the DT patch
-> and not that one.
-> 
-> Anyway, I will answer to Tony. Thanks for the reminder Paul.
+Mike Turquette <mturquette@ti.com> writes:
 
-Well, in fact, I cannot even find the original email in my mailbox :-(
-I was banned again from linux-omap around that time, so that might be
-the reason.
+> From: Mike Turquette <mturquette@linaro.org>
+>
+> Implement the voltdm->get_voltage callback for the voltage controller
+> driver.  
 
+nit: since it's not actually used in this series, it should say
+Impelment the function that will be used as the ->get_voltage()
+callback...
 
-Tony,
+> This reads the DATA field corresponding to each VC and returns
+> the voltage, after converting it from vsel format.
+>
+> If DATA is zero (the reset value) then the caller must interpret this as
+> the PMIC running at the default power-on voltage.  In such a case DT
+> data for the PMIC is necessary to know the voltage.
+>
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
+> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+> ---
+>  arch/arm/mach-omap2/vc.c |   21 +++++++++++++++++++++
+>  arch/arm/mach-omap2/vc.h |    1 +
+>  2 files changed, 22 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+> index 2bcac64..90a9ea6 100644
+> --- a/arch/arm/mach-omap2/vc.c
+> +++ b/arch/arm/mach-omap2/vc.c
+> @@ -101,6 +101,27 @@ static int omap_vc_config_channel(struct voltagedomain *voltdm)
+>  }
+>  
+>  /* Voltage scale and accessory APIs */
+> +unsigned long omap_vc_get_bypass_data(struct voltagedomain *voltdm)
+> +{
+> +	struct omap_vc_channel *vc = voltdm->vc;
+> +	u32 vc_bypass_value;
+> +	u8 vsel;
+> +	unsigned long volt;
+> +
+> +	/* sanity */
+> +	if (!voltdm->pmic || !voltdm->pmic->vsel_to_uv ||
+> +			!voltdm->read || !voltdm->write)
+> +		return 0;
+> +
+> +	vc_bypass_value = voltdm->read(vc->common->bypass_val_reg);
+> +	vc_bypass_value &= vc->common->data_mask;
+> +	vsel = vc_bypass_value >> __ffs(vc->common->data_mask);
 
-So please take that hacky patch if it prevents the regression.
+Ah, now I see where the data_mask is used.  :)
 
-Thanks,
-Benoit
+Kevin
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	volt = voltdm->pmic->vsel_to_uv(vsel);
+> +
+> +	return volt;
+> +}
+> +
+>  int omap_vc_pre_scale(struct voltagedomain *voltdm,
+>  		      unsigned long target_volt,
+>  		      u8 *target_vsel, u8 *current_vsel)
+> diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+> index 84a61b1..e7d4719 100644
+> --- a/arch/arm/mach-omap2/vc.h
+> +++ b/arch/arm/mach-omap2/vc.h
+> @@ -112,6 +112,7 @@ extern struct omap_vc_channel omap4_vc_iva;
+>  extern struct omap_vc_channel omap4_vc_core;
+>  
+>  void omap_vc_init_channel(struct voltagedomain *voltdm);
+> +unsigned long omap_vc_get_bypass_data(struct voltagedomain *voltdm);
+>  int omap_vc_pre_scale(struct voltagedomain *voltdm,
+>  		      unsigned long target_volt,
+>  		      u8 *target_vsel, u8 *current_vsel);
