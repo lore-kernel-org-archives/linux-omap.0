@@ -1,34 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 10/16] ARM: OMAP: Make omap_device local to mach-omap2
-Date: Fri, 26 Oct 2012 10:10:59 -0700
-Message-ID: <20121026171059.GG11908@atomide.com>
-References: <20121004213950.26676.21898.stgit@muffinssi.local>
- <20121004220456.26676.31050.stgit@muffinssi.local>
- <alpine.DEB.2.00.1210260124360.11251@utopia.booyaka.com>
- <20121026163900.GC11908@atomide.com>
- <alpine.DEB.2.00.1210261701060.3301@utopia.booyaka.com>
+Subject: Re: [PATCH v2 1/3] drivers: bus: ocp2scp: add pdata support
+Date: Fri, 26 Oct 2012 10:16:55 -0700
+Message-ID: <20121026171655.GI11908@atomide.com>
+References: <1349675983-23803-1-git-send-email-kishon@ti.com>
+ <1349675983-23803-2-git-send-email-kishon@ti.com>
+ <20121016165043.GS15569@atomide.com>
+ <20121025004806.GK11928@atomide.com>
+ <20121025061722.GB4449@arwen.pp.htv.fi>
+ <20121025174446.GT11928@atomide.com>
+ <20121026064736.GA22206@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:49608 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755816Ab2JZRLC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 13:11:02 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210261701060.3301@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20121026064736.GA22206@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [121026 10:03]:
-> On Fri, 26 Oct 2012, Tony Lindgren wrote:
+* Felipe Balbi <balbi@ti.com> [121025 23:55]:
+> On Thu, Oct 25, 2012 at 10:44:47AM -0700, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi@ti.com> [121024 23:24]:
+> > > Hi,
+> > > 
+> > > On Wed, Oct 24, 2012 at 05:48:07PM -0700, Tony Lindgren wrote:
+> > > > * Tony Lindgren <tony@atomide.com> [121016 09:53]:
+> > > > > * Kishon Vijay Abraham I <kishon@ti.com> [121007 23:01]:
+> > > > > > ocp2scp was not having pdata support which makes *musb* fail for non-dt
+> > > > > > boot in OMAP platform. The pdata will have information about the devices
+> > > > > > that is connected to ocp2scp. ocp2scp driver will now make use of this
+> > > > > > information to create the devices that is attached to ocp2scp.
+> > > > > > 
+> > > > > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > > > > 
+> > > > > This fixes the regression on my panda es for musb port:
+> > > > > 
+> > > > > Acked-by: Tony Lindgren <tony@atomide.com>
+> > > > 
+> > > > Looks like nobody has picked this one up and we need it to
+> > > > fix the musb regression on omap, so I'll queue these up.
+> > > 
+> > > I don't seem to have the patches around in any mailbox :-(
+> > 
+> > Bounced them to you. Do you have any better ideas for the
+> > -rc cycle to fix the MUSB regression on omap4?
 > 
-> > Can you do a branch on top of omap-for-v3.8/cleanup-headers
-> > with all these fixes that I can pull in?
-> 
-> Yes, will do that today.
+> Well, there are two regressions that I know of. One is caused by the
+> mode1 DMA changes, which I'll just revert, and the other is the
+> missing platform_data support on the new PHY driver which these patches
+> are supposed to solve, right ?
 
-OK thanks!
+Yes that's it AFAIK.
+
+Regards,
 
 Tony
