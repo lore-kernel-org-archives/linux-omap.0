@@ -1,106 +1,152 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
-Date: Fri, 26 Oct 2012 14:42:50 +0300
-Message-ID: <20121026114250.GA26342@arwen.pp.htv.fi>
-References: <1351238130-7158-1-git-send-email-tim.niemeyer@corscience.de>
- <20121026080342.GA23501@arwen.pp.htv.fi>
- <1351248155.2182.26.camel@herbert.er.corscience.de>
+Subject: Re: [PATCH v2 1/2] USB: dwc3-exynos: Add support for device tree
+Date: Fri, 26 Oct 2012 15:01:09 +0300
+Message-ID: <20121026120109.GC26342@arwen.pp.htv.fi>
+References: <1350377157-28465-1-git-send-email-gautam.vivek@samsung.com>
+ <1350377157-28465-2-git-send-email-gautam.vivek@samsung.com>
+ <20121016095333.GD5548@arwen.pp.htv.fi>
+ <507D31B3.40707@ti.com>
+ <20121016100838.GC17416@arwen.pp.htv.fi>
+ <CAFp+6iG1SuJ=wO61=D_pTdRzkM+t62mN3b7=3cZiom8tigyaBQ@mail.gmail.com>
+ <20121026081344.GC23501@arwen.pp.htv.fi>
+ <508A77A6.3080402@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+	protocol="application/pgp-signature"; boundary="wxDdMuZNg1r63Hyj"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43242 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932403Ab2JZLsi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Oct 2012 07:48:38 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:41404 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932469Ab2JZMHD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 08:07:03 -0400
 Content-Disposition: inline
-In-Reply-To: <1351248155.2182.26.camel@herbert.er.corscience.de>
+In-Reply-To: <508A77A6.3080402@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tim Niemeyer <tim.niemeyer@corscience.de>
-Cc: balbi@ti.com, Linux OMAP List <linux-omap@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: balbi@ti.com, Vivek Gautam <gautamvivek1987@gmail.com>, rob.herring@calxeda.com, kishon <kishon@ti.com>, av.tikhomirov@samsung.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-usb@vger.kernel.org, Vivek Gautam <gautam.vivek@samsung.com>, linux-omap@vger.kernel.org
 
---jRHKVT23PllUwdXP
-Content-Type: text/plain; charset=iso-8859-1
+--wxDdMuZNg1r63Hyj
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Oct 26, 2012 at 12:42:35PM +0200, Tim Niemeyer wrote:
-> Am Freitag, den 26.10.2012, 11:03 +0300 schrieb Felipe Balbi:
+On Fri, Oct 26, 2012 at 01:44:38PM +0200, Benoit Cousson wrote:
+> Hi Felipe,
+>=20
+> On 10/26/2012 10:13 AM, Felipe Balbi wrote:
 > > Hi,
 > >=20
-> > On Fri, Oct 26, 2012 at 09:55:30AM +0200, Tim Niemeyer wrote:
-> > > Adds support for configuring the omap-gpio driver use autosuspend for
-> > > runtime power management. This can reduce the latency in using it by
-> > > not suspending the device immediately on idle. If another access takes
-> > > place before the autosuspend timeout (2 secs), the call to resume the
-> > > device can return immediately saving some save/ restore cycles.
-> > >=20
-> > > I use a gpio to monitor a spi transfer which occurs every 250=B5s. The
-> > > suspend overhead is to high, so almost every second transfer is lost.
-> > > This patch fixes that.
-> > >=20
-> > > Signed-off-by: Tim Niemeyer <tim.niemeyer@corscience.de>
-> > > ---
-> > >  drivers/gpio/gpio-omap.c |   23 ++++++++++++++++++-----
-> > >  1 files changed, 18 insertions(+), 5 deletions(-)
-> > >=20
-> > > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> > > index 94cbc84..92f48cb 100644
-> > > --- a/drivers/gpio/gpio-omap.c
-> > > +++ b/drivers/gpio/gpio-omap.c
-> > > @@ -31,6 +31,7 @@
-> > >  #include <asm/mach/irq.h>
-> > > =20
-> > >  #define OFF_MODE	1
-> > > +#define GPIO_AUTOSUSPEND_TIMEOUT                2000
-> > > =20
-> > >  static LIST_HEAD(omap_gpio_list);
-> > > =20
-> > > @@ -628,8 +629,10 @@ static void omap_gpio_free(struct gpio_chip *chi=
-p, unsigned offset)
-> > >  	 * If this is the last gpio to be freed in the bank,
-> > >  	 * disable the bank module.
-> > >  	 */
-> > > -	if (!bank->mod_usage)
-> > > -		pm_runtime_put(bank->dev);
-> > > +	if (!bank->mod_usage) {
+> > On Thu, Oct 25, 2012 at 11:37:33AM +0530, Vivek Gautam wrote:
+> >> Hi,
+> >>
+> >> On Tue, Oct 16, 2012 at 3:38 PM, Felipe Balbi <balbi@ti.com> wrote:
+> >>> Hi,
+> >>>
+> >>> On Tue, Oct 16, 2012 at 03:36:43PM +0530, kishon wrote:
+> >>>> Hi,
+> >>>>
+> >>>> On Tuesday 16 October 2012 03:23 PM, Felipe Balbi wrote:
+> >>>>> On Tue, Oct 16, 2012 at 02:15:56PM +0530, Vivek Gautam wrote:
+> >>>>>> This patch adds support to parse probe data for
+> >>>>>> dwc3-exynos driver using device tree.
+> >>>>>>
+> >>>>>> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
+> >>>>>> ---
+> >>>>>>  drivers/usb/dwc3/dwc3-exynos.c |   20 ++++++++++++++++++++
+> >>>>>>  1 files changed, 20 insertions(+), 0 deletions(-)
+> >>>>>>
+> >>>>>> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc=
+3-exynos.c
+> >>>>>> index ca65978..d11ef49 100644
+> >>>>>> --- a/drivers/usb/dwc3/dwc3-exynos.c
+> >>>>>> +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> >>>>>> @@ -21,6 +21,7 @@
+> >>>>>>  #include <linux/clk.h>
+> >>>>>>  #include <linux/usb/otg.h>
+> >>>>>>  #include <linux/usb/nop-usb-xceiv.h>
+> >>>>>> +#include <linux/of.h>
+> >>>>>>
+> >>>>>>  #include "core.h"
+> >>>>>>
+> >>>>>> @@ -87,6 +88,8 @@ err1:
+> >>>>>>    return ret;
+> >>>>>>  }
+> >>>>>>
+> >>>>>> +static u64 dwc3_exynos_dma_mask =3D DMA_BIT_MASK(32);
+> >>>>>> +
+> >>>>>>  static int __devinit dwc3_exynos_probe(struct platform_device *pd=
+ev)
+> >>>>>>  {
+> >>>>>>    struct dwc3_exynos_data *pdata =3D pdev->dev.platform_data;
+> >>>>>> @@ -103,6 +106,14 @@ static int __devinit dwc3_exynos_probe(struct=
+ platform_device *pdev)
+> >>>>>>            goto err0;
+> >>>>>>    }
+> >>>>>>
+> >>>>>> +   /*
+> >>>>>> +    * Right now device-tree probed devices don't get dma_mask set.
+> >>>>>> +    * Since shared usb code relies on it, set it here for now.
+> >>>>>> +    * Once we move to full device tree support this will vanish o=
+ff.
+> >>>>>> +    */
+> >>>>>> +   if (!pdev->dev.dma_mask)
+> >>>>>> +           pdev->dev.dma_mask =3D &dwc3_exynos_dma_mask;
+> >>>>>
+> >>>>> says who ?
+> >>>>>
+> >>>>> $ git grep -e dma_mask drivers/of/
+> >>>>> drivers/of/platform.c:  dev->dev.dma_mask =3D &dev->archdata.dma_ma=
+sk;
+> >>>>> drivers/of/platform.c:  dev->archdata.dma_mask =3D 0xffffffffUL;
+> >>>>> drivers/of/platform.c:  dev->dev.coherent_dma_mask =3D DMA_BIT_MASK=
+(32);
+> >>>>> drivers/of/platform.c:  dev->dev.coherent_dma_mask =3D ~0;
+> >>>>> drivers/of/platform.c:  dev->dma_mask =3D ~0;
+> >>>>>
+> >>>>> -ECONFUSED
+> >>>>
+> >>>> dma_mask is set under some ifdef except for "dev->dma_mask =3D ~0;".
+> >>>> However I agree with you for coherent_dma_mask case.
+> >>>
+> >>> indeed. Should we try to patch that instead ?
+> >>>
+> >>> Rob, should we set dma_mask at the driver or do you have a nicer way =
+to
+> >>> handle it ??
+> >>>
+> >> Can i have suggestions here please ? :)
 > >=20
-> > while at that I would drop this bank->mod_usage nonsense and let
-> > power core handle reference counting.
-> I looked at it, but i'm unsure about the GPIO_MOD_CTRL_BIT. The
-> bank->mod_usage counter prevents omap_gpio_free() to disable the hole
-> bank while another gpio is still in use.
+> > Benoit, can you answer here since nobody else does ?
+>=20
+> Well, I wish I could, but honestly I don't have a clue :-(
 
-pm core's usage count will do the same thing. If you request 6 gpios,
-you will have 6 pm_runtime_get(). If you free 5 of those, you will have
-5 pm_runtime_put_autosuspend() which will only decrement the counter and
-do nothing else.
+fair enough, then we will go with Vivek's approach, I'll wait until next
+friday before looking into these patches again though.
 
 --=20
 balbi
 
---jRHKVT23PllUwdXP
+--wxDdMuZNg1r63Hyj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQinc6AAoJEIaOsuA1yqREwpcP/0gDEccc7VQKvzmMTROkQxnq
-4L0lA7oHq4fHwEEbMT86gw9s0Lc8s5pt4IHNEtOlJimAxOBNo9JMqeqv+Z+lwmE8
-5XyuD1pvVL8okw3kGQErG/4U9Dl7xzmtAfB7pMn1uxL3KgH7zvz/hz4zRmVC3s+9
-PfDOg1/FpMsYhZkBMSLt3FKGUu3I+iHfjC+TQkTkUv2lnjlv09LgGtsnaXdane47
-SQZgojC+mwVIRiiwKphd1uWaYzWL5SEkGIn3caqyqIAnlpkpPuJBxvukT0CoaojH
-xXUqdPQIVTyJzf06QoV1IRIY/7fVyRY4Twwdx/HpczG4rPXmMxFWgkwZlZnmkqey
-CDBbizVYHN+ZRQ+PZhbSyYpzVytplLmoBPeKWkALz7md2xvtsnRMvd8eKb9eObxK
-Z5olia5uNe+sAsfR77EAC1Jq/mfcLM+3lBsnZ+1ue971iJv/U5Ve3csZXxI9z5dQ
-hfeDqNGhijgOlbEHDjXtgX3IQFBbd5iopQK9V6isaMMd7U4dGj7U0smB03PPQOYA
-JZMQ4vrKroOpC+qWcnp4N8LeouvIeaZC6mPt9NLN9c64d+NuaELPscI/Ncts4Y/T
-/NY7wlK0YiaXPfZPT/b/23eQQN+09Diqj9D+FowXt8+57J6typ3nNhC0S7cbXN3o
-6oPTStzpfYxqNdZV9y/8
-=66QR
+iQIcBAEBAgAGBQJQinuFAAoJEIaOsuA1yqREGS8P/iCKCYBKgklZ+qQGMFY5f8lF
+fZR3CAQA9i/oh9K1iEec7jxPu6qIC3GEegmdiUsz1J6eTXDJ7E6FxHSPSXBmgfGT
+Wcte26dcA1IXHLmiIhBKaJHVfHQl64WYe1iXGYDRoXL2oZxJEy0sjzj1L0x/z6KM
+c/Gk2wxMv5vGX6W5PSkLMF1/uD16OnXO8DVXrjh4KUfM8nHqdugHcXDU38wmhvd6
+lVo19OmzOihqgGSs933825yfpdzFSdOpuHurqLpyCUh477Id0TjPgRpE0sWftsoc
+kyH5OmpqoDODjlamp/Ntl81hLlkOTCEUF6JhJ47R/lg+HLUOI4wFKM8VxdEmB3IU
+/yBE70fR1YbsULMs53KI5FGKnSQOwUKCCOrBAnxlg3nXTZXVctEPQcDlUUIq1Q2e
+QQbYOlAlbfdNbl+ffa022CRtF1Tb54+d2+zDs9S70Bji2KZTnfVt3RlIa5grEyKo
+bry0TWkZWZk5MhlW2xbr6Qu67QhKVM7VqBRF5YqXtNaIlG5DCGjkJFDWOjWhWaqR
+5GbNvm0MD1J6UcsIkSt/FZmtUWRciJB9xtHomDWuIpspNt4+h1PS2fEBTYFHjdbm
+9MKmpLVCx4Hccm2Bb2mrJJTPc0Ichn0h4OxX/a1Rlsj6V91IONVEcwHjTSCp6NnU
+NskygUNUiHtJFUolceHn
+=TE6W
 -----END PGP SIGNATURE-----
 
---jRHKVT23PllUwdXP--
+--wxDdMuZNg1r63Hyj--
