@@ -1,115 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap plat header removal for v3.8 merge window, part1
-Date: Fri, 26 Oct 2012 17:28:21 +0000
-Message-ID: <201210261728.22132.arnd@arndb.de>
-References: <20121019023300.GN30550@atomide.com> <201210261402.19759.arnd@arndb.de> <20121026170949.GF11908@atomide.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Constantine Shulyupin <const@MakeLinux.com>
+Subject: [PATCH] ARM: OMAP2+: remove duplicated declaration of omap4430_init_late
+Date: Fri, 26 Oct 2012 19:29:49 +0200
+Message-ID: <1351272589-9885-1-git-send-email-const@MakeLinux.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:56078 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965421Ab2JZR21 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 13:28:27 -0400
-In-Reply-To: <20121026170949.GF11908@atomide.com>
+Received: from oproxy12-pub.bluehost.com ([50.87.16.10]:49174 "HELO
+	oproxy12-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S965459Ab2JZR34 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 13:29:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Constantine Shulyupin <const@MakeLinux.com>, linux-kernel@vger.kernel.org
 
-On Friday 26 October 2012, Tony Lindgren wrote:
-> * Arnd Bergmann <arnd@arndb.de> [121026 07:04]:
->
-> > I tried running my old multiplatform scripts again and have a few
-> > comments, but none of them serious:
-> > 
-> > $ git grep include.*mach-omap2
-> > arch/arm/plat-omap/debug-devices.c:#include "../mach-omap2/debug-devices.h"
-> > arch/arm/plat-omap/dma.c:#include "../mach-omap2/soc.h"
-> > arch/arm/plat-omap/dmtimer.c:#include "../mach-omap2/omap-pm.h"
-> > arch/arm/plat-omap/i2c.c:#include "../mach-omap2/soc.h"
-> > arch/arm/plat-omap/include/plat/cpu.h:#include "../../mach-omap2/soc.h"
-> > arch/arm/plat-omap/omap-pm-noop.c:#include "../mach-omap2/omap_device.h"
-> > arch/arm/plat-omap/omap-pm-noop.c:#include "../mach-omap2/omap-pm.h"
-> > arch/arm/plat-omap/sram.c:#include "../mach-omap2/soc.h"
-> > arch/arm/plat-omap/sram.c:#include "../mach-omap2/iomap.h"
-> > arch/arm/plat-omap/sram.c:#include "../mach-omap2/prm2xxx_3xxx.h"
-> > arch/arm/plat-omap/sram.c:#include "../mach-omap2/sdrc.h"
-> > 
-> > I don't like the relative include paths too much. I would have preferred
-> > adding the mach-omap2/include/mach path in the plat-omap Makefile, but
-> > I suppose you want to leave it like it is now since you mention you 
-> > have already built on top of it.
-> 
-> Well I wanted to keep them local to arch/arm/*omap*/ directories,
-> and not have them exposed at all for drivers.
-> 
-> Other than that I don't have an issue using non-relative paths, except
-> mach-omap2/include/mach traditionally has been exposed to drivers
-> as the legacy #include <mach/*.h>, so IMHO local headers in the
-> arch/arm/*omap*/ directories are better.
-> 
-> But now I wonder if we can somehow have drivers not be able to
-> include these local headers?
+From: Constantine Shulyupin <const@MakeLinux.com>
 
-Well, once CONFIG_MULTIPLATFORM gets enabled, the mach/*.h files are
-not visible to drivers any more, but they are still visible to files
-in plat-omap if you add a line like
+Problem:
+Function omap4430_init_late is declared twice in arch/arm/mach-omap2/common.h.
+Fix: remove out of order declaration, assuming all functions ordered accordingly processor number.
+ 
 
-ccflags-$(CONFIG_ARCH_OMAP2) := -I$(srctree)/arch/arm/mach-omap2/include
-ccflags-$(CONFIG_ARCH_OMAP1) := -I$(srctree)/arch/arm/mach-omap1/include
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+---
+ arch/arm/mach-omap2/common.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-to arch/arm/plat-omap/Makefile. That is how the other multiplatform
-Makefiles do it. If a driver writer really wants to cheat, they can of
-course do the same thing in their directory, but they can also do
-#include "../../../../arch/arm/mach-omap2/foo.h"
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 7045e4d..45478d1 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -152,7 +152,6 @@ void am33xx_init_early(void);
+ void omap4430_init_early(void);
+ void omap5_init_early(void);
+ void omap3_init_late(void);	/* Do not use this one */
+-void omap4430_init_late(void);
+ void omap2420_init_late(void);
+ void omap2430_init_late(void);
+ void omap3430_init_late(void);
+-- 
+1.7.9.5
 
-> > sound/soc/omap/am3517evm.c:#include <mach-omap2/hardware.h>
-> > sound/soc/omap/am3517evm.c:#include <mach-omap2/gpio.h>
-> > sound/soc/omap/ams-delta.c:#include <mach-omap2/board-ams-delta.h>
-> > sound/soc/omap/n810.c:#include <mach-omap2/hardware.h>
-> > sound/soc/omap/sdp3430.c:#include <mach-omap2/hardware.h>
-> > sound/soc/omap/sdp3430.c:#include <mach-omap2/gpio.h>
-> > sound/soc/omap/zoom2.c:#include <mach-omap2/hardware.h>
-> > sound/soc/omap/zoom2.c:#include <mach-omap2/gpio.h>
-> > sound/soc/omap/zoom2.c:#include <mach-omap2/board-zoom.h>
-> > 
-> > Not sure if you were just missing these or if you already have other
-> > patch lined up for them.
-> 
-> In which branch do you see the above?
-> 
-> I'm not seeing them in v3.7-rc2, looks like all sound/soc/omap/*.c
-> files have already been fixed up.
-
-I am looking at the arm-soc for-next branch, which is based on v3.7-rc2.
-
-Note that before my script, this reads
-
-#include <mach/hardware.h>
-
-not
-
-#include <mach-omap2/hardware.h>
-
-but the effect is the same if the file is not available.
-
-> In any case, let's not have #include <mach-omap1/*.h> or
-> #include <mach-omap2/*.h> includes in the drivers, they are
-> wrong. Those headers are meant to be local, the legacy shared
-> headers should be in #include <mach/*.h>. Whatever needs to
-> be passed from arch/arm/*omap*/ to drivers, should be done
-> using include/linux/platform_data/*.h files.
-
-I'm not suggesting to use mach-omap2/*.h, it's just what my
-old script shows when hunting for platform header files that are
-used in device drivers.
-
-> For omap1, we might as well keep the existing ones from
-> #include <mach/*.h> as they are until somebody wants to fix
-> up things properly for omap1 for CONFIG_MULTIPLATFORM.
-
-Fair enough.
-
-	Arnd
