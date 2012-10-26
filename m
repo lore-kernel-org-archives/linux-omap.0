@@ -1,104 +1,87 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] drivers: bus: omap_interconnect: Fix rand-config build
- warning
-Date: Fri, 26 Oct 2012 12:05:20 +0530
-Message-ID: <508A2F28.3020204@ti.com>
-References: <1350480519-1890-1-git-send-email-lokeshvutla@ti.com> <507EB3CC.6060005@ti.com> <20121025003509.GI11928@atomide.com> <20121025004216.GJ11928@atomide.com> <5088DD22.1050000@ti.com> <20121025191546.GY11928@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/3] drivers: bus: ocp2scp: add pdata support
+Date: Fri, 26 Oct 2012 09:47:36 +0300
+Message-ID: <20121026064736.GA22206@arwen.pp.htv.fi>
+References: <1349675983-23803-1-git-send-email-kishon@ti.com>
+ <1349675983-23803-2-git-send-email-kishon@ti.com>
+ <20121016165043.GS15569@atomide.com>
+ <20121025004806.GK11928@atomide.com>
+ <20121025061722.GB4449@arwen.pp.htv.fi>
+ <20121025174446.GT11928@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56116 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756278Ab2JZGfc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 02:35:32 -0400
-In-Reply-To: <20121025191546.GY11928@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121025174446.GT11928@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, olof@lixom.net
+Cc: Felipe Balbi <balbi@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-On Friday 26 October 2012 12:45 AM, Tony Lindgren wrote:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121024 23:34]:
->> On Thursday 25 October 2012 06:12 AM, Tony Lindgren wrote:
->>> * Tony Lindgren <tony@atomide.com> [121024 17:36]:
->>>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121017 06:35]:
->>>>> (Looping Arnd and Olof)
->>>>>
->>>>> On Wednesday 17 October 2012 06:58 PM, Lokesh Vutla wrote:
->>>>>> When building omap_l3_noc/smx drivers as modules, the following
->>>>>> warning appears:
->>>>>>
->>>>>> CC [M]  drivers/bus/omap_l3_smx.o
->>>>>> drivers/bus/omap_l3_smx.c:291: warning: data definition has no type or storage class
->>>>>> drivers/bus/omap_l3_smx.c:291: warning: type defaults to 'int' in declaration of 'postcore_initcall_sync'
->>>>>> drivers/bus/omap_l3_smx.c:291: warning: parameter names (without types) in function declaration
->>>>>> drivers/bus/omap_l3_smx.c:287: warning: 'omap3_l3_init' defined but not used
->>>>>> CC [M]  drivers/bus/omap_l3_noc.o
->>>>>> drivers/bus/omap_l3_noc.c:260: warning: data definition has no type or storage class
->>>>>> drivers/bus/omap_l3_noc.c:260: warning: type defaults to 'int' in declaration of 'arch_initcall_sync'
->>>>>> drivers/bus/omap_l3_noc.c:260: warning: parameter names (without types) in function declaration
->>>>>> drivers/bus/omap_l3_noc.c:256: warning: 'omap4_l3_init' defined but not used
->>>>>>
->>>>>> Adding module_init() and macros in omap_l3_noc/smx drivers when building
->>>>>> as modules to remove the above warning.
->>>>>>
->>>>>> Reported-by: Tony Lindgren <tony@atomide.com>
->>>>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>>>>> ---
->>>>> Thanks for the fix Lokesh. Looks fine to me.
->>>>>
->>>>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>
->>>> Looks like nobody else has picked this up so I'll queue this along
->>>> with few other omap warnings and regressions.
->>>
->>> Hmm actually this might require some more discussion. If we make
->>> it use regular initcalls, then the ugly ifdefs can be left
->>> out. Is there a reason to init this early, can't we just use regular
->>> initcalls?
->>>
->> I thought about it. The whole reason we want interconnect errors
->> enabled early in the boot to avoid bad accesses issued on
->> interconnect
->> in early boot by various init codes. We managed to discovered many
->> init sequence issues where the a driver is trying to access registers
->> when clocks are not active, or drivers are using bad mapping. At times
->> these errors gets un-noticed because of the behavior of interconnect
->> and later causes serious issues. Leaving the driver init late in the
->> boot means we can't catch any of the issues happen till the L3 driver
->> init happens.
->
-> OK yeah that makes sense. How about let's just make it
-> just postcore_initcall instead of postcore_initcall_sync?
->
-_sync was added by purpose since the driver has depedency on
-the hwmod initialisation which is postcore_initcall. Without
-the sync, we open the race condition and the l3 driver
-registration will fail.
+--0F1p//8PRICkK4MW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> In include/linux/module.h we have:
->
-> ...
-> #else /* MODULE */
->
-> /* Don't use these in loadable modules, but some people do... */
-> #define early_initcall(fn)              module_init(fn)
-> #define core_initcall(fn)               module_init(fn)
-> #define postcore_initcall(fn)           module_init(fn)
-> ...
->
-> While the postcore_initcall_sync does not have those.
->
-> No idea what the current plan is, but I sort of remember reading
-> that the _sync versions are going away at some point anyways?
->
-I have no idea either. As mentioned sync was added to avoid the
-race. If and when _sync is removed, something should come as an
-alternative to avoid initcall completion dependencies for the one
-which falls in same group.
+On Thu, Oct 25, 2012 at 10:44:47AM -0700, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [121024 23:24]:
+> > Hi,
+> >=20
+> > On Wed, Oct 24, 2012 at 05:48:07PM -0700, Tony Lindgren wrote:
+> > > * Tony Lindgren <tony@atomide.com> [121016 09:53]:
+> > > > * Kishon Vijay Abraham I <kishon@ti.com> [121007 23:01]:
+> > > > > ocp2scp was not having pdata support which makes *musb* fail for =
+non-dt
+> > > > > boot in OMAP platform. The pdata will have information about the =
+devices
+> > > > > that is connected to ocp2scp. ocp2scp driver will now make use of=
+ this
+> > > > > information to create the devices that is attached to ocp2scp.
+> > > > >=20
+> > > > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > > >=20
+> > > > This fixes the regression on my panda es for musb port:
+> > > >=20
+> > > > Acked-by: Tony Lindgren <tony@atomide.com>
+> > >=20
+> > > Looks like nobody has picked this one up and we need it to
+> > > fix the musb regression on omap, so I'll queue these up.
+> >=20
+> > I don't seem to have the patches around in any mailbox :-(
+>=20
+> Bounced them to you. Do you have any better ideas for the
+> -rc cycle to fix the MUSB regression on omap4?
 
-Regards,
-Santosh
+Well, there are two regressions that I know of. One is caused by the
+mode1 DMA changes, which I'll just revert, and the other is the
+missing platform_data support on the new PHY driver which these patches
+are supposed to solve, right ?
 
+--=20
+balbi
 
+--0F1p//8PRICkK4MW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQijIIAAoJEIaOsuA1yqREhtEP/3l/7rgO5eSA5jA5IyL7zPso
+7MUVLME9mI1UYg316FrOrs1cfx3KPbvKwx+YyCEUlgGww2YM01M4jidH1fr234NY
+leW1YB7efoII/JT/DuYI3uecXYHFSg87SczquzClchSpa5BiECofMFMrYQWsDQhu
+1+XkVvjwGRxicDTlFwI16AcADQGRSmD0j8raGWEX9YlstG/BPNXCDkNsR4sRALK9
+uMpCyuMF/dXUB3I8eAIyxn/NCEvF2fpPtDVO/dytw2dvxknGMI/ti8vCZ8YsQc5Q
++yMZOOqJmF90XhxujiJGOOkl8cxE1q+y6pbndp1ntWwPqgjaIlwkt2encyFg5dil
+vDBkYbo/wwajoKBRyGboZ3m9dQnQR7PCYIW5AOZNuDtZ2wPGnmQWWzH+6HskS4eL
+oNJkLfUvq28KeDh5qUN383X9W20GDKCIYfp/QkeTeto3/cZ7b2WZqcX1G1xYNUza
+M8ShbRE+owvj8MECaBWIxMhCxqGk/tDb4E1fXc72O824q63725JZYc7rkHsKP+xa
+qvleHazDxhlJi28F+1pi+/NHX8C2nEMB6S9KFVXGdix06d0X5d7i1ZN+ihR5ssg6
+hz+miCopnDRpETYF2SA6qyiC9cssVt2dyo36NB553L0uv0pP8gKzr4jy9HUHi+/T
+TyyZr58KddqPanpi79tM
+=4MZD
+-----END PGP SIGNATURE-----
+
+--0F1p//8PRICkK4MW--
