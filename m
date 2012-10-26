@@ -1,48 +1,48 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/3] ARM: OMAP: fix build, sparse problems in cleanup-headers
-Date: Fri, 26 Oct 2012 14:08:24 -0600
-Message-ID: <20121026200413.16521.88985.stgit@dusk.lan>
+Subject: [PATCH 3/3] ARM: OMAP1: fix sparse warning added by commit
+ 4c98dc6b8ef2f73bdbfa78186db9a76507ba9ea3
+Date: Fri, 26 Oct 2012 14:08:28 -0600
+Message-ID: <20121026200827.16521.15224.stgit@dusk.lan>
+References: <20121026200413.16521.88985.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40887 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40898 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966288Ab2JZUJB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 16:09:01 -0400
+	with ESMTP id S966362Ab2JZUJC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 16:09:02 -0400
+In-Reply-To: <20121026200413.16521.88985.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>
 
-Fix several build failures and a sparse warning in the linux-omap
-omap-for-v3.8/cleanup-headers branch.  
+Commit 4c98dc6b8ef2f73bdbfa78186db9a76507ba9ea3 ("ARM: OMAP: Make
+plat/fpga.h local to arch/arm/plat-omap") results in a new warning from
+sparse:
 
-Basic test logs are here:
+arch/arm/mach-omap1/fpga.c:147:6: warning: symbol 'omap1510_fpga_init_irq' was not declared. Should it be static?
 
-http://www.pwsan.com/omap/testlogs/cleanup-headers-compile-fixes-3.8/20121026132711/
+Fix by adding a missing include.
 
-Due to underlying problems in v3.7-rc2, several tests fail.  The
-failures are unrelated to these patches.
-
-Intended for 3.8 cleanup.
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/mach-omap1/fpga.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-cleanup-headers-compile-fixes-3.8
-   text	   data	    bss	    dec	    hex	filename
-5452826	 352260	 121588	5926674	 5a6f12	vmlinux.omap1_defconfig.orig
-5452826	 352260	 121588	5926674	 5a6f12	vmlinux.omap1_defconfig
+diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
+index 4ec220d..d940fac 100644
+--- a/arch/arm/mach-omap1/fpga.c
++++ b/arch/arm/mach-omap1/fpga.c
+@@ -32,6 +32,7 @@
+ #include <mach/hardware.h>
+ 
+ #include "iomap.h"
++#include "common.h"
+ 
+ static void fpga_mask_irq(struct irq_data *d)
+ {
 
-Paul Walmsley (3):
-      ARM: OMAP2+: fix build breakage introduced by commit b7754452b3e27716347a528b47b0a1083af32520
-      ARM: OMAP1: fix build breakage introduced by commit 25c7d49ed48b4843da7dea56a81ae7f620211ee0
-      ARM: OMAP1: fix sparse warning added by commit 4c98dc6b8ef2f73bdbfa78186db9a76507ba9ea3
-
-
- arch/arm/mach-omap1/fpga.c   |    1 +
- arch/arm/mach-omap1/pm_bus.c |    2 ++
- drivers/mtd/onenand/omap2.c  |   36 ++++++++++++++++++++++++------------
- 3 files changed, 27 insertions(+), 12 deletions(-)
 
