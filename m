@@ -1,87 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 06/14] mtd: onenand: omap: use pdata info instead of
- cpu_is
-Date: Fri, 26 Oct 2012 05:04:10 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210260411140.27963@utopia.booyaka.com>
-References: <cover.1349672877.git.afzal@ti.com> <860ba92c34cbb490beccd5442087087c1751a6a2.1349672877.git.afzal@ti.com> <alpine.DEB.2.00.1210260146270.11251@utopia.booyaka.com>
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+Subject: Re: [PATCH v3 1/3] usb: dwc3: Add the suspend/resume functionality
+Date: Fri, 26 Oct 2012 10:34:22 +0530
+Message-ID: <CAD025ySWpF-_o4K030Sib2NsZXA3Qcw0MN8qpTZhPn4OR170EQ@mail.gmail.com>
+References: <20121018150009.GT5378@xanatos>
+	<Pine.LNX.4.44L0.1210181244080.1495-100000@iolanthe.rowland.org>
+	<20121018172936.GB7823@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39031 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756128Ab2JZFEM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 01:04:12 -0400
-In-Reply-To: <alpine.DEB.2.00.1210260146270.11251@utopia.booyaka.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:33930 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756128Ab2JZFEX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 01:04:23 -0400
+Received: by mail-gh0-f174.google.com with SMTP id g15so485589ghb.19
+        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 22:04:22 -0700 (PDT)
+In-Reply-To: <20121018172936.GB7823@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, Jon Hunter <jon-hunter@ti.com>, David Woodhouse <dwmw2@infradead.org>, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org
+To: balbi@ti.com
+Cc: Alan Stern <stern@rowland.harvard.edu>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Doug Anderson <dianders@chromium.org>
 
-On Fri, 26 Oct 2012, Paul Walmsley wrote:
+Hi Felipe,
 
-> On Mon, 8 Oct 2012, Afzal Mohammed wrote:
-> 
-> > platform data now contains a field to indicate whether
-> > soc belongs to omap34xx family, use it instead of
-> > cpu_is_* check.
-> > 
-> > This helps in removing dependency of platform specific
-> > header file - cpu.h
-> > 
-> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> 
-> This one breaks an N800 multi-OMAP build here:
+On 18 October 2012 22:59, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Thu, Oct 18, 2012 at 12:44:50PM -0400, Alan Stern wrote:
+>> On Thu, 18 Oct 2012, Sarah Sharp wrote:
+>>
+>> > For system suspend while the DW3 hardware is in host mode, doesn't the
+>> > USB core prevent drivers from submitting URBs just before the
+>> > PCI/platform suspend is called?  Alan?
+>>
+>> Sure it does.
+>
+> ok great, so my concerns is limited to the gadget side ;-) I still want
+> to see both sides tested, though.
+>
+> (sorry guys, but with DWC3 now passing full USB3 certification, I want
+> to be very careful with patches I accept, specially related to PM ;-)
+>
+> --
+> balbi
 
-It also breaks an OMAP3+4 config:
+Will test both HOST and GADGET mode as per your suggestion and update you.
 
-drivers/built-in.o: In function `omap2_onenand_probe':
-/home/paul/test_build/temp/test_cleanup_prcm_8634155e_with_fixes/20121025214236/linux/drivers/mtd/onenand/omap2.c:742: 
-undefined reference to `omap2_onenand_read_bufferram'
-/home/paul/test_build/temp/test_cleanup_prcm_8634155e_with_fixes/20121025214236/linux/drivers/mtd/onenand/omap2.c:743: 
-undefined reference to `omap2_onenand_write_bufferram'
-/home/paul/test_build/temp/test_cleanup_prcm_8634155e_with_fixes/20121025214236/linux/drivers/mtd/onenand/omap2.c:742: 
-undefined reference to `omap2_onenand_read_bufferram'
-/home/paul/test_build/temp/test_cleanup_prcm_8634155e_with_fixes/20121025214236/linux/drivers/mtd/onenand/omap2.c:743: 
-undefined reference to `omap2_onenand_write_bufferram'
-
-Fix below.
-
-
-- Paul
-
----
- drivers/mtd/onenand/omap2.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-index f87cf39..99f96e1 100644
---- a/drivers/mtd/onenand/omap2.c
-+++ b/drivers/mtd/onenand/omap2.c
-@@ -555,13 +555,19 @@ static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
- 
- #else
- 
--int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
--				 unsigned char *buffer, int offset,
--				 size_t count);
-+static int omap2_onenand_read_bufferram(struct mtd_info *mtd, int area,
-+					unsigned char *buffer, int offset,
-+					size_t count)
-+{
-+	return -ENOSYS;
-+}
- 
--int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
--				  const unsigned char *buffer,
--				  int offset, size_t count);
-+static int omap2_onenand_write_bufferram(struct mtd_info *mtd, int area,
-+					 const unsigned char *buffer,
-+					 int offset, size_t count)
-+{
-+	return -ENOSYS;
-+}
- 
- #endif
- 
 -- 
-1.7.10.4
+Thanks and Regards
+ Vikas Sajjan
