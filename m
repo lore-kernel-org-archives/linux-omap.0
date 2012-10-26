@@ -1,77 +1,100 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v3] gpio/omap: fix off-mode bug: clear debounce clock
- enable mask on free/reset
-Date: Fri, 26 Oct 2012 11:31:34 +0530
-Message-ID: <508A273E.3020500@ti.com>
-References: <1351182858-14045-1-git-send-email-khilman@deeprootsystems.com> <5089C2B6.5020606@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omapdss: dss: Fix clocks on OMAP363x
+Date: Fri, 26 Oct 2012 09:17:25 +0300
+Message-ID: <508A2AF5.3080706@ti.com>
+References: <1351190530-16863-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig5D352CABC3079049724F1858"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36049 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756283Ab2JZGBs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Oct 2012 02:01:48 -0400
-In-Reply-To: <5089C2B6.5020606@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55580 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752196Ab2JZGRe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 02:17:34 -0400
+In-Reply-To: <1351190530-16863-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>, Grazvydas Ignotas <notasas@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-Jon,
+--------------enig5D352CABC3079049724F1858
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 26 October 2012 04:22 AM, Jon Hunter wrote:
-> Hi Kevin,
->
-> On 10/25/2012 11:34 AM, Kevin Hilman wrote:
->> From: Kevin Hilman <khilman@ti.com>
->>
+On 2012-10-25 21:42, Laurent Pinchart wrote:
+> Commit 185bae1095188aa199c9be64d6030d8dbfc65e0a ("OMAPDSS: DSS: Cleanup=
 
-[...]
-
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index 94cbc84..ce1da19 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -539,6 +539,8 @@ static void _reset_gpio(struct gpio_bank *bank, int gpio)
->>   	_set_gpio_irqenable(bank, gpio, 0);
->>   	_clear_gpio_irqstatus(bank, gpio);
->>   	_set_gpio_triggering(bank, GPIO_INDEX(bank, gpio), IRQ_TYPE_NONE);
->> +	bank->dbck_enable_mask &= ~(GPIO_BIT(bank, gpio));
->> +	_gpio_dbck_disable(bank);
->
-> We can't use _gpio_dbck_disable() here. This has been specifically implemented
-> for the suspend path and is designed to disable the debounce clock while
-> debounce is enabled (which makes sense). Yes this needs to be cleaned up.
->
-I thought this bit was clear on v2 discussion list that debounce
-clock disable needs to be conditional based on debounce mask.
-
->  From 33812f3bd4f7aab1154e7194b7f11fba700a5086 Mon Sep 17 00:00:00 2001
-> From: Jon Hunter <jon-hunter@ti.com>
-> Date: Thu, 25 Oct 2012 16:00:51 -0500
-> Subject: [PATCH] gpio/omap: fix clearing of debounce settings on gpio
->   free/reset
->
-> When a GPIO is freed or shutdown, we need to ensure that any debounce settings
-> are cleared and if the GPIO is the only GPIO in the bank that is currently
-> using debounce, then disable the debounce clock as well to save power.
->
-> Therefore, introduce a new function called _clear_gpio_debounce() to clear
-> any debounce settings when the GPIO is freed or shutdown.
->
-> Please note that we cannot use _gpio_dbck_disable() to disable the debounce
-> clock because this has been specifically created for the gpio suspend path
-> and is intended to shutdown the debounce clock while debounce is enabled.
->
-> This has been unit tested on an OMAP3430 Beagle board, by requesting a gpio,
-> enabling debounce and then freeing the gpio and checking the register contents,
-> the saved register context and the debounce clock state.
->
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> cpu_is_xxxx checks") broke the DSS clocks configuration by erroneously
+> using the clock parameters applicable to all other OMAP34xx SoCs for th=
+e
+> OMAP363x. This went unnoticed probably because the cpu_is_omap34xx()
+> class check wasn't seen as matching the OMAP363x subclass.
+>=20
+> Fix it by checking for the OMAP363x subclass before checking for the
+> OMAP34xx class.
+>=20
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > ---
-Now that we are aligned, so we can take this patch forward. Feel free
-to add my ack in case you plan to refresh it.
+>  drivers/video/omap2/dss/dss.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>=20
+> Hi Tomi,
+>=20
+> The patch has been tested on the Beagleboard-xM and restores the DVI ou=
+tput
+> operation. This is a regression fix that should be pushed to v3.7.
+>=20
+> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/ds=
+s.c
+> index 2ab1c3e..0bb7406 100644
+> --- a/drivers/video/omap2/dss/dss.c
+> +++ b/drivers/video/omap2/dss/dss.c
+> @@ -805,10 +805,10 @@ static int __init dss_init_features(struct device=
+ *dev)
+> =20
+>  	if (cpu_is_omap24xx())
+>  		src =3D &omap24xx_dss_feats;
+> -	else if (cpu_is_omap34xx())
+> -		src =3D &omap34xx_dss_feats;
+>  	else if (cpu_is_omap3630())
+>  		src =3D &omap3630_dss_feats;
+> +	else if (cpu_is_omap34xx())
+> +		src =3D &omap34xx_dss_feats;
+>  	else if (cpu_is_omap44xx())
+>  		src =3D &omap44xx_dss_feats;
+>  	else if (soc_is_omap54xx())
+>=20
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Good catch, thanks. I don't have a 36xx board, so this went unnoticed.
+I'll push it for 3.7-rc.
 
+ Tomi
+
+
+
+--------------enig5D352CABC3079049724F1858
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQiir5AAoJEPo9qoy8lh71H58P/19E3mQKM7wsq4WyrDn25BEX
+fO3UqGistWBhQuKcMX7MBWLF9I1v/VbNhxzwfLbhdJOlDQsuGZo0Ve9/keQkEsda
+bmrT5QJo7GFxqhmrizYqWaNHnNIIGJ/J+se0PTGbs/QWClfFCAgMq/DDcVLuzKBs
+49LQjtxTxu0rz2KAVYQWk3BAdw2FnqcWxi0tjtkbHMaHRLOzlmYKlcEcJVSOlzRJ
+aU90VnrTG6LbYKogm++xjCgAge2Ch8eF+WsMhowu0+V3lw3Wl7OVrtLXZVIxHa24
+PavTgEl1h5epSKhnbgHgxf+eqb4KSm7KLsythx8KP4Bj8HcsuJlGHawj3+vJi6iz
+DhV1TdRLxxSYGSyV/H3986EADDgX+W7sroiSwOIxw4wXAKH7dlDg5N6bUd1u7T2d
+QKEaNLpdYbfgtUcawSuDv1++FDfL03dIBXVwYx7mP6x9U6ejsoQIQoV1nsuudYBb
+B+pqpAxRx+DLnEqug9TlUQ+y/nNq4pbmLuU6JcHnb/lfvJP2GKWgLHg6x3gdnlwe
+PQF+uNaPF9kxd7KvR4526/DPAWbUh9Q1r84muyMuB3rgZvZkK54FJdVDhv3m6bx1
+9s+rF7NOpFd07MsvHAXbfhl2xuawI3A2l8lLOFGrVVMf9XEXWI4BNvuSifsxDw4F
+HWT2QSJqmQHm3Bk+E3Bf
+=tS34
+-----END PGP SIGNATURE-----
+
+--------------enig5D352CABC3079049724F1858--
