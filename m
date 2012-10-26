@@ -1,115 +1,534 @@
-From: Tim Niemeyer <tim.niemeyer@corscience.de>
-Subject: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
-Date: Fri, 26 Oct 2012 09:55:30 +0200
-Message-ID: <1351238130-7158-1-git-send-email-tim.niemeyer@corscience.de>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH V4 1/5] ARM: dts: OMAP: Add timer nodes
+Date: Fri, 26 Oct 2012 07:59:58 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EB4B483@DBDE01.ent.ti.com>
+References: <1350658744-13509-1-git-send-email-jon-hunter@ti.com>
+ <1350658744-13509-2-git-send-email-jon-hunter@ti.com>
+ <50880C19.2090508@ti.com> <50898F92.80208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:64122 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757043Ab2JZHzI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 03:55:08 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:33334 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757187Ab2JZIAS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 04:00:18 -0400
+In-Reply-To: <50898F92.80208@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP List <linux-omap@vger.kernel.org>
-Cc: Tim Niemeyer <tim.niemeyer@corscience.de>
+To: "Hunter, Jon" <jon-hunter@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Adds support for configuring the omap-gpio driver use autosuspend for
-runtime power management. This can reduce the latency in using it by
-not suspending the device immediately on idle. If another access takes
-place before the autosuspend timeout (2 secs), the call to resume the
-device can return immediately saving some save/ restore cycles.
+On Fri, Oct 26, 2012 at 00:44:26, Hunter, Jon wrote:
+> Hi Benoit,
+> 
+> On 10/24/2012 10:41 AM, Benoit Cousson wrote:
+> > Hi Jon,
+> > 
+> > On 10/19/2012 04:59 PM, Jon Hunter wrote:
+> >> Add the 12 GP timers nodes present in OMAP2.
+> >> Add the 12 GP timers nodes present in OMAP3.
+> >> Add the 11 GP timers nodes present in OMAP4.
+> >> Add the 7 GP timers nodes present in AM33xx.
+> >>
+> >> Add documentation for timer properties specific to OMAP.
+> >>
+> >> Thanks to Vaibhav Hiremath for creating the AM33xx timer nodes. I have modified
+> >> Vaibhav's original nodes adding information on which timers support a PWM
+> >> output.
+> >>
+> >> Cc: Benoit Cousson <b-cousson@ti.com>
+> >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> > 
+> > I updated the patch to remove the interrupt-parent from the DTS nodes and the documentation, as discussed on the list in the context of OMAP5 DTS for GPIO.
+> > 
+> > If you are OK with that version, I'll push it to Tony along with the others DTS patches.
+> 
+> Per our discussion please find below an updated patch with corrected
+> register sizes.
+> 
+> Vaibhav, I have changed the AM335x register size for timers to be 1KB
+> instead of 4KB to align with the AM335x HWMOD. I have boot tested on
+> the AM335x.
+> 
 
-I use a gpio to monitor a spi transfer which occurs every 250=C2=B5s. T=
-he
-suspend overhead is to high, so almost every second transfer is lost.
-This patch fixes that.
+Make sense Jon.
 
-Signed-off-by: Tim Niemeyer <tim.niemeyer@corscience.de>
----
- drivers/gpio/gpio-omap.c |   23 ++++++++++++++++++-----
- 1 files changed, 18 insertions(+), 5 deletions(-)
+Thanks,
+Vaibhav
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 94cbc84..92f48cb 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -31,6 +31,7 @@
- #include <asm/mach/irq.h>
-=20
- #define OFF_MODE	1
-+#define GPIO_AUTOSUSPEND_TIMEOUT                2000
-=20
- static LIST_HEAD(omap_gpio_list);
-=20
-@@ -628,8 +629,10 @@ static void omap_gpio_free(struct gpio_chip *chip,=
- unsigned offset)
- 	 * If this is the last gpio to be freed in the bank,
- 	 * disable the bank module.
- 	 */
--	if (!bank->mod_usage)
--		pm_runtime_put(bank->dev);
-+	if (!bank->mod_usage) {
-+		pm_runtime_mark_last_busy(bank->dev);
-+		pm_runtime_put_autosuspend(bank->dev);
-+	}
- }
-=20
- /*
-@@ -715,7 +718,8 @@ static void gpio_irq_handler(unsigned int irq, stru=
-ct irq_desc *desc)
- exit:
- 	if (!unmasked)
- 		chained_irq_exit(chip, desc);
--	pm_runtime_put(bank->dev);
-+	pm_runtime_mark_last_busy(bank->dev);
-+	pm_runtime_put_autosuspend(bank->dev);
- }
-=20
- static void gpio_irq_shutdown(struct irq_data *d)
-@@ -1132,6 +1136,8 @@ static int __devinit omap_gpio_probe(struct platf=
-orm_device *pdev)
-=20
- 	platform_set_drvdata(pdev, bank);
-=20
-+	pm_runtime_use_autosuspend(bank->dev);
-+	pm_runtime_set_autosuspend_delay(bank->dev, GPIO_AUTOSUSPEND_TIMEOUT)=
-;
- 	pm_runtime_enable(bank->dev);
- 	pm_runtime_irq_safe(bank->dev);
- 	pm_runtime_get_sync(bank->dev);
-@@ -1146,7 +1152,8 @@ static int __devinit omap_gpio_probe(struct platf=
-orm_device *pdev)
- 	if (bank->loses_context)
- 		bank->get_context_loss_count =3D pdata->get_context_loss_count;
-=20
--	pm_runtime_put(bank->dev);
-+	pm_runtime_mark_last_busy(bank->dev);
-+	pm_runtime_put_autosuspend(bank->dev);
-=20
- 	list_add_tail(&bank->node, &omap_gpio_list);
-=20
-@@ -1333,7 +1340,13 @@ void omap2_gpio_prepare_for_idle(int pwr_mode)
-=20
- 		bank->power_mode =3D pwr_mode;
-=20
--		pm_runtime_put_sync_suspend(bank->dev);
-+		/* direct pm_runtime on pwroff */
-+		if (pwr_mode)
-+			pm_runtime_put_sync_suspend(bank->dev);
-+		else {
-+			pm_runtime_mark_last_busy(bank->dev);
-+			pm_runtime_put_sync_autosuspend(bank->dev);
-+		}
- 	}
- }
-=20
---=20
-1.7.2.5
+> Cheers
+> Jon
+> 
+> From 1bf082d78ecff2c1a08ffccc133010975d7478f5 Mon Sep 17 00:00:00 2001
+> From: Jon Hunter <jon-hunter@ti.com>
+> Date: Fri, 19 Oct 2012 09:59:00 -0500
+> Subject: [PATCH] ARM: dts: OMAP: Add timer nodes
+> 
+> Add the 12 GP timers nodes present in OMAP2.
+> Add the 12 GP timers nodes present in OMAP3.
+> Add the 11 GP timers nodes present in OMAP4.
+> Add the 7 GP timers nodes present in AM33xx.
+> 
+> Add documentation for timer properties specific to OMAP.
+> 
+> Thanks to Vaibhav Hiremath for creating the AM33xx timer nodes. I have modified
+> Vaibhav's original nodes adding information on which timers support a PWM
+> output.
+> 
+> V5 changes:
+> - Updated timer register sizes for OMAP2/3/4.
+> - Modified AM335x timer register size to be 1KB instead of 4KB to align with
+>   HWMOD.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  .../devicetree/bindings/arm/omap/timer.txt         |   31 +++++++
+>  arch/arm/boot/dts/am33xx.dtsi                      |   54 +++++++++++
+>  arch/arm/boot/dts/omap2.dtsi                       |   85 ++++++++++++++++++
+>  arch/arm/boot/dts/omap2420.dtsi                    |    8 ++
+>  arch/arm/boot/dts/omap2430.dtsi                    |    8 ++
+>  arch/arm/boot/dts/omap3.dtsi                       |   95 ++++++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi                       |   86 ++++++++++++++++++
+>  7 files changed, 367 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/timer.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
+> new file mode 100644
+> index 0000000..8732d4d
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
+> @@ -0,0 +1,31 @@
+> +OMAP Timer bindings
+> +
+> +Required properties:
+> +- compatible:		Must be "ti,omap2-timer" for OMAP2+ controllers.
+> +- reg:			Contains timer register address range (base address and
+> +			length).
+> +- interrupts: 		Contains the interrupt information for the timer. The
+> +			format is being dependent on which interrupt controller
+> +			the OMAP device uses.
+> +- ti,hwmods:		Name of the hwmod associated to the timer, "timer<X>",
+> +			where <X> is the instance number of the timer from the
+> +			HW spec.
+> +
+> +Optional properties:
+> +- ti,timer-alwon:	Indicates the timer is in an alway-on power domain.
+> +- ti,timer-dsp:		Indicates the timer can interrupt the on-chip DSP in
+> +			addition to the ARM CPU.
+> +- ti,timer-pwm: 	Indicates the timer can generate a PWM output.
+> +- ti,timer-secure: 	Indicates the timer is reserved on a secure OMAP device
+> +			and therefore cannot be used by the kernel.
+> +
+> +Example:
+> +
+> +timer12: timer@48304000 {
+> +	compatible = "ti,omap2-timer";
+> +	reg = <0x48304000 0x400>;
+> +	interrupts = <95>;
+> +	ti,hwmods = "timer12"
+> +	ti,timer-alwon;
+> +	ti,timer-secure;
+> +};
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 4709269..70d24b8 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -237,5 +237,59 @@
+>  			interrupts = <55>;
+>  			status = "disabled";
+>  		};
+> +
+> +		timer1: timer@44e31000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x44e31000 0x400>;
+> +			interrupts = <67>;
+> +			ti,hwmods = "timer1";
+> +			ti,timer-alwon;
+> +		};
+> +
+> +		timer2: timer@48040000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48040000 0x400>;
+> +			interrupts = <68>;
+> +			ti,hwmods = "timer2";
+> +		};
+> +
+> +		timer3: timer@48042000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48042000 0x400>;
+> +			interrupts = <69>;
+> +			ti,hwmods = "timer3";
+> +		};
+> +
+> +		timer4: timer@48044000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48044000 0x400>;
+> +			interrupts = <92>;
+> +			ti,hwmods = "timer4";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer5: timer@48046000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48046000 0x400>;
+> +			interrupts = <93>;
+> +			ti,hwmods = "timer5";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer6: timer@48048000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48048000 0x400>;
+> +			interrupts = <94>;
+> +			ti,hwmods = "timer6";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer7: timer@4804a000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4804a000 0x400>;
+> +			interrupts = <95>;
+> +			ti,hwmods = "timer7";
+> +			ti,timer-pwm;
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+> index f366482..761c4b6 100644
+> --- a/arch/arm/boot/dts/omap2.dtsi
+> +++ b/arch/arm/boot/dts/omap2.dtsi
+> @@ -66,5 +66,90 @@
+>  			ti,hwmods = "uart3";
+>  			clock-frequency = <48000000>;
+>  		};
+> +
+> +		timer2: timer@4802a000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4802a000 0x400>;
+> +			interrupts = <38>;
+> +			ti,hwmods = "timer2";
+> +		};
+> +
+> +		timer3: timer@48078000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48078000 0x400>;
+> +			interrupts = <39>;
+> +			ti,hwmods = "timer3";
+> +		};
+> +
+> +		timer4: timer@4807a000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4807a000 0x400>;
+> +			interrupts = <40>;
+> +			ti,hwmods = "timer4";
+> +		};
+> +
+> +		timer5: timer@4807c000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4807c000 0x400>;
+> +			interrupts = <41>;
+> +			ti,hwmods = "timer5";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer6: timer@4807e000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4807e000 0x400>;
+> +			interrupts = <42>;
+> +			ti,hwmods = "timer6";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer7: timer@48080000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48080000 0x400>;
+> +			interrupts = <43>;
+> +			ti,hwmods = "timer7";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer8: timer@48082000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48082000 0x400>;
+> +			interrupts = <44>;
+> +			ti,hwmods = "timer8";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer9: timer@48084000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48084000 0x400>;
+> +			interrupts = <45>;
+> +			ti,hwmods = "timer9";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer10: timer@48086000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48086000 0x400>;
+> +			interrupts = <46>;
+> +			ti,hwmods = "timer10";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer11: timer@48088000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48088000 0x400>;
+> +			interrupts = <47>;
+> +			ti,hwmods = "timer11";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer12: timer@4808a000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4808a000 0x400>;
+> +			interrupts = <48>;
+> +			ti,hwmods = "timer12";
+> +			ti,timer-pwm;
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+> index 4d5ce91..af5ee26 100644
+> --- a/arch/arm/boot/dts/omap2420.dtsi
+> +++ b/arch/arm/boot/dts/omap2420.dtsi
+> @@ -42,5 +42,13 @@
+>  			interrupt-names = "tx", "rx";
+>  			ti,hwmods = "mcbsp2";
+>  		};
+> +
+> +		timer1: timer@48028000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48028000 0x400>;
+> +			interrupts = <37>;
+> +			ti,hwmods = "timer1";
+> +			ti,timer-alwon;
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+> index fa84532..6887298 100644
+> --- a/arch/arm/boot/dts/omap2430.dtsi
+> +++ b/arch/arm/boot/dts/omap2430.dtsi
+> @@ -83,5 +83,13 @@
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp5";
+>  		};
+> +
+> +		timer1: timer@49018000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x49018000 0x400>;
+> +			interrupts = <37>;
+> +			ti,hwmods = "timer1";
+> +			ti,timer-alwon;
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 955cbdc..da8c0f5 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -296,5 +296,100 @@
+>  			ti,buffer-size = <128>;
+>  			ti,hwmods = "mcbsp5";
+>  		};
+> +
+> +		timer1: timer@48318000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48318000 0x400>;
+> +			interrupts = <37>;
+> +			ti,hwmods = "timer1";
+> +			ti,timer-alwon;
+> +		};
+> +
+> +		timer2: timer@49032000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x49032000 0x400>;
+> +			interrupts = <38>;
+> +			ti,hwmods = "timer2";
+> +		};
+> +
+> +		timer3: timer@49034000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x49034000 0x400>;
+> +			interrupts = <39>;
+> +			ti,hwmods = "timer3";
+> +		};
+> +
+> +		timer4: timer@49036000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x49036000 0x400>;
+> +			interrupts = <40>;
+> +			ti,hwmods = "timer4";
+> +		};
+> +
+> +		timer5: timer@49038000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x49038000 0x400>;
+> +			interrupts = <41>;
+> +			ti,hwmods = "timer5";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer6: timer@4903a000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4903a000 0x400>;
+> +			interrupts = <42>;
+> +			ti,hwmods = "timer6";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer7: timer@4903c000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4903c000 0x400>;
+> +			interrupts = <43>;
+> +			ti,hwmods = "timer7";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer8: timer@4903e000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4903e000 0x400>;
+> +			interrupts = <44>;
+> +			ti,hwmods = "timer8";
+> +			ti,timer-pwm;
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer9: timer@49040000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x49040000 0x400>;
+> +			interrupts = <45>;
+> +			ti,hwmods = "timer9";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer10: timer@48086000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48086000 0x400>;
+> +			interrupts = <46>;
+> +			ti,hwmods = "timer10";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer11: timer@48088000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48088000 0x400>;
+> +			interrupts = <47>;
+> +			ti,hwmods = "timer11";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer12: timer@48304000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48304000 0x400>;
+> +			interrupts = <95>;
+> +			ti,hwmods = "timer12";
+> +			ti,timer-alwon;
+> +			ti,timer-secure;
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 2ab6e68..d3a82e0 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -433,5 +433,91 @@
+>  			ranges;
+>  			ti,hwmods = "ocp2scp_usb_phy";
+>  		};
+> +
+> +		timer1: timer@4a318000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4a318000 0x80>;
+> +			interrupts = <0 37 0x4>;
+> +			ti,hwmods = "timer1";
+> +			ti,timer-alwon;
+> +		};
+> +
+> +		timer2: timer@48032000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48032000 0x80>;
+> +			interrupts = <0 38 0x4>;
+> +			ti,hwmods = "timer2";
+> +		};
+> +
+> +		timer3: timer@48034000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48034000 0x80>;
+> +			interrupts = <0 39 0x4>;
+> +			ti,hwmods = "timer3";
+> +		};
+> +
+> +		timer4: timer@48036000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48036000 0x80>;
+> +			interrupts = <0 40 0x4>;
+> +			ti,hwmods = "timer4";
+> +		};
+> +
+> +		timer5: timer@49038000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x49038000 0x80>;
+> +			interrupts = <0 41 0x4>;
+> +			ti,hwmods = "timer5";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer6: timer@4903a000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4903a000 0x80>;
+> +			interrupts = <0 42 0x4>;
+> +			ti,hwmods = "timer6";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer7: timer@4903c000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4903c000 0x80>;
+> +			interrupts = <0 43 0x4>;
+> +			ti,hwmods = "timer7";
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer8: timer@4903e000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4903e000 0x80>;
+> +			interrupts = <0 44 0x4>;
+> +			ti,hwmods = "timer8";
+> +			ti,timer-pwm;
+> +			ti,timer-dsp;
+> +		};
+> +
+> +		timer9: timer@4803e000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x4803e000 0x80>;
+> +			interrupts = <0 45 0x4>;
+> +			ti,hwmods = "timer9";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer10: timer@48086000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48086000 0x80>;
+> +			interrupts = <0 46 0x4>;
+> +			ti,hwmods = "timer10";
+> +			ti,timer-pwm;
+> +		};
+> +
+> +		timer11: timer@48088000 {
+> +			compatible = "ti,omap2-timer";
+> +			reg = <0x48088000 0x80>;
+> +			interrupts = <0 47 0x4>;
+> +			ti,hwmods = "timer11";
+> +			ti,timer-pwm;
+> +		};
+>  	};
+>  };
+> -- 
+> 1.7.9.5
+> 
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
