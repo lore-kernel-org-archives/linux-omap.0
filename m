@@ -1,19 +1,18 @@
 From: Christopher Harvey <charvey@matrox.com>
 Subject: [PATCH v2] mtd: omap: nand: Remove 0xFF's that prefixed 16bit NAND
  commands
-Date: Fri, 26 Oct 2012 15:35:31 -0400
-Message-ID: <20121026193531.GA21481@harvey-pc.matrox.com>
-References: <cover.1351278594.git.charvey@matrox.com>
-Reply-To: 20121026193410.GA21474@matrox.com
+Date: Fri, 26 Oct 2012 15:36:43 -0400
+Message-ID: <20121026193643.GA21510@harvey-pc.matrox.com>
+References: <20121026193410.GA21474@harvey-pc.matrox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mtxmxout2.matrox.com ([138.11.2.92]:46184 "EHLO
-	mtxmxout2.matrox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966127Ab2JZTcW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 15:32:22 -0400
+Received: from mtxmxout9.matrox.com ([138.11.2.99]:42091 "EHLO
+	mtxmxout7.matrox.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S966127Ab2JZTde (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 15:33:34 -0400
 Content-Disposition: inline
-In-Reply-To: <cover.1351278594.git.charvey@matrox.com>
+In-Reply-To: <20121026193410.GA21474@harvey-pc.matrox.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
