@@ -1,56 +1,62 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH V2] ARM: PMU: fix runtime PM enable
-Date: Fri, 26 Oct 2012 11:03:13 +0100
-Message-ID: <20121026100312.GF20914@mudshark.cambridge.arm.com>
-References: <1351196598-26667-1-git-send-email-jon-hunter@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: Build broken on linus/master?
+Date: Fri, 26 Oct 2012 15:51:57 +0530
+Message-ID: <508A6445.5080303@ti.com>
+References: <B5906170F1614E41A8A28DE3B8D121433EBE9565@DBDE01.ent.ti.com> <508A50F0.2030308@ti.com> <B5906170F1614E41A8A28DE3B8D121433EBE98CD@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:60297 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753780Ab2JZKDV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Oct 2012 06:03:21 -0400
-Content-Disposition: inline
-In-Reply-To: <1351196598-26667-1-git-send-email-jon-hunter@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46322 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755381Ab2JZKWK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Oct 2012 06:22:10 -0400
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBE98CD@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "shuah.khan@hp.com" <shuah.khan@hp.com>, "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On Thu, Oct 25, 2012 at 09:23:18PM +0100, Jon Hunter wrote:
-> Commit 7be2958 (ARM: PMU: Add runtime PM Support) updated the ARM PMU code to
-> use runtime PM which was prototyped and validated on the OMAP devices. In this
-> commit, there is no call pm_runtime_enable() and for OMAP devices
-> pm_runtime_enable() is currently being called from the OMAP PMU code when the
-> PMU device is created. However, there are two problems with this:
-> 
-> 1. For any other ARM device wishing to use runtime PM for PMU they will need
->    to call pm_runtime_enable() for runtime PM to work.
-> 2. When booting with device-tree and using device-tree to create the PMU
->    device, pm_runtime_enable() needs to be called from within the ARM PERF
->    driver as we are no longer calling any device specific code to create the
->    device. Hence, PMU does not work on OMAP devices that use the runtime PM
->    callbacks when using device-tree to create the PMU device.
-> 
-> Therefore,  call pm_runtime_enable() directly from the ARM PMU driver when
-> registering the device. For platforms that do not use runtime PM,
-> pm_runtime_enable() does nothing and for platforms that do use runtime PM but
-> may not require it specifically for PMU, this will just add a little overhead
-> when initialising and uninitialising the PMU device.
-> 
-> Tested with PERF on OMAP2420, OMAP3430 and OMAP4460.
-> 
-> V2 changes:
-> - Call pm_runtime_enable() unconditionally on registering the PMU device.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
+On Friday 26 October 2012 03:32 PM, Bedia, Vaibhav wrote:
+> On Fri, Oct 26, 2012 at 14:29:28, Shilimkar, Santosh wrote:
+>> On Friday 26 October 2012 01:18 PM, Bedia, Vaibhav wrote:
+>>> Hi,
+>>>
+>>> Compiling the current linus/master (2ab3f29) using omap2plus_defconfig
+>>> throws up the following error
+>>>
+>>> $make -j7 uImage
+>>>     CHK     include/generated/uapi/linux/version.h
+>>>     CHK     include/generated/utsrelease.h
+>>> make[1]: `include/generated/mach-types.h' is up to date.
+>>>     CC      arch/arm/kernel/asm-offsets.s
+>>> In file included from include/linux/dma-mapping.h:76:0,
+>>>                    from arch/arm/kernel/asm-offsets.c:15:
+>>> /datalocal/kernel/arch/arm/include/asm/dma-mapping.h: In function 'dma_mapping_error':
+>>> /datalocal/kernel/arch/arm/include/asm/dma-mapping.h:94:2: error: implicit declaration of function 'debug_dma_mapping_error'
+>>> make[1]: *** [arch/arm/kernel/asm-offsets.s] Error 1
+>>> make: *** [prepare0] Error 2
+>>>
+>> Looks like it might break build on all ARM machines. I just
+>> noticed a patch adding debug_dma_mapping_error() for aarm64 arch.
+>>
+>> Marek, Shuah,
+>> Is kernel missing a patch which adds definition of
+>> debug_dma_mapping_error() to linux/dma-debug.h ?
+>>
+>> I can't seems to find this symbol in kernel grep.
+>>
+>
+> Just saw a pull request [1] from Marek asking Linus to revert the patch
+> which introduced this error.
+>
+Yep. I noticed that too. Just not sure whether Marek send the patch after
+seeing this email or he already seen the breakage. At least you would 
+have got some reported-by credit it was former. :-)
+Anyways, the build break fix is on its way.
 
-Cheers Jon! Looks a bit weird without the matching pm_runtime_disable, but
-we don't really have anywhere to put that since the PMU is not deregistered.
 
-Can we split this patch into two (even smaller!) patches so that I can take
-the perf part and the omap bit can go to Tony?
+Regards
+Santosh
 
-Will
+
