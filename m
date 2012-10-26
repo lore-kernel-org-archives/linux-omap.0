@@ -1,50 +1,34 @@
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-Subject: Re: [PATCH v3 1/3] usb: dwc3: Add the suspend/resume functionality
-Date: Fri, 26 Oct 2012 10:34:22 +0530
-Message-ID: <CAD025ySWpF-_o4K030Sib2NsZXA3Qcw0MN8qpTZhPn4OR170EQ@mail.gmail.com>
-References: <20121018150009.GT5378@xanatos>
-	<Pine.LNX.4.44L0.1210181244080.1495-100000@iolanthe.rowland.org>
-	<20121018172936.GB7823@arwen.pp.htv.fi>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
+Date: Fri, 26 Oct 2012 07:50:56 +0200
+Message-ID: <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
+References: <20121025001913.2082.31062.stgit@muffinssi.local>
+ <1466344.HbU9q5zM1q@avalon> <20121025165643.GP11928@atomide.com>
+ <1351198976.2hJjhe5gKC@avalon> <20121025213935.GD11928@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:33930 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756128Ab2JZFEX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 01:04:23 -0400
-Received: by mail-gh0-f174.google.com with SMTP id g15so485589ghb.19
-        for <linux-omap@vger.kernel.org>; Thu, 25 Oct 2012 22:04:22 -0700 (PDT)
-In-Reply-To: <20121018172936.GB7823@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20121025213935.GD11928@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Alan Stern <stern@rowland.harvard.edu>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@linuxfoundation.org, joshi@samsung.com, kishon@ti.com, Abhilash Kesavan <a.kesavan@samsung.com>, Doug Anderson <dianders@chromium.org>
 
-Hi Felipe,
+On Thu, Oct 25, 2012 at 11:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > Joerg and Ohad, do you have any opinions on this?
 
-On 18 October 2012 22:59, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Thu, Oct 18, 2012 at 12:44:50PM -0400, Alan Stern wrote:
->> On Thu, 18 Oct 2012, Sarah Sharp wrote:
->>
->> > For system suspend while the DW3 hardware is in host mode, doesn't the
->> > USB core prevent drivers from submitting URBs just before the
->> > PCI/platform suspend is called?  Alan?
->>
->> Sure it does.
->
-> ok great, so my concerns is limited to the gadget side ;-) I still want
-> to see both sides tested, though.
->
-> (sorry guys, but with DWC3 now passing full USB3 certification, I want
-> to be very careful with patches I accept, specially related to PM ;-)
->
-> --
-> balbi
+I agree that there's some merit in having a separate header file for
+IOVMM, since it's a different layer from the IOMMU API.
 
-Will test both HOST and GADGET mode as per your suggestion and update you.
+But in reality it's tightly coupled with OMAP's IOMMU, and ideally it
+really should go away and be replaced with the DMA API.
 
--- 
-Thanks and Regards
- Vikas Sajjan
+For this reason, and for the fact that anyway there's only a single
+user for it (omap3isp) and there will never be any more, maybe we
+shouldn't pollute include/linux anymore.
+
+Anyone volunteering to remove IOVMM and adapt omap3isp to the DMA API
+instead ? ;)
+
+Thanks,
+Ohad.
