@@ -1,85 +1,72 @@
-From: Christopher Harvey <charvey@matrox.com>
-Subject: Re: [PATCH v2 1/1] mtd: omap: nand: Remove 0xFF's that prefixed
- 16bit NAND commands
-Date: Fri, 26 Oct 2012 10:49:15 -0400
-Message-ID: <20121026144915.GA3110@harvey-pc.matrox.com>
-References: <20121019172457.GA7608@harvey-pc.matrox.com>
- <20121019174252.GA7831@harvey-pc.matrox.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator
+ driver to omap_usb2
+Date: Fri, 26 Oct 2012 18:16:27 +0300
+Message-ID: <508AA94B.10504@ti.com>
+References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-3-git-send-email-kishon@ti.com> <CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com> <CAAe_U6K1RXA3b5u9WvE=2VoXym9Vj3KM7c0J27jKz+2KrV4tsg@mail.gmail.com> <CAH+eYFAhVE8cAte2PFk3jinV9n3m+eDLtE43QxzRXMScnFGcrA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mtxmxout6.matrox.com ([138.11.2.96]:60627 "EHLO
-	mtxmxout6.matrox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933306Ab2JZOqI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 10:46:08 -0400
-Received: from venus.matrox.com (venus.matrox.com [192.168.1.30])
-	by mtxmxout6.matrox.com (Postfix) with ESMTP id 5C6521D74E6
-	for <linux-omap@vger.kernel.org>; Fri, 26 Oct 2012 10:46:06 -0400 (EDT)
-Received: (from ssmsp@localhost)
-	by venus.matrox.com (8.14.4/8.13.2) id q9QEk69r002272
-	for linux-omap@vger.kernel.org; Fri, 26 Oct 2012 10:46:06 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by venus.matrox.com (Postfix) with ESMTP id BF53EF4DB8
-	for <linux-omap@vger.kernel.org>; Fri, 26 Oct 2012 10:46:05 -0400 (EDT)
-Received: from pluton.matrox.com (pluton.matrox.com [192.168.8.7])
-	by venus.matrox.com (Postfix) with ESMTP id 85B97F4DB6
-	for <linux-omap@vger.kernel.org>; Fri, 26 Oct 2012 10:46:05 -0400 (EDT)
-Received: from harvey-pc.matrox.com (dyn-152-224.matrox.com [192.168.152.224])
-	by pluton.matrox.com (Postfix) with ESMTP id 715727F45F
-	for <linux-omap@vger.kernel.org>; Fri, 26 Oct 2012 10:46:05 -0400 (EDT)
-Content-Disposition: inline
-In-Reply-To: <20121019174252.GA7831@harvey-pc.matrox.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38613 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932078Ab2JZPQp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Oct 2012 11:16:45 -0400
+In-Reply-To: <CAH+eYFAhVE8cAte2PFk3jinV9n3m+eDLtE43QxzRXMScnFGcrA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, b-cousson@ti.com
+Cc: Rabin Vincent <rabin@rab.in>, tony@atomide.com, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-On Fri, Oct 19, 2012 at 01:42:52PM -0400, Christopher Harvey wrote:
-> In 16bit NAND mode the GPMC would send the command 0xNN as 0xFFNN
-> instead of 0x00NN on the bus. The 0xFFs were actually uninitialized
-> bits that were left unset in the GPMC command output register. The
-> reason they weren't initialized in 16bit mode is that if the same code
-> that writes to this register was used in 8bit mode then 2 commands
-> would be output in 8bit mode. One for the low byte, and an extra 0x0
-> command for the high byte. This commit uses writew if we're using
-> 16bit NAND.
-> 
-> Most chips seem fine with the extra 0xFFs, but the ONFI spec says
-> otherwise.
-> 
-> Signed-off-by: Christopher Harvey <charvey@matrox.com>
-> ---
->  drivers/mtd/nand/omap2.c |   14 +++++++++-----
->  1 files changed, 9 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 5c8978e..6e1c1e5 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -232,16 +232,20 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
->  {
->  	struct omap_nand_info *info = container_of(mtd,
->  					struct omap_nand_info, mtd);
-> +	void __iomem *reg;
->  
->  	if (cmd != NAND_CMD_NONE) {
->  		if (ctrl & NAND_CLE)
-> -			writeb(cmd, info->reg.gpmc_nand_command);
-> -
-> +			reg = info->reg.gpmc_nand_command;
->  		else if (ctrl & NAND_ALE)
-> -			writeb(cmd, info->reg.gpmc_nand_address);
-> -
-> +			reg = info->reg.gpmc_nand_address;
->  		else /* NAND_NCE */
-> -			writeb(cmd, info->reg.gpmc_nand_data);
-> +			reg = info->reg.gpmc_nand_data;
-> +
-> +		if (info->nand.options & NAND_BUSWIDTH_16)
-> +			writew(cmd, reg);
-> +		else
-> +			writeb(cmd, reg);
->  	}
->  }
->  
+Hi Kishon & Benoit,
 
-Ping?
+On 09/24/2012 12:06 PM, Rabin Vincent wrote:
+> 2012/9/24 ABRAHAM, KISHON VIJAY <kishon@ti.com>:
+>> On Sat, Sep 22, 2012 at 3:03 AM, Rabin Vincent <rabin@rab.in> wrote:
+>>> USB doesn't work on pandaboard on linux-next, and bisection shows this
+>>> patch.  Unfortunately, I can't provide a dmesg log because USB is the
+>>> only way I currently have to get one out(!), but presumably it's because
+>>> this omap-usb2 device is never registered?  Looks like this breaks
+>>> non-dt USB on pandaboard; is that intended?
+>>
+>> Yes. omap-usb2 is *only* dt supported (New drivers shouldn't have the
+>> old non-dt support).
+> 
+> Well, USB used to work fine on Pandaboard without DT before the
+> introduction of "omap-usb2", so one would expected it to continue
+> working (until the board file is completely removed).
+> 
+> Anyway, I've moved to DT now.
+> 
+>> Some patches are queued only for 3.7.
+>>
+>> In case you want to use MUSB please use these patches on linux-next..
+>> [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
+>> [PATCH] ARM: OMAP2+: hwmod data: Fix ocp2scp_usb_phy and usb_host_hs
+>> entries (from Benoit)
+>> [PATCH 0/2] ARM: dts: Add subnode for ocp2scp (patch series)
+>> [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB (patch series)
+> 
+> I got these by merging in Benoit's for_3.7/dts_part2 on top of
+> next-20120921.  Thanks.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+I still can't get musb to work on 3.7-rc2. Apparently it is still
+missing the patches from Benoit's for_3.7/dts_part2.
+
+Maybe I just need to wait for it to be merged?
+
+Till then, where can I get a tree where musb works on Panda?
+
+Benoit,
+
+FYI, I get merge conflicts when merging 3.7-rc2 on top of Linus's kernel
+HEAD. Am I missing something?
+
+regards,
+-roger
+
