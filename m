@@ -1,47 +1,56 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator
- driver to omap_usb2
-Date: Fri, 26 Oct 2012 19:57:31 +0200
-Message-ID: <508ACF0B.60808@ti.com>
-References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-3-git-send-email-kishon@ti.com> <CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com> <CAAe_U6K1RXA3b5u9WvE=2VoXym9Vj3KM7c0J27jKz+2KrV4tsg@mail.gmail.com> <CAH+eYFAhVE8cAte2PFk3jinV9n3m+eDLtE43QxzRXMScnFGcrA@mail.gmail.com> <508AA94B.10504@ti.com> <508AAA85.6070905@ti.com> <alpine.DEB.2.00.1210261750430.7573@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
+ include/linux/omap-iommu.h
+Date: Fri, 26 Oct 2012 11:00:42 -0700
+Message-ID: <20121026180039.GM11908@atomide.com>
+References: <20121025001913.2082.31062.stgit@muffinssi.local>
+ <20121025213935.GD11928@atomide.com>
+ <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
+ <6561916.t72K1L6jg4@avalon>
+ <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57675 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932894Ab2JZR5w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 13:57:52 -0400
-In-Reply-To: <alpine.DEB.2.00.1210261750430.7573@utopia.booyaka.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48823 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932894Ab2JZSAt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Oct 2012 14:00:49 -0400
+Content-Disposition: inline
+In-Reply-To: <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Roger Quadros <rogerq@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Rabin Vincent <rabin@rab.in>, tony@atomide.com, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
 
-Hi Paul,
-
-On 10/26/2012 07:54 PM, Paul Walmsley wrote:
-> On Fri, 26 Oct 2012, Benoit Cousson wrote:
+* Ohad Ben-Cohen <ohad@wizery.com> [121026 02:56]:
+> Hi Laurent,
 > 
->> On 10/26/2012 05:16 PM, Roger Quadros wrote:
->>
->>> I still can't get musb to work on 3.7-rc2. Apparently it is still
->>> missing the patches from Benoit's for_3.7/dts_part2.
->>>
->>> Maybe I just need to wait for it to be merged?
->>
->> They are now in a for_3.8/dts. Unfortunately, one patch that was adding
->> ctrl_module address in the USB data was rejected and thus I'm not sure
->> it will work without that.
+> On Fri, Oct 26, 2012 at 11:35 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+> > That's on my to-do list, as well as porting the OMAP3 ISP driver to videobuf2,
+> > adding DT support, moving to the common clock framework (when that will be
+> > available for the OMAP3), supporting missing V4L2 features, ... All this in my
+> > spare time of course, otherwise it wouldn't be fun, would it ? ;-)
 > 
-> For v3.7-rc timeframe, looks like it's waiting on an ack from you:
+> Hmm, seems like a short to-do list ;)
+
+Sounds Laurent will take care of it :)
+
+> > I would also like to move the tidspbridge to the DMA API, but I think we'll
+> > need to move step by step there, and using the OMAP IOMMU and IOVMM APIs as an
+> > intermediate step would allow splitting patches in reviewable chunks. I know
+> > it's a step backwards in term of OMAP IOMMU usage, but that's in my opinion a
+> > temporary nuisance to make the leap easier.
 > 
-> http://www.spinics.net/lists/arm-kernel/msg201028.html
+> Since tidspbridge is in staging I guess it's not a problem, though it
+> sounds to me like using the correct API in the first place is going to
+> make less churn.
 
-Oups, I missed that one. But I thought Roger was mentioning the DT patch
-and not that one.
-
-Anyway, I will answer to Tony. Thanks for the reminder Paul.
+Not related to these patches, but also sounds like we may need to drop
+some staging/tidspbridge code to be able to move forward with the
+ARM common zImage plans. See the "[GIT PULL] omap plat header removal
+for v3.8 merge window, part1" thread for more info.
 
 Regards,
-Benoit
+
+Tony
