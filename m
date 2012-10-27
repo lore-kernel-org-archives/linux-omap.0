@@ -1,88 +1,60 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v5] gpio/omap: fix off-mode bug: clear debounce settings
- on free/reset
-Date: Sat, 27 Oct 2012 18:28:09 +0200
-Message-ID: <CACRpkdbaRxQcXk3djc3kxHt+-xu-zKz4yZX6QLFfGjAhRkELeQ@mail.gmail.com>
-References: <1351279564-4591-1-git-send-email-jon-hunter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap plat header removal for v3.8 merge window,
+ part1
+Date: Sat, 27 Oct 2012 09:29:33 -0700
+Message-ID: <20121027162932.GZ11908@atomide.com>
+References: <20121019023300.GN30550@atomide.com>
+ <20121026175537.GL11908@atomide.com>
+ <20121026223848.GY11908@atomide.com>
+ <201210270809.02140.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:44623 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756653Ab2J0Q2K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Oct 2012 12:28:10 -0400
-Received: by mail-ee0-f46.google.com with SMTP id b15so1481965eek.19
-        for <linux-omap@vger.kernel.org>; Sat, 27 Oct 2012 09:28:09 -0700 (PDT)
-In-Reply-To: <1351279564-4591-1-git-send-email-jon-hunter@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:23745 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756452Ab2J0Q3j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Oct 2012 12:29:39 -0400
+Content-Disposition: inline
+In-Reply-To: <201210270809.02140.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Igor Grinberg <grinberg@compulab.co.il>, Grazvydas Ignotas <notasas@gmail.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On Fri, Oct 26, 2012 at 9:26 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+* Arnd Bergmann <arnd@arndb.de> [121027 01:11]:
+> On Friday 26 October 2012, Tony Lindgren wrote:
+> > Here's a patch for that. It's against what I have queued up in
+> > omap-for-v3.8/cleanup-headers. Does that look OK to you?
+> 
+> Hi Tony,
+> 
+> thanks for the quick follow-up. Using the absolute #include statements
+> again looks good, but now there is another problem:
+> 
+> > diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+> > index cd169c3..03b1e80 100644
+> > --- a/arch/arm/mach-omap1/Makefile
+> > +++ b/arch/arm/mach-omap1/Makefile
+> > @@ -2,6 +2,8 @@
+> >  # Makefile for the linux kernel.
+> >  #
+> >  
+> > +ccflags-$(CONFIG_ARCH_OMAP) := -I$(srctree)/arch/arm
+> > +
+> 
+> This is not what I meant, I don't think we want to have the entire
+> arch/arm/ hierarchy visible in platform directories. Instead, I thought
+> we'd keep using the existing arch/arm/mach-$foo/include/mach directories
+> that are currently visible to all files and make them available only
+> to platforms that explicitly add -I$(srctree)/arch/arm/include/mach-$foo/include
+> to their local include path.
+> 
+> This of course requires moving all those headers back to where they just came
+> from.
 
-> This change was originally titled "gpio/omap: fix off-mode bug: clear debounce
-> clock enable mask on free/reset". The title has been updated slightly to
-> reflect (what should be) the final fix.
->
-> When a GPIO is freed or shutdown, we need to ensure that any debounce settings
-> are cleared and if the GPIO is the only GPIO in the bank that is currently
-> using debounce, then disable the debounce clock as well to save power.
->
-> Currently, the debounce settings are not cleared on a GPIO free or shutdown and
-> so during a context restore on subsequent off-mode transition, the previous
-> debounce values are restored from the shadow copies (bank->context.debounce*)
-> leading to mismatch state between driver state and hardware state.
->
-> This was discovered when board code was doing
->
->   gpio_request_one()
->   gpio_set_debounce()
->   gpio_free()
->
-> which was leaving the GPIO debounce settings in a confused state.  If that GPIO
-> bank is subsequently used with off-mode enabled, bogus state would be restored,
-> leaving GPIO debounce enabled which then prevented the CORE powerdomain from
-> transitioning.
->
-> To fix this, introduce a new function called _clear_gpio_debounce() to clear
-> any debounce settings when the GPIO is freed or shutdown. If this GPIO is the
-> last debounce-enabled GPIO in the bank, the debounce will also be cut.
->
-> Please note that we cannot use _gpio_dbck_disable() to disable the debounce
-> clock because this has been specifically created for the gpio suspend path
-> and is intended to shutdown the debounce clock while debounce is enabled.
->
-> Special thanks to Kevin Hilman for root causing the bug. This fix is a
-> collaborative effort with inputs from Kevin Hilman, Grazvydas Ignotas and
-> Santosh Shilimkar.
->
-> Testing:
-> - This has been unit tested on an OMAP3430 Beagle board, by requesting a gpio,
->   enabling debounce and then freeing the gpio and checking the register
->   contents, the saved register context and the debounce clock state.
-> - Kevin Hilman tested on 37xx/EVM board which configures GPIO debounce for the
->   ads7846 touchscreen in its board file using the above sequence, and so was
->   failing off-mode tests in dynamic idle. Verified that off-mode tests are
->   passing with this patch.
->
-> V5 changes:
-> - Corrected author
->
-> Reported-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Igor Grinberg <grinberg@compulab.co.il>
-> Cc: Grazvydas Ignotas <notasas@gmail.com>
-> Cc: Jon Hunter <jon-hunter@ti.com>
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
-> Tested-by: Kevin Hilman <khilman@ti.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+OK I'll take a look. Most of them should be local to mach-omap2,
+so it may not be that bad with the file moves.
 
-Hey there is a version I requested, with ACKs and all.
+Regards,
 
-You must be reading my mind :-D
-
-OK patch applied for fixes.
-
-Yours,
-Linus Walleij
+Tony
