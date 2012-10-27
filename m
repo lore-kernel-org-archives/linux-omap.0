@@ -1,160 +1,52 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 1/3] drivers: bus: ocp2scp: add pdata support
-Date: Sat, 27 Oct 2012 19:05:54 +0530
-Message-ID: <1351344956-22868-2-git-send-email-kishon@ti.com>
-References: <1351344956-22868-1-git-send-email-kishon@ti.com>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH 7/8] i2c: add 'transferred' field to struct i2c_msg
+Date: Sat, 27 Oct 2012 16:32:24 +0200
+Message-ID: <20121027163224.67d57aef@endymion.delvare>
+References: <1350899218-13624-1-git-send-email-balbi@ti.com>
+	<1350899218-13624-8-git-send-email-balbi@ti.com>
+	<20121025145748.760c218b@endymion.delvare>
+	<20121025131459.GG28061@n2100.arm.linux.org.uk>
+	<20121025154202.41f3cbba@endymion.delvare>
+	<20121025134609.GH28061@n2100.arm.linux.org.uk>
+	<20121025155633.609c5554@endymion.delvare>
+	<20121025141800.GI28061@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351344956-22868-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, kishon@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121025141800.GI28061-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-ocp2scp was not having pdata support which makes *musb* fail for non-dt
-boot in OMAP platform. The pdata will have information about the devices
-that is connected to ocp2scp. ocp2scp driver will now make use of this
-information to create the devices that is attached to ocp2scp.
+On Thu, 25 Oct 2012 15:18:00 +0100, Russell King - ARM Linux wrote:
+> On Thu, Oct 25, 2012 at 03:56:33PM +0200, Jean Delvare wrote:
+> > The original idea of using the hole in the i2c_msg structure is from
+> > David Brownell, who was apparently familiar with such practice, so I
+> > assumed it was OK. Actually I still assume it is, until someone comes
+> > with an supported architecture where it is not.
+> 
+> According to Al Viro, that would be m68k.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- drivers/bus/omap-ocp2scp.c                 |   67 ++++++++++++++++++++++++++--
- include/linux/platform_data/omap_ocp2scp.h |   31 +++++++++++++
- 2 files changed, 95 insertions(+), 3 deletions(-)
- create mode 100644 include/linux/platform_data/omap_ocp2scp.h
+OK... So to make things clear, let me ask Al directly about it. Al, can
+you please tell us if:
 
-diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-index ff63560..5db8297 100644
---- a/drivers/bus/omap-ocp2scp.c
-+++ b/drivers/bus/omap-ocp2scp.c
-@@ -22,6 +22,26 @@
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
-+#include <linux/platform_data/omap_ocp2scp.h>
-+
-+/**
-+ * _count_resources - count for the number of resources
-+ * @res: struct resource *
-+ *
-+ * Count and return the number of resources populated for the device that is
-+ * connected to ocp2scp.
-+ */
-+static unsigned _count_resources(struct resource *res)
-+{
-+	int cnt	= 0;
-+
-+	while (res->start != res->end) {
-+		cnt++;
-+		res++;
-+	}
-+
-+	return cnt;
-+}
+--- a/include/uapi/linux/i2c.h
++++ b/include/uapi/linux/i2c.h
+ struct i2c_msg {
+ 	__u16 addr;		/* slave address			*/
+ 	__u16 flags;
+ 	__u16 len;		/* msg length				*/
++	__u16 transferred;	/* actual bytes transferred             */
+ 	__u8 *buf;		/* pointer to msg data			*/
+ };
  
- static int ocp2scp_remove_devices(struct device *dev, void *c)
- {
-@@ -34,20 +54,61 @@ static int ocp2scp_remove_devices(struct device *dev, void *c)
- 
- static int __devinit omap_ocp2scp_probe(struct platform_device *pdev)
- {
--	int			ret;
--	struct device_node	*np = pdev->dev.of_node;
-+	int ret;
-+	unsigned res_cnt, i;
-+	struct device_node *np = pdev->dev.of_node;
-+	struct platform_device *pdev_child;
-+	struct omap_ocp2scp_platform_data *pdata = pdev->dev.platform_data;
-+	struct omap_ocp2scp_dev *dev;
- 
- 	if (np) {
- 		ret = of_platform_populate(np, NULL, NULL, &pdev->dev);
- 		if (ret) {
--			dev_err(&pdev->dev, "failed to add resources for ocp2scp child\n");
-+			dev_err(&pdev->dev,
-+			    "failed to add resources for ocp2scp child\n");
- 			goto err0;
- 		}
-+	} else if (pdata) {
-+		for (i = 0, dev = *pdata->devices; i < pdata->dev_cnt; i++,
-+		    dev++) {
-+			res_cnt = _count_resources(dev->res);
-+
-+			pdev_child = platform_device_alloc(dev->drv_name, -1);
-+			if (!pdev_child) {
-+				dev_err(&pdev->dev,
-+				  "failed to allocate mem for ocp2scp child\n");
-+				goto err0;
-+			}
-+
-+			ret = platform_device_add_resources(pdev_child,
-+			    dev->res, res_cnt);
-+			if (ret) {
-+				dev_err(&pdev->dev,
-+				 "failed to add resources for ocp2scp child\n");
-+				goto err1;
-+			}
-+
-+			pdev_child->dev.parent	= &pdev->dev;
-+
-+			ret = platform_device_add(pdev_child);
-+			if (ret) {
-+				dev_err(&pdev->dev,
-+				   "failed to register ocp2scp child device\n");
-+				goto err1;
-+			}
-+		}
-+	} else {
-+		dev_err(&pdev->dev, "OCP2SCP initialized without plat data\n");
-+		return -EINVAL;
- 	}
-+
- 	pm_runtime_enable(&pdev->dev);
- 
- 	return 0;
- 
-+err1:
-+	platform_device_put(pdev_child);
-+
- err0:
- 	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
- 
-diff --git a/include/linux/platform_data/omap_ocp2scp.h b/include/linux/platform_data/omap_ocp2scp.h
-new file mode 100644
-index 0000000..5c6c393
---- /dev/null
-+++ b/include/linux/platform_data/omap_ocp2scp.h
-@@ -0,0 +1,31 @@
-+/*
-+ * omap_ocp2scp.h -- ocp2scp header file
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * Author: Kishon Vijay Abraham I <kishon@ti.com>
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#ifndef __DRIVERS_OMAP_OCP2SCP_H
-+#define __DRIVERS_OMAP_OCP2SCP_H
-+
-+struct omap_ocp2scp_dev {
-+	const char			*drv_name;
-+	struct resource			*res;
-+};
-+
-+struct omap_ocp2scp_platform_data {
-+	int				dev_cnt;
-+	struct omap_ocp2scp_dev		**devices;
-+};
-+#endif /* __DRIVERS_OMAP_OCP2SCP_H */
+would break binary compatibility on m68k or any other architecture you
+are familiar with? Note that struct i2c_msg isn't declared with
+attribute packed, so my assumption was that pointer "buf" was align on
+at least 4 bytes, leaving a hole between len and buf. Am I wrong?
+
+Thanks,
 -- 
-1.7.9.5
+Jean Delvare
