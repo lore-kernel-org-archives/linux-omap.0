@@ -1,94 +1,149 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non zero
-Date: Sat, 27 Oct 2012 13:31:09 +0200
-Message-ID: <2228718.AWOaBDd6ZK@avalon>
-References: <1331110876-11895-1-git-send-email-archit@ti.com> <5089461A.9050307@ti.com> <79CD15C6BA57404B839C016229A409A83EB4B619@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Constantine Shulyupin <const@MakeLinux.com>
+Subject: [PATCH] ARM: OMAP4: Basic default configuration for Pandaboard
+Date: Sat, 27 Oct 2012 14:03:26 +0200
+Message-ID: <1351339406-10082-1-git-send-email-const@MakeLinux.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35346 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234Ab2J0LaT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Oct 2012 07:30:19 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB4B619@DBDE01.ent.ti.com>
+Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:48946 "HELO
+	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750765Ab2J0MD2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Oct 2012 08:03:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, tim.bird@am.sony.com, Constantine Shulyupin <const@MakeLinux.com>, linux-kernel@vger.kernel.org
 
-Hi Vaibhav,
+From: Constantine Shulyupin <const@MakeLinux.com>
 
-On Friday 26 October 2012 09:13:20 Hiremath, Vaibhav wrote:
-> On Thu, Oct 25, 2012 at 19:30:58, Valkeinen, Tomi wrote:
-> > On 2012-03-09 10:03, Hiremath, Vaibhav wrote:
-> > > On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
-> > >> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> > >>> The omap_vout driver tries to set the DSS overlay_info using
-> > >>> set_overlay_info() when the physical address for the overlay is still
-> > >>> not configured. This happens in omap_vout_probe() and
-> > >>> vidioc_s_fmt_vid_out().
-> > >>> 
-> > >>> The calls to omapvid_init(which internally calls set_overlay_info())
-> > >>> are removed from these functions. They don't need to be called as the
-> > >>> omap_vout_device struct anyway maintains the overlay related changes
-> > >>> made. Also, remove the explicit call to set_overlay_info() in
-> > >>> vidioc_streamon(), this was used to set the paddr, this isn't needed
-> > >>> as omapvid_init() does the same thing later.
-> > >>> 
-> > >>> These changes are required as the DSS2 driver since 3.3 kernel doesn't
-> > >>> let you set the overlay info with paddr as 0.
-> > >>> 
-> > >>> Signed-off-by: Archit Taneja <archit@ti.com>
-> > >> 
-> > >> Thanks for the patch. This seems to fix memory corruption that would
-> > >> result in sysfs-related crashes such as
-> > >> 
-> > >> [   31.279541] ------------[ cut here ]------------
-> > >> [   31.284423] WARNING: at fs/sysfs/file.c:343
-> > >> sysfs_open_file+0x70/0x1f8()
-> > >> [   31.291503] missing sysfs attribute operations for kobject: (null)
-> > >> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-> > >> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from
-> > >> [<c0034488>] (warn_slowpath_common+0x4c/0x64) [   31.313812]
-> > >> [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>]
-> > >> (warn_slowpath_fmt+0x2c/0x3c) [   31.323913] [<c0034520>]
-> > >> (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>]
-> > >> (sysfs_open_file+0x70/0x1f8) [   31.333618] [<c01219bc>]
-> > >> (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>]
-> > >> (__dentry_open+0x1f8/0x30c) [   31.343139] [<c00ccc94>]
-> > >> (__dentry_open+0x1f8/0x30c) from [<c00cce58>]
-> > >> (nameidata_to_filp+0x50/0x5c) [   31.352752] [<c00cce58>]
-> > >> (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-> > >> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>]
-> > >> (path_openat+0xb8/0x37c) [   31.370605] [<c00db6bc>]
-> > >> (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c) [ 
-> > >>  31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>]
-> > >> (do_sys_open+0xd8/0x170) [   31.388366] [<c00cc904>]
-> > >> (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-> > >> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
-> > >> 
-> > >> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > 
-> > > Thanks Laurent for testing this patch.
-> > > 
-> > >> Please push it to v3.3 :-)
-> > > 
-> > > Will send a pull request today itself.
-> > 
-> > Vaibhav, I don't see this crash fix in 3.3, 3.4, 3.5, 3.6 nor in 3.7-rc.
-> > Are you still maintaining the omap v4l2 driver? Can you finally push
-> > this fix?
-> 
-> Tomi, Sorry for delayed response.
-> 
-> Laurent,
-> Can you pull up this patch into your next pull request?
+Tested SD (MMC) and Ethernet smsc95xx on linux-3.7-rc2
 
-I've asked Mauro to pull the patch for v3.8.
+Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+--
+kernel size is 2.3 MiB
+---
+ arch/arm/configs/omap4_panda_defconfig |  115 ++++++++++++++++++++++++++++++++
+ 1 file changed, 115 insertions(+)
+ create mode 100644 arch/arm/configs/omap4_panda_defconfig
 
+diff --git a/arch/arm/configs/omap4_panda_defconfig b/arch/arm/configs/omap4_panda_defconfig
+new file mode 100644
+index 0000000..82c773d
+--- /dev/null
++++ b/arch/arm/configs/omap4_panda_defconfig
+@@ -0,0 +1,115 @@
++CONFIG_MACH_OMAP4_PANDA=y
++CONFIG_ARCH_OMAP=y
++CONFIG_OMAP_RESET_CLOCKS=y
++CONFIG_ARCH_OMAP2PLUS_TYPICAL=y
++CONFIG_ARCH_OMAP2PLUS=y
++CONFIG_ARCH_OMAP4=y
++CONFIG_SOC_HAS_OMAP2_SDRC=y
++CONFIG_SMP=y
++CONFIG_NR_CPUS=2
++
++CONFIG_MACH_OMAP_GENERIC=n
++CONFIG_ARCH_OMAP2=n
++CONFIG_ARCH_OMAP3=n
++CONFIG_SOC_AM33XX=n
++
++CONFIG_MACH_OMAP2_TUSB6010=n
++CONFIG_MACH_OMAP_H4=n
++CONFIG_MACH_OMAP_APOLLON=n
++CONFIG_MACH_OMAP_2430SDP=n
++CONFIG_MACH_OMAP3_BEAGLE=n
++CONFIG_MACH_DEVKIT8000=n
++CONFIG_MACH_OMAP_LDP=n
++CONFIG_MACH_OMAP3530_LV_SOM=n
++CONFIG_MACH_OMAP3_TORPEDO=n
++CONFIG_MACH_OVERO=n
++CONFIG_MACH_OMAP3EVM=n
++CONFIG_MACH_OMAP3517EVM=n
++CONFIG_MACH_OMAP3_PANDORA=n
++CONFIG_MACH_TOUCHBOOK=n
++CONFIG_MACH_OMAP_3430SDP=n
++CONFIG_MACH_NOKIA_N800=n
++CONFIG_MACH_NOKIA_N810=n
++CONFIG_MACH_NOKIA_N810_WIMAX=n
++CONFIG_MACH_NOKIA_N8X0=n
++CONFIG_MACH_NOKIA_RM680=n
++CONFIG_MACH_NOKIA_RX51=n
++CONFIG_MACH_OMAP_ZOOM2=n
++CONFIG_MACH_OMAP_ZOOM3=n
++CONFIG_MACH_CM_T35=n
++CONFIG_MACH_CM_T3517=n
++CONFIG_MACH_CM_T3730=n
++CONFIG_MACH_IGEP0020=n
++CONFIG_MACH_IGEP0030=n
++CONFIG_MACH_SBC3530=n
++CONFIG_MACH_OMAP_3630SDP=n
++CONFIG_MACH_TI8168EVM=n
++CONFIG_MACH_TI8148EVM=n
++CONFIG_MACH_OMAP_4430SDP=n
++
++CONFIG_MODULES=y
++CONFIG_SYSVIPC=y
++CONFIG_EXPERIMENTAL=y # required for CONFIG_USB_NET_SMSC95XX
++
++CONFIG_MMC=y
++CONFIG_MMC_OMAP=y
++CONFIG_MMC_OMAP_HS=y
++
++CONFIG_DMA_OMAP=y
++CONFIG_DMADEVICES=y
++CONFIG_DMA_ENGINE=y
++
++CONFIG_USB=y
++
++CONFIG_NET=y
++CONFIG_NETDEVICES=y
++CONFIG_NET_CORE=y
++CONFIG_PACKET=y
++CONFIG_UNIX=y
++CONFIG_INET=y
++CONFIG_IP_PNP=y
++CONFIG_USB_USBNET=y
++CONFIG_USB_NET_SMSC95XX=y
++CONFIG_USB_EHCI_HCD=y
++
++CONFIG_USB_NET_AX8817X=n
++CONFIG_USB_NET_CDCETHER=n
++CONFIG_USB_NET_CDC_NCM=n
++CONFIG_USB_NET_NET1080=n
++CONFIG_USB_NET_CDC_SUBSET=n
++CONFIG_USB_BELKIN=n
++CONFIG_USB_ARMLINUX=n
++CONFIG_USB_NET_ZAURUS=n
++
++
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_PROC_EVENTS=y
++CONFIG_I2C_CHARDEV=y
++
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS=y
++CONFIG_RTC_DRV_TWL4030=y
++
++CONFIG_BLK_DEV_LOOP=y
++CONFIG_PARTITION_ADVANCED=y
++CONFIG_EXT2_FS=y
++CONFIG_EXT3_FS=y
++CONFIG_EXT4_FS=y
++CONFIG_FAT_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_TMPFS=y
++CONFIG_NFS_FS=y
++CONFIG_ROOT_NFS=y
++CONFIG_CRAMFS=y
++
++CONFIG_FPE_NWFPE=y
++
++CONFIG_REGULATOR_TWL4030=y
++
++CONFIG_SPI=y
++CONFIG_SPI_OMAP24XX=y
++
++CONFIG_FB_OMAP_LCD_VGA=y
++CONFIG_OMAP2_DSS=y
++CONFIG_FB_OMAP2=y
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
