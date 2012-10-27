@@ -1,115 +1,91 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] i2c: omap: ensure writes to dev->buf_len are ordered
-Date: Sat, 27 Oct 2012 16:20:01 +0530
-Message-ID: <508BBC59.60504@ti.com>
-References: <1351155648-20429-1-git-send-email-balbi@ti.com> <alpine.DEB.2.00.1210262251020.11258@utopia.booyaka.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Sat, 27 Oct 2012 16:28:07 +0530
+Message-ID: <508BBE3F.307@ti.com>
+References: <20121026114250.GA26342@arwen.pp.htv.fi> <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de> <20121026200137.GC29548@arwen.pp.htv.fi> <508B0310.60807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60284 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736Ab2J0Kuc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 27 Oct 2012 06:50:32 -0400
-In-Reply-To: <alpine.DEB.2.00.1210262251020.11258@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58226 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751744Ab2J0K6P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Oct 2012 06:58:15 -0400
+In-Reply-To: <508B0310.60807@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: balbi@ti.com, Tim Niemeyer <tim.niemeyer@corscience.de>
+Cc: Jon Hunter <jon-hunter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
 
-On Saturday 27 October 2012 04:31 AM, Paul Walmsley wrote:
-> Hi Felipe
+On Saturday 27 October 2012 03:09 AM, Jon Hunter wrote:
 >
-> just two quick comments
+> On 10/26/2012 03:01 PM, Felipe Balbi wrote:
+>> Hi,
+>>
+>> On Fri, Oct 26, 2012 at 03:19:13PM +0200, Tim Niemeyer wrote:
+>>> Adds support for configuring the omap-gpio driver use autosuspend f=
+or
+>>> runtime power management. This can reduce the latency in using it b=
+y
+>>> not suspending the device immediately on idle. If another access ta=
+kes
+>>> place before the autosuspend timeout (2 secs), the call to resume t=
+he
+>>> device can return immediately saving some save/ restore cycles.
+>>>
+>>> This removes also the bank->mod_usage counter, because this is alre=
+ady
+>>> handled in pm_runtime.
+>>>
+>>> I use a gpio to monitor a spi transfer which occurs every 250=B5s. =
+The
+>>> suspend overhead is to high, so almost every second transfer is los=
+t.
+>>> This patch fixes that.
+>>>
+>>> Signed-off-by: Tim Niemeyer <tim.niemeyer@corscience.de>
+>>> ---
+>>>   drivers/gpio/gpio-omap.c |   81 ++++++++++++++++++++++++---------=
+------------
+>>>   1 files changed, 43 insertions(+), 38 deletions(-)
+>>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index 94cbc84..708d5a9 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -31,6 +31,7 @@
+>>>   #include <asm/mach/irq.h>
+>>>
+>>>   #define OFF_MODE	1
+>>> +#define GPIO_AUTOSUSPEND_TIMEOUT                2000
+>>
+>> something just hit me... If you keep timeout at 2000 ms and you hook
+>> this up to an IRQ line, it's very unlikely GPIO will ever sleep.
+>>
+>> Why did you choose 2000 ms ? Arbitrary value ?
 >
-> On Thu, 25 Oct 2012, Felipe Balbi wrote:
+> It does seem quite large. I wonder if the default timeout should be
+> something much smaller and then users can set the timeout needed for
+> their specific application via the sysfs.
 >
->> if we allow compiler reorder our writes, we could
->> fall into a situation where dev->buf_len is reset
->> for no apparent reason.
->>
->> This bug was found with a simple script which would
->> transfer data to an i2c client from 1 to 1024 bytes
->> (a simple for loop), when we got to transfer sizes
->> bigger than the fifo size, dev->buf_len was reset
->> to zero before we had an oportunity to handle XDR
->> Interrupt. Because dev->buf_len was zero, we entered
->> omap_i2c_transmit_data() to transfer zero bytes,
->> which would mean we would just silently exit
->> omap_i2c_transmit_data() without actually writing
->> anything to DATA register. That would cause XDR
->> IRQ to trigger forever and we would never transfer
->> the remaining bytes.
->>
->> After adding the memory barrier, we also drop resetting
->> dev->buf_len to zero in omap_i2c_xfer_msg() because
->> both omap_i2c_transmit_data() and omap_i2c_receive_data()
->> will act until dev->buf_len reaches zero, rendering the
->> other write in omap_i2c_xfer_msg() redundant.
->>
->> This patch has been tested with pandaboard for a few
->> iterations of the script mentioned above.
->>
->> Signed-off-by: Felipe Balbi <balbi@ti.com>
->> ---
->>
->> This bug has been there forever, but it's quite annoying.
->> I think it deserves being pushed upstream during this -rc
->> cycle, but if Wolfram decides to wait until v3.8, I don't
->> mind.
->>
->>   drivers/i2c/busses/i2c-omap.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index db31eae..1ec4e6e 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -521,6 +521,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->>   	/* REVISIT: Could the STB bit of I2C_CON be used with probing? */
->>   	dev->buf = msg->buf;
->>   	dev->buf_len = msg->len;
->> +	wmb();
->>
->>   	omap_i2c_write_reg(dev, OMAP_I2C_CNT_REG, dev->buf_len);
->>
+> By the way, it appears that I keep getting unsubscribed from linux-om=
+ap
+> mailing list and I only saw this because you copied me. Thanks Felipe=
+!
+> Can you bounce the thread to me?
 >
-> Would suggest moving the wmb() immediately before the point at which the
-> interrupt can occur.  Looks to me that's when the OMAP_I2C_CON_REG write
-> occurs.
->
-> Also would suggest adding a comment to clarify what the wmb() is intended
-> to do.  Maybe something like 'Prevent the compiler from moving earlier
-> changes to dev->buf and dev->buf_len after the write to CON_REG.  This
-> write enables interrupts and those variables are used in the interrupt
-> handler'.
->
-Another alternative, which I will recommend to just make use of the
-read*/wrire* instead __raw versions. The barriers are taken care
-already and driver point of view, it is transparent.
+I didn't get this email either though am getting other LOML emails.
+Please bounce the thread.
 
--->
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index db31eae..0cd6365 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -265,13 +265,13 @@ static const u8 reg_map_ip_v2[] = {
-  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-  				      int reg, u16 val)
-  {
--	__raw_writew(val, i2c_dev->base +
-+	writew(val, i2c_dev->base +
-  			(i2c_dev->regs[reg] << i2c_dev->reg_shift));
-  }
-
-  static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
-  {
--	return __raw_readw(i2c_dev->base +
-+	return readw(i2c_dev->base +
-  				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
-  }
-
-Patch might be damaged because of copy paste.
+Am curious to see the implementation, since GPIO IP as such doesn't hav=
+e
+any state machine of any sort.
 
 Regards
 Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
