@@ -1,34 +1,127 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: Basic default configuration for Pandaboard
-Date: Sat, 27 Oct 2012 18:42:04 +0530
-Message-ID: <508BDDA4.6050208@ti.com>
-References: <1351339406-10082-1-git-send-email-const@MakeLinux.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 3/3] ARM: OMAP: ocp2scp: create omap device for ocp2scp
+Date: Sat, 27 Oct 2012 19:05:56 +0530
+Message-ID: <1351344956-22868-4-git-send-email-kishon@ti.com>
+References: <1351344956-22868-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351339406-10082-1-git-send-email-const@MakeLinux.com>
+In-Reply-To: <1351344956-22868-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Constantine Shulyupin <const@MakeLinux.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, tim.bird@am.sony.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, kishon@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Saturday 27 October 2012 05:33 PM, Constantine Shulyupin wrote:
-> From: Constantine Shulyupin <const@MakeLinux.com>
->
-> Tested SD (MMC) and Ethernet smsc95xx on linux-3.7-rc2
->
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
-> --
-> kernel size is 2.3 MiB
-> ---
->   arch/arm/configs/omap4_panda_defconfig |  115 ++++++++++++++++++++++++++++++++
+Platfrom device for ocp2scp is created using omap_device_build in
+devices file. This is used for both omap4(musb) and omap5(dwc3).
 
-We got rid of all omap board defconfigs and now just using
-omap2plus_defconfig for all OMAP2/3/4/5 machines. If something
-is missing from omap2plus_defconfig, which you need to on your
-panda custom config, do send patch for that. Otherwise, we are
-no longer adding board defconfigs.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-omap2/devices.c |   79 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
 
-Regards
-Santosh
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index c8c2117..4f3c58c 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -19,6 +19,7 @@
+ #include <linux/of.h>
+ #include <linux/pinctrl/machine.h>
+ #include <linux/platform_data/omap4-keypad.h>
++#include <linux/platform_data/omap_ocp2scp.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/map.h>
+@@ -613,6 +614,83 @@ static void omap_init_vout(void)
+ static inline void omap_init_vout(void) {}
+ #endif
+ 
++#if defined(CONFIG_OMAP_OCP2SCP) || defined(CONFIG_OMAP_OCP2SCP_MODULE)
++static int count_ocp2scp_devices(struct omap_ocp2scp_dev *ocp2scp_dev)
++{
++	int cnt	= 0;
++
++	while (ocp2scp_dev->drv_name != NULL) {
++		cnt++;
++		ocp2scp_dev++;
++	}
++
++	return cnt;
++}
++
++static void omap_init_ocp2scp(void)
++{
++	struct omap_hwmod	*oh;
++	struct platform_device	*pdev;
++	int			bus_id = -1, dev_cnt = 0, i;
++	struct omap_ocp2scp_dev	*ocp2scp_dev;
++	const char		*oh_name, *name;
++	struct omap_ocp2scp_platform_data *pdata;
++
++	if (!cpu_is_omap44xx())
++		return;
++
++	oh_name = "ocp2scp_usb_phy";
++	name	= "omap-ocp2scp";
++
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh) {
++		pr_err("%s: could not find omap_hwmod for %s\n", __func__,
++								oh_name);
++		return;
++	}
++
++	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	if (!pdata) {
++		pr_err("%s: No memory for ocp2scp pdata\n", __func__);
++		return;
++	}
++
++	ocp2scp_dev = oh->dev_attr;
++	dev_cnt = count_ocp2scp_devices(ocp2scp_dev);
++
++	if (!dev_cnt) {
++		pr_err("%s: No devices connected to ocp2scp\n", __func__);
++		kfree(pdata);
++		return;
++	}
++
++	pdata->devices = kzalloc(sizeof(struct omap_ocp2scp_dev *)
++					* dev_cnt, GFP_KERNEL);
++	if (!pdata->devices) {
++		pr_err("%s: No memory for ocp2scp pdata devices\n", __func__);
++		kfree(pdata);
++		return;
++	}
++
++	for (i = 0; i < dev_cnt; i++, ocp2scp_dev++)
++		pdata->devices[i] = ocp2scp_dev;
++
++	pdata->dev_cnt	= dev_cnt;
++
++	pdev = omap_device_build(name, bus_id, oh, pdata, sizeof(*pdata), NULL,
++								0, false);
++	if (IS_ERR(pdev)) {
++		pr_err("Could not build omap_device for %s %s\n",
++						name, oh_name);
++		kfree(pdata->devices);
++		kfree(pdata);
++		return;
++	}
++}
++#else
++static inline void omap_init_ocp2scp(void) { }
++#endif
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static int __init omap2_init_devices(void)
+@@ -640,6 +718,7 @@ static int __init omap2_init_devices(void)
+ 	omap_init_sham();
+ 	omap_init_aes();
+ 	omap_init_vout();
++	omap_init_ocp2scp();
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
