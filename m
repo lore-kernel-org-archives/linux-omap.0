@@ -1,149 +1,61 @@
-From: Constantine Shulyupin <const@MakeLinux.com>
-Subject: [PATCH] ARM: OMAP4: Basic default configuration for Pandaboard
-Date: Sat, 27 Oct 2012 14:03:26 +0200
-Message-ID: <1351339406-10082-1-git-send-email-const@MakeLinux.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:48946 "HELO
-	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750765Ab2J0MD2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Oct 2012 08:03:28 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH v2 1/3] drivers: bus: ocp2scp: add pdata support
+Date: Sat, 27 Oct 2012 17:57:48 +0530
+Message-ID: <508BD344.1090001@ti.com>
+References: <1349675983-23803-1-git-send-email-kishon@ti.com> <1349675983-23803-2-git-send-email-kishon@ti.com> <20121016165043.GS15569@atomide.com> <20121025004806.GK11928@atomide.com> <20121025061722.GB4449@arwen.pp.htv.fi> <20121025174446.GT11928@atomide.com> <20121026064736.GA22206@arwen.pp.htv.fi> <20121026171655.GI11908@atomide.com> <20121026195915.GA29548@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121026195915.GA29548@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, tim.bird@am.sony.com, Constantine Shulyupin <const@MakeLinux.com>, linux-kernel@vger.kernel.org
 
-From: Constantine Shulyupin <const@MakeLinux.com>
+Hi,
 
-Tested SD (MMC) and Ethernet smsc95xx on linux-3.7-rc2
+On Saturday 27 October 2012 01:29 AM, Felipe Balbi wrote:
+> Hi,
+>
+> On Fri, Oct 26, 2012 at 10:16:55AM -0700, Tony Lindgren wrote:
+>> * Felipe Balbi <balbi@ti.com> [121025 23:55]:
+>>> On Thu, Oct 25, 2012 at 10:44:47AM -0700, Tony Lindgren wrote:
+>>>> * Felipe Balbi <balbi@ti.com> [121024 23:24]:
+>>>>> Hi,
+>>>>>
+>>>>> On Wed, Oct 24, 2012 at 05:48:07PM -0700, Tony Lindgren wrote:
+>>>>>> * Tony Lindgren <tony@atomide.com> [121016 09:53]:
+>>>>>>> * Kishon Vijay Abraham I <kishon@ti.com> [121007 23:01]:
+>>>>>>>> ocp2scp was not having pdata support which makes *musb* fail for non-dt
+>>>>>>>> boot in OMAP platform. The pdata will have information about the devices
+>>>>>>>> that is connected to ocp2scp. ocp2scp driver will now make use of this
+>>>>>>>> information to create the devices that is attached to ocp2scp.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>>>>>>>
+>>>>>>> This fixes the regression on my panda es for musb port:
+>>>>>>>
+>>>>>>> Acked-by: Tony Lindgren <tony@atomide.com>
+>>>>>>
+>>>>>> Looks like nobody has picked this one up and we need it to
+>>>>>> fix the musb regression on omap, so I'll queue these up.
+>>>>>
+>>>>> I don't seem to have the patches around in any mailbox :-(
+>>>>
+>>>> Bounced them to you. Do you have any better ideas for the
+>>>> -rc cycle to fix the MUSB regression on omap4?
+>>>
+>>> Well, there are two regressions that I know of. One is caused by the
+>>> mode1 DMA changes, which I'll just revert, and the other is the
+>>> missing platform_data support on the new PHY driver which these patches
+>>> are supposed to solve, right ?
+>>
+>> Yes that's it AFAIK.
+>
+> Kishon, any other patches I need to take to get MUSB working on v3.7 ?
 
-Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
---
-kernel size is 2.3 MiB
----
- arch/arm/configs/omap4_panda_defconfig |  115 ++++++++++++++++++++++++++++++++
- 1 file changed, 115 insertions(+)
- create mode 100644 arch/arm/configs/omap4_panda_defconfig
+These should be good enough to get MUSB working..
 
-diff --git a/arch/arm/configs/omap4_panda_defconfig b/arch/arm/configs/omap4_panda_defconfig
-new file mode 100644
-index 0000000..82c773d
---- /dev/null
-+++ b/arch/arm/configs/omap4_panda_defconfig
-@@ -0,0 +1,115 @@
-+CONFIG_MACH_OMAP4_PANDA=y
-+CONFIG_ARCH_OMAP=y
-+CONFIG_OMAP_RESET_CLOCKS=y
-+CONFIG_ARCH_OMAP2PLUS_TYPICAL=y
-+CONFIG_ARCH_OMAP2PLUS=y
-+CONFIG_ARCH_OMAP4=y
-+CONFIG_SOC_HAS_OMAP2_SDRC=y
-+CONFIG_SMP=y
-+CONFIG_NR_CPUS=2
-+
-+CONFIG_MACH_OMAP_GENERIC=n
-+CONFIG_ARCH_OMAP2=n
-+CONFIG_ARCH_OMAP3=n
-+CONFIG_SOC_AM33XX=n
-+
-+CONFIG_MACH_OMAP2_TUSB6010=n
-+CONFIG_MACH_OMAP_H4=n
-+CONFIG_MACH_OMAP_APOLLON=n
-+CONFIG_MACH_OMAP_2430SDP=n
-+CONFIG_MACH_OMAP3_BEAGLE=n
-+CONFIG_MACH_DEVKIT8000=n
-+CONFIG_MACH_OMAP_LDP=n
-+CONFIG_MACH_OMAP3530_LV_SOM=n
-+CONFIG_MACH_OMAP3_TORPEDO=n
-+CONFIG_MACH_OVERO=n
-+CONFIG_MACH_OMAP3EVM=n
-+CONFIG_MACH_OMAP3517EVM=n
-+CONFIG_MACH_OMAP3_PANDORA=n
-+CONFIG_MACH_TOUCHBOOK=n
-+CONFIG_MACH_OMAP_3430SDP=n
-+CONFIG_MACH_NOKIA_N800=n
-+CONFIG_MACH_NOKIA_N810=n
-+CONFIG_MACH_NOKIA_N810_WIMAX=n
-+CONFIG_MACH_NOKIA_N8X0=n
-+CONFIG_MACH_NOKIA_RM680=n
-+CONFIG_MACH_NOKIA_RX51=n
-+CONFIG_MACH_OMAP_ZOOM2=n
-+CONFIG_MACH_OMAP_ZOOM3=n
-+CONFIG_MACH_CM_T35=n
-+CONFIG_MACH_CM_T3517=n
-+CONFIG_MACH_CM_T3730=n
-+CONFIG_MACH_IGEP0020=n
-+CONFIG_MACH_IGEP0030=n
-+CONFIG_MACH_SBC3530=n
-+CONFIG_MACH_OMAP_3630SDP=n
-+CONFIG_MACH_TI8168EVM=n
-+CONFIG_MACH_TI8148EVM=n
-+CONFIG_MACH_OMAP_4430SDP=n
-+
-+CONFIG_MODULES=y
-+CONFIG_SYSVIPC=y
-+CONFIG_EXPERIMENTAL=y # required for CONFIG_USB_NET_SMSC95XX
-+
-+CONFIG_MMC=y
-+CONFIG_MMC_OMAP=y
-+CONFIG_MMC_OMAP_HS=y
-+
-+CONFIG_DMA_OMAP=y
-+CONFIG_DMADEVICES=y
-+CONFIG_DMA_ENGINE=y
-+
-+CONFIG_USB=y
-+
-+CONFIG_NET=y
-+CONFIG_NETDEVICES=y
-+CONFIG_NET_CORE=y
-+CONFIG_PACKET=y
-+CONFIG_UNIX=y
-+CONFIG_INET=y
-+CONFIG_IP_PNP=y
-+CONFIG_USB_USBNET=y
-+CONFIG_USB_NET_SMSC95XX=y
-+CONFIG_USB_EHCI_HCD=y
-+
-+CONFIG_USB_NET_AX8817X=n
-+CONFIG_USB_NET_CDCETHER=n
-+CONFIG_USB_NET_CDC_NCM=n
-+CONFIG_USB_NET_NET1080=n
-+CONFIG_USB_NET_CDC_SUBSET=n
-+CONFIG_USB_BELKIN=n
-+CONFIG_USB_ARMLINUX=n
-+CONFIG_USB_NET_ZAURUS=n
-+
-+
-+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-+CONFIG_PROC_EVENTS=y
-+CONFIG_I2C_CHARDEV=y
-+
-+CONFIG_RTC_CLASS=y
-+CONFIG_RTC_HCTOSYS=y
-+CONFIG_RTC_DRV_TWL4030=y
-+
-+CONFIG_BLK_DEV_LOOP=y
-+CONFIG_PARTITION_ADVANCED=y
-+CONFIG_EXT2_FS=y
-+CONFIG_EXT3_FS=y
-+CONFIG_EXT4_FS=y
-+CONFIG_FAT_FS=y
-+CONFIG_MSDOS_FS=y
-+CONFIG_VFAT_FS=y
-+CONFIG_TMPFS=y
-+CONFIG_NFS_FS=y
-+CONFIG_ROOT_NFS=y
-+CONFIG_CRAMFS=y
-+
-+CONFIG_FPE_NWFPE=y
-+
-+CONFIG_REGULATOR_TWL4030=y
-+
-+CONFIG_SPI=y
-+CONFIG_SPI_OMAP24XX=y
-+
-+CONFIG_FB_OMAP_LCD_VGA=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_FB_OMAP2=y
--- 
-1.7.9.5
-
+Thanks
+Kishon
