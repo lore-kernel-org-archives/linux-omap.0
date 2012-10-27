@@ -1,87 +1,115 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [GIT PULL] omap plat header removal for v3.8 merge window,
-	part1
-Date: Sat, 27 Oct 2012 10:02:10 +0100
-Message-ID: <20121027090210.GJ28061@n2100.arm.linux.org.uk>
-References: <20121019023300.GN30550@atomide.com> <201210261402.19759.arnd@arndb.de> <20121026170949.GF11908@atomide.com> <201210261728.22132.arnd@arndb.de> <20121026175537.GL11908@atomide.com> <20121026223848.GY11908@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] i2c: omap: ensure writes to dev->buf_len are ordered
+Date: Sat, 27 Oct 2012 16:20:01 +0530
+Message-ID: <508BBC59.60504@ti.com>
+References: <1351155648-20429-1-git-send-email-balbi@ti.com> <alpine.DEB.2.00.1210262251020.11258@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60273 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750730Ab2J0JC1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Oct 2012 05:02:27 -0400
-Content-Disposition: inline
-In-Reply-To: <20121026223848.GY11908@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:60284 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751736Ab2J0Kuc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 27 Oct 2012 06:50:32 -0400
+In-Reply-To: <alpine.DEB.2.00.1210262251020.11258@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Omar Ramirez Luna <omar.ramirez@ti.com>, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, linux-i2c@vger.kernel.org, ben-linux@fluff.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Oct 26, 2012 at 03:38:49PM -0700, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [121026 10:57]:
-> > * Arnd Bergmann <arnd@arndb.de> [121026 10:30]:
-> > > 
-> > > Well, once CONFIG_MULTIPLATFORM gets enabled, the mach/*.h files are
-> > > not visible to drivers any more, but they are still visible to files
-> > > in plat-omap if you add a line like
-> > > 
-> > > ccflags-$(CONFIG_ARCH_OMAP2) := -I$(srctree)/arch/arm/mach-omap2/include
-> > > ccflags-$(CONFIG_ARCH_OMAP1) := -I$(srctree)/arch/arm/mach-omap1/include
-> > > 
-> > > to arch/arm/plat-omap/Makefile. That is how the other multiplatform
-> > > Makefiles do it. If a driver writer really wants to cheat, they can of
-> > > course do the same thing in their directory, but they can also do
-> > > #include "../../../../arch/arm/mach-omap2/foo.h"
-> > 
-> > OK thanks for clarifying that. Sounds like that can be used to
-> > fix up the relative includes for plat-omap. I'll do some patches
-> > for that after we have the #include <plat/*.h> and #include <mach/*.h>
-> > issue sorted out.
-> 
-> Here's a patch for that. It's against what I have queued up in
-> omap-for-v3.8/cleanup-headers. Does that look OK to you?
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Fri, 26 Oct 2012 15:06:40 -0700
-> Subject: [PATCH] ARM: OMAP: Fix relative includes for plat-omap with ccflags
-> 
-> As suggested by Arnd Bergmann <arnd@arndb.de>, we can keep
-> these headers local to arch/arm/*omap*/ by modifying the
-> ccflags in plat/omap/Makefile.
-> 
-> Note that eventually even most of these will go away
-> as things like SRAM and PRCM become just regular device
-> drivers.
-> 
-> Also note that this will not fix plat/cpu.h, but that
-> will be removed anyways as soon as the drivers are
-> fixed.
-> 
-> While at it, also sort the includes the standard way.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-> index cd169c3..03b1e80 100644
-> --- a/arch/arm/mach-omap1/Makefile
-> +++ b/arch/arm/mach-omap1/Makefile
-> @@ -2,6 +2,8 @@
->  # Makefile for the linux kernel.
->  #
->  
-> +ccflags-$(CONFIG_ARCH_OMAP) := -I$(srctree)/arch/arm
-> +
+On Saturday 27 October 2012 04:31 AM, Paul Walmsley wrote:
+> Hi Felipe
+>
+> just two quick comments
+>
+> On Thu, 25 Oct 2012, Felipe Balbi wrote:
+>
+>> if we allow compiler reorder our writes, we could
+>> fall into a situation where dev->buf_len is reset
+>> for no apparent reason.
+>>
+>> This bug was found with a simple script which would
+>> transfer data to an i2c client from 1 to 1024 bytes
+>> (a simple for loop), when we got to transfer sizes
+>> bigger than the fifo size, dev->buf_len was reset
+>> to zero before we had an oportunity to handle XDR
+>> Interrupt. Because dev->buf_len was zero, we entered
+>> omap_i2c_transmit_data() to transfer zero bytes,
+>> which would mean we would just silently exit
+>> omap_i2c_transmit_data() without actually writing
+>> anything to DATA register. That would cause XDR
+>> IRQ to trigger forever and we would never transfer
+>> the remaining bytes.
+>>
+>> After adding the memory barrier, we also drop resetting
+>> dev->buf_len to zero in omap_i2c_xfer_msg() because
+>> both omap_i2c_transmit_data() and omap_i2c_receive_data()
+>> will act until dev->buf_len reaches zero, rendering the
+>> other write in omap_i2c_xfer_msg() redundant.
+>>
+>> This patch has been tested with pandaboard for a few
+>> iterations of the script mentioned above.
+>>
+>> Signed-off-by: Felipe Balbi <balbi@ti.com>
+>> ---
+>>
+>> This bug has been there forever, but it's quite annoying.
+>> I think it deserves being pushed upstream during this -rc
+>> cycle, but if Wolfram decides to wait until v3.8, I don't
+>> mind.
+>>
+>>   drivers/i2c/busses/i2c-omap.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index db31eae..1ec4e6e 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -521,6 +521,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>>   	/* REVISIT: Could the STB bit of I2C_CON be used with probing? */
+>>   	dev->buf = msg->buf;
+>>   	dev->buf_len = msg->len;
+>> +	wmb();
+>>
+>>   	omap_i2c_write_reg(dev, OMAP_I2C_CNT_REG, dev->buf_len);
+>>
+>
+> Would suggest moving the wmb() immediately before the point at which the
+> interrupt can occur.  Looks to me that's when the OMAP_I2C_CON_REG write
+> occurs.
+>
+> Also would suggest adding a comment to clarify what the wmb() is intended
+> to do.  Maybe something like 'Prevent the compiler from moving earlier
+> changes to dev->buf and dev->buf_len after the write to CON_REG.  This
+> write enables interrupts and those variables are used in the interrupt
+> handler'.
+>
+Another alternative, which I will recommend to just make use of the
+read*/wrire* instead __raw versions. The barriers are taken care
+already and driver point of view, it is transparent.
 
-Rather than moving all the files from plat-omap/include/plat into plat-omap
-and then having all these totally disgusting relative includes, why don't
-you add to these makefiles:
+-->
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index db31eae..0cd6365 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -265,13 +265,13 @@ static const u8 reg_map_ip_v2[] = {
+  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+  				      int reg, u16 val)
+  {
+-	__raw_writew(val, i2c_dev->base +
++	writew(val, i2c_dev->base +
+  			(i2c_dev->regs[reg] << i2c_dev->reg_shift));
+  }
 
-ccflags += -I$(srctree)/arch/arm/plat-omap/include
+  static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+  {
+-	return __raw_readw(i2c_dev->base +
++	return readw(i2c_dev->base +
+  				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
+  }
 
-and avoid all that include moving and all the include name fixup?
+Patch might be damaged because of copy paste.
+
+Regards
+Santosh
