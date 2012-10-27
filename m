@@ -1,71 +1,87 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 7/7] i2c: omap: implement handling for 'transferred'
- bytes
-Date: Sat, 27 Oct 2012 18:55:53 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210271852330.18535@utopia.booyaka.com>
-References: <1350899218-13624-1-git-send-email-balbi@ti.com> <1351167915-15079-1-git-send-email-balbi@ti.com> <1351167915-15079-8-git-send-email-balbi@ti.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 7/8] i2c: add 'transferred' field to struct i2c_msg
+Date: Sat, 27 Oct 2012 21:03:25 +0200
+Message-ID: <20121027210325.093dc92a@endymion.delvare>
+References: <1350899218-13624-8-git-send-email-balbi@ti.com>
+	<20121025145748.760c218b@endymion.delvare>
+	<20121025131459.GG28061@n2100.arm.linux.org.uk>
+	<20121025154202.41f3cbba@endymion.delvare>
+	<20121025134609.GH28061@n2100.arm.linux.org.uk>
+	<20121025155633.609c5554@endymion.delvare>
+	<20121025141800.GI28061@n2100.arm.linux.org.uk>
+	<20121027163224.67d57aef@endymion.delvare>
+	<20121027164013.GV2616@ZenIV.linux.org.uk>
+	<20121027170235.GA24388@ZenIV.linux.org.uk>
+	<20121027171036.GA24822@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1351167915-15079-8-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, michael-dyjBcgdgk7Pe9wHmmfpqLFaTQe2KTcn/@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:26235 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932330Ab2J0TDm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 27 Oct 2012 15:03:42 -0400
+In-Reply-To: <20121027171036.GA24822@ZenIV.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, w.sang@pengutronix.de, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-i2c@vger.kernel.org, ben-linux@fluff.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi
+Hi Al,
 
-On Thu, 25 Oct 2012, Felipe Balbi wrote:
+On Sat, 27 Oct 2012 18:10:36 +0100, Al Viro wrote:
+> On Sat, Oct 27, 2012 at 06:02:35PM +0100, Al Viro wrote:
+> > On Sat, Oct 27, 2012 at 05:40:13PM +0100, Al Viro wrote:
+> >
+> > > You are wrong.  Assumption that pointers are aligned to 32bit boundary
+> > > is simply not true.  In particular, on m68k alignment is 16bit, i.e. there
+> > > struct foo {
+> > > 	char x;
+> > > 	void *p;
+> > > }; will have 1 byte occupied by x, followed by 1-byte gap, followed by 4 bytes
+> > > occupied by p.
+> > >
+> > > Note, BTW, that m68k includes things like coldfire, etc. and I wouldn't be
+> > > surprised by e.g. coldfire-based SoC with i2c on it.
+> >
+> > BTW, that's easily verified - take a cross-compiler and do this:
+> > ; cat >a.c <<'EOF'
+> > struct { char x; void *y; } v;
+> > int z = (char *)&v.y - (char *)&v;
+> > EOF
+> > ; m68k-linux-gnu-gcc -S a.c
+> > ; grep -A1 'z:' a.s
+> > z:
+> >         .long   2
+> > ;
+> > and watch what it puts into z.  gcc is very liberal about what it considers
+> > a constant expression, so it allows that sort of expressions as initializers
+> > for global variables.  Not a portable C, but convenient for experiments like
+> > that; just grab a cross-toolchain and feed it testcases of that kind...
 
-> this is important in cases where client driver
-> wants to know how many bytes were actually
-> transferred.
+Thanks for the fast and complete answer.
+
+> ... and google for i2c coldfire immediately turns up this:
+> http://mailman.uclinux.org/pipermail/uclinux-dev/2012-May/051874.html
+> with
+> +config I2C_COLDFIRE
+> +       tristate "Freescale Coldfire I2C driver"
+> +       depends on !M5272
+> +       help
+> +         This driver supports the I2C interface availible on most Freescale
+> +         Coldfire processors.
+> +
+> +         This driver can be built as a module.  If so, the module
+> +         will be called i2c-coldfire.
 > 
-> There is one trick here: if transfer is completed,
-> meaning I2C_CNT reaches zero, then ARDY will be
-> asserted to let SW know that it can program a
-> new transfer.
-> 
-> When ARDY is asserted, I2C_CNT is reset to the
-> original value (msg->len), which means that
-> for a successful message, msg->transferred = msg->len
-> and we don't need to spend time with a register
-> read.
-> 
-> In case of NACK condition, however, I2C_CNT will
-> remain with the end value which is the amount of
-> data transferred until NACK condition found on the
-> bus inclusive. In this situation, msg->transferred
-> needs to be initialized with:
-> 
-> msg->len - read(I2C_CNT) - 1;
-> 
-> This patch implements exactly that handling.
-> 
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 699fa12..d268e92 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -588,6 +588,9 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->  		goto out;
->  	}
->  
-> +	msg->transferred = msg->len;
-> +	wmb();
+> in it, along with addition of drivers/i2c/busses/i2c-coldfire.c...  IOW,
+> i2c on m68k is quite real.  Sorry, no go - you don't even have an excuse
+> of i2c never existing on the architecture in question.
 
-If this barrier is being used to ensure that the compiler doesn't move 
-this store past the point at which the I2C interrupt handler can be 
-entered, then please consider the same comments as on the other 
-patch that adds a barrier:
+You are completely right, we will have to find another way to let bus
+drivers report how much of each message they managed to transmit or
+receive.
 
-http://marc.info/?l=linux-omap&m=135129247524136&w=2
-
-http://marc.info/?l=linux-omap&m=135135357305794&w=2
-
-
-- Paul
+Thanks again,
+-- 
+Jean Delvare
