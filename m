@@ -1,146 +1,96 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: [RESEND PATCH] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
-Date: Mon, 29 Oct 2012 18:26:48 +0530
-Message-ID: <1351515408-19403-1-git-send-email-gururaja.hebbar@ti.com>
+From: Ivan Djelic <ivan.djelic@parrot.com>
+Subject: Re: [PATCH v2] mtd: omap: nand: Remove 0xFF's that prefixed 16bit
+ NAND commands
+Date: Mon, 29 Oct 2012 14:49:03 +0100
+Message-ID: <20121029134903.GA30857@parrot.com>
+References: <20121026193410.GA21474@harvey-pc.matrox.com>
+ <20121026193643.GA21510@harvey-pc.matrox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: svenkatr@ti.com, cjb@laptop.org, balajitk@ti.com, grant.likely@secretlab.ca
-Cc: nsekhar@ti.com, sudhakar.raj@ti.com, gururaja.hebbar@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [149.6.83.202] ([149.6.83.202]:43131 "EHLO co202.xi-lite.net"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1759015Ab2J2Nt0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 09:49:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20121026193643.GA21510@harvey-pc.matrox.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Christopher Harvey <charvey@matrox.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-on the HSMMC IP timing closure done for the high speed cards.
+On Fri, Oct 26, 2012 at 08:36:43PM +0100, Christopher Harvey wrote:
+> In 16bit NAND mode the GPMC would send the command 0xNN as 0xFFNN
+> instead of 0x00NN on the bus. The 0xFFs were actually uninitialized
+> bits that were left unset in the GPMC command output register. The
+> reason they weren't initialized in 16bit mode is that if the same code
+> that writes to this register was used in 8bit mode then 2 commands
+> would be output in 8bit mode. One for the low byte, and an extra 0x0
+> command for the high byte. This commit uses writew if we're using
+> 16bit NAND.
+> 
+> Most chips seem fine with the extra 0xFFs, but the ONFI spec says
+> otherwise.
 
->From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
+Hi Christopher,
 
-The MMC/SD/SDIO output signals can be driven on either falling edge or
-rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-to reach better timing performance, and thus to increase data transfer
-frequency.
+Nitpick: I think you should replace 'command' with 'address' in your commit message.
+The ONFI spec says Host should send _address_ byte NN as 0x00NN. It is OK to send
+command NN as 0xFFNN, as explicitly mentioned in ONFI 3.1 spec (section 2.16):
 
-There are few pre-requisites for enabling the HSPE bit
-- Controller should support High-Speed-Enable Bit and
-- Controller should not be using DDR Mode and
-- Controller should advertise that it supports High Speed in
-  capabilities register and
-- MMC/SD clock coming out of controller > 25MHz
+  2.16.          Bus Width Requirements
+All NAND Targets per device shall use the same data bus width. All targets shall either have an
+8-bit bus width or a 16-bit bus width. Note that devices that support the NV-DDR or NV-DDR2
+data interface shall have an 8-bit bus width.
+When the host supports a 16-bit bus width, only data is transferred at the 16-bit width. All
+address and command line transfers shall use only the lower 8-bits of the data bus. During
+command transfers, the host may place any value on the upper 8-bits of the data bus. During
+address transfers, the host shall set the upper 8-bits of the data bus to 00h.
 
-Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
----
-Rebased on mmc-next (v3.7.0-rc1)
-Only Build tested since EDMA support for AM335x is not yet added
+Your patch deals with both command and address bytes, which does not hurt.
+BR,
+--
+Ivan
 
-:100644 100644 be76a23... ed271fc... M	Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-:100644 100644 8b4e4f2... 346af5b... M	arch/arm/plat-omap/include/plat/mmc.h
-:100644 100644 54bfd0c... 3fd95cb... M	drivers/mmc/host/omap_hsmmc.c
- .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
- arch/arm/plat-omap/include/plat/mmc.h              |    1 +
- drivers/mmc/host/omap_hsmmc.c                      |   30 +++++++++++++++++++-
- 3 files changed, 31 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-index be76a23..ed271fc 100644
---- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-+++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-@@ -19,6 +19,7 @@ ti,dual-volt: boolean, supports dual voltage cards
- "supply-name" examples are "vmmc", "vmmc_aux" etc
- ti,non-removable: non-removable slot (like eMMC)
- ti,needs-special-reset: Requires a special softreset sequence
-+ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
- 
- Example:
- 	mmc1: mmc@0x4809c000 {
-diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
-index 8b4e4f2..346af5b 100644
---- a/arch/arm/plat-omap/include/plat/mmc.h
-+++ b/arch/arm/plat-omap/include/plat/mmc.h
-@@ -126,6 +126,7 @@ struct omap_mmc_platform_data {
- 		/* we can put the features above into this variable */
- #define HSMMC_HAS_PBIAS		(1 << 0)
- #define HSMMC_HAS_UPDATED_RESET	(1 << 1)
-+#define HSMMC_HAS_HSPE_SUPPORT	(1 << 2)
- 		unsigned features;
- 
- 		int switch_pin;			/* gpio (card detect) */
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 54bfd0c..3fd95cb 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -62,6 +62,7 @@
- 
- #define VS18			(1 << 26)
- #define VS30			(1 << 25)
-+#define HSS			(1 << 21)
- #define SDVS18			(0x5 << 9)
- #define SDVS30			(0x6 << 9)
- #define SDVS33			(0x7 << 9)
-@@ -89,6 +90,7 @@
- #define MSBS			(1 << 5)
- #define BCE			(1 << 1)
- #define FOUR_BIT		(1 << 1)
-+#define HSPE			(1 << 2)
- #define DDR			(1 << 19)
- #define DW8			(1 << 5)
- #define CC			0x1
-@@ -489,6 +491,7 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
- 	struct mmc_ios *ios = &host->mmc->ios;
- 	unsigned long regval;
- 	unsigned long timeout;
-+	unsigned long clkdiv;
- 
- 	dev_vdbg(mmc_dev(host->mmc), "Set clock to %uHz\n", ios->clock);
- 
-@@ -496,7 +499,8 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
- 
- 	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
- 	regval = regval & ~(CLKD_MASK | DTO_MASK);
--	regval = regval | (calc_divisor(host, ios) << 6) | (DTO << 16);
-+	clkdiv = calc_divisor(host, ios);
-+	regval = regval | (clkdiv << 6) | (DTO << 16);
- 	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
- 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
- 		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
-@@ -507,6 +511,27 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
- 		&& time_before(jiffies, timeout))
- 		cpu_relax();
- 
-+	/*
-+	 * Enable High-Speed Support
-+	 * Pre-Requisites
-+	 *	- Controller should support High-Speed-Enable Bit
-+	 *	- Controller should not be using DDR Mode
-+	 *	- Controller should advertise that it supports High Speed
-+	 *	  in capabilities register
-+	 *	- MMC/SD clock coming out of controller > 25MHz
-+	 */
-+	if ((mmc_slot(host).features & HSMMC_HAS_HSPE_SUPPORT) &&
-+	    (ios->timing != MMC_TIMING_UHS_DDR50) &&
-+	    ((OMAP_HSMMC_READ(host->base, CAPA) & HSS) == HSS)) {
-+		regval = OMAP_HSMMC_READ(host->base, HCTL);
-+		if (clkdiv && (clk_get_rate(host->fclk)/clkdiv) > 25000000)
-+			regval |= HSPE;
-+		else
-+			regval &= ~HSPE;
-+
-+		OMAP_HSMMC_WRITE(host->base, HCTL, regval);
-+	}
-+
- 	omap_hsmmc_start_clock(host);
- }
- 
-@@ -1700,6 +1725,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
- 	if (of_find_property(np, "ti,needs-special-reset", NULL))
- 		pdata->slots[0].features |= HSMMC_HAS_UPDATED_RESET;
- 
-+	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
-+		pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
-+
- 	return pdata;
- }
- #else
--- 
-1.7.0.4
-
+> 
+> Signed-off-by: Christopher Harvey <charvey@matrox.com>
+> ---
+>  drivers/mtd/nand/omap2.c |   14 +++++++++-----
+>  1 files changed, 9 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 5b31386..ae6738f 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -225,16 +225,20 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
+>  {
+>  	struct omap_nand_info *info = container_of(mtd,
+>  					struct omap_nand_info, mtd);
+> +	void __iomem *reg;
+>  
+>  	if (cmd != NAND_CMD_NONE) {
+>  		if (ctrl & NAND_CLE)
+> -			writeb(cmd, info->reg.gpmc_nand_command);
+> -
+> +			reg = info->reg.gpmc_nand_command;
+>  		else if (ctrl & NAND_ALE)
+> -			writeb(cmd, info->reg.gpmc_nand_address);
+> -
+> +			reg = info->reg.gpmc_nand_address;
+>  		else /* NAND_NCE */
+> -			writeb(cmd, info->reg.gpmc_nand_data);
+> +			reg = info->reg.gpmc_nand_data;
+> +
+> +		if (info->nand.options & NAND_BUSWIDTH_16)
+> +			writew(cmd, reg);
+> +		else
+> +			writeb(cmd, reg);
+>  	}
+>  }
+>  
+> -- 
+> 1.7.8.6
+> 
+> ______________________________________________________
+> Linux MTD discussion mailing list
+> http://lists.infradead.org/mailman/listinfo/linux-mtd/
