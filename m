@@ -1,177 +1,125 @@
-From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC PATCH v3 16/16] ARM: dts: add AM33XX SPI support
-Date: Mon, 29 Oct 2012 09:11:34 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9D526E@DBDE01.ent.ti.com>
-References: <1350566815-409-1-git-send-email-mporter@ti.com>
-	<1350566815-409-17-git-send-email-mporter@ti.com>
+From: kishon <kishon@ti.com>
+Subject: Re: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator
+ driver to omap_usb2
+Date: Mon, 29 Oct 2012 14:54:24 +0530
+Message-ID: <508E4B48.6090202@ti.com>
+References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-3-git-send-email-kishon@ti.com> <CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com> <CAAe_U6K1RXA3b5u9WvE=2VoXym9Vj3KM7c0J27jKz+2KrV4tsg@mail.gmail.com> <CAH+eYFAhVE8cAte2PFk3jinV9n3m+eDLtE43QxzRXMScnFGcrA@mail.gmail.com> <508AA94B.10504@ti.com> <508AAA85.6070905@ti.com> <20121026163619.GB11908@atomide.com> <508E45CF.70303@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1350566815-409-17-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Nori,
-	Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dan, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55041 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753334Ab2J2JYl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 05:24:41 -0400
+In-Reply-To: <508E45CF.70303@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Rabin Vincent <rabin@rab.in>, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-On Thu, Oct 18, 2012 at 18:56:55, Porter, Matt wrote:
-> Adds AM33XX SPI support for am335x-bone and am335x-evm.
-> 
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am335x-bone.dts |   17 +++++++++++++++
->  arch/arm/boot/dts/am335x-evm.dts  |    9 ++++++++
->  arch/arm/boot/dts/am33xx.dtsi     |   43 +++++++++++++++++++++++++++++++++++++
->  3 files changed, 69 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index 5510979..23edfd8 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -18,6 +18,17 @@
->  		reg = <0x80000000 0x10000000>; /* 256 MB */
->  	};
->  
-> +	am3358_pinmux: pinmux@44e10800 {
-> +		spi1_pins: pinmux_spi1_pins {
-> +			pinctrl-single,pins = <
-> +				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
-> +				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
-> +				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
-> +				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
-> +			>;
-> +		};
-> +	};
-> +
+Hi,
 
-Change to am33xx_pinmux.
+On Monday 29 October 2012 02:31 PM, Roger Quadros wrote:
+> Hi Tony,
+>
+> On 10/26/2012 07:36 PM, Tony Lindgren wrote:
+>> * Benoit Cousson <b-cousson@ti.com> [121026 08:23]:
+>>> Hi Roger,
+>>>
+>>> On 10/26/2012 05:16 PM, Roger Quadros wrote:
+>>>> Hi Kishon & Benoit,
+>>>>
+>>>> On 09/24/2012 12:06 PM, Rabin Vincent wrote:
+>>>>> 2012/9/24 ABRAHAM, KISHON VIJAY <kishon@ti.com>:
+>>>>>> On Sat, Sep 22, 2012 at 3:03 AM, Rabin Vincent <rabin@rab.in> wrote:
+>>>>>>> USB doesn't work on pandaboard on linux-next, and bisection shows this
+>>>>>>> patch.  Unfortunately, I can't provide a dmesg log because USB is the
+>>>>>>> only way I currently have to get one out(!), but presumably it's because
+>>>>>>> this omap-usb2 device is never registered?  Looks like this breaks
+>>>>>>> non-dt USB on pandaboard; is that intended?
+>>>>>>
+>>>>>> Yes. omap-usb2 is *only* dt supported (New drivers shouldn't have the
+>>>>>> old non-dt support).
+>>>>>
+>>>>> Well, USB used to work fine on Pandaboard without DT before the
+>>>>> introduction of "omap-usb2", so one would expected it to continue
+>>>>> working (until the board file is completely removed).
+>>>>>
+>>>>> Anyway, I've moved to DT now.
+>>>>>
+>>>>>> Some patches are queued only for 3.7.
+>>>>>>
+>>>>>> In case you want to use MUSB please use these patches on linux-next..
+>>>>>> [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
+>>>>>> [PATCH] ARM: OMAP2+: hwmod data: Fix ocp2scp_usb_phy and usb_host_hs
+>>>>>> entries (from Benoit)
+>>>>>> [PATCH 0/2] ARM: dts: Add subnode for ocp2scp (patch series)
+>>>>>> [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB (patch series)
+>>>>>
+>>>>> I got these by merging in Benoit's for_3.7/dts_part2 on top of
+>>>>> next-20120921.  Thanks.
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>
+>>>>
+>>>> I still can't get musb to work on 3.7-rc2. Apparently it is still
+>>>> missing the patches from Benoit's for_3.7/dts_part2.
+>>>>
+>>>> Maybe I just need to wait for it to be merged?
+>>>
+>>> They are now in a for_3.8/dts. Unfortunately, one patch that was adding
+>>> ctrl_module address in the USB data was rejected and thus I'm not sure
+>>> it will work without that.
+>>>
+>>> I think Tony had an idea to map the ctrl_register to regulator fmwk or
+>>> something like that.
+>>
+>> For device tree, we may be eventually able to handle the ctrl_register
+>> using pinctrl-single.c and pinconf API. It probably does not make
+>> sense to set it up as a regulator as the comparator can trigger errors
+>> also for the pinconf related bits at least for MMC PBIAS.
+>>
+>>>> Till then, where can I get a tree where musb works on Panda?
+>>
+>> On panda, without using device tree, use v3.7-rc2 + the following patches:
+>>
+>> ARM: OMAP: ocp2scp: create omap device for ocp2scp
+>> ARM: OMAP4: add _dev_attr_ to ocp2scp for representing usb_phy
+>> drivers: bus: ocp2scp: add pdata support
+>>
+>
+> The above 3 patches got it to work for me. Thanks for the hint.
+>
+>> Also you need to enable CONFIG_OMAP_USB2. No idea what all is needed
+>> to use MUSB with device tree at this point.
+>>
+>
+> Yes, you need to enable a bunch of other things which are not so easy to
+> figure out for someone who has not worked with MUSB. Do you think we
+> should enable musb and all dependencies in omap2plus_defconfig?
+>
+> One more thing to note is that building CONFIG_OMAP_USB2 as module
+> breaks the kernel build with the following error.
+>
+> drivers/built-in.o: In function `twl4030_usb_irq':
+> /work/linux-2.6/drivers/usb/otg/twl4030-usb.c:518: undefined reference
+> to `omap_musb_mailbox'
+> drivers/built-in.o: In function `twl4030_usb_phy_init':
+> /work/linux-2.6/drivers/usb/otg/twl4030-usb.c:540: undefined reference
+> to `omap_musb_mailbox'
+> make: *** [vmlinux] Error 1
+>
+> I bet the error would come while building twl6030-usb.c too.
 
->  	ocp {
->  		uart1: serial@44e09000 {
->  			status = "okay";
-> @@ -84,3 +95,9 @@
->  &mmc1 {
->  	vmmc-supply = <&ldo3_reg>;
->  };
-> +
-> +&spi1 {
-> +	status = "okay";
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&spi1_pins>;
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index d63fce8..8d5f660 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -124,3 +124,12 @@
->  &mmc1 {
->  	vmmc-supply = <&vmmc_reg>;
->  };
-> +
-> +&spi0 {
-> +	status = "okay";
-> +	spi-flash@0 {
-> +		compatible = "spansion,s25fl064k", "m25p80";
-> +		spi-max-frequency = <24000000>;
-> +		reg = <0>;
-> +	};
-> +};
+There are couple of fixes floating in the list to fix this.
 
-In AM335x-evm, SPI flash available in profile #2 (am335x evm specific profiles).
-So can you drop this changes as if I understood correctly, am335x-evm.dts will be
-populated for devices present only on profile #0.
+https://patchwork.kernel.org/patch/1370291/
 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 26a6af7..063ecea 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -40,6 +40,15 @@
->  		};
->  	};
->  
-> +	am3358_pinmux: pinmux@44e10800 {
-> +		compatible = "pinctrl-single";
-> +		reg = <0x44e10800 0x0238>;
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +		pinctrl-single,register-width = <32>;
-> +		pinctrl-single,function-mask = <0x7f>;
-> +	};
-> +
-
-Pin ctrl support already submitted
-http://git.kernel.org/?p=linux/kernel/git/bcousson/linux-omap-dt.git;a=commitdiff;h=3e0603e905d9ba662e8c1885ecb1d28bc454e448
+and an alternative fix here:
+https://patchwork.kernel.org/patch/1409671/
 
 Thanks
-Avinash
-
->  	/*
->  	 * XXX: Use a flat representation of the AM33XX interconnect.
->  	 * The real AM33XX interconnect network is quite complex.Since
-> @@ -261,6 +270,40 @@
->  			status = "disabled";
->  		};
->  
-> +		spi0: spi@48030000 {
-> +			compatible = "ti,omap4-mcspi";
-> +			ti,hwmods = "spi0";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			reg = <0x48030000 0x400>;
-> +			interrupt-parent = <&intc>;
-> +			interrupt = <65>;
-> +			dmas = <&edma 16
-> +				&edma 17
-> +				&edma 18
-> +				&edma 19>;
-> +			dma-names = "tx0", "rx0", "tx1", "rx1";
-> +			ti,spi-num-cs = <2>;
-> +			status = "disabled";
-> +		};
-> +
-> +		spi1: spi@481a0000 {
-> +			compatible = "ti,omap4-mcspi";
-> +			ti,hwmods = "spi1";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			reg = <0x481a0000 0x400>;
-> +			interrupt-parent = <&intc>;
-> +			interrupt = <125>;
-> +			dmas = <&edma 42
-> +				&edma 43
-> +				&edma 44
-> +				&edma 45>;
-> +			dma-names = "tx0", "rx0", "tx1", "rx1";
-> +			ti,spi-num-cs = <2>;
-> +			status = "disabled";
-> +		};
-> +
->  		wdt2: wdt@44e35000 {
->  			compatible = "ti,omap3-wdt";
->  			ti,hwmods = "wd_timer2";
-> -- 
-> 1.7.9.5
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
-
-
-------------------------------------------------------------------------------
-The Windows 8 Center - In partnership with Sourceforge
-Your idea - your app - 30 days.
-Get started!
-http://windows8center.sourceforge.net/
-what-html-developers-need-to-know-about-coding-windows-8-metro-style-apps/
+Kishon
