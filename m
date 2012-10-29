@@ -1,47 +1,35 @@
-From: Anders Hedlund <anders.j.hedlund@gmail.com>
-Subject: [PATCH] ARM: OMAP3: igep0020: Set WIFI/BT GPIO pins in correct mux mode
-Date: Mon, 29 Oct 2012 18:51:13 +0100
-Message-ID: <1351533073-5974-1-git-send-email-anders.j.hedlund@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:38335 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276Ab2J2Rvc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 13:51:32 -0400
-Received: by mail-lb0-f174.google.com with SMTP id n3so3255885lbo.19
-        for <linux-omap@vger.kernel.org>; Mon, 29 Oct 2012 10:51:30 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: move mailbox.h out of plat-omap
+ headers
+Date: Mon, 29 Oct 2012 10:52:28 -0700
+Message-ID: <20121029175228.GD11908@atomide.com>
+References: <1351530381-11459-1-git-send-email-omar.luna@linaro.org>
+ <1351530381-11459-2-git-send-email-omar.luna@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1351530381-11459-2-git-send-email-omar.luna@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devel@driverdev.osuosl.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: Anders Hedlund <anders.j.hedlund@gmail.com>, Jonas Zetterberg <jozz@jozz.se>, Enric Balletbo i Serra <eballetbo@gmail.com>
 
-Configure the WIFI/BT GPIO pin muxes unless the bootloader hasn't already
-done so.
+Hi,
 
-Signed-off-by: Anders Hedlund <anders.j.hedlund@gmail.com>
-Cc: Jonas Zetterberg <jozz@jozz.se>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
----
- arch/arm/mach-omap2/board-igep0020.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+> --- /dev/null
+> +++ b/include/linux/platform_data/omap_mailbox.h
+> @@ -0,0 +1,105 @@
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index dbc705a..17e45bc 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -579,6 +579,13 @@ static void __init igep_wlan_bt_init(void)
- 	} else
- 		return;
- 
-+#ifdef CONFIG_OMAP_MUX
-+	/* Make sure that the GPIO pins are muxed correctly */
-+	omap_mux_init_gpio(igep_wlan_bt_gpios[0].gpio, OMAP_PIN_OUTPUT);
-+	omap_mux_init_gpio(igep_wlan_bt_gpios[1].gpio, OMAP_PIN_OUTPUT);
-+	omap_mux_init_gpio(igep_wlan_bt_gpios[2].gpio, OMAP_PIN_OUTPUT);
-+#endif
-+
- 	err = gpio_request_array(igep_wlan_bt_gpios,
- 				 ARRAY_SIZE(igep_wlan_bt_gpios));
- 	if (err) {
--- 
-1.7.10.4
+This file should only contain pure platform data needed
+by the core omap code to pass to the mailbox driver.
 
+The mailbox API header should be somewhere else,
+like include/linux/mailbox/mailbox-omap.h or similar.
+
+But shouldn't this all now be handled by using the
+remoteproc framework?
+
+Regards,
+
+Tony
