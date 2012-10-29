@@ -1,59 +1,33 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [RESEND/PATCHv3] arm: dts: omap5-evm: Add keypad support
-Date: Mon, 29 Oct 2012 17:44:00 +0100
-Message-ID: <508EB250.20607@ti.com>
-References: <1351507226-10328-1-git-send-email-sourav.poddar@ti.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH 4/4] mmc: omap_hsmmc: Fix NULL pointer dereference for dt boot
+Date: Mon, 29 Oct 2012 12:55:30 -0400
+Message-ID: <87txtdtdz1.fsf@octavius.laptop.org>
+References: <1350317108-10657-1-git-send-email-svenkatr@ti.com>
+	<1350317108-10657-4-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351507226-10328-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1350317108-10657-4-git-send-email-svenkatr@ti.com> (Venkatraman
+	S.'s message of "Mon, 15 Oct 2012 21:35:08 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sourav,
+Hi,
 
-On 10/29/2012 11:40 AM, Sourav Poddar wrote:
-> Add keypad data node in omap5-evm.
-> 
-> Based on I2C support patch for omap5, which has been
-> already posted as a different series.
-> 
-> Tested on omap5430 evm with 3.7-rc1 kernel.
-> 
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> 
-> Tested on omap5430 sdp with 3.7-rc1 kernel.
-> 
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->  arch/arm/boot/dts/omap5-evm.dts |   95 +++++++++++++++++++++++++++++++++++++++
->  1 files changed, 95 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
-> index c663eba..b812d6d 100644
-> --- a/arch/arm/boot/dts/omap5-evm.dts
-> +++ b/arch/arm/boot/dts/omap5-evm.dts
-> @@ -140,3 +140,98 @@
->  &mcbsp3 {
->  	status = "disabled";
->  };
-> +
-> +&i2c5 {
-> +	clock-frequency = <400000>;
-> +
-> +	smsc@38 {
-> +		compatible = "smscece1099";
-> +		reg = <0x38>;
-> +		clock = <0x13>;
+On Mon, Oct 15 2012, Venkatraman S wrote:
+> From: Balaji T K <balajitk@ti.com>
+>
+> dev->platform_data is NULL in case of device tree boot,
+> instead use the saved version in struct omap_hsmmc_host.
+>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Signed-off-by: Venkatraman S <svenkatr@ti.com>
 
-What does that "clock" mean?
+Thanks, pushed to mmc-next for 3.7.
 
-I cannot find that in the binding documentation. BTW, did you add that
-documentation in the driver patch?
-
-Regards,
-Benoit
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
