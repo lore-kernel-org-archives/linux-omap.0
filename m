@@ -1,105 +1,134 @@
-From: Mohan V <mohanvforum-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Problem with OHCI on OMAP4430
-Date: Mon, 29 Oct 2012 16:09:22 +0530
-Message-ID: <CANP3njys-W+JXdkH3Vj-90VgMENwtcDMZ6y-oEift3fC89yYwg@mail.gmail.com>
-References: <CANP3njw4=efheeOq9TsusNBwHASSfF7tG_1jYc4aHdW6+sX2zQ@mail.gmail.com>
-	<Pine.LNX.4.44L0.1210261057580.6007-100000@iolanthe.rowland.org>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [RESEND/PATCHv3] arm: dts: omap5-evm: Add keypad support
+Date: Mon, 29 Oct 2012 16:10:26 +0530
+Message-ID: <1351507226-10328-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1210261057580.6007-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b-cousson@ti.com
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, sourav.poddar@ti.com, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Alan,
+Add keypad data node in omap5-evm.
 
-On Fri, Oct 26, 2012 at 8:49 PM, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org> wrote:
-> On Fri, 26 Oct 2012, Mohan V wrote:
->
->> >> When the USB bus is in suspend, a device connected to OHCI port does
->> >> not get detected, whereas the device connected to EHCI port is getting detected.
->> >
->> > Can you provide a dmesg log showing the OHCI problem with
->> > CONFIG_USB_DEBUG enabled?
->> >
->> Please find the attached log (ohci-detect.log), where the device is
->> disconnected from the
->> OHCI port and then does not get detected when connected again.
->> We are using android 3.0 kernel.
->
-> I'm not going to be able to help very much with an Android kernel.
-> Does the same problem occur with a vanilla non-Android 3.6 kernel?  If
-> it doesn't, that indicates the problem was caused by some
-> Android-specific changes.
->
-With the vanilla 3.6 kernel, the device connected to OHCI port is not even
-detected. The below messages are seen:
+Based on I2C support patch for omap5, which has been
+already posted as a different series.
 
-[    5.343780] usb 2-2: new low-speed USB device number 5 using ohci-omap3
-[    5.351776] ohci-omap3 ohci-omap3.0: urb ee7f83c0 path 2 ep0out
-5ec20000 cc 5 --> status -62
-[    5.570770] ohci-omap3 ohci-omap3.0: urb ee7f83c0 path 2 ep0out
-5ec20000 cc 5 --> status -62
-[    5.789062] usb 2-2: device not accepting address 5, error -62
-[    5.795288] hub 2-0:1.0: unable to enumerate USB device on port 2
------------------------------------------------------------------------------------------------------------------
+Tested on omap5430 evm with 3.7-rc1 kernel.
 
-We think it may not be hardware issue, since the device gets detected on
-android-3.0 kernel. The support for OHCI on OMAP4430 SDP board
-seems to be missing in Linux mainline (3.6).
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-We ported some OMAP specific patches from android kernel, with this the
-device gets detected only if it is connected at boot.
-If the system is booted and then device is connected, it doesn't get detected.
+Tested on omap5430 sdp with 3.7-rc1 kernel.
 
-> Are you referring to this part of the log?
->
->> ------------------------Device not getting detected when connected---------------------------
->>
->> / # [  135.621002] usbhs_wakeup: Enabling clocks
->> [  135.625762] usbhs_runtime_resume:++++++
->> [  135.630371] usbhs_runtime_resume:------
->> [  135.638183] USB IO PAD Wakeup event triggered##################
->> [  135.644958] usbhs_runtime_suspend:++++++
->> [  135.649749] usbhs_runtime_suspend:-----
->
-> It appears that ohci_irq() didn't run.  Did
-> ohci_finish_controller_resume() get called?
->
-This function is not used in ohci-omap3.c and is used only in ohci-omap.c.
-Is it necessary to call this function?
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+ arch/arm/boot/dts/omap5-evm.dts |   95 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 95 insertions(+), 0 deletions(-)
 
-> My guess is your usbhs_runtime_resume() routine has a bug.  Maybe the
-> usbhs_runtime_suspend() routine does too.
->
->> We sometime see the crash in "ohci_hub_status_data" function. So, when
->> we add the
->> below check at the entry of the function, there is no crash. Please
->> find attached crash log.
->> (ohci-crash.log)
->
-> I don't understand the crash log.  What is the cause of the crash?  Is
-> there some error involving spin_lock_irqrestore() in
-> ohci_hub_status_data()
->
->>         if (!HC_IS_RUNNING(hcd->state)) {
->>               return 0;
->>       }
->>
->> But the device does not get detected subsequently with this change. There is
->> a similar check in ehci-hub.c.
->
-> No, there isn't.  Not since the 3.1 kernel.  In any case, ehci-hcd is
-> different from ohci-hcd; you shouldn't expect their hub_status_data
-> routines to be the same.
->
-Ok, I understand.
-
-Thanks,
-Mohan
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index c663eba..b812d6d 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -140,3 +140,98 @@
+ &mcbsp3 {
+ 	status = "disabled";
+ };
++
++&i2c5 {
++	clock-frequency = <400000>;
++
++	smsc@38 {
++		compatible = "smscece1099";
++		reg = <0x38>;
++		clock = <0x13>;
++		keypad {
++			compatible = "smsc,keypad";
++			interrupt-parent = <&gpio5>;
++			interrupts = <23>; /* gpio line 151 */
++			keypad,num-rows = <8>;
++			keypad,num-columns = <16>;
++			linux,keymap = < 0x20041 /* KEY_F7 */
++					0x30001 /* KEY_ESC */
++					0x4003e /* KEY_F4 */
++					0x50022 /* KEY_G */
++					0x70023 /* KEY_H */
++					0x9009a /* KEY_CYCLEWINDOWS */
++					0xc000e /* KEY_BACKSPACE */
++					0xd0057 /* KEY_F11 */
++					0xe009f /* KEY_FORWARD */
++					0xf006e /* KEY_INSERT */
++					0x1020036 /* KEY_RIGHTSHIFT */
++					0x1030011 /* KEY_W */
++					0x1040010 /* KEY_Q */
++					0x1050012 /* KEY_E */
++					0x1070013 /* KEY_R */
++					0x1080016 /* KEY_U */
++					0x10c0017 /* KEY_I */
++					0x10d0067 /* KEY_UP */
++					0x10e0018 /* KEY_O */
++					0x10f0019 /* KEY_LEFT */
++					0x2020003 /* KEY_2 */
++					0x2040004 /* KEY_1 */
++					0x2050005 /* KEY_3 */
++					0x2070008 /* KEY_4 */
++					0x2080009 /* KEY_7 */
++					0x20b0064 /* KEY_8 */
++					0x20c006c /* KEY_RIGHTALT */
++					0x20d000a /* KEY_DOWN */
++					0x20e0001 /* KEY_0 */
++					0x20f006a /* KEY_RIGHT */
++					0x3010061 /* KEY_RIGHTCTRL */
++					0x302001f /* KEY_S */
++					0x303001e /* KEY_A */
++					0x3040020 /* KEY_D */
++					0x3050021 /* KEY_F */
++					0x3070024 /* KEY_J */
++					0x3080025 /* KEY_K */
++					0x30c001c /* KEY_ENTER */
++					0x30d0026 /* KEY_L */
++					0x30e0027 /* KEY_SEMICOLON */
++					0x400002a /* KEY_LEFTSHIFT */
++					0x402002d /* KEY_X */
++					0x403002c /* KEY_Z */
++					0x404002e /* KEY_C */
++					0x405002f /* KEY_V */
++					0x4070032 /* KEY_M */
++					0x4080033 /* KEY_COMMA */
++					0x40c0039 /* KEY_SPACE */
++					0x40d0033 /* KEY_DOT */
++					0x40e0035 /* KEY_SLASH */
++					0x40f006b /* KEY_END */
++					0x501001d /* KEY_LEFTCTRL */
++					0x5020040 /* KEY_F6 */
++					0x503000f /* KEY_TAB */
++					0x504003d /* KEY_F3 */
++					0x5050014 /* KEY_T */
++					0x5070015 /* KEY_Y */
++					0x508001a /* KEY_LEFTBRACE */
++					0x50d0044 /* KEY_F10 */
++					0x50e001b /* KEY_RIGHTBRACE */
++					0x50f0066 /* KEY_HOME */
++					0x602003f /* KEY_F5 */
++					0x604003c /* KEY_F2 */
++					0x6050006 /* KEY_5 */
++					0x60601d0 /* KEY_FN */
++					0x6070007 /* KEY_6 */
++					0x60a008b /* KEY_MENU */
++					0x60c002b /* KEY_BACKSLASH */
++					0x60d0043 /* KEY_F9 */
++					0x7020042 /* KEY_F8 */
++					0x703003a /* KEY_CAPSLOCK */
++					0x704003b /* KEY_F1 */
++					0x7050030 /* KEY_B */
++					0x7070031 /* KEY_N */
++					0x70b0038 /* KEY_LEFTALT */
++					0x70d0058 /* KEY_F12 */
++					0x70f006f >; /* KEY_DELETE */
++			linux,input-no-autorepeat;
++		};
++	};
++};
+-- 
+1.7.1
