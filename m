@@ -1,97 +1,50 @@
-From: Christopher Harvey <charvey@matrox.com>
-Subject: Re: [PATCH v2] mtd: omap: nand: Remove 0xFF's that prefixed 16bit
- NAND commands
-Date: Mon, 29 Oct 2012 13:04:58 -0400
-Message-ID: <20121029170458.GB2650@harvey-pc.matrox.com>
-References: <20121026193410.GA21474@harvey-pc.matrox.com>
- <20121026193643.GA21510@harvey-pc.matrox.com>
- <20121029134903.GA30857@parrot.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mtxmxout2.matrox.com ([138.11.2.92]:54968 "EHLO
-	mtxmxout2.matrox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753068Ab2J2RBO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 13:01:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20121029134903.GA30857@parrot.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: [PATCH 0/2] ARM: OMAP: mailbox out of plat code
+Date: Mon, 29 Oct 2012 12:06:19 -0500
+Message-ID: <1351530381-11459-1-git-send-email-omar.luna@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ivan Djelic <ivan.djelic@parrot.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-On Mon, Oct 29, 2012 at 02:49:03PM +0100, Ivan Djelic wrote:
-> On Fri, Oct 26, 2012 at 08:36:43PM +0100, Christopher Harvey wrote:
-> > In 16bit NAND mode the GPMC would send the command 0xNN as 0xFFNN
-> > instead of 0x00NN on the bus. The 0xFFs were actually uninitialized
-> > bits that were left unset in the GPMC command output register. The
-> > reason they weren't initialized in 16bit mode is that if the same code
-> > that writes to this register was used in 8bit mode then 2 commands
-> > would be output in 8bit mode. One for the low byte, and an extra 0x0
-> > command for the high byte. This commit uses writew if we're using
-> > 16bit NAND.
-> > 
-> > Most chips seem fine with the extra 0xFFs, but the ONFI spec says
-> > otherwise.
-> 
-> Hi Christopher,
-> 
-> Nitpick: I think you should replace 'command' with 'address' in your commit message.
-> The ONFI spec says Host should send _address_ byte NN as 0x00NN. It is OK to send
-> command NN as 0xFFNN, as explicitly mentioned in ONFI 3.1 spec (section 2.16):
-> 
->   2.16.          Bus Width Requirements
-> All NAND Targets per device shall use the same data bus width. All targets shall either have an
-> 8-bit bus width or a 16-bit bus width. Note that devices that support the NV-DDR or NV-DDR2
-> data interface shall have an 8-bit bus width.
-> When the host supports a 16-bit bus width, only data is transferred at the 16-bit width. All
-> address and command line transfers shall use only the lower 8-bits of the data bus. During
-> command transfers, the host may place any value on the upper 8-bits of the data bus. During
-> address transfers, the host shall set the upper 8-bits of the data bus to 00h.
-> 
-> Your patch deals with both command and address bytes, which does not hurt.
-> BR,
-> --
-> Ivan
+From: Omar Ramirez Luna <omar.ramirez@copitl.com>
 
-Ok, makes sense. Thanks for pointing that out. I'll update the wording.
+Move Mailbox's headers and driver out of platform code as
+per current plat-omap cleanup activities.
 
-> > 
-> > Signed-off-by: Christopher Harvey <charvey@matrox.com>
-> > ---
-> >  drivers/mtd/nand/omap2.c |   14 +++++++++-----
-> >  1 files changed, 9 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> > index 5b31386..ae6738f 100644
-> > --- a/drivers/mtd/nand/omap2.c
-> > +++ b/drivers/mtd/nand/omap2.c
-> > @@ -225,16 +225,20 @@ static void omap_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
-> >  {
-> >  	struct omap_nand_info *info = container_of(mtd,
-> >  					struct omap_nand_info, mtd);
-> > +	void __iomem *reg;
-> >  
-> >  	if (cmd != NAND_CMD_NONE) {
-> >  		if (ctrl & NAND_CLE)
-> > -			writeb(cmd, info->reg.gpmc_nand_command);
-> > -
-> > +			reg = info->reg.gpmc_nand_command;
-> >  		else if (ctrl & NAND_ALE)
-> > -			writeb(cmd, info->reg.gpmc_nand_address);
-> > -
-> > +			reg = info->reg.gpmc_nand_address;
-> >  		else /* NAND_NCE */
-> > -			writeb(cmd, info->reg.gpmc_nand_data);
-> > +			reg = info->reg.gpmc_nand_data;
-> > +
-> > +		if (info->nand.options & NAND_BUSWIDTH_16)
-> > +			writew(cmd, reg);
-> > +		else
-> > +			writeb(cmd, reg);
-> >  	}
-> >  }
-> >  
-> > -- 
-> > 1.7.8.6
-> > 
+While at it move mailbox code out of platform and to drivers/
+folder, given that this is an OMAP specific framework, some people
+might frown upon this, however it seemed worth to try to move it now.
+I was expecting this could also pull out the mailbox code from
+ux-500 platform, but the platform with a similar mailbox mechanism
+has been deleted during 3.5 rc cycle.
+
+So, are there any other mailbox-like drivers out there?
+
+Omar Ramirez Luna (2):
+  ARM: OMAP2+: move mailbox.h out of plat-omap headers
+  mailbox: OMAP: introduce mailbox framework
+
+ arch/arm/mach-omap2/mailbox.c                      |    2 +-
+ arch/arm/plat-omap/Kconfig                         |   16 -
+ arch/arm/plat-omap/Makefile                        |    3 -
+ arch/arm/plat-omap/include/plat/mailbox.h          |  105 -----
+ arch/arm/plat-omap/mailbox.c                       |  435 --------------------
+ drivers/Kconfig                                    |    2 +
+ drivers/Makefile                                   |    1 +
+ drivers/mailbox/Kconfig                            |   28 ++
+ drivers/mailbox/Makefile                           |    1 +
+ drivers/mailbox/mailbox.c                          |  435 ++++++++++++++++++++
+ .../tidspbridge/include/dspbridge/host_os.h        |    2 +-
+ include/linux/platform_data/omap_mailbox.h         |  105 +++++
+ 12 files changed, 574 insertions(+), 561 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat/mailbox.h
+ delete mode 100644 arch/arm/plat-omap/mailbox.c
+ create mode 100644 drivers/mailbox/Kconfig
+ create mode 100644 drivers/mailbox/Makefile
+ create mode 100644 drivers/mailbox/mailbox.c
+ create mode 100644 include/linux/platform_data/omap_mailbox.h
+
+-- 
+1.7.9.5
