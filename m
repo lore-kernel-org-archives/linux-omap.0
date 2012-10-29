@@ -1,96 +1,98 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Mon, 29 Oct 2012 04:53:11 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB500B6@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
- <5089461A.9050307@ti.com>
- <79CD15C6BA57404B839C016229A409A83EB4B619@DBDE01.ent.ti.com>
- <2228718.AWOaBDd6ZK@avalon>
+Subject: RE: Fwd: [PATCH 2/5] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
+ davinci_mdio
+Date: Mon, 29 Oct 2012 04:58:23 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EB500C9@DBDE01.ent.ti.com>
+References: <20121017181354.GA2412@netboy.at.omicron.at>
+ <alpine.DEB.2.00.1210172337170.30902@utopia.booyaka.com>
+ <20121017235045.GB30550@atomide.com>
+ <20121018030654.GE2867@netboy.at.omicron.at>
+ <alpine.DEB.2.00.1210180313360.6893@utopia.booyaka.com>
+ <20121018184443.GD2350@netboy.at.omicron.at> <50806B1D.9040504@ti.com>
+ <20121019061630.GB2983@netboy.at.omicron.at>
+ <20121019160041.GB4730@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EB4B4C7@DBDE01.ent.ti.com>
+ <20121026180627.GN11908@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <2228718.AWOaBDd6ZK@avalon>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41144 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab2J2E6i convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 00:58:38 -0400
+In-Reply-To: <20121026180627.GN11908@atomide.com>
 Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Richard Cochran <richardcochran@gmail.com>, Paul Walmsley <paul@pwsan.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sat, Oct 27, 2012 at 17:01:09, Laurent Pinchart wrote:
-> Hi Vaibhav,
-> 
-> On Friday 26 October 2012 09:13:20 Hiremath, Vaibhav wrote:
-> > On Thu, Oct 25, 2012 at 19:30:58, Valkeinen, Tomi wrote:
-> > > On 2012-03-09 10:03, Hiremath, Vaibhav wrote:
-> > > > On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
-> > > >> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> > > >>> The omap_vout driver tries to set the DSS overlay_info using
-> > > >>> set_overlay_info() when the physical address for the overlay is still
-> > > >>> not configured. This happens in omap_vout_probe() and
-> > > >>> vidioc_s_fmt_vid_out().
-> > > >>> 
-> > > >>> The calls to omapvid_init(which internally calls set_overlay_info())
-> > > >>> are removed from these functions. They don't need to be called as the
-> > > >>> omap_vout_device struct anyway maintains the overlay related changes
-> > > >>> made. Also, remove the explicit call to set_overlay_info() in
-> > > >>> vidioc_streamon(), this was used to set the paddr, this isn't needed
-> > > >>> as omapvid_init() does the same thing later.
-> > > >>> 
-> > > >>> These changes are required as the DSS2 driver since 3.3 kernel doesn't
-> > > >>> let you set the overlay info with paddr as 0.
-> > > >>> 
-> > > >>> Signed-off-by: Archit Taneja <archit@ti.com>
-> > > >> 
-> > > >> Thanks for the patch. This seems to fix memory corruption that would
-> > > >> result in sysfs-related crashes such as
-> > > >> 
-> > > >> [   31.279541] ------------[ cut here ]------------
-> > > >> [   31.284423] WARNING: at fs/sysfs/file.c:343
-> > > >> sysfs_open_file+0x70/0x1f8()
-> > > >> [   31.291503] missing sysfs attribute operations for kobject: (null)
-> > > >> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-> > > >> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from
-> > > >> [<c0034488>] (warn_slowpath_common+0x4c/0x64) [   31.313812]
-> > > >> [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>]
-> > > >> (warn_slowpath_fmt+0x2c/0x3c) [   31.323913] [<c0034520>]
-> > > >> (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>]
-> > > >> (sysfs_open_file+0x70/0x1f8) [   31.333618] [<c01219bc>]
-> > > >> (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>]
-> > > >> (__dentry_open+0x1f8/0x30c) [   31.343139] [<c00ccc94>]
-> > > >> (__dentry_open+0x1f8/0x30c) from [<c00cce58>]
-> > > >> (nameidata_to_filp+0x50/0x5c) [   31.352752] [<c00cce58>]
-> > > >> (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-> > > >> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>]
-> > > >> (path_openat+0xb8/0x37c) [   31.370605] [<c00db6bc>]
-> > > >> (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c) [ 
-> > > >>  31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>]
-> > > >> (do_sys_open+0xd8/0x170) [   31.388366] [<c00cc904>]
-> > > >> (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-> > > >> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
-> > > >> 
-> > > >> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On Fri, Oct 26, 2012 at 23:36:28, Tony Lindgren wrote:
+> * Hiremath, Vaibhav <hvaibhav@ti.com> [121026 01:24]:
+> > On Fri, Oct 19, 2012 at 21:30:41, Tony Lindgren wrote:
+> > > * Richard Cochran <richardcochran@gmail.com> [121018 23:18]:
+> > > > On Fri, Oct 19, 2012 at 02:18:29AM +0530, Vaibhav Hiremath wrote:
+> > > > > 
+> > > > > Another important point is, this driver is also required and used for
+> > > > > Davinci family of devices (arch/mach/mach-davinci/).
 > > > > 
-> > > > Thanks Laurent for testing this patch.
+> > > > That is really beside the point. If the code isn't ready yet, then
+> > > > don't merge it.
 > > > > 
-> > > >> Please push it to v3.3 :-)
+> > > > When I asked about the beaglebone, I was given the impression that it
+> > > > will be ready for v3.7-rc1.  But, as I know realize, at the current
+> > > > rate, it might not even be ready for v3.8.
 > > > > 
-> > > > Will send a pull request today itself.
+> > > > I don't mind waiting, but please make sure that whatever lands into a
+> > > > release is really, truly working.
 > > > 
-> > > Vaibhav, I don't see this crash fix in 3.3, 3.4, 3.5, 3.6 nor in 3.7-rc.
-> > > Are you still maintaining the omap v4l2 driver? Can you finally push
-> > > this fix?
+> > > Indeed. This has been a problem with many of the TI patches in
+> > > general. People are working on separate product trees and then produce
+> > > patches for the mainline kernel that are poorly tested.
+> > > 
 > > 
-> > Tomi, Sorry for delayed response.
+> > Tony,
 > > 
-> > Laurent,
-> > Can you pull up this patch into your next pull request?
+> > It may not be true always, as we always work simultaneously and there are 
+> > high chances that some patches/development is dependent on others from 
+> > functionality perspective (especially baseport), but still they are 
+> > independent modules (may be for other devices).
+> > 
+> > Lets take a example of AM33xx and OMAP5 here, we started submitting baseport 
+> > patches to the list (almost 6-8 months now), not all the patches gets 
+> > accepted together in one shot.
+> > As you know, when we started pushing AM33xx and OMAP5 baseport patches, we 
+> > were at the stage where both DT and hwmod was required. First attempt for 
+> > board file submission did not went through, since we decided to force all 
+> > new devices migrate to DT, right?
 > 
-> I've asked Mauro to pull the patch for v3.8.
+> I think you guys have done a pretty good job with the am33xx patches
+> in general to get the core omap changes merged.
+>  
+> > So the criteria initially was, build should not break and submit patches 
+> > step-by-step.
+> > 
+> > Now, with baseport patches submitted to list, individual developer can also 
+> > start submitting patches to the respective driver's list, making sure that, 
+> > driver doesn't change irrespective of platform. I do not see anything wrong
+> > with this, as we always consider driver independent.
+> > 
+> > In this particular case, note that, all the patches Richard posted recently 
+> > are AM33xx SoC integration specific patches only.
+> 
+> Yes now the core omap patches are merged, and people want to use
+> the devices with mainline kernel. That's usually good news :)
 > 
 
-Thanks Laurent.
+Yes, absolutely. 
+
+Now the expectation has grown to the level where people expect everything in 
+the Mainline kernel and not in some custom kernel release.
+
+I believe and expect, v3.8 merge window would be really meaningful in this 
+regard for AM33xx platform.
 
 Thanks,
 Vaibhav
+
