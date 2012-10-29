@@ -1,88 +1,115 @@
-From: Tim Niemeyer <tim.niemeyer@corscience.de>
-Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
-Date: Mon, 29 Oct 2012 09:52:08 +0100
-Message-ID: <1351500728.2194.69.camel@herbert.er.corscience.de>
-References: <20121026114250.GA26342@arwen.pp.htv.fi>
-	 <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
-	 <20121026200137.GC29548@arwen.pp.htv.fi>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator
+ driver to omap_usb2
+Date: Mon, 29 Oct 2012 11:01:03 +0200
+Message-ID: <508E45CF.70303@ti.com>
+References: <1346943430-18236-1-git-send-email-kishon@ti.com> <1346943430-18236-3-git-send-email-kishon@ti.com> <CAH+eYFAj1ecvmiJCu8QDCr3LjHT5eXjq6zsZMiVRPROoWcDuNQ@mail.gmail.com> <CAAe_U6K1RXA3b5u9WvE=2VoXym9Vj3KM7c0J27jKz+2KrV4tsg@mail.gmail.com> <CAH+eYFAhVE8cAte2PFk3jinV9n3m+eDLtE43QxzRXMScnFGcrA@mail.gmail.com> <508AA94B.10504@ti.com> <508AAA85.6070905@ti.com> <20121026163619.GB11908@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:51955 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758174Ab2J2Ivh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 04:51:37 -0400
-In-Reply-To: <20121026200137.GC29548@arwen.pp.htv.fi>
+Received: from comal.ext.ti.com ([198.47.26.152]:48241 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758198Ab2J2JBP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 05:01:15 -0400
+In-Reply-To: <20121026163619.GB11908@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Rabin Vincent <rabin@rab.in>, balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 
-Hello
+Hi Tony,
 
-Am Freitag, den 26.10.2012, 23:01 +0300 schrieb Felipe Balbi:
-> Hi,
->=20
-> On Fri, Oct 26, 2012 at 03:19:13PM +0200, Tim Niemeyer wrote:
-> > Adds support for configuring the omap-gpio driver use autosuspend f=
-or
-> > runtime power management. This can reduce the latency in using it b=
-y
-> > not suspending the device immediately on idle. If another access ta=
-kes
-> > place before the autosuspend timeout (2 secs), the call to resume t=
-he
-> > device can return immediately saving some save/ restore cycles.
-> >=20
-> > This removes also the bank->mod_usage counter, because this is alre=
-ady
-> > handled in pm_runtime.
-> >=20
-> > I use a gpio to monitor a spi transfer which occurs every 250=C2=B5=
-s. The
-> > suspend overhead is to high, so almost every second transfer is los=
-t.
-> > This patch fixes that.
-> >=20
-> > Signed-off-by: Tim Niemeyer <tim.niemeyer@corscience.de>
-> > ---
-> >  drivers/gpio/gpio-omap.c |   81 ++++++++++++++++++++++++----------=
------------
-> >  1 files changed, 43 insertions(+), 38 deletions(-)
-> >=20
-> > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> > index 94cbc84..708d5a9 100644
-> > --- a/drivers/gpio/gpio-omap.c
-> > +++ b/drivers/gpio/gpio-omap.c
-> > @@ -31,6 +31,7 @@
-> >  #include <asm/mach/irq.h>
-> > =20
-> >  #define OFF_MODE	1
-> > +#define GPIO_AUTOSUSPEND_TIMEOUT                2000
->=20
-> something just hit me... If you keep timeout at 2000 ms and you hook
-> this up to an IRQ line, it's very unlikely GPIO will ever sleep.
->=20
-> Why did you choose 2000 ms ? Arbitrary value ?
-Got it from the spi driver (27b5284cfbe187732ebb184b03ea693f44837f9d).
-I have no problem with reducing this. As i don't know how much
-power-overhead the suspend needs, what do you think is a good value in
-terms of power-saving?
+On 10/26/2012 07:36 PM, Tony Lindgren wrote:
+> * Benoit Cousson <b-cousson@ti.com> [121026 08:23]:
+>> Hi Roger,
+>>
+>> On 10/26/2012 05:16 PM, Roger Quadros wrote:
+>>> Hi Kishon & Benoit,
+>>>
+>>> On 09/24/2012 12:06 PM, Rabin Vincent wrote:
+>>>> 2012/9/24 ABRAHAM, KISHON VIJAY <kishon@ti.com>:
+>>>>> On Sat, Sep 22, 2012 at 3:03 AM, Rabin Vincent <rabin@rab.in> wrote:
+>>>>>> USB doesn't work on pandaboard on linux-next, and bisection shows this
+>>>>>> patch.  Unfortunately, I can't provide a dmesg log because USB is the
+>>>>>> only way I currently have to get one out(!), but presumably it's because
+>>>>>> this omap-usb2 device is never registered?  Looks like this breaks
+>>>>>> non-dt USB on pandaboard; is that intended?
+>>>>>
+>>>>> Yes. omap-usb2 is *only* dt supported (New drivers shouldn't have the
+>>>>> old non-dt support).
+>>>>
+>>>> Well, USB used to work fine on Pandaboard without DT before the
+>>>> introduction of "omap-usb2", so one would expected it to continue
+>>>> working (until the board file is completely removed).
+>>>>
+>>>> Anyway, I've moved to DT now.
+>>>>
+>>>>> Some patches are queued only for 3.7.
+>>>>>
+>>>>> In case you want to use MUSB please use these patches on linux-next..
+>>>>> [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
+>>>>> [PATCH] ARM: OMAP2+: hwmod data: Fix ocp2scp_usb_phy and usb_host_hs
+>>>>> entries (from Benoit)
+>>>>> [PATCH 0/2] ARM: dts: Add subnode for ocp2scp (patch series)
+>>>>> [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB (patch series)
+>>>>
+>>>> I got these by merging in Benoit's for_3.7/dts_part2 on top of
+>>>> next-20120921.  Thanks.
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>>> I still can't get musb to work on 3.7-rc2. Apparently it is still
+>>> missing the patches from Benoit's for_3.7/dts_part2.
+>>>
+>>> Maybe I just need to wait for it to be merged?
+>>
+>> They are now in a for_3.8/dts. Unfortunately, one patch that was adding
+>> ctrl_module address in the USB data was rejected and thus I'm not sure
+>> it will work without that.
+>>
+>> I think Tony had an idea to map the ctrl_register to regulator fmwk or
+>> something like that.
+> 
+> For device tree, we may be eventually able to handle the ctrl_register
+> using pinctrl-single.c and pinconf API. It probably does not make
+> sense to set it up as a regulator as the comparator can trigger errors
+> also for the pinconf related bits at least for MMC PBIAS.
+>  
+>>> Till then, where can I get a tree where musb works on Panda?
+> 
+> On panda, without using device tree, use v3.7-rc2 + the following patches:
+> 
+> ARM: OMAP: ocp2scp: create omap device for ocp2scp
+> ARM: OMAP4: add _dev_attr_ to ocp2scp for representing usb_phy
+> drivers: bus: ocp2scp: add pdata support
+>
 
---=20
-Tim Niemeyer
+The above 3 patches got it to work for me. Thanks for the hint.
 
-Corscience GmbH & Co. KG
-Henkestr. 91
-D-91052 Erlangen
-Germany
+> Also you need to enable CONFIG_OMAP_USB2. No idea what all is needed
+> to use MUSB with device tree at this point.
+> 
 
-e-mail: tim.niemeyer@corscience.de
-Internet: www.corscience.de
+Yes, you need to enable a bunch of other things which are not so easy to
+figure out for someone who has not worked with MUSB. Do you think we
+should enable musb and all dependencies in omap2plus_defconfig?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+One more thing to note is that building CONFIG_OMAP_USB2 as module
+breaks the kernel build with the following error.
+
+drivers/built-in.o: In function `twl4030_usb_irq':
+/work/linux-2.6/drivers/usb/otg/twl4030-usb.c:518: undefined reference
+to `omap_musb_mailbox'
+drivers/built-in.o: In function `twl4030_usb_phy_init':
+/work/linux-2.6/drivers/usb/otg/twl4030-usb.c:540: undefined reference
+to `omap_musb_mailbox'
+make: *** [vmlinux] Error 1
+
+I bet the error would come while building twl6030-usb.c too.
+
+regards,
+-roger
