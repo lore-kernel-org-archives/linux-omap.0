@@ -1,59 +1,70 @@
-From: Josef Holzmayr <holzmayr@rsi-elektrotechnik.de>
-Subject: [PATCH] [PATCH] remove pcm049 from Makefile
-Date: Mon, 29 Oct 2012 19:30:22 +0100
-Message-ID: <1351535422-4644-1-git-send-email-holzmayr@rsi-elektrotechnik.de>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP3: igep0020: Set WIFI/BT GPIO pins in correct
+ mux mode
+Date: Mon, 29 Oct 2012 19:31:37 +0100
+Message-ID: <CAFqH_53q8yTy=yBxDE=SFQ=j-ogy4yNF5KpNBsLd1OQ9dbA37g@mail.gmail.com>
+References: <1351533073-5974-1-git-send-email-anders.j.hedlund@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:9361 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757125Ab2J2Sad (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 14:30:33 -0400
+Received: from mail-da0-f46.google.com ([209.85.210.46]:47519 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760237Ab2J2Sbh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 14:31:37 -0400
+Received: by mail-da0-f46.google.com with SMTP id n41so2552526dak.19
+        for <linux-omap@vger.kernel.org>; Mon, 29 Oct 2012 11:31:37 -0700 (PDT)
+In-Reply-To: <1351533073-5974-1-git-send-email-anders.j.hedlund@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Josef Holzmayr <holzmayr@rsi-elektrotechnik.de>
+To: Anders Hedlund <anders.j.hedlund@gmail.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, Jonas Zetterberg <jozz@jozz.se>, Javier Martinez Canillas <martinez.javier@gmail.com>, Matthias Brugger <mbrugger@iseebcn.com>
 
----
- arch/arm/mach-omap2/Makefile |    2 --
- 1 file changed, 2 deletions(-)
+Hi,
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefil=
-e
-index fe40d9e..d1155be 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -236,8 +236,6 @@ obj-$(CONFIG_MACH_TOUCHBOOK)		+=3D board-omap3touch=
-book.o
- obj-$(CONFIG_MACH_OMAP_4430SDP)		+=3D board-4430sdp.o
- obj-$(CONFIG_MACH_OMAP4_PANDA)		+=3D board-omap4panda.o
-=20
--obj-$(CONFIG_MACH_PCM049)		+=3D board-omap4pcm049.o
--
- obj-$(CONFIG_MACH_OMAP3517EVM)		+=3D board-am3517evm.o
-=20
- obj-$(CONFIG_MACH_CRANEBOARD)		+=3D board-am3517crane.o
---=20
-1.7.9.5
+Thanks for the patch, just one comment below.
 
+2012/10/29 Anders Hedlund <anders.j.hedlund@gmail.com>:
+> Configure the WIFI/BT GPIO pin muxes unless the bootloader hasn't already
+> done so.
+>
+> Signed-off-by: Anders Hedlund <anders.j.hedlund@gmail.com>
+> Cc: Jonas Zetterberg <jozz@jozz.se>
+> Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-igep0020.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
+>
+> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+> index dbc705a..17e45bc 100644
+> --- a/arch/arm/mach-omap2/board-igep0020.c
+> +++ b/arch/arm/mach-omap2/board-igep0020.c
+> @@ -579,6 +579,13 @@ static void __init igep_wlan_bt_init(void)
+>         } else
+>                 return;
+>
+> +#ifdef CONFIG_OMAP_MUX
 
---=20
-_____________________________________________________________
-R-S-I Elektrotechnik GmbH & Co. KG
-Woelkestrasse 11
-D-85301 Schweitenkirchen
-=46on: +49 8444 9204-0
-=46ax: +49 8444 9204-50
-www.rsi-elektrotechnik.de
+The ifdef is not required here (the mux.h file does this for you)
 
-_____________________________________________________________
-Amtsgericht Ingolstadt - GmbH: HRB 191328 - KG: HRA 170363
-Gesch=E4ftsf=FChrer: Dr.-Ing. Michael Sorg, Dipl.-Ing. Franz Sorg
-USt-IdNr.: DE 128592548
+> +       /* Make sure that the GPIO pins are muxed correctly */
+> +       omap_mux_init_gpio(igep_wlan_bt_gpios[0].gpio, OMAP_PIN_OUTPUT);
+> +       omap_mux_init_gpio(igep_wlan_bt_gpios[1].gpio, OMAP_PIN_OUTPUT);
+> +       omap_mux_init_gpio(igep_wlan_bt_gpios[2].gpio, OMAP_PIN_OUTPUT);
+> +#endif
+> +
+>         err = gpio_request_array(igep_wlan_bt_gpios,
+>                                  ARRAY_SIZE(igep_wlan_bt_gpios));
+>         if (err) {
+> --
+> 1.7.10.4
+>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony, after corrections, as this is a fix could be included ?  Or we
+need to wait to the next merge window.
+
+The problem is, with recent u-boot these pins are not muxed because
+u-boot sets only the minimum required for uboot functionality and
+kernel boot. In kernel these pins must be muxed in order to get the
+wifi and bluetooth work.
+
+( CCing: Javier Martinez and Matthias Brugger )
