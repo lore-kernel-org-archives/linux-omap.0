@@ -1,212 +1,178 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND PATCH] mmc: omap_hsmmc: Enable HSPE bit for high speed
- cards
-Date: Mon, 29 Oct 2012 18:17:19 +0200
-Message-ID: <20121029161719.GI27566@arwen.pp.htv.fi>
-References: <1351515408-19403-1-git-send-email-gururaja.hebbar@ti.com>
+Subject: Re: [RESEND/PATCHv3] arm: dts: omap5-evm: Add keypad support
+Date: Mon, 29 Oct 2012 18:18:42 +0200
+Message-ID: <20121029161842.GJ27566@arwen.pp.htv.fi>
+References: <1351507226-10328-1-git-send-email-sourav.poddar@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5me2qT3T17SWzdxI"
-Return-path: <linux-mmc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="IA03tywDYuoVKXrw"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1351515408-19403-1-git-send-email-gururaja.hebbar@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: svenkatr@ti.com, cjb@laptop.org, balajitk@ti.com, grant.likely@secretlab.ca, nsekhar@ti.com, sudhakar.raj@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com
+In-Reply-To: <1351507226-10328-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---5me2qT3T17SWzdxI
+--IA03tywDYuoVKXrw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Mon, Oct 29, 2012 at 04:10:26PM +0530, Sourav Poddar wrote:
+> Add keypad data node in omap5-evm.
+>=20
+> Based on I2C support patch for omap5, which has been
+> already posted as a different series.
+>=20
+> Tested on omap5430 evm with 3.7-rc1 kernel.
+>=20
+> Cc: Felipe Balbi <balbi@ti.com>
 
-On Mon, Oct 29, 2012 at 06:26:48PM +0530, Hebbar, Gururaja wrote:
-> HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-> Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-> on the HSMMC IP timing closure done for the high speed cards.
+you can change this into an Acked-by: Felipe Balbi <balbi@ti.com> if you
+wish.
+
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 >=20
-> From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
+> Tested on omap5430 sdp with 3.7-rc1 kernel.
 >=20
-> The MMC/SD/SDIO output signals can be driven on either falling edge or
-> rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-> to reach better timing performance, and thus to increase data transfer
-> frequency.
->=20
-> There are few pre-requisites for enabling the HSPE bit
-> - Controller should support High-Speed-Enable Bit and
-> - Controller should not be using DDR Mode and
-> - Controller should advertise that it supports High Speed in
->   capabilities register and
-> - MMC/SD clock coming out of controller > 25MHz
->=20
-> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 > ---
-> Rebased on mmc-next (v3.7.0-rc1)
-> Only Build tested since EDMA support for AM335x is not yet added
+>  arch/arm/boot/dts/omap5-evm.dts |   95 +++++++++++++++++++++++++++++++++=
+++++++
+>  1 files changed, 95 insertions(+), 0 deletions(-)
 >=20
-> :100644 100644 be76a23... ed271fc... M	Documentation/devicetree/bindings/=
-mmc/ti-omap-hsmmc.txt
-> :100644 100644 8b4e4f2... 346af5b... M	arch/arm/plat-omap/include/plat/mm=
-c.h
-> :100644 100644 54bfd0c... 3fd95cb... M	drivers/mmc/host/omap_hsmmc.c
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
->  arch/arm/plat-omap/include/plat/mmc.h              |    1 +
->  drivers/mmc/host/omap_hsmmc.c                      |   30 ++++++++++++++=
-+++++-
->  3 files changed, 31 insertions(+), 1 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Do=
-cumentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> index be76a23..ed271fc 100644
-> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> @@ -19,6 +19,7 @@ ti,dual-volt: boolean, supports dual voltage cards
->  "supply-name" examples are "vmmc", "vmmc_aux" etc
->  ti,non-removable: non-removable slot (like eMMC)
->  ti,needs-special-reset: Requires a special softreset sequence
-> +ti,needs-special-hs-handling: HSMMC IP needs special setting for handlin=
-g High Speed
-
-can't you do runtime revision detection for this ?
-
->  Example:
->  	mmc1: mmc@0x4809c000 {
-> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/i=
-nclude/plat/mmc.h
-> index 8b4e4f2..346af5b 100644
-> --- a/arch/arm/plat-omap/include/plat/mmc.h
-> +++ b/arch/arm/plat-omap/include/plat/mmc.h
-> @@ -126,6 +126,7 @@ struct omap_mmc_platform_data {
->  		/* we can put the features above into this variable */
->  #define HSMMC_HAS_PBIAS		(1 << 0)
->  #define HSMMC_HAS_UPDATED_RESET	(1 << 1)
-> +#define HSMMC_HAS_HSPE_SUPPORT	(1 << 2)
->  		unsigned features;
-> =20
->  		int switch_pin;			/* gpio (card detect) */
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 54bfd0c..3fd95cb 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -62,6 +62,7 @@
-> =20
->  #define VS18			(1 << 26)
->  #define VS30			(1 << 25)
-> +#define HSS			(1 << 21)
->  #define SDVS18			(0x5 << 9)
->  #define SDVS30			(0x6 << 9)
->  #define SDVS33			(0x7 << 9)
-> @@ -89,6 +90,7 @@
->  #define MSBS			(1 << 5)
->  #define BCE			(1 << 1)
->  #define FOUR_BIT		(1 << 1)
-> +#define HSPE			(1 << 2)
->  #define DDR			(1 << 19)
->  #define DW8			(1 << 5)
->  #define CC			0x1
-> @@ -489,6 +491,7 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_ho=
-st *host)
->  	struct mmc_ios *ios =3D &host->mmc->ios;
->  	unsigned long regval;
->  	unsigned long timeout;
-> +	unsigned long clkdiv;
-> =20
->  	dev_vdbg(mmc_dev(host->mmc), "Set clock to %uHz\n", ios->clock);
-> =20
-> @@ -496,7 +499,8 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_ho=
-st *host)
-> =20
->  	regval =3D OMAP_HSMMC_READ(host->base, SYSCTL);
->  	regval =3D regval & ~(CLKD_MASK | DTO_MASK);
-> -	regval =3D regval | (calc_divisor(host, ios) << 6) | (DTO << 16);
-> +	clkdiv =3D calc_divisor(host, ios);
-> +	regval =3D regval | (clkdiv << 6) | (DTO << 16);
-
-not part of $SUBJECT
-
->  	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
->  	OMAP_HSMMC_WRITE(host->base, SYSCTL,
->  		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
-> @@ -507,6 +511,27 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_h=
-ost *host)
->  		&& time_before(jiffies, timeout))
->  		cpu_relax();
-> =20
-> +	/*
-> +	 * Enable High-Speed Support
-> +	 * Pre-Requisites
-> +	 *	- Controller should support High-Speed-Enable Bit
-> +	 *	- Controller should not be using DDR Mode
-> +	 *	- Controller should advertise that it supports High Speed
-> +	 *	  in capabilities register
-> +	 *	- MMC/SD clock coming out of controller > 25MHz
-> +	 */
-> +	if ((mmc_slot(host).features & HSMMC_HAS_HSPE_SUPPORT) &&
-
-is this really needed...
-
-> +	    (ios->timing !=3D MMC_TIMING_UHS_DDR50) &&
-> +	    ((OMAP_HSMMC_READ(host->base, CAPA) & HSS) =3D=3D HSS)) {
-
-=2E.. provided you check device's register ?
-
-> +		regval =3D OMAP_HSMMC_READ(host->base, HCTL);
-> +		if (clkdiv && (clk_get_rate(host->fclk)/clkdiv) > 25000000)
-> +			regval |=3D HSPE;
-> +		else
-> +			regval &=3D ~HSPE;
+> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-ev=
+m.dts
+> index c663eba..b812d6d 100644
+> --- a/arch/arm/boot/dts/omap5-evm.dts
+> +++ b/arch/arm/boot/dts/omap5-evm.dts
+> @@ -140,3 +140,98 @@
+>  &mcbsp3 {
+>  	status =3D "disabled";
+>  };
 > +
-> +		OMAP_HSMMC_WRITE(host->base, HCTL, regval);
-> +	}
+> +&i2c5 {
+> +	clock-frequency =3D <400000>;
 > +
->  	omap_hsmmc_start_clock(host);
->  }
-> =20
-> @@ -1700,6 +1725,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_=
-pdata(struct device *dev)
->  	if (of_find_property(np, "ti,needs-special-reset", NULL))
->  		pdata->slots[0].features |=3D HSMMC_HAS_UPDATED_RESET;
-> =20
-> +	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
-> +		pdata->slots[0].features |=3D HSMMC_HAS_HSPE_SUPPORT;
-> +
->  	return pdata;
->  }
->  #else
+> +	smsc@38 {
+> +		compatible =3D "smscece1099";
+> +		reg =3D <0x38>;
+> +		clock =3D <0x13>;
+> +		keypad {
+> +			compatible =3D "smsc,keypad";
+> +			interrupt-parent =3D <&gpio5>;
+> +			interrupts =3D <23>; /* gpio line 151 */
+> +			keypad,num-rows =3D <8>;
+> +			keypad,num-columns =3D <16>;
+> +			linux,keymap =3D < 0x20041 /* KEY_F7 */
+> +					0x30001 /* KEY_ESC */
+> +					0x4003e /* KEY_F4 */
+> +					0x50022 /* KEY_G */
+> +					0x70023 /* KEY_H */
+> +					0x9009a /* KEY_CYCLEWINDOWS */
+> +					0xc000e /* KEY_BACKSPACE */
+> +					0xd0057 /* KEY_F11 */
+> +					0xe009f /* KEY_FORWARD */
+> +					0xf006e /* KEY_INSERT */
+> +					0x1020036 /* KEY_RIGHTSHIFT */
+> +					0x1030011 /* KEY_W */
+> +					0x1040010 /* KEY_Q */
+> +					0x1050012 /* KEY_E */
+> +					0x1070013 /* KEY_R */
+> +					0x1080016 /* KEY_U */
+> +					0x10c0017 /* KEY_I */
+> +					0x10d0067 /* KEY_UP */
+> +					0x10e0018 /* KEY_O */
+> +					0x10f0019 /* KEY_LEFT */
+> +					0x2020003 /* KEY_2 */
+> +					0x2040004 /* KEY_1 */
+> +					0x2050005 /* KEY_3 */
+> +					0x2070008 /* KEY_4 */
+> +					0x2080009 /* KEY_7 */
+> +					0x20b0064 /* KEY_8 */
+> +					0x20c006c /* KEY_RIGHTALT */
+> +					0x20d000a /* KEY_DOWN */
+> +					0x20e0001 /* KEY_0 */
+> +					0x20f006a /* KEY_RIGHT */
+> +					0x3010061 /* KEY_RIGHTCTRL */
+> +					0x302001f /* KEY_S */
+> +					0x303001e /* KEY_A */
+> +					0x3040020 /* KEY_D */
+> +					0x3050021 /* KEY_F */
+> +					0x3070024 /* KEY_J */
+> +					0x3080025 /* KEY_K */
+> +					0x30c001c /* KEY_ENTER */
+> +					0x30d0026 /* KEY_L */
+> +					0x30e0027 /* KEY_SEMICOLON */
+> +					0x400002a /* KEY_LEFTSHIFT */
+> +					0x402002d /* KEY_X */
+> +					0x403002c /* KEY_Z */
+> +					0x404002e /* KEY_C */
+> +					0x405002f /* KEY_V */
+> +					0x4070032 /* KEY_M */
+> +					0x4080033 /* KEY_COMMA */
+> +					0x40c0039 /* KEY_SPACE */
+> +					0x40d0033 /* KEY_DOT */
+> +					0x40e0035 /* KEY_SLASH */
+> +					0x40f006b /* KEY_END */
+> +					0x501001d /* KEY_LEFTCTRL */
+> +					0x5020040 /* KEY_F6 */
+> +					0x503000f /* KEY_TAB */
+> +					0x504003d /* KEY_F3 */
+> +					0x5050014 /* KEY_T */
+> +					0x5070015 /* KEY_Y */
+> +					0x508001a /* KEY_LEFTBRACE */
+> +					0x50d0044 /* KEY_F10 */
+> +					0x50e001b /* KEY_RIGHTBRACE */
+> +					0x50f0066 /* KEY_HOME */
+> +					0x602003f /* KEY_F5 */
+> +					0x604003c /* KEY_F2 */
+> +					0x6050006 /* KEY_5 */
+> +					0x60601d0 /* KEY_FN */
+> +					0x6070007 /* KEY_6 */
+> +					0x60a008b /* KEY_MENU */
+> +					0x60c002b /* KEY_BACKSLASH */
+> +					0x60d0043 /* KEY_F9 */
+> +					0x7020042 /* KEY_F8 */
+> +					0x703003a /* KEY_CAPSLOCK */
+> +					0x704003b /* KEY_F1 */
+> +					0x7050030 /* KEY_B */
+> +					0x7070031 /* KEY_N */
+> +					0x70b0038 /* KEY_LEFTALT */
+> +					0x70d0058 /* KEY_F12 */
+> +					0x70f006f >; /* KEY_DELETE */
+> +			linux,input-no-autorepeat;
+> +		};
+> +	};
+> +};
 > --=20
-> 1.7.0.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.7.1
 
 --=20
 balbi
 
---5me2qT3T17SWzdxI
+--IA03tywDYuoVKXrw
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQjqwPAAoJEIaOsuA1yqREp/UP/3IVk+UNxCeq6O+0cj1iepZZ
-7/GnSfvC6vcgWCfnQN25mxkG2hAXlv+fdOVPpRRoXXjpewu1Zc3yWwipUS1Tyjwj
-ZWPVd6W2O0Ct5vvSalp1m6iPoC102+Trk8QAQoqc+eiecQ+8arEhodF6EbVYOijC
-quWmQf3wN2CHz0YI+K5Oz3jhmOpP+1PJ6A5ehAmUN5RrQvvXDF9KhP/vtAFOJwHu
-dni9blOA5ZIfF/kOeesQ+Sr7X8l3B5JYUxans5y1gvDnVLpMdkjWpKqZqAyiW9Pq
-uBH7NtuqTuhl+3RPI8+226grqyCQumvEdwxvKv0AgFK8TkQEPVwj/GIXgSYpuD5A
-8WH7Xqq5SzmUfcPHzs46DPOy1sCiygL8Ab89KHtUFsX2SwJfRFJaO8PJu4uQsjJo
-ecd8qnz3YdXOSdT+HAfdQhfVTV1TNbiBrJNZpAT8io6N7ORWcD5LyfW3+JYT4W2R
-Q9l/k4qRuKvDalj31dllezGDdwADrPYme6dFeejicE336L2JoSS7IF8aevybql2O
-A6qLG+OMj6kXnBlo7PlKDUcxCBXJtK7Pd/vsONOJDV+edw9QrJNB2val4cKyuLpK
-RHDm/9Gr7+tyeNgT0qP+rkMgzFNIBGtkOE6jVlyyyX15MQsT8eadHs89dgh5/ENO
-V/g955GypSwkJC6gnpJw
-=BXNP
+iQIcBAEBAgAGBQJQjqxiAAoJEIaOsuA1yqREMHcP/32FqaZCGJz0L9OsbU5NKj2/
+UFXIiw7hnve1v4GzlXG8yEQkV8T1aXQ7oJIZPIb6WukoIen9A//gThbeuLxEIiJy
++HAxbtSOLcuiP0RLr0jf4giCsiv/K24yASmwHhJU+nCDxaCBw9bzobqDgnfIfNgD
+Y54vSNxyjxe+UcaLoJ1mmaJ8MWMDwhfBtC+KK2W75H8OOnvjwab8Xng61HNu6QXt
+3ta7j5Fntj3z10yrmW8hd0FcRz+8IqWiLxk6LUyDFUdvlAEc5lY17IJErpCN6Laq
+wRhJeggk8vZB0gwiCaqMBlRFI7YQuugtCX+sKZ+L2wnGHyOW5/ge+f53G+NSJ8Hp
+PRTG6baXEVrBjRK4mMPUr2qy9VCClyC7OKwihq8IMnWUblvivBeuZ48LThVNX0rm
+REpyUQ/4/s1feh21w4IAMhc+aXHoaKqZHtRSU8w6TRIZBp2DrxxnRlU0qYG3+TF8
+/bNaxJRyrogh6FsoMbfPdm/aKT25+HeGZVM1bdyuthwaUxSpjUNnguBz1R+r175X
+s4ucPLBLxPMwr+1qj9D8Ri3eEbgsIq+70OC4JsCUJP1cc6BmCMNUDaMVV4Sv/JhQ
+zImiQp8BRNCKr3DIaOeWxkRKTYG8ok2qi/YzTKnm5f7Y+Afblu6C183Eri1xfVw9
+Sz7ciWmjbzJRXpMvjGOK
+=Es8J
 -----END PGP SIGNATURE-----
 
---5me2qT3T17SWzdxI--
+--IA03tywDYuoVKXrw--
