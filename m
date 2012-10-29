@@ -1,123 +1,38 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH] drivers: bus: omap_interconnect: Fix rand-config build
- warning
-Date: Mon, 29 Oct 2012 12:32:01 +0530
-Message-ID: <508E29E9.7020809@ti.com>
-References: <1350480519-1890-1-git-send-email-lokeshvutla@ti.com> <507EB3CC.6060005@ti.com> <20121025003509.GI11928@atomide.com> <20121025004216.GJ11928@atomide.com> <5088DD22.1050000@ti.com> <20121025191546.GY11928@atomide.com> <508A2F28.3020204@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 19/20] OMAPDSS: DISPC: remove dssdev depependency from
+ error handler
+Date: Mon, 29 Oct 2012 12:42:08 +0530
+Message-ID: <508E2C48.6020008@ti.com>
+References: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com> <1351070951-18616-20-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47868 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751682Ab2J2HCO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Oct 2012 03:02:14 -0400
-In-Reply-To: <508A2F28.3020204@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46707 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174Ab2J2HMY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 03:12:24 -0400
+In-Reply-To: <1351070951-18616-20-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, olof@lixom.net
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi Tony,
+Hi,
 
-On Friday 26 October 2012 12:05 PM, Santosh Shilimkar wrote:
-> On Friday 26 October 2012 12:45 AM, Tony Lindgren wrote:
->> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121024 23:34]:
->>> On Thursday 25 October 2012 06:12 AM, Tony Lindgren wrote:
->>>> * Tony Lindgren <tony@atomide.com> [121024 17:36]:
->>>>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121017 06:35]:
->>>>>> (Looping Arnd and Olof)
->>>>>>
->>>>>> On Wednesday 17 October 2012 06:58 PM, Lokesh Vutla wrote:
->>>>>>> When building omap_l3_noc/smx drivers as modules, the following
->>>>>>> warning appears:
->>>>>>>
->>>>>>> CC [M]  drivers/bus/omap_l3_smx.o
->>>>>>> drivers/bus/omap_l3_smx.c:291: warning: data definition has no
->>>>>>> type or storage class
->>>>>>> drivers/bus/omap_l3_smx.c:291: warning: type defaults to 'int' in
->>>>>>> declaration of 'postcore_initcall_sync'
->>>>>>> drivers/bus/omap_l3_smx.c:291: warning: parameter names (without
->>>>>>> types) in function declaration
->>>>>>> drivers/bus/omap_l3_smx.c:287: warning: 'omap3_l3_init' defined
->>>>>>> but not used
->>>>>>> CC [M]  drivers/bus/omap_l3_noc.o
->>>>>>> drivers/bus/omap_l3_noc.c:260: warning: data definition has no
->>>>>>> type or storage class
->>>>>>> drivers/bus/omap_l3_noc.c:260: warning: type defaults to 'int' in
->>>>>>> declaration of 'arch_initcall_sync'
->>>>>>> drivers/bus/omap_l3_noc.c:260: warning: parameter names (without
->>>>>>> types) in function declaration
->>>>>>> drivers/bus/omap_l3_noc.c:256: warning: 'omap4_l3_init' defined
->>>>>>> but not used
->>>>>>>
->>>>>>> Adding module_init() and macros in omap_l3_noc/smx drivers when
->>>>>>> building
->>>>>>> as modules to remove the above warning.
->>>>>>>
->>>>>>> Reported-by: Tony Lindgren <tony@atomide.com>
->>>>>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
->>>>>>> ---
->>>>>> Thanks for the fix Lokesh. Looks fine to me.
->>>>>>
->>>>>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>>
->>>>> Looks like nobody else has picked this up so I'll queue this along
->>>>> with few other omap warnings and regressions.
->>>>
->>>> Hmm actually this might require some more discussion. If we make
->>>> it use regular initcalls, then the ugly ifdefs can be left
->>>> out. Is there a reason to init this early, can't we just use regular
->>>> initcalls?
->>>>
->>> I thought about it. The whole reason we want interconnect errors
->>> enabled early in the boot to avoid bad accesses issued on
->>> interconnect
->>> in early boot by various init codes. We managed to discovered many
->>> init sequence issues where the a driver is trying to access registers
->>> when clocks are not active, or drivers are using bad mapping. At times
->>> these errors gets un-noticed because of the behavior of interconnect
->>> and later causes serious issues. Leaving the driver init late in the
->>> boot means we can't catch any of the issues happen till the L3 driver
->>> init happens.
->>
->> OK yeah that makes sense. How about let's just make it
->> just postcore_initcall instead of postcore_initcall_sync?
->>
-> _sync was added by purpose since the driver has depedency on
-> the hwmod initialisation which is postcore_initcall. Without
-> the sync, we open the race condition and the l3 driver
-> registration will fail.
+On Wednesday 24 October 2012 02:59 PM, Tomi Valkeinen wrote:
+> The dispc error handler tries to "fix" issues by disabling and enabling
+> panel. This is problematic, as we're trying to remove the dependency
+> from omapdss to the omap_dss_devices. It's also racy, and doesn't really
+> fix anything.
 >
->> In include/linux/module.h we have:
->>
->> ...
->> #else /* MODULE */
->>
->> /* Don't use these in loadable modules, but some people do... */
->> #define early_initcall(fn)              module_init(fn)
->> #define core_initcall(fn)               module_init(fn)
->> #define postcore_initcall(fn)           module_init(fn)
->> ...
->>
->> While the postcore_initcall_sync does not have those.
->>
->> No idea what the current plan is, but I sort of remember reading
->> that the _sync versions are going away at some point anyways?
->>
-> I have no idea either. As mentioned sync was added to avoid the
-> race. If and when _sync is removed, something should come as an
-> alternative to avoid initcall completion dependencies for the one
-> which falls in same group.
-Is the above discussion fine for you ?
-Will you pick this patch or
-you want any more modifications ?
+> This patch removes the use of omap_dss_device from the error handler,
+> and just disables and enables the associated overlay manager. This
+> should produce similar results as the previous solution, without using
+> dssdev.
 
-Thanks
-Lokesh
->
-> Regards,
-> Santosh
->
->
+Calling APPLY functions from the DISPC driver seems a bit incorrect. 
+Instead of disabling/enabling the panel, can't we disable/enable the 
+manger by just using DISPC funcs?
 
+Archit
