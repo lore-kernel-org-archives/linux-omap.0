@@ -1,27 +1,50 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 09/20] OMAPDSS: add dispc_ovl_enabled()
-Date: Mon, 29 Oct 2012 15:39:00 +0530
-Message-ID: <508E55BC.5060607@ti.com>
-References: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com> <1351070951-18616-10-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Raffaele Recalcati <lamiaposta71@gmail.com>
+Subject: [PATCH] watchdog: omap_wdt: removed disabling in the probe
+Date: Mon, 29 Oct 2012 12:11:27 +0100
+Message-ID: <1351509087-6606-1-git-send-email-lamiaposta71@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55852 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752510Ab2J2KJQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Oct 2012 06:09:16 -0400
-In-Reply-To: <1351070951-18616-10-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:58359 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758294Ab2J2KLh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 06:11:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: linux-omap@vger.kernel.org, wim@iguana.be, linux-watchdog@vger.kernel.org
+Cc: Raffaele Recalcati <lamiaposta71@gmail.com>
 
-On Wednesday 24 October 2012 02:59 PM, Tomi Valkeinen wrote:
-> Add new dispc function, dispc_ovl_enabled(). This returns if the overlay
-> enable bit is set in the registers.
+In NOWAYOUT case it is better to have watchdog always enabled at boot,
+in order not to leave the system in undefined state in case of userspace
+failure.
 
-Is this function used by omapdrm? I can't see it being used in the later 
-patches.
+Signed-off-by: Raffaele Recalcati <lamiaposta71@gmail.com>
+---
+Tested using http://arago-project.org/git/projects/linux-omap3.git
+v2.6.37_OMAPPSP_04.02.00.07 commit.
 
-Archit
+ drivers/watchdog/omap_wdt.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+index 27ab8db..181b939 100644
+--- a/drivers/watchdog/omap_wdt.c
++++ b/drivers/watchdog/omap_wdt.c
+@@ -304,8 +304,16 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(wdev->dev);
+ 	pm_runtime_get_sync(wdev->dev);
+ 
++#ifndef CONFIG_WATCHDOG_NOWAYOUT
+ 	omap_wdt_disable(wdev);
+ 	omap_wdt_adjust_timeout(timer_margin);
++#else
++	omap_wdt_adjust_timeout(timer_margin);
++	omap_wdt_disable(wdev);
++	omap_wdt_set_timeout(wdev);
++	omap_wdt_enable(wdev);
++	omap_wdt_ping(wdev);
++#endif
+ 
+ 	wdev->omap_wdt_miscdev.parent = &pdev->dev;
+ 	wdev->omap_wdt_miscdev.minor = WATCHDOG_MINOR;
+-- 
+1.7.9.5
+
