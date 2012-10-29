@@ -1,75 +1,163 @@
-From: kishon <kishon@ti.com>
-Subject: Re: [PATCH v2 1/3] drivers: bus: ocp2scp: add pdata support
-Date: Mon, 29 Oct 2012 11:53:56 +0530
-Message-ID: <508E20FC.2080107@ti.com>
-References: <1349675983-23803-1-git-send-email-kishon@ti.com> <1349675983-23803-2-git-send-email-kishon@ti.com> <20121016165043.GS15569@atomide.com> <20121025004806.GK11928@atomide.com> <20121025061722.GB4449@arwen.pp.htv.fi> <20121025174446.GT11928@atomide.com> <20121026064736.GA22206@arwen.pp.htv.fi> <20121026171655.GI11908@atomide.com> <20121026195915.GA29548@arwen.pp.htv.fi> <508BD344.1090001@ti.com> <20121029061026.GO17570@arwen.pp.htv.fi>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Mon, 29 Oct 2012 12:17:08 +0530
+Message-ID: <508E266C.6090901@ti.com>
+References: <20121026114250.GA26342@arwen.pp.htv.fi> <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45445 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46283 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750970Ab2J2GYQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Oct 2012 02:24:16 -0400
-In-Reply-To: <20121029061026.GO17570@arwen.pp.htv.fi>
+	id S1752378Ab2J2GrP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 02:47:15 -0400
+In-Reply-To: <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Tim Niemeyer <tim.niemeyer@corscience.de>, Jon Hunter <jon-hunter@ti.com>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, balbi@ti.com
 
-Hi,
++ Jon,
 
-On Monday 29 October 2012 11:40 AM, Felipe Balbi wrote:
-> Hi,
+On Friday 26 October 2012 06:49 PM, Tim Niemeyer wrote:
+> Adds support for configuring the omap-gpio driver use autosuspend for
+> runtime power management. This can reduce the latency in using it by
+> not suspending the device immediately on idle. If another access take=
+s
+> place before the autosuspend timeout (2 secs), the call to resume the
+> device can return immediately saving some save/ restore cycles.
 >
-> On Sat, Oct 27, 2012 at 05:57:48PM +0530, kishon wrote:
->> Hi,
->>
->> On Saturday 27 October 2012 01:29 AM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Fri, Oct 26, 2012 at 10:16:55AM -0700, Tony Lindgren wrote:
->>>> * Felipe Balbi <balbi@ti.com> [121025 23:55]:
->>>>> On Thu, Oct 25, 2012 at 10:44:47AM -0700, Tony Lindgren wrote:
->>>>>> * Felipe Balbi <balbi@ti.com> [121024 23:24]:
->>>>>>> Hi,
->>>>>>>
->>>>>>> On Wed, Oct 24, 2012 at 05:48:07PM -0700, Tony Lindgren wrote:
->>>>>>>> * Tony Lindgren <tony@atomide.com> [121016 09:53]:
->>>>>>>>> * Kishon Vijay Abraham I <kishon@ti.com> [121007 23:01]:
->>>>>>>>>> ocp2scp was not having pdata support which makes *musb* fail for non-dt
->>>>>>>>>> boot in OMAP platform. The pdata will have information about the devices
->>>>>>>>>> that is connected to ocp2scp. ocp2scp driver will now make use of this
->>>>>>>>>> information to create the devices that is attached to ocp2scp.
->>>>>>>>>>
->>>>>>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->>>>>>>>>
->>>>>>>>> This fixes the regression on my panda es for musb port:
->>>>>>>>>
->>>>>>>>> Acked-by: Tony Lindgren <tony@atomide.com>
->>>>>>>>
->>>>>>>> Looks like nobody has picked this one up and we need it to
->>>>>>>> fix the musb regression on omap, so I'll queue these up.
->>>>>>>
->>>>>>> I don't seem to have the patches around in any mailbox :-(
->>>>>>
->>>>>> Bounced them to you. Do you have any better ideas for the
->>>>>> -rc cycle to fix the MUSB regression on omap4?
->>>>>
->>>>> Well, there are two regressions that I know of. One is caused by the
->>>>> mode1 DMA changes, which I'll just revert, and the other is the
->>>>> missing platform_data support on the new PHY driver which these patches
->>>>> are supposed to solve, right ?
->>>>
->>>> Yes that's it AFAIK.
->>>
->>> Kishon, any other patches I need to take to get MUSB working on v3.7 ?
->>
->> These should be good enough to get MUSB working..
+> This removes also the bank->mod_usage counter, because this is alread=
+y
+> handled in pm_runtime.
 >
-> nothing needed for omap-usb2.c ? That's great, cheers
+> I use a gpio to monitor a spi transfer which occurs every 250=C2=B5s.=
+ The
+> suspend overhead is to high, so almost every second transfer is lost.
+> This patch fixes that.
+>
+> Signed-off-by: Tim Niemeyer <tim.niemeyer@corscience.de>
+> ---
+>   drivers/gpio/gpio-omap.c |   81 ++++++++++++++++++++++++-----------=
+----------
+>   1 files changed, 43 insertions(+), 38 deletions(-)
+>
+ From patch it appears your main motive is to delay the idle kicking in
+with a timeout to avoid GPIO on cpuidle path. Some comments
 
-No. Nothing of pdata sort is used in omap-usb2.c
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 94cbc84..708d5a9 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -31,6 +31,7 @@
+>   #include <asm/mach/irq.h>
+>
+>   #define OFF_MODE	1
+> +#define GPIO_AUTOSUSPEND_TIMEOUT                2000
+>
+>   static LIST_HEAD(omap_gpio_list);
+>
+> @@ -64,7 +65,6 @@ struct gpio_bank {
+>   	spinlock_t lock;
+>   	struct gpio_chip chip;
+>   	struct clk *dbck;
+> -	u32 mod_usage;
+How have you tested 'mod_suage' change ?
 
-Thanks
-Kishon
+>   	u32 dbck_enable_mask;
+>   	bool dbck_enabled;
+>   	struct device *dev;
+> @@ -557,10 +557,9 @@ static int omap_gpio_request(struct gpio_chip *c=
+hip, unsigned offset)
+>
+>   	/*
+>   	 * If this is the first gpio_request for the bank,
+> -	 * enable the bank module.
+> +	 * resume the bank module.
+Since you removing bank notion, "If this is the first gpio_request
+for the bank," becomes irrelevant from code perspective.
+
+[..]
+
+> @@ -608,28 +594,15 @@ static void omap_gpio_free(struct gpio_chip *ch=
+ip, unsigned offset)
+>   			__raw_readl(bank->base + bank->regs->wkup_en);
+>   	}
+>
+> -	bank->mod_usage &=3D ~(1 << offset);
+> -
+> -	if (bank->regs->ctrl && !bank->mod_usage) {
+> -		void __iomem *reg =3D bank->base + bank->regs->ctrl;
+> -		u32 ctrl;
+> -
+> -		ctrl =3D __raw_readl(reg);
+> -		/* Module is disabled, clocks are gated */
+> -		ctrl |=3D GPIO_MOD_CTRL_BIT;
+> -		__raw_writel(ctrl, reg);
+> -		bank->context.ctrl =3D ctrl;
+> -	}
+> -
+>   	_reset_gpio(bank, bank->chip.base + offset);
+>   	spin_unlock_irqrestore(&bank->lock, flags);
+>
+>   	/*
+>   	 * If this is the last gpio to be freed in the bank,
+> -	 * disable the bank module.
+> +	 * put the bank module into suspend.
+>   	 */
+> -	if (!bank->mod_usage)
+> -		pm_runtime_put(bank->dev);
+> +	pm_runtime_mark_last_busy(bank->dev);
+> +	pm_runtime_put_autosuspend(bank->dev);
+Waiting for 2 seconds timeout even on GPIO free
+seems to be wrong.
+
+>   }
+>
+>   /*
+> @@ -715,7 +688,8 @@ static void gpio_irq_handler(unsigned int irq, st=
+ruct irq_desc *desc)
+>   exit:
+>   	if (!unmasked)
+>   		chained_irq_exit(chip, desc);
+> -	pm_runtime_put(bank->dev);
+> +	pm_runtime_mark_last_busy(bank->dev);
+> +	pm_runtime_put_autosuspend(bank->dev);
+This is what is the main change from this patch which helps your
+case.
+>   }
+>
+>   static void gpio_irq_shutdown(struct irq_data *d)
+> @@ -1132,6 +1106,8 @@ static int __devinit omap_gpio_probe(struct pla=
+tform_device *pdev)
+>
+>   	platform_set_drvdata(pdev, bank);
+>
+> +	pm_runtime_use_autosuspend(bank->dev);
+> +	pm_runtime_set_autosuspend_delay(bank->dev, GPIO_AUTOSUSPEND_TIMEOU=
+T);
+
+Can you please report how have you tested this change ? What other PM
+tests you have done?
+
+Removing mod usage might just break this driver because now individual
+banks which can idle before, can no longer idle.
+
+Just to expand a bit, Out of 6 GPIO banks, GPIO1 bank is in always ON
+domain where as remaing 5 are in peripheral domain. Letting individual
+banks idle allowed you let the clock domain idle than keeping all the
+6 banks and hence respective clock/power domain in ON state.
+
+So the adding timeout might be reasonable but I am not sure about
+the mod_usage change here.
+
+Jon, What you say ?
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
