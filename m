@@ -1,163 +1,123 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
-Date: Mon, 29 Oct 2012 12:17:08 +0530
-Message-ID: <508E266C.6090901@ti.com>
-References: <20121026114250.GA26342@arwen.pp.htv.fi> <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH] drivers: bus: omap_interconnect: Fix rand-config build
+ warning
+Date: Mon, 29 Oct 2012 12:32:01 +0530
+Message-ID: <508E29E9.7020809@ti.com>
+References: <1350480519-1890-1-git-send-email-lokeshvutla@ti.com> <507EB3CC.6060005@ti.com> <20121025003509.GI11928@atomide.com> <20121025004216.GJ11928@atomide.com> <5088DD22.1050000@ti.com> <20121025191546.GY11928@atomide.com> <508A2F28.3020204@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46283 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47868 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752378Ab2J2GrP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Oct 2012 02:47:15 -0400
-In-Reply-To: <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
+	id S1751682Ab2J2HCO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 03:02:14 -0400
+In-Reply-To: <508A2F28.3020204@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tim Niemeyer <tim.niemeyer@corscience.de>, Jon Hunter <jon-hunter@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, balbi@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, olof@lixom.net
 
-+ Jon,
+Hi Tony,
 
-On Friday 26 October 2012 06:49 PM, Tim Niemeyer wrote:
-> Adds support for configuring the omap-gpio driver use autosuspend for
-> runtime power management. This can reduce the latency in using it by
-> not suspending the device immediately on idle. If another access take=
-s
-> place before the autosuspend timeout (2 secs), the call to resume the
-> device can return immediately saving some save/ restore cycles.
+On Friday 26 October 2012 12:05 PM, Santosh Shilimkar wrote:
+> On Friday 26 October 2012 12:45 AM, Tony Lindgren wrote:
+>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121024 23:34]:
+>>> On Thursday 25 October 2012 06:12 AM, Tony Lindgren wrote:
+>>>> * Tony Lindgren <tony@atomide.com> [121024 17:36]:
+>>>>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121017 06:35]:
+>>>>>> (Looping Arnd and Olof)
+>>>>>>
+>>>>>> On Wednesday 17 October 2012 06:58 PM, Lokesh Vutla wrote:
+>>>>>>> When building omap_l3_noc/smx drivers as modules, the following
+>>>>>>> warning appears:
+>>>>>>>
+>>>>>>> CC [M]  drivers/bus/omap_l3_smx.o
+>>>>>>> drivers/bus/omap_l3_smx.c:291: warning: data definition has no
+>>>>>>> type or storage class
+>>>>>>> drivers/bus/omap_l3_smx.c:291: warning: type defaults to 'int' in
+>>>>>>> declaration of 'postcore_initcall_sync'
+>>>>>>> drivers/bus/omap_l3_smx.c:291: warning: parameter names (without
+>>>>>>> types) in function declaration
+>>>>>>> drivers/bus/omap_l3_smx.c:287: warning: 'omap3_l3_init' defined
+>>>>>>> but not used
+>>>>>>> CC [M]  drivers/bus/omap_l3_noc.o
+>>>>>>> drivers/bus/omap_l3_noc.c:260: warning: data definition has no
+>>>>>>> type or storage class
+>>>>>>> drivers/bus/omap_l3_noc.c:260: warning: type defaults to 'int' in
+>>>>>>> declaration of 'arch_initcall_sync'
+>>>>>>> drivers/bus/omap_l3_noc.c:260: warning: parameter names (without
+>>>>>>> types) in function declaration
+>>>>>>> drivers/bus/omap_l3_noc.c:256: warning: 'omap4_l3_init' defined
+>>>>>>> but not used
+>>>>>>>
+>>>>>>> Adding module_init() and macros in omap_l3_noc/smx drivers when
+>>>>>>> building
+>>>>>>> as modules to remove the above warning.
+>>>>>>>
+>>>>>>> Reported-by: Tony Lindgren <tony@atomide.com>
+>>>>>>> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+>>>>>>> ---
+>>>>>> Thanks for the fix Lokesh. Looks fine to me.
+>>>>>>
+>>>>>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>>
+>>>>> Looks like nobody else has picked this up so I'll queue this along
+>>>>> with few other omap warnings and regressions.
+>>>>
+>>>> Hmm actually this might require some more discussion. If we make
+>>>> it use regular initcalls, then the ugly ifdefs can be left
+>>>> out. Is there a reason to init this early, can't we just use regular
+>>>> initcalls?
+>>>>
+>>> I thought about it. The whole reason we want interconnect errors
+>>> enabled early in the boot to avoid bad accesses issued on
+>>> interconnect
+>>> in early boot by various init codes. We managed to discovered many
+>>> init sequence issues where the a driver is trying to access registers
+>>> when clocks are not active, or drivers are using bad mapping. At times
+>>> these errors gets un-noticed because of the behavior of interconnect
+>>> and later causes serious issues. Leaving the driver init late in the
+>>> boot means we can't catch any of the issues happen till the L3 driver
+>>> init happens.
+>>
+>> OK yeah that makes sense. How about let's just make it
+>> just postcore_initcall instead of postcore_initcall_sync?
+>>
+> _sync was added by purpose since the driver has depedency on
+> the hwmod initialisation which is postcore_initcall. Without
+> the sync, we open the race condition and the l3 driver
+> registration will fail.
 >
-> This removes also the bank->mod_usage counter, because this is alread=
-y
-> handled in pm_runtime.
->
-> I use a gpio to monitor a spi transfer which occurs every 250=C2=B5s.=
- The
-> suspend overhead is to high, so almost every second transfer is lost.
-> This patch fixes that.
->
-> Signed-off-by: Tim Niemeyer <tim.niemeyer@corscience.de>
-> ---
->   drivers/gpio/gpio-omap.c |   81 ++++++++++++++++++++++++-----------=
-----------
->   1 files changed, 43 insertions(+), 38 deletions(-)
->
- From patch it appears your main motive is to delay the idle kicking in
-with a timeout to avoid GPIO on cpuidle path. Some comments
+>> In include/linux/module.h we have:
+>>
+>> ...
+>> #else /* MODULE */
+>>
+>> /* Don't use these in loadable modules, but some people do... */
+>> #define early_initcall(fn)              module_init(fn)
+>> #define core_initcall(fn)               module_init(fn)
+>> #define postcore_initcall(fn)           module_init(fn)
+>> ...
+>>
+>> While the postcore_initcall_sync does not have those.
+>>
+>> No idea what the current plan is, but I sort of remember reading
+>> that the _sync versions are going away at some point anyways?
+>>
+> I have no idea either. As mentioned sync was added to avoid the
+> race. If and when _sync is removed, something should come as an
+> alternative to avoid initcall completion dependencies for the one
+> which falls in same group.
+Is the above discussion fine for you ?
+Will you pick this patch or
+you want any more modifications ?
 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 94cbc84..708d5a9 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -31,6 +31,7 @@
->   #include <asm/mach/irq.h>
+Thanks
+Lokesh
 >
->   #define OFF_MODE	1
-> +#define GPIO_AUTOSUSPEND_TIMEOUT                2000
+> Regards,
+> Santosh
 >
->   static LIST_HEAD(omap_gpio_list);
 >
-> @@ -64,7 +65,6 @@ struct gpio_bank {
->   	spinlock_t lock;
->   	struct gpio_chip chip;
->   	struct clk *dbck;
-> -	u32 mod_usage;
-How have you tested 'mod_suage' change ?
 
->   	u32 dbck_enable_mask;
->   	bool dbck_enabled;
->   	struct device *dev;
-> @@ -557,10 +557,9 @@ static int omap_gpio_request(struct gpio_chip *c=
-hip, unsigned offset)
->
->   	/*
->   	 * If this is the first gpio_request for the bank,
-> -	 * enable the bank module.
-> +	 * resume the bank module.
-Since you removing bank notion, "If this is the first gpio_request
-for the bank," becomes irrelevant from code perspective.
-
-[..]
-
-> @@ -608,28 +594,15 @@ static void omap_gpio_free(struct gpio_chip *ch=
-ip, unsigned offset)
->   			__raw_readl(bank->base + bank->regs->wkup_en);
->   	}
->
-> -	bank->mod_usage &=3D ~(1 << offset);
-> -
-> -	if (bank->regs->ctrl && !bank->mod_usage) {
-> -		void __iomem *reg =3D bank->base + bank->regs->ctrl;
-> -		u32 ctrl;
-> -
-> -		ctrl =3D __raw_readl(reg);
-> -		/* Module is disabled, clocks are gated */
-> -		ctrl |=3D GPIO_MOD_CTRL_BIT;
-> -		__raw_writel(ctrl, reg);
-> -		bank->context.ctrl =3D ctrl;
-> -	}
-> -
->   	_reset_gpio(bank, bank->chip.base + offset);
->   	spin_unlock_irqrestore(&bank->lock, flags);
->
->   	/*
->   	 * If this is the last gpio to be freed in the bank,
-> -	 * disable the bank module.
-> +	 * put the bank module into suspend.
->   	 */
-> -	if (!bank->mod_usage)
-> -		pm_runtime_put(bank->dev);
-> +	pm_runtime_mark_last_busy(bank->dev);
-> +	pm_runtime_put_autosuspend(bank->dev);
-Waiting for 2 seconds timeout even on GPIO free
-seems to be wrong.
-
->   }
->
->   /*
-> @@ -715,7 +688,8 @@ static void gpio_irq_handler(unsigned int irq, st=
-ruct irq_desc *desc)
->   exit:
->   	if (!unmasked)
->   		chained_irq_exit(chip, desc);
-> -	pm_runtime_put(bank->dev);
-> +	pm_runtime_mark_last_busy(bank->dev);
-> +	pm_runtime_put_autosuspend(bank->dev);
-This is what is the main change from this patch which helps your
-case.
->   }
->
->   static void gpio_irq_shutdown(struct irq_data *d)
-> @@ -1132,6 +1106,8 @@ static int __devinit omap_gpio_probe(struct pla=
-tform_device *pdev)
->
->   	platform_set_drvdata(pdev, bank);
->
-> +	pm_runtime_use_autosuspend(bank->dev);
-> +	pm_runtime_set_autosuspend_delay(bank->dev, GPIO_AUTOSUSPEND_TIMEOU=
-T);
-
-Can you please report how have you tested this change ? What other PM
-tests you have done?
-
-Removing mod usage might just break this driver because now individual
-banks which can idle before, can no longer idle.
-
-Just to expand a bit, Out of 6 GPIO banks, GPIO1 bank is in always ON
-domain where as remaing 5 are in peripheral domain. Letting individual
-banks idle allowed you let the clock domain idle than keeping all the
-6 banks and hence respective clock/power domain in ON state.
-
-So the adding timeout might be reasonable but I am not sure about
-the mod_usage change here.
-
-Jon, What you say ?
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
