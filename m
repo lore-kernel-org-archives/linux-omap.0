@@ -1,87 +1,72 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: AM33xx: add support for reboot
-Date: Mon, 29 Oct 2012 09:56:06 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB50652@DBDE01.ent.ti.com>
-References: <1351448275-23509-1-git-send-email-zonque@gmail.com>
- <79CD15C6BA57404B839C016229A409A83EB50073@DBDE01.ent.ti.com>
- <508E5121.9020304@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 04/20] OMAPDSS: DISPC: fix dispc_mgr_lclk_rate for DIGIT
+ output
+Date: Mon, 29 Oct 2012 11:56:58 +0200
+Message-ID: <508E52EA.4030606@ti.com>
+References: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com> <1351070951-18616-5-git-send-email-tomi.valkeinen@ti.com> <508E5161.2060202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigE1D13BC62EAC80ABA4BC8A0B"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55304 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56711 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758019Ab2J2J4V convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 05:56:21 -0400
-In-Reply-To: <508E5121.9020304@gmail.com>
-Content-Language: en-US
+	id S1755307Ab2J2J5C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 05:57:02 -0400
+In-Reply-To: <508E5161.2060202@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "arnd@arndb.de" <arnd@arndb.de>, "Nori, Sekhar" <nsekhar@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Mon, Oct 29, 2012 at 15:19:21, Daniel Mack wrote:
-> On 29.10.2012 05:31, Hiremath, Vaibhav wrote:
-> > On Sun, Oct 28, 2012 at 23:47:55, Daniel Mack wrote:
-> >> This patch adds the ability to reboot am33xx-based systems.
-> >>
-> >> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> >> ---
-> >>  arch/arm/mach-omap2/board-generic.c | 1 +
-> >>  arch/arm/mach-omap2/prcm.c          | 6 ++++++
-> >>  2 files changed, 7 insertions(+)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> >> index 601ecdf..6a69ceb 100644
-> >> --- a/arch/arm/mach-omap2/board-generic.c
-> >> +++ b/arch/arm/mach-omap2/board-generic.c
-> >> @@ -114,6 +114,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
-> >>  	.init_machine	= omap_generic_init,
-> >>  	.timer		= &omap3_am33xx_timer,
-> >>  	.dt_compat	= am33xx_boards_compat,
-> >> +	.restart	= omap_prcm_restart,
-> >>  MACHINE_END
-> >>  #endif
-> >>  
-> >> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> >> index 0f51e03..8a3068a 100644
-> >> --- a/arch/arm/mach-omap2/prcm.c
-> >> +++ b/arch/arm/mach-omap2/prcm.c
-> >> @@ -32,6 +32,7 @@
-> >>  #include "clock2xxx.h"
-> >>  #include "cm2xxx_3xxx.h"
-> >>  #include "prm2xxx_3xxx.h"
-> >> +#include "prm33xx.h"
-> >>  #include "prm44xx.h"
-> >>  #include "prminst44xx.h"
-> >>  #include "cminst44xx.h"
-> >> @@ -72,6 +73,11 @@ void omap_prcm_restart(char mode, const char *cmd)
-> >>  		omap3_ctrl_write_boot_mode((cmd ? (u8)*cmd : 0));
-> >>  	} else if (cpu_is_omap44xx()) {
-> >>  		omap4_prminst_global_warm_sw_reset(); /* never returns */
-> >> +	} else if (soc_is_am33xx()) {
-> >> +		prcm_offs = AM33XX_PRM_DEVICE_MOD;
-> >> +		omap2_prm_set_mod_reg_bits(OMAP4430_RST_GLOBAL_COLD_SW_MASK,
-> >> +					   prcm_offs,
-> >> +					   AM33XX_PRM_RSTCTRL_OFFSET);
-> > 
-> > This is not clean way of handling it, we should have something similar to 
-> > omap4. Also we should use warm-reset here instead of cold.
-> > 
-> > I have quickly created patch, can you please review and test is?
-> > I have tested it on AM335x EVM and Bone platform.
-> 
-> Works for me as well, thanks!
-> 
-> You can take my
-> 
->   Tested-by: Daniel Mack <zonque@gmail.com>
-> 
+--------------enigE1D13BC62EAC80ABA4BC8A0B
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Thanks Daniel for confirming. I will send out this patch ASAP with your 
-tested by.
+On 2012-10-29 11:50, Archit Taneja wrote:
+> On Wednesday 24 October 2012 02:58 PM, Tomi Valkeinen wrote:
+>> dispc_mgr_lclk_rate() cannot currently be called with DIGIT channel
+>> parameter, even if dispc_ovl_lclk_rate() can. Fix this by making
+>=20
+> It's called dispc_plane_lclk_rate() right now.
 
-Thanks,
-Vaibhav
+Right, that was a typo on the description.
+
+>> dispc_mgr_lclk_rate() handle DIGIT channel also.
+>=20
+> Did you see a bug with this? Or is this just a cleanup?
+
+Yes, I had a crash when I was implementing a function to check the
+scaling and overlay parameters in such a way that all the parameters are
+given to the function, i.e. the func doesn't get any config from the
+hardware registers. So not a bug that happens in the current driver.
+
+ Tomi
 
 
+
+--------------enigE1D13BC62EAC80ABA4BC8A0B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQjlLqAAoJEPo9qoy8lh719f4P/0Q8mVZbtuCM9kBuNjhnoZ0T
+yc6dq37SNiC2vEE0zV2hQBoyOruwRbl3Ukn5tS76RwdRj2bTHBq1tO/kcFrLgnf2
+8hBIBpHX4zFwXvJGIYCeiLaqIk1bsVvwIlGQ75P/Rktxso+zTALAAA5hiqW51RzX
+VucUhf3SxhAfB9vmPddYkWtEGHDlRtnmZySNmtCriTIFrC/7eUo/kvV6RPm5QxLm
+2Ifukiirtpx9W0os2Tf0ToOWg1eZPvACDx5hVCFScHrbovn08nHspETkmgE2In2k
+rII/MROF/mk3K0eI6AKhHFm7WgrcSmkUO8lGqmE2IhfEIS66ryq2+kPCrxswwA3i
+IIpCrM4LBG3ln8Hj/pGQjDqhArLWhz2YH5qsPfQp5Tur3TNNURSqdB9E7ywefpL1
+2VdczhITECsjNzqmSkcSKC296DgzpslIvEhdRE+edMK85A3WzJbmueknaNVSkkSw
+2FJrz6ZoACQmiSrLa5IhMXUOwxPG9TAQyh5Tr9H2vLXvrurv5FskZSGt28zEZKQg
+Uu+SlGGe11DmMnuPZ0nlXrBaDsWXsmeNyr90Z1W2lP4u1bK/HEKi6NTnme4NEiGe
+jqsbGX+jOKDDRuHLRh2q78SBuFNxbmXsHWvXBGugJxGj+9gzfMIE/h3VSuVm9dVo
+H7BeRpnwJEkC1oq/3kFW
+=oNNb
+-----END PGP SIGNATURE-----
+
+--------------enigE1D13BC62EAC80ABA4BC8A0B--
