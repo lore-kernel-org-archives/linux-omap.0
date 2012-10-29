@@ -1,114 +1,100 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP baseline test results for v3.7-rc1
-Date: Mon, 29 Oct 2012 22:00:32 +0200
-Message-ID: <20121029200032.GD30152@arwen.pp.htv.fi>
-References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
- <alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
- <alpine.DEB.2.00.1210200611150.9865@utopia.booyaka.com>
- <CAORVsuUkU3iTTFcXfYJ=_FntjiTR33Gs4z9OsNEn2Cxq7Ef-qA@mail.gmail.com>
- <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com>
- <alpine.DEB.2.00.1210231918500.27211@utopia.booyaka.com>
- <CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com>
- <20121025101212.GD21217@arwen.pp.htv.fi>
- <20121026201539.GD29548@arwen.pp.htv.fi>
- <alpine.DEB.2.00.1210262201500.11258@utopia.booyaka.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Mon, 29 Oct 2012 22:03:28 +0200
+Message-ID: <20121029200328.GE30152@arwen.pp.htv.fi>
+References: <20121026114250.GA26342@arwen.pp.htv.fi>
+ <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
+ <508E266C.6090901@ti.com>
+ <20121029080523.GC13657@arwen.pp.htv.fi>
+ <508E3D09.9090802@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tEFtbjk+mNEviIIX"
+	protocol="application/pgp-signature"; boundary="8vCeF2GUdMpe9ZbK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57709 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755021Ab2J2UGg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 16:06:36 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:59700 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760745Ab2J2UJX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 16:09:23 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1210262201500.11258@utopia.booyaka.com>
+In-Reply-To: <508E3D09.9090802@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Jean Pihet <jean.pihet@newoldbits.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: balbi@ti.com, Tim Niemeyer <tim.niemeyer@corscience.de>, Jon Hunter <jon-hunter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
 
---tEFtbjk+mNEviIIX
+--8vCeF2GUdMpe9ZbK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Oct 26, 2012 at 10:03:11PM +0000, Paul Walmsley wrote:
-> Hi Felipe,
+On Mon, Oct 29, 2012 at 01:53:37PM +0530, Santosh Shilimkar wrote:
+> >>Just to expand a bit, Out of 6 GPIO banks, GPIO1 bank is in always ON
+> >>domain where as remaing 5 are in peripheral domain. Letting individual
+> >>banks idle allowed you let the clock domain idle than keeping all the
+> >>6 banks and hence respective clock/power domain in ON state.
+> >>
+> >>So the adding timeout might be reasonable but I am not sure about
+> >>the mod_usage change here.
+> >
+> >IMHO that whole mod_usage is broken. I remember sending a big series of
+> >patches getting rid of that long ago. I _did_ break a few things but
+> >just because of omap_gpio_prepare_for_idle() /
+> >omap_gpio_resume_from_idle() hackery to get GPIO suspended early enough.
+> >
+> Well so far I haven't seen/come across a patch/proposal which fixes it.
+
+fair point
+
+> >I still think mod_usage needs to go, so does
+> >omap_gpio_prepare_for_idle() and omap_gpio_resume_from_idle(). To me, it
+> >looks like that needs to be done on ->prepare()/->complete() callbacks
+> >of system suspend and the gpio driver needs to learn proper runtime
+> >suspend.
+> >
+> I am not saying it shouldn't go :-)
+> The $subject patch isn't fixing it correctly is what I said.
 >=20
-> On Fri, 26 Oct 2012, Felipe Balbi wrote:
->=20
-> > On Thu, Oct 25, 2012 at 01:12:12PM +0300, Felipe Balbi wrote:
-> > > On Tue, Oct 23, 2012 at 09:23:03PM +0200, Jean Pihet wrote:
-> > > > On Tue, Oct 23, 2012 at 9:19 PM, Paul Walmsley <paul@pwsan.com> wro=
-te:
-> > > > > On Mon, 22 Oct 2012, Jean Pihet wrote:
-> > > > >
-> > > > >> On Mon, Oct 22, 2012 at 6:12 PM, Jean Pihet <jean.pihet@newoldbi=
-ts.com> wrote:
-> > > > >>
-> > > > >> > Do you have CPU_IDLE enabled?
-> > > > >> FYI the issue is not present with CPU_IDLE enabled.
-> > > > >
-> > > > > Hmm, how can you tell?  I thought you weren't able to reproduce i=
-t with
-> > > > > CPU_IDLE disabled either?
-> > > > I could not reproduce the issue, with and without CPU_IDLE enabled.
-> > > > What puzzles me is that the PM QoS code only has influence on the
-> > > > states chosen by cpuidle, so the change should not have any impact
-> > > > with CPU_IDLE enabled. I reallt need to reproduce the issue.
-> > > > Let me try with the same setup as yours (bootloader images,
-> > > > omap2pus_defconfig, angstrom roots).
-> > >=20
-> > > I just sent a patch to fix a bug I found on OMAP4 panda but while
-> > > reading this thread again, I think it could be that it's the same bug
-> > > which is just easier to reproduce on Paul's setup.
-> > >=20
-> > > Paul, Aaro, can you see if [1] makes the problem go away ? that would=
- be
-> > > another reason to push [1] during this -rc cycle.
-> > >=20
-> > > [1] http://marc.info/?l=3Dlinux-omap&m=3D135115602407925&w=3D2
->=20
-> Thanks for mentioning it, but this patch doesn't fix the I2C timeout=20
-> problem here.  Log fragment below from the 3530ES3 Beagle.
+> Don't get hung up on suspend case because thats the easiest
+> way to address it. The issue is with idle where GPIO can prevent
+> SOC idle if it isn't taken care. And since its just an IO, its not
+> easy to implement something like inactivity timer towards
+> autosupend.
 
-that's too bad :-(
+I don't see the relation here. Care to expand a bit ?
 
-Can you compile with:
+> Co-processor also makes use of GPIO via syslink proxy and thats
+> make things even harder.
 
-CONFIG_I2C_DEBUG_CORE=3Dy
-CONFIG_I2C_DEBUG_ALGO=3Dy
-CONFIG_I2C_DEBUG_BUS=3Dy
-CONFIG_DEFAULT_MESSAGE_LOGLEVEL=3D9
+that's supposed to be solved with hwspinlock, isn't it ?
 
-so that I can see all transfers ?
+cheers
 
 --=20
 balbi
 
---tEFtbjk+mNEviIIX
+--8vCeF2GUdMpe9ZbK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQjuBgAAoJEIaOsuA1yqRElNIQALLN2vAHYEzOhz/EeQ82Nha9
-6+GESaSKq8KQKyI3YmS5g9I8mNhlC3QMsgyLuD+8wYMEZ0Bw0wFNIGUoEbFwL1Jc
-U+QVSwW88j4JBdw8fdMr/iuzJip7xUAGg0TiVKe2yCjPPUxFOwkkw6uVzPLyGeYq
-Vh6zWHlGKyT61E1i3oisbDUB+VAJQ9PunzqJhR1b2ie3IDk7ppHs3OocQ4d3U9P+
-GtgWo+y7TR2fFLFnNVGNPth9hdBol8CmVmlFNiDIZhshB9Iuxj9Zl+bIVA1TBYcR
-my7M2ZCBBdBnzGnKV34a1EqC89zmW3BnK4OYRd+2L4u4wXmv0WeV85nKtwO+21rO
-qhccQMgRbrx7tvrlkRBTzn5QB+HuuWDcSjEIWDowDYJAC1S6CnEEYes5YZEjoASB
-TaejHngvYfnQVb3g+Oxp0jfS8g9kxVrywA9xIDGrQqM4l94tpnHz8mvjKdQ8sUPo
-+GUp5eoGRQZle+uk/7kqld3ls4cvIkIZWkY3Fa6N2LyAc+HE4+57Y1t2ct4wrbWN
-x0/2bNADRZLLzkG/ImXhuzMF+TQ4/FMxkbcgY4+szbgO81ckBVfOVdEWAopoBX+Q
-jBnjedglWSDrlIds9D0MnWTLg/k0AiVP0GNDn8D88vGXQWGL8QRlTDis8gZELe+M
-fhR+6aIbWx0DUDvXxsp4
-=YhmX
+iQIcBAEBAgAGBQJQjuEQAAoJEIaOsuA1yqRERj0P/2v+uyt7V2wyd7WZKtJvFsba
+ebvRDOESJ5jvsyrogUmMDyius/Z/pb+wA9R//+K/2qlJz1bieyP4bs0XybN/OsbV
+2f4nijhf8mBP08BMdwom7a3UwuzwOv6FIXFYxUao3K3mbAFFVrwbg9zTdmEqYcYa
+K7IUvizr7lSuDpvgkbHjLjppF25OU8TSALxSXQeAyOh5Zon7atKBVtJVLJuE9gFp
+3VZVOG0rCugdc9UxzJKvOBeTQGXkQ5Hr0qtQi+esGIlgF0boR+M7R5X5ebaBF+z6
+GlQU01c730zugmBohyjwupCF33v67ToJ1q78NJ58nXAhSulevneg8zCsKJObfv36
+C0/ZUJMkFaeQoyZ7Z7CUbsGS7j6DfmfIL7k61pOxjFavoh6yb6OKyH854HWDf4ru
+zfrDv4FHzmUrXDVA7SpXlvskkWF9O4BwmyrR2bZ48BCuusuWRKF7IlofHUxv4MDI
+a4Fb3ue8YLxaz55bI7i9uaxaaIyB8FzVCBOOd/JC58RcO6syfuTlqn/LkLIJ75ix
+AK7H0i3zjlVhLIyp52KyA+PF3sSQXPgfzY8MvwZFkFf/w8/dPLuuvjFetu7Y257U
+yzeFBI3UcIQbKVn2EcwLGdz3LA0qsQDiDRZps/UD+WXwXKhFof+uqC6mSyYJVXNY
+KalTb2ZVCwzLQoe3jel+
+=mlnT
 -----END PGP SIGNATURE-----
 
---tEFtbjk+mNEviIIX--
+--8vCeF2GUdMpe9ZbK--
