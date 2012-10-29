@@ -1,155 +1,163 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 11/20] OMAPDSS: HDMI: split power_on/off to two parts
-Date: Mon, 29 Oct 2012 12:30:41 +0200
-Message-ID: <508E5AD1.8090109@ti.com>
-References: <1351070951-18616-1-git-send-email-tomi.valkeinen@ti.com> <1351070951-18616-12-git-send-email-tomi.valkeinen@ti.com> <508E570D.1000101@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [PATCH 00/13] ARM: OMAP: remove prcm.[ch]
+Date: Mon, 29 Oct 2012 16:03:09 +0530
+Message-ID: <508E5B65.2020800@ti.com>
+References: <20121025231818.17558.57884.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig51787648F477121AED4F5855"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58178 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56769 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758546Ab2J2Kao (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Oct 2012 06:30:44 -0400
-In-Reply-To: <508E570D.1000101@ti.com>
+	id S1751796Ab2J2KdU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 06:33:20 -0400
+In-Reply-To: <20121025231818.17558.57884.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
-
---------------enig51787648F477121AED4F5855
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2012-10-29 12:14, Archit Taneja wrote:
-> On Wednesday 24 October 2012 02:59 PM, Tomi Valkeinen wrote:
->> There's currently just one power-on function for HDMI, which enables t=
-he
->> IP and the video output. When reading EDID or detecting if a monitor i=
-s
->> connected, we don't need the video output.
->>
->> Enabling the video output for these operations is not a big problem in=
-
->> itself, but the quick enable/disable cycles caused by the operations
->> seem to cause sync lost errors from time to time. Also, this makes it
->> possible to read the EDID before the full video path has been set up.
->>
->> This patch splits the hdmi_power_on into two parts, hdmi_power_on_core=
-
->> and hdmi_power_on_full. The "full" version does what hdmi_power_on doe=
-s
->> currently, and hdmi_power_on_core only enables the core IP. Similar
->> changes are made for power_off.
->>
->> Note that these don't allow the HDMI IP to be first enabled, and later=
-
->> enable the video output, but the HDMI IP will first need to be powered=
-
->> off before calling the full version. So this is rather limited
->> implementation, but it fills the needs for reading EDID.
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> Cc: Ricardo Neri <ricardo.neri@ti.com>
->> ---
->>   drivers/video/omap2/dss/hdmi.c |   75
->> ++++++++++++++++++++++++----------------
->>   1 file changed, 46 insertions(+), 29 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/hdmi.c
->> b/drivers/video/omap2/dss/hdmi.c
->> index c1c5488..50d5a10 100644
->> --- a/drivers/video/omap2/dss/hdmi.c
->> +++ b/drivers/video/omap2/dss/hdmi.c
->> @@ -500,12 +500,9 @@ static void hdmi_compute_pll(struct
->> omap_dss_device *dssdev, int phy,
->>       DSSDBG("range =3D %d sd =3D %d\n", pi->dcofreq, pi->regsd);
->>   }
->>
->> -static int hdmi_power_on(struct omap_dss_device *dssdev)
->> +static int hdmi_power_on_core(struct omap_dss_device *dssdev)
->>   {
->>       int r;
->> -    struct omap_video_timings *p;
->> -    struct omap_overlay_manager *mgr =3D dssdev->output->manager;
->> -    unsigned long phy;
->>
->>       gpio_set_value(hdmi.ct_cp_hpd_gpio, 1);
->>       gpio_set_value(hdmi.ls_oe_gpio, 1);
->> @@ -521,6 +518,46 @@ static int hdmi_power_on(struct omap_dss_device
->> *dssdev)
->>       if (r)
->>           goto err_runtime_get;
->>
->> +    /* Make selection of HDMI in DSS */
->> +    dss_select_hdmi_venc_clk_source(DSS_HDMI_M_PCLK);
->> +
->> +    /* Select the dispc clock source as PRCM clock, to ensure that it=
-
->> is not
->> +     * DSI PLL source as the clock selected by DSI PLL might not be
->> +     * sufficient for the resolution selected / that can be changed
->> +     * dynamically by user. This can be moved to single location , sa=
-y
->> +     * Boardfile.
->> +     */
->> +    dss_select_dispc_clk_source(dssdev->clocks.dispc.dispc_fclk_src);=
-
->> +
->> +    return 0;
->> +
->> +err_runtime_get:
->> +    regulator_disable(hdmi.vdda_hdmi_dac_reg);
->> +err_vdac_enable:
->> +    gpio_set_value(hdmi.ct_cp_hpd_gpio, 0);
->> +    gpio_set_value(hdmi.ls_oe_gpio, 0);
->> +    return r;
->> +}
->> +
->> +static void hdmi_power_off_core(struct omap_dss_device *dssdev)
->> +{
->> +    hdmi_runtime_put();
->> +    regulator_disable(hdmi.vdda_hdmi_dac_reg);
->> +    gpio_set_value(hdmi.ct_cp_hpd_gpio, 0);
->> +    gpio_set_value(hdmi.ls_oe_gpio, 0);
->=20
-> We might want to set the DISPC clock source back to DSS_FCK here. Just
-> in case it was using something else. Having this still won't make thing=
-s
-> full proof, but probably slightly better.
-
-In this patch I only split the code, keeping the current behavior. But
-true, setting the clk src back to DSS_FCK makes sense. Although I'd
-rather remove the whole dispc clk src call, as the output drivers
-calling it can easily mess things up.
-
- Tomi
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 
 
---------------enig51787648F477121AED4F5855
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+On 10/26/2012 4:51 AM, Paul Walmsley wrote:
+> Remove arch/arm/mach-omap2/prcm.c and
+> arch/arm/plat-omap/include/plat/prcm.h.  This is in preparation for
+> moving the PRM/CM code to drivers/, although to be fair, these files
+> should have been removed a long time ago.
+> 
+> Intended for 3.8 cleanup.  Applies on top of the existing PRM/CM split
+> cleanup series, and the WDTIMER cleanup series.
+> 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+Paul,
 
-iQIcBAEBAgAGBQJQjlrRAAoJEPo9qoy8lh71j1oQAJ+MvgJVep03fn1I8A7pnPgB
-AuXOka7Aen1JQXp9DzVVrbC7jUvqW94BPOOxaglEwQmJUv60y5hMYOicmxzsEJYV
-+skoa0xELUFCVq4EUYVCql/REmXmusgw9W84tVUNgxDp4rVcjM165+1kGllHs5Ex
-9WCoFr0A/z1wfxgWaNY8UIjPbBkTDi6pjafRevn8l8KS5KqLqN9ncajQPGilc1VC
-44licOD00Kz8j5jXw1IrLuFpnSSojrdZ5et4FPbw3psRRjDBywqCvV2P2LNMQB4k
-rMPHd8jtA6TQiiUOQ8Z50Sk4awpAFTrhmoCUcpOZyyrh1/l3NiPKSO9RJBAOFp/G
-OdPn1hgc1XadFPCJUSfIPsHVoeDgxyikuqKtfmW0FUkLSCN3cyRdUYzno4sNZ1OV
-jl0L4NnrgwWvZdKXKe6ani5gJf43CcII8YYv82AMZH93z1vMeA+t7wxU5jl2tpYS
-aOSQ7c5ZJ3srnp/4rLPmTPHy+51fauPNavz/cpr34WxIxpa+whn9Z72AFIqbH6U7
-wAl/4aaCdCNLNMDVIxuwqDEvAdFSs+Q5ckc3DrScSSTKUiM6/YlMB0fUcBd+6uMt
-SEbXUKMWShCF2KyCJgLrzRSbkDE1kY9oGtlIFJ0ubIwTnqej4DiMAUpb6q2EHiDG
-O/VrBo5UwCpNd83TXj6G
-=g77c
------END PGP SIGNATURE-----
+By any chance you have branch available with these patches, so that I
+can validate them here at my end?
 
---------------enig51787648F477121AED4F5855--
+Thanks,
+Vaibhav
+
+> 
+> - Paul
+> 
+> ---
+> 
+> omap2_prcm_cleanup_3.8
+>    text	   data	    bss	    dec	    hex	filename
+> 7521423	 696876	5613996	13832295	 d31067	vmlinux.omap2plus_defconfig.orig
+> 7522239	 696612	5613996	13832847	 d3128f	vmlinux.omap2plus_defconfig
+> 
+> Paul Walmsley (13):
+>       ARM: OMAP2+: common: remove mach-omap2/common.c and map_common_io code
+>       ARM: OMAP2/3: PRM: add SoC reset functions (using the CORE DPLL method)
+>       ARM: OMAP2xxx: clock: remove global 'dclk' variable
+>       ARM: OMAP2xxx: clock: move virt_prcm_set code into clkt2xxx_virt_prcm_set.c
+>       ARM: OMAP2+: PRCM: create SoC-specific chip restart functions
+>       ARM: OMAP2+: board files: use SoC-specific system restart functions
+>       ARM: OMAP2xxx: APLL/CM: convert to use omap2_cm_wait_module_ready()
+>       ARM: OMAP2+: CM/clock: convert _omap2_module_wait_ready() to use SoC-independent CM functions
+>       ARM: OMAP2+: PRCM: remove omap2_cm_wait_idlest()
+>       ARM: OMAP2+: PRCM: split and relocate the PRM/CM globals setup
+>       ARM: OMAP2+: PRCM: consolidate PRCM-related timeout macros
+>       ARM: OMAP2+: hwmod: call to _omap4_disable_module() should use the SoC-specific call
+>       ARM: OMAP2+: PRCM: remove obsolete prcm.[ch]
+> 
+> 
+>  arch/arm/mach-omap1/reset.c                  |    2 
+>  arch/arm/mach-omap2/Makefile                 |    9 +
+>  arch/arm/mach-omap2/am33xx.h                 |    1 
+>  arch/arm/mach-omap2/board-2430sdp.c          |    2 
+>  arch/arm/mach-omap2/board-3430sdp.c          |    2 
+>  arch/arm/mach-omap2/board-3630sdp.c          |    2 
+>  arch/arm/mach-omap2/board-4430sdp.c          |    2 
+>  arch/arm/mach-omap2/board-am3517crane.c      |    2 
+>  arch/arm/mach-omap2/board-am3517evm.c        |    2 
+>  arch/arm/mach-omap2/board-apollon.c          |    2 
+>  arch/arm/mach-omap2/board-cm-t35.c           |   18 +-
+>  arch/arm/mach-omap2/board-cm-t3517.c         |    2 
+>  arch/arm/mach-omap2/board-devkit8000.c       |    2 
+>  arch/arm/mach-omap2/board-generic.c          |   10 +
+>  arch/arm/mach-omap2/board-h4.c               |    2 
+>  arch/arm/mach-omap2/board-igep0020.c         |    4 -
+>  arch/arm/mach-omap2/board-ldp.c              |    2 
+>  arch/arm/mach-omap2/board-n8x0.c             |    6 -
+>  arch/arm/mach-omap2/board-omap3beagle.c      |    2 
+>  arch/arm/mach-omap2/board-omap3evm.c         |    2 
+>  arch/arm/mach-omap2/board-omap3logic.c       |    4 -
+>  arch/arm/mach-omap2/board-omap3pandora.c     |    2 
+>  arch/arm/mach-omap2/board-omap3stalker.c     |    2 
+>  arch/arm/mach-omap2/board-omap3touchbook.c   |    2 
+>  arch/arm/mach-omap2/board-omap4panda.c       |    2 
+>  arch/arm/mach-omap2/board-overo.c            |    2 
+>  arch/arm/mach-omap2/board-rm680.c            |    4 -
+>  arch/arm/mach-omap2/board-rx51.c             |    2 
+>  arch/arm/mach-omap2/board-ti8168evm.c        |    4 -
+>  arch/arm/mach-omap2/board-zoom.c             |    4 -
+>  arch/arm/mach-omap2/clkt2xxx_apll.c          |   57 ++-----
+>  arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |   36 ++++-
+>  arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   70 ++++++++-
+>  arch/arm/mach-omap2/clkt_iclk.c              |    1 
+>  arch/arm/mach-omap2/clock.c                  |   15 +-
+>  arch/arm/mach-omap2/clock.h                  |   28 ----
+>  arch/arm/mach-omap2/clock2420_data.c         |   26 +--
+>  arch/arm/mach-omap2/clock2430_data.c         |   26 +--
+>  arch/arm/mach-omap2/clock2xxx.c              |   16 --
+>  arch/arm/mach-omap2/clock2xxx.h              |    9 +
+>  arch/arm/mach-omap2/cm-regbits-24xx.h        |    2 
+>  arch/arm/mach-omap2/cm.h                     |   20 ++-
+>  arch/arm/mach-omap2/cm2xxx.c                 |  128 ++++++++++++++++
+>  arch/arm/mach-omap2/cm2xxx.h                 |    4 +
+>  arch/arm/mach-omap2/cm2xxx_3xxx.h            |    8 +
+>  arch/arm/mach-omap2/cm3xxx.c                 |   66 ++++++++
+>  arch/arm/mach-omap2/cm3xxx.h                 |    5 +
+>  arch/arm/mach-omap2/cm_common.c              |   70 +++++++++
+>  arch/arm/mach-omap2/cminst44xx.h             |    2 
+>  arch/arm/mach-omap2/common.c                 |  202 --------------------------
+>  arch/arm/mach-omap2/common.h                 |  111 ++------------
+>  arch/arm/mach-omap2/control.c                |   10 +
+>  arch/arm/mach-omap2/control.h                |    2 
+>  arch/arm/mach-omap2/cpuidle34xx.c            |    1 
+>  arch/arm/mach-omap2/display.c                |    2 
+>  arch/arm/mach-omap2/hdq1w.c                  |    4 -
+>  arch/arm/mach-omap2/i2c.c                    |    6 -
+>  arch/arm/mach-omap2/id.c                     |    7 +
+>  arch/arm/mach-omap2/io.c                     |   87 +++++++++--
+>  arch/arm/mach-omap2/mcbsp.c                  |    2 
+>  arch/arm/mach-omap2/msdi.c                   |    4 -
+>  arch/arm/mach-omap2/omap2-restart.c          |   65 ++++++++
+>  arch/arm/mach-omap2/omap3-restart.c          |   36 +++++
+>  arch/arm/mach-omap2/omap4-common.c           |   18 ++
+>  arch/arm/mach-omap2/omap_hwmod.c             |    8 -
+>  arch/arm/mach-omap2/pm34xx.c                 |    1 
+>  arch/arm/mach-omap2/powerdomain.c            |    2 
+>  arch/arm/mach-omap2/prcm-common.h            |   22 ---
+>  arch/arm/mach-omap2/prcm.c                   |  176 -----------------------
+>  arch/arm/mach-omap2/prcm_mpu44xx.c           |   17 ++
+>  arch/arm/mach-omap2/prcm_mpu44xx.h           |    9 +
+>  arch/arm/mach-omap2/prm.h                    |   24 +++
+>  arch/arm/mach-omap2/prm2xxx.c                |   15 ++
+>  arch/arm/mach-omap2/prm2xxx.h                |    2 
+>  arch/arm/mach-omap2/prm2xxx_3xxx.h           |    7 -
+>  arch/arm/mach-omap2/prm3xxx.c                |   16 ++
+>  arch/arm/mach-omap2/prm3xxx.h                |    2 
+>  arch/arm/mach-omap2/prm44xx.c                |    1 
+>  arch/arm/mach-omap2/prm_common.c             |   16 ++
+>  arch/arm/mach-omap2/prminst44xx.h            |    2 
+>  arch/arm/mach-omap2/sdrc.c                   |    8 -
+>  arch/arm/mach-omap2/sdrc.h                   |    3 
+>  arch/arm/mach-omap2/ti81xx.h                 |    9 +
+>  arch/arm/mach-omap2/wd_timer.c               |    5 -
+>  arch/arm/plat-omap/include/plat/prcm.h       |   36 -----
+>  85 files changed, 827 insertions(+), 804 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap2/common.c
+>  create mode 100644 arch/arm/mach-omap2/omap2-restart.c
+>  create mode 100644 arch/arm/mach-omap2/omap3-restart.c
+>  delete mode 100644 arch/arm/mach-omap2/prcm.c
+>  delete mode 100644 arch/arm/plat-omap/include/plat/prcm.h
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
