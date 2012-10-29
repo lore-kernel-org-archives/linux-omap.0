@@ -1,60 +1,43 @@
-From: Anders Hedlund <anders.j.hedlund@gmail.com>
-Subject: Re: [PATCH v2] ARM: OMAP3: igep0020: Set WIFI/BT GPIO pins in correct
- mux mode
-Date: Mon, 29 Oct 2012 22:23:18 +0100
-Message-ID: <CAFCvrJmHSt4L9fxV19wvBFM8ay1zHb3i-6e7c9JDeJdWZajP5Q@mail.gmail.com>
-References: <1351507226-10328-1-git-send-email-sourav.poddar@ti.com>
-	<1351537155-27159-1-git-send-email-anders.j.hedlund@gmail.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH 1/1] mmc: omap_hsmmc: remove warning message for debounce clock
+Date: Mon, 29 Oct 2012 17:26:02 -0400
+Message-ID: <874nldq8b9.fsf@octavius.laptop.org>
+References: <1351180715-26761-1-git-send-email-balajitk@ti.com>
+	<20121025161231.GO11928@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:48704 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861Ab2J2VXU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Oct 2012 17:23:20 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so2189566bkc.19
-        for <linux-omap@vger.kernel.org>; Mon, 29 Oct 2012 14:23:19 -0700 (PDT)
-In-Reply-To: <1351537155-27159-1-git-send-email-anders.j.hedlund@gmail.com>
+Received: from void.printf.net ([89.145.121.20]:44871 "EHLO void.printf.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754754Ab2J2V0I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 17:26:08 -0400
+In-Reply-To: <20121025161231.GO11928@atomide.com> (Tony Lindgren's message of
+	"Thu, 25 Oct 2012 09:12:32 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: Anders Hedlund <anders.j.hedlund@gmail.com>, Jonas Zetterberg <jozz@jozz.se>, Enric Balletbo i Serra <eballetbo@gmail.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Matthias Brugger <mbrugger@iseebcn.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Balaji T K <balajitk@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, svenkatr@ti.com
 
-Hi Tony and all,
-Sorry... please ignore this one. Sent with incorrect Message-Id. A new
-(hopefully correct) patch mail has already been sent...
+Hi,
 
-Br,
-Anders
+On Thu, Oct 25 2012, Tony Lindgren wrote:
+> * Balaji T K <balajitk@ti.com> [121025 09:00]:
+>> MMC debounce clock is applicable only for omap2430, warning message gets
+>> printed when enable fails for debounce clock. Remove the get debounce clock
+>> failure message as it is noisy for other platforms.
+>> 
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>
+> This would be good to get in during the -rc cycle if possible to remove
+> the bogus warnings on non-2430 omaps. But since it's been there for a
+> long time, we can wait too if needed.
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-2012/10/29 Anders Hedlund <anders.j.hedlund@gmail.com>:
-> Setup the WIFI/BT GPIO pin muxes to enable WIFI/BT functionality.
->
-> Signed-off-by: Anders Hedlund <anders.j.hedlund@gmail.com>
-> Cc: Jonas Zetterberg <jozz@jozz.se>
-> Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
-> Cc: Javier Martinez Canillas <martinez.javier@gmail.com>
-> Cc: Matthias Brugger <mbrugger@iseebcn.com>
-> ---
->  arch/arm/mach-omap2/board-igep0020.c |    5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-> index 2821448..2a21947 100644
-> --- a/arch/arm/mach-omap2/board-igep0020.c
-> +++ b/arch/arm/mach-omap2/board-igep0020.c
-> @@ -583,6 +583,11 @@ static void __init igep_wlan_bt_init(void)
->         } else
->                 return;
->
-> +       /* Make sure that the GPIO pins are muxed correctly */
-> +       omap_mux_init_gpio(igep_wlan_bt_gpios[0].gpio, OMAP_PIN_OUTPUT);
-> +       omap_mux_init_gpio(igep_wlan_bt_gpios[1].gpio, OMAP_PIN_OUTPUT);
-> +       omap_mux_init_gpio(igep_wlan_bt_gpios[2].gpio, OMAP_PIN_OUTPUT);
-> +
->         err = gpio_request_array(igep_wlan_bt_gpios,
->                                  ARRAY_SIZE(igep_wlan_bt_gpios));
->         if (err) {
-> --
-> 1.7.10.4
->
+Thanks; pushed to mmc-next, I'll send it for 3.7.
+
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
