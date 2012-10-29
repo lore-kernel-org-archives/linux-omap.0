@@ -1,173 +1,117 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv5] Input: keypad: Add smsc ece1099 keypad driver
-Date: Mon, 29 Oct 2012 18:20:45 +0200
-Message-ID: <20121029162045.GK27566@arwen.pp.htv.fi>
-References: <1351507129-10229-1-git-send-email-sourav.poddar@ti.com>
+Subject: Re: [PATCH v2] ARM: OMAP1: usb: fix sparse warnings
+Date: Mon, 29 Oct 2012 18:21:17 +0200
+Message-ID: <20121029162117.GL27566@arwen.pp.htv.fi>
+References: <alpine.DEB.2.00.1210262051290.11258@utopia.booyaka.com>
+ <20121026212059.GV11908@atomide.com>
+ <alpine.DEB.2.00.1210262128050.11258@utopia.booyaka.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1hKfHPzOXWu1rh0v"
-Return-path: <linux-input-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="kunpHVz1op/+13PW"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46054 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932716Ab2J2Q1O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Oct 2012 12:27:14 -0400
 Content-Disposition: inline
-In-Reply-To: <1351507129-10229-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: dmitry.torokhov@gmail.com, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1210262128050.11258@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com
 
---1hKfHPzOXWu1rh0v
+--kunpHVz1op/+13PW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Fri, Oct 26, 2012 at 09:28:58PM +0000, Paul Walmsley wrote:
+>=20
+> Resolve the following sparse warnings:
+>=20
+> arch/arm/mach-omap1/usb.c:304:12: warning: symbol 'omap1_usb0_init' was n=
+ot declared. Should it be static?
+> arch/arm/mach-omap1/usb.c:412:12: warning: symbol 'omap1_usb1_init' was n=
+ot declared. Should it be static?
+> arch/arm/mach-omap1/usb.c:478:12: warning: symbol 'omap1_usb2_init' was n=
+ot declared. Should it be static?
+>=20
+> by declaring those functions as static.
+>=20
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Felipe Balbi <balbi@ti.com>
 
-On Mon, Oct 29, 2012 at 04:08:49PM +0530, Sourav Poddar wrote:
-> +static int __devinit
-> +smsc_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev =3D &pdev->dev;
-> +	struct input_dev *input;
-> +	struct smsc_keypad *kp;
-> +	int ret =3D 0;
-> +	int i, max_keys, row_shift;
-> +	int irq;
-> +	int addr;
-> +
-> +	kp =3D devm_kzalloc(dev, sizeof(*kp), GFP_KERNEL);
-> +
-> +	input =3D devm_input_allocate_device(dev);
-> +	if (!kp || !input)
-> +		ret =3D -ENOMEM;
-> +
-> +	ret =3D smsc_keypad_parse_dt(dev, kp);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* Get the debug Device */
-> +	kp->input =3D input;
-> +	kp->irq =3D platform_get_irq(pdev, 0);
-> +	kp->dev =3D dev;
-> +
-> +	/* setup input device */
-> +	 __set_bit(EV_KEY, input->evbit);
-> +
-> +	/* Enable auto repeat feature of Linux input subsystem */
-> +	if (!kp->no_autorepeat)
-> +		__set_bit(EV_REP, input->evbit);
-> +
-> +	input_set_capability(input, EV_MSC, MSC_SCAN);
-> +	input->name             =3D "SMSC Keypad";
-> +	input->phys             =3D "smsc_keypad/input0";
-> +	input->dev.parent       =3D &pdev->dev;
-> +	input->id.bustype       =3D BUS_HOST;
-> +	input->id.vendor        =3D 0x0001;
-> +	input->id.product       =3D 0x0001;
-> +	input->id.version       =3D 0x0003;
-> +
-> +	input->open =3D smsc_keypad_open;
-> +	input->close =3D smsc_keypad_close;
-> +	input_set_drvdata(input, kp);
-> +
-> +	/* Mask all GPIO interrupts (0x37-0x3B) */
-> +	for (addr =3D SMSC_GPIO_INT_MASK_START;
-> +			addr < SMSC_GPIO_INT_MASK_START + 4; addr++)
-> +		smsc_write(dev, addr, 0);
-> +
-> +	/* Set all outputs high (0x05-0x09) */
-> +	for (addr =3D SMSC_GPIO_DATA_OUT_START;
-> +			addr < SMSC_GPIO_DATA_OUT_START + 4; addr++)
-> +		smsc_write(dev, addr, 0xff);
-> +
-> +	/* Clear all GPIO interrupts (0x32-0x36) */
-> +	for (addr =3D SMSC_GPIO_INT_STAT_START;
-> +			addr < SMSC_GPIO_INT_STAT_START + 4; addr++)
-> +		smsc_write(dev, addr, 0xff);
-> +
-> +	/* Configure the smsc pins as Keyboard scan Input */
-> +	for (i =3D 0; i < kp->rows; i++) {
-> +		addr =3D 0x12 + i;
-> +		smsc_write(dev, addr, SMSC_KP_KSI);
-> +	}
-> +
-> +	/* Configure the smsc pins as Keyboard scan output */
-> +	for (i =3D 0; i < kp->cols; i++) {
-> +		addr =3D 0x1a + i;
-> +		smsc_write(dev, addr, SMSC_KP_KSO);
-> +	}
-> +
-> +	smsc_write(dev, SMSC_KP_INT_STAT, SMSC_KP_SET_HIGH);
-> +	smsc_write(dev, SMSC_WKUP_CTRL, SMSC_KP_SET_LOW_PWR);
-> +	smsc_write(dev, SMSC_KP_OUT, SMSC_KSO_ALL_LOW);
-> +
-> +	row_shift =3D get_count_order(kp->cols);
-> +	max_keys =3D kp->rows << row_shift;
-> +
-> +	kp->row_shift =3D row_shift;
-> +	kp->keymap =3D devm_kzalloc(dev, max_keys * sizeof(kp->keymap[0]),
-> +					GFP_KERNEL);
-> +	if (!kp->keymap) {
-> +		dev_err(dev, "Not enough memory for keymap\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	ret =3D matrix_keypad_build_keymap(NULL, NULL, kp->rows,
-> +			kp->cols, kp->keymap, input);
-> +	if (ret) {
-> +		dev_err(dev, "failed to build keymap\n");
-> +		return ret;
-> +	}
-> +
-> +	/*
-> +	* This ISR will always execute in kernel thread context because of
-> +	* the need to access the SMSC over the I2C bus.
-> +	*/
-> +	ret =3D devm_request_threaded_irq(dev, kp->irq, NULL, do_kp_irq,
-> +			IRQF_TRIGGER_FALLING | IRQF_ONESHOT, pdev->name, kp);
-> +	if (ret) {
-> +		dev_dbg(dev, "request_irq failed for irq no=3D%d\n",
-> +			irq);
-> +		return ret;
-> +	}
-> +
-> +	ret =3D input_register_device(input);
-> +	if (ret) {
-> +		dev_err(kp->dev,
-> +			"Unable to register twl4030 keypad device\n");
-> +		return ret;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int __devexit smsc_remove(struct platform_device *pdev)
-> +{
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-shouldn't you unregister the input device here ??
+> ---
+>=20
+> Applies on linux-omap/omap-for-v3.8/cleanup-headers.
+>=20
+>  arch/arm/mach-omap1/usb.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap1/usb.c b/arch/arm/mach-omap1/usb.c
+> index 84267ed..104fed3 100644
+> --- a/arch/arm/mach-omap1/usb.c
+> +++ b/arch/arm/mach-omap1/usb.c
+> @@ -301,7 +301,7 @@ static inline void otg_device_init(struct omap_usb_co=
+nfig *pdata)
+> =20
+>  #endif
+> =20
+> -u32 __init omap1_usb0_init(unsigned nwires, unsigned is_device)
+> +static u32 __init omap1_usb0_init(unsigned nwires, unsigned is_device)
+>  {
+>  	u32	syscon1 =3D 0;
+> =20
+> @@ -409,7 +409,7 @@ u32 __init omap1_usb0_init(unsigned nwires, unsigned =
+is_device)
+>  	return syscon1 << 16;
+>  }
+> =20
+> -u32 __init omap1_usb1_init(unsigned nwires)
+> +static u32 __init omap1_usb1_init(unsigned nwires)
+>  {
+>  	u32	syscon1 =3D 0;
+> =20
+> @@ -475,7 +475,7 @@ bad:
+>  	return syscon1 << 20;
+>  }
+> =20
+> -u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
+> +static u32 __init omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
+>  {
+>  	u32	syscon1 =3D 0;
+> =20
+> --=20
+> 1.7.10.4
+>=20
 
 --=20
 balbi
 
---1hKfHPzOXWu1rh0v
+--kunpHVz1op/+13PW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQjqzdAAoJEIaOsuA1yqRErGcP/0q2Be35qwuyTMvyDFUo62L9
-Y+oVo5+5Jmec9HRiaZsZ2s/hkX82F66gw9hFYQTyzS+I10rC2K3AKx2VjSXojC5m
-9hQ+f0NpAOOHZKrKTLvM11KGM5RHAOBOO5kyUqAqk4qLYeAr0svYzPCDmlUtYGd8
-NJuO/cDAs+VEbPfT62JiQt8maVS74jVNyev2sOuoR/Ywyky8dlFhWCY0IgatGZjc
-wgibr7ciE3GfiTe1vtFqXpv53jRn1lSA8Jt672LWxUGiTG5TMUs2/vL+t9rTKGL8
-KE5n4MlgvMtWoX5cN7NgJwho1yHntHG49EuTQ7bGDl2GlWuEKIkyZaFrYbSaGbVV
-/6SfbjR0Zzc8H1tA1M+Q3E7xJfEpITfOoN9t2AiAPY6YsbuLLGtZa4ucEGgZ4JQf
-+01utCkQWzKb7QH+3m0doBS/ZUsbPyEoBkIEMPZmIIWt71fYFLu2gOBmnbObd6HZ
-QEUHhT/kALZjC9Z4b4UgA5fNZRrbXojVzz4J+1SfRzdgC007hXOp+k3DfSf2o4pc
-I/G07uQAgpxKSvEShztj4wiRbi/x/yE6bnw8divEFjPeCw35H7mZUMUM8AJIAwk3
-pvcEVemIOAvsQH5KPPsiP6FcH8MnZiFny8GUExpEc7Lf7VeMCmjGXr2IDuARdr04
-dTyP3PKih9V9Gwd63RFf
-=vSrn
+iQIcBAEBAgAGBQJQjqz9AAoJEIaOsuA1yqREOxgQAJi+fgMvG9F5hpOdjBN+U/z3
+7cAQTC+m+z2uX/NcgbD6jcMwev9lcigUdpz5fvsAiV4H7RpSrt9ZzzSdyTX+eZ99
+uIP4gaFQR0HimVZO7zmDZnYK2LbIoQ4BE17R9KjOx8RC5Q07Wylyja5xqZ+uc4nz
+R8F3tpX8uvG//Q97FGtrzxdkpmbBJsKl/zojKb2JktVxkPneQ7T8t15r9j2MvMMp
+hHQTXfwM7QYrOeaisAPJemMfOBYEIvpawCbxkZ0N4jMZy3qRhtvnRpyxDeEXT1kd
+Vs7kYlvhsVZpwuah4nRZpq7FZxQCqHA52kq2DOpZuFHJ9nJ+Od2I4+6Ipsb1snQz
+hoFu4yw9jYgJl/UxBWnT+s5v1XErIbuPhaiN0aVFMbRs2eall0/RTbSsYPE+XdG4
+EYnhPNSwSkFgXzjueTBn7S8LvNQEbH9o+Ft/IDT/hlhGTWxw4cj1NRDZ67Gqn4k1
+NW2NcMUXTOMRGFuMK7QqsJW/ZmNgVtEqdbXXjPlH2rK7WaXvtPkemXXkXyj/HrY/
+MA++EjikV0PmDu+LiNNB971KyuQ2pAo4BhEPiF15hqPeezCCxkTKmuk2S262M8jg
+7x1iC7DnY9EFxF0g9rm23CDzHy4LBteGFnIR1YMUd4P1qD1pqJ9Joge5kx/NCRaW
+v8CHUqUXoCtbtdsORjBX
+=ms8U
 -----END PGP SIGNATURE-----
 
---1hKfHPzOXWu1rh0v--
+--kunpHVz1op/+13PW--
