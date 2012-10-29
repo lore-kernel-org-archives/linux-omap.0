@@ -1,72 +1,143 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Sun, 28 Oct 2012 21:12:52 +0100
-Message-ID: <CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow@mail.gmail.com>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
-	<20121024161429.GA16350@core.coreip.homeip.net>
-	<CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
-	<4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: AM33xx: add support for reboot
+Date: Mon, 29 Oct 2012 04:31:20 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EB50073@DBDE01.ent.ti.com>
+References: <1351448275-23509-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1351448275-23509-1-git-send-email-zonque@gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Daniel Mack <zonque@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "Nori, Sekhar" <nsekhar@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "arnd@arndb.de" <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 24, 2012 at 7:28 PM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
+On Sun, Oct 28, 2012 at 23:47:55, Daniel Mack wrote:
+> This patch adds the ability to reboot am33xx-based systems.
+> 
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-generic.c | 1 +
+>  arch/arm/mach-omap2/prcm.c          | 6 ++++++
+>  2 files changed, 7 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> index 601ecdf..6a69ceb 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -114,6 +114,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+>  	.init_machine	= omap_generic_init,
+>  	.timer		= &omap3_am33xx_timer,
+>  	.dt_compat	= am33xx_boards_compat,
+> +	.restart	= omap_prcm_restart,
+>  MACHINE_END
+>  #endif
+>  
+> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> index 0f51e03..8a3068a 100644
+> --- a/arch/arm/mach-omap2/prcm.c
+> +++ b/arch/arm/mach-omap2/prcm.c
+> @@ -32,6 +32,7 @@
+>  #include "clock2xxx.h"
+>  #include "cm2xxx_3xxx.h"
+>  #include "prm2xxx_3xxx.h"
+> +#include "prm33xx.h"
+>  #include "prm44xx.h"
+>  #include "prminst44xx.h"
+>  #include "cminst44xx.h"
+> @@ -72,6 +73,11 @@ void omap_prcm_restart(char mode, const char *cmd)
+>  		omap3_ctrl_write_boot_mode((cmd ? (u8)*cmd : 0));
+>  	} else if (cpu_is_omap44xx()) {
+>  		omap4_prminst_global_warm_sw_reset(); /* never returns */
+> +	} else if (soc_is_am33xx()) {
+> +		prcm_offs = AM33XX_PRM_DEVICE_MOD;
+> +		omap2_prm_set_mod_reg_bits(OMAP4430_RST_GLOBAL_COLD_SW_MASK,
+> +					   prcm_offs,
+> +					   AM33XX_PRM_RSTCTRL_OFFSET);
 
->> drivers/spi/spi-pl022.c
->
-> Default/sleep transitions could be moved into bus code.
+This is not clean way of handling it, we should have something similar to 
+omap4. Also we should use warm-reset here instead of cold.
 
-No that's not a good idea as long as we have both the platform bus
-and the AMBA bus doing essentially the same thing. We will then be
-having two copies of the same code in two different busses running
-out of sync. There may be other busses too.
+I have quickly created patch, can you please review and test is?
+I have tested it on AM335x EVM and Bone platform.
 
-But I could prepare static helpers in <linux/pinctrl/consumer.h>
-that any bus could use. Or any driver. Probably any driver,
-because of this:
 
-As noted the bus cannot really execute the pinctrl calls to
-e.g. put a drivers pins into "sleep". Since if e.g. the bus is walking
-the suspend() ladder, shall it put the pins into sleep *before*
-or *after* calling the suspend() hook in the driver?
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 601ecdf..6a69ceb 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -114,6 +114,7 @@ DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
+        .init_machine   = omap_generic_init,
+        .timer          = &omap3_am33xx_timer,
+        .dt_compat      = am33xx_boards_compat,
++       .restart        = omap_prcm_restart,
+ MACHINE_END
+ #endif
 
-The answer is that it does not know. Because drivers have
-different needs. Depending on how the hardware and
-system is done.
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 0f51e03..490f8f6 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -33,6 +33,7 @@
+ #include "cm2xxx_3xxx.h"
+ #include "prm2xxx_3xxx.h"
+ #include "prm44xx.h"
++#include "prm33xx.h"
+ #include "prminst44xx.h"
+ #include "cminst44xx.h"
+ #include "prm-regbits-24xx.h"
+@@ -72,6 +73,8 @@ void omap_prcm_restart(char mode, const char *cmd)
+                omap3_ctrl_write_boot_mode((cmd ? (u8)*cmd : 0));
+        } else if (cpu_is_omap44xx()) {
+                omap4_prminst_global_warm_sw_reset(); /* never returns */
++       } else if (soc_is_am33xx()) {
++               am33xx_prm_global_warm_sw_reset();      /* never returns */
+        } else {
+                WARN_ON(1);
+        }
+diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
+index e7dbb6c..505219d 100644
+--- a/arch/arm/mach-omap2/prm33xx.c
++++ b/arch/arm/mach-omap2/prm33xx.c
+@@ -133,3 +133,18 @@ int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
 
-I already tried to make this point:
+        return (c == MAX_MODULE_HARDRESET_WAIT) ? -EBUSY : 0;
+ }
++
++void am33xx_prm_global_warm_sw_reset(void)
++{
++       u32 v;
++
++       v = am33xx_prm_read_reg(AM33XX_PRM_DEVICE_MOD,
++                                   AM33XX_PRM_RSTCTRL_OFFSET);
++       v |= AM33XX_GLOBAL_WARM_SW_RST_MASK;
++       am33xx_prm_write_reg(v, AM33XX_PRM_DEVICE_MOD,
++                                AM33XX_PRM_RSTCTRL_OFFSET);
++
++       /* OCP barrier */
++       v = am33xx_prm_read_reg(AM33XX_PRM_DEVICE_MOD,
++                                   AM33XX_PRM_RSTCTRL_OFFSET);
++}
+diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
+index 3f25c56..cdfc694 100644
+--- a/arch/arm/mach-omap2/prm33xx.h
++++ b/arch/arm/mach-omap2/prm33xx.h
+@@ -126,4 +126,5 @@ extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
+ extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
+ extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
+                u16 rstctrl_offs, u16 rstst_offs);
++extern void am33xx_prm_global_warm_sw_reset(void);
 
-pinctrl_set_state(state_sleep);
-clk_disable();
-power_off_voltage_domain();
 
-May for some drivers have to be:
-
-clk_disable();
-power_off_voltage_domain();
-pinctrl_set_state(state_sleep);
-
-(etc)
-
-I'm not making this up, it is a very real phenomenon on the
-Ux500 and I don't think we are unique.
-
-Moving this handling to bus code or anywhere else
-invariably implies that resource acquisition/release order
-does not matter, and my point is that it does.
-
->> drivers/i2c/busses/i2c-nomadik.c
->
-> Don't see pinctrl in linux-next.
-
-This code is here:
-http://marc.info/?l=linux-i2c&m=134986995731695&w=2
-
-Yours,
-Linus Walleij
+Thanks,
+Vaibhav
