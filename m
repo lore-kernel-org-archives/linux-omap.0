@@ -1,43 +1,43 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: AM33XX: clock data: fix mcasp entries
-Date: Mon, 29 Oct 2012 15:45:36 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
-References: <1349879449-22657-1-git-send-email-mporter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Add FDT support to Pandaboard initialization
+Date: Mon, 29 Oct 2012 09:01:23 -0700
+Message-ID: <20121029160122.GB11908@atomide.com>
+References: <1351363800-28744-1-git-send-email-const@MakeLinux.com>
+ <20121029061427.GP17570@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1349879449-22657-1-git-send-email-mporter@ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20121029061427.GP17570@arwen.pp.htv.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Porter, Matt" <mporter@ti.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Constantine Shulyupin <const@MakeLinux.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tim.bird@am.sony.com, pandaboard@googlegroups.com, Santosh Shilimkar OMAP <santosh.shilimkar@ti.com>, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Matt,
-
-On Wed, Oct 10, 2012 at 20:00:49, Porter, Matt wrote:
-> 6ea74cb ARM: OMAP2+: hwmod: get rid of all omap_clk_get_by_name usage
-> exposes a bug in the AM33XX clock data for mcasp. After moving to
-> clk_get() usage, the _init() of all registered hwmods fails on mcasp0
-> due to incorrect clock data causing clk_get() to fail. This causes all
-> successive hwmods to fail to _init() leaving them in a bad state.
+* Felipe Balbi <balbi@ti.com> [121028 23:22]:
+> On Sat, Oct 27, 2012 at 08:50:00PM +0200, Constantine Shulyupin wrote:
+> > From: Constantine Shulyupin <const@MakeLinux.com>
+> > 
+> > Problem:
+> > - FDT is supported only by generic OMAP board initialization in arch/arm/mach-omap2/board-generic.c and lacks some configurations, which are not yet configured in FDT (USB for example).
+> > Solution:
+> > - arch/arm/mach-omap2/board-omap4panda.c supports initialization with FDT and without it.
+> > 
+> > Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
 > 
-> This patch updates the mcasp clock entries so clk_get() will succeed.
-> It is tested on BeagleBone and is needed for 3.7-rc1 to fix AM33xx
-> boot.
+> NAK, the whole idea of DT is to drop board-*.c. It would be best to see
+> the "missing initialization" being added to board-generic/dts files.
 
+Yes I agree, let's rather get board-generic.c to work with panda.
 
-I want to test Audio on AM335x Evm with your EDMA patches. I have few 
-patches for AM335x.
-Can you share the link to the repo & branch on which I need to rebase?
-The patches are related to mcasp dt node, mcasp pinmux in dt, etc...
+The other board-*.c files will be dropped as soon as we have
+things usable with devicetree. And we're only two board-*.c files
+away from making omap4 device tree only ;)
 
-> 
-..snip..
-..snip..
-> 
+I think we are only missing DSS, USB and WLAN bindings to
+have blaze and panda usable with device tree to the point
+where everything else can be added later on.
 
+Regards,
 
-Thanks & Regards, 
-Gururaja
+Tony
