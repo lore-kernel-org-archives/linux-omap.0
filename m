@@ -1,59 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Date: Tue, 30 Oct 2012 09:29:38 -0700
-Message-ID: <20121030162938.GH11908@atomide.com>
-References: <20121025001913.2082.31062.stgit@muffinssi.local>
- <20121025213935.GD11928@atomide.com>
- <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
- <6561916.t72K1L6jg4@avalon>
- <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
- <20121026180039.GM11908@atomide.com>
+From: Sebastien Guiriec <s-guiriec@ti.com>
+Subject: Re: [PATCH v2 0/2] ARM: OMAP: hwmod/omapd_device: Fix for resource
+ handling in DT boot
+Date: Tue, 30 Oct 2012 18:26:05 +0100
+Message-ID: <50900DAD.2060102@ti.com>
+References: <1351596296-13825-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121026180039.GM11908@atomide.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57565 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933788Ab2J3R0S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 13:26:18 -0400
+In-Reply-To: <1351596296-13825-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [121026 11:02]:
-> * Ohad Ben-Cohen <ohad@wizery.com> [121026 02:56]:
-> > Hi Laurent,
-> > 
-> > On Fri, Oct 26, 2012 at 11:35 AM, Laurent Pinchart
-> > <laurent.pinchart@ideasonboard.com> wrote:
-> > > That's on my to-do list, as well as porting the OMAP3 ISP driver to videobuf2,
-> > > adding DT support, moving to the common clock framework (when that will be
-> > > available for the OMAP3), supporting missing V4L2 features, ... All this in my
-> > > spare time of course, otherwise it wouldn't be fun, would it ? ;-)
-> > 
-> > Hmm, seems like a short to-do list ;)
-> 
-> Sounds Laurent will take care of it :)
-> 
-> > > I would also like to move the tidspbridge to the DMA API, but I think we'll
-> > > need to move step by step there, and using the OMAP IOMMU and IOVMM APIs as an
-> > > intermediate step would allow splitting patches in reviewable chunks. I know
-> > > it's a step backwards in term of OMAP IOMMU usage, but that's in my opinion a
-> > > temporary nuisance to make the leap easier.
-> > 
-> > Since tidspbridge is in staging I guess it's not a problem, though it
-> > sounds to me like using the correct API in the first place is going to
-> > make less churn.
-> 
-> Not related to these patches, but also sounds like we may need to drop
-> some staging/tidspbridge code to be able to move forward with the
-> ARM common zImage plans. See the "[GIT PULL] omap plat header removal
-> for v3.8 merge window, part1" thread for more info.
+Hi Peter,
 
-OK so are people happy with the patches in this series?
+On 10/30/2012 12:24 PM, Peter Ujfalusi wrote:
+> Hello,
+>
+> Changes since v1:
+> - If the device does not have DMA resource do not try to recreate the resources
+>
+> Intro mail from v1:
+>
+> This series resolves the issue we currently have with the resource handling when
+> booting with DT.
+> In short: at the moment the omap_device_alloc() decides if it needs to update the
+> OF filled resources based on the number of resources on the device and in the
+> hwmod database.
+> This prevents us from removing hwmod data for platforms (OMAP5) which does not
+> support non DT boot anymore.
 
-Please everybody ack if no more comments so we can move on
-towards getting CONFIG_MULTIPLATFORM to work for omaps.
+At list removing 160 lines for out of tree data for OMAP5 audio part. So 
+going in the good direction. But should much more after cleaning up all 
+IP. Now we need to add DMA binding to remove the data.
 
-Regards,
-
-Tony
+>
+> With this series we can make sure that the DT provided resources are used and we
+> only append the DMA resources to the device from hwmod.
+> I have added extra check to prepare us when the DMA resource can be filled via
+> OF. In this case we do not update the resources at all.
+>
+> Tony, Benoit, Paul: Not sure if this qualify for 3.7 inclusion, but for sure
+> going to help us to clean up the OMAP5 hwmod database.
+>
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (2):
+>    ARM: OMAP: hwmod: Add possibility to count hwmod resources based on
+>      type
+>    ARM: OMAP: omap_device: Correct resource handling for DT boot
+>
+>   arch/arm/mach-omap2/omap_hwmod.c             | 27 +++++----
+>   arch/arm/plat-omap/include/plat/omap_hwmod.h |  2 +-
+>   arch/arm/plat-omap/omap_device.c             | 87 ++++++++++++++++++----------
+>   3 files changed, 72 insertions(+), 44 deletions(-)
+>
+Tested-by: Sebastien Guiriec <s-guiriec@ti.com>
