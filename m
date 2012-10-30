@@ -1,184 +1,37 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [RFC PATCH v3 16/16] ARM: dts: add AM33XX SPI support
-Date: Tue, 30 Oct 2012 09:41:31 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9D597B@DBDE01.ent.ti.com>
-References: <1350566815-409-1-git-send-email-mporter@ti.com>
- <1350566815-409-17-git-send-email-mporter@ti.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH] CLK: clk-twl6040: Initial clock driver for OMAP4+ McPDM
+ fclk clock
+Date: Tue, 30 Oct 2012 03:05:00 -0700
+Message-ID: <20121030100500.18780.32416@nucleus>
+References: <1347633027-20731-1-git-send-email-peter.ujfalusi@ti.com>
+ <20121029173008.18780.35000@nucleus> <508F842D.8000407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: "Porter, Matt" <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <508F842D.8000407@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: =?utf-8?q?P=C3=A9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 29, 2012 at 14:40:02, Philip, Avinash wrote:
-> On Thu, Oct 18, 2012 at 18:56:55, Porter, Matt wrote:
-> > Adds AM33XX SPI support for am335x-bone and am335x-evm.
-
-Matt,
-
-Can you build SPI DT patch with DMA support on top of SPI DT patch
-I submitted [1]. With the patch [1] SPI can work on PIO mode.
-So we can have basic SPI support available in 3.8.
-
-Benoit,
-Can you accept the SPI DT patch [1]
-
-In case if you want I will resubmit a patch with subject line modified.
-
-Current subject line
-arm/dts: AM33XX: Add SPI device tree data
-
-1. https://patchwork.kernel.org/patch/1470661/
-
-Thanks
-Avinash
-
-> > 
-> > Signed-off-by: Matt Porter <mporter@ti.com>
-> > ---
-> >  arch/arm/boot/dts/am335x-bone.dts |   17 +++++++++++++++
-> >  arch/arm/boot/dts/am335x-evm.dts  |    9 ++++++++
-> >  arch/arm/boot/dts/am33xx.dtsi     |   43 +++++++++++++++++++++++++++++++++++++
-> >  3 files changed, 69 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> > index 5510979..23edfd8 100644
-> > --- a/arch/arm/boot/dts/am335x-bone.dts
-> > +++ b/arch/arm/boot/dts/am335x-bone.dts
-> > @@ -18,6 +18,17 @@
-> >  		reg = <0x80000000 0x10000000>; /* 256 MB */
-> >  	};
-> >  
-> > +	am3358_pinmux: pinmux@44e10800 {
-> > +		spi1_pins: pinmux_spi1_pins {
-> > +			pinctrl-single,pins = <
-> > +				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
-> > +				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
-> > +				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
-> > +				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
-> > +			>;
-> > +		};
-> > +	};
-> > +
-> 
-> Change to am33xx_pinmux.
-> 
-> >  	ocp {
-> >  		uart1: serial@44e09000 {
-> >  			status = "okay";
-> > @@ -84,3 +95,9 @@
-> >  &mmc1 {
-> >  	vmmc-supply = <&ldo3_reg>;
-> >  };
-> > +
-> > +&spi1 {
-> > +	status = "okay";
-> > +	pinctrl-names = "default";
-> > +	pinctrl-0 = <&spi1_pins>;
-> > +};
-> > diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> > index d63fce8..8d5f660 100644
-> > --- a/arch/arm/boot/dts/am335x-evm.dts
-> > +++ b/arch/arm/boot/dts/am335x-evm.dts
-> > @@ -124,3 +124,12 @@
-> >  &mmc1 {
-> >  	vmmc-supply = <&vmmc_reg>;
-> >  };
-> > +
-> > +&spi0 {
-> > +	status = "okay";
-> > +	spi-flash@0 {
-> > +		compatible = "spansion,s25fl064k", "m25p80";
-> > +		spi-max-frequency = <24000000>;
-> > +		reg = <0>;
-> > +	};
-> > +};
-> 
-> In AM335x-evm, SPI flash available in profile #2 (am335x evm specific profiles).
-> So can you drop this changes as if I understood correctly, am335x-evm.dts will be
-> populated for devices present only on profile #0.
-> 
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> > index 26a6af7..063ecea 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -40,6 +40,15 @@
-> >  		};
-> >  	};
-> >  
-> > +	am3358_pinmux: pinmux@44e10800 {
-> > +		compatible = "pinctrl-single";
-> > +		reg = <0x44e10800 0x0238>;
-> > +		#address-cells = <1>;
-> > +		#size-cells = <0>;
-> > +		pinctrl-single,register-width = <32>;
-> > +		pinctrl-single,function-mask = <0x7f>;
-> > +	};
-> > +
-> 
-> Pin ctrl support already submitted
-> http://git.kernel.org/?p=linux/kernel/git/bcousson/linux-omap-dt.git;a=commitdiff;h=3e0603e905d9ba662e8c1885ecb1d28bc454e448
-> 
-> Thanks
-> Avinash
-> 
-> >  	/*
-> >  	 * XXX: Use a flat representation of the AM33XX interconnect.
-> >  	 * The real AM33XX interconnect network is quite complex.Since
-> > @@ -261,6 +270,40 @@
-> >  			status = "disabled";
-> >  		};
-> >  
-> > +		spi0: spi@48030000 {
-> > +			compatible = "ti,omap4-mcspi";
-> > +			ti,hwmods = "spi0";
-> > +			#address-cells = <1>;
-> > +			#size-cells = <0>;
-> > +			reg = <0x48030000 0x400>;
-> > +			interrupt-parent = <&intc>;
-> > +			interrupt = <65>;
-> > +			dmas = <&edma 16
-> > +				&edma 17
-> > +				&edma 18
-> > +				&edma 19>;
-> > +			dma-names = "tx0", "rx0", "tx1", "rx1";
-> > +			ti,spi-num-cs = <2>;
-> > +			status = "disabled";
-> > +		};
-> > +
-> > +		spi1: spi@481a0000 {
-> > +			compatible = "ti,omap4-mcspi";
-> > +			ti,hwmods = "spi1";
-> > +			#address-cells = <1>;
-> > +			#size-cells = <0>;
-> > +			reg = <0x481a0000 0x400>;
-> > +			interrupt-parent = <&intc>;
-> > +			interrupt = <125>;
-> > +			dmas = <&edma 42
-> > +				&edma 43
-> > +				&edma 44
-> > +				&edma 45>;
-> > +			dma-names = "tx0", "rx0", "tx1", "rx1";
-> > +			ti,spi-num-cs = <2>;
-> > +			status = "disabled";
-> > +		};
-> > +
-> >  		wdt2: wdt@44e35000 {
-> >  			compatible = "ti,omap3-wdt";
-> >  			ti,hwmods = "wd_timer2";
-> > -- 
-> > 1.7.9.5
-> > 
-> > 
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> > 
-> 
-> 
-
+UXVvdGluZyBQw6l0ZXIgVWpmYWx1c2kgKDIwMTItMTAtMzAgMDA6Mzk6MjUpCj4gSGkgTWlrZSwK
+PiAKPiBPbiAxMC8yOS8yMDEyIDA2OjMwIFBNLCBNaWtlIFR1cnF1ZXR0ZSB3cm90ZToKPiA+IFBl
+dGVyLAo+ID4gCj4gPiBUaGUgcGF0Y2ggbG9va3MgZ29vZCB0byBtZS4gIFRvIGJlIGNsZWFyLCB5
+b3Ugd2FuIHRoaXMgdG8gZ28gdGhyb3VnaAo+ID4gY2xrLW5leHQgb3IgdGhlIG1mZCB0cmVlIGZv
+ciBhdm9pZGluZyBjb25mbGljdHM/Cj4gCj4gY2xrLW5leHQgaXMgdGhlIGJlc3QgcGxhY2UgZm9y
+IGl0IEkgdGhpbmsuIFRoZSBNRkQgcGFydCB0byByZWdpc3RlciB0aGUgZGV2aWNlCj4gY2FuIHN0
+aWxsIHdhaXQgdGlsbCB3ZSBoYXZlIGNjZiBzdXBwb3J0IG9uIE9NQVA0Lgo+CgpDb29sLiAgSSd2
+ZSB0YWtlbiB0aGlzIGludG8gY2xrLW5leHQuCgpSZWdhcmRzLApNaWtlCiAKPiBUaGFuayB5b3Us
+Cj4gUMOpdGVyCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
+ZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1hcm0ta2VybmVsCg==
