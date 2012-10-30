@@ -1,56 +1,42 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 00/12] OMAPDSS: use DSI PLL clk for DPI
-Date: Tue, 30 Oct 2012 18:09:57 +0200
-Message-ID: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 04/12] OMAPDSS: fix DSI2 PLL clk names
+Date: Tue, 30 Oct 2012 18:10:01 +0200
+Message-ID: <1351613409-21186-5-git-send-email-tomi.valkeinen@ti.com>
+References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52981 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52987 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933825Ab2J3QKT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Oct 2012 12:10:19 -0400
+	id S933903Ab2J3QK0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 12:10:26 -0400
+In-Reply-To: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: rob@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+dss_generic_clk_source_names is missing the names for clocks from DSI2
+PLL. Add them.
 
-The aim of this series is to enable using DSI PLL as the pixel clock source for
-DPI output. There are the following main parts:
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dss.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-* first 4 patches are slightly related generic improvements/fixes
-* fix DSI PLL problem related to non-50% duty cycle
-* fix DSI PLL problem related to powering
-* changes to the clock handling to always use DSI PLL for DPI when possible
-
-I've tested the series on OMAP4 Panda, OMAP4 SDP and OMAP3 Beagle.
-
- Tomi
-
-Tomi Valkeinen (12):
-  OMAPFB: remove use of extended edid block
-  OMAPFB: improve mode selection from EDID
-  OMAPDSS: fix DPI & DSI init order
-  OMAPDSS: fix DSI2 PLL clk names
-  OMAPDSS: DSI: skip odd dividers when pck >= 100MHz
-  OMAPDSS: DSI: workaround for HSDiv problem
-  OMAPDSS: add dss_calc_clock_rates() back
-  OMAPDSS: setup default dss fck
-  OMAPDSS: hide dss_select_dispc_clk_source()
-  OMAPDSS: DPI: use dpi.dsidev to see whether to use dsi pll
-  OMAPDSS: DPI: verify if DSI PLL is operational
-  OMAPDSS: DPI: always use DSI PLL if available
-
- drivers/video/omap2/dss/core.c           |   12 ++--
- drivers/video/omap2/dss/dpi.c            |   99 +++++++++++++++++++++---------
- drivers/video/omap2/dss/dsi.c            |   14 ++++-
- drivers/video/omap2/dss/dss.c            |   67 +++++++++++++++++++-
- drivers/video/omap2/dss/dss.h            |    2 +-
- drivers/video/omap2/dss/hdmi.c           |    8 ---
- drivers/video/omap2/omapfb/omapfb-main.c |   16 ++---
- 7 files changed, 160 insertions(+), 58 deletions(-)
-
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 37ee465..a85bd05 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -97,6 +97,8 @@ static const char * const dss_generic_clk_source_names[] = {
+ 	[OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "DSI_PLL_HSDIV_DISPC",
+ 	[OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]	= "DSI_PLL_HSDIV_DSI",
+ 	[OMAP_DSS_CLK_SRC_FCK]			= "DSS_FCK",
++	[OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC]	= "DSI_PLL2_HSDIV_DISPC",
++	[OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI]	= "DSI_PLL2_HSDIV_DSI",
+ };
+ 
+ static inline void dss_write_reg(const struct dss_reg idx, u32 val)
 -- 
 1.7.10.4
 
