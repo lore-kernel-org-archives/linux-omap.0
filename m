@@ -1,64 +1,102 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
-Date: Tue, 30 Oct 2012 09:16:34 -0500
-Message-ID: <508FE142.2020408@ti.com>
-References: <20121026114250.GA26342@arwen.pp.htv.fi> <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de> <508E266C.6090901@ti.com> <20121029080523.GC13657@arwen.pp.htv.fi> <508E3D09.9090802@ti.com> <20121029200328.GE30152@arwen.pp.htv.fi> <508F7471.8060402@ti.com> <20121030070904.GB1978@arwen.pp.htv.fi>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 30 Oct 2012 14:37:16 +0000
+Message-ID: <20121030143715.GP4511@opensource.wolfsonmicro.com>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
+ <20121024161429.GA16350@core.coreip.homeip.net>
+ <CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
+ <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+ <CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow@mail.gmail.com>
+ <20121030113407.GA24335@sirena.org.uk>
+ <CACRpkdapQJY0aoam741O0fb8EeM9BLk_Psq5TaPG84J7wEvCLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49195 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756127Ab2J3OQj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Oct 2012 10:16:39 -0400
-In-Reply-To: <20121030070904.GB1978@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9zecZT88ylESpiZX"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdapQJY0aoam741O0fb8EeM9BLk_Psq5TaPG84J7wEvCLw@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Kevin Hilman <khilman@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tim Niemeyer <tim.niemeyer@corscience.de>, Linux OMAP List <linux-omap@vger.kernel.org>
 
-Hi Felipe,
 
-On 10/30/2012 02:09 AM, Felipe Balbi wrote:
+--9zecZT88ylESpiZX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-...
+On Tue, Oct 30, 2012 at 03:02:23PM +0100, Linus Walleij wrote:
 
->> its bit of an issue to take care. How do you ensure that GPIO
->> does idle on SOC idle C-state attempts in such cases. Today that
->> job is done by omap_gpio_[prepare/resume]_for_idle.
-> 
-> that's only there because we pm_runtime_get_sync() on gpio_request() and
-> pm_runtime_put_sync() only on gpio_free().
-> 
-> That's the problem IMHO. And that's easy enough to 'fix':
-> 
-> call pm_runtime_mark_last_busy(); pm_runtime_put_sync_autosuspend();
-> also on gpio_request() and pm_runtime_get_sync() on gpio_free().
+> I worry that we will end up with power/resource domain
+> code that start to look like this:
 
-Sounds like a good approach. I have been discussing with Kevin and I
-need to look more at the resume handler as we are working around some
-old issues in there and with this approach the resume following idle
-will be delayed and we were not sure if there could be any implications
-for omap2. I am hoping not, but we need to look into this.
+> suspend()
+> switch (device.id) {
+> case DEV_FOO:
+>   clk_disable();
+>   pinctrl_set_state();
+>   power_domain_off();
+> case DEV_BAR:
 
-So I am wondering if we should just take Tim's original proposal for now
-and then I will look into improving this long term. I really need to
-clean-up the suspend/resume stuff for gpio and so may be we can make
-that a separate change. What do you think?
+Well, if we're doing that then either we'd presumably either get the
+same result if we open code it in the drivers or whoever wrote the
+resource domain code for the platform should be creating multiple
+domains.
 
-...
+> Another effect is that moving all resource handling to
+> power domains is that if we do that for a widely shared
+> device driver like the PL011 that mandates that power
+> domains need to be implemented for U300, Ux500,
+> Nomadik, SPEAr 13xx, 3xx, 6xx, Versatile, Versatile
+> Express, Integrator (AP & CP) and BCM2835. Probably
+> more.
 
-> The difficult part, IMHO, is to figure out what's a good autosuspend
-> timeout to use. Some GPIO lines are used as IRQ lines on some devices,
-> that means that the GPIO will be periodically triggered and, depending
-> on our timeout, we will either loose IRQs or prevent power domain from
-> idling. We could figure out a way to let board code to choose what it
-> wants on a per-bank basis (maybe some extra DT attribute).
+> Basically power (resource) domains have the side-effect
+> of in this light not doing one thing (power domains) but
+> instead imposing all-or-nothing imperialistic characteristics.
 
-I have also been bending Kevin's ear on this, this week and we were
-wondering if we should make the default 0 for now as this will have the
-same behaviour that we have today but would allow Tim to customise via
-the sysfs for his specific app.
+For me that's happening anyway with explicit control, just in different
+places - for example the Freescale guys have had issues with IPs shared
+between m68k and i.MX requiring that stub clocks be provided on m68k for
+things that are always on there and similarly with all the platforms
+that get affected when some widely used chip acquires regulator support.
 
-Cheers
-Jon
+It seems easier to organise things if the platform has responsibility
+for coordinating this stuff than if we add stuff in the drivers.
+
+> I worry that the per-SoC power domain implementation
+> which will live in arch/arm/mach-* as of today will become
+> the new board file problem, overburdening the arch/* tree.
+> Maybe I'm mistaken as to the size of these things,
+> but just doing ls arch/arm/mach-omap2/powerdomain*
+> makes me start worrying.
+
+One thing to remember is that OMAP has some of the most featureful
+hardware out there in terms of software control for power so it's
+unlikely to ever get much more complex than that.  IME most SoCs
+are very much simpler than that and should be able to punt lots of
+stuff to device tree data.
+
+--9zecZT88ylESpiZX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQj+XzAAoJELSic+t+oim9EFkP/1d40L0OYQ8Z9QHLeu5cbNoz
+D0KQtlQOuRA0v5s0ONEWprg+X3kY16breTyNEEANA1p4rpNDBtOS17LHB0th/Muq
+JyI8wxQqm16101sEv6IpB3MWwvi0X8N7iSO6fKAzlRFAnLIc+BGE0oDeQeRYhCN7
+ccx8/wTOQfxgnNGSAeqg/uC6GpjzFuV8zwA/6wxDgHlxoeP/XXP8KkPumD1QXb4w
+IxXnCS9aAzpAaKE8z3yMi25jU6cL7XNwAF7eYFBFawA/90qls/QY4vXjvtqwI7QC
+W3GBcGmW4sekYxhZzTHJIuv+z0BMtSPKgCMTBh5Fzgzvoseg+FpToQ32YeTtt3Lq
+lDbagBM801FI0HaCgffjRHxxm8vf+6URVl/6BRYXgku8O4dRurMXfGpVIdhO75m0
+L2B09Pq5T9ixNXVg2sW7zcK0wtRnBXx0TslCgbFwzZJ4yQzNZrEdcUZHhUBqFxoL
+br3gbr3oFXouLPEskrAg2QVWmotNsuUZgNqLBy9n6tL8F+N8id5Tc9xLLOchVW11
+gHZ6QWFksxx6YTSQsEkRyVn7L6h2m/vse6qbphTNtGp/lZWEqEbh1QYLahA8wWvD
+Ur6OPFXHFiUd9/Ew5ZSG82xLwjdCnz8nvyTQoD3C6q6wxkZmskHiAF1pMPvHi4gf
+eRPGeIdAHg7sxKsY1QI6
+=3pZ7
+-----END PGP SIGNATURE-----
+
+--9zecZT88ylESpiZX--
