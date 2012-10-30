@@ -1,80 +1,36 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Tue, 30 Oct 2012 18:37:04 +0000
-Message-ID: <20121030183704.GX4511@opensource.wolfsonmicro.com>
-References: <20121025205901.GA3827@sirena.org.uk>
- <20121026062008.GA21734@arwen.pp.htv.fi>
- <20121026160316.GY18814@opensource.wolfsonmicro.com>
- <20121029194901.GA30152@arwen.pp.htv.fi>
- <20121030112410.GM4511@opensource.wolfsonmicro.com>
- <20121030114949.GC28722@arwen.pp.htv.fi>
- <20121030140714.GO4511@opensource.wolfsonmicro.com>
- <20121030151642.GE29159@arwen.pp.htv.fi>
- <20121030155821.GU4511@opensource.wolfsonmicro.com>
- <20121030172513.GA3993@arwen.pp.htv.fi>
+From: David Daney <ddaney.cavm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] i2c-EEPROM: Export memory accessor
+Date: Tue, 30 Oct 2012 11:46:17 -0700
+Message-ID: <50902079.30406@gmail.com>
+References: <1351699009-4217-1-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DMefDzZywwCHZelG"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121030172513.GA3993@arwen.pp.htv.fi>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1351699009-4217-1-git-send-email-panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Cc: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 10/31/2012 08:56 AM, Pantelis Antoniou wrote:
+> Various platforms need access to the EEPROM in other
+> places besides their platform registration callbacks.
+> Export the memory accessor to the i2c_client
 
---DMefDzZywwCHZelG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+i2c_clients are *not* intrinsically memory, so adding this to the 
+generic i2c_client structure doesn't really make sense.   What would the 
+semantics of this interface be with respect to temperature sensors and 
+GPIO expanders?
 
-On Tue, Oct 30, 2012 at 07:25:13PM +0200, Felipe Balbi wrote:
-> On Tue, Oct 30, 2012 at 03:58:21PM +0000, Mark Brown wrote:
+NACK.
 
-> > But then this comes round to the mindless code that ought to be factored
-> > out :)  Only the more interesting cases that do something unusual really
-> > register here.
 
-> fair enough. I see your point. Not saying I agree though, just that this
-> discussion has been flying for far too long, so feel free to provide
-> patches implementing what you're defending here ;-)
+> and implement
+> it for the at24 driver.
+>
+> And before you ask, no, the platform callback can't be used
+> for anything that depends on DT.
 
-> Guess code will speak for itself. On way or another, we need OMAP keypad
-> driver working in mainline and I don't think your arguments are strong
-> enough to keep $SUBJECT from being merged, unless you can provide
-> something stable/tested for v3.8 merge window.
-
-Ship me an OMAP5 system and I might see what I can do :)
-
-More seriously the amount of time we seem to have been spending recently
-on changes which end up requiring us to go through essentially every
-driver and add code to them (often several times) doesn't seem like
-we're doing a good job here.  pinctrl is really noticable because it's
-new but it's not the only thing.  As a subsystem maintainer this code
-just makes me want to add new subsystem features to pull the code out of
-drivers but obviously that's not something that should be being done at
-the subsystem level.
-
---DMefDzZywwCHZelG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQkB43AAoJELSic+t+oim9I0wP/1rfBcXfK+YljZUr1hkeCm28
-8C32AJqxiOv6udgo4yLnsJmfJkCXiyrLrg5Xl3mfXL/Jl+CQVYUM3GaqatPsqA08
-0Olfa5KM+Ftsfvb91lxjvqYvYHzmkFBUY4s3Kk5Xtu0ltEeTy9Dxvzb7Sh8Pj+/m
-cwBBqwf+milN3u84ZxHvgpLshzq+prsUMq0ym7gnr8+7VeDooSM+uao5uk/hSblw
-FloanO5OkNk/FSHfc9eAEDaJVHHrxM88bWwTNkR3IvFwdB8WFVwbHpuXHlg3PhLy
-3hoiDDW8yTJxXwYy9ld8jpTg4O36kSTF5+nHYkWTAm0UUocdAEy0z4/cNnj/Wjqp
-v20zhskCYp6O1TWa5Ws34fgeifVgOKTFEYuURox1g7CXJCbnO7coQvY4GAbV5nqQ
-9GCQTIkLomOocctANrABGNEAMcNmU3E5JEhDaPMZhKRHwuMB0X1msaE+E/knwRUi
-DX3XeV70DaiAqBKyVfmKQknzgE9qbyOSuEWzIyVvMFPQw8xYDJhUKxKeMOK2U3uf
-0pKEamahZbQ6heUuyz5K6i6rUu+1zXkx3jqpVJ/DKpSM6keanNWzph0pvbT5RQX2
-ubbVGu5yOe8wZfOWfmqlAK3cztUxMBw/raCM78BMV0CbNoA2eAXoJRrUr5bCHzmZ
-Ea9qpZRWusegfByl1USM
-=V4+A
------END PGP SIGNATURE-----
-
---DMefDzZywwCHZelG--
+Why can't you just allocate (and populate) a struct at24_platform_data 
+for the device if it isn't supplied by whatever created the device?
