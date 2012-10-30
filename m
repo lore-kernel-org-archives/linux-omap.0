@@ -1,591 +1,577 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/11] ARM: OMAP1: Remove relative includes
-Date: Tue, 30 Oct 2012 16:53:06 -0700
-Message-ID: <20121030235306.25936.38688.stgit@muffinssi.local>
+Subject: [PATCH 10/11] ARM: OMAP: Remove cpu_is_omap usage from
+ plat-omap/dma.c
+Date: Tue, 30 Oct 2012 16:53:02 -0700
+Message-ID: <20121030235302.25936.33669.stgit@muffinssi.local>
 References: <20121030234852.25936.12482.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:63455 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755320Ab2J3XxH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 19:53:07 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56428 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754464Ab2J3XxG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 19:53:06 -0400
 In-Reply-To: <20121030234852.25936.12482.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Vinod Koul <vinod.koul@intel.com>, Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
 
-As discussed on linux-arm-kernel, we want to avoid
-relative includes for the arch/arm/*omap* code:
+This code will be eventually in drivers, and for the
+code in the drivers we don't want to have any cpu_is_omap
+usage. Those macros should be private to arch/arm/mach-omap1
+and arch/arm/mach-omap2.
 
-http://www.spinics.net/lists/linux-omap/msg80520.html
+To fix this, let's move the define for dma_omap2plus()
+to dma-omap.h, and use the existing dma_attr passed in
+the platform_data as the revision registers are what they
+are.
 
-Note that eventually when the omap1 specific drivers
-are fixed to not use cpu_is_omap macros and not depend
-on mach/hardware.h, this patch can be reverted and these
-headers can be local. But since just fixing the drivers for
-omap2+ is already a big enough hassle, let's deal
-with that properly first.
+Note that we can now also remove the relative includes
+introduced by the recent clean-up patches.
 
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Lokesh Vutla <lokeshvutla@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/include/mach/entry-macro.S |    2 
- arch/arm/mach-omap1/include/mach/hardware.h    |    5 -
- arch/arm/mach-omap1/include/mach/memory.h      |    2 
- arch/arm/mach-omap1/include/mach/soc.h         |  229 ++++++++++++++++++++++++
- arch/arm/mach-omap1/iomap.h                    |    3 
- arch/arm/mach-omap1/sleep.S                    |    2 
- arch/arm/mach-omap1/soc.h                      |  229 ------------------------
- 7 files changed, 238 insertions(+), 234 deletions(-)
- create mode 100644 arch/arm/mach-omap1/include/mach/soc.h
+ arch/arm/mach-omap1/dma.c                       |    3 +
+ arch/arm/mach-omap2/dma.c                       |    3 +
+ arch/arm/plat-omap/dma.c                        |  108 +++++++++++------------
+ arch/arm/plat-omap/include/plat-omap/dma-omap.h |   19 +++-
+ drivers/dma/omap-dma.c                          |    6 -
+ 5 files changed, 73 insertions(+), 66 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/include/mach/entry-macro.S b/arch/arm/mach-omap1/include/mach/entry-macro.S
-index 88f08ca..78a8c6c 100644
---- a/arch/arm/mach-omap1/include/mach/entry-macro.S
-+++ b/arch/arm/mach-omap1/include/mach/entry-macro.S
-@@ -13,8 +13,6 @@
- #include <mach/hardware.h>
- #include <mach/irqs.h>
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index 71305c15..978aed8 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -321,6 +321,9 @@ static int __init omap1_system_dma_init(void)
+ 		d->dev_caps = ENABLE_1510_MODE;
+ 	enable_1510_mode = d->dev_caps & ENABLE_1510_MODE;
  
--#include "../../iomap.h"
++	if (cpu_is_omap16xx())
++		d->dev_caps = ENABLE_16XX_MODE;
++
+ 	d->dev_caps		|= SRC_PORT;
+ 	d->dev_caps		|= DST_PORT;
+ 	d->dev_caps		|= SRC_INDEX;
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index b1926cd..e5aba58 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -276,6 +276,9 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 		return -ENOMEM;
+ 	}
+ 
++	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
++		d->dev_caps |= HS_CHANNELS_RESERVED;
++
+ 	/* Check the capabilities register for descriptor loading feature */
+ 	if (dma_read(CAPS_0, 0) & DMA_HAS_DESCRIPTOR_CAPS)
+ 		dma_common_ch_end = CCDN;
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 49803cc..c288b76 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -38,9 +38,6 @@
+ 
+ #include <plat-omap/dma-omap.h>
+ 
+-#include "../mach-omap1/soc.h"
+-#include "../mach-omap2/soc.h"
 -
- 		.macro  get_irqnr_preamble, base, tmp
- 		.endm
- 
-diff --git a/arch/arm/mach-omap1/include/mach/hardware.h b/arch/arm/mach-omap1/include/mach/hardware.h
-index dc3237b..5875a50 100644
---- a/arch/arm/mach-omap1/include/mach/hardware.h
-+++ b/arch/arm/mach-omap1/include/mach/hardware.h
-@@ -39,7 +39,7 @@
- #include <asm/sizes.h>
- #ifndef __ASSEMBLER__
- #include <asm/types.h>
--#include "../../mach-omap1/soc.h"
-+#include <mach/soc.h>
- 
  /*
-  * NOTE: Please use ioremap + __raw_read/write where possible instead of these
-@@ -72,6 +72,9 @@ static inline u32 omap_cs3_phys(void)
+  * MAX_LOGICAL_DMA_CH_COUNT: the maximum number of logical DMA
+  * channels that an instance of the SDMA IP block can support.  Used
+@@ -182,7 +179,7 @@ void omap_set_dma_priority(int lch, int dst_port, int priority)
+ 	unsigned long reg;
+ 	u32 l;
  
- #endif	/* ifndef __ASSEMBLER__ */
+-	if (cpu_class_is_omap1()) {
++	if (dma_omap1()) {
+ 		switch (dst_port) {
+ 		case OMAP_DMA_PORT_OCP_T1:	/* FFFECC00 */
+ 			reg = OMAP_TC_OCPT1_PRIOR;
+@@ -234,7 +231,7 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
+ 	l |= data_type;
+ 	p->dma_write(l, CSDP, lch);
  
-+#define OMAP1_IO_OFFSET		0x01000000	/* Virtual IO = 0xfefb0000 */
-+#define OMAP1_IO_ADDRESS(pa)	IOMEM((pa) - OMAP1_IO_OFFSET)
-+
- #include <mach/serial.h>
+-	if (cpu_class_is_omap1()) {
++	if (dma_omap1()) {
+ 		u16 ccr;
  
- /*
-diff --git a/arch/arm/mach-omap1/include/mach/memory.h b/arch/arm/mach-omap1/include/mach/memory.h
-index 351ae4f..3c25305 100644
---- a/arch/arm/mach-omap1/include/mach/memory.h
-+++ b/arch/arm/mach-omap1/include/mach/memory.h
-@@ -19,7 +19,7 @@
-  * because of the strncmp().
-  */
- #if defined(CONFIG_ARCH_OMAP15XX) && !defined(__ASSEMBLER__)
--#include "../../mach-omap1/soc.h"
-+#include <mach/soc.h>
+ 		ccr = p->dma_read(CCR, lch);
+@@ -250,7 +247,7 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
+ 		p->dma_write(ccr, CCR2, lch);
+ 	}
  
- /*
-  * OMAP-1510 Local Bus address offset
-diff --git a/arch/arm/mach-omap1/include/mach/soc.h b/arch/arm/mach-omap1/include/mach/soc.h
-new file mode 100644
-index 0000000..6cf9c1c
---- /dev/null
-+++ b/arch/arm/mach-omap1/include/mach/soc.h
-@@ -0,0 +1,229 @@
-+/*
-+ * OMAP cpu type detection
-+ *
-+ * Copyright (C) 2004, 2008 Nokia Corporation
-+ *
-+ * Copyright (C) 2009-11 Texas Instruments.
-+ *
-+ * Written by Tony Lindgren <tony.lindgren@nokia.com>
-+ *
-+ * Added OMAP4/5 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ *
-+ */
-+
-+#ifndef __ASM_ARCH_OMAP_CPU_H
-+#define __ASM_ARCH_OMAP_CPU_H
-+
-+#ifndef __ASSEMBLY__
-+
-+#include <linux/bitops.h>
-+
-+/*
-+ * Test if multicore OMAP support is needed
-+ */
-+#undef MULTI_OMAP1
-+#undef OMAP_NAME
-+
-+#ifdef CONFIG_ARCH_OMAP730
-+# ifdef OMAP_NAME
-+#  undef  MULTI_OMAP1
-+#  define MULTI_OMAP1
-+# else
-+#  define OMAP_NAME omap730
-+# endif
-+#endif
-+#ifdef CONFIG_ARCH_OMAP850
-+# ifdef OMAP_NAME
-+#  undef  MULTI_OMAP1
-+#  define MULTI_OMAP1
-+# else
-+#  define OMAP_NAME omap850
-+# endif
-+#endif
-+#ifdef CONFIG_ARCH_OMAP15XX
-+# ifdef OMAP_NAME
-+#  undef  MULTI_OMAP1
-+#  define MULTI_OMAP1
-+# else
-+#  define OMAP_NAME omap1510
-+# endif
-+#endif
-+#ifdef CONFIG_ARCH_OMAP16XX
-+# ifdef OMAP_NAME
-+#  undef  MULTI_OMAP1
-+#  define MULTI_OMAP1
-+# else
-+#  define OMAP_NAME omap16xx
-+# endif
-+#endif
-+
-+/*
-+ * omap_rev bits:
-+ * CPU id bits	(0730, 1510, 1710, 2422...)	[31:16]
-+ * CPU revision	(See _REV_ defined in cpu.h)	[15:08]
-+ * CPU class bits (15xx, 16xx, 24xx, 34xx...)	[07:00]
-+ */
-+unsigned int omap_rev(void);
-+
-+/*
-+ * Get the CPU revision for OMAP devices
-+ */
-+#define GET_OMAP_REVISION()	((omap_rev() >> 8) & 0xff)
-+
-+/*
-+ * Macros to group OMAP into cpu classes.
-+ * These can be used in most places.
-+ * cpu_is_omap7xx():	True for OMAP730, OMAP850
-+ * cpu_is_omap15xx():	True for OMAP1510, OMAP5910 and OMAP310
-+ * cpu_is_omap16xx():	True for OMAP1610, OMAP5912 and OMAP1710
-+ */
-+#define GET_OMAP_CLASS	(omap_rev() & 0xff)
-+
-+#define IS_OMAP_CLASS(class, id)			\
-+static inline int is_omap ##class (void)		\
-+{							\
-+	return (GET_OMAP_CLASS == (id)) ? 1 : 0;	\
-+}
-+
-+#define GET_OMAP_SUBCLASS	((omap_rev() >> 20) & 0x0fff)
-+
-+#define IS_OMAP_SUBCLASS(subclass, id)			\
-+static inline int is_omap ##subclass (void)		\
-+{							\
-+	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-+}
-+
-+IS_OMAP_CLASS(7xx, 0x07)
-+IS_OMAP_CLASS(15xx, 0x15)
-+IS_OMAP_CLASS(16xx, 0x16)
-+
-+#define cpu_is_omap7xx()		0
-+#define cpu_is_omap15xx()		0
-+#define cpu_is_omap16xx()		0
-+
-+#if defined(MULTI_OMAP1)
-+# if defined(CONFIG_ARCH_OMAP730)
-+#  undef  cpu_is_omap7xx
-+#  define cpu_is_omap7xx()		is_omap7xx()
-+# endif
-+# if defined(CONFIG_ARCH_OMAP850)
-+#  undef  cpu_is_omap7xx
-+#  define cpu_is_omap7xx()		is_omap7xx()
-+# endif
-+# if defined(CONFIG_ARCH_OMAP15XX)
-+#  undef  cpu_is_omap15xx
-+#  define cpu_is_omap15xx()		is_omap15xx()
-+# endif
-+# if defined(CONFIG_ARCH_OMAP16XX)
-+#  undef  cpu_is_omap16xx
-+#  define cpu_is_omap16xx()		is_omap16xx()
-+# endif
+-	if (cpu_class_is_omap2() && dma_trigger) {
++	if (dma_omap2plus() && dma_trigger) {
+ 		u32 val;
+ 
+ 		val = p->dma_read(CCR, lch);
+@@ -290,7 +287,7 @@ void omap_set_dma_color_mode(int lch, enum omap_dma_color_mode mode, u32 color)
+ {
+ 	BUG_ON(omap_dma_in_1510_mode());
+ 
+-	if (cpu_class_is_omap1()) {
++	if (dma_omap1()) {
+ 		u16 w;
+ 
+ 		w = p->dma_read(CCR2, lch);
+@@ -320,7 +317,7 @@ void omap_set_dma_color_mode(int lch, enum omap_dma_color_mode mode, u32 color)
+ 		p->dma_write(w, LCH_CTRL, lch);
+ 	}
+ 
+-	if (cpu_class_is_omap2()) {
++	if (dma_omap2plus()) {
+ 		u32 val;
+ 
+ 		val = p->dma_read(CCR, lch);
+@@ -348,7 +345,7 @@ EXPORT_SYMBOL(omap_set_dma_color_mode);
+ 
+ void omap_set_dma_write_mode(int lch, enum omap_dma_write_mode mode)
+ {
+-	if (cpu_class_is_omap2()) {
++	if (dma_omap2plus()) {
+ 		u32 csdp;
+ 
+ 		csdp = p->dma_read(CSDP, lch);
+@@ -361,7 +358,7 @@ EXPORT_SYMBOL(omap_set_dma_write_mode);
+ 
+ void omap_set_dma_channel_mode(int lch, enum omap_dma_channel_mode mode)
+ {
+-	if (cpu_class_is_omap1() && !cpu_is_omap15xx()) {
++	if (dma_omap1() && !dma_omap15xx()) {
+ 		u32 l;
+ 
+ 		l = p->dma_read(LCH_CTRL, lch);
+@@ -379,7 +376,7 @@ void omap_set_dma_src_params(int lch, int src_port, int src_amode,
+ {
+ 	u32 l;
+ 
+-	if (cpu_class_is_omap1()) {
++	if (dma_omap1()) {
+ 		u16 w;
+ 
+ 		w = p->dma_read(CSDP, lch);
+@@ -421,7 +418,7 @@ EXPORT_SYMBOL(omap_set_dma_params);
+ 
+ void omap_set_dma_src_index(int lch, int eidx, int fidx)
+ {
+-	if (cpu_class_is_omap2())
++	if (dma_omap2plus())
+ 		return;
+ 
+ 	p->dma_write(eidx, CSEI, lch);
+@@ -453,13 +450,13 @@ void omap_set_dma_src_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ 	case OMAP_DMA_DATA_BURST_DIS:
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_4:
+-		if (cpu_class_is_omap2())
++		if (dma_omap2plus())
+ 			burst = 0x1;
+ 		else
+ 			burst = 0x2;
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_8:
+-		if (cpu_class_is_omap2()) {
++		if (dma_omap2plus()) {
+ 			burst = 0x2;
+ 			break;
+ 		}
+@@ -469,7 +466,7 @@ void omap_set_dma_src_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ 		 * fall through
+ 		 */
+ 	case OMAP_DMA_DATA_BURST_16:
+-		if (cpu_class_is_omap2()) {
++		if (dma_omap2plus()) {
+ 			burst = 0x3;
+ 			break;
+ 		}
+@@ -493,7 +490,7 @@ void omap_set_dma_dest_params(int lch, int dest_port, int dest_amode,
+ {
+ 	u32 l;
+ 
+-	if (cpu_class_is_omap1()) {
++	if (dma_omap1()) {
+ 		l = p->dma_read(CSDP, lch);
+ 		l &= ~(0x1f << 9);
+ 		l |= dest_port << 9;
+@@ -514,7 +511,7 @@ EXPORT_SYMBOL(omap_set_dma_dest_params);
+ 
+ void omap_set_dma_dest_index(int lch, int eidx, int fidx)
+ {
+-	if (cpu_class_is_omap2())
++	if (dma_omap2plus())
+ 		return;
+ 
+ 	p->dma_write(eidx, CDEI, lch);
+@@ -546,19 +543,19 @@ void omap_set_dma_dest_burst_mode(int lch, enum omap_dma_burst_mode burst_mode)
+ 	case OMAP_DMA_DATA_BURST_DIS:
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_4:
+-		if (cpu_class_is_omap2())
++		if (dma_omap2plus())
+ 			burst = 0x1;
+ 		else
+ 			burst = 0x2;
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_8:
+-		if (cpu_class_is_omap2())
++		if (dma_omap2plus())
+ 			burst = 0x2;
+ 		else
+ 			burst = 0x3;
+ 		break;
+ 	case OMAP_DMA_DATA_BURST_16:
+-		if (cpu_class_is_omap2()) {
++		if (dma_omap2plus()) {
+ 			burst = 0x3;
+ 			break;
+ 		}
+@@ -579,7 +576,7 @@ EXPORT_SYMBOL(omap_set_dma_dest_burst_mode);
+ static inline void omap_enable_channel_irq(int lch)
+ {
+ 	/* Clear CSR */
+-	if (cpu_class_is_omap1())
++	if (dma_omap1())
+ 		p->dma_read(CSR, lch);
+ 	else
+ 		p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, lch);
+@@ -593,7 +590,7 @@ static inline void omap_disable_channel_irq(int lch)
+ 	/* disable channel interrupts */
+ 	p->dma_write(0, CICR, lch);
+ 	/* Clear CSR */
+-	if (cpu_class_is_omap1())
++	if (dma_omap1())
+ 		p->dma_read(CSR, lch);
+ 	else
+ 		p->dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR, lch);
+@@ -617,7 +614,7 @@ static inline void enable_lnk(int lch)
+ 
+ 	l = p->dma_read(CLNK_CTRL, lch);
+ 
+-	if (cpu_class_is_omap1())
++	if (dma_omap1())
+ 		l &= ~(1 << 14);
+ 
+ 	/* Set the ENABLE_LNK bits */
+@@ -625,7 +622,7 @@ static inline void enable_lnk(int lch)
+ 		l = dma_chan[lch].next_lch | (1 << 15);
+ 
+ #ifndef CONFIG_ARCH_OMAP1
+-	if (cpu_class_is_omap2())
++	if (dma_omap2plus())
+ 		if (dma_chan[lch].next_linked_ch != -1)
+ 			l = dma_chan[lch].next_linked_ch | (1 << 15);
+ #endif
+@@ -642,12 +639,12 @@ static inline void disable_lnk(int lch)
+ 	/* Disable interrupts */
+ 	omap_disable_channel_irq(lch);
+ 
+-	if (cpu_class_is_omap1()) {
++	if (dma_omap1()) {
+ 		/* Set the STOP_LNK bit */
+ 		l |= 1 << 14;
+ 	}
+ 
+-	if (cpu_class_is_omap2()) {
++	if (dma_omap2plus()) {
+ 		/* Clear the ENABLE_LNK bit */
+ 		l &= ~(1 << 15);
+ 	}
+@@ -661,7 +658,7 @@ static inline void omap2_enable_irq_lch(int lch)
+ 	u32 val;
+ 	unsigned long flags;
+ 
+-	if (!cpu_class_is_omap2())
++	if (dma_omap1())
+ 		return;
+ 
+ 	spin_lock_irqsave(&dma_chan_lock, flags);
+@@ -679,7 +676,7 @@ static inline void omap2_disable_irq_lch(int lch)
+ 	u32 val;
+ 	unsigned long flags;
+ 
+-	if (!cpu_class_is_omap2())
++	if (dma_omap1())
+ 		return;
+ 
+ 	spin_lock_irqsave(&dma_chan_lock, flags);
+@@ -718,7 +715,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
+ 	if (p->clear_lch_regs)
+ 		p->clear_lch_regs(free_ch);
+ 
+-	if (cpu_class_is_omap2())
++	if (dma_omap2plus())
+ 		omap_clear_dma(free_ch);
+ 
+ 	spin_unlock_irqrestore(&dma_chan_lock, flags);
+@@ -729,7 +726,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
+ 	chan->flags = 0;
+ 
+ #ifndef CONFIG_ARCH_OMAP1
+-	if (cpu_class_is_omap2()) {
++	if (dma_omap2plus()) {
+ 		chan->chain_id = -1;
+ 		chan->next_linked_ch = -1;
+ 	}
+@@ -737,13 +734,13 @@ int omap_request_dma(int dev_id, const char *dev_name,
+ 
+ 	chan->enabled_irqs = OMAP_DMA_DROP_IRQ | OMAP_DMA_BLOCK_IRQ;
+ 
+-	if (cpu_class_is_omap1())
++	if (dma_omap1())
+ 		chan->enabled_irqs |= OMAP1_DMA_TOUT_IRQ;
+-	else if (cpu_class_is_omap2())
++	else if (dma_omap2plus())
+ 		chan->enabled_irqs |= OMAP2_DMA_MISALIGNED_ERR_IRQ |
+ 			OMAP2_DMA_TRANS_ERR_IRQ;
+ 
+-	if (cpu_is_omap16xx()) {
++	if (dma_omap16xx()) {
+ 		/* If the sync device is set, configure it dynamically. */
+ 		if (dev_id != 0) {
+ 			set_gdma_dev(free_ch + 1, dev_id);
+@@ -754,11 +751,11 @@ int omap_request_dma(int dev_id, const char *dev_name,
+ 		 * id.
+ 		 */
+ 		p->dma_write(dev_id | (1 << 10), CCR, free_ch);
+-	} else if (cpu_is_omap7xx() || cpu_is_omap15xx()) {
++	} else if (dma_omap1()) {
+ 		p->dma_write(dev_id, CCR, free_ch);
+ 	}
+ 
+-	if (cpu_class_is_omap2()) {
++	if (dma_omap2plus()) {
+ 		omap_enable_channel_irq(free_ch);
+ 		omap2_enable_irq_lch(free_ch);
+ 	}
+@@ -780,7 +777,7 @@ void omap_free_dma(int lch)
+ 	}
+ 
+ 	/* Disable interrupt for logical channel */
+-	if (cpu_class_is_omap2())
++	if (dma_omap2plus())
+ 		omap2_disable_irq_lch(lch);
+ 
+ 	/* Disable all DMA interrupts for the channel. */
+@@ -790,7 +787,7 @@ void omap_free_dma(int lch)
+ 	p->dma_write(0, CCR, lch);
+ 
+ 	/* Clear registers */
+-	if (cpu_class_is_omap2())
++	if (dma_omap2plus())
+ 		omap_clear_dma(lch);
+ 
+ 	spin_lock_irqsave(&dma_chan_lock, flags);
+@@ -816,7 +813,7 @@ omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
+ {
+ 	u32 reg;
+ 
+-	if (!cpu_class_is_omap2()) {
++	if (dma_omap1()) {
+ 		printk(KERN_ERR "FIXME: no %s on 15xx/16xx\n", __func__);
+ 		return;
+ 	}
+@@ -855,7 +852,7 @@ omap_dma_set_prio_lch(int lch, unsigned char read_prio,
+ 	}
+ 	l = p->dma_read(CCR, lch);
+ 	l &= ~((1 << 6) | (1 << 26));
+-	if (cpu_class_is_omap2() && !cpu_is_omap242x())
++	if (d->dev_caps & IS_RW_PRIORITY)
+ 		l |= ((read_prio & 0x1) << 6) | ((write_prio & 0x1) << 26);
+ 	else
+ 		l |= ((read_prio & 0x1) << 6);
+@@ -888,7 +885,7 @@ void omap_start_dma(int lch)
+ 	 * The CPC/CDAC register needs to be initialized to zero
+ 	 * before starting dma transfer.
+ 	 */
+-	if (cpu_is_omap15xx())
++	if (dma_omap15xx())
+ 		p->dma_write(0, CPC, lch);
+ 	else
+ 		p->dma_write(0, CDAC, lch);
+@@ -1051,7 +1048,7 @@ dma_addr_t omap_get_dma_src_pos(int lch)
+ {
+ 	dma_addr_t offset = 0;
+ 
+-	if (cpu_is_omap15xx())
++	if (dma_omap15xx())
+ 		offset = p->dma_read(CPC, lch);
+ 	else
+ 		offset = p->dma_read(CSAC, lch);
+@@ -1059,7 +1056,7 @@ dma_addr_t omap_get_dma_src_pos(int lch)
+ 	if (IS_DMA_ERRATA(DMA_ERRATA_3_3) && offset == 0)
+ 		offset = p->dma_read(CSAC, lch);
+ 
+-	if (!cpu_is_omap15xx()) {
++	if (!dma_omap15xx()) {
+ 		/*
+ 		 * CDAC == 0 indicates that the DMA transfer on the channel has
+ 		 * not been started (no data has been transferred so far).
+@@ -1071,7 +1068,7 @@ dma_addr_t omap_get_dma_src_pos(int lch)
+ 			offset = p->dma_read(CSSA, lch);
+ 	}
+ 
+-	if (cpu_class_is_omap1())
++	if (dma_omap1())
+ 		offset |= (p->dma_read(CSSA, lch) & 0xFFFF0000);
+ 
+ 	return offset;
+@@ -1090,7 +1087,7 @@ dma_addr_t omap_get_dma_dst_pos(int lch)
+ {
+ 	dma_addr_t offset = 0;
+ 
+-	if (cpu_is_omap15xx())
++	if (dma_omap15xx())
+ 		offset = p->dma_read(CPC, lch);
+ 	else
+ 		offset = p->dma_read(CDAC, lch);
+@@ -1099,7 +1096,7 @@ dma_addr_t omap_get_dma_dst_pos(int lch)
+ 	 * omap 3.2/3.3 erratum: sometimes 0 is returned if CSAC/CDAC is
+ 	 * read before the DMA controller finished disabling the channel.
+ 	 */
+-	if (!cpu_is_omap15xx() && offset == 0) {
++	if (!dma_omap15xx() && offset == 0) {
+ 		offset = p->dma_read(CDAC, lch);
+ 		/*
+ 		 * CDAC == 0 indicates that the DMA transfer on the channel has
+@@ -1110,7 +1107,7 @@ dma_addr_t omap_get_dma_dst_pos(int lch)
+ 			offset = p->dma_read(CDSA, lch);
+ 	}
+ 
+-	if (cpu_class_is_omap1())
++	if (dma_omap1())
+ 		offset |= (p->dma_read(CDSA, lch) & 0xFFFF0000);
+ 
+ 	return offset;
+@@ -1127,7 +1124,7 @@ int omap_dma_running(void)
+ {
+ 	int lch;
+ 
+-	if (cpu_class_is_omap1())
++	if (dma_omap1())
+ 		if (omap_lcd_dma_running())
+ 			return 1;
+ 
+@@ -2030,7 +2027,7 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+ 	dma_chan		= d->chan;
+ 	enable_1510_mode	= d->dev_caps & ENABLE_1510_MODE;
+ 
+-	if (cpu_class_is_omap2()) {
++	if (dma_omap2plus()) {
+ 		dma_linked_lch = kzalloc(sizeof(struct dma_link_info) *
+ 						dma_lch_count, GFP_KERNEL);
+ 		if (!dma_linked_lch) {
+@@ -2042,7 +2039,7 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+ 	spin_lock_init(&dma_chan_lock);
+ 	for (ch = 0; ch < dma_chan_count; ch++) {
+ 		omap_clear_dma(ch);
+-		if (cpu_class_is_omap2())
++		if (dma_omap2plus())
+ 			omap2_disable_irq_lch(ch);
+ 
+ 		dma_chan[ch].dev_id = -1;
+@@ -2051,7 +2048,7 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+ 		if (ch >= 6 && enable_1510_mode)
+ 			continue;
+ 
+-		if (cpu_class_is_omap1()) {
++		if (dma_omap1()) {
+ 			/*
+ 			 * request_irq() doesn't like dev_id (ie. ch) being
+ 			 * zero, so we have to kludge around this.
+@@ -2076,11 +2073,11 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	if (cpu_class_is_omap2() && !cpu_is_omap242x())
++	if (d->dev_caps & IS_RW_PRIORITY)
+ 		omap_dma_set_global_params(DMA_DEFAULT_ARB_RATE,
+ 				DMA_DEFAULT_FIFO_DEPTH, 0);
+ 
+-	if (cpu_class_is_omap2()) {
++	if (dma_omap2plus()) {
+ 		strcpy(irq_name, "0");
+ 		dma_irq = platform_get_irq_byname(pdev, irq_name);
+ 		if (dma_irq < 0) {
+@@ -2095,9 +2092,8 @@ static int __devinit omap_system_dma_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	/* reserve dma channels 0 and 1 in high security devices */
+-	if (cpu_is_omap34xx() &&
+-		(omap_type() != OMAP2_DEVICE_TYPE_GP)) {
++	/* reserve dma channels 0 and 1 in high security devices on 34xx */
++	if (d->dev_caps & HS_CHANNELS_RESERVED) {
+ 		pr_info("Reserving DMA channels 0 and 1 for HS ROM code\n");
+ 		dma_chan[0].dev_id = 0;
+ 		dma_chan[1].dev_id = 1;
+@@ -2124,7 +2120,7 @@ static int __devexit omap_system_dma_remove(struct platform_device *pdev)
+ {
+ 	int dma_irq;
+ 
+-	if (cpu_class_is_omap2()) {
++	if (dma_omap2plus()) {
+ 		char irq_name[4];
+ 		strcpy(irq_name, "0");
+ 		dma_irq = platform_get_irq_byname(pdev, irq_name);
+diff --git a/arch/arm/plat-omap/include/plat-omap/dma-omap.h b/arch/arm/plat-omap/include/plat-omap/dma-omap.h
+index 222be7e..f89886d 100644
+--- a/arch/arm/plat-omap/include/plat-omap/dma-omap.h
++++ b/arch/arm/plat-omap/include/plat-omap/dma-omap.h
+@@ -130,10 +130,12 @@
+ #define SRC_PORT			BIT(0x7)
+ #define DST_PORT			BIT(0x8)
+ #define SRC_INDEX			BIT(0x9)
+-#define DST_INDEX			BIT(0xA)
+-#define IS_BURST_ONLY4			BIT(0xB)
+-#define CLEAR_CSR_ON_READ		BIT(0xC)
+-#define IS_WORD_16			BIT(0xD)
++#define DST_INDEX			BIT(0xa)
++#define IS_BURST_ONLY4			BIT(0xb)
++#define CLEAR_CSR_ON_READ		BIT(0xc)
++#define IS_WORD_16			BIT(0xd)
++#define ENABLE_16XX_MODE		BIT(0xe)
++#define HS_CHANNELS_RESERVED		BIT(0xf)
+ 
+ /* Defines for DMA Capabilities */
+ #define DMA_HAS_TRANSPARENT_CAPS	(0x1 << 18)
+@@ -270,6 +272,15 @@ struct omap_system_dma_plat_info {
+ 	u32 (*dma_read)(int reg, int lch);
+ };
+ 
++#ifdef CONFIG_ARCH_OMAP2PLUS
++#define dma_omap2plus()	1
 +#else
-+# if defined(CONFIG_ARCH_OMAP730)
-+#  undef  cpu_is_omap7xx
-+#  define cpu_is_omap7xx()		1
-+# endif
-+# if defined(CONFIG_ARCH_OMAP850)
-+#  undef  cpu_is_omap7xx
-+#  define cpu_is_omap7xx()		1
-+# endif
-+# if defined(CONFIG_ARCH_OMAP15XX)
-+#  undef  cpu_is_omap15xx
-+#  define cpu_is_omap15xx()		1
-+# endif
-+# if defined(CONFIG_ARCH_OMAP16XX)
-+#  undef  cpu_is_omap16xx
-+#  define cpu_is_omap16xx()		1
-+# endif
++#define dma_omap2plus()	0
 +#endif
++#define dma_omap1()	(!dma_omap2plus())
++#define dma_omap15xx()	((dma_omap1() && (d->dev_caps & ENABLE_1510_MODE)))
++#define dma_omap16xx()	((dma_omap1() && (d->dev_caps & ENABLE_16XX_MODE)))
 +
-+/*
-+ * Macros to detect individual cpu types.
-+ * These are only rarely needed.
-+ * cpu_is_omap310():	True for OMAP310
-+ * cpu_is_omap1510():	True for OMAP1510
-+ * cpu_is_omap1610():	True for OMAP1610
-+ * cpu_is_omap1611():	True for OMAP1611
-+ * cpu_is_omap5912():	True for OMAP5912
-+ * cpu_is_omap1621():	True for OMAP1621
-+ * cpu_is_omap1710():	True for OMAP1710
-+ */
-+#define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
-+
-+#define IS_OMAP_TYPE(type, id)				\
-+static inline int is_omap ##type (void)			\
-+{							\
-+	return (GET_OMAP_TYPE == (id)) ? 1 : 0;		\
-+}
-+
-+IS_OMAP_TYPE(310, 0x0310)
-+IS_OMAP_TYPE(1510, 0x1510)
-+IS_OMAP_TYPE(1610, 0x1610)
-+IS_OMAP_TYPE(1611, 0x1611)
-+IS_OMAP_TYPE(5912, 0x1611)
-+IS_OMAP_TYPE(1621, 0x1621)
-+IS_OMAP_TYPE(1710, 0x1710)
-+
-+#define cpu_is_omap310()		0
-+#define cpu_is_omap1510()		0
-+#define cpu_is_omap1610()		0
-+#define cpu_is_omap5912()		0
-+#define cpu_is_omap1611()		0
-+#define cpu_is_omap1621()		0
-+#define cpu_is_omap1710()		0
-+
-+/* These are needed to compile common code */
-+#ifdef CONFIG_ARCH_OMAP1
-+#define cpu_is_omap242x()		0
-+#define cpu_is_omap2430()		0
-+#define cpu_is_omap243x()		0
-+#define cpu_is_omap24xx()		0
-+#define cpu_is_omap34xx()		0
-+#define cpu_is_omap44xx()		0
-+#define soc_is_omap54xx()		0
-+#define soc_is_am33xx()			0
-+#define cpu_class_is_omap1()		1
-+#define cpu_class_is_omap2()		0
-+#endif
-+
-+/*
-+ * Whether we have MULTI_OMAP1 or not, we still need to distinguish
-+ * between 310 vs. 1510 and 1611B/5912 vs. 1710.
-+ */
-+
-+#if defined(CONFIG_ARCH_OMAP15XX)
-+# undef  cpu_is_omap310
-+# undef  cpu_is_omap1510
-+# define cpu_is_omap310()		is_omap310()
-+# define cpu_is_omap1510()		is_omap1510()
-+#endif
-+
-+#if defined(CONFIG_ARCH_OMAP16XX)
-+# undef  cpu_is_omap1610
-+# undef  cpu_is_omap1611
-+# undef  cpu_is_omap5912
-+# undef  cpu_is_omap1621
-+# undef  cpu_is_omap1710
-+# define cpu_is_omap1610()		is_omap1610()
-+# define cpu_is_omap1611()		is_omap1611()
-+# define cpu_is_omap5912()		is_omap5912()
-+# define cpu_is_omap1621()		is_omap1621()
-+# define cpu_is_omap1710()		is_omap1710()
-+#endif
-+
-+#endif	/* __ASSEMBLY__ */
-+#endif
-diff --git a/arch/arm/mach-omap1/iomap.h b/arch/arm/mach-omap1/iomap.h
-index 330c471..f4e2d7a 100644
---- a/arch/arm/mach-omap1/iomap.h
-+++ b/arch/arm/mach-omap1/iomap.h
-@@ -22,9 +22,6 @@
-  * 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+ extern void __init omap_init_consistent_dma_size(void);
+ extern void omap_set_dma_priority(int lch, int dst_port, int priority);
+ extern int omap_request_dma(int dev_id, const char *dev_name,
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 56d9253..7d35c23 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -21,12 +21,6 @@
  
--#define OMAP1_IO_OFFSET		0x01000000	/* Virtual IO = 0xfefb0000 */
--#define OMAP1_IO_ADDRESS(pa)	IOMEM((pa) - OMAP1_IO_OFFSET)
--
- /*
-  * ----------------------------------------------------------------------------
-  * Omap1 specific IO mapping
-diff --git a/arch/arm/mach-omap1/sleep.S b/arch/arm/mach-omap1/sleep.S
-index 0e62874..a908c51 100644
---- a/arch/arm/mach-omap1/sleep.S
-+++ b/arch/arm/mach-omap1/sleep.S
-@@ -36,6 +36,8 @@
+ #include <plat-omap/dma-omap.h>
  
- #include <asm/assembler.h>
- 
-+#include <mach/hardware.h>
-+
- #include "iomap.h"
- #include "pm.h"
- 
-diff --git a/arch/arm/mach-omap1/soc.h b/arch/arm/mach-omap1/soc.h
-index 6cf9c1c..69daf01 100644
---- a/arch/arm/mach-omap1/soc.h
-+++ b/arch/arm/mach-omap1/soc.h
-@@ -1,229 +1,4 @@
- /*
-- * OMAP cpu type detection
-- *
-- * Copyright (C) 2004, 2008 Nokia Corporation
-- *
-- * Copyright (C) 2009-11 Texas Instruments.
-- *
-- * Written by Tony Lindgren <tony.lindgren@nokia.com>
-- *
-- * Added OMAP4/5 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-- *
-+ * We can move mach/soc.h here once the drivers are fixed
-  */
--
--#ifndef __ASM_ARCH_OMAP_CPU_H
--#define __ASM_ARCH_OMAP_CPU_H
--
--#ifndef __ASSEMBLY__
--
--#include <linux/bitops.h>
--
--/*
-- * Test if multicore OMAP support is needed
-- */
--#undef MULTI_OMAP1
--#undef OMAP_NAME
--
--#ifdef CONFIG_ARCH_OMAP730
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP1
--#  define MULTI_OMAP1
--# else
--#  define OMAP_NAME omap730
--# endif
--#endif
--#ifdef CONFIG_ARCH_OMAP850
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP1
--#  define MULTI_OMAP1
--# else
--#  define OMAP_NAME omap850
--# endif
--#endif
--#ifdef CONFIG_ARCH_OMAP15XX
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP1
--#  define MULTI_OMAP1
--# else
--#  define OMAP_NAME omap1510
--# endif
--#endif
--#ifdef CONFIG_ARCH_OMAP16XX
--# ifdef OMAP_NAME
--#  undef  MULTI_OMAP1
--#  define MULTI_OMAP1
--# else
--#  define OMAP_NAME omap16xx
--# endif
--#endif
--
--/*
-- * omap_rev bits:
-- * CPU id bits	(0730, 1510, 1710, 2422...)	[31:16]
-- * CPU revision	(See _REV_ defined in cpu.h)	[15:08]
-- * CPU class bits (15xx, 16xx, 24xx, 34xx...)	[07:00]
-- */
--unsigned int omap_rev(void);
--
--/*
-- * Get the CPU revision for OMAP devices
-- */
--#define GET_OMAP_REVISION()	((omap_rev() >> 8) & 0xff)
--
--/*
-- * Macros to group OMAP into cpu classes.
-- * These can be used in most places.
-- * cpu_is_omap7xx():	True for OMAP730, OMAP850
-- * cpu_is_omap15xx():	True for OMAP1510, OMAP5910 and OMAP310
-- * cpu_is_omap16xx():	True for OMAP1610, OMAP5912 and OMAP1710
-- */
--#define GET_OMAP_CLASS	(omap_rev() & 0xff)
--
--#define IS_OMAP_CLASS(class, id)			\
--static inline int is_omap ##class (void)		\
--{							\
--	return (GET_OMAP_CLASS == (id)) ? 1 : 0;	\
--}
--
--#define GET_OMAP_SUBCLASS	((omap_rev() >> 20) & 0x0fff)
--
--#define IS_OMAP_SUBCLASS(subclass, id)			\
--static inline int is_omap ##subclass (void)		\
--{							\
--	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
--}
--
--IS_OMAP_CLASS(7xx, 0x07)
--IS_OMAP_CLASS(15xx, 0x15)
--IS_OMAP_CLASS(16xx, 0x16)
--
--#define cpu_is_omap7xx()		0
--#define cpu_is_omap15xx()		0
--#define cpu_is_omap16xx()		0
--
--#if defined(MULTI_OMAP1)
--# if defined(CONFIG_ARCH_OMAP730)
--#  undef  cpu_is_omap7xx
--#  define cpu_is_omap7xx()		is_omap7xx()
--# endif
--# if defined(CONFIG_ARCH_OMAP850)
--#  undef  cpu_is_omap7xx
--#  define cpu_is_omap7xx()		is_omap7xx()
--# endif
--# if defined(CONFIG_ARCH_OMAP15XX)
--#  undef  cpu_is_omap15xx
--#  define cpu_is_omap15xx()		is_omap15xx()
--# endif
--# if defined(CONFIG_ARCH_OMAP16XX)
--#  undef  cpu_is_omap16xx
--#  define cpu_is_omap16xx()		is_omap16xx()
--# endif
+-#ifdef CONFIG_ARCH_OMAP2PLUS
+-#define dma_omap2plus()	1
 -#else
--# if defined(CONFIG_ARCH_OMAP730)
--#  undef  cpu_is_omap7xx
--#  define cpu_is_omap7xx()		1
--# endif
--# if defined(CONFIG_ARCH_OMAP850)
--#  undef  cpu_is_omap7xx
--#  define cpu_is_omap7xx()		1
--# endif
--# if defined(CONFIG_ARCH_OMAP15XX)
--#  undef  cpu_is_omap15xx
--#  define cpu_is_omap15xx()		1
--# endif
--# if defined(CONFIG_ARCH_OMAP16XX)
--#  undef  cpu_is_omap16xx
--#  define cpu_is_omap16xx()		1
--# endif
+-#define dma_omap2plus()	0
 -#endif
 -
--/*
-- * Macros to detect individual cpu types.
-- * These are only rarely needed.
-- * cpu_is_omap310():	True for OMAP310
-- * cpu_is_omap1510():	True for OMAP1510
-- * cpu_is_omap1610():	True for OMAP1610
-- * cpu_is_omap1611():	True for OMAP1611
-- * cpu_is_omap5912():	True for OMAP5912
-- * cpu_is_omap1621():	True for OMAP1621
-- * cpu_is_omap1710():	True for OMAP1710
-- */
--#define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
--
--#define IS_OMAP_TYPE(type, id)				\
--static inline int is_omap ##type (void)			\
--{							\
--	return (GET_OMAP_TYPE == (id)) ? 1 : 0;		\
--}
--
--IS_OMAP_TYPE(310, 0x0310)
--IS_OMAP_TYPE(1510, 0x1510)
--IS_OMAP_TYPE(1610, 0x1610)
--IS_OMAP_TYPE(1611, 0x1611)
--IS_OMAP_TYPE(5912, 0x1611)
--IS_OMAP_TYPE(1621, 0x1621)
--IS_OMAP_TYPE(1710, 0x1710)
--
--#define cpu_is_omap310()		0
--#define cpu_is_omap1510()		0
--#define cpu_is_omap1610()		0
--#define cpu_is_omap5912()		0
--#define cpu_is_omap1611()		0
--#define cpu_is_omap1621()		0
--#define cpu_is_omap1710()		0
--
--/* These are needed to compile common code */
--#ifdef CONFIG_ARCH_OMAP1
--#define cpu_is_omap242x()		0
--#define cpu_is_omap2430()		0
--#define cpu_is_omap243x()		0
--#define cpu_is_omap24xx()		0
--#define cpu_is_omap34xx()		0
--#define cpu_is_omap44xx()		0
--#define soc_is_omap54xx()		0
--#define soc_is_am33xx()			0
--#define cpu_class_is_omap1()		1
--#define cpu_class_is_omap2()		0
--#endif
--
--/*
-- * Whether we have MULTI_OMAP1 or not, we still need to distinguish
-- * between 310 vs. 1510 and 1611B/5912 vs. 1710.
-- */
--
--#if defined(CONFIG_ARCH_OMAP15XX)
--# undef  cpu_is_omap310
--# undef  cpu_is_omap1510
--# define cpu_is_omap310()		is_omap310()
--# define cpu_is_omap1510()		is_omap1510()
--#endif
--
--#if defined(CONFIG_ARCH_OMAP16XX)
--# undef  cpu_is_omap1610
--# undef  cpu_is_omap1611
--# undef  cpu_is_omap5912
--# undef  cpu_is_omap1621
--# undef  cpu_is_omap1710
--# define cpu_is_omap1610()		is_omap1610()
--# define cpu_is_omap1611()		is_omap1611()
--# define cpu_is_omap5912()		is_omap5912()
--# define cpu_is_omap1621()		is_omap1621()
--# define cpu_is_omap1710()		is_omap1710()
--#endif
--
--#endif	/* __ASSEMBLY__ */
--#endif
-+#include <mach/soc.h>
+ struct omap_dmadev {
+ 	struct dma_device ddev;
+ 	spinlock_t lock;
 
