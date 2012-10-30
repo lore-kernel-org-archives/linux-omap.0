@@ -1,34 +1,27 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.7-rc3
-Date: Tue, 30 Oct 2012 11:47:00 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] [PATCH] remove pcm049 from Makefile
+Date: Tue, 30 Oct 2012 15:46:05 +0400
+Message-ID: <508FBDFD.9000700@mvista.com>
+References: <1351535422-4644-1-git-send-email-holzmayr@rsi-elektrotechnik.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:47927 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932537Ab2J3LrB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 07:47:01 -0400
-In-Reply-To: <508FB226.20604@mimc.co.uk>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:46688 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932537Ab2J3LrT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 07:47:19 -0400
+Received: by mail-lb0-f174.google.com with SMTP id n3so138687lbo.19
+        for <linux-omap@vger.kernel.org>; Tue, 30 Oct 2012 04:47:18 -0700 (PDT)
+In-Reply-To: <1351535422-4644-1-git-send-email-holzmayr@rsi-elektrotechnik.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hvaibhav@ti.com
+To: Josef Holzmayr <holzmayr@rsi-elektrotechnik.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-cc Vaibhav Hiremath
+Hello.
 
-On Tue, 30 Oct 2012, Mark Jackson wrote:
+    You forgot to sign off on the patch, so it can't be applied.
 
-> At what point is booting from MMC on the BeagleBone going to start working ?
-> 
-> I only ask, since, by default, a new BeagleBone is setup to boot from 
-> MMC, so anyone testing a new kernel will probably expect the same setup 
-> to work.
+WBR, Sergei
 
-BeagleBone boots initramfs from MMC now, which is what mine was shipped to 
-do.  Are you asking about rootfs on MMC?  If so, Vaibhav would have a 
-better sense of this than I.
-
-
-- Paul
