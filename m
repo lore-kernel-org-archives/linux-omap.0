@@ -1,49 +1,65 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH 3/4] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for davinci_mdio module
-Date: Tue, 30 Oct 2012 22:35:14 +0100
-Message-ID: <87y5infxt9.fsf@macbook.be.48ers.dk>
-References: <1351498881-32482-1-git-send-email-hvaibhav@ti.com>
-	<1351498881-32482-5-git-send-email-hvaibhav@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 30 Oct 2012 22:51:11 +0100
+Message-ID: <CACRpkdac=ztY0vXQ8Mu6H8fiAO4aFSSF-A6O1Q==zKOKEsJegw@mail.gmail.com>
+References: <20121025205901.GA3827@sirena.org.uk>
+	<20121026062008.GA21734@arwen.pp.htv.fi>
+	<20121026160316.GY18814@opensource.wolfsonmicro.com>
+	<20121029194901.GA30152@arwen.pp.htv.fi>
+	<20121030112410.GM4511@opensource.wolfsonmicro.com>
+	<20121030114949.GC28722@arwen.pp.htv.fi>
+	<20121030140714.GO4511@opensource.wolfsonmicro.com>
+	<20121030151642.GE29159@arwen.pp.htv.fi>
+	<20121030155821.GU4511@opensource.wolfsonmicro.com>
+	<20121030172513.GA3993@arwen.pp.htv.fi>
+	<20121030183704.GX4511@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:62959 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934279Ab2J3Vfw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 17:35:52 -0400
-In-Reply-To: <1351498881-32482-5-git-send-email-hvaibhav@ti.com> (Vaibhav
-	Hiremath's message of "Mon, 29 Oct 2012 13:51:20 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20121030183704.GX4511@opensource.wolfsonmicro.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Felipe Balbi <balbi@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: netdev@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
 
->>>>> "Vaibhav" == Vaibhav Hiremath <hvaibhav@ti.com> writes:
+On Tue, Oct 30, 2012 at 7:37 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
 
- Vaibhav> From: Mugunthan V N <mugunthanvnm@ti.com>
- Vaibhav> This patch adds hwmod entry for davinci MDIO module,
- Vaibhav> creating parent<->child relationship between CPSW and MDIO module.
+> More seriously the amount of time we seem to have been spending recently
+> on changes which end up requiring us to go through essentially every
+> driver and add code to them (often several times) doesn't seem like
+> we're doing a good job here.
 
- Vaibhav> This Parent-child relation is required in order to use common resources
- Vaibhav> like, clock, but still maintaining the logical separation between them.
+If this is your main concern you should be made aware that there
+are people out there planning to supplant the existing DT probe paths
+that are now being added to each and every ARM-related driver
+with an ACPI probe path as ARM servers come into the picture.
 
- Vaibhav> CPGMAC SubSystem consist of various sub-modules, like, mdio, cpdma,
- Vaibhav> cpsw, etc... These sub-modules are also used in some of Davinci
- Vaibhav> family of devices, so separate and independent platform devices &
- Vaibhav> drivers for CPSW and MDIO is implemented.
- Vaibhav> In case of AM33XX, the resources are shared and common register
- Vaibhav> bit-field is provided to control module/clock enable/disable,
- Vaibhav> makes it difficult to handle common resources from both drivers.
+> pinctrl is really noticable because it's
+> new but it's not the only thing.  As a subsystem maintainer this code
+> just makes me want to add new subsystem features to pull the code out of
+> drivers but obviously that's not something that should be being done at
+> the subsystem level.
 
- Vaibhav> So the solution is, create parent<->child relationship between
- Vaibhav> CPGMAC & MDIO modules.
+We did manage to drag the power/voltage domain per se out
+of the AMBA bus, and recommend that people (like us) do that
+business using the power domains.
 
- Vaibhav> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
- Vaibhav> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
- Vaibhav> Cc: Richard Cochran <richardcochran@gmail.com>
- Vaibhav> Cc: Paul Walmsley <paul@pwsan.com>
+I think most people (including OMAP) have bought
+into the concept of using the runtime PM framework and power
+domains to control the power domain switches.
 
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+It's this wider concept of using the loose concept "PM resource
+domains" to control also clocks and pins that is at stake, and so
+far the runtime PM core people (Rafael and Magnus) has not said
+much so I think we need some kind of indication from them as to
+what is to happen, long-term, with drivers handling their own clocks
+and pins. Should it be centralized or not? If it's to be centralized it
+needs to become a large piece of infrastructure refactoring and
+needs the attention of Linaro and the like to happen.
 
--- 
-Bye, Peter Korsgaard
+I've CC:ed a few people into this thread so we get some traction,
+we need more subsystem maintainers in here.
+
+Yours,
+Linus Walleij
