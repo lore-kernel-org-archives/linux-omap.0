@@ -1,154 +1,85 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [RFC 3/7] capebus: Beaglebone generic cape support
-Date: Wed, 31 Oct 2012 18:52:09 +0200
-Message-ID: <1351702333-8456-4-git-send-email-panto@antoniou-consulting.com>
-References: <1351702333-8456-1-git-send-email-panto@antoniou-consulting.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351702333-8456-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+From: David Daney <ddaney.cavm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] i2c-EEPROM: Export memory accessor
+Date: Tue, 30 Oct 2012 12:12:47 -0700
+Message-ID: <509026AF.7000206@gmail.com>
+References: <1351699009-4217-1-git-send-email-panto@antoniou-consulting.com> <50902079.30406@gmail.com> <4AF9EE5B-D1C1-45E7-B2FD-E96151F5772A@antoniou-consulting.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4AF9EE5B-D1C1-45E7-B2FD-E96151F5772A-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Cc: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Introducing beaglebone generic cape support.
+On 10/30/2012 11:51 AM, Pantelis Antoniou wrote:
+> Hi David,
+>
+> On Oct 30, 2012, at 8:46 PM, David Daney wrote:
+>
+>> On 10/31/2012 08:56 AM, Pantelis Antoniou wrote:
+>>> Various platforms need access to the EEPROM in other
+>>> places besides their platform registration callbacks.
+>>> Export the memory accessor to the i2c_client
+>>
+>> i2c_clients are *not* intrinsically memory, so adding this to the generic i2c_client structure doesn't really make sense.   What would the semantics of this interface be with respect to temperature sensors and GPIO expanders?
+>>
+>> NACK.
+>>
+>
+> It's only filled in for EEPROM devices. There's no other I2C memory read interface for kernel clients.
 
-With this you can create almost any kind of cape driver
-that doesn't require complex interconnection of the parts.
 
-Most beaglebone capes can be created with this, including
-all the display capes (DVI/VGA/LCD) with touchscreen or not,
-capes that only use i2c or spi devices, gpio-keys, leds etc.
+Basically you are tacking on a registery of memory devices to some 
+random data structure that has nothing to do with memory.
 
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
----
- drivers/capebus/capes/Kconfig             |  6 ++
- drivers/capebus/capes/Makefile            |  1 +
- drivers/capebus/capes/bone-generic-cape.c | 96 +++++++++++++++++++++++++++++++
- 3 files changed, 103 insertions(+)
- create mode 100644 drivers/capebus/capes/Kconfig
- create mode 100644 drivers/capebus/capes/Makefile
- create mode 100644 drivers/capebus/capes/bone-generic-cape.c
+Instead ...
 
-diff --git a/drivers/capebus/capes/Kconfig b/drivers/capebus/capes/Kconfig
-new file mode 100644
-index 0000000..bfe54a6
---- /dev/null
-+++ b/drivers/capebus/capes/Kconfig
-@@ -0,0 +1,6 @@
-+config CAPEBUS_BONE_GENERIC
-+	tristate "Beaglebone Generic cape driver"
-+	depends on CAPEBUS_BONE_CONTROLLER
-+	default n
-+	help
-+	  "Select this to enable a generic cape driver; LCD/DVI capes etc"
-diff --git a/drivers/capebus/capes/Makefile b/drivers/capebus/capes/Makefile
-new file mode 100644
-index 0000000..83da381
---- /dev/null
-+++ b/drivers/capebus/capes/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_CAPEBUS_BONE_GENERIC)	+= bone-generic-cape.o
-diff --git a/drivers/capebus/capes/bone-generic-cape.c b/drivers/capebus/capes/bone-generic-cape.c
-new file mode 100644
-index 0000000..70be50a
---- /dev/null
-+++ b/drivers/capebus/capes/bone-generic-cape.c
-@@ -0,0 +1,96 @@
-+/*
-+ * Generic cape support
-+ *
-+ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
-+ * Copyright (C) 2012 Texas Instruments Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/string.h>
-+#include <linux/timer.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/bitops.h>
-+#include <linux/err.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/pinctrl/pinmux.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/atomic.h>
-+#include <linux/clk.h>
-+#include <asm/barrier.h>
-+#include <plat/clock.h>
-+#include <plat/omap_device.h>
-+#include <linux/clkdev.h>
-+#include <linux/input/ti_am335x_tsc.h>
-+#include <linux/platform_data/ti_am335x_adc.h>
-+#include <linux/mfd/ti_am335x_tscadc.h>
-+
-+#include <linux/capebus/capebus-bone.h>
-+
-+/* fwd decl. */
-+extern struct cape_driver bonegeneric_driver;
-+
-+static const struct of_device_id bonegeneric_of_match[] = {
-+	{
-+		.compatible = "bone-generic-cape",
-+	},	{ },
-+};
-+MODULE_DEVICE_TABLE(of, bonegeneric_of_match);
-+
-+static int bonegeneric_probe(struct cape_dev *dev,
-+		const struct cape_device_id *id)
-+{
-+	struct bone_capebus_generic_info *ginfo;
-+	int err;
-+
-+	err = bone_capebus_probe_prolog(dev, id);
-+	if (err != 0)
-+		return err;
-+
-+	ginfo = bone_capebus_probe_generic(dev, id);
-+	if (IS_ERR_OR_NULL(ginfo))
-+		return IS_ERR(ginfo) ? PTR_ERR(ginfo) : -ENODEV;
-+	dev->drv_priv = ginfo;
-+	return 0;
-+}
-+
-+static void bonegeneric_remove(struct cape_dev *dev)
-+{
-+	bone_capebus_remove_generic(dev->drv_priv);
-+}
-+
-+struct cape_driver bonegeneric_driver = {
-+	.driver = {
-+		.name		= "bonegeneric",
-+		.owner		= THIS_MODULE,
-+		.of_match_table	= bonegeneric_of_match,
-+	},
-+	.probe		= bonegeneric_probe,
-+	.remove		= bonegeneric_remove,
-+};
-+
-+module_capebus_driver(bonegeneric_driver);
-+
-+MODULE_AUTHOR("Pantelis Antoniou");
-+MODULE_DESCRIPTION("Beaglebone generic cape");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:bone-generic-cape");
--- 
-1.7.12
+>
+>>
+>>> and implement
+>>> it for the at24 driver.
+>>>
+>>> And before you ask, no, the platform callback can't be used
+>>> for anything that depends on DT.
+>>
+>> Why can't you just allocate (and populate) a struct at24_platform_data for the device if it isn't supplied by whatever created the device?
+>>
+>>
+>>
+>
+> There are no platform_data in the case of device tree only generic-boards. Everything is configured via the DT and there are
+> no callbacks. DT is a purely data driver concept.
+>
+> I'm open to suggestions on how to read an EEPROM from another kernel client, when there's no such thing as platform_data anymore.
+>
+
+... you need some sort of collection memory devices that can be queried 
+by phandle and/or some other handle.
+
+Any device that implements the struct memory_accessor interface could 
+add itself to the collection, then code that needs to use the 
+memory_accessor interface would look up the proper target for the 
+operation by phandle or whatever other handle the system is using.
+
+Similar to how of_phy_find_device() works.
+
+I don't know if it would be possible to create a 'memory_accessor' bus, 
+but that is one idea I had.
+
+David Daney
+
+
+> Regards
+>
+> -- Pantelis
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
