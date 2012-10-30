@@ -1,55 +1,152 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 0/2] ARM: OMAP: hwmod/omapd_device: Fix for resource handling in DT boot
-Date: Tue, 30 Oct 2012 12:24:54 +0100
-Message-ID: <1351596296-13825-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 2/2] ARM: OMAP: omap_device: Correct resource handling for DT boot
+Date: Tue, 30 Oct 2012 12:24:56 +0100
+Message-ID: <1351596296-13825-3-git-send-email-peter.ujfalusi@ti.com>
+References: <1351596296-13825-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39872 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932654Ab2J3LZE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 07:25:04 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38217 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932708Ab2J3LZF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 07:25:05 -0400
+In-Reply-To: <1351596296-13825-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello,
+When booting with DT the OF core can fill up the resources provided within
+the DT blob.
+The current way of handling the DT boot prevents us from removing hwmod data
+for platforms only suppose to boot with DT (OMAP5 for example) since we need
+to keep the whole hwmod database intact in order to have more resources in
+hwmod than in DT (to be able to append the DMA resource from hwmod).
 
-Changes since v1:
-- If the device does not have DMA resource do not try to recreate the resources
+To fix this issue we just examine the OF provided resources:
+If we do not have resources we use hwmod to fill them.
+If we have resources we check if we already able to recive DMA resource, if
+no we only append the DMA resurce from hwmod to the OF provided ones.
 
-Intro mail from v1:
+In this way we can start removing hwmod data for devices which have their
+resources correctly configured in DT without regressions.
 
-This series resolves the issue we currently have with the resource handling when
-booting with DT.
-In short: at the moment the omap_device_alloc() decides if it needs to update the
-OF filled resources based on the number of resources on the device and in the
-hwmod database.
-This prevents us from removing hwmod data for platforms (OMAP5) which does not
-support non DT boot anymore.
-
-With this series we can make sure that the DT provided resources are used and we
-only append the DMA resources to the device from hwmod.
-I have added extra check to prepare us when the DMA resource can be filled via
-OF. In this case we do not update the resources at all.
-
-Tony, Benoit, Paul: Not sure if this qualify for 3.7 inclusion, but for sure
-going to help us to clean up the OMAP5 hwmod database.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (2):
-  ARM: OMAP: hwmod: Add possibility to count hwmod resources based on
-    type
-  ARM: OMAP: omap_device: Correct resource handling for DT boot
+ arch/arm/plat-omap/omap_device.c | 84 ++++++++++++++++++++++++----------------
+ 1 file changed, 51 insertions(+), 33 deletions(-)
 
- arch/arm/mach-omap2/omap_hwmod.c             | 27 +++++----
- arch/arm/plat-omap/include/plat/omap_hwmod.h |  2 +-
- arch/arm/plat-omap/omap_device.c             | 87 ++++++++++++++++++----------
- 3 files changed, 72 insertions(+), 44 deletions(-)
-
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 915cf68..d35b468 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -560,55 +560,73 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
+ 	od->hwmods = hwmods;
+ 	od->pdev = pdev;
+ 
+-	/* Count all resources for the device */
+-	res_count = omap_device_count_resources(od, IORESOURCE_IRQ |
+-						    IORESOURCE_DMA |
+-						    IORESOURCE_MEM);
+ 	/*
++	 * Non-DT Boot:
++	 *   Here, pdev->num_resources = 0, and we should get all the
++	 *   resources from hwmod.
++	 *
+ 	 * DT Boot:
+ 	 *   OF framework will construct the resource structure (currently
+ 	 *   does for MEM & IRQ resource) and we should respect/use these
+ 	 *   resources, killing hwmod dependency.
+ 	 *   If pdev->num_resources > 0, we assume that MEM & IRQ resources
+ 	 *   have been allocated by OF layer already (through DTB).
+-	 *
+-	 * Non-DT Boot:
+-	 *   Here, pdev->num_resources = 0, and we should get all the
+-	 *   resources from hwmod.
++	 *   As preparation for the future we examine the OF provided resources
++	 *   to see if we have DMA resources provided already. In this case
++	 *   there is no need to update the resources for the device, we use the
++	 *   OF provided ones.
+ 	 *
+ 	 * TODO: Once DMA resource is available from OF layer, we should
+ 	 *   kill filling any resources from hwmod.
+ 	 */
+-	if (res_count > pdev->num_resources) {
+-		/* Allocate resources memory to account for new resources */
+-		res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
+-		if (!res)
+-			goto oda_exit3;
+-
+-		/*
+-		 * If pdev->num_resources > 0, then assume that,
+-		 * MEM and IRQ resources will only come from DT and only
+-		 * fill DMA resource from hwmod layer.
+-		 */
+-		if (pdev->num_resources && pdev->resource) {
+-			dev_dbg(&pdev->dev, "%s(): resources already allocated %d\n",
+-				__func__, res_count);
+-			memcpy(res, pdev->resource,
+-			       sizeof(struct resource) * pdev->num_resources);
+-			_od_fill_dma_resources(od, &res[pdev->num_resources]);
+-		} else {
+-			dev_dbg(&pdev->dev, "%s(): using resources from hwmod %d\n",
+-				__func__, res_count);
+-			omap_device_fill_resources(od, res);
++	if (!pdev->num_resources) {
++		/* Count all resources for the device */
++		res_count = omap_device_count_resources(od, IORESOURCE_IRQ |
++							    IORESOURCE_DMA |
++							    IORESOURCE_MEM);
++	} else {
++		/* Take a look if we already have DMA resource via DT */
++		for (i = 0; i < pdev->num_resources; i++) {
++			struct resource *r = &pdev->resource[i];
++
++			/* We have it, no need to touch the resources */
++			if (r->flags == IORESOURCE_DMA)
++				goto have_everything;
+ 		}
++		/* Count only DMA resources for the device */
++		res_count = omap_device_count_resources(od, IORESOURCE_DMA);
++		/* The device has no DMA resource, no need for update */
++		if (!res_count)
++			goto have_everything;
++	
++		res_count += pdev->num_resources;
++	}
+ 
+-		ret = platform_device_add_resources(pdev, res, res_count);
+-		kfree(res);
++	/* Allocate resources memory to account for new resources */
++	res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
++	if (!res)
++		goto oda_exit3;
+ 
+-		if (ret)
+-			goto oda_exit3;
++	if (!pdev->num_resources) {
++		dev_dbg(&pdev->dev, "%s: using %d resources from hwmod\n",
++			__func__, res_count);
++		omap_device_fill_resources(od, res);
++	} else {
++		dev_dbg(&pdev->dev,
++			"%s: appending %d DMA resources from hwmod\n",
++			__func__, res_count - pdev->num_resources);
++		memcpy(res, pdev->resource,
++		       sizeof(struct resource) * pdev->num_resources);
++		_od_fill_dma_resources(od, &res[pdev->num_resources]);
+ 	}
+ 
++	ret = platform_device_add_resources(pdev, res, res_count);
++	kfree(res);
++
++	if (ret)
++		goto oda_exit3;
++
++have_everything:
+ 	if (!pm_lats) {
+ 		pm_lats = omap_default_latency;
+ 		pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
 -- 
 1.7.12.4
 
