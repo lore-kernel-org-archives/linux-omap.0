@@ -1,46 +1,64 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Tue, 30 Oct 2012 15:16:02 +0100
-Message-ID: <CACRpkdZysB2mxj5wZfE0N+iwTE-_AXbOV0bKRP5kSo=1hieKGg@mail.gmail.com>
-References: <20121024161429.GA16350@core.coreip.homeip.net>
-	<CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
-	<4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
-	<20121024185818.GB772@arwen.pp.htv.fi>
-	<20121025205901.GA3827@sirena.org.uk>
-	<20121026062008.GA21734@arwen.pp.htv.fi>
-	<20121026160316.GY18814@opensource.wolfsonmicro.com>
-	<20121029194901.GA30152@arwen.pp.htv.fi>
-	<20121030112410.GM4511@opensource.wolfsonmicro.com>
-	<20121030114949.GC28722@arwen.pp.htv.fi>
-	<20121030140714.GO4511@opensource.wolfsonmicro.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Tue, 30 Oct 2012 09:16:34 -0500
+Message-ID: <508FE142.2020408@ti.com>
+References: <20121026114250.GA26342@arwen.pp.htv.fi> <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de> <508E266C.6090901@ti.com> <20121029080523.GC13657@arwen.pp.htv.fi> <508E3D09.9090802@ti.com> <20121029200328.GE30152@arwen.pp.htv.fi> <508F7471.8060402@ti.com> <20121030070904.GB1978@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20121030140714.GO4511@opensource.wolfsonmicro.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Felipe Balbi <balbi@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49195 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756127Ab2J3OQj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 10:16:39 -0400
+In-Reply-To: <20121030070904.GB1978@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tim Niemeyer <tim.niemeyer@corscience.de>, Linux OMAP List <linux-omap@vger.kernel.org>
 
-On Tue, Oct 30, 2012 at 3:07 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
+Hi Felipe,
 
-> Essentially all the patches I'm seeing adding pinctrl are totally
-> mindless, most of them are just doing the initial setup on boot and not
-> doing any active management at runtime at all.
+On 10/30/2012 02:09 AM, Felipe Balbi wrote:
 
-None of the Ux500 pinctrl patches are like that.
+...
 
-I concludes in some other mails that all Ux500 drivers
-will need to handle atleast two states (default and sleep)
-and some a third state (idle).
+>> its bit of an issue to take care. How do you ensure that GPIO
+>> does idle on SOC idle C-state attempts in such cases. Today that
+>> job is done by omap_gpio_[prepare/resume]_for_idle.
+> 
+> that's only there because we pm_runtime_get_sync() on gpio_request() and
+> pm_runtime_put_sync() only on gpio_free().
+> 
+> That's the problem IMHO. And that's easy enough to 'fix':
+> 
+> call pm_runtime_mark_last_busy(); pm_runtime_put_sync_autosuspend();
+> also on gpio_request() and pm_runtime_get_sync() on gpio_free().
 
-And this is what we're doing in our patches.
+Sounds like a good approach. I have been discussing with Kevin and I
+need to look more at the resume handler as we are working around some
+old issues in there and with this approach the resume following idle
+will be delayed and we were not sure if there could be any implications
+for omap2. I am hoping not, but we need to look into this.
 
-Arguably it can all be pushed to power domains, but that
-will as said mandate all affected systems to implement
-power domains, and effectively moving code from
-drivers/* to arch/arm/* in our case atleast.
+So I am wondering if we should just take Tim's original proposal for now
+and then I will look into improving this long term. I really need to
+clean-up the suspend/resume stuff for gpio and so may be we can make
+that a separate change. What do you think?
 
-Yours,
-Linus Walleij
+...
+
+> The difficult part, IMHO, is to figure out what's a good autosuspend
+> timeout to use. Some GPIO lines are used as IRQ lines on some devices,
+> that means that the GPIO will be periodically triggered and, depending
+> on our timeout, we will either loose IRQs or prevent power domain from
+> idling. We could figure out a way to let board code to choose what it
+> wants on a per-bank basis (maybe some extra DT attribute).
+
+I have also been bending Kevin's ear on this, this week and we were
+wondering if we should make the default 0 for now as this will have the
+same behaviour that we have today but would allow Tim to customise via
+the sysfs for his specific app.
+
+Cheers
+Jon
