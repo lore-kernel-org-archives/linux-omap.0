@@ -1,87 +1,56 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 02/12] OMAPFB: improve mode selection from EDID
-Date: Tue, 30 Oct 2012 18:09:59 +0200
-Message-ID: <1351613409-21186-3-git-send-email-tomi.valkeinen@ti.com>
-References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 00/12] OMAPDSS: use DSI PLL clk for DPI
+Date: Tue, 30 Oct 2012 18:09:57 +0200
+Message-ID: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55143 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933903Ab2J3QKX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 12:10:23 -0400
-In-Reply-To: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52981 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933825Ab2J3QKT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 12:10:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: rob@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The current omapfb code goes over all the modes found from the monitors
-EDID data, and searches for a mode that is compatible with the DSS
-hardware and has the highest x-res.
+Hi,
 
-While this works ok as such, it proves problematic when using DSI PLL
-for pixel clock. Calculating DSI PLL dividers is not the fastest of the
-operations, and while doing it for one mode is usually ok, doing it for
-20 modes is noticable.
+The aim of this series is to enable using DSI PLL as the pixel clock source for
+DPI output. There are the following main parts:
 
-Also, the first mode given in the EDID data should be the native mode of
-the monitor, and thus also the best mode, so if that can be used, no
-need to look further.
+* first 4 patches are slightly related generic improvements/fixes
+* fix DSI PLL problem related to non-50% duty cycle
+* fix DSI PLL problem related to powering
+* changes to the clock handling to always use DSI PLL for DPI when possible
 
-This patch changes the code to use the first mode that is compatible
-with the DSS hardware.
+I've tested the series on OMAP4 Panda, OMAP4 SDP and OMAP3 Beagle.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/omapfb/omapfb-main.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ Tomi
 
-diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index 0358b14..6e5334c 100644
---- a/drivers/video/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -2258,7 +2258,7 @@ static int omapfb_find_best_mode(struct omap_dss_device *display,
- {
- 	struct fb_monspecs *specs;
- 	u8 *edid;
--	int r, i, best_xres, best_idx, len;
-+	int r, i, best_idx, len;
- 
- 	if (!display->driver->read_edid)
- 		return -ENODEV;
-@@ -2274,7 +2274,6 @@ static int omapfb_find_best_mode(struct omap_dss_device *display,
- 
- 	fb_edid_to_monspecs(edid, specs);
- 
--	best_xres = 0;
- 	best_idx = -1;
- 
- 	for (i = 0; i < specs->modedb_len; ++i) {
-@@ -2290,16 +2289,20 @@ static int omapfb_find_best_mode(struct omap_dss_device *display,
- 		if (m->xres == 2880 || m->xres == 1440)
- 			continue;
- 
-+		if (m->vmode & FB_VMODE_INTERLACED ||
-+				m->vmode & FB_VMODE_DOUBLE)
-+			continue;
-+
- 		fb_videomode_to_omap_timings(m, display, &t);
- 
- 		r = display->driver->check_timings(display, &t);
--		if (r == 0 && best_xres < m->xres) {
--			best_xres = m->xres;
-+		if (r == 0) {
- 			best_idx = i;
-+			break;
- 		}
- 	}
- 
--	if (best_xres == 0) {
-+	if (best_idx == -1) {
- 		r = -ENOENT;
- 		goto err2;
- 	}
+Tomi Valkeinen (12):
+  OMAPFB: remove use of extended edid block
+  OMAPFB: improve mode selection from EDID
+  OMAPDSS: fix DPI & DSI init order
+  OMAPDSS: fix DSI2 PLL clk names
+  OMAPDSS: DSI: skip odd dividers when pck >= 100MHz
+  OMAPDSS: DSI: workaround for HSDiv problem
+  OMAPDSS: add dss_calc_clock_rates() back
+  OMAPDSS: setup default dss fck
+  OMAPDSS: hide dss_select_dispc_clk_source()
+  OMAPDSS: DPI: use dpi.dsidev to see whether to use dsi pll
+  OMAPDSS: DPI: verify if DSI PLL is operational
+  OMAPDSS: DPI: always use DSI PLL if available
+
+ drivers/video/omap2/dss/core.c           |   12 ++--
+ drivers/video/omap2/dss/dpi.c            |   99 +++++++++++++++++++++---------
+ drivers/video/omap2/dss/dsi.c            |   14 ++++-
+ drivers/video/omap2/dss/dss.c            |   67 +++++++++++++++++++-
+ drivers/video/omap2/dss/dss.h            |    2 +-
+ drivers/video/omap2/dss/hdmi.c           |    8 ---
+ drivers/video/omap2/omapfb/omapfb-main.c |   16 ++---
+ 7 files changed, 160 insertions(+), 58 deletions(-)
+
 -- 
 1.7.10.4
 
