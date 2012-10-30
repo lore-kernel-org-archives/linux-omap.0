@@ -1,140 +1,114 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC PATCH v3 13/16] ARM: dts: add AM33XX MMC support
-Date: Tue, 30 Oct 2012 05:33:40 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA5AE57@DBDE01.ent.ti.com>
-References: <1350566815-409-1-git-send-email-mporter@ti.com>
- <1350566815-409-14-git-send-email-mporter@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Tue, 30 Oct 2012 12:02:17 +0530
+Message-ID: <508F7471.8060402@ti.com>
+References: <20121026114250.GA26342@arwen.pp.htv.fi> <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de> <508E266C.6090901@ti.com> <20121029080523.GC13657@arwen.pp.htv.fi> <508E3D09.9090802@ti.com> <20121029200328.GE30152@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1350566815-409-14-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Nori,
- Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54374 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753726Ab2J3Gdm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 02:33:42 -0400
+In-Reply-To: <20121029200328.GE30152@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tim Niemeyer <tim.niemeyer@corscience.de>, Jon Hunter <jon-hunter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
 
-On Thu, Oct 18, 2012 at 18:56:52, Porter, Matt wrote:
-> Adds AM33XX MMC support for am335x-bone and am335x-evm.
-> 
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
->  arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
->  arch/arm/boot/dts/am33xx.dtsi     |   27 +++++++++++++++++++++++++++
->  3 files changed, 39 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index c634f87..5510979 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -70,6 +70,8 @@
->  		};
->  
->  		ldo3_reg: regulator@5 {
-> +			regulator-min-microvolt = <1800000>;
-> +			regulator-max-microvolt = <3300000>;
+On Tuesday 30 October 2012 01:33 AM, Felipe Balbi wrote:
+> Hi,
+>
+> On Mon, Oct 29, 2012 at 01:53:37PM +0530, Santosh Shilimkar wrote:
+>>>> Just to expand a bit, Out of 6 GPIO banks, GPIO1 bank is in always ON
+>>>> domain where as remaing 5 are in peripheral domain. Letting individual
+>>>> banks idle allowed you let the clock domain idle than keeping all the
+>>>> 6 banks and hence respective clock/power domain in ON state.
+>>>>
+>>>> So the adding timeout might be reasonable but I am not sure about
+>>>> the mod_usage change here.
+>>>
+>>> IMHO that whole mod_usage is broken. I remember sending a big series of
+>>> patches getting rid of that long ago. I _did_ break a few things but
+>>> just because of omap_gpio_prepare_for_idle() /
+>>> omap_gpio_resume_from_idle() hackery to get GPIO suspended early enough.
+>>>
+>> Well so far I haven't seen/come across a patch/proposal which fixes it.
+>
+> fair point
+>
+>>> I still think mod_usage needs to go, so does
+>>> omap_gpio_prepare_for_idle() and omap_gpio_resume_from_idle(). To me, it
+>>> looks like that needs to be done on ->prepare()/->complete() callbacks
+>>> of system suspend and the gpio driver needs to learn proper runtime
+>>> suspend.
+>>>
+>> I am not saying it shouldn't go :-)
+>> The $subject patch isn't fixing it correctly is what I said.
+>>
+>> Don't get hung up on suspend case because thats the easiest
+>> way to address it. The issue is with idle where GPIO can prevent
+>> SOC idle if it isn't taken care. And since its just an IO, its not
+>> easy to implement something like inactivity timer towards
+>> autosupend.
+>
+> I don't see the relation here. Care to expand a bit ?
+>
+Let me try again...
 
-I think these min & max limits are regulator limits. Are these fields
-required? Add details of these additions. AFAIK fine-tuned (board
-specific) min/max limits should be add here(like mpu and core
-regulator nodes)
+Before I answer you, a closer look at code, the multiple bank should
+not be a problem since we create PIO device per bank so the runtime
+PM layer can indeed manage the use-counting. The issue is with SOC
+idle.
 
->  			regulator-always-on;
->  		};
->  
-> @@ -78,3 +80,7 @@
->  		};
->  	};
->  };
-> +
-> +&mmc1 {
-> +	vmmc-supply = <&ldo3_reg>;
-> +};
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 185d632..d63fce8 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -114,7 +114,13 @@
->  		};
->  
->  		vmmc_reg: regulator@12 {
-> +			regulator-min-microvolt = <1800000>;
-> +			regulator-max-microvolt = <3300000>;
+System wide suspend, we suspend all the devices and hence all the
+GPIO devices(banks) will be suspended letting the SOC to hit suspend
+state. Hence suspend case is no problem as such.
 
-=same=
+Devices like UART/USB can implement inactivity timers since they
+do have state machine and after the timeout, those devices can be
+suspended. GPIO doesn't fall exactly in that category and hence
+its bit of an issue to take care. How do you ensure that GPIO
+does idle on SOC idle C-state attempts in such cases. Today that
+job is done by omap_gpio_[prepare/resume]_for_idle.
 
->  			regulator-always-on;
->  		};
->  	};
->  };
-> +
-> +&mmc1 {
-> +	vmmc-supply = <&vmmc_reg>;
-> +};
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index ab9c78f..26a6af7 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -234,6 +234,33 @@
->  			status = "disabled";
->  		};
->  
-> +		mmc1: mmc@48060000 {
-> +			compatible = "ti,omap3-hsmmc";
-> +			ti,hwmods = "mmc1";
-> +			ti,dual-volt;
-> +			ti,needs-special-reset;
-> +			dmas = <&edma 24
-> +				&edma 25>;
-> +			dma-names = "tx", "rx";
+Idle if we had generic idle notifiers, that would been easy
+but it doesn't exist today.
 
-Add status = "disabled" here and "okay" in corresponding
-.dts file
+In case we get rid of "mod_usage" which is doable, we need to
+see how to handle the idle since the runtime callback will be
+in that case controlled by runtime PM layer which is unaware
+of idle. You can do put on all banks to trigger callback but
+that will highly UN-optimal. See summary in the end.
 
-> +		};
-> +
-> +		mmc2: mmc@481d8000 {
-> +			compatible = "ti,omap3-hsmmc";
-> +			ti,hwmods = "mmc2";
-> +			ti,needs-special-reset;
-> +			dmas = <&edma 2
-> +				&edma 3>;
-> +			dma-names = "tx", "rx";
-> +			status = "disabled";
-> +		};
-> +
-> +		mmc3: mmc@47810000 {
-> +			compatible = "ti,omap3-hsmmc";
-> +			ti,hwmods = "mmc3";
-> +			ti,needs-special-reset;
 
-What about DMA resources for mmc3?
+>> Co-processor also makes use of GPIO via syslink proxy and thats
+>> make things even harder.
+>
+> that's supposed to be solved with hwspinlock, isn't it ?
+>
+Spin locks are needed when same devices are shared across. That
+is not the main concern. The PM is centralized on Linux side for
+GPIO where as the users are outside Linux SW. They may use of
+syslink proxy to request/free GPIO.
 
-AnilKumar
+Just to summaries, there are 3 things we are talking here.
 
-> +			status = "disabled";
-> +		};
-> +
->  		wdt2: wdt@44e35000 {
->  			compatible = "ti,omap3-wdt";
->  			ti,hwmods = "wd_timer2";
-> -- 
-> 1.7.9.5
-> 
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
-> 
+1. Delaying the idle with a timeout which $subject patch is
+trying to do to reduce latency for interrupts. That itself
+is reasonable.
+
+2. Removal of the bank "mod_usage" which is also clubbed
+in $subject path. Ofcourse that break the current driver
+for idle. So that change needs to be made with better thought
+and in a separate patch. This is doable.
+
+3. Removing omap_gpio_[prepare/resume]_for_idle() with soome
+thing better. For this one though, so far I have not come
+across a good solution. Ideas/Solution is welcome !!
+
+Regards
+Santosh
+
+
