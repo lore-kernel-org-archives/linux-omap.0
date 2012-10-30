@@ -1,224 +1,150 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/11] ARM: OMAP: Move omap1 specific code to local sram.c
-Date: Tue, 30 Oct 2012 16:52:47 -0700
-Message-ID: <20121030235247.25936.53373.stgit@muffinssi.local>
+Subject: [PATCH 02/11] ARM: OMAP: Introduce common omap_map_sram() and
+ omap_sram_reset()
+Date: Tue, 30 Oct 2012 16:52:43 -0700
+Message-ID: <20121030235243.25936.30078.stgit@muffinssi.local>
 References: <20121030234852.25936.12482.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56247 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754464Ab2J3Xws (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 19:52:48 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:63070 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754464Ab2J3Xwq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 19:52:46 -0400
 In-Reply-To: <20121030234852.25936.12482.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Let's make the omap1 specific parts private to mach-omap1.
-These should not be in the shared code.
+This will allow us to separate out omap1 and omap2+ specific
+code in the later patches.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/Makefile    |    3 +-
- arch/arm/mach-omap1/sram-init.c |   76 +++++++++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/sram.c       |   49 ++-----------------------
- 3 files changed, 81 insertions(+), 47 deletions(-)
- create mode 100644 arch/arm/mach-omap1/sram-init.c
+ arch/arm/plat-omap/include/plat/sram.h |    4 ++
+ arch/arm/plat-omap/sram.c              |   64 +++++++++++++++++++++-----------
+ 2 files changed, 46 insertions(+), 22 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-index cd169c3..f0e69cb 100644
---- a/arch/arm/mach-omap1/Makefile
-+++ b/arch/arm/mach-omap1/Makefile
-@@ -3,7 +3,8 @@
- #
+diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
+index c60025a..ba45250 100644
+--- a/arch/arm/plat-omap/include/plat/sram.h
++++ b/arch/arm/plat-omap/include/plat/sram.h
+@@ -1,5 +1,9 @@
+ int omap_sram_init(void);
  
- # Common support
--obj-y := io.o id.o sram.o time.o irq.o mux.o flash.o serial.o devices.o dma.o
-+obj-y := io.o id.o sram-init.o sram.o time.o irq.o mux.o flash.o \
-+	 serial.o devices.o dma.o
- obj-y += clock.o clock_data.o opp_data.o reset.o pm_bus.o timer.o
++void omap_map_sram(unsigned long start, unsigned long size,
++			unsigned long skip, int cached);
++void omap_sram_reset(void);
++
+ extern void *omap_sram_push_address(unsigned long size);
  
- ifneq ($(CONFIG_SND_OMAP_SOC_MCBSP),)
-diff --git a/arch/arm/mach-omap1/sram-init.c b/arch/arm/mach-omap1/sram-init.c
-new file mode 100644
-index 0000000..6431b0f
---- /dev/null
-+++ b/arch/arm/mach-omap1/sram-init.c
-@@ -0,0 +1,76 @@
-+/*
-+ * OMAP SRAM detection and management
-+ *
-+ * Copyright (C) 2005 Nokia Corporation
-+ * Written by Tony Lindgren <tony@atomide.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+
-+#include <asm/fncpy.h>
-+#include <asm/tlb.h>
-+#include <asm/cacheflush.h>
-+
-+#include <asm/mach/map.h>
-+
-+#include "soc.h"
-+#include "sram.h"
-+
-+#define OMAP1_SRAM_PA		0x20000000
-+#define SRAM_BOOTLOADER_SZ	0x80
-+
-+/*
-+ * The amount of SRAM depends on the core type.
-+ * Note that we cannot try to test for SRAM here because writes
-+ * to secure SRAM will hang the system. Also the SRAM is not
-+ * yet mapped at this point.
-+ */
-+static void __init omap_detect_and_map_sram(void)
-+{
-+	unsigned long omap_sram_skip = SRAM_BOOTLOADER_SZ;
-+	unsigned long omap_sram_start = OMAP1_SRAM_PA;
-+	unsigned long omap_sram_size;
-+
-+	if (cpu_is_omap7xx())
-+		omap_sram_size = 0x32000;	/* 200K */
-+	else if (cpu_is_omap15xx())
-+		omap_sram_size = 0x30000;	/* 192K */
-+	else if (cpu_is_omap1610() || cpu_is_omap1611() ||
-+			cpu_is_omap1621() || cpu_is_omap1710())
-+		omap_sram_size = 0x4000;	/* 16K */
-+	else {
-+		pr_err("Could not detect SRAM size\n");
-+		omap_sram_size = 0x4000;
-+	}
-+
-+	omap_map_sram(omap_sram_start, omap_sram_size,
-+		omap_sram_skip, 1);
-+}
-+
-+static void (*_omap_sram_reprogram_clock)(u32 dpllctl, u32 ckctl);
-+
-+void omap_sram_reprogram_clock(u32 dpllctl, u32 ckctl)
-+{
-+	BUG_ON(!_omap_sram_reprogram_clock);
-+	/* On 730, bit 13 must always be 1 */
-+	if (cpu_is_omap7xx())
-+		ckctl |= 0x2000;
-+	_omap_sram_reprogram_clock(dpllctl, ckctl);
-+}
-+
-+int __init omap_sram_init(void)
-+{
-+	omap_detect_and_map_sram();
-+	_omap_sram_reprogram_clock =
-+			omap_sram_push(omap1_sram_reprogram_clock,
-+					omap1_sram_reprogram_clock_sz);
-+
-+	return 0;
-+}
+ /* Macro to push a function to the internal SRAM, using the fncpy API */
 diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index aa2644a..6fd3216 100644
+index 3372929..aa2644a 100644
 --- a/arch/arm/plat-omap/sram.c
 +++ b/arch/arm/plat-omap/sram.c
-@@ -26,8 +26,6 @@
+@@ -170,13 +170,10 @@ static void __init omap_detect_sram(void)
+ /*
+  * Note that we cannot use ioremap for SRAM, as clock init needs SRAM early.
+  */
+-static void __init omap_map_sram(void)
++static void __init omap_fix_and_map_sram(void)
+ {
+ 	int cached = 1;
  
- #include <asm/mach/map.h>
- 
--#include "../mach-omap1/soc.h"
--#include "../mach-omap1/sram.h"
- #include "../mach-omap2/soc.h"
- #include "../mach-omap2/sram.h"
- 
-@@ -36,7 +34,6 @@
- #include "../mach-omap2/prm2xxx_3xxx.h"
- #include "../mach-omap2/sdrc.h"
- 
--#define OMAP1_SRAM_PA		0x20000000
- #define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
- #define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
+-	if (omap_sram_size == 0)
+-		return;
+-
  #ifdef CONFIG_OMAP4_ERRATA_I688
-@@ -150,20 +147,6 @@ static void __init omap_detect_sram(void)
- 					omap_sram_size = 0x10000; /* 64K */
- 			}
- 		}
--	} else {
--		omap_sram_start = OMAP1_SRAM_PA;
--
--		if (cpu_is_omap7xx())
--			omap_sram_size = 0x32000;	/* 200K */
--		else if (cpu_is_omap15xx())
--			omap_sram_size = 0x30000;	/* 192K */
--		else if (cpu_is_omap1610() || cpu_is_omap1611() ||
--				cpu_is_omap1621() || cpu_is_omap1710())
--			omap_sram_size = 0x4000;	/* 16K */
--		else {
--			pr_err("Could not detect SRAM size\n");
--			omap_sram_size = 0x4000;
--		}
+ 	if (cpu_is_omap44xx()) {
+ 		omap_sram_start += PAGE_SIZE;
+@@ -194,22 +191,8 @@ static void __init omap_map_sram(void)
+ 		cached = 0;
  	}
+ 
+-	omap_sram_start = ROUND_DOWN(omap_sram_start, PAGE_SIZE);
+-	omap_sram_base = __arm_ioremap_exec(omap_sram_start, omap_sram_size,
+-						cached);
+-	if (!omap_sram_base) {
+-		pr_err("SRAM: Could not map\n");
+-		return;
+-	}
+-
+-	omap_sram_ceil = omap_sram_base + omap_sram_size;
+-
+-	/*
+-	 * Looks like we need to preserve some bootloader code at the
+-	 * beginning of SRAM for jumping to flash for reboot to work...
+-	 */
+-	memset_io(omap_sram_base + omap_sram_skip, 0,
+-		  omap_sram_size - omap_sram_skip);
++	omap_map_sram(omap_sram_start, omap_sram_size,
++			omap_sram_skip, cached);
  }
  
-@@ -257,32 +240,6 @@ void __init omap_map_sram(unsigned long start, unsigned long size,
- 		  omap_sram_size - omap_sram_skip);
+ /*
+@@ -237,6 +220,43 @@ void *omap_sram_push_address(unsigned long size)
+ 	return (void *)omap_sram_ceil;
  }
  
--#ifdef CONFIG_ARCH_OMAP1
--
--static void (*_omap_sram_reprogram_clock)(u32 dpllctl, u32 ckctl);
--
--void omap_sram_reprogram_clock(u32 dpllctl, u32 ckctl)
--{
--	BUG_ON(!_omap_sram_reprogram_clock);
--	/* On 730, bit 13 must always be 1 */
--	if (cpu_is_omap7xx())
--		ckctl |= 0x2000;
--	_omap_sram_reprogram_clock(dpllctl, ckctl);
--}
--
--static int __init omap1_sram_init(void)
--{
--	_omap_sram_reprogram_clock =
--			omap_sram_push(omap1_sram_reprogram_clock,
--					omap1_sram_reprogram_clock_sz);
--
--	return 0;
--}
--
--#else
--#define omap1_sram_init()	do {} while (0)
--#endif
--
- #if defined(CONFIG_ARCH_OMAP2)
++/*
++ * The SRAM context is lost during off-idle and stack
++ * needs to be reset.
++ */
++void omap_sram_reset(void)
++{
++	omap_sram_ceil = omap_sram_base + omap_sram_size;
++}
++
++/*
++ * Note that we cannot use ioremap for SRAM, as clock init needs SRAM early.
++ */
++void __init omap_map_sram(unsigned long start, unsigned long size,
++				 unsigned long skip, int cached)
++{
++	if (size == 0)
++		return;
++
++	start = ROUND_DOWN(start, PAGE_SIZE);
++	omap_sram_size = size;
++	omap_sram_skip = skip;
++	omap_sram_base = __arm_ioremap_exec(start, size, cached);
++	if (!omap_sram_base) {
++		pr_err("SRAM: Could not map\n");
++		return;
++	}
++
++	omap_sram_reset();
++
++	/*
++	 * Looks like we need to preserve some bootloader code at the
++	 * beginning of SRAM for jumping to flash for reboot to work...
++	 */
++	memset_io(omap_sram_base + omap_sram_skip, 0,
++		  omap_sram_size - omap_sram_skip);
++}
++
+ #ifdef CONFIG_ARCH_OMAP1
  
- static void (*_omap2_sram_ddr_init)(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
-@@ -407,14 +364,13 @@ static inline int am33xx_sram_init(void)
- 	return 0;
- }
+ static void (*_omap_sram_reprogram_clock)(u32 dpllctl, u32 ckctl);
+@@ -362,7 +382,7 @@ u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
  
-+#ifdef CONFIG_ARCH_OMAP2PLUS
+ void omap3_sram_restore_context(void)
+ {
+-	omap_sram_ceil = omap_sram_base + omap_sram_size;
++	omap_sram_reset();
+ 
+ 	_omap3_sram_configure_core_dpll =
+ 		omap_sram_push(omap3_sram_configure_core_dpll,
+@@ -390,7 +410,7 @@ static inline int am33xx_sram_init(void)
  int __init omap_sram_init(void)
  {
  	omap_detect_sram();
- 	omap_fix_and_map_sram();
+-	omap_map_sram();
++	omap_fix_and_map_sram();
  
--	if (!(cpu_class_is_omap2()))
--		omap1_sram_init();
--	else if (cpu_is_omap242x())
-+	if (cpu_is_omap242x())
- 		omap242x_sram_init();
- 	else if (cpu_is_omap2430())
- 		omap243x_sram_init();
-@@ -425,3 +381,4 @@ int __init omap_sram_init(void)
- 
- 	return 0;
- }
-+#endif
+ 	if (!(cpu_class_is_omap2()))
+ 		omap1_sram_init();
 
