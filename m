@@ -1,50 +1,45 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [PATCH] gpio-keys: Pinctrl-fy
-Date: Wed, 31 Oct 2012 17:56:59 +0200
-Message-ID: <1351699019-4313-1-git-send-email-panto@antoniou-consulting.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 30 Oct 2012 11:20:07 -0700
+Message-ID: <20121030182007.GA21851@core.coreip.homeip.net>
+References: <20121025205901.GA3827@sirena.org.uk>
+ <20121026062008.GA21734@arwen.pp.htv.fi>
+ <20121026160316.GY18814@opensource.wolfsonmicro.com>
+ <20121029194901.GA30152@arwen.pp.htv.fi>
+ <20121030112410.GM4511@opensource.wolfsonmicro.com>
+ <20121030114949.GC28722@arwen.pp.htv.fi>
+ <20121030140714.GO4511@opensource.wolfsonmicro.com>
+ <20121030151642.GE29159@arwen.pp.htv.fi>
+ <20121030155821.GU4511@opensource.wolfsonmicro.com>
+ <20121030172513.GA3993@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121030172513.GA3993@arwen.pp.htv.fi>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Enable pinctrl support for gpio-keys.
+On Tue, Oct 30, 2012 at 07:25:13PM +0200, Felipe Balbi wrote:
+> On Tue, Oct 30, 2012 at 03:58:21PM +0000, Mark Brown wrote:
+> > 
+> > But then this comes round to the mindless code that ought to be factored
+> > out :)  Only the more interesting cases that do something unusual really
+> > register here.
+> 
+> fair enough. I see your point. Not saying I agree though, just that this
+> discussion has been flying for far too long, so feel free to provide
+> patches implementing what you're defending here ;-)
+> 
+> Guess code will speak for itself. On way or another, we need OMAP keypad
+> driver working in mainline
 
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
----
- drivers/input/keyboard/gpio_keys.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Are you saying that introducing pincrtl infrastructure actually _broke_
+the driver in mainline?
 
-diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
-index 6a68041..e421082 100644
---- a/drivers/input/keyboard/gpio_keys.c
-+++ b/drivers/input/keyboard/gpio_keys.c
-@@ -29,6 +29,7 @@
- #include <linux/of_platform.h>
- #include <linux/of_gpio.h>
- #include <linux/spinlock.h>
-+#include <linux/pinctrl/consumer.h>
- 
- struct gpio_button_data {
- 	const struct gpio_keys_button *button;
-@@ -666,6 +667,7 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
- 	struct input_dev *input;
- 	int i, error;
- 	int wakeup = 0;
-+	struct pinctrl *pinctrl;
- 
- 	if (!pdata) {
- 		pdata = gpio_keys_get_devtree_pdata(dev);
-@@ -731,6 +733,10 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
- 		goto fail3;
- 	}
- 
-+	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-+	if (IS_ERR(pinctrl))
-+		dev_warn(&pdev->dev, "unable to select pin group\n");
-+
- 	/* get current state of buttons that are connected to GPIOs */
- 	for (i = 0; i < pdata->nbuttons; i++) {
- 		struct gpio_button_data *bdata = &ddata->data[i];
+Thanks.
+
 -- 
-1.7.12
+Dmitry
