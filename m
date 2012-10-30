@@ -1,37 +1,50 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: Re: [PATCH] CLK: clk-twl6040: Initial clock driver for OMAP4+ McPDM
- fclk clock
-Date: Tue, 30 Oct 2012 03:05:00 -0700
-Message-ID: <20121030100500.18780.32416@nucleus>
-References: <1347633027-20731-1-git-send-email-peter.ujfalusi@ti.com>
- <20121029173008.18780.35000@nucleus> <508F842D.8000407@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/2] ARM: OMAP: hwmod/omapd_device: Fix for resource handling in DT boot
+Date: Tue, 30 Oct 2012 11:33:23 +0100
+Message-ID: <1351593205-13590-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <508F842D.8000407@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: =?utf-8?q?P=C3=A9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38345 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932128Ab2J3Kdd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 06:33:33 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-UXVvdGluZyBQw6l0ZXIgVWpmYWx1c2kgKDIwMTItMTAtMzAgMDA6Mzk6MjUpCj4gSGkgTWlrZSwK
-PiAKPiBPbiAxMC8yOS8yMDEyIDA2OjMwIFBNLCBNaWtlIFR1cnF1ZXR0ZSB3cm90ZToKPiA+IFBl
-dGVyLAo+ID4gCj4gPiBUaGUgcGF0Y2ggbG9va3MgZ29vZCB0byBtZS4gIFRvIGJlIGNsZWFyLCB5
-b3Ugd2FuIHRoaXMgdG8gZ28gdGhyb3VnaAo+ID4gY2xrLW5leHQgb3IgdGhlIG1mZCB0cmVlIGZv
-ciBhdm9pZGluZyBjb25mbGljdHM/Cj4gCj4gY2xrLW5leHQgaXMgdGhlIGJlc3QgcGxhY2UgZm9y
-IGl0IEkgdGhpbmsuIFRoZSBNRkQgcGFydCB0byByZWdpc3RlciB0aGUgZGV2aWNlCj4gY2FuIHN0
-aWxsIHdhaXQgdGlsbCB3ZSBoYXZlIGNjZiBzdXBwb3J0IG9uIE9NQVA0Lgo+CgpDb29sLiAgSSd2
-ZSB0YWtlbiB0aGlzIGludG8gY2xrLW5leHQuCgpSZWdhcmRzLApNaWtlCiAKPiBUaGFuayB5b3Us
-Cj4gUMOpdGVyCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmlu
-ZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1hcm0ta2VybmVsCg==
+Hello,
+
+This series resolves the issue we currently have with the resource handling when
+booting with DT.
+In short: at the moment the omap_device_alloc() decides if it needs to update the
+OF filled resources based on the number of resources on the device and in the
+hwmod database.
+This prevents us from removing hwmod data for platforms (OMAP5) which does not
+support non DT boot anymore.
+
+With this series we can make sure that the DT provided resources are used and we
+only append the DMA resources to the device from hwmod.
+I have added extra check to prepare us when the DMA resource can be filled via
+OF. In this case we do not update the resources at all.
+
+Tony, Benoit, Paul: Not sure if this qualify for 3.7 inclusion, but for sure
+going to help us to clean up the OMAP5 hwmod database.
+
+Regards,
+Peter
+---
+Peter Ujfalusi (2):
+  ARM: OMAP: hwmod: Add possibility to count hwmod resources based on
+    type
+  ARM: OMAP: omap_device: Correct resource handling for DT boot
+
+ arch/arm/mach-omap2/omap_hwmod.c             | 27 +++++----
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |  2 +-
+ arch/arm/plat-omap/omap_device.c             | 83 +++++++++++++++++-----------
+ 3 files changed, 68 insertions(+), 44 deletions(-)
+
+-- 
+1.7.12.4
+
