@@ -1,146 +1,247 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/11] ARM: OMAP: Make plat-omap/i2c.c port checks local
-Date: Tue, 30 Oct 2012 16:52:51 -0700
-Message-ID: <20121030235251.25936.92446.stgit@muffinssi.local>
+Subject: [PATCH 08/11] ARM: OMAP: Remove plat-omap/common.h
+Date: Tue, 30 Oct 2012 16:52:58 -0700
+Message-ID: <20121030235258.25936.32564.stgit@muffinssi.local>
 References: <20121030234852.25936.12482.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56274 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56362 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754464Ab2J3Xww (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 19:52:52 -0400
+	with ESMTP id S1754464Ab2J3Xw7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 19:52:59 -0400
 In-Reply-To: <20121030234852.25936.12482.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-The common code should not have any omap1 or omap2+
-specific code, and should not need to call the cpu_is_omap
-macros.
+Most of the prototypes in plat-omap/common.h are not
+common to omap1 and omap2+, they are local to omap2+
+and should not be in plat-omap/common.h.
 
-The only remaining user for cpu_is_omap macros is
-omap_i2c_nr_ports(). Let's make those checks in
-the omap specific implementation of omap_i2c_add_bus()
-instead in order to remove cpu_is_omap usage from
-the common code.
+The only shared function prototype in this file is
+omap_init_clocksource_32k(), let's put that into
+counter-32k.h.
+
+Note that the new plat/counter-32k.h must not be
+included from drivers, that will break omap2+ build
+for CONFIG_MULTIPLATFORM.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/i2c.c |    3 +++
- arch/arm/mach-omap2/i2c.c |   16 ++++++++++++++++
- arch/arm/plat-omap/i2c.c  |   26 +++-----------------------
- 3 files changed, 22 insertions(+), 23 deletions(-)
+ arch/arm/mach-omap1/common.h                       |    1 -
+ arch/arm/mach-omap1/timer32k.c                     |    1 +
+ arch/arm/mach-omap2/cm33xx.c                       |    2 -
+ arch/arm/mach-omap2/common.h                       |    5 ++-
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    2 -
+ arch/arm/mach-omap2/prm33xx.c                      |    2 -
+ arch/arm/mach-omap2/prm_common.c                   |    1 -
+ arch/arm/mach-omap2/timer.c                        |    1 +
+ arch/arm/plat-omap/common.c                        |    1 -
+ arch/arm/plat-omap/common.h                        |   36 --------------------
+ arch/arm/plat-omap/counter_32k.c                   |    2 -
+ arch/arm/plat-omap/include/plat/counter-32k.h      |    1 +
+ 13 files changed, 6 insertions(+), 51 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/common.h
+ create mode 100644 arch/arm/plat-omap/include/plat/counter-32k.h
 
-diff --git a/arch/arm/mach-omap1/i2c.c b/arch/arm/mach-omap1/i2c.c
-index 32bcbb8..54097a2 100644
---- a/arch/arm/mach-omap1/i2c.c
-+++ b/arch/arm/mach-omap1/i2c.c
-@@ -54,6 +54,9 @@ int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *pdata,
- 	struct platform_device *pdev;
- 	struct resource *res;
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index 3d40f6e..fc8c944 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -26,7 +26,6 @@
+ #ifndef __ARCH_ARM_MACH_OMAP1_COMMON_H
+ #define __ARCH_ARM_MACH_OMAP1_COMMON_H
  
-+	if (bus_id > 1)
-+		return -EINVAL;
-+
- 	omap1_i2c_mux_pins(bus_id);
+-#include "../plat-omap/common.h"
+ #include <linux/mtd/mtd.h>
+ #include <linux/i2c-omap.h>
  
- 	pdev = &omap_i2c_devices[bus_id - 1];
-diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
-index ad55b94..4e63097 100644
---- a/arch/arm/mach-omap2/i2c.c
-+++ b/arch/arm/mach-omap2/i2c.c
-@@ -109,6 +109,19 @@ int omap_i2c_reset(struct omap_hwmod *oh)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+index 7452954..8936819 100644
+--- a/arch/arm/mach-omap1/timer32k.c
++++ b/arch/arm/mach-omap1/timer32k.c
+@@ -50,6 +50,7 @@
+ #include <asm/mach/irq.h>
+ #include <asm/mach/time.h>
  
-+static int __init omap_i2c_nr_ports(void)
-+{
-+	int ports = 0;
-+
-+	if (cpu_is_omap24xx())
-+		ports = 2;
-+	else if (cpu_is_omap34xx())
-+		ports = 3;
-+	else if (cpu_is_omap44xx())
-+		ports = 4;
-+	return ports;
-+}
-+
- static const char name[] = "omap_i2c";
++#include <plat/counter-32k.h>
+ #include <plat/dmtimer.h>
  
- int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *i2c_pdata,
-@@ -121,6 +134,9 @@ int __init omap_i2c_add_bus(struct omap_i2c_bus_platform_data *i2c_pdata,
- 	struct omap_i2c_bus_platform_data *pdata;
- 	struct omap_i2c_dev_attr *dev_attr;
+ #include <mach/hardware.h>
+diff --git a/arch/arm/mach-omap2/cm33xx.c b/arch/arm/mach-omap2/cm33xx.c
+index b4938ab..ed8dcaf 100644
+--- a/arch/arm/mach-omap2/cm33xx.c
++++ b/arch/arm/mach-omap2/cm33xx.c
+@@ -22,8 +22,6 @@
+ #include <linux/err.h>
+ #include <linux/io.h>
  
-+	if (bus_id > omap_i2c_nr_ports())
-+		return -EINVAL;
-+
- 	omap2_i2c_mux_pins(bus_id);
+-#include "../plat-omap/common.h"
+-
+ #include "cm.h"
+ #include "cm33xx.h"
+ #include "cm-regbits-34xx.h"
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index c925c80..426fcfc 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -34,8 +34,6 @@
  
- 	l = snprintf(oh_name, MAX_OMAP_I2C_HWMOD_NAME_LEN, "i2c%d", bus_id);
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index be6deb7..d094273 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -33,9 +33,6 @@
+ #include <asm/proc-fns.h>
  
- #include <mach/irqs.h>
- 
--#include "../mach-omap1/soc.h"
--#include "../mach-omap2/soc.h"
+-#include "../plat-omap/common.h"
 -
  #include "i2c.h"
+ #include "serial.h"
  
- #define OMAP_I2C_MAX_CONTROLLERS 4
-@@ -43,22 +40,6 @@ static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
+@@ -345,5 +343,8 @@ struct omap2_hsmmc_info;
+ extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
+ extern void omap_reserve(void);
  
- #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
++struct omap_hwmod;
++extern int omap_dss_reset(struct omap_hwmod *);
++
+ #endif /* __ASSEMBLER__ */
+ #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
+index 05c6a59..40d6c93 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
+@@ -12,8 +12,6 @@
  
--static int __init omap_i2c_nr_ports(void)
--{
--	int ports = 0;
+ #include <plat-omap/dma-omap.h>
+ 
+-#include "../plat-omap/common.h"
 -
--	if (cpu_class_is_omap1())
--		ports = 1;
--	else if (cpu_is_omap24xx())
--		ports = 2;
--	else if (cpu_is_omap34xx())
--		ports = 3;
--	else if (cpu_is_omap44xx())
--		ports = 4;
+ #include "omap_hwmod.h"
+ #include "hdq1w.h"
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 5b9be73..7a61328 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -30,8 +30,6 @@
+ #include <plat/dmtimer.h>
+ #include <plat/iommu.h>
+ 
+-#include "../plat-omap/common.h"
 -
--	return ports;
--}
+ #include "omap_hwmod.h"
+ #include "omap_hwmod_common_data.h"
+ #include "cm1_44xx.h"
+diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
+index 624ade5..0d8abb5 100644
+--- a/arch/arm/mach-omap2/prm33xx.c
++++ b/arch/arm/mach-omap2/prm33xx.c
+@@ -19,8 +19,6 @@
+ #include <linux/err.h>
+ #include <linux/io.h>
+ 
+-#include "../plat-omap/common.h"
 -
- /**
-  * omap_i2c_bus_setup - Process command line options for the I2C bus speed
-  * @str: String of options
-@@ -72,12 +53,11 @@ static int __init omap_i2c_nr_ports(void)
-  */
- static int __init omap_i2c_bus_setup(char *str)
- {
--	int ports;
- 	int ints[3];
+ #include "common.h"
+ #include "prm33xx.h"
+ #include "prm-regbits-33xx.h"
+diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+index 6fabbd8..3442227 100644
+--- a/arch/arm/mach-omap2/prm_common.c
++++ b/arch/arm/mach-omap2/prm_common.c
+@@ -24,7 +24,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
  
--	ports = omap_i2c_nr_ports();
- 	get_options(str, 3, ints);
--	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
-+	if (ints[0] < 2 || ints[1] < 1 ||
-+			ints[1] > OMAP_I2C_MAX_CONTROLLERS)
- 		return 0;
- 	i2c_pdata[ints[1] - 1].clkrate = ints[2];
- 	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
-@@ -122,7 +102,7 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
- {
- 	int err;
+-#include "../plat-omap/common.h"
+ #include <plat/prcm.h>
  
--	BUG_ON(bus_id < 1 || bus_id > omap_i2c_nr_ports());
-+	BUG_ON(bus_id < 1 || bus_id > OMAP_I2C_MAX_CONTROLLERS);
+ #include "prm2xxx_3xxx.h"
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 95e4478..c5bc2cb 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -45,6 +45,7 @@
+ #include <asm/arch_timer.h>
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
++#include <plat/counter-32k.h>
+ #include <plat/dmtimer.h>
+ #include "omap-pm.h"
  
- 	if (info) {
- 		err = i2c_register_board_info(bus_id, info, len);
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index a1555e0..bf6cd80 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -16,7 +16,6 @@
+ #include <linux/io.h>
+ #include <linux/dma-mapping.h>
+ 
+-#include "common.h"
+ #include <plat-omap/dma-omap.h>
+ 
+ void __init omap_init_consistent_dma_size(void)
+diff --git a/arch/arm/plat-omap/common.h b/arch/arm/plat-omap/common.h
+deleted file mode 100644
+index 8ae0542..0000000
+--- a/arch/arm/plat-omap/common.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-/*
+- * Header for shared OMAP code in plat-omap.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation; either version 2 of the License, or (at your
+- * option) any later version.
+- *
+- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- * You should have received a copy of the  GNU General Public License along
+- * with this program; if not, write  to the Free Software Foundation, Inc.,
+- * 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
+-
+-#ifndef __ARCH_ARM_MACH_OMAP_COMMON_H
+-#define __ARCH_ARM_MACH_OMAP_COMMON_H
+-
+-extern int __init omap_init_clocksource_32k(void __iomem *vbase);
+-
+-extern void __init omap_check_revision(void);
+-
+-extern void omap_reserve(void);
+-struct omap_hwmod;
+-extern int omap_dss_reset(struct omap_hwmod *);
+-
+-#endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index 66bf3f9..f3771cd 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -22,8 +22,6 @@
+ #include <asm/mach/time.h>
+ #include <asm/sched_clock.h>
+ 
+-#include "common.h"
+-
+ /* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
+ #define OMAP2_32KSYNCNT_REV_OFF		0x0
+ #define OMAP2_32KSYNCNT_REV_SCHEME	(0x3 << 30)
+diff --git a/arch/arm/plat-omap/include/plat/counter-32k.h b/arch/arm/plat-omap/include/plat/counter-32k.h
+new file mode 100644
+index 0000000..da000d4
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/counter-32k.h
+@@ -0,0 +1 @@
++int omap_init_clocksource_32k(void __iomem *vbase);
 
