@@ -1,88 +1,56 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH] i2c: pinctrl-ify i2c-omap.c
-Date: Tue, 30 Oct 2012 22:18:19 +0200
-Message-ID: <E0618D8F-19A2-429A-9FF1-0D86C1E77D3D@antoniou-consulting.com>
-References: <1351698930-3797-1-git-send-email-panto@antoniou-consulting.com> <50903520.5050108@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:44529 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965635Ab2J3USY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Oct 2012 16:18:24 -0400
-In-Reply-To: <50903520.5050108@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Joel A Fernandes <agnel.joel@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: AM33XX: clock data: fix mcasp entries
+Date: Tue, 30 Oct 2012 15:28:32 -0500
+Message-ID: <CAD=GYpZ9w=D55G9DOiMqZ4BCGGdGszsgG3fumHUGZ12xx+TKjw@mail.gmail.com>
+References: <1349879449-22657-1-git-send-email-mporter@ti.com>
+	<1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: "Porter, Matt" <mporter@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sebastien Guiriec <s-guiriec@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, "Wolfram Sang (embedded platforms)" <w.sang@pengutronix.de>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>
 
+Hi Gururaja,
 
-On Oct 30, 2012, at 10:14 PM, Sebastien Guiriec wrote:
+On Mon, Oct 29, 2012 at 10:45 AM, Hebbar, Gururaja
+<gururaja.hebbar@ti.com> wrote:
+> Matt,
+>
+> On Wed, Oct 10, 2012 at 20:00:49, Porter, Matt wrote:
+>> 6ea74cb ARM: OMAP2+: hwmod: get rid of all omap_clk_get_by_name usage
+>> exposes a bug in the AM33XX clock data for mcasp. After moving to
+>> clk_get() usage, the _init() of all registered hwmods fails on mcasp0
+>> due to incorrect clock data causing clk_get() to fail. This causes all
+>> successive hwmods to fail to _init() leaving them in a bad state.
+>>
+>> This patch updates the mcasp clock entries so clk_get() will succeed.
+>> It is tested on BeagleBone and is needed for 3.7-rc1 to fix AM33xx
+>> boot.
+>
+>
+> I want to test Audio on AM335x Evm with your EDMA patches. I have few
+> patches for AM335x.
+> Can you share the link to the repo & branch on which I need to rebase?
+> The patches are related to mcasp dt node, mcasp pinmux in dt, etc...
+>
 
-> Hi Pantelis,
-> 
-> Can you look at the early thread?
->  https://patchwork.kernel.org/patch/1601331/
-> 
-> I send a similar patch earlier with defer probe usage.
-> 
-> Best regards,
-> 
-> Sebastien
+I was wondering about the status of following patches you wrote, not
+added to mainline yet:
 
-I see. Well let me drop the patch then. 
+(1)
+ ASoC: Davinci: machine: Add device tree binding
+https://patchwork.kernel.org/patch/1380511/  - will this be resubmitted?
 
-One less thing to worry about...
+(2)
+ASoC: AM33XX: Add support for AM33xx SoC Audio
+https://github.com/joelagnel/linux-kernel/commit/973cfb48bdb70018b3869a21595bde8630efb29d
 
-Regards
+Are you planning on sending/resending these patches again? I could do this too.
 
--- Pantelis
+I guess all other audio patches except for audio dts stuff is already in.
 
-> On 10/31/2012 04:55 PM, Pantelis Antoniou wrote:
->> Enable pinctrl for i2c-omap.
->> 
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->> ---
->>  drivers/i2c/busses/i2c-omap.c | 10 ++++++++++
->>  1 file changed, 10 insertions(+)
->> 
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index db31eae..4c38aa0 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -44,6 +44,8 @@
->>  #include <linux/i2c-omap.h>
->>  #include <linux/pm_runtime.h>
->>  #include <linux/pm_qos.h>
->> +#include <linux/pinctrl/consumer.h>
->> +#include <linux/err.h>
->> 
->>  /* I2C controller revisions */
->>  #define OMAP_I2C_OMAP1_REV_2		0x20
->> @@ -1064,6 +1066,7 @@ omap_i2c_probe(struct platform_device *pdev)
->>  	const struct of_device_id *match;
->>  	int irq;
->>  	int r;
->> +	struct pinctrl *pinctrl;
->> 
->>  	/* NOTE: driver uses the static register mapping */
->>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> @@ -1202,6 +1205,13 @@ omap_i2c_probe(struct platform_device *pdev)
->> 
->>  	of_i2c_register_devices(adap);
->> 
->> +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
->> +	if (IS_ERR(pinctrl))
->> +		dev_warn(dev->dev, "unable to select pin group\n");
->> +
->> +	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
->> +		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
->> +
->>  	pm_runtime_mark_last_busy(dev->dev);
->>  	pm_runtime_put_autosuspend(dev->dev);
->> 
->> 
-> 
-
+Thanks,
+Joel
