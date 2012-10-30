@@ -1,51 +1,83 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH] i2c-EEPROM: Export memory accessor
-Date: Tue, 30 Oct 2012 20:51:18 +0200
-Message-ID: <4AF9EE5B-D1C1-45E7-B2FD-E96151F5772A@antoniou-consulting.com>
-References: <1351699009-4217-1-git-send-email-panto@antoniou-consulting.com> <50902079.30406@gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50902079.30406@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: Wolfram Sang <w.sang@pengutronix.de>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 30 Oct 2012 20:48:28 +0200
+Message-ID: <20121030184828.GB4804@arwen.pp.htv.fi>
+References: <20121026062008.GA21734@arwen.pp.htv.fi>
+ <20121026160316.GY18814@opensource.wolfsonmicro.com>
+ <20121029194901.GA30152@arwen.pp.htv.fi>
+ <20121030112410.GM4511@opensource.wolfsonmicro.com>
+ <20121030114949.GC28722@arwen.pp.htv.fi>
+ <20121030140714.GO4511@opensource.wolfsonmicro.com>
+ <20121030151642.GE29159@arwen.pp.htv.fi>
+ <20121030155821.GU4511@opensource.wolfsonmicro.com>
+ <20121030172513.GA3993@arwen.pp.htv.fi>
+ <20121030182007.GA21851@core.coreip.homeip.net>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VrqPEDrXMn8OVzN4"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121030182007.GA21851@core.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi David,
+--VrqPEDrXMn8OVzN4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Oct 30, 2012, at 8:46 PM, David Daney wrote:
+Hi,
 
-> On 10/31/2012 08:56 AM, Pantelis Antoniou wrote:
->> Various platforms need access to the EEPROM in other
->> places besides their platform registration callbacks.
->> Export the memory accessor to the i2c_client
-> 
-> i2c_clients are *not* intrinsically memory, so adding this to the generic i2c_client structure doesn't really make sense.   What would the semantics of this interface be with respect to temperature sensors and GPIO expanders?
-> 
-> NACK.
-> 
+On Tue, Oct 30, 2012 at 11:20:07AM -0700, Dmitry Torokhov wrote:
+> On Tue, Oct 30, 2012 at 07:25:13PM +0200, Felipe Balbi wrote:
+> > On Tue, Oct 30, 2012 at 03:58:21PM +0000, Mark Brown wrote:
+> > >=20
+> > > But then this comes round to the mindless code that ought to be facto=
+red
+> > > out :)  Only the more interesting cases that do something unusual rea=
+lly
+> > > register here.
+> >=20
+> > fair enough. I see your point. Not saying I agree though, just that this
+> > discussion has been flying for far too long, so feel free to provide
+> > patches implementing what you're defending here ;-)
+> >=20
+> > Guess code will speak for itself. On way or another, we need OMAP keypad
+> > driver working in mainline
+>=20
+> Are you saying that introducing pincrtl infrastructure actually _broke_
+> the driver in mainline?
 
-It's only filled in for EEPROM devices. There's no other I2C memory read interface for kernel clients.
+no dude, I'm saying we need pinctrl working for this driver because we
+need to remove OMAP-specific MUX settings. One way or another, this has
+to work.
 
-> 
->> and implement
->> it for the at24 driver.
->> 
->> And before you ask, no, the platform callback can't be used
->> for anything that depends on DT.
-> 
-> Why can't you just allocate (and populate) a struct at24_platform_data for the device if it isn't supplied by whatever created the device?
-> 
-> 
-> 
+--=20
+balbi
 
-There are no platform_data in the case of device tree only generic-boards. Everything is configured via the DT and there are
-no callbacks. DT is a purely data driver concept.
+--VrqPEDrXMn8OVzN4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-I'm open to suggestions on how to read an EEPROM from another kernel client, when there's no such thing as platform_data anymore.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Regards
+iQIcBAEBAgAGBQJQkCD8AAoJEIaOsuA1yqRExbwP/RsiJ0tZ4envXPJkAk9FusHr
+gM3KATpzj8nsaedhnfQU0qA7X0adO6tA/QHJFva869xp071/PnoaGv+tsqiMb8Nv
+7HZAA6p577k7zNdN+FjzNSgtLt0KQrkIt5DatbzXJxbhHhNhCqqlbvYzJ+IGD/Rw
+lUy4feXwn5TRgPXNvSyLaj13Tg8zEYBGRFsrbLijAKHVQKcsAIvp9Si3dd2kod+R
+4GrAxDsCBi6SB+4zHBDoW0kEZBubs5PRO44l3nzeumMMQWk8FfsRbzajd/GtiAdb
+BDWLKr4p4EXjVeTVkbvvTHvH9QbhhWbqHUZINXeflkVTnugLHu7dHDzeBi4VpodX
+d+JLA33ACaXG0CSGnq3znHGqYd7jCFPGh6lPLct5hFrsgZLcgj10aJUGdVdiKvCe
+VNlQ6jAcjBJNuJUC3FiR+bTouxvOrSjHGkF2xjaT3fmsAquZZULC2GXpJbdaAZeB
+e+fRsSl7oSVlUvh+Irzrht8tTiSPVQ8ZAEZgQ5IPaGWL6G8ynibJQ5hncTPtpzsH
+dk+W4ge0xCf/Qvwe+RoYwSb5N1LU3wIhB/W5nyMNovEALhhNxozG51AJ6icULw5w
+8P8jfgMKHUECBHc6BckU+f5TA+D2cqaFAQc+HuYn5JB9fetD91gsjSc79A/5ogTD
+Ns2dQ8ziOK292Tbf0nNu
+=Wytf
+-----END PGP SIGNATURE-----
 
--- Pantelis
+--VrqPEDrXMn8OVzN4--
