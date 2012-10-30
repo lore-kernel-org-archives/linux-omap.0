@@ -1,50 +1,34 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Tue, 30 Oct 2012 11:34:07 +0000
-Message-ID: <20121030113407.GA24335@sirena.org.uk>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
- <20121024161429.GA16350@core.coreip.homeip.net>
- <CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
- <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
- <CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.7-rc3
+Date: Tue, 30 Oct 2012 11:47:00 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:47927 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932537Ab2J3LrB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 07:47:01 -0400
+In-Reply-To: <508FB226.20604@mimc.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hvaibhav@ti.com
 
-On Sun, Oct 28, 2012 at 09:12:52PM +0100, Linus Walleij wrote:
+cc Vaibhav Hiremath
 
-> The answer is that it does not know. Because drivers have
-> different needs. Depending on how the hardware and
-> system is done.
+On Tue, 30 Oct 2012, Mark Jackson wrote:
 
-...
+> At what point is booting from MMC on the BeagleBone going to start working ?
+> 
+> I only ask, since, by default, a new BeagleBone is setup to boot from 
+> MMC, so anyone testing a new kernel will probably expect the same setup 
+> to work.
 
-> I'm not making this up, it is a very real phenomenon on the
-> Ux500 and I don't think we are unique.
+BeagleBone boots initramfs from MMC now, which is what mine was shipped to 
+do.  Are you asking about rootfs on MMC?  If so, Vaibhav would have a 
+better sense of this than I.
 
-> Moving this handling to bus code or anywhere else
-> invariably implies that resource acquisition/release order
-> does not matter, and my point is that it does.
 
-Doing this in the buses is definitely wrong, as you say it's not bus
-specific.  I do however think we can usefully do this stuff in a SoC
-specific place like a power domain, keeping the SoC integration code
-together and out of the drivers.  IME the SoCs where you need to do
-different things for different IPs shoudl mostly still get some reuse
-out of such an approach.
+- Paul
