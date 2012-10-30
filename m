@@ -1,63 +1,165 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv3 8/8] i2c: omap: cleanup the sysc write
-Date: Mon, 5 Nov 2012 16:25:17 +0200
-Message-ID: <20121105142517.GG4815@arwen.pp.htv.fi>
-References: <1352118223-3796-1-git-send-email-shubhrajyoti@ti.com>
- <1352118223-3796-9-git-send-email-shubhrajyoti@ti.com>
- <20121105141442.GD4815@arwen.pp.htv.fi>
- <5097CBF1.6060108@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Joel A Fernandes <agnel.joel@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: AM33XX: clock data: fix mcasp entries
+Date: Mon, 29 Oct 2012 19:33:06 -0500
+Message-ID: <CAD=GYpY5-X3BJZEQ1aD4+mKxFNvb4Ug67FtXdLbNwKxWoFvA3w@mail.gmail.com>
+References: <1349879449-22657-1-git-send-email-mporter@ti.com>
+ <1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+1TulI7fc0PCHNy3"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5097CBF1.6060108-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============5592106563859399859=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: "Porter, Matt" <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hiremath,
+ Vaibhav" <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---+1TulI7fc0PCHNy3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--===============5592106563859399859==
+Content-Type: multipart/alternative; boundary=00235452fd84fbbb8f04cd3bedb1
+
+--00235452fd84fbbb8f04cd3bedb1
+Content-Type: text/plain; charset=ISO-8859-1
+
+Hi Guraraja,
+
+I am interested in this thread. I've been trying Gururaja's patches for
+audio as well.
+
+I rebased  Guraja's patches on top of Matt's EDMA patches which were
+applied to the beaglebone 3.7 kernel repo. With some fixes to make it
+compile with CONFIG_DUMMY_REGULATOR enabled, Currently it breaks at
+set_dai_fmt in davinci-mcasp.c when an audio file is played.
+
+Could you try my tree on EVM?  dts changes may be required to use mcasp1 on
+EVM,
+https://github.com/joelagnel/linux-kernel/commits/3.7
+
+v3.7-rc2-fixes to v3.7-rc2-audio commits are Gururaja's patches which I
+applied, and after that are my commits to enable config , add dt data and
+some fixes.
+
+Thanks,
+Joel
+
+On Mon, Oct 29, 2012 at 10:45 AM, Hebbar, Gururaja
+<gururaja.hebbar@ti.com>wrote:
+
+> Matt,
+>
+> On Wed, Oct 10, 2012 at 20:00:49, Porter, Matt wrote:
+> > 6ea74cb ARM: OMAP2+: hwmod: get rid of all omap_clk_get_by_name usage
+> > exposes a bug in the AM33XX clock data for mcasp. After moving to
+> > clk_get() usage, the _init() of all registered hwmods fails on mcasp0
+> > due to incorrect clock data causing clk_get() to fail. This causes all
+> > successive hwmods to fail to _init() leaving them in a bad state.
+> >
+> > This patch updates the mcasp clock entries so clk_get() will succeed.
+> > It is tested on BeagleBone and is needed for 3.7-rc1 to fix AM33xx
+> > boot.
+>
+>
+> I want to test Audio on AM335x Evm with your EDMA patches. I have few
+> patches for AM335x.
+> Can you share the link to the repo & branch on which I need to rebase?
+> The patches are related to mcasp dt node, mcasp pinmux in dt, etc...
+>
+> >
+> ..snip..
+> ..snip..
+> >
+>
+>
+> Thanks & Regards,
+> Gururaja
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+--00235452fd84fbbb8f04cd3bedb1
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi Guraraja,<div><br></div><div>I am interested in this thread. I&#39;ve be=
+en trying Gururaja&#39;s patches for audio as well.</div><div><br></div><di=
+v>I rebased =A0Guraja&#39;s patches on top of=A0Matt&#39;s EDMA patches whi=
+ch were applied to the beaglebone 3.7 kernel repo. With some fixes to make =
+it compile with CONFIG_DUMMY_REGULATOR enabled, Currently it breaks at set_=
+dai_fmt in davinci-mcasp.c when an audio file is played.</div>
+<div><br></div><div>Could you try my tree on EVM? =A0dts changes may be req=
+uired to use mcasp1 on EVM,</div><div><a href=3D"https://github.com/joelagn=
+el/linux-kernel/commits/3.7">https://github.com/joelagnel/linux-kernel/comm=
+its/3.7</a></div>
+<div><br></div><div>v3.7-rc2-fixes to v3.7-rc2-audio commits are Gururaja&#=
+39;s patches which I applied, and after that are my commits to enable confi=
+g , add dt data and some fixes.</div><div><br></div><div>Thanks,</div><div>
+Joel<br><br><div class=3D"gmail_quote">On Mon, Oct 29, 2012 at 10:45 AM, He=
+bbar, Gururaja <span dir=3D"ltr">&lt;<a href=3D"mailto:gururaja.hebbar@ti.c=
+om" target=3D"_blank">gururaja.hebbar@ti.com</a>&gt;</span> wrote:<br><bloc=
+kquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #cc=
+c solid;padding-left:1ex">
+Matt,<br>
+<br>
+On Wed, Oct 10, 2012 at 20:00:49, Porter, Matt wrote:<br>
+&gt; 6ea74cb ARM: OMAP2+: hwmod: get rid of all omap_clk_get_by_name usage<=
+br>
+&gt; exposes a bug in the AM33XX clock data for mcasp. After moving to<br>
+&gt; clk_get() usage, the _init() of all registered hwmods fails on mcasp0<=
+br>
+&gt; due to incorrect clock data causing clk_get() to fail. This causes all=
+<br>
+&gt; successive hwmods to fail to _init() leaving them in a bad state.<br>
+&gt;<br>
+&gt; This patch updates the mcasp clock entries so clk_get() will succeed.<=
+br>
+&gt; It is tested on BeagleBone and is needed for 3.7-rc1 to fix AM33xx<br>
+&gt; boot.<br>
+<br>
+<br>
+I want to test Audio on AM335x Evm with your EDMA patches. I have few<br>
+patches for AM335x.<br>
+Can you share the link to the repo &amp; branch on which I need to rebase?<=
+br>
+The patches are related to mcasp dt node, mcasp pinmux in dt, etc...<br>
+<br>
+&gt;<br>
+..snip..<br>
+..snip..<br>
+&gt;<br>
+<br>
+<br>
+Thanks &amp; Regards,<br>
+Gururaja<br>
+--<br>
+To unsubscribe from this list: send the line &quot;unsubscribe linux-omap&q=
+uot; in<br>
+the body of a message to <a href=3D"mailto:majordomo@vger.kernel.org">major=
+domo@vger.kernel.org</a><br>
+More majordomo info at =A0<a href=3D"http://vger.kernel.org/majordomo-info.=
+html" target=3D"_blank">http://vger.kernel.org/majordomo-info.html</a><br>
+</blockquote></div><br></div>
 
-On Mon, Nov 05, 2012 at 07:53:45PM +0530, Shubhrajyoti wrote:
-> On Monday 05 November 2012 07:44 PM, Felipe Balbi wrote:
-> >> -							dev->syscstate);
-> >> > -		}
-> > not sure if this will work. What about the first time you call reset() ?
-> > won't SYSC just contain the reset values ?
-> No actually the hwmod sets the value.
+--00235452fd84fbbb8f04cd3bedb1--
 
-ahaaa, ok good. Let's get an Ack from Benoit, then.
 
---=20
-balbi
+--===============5592106563859399859==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
---+1TulI7fc0PCHNy3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQl8xNAAoJEIaOsuA1yqREAE4P/0t3r4SgK68i+0Vqj7d5bVFZ
-qhkocze6ufwBlj/69ZJ1KgQqwCuzVzGOIq0MARrF+RTT6VpUG6wQYeeITkR53bGc
-g5mE7P9Ec1dVRYEbGH1ClUvnzV3YeOHZ9Kf3uSkNIBMErUFeMF6F+Bj3GsP5AD8m
-8NZQl/V/OtfmmedEfMXHo7SvAAYPh5SKjL4TVksPAQ5G/IePe06M8kE0phxHaz+z
-gN2H88XXdpvvrSI+nlONvqwIix09sEZy6/EuTIVPOCHIbkkstBdBGFnGW+M4Q0Yb
-BJvb3Jw/pEMjay3bwtRXmXwCTLy/jVsMKUz9Hhruu6L9d9TmCX/oTug3Uso4feup
-WDyQrWpmz4dgrDId8Xq7hgjToeTh8BbREQc6SyC+jtvAQhzXCbYplxma5WGuCD09
-0+pToomSi+Bxe3AjAS/zzOkH7AbJTrRltbuIcpXie6AWl1srEOQsgcbEPtrOtTsQ
-LGF5Rvk/v/etH892WOkWHrStx/cHWg7Kh5OHaxLtBhZfKF5I9WioOX4Nqvt6jj8Q
-kp8LPxKWN2uvqo/Gwr4d6GqWykcRiuh5FK9jadEcSodpznTZKL3jepgNjr1g9PBn
-XPLOpWZ5NMzfApdH0WZQgKNvxZi4D0WUUOn7lYDAsGXvcGoL7aAuf0frzStpTbEQ
-Uq99upMdPBM17DE8NVIZ
-=Z6tu
------END PGP SIGNATURE-----
-
---+1TulI7fc0PCHNy3--
+--===============5592106563859399859==--
