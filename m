@@ -1,79 +1,112 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Tue, 30 Oct 2012 14:54:21 +0000
-Message-ID: <20121030145420.GQ4511@opensource.wolfsonmicro.com>
-References: <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
- <20121024185818.GB772@arwen.pp.htv.fi>
- <20121025205901.GA3827@sirena.org.uk>
- <20121026062008.GA21734@arwen.pp.htv.fi>
- <20121026160316.GY18814@opensource.wolfsonmicro.com>
- <20121029194901.GA30152@arwen.pp.htv.fi>
- <20121030112410.GM4511@opensource.wolfsonmicro.com>
- <20121030114949.GC28722@arwen.pp.htv.fi>
- <20121030140714.GO4511@opensource.wolfsonmicro.com>
- <CACRpkdZysB2mxj5wZfE0N+iwTE-_AXbOV0bKRP5kSo=1hieKGg@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Tue, 30 Oct 2012 17:10:29 +0200
+Message-ID: <20121030151029.GD29159@arwen.pp.htv.fi>
+References: <20121026114250.GA26342@arwen.pp.htv.fi>
+ <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
+ <508E266C.6090901@ti.com>
+ <20121029080523.GC13657@arwen.pp.htv.fi>
+ <508E3D09.9090802@ti.com>
+ <20121029200328.GE30152@arwen.pp.htv.fi>
+ <508F7471.8060402@ti.com>
+ <20121030070904.GB1978@arwen.pp.htv.fi>
+ <508FE142.2020408@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y9o+fgG4MNl0mnzl"
-Return-path: <linux-input-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="bajzpZikUji1w+G9"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52126 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752818Ab2J3PQY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 11:16:24 -0400
 Content-Disposition: inline
-In-Reply-To: <CACRpkdZysB2mxj5wZfE0N+iwTE-_AXbOV0bKRP5kSo=1hieKGg@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Felipe Balbi <balbi@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+In-Reply-To: <508FE142.2020408@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: balbi@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tim Niemeyer <tim.niemeyer@corscience.de>, Linux OMAP List <linux-omap@vger.kernel.org>
 
-
---Y9o+fgG4MNl0mnzl
+--bajzpZikUji1w+G9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 30, 2012 at 03:16:02PM +0100, Linus Walleij wrote:
-> On Tue, Oct 30, 2012 at 3:07 PM, Mark Brown
+Hi,
 
-> > Essentially all the patches I'm seeing adding pinctrl are totally
-> > mindless, most of them are just doing the initial setup on boot and not
-> > doing any active management at runtime at all.
+On Tue, Oct 30, 2012 at 09:16:34AM -0500, Jon Hunter wrote:
+> Hi Felipe,
+>=20
+> On 10/30/2012 02:09 AM, Felipe Balbi wrote:
+>=20
+> ...
+>=20
+> >> its bit of an issue to take care. How do you ensure that GPIO
+> >> does idle on SOC idle C-state attempts in such cases. Today that
+> >> job is done by omap_gpio_[prepare/resume]_for_idle.
+> >=20
+> > that's only there because we pm_runtime_get_sync() on gpio_request() and
+> > pm_runtime_put_sync() only on gpio_free().
+> >=20
+> > That's the problem IMHO. And that's easy enough to 'fix':
+> >=20
+> > call pm_runtime_mark_last_busy(); pm_runtime_put_sync_autosuspend();
+> > also on gpio_request() and pm_runtime_get_sync() on gpio_free().
+>=20
+> Sounds like a good approach. I have been discussing with Kevin and I
+> need to look more at the resume handler as we are working around some
+> old issues in there and with this approach the resume following idle
+> will be delayed and we were not sure if there could be any implications
+> for omap2. I am hoping not, but we need to look into this.
+>=20
+> So I am wondering if we should just take Tim's original proposal for now
+> and then I will look into improving this long term. I really need to
+> clean-up the suspend/resume stuff for gpio and so may be we can make
+> that a separate change. What do you think?
 
-> I concludes in some other mails that all Ux500 drivers
-> will need to handle atleast two states (default and sleep)
-> and some a third state (idle).
+that'll cause a regression right ?
 
-Right, that's the other common option and obviously it's just an
-extension of the simple hogs which maps very nicely onto the existing PM
-states for devices.
+> > The difficult part, IMHO, is to figure out what's a good autosuspend
+> > timeout to use. Some GPIO lines are used as IRQ lines on some devices,
+> > that means that the GPIO will be periodically triggered and, depending
+> > on our timeout, we will either loose IRQs or prevent power domain from
+> > idling. We could figure out a way to let board code to choose what it
+> > wants on a per-bank basis (maybe some extra DT attribute).
+>=20
+> I have also been bending Kevin's ear on this, this week and we were
+> wondering if we should make the default 0 for now as this will have the
 
-> And this is what we're doing in our patches.
+I believe you mean -1 here ;-)
 
-> Arguably it can all be pushed to power domains, but that
-> will as said mandate all affected systems to implement
-> power domains, and effectively moving code from
-> drivers/* to arch/arm/* in our case atleast.
+> same behaviour that we have today but would allow Tim to customise via
+> the sysfs for his specific app.
 
-As soon as they start adding clock support and so on, yes.  Obviously if
-they don't want to use any of the features that are offloaded like this
-then they could happily ignore it.
+sysfs might be too late for his platform. What if he needs NFS root
+(just wondering, not sure about his use case) ?
 
---Y9o+fgG4MNl0mnzl
+--=20
+balbi
+
+--bajzpZikUji1w+G9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQj+oWAAoJELSic+t+oim91XQP/3/AoT73wqFhoXISasrhp7xm
-671tREdtuwwtdcqVRCIMmn+xrnHcYyJN15OTOYlBFFzFGlTv8DSDmffqvYY1U3UQ
-psyzgBjbO0JCF3KNQKugktbYb6M428ryTQLFr6djK2PODF4as2uM26gPZf/TZs5y
-EnH/q7XWzEwLey19MNAhUBxCEU9nif66NQ0vTV1WtU94zjZ8Omt55a3Uoi4K9Nvv
-Lwf94hDTUfe2XDXd4sDtiyVR8JleGOWVWzf9oLm1asfgJjpgK14PtvE5p7CSQXSH
-+zFjRlJWg5QYvM7RDrMP6fmeokWlijEdNA1gLHSZB6UkBljpl9E8JppvLj9xsZEU
-ZlD1hBD9EqFXPJaYbIQ1ySS5EHYeAVBDGUloQVtBw/Ey86ERwwli/Vz3LwYOeht9
-h7qqZC3IWxxiNl0eu2u1ZDdmpSQOlXLcrFwolIgLvrdr5nqU5egPUda0v4TQBuUN
-1HfQt+E5pHZIY+6Sr+Mwml0fPxc5SL0ukdSi0GmTpStsqCEyLFkFS5OO+Xa3lUXG
-IHazQYi38WElveranQAh9VEMM2Tu0UeF/R+cZw0phOgyCe5+AUdMSCK+IHCE0uXd
-mhmTAWYxhDRHcZFvMwaZ4UDOcMcxOAInAYdT2kiJ4mtErWC5/+CrrBsY6/uYMNm5
-6r/pqt8yVfhFow5sxoJC
-=P/FU
+iQIcBAEBAgAGBQJQj+3lAAoJEIaOsuA1yqRE4L8P+wUo9SvHSzeIntHb2A9TpmQ6
+WsqTDcvGOSVon/1C7vTMLVHKLSEfVQ5b1ARI1GqsNxJCnP12ABbeoFAHD8F7fA2z
+rWDbBjoYx67it81F1eaiatBTea+V3GuJ1B0VawmoltA98IY21dkdKnzWCxbyh5t9
+kBM4Zu1TJgXinBkIkAv8lmZeY8UxyelCCO/efNOmjaUD8wmfsCMSd6Yo+APXRPIE
+OEEXiSHh4uKOgXvXvQEknsvmBP63wH2Du8Rq0Cll/Jh5TwEmlGx4BwhoQWddpgEx
+ZTd5veN35wKEJZwYBAhNi43p1XstuxwBzgINgQCoMKoAqTHz/bxcoFkziyZ2WAvQ
+x8gacfv8bA+55ybWXGkshdUuqmVuqiIUA5TvJNOaC0NK3Td9qwdAcFs0k4VeKnOW
+n5yZ3xRpaRuyEJAuidLlk0I7Ybd542iOgULnFHj5hj5jxFybgkg/Tp7H2C3tKH/W
+Xf43GJamkGJqPXRJiKJIlTXvSZIXl0Wje4FFTLFc/hOgOi66kjlcQFyWyBH3JPRB
+5gemc4d+Vq4qlWPiXckbqZ9/bFoEqlHgMVtAoOJR9jqbwIeda7Eef1tynWJ8Mhkc
+UFTyRGfJhXi+X9icxwCPwl4veMLgJHEZivTv4V4fb8E4n12x/Q5I/syS95UoSlAm
+zq7LdmUrOWSkNpUSWOEM
+=Czsg
 -----END PGP SIGNATURE-----
 
---Y9o+fgG4MNl0mnzl--
+--bajzpZikUji1w+G9--
