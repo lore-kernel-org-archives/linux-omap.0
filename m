@@ -1,78 +1,65 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 11/12] OMAPDSS: DPI: verify if DSI PLL is operational
-Date: Tue, 30 Oct 2012 18:10:08 +0200
-Message-ID: <1351613409-21186-12-git-send-email-tomi.valkeinen@ti.com>
-References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: move mailbox.h out of plat-omap
+ headers
+Date: Tue, 30 Oct 2012 09:24:42 -0700
+Message-ID: <20121030162441.GF11908@atomide.com>
+References: <1351530381-11459-1-git-send-email-omar.luna@linaro.org>
+ <1351530381-11459-2-git-send-email-omar.luna@linaro.org>
+ <20121029175228.GD11908@atomide.com>
+ <CALLhW=4ukBuRSVcPm2A37PgBhv33yKqk2G=Dz2XTUyswXw=JMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56391 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933955Ab2J3QKi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Oct 2012 12:10:38 -0400
-In-Reply-To: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CALLhW=4ukBuRSVcPm2A37PgBhv33yKqk2G=Dz2XTUyswXw=JMg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devel@driverdev.osuosl.org
 List-Id: linux-omap@vger.kernel.org
-To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: rob@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The SoCs that have DSI module should have a working DSI PLL. However,
-some rare boards have not connected the powers to the DSI PLL.
+* Omar Ramirez Luna <omar.luna@linaro.org> [121030 05:20]:
+> Tony,
+> 
+> On 29 October 2012 12:52, Tony Lindgren <tony@atomide.com> wrote:
+> >> --- /dev/null
+> >> +++ b/include/linux/platform_data/omap_mailbox.h
+> >> @@ -0,0 +1,105 @@
+> >
+> > This file should only contain pure platform data needed
+> > by the core omap code to pass to the mailbox driver.
+> 
+> Ok, looking at it closely, this header file is related to the API
+> itself, there is nothing that could be actually considered as pure
+> platform data, the structures are related with the mailbox framework
+> and even if I split this file into two, the additional header would
+> end up including the "platform_data" header unless I move
+> save/restore_ctx functions and then export them as symbols for the
+> API.
+> 
+> So, it might be better for the entire file to sit in
+> linux/include/mailbox/ then.
 
-This patch adds a function that tries to power up the DSI PLL, and
-reports if that doesn't succeed. DPI uses this function to fall back to
-PRCM clocks if DSI PLL doesn't work.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dpi.c |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
-
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index fc1ec7d..267caf0 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -361,6 +361,28 @@ void omapdss_dpi_set_data_lines(struct omap_dss_device *dssdev, int data_lines)
- }
- EXPORT_SYMBOL(omapdss_dpi_set_data_lines);
+OK to me.
  
-+static int __init dpi_verify_dsi_pll(struct platform_device *dsidev)
-+{
-+	int r;
-+
-+	/* do initial setup with the PLL to see if it is operational */
-+
-+	r = dsi_runtime_get(dsidev);
-+	if (r)
-+		return r;
-+
-+	r = dsi_pll_init(dsidev, 0, 1);
-+	if (r) {
-+		dsi_runtime_put(dsidev);
-+		return r;
-+	}
-+
-+	dsi_pll_uninit(dsidev, true);
-+	dsi_runtime_put(dsidev);
-+
-+	return 0;
-+}
-+
- static int __init dpi_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("init_display\n");
-@@ -383,6 +405,11 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
- 		enum omap_dss_clk_source dispc_fclk_src =
- 			dssdev->clocks.dispc.dispc_fclk_src;
- 		dpi.dsidev = dpi_get_dsidev(dispc_fclk_src);
-+
-+		if (dpi_verify_dsi_pll(dpi.dsidev)) {
-+			dpi.dsidev = NULL;
-+			DSSWARN("DSI PLL not operational\n");
-+		}
- 	}
- 
- 	return 0;
--- 
-1.7.10.4
+> > The mailbox API header should be somewhere else,
+> > like include/linux/mailbox/mailbox-omap.h or similar.
+> 
+> Ok.
+> 
+> > But shouldn't this all now be handled by using the
+> > remoteproc framework?
+> 
+> Remoteproc doesn't handle the mailbox hardware directly, it still
+> relies in the mailbox framework for the low level communications.
+> E.g.: Proc1 has a message (virtqueue msg) queued to Proc2, uses
+> mailbox msg to generate an interrupt to Proc2, Proc2 queries the
+> message (virtqueue) based on the mailbox message received.
 
+OK.
+
+Greg, do these patches look OK to you to move to live under
+drivers/mailbox?
+
+Regards,
+
+Tony
