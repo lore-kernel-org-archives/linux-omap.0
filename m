@@ -1,93 +1,87 @@
-From: Mohan V <mohanvforum@gmail.com>
-Subject: Re: Problem with OHCI on OMAP4430
-Date: Tue, 30 Oct 2012 18:03:56 +0530
-Message-ID: <CANP3njwd94MQMW2JjB8e73-25YJu-14tz+QOybi8aP=uOPaSZg@mail.gmail.com>
-References: <CANP3njys-W+JXdkH3Vj-90VgMENwtcDMZ6y-oEift3fC89yYwg@mail.gmail.com>
-	<Pine.LNX.4.44L0.1210291111260.22882-100000@netrider.rowland.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Tue, 30 Oct 2012 14:32:54 +0200
+Message-ID: <20121030123254.GD29095@arwen.pp.htv.fi>
+References: <alpine.DEB.2.00.1210200611150.9865@utopia.booyaka.com>
+ <CAORVsuUkU3iTTFcXfYJ=_FntjiTR33Gs4z9OsNEn2Cxq7Ef-qA@mail.gmail.com>
+ <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com>
+ <alpine.DEB.2.00.1210231918500.27211@utopia.booyaka.com>
+ <CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com>
+ <20121025101212.GD21217@arwen.pp.htv.fi>
+ <20121026201539.GD29548@arwen.pp.htv.fi>
+ <alpine.DEB.2.00.1210262201500.11258@utopia.booyaka.com>
+ <20121029200032.GD30152@arwen.pp.htv.fi>
+ <alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="eqp4TxRxnD4KrmFZ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62006 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932126Ab2J3Md4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 08:33:56 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1210291111260.22882-100000@netrider.rowland.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43397 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752440Ab2J3MjA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Oct 2012 08:39:00 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, keshava_mgowda@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Felipe Balbi <balbi@ti.com>, Jean Pihet <jean.pihet@newoldbits.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
-Alan,
+--eqp4TxRxnD4KrmFZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 29, 2012 at 8:54 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
-> On Mon, 29 Oct 2012, Mohan V wrote:
->
->> > I'm not going to be able to help very much with an Android kernel.
->> > Does the same problem occur with a vanilla non-Android 3.6 kernel?  If
->> > it doesn't, that indicates the problem was caused by some
->> > Android-specific changes.
->> >
->> With the vanilla 3.6 kernel, the device connected to OHCI port is not even
->> detected. The below messages are seen:
->>
->> [    5.343780] usb 2-2: new low-speed USB device number 5 using ohci-omap3
->> [    5.351776] ohci-omap3 ohci-omap3.0: urb ee7f83c0 path 2 ep0out
->> 5ec20000 cc 5 --> status -62
->> [    5.570770] ohci-omap3 ohci-omap3.0: urb ee7f83c0 path 2 ep0out
->> 5ec20000 cc 5 --> status -62
->> [    5.789062] usb 2-2: device not accepting address 5, error -62
->> [    5.795288] hub 2-0:1.0: unable to enumerate USB device on port 2
->
-> It looks like the device was detected just fine but the host was
-> unable to communicate with it.  I don't know why; maybe a clock or
-> power line wasn't turned on properly or a PHY wasn't enabled.
->
->> We think it may not be hardware issue, since the device gets detected on
->> android-3.0 kernel. The support for OHCI on OMAP4430 SDP board
->> seems to be missing in Linux mainline (3.6).
->>
->> We ported some OMAP specific patches from android kernel, with this the
->> device gets detected only if it is connected at boot.
->> If the system is booted and then device is connected, it doesn't get detected.
->
-> Doesn't get detected, or does get detected but then doesn't
-> communicate?
->
-The device does not get detected.
+Hi,
 
-> Perhaps you should send some questions to the maintainers of the
-> various ohci-omap drivers or the Android maintainers.
->
-Keshava, can you please comment?
+On Tue, Oct 30, 2012 at 12:17:11PM +0000, Paul Walmsley wrote:
+> On Mon, 29 Oct 2012, Felipe Balbi wrote:
+>=20
+> > that's too bad :-(
+> >=20
+> > Can you compile with:
+> >=20
+> > CONFIG_I2C_DEBUG_CORE=3Dy
+> > CONFIG_I2C_DEBUG_ALGO=3Dy
+> > CONFIG_I2C_DEBUG_BUS=3Dy
+> > CONFIG_DEFAULT_MESSAGE_LOGLEVEL=3D9
+> >=20
+> > so that I can see all transfers ?
+>=20
+> Log is below.
 
->> > Are you referring to this part of the log?
->> >
->> >> ------------------------Device not getting detected when connected---------------------------
->> >>
->> >> / # [  135.621002] usbhs_wakeup: Enabling clocks
->> >> [  135.625762] usbhs_runtime_resume:++++++
->> >> [  135.630371] usbhs_runtime_resume:------
->> >> [  135.638183] USB IO PAD Wakeup event triggered##################
->> >> [  135.644958] usbhs_runtime_suspend:++++++
->> >> [  135.649749] usbhs_runtime_suspend:-----
->> >
->> > It appears that ohci_irq() didn't run.  Did
->> > ohci_finish_controller_resume() get called?
->> >
->> This function is not used in ohci-omap3.c and is used only in ohci-omap.c.
->> Is it necessary to call this function?
->
-> It is necessary if the driver supports suspend/resume.  As far as I can
-> tell, the ohci-omap3 driver does not have this support (at least, not
-> in the 3.6 kernel) whereas the ohci-omap driver does.
->
-> What driver produced the "usbhs_runtime_suspend" and
-> "usbhs_runtime_resume" messages above?  (No such messages are present
-> in ohci-omap3.c.)  Apparently that driver _does_ support
-> suspend/resume.
->
-This driver is USBHS core driver for OMAP EHCI and OHCI
-(drivers/mfd/omap-usb-host.c)
+that's working. It only helps to let me know we have a race somewhere,
+and if it is what I'm thinking, the wmb() patch should help, but you
+said it doesn't, right ?
 
-Thanks,
-Mohan
+without seeing debugging information on the failing case, it'll be very
+difficult to sort this one out provided noone else seems to be able to
+reproduce it.
+
+--=20
+balbi
+
+--eqp4TxRxnD4KrmFZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQj8j2AAoJEIaOsuA1yqREpFEQAKa5T/uC3MIfHR/vjXZza/mS
+dUbKYOmdqGCLwQ5kHGMfBRP6YDIm+pFS8bJHpeONU6EmMyf875rhMjKR4Kogo0pd
+5uHd2fM4cpKTRN7+kF/AfFV1BdkC/vmtJwnGfdadPaCo9xD40hvpd/fwFzztwkvz
+3A+vTUprbtIqDepG3SbGcyS5HKHv25TxOt0v2mnTsACC8vD/GpPCGQfr+ZdE0TWy
+9p7f5dXicqCBbY9DaaM5F6NpuP3q5nnBW45ilb6W0Xzx1o3tgl2mmaYalf/4FnU5
+98vINFtfoHsqF53U01VWcEE834BmxsCun5joGNogT/z4dNSyjQoBGyGhhpbjF9Yn
+ItEaNOVQRNzk+xvQI0sa5ScvGxOMcK76/nxmmEZCkhHkG8DubAelq7I8Y06zm24R
+/M1yLGyrYFj5tEhAp2CQoWuJ3OIlI8sa4AZ7Lugp5QN0H+dFpMX66q77SvaFr5QE
+aMjSzZaJwx7S0kjv81KUA6urLlxIUW6Imzfipj6xK82jS4JKE697aawvWAtd16sN
+hZFbZ9zChsgqURnvze/HTQ8qHSsQWiyYGpu3XB92bxzUL9Pwp1sgIk647Z9sdRuU
+3CgK8CI47cHU79jN6aqi0lmA2z3YrBXGI8yILTBhsQPLuHBW+gLdJDyAjHwLcWJD
+Y5pdF2fruDbkoAPsON45
+=TnZI
+-----END PGP SIGNATURE-----
+
+--eqp4TxRxnD4KrmFZ--
