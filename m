@@ -1,56 +1,75 @@
-From: Joel A Fernandes <agnel.joel@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: AM33XX: clock data: fix mcasp entries
-Date: Tue, 30 Oct 2012 15:28:32 -0500
-Message-ID: <CAD=GYpZ9w=D55G9DOiMqZ4BCGGdGszsgG3fumHUGZ12xx+TKjw@mail.gmail.com>
-References: <1349879449-22657-1-git-send-email-mporter@ti.com>
-	<1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: move mailbox.h out of plat-omap headers
+Date: Tue, 30 Oct 2012 14:02:13 -0700
+Message-ID: <20121030210213.GA6098@kroah.com>
+References: <1351530381-11459-1-git-send-email-omar.luna@linaro.org>
+ <1351530381-11459-2-git-send-email-omar.luna@linaro.org>
+ <20121029175228.GD11908@atomide.com>
+ <CALLhW=4ukBuRSVcPm2A37PgBhv33yKqk2G=Dz2XTUyswXw=JMg@mail.gmail.com>
+ <20121030162441.GF11908@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: "Porter, Matt" <mporter@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <20121030162441.GF11908@atomide.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
+List-Post: <mailto:devel@linuxdriverproject.org>
+List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: devel-bounces@linuxdriverproject.org
+Sender: "devel" <devel-bounces@linuxdriverproject.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, devel@driverdev.osuosl.org, Suman Anna <s-anna@ti.com>, Russell King <linux@arm.linux.org.uk>, Juan Gutierrez <jgutierrez@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Gururaja,
+On Tue, Oct 30, 2012 at 09:24:42AM -0700, Tony Lindgren wrote:
+> * Omar Ramirez Luna <omar.luna@linaro.org> [121030 05:20]:
+> > Tony,
+> > 
+> > On 29 October 2012 12:52, Tony Lindgren <tony@atomide.com> wrote:
+> > >> --- /dev/null
+> > >> +++ b/include/linux/platform_data/omap_mailbox.h
+> > >> @@ -0,0 +1,105 @@
+> > >
+> > > This file should only contain pure platform data needed
+> > > by the core omap code to pass to the mailbox driver.
+> > 
+> > Ok, looking at it closely, this header file is related to the API
+> > itself, there is nothing that could be actually considered as pure
+> > platform data, the structures are related with the mailbox framework
+> > and even if I split this file into two, the additional header would
+> > end up including the "platform_data" header unless I move
+> > save/restore_ctx functions and then export them as symbols for the
+> > API.
+> > 
+> > So, it might be better for the entire file to sit in
+> > linux/include/mailbox/ then.
+> 
+> OK to me.
+>  
+> > > The mailbox API header should be somewhere else,
+> > > like include/linux/mailbox/mailbox-omap.h or similar.
+> > 
+> > Ok.
+> > 
+> > > But shouldn't this all now be handled by using the
+> > > remoteproc framework?
+> > 
+> > Remoteproc doesn't handle the mailbox hardware directly, it still
+> > relies in the mailbox framework for the low level communications.
+> > E.g.: Proc1 has a message (virtqueue msg) queued to Proc2, uses
+> > mailbox msg to generate an interrupt to Proc2, Proc2 queries the
+> > message (virtqueue) based on the mailbox message received.
+> 
+> OK.
+> 
+> Greg, do these patches look OK to you to move to live under
+> drivers/mailbox?
 
-On Mon, Oct 29, 2012 at 10:45 AM, Hebbar, Gururaja
-<gururaja.hebbar@ti.com> wrote:
-> Matt,
->
-> On Wed, Oct 10, 2012 at 20:00:49, Porter, Matt wrote:
->> 6ea74cb ARM: OMAP2+: hwmod: get rid of all omap_clk_get_by_name usage
->> exposes a bug in the AM33XX clock data for mcasp. After moving to
->> clk_get() usage, the _init() of all registered hwmods fails on mcasp0
->> due to incorrect clock data causing clk_get() to fail. This causes all
->> successive hwmods to fail to _init() leaving them in a bad state.
->>
->> This patch updates the mcasp clock entries so clk_get() will succeed.
->> It is tested on BeagleBone and is needed for 3.7-rc1 to fix AM33xx
->> boot.
->
->
-> I want to test Audio on AM335x Evm with your EDMA patches. I have few
-> patches for AM335x.
-> Can you share the link to the repo & branch on which I need to rebase?
-> The patches are related to mcasp dt node, mcasp pinmux in dt, etc...
->
+Um, I don't know, I wasn't paying attention here, sorry.
 
-I was wondering about the status of following patches you wrote, not
-added to mainline yet:
-
-(1)
- ASoC: Davinci: machine: Add device tree binding
-https://patchwork.kernel.org/patch/1380511/  - will this be resubmitted?
-
-(2)
-ASoC: AM33XX: Add support for AM33xx SoC Audio
-https://github.com/joelagnel/linux-kernel/commit/973cfb48bdb70018b3869a21595bde8630efb29d
-
-Are you planning on sending/resending these patches again? I could do this too.
-
-I guess all other audio patches except for audio dts stuff is already in.
-
-Thanks,
-Joel
+greg k-h
