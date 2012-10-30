@@ -1,60 +1,213 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] w1-gpio: Pinctrl-fy
-Date: Tue, 30 Oct 2012 11:26:25 -0700
-Message-ID: <20121030182625.GP11908@atomide.com>
-References: <1351699058-4576-1-git-send-email-panto@antoniou-consulting.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH] ti_tscadc: Update with IIO map interface & deal with
+ partial activation
+Date: Tue, 30 Oct 2012 19:28:42 +0100
+Message-ID: <50901C5A.8080502@metafoo.de>
+References: <1351698938-3839-1-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1351699058-4576-1-git-send-email-panto@antoniou-consulting.com>
+In-Reply-To: <1351698938-3839-1-git-send-email-panto@antoniou-consulting.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, "Patil, Rachna" <rachna@ti.com>, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pantelis Antoniou <panto@antoniou-consulting.com> [121030 11:17]:
-> Enable pinctrl for w1-gpio.
->
+On 10/31/2012 04:55 PM, Pantelis Antoniou wrote:
+> Add an IIO map interface that consumers can use.
+> Also make sure the mfd device doesn't activate a driver which
+> the configuration doesn't require.
+
+Same here, two completely different changes in the same patch.
+
+> 
 > Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
 > ---
->  drivers/w1/masters/w1-gpio.c | 7 +++++++
->  1 file changed, 7 insertions(+)
+>  drivers/iio/adc/ti_am335x_adc.c      | 53 ++++++++++++++++++++++++++++++------
+>  drivers/mfd/ti_am335x_tscadc.c       | 30 ++++++++++++++------
+>  include/linux/mfd/ti_am335x_tscadc.h |  8 ++----
+>  3 files changed, 68 insertions(+), 23 deletions(-)
 > 
-> diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
-> index 6012c4e..aec35bd 100644
-> --- a/drivers/w1/masters/w1-gpio.c
-> +++ b/drivers/w1/masters/w1-gpio.c
-> @@ -16,6 +16,8 @@
->  #include <linux/gpio.h>
->  #include <linux/of_platform.h>
->  #include <linux/of_gpio.h>
-> +#include <linux/pinctrl/consumer.h>
-> +#include <linux/err.h>
+> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+> index 02a43c8..d48fd79 100644
+> --- a/drivers/iio/adc/ti_am335x_adc.c
+> +++ b/drivers/iio/adc/ti_am335x_adc.c
+> @@ -20,8 +20,9 @@
+>  #include <linux/slab.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/platform_device.h>
+> -#include <linux/io.h>
+>  #include <linux/iio/iio.h>
+> +#include <linux/iio/machine.h>
+> +#include <linux/iio/driver.h>
 >  
->  #include "../w1.h"
->  #include "../w1_int.h"
-> @@ -85,8 +87,13 @@ static int __init w1_gpio_probe(struct platform_device *pdev)
+>  #include <linux/mfd/ti_am335x_tscadc.h>
+>  #include <linux/platform_data/ti_am335x_adc.h>
+> @@ -29,6 +30,8 @@
+>  struct tiadc_device {
+>  	struct ti_tscadc_dev *mfd_tscadc;
+>  	int channels;
+> +	char *buf;
+
+As far as I can see 'buf' is not used otherwise in this patch.
+
+> +	struct iio_map *map;
+>  };
+>  
+>  static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
+> @@ -75,25 +78,57 @@ static void tiadc_step_config(struct tiadc_device *adc_dev)
+>  static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
 >  {
->  	struct w1_bus_master *master;
->  	struct w1_gpio_platform_data *pdata;
-> +	struct pinctrl *pinctrl;
->  	int err;
+>  	struct iio_chan_spec *chan_array;
+> -	int i;
+> -
+> -	indio_dev->num_channels = channels;
+> -	chan_array = kcalloc(indio_dev->num_channels,
+> -			sizeof(struct iio_chan_spec), GFP_KERNEL);
+> +	struct iio_chan_spec *chan;
+> +	char *s;
+> +	int i, len, size, ret;
 >  
-> +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-> +	if (IS_ERR(pinctrl))
-> +		dev_warn(&pdev->dev, "unable to select pin group\n");
+> +	size = indio_dev->num_channels * (sizeof(struct iio_chan_spec) + 6);
+> +	chan_array = kzalloc(size, GFP_KERNEL);
+>  	if (chan_array == NULL)
+>  		return -ENOMEM;
+>  
+> -	for (i = 0; i < (indio_dev->num_channels); i++) {
+> -		struct iio_chan_spec *chan = chan_array + i;
+> +	/* buffer space is after the array */
+> +	s = (char *)(chan_array + indio_dev->num_channels);
+> +	chan = chan_array;
+> +	for (i = 0; i < indio_dev->num_channels; i++, chan++, s += len + 1) {
 > +
->  	err = w1_gpio_probe_dt(pdev);
+> +		len = sprintf(s, "AIN%d", i);
+> +
+>  		chan->type = IIO_VOLTAGE;
+>  		chan->indexed = 1;
+>  		chan->channel = i;
+> -		chan->info_mask = IIO_CHAN_INFO_RAW_SEPARATE_BIT;
+> +		chan->datasheet_name = s;
+
+> +		chan->scan_type.sign = 'u';
+> +		chan->scan_type.realbits = 12;
+> +		chan->scan_type.storagebits = 32;
+> +		chan->scan_type.shift = 0;
+
+This part is another separate thing done by this patch and is not even in
+the patch description.
+
+>  	}
+>  
+>  	indio_dev->channels = chan_array;
+>  
+> +	size = (indio_dev->num_channels + 1) * sizeof(struct iio_map);
+> +	adc_dev->map = kzalloc(size, GFP_KERNEL);
+> +	if (adc_dev->map == NULL) {
+> +		kfree(chan_array);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	for (i = 0; i < indio_dev->num_channels; i++) {
+> +		adc_dev->map[i].adc_channel_label = chan_array[i].datasheet_name;
+> +		adc_dev->map[i].consumer_dev_name = "any";
+> +		adc_dev->map[i].consumer_channel = chan_array[i].datasheet_name;
+> +	}
+> +	adc_dev->map[i].adc_channel_label = NULL;
+> +	adc_dev->map[i].consumer_dev_name = NULL;
+> +	adc_dev->map[i].consumer_channel = NULL;
+> +
+> +	ret = iio_map_array_register(indio_dev, adc_dev->map);
+> +	if (ret != 0) {
+> +		kfree(adc_dev->map);
+> +		kfree(chan_array);
+> +		return -ENOMEM;
+> +	}
+
+The consumer data is supposed to be passed in by platform data, as it will
+depend on the actual consumer. E.g. the consumer_dev_name has to match the
+name of device which requests the channel. Same goes for the consumer
+channel attribute, this is consumer specific as well.
+
+> +
+>  	return indio_dev->num_channels;
+>  }
+>  
+> diff --git a/drivers/mfd/ti_am335x_tscadc.c b/drivers/mfd/ti_am335x_tscadc.c
+> index e947dd8..cbb8b70c 100644
+> --- a/drivers/mfd/ti_am335x_tscadc.c
+> +++ b/drivers/mfd/ti_am335x_tscadc.c
+> @@ -176,26 +176,38 @@ static	int __devinit ti_tscadc_probe(struct platform_device *pdev)
+>  	ctrl |= CNTRLREG_TSCSSENB;
+>  	tscadc_writel(tscadc, REG_CTRL, ctrl);
+>  
+> +	tscadc->used_cells = 0;
+> +	tscadc->tsc_cell = -1;
+> +	tscadc->adc_cell = -1;
+> +
+>  	/* TSC Cell */
+> -	cell = &tscadc->cells[TSC_CELL];
+> -	cell->name = "tsc";
+> -	cell->platform_data = tscadc;
+> -	cell->pdata_size = sizeof(*tscadc);
+> +	if (tsc_wires > 0) {
+> +		tscadc->tsc_cell = tscadc->used_cells;
+> +		cell = &tscadc->cells[tscadc->used_cells++];
+> +		cell->name = "tsc";
+> +		cell->platform_data = tscadc;
+> +		cell->pdata_size = sizeof(*tscadc);
+> +	}
+>  
+>  	/* ADC Cell */
+> -	cell = &tscadc->cells[ADC_CELL];
+> -	cell->name = "tiadc";
+> -	cell->platform_data = tscadc;
+> -	cell->pdata_size = sizeof(*tscadc);
+> +	if (adc_channels > 0) {
+> +		tscadc->adc_cell = tscadc->used_cells;
+> +		cell = &tscadc->cells[tscadc->used_cells++];
+> +		cell->name = "tiadc";
+> +		cell->platform_data = tscadc;
+> +		cell->pdata_size = sizeof(*tscadc);
+> +	}
+>  
+>  	err = mfd_add_devices(&pdev->dev, pdev->id, tscadc->cells,
+> -			TSCADC_CELLS, NULL, 0, NULL);
+> +			tscadc->used_cells, NULL, 0, NULL);
 >  	if (err < 0)
->  		return err;
-> -- 
-> 1.7.12
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  		goto err_disable_clk;
+>  
+>  	device_init_wakeup(&pdev->dev, true);
+>  	platform_set_drvdata(pdev, tscadc);
+>  
+> +	dev_info(&pdev->dev, "Initialized OK.\n");
+> +
+>  	return 0;
+>  
+>  err_disable_clk:
+> diff --git a/include/linux/mfd/ti_am335x_tscadc.h b/include/linux/mfd/ti_am335x_tscadc.h
+> index 9624fea..50a245f 100644
+> --- a/include/linux/mfd/ti_am335x_tscadc.h
+> +++ b/include/linux/mfd/ti_am335x_tscadc.h
+> @@ -128,11 +128,6 @@
+>  
+>  #define TSCADC_CELLS		2
+>  
+> -enum tscadc_cells {
+> -	TSC_CELL,
+> -	ADC_CELL,
+> -};
+> -
+>  struct mfd_tscadc_board {
+>  	struct tsc_data *tsc_init;
+>  	struct adc_data *adc_init;
+> @@ -143,6 +138,9 @@ struct ti_tscadc_dev {
+>  	struct regmap *regmap_tscadc;
+>  	void __iomem *tscadc_base;
+>  	int irq;
+> +	int used_cells;	/* 0-2 */
+> +	int tsc_cell;	/* -1 if not used */
+> +	int adc_cell;	/* -1 if not used */
+>  	struct mfd_cell cells[TSCADC_CELLS];
+>  
+>  	/* tsc device */
