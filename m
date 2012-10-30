@@ -1,85 +1,80 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH] ti_tscadc: Match mfd sub devices to regmap interface
-Date: Tue, 30 Oct 2012 20:30:21 +0200
-Message-ID: <0E834478-2207-4937-83A7-88B98A76D843@antoniou-consulting.com>
-References: <1351698945-3881-1-git-send-email-panto@antoniou-consulting.com> <50901AB1.6040005@metafoo.de>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:48000 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965353Ab2J3Sa2 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 30 Oct 2012 14:30:28 -0400
-In-Reply-To: <50901AB1.6040005@metafoo.de>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Tue, 30 Oct 2012 18:37:04 +0000
+Message-ID: <20121030183704.GX4511@opensource.wolfsonmicro.com>
+References: <20121025205901.GA3827@sirena.org.uk>
+ <20121026062008.GA21734@arwen.pp.htv.fi>
+ <20121026160316.GY18814@opensource.wolfsonmicro.com>
+ <20121029194901.GA30152@arwen.pp.htv.fi>
+ <20121030112410.GM4511@opensource.wolfsonmicro.com>
+ <20121030114949.GC28722@arwen.pp.htv.fi>
+ <20121030140714.GO4511@opensource.wolfsonmicro.com>
+ <20121030151642.GE29159@arwen.pp.htv.fi>
+ <20121030155821.GU4511@opensource.wolfsonmicro.com>
+ <20121030172513.GA3993@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DMefDzZywwCHZelG"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121030172513.GA3993@arwen.pp.htv.fi>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>, "Patil, Rachna" <rachna@ti.com>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
-
-OK,
-
-Will rework it, and repost.
 
 
-On Oct 30, 2012, at 8:21 PM, Lars-Peter Clausen wrote:
+--DMefDzZywwCHZelG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> On 10/31/2012 04:55 PM, Pantelis Antoniou wrote:
->> The MFD parent device now uses a regmap, instead of direct
->> memory access. Use the same method in the sub devices to avoid
->> nasty surprises.
->> 
->> Also rework the channel initialization of tiadc a bit.
-> 
-> Those two bits are not even closely related, they should really go into
-> separate patches.
-> 
->> 
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->> ---
->> drivers/iio/adc/ti_am335x_adc.c           | 27 +++++++++++++++++++--------
->> drivers/input/touchscreen/ti_am335x_tsc.c | 16 +++++++++++++---
->> drivers/mfd/ti_am335x_tscadc.c            |  7 +++++--
->> 3 files changed, 37 insertions(+), 13 deletions(-)
->> 
-> [...]
->> 
->> @@ -213,6 +222,8 @@ static int __devinit tiadc_probe(struct platform_device *pdev)
->> 
->> 	platform_set_drvdata(pdev, indio_dev);
->> 
->> +	dev_info(&pdev->dev, "Initialized\n");
-> 
-> That's just noise, please don't add it. Imagine every driver did this you'd
-> end up with a lot of noise your debug log.
-> 
->> +
->> 	return 0;
->> 
->> err_free_channels:
->> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
->> index 7a26810..d09e1a7 100644
->> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
->> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
->> @@ -26,6 +26,7 @@
-> [...]
->> /*
->> @@ -455,10 +460,15 @@ static int __devinit titsc_probe(struct platform_device *pdev)
->> 
->> 	/* register to the input system */
->> 	err = input_register_device(input_dev);
->> -	if (err)
->> +	if (err) {
->> +		dev_err(&pdev->dev, "Failed to register input device\n");
->> 		goto err_free_irq;
->> +	}
->> 
->> 	platform_set_drvdata(pdev, ts_dev);
->> +
->> +	dev_info(&pdev->dev, "Initialized OK\n");
-> 
-> Same here
-> 
-> 
+On Tue, Oct 30, 2012 at 07:25:13PM +0200, Felipe Balbi wrote:
+> On Tue, Oct 30, 2012 at 03:58:21PM +0000, Mark Brown wrote:
 
+> > But then this comes round to the mindless code that ought to be factored
+> > out :)  Only the more interesting cases that do something unusual really
+> > register here.
+
+> fair enough. I see your point. Not saying I agree though, just that this
+> discussion has been flying for far too long, so feel free to provide
+> patches implementing what you're defending here ;-)
+
+> Guess code will speak for itself. On way or another, we need OMAP keypad
+> driver working in mainline and I don't think your arguments are strong
+> enough to keep $SUBJECT from being merged, unless you can provide
+> something stable/tested for v3.8 merge window.
+
+Ship me an OMAP5 system and I might see what I can do :)
+
+More seriously the amount of time we seem to have been spending recently
+on changes which end up requiring us to go through essentially every
+driver and add code to them (often several times) doesn't seem like
+we're doing a good job here.  pinctrl is really noticable because it's
+new but it's not the only thing.  As a subsystem maintainer this code
+just makes me want to add new subsystem features to pull the code out of
+drivers but obviously that's not something that should be being done at
+the subsystem level.
+
+--DMefDzZywwCHZelG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQkB43AAoJELSic+t+oim9I0wP/1rfBcXfK+YljZUr1hkeCm28
+8C32AJqxiOv6udgo4yLnsJmfJkCXiyrLrg5Xl3mfXL/Jl+CQVYUM3GaqatPsqA08
+0Olfa5KM+Ftsfvb91lxjvqYvYHzmkFBUY4s3Kk5Xtu0ltEeTy9Dxvzb7Sh8Pj+/m
+cwBBqwf+milN3u84ZxHvgpLshzq+prsUMq0ym7gnr8+7VeDooSM+uao5uk/hSblw
+FloanO5OkNk/FSHfc9eAEDaJVHHrxM88bWwTNkR3IvFwdB8WFVwbHpuXHlg3PhLy
+3hoiDDW8yTJxXwYy9ld8jpTg4O36kSTF5+nHYkWTAm0UUocdAEy0z4/cNnj/Wjqp
+v20zhskCYp6O1TWa5Ws34fgeifVgOKTFEYuURox1g7CXJCbnO7coQvY4GAbV5nqQ
+9GCQTIkLomOocctANrABGNEAMcNmU3E5JEhDaPMZhKRHwuMB0X1msaE+E/knwRUi
+DX3XeV70DaiAqBKyVfmKQknzgE9qbyOSuEWzIyVvMFPQw8xYDJhUKxKeMOK2U3uf
+0pKEamahZbQ6heUuyz5K6i6rUu+1zXkx3jqpVJ/DKpSM6keanNWzph0pvbT5RQX2
+ubbVGu5yOe8wZfOWfmqlAK3cztUxMBw/raCM78BMV0CbNoA2eAXoJRrUr5bCHzmZ
+Ea9qpZRWusegfByl1USM
+=V4+A
+-----END PGP SIGNATURE-----
+
+--DMefDzZywwCHZelG--
