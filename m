@@ -1,131 +1,219 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
-Date: Wed, 31 Oct 2012 12:15:23 +0200
-Message-ID: <20121031101523.GD10094@arwen.pp.htv.fi>
-References: <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
- <508E266C.6090901@ti.com>
- <20121029080523.GC13657@arwen.pp.htv.fi>
- <508E3D09.9090802@ti.com>
- <20121029200328.GE30152@arwen.pp.htv.fi>
- <508F7471.8060402@ti.com>
- <20121030070904.GB1978@arwen.pp.htv.fi>
- <508FE142.2020408@ti.com>
- <20121030151029.GD29159@arwen.pp.htv.fi>
- <5090FA26.5090808@ti.com>
-Reply-To: <balbi@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH v3 16/16] ARM: dts: add AM33XX SPI support
+Date: Wed, 31 Oct 2012 11:35:13 +0100
+Message-ID: <5090FEE1.5070206@ti.com>
+References: <1350566815-409-1-git-send-email-mporter@ti.com>
+ <1350566815-409-17-git-send-email-mporter@ti.com>
+ <518397C60809E147AF5323E0420B992E3E9D597B@DBDE01.ent.ti.com>
+ <5090FA92.1080400@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XvKFcGCOAo53UbWW"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49771 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934308Ab2JaKVT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 06:21:19 -0400
-Content-Disposition: inline
-In-Reply-To: <5090FA26.5090808@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <5090FA92.1080400-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+Cc: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Nori,
+ Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: balbi@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tim Niemeyer <tim.niemeyer@corscience.de>, Linux OMAP List <linux-omap@vger.kernel.org>
 
---XvKFcGCOAo53UbWW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On 10/31/2012 11:16 AM, Benoit Cousson wrote:
+> Hi Avinash,
+> 
+> On 10/30/2012 10:41 AM, Philip, Avinash wrote:
+>> On Mon, Oct 29, 2012 at 14:40:02, Philip, Avinash wrote:
+>>> On Thu, Oct 18, 2012 at 18:56:55, Porter, Matt wrote:
+>>>> Adds AM33XX SPI support for am335x-bone and am335x-evm.
+>>
+>> Matt,
+>>
+>> Can you build SPI DT patch with DMA support on top of SPI DT patch
+>> I submitted [1]. With the patch [1] SPI can work on PIO mode.
+>> So we can have basic SPI support available in 3.8.
+>>
+>> Benoit,
+>> Can you accept the SPI DT patch [1]
+> 
+> Yes, I've just applied it in for_3.8/dts branch
 
-On Wed, Oct 31, 2012 at 05:15:02AM -0500, Jon Hunter wrote:
-> >>>> its bit of an issue to take care. How do you ensure that GPIO
-> >>>> does idle on SOC idle C-state attempts in such cases. Today that
-> >>>> job is done by omap_gpio_[prepare/resume]_for_idle.
-> >>>
-> >>> that's only there because we pm_runtime_get_sync() on gpio_request() =
-and
-> >>> pm_runtime_put_sync() only on gpio_free().
-> >>>
-> >>> That's the problem IMHO. And that's easy enough to 'fix':
-> >>>
-> >>> call pm_runtime_mark_last_busy(); pm_runtime_put_sync_autosuspend();
-> >>> also on gpio_request() and pm_runtime_get_sync() on gpio_free().
-> >>
-> >> Sounds like a good approach. I have been discussing with Kevin and I
-> >> need to look more at the resume handler as we are working around some
-> >> old issues in there and with this approach the resume following idle
-> >> will be delayed and we were not sure if there could be any implications
-> >> for omap2. I am hoping not, but we need to look into this.
-> >>
-> >> So I am wondering if we should just take Tim's original proposal for n=
-ow
-> >> and then I will look into improving this long term. I really need to
-> >> clean-up the suspend/resume stuff for gpio and so may be we can make
-> >> that a separate change. What do you think?
-> >=20
-> > that'll cause a regression right ?
->=20
-> Sorry, not sure I follow.
+Well, in fact I did not, it does not apply :-(
 
-$SUBJECT will prevent core idle.
+Can you rebase on top of the for_3.8/dts branch? I've just applied the
+RTC patch on top that was OK.
 
-> >>> The difficult part, IMHO, is to figure out what's a good autosuspend
-> >>> timeout to use. Some GPIO lines are used as IRQ lines on some devices,
-> >>> that means that the GPIO will be periodically triggered and, depending
-> >>> on our timeout, we will either loose IRQs or prevent power domain from
-> >>> idling. We could figure out a way to let board code to choose what it
-> >>> wants on a per-bank basis (maybe some extra DT attribute).
-> >>
-> >> I have also been bending Kevin's ear on this, this week and we were
-> >> wondering if we should make the default 0 for now as this will have the
-> >=20
-> > I believe you mean -1 here ;-)
->=20
-> I did mean 0, so that it will autosuspend right away. Basically, it will
-> behave like today, however, will allow people to change the timeout. I
+Thanks,
+Benoit
 
-yeah, that's the -1 timeout, it disables pm timer and all
-pm_runtime_*_autosuspend() will act as pm_runtime_*().
-
-> did not wish to make it -1 as then suspend/resume would not be exercised
-> and so people would need to change it via the sysfs to exercise deep
-> power states on the device.
-
-why won't be exercised ?
-
-> >> same behaviour that we have today but would allow Tim to customise via
-> >> the sysfs for his specific app.
-> >=20
-> > sysfs might be too late for his platform. What if he needs NFS root
-> > (just wondering, not sure about his use case) ?
->=20
-> His use case was for SPI (see the original changelog). That's a good
-> point, but I am wondering if we can live with that for now.
-
-fair enough, but it's possible we will cause regressions. At least with
-current version of $SUBJECT, I guess.
-
---=20
-balbi
-
---XvKFcGCOAo53UbWW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQkPo7AAoJEIaOsuA1yqRErtoQAK53rXsoWBIEVQuzhZGfLIJ6
-54Vk/rni+KUjHeVMPEDeqnutqY4XlB2JZ3A/PRNNk3c/gbUb+Ph9QK9cnhgqEPtD
-6DERSu45Ey/GnLQd4PBejNWYbXlQhBQZ4FeOFAe808/ndSULvCaTPd2eOVOyXr0P
-7HQbXD+u+kwjOlaEsXqjpZvBIT9mhsFb+C+E3n1D0huGWYXvOI5tYFMBKwwYkkCP
-+WL3VLsqS16RUXIerIxpuE04VIui4THqlBKe0s/KX25vJRS5xWNc2nrcg70Za0/e
-+BgKmdbcfmHIf4TcrprVzZpbNymqB8wxGUN1J0OJkBUZFX173P7GsL1ArdpDqJh2
-V21RBiceZctJXZ96let5jNZP9kIeps77i19PnmqnovM+NWpmqFJJGd+t26ztkIXI
-ONsiarn9XxgLl7uxo/HKRmrucqt3rnkjf7lwmBu6vZFfxeeuUGSmhDsWwjIYwR4D
-DlPv4pKm3H2oFKJVf/FnM8JTL4dMvqLCuneO26F+7mI1YLJipFX2d30PPETsglG3
-bQDu8eUi37eGxHz0fGqMSUw4IemzRkditx6ySI7B1NnyK7yVJGijxp0gCBENajGK
-IBWRrH+Kx8qOgp9x7efoFE2t1cFOWsZeCJ/hN3GzlP9Hkd1+0zeAC7yoo80x2O1B
-iE2PH3qsdpRW1te2+SWY
-=wdr0
------END PGP SIGNATURE-----
-
---XvKFcGCOAo53UbWW--
+> 
+>> In case if you want I will resubmit a patch with subject line modified.
+> 
+> No, that's fine.
+> 
+> Thanks,
+> Benoit
+> 
+>>
+>> Current subject line
+>> arm/dts: AM33XX: Add SPI device tree data
+>>
+>> 1. https://patchwork.kernel.org/patch/1470661/
+>>
+>> Thanks
+>> Avinash
+>>
+>>>>
+>>>> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+>>>> ---
+>>>>  arch/arm/boot/dts/am335x-bone.dts |   17 +++++++++++++++
+>>>>  arch/arm/boot/dts/am335x-evm.dts  |    9 ++++++++
+>>>>  arch/arm/boot/dts/am33xx.dtsi     |   43 +++++++++++++++++++++++++++++++++++++
+>>>>  3 files changed, 69 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+>>>> index 5510979..23edfd8 100644
+>>>> --- a/arch/arm/boot/dts/am335x-bone.dts
+>>>> +++ b/arch/arm/boot/dts/am335x-bone.dts
+>>>> @@ -18,6 +18,17 @@
+>>>>  		reg = <0x80000000 0x10000000>; /* 256 MB */
+>>>>  	};
+>>>>  
+>>>> +	am3358_pinmux: pinmux@44e10800 {
+>>>> +		spi1_pins: pinmux_spi1_pins {
+>>>> +			pinctrl-single,pins = <
+>>>> +				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
+>>>> +				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+>>>> +				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+>>>> +				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
+>>>> +			>;
+>>>> +		};
+>>>> +	};
+>>>> +
+>>>
+>>> Change to am33xx_pinmux.
+>>>
+>>>>  	ocp {
+>>>>  		uart1: serial@44e09000 {
+>>>>  			status = "okay";
+>>>> @@ -84,3 +95,9 @@
+>>>>  &mmc1 {
+>>>>  	vmmc-supply = <&ldo3_reg>;
+>>>>  };
+>>>> +
+>>>> +&spi1 {
+>>>> +	status = "okay";
+>>>> +	pinctrl-names = "default";
+>>>> +	pinctrl-0 = <&spi1_pins>;
+>>>> +};
+>>>> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+>>>> index d63fce8..8d5f660 100644
+>>>> --- a/arch/arm/boot/dts/am335x-evm.dts
+>>>> +++ b/arch/arm/boot/dts/am335x-evm.dts
+>>>> @@ -124,3 +124,12 @@
+>>>>  &mmc1 {
+>>>>  	vmmc-supply = <&vmmc_reg>;
+>>>>  };
+>>>> +
+>>>> +&spi0 {
+>>>> +	status = "okay";
+>>>> +	spi-flash@0 {
+>>>> +		compatible = "spansion,s25fl064k", "m25p80";
+>>>> +		spi-max-frequency = <24000000>;
+>>>> +		reg = <0>;
+>>>> +	};
+>>>> +};
+>>>
+>>> In AM335x-evm, SPI flash available in profile #2 (am335x evm specific profiles).
+>>> So can you drop this changes as if I understood correctly, am335x-evm.dts will be
+>>> populated for devices present only on profile #0.
+>>>
+>>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>>>> index 26a6af7..063ecea 100644
+>>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>>> @@ -40,6 +40,15 @@
+>>>>  		};
+>>>>  	};
+>>>>  
+>>>> +	am3358_pinmux: pinmux@44e10800 {
+>>>> +		compatible = "pinctrl-single";
+>>>> +		reg = <0x44e10800 0x0238>;
+>>>> +		#address-cells = <1>;
+>>>> +		#size-cells = <0>;
+>>>> +		pinctrl-single,register-width = <32>;
+>>>> +		pinctrl-single,function-mask = <0x7f>;
+>>>> +	};
+>>>> +
+>>>
+>>> Pin ctrl support already submitted
+>>> http://git.kernel.org/?p=linux/kernel/git/bcousson/linux-omap-dt.git;a=commitdiff;h=3e0603e905d9ba662e8c1885ecb1d28bc454e448
+>>>
+>>> Thanks
+>>> Avinash
+>>>
+>>>>  	/*
+>>>>  	 * XXX: Use a flat representation of the AM33XX interconnect.
+>>>>  	 * The real AM33XX interconnect network is quite complex.Since
+>>>> @@ -261,6 +270,40 @@
+>>>>  			status = "disabled";
+>>>>  		};
+>>>>  
+>>>> +		spi0: spi@48030000 {
+>>>> +			compatible = "ti,omap4-mcspi";
+>>>> +			ti,hwmods = "spi0";
+>>>> +			#address-cells = <1>;
+>>>> +			#size-cells = <0>;
+>>>> +			reg = <0x48030000 0x400>;
+>>>> +			interrupt-parent = <&intc>;
+>>>> +			interrupt = <65>;
+>>>> +			dmas = <&edma 16
+>>>> +				&edma 17
+>>>> +				&edma 18
+>>>> +				&edma 19>;
+>>>> +			dma-names = "tx0", "rx0", "tx1", "rx1";
+>>>> +			ti,spi-num-cs = <2>;
+>>>> +			status = "disabled";
+>>>> +		};
+>>>> +
+>>>> +		spi1: spi@481a0000 {
+>>>> +			compatible = "ti,omap4-mcspi";
+>>>> +			ti,hwmods = "spi1";
+>>>> +			#address-cells = <1>;
+>>>> +			#size-cells = <0>;
+>>>> +			reg = <0x481a0000 0x400>;
+>>>> +			interrupt-parent = <&intc>;
+>>>> +			interrupt = <125>;
+>>>> +			dmas = <&edma 42
+>>>> +				&edma 43
+>>>> +				&edma 44
+>>>> +				&edma 45>;
+>>>> +			dma-names = "tx0", "rx0", "tx1", "rx1";
+>>>> +			ti,spi-num-cs = <2>;
+>>>> +			status = "disabled";
+>>>> +		};
+>>>> +
+>>>>  		wdt2: wdt@44e35000 {
+>>>>  			compatible = "ti,omap3-wdt";
+>>>>  			ti,hwmods = "wd_timer2";
+>>>> -- 
+>>>> 1.7.9.5
+>>>>
+>>>>
+>>>> _______________________________________________
+>>>> linux-arm-kernel mailing list
+>>>> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+>>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>>>
+>>>
+>>>
+>>
+> 
