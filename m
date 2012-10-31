@@ -1,60 +1,62 @@
-From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
-Subject: RE: [PATCH] da8xx: Allow use by am33xx based devices
-Date: Wed, 31 Oct 2012 05:23:09 +0000
-Message-ID: <A73F36158E33644199EB82C5EC81C7BC3E9E1129@DBDE01.ent.ti.com>
-References: <1351698968-3965-1-git-send-email-panto@antoniou-consulting.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 00/13] ARM: OMAP: remove prcm.[ch]
+Date: Wed, 31 Oct 2012 05:29:05 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EB52A6E@DBDE01.ent.ti.com>
+References: <20121025231818.17558.57884.stgit@dusk.lan>
+ <508E5B65.2020800@ti.com>
+ <alpine.DEB.2.00.1210301156310.12697@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40962 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38428 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750787Ab2JaFXU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 01:23:20 -0400
-In-Reply-To: <1351698968-3965-1-git-send-email-panto@antoniou-consulting.com>
+	id S1751390Ab2JaF3Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 01:29:16 -0400
+In-Reply-To: <alpine.DEB.2.00.1210301156310.12697@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, "Porter, Matt" <mporter@ti.com>, "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
-
-On Wed, Oct 31, 2012 at 21:26:08, Pantelis Antoniou wrote:
-> This driver can be used for AM33xx devices, like the popular beaglebone.
+On Tue, Oct 30, 2012 at 17:27:02, Paul Walmsley wrote:
+> On Mon, 29 Oct 2012, Vaibhav Hiremath wrote:
 > 
-> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> ---
->  drivers/video/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > 
+> > On 10/26/2012 4:51 AM, Paul Walmsley wrote:
+> > > Remove arch/arm/mach-omap2/prcm.c and
+> > > arch/arm/plat-omap/include/plat/prcm.h.  This is in preparation for
+> > > moving the PRM/CM code to drivers/, although to be fair, these files
+> > > should have been removed a long time ago.
+> > > 
+> > > Intended for 3.8 cleanup.  Applies on top of the existing PRM/CM split
+> > > cleanup series, and the WDTIMER cleanup series.
+> > > 
+> > 
+> > Paul,
+> > 
+> > By any chance you have branch available with these patches, so that I
+> > can validate them here at my end?
 > 
-> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-> index 9791d10..e7868d8 100644
-> --- a/drivers/video/Kconfig
-> +++ b/drivers/video/Kconfig
-> @@ -2202,7 +2202,7 @@ config FB_SH7760
->  
->  config FB_DA8XX
->  	tristate "DA8xx/OMAP-L1xx Framebuffer support"
-> -	depends on FB && ARCH_DAVINCI_DA8XX
-> +	depends on FB && (ARCH_DAVINCI_DA8XX || SOC_AM33XX)
+> The current version is at
+> 
+> git://git.pwsan.com/linux-2.6
+> 
+> in the branch
+> 
+> prcm_cleanup_b_3.8
+> 
 
-Agreed this is present on da8xx and am33xx, but moving forward for
-supporting DT, we should be avoiding these dependencies. So instead
-change this to remove machine dependencies.
+Boot tested on BeagleBone platform.
+
+Tested-By: Vaibhav Hiremath <hvaibhav@ti.com>
 
 Thanks,
-Prakash
+Vaibhav
 
->  	select FB_CFB_FILLRECT
->  	select FB_CFB_COPYAREA
->  	select FB_CFB_IMAGEBLIT
-> -- 
-> 1.7.12
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> - Paul
 > 
 
