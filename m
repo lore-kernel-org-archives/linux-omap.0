@@ -1,211 +1,221 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH v3 16/16] ARM: dts: add AM33XX SPI support
-Date: Wed, 31 Oct 2012 11:16:50 +0100
-Message-ID: <5090FA92.1080400@ti.com>
-References: <1350566815-409-1-git-send-email-mporter@ti.com>
-	<1350566815-409-17-git-send-email-mporter@ti.com>
-	<518397C60809E147AF5323E0420B992E3E9D597B@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH RFC] i2c: omap: Fix the revision register read
+Date: Wed, 31 Oct 2012 12:12:01 +0200
+Message-ID: <20121031101201.GB10094@arwen.pp.htv.fi>
+References: <1351673959-5918-1-git-send-email-shubhrajyoti@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E9D597B-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Cc: Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Nori,
-	Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, Mark, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/NkBOFFp2J2Af1nK"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46522 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932975Ab2JaKSS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 06:18:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1351673959-5918-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, w.sang@pengutronix.de
 
-Hi Avinash,
+--/NkBOFFp2J2Af1nK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 10/30/2012 10:41 AM, Philip, Avinash wrote:
-> On Mon, Oct 29, 2012 at 14:40:02, Philip, Avinash wrote:
->> On Thu, Oct 18, 2012 at 18:56:55, Porter, Matt wrote:
->>> Adds AM33XX SPI support for am335x-bone and am335x-evm.
-> 
-> Matt,
-> 
-> Can you build SPI DT patch with DMA support on top of SPI DT patch
-> I submitted [1]. With the patch [1] SPI can work on PIO mode.
-> So we can have basic SPI support available in 3.8.
-> 
-> Benoit,
-> Can you accept the SPI DT patch [1]
+Hi,
 
-Yes, I've just applied it in for_3.8/dts branch
+On Wed, Oct 31, 2012 at 02:29:19PM +0530, Shubhrajyoti D wrote:
+> The revision register on OMAP4 is a 16-bit lo and a 16-bit
+> hi. Currently the driver reads only the lower 8-bits.
+> Fix the same by preventing the truncating of the rev register
+> for OMAP4.
 
-> In case if you want I will resubmit a patch with subject line modified.
+very good, but you need to test this with OMAP2/3/4 (5 ??). How was this
+tested ?
 
-No, that's fine.
+> Also use the scheme bit ie bit-14 of the hi register to know if it
+> is OMAP_I2C_IP_VERSION_2.
+>=20
+> On platforms previous to OMAP4 the offset 0x04 is IE register whose
+> bit-14 reset value is 0, the code uses the same to its advantage.
+>=20
+> The dev->regs is populated after reading the rev_hi. A NULL check
+> has been added in the resume handler to prevent the access before
+> the setting of the regs.
 
-Thanks,
-Benoit
+this could get some rephrasing, I guess. At least to me it's difficult
+to understand what you mean :-s
 
-> 
-> Current subject line
-> arm/dts: AM33XX: Add SPI device tree data
-> 
-> 1. https://patchwork.kernel.org/patch/1470661/
-> 
-> Thanks
-> Avinash
-> 
->>>
->>> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
->>> ---
->>>  arch/arm/boot/dts/am335x-bone.dts |   17 +++++++++++++++
->>>  arch/arm/boot/dts/am335x-evm.dts  |    9 ++++++++
->>>  arch/arm/boot/dts/am33xx.dtsi     |   43 +++++++++++++++++++++++++++++++++++++
->>>  3 files changed, 69 insertions(+)
->>>
->>> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
->>> index 5510979..23edfd8 100644
->>> --- a/arch/arm/boot/dts/am335x-bone.dts
->>> +++ b/arch/arm/boot/dts/am335x-bone.dts
->>> @@ -18,6 +18,17 @@
->>>  		reg = <0x80000000 0x10000000>; /* 256 MB */
->>>  	};
->>>  
->>> +	am3358_pinmux: pinmux@44e10800 {
->>> +		spi1_pins: pinmux_spi1_pins {
->>> +			pinctrl-single,pins = <
->>> +				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
->>> +				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
->>> +				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
->>> +				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
->>> +			>;
->>> +		};
->>> +	};
->>> +
->>
->> Change to am33xx_pinmux.
->>
->>>  	ocp {
->>>  		uart1: serial@44e09000 {
->>>  			status = "okay";
->>> @@ -84,3 +95,9 @@
->>>  &mmc1 {
->>>  	vmmc-supply = <&ldo3_reg>;
->>>  };
->>> +
->>> +&spi1 {
->>> +	status = "okay";
->>> +	pinctrl-names = "default";
->>> +	pinctrl-0 = <&spi1_pins>;
->>> +};
->>> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
->>> index d63fce8..8d5f660 100644
->>> --- a/arch/arm/boot/dts/am335x-evm.dts
->>> +++ b/arch/arm/boot/dts/am335x-evm.dts
->>> @@ -124,3 +124,12 @@
->>>  &mmc1 {
->>>  	vmmc-supply = <&vmmc_reg>;
->>>  };
->>> +
->>> +&spi0 {
->>> +	status = "okay";
->>> +	spi-flash@0 {
->>> +		compatible = "spansion,s25fl064k", "m25p80";
->>> +		spi-max-frequency = <24000000>;
->>> +		reg = <0>;
->>> +	};
->>> +};
->>
->> In AM335x-evm, SPI flash available in profile #2 (am335x evm specific profiles).
->> So can you drop this changes as if I understood correctly, am335x-evm.dts will be
->> populated for devices present only on profile #0.
->>
->>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->>> index 26a6af7..063ecea 100644
->>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>> @@ -40,6 +40,15 @@
->>>  		};
->>>  	};
->>>  
->>> +	am3358_pinmux: pinmux@44e10800 {
->>> +		compatible = "pinctrl-single";
->>> +		reg = <0x44e10800 0x0238>;
->>> +		#address-cells = <1>;
->>> +		#size-cells = <0>;
->>> +		pinctrl-single,register-width = <32>;
->>> +		pinctrl-single,function-mask = <0x7f>;
->>> +	};
->>> +
->>
->> Pin ctrl support already submitted
->> http://git.kernel.org/?p=linux/kernel/git/bcousson/linux-omap-dt.git;a=commitdiff;h=3e0603e905d9ba662e8c1885ecb1d28bc454e448
->>
->> Thanks
->> Avinash
->>
->>>  	/*
->>>  	 * XXX: Use a flat representation of the AM33XX interconnect.
->>>  	 * The real AM33XX interconnect network is quite complex.Since
->>> @@ -261,6 +270,40 @@
->>>  			status = "disabled";
->>>  		};
->>>  
->>> +		spi0: spi@48030000 {
->>> +			compatible = "ti,omap4-mcspi";
->>> +			ti,hwmods = "spi0";
->>> +			#address-cells = <1>;
->>> +			#size-cells = <0>;
->>> +			reg = <0x48030000 0x400>;
->>> +			interrupt-parent = <&intc>;
->>> +			interrupt = <65>;
->>> +			dmas = <&edma 16
->>> +				&edma 17
->>> +				&edma 18
->>> +				&edma 19>;
->>> +			dma-names = "tx0", "rx0", "tx1", "rx1";
->>> +			ti,spi-num-cs = <2>;
->>> +			status = "disabled";
->>> +		};
->>> +
->>> +		spi1: spi@481a0000 {
->>> +			compatible = "ti,omap4-mcspi";
->>> +			ti,hwmods = "spi1";
->>> +			#address-cells = <1>;
->>> +			#size-cells = <0>;
->>> +			reg = <0x481a0000 0x400>;
->>> +			interrupt-parent = <&intc>;
->>> +			interrupt = <125>;
->>> +			dmas = <&edma 42
->>> +				&edma 43
->>> +				&edma 44
->>> +				&edma 45>;
->>> +			dma-names = "tx0", "rx0", "tx1", "rx1";
->>> +			ti,spi-num-cs = <2>;
->>> +			status = "disabled";
->>> +		};
->>> +
->>>  		wdt2: wdt@44e35000 {
->>>  			compatible = "ti,omap3-wdt";
->>>  			ti,hwmods = "wd_timer2";
->>> -- 
->>> 1.7.9.5
->>>
->>>
->>> _______________________________________________
->>> linux-arm-kernel mailing list
->>> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
->>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>>
->>
->>
-> 
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+> todo: some of the flag checks can be removed in favour of revision check.
+>=20
+>  drivers/i2c/busses/i2c-omap.c |   35 +++++++++++++++++++++++++----------
+>  1 files changed, 25 insertions(+), 10 deletions(-)
+>=20
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index db31eae..651a7f7 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -51,7 +51,8 @@
+>  /* I2C controller revisions present on specific hardware */
+>  #define OMAP_I2C_REV_ON_2430		0x36
+>  #define OMAP_I2C_REV_ON_3430_3530	0x3C
+> -#define OMAP_I2C_REV_ON_3630_4430	0x40
+> +#define OMAP_I2C_REV_ON_3630		0x40
+> +#define OMAP_I2C_REV_ON_4430_PLUS	0x5040
 
+I would rather see a proper decoding of the revision, meaning that you
+would:
 
-------------------------------------------------------------------------------
-Everyone hates slow websites. So do we.
-Make your web apps faster with AppDynamics
-Download AppDynamics Lite for free today:
-http://p.sf.net/sfu/appdyn_sfd2d_oct
+For omap2/3:
+
+rev major =3D rev >> 8;
+rev minor =3D rev & 0xff;
+
+For OMAP4/5:
+
+well, that's a lot more complex, but you have that data ;-)
+
+>  /* timeout waiting for the controller to respond */
+>  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+> @@ -202,7 +203,7 @@ struct omap_i2c_dev {
+>  						 * fifo_size=3D=3D0 implies no fifo
+>  						 * if set, should be trsh+1
+>  						 */
+> -	u8			rev;
+> +	u16			rev;
+
+IMHO this should be u32, so you don't need rev_lo and rev_hi below.
+
+>  	unsigned		b_hw:1;		/* bad h/w fixes */
+>  	unsigned		receiver:1;	/* true when we're in receiver mode */
+>  	u16			iestate;	/* Saved interrupt register */
+> @@ -490,7 +491,7 @@ static void omap_i2c_resize_fifo(struct omap_i2c_dev =
+*dev, u8 size, bool is_rx)
+> =20
+>  	omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
+> =20
+> -	if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
+> +	if (dev->rev < OMAP_I2C_REV_ON_3630)
+>  		dev->b_hw =3D 1; /* Enable hardware fixes */
+> =20
+>  	/* calculate wakeup latency constraint for MPU */
+> @@ -1064,6 +1065,8 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	const struct of_device_id *match;
+>  	int irq;
+>  	int r;
+> +	u16 rev_lo;
+> +	u16 rev_hi;
+> =20
+>  	/* NOTE: driver uses the static register mapping */
+>  	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> @@ -1117,11 +1120,6 @@ omap_i2c_probe(struct platform_device *pdev)
+> =20
+>  	dev->reg_shift =3D (dev->flags >> OMAP_I2C_FLAG_BUS_SHIFT__SHIFT) & 3;
+> =20
+> -	if (dev->dtrev =3D=3D OMAP_I2C_IP_VERSION_2)
+> -		dev->regs =3D (u8 *)reg_map_ip_v2;
+> -	else
+> -		dev->regs =3D (u8 *)reg_map_ip_v1;
+> -
+>  	pm_runtime_enable(dev->dev);
+>  	pm_runtime_set_autosuspend_delay(dev->dev, OMAP_I2C_PM_TIMEOUT);
+>  	pm_runtime_use_autosuspend(dev->dev);
+> @@ -1130,7 +1128,21 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	if (IS_ERR_VALUE(r))
+>  		goto err_free_mem;
+> =20
+> -	dev->rev =3D omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+> +	/* Read the Rev hi bit-14 ie scheme this is 1 indicates ver2 or
+> +	* highlander.
+
+the "scheme" in highlander is a 2 bit value. In order to make this
+future proof, you need to read both bits (31:30).
+
+> +	* On omap3 Offset 4 is IE Reg the bit 14 is XDR_IE which is 0 at reset.
+> +	*/
+
+please align the * characters.
+
+> +	rev_hi =3D __raw_readw(dev->base + 0x04);
+
+you should make omap_i2c_read_reg() work fine for this case too.
+
+> +
+> +	if (rev_hi & 0x4000) {/* If scheme 1*/
+
+you should add a symbolic define for scheme, something like:
+
+switch (OMAP_I2C_SCHEME(rev)) {
+case OMAP_I2C_SCHEME_1:
+	foo();
+	break;
+case OMAP_I2C_SCHEME_2:
+	/* FALLTHROUGH */
+default:
+	bar();
+}
+
+note that this will also default to highest known scheme if another
+scheme is added. You need to make the driver behave like that to
+decrease amount of rework to support newest OMAPs.
+
+> +		dev->regs =3D (u8 *)reg_map_ip_v2;
+> +		dev->rev =3D omap_i2c_read_reg(dev, OMAP_I2C_IP_V2_REVNB_HI);
+> +		rev_lo =3D omap_i2c_read_reg(dev, OMAP_I2C_IP_V2_REVNB_LO);
+> +		dev_info(dev->dev, "the low rev %x\n", rev_lo);
+> +	} else {
+> +		dev->regs =3D (u8 *)reg_map_ip_v1;
+> +		dev->rev =3D omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+> +	}
+> =20
+>  	dev->errata =3D 0;
+> =20
+> @@ -1155,7 +1167,7 @@ omap_i2c_probe(struct platform_device *pdev)
+> =20
+>  		dev->fifo_size =3D (dev->fifo_size / 2);
+> =20
+> -		if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
+> +		if (dev->rev < OMAP_I2C_REV_ON_3630)
+>  			dev->b_hw =3D 1; /* Enable hardware fixes */
+> =20
+>  		/* calculate wakeup latency constraint for MPU */
+> @@ -1264,6 +1276,9 @@ static int omap_i2c_runtime_resume(struct device *d=
+ev)
+>  	struct platform_device *pdev =3D to_platform_device(dev);
+>  	struct omap_i2c_dev *_dev =3D platform_get_drvdata(pdev);
+> =20
+> +	if (!_dev->regs)
+> +		return 0;
+
+this is wrong, you need to make sure dev->regs is set early enough.
+
+--=20
+balbi
+
+--/NkBOFFp2J2Af1nK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQkPlxAAoJEIaOsuA1yqREsrwQAJNH0I8j3BP4V2a7LqzZgr27
+AdDVrULzEGuAxp+w5V2iBcVFwN1i/IlAni3vS0GXMDg4MsEH2nicO4SZ4eSRMS4L
+SxeYMdQsLcAxGXKpfVMDUblNqD35u0boGoAWHlyberryHZpkwXvb3SWMDH5LfXhl
+VmqmTfvFcFNiFp5AFbt5cQK+5KwHwGWjHyQrmI5bNY1n7zVRbqLHQLEVHlyt3m5s
+pOut0Hi0TMoxFpBf3idU/SI2tqXJS4eOlLnlv0JlMdp5Bx+dj/y54i0ujuFwXQfw
+2+SPO4El42ypA5+fUxZanT8wDAOBE1i45Hb+j+QjJrrDSp93ytmkN0Y5NEyGfGkT
+7n/SiGVXRPYdizAH+R0+IceZCGLnH3p12azlvKrMKMtjFxdxeGokD5wSz2wyPNjq
+QIX/8zRWFtNWueE9J6TkOvV+jaXxx3Kk38KFSav5QkNSBaBQwaWvpF9ovXh4fdQY
+qTcKXTKRUwKYkLsSqzX5NUFY+McpOIpc/Hyl1usByDBvSEOnIaiSiGObysQFk6X/
+45U5OKUvk8ZwN3AMwaEJ9SmbJxKTS/gfs9+nADcvwHqu5/HFmC73FPx5IOYrhX3E
+8yiRIz1vcKfi2ZCETcChE4A2Sfcf1NBi7QXIZR3DPF+7O8LuP656j7NC+LknFDBq
+y33kOhD0AWJTBo5DCk1s
+=sEaf
+-----END PGP SIGNATURE-----
+
+--/NkBOFFp2J2Af1nK--
