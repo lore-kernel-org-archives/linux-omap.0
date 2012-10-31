@@ -1,281 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 13/11] ARM: OMAP2+: Fix relative includes for serial.h
-Date: Wed, 31 Oct 2012 15:08:39 -0700
-Message-ID: <20121031220838.GC15766@atomide.com>
-References: <20121030234852.25936.12482.stgit@muffinssi.local>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Wed, 31 Oct 2012 15:16:09 -0700
+Message-ID: <20121031221608.GD15766@atomide.com>
+References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
+ <20121031175219.GH12739@atomide.com>
+ <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com>
+ <20121031180935.GL12739@atomide.com>
+ <50918223.6080003@ti.com>
+ <8AD2F7AF-8315-442B-A394-1A38DAB29F52@antoniou-consulting.com>
+ <20121031212639.GQ12739@atomide.com>
+ <8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com>
+ <20121031214310.GA15766@atomide.com>
+ <E08E316D-E7C5-4AFC-8C82-6423E5128FAA@antoniou-consulting.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31496 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752411Ab2JaWIm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 18:08:42 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:33918 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759307Ab2JaWQM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 18:16:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20121030234852.25936.12482.stgit@muffinssi.local>
+In-Reply-To: <E08E316D-E7C5-4AFC-8C82-6423E5128FAA@antoniou-consulting.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-As discussed on linux-arm-kernel, we want to avoid
-relative includes for the arch/arm/*omap* code:
+* Pantelis Antoniou <panto@antoniou-consulting.com> [121031 15:02]:
+> 
+> So when device's node is 'disabled' of_platform_device_create_pdata()
+> will not create the device.
+> 
+> Now, of course it is possible to re-trigger the platform's probe method
+> to be called, and in fact I do so in the capebus patches.
 
-http://www.spinics.net/lists/linux-omap/msg80520.html
+You should fix this in generic way then rather than working
+around it in capebus. The same problem exists changing
+between different functionality for the shared pins,
+let's say between USB pins and UART pins if you want a
+serial debug console on some phone.
 
-Fix serial.h by moving it to mach/serial.h.
+Regards,
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 4b5cbdf..cfaed13 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -13,7 +13,7 @@
- 
- #include <linux/serial_reg.h>
- 
--#include <../mach-omap2/serial.h>
-+#include <mach/serial.h>
- 
- #define UART_OFFSET(addr)	((addr) & 0x00ffffff)
- 
-diff --git a/arch/arm/mach-omap2/include/mach/serial.h b/arch/arm/mach-omap2/include/mach/serial.h
-new file mode 100644
-index 0000000..70eda00
---- /dev/null
-+++ b/arch/arm/mach-omap2/include/mach/serial.h
-@@ -0,0 +1,103 @@
-+/*
-+ * Copyright (C) 2009 Texas Instruments
-+ * Added OMAP4 support- Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ */
-+
-+/*
-+ * Memory entry used for the DEBUG_LL UART configuration, relative to
-+ * start of RAM. See also uncompress.h and debug-macro.S.
-+ *
-+ * Note that using a memory location for storing the UART configuration
-+ * has at least two limitations:
-+ *
-+ * 1. Kernel uncompress code cannot overlap OMAP_UART_INFO as the
-+ *    uncompress code could then partially overwrite itself
-+ * 2. We assume printascii is called at least once before paging_init,
-+ *    and addruart has a chance to read OMAP_UART_INFO
-+ */
-+#define OMAP_UART_INFO_OFS	0x3ffc
-+
-+/* OMAP2 serial ports */
-+#define OMAP2_UART1_BASE	0x4806a000
-+#define OMAP2_UART2_BASE	0x4806c000
-+#define OMAP2_UART3_BASE	0x4806e000
-+
-+/* OMAP3 serial ports */
-+#define OMAP3_UART1_BASE	OMAP2_UART1_BASE
-+#define OMAP3_UART2_BASE	OMAP2_UART2_BASE
-+#define OMAP3_UART3_BASE	0x49020000
-+#define OMAP3_UART4_BASE	0x49042000	/* Only on 36xx */
-+#define OMAP3_UART4_AM35XX_BASE	0x4809E000	/* Only on AM35xx */
-+
-+/* OMAP4 serial ports */
-+#define OMAP4_UART1_BASE	OMAP2_UART1_BASE
-+#define OMAP4_UART2_BASE	OMAP2_UART2_BASE
-+#define OMAP4_UART3_BASE	0x48020000
-+#define OMAP4_UART4_BASE	0x4806e000
-+
-+/* TI81XX serial ports */
-+#define TI81XX_UART1_BASE	0x48020000
-+#define TI81XX_UART2_BASE	0x48022000
-+#define TI81XX_UART3_BASE	0x48024000
-+
-+/* AM3505/3517 UART4 */
-+#define AM35XX_UART4_BASE	0x4809E000	/* Only on AM3505/3517 */
-+
-+/* AM33XX serial port */
-+#define AM33XX_UART1_BASE	0x44E09000
-+
-+/* OMAP5 serial ports */
-+#define OMAP5_UART1_BASE	OMAP2_UART1_BASE
-+#define OMAP5_UART2_BASE	OMAP2_UART2_BASE
-+#define OMAP5_UART3_BASE	OMAP4_UART3_BASE
-+#define OMAP5_UART4_BASE	OMAP4_UART4_BASE
-+#define OMAP5_UART5_BASE	0x48066000
-+#define OMAP5_UART6_BASE	0x48068000
-+
-+/* External port on Zoom2/3 */
-+#define ZOOM_UART_BASE		0x10000000
-+#define ZOOM_UART_VIRT		0xfa400000
-+
-+#define OMAP_PORT_SHIFT		2
-+#define ZOOM_PORT_SHIFT		1
-+
-+#define OMAP24XX_BASE_BAUD	(48000000/16)
-+
-+/*
-+ * DEBUG_LL port encoding stored into the UART1 scratchpad register by
-+ * decomp_setup in uncompress.h
-+ */
-+#define OMAP2UART1		21
-+#define OMAP2UART2		22
-+#define OMAP2UART3		23
-+#define OMAP3UART1		OMAP2UART1
-+#define OMAP3UART2		OMAP2UART2
-+#define OMAP3UART3		33
-+#define OMAP3UART4		34		/* Only on 36xx */
-+#define OMAP4UART1		OMAP2UART1
-+#define OMAP4UART2		OMAP2UART2
-+#define OMAP4UART3		43
-+#define OMAP4UART4		44
-+#define TI81XXUART1		81
-+#define TI81XXUART2		82
-+#define TI81XXUART3		83
-+#define AM33XXUART1		84
-+#define OMAP5UART3		OMAP4UART3
-+#define OMAP5UART4		OMAP4UART4
-+#define ZOOM_UART		95		/* Only on zoom2/3 */
-+
-+#ifndef __ASSEMBLER__
-+
-+struct omap_board_data;
-+struct omap_uart_port_info;
-+
-+extern void omap_serial_init(void);
-+extern void omap_serial_board_init(struct omap_uart_port_info *platform_data);
-+extern void omap_serial_init_port(struct omap_board_data *bdata,
-+		struct omap_uart_port_info *platform_data);
-+#endif
-diff --git a/arch/arm/mach-omap2/include/mach/uncompress.h b/arch/arm/mach-omap2/include/mach/uncompress.h
-index 28d1ec0..8e3546d 100644
---- a/arch/arm/mach-omap2/include/mach/uncompress.h
-+++ b/arch/arm/mach-omap2/include/mach/uncompress.h
-@@ -23,7 +23,7 @@
- #include <asm/memory.h>
- #include <asm/mach-types.h>
- 
--#include <../mach-omap2/serial.h>
-+#include <mach/serial.h>
- 
- #define MDR1_MODE_MASK			0x07
- 
-diff --git a/arch/arm/mach-omap2/serial.h b/arch/arm/mach-omap2/serial.h
-index 6a68062..c4014f0 100644
---- a/arch/arm/mach-omap2/serial.h
-+++ b/arch/arm/mach-omap2/serial.h
-@@ -1,112 +1 @@
--/*
-- * arch/arm/plat-omap/include/mach/serial.h
-- *
-- * Copyright (C) 2009 Texas Instruments
-- * Added OMAP4 support- Santosh Shilimkar <santosh.shilimkar@ti.com>
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- * GNU General Public License for more details.
-- */
--
--#ifndef __ASM_ARCH_SERIAL_H
--#define __ASM_ARCH_SERIAL_H
--
--#include <linux/init.h>
--
--/*
-- * Memory entry used for the DEBUG_LL UART configuration, relative to
-- * start of RAM. See also uncompress.h and debug-macro.S.
-- *
-- * Note that using a memory location for storing the UART configuration
-- * has at least two limitations:
-- *
-- * 1. Kernel uncompress code cannot overlap OMAP_UART_INFO as the
-- *    uncompress code could then partially overwrite itself
-- * 2. We assume printascii is called at least once before paging_init,
-- *    and addruart has a chance to read OMAP_UART_INFO
-- */
--#define OMAP_UART_INFO_OFS	0x3ffc
--
--/* OMAP2 serial ports */
--#define OMAP2_UART1_BASE	0x4806a000
--#define OMAP2_UART2_BASE	0x4806c000
--#define OMAP2_UART3_BASE	0x4806e000
--
--/* OMAP3 serial ports */
--#define OMAP3_UART1_BASE	OMAP2_UART1_BASE
--#define OMAP3_UART2_BASE	OMAP2_UART2_BASE
--#define OMAP3_UART3_BASE	0x49020000
--#define OMAP3_UART4_BASE	0x49042000	/* Only on 36xx */
--#define OMAP3_UART4_AM35XX_BASE	0x4809E000	/* Only on AM35xx */
--
--/* OMAP4 serial ports */
--#define OMAP4_UART1_BASE	OMAP2_UART1_BASE
--#define OMAP4_UART2_BASE	OMAP2_UART2_BASE
--#define OMAP4_UART3_BASE	0x48020000
--#define OMAP4_UART4_BASE	0x4806e000
--
--/* TI81XX serial ports */
--#define TI81XX_UART1_BASE	0x48020000
--#define TI81XX_UART2_BASE	0x48022000
--#define TI81XX_UART3_BASE	0x48024000
--
--/* AM3505/3517 UART4 */
--#define AM35XX_UART4_BASE	0x4809E000	/* Only on AM3505/3517 */
--
--/* AM33XX serial port */
--#define AM33XX_UART1_BASE	0x44E09000
--
--/* OMAP5 serial ports */
--#define OMAP5_UART1_BASE	OMAP2_UART1_BASE
--#define OMAP5_UART2_BASE	OMAP2_UART2_BASE
--#define OMAP5_UART3_BASE	OMAP4_UART3_BASE
--#define OMAP5_UART4_BASE	OMAP4_UART4_BASE
--#define OMAP5_UART5_BASE	0x48066000
--#define OMAP5_UART6_BASE	0x48068000
--
--/* External port on Zoom2/3 */
--#define ZOOM_UART_BASE		0x10000000
--#define ZOOM_UART_VIRT		0xfa400000
--
--#define OMAP_PORT_SHIFT		2
--#define ZOOM_PORT_SHIFT		1
--
--#define OMAP24XX_BASE_BAUD	(48000000/16)
--
--/*
-- * DEBUG_LL port encoding stored into the UART1 scratchpad register by
-- * decomp_setup in uncompress.h
-- */
--#define OMAP2UART1		21
--#define OMAP2UART2		22
--#define OMAP2UART3		23
--#define OMAP3UART1		OMAP2UART1
--#define OMAP3UART2		OMAP2UART2
--#define OMAP3UART3		33
--#define OMAP3UART4		34		/* Only on 36xx */
--#define OMAP4UART1		OMAP2UART1
--#define OMAP4UART2		OMAP2UART2
--#define OMAP4UART3		43
--#define OMAP4UART4		44
--#define TI81XXUART1		81
--#define TI81XXUART2		82
--#define TI81XXUART3		83
--#define AM33XXUART1		84
--#define OMAP5UART3		OMAP4UART3
--#define OMAP5UART4		OMAP4UART4
--#define ZOOM_UART		95		/* Only on zoom2/3 */
--
--#ifndef __ASSEMBLER__
--
--struct omap_board_data;
--struct omap_uart_port_info;
--
--extern void omap_serial_init(void);
--extern void omap_serial_board_init(struct omap_uart_port_info *platform_data);
--extern void omap_serial_init_port(struct omap_board_data *bdata,
--		struct omap_uart_port_info *platform_data);
--#endif
--
--#endif
-+#include <mach/serial.h>
+Tony
