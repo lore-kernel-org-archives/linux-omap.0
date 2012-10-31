@@ -1,103 +1,122 @@
-From: Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] USB: DWC3: EXYNOS: Remove platform data for dwc3-exynos
-Date: Wed, 31 Oct 2012 17:36:03 +0530
-Message-ID: <CAFp+6iE6cbF+2F5jgS9kH6_AzbwMksQfkPdjRqQiGV0Yu5oC2Q@mail.gmail.com>
-References: <1350377157-28465-1-git-send-email-gautam.vivek@samsung.com>
-	<1350377157-28465-3-git-send-email-gautam.vivek@samsung.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 01/11] ARM: OMAP4: USB: Host: Add USB2 Host Device Tree Node
+Date: Wed, 31 Oct 2012 17:46:39 +0530
+Message-ID: <1351685810-20616-2-git-send-email-keshava_mgowda@ti.com>
+References: <1351685810-20616-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1350377157-28465-3-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, thomas.abraham-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55414 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935483Ab2JaMRD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 08:17:03 -0400
+In-Reply-To: <1351685810-20616-1-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com
 
-Hi all,
+The device tree node details of usb2 host and tll components
+are included for OMAP4 SOC
 
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+---
+ .../devicetree/bindings/usb/omap-usb-host.txt      |   24 ++++++++++++++++++++
+ .../devicetree/bindings/usb/omap-usb-tll.txt       |   21 +++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   22 ++++++++++++++++++
+ 3 files changed, 67 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/usb/omap-usb-host.txt
+ create mode 100644 Documentation/devicetree/bindings/usb/omap-usb-tll.txt
 
-On Tue, Oct 16, 2012 at 2:15 PM, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> wrote:
-> We are removing plat data which was used till now to init and
-> exit phy. We no longer need this since dwc3-core takes care of
-> initializing and shutting-down the phy using usb_phy_init()
-> and usb_phy_shutdown().
->
-> Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-
-Any thoughts on this please ?
-
-> ---
->  drivers/usb/dwc3/dwc3-exynos.c |   16 ----------------
->  1 files changed, 0 insertions(+), 16 deletions(-)
->
-> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
-> index d11ef49..5a2a73f 100644
-> --- a/drivers/usb/dwc3/dwc3-exynos.c
-> +++ b/drivers/usb/dwc3/dwc3-exynos.c
-> @@ -92,7 +92,6 @@ static u64 dwc3_exynos_dma_mask = DMA_BIT_MASK(32);
->
->  static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
->  {
-> -       struct dwc3_exynos_data *pdata = pdev->dev.platform_data;
->         struct platform_device  *dwc3;
->         struct dwc3_exynos      *exynos;
->         struct clk              *clk;
-> @@ -150,14 +149,6 @@ static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
->
->         clk_enable(exynos->clk);
->
-> -       /* PHY initialization */
-> -       if (!pdata) {
-> -               dev_dbg(&pdev->dev, "missing platform data\n");
-> -       } else {
-> -               if (pdata->phy_init)
-> -                       pdata->phy_init(pdev, pdata->phy_type);
-> -       }
-> -
->         ret = platform_device_add_resources(dwc3, pdev->resource,
->                         pdev->num_resources);
->         if (ret) {
-> @@ -174,9 +165,6 @@ static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
->         return 0;
->
->  err4:
-> -       if (pdata && pdata->phy_exit)
-> -               pdata->phy_exit(pdev, pdata->phy_type);
-> -
->         clk_disable(clk);
->         clk_put(clk);
->  err3:
-> @@ -192,7 +180,6 @@ err0:
->  static int __devexit dwc3_exynos_remove(struct platform_device *pdev)
->  {
->         struct dwc3_exynos      *exynos = platform_get_drvdata(pdev);
-> -       struct dwc3_exynos_data *pdata = pdev->dev.platform_data;
->
->         platform_device_unregister(exynos->dwc3);
->         platform_device_unregister(exynos->usb2_phy);
-> @@ -200,9 +187,6 @@ static int __devexit dwc3_exynos_remove(struct platform_device *pdev)
->
->         dwc3_put_device_id(exynos->dwc3->id);
->
-> -       if (pdata && pdata->phy_exit)
-> -               pdata->phy_exit(pdev, pdata->phy_type);
-> -
->         clk_disable(exynos->clk);
->         clk_put(exynos->clk);
->
-> --
-> 1.7.6.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/Documentation/devicetree/bindings/usb/omap-usb-host.txt b/Documentation/devicetree/bindings/usb/omap-usb-host.txt
+new file mode 100644
+index 0000000..2ea987f
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/omap-usb-host.txt
+@@ -0,0 +1,24 @@
++USB HOST
++
++OMAP USB2 UHH
++
++Required properties:
++ - compatible: Should be "ti,usbhs"
++ - reg : Address set of system configuration of the usb host.Also
++has the register address of ehci and ohci IPs.
++ - interrupts :interrupts of ehci and ohci IPs.
++
++This is usually a subnode of ocp to which it is connected.
++
++usbhs: usbhs@0x4a064000 {
++	compatible = "ti,usbhs";
++	reg = <0x4a064000 0x800>, /* uhh */
++		  <0x4a064800 0x400>, /* ohci */
++		  <0x4a064c00 0x400>; /* ehci */
++	reg-names = "uhh", "ohci", "ehci";
++	interrupts = <0 76 0x4>, <0 77 0x4>;
++	interrupt-names = "ohci-irq", "ehci-irq";
++	interrupt-parent = <&gic>;
++		ti,hwmods = "usb_host_hs";
++};
++
+diff --git a/Documentation/devicetree/bindings/usb/omap-usb-tll.txt b/Documentation/devicetree/bindings/usb/omap-usb-tll.txt
+new file mode 100644
+index 0000000..e2e49fd
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/omap-usb-tll.txt
+@@ -0,0 +1,21 @@
++USB TLL
++
++OMAP USB2 TLL
++
++Required properties:
++ - compatible: Should be "ti,usbtll"
++ - reg : Address set of system configuration of the usb tll.
++ - interrupts :interrupts of usb tll.
++
++This is usually a subnode of ocp to which it is connected.
++
++usbtll: usbtll@0x4a062000 {
++	compatible = "ti,usbtll";
++	reg = <0x4a062000 0x1000>;
++	reg-names = "tll";
++	interrupts = <0 78 0x4>;
++	interrupt-names = "tll-irq";
++	interrupt-parent = <&gic>;
++	ti,hwmods = "usb_tll_hs";
++};
++
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 3883f94..fb76ba3 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -438,5 +438,27 @@
+ 			ranges;
+ 			ti,hwmods = "ocp2scp_usb_phy";
+ 		};
++
++		usbhs: usbhs@0x4a064000 {
++			compatible = "ti,usbhs";
++			reg = <0x4a064000 0x800>, /* uhh */
++				  <0x4a064800 0x400>, /* ohci */
++				  <0x4a064c00 0x400>; /* ehci */
++			reg-names = "uhh", "ohci", "ehci";
++			interrupts = <0 76 0x4>, <0 77 0x4>;
++			interrupt-names = "ohci-irq", "ehci-irq";
++			interrupt-parent = <&gic>;
++			ti,hwmods = "usb_host_hs";
++		};
++
++		usbtll: usbtll@0x4a062000 {
++			compatible = "ti,usbtll";
++			reg = <0x4a062000 0x1000>;
++			reg-names = "tll";
++			interrupts = <0 78 0x4>;
++			interrupt-names = "tll-irq";
++			interrupt-parent = <&gic>;
++			ti,hwmods = "usb_tll_hs";
++		};
+ 	};
+ };
 -- 
-Thanks & Regards
-Vivek
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.9.5
+
