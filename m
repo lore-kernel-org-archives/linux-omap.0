@@ -1,96 +1,758 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] i2c: pinctrl-ify i2c-omap.c
-Date: Tue, 30 Oct 2012 20:53:03 +0200
-Message-ID: <20121030185303.GD4804@arwen.pp.htv.fi>
-References: <1351698930-3797-1-git-send-email-panto@antoniou-consulting.com>
-Reply-To: <balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tNQTSEo8WG/FKZ8E"
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: [RFC 5/7] capebus: Beaglebone capebus DT update
+Date: Wed, 31 Oct 2012 18:52:11 +0200
+Message-ID: <1351702333-8456-6-git-send-email-panto@antoniou-consulting.com>
+References: <1351702333-8456-1-git-send-email-panto@antoniou-consulting.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1351698930-3797-1-git-send-email-panto@antoniou-consulting.com>
+In-Reply-To: <1351702333-8456-1-git-send-email-panto@antoniou-consulting.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, "Wolfram Sang (embedded platforms)" <w.sang@pengutronix.de>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---tNQTSEo8WG/FKZ8E
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Update the common beaglebone's DTS with the required DT
+entries for all known working capes as of now.
 
-Hi,
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 689 ++++++++++++++++++++++++++++--
+ 1 file changed, 659 insertions(+), 30 deletions(-)
 
-On Wed, Oct 31, 2012 at 05:55:30PM +0200, Pantelis Antoniou wrote:
-> Enable pinctrl for i2c-omap.
->=20
-> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> ---
->  drivers/i2c/busses/i2c-omap.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index db31eae..4c38aa0 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -44,6 +44,8 @@
->  #include <linux/i2c-omap.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/pm_qos.h>
-> +#include <linux/pinctrl/consumer.h>
-> +#include <linux/err.h>
-> =20
->  /* I2C controller revisions */
->  #define OMAP_I2C_OMAP1_REV_2		0x20
-> @@ -1064,6 +1066,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  	const struct of_device_id *match;
->  	int irq;
->  	int r;
-> +	struct pinctrl *pinctrl;
-> =20
->  	/* NOTE: driver uses the static register mapping */
->  	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> @@ -1202,6 +1205,13 @@ omap_i2c_probe(struct platform_device *pdev)
-> =20
->  	of_i2c_register_devices(adap);
-> =20
-> +	pinctrl =3D devm_pinctrl_get_select_default(&pdev->dev);
-> +	if (IS_ERR(pinctrl))
-> +		dev_warn(dev->dev, "unable to select pin group\n");
-
-if we continue anyway, should this be dev_warn() ? Would you consider
-dev_dbg() instead ?
-
-> +	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
-> +		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
-
-this dev_info() doesn't look like it's part of $subject. Care to, at
-least, add a reasoning for adding this to commit log ?
-
---=20
-balbi
-
---tNQTSEo8WG/FKZ8E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQkCIPAAoJEIaOsuA1yqREqDIQAIhOBrnoILrEBDhusah/8kdn
-Zsbr/BhO9NqA939KbgBBhEv71qEQ20NmlduA8YhiZvS+IwKF/KtkFZeGTZzhAb0c
-/p2Wp3OBWNIbdCC++OVKQGPydFbS2O6BdeI12wt0eTvm7QLnM9KAEUxw949SYvOQ
-Vh1SOGwmDPWDZbm7fQtTE3rt8yOhbhEz3djWrXCTMnYtPYvT8Gi24iQ0EDhqycAF
-Av52Fe6iCIPjTB3tGCUB0KE+0TwQH5Gde0oRXUnKPXSpz8HmHxgbToPat6uJd1zt
-vOQB84YnL8+ED8Ezelj6ejx2QjPbEmLwuEBo85on3+gVw2XFTZo3nV+lpVuWX6v1
-/+/gsR3Evnzg9kdU57FY964UQiuSD2tSaQHoRQ2iMwEJbHRhUiBzTj6xL3G4MIBT
-MVcuvPCOTjth6ADV/No5HUMpxn7q9x8BqFPdAGaC7sZ7BTom9b7ALrteUTrCUT74
-BAeYFTblkVnFDTgbCqwZIZZI2i6k+imrszI/QhMFqmBqNnAucEGuVKH72wdPZI2f
-CDo9KXiIB/zgLHgh1L4YvMeIgxscVGsWKIf6ML/FCbFhfF492Ewq9CJtf6Ii2KOp
-h9C10D7qMs0j9Y1xIxj3sND9HEHqLIw324yRkv8yo/gnhAlGi3UkxWVtGS+enmEv
-u1W86IWGWydzhkTPisEM
-=/oGd
------END PGP SIGNATURE-----
-
---tNQTSEo8WG/FKZ8E--
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 99240a5..46d5f27 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -51,6 +51,143 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
++		i2c2_pins: pinmux_i2c2_pins {
++			pinctrl-single,pins = <
++				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
++				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
++			>;
++		};
++
++		bone_dvi_cape_led_pins: pinmux_bone_dvi_cape_led_pins {
++			pinctrl-single,pins = <
++				0x48 0x07	/* gpmc_a2.gpio1_18, OUTPUT | MODE7 */
++				0x4c 0x07	/* gpmc_a3.gpio1_19, OUTPUT | MODE7 */
++			>;
++		};
++
++		bone_dvi_cape_dvi_00A0_pins: pinmux_bone_dvi_cape_dvi_00A0_pins {
++			pinctrl-single,pins = <
++				0x1c 0x07	/* gpmc_ad7.gpio1_7, OUTPUT | MODE7 - DVIPDn */
++
++				0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xac 0x08	/* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb0 0x08	/* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb4 0x08	/* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb8 0x08	/* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xbc 0x08	/* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc0 0x08	/* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc4 0x08	/* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc8 0x08	/* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xcc 0x08	/* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd0 0x08	/* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd4 0x08	/* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd8 0x08	/* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xdc 0x08	/* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xe0 0x00	/* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe4 0x00	/* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe8 0x00	/* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++			>;
++		};
++
++		bone_dvi_cape_dvi_00A1_pins: pinmux_bone_dvi_cape_dvi_00A1_pins {
++			pinctrl-single,pins = <
++				0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - DVIPDn */
++
++				0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xac 0x08	/* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb0 0x08	/* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb4 0x08	/* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb8 0x08	/* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xbc 0x08	/* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc0 0x08	/* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc4 0x08	/* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc8 0x08	/* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xcc 0x08	/* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd0 0x08	/* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd4 0x08	/* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd8 0x08	/* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xdc 0x08	/* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xe0 0x00	/* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe4 0x00	/* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe8 0x00	/* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++			>;
++		};
++
++		bone_geiger_cape_led_pins: pinmux_bone_geiger_cape_led_pins {
++			pinctrl-single,pins = <
++				0xe4 0x07	/* lcd_hsync.gpio2_23, OUTPUT | MODE7 */
++				0xec 0x07	/* lcd_ac_bias_en.gpio2_25, OUTPUT | MODE7 */
++			>;
++		};
++
++		bone_geiger_cape_pins: pinmux_bone_geiger_cape_pins {
++			pinctrl-single,pins = <
++				0x48 0x06       /* gpmc_a2.ehrpwm1a, OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT */
++				/* 0x19c 0x34 */	/* mcasp0_ahclkr.eCAP2_in_PWM2_out, OMAP_MUX_MODE4 | INPUT_PULLUP */
++				0x19c 0x37 	/* mcasp0_ahclkr.gpio3_17, OMAP_MUX_MODE4 | INPUT_PULLUP */
++			>;
++		};
++
++		bone_lcd3_cape_led_00A0_pins: pinmux_bone_lcd3_cape_led_00A0_pins {
++			pinctrl-single,pins = <
++				0x48 0x07	/* gpmc_a2.gpio1_18, OUTPUT | MODE7 */
++				0x4c 0x07	/* gpmc_a3.gpio1_19, OUTPUT | MODE7 */
++			>;
++		};
++
++		bone_lcd3_cape_lcd_pins: pinmux_bone_lcd3_cape_lcd_pins {
++			pinctrl-single,pins = <
++				0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xac 0x08	/* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb0 0x08	/* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb4 0x08	/* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb8 0x08	/* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xbc 0x08	/* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc0 0x08	/* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc4 0x08	/* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc8 0x08	/* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xcc 0x08	/* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd0 0x08	/* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd4 0x08	/* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd8 0x08	/* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xdc 0x08	/* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xe0 0x00	/* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe4 0x00	/* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe8 0x00	/* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++			>;
++		};
++
++		bone_lcd3_cape_keys_00A0_pins: pinmux_bone_lcd3_cape_keys_00A0_pins {
++			pinctrl-single,pins = <
++				0x040 0x2f	/* gpmc_a0.gpio1_16, INPUT | PULLDIS | MODE7 */
++				0x044 0x2f	/* gpmc_a1.gpio1_17, INPUT | PULLDIS | MODE7 */
++				0x1a4 0x2f	/* mcasp0_fsr.gpio3_19, INPUT | PULLDIS | MODE7 */
++				0x078 0x2f	/* gpmc_ben1.gpio1_28, INPUT | PULLDIS | MODE7 */
++				0x164 0x2f	/* ecap0_in_pwm0_out.gpio0_7, INPUT | PULLDIS | MODE7 */
++			>;
++		};
++
++		pwm_bl_pins: pinmux_pwm_bl_pins {
++			pinctrl-single,pins = <
++				0x4c 0x06	/* gpmc_a3.ehrpwm1b, OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT */
++				// 0x48 0x06       /* gpmc_a2.ehrpwm1a, OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT */
++			>;
++	       };
++
++		weather_cape_w1_pins: pinmux_weather_cape_w1_pins {
++			pinctrl-single,pins = <
++				0x0c 0x37       /* gpmc_ad3.gpio1_3, OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE7 - w1-gpio */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+@@ -92,16 +229,6 @@
+ 			};
+ 		};
+ 
+-		i2c1: i2c@44e0b000 {
+-			status = "okay";
+-			clock-frequency = <400000>;
+-
+-			tps: tps@24 {
+-				reg = <0x24>;
+-			};
+-
+-		};
+-
+ 		gpevt {
+ 			compatible = "gpevt";
+ 			pinctrl-names = "default";
+@@ -110,15 +237,117 @@
+ 			dma-names = "gpioevt";
+ 			gpio-evt = <&gpio3 2 0>;
+ 		};
++
++	};
++
++	capebus: capebus@0 {
++			compatible = "bone-capebus";
++
++			bone_dvi_cape: cape@0 {
++				compatible = "bone-generic-cape";
++			};
++
++			bone_geiger_cape: cape@1 {
++				compatible = "bone-geiger-cape";
++			};
++
++			bone_lcd3_cape: cape@2 {
++				compatible = "bone-generic-cape";
++			};
++
++			bone_lcd7_cape: cape@3 {
++				compatible = "bone-lcd7-cape";
++			};
++
++			bone_weather_cape: cape@4 {
++				compatible = "bone-generic-cape";
++			};
++
++			bone_adafruit_cape: cape@5 {
++				compatible = "bone-generic-cape";
++			};
++
++			/* overrides; no EEPROM (prototyping) */
++//			override@3 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <3>;
++//				board-name = "Geiger Cape";
++//				version = "00A0";
++//				manufacturer = "Geiger Inc";
++//				/* TODO: Add the rest */
++//			};
++
++//			override@2 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <2>;
++//				board-name = "Weather Cape";
++//				version = "00A0";
++//				manufacturer = "CCO Inc";
++//				/* TODO: Add the rest */
++//			};
++
++//			override@1 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <1>;
++//				board-name = "Adafruit 1.8 Cape";
++//				version = "00A0";
++//				manufacturer = "Adafruit";
++//				/* TODO: Add the rest */
++//			};
++
++//			override@0 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <0>;
++//				board-name = "BeagleBone Weather CAPE";
++//				version = "00A0";
++//				manufacturer = "Beagleboardtoys";
++//				/* TODO: Add the rest */
++//			};
+ 	};
+ 
+-	backlight {
+-			compatible	= "pwm-backlight"; 
+-			pwms = <&ehrpwm1 0 500000 0>;
+-			pwm-names = "st7735fb";
+-			brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
+-			default-brightness-level = <50>; /* index to the array above */ 
+-		};
++};
++
++&i2c0 {
++	status = "okay";
++	clock-frequency = <400000>;
++
++	tps: tps@24 {
++		reg = <0x24>;
++	};
++
++	baseboard_eeprom: baseboard_eeprom@50 {
++		compatible = "at,24c256";
++		reg = <0x50>;
++	};
++};
++
++&i2c2 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
++	clock-frequency = <100000>;
++
++	/* OK, I know these are cape but for now it will do */
++	cape_eeprom_0: cape_eeprom_0@54 {
++		compatible = "at,24c256";
++		reg = <0x54>;
++	};
++
++	cape_eeprom_1: cape_eeprom_1@55 {
++		compatible = "at,24c256";
++		reg = <0x55>;
++	};
++
++	cape_eeprom_2: cape_eeprom_2@56 {
++		compatible = "at,24c256";
++		reg = <0x56>;
++	};
++
++	cape_eeprom_3: cape_eeprom_3@57 {
++		compatible = "at,24c256";
++		reg = <0x57>;
++	};
+ };
+ 
+ /include/ "tps65217.dtsi"
+@@ -165,6 +394,7 @@
+ 			regulator-always-on;
+ 		};
+ 	};
++
+ };
+ 
+ &mmc1 {
+@@ -172,21 +402,8 @@
+ };
+ 
+ &spi1 {
+-	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&spi1_pins>;
+-
+-	lcd@0 {
+-		compatible = "adafruit,tft-lcd-1.8-green", "sitronix,st7735";
+-		spi-max-frequency = <8000000>;
+-		reg = <0>;
+-		spi-cpol;
+-		spi-cpha;
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&lcd_pins>;
+-		st7735-rst = <&gpio4 19 0>;
+-		st7735-dc = <&gpio4 21 0>;
+-	};
+ };
+ 
+ &edma {
+@@ -200,3 +417,415 @@
+ &cpsw_emac1 {
+ 	phy_id = "4a101000.mdio:01";
+ };
++
++&ehrpwm1 {
++	status = "okay";
++};
++
++&capebus {
++	slots = <&cape_eeprom_0 &cape_eeprom_1 &cape_eeprom_2 &cape_eeprom_3>;
++};
++
++&bone_dvi_cape {
++	board-name = "BeagleBone DVI-D CAPE";
++
++	/* hacky, since this is not a proper DT platform device */
++	/* but until we have DT bindings... */
++	version@00A0 {
++		version = "00A0";
++		dvi {
++			compatible = "da8xx-dt";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_dvi_cape_dvi_00A0_pins>;
++			ti,hwmods = "lcdc";
++
++			disp-pll = <560000000>;
++			panel-type = "1024x768@60";
++			powerdn-gpio = <&gpio2 7 0>;
++		};
++	};
++
++	version@00A1 {
++		version = "00A1", "01";
++		dvi {
++			compatible = "da8xx-dt";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_dvi_cape_dvi_00A1_pins>;
++			ti,hwmods = "lcdc";
++
++			disp-pll = <560000000>;
++			panel-type = "1024x768@60";
++			powerdn-gpio = <&gpio2 31 0>;
++		};
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_dvi_cape_led_pins>;
++
++		dvi-led0 {
++			label = "dvi:green:usr0";
++			gpios = <&gpio2 18 0>;
++			linux,default-trigger = "heartbeat";
++			default-state = "off";
++		};
++
++		dvi-led1 {
++			label = "dvi:green:usr1";
++			gpios = <&gpio2 19 0>;
++			linux,default-trigger = "mmc0";
++			default-state = "off";
++		};
++	};
++};
++
++&bone_geiger_cape {
++	board-name = "Geiger Cape";
++
++	/* note that these can't be versioned... */
++	pinctrl-names = "default";
++	pinctrl-0 = <&bone_geiger_cape_pins>;
++
++	pwms = <&ehrpwm1 0 500000 0>;
++	pwm-names = "bone-geiger-cape";
++
++	pwm-frequency  = <20000>;	/* 20KHz */
++	pwm-duty-cycle = <60>;		/* 60% */
++
++	event-blink-delay = <30>;	/* 30ms */
++
++	gpios = <&gpio4 17 0>;		/* pulse */
++
++	vsense-name = "AIN5";		/* analog vsense */
++	vsense-scale = <37325>;		/* scaling */
++
++	tscadc {
++		compatible = "ti-tscadc-dt";
++
++		ti,hwmods = "adc_tsc";
++
++		adc-channels = <8>;
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_geiger_cape_led_pins>;
++
++		geiger-led0 {
++			label = "geiger:green:usr0";
++			gpios = <&gpio3 23 0>;
++			linux,default-trigger = "geiger-run";
++			default-state = "off";
++		};
++
++		geiger-led1 {
++			label = "geiger:red:usr1";
++			gpios = <&gpio3 25 0>;
++			linux,default-trigger = "geiger-event";
++			default-state = "off";
++		};
++	};
++};
++
++&bone_lcd3_cape {
++	board-name = "BeagleBone LCD3 CAPE";
++
++	/* hacky, since this is not a proper DT platform device */
++	/* but until we have DT bindings... */
++	lcd3 {
++		compatible = "da8xx-dt";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_lcd3_cape_lcd_pins>;
++
++		ti,hwmods = "lcdc";
++
++		disp-pll = <16000000>;
++		panel-type = "CDTech_S035Q01";
++	};
++
++	/* same thing as above */
++	tscadc {
++		compatible = "ti-tscadc-dt";
++
++		ti,hwmods = "adc_tsc";
++
++		tsc-wires = <4>;
++		tsc-x-plate-resistance = <200>;
++		tsc-steps = <6>;
++
++		adc-channels = <4>;
++	};
++
++	version@00A0 {
++		version = "00A0";
++
++		backlight {
++			compatible = "tps65217-backlight";
++			isel = <1>;
++			fdim = <200>;
++
++			tps = <&tps>;	/* link to the tps */
++			brightness = <100>;
++		};
++
++		gpio-leds {
++			compatible = "gpio-leds";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_lcd3_cape_led_00A0_pins>;
++
++			lcd3-led0 {
++				label = "lcd3:green:usr0";
++				gpios = <&gpio2 18 0>;
++				linux,default-trigger = "heartbeat";
++				default-state = "off";
++			};
++
++			lcd3-led1 {
++				label = "lcd3:green:usr1";
++				gpios = <&gpio2 19 0>;
++				linux,default-trigger = "cpu0";
++				default-state = "off";
++			};
++		};
++
++		gpio_keys {
++			compatible = "gpio-keys";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_lcd3_cape_keys_00A0_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			button@1 {
++				debounce_interval = <50>;
++				linux,code = <105>;
++				label = "left";
++				gpios = <&gpio2 16 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@2 {
++				debounce_interval = <50>;
++				linux,code = <106>;
++				label = "right";
++				gpios = <&gpio2 17 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@3 {
++				debounce_interval = <50>;
++				linux,code = <103>;
++				label = "up";
++				gpios = <&gpio4 19 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@4 {
++				debounce_interval = <50>;
++				linux,code = <108>;
++				label = "down";
++				gpios = <&gpio2 28 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@5 {
++				debounce_interval = <50>;
++				linux,code = <28>;
++				label = "enter";
++				gpios = <&gpio1 7 0x0>;
++				gpio-key,wakeup;
++			};
++		};
++	};
++};
++
++&bone_lcd7_cape {
++	board-name = "BeagleBone LCD7 CAPE";
++
++	/* hacky, since this is not a proper DT platform device */
++	/* but until we have DT bindings... */
++	lcd7 {
++		compatible = "da8xx-dt";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_lcd3_cape_lcd_pins>;
++
++		ti,hwmods = "lcdc";
++
++		disp-pll = <60000000>;
++		panel-type = "TFC_S9700RTWV35TR_01B";
++	};
++
++	/* same thing as above */
++	tscadc {
++		compatible = "ti-tscadc-dt";
++
++		ti,hwmods = "adc_tsc";
++
++		tsc-wires = <4>;
++		tsc-x-plate-resistance = <200>;
++		tsc-steps = <6>;
++
++		adc-channels = <4>;
++	};
++
++	version@00A0 {
++		version = "00A0";
++
++		backlight {
++			compatible = "tps65217-backlight";
++			isel = <1>;
++			fdim = <200>;
++
++			tps = <&tps>;	/* link to the tps */
++			brightness = <100>;
++		};
++
++		gpio-leds {
++			compatible = "gpio-leds";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_lcd3_cape_led_00A0_pins>;
++
++			lcd3-led0 {
++				label = "lcd3:green:usr0";
++				gpios = <&gpio2 18 0>;
++				linux,default-trigger = "heartbeat";
++				default-state = "off";
++			};
++
++			lcd3-led1 {
++				label = "lcd3:green:usr1";
++				gpios = <&gpio2 19 0>;
++				linux,default-trigger = "cpu0";
++				default-state = "off";
++			};
++		};
++
++		gpio_keys {
++			compatible = "gpio-keys";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_lcd3_cape_keys_00A0_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			button@1 {
++				debounce_interval = <50>;
++				linux,code = <105>;
++				label = "left";
++				gpios = <&gpio2 16 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@2 {
++				debounce_interval = <50>;
++				linux,code = <106>;
++				label = "right";
++				gpios = <&gpio2 17 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@3 {
++				debounce_interval = <50>;
++				linux,code = <103>;
++				label = "up";
++				gpios = <&gpio4 19 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@4 {
++				debounce_interval = <50>;
++				linux,code = <108>;
++				label = "down";
++				gpios = <&gpio2 28 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@5 {
++				debounce_interval = <50>;
++				linux,code = <28>;
++				label = "enter";
++				gpios = <&gpio1 7 0x0>;
++				gpio-key,wakeup;
++			};
++		};
++	};
++};
++
++&bone_weather_cape {
++	board-name = "BeagleBone Weather CAPE";
++
++	i2c2-devices {
++		compatible = "i2c-dt";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		parent = <&i2c2>;
++
++		/* Ambient light sensor */
++		tsl2550@39 {
++			compatible = "tsl,tsl2550";
++			reg = <0x39>;
++		};
++
++		/* Humidity Sensor */
++		sht21@40 {
++			compatible = "sensiron,sht21";
++			reg = <0x40>;
++		};
++
++		/* Barometric pressure sensor */
++		bmp085@77 {
++			compatible = "bosch,bmp085";
++			reg = <0x77>;
++		};
++	};
++
++	onewire@0 {
++		compatible	= "w1-gpio";
++		pinctrl-names	= "default";
++		pinctrl-0	= <&weather_cape_w1_pins>;
++		status		= "okay";
++
++		gpios = <&gpio2 3 0>;
++	};
++
++};
++
++&bone_adafruit_cape {
++	board-name = "Adafruit 1.8 Cape";
++
++	backlight {
++		compatible	= "pwm-backlight";
++		pinctrl-names	= "default";
++		pinctrl-0	= <&pwm_bl_pins>;
++
++		pwms = <&ehrpwm1 1 500000 0>;
++		pwm-names = "st7735fb";
++		brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
++		default-brightness-level = <50>; /* index to the array above */
++	};
++
++	spi1-devices {
++		compatible = "spi-dt";
++
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		parent = <&spi1>;
++
++		lcd@0 {
++			compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
++			spi-max-frequency = <8000000>;
++			reg = <0>;
++			spi-cpol;
++			spi-cpha;
++			pinctrl-names = "default";
++			pinctrl-0 = <&lcd_pins>;
++			st7735-rst = <&gpio4 19 0>;
++			st7735-dc = <&gpio4 21 0>;
++		};
++
++	};
++};
+-- 
+1.7.12
