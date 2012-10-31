@@ -1,164 +1,103 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 8/8] ARM: OMAP3: do not delete per_clkdm autodeps
- during idle
-Date: Wed, 31 Oct 2012 13:59:48 +0200
-Message-ID: <1351684788.8788.17.camel@sokoban>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
-	 <1342189185-5306-9-git-send-email-t-kristo@ti.com>
-	 <alpine.DEB.2.00.1209182156330.4747@utopia.booyaka.com>
-	 <alpine.DEB.2.00.1209182241400.4747@utopia.booyaka.com>
-	 <87k3vpek28.fsf@deeprootsystems.com>
-	 <alpine.DEB.2.00.1210160603390.9767@utopia.booyaka.com>
-Reply-To: <t-kristo@ti.com>
+From: Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] USB: DWC3: EXYNOS: Remove platform data for dwc3-exynos
+Date: Wed, 31 Oct 2012 17:36:03 +0530
+Message-ID: <CAFp+6iE6cbF+2F5jgS9kH6_AzbwMksQfkPdjRqQiGV0Yu5oC2Q@mail.gmail.com>
+References: <1350377157-28465-1-git-send-email-gautam.vivek@samsung.com>
+	<1350377157-28465-3-git-send-email-gautam.vivek@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54146 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935478Ab2JaL7y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 07:59:54 -0400
-In-Reply-To: <alpine.DEB.2.00.1210160603390.9767@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1350377157-28465-3-git-send-email-gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, thomas.abraham-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+Hi all,
 
-On Tue, 2012-10-16 at 07:29 +0000, Paul Walmsley wrote:
-> Hi Kevin,
-> 
-> Here's an updated version of this one, with the erratum coverage expanded 
-> to include OMAP34xx/35xx.
-> 
-> I think this one can replace Tero's "[PATCHv6 06/11] ARM: OMAP: 
-> clockdomain: add support for preventing autodep delete" and "[PATCHv6 
-> 07/11] ARM: OMAP3: do not delete per_clkdm autodeps during idle".  Tero, 
-> please let us know if you feel otherwise.
 
-Yes, these are no longer necessary, just tested the set.
+On Tue, Oct 16, 2012 at 2:15 PM, Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> wrote:
+> We are removing plat data which was used till now to init and
+> exit phy. We no longer need this since dwc3-core takes care of
+> initializing and shutting-down the phy using usb_phy_init()
+> and usb_phy_shutdown().
+>
+> Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 
-No other changes seem to be necessary for the set except trivial rebase.
-Would you like me to re-send the pwrdm-changes set or...?
+Any thoughts on this please ?
 
--Tero
-
-> 
-> The patch seems to pass testing on 37xx.  Was not able to really test it 
-> on 35xx due to PM regressions in v3.7-rc1.
-> 
-> 
-> - Paul
-> 
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Tue, 16 Oct 2012 00:08:53 -0600
-> Subject: [PATCH] ARM: OMAP3: PM: apply part of the erratum i582 workaround
-> 
-> On OMAP34xx/35xx, and OMAP36xx chips with ES < 1.2, if the PER
-> powerdomain goes to OSWR or OFF while CORE stays at CSWR or ON, or if,
-> upon chip wakeup from OSWR or OFF, the CORE powerdomain goes ON before
-> PER, the UART3/4 FIFOs and McBSP2/3 SIDETONE memories will be
-> unusable.  This is erratum i582 in the OMAP36xx Silicon Errata
-> document.
-> 
-> This patch implements one of several parts of the workaround: the
-> addition of the wakeup dependency between the PER and WKUP
-> clockdomains, such that PER will wake up at the same time CORE_L3
-> does.
-> 
-> This is not a complete workaround.  For it to be complete:
-> 
-> 1. the PER powerdomain's next power state must not be set to OSWR or
->    OFF if the CORE powerdomain's next power state is set to CSWR or
->    ON;
-> 
-> 2. the UART3/4 FIFO and McBSP2/3 SIDETONE loopback tests should be run
->    if the LASTPOWERSTATEENTERED bits for PER and CORE indicate that
->    PER went OFF while CORE stayed on.  If loopback tests fail, then
->    those devices will be unusable until PER and CORE can undergo a
->    transition from ON to OSWR/OFF and back ON.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Kevin Hilman <khilman@ti.com>
 > ---
->  arch/arm/mach-omap2/pm.h     |    1 +
->  arch/arm/mach-omap2/pm34xx.c |   30 ++++++++++++++++++++++++++++--
->  2 files changed, 29 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 686137d..67d6613 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -91,6 +91,7 @@ extern void omap3_save_scratchpad_contents(void);
->  
->  #define PM_RTA_ERRATUM_i608		(1 << 0)
->  #define PM_SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
-> +#define PM_PER_MEMORIES_ERRATUM_i582	(1 << 2)
->  
->  #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
->  extern u16 pm34xx_errata;
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index c0f8a78..2e0c9e8 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -651,14 +651,17 @@ static void __init pm_errata_configure(void)
->  		/* Enable the l2 cache toggling in sleep logic */
->  		enable_omap3630_toggle_l2_on_restore();
->  		if (omap_rev() < OMAP3630_REV_ES1_2)
-> -			pm34xx_errata |= PM_SDRC_WAKEUP_ERRATUM_i583;
-> +			pm34xx_errata |= (PM_SDRC_WAKEUP_ERRATUM_i583 |
-> +					  PM_PER_MEMORIES_ERRATUM_i582);
-> +	} else if (cpu_is_omap34xx()) {
-> +		pm34xx_errata |= PM_PER_MEMORIES_ERRATUM_i582;
->  	}
->  }
->  
->  int __init omap3_pm_init(void)
+>  drivers/usb/dwc3/dwc3-exynos.c |   16 ----------------
+>  1 files changed, 0 insertions(+), 16 deletions(-)
+>
+> diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+> index d11ef49..5a2a73f 100644
+> --- a/drivers/usb/dwc3/dwc3-exynos.c
+> +++ b/drivers/usb/dwc3/dwc3-exynos.c
+> @@ -92,7 +92,6 @@ static u64 dwc3_exynos_dma_mask = DMA_BIT_MASK(32);
+>
+>  static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
 >  {
->  	struct power_state *pwrst, *tmp;
-> -	struct clockdomain *neon_clkdm, *mpu_clkdm;
-> +	struct clockdomain *neon_clkdm, *mpu_clkdm, *per_clkdm, *wkup_clkdm;
->  	int ret;
->  
->  	if (!omap3_has_io_chain_ctrl())
-> @@ -710,6 +713,8 @@ int __init omap3_pm_init(void)
->  
->  	neon_clkdm = clkdm_lookup("neon_clkdm");
->  	mpu_clkdm = clkdm_lookup("mpu_clkdm");
-> +	per_clkdm = clkdm_lookup("per_clkdm");
-> +	wkup_clkdm = clkdm_lookup("wkup_clkdm");
->  
->  #ifdef CONFIG_SUSPEND
->  	omap_pm_suspend = omap3_pm_suspend;
-> @@ -726,6 +731,27 @@ int __init omap3_pm_init(void)
->  	if (IS_PM34XX_ERRATUM(PM_RTA_ERRATUM_i608))
->  		omap3630_ctrl_disable_rta();
->  
-> +	/*
-> +	 * The UART3/4 FIFO and the sidetone memory in McBSP2/3 are
-> +	 * not correctly reset when the PER powerdomain comes back
-> +	 * from OFF or OSWR when the CORE powerdomain is kept active.
-> +	 * See OMAP36xx Erratum i582 "PER Domain reset issue after
-> +	 * Domain-OFF/OSWR Wakeup".  This wakeup dependency is not a
-> +	 * complete workaround.  The kernel must also prevent the PER
-> +	 * powerdomain from going to OSWR/OFF while the CORE
-> +	 * powerdomain is not going to OSWR/OFF.  And if PER last
-> +	 * power state was off while CORE last power state was ON, the
-> +	 * UART3/4 and McBSP2/3 SIDETONE devices need to run a
-> +	 * self-test using their loopback tests; if that fails, those
-> +	 * devices are unusable until the PER/CORE can complete a transition
-> +	 * from ON to OSWR/OFF and then back to ON.
-> +	 *
-> +	 * XXX Technically this workaround is only needed if off-mode
-> +	 * or OSWR is enabled.
-> +	 */
-> +	if (IS_PM34XX_ERRATUM(PM_PER_MEMORIES_ERRATUM_i582))
-> +		clkdm_add_wkdep(per_clkdm, wkup_clkdm);
-> +
->  	clkdm_add_wkdep(neon_clkdm, mpu_clkdm);
->  	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
->  		omap3_secure_ram_storage =
+> -       struct dwc3_exynos_data *pdata = pdev->dev.platform_data;
+>         struct platform_device  *dwc3;
+>         struct dwc3_exynos      *exynos;
+>         struct clk              *clk;
+> @@ -150,14 +149,6 @@ static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
+>
+>         clk_enable(exynos->clk);
+>
+> -       /* PHY initialization */
+> -       if (!pdata) {
+> -               dev_dbg(&pdev->dev, "missing platform data\n");
+> -       } else {
+> -               if (pdata->phy_init)
+> -                       pdata->phy_init(pdev, pdata->phy_type);
+> -       }
+> -
+>         ret = platform_device_add_resources(dwc3, pdev->resource,
+>                         pdev->num_resources);
+>         if (ret) {
+> @@ -174,9 +165,6 @@ static int __devinit dwc3_exynos_probe(struct platform_device *pdev)
+>         return 0;
+>
+>  err4:
+> -       if (pdata && pdata->phy_exit)
+> -               pdata->phy_exit(pdev, pdata->phy_type);
+> -
+>         clk_disable(clk);
+>         clk_put(clk);
+>  err3:
+> @@ -192,7 +180,6 @@ err0:
+>  static int __devexit dwc3_exynos_remove(struct platform_device *pdev)
+>  {
+>         struct dwc3_exynos      *exynos = platform_get_drvdata(pdev);
+> -       struct dwc3_exynos_data *pdata = pdev->dev.platform_data;
+>
+>         platform_device_unregister(exynos->dwc3);
+>         platform_device_unregister(exynos->usb2_phy);
+> @@ -200,9 +187,6 @@ static int __devexit dwc3_exynos_remove(struct platform_device *pdev)
+>
+>         dwc3_put_device_id(exynos->dwc3->id);
+>
+> -       if (pdata && pdata->phy_exit)
+> -               pdata->phy_exit(pdev, pdata->phy_type);
+> -
+>         clk_disable(exynos->clk);
+>         clk_put(exynos->clk);
+>
+> --
+> 1.7.6.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+-- 
+Thanks & Regards
+Vivek
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
