@@ -1,45 +1,288 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Wed, 31 Oct 2012 14:43:11 -0700
-Message-ID: <20121031214310.GA15766@atomide.com>
-References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
- <20121031175219.GH12739@atomide.com>
- <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com>
- <20121031180935.GL12739@atomide.com>
- <50918223.6080003@ti.com>
- <8AD2F7AF-8315-442B-A394-1A38DAB29F52@antoniou-consulting.com>
- <20121031212639.GQ12739@atomide.com>
- <8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com>
+Subject: [PATCH 12/11] ARM: OMAP: Fix relative includes for fpga.h
+Date: Wed, 31 Oct 2012 14:52:53 -0700
+Message-ID: <20121031215252.GB15766@atomide.com>
+References: <20121030234852.25936.12482.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22712 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760746Ab2JaVwz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 17:52:55 -0400
 Content-Disposition: inline
-In-Reply-To: <8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+In-Reply-To: <20121030234852.25936.12482.stgit@muffinssi.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Pantelis Antoniou <panto@antoniou-consulting.com> [121031 14:38]:
-> 
-> There a a whole bunch of conflicting capes. There's no
-> way to instantiate them together. They must be instantiated
-> only after their EEPROMs are read and they are matched
-> to their corresponding cape drivers.
+As discussed on linux-arm-kernel, we want to avoid
+relative includes for the arch/arm/*omap* code:
 
-You don't need to instantiate the capes during __init,
-you need to just instantiate the omap internal devices
-which are always there in the hardware. These internal
-devices just need to be set to state = "disabled" until
-they are used.
+http://www.spinics.net/lists/linux-omap/msg80520.html
 
-The capes themselves should not have anything to do
-with omap_hwmod or omap_device, they just contain
-external connectors, regulators, LCD panels etc.
+Fix includes for fpga.h by making fpga.h local
+to mach-omap1. The common code in plat-omap just
+needs to know the struct h2p2_dbg_fpga, which can
+be local to debug-leds.c.
 
-To your capebus the omap internal devices should look
-like just regular struct device entries.
+This also fixes the braindead <../*.h> style includes
+that got accidentally added with search and replace
+during the cleanup.
 
-Regards,
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Tony
+---
+
+Looks like my grepping missed few totally braindead
+includes I accidentally introduced, posting them as
+additional patches to this series.
+
+diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+index 8b5800a..e067f22 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -30,13 +30,13 @@
+ #include <mach/tc.h>
+ #include <mach/mux.h>
+ #include <mach/flash.h>
+-#include <../plat-omap/fpga.h>
+ #include <linux/platform_data/keypad-omap.h>
+ 
+ #include <mach/hardware.h>
+ 
+ #include "iomap.h"
+ #include "common.h"
++#include "fpga.h"
+ 
+ /* fsample is pretty close to p2-sample */
+ 
+diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+index c66334f..f8033fa 100644
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -33,7 +33,6 @@
+ 
+ #include <mach/mux.h>
+ #include <mach/flash.h>
+-#include <../plat-omap/fpga.h>
+ #include <mach/tc.h>
+ #include <linux/platform_data/keypad-omap.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+index 030bd48..9a7e483 100644
+--- a/arch/arm/mach-omap1/board-perseus2.c
++++ b/arch/arm/mach-omap1/board-perseus2.c
+@@ -30,13 +30,13 @@
+ 
+ #include <mach/tc.h>
+ #include <mach/mux.h>
+-#include <../plat-omap/fpga.h>
+ #include <mach/flash.h>
+ 
+ #include <mach/hardware.h>
+ 
+ #include "iomap.h"
+ #include "common.h"
++#include "fpga.h"
+ 
+ static const unsigned int p2_keymap[] = {
+ 	KEY(0, 0, KEY_UP),
+diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
+index d940fac..8bd71b2 100644
+--- a/arch/arm/mach-omap1/fpga.c
++++ b/arch/arm/mach-omap1/fpga.c
+@@ -27,12 +27,11 @@
+ #include <asm/irq.h>
+ #include <asm/mach/irq.h>
+ 
+-#include <../plat-omap/fpga.h>
+-
+ #include <mach/hardware.h>
+ 
+ #include "iomap.h"
+ #include "common.h"
++#include "fpga.h"
+ 
+ static void fpga_mask_irq(struct irq_data *d)
+ {
+diff --git a/arch/arm/mach-omap1/fpga.h b/arch/arm/mach-omap1/fpga.h
+new file mode 100644
+index 0000000..4b4307a
+--- /dev/null
++++ b/arch/arm/mach-omap1/fpga.h
+@@ -0,0 +1,52 @@
++/*
++ * Interrupt handler for OMAP-1510 FPGA
++ *
++ * Copyright (C) 2001 RidgeRun, Inc.
++ * Author: Greg Lonnon <glonnon@ridgerun.com>
++ *
++ * Copyright (C) 2002 MontaVista Software, Inc.
++ *
++ * Separated FPGA interrupts from innovator1510.c and cleaned up for 2.6
++ * Copyright (C) 2004 Nokia Corporation by Tony Lindrgen <tony@atomide.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __ASM_ARCH_OMAP_FPGA_H
++#define __ASM_ARCH_OMAP_FPGA_H
++
++/*
++ * ---------------------------------------------------------------------------
++ *  H2/P2 Debug board FPGA
++ * ---------------------------------------------------------------------------
++ */
++/* maps in the FPGA registers and the ETHR registers */
++#define H2P2_DBG_FPGA_BASE		0xE8000000		/* VA */
++#define H2P2_DBG_FPGA_SIZE		SZ_4K			/* SIZE */
++#define H2P2_DBG_FPGA_START		0x04000000		/* PA */
++
++#define H2P2_DBG_FPGA_ETHR_START	(H2P2_DBG_FPGA_START + 0x300)
++#define H2P2_DBG_FPGA_FPGA_REV		IOMEM(H2P2_DBG_FPGA_BASE + 0x10)	/* FPGA Revision */
++#define H2P2_DBG_FPGA_BOARD_REV		IOMEM(H2P2_DBG_FPGA_BASE + 0x12)	/* Board Revision */
++#define H2P2_DBG_FPGA_GPIO		IOMEM(H2P2_DBG_FPGA_BASE + 0x14)	/* GPIO outputs */
++#define H2P2_DBG_FPGA_LEDS		IOMEM(H2P2_DBG_FPGA_BASE + 0x16)	/* LEDs outputs */
++#define H2P2_DBG_FPGA_MISC_INPUTS	IOMEM(H2P2_DBG_FPGA_BASE + 0x18)	/* Misc inputs */
++#define H2P2_DBG_FPGA_LAN_STATUS	IOMEM(H2P2_DBG_FPGA_BASE + 0x1A)	/* LAN Status line */
++#define H2P2_DBG_FPGA_LAN_RESET		IOMEM(H2P2_DBG_FPGA_BASE + 0x1C)	/* LAN Reset line */
++
++/* LEDs definition on debug board (16 LEDs, all physically green) */
++#define H2P2_DBG_FPGA_LED_GREEN		(1 << 15)
++#define H2P2_DBG_FPGA_LED_AMBER		(1 << 14)
++#define H2P2_DBG_FPGA_LED_RED		(1 << 13)
++#define H2P2_DBG_FPGA_LED_BLUE		(1 << 12)
++/*  cpu0 load-meter LEDs */
++#define H2P2_DBG_FPGA_LOAD_METER	(1 << 0)	// A bit of fun on our board ...
++#define H2P2_DBG_FPGA_LOAD_METER_SIZE	11
++#define H2P2_DBG_FPGA_LOAD_METER_MASK	((1 << H2P2_DBG_FPGA_LOAD_METER_SIZE) - 1)
++
++#define H2P2_DBG_FPGA_P2_LED_TIMER		(1 << 0)
++#define H2P2_DBG_FPGA_P2_LED_IDLE		(1 << 1)
++
++#endif
+diff --git a/arch/arm/plat-omap/debug-leds.c b/arch/arm/plat-omap/debug-leds.c
+index feca128..c43ea21 100644
+--- a/arch/arm/plat-omap/debug-leds.c
++++ b/arch/arm/plat-omap/debug-leds.c
+@@ -17,16 +17,33 @@
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/slab.h>
+ 
+-#include <mach/hardware.h>
+ #include <asm/mach-types.h>
+ 
+-#include "fpga.h"
+-
+ /* Many OMAP development platforms reuse the same "debug board"; these
+  * platforms include H2, H3, H4, and Perseus2.  There are 16 LEDs on the
+  * debug board (all green), accessed through FPGA registers.
+  */
+ 
++/* NOTE:  most boards don't have a static mapping for the FPGA ... */
++struct h2p2_dbg_fpga {
++	/* offset 0x00 */
++	u16		smc91x[8];
++	/* offset 0x10 */
++	u16		fpga_rev;
++	u16		board_rev;
++	u16		gpio_outputs;
++	u16		leds;
++	/* offset 0x18 */
++	u16		misc_inputs;
++	u16		lan_status;
++	u16		lan_reset;
++	u16		reserved0;
++	/* offset 0x20 */
++	u16		ps2_data;
++	u16		ps2_ctrl;
++	/* plus also 4 rs232 ports ... */
++};
++
+ static struct h2p2_dbg_fpga __iomem *fpga;
+ 
+ static u16 fpga_led_state;
+diff --git a/arch/arm/plat-omap/fpga.h b/arch/arm/plat-omap/fpga.h
+deleted file mode 100644
+index 54faaa9..0000000
+--- a/arch/arm/plat-omap/fpga.h
++++ /dev/null
+@@ -1,74 +0,0 @@
+-/*
+- * arch/arm/plat-omap/include/mach/fpga.h
+- *
+- * Interrupt handler for OMAP-1510 FPGA
+- *
+- * Copyright (C) 2001 RidgeRun, Inc.
+- * Author: Greg Lonnon <glonnon@ridgerun.com>
+- *
+- * Copyright (C) 2002 MontaVista Software, Inc.
+- *
+- * Separated FPGA interrupts from innovator1510.c and cleaned up for 2.6
+- * Copyright (C) 2004 Nokia Corporation by Tony Lindrgen <tony@atomide.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef __ASM_ARCH_OMAP_FPGA_H
+-#define __ASM_ARCH_OMAP_FPGA_H
+-
+-/*
+- * ---------------------------------------------------------------------------
+- *  H2/P2 Debug board FPGA
+- * ---------------------------------------------------------------------------
+- */
+-/* maps in the FPGA registers and the ETHR registers */
+-#define H2P2_DBG_FPGA_BASE		0xE8000000		/* VA */
+-#define H2P2_DBG_FPGA_SIZE		SZ_4K			/* SIZE */
+-#define H2P2_DBG_FPGA_START		0x04000000		/* PA */
+-
+-#define H2P2_DBG_FPGA_ETHR_START	(H2P2_DBG_FPGA_START + 0x300)
+-#define H2P2_DBG_FPGA_FPGA_REV		IOMEM(H2P2_DBG_FPGA_BASE + 0x10)	/* FPGA Revision */
+-#define H2P2_DBG_FPGA_BOARD_REV		IOMEM(H2P2_DBG_FPGA_BASE + 0x12)	/* Board Revision */
+-#define H2P2_DBG_FPGA_GPIO		IOMEM(H2P2_DBG_FPGA_BASE + 0x14)	/* GPIO outputs */
+-#define H2P2_DBG_FPGA_LEDS		IOMEM(H2P2_DBG_FPGA_BASE + 0x16)	/* LEDs outputs */
+-#define H2P2_DBG_FPGA_MISC_INPUTS	IOMEM(H2P2_DBG_FPGA_BASE + 0x18)	/* Misc inputs */
+-#define H2P2_DBG_FPGA_LAN_STATUS	IOMEM(H2P2_DBG_FPGA_BASE + 0x1A)	/* LAN Status line */
+-#define H2P2_DBG_FPGA_LAN_RESET		IOMEM(H2P2_DBG_FPGA_BASE + 0x1C)	/* LAN Reset line */
+-
+-/* NOTE:  most boards don't have a static mapping for the FPGA ... */
+-struct h2p2_dbg_fpga {
+-	/* offset 0x00 */
+-	u16		smc91x[8];
+-	/* offset 0x10 */
+-	u16		fpga_rev;
+-	u16		board_rev;
+-	u16		gpio_outputs;
+-	u16		leds;
+-	/* offset 0x18 */
+-	u16		misc_inputs;
+-	u16		lan_status;
+-	u16		lan_reset;
+-	u16		reserved0;
+-	/* offset 0x20 */
+-	u16		ps2_data;
+-	u16		ps2_ctrl;
+-	/* plus also 4 rs232 ports ... */
+-};
+-
+-/* LEDs definition on debug board (16 LEDs, all physically green) */
+-#define H2P2_DBG_FPGA_LED_GREEN		(1 << 15)
+-#define H2P2_DBG_FPGA_LED_AMBER		(1 << 14)
+-#define H2P2_DBG_FPGA_LED_RED		(1 << 13)
+-#define H2P2_DBG_FPGA_LED_BLUE		(1 << 12)
+-/*  cpu0 load-meter LEDs */
+-#define H2P2_DBG_FPGA_LOAD_METER	(1 << 0)	// A bit of fun on our board ...
+-#define H2P2_DBG_FPGA_LOAD_METER_SIZE	11
+-#define H2P2_DBG_FPGA_LOAD_METER_MASK	((1 << H2P2_DBG_FPGA_LOAD_METER_SIZE) - 1)
+-
+-#define H2P2_DBG_FPGA_P2_LED_TIMER		(1 << 0)
+-#define H2P2_DBG_FPGA_P2_LED_IDLE		(1 << 1)
+-
+-#endif
