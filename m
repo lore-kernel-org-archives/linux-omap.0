@@ -1,68 +1,28 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap2-clk: Add missing lcdc clock definition
-Date: Wed, 31 Oct 2012 06:38:27 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB52BC6@DBDE01.ent.ti.com>
-References: <1351698962-3923-1-git-send-email-panto@antoniou-consulting.com>
- <20121030181837.GM11908@atomide.com>
- <alpine.DEB.2.00.1210302324530.6152@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EB529E4@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1210310547560.8340@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 05/13] ARM: OMAP2+: PRCM: create SoC-specific chip restart
+ functions
+Date: Wed, 31 Oct 2012 06:38:50 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210310638280.8340@utopia.booyaka.com>
+References: <20121025231818.17558.57884.stgit@dusk.lan> <20121025232116.17558.47458.stgit@dusk.lan> <5090C6B5.3080407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1210310547560.8340@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Pantelis Antoniou <panto@antoniou-consulting.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, "Porter, Matt" <mporter@ti.com>, "Dill, Russ" <russ.dill@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:50509 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390Ab2JaGiv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 02:38:51 -0400
+In-Reply-To: <5090C6B5.3080407@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Oct 31, 2012 at 11:19:44, Paul Walmsley wrote:
-> On Wed, 31 Oct 2012, Hiremath, Vaibhav wrote:
-> 
-> > As far as lck clock node is concerned, we had deliberately dropped all leaf-
-> > node clocks from the clock tree, please refer to the description mentioned 
-> > in -
-> > http://lists.infradead.org/pipermail/linux-arm-kernel/2012-May/101987.html
-> 
-> Ach, should have remembered that :-(  Indeed there is an LCDC hwmod:
-> 
-> static struct omap_hwmod am33xx_lcdc_hwmod = {
-> 	.name		= "lcdc",
-> 	.class		= &am33xx_lcdc_hwmod_class,
-> 	.clkdm_name	= "lcdc_clkdm",
-> 	.mpu_irqs	= am33xx_lcdc_irqs,
-> 	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
-> 	.main_clk	= "lcd_gclk",
-> 	.prcm		= {
-> 		.omap4	= {
-> 			.clkctrl_offs	= AM33XX_CM_PER_LCDC_CLKCTRL_OFFSET,
-> 			.modulemode	= MODULEMODE_SWCTRL,
-> 		},
-> 	},
-> };
-> 
-> > >From LCDC driver perspective, driver is using,
-> > 
-> > fb_clk = clk_get(&device->dev, NULL);
-> > 
-> > This I feel needs to be corrected for valid name as per Spec (mostly I would 
-> > vote for "fck") and then every platform should make sure that it returns 
-> > valid clock-node for it.
-> > 
-> > Change in Driver would be,
-> > 
-> > fb_clk = clk_get(&device->dev, "fck");
-> 
+On Wed, 31 Oct 2012, Vaibhav Hiremath wrote:
 
-Ok, thanks. Let me submit patch for this.
+> omap5xxx_restart declaration needs to be removed from here.
+> There is no such function implemented in code.
 
-Thanks,
-Vaibhav
+Thanks, prototype dropped.
 
-> Indeed.
-> 
-> 
-> - Paul
-> 
+
+- Paul
