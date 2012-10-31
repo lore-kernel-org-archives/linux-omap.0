@@ -1,78 +1,62 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/11] ARM: OMAP: USB: Host: Device tree Adaptation
-Date: Wed, 31 Oct 2012 15:36:38 +0200
-Message-ID: <20121031133638.GV10998@arwen.pp.htv.fi>
-References: <1351685810-20616-1-git-send-email-keshava_mgowda@ti.com>
+Subject: Re: [PATCH v2 1/2] USB: dwc3-exynos: Add support for device tree
+Date: Wed, 31 Oct 2012 15:38:23 +0200
+Message-ID: <20121031133823.GW10998@arwen.pp.htv.fi>
+References: <1350377157-28465-1-git-send-email-gautam.vivek@samsung.com>
+ <1350377157-28465-2-git-send-email-gautam.vivek@samsung.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="t4k3FX2BKM3OLyzG"
-Return-path: <linux-doc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="nSY6dmU9u4MMxp1o"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60517 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933707Ab2JaNo0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 09:44:26 -0400
 Content-Disposition: inline
-In-Reply-To: <1351685810-20616-1-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, sameo@linux.intel.com
+In-Reply-To: <1350377157-28465-2-git-send-email-gautam.vivek@samsung.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vivek Gautam <gautam.vivek@samsung.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, gregkh@linuxfoundation.org, balbi@ti.com, rob.herring@calxeda.com, thomas.abraham@linaro.org, kishon@ti.com, av.tikhomirov@samsung.com
 
---t4k3FX2BKM3OLyzG
+--nSY6dmU9u4MMxp1o
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
-
-On Wed, Oct 31, 2012 at 05:46:38PM +0530, Keshava Munegowda wrote:
-> The USB2 Host driver of OMAP3/OMAP4 are device tree complaiant with
-> this patch series.
-> The device tree data of UHH, EHCI, OHCI and TLL are included.
-> The drivers are updated to extract and use the register set and
-> interrupt numbers delivered by these device tree structures.
+On Tue, Oct 16, 2012 at 02:15:56PM +0530, Vivek Gautam wrote:
+> This patch adds support to parse probe data for
+> dwc3-exynos driver using device tree.
 >=20
-> Keshava Munegowda (11):
->   ARM: OMAP4: USB: Host: Add USB2 Host Device Tree Node
->   ARM: OMAP4: USB: Host: Panda board specific device tree node
->   ARM: OMAP3: USB: Add USB2 Host Device Tree Node
->   ARM: OMAP3: USB: Host: Beagle-XM board specific device tree node
->   ARM: OMAP: USB: Host: usb host Device tree node Adaptation
->   ARM: OMAP: USB: Host: USB TLL Device tree node Adaptation
->   ARM: OMAP: USB: Host: Ehci driver uses the usbhs port data
->   ARM: OMAP: USB: Change the TLL clock names
->   ARM: OMAP: USB: Remove the device name for TLL channel clocks for
->     OMAP3
->   ARM: OMAP4: USB: Add pin mux configuration for panda board
->   ARM: OMAP3: USB: Add pin mux configuration for beagle-xm board
+> Signed-off-by: Vivek Gautam <gautam.vivek@samsung.com>
 
-Benoit should be in Cc on this series since he's the one handling DT for
-OMAPs.
-
-Care to resend with him in Cc ?
-
-(everyone else, please ignore this series, sorry for the noise)
+does not apply to my dwc3 branch. Care to respin ?
 
 --=20
 balbi
 
---t4k3FX2BKM3OLyzG
+--nSY6dmU9u4MMxp1o
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQkSlmAAoJEIaOsuA1yqRE+OgP/16MeHKvCJKK5HlK37ar8CQi
-dZIxPwp7cZwI/vdX+JsU1UeP9DBDgRIeR/iq1KljQpWe4zkt3QtVjvafUsNk9tpO
-/DWMXQfczkFQYRWg5R9tQpQesKGtnh/0GeqWRx9C4vfx7CI2vTJyl6eld9p28L1I
-l/UfvngqIasWYkT3QPdXG7r/J5kEJxlui/i+CY1HC5c0VJDVVrCo8Tbj0Riv9jW4
-Gcs03/vVbkvYKo3UmtXiSPUiQHWXe+NUXrwTo+tqT4CVXPxpLARWGsjOlNOKtZA5
-0h23kfPQaRK/2YF+jbeCY2msPQYEP5hfBvUEVeEuiYFJTD1tnT3bmpBYPsILUEjR
-5BFTALyHBFt9P6D43Foe6P6m2aLgnDbH76dYZ4NZcDidoqs9yJd5xuRVaoFK7lZ0
-/3FA8m6hNTI3o9RBGduJyrCQ7hzgLSecLG0U0TH1YSBHrRK2wui83MnBWPN8ck6R
-+w/6Wj5droYOa2zbBeKv9DB8BfLwgKRuabUpyQP0boYHiAzkIIByunRLvZGeAjRO
-wlMhcDfZn0JSiZ49gm0cUnO1r+yggnhy5cLd23vVbjnAUO8zwICLYnX0ZhvFktjy
-U5XxLwWHpI6QPL3XLunHoNolLt5DtSBMtszo3sZVIfMJ7MsRCXwVnx0BnDnCk/jO
-/a7i+L6Vzx94tHb/V+QI
-=LE6i
+iQIcBAEBAgAGBQJQkSnPAAoJEIaOsuA1yqRExn0P/35B/dJ/1NbvAxyCD6SHgw/V
+CHYki9AAL6qCDBzGoyfQiawtApTlezS9TNLwap5iQf4skCLjeOkVSFt1F/d18i2n
+3ezP2aJDaXLnP2nZ6YqpZ68IE+PDJd4tvnmbvayza1KFl6FQBrrqikXfgb/1I7BE
+s7PAshGQMqleATD1kXgHytDPt8cvDgQHlUud15441EUH5y7oUtjvT5HormbXpNjh
+H85ccEp6s4kU1MM5nS6T5VYtW6DSPmp3mGOQevcEuwfXtCgDa2xLMvqXeNJPClYC
+TyQDtySqXd3Czsx2wVK14Faztb+6tvc4t55YMiDp8SHAWgUdnJR7CsG1N2fSrpK1
+2EyKtR013Y1JAwf7i5gAiFRtYL/NW1nfxSb79at9OgktaZOjLtjn9VBoEdXIcaUu
+lYlF21+04PDWsWHMiz1pGuoqiBNk+qaJJxJoz1Z89oSOfc3RHavGTVW/dj6vdFmF
+kXW7DGd9UwDpMQoGRO39QIJ3JFgh1ZwM+8E48CuSbXMwrxSQ5urjbplsmUzvPIJY
+ooHPmm+/gqLwC8x1MOydlqVJ6XscIXJOR660KeWm2G3jqqlx3/Ae7csFwvo7mqaJ
+Q9zrpMmOgonwuO6DJA7fLhQHRgn0Qnmy95TnEwbDMgDo9X23KcpZ8nJWWPONUhLS
+P8+RusaFRlvZTsqPzBPc
+=b8eW
 -----END PGP SIGNATURE-----
 
---t4k3FX2BKM3OLyzG--
+--nSY6dmU9u4MMxp1o--
