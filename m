@@ -1,71 +1,47 @@
 From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 05/12] OMAPDSS: DSI: skip odd dividers when pck >= 100MHz
-Date: Wed, 31 Oct 2012 12:15:13 +0530
-Message-ID: <5090C8F9.4060103@ti.com>
-References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 09/12] OMAPDSS: hide dss_select_dispc_clk_source()
+Date: Wed, 31 Oct 2012 12:24:15 +0530
+Message-ID: <5090CB17.4070400@ti.com>
+References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-10-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40734 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318Ab2JaGpa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 02:45:30 -0400
-In-Reply-To: <1351613409-21186-6-git-send-email-tomi.valkeinen@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:44624 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881Ab2JaGyc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 02:54:32 -0400
+In-Reply-To: <1351613409-21186-10-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com
 
 On Tuesday 30 October 2012 09:40 PM, Tomi Valkeinen wrote:
-> The DSI PLL and HSDivider can be used to generate the pixel clock for
-> LCD overlay manager, which then goes to DPI output. On the DPI output
-> pin the voltage of the signal is shifted from the OMAP's internal
-> minimal voltage to 1.8V range. The shifting is not instant, and the
-> higher the clock frequency, the less time there is to shift the signal
-> to nominal voltage.
+> dss.c currently exposes functions to configure the dispc source clock
+> and lcd source clock. There are configured separately from the output
+> drivers.
 >
-> If the HSDivider's divider is greater than one and odd, the resulting
-> pixel clock does not have 50% duty cycle. For example, with a divider of
-> 3, the duty cycle is 33%.
+> However, there is no safe way for the output drivers to handle dispc
+> clock, as it's shared between the outputs. Thus, if, say, the DSI driver
+> sets up DSI PLL and configures both the dispc and lcd clock sources to
+> that DSI PLL, the resulting dispc clock could be too low for, say, HDMI.
 >
-> When combining high frequency (in the area of 140MHz+) and non-50% duty
-> cycle, it has been observed the the shifter does not have enough time to
-> shift the voltage enough, and this leads to bad signal which is rejected
-> by monitors.
+> Thus the output drivers should really only be concerned about the lcd
+> clock, which is what the output drivers actually use. There's lot to do
+> to clean up the dss clock handling, but this patch takes one step
+> forward and removes the use of dss_select_dispc_clk_source() from the
+> output drivers.
+>
+> After this patch, the output drivers only configure the lcd source
+> clock. On omap4+ the dispc src clock is never changed from the default
+> PRCM source. On omap3, where the dispc and lcd clocks are actually the
+> same, setting the lcd clock source sets the dispc clock source.
 
-Is this something seen on OMAP3 also? I guess it must be since it's the 
-same DSI IP.
-
->
-> As a workaround this patch makes the divider calculation skip all odd
-> dividers when the required pixel clock is over 100MHz.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/dsi.c |    5 +++++
->   1 file changed, 5 insertions(+)
->
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> index 7d0db2b..d0e35da 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -1386,6 +1386,11 @@ retry:
->   				cur.dsi_pll_hsdiv_dispc_clk =
->   					cur.clkin4ddr / cur.regm_dispc;
->
-> +				if (cur.regm_dispc > 1 &&
-> +						cur.regm_dispc % 2 != 0 &&
-> +						req_pck >= 1000000)
-> +					continue;
-> +
-
-Why do we do the req_pck check here? Can't we do it much earlier? We 
-could bail out right in the beginning of dsi_pll_calc_clock_div_pck() if 
-we see that req_pck is greater than 100 Mhz.
-
-Also, we could maybe have a comment (or in the commit message) saying 
-that we chose the 100 Mhz to make it a safe bet.
+Maybe we could have one call to dss_select_dispc_clk_source() in 
+omap_dsshw_porbe(). This is not necessary now, but if we support a 
+splash screen on bootloader, and skip the hwmod resets, we might want to 
+switch back our dispc clock source to PRCM if the output drivers don't 
+to it. This is just a point though, we don't necessarily need it right now.
 
 Archit
-
