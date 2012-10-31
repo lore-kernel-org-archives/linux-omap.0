@@ -1,7 +1,7 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Wed, 31 Oct 2012 15:16:09 -0700
-Message-ID: <20121031221608.GD15766@atomide.com>
+Date: Thu, 1 Nov 2012 00:14:02 +0200
+Message-ID: <20121031221402.GA29490@arwen.pp.htv.fi>
 References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
  <20121031175219.GH12739@atomide.com>
  <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com>
@@ -10,36 +10,150 @@ References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
  <8AD2F7AF-8315-442B-A394-1A38DAB29F52@antoniou-consulting.com>
  <20121031212639.GQ12739@atomide.com>
  <8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com>
- <20121031214310.GA15766@atomide.com>
- <E08E316D-E7C5-4AFC-8C82-6423E5128FAA@antoniou-consulting.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:33918 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759307Ab2JaWQM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 18:16:12 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Kj7319i9nmIyA2yE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <E08E316D-E7C5-4AFC-8C82-6423E5128FAA@antoniou-consulting.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+List-Id: linux-omap@vger.kernel.org
 
-* Pantelis Antoniou <panto@antoniou-consulting.com> [121031 15:02]:
-> 
-> So when device's node is 'disabled' of_platform_device_create_pdata()
-> will not create the device.
-> 
-> Now, of course it is possible to re-trigger the platform's probe method
-> to be called, and in fact I do so in the capebus patches.
+--Kj7319i9nmIyA2yE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You should fix this in generic way then rather than working
-around it in capebus. The same problem exists changing
-between different functionality for the shared pins,
-let's say between USB pins and UART pins if you want a
-serial debug console on some phone.
+Hi,
 
-Regards,
+On Wed, Oct 31, 2012 at 11:36:25PM +0200, Pantelis Antoniou wrote:
+> > * Pantelis Antoniou <panto@antoniou-consulting.com> [121031 13:14]:
+> >> On Oct 31, 2012, at 9:55 PM, Benoit Cousson wrote:
+> >>>=20
+> >>> Yeah, I do agree. I'm confused as well. Only OMAP IPs under PRCM cont=
+rol
+> >>> could have an hwmod and thus must be handled by an omap_device.
+> >>>=20
+> >>> Any devices that is created later cannot be omap_device. The DT core
+> >>> will create regular platform_device for them.
+> >>>=20
+> >>> Since cape is an external board, it should have nothing to do with
+> >>> omap_device.
+> >>>=20
+> >>> Looking at your patch:
+> >>> da8xx-dt: Create da8xx DT adapter device
+> >>>=20
+> >>> I understand why you do that, but in fact that patch does not make se=
+nse
+> >>> to me :-(
+> >>>=20
+> >>> Why do you have to create an omap_device from the driver probe?
+> >>>=20
+> >>=20
+> >> The problem is that capes are not external boards in the normal sense
+> >> as a PCI board is. In the PCI case the hardware that implements the=20
+> >> desired functionality is on the PCI board, while in the cape case the
+> >> hardware module is in the SoC. The cape most of the times is quite
+> >> simple and contains passive components, leds or some kind of I2C/SPI d=
+evices.
+> >=20
+> > Ah now I see, you're talking about the beaglebone extension
+> > boards :)
+> >=20
+> > The way to deal with those properly is to just edit the
+> > board .dts entry to include omap-beaglebone-cape-xyz.dtsi
+> > whatever.
+> >=20
+>=20
+> That is what is being done...
+> This is the fallout.
+>=20
+> >> You can't instantiate the omap_device early in the boot process like i=
+t was done up to=20
+> >> now in the board file. You can only do that later in the boot process =
+(for built-in=20
+> >> cape drivers), or even after user-space has booted and the matching ca=
+pe driver module
+> >> has been loaded.
+> >=20
+> > Yes you can, just edit the .dts file for the extension
+> > board you have connected. This stuff should be DT
+> > only for sure, let's not even start adding platform_data
+> > entries for that.
+> >=20
+> > The omap_device entries for the omap internal devices
+> > will be created automatically during startup based on the
+> > .dts. Note that you can set status =3D "disabled" for the
+> > omap internal devices in the .dts file, the devices are
+> > there in the hardware.
+> >=20
+> > If you are sure the extension boards are safely hot
+> > pluggable, then all you need is some interface to enable
+> > and disable devices after booting. But that should be
+> > done in Linux generic way.
+> >=20
+> > So we should not export any omap_hwmod or omap_device
+> > things, and want to keep it __init only, and local to
+> > arch/arm/mach-omap2.
+> >=20
+>=20
+> I disagree. This is not something that is handled by just
+> editing the dts. The way it is handled, is in the Linux
+> generic way, we have a proper bus, and the drivers as compiled
+> as standalone file.=20
 
-Tony
+when you have an actual bus, that'd be correct.
+
+> We're hitting a use case that wasn't there in omap until now.
+>=20
+> There a a whole bunch of conflicting capes. There's no
+> way to instantiate them together. They must be instantiated
+> only after their EEPROMs are read and they are matched
+> to their corresponding cape drivers.
+
+why this requirement of instantiating them only after reading EEPROMs ?
+
+It's unnecessary to add that requirement, just do what Tony said
+(include my-awesome-cape.dtsi to bone.dts) and all i2c/spi devices
+should be created automatically.
+
+The thing is that there is no such thing as a cape-device. The cape is
+just a collection of I2C, 1-wire and SPI devices anyway. What we should
+instantiate is bmp085, tls2550, sht21, instead of instantiating
+beagle-bone-weather-cape.
+
+What's the problem in just instantiating all of those from bone.dts ?
+Expose the EEPROMs to userland so whatever SW you guys have running on
+the bone can figure out what features to expose to the SDK which the
+user sees, but the kernel doesn't need to know that there is a
+weather-cape attached to the bone.
+
+--=20
+balbi
+
+--Kj7319i9nmIyA2yE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQkaKpAAoJEIaOsuA1yqREv/cP/2DU7WZTW4vGCbcoziwvFopQ
+Lm9TsurDc6SQwRRSWICHyOEctrlYIOo4tcAlF4fl0pN8pGCCvu0lIkfESSOSoLvM
+6ro0gjKSL+Dp/5bkYSPcF0PtTN3B4PEsyBBfTnbm7/wKJQPH1YM2iiR6puBB+2or
+SK21JKbrLDnsRmUMNZuQf53Wxeb7GaJGCnIbf2TYVT8TO1r27Hn46MAlRTHBScAd
+dF9UClTFUjWK9TkX5IcpLAn3g5VA6Q1N2R9rguWN6uWfyNklThy2jYooN4xaqT+a
+9HDQpf1RhIC1ubiJj9Xo8qbeuq2NLsRe6Htm6ziOg83hgn9edKYQda24dxuZblIa
+qReHGxzCkWDTW+nD91FM9UIcX20s7VJPs+z0vzwL4JPPPY/3MbLA6RaBYHpK9gz3
+aEjDHQVmvKSJqjsQ3SVJ/p1Aikhv8/C8zFOvWCE2mRz1db4XxgX3frQjjEzepINJ
+Zu1mQh6nhM+fdlIgd4+hkAu6Sn7fMQ2L4jdAW/Um/9vdkRbLTl0CSLp+VauoVyvf
+o61SI7o/d+ZmyAcBZ6DLjkcODs3TlQS43FlT/4doeotP7sUf0cetnhvxxMAdgMSW
+p82JIud6on/SaLYcvOzjyPY1JmV9bomRPEWOGmwyWE3R/XQGVWvP6BsiW78S7eBG
+C4Vx3UVEdDILtOxuHj2S
+=hscY
+-----END PGP SIGNATURE-----
+
+--Kj7319i9nmIyA2yE--
