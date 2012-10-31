@@ -1,72 +1,113 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 01/12] OMAPFB: remove use of extended edid block
-Date: Wed, 31 Oct 2012 08:23:11 +0200
-Message-ID: <5090C3CF.2040004@ti.com>
-References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-2-git-send-email-tomi.valkeinen@ti.com> <5090C0CD.7070104@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 08/12] OMAPDSS: setup default dss fck
+Date: Wed, 31 Oct 2012 12:01:15 +0530
+Message-ID: <5090C5B3.6020502@ti.com>
+References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-9-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigE284BED85DB8D526C84E1F71"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40349 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752817Ab2JaGXR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Oct 2012 02:23:17 -0400
-In-Reply-To: <5090C0CD.7070104@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40177 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932227Ab2JaGbb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 02:31:31 -0400
+In-Reply-To: <1351613409-21186-9-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com
 
---------------enigE284BED85DB8D526C84E1F71
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 30 October 2012 09:40 PM, Tomi Valkeinen wrote:
+> We don't currently set the dss fck when starting up. This is not a
+> problem, as we setup the fck later when configuring the pixel clocks. Or
+> this is how it was for omap2, for the rest of the omaps this may not be
+> so.
+>
+> For DSI, HDMI and also for DPI when using DSI PLL, we don't need to
+> change the dss fck, and thus it may be left unconfigured. Usually the
+> dss fck is already setup fine by default, but we can't trust this.
+>
+> This patch sets the dss fck to maximum at probe time.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/dss/dss.c |   36 ++++++++++++++++++++++++++++++++++++
+>   1 file changed, 36 insertions(+)
+>
+> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+> index 5affa86..034cc1a 100644
+> --- a/drivers/video/omap2/dss/dss.c
+> +++ b/drivers/video/omap2/dss/dss.c
+> @@ -485,6 +485,36 @@ unsigned long dss_get_dpll4_rate(void)
+>   		return 0;
+>   }
+>
+> +static int dss_setup_default_clock(void)
+> +{
+> +	unsigned long max_dss_fck, prate;
+> +	unsigned fck_div;
+> +	struct dss_clock_info dss_cinfo = { 0 };
+> +	int r;
+> +
+> +	if (dss.dpll4_m4_ck == NULL)
+> +		return 0;
+> +
+> +	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
+> +
+> +	prate = dss_get_dpll4_rate();
 
-On 2012-10-31 08:10, Archit Taneja wrote:
-> On Tuesday 30 October 2012 09:39 PM, Tomi Valkeinen wrote:
->> It seems that using the second EDID block causes more problems than is=
+Not related to this patch, but maybe we could change the 
+dss_get_dpll4_rate() name and dss.dpll4_m4_clk to something better. 
+Maybe something like dss_fck_parent?
 
->> of any help. The first mode in the extended block will get
->> FB_MODE_IS_FIRST set, which will override the first mode from the firs=
-t
->> EDID block, thus making the default videomode selection not to work
->> properly.
->>
->> This patch removes the use of the extended edid block for now.
->=20
-> Looks like you had posted this one(and also the next one)in the previou=
-s
-> cleanup/fixes series also.
+> +
+> +	fck_div = DIV_ROUND_UP(prate * dss.feat->dss_fck_multiplier,
+> +			max_dss_fck);
+> +
+> +	dss_cinfo.fck_div = fck_div;
+> +
+> +	r = dss_calc_clock_rates(&dss_cinfo);
+> +	if (r)
+> +		return r;
+> +
+> +	r = dss_set_clock_div(&dss_cinfo);
+> +	if (r)
+> +		return r;
+> +
+> +	return 0;
+> +}
+> +
+>   int dss_calc_clock_div(unsigned long req_pck, struct dss_clock_info *dss_cinfo,
+>   		struct dispc_clock_info *dispc_cinfo)
+>   {
+> @@ -913,6 +943,10 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
+>   	dss.lcd_clk_source[0] = OMAP_DSS_CLK_SRC_FCK;
+>   	dss.lcd_clk_source[1] = OMAP_DSS_CLK_SRC_FCK;
+>
+> +	r = dss_setup_default_clock();
+> +	if (r)
+> +		goto err_setup_clocks;
 
-Ah, so I did. Too many work branches =3D). Thanks for pointing it out.
+Maybe it's safer to call this before we do a dss_runtime_get(). On 
+OMAP4, DSS_FCLK is needed to access registers also. Changing it's rate 
+might not be liked by the DSS HW. Also, it seems more logical to call it 
+after dss_get_clocks() in omap_dsshw_probe(), then we sort of group the 
+clock related stuff together.
 
- Tomi
+Archit
 
+> +
+>   	rev = dss_read_reg(DSS_REVISION);
+>   	printk(KERN_INFO "OMAP DSS rev %d.%d\n",
+>   			FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
+> @@ -923,6 +957,8 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
+>
+>   	return 0;
+>
+> +err_setup_clocks:
+> +	dss_runtime_put();
+>   err_runtime_get:
+>   	pm_runtime_disable(&pdev->dev);
+>   	dss_put_clocks();
+>
 
-
-
---------------enigE284BED85DB8D526C84E1F71
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQkMPTAAoJEPo9qoy8lh71StgP/1pWCixgvgElMIo18axKKgH9
-gF+meYjnnpd74VSoDPYHkhzI9CbDtZuv4SBSoaGlJyZ/GmotCW08whZOnRDzNILG
-4hnX1ZEVfeWprwLhXIXsq7q9wVdwww4AWX0GvCVPF/BfQy8yhQyGe5Sn1r7Zz2zI
-uh/HrRVy58y5wSKKptIwAMiyqkE/Y1tLuvfyIrPqe62LfBGJcGsvf7v86Bj6zk+F
-fF0I3RpC0R/waiEgRJrKqQS/pf/7P6bST3tQ51LgMPsn6eja7L9uDoyW2Hm3nmfX
-JJz7gPM2Q6sWBX5Fo6vHIN+JzN/i13GDELHb3pMIEAdjzTaJAC6pc+YJ5/WjJF8D
-WBAJkaE7/APDdwcZ91/SFSMNG1N54skiBZXAhm6Jm5p5AOPYkxzRSiVVmlhsCd3D
-wH3oF7CU69S6PfvUina7VpGvD+ve1OxyNofGK5qYls512SNJ8Xh4F3EeSY9lKHoW
-45yNaydSEkO8M9vpKzVFUKgmdF5bqvs0VsjHlnj0UOI+98aHfwZQFPCzAnozAvh1
-FAHf0cM0U635Qj4AlEeKEC2KGgdcPoSq81/lOMAIQVC/Ee4T/FXY4Yu9jAJ6GkDv
-2SYC0aZJGdSKGNPfIO16FSouPZqItX3rjNuprPu/AufrazX9Uh/Jfgm0IEZXSgV1
-nsagogOpbmtC2+hT28NH
-=VRSb
------END PGP SIGNATURE-----
-
---------------enigE284BED85DB8D526C84E1F71--
