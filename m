@@ -1,111 +1,199 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH V3] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
-Date: Wed, 31 Oct 2012 22:16:26 +0200
-Message-ID: <20121031201626.GA28784@arwen.pp.htv.fi>
-References: <1351684656-30275-1-git-send-email-gururaja.hebbar@ti.com>
- <20121031122639.GA10998@arwen.pp.htv.fi>
- <CAOyx1LrKBE+xzSRN4F=+e1DuMJL+5SAv-YkJWJdDw8p=kDojmw@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 07/11] ARM: OMAP: Move omap-pm-noop.c local to
+ mach-omap2
+Date: Wed, 31 Oct 2012 13:58:50 -0700
+Message-ID: <20121031205850.GO12739@atomide.com>
+References: <20121030234852.25936.12482.stgit@muffinssi.local>
+ <20121030235255.25936.36727.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOyx1LrKBE+xzSRN4F=+e1DuMJL+5SAv-YkJWJdDw8p=kDojmw@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: balbi@ti.com, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, cjb@laptop.org, balajitk@ti.com, grant.likely@secretlab.ca, nsekhar@ti.com, sudhakar.raj@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---pf9I7BMVVzbSWLtt
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:46118 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760559Ab2JaU6y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 16:58:54 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20121030235255.25936.36727.stgit@muffinssi.local>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Jon Hunter <jon-hunter@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Mauro Carvalho Chehab <mchehab@infradead.org>
 
-Hi,
+* Tony Lindgren <tony@atomide.com> [121030 16:55]:
+> This code should be private to mach-omap2.
+> 
+> The only use for it in for omap1 has been in dmtimer.c
+> to check for context loss. However, omap1 does not
+> lose context during idle, so the code is not needed.
+> Further, omap1 timer has OMAP_TIMER_ALWON set, so omap1
+> was not hitting omap_pm_get_dev_context_loss_count()
+> test.
 
-On Thu, Nov 01, 2012 at 01:21:36AM +0530, Venkatraman S wrote:
-> On Wed, Oct 31, 2012 at 5:56 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > Hi,
-> >
-> > On Wed, Oct 31, 2012 at 05:27:36PM +0530, Hebbar, Gururaja wrote:
-> >> HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-> >> Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-> >> on the HSMMC IP timing closure done for the high speed cards.
-> >>
-> >> From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
-> >>
-> >> The MMC/SD/SDIO output signals can be driven on either falling edge or
-> >> rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-> >> to reach better timing performance, and thus to increase data transfer
-> >> frequency.
-> >>
-> >> There are few pre-requisites for enabling the HSPE bit
-> >> - Controller should support High-Speed-Enable Bit and
-> >> - Controller should not be using DDR Mode and
-> >> - Controller should advertise that it supports High Speed in
-> >>   capabilities register and
-> >> - MMC/SD clock coming out of controller > 25MHz
-> >>
-> >> Note:
-> >> The implementation reuses the output of calc_divisor() so as to reduce
-> >> code addition.
-> >>
-> >> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
-> >
-> > this looks good to my eyes, hopefully I haven't missed anything:
-> >
-> > Reviewed-by: Felipe Balbi <balbi@ti.com>
-> >
->=20
-> Except for the excessively verbose comments which are just duplicating th=
-e code,
-> <Quote>
-> >> +      * Enable High-Speed Support
-> >> +      * Pre-Requisites
-> >> +      *      - Controller should support High-Speed-Enable Bit
-> >> +      *      - Controller should not be using DDR Mode
-> >> +      *      - Controller should advertise that it supports High Speed
-> >> +      *        in capabilities register
-> >> +      *      - MMC/SD clock coming out of controller > 25MHz
-> >> +      */
-> </Quote>
->=20
-> I'm ok with this patch as well. I'm putting a few patches under test
-> including this one,
-> and will send it to Chris as part of that series.
-> I'll strip out the above mentioned comments, unless there are any
-> objections.
+Noticed one issue with my test compiles in the
+omap-for-v3.8/cleanup-headers branch that can be
+fixed along with this patch.
 
-please don't. Detailing the pre-requisites for getting HSP mode working
-isn't bad at all. Should someone decide to change the behavior and ends
-up breaking it, the comment will help putting things back together.
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -36,7 +36,6 @@
+ #include <media/v4l2-ioctl.h>
+ #include <plat/iommu.h>
+ #include <plat/iovmm.h>
+-#include <plat/omap-pm.h>
+ 
+ #include "ispvideo.h"
+ #include "isp.h"
 
-my 2 cents, you've got the final decision though.
+I'll fold that into this patch.
 
---=20
-balbi
+Regards,
 
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Tony
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQkYcaAAoJEIaOsuA1yqRE+iUP/RHTNhUlndpVvGiedfuSlYjl
-33HSSXBgyl+Pu9INdGHf79rbX2y4hpKtOcrMCafG72UPqJXsr4m4vs93yY/RXm5i
-Sz+w9JmlkE7rmO2RKmOyL4faEXf64fGMCvHg6sP7nxcQJk8m350FnZqWYwoi2Ho1
-8M1v4ls3I+7nl+aU2cOUwYLijorKRgU2l3/xqlh5Dj8RSpcQny/Iu1N7VbdhDQuO
-UuxvN2D0Xa5goLxkw5DcluikyfOY0iak2okApBDwsfYYzlQqI/K1XjjO/G30TJoG
-OAiHEopcaH2KJNa2zPyus0w91JJkw0MXV2EP5yS2N3VLzKW/TfD71//q+X330f3m
-sm6fskFR/2j98jW/I7s0hrlwQmepwPKxUAYUfuNiEwitSZgYTBuy9rTuBTrq5zhl
-XKAYN8XMEWH4wM3ReyGgs7UKhplAEVnCgwH9ZWTSQmOa2PBj5yOaVZahA4XPccZx
-6V9iyugmSQB/kBHZ7ua3XWiEExuMqw/bkxaW7k6k2URsU8cbFltVde1D3rPN2RCS
-F9yJo/4Fo/UPmc4BcPj+USl/OWOLxB+qbToq7vZW+KJ8S6rA7R/MidxcLUtZ/+jc
-1GUai4q8ypKOegSSMcepUxQkMDVj5lP2hd9z3YysMnoKTxf24DkyI1UbvRhukE9Z
-4u1yhR3SU6uZX7/5ipT0
-=D5yN
------END PGP SIGNATURE-----
-
---pf9I7BMVVzbSWLtt--
+ 
+> Cc: Jon Hunter <jon-hunter@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/Makefile              |    1 +
+>  arch/arm/mach-omap2/omap-pm-noop.c        |    4 ++--
+>  arch/arm/mach-omap2/timer.c               |    2 ++
+>  arch/arm/plat-omap/Makefile               |    1 -
+>  arch/arm/plat-omap/dmtimer.c              |   17 ++++++++++-------
+>  arch/arm/plat-omap/include/plat/dmtimer.h |    2 ++
+>  6 files changed, 17 insertions(+), 10 deletions(-)
+>  rename arch/arm/{plat-omap/omap-pm-noop.c => mach-omap2/omap-pm-noop.c} (99%)
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index e3de5d4..b118ed5 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -70,6 +70,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= sleep44xx.o
+>  obj-$(CONFIG_SOC_OMAP5)			+= omap-mpuss-lowpower.o sleep44xx.o
+>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+> +obj-$(CONFIG_OMAP_PM_NOOP)		+= omap-pm-noop.o
+>  
+>  obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
+>  obj-$(CONFIG_POWER_AVS_OMAP_CLASS3)	+= smartreflex-class3.o
+> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/mach-omap2/omap-pm-noop.c
+> similarity index 99%
+> rename from arch/arm/plat-omap/omap-pm-noop.c
+> rename to arch/arm/mach-omap2/omap-pm-noop.c
+> index 198685b..6a3be2b 100644
+> --- a/arch/arm/plat-omap/omap-pm-noop.c
+> +++ b/arch/arm/mach-omap2/omap-pm-noop.c
+> @@ -22,8 +22,8 @@
+>  #include <linux/device.h>
+>  #include <linux/platform_device.h>
+>  
+> -#include "../mach-omap2/omap_device.h"
+> -#include "../mach-omap2/omap-pm.h"
+> +#include "omap_device.h"
+> +#include "omap-pm.h"
+>  
+>  static bool off_mode_enabled;
+>  static int dummy_context_loss_counter;
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 565e575..95e4478 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -559,6 +559,8 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+>  	if (timer_dev_attr)
+>  		pdata->timer_capability = timer_dev_attr->timer_capability;
+>  
+> +	pdata->get_context_loss_count = omap_pm_get_dev_context_loss_count;
+> +
+>  	pdev = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
+>  				 NULL, 0, 0);
+>  
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 4bd0ace..50da9bf 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -19,4 +19,3 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
+>  # OMAP mailbox framework
+>  obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+>  
+> -obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index 4a0b30a..9a0bbc4 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -45,8 +45,6 @@
+>  
+>  #include <mach/hardware.h>
+>  
+> -#include "../mach-omap2/omap-pm.h"
+> -
+>  static u32 omap_reserved_systimers;
+>  static LIST_HEAD(omap_timer_list);
+>  static DEFINE_SPINLOCK(dm_timer_lock);
+> @@ -349,7 +347,8 @@ int omap_dm_timer_start(struct omap_dm_timer *timer)
+>  	omap_dm_timer_enable(timer);
+>  
+>  	if (!(timer->capability & OMAP_TIMER_ALWON)) {
+> -		if (omap_pm_get_dev_context_loss_count(&timer->pdev->dev) !=
+> +		if (timer->get_context_loss_count &&
+> +			timer->get_context_loss_count(&timer->pdev->dev) !=
+>  				timer->ctx_loss_count)
+>  			omap_timer_restore_context(timer);
+>  	}
+> @@ -378,9 +377,11 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
+>  
+>  	__omap_dm_timer_stop(timer, timer->posted, rate);
+>  
+> -	if (!(timer->capability & OMAP_TIMER_ALWON))
+> -		timer->ctx_loss_count =
+> -			omap_pm_get_dev_context_loss_count(&timer->pdev->dev);
+> +	if (!(timer->capability & OMAP_TIMER_ALWON)) {
+> +		if (timer->get_context_loss_count)
+> +			timer->ctx_loss_count =
+> +				timer->get_context_loss_count(&timer->pdev->dev);
+> +	}
+>  
+>  	/*
+>  	 * Since the register values are computed and written within
+> @@ -496,7 +497,8 @@ int omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
+>  	omap_dm_timer_enable(timer);
+>  
+>  	if (!(timer->capability & OMAP_TIMER_ALWON)) {
+> -		if (omap_pm_get_dev_context_loss_count(&timer->pdev->dev) !=
+> +		if (timer->get_context_loss_count &&
+> +			timer->get_context_loss_count(&timer->pdev->dev) !=
+>  				timer->ctx_loss_count)
+>  			omap_timer_restore_context(timer);
+>  	}
+> @@ -730,6 +732,7 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+>  	timer->reserved = omap_dm_timer_reserved_systimer(timer->id);
+>  	timer->pdev = pdev;
+>  	timer->capability = pdata->timer_capability;
+> +	timer->get_context_loss_count = pdata->get_context_loss_count;
+>  
+>  	/* Skip pm_runtime_enable for OMAP1 */
+>  	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
+> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+> index 85868e9..3f5b9cf 100644
+> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
+> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+> @@ -94,6 +94,7 @@ struct dmtimer_platform_data {
+>  	/* set_timer_src - Only used for OMAP1 devices */
+>  	int (*set_timer_src)(struct platform_device *pdev, int source);
+>  	u32 timer_capability;
+> +	int (*get_context_loss_count)(struct device *);
+>  };
+>  
+>  int omap_dm_timer_reserve_systimer(int id);
+> @@ -263,6 +264,7 @@ struct omap_dm_timer {
+>  	unsigned reserved:1;
+>  	unsigned posted:1;
+>  	struct timer_regs context;
+> +	int (*get_context_loss_count)(struct device *);
+>  	int ctx_loss_count;
+>  	int revision;
+>  	u32 capability;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
