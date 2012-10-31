@@ -1,74 +1,131 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH RFC] i2c: omap: Fix the revision register read
-Date: Wed, 31 Oct 2012 12:12:33 +0200
-Message-ID: <20121031101233.GC10094@arwen.pp.htv.fi>
-References: <1351673959-5918-1-git-send-email-shubhrajyoti@ti.com>
- <CAM=Q2cssHRYFJprozOSJqXNgeCub27jyVXkhvvMaxz-Z44d_EA@mail.gmail.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Wed, 31 Oct 2012 12:15:23 +0200
+Message-ID: <20121031101523.GD10094@arwen.pp.htv.fi>
+References: <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de>
+ <508E266C.6090901@ti.com>
+ <20121029080523.GC13657@arwen.pp.htv.fi>
+ <508E3D09.9090802@ti.com>
+ <20121029200328.GE30152@arwen.pp.htv.fi>
+ <508F7471.8060402@ti.com>
+ <20121030070904.GB1978@arwen.pp.htv.fi>
+ <508FE142.2020408@ti.com>
+ <20121030151029.GD29159@arwen.pp.htv.fi>
+ <5090FA26.5090808@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="XvKFcGCOAo53UbWW"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49771 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934308Ab2JaKVT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 06:21:19 -0400
 Content-Disposition: inline
-In-Reply-To: <CAM=Q2cssHRYFJprozOSJqXNgeCub27jyVXkhvvMaxz-Z44d_EA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+In-Reply-To: <5090FA26.5090808@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: balbi@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tim Niemeyer <tim.niemeyer@corscience.de>, Linux OMAP List <linux-omap@vger.kernel.org>
 
---3siQDZowHQqNOShm
+--XvKFcGCOAo53UbWW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Oct 31, 2012 at 03:02:57PM +0530, Shubhrajyoti Datta wrote:
-> On Wed, Oct 31, 2012 at 2:29 PM, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> wro=
-te:
-> > The revision register on OMAP4 is a 16-bit lo and a 16-bit
-> > hi. Currently the driver reads only the lower 8-bits.
-> > Fix the same by preventing the truncating of the rev register
-> > for OMAP4.
-> >
-> > Also use the scheme bit ie bit-14 of the hi register to know if it
-> > is OMAP_I2C_IP_VERSION_2.
-> >
-> > On platforms previous to OMAP4 the offset 0x04 is IE register whose
-> > bit-14 reset value is 0, the code uses the same to its advantage.
-> >
-> > The dev->regs is populated after reading the rev_hi. A NULL check
-> > has been added in the resume handler to prevent the access before
-> > the setting of the regs.
-> >
-> tested on omap4sdp, omap3630 based beagle , omap3430sdp.
+On Wed, Oct 31, 2012 at 05:15:02AM -0500, Jon Hunter wrote:
+> >>>> its bit of an issue to take care. How do you ensure that GPIO
+> >>>> does idle on SOC idle C-state attempts in such cases. Today that
+> >>>> job is done by omap_gpio_[prepare/resume]_for_idle.
+> >>>
+> >>> that's only there because we pm_runtime_get_sync() on gpio_request() =
+and
+> >>> pm_runtime_put_sync() only on gpio_free().
+> >>>
+> >>> That's the problem IMHO. And that's easy enough to 'fix':
+> >>>
+> >>> call pm_runtime_mark_last_busy(); pm_runtime_put_sync_autosuspend();
+> >>> also on gpio_request() and pm_runtime_get_sync() on gpio_free().
+> >>
+> >> Sounds like a good approach. I have been discussing with Kevin and I
+> >> need to look more at the resume handler as we are working around some
+> >> old issues in there and with this approach the resume following idle
+> >> will be delayed and we were not sure if there could be any implications
+> >> for omap2. I am hoping not, but we need to look into this.
+> >>
+> >> So I am wondering if we should just take Tim's original proposal for n=
+ow
+> >> and then I will look into improving this long term. I really need to
+> >> clean-up the suspend/resume stuff for gpio and so may be we can make
+> >> that a separate change. What do you think?
+> >=20
+> > that'll cause a regression right ?
+>=20
+> Sorry, not sure I follow.
 
-oh, now I see. You need to test on OMAP2 which has different revision
-layout.
+$SUBJECT will prevent core idle.
+
+> >>> The difficult part, IMHO, is to figure out what's a good autosuspend
+> >>> timeout to use. Some GPIO lines are used as IRQ lines on some devices,
+> >>> that means that the GPIO will be periodically triggered and, depending
+> >>> on our timeout, we will either loose IRQs or prevent power domain from
+> >>> idling. We could figure out a way to let board code to choose what it
+> >>> wants on a per-bank basis (maybe some extra DT attribute).
+> >>
+> >> I have also been bending Kevin's ear on this, this week and we were
+> >> wondering if we should make the default 0 for now as this will have the
+> >=20
+> > I believe you mean -1 here ;-)
+>=20
+> I did mean 0, so that it will autosuspend right away. Basically, it will
+> behave like today, however, will allow people to change the timeout. I
+
+yeah, that's the -1 timeout, it disables pm timer and all
+pm_runtime_*_autosuspend() will act as pm_runtime_*().
+
+> did not wish to make it -1 as then suspend/resume would not be exercised
+> and so people would need to change it via the sysfs to exercise deep
+> power states on the device.
+
+why won't be exercised ?
+
+> >> same behaviour that we have today but would allow Tim to customise via
+> >> the sysfs for his specific app.
+> >=20
+> > sysfs might be too late for his platform. What if he needs NFS root
+> > (just wondering, not sure about his use case) ?
+>=20
+> His use case was for SPI (see the original changelog). That's a good
+> point, but I am wondering if we can live with that for now.
+
+fair enough, but it's possible we will cause regressions. At least with
+current version of $SUBJECT, I guess.
 
 --=20
 balbi
 
---3siQDZowHQqNOShm
+--XvKFcGCOAo53UbWW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQkPmRAAoJEIaOsuA1yqREjwkQAJ7CTihLLygt9HLl/go2fpxH
-dLKrNKX81+58+Fu+EAZzXu7zVIAHgkhfd7eKwCsiwx39XQRM/vwaMuKQO31HBSGt
-Uo37K29RCH0HI9aTbKmiyHLqK/pl+FrK/+//1L/7+2q6d3PU2mGDdPmgI8wIn0Gj
-HL0lUFzmro0bnDFGkzGMw+I4zT5zUDQYtqpW95Y6N2TPKuURdVEzslgAgkCvLfzk
-6aK4r5h/RC4L7LNXIwPyIBKAsNoS3oGeafljmFE1rQOvBnqIiKQws8oy63WPJjna
-IUTEwu5uQgZnJx4myIiBKnxZ5vy0A+2cszdetb0xbDXFL5D8vZXuXmU8J3/qPNPo
-HwrlpfpBWxmRD3nih/u7xSHMvBVV94PtLA4fymkfMNjmhb0hUPvd8j7SNh1YceCI
-6DP2w+DBsOrEb0T3AIpHReak8vY2DziLI1N+R/Umf5v9wsUVXEuliB0z0UiK3yNg
-5qXwJXlz37uGLvTrU9l5oYnMBNN84aOgFuNpMPpOGokxzlk6aHjbvd8jaTSZKKiH
-g8X7ZZcC7aa3bcfSDtNQKqv09+P35/nYQ0B2WOEROq6NIZONIDDHgBDBW80eTzld
-yiTv28JjLbmQP4WGh5wMieuQYBiaEfh8TUp/x10ALR3axzVcDHijEnyZRK0JGpIZ
-b3vRsfE0fS4atZImP8Iz
-=J8cR
+iQIcBAEBAgAGBQJQkPo7AAoJEIaOsuA1yqRErtoQAK53rXsoWBIEVQuzhZGfLIJ6
+54Vk/rni+KUjHeVMPEDeqnutqY4XlB2JZ3A/PRNNk3c/gbUb+Ph9QK9cnhgqEPtD
+6DERSu45Ey/GnLQd4PBejNWYbXlQhBQZ4FeOFAe808/ndSULvCaTPd2eOVOyXr0P
+7HQbXD+u+kwjOlaEsXqjpZvBIT9mhsFb+C+E3n1D0huGWYXvOI5tYFMBKwwYkkCP
++WL3VLsqS16RUXIerIxpuE04VIui4THqlBKe0s/KX25vJRS5xWNc2nrcg70Za0/e
++BgKmdbcfmHIf4TcrprVzZpbNymqB8wxGUN1J0OJkBUZFX173P7GsL1ArdpDqJh2
+V21RBiceZctJXZ96let5jNZP9kIeps77i19PnmqnovM+NWpmqFJJGd+t26ztkIXI
+ONsiarn9XxgLl7uxo/HKRmrucqt3rnkjf7lwmBu6vZFfxeeuUGSmhDsWwjIYwR4D
+DlPv4pKm3H2oFKJVf/FnM8JTL4dMvqLCuneO26F+7mI1YLJipFX2d30PPETsglG3
+bQDu8eUi37eGxHz0fGqMSUw4IemzRkditx6ySI7B1NnyK7yVJGijxp0gCBENajGK
+IBWRrH+Kx8qOgp9x7efoFE2t1cFOWsZeCJ/hN3GzlP9Hkd1+0zeAC7yoo80x2O1B
+iE2PH3qsdpRW1te2+SWY
+=wdr0
 -----END PGP SIGNATURE-----
 
---3siQDZowHQqNOShm--
+--XvKFcGCOAo53UbWW--
