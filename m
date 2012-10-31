@@ -1,155 +1,147 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 12/12] OMAPDSS: DPI: always use DSI PLL if available
-Date: Wed, 31 Oct 2012 12:56:06 +0530
-Message-ID: <5090D28E.6050703@ti.com>
-References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-13-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 08/12] OMAPDSS: setup default dss fck
+Date: Wed, 31 Oct 2012 09:32:35 +0200
+Message-ID: <5090D413.7080800@ti.com>
+References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-9-git-send-email-tomi.valkeinen@ti.com> <5090C5B3.6020502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig16B174DEA18D97EADB8A6372"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38976 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39184 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932294Ab2JaH0W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Oct 2012 03:26:22 -0400
-In-Reply-To: <1351613409-21186-13-git-send-email-tomi.valkeinen@ti.com>
+	id S1751638Ab2JaHch (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 03:32:37 -0400
+In-Reply-To: <5090C5B3.6020502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Archit Taneja <archit@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com
 
-On Tuesday 30 October 2012 09:40 PM, Tomi Valkeinen wrote:
-> We currently get the decision whether to use PRCM or DSI PLL clock for
-> DPI from the board file. This is not a good way to handle it, and it
-> won't work with device tree.
->
-> This patch changes DPI to always use DSI PLL if it's available.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/dpi.c |   64 ++++++++++++++++++++++++-----------------
->   1 file changed, 37 insertions(+), 27 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-> index 267caf0..32e7dd5 100644
-> --- a/drivers/video/omap2/dss/dpi.c
-> +++ b/drivers/video/omap2/dss/dpi.c
-> @@ -49,28 +49,30 @@ static struct {
->   	struct omap_dss_output output;
->   } dpi;
->
-> -static struct platform_device *dpi_get_dsidev(enum omap_dss_clk_source clk)
-> +static struct platform_device *dpi_get_dsidev(enum omap_channel channel)
->   {
-> -	int dsi_module;
-> -
-> -	dsi_module = clk == OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC ? 0 : 1;
-> -
-> -	return dsi_get_dsidev_from_id(dsi_module);
-> +	switch (channel) {
-> +	case OMAP_DSS_CHANNEL_LCD:
-> +		return dsi_get_dsidev_from_id(0);
-> +	case OMAP_DSS_CHANNEL_LCD2:
-> +		return dsi_get_dsidev_from_id(1);
-> +	default:
-> +		return NULL;
-> +	}
->   }
->
-> -static bool dpi_use_dsi_pll(struct omap_dss_device *dssdev)
-> +static enum omap_dss_clk_source dpi_get_alt_clk_src(enum omap_channel channel)
->   {
-> -	if (dssdev->clocks.dispc.dispc_fclk_src ==
-> -			OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC ||
-> -			dssdev->clocks.dispc.dispc_fclk_src ==
-> -			OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC ||
-> -			dssdev->clocks.dispc.channel.lcd_clk_src ==
-> -			OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC ||
-> -			dssdev->clocks.dispc.channel.lcd_clk_src ==
-> -			OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC)
-> -		return true;
-> -	else
-> -		return false;
-> +	switch (channel) {
-> +	case OMAP_DSS_CHANNEL_LCD:
-> +		return OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC;
-> +	case OMAP_DSS_CHANNEL_LCD2:
-> +		return OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC;
-> +	default:
-> +		/* this shouldn't happen */
-> +		WARN_ON(1);
-> +		return OMAP_DSS_CLK_SRC_FCK;
-> +	}
->   }
->
->   static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
-> @@ -92,7 +94,7 @@ static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
->   		return r;
->
->   	dss_select_lcd_clk_source(mgr->id,
-> -			dssdev->clocks.dispc.channel.lcd_clk_src);
-> +			dpi_get_alt_clk_src(mgr->id));
->
->   	dpi.mgr_config.clock_info = dispc_cinfo;
->
-> @@ -385,6 +387,8 @@ static int __init dpi_verify_dsi_pll(struct platform_device *dsidev)
->
->   static int __init dpi_init_display(struct omap_dss_device *dssdev)
->   {
-> +	struct platform_device *dsidev;
-> +
->   	DSSDBG("init_display\n");
->
->   	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) &&
-> @@ -401,17 +405,23 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
->   		dpi.vdds_dsi_reg = vdds_dsi;
->   	}
->
-> -	if (dpi_use_dsi_pll(dssdev)) {
-> -		enum omap_dss_clk_source dispc_fclk_src =
-> -			dssdev->clocks.dispc.dispc_fclk_src;
-> -		dpi.dsidev = dpi_get_dsidev(dispc_fclk_src);
-> +	/*
-> +	 * XXX We shouldn't need dssdev->channel for this. The dsi pll clock
-> +	 * source for DPI is SoC integration detail, not something that should
-> +	 * be configured in the dssdev
-> +	 */
+--------------enig16B174DEA18D97EADB8A6372
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-It is SoC integration detail, but it's flexible, it depends on which 
-manager is connected to DPI output. If it's connected to LCD1, the 
-source can be DSI1 PLL, if it's LCD2, it's source can be DSI2 PLL, if 
-it's connected to TV manager, it's source "has to be" HDMI PLL. And 
-these connections vary based on which OMAP revision we are on. We can 
-only be certain on OMAP3 that the source for DPI pixel clock can be 
-either PRCM or DSI PLL.
+On 2012-10-31 08:31, Archit Taneja wrote:
+> On Tuesday 30 October 2012 09:40 PM, Tomi Valkeinen wrote:
+>> We don't currently set the dss fck when starting up. This is not a
+>> problem, as we setup the fck later when configuring the pixel clocks. =
+Or
+>> this is how it was for omap2, for the rest of the omaps this may not b=
+e
+>> so.
+>>
+>> For DSI, HDMI and also for DPI when using DSI PLL, we don't need to
+>> change the dss fck, and thus it may be left unconfigured. Usually the
+>> dss fck is already setup fine by default, but we can't trust this.
+>>
+>> This patch sets the dss fck to maximum at probe time.
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>> ---
+>>   drivers/video/omap2/dss/dss.c |   36
+>> ++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 36 insertions(+)
+>>
+>> diff --git a/drivers/video/omap2/dss/dss.c
+>> b/drivers/video/omap2/dss/dss.c
+>> index 5affa86..034cc1a 100644
+>> --- a/drivers/video/omap2/dss/dss.c
+>> +++ b/drivers/video/omap2/dss/dss.c
+>> @@ -485,6 +485,36 @@ unsigned long dss_get_dpll4_rate(void)
+>>           return 0;
+>>   }
+>>
+>> +static int dss_setup_default_clock(void)
+>> +{
+>> +    unsigned long max_dss_fck, prate;
+>> +    unsigned fck_div;
+>> +    struct dss_clock_info dss_cinfo =3D { 0 };
+>> +    int r;
+>> +
+>> +    if (dss.dpll4_m4_ck =3D=3D NULL)
+>> +        return 0;
+>> +
+>> +    max_dss_fck =3D dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
+>> +
+>> +    prate =3D dss_get_dpll4_rate();
+>=20
+> Not related to this patch, but maybe we could change the
+> dss_get_dpll4_rate() name and dss.dpll4_m4_clk to something better.
+> Maybe something like dss_fck_parent?
 
-At the point of probe, we really don't know which manager is the DPI 
-output connected to. Hence, we sort of use dssdev->channel to make a 
-guess what manager we connect to in the future.
+I agree. Or, even better, we should fix the omap clk data/code so that
+we could set the dss fck, without this trickery. But I have no idea if
+that's easy or difficult.
 
-The right approach would be to figure this out at the time of enable, 
-where we know which manager the DPI output is connected to. We could 
-probably move the verification there too.
+>> +
+>> +    fck_div =3D DIV_ROUND_UP(prate * dss.feat->dss_fck_multiplier,
+>> +            max_dss_fck);
+>> +
+>> +    dss_cinfo.fck_div =3D fck_div;
+>> +
+>> +    r =3D dss_calc_clock_rates(&dss_cinfo);
+>> +    if (r)
+>> +        return r;
+>> +
+>> +    r =3D dss_set_clock_div(&dss_cinfo);
+>> +    if (r)
+>> +        return r;
+>> +
+>> +    return 0;
+>> +}
+>> +
+>>   int dss_calc_clock_div(unsigned long req_pck, struct dss_clock_info
+>> *dss_cinfo,
+>>           struct dispc_clock_info *dispc_cinfo)
+>>   {
+>> @@ -913,6 +943,10 @@ static int __init omap_dsshw_probe(struct
+>> platform_device *pdev)
+>>       dss.lcd_clk_source[0] =3D OMAP_DSS_CLK_SRC_FCK;
+>>       dss.lcd_clk_source[1] =3D OMAP_DSS_CLK_SRC_FCK;
+>>
+>> +    r =3D dss_setup_default_clock();
+>> +    if (r)
+>> +        goto err_setup_clocks;
+>=20
+> Maybe it's safer to call this before we do a dss_runtime_get(). On
+> OMAP4, DSS_FCLK is needed to access registers also. Changing it's rate
+> might not be liked by the DSS HW. Also, it seems more logical to call i=
+t
+> after dss_get_clocks() in omap_dsshw_probe(), then we sort of group the=
 
-Archit
+> clock related stuff together.
 
-> +	dsidev = dpi_get_dsidev(dssdev->channel);
->
-> -		if (dpi_verify_dsi_pll(dpi.dsidev)) {
-> -			dpi.dsidev = NULL;
-> -			DSSWARN("DSI PLL not operational\n");
-> -		}
-> +	if (dpi_verify_dsi_pll(dsidev)) {
-> +		dsidev = NULL;
-> +		DSSWARN("DSI PLL not operational\n");
->   	}
->
-> +	if (dsidev)
-> +		DSSDBG("using DSI PLL for DPI clock\n");
-> +
-> +	dpi.dsidev = dsidev;
-> +
->   	return 0;
->   }
->
->
+Yes, good point. I don't think DSS has any problems with the clock
+changing, as long as it's not outputting an image (but I'm not sure). In
+any case, it makes sense to setup the clocks dss_get_clocks as you said.
 
+ Tomi
+
+
+
+--------------enig16B174DEA18D97EADB8A6372
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQkNQTAAoJEPo9qoy8lh718M4P/R5SmWfu4t7zVQB2fexEPi1h
+7ce+pqD39u7LmaDXbp37mzt8MR9TkiEhej0Px+kY1cv6Qxi08DIYEunclkRMShoe
+ZwkXSSGOsRQim62bSCu943qEWaQXATQMDiqG3VhN3HLWZQ6el4zBbksPJyfMSs8k
+hDizzQRw9XuEl8BCM3apEZo5psb+XsybgeGPiSp/KK5ykCuEOoXBRQOp+r4IP8aI
+si6pVaAqF9vRWZ33JDzyBbSrXwLhn4F5Dq52uHUr18mDLQbu+BzB+UO9ZBCcfu4C
+u9HzGFwnIJR6dtjvpdJADduCM4kx8mT4DY3EH5ZiEhA1uMgXwQ6FGJN3sSm2luNt
+/ft9FAM0dRxS7cTPjMViE2XOjFgu8vU+K7fTU1jQHHBtJazvrakGsR4kt1h3dPuy
+e7sRsn6+EWLC8iHtYN3O4vogVsGxY28e6iett9z1aixFFXmPsTy8ocW577laPVmH
+7bNqnQ/NSjO4Qk+T/WmEQzyx4oSmWpua+tEr9XRWrFzHNkm2ddtIYwFSZY/MCxck
+d2v4E7rtsLPCbkwQENpBZmpbOe1Wg+FSXl0RXoxDvnTNYHOhAe6zn1sZ6yMcWQye
+hUmi5T7EqZKOz8AWdADfohtWZUWnCPCW5IxfOi277MQoCCM67t3OAuaBcT4N/cbb
+obsukrWqJpkyi4p/QPpS
+=7NC5
+-----END PGP SIGNATURE-----
+
+--------------enig16B174DEA18D97EADB8A6372--
