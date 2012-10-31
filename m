@@ -1,55 +1,61 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [RESEND PATCH 00/11] ARM: OMAP: USB: Host: Device tree Adaptation
-Date: Wed, 31 Oct 2012 19:56:41 +0530
-Message-ID: <1351693612-23314-1-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [RESEND PATCH 03/11] ARM: OMAP3: USB: Add USB2 Host Device Tree Node
+Date: Wed, 31 Oct 2012 19:56:44 +0530
+Message-ID: <1351693612-23314-4-git-send-email-keshava_mgowda@ti.com>
+References: <1351693612-23314-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35309 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756733Ab2JaO1F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Oct 2012 10:27:05 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1351693612-23314-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com, b-cousson@ti.com
 
-The USB2 Host driver of OMAP3/OMAP4 are device tree complaiant with
-this patch series.
-The device tree data of UHH, EHCI, OHCI and TLL are included.
-The drivers are updated to extract and use the register set and
-interrupt numbers delivered by these device tree structures.
+The device tree node details of usb2 host and tll components
+are included for OMAP3
 
-Keshava Munegowda (11):
-  ARM: OMAP4: USB: Host: Add USB2 Host Device Tree Node
-  ARM: OMAP4: USB: Host: Panda board specific device tree node
-  ARM: OMAP3: USB: Add USB2 Host Device Tree Node
-  ARM: OMAP3: USB: Host: Beagle-XM board specific device tree node
-  ARM: OMAP: USB: Host: usb host Device tree node Adaptation
-  ARM: OMAP: USB: Host: USB TLL Device tree node Adaptation
-  ARM: OMAP: USB: Host: Ehci driver uses the usbhs port data
-  ARM: OMAP: USB: Change the TLL clock names
-  ARM: OMAP: USB: Remove the device name for TLL channel clocks for
-    OMAP3
-  ARM: OMAP4: USB: Add pin mux configuration for panda board
-  ARM: OMAP3: USB: Add pin mux configuration for beagle-xm board
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap3.dtsi |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
- .../devicetree/bindings/usb/omap-usb-host.txt      |   24 +++
- .../devicetree/bindings/usb/omap-usb-tll.txt       |   21 ++
- arch/arm/boot/dts/omap3-beagle-xm.dts              |   56 +++++
- arch/arm/boot/dts/omap3.dtsi                       |   22 ++
- arch/arm/boot/dts/omap4-panda.dts                  |   51 +++++
- arch/arm/boot/dts/omap4.dtsi                       |   22 ++
- arch/arm/mach-omap2/clock3xxx_data.c               |    6 +-
- arch/arm/mach-omap2/usb-host.c                     |   68 ------
- drivers/mfd/omap-usb-host.c                        |  170 ++++++++++-----
- drivers/mfd/omap-usb-tll.c                         |  216 ++++++++++++--------
- drivers/usb/host/ehci-omap.c                       |   40 ++--
- include/linux/platform_data/usb-omap.h             |   31 ++-
- 12 files changed, 485 insertions(+), 242 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/usb/omap-usb-host.txt
- create mode 100644 Documentation/devicetree/bindings/usb/omap-usb-tll.txt
-
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 696e929..5c805d7 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -300,5 +300,27 @@
+ 			ti,buffer-size = <128>;
+ 			ti,hwmods = "mcbsp5";
+ 		};
++
++		usbhs: usbhs@0x4a064000 {
++			compatible = "ti,usbhs";
++			reg = <0x48064000 0x400>, /* uhh */
++				  <0x48064400 0x400>, /* ohci */
++				  <0x48064800 0x400>; /* ehci */
++			reg-names = "uhh", "ohci", "ehci";
++			interrupts = <76>, <77>;
++			interrupt-names = "ohci-irq", "ehci-irq";
++			interrupt-parent = <&intc>;
++			ti,hwmods = "usb_host_hs";
++		};
++
++		usbtll: usbtll@0x4a062000 {
++			compatible = "ti,usbtll";
++			reg = <0x48062000 0x1000>;
++			reg-names = "tll";
++			interrupts = <78>;
++			interrupt-names = "tll-irq";
++			interrupt-parent = <&intc>;
++			ti,hwmods = "usb_tll_hs";
++		};
+ 	};
+ };
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
