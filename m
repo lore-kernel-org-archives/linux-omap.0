@@ -1,71 +1,62 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] ti_tscadc: Match mfd sub devices to regmap interface
-Date: Wed, 31 Oct 2012 09:12:54 +0100
-Message-ID: <5090DD86.7090204@metafoo.de>
-References: <1351698945-3881-1-git-send-email-panto@antoniou-consulting.com> <CA+Bv8XbCweGxKg-VsM2=g5KJEbLZhUA8F=iAG2st7c0JRLH58g@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Wed, 31 Oct 2012 04:18:18 -0400
+Message-ID: <CAORVsuWBwaFR_n4eMYTuC_vZ810MzSErXHM_qX78biN1Ns-k+g@mail.gmail.com>
+References: <alpine.DEB.2.00.1210180517450.8674@utopia.booyaka.com>
+	<alpine.DEB.2.00.1210191645390.10773@utopia.booyaka.com>
+	<alpine.DEB.2.00.1210200611150.9865@utopia.booyaka.com>
+	<CAORVsuUkU3iTTFcXfYJ=_FntjiTR33Gs4z9OsNEn2Cxq7Ef-qA@mail.gmail.com>
+	<CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com>
+	<alpine.DEB.2.00.1210231918500.27211@utopia.booyaka.com>
+	<CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com>
+	<alpine.DEB.2.00.1210300416190.12697@utopia.booyaka.com>
+	<CAORVsuWt22yRy9cHAU1u+9K7Fy4Zi95UN4wOh2DeVe61S-u5Cg@mail.gmail.com>
+	<alpine.DEB.2.00.1210301120290.12697@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <CA+Bv8XbCweGxKg-VsM2=g5KJEbLZhUA8F=iAG2st7c0JRLH58g@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Jonathan Cameron <jic23@cam.ac.uk>, "Patil, Rachna" <rachna@ti.com>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:60537 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755349Ab2JaISU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 04:18:20 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so1672199iea.19
+        for <linux-omap@vger.kernel.org>; Wed, 31 Oct 2012 01:18:19 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1210301120290.12697@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: balbi@ti.com, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 
-On 10/31/2012 05:41 AM, Russ Dill wrote:
-> On Wed, Oct 31, 2012 at 8:55 AM, Pantelis Antoniou
-> <panto@antoniou-consulting.com> wrote:
->> The MFD parent device now uses a regmap, instead of direct
->> memory access. Use the same method in the sub devices to avoid
->> nasty surprises.
->>
->> Also rework the channel initialization of tiadc a bit.
->>
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->> ---
->>  drivers/iio/adc/ti_am335x_adc.c           | 27 +++++++++++++++++++--------
->>  drivers/input/touchscreen/ti_am335x_tsc.c | 16 +++++++++++++---
->>  drivers/mfd/ti_am335x_tscadc.c            |  7 +++++--
->>  3 files changed, 37 insertions(+), 13 deletions(-)
->>
->> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
->> index d48fd79..5f325c1 100644
->> --- a/drivers/iio/adc/ti_am335x_adc.c
->> +++ b/drivers/iio/adc/ti_am335x_adc.c
->> @@ -23,7 +23,9 @@
->>  #include <linux/iio/iio.h>
->>  #include <linux/iio/machine.h>
->>  #include <linux/iio/driver.h>
->> +#include <linux/regmap.h>
->>
->> +#include <linux/io.h>
->>  #include <linux/mfd/ti_am335x_tscadc.h>
->>  #include <linux/platform_data/ti_am335x_adc.h>
->>
->> @@ -36,13 +38,17 @@ struct tiadc_device {
->>
->>  static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
->>  {
->> -       return readl(adc->mfd_tscadc->tscadc_base + reg);
->> +       unsigned int val;
->> +
->> +       val = (unsigned int)-1;
->> +       regmap_read(adc->mfd_tscadc->regmap_tscadc, reg, &val);
->> +       return val;
->>  }
-> 
-> Would it be cleaner to instead do:
-> 
-> static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
-> {
->        unsigned int val;
-> 
->        return regmap_read(adc->mfd_tscadc->regmap_tscadc, reg, &val) ? : val;
-> }
+Hi Paul,
 
-In my opinion the best would be to just mimic the regmap interface here. Return
-an error code or 0 and pass the value back through a pointer parameter.
+On Tue, Oct 30, 2012 at 7:23 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi Jean,
+>
+> On Tue, 30 Oct 2012, Jean Pihet wrote:
+>
+>> On Tue, Oct 30, 2012 at 5:16 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>> > On Tue, 23 Oct 2012, Jean Pihet wrote:
+>> >
+>> >> Let me try with the same setup as yours (bootloader images,
+>> >> omap2pus_defconfig, angstrom roots).
+>> >
+>> > Had any luck reproducing this one that Aaro & I are seeing?
+>> Unfortunately not. I could not reproduce the issue on my side, using
+>> an ES2.1 Beagleboard with the latest l-o kernel and your bootloader
+>> and rootfs images.
+>> Is there some specific to enable in order to reproduce the issue?
+>
+> Could you please post a bootlog from your terminal program, similar to
+>
+> http://www.pwsan.com/omap/testlogs/test_v3.7-rc3/20121028162003/boot/3530es3beagle/3530es3beagle_log.txt
+>
+> ?
+Yes sure. Let me try to reproduce the problem again. As said
+previously I cannot have the timeouts issue.
 
+More to come.
 
-
+Jean
+>
+>
+> - Paul
