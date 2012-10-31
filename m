@@ -1,73 +1,51 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: OMAP baseline test results for v3.7-rc3
-Date: Wed, 31 Oct 2012 14:24:36 +0000
-Message-ID: <509134A4.708@mimc.co.uk>
-References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk> <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EB51E84@DBDE01.ent.ti.com> <508FE8BA.1080404@ti.com> <50912A6F.1040501@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH 2/2] usb: musb: dsps: document dt bindings properly
+Date: Wed, 31 Oct 2012 19:54:38 +0530
+Message-ID: <7c399cb14657f586708749a6a4528fbd4d1aba6b.1351691448.git.afzal@ti.com>
+References: <cover.1351691448.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:43765 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1422911Ab2JaOYh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 10:24:37 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:35102 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422911Ab2JaOYl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 10:24:41 -0400
+In-Reply-To: <cover.1351691448.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Afzal Mohammed <afzal@ti.com>
 
-On 31/10/12 13:57, Hiremath, Vaibhav wrote:
-> On Wed, Oct 31, 2012 at 19:11:03, Mark Jackson wrote:
->>
->> If I try the latest mainline U-Boot (or the TI branch), I just get to "Starting kernel ..." and then
->> hangs.
->>
-> 
-> 
-> I am using Mainline u-boot and it works for me. Can you paste u-boot boot 
-> log and environment variable here?
+DT bindings normally use '-' (hyphens) instead of '_' (underscore),
+driver has it the proper way, but binding documentation does not
+reflect it, fix it.
 
-------------------------
-mainline U-Boot boot log
-------------------------
-U-Boot SPL 2012.10-00434-ged296d2 (Oct 31 2012 - 14:18:50)
-OMAP SD/MMC: 0
-reading u-boot.img
-reading u-boot.img
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ Documentation/devicetree/bindings/usb/am33xx-usb.txt | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+index ca8fa56..a922505 100644
+--- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -3,12 +3,12 @@ AM33XX MUSB GLUE
+  - ti,hwmods : must be "usb_otg_hs"
+  - multipoint : Should be "1" indicating the musb controller supports
+    multipoint. This is a MUSB configuration-specific setting.
+- - num_eps : Specifies the number of endpoints. This is also a
++ - num-eps : Specifies the number of endpoints. This is also a
+    MUSB configuration-specific setting. Should be set to "16"
+- - ram_bits : Specifies the ram address size. Should be set to "12"
+- - port0_mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
++ - ram-bits : Specifies the ram address size. Should be set to "12"
++ - port0-mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
+    represents PERIPHERAL.
+- - port1_mode : Should be "1" to represent HOST. "3" signifies OTG and "2"
++ - port1-mode : Should be "1" to represent HOST. "3" signifies OTG and "2"
+    represents PERIPHERAL.
+  - power : Should be "250". This signifies the controller can supply upto
+    500mA when operating in host mode.
+-- 
+1.7.12
 
-U-Boot 2012.10-00434-ged296d2 (Oct 31 2012 - 14:18:50)
-
-I2C:   ready
-DRAM:  256 MiB
-WARNING: Caches not enabled
-MMC:   OMAP SD/MMC: 0, OMAP SD/MMC: 1
-Using default environment
-
-Net:   cpsw
-Hit any key to stop autoboot:  0
-mmc0 is current device
-SD/MMC found on device 0
-reading uEnv.txt
-29 bytes read
-Loaded environment from uEnv.txt
-Importing environment from mmc ...
-4315695 bytes read
-Booting from mmc ...
-## Booting kernel from Legacy Image at 80200000 ...
-   Image Name:   Linux-3.7.0-rc1-47802-ge7289dc-d
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    4308448 Bytes = 4.1 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-   Loading Kernel Image ... OK
-OK
-
-Starting kernel ...
-
-------------------------
-Contents of uEnv.txt
---------------------
-mmcrootfstype=ext2 rootwait
