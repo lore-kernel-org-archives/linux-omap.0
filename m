@@ -1,7 +1,7 @@
 From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 04/11] ARM: OMAP3: USB: Host: Beagle-XM board specific device tree node
-Date: Wed, 31 Oct 2012 17:46:42 +0530
-Message-ID: <1351685810-20616-5-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH 02/11] ARM: OMAP4: USB: Host: Panda board specific device tree node
+Date: Wed, 31 Oct 2012 17:46:40 +0530
+Message-ID: <1351685810-20616-3-git-send-email-keshava_mgowda@ti.com>
 References: <1351685810-20616-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,23 +12,30 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06
 Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-OMAP3 Beagle-XM board specific data for usb2 host device tree node
-is included.
-In Beagle XM board , the port 2 of usb host is connected to a hub
-with ethernet interface.
+OMAP4 panda board specific device tree node is included.
+
+In OMAP4 panda board, the port 1 is used in ULPI PHY mode.
+The port 1 is connected to a on board hub with ethernet
+interface.
+
+TODO:
+   The clock bindings are not yet avilable for OMAP4.
+   hence , USB hub specific clocks are exported as device tree string
+   paramters.
+   Will be changed to use the clock bindings later
 
 Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-beagle-xm.dts |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ arch/arm/boot/dts/omap4-panda.dts |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index c38cf76..b9f8667 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -113,3 +113,35 @@
- 	 */
- 	ti,pulldowns = <0x03a1c4>;
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index e8f927c..dad0df6 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -184,3 +184,36 @@
+ &dmic {
+ 	status = "disabled";
  };
 +
 +&usbhs {
@@ -50,17 +57,18 @@ index c38cf76..b9f8667 100644
 +	 * OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0	= 12,
 +	 * OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM	= 13,
 +	 */
-+	port-0 = <0>;
-+	port-1 = <1>;
++	port-0 = <1>;
++	port-1 = <0>;
 +	port-2 = <0>;
 +
 +	/*
-+	 * gpio resets should be given the format ( Max of 3 ports)
-+	 * reset-gpio-1 = <&gpiox x x>
-+	 * reset-gpio-2 = <&gpiox x x>
-+	 * reset-gpio-3 = <&gpiox x x>
++	 * In some boards, the controller is always connected to hub
++	 * the pandboard always has the hub connect to port0 of usbhs controller
 +	 */
-+	reset-gpio-2 = <&gpio5 19 0>;   /* gpio 147 */
++	hub-power-gpio = <&gpio1 1 0>;
++	hub-reset-gpio = <&gpio2 30 0>;  /* gpio 62 */
++	hub-clk = "auxclk3_ck";
++	hub-clkrate = <19200000>;
 +};
 -- 
 1.7.9.5
