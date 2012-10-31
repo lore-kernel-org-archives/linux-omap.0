@@ -1,204 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND PATCH V2] mmc: omap_hsmmc: Enable HSPE bit for high
- speed cards
-Date: Wed, 31 Oct 2012 12:04:22 +0200
-Message-ID: <20121031100422.GA10094@arwen.pp.htv.fi>
-References: <1351672116-17309-1-git-send-email-gururaja.hebbar@ti.com>
-Reply-To: <balbi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Wed, 31 Oct 2012 05:15:02 -0500
+Message-ID: <5090FA26.5090808@ti.com>
+References: <20121026114250.GA26342@arwen.pp.htv.fi> <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de> <508E266C.6090901@ti.com> <20121029080523.GC13657@arwen.pp.htv.fi> <508E3D09.9090802@ti.com> <20121029200328.GE30152@arwen.pp.htv.fi> <508F7471.8060402@ti.com> <20121030070904.GB1978@arwen.pp.htv.fi> <508FE142.2020408@ti.com> <20121030151029.GD29159@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1351672116-17309-1-git-send-email-gururaja.hebbar@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: balbi@ti.com, svenkatr@ti.com, cjb@laptop.org, balajitk@ti.com, grant.likely@secretlab.ca, nsekhar@ti.com, sudhakar.raj@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49555 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751553Ab2JaKPK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 06:15:10 -0400
+In-Reply-To: <20121030151029.GD29159@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tim Niemeyer <tim.niemeyer@corscience.de>, Linux OMAP List <linux-omap@vger.kernel.org>
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On 10/30/2012 10:10 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Tue, Oct 30, 2012 at 09:16:34AM -0500, Jon Hunter wrote:
+>> Hi Felipe,
+>>
+>> On 10/30/2012 02:09 AM, Felipe Balbi wrote:
+>>
+>> ...
+>>
+>>>> its bit of an issue to take care. How do you ensure that GPIO
+>>>> does idle on SOC idle C-state attempts in such cases. Today that
+>>>> job is done by omap_gpio_[prepare/resume]_for_idle.
+>>>
+>>> that's only there because we pm_runtime_get_sync() on gpio_request() and
+>>> pm_runtime_put_sync() only on gpio_free().
+>>>
+>>> That's the problem IMHO. And that's easy enough to 'fix':
+>>>
+>>> call pm_runtime_mark_last_busy(); pm_runtime_put_sync_autosuspend();
+>>> also on gpio_request() and pm_runtime_get_sync() on gpio_free().
+>>
+>> Sounds like a good approach. I have been discussing with Kevin and I
+>> need to look more at the resume handler as we are working around some
+>> old issues in there and with this approach the resume following idle
+>> will be delayed and we were not sure if there could be any implications
+>> for omap2. I am hoping not, but we need to look into this.
+>>
+>> So I am wondering if we should just take Tim's original proposal for now
+>> and then I will look into improving this long term. I really need to
+>> clean-up the suspend/resume stuff for gpio and so may be we can make
+>> that a separate change. What do you think?
+> 
+> that'll cause a regression right ?
 
-On Wed, Oct 31, 2012 at 01:58:35PM +0530, Hebbar, Gururaja wrote:
-> HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-> Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-> on the HSMMC IP timing closure done for the high speed cards.
->=20
-> From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
->=20
-> The MMC/SD/SDIO output signals can be driven on either falling edge or
-> rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-> to reach better timing performance, and thus to increase data transfer
-> frequency.
->=20
-> There are few pre-requisites for enabling the HSPE bit
-> - Controller should support High-Speed-Enable Bit and
-> - Controller should not be using DDR Mode and
-> - Controller should advertise that it supports High Speed in
->   capabilities register and
-> - MMC/SD clock coming out of controller > 25MHz
->=20
-> Note:
-> The implementation reuses the output of calc_divisor() so as to reduce
-> code addition.
->=20
-> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
-> ---
-> Rebased on mmc-next (v3.7.0-rc1)
-> Only Build tested since EDMA support for AM335x is not yet added
->=20
-> Changes in V2
-> 	- Added note in commit message about code re-use
-> 	- replaced ((a & BIT(n) =3D=3D BIT(n))) with (a & BIT(n)) since
-> 	  effectively both are same.
->=20
-> :100644 100644 be76a23... ed271fc... M	Documentation/devicetree/bindings/=
-mmc/ti-omap-hsmmc.txt
-> :100644 100644 8b4e4f2... 346af5b... M	arch/arm/plat-omap/include/plat/mm=
-c.h
-> :100644 100644 54bfd0c... 5ea4c9d... M	drivers/mmc/host/omap_hsmmc.c
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
->  arch/arm/plat-omap/include/plat/mmc.h              |    1 +
->  drivers/mmc/host/omap_hsmmc.c                      |   30 ++++++++++++++=
-+++++-
->  3 files changed, 31 insertions(+), 1 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Do=
-cumentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> index be76a23..ed271fc 100644
-> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> @@ -19,6 +19,7 @@ ti,dual-volt: boolean, supports dual voltage cards
->  "supply-name" examples are "vmmc", "vmmc_aux" etc
->  ti,non-removable: non-removable slot (like eMMC)
->  ti,needs-special-reset: Requires a special softreset sequence
-> +ti,needs-special-hs-handling: HSMMC IP needs special setting for handlin=
-g High Speed
-> =20
->  Example:
->  	mmc1: mmc@0x4809c000 {
-> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/i=
-nclude/plat/mmc.h
-> index 8b4e4f2..346af5b 100644
-> --- a/arch/arm/plat-omap/include/plat/mmc.h
-> +++ b/arch/arm/plat-omap/include/plat/mmc.h
-> @@ -126,6 +126,7 @@ struct omap_mmc_platform_data {
->  		/* we can put the features above into this variable */
->  #define HSMMC_HAS_PBIAS		(1 << 0)
->  #define HSMMC_HAS_UPDATED_RESET	(1 << 1)
-> +#define HSMMC_HAS_HSPE_SUPPORT	(1 << 2)
->  		unsigned features;
-> =20
->  		int switch_pin;			/* gpio (card detect) */
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 54bfd0c..5ea4c9d 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -62,6 +62,7 @@
-> =20
->  #define VS18			(1 << 26)
->  #define VS30			(1 << 25)
-> +#define HSS			(1 << 21)
->  #define SDVS18			(0x5 << 9)
->  #define SDVS30			(0x6 << 9)
->  #define SDVS33			(0x7 << 9)
-> @@ -89,6 +90,7 @@
->  #define MSBS			(1 << 5)
->  #define BCE			(1 << 1)
->  #define FOUR_BIT		(1 << 1)
-> +#define HSPE			(1 << 2)
->  #define DDR			(1 << 19)
->  #define DW8			(1 << 5)
->  #define CC			0x1
-> @@ -489,6 +491,7 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_ho=
-st *host)
->  	struct mmc_ios *ios =3D &host->mmc->ios;
->  	unsigned long regval;
->  	unsigned long timeout;
-> +	unsigned long clkdiv;
-> =20
->  	dev_vdbg(mmc_dev(host->mmc), "Set clock to %uHz\n", ios->clock);
-> =20
-> @@ -496,7 +499,8 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_ho=
-st *host)
-> =20
->  	regval =3D OMAP_HSMMC_READ(host->base, SYSCTL);
->  	regval =3D regval & ~(CLKD_MASK | DTO_MASK);
-> -	regval =3D regval | (calc_divisor(host, ios) << 6) | (DTO << 16);
-> +	clkdiv =3D calc_divisor(host, ios);
-> +	regval =3D regval | (clkdiv << 6) | (DTO << 16);
->  	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
->  	OMAP_HSMMC_WRITE(host->base, SYSCTL,
->  		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
-> @@ -507,6 +511,27 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_h=
-ost *host)
->  		&& time_before(jiffies, timeout))
->  		cpu_relax();
-> =20
-> +	/*
-> +	 * Enable High-Speed Support
-> +	 * Pre-Requisites
-> +	 *	- Controller should support High-Speed-Enable Bit
-> +	 *	- Controller should not be using DDR Mode
-> +	 *	- Controller should advertise that it supports High Speed
-> +	 *	  in capabilities register
-> +	 *	- MMC/SD clock coming out of controller > 25MHz
-> +	 */
-> +	if ((mmc_slot(host).features & HSMMC_HAS_HSPE_SUPPORT) &&
-> +	    (ios->timing !=3D MMC_TIMING_UHS_DDR50) &&
-> +	    (OMAP_HSMMC_READ(host->base, CAPA) & HSS)) {
-> +		regval =3D OMAP_HSMMC_READ(host->base, HCTL);
-> +		if (clkdiv && (clk_get_rate(host->fclk)/clkdiv) > 25000000)
+Sorry, not sure I follow.
 
-that clk rate could be a symbolic define.
+>>> The difficult part, IMHO, is to figure out what's a good autosuspend
+>>> timeout to use. Some GPIO lines are used as IRQ lines on some devices,
+>>> that means that the GPIO will be periodically triggered and, depending
+>>> on our timeout, we will either loose IRQs or prevent power domain from
+>>> idling. We could figure out a way to let board code to choose what it
+>>> wants on a per-bank basis (maybe some extra DT attribute).
+>>
+>> I have also been bending Kevin's ear on this, this week and we were
+>> wondering if we should make the default 0 for now as this will have the
+> 
+> I believe you mean -1 here ;-)
 
-> +			regval |=3D HSPE;
-> +		else
-> +			regval &=3D ~HSPE;
-> +
-> +		OMAP_HSMMC_WRITE(host->base, HCTL, regval);
-> +	}
-> +
->  	omap_hsmmc_start_clock(host);
->  }
-> =20
-> @@ -1700,6 +1725,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_=
-pdata(struct device *dev)
->  	if (of_find_property(np, "ti,needs-special-reset", NULL))
->  		pdata->slots[0].features |=3D HSMMC_HAS_UPDATED_RESET;
-> =20
-> +	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
-> +		pdata->slots[0].features |=3D HSMMC_HAS_HSPE_SUPPORT;
+I did mean 0, so that it will autosuspend right away. Basically, it will
+behave like today, however, will allow people to change the timeout. I
+did not wish to make it -1 as then suspend/resume would not be exercised
+and so people would need to change it via the sysfs to exercise deep
+power states on the device.
 
-this could be of_property_read_bool().
+>> same behaviour that we have today but would allow Tim to customise via
+>> the sysfs for his specific app.
+> 
+> sysfs might be too late for his platform. What if he needs NFS root
+> (just wondering, not sure about his use case) ?
 
---=20
-balbi
+His use case was for SPI (see the original changelog). That's a good
+point, but I am wondering if we can live with that for now.
 
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Cheers
+Jon
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQkPemAAoJEIaOsuA1yqRE9HwP/2lclxOXCeuHymIWwND4ixpK
-BZJ0MHwn7aLIb4WqHvkM5UYSiTWDFeNSXtWcxT9RjY8fX9Qs3QH5vmPs/wLRXYjZ
-fx5pJzeaQ0dBgAjpYevigE78K+e3KehMGUe/LhVZq4RfXfTjmcSQRV5zEk0MT47h
-2Wib1+u6dpAFN0KMn1oUnOCTtOFY8qGUuUP1/xIJPCXUPzAOfOydw2H47Y/pAVOp
-Emmic0bBlvMewb8FTHTLyEKHBZdX/jfBSi+HnrEbRdA8l59G7Bm30C1CsJFsBG00
-KL61TrgYLes3G7WywD1pvF95YwbVv7jXRTc3cf84H+SK+VazvLcSTu4y6wc3rfRS
-PnxOtGMw6tO7m3EETpo5jr2VzxjccOprVmMdm6jhwTXRh/wqqyYnQxVO0iA6lF1X
-1Y07nKmJJyyl07xlflITA1nIQnNZutYFKIzLWKkUS9kC5cp2dUMiiaey11Nu8kEI
-Di3puI2A5ou40pGCDuyPBFkuuwUAEpFpDRRtWFkI+wITnae5U5SC3OHXZleEgDfn
-Nm2Gfvf7cHbHQx51dWB9bZGtlTrf5DGgx4GhU/cLzP6/KBH0Cg6keJI3ut+zhopw
-U1T5jxJ9G2SlsF/sHBXFDxBvK9Hp+pMUm93VV3CqzWfYW+YANaYG3mOUaaI6Yde7
-DRpDKpC7D5u9hE+xuGuh
-=+0xz
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
