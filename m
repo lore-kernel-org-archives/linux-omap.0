@@ -1,220 +1,77 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [RFC PATCH v3 16/16] ARM: dts: add AM33XX SPI support
-Date: Wed, 31 Oct 2012 11:03:51 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9D6275@DBDE01.ent.ti.com>
-References: <1350566815-409-1-git-send-email-mporter@ti.com>
- <1350566815-409-17-git-send-email-mporter@ti.com>
- <518397C60809E147AF5323E0420B992E3E9D597B@DBDE01.ent.ti.com>
- <5090FA92.1080400@ti.com> <5090FEE1.5070206@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] gpio: omap-gpio: add support for pm_runtime autosuspend
+Date: Wed, 31 Oct 2012 16:35:52 +0530
+Message-ID: <50910610.5080602@ti.com>
+References: <20121026114250.GA26342@arwen.pp.htv.fi> <1351257553-7896-1-git-send-email-tim.niemeyer@corscience.de> <508E266C.6090901@ti.com> <20121029080523.GC13657@arwen.pp.htv.fi> <508E3D09.9090802@ti.com> <20121029200328.GE30152@arwen.pp.htv.fi> <508F7471.8060402@ti.com> <87vcdr2ah9.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <5090FEE1.5070206@ti.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Porter, Matt" <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infra>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55920 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933580Ab2JaLGB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 07:06:01 -0400
+In-Reply-To: <87vcdr2ah9.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: balbi@ti.com, Tim Niemeyer <tim.niemeyer@corscience.de>, Jon Hunter <jon-hunter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
 
-On Wed, Oct 31, 2012 at 16:05:13, Cousson, Benoit wrote:
-> 
-> On 10/31/2012 11:16 AM, Benoit Cousson wrote:
-> > Hi Avinash,
-> > 
-> > On 10/30/2012 10:41 AM, Philip, Avinash wrote:
-> >> On Mon, Oct 29, 2012 at 14:40:02, Philip, Avinash wrote:
-> >>> On Thu, Oct 18, 2012 at 18:56:55, Porter, Matt wrote:
-> >>>> Adds AM33XX SPI support for am335x-bone and am335x-evm.
-> >>
-> >> Matt,
-> >>
-> >> Can you build SPI DT patch with DMA support on top of SPI DT patch
-> >> I submitted [1]. With the patch [1] SPI can work on PIO mode.
-> >> So we can have basic SPI support available in 3.8.
-> >>
-> >> Benoit,
-> >> Can you accept the SPI DT patch [1]
-> > 
-> > Yes, I've just applied it in for_3.8/dts branch
-> 
-> Well, in fact I did not, it does not apply :-(
-> 
-> Can you rebase on top of the for_3.8/dts branch? I've just applied the
-> RTC patch on top that was OK.
+On Wednesday 31 October 2012 04:07 PM, Kevin Hilman wrote:
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>
+> [...]
+>
+>> Just to summaries, there are 3 things we are talking here.
+>
+> Santosh, thanks for the summary.  You are right on.
+>
+>> 1. Delaying the idle with a timeout which $subject patch is
+>> trying to do to reduce latency for interrupts. That itself
+>> is reasonable.
+>
+> I agree, this is reasonable.   IMO, adding autosuspend should be done as
+> an isolated patch and kept separate from any other cleanup or changes.
+>
+> Also, as Jon mentioned, I think this should be done with a default
+> timeout of zero so that current behaviour is unchanged.  Tim can then
+> set the timeout from userspace for his usecase and everyone is happy.
+>
+Default 0 sounds good to me as well.
 
-Ok.
+>> 2. Removal of the bank "mod_usage" which is also clubbed
+>> in $subject path. Ofcourse that break the current driver
+>> for idle. So that change needs to be made with better thought
+>> and in a separate patch. This is doable.
+>
+> I had this discussion with Charu/Tarun during the last round of cleanup
+> because I didn't like this mod_usage either.  The alternative is to do a
+> 'get' for every GPIO in the bank since runtime PM is doing the
+> usecounting already.  As Santosh said, this is fine for suspend, but for
+> idle it means calling 'put' for every enabled GPIO in the bank instead
+> of just forcing things with a single 'put.'
+>
+Exactly. The oherhead becomes too much when if you need to call put like 
+6 Banks * 32 GPIOS times.
+Actually even though there are 32 GPIOs in a bank, from PM point of
+view, it only needs to care about a bank level control. Because
+clocks and register set is per bank. And we model a GPIO device
+per bank as well.
 
-Thanks
-Avinash
+>> 3. Removing omap_gpio_[prepare/resume]_for_idle() with soome thing
+>> better. For this one though, so far I have not come across a good
+>> solution. Ideas/Solution is welcome !!
+>
+> I agree that the prepare/resume idle hooks a are ugly and should be
+> removed, but this needs quite a bit more thought.  In particular,
+> the 'remove triggering' stuff that is done needs pretty close
+> examination.
+>
+> I'm not saying it can't be done, but patches to do this should be
+> separate, well described and well tested, especially with off-mode.
+>
+Couldn't agree more. Thanks for confirming the points.
 
-> 
-> Thanks,
-> Benoit
-> 
-> > 
-> >> In case if you want I will resubmit a patch with subject line modified.
-> > 
-> > No, that's fine.
-> > 
-> > Thanks,
-> > Benoit
-> > 
-> >>
-> >> Current subject line
-> >> arm/dts: AM33XX: Add SPI device tree data
-> >>
-> >> 1. https://patchwork.kernel.org/patch/1470661/
-> >>
-> >> Thanks
-> >> Avinash
-> >>
-> >>>>
-> >>>> Signed-off-by: Matt Porter <mporter@ti.com>
-> >>>> ---
-> >>>>  arch/arm/boot/dts/am335x-bone.dts |   17 +++++++++++++++
-> >>>>  arch/arm/boot/dts/am335x-evm.dts  |    9 ++++++++
-> >>>>  arch/arm/boot/dts/am33xx.dtsi     |   43 +++++++++++++++++++++++++++++++++++++
-> >>>>  3 files changed, 69 insertions(+)
-> >>>>
-> >>>> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> >>>> index 5510979..23edfd8 100644
-> >>>> --- a/arch/arm/boot/dts/am335x-bone.dts
-> >>>> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> >>>> @@ -18,6 +18,17 @@
-> >>>>  		reg = <0x80000000 0x10000000>; /* 256 MB */
-> >>>>  	};
-> >>>>  
-> >>>> +	am3358_pinmux: pinmux@44e10800 {
-> >>>> +		spi1_pins: pinmux_spi1_pins {
-> >>>> +			pinctrl-single,pins = <
-> >>>> +				0x190 0x13	/* mcasp0_aclkx.spi1_sclk, OUTPUT_PULLUP | MODE3 */
-> >>>> +				0x194 0x33	/* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
-> >>>> +				0x198 0x13	/* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
-> >>>> +				0x19c 0x13	/* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
-> >>>> +			>;
-> >>>> +		};
-> >>>> +	};
-> >>>> +
-> >>>
-> >>> Change to am33xx_pinmux.
-> >>>
-> >>>>  	ocp {
-> >>>>  		uart1: serial@44e09000 {
-> >>>>  			status = "okay";
-> >>>> @@ -84,3 +95,9 @@
-> >>>>  &mmc1 {
-> >>>>  	vmmc-supply = <&ldo3_reg>;
-> >>>>  };
-> >>>> +
-> >>>> +&spi1 {
-> >>>> +	status = "okay";
-> >>>> +	pinctrl-names = "default";
-> >>>> +	pinctrl-0 = <&spi1_pins>;
-> >>>> +};
-> >>>> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> >>>> index d63fce8..8d5f660 100644
-> >>>> --- a/arch/arm/boot/dts/am335x-evm.dts
-> >>>> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> >>>> @@ -124,3 +124,12 @@
-> >>>>  &mmc1 {
-> >>>>  	vmmc-supply = <&vmmc_reg>;
-> >>>>  };
-> >>>> +
-> >>>> +&spi0 {
-> >>>> +	status = "okay";
-> >>>> +	spi-flash@0 {
-> >>>> +		compatible = "spansion,s25fl064k", "m25p80";
-> >>>> +		spi-max-frequency = <24000000>;
-> >>>> +		reg = <0>;
-> >>>> +	};
-> >>>> +};
-> >>>
-> >>> In AM335x-evm, SPI flash available in profile #2 (am335x evm specific profiles).
-> >>> So can you drop this changes as if I understood correctly, am335x-evm.dts will be
-> >>> populated for devices present only on profile #0.
-> >>>
-> >>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> >>>> index 26a6af7..063ecea 100644
-> >>>> --- a/arch/arm/boot/dts/am33xx.dtsi
-> >>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> >>>> @@ -40,6 +40,15 @@
-> >>>>  		};
-> >>>>  	};
-> >>>>  
-> >>>> +	am3358_pinmux: pinmux@44e10800 {
-> >>>> +		compatible = "pinctrl-single";
-> >>>> +		reg = <0x44e10800 0x0238>;
-> >>>> +		#address-cells = <1>;
-> >>>> +		#size-cells = <0>;
-> >>>> +		pinctrl-single,register-width = <32>;
-> >>>> +		pinctrl-single,function-mask = <0x7f>;
-> >>>> +	};
-> >>>> +
-> >>>
-> >>> Pin ctrl support already submitted
-> >>> http://git.kernel.org/?p=linux/kernel/git/bcousson/linux-omap-dt.git;a=commitdiff;h=3e0603e905d9ba662e8c1885ecb1d28bc454e448
-> >>>
-> >>> Thanks
-> >>> Avinash
-> >>>
-> >>>>  	/*
-> >>>>  	 * XXX: Use a flat representation of the AM33XX interconnect.
-> >>>>  	 * The real AM33XX interconnect network is quite complex.Since
-> >>>> @@ -261,6 +270,40 @@
-> >>>>  			status = "disabled";
-> >>>>  		};
-> >>>>  
-> >>>> +		spi0: spi@48030000 {
-> >>>> +			compatible = "ti,omap4-mcspi";
-> >>>> +			ti,hwmods = "spi0";
-> >>>> +			#address-cells = <1>;
-> >>>> +			#size-cells = <0>;
-> >>>> +			reg = <0x48030000 0x400>;
-> >>>> +			interrupt-parent = <&intc>;
-> >>>> +			interrupt = <65>;
-> >>>> +			dmas = <&edma 16
-> >>>> +				&edma 17
-> >>>> +				&edma 18
-> >>>> +				&edma 19>;
-> >>>> +			dma-names = "tx0", "rx0", "tx1", "rx1";
-> >>>> +			ti,spi-num-cs = <2>;
-> >>>> +			status = "disabled";
-> >>>> +		};
-> >>>> +
-> >>>> +		spi1: spi@481a0000 {
-> >>>> +			compatible = "ti,omap4-mcspi";
-> >>>> +			ti,hwmods = "spi1";
-> >>>> +			#address-cells = <1>;
-> >>>> +			#size-cells = <0>;
-> >>>> +			reg = <0x481a0000 0x400>;
-> >>>> +			interrupt-parent = <&intc>;
-> >>>> +			interrupt = <125>;
-> >>>> +			dmas = <&edma 42
-> >>>> +				&edma 43
-> >>>> +				&edma 44
-> >>>> +				&edma 45>;
-> >>>> +			dma-names = "tx0", "rx0", "tx1", "rx1";
-> >>>> +			ti,spi-num-cs = <2>;
-> >>>> +			status = "disabled";
-> >>>> +		};
-> >>>> +
-> >>>>  		wdt2: wdt@44e35000 {
-> >>>>  			compatible = "ti,omap3-wdt";
-> >>>>  			ti,hwmods = "wd_timer2";
-> >>>> -- 
-> >>>> 1.7.9.5
-> >>>>
-> >>>>
-> >>>> _______________________________________________
-> >>>> linux-arm-kernel mailing list
-> >>>> linux-arm-kernel@lists.infradead.org
-> >>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> >>>>
-> >>>
-> >>>
-> >>
-> > 
-> 
-> 
+Regards
+santosh
 
