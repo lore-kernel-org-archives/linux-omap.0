@@ -1,71 +1,134 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/4] ARM: OMAP: more hwmod/PRCM fixes for 3.7-rc
-Date: Wed, 31 Oct 2012 04:43:09 -0600
-Message-ID: <20121031103607.6557.64591.stgit@dusk.lan>
+Subject: [PATCH 2/4] ARM: OMAP: hwmod: wait for sysreset complete after
+ enabling hwmod
+Date: Wed, 31 Oct 2012 04:43:13 -0600
+Message-ID: <20121031104312.6557.22628.stgit@dusk.lan>
+References: <20121031103607.6557.64591.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:51158 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:51164 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283Ab2JaKqi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 06:46:38 -0400
+	with ESMTP id S1755291Ab2JaKqj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 06:46:39 -0400
+In-Reply-To: <20121031103607.6557.64591.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>, Venkatraman S <svenkatr@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-A few more OMAP fixes for the 3.7-rc timeframe.  Mostly hwmod fixes.
+From: Tero Kristo <t-kristo@ti.com>
 
-Basic test logs are available here:
+When waking up from off-mode, some IP blocks are reset automatically by
+hardware. For this reason, software must wait until the reset has
+completed before attempting to access the IP block.
 
-    http://www.pwsan.com/omap/testlogs/fixes_b_v3.7-rc/20121029222655/
+This patch fixes for example the bug introduced by commit
+6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c ("mmc: omap_hsmmc: remove access
+to SYSCONFIG register"), in which the MMC IP block is reset during
+off-mode entry, but the code expects the module to be already available
+during the execution of context restore.
 
-However the v3.7-rc3 kernel is still missing fixes for several regressions,
-which cause several tests to fail.  With several reverts, fixes, and workarounds
-applied, the following test logs were obtained:
-
-    http://www.pwsan.com/omap/testlogs/TEST_fixes_b_v3.7-rc/20121030185805/
-
- which indicate that the series tests cleanly.
-
-
-- Paul
-
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Venkatraman S <svenkatr@ti.com>
+Tested-by: Kevin Hilman <khilman@ti.com>
+[paul@pwsan.com: moved softreset wait code into separate function; call
+ from top of _enable_sysc() rather than the bottom]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod.c |   56 +++++++++++++++++++++++++++++---------
+ 1 file changed, 42 insertions(+), 14 deletions(-)
 
-vmlinux object size
-(delta in bytes from test_v3.7-rc3 (8f0d8163b50e01f398b14bcd4dc039ac5ab18d64)):
-   text     data      bss    total  kernel
-   -108       -8        0     -116  am33xx_only
-    +56      +16        0      +72  n800_multi_omap2xxx
-    +20      +16        0      +36  n800_only_a
-      0        0        0        0  omap1_defconfig
-      0        0        0        0  omap1_defconfig_1510innovator_only
-      0        0        0        0  omap1_defconfig_5912osk_only
-    -92      -16        0     -108  omap2plus_defconfig
-    -96       -8        0     -104  omap2plus_defconfig_2430sdp_only
-    -92      +16        0      -76  omap2plus_defconfig_cpupm
-    -92      -16        0     -108  omap2plus_defconfig_no_pm
-    -92      +16        0      -76  omap2plus_defconfig_omap2_4_only
-   -172      +16        0     -156  omap2plus_defconfig_omap3_4_only
-    +12      +16        0      +28  rmk_omap3430_ldp_oldconfig
-    +44      +24        0      +68  rmk_omap4430_sdp_oldconfig
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index b969ab1..f9d8b2a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -422,6 +422,38 @@ static int _set_softreset(struct omap_hwmod *oh, u32 *v)
+ }
+ 
+ /**
++ * _wait_softreset_complete - wait for an OCP softreset to complete
++ * @oh: struct omap_hwmod * to wait on
++ *
++ * Wait until the IP block represented by @oh reports that its OCP
++ * softreset is complete.  This can be triggered by software (see
++ * _ocp_softreset()) or by hardware upon returning from off-mode (one
++ * example is HSMMC).  Waits for up to MAX_MODULE_SOFTRESET_WAIT
++ * microseconds.  Returns the number of microseconds waited.
++ */
++static int _wait_softreset_complete(struct omap_hwmod *oh)
++{
++	struct omap_hwmod_class_sysconfig *sysc;
++	u32 softrst_mask;
++	int c = 0;
++
++	sysc = oh->class->sysc;
++
++	if (sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
++		omap_test_timeout((omap_hwmod_read(oh, sysc->syss_offs)
++				   & SYSS_RESETDONE_MASK),
++				  MAX_MODULE_SOFTRESET_WAIT, c);
++	else if (sysc->sysc_flags & SYSC_HAS_RESET_STATUS) {
++		softrst_mask = (0x1 << sysc->sysc_fields->srst_shift);
++		omap_test_timeout(!(omap_hwmod_read(oh, sysc->sysc_offs)
++				    & softrst_mask),
++				  MAX_MODULE_SOFTRESET_WAIT, c);
++	}
++
++	return c;
++}
++
++/**
+  * _set_dmadisable: set OCP_SYSCONFIG.DMADISABLE bit in @v
+  * @oh: struct omap_hwmod *
+  *
+@@ -1282,6 +1314,14 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 	if (!oh->class->sysc)
+ 		return;
+ 
++	/*
++	 * Wait until reset has completed, this is needed as the IP
++	 * block is reset automatically by hardware in some cases
++	 * (off-mode for example), and the drivers require the
++	 * IP to be ready when they access it
++	 */
++	_wait_softreset_complete(oh);
++
+ 	v = oh->_sysc_cache;
+ 	sf = oh->class->sysc->sysc_flags;
+ 
+@@ -1804,7 +1844,7 @@ static int _am33xx_disable_module(struct omap_hwmod *oh)
+  */
+ static int _ocp_softreset(struct omap_hwmod *oh)
+ {
+-	u32 v, softrst_mask;
++	u32 v;
+ 	int c = 0;
+ 	int ret = 0;
+ 
+@@ -1834,19 +1874,7 @@ static int _ocp_softreset(struct omap_hwmod *oh)
+ 	if (oh->class->sysc->srst_udelay)
+ 		udelay(oh->class->sysc->srst_udelay);
+ 
+-	if (oh->class->sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
+-		omap_test_timeout((omap_hwmod_read(oh,
+-						    oh->class->sysc->syss_offs)
+-				   & SYSS_RESETDONE_MASK),
+-				  MAX_MODULE_SOFTRESET_WAIT, c);
+-	else if (oh->class->sysc->sysc_flags & SYSC_HAS_RESET_STATUS) {
+-		softrst_mask = (0x1 << oh->class->sysc->sysc_fields->srst_shift);
+-		omap_test_timeout(!(omap_hwmod_read(oh,
+-						     oh->class->sysc->sysc_offs)
+-				   & softrst_mask),
+-				  MAX_MODULE_SOFTRESET_WAIT, c);
+-	}
+-
++	c = _wait_softreset_complete(oh);
+ 	if (c == MAX_MODULE_SOFTRESET_WAIT)
+ 		pr_warning("omap_hwmod: %s: softreset failed (waited %d usec)\n",
+ 			   oh->name, MAX_MODULE_SOFTRESET_WAIT);
 
-
-Miguel Vadillo (1):
-      ARM: OMAP2+: clockdomain: Fix OMAP4 ISS clk domain to support only SWSUP
-
-Paul Walmsley (2):
-      ARM: OMAP2+: hwmod: add flag to prevent hwmod code from touching IP block during init
-      ARM: OMAP4: hwmod data: do not enable or reset the McPDM during kernel init
-
-Tero Kristo (1):
-      ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
-
-
- arch/arm/mach-omap2/clockdomains44xx_data.c  |    2 -
- arch/arm/mach-omap2/omap_hwmod.c             |   59 ++++++++++++++++++++------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    8 ++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 +++
- 4 files changed, 60 insertions(+), 15 deletions(-)
 
