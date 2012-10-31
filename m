@@ -1,46 +1,32 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [RESEND PATCH 09/11] ARM: OMAP: USB: Remove the device name for TLL channel clocks for OMAP3
-Date: Wed, 31 Oct 2012 19:56:50 +0530
-Message-ID: <1351693612-23314-10-git-send-email-keshava_mgowda@ti.com>
-References: <1351693612-23314-1-git-send-email-keshava_mgowda@ti.com>
+From: Afzal Mohammed <x0148406-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/3] usb: otg: nop: add dt support
+Date: Wed, 31 Oct 2012 19:58:30 +0530
+Message-ID: <5091358E.1050704@ti.com>
+References: <a1dd07e020850703ed5294db176ea1298d69a4ed.1348722156.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39084 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755306Ab2JaO1F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Oct 2012 10:27:05 -0400
-In-Reply-To: <1351693612-23314-1-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <a1dd07e020850703ed5294db176ea1298d69a4ed.1348722156.git.afzal-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com, b-cousson@ti.com
 
-Since TLL channels clocks are dummy(virtual) nodes for OMAP3.
-The device names for these clocks are set to NULL.
+Hi Balbi,
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
----
- arch/arm/mach-omap2/clock3xxx_data.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+On Thursday 27 September 2012 11:15 AM, Afzal Mohammed wrote:
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 6cca199..c63c818 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3404,10 +3404,8 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usb_host_hs_utmi_p2_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_tll",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_tll",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"init_60m_fclk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2PLUS | CK_36XX),
- 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
--- 
-1.7.9.5
+> This series is made over over Balbi's usb "master" branch.
+>
+> It applies cleanly over "musb" branch too.
 
+Please ignore this series, a new series has been posted,
+"usb: musb: dsps: fixes for -rc".
+
+Regards
+Afzal
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
