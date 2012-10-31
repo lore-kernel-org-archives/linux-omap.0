@@ -1,133 +1,118 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Wed, 31 Oct 2012 21:10:09 +0100
-Message-ID: <87obji8kta.fsf@deeprootsystems.com>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
-	<20121024161429.GA16350@core.coreip.homeip.net>
-	<CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
-	<4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
-	<CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow@mail.gmail.com>
-	<20121030113407.GA24335@sirena.org.uk>
-	<CACRpkdapQJY0aoam741O0fb8EeM9BLk_Psq5TaPG84J7wEvCLw@mail.gmail.com>
-Mime-Version: 1.0
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Wed, 31 Oct 2012 22:12:44 +0200
+Message-ID: <8AD2F7AF-8315-442B-A394-1A38DAB29F52@antoniou-consulting.com>
+References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com> <20121031175219.GH12739@atomide.com> <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com> <20121031180935.GL12739@atomide.com> <50918223.6080003@ti.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdapQJY0aoam741O0fb8EeM9BLk_Psq5TaPG84J7wEvCLw@mail.gmail.com>
-	(Linus Walleij's message of "Tue, 30 Oct 2012 15:02:23 +0100")
+In-Reply-To: <50918223.6080003@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-Linus Walleij <linus.walleij@linaro.org> writes:
+Hi Benoit,
 
-> On Tue, Oct 30, 2012 at 12:34 PM, Mark Brown
-> <broonie@opensource.wolfsonmicro.com> wrote:
->> On Sun, Oct 28, 2012 at 09:12:52PM +0100, Linus Walleij wrote:
->
->>> Moving this handling to bus code or anywhere else
->>> invariably implies that resource acquisition/release order
->>> does not matter, and my point is that it does.
->>
->> Doing this in the buses is definitely wrong, as you say it's not bus
->> specific.  I do however think we can usefully do this stuff in a SoC
->> specific place like a power domain, keeping the SoC integration code
->> together and out of the drivers.  IME the SoCs where you need to do
->> different things for different IPs shoudl mostly still get some reuse
->> out of such an approach.
->
-> Talking to Kevin Hilman today he was also stressing that
-> power domains is a good thing for handling resources, especially
-> when replacing prior hacks in the custom clk code. However
-> he pointed specifically to clocks and voltages, which may
-> be true.
->
-> What worries me is when knowledge of the hardware which
-> is traditionally a concern for the device driver start to
-> bubble up to the power domain (or better renamed resource
-> domain if use like this, as Felipe points out).
->
-> I worry that we will end up with power/resource domain
-> code that start to look like this:
->
-> suspend()
-> switch (device.id) {
-> case DEV_FOO:
->   clk_disable();
->   pinctrl_set_state();
->   power_domain_off();
-> case DEV_BAR:
->   pinctrl_set_state();
->   clk_disable();
->   // Always-on domain
-> case DEV_BAZ:
->   pinctrl_set_state();
->   clk_disable();
->   power_domain_off();
-> case ...
->
-> Mutate the above with silicon errata, specific tweaks etc that
-> Felipe was mentioning.
+On Oct 31, 2012, at 9:55 PM, Benoit Cousson wrote:
 
+> Hi Panto,
+> 
+> On 10/31/2012 07:09 PM, Tony Lindgren wrote:
+>> * Pantelis Antoniou <panto@antoniou-consulting.com> [121031 11:05]:
+>>> Hi Tony,
+>>> 
+>>> On Oct 31, 2012, at 7:52 PM, Tony Lindgren wrote:
+>>> 
+>>>> * Pantelis Antoniou <panto@antoniou-consulting.com> [121031 10:26]:
+>>>>> It is painless to move the adapter DT devices to arch/arm/mach-omap2
+>>>>> 
+>>>>> However I got bit by the __init at omap_build_device family functions.
+>>>>> If you don't remove it, crashes every time you instantiate a device
+>>>>> at runtime, or you load the cape driver as a module.
+>>>> 
+>>>> Hmm I think you misunderstood me. You only need to create the
+>>>> platform_device under arch/arm/mach-omap2. The device creation
+>>>> happens only at __init, so omap_build_device can stay as __init.
+>>>> The driver itself should be under drivers.
+>>>> 
+>>>> But is this bus on non-device-tree omaps? If not, just make it
+>>>> device tree only.
+>>>> 
+>>> 
+>>> I'm afraid that's not the case. The whole notion of capebus is that
+>>> instantiation of the devices doesn't just happen early at the boot
+>>> sequence.
+>>> 
+>>> It is perfectly valid for a cape to be instantiated via loading
+>>> a module, or by making an override by writing a sysfs file.
+>>> 
+>>> When having the __init there, the function has been long removed
+>>> and you get a crash by calling into the weeds.
+>>> 
+>>> So the sequence is:
+>>> 
+>>> <early boot>       Register the adapter driver.
+>> 
+>> OK this is always there for the hardware, and done during
+>> the __init and this one should have an omap_device..
+>> 
+>>> <user>             insmod bone-geiger-cape
+>>> <cape-is-matched>  call omap_build_device
+>>> 
+>>> Please look into the capebus patches for the details. 
+>> 
+>> ..but it seems that the devices connected to capebus should
+>> not have anything to do with omap_device and hwmod?
+> 
+> 
+> Yeah, I do agree. I'm confused as well. Only OMAP IPs under PRCM control
+> could have an hwmod and thus must be handled by an omap_device.
+> 
+> Any devices that is created later cannot be omap_device. The DT core
+> will create regular platform_device for them.
+> 
+> Since cape is an external board, it should have nothing to do with
+> omap_device.
+> 
+> Looking at your patch:
+> da8xx-dt: Create da8xx DT adapter device
+> 
+> I understand why you do that, but in fact that patch does not make sense
+> to me :-(
+> 
+> Why do you have to create an omap_device from the driver probe?
+> 
 
-like this, as well as a bunch more.  This is why we have a generic
-description of IP blocks (omap_hwmod) which abstracts all of these
-differences and keeps the PM domain layer rather simple.
+The problem is that capes are not external boards in the normal sense
+as a PCI board is. In the PCI case the hardware that implements the 
+desired functionality is on the PCI board, while in the cape case the
+hardware module is in the SoC. The cape most of the times is quite
+simple and contains passive components, leds or some kind of I2C/SPI devices.
 
-I agree with Mark.  Either you have to take care of this with
-conditional code in the driver, and the drivers become bloated with a
-mess of SoC integration details, or you hide it away in SoC-specific
-code that can handle this, and keep the drivers portable. 
+In the da8xx case it contains only the minimum hardware required for 
+interfacing to the required display type, be it an LCD or a DVI or something
+other.
 
-Now that we have PM domains (PM domains didn't exist when we created
-omap_device/omap_hwmod), I suspect the cleanest way to do this is to
-create separate PM domains for each "class" of devices that have
-different set of behavior.
+You can't instantiate the omap_device early in the boot process like it was done up to 
+now in the board file. You can only do that later in the boot process (for built-in 
+cape drivers), or even after user-space has booted and the matching cape driver module
+has been loaded.
 
-> What is happening is that device-specific behaviour which
-> traditionally handled in the driver is now inside the
-> power/resource domain.
->
-> piece of hardware, this would be the right thing to do,
-> and I think the in-kernel examples are all "simple",
-> e.g. arch/arm/mach-omap2/powerdomain* is all about
-> power domains and nothing else, 
+So this is a use case that hasn't been encountered yet I'm afraid, but it is a valid
+use case.
 
-FYI... that code isn't the same as PM domain.  That code is for the
-*hardware* powerdomains, not the software concept of "PM domain."  In
-OMAP, PM domain is implmented at the omap_device level.  And omap_device
-is the abstraction of an IP block that knows about all the PM related
-register settings, clocks, HW powerdomain, voltage domain, PM related
-pin-muxing etc. etc.    All of these things are abstracted in an
-omap_device, so that the PM domain implementation for OMAP looks rather
-simple (c.f. omap_device_pm_domain in arch/arm/plat-omap/omap_device.c.)
+I don't see what the big deal is about to be honest. The omap device is safely created
+in the da8xx-dt adapter's probe method, and everything seems to work.
 
-Note that the callbacks just call omap_device_enable(),
-omap_device_disable() and all the HW ugliness, SoC-specific integration
-mess is hidden away.
+If there are any gotcha's or problems with this approach I think can be overcome.
 
-[...]
+> 
+> Regards,
+> Benoit
+> 
 
-> I think the lesser of two evils is the distributed approach,
-> and then I'm talking about pinctrl only, disregarding the
-> fact that clocks and power domains are basically subject to
-> the same kind of argument. I still buy into the concept of
-> using power domains for exactly power domains only.
-> Arguably this is an elegance opinion...
+Regards
 
-The pinctrl examples I've seen mentioned so far are all PM related
-(sleep, idle, wakeup, etc.) so to me I think they still belong in
-PM domains (and that's how we handle the PM related pins in OMAP.)
-
-> I worry that the per-SoC power domain implementation
-> which will live in arch/arm/mach-* as of today will become
-> the new board file problem, overburdening the arch/* tree.
-> Maybe I'm mistaken as to the size of these things,
-> but just doing ls arch/arm/mach-omap2/powerdomain*
-> makes me start worrying.
-
-Yes, I agree that this means more code/data in arch/arm/mach-*, but
-IMO, that's really where it belongs.  It really is SoC integration
-details, and driver should really not know about it.
-
-Kevin
+-- Pantelis
