@@ -1,61 +1,78 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Wed, 31 Oct 2012 20:04:05 +0200
-Message-ID: <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com>
-References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com> <20121031175219.GH12739@atomide.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH v2 0/4] cbus/retu drivers
+Date: Wed, 31 Oct 2012 20:03:42 +0200
+Message-ID: <1351706626-32186-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121031175219.GH12739@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+This patch set introduces drivers for CBUS access and Retu multifunction
+chip found on Nokia Internet Tablets (770, N800, N810). It would be
+nice get these patches applied as the functionality of these devices is
+severely lacking without Retu. E.g. watchdog support is mandatory at
+least on Nokia N800, you cannot currently run the mainline kernel for
+longer than ~60 seconds (there is no way to disable the watchdog).
 
-On Oct 31, 2012, at 7:52 PM, Tony Lindgren wrote:
+Drivers originate from linux-omap cbus branch and have been cleaned
+up/rewritten around i2c and MFD core.
 
-> * Pantelis Antoniou <panto@antoniou-consulting.com> [121031 10:26]:
->> It is painless to move the adapter DT devices to arch/arm/mach-omap2
->> 
->> However I got bit by the __init at omap_build_device family functions.
->> If you don't remove it, crashes every time you instantiate a device
->> at runtime, or you load the cape driver as a module.
-> 
-> Hmm I think you misunderstood me. You only need to create the
-> platform_device under arch/arm/mach-omap2. The device creation
-> happens only at __init, so omap_build_device can stay as __init.
-> The driver itself should be under drivers.
-> 
-> But is this bus on non-device-tree omaps? If not, just make it
-> device tree only.
-> 
+Patches have been tested on top of 3.7-rc3 with Nokia N800 (watchdog
+feeding works, power off shuts down the device, power button triggers
+IRQs and input events).
 
-I'm afraid that's not the case. The whole notion of capebus is that
-instantiation of the devices doesn't just happen early at the boot
-sequence.
+Changes since the first version (https://lkml.org/lkml/2012/9/3/265):
+	- i2c-cbus:
+		- use devres
+		- improve comments
+		- simplify and delete redundant code
+		- refactoring & bug fixes on error handling
+		- discard "input" parameter from cbus_send_bit/data()
+	- retu-mfd:
+		- use devres
+		- use regmap
+	- retu_wdt: use devres
+	- retu-pwrbutton: use devres
 
-It is perfectly valid for a cape to be instantiated via loading
-a module, or by making an override by writing a sysfs file.
+Changes since the RFC version
+(http://marc.info/?l=linux-omap&m=134618967116737&w=2):
+        - added DT support for getting i2c-cbus GPIO pins
+        - merged n8x0 board file changes into i2c-cbus patch
+        - corrected typo in Kconfig for MFD_RETU
+        - added power off functionality to retu-mfd
+        - added IRQ functionality to retu-mfd
+        - added power button key driver
+        - some cleanups
 
-When having the __init there, the function has been long removed
-and you get a crash by calling into the weeds.
+Aaro Koskinen (4):
+  i2c: introduce i2c-cbus driver
+  mfd: introduce retu-mfd driver
+  watchdog: introduce retu_wdt driver
+  input: misc: introduce retu-pwrbutton
 
-So the sequence is:
+ arch/arm/mach-omap2/board-n8x0.c    |   42 +++++
+ drivers/i2c/busses/Kconfig          |   10 ++
+ drivers/i2c/busses/Makefile         |    1 +
+ drivers/i2c/busses/i2c-cbus.c       |  300 +++++++++++++++++++++++++++++++++++
+ drivers/input/misc/Kconfig          |   10 ++
+ drivers/input/misc/Makefile         |    1 +
+ drivers/input/misc/retu-pwrbutton.c |  118 ++++++++++++++
+ drivers/mfd/Kconfig                 |    9 +
+ drivers/mfd/Makefile                |    1 +
+ drivers/mfd/retu-mfd.c              |  264 ++++++++++++++++++++++++++++++
+ drivers/watchdog/Kconfig            |   12 ++
+ drivers/watchdog/Makefile           |    1 +
+ drivers/watchdog/retu_wdt.c         |  178 +++++++++++++++++++++
+ include/linux/i2c-cbus.h            |   27 +++
+ include/linux/mfd/retu.h            |   22 +++
+ 15 files changed, 996 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/i2c/busses/i2c-cbus.c
+ create mode 100644 drivers/input/misc/retu-pwrbutton.c
+ create mode 100644 drivers/mfd/retu-mfd.c
+ create mode 100644 drivers/watchdog/retu_wdt.c
+ create mode 100644 include/linux/i2c-cbus.h
+ create mode 100644 include/linux/mfd/retu.h
 
-<early boot>       Register the adapter driver.
-
-<user>             insmod bone-geiger-cape
-<cape-is-matched>  call omap_build_device
-
-Please look into the capebus patches for the details. 
-
-> Regards,
-> 
-> Tony
-
-Regards
-
--- Pantelis
+-- 
+1.7.2.5
