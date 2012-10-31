@@ -1,72 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Wed, 31 Oct 2012 11:09:36 -0700
-Message-ID: <20121031180935.GL12739@atomide.com>
-References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
- <20121031175219.GH12739@atomide.com>
- <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com>
-Mime-Version: 1.0
+From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Subject: Re: [PATCH 1/3] ti_adc: Update with IIO map interface
+Date: Wed, 31 Oct 2012 20:12:40 +0200
+Message-ID: <C105B6BF-8407-4484-826A-A979E16B6B44@antoniou-consulting.com>
+References: <1351783496-11557-1-git-send-email-panto@antoniou-consulting.com> <50916563.8080704@metafoo.de> <F29A4A48-CDFA-4058-BED1-C09242B23326@antoniou-consulting.com> <509168EF.9040000@metafoo.de>
+Mime-Version: 1.0 (Apple Message framework v1085)
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <509168EF.9040000-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+Cc: Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pantelis Antoniou <panto@antoniou-consulting.com> [121031 11:05]:
-> Hi Tony,
-> 
-> On Oct 31, 2012, at 7:52 PM, Tony Lindgren wrote:
-> 
-> > * Pantelis Antoniou <panto@antoniou-consulting.com> [121031 10:26]:
-> >> It is painless to move the adapter DT devices to arch/arm/mach-omap2
-> >> 
-> >> However I got bit by the __init at omap_build_device family functions.
-> >> If you don't remove it, crashes every time you instantiate a device
-> >> at runtime, or you load the cape driver as a module.
-> > 
-> > Hmm I think you misunderstood me. You only need to create the
-> > platform_device under arch/arm/mach-omap2. The device creation
-> > happens only at __init, so omap_build_device can stay as __init.
-> > The driver itself should be under drivers.
-> > 
-> > But is this bus on non-device-tree omaps? If not, just make it
-> > device tree only.
-> > 
-> 
-> I'm afraid that's not the case. The whole notion of capebus is that
-> instantiation of the devices doesn't just happen early at the boot
-> sequence.
-> 
-> It is perfectly valid for a cape to be instantiated via loading
-> a module, or by making an override by writing a sysfs file.
-> 
-> When having the __init there, the function has been long removed
-> and you get a crash by calling into the weeds.
-> 
-> So the sequence is:
-> 
-> <early boot>       Register the adapter driver.
 
-OK this is always there for the hardware, and done during
-the __init and this one should have an omap_device..
- 
-> <user>             insmod bone-geiger-cape
-> <cape-is-matched>  call omap_build_device
+On Oct 31, 2012, at 8:07 PM, Lars-Peter Clausen wrote:
+
+> On 10/31/2012 06:55 PM, Pantelis Antoniou wrote:
+>> [...]
+>>>> 	}
+>>>> 
+>>>> 	indio_dev->channels = chan_array;
+>>>> +	indio_dev->num_channels = channels;
+>>>> +
+>>>> +	size = (channels + 1) * sizeof(struct iio_map);
+>>>> +	adc_dev->map = kzalloc(size, GFP_KERNEL);
+>>>> +	if (adc_dev->map == NULL) {
+>>>> +		kfree(chan_array);
+>>>> +		return -ENOMEM;
+>>>> +	}
+>>>> +
+>>>> +	for (i = 0; i < indio_dev->num_channels; i++) {
+>>>> +		adc_dev->map[i].adc_channel_label = chan_array[i].datasheet_name;
+>>>> +		adc_dev->map[i].consumer_dev_name = "any";
+>>>> +		adc_dev->map[i].consumer_channel = chan_array[i].datasheet_name;
+>>>> +	}
+>>>> +	adc_dev->map[i].adc_channel_label = NULL;
+>>>> +	adc_dev->map[i].consumer_dev_name = NULL;
+>>>> +	adc_dev->map[i].consumer_channel = NULL;
+>>> 
+>>> The map should be passed in via platform data or similar. All the fields of
+>>> the map depend on the specific user, so you can't use a generic map. In fact
+>>> if we were able to use a generic map, we wouldn't need a map at all.
+>> 
+>> There's no platform data in the board I'm using. It's board-generic using
+>> device tree only.
 > 
-> Please look into the capebus patches for the details. 
+> That's the 'or similar' ;) Unfortunately we do not have a device tree
+> binding for IIO yet. But I think we should aim at a interface similar like
+> we have in other subsystems like the clk, regulator or dma framework.
+> 
+> - Lars
 
-..but it seems that the devices connected to capebus should
-not have anything to do with omap_device and hwmod?
+So in the meantime no-one can use IIO ADC in any OF only platform.
 
-They should only need to use capebus, just like USB devices
-use the USB bus and are registered as USB devices.
+In the meantime, this is pretty reasonable IMO. This is only for a specific 
+board with known channel mappings.
 
-Anyways, please sort it out with Benoit, Kevin and Paul,
-I've added them to cc. Maybe I'm missing something here.
+I'm not out to fix IIO, I'm out to fix a single board.
 
-Regards,
+Regards
 
-Tony
+-- Pantelis --
+To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
