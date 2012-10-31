@@ -1,36 +1,46 @@
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [PATCH] da8xx: De-constify members in the platform config.
-Date: Wed, 31 Oct 2012 17:56:29 +0200
-Message-ID: <1351698989-4049-1-git-send-email-panto@antoniou-consulting.com>
+Subject: [PATCH] w1-gpio: Pinctrl-fy
+Date: Wed, 31 Oct 2012 17:57:38 +0200
+Message-ID: <1351699058-4576-1-git-send-email-panto@antoniou-consulting.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+To: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-There's no need for this to be const. It interferes with
-creating the platform data dynamically.
+Enable pinctrl for w1-gpio.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- include/video/da8xx-fb.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/w1/masters/w1-gpio.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/include/video/da8xx-fb.h b/include/video/da8xx-fb.h
-index 5a0e4f9..a512d6b 100644
---- a/include/video/da8xx-fb.h
-+++ b/include/video/da8xx-fb.h
-@@ -35,9 +35,9 @@ struct display_panel {
- };
+diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
+index 6012c4e..aec35bd 100644
+--- a/drivers/w1/masters/w1-gpio.c
++++ b/drivers/w1/masters/w1-gpio.c
+@@ -16,6 +16,8 @@
+ #include <linux/gpio.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_gpio.h>
++#include <linux/pinctrl/consumer.h>
++#include <linux/err.h>
  
- struct da8xx_lcdc_platform_data {
--	const char manu_name[10];
-+	char manu_name[10];
- 	void *controller_data;
--	const char type[25];
-+	char type[25];
- 	void (*panel_power_ctrl)(int);
- };
+ #include "../w1.h"
+ #include "../w1_int.h"
+@@ -85,8 +87,13 @@ static int __init w1_gpio_probe(struct platform_device *pdev)
+ {
+ 	struct w1_bus_master *master;
+ 	struct w1_gpio_platform_data *pdata;
++	struct pinctrl *pinctrl;
+ 	int err;
  
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(pinctrl))
++		dev_warn(&pdev->dev, "unable to select pin group\n");
++
+ 	err = w1_gpio_probe_dt(pdev);
+ 	if (err < 0)
+ 		return err;
 -- 
 1.7.12
