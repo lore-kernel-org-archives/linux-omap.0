@@ -1,33 +1,145 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Wed, 31 Oct 2012 10:52:19 -0700
-Message-ID: <20121031175219.GH12739@atomide.com>
-References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 1/3] ti_adc: Update with IIO map interface
+Date: Wed, 31 Oct 2012 18:52:35 +0100
+Message-ID: <50916563.8080704@metafoo.de>
+References: <1351783496-11557-1-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
+In-Reply-To: <1351783496-11557-1-git-send-email-panto@antoniou-consulting.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, "Patil, Rachna" <rachna@ti.com>, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Pantelis Antoniou <panto@antoniou-consulting.com> [121031 10:26]:
-> It is painless to move the adapter DT devices to arch/arm/mach-omap2
+On 11/01/2012 04:24 PM, Pantelis Antoniou wrote:
+> Add an IIO map interface that consumers can use.
+
+Hi,
+
+Looks like you overlooked the review comments I had inline last time. I've
+put them in again, see below.
+
 > 
-> However I got bit by the __init at omap_build_device family functions.
-> If you don't remove it, crashes every time you instantiate a device
-> at runtime, or you load the cape driver as a module.
+> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+> ---
+>  drivers/iio/adc/ti_am335x_adc.c | 60 +++++++++++++++++++++++++++++++++--------
+>  1 file changed, 49 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+> index 02a43c8..8595a90 100644
+> --- a/drivers/iio/adc/ti_am335x_adc.c
+> +++ b/drivers/iio/adc/ti_am335x_adc.c
+> @@ -20,8 +20,9 @@
+>  #include <linux/slab.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/platform_device.h>
+> -#include <linux/io.h>
+>  #include <linux/iio/iio.h>
+> +#include <linux/iio/machine.h>
+> +#include <linux/iio/driver.h>
+>  
+>  #include <linux/mfd/ti_am335x_tscadc.h>
+>  #include <linux/platform_data/ti_am335x_adc.h>
+> @@ -29,6 +30,8 @@
+>  struct tiadc_device {
+>  	struct ti_tscadc_dev *mfd_tscadc;
+>  	int channels;
+> +	char *buf;
 
-Hmm I think you misunderstood me. You only need to create the
-platform_device under arch/arm/mach-omap2. The device creation
-happens only at __init, so omap_build_device can stay as __init.
-The driver itself should be under drivers.
+buf doesn't seem to be used anywhere
 
-But is this bus on non-device-tree omaps? If not, just make it
-device tree only.
+> +	struct iio_map *map;
+>  };
+>  
+>  static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
+> @@ -72,27 +75,62 @@ static void tiadc_step_config(struct tiadc_device *adc_dev)
+>  	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
+>  }
+>  
+> -static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
+> +static int tiadc_channel_init(struct iio_dev *indio_dev,
+> +		struct tiadc_device *adc_dev)
+>  {
+>  	struct iio_chan_spec *chan_array;
+> -	int i;
+> -
+> -	indio_dev->num_channels = channels;
+> -	chan_array = kcalloc(indio_dev->num_channels,
+> -			sizeof(struct iio_chan_spec), GFP_KERNEL);
+> +	struct iio_chan_spec *chan;
+> +	char *s;
+> +	int i, len, size, ret;
+> +	int channels = adc_dev->channels;
+>  
+> +	size = channels * (sizeof(struct iio_chan_spec) + 6);
+> +	chan_array = kzalloc(size, GFP_KERNEL);
+>  	if (chan_array == NULL)
+>  		return -ENOMEM;
+>  
+> -	for (i = 0; i < (indio_dev->num_channels); i++) {
+> -		struct iio_chan_spec *chan = chan_array + i;
+> +	/* buffer space is after the array */
+> +	s = (char *)(chan_array + channels);
+> +	chan = chan_array;
+> +	for (i = 0; i < channels; i++, chan++, s += len + 1) {
+> +
+> +		len = sprintf(s, "AIN%d", i);
+> +
+>  		chan->type = IIO_VOLTAGE;
+>  		chan->indexed = 1;
+>  		chan->channel = i;
+> -		chan->info_mask = IIO_CHAN_INFO_RAW_SEPARATE_BIT;
+> +		chan->datasheet_name = s;
+> +		chan->scan_type.sign = 'u';
+> +		chan->scan_type.realbits = 12;
+> +		chan->scan_type.storagebits = 32;
+> +		chan->scan_type.shift = 0;
 
-Regards,
+The scan type assignment should go in a separate patch if possible.
 
-Tony
+>  	}
+>  
+>  	indio_dev->channels = chan_array;
+> +	indio_dev->num_channels = channels;
+> +
+> +	size = (channels + 1) * sizeof(struct iio_map);
+> +	adc_dev->map = kzalloc(size, GFP_KERNEL);
+> +	if (adc_dev->map == NULL) {
+> +		kfree(chan_array);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	for (i = 0; i < indio_dev->num_channels; i++) {
+> +		adc_dev->map[i].adc_channel_label = chan_array[i].datasheet_name;
+> +		adc_dev->map[i].consumer_dev_name = "any";
+> +		adc_dev->map[i].consumer_channel = chan_array[i].datasheet_name;
+> +	}
+> +	adc_dev->map[i].adc_channel_label = NULL;
+> +	adc_dev->map[i].consumer_dev_name = NULL;
+> +	adc_dev->map[i].consumer_channel = NULL;
+
+The map should be passed in via platform data or similar. All the fields of
+the map depend on the specific user, so you can't use a generic map. In fact
+if we were able to use a generic map, we wouldn't need a map at all.
+
+> +
+> +	ret = iio_map_array_register(indio_dev, adc_dev->map);
+> +	if (ret != 0) {
+> +		kfree(adc_dev->map);
+> +		kfree(chan_array);
+> +		return -ENOMEM;
+> +	}
+>  
+>  	return indio_dev->num_channels;
+>  }
+> @@ -168,7 +206,7 @@ static int __devinit tiadc_probe(struct platform_device *pdev)
+>  
+>  	tiadc_step_config(adc_dev);
+>  
+> -	err = tiadc_channel_init(indio_dev, adc_dev->channels);
+> +	err = tiadc_channel_init(indio_dev, adc_dev);
+>  	if (err < 0)
+>  		goto err_free_device;
+>  
