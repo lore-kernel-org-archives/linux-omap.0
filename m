@@ -1,151 +1,64 @@
-From: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/3] ti_adc: Update with IIO map interface
-Date: Wed, 31 Oct 2012 18:16:18 +0000
-Message-ID: <0D509040-2DC5-46BF-B782-96B5B7B2620B@ti.com>
-References: <1351783496-11557-1-git-send-email-panto@antoniou-consulting.com>
- <50916563.8080704@metafoo.de>
- <F29A4A48-CDFA-4058-BED1-C09242B23326@antoniou-consulting.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: move mailbox.h out of plat-omap
+ headers
+Date: Wed, 31 Oct 2012 11:24:01 -0700
+Message-ID: <20121031182401.GM12739@atomide.com>
+References: <1351530381-11459-1-git-send-email-omar.luna@linaro.org>
+ <1351530381-11459-2-git-send-email-omar.luna@linaro.org>
+ <20121029175228.GD11908@atomide.com>
+ <CALLhW=4ukBuRSVcPm2A37PgBhv33yKqk2G=Dz2XTUyswXw=JMg@mail.gmail.com>
+ <20121030162441.GF11908@atomide.com>
+ <20121030210213.GA6098@kroah.com>
+ <CALLhW=6p06MPdfbD2S-PRs=w0zLNsEifsJ2xL0hjEZaFpbadDA@mail.gmail.com>
+ <5090E515.9050407@st.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F29A4A48-CDFA-4058-BED1-C09242B23326-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Content-Language: en-US
-Content-ID: <18773C2E86EA5A4FBE71C1F0C2878288-q8tqbTl1AnqmHdYHvhjUOg@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Cc: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>, "<linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "<linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, "Dill, Russ" <russ.dill-l0cyMroinI0@public.gmane.org>, "<linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5090E515.9050407@st.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Loic PALLARDY <loic.pallardy@st.com>
+Cc: Omar Ramirez Luna <omar.luna@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ohad Ben-Cohen <ohad@wizery.com>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Juan Gutierrez <jgutierrez@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, Suman Anna <s-anna@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
+* Loic PALLARDY <loic.pallardy@st.com> [121031 01:48]:
+> 
+> Hi Omar,
+> 
+> On 10/31/2012 08:22 AM, Omar Ramirez Luna wrote:
+> >
+> > As part of plat-omap code cleanup, I was planning to move omap-mailbox
+> > framework to a newly drivers/mailbox folder, right now this code is
+> > specific to OMAP platforms, but with some clean up it could be the
+> > base for a generic framework. And living under drivers/mailbox could
+> > give it some exposure for interested developers to give feedback and
+> > propose changes.
+> >
+> > In the past there was a mailbox-like driver in mach-ux500, I was
+> > hoping both could live under the same folder, however the platform
+> > using it, was dropped a couple of kernel releases back and with it the
+> > other similar mailbox implementation.
+> 
+> On STE side, we are working on a mailbox driver which will rely on 
+> mailbox framework.
+> However some modifications in current Omap mailbox framework are needed 
+> to fit STE HW specificities.
+> - API naming should be generic (replace omap prefix by mailbox)
+> - message type should be enhanced
+> - fifo mechanism is linked to Omap maibox, not needed in STE case since 
+> it relies on cross interrupt + shared memory
+> I already have modifications I'll send you to see how we can create a 
+> common and generic mailbox framework.
 
-On Oct 31, 2012, at 1:55 PM, Pantelis Antoniou wrote:
+OK cool. How about Omar first posts the fixed minimal patches
+to move things to live under drivers so can fix up omap for
+ARCH_MULTIPLATFORM?
 
-> 
-> On Oct 31, 2012, at 7:52 PM, Lars-Peter Clausen wrote:
-> 
->> On 11/01/2012 04:24 PM, Pantelis Antoniou wrote:
->>> Add an IIO map interface that consumers can use.
->> 
->> Hi,
->> 
->> Looks like you overlooked the review comments I had inline last time. I've
->> put them in again, see below.
->> 
->>> 
->>> Signed-off-by: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
->>> ---
->>> drivers/iio/adc/ti_am335x_adc.c | 60 +++++++++++++++++++++++++++++++++--------
->>> 1 file changed, 49 insertions(+), 11 deletions(-)
->>> 
->>> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
->>> index 02a43c8..8595a90 100644
->>> --- a/drivers/iio/adc/ti_am335x_adc.c
->>> +++ b/drivers/iio/adc/ti_am335x_adc.c
->>> @@ -20,8 +20,9 @@
->>> #include <linux/slab.h>
->>> #include <linux/interrupt.h>
->>> #include <linux/platform_device.h>
->>> -#include <linux/io.h>
->>> #include <linux/iio/iio.h>
->>> +#include <linux/iio/machine.h>
->>> +#include <linux/iio/driver.h>
->>> 
->>> #include <linux/mfd/ti_am335x_tscadc.h>
->>> #include <linux/platform_data/ti_am335x_adc.h>
->>> @@ -29,6 +30,8 @@
->>> struct tiadc_device {
->>> 	struct ti_tscadc_dev *mfd_tscadc;
->>> 	int channels;
->>> +	char *buf;
->> 
->> buf doesn't seem to be used anywhere
->> 
-> 
-> Duh
-> 
->>> +	struct iio_map *map;
->>> };
->>> 
->>> static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
->>> @@ -72,27 +75,62 @@ static void tiadc_step_config(struct tiadc_device *adc_dev)
->>> 	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
->>> }
->>> 
->>> -static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
->>> +static int tiadc_channel_init(struct iio_dev *indio_dev,
->>> +		struct tiadc_device *adc_dev)
->>> {
->>> 	struct iio_chan_spec *chan_array;
->>> -	int i;
->>> -
->>> -	indio_dev->num_channels = channels;
->>> -	chan_array = kcalloc(indio_dev->num_channels,
->>> -			sizeof(struct iio_chan_spec), GFP_KERNEL);
->>> +	struct iio_chan_spec *chan;
->>> +	char *s;
->>> +	int i, len, size, ret;
->>> +	int channels = adc_dev->channels;
->>> 
->>> +	size = channels * (sizeof(struct iio_chan_spec) + 6);
->>> +	chan_array = kzalloc(size, GFP_KERNEL);
->>> 	if (chan_array == NULL)
->>> 		return -ENOMEM;
->>> 
->>> -	for (i = 0; i < (indio_dev->num_channels); i++) {
->>> -		struct iio_chan_spec *chan = chan_array + i;
->>> +	/* buffer space is after the array */
->>> +	s = (char *)(chan_array + channels);
->>> +	chan = chan_array;
->>> +	for (i = 0; i < channels; i++, chan++, s += len + 1) {
->>> +
->>> +		len = sprintf(s, "AIN%d", i);
->>> +
->>> 		chan->type = IIO_VOLTAGE;
->>> 		chan->indexed = 1;
->>> 		chan->channel = i;
->>> -		chan->info_mask = IIO_CHAN_INFO_RAW_SEPARATE_BIT;
->>> +		chan->datasheet_name = s;
->>> +		chan->scan_type.sign = 'u';
->>> +		chan->scan_type.realbits = 12;
->>> +		chan->scan_type.storagebits = 32;
->>> +		chan->scan_type.shift = 0;
->> 
->> The scan type assignment should go in a separate patch if possible.
-> 
-> ok.
-> 
->> 
->>> 	}
->>> 
->>> 	indio_dev->channels = chan_array;
->>> +	indio_dev->num_channels = channels;
->>> +
->>> +	size = (channels + 1) * sizeof(struct iio_map);
->>> +	adc_dev->map = kzalloc(size, GFP_KERNEL);
->>> +	if (adc_dev->map == NULL) {
->>> +		kfree(chan_array);
->>> +		return -ENOMEM;
->>> +	}
->>> +
->>> +	for (i = 0; i < indio_dev->num_channels; i++) {
->>> +		adc_dev->map[i].adc_channel_label = chan_array[i].datasheet_name;
->>> +		adc_dev->map[i].consumer_dev_name = "any";
->>> +		adc_dev->map[i].consumer_channel = chan_array[i].datasheet_name;
->>> +	}
->>> +	adc_dev->map[i].adc_channel_label = NULL;
->>> +	adc_dev->map[i].consumer_dev_name = NULL;
->>> +	adc_dev->map[i].consumer_channel = NULL;
->> 
->> The map should be passed in via platform data or similar. All the fields of
->> the map depend on the specific user, so you can't use a generic map. In fact
->> if we were able to use a generic map, we wouldn't need a map at all.
-> 
-> There's no platform data in the board I'm using. It's board-generic using
-> device tree only.
+I can then put just those into an immutable branch that people
+can pull in as needed, and you guys can continue from there with
+the common mailbox framework (and I can continue work on the
+core omap code independently of the mailbox framwork work).
 
-How about a DT binding for the map?
+Regards,
 
--Matt--
-To unsubscribe from this list: send the line "unsubscribe linux-iio" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
