@@ -1,61 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 2/7] capebus: Add beaglebone board support
-Date: Tue, 30 Oct 2012 16:57:15 -0700
-Message-ID: <20121030235714.GB12739@atomide.com>
-References: <1351702333-8456-1-git-send-email-panto@antoniou-consulting.com>
- <1351702333-8456-3-git-send-email-panto@antoniou-consulting.com>
- <20121030193939.GR11908@atomide.com>
- <DE47929E-9579-4DD2-B01C-08554D49FADE@antoniou-consulting.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 09/11] ARM: OMAP: Fix relative includes for
+ debug-devices.h
+Date: Wed, 31 Oct 2012 00:05:36 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1210310003450.8340@utopia.booyaka.com>
+References: <20121030234852.25936.12482.stgit@muffinssi.local> <20121030235300.25936.9859.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <DE47929E-9579-4DD2-B01C-08554D49FADE@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:49892 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756244Ab2JaAFh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Oct 2012 20:05:37 -0400
+In-Reply-To: <20121030235300.25936.9859.stgit@muffinssi.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Pantelis Antoniou <panto@antoniou-consulting.com> [121030 13:18]:
-> On Oct 30, 2012, at 9:39 PM, Tony Lindgren wrote:
+On Tue, 30 Oct 2012, Tony Lindgren wrote:
+
+> As discussed on linux-arm-kernel, we want to avoid
+> relative includes for the arch/arm/*omap* shared code:
 > 
-> > * Pantelis Antoniou <panto@antoniou-consulting.com> [121030 12:00]:
-> >> +
-> >> +	priv->lcdc_oh = omap_hwmod_lookup("lcdc");
-> >> +	if (priv->lcdc_oh == NULL) {
-> >> +		dev_err(&pdev->dev, "Failed to lookup omap_hwmod lcdc\n");
-> >> +		return -ENODEV;
-> >> +	}
-> >> +
-> >> +	priv->lcdc_pdev = omap_device_build("da8xx_lcdc", 0, priv->lcdc_oh,
-> >> +			&priv->lcd_pdata,
-> >> +			sizeof(struct da8xx_lcdc_platform_data),
-> >> +			NULL, 0, 0);
-> >> +	if (priv->lcdc_pdev == NULL) {
-> >> +		dev_err(&pdev->dev, "Failed to build LCDC device\n");
-> >> +		return -ENODEV;
-> >> +	}
-> > 
-> > ..and these kind of things need to become private to
-> > arch/arm/mach-omap2, we already have it working for other
-> > devices with device tree.
-> > 
-> > Regards,
-> > 
-> > Tony
+> http://www.spinics.net/lists/linux-omap/msg80520.html
 > 
-> I see,
+> Let's add plat/debug-devices.h for debug_card_init()
+> to fix the relative includes.
 > 
-> I know that if the device driver is DTified it will pick up the hwmod automatically.
-> The issue is that the driver is question is not yet; how would I go about
-> creating the platform device and having it pick up the hwmod automatically?
+> Note that drivers must not use this header as it will
+> break build for omap2+ CONFIG_MULTIPLATFORM builds.
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Maybe you should make this DT only driver for omap? We already
-have am33xx DT only to start with.
+Looks fine to me; the original patch didn't use relative include paths.  
+At some point the debug card device code should be moved into drivers/ as 
+we discussed...
 
-If you really need the platform device still, just take a look
-at the many platform device creating files under arch/arm/mach-omap2.
 
-Regards,
-
-Tony
+- Paul
