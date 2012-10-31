@@ -1,91 +1,71 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 05/12] OMAPDSS: DSI: skip odd dividers when pck >= 100MHz
-Date: Wed, 31 Oct 2012 13:02:32 +0530
-Message-ID: <5090D410.5040101@ti.com>
-References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-6-git-send-email-tomi.valkeinen@ti.com> <5090C8F9.4060103@ti.com> <5090D29A.3050605@ti.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH] ti_tscadc: Match mfd sub devices to regmap interface
+Date: Wed, 31 Oct 2012 09:12:54 +0100
+Message-ID: <5090DD86.7090204@metafoo.de>
+References: <1351698945-3881-1-git-send-email-panto@antoniou-consulting.com> <CA+Bv8XbCweGxKg-VsM2=g5KJEbLZhUA8F=iAG2st7c0JRLH58g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46124 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638Ab2JaHcs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Oct 2012 03:32:48 -0400
-In-Reply-To: <5090D29A.3050605@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <CA+Bv8XbCweGxKg-VsM2=g5KJEbLZhUA8F=iAG2st7c0JRLH58g@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Jonathan Cameron <jic23@cam.ac.uk>, "Patil, Rachna" <rachna@ti.com>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com
 
-On Wednesday 31 October 2012 12:56 PM, Tomi Valkeinen wrote:
-> On 2012-10-31 08:45, Archit Taneja wrote:
->> On Tuesday 30 October 2012 09:40 PM, Tomi Valkeinen wrote:
->>> The DSI PLL and HSDivider can be used to generate the pixel clock for
->>> LCD overlay manager, which then goes to DPI output. On the DPI output
->>> pin the voltage of the signal is shifted from the OMAP's internal
->>> minimal voltage to 1.8V range. The shifting is not instant, and the
->>> higher the clock frequency, the less time there is to shift the signal
->>> to nominal voltage.
->>>
->>> If the HSDivider's divider is greater than one and odd, the resulting
->>> pixel clock does not have 50% duty cycle. For example, with a divider of
->>> 3, the duty cycle is 33%.
->>>
->>> When combining high frequency (in the area of 140MHz+) and non-50% duty
->>> cycle, it has been observed the the shifter does not have enough time to
->>> shift the voltage enough, and this leads to bad signal which is rejected
->>> by monitors.
+On 10/31/2012 05:41 AM, Russ Dill wrote:
+> On Wed, Oct 31, 2012 at 8:55 AM, Pantelis Antoniou
+> <panto@antoniou-consulting.com> wrote:
+>> The MFD parent device now uses a regmap, instead of direct
+>> memory access. Use the same method in the sub devices to avoid
+>> nasty surprises.
 >>
->> Is this something seen on OMAP3 also? I guess it must be since it's the
->> same DSI IP.
->
-> I have not seen this on OMAP3, but I'm 99% sure the same problem happens
-> there. But I guess there are many small things affecting the signal
-> quality, it could be that on omap3 beagleboard the resulting signal
-> voltage is still inside the standard range, even if odd dividers weaken it.
->
-> And I also think that we have the same problem with logic and pixel
-> clock dividers. My understanding is that all these simple dividers (i.e.
-> not a PLL or such) are made the same way, and, for example, divider of 3
-> is produced by keeping the output clock low for 2 cycles of the original
-> clock, and high for 1 cycle. Which leads to 33% duty cycle.
->
-> However, as the actual problem only materializes with high frequencies,
-> in practice we don't have a problem with pck or lck dividers. The reason
-> is that if we used pcd or lcd of 3, and the resulting pixel clock would
-> be > 100, the incoming DSS func clock would be around 300. Which is much
-> over the limit, and thus this scenario doesn't happen.
->
->>> As a workaround this patch makes the divider calculation skip all odd
->>> dividers when the required pixel clock is over 100MHz.
->>>
->>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->>> ---
->>>    drivers/video/omap2/dss/dsi.c |    5 +++++
->>>    1 file changed, 5 insertions(+)
->>>
->>> diff --git a/drivers/video/omap2/dss/dsi.c
->>> b/drivers/video/omap2/dss/dsi.c
->>> index 7d0db2b..d0e35da 100644
->>> --- a/drivers/video/omap2/dss/dsi.c
->>> +++ b/drivers/video/omap2/dss/dsi.c
->>> @@ -1386,6 +1386,11 @@ retry:
->>>                    cur.dsi_pll_hsdiv_dispc_clk =
->>>                        cur.clkin4ddr / cur.regm_dispc;
->>>
->>> +                if (cur.regm_dispc > 1 &&
->>> +                        cur.regm_dispc % 2 != 0 &&
->>> +                        req_pck >= 1000000)
->>> +                    continue;
->>> +
+>> Also rework the channel initialization of tiadc a bit.
 >>
->> Why do we do the req_pck check here? Can't we do it much earlier? We
->> could bail out right in the beginning of dsi_pll_calc_clock_div_pck() if
->> we see that req_pck is greater than 100 Mhz.
->
-> I think you misunderstood the patch. We don't skip or fail calculations
-> for pck > 100. What we do is we skip odd dividers if pck > 100.
+>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+>> ---
+>>  drivers/iio/adc/ti_am335x_adc.c           | 27 +++++++++++++++++++--------
+>>  drivers/input/touchscreen/ti_am335x_tsc.c | 16 +++++++++++++---
+>>  drivers/mfd/ti_am335x_tscadc.c            |  7 +++++--
+>>  3 files changed, 37 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+>> index d48fd79..5f325c1 100644
+>> --- a/drivers/iio/adc/ti_am335x_adc.c
+>> +++ b/drivers/iio/adc/ti_am335x_adc.c
+>> @@ -23,7 +23,9 @@
+>>  #include <linux/iio/iio.h>
+>>  #include <linux/iio/machine.h>
+>>  #include <linux/iio/driver.h>
+>> +#include <linux/regmap.h>
+>>
+>> +#include <linux/io.h>
+>>  #include <linux/mfd/ti_am335x_tscadc.h>
+>>  #include <linux/platform_data/ti_am335x_adc.h>
+>>
+>> @@ -36,13 +38,17 @@ struct tiadc_device {
+>>
+>>  static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
+>>  {
+>> -       return readl(adc->mfd_tscadc->tscadc_base + reg);
+>> +       unsigned int val;
+>> +
+>> +       val = (unsigned int)-1;
+>> +       regmap_read(adc->mfd_tscadc->regmap_tscadc, reg, &val);
+>> +       return val;
+>>  }
+> 
+> Would it be cleaner to instead do:
+> 
+> static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
+> {
+>        unsigned int val;
+> 
+>        return regmap_read(adc->mfd_tscadc->regmap_tscadc, reg, &val) ? : val;
+> }
 
-Ah okay. I missed that point.
+In my opinion the best would be to just mimic the regmap interface here. Return
+an error code or 0 and pass the value back through a pointer parameter.
 
-Archit
+
+
