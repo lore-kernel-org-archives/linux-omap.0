@@ -1,41 +1,176 @@
-From: Vivek Gautam <gautamvivek1987-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] USB: dwc3-exynos: Add support for device tree
-Date: Wed, 31 Oct 2012 19:59:42 +0530
-Message-ID: <CAFp+6iEUAZY+MMcpuyD8m5Qpv1H76GLDJbSmUaasvM8=KMhgPg@mail.gmail.com>
-References: <1350377157-28465-1-git-send-email-gautam.vivek@samsung.com>
-	<1350377157-28465-2-git-send-email-gautam.vivek@samsung.com>
-	<20121031133823.GW10998@arwen.pp.htv.fi>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 4/4] arm/dts: am33xx: Add CPSW and MDIO module nodes for
+ AM33XX
+Date: Wed, 31 Oct 2012 16:17:27 +0100
+Message-ID: <50914107.2090909@ti.com>
+References: <1351498881-32482-1-git-send-email-hvaibhav@ti.com> <1351498881-32482-6-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121031133823.GW10998-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, thomas.abraham-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, av.tikhomirov-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38600 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753519Ab2JaPRk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 11:17:40 -0400
+In-Reply-To: <1351498881-32482-6-git-send-email-hvaibhav@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: netdev@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>, Richard Cochran <richardcochran@gmail.com>
 
-Hi Felipe,
+Hi,
 
-On Wed, Oct 31, 2012 at 7:08 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
-> On Tue, Oct 16, 2012 at 02:15:56PM +0530, Vivek Gautam wrote:
->> This patch adds support to parse probe data for
->> dwc3-exynos driver using device tree.
->>
->> Signed-off-by: Vivek Gautam <gautam.vivek-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
->
-> does not apply to my dwc3 branch. Care to respin ?
->
-Sure, i shall respin on latest tree.
+On 10/29/2012 09:21 AM, Vaibhav Hiremath wrote:
+> From: Mugunthan V N <mugunthanvnm@ti.com>
+> 
+> Add CPSW and MDIO related device tree data for AM33XX.
+> Also enable them into board/evm dts files by providing
+> respective phy-id.
 
-> --
-> balbi
+Is there any bindings documentation for that device?
+
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Richard Cochran <richardcochran@gmail.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-bone.dts |    8 ++++++
+>  arch/arm/boot/dts/am335x-evm.dts  |    8 ++++++
+>  arch/arm/boot/dts/am33xx.dtsi     |   50 +++++++++++++++++++++++++++++++++++++
+>  3 files changed, 66 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+> index c634f87..e233cfa 100644
+> --- a/arch/arm/boot/dts/am335x-bone.dts
+> +++ b/arch/arm/boot/dts/am335x-bone.dts
+> @@ -78,3 +78,11 @@
+>  		};
+>  	};
+>  };
+> +
+> +&cpsw_emac0 {
+> +	phy_id = "4a101000.mdio:00";
+
+Why are you using that kind of interface? You seem to want a reference
+to a device.
+
+Cannot you have something less hard coded like:
+phy_id = <&davinci_mdio>, <0>;
 
 
--- 
-Thanks & Regards
-Vivek
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +};
+> +
+> +&cpsw_emac1 {
+> +	phy_id = "4a101000.mdio:01";
+> +};
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index 185d632..415c3b3 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -118,3 +118,11 @@
+>  		};
+>  	};
+>  };
+> +
+> +&cpsw_emac0 {
+> +	phy_id = "4a101000.mdio:00";
+> +};
+> +
+> +&cpsw_emac1 {
+> +	phy_id = "4a101000.mdio:01";
+> +};
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index bb31bff..f6bea04 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -210,5 +210,55 @@
+>  			interrupt-parent = <&intc>;
+>  			interrupts = <91>;
+>  		};
+> +
+> +		mac: ethernet@4A100000 {
+
+hexa data should be in lower case.
+
+> +			compatible = "ti,cpsw";
+> +			ti,hwmods = "cpgmac0";
+> +			cpdma_channels = <8>;
+> +			host_port_no = <0>;
+> +			cpdma_reg_ofs = <0x800>;
+> +			cpdma_sram_ofs = <0xa00>;
+> +			ale_reg_ofs = <0xd00>;
+> +			ale_entries = <1024>;
+> +			host_port_reg_ofs = <0x108>;
+> +			hw_stats_reg_ofs = <0x900>;
+> +			bd_ram_ofs = <0x2000>;
+> +			bd_ram_size = <0x2000>;
+> +			no_bd_ram = <0>;
+> +			rx_descs = <64>;
+> +			mac_control = <0x20>;
+
+Do you have to store all these data in the DTS? Cannot it be in the driver?
+
+Do you expect to have several instance of the same IP with different
+parameters here?
+
+> +			slaves = <2>;
+> +			reg = <0x4a100000 0x800
+> +				0x4a101200 0x100
+> +				0x4a101000 0x100>;
+
+Please align the address.
+
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			interrupt-parent = <&intc>;
+> +			/* c0_rx_thresh_pend c0_rx_pend c0_tx_pend c0_misc_pend*/
+
+Please use a standard multi-line comment instead of trying to put
+everything in one line.
+
+> +			interrupts = <40 41 42 43>;
+> +			ranges;
+
+You should add blank line here for readability.
+
+> +			cpsw_emac0: slave@0 {
+
+Mmm, you are using some address later and here some relative number,
+that does not looks very consistent.
+
+> +				slave_reg_ofs = <0x208>;
+
+Is it an offset from 4a100000? Cannot you use the address for the slave
+name?
+
+Something like that: cpsw_emac0: slave@4a100208
+
+> +				sliver_reg_ofs = <0xd80>;
+> +				/* Filled in by U-Boot */
+> +				mac-address = [ 00 00 00 00 00 00 ];
+> +			};
+
+You should add blank line here for readability.
+
+> +			cpsw_emac1: slave@1 {
+> +				slave_reg_ofs = <0x308>;
+> +				sliver_reg_ofs = <0xdc0>;
+> +				/* Filled in by U-Boot */
+> +				mac-address = [ 00 00 00 00 00 00 ];
+> +			};
+> +
+> +			davinci_mdio: mdio@4a101000 {
+> +				compatible = "ti,davinci_mdio";
+> +				#address-cells = <1>;
+> +				#size-cells = <0>;
+> +				ti,hwmods = "davinci_mdio";
+> +				bus_freq = <1000000>;
+> +				reg = <0x4a101000 0x100>;
+> +			};
+> +
+
+Stray change.
+
+Regards,
+Benoit
+
