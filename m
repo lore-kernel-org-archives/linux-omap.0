@@ -1,118 +1,111 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Wed, 31 Oct 2012 22:12:44 +0200
-Message-ID: <8AD2F7AF-8315-442B-A394-1A38DAB29F52@antoniou-consulting.com>
-References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com> <20121031175219.GH12739@atomide.com> <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com> <20121031180935.GL12739@atomide.com> <50918223.6080003@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50918223.6080003@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH V3] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
+Date: Wed, 31 Oct 2012 22:16:26 +0200
+Message-ID: <20121031201626.GA28784@arwen.pp.htv.fi>
+References: <1351684656-30275-1-git-send-email-gururaja.hebbar@ti.com>
+ <20121031122639.GA10998@arwen.pp.htv.fi>
+ <CAOyx1LrKBE+xzSRN4F=+e1DuMJL+5SAv-YkJWJdDw8p=kDojmw@mail.gmail.com>
+Reply-To: <balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOyx1LrKBE+xzSRN4F=+e1DuMJL+5SAv-YkJWJdDw8p=kDojmw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: balbi@ti.com, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, cjb@laptop.org, balajitk@ti.com, grant.likely@secretlab.ca, nsekhar@ti.com, sudhakar.raj@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, rob@landley.net, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Benoit,
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Oct 31, 2012, at 9:55 PM, Benoit Cousson wrote:
+Hi,
 
-> Hi Panto,
-> 
-> On 10/31/2012 07:09 PM, Tony Lindgren wrote:
->> * Pantelis Antoniou <panto@antoniou-consulting.com> [121031 11:05]:
->>> Hi Tony,
->>> 
->>> On Oct 31, 2012, at 7:52 PM, Tony Lindgren wrote:
->>> 
->>>> * Pantelis Antoniou <panto@antoniou-consulting.com> [121031 10:26]:
->>>>> It is painless to move the adapter DT devices to arch/arm/mach-omap2
->>>>> 
->>>>> However I got bit by the __init at omap_build_device family functions.
->>>>> If you don't remove it, crashes every time you instantiate a device
->>>>> at runtime, or you load the cape driver as a module.
->>>> 
->>>> Hmm I think you misunderstood me. You only need to create the
->>>> platform_device under arch/arm/mach-omap2. The device creation
->>>> happens only at __init, so omap_build_device can stay as __init.
->>>> The driver itself should be under drivers.
->>>> 
->>>> But is this bus on non-device-tree omaps? If not, just make it
->>>> device tree only.
->>>> 
->>> 
->>> I'm afraid that's not the case. The whole notion of capebus is that
->>> instantiation of the devices doesn't just happen early at the boot
->>> sequence.
->>> 
->>> It is perfectly valid for a cape to be instantiated via loading
->>> a module, or by making an override by writing a sysfs file.
->>> 
->>> When having the __init there, the function has been long removed
->>> and you get a crash by calling into the weeds.
->>> 
->>> So the sequence is:
->>> 
->>> <early boot>       Register the adapter driver.
->> 
->> OK this is always there for the hardware, and done during
->> the __init and this one should have an omap_device..
->> 
->>> <user>             insmod bone-geiger-cape
->>> <cape-is-matched>  call omap_build_device
->>> 
->>> Please look into the capebus patches for the details. 
->> 
->> ..but it seems that the devices connected to capebus should
->> not have anything to do with omap_device and hwmod?
-> 
-> 
-> Yeah, I do agree. I'm confused as well. Only OMAP IPs under PRCM control
-> could have an hwmod and thus must be handled by an omap_device.
-> 
-> Any devices that is created later cannot be omap_device. The DT core
-> will create regular platform_device for them.
-> 
-> Since cape is an external board, it should have nothing to do with
-> omap_device.
-> 
-> Looking at your patch:
-> da8xx-dt: Create da8xx DT adapter device
-> 
-> I understand why you do that, but in fact that patch does not make sense
-> to me :-(
-> 
-> Why do you have to create an omap_device from the driver probe?
-> 
+On Thu, Nov 01, 2012 at 01:21:36AM +0530, Venkatraman S wrote:
+> On Wed, Oct 31, 2012 at 5:56 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
+> >
+> > On Wed, Oct 31, 2012 at 05:27:36PM +0530, Hebbar, Gururaja wrote:
+> >> HSMMC IP on AM33xx need a special setting to handle High-speed cards.
+> >> Other platforms like TI81xx, OMAP4 may need this as-well. This depends
+> >> on the HSMMC IP timing closure done for the high speed cards.
+> >>
+> >> From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
+> >>
+> >> The MMC/SD/SDIO output signals can be driven on either falling edge or
+> >> rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
+> >> to reach better timing performance, and thus to increase data transfer
+> >> frequency.
+> >>
+> >> There are few pre-requisites for enabling the HSPE bit
+> >> - Controller should support High-Speed-Enable Bit and
+> >> - Controller should not be using DDR Mode and
+> >> - Controller should advertise that it supports High Speed in
+> >>   capabilities register and
+> >> - MMC/SD clock coming out of controller > 25MHz
+> >>
+> >> Note:
+> >> The implementation reuses the output of calc_divisor() so as to reduce
+> >> code addition.
+> >>
+> >> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+> >
+> > this looks good to my eyes, hopefully I haven't missed anything:
+> >
+> > Reviewed-by: Felipe Balbi <balbi@ti.com>
+> >
+>=20
+> Except for the excessively verbose comments which are just duplicating th=
+e code,
+> <Quote>
+> >> +      * Enable High-Speed Support
+> >> +      * Pre-Requisites
+> >> +      *      - Controller should support High-Speed-Enable Bit
+> >> +      *      - Controller should not be using DDR Mode
+> >> +      *      - Controller should advertise that it supports High Speed
+> >> +      *        in capabilities register
+> >> +      *      - MMC/SD clock coming out of controller > 25MHz
+> >> +      */
+> </Quote>
+>=20
+> I'm ok with this patch as well. I'm putting a few patches under test
+> including this one,
+> and will send it to Chris as part of that series.
+> I'll strip out the above mentioned comments, unless there are any
+> objections.
 
-The problem is that capes are not external boards in the normal sense
-as a PCI board is. In the PCI case the hardware that implements the 
-desired functionality is on the PCI board, while in the cape case the
-hardware module is in the SoC. The cape most of the times is quite
-simple and contains passive components, leds or some kind of I2C/SPI devices.
+please don't. Detailing the pre-requisites for getting HSP mode working
+isn't bad at all. Should someone decide to change the behavior and ends
+up breaking it, the comment will help putting things back together.
 
-In the da8xx case it contains only the minimum hardware required for 
-interfacing to the required display type, be it an LCD or a DVI or something
-other.
+my 2 cents, you've got the final decision though.
 
-You can't instantiate the omap_device early in the boot process like it was done up to 
-now in the board file. You can only do that later in the boot process (for built-in 
-cape drivers), or even after user-space has booted and the matching cape driver module
-has been loaded.
+--=20
+balbi
 
-So this is a use case that hasn't been encountered yet I'm afraid, but it is a valid
-use case.
+--pf9I7BMVVzbSWLtt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-I don't see what the big deal is about to be honest. The omap device is safely created
-in the da8xx-dt adapter's probe method, and everything seems to work.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-If there are any gotcha's or problems with this approach I think can be overcome.
+iQIcBAEBAgAGBQJQkYcaAAoJEIaOsuA1yqRE+iUP/RHTNhUlndpVvGiedfuSlYjl
+33HSSXBgyl+Pu9INdGHf79rbX2y4hpKtOcrMCafG72UPqJXsr4m4vs93yY/RXm5i
+Sz+w9JmlkE7rmO2RKmOyL4faEXf64fGMCvHg6sP7nxcQJk8m350FnZqWYwoi2Ho1
+8M1v4ls3I+7nl+aU2cOUwYLijorKRgU2l3/xqlh5Dj8RSpcQny/Iu1N7VbdhDQuO
+UuxvN2D0Xa5goLxkw5DcluikyfOY0iak2okApBDwsfYYzlQqI/K1XjjO/G30TJoG
+OAiHEopcaH2KJNa2zPyus0w91JJkw0MXV2EP5yS2N3VLzKW/TfD71//q+X330f3m
+sm6fskFR/2j98jW/I7s0hrlwQmepwPKxUAYUfuNiEwitSZgYTBuy9rTuBTrq5zhl
+XKAYN8XMEWH4wM3ReyGgs7UKhplAEVnCgwH9ZWTSQmOa2PBj5yOaVZahA4XPccZx
+6V9iyugmSQB/kBHZ7ua3XWiEExuMqw/bkxaW7k6k2URsU8cbFltVde1D3rPN2RCS
+F9yJo/4Fo/UPmc4BcPj+USl/OWOLxB+qbToq7vZW+KJ8S6rA7R/MidxcLUtZ/+jc
+1GUai4q8ypKOegSSMcepUxQkMDVj5lP2hd9z3YysMnoKTxf24DkyI1UbvRhukE9Z
+4u1yhR3SU6uZX7/5ipT0
+=D5yN
+-----END PGP SIGNATURE-----
 
-> 
-> Regards,
-> Benoit
-> 
-
-Regards
-
--- Pantelis
+--pf9I7BMVVzbSWLtt--
