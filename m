@@ -1,80 +1,33 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] ti_tscadc: Match mfd sub devices to regmap interface
-Date: Tue, 30 Oct 2012 22:51:31 -0700
-Message-ID: <20121031055131.GB31983@core.coreip.homeip.net>
-References: <1351698945-3881-1-git-send-email-panto@antoniou-consulting.com>
- <CA+Bv8XbCweGxKg-VsM2=g5KJEbLZhUA8F=iAG2st7c0JRLH58g@mail.gmail.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 01/12] OMAPFB: remove use of extended edid block
+Date: Wed, 31 Oct 2012 11:40:21 +0530
+Message-ID: <5090C0CD.7070104@ti.com>
+References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CA+Bv8XbCweGxKg-VsM2=g5KJEbLZhUA8F=iAG2st7c0JRLH58g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Jonathan Cameron <jic23@cam.ac.uk>, "Patil, Rachna" <rachna@ti.com>, linux-iio@vger.kernel.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39908 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753194Ab2JaGKi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 02:10:38 -0400
+In-Reply-To: <1351613409-21186-2-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com
 
-On Tue, Oct 30, 2012 at 09:41:00PM -0700, Russ Dill wrote:
-> On Wed, Oct 31, 2012 at 8:55 AM, Pantelis Antoniou
-> <panto@antoniou-consulting.com> wrote:
-> > The MFD parent device now uses a regmap, instead of direct
-> > memory access. Use the same method in the sub devices to avoid
-> > nasty surprises.
-> >
-> > Also rework the channel initialization of tiadc a bit.
-> >
-> > Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> > ---
-> >  drivers/iio/adc/ti_am335x_adc.c           | 27 +++++++++++++++++++--------
-> >  drivers/input/touchscreen/ti_am335x_tsc.c | 16 +++++++++++++---
-> >  drivers/mfd/ti_am335x_tscadc.c            |  7 +++++--
-> >  3 files changed, 37 insertions(+), 13 deletions(-)
-> >
-> > diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
-> > index d48fd79..5f325c1 100644
-> > --- a/drivers/iio/adc/ti_am335x_adc.c
-> > +++ b/drivers/iio/adc/ti_am335x_adc.c
-> > @@ -23,7 +23,9 @@
-> >  #include <linux/iio/iio.h>
-> >  #include <linux/iio/machine.h>
-> >  #include <linux/iio/driver.h>
-> > +#include <linux/regmap.h>
-> >
-> > +#include <linux/io.h>
-> >  #include <linux/mfd/ti_am335x_tscadc.h>
-> >  #include <linux/platform_data/ti_am335x_adc.h>
-> >
-> > @@ -36,13 +38,17 @@ struct tiadc_device {
-> >
-> >  static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
-> >  {
-> > -       return readl(adc->mfd_tscadc->tscadc_base + reg);
-> > +       unsigned int val;
-> > +
-> > +       val = (unsigned int)-1;
-> > +       regmap_read(adc->mfd_tscadc->regmap_tscadc, reg, &val);
-> > +       return val;
-> >  }
-> 
-> Would it be cleaner to instead do:
-> 
-> static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
-> {
->        unsigned int val;
-> 
->        return regmap_read(adc->mfd_tscadc->regmap_tscadc, reg, &val) ? : val;
-> }
-> 
-> or
->        int ret;
-> 
->        ret = regmap_read(adc->mfd_tscadc->regmap_tscadc, reg, &val);
->        return ret < 0 ret ? : val;
+On Tuesday 30 October 2012 09:39 PM, Tomi Valkeinen wrote:
+> It seems that using the second EDID block causes more problems than is
+> of any help. The first mode in the extended block will get
+> FB_MODE_IS_FIRST set, which will override the first mode from the first
+> EDID block, thus making the default videomode selection not to work
+> properly.
+>
+> This patch removes the use of the extended edid block for now.
 
-Also the function should not be returning unsigned int if it returns
-errors.
+Looks like you had posted this one(and also the next one)in the previous 
+cleanup/fixes series also.
 
-Thanks.
+Archit
 
--- 
-Dmitry
