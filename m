@@ -1,75 +1,164 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH RFC] i2c: omap: Fix the revision register read
-Date: Wed, 31 Oct 2012 13:52:54 +0200
-Message-ID: <20121031115254.GB10733@arwen.pp.htv.fi>
-References: <1351673959-5918-1-git-send-email-shubhrajyoti@ti.com>
- <20121031101201.GB10094@arwen.pp.htv.fi>
- <5091045E.8040407@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 8/8] ARM: OMAP3: do not delete per_clkdm autodeps
+ during idle
+Date: Wed, 31 Oct 2012 13:59:48 +0200
+Message-ID: <1351684788.8788.17.camel@sokoban>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
+	 <1342189185-5306-9-git-send-email-t-kristo@ti.com>
+	 <alpine.DEB.2.00.1209182156330.4747@utopia.booyaka.com>
+	 <alpine.DEB.2.00.1209182241400.4747@utopia.booyaka.com>
+	 <87k3vpek28.fsf@deeprootsystems.com>
+	 <alpine.DEB.2.00.1210160603390.9767@utopia.booyaka.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xXmbgvnjoT4axfJE"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5091045E.8040407-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54146 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935478Ab2JaL7y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 07:59:54 -0400
+In-Reply-To: <alpine.DEB.2.00.1210160603390.9767@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
---xXmbgvnjoT4axfJE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Paul,
 
-Hi,
+On Tue, 2012-10-16 at 07:29 +0000, Paul Walmsley wrote:
+> Hi Kevin,
+> 
+> Here's an updated version of this one, with the erratum coverage expanded 
+> to include OMAP34xx/35xx.
+> 
+> I think this one can replace Tero's "[PATCHv6 06/11] ARM: OMAP: 
+> clockdomain: add support for preventing autodep delete" and "[PATCHv6 
+> 07/11] ARM: OMAP3: do not delete per_clkdm autodeps during idle".  Tero, 
+> please let us know if you feel otherwise.
 
-On Wed, Oct 31, 2012 at 04:28:38PM +0530, Shubhrajyoti wrote:
-> On Wednesday 31 October 2012 03:42 PM, Felipe Balbi wrote:
-> >> =20
-> >> > +	if (!_dev->regs)
-> >> > +		return 0;
-> > this is wrong, you need to make sure dev->regs is set early enough.
->=20
->=20
-> to set the dev->regs I use the value read from revision register.
->=20
-> to read the revision register I do a get_sync first. This in turn leads
-> to the call to resume handler.
-> At this point the regs is NULL and so the check.
->=20
-> After reading the register and checking the scheme bit.
-> the reg map is populated.
->=20
-> How can this issue be solved?
+Yes, these are no longer necessary, just tested the set.
 
-aaa good point, missed that. Nevermind that comment ;-)
+No other changes seem to be necessary for the set except trivial rebase.
+Would you like me to re-send the pwrdm-changes set or...?
 
-cheers
+-Tero
 
---=20
-balbi
+> 
+> The patch seems to pass testing on 37xx.  Was not able to really test it 
+> on 35xx due to PM regressions in v3.7-rc1.
+> 
+> 
+> - Paul
+> 
+> From: Paul Walmsley <paul@pwsan.com>
+> Date: Tue, 16 Oct 2012 00:08:53 -0600
+> Subject: [PATCH] ARM: OMAP3: PM: apply part of the erratum i582 workaround
+> 
+> On OMAP34xx/35xx, and OMAP36xx chips with ES < 1.2, if the PER
+> powerdomain goes to OSWR or OFF while CORE stays at CSWR or ON, or if,
+> upon chip wakeup from OSWR or OFF, the CORE powerdomain goes ON before
+> PER, the UART3/4 FIFOs and McBSP2/3 SIDETONE memories will be
+> unusable.  This is erratum i582 in the OMAP36xx Silicon Errata
+> document.
+> 
+> This patch implements one of several parts of the workaround: the
+> addition of the wakeup dependency between the PER and WKUP
+> clockdomains, such that PER will wake up at the same time CORE_L3
+> does.
+> 
+> This is not a complete workaround.  For it to be complete:
+> 
+> 1. the PER powerdomain's next power state must not be set to OSWR or
+>    OFF if the CORE powerdomain's next power state is set to CSWR or
+>    ON;
+> 
+> 2. the UART3/4 FIFO and McBSP2/3 SIDETONE loopback tests should be run
+>    if the LASTPOWERSTATEENTERED bits for PER and CORE indicate that
+>    PER went OFF while CORE stayed on.  If loopback tests fail, then
+>    those devices will be unusable until PER and CORE can undergo a
+>    transition from ON to OSWR/OFF and back ON.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm.h     |    1 +
+>  arch/arm/mach-omap2/pm34xx.c |   30 ++++++++++++++++++++++++++++--
+>  2 files changed, 29 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index 686137d..67d6613 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -91,6 +91,7 @@ extern void omap3_save_scratchpad_contents(void);
+>  
+>  #define PM_RTA_ERRATUM_i608		(1 << 0)
+>  #define PM_SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
+> +#define PM_PER_MEMORIES_ERRATUM_i582	(1 << 2)
+>  
+>  #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
+>  extern u16 pm34xx_errata;
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index c0f8a78..2e0c9e8 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -651,14 +651,17 @@ static void __init pm_errata_configure(void)
+>  		/* Enable the l2 cache toggling in sleep logic */
+>  		enable_omap3630_toggle_l2_on_restore();
+>  		if (omap_rev() < OMAP3630_REV_ES1_2)
+> -			pm34xx_errata |= PM_SDRC_WAKEUP_ERRATUM_i583;
+> +			pm34xx_errata |= (PM_SDRC_WAKEUP_ERRATUM_i583 |
+> +					  PM_PER_MEMORIES_ERRATUM_i582);
+> +	} else if (cpu_is_omap34xx()) {
+> +		pm34xx_errata |= PM_PER_MEMORIES_ERRATUM_i582;
+>  	}
+>  }
+>  
+>  int __init omap3_pm_init(void)
+>  {
+>  	struct power_state *pwrst, *tmp;
+> -	struct clockdomain *neon_clkdm, *mpu_clkdm;
+> +	struct clockdomain *neon_clkdm, *mpu_clkdm, *per_clkdm, *wkup_clkdm;
+>  	int ret;
+>  
+>  	if (!omap3_has_io_chain_ctrl())
+> @@ -710,6 +713,8 @@ int __init omap3_pm_init(void)
+>  
+>  	neon_clkdm = clkdm_lookup("neon_clkdm");
+>  	mpu_clkdm = clkdm_lookup("mpu_clkdm");
+> +	per_clkdm = clkdm_lookup("per_clkdm");
+> +	wkup_clkdm = clkdm_lookup("wkup_clkdm");
+>  
+>  #ifdef CONFIG_SUSPEND
+>  	omap_pm_suspend = omap3_pm_suspend;
+> @@ -726,6 +731,27 @@ int __init omap3_pm_init(void)
+>  	if (IS_PM34XX_ERRATUM(PM_RTA_ERRATUM_i608))
+>  		omap3630_ctrl_disable_rta();
+>  
+> +	/*
+> +	 * The UART3/4 FIFO and the sidetone memory in McBSP2/3 are
+> +	 * not correctly reset when the PER powerdomain comes back
+> +	 * from OFF or OSWR when the CORE powerdomain is kept active.
+> +	 * See OMAP36xx Erratum i582 "PER Domain reset issue after
+> +	 * Domain-OFF/OSWR Wakeup".  This wakeup dependency is not a
+> +	 * complete workaround.  The kernel must also prevent the PER
+> +	 * powerdomain from going to OSWR/OFF while the CORE
+> +	 * powerdomain is not going to OSWR/OFF.  And if PER last
+> +	 * power state was off while CORE last power state was ON, the
+> +	 * UART3/4 and McBSP2/3 SIDETONE devices need to run a
+> +	 * self-test using their loopback tests; if that fails, those
+> +	 * devices are unusable until the PER/CORE can complete a transition
+> +	 * from ON to OSWR/OFF and then back to ON.
+> +	 *
+> +	 * XXX Technically this workaround is only needed if off-mode
+> +	 * or OSWR is enabled.
+> +	 */
+> +	if (IS_PM34XX_ERRATUM(PM_PER_MEMORIES_ERRATUM_i582))
+> +		clkdm_add_wkdep(per_clkdm, wkup_clkdm);
+> +
+>  	clkdm_add_wkdep(neon_clkdm, mpu_clkdm);
+>  	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
+>  		omap3_secure_ram_storage =
 
---xXmbgvnjoT4axfJE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQkREWAAoJEIaOsuA1yqREMGcP/2liYH8AtCx64lol3ZGowZpb
-Uhhm994U98z9QDzqw2rMYHY1oJ0PDBWaypxnRyXZBpzqukKS19m038uAff7mBq8r
-EJnrI9G7IK39nKSbxVxJs1cQ61oquRcs+UBwsDz2jUw+vS1OU1+zKmnc5tveTZQK
-YTg3lEnTaHUvEzfR7BBPNtcGgvVXXUUwPrg/lRdxnTNPvF8qfVowbYxTAzf726I2
-JRUZat0O5/o1NHogauG25Co7xiMzBfjuRTjEo6T2CwM+4MYj+6dQ/VvMkA/Qf0vz
-dXJnAgHjehisXzcZXFKsNtqc+pPl3iqkOuI2steNLyHsjiicY54hzePtogKZJ/9K
-BjjH6/S1QppS5LMb1sQAzt6KJl+6u0bh6Yt1ltmjRNN13DJUqTF2MUDnB8in5Knr
-hyW3YYpv63P1057kCKSBCKRM6ciTqo4q67S2XPOUtRGRtzrG235/ngxHM+5wGmf7
-9e/hB544mX6+77WbgZ0BnAs/s0KQgoXaK/L8EPSm/az8EIwBynmdhijFk+WVx4rE
-ziW+gaVP/gkE8davRS6yWcePHmzkDNvKpxkmKw+PLKteX3qty/0SmX43e0mZWWO7
-SuffaxrBWz0yznfH+YD+Wm3VSDw1hALsT/mdPYq5lHn1y2A8oHpuPzRzf6YHJVvR
-b34W+599De0n56cfq2uZ
-=Nh3R
------END PGP SIGNATURE-----
-
---xXmbgvnjoT4axfJE--
