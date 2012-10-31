@@ -1,171 +1,188 @@
-From: Gururaja Hebbar <gururaja.hebbar@ti.com>
-Subject: Re: [RESEND PATCH V2] mmc: omap_hsmmc: Enable HSPE bit for high speed
- cards
-Date: Wed, 31 Oct 2012 16:18:02 +0530
-Message-ID: <509101E2.5050606@ti.com>
-References: <1351672116-17309-1-git-send-email-gururaja.hebbar@ti.com> <20121031100422.GA10094@arwen.pp.htv.fi>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH RFC] i2c: omap: Fix the revision register read
+Date: Wed, 31 Oct 2012 16:18:15 +0530
+Message-ID: <509101EF.1070108@ti.com>
+References: <1351673959-5918-1-git-send-email-shubhrajyoti@ti.com> <20121031101201.GB10094@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51128 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933957Ab2JaKsP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 06:48:15 -0400
-In-Reply-To: <20121031100422.GA10094@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121031101201.GB10094-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: svenkatr@ti.com, cjb@laptop.org, balajitk@ti.com, grant.likely@secretlab.ca, nsekhar@ti.com, sudhakar.raj@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com
 
-On 10/31/2012 3:34 PM, Felipe Balbi wrote:
+On Wednesday 31 October 2012 03:42 PM, Felipe Balbi wrote:
 > Hi,
 >
-> On Wed, Oct 31, 2012 at 01:58:35PM +0530, Hebbar, Gururaja wrote:
->> HSMMC IP on AM33xx need a special setting to handle High-speed cards.
->> Other platforms like TI81xx, OMAP4 may need this as-well. This depends
->> on the HSMMC IP timing closure done for the high speed cards.
+> On Wed, Oct 31, 2012 at 02:29:19PM +0530, Shubhrajyoti D wrote:
+>> The revision register on OMAP4 is a 16-bit lo and a 16-bit
+>> hi. Currently the driver reads only the lower 8-bits.
+>> Fix the same by preventing the truncating of the rev register
+>> for OMAP4.
+> very good, but you need to test this with OMAP2/3/4 (5 ??). How was this
+> tested ?
+>
+>> Also use the scheme bit ie bit-14 of the hi register to know if it
+>> is OMAP_I2C_IP_VERSION_2.
 >>
->>  From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
+>> On platforms previous to OMAP4 the offset 0x04 is IE register whose
+>> bit-14 reset value is 0, the code uses the same to its advantage.
 >>
->> The MMC/SD/SDIO output signals can be driven on either falling edge or
->> rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
->> to reach better timing performance, and thus to increase data transfer
->> frequency.
->>
->> There are few pre-requisites for enabling the HSPE bit
->> - Controller should support High-Speed-Enable Bit and
->> - Controller should not be using DDR Mode and
->> - Controller should advertise that it supports High Speed in
->>    capabilities register and
->> - MMC/SD clock coming out of controller > 25MHz
->>
->> Note:
->> The implementation reuses the output of calc_divisor() so as to reduce
->> code addition.
->>
->> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+>> The dev->regs is populated after reading the rev_hi. A NULL check
+>> has been added in the resume handler to prevent the access before
+>> the setting of the regs.
+> this could get some rephrasing, I guess. At least to me it's difficult
+> to understand what you mean :-s
+>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 >> ---
->> Rebased on mmc-next (v3.7.0-rc1)
->> Only Build tested since EDMA support for AM335x is not yet added
+>> todo: some of the flag checks can be removed in favour of revision check.
 >>
->> Changes in V2
->> 	- Added note in commit message about code re-use
->> 	- replaced ((a & BIT(n) == BIT(n))) with (a & BIT(n)) since
->> 	  effectively both are same.
+>>  drivers/i2c/busses/i2c-omap.c |   35 +++++++++++++++++++++++++----------
+>>  1 files changed, 25 insertions(+), 10 deletions(-)
 >>
->> :100644 100644 be76a23... ed271fc... M	Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> :100644 100644 8b4e4f2... 346af5b... M	arch/arm/plat-omap/include/plat/mmc.h
->> :100644 100644 54bfd0c... 5ea4c9d... M	drivers/mmc/host/omap_hsmmc.c
->>   .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
->>   arch/arm/plat-omap/include/plat/mmc.h              |    1 +
->>   drivers/mmc/host/omap_hsmmc.c                      |   30 +++++++++++++++++++-
->>   3 files changed, 31 insertions(+), 1 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> index be76a23..ed271fc 100644
->> --- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> @@ -19,6 +19,7 @@ ti,dual-volt: boolean, supports dual voltage cards
->>   "supply-name" examples are "vmmc", "vmmc_aux" etc
->>   ti,non-removable: non-removable slot (like eMMC)
->>   ti,needs-special-reset: Requires a special softreset sequence
->> +ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
->>   
->>   Example:
->>   	mmc1: mmc@0x4809c000 {
->> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
->> index 8b4e4f2..346af5b 100644
->> --- a/arch/arm/plat-omap/include/plat/mmc.h
->> +++ b/arch/arm/plat-omap/include/plat/mmc.h
->> @@ -126,6 +126,7 @@ struct omap_mmc_platform_data {
->>   		/* we can put the features above into this variable */
->>   #define HSMMC_HAS_PBIAS		(1 << 0)
->>   #define HSMMC_HAS_UPDATED_RESET	(1 << 1)
->> +#define HSMMC_HAS_HSPE_SUPPORT	(1 << 2)
->>   		unsigned features;
->>   
->>   		int switch_pin;			/* gpio (card detect) */
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index 54bfd0c..5ea4c9d 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -62,6 +62,7 @@
->>   
->>   #define VS18			(1 << 26)
->>   #define VS30			(1 << 25)
->> +#define HSS			(1 << 21)
->>   #define SDVS18			(0x5 << 9)
->>   #define SDVS30			(0x6 << 9)
->>   #define SDVS33			(0x7 << 9)
->> @@ -89,6 +90,7 @@
->>   #define MSBS			(1 << 5)
->>   #define BCE			(1 << 1)
->>   #define FOUR_BIT		(1 << 1)
->> +#define HSPE			(1 << 2)
->>   #define DDR			(1 << 19)
->>   #define DW8			(1 << 5)
->>   #define CC			0x1
->> @@ -489,6 +491,7 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
->>   	struct mmc_ios *ios = &host->mmc->ios;
->>   	unsigned long regval;
->>   	unsigned long timeout;
->> +	unsigned long clkdiv;
->>   
->>   	dev_vdbg(mmc_dev(host->mmc), "Set clock to %uHz\n", ios->clock);
->>   
->> @@ -496,7 +499,8 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
->>   
->>   	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
->>   	regval = regval & ~(CLKD_MASK | DTO_MASK);
->> -	regval = regval | (calc_divisor(host, ios) << 6) | (DTO << 16);
->> +	clkdiv = calc_divisor(host, ios);
->> +	regval = regval | (clkdiv << 6) | (DTO << 16);
->>   	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
->>   	OMAP_HSMMC_WRITE(host->base, SYSCTL,
->>   		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
->> @@ -507,6 +511,27 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
->>   		&& time_before(jiffies, timeout))
->>   		cpu_relax();
->>   
->> +	/*
->> +	 * Enable High-Speed Support
->> +	 * Pre-Requisites
->> +	 *	- Controller should support High-Speed-Enable Bit
->> +	 *	- Controller should not be using DDR Mode
->> +	 *	- Controller should advertise that it supports High Speed
->> +	 *	  in capabilities register
->> +	 *	- MMC/SD clock coming out of controller > 25MHz
->> +	 */
->> +	if ((mmc_slot(host).features & HSMMC_HAS_HSPE_SUPPORT) &&
->> +	    (ios->timing != MMC_TIMING_UHS_DDR50) &&
->> +	    (OMAP_HSMMC_READ(host->base, CAPA) & HSS)) {
->> +		regval = OMAP_HSMMC_READ(host->base, HCTL);
->> +		if (clkdiv && (clk_get_rate(host->fclk)/clkdiv) > 25000000)
-> that clk rate could be a symbolic define.
-
-Ok will update as below and re-use
-
-#define OMAP_HSMMC_CLKOUT   25000000
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index db31eae..651a7f7 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -51,7 +51,8 @@
+>>  /* I2C controller revisions present on specific hardware */
+>>  #define OMAP_I2C_REV_ON_2430		0x36
+>>  #define OMAP_I2C_REV_ON_3430_3530	0x3C
+>> -#define OMAP_I2C_REV_ON_3630_4430	0x40
+>> +#define OMAP_I2C_REV_ON_3630		0x40
+>> +#define OMAP_I2C_REV_ON_4430_PLUS	0x5040
+> I would rather see a proper decoding of the revision, meaning that you
+> would:
 >
->> +			regval |= HSPE;
->> +		else
->> +			regval &= ~HSPE;
+> For omap2/3:
+>
+> rev major = rev >> 8;
+> rev minor = rev & 0xff;
+you mean
+
+rev major = rev >> 4;
+rev minor = rev & 0xf;
+
+thats doable too. However that currently that is read together currently.
+
+>
+> For OMAP4/5:
+>
+> well, that's a lot more complex, but you have that data ;-)
+>
+>>  /* timeout waiting for the controller to respond */
+>>  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+>> @@ -202,7 +203,7 @@ struct omap_i2c_dev {
+>>  						 * fifo_size==0 implies no fifo
+>>  						 * if set, should be trsh+1
+>>  						 */
+>> -	u8			rev;
+>> +	u16			rev;
+> IMHO this should be u32, so you don't need rev_lo and rev_hi below.
+>
+>>  	unsigned		b_hw:1;		/* bad h/w fixes */
+>>  	unsigned		receiver:1;	/* true when we're in receiver mode */
+>>  	u16			iestate;	/* Saved interrupt register */
+>> @@ -490,7 +491,7 @@ static void omap_i2c_resize_fifo(struct omap_i2c_dev *dev, u8 size, bool is_rx)
+>>  
+>>  	omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
+>>  
+>> -	if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
+>> +	if (dev->rev < OMAP_I2C_REV_ON_3630)
+>>  		dev->b_hw = 1; /* Enable hardware fixes */
+>>  
+>>  	/* calculate wakeup latency constraint for MPU */
+>> @@ -1064,6 +1065,8 @@ omap_i2c_probe(struct platform_device *pdev)
+>>  	const struct of_device_id *match;
+>>  	int irq;
+>>  	int r;
+>> +	u16 rev_lo;
+>> +	u16 rev_hi;
+>>  
+>>  	/* NOTE: driver uses the static register mapping */
+>>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> @@ -1117,11 +1120,6 @@ omap_i2c_probe(struct platform_device *pdev)
+>>  
+>>  	dev->reg_shift = (dev->flags >> OMAP_I2C_FLAG_BUS_SHIFT__SHIFT) & 3;
+>>  
+>> -	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
+>> -		dev->regs = (u8 *)reg_map_ip_v2;
+>> -	else
+>> -		dev->regs = (u8 *)reg_map_ip_v1;
+>> -
+>>  	pm_runtime_enable(dev->dev);
+>>  	pm_runtime_set_autosuspend_delay(dev->dev, OMAP_I2C_PM_TIMEOUT);
+>>  	pm_runtime_use_autosuspend(dev->dev);
+>> @@ -1130,7 +1128,21 @@ omap_i2c_probe(struct platform_device *pdev)
+>>  	if (IS_ERR_VALUE(r))
+>>  		goto err_free_mem;
+>>  
+>> -	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+>> +	/* Read the Rev hi bit-14 ie scheme this is 1 indicates ver2 or
+>> +	* highlander.
+> the "scheme" in highlander is a 2 bit value. In order to make this
+> future proof, you need to read both bits (31:30).
+Good point will fix it.
+>
+>> +	* On omap3 Offset 4 is IE Reg the bit 14 is XDR_IE which is 0 at reset.
+>> +	*/
+> please align the * characters.
+yes will repost
+>
+>> +	rev_hi = __raw_readw(dev->base + 0x04);
+> you should make omap_i2c_read_reg() work fine for this case too.
+ 
+Just felt it is more readlable this way also I didnt want to use the
+reg_shift etc.
+
+which also may get cleaned up sometime.
+>
 >> +
->> +		OMAP_HSMMC_WRITE(host->base, HCTL, regval);
+>> +	if (rev_hi & 0x4000) {/* If scheme 1*/
+> you should add a symbolic define for scheme, something like:
+>
+> switch (OMAP_I2C_SCHEME(rev)) {
+> case OMAP_I2C_SCHEME_1:
+> 	foo();
+> 	break;
+> case OMAP_I2C_SCHEME_2:
+> 	/* FALLTHROUGH */
+> default:
+> 	bar();
+> }
+>
+> note that this will also default to highest known scheme if another
+> scheme is added. You need to make the driver behave like that to
+> decrease amount of rework to support newest OMAPs.
+OK.
+>
+>> +		dev->regs = (u8 *)reg_map_ip_v2;
+>> +		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_IP_V2_REVNB_HI);
+>> +		rev_lo = omap_i2c_read_reg(dev, OMAP_I2C_IP_V2_REVNB_LO);
+>> +		dev_info(dev->dev, "the low rev %x\n", rev_lo);
+>> +	} else {
+>> +		dev->regs = (u8 *)reg_map_ip_v1;
+>> +		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
 >> +	}
->> +
->>   	omap_hsmmc_start_clock(host);
->>   }
->>   
->> @@ -1700,6 +1725,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
->>   	if (of_find_property(np, "ti,needs-special-reset", NULL))
->>   		pdata->slots[0].features |= HSMMC_HAS_UPDATED_RESET;
->>   
->> +	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
->> +		pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
-> this could be of_property_read_bool().
-Ok will change.
-
->
-
+>>  
+>>  	dev->errata = 0;
+>>  
+>> @@ -1155,7 +1167,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>>  
+>>  		dev->fifo_size = (dev->fifo_size / 2);
+>>  
+>> -		if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
+>> +		if (dev->rev < OMAP_I2C_REV_ON_3630)
+>>  			dev->b_hw = 1; /* Enable hardware fixes */
+>>  
+>>  		/* calculate wakeup latency constraint for MPU */
+>> @@ -1264,6 +1276,9 @@ static int omap_i2c_runtime_resume(struct device *dev)
+>>  	struct platform_device *pdev = to_platform_device(dev);
+>>  	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+>>  
+>> +	if (!_dev->regs)
+>> +		return 0;
+> this is wrong, you need to make sure dev->regs is set early enough.
