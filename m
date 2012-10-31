@@ -1,46 +1,76 @@
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [PATCH] w1-gpio: Pinctrl-fy
-Date: Wed, 31 Oct 2012 17:57:38 +0200
-Message-ID: <1351699058-4576-1-git-send-email-panto@antoniou-consulting.com>
+Subject: [PATCH] pwm: export of_pwm_request
+Date: Wed, 31 Oct 2012 17:57:10 +0200
+Message-ID: <1351699030-4401-1-git-send-email-panto@antoniou-consulting.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Evgeniy Polyakov <zbr@ioremap.net>
+To: Thierry Reding <thierry.reding@avionic-design.de>
 Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Enable pinctrl for w1-gpio.
+No need to hide of_pwm_request, it's useful to other in-kernel users.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/w1/masters/w1-gpio.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/pwm/core.c  | 6 +++++-
+ include/linux/pwm.h | 7 +++++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
-index 6012c4e..aec35bd 100644
---- a/drivers/w1/masters/w1-gpio.c
-+++ b/drivers/w1/masters/w1-gpio.c
-@@ -16,6 +16,8 @@
- #include <linux/gpio.h>
- #include <linux/of_platform.h>
- #include <linux/of_gpio.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/err.h>
- 
- #include "../w1.h"
- #include "../w1_int.h"
-@@ -85,8 +87,13 @@ static int __init w1_gpio_probe(struct platform_device *pdev)
+diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+index f5acdaa..f8c7e6b 100644
+--- a/drivers/pwm/core.c
++++ b/drivers/pwm/core.c
+@@ -457,7 +457,7 @@ static struct pwm_chip *of_node_to_pwmchip(struct device_node *np)
+  * becomes mandatory for devices that look up the PWM device via the con_id
+  * parameter.
+  */
+-static struct pwm_device *of_pwm_request(struct device_node *np,
++struct pwm_device *of_pwm_request(struct device_node *np,
+ 					 const char *con_id)
  {
- 	struct w1_bus_master *master;
- 	struct w1_gpio_platform_data *pdata;
-+	struct pinctrl *pinctrl;
+ 	struct pwm_device *pwm = NULL;
+@@ -466,6 +466,9 @@ static struct pwm_device *of_pwm_request(struct device_node *np,
+ 	int index = 0;
  	int err;
  
-+	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-+	if (IS_ERR(pinctrl))
-+		dev_warn(&pdev->dev, "unable to select pin group\n");
++	if (!np)
++		return ERR_PTR(-ENODEV);
 +
- 	err = w1_gpio_probe_dt(pdev);
- 	if (err < 0)
- 		return err;
+ 	if (con_id) {
+ 		index = of_property_match_string(np, "pwm-names", con_id);
+ 		if (index < 0)
+@@ -516,6 +519,7 @@ put:
+ 
+ 	return pwm;
+ }
++EXPORT_SYMBOL(of_pwm_request);
+ 
+ /**
+  * pwm_add_table() - register PWM device consumers
+diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+index 112b314..fafbb1c 100644
+--- a/include/linux/pwm.h
++++ b/include/linux/pwm.h
+@@ -171,6 +171,7 @@ struct pwm_device *pwm_request_from_chip(struct pwm_chip *chip,
+ 					 unsigned int index,
+ 					 const char *label);
+ 
++struct pwm_device *of_pwm_request(struct device_node *np, const char *consumer);
+ struct pwm_device *pwm_get(struct device *dev, const char *consumer);
+ void pwm_put(struct pwm_device *pwm);
+ 
+@@ -204,6 +205,12 @@ static inline struct pwm_device *pwm_request_from_chip(struct pwm_chip *chip,
+ 	return ERR_PTR(-ENODEV);
+ }
+ 
++static inline struct pwm_device *of_pwm_request(struct device_node *np,
++					 const char *consumer)
++{
++	return ERR_PTR(-ENODEV);
++}
++
+ static inline struct pwm_device *pwm_get(struct device *dev,
+ 					 const char *consumer)
+ {
 -- 
 1.7.12
