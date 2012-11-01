@@ -1,133 +1,95 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/3] ARM: OMAP: Remove unnecessary mach and plat includes
-Date: Thu, 01 Nov 2012 15:48:20 -0700
-Message-ID: <20121101224820.2103.72431.stgit@muffinssi.local>
+Subject: [PATCH 3/3] ARM: OMAP: Remove plat-omap/common.c
+Date: Thu, 01 Nov 2012 15:48:28 -0700
+Message-ID: <20121101224828.2103.82950.stgit@muffinssi.local>
 References: <20121101224703.2103.95474.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28284 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1762306Ab2KAWsX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Nov 2012 18:48:23 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:19855 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934360Ab2KAWs3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Nov 2012 18:48:29 -0400
 In-Reply-To: <20121101224703.2103.95474.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Now mach/hardware.h is empty for omap2+ and can be
-removed except for plat-omap/dmtimer.c for omap1.
-
-Also the include of mach/irqs.h can now be removed
-for shared plat-omap/i2c.c as it's no longer needed.
+This file has only omap_init_consistent_dma_size()
+left that can be moved to plat-omap/dma.c.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c |    1 -
- arch/arm/mach-omap2/board-cm-t35.c  |    2 --
- arch/arm/mach-omap2/hsmmc.c         |    1 -
- arch/arm/plat-omap/debug-devices.c  |    1 -
- arch/arm/plat-omap/dmtimer.c        |    4 +---
- arch/arm/plat-omap/fb.c             |    1 -
- arch/arm/plat-omap/i2c.c            |    2 --
- 7 files changed, 1 insertion(+), 11 deletions(-)
+ arch/arm/plat-omap/Makefile |    2 +-
+ arch/arm/plat-omap/common.c |   26 --------------------------
+ arch/arm/plat-omap/dma.c    |    8 ++++++++
+ 3 files changed, 9 insertions(+), 27 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/common.c
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 3fc6d83..d1c0162 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -28,7 +28,6 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 50da9bf..8d88584 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -3,7 +3,7 @@
+ #
  
--#include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index cf9449b..a8cad22 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -44,8 +44,6 @@
- #include <video/omap-panel-tfp410.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
- 
--#include <mach/hardware.h>
+ # Common support
+-obj-y := common.o sram.o dma.o fb.o counter_32k.o
++obj-y := sram.o dma.o fb.o counter_32k.o
+ obj-m :=
+ obj-n :=
+ obj-  :=
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+deleted file mode 100644
+index bf6cd80..0000000
+--- a/arch/arm/plat-omap/common.c
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/*
+- * linux/arch/arm/plat-omap/common.c
+- *
+- * Code common to all OMAP machines.
+- * The file is created by Tony Lindgren <tony@atomide.com>
+- *
+- * Copyright (C) 2009 Texas Instruments
+- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/io.h>
+-#include <linux/dma-mapping.h>
 -
- #include "common.h"
- #include "mux.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index e3406dc..4a96433 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -14,7 +14,6 @@
- #include <linux/string.h>
- #include <linux/delay.h>
- #include <linux/gpio.h>
--#include <mach/hardware.h>
- #include <linux/platform_data/gpio-omap.h>
- 
- #include "soc.h"
-diff --git a/arch/arm/plat-omap/debug-devices.c b/arch/arm/plat-omap/debug-devices.c
-index b49be51..a609e21 100644
---- a/arch/arm/plat-omap/debug-devices.c
-+++ b/arch/arm/plat-omap/debug-devices.c
-@@ -15,7 +15,6 @@
- #include <linux/io.h>
- #include <linux/smc91x.h>
- 
--#include <mach/hardware.h>
- #include <plat/debug-devices.h>
- 
- /* Many OMAP development platforms reuse the same "debug board"; these
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 9a0bbc4..82231a7 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -43,8 +43,6 @@
- 
- #include <plat/dmtimer.h>
- 
--#include <mach/hardware.h>
+-#include <plat-omap/dma-omap.h>
 -
- static u32 omap_reserved_systimers;
- static LIST_HEAD(omap_timer_list);
- static DEFINE_SPINLOCK(dm_timer_lock);
-@@ -270,7 +268,7 @@ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
- EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
+-void __init omap_init_consistent_dma_size(void)
+-{
+-#ifdef CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE
+-	init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
+-#endif
+-}
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index c288b76..00a3a53 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -2146,6 +2146,14 @@ static struct platform_driver omap_system_dma_driver = {
+ 	},
+ };
  
- #if defined(CONFIG_ARCH_OMAP1)
--
-+#include <mach/hardware.h>
- /**
-  * omap_dm_timer_modify_idlect_mask - Check if any running timers use ARMXOR
-  * @inputmask: current value of idlect mask
-diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
-index f868cae..3a77b30 100644
---- a/arch/arm/plat-omap/fb.c
-+++ b/arch/arm/plat-omap/fb.c
-@@ -30,7 +30,6 @@
- #include <linux/io.h>
- #include <linux/omapfb.h>
- 
--#include <mach/hardware.h>
- #include <asm/mach/map.h>
- 
- #include <plat/cpu.h>
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 4645dd4..f9df624 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -33,8 +33,6 @@
- 
- #include <plat/i2c.h>
- 
--#include <mach/irqs.h>
--
- #define OMAP_I2C_MAX_CONTROLLERS 4
- static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
- 
++/* This must be called from init_early() */
++void __init omap_init_consistent_dma_size(void)
++{
++#ifdef CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE
++	init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
++#endif
++}
++
+ static int __init omap_system_dma_init(void)
+ {
+ 	return platform_driver_register(&omap_system_dma_driver);
 
