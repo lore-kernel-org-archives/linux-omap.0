@@ -1,53 +1,91 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Thu, 1 Nov 2012 13:51:48 +0000
-Message-ID: <20121101135148.382aec00@pyramind.ukuu.org.uk>
-References: <20121031212639.GQ12739@atomide.com>
-	<8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com>
-	<20121031221402.GA29490@arwen.pp.htv.fi>
-	<E4EE0D1F-C7AC-4620-86F2-D9C7C56E279F@antoniou-consulting.com>
-	<50924DA3.1060901@ti.com>
-	<F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
-	<20121101110418.GF410@arwen.pp.htv.fi>
-	<3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
-	<20121101124025.GA12489@arwen.pp.htv.fi>
-	<A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
-	<20121101131609.GC12489@arwen.pp.htv.fi>
-	<E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3] ARM: dts: AM33xx: Add SPI node
+Date: Thu, 1 Nov 2012 14:49:41 +0100
+Message-ID: <50927DF5.4080008@ti.com>
+References: <1351680669-20718-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: balbi@ti.com, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1351680669-20718-1-git-send-email-avinashphilip-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+Cc: afzal-l0cyMroinI0@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-> What they want, and what every user wants, is I plug this board in, a=
-nd
-> the driver make sure everything is loaded and ready. No, the end user=
-s
-> don't want to see any of the implementation details of how the bitfil=
-e
-> is transported; the driver can handle it.
+Hi Avinash,
 
-That doesn't necessarily make it a bus merely some kind of hotplug
-enumeration of devices. That should all work properly both for devices
-and busses with spi and i=C2=B2c as the final bits needed for it got fi=
-xed
-some time ago.
+On 10/31/2012 11:51 AM, Philip, Avinash wrote:
+> Add McSPI data node to AM33XX device tree file. The McSPI module (and so
+> as the driver) is reused from OMAP4.
+> 
+> Signed-off-by: Philip, Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+> Tested-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
 
-In an ideal world you don't want to be writing custom drivers for stuff=
-=2E
-If your cape routes an i=C2=B2c serial device to the existing system i=C2=
-=B2c
-busses then you want to just create an instance of any existing driver =
-on
-the existing i=C2=B2c bus not create a whole new layer of goop.
+I've just realized the interrupt-parent was still there, so I removed both.
 
-It does need to do the plumbing and resource management for the plumbin=
-g
-but thats not the same as being a bus.
+Please find below the updated version.
 
-Alan
+Regards,
+Benoit
+
+----
+>From 9fd3c748aac9418cd377249ca463050783d2198f Mon Sep 17 00:00:00 2001
+From: Philip, Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+Date: Wed, 31 Oct 2012 16:21:09 +0530
+Subject: [PATCH] ARM: dts: AM33XX: Add SPI node
+
+Add McSPI data node to AM33XX device tree file. The McSPI module (and so
+as the driver) is reused from OMAP4.
+
+Signed-off-by: Philip, Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+Tested-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+[b-cousson-l0cyMroinI0@public.gmane.org: Remove interrupt-parent]
+Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am33xx.dtsi |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 97a7bd3..5dfd682 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -299,5 +299,27 @@
+ 				      76>;
+ 			ti,hwmods = "rtc";
+ 		};
++
++		spi0: spi@48030000 {
++			compatible = "ti,omap4-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x48030000 0x400>;
++			interrupt = <65>;
++			ti,spi-num-cs = <2>;
++			ti,hwmods = "spi0";
++			status = "disabled";
++		};
++
++		spi1: spi@481a0000 {
++			compatible = "ti,omap4-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x481a0000 0x400>;
++			interrupt = <125>;
++			ti,spi-num-cs = <2>;
++			ti,hwmods = "spi1";
++			status = "disabled";
++		};
+ 	};
+ };
+-- 
+1.7.0.4
