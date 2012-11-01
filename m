@@ -1,197 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/3] ARM: OMAP: Remove NEED_MACH_GPIO_H
-Date: Thu, 01 Nov 2012 15:48:23 -0700
-Message-ID: <20121101224823.2103.24591.stgit@muffinssi.local>
-References: <20121101224703.2103.95474.stgit@muffinssi.local>
+From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: fix spurious IRQs: disable/enable IRQ at INTC
+ when idle
+Date: Thu, 1 Nov 2012 23:49:21 +0100
+Message-ID: <20121101224921.GE22956@pengutronix.de>
+References: <1350067225-24589-1-git-send-email-khilman@deeprootsystems.com>
+ <CAM=Q2csm0Eh9F6d1wKhEfOOtG+aY+Fh8D-dKPC0RMbKupVQHYQ@mail.gmail.com>
+ <1350282337.17145.45.camel@kj-X230>
+ <87zk3ntzfe.fsf@deeprootsystems.com>
+ <20121016010223.GL15569@atomide.com>
+ <1350377235.2014.26.camel@kj-X230>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28358 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S936105Ab2KAWsa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Nov 2012 18:48:30 -0400
-In-Reply-To: <20121101224703.2103.95474.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vmttodhTwj0NAgWp"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1350377235.2014.26.camel@kj-X230>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Huzefa Kankroliwala <huzefank-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Omap no longer needs this option, mach/gpio.h is
-empty.
 
-Also remove mach/irqs.h from gpio-omap.h and
-include it directly from the related omap1
-gpio init files.
+--vmttodhTwj0NAgWp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Otherwise omap2+ build fails for MULTI_PLATFORM.
+Hi,
 
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Liam Girdwood <lrg@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/Kconfig                        |    1 -
- arch/arm/mach-omap1/gpio15xx.c          |    2 ++
- arch/arm/mach-omap1/gpio16xx.c          |    2 ++
- arch/arm/mach-omap1/gpio7xx.c           |    2 ++
- arch/arm/mach-omap1/include/mach/gpio.h |    3 ---
- arch/arm/mach-omap2/include/mach/gpio.h |    3 ---
- include/linux/platform_data/gpio-omap.h |    1 -
- sound/soc/omap/am3517evm.c              |    2 --
- sound/soc/omap/n810.c                   |    1 -
- sound/soc/omap/osk5912.c                |    1 -
- sound/soc/omap/sdp3430.c                |    2 --
- sound/soc/omap/zoom2.c                  |    3 ---
- 12 files changed, 6 insertions(+), 17 deletions(-)
- delete mode 100644 arch/arm/mach-omap1/include/mach/gpio.h
- delete mode 100644 arch/arm/mach-omap2/include/mach/gpio.h
+>  Anyway new patch coming soon :)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 73067ef..6207cf7 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -937,7 +937,6 @@ config ARCH_OMAP
- 	select CLKSRC_MMIO
- 	select GENERIC_CLOCKEVENTS
- 	select HAVE_CLK
--	select NEED_MACH_GPIO_H
- 	help
- 	  Support for TI's OMAP platform (OMAP1/2/3/4).
- 
-diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
-index 98e6f39..02b3eb2 100644
---- a/arch/arm/mach-omap1/gpio15xx.c
-+++ b/arch/arm/mach-omap1/gpio15xx.c
-@@ -19,6 +19,8 @@
- #include <linux/gpio.h>
- #include <linux/platform_data/gpio-omap.h>
- 
-+#include <mach/irqs.h>
-+
- #define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
- #define OMAP1510_GPIO_BASE		0xFFFCE000
- 
-diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
-index 33f4192..b9952a2 100644
---- a/arch/arm/mach-omap1/gpio16xx.c
-+++ b/arch/arm/mach-omap1/gpio16xx.c
-@@ -19,6 +19,8 @@
- #include <linux/gpio.h>
- #include <linux/platform_data/gpio-omap.h>
- 
-+#include <mach/irqs.h>
-+
- #define OMAP1610_GPIO1_BASE		0xfffbe400
- #define OMAP1610_GPIO2_BASE		0xfffbec00
- #define OMAP1610_GPIO3_BASE		0xfffbb400
-diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
-index 958ce9a..f5819b2 100644
---- a/arch/arm/mach-omap1/gpio7xx.c
-+++ b/arch/arm/mach-omap1/gpio7xx.c
-@@ -19,6 +19,8 @@
- #include <linux/gpio.h>
- #include <linux/platform_data/gpio-omap.h>
- 
-+#include <mach/irqs.h>
-+
- #define OMAP7XX_GPIO1_BASE		0xfffbc000
- #define OMAP7XX_GPIO2_BASE		0xfffbc800
- #define OMAP7XX_GPIO3_BASE		0xfffbd000
-diff --git a/arch/arm/mach-omap1/include/mach/gpio.h b/arch/arm/mach-omap1/include/mach/gpio.h
-deleted file mode 100644
-index ebf86c0..0000000
---- a/arch/arm/mach-omap1/include/mach/gpio.h
-+++ /dev/null
-@@ -1,3 +0,0 @@
--/*
-- * arch/arm/mach-omap1/include/mach/gpio.h
-- */
-diff --git a/arch/arm/mach-omap2/include/mach/gpio.h b/arch/arm/mach-omap2/include/mach/gpio.h
-deleted file mode 100644
-index 5621cc5..0000000
---- a/arch/arm/mach-omap2/include/mach/gpio.h
-+++ /dev/null
-@@ -1,3 +0,0 @@
--/*
-- * arch/arm/mach-omap2/include/mach/gpio.h
-- */
-diff --git a/include/linux/platform_data/gpio-omap.h b/include/linux/platform_data/gpio-omap.h
-index e8741c2..5d50b25 100644
---- a/include/linux/platform_data/gpio-omap.h
-+++ b/include/linux/platform_data/gpio-omap.h
-@@ -26,7 +26,6 @@
- 
- #include <linux/io.h>
- #include <linux/platform_device.h>
--#include <mach/irqs.h>
- 
- #define OMAP1_MPUIO_BASE			0xfffb5000
- 
-diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
-index fad3506..c1900b2 100644
---- a/sound/soc/omap/am3517evm.c
-+++ b/sound/soc/omap/am3517evm.c
-@@ -25,8 +25,6 @@
- #include <sound/soc.h>
- 
- #include <asm/mach-types.h>
--#include <mach/hardware.h>
--#include <mach/gpio.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- 
- #include "omap-mcbsp.h"
-diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
-index 521bfc3..230b8c1 100644
---- a/sound/soc/omap/n810.c
-+++ b/sound/soc/omap/n810.c
-@@ -29,7 +29,6 @@
- #include <sound/soc.h>
- 
- #include <asm/mach-types.h>
--#include <mach/hardware.h>
- #include <linux/gpio.h>
- #include <linux/module.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
-diff --git a/sound/soc/omap/osk5912.c b/sound/soc/omap/osk5912.c
-index 3960e8d..06ef8d6 100644
---- a/sound/soc/omap/osk5912.c
-+++ b/sound/soc/omap/osk5912.c
-@@ -28,7 +28,6 @@
- #include <sound/soc.h>
- 
- #include <asm/mach-types.h>
--#include <mach/hardware.h>
- #include <linux/gpio.h>
- #include <linux/module.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
-diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
-index 597cae7..b462a2c 100644
---- a/sound/soc/omap/sdp3430.c
-+++ b/sound/soc/omap/sdp3430.c
-@@ -31,8 +31,6 @@
- #include <sound/jack.h>
- 
- #include <asm/mach-types.h>
--#include <mach/hardware.h>
--#include <mach/gpio.h>
- #include <linux/platform_data/gpio-omap.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- 
-diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
-index 677b567..27c501c 100644
---- a/sound/soc/omap/zoom2.c
-+++ b/sound/soc/omap/zoom2.c
-@@ -26,9 +26,6 @@
- #include <sound/soc.h>
- 
- #include <asm/mach-types.h>
--#include <mach/hardware.h>
--#include <mach/gpio.h>
--#include <mach/board-zoom.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- 
- /* Register descriptions for twl4030 codec part */
+Was there one? I have skimmed a number of threads discussing spurious
+interrupts or interrupt floods but AFAICS all discussions ended up in
+trying another approach later or fixing the issue somewhere else than
+I2C. Is this correct? Or is there a bugfix patch left for 3.7 that I
+missed?
 
+Thanks,
+
+   Wolfram
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--vmttodhTwj0NAgWp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAlCS/HEACgkQD27XaX1/VRunPACdEOuQinGV7sysWLwRcYTOv9Jo
+D7MAoKTqtAkyZJax2ZxYRoqFoWHWa9zY
+=QAFo
+-----END PGP SIGNATURE-----
+
+--vmttodhTwj0NAgWp--
