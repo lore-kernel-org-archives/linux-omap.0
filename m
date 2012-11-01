@@ -1,83 +1,162 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: =?UTF-8?q?=5BPATCH=20v3=202/4=5D=20mfd=3A=20introduce=20retu-mfd=20driver?=
-Date: Thu,  1 Nov 2012 23:39:18 +0200
-Message-ID: <1351805960-7612-3-git-send-email-aaro.koskinen@iki.fi>
+From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Subject: =?UTF-8?q?=5BPATCH=20v3=201/4=5D=20i2c=3A=20introduce=20i2c-cbus=20driver?=
+Date: Thu,  1 Nov 2012 23:39:17 +0200
+Message-ID: <1351805960-7612-2-git-send-email-aaro.koskinen@iki.fi>
 References: <1351805960-7612-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351805960-7612-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, sameo@linux.intel.com
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1351805960-7612-1-git-send-email-aaro.koskinen-X3B1VOXEql0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Retu is a multi-function device found on Nokia Internet Tablets
-implementing at least watchdog, RTC, headset detection and power button
-functionality.
+Add i2c driver to enable access to devices behind CBUS on Nokia Interne=
+t
+Tablets.
 
-This patch implements minimum functionality providing register access,
-IRQ handling and power off functions.
+The patch also adds CBUS I2C configuration for N8x0 which is one of the
+users of this driver.
 
-Cc: sameo@linux.intel.com
-Acked-by: Felipe Balbi <balbi@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
 ---
- drivers/mfd/Kconfig      |    9 ++
- drivers/mfd/Makefile     |    1 +
- drivers/mfd/retu-mfd.c   |  264 ++++++++++++++++++++++++++++++++++++++=
+ arch/arm/mach-omap2/board-n8x0.c       |   42 +++++
+ drivers/i2c/busses/Kconfig             |   10 +
+ drivers/i2c/busses/Makefile            |    1 +
+ drivers/i2c/busses/i2c-cbus.c          |  300 ++++++++++++++++++++++++=
 ++++++++
- include/linux/mfd/retu.h |   22 ++++
- 4 files changed, 296 insertions(+), 0 deletions(-)
- create mode 100644 drivers/mfd/retu-mfd.c
- create mode 100644 include/linux/mfd/retu.h
+ include/linux/platform_data/i2c-cbus.h |   27 +++
+ 5 files changed, 380 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/i2c/busses/i2c-cbus.c
+ create mode 100644 include/linux/platform_data/i2c-cbus.h
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index acab3ef..7528c5e 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1044,6 +1044,15 @@ config MFD_PALMAS
- 	  If you say yes here you get support for the Palmas
- 	  series of PMIC chips from Texas Instruments.
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/boa=
+rd-n8x0.c
+index d95f727..8e8a09d 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -16,10 +16,12 @@
+ #include <linux/gpio.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/irq.h>
+ #include <linux/stddef.h>
+ #include <linux/i2c.h>
+ #include <linux/spi/spi.h>
+ #include <linux/usb/musb.h>
++#include <linux/platform_data/i2c-cbus.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/mtd-onenand-omap2.h>
+ #include <sound/tlv320aic3x.h>
+@@ -39,6 +41,45 @@
+ #define TUSB6010_GPIO_ENABLE	0
+ #define TUSB6010_DMACHAN	0x3f
 =20
-+config MFD_RETU
-+	tristate "Support for Retu multi-function device"
-+	select MFD_CORE
-+	depends on I2C
-+	select REGMAP_IRQ
-+	help
-+	  Retu is a multi-function device found on Nokia Internet Tablets
-+	  (770, N800 and N810).
++#if defined(CONFIG_I2C_CBUS) || defined(CONFIG_I2C_CBUS_MODULE)
++static struct i2c_cbus_platform_data n8x0_cbus_data =3D {
++	.clk_gpio =3D 66,
++	.dat_gpio =3D 65,
++	.sel_gpio =3D 64,
++};
 +
- endmenu
- endif
++static struct platform_device n8x0_cbus_device =3D {
++	.name	=3D "i2c-cbus",
++	.id	=3D 3,
++	.dev	=3D {
++		.platform_data =3D &n8x0_cbus_data,
++	},
++};
++
++static struct i2c_board_info n8x0_i2c_board_info_3[] __initdata =3D {
++	{
++		I2C_BOARD_INFO("retu-mfd", 0x01),
++	},
++};
++
++static void __init n8x0_cbus_init(void)
++{
++	const int retu_irq_gpio =3D 108;
++
++	if (gpio_request_one(retu_irq_gpio, GPIOF_IN, "Retu IRQ"))
++		return;
++	irq_set_irq_type(gpio_to_irq(retu_irq_gpio), IRQ_TYPE_EDGE_RISING);
++	n8x0_i2c_board_info_3[0].irq =3D gpio_to_irq(retu_irq_gpio);
++	i2c_register_board_info(3, n8x0_i2c_board_info_3,
++				ARRAY_SIZE(n8x0_i2c_board_info_3));
++	platform_device_register(&n8x0_cbus_device);
++}
++#else /* CONFIG_I2C_CBUS */
++static void __init n8x0_cbus_init(void)
++{
++}
++#endif /* CONFIG_I2C_CBUS */
++
+ #if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB6=
+010_MODULE)
+ /*
+  * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V a=
+nd
+@@ -677,6 +718,7 @@ static void __init n8x0_init_machine(void)
+ 	gpmc_onenand_init(board_onenand_data);
+ 	n8x0_mmc_init();
+ 	n8x0_usb_init();
++	n8x0_cbus_init();
+ }
 =20
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index d8ccb63..ad7879f 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -138,3 +138,4 @@ obj-$(CONFIG_MFD_RC5T583)	+=3D rc5t583.o rc5t583-ir=
-q.o
- obj-$(CONFIG_MFD_SEC_CORE)	+=3D sec-core.o sec-irq.o
- obj-$(CONFIG_MFD_SYSCON)	+=3D syscon.o
- obj-$(CONFIG_MFD_LM3533)	+=3D lm3533-core.o lm3533-ctrlbank.o
-+obj-$(CONFIG_MFD_RETU)		+=3D retu-mfd.o
-diff --git a/drivers/mfd/retu-mfd.c b/drivers/mfd/retu-mfd.c
+ MACHINE_START(NOKIA_N800, "Nokia N800")
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index 65dd599..d01c8ef 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -338,6 +338,16 @@ config I2C_BLACKFIN_TWI_CLK_KHZ
+ 	help
+ 	  The unit of the TWI clock is kHz.
+=20
++config I2C_CBUS
++	tristate "CBUS I2C driver"
++	depends on GENERIC_GPIO
++	help
++	  Support for CBUS access using I2C API. Mostly relevant for Nokia
++	  Internet Tablets (770, N800 and N810).
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called i2c-cbus.
++
+ config I2C_CPM
+ 	tristate "Freescale CPM1 or CPM2 (MPC8xx/826x)"
+ 	depends on (CPM1 || CPM2) && OF_I2C
+diff --git a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
+index 2d33d62..3c548b1 100644
+--- a/drivers/i2c/busses/Makefile
++++ b/drivers/i2c/busses/Makefile
+@@ -31,6 +31,7 @@ obj-$(CONFIG_I2C_POWERMAC)	+=3D i2c-powermac.o
+ obj-$(CONFIG_I2C_AT91)		+=3D i2c-at91.o
+ obj-$(CONFIG_I2C_AU1550)	+=3D i2c-au1550.o
+ obj-$(CONFIG_I2C_BLACKFIN_TWI)	+=3D i2c-bfin-twi.o
++obj-$(CONFIG_I2C_CBUS)		+=3D i2c-cbus.o
+ obj-$(CONFIG_I2C_CPM)		+=3D i2c-cpm.o
+ obj-$(CONFIG_I2C_DAVINCI)	+=3D i2c-davinci.o
+ obj-$(CONFIG_I2C_DESIGNWARE_CORE)	+=3D i2c-designware-core.o
+diff --git a/drivers/i2c/busses/i2c-cbus.c b/drivers/i2c/busses/i2c-cbu=
+s.c
 new file mode 100644
-index 0000000..7ff4a37
+index 0000000..e6086cf
 --- /dev/null
-+++ b/drivers/mfd/retu-mfd.c
-@@ -0,0 +1,264 @@
++++ b/drivers/i2c/busses/i2c-cbus.c
+@@ -0,0 +1,300 @@
 +/*
-+ * Retu MFD driver
++ * CBUS I2C driver for Nokia Internet Tablets.
 + *
-+ * Copyright (C) 2004, 2005 Nokia Corporation
++ * Copyright (C) 2004-2010 Nokia Corporation
 + *
-+ * Based on code written by Juha Yrj=C3=B6l=C3=A4, David Weinehall and=
- Mikko Ylinen.
-+ * Rewritten by Aaro Koskinen.
++ * Based on code written by Juha Yrj=C3=B6l=C3=A4, David Weinehall, Mi=
+kko Ylinen and
++ * Felipe Balbi. Converted to I2C driver by Aaro Koskinen.
 + *
 + * This file is subject to the terms and conditions of the GNU General
 + * Public License. See the file "COPYING" in the main directory of thi=
@@ -90,283 +169,327 @@ s
 + * GNU General Public License for more details.
 + */
 +
-+#include <linux/err.h>
++#include <linux/io.h>
 +#include <linux/i2c.h>
-+#include <linux/irq.h>
++#include <linux/gpio.h>
 +#include <linux/init.h>
 +#include <linux/slab.h>
-+#include <linux/mutex.h>
++#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/regmap.h>
-+#include <linux/mfd/core.h>
-+#include <linux/mfd/retu.h>
++#include <linux/of_gpio.h>
 +#include <linux/interrupt.h>
-+#include <linux/moduleparam.h>
++#include <linux/platform_device.h>
++#include <linux/platform_data/i2c-cbus.h>
 +
-+/* Registers */
-+#define RETU_REG_ASICR		0x00		/* ASIC ID and revision */
-+#define RETU_REG_ASICR_VILMA	(1 << 7)	/* Bit indicating Vilma */
-+#define RETU_REG_IDR		0x01		/* Interrupt ID */
-+#define RETU_REG_IMR		0x02		/* Interrupt mask */
++/*
++ * Bit counts are derived from Nokia implementation. These should be c=
+hecked
++ * if other CBUS implementations appear.
++ */
++#define CBUS_ADDR_BITS	3
++#define CBUS_REG_BITS	5
 +
-+/* Interrupt sources */
-+#define RETU_INT_PWR		0		/* Power button */
-+
-+struct retu_dev {
-+	struct regmap			*regmap;
-+	struct device			*dev;
-+	struct mutex			mutex;
-+	struct regmap_irq_chip_data	*irq_data;
++struct cbus_host {
++	spinlock_t	lock;		/* host lock */
++	struct device	*dev;
++	int		clk_gpio;
++	int		dat_gpio;
++	int		sel_gpio;
 +};
 +
-+static struct resource retu_pwrbutton_res[] =3D {
-+	{
-+		.name	=3D "retu-pwrbutton",
-+		.start	=3D RETU_INT_PWR,
-+		.end	=3D RETU_INT_PWR,
-+		.flags	=3D IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct mfd_cell retu_devs[] =3D {
-+	{
-+		.name		=3D "retu-wdt"
-+	},
-+	{
-+		.name		=3D "retu-pwrbutton",
-+		.resources	=3D retu_pwrbutton_res,
-+		.num_resources	=3D ARRAY_SIZE(retu_pwrbutton_res),
-+	}
-+};
-+
-+static struct regmap_irq retu_irqs[] =3D {
-+	[RETU_INT_PWR] =3D {
-+		.mask =3D 1 << RETU_INT_PWR,
-+	}
-+};
-+
-+static struct regmap_irq_chip retu_irq_chip =3D {
-+	.name		=3D "RETU",
-+	.irqs		=3D retu_irqs,
-+	.num_irqs	=3D ARRAY_SIZE(retu_irqs),
-+	.num_regs	=3D 1,
-+	.status_base	=3D RETU_REG_IDR,
-+	.mask_base	=3D RETU_REG_IMR,
-+	.ack_base	=3D RETU_REG_IDR,
-+};
-+
-+/* Retu device registered for the power off. */
-+static struct retu_dev *retu_pm_power_off;
-+
-+int retu_read(struct retu_dev *rdev, u8 reg)
++/**
++ * cbus_send_bit - sends one bit over the bus
++ * @host: the host we're using
++ * @bit: one bit of information to send
++ */
++static void cbus_send_bit(struct cbus_host *host, unsigned bit)
 +{
-+	int ret;
-+	int value;
-+
-+	mutex_lock(&rdev->mutex);
-+	ret =3D regmap_read(rdev->regmap, reg, &value);
-+	mutex_unlock(&rdev->mutex);
-+
-+	return ret ? ret : value;
++	gpio_set_value(host->dat_gpio, bit ? 1 : 0);
++	gpio_set_value(host->clk_gpio, 1);
++	gpio_set_value(host->clk_gpio, 0);
 +}
-+EXPORT_SYMBOL_GPL(retu_read);
 +
-+int retu_write(struct retu_dev *rdev, u8 reg, u16 data)
++/**
++ * cbus_send_data - sends @len amount of data over the bus
++ * @host: the host we're using
++ * @data: the data to send
++ * @len: size of the transfer
++ */
++static void cbus_send_data(struct cbus_host *host, unsigned data, unsi=
+gned len)
++{
++	int i;
++
++	for (i =3D len; i > 0; i--)
++		cbus_send_bit(host, data & (1 << (i - 1)));
++}
++
++/**
++ * cbus_receive_bit - receives one bit from the bus
++ * @host: the host we're using
++ */
++static int cbus_receive_bit(struct cbus_host *host)
 +{
 +	int ret;
 +
-+	mutex_lock(&rdev->mutex);
-+	ret =3D regmap_write(rdev->regmap, reg, data);
-+	mutex_unlock(&rdev->mutex);
++	gpio_set_value(host->clk_gpio, 1);
++	ret =3D gpio_get_value(host->dat_gpio);
++	gpio_set_value(host->clk_gpio, 0);
++	return ret;
++}
++
++/**
++ * cbus_receive_word - receives 16-bit word from the bus
++ * @host: the host we're using
++ */
++static int cbus_receive_word(struct cbus_host *host)
++{
++	int ret =3D 0;
++	int i;
++
++	for (i =3D 16; i > 0; i--) {
++		int bit =3D cbus_receive_bit(host);
++
++		if (bit < 0)
++			return bit;
++
++		if (bit)
++			ret |=3D 1 << (i - 1);
++	}
++	return ret;
++}
++
++/**
++ * cbus_transfer - transfers data over the bus
++ * @host: the host we're using
++ * @rw: read/write flag
++ * @dev: device address
++ * @reg: register address
++ * @data: if @rw =3D=3D I2C_SBUS_WRITE data to send otherwise 0
++ */
++static int cbus_transfer(struct cbus_host *host, char rw, unsigned dev=
+,
++			 unsigned reg, unsigned data)
++{
++	unsigned long flags;
++	int ret;
++
++	/* We don't want interrupts disturbing our transfer */
++	spin_lock_irqsave(&host->lock, flags);
++
++	/* Reset state and start of transfer, SEL stays down during transfer =
+*/
++	gpio_set_value(host->sel_gpio, 0);
++
++	/* Set the DAT pin to output */
++	gpio_direction_output(host->dat_gpio, 1);
++
++	/* Send the device address */
++	cbus_send_data(host, dev, CBUS_ADDR_BITS);
++
++	/* Send the rw flag */
++	cbus_send_bit(host, rw =3D=3D I2C_SMBUS_READ);
++
++	/* Send the register address */
++	cbus_send_data(host, reg, CBUS_REG_BITS);
++
++	if (rw =3D=3D I2C_SMBUS_WRITE) {
++		cbus_send_data(host, data, 16);
++		ret =3D 0;
++	} else {
++		ret =3D gpio_direction_input(host->dat_gpio);
++		if (ret) {
++			dev_dbg(host->dev, "failed setting direction\n");
++			goto out;
++		}
++		gpio_set_value(host->clk_gpio, 1);
++
++		ret =3D cbus_receive_word(host);
++		if (ret < 0) {
++			dev_dbg(host->dev, "failed receiving data\n");
++			goto out;
++		}
++	}
++
++	/* Indicate end of transfer, SEL goes up until next transfer */
++	gpio_set_value(host->sel_gpio, 1);
++	gpio_set_value(host->clk_gpio, 1);
++	gpio_set_value(host->clk_gpio, 0);
++
++out:
++	spin_unlock_irqrestore(&host->lock, flags);
 +
 +	return ret;
 +}
-+EXPORT_SYMBOL_GPL(retu_write);
 +
-+static void retu_power_off(void)
++static int cbus_i2c_smbus_xfer(struct i2c_adapter	*adapter,
++			       u16			addr,
++			       unsigned short		flags,
++			       char			read_write,
++			       u8			command,
++			       int			size,
++			       union i2c_smbus_data	*data)
 +{
-+	struct retu_dev *rdev =3D retu_pm_power_off;
-+	int reg;
-+
-+	mutex_lock(&retu_pm_power_off->mutex);
-+
-+	/* Ignore power button state */
-+	regmap_read(rdev->regmap, RETU_REG_CC1, &reg);
-+	regmap_write(rdev->regmap, RETU_REG_CC1, reg | 2);
-+
-+	/* Expire watchdog immediately */
-+	regmap_write(rdev->regmap, RETU_REG_WATCHDOG, 0);
-+
-+	/* Wait for poweroff */
-+	for (;;)
-+		cpu_relax();
-+
-+	mutex_unlock(&retu_pm_power_off->mutex);
-+}
-+
-+static int retu_regmap_read(void *context, const void *reg, size_t reg=
-_size,
-+			    void *val, size_t val_size)
-+{
++	struct cbus_host *chost =3D i2c_get_adapdata(adapter);
 +	int ret;
-+	struct device *dev =3D context;
-+	struct i2c_client *i2c =3D to_i2c_client(dev);
 +
-+	BUG_ON(reg_size !=3D 1 || val_size !=3D 2);
++	if (size !=3D I2C_SMBUS_WORD_DATA)
++		return -EINVAL;
 +
-+	ret =3D i2c_smbus_read_word_data(i2c, *(u8 const *)reg);
++	ret =3D cbus_transfer(chost, read_write =3D=3D I2C_SMBUS_READ, addr,
++			    command, data->word);
 +	if (ret < 0)
 +		return ret;
 +
-+	*(u16 *)val =3D ret;
++	if (read_write =3D=3D I2C_SMBUS_READ)
++		data->word =3D ret;
++
 +	return 0;
 +}
 +
-+static int retu_regmap_write(void *context, const void *data, size_t c=
-ount)
++static u32 cbus_i2c_func(struct i2c_adapter *adapter)
 +{
-+	u8 reg;
-+	u16 val;
-+	struct device *dev =3D context;
-+	struct i2c_client *i2c =3D to_i2c_client(dev);
-+
-+	BUG_ON(count !=3D sizeof(reg) + sizeof(val));
-+	memcpy(&reg, data, sizeof(reg));
-+	memcpy(&val, data + sizeof(reg), sizeof(val));
-+	return i2c_smbus_write_word_data(i2c, reg, val);
++	return I2C_FUNC_SMBUS_READ_WORD_DATA | I2C_FUNC_SMBUS_WRITE_WORD_DATA=
+;
 +}
 +
-+static struct regmap_bus retu_bus =3D {
-+	.read =3D retu_regmap_read,
-+	.write =3D retu_regmap_write,
-+	.val_format_endian_default =3D REGMAP_ENDIAN_NATIVE,
++static const struct i2c_algorithm cbus_i2c_algo =3D {
++	.smbus_xfer	=3D cbus_i2c_smbus_xfer,
++	.functionality	=3D cbus_i2c_func,
 +};
 +
-+static struct regmap_config retu_config =3D {
-+	.reg_bits =3D 8,
-+	.val_bits =3D 16,
-+};
-+
-+static int __devinit retu_probe(struct i2c_client *i2c,
-+				const struct i2c_device_id *id)
++static int cbus_i2c_remove(struct platform_device *pdev)
 +{
-+	struct retu_dev *rdev;
++	struct i2c_adapter *adapter =3D platform_get_drvdata(pdev);
++
++	return i2c_del_adapter(adapter);
++}
++
++static int cbus_i2c_probe(struct platform_device *pdev)
++{
++	struct i2c_adapter *adapter;
++	struct cbus_host *chost;
 +	int ret;
 +
-+	rdev =3D devm_kzalloc(&i2c->dev, sizeof(*rdev), GFP_KERNEL);
-+	if (rdev =3D=3D NULL)
++	adapter =3D devm_kzalloc(&pdev->dev, sizeof(struct i2c_adapter),
++			       GFP_KERNEL);
++	if (!adapter)
 +		return -ENOMEM;
 +
-+	i2c_set_clientdata(i2c, rdev);
-+	rdev->dev =3D &i2c->dev;
-+	mutex_init(&rdev->mutex);
-+	rdev->regmap =3D devm_regmap_init(&i2c->dev, &retu_bus, &i2c->dev,
-+					&retu_config);
-+	if (IS_ERR(rdev->regmap))
-+		return PTR_ERR(rdev->regmap);
++	chost =3D devm_kzalloc(&pdev->dev, sizeof(*chost), GFP_KERNEL);
++	if (!chost)
++		return -ENOMEM;
 +
-+	ret =3D retu_read(rdev, RETU_REG_ASICR);
-+	if (ret < 0) {
-+		dev_err(rdev->dev, "could not read Retu revision: %d\n", ret);
-+		return ret;
++	if (pdev->dev.of_node) {
++		struct device_node *dnode =3D pdev->dev.of_node;
++		if (of_gpio_count(dnode) !=3D 3)
++			return -ENODEV;
++		chost->clk_gpio =3D of_get_gpio(dnode, 0);
++		chost->dat_gpio =3D of_get_gpio(dnode, 1);
++		chost->sel_gpio =3D of_get_gpio(dnode, 2);
++	} else if (pdev->dev.platform_data) {
++		struct i2c_cbus_platform_data *pdata =3D pdev->dev.platform_data;
++		chost->clk_gpio =3D pdata->clk_gpio;
++		chost->dat_gpio =3D pdata->dat_gpio;
++		chost->sel_gpio =3D pdata->sel_gpio;
++	} else {
++		return -ENODEV;
 +	}
 +
-+	dev_info(rdev->dev, "Retu%s v%d.%d found\n",
-+		 (ret & RETU_REG_ASICR_VILMA) ? " & Vilma" : "",
-+		 (ret >> 4) & 0x7, ret & 0xf);
++	adapter->owner		=3D THIS_MODULE;
++	adapter->class		=3D I2C_CLASS_HWMON;
++	adapter->dev.parent	=3D &pdev->dev;
++	adapter->nr		=3D pdev->id;
++	adapter->timeout	=3D HZ;
++	adapter->algo		=3D &cbus_i2c_algo;
++	strlcpy(adapter->name, "CBUS I2C adapter", sizeof(adapter->name));
 +
-+	/* Mask all RETU interrupts. */
-+	ret =3D retu_write(rdev, RETU_REG_IMR, 0xffff);
-+	if (ret < 0)
++	spin_lock_init(&chost->lock);
++	chost->dev =3D &pdev->dev;
++
++	ret =3D devm_gpio_request_one(&pdev->dev, chost->clk_gpio,
++				    GPIOF_OUT_INIT_LOW, "CBUS clk");
++	if (ret)
 +		return ret;
 +
-+	ret =3D regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, -1,
-+				  &retu_irq_chip, &rdev->irq_data);
-+	if (ret < 0)
++	ret =3D devm_gpio_request_one(&pdev->dev, chost->dat_gpio, GPIOF_IN,
++				    "CBUS data");
++	if (ret)
 +		return ret;
 +
-+	ret =3D mfd_add_devices(rdev->dev, -1, retu_devs, ARRAY_SIZE(retu_dev=
-s),
-+			      NULL, regmap_irq_chip_get_base(rdev->irq_data),
-+			      NULL);
-+	if (ret < 0) {
-+		regmap_del_irq_chip(i2c->irq, rdev->irq_data);
++	ret =3D devm_gpio_request_one(&pdev->dev, chost->sel_gpio,
++				    GPIOF_OUT_INIT_HIGH, "CBUS sel");
++	if (ret)
 +		return ret;
-+	}
 +
-+	if (!pm_power_off) {
-+		retu_pm_power_off =3D rdev;
-+		pm_power_off	  =3D retu_power_off;
-+	}
++	i2c_set_adapdata(adapter, chost);
++	platform_set_drvdata(pdev, adapter);
 +
-+	return 0;
++	return i2c_add_numbered_adapter(adapter);
 +}
 +
-+static int __devexit retu_remove(struct i2c_client *i2c)
-+{
-+	struct retu_dev *rdev =3D i2c_get_clientdata(i2c);
-+
-+	if (retu_pm_power_off =3D=3D rdev) {
-+		pm_power_off	  =3D NULL;
-+		retu_pm_power_off =3D NULL;
-+	}
-+	mfd_remove_devices(rdev->dev);
-+	regmap_del_irq_chip(i2c->irq, rdev->irq_data);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id retu_id[] =3D {
-+	{ "retu-mfd", 0 },
++#if defined(CONFIG_OF)
++static const struct of_device_id i2c_cbus_dt_ids[] =3D {
++	{ .compatible =3D "i2c-cbus", },
 +	{ }
 +};
-+MODULE_DEVICE_TABLE(i2c, retu_id);
++MODULE_DEVICE_TABLE(of, i2c_cbus_dt_ids);
++#endif
 +
-+static struct i2c_driver retu_driver =3D {
-+	.driver		=3D {
-+		.name =3D "retu-mfd",
-+		.owner =3D THIS_MODULE,
++static struct platform_driver cbus_i2c_driver =3D {
++	.probe	=3D cbus_i2c_probe,
++	.remove	=3D cbus_i2c_remove,
++	.driver	=3D {
++		.owner	=3D THIS_MODULE,
++		.name	=3D "i2c-cbus",
 +	},
-+	.probe		=3D retu_probe,
-+	.remove		=3D retu_remove,
-+	.id_table	=3D retu_id,
 +};
-+module_i2c_driver(retu_driver);
++module_platform_driver(cbus_i2c_driver);
 +
-+MODULE_DESCRIPTION("Retu MFD driver");
++MODULE_ALIAS("platform:i2c-cbus");
++MODULE_DESCRIPTION("CBUS I2C driver");
 +MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
 +MODULE_AUTHOR("David Weinehall");
 +MODULE_AUTHOR("Mikko Ylinen");
-+MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
++MODULE_AUTHOR("Felipe Balbi");
++MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>");
 +MODULE_LICENSE("GPL");
-diff --git a/include/linux/mfd/retu.h b/include/linux/mfd/retu.h
+diff --git a/include/linux/platform_data/i2c-cbus.h b/include/linux/pla=
+tform_data/i2c-cbus.h
 new file mode 100644
-index 0000000..1e2715d
+index 0000000..636d726
 --- /dev/null
-+++ b/include/linux/mfd/retu.h
-@@ -0,0 +1,22 @@
++++ b/include/linux/platform_data/i2c-cbus.h
+@@ -0,0 +1,27 @@
 +/*
-+ * Retu MFD driver interface
++ * i2c-cbus.h - CBUS I2C platform_data definition
++ *
++ * Copyright (C) 2004-2009 Nokia Corporation
++ *
++ * Written by Felipe Balbi and Aaro Koskinen.
 + *
 + * This file is subject to the terms and conditions of the GNU General
 + * Public License. See the file "COPYING" in the main directory of thi=
 s
 + * archive for more details.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
 + */
 +
-+#ifndef __LINUX_MFD_RETU_H
-+#define __LINUX_MFD_RETU_H
++#ifndef __INCLUDE_LINUX_I2C_CBUS_H
++#define __INCLUDE_LINUX_I2C_CBUS_H
 +
-+struct retu_dev;
++struct i2c_cbus_platform_data {
++	int dat_gpio;
++	int clk_gpio;
++	int sel_gpio;
++};
 +
-+int retu_read(struct retu_dev *, u8);
-+int retu_write(struct retu_dev *, u8, u16);
-+
-+/* Registers */
-+#define RETU_REG_WATCHDOG	0x17		/* Watchdog */
-+#define RETU_REG_CC1		0x0d		/* Common control register 1 */
-+#define RETU_REG_STATUS		0x16		/* Status register */
-+
-+#endif /* __LINUX_MFD_RETU_H */
++#endif /* __INCLUDE_LINUX_I2C_CBUS_H */
 --=20
 1.7.2.5
