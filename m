@@ -1,95 +1,197 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/3] ARM: OMAP: Remove plat-omap/common.c
-Date: Thu, 01 Nov 2012 15:48:28 -0700
-Message-ID: <20121101224828.2103.82950.stgit@muffinssi.local>
+Subject: [PATCH 2/3] ARM: OMAP: Remove NEED_MACH_GPIO_H
+Date: Thu, 01 Nov 2012 15:48:23 -0700
+Message-ID: <20121101224823.2103.24591.stgit@muffinssi.local>
 References: <20121101224703.2103.95474.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:19855 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S934360Ab2KAWs3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Nov 2012 18:48:29 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28358 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S936105Ab2KAWsa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Nov 2012 18:48:30 -0400
 In-Reply-To: <20121101224703.2103.95474.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-This file has only omap_init_consistent_dma_size()
-left that can be moved to plat-omap/dma.c.
+Omap no longer needs this option, mach/gpio.h is
+empty.
 
+Also remove mach/irqs.h from gpio-omap.h and
+include it directly from the related omap1
+gpio init files.
+
+Otherwise omap2+ build fails for MULTI_PLATFORM.
+
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Liam Girdwood <lrg@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/Makefile |    2 +-
- arch/arm/plat-omap/common.c |   26 --------------------------
- arch/arm/plat-omap/dma.c    |    8 ++++++++
- 3 files changed, 9 insertions(+), 27 deletions(-)
- delete mode 100644 arch/arm/plat-omap/common.c
+ arch/arm/Kconfig                        |    1 -
+ arch/arm/mach-omap1/gpio15xx.c          |    2 ++
+ arch/arm/mach-omap1/gpio16xx.c          |    2 ++
+ arch/arm/mach-omap1/gpio7xx.c           |    2 ++
+ arch/arm/mach-omap1/include/mach/gpio.h |    3 ---
+ arch/arm/mach-omap2/include/mach/gpio.h |    3 ---
+ include/linux/platform_data/gpio-omap.h |    1 -
+ sound/soc/omap/am3517evm.c              |    2 --
+ sound/soc/omap/n810.c                   |    1 -
+ sound/soc/omap/osk5912.c                |    1 -
+ sound/soc/omap/sdp3430.c                |    2 --
+ sound/soc/omap/zoom2.c                  |    3 ---
+ 12 files changed, 6 insertions(+), 17 deletions(-)
+ delete mode 100644 arch/arm/mach-omap1/include/mach/gpio.h
+ delete mode 100644 arch/arm/mach-omap2/include/mach/gpio.h
 
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 50da9bf..8d88584 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -3,7 +3,7 @@
- #
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 73067ef..6207cf7 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -937,7 +937,6 @@ config ARCH_OMAP
+ 	select CLKSRC_MMIO
+ 	select GENERIC_CLOCKEVENTS
+ 	select HAVE_CLK
+-	select NEED_MACH_GPIO_H
+ 	help
+ 	  Support for TI's OMAP platform (OMAP1/2/3/4).
  
- # Common support
--obj-y := common.o sram.o dma.o fb.o counter_32k.o
-+obj-y := sram.o dma.o fb.o counter_32k.o
- obj-m :=
- obj-n :=
- obj-  :=
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-deleted file mode 100644
-index bf6cd80..0000000
---- a/arch/arm/plat-omap/common.c
-+++ /dev/null
-@@ -1,26 +0,0 @@
--/*
-- * linux/arch/arm/plat-omap/common.c
-- *
-- * Code common to all OMAP machines.
-- * The file is created by Tony Lindgren <tony@atomide.com>
-- *
-- * Copyright (C) 2009 Texas Instruments
-- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/io.h>
--#include <linux/dma-mapping.h>
--
--#include <plat-omap/dma-omap.h>
--
--void __init omap_init_consistent_dma_size(void)
--{
--#ifdef CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE
--	init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
--#endif
--}
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index c288b76..00a3a53 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2146,6 +2146,14 @@ static struct platform_driver omap_system_dma_driver = {
- 	},
- };
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index 98e6f39..02b3eb2 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -19,6 +19,8 @@
+ #include <linux/gpio.h>
+ #include <linux/platform_data/gpio-omap.h>
  
-+/* This must be called from init_early() */
-+void __init omap_init_consistent_dma_size(void)
-+{
-+#ifdef CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE
-+	init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
-+#endif
-+}
++#include <mach/irqs.h>
 +
- static int __init omap_system_dma_init(void)
- {
- 	return platform_driver_register(&omap_system_dma_driver);
+ #define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
+ #define OMAP1510_GPIO_BASE		0xFFFCE000
+ 
+diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+index 33f4192..b9952a2 100644
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -19,6 +19,8 @@
+ #include <linux/gpio.h>
+ #include <linux/platform_data/gpio-omap.h>
+ 
++#include <mach/irqs.h>
++
+ #define OMAP1610_GPIO1_BASE		0xfffbe400
+ #define OMAP1610_GPIO2_BASE		0xfffbec00
+ #define OMAP1610_GPIO3_BASE		0xfffbb400
+diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
+index 958ce9a..f5819b2 100644
+--- a/arch/arm/mach-omap1/gpio7xx.c
++++ b/arch/arm/mach-omap1/gpio7xx.c
+@@ -19,6 +19,8 @@
+ #include <linux/gpio.h>
+ #include <linux/platform_data/gpio-omap.h>
+ 
++#include <mach/irqs.h>
++
+ #define OMAP7XX_GPIO1_BASE		0xfffbc000
+ #define OMAP7XX_GPIO2_BASE		0xfffbc800
+ #define OMAP7XX_GPIO3_BASE		0xfffbd000
+diff --git a/arch/arm/mach-omap1/include/mach/gpio.h b/arch/arm/mach-omap1/include/mach/gpio.h
+deleted file mode 100644
+index ebf86c0..0000000
+--- a/arch/arm/mach-omap1/include/mach/gpio.h
++++ /dev/null
+@@ -1,3 +0,0 @@
+-/*
+- * arch/arm/mach-omap1/include/mach/gpio.h
+- */
+diff --git a/arch/arm/mach-omap2/include/mach/gpio.h b/arch/arm/mach-omap2/include/mach/gpio.h
+deleted file mode 100644
+index 5621cc5..0000000
+--- a/arch/arm/mach-omap2/include/mach/gpio.h
++++ /dev/null
+@@ -1,3 +0,0 @@
+-/*
+- * arch/arm/mach-omap2/include/mach/gpio.h
+- */
+diff --git a/include/linux/platform_data/gpio-omap.h b/include/linux/platform_data/gpio-omap.h
+index e8741c2..5d50b25 100644
+--- a/include/linux/platform_data/gpio-omap.h
++++ b/include/linux/platform_data/gpio-omap.h
+@@ -26,7 +26,6 @@
+ 
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+-#include <mach/irqs.h>
+ 
+ #define OMAP1_MPUIO_BASE			0xfffb5000
+ 
+diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
+index fad3506..c1900b2 100644
+--- a/sound/soc/omap/am3517evm.c
++++ b/sound/soc/omap/am3517evm.c
+@@ -25,8 +25,6 @@
+ #include <sound/soc.h>
+ 
+ #include <asm/mach-types.h>
+-#include <mach/hardware.h>
+-#include <mach/gpio.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ 
+ #include "omap-mcbsp.h"
+diff --git a/sound/soc/omap/n810.c b/sound/soc/omap/n810.c
+index 521bfc3..230b8c1 100644
+--- a/sound/soc/omap/n810.c
++++ b/sound/soc/omap/n810.c
+@@ -29,7 +29,6 @@
+ #include <sound/soc.h>
+ 
+ #include <asm/mach-types.h>
+-#include <mach/hardware.h>
+ #include <linux/gpio.h>
+ #include <linux/module.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+diff --git a/sound/soc/omap/osk5912.c b/sound/soc/omap/osk5912.c
+index 3960e8d..06ef8d6 100644
+--- a/sound/soc/omap/osk5912.c
++++ b/sound/soc/omap/osk5912.c
+@@ -28,7 +28,6 @@
+ #include <sound/soc.h>
+ 
+ #include <asm/mach-types.h>
+-#include <mach/hardware.h>
+ #include <linux/gpio.h>
+ #include <linux/module.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+index 597cae7..b462a2c 100644
+--- a/sound/soc/omap/sdp3430.c
++++ b/sound/soc/omap/sdp3430.c
+@@ -31,8 +31,6 @@
+ #include <sound/jack.h>
+ 
+ #include <asm/mach-types.h>
+-#include <mach/hardware.h>
+-#include <mach/gpio.h>
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ 
+diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
+index 677b567..27c501c 100644
+--- a/sound/soc/omap/zoom2.c
++++ b/sound/soc/omap/zoom2.c
+@@ -26,9 +26,6 @@
+ #include <sound/soc.h>
+ 
+ #include <asm/mach-types.h>
+-#include <mach/hardware.h>
+-#include <mach/gpio.h>
+-#include <mach/board-zoom.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+ 
+ /* Register descriptions for twl4030 codec part */
 
