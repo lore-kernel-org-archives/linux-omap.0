@@ -1,87 +1,88 @@
-From: Linus Walleij <linus.walleij@linaro.org>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Thu, 1 Nov 2012 15:01:28 +0100
-Message-ID: <CACRpkdawAdbwackZeST4iDkFZx9-exhTVoUzAABaWr1G89tATg@mail.gmail.com>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
-	<20121024161429.GA16350@core.coreip.homeip.net>
-	<CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
-	<4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
-	<CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow@mail.gmail.com>
-	<20121030113407.GA24335@sirena.org.uk>
-	<CACRpkdapQJY0aoam741O0fb8EeM9BLk_Psq5TaPG84J7wEvCLw@mail.gmail.com>
-	<87obji8kta.fsf@deeprootsystems.com>
-	<CACRpkdbCk9+HSBPtfT-1dO8paSRYJ5VXX_0SxiyxgrObnJEvmQ@mail.gmail.com>
-	<20121101120713.GA4413@opensource.wolfsonmicro.com>
+Date: Thu, 1 Nov 2012 14:19:35 +0000
+Message-ID: <20121101141935.GD4413@opensource.wolfsonmicro.com>
+References: <20121024161429.GA16350@core.coreip.homeip.net>
+ <CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
+ <4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+ <CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow@mail.gmail.com>
+ <20121030113407.GA24335@sirena.org.uk>
+ <CACRpkdapQJY0aoam741O0fb8EeM9BLk_Psq5TaPG84J7wEvCLw@mail.gmail.com>
+ <87obji8kta.fsf@deeprootsystems.com>
+ <CACRpkdbCk9+HSBPtfT-1dO8paSRYJ5VXX_0SxiyxgrObnJEvmQ@mail.gmail.com>
+ <20121101120713.GA4413@opensource.wolfsonmicro.com>
+ <CACRpkdawAdbwackZeST4iDkFZx9-exhTVoUzAABaWr1G89tATg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121101120713.GA4413@opensource.wolfsonmicro.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BI5RvnYi6R4T2M87"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACRpkdawAdbwackZeST4iDkFZx9-exhTVoUzAABaWr1G89tATg@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 1, 2012 at 1:07 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Thu, Nov 01, 2012 at 09:54:00AM +0100, Linus Walleij wrote:
 
-> For the pin hogging I'd actually been thinking separately that we should
-> just have the device core do a devm_pinctrl_get_set_default() prior to
-> probing the device and store the result in the struct device.  That
-> would immediately remove almost all of the current pinctrl users, users
-> that do need to do things with the data or check the result can then
-> pick up the pinctrl pointer from the device struct.
+--BI5RvnYi6R4T2M87
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I never thought of that. This sounds like it would work.
+On Thu, Nov 01, 2012 at 03:01:28PM +0100, Linus Walleij wrote:
+> On Thu, Nov 1, 2012 at 1:07 PM, Mark Brown
+>=20
+> > For the pin hogging I'd actually been thinking separately that we should
+> > just have the device core do a devm_pinctrl_get_set_default() prior to
+> > probing the device and store the result in the struct device.  That
 
-And the good thing is that this is a clean cut so we
-will centralized code without having to decide right now
-how to handle the pm idle/sleep cases.
+> What if I retrieve this in the pinctrl subsystem using
+> bus notifiers and then expose the struct pinctrl * to
+> the clients by using pinctrl_get() and when you get
+> such a handle in your probe() you know that the
+> pinctrl subsystem has already fetched the handle and
+> set it to "default" at that point?
 
-Talking here with Kevin Hilman on my left and Grant
-Likely on my right (they're physically here) there is some
-worry about stashing stuff into struct device.
+I'm not sure I parse a problem from the above?
 
-What if I retrieve this in the pinctrl subsystem using
-bus notifiers and then expose the struct pinctrl * to
-the clients by using pinctrl_get() and when you get
-such a handle in your probe() you know that the
-pinctrl subsystem has already fetched the handle and
-set it to "default" at that point?
+> I just worry whether there is a fringe case where the default
+> state is not be be default-selected in probe(), the API
+> semantics does not mandate that. But I think this is the case
+> for all in-kernel drivers so we wouldn't be breaking anything
+> by doing this right now. And platforms can just leave the
+> "default" state undefined in that case.
 
-I just worry whether there is a fringe case where the default
-state is not be be default-selected in probe(), the API
-semantics does not mandate that. But I think this is the case
-for all in-kernel drivers so we wouldn't be breaking anything
-by doing this right now. And platforms can just leave the
-"default" state undefined in that case.
+Yes, that had been my thinking too though I'd really expect that the
+platform ought to be able to think of something sensible to do by
+default.
 
->> It's actually something that needs to be acknowledged by the
->> ARM SoC maintainers, because they will be the ones telling
->> all subarch maintainers to go implement full PM handling
->> with these three frameworks whenever an SoC driver want
->> to handle pins.
->
-> Well, they're going to have to implement it somewhere anyway - either in
-> the drivers or in the SoC stuff.
+> Then what to do with sleep and idle is a question we need
+> to handle next. Requiring PM domains for this is one
+> approach, albeit a bit controversial.
 
-Sure I just worry about it being done is several different ways
-and creating a mess so they need to be involved to block
-other approaches.
+Yup.  Notifiers are another option again I guess.  There's far fewer
+drivers doing anything at all with that so it's a bit less urgent.
 
->> I can surely fix these for "my" systems, but it really needs
->> to be enforced widely or it will be a mess.
->
-> We definitely need to decide if it's something that should be open coded
-> everywhere.
+--BI5RvnYi6R4T2M87
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-If I prepare a patch to move the fetch+set defaul to the pinctrl
-core using notifiers, we centralize one piece and we get the
-currently floating patches out of the way.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Then what to do with sleep and idle is a question we need
-to handle next. Requiring PM domains for this is one
-approach, albeit a bit controversial.
+iQIcBAEBAgAGBQJQkoTvAAoJELSic+t+oim9T3wQAJT2fTjcoqAXIen2dnrccrmJ
+D6s1XbYfPoJdDLIivRMEXiYmzlKIutlEobY49P7qhfUnhfbv4cfE7nwi9k2V4xPR
+qtEhYhyDtUgFkRvI6czUTbd3ZKzt9jUGIhJ4W5Y/545Z0z3m0Rld0EgG6Wh53oyg
+GGBZgQA9kytWZwEYsT+wAjp6QCtsBIGp3zOTk1coEP3Sic+S32aRdsaYRvfUIIDN
+F4pC07KbhngWrYYmmFG9k92NcLx3npZdDYLfrTXgFAP4HEOIMVRv4ItZ1Q8O+te7
+S6VPvG0IthQDTx1jBWCVM5DwtbLW5EL+xALoYl/kiaz/LxaF/p2i9EwDqGsx0sQA
+ixhbf+73jmqlotF7/89gCrxDNab6+leHZ7Nvtoe9BPl/jvMfNUdSJGFPlo2NO9KK
+5u5ZgFqf5Bv79T8ynfFtw8Uj5BkvKcSUhHctkDzKkEaDhJxjgsk+K6xLNK7gjvUM
+4EiLCr402HqIbWCRQoyIEi8KwetscSGnuuKG7gASwXrTlLo5+97kWnCGuhJTJSYQ
+DVue1ifdgJxovlS6jaGWmRLYRkQvM33sX6BJhxoT6wRfLY8u6q7uEUdxNMOs8R2Y
+hoSgz3BS/k0qFDIG2ujGJ74UQRRq0M6G7q7kziL4HIhI7IjuMAFXFLORMrW7igXF
+wpHPrs85WBdYtGxdCYMf
+=PUlE
+-----END PGP SIGNATURE-----
 
-Yours,
-Linus Walleij
+--BI5RvnYi6R4T2M87--
