@@ -1,242 +1,124 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [PATCH 2/3] da8xx-dt: Create da8xx DT adapter device
-Date: Thu,  1 Nov 2012 17:18:01 +0200
-Message-ID: <1351783082-11411-3-git-send-email-panto@antoniou-consulting.com>
-References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Subject: [PATCH 1/3] ti_adc: Update with IIO map interface
+Date: Thu,  1 Nov 2012 17:24:54 +0200
+Message-ID: <1351783496-11557-1-git-send-email-panto@antoniou-consulting.com>
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+Cc: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-omap_device is going private.
+Add an IIO map interface that consumers can use.
 
-Move the da8xx-dt adapter device to arch/arm/mach-omap2.
-
-Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+Signed-off-by: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
 ---
- arch/arm/mach-omap2/Makefile   |   3 +
- arch/arm/mach-omap2/da8xx-dt.c | 197 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 200 insertions(+)
- create mode 100644 arch/arm/mach-omap2/da8xx-dt.c
+ drivers/iio/adc/ti_am335x_adc.c | 60 +++++++++++++++++++++++++++++++++--------
+ 1 file changed, 49 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index fe40d9e..3a9a0ff 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -200,6 +200,9 @@ ifneq ($(CONFIG_DRM_OMAP),)
- obj-y					+= drm.o
- endif
+diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+index 02a43c8..8595a90 100644
+--- a/drivers/iio/adc/ti_am335x_adc.c
++++ b/drivers/iio/adc/ti_am335x_adc.c
+@@ -20,8 +20,9 @@
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+-#include <linux/io.h>
+ #include <linux/iio/iio.h>
++#include <linux/iio/machine.h>
++#include <linux/iio/driver.h>
  
-+# AM3XX Device Tree adapters for legacy drivers
-+obj-$(CONFIG_SOC_AM33XX)		+= da8xx-dt.o
+ #include <linux/mfd/ti_am335x_tscadc.h>
+ #include <linux/platform_data/ti_am335x_adc.h>
+@@ -29,6 +30,8 @@
+ struct tiadc_device {
+ 	struct ti_tscadc_dev *mfd_tscadc;
+ 	int channels;
++	char *buf;
++	struct iio_map *map;
+ };
+ 
+ static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
+@@ -72,27 +75,62 @@ static void tiadc_step_config(struct tiadc_device *adc_dev)
+ 	tiadc_writel(adc_dev, REG_SE, STPENB_STEPENB);
+ }
+ 
+-static int tiadc_channel_init(struct iio_dev *indio_dev, int channels)
++static int tiadc_channel_init(struct iio_dev *indio_dev,
++		struct tiadc_device *adc_dev)
+ {
+ 	struct iio_chan_spec *chan_array;
+-	int i;
+-
+-	indio_dev->num_channels = channels;
+-	chan_array = kcalloc(indio_dev->num_channels,
+-			sizeof(struct iio_chan_spec), GFP_KERNEL);
++	struct iio_chan_spec *chan;
++	char *s;
++	int i, len, size, ret;
++	int channels = adc_dev->channels;
+ 
++	size = channels * (sizeof(struct iio_chan_spec) + 6);
++	chan_array = kzalloc(size, GFP_KERNEL);
+ 	if (chan_array == NULL)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < (indio_dev->num_channels); i++) {
+-		struct iio_chan_spec *chan = chan_array + i;
++	/* buffer space is after the array */
++	s = (char *)(chan_array + channels);
++	chan = chan_array;
++	for (i = 0; i < channels; i++, chan++, s += len + 1) {
 +
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
-diff --git a/arch/arm/mach-omap2/da8xx-dt.c b/arch/arm/mach-omap2/da8xx-dt.c
-new file mode 100644
-index 0000000..d3c6f48
---- /dev/null
-+++ b/arch/arm/mach-omap2/da8xx-dt.c
-@@ -0,0 +1,197 @@
-+/*
-+ * DA8XX-DT: Device tree adapter using the legacy driver
-+ *
-+ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
-+ * Copyright (C) 2012 Texas Instruments Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
++		len = sprintf(s, "AIN%d", i);
 +
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
-+#include <video/da8xx-fb.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/pinctrl/pinmux.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/clk.h>
-+#include <plat/clock.h>
-+#include <plat/omap_device.h>
+ 		chan->type = IIO_VOLTAGE;
+ 		chan->indexed = 1;
+ 		chan->channel = i;
+-		chan->info_mask = IIO_CHAN_INFO_RAW_SEPARATE_BIT;
++		chan->datasheet_name = s;
++		chan->scan_type.sign = 'u';
++		chan->scan_type.realbits = 12;
++		chan->scan_type.storagebits = 32;
++		chan->scan_type.shift = 0;
+ 	}
+ 
+ 	indio_dev->channels = chan_array;
++	indio_dev->num_channels = channels;
 +
-+struct da8xx_priv {
-+	struct da8xx_lcdc_platform_data lcd_pdata;
-+	struct lcd_ctrl_config lcd_cfg;
-+	struct display_panel lcd_panel;
-+	struct platform_device *lcdc_pdev;
-+	struct omap_hwmod *lcdc_oh;
-+	struct resource lcdc_res[1];
-+	int power_dn_gpio;
-+};
-+
-+static const struct of_device_id of_da8xx_dt_match[] = {
-+	{ .compatible = "da8xx-dt", },
-+	{},
-+};
-+
-+static int __devinit da8xx_dt_probe(struct platform_device *pdev)
-+{
-+	struct da8xx_priv *priv;
-+	struct clk *disp_pll;
-+	struct pinctrl *pinctrl;
-+	u32 disp_pll_val;
-+	const char *panel_type;
-+	int ret = -EINVAL;
-+
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (priv == NULL) {
-+		dev_err(&pdev->dev, "Failed to allocate priv\n");
++	size = (channels + 1) * sizeof(struct iio_map);
++	adc_dev->map = kzalloc(size, GFP_KERNEL);
++	if (adc_dev->map == NULL) {
++		kfree(chan_array);
 +		return -ENOMEM;
 +	}
-+	priv->power_dn_gpio = -1;
 +
-+	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-+	if (IS_ERR(pinctrl))
-+		dev_warn(&pdev->dev,
-+			"pins are not configured from the driver\n");
++	for (i = 0; i < indio_dev->num_channels; i++) {
++		adc_dev->map[i].adc_channel_label = chan_array[i].datasheet_name;
++		adc_dev->map[i].consumer_dev_name = "any";
++		adc_dev->map[i].consumer_channel = chan_array[i].datasheet_name;
++	}
++	adc_dev->map[i].adc_channel_label = NULL;
++	adc_dev->map[i].consumer_dev_name = NULL;
++	adc_dev->map[i].consumer_channel = NULL;
 +
-+	ret = of_property_read_u32(pdev->dev.of_node, "disp-pll",
-+			&disp_pll_val);
++	ret = iio_map_array_register(indio_dev, adc_dev->map);
 +	if (ret != 0) {
-+		dev_err(&pdev->dev, "Failed to read disp-pll property\n");
-+		return ret;
++		kfree(adc_dev->map);
++		kfree(chan_array);
++		return -ENOMEM;
 +	}
-+
-+	ret = of_property_read_string(pdev->dev.of_node, "panel-type",
-+			&panel_type);
-+	if (ret != 0) {
-+		dev_err(&pdev->dev, "Failed to read panel-type property\n");
-+		return ret;
-+	}
-+
-+	/* conf_disp_pll(disp_pll); */
-+	disp_pll = clk_get(NULL, "dpll_disp_ck");
-+	if (IS_ERR(disp_pll)) {
-+		dev_err(&pdev->dev, "Cannot clk_get disp_pll\n");
-+		return PTR_ERR(disp_pll);
-+	}
-+	ret = clk_set_rate(disp_pll, disp_pll_val);
-+	clk_put(disp_pll);
-+	if (ret != 0) {
-+		dev_err(&pdev->dev, "Failed to set disp_pll\n");
-+		return ret;
-+	}
-+
-+	ret = of_get_named_gpio_flags(pdev->dev.of_node, "powerdn-gpio",
-+			0, NULL);
-+	if (IS_ERR_VALUE(ret)) {
-+		dev_info(&pdev->dev, "No power down GPIO\n");
-+	} else {
-+		priv->power_dn_gpio = ret;
-+
-+		ret = devm_gpio_request(&pdev->dev, priv->power_dn_gpio,
-+				"da8xx-dt:PDN");
-+		if (ret != 0) {
-+			dev_err(&pdev->dev, "Failed to gpio_request\n");
-+			return ret;
-+		}
-+
-+		ret = gpio_direction_output(priv->power_dn_gpio, 1);
-+		if (ret != 0) {
-+			dev_err(&pdev->dev, "Failed to set powerdn to 1\n");
-+			return ret;
-+		}
-+	}
-+
-+	/* display_panel */
-+	priv->lcd_panel.panel_type	= QVGA;
-+	priv->lcd_panel.max_bpp		= 16;
-+	priv->lcd_panel.min_bpp		= 16;
-+	priv->lcd_panel.panel_shade	= COLOR_ACTIVE;
-+
-+	/* lcd_ctrl_config */
-+	priv->lcd_cfg.p_disp_panel	= &priv->lcd_panel;
-+	priv->lcd_cfg.ac_bias		= 255;
-+	priv->lcd_cfg.ac_bias_intrpt	= 0;
-+	priv->lcd_cfg.dma_burst_sz	= 16;
-+	priv->lcd_cfg.bpp		= 16;
-+	priv->lcd_cfg.fdd		= 0x80;
-+	priv->lcd_cfg.tft_alt_mode	= 0;
-+	priv->lcd_cfg.stn_565_mode	= 0;
-+	priv->lcd_cfg.mono_8bit_mode	= 0;
-+	priv->lcd_cfg.invert_line_clock	= 1;
-+	priv->lcd_cfg.invert_frm_clock	= 1;
-+	priv->lcd_cfg.sync_edge		= 0;
-+	priv->lcd_cfg.sync_ctrl		= 1;
-+	priv->lcd_cfg.raster_order	= 0;
-+
-+	/* da8xx_lcdc_platform_data */
-+	strcpy(priv->lcd_pdata.manu_name, "BBToys");
-+	priv->lcd_pdata.controller_data = &priv->lcd_cfg;
-+	strcpy(priv->lcd_pdata.type, panel_type);
-+
-+	priv->lcdc_oh = omap_hwmod_lookup("lcdc");
-+	if (priv->lcdc_oh == NULL) {
-+		dev_err(&pdev->dev, "Failed to lookup omap_hwmod lcdc\n");
-+		return -ENODEV;
-+	}
-+
-+	priv->lcdc_pdev = omap_device_build("da8xx_lcdc", 0, priv->lcdc_oh,
-+			&priv->lcd_pdata,
-+			sizeof(struct da8xx_lcdc_platform_data),
-+			NULL, 0, 0);
-+	if (priv->lcdc_pdev == NULL) {
-+		dev_err(&pdev->dev, "Failed to build LCDC device\n");
-+		return -ENODEV;
-+	}
-+
-+	dev_info(&pdev->dev, "Registered bone LCDC OK.\n");
-+
-+	platform_set_drvdata(pdev, priv);
-+
-+	return 0;
-+}
-+
-+static int __devexit da8xx_dt_remove(struct platform_device *pdev)
-+{
-+	return -EINVAL;	/* not supporting removal yet */
-+}
-+
-+static struct platform_driver da8xx_dt_driver = {
-+	.probe		= da8xx_dt_probe,
-+	.remove		= __devexit_p(da8xx_dt_remove),
-+	.driver		= {
-+		.name	= "da8xx-dt",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_da8xx_dt_match,
-+	},
-+};
-+
-+static __init int da8xx_dt_init(void)
-+{
-+	return platform_driver_register(&da8xx_dt_driver);
-+}
-+
-+static __exit void da8xx_dt_exit(void)
-+{
-+	platform_driver_unregister(&da8xx_dt_driver);
-+}
-+
-+postcore_initcall(da8xx_dt_init);
-+module_exit(da8xx_dt_exit);
+ 
+ 	return indio_dev->num_channels;
+ }
+@@ -168,7 +206,7 @@ static int __devinit tiadc_probe(struct platform_device *pdev)
+ 
+ 	tiadc_step_config(adc_dev);
+ 
+-	err = tiadc_channel_init(indio_dev, adc_dev->channels);
++	err = tiadc_channel_init(indio_dev, adc_dev);
+ 	if (err < 0)
+ 		goto err_free_device;
+ 
 -- 
 1.7.12
