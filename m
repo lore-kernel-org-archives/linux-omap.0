@@ -1,42 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: Remove plat-omap/common.c
-Date: Thu, 1 Nov 2012 16:14:29 -0700
-Message-ID: <20121101231429.GO15766@atomide.com>
-References: <20121101224703.2103.95474.stgit@muffinssi.local>
- <20121101224828.2103.82950.stgit@muffinssi.local>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Thu, 1 Nov 2012 16:49:23 -0700
+Message-ID: <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
+References: <50924DA3.1060901@ti.com>
+	<F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
+	<20121101110418.GF410@arwen.pp.htv.fi>
+	<3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
+	<20121101124025.GA12489@arwen.pp.htv.fi>
+	<A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
+	<20121101131609.GC12489@arwen.pp.htv.fi>
+	<E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
+	<20121101135148.382aec00@pyramind.ukuu.org.uk>
+	<9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
+	<20121101220518.GE14982@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39912 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751770Ab2KAXOc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Nov 2012 19:14:32 -0400
-Content-Disposition: inline
-In-Reply-To: <20121101224828.2103.82950.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121101220518.GE14982@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [121101 15:50]:
-> This file has only omap_init_consistent_dma_size()
-> left that can be moved to plat-omap/dma.c.
+On Thu, Nov 1, 2012 at 3:05 PM, Felipe Balbi <balbi@ti.com> wrote:
+> HI,
+>
+> On Thu, Nov 01, 2012 at 03:59:50PM +0200, Pantelis Antoniou wrote:
+>> Hi Alan,
+>>
+>> On Nov 1, 2012, at 3:51 PM, Alan Cox wrote:
+>>
+>> >> What they want, and what every user wants, is I plug this board i=
+n, and
+>> >> the driver make sure everything is loaded and ready. No, the end =
+users
+>> >> don't want to see any of the implementation details of how the bi=
+tfile
+>> >> is transported; the driver can handle it.
+>> >
+>> > That doesn't necessarily make it a bus merely some kind of hotplug
+>> > enumeration of devices. That should all work properly both for dev=
+ices
+>> > and busses with spi and i=C2=B2c as the final bits needed for it g=
+ot fixed
+>> > some time ago.
+>> >
+>> > In an ideal world you don't want to be writing custom drivers for =
+stuff.
+>> > If your cape routes an i=C2=B2c serial device to the existing syst=
+em i=C2=B2c
+>> > busses then you want to just create an instance of any existing dr=
+iver on
+>> > the existing i=C2=B2c bus not create a whole new layer of goop.
+>> >
+>> > It does need to do the plumbing and resource management for the pl=
+umbing
+>> > but thats not the same as being a bus.
+>> >
+>> > Alan
+>>
+>>
+>> Fair enough. But there's no such thing a 'hotplug enumeration
+>> construct' in Linux yet, and a bus is the closest thing to it. It do=
+es
+>> take advantage of the nice way device code matches drivers and devic=
+es
+>> though.
+>>
+>> I'm afraid that having the I2C/SPI drivers doing the detection won't
+>> work.  The capes can have arbitrary I2C/SPI devices (and even more
+>> weird components).  There is no way to assure for example that the I=
+2C
+>> device responding to address 'foo' in cape A is the same I2C device
+>> responding to the same address in cape B.
+>
+> your ->detect() method should take care of that.
 
-And this one needs the following compile fix for omap1
-at least for Nokia 770. I'll fold it in.
+There isn't some magical serial number in I=C2=B2C devices that a
+->detect() method can read and the implementation of I=C2=B2C is somewh=
+at
+flexible. One devices read may be another devices write. A detect
+method that only performs reads could easily toggle a gpio that resets
+the board, rewrite and eeprom, or set the printer on fire. If you
+browse through various detect functions, yes, some of them key off an
+ID, but a lot of them just check various registers to see if certain
+bits are zero, or certain bits are one. A lot of I=C2=B2C devices I've
+dealt with have no good way of probing them, especially GPIO chips
+(you'll notice none of the I=C2=B2C GPIO expanders have detect function=
+s)
 
-Regards,
-
-Tony
-
-
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -35,6 +35,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
-+#include <linux/dma-mapping.h>
- 
- #include <plat-omap/dma-omap.h>
- 
+On top of all this the detect routine does not tell you if the alert
+pin is connected to some IRQ, or in the case of a GPIO expander, what
+those GPIOs are connected to, etc, etc.
