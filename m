@@ -1,1703 +1,764 @@
 From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: [RFC-v2 2/7] capebus: Add beaglebone board support
-Date: Thu,  1 Nov 2012 17:32:27 +0200
-Message-ID: <1351783952-11804-3-git-send-email-panto@antoniou-consulting.com>
+Subject: [RFC-v2 5/7] capebus: Beaglebone capebus DT update
+Date: Thu,  1 Nov 2012 17:32:30 +0200
+Message-ID: <1351783952-11804-6-git-send-email-panto@antoniou-consulting.com>
 References: <1351783952-11804-1-git-send-email-panto@antoniou-consulting.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from li42-95.members.linode.com ([209.123.162.95]:34585 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932988Ab2JaRjl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Oct 2012 13:39:41 -0400
 In-Reply-To: <1351783952-11804-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-Introduce beaglebone capebus board support.
-
-This patch creates the beaglebone's board cape bus controller.
-
-The board controller is responsible for the probing of capes
-at the well defined I2C address for capes, parsing the EEPROM
-info and matching them to specific cape drivers.
-
-On top of that, adapter DT enabled devices are created for
-am33xx devices that have no DT bindings yet, as well as generic
-devices that can be used as building blocks for the cape drivers.
+Update the common beaglebone's DTS with the required DT
+entries for all known working capes as of now.
 
 Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 ---
- drivers/capebus/boards/Kconfig                |   6 +
- drivers/capebus/boards/Makefile               |   3 +
- drivers/capebus/boards/capebus-bone-generic.c | 237 +++++++
- drivers/capebus/boards/capebus-bone-pdevs.c   | 328 +++++++++
- drivers/capebus/boards/capebus-bone.c         | 931 ++++++++++++++++++++++++++
- include/linux/capebus/capebus-bone.h          | 120 ++++
- 6 files changed, 1625 insertions(+)
- create mode 100644 drivers/capebus/boards/Kconfig
- create mode 100644 drivers/capebus/boards/Makefile
- create mode 100644 drivers/capebus/boards/capebus-bone-generic.c
- create mode 100644 drivers/capebus/boards/capebus-bone-pdevs.c
- create mode 100644 drivers/capebus/boards/capebus-bone.c
- create mode 100644 include/linux/capebus/capebus-bone.h
+ arch/arm/boot/dts/am335x-bone-common.dtsi | 689 ++++++++++++++++++++++++++++--
+ 1 file changed, 659 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/capebus/boards/Kconfig b/drivers/capebus/boards/Kconfig
-new file mode 100644
-index 0000000..76b0f94
---- /dev/null
-+++ b/drivers/capebus/boards/Kconfig
-@@ -0,0 +1,6 @@
-+config CAPEBUS_BONE_CONTROLLER
-+	bool "Beaglebone capebus board controller"
-+	depends on CAPEBUS && ARCH_OMAP2PLUS && OF && I2C
-+	default n
-+	help
-+	  "Select this to enable the beaglebone capebus board controller"
-diff --git a/drivers/capebus/boards/Makefile b/drivers/capebus/boards/Makefile
-new file mode 100644
-index 0000000..9048231
---- /dev/null
-+++ b/drivers/capebus/boards/Makefile
-@@ -0,0 +1,3 @@
-+obj-$(CONFIG_CAPEBUS_BONE_CONTROLLER)	+= capebus-bone.o \
-+					   capebus-bone-pdevs.o \
-+					   capebus-bone-generic.o \
-diff --git a/drivers/capebus/boards/capebus-bone-generic.c b/drivers/capebus/boards/capebus-bone-generic.c
-new file mode 100644
-index 0000000..b1b79eb
---- /dev/null
-+++ b/drivers/capebus/boards/capebus-bone-generic.c
-@@ -0,0 +1,237 @@
-+/*
-+ * TI Beaglebone capebus controller - Generic devices
-+ *
-+ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
-+ * Copyright (C) 2012 Texas Instruments Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 99240a5..46d5f27 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -51,6 +51,143 @@
+ 				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+ 			>;
+ 		};
++		i2c2_pins: pinmux_i2c2_pins {
++			pinctrl-single,pins = <
++				0x178 0x73 	/* uart1_ctsn.i2c2_sda, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
++				0x17c 0x73	/* uart1_rtsn.i2c2_scl, SLEWCTRL_SLOW | INPUT_PULLUP | MODE3 */
++			>;
++		};
 +
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/string.h>
-+#include <linux/timer.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/bitops.h>
-+#include <linux/err.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
-+#include <video/da8xx-fb.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/pinctrl/pinmux.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/atomic.h>
-+#include <linux/clk.h>
-+#include <asm/barrier.h>
-+#include <plat/clock.h>
-+#include <plat/omap_device.h>
-+#include <linux/clkdev.h>
-+#include <linux/input/ti_am335x_tsc.h>
-+#include <linux/platform_data/ti_am335x_adc.h>
-+#include <linux/mfd/ti_am335x_tscadc.h>
++		bone_dvi_cape_led_pins: pinmux_bone_dvi_cape_led_pins {
++			pinctrl-single,pins = <
++				0x48 0x07	/* gpmc_a2.gpio1_18, OUTPUT | MODE7 */
++				0x4c 0x07	/* gpmc_a3.gpio1_19, OUTPUT | MODE7 */
++			>;
++		};
 +
-+#include <linux/capebus/capebus-bone.h>
++		bone_dvi_cape_dvi_00A0_pins: pinmux_bone_dvi_cape_dvi_00A0_pins {
++			pinctrl-single,pins = <
++				0x1c 0x07	/* gpmc_ad7.gpio1_7, OUTPUT | MODE7 - DVIPDn */
 +
-+int bone_capebus_probe_prolog(struct cape_dev *dev,
-+		const struct cape_device_id *id)
-+{
-+	char boardbuf[33];
-+	char versionbuf[5];
-+	const char *board_name;
-+	const char *version;
-+	const struct of_device_id *match;
-+	struct pinctrl *pinctrl;
++				0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xac 0x08	/* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb0 0x08	/* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb4 0x08	/* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb8 0x08	/* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xbc 0x08	/* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc0 0x08	/* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc4 0x08	/* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc8 0x08	/* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xcc 0x08	/* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd0 0x08	/* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd4 0x08	/* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd8 0x08	/* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xdc 0x08	/* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xe0 0x00	/* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe4 0x00	/* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe8 0x00	/* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++			>;
++		};
 +
-+	/* get the board name (also matches the cntrlboard before checking) */
-+	board_name = bone_capebus_id_get_field(id, BONE_CAPEBUS_BOARD_NAME,
-+			boardbuf, sizeof(boardbuf));
-+	if (board_name == NULL)
-+		return -ENODEV;
++		bone_dvi_cape_dvi_00A1_pins: pinmux_bone_dvi_cape_dvi_00A1_pins {
++			pinctrl-single,pins = <
++				0x84 0x07	/* gpmc_csn2.gpio1_31, OUTPUT | MODE7 - DVIPDn */
 +
-+	/* match compatible? */
-+	match = capebus_of_match_device(dev, "board-name", board_name);
-+	if (match == NULL)
-+		return -ENODEV;
++				0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xac 0x08	/* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb0 0x08	/* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb4 0x08	/* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb8 0x08	/* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xbc 0x08	/* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc0 0x08	/* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc4 0x08	/* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc8 0x08	/* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xcc 0x08	/* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd0 0x08	/* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd4 0x08	/* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd8 0x08	/* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xdc 0x08	/* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xe0 0x00	/* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe4 0x00	/* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe8 0x00	/* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++			>;
++		};
 +
-+	/* get the board version */
-+	version = bone_capebus_id_get_field(id, BONE_CAPEBUS_VERSION,
-+			versionbuf, sizeof(versionbuf));
-+	if (version == NULL)
-+		return -ENODEV;
++		bone_geiger_cape_led_pins: pinmux_bone_geiger_cape_led_pins {
++			pinctrl-single,pins = <
++				0xe4 0x07	/* lcd_hsync.gpio2_23, OUTPUT | MODE7 */
++				0xec 0x07	/* lcd_ac_bias_en.gpio2_25, OUTPUT | MODE7 */
++			>;
++		};
 +
-+	pinctrl = devm_pinctrl_get_select_default(&dev->dev);
-+	if (IS_ERR(pinctrl))
-+		dev_warn(&dev->dev,
-+			"pins are not configured from the driver\n");
++		bone_geiger_cape_pins: pinmux_bone_geiger_cape_pins {
++			pinctrl-single,pins = <
++				0x48 0x06       /* gpmc_a2.ehrpwm1a, OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT */
++				/* 0x19c 0x34 */	/* mcasp0_ahclkr.eCAP2_in_PWM2_out, OMAP_MUX_MODE4 | INPUT_PULLUP */
++				0x19c 0x37 	/* mcasp0_ahclkr.gpio3_17, OMAP_MUX_MODE4 | INPUT_PULLUP */
++			>;
++		};
 +
-+	dev_info(&dev->dev, "%s: V=%s '%s'\n", board_name,
-+			version, match->compatible);
++		bone_lcd3_cape_led_00A0_pins: pinmux_bone_lcd3_cape_led_00A0_pins {
++			pinctrl-single,pins = <
++				0x48 0x07	/* gpmc_a2.gpio1_18, OUTPUT | MODE7 */
++				0x4c 0x07	/* gpmc_a3.gpio1_19, OUTPUT | MODE7 */
++			>;
++		};
 +
-+	return 0;
-+}
-+EXPORT_SYMBOL(bone_capebus_probe_prolog);
++		bone_lcd3_cape_lcd_pins: pinmux_bone_lcd3_cape_lcd_pins {
++			pinctrl-single,pins = <
++				0xa0 0x08	/* lcd_data0.lcd_data0, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa4 0x08	/* lcd_data1.lcd_data1, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xa8 0x08	/* lcd_data2.lcd_data2, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xac 0x08	/* lcd_data3.lcd_data3, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb0 0x08	/* lcd_data4.lcd_data4, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb4 0x08	/* lcd_data5.lcd_data5, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xb8 0x08	/* lcd_data6.lcd_data6, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xbc 0x08	/* lcd_data7.lcd_data7, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc0 0x08	/* lcd_data8.lcd_data8, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc4 0x08	/* lcd_data9.lcd_data9, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xc8 0x08	/* lcd_data10.lcd_data10, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xcc 0x08	/* lcd_data11.lcd_data11, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd0 0x08	/* lcd_data12.lcd_data12, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd4 0x08	/* lcd_data13.lcd_data13, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xd8 0x08	/* lcd_data14.lcd_data14, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xdc 0x08	/* lcd_data15.lcd_data15, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT | AM33XX_PULL_DISA */
++				0xe0 0x00	/* lcd_vsync.lcd_vsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe4 0x00	/* lcd_hsync.lcd_hsync, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xe8 0x00	/* lcd_pclk.lcd_pclk, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OMAP_MUX_MODE0 | AM33XX_PIN_OUTPUT */
++			>;
++		};
 +
-+static const struct bone_capebus_generic_device_data gendevs[] = {
-+	{
-+		.name	= "leds",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "gpio-leds", }, { },
-+			},
-+		.units	 = 0,	/* no limit */
-+	}, {
-+		.name	= "tps-bl",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "tps65217-backlight", }, { },
-+			},
-+		.units	 = 0,	/* no limit */
-+	}, {
-+		.name	= "keys",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "gpio-keys", }, { },
-+			},
-+		.units	 = 0,	/* no limit */
-+	}, {
-+		.name	= "tscadc",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "ti-tscadc-dt", }, { },
-+			},
-+		.units	 = 1,
-+	}, {
-+		.name	= "lcdc",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "da8xx-dt", }, { },
-+			},
-+		.units	 = 1,
-+	},{
-+		.name	= "i2c-dt",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "i2c-dt", }, { },
-+			},
-+		.units	 = 0,
-+	}, {
-+		.name	= "w1-gpio",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "w1-gpio", }, { },
-+			},
-+		.units	 = 0,
-+	}, {
-+		.name	= "pwm-backlight",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "pwm-backlight", }, { },
-+			},
-+		.units	 = 0,	/* no limit */
-+	}, {
-+		.name	= "spi-dt",
-+		.of_match = (const struct of_device_id []) {
-+				{ .compatible = "spi-dt", }, { },
-+			},
-+		.units	 = 0,	/* no limit */
-+	}
++		bone_lcd3_cape_keys_00A0_pins: pinmux_bone_lcd3_cape_keys_00A0_pins {
++			pinctrl-single,pins = <
++				0x040 0x2f	/* gpmc_a0.gpio1_16, INPUT | PULLDIS | MODE7 */
++				0x044 0x2f	/* gpmc_a1.gpio1_17, INPUT | PULLDIS | MODE7 */
++				0x1a4 0x2f	/* mcasp0_fsr.gpio3_19, INPUT | PULLDIS | MODE7 */
++				0x078 0x2f	/* gpmc_ben1.gpio1_28, INPUT | PULLDIS | MODE7 */
++				0x164 0x2f	/* ecap0_in_pwm0_out.gpio0_7, INPUT | PULLDIS | MODE7 */
++			>;
++		};
++
++		pwm_bl_pins: pinmux_pwm_bl_pins {
++			pinctrl-single,pins = <
++				0x4c 0x06	/* gpmc_a3.ehrpwm1b, OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT */
++				// 0x48 0x06       /* gpmc_a2.ehrpwm1a, OMAP_MUX_MODE6 | AM33XX_PIN_OUTPUT */
++			>;
++	       };
++
++		weather_cape_w1_pins: pinmux_weather_cape_w1_pins {
++			pinctrl-single,pins = <
++				0x0c 0x37       /* gpmc_ad3.gpio1_3, OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE7 - w1-gpio */
++			>;
++		};
+ 	};
+ 
+ 	ocp {
+@@ -92,16 +229,6 @@
+ 			};
+ 		};
+ 
+-		i2c1: i2c@44e0b000 {
+-			status = "okay";
+-			clock-frequency = <400000>;
+-
+-			tps: tps@24 {
+-				reg = <0x24>;
+-			};
+-
+-		};
+-
+ 		gpevt {
+ 			compatible = "gpevt";
+ 			pinctrl-names = "default";
+@@ -110,15 +237,117 @@
+ 			dma-names = "gpioevt";
+ 			gpio-evt = <&gpio3 2 0>;
+ 		};
++
++	};
++
++	capebus: capebus@0 {
++			compatible = "bone-capebus";
++
++			bone_dvi_cape: cape@0 {
++				compatible = "bone-generic-cape";
++			};
++
++			bone_geiger_cape: cape@1 {
++				compatible = "bone-geiger-cape";
++			};
++
++			bone_lcd3_cape: cape@2 {
++				compatible = "bone-generic-cape";
++			};
++
++			bone_lcd7_cape: cape@3 {
++				compatible = "bone-lcd7-cape";
++			};
++
++			bone_weather_cape: cape@4 {
++				compatible = "bone-generic-cape";
++			};
++
++			bone_adafruit_cape: cape@5 {
++				compatible = "bone-generic-cape";
++			};
++
++			/* overrides; no EEPROM (prototyping) */
++//			override@3 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <3>;
++//				board-name = "Geiger Cape";
++//				version = "00A0";
++//				manufacturer = "Geiger Inc";
++//				/* TODO: Add the rest */
++//			};
++
++//			override@2 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <2>;
++//				board-name = "Weather Cape";
++//				version = "00A0";
++//				manufacturer = "CCO Inc";
++//				/* TODO: Add the rest */
++//			};
++
++//			override@1 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <1>;
++//				board-name = "Adafruit 1.8 Cape";
++//				version = "00A0";
++//				manufacturer = "Adafruit";
++//				/* TODO: Add the rest */
++//			};
++
++//			override@0 {
++//				compatible = "bone-capebus-slot-override";
++//				slot = <0>;
++//				board-name = "BeagleBone Weather CAPE";
++//				version = "00A0";
++//				manufacturer = "Beagleboardtoys";
++//				/* TODO: Add the rest */
++//			};
+ 	};
+ 
+-	backlight {
+-			compatible	= "pwm-backlight"; 
+-			pwms = <&ehrpwm1 0 500000 0>;
+-			pwm-names = "st7735fb";
+-			brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
+-			default-brightness-level = <50>; /* index to the array above */ 
+-		};
 +};
 +
-+struct bone_capebus_generic_info *
-+bone_capebus_probe_generic(struct cape_dev *dev,
-+		const struct cape_device_id *id)
-+{
-+	struct bone_capebus_generic_info *info;
-+	char boardbuf[33];
-+	char versionbuf[5];
-+	const char *board_name;
-+	const char *version;
-+	struct platform_device *pdev;
-+	const struct bone_capebus_generic_device_data *dd;
-+	struct bone_capebus_generic_device_entry *de;
-+	int i;
++&i2c0 {
++	status = "okay";
++	clock-frequency = <400000>;
 +
-+	/* get the board name (also matches the cntrlboard before checking) */
-+	board_name = bone_capebus_id_get_field(id, BONE_CAPEBUS_BOARD_NAME,
-+			boardbuf, sizeof(boardbuf));
-+	/* get the board version */
-+	version = bone_capebus_id_get_field(id, BONE_CAPEBUS_VERSION,
-+			versionbuf, sizeof(versionbuf));
++	tps: tps@24 {
++		reg = <0x24>;
++	};
 +
-+	/* should never happen, but it doesn't hurt to play it safe */
-+	if (board_name == NULL || version == NULL)
-+		return ERR_PTR(-ENODEV);
-+
-+	info = devm_kzalloc(&dev->dev, sizeof(*info), GFP_KERNEL);
-+	if (info == NULL) {
-+		dev_err(&dev->dev, "Failed to allocate info\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+	info->dev = dev;
-+	INIT_LIST_HEAD(&info->pdev_list);
-+
-+	/* iterate over the supported devices */
-+	for (i = 0, dd = gendevs; i < ARRAY_SIZE(gendevs); i++, dd++) {
-+
-+		pdev = capebus_of_platform_compatible_device_create(dev,
-+			dd->of_match, dd->name, "version", version);
-+
-+		/* node not found (mostly harmless) */
-+		if (IS_ERR(pdev) && PTR_ERR(pdev) == -ENXIO) {
-+			/* TODO: deal with required nodes */
-+			continue;
-+		}
-+
-+		/* failed to create due to an error; fatal */
-+		if (IS_ERR_OR_NULL(pdev)) {
-+			dev_err(&dev->dev, "failed to create device %s\n",
-+					dd->name);
-+			goto err_fail;
-+		}
-+
-+		de = devm_kzalloc(&dev->dev, sizeof(*de), GFP_KERNEL);
-+		if (de == NULL) {
-+			dev_err(&dev->dev, "failed to allocate entry for %s\n",
-+					dd->name);
-+			goto err_fail;
-+		}
-+
-+		/* add it to the list */
-+		de->data = dd;
-+		de->pdev = pdev;
-+		list_add_tail(&de->node, &info->pdev_list);
-+	}
-+
-+	return info;
-+
-+err_fail:
-+	bone_capebus_remove_generic(info);
-+	return NULL;
-+}
-+EXPORT_SYMBOL(bone_capebus_probe_generic);
-+
-+void bone_capebus_remove_generic(struct bone_capebus_generic_info *info)
-+{
-+	struct list_head *lh, *lhn;
-+	struct bone_capebus_generic_device_entry *de;
-+
-+	if (info == NULL || info->dev == NULL)
-+		return;
-+
-+	list_for_each_safe(lh, lhn, &info->pdev_list) {
-+		de = list_entry(lh, struct bone_capebus_generic_device_entry,
-+				node);
-+		list_del(lh);
-+		platform_device_unregister(de->pdev);
-+		devm_kfree(&info->dev->dev, de);
-+	}
-+	devm_kfree(&info->dev->dev, info);
-+}
-+EXPORT_SYMBOL(bone_capebus_remove_generic);
-diff --git a/drivers/capebus/boards/capebus-bone-pdevs.c b/drivers/capebus/boards/capebus-bone-pdevs.c
-new file mode 100644
-index 0000000..f32134a
---- /dev/null
-+++ b/drivers/capebus/boards/capebus-bone-pdevs.c
-@@ -0,0 +1,328 @@
-+/*
-+ * TI Beaglebone capebus controller - Platform adapters
-+ *
-+ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
-+ * Copyright (C) 2012 Texas Instruments Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/string.h>
-+#include <linux/timer.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/bitops.h>
-+#include <linux/err.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
-+#include <linux/pinctrl/pinctrl.h>
-+#include <linux/pinctrl/pinmux.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/atomic.h>
-+#include <linux/clk.h>
-+#include <asm/barrier.h>
-+#include <linux/i2c.h>
-+#include <linux/of_i2c.h>
-+#include <linux/spi/spi.h>
-+
-+#include <linux/capebus/capebus-bone.h>
-+
-+struct i2c_priv {
-+	struct i2c_adapter *i2c_adapter;
-+	phandle parent_handle;
++	baseboard_eeprom: baseboard_eeprom@50 {
++		compatible = "at,24c256";
++		reg = <0x50>;
++	};
 +};
 +
-+static const struct of_device_id of_i2c_dt_match[] = {
-+	{ .compatible = "i2c-dt", },
-+	{},
++&i2c2 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
++
++	clock-frequency = <100000>;
++
++	/* OK, I know these are cape but for now it will do */
++	cape_eeprom_0: cape_eeprom_0@54 {
++		compatible = "at,24c256";
++		reg = <0x54>;
++	};
++
++	cape_eeprom_1: cape_eeprom_1@55 {
++		compatible = "at,24c256";
++		reg = <0x55>;
++	};
++
++	cape_eeprom_2: cape_eeprom_2@56 {
++		compatible = "at,24c256";
++		reg = <0x56>;
++	};
++
++	cape_eeprom_3: cape_eeprom_3@57 {
++		compatible = "at,24c256";
++		reg = <0x57>;
++	};
+ };
+ 
+ /include/ "tps65217.dtsi"
+@@ -165,6 +394,7 @@
+ 			regulator-always-on;
+ 		};
+ 	};
++
+ };
+ 
+ &mmc1 {
+@@ -172,21 +402,8 @@
+ };
+ 
+ &spi1 {
+-	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&spi1_pins>;
+-
+-	lcd@0 {
+-		compatible = "adafruit,tft-lcd-1.8-green", "sitronix,st7735";
+-		spi-max-frequency = <8000000>;
+-		reg = <0>;
+-		spi-cpol;
+-		spi-cpha;
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&lcd_pins>;
+-		st7735-rst = <&gpio4 19 0>;
+-		st7735-dc = <&gpio4 21 0>;
+-	};
+ };
+ 
+ &edma {
+@@ -200,3 +417,415 @@
+ &cpsw_emac1 {
+ 	phy_id = "4a101000.mdio:01";
+ };
++
++&ehrpwm1 {
++	status = "okay";
 +};
 +
-+static int __devinit i2c_dt_probe(struct platform_device *pdev)
-+{
-+	struct i2c_priv *priv = NULL;
-+	int ret = -EINVAL;
-+	struct device_node *adap_node;
-+	u32 val;
-+
-+	if (pdev->dev.of_node == NULL) {
-+		dev_err(&pdev->dev, "Only support OF case\n");
-+		return -ENOMEM;
-+	}
-+
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (priv == NULL) {
-+		dev_err(&pdev->dev, "Failed to allocate priv\n");
-+		return -ENOMEM;
-+	}
-+
-+	ret = of_property_read_u32(pdev->dev.of_node, "parent", &val);
-+	if (ret != 0) {
-+		dev_err(&pdev->dev, "Failed to find parent property\n");
-+		goto err_prop_fail;
-+	}
-+	priv->parent_handle = val;
-+
-+	adap_node = of_find_node_by_phandle(priv->parent_handle);
-+	if (adap_node == NULL) {
-+		dev_err(&pdev->dev, "Failed to find i2c adapter node\n");
-+		ret = -EINVAL;
-+		goto err_node_fail;
-+	}
-+
-+	ret = capebus_of_platform_device_enable(adap_node);
-+	if (ret != 0) {
-+		dev_info(&pdev->dev, "I2C adapter platform device failed "
-+				"to enable\n");
-+		goto err_enable_fail;
-+	}
-+
-+	priv->i2c_adapter = of_find_i2c_adapter_by_node(adap_node);
-+	if (priv->i2c_adapter == NULL) {
-+		dev_err(&pdev->dev, "Failed to find i2c adapter node\n");
-+		ret = -EINVAL;
-+		goto err_adap_fail;
-+	}
-+
-+	of_i2c_register_node_devices(priv->i2c_adapter, pdev->dev.of_node);
-+
-+	of_node_put(adap_node);
-+
-+	dev_info(&pdev->dev, "Registered bone I2C OK.\n");
-+
-+	platform_set_drvdata(pdev, priv);
-+
-+	return 0;
-+err_adap_fail:
-+	of_node_put(adap_node);
-+err_enable_fail:
-+	/* nothing */
-+err_node_fail:
-+	/* nothing */
-+err_prop_fail:
-+	devm_kfree(&pdev->dev, priv);
-+	return ret;
-+}
-+
-+static int __devexit i2c_dt_remove(struct platform_device *pdev)
-+{
-+	return -EINVAL;	/* not supporting removal yet */
-+}
-+
-+static struct platform_driver i2c_dt_driver = {
-+	.probe		= i2c_dt_probe,
-+	.remove		= __devexit_p(i2c_dt_remove),
-+	.driver		= {
-+		.name	= "i2c-dt",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_i2c_dt_match,
-+	},
++&capebus {
++	slots = <&cape_eeprom_0 &cape_eeprom_1 &cape_eeprom_2 &cape_eeprom_3>;
 +};
 +
-+struct spi_priv {
-+	struct spi_master *master;
-+	phandle parent_handle;
++&bone_dvi_cape {
++	board-name = "BeagleBone DVI-D CAPE";
++
++	/* hacky, since this is not a proper DT platform device */
++	/* but until we have DT bindings... */
++	version@00A0 {
++		version = "00A0";
++		dvi {
++			compatible = "da8xx-dt";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_dvi_cape_dvi_00A0_pins>;
++			ti,hwmods = "lcdc";
++
++			disp-pll = <560000000>;
++			panel-type = "1024x768@60";
++			powerdn-gpio = <&gpio2 7 0>;
++		};
++	};
++
++	version@00A1 {
++		version = "00A1", "01";
++		dvi {
++			compatible = "da8xx-dt";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_dvi_cape_dvi_00A1_pins>;
++			ti,hwmods = "lcdc";
++
++			disp-pll = <560000000>;
++			panel-type = "1024x768@60";
++			powerdn-gpio = <&gpio2 31 0>;
++		};
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_dvi_cape_led_pins>;
++
++		dvi-led0 {
++			label = "dvi:green:usr0";
++			gpios = <&gpio2 18 0>;
++			linux,default-trigger = "heartbeat";
++			default-state = "off";
++		};
++
++		dvi-led1 {
++			label = "dvi:green:usr1";
++			gpios = <&gpio2 19 0>;
++			linux,default-trigger = "mmc0";
++			default-state = "off";
++		};
++	};
 +};
 +
-+static const struct of_device_id of_spi_dt_match[] = {
-+	{ .compatible = "spi-dt", },
-+	{},
++&bone_geiger_cape {
++	board-name = "Geiger Cape";
++
++	/* note that these can't be versioned... */
++	pinctrl-names = "default";
++	pinctrl-0 = <&bone_geiger_cape_pins>;
++
++	pwms = <&ehrpwm1 0 500000 0>;
++	pwm-names = "bone-geiger-cape";
++
++	pwm-frequency  = <20000>;	/* 20KHz */
++	pwm-duty-cycle = <60>;		/* 60% */
++
++	event-blink-delay = <30>;	/* 30ms */
++
++	gpios = <&gpio4 17 0>;		/* pulse */
++
++	vsense-name = "AIN5";		/* analog vsense */
++	vsense-scale = <37325>;		/* scaling */
++
++	tscadc {
++		compatible = "ti-tscadc-dt";
++
++		ti,hwmods = "adc_tsc";
++
++		adc-channels = <8>;
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_geiger_cape_led_pins>;
++
++		geiger-led0 {
++			label = "geiger:green:usr0";
++			gpios = <&gpio3 23 0>;
++			linux,default-trigger = "geiger-run";
++			default-state = "off";
++		};
++
++		geiger-led1 {
++			label = "geiger:red:usr1";
++			gpios = <&gpio3 25 0>;
++			linux,default-trigger = "geiger-event";
++			default-state = "off";
++		};
++	};
 +};
 +
-+static int of_dev_node_match(struct device *dev, void *data)
-+{
-+        return dev->of_node == data;
-+}
++&bone_lcd3_cape {
++	board-name = "BeagleBone LCD3 CAPE";
 +
-+/* must call put_device() when done with returned i2c_adapter device */
-+static struct spi_master *of_find_spi_master_by_node(struct device_node *node)
-+{
-+	struct device *dev;
-+	struct spi_master *master;
++	/* hacky, since this is not a proper DT platform device */
++	/* but until we have DT bindings... */
++	lcd3 {
++		compatible = "da8xx-dt";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_lcd3_cape_lcd_pins>;
 +
-+	dev = class_find_device(&spi_master_class, NULL, node,
-+					 of_dev_node_match);
-+	if (!dev)
-+		return NULL;
++		ti,hwmods = "lcdc";
 +
-+	master = container_of(dev, struct spi_master, dev);
++		disp-pll = <16000000>;
++		panel-type = "CDTech_S035Q01";
++	};
 +
-+	/* TODO: No checks what-so-ever... be careful. */
-+	return master;
-+}
++	/* same thing as above */
++	tscadc {
++		compatible = "ti-tscadc-dt";
 +
-+static int __devinit spi_dt_probe(struct platform_device *pdev)
-+{
-+	struct spi_priv *priv = NULL;
-+	int ret = -EINVAL;
-+	struct device_node *master_node;
-+	u32 val;
++		ti,hwmods = "adc_tsc";
 +
-+	if (pdev->dev.of_node == NULL) {
-+		dev_err(&pdev->dev, "Only support OF case\n");
-+		return -ENOMEM;
-+	}
++		tsc-wires = <4>;
++		tsc-x-plate-resistance = <200>;
++		tsc-steps = <6>;
 +
-+	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
-+	if (priv == NULL) {
-+		dev_err(&pdev->dev, "Failed to allocate priv\n");
-+		return -ENOMEM;
-+	}
++		adc-channels = <4>;
++	};
 +
-+	ret = of_property_read_u32(pdev->dev.of_node, "parent", &val);
-+	if (ret != 0) {
-+		dev_err(&pdev->dev, "Failed to find parent property\n");
-+		goto err_prop_fail;
-+	}
-+	priv->parent_handle = val;
++	version@00A0 {
++		version = "00A0";
 +
-+	master_node = of_find_node_by_phandle(priv->parent_handle);
-+	if (master_node == NULL) {
-+		dev_err(&pdev->dev, "Failed to find spi bus master node\n");
-+		ret = -EINVAL;
-+		goto err_node_fail;
-+	}
++		backlight {
++			compatible = "tps65217-backlight";
++			isel = <1>;
++			fdim = <200>;
 +
-+	ret = capebus_of_platform_device_enable(master_node);
-+	if (ret != 0) {
-+		dev_info(&pdev->dev, "SPI platform device failed to enable\n");
-+		goto err_enable_fail;
-+	}
++			tps = <&tps>;	/* link to the tps */
++			brightness = <100>;
++		};
 +
-+	priv->master = of_find_spi_master_by_node(master_node);
-+	if (priv->master == NULL) {
-+		dev_err(&pdev->dev, "Failed to find bus master node\n");
-+		ret = -EINVAL;
-+		goto err_master_fail;
-+	}
++		gpio-leds {
++			compatible = "gpio-leds";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_lcd3_cape_led_00A0_pins>;
 +
-+	of_register_node_spi_devices(priv->master, pdev->dev.of_node);
++			lcd3-led0 {
++				label = "lcd3:green:usr0";
++				gpios = <&gpio2 18 0>;
++				linux,default-trigger = "heartbeat";
++				default-state = "off";
++			};
 +
-+	of_node_put(master_node);
++			lcd3-led1 {
++				label = "lcd3:green:usr1";
++				gpios = <&gpio2 19 0>;
++				linux,default-trigger = "cpu0";
++				default-state = "off";
++			};
++		};
 +
-+	dev_info(&pdev->dev, "Registered bone SPI OK.\n");
++		gpio_keys {
++			compatible = "gpio-keys";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_lcd3_cape_keys_00A0_pins>;
 +
-+	platform_set_drvdata(pdev, priv);
++			#address-cells = <1>;
++			#size-cells = <0>;
 +
-+	return 0;
-+err_master_fail:
-+	of_node_put(master_node);
-+err_enable_fail:
-+	/* nothing */
-+err_node_fail:
-+	/* nothing */
-+err_prop_fail:
-+	devm_kfree(&pdev->dev, priv);
-+	return ret;
-+}
-+
-+static int __devexit spi_dt_remove(struct platform_device *pdev)
-+{
-+	return -EINVAL;	/* not supporting removal yet */
-+}
-+
-+static struct platform_driver spi_dt_driver = {
-+	.probe		= spi_dt_probe,
-+	.remove		= __devexit_p(spi_dt_remove),
-+	.driver		= {
-+		.name	= "spi-dt",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_spi_dt_match,
-+	},
++			button@1 {
++				debounce_interval = <50>;
++				linux,code = <105>;
++				label = "left";
++				gpios = <&gpio2 16 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@2 {
++				debounce_interval = <50>;
++				linux,code = <106>;
++				label = "right";
++				gpios = <&gpio2 17 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@3 {
++				debounce_interval = <50>;
++				linux,code = <103>;
++				label = "up";
++				gpios = <&gpio4 19 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@4 {
++				debounce_interval = <50>;
++				linux,code = <108>;
++				label = "down";
++				gpios = <&gpio2 28 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@5 {
++				debounce_interval = <50>;
++				linux,code = <28>;
++				label = "enter";
++				gpios = <&gpio1 7 0x0>;
++				gpio-key,wakeup;
++			};
++		};
++	};
 +};
 +
-+/*
-+ *
-+ */
-+struct bone_capebus_pdev_driver {
-+	struct platform_driver *driver;
-+	unsigned int registered : 1;
-+	/* more? */
++&bone_lcd7_cape {
++	board-name = "BeagleBone LCD7 CAPE";
++
++	/* hacky, since this is not a proper DT platform device */
++	/* but until we have DT bindings... */
++	lcd7 {
++		compatible = "da8xx-dt";
++		pinctrl-names = "default";
++		pinctrl-0 = <&bone_lcd3_cape_lcd_pins>;
++
++		ti,hwmods = "lcdc";
++
++		disp-pll = <60000000>;
++		panel-type = "TFC_S9700RTWV35TR_01B";
++	};
++
++	/* same thing as above */
++	tscadc {
++		compatible = "ti-tscadc-dt";
++
++		ti,hwmods = "adc_tsc";
++
++		tsc-wires = <4>;
++		tsc-x-plate-resistance = <200>;
++		tsc-steps = <6>;
++
++		adc-channels = <4>;
++	};
++
++	version@00A0 {
++		version = "00A0";
++
++		backlight {
++			compatible = "tps65217-backlight";
++			isel = <1>;
++			fdim = <200>;
++
++			tps = <&tps>;	/* link to the tps */
++			brightness = <100>;
++		};
++
++		gpio-leds {
++			compatible = "gpio-leds";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_lcd3_cape_led_00A0_pins>;
++
++			lcd3-led0 {
++				label = "lcd3:green:usr0";
++				gpios = <&gpio2 18 0>;
++				linux,default-trigger = "heartbeat";
++				default-state = "off";
++			};
++
++			lcd3-led1 {
++				label = "lcd3:green:usr1";
++				gpios = <&gpio2 19 0>;
++				linux,default-trigger = "cpu0";
++				default-state = "off";
++			};
++		};
++
++		gpio_keys {
++			compatible = "gpio-keys";
++			pinctrl-names = "default";
++			pinctrl-0 = <&bone_lcd3_cape_keys_00A0_pins>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			button@1 {
++				debounce_interval = <50>;
++				linux,code = <105>;
++				label = "left";
++				gpios = <&gpio2 16 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@2 {
++				debounce_interval = <50>;
++				linux,code = <106>;
++				label = "right";
++				gpios = <&gpio2 17 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@3 {
++				debounce_interval = <50>;
++				linux,code = <103>;
++				label = "up";
++				gpios = <&gpio4 19 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@4 {
++				debounce_interval = <50>;
++				linux,code = <108>;
++				label = "down";
++				gpios = <&gpio2 28 0x0>;
++				gpio-key,wakeup;
++				autorepeat;
++			};
++			button@5 {
++				debounce_interval = <50>;
++				linux,code = <28>;
++				label = "enter";
++				gpios = <&gpio1 7 0x0>;
++				gpio-key,wakeup;
++			};
++		};
++	};
 +};
 +
-+static struct bone_capebus_pdev_driver pdev_drivers[] = {
-+	{
-+		.driver		= &i2c_dt_driver,
-+	},
-+	{
-+		.driver		= &spi_dt_driver,
-+	},
-+	{
-+		.driver		= NULL,
-+	}
++&bone_weather_cape {
++	board-name = "BeagleBone Weather CAPE";
++
++	i2c2-devices {
++		compatible = "i2c-dt";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		parent = <&i2c2>;
++
++		/* Ambient light sensor */
++		tsl2550@39 {
++			compatible = "tsl,tsl2550";
++			reg = <0x39>;
++		};
++
++		/* Humidity Sensor */
++		sht21@40 {
++			compatible = "sensiron,sht21";
++			reg = <0x40>;
++		};
++
++		/* Barometric pressure sensor */
++		bmp085@77 {
++			compatible = "bosch,bmp085";
++			reg = <0x77>;
++		};
++	};
++
++	onewire@0 {
++		compatible	= "w1-gpio";
++		pinctrl-names	= "default";
++		pinctrl-0	= <&weather_cape_w1_pins>;
++		status		= "okay";
++
++		gpios = <&gpio2 3 0>;
++	};
++
 +};
 +
-+int bone_capebus_register_pdev_adapters(struct bone_capebus_bus *bus)
-+{
-+	struct bone_capebus_pdev_driver *drvp;
-+	int err;
++&bone_adafruit_cape {
++	board-name = "Adafruit 1.8 Cape";
 +
-+	/* first check if we do it twice */
-+	for (drvp = pdev_drivers; drvp->driver != NULL; drvp++)
-+		if (drvp->registered)
-+			return -EBUSY;
++	backlight {
++		compatible	= "pwm-backlight";
++		pinctrl-names	= "default";
++		pinctrl-0	= <&pwm_bl_pins>;
 +
-+	for (drvp = pdev_drivers; drvp->driver != NULL; drvp++) {
++		pwms = <&ehrpwm1 1 500000 0>;
++		pwm-names = "st7735fb";
++		brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
++		default-brightness-level = <50>; /* index to the array above */
++	};
 +
-+		err = platform_driver_register(drvp->driver);
-+		if (err != 0)
-+			goto err_out;
++	spi1-devices {
++		compatible = "spi-dt";
 +
-+		drvp->registered = 1;
++		#address-cells = <1>;
++		#size-cells = <0>;
 +
-+		dev_info(bus->dev, "Registered %s "
-+				"platform driver\n", drvp->driver->driver.name);
-+	}
++		parent = <&spi1>;
 +
-+	return 0;
++		lcd@0 {
++			compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
++			spi-max-frequency = <8000000>;
++			reg = <0>;
++			spi-cpol;
++			spi-cpha;
++			pinctrl-names = "default";
++			pinctrl-0 = <&lcd_pins>;
++			st7735-rst = <&gpio4 19 0>;
++			st7735-dc = <&gpio4 21 0>;
++		};
 +
-+err_out:
-+	dev_err(bus->dev, "Failed to register %s "
-+			"platform driver\n", drvp->driver->driver.name);
-+
-+	/* unregister */
-+	while (--drvp >= pdev_drivers) {
-+
-+		if (!drvp->registered)
-+			continue;
-+
-+		platform_driver_unregister(drvp->driver);
-+	}
-+
-+	return err;
-+}
-+
-+void bone_capebus_unregister_pdev_adapters(struct bone_capebus_bus *bus)
-+{
-+	struct bone_capebus_pdev_driver *drvp;
-+
-+	/* unregister */
-+	drvp = &pdev_drivers[ARRAY_SIZE(pdev_drivers)];
-+	while (--drvp >= pdev_drivers) {
-+
-+		if (drvp->driver == NULL)	/* skip terminator */
-+			continue;
-+
-+		if (!drvp->registered)
-+			continue;
-+
-+		platform_driver_unregister(drvp->driver);
-+
-+		drvp->registered = 0;
-+	}
-+}
-diff --git a/drivers/capebus/boards/capebus-bone.c b/drivers/capebus/boards/capebus-bone.c
-new file mode 100644
-index 0000000..33a6bde
---- /dev/null
-+++ b/drivers/capebus/boards/capebus-bone.c
-@@ -0,0 +1,931 @@
-+/*
-+ * TI Beaglebone capebus controller
-+ *
-+ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
-+ * Copyright (C) 2012 Texas Instruments Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/err.h>
-+#include <linux/interrupt.h>
-+#include <linux/completion.h>
-+#include <linux/platform_device.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+#include <linux/of.h>
-+#include <linux/of_i2c.h>
-+#include <linux/of_device.h>
-+#include <linux/slab.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
-+#include <linux/err.h>
-+#include <linux/ctype.h>
-+
-+#include <linux/capebus.h>
-+#include <linux/capebus/capebus-bone.h>
-+
-+/* what to fill in to the cntrlboard field of the id */
-+#define BONE_CAPEBUS_CNTRLBOARD		"beaglebone"
-+
-+/* various EEPROM definition for the bone */
-+struct bone_capebus_eeprom_field {
-+	const char 	*name;
-+	int 		start;
-+	int		size;
-+	unsigned int	ascii : 1;
-+	unsigned int	strip_trailing_dots : 1;
-+	const char	*override;
++	};
 +};
-+
-+static const struct bone_capebus_eeprom_field eeprom_fields[] = {
-+	[BONE_CAPEBUS_HEADER] = {
-+		.name		= "header",
-+		.start		= 0,
-+		.size		= 4,
-+		.ascii		= 0,
-+		.override	= "\xaa\x55\x33\xee",	/* AA 55 33 EE */
-+	},
-+	[BONE_CAPEBUS_EEPROM_REV] = {
-+		.name		= "eeprom-format-revision",
-+		.start		= 4,
-+		.size		= 2,
-+		.ascii		= 1,
-+		.override	= "A0",
-+	},
-+	[BONE_CAPEBUS_BOARD_NAME] = {
-+		.name		= "board-name",
-+		.start		= 6,
-+		.size		= 32,
-+		.ascii		= 1,
-+		.strip_trailing_dots = 1,
-+		.override	= "Override Board Name",
-+	},
-+	[BONE_CAPEBUS_VERSION] = {
-+		.name		= "version",
-+		.start		= 38,
-+		.size		= 4,
-+		.ascii		= 1,
-+		.override	= "00A0",
-+	},
-+	[BONE_CAPEBUS_MANUFACTURER] = {
-+		.name		= "manufacturer",
-+		.start		= 42,
-+		.size		= 16,
-+		.ascii		= 1,
-+		.strip_trailing_dots = 1,
-+		.override	= "Override Manuf",
-+	},
-+	[BONE_CAPEBUS_PART_NUMBER] = {
-+		.name		= "part-number",
-+		.start		= 58,
-+		.size		= 16,
-+		.ascii		= 1,
-+		.override	= "Override Part#",
-+	},
-+	[BONE_CAPEBUS_NUMBER_OF_PINS] = {
-+		.name		= "number-of-pins",
-+		.start		= 74,
-+		.size		= 2,
-+		.ascii		= 0,
-+		.override	= NULL,
-+	},
-+	[BONE_CAPEBUS_SERIAL_NUMBER] = {
-+		.name		= "serial-number",
-+		.start		= 76,
-+		.size		= 12,
-+		.ascii		= 1,
-+		.override	= "0000000000",
-+	},
-+	[BONE_CAPEBUS_PIN_USAGE] = {
-+		.name		= "pin-usage",
-+		.start		= 88,
-+		.size		= 140,
-+		.ascii		= 0,
-+		.override	= NULL,
-+	},
-+	[BONE_CAPEBUS_VDD_3V3EXP] = {
-+		.name		= "vdd-3v3exp",
-+		.start		= 228,
-+		.size		= 2,
-+		.ascii		= 0,
-+		.override	= NULL,
-+	},
-+	[BONE_CAPEBUS_VDD_5V] = {
-+		.name		= "vdd-5v",
-+		.start		= 230,
-+		.size		= 2,
-+		.ascii		= 0,
-+		.override	= NULL,
-+	},
-+	[BONE_CAPEBUS_SYS_5V] = {
-+		.name		= "sys-5v",
-+		.start		= 232,
-+		.size		= 2,
-+		.ascii		= 0,
-+		.override	= NULL,
-+	},
-+	[BONE_CAPEBUS_DC_SUPPLIED] = {
-+		.name		= "dc-supplied",
-+		.start		= 234,
-+		.size		= 2,
-+		.ascii		= 0,
-+		.override	= NULL,
-+	},
-+};
-+
-+char *bone_capebus_id_get_field(const struct cape_device_id *id,
-+		int field, char *buf, int bufsz)
-+{
-+	const struct bone_capebus_eeprom_field *ee_field;
-+	int len;
-+
-+	/* make sure the ID is valid for the bone */
-+	if (bone_capebus_match_cntrlboard(id) != 0)
-+		return NULL;
-+
-+	if ((unsigned int)field >= ARRAY_SIZE(eeprom_fields))
-+		return NULL;
-+
-+	ee_field = &eeprom_fields[field];
-+
-+	/* enough space? */
-+	if (bufsz < ee_field->size + ee_field->ascii)
-+		return NULL;
-+
-+	memcpy(buf, (char *)id->data + ee_field->start, ee_field->size);
-+
-+	/* terminate ascii field */
-+	if (ee_field->ascii)
-+		buf[ee_field->size] = '\0';;
-+
-+	if (ee_field->strip_trailing_dots) {
-+		len = strlen(buf);
-+		while (len > 1 && buf[len - 1] == '.')
-+			buf[--len] = '\0';
-+	}
-+
-+	return buf;
-+}
-+EXPORT_SYMBOL(bone_capebus_id_get_field);
-+
-+int bone_capebus_match_cntrlboard(const struct cape_device_id *id)
-+{
-+	if (strcmp(id->cntrlboard, BONE_CAPEBUS_CNTRLBOARD) != 0)
-+		return -ENODEV;
-+	return 0;
-+}
-+EXPORT_SYMBOL(bone_capebus_match_cntrlboard);
-+
-+int bone_capebus_match_board(const struct cape_device_id *id,
-+		const char **board_names)
-+{
-+	char rname[33];
-+	const char *s;
-+	int ret;
-+	int i;
-+
-+	/* be safe; check for matching cntrlboard */
-+	ret = bone_capebus_match_cntrlboard(id);
-+	if (ret != 0)
-+		return ret;
-+
-+	s = bone_capebus_id_get_field(id, BONE_CAPEBUS_BOARD_NAME,
-+			rname, sizeof(rname));
-+	if (s == NULL)
-+		return -EINVAL;
-+
-+	i = 0;
-+	while (*board_names) {
-+		if (strcmp(rname, *board_names) == 0)
-+			return i;
-+		board_names++;
-+	}
-+
-+	return -1;
-+}
-+EXPORT_SYMBOL(bone_capebus_match_board);
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id bone_capebus_of_match[] = {
-+	{
-+		.compatible = "bone-capebus",
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, bone_capebus_of_match);
-+
-+static const struct of_device_id slot_override_of_match[] = {
-+	{
-+		.compatible = "bone-capebus-slot-override",
-+	},
-+	{ },
-+};
-+
-+#endif
-+
-+const struct cape_device_id *bone_capebus_get_dev_id(struct cape_slot *slot)
-+{
-+	struct cape_bus *bus = slot->bus;
-+	struct bone_capebus_slot *bone_slot = to_bone_capebus_slot(slot);
-+	struct i2c_client *client = bone_slot->client;
-+	struct cape_device_id *id;
-+	const u8 *p;
-+	int r;
-+	char board_name[32+1];
-+	char version[4+1];
-+	char manufacturer[16+1];
-+	char part_number[16+1];
-+
-+	id = &bone_slot->id;
-+
-+	/* need to read EEPROM? */
-+	if (!bone_slot->eeprom_probed) {
-+
-+		bone_slot->eeprom_probed = 1;
-+
-+		if (!bone_slot->eeprom_override) {
-+			r = i2c_memory_read(bone_slot->client,
-+				bone_slot->eeprom_signature, 0,
-+				sizeof(bone_slot->eeprom_signature));
-+			if (r != sizeof(bone_slot->eeprom_signature)) {
-+				dev_err(&bus->dev,
-+					"bone: Failed to read EEPROM at "
-+					"slot %d (addr 0x%02x)\n",
-+					slot->slotno, client->addr & 0x7f);
-+				bone_slot->eeprom_failed = 1;
-+				return NULL;
-+			}
-+		} else
-+			dev_info(&bus->dev,
-+				"bone: Using override eeprom data at slot %d\n",
-+				slot->slotno);
-+
-+		p = bone_slot->eeprom_signature;
-+		if (BONE_CAPEBUS_MAKE_HEADER(p) != BONE_CAPEBUS_HEADER_VALID) {
-+			dev_err(&bus->dev, "bone: Invalid EEPROM signature "
-+				"'%08x' at slot %d (addr 0x%02x)\n",
-+				BONE_CAPEBUS_MAKE_HEADER(p),
-+				slot->slotno, client->addr & 0x7f);
-+			bone_slot->eeprom_failed = 1;
-+			return NULL;
-+		}
-+
-+		bone_slot->id.cntrlboard = BONE_CAPEBUS_CNTRLBOARD;
-+		bone_slot->id.len = sizeof(bone_slot->eeprom_signature);
-+		bone_slot->id.data = bone_slot->eeprom_signature;
-+
-+		bone_capebus_id_get_field(id, BONE_CAPEBUS_BOARD_NAME,
-+					board_name, sizeof(board_name));
-+		bone_capebus_id_get_field(id, BONE_CAPEBUS_VERSION,
-+					version, sizeof(version));
-+		bone_capebus_id_get_field(id, BONE_CAPEBUS_MANUFACTURER,
-+					manufacturer, sizeof(manufacturer));
-+		bone_capebus_id_get_field(id, BONE_CAPEBUS_PART_NUMBER,
-+					part_number, sizeof(part_number));
-+
-+		/* board_name,version,manufacturer,part_number */
-+		snprintf(bone_slot->text_id, sizeof(bone_slot->text_id) - 1,
-+				"%s,%s,%s,%s", board_name, version,
-+				manufacturer, part_number);
-+
-+		/* terminate always */
-+		bone_slot->text_id[sizeof(bone_slot->text_id) - 1] = '\0';
-+
-+	}
-+
-+	/* slot has failed and we don't support hotpluging */
-+	if (bone_slot->eeprom_failed)
-+		return NULL;
-+
-+	return id;
-+}
-+
-+const char *bone_capebus_get_text_dev_id(struct cape_slot *slot)
-+{
-+	struct bone_capebus_slot *bone_slot = to_bone_capebus_slot(slot);
-+
-+	if (bone_slot->eeprom_failed || !bone_slot->eeprom_probed)
-+		return NULL;
-+
-+	return bone_slot->text_id;
-+}
-+
-+struct bonedev_ee_attribute {
-+	struct device_attribute devattr;
-+	unsigned int field;
-+};
-+#define to_bonedev_ee_attribute(x) \
-+	container_of((x), struct bonedev_ee_attribute, devattr)
-+
-+static ssize_t bonedev_ee_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct bonedev_ee_attribute *ee_attr = to_bonedev_ee_attribute(attr);
-+	struct cape_dev *cdev = to_cape_dev(dev);
-+	const struct cape_device_id *id = cdev->id;
-+	const struct bone_capebus_eeprom_field *ee_field;
-+	int i, len;
-+	char *p, *s;
-+	u16 val;
-+
-+	if (id == NULL)
-+		return -EINVAL;
-+
-+	/* add newline for ascii fields */
-+	ee_field = &eeprom_fields[ee_attr->field];
-+
-+	len = ee_field->size + ee_field->ascii;
-+	p = kmalloc(len, GFP_KERNEL);
-+	if (p == NULL)
-+		return -ENOMEM;
-+
-+	s = bone_capebus_id_get_field(id, ee_attr->field, p, len);
-+	if (s == NULL)
-+		return -EINVAL;
-+
-+	/* add newline for ascii fields and return */
-+	if (ee_field->ascii) {
-+		len = sprintf(buf, "%s\n", s);
-+		goto out;
-+	}
-+
-+	/* case by case handling */
-+	switch (ee_attr->field) {
-+		case BONE_CAPEBUS_HEADER:
-+			len = sprintf(buf, "%02x %02x %02x %02x\n",
-+					s[0], s[1], s[2], s[3]);
-+			break;
-+
-+			/* 2 bytes */
-+		case BONE_CAPEBUS_NUMBER_OF_PINS:
-+		case BONE_CAPEBUS_VDD_3V3EXP:
-+		case BONE_CAPEBUS_VDD_5V:
-+		case BONE_CAPEBUS_SYS_5V:
-+		case BONE_CAPEBUS_DC_SUPPLIED:
-+			/* the bone is LE */
-+			val = s[0] & (s[1] << 8);
-+			len = sprintf(buf, "%u\n", (unsigned int)val & 0xffff);
-+			break;
-+
-+		case BONE_CAPEBUS_PIN_USAGE:
-+
-+			len = 0;
-+			for (i = 0; i < ee_field->size / 2; i++) {
-+				/* the bone is LE */
-+				val = s[0] & (s[1] << 8);
-+				sprintf(buf, "%04x\n", val);
-+				buf += 5;
-+				len += 5;
-+				s += 2;
-+			}
-+
-+			break;
-+
-+		default:
-+			*buf = '\0';
-+			len = 0;
-+			break;
-+	}
-+
-+out:
-+	kfree(p);
-+
-+	return len;
-+}
-+
-+#define BONEDEV_EE_ATTR(_name, _field) \
-+	{ \
-+		.devattr = __ATTR(_name, 0440, bonedev_ee_show, NULL), \
-+		.field = BONE_CAPEBUS_##_field , \
-+	}
-+
-+struct bonedev_ee_attribute ee_attrs[] = {
-+	BONEDEV_EE_ATTR(header, HEADER),
-+	BONEDEV_EE_ATTR(eeprom-format-revision, EEPROM_REV),
-+	BONEDEV_EE_ATTR(board-name, BOARD_NAME),
-+	BONEDEV_EE_ATTR(version, VERSION),
-+	BONEDEV_EE_ATTR(manufacturer, MANUFACTURER),
-+	BONEDEV_EE_ATTR(part-number, PART_NUMBER),
-+	BONEDEV_EE_ATTR(number-of-pins, NUMBER_OF_PINS),
-+	BONEDEV_EE_ATTR(serial-number, SERIAL_NUMBER),
-+	BONEDEV_EE_ATTR(pin-usage, PIN_USAGE),
-+	BONEDEV_EE_ATTR(vdd-3v3exp, VDD_3V3EXP),
-+	BONEDEV_EE_ATTR(vdd-5v, VDD_5V),
-+	BONEDEV_EE_ATTR(sys-5v, SYS_5V),
-+	BONEDEV_EE_ATTR(dc-supplied, DC_SUPPLIED),
-+};
-+
-+static struct attribute *ee_attrs_flat[] = {
-+	&ee_attrs[BONE_CAPEBUS_HEADER		].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_EEPROM_REV	].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_BOARD_NAME	].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_VERSION		].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_MANUFACTURER	].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_PART_NUMBER	].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_NUMBER_OF_PINS	].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_SERIAL_NUMBER	].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_PIN_USAGE	].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_VDD_3V3EXP	].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_VDD_5V		].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_SYS_5V		].devattr.attr,
-+	&ee_attrs[BONE_CAPEBUS_DC_SUPPLIED	].devattr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group bone_ee_attrgroup = {
-+	.name		= "ee-fields",
-+	.is_visible 	= NULL,
-+	.attrs 		= ee_attrs_flat,
-+};
-+
-+static int bone_capebus_sysfs_register(struct cape_dev *dev)
-+{
-+	return sysfs_create_group(&dev->dev.kobj, &bone_ee_attrgroup);
-+}
-+
-+static void bone_capebus_sysfs_unregister(struct cape_dev *dev)
-+{
-+	sysfs_remove_group(&dev->dev.kobj, &bone_ee_attrgroup);
-+}
-+
-+static int bone_capebus_dev_probed(struct cape_dev *dev)
-+{
-+	return 0;
-+}
-+
-+static void bone_capebus_dev_removed(struct cape_dev *dev)
-+{
-+	bone_capebus_sysfs_unregister(dev);
-+}
-+
-+static int bone_capebus_dev_registered(struct cape_dev *dev)
-+{
-+	int ret;
-+
-+	ret = bone_capebus_sysfs_register(dev);
-+	if (ret != 0) {
-+		dev_err(&dev->dev, "bone_capebus sysfs registration failed\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct cape_bus_ops bone_capebus_ops = {
-+	.get_dev_id 		= bone_capebus_get_dev_id,
-+	.get_text_dev_id	= bone_capebus_get_text_dev_id,
-+	.dev_probed		= bone_capebus_dev_probed,
-+	.dev_removed		= bone_capebus_dev_removed,
-+	.dev_registered		= bone_capebus_dev_registered,
-+};
-+
-+static ssize_t slots_show(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct bone_capebus_bus	*bus = platform_get_drvdata(pdev);
-+	struct bone_capebus_slot *slot;
-+	ssize_t len, sz;
-+	int i;
-+
-+	sz = 0;
-+
-+	for (i = 0; i < bus->slots_nr; i++) {
-+		slot = &bus->slots[i];
-+
-+		len = sprintf(buf, "%02x:%c%c%c%c %s\n",
-+				(int)slot->eeprom_addr & 0x7f,
-+				slot->eeprom_probed     ? 'P' : '-',
-+				slot->eeprom_failed     ? 'F' : '-',
-+				slot->eeprom_override   ? 'O' : '-',
-+				(slot->cape_slot.dev && slot->cape_slot.dev->added) ? 'A' : '-',
-+				slot->text_id);
-+
-+		buf += len;
-+		sz += len;
-+	}
-+	return sz;
-+}
-+
-+static ssize_t slots_store(struct device *dev, struct device_attribute *attr,
-+		 const char *buf, size_t count)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct bone_capebus_bus	*bus = platform_get_drvdata(pdev);
-+	int slotno, err, i, len;
-+	char *s, *board_name, *version, *p;
-+	const struct bone_capebus_eeprom_field *ee_field, *eebrd, *eevrs;
-+	struct bone_capebus_slot *slot;
-+
-+	eebrd = &eeprom_fields[BONE_CAPEBUS_BOARD_NAME];
-+	eevrs = &eeprom_fields[BONE_CAPEBUS_VERSION];
-+
-+	slotno = simple_strtoul(buf, &s, 10);
-+	if (slotno < 0 || slotno >= bus->slots_nr)
-+		return -EINVAL;
-+	slot = &bus->slots[slotno];
-+	if (slot->eeprom_override || (slot->cape_slot.dev && slot->cape_slot.dev->added))
-+		return -EINVAL;
-+
-+	board_name = kzalloc(eebrd->size + 1 + eevrs->size + 1, GFP_KERNEL);
-+	if (board_name == NULL)
-+		return -ENOMEM;
-+	version = board_name + eebrd->size + 1;
-+
-+	s = strchr(s, ':');
-+	if (s == NULL) {
-+		kfree(board_name);
-+		return -EINVAL;
-+	}
-+	s++;
-+	p = strchr(s, ':');
-+	if (p == NULL) {
-+		len = strlen(s);
-+		strncpy(board_name, s, eebrd->size);
-+		strcpy(version, "00A0");
-+	} else {
-+		len = p - s;
-+		if (len > eebrd->size)
-+			len = p - s;
-+		memcpy(board_name, s, len);
-+		board_name[len] = '\0';
-+		strncpy(version, p + 1, eevrs->size);
-+	}
-+	board_name[eebrd->size] = '\0';
-+	version[eevrs->size]  = '\0';
-+
-+	/* strip trailing spaces, dots & newlines */
-+	s = board_name + strlen(board_name);
-+	while (s > board_name &&
-+			(isspace(s[-1]) || s[-1] == '\n' || s[-1] == '.'))
-+		*--s = '\0';
-+
-+	printk(KERN_INFO "Override for slot #%d, board-name '%s', version '%s'\n",
-+			slotno, board_name, version);
-+
-+	slot->eeprom_override = 1;
-+	slot->eeprom_failed = 0;
-+	slot->eeprom_probed = 0;
-+
-+	/* zero out signature */
-+	memset(slot->eeprom_signature, 0,
-+			sizeof(slot->eeprom_signature));
-+
-+	/* create an eeprom field */
-+	for (i = 0; i < ARRAY_SIZE(eeprom_fields); i++) {
-+
-+		ee_field = &eeprom_fields[i];
-+
-+		/* point to the entry */
-+		p = slot->eeprom_signature + ee_field->start;
-+
-+		/* if no such property, assign default */
-+		if (i != BONE_CAPEBUS_BOARD_NAME) {
-+
-+			if (ee_field->override)
-+				memcpy(p, ee_field->override,
-+						ee_field->size);
-+			else
-+				memset(p, 0, ee_field->size);
-+
-+			continue;
-+		}
-+
-+		/* copy it to the eeprom signature buf */
-+		len = strlen(board_name);
-+		if (len > ee_field->size)
-+			len = ee_field->size;
-+
-+		/* copy and zero out rest */
-+		memcpy(p, board_name, len);
-+		if (len < ee_field->size)
-+			memset(p + len, 0, ee_field->size - len);
-+	}
-+
-+	printk(KERN_INFO "calling cape_bus_scan_one_slot\n");
-+	err = cape_bus_scan_one_slot(&bus->cape_bus, &slot->cape_slot);
-+
-+	printk(KERN_INFO "cape_bus_scan_one_slot returned %d\n", err);
-+
-+	/* failed to scan... */
-+	if (err != 0)
-+		slot->eeprom_override = 0;
-+
-+	kfree(board_name);
-+
-+	return strlen(buf);
-+}
-+
-+static DEVICE_ATTR(slots, 0644, slots_show, slots_store);
-+
-+static int bone_capebus_bus_sysfs_register(struct bone_capebus_bus *bus)
-+{
-+	return device_create_file(bus->dev, &dev_attr_slots);
-+}
-+
-+static void bone_capebus_bus_sysfs_unregister(struct bone_capebus_bus *bus)
-+{
-+	device_remove_file(bus->dev, &dev_attr_slots);
-+}
-+
-+static int __devinit
-+bone_capebus_probe(struct platform_device *pdev)
-+{
-+	struct bone_capebus_bus	*bus;
-+	struct device_node	*pnode = pdev->dev.of_node;
-+	const struct of_device_id *cntrlboard_match;
-+	const struct of_device_id *dev_match;
-+	struct bone_capebus_slot *slot;
-+	const struct bone_capebus_eeprom_field *ee_field;
-+	struct property *prop;
-+	int length;
-+	int r;
-+	struct device_node *node;
-+	struct i2c_client *client;
-+	phandle handle;
-+	u32 *slot_handles = NULL;
-+	u32 val;
-+	const char *str;
-+	u8 *p;
-+	int i, len;
-+
-+	/* we don't use platform_data */
-+
-+	bus = devm_kzalloc(&pdev->dev,
-+			sizeof(struct bone_capebus_bus), GFP_KERNEL);
-+	if (!bus) {
-+		dev_err(&pdev->dev, "Failed to allocate device structure\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* register the cape bus */
-+	r = cape_bus_register(&bus->cape_bus, "bone", 0, &pdev->dev,
-+			&bone_capebus_ops);
-+	if (r != 0) {
-+		dev_err(&pdev->dev, "Failed to register the cape device\n");
-+		return r;
-+	}
-+
-+	cntrlboard_match = of_match_device(of_match_ptr(bone_capebus_of_match),
-+			&pdev->dev);
-+	if (!cntrlboard_match) {
-+		dev_err(&pdev->dev, "Failed to configure bone capebus\n");
-+		return -ENODEV;
-+	}
-+	bus->dev = &pdev->dev;
-+
-+	prop = of_find_property(pnode, "slots", &length);
-+	if (prop == NULL) {
-+		dev_err(&pdev->dev, "Unable to find required "
-+				"property 'slots'\n");
-+		return -EINVAL;
-+	}
-+	bus->slots_nr = length / sizeof(u32);
-+	bus->slots = devm_kzalloc(&pdev->dev,
-+			sizeof(bus->slots[0]) * bus->slots_nr, GFP_KERNEL);
-+	if (!bus->slots) {
-+		dev_err(&pdev->dev, "Failed to allocate %d slot areas\n",
-+				bus->slots_nr);
-+		return -ENOMEM;
-+	}
-+	slot_handles = devm_kzalloc(&pdev->dev, length, GFP_KERNEL);
-+	if (!slot_handles) {
-+		dev_err(&pdev->dev, "Failed to allocate %d slot areas\n",
-+				bus->slots_nr);
-+		return -ENOMEM;
-+	}
-+	r = of_property_read_u32_array(pnode, "slots",
-+			slot_handles, bus->slots_nr);
-+	if (r < 0) {
-+		dev_err(&pdev->dev, "Failed to read %d slot handles\n",
-+				bus->slots_nr);
-+		return r;
-+	}
-+
-+	/* now we iterate over any overrides */
-+	for_each_child_of_node(pnode, node) {
-+
-+		dev_match = of_match_node(slot_override_of_match, node);
-+		if (!dev_match)
-+			continue;
-+
-+		/* no reg property */
-+		if (of_property_read_u32(node, "slot", &val) != 0) {
-+			dev_warn(&pdev->dev, "override: Failed to read "
-+					"slot property\n");
-+			continue;
-+		}
-+
-+		if (val >= bus->slots_nr) {
-+			dev_warn(&pdev->dev, "override: invalid slot #%u\n",
-+					val);
-+			continue;
-+		}
-+
-+		slot = &bus->slots[val];
-+
-+		if (slot->eeprom_override) {
-+			dev_warn(&pdev->dev, "override: slot #%u is already "
-+					"overriden\n", val);
-+			continue;
-+		}
-+
-+		slot->eeprom_override = 1;
-+
-+		/* zero out signature */
-+		memset(slot->eeprom_signature, 0,
-+				sizeof(slot->eeprom_signature));
-+
-+		/* for any matching field assign them */
-+		for (i = 0; i < ARRAY_SIZE(eeprom_fields); i++) {
-+
-+			ee_field = &eeprom_fields[i];
-+
-+			/* point to the entry */
-+			p = slot->eeprom_signature + ee_field->start;
-+
-+			/* if no such property, assign default */
-+			if (of_property_read_string(node, ee_field->name,
-+						&str) != 0) {
-+
-+				if (ee_field->override)
-+					memcpy(p, ee_field->override,
-+							ee_field->size);
-+				else
-+					memset(p, 0, ee_field->size);
-+
-+				continue;
-+			}
-+
-+			/* copy it to the eeprom signature buf */
-+			len = strlen(str);
-+			if (len > ee_field->size)
-+				len = ee_field->size;
-+
-+			/* copy and zero out rest */
-+			memcpy(p, str, len);
-+			if (len < ee_field->size)
-+				memset(p + len, 0, ee_field->size - len);
-+		}
-+	}
-+
-+	platform_set_drvdata(pdev, bus);
-+
-+	/* now find the i2c clients */
-+	for (i = 0; i < bus->slots_nr; i++) {
-+
-+		slot = &bus->slots[i];
-+
-+		handle = slot_handles[i];
-+		node = of_find_node_by_phandle(handle);
-+		if (node == NULL) {
-+			dev_warn(&pdev->dev, "Failed to find node with phandle "
-+					"0x%x (#%d)\n", handle, i);
-+			continue;
-+		}
-+		dev_dbg(&pdev->dev, "Found device node for phandle "
-+				"0x%x (#%d)\n", handle, i);
-+
-+		client = of_find_i2c_device_by_node(node);
-+		if (client == NULL) {
-+			dev_warn(&pdev->dev, "Invalid I2C client node with "
-+					"phandle 0x%x (#%d)\n", handle, i);
-+			continue;
-+		}
-+
-+		slot->client = i2c_use_client(client);
-+		/* no use for this anymore */
-+		of_node_put(node);
-+
-+		/* save handle */
-+		client = slot->client;	/* get again */
-+		slot->eeprom_addr = client->addr;
-+		dev_dbg(&pdev->dev, "Found i2c_client at #%d "
-+				"(address = 0x%02x)\n",
-+				i, slot->eeprom_addr);
-+
-+		r = cape_bus_register_slot(&bus->cape_bus, &slot->cape_slot, i);
-+		if (r != 0) {
-+			dev_err(&pdev->dev, "Failed to register slot #%d\n", i);
-+			continue;
-+		}
-+
-+		dev_info(&pdev->dev, "Registered slot #%d OK\n", i);
-+	}
-+
-+	/* we don't need the handles anymore */
-+	devm_kfree(&pdev->dev, slot_handles);
-+	slot_handles = NULL;
-+
-+	r = bone_capebus_register_pdev_adapters(bus);
-+	if (r != 0) {
-+		dev_err(&pdev->dev, "Failed to register the pdev adapters\n");
-+		goto err_no_pdevs;
-+	}
-+
-+	pm_runtime_enable(bus->dev);
-+	r = pm_runtime_get_sync(bus->dev);
-+	if (IS_ERR_VALUE(r)) {
-+		dev_err(&pdev->dev, "Failed to pm_runtime_get_sync()\n");
-+		goto err_exit;
-+	}
-+
-+	pm_runtime_put(bus->dev);
-+
-+	bone_capebus_bus_sysfs_register(bus);
-+
-+	dev_info(&pdev->dev, "initialized OK.\n");
-+
-+	return 0;
-+
-+err_exit:
-+	bone_capebus_unregister_pdev_adapters(bus);
-+err_no_pdevs:
-+	platform_set_drvdata(pdev, NULL);
-+
-+	return r;
-+}
-+
-+static int __devexit bone_capebus_remove(struct platform_device *pdev)
-+{
-+	struct bone_capebus_bus	*bus = platform_get_drvdata(pdev);
-+	int ret;
-+
-+	bone_capebus_bus_sysfs_unregister(bus);
-+	bone_capebus_unregister_pdev_adapters(bus);
-+
-+	platform_set_drvdata(pdev, NULL);
-+
-+	ret = pm_runtime_get_sync(&pdev->dev);
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
-+
-+	pm_runtime_put(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+#ifdef CONFIG_PM_RUNTIME
-+static int bone_capebus_runtime_suspend(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct bone_capebus_bus *_dev = platform_get_drvdata(pdev);
-+
-+	(void)_dev;
-+	return 0;
-+}
-+
-+static int bone_capebus_runtime_resume(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct bone_capebus_bus *_dev = platform_get_drvdata(pdev);
-+
-+	(void)_dev;
-+	return 0;
-+}
-+#endif /* CONFIG_PM_RUNTIME */
-+
-+static struct dev_pm_ops bone_capebus_pm_ops = {
-+	SET_RUNTIME_PM_OPS(bone_capebus_runtime_suspend,
-+			   bone_capebus_runtime_resume, NULL)
-+};
-+#define BONE_CAPEBUS_PM_OPS (&bone_capebus_pm_ops)
-+#else
-+#define BONE_CAPEBUS_PM_OPS NULL
-+#endif /* CONFIG_PM */
-+
-+static struct platform_driver bone_capebus_driver = {
-+	.probe		= bone_capebus_probe,
-+	.remove		= __devexit_p(bone_capebus_remove),
-+	.driver		= {
-+		.name	= "bone-capebus",
-+		.owner	= THIS_MODULE,
-+		.pm	= BONE_CAPEBUS_PM_OPS,
-+		.of_match_table = of_match_ptr(bone_capebus_of_match),
-+	},
-+};
-+
-+module_platform_driver(bone_capebus_driver);
-+
-+MODULE_AUTHOR("Pantelis Antoniou");
-+MODULE_DESCRIPTION("Beaglebone cape bus controller");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:capebus_bone");
-diff --git a/include/linux/capebus/capebus-bone.h b/include/linux/capebus/capebus-bone.h
-new file mode 100644
-index 0000000..e394304
---- /dev/null
-+++ b/include/linux/capebus/capebus-bone.h
-@@ -0,0 +1,120 @@
-+/*
-+ * capebus-bone.h
-+ *
-+ * Cape bus defines and function prototypes for the beaglebone
-+ *
-+ * Copyright (C) 2012 Pantelis Antoniou <panto@antoniou-consulting.com>
-+ * Copyright (C) 2012 Texas Instruments Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+#ifndef LINUX_CAPEBUS_BONE_H
-+#define LINUX_CAPEBUS_BONE_H
-+
-+#include <linux/list.h>
-+#include <linux/capebus.h>
-+
-+struct bone_capebus_slot {
-+	struct cape_slot	cape_slot;
-+	u32			slot_handle;
-+	int			eeprom_addr;
-+	struct i2c_client	*client;
-+	unsigned int		eeprom_probed : 1;
-+	unsigned int		eeprom_failed : 1;
-+	unsigned int		eeprom_override : 1;
-+	struct cape_device_id	id;
-+	char			text_id[256];
-+	char			eeprom_signature[256];
-+};
-+
-+#define to_bone_capebus_slot(n)	\
-+	container_of(n, struct bone_capebus_slot, cape_slot)
-+
-+struct bone_capebus_bus {
-+	struct cape_bus			cape_bus;
-+	struct device			*dev;		/* pdev->dev */
-+	int 				slots_nr;
-+	struct bone_capebus_slot	*slots;
-+};
-+
-+#define to_bone_capebus_bus(n)	\
-+	container_of(n, struct bone_capebus_bus, cape_bus)
-+
-+#define BONE_CAPEBUS_HEADER		0
-+#define BONE_CAPEBUS_EEPROM_REV		1
-+#define BONE_CAPEBUS_BOARD_NAME		2
-+#define BONE_CAPEBUS_VERSION		3
-+#define BONE_CAPEBUS_MANUFACTURER	4
-+#define BONE_CAPEBUS_PART_NUMBER	5
-+#define BONE_CAPEBUS_NUMBER_OF_PINS	6
-+#define BONE_CAPEBUS_SERIAL_NUMBER	7
-+#define BONE_CAPEBUS_PIN_USAGE		8
-+#define BONE_CAPEBUS_VDD_3V3EXP		9
-+#define BONE_CAPEBUS_VDD_5V		10
-+#define BONE_CAPEBUS_SYS_5V		11
-+#define BONE_CAPEBUS_DC_SUPPLIED	12
-+#define BONE_CAPEBUS_FIELDS_NR		13
-+
-+#define BONE_CAPEBUS_MAKE_HEADER(p)	\
-+	({ \
-+		const u8 *_p = (p); \
-+		(((u32)_p[0] << 24) | ((u32)_p[1] << 16) | \
-+		((u32)_p[2] <<  8) |  (u32)_p[3]       ); \
-+	})
-+
-+#define BONE_CAPEBUS_HEADER_VALID	0xaa5533ee
-+
-+char *bone_capebus_id_get_field(const struct cape_device_id *id,
-+		int field, char *buf, int bufsz);
-+
-+int bone_capebus_match_cntrlboard(const struct cape_device_id *id);
-+
-+int bone_capebus_match_board(const struct cape_device_id *id,
-+		const char **board_names);
-+
-+/* in pdevs */
-+int bone_capebus_register_pdev_adapters(struct bone_capebus_bus *bus);
-+void bone_capebus_unregister_pdev_adapters(struct bone_capebus_bus *bus);
-+
-+/* generic cape support */
-+
-+struct bone_capebus_generic_device_data {
-+	const char *name;
-+	const struct of_device_id *of_match;
-+	unsigned int units;
-+};
-+
-+struct bone_capebus_generic_device_entry {
-+	struct list_head node;
-+	const struct bone_capebus_generic_device_data *data;
-+	struct platform_device *pdev;
-+};
-+
-+struct bone_capebus_generic_info {
-+	struct cape_dev *dev;
-+	struct list_head pdev_list;
-+};
-+
-+int bone_capebus_probe_prolog(struct cape_dev *dev,
-+		const struct cape_device_id *id);
-+
-+struct bone_capebus_generic_info *
-+bone_capebus_probe_generic(struct cape_dev *dev,
-+		const struct cape_device_id *id);
-+
-+void bone_capebus_remove_generic(
-+		struct bone_capebus_generic_info *info);
-+
-+#endif
 -- 
 1.7.12
+
