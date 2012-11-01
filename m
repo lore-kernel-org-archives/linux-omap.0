@@ -1,41 +1,36 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH] arm-dt: Enable DT proc updates.
-Date: Wed, 31 Oct 2012 21:04:24 -0500
-Message-ID: <5091D8A8.9010307@gmail.com>
-References: <1351699069-4661-1-git-send-email-panto@antoniou-consulting.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Thu, 1 Nov 2012 02:44:30 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211010242001.6693@utopia.booyaka.com>
+References: <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com> <alpine.DEB.2.00.1210231918500.27211@utopia.booyaka.com> <CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com> <20121025101212.GD21217@arwen.pp.htv.fi>
+ <20121026201539.GD29548@arwen.pp.htv.fi> <alpine.DEB.2.00.1210262201500.11258@utopia.booyaka.com> <20121029200032.GD30152@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com> <20121030123254.GD29095@arwen.pp.htv.fi>
+ <alpine.DEB.2.00.1210301239310.12697@utopia.booyaka.com> <20121030125419.GG29095@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301313190.12697@utopia.booyaka.com> <CAORVsuWqoqrza-qrJskpMTj=2MW6JxNEhVzjWVXkM1mpqVO8cQ@mail.gmail.com> <87fw4u3oh5.fsf@deeprootsystems.com>
+ <CAORVsuUWD3gHh1NcMLeGwZ=hF=UiOG2VyJkADZNcGVr1g1TFgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351699069-4661-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:53658 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab2KACob (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 22:44:31 -0400
+In-Reply-To: <CAORVsuUWD3gHh1NcMLeGwZ=hF=UiOG2VyJkADZNcGVr1g1TFgQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Felipe Balbi <balbi@ti.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 10/31/2012 10:57 AM, Pantelis Antoniou wrote:
-> This simple patch enables dynamic changes of the DT tree on runtime
-> to be visible to the device-tree proc interface.
-> 
-> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+Hi
 
-Acked-by: Rob Herring <rob.herring@calxeda.com>
+On Wed, 31 Oct 2012, Jean Pihet wrote:
 
-> ---
->  arch/arm/include/asm/prom.h | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/include/asm/prom.h b/arch/arm/include/asm/prom.h
-> index aeae9c6..6d65ba2 100644
-> --- a/arch/arm/include/asm/prom.h
-> +++ b/arch/arm/include/asm/prom.h
-> @@ -11,6 +11,8 @@
->  #ifndef __ASMARM_PROM_H
->  #define __ASMARM_PROM_H
->  
-> +#define HAVE_ARCH_DEVTREE_FIXUPS
-> +
->  #ifdef CONFIG_OF
->  
->  extern struct machine_desc *setup_machine_fdt(unsigned int dt_phys);
-> 
+> Paul,
+> Could you please check with the 2 calls to PM QoS from the I2C code
+> commented out? This will rule out the PM QoS impact.
+
+Will be happy to do a test run for you, after the boot log from your local 
+test run is posted:
+
+http://marc.info/?l=linux-arm-kernel&m=135167153510814&w=2
+
+
+- Paul
