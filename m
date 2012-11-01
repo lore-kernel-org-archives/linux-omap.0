@@ -1,68 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Thu, 1 Nov 2012 12:07:33 -0700
-Message-ID: <20121101190733.GN15766@atomide.com>
-References: <CA+T6QPk-etCT7EzwGR-tP+JTab_m4Vywh9qgHG_HW-oXKgn_AQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH v3 0/4] cbus/retu drivers
+Date: Thu,  1 Nov 2012 23:39:16 +0200
+Message-ID: <1351805960-7612-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CA+T6QPk-etCT7EzwGR-tP+JTab_m4Vywh9qgHG_HW-oXKgn_AQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Kridner <jkridner@beagleboard.org>
-Cc: b-cousson@ti.com, Koen Kooi <koen@dominion.thruhere.net>, paul@pwsan.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Porter, Matt" <mporter@ti.com>, Russ Dill <russ.dill@gmail.com>, khilman@ti.com
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
 
-* Jason Kridner <jkridner@beagleboard.org> [121101 11:52]:
-> My apologies for starting a new thread, but I don't have this thread
-> in my Inbox.
-> 
-> http://www.spinics.net/lists/linux-omap/msg81034.html
-> 
-> Tony Lindgren wrote:
-> 
-> >* Pantelis Antoniou <panto@xxxxxxxxxxxxxxxxxxxxxxx> [121031 15:02]:
-> >>
-> >> So when device's node is 'disabled' of_platform_device_create_pdata()
-> >> will not create the device.
-> >>
-> >> Now, of course it is possible to re-trigger the platform's probe method
-> >> to be called, and in fact I do so in the capebus patches.
-> >
-> >You should fix this in generic way then rather than working
-> >around it in capebus. The same problem exists changing
-> >between different functionality for the shared pins,
-> >let's say between USB pins and UART pins if you want a
-> >serial debug console on some phone.
-> 
-> The current capebus solution goes a long way to fixing a huge issue
-> for BeagleBone users and I don't understand what seems to be a
-> push-back on principle. On BeagleBone capes, these conflicts cannot be
-> resolved early.
-> 
-> Do you have suggestions on some more generic method? It seems to me
-> the proposed capebus approach strikes a good balance.
+This patch set introduces drivers for CBUS access and Retu multifunction
+chip found on Nokia Internet Tablets (770, N800, N810). It would be
+nice get these patches applied as the functionality of these devices is
+severely lacking without Retu. E.g. watchdog support is mandatory at
+least on Nokia N800, you cannot currently run the mainline kernel for
+longer than ~60 seconds (there is no way to disable the watchdog).
 
-Having it all behave like a hotpluggable bus makes sense.
+Drivers originate from linux-omap cbus branch and have been cleaned
+up/rewritten around i2c and MFD core.
 
-But the way to sort it out is to have all the omap internal
-devices defined in a .dts file and have them set initially
-with status = "disabled" in the .dts.
+Patches have been tested on top of 3.7-rc3 with Nokia N800 (watchdog
+feeding works, power off shuts down the device, power button triggers
+IRQs and input events, loading and unloading retu-pwrbutton module in a
+loop while manically pressing the power button does not crash the kernel).
 
-Then you just need a function dynamically change the kernel
-internal device tree to enable and disable devices dynamically
-so the dev entries get created and driver probe can happen.
+Changes since the second version (https://lkml.org/lkml/2012/10/31/520):
+	- i2c-cbus:
+		- move i2c-cbus.h under linux/platform_data
+	- retu-mfd
+		- replace "&retu_pwrbutton_res[0]" expression with simpler
+		  "retu_pwrbutton_res".
+	- retu-pwrbutton:
+		- eliminate struct retu_pwrbutton
+		- delete checks for duplicate events
+		- rework probe to avoid races
+		- disable IRQ before unregister in retu_pwrbutton_remove() to
+		  avoid races
+		- eliminate double free in retu_pwrbutton_remove()
+		- add .owner = THIS_MODULE
 
-Sure that means that some hwmod and omap_device functions
-can't be __init any longer, but there should not be any
-need to call hwmod and omap_device functions directly from
-capebus.
+Changes since the first version (https://lkml.org/lkml/2012/9/3/265):
+	- i2c-cbus:
+		- use devres
+		- improve comments
+		- simplify and delete redundant code
+		- refactoring & bug fixes on error handling
+		- discard "input" parameter from cbus_send_bit/data()
+	- retu-mfd:
+		- use devres
+		- use regmap
+	- retu_wdt: use devres
+	- retu-pwrbutton: use devres
 
-If you want to take it one step further, you can also add
-new capes to the kernel internal device tree dynamically
-as you may have different pinmux and omap internal device
-configurations on the capes.
+Changes since the RFC version
+(http://marc.info/?l=linux-omap&m=134618967116737&w=2):
+        - added DT support for getting i2c-cbus GPIO pins
+        - merged n8x0 board file changes into i2c-cbus patch
+        - corrected typo in Kconfig for MFD_RETU
+        - added power off functionality to retu-mfd
+        - added IRQ functionality to retu-mfd
+        - added power button key driver
+        - some cleanups
 
-Regards,
+Aaro Koskinen (4):
+  i2c: introduce i2c-cbus driver
+  mfd: introduce retu-mfd driver
+  watchdog: introduce retu_wdt driver
+  input: misc: introduce retu-pwrbutton
 
-Tony
+ arch/arm/mach-omap2/board-n8x0.c       |   42 +++++
+ drivers/i2c/busses/Kconfig             |   10 +
+ drivers/i2c/busses/Makefile            |    1 +
+ drivers/i2c/busses/i2c-cbus.c          |  300 ++++++++++++++++++++++++++++++++
+ drivers/input/misc/Kconfig             |   10 +
+ drivers/input/misc/Makefile            |    1 +
+ drivers/input/misc/retu-pwrbutton.c    |  102 +++++++++++
+ drivers/mfd/Kconfig                    |    9 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/retu-mfd.c                 |  264 ++++++++++++++++++++++++++++
+ drivers/watchdog/Kconfig               |   12 ++
+ drivers/watchdog/Makefile              |    1 +
+ drivers/watchdog/retu_wdt.c            |  178 +++++++++++++++++++
+ include/linux/mfd/retu.h               |   22 +++
+ include/linux/platform_data/i2c-cbus.h |   27 +++
+ 15 files changed, 980 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/i2c/busses/i2c-cbus.c
+ create mode 100644 drivers/input/misc/retu-pwrbutton.c
+ create mode 100644 drivers/mfd/retu-mfd.c
+ create mode 100644 drivers/watchdog/retu_wdt.c
+ create mode 100644 include/linux/mfd/retu.h
+ create mode 100644 include/linux/platform_data/i2c-cbus.h
+
+-- 
+1.7.2.5
