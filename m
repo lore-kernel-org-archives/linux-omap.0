@@ -1,179 +1,99 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: =?UTF-8?q?=5BPATCH=20v3=204/4=5D=20input=3A=20misc=3A=20introduce=20retu-pwrbutton?=
-Date: Thu,  1 Nov 2012 23:39:20 +0200
-Message-ID: <1351805960-7612-5-git-send-email-aaro.koskinen@iki.fi>
-References: <1351805960-7612-1-git-send-email-aaro.koskinen@iki.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Fri, 2 Nov 2012 00:05:18 +0200
+Message-ID: <20121101220518.GE14982@arwen.pp.htv.fi>
+References: <50924DA3.1060901@ti.com>
+ <F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
+ <20121101110418.GF410@arwen.pp.htv.fi>
+ <3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
+ <20121101124025.GA12489@arwen.pp.htv.fi>
+ <A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
+ <20121101131609.GC12489@arwen.pp.htv.fi>
+ <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
+ <20121101135148.382aec00@pyramind.ukuu.org.uk>
+ <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ILuaRSyQpoVaJ1HG"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351805960-7612-1-git-send-email-aaro.koskinen@iki.fi>
+Content-Disposition: inline
+In-Reply-To: <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-input@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, balbi@ti.com, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-Add Retu power button driver.
+--ILuaRSyQpoVaJ1HG
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: linux-input@vger.kernel.org
-Acked-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- drivers/input/misc/Kconfig          |   10 ++++
- drivers/input/misc/Makefile         |    1 +
- drivers/input/misc/retu-pwrbutton.c |  102 +++++++++++++++++++++++++++=
-++++++++
- 3 files changed, 113 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/misc/retu-pwrbutton.c
+HI,
 
-diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-index 7c0f1ec..e5be189 100644
---- a/drivers/input/misc/Kconfig
-+++ b/drivers/input/misc/Kconfig
-@@ -367,6 +367,16 @@ config INPUT_CM109
- 	  To compile this driver as a module, choose M here: the module will =
-be
- 	  called cm109.
-=20
-+config INPUT_RETU_PWRBUTTON
-+	tristate "Retu Power button Driver"
-+	depends on MFD_RETU
-+	help
-+	  Say Y here if you want to enable power key reporting via the
-+	  Retu chips found in Nokia Internet Tablets (770, N800, N810).
-+
-+	  To compile this driver as a module, choose M here. The module will
-+	  be called retu-pwrbutton.
-+
- config INPUT_TWL4030_PWRBUTTON
- 	tristate "TWL4030 Power button Driver"
- 	depends on TWL4030_CORE
-diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index 83fe6f5..4fbee0d 100644
---- a/drivers/input/misc/Makefile
-+++ b/drivers/input/misc/Makefile
-@@ -45,6 +45,7 @@ obj-$(CONFIG_INPUT_PMIC8XXX_PWRKEY)	+=3D pmic8xxx-pwr=
-key.o
- obj-$(CONFIG_INPUT_POWERMATE)		+=3D powermate.o
- obj-$(CONFIG_INPUT_PWM_BEEPER)		+=3D pwm-beeper.o
- obj-$(CONFIG_INPUT_RB532_BUTTON)	+=3D rb532_button.o
-+obj-$(CONFIG_INPUT_RETU_PWRBUTTON)	+=3D retu-pwrbutton.o
- obj-$(CONFIG_INPUT_GPIO_ROTARY_ENCODER)	+=3D rotary_encoder.o
- obj-$(CONFIG_INPUT_SGI_BTNS)		+=3D sgi_btns.o
- obj-$(CONFIG_INPUT_SPARCSPKR)		+=3D sparcspkr.o
-diff --git a/drivers/input/misc/retu-pwrbutton.c b/drivers/input/misc/r=
-etu-pwrbutton.c
-new file mode 100644
-index 0000000..043a12b
---- /dev/null
-+++ b/drivers/input/misc/retu-pwrbutton.c
-@@ -0,0 +1,102 @@
-+/*
-+ * Retu power button driver.
-+ *
-+ * Copyright (C) 2004-2010 Nokia Corporation
-+ *
-+ * Original code written by Ari Saastamoinen, Juha Yrj=C3=B6l=C3=A4 an=
-d Felipe Balbi.
-+ * Rewritten by Aaro Koskinen.
-+ *
-+ * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of thi=
-s
-+ * archive for more details.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/irq.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/errno.h>
-+#include <linux/input.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mfd/retu.h>
-+#include <linux/interrupt.h>
-+#include <linux/platform_device.h>
-+
-+#define RETU_STATUS_PWRONX (1 << 5)
-+
-+static irqreturn_t retu_pwrbutton_irq(int irq, void *_pwr)
-+{
-+	bool state;
-+	struct input_dev *idev =3D _pwr;
-+	struct retu_dev *rdev =3D input_get_drvdata(idev);
-+
-+	state =3D !(retu_read(rdev, RETU_REG_STATUS) & RETU_STATUS_PWRONX);
-+	input_report_key(idev, KEY_POWER, state);
-+	input_sync(idev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int __devinit retu_pwrbutton_probe(struct platform_device *pdev=
-)
-+{
-+	struct retu_dev *rdev =3D dev_get_drvdata(pdev->dev.parent);
-+	struct input_dev *idev;
-+	int ret;
-+
-+	idev =3D input_allocate_device();
-+	if (!idev)
-+		return -ENOMEM;
-+
-+	idev->evbit[0]				=3D BIT_MASK(EV_KEY);
-+	idev->keybit[BIT_WORD(KEY_POWER)]	=3D BIT_MASK(KEY_POWER);
-+	idev->name				=3D "retu-pwrbutton";
-+
-+	platform_set_drvdata(pdev, idev);
-+	input_set_drvdata(idev, rdev);
-+
-+	ret =3D input_register_device(idev);
-+	if (ret < 0) {
-+		input_free_device(idev);
-+		return ret;
-+	}
-+
-+	ret =3D devm_request_threaded_irq(&pdev->dev, platform_get_irq(pdev, =
-0),
-+					NULL, retu_pwrbutton_irq, 0,
-+					"retu-pwrbutton", idev);
-+	if (ret < 0)
-+		input_unregister_device(idev);
-+
-+	return ret;
-+}
-+
-+static int __devexit retu_pwrbutton_remove(struct platform_device *pde=
-v)
-+{
-+	struct input_dev *idev =3D platform_get_drvdata(pdev);
-+
-+	disable_irq(platform_get_irq(pdev, 0));
-+	input_unregister_device(idev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver retu_pwrbutton_driver =3D {
-+	.probe		=3D retu_pwrbutton_probe,
-+	.remove		=3D __devexit_p(retu_pwrbutton_remove),
-+	.driver		=3D {
-+		.name	=3D "retu-pwrbutton",
-+		.owner	=3D THIS_MODULE,
-+	},
-+};
-+module_platform_driver(retu_pwrbutton_driver);
-+
-+MODULE_ALIAS("platform:retu-pwrbutton");
-+MODULE_DESCRIPTION("Retu Power Button");
-+MODULE_AUTHOR("Ari Saastamoinen");
-+MODULE_AUTHOR("Felipe Balbi");
-+MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
-+MODULE_LICENSE("GPL");
+On Thu, Nov 01, 2012 at 03:59:50PM +0200, Pantelis Antoniou wrote:
+> Hi Alan,
+>=20
+> On Nov 1, 2012, at 3:51 PM, Alan Cox wrote:
+>=20
+> >> What they want, and what every user wants, is I plug this board in, and
+> >> the driver make sure everything is loaded and ready. No, the end users
+> >> don't want to see any of the implementation details of how the bitfile
+> >> is transported; the driver can handle it.
+> >=20
+> > That doesn't necessarily make it a bus merely some kind of hotplug
+> > enumeration of devices. That should all work properly both for devices
+> > and busses with spi and i=B2c as the final bits needed for it got fixed
+> > some time ago.
+> >=20
+> > In an ideal world you don't want to be writing custom drivers for stuff.
+> > If your cape routes an i=B2c serial device to the existing system i=B2c
+> > busses then you want to just create an instance of any existing driver =
+on
+> > the existing i=B2c bus not create a whole new layer of goop.
+> >=20
+> > It does need to do the plumbing and resource management for the plumbing
+> > but thats not the same as being a bus.
+> >=20
+> > Alan
+>=20
+>=20
+> Fair enough. But there's no such thing a 'hotplug enumeration
+> construct' in Linux yet, and a bus is the closest thing to it. It does
+> take advantage of the nice way device code matches drivers and devices
+> though.
+>=20
+> I'm afraid that having the I2C/SPI drivers doing the detection won't
+> work.  The capes can have arbitrary I2C/SPI devices (and even more
+> weird components).  There is no way to assure for example that the I2C
+> device responding to address 'foo' in cape A is the same I2C device
+> responding to the same address in cape B.
+
+your ->detect() method should take care of that.
+
 --=20
-1.7.2.5
+balbi
+
+--ILuaRSyQpoVaJ1HG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQkvIdAAoJEIaOsuA1yqREv2sP+wSsVcN17PpVBmV6Q5ybcvpP
+qZ8oHUmVjI6HjCoavqmHh6VPzPJ1OCh7S/RlWdVlLvqh0YQ8jnODU3jYlpwqEbfq
+KPe/occbJmAQLc6xAugIfTjA+2Vtl8RYx3vdxYC0q4eqrXHDys5JZ/HHgf8qU8Nb
+u0ePE2KsO4Th9I/Ahnlw4I/szgqwrQrV0+gOt5eVK5JhEywbOUslEGyoiXsPXSm/
+RlDVKRda9P/HLDWmV/3UPfTUFLkFGO9JcY7pYJIzV4OiwEQ4Yfr3ToaBQ3vK6Q0+
+Tpr6daM/8cR8MIfW530fVIoHEbR0J9QJGbBRhU7WhyJ3k/kf/ZWMvxy4r9/0kd15
+HWE/4lFSd1vIyAk1DQEqvpFUAjbmfpxQlGp1RnvfWEFCGp4H0g46YpBpv+6wLqn0
+AyNCxIUcjrIuQ4aSq3za76VS3vCgNSELs4C8wEv6qktSRWUs/3i3DH6VcrJT9HfT
+9AxYKf3p8eB99ZWSL4FiFg8FoywSYh3JFhyzN6w3XD88nULu2quq2/EIm7BYKr5y
+T/lIDReu2D2PunzPwL8RBBJuR+ZC7XxanC/Zz9I01Ry6ZyK+R4NPpdYcA7Yf9T9+
+jPxJdUXSJFMW6/E4VQ6703MossZy3HlLpC023wnkkdv07ZpmmSQOiOk8ufcoDR1G
+0FjCvvcrQwUa5elKGjFh
+=JdqB
+-----END PGP SIGNATURE-----
+
+--ILuaRSyQpoVaJ1HG--
