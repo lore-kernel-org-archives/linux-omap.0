@@ -1,91 +1,50 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: OMAP baseline test results for v3.7-rc3
-Date: Thu, 01 Nov 2012 15:52:07 +0000
-Message-ID: <50929AA7.80401@mimc.co.uk>
-References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk> <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EB51E84@DBDE01.ent.ti.com> <508FE8BA.1080404@ti.com> <50912A6F.1040501@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com> <509134A4.708@mimc.co.uk>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 0/3] ARM: dts: OMAP4/5 device-tree timer updates
+Date: Thu, 1 Nov 2012 17:14:26 +0100
+Message-ID: <50929FE2.9090602@ti.com>
+References: <1351784967-32520-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:49608 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S936034Ab2KAPwK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Nov 2012 11:52:10 -0400
-In-Reply-To: <509134A4.708@mimc.co.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:54061 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S936013Ab2KAQOj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Nov 2012 12:14:39 -0400
+In-Reply-To: <1351784967-32520-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 31/10/12 14:24, Mark Jackson wrote:
-> On 31/10/12 13:57, Hiremath, Vaibhav wrote:
->> On Wed, Oct 31, 2012 at 19:11:03, Mark Jackson wrote:
->>>
->>> If I try the latest mainline U-Boot (or the TI branch), I just get to "Starting kernel ..." and then
->>> hangs.
->>>
->>
->>
->> I am using Mainline u-boot and it works for me. Can you paste u-boot boot 
->> log and environment variable here?
+Hi Jon,
+
+On 11/01/2012 04:49 PM, Jon Hunter wrote:
+> A few device tree timer updates for OMAP4/5 devices.
 > 
-> ------------------------
-> mainline U-Boot boot log
-> ------------------------
-> U-Boot SPL 2012.10-00434-ged296d2 (Oct 31 2012 - 14:18:50)
-> OMAP SD/MMC: 0
-> reading u-boot.img
-> reading u-boot.img
+> This series adds ...
+> 1. MPU private addresses for OMAP4 timers
+> 2. Timer nodes for OMAP5
+> 3. 32kHz counter node for OMAP5
+
+Great, thanks for that update. Just in time before the pull request.
+
+> This is based upon of Benoit Cousson's OMAP device-tree branch for v3.8.
 > 
+> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.8/dts
 > 
-> U-Boot 2012.10-00434-ged296d2 (Oct 31 2012 - 14:18:50)
-> 
-> I2C:   ready
-> DRAM:  256 MiB
-> WARNING: Caches not enabled
-> MMC:   OMAP SD/MMC: 0, OMAP SD/MMC: 1
-> Using default environment
-> 
-> Net:   cpsw
-> Hit any key to stop autoboot:  0
-> mmc0 is current device
-> SD/MMC found on device 0
-> reading uEnv.txt
-> 29 bytes read
-> Loaded environment from uEnv.txt
-> Importing environment from mmc ...
-> 4315695 bytes read
-> Booting from mmc ...
-> ## Booting kernel from Legacy Image at 80200000 ...
->    Image Name:   Linux-3.7.0-rc1-47802-ge7289dc-d
->    Image Type:   ARM Linux Kernel Image (uncompressed)
->    Data Size:    4308448 Bytes = 4.1 MiB
->    Load Address: 80008000
->    Entry Point:  80008000
->    Verifying Checksum ... OK
->    Loading Kernel Image ... OK
-> OK
-> 
-> Starting kernel ...
-> 
-> ------------------------
-> Contents of uEnv.txt
-> --------------------
-> mmcrootfstype=ext2 rootwait
+> Jon Hunter (3):
+>   ARM: dts: Update OMAP4 timer addresses
+>   ARM: dts: Add OMAP5 timer nodes
+>   ARM: dts: Add OMAP5 counter node
 
-Vaibhav
+I've just updated slightly the subjects:
 
-Does this boot log shed any light on my non-boot problem ?
+3b3132f ARM: dts: OMAP5: Add counter node
+df692a9 ARM: dts: OMAP5: Add timer nodes
+d03a93b ARM: dts: OMAP4: Update timer addresses
 
-Are we using the same U-Boot version (2012.10-00434-ged296d2) ?
+There are now in my for_3.8/dts branch.
 
-Can you post your linux-ohporter .config ?
-
-I was also thinking, if the previously mentioned patch [1] was concerning toolchains, what toolchain
-are you using ?  I'm using the latest mainline Buildroot git, which compiles gcc version 4.5.4
-(Buildroot 2012.11-git-00497-ge48bf89).
-
-[1] - http://www.spinics.net/lists/linux-omap/msg79911.html
-
-Cheers
-Mark J.
+Thanks,
+Benoit
