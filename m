@@ -1,50 +1,102 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 0/3] ARM: dts: OMAP4/5 device-tree timer updates
-Date: Thu, 1 Nov 2012 17:14:26 +0100
-Message-ID: <50929FE2.9090602@ti.com>
-References: <1351784967-32520-1-git-send-email-jon-hunter@ti.com>
+From: "ivan.khoronzhuk" <ivan.khoronzhuk@ti.com>
+Subject: Re: [RFC PATCH] ARM: OMAP4: ID: Improve features detection and check
+Date: Thu, 1 Nov 2012 18:20:38 +0200
+Message-ID: <5092A156.4000601@ti.com>
+References: <1351765401-12487-1-git-send-email-ivan.khoronzhuk@ti.com> <50925E7F.7080602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54061 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36923 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936013Ab2KAQOj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Nov 2012 12:14:39 -0400
-In-Reply-To: <1351784967-32520-1-git-send-email-jon-hunter@ti.com>
+	id S1755404Ab2KAQVx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Nov 2012 12:21:53 -0400
+In-Reply-To: <50925E7F.7080602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Jon,
+On 11/01/2012 01:35 PM, Santosh Shilimkar wrote:
+> On Thursday 01 November 2012 03:53 PM, Ivan Khoronzhuk wrote:
+>> Replaces several flags bearing the same meaning. There is no need
+>> to set flags due to different omap types here, it can be checked
+>> in appropriate places as well.
+>>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Russell King <linux@arm.linux.org.uk>
+>> Cc: linux-omap@vger.kernel.org
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Signed-off-by: Ivan Khoronzhuk <ivan.khoronzhuk@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/id.c  |   25 +++++++------------------
+>>   arch/arm/mach-omap2/soc.h |    8 ++------
+>>   2 files changed, 9 insertions(+), 24 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+>> index cf2362c..3c47a19 100644
+>> --- a/arch/arm/mach-omap2/id.c
+>> +++ b/arch/arm/mach-omap2/id.c
+>> @@ -28,6 +28,9 @@
+>>   #include "soc.h"
+>>   #include "control.h"
+>>
+>> +#define OMAP4_SILICON_TYPE_STANDARD        0x01
+>> +#define OMAP4_SILICON_TYPE_PERFORMANCE        0x02
+>> +
+>>   static unsigned int omap_revision;
+>>   static const char *cpu_rev;
+>>   u32 omap_features;
+>> @@ -273,25 +276,11 @@ void __init omap4xxx_check_features(void)
+>>   {
+>>       u32 si_type;
+>>
+>> -    if (cpu_is_omap443x())
+>> -        omap_features |= OMAP4_HAS_MPU_1GHZ;
+>> -
+>> +    si_type =
+>> +    (read_tap_reg(OMAP4_CTRL_MODULE_CORE_STD_FUSE_PROD_ID_1) >> 16) 
+>> & 0x03;
+>>
+>> -    if (cpu_is_omap446x()) {
+>> -        si_type =
+>> - read_tap_reg(OMAP4_CTRL_MODULE_CORE_STD_FUSE_PROD_ID_1);
+>> -        switch ((si_type & (3 << 16)) >> 16) {
+>> -        case 2:
+>> -            /* High performance device */
+>> -            omap_features |= OMAP4_HAS_MPU_1_5GHZ;
+>> -            break;
+>> -        case 1:
+>> -        default:
+>> -            /* Standard device */
+>> -            omap_features |= OMAP4_HAS_MPU_1_2GHZ;
+>> -            break;
+>> -        }
+>> -    }
+>> +    if (si_type == OMAP4_SILICON_TYPE_PERFORMANCE)
+>> +        omap_features = OMAP4_HAS_PERF_SILICON;
+>
+> Well the detection isn't for performance/standard but there are some
+> features depend on it. For example 1 GHz doesn't DPLL DCC enable feature
+> where as 1.2 GHz, 1.5 GHz doesn't need. This is the main reason this
+> information is also effused. Have you considered this aspect while
+> creating this patch ?
+>
+> Regards
+> Santosh
+>
 
-On 11/01/2012 04:49 PM, Jon Hunter wrote:
-> A few device tree timer updates for OMAP4/5 devices.
-> 
-> This series adds ...
-> 1. MPU private addresses for OMAP4 timers
-> 2. Timer nodes for OMAP5
-> 3. 32kHz counter node for OMAP5
+I had considered it. There is no dependency on the features.
+DCC usage depends on asked frequency on the fly, not from the features.
+Depending on "performance/standard" feature the available frequencies
+should be chosen in places where they are needed, for example while
+initializing OPPs.
 
-Great, thanks for that update. Just in time before the pull request.
+Currently we have several features while it is only one indeed.
 
-> This is based upon of Benoit Cousson's OMAP device-tree branch for v3.8.
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.8/dts
-> 
-> Jon Hunter (3):
->   ARM: dts: Update OMAP4 timer addresses
->   ARM: dts: Add OMAP5 timer nodes
->   ARM: dts: Add OMAP5 counter node
 
-I've just updated slightly the subjects:
+-- 
+Regards,
+Ivan Khoronzhuk
 
-3b3132f ARM: dts: OMAP5: Add counter node
-df692a9 ARM: dts: OMAP5: Add timer nodes
-d03a93b ARM: dts: OMAP4: Update timer addresses
-
-There are now in my for_3.8/dts branch.
-
-Thanks,
-Benoit
