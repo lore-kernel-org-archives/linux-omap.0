@@ -1,120 +1,253 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Fwd: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Thu, 01 Nov 2012 12:42:21 +0100
-Message-ID: <874nl9tuqq.fsf@deeprootsystems.com>
-References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
-	<20121024161429.GA16350@core.coreip.homeip.net>
-	<CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
-	<4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
-	<CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow@mail.gmail.com>
-	<20121030113407.GA24335@sirena.org.uk>
-	<CACRpkdapQJY0aoam741O0fb8EeM9BLk_Psq5TaPG84J7wEvCLw@mail.gmail.com>
-	<87obji8kta.fsf@deeprootsystems.com>
-	<CACRpkdbCk9+HSBPtfT-1dO8paSRYJ5VXX_0SxiyxgrObnJEvmQ@mail.gmail.com>
-	<CACRpkdaBmg7wtX0WsaxMw=n1sKDN5YphK=y8tzAx_CF=JnUqvw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 05/13] ARM: OMAP2+: PRCM: create SoC-specific chip restart
+ functions
+Date: Thu, 1 Nov 2012 11:57:42 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211011151210.26661@utopia.booyaka.com>
+References: <20121025231818.17558.57884.stgit@dusk.lan> <20121025232116.17558.47458.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdaBmg7wtX0WsaxMw=n1sKDN5YphK=y8tzAx_CF=JnUqvw@mail.gmail.com>
-	(Linus Walleij's message of "Thu, 1 Nov 2012 09:56:48 +0100")
-Sender: linux-input-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:54532 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753101Ab2KAL5o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Nov 2012 07:57:44 -0400
+In-Reply-To: <20121025232116.17558.47458.stgit@dusk.lan>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Linus Walleij <linus.walleij@linaro.org> writes:
 
-> On Wed, Oct 31, 2012 at 9:10 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->
->> Linus Walleij <linus.walleij@linaro.org> writes:
->
->
->>
->> > piece of hardware, this would be the right thing to do,
->> > and I think the in-kernel examples are all "simple",
->> > e.g. arch/arm/mach-omap2/powerdomain* is all about
->> > power domains and nothing else,
->>
->> FYI... that code isn't the same as PM domain.
->
->
-> This sort of points to a core problem here. Our terminologies are
-> ambiguous that we cannot understand each others code. As long
-> as <linux/pm_domain.h> begins:
->
-> /*
->  * pm_domain.h - Definitions and headers related to device power domains.
->  *
->
-> But arguably that should just be patched (I think there are a few
-> remnants in the code still implying that these things are only about
-> power).
+Here's an update of this one.
 
-Agreed.  The terminology is confusing, and any situations like this in
-the code/comments/docs should be patched.
 
-When PM domains were introduced, I was the first to complain that we
-shouldn't use the term power domain so as not to be confused with HW
-concepts, so we settled on the term 'PM domain.'  Ultimately, it's just
-a configurable grouping of devices whose callbacks happen during PM
-transitions.
+- Paul
 
->>
->>  That code is for the
->> *hardware* powerdomains, not the software concept of "PM domain."  In
->> OMAP, PM domain is implmented at the omap_device level.  And omap_device
->> is the abstraction of an IP block that knows about all the PM related
->> register settings, clocks, HW powerdomain, voltage domain, PM related
->> pin-muxing etc. etc.    All of these things are abstracted in an
->> omap_device, so that the PM domain implementation for OMAP looks rather
->> simple (c.f. omap_device_pm_domain in arch/arm/plat-omap/omap_device.c.)
->
->
-> OK following now...
->
->>
->> > I think the lesser of two evils is the distributed approach,
->>
->> The pinctrl examples I've seen mentioned so far are all PM related
->>
->> (sleep, idle, wakeup, etc.) so to me I think they still belong in
->> PM domains (and that's how we handle the PM related pins in OMAP.)
->
->
-> Well, the pinctrl grabbers in these drivers are using these states also
-> for platforms that do not even select CONFIG_PM.  For example
-> mach-nomadik is quite happy that the PL011 driver is thusly
-> muxing in its pins. And would require refactoring to use PM
-> domains.
+From: Paul Walmsley <paul@pwsan.com>
+Date: Mon, 29 Oct 2012 20:56:07 -0600
+Subject: [PATCH] ARM: OMAP2+: PRCM: create SoC-specific chip restart
+ functions
 
-If CONFIG_PM is disabled, then is it safe to assume that the pins in
-question are probably only done once at init time.  I assume during
-->probe(). ?
+Split omap_prcm_restart() from mach-omap2/prcm.c into SoC-specific
+variants.  These functions need to be able to save the reboot reason
+into the scratchpad RAM.  This implies a dependency on both the PRM
+and SCM IP blocks, so they've been moved into their own file.  This
+will eventually call functions in the PRM and SCM drivers, once those
+are created.
 
->
-> So basically this requirement comes down to:
->
-> - When dealing with a SoC IP block driver
->
-> - That need to multiplex pins
->
-> - Then your SoC must select CONFIG_PM and
->   CONFIG_PM_RUNTIME andb
->   CONFIG_PM_GENERIC_DOMAINS and implement
->   proper domain handling hooks.
->
-> Is this correct? 
+Vaibhav Hiremath <hvaibhav@ti.com> identified an unused prototype in
+the first version of this patch - now removed.
 
-I would say yes.  Currently, PM domains are the way to hook SoC-specific
-integration details into PM transitions.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/Makefile        |    5 +++
+ arch/arm/mach-omap2/common.h        |   24 +++++++++++++
+ arch/arm/mach-omap2/omap2-restart.c |   65 +++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap3-restart.c |   36 +++++++++++++++++++
+ arch/arm/mach-omap2/omap4-common.c  |   16 +++++++++
+ 5 files changed, 146 insertions(+)
+ create mode 100644 arch/arm/mach-omap2/omap2-restart.c
+ create mode 100644 arch/arm/mach-omap2/omap3-restart.c
 
-However, if what we want/need are only ways to introduce SoC-specific
-integration details into non-PM transitions (e.g. probe/remove), maybe
-bus notifiers would suffice here.  e.g. you'd get a bus notifier when
-the device is added/attached and any init-time pinctrl setup could be
-done then.  This still keeps drivers clean of SoC-specific integration
-data/code, and also allows that to happen whether or not PM features are
-enabled.
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index ae87a3e..1988810 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -50,6 +50,11 @@ AFLAGS_sram242x.o			:=-Wa,-march=armv6
+ AFLAGS_sram243x.o			:=-Wa,-march=armv6
+ AFLAGS_sram34xx.o			:=-Wa,-march=armv7-a
+ 
++# Restart code (OMAP4/5 currently in omap4-common.c)
++obj-$(CONFIG_SOC_OMAP2420)		+= omap2-restart.o
++obj-$(CONFIG_SOC_OMAP2430)		+= omap2-restart.o
++obj-$(CONFIG_ARCH_OMAP3)		+= omap3-restart.o
++
+ # Pin multiplexing
+ obj-$(CONFIG_SOC_OMAP2420)		+= mux2420.o
+ obj-$(CONFIG_SOC_OMAP2430)		+= mux2430.o
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index b8f7710..3f5aa9d 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -121,6 +121,30 @@ void omap4430_init_late(void);
+ int omap2_common_pm_late_init(void);
+ void omap_prcm_restart(char, const char *);
+ 
++#if defined(CONFIG_SOC_OMAP2420) || defined(CONFIG_SOC_OMAP2430)
++void omap2xxx_restart(char mode, const char *cmd);
++#else
++static inline void omap2xxx_restart(char mode, const char *cmd)
++{
++}
++#endif
++
++#ifdef CONFIG_ARCH_OMAP3
++void omap3xxx_restart(char mode, const char *cmd);
++#else
++static inline void omap3xxx_restart(char mode, const char *cmd)
++{
++}
++#endif
++
++#if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
++void omap44xx_restart(char mode, const char *cmd);
++#else
++static inline void omap44xx_restart(char mode, const char *cmd)
++{
++}
++#endif
++
+ /* This gets called from mach-omap2/io.c, do not call this */
+ void __init omap2_set_globals_tap(u32 class, void __iomem *tap);
+ 
+diff --git a/arch/arm/mach-omap2/omap2-restart.c b/arch/arm/mach-omap2/omap2-restart.c
+new file mode 100644
+index 0000000..be6bc89
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap2-restart.c
+@@ -0,0 +1,65 @@
++/*
++ * omap2-restart.c - code common to all OMAP2xxx machines.
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++
++#include "common.h"
++#include "prm2xxx.h"
++
++/*
++ * reset_virt_prcm_set_ck, reset_sys_ck: pointers to the virt_prcm_set
++ * clock and the sys_ck.  Used during the reset process
++ */
++static struct clk *reset_virt_prcm_set_ck, *reset_sys_ck;
++
++/* Reboot handling */
++
++/**
++ * omap2xxx_restart - Set DPLL to bypass mode for reboot to work
++ *
++ * Set the DPLL to bypass so that reboot completes successfully.  No
++ * return value.
++ */
++void omap2xxx_restart(char mode, const char *cmd)
++{
++	u32 rate;
++
++	rate = clk_get_rate(reset_sys_ck);
++	clk_set_rate(reset_virt_prcm_set_ck, rate);
++
++	/* XXX Should save the cmd argument for use after the reboot */
++
++	omap2xxx_prm_dpll_reset(); /* never returns */
++	while (1);
++}
++
++/**
++ * omap2xxx_common_look_up_clks_for_reset - look up clocks needed for restart
++ *
++ * Some clocks need to be looked up in advance for the SoC restart
++ * operation to work - see omap2xxx_restart().  Returns -EINVAL upon
++ * error or 0 upon success.
++ */
++static int __init omap2xxx_common_look_up_clks_for_reset(void)
++{
++	reset_virt_prcm_set_ck = clk_get(NULL, "virt_prcm_set");
++	if (IS_ERR(reset_virt_prcm_set_ck))
++		return -EINVAL;
++
++	reset_sys_ck = clk_get(NULL, "sys_ck");
++	if (IS_ERR(reset_sys_ck))
++		return -EINVAL;
++
++	return 0;
++}
++core_initcall(omap2xxx_common_look_up_clks_for_reset);
+diff --git a/arch/arm/mach-omap2/omap3-restart.c b/arch/arm/mach-omap2/omap3-restart.c
+new file mode 100644
+index 0000000..923c582
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap3-restart.c
+@@ -0,0 +1,36 @@
++/*
++ * omap3-restart.c - Code common to all OMAP3xxx machines.
++ *
++ * Copyright (C) 2009, 2012 Texas Instruments
++ * Copyright (C) 2010 Nokia Corporation
++ * Tony Lindgren <tony@atomide.com>
++ * Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/kernel.h>
++#include <linux/init.h>
++
++#include "iomap.h"
++#include "common.h"
++#include "control.h"
++#include "prm3xxx.h"
++
++/* Global address base setup code */
++
++/**
++ * omap3xxx_restart - trigger a software restart of the SoC
++ * @mode: the "reboot mode", see arch/arm/kernel/{setup,process}.c
++ * @cmd: passed from the userspace program rebooting the system (if provided)
++ *
++ * Resets the SoC.  For @cmd, see the 'reboot' syscall in
++ * kernel/sys.c.  No return value.
++ */
++void omap3xxx_restart(char mode, const char *cmd)
++{
++	omap3_ctrl_write_boot_mode((cmd ? (u8)*cmd : 0));
++	omap3xxx_prm_dpll3_reset(); /* never returns */
++	while (1);
++}
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 6cd7e87..34bd16a 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -33,6 +33,7 @@
+ #include "common.h"
+ #include "mmc.h"
+ #include "hsmmc.h"
++#include "prminst44xx.h"
+ #include "omap4-sar-layout.h"
+ #include "omap-secure.h"
+ 
+@@ -248,6 +249,21 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+ 	return 0;
+ }
+ 
++/**
++ * omap44xx_restart - trigger a software restart of the SoC
++ * @mode: the "reboot mode", see arch/arm/kernel/{setup,process}.c
++ * @cmd: passed from the userspace program rebooting the system (if provided)
++ *
++ * Resets the SoC.  For @cmd, see the 'reboot' syscall in
++ * kernel/sys.c.  No return value.
++ */
++void omap44xx_restart(char mode, const char *cmd)
++{
++	/* XXX Should save 'cmd' into scratchpad for use after reboot */
++	omap4_prminst_global_warm_sw_reset(); /* never returns */
++	while (1);
++}
++
+ static __init void omap4_twl6030_hsmmc_set_late_init(struct device *dev)
+ {
+ 	struct omap_mmc_platform_data *pdata;
+-- 
+1.7.10.4
 
-Kevin
