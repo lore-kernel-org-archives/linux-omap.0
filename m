@@ -1,105 +1,268 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL v2] ARM: OMAP: more hwmod/PRCM fixes for 3.7-rc
-Date: Thu, 1 Nov 2012 02:52:53 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211010252350.6693@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1210311050040.4160@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Thu, 1 Nov 2012 09:02:15 +0200
+Message-ID: <E4EE0D1F-C7AC-4620-86F2-D9C7C56E279F@antoniou-consulting.com>
+References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com> <20121031175219.GH12739@atomide.com> <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com> <20121031180935.GL12739@atomide.com> <50918223.6080003@ti.com> <8AD2F7AF-8315-442B-A394-1A38DAB29F52@antoniou-consulting.com> <20121031212639.GQ12739@atomide.com> <8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com> <20121031221402.GA29490@arwen.pp.htv.fi>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53689 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756830Ab2KACwy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Oct 2012 22:52:54 -0400
-In-Reply-To: <alpine.DEB.2.00.1210311050040.4160@utopia.booyaka.com>
+Received: from li42-95.members.linode.com ([209.123.162.95]:49505 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752003Ab2KAHCX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Nov 2012 03:02:23 -0400
+In-Reply-To: <20121031221402.GA29490@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Felibe,
 
-Hi Tony
+On Nov 1, 2012, at 12:14 AM, Felipe Balbi wrote:
 
-The following changes since commit 8f0d8163b50e01f398b14bcd4dc039ac5ab18d64:
+> Hi,
+> 
+> On Wed, Oct 31, 2012 at 11:36:25PM +0200, Pantelis Antoniou wrote:
+>>> * Pantelis Antoniou <panto@antoniou-consulting.com> [121031 13:14]:
+>>>> On Oct 31, 2012, at 9:55 PM, Benoit Cousson wrote:
+>>>>> 
+>>>>> Yeah, I do agree. I'm confused as well. Only OMAP IPs under PRCM control
+>>>>> could have an hwmod and thus must be handled by an omap_device.
+>>>>> 
+>>>>> Any devices that is created later cannot be omap_device. The DT core
+>>>>> will create regular platform_device for them.
+>>>>> 
+>>>>> Since cape is an external board, it should have nothing to do with
+>>>>> omap_device.
+>>>>> 
+>>>>> Looking at your patch:
+>>>>> da8xx-dt: Create da8xx DT adapter device
+>>>>> 
+>>>>> I understand why you do that, but in fact that patch does not make sense
+>>>>> to me :-(
+>>>>> 
+>>>>> Why do you have to create an omap_device from the driver probe?
+>>>>> 
+>>>> 
+>>>> The problem is that capes are not external boards in the normal sense
+>>>> as a PCI board is. In the PCI case the hardware that implements the 
+>>>> desired functionality is on the PCI board, while in the cape case the
+>>>> hardware module is in the SoC. The cape most of the times is quite
+>>>> simple and contains passive components, leds or some kind of I2C/SPI devices.
+>>> 
+>>> Ah now I see, you're talking about the beaglebone extension
+>>> boards :)
+>>> 
+>>> The way to deal with those properly is to just edit the
+>>> board .dts entry to include omap-beaglebone-cape-xyz.dtsi
+>>> whatever.
+>>> 
+>> 
+>> That is what is being done...
+>> This is the fallout.
+>> 
+>>>> You can't instantiate the omap_device early in the boot process like it was done up to 
+>>>> now in the board file. You can only do that later in the boot process (for built-in 
+>>>> cape drivers), or even after user-space has booted and the matching cape driver module
+>>>> has been loaded.
+>>> 
+>>> Yes you can, just edit the .dts file for the extension
+>>> board you have connected. This stuff should be DT
+>>> only for sure, let's not even start adding platform_data
+>>> entries for that.
+>>> 
+>>> The omap_device entries for the omap internal devices
+>>> will be created automatically during startup based on the
+>>> .dts. Note that you can set status = "disabled" for the
+>>> omap internal devices in the .dts file, the devices are
+>>> there in the hardware.
+>>> 
+>>> If you are sure the extension boards are safely hot
+>>> pluggable, then all you need is some interface to enable
+>>> and disable devices after booting. But that should be
+>>> done in Linux generic way.
+>>> 
+>>> So we should not export any omap_hwmod or omap_device
+>>> things, and want to keep it __init only, and local to
+>>> arch/arm/mach-omap2.
+>>> 
+>> 
+>> I disagree. This is not something that is handled by just
+>> editing the dts. The way it is handled, is in the Linux
+>> generic way, we have a proper bus, and the drivers as compiled
+>> as standalone file. 
+> 
+> when you have an actual bus, that'd be correct.
 
-  Linux 3.7-rc3 (2012-10-28 12:24:48 -0700)
+What do you think capebus is? It is an actual bus that allows you
+to do so.
 
-are available in the git repository at:
+> 
+>> We're hitting a use case that wasn't there in omap until now.
+>> 
+>> There a a whole bunch of conflicting capes. There's no
+>> way to instantiate them together. They must be instantiated
+>> only after their EEPROMs are read and they are matched
+>> to their corresponding cape drivers.
+> 
+> why this requirement of instantiating them only after reading EEPROMs ?
+> 
+> It's unnecessary to add that requirement, just do what Tony said
+> (include my-awesome-cape.dtsi to bone.dts) and all i2c/spi devices
+> should be created automatically.
+> 
+> The thing is that there is no such thing as a cape-device. The cape is
+> just a collection of I2C, 1-wire and SPI devices anyway. What we should
+> instantiate is bmp085, tls2550, sht21, instead of instantiating
+> beagle-bone-weather-cape.
+> 
+> What's the problem in just instantiating all of those from bone.dts ?
+> Expose the EEPROMs to userland so whatever SW you guys have running on
+> the bone can figure out what features to expose to the SDK which the
+> user sees, but the kernel doesn't need to know that there is a
+> weather-cape attached to the bone.
+> 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-b2-for-3.7-rc
+The I2C/SPI devices are not a problem at all.
 
-for you to fetch changes up to bc05244e65f26b7b6f87e0964bfe277803914ed9:
+Let me try to explain what the problem is, and why it all this 
+is needed.
 
-  ARM: OMAP4: hwmod data: do not enable or reset the McPDM during kernel init (2012-10-31 05:02:31 -0600)
+First of all, capes may be relatively simple boards, which may function
+as a generic device - like the generic capes. They might not necessarily 
+be simple. Some capes, for example the geiger cape have a number of
+components that perform a specific task; in this instance the driving
+circuit of the geiger tube and the event detector input. Other capes
+that are being designed now are even more complex, i.e. there's a 
+radar cape, an fpga cape and so on. So for these kind of boards
+you will need a specific driver. That driver will probably use some 
+generic-cape bits (like gpios, pwms, keys what-ever).
+But it will put them to use in the custom in-kernel driver in it's own
+way. You can't put that task to user-space, if it's ever slightly complex.  
 
-- ----------------------------------------------------------------
-A few more OMAP fixes for the 3.7-rc timeframe.  Mostly hwmod fixes.
-This second revision includes a missing fix from Kevin for a GPIO problem.
+So for really simple capes, after considerable pain you might, just
+might, dump the problem to user-space and try to make it work. 
+People have tried that and it's a total pain. There is no way that this will
+work with anything more complex than a generic cape.
 
-Basic test logs are available here:
+Then there's the out of the box experience problem.
 
-    http://www.pwsan.com/omap/testlogs/fixes_b_v3.7-rc/20121031050331/
+What a customer that buys one of these boards along with a number of
+capes wants is to plug them, and have them work. You cannot have
+the DTS file activating all the drivers for each possible cape since
+they conflict; the pins that one SPI bus that one cape uses might be a 
+PWM output for another, and so on. 
 
-However the v3.7-rc3 kernel is still missing fixes for several regressions,
-which cause several tests to fail.  With several reverts, fixes, and workarounds
-applied, the following test logs were obtained:
+Asking the customer to edit the distro supplied kernel's dts and recompiling,
+while figuring out how to solve conflicts is not going to fly.
 
-    http://www.pwsan.com/omap/testlogs/TEST_fixes_b_v3.7-rc/20121031050433/
+We have the versioning problem. All the standard capes go through
+a very fast evolution processes. So we now have 3 versions of a DVI cape,
+2 of a small LCD cape and so on. We don't want to abandon the capes that
+are already sold and are out on the field, but we don't want to spend
+too much time hacking the driver to support all the different version.
+The version capability of capebus handles that; taking as an example the
+DVI cape in which the power down GPIO moved around:
 
- which indicate that the series tests cleanly.
+>        version@00A0 {
+>                 version = "00A0";
+>                 dvi {
+>                         compatible = "da8xx-dt";
+>                         pinctrl-names = "default";
+>                         pinctrl-0 = <&bone_dvi_cape_dvi_00A0_pins>;
+>                         ti,hwmods = "lcdc";
+> 
+>                         disp-pll = <560000000>;
+>                         panel-type = "1024x768@60";
+>                         powerdn-gpio = <&gpio2 7 0>;
+>                 };
+>         };
+> 
+>         version@00A1 {
+>                 version = "00A1", "01";
+>                 dvi {
+>                         compatible = "da8xx-dt";
+>                         pinctrl-names = "default";
+>                         pinctrl-0 = <&bone_dvi_cape_dvi_00A1_pins>;
+>                         ti,hwmods = "lcdc";
+> 
+>                         disp-pll = <560000000>;
+>                         panel-type = "1024x768@60";
+>                         powerdn-gpio = <&gpio2 31 0>;
+>                 };
+>         };
+> 
+> 
 
-- ----------------------------------------------------------------
+Finally, we have the target user-base problem. The users are all going to
+be hobbyists, persons that buy beaglebones as a step up from Arduino. They
+will want to hack their own kind of hardware; they might not even have
+an EEPROM in their custom boards. They need some kind of runtime selection
+of the cape they have defined, these is handled by the case of overrides.
+
+For example, the Adafruit 1.8 Display is pretty popular, but it's not a cape.
+You have to wire it yourself and connect it to the expansion header. Then
+there's two different kinds of the display. It also has a PWM input for 
+backlight control.
+
+Making use of it is simple with capebus:
+
+# cd /sys/devices/capebus.10
+# echo "0:Adafruit 1.8 Cape" >slots
+
+And that's it. The disable spi & pwm device the display needs will
+be turned on, the pinmux it needs will be set, and the spi device
+that the display uses will be created.
+
+I have no clue how this can be simpler using any kind of user-space
+method. And no, you can't have this active in the DTS of the common
+kernel for all beaglebones.
+
+> &bone_adafruit_cape {   
+>         board-name = "Adafruit 1.8 Cape";
+>                         
+>         backlight {
+>                 compatible      = "pwm-backlight";
+>                 pinctrl-names   = "default";
+>                 pinctrl-0       = <&pwm_bl_pins>;
+> 
+>                 pwms = <&ehrpwm1 1 500000 0>;
+>                 pwm-names = "st7735fb";
+>                 brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36
+>                 default-brightness-level = <50>; /* index to the array above */
+>         };
+>         
+>         spi1-devices {
+>                 compatible = "spi-dt";
+> 
+>                 #address-cells = <1>;
+>                 #size-cells = <0>;
+>                 
+>                 parent = <&spi1>;
+>         
+>                 lcd@0 { 
+>                         compatible = "adafruit,tft-lcd-1.8-red", "sitronix,st7735";
+>                         spi-max-frequency = <8000000>;
+>                         reg = <0>;
+>                         spi-cpol;
+>                         spi-cpha;
+>                         pinctrl-names = "default";
+>                         pinctrl-0 = <&lcd_pins>;
+>                         st7735-rst = <&gpio4 19 0>;
+>                         st7735-dc = <&gpio4 21 0>;
+>                 };      
+>         
+>         };
+> };      
+> 
 
 
-vmlinux object size
-(delta in bytes from test_v3.7-rc3 (8f0d8163b50e01f398b14bcd4dc039ac5ab18d64)):
-   text     data      bss    total  kernel
-     -8        0        0       -8  am33xx_only
-   +156       +8        0     +164  n800_multi_omap2xxx
-   +136      +16        0     +152  n800_only_a
-     -8       -8        0      -16  omap1_defconfig
-    +12      -24        0      -12  omap1_defconfig_1510innovator_only
-    +12       +8      +32      +52  omap1_defconfig_5912osk_only
-   +132        0        0     +132  omap2plus_defconfig
-   +156      -16        0     +140  omap2plus_defconfig_2430sdp_only
-    +68        0        0      +68  omap2plus_defconfig_cpupm
-   +132        0      +64     +196  omap2plus_defconfig_no_pm
-   +104      +24      +64     +192  omap2plus_defconfig_omap2_4_only
-    +40      +16        0      +56  omap2plus_defconfig_omap3_4_only
-   +304        0        0     +304  rmk_omap3430_ldp_oldconfig
-   +260        0        0     +260  rmk_omap4430_sdp_oldconfig
+> -- 
+> balbi
 
+Regards
 
-Miguel Vadillo (1):
-      ARM: OMAP2+: clockdomain: Fix OMAP4 ISS clk domain to support only SWSUP
+-- Pantelis
 
-Paul Walmsley (2):
-      ARM: OMAP2+: hwmod: add flag to prevent hwmod code from touching IP block during init
-      ARM: OMAP4: hwmod data: do not enable or reset the McPDM during kernel init
-
-Tero Kristo (1):
-      ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
-
- arch/arm/mach-omap2/clockdomains44xx_data.c  |    2 +-
- arch/arm/mach-omap2/omap_hwmod.c             |   63 ++++++++++++++++++++------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    8 ++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 +++
- 4 files changed, 64 insertions(+), 15 deletions(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQkeO0AAoJEMePsQ0LvSpLBlIP/0fAPB135m/lrBNMrPCbxfqL
-5vOPVXPQcVL16wR6+LHHs4uDsSAxKlxw27sbUNgPT7b2ay46PjAn0Dr/oUaUBaC7
-O8YSzUY1nONnGtOiXLHC3PTD4GuPugord0V3UWByb10qu0QvrNOFCjQV+uty+EGr
-4Qk0yrUFyY2MI4g6E6DGnSbz0RAc0SLCkCn303P+SUyZfcKjTMT0KM4fuHbL9r1n
-PhuPpO45KV/R153c3xCRSk2D84rKU+LHsGaxVDNzudQwQycAEhuqtXLZ4THFiUQ9
-hfgVU8qSW+5e8xfCe9jVw5zNvsbs8lc/w6H/1tkKmUJT3RBZwuYmCVpOZgT38/1y
-tXv7DqaWfbv7BcHhHlXWA/6sbIbTa/0RUFtmqhD0WW8ea8ryk1/4DMSt67tZn3HM
-z4HSloKo8UPEUF3VHY+dA86WMyd9K5MDoxdQ3JnwBeqReKopFmer+r2X7kcM32Il
-skU0WrUhUiyKli45YNxjMuW12EMdIwdipNVWDh5G5lHefpsMbOMeO+lSFaScNtDH
-mvFiGLQK1UpHQS+PO7NAHR16QnKJI8Kjez55xZOXhy/QB1IM5sVvIq9AbQDeQOm+
-KTwyTjBIU2yHYRbNSm8nvbK61hn50Mb2xRFQPXCr5cbZc7bKC36P1bO6t2J0K1p+
-v9qv1ixyixI84IPMNpZU
-=SEf9
------END PGP SIGNATURE-----
