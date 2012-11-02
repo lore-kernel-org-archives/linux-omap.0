@@ -1,94 +1,139 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: ensure writes to dev->buf_len are ordered
-Date: Fri, 2 Nov 2012 10:54:47 +0200
-Message-ID: <20121102085447.GE17063@arwen.pp.htv.fi>
-References: <1351155648-20429-1-git-send-email-balbi@ti.com>
- <20121101222316.GC22956@pengutronix.de>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Fri, 2 Nov 2012 10:57:18 +0200
+Message-ID: <20121102085718.GF17063@arwen.pp.htv.fi>
+References: <20121101110418.GF410@arwen.pp.htv.fi>
+ <3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
+ <20121101124025.GA12489@arwen.pp.htv.fi>
+ <A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
+ <20121101131609.GC12489@arwen.pp.htv.fi>
+ <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
+ <20121101135148.382aec00@pyramind.ukuu.org.uk>
+ <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
+ <20121101220518.GE14982@arwen.pp.htv.fi>
+ <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SxgehGEc6vB0cZwN"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="yZnyZsPjQYjG7xG7"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20121101222316.GC22956-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: balbi@ti.com, Pantelis Antoniou <panto@antoniou-consulting.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
---SxgehGEc6vB0cZwN
-Content-Type: text/plain; charset=us-ascii
+--yZnyZsPjQYjG7xG7
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Nov 01, 2012 at 11:23:16PM +0100, Wolfram Sang wrote:
-> On Thu, Oct 25, 2012 at 12:00:48PM +0300, Felipe Balbi wrote:
-> > if we allow compiler reorder our writes, we could
-> > fall into a situation where dev->buf_len is reset
-> > for no apparent reason.
-> >=20
-> > This bug was found with a simple script which would
-> > transfer data to an i2c client from 1 to 1024 bytes
-> > (a simple for loop), when we got to transfer sizes
-> > bigger than the fifo size, dev->buf_len was reset
-> > to zero before we had an oportunity to handle XDR
-> > Interrupt. Because dev->buf_len was zero, we entered
-> > omap_i2c_transmit_data() to transfer zero bytes,
-> > which would mean we would just silently exit
-> > omap_i2c_transmit_data() without actually writing
-> > anything to DATA register. That would cause XDR
-> > IRQ to trigger forever and we would never transfer
-> > the remaining bytes.
-> >=20
-> > After adding the memory barrier, we also drop resetting
-> > dev->buf_len to zero in omap_i2c_xfer_msg() because
-> > both omap_i2c_transmit_data() and omap_i2c_receive_data()
-> > will act until dev->buf_len reaches zero, rendering the
-> > other write in omap_i2c_xfer_msg() redundant.
-> >=20
-> > This patch has been tested with pandaboard for a few
-> > iterations of the script mentioned above.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > ---
-> >=20
-> > This bug has been there forever, but it's quite annoying.
-> > I think it deserves being pushed upstream during this -rc
-> > cycle, but if Wolfram decides to wait until v3.8, I don't
-> > mind.
+On Thu, Nov 01, 2012 at 04:49:23PM -0700, Russ Dill wrote:
+> On Thu, Nov 1, 2012 at 3:05 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > HI,
+> >
+> > On Thu, Nov 01, 2012 at 03:59:50PM +0200, Pantelis Antoniou wrote:
+> >> Hi Alan,
+> >>
+> >> On Nov 1, 2012, at 3:51 PM, Alan Cox wrote:
+> >>
+> >> >> What they want, and what every user wants, is I plug this board in,=
+ and
+> >> >> the driver make sure everything is loaded and ready. No, the end us=
+ers
+> >> >> don't want to see any of the implementation details of how the bitf=
+ile
+> >> >> is transported; the driver can handle it.
+> >> >
+> >> > That doesn't necessarily make it a bus merely some kind of hotplug
+> >> > enumeration of devices. That should all work properly both for devic=
+es
+> >> > and busses with spi and i=B2c as the final bits needed for it got fi=
+xed
+> >> > some time ago.
+> >> >
+> >> > In an ideal world you don't want to be writing custom drivers for st=
+uff.
+> >> > If your cape routes an i=B2c serial device to the existing system i=
+=B2c
+> >> > busses then you want to just create an instance of any existing driv=
+er on
+> >> > the existing i=B2c bus not create a whole new layer of goop.
+> >> >
+> >> > It does need to do the plumbing and resource management for the plum=
+bing
+> >> > but thats not the same as being a bus.
+> >> >
+> >> > Alan
+> >>
+> >>
+> >> Fair enough. But there's no such thing a 'hotplug enumeration
+> >> construct' in Linux yet, and a bus is the closest thing to it. It does
+> >> take advantage of the nice way device code matches drivers and devices
+> >> though.
+> >>
+> >> I'm afraid that having the I2C/SPI drivers doing the detection won't
+> >> work.  The capes can have arbitrary I2C/SPI devices (and even more
+> >> weird components).  There is no way to assure for example that the I2C
+> >> device responding to address 'foo' in cape A is the same I2C device
+> >> responding to the same address in cape B.
+> >
+> > your ->detect() method should take care of that.
 >=20
-> I would add this into 3.7, but what about the comments suggesting to use
-> barrier()?
+> There isn't some magical serial number in I=B2C devices that a
+> ->detect() method can read and the implementation of I=B2C is somewhat
+> flexible. One devices read may be another devices write. A detect
 
-I was waiting for more comments, will respin the patch next week.
+look at what other drivers do. You can read a revision register, you can
+write a command and see if the device responds as expected, it doesn't
+matter.
 
-cheers
+> method that only performs reads could easily toggle a gpio that resets
+> the board, rewrite and eeprom, or set the printer on fire. If you
+
+how ? It's just a read.
+
+> browse through various detect functions, yes, some of them key off an
+> ID, but a lot of them just check various registers to see if certain
+> bits are zero, or certain bits are one. A lot of I=B2C devices I've
+> dealt with have no good way of probing them, especially GPIO chips
+> (you'll notice none of the I=B2C GPIO expanders have detect functions)
+
+it doesn't mean it can't be done.
+
+> On top of all this the detect routine does not tell you if the alert
+> pin is connected to some IRQ, or in the case of a GPIO expander, what
+> those GPIOs are connected to, etc, etc.
+
+so what ? All you want to do with detect is figure out if the far end is
+who you think it is, not what it's doing.
 
 --=20
 balbi
 
---SxgehGEc6vB0cZwN
+--yZnyZsPjQYjG7xG7
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQk4pXAAoJEIaOsuA1yqRE/ocP/20F4gSgmDLQWcFgmjk5AwKQ
-8hsyXjmqngRdJZoattP+dkMNHr67dkSBROJEKM1gREVco+11RVB739yCILWQuPFT
-3uqXIx/z7xJWcaPjpTz5FXioTNqJQ9brg+eZzhdh34aPeO1reQ1/PaolUu15jN9l
-ovpbTQL64wvsLs0aOTc7AJuuTHtx8HH6sJstIEyLO4ZIAwgGntWnh4r+26+KScUb
-SInFfS0NCIa+X6shkXHl6FGdh3mxJtAkQUFywrDGOvo7pG3ZkKh6sPR9Kv9ZlcM9
-OVva/wpaFjHLfXgSOHwuthQMpUy090LS2UuYeLx4M1ekTDkPIdIsoUZPS6mIug0w
-2RSUJwtUPGmweM4IUJnDVSkHW5MqNgcYwRSi3G6odAqP4qbXz7QS9fMcHMccfS76
-DvoJPhUrEm1QLGGS6Ec0bhjcQQUeyHjjLnoefwsf+TlvZP4O6FOgyZ06RAubR1tG
-b/iRIvdbR/wjVdVqyHUS6Acc8U/t+MziahQ+kLnbAmH8CVdXghd5+fxPVIkNPqm/
-HxKanAakJkCUYAZVxp6zM1o3fNmiaSwBxOe1pvQyKCHY7MmEeh5JeBLpV8QGj6kL
-SNrgP48QTjzdeyYtB79FZpP74IVUXZABlOT7TsL2Ql44Gcc3Kbw2BqqtlLqHdxif
-Ww+BbeFXSv018MO11pCe
-=wz2X
+iQIcBAEBAgAGBQJQk4ruAAoJEIaOsuA1yqRE/oYP/RrMH4OT/KP6qBKpCh2IP8oj
+TUUTewsWGmGmhtWqjM+/1Ck1oJTtdbaYN/M+JI15J44/aLXwvFLQWN2h5SKF2piQ
+CcxF8lNckdrsL/33qpsTEwbaAsD3UqNbnlZpfAKS8cOTVOmbqWmVlBL0T5ZWT1lL
+J1y+0DH5A52sact2PXmdZJOkgdOOAUqdrBLYVQ+h56YerSxCBfh2a1qyTCzpYu6Z
+dx0We+7fcLubz69fbb84jg0AAqiMhjLD6JfE/bTElhQdPF3EkzJc7+9AqIcHdFbn
+8I2vVX/k8UlcAiJLu3TvS60aGsVrKGjJeLVi4IxCVL0tLdKDEk9Ubd2xYuqrfxva
+/dvil8+N439/TDj+0SFQOLhJbe+zZ3WFPzzVqS5mbpyjRS8wd64s4hpWYDNjEpAw
+k8EKL0IC8h/HG7i0VsNV83ZBvWM3z6uve4M666L0+kDKPA+nGbVOCTzhV16zdCxO
+77Xiiu3oSN/yXQFsO7iEQPPkOy07yEDvqPqJn4z28fHZ72HpwoVJwQ4wu0ZZIEpX
+jj5iFwcgSqP7+1wjff560/puupo9377HsI/BthXSQV0O9C1bowmZBE+YJNhHSYGp
+zWswCgjnPEEVypdiX7dmMTT+J5GU8kamNMeCCRjo78kPPwQBuyD7OFzQfbZ2MRIS
+cxJ2OTRGtD1A1xKhI0b0
+=znTI
 -----END PGP SIGNATURE-----
 
---SxgehGEc6vB0cZwN--
+--yZnyZsPjQYjG7xG7--
