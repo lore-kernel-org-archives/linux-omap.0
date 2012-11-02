@@ -1,96 +1,51 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 1/5] usb: musb: dsps: remove platform callback
-Date: Fri, 2 Nov 2012 22:02:28 +0530
-Message-ID: <6d119c23435a6ecbb47856ae71539efeac39271a.1351870620.git.afzal@ti.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/5] usb: musb: dsps: reduce musb instance to one
+Date: Fri, 2 Nov 2012 22:02:35 +0530
+Message-ID: <808fe9b3f94a29c704f9d3365d7bc63ec35e94a7.1351870620.git.afzal@ti.com>
 References: <cover.1351870620.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <cover.1351870620.git.afzal@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Santhapuri Damodar <damodar.santhapuri@ti.com>, Ravi Babu <ravibabu@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1351870620.git.afzal-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Santhapuri Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-dsps wrapper is dt only, it cannot execute platform callbacks.
-Presence of this would cause NULL dereference, hence remove it.
+Currently multiple phy's of the same type are not supported, hence
+reduce musb instances to one. This helps in supporting at least one
+instance of musb, rather than having none. Even without this, it was
+observed that both instances were working (by luck), but this holds
+good iff wrapper is part of Image. And it is not correct for both
+controller's to be associated with same phy, here it was working
+because phy is a nop one. And having wrapper as a module and
+rmmod'ing would crash.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+This can be reverted once multi phy support for same type is available
+and driver is enhanced to make use of it.
+
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/musb_dsps.c | 26 --------------------------
- 1 file changed, 26 deletions(-)
+ drivers/usb/musb/musb_dsps.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 625400f..2396bcd 100644
+index 2396bcd..524c003 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
-@@ -365,11 +365,9 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- static int dsps_musb_init(struct musb *musb)
- {
- 	struct device *dev = musb->controller;
--	struct musb_hdrc_platform_data *plat = dev->platform_data;
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
--	struct omap_musb_board_data *data = plat->board_data;
- 	void __iomem *reg_base = musb->ctrl_base;
- 	u32 rev, val;
- 	int status;
-@@ -395,10 +393,6 @@ static int dsps_musb_init(struct musb *musb)
- 	/* Reset the musb */
- 	dsps_writel(reg_base, wrp->control, (1 << wrp->reset));
+@@ -677,7 +677,7 @@ static const struct dsps_musb_wrapper ti81xx_driver_data __devinitconst = {
+ 	.rxep_bitmap		= (0xfffe << 16),
+ 	.musb_core_offset	= 0x400,
+ 	.poll_seconds		= 2,
+-	.instances		= 2,
++	.instances		= 1,
+ };
  
--	/* Start the on-chip PHY and its PLL. */
--	if (data->set_phy_power)
--		data->set_phy_power(1);
--
- 	musb->isr = dsps_interrupt;
- 
- 	/* reset the otgdisable bit, needed for host mode to work */
-@@ -419,17 +413,11 @@ err0:
- static int dsps_musb_exit(struct musb *musb)
- {
- 	struct device *dev = musb->controller;
--	struct musb_hdrc_platform_data *plat = dev->platform_data;
--	struct omap_musb_board_data *data = plat->board_data;
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 
- 	del_timer_sync(&glue->timer[pdev->id]);
- 
--	/* Shutdown the on-chip PHY and its PLL. */
--	if (data->set_phy_power)
--		data->set_phy_power(0);
--
- 	/* NOP driver needs change if supporting dual instance */
- 	usb_put_phy(musb->xceiv);
- 	usb_nop_xceiv_unregister();
-@@ -650,25 +638,11 @@ static int __devexit dsps_remove(struct platform_device *pdev)
- #ifdef CONFIG_PM_SLEEP
- static int dsps_suspend(struct device *dev)
- {
--	struct musb_hdrc_platform_data *plat = dev->platform_data;
--	struct omap_musb_board_data *data = plat->board_data;
--
--	/* Shutdown the on-chip PHY and its PLL. */
--	if (data->set_phy_power)
--		data->set_phy_power(0);
--
- 	return 0;
- }
- 
- static int dsps_resume(struct device *dev)
- {
--	struct musb_hdrc_platform_data *plat = dev->platform_data;
--	struct omap_musb_board_data *data = plat->board_data;
--
--	/* Start the on-chip PHY and its PLL. */
--	if (data->set_phy_power)
--		data->set_phy_power(1);
--
- 	return 0;
- }
- #endif
+ static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
 -- 
 1.7.12
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
