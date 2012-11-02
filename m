@@ -1,72 +1,49 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
-Date: Fri, 2 Nov 2012 18:26:32 +0000
-Message-ID: <20121102182632.GF4413@opensource.wolfsonmicro.com>
-References: <20121026160316.GY18814@opensource.wolfsonmicro.com>
- <20121029194901.GA30152@arwen.pp.htv.fi>
- <20121030112410.GM4511@opensource.wolfsonmicro.com>
- <20121030114949.GC28722@arwen.pp.htv.fi>
- <20121030140714.GO4511@opensource.wolfsonmicro.com>
- <20121030151642.GE29159@arwen.pp.htv.fi>
- <20121030155821.GU4511@opensource.wolfsonmicro.com>
- <20121030172513.GA3993@arwen.pp.htv.fi>
- <20121030183704.GX4511@opensource.wolfsonmicro.com>
- <CACRpkdac=ztY0vXQ8Mu6H8fiAO4aFSSF-A6O1Q==zKOKEsJegw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: Remove plat-omap/common.c
+Date: Fri, 2 Nov 2012 11:54:53 -0700
+Message-ID: <20121102185453.GY15766@atomide.com>
+References: <20121101224703.2103.95474.stgit@muffinssi.local>
+ <20121101224828.2103.82950.stgit@muffinssi.local>
+ <50936A6E.3020202@ti.com>
+ <5093891D.6070302@ti.com>
+ <50938A69.9040908@ti.com>
+ <20121102154901.GU15766@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZsxMXj7gRnSZQ7B8"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdac=ztY0vXQ8Mu6H8fiAO4aFSSF-A6O1Q==zKOKEsJegw@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Magnus Damm <magnus.damm@gmail.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Balbi <balbi@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>
-List-Id: linux-omap@vger.kernel.org
-
-
---ZsxMXj7gRnSZQ7B8
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:18873 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932260Ab2KBSy6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 14:54:58 -0400
 Content-Disposition: inline
+In-Reply-To: <20121102154901.GU15766@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Oct 30, 2012 at 10:51:11PM +0100, Linus Walleij wrote:
-> On Tue, Oct 30, 2012 at 7:37 PM, Mark Brown
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121102 01:56]:
+> > On Friday 02 November 2012 02:19 PM, Tomi Valkeinen wrote:
+> > >On 2012-11-02 08:38, Santosh Shilimkar wrote:
+> > >>
+> > >>Lets not move this in DMA code since the above is really related
+> > >>to frame buffer. It reserves more DMA area for dma_alloc_coherent()
+> > >>etc than default 2 MB. Infact, we should no longer need this with
+> > >>CMA and memblock in place.
+> > >>
+> > >>Tomi,
+> > >>Can we not get rid of the above memory reservation ?
+> > >
+> > >Yes, I think so. This one is only used for the old omapfb, i.e. omap1,
+> > >and I have no means to test it out, though. But below is a patch to
+> > >remove it. I also attached the patch, as it looks like thunderbird wants
+> > >to reformat the pasted patch... I'll remove the
+> > >CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE from the omapfb driver's Kconfig file
+> > >in my tree later.
 
-> > More seriously the amount of time we seem to have been spending recently
-> > on changes which end up requiring us to go through essentially every
-> > driver and add code to them (often several times) doesn't seem like
-> > we're doing a good job here.
+Hmm actually, is it safe to remove for omap1, or should we
+still keep it around for omap1?
 
-> If this is your main concern you should be made aware that there
-> are people out there planning to supplant the existing DT probe paths
-> that are now being added to each and every ARM-related driver
-> with an ACPI probe path as ARM servers come into the picture.
+Regards,
 
-That's different as we're adding support for a new external interface
-which will need per device configuration parsing rather than
-reorganising things within the kernel; I'd expect it won't supplant DT
-but rather sit alongside it as it's more a requirement for the server
-market than for the embedded market.
-
---ZsxMXj7gRnSZQ7B8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQlBBPAAoJELSic+t+oim95a8P/2gQNhkpjfeKtjLN+b7VjGx3
-hS8eHcBUX37fs0Av+wz2BM+d6ySD7tBKsmw6No0KQvZW04JsO7KApQRSVJF+RU4k
-HJfxHj1nse6FNTYwmMlkL6WZcyC1EXMgje4i0jHkbOambdO4pQn4q/sILkvsWgun
-wBeTRDxViHVDAy6lNaHv79RId24cCsyUMPXpdj8PQ9Ci0jO0p6i2hxvHBMkwbMP1
-RIIuGEEt/TWEQc2dq/FkXgazhWEr7KQcb8MyOeE26cRql23DGlRhxhmjAV3e+6HM
-3sAPO0uBT+TPke5V+GOJXQLK7XoWW9zHoHobbRzWhwAOdm03KU7DO3B39/VvmJNl
-4nWPtKWQc0QSA2rfCmBtAfLtyrSMDmlFPHFn41a/oHt82VZR7+JE9UPPi+bGusBo
-tnnv6Gco+/FIVDvmyWg/6lj0CMTb7nLhQ2TOjYVbsIhI1hZ4g0imWDW/pvlX4MEe
-Ea3+tFscm3bCQXI7mZSrgCbCRhoH8JXgcEKDYkBPciTYg5fSXP1FPuNHmhI2O8Jk
-t43LkaZlxF+y0Wsq3/84Vsxt8djl88m4GMlt3ueNNPfyAcjid2UN9uw/kQ+H8lw8
-G+Y8Y3Nk8GBPwh0OKAbl7P6IM1plcV3tXSS6xHKkOFnyAn1zMpBgNq6sCyBjZ66U
-bP0aYlue/RpPa91nWU4L
-=qFjt
------END PGP SIGNATURE-----
-
---ZsxMXj7gRnSZQ7B8--
+Tony
