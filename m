@@ -1,48 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: Remove plat-omap/common.c
-Date: Fri, 2 Nov 2012 11:54:53 -0700
-Message-ID: <20121102185453.GY15766@atomide.com>
-References: <20121101224703.2103.95474.stgit@muffinssi.local>
- <20121101224828.2103.82950.stgit@muffinssi.local>
- <50936A6E.3020202@ti.com>
- <5093891D.6070302@ti.com>
- <50938A69.9040908@ti.com>
- <20121102154901.GU15766@atomide.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
+ include/linux/omap-iommu.h
+Date: Fri, 2 Nov 2012 11:55:54 -0700
+Message-ID: <20121102185553.GZ15766@atomide.com>
+References: <20121025001913.2082.31062.stgit@muffinssi.local>
+ <20121025213935.GD11928@atomide.com>
+ <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
+ <6561916.t72K1L6jg4@avalon>
+ <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
+ <20121026180039.GM11908@atomide.com>
+ <20121030162938.GH11908@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:18873 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20876 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932260Ab2KBSy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 14:54:58 -0400
+	with ESMTP id S932260Ab2KBSz7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 14:55:59 -0400
 Content-Disposition: inline
-In-Reply-To: <20121102154901.GU15766@atomide.com>
+In-Reply-To: <20121030162938.GH11908@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@redhat.com>, Joerg Roedel <joerg.roedel@amd.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-media@vger.kernel.org
 
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121102 01:56]:
-> > On Friday 02 November 2012 02:19 PM, Tomi Valkeinen wrote:
-> > >On 2012-11-02 08:38, Santosh Shilimkar wrote:
-> > >>
-> > >>Lets not move this in DMA code since the above is really related
-> > >>to frame buffer. It reserves more DMA area for dma_alloc_coherent()
-> > >>etc than default 2 MB. Infact, we should no longer need this with
-> > >>CMA and memblock in place.
-> > >>
-> > >>Tomi,
-> > >>Can we not get rid of the above memory reservation ?
-> > >
-> > >Yes, I think so. This one is only used for the old omapfb, i.e. omap1,
-> > >and I have no means to test it out, though. But below is a patch to
-> > >remove it. I also attached the patch, as it looks like thunderbird wants
-> > >to reformat the pasted patch... I'll remove the
-> > >CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE from the omapfb driver's Kconfig file
-> > >in my tree later.
+* Tony Lindgren <tony@atomide.com> [121030 09:31]:
+> 
+> OK so are people happy with the patches in this series?
+> 
+> Please everybody ack if no more comments so we can move on
+> towards getting CONFIG_MULTIPLATFORM to work for omaps.
 
-Hmm actually, is it safe to remove for omap1, or should we
-still keep it around for omap1?
+Looks like Joerg has a new email address, I'll send this
+series out one more time.
 
 Regards,
 
