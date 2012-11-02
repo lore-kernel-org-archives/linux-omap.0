@@ -1,138 +1,101 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCH 1/2] i2c: omap: Fix the revision register read
-Date: Fri, 2 Nov 2012 16:54:30 +0530
-Message-ID: <CAM=Q2ctRODbxN_9EL=vikkbRPad1AfeiYBUdvhkSJEsx2v2NXg@mail.gmail.com>
-References: <1351852785-16961-1-git-send-email-shubhrajyoti@ti.com>
-	<1351852785-16961-2-git-send-email-shubhrajyoti@ti.com>
-	<20121102110604.GB19493@arwen.pp.htv.fi>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 12/12] OMAPDSS: DPI: always use DSI PLL if available
+Date: Fri, 2 Nov 2012 13:28:57 +0200
+Message-ID: <5093AE79.9010603@ti.com>
+References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-13-git-send-email-tomi.valkeinen@ti.com> <5090D28E.6050703@ti.com> <50939B84.6090602@ti.com> <5093A3FB.1060806@ti.com> <5093A530.5050302@ti.com> <5093A9E8.70106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig41B69E984FE764B38DE06375"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:60620 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762599Ab2KBLYb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 07:24:31 -0400
-In-Reply-To: <20121102110604.GB19493@arwen.pp.htv.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:41138 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab2KBL27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 07:28:59 -0400
+In-Reply-To: <5093A9E8.70106@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, w.sang@pengutronix.de
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com
 
-On Fri, Nov 2, 2012 at 4:36 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Fri, Nov 02, 2012 at 04:09:44PM +0530, Shubhrajyoti D wrote:
->> The revision register on OMAP4 is a 16-bit lo and a 16-bit
->> hi. Currently the driver reads only the lower 8-bits.
->> Fix the same by preventing the truncating of the rev register
->> for OMAP4.
->>
->> Also use the scheme bit ie bit-14 of the hi register to know if it
->> is OMAP_I2C_IP_VERSION_2.
->>
->> On platforms previous to OMAP4 the offset 0x04 is IE register whose
->> bit-14 reset value is 0, the code uses the same to its advantage.
->>
->> Also since the omap_i2c_read_reg uses reg_map_ip_* a raw_readw is done
->> to fetch the revision register.
->>
->> The dev->regs is populated after reading the rev_hi. A NULL check
->> has been added in the resume handler to prevent the access before
->> the setting of the regs.
->
-> tested on which platforms ?
+--------------enig41B69E984FE764B38DE06375
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-omap4430 , 4460 and omap3.
->
->> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
->> ---
->>  drivers/i2c/busses/i2c-omap.c |   59 ++++++++++++++++++++++++++++++++---------
->>  1 files changed, 46 insertions(+), 13 deletions(-)
+On 2012-11-02 13:09, Archit Taneja wrote:
+> On Friday 02 November 2012 04:19 PM, Tomi Valkeinen wrote:
+>> On 2012-11-02 12:44, Archit Taneja wrote:
 >>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index db31eae..d8e7709 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -49,9 +49,10 @@
->>  #define OMAP_I2C_OMAP1_REV_2         0x20
+>>> Hmm, that makes sense. Anyway, I don't think it's really bad if we re=
+fer
+>>> to dssdev->channel for now.
 >>
->>  /* I2C controller revisions present on specific hardware */
->> -#define OMAP_I2C_REV_ON_2430         0x36
->> -#define OMAP_I2C_REV_ON_3430_3530    0x3C
->> -#define OMAP_I2C_REV_ON_3630_4430    0x40
->> +#define OMAP_I2C_REV_ON_2430         0x00000036
->
-> are you sure this are the contents on 2430 ? Have you actually ran this
-> code on that platform ?
-
-I did not run on 2430. Will try to get a platform and run.
-
-However the current code already has and uses the same value so
- I feel it should be fine.:-)
-
-
->
->> +#define OMAP_I2C_REV_ON_3430_3530    0x0000003C
->> +#define OMAP_I2C_REV_ON_3630         0x00000040
->
-> likewise for these two.
-
-I verified that the 3630 returns 0x40 on my beaglexM.
-
->
->> +#define OMAP_I2C_REV_ON_4430_PLUS    0x50400002
->
-> what about 4460, 4470, 3530, etc etc etc ?
->
->> @@ -490,7 +491,7 @@ static void omap_i2c_resize_fifo(struct omap_i2c_dev *dev, u8 size, bool is_rx)
+>> It is, because dssdev->channel doesn't exist with DT.
 >>
->>       omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
->>
->> -     if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
->> +     if (dev->rev < OMAP_I2C_REV_ON_3630)
->>               dev->b_hw = 1; /* Enable hardware fixes */
->>
->>       /* calculate wakeup latency constraint for MPU */
->> @@ -1052,6 +1053,14 @@ static const struct of_device_id omap_i2c_of_match[] = {
->>  MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
->>  #endif
->>
->> +#define OMAP_I2C_SCHEME(rev)         (rev & 0xc000) >> 14
->
-> you miss () there to make sure no other operations will take higher
-> precedence when using this macro.
+>> With DT we either need to figure out the channel in omapdss at runtime=
+,
+>> or add a property to the DT data telling the channel. And adding such =
+a
+>> property is not correct, as DT should be about describing the HW.
+>=20
+> Ok.
+>=20
+> I don't totally agree with your idea of figuring out the manager in
+> panel the panel's probe. If it's done in the panel driver's probe
+> itself, then by this point of time we have already set
+> mgr->output->device links. If omapdss only does this stuff, then
 
-Indeed. Thanks.
->
->> @@ -1130,7 +1136,31 @@ omap_i2c_probe(struct platform_device *pdev)
->>       if (IS_ERR_VALUE(r))
->>               goto err_free_mem;
->>
->> -     dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
->> +     /*
->> +      * Read the Rev hi bit-[15:14] ie scheme this is 1 indicates ver2.
->> +      * On omap3 Offset 4 is IE Reg the bit [15:14] is XDR_IE which is 0
->> +      * at reset. Also since the omap_i2c_read_reg uses reg_map_ip_* a
->> +      * raw_readw is done.
->> +      */
->> +     rev = __raw_readw(dev->base + 0x04);
->> +
->> +     switch (OMAP_I2C_SCHEME(rev)) {
->> +     case 0:
->
-> define macros for these two cases.
+Hmm, I'm not sure I understand what's your point above? If figuring out
+the mgr is done in panel's probe, the mgr->output link is not yet made
+before that time.
 
-OK
->
->> +             dev->regs = (u8 *)reg_map_ip_v1;
->> +             dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
->> +             minor = OMAP_I2C_REV_SCHEME_0_MAJOR(dev->rev);
->> +             major = OMAP_I2C_REV_SCHEME_0_MAJOR(dev->rev);
->> +     break;
->
-> wrong indentation.
+> omapfb/omapdrm have just the job of connecting the overlays to the
+> manager. Do you think that's okay?
 
-Yes will fix.
->
-> --
-> balbi
+Yes, that's how I think it should be. I don't see why omapfb/omapdrm
+should care about which manager is being used for the output, it doesn't
+really matter as long there is one and it works.
+
+Then again, I don't have anything against omapfb/omapdrm choosing the
+manager, but I don't see how they would have any better idea of which
+manager to use than omapdss.
+
+But as doing the connections at probe time is a bit problematic, perhaps
+we should have a new step in this whole sequence. Something like
+"connect" or whatever, which would lock the required blocks in the whole
+pipeline, and acquire the required resources that couldn't be gotten at
+probe time.
+
+But even then, choosing the manager is not easy, as whoever chooses the
+manager needs to observe all the possible displays used at the same time.=
+=2E.
+
+ Tomi
+
+
+
+--------------enig41B69E984FE764B38DE06375
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQk655AAoJEPo9qoy8lh714NkP/16CSXwBfteeiv1h24+26q1W
+qVKk+SRkUoOgTECdjllWHUfkXxE8LGmahBUvansr7eduReA9mOOq8n8Qqyo1gSYC
+PjEHmqaIvgbqR1pI6AJHWxxVwOw53Kak312K3Ry+lfK/4k/xj2wuawZJ49rH7f8j
+PcxZ8HEjjUAilAFG2MAsTttcVhCfzKl4jkYJ7nz+Yz3oCzHeiHqN4jBbs9+gKaBR
+uia9dvb2nJfRoYXa7UyGuGu9fhEB28QvzSEvEGE0UJ6fBiPy9B1Voqh21swDZxKc
+nd7mR6UwF/wxDcI64AP9d2d0yZeotbD9gEUrCFWAk5cLQPZL1+mwNoMf9akpUIKP
+U8l0XIB2bHfwdkW83Lw0XQ1V9gZ1wDumT3YdR63fj4BvcOwLDA5iZczU6z8IpWab
+x/Qg+waUlxZlvaCvCANpN+t+1bvduw5gXS+kcKd0Kh8PH5FUPbTFPI56Zv90IPtT
+fO3uS6KuYuzvRvlKNbbD+0FfFVCLVFwAgixDZ/1bscdxzxEgfKJmQ/TmSlWrxZ6P
+LQzfxnY8z8C1KvLpWQPh0xt9/vP4b00IoT4CIluurOmWBdhtBeDeFd9lQXRAXEpG
+X/c7u3bM97DjTS+OxICa+dV8GChrEi6kweXG2rQcDwYWm/GpKkNrfEkTd0B+THLu
+ZMu0BE//nwiBnorN97gJ
+=JuhG
+-----END PGP SIGNATURE-----
+
+--------------enig41B69E984FE764B38DE06375--
