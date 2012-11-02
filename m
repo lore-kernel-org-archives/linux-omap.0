@@ -1,146 +1,102 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Fri, 2 Nov 2012 02:42:51 -0700
-Message-ID: <CA+Bv8Xb4eAQ2po-nwCT6ZXNdaU7cwshVaGC795e3GYZ+B7L-jQ@mail.gmail.com>
-References: <20121101110418.GF410@arwen.pp.htv.fi>
-	<3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
-	<20121101124025.GA12489@arwen.pp.htv.fi>
-	<A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
-	<20121101131609.GC12489@arwen.pp.htv.fi>
-	<E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
-	<20121101135148.382aec00@pyramind.ukuu.org.uk>
-	<9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
-	<20121101220518.GE14982@arwen.pp.htv.fi>
-	<CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
-	<20121102085718.GF17063@arwen.pp.htv.fi>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: RE: discrepancy while save and restore of debounce registers
+Date: Fri, 2 Nov 2012 09:44:26 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EABE28B@DBDE01.ent.ti.com>
+References: <1BAFE6F6C881BF42822005164F1491C33EAA9A7C@DBDE01.ent.ti.com>
+ <507F1F21.8040206@ti.com>
+ <1BAFE6F6C881BF42822005164F1491C33EAAA89B@DBDE01.ent.ti.com>
+ <50802B00.6090907@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121102085718.GF17063@arwen.pp.htv.fi>
+In-Reply-To: <50802B00.6090907@ti.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, Tony Lindgren <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 2, 2012 at 1:57 AM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Thu, Nov 01, 2012 at 04:49:23PM -0700, Russ Dill wrote:
->> On Thu, Nov 1, 2012 at 3:05 PM, Felipe Balbi <balbi@ti.com> wrote:
->> > HI,
->> >
->> > On Thu, Nov 01, 2012 at 03:59:50PM +0200, Pantelis Antoniou wrote:
->> >> Hi Alan,
->> >>
->> >> On Nov 1, 2012, at 3:51 PM, Alan Cox wrote:
->> >>
->> >> >> What they want, and what every user wants, is I plug this boar=
-d in, and
->> >> >> the driver make sure everything is loaded and ready. No, the e=
-nd users
->> >> >> don't want to see any of the implementation details of how the=
- bitfile
->> >> >> is transported; the driver can handle it.
->> >> >
->> >> > That doesn't necessarily make it a bus merely some kind of hotp=
-lug
->> >> > enumeration of devices. That should all work properly both for =
-devices
->> >> > and busses with spi and i=C2=B2c as the final bits needed for i=
-t got fixed
->> >> > some time ago.
->> >> >
->> >> > In an ideal world you don't want to be writing custom drivers f=
-or stuff.
->> >> > If your cape routes an i=C2=B2c serial device to the existing s=
-ystem i=C2=B2c
->> >> > busses then you want to just create an instance of any existing=
- driver on
->> >> > the existing i=C2=B2c bus not create a whole new layer of goop.
->> >> >
->> >> > It does need to do the plumbing and resource management for the=
- plumbing
->> >> > but thats not the same as being a bus.
->> >> >
->> >> > Alan
->> >>
->> >>
->> >> Fair enough. But there's no such thing a 'hotplug enumeration
->> >> construct' in Linux yet, and a bus is the closest thing to it. It=
- does
->> >> take advantage of the nice way device code matches drivers and de=
-vices
->> >> though.
->> >>
->> >> I'm afraid that having the I2C/SPI drivers doing the detection wo=
-n't
->> >> work.  The capes can have arbitrary I2C/SPI devices (and even mor=
-e
->> >> weird components).  There is no way to assure for example that th=
-e I2C
->> >> device responding to address 'foo' in cape A is the same I2C devi=
-ce
->> >> responding to the same address in cape B.
->> >
->> > your ->detect() method should take care of that.
->>
->> There isn't some magical serial number in I=C2=B2C devices that a
->> ->detect() method can read and the implementation of I=C2=B2C is som=
-ewhat
->> flexible. One devices read may be another devices write. A detect
->
-> look at what other drivers do. You can read a revision register, you =
-can
-> write a command and see if the device responds as expected, it doesn'=
-t
-> matter.
+On Thu, Oct 18, 2012 at 21:44:56, Hunter, Jon wrote:
+> Hi Gururaja,
+> 
+> On 10/18/2012 12:31 AM, Hebbar, Gururaja wrote:
+> > Jon,
+> > 
+> > On Thu, Oct 18, 2012 at 02:42:01, Hunter, Jon wrote:
+> 
+> [snip]
+> 
+> >>> My doubt/questions are
+> >>> 1. Why should debounce registers be updated only when it's accessed previously?
+> >>
+> >> If debounce is not being used by any of the gpios, then there is no need
+> >> to restore them as there are no bits set. So this makes sense and saves
+> >> a couple register writes.
+> > 
+> > What I want to know is that other than saving register writes, is there any
+> > other important stuff that specifies this requirement.
+> 
+> From a HW perspective, none that I can see.
+> 
+> From a SW perspective, yes, as I mentioned if you restore these
+> registers without first initialising the context variables where these
+> registers are stored, then you may be restoring unknown values to the
+> registers and that is bad.
+> 
+> >>> 2. What is the relation between updating debounce registers and crash seen on
+> >>> others registers? 
+> >>
+> >> This I am not sure about. I gave this a quick try on my omap3430 beagle
+> >> board, but I did not see any side-effects from doing this. However, if
+> >> you are always restoring the debounce context regardless of whether
+> >> debounce is being used, then you could be writing bad values to the
+> >> debounce registers as the context variables bank->context.debouce and
+> >> bank->context.debouce_en may not initialised. So that is bad. However,
+> >> that said I am still not sure how this could cause a crash.
+> >>
+> >> Can you share more details on ...
+> > 
+> > Sorry for missing below details in first post.
+> > 
+> >> 1. The OMAP platform you are using?
+> > 
+> > I was trying this on TI AM335x platform (repo below). On AM335x EVM board
+> > 
+> > http://arago-project.org/git/projects/?p=linux-am33x.git;a=shortlog;
+> > h=refs/heads/v3.2-staging
+> > 
+> >> 2. What linux distro/environment you are using?
+> > 
+> > Arago AM335x PSP release (linux 3.2 + am335x patch-set)
+> > 
+> >> 3. If there are any specific steps to reproduce this 100% of the time?
+> > 
+> > On top of this tree, try suspend/resume using "echo mem > /syspower/state"
+> 
+> I have a beagle-bone but unfortunately, suspend does not appear to be
+> supported in the mainline kernel yet so I am unable to test this on the
+> am335x on the mainline.
 
-Since a "revision" register isn't required by the I=C2=B2C spec, it isn=
-'t
-implemented on a huge number of chips. Also, having a few dozen probe
-routines come though and write to random address of every single I=C2=B2=
-C
-device can a) take a really long time, and b) have quite a few
-unintended side effects.
+You can try the suspend/resume on BB from Arago tree which I mentioned above
 
->> method that only performs reads could easily toggle a gpio that rese=
-ts
->> the board, rewrite and eeprom, or set the printer on fire. If you
->
-> how ? It's just a read.
+> 
+> Have you compared the gpio driver from your v3.2 branch with the current
+> mainline to see how different this code is? Ideally, it would be good to
+> test on the mainline kernel for another data point to see if this is
+> local to your branch.
 
-Because the I=C2=B2C spec is incredibly flexible. For a lot of devices,
-reading from a register is done by writing the register address, and
-then reading the contents. For devices that don't implement registers
-in that way (such as many eeproms), this is just a write.
+The mainline kernel omap GPIO driver has changed a lot from current arago
+tree (which is at v3.2). Upon comparing is when I found out about the
+register access check done before restoring.
 
->> browse through various detect functions, yes, some of them key off a=
-n
->> ID, but a lot of them just check various registers to see if certain
->> bits are zero, or certain bits are one. A lot of I=C2=B2C devices I'=
-ve
->> dealt with have no good way of probing them, especially GPIO chips
->> (you'll notice none of the I=C2=B2C GPIO expanders have detect funct=
-ions)
->
-> it doesn't mean it can't be done.
+> 
+> Cheers
+> Jon
+> 
+> 
+> 
 
-Really? Please, do tell how you would write a detect function for a
-PCA9534. It has 4 registers, an input port registers, an output port
-register, a polarity inversion register, and a configuration register.
-And don't forget, since we are probing, every detect routine for every
-I=C2=B2C driver will have to run with every I=C2=B2C address on every b=
-us,
-possibly with both address formats.
 
->> On top of all this the detect routine does not tell you if the alert
->> pin is connected to some IRQ, or in the case of a GPIO expander, wha=
-t
->> those GPIOs are connected to, etc, etc.
->
-> so what ? All you want to do with detect is figure out if the far end=
- is
-> who you think it is, not what it's doing.
-
-If we already knew who was there, we wouldn't need a detect routine.
+Regards, 
+Gururaja
