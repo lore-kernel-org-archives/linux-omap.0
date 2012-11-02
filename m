@@ -1,127 +1,44 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 3/3] ARM: OMAP: ocp2scp: create omap device for ocp2scp
-Date: Fri, 2 Nov 2012 13:44:48 +0530
-Message-ID: <1351844088-27059-4-git-send-email-kishon@ti.com>
-References: <1351844088-27059-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v4 0/3] ocp2scp: add non-dt support
+Date: Fri, 2 Nov 2012 13:44:45 +0530
+Message-ID: <1351844088-27059-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1351844088-27059-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, kishon@ti.com, arnd@arndb.de, olof@lixom.net, rdunlap@xenotime.net, balbi@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Platfrom device for ocp2scp is created using omap_device_build in
-devices file. This is used for both omap4(musb) and omap5(dwc3).
+This patch series allows ocp2scp driver to create its child devices
+from the platform data.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/mach-omap2/devices.c |   79 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
+In omap platforms, usb phy is connected to ocp2scp and usb phy is needed
+for MUSB to be functional. When ocp2scp driver was added, it had only dt
+support which means it wont create usb phy devices for non-dt boot.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index cba60e0..c72b5a7 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -19,6 +19,7 @@
- #include <linux/of.h>
- #include <linux/pinctrl/machine.h>
- #include <linux/platform_data/omap4-keypad.h>
-+#include <linux/platform_data/omap_ocp2scp.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/map.h>
-@@ -613,6 +614,83 @@ static void omap_init_vout(void)
- static inline void omap_init_vout(void) {}
- #endif
- 
-+#if defined(CONFIG_OMAP_OCP2SCP) || defined(CONFIG_OMAP_OCP2SCP_MODULE)
-+static int count_ocp2scp_devices(struct omap_ocp2scp_dev *ocp2scp_dev)
-+{
-+	int cnt	= 0;
-+
-+	while (ocp2scp_dev->drv_name != NULL) {
-+		cnt++;
-+		ocp2scp_dev++;
-+	}
-+
-+	return cnt;
-+}
-+
-+static void omap_init_ocp2scp(void)
-+{
-+	struct omap_hwmod	*oh;
-+	struct platform_device	*pdev;
-+	int			bus_id = -1, dev_cnt = 0, i;
-+	struct omap_ocp2scp_dev	*ocp2scp_dev;
-+	const char		*oh_name, *name;
-+	struct omap_ocp2scp_platform_data *pdata;
-+
-+	if (!cpu_is_omap44xx())
-+		return;
-+
-+	oh_name = "ocp2scp_usb_phy";
-+	name	= "omap-ocp2scp";
-+
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("%s: could not find omap_hwmod for %s\n", __func__,
-+								oh_name);
-+		return;
-+	}
-+
-+	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata) {
-+		pr_err("%s: No memory for ocp2scp pdata\n", __func__);
-+		return;
-+	}
-+
-+	ocp2scp_dev = oh->dev_attr;
-+	dev_cnt = count_ocp2scp_devices(ocp2scp_dev);
-+
-+	if (!dev_cnt) {
-+		pr_err("%s: No devices connected to ocp2scp\n", __func__);
-+		kfree(pdata);
-+		return;
-+	}
-+
-+	pdata->devices = kzalloc(sizeof(struct omap_ocp2scp_dev *)
-+					* dev_cnt, GFP_KERNEL);
-+	if (!pdata->devices) {
-+		pr_err("%s: No memory for ocp2scp pdata devices\n", __func__);
-+		kfree(pdata);
-+		return;
-+	}
-+
-+	for (i = 0; i < dev_cnt; i++, ocp2scp_dev++)
-+		pdata->devices[i] = ocp2scp_dev;
-+
-+	pdata->dev_cnt	= dev_cnt;
-+
-+	pdev = omap_device_build(name, bus_id, oh, pdata, sizeof(*pdata), NULL,
-+								0, false);
-+	if (IS_ERR(pdev)) {
-+		pr_err("Could not build omap_device for %s %s\n",
-+						name, oh_name);
-+		kfree(pdata->devices);
-+		kfree(pdata);
-+		return;
-+	}
-+}
-+#else
-+static inline void omap_init_ocp2scp(void) { }
-+#endif
-+
- /*-------------------------------------------------------------------------*/
- 
- static int __init omap2_init_devices(void)
-@@ -640,6 +718,7 @@ static int __init omap2_init_devices(void)
- 	omap_init_sham();
- 	omap_init_aes();
- 	omap_init_vout();
-+	omap_init_ocp2scp();
- 
- 	return 0;
- }
+This patch series adds non-dt support to ocp2scp and this series is needed
+for getting MUSB functional in non-dt boot.
+
+Changes from v3:
+used PLATFORM_DEVID_AUTO while creating a device using platform_device_alloc
+
+Changes from v2:
+*if cpu is not 44xx, dont create ocp2scp device in mach-omap2/devices.c
+
+Changes from v1:
+* Fixed Sergei's comments on memory leaks
+
+Kishon Vijay Abraham I (3):
+  drivers: bus: ocp2scp: add pdata support
+  ARM: OMAP4: add _dev_attr_ to ocp2scp for representing usb_phy
+  ARM: OMAP: ocp2scp: create omap device for ocp2scp
+
+ arch/arm/mach-omap2/devices.c              |   79 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28 ++++++++++
+ drivers/bus/omap-ocp2scp.c                 |   68 ++++++++++++++++++++++--
+ include/linux/platform_data/omap_ocp2scp.h |   31 +++++++++++
+ 4 files changed, 203 insertions(+), 3 deletions(-)
+ create mode 100644 include/linux/platform_data/omap_ocp2scp.h
+
 -- 
 1.7.9.5
