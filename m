@@ -1,87 +1,230 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/2] i2c: omap: use revision check for
- OMAP_I2C_FLAG_APPLY_ERRATA_I207
-Date: Fri, 2 Nov 2012 13:07:13 +0200
-Message-ID: <20121102110713.GC19493@arwen.pp.htv.fi>
-References: <1351852785-16961-1-git-send-email-shubhrajyoti@ti.com>
- <1351852785-16961-3-git-send-email-shubhrajyoti@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH v2 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC timings
+ and NAND
+Date: Fri, 02 Nov 2012 12:14:28 +0100
+Message-ID: <5093AB14.9090402@gmail.com>
+References: <1351794970-14675-1-git-send-email-zonque@gmail.com> <1351794970-14675-5-git-send-email-zonque@gmail.com> <5093A36B.70101@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eHhjakXzOLJAF9wJ"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1351852785-16961-3-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:44279 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762691Ab2KBLPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 07:15:01 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so1337004bkc.19
+        for <linux-omap@vger.kernel.org>; Fri, 02 Nov 2012 04:14:59 -0700 (PDT)
+In-Reply-To: <5093A36B.70101@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, robherring2@gmail.com, linux-omap@vger.kernel.org, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
 
---eHhjakXzOLJAF9wJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Jon,
 
-On Fri, Nov 02, 2012 at 04:09:45PM +0530, Shubhrajyoti D wrote:
-> The errata i207 is enabled for 2430 and 3xxx. Use the revision check
-> to enable the erratum instead.
->=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+as all comments so far focussed on patch 4/4, could we agree to merge
+1-3 of this series already? These are all small and straight-forward
+things that don't depend on 4/4. That way, I only need to resend the
+last one under discussion.
 
-very good. I haven't read the errata but from a code standpoint, it
-looks good:
+On 02.11.2012 11:41, Jon Hunter wrote:
+> Hi Daniel,
+> 
+> On 11/01/2012 01:36 PM, Daniel Mack wrote:
+>> This patch adds basic DT bindings for OMAP GPMC.
+>>
+>> The actual peripherals are instanciated from child nodes within the GPMC
+>> node, and the only type of device that is currently supported is NAND.
+>>
+>> Code was added to parse the generic GPMC timing parameters and some
+>> documentation with examples on how to use them.
+>>
+>> Successfully tested on an AM33xx board.
+>>
+>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>> ---
+>>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  73 +++++++++++
+>>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  61 +++++++++
+>>  arch/arm/mach-omap2/gpmc.c                         | 139 +++++++++++++++++++++
+>>  3 files changed, 273 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>> new file mode 100644
+>> index 0000000..6f44487
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>> @@ -0,0 +1,73 @@
+>> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
+>> +
+>> +The actual devices are instantiated from the child nodes of a GPMC node.
+>> +
+>> +Required properties:
+>> +
+>> + - compatible:		Should be set to "ti,gpmc"
+>> + - reg:			A resource specifier for the register space
+>> +			(see the example below)
+>> + - ti,hwmods:		Should be set to "ti,gpmc" until the DT transition is
+>> +			completed.
+>> + - #address-cells:	Must be set to 2 to allow memory address translation
+>> + - #size-cells:		Must be set to 1 to allow CS address passing
+>> + - ranges:		Must be set up to reflect the memory layout
+>> +			Note that this property is not currently parsed.
+>> +			Calculated values derived from the contents of
+>> +			GPMC_CS_CONFIG7 as set up by the bootloader. That will
+>> +			change in the future, so be sure to fill the correct
+>> +			values here.
+> 
+> I still think it would be good to add number of chip-selects and
+> wait-pins here.
 
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+The number of chip-selects can be derived from the ranges property.
+Namely, each 4-value entry to this property maps to one chip-select. I
+can try and make the more clear in the documentation.
 
-> ---
->  drivers/i2c/busses/i2c-omap.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index d8e7709..44245d4 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1164,7 +1164,8 @@ omap_i2c_probe(struct platform_device *pdev)
-> =20
->  	dev->errata =3D 0;
-> =20
-> -	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-> +	if (dev->rev >=3D OMAP_I2C_REV_ON_2430 &&
-> +			dev->rev < OMAP_I2C_REV_ON_4430_PLUS)
->  		dev->errata |=3D I2C_OMAP_ERRATA_I207;
-> =20
->  	if (dev->rev <=3D OMAP_I2C_REV_ON_3430_3530)
-> --=20
-> 1.7.5.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> +Timing properties for child nodes. All are optional and default to 0.
+>> +
+>> + - gpmc,sync-clk:	Minimum clock period for synchronous mode, in picoseconds
+>> +
+>> + Chip-select signal timings corresponding to GPMC_CS_CONFIG2:
+>> + - gpmc,cs-on:		Assertion time
+>> + - gpmc,cs-rd-off:	Read deassertion time
+>> + - gpmc,cs-wr-off:	Write deassertion time
+>> +
+>> + ADV signal timings corresponding to GPMC_CONFIG3:
+>> + - gpmc,adv-on:		Assertion time
+>> + - gpmc,adv-rd-off:	Read deassertion time
+>> + - gpmc,adv-wr-off:	Write deassertion time
+> 
+> Nit-pick, looks like you are mixing GPMC_CS_CONFIGx and GPMC_CONFIGx
+> naming conventions in the above and below. Would be good to make this
+> consistent.
 
---=20
-balbi
+Ok, but these were just copied from arch/arm/mach-omap2/gpmc.h. So it's
+wrong there, too.
 
---eHhjakXzOLJAF9wJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+>> + WE signals timings corresponding to GPMC_CONFIG4:
+>> + - gpmc,we-on:		Assertion time
+>> + - gpmc,we-off:		Deassertion time
+>> +
+>> + OE signals timings corresponding to GPMC_CONFIG4
+>> + - gpmc,oe-on:		Assertion time
+>> + - gpmc,oe-off:		Deassertion time
+>> +
+>> + Access time and cycle time timings corresponding to GPMC_CONFIG5
+>> + - gpmc,page-burst-access: Multiple access word delay
+>> + - gpmc,access:		Start-cycle to first data valid delay
+>> + - gpmc,rd-cycle:	Total read cycle time
+>> + - gpmc,wr-cycle:	Total write cycle time
+>> +
+>> +The following are only on OMAP3430
+>> + - gpmc,wr-access
+>> + - gpmc,wr-data-mux-bus
+>> +
+>> +
+>> +Example for an AM33xx board:
+>> +
+>> +	gpmc: gpmc@50000000 {
+>> +		compatible = "ti,gpmc";
+>> +		ti,hwmods = "gpmc";
+>> +		reg = <0x50000000 0x2000>;
+>> +		interrupt-parent = <&intc>;
+> 
+> We should drop interrupt-parent. We are declaring the interrupt-parent
+> globally in the dts files and so no need to replicate in each individual
+> binding.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Right, will remove.
 
-iQIcBAEBAgAGBQJQk6lhAAoJEIaOsuA1yqREADMQAK9NK810t+n2zSwI4z5bEk1j
-mlW4qGZnpK0M8Wbz9oD8JaYRQ2dNyIuCknhAMBvv1KJx66v1iAP3JICuODfvrHJf
-KJh26GebLtIJxQFrkKJSpW3siILc6nnKg8eAl5cc0ykVGuQFskrtXQ3TtVwX+hwD
-01egM3nONEi1RdYOMc6ZTwfrnZD77lF+6fEF+mZxmQK7nx7KuJNWvEknTM5MIt8E
-mQ663h2DMh9vUyMYn2Z/CecgI/DUkmcsGbfgfmlvOsMQLH2D9MEbyEYL1XOEK/SM
-8wFOP3P5/4xErYcbqQmBF3oHZqGVECMIaMlG4erD6THQFHKyAI/6powe6TkYh8HU
-9zpCxLzlzGmyniBabRo2sLmaRbw78swLFvhN4FcyzkRlhf2CD4Mk47JYPtZoldxb
-fNLtEPE3PhyBq0klI06wZsvwxDMoSXA3jHBNSCZVL33XJCpwa+Zhbs0ZoqYKqLLI
-xkj+SBtj6n2l+udaPBjjjxMmG9osh2NQPSK8Dmhh4WM8bHnlqLe4KBWEz8bObhOE
-WZbOnmzw54RNAFkKIG2H0keuPdDLeY1+YZuJJciY1sbocdFKZd3B9quFiBnH9ClC
-IGk6P4gSw69KfA8dSebQ4y3Ote6aFsOkNz+hG56Drl1VzLO88Jg95W+5KvgGBiBG
-Bda9+CVhpvMp47drwnUD
-=QNT4
------END PGP SIGNATURE-----
+>> +		interrupts = <100>;
+>> +		#address-cells = <2>;
+>> +		#size-cells = <1>;
+>> +		ranges = <0 0 0x08000000 0x10000000>;	/* CS0: NAND */
+>> +
+>> +		nand@0,0 {
+>> +			reg = <0 0 0>; /* CS0, offset 0 */
+> 
+> The above description says that this is just the chip-select number. Are
+> the other fields used here? If so, what for?
 
---eHhjakXzOLJAF9wJ--
+Thanks to the translation done by the 'ranges' mechanism, these just
+denote the offset to the address range specified above. So they can be
+left 0.
+
+>> +			nand-bus-width = <16>;
+>> +			nand-ecc-mode = "none";
+> 
+> I am still wondering if the above needs to be mandatory. Or if not then
+> may be these should be documented as optional and if these a omitted
+> then what the default configuration would be.
+
+In my docs, I referred to Documentation/devicetree/bindings/mtd/nand.txt
+which states:
+
+- nand-ecc-mode : String, operation mode of the NAND ecc mode.
+  Supported values are: "none", "soft", "hw", "hw_syndrome",
+"hw_oob_first", "soft_bch".
+- nand-bus-width : 8 or 16 bus width if not present 8
+
+So ecc-mode is mandatory, even though the code currently really defaults
+to 0 ("none"). nand-bus-width isn't. I don't know if it makes sense to
+duplicate the Documentation here.
+
+>> +static int gpmc_probe_dt(struct platform_device *pdev)
+>> +{
+>> +	u32 val;
+>> +	struct device_node *child;
+>> +	struct gpmc_timings gpmc_t;
+>> +	const struct of_device_id *of_id =
+>> +		of_match_device(gpmc_dt_ids, &pdev->dev);
+>> +
+>> +	if (!of_id)
+>> +		return 0;
+>> +
+>> +	for_each_node_by_name(child, "nand") {
+>> +		struct omap_nand_platform_data *gpmc_nand_data;
+>> +
+>> +		if (of_property_read_u32(child, "reg", &val) < 0) {
+>> +			dev_err(&pdev->dev, "%s has no 'reg' property\n",
+>> +				child->full_name);
+>> +			continue;
+>> +		}
+>> +
+>> +		gpmc_nand_data = devm_kzalloc(&pdev->dev,
+>> +					      sizeof(*gpmc_nand_data),
+>> +					      GFP_KERNEL);
+>> +		if (!gpmc_nand_data) {
+>> +			dev_err(&pdev->dev, "unable to allocate memory?");
+>> +			return -ENOMEM;
+>> +		}
+>> +
+>> +		gpmc_nand_data->cs = val;
+>> +		gpmc_nand_data->of_node = child;
+>> +
+>> +		val = of_get_nand_ecc_mode(child);
+>> +		if (val >= 0)
+>> +			gpmc_nand_data->ecc_opt = val;
+>> +
+>> +		val = of_get_nand_bus_width(child);
+>> +		if (val == 16)
+>> +			gpmc_nand_data->devsize = NAND_BUSWIDTH_16;
+> 
+> Do we need any error checking here? I believe we only support 8-bit and
+> 16-bit width devices and so if 16-bit is not set then we default to 8-bit.
+
+Yes, that's that the code does. If val != 16, ->devsize is left set to 0
+(from kzalloc). There is no NAND_BUSWIDTH_8, so I think that should be ok?
+
+>> +
+>> +		gpmc_read_timings_dt(child, &gpmc_t);
+>> +		gpmc_nand_init(gpmc_nand_data, &gpmc_t);
+> 
+> I believe that you need an "of_node_put()" when you are done with the child.
+
+Good point.
+
+
+Thanks,
+Daniel
+
