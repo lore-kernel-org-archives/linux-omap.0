@@ -1,47 +1,67 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 4/4] arm/dts: am33xx: Add CPSW and MDIO module nodes
- for AM33XX
-Date: Fri, 2 Nov 2012 16:19:44 +0100
-Message-ID: <20121102151944.GB2900@netboy.at.omicron.at>
-References: <1351498881-32482-1-git-send-email-hvaibhav@ti.com>
- <1351498881-32482-6-git-send-email-hvaibhav@ti.com>
- <50914107.2090909@ti.com>
- <EB1619762EAF8B4E97A227FB77B7E0293EA08F53@DBDE01.ent.ti.com>
- <20121102085616.GB2486@netboy.at.omicron.at>
- <EB1619762EAF8B4E97A227FB77B7E0293EA09122@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH v3 1/4] mtd: omap-nand: pass device_node in platform data
+Date: Fri,  2 Nov 2012 16:25:53 +0100
+Message-ID: <1351869956-2787-2-git-send-email-zonque@gmail.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:33809 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755306Ab2KBPT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 11:19:57 -0400
-Content-Disposition: inline
-In-Reply-To: <EB1619762EAF8B4E97A227FB77B7E0293EA09122@DBDE01.ent.ti.com>
+Received: from svenfoo.org ([82.94.215.22]:41645 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757545Ab2KBP0S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Nov 2012 11:26:18 -0400
+In-Reply-To: <1351869956-2787-1-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "N, Mugunthan V" <mugunthanvnm@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: devicetree-discuss@lists.ozlabs.org, robherring2@gmail.com, linux-omap@vger.kernel.org, jon-hunter@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, Daniel Mack <zonque@gmail.com>
 
-On Fri, Nov 02, 2012 at 10:42:04AM +0000, N, Mugunthan V wrote:
-> 
-> I saw those posts. The CPSW ip version changes tracks the internal IP
-> changes and there is no possible way to track the offset changes. For
-> example CPTS sub module offsets in DM814x and AM335x are different
-> though the CPTS version is same in both IP versions. So keeping these
-> offset in DT will make the same driver works directly with DT changes
-> for future SoC.
+Pass an optional device_node pointer in the platform data, which in turn
+will be put into a mtd_part_parser_data. This way, code that sets up the
+platform devices can pass along the node from DT so that the partitions
+can be parsed.
 
-But the CPSW versions are different, and the offsets could be
-determined that way, couldn't they?
+For non-DT boards, this change has no effect.
 
-The TRM for the DM814x does not even make the distinction among
-CPSW_SS, CPSW_PORT, CPSW_CPDMA, and so on. Instead, it places all of
-the registers into one space called CPSW_3G.
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+ drivers/mtd/nand/omap2.c                     | 4 +++-
+ include/linux/platform_data/mtd-nand-omap2.h | 2 ++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-So I agree with Benoit. Placing all of the offsets into DT seems like
-over-engineering to me, unless you know of TI's plans to release a new
-SoC with the same CPSW version but different register offsets.
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 3282b15..a733f15 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1331,6 +1331,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	dma_cap_mask_t mask;
+ 	unsigned sig;
+ 	struct resource			*res;
++	struct mtd_part_parser_data	ppdata = {};
+ 
+ 	pdata = pdev->dev.platform_data;
+ 	if (pdata == NULL) {
+@@ -1556,7 +1557,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		goto out_release_mem_region;
+ 	}
+ 
+-	mtd_device_parse_register(&info->mtd, NULL, NULL, pdata->parts,
++	ppdata.of_node = pdata->of_node;
++	mtd_device_parse_register(&info->mtd, NULL, &ppdata, pdata->parts,
+ 				  pdata->nr_parts);
+ 
+ 	platform_set_drvdata(pdev, &info->mtd);
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 24d32ca..5217d6e 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -60,6 +60,8 @@ struct omap_nand_platform_data {
+ 	int			devsize;
+ 	enum omap_ecc           ecc_opt;
+ 	struct gpmc_nand_regs	reg;
++	/* for passing the partitions */
++	struct device_node	*of_node;
+ };
+ 
+ #endif
+-- 
+1.7.11.7
 
-Thanks,
-Richard
