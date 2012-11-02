@@ -1,63 +1,76 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/2] ARM: OMAP: hwmod: Add possibility to count hwmod
- resources based on type
-Date: Fri, 2 Nov 2012 09:50:23 +0100
-Message-ID: <5093894F.7040300@ti.com>
-References: <1351596296-13825-1-git-send-email-peter.ujfalusi@ti.com> <1351596296-13825-2-git-send-email-peter.ujfalusi@ti.com> <509106FD.2040804@ti.com> <509374A4.8050806@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: Remove plat-omap/common.c
+Date: Fri, 2 Nov 2012 14:25:05 +0530
+Message-ID: <50938A69.9040908@ti.com>
+References: <20121101224703.2103.95474.stgit@muffinssi.local> <20121101224828.2103.82950.stgit@muffinssi.local> <50936A6E.3020202@ti.com> <5093891D.6070302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59903 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52930 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755313Ab2KBIu3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Nov 2012 04:50:29 -0400
-In-Reply-To: <509374A4.8050806@ti.com>
+	id S1757439Ab2KBIzO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Nov 2012 04:55:14 -0400
+In-Reply-To: <5093891D.6070302@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Salut P=E9ter,
-
-On 11/2/2012 8:22 AM, P=E9ter Ujfalusi wrote:
-> Hi Benoit,
+On Friday 02 November 2012 02:19 PM, Tomi Valkeinen wrote:
+> On 2012-11-02 08:38, Santosh Shilimkar wrote:
+>> Tony,
+>>
+>> On Friday 02 November 2012 04:18 AM, Tony Lindgren wrote:
+>>> This file has only omap_init_consistent_dma_size()
+>>> left that can be moved to plat-omap/dma.c.
+>>>
+>>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>>> ---
+>>>    arch/arm/plat-omap/Makefile |    2 +-
+>>>    arch/arm/plat-omap/common.c |   26 --------------------------
+>>>    arch/arm/plat-omap/dma.c    |    8 ++++++++
+>>>    3 files changed, 9 insertions(+), 27 deletions(-)
+>>>    delete mode 100644 arch/arm/plat-omap/common.c
+>>>
+>>
+>> [..]
+>>
+>>> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+>>> index c288b76..00a3a53 100644
+>>> --- a/arch/arm/plat-omap/dma.c
+>>> +++ b/arch/arm/plat-omap/dma.c
+>>> @@ -2146,6 +2146,14 @@ static struct platform_driver
+>>> omap_system_dma_driver = {
+>>>        },
+>>>    };
+>>>
+>>> +/* This must be called from init_early() */
+>>> +void __init omap_init_consistent_dma_size(void)
+>>> +{
+>>> +#ifdef CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE
+>>> +    init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
+>>> +#endif
+>>> +}
+>>> +
+>> Lets not move this in DMA code since the above is really related
+>> to frame buffer. It reserves more DMA area for dma_alloc_coherent()
+>> etc than default 2 MB. Infact, we should no longer need this with
+>> CMA and memblock in place.
+>>
+>> Tomi,
+>> Can we not get rid of the above memory reservation ?
 >
-> On 10/31/2012 12:09 PM, Cousson, Benoit wrote:
->> Hi Peter,
->>
->> That's great you've have done that fix.
->>
->> On 10/30/2012 12:24 PM, Peter Ujfalusi wrote:
->>> Add flags parameter for omap_hwmod_count_resources() so users can t=
-ell which
->>> type of resources they are interested when counting them in hwmod d=
-atabase.
->>
->> Mmm, does it worth doing that for every resources considering that t=
-his is a
->> temporary situation and than only the DMA resources are an issue so =
-far?
+> Yes, I think so. This one is only used for the old omapfb, i.e. omap1,
+> and I have no means to test it out, though. But below is a patch to
+> remove it. I also attached the patch, as it looks like thunderbird wants
+> to reformat the pasted patch... I'll remove the
+> CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE from the omapfb driver's Kconfig file
+> in my tree later.
 >
-> I think it is better to have nice API - even for a short term - than =
-introduce
-> a new wrapper just to count the DMA resources.
-> Yes we only use this to either count all resources or to count the DM=
-A
-> resources only, but the other options does not look better either:
-> 1. omap_hwmod_count_dma_resources(struct omap_hwmod *oh)
-> 2. omap_hwmod_count_resources(struct omap_hwmod *oh, bool dma_only)
+Great !!
+Thanks for the patches Tomi.
 
-=46air enough. I'm OK with that. I'll take theses patches, except if Pa=
-ul=20
-already have a 3.8 branch for hwmod.
+For both the patches, feel free add.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Regards,
-Benoit
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
