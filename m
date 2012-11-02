@@ -1,67 +1,70 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH v3 1/4] mtd: omap-nand: pass device_node in platform data
-Date: Fri,  2 Nov 2012 16:25:53 +0100
-Message-ID: <1351869956-2787-2-git-send-email-zonque@gmail.com>
-References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:41645 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757545Ab2KBP0S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Nov 2012 11:26:18 -0400
-In-Reply-To: <1351869956-2787-1-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3 0/4] RFC: OMAP GPMC DT bindings
+Date: Fri,  2 Nov 2012 16:25:52 +0100
+Message-ID: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: devicetree-discuss@lists.ozlabs.org, robherring2@gmail.com, linux-omap@vger.kernel.org, jon-hunter@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, Daniel Mack <zonque@gmail.com>
 
-Pass an optional device_node pointer in the platform data, which in turn
-will be put into a mtd_part_parser_data. This way, code that sets up the
-platform devices can pass along the node from DT so that the partitions
-can be parsed.
+This is a series of patches to support GPMC peripherals on OMAP boards.
 
-For non-DT boards, this change has no effect.
+Depends on Linus' master +
+omap-next (branch omap-for-v3.8/cleanup-headers-gpmc)
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
- drivers/mtd/nand/omap2.c                     | 4 +++-
- include/linux/platform_data/mtd-nand-omap2.h | 2 ++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+The only supported peripheral for now is NAND, but other types would be
+easy to add.
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 3282b15..a733f15 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1331,6 +1331,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	dma_cap_mask_t mask;
- 	unsigned sig;
- 	struct resource			*res;
-+	struct mtd_part_parser_data	ppdata = {};
- 
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -1556,7 +1557,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 		goto out_release_mem_region;
- 	}
- 
--	mtd_device_parse_register(&info->mtd, NULL, NULL, pdata->parts,
-+	ppdata.of_node = pdata->of_node;
-+	mtd_device_parse_register(&info->mtd, NULL, &ppdata, pdata->parts,
- 				  pdata->nr_parts);
- 
- 	platform_set_drvdata(pdev, &info->mtd);
-diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
-index 24d32ca..5217d6e 100644
---- a/include/linux/platform_data/mtd-nand-omap2.h
-+++ b/include/linux/platform_data/mtd-nand-omap2.h
-@@ -60,6 +60,8 @@ struct omap_nand_platform_data {
- 	int			devsize;
- 	enum omap_ecc           ecc_opt;
- 	struct gpmc_nand_regs	reg;
-+	/* for passing the partitions */
-+	struct device_node	*of_node;
- };
- 
- #endif
+Version 2 addresses details pointed out by Jon Hunter, Afzal Mohammed
+and Rob Herring:
+
+ - add "reg" and "ti,hwmod" properties to Documentation
+ - use generic of_mtd functions and the property names defined by them,
+   namely "nand-bus-width" and "nand-ecc-mode"
+ - reduce the default register space size in the Documentation to 8K,
+   as found in the hwmod code
+ - switch to a DT layout based on ranges and address translation.
+   Although this property is not currently looked at as long as the
+   handling code still uses the runtime calculation methods, we now
+   have these values in the bindings, eventually allowing us to
+   switch the implementation with less pain.
+
+Version 3 includes fixes pointed out by Jon Hunter:
+
+ - better documentation of the 'ranges' property to describe the
+   fact that it's representing the CS lines
+ - GPMC_CS_CONFIGx -> GPMC_CONFIGx in comments
+ - drop interrupt-parent from example bindings
+ - add of_node_put() at the end of the child iteration
+
+Daniel Mack (4):
+  mtd: omap-nand: pass device_node in platform data
+  ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
+  ARM: OMAP: gpmc: don't create devices from initcall on DT
+  ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
+
+ Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  76 +++++++++++
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  60 +++++++++
+ arch/arm/mach-omap2/gpmc-nand.c                    |   2 +-
+ arch/arm/mach-omap2/gpmc.c                         | 148 +++++++++++++++++++++
+ drivers/mtd/nand/omap2.c                           |   4 +-
+ include/linux/platform_data/mtd-nand-omap2.h       |   2 +
+ 6 files changed, 290 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
+ create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+
 -- 
 1.7.11.7
-
