@@ -1,139 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
 Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Fri, 2 Nov 2012 10:57:18 +0200
-Message-ID: <20121102085718.GF17063@arwen.pp.htv.fi>
-References: <20121101110418.GF410@arwen.pp.htv.fi>
- <3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
- <20121101124025.GA12489@arwen.pp.htv.fi>
- <A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
- <20121101131609.GC12489@arwen.pp.htv.fi>
- <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
- <20121101135148.382aec00@pyramind.ukuu.org.uk>
- <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
- <20121101220518.GE14982@arwen.pp.htv.fi>
- <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+Date: Fri, 2 Nov 2012 10:26:34 +0100
+Message-ID: <509391CA.9040408@ti.com>
+References: <CA+T6QPk-etCT7EzwGR-tP+JTab_m4Vywh9qgHG_HW-oXKgn_AQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yZnyZsPjQYjG7xG7"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
+In-Reply-To: <CA+T6QPk-etCT7EzwGR-tP+JTab_m4Vywh9qgHG_HW-oXKgn_AQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: balbi@ti.com, Pantelis Antoniou <panto@antoniou-consulting.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Jason Kridner <jkridner@beagleboard.org>
+Cc: Tony Lindgren <tony@atomide.com>, Koen Kooi <koen@dominion.thruhere.net>, paul@pwsan.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Porter, Matt" <mporter@ti.com>, Russ Dill <russ.dill@gmail.com>, khilman@ti.com
 List-Id: linux-omap@vger.kernel.org
 
---yZnyZsPjQYjG7xG7
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Jason,
 
-Hi,
+On 11/1/2012 7:50 PM, Jason Kridner wrote:
+> My apologies for starting a new thread, but I don't have this thread
+> in my Inbox.
+>
+> http://www.spinics.net/lists/linux-omap/msg81034.html
+>
+> Tony Lindgren wrote:
+>
+>> * Pantelis Antoniou <panto@xxxxxxxxxxxxxxxxxxxxxxx> [121031 15:02]:
+>>>
+>>> So when device's node is 'disabled' of_platform_device_create_pdata()
+>>> will not create the device.
+>>>
+>>> Now, of course it is possible to re-trigger the platform's probe method
+>>> to be called, and in fact I do so in the capebus patches.
+>>
+>> You should fix this in generic way then rather than working
+>> around it in capebus. The same problem exists changing
+>> between different functionality for the shared pins,
+>> let's say between USB pins and UART pins if you want a
+>> serial debug console on some phone.
+>
+> The current capebus solution goes a long way to fixing a huge issue
+> for BeagleBone users and I don't understand what seems to be a
+> push-back on principle. On BeagleBone capes, these conflicts cannot be
+> resolved early.
 
-On Thu, Nov 01, 2012 at 04:49:23PM -0700, Russ Dill wrote:
-> On Thu, Nov 1, 2012 at 3:05 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > HI,
-> >
-> > On Thu, Nov 01, 2012 at 03:59:50PM +0200, Pantelis Antoniou wrote:
-> >> Hi Alan,
-> >>
-> >> On Nov 1, 2012, at 3:51 PM, Alan Cox wrote:
-> >>
-> >> >> What they want, and what every user wants, is I plug this board in,=
- and
-> >> >> the driver make sure everything is loaded and ready. No, the end us=
-ers
-> >> >> don't want to see any of the implementation details of how the bitf=
-ile
-> >> >> is transported; the driver can handle it.
-> >> >
-> >> > That doesn't necessarily make it a bus merely some kind of hotplug
-> >> > enumeration of devices. That should all work properly both for devic=
-es
-> >> > and busses with spi and i=B2c as the final bits needed for it got fi=
-xed
-> >> > some time ago.
-> >> >
-> >> > In an ideal world you don't want to be writing custom drivers for st=
-uff.
-> >> > If your cape routes an i=B2c serial device to the existing system i=
-=B2c
-> >> > busses then you want to just create an instance of any existing driv=
-er on
-> >> > the existing i=B2c bus not create a whole new layer of goop.
-> >> >
-> >> > It does need to do the plumbing and resource management for the plum=
-bing
-> >> > but thats not the same as being a bus.
-> >> >
-> >> > Alan
-> >>
-> >>
-> >> Fair enough. But there's no such thing a 'hotplug enumeration
-> >> construct' in Linux yet, and a bus is the closest thing to it. It does
-> >> take advantage of the nice way device code matches drivers and devices
-> >> though.
-> >>
-> >> I'm afraid that having the I2C/SPI drivers doing the detection won't
-> >> work.  The capes can have arbitrary I2C/SPI devices (and even more
-> >> weird components).  There is no way to assure for example that the I2C
-> >> device responding to address 'foo' in cape A is the same I2C device
-> >> responding to the same address in cape B.
-> >
-> > your ->detect() method should take care of that.
->=20
-> There isn't some magical serial number in I=B2C devices that a
-> ->detect() method can read and the implementation of I=B2C is somewhat
-> flexible. One devices read may be another devices write. A detect
+I don't think there is any push-back on the principle. It is a very 
+valid problem that does not have any solution today.
 
-look at what other drivers do. You can read a revision register, you can
-write a command and see if the device responds as expected, it doesn't
-matter.
+The comments are more on the implementation.
 
-> method that only performs reads could easily toggle a gpio that resets
-> the board, rewrite and eeprom, or set the printer on fire. If you
+> Do you have suggestions on some more generic method? It seems to me
+> the proposed capebus approach strikes a good balance.
 
-how ? It's just a read.
+Well, yeah, that's a generic DT issue, not a beagle-cape issue.
+We should not necessarily handle it by introducing some fake bus and 
+some new binding like spi-dt / i2c-dt that does not mean anything in 
+term of HW.
 
-> browse through various detect functions, yes, some of them key off an
-> ID, but a lot of them just check various registers to see if certain
-> bits are zero, or certain bits are one. A lot of I=B2C devices I've
-> dealt with have no good way of probing them, especially GPIO chips
-> (you'll notice none of the I=B2C GPIO expanders have detect functions)
+DT is about pure HW representation. Introducing some fake hierarchy to 
+make SW life easier is not necessarily the good approach.
 
-it doesn't mean it can't be done.
+Adding the version information in the nodes is potentially a good idea, 
+but should clearly be well thought and part of the DT core.
 
-> On top of all this the detect routine does not tell you if the alert
-> pin is connected to some IRQ, or in the case of a GPIO expander, what
-> those GPIOs are connected to, etc, etc.
-
-so what ? All you want to do with detect is figure out if the far end is
-who you think it is, not what it's doing.
-
---=20
-balbi
-
---yZnyZsPjQYjG7xG7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQk4ruAAoJEIaOsuA1yqRE/oYP/RrMH4OT/KP6qBKpCh2IP8oj
-TUUTewsWGmGmhtWqjM+/1Ck1oJTtdbaYN/M+JI15J44/aLXwvFLQWN2h5SKF2piQ
-CcxF8lNckdrsL/33qpsTEwbaAsD3UqNbnlZpfAKS8cOTVOmbqWmVlBL0T5ZWT1lL
-J1y+0DH5A52sact2PXmdZJOkgdOOAUqdrBLYVQ+h56YerSxCBfh2a1qyTCzpYu6Z
-dx0We+7fcLubz69fbb84jg0AAqiMhjLD6JfE/bTElhQdPF3EkzJc7+9AqIcHdFbn
-8I2vVX/k8UlcAiJLu3TvS60aGsVrKGjJeLVi4IxCVL0tLdKDEk9Ubd2xYuqrfxva
-/dvil8+N439/TDj+0SFQOLhJbe+zZ3WFPzzVqS5mbpyjRS8wd64s4hpWYDNjEpAw
-k8EKL0IC8h/HG7i0VsNV83ZBvWM3z6uve4M666L0+kDKPA+nGbVOCTzhV16zdCxO
-77Xiiu3oSN/yXQFsO7iEQPPkOy07yEDvqPqJn4z28fHZ72HpwoVJwQ4wu0ZZIEpX
-jj5iFwcgSqP7+1wjff560/puupo9377HsI/BthXSQV0O9C1bowmZBE+YJNhHSYGp
-zWswCgjnPEEVypdiX7dmMTT+J5GU8kamNMeCCRjo78kPPwQBuyD7OFzQfbZ2MRIS
-cxJ2OTRGtD1A1xKhI0b0
-=znTI
------END PGP SIGNATURE-----
-
---yZnyZsPjQYjG7xG7--
+Regards,
+Benoit
