@@ -1,95 +1,91 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Thu, 1 Nov 2012 16:49:23 -0700
-Message-ID: <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
-References: <50924DA3.1060901@ti.com>
-	<F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
-	<20121101110418.GF410@arwen.pp.htv.fi>
-	<3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
-	<20121101124025.GA12489@arwen.pp.htv.fi>
-	<A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
-	<20121101131609.GC12489@arwen.pp.htv.fi>
-	<E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
-	<20121101135148.382aec00@pyramind.ukuu.org.uk>
-	<9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
-	<20121101220518.GE14982@arwen.pp.htv.fi>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: RE: [PATCH V3] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
+Date: Fri, 2 Nov 2012 05:32:35 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EABDCB7@DBDE01.ent.ti.com>
+References: <1351684656-30275-1-git-send-email-gururaja.hebbar@ti.com>
+ <20121031122639.GA10998@arwen.pp.htv.fi>
+ <CAOyx1LrKBE+xzSRN4F=+e1DuMJL+5SAv-YkJWJdDw8p=kDojmw@mail.gmail.com>
+ <20121031201626.GA28784@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121101220518.GE14982@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20121031201626.GA28784@arwen.pp.htv.fi>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: "Balbi, Felipe" <balbi@ti.com>, "S, Venkatraman" <svenkatr@ti.com>
+Cc: "cjb@laptop.org" <cjb@laptop.org>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 1, 2012 at 3:05 PM, Felipe Balbi <balbi@ti.com> wrote:
-> HI,
->
-> On Thu, Nov 01, 2012 at 03:59:50PM +0200, Pantelis Antoniou wrote:
->> Hi Alan,
->>
->> On Nov 1, 2012, at 3:51 PM, Alan Cox wrote:
->>
->> >> What they want, and what every user wants, is I plug this board i=
-n, and
->> >> the driver make sure everything is loaded and ready. No, the end =
-users
->> >> don't want to see any of the implementation details of how the bi=
-tfile
->> >> is transported; the driver can handle it.
->> >
->> > That doesn't necessarily make it a bus merely some kind of hotplug
->> > enumeration of devices. That should all work properly both for dev=
-ices
->> > and busses with spi and i=C2=B2c as the final bits needed for it g=
-ot fixed
->> > some time ago.
->> >
->> > In an ideal world you don't want to be writing custom drivers for =
-stuff.
->> > If your cape routes an i=C2=B2c serial device to the existing syst=
-em i=C2=B2c
->> > busses then you want to just create an instance of any existing dr=
-iver on
->> > the existing i=C2=B2c bus not create a whole new layer of goop.
->> >
->> > It does need to do the plumbing and resource management for the pl=
-umbing
->> > but thats not the same as being a bus.
->> >
->> > Alan
->>
->>
->> Fair enough. But there's no such thing a 'hotplug enumeration
->> construct' in Linux yet, and a bus is the closest thing to it. It do=
-es
->> take advantage of the nice way device code matches drivers and devic=
-es
->> though.
->>
->> I'm afraid that having the I2C/SPI drivers doing the detection won't
->> work.  The capes can have arbitrary I2C/SPI devices (and even more
->> weird components).  There is no way to assure for example that the I=
-2C
->> device responding to address 'foo' in cape A is the same I2C device
->> responding to the same address in cape B.
->
-> your ->detect() method should take care of that.
+On Thu, Nov 01, 2012 at 01:46:26, Balbi, Felipe wrote:
+> Hi,
+> 
+> On Thu, Nov 01, 2012 at 01:21:36AM +0530, Venkatraman S wrote:
+> > On Wed, Oct 31, 2012 at 5:56 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > > Hi,
+> > >
+> > > On Wed, Oct 31, 2012 at 05:27:36PM +0530, Hebbar, Gururaja wrote:
+> > >> HSMMC IP on AM33xx need a special setting to handle High-speed cards.
+> > >> Other platforms like TI81xx, OMAP4 may need this as-well. This depends
+> > >> on the HSMMC IP timing closure done for the high speed cards.
+> > >>
+> > >> From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
+> > >>
+> > >> The MMC/SD/SDIO output signals can be driven on either falling edge or
+> > >> rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
+> > >> to reach better timing performance, and thus to increase data transfer
+> > >> frequency.
+> > >>
+> > >> There are few pre-requisites for enabling the HSPE bit
+> > >> - Controller should support High-Speed-Enable Bit and
+> > >> - Controller should not be using DDR Mode and
+> > >> - Controller should advertise that it supports High Speed in
+> > >>   capabilities register and
+> > >> - MMC/SD clock coming out of controller > 25MHz
+> > >>
+> > >> Note:
+> > >> The implementation reuses the output of calc_divisor() so as to reduce
+> > >> code addition.
+> > >>
+> > >> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+> > >
+> > > this looks good to my eyes, hopefully I haven't missed anything:
+> > >
+> > > Reviewed-by: Felipe Balbi <balbi@ti.com>
+> > >
+> > 
+> > Except for the excessively verbose comments which are just duplicating the code,
+> > <Quote>
+> > >> +      * Enable High-Speed Support
+> > >> +      * Pre-Requisites
+> > >> +      *      - Controller should support High-Speed-Enable Bit
+> > >> +      *      - Controller should not be using DDR Mode
+> > >> +      *      - Controller should advertise that it supports High Speed
+> > >> +      *        in capabilities register
+> > >> +      *      - MMC/SD clock coming out of controller > 25MHz
+> > >> +      */
+> > </Quote>
+> > 
+> > I'm ok with this patch as well. I'm putting a few patches under test
+> > including this one,
+> > and will send it to Chris as part of that series.
+> > I'll strip out the above mentioned comments, unless there are any
+> > objections.
+> 
+> please don't. Detailing the pre-requisites for getting HSP mode working
+> isn't bad at all. Should someone decide to change the behavior and ends
+> up breaking it, the comment will help putting things back together.
+> 
+> my 2 cents, you've got the final decision though.
 
-There isn't some magical serial number in I=C2=B2C devices that a
-->detect() method can read and the implementation of I=C2=B2C is somewh=
-at
-flexible. One devices read may be another devices write. A detect
-method that only performs reads could easily toggle a gpio that resets
-the board, rewrite and eeprom, or set the printer on fire. If you
-browse through various detect functions, yes, some of them key off an
-ID, but a lot of them just check various registers to see if certain
-bits are zero, or certain bits are one. A lot of I=C2=B2C devices I've
-dealt with have no good way of probing them, especially GPIO chips
-(you'll notice none of the I=C2=B2C GPIO expanders have detect function=
-s)
+Same here. Description is required in commit message since it will help
+in during git bisect.
 
-On top of all this the detect routine does not tell you if the alert
-pin is connected to some IRQ, or in the case of a GPIO expander, what
-those GPIOs are connected to, etc, etc.
+> 
+> -- 
+> balbi
+> 
+
+
+Regards, 
+Gururaja
