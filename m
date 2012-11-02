@@ -1,65 +1,102 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Fri, 2 Nov 2012 10:26:34 +0100
-Message-ID: <509391CA.9040408@ti.com>
-References: <CA+T6QPk-etCT7EzwGR-tP+JTab_m4Vywh9qgHG_HW-oXKgn_AQ@mail.gmail.com>
+From: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/3] ti_tscadc: Match mfd sub devices to regmap interface
+Date: Fri, 02 Nov 2012 09:36:46 +0000
+Message-ID: <5093942E.5010403@kernel.org>
+References: <1351783496-11557-1-git-send-email-panto@antoniou-consulting.com> <1351783496-11557-2-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+T6QPk-etCT7EzwGR-tP+JTab_m4Vywh9qgHG_HW-oXKgn_AQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Kridner <jkridner@beagleboard.org>
-Cc: Tony Lindgren <tony@atomide.com>, Koen Kooi <koen@dominion.thruhere.net>, paul@pwsan.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Porter, Matt" <mporter@ti.com>, Russ Dill <russ.dill@gmail.com>, khilman@ti.com
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1351783496-11557-2-git-send-email-panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Cc: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, "Patil, Rachna" <rachna-l0cyMroinI0@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Jason,
+On 11/01/2012 03:24 PM, Pantelis Antoniou wrote:
+> The MFD parent device now uses a regmap, instead of direct
+> memory access. Use the same method in the sub devices to avoid
+> nasty surprises.
+> 
+> Please not that this driver can't really deal with the case of the regmap
+> call failing in anyway. So that's why there's no error handling.
+> 
+> I think it's best to patch this up, until the driver maintainers deal
+> with this properly.
+This should be split in two as it's touching two different drivers in
+different subsystems and may merge through them.
 
-On 11/1/2012 7:50 PM, Jason Kridner wrote:
-> My apologies for starting a new thread, but I don't have this thread
-> in my Inbox.
->
-> http://www.spinics.net/lists/linux-omap/msg81034.html
->
-> Tony Lindgren wrote:
->
->> * Pantelis Antoniou <panto@xxxxxxxxxxxxxxxxxxxxxxx> [121031 15:02]:
->>>
->>> So when device's node is 'disabled' of_platform_device_create_pdata()
->>> will not create the device.
->>>
->>> Now, of course it is possible to re-trigger the platform's probe method
->>> to be called, and in fact I do so in the capebus patches.
->>
->> You should fix this in generic way then rather than working
->> around it in capebus. The same problem exists changing
->> between different functionality for the shared pins,
->> let's say between USB pins and UART pins if you want a
->> serial debug console on some phone.
->
-> The current capebus solution goes a long way to fixing a huge issue
-> for BeagleBone users and I don't understand what seems to be a
-> push-back on principle. On BeagleBone capes, these conflicts cannot be
-> resolved early.
-
-I don't think there is any push-back on the principle. It is a very 
-valid problem that does not have any solution today.
-
-The comments are more on the implementation.
-
-> Do you have suggestions on some more generic method? It seems to me
-> the proposed capebus approach strikes a good balance.
-
-Well, yeah, that's a generic DT issue, not a beagle-cape issue.
-We should not necessarily handle it by introducing some fake bus and 
-some new binding like spi-dt / i2c-dt that does not mean anything in 
-term of HW.
-
-DT is about pure HW representation. Introducing some fake hierarchy to 
-make SW life easier is not necessarily the good approach.
-
-Adding the version information in the nodes is potentially a good idea, 
-but should clearly be well thought and part of the DT core.
-
-Regards,
-Benoit
+> 
+> Signed-off-by: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+> ---
+>  drivers/iio/adc/ti_am335x_adc.c           | 10 ++++++++--
+>  drivers/input/touchscreen/ti_am335x_tsc.c |  9 +++++++--
+>  2 files changed, 15 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/iio/adc/ti_am335x_adc.c b/drivers/iio/adc/ti_am335x_adc.c
+> index 8595a90..44806f9 100644
+> --- a/drivers/iio/adc/ti_am335x_adc.c
+> +++ b/drivers/iio/adc/ti_am335x_adc.c
+> @@ -23,7 +23,9 @@
+>  #include <linux/iio/iio.h>
+>  #include <linux/iio/machine.h>
+>  #include <linux/iio/driver.h>
+> +#include <linux/regmap.h>
+>  
+> +#include <linux/io.h>
+>  #include <linux/mfd/ti_am335x_tscadc.h>
+>  #include <linux/platform_data/ti_am335x_adc.h>
+>  
+> @@ -36,13 +38,17 @@ struct tiadc_device {
+>  
+>  static unsigned int tiadc_readl(struct tiadc_device *adc, unsigned int reg)
+>  {
+> -	return readl(adc->mfd_tscadc->tscadc_base + reg);
+> +	unsigned int val;
+> +
+> +	val = (unsigned int)-1;
+> +	regmap_read(adc->mfd_tscadc->regmap_tscadc, reg, &val);
+> +	return val;
+>  }
+>  
+>  static void tiadc_writel(struct tiadc_device *adc, unsigned int reg,
+>  					unsigned int val)
+>  {
+> -	writel(val, adc->mfd_tscadc->tscadc_base + reg);
+> +	regmap_write(adc->mfd_tscadc->regmap_tscadc, reg, val);
+>  }
+>  
+>  static void tiadc_step_config(struct tiadc_device *adc_dev)
+> diff --git a/drivers/input/touchscreen/ti_am335x_tsc.c b/drivers/input/touchscreen/ti_am335x_tsc.c
+> index 7a26810..5723957 100644
+> --- a/drivers/input/touchscreen/ti_am335x_tsc.c
+> +++ b/drivers/input/touchscreen/ti_am335x_tsc.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/io.h>
+>  #include <linux/input/ti_am335x_tsc.h>
+>  #include <linux/delay.h>
+> +#include <linux/regmap.h>
+>  
+>  #include <linux/mfd/ti_am335x_tscadc.h>
+>  
+> @@ -64,13 +65,17 @@ struct titsc {
+>  
+>  static unsigned int titsc_readl(struct titsc *ts, unsigned int reg)
+>  {
+> -	return readl(ts->mfd_tscadc->tscadc_base + reg);
+> +	unsigned int val;
+> +
+> +	val = (unsigned int)-1;
+> +	regmap_read(ts->mfd_tscadc->regmap_tscadc, reg, &val);
+> +	return val;
+>  }
+>  
+>  static void titsc_writel(struct titsc *tsc, unsigned int reg,
+>  					unsigned int val)
+>  {
+> -	writel(val, tsc->mfd_tscadc->tscadc_base + reg);
+> +	regmap_write(tsc->mfd_tscadc->regmap_tscadc, reg, val);
+>  }
+>  
+>  /*
+> 
