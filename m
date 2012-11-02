@@ -1,57 +1,53 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v3 0/4] RFC: OMAP GPMC DT bindings
-Date: Fri, 2 Nov 2012 14:29:07 -0500
-Message-ID: <50941F03.2030701@ti.com>
-References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH 0/5] usb: musb: am335x support
+Date: Fri, 02 Nov 2012 20:36:56 +0100
+Message-ID: <509420D8.1030307@gmail.com>
+References: <cover.1351870620.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38796 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751096Ab2KBT30 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Nov 2012 15:29:26 -0400
-In-Reply-To: <1351869956-2787-1-git-send-email-zonque@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <cover.1351870620.git.afzal@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Santhapuri Damodar <damodar.santhapuri@ti.com>, Ravi Babu <ravibabu@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, robherring2@gmail.com, linux-omap@vger.kernel.org, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
+
+Hi Afzal,
+
+On 02.11.2012 17:31, Afzal Mohammed wrote:
+> This series adds usb support to am335x SoC's found on boards like
+> Beagle Bone. Here only first instance is supported, as currently
+> multiple phy's of same type is not supported (am335x has two USB2
+> phy's).
+
+I'm testing these patches with an AM33xx board that has the first musb
+port wired to an USB type A plug, but it doesn't yet work for me.
+
+The messages I'm getting are:
+
+[    1.219339] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    1.226568] ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+[    1.233444] usbcore: registered new interface driver uas
+[    1.239066] Initializing USB Mass Storage driver...
+[    1.244395] usbcore: registered new interface driver usb-storage
+[    1.250732] USB Mass Storage support registered.
+[    1.255573] musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
+[    1.262671] musb-hdrc: ConfigData=0xde (UTMI-8, dyn FIFOs, bulk
+combine, bulk split, HB-ISO Rx, HB-ISO Tx, SoftConn)
+[    1.262889] musb-hdrc: MHDRC RTL version 2.0
+[    1.262907] musb-hdrc: setup fifo_mode 4
+[    1.262940] musb-hdrc: 28/31 max ep, 16384/16384 memory
+
+So there is no host interface registered. I'm unsure on how to fix this,
+and I didn't get an answer yet to that question when I asked Felipe
+about how interface drivers like dsps are supposed to act in order to
+get host mode back after the recent musb cleanups.
+
+What type of hardware do you test this with? Does host mode work for you?
 
 
-On 11/02/2012 10:25 AM, Daniel Mack wrote:
-> This is a series of patches to support GPMC peripherals on OMAP boards.
-> 
-> Depends on Linus' master +
-> omap-next (branch omap-for-v3.8/cleanup-headers-gpmc)
-> 
-> The only supported peripheral for now is NAND, but other types would be
-> easy to add.
-> 
-> Version 2 addresses details pointed out by Jon Hunter, Afzal Mohammed
-> and Rob Herring:
-> 
->  - add "reg" and "ti,hwmod" properties to Documentation
->  - use generic of_mtd functions and the property names defined by them,
->    namely "nand-bus-width" and "nand-ecc-mode"
->  - reduce the default register space size in the Documentation to 8K,
->    as found in the hwmod code
->  - switch to a DT layout based on ranges and address translation.
->    Although this property is not currently looked at as long as the
->    handling code still uses the runtime calculation methods, we now
->    have these values in the bindings, eventually allowing us to
->    switch the implementation with less pain.
-> 
-> Version 3 includes fixes pointed out by Jon Hunter:
-> 
->  - better documentation of the 'ranges' property to describe the
->    fact that it's representing the CS lines
->  - GPMC_CS_CONFIGx -> GPMC_CONFIGx in comments
->  - drop interrupt-parent from example bindings
->  - add of_node_put() at the end of the child iteration
+Many thanks,
+Daniel
 
-Thanks. But I am still not completely happy with this. You may wish to
-wait until we have resolved all the current comments before sending out
-another version.
 
-Cheers
-Jon
