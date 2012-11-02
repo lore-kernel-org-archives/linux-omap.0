@@ -1,217 +1,120 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 03/14] ARM: OMAP5: id: Add cpu id for ES versions
-Date: Fri, 2 Nov 2012 12:03:45 +0200
-Message-ID: <50939A81.8060508@ti.com>
-References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com> <1341566515-22665-4-git-send-email-santosh.shilimkar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 12/12] OMAPDSS: DPI: always use DSI PLL if available
+Date: Fri, 2 Nov 2012 12:08:04 +0200
+Message-ID: <50939B84.6090602@ti.com>
+References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-13-git-send-email-tomi.valkeinen@ti.com> <5090D28E.6050703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig937DABBD3B3C7387202A4C1D"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38357 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932924Ab2KBKDv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 06:03:51 -0400
-In-Reply-To: <1341566515-22665-4-git-send-email-santosh.shilimkar@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40198 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758917Ab2KBKII (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Nov 2012 06:08:08 -0400
+In-Reply-To: <5090D28E.6050703@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com
 
-Hi Santosh,
+--------------enig937DABBD3B3C7387202A4C1D
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I believe the change from cpu_is_xxx() to soc_is_xxx() just for OMAP5
-leads to unnecessary confusion, even though soc_is_ is more technically
-correct.
+On 2012-10-31 09:26, Archit Taneja wrote:
+> On Tuesday 30 October 2012 09:40 PM, Tomi Valkeinen wrote:
 
-What do you think?
+>> -    if (dpi_use_dsi_pll(dssdev)) {
+>> -        enum omap_dss_clk_source dispc_fclk_src =3D
+>> -            dssdev->clocks.dispc.dispc_fclk_src;
+>> -        dpi.dsidev =3D dpi_get_dsidev(dispc_fclk_src);
+>> +    /*
+>> +     * XXX We shouldn't need dssdev->channel for this. The dsi pll cl=
+ock
+>> +     * source for DPI is SoC integration detail, not something that
+>> should
+>> +     * be configured in the dssdev
+>> +     */
+>=20
+> It is SoC integration detail, but it's flexible, it depends on which
+> manager is connected to DPI output. If it's connected to LCD1, the
 
-regards,
--roger
+Hmm, yes, the comment is a bit misleading. The DSI PLL is not used for
+DPI, but for DISPC's LCD output. And DPI uses one of those LCD outputs.
 
-On 07/06/2012 12:21 PM, Santosh Shilimkar wrote:
-> From: R Sricharan <r.sricharan@ti.com>
-> 
-> Adding the OMAP5 ES1.0, 2.0 and OMAP5432 cpu revision
-> detection support.
-> 
-> Signed-off-by: R Sricharan <r.sricharan@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/control.h         |    4 ++++
->  arch/arm/mach-omap2/id.c              |   42 ++++++++++++++++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/cpu.h |   22 +++++++++++++++--
->  3 files changed, 65 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index 295b390..b8cdc85 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -253,6 +253,10 @@
->  /* TI81XX CONTROL_DEVCONF register offsets */
->  #define TI81XX_CONTROL_DEVICE_ID	(TI81XX_CONTROL_DEVCONF + 0x000)
->  
-> +/* OMAP54XX CONTROL STATUS register */
-> +#define OMAP5XXX_CONTROL_STATUS                0x134
-> +#define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
-> +
->  /*
->   * REVISIT: This list of registers is not comprehensive - there are more
->   * that should be added.
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 37eb95a..40373db 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -50,6 +50,11 @@ int omap_type(void)
->  		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
->  	} else if (cpu_is_omap44xx()) {
->  		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
-> +	} else if (soc_is_omap54xx()) {
-> +		val = omap_ctrl_readl(OMAP5XXX_CONTROL_STATUS);
-> +		val &= OMAP5_DEVICETYPE_MASK;
-> +		val >>= 6;
-> +		goto out;
->  	} else {
->  		pr_err("Cannot detect omap type!\n");
->  		goto out;
-> @@ -100,7 +105,7 @@ static u16 tap_prod_id;
->  
->  void omap_get_die_id(struct omap_die_id *odi)
->  {
-> -	if (cpu_is_omap44xx()) {
-> +	if (cpu_is_omap44xx() || soc_is_omap54xx()) {
->  		odi->id_0 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_0);
->  		odi->id_1 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_1);
->  		odi->id_2 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_2);
-> @@ -513,6 +518,41 @@ void __init omap4xxx_check_revision(void)
->  		((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf));
->  }
->  
-> +void __init omap5xxx_check_revision(void)
-> +{
-> +	u32 idcode;
-> +	u16 hawkeye;
-> +	u8 rev;
-> +
-> +	idcode = read_tap_reg(OMAP_TAP_IDCODE);
-> +	hawkeye = (idcode >> 12) & 0xffff;
-> +	rev = (idcode >> 28) & 0xff;
-> +	switch (hawkeye) {
-> +	case 0xb942:
-> +		switch (rev) {
-> +		case 0:
-> +		default:
-> +			omap_revision = OMAP5430_REV_ES1_0;
-> +		}
-> +		break;
-> +
-> +	case 0xb998:
-> +		switch (rev) {
-> +		case 0:
-> +		default:
-> +			omap_revision = OMAP5432_REV_ES1_0;
-> +		}
-> +		break;
-> +
-> +	default:
-> +		/* Unknown default to latest silicon rev as default*/
-> +		omap_revision = OMAP5430_REV_ES1_0;
-> +	}
-> +
-> +	pr_info("OMAP%04x ES%d.0\n",
-> +			omap_rev() >> 16, ((omap_rev() >> 12) & 0xf));
-> +}
-> +
->  /*
->   * Set up things for map_io and processor detection later on. Gets called
->   * pretty much first thing from board init. For multi-omap, this gets
-> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> index 14f050f..e2d911d 100644
-> --- a/arch/arm/plat-omap/include/plat/cpu.h
-> +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -9,7 +9,7 @@
->   *
->   * Written by Tony Lindgren <tony.lindgren@nokia.com>
->   *
-> - * Added OMAP4 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
-> + * Added OMAP4/5 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -70,6 +70,7 @@ unsigned int omap_rev(void);
->   * cpu_is_omap443x():	True for OMAP4430
->   * cpu_is_omap446x():	True for OMAP4460
->   * cpu_is_omap447x():	True for OMAP4470
-> + * soc_is_omap543x():	True for OMAP5430, OMAP5432
->   */
->  #define GET_OMAP_CLASS	(omap_rev() & 0xff)
->  
-> @@ -122,6 +123,7 @@ IS_OMAP_CLASS(24xx, 0x24)
->  IS_OMAP_CLASS(34xx, 0x34)
->  IS_OMAP_CLASS(44xx, 0x44)
->  IS_AM_CLASS(35xx, 0x35)
-> +IS_OMAP_CLASS(54xx, 0x54)
->  IS_AM_CLASS(33xx, 0x33)
->  
->  IS_TI_CLASS(81xx, 0x81)
-> @@ -133,6 +135,7 @@ IS_OMAP_SUBCLASS(363x, 0x363)
->  IS_OMAP_SUBCLASS(443x, 0x443)
->  IS_OMAP_SUBCLASS(446x, 0x446)
->  IS_OMAP_SUBCLASS(447x, 0x447)
-> +IS_OMAP_SUBCLASS(543x, 0x543)
->  
->  IS_TI_SUBCLASS(816x, 0x816)
->  IS_TI_SUBCLASS(814x, 0x814)
-> @@ -156,6 +159,8 @@ IS_AM_SUBCLASS(335x, 0x335)
->  #define cpu_is_omap443x()		0
->  #define cpu_is_omap446x()		0
->  #define cpu_is_omap447x()		0
-> +#define soc_is_omap54xx()		0
-> +#define soc_is_omap543x()		0
->  
->  #if defined(MULTI_OMAP1)
->  # if defined(CONFIG_ARCH_OMAP730)
-> @@ -291,6 +296,7 @@ IS_OMAP_TYPE(3430, 0x3430)
->  #define cpu_is_omap2430()		0
->  #define cpu_is_omap3430()		0
->  #define cpu_is_omap3630()		0
-> +#define soc_is_omap5430()		0
->  
->  /*
->   * Whether we have MULTI_OMAP1 or not, we still need to distinguish
-> @@ -371,11 +377,18 @@ IS_OMAP_TYPE(3430, 0x3430)
->  # define cpu_is_omap447x()		is_omap447x()
->  # endif
->  
-> +# if defined(CONFIG_SOC_OMAP5)
-> +# undef soc_is_omap54xx
-> +# undef soc_is_omap543x
-> +# define soc_is_omap54xx()		is_omap54xx()
-> +# define soc_is_omap543x()		is_omap543x()
-> +#endif
-> +
->  /* Macros to detect if we have OMAP1 or OMAP2 */
->  #define cpu_class_is_omap1()	(cpu_is_omap7xx() || cpu_is_omap15xx() || \
->  				cpu_is_omap16xx())
->  #define cpu_class_is_omap2()	(cpu_is_omap24xx() || cpu_is_omap34xx() || \
-> -				cpu_is_omap44xx())
-> +				cpu_is_omap44xx() || soc_is_omap54xx())
->  
->  /* Various silicon revisions for omap2 */
->  #define OMAP242X_CLASS		0x24200024
-> @@ -428,9 +441,14 @@ IS_OMAP_TYPE(3430, 0x3430)
->  #define OMAP447X_CLASS		0x44700044
->  #define OMAP4470_REV_ES1_0	(OMAP447X_CLASS | (0x10 << 8))
->  
-> +#define OMAP54XX_CLASS		0x54000054
-> +#define OMAP5430_REV_ES1_0	(OMAP54XX_CLASS | (0x30 << 16) | (0x10 << 8))
-> +#define OMAP5432_REV_ES1_0	(OMAP54XX_CLASS | (0x32 << 16) | (0x10 << 8))
-> +
->  void omap2xxx_check_revision(void);
->  void omap3xxx_check_revision(void);
->  void omap4xxx_check_revision(void);
-> +void omap5xxx_check_revision(void);
->  void omap3xxx_check_features(void);
->  void ti81xx_check_features(void);
->  void omap4xxx_check_features(void);
-> 
+> source can be DSI1 PLL, if it's LCD2, it's source can be DSI2 PLL, if
+> it's connected to TV manager, it's source "has to be" HDMI PLL. And
+> these connections vary based on which OMAP revision we are on. We can
+> only be certain on OMAP3 that the source for DPI pixel clock can be
+> either PRCM or DSI PLL.
 
+On OMAP2 we can be certain the clock is PRCM =3D).
+
+> At the point of probe, we really don't know which manager is the DPI
+> output connected to. Hence, we sort of use dssdev->channel to make a
+> guess what manager we connect to in the future.
+
+Yep. My point was mainly that dssdev needs to go away, and we should
+somehow decide the used channel internally.
+
+> The right approach would be to figure this out at the time of enable,
+> where we know which manager the DPI output is connected to. We could
+> probably move the verification there too.
+
+Who chooses which manager to use for DPI?
+
+I'm not sure... I would really like to manage the basic setup, acquiring
+the resources, etc. at probe time, and enable would only enable the displ=
+ay.
+
+That means that we should somehow get a manager for DPI at probe time,
+which may be a bit difficult, as we don't know what other displays there
+will be. So if, say, DPI can use LCD1 or LCD2, but DSI can only use
+LCD2, and at DPI's probe (presuming it's before DSI) we pick LCD2, DSI
+won't work.
+
+Anyway, while I'm not sure how to solve the above problem, I think we
+should improve our init a bit. For DPI there are the following steps
+done, in order:
+
+- DPI device added
+- DPI driver probe
+- DPI panel device added
+- DPI panel driver probe
+
+We currently add the panel device in DPI driver's probe, and figure out
+the DSI PLL at the same time. I think that should happen only when the
+panel driver probe happens. The panel driver should call something like
+dpi_get_output() or whatever, which acquires the DPI bus for the panel
+driver, and this would probably also choose the manager.
+
+ Tomi
+
+
+
+--------------enig937DABBD3B3C7387202A4C1D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQk5uEAAoJEPo9qoy8lh71B7AP/20eJC+AYvaREyTDkicEIVnN
+BpyUCndJxMcxxIcCH+RoY2UdDCEo4OZYJR7g6c6AeLpHoWQZ0XZPfQu6bdQBhYn0
+9ftuA1hXX8PM/qjMN3Z3FVF6XOx0E+mj85LOfhX89Wvbgsh7rJu++C41ieonaafI
+M+XvZzoJhsG3kzAVmeppNjgiPNN73lzrLDCbQORpwQyIrjqTBBvxpsVptYyBu+am
+KLHXIdI34P75FHY/yHS/CWLCfIOVaWZDYdEOYOA9al/cNonkjTV3f+mYOZnHBlM/
+03UUx6LXKZIeWgKEjWFm2g0pMBE0hADccMZg9Op6NW6q86wpRaTvBob1PBk/RjHr
+GscMzFqV07d3w+Un5ZCMYzgKQovbboll7z4N365yXcfR7U543DheAibZD+II8rb/
+qCyvk8p95R9+LDo68R7AiN654vtuwuX0v4PrMY/3V49qmYwkBHof4BwNC+123QqQ
+vOa/Q9iE1nWg3bKJEXSAYJEzVXD7+V0eVZEx+nW4a1zGToEWVs9Oc8tkTDcEB4MS
+b6Nc2LVqNH9nlAfU/1vR/cDH+8REt2sCvgN3BqKt98Qg/mil5JvumubnxrcXLWCA
+2xNK+a6mcy8+QaoA63tCe+1CtiaI3hcyMMCS6OLsffVaUQCSIL6S6KYywtUlmTRE
+B4MIHHqSl5mZIbs+stpG
+=W6i3
+-----END PGP SIGNATURE-----
+
+--------------enig937DABBD3B3C7387202A4C1D--
