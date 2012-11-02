@@ -1,7 +1,7 @@
 From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/5] usb: musb: dsps: reduce musb instance to one
-Date: Fri, 2 Nov 2012 22:02:35 +0530
-Message-ID: <808fe9b3f94a29c704f9d3365d7bc63ec35e94a7.1351870620.git.afzal@ti.com>
+Subject: [PATCH 3/5] usb: musb: dsps: get resources by index
+Date: Fri, 2 Nov 2012 22:02:41 +0530
+Message-ID: <f7d128612330900dde4717422950fed34aae9ee9.1351870620.git.afzal@ti.com>
 References: <cover.1351870620.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,47 @@ To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Santhapuri Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently multiple phy's of the same type are not supported, hence
-reduce musb instances to one. This helps in supporting at least one
-instance of musb, rather than having none. Even without this, it was
-observed that both instances were working (by luck), but this holds
-good iff wrapper is part of Image. And it is not correct for both
-controller's to be associated with same phy, here it was working
-because phy is a nop one. And having wrapper as a module and
-rmmod'ing would crash.
-
-This can be reverted once multi phy support for same type is available
-and driver is enhanced to make use of it.
+dsps wrapper is now dt only. This requires that resources be obtained
+using index and not name, modify accordingly.
 
 Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/musb_dsps.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/musb/musb_dsps.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 2396bcd..524c003 100644
+index 524c003..c90e4d3 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
-@@ -677,7 +677,7 @@ static const struct dsps_musb_wrapper ti81xx_driver_data __devinitconst = {
- 	.rxep_bitmap		= (0xfffe << 16),
- 	.musb_core_offset	= 0x400,
- 	.poll_seconds		= 2,
--	.instances		= 2,
-+	.instances		= 1,
- };
+@@ -450,22 +450,20 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	char res_name[10];
+ 	int ret;
  
- static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
+-	/* get memory resource */
+-	sprintf(res_name, "musb%d", id);
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, res_name);
++	/* first resource is for usbss, so start index from 1 */
++	res = platform_get_resource(pdev, IORESOURCE_MEM, id + 1);
+ 	if (!res) {
+-		dev_err(dev, "%s get mem resource failed\n", res_name);
++		dev_err(dev, "failed to get memory for instance %d\n", id);
+ 		ret = -ENODEV;
+ 		goto err0;
+ 	}
+ 	res->parent = NULL;
+ 	resources[0] = *res;
+ 
+-	/* get irq resource */
+-	sprintf(res_name, "musb%d-irq", id);
+-	res = platform_get_resource_byname(pdev, IORESOURCE_IRQ, res_name);
++	/* first resource is for usbss, so start index from 1 */
++	res = platform_get_resource(pdev, IORESOURCE_IRQ, id + 1);
+ 	if (!res) {
+-		dev_err(dev, "%s get irq resource failed\n", res_name);
++		dev_err(dev, "failed to get irq for instance %d\n", id);
+ 		ret = -ENODEV;
+ 		goto err0;
+ 	}
 -- 
 1.7.12
 
