@@ -1,148 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/6] ARM: OMAP2+: Make some definitions local
-Date: Fri, 02 Nov 2012 12:24:09 -0700
-Message-ID: <20121102192409.4253.78461.stgit@muffinssi.local>
-References: <20121102192221.4253.34303.stgit@muffinssi.local>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v3 0/4] RFC: OMAP GPMC DT bindings
+Date: Fri, 2 Nov 2012 14:29:07 -0500
+Message-ID: <50941F03.2030701@ti.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121102192221.4253.34303.stgit@muffinssi.local>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joro@8bytes.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Omar Ramirez Luna <omar.luna@linaro.org>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38796 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751096Ab2KBT30 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Nov 2012 15:29:26 -0400
+In-Reply-To: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, robherring2@gmail.com, linux-omap@vger.kernel.org, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
 
-From: Ido Yariv <ido@wizery.com>
 
-Move some of the definitions in omap-iommu.h that can be made local to
-either drivers/iommu.
+On 11/02/2012 10:25 AM, Daniel Mack wrote:
+> This is a series of patches to support GPMC peripherals on OMAP boards.
+> 
+> Depends on Linus' master +
+> omap-next (branch omap-for-v3.8/cleanup-headers-gpmc)
+> 
+> The only supported peripheral for now is NAND, but other types would be
+> easy to add.
+> 
+> Version 2 addresses details pointed out by Jon Hunter, Afzal Mohammed
+> and Rob Herring:
+> 
+>  - add "reg" and "ti,hwmod" properties to Documentation
+>  - use generic of_mtd functions and the property names defined by them,
+>    namely "nand-bus-width" and "nand-ecc-mode"
+>  - reduce the default register space size in the Documentation to 8K,
+>    as found in the hwmod code
+>  - switch to a DT layout based on ranges and address translation.
+>    Although this property is not currently looked at as long as the
+>    handling code still uses the runtime calculation methods, we now
+>    have these values in the bindings, eventually allowing us to
+>    switch the implementation with less pain.
+> 
+> Version 3 includes fixes pointed out by Jon Hunter:
+> 
+>  - better documentation of the 'ranges' property to describe the
+>    fact that it's representing the CS lines
+>  - GPMC_CS_CONFIGx -> GPMC_CONFIGx in comments
+>  - drop interrupt-parent from example bindings
+>  - add of_node_put() at the end of the child iteration
 
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>
-Signed-off-by: Ido Yariv <ido@wizery.com>
-[tony@atomide.com: updated for header changes in the series]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/iommu/omap-iommu.c  |   15 +++++++++++++++
- drivers/iommu/omap-iommu.h  |   33 +++------------------------------
- drivers/iommu/omap-iommu2.c |    6 ++++++
- 3 files changed, 24 insertions(+), 30 deletions(-)
+Thanks. But I am still not completely happy with this. You may wish to
+wait until we have resolved all the current comments before sending out
+another version.
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 4db86e1..df84087 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -54,6 +54,21 @@ struct omap_iommu_domain {
- 	spinlock_t lock;
- };
- 
-+#define MMU_LOCK_BASE_SHIFT	10
-+#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
-+#define MMU_LOCK_BASE(x)	\
-+	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
-+
-+#define MMU_LOCK_VICT_SHIFT	4
-+#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
-+#define MMU_LOCK_VICT(x)	\
-+	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
-+
-+struct iotlb_lock {
-+	short base;
-+	short vict;
-+};
-+
- /* accommodate the difference between omap1 and omap2/3 */
- static const struct iommu_functions *arch_iommu;
- 
-diff --git a/drivers/iommu/omap-iommu.h b/drivers/iommu/omap-iommu.h
-index 8c3378d..2b5f3c0 100644
---- a/drivers/iommu/omap-iommu.h
-+++ b/drivers/iommu/omap-iommu.h
-@@ -72,11 +72,6 @@ struct cr_regs {
- 	};
- };
- 
--struct iotlb_lock {
--	short base;
--	short vict;
--};
--
- /* architecture specific functions */
- struct iommu_functions {
- 	unsigned long	version;
-@@ -117,13 +112,6 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- }
- #endif
- 
--/* IOMMU errors */
--#define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
--#define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
--#define OMAP_IOMMU_ERR_EMU_MISS		(1 << 2)
--#define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
--#define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
--
- /*
-  * MMU Register offsets
-  */
-@@ -151,16 +139,6 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- /*
-  * MMU Register bit definitions
-  */
--#define MMU_LOCK_BASE_SHIFT	10
--#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
--#define MMU_LOCK_BASE(x)	\
--	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
--
--#define MMU_LOCK_VICT_SHIFT	4
--#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
--#define MMU_LOCK_VICT(x)	\
--	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
--
- #define MMU_CAM_VATAG_SHIFT	12
- #define MMU_CAM_VATAG_MASK \
- 	((~0UL >> MMU_CAM_VATAG_SHIFT) << MMU_CAM_VATAG_SHIFT)
-@@ -222,20 +200,15 @@ extern void omap_iotlb_cr_to_e(struct cr_regs *cr, struct iotlb_entry *e);
- extern int
- omap_iopgtable_store_entry(struct omap_iommu *obj, struct iotlb_entry *e);
- 
--extern int omap_iommu_set_isr(const char *name,
--		 int (*isr)(struct omap_iommu *obj, u32 da, u32 iommu_errs,
--				    void *priv),
--			 void *isr_priv);
--
- extern void omap_iommu_save_ctx(struct device *dev);
- extern void omap_iommu_restore_ctx(struct device *dev);
- 
--extern int omap_install_iommu_arch(const struct iommu_functions *ops);
--extern void omap_uninstall_iommu_arch(const struct iommu_functions *ops);
--
- extern int omap_foreach_iommu_device(void *data,
- 				int (*fn)(struct device *, void *));
- 
-+extern int omap_install_iommu_arch(const struct iommu_functions *ops);
-+extern void omap_uninstall_iommu_arch(const struct iommu_functions *ops);
-+
- extern ssize_t
- omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
- extern size_t
-diff --git a/drivers/iommu/omap-iommu2.c b/drivers/iommu/omap-iommu2.c
-index f97c386..29e98a2 100644
---- a/drivers/iommu/omap-iommu2.c
-+++ b/drivers/iommu/omap-iommu2.c
-@@ -68,6 +68,12 @@
- 	 ((pgsz) == MMU_CAM_PGSZ_64K) ? 0xffff0000 :	\
- 	 ((pgsz) == MMU_CAM_PGSZ_4K)  ? 0xfffff000 : 0)
- 
-+/* IOMMU errors */
-+#define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
-+#define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
-+#define OMAP_IOMMU_ERR_EMU_MISS		(1 << 2)
-+#define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
-+#define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
- 
- static void __iommu_set_twl(struct omap_iommu *obj, bool on)
- {
+Cheers
+Jon
