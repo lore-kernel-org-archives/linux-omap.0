@@ -1,35 +1,47 @@
-From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: [PATCH] OMAP2: Fix a typo - replace regist with register.
-Date: Fri, 2 Nov 2012 23:45:45 +0900
-Message-ID: <201211021445.qA2EjjI5005838@94.43.138.210.xn.2iij.net>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: [PATCH 4/4] arm/dts: am33xx: Add CPSW and MDIO module nodes
+ for AM33XX
+Date: Fri, 2 Nov 2012 16:19:44 +0100
+Message-ID: <20121102151944.GB2900@netboy.at.omicron.at>
+References: <1351498881-32482-1-git-send-email-hvaibhav@ti.com>
+ <1351498881-32482-6-git-send-email-hvaibhav@ti.com>
+ <50914107.2090909@ti.com>
+ <EB1619762EAF8B4E97A227FB77B7E0293EA08F53@DBDE01.ent.ti.com>
+ <20121102085616.GB2486@netboy.at.omicron.at>
+ <EB1619762EAF8B4E97A227FB77B7E0293EA09122@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:42805 "EHLO
-	94.43.138.210.xn.2iij.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751187Ab2KBOzn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 10:55:43 -0400
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:33809 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755306Ab2KBPT5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 11:19:57 -0400
+Content-Disposition: inline
+In-Reply-To: <EB1619762EAF8B4E97A227FB77B7E0293EA09122@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: yoshfuji@linux-ipv6.org
+To: "N, Mugunthan V" <mugunthanvnm@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
----
- arch/arm/mach-omap2/control.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Fri, Nov 02, 2012 at 10:42:04AM +0000, N, Mugunthan V wrote:
+> 
+> I saw those posts. The CPSW ip version changes tracks the internal IP
+> changes and there is no possible way to track the offset changes. For
+> example CPTS sub module offsets in DM814x and AM335x are different
+> though the CPTS version is same in both IP versions. So keeping these
+> offset in DT will make the same driver works directly with DT changes
+> for future SoC.
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index a89e825..5e6886e 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -233,7 +233,7 @@
- #define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
- #define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
- 
--/* 34xx GENERAL_WKUP regist offsets */
-+/* 34xx GENERAL_WKUP register offsets */
- #define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
- 						0x008 + (i))
- #define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
--- 
-1.7.9.5
+But the CPSW versions are different, and the offsets could be
+determined that way, couldn't they?
 
+The TRM for the DM814x does not even make the distinction among
+CPSW_SS, CPSW_PORT, CPSW_CPDMA, and so on. Instead, it places all of
+the registers into one space called CPSW_3G.
+
+So I agree with Benoit. Placing all of the offsets into DT seems like
+over-engineering to me, unless you know of TI's plans to release a new
+SoC with the same CPSW version but different register offsets.
+
+Thanks,
+Richard
