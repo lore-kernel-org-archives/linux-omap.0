@@ -1,47 +1,64 @@
-From: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: fix spurious IRQs: disable/enable IRQ at
- INTC when idle
-Date: Fri, 02 Nov 2012 08:17:57 +0200
-Message-ID: <1351837077.16513.24.camel@kj-X230>
-References: <1350067225-24589-1-git-send-email-khilman@deeprootsystems.com>
-	 <CAM=Q2csm0Eh9F6d1wKhEfOOtG+aY+Fh8D-dKPC0RMbKupVQHYQ@mail.gmail.com>
-	 <1350282337.17145.45.camel@kj-X230> <87zk3ntzfe.fsf@deeprootsystems.com>
-	 <20121016010223.GL15569@atomide.com> <1350377235.2014.26.camel@kj-X230>
-	 <20121101224921.GE22956@pengutronix.de>
-Reply-To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: Remove plat-omap/common.c
+Date: Fri, 2 Nov 2012 12:08:38 +0530
+Message-ID: <50936A6E.3020202@ti.com>
+References: <20121101224703.2103.95474.stgit@muffinssi.local> <20121101224828.2103.82950.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121101224921.GE22956-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Huzefa Kankroliwala <huzefank-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46888 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753081Ab2KBGir (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Nov 2012 02:38:47 -0400
+In-Reply-To: <20121101224828.2103.82950.stgit@muffinssi.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-to, 2012-11-01 kello 23:49 +0100, Wolfram Sang kirjoitti:
-> Hi,
-> 
-> >  Anyway new patch coming soon :)
-> 
-> Was there one? I have skimmed a number of threads discussing spurious
-> interrupts or interrupt floods but AFAICS all discussions ended up in
-> trying another approach later or fixing the issue somewhere else than
-> I2C. Is this correct? Or is there a bugfix patch left for 3.7 that I
-> missed?
+Tony,
 
-The problem was not actually in the i2c driver itself, the twl4030
-Primary/Secondary interrupt handler irq wake up order was the problem.
-The fix was this:
-https://patchwork.kernel.org/patch/1601271/
+On Friday 02 November 2012 04:18 AM, Tony Lindgren wrote:
+> This file has only omap_init_consistent_dma_size()
+> left that can be moved to plat-omap/dma.c.
+>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>   arch/arm/plat-omap/Makefile |    2 +-
+>   arch/arm/plat-omap/common.c |   26 --------------------------
+>   arch/arm/plat-omap/dma.c    |    8 ++++++++
+>   3 files changed, 9 insertions(+), 27 deletions(-)
+>   delete mode 100644 arch/arm/plat-omap/common.c
+>
 
-Actually, Samuel, did you pick up my patch? I never got any response
-after Kevin acked it.
+[..]
 
-- Kalle
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index c288b76..00a3a53 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -2146,6 +2146,14 @@ static struct platform_driver omap_system_dma_driver = {
+>   	},
+>   };
+>
+> +/* This must be called from init_early() */
+> +void __init omap_init_consistent_dma_size(void)
+> +{
+> +#ifdef CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE
+> +	init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
+> +#endif
+> +}
+> +
+Lets not move this in DMA code since the above is really related
+to frame buffer. It reserves more DMA area for dma_alloc_coherent()
+etc than default 2 MB. Infact, we should no longer need this with
+CMA and memblock in place.
 
-> 
-> Thanks,
-> 
->    Wolfram
-> 
+Tomi,
+Can we not get rid of the above memory reservation ?
+
+Regards
+santosh
+
+
