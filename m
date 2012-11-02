@@ -1,91 +1,47 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH V3] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
-Date: Fri, 2 Nov 2012 05:32:35 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EABDCB7@DBDE01.ent.ti.com>
-References: <1351684656-30275-1-git-send-email-gururaja.hebbar@ti.com>
- <20121031122639.GA10998@arwen.pp.htv.fi>
- <CAOyx1LrKBE+xzSRN4F=+e1DuMJL+5SAv-YkJWJdDw8p=kDojmw@mail.gmail.com>
- <20121031201626.GA28784@arwen.pp.htv.fi>
+From: Kalle Jokiniemi <kalle.jokiniemi-4y2FMlU5MS8onNqTyK5kxQ@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: fix spurious IRQs: disable/enable IRQ at
+ INTC when idle
+Date: Fri, 02 Nov 2012 08:17:57 +0200
+Message-ID: <1351837077.16513.24.camel@kj-X230>
+References: <1350067225-24589-1-git-send-email-khilman@deeprootsystems.com>
+	 <CAM=Q2csm0Eh9F6d1wKhEfOOtG+aY+Fh8D-dKPC0RMbKupVQHYQ@mail.gmail.com>
+	 <1350282337.17145.45.camel@kj-X230> <87zk3ntzfe.fsf@deeprootsystems.com>
+	 <20121016010223.GL15569@atomide.com> <1350377235.2014.26.camel@kj-X230>
+	 <20121101224921.GE22956@pengutronix.de>
+Reply-To: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20121031201626.GA28784@arwen.pp.htv.fi>
-Content-Language: en-US
-Sender: linux-doc-owner@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, "S, Venkatraman" <svenkatr@ti.com>
-Cc: "cjb@laptop.org" <cjb@laptop.org>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121101224921.GE22956-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: kalle.jokiniemi-ieSKYCWCyXoAvxtiuMwx3w@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Shubhrajyoti Datta <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Huzefa Kankroliwala <huzefank-l0cyMroinI0@public.gmane.org>, Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 01, 2012 at 01:46:26, Balbi, Felipe wrote:
+to, 2012-11-01 kello 23:49 +0100, Wolfram Sang kirjoitti:
 > Hi,
 > 
-> On Thu, Nov 01, 2012 at 01:21:36AM +0530, Venkatraman S wrote:
-> > On Wed, Oct 31, 2012 at 5:56 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > > Hi,
-> > >
-> > > On Wed, Oct 31, 2012 at 05:27:36PM +0530, Hebbar, Gururaja wrote:
-> > >> HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-> > >> Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-> > >> on the HSMMC IP timing closure done for the high speed cards.
-> > >>
-> > >> From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
-> > >>
-> > >> The MMC/SD/SDIO output signals can be driven on either falling edge or
-> > >> rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-> > >> to reach better timing performance, and thus to increase data transfer
-> > >> frequency.
-> > >>
-> > >> There are few pre-requisites for enabling the HSPE bit
-> > >> - Controller should support High-Speed-Enable Bit and
-> > >> - Controller should not be using DDR Mode and
-> > >> - Controller should advertise that it supports High Speed in
-> > >>   capabilities register and
-> > >> - MMC/SD clock coming out of controller > 25MHz
-> > >>
-> > >> Note:
-> > >> The implementation reuses the output of calc_divisor() so as to reduce
-> > >> code addition.
-> > >>
-> > >> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
-> > >
-> > > this looks good to my eyes, hopefully I haven't missed anything:
-> > >
-> > > Reviewed-by: Felipe Balbi <balbi@ti.com>
-> > >
-> > 
-> > Except for the excessively verbose comments which are just duplicating the code,
-> > <Quote>
-> > >> +      * Enable High-Speed Support
-> > >> +      * Pre-Requisites
-> > >> +      *      - Controller should support High-Speed-Enable Bit
-> > >> +      *      - Controller should not be using DDR Mode
-> > >> +      *      - Controller should advertise that it supports High Speed
-> > >> +      *        in capabilities register
-> > >> +      *      - MMC/SD clock coming out of controller > 25MHz
-> > >> +      */
-> > </Quote>
-> > 
-> > I'm ok with this patch as well. I'm putting a few patches under test
-> > including this one,
-> > and will send it to Chris as part of that series.
-> > I'll strip out the above mentioned comments, unless there are any
-> > objections.
+> >  Anyway new patch coming soon :)
 > 
-> please don't. Detailing the pre-requisites for getting HSP mode working
-> isn't bad at all. Should someone decide to change the behavior and ends
-> up breaking it, the comment will help putting things back together.
-> 
-> my 2 cents, you've got the final decision though.
+> Was there one? I have skimmed a number of threads discussing spurious
+> interrupts or interrupt floods but AFAICS all discussions ended up in
+> trying another approach later or fixing the issue somewhere else than
+> I2C. Is this correct? Or is there a bugfix patch left for 3.7 that I
+> missed?
 
-Same here. Description is required in commit message since it will help
-in during git bisect.
+The problem was not actually in the i2c driver itself, the twl4030
+Primary/Secondary interrupt handler irq wake up order was the problem.
+The fix was this:
+https://patchwork.kernel.org/patch/1601271/
+
+Actually, Samuel, did you pick up my patch? I never got any response
+after Kevin acked it.
+
+- Kalle
 
 > 
-> -- 
-> balbi
+> Thanks,
 > 
-
-
-Regards, 
-Gururaja
+>    Wolfram
+> 
