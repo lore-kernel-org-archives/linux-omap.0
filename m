@@ -1,61 +1,52 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [GIT PULL] ARM: OMAP: Timer and Counter DT Updates for v3.8
-Date: Fri, 2 Nov 2012 13:59:30 -0500
-Message-ID: <50941812.2070501@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 01/15] ARM: OMAP2+: mailbox: Add an API for flushing
+ the FIFO
+Date: Fri, 2 Nov 2012 12:00:04 -0700
+Message-ID: <20121102190002.GA15766@atomide.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+ <1351859566-24818-2-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34780 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934860Ab2KBS7l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 14:59:41 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:27779 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932260Ab2KBTAI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Nov 2012 15:00:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1351859566-24818-2-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com
 
-Hi Tony,
+* Vaibhav Bedia <vaibhav.bedia@ti.com> [121102 05:35]:
+> On AM33XX, the mailbox module between the MPU and the
+> WKUP-M3 co-processor facilitates a one-way communication.
+> MPU uses the assigned mailbox sub-module to issue the
+> interrupt to the WKUP-M3 co-processor which then goes
+> and reads the the IPC data from registers in the control
+> module.
+> 
+> WKUP-M3 is in the L4_WKUP and does not have any access to
+> the Mailbox module. Due to this limitation, the MPU is
+> completely responsible for FIFO maintenance and interrupt
+> generation. MPU needs to ensure that the FIFO does not
+> overflow by reading by the assigned mailbox sub-module.
+> 
+> This patch adds an API in the mailbox code which the MPU
+> can use to empty the FIFO by issuing a readback command.
+> 
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> ---
+>  arch/arm/mach-omap2/mailbox.c             |   42 ++++++++++++++++++++---------
+>  arch/arm/plat-omap/include/plat/mailbox.h |    3 ++
+>  arch/arm/plat-omap/mailbox.c              |   35 ++++++++++++++++++++++++
 
-Please pull the remaining patches to migrate OMAP timers and counters
-over to use device-tree. I recommend applying this after Benoit's DT
-series for v3.8 [1]. 
+Patches have been posted to move the mailbox related
+files out of arch/arm, so you'll have to update those
+for that. Please see thread "[PATCH 0/2] ARM: OMAP:
+mailbox out of plat code" for more information.
 
-This branch contains ...
-- Handling OMAP3 secure timers with device-tree
-- Requesting timer by capability/feature
-- Adds new DT machine descriptor for OMAP3 GP devices
-- Look-up of clocksource/events timers from DT
-- Migrate dmtimer driver to use DT
+Regards,
 
-Cheers
-Jon
-
-[1] http://marc.info/?l=linux-omap&m=135179007210696&w=2
- 
-
-The following changes since commit 8f0d8163b50e01f398b14bcd4dc039ac5ab18d64:
-
-  Linux 3.7-rc3 (2012-10-28 12:24:48 -0700)
-
-are available in the git repository at:
-
-  git@github.com:jonhunter/linux.git dev-dt-timer
-
-for you to fetch changes up to 9883f7c8dd21acb90697582ca331f3f8a66ac054:
-
-  ARM: OMAP2+: Add device-tree support for 32kHz counter (2012-11-02 13:16:31 -0500)
-
-----------------------------------------------------------------
-Jon Hunter (5):
-      ARM: OMAP3: Dynamically disable secure timer nodes for secure devices
-      ARM: OMAP: Add function to request a timer by capability
-      ARM: OMAP3: Add generic machine descriptor for boards with OMAP3 GP devices
-      ARM: OMAP: Add DT support for timer driver
-      ARM: OMAP2+: Add device-tree support for 32kHz counter
-
- arch/arm/mach-omap2/board-generic.c       |   17 +++
- arch/arm/mach-omap2/timer.c               |  203 ++++++++++++++++++++++++-----
- arch/arm/plat-omap/dmtimer.c              |   93 ++++++++++++-
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
- 4 files changed, 275 insertions(+), 39 deletions(-)
+Tony
