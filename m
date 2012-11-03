@@ -1,52 +1,31 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.7-rc1
-Date: Mon, 5 Nov 2012 03:15:16 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211050313130.23228@utopia.booyaka.com>
-References: <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com> <CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com> <20121025101212.GD21217@arwen.pp.htv.fi> <20121026201539.GD29548@arwen.pp.htv.fi>
- <alpine.DEB.2.00.1210262201500.11258@utopia.booyaka.com> <20121029200032.GD30152@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com> <20121030123254.GD29095@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301239310.12697@utopia.booyaka.com>
- <20121030125419.GG29095@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301313190.12697@utopia.booyaka.com> <CAORVsuWqoqrza-qrJskpMTj=2MW6JxNEhVzjWVXkM1mpqVO8cQ@mail.gmail.com> <87fw4u3oh5.fsf@deeprootsystems.com> <CAORVsuUWD3gHh1NcMLeGwZ=hF=UiOG2VyJkADZNcGVr1g1TFgQ@mail.gmail.com>
- <alpine.DEB.2.00.1211010242001.6693@utopia.booyaka.com> <CAORVsuXHxqhcTHv8Y=8gw4N+0+rx+N91bh971zK-TmcsrTu5nQ@mail.gmail.com> <CAORVsuUda69_sE9LpBnuETXSA2jPxw7nQ=MkAq=Or8B7t1fvcA@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 11/15] ARM: OMAP: timer: Interchange clksrc and clkevt
+ for AM33XX
+Date: Sat, 03 Nov 2012 16:22:00 +0000
+Message-ID: <509544A8.7010507@deeprootsystems.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36511 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400Ab2KEDPR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 22:15:17 -0500
-In-Reply-To: <CAORVsuUda69_sE9LpBnuETXSA2jPxw7nQ=MkAq=Or8B7t1fvcA@mail.gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:33789 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223Ab2KEEdR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 23:33:17 -0500
+Received: by mail-pb0-f46.google.com with SMTP id rr4so3633519pbb.19
+        for <linux-omap@vger.kernel.org>; Sun, 04 Nov 2012 20:33:16 -0800 (PST)
+In-Reply-To: <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Felipe Balbi <balbi@ti.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com
 
-Hi Jean,
+On 11/02/2012 12:32 PM, Vaibhav Bedia wrote:
+> AM33XX has only one usable timer in the WKUP domain.
 
-On Sat, 3 Nov 2012, Jean Pihet wrote:
+After reading the TRM, it seems there are two: DMTIMER0 and DMTIMER1.
 
-> The setup is as identical as possible to yours:
-> - U-Boot 2011.06-dirty (Sep 04 2012 - 17:06:58) from
-> http://www.pwsan.com/tmp/3530es3beagle-MLO-u-boot-20121023.tar.bz2.
->   Please note that the MLO image does not run on my board and so I had
-> to use my known-to-work image.
+Looking at the hwmod data though, I don't see a hwmod for DMTIMER0.  Can
+you explain a little about why DMTIMER0 is missing/broken?
 
-Interesting...
-
-> The result is that I could reproduce the issue but it happens much
-> more rarely on my side (only once vs quasi 100% on ~50 boot cycles).
-
-Hmm...
-
-> The issue is triggered by running 'hwclock --systohc'  while the
-> system is heavily loaded (running depmod etc.).
-
-OK.
-
-> More investigation on-going, so more to come!
-
-Great, keep us posted.
-
-Will try to kick off those tests you requested within the next 24-48 
-hours.
-
-
-- Paul
+Kevin
