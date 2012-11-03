@@ -1,40 +1,41 @@
 From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [RFC 00/15] Add basic suspend-resume support for AM33XX
-Date: Sat, 3 Nov 2012 08:39:20 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBFE615@DBDE01.ent.ti.com>
+Subject: RE: [PATCH 02/15] ARM: OMAP2+: mailbox: Add support for AM33XX
+Date: Sat, 3 Nov 2012 08:39:21 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBFE61A@DBDE01.ent.ti.com>
 References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <50944655.20602@gmail.com>
+ <1351859566-24818-3-git-send-email-vaibhav.bedia@ti.com>
+ <CA+Bv8XY8x=BDgGDNHPMRqz3xUbzKf8+o0MJQDovHY+NqBh6NVw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57166 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754694Ab2KCIjg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 04:39:36 -0400
-In-Reply-To: <50944655.20602@gmail.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CA+Bv8XY8x=BDgGDNHPMRqz3xUbzKf8+o0MJQDovHY+NqBh6NVw@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russ Dill <russ.dill@gmail.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Daniel,
+Hi Russ,
 
-On Sat, Nov 03, 2012 at 03:46:53, Daniel Mack wrote:
+On Sat, Nov 03, 2012 at 05:44:21, Russ Dill wrote:
 [...]
+> > -       if (!cpu_is_omap44xx())
+> > +       if (!cpu_is_omap44xx() || !soc_is_am33xx())
+> >                 bit = mbox_read_reg(p->irqdisable) & ~bit;
 > 
-> What event did you use to bring the system back to life? I tried a GPIO
-> button which has "linux,wakeup" set and is connected to GPIO bank 0, but
-> without success.
+> Do you mean &&?
+> 
 
-I used uart wakeup in my testing. I see that you have CPSW driver also
-in your kernel. Can you try with a minimal set of drivers, similar to what
-BeagleBone has on Tony's master branch right now.
- 
-Mugunthan mentioned he has a fix of the WARN_ON from CPSW driver that you
-see in the logs and that will be posted shortly. Can you mention what other
-patches you have pulled in?
+I didn't change that line but it looks ok to me :)
 
 Regards,
 Vaibhav
