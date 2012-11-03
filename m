@@ -1,53 +1,49 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 13/15] ARM: DTS: AM33XX: Add nodes for OCMCRAM and Mailbox
-Date: Sat, 03 Nov 2012 13:16:06 +0100
-Message-ID: <50950B06.8010800@deeprootsystems.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-14-git-send-email-vaibhav.bedia@ti.com>
+Subject: Re: [PATCH 14/15] ARM: OMAP2+: omap2plus_defconfig: Enable Mailbox
+Date: Sat, 03 Nov 2012 13:20:25 +0100
+Message-ID: <50950C09.6000108@deeprootsystems.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-15-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:55528 "EHLO
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:38214 "EHLO
 	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932075Ab2KCMQJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 08:16:09 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hq12so1978173wib.1
-        for <linux-omap@vger.kernel.org>; Sat, 03 Nov 2012 05:16:08 -0700 (PDT)
-In-Reply-To: <1351859566-24818-14-git-send-email-vaibhav.bedia@ti.com>
+	with ESMTP id S932075Ab2KCMU0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 08:20:26 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hq12so1979990wib.1
+        for <linux-omap@vger.kernel.org>; Sat, 03 Nov 2012 05:20:25 -0700 (PDT)
+In-Reply-To: <1351859566-24818-15-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Vaibhav Bedia <vaibhav.bedia@ti.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com
 
 On 11/02/2012 01:32 PM, Vaibhav Bedia wrote:
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> AM33XX PM code depends on Mailbox module for IPC
+> between MPU and WKUP_M3.
 
-Even simple patches need a simple changelog.
+OK, but what if I try to build for AM33xx without starting from 
+omap2plus_defconfig?
+
+IOW, instead of changing the default defconfig, AM33xx should select 
+this when PM
+is enabled.   Something like the (untested) change below.
 
 Kevin
 
->   arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
->   1 files changed, 11 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index bb31bff..e2cbf24 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -210,5 +210,16 @@
->   			interrupt-parent = <&intc>;
->   			interrupts = <91>;
->   		};
-> +
-> +		ocmcram: ocmcram@40300000 {
-> +			compatible = "ti,ocmcram";
-> +			ti,hwmods = "ocmcram";
-> +			ti,no_idle_on_suspend;
-> +		};
-> +
-> +		wkup_m3: wkup_m3@44d00000 {
-> +			compatible = "ti,wkup_m3";
-> +			ti,hwmods = "wkup_m3";
-> +		};
->   	};
->   };
->
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index d669e22..93c1a37 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -109,6 +109,7 @@ config SOC_AM33XX
+  	bool "AM33XX support"
+  	default y
+  	select ARM_CPU_SUSPEND if PM
++        select OMAP_MBOX_FWK if PM
+  	select CPU_V7
+  	select MULTI_IRQ_HANDLER
+
+
+
