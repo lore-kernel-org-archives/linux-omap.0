@@ -1,46 +1,29 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 14/15] ARM: OMAP2+: omap2plus_defconfig: Enable Mailbox
-Date: Sat, 03 Nov 2012 13:43:25 +0000
-Message-ID: <50951F7D.1000609@deeprootsystems.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-15-git-send-email-vaibhav.bedia@ti.com> <50950C09.6000108@deeprootsystems.com> <B5906170F1614E41A8A28DE3B8D121433EBFEA96@DBDE01.ent.ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 02/15] ARM: OMAP2+: mailbox: Add support for AM33XX
+Date: Sat, 3 Nov 2012 13:48:11 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBFEB5F@DBDE01.ent.ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+	<1351859566-24818-3-git-send-email-vaibhav.bedia@ti.com>
+ <CA+Bv8XY8x=BDgGDNHPMRqz3xUbzKf8+o0MJQDovHY+NqBh6NVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:46762 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755953Ab2KCNnZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 09:43:25 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so1992419wey.19
-        for <linux-omap@vger.kernel.org>; Sat, 03 Nov 2012 06:43:24 -0700 (PDT)
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBFEA96@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40248 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753398Ab2KCNsR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 3 Nov 2012 09:48:17 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Russ Dill <russ.dill@gmail.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On 11/03/2012 01:17 PM, Bedia, Vaibhav wrote:
-> On Sat, Nov 03, 2012 at 17:50:25, Kevin Hilman wrote:
->> On 11/02/2012 01:32 PM, Vaibhav Bedia wrote:
->>> AM33XX PM code depends on Mailbox module for IPC
->>> between MPU and WKUP_M3.
->>
->> OK, but what if I try to build for AM33xx without starting from
->> omap2plus_defconfig?
->
-> I honestly didn't think about this scenario.
->
->>
->> IOW, instead of changing the default defconfig, AM33xx should select
->> this when PM
->> is enabled.   Something like the (untested) change below.
->>
->
-> Will try it out. Thanks for the suggestion.
-
-You're welcome.
-
-See... sometimes maintainers can be useful for something other than 
-complaining.  ;)
-
-Kevin
+T24gU2F0LCBOb3YgMDMsIDIwMTIgYXQgMTQ6MDY6MzgsIEJlZGlhLCBWYWliaGF2IHdyb3RlOg0K
+PiBIaSBSdXNzLA0KPiANCj4gT24gU2F0LCBOb3YgMDMsIDIwMTIgYXQgMDU6NDQ6MjEsIFJ1c3Mg
+RGlsbCB3cm90ZToNCj4gWy4uLl0NCj4gPiA+IC0gICAgICAgaWYgKCFjcHVfaXNfb21hcDQ0eHgo
+KSkNCj4gPiA+ICsgICAgICAgaWYgKCFjcHVfaXNfb21hcDQ0eHgoKSB8fCAhc29jX2lzX2FtMzN4
+eCgpKQ0KPiA+ID4gICAgICAgICAgICAgICAgIGJpdCA9IG1ib3hfcmVhZF9yZWcocC0+aXJxZGlz
+YWJsZSkgJiB+Yml0Ow0KPiA+IA0KPiA+IERvIHlvdSBtZWFuICYmPw0KPiA+IA0KPiANCg0KT2sg
+SSB1bmRlcnN0b29kIHdoYXQgeW91IG1lYW50LiBXaWxsIGZpeCBpdCBpbiBuZXh0IHJldi4NCg0K
+UmVnYXJkcywNClZhaWJoYXYNCg==
