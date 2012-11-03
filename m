@@ -1,55 +1,55 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 11/15] ARM: OMAP: timer: Interchange clksrc and clkevt
- for AM33XX
-Date: Sat, 03 Nov 2012 13:04:30 +0000
-Message-ID: <5095165E.10403@deeprootsystems.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com> <5095037A.2020503@deeprootsystems.com> <B5906170F1614E41A8A28DE3B8D121433EBFEA0E@DBDE01.ent.ti.com>
+Subject: Re: [RFC PATCH 4/6] ARM: OMAP: SmartReflex: provide SoC integration
+ API for VP
+Date: Sat, 03 Nov 2012 13:10:01 +0000
+Message-ID: <509517A9.6090602@deeprootsystems.com>
+References: <1351028641-20832-1-git-send-email-nm@ti.com> <1351028641-20832-5-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:51063 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932534Ab2KCNEb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 09:04:31 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hr7so1969274wib.1
-        for <linux-omap@vger.kernel.org>; Sat, 03 Nov 2012 06:04:29 -0700 (PDT)
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBFEA0E@DBDE01.ent.ti.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:41983 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755005Ab2KCNKC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 09:10:02 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so2961394wgb.1
+        for <linux-omap@vger.kernel.org>; Sat, 03 Nov 2012 06:10:01 -0700 (PDT)
+In-Reply-To: <1351028641-20832-5-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>
 
-T
-On 11/03/2012 12:47 PM, Bedia, Vaibhav wrote:
-> Hi Kevin,
+On 10/23/2012 10:43 PM, Nishanth Menon wrote:
+> SoC integration of SmartReflex AVS block is varied. Some use
+> Voltage Processor for a hardware loop in certain OMAP SoC (called
+> hardware loop), while others have just the AVS block without
+> hardware loop automatic calibration mechanism for AVS block
+> to talk through. So provide the Voltage Processor API
+> to allow for SmartReflex class drivers to use the same.
 >
-> On Sat, Nov 03, 2012 at 17:13:54, Kevin Hilman wrote:
->> On 11/02/2012 01:32 PM, Vaibhav Bedia wrote:
->>> AM33XX has only one usable timer in the WKUP domain.
->>> Currently the timer instance in WKUP domain is used
->>> as the clockevent and the timer in non-WKUP domain
->>> as the clocksource. The timer in WKUP domain can keep
->>> running in suspend from a 32K clock and hence serve
->>> as the persistent clock. To enable this, interchange
->>> the timers used as clocksource and clockevent for
->>> AM33XX.
->>
->> Doesn't this also mean that you won't get timer wakeups
->> in idle?  Or are you keeping the domain where the clockevent is
->> on during idle?
->>
+> NOTE: SmartReflex class 3 mode of operation mandates VP APIs
+> so, refuse to enable AVS driver if corresponding APIs are
+> not available.
 >
-> The lowest idle state that we are targeting will have MPU powered
-> off with external memory in self-refresh mode. Peripheral domain
-> with the clockevent will be kept on.
+> As part of this change, remove the inclusion of voltage.h
+> which is no longer needed as smartreflex.h includes
+> linux/platform_data/voltage-omap.h which contain relevant
+> definitions used here.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-Is this a limitation of the hardware?  or the software?
+[...]
+
+> @@ -23,15 +22,26 @@ static int sr_class3_enable(struct omap_sr *sr)
+>   				__func__, sr->name);
+>   		return -ENODATA;
+>   	}
+> +	if (!sr->soc_ops.vp_enable) {
+> +		pr_warn("%s: no VP enable available.Cannot enable %s!!\n",
+
+nit: add space after '.'
+
+There's a couple of these in the patch.
 
 Kevin
-
-P.S.  I haven't yet made my way through the TRM, so I'll probably figure
-this out when I read it, but having this summarized in the changelog would
-be helpful since even after I read the TRM, I'll forget.  I'm saving the 
-TRM
-reading for entertainment on upcoming flight home from Linaro Connect.
