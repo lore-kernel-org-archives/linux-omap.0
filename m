@@ -1,66 +1,102 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC PATCH 0/6] ARM: OMAP3+: move smartreflex-class3.c to drivers/power/avs
-Date: Sat, 3 Nov 2012 15:44:31 +0100
-Message-ID: <CAORVsuWNuRxFm2q7MU5E1P6YCvTMmkFWdBr514-D0R7DZDXv8A@mail.gmail.com>
-References: <1351028641-20832-1-git-send-email-nm@ti.com>
-	<CAORVsuV9tLQCf+higF4kj4dz==T5Ja6Z++s2byDmUjdNsZTC5A@mail.gmail.com>
-	<509518C1.5090204@deeprootsystems.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
+ for clockevent device
+Date: Sat, 3 Nov 2012 21:22:04 +0530
+Message-ID: <50953DA4.10008@ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:55127 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190Ab2KCOoc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 10:44:32 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so6244060iea.19
-        for <linux-omap@vger.kernel.org>; Sat, 03 Nov 2012 07:44:31 -0700 (PDT)
-In-Reply-To: <509518C1.5090204@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40100 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756141Ab2KCPwQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 11:52:16 -0400
+In-Reply-To: <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, l-o <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Hi Nishant,
+On Friday 02 November 2012 06:02 PM, Vaibhav Bedia wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> The current OMAP timer code registers two timers -
+> one as clocksource and one as clockevent.
+Actually OMAP also uses only one timer. The clocksource
+is taken care by 32K syntimer till OMAP4 and by realtime
+counter on OMAP5. There is a clocksource registration of
+timer is available but that is not being used in systems.
 
-On Sat, Nov 3, 2012 at 2:14 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Hi Nishanth,
+> AM33XX has only one usable timer in the WKUP domain
+> so one of the timers needs suspend-resume support
+> to restore the configuration to pre-suspend state.
 >
+> commit adc78e6 (timekeeping: Add suspend and resume
+> of clock event devices) introduced .suspend and .resume
+> callbacks for clock event devices. Leverages these
+> callbacks to have AM33XX clockevent timer which is
+> in not in WKUP domain to behave properly across system
+> suspend.
 >
-> On 10/25/2012 09:21 AM, Jean Pihet wrote:
->>
->> Hi Nishant,
->>
->> On Tue, Oct 23, 2012 at 11:43 PM, Nishanth Menon <nm@ti.com> wrote:
->>>
->>> smartreflex.c now resides in drivers/power/avs directory, but class
->>> driver
->>> is in mach-omap2. High time we move it off to drivers/power/avs.
->>
->> Great to see the SR fully moved to drivers/.
->>
->> After review of the code I am OK with the changes besides remarks sent
->> on the patches:
->> Acked-by: Jean Pihet <j-pihet@ti.com>
->>
->> I let Kevin comment on the VC/VP aspect though.
->>
->
-> This move looks good to me.  Thanks!
->
-> Just had one nit, but after that.  Feel free to post without the RFC, and be
-> sure to
-> include Rafael and linux-pm since it's moving to drivers/power.
-Please also include Anton, cf.
-http://marc.info/?l=linux-pm&m=134424298230568&w=2
+So you use WKUP domain timer for clocksource and PER
+domain one for clock-event ?
 
-Regards,
-Jean
 
-> I'll then
-> queue it
-> up for Rafael for v3.8.
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> ---
+>   arch/arm/mach-omap2/timer.c |   31 +++++++++++++++++++++++++++++++
+>   1 files changed, 31 insertions(+), 0 deletions(-)
 >
-> Thanks,
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 6584ee0..e8781fd 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -135,6 +135,35 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+>   	}
+>   }
 >
-> Kevin
+> +static void omap_clkevt_suspend(struct clock_event_device *unused)
+> +{
+> +	char name[10];
+> +	struct omap_hwmod *oh;
+> +
+> +	sprintf(name, "timer%d", 2);
+> +	oh = omap_hwmod_lookup(name);
+> +	if (!oh)
+> +		return;
+
+You can move all the look up stuff in init code and then
+suspend resume hooks will be cleaner.
+> +
+> +	omap_hwmod_idle(oh);
+> +}
+> +
+> +static void omap_clkevt_resume(struct clock_event_device *unused)
+> +{
+> +	char name[10];
+> +	struct omap_hwmod *oh;
+> +
+> +	sprintf(name, "timer%d", 2);
+> +	oh = omap_hwmod_lookup(name);
+> +	if (!oh)
+> +		return;
+> +
+> +	omap_hwmod_enable(oh);
+> +	__omap_dm_timer_load_start(&clkev,
+> +			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+> +}
+> +
+OK. So since your clk_event stops when PER idles, how do you plan
+to support the SOC idle. For CPUIDLE path, you need your clock-event
+to wakeup the system based on next timer expiry. So you need your
+clock event to be active. Indirectly, you can't let PER idle which
+leads npo CORE idle->SOC idle.
+
+How do you plan to address this ? Os is SOC idle is not suppose
+to be added for AMXXX ?
+
+Regards
+Santosh
