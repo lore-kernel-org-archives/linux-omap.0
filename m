@@ -1,37 +1,66 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
- for clockevent device
-Date: Sat, 3 Nov 2012 14:03:14 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBFEBAE@DBDE01.ent.ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
- <50950AC7.1030707@deeprootsystems.com>
- <B5906170F1614E41A8A28DE3B8D121433EBFEA88@DBDE01.ent.ti.com>
- <50951F22.1070904@deeprootsystems.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [RFC PATCH 0/6] ARM: OMAP3+: move smartreflex-class3.c to drivers/power/avs
+Date: Sat, 3 Nov 2012 15:44:31 +0100
+Message-ID: <CAORVsuWNuRxFm2q7MU5E1P6YCvTMmkFWdBr514-D0R7DZDXv8A@mail.gmail.com>
+References: <1351028641-20832-1-git-send-email-nm@ti.com>
+	<CAORVsuV9tLQCf+higF4kj4dz==T5Ja6Z++s2byDmUjdNsZTC5A@mail.gmail.com>
+	<509518C1.5090204@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32962 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751273Ab2KCODZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 10:03:25 -0400
-In-Reply-To: <50951F22.1070904@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:55127 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752190Ab2KCOoc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 10:44:32 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so6244060iea.19
+        for <linux-omap@vger.kernel.org>; Sat, 03 Nov 2012 07:44:31 -0700 (PDT)
+In-Reply-To: <509518C1.5090204@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, l-o <linux-omap@vger.kernel.org>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>
 
-On Sat, Nov 03, 2012 at 19:11:54, Kevin Hilman wrote:
-[...]
-> 
-> Yes, please try with that.  Won't that be necessary anyways for situations
-> where the powerdomain goes off?
-> 
+Hi Nishant,
 
-Yes, we probably got lucky with the minimal resume routine.
+On Sat, Nov 3, 2012 at 2:14 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Hi Nishanth,
+>
+>
+> On 10/25/2012 09:21 AM, Jean Pihet wrote:
+>>
+>> Hi Nishant,
+>>
+>> On Tue, Oct 23, 2012 at 11:43 PM, Nishanth Menon <nm@ti.com> wrote:
+>>>
+>>> smartreflex.c now resides in drivers/power/avs directory, but class
+>>> driver
+>>> is in mach-omap2. High time we move it off to drivers/power/avs.
+>>
+>> Great to see the SR fully moved to drivers/.
+>>
+>> After review of the code I am OK with the changes besides remarks sent
+>> on the patches:
+>> Acked-by: Jean Pihet <j-pihet@ti.com>
+>>
+>> I let Kevin comment on the VC/VP aspect though.
+>>
+>
+> This move looks good to me.  Thanks!
+>
+> Just had one nit, but after that.  Feel free to post without the RFC, and be
+> sure to
+> include Rafael and linux-pm since it's moving to drivers/power.
+Please also include Anton, cf.
+http://marc.info/?l=linux-pm&m=134424298230568&w=2
 
 Regards,
-Vaibhav 
+Jean
 
+> I'll then
+> queue it
+> up for Rafael for v3.8.
+>
+> Thanks,
+>
+> Kevin
