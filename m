@@ -1,88 +1,47 @@
-From: Joel A Fernandes <agnel.joel@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: AM33XX: clock data: fix mcasp entries
-Date: Sat, 3 Nov 2012 14:32:59 -0500
-Message-ID: <CAD=GYpYuyfGuEgAWJyE2nkKx4GEsm=eDYAhV966sWVLbEPaqYQ@mail.gmail.com>
-References: <1349879449-22657-1-git-send-email-mporter@ti.com>
-	<1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
-	<CAD=GYpZ9w=D55G9DOiMqZ4BCGGdGszsgG3fumHUGZ12xx+TKjw@mail.gmail.com>
-	<1BAFE6F6C881BF42822005164F1491C33EAB973D@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 6/8] arch/arm/mach-omap2/dpll3xxx.c: drop if around WARN_ON
+Date: Sat,  3 Nov 2012 21:30:23 +0100
+Message-ID: <1351974625-10282-7-git-send-email-Julia.Lawall@lip6.fr>
+References: <1351974625-10282-1-git-send-email-Julia.Lawall@lip6.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EAB973D@DBDE01.ent.ti.com>
+In-Reply-To: <1351974625-10282-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: "Porter, Matt" <mporter@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: kernel-janitors@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Gururaja,
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
+Just use WARN_ON rather than an if containing only WARN_ON(1).
 
-On Wed, Oct 31, 2012 at 12:39 AM, Hebbar, Gururaja
-<gururaja.hebbar@ti.com> wrote:
-> On Wed, Oct 31, 2012 at 01:58:32, Joel A Fernandes wrote:
->> Hi Gururaja,
->>
->> On Mon, Oct 29, 2012 at 10:45 AM, Hebbar, Gururaja
->> <gururaja.hebbar@ti.com> wrote:
->> > Matt,
->> >
->> > On Wed, Oct 10, 2012 at 20:00:49, Porter, Matt wrote:
->> >> 6ea74cb ARM: OMAP2+: hwmod: get rid of all omap_clk_get_by_name usage
->> >> exposes a bug in the AM33XX clock data for mcasp. After moving to
->> >> clk_get() usage, the _init() of all registered hwmods fails on mcasp0
->> >> due to incorrect clock data causing clk_get() to fail. This causes all
->> >> successive hwmods to fail to _init() leaving them in a bad state.
->> >>
->> >> This patch updates the mcasp clock entries so clk_get() will succeed.
->> >> It is tested on BeagleBone and is needed for 3.7-rc1 to fix AM33xx
->> >> boot.
->> >
->> >
->> > I want to test Audio on AM335x Evm with your EDMA patches. I have few
->> > patches for AM335x.
->> > Can you share the link to the repo & branch on which I need to rebase?
->> > The patches are related to mcasp dt node, mcasp pinmux in dt, etc...
->> >
->>
->> I was wondering about the status of following patches you wrote, not
->> added to mainline yet:
->>
->> (1)
->>  ASoC: Davinci: machine: Add device tree binding
->> https://patchwork.kernel.org/patch/1380511/  - will this be resubmitted?
->
-> There was no review comments for V3 I submitted.
->
->>
->> (2)
->> ASoC: AM33XX: Add support for AM33xx SoC Audio
->> https://github.com/joelagnel/linux-kernel/commit/973cfb48bdb70018b3869a21595bde8630efb29d
->
-> I want to re-submit both the patches along with 2 more patch-set [1]. I am
-> waiting for Matt Porters to reply with his recent branch, so that I can do
-> a final test and re-submit.
->
-> [1].
-> arm/dts: Add tlv320aic3x codec DT data to am335x-evm.dts
-> arm/dts: add mcasp1 dt node to am335x-evm.dt
-> ASoC: davinci-mcasp: Add pinctrl support
-> arm/dts: AM33XX: setup pinctrl for mcasp1 on am335x-evm
->
+A simplified version of the semantic patch that makes this transformation
+is as follows: (http://coccinelle.lip6.fr/)
 
-Thanks, I think I have all of your patches now in my tree, I made a
-few more changes to make it compile and run for me on 3.7-rc2
+// <smpl>
+@@
+expression e;
+@@
+- if (e) WARN_ON(1);
++ WARN_ON(e);
+// </smpl>
 
-beaglebone_defconfig: Add dummy regulator to init tlv320aic3x
-https://github.com/joelagnel/linux-kernel/commit/db5672dfe548d82625cf40ed688d05ba7cee5c93
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-ASoC: davinci-evm: cpu_dai_of_node has changed to cpu_of_node
-https://github.com/joelagnel/linux-kernel/commit/8781c69553d0faf7cec0119e593447f27fdc07e9
+---
+ arch/arm/mach-omap2/dpll3xxx.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-I don't get a crash anymore (after correcting mcasp0 base address in
-dts), but I still don't get any audio output from the codec. I will
-probe the audio signals next week to make sure the I2S output is
-correct.
-
-Regards,
-Joel
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index eacf51f..ed855b0 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -478,8 +478,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+ 		if (!soc_is_am33xx() && !cpu_is_omap44xx() && !cpu_is_omap3630()) {
+ 			freqsel = _omap3_dpll_compute_freqsel(clk,
+ 						dd->last_rounded_n);
+-			if (!freqsel)
+-				WARN_ON(1);
++			WARN_ON(!freqsel);
+ 		}
+ 
+ 		pr_debug("clock: %s: set rate: locking rate to %lu.\n",
