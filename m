@@ -1,130 +1,62 @@
 From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
- for clockevent device
-Date: Sun, 4 Nov 2012 15:25:57 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBFFD03@DBDE01.ent.ti.com>
+Subject: RE: [PATCH 13/15] ARM: DTS: AM33XX: Add nodes for OCMCRAM and
+ Mailbox
+Date: Sun, 4 Nov 2012 15:26:00 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBFFD0A@DBDE01.ent.ti.com>
 References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
- <50953DA4.10008@ti.com>
+ <1351859566-24818-14-git-send-email-vaibhav.bedia@ti.com>
+ <50953E26.40906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54724 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46885 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755356Ab2KDP0G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 10:26:06 -0500
-In-Reply-To: <50953DA4.10008@ti.com>
+	id S1755357Ab2KDP0I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 10:26:08 -0500
+In-Reply-To: <50953E26.40906@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi Santosh,
-
-On Sat, Nov 03, 2012 at 21:22:04, Shilimkar, Santosh wrote:
+On Sat, Nov 03, 2012 at 21:24:14, Shilimkar, Santosh wrote:
 > On Friday 02 November 2012 06:02 PM, Vaibhav Bedia wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > The current OMAP timer code registers two timers -
-> > one as clocksource and one as clockevent.
-> Actually OMAP also uses only one timer. The clocksource
-> is taken care by 32K syntimer till OMAP4 and by realtime
-> counter on OMAP5. There is a clocksource registration of
-> timer is available but that is not being used in systems.
-> 
-
-Yes, I guess the changelog should mention that AM33xx does not
-have the 32k synctimer. I'll also add in the OMAP details that
-you pointed out so that all the details get captured.
-
-> > AM33XX has only one usable timer in the WKUP domain
-> > so one of the timers needs suspend-resume support
-> > to restore the configuration to pre-suspend state.
-> >
-> > commit adc78e6 (timekeeping: Add suspend and resume
-> > of clock event devices) introduced .suspend and .resume
-> > callbacks for clock event devices. Leverages these
-> > callbacks to have AM33XX clockevent timer which is
-> > in not in WKUP domain to behave properly across system
-> > suspend.
-> >
-> So you use WKUP domain timer for clocksource and PER
-> domain one for clock-event ?
-
-Yes, that's correct.
-
-> 
-> 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 > > Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 > > ---
-> >   arch/arm/mach-omap2/timer.c |   31 +++++++++++++++++++++++++++++++
-> >   1 files changed, 31 insertions(+), 0 deletions(-)
+> >   arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
+> >   1 files changed, 11 insertions(+), 0 deletions(-)
 > >
-> > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> > index 6584ee0..e8781fd 100644
-> > --- a/arch/arm/mach-omap2/timer.c
-> > +++ b/arch/arm/mach-omap2/timer.c
-> > @@ -135,6 +135,35 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
-> >   	}
-> >   }
-> >
-> > +static void omap_clkevt_suspend(struct clock_event_device *unused)
-> > +{
-> > +	char name[10];
-> > +	struct omap_hwmod *oh;
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index bb31bff..e2cbf24 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -210,5 +210,16 @@
+> >   			interrupt-parent = <&intc>;
+> >   			interrupts = <91>;
+> >   		};
 > > +
-> > +	sprintf(name, "timer%d", 2);
-> > +	oh = omap_hwmod_lookup(name);
-> > +	if (!oh)
-> > +		return;
-> 
-> You can move all the look up stuff in init code and then
-> suspend resume hooks will be cleaner.
-
-Will do. Kevin also pointed this out.
-
-> > +
-> > +	omap_hwmod_idle(oh);
-> > +}
-> > +
-> > +static void omap_clkevt_resume(struct clock_event_device *unused)
-> > +{
-> > +	char name[10];
-> > +	struct omap_hwmod *oh;
-> > +
-> > +	sprintf(name, "timer%d", 2);
-> > +	oh = omap_hwmod_lookup(name);
-> > +	if (!oh)
-> > +		return;
-> > +
-> > +	omap_hwmod_enable(oh);
-> > +	__omap_dm_timer_load_start(&clkev,
-> > +			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
-> > +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
-> > +}
-> > +
-> OK. So since your clk_event stops when PER idles, how do you plan
-> to support the SOC idle. For CPUIDLE path, you need your clock-event
-> to wakeup the system based on next timer expiry. So you need your
-> clock event to be active. Indirectly, you can't let PER idle which
-> leads npo CORE idle->SOC idle.
-> 
-> How do you plan to address this ? Os is SOC idle is not suppose
-> to be added for AMXXX ?
+> > +		ocmcram: ocmcram@40300000 {
+> > +			compatible = "ti,ocmcram";
+> > +			ti,hwmods = "ocmcram";
+> > +			ti,no_idle_on_suspend;
+> > +		};
+> Whats the intention behind adding OCMRAM ?
+> Sorry if I missed any comments from the cover letter ?
 > 
 
-We can't really have SOC idle on AM33xx or at least that's what I think. 
-The deepest that we should be able to support is MPU off with external
-memory in self-refresh mode. I mentioned the reasons for that in the
-reply to Kevin [1]. If there's any another approach that we could take
-that would be great to know.
+We need a mechanism to ensure that the clock to OCMC is kept running
+during boot and that it doesn't get disabled as part of the suspend
+sequence. Since the hwmod data for OCMC is already present and we have
+the no_idle_on_suspend flag for hwmod entries we get the desired behavior.
+
+This could also have been done via the clock tree but looks like we
+want to avoid adding leaf nodes in the clock data, hence the hwmod +
+DT approach.
 
 Regards,
 Vaibhav
 
-[1] http://marc.info/?l=linux-arm-kernel&m=135195053104053&w=2
 
 
