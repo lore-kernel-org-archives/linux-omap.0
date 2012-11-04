@@ -1,214 +1,67 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 15/15] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Sun, 4 Nov 2012 15:26:25 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBFFD4D@DBDE01.ent.ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <1351859566-24818-16-git-send-email-vaibhav.bedia@ti.com>
- <50954CEF.5080209@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Sun, 4 Nov 2012 18:37:44 +0100
+Message-ID: <CACRpkdY_db3ju4LVnoR=0Wq8TFUxa48jNFGhvGM-3uSrmGZVew@mail.gmail.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+	<CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
+	<331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
+	<CACRpkdZ_NxST-oJ=MWC5L=r8uQD_71eHUVUR85v4jfsYpqz=UQ@mail.gmail.com>
+	<20121001154451.GI4840@atomide.com>
+	<CACRpkdaib2M1_UwSbyUG8qwZC2h7xaT5VU7WMj=y+h4S4LianQ@mail.gmail.com>
+	<331ABD5ECB02734CA317220B2BBEABC13EA3F22E@DBDE01.ent.ti.com>
+	<CACRpkdaeu3JaLqSbqETT=D0mdUu5VpwRpS_Xohd6M963rw8QMg@mail.gmail.com>
+	<331ABD5ECB02734CA317220B2BBEABC13EA5C598@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38459 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755565Ab2KDP0b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 10:26:31 -0500
-In-Reply-To: <50954CEF.5080209@ti.com>
-Content-Language: en-US
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:48990 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab2KDRhq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 12:37:46 -0500
+Received: by mail-ea0-f174.google.com with SMTP id c13so1979538eaa.19
+        for <linux-omap@vger.kernel.org>; Sun, 04 Nov 2012 09:37:44 -0800 (PST)
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA5C598@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: "AnilKumar, Chimata" <anilkumar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stephen Warren <swarren@wwwdotorg.org>, Grant Likely <grant.likely@secretlab.ca>, "dong.aisheng@linaro.org" <dong.aisheng@linaro.org>
 
-On Sat, Nov 03, 2012 at 22:27:19, Shilimkar, Santosh wrote:
-[...]
+On Tue, Oct 30, 2012 at 3:12 PM, AnilKumar, Chimata <anilkumar@ti.com> wrote:
 
-> >
-> Nice descriptive change log Vaibhav.
+> I completely understood this named modes, I have added named
+> modes like this in am335x-xxx.dts files
 
-Thanks :)
+I do not understand how the pinctrl-single dts files work actually,
+so please get Tony to review this part.
 
-> 
-[...]
+> I think "pinctrl-1" state will be used in driver
+> suspend/resume calls.
 
-> > +#include "soc.h"
-> > +
-> In case not checked yet, see if you need
-> all above headers.
-> 
+Hopefully, I think you should test the code and monitor the
+system to make sure the right thing happens.
 
-Will double-check, I know it's a long list of includes.
+> I have the pinmux/conf settings for default state but fully
+> optimized pinmux/conf values in idle & suspend states are not
+> available yet.
 
-> > +void (*am33xx_do_wfi_sram)(void);
-> > +
-> > +static void __iomem *am33xx_emif_base;
-> > +static struct powerdomain *cefuse_pwrdm, *gfx_pwrdm, *per_pwrdm;
-> > +static struct clockdomain *gfx_l3_clkdm, *gfx_l4ls_clkdm;
-> > +static struct wkup_m3_context *wkup_m3;
-> > +
-> > +static DECLARE_COMPLETION(wkup_m3_sync);
-> > +
-> > +#ifdef CONFIG_SUSPEND
-> > +static int am33xx_do_sram_idle(long unsigned int unused)
-> > +{
-> > +	am33xx_do_wfi_sram();
-> > +	return 0;
-> > +}
-> > +
-> > +static int am33xx_pm_suspend(void)
-> > +{
-> > +	int status, ret = 0;
-> > +
-> > +	struct omap_hwmod *gpmc_oh, *usb_oh;
-> > +	struct omap_hwmod *tptc0_oh, *tptc1_oh, *tptc2_oh;
-> > +
-> > +	/*
-> > +	 * By default the following IPs do not have MSTANDBY asserted
-> > +	 * which is necessary for PER domain transition. If the drivers
-> > +	 * are not compiled into the kernel HWMOD code will not change the
-> > +	 * state of the IPs if the IP was not never enabled
-> > +	 */
-> > +	usb_oh		= omap_hwmod_lookup("usb_otg_hs");
-> > +	gpmc_oh		= omap_hwmod_lookup("gpmc");
-> > +	tptc0_oh	= omap_hwmod_lookup("tptc0");
-> > +	tptc1_oh	= omap_hwmod_lookup("tptc1");
-> > +	tptc2_oh	= omap_hwmod_lookup("tptc2");
-> > +
-> This look you don't need every suspend.
->
+You have defined a "sleep" state which is what should be used
+for suspend? Or do you mean that you do have a state but
+you're just not defining it to the most optimal setting yet?
 
-Sorry I don't follow you here.
- 
-> > +	omap_hwmod_enable(usb_oh);
-> > +	omap_hwmod_enable(gpmc_oh);
-> > +	omap_hwmod_enable(tptc0_oh);
-> > +	omap_hwmod_enable(tptc1_oh);
-> > +	omap_hwmod_enable(tptc2_oh);
-> > +
-> > +	omap_hwmod_idle(usb_oh);
-> > +	omap_hwmod_idle(gpmc_oh);
-> > +	omap_hwmod_idle(tptc0_oh);
-> > +	omap_hwmod_idle(tptc1_oh);
-> > +	omap_hwmod_idle(tptc2_oh);
-> > +
-> Calling omap_hwmod_idle() directly tells me something is not
-> right. Can these module not idle themself with respective device
-> drivers ?
-> 
+> Even though if I add here, I am unable to test
+> these pins in suspend state because suspend/resume of AM35xx
+> is not added yet
 
-With device drivers, yes. The problem comes if the drivers are not
-compiled in. MSTANDBY needs to be forced for each suspend cycle.
-During resume, these IPs come out of standby and sysconfig changes.
+Aha.
 
-If it makes sense I could add a new HWMOD flag and some sort of
-suspend-resume routine, perhaps syscore_ops, in there to do
-this?
+> I have two options now
+> - add only default states for now, I can add reset of
+> the state details once suspend/resume is supported.
+> - add same values in all the states, modify those once
+> suspend/resume is added for AM335x.
 
-> > +	/* Put the GFX clockdomains to sleep */
-> > +	clkdm_sleep(gfx_l3_clkdm);
-> > +	clkdm_sleep(gfx_l4ls_clkdm);
-> Can GFX driver suspend code not take care of above ?
+The OMAP maintainer gets to choose how this is to be done,
+it's none of my business :-)
 
-Will check if the GFX driver does this. I needed this to ensure
-that even without the GFX driver the PER domain transition doesn't
-get blocked.
-
-> Also are these clock domains are not supporting HW supervised
-> mode ?
-
-All clock domains in AM33xx are SW-supervised.
-> 
-> > +	/* Try to put GFX to sleep */
-> > +	pwrdm_set_next_pwrst(gfx_pwrdm, PWRDM_POWER_OFF);
-> > +
-> Above as well can be taken care by constraint QOS API by
-> GFX driver.
-> 
-
-Will check if I can get rid of this.
-
-> > +	ret = cpu_suspend(0, am33xx_do_sram_idle);
-> > +
-> > +	status = pwrdm_read_pwrst(gfx_pwrdm);
-> > +	if (status != PWRDM_POWER_OFF)
-> > +		pr_err("GFX domain did not transition\n");
-> > +	else
-> > +		pr_info("GFX domain entered low power state\n");
-> > +
-> > +	/* Needed to ensure L4LS clockdomain transitions properly */
-> > +	clkdm_wakeup(gfx_l3_clkdm);
-> > +	clkdm_wakeup(gfx_l4ls_clkdm);
-> > +
-> > +	if (ret) {
-> > +		pr_err("Kernel suspend failure\n");
-> > +	} else {
-> > +		status = omap_ctrl_readl(AM33XX_CONTROL_IPC_MSG_REG1);
-> > +		status &= IPC_RESP_MASK;
-> > +		status >>= __ffs(IPC_RESP_MASK);
-> > +
-> > +		switch (status) {
-> > +		case 0:
-> > +			pr_info("Successfully transitioned to low power state\n");
-> > +			if (wkup_m3->sleep_mode == IPC_CMD_DS0)
-> > +				/* XXX: Use SOC specific ops for this? */
-> > +				per_pwrdm->ret_logic_off_counter++;
-> > +			break;
-> > +		case 1:
-> > +			pr_err("Could not enter low power state\n");
-> > +			ret = -1;
-> > +			break;
-> > +		default:
-> > +			pr_err("Something is terribly wrong :(\nStatus = %d\n",
-> > +				status);
-> Sounds terrible :-)
-> 
-
-Well this is not the expected state. But I guess better to leave in a
-message instead of ignoring the unexpected :)
-
-[...]
-
-> > +	if (!wait_for_completion_timeout(&wkup_m3_sync,
-> > +					msecs_to_jiffies(500))) {
-> 
-> 500 is from spec or arbitrary timeout ?
-> 
-
-We just need enough delay to let the M3 respond. I didn't have the
-hw delays so put in a timeout which is not too big.
-
-[...]
-
-> > +
-> > +	ret = am33xx_map_emif();
-> > +
-> No EMIF driver to handle EMIF MAP, registers etc ?
-> 
-
-We just need to ioremap it here. EMIF registers are updated
-from assembly only.
-
-[...]
-
-> > +#define EMIF_DDR_PHY_CTRL_1_SHDW			0x00e8
-> > +
-> Above should be part of the EMIF driver, no ?
-> 
-
-The driver would end up being a dummy driver which just does
-an ioremap so I added the register offsets here.
-
-[...]
-
-> > +
-> Sleep code looks pretty big so I will have a closer look at it bit
-> later. At least from the code it seems, the EMIF registers and hence
-> memory controller needs to be maneged by SW which is really bad.
-> 
-
-It will get a slightly bigger once DDR3 specific handling gets added ;)
-I agree the s/w managed memory controller is not good. It even places
-limitations on Core DVFS.
-
-Regards,
-Vaibhav
+Yours,
+Linus Walleij
