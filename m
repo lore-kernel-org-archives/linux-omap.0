@@ -1,51 +1,60 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 7/7] i2c: omap: Restore i2c context always
-Date: Sun, 4 Nov 2012 16:14:33 +0530
-Message-ID: <1352025873-27492-8-git-send-email-shubhrajyoti@ti.com>
-References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv2 0/7] i2c: omap: updates
+Date: Sun, 4 Nov 2012 16:14:26 +0530
+Message-ID: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1352025873-27492-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59669 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751154Ab2KDKpH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 4 Nov 2012 05:45:07 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Currently the restore is done based on the flag
-OMAP_I2C_FLAG_RESET_REGS_POSTIDLE.
 
-This helps the following
-- The driver is always capable of restoring regardless
-of the off mode support being there or not.
+Does the followiing
+- Make the revision a 32- bit consisting of rev_lo amd rev_hi each
+of 16 bits.
 
-- While testing omap2430 it is found that in case of certain
-error paths (timeout) a reset is done. However the restore
-never happens as it is dependent on the POSTIDLE flag.
-The other option would be to call a restore in the reset
-case. As there are only a few registers to be restored
-the penalty in the idle case should not be much.
+- Also use the revision register for the erratum i207.
+- Refactor the i2c_omap_init code.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
-Todo: the flag could be deleted if the patch is accepted.
 
- drivers/i2c/busses/i2c-omap.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Also more cleanup is possible will check on that subsequently.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 70d43b7..f66c5ab 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1314,8 +1314,7 @@ static int omap_i2c_runtime_resume(struct device *dev)
- 	if (!_dev->regs)
- 		return 0;
- 
--	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
--		__omap_i2c_init(_dev);
-+	__omap_i2c_init(_dev);
- 
- 	return 0;
- }
+
+Tested on OMAP4430sdp  ,4460 ,omap3630 ,3430 and omap2430.
+
+For omap2 testing the below patch was used
+[PATCH] ARM: vfp: fix save and restore when running on pre-VFPv3 and CONFIG_VFPv3 set
+
+Also for using the pm testing below patches are used.
+
+arm: sched: stop sched_clock() during suspend
+ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
+
+Also available through
+git://gitorious.org/linus-tree/linus-tree.git i2c_omap/for_3.8
+
+
+Shubhrajyoti D (7):
+  i2c: omap: Fix the revision register read
+  i2c: omap: use revision check for OMAP_I2C_FLAG_APPLY_ERRATA_I207
+  i2c: omap: remove the dtrev
+  ARM: i2c: omap: Remove the i207 errata flag
+  i2c: omap: re-factor omap_i2c_init function
+  i2c: omap: make reset a seperate function
+  i2c: omap: Restore i2c context always
+
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    3 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    9 +-
+ drivers/i2c/busses/i2c-omap.c              |  166 +++++++++++++++++-----------
+ include/linux/i2c-omap.h                   |    1 -
+ 4 files changed, 104 insertions(+), 75 deletions(-)
+
 -- 
 1.7.5.4
+
