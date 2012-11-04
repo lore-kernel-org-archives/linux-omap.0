@@ -1,22 +1,34 @@
-From: POSTMASTER@andcompanyonline.com
-Subject: Delivery Failure
-Date: Sun, 4 Nov 2012 03:28:19 +0200
-Message-ID: <B83993C4CD0A4A2997E1C8BDDF2D852F.MAI@andcompanyonline.com>
+From: Administrator@vger.kernel.org
+Subject: =?utf-7?B?K0FGdTU1TWQ4ckwzSUhNTGd1empBckFCZC0gK3ZCVEhkTGZzd3FR?=
+	=?utf-7?B?LSArdkJ5c3JBLSArckwyczRBLQ==?=
+Date: 4 Nov 2012 13:45:11 +0900
+Message-ID: <MAILSVR2fPmsSVhGOD60000f095@mailsvr.mk.co.kr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-7
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from host90.use-trade.com ([38.111.46.90]:3809 "EHLO
-	mail.andcompanyonline.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750726Ab2KDB20 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Nov 2012 21:28:26 -0400
+Received: from mail.mk.co.kr ([203.238.57.9]:32549 "EHLO mailsvr.mk.co.kr"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750775Ab2KDFA0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 4 Nov 2012 01:00:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-
----------------------------------------------------------------------------------
-The message you sent to eppc-co.com/Wahied was rejected because it would exceed the quota for the mailbox.
-
-The subject of the message follows: 
-cgeuxqcammrfndz
-
----------------------------------------------------------------------------------
-
+K3ZCekM0TWVRLSA6IGxpbnV4LW9tYXArQUVBLXZnZXIua2VybmVsLm9yZw0KK3doakM0TWVR
+LSA6IFBTWU9ODQoreUJ5NnFRLSA6IFJldHVybmVkIG1haWw6IERhdGEgZm9ybWF0IGVycm9y
+DQorektpOWdBLSArMHd6SGZMcUYtIDogbWFpbC56aXAobWFpbC5kb2MgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAuY29tKQ0KK3JJREFyQS0gK3JMQ3MvQS0gOiBtYWlsLnppcC9t
+YWlsLmRvYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC5jb20gKCBXaW4zMi9NeURv
+b20ud29ybS5NICkgLStBRDQtICt4VlhObFEtICswd3pIZkEtKCt4VlhObGNkRS0gKzFIdy0g
+KzFzUS0gK3N1VEMzQS0gK3JJREFyTlZZd3UzQzNNWWstLikNCm1haWwuemlwIC0rQUQ0LSAr
+d0szSUhBLQ0KDQoNCit4VWl4VmRWWXdUakdsQS0uIA0KK3VlVEhmS3k5eUJ6QzRMczR3S3ct
+ICt1bFRIZk1FY3ZJUS0gK3JRQzVyTWVReDRXeXlMTGstLg0KK3ZQU3d0TWo4d3VBLSArdWxU
+SGZNWFF3UnctICt2QlRIZExmc3dxU3NBQS0gK3ZCeXNyTFFZeGNqQ3RiTElzdVEtLg0KK3ps
+aTR6S3dBLSArckFDeXBkVll1blEtICt6bGk0ekxsOC0gK3d0eXp4TlZZck9BLSArdllpc0FM
+S2wxVmk2ZEEtICt3SzNJSExRcHNzaXk1QS0uDQordlBnLSArdWxUSGZNZEEtICt4NUN6MmNj
+OHVGdy0gK3ZQU3d0TW5BdW5BLSArdkJqQm9jZDAtICt2WWlzQUxLbDFXbXl5TExrLS4=
