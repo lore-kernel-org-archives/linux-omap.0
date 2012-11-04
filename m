@@ -1,80 +1,130 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv2 3/7] i2c: omap: remove the dtrev
-Date: Sun, 4 Nov 2012 16:14:29 +0530
-Message-ID: <1352025873-27492-4-git-send-email-shubhrajyoti@ti.com>
-References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
+ for clockevent device
+Date: Sun, 4 Nov 2012 15:25:57 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EBFFD03@DBDE01.ent.ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+ <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
+ <50953DA4.10008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1352025873-27492-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54724 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755356Ab2KDP0G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 10:26:06 -0500
+In-Reply-To: <50953DA4.10008@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-The dtrev is used only for the comments. Remove the same and use
-the scheme instead to know if it is version2.
+Hi Santosh,
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
+On Sat, Nov 03, 2012 at 21:22:04, Shilimkar, Santosh wrote:
+> On Friday 02 November 2012 06:02 PM, Vaibhav Bedia wrote:
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > The current OMAP timer code registers two timers -
+> > one as clocksource and one as clockevent.
+> Actually OMAP also uses only one timer. The clocksource
+> is taken care by 32K syntimer till OMAP4 and by realtime
+> counter on OMAP5. There is a clocksource registration of
+> timer is available but that is not being used in systems.
+> 
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e009985..b62cd9d 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -191,7 +191,6 @@ struct omap_i2c_dev {
- 	u32			latency;	/* maximum MPU wkup latency */
- 	struct pm_qos_request	pm_qos_request;
- 	u32			speed;		/* Speed of bus in kHz */
--	u32			dtrev;		/* extra revision from DT */
- 	u32			flags;
- 	u16			cmd_err;
- 	u8			*buf;
-@@ -1076,7 +1075,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	int irq;
- 	int r;
- 	u32 rev;
--	u16 minor, major;
-+	u16 minor, major, scheme;
- 
- 	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1108,7 +1107,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 		u32 freq = 100000; /* default to 100000 Hz */
- 
- 		pdata = match->data;
--		dev->dtrev = pdata->rev;
- 		dev->flags = pdata->flags;
- 
- 		of_property_read_u32(node, "clock-frequency", &freq);
-@@ -1117,7 +1115,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 	} else if (pdata != NULL) {
- 		dev->speed = pdata->clkrate;
- 		dev->flags = pdata->flags;
--		dev->dtrev = pdata->rev;
- 	}
- 
- 	dev->dev = &pdev->dev;
-@@ -1146,7 +1143,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 	 */
- 	rev = __raw_readw(dev->base + 0x04);
- 
--	switch (OMAP_I2C_SCHEME(rev)) {
-+	scheme = OMAP_I2C_SCHEME(rev);
-+	switch (scheme) {
- 	case OMAP_I2C_SCHEME_0:
- 		dev->regs = (u8 *)reg_map_ip_v1;
- 		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-@@ -1231,7 +1229,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	}
- 
- 	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
--		 dev->dtrev, major, minor, dev->speed);
-+		 scheme, major, minor, dev->speed);
- 
- 	of_i2c_register_devices(adap);
- 
--- 
-1.7.5.4
+Yes, I guess the changelog should mention that AM33xx does not
+have the 32k synctimer. I'll also add in the OMAP details that
+you pointed out so that all the details get captured.
+
+> > AM33XX has only one usable timer in the WKUP domain
+> > so one of the timers needs suspend-resume support
+> > to restore the configuration to pre-suspend state.
+> >
+> > commit adc78e6 (timekeeping: Add suspend and resume
+> > of clock event devices) introduced .suspend and .resume
+> > callbacks for clock event devices. Leverages these
+> > callbacks to have AM33XX clockevent timer which is
+> > in not in WKUP domain to behave properly across system
+> > suspend.
+> >
+> So you use WKUP domain timer for clocksource and PER
+> domain one for clock-event ?
+
+Yes, that's correct.
+
+> 
+> 
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> > ---
+> >   arch/arm/mach-omap2/timer.c |   31 +++++++++++++++++++++++++++++++
+> >   1 files changed, 31 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> > index 6584ee0..e8781fd 100644
+> > --- a/arch/arm/mach-omap2/timer.c
+> > +++ b/arch/arm/mach-omap2/timer.c
+> > @@ -135,6 +135,35 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+> >   	}
+> >   }
+> >
+> > +static void omap_clkevt_suspend(struct clock_event_device *unused)
+> > +{
+> > +	char name[10];
+> > +	struct omap_hwmod *oh;
+> > +
+> > +	sprintf(name, "timer%d", 2);
+> > +	oh = omap_hwmod_lookup(name);
+> > +	if (!oh)
+> > +		return;
+> 
+> You can move all the look up stuff in init code and then
+> suspend resume hooks will be cleaner.
+
+Will do. Kevin also pointed this out.
+
+> > +
+> > +	omap_hwmod_idle(oh);
+> > +}
+> > +
+> > +static void omap_clkevt_resume(struct clock_event_device *unused)
+> > +{
+> > +	char name[10];
+> > +	struct omap_hwmod *oh;
+> > +
+> > +	sprintf(name, "timer%d", 2);
+> > +	oh = omap_hwmod_lookup(name);
+> > +	if (!oh)
+> > +		return;
+> > +
+> > +	omap_hwmod_enable(oh);
+> > +	__omap_dm_timer_load_start(&clkev,
+> > +			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+> > +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+> > +}
+> > +
+> OK. So since your clk_event stops when PER idles, how do you plan
+> to support the SOC idle. For CPUIDLE path, you need your clock-event
+> to wakeup the system based on next timer expiry. So you need your
+> clock event to be active. Indirectly, you can't let PER idle which
+> leads npo CORE idle->SOC idle.
+> 
+> How do you plan to address this ? Os is SOC idle is not suppose
+> to be added for AMXXX ?
+> 
+
+We can't really have SOC idle on AM33xx or at least that's what I think. 
+The deepest that we should be able to support is MPU off with external
+memory in self-refresh mode. I mentioned the reasons for that in the
+reply to Kevin [1]. If there's any another approach that we could take
+that would be great to know.
+
+Regards,
+Vaibhav
+
+[1] http://marc.info/?l=linux-arm-kernel&m=135195053104053&w=2
+
+
