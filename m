@@ -1,34 +1,51 @@
-From: Administrator@vger.kernel.org
-Subject: =?utf-7?B?K0FGdTU1TWQ4ckwzSUhNTGd1empBckFCZC0gK3ZCVEhkTGZzd3FR?=
-	=?utf-7?B?LSArdkJ5c3JBLSArckwyczRBLQ==?=
-Date: 4 Nov 2012 13:45:11 +0900
-Message-ID: <MAILSVR2fPmsSVhGOD60000f095@mailsvr.mk.co.kr>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv2 7/7] i2c: omap: Restore i2c context always
+Date: Sun, 4 Nov 2012 16:14:33 +0530
+Message-ID: <1352025873-27492-8-git-send-email-shubhrajyoti@ti.com>
+References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-7
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.mk.co.kr ([203.238.57.9]:32549 "EHLO mailsvr.mk.co.kr"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750775Ab2KDFA0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 4 Nov 2012 01:00:26 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1352025873-27492-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-K3ZCekM0TWVRLSA6IGxpbnV4LW9tYXArQUVBLXZnZXIua2VybmVsLm9yZw0KK3doakM0TWVR
-LSA6IFBTWU9ODQoreUJ5NnFRLSA6IFJldHVybmVkIG1haWw6IERhdGEgZm9ybWF0IGVycm9y
-DQorektpOWdBLSArMHd6SGZMcUYtIDogbWFpbC56aXAobWFpbC5kb2MgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAuY29tKQ0KK3JJREFyQS0gK3JMQ3MvQS0gOiBtYWlsLnppcC9t
-YWlsLmRvYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC5jb20gKCBXaW4zMi9NeURv
-b20ud29ybS5NICkgLStBRDQtICt4VlhObFEtICswd3pIZkEtKCt4VlhObGNkRS0gKzFIdy0g
-KzFzUS0gK3N1VEMzQS0gK3JJREFyTlZZd3UzQzNNWWstLikNCm1haWwuemlwIC0rQUQ0LSAr
-d0szSUhBLQ0KDQoNCit4VWl4VmRWWXdUakdsQS0uIA0KK3VlVEhmS3k5eUJ6QzRMczR3S3ct
-ICt1bFRIZk1FY3ZJUS0gK3JRQzVyTWVReDRXeXlMTGstLg0KK3ZQU3d0TWo4d3VBLSArdWxU
-SGZNWFF3UnctICt2QlRIZExmc3dxU3NBQS0gK3ZCeXNyTFFZeGNqQ3RiTElzdVEtLg0KK3ps
-aTR6S3dBLSArckFDeXBkVll1blEtICt6bGk0ekxsOC0gK3d0eXp4TlZZck9BLSArdllpc0FM
-S2wxVmk2ZEEtICt3SzNJSExRcHNzaXk1QS0uDQordlBnLSArdWxUSGZNZEEtICt4NUN6MmNj
-OHVGdy0gK3ZQU3d0TW5BdW5BLSArdkJqQm9jZDAtICt2WWlzQUxLbDFXbXl5TExrLS4=
+Currently the restore is done based on the flag
+OMAP_I2C_FLAG_RESET_REGS_POSTIDLE.
+
+This helps the following
+- The driver is always capable of restoring regardless
+of the off mode support being there or not.
+
+- While testing omap2430 it is found that in case of certain
+error paths (timeout) a reset is done. However the restore
+never happens as it is dependent on the POSTIDLE flag.
+The other option would be to call a restore in the reset
+case. As there are only a few registers to be restored
+the penalty in the idle case should not be much.
+
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+Todo: the flag could be deleted if the patch is accepted.
+
+ drivers/i2c/busses/i2c-omap.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 70d43b7..f66c5ab 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1314,8 +1314,7 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 	if (!_dev->regs)
+ 		return 0;
+ 
+-	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
+-		__omap_i2c_init(_dev);
++	__omap_i2c_init(_dev);
+ 
+ 	return 0;
+ }
+-- 
+1.7.5.4
