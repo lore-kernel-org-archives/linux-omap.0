@@ -1,67 +1,46 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 0/6] ARM: OMAP3+: move smartreflex-class3.c to drivers/power/avs
-Date: Mon, 5 Nov 2012 09:02:07 -0600
-Message-ID: <1352127734-30103-1-git-send-email-nm@ti.com>
+Subject: [PATCH 2/6] ARM: OMAP: voltage: remove duplicate header definitions
+Date: Mon, 5 Nov 2012 09:02:10 -0600
+Message-ID: <1352127734-30103-4-git-send-email-nm@ti.com>
+References: <1352127734-30103-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46699 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932503Ab2KEPCj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 10:02:39 -0500
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1352127734-30103-1-git-send-email-nm@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Rafael <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbouatmailru@gmail.com>, linux-pm <linux-pm@vger.kernel.org>, Nishanth Menon <nm@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-smartreflex.c now resides in drivers/power/avs directory,
-but class driver is in mach-omap2. High time we move it
-to drivers/power/avs.
+remove duplicate definitions which are already present
+in linux/platform_data/voltage-omap.h
 
-This series *does not* try to fix VP/VC to be voltage
-regulator OR introduce a new OMAP voltage regulator series.
-Instead, it purely tries to do the minimal changes needed
-to move code to drivers/power/avs as a start.
+Acked-by: Jean Pihet <j-pihet@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/voltage.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-Baseline: k.org v3.7-rc4
-Testing: Platform: beagle XM C1 (3730)
-while [ 1 ]
-do
-echo -n "0" >/sys/kernel/debug/smartreflex/smartreflex_core/autocomp
-date
-echo -n "1" >/sys/kernel/debug/smartreflex/smartreflex_core/autocomp
-done
-Screen capture after the series(RFC): on inductor L5 (VDD2 - core):
-https://plus.google.com/photos/112464029509057661457/albums/5715034179943520193/5802619719180530114
-
-RFC: http://marc.info/?t=135102876700003&r=1&w=2
-Changes since RFC:
- - added Jean's Acked-by
- - review comments addressed
-Nishanth Menon (6):
-  PM / AVS / OMAP: move Kconfig definition of smartreflex to avs
-    directory
-  ARM: OMAP: voltage: remove duplicate header definitions
-  ARM: OMAP: voltage: move voltdm_reset to platform_data header
-  ARM: OMAP: SmartReflex: provide SoC integration API for VP
-  ARM: OMAP: SmartReflex: use pr_warn instead of pr_warning
-  PM / AVS / OMAP: move Smartreflex-class3 driver to power/avs
-
- arch/arm/mach-omap2/Makefile                       |    1 -
- arch/arm/mach-omap2/sr_device.c                    |    5 ++++
- arch/arm/mach-omap2/voltage.h                      |    4 ---
- arch/arm/plat-omap/Kconfig                         |   31 --------------------
- drivers/power/avs/Kconfig                          |   31 ++++++++++++++++++++
- drivers/power/avs/Makefile                         |    1 +
- .../power/avs}/smartreflex-class3.c                |   20 +++++++++----
- drivers/power/avs/smartreflex.c                    |    2 ++
- include/linux/platform_data/voltage-omap.h         |    1 +
- include/linux/power/smartreflex.h                  |   18 ++++++++++++
- 10 files changed, 73 insertions(+), 41 deletions(-)
- rename {arch/arm/mach-omap2 => drivers/power/avs}/smartreflex-class3.c (75%)
-
-Regards,
-Nishanth Menon
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 7283b7e..af9d469 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -142,7 +142,6 @@ extern void omap3xxx_voltagedomains_init(void);
+ extern void am33xx_voltagedomains_init(void);
+ extern void omap44xx_voltagedomains_init(void);
+ 
+-struct voltagedomain *voltdm_lookup(const char *name);
+ void voltdm_init(struct voltagedomain **voltdm_list);
+ int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
+ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
+@@ -150,7 +149,5 @@ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
+ int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+ 			  int (*fn)(struct voltagedomain *voltdm,
+ 				    struct powerdomain *pwrdm));
+-int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+ void voltdm_reset(struct voltagedomain *voltdm);
+-unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+ #endif
 -- 
 1.7.9.5
 
