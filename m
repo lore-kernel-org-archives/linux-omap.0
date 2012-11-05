@@ -1,71 +1,48 @@
 From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 06/10] ARM: dts: AM33XX: Add user-leds device tree data to am335x-bone
-Date: Mon, 5 Nov 2012 16:15:46 +0530
-Message-ID: <1352112350-13398-7-git-send-email-anilkumar@ti.com>
-References: <1352112350-13398-1-git-send-email-anilkumar@ti.com>
+Subject: [PATCH 00/10] ARM: dts: AM33XX: Add device tree data
+Date: Mon, 5 Nov 2012 16:15:40 +0530
+Message-ID: <1352112350-13398-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57528 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:57527 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909Ab2KEKqK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 05:46:10 -0500
-In-Reply-To: <1352112350-13398-1-git-send-email-anilkumar@ti.com>
+	with ESMTP id S1753327Ab2KEKqJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 05:46:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, AnilKumar Ch <anilkumar@ti.com>
 
-Add gpio-leds device tree data to am335x-bone device to enable gpio
-based user-leds (USR0, USR1, USR2 and USR3) present on BeagleBone.
+Add device tree date for GPIO based various drivers matrix keypad,
+volume keys, push buttons and use leds accross three AM33XX devices
+viz EVM, BeagleBone and Starter Kit.
 
-[koen@dominion.thruhere.net: led0, led1 suggested by koen]
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
- arch/arm/boot/dts/am335x-bone.dts |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+To make it functional this series also adds pinctrl data for all
+the GPIOs used by various drivers. In this series only default state
+pinmux/conf settings are added because of sleep/idle state pinctrl
+values are not available.
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 0bd0355..206c3eb 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -57,6 +57,36 @@
- 			ti,system-power-controller;
- 		};
- 	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+
-+		led@2 {
-+			label = "beaglebone:green:heartbeat";
-+			gpios = <&gpio2 21 0>;
-+			linux,default-trigger = "heartbeat";
-+			default-state = "off";
-+		};
-+
-+		led@3 {
-+			label = "beaglebone:green:mmc0";
-+			gpios = <&gpio2 22 0>;
-+			linux,default-trigger = "mmc0";
-+			default-state = "off";
-+		};
-+
-+		led@4 {
-+			label = "beaglebone:green:usr2";
-+			gpios = <&gpio2 23 0>;
-+			default-state = "off";
-+		};
-+
-+		led@5 {
-+			label = "beaglebone:green:usr3";
-+			gpios = <&gpio2 24 0>;
-+			default-state = "off";
-+		};
-+	};
- };
- 
- /include/ "tps65217.dtsi"
+These patches are based on linux-omap-dt:for_3.8/dts tree and these
+were tested on am33xx devices according to added functionality.
+
+AnilKumar Ch (10):
+  ARM: dts: AM33XX: Add pinmux configuration for matrix keypad to EVM
+  ARM: dts: AM33XX: Add matrix keypad device tree data to am335x-evm
+  ARM: dts: AM33XX: Add pinmux configuration for volume-keys to EVM
+  ARM: dts: AM33XX: Add volume-keys device tree data to am335x-evm
+  ARM: dts: AM33XX: Add pinmux configuration for user-leds to BONE
+  ARM: dts: AM33XX: Add user-leds device tree data to am335x-bone
+  ARM: dts: AM33XX: Add pinmux configuration for gpio-leds to EVMSK
+  ARM: dts: AM33XX: Add user-leds device tree data to am335x-evmsk
+  ARM: dts: AM33XX: Add pinmux configuration for gpio-keys to EVMSK
+  ARM: dts: AM33XX: Add push-buttons device tree data to am335x-evmsk
+
+ arch/arm/boot/dts/am335x-bone.dts  |   44 +++++++++++++++++++
+ arch/arm/boot/dts/am335x-evm.dts   |   63 +++++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-evmsk.dts |   84 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 191 insertions(+)
+
 -- 
 1.7.9.5
 
