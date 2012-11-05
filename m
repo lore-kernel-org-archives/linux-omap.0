@@ -1,156 +1,94 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 15/15] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Tue, 6 Nov 2012 03:22:16 +0530
-Message-ID: <50983510.80000@ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-16-git-send-email-vaibhav.bedia@ti.com> <87txt4aqyc.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 11/15] ARM: OMAP: timer: Interchange clksrc and clkevt
+ for AM33XX
+Date: Tue, 6 Nov 2012 03:29:22 +0530
+Message-ID: <509836BA.5030507@ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com> <5095037A.2020503@deeprootsystems.com> <B5906170F1614E41A8A28DE3B8D121433EBFEA0E@DBDE01.ent.ti.com> <5095165E.10403@deeprootsystems.com> <B5906170F1614E41A8A28DE3B8D121433EBFEB57@DBDE01.ent.ti.com> <87pq3s7wro.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35173 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017Ab2KEVwU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 16:52:20 -0500
-In-Reply-To: <87txt4aqyc.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57082 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753786Ab2KEV70 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 16:59:26 -0500
+In-Reply-To: <87pq3s7wro.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Monday 05 November 2012 11:10 PM, Kevin Hilman wrote:
-> +Santosh (to help with EMIF questions/comments)
+On Monday 05 November 2012 11:33 PM, Kevin Hilman wrote:
+> "Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
 >
-> On 11/02/2012 12:32 PM, Vaibhav Bedia wrote:
->> AM335x supports various low power modes as documented
->> in section 8.1.4.3 of the AM335x TRM which is available
->> @ http://www.ti.com/litv/pdf/spruh73f
+>> On Sat, Nov 03, 2012 at 18:34:30, Kevin Hilman wrote:
+>> [...]
+>>>>>
+>>>>> Doesn't this also mean that you won't get timer wakeups
+>>>>> in idle?  Or are you keeping the domain where the clockevent is
+>>>>> on during idle?
+>>>>>
+>>>>
+>>>> The lowest idle state that we are targeting will have MPU powered
+>>>> off with external memory in self-refresh mode. Peripheral domain
+>>>> with the clockevent will be kept on.
+>>>
+>>> Is this a limitation of the hardware?  or the software?
+>>>
 >>
->> DeepSleep0 mode offers the lowest power mode with limited
->> wakeup sources without a system reboot and is mapped as
->> the suspend state in the kernel. In this state, MPU and
->> PER domains are turned off with the internal RAM held in
->> retention to facilitate resume process. As part of the boot
->> process, the assembly code is copied over to OCMCRAM using
->> the OMAP SRAM code.
->>
->> AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
->> in DeepSleep0 entry and exit. WKUP_M3 takes care of the
->> clockdomain and powerdomain transitions based on the
->> intended low power state. MPU needs to load the appropriate
->> WKUP_M3 binary onto the WKUP_M3 memory space before it can
->> leverage any of the PM features like DeepSleep.
->>
->> The IPC mechanism between MPU and WKUP_M3 uses a mailbox
->> sub-module and 8 IPC registers in the Control module. MPU
->> uses the assigned Mailbox for issuing an interrupt to
->> WKUP_M3 which then goes and checks the IPC registers for
->> the payload. WKUP_M3 has the ability to trigger on interrupt
->> to MPU by executing the "sev" instruction.
->>
->> In the current implementation when the suspend process
->> is initiated MPU interrupts the WKUP_M3 to let about the
->> intent of entering DeepSleep0 and waits for an ACK. When
->> the ACK is received, MPU continues with its suspend process
->> to suspend all the drivers and then jumps to assembly in
->> OCMC RAM to put the PLLs in bypass, put the external RAM in
->> self-refresh mode and then finally execute the WFI instruction.
->> The WFI instruction triggers another interrupt to the WKUP_M3
->> which then continues wiht the power down sequence wherein the
->> clockdomain and powerdomain transition takes place. As part of
->> the sleep sequence, WKUP_M3 unmasks the interrupt lines for
->> the wakeup sources. When WKUP_M3 executes WFI, the hardware
->> disables the main oscillator.
->>
->> When a wakeup event occurs, WKUP_M3 starts the power-up
->> sequence by switching on the power domains and finally
->> enabling the clock to MPU. Since the MPU gets powered down
->> as part of the sleep sequence, in the resume path ROM code
->> starts executing. The ROM code detects a wakeup from sleep
->> and then jumps to the resume location in OCMC which was
->> populated in one of the IPC registers as part of the suspend
->> sequence.
->>
->> The low level code in OCMC relocks the PLLs, enables access
->> to external RAM and then jumps to the cpu_resume code of
->> the kernel to finish the resume process.
->>
->> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>> Well, making the lowest idle state same as the suspend state will
+>> require us to involve WKUP_M3 in the idle path and wakeup sources get
+>> limited to the IPs in the WKUP domain alone. There's no IO daisy
+>> chaining in AM33XX so that's one big difference compared to OMAP.  The
+>> other potential problem is that the IPC mechanism that we have uses
+>> interrupts.
 >
-> Very well summarized.  Thanks for the thorough changelog.
+> It can still interrupt the M3, it's only the interrupt back to the MPU
+> that is the issue, right?  That being said, there's no reason it
+> couldn't use polling in the idle path, right?
 >
-> First, some general comments.  This is a big patch and probably should
-> be broken up a bit.  I suspect it could be broken up a bit, maybe into
-> at least:
+>> Assuming that the lowest idle state, say Cx, is the same as the
+>> suspend state, we'll need to communicate with the WKUP_M3 using
+>> interrupts once we decide to enter Cx. I am not sure if we can do
+>> something in the cpuidle implementation to work around the "interrupt
+>> for idle" problem.
+>>
+>> We could probably not wait for an ACK when we want to enter Cx,
 >
-> - EMIF interface
-> - SCM interface, new APIs
-> - assembly/OCM code
-> - pm33xx.[ch]
-> - lastly, the late_init stuff that actually initizlizes
+> why not?
 >
-> I have a handful of comments below.  I wrote this up on the plane over
-> the weekend, and I see that Santosh has already made some similar
-> comments, but I'll send mine anyways.
+> Are the response times from the M3 really up to 500ms (guessing based on
+> the timeout you used in the suspend path.)  That seems rather unlikely.
 >
-[...]
+> Hmm, but as I think about it.  Why does the MPU need to wait for an ACK
+> at all?  Why not just send the cmd and WFI?
+>
+>> but the problem of limited wakeup sources remains. If we let the
+>> various drivers block the entry to Cx, since almost all the IPs are in
+>> the peripheral domain a system which uses anything other than UART and
+>> Timer in WKUP domain will probably never be able enter Cx.
+>
+> Even so, I think the system needs to be designed to hit the same power
+> states in idle and suspend.  Then, the states can be restricted based
+> wakeup capabilities as you described.  This would be easy to do in the
+> runtime PM implementation for this device.
+>
+> IMO, assuming that idle will not be useful from the begining is leading
+> down the path to poor design choices that will be much more difficult to
+> fixup down the road in order to add idle support later.  We need to
+> design both idle and suspend at the same time.
+>
+I agree with Kevin. Not supporting CPUIDLE deep states can hit the
+active power numbers dearly. I just don't know why the SOCs don't share
+the standard and must have design choices. But thats another discussion.
 
->
->> +extern void __iomem *am33xx_get_emif_base(void);
->> +int wkup_mbox_msg(struct notifier_block *self, unsigned long len, void *msg);
->> +#endif
->> +
->> +#define	IPC_CMD_DS0			0x3
->> +#define IPC_CMD_RESET                   0xe
->> +#define DS_IPC_DEFAULT			0xffffffff
->> +
->> +#define IPC_RESP_SHIFT			16
->> +#define IPC_RESP_MASK			(0xffff << 16)
->> +
->> +#define M3_STATE_UNKNOWN		0
->> +#define M3_STATE_RESET			1
->> +#define M3_STATE_INITED			2
->> +#define M3_STATE_MSG_FOR_LP		3
->> +#define M3_STATE_MSG_FOR_RESET		4
->> +
->> +#define AM33XX_OCMC_END			0x40310000
->> +#define AM33XX_EMIF_BASE		0x4C000000
->> +
->> +/*
->> + * This a subset of registers defined in drivers/memory/emif.h
->> + * Move that to include/linux/?
->> + */
->
-> I'd probably suggest just moving the register definitions you
-> need into <plat/emif_plat.h> so they can be shared with the driver.
->
-> Also, the EMIF stuff would benefit greatly from using symbolic defines
-> for the values being written.  Probably having those in
-> <plat/emif_plat.h> would also help out here.
->
-> Or, maybe the EMIF driver can provide some self-contained stubs that can
-> be copied to OCP RAM for the functionality needed here?
->
-> Santosh, what do you think of that?
->
-Thats what I mentioned in my comment. I also don't know why such a bad
-hardware choice was made when we have perfectly working EMIF IP across
-low power states. Even the self refresh control is managed inside
-hardware upon idle.  My guess is DDR self-refresh might be the reason
-to use OCMC RAM.
+How about leaving the timer choices as is. PER timer for clock source
+and wakeuptimer for clock event. Anyway in suspend the clock-source
+can be suspended and that is evident from recent discussion. The only
+downside is you won't count time in suspend which is any way the case.
 
-In either case, Keeping EMIF changes separate as part of EMIF 
-driver/platform code is right way to go about it. May be the
-disable_selfrefresh() might need to kept in assembly files since it 
-needs to be running from SRAM but rest need not be part of
-PM code.
+Vaibhav,
+Do you guys see any implementation bottleneck for above ?
 
 Regards
 Santosh
-
-For
-
-Regards
-Santosh
-
-
-
