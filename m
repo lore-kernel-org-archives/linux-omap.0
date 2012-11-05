@@ -1,54 +1,62 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Mon, 5 Nov 2012 14:34:01 +0000
-Message-ID: <CACxGe6ubcRqDEGyRbNmwvAMGg5ujAKvPRWe9Vmd9tiHeB7=qNw@mail.gmail.com>
-References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com>
- <20121031175219.GH12739@atomide.com> <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com>
- <20121031180935.GL12739@atomide.com> <50918223.6080003@ti.com>
- <8AD2F7AF-8315-442B-A394-1A38DAB29F52@antoniou-consulting.com>
- <20121031212639.GQ12739@atomide.com> <8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com>
- <20121031221402.GA29490@arwen.pp.htv.fi> <E4EE0D1F-C7AC-4620-86F2-D9C7C56E279F@antoniou-consulting.com>
- <50924DA3.1060901@ti.com> <F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
- <50925C49.7060004@ti.com> <CBDE21C5-1980-4BDC-9153-7653A07D0024@dominion.thruhere.net>
- <50938108.5040507@ti.com> <40797D3D-D62C-4E15-B0DF-75636C1637EE@antoniou-consulting.com>
- <CACxGe6s8qrP0itLgCyv1mBnekc-7K1n_q-kTKUR=MOJ57W_a1w@mail.gmail.com> <C9F4DFD1-4BF4-423C-B749-74E37D51192A@antoniou-consulting.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 13/15] ARM: DTS: AM33XX: Add nodes for OCMCRAM and Mailbox
+Date: Mon, 5 Nov 2012 20:23:11 +0530
+Message-ID: <5097D2D7.3090204@ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-14-git-send-email-vaibhav.bedia@ti.com> <50953E26.40906@ti.com> <B5906170F1614E41A8A28DE3B8D121433EBFFD0A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <C9F4DFD1-4BF4-423C-B749-74E37D51192A@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel <linux-kernel@vger.kernel.org>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <robherring2@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33298 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932439Ab2KEOxS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 09:53:18 -0500
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBFFD0A@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Mon, Nov 5, 2012 at 1:25 PM, Pantelis Antoniou
-<panto@antoniou-consulting.com> wrote:
->
-> On Nov 5, 2012, at 1:22 AM, Grant Likely wrote:
->
->> On Fri, Nov 2, 2012 at 8:43 AM, Pantelis Antoniou
->> <panto@antoniou-consulting.com> wrote:
->>> Assuming that we do work on a DT object format, and that the runtime resolution mechanism is approved,
->>> then I agree that this part of the capebus patches can be dropped and the functionality assumed by generic
->>> DT core.
+On Sunday 04 November 2012 08:56 PM, Bedia, Vaibhav wrote:
+> On Sat, Nov 03, 2012 at 21:24:14, Shilimkar, Santosh wrote:
+>> On Friday 02 November 2012 06:02 PM, Vaibhav Bedia wrote:
+>>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>>> ---
+>>>    arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
+>>>    1 files changed, 11 insertions(+), 0 deletions(-)
 >>>
->>> The question is that this will take time, with no guarantees that this would be acceptable from
->>> the device tree maintainers. So I am putting them in the CC list, to see what they think about it.
+>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+>>> index bb31bff..e2cbf24 100644
+>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>> @@ -210,5 +210,16 @@
+>>>    			interrupt-parent = <&intc>;
+>>>    			interrupts = <91>;
+>>>    		};
+>>> +
+>>> +		ocmcram: ocmcram@40300000 {
+>>> +			compatible = "ti,ocmcram";
+>>> +			ti,hwmods = "ocmcram";
+>>> +			ti,no_idle_on_suspend;
+>>> +		};
+>> Whats the intention behind adding OCMRAM ?
+>> Sorry if I missed any comments from the cover letter ?
 >>
->> This is actually exactly the direction I want to go with DT, which the
->> ability to load supplemental DT data blobs from either a kernel module
->> or userspace using the firmware loading infrastructure.
->>
->> g.
 >
-> Hi Grant,
+> We need a mechanism to ensure that the clock to OCMC is kept running
+> during boot and that it doesn't get disabled as part of the suspend
+> sequence. Since the hwmod data for OCMC is already present and we have
+> the no_idle_on_suspend flag for hwmod entries we get the desired behavior.
 >
-> That's pretty much our use case.
->
-> Regards
+On OMAP the OCMC RAM is always clocked and doesn't need any special
+clock enable. CM_L3_2_OCMC_RAM_CLKCTRL module mode field is read only.
+Isn't it same on AMXX ?
 
-Good. I'm about 80% though putting together a project plan of what is
-required to implement this. I'll post it for RFC shortly. I would
-appreciate feedback and help on flushing out the design.
+> This could also have been done via the clock tree but looks like we
+> want to avoid adding leaf nodes in the clock data, hence the hwmod +
+> DT approach.
+>
+Sure. I was just trying to see why AMXX is different with OMAP here.
 
-g.
+Regards
+Santosh
