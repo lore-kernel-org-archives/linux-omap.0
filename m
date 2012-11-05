@@ -1,59 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2] ARM: PMU: fix runtime PM enable
-Date: Mon, 5 Nov 2012 07:30:44 -0800
-Message-ID: <20121105153044.GE4953@atomide.com>
-References: <1351196598-26667-1-git-send-email-jon-hunter@ti.com>
- <20121026100312.GF20914@mudshark.cambridge.arm.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Mon, 5 Nov 2012 07:34:45 -0800
+Message-ID: <20121105153444.GG4953@atomide.com>
+References: <E4EE0D1F-C7AC-4620-86F2-D9C7C56E279F@antoniou-consulting.com>
+ <50924DA3.1060901@ti.com>
+ <F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
+ <50925C49.7060004@ti.com>
+ <CBDE21C5-1980-4BDC-9153-7653A07D0024@dominion.thruhere.net>
+ <50938108.5040507@ti.com>
+ <40797D3D-D62C-4E15-B0DF-75636C1637EE@antoniou-consulting.com>
+ <CACxGe6s8qrP0itLgCyv1mBnekc-7K1n_q-kTKUR=MOJ57W_a1w@mail.gmail.com>
+ <C9F4DFD1-4BF4-423C-B749-74E37D51192A@antoniou-consulting.com>
+ <CACxGe6ubcRqDEGyRbNmwvAMGg5ujAKvPRWe9Vmd9tiHeB7=qNw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:25357 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932984Ab2KEPau (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 10:30:50 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20121026100312.GF20914@mudshark.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CACxGe6ubcRqDEGyRbNmwvAMGg5ujAKvPRWe9Vmd9tiHeB7=qNw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Will Deacon <will.deacon@arm.com> [121026 03:04]:
-> On Thu, Oct 25, 2012 at 09:23:18PM +0100, Jon Hunter wrote:
-> > Commit 7be2958 (ARM: PMU: Add runtime PM Support) updated the ARM PMU code to
-> > use runtime PM which was prototyped and validated on the OMAP devices. In this
-> > commit, there is no call pm_runtime_enable() and for OMAP devices
-> > pm_runtime_enable() is currently being called from the OMAP PMU code when the
-> > PMU device is created. However, there are two problems with this:
-> > 
-> > 1. For any other ARM device wishing to use runtime PM for PMU they will need
-> >    to call pm_runtime_enable() for runtime PM to work.
-> > 2. When booting with device-tree and using device-tree to create the PMU
-> >    device, pm_runtime_enable() needs to be called from within the ARM PERF
-> >    driver as we are no longer calling any device specific code to create the
-> >    device. Hence, PMU does not work on OMAP devices that use the runtime PM
-> >    callbacks when using device-tree to create the PMU device.
-> > 
-> > Therefore,  call pm_runtime_enable() directly from the ARM PMU driver when
-> > registering the device. For platforms that do not use runtime PM,
-> > pm_runtime_enable() does nothing and for platforms that do use runtime PM but
-> > may not require it specifically for PMU, this will just add a little overhead
-> > when initialising and uninitialising the PMU device.
-> > 
-> > Tested with PERF on OMAP2420, OMAP3430 and OMAP4460.
-> > 
-> > V2 changes:
-> > - Call pm_runtime_enable() unconditionally on registering the PMU device.
-> > 
-> > Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> > ---
+* Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> [121105 06:36]:
+> On Mon, Nov 5, 2012 at 1:25 PM, Pantelis Antoniou
+> <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> wrote:
+> >
+> > On Nov 5, 2012, at 1:22 AM, Grant Likely wrote:
+> >
+> >> On Fri, Nov 2, 2012 at 8:43 AM, Pantelis Antoniou
+> >> <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> wrote:
+> >>> Assuming that we do work on a DT object format, and that the runtime resolution mechanism is approved,
+> >>> then I agree that this part of the capebus patches can be dropped and the functionality assumed by generic
+> >>> DT core.
+> >>>
+> >>> The question is that this will take time, with no guarantees that this would be acceptable from
+> >>> the device tree maintainers. So I am putting them in the CC list, to see what they think about it.
+> >>
+> >> This is actually exactly the direction I want to go with DT, which the
+> >> ability to load supplemental DT data blobs from either a kernel module
+> >> or userspace using the firmware loading infrastructure.
+> >>
+> >> g.
+> >
+> > Hi Grant,
+> >
+> > That's pretty much our use case.
+> >
+> > Regards
 > 
-> Cheers Jon! Looks a bit weird without the matching pm_runtime_disable, but
-> we don't really have anywhere to put that since the PMU is not deregistered.
-> 
-> Can we split this patch into two (even smaller!) patches so that I can take
-> the perf part and the omap bit can go to Tony?
+> Good. I'm about 80% though putting together a project plan of what is
+> required to implement this. I'll post it for RFC shortly. I would
+> appreciate feedback and help on flushing out the design.
 
-The omap bit looks OK for me to queue via perf:
+Great, sounds like almost-a-plan then :)
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Regards,
+
+Tony
