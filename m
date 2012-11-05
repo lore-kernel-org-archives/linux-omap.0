@@ -1,35 +1,44 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH v3] ARM: dts: AM33xx: Add SPI node
-Date: Mon, 5 Nov 2012 11:32:40 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9DAB5F@DBDE01.ent.ti.com>
-References: <1351680669-20718-1-git-send-email-avinashphilip@ti.com>
- <50927DF5.4080008@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv3 2/8] i2c: omap: use revision check for OMAP_I2C_FLAG_APPLY_ERRATA_I207
+Date: Mon, 5 Nov 2012 17:53:37 +0530
+Message-ID: <1352118223-3796-3-git-send-email-shubhrajyoti@ti.com>
+References: <1352118223-3796-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50927DF5.4080008@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60762 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753676Ab2KEMYO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 07:24:14 -0500
+In-Reply-To: <1352118223-3796-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, balbi@ti.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On Thu, Nov 01, 2012 at 19:19:41, Cousson, Benoit wrote:
-> Hi Avinash,
-> 
-> On 10/31/2012 11:51 AM, Philip, Avinash wrote:
-> > Add McSPI data node to AM33XX device tree file. The McSPI module (and so
-> > as the driver) is reused from OMAP4.
-> > 
-> > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
-> > Tested-by: Matt Porter <mporter@ti.com>
-> 
-> I've just realized the interrupt-parent was still there, so I removed both.
-> 
-> Please find below the updated version.
+The errata i207 is enabled for 2430 and 3xxx. Use the revision check
+to enable the erratum instead.
 
-I tested it and thanks for the fix.
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Thanks
-Avinash
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 5c6f538..737d843 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1166,7 +1166,8 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	dev->errata = 0;
+ 
+-	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
++	if (dev->rev >= OMAP_I2C_REV_ON_2430 &&
++			dev->rev < OMAP_I2C_REV_ON_4430_PLUS)
+ 		dev->errata |= I2C_OMAP_ERRATA_I207;
+ 
+ 	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
+-- 
+1.7.5.4
+
