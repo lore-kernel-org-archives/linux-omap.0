@@ -1,50 +1,86 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH V2 0/3] ARM: dts: omap5: EMIF and LPDDR2 device tree data
-Date: Mon, 5 Nov 2012 12:03:44 +0100
-Message-ID: <50979D10.1070406@ti.com>
-References: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com> <50975581.7010508@ti.com> <50979A14.1050805@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC
+ timings and NAND
+Date: Mon, 5 Nov 2012 11:03:58 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+ <1351869956-2787-5-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58099 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751396Ab2KELD6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 06:03:58 -0500
-In-Reply-To: <50979A14.1050805@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51225 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751721Ab2KELFJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 06:05:09 -0500
+In-Reply-To: <1351869956-2787-5-git-send-email-zonque@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Daniel Mack <zonque@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 11/05/2012 11:51 AM, Benoit Cousson wrote:
-> Hi Lokesh,
+On Fri, Nov 02, 2012 at 20:55:56, Daniel Mack wrote:
+> This patch adds basic DT bindings for OMAP GPMC.
 > 
-> On 11/05/2012 06:58 AM, Lokesh Vutla wrote:
->> Hi,
->> On Thursday 11 October 2012 06:17 PM, Lokesh Vutla wrote:
->>> This patch series adds Device tree data for the EMIF
->>> sdram controllers in OMAP5 and LPDDR2 memory devices
->>> in OMAP5-evm board.
->>>
->>> Testing:
->>> - Boot tested on OMAP5430 evm.
->>> - Built EMIF as a module.
->>>
->>> Changes from v1:
->>> * Created a seperate dtsi file for Samsung LPDDR2 memory device
->>>    used in OMAP5-evm.
->>> * Passing reg and interrupt fields from dt for EMIF1 and EMIF2.
->> Gentle ping on this series.
+> The actual peripherals are instanciated from child nodes within the GPMC
+> node, and the only type of device that is currently supported is NAND.
 > 
-> Sorry, I missed it. It might be too late for 3.8, since Tony wanted us
-> to push before -rc4. I'll pull the series anyway just in case.
+> Code was added to parse the generic GPMC timing parameters and some
+> documentation with examples on how to use them.
 > 
-> I have a least one comment.
+> Successfully tested on an AM33xx board.
+> 
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+[...]
+> +
+> +		nand@0,0 {
+> +			reg = <0 0 0>; /* CS0, offset 0 */
+> +			nand-bus-width = <16>;
+> +			nand-ecc-mode = "none";
+> +
+> +			gpmc,sync-clk = <0>;
+> +			gpmc,cs-on = <0>;
+> +			gpmc,cs-rd-off = <36>;
+> +			gpmc,cs-wr-off = <36>;
+> +			gpmc,adv-on = <6>;
+> +			gpmc,adv-rd-off = <24>;
+> +			gpmc,adv-wr-off = <36>;
+> +			gpmc,we-off = <30>;
+> +			gpmc,oe-off = <48>;
+> +			gpmc,access = <54>;
+> +			gpmc,rd-cycle = <72>;
+> +			gpmc,wr-cycle = <72>;
+> +			gpmc,wr-access = <30>;
+> +			gpmc,wr-data-mux-bus = <0>;
+> +
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +
 
-Could you just rebase on top of the for_3.8 branch, fix the minor
-comments and repost ASAP.
+Can you take the timings (for example) from arago tree. The timings is tested in am335x-evm
+So the timings can be directly used to populate GPMC timings. Timings can found at
 
-Thanks,
-Benoit
+http://arago-project.org/git/projects/?p=linux-am33x.git;a=commitdiff;
+h=66bfbd2c5b35dc81edce0c24843c476161ab5978;hp=370630359cb8db711cf0941cd2a242e28ccfb61e
 
+[...]
+> +static int gpmc_probe_dt(struct platform_device *pdev)
+
+Can you take care of the following section mismatch.
+WARNING: vmlinux.o(.text+0x1e2d0): Section mismatch in reference
+from the function gpmc_probe_dt() to the function .init.text:gpmc_nand_init().
+
+[...]
+> +
+> +		val = of_get_nand_ecc_mode(child);
+> +		if (val >= 0)
+> +			gpmc_nand_data->ecc_opt = val;
+
+This will fail for BCH. Index of "soft_bch" is 5 & also don't have selection
+option between for BCH4 & BCH8 also.
+Can you use the of_property_read_u32 (as done early) to pass the ecc selection
+from dt file. This will help selection of BCH4 & BCH8 ecc options.
+
+Thanks
+Avinash
