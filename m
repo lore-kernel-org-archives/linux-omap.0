@@ -1,75 +1,56 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: [PATCH 8/8] ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
-Date: Mon, 5 Nov 2012 14:42:29 +0530
-Message-ID: <1352106749-9437-9-git-send-email-avinashphilip@ti.com>
-References: <1352106749-9437-1-git-send-email-avinashphilip@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCHv2 1/7] i2c: omap: Fix the revision register read
+Date: Mon, 5 Nov 2012 15:10:49 +0530
+Message-ID: <CAM=Q2ctUp-kOY928=5Opi59gTC1EACTqMfojKN9OPsT-nrZ2mQ@mail.gmail.com>
+References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
+	<1352025873-27492-2-git-send-email-shubhrajyoti@ti.com>
+	<20121105075026.GB32468@arwen.pp.htv.fi>
+	<50977A30.6040907@ti.com>
+	<20121105090412.GA2913@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352106749-9437-1-git-send-email-avinashphilip@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: thierry.reding@avionic-design.de, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com
-Cc: hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:63401 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752794Ab2KEJkv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 04:40:51 -0500
+In-Reply-To: <20121105090412.GA2913@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Shubhrajyoti <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, w.sang@pengutronix.de
 
-PWM output from ecap0 uses as backlight source. Also adds low threshold
-value to have a uniform divisions in brightness-levels scales.
+On Mon, Nov 5, 2012 at 2:34 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Mon, Nov 05, 2012 at 02:04:56PM +0530, Shubhrajyoti wrote:
+>> >> @@ -1155,7 +1187,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>> >>
+>> >>            dev->fifo_size = (dev->fifo_size / 2);
+>> >>
+>> >> -          if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
+>> >> +          if (dev->rev < OMAP_I2C_REV_ON_3630)
+>> >>                    dev->b_hw = 1; /* Enable hardware fixes */
+>> > looks like this was applicable to 4430 too, what happened ?
+>> No actually this can be deleted completely once the
+>> start -> transaction -> stop sequence recommendation is followed.
+>
+> yes, but we're not there just yet and this patch is changing the
+> behavior
 
-Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
----
-Second version
-	- Combined with HWMOD changes & DT bindings.
-	- No changes
+No , earlier we were truncating the register for omap4 so
+OMAP_I2C_REV_ON_3630_4430 was there if we read both hi and lo for
+omap4 then we donot find 3630 and 4430 value to be similar.
 
-:100644 100644 185d632... 9857050... M	arch/arm/boot/dts/am335x-evm.dts
- arch/arm/boot/dts/am335x-evm.dts |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+In this case the behavior is same as earlier also it enabled this for
+lower than 3630 and
+the same holds good even now.
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 185d632..9857050 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -18,6 +18,14 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- 
-+	am33xx_pinmux: pinmux@44e10800 {
-+		ecap0_pins: backlight_pins {
-+			pinctrl-single,pins = <
-+				0x164 0x0	/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
-+			>;
-+		};
-+	};
-+
- 	ocp {
- 		uart1: serial@44e09000 {
- 			status = "okay";
-@@ -31,6 +39,12 @@
- 				reg = <0x2d>;
- 			};
- 		};
-+
-+		ecap0: ecap@48300100 {
-+			status = "okay";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ecap0_pins>;
-+		};
- 	};
- 
- 	vbat: fixedregulator@0 {
-@@ -40,6 +54,13 @@
- 		regulator-max-microvolt = <5000000>;
- 		regulator-boot-on;
- 	};
-+
-+	backlight {
-+		compatible	= "pwm-backlight";
-+		pwms = <&ecap0 0 50000 0>;
-+		brightness-levels = <0 51 53 56 62 75 101 152 255>;
-+		default-brightness-level = <8>;
-+	};
- };
- 
- /include/ "tps65910.dtsi"
--- 
-1.7.0.4
+So in essence,
+Earlier  OMAP_I2C_REV_ON_3630_4430 is named to OMAP_I2C_REV_ON_3630
+and omap4 rev will have a 32bit value which is greater.
+
+> of the driver in ways which don't belong to $SUBJECT.
+>
+> --
+> balbi
