@@ -1,71 +1,71 @@
 From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 10/10] ARM: dts: AM33XX: Add push-buttons device tree data to am335x-evmsk
-Date: Mon, 5 Nov 2012 16:15:50 +0530
-Message-ID: <1352112350-13398-11-git-send-email-anilkumar@ti.com>
+Subject: [PATCH 06/10] ARM: dts: AM33XX: Add user-leds device tree data to am335x-bone
+Date: Mon, 5 Nov 2012 16:15:46 +0530
+Message-ID: <1352112350-13398-7-git-send-email-anilkumar@ti.com>
 References: <1352112350-13398-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50357 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753909Ab2KEKqH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 05:46:07 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:57528 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753909Ab2KEKqK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 05:46:10 -0500
 In-Reply-To: <1352112350-13398-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, AnilKumar Ch <anilkumar@ti.com>
 
-Add gpio based push buttons device tree data to am335x-evmsk device
-by adding all the necessary parameters like key-code, gpios and etc.
+Add gpio-leds device tree data to am335x-bone device to enable gpio
+based user-leds (USR0, USR1, USR2 and USR3) present on BeagleBone.
 
+[koen@dominion.thruhere.net: led0, led1 suggested by koen]
 Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 ---
- arch/arm/boot/dts/am335x-evmsk.dts |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ arch/arm/boot/dts/am335x-bone.dts |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 0f825dd..f5a6162 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -139,6 +139,37 @@
- 			default-state = "off";
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 0bd0355..206c3eb 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -57,6 +57,36 @@
+ 			ti,system-power-controller;
  		};
  	};
 +
-+	gpio_buttons: gpio_buttons@0 {
-+		compatible = "gpio-keys";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
++	leds {
++		compatible = "gpio-leds";
 +
-+		switch@1 {
-+			label = "button0";
-+			linux,code = <0x100>;
-+			gpios = <&gpio3 3 0>;
++		led@2 {
++			label = "beaglebone:green:heartbeat";
++			gpios = <&gpio2 21 0>;
++			linux,default-trigger = "heartbeat";
++			default-state = "off";
 +		};
 +
-+		switch@2 {
-+			label = "button1";
-+			linux,code = <0x101>;
-+			gpios = <&gpio3 2 0>;
++		led@3 {
++			label = "beaglebone:green:mmc0";
++			gpios = <&gpio2 22 0>;
++			linux,default-trigger = "mmc0";
++			default-state = "off";
 +		};
 +
-+		switch@3 {
-+			label = "button2";
-+			linux,code = <0x102>;
-+			gpios = <&gpio1 30 0>;
-+			gpio-key,wakeup;
++		led@4 {
++			label = "beaglebone:green:usr2";
++			gpios = <&gpio2 23 0>;
++			default-state = "off";
 +		};
 +
-+		switch@4 {
-+			label = "button3";
-+			linux,code = <0x103>;
-+			gpios = <&gpio3 5 0>;
++		led@5 {
++			label = "beaglebone:green:usr3";
++			gpios = <&gpio2 24 0>;
++			default-state = "off";
 +		};
 +	};
  };
  
- /include/ "tps65910.dtsi"
+ /include/ "tps65217.dtsi"
 -- 
 1.7.9.5
 
