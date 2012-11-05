@@ -1,90 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [GIT PULL] omapdss fixes for 3.7-rc
-Date: Mon, 5 Nov 2012 11:52:33 +0200
-Message-ID: <50978C61.8080907@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2 1/7] i2c: omap: Fix the revision register read
+Date: Mon, 5 Nov 2012 12:01:05 +0200
+Message-ID: <20121105100105.GC3327@arwen.pp.htv.fi>
+References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
+ <1352025873-27492-2-git-send-email-shubhrajyoti@ti.com>
+ <20121105075026.GB32468@arwen.pp.htv.fi>
+ <50977A30.6040907@ti.com>
+ <20121105090412.GA2913@arwen.pp.htv.fi>
+ <CAM=Q2csb_9ryaZfURqv6QgsVuSRiVMDt=x=Adko2HH4GoiHnCQ@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigD6E4ADFC7B68138EFB2213C5"
+	protocol="application/pgp-signature"; boundary="0vzXIDBeUiKkjNJl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49266 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33441 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753865Ab2KEJwh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 04:52:37 -0500
+	id S1751175Ab2KEKHc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 05:07:32 -0500
+Content-Disposition: inline
+In-Reply-To: <CAM=Q2csb_9ryaZfURqv6QgsVuSRiVMDt=x=Adko2HH4GoiHnCQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org
+To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Cc: balbi@ti.com, Shubhrajyoti <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, w.sang@pengutronix.de
 
---------------enigD6E4ADFC7B68138EFB2213C5
-Content-Type: text/plain; charset=ISO-8859-1
+--0vzXIDBeUiKkjNJl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Florian,
+Hi,
 
-Here are a few omapdss fixes, two fixing crasher bugs and the third
-fixes a missing unlock. These are based on 3.7-rc1. I can rebase on
-top of something else if you prefer that.
+On Mon, Nov 05, 2012 at 02:54:32PM +0530, Shubhrajyoti Datta wrote:
+> On Mon, Nov 5, 2012 at 2:34 PM, Felipe Balbi <balbi@ti.com> wrote:
+>=20
+> > Hi,
+> >
+> > On Mon, Nov 05, 2012 at 02:04:56PM +0530, Shubhrajyoti wrote:
+> > > >> @@ -1155,7 +1187,7 @@ omap_i2c_probe(struct platform_device *pdev)
+> > > >>
+> > > >>            dev->fifo_size =3D (dev->fifo_size / 2);
+> > > >>
+> > > >> -          if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
+> > > >> +          if (dev->rev < OMAP_I2C_REV_ON_3630)
+> > > >>                    dev->b_hw =3D 1; /* Enable hardware fixes */
+> > > > looks like this was applicable to 4430 too, what happened ?
+> > > No actually this can be deleted completely once the
+> > > start -> transaction -> stop sequence recommendation is followed.
+> >
+> > yes, but we're not there just yet and this patch is changing the
+> > behavior of the driver
+>=20
+>=20
+> No , earlier we were truncating the register for omap4 so
+> OMAP_I2C_REV_ON_3630_4430 was there if we read both hi and lo for
+> omap4 then we donot find 3630 and 4430 value to be similar.
+>=20
+> In this case the behavior is same as earlier also it enabled this for
+> lower than 3630 and the same holds good even now.
+>=20
+> So in essence, Earlier  OMAP_I2C_REV_ON_3630_4430 is named to
+> OMAP_I2C_REV_ON_3630 and omap4 rev will have a 32bit value.
 
- Tomi
+it's not same behavior because before dev->b_hw was set for omap4430,
+but now it won't be. This is the difference in behavior which I'm
+pointing out.
 
+--=20
+balbi
 
-The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd=
-37:
-
-  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
-
-are available in the git repository at:
-
-  git://gitorious.org/linux-omap-dss2/linux.git tags/omapdss-for-3.7-rc5
-
-for you to fetch changes up to dffc70ade1d13edd186f542718c4d78a31d92fb8:
-
-  OMAPDSS: HDMI: fix missing unlock on error in hdmi_dump_regs() (2012-10=
--26 08:45:43 +0300)
-
-----------------------------------------------------------------
-omapdss fixes for 3.7-rc5
-
-omapdss fixes for two crashes bugs and one missing mutex unlock.
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      omapdss: dss: Fix clocks on OMAP363x
-
-Tomi Valkeinen (1):
-      OMAPDSS: DSI: fix dsi_get_dsidev_from_id()
-
-Wei Yongjun (1):
-      OMAPDSS: HDMI: fix missing unlock on error in hdmi_dump_regs()
-
- drivers/video/omap2/dss/dsi.c  |   13 +++++++++++--
- drivers/video/omap2/dss/dss.c  |    4 ++--
- drivers/video/omap2/dss/hdmi.c |    4 +++-
- 3 files changed, 16 insertions(+), 5 deletions(-)
-
-
---------------enigD6E4ADFC7B68138EFB2213C5
+--0vzXIDBeUiKkjNJl
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQl4xhAAoJEPo9qoy8lh71bRIP/RP+OBf9SkRLM4uVBeoKHmfj
-NqwXu9Sg7Fv3ZKp6F3E59y+U2xLZm0qF9kX1OHPew5VSdfrn5itEt89Xr1ZnbQdy
-QadcUGD1a/Wz+VnCojDYDHtZfdnvyLE3s7ANA5sTeZUHOS9Ug+lp2Zp72FLzwGHf
-sHY+yezGufMbOlKXy0H8fpUVbDIoqnmtm3TUUAvWtdRhVob2pkKmNZRHybXbYw3Q
-Fo4W+Ef+BhJUAh+JPk2e9yUCy5hYOhaIZtH3bcBZpgHJmElbLqDgwcpI+cFGfdpE
-Yf/a1Z57t9xFNs8i5rt6f+iof5nyZvGjHUT0IaUS8ntf3WI1ghibuycuZEvDzT7k
-taTHsDbkiAyi9c4v8vRp2qwdh9JXLeEJuRyZ3gkwqPWhs6+N8bAT01XHjrh71Cwc
-c2xUwt9E3OzwF0sfLdmMtu1rQ3Z8kCnQEpD3SIBVr68X+Jffylu+K2TItvBlVmQv
-CsyHqNzTCyfiRdknut5bvfbhx9uMsqhBIQ3tnBUdcKQI6J2t0QR6/ZLvR2D2pI5e
-tomhpK3ndw2V+gSgL3+m4V//PfB5gGvouVdbrw+2ayksV+7PvVAG6YRb4Ar08mp2
-3KQVpZfgBDZWBV/bTl0w4KRCRjyjsgH8gvJGdav08bfXnx1Alu+/RN0KqgjhZctp
-44lmOXGlmmNRQDKArdMK
-=tPyh
+iQIcBAEBAgAGBQJQl45hAAoJEIaOsuA1yqREPwsQAIeya2ruEABjozcDWfWvM9FB
+qTVRg+zXis51HgHW6D7kiaPNj+I4SsW1s5vFCFQtEdmok5wSrftwZi4RO6mq0G7I
+qiouo7LOJPrIi/tbqOzb9kGjCJ2g3DFLX88PC4HouVBhOtP2HkgCSOia9HbQWXGP
+XL0vorEn8GtXDx7hlryfWFkkmpDGkeCEfqKB7Ey9GBFk1E592avhdAQ2lmZW/kiK
+zUvLEDCQoVS2TzrSJPblvhhBkkeCaFDVUhEHs9ZkB8zvAtJVK0LNutnV3twMGlk5
+GVY97H2sJWc98pmWqi5l8xWjCrW31KeEBP1G1LR5sFr4HLWNmPp78jPVO2dX7oAc
++xs23hOD8shdIKSR65veza0gZ00+I7J+AIs26FbmfmWXnkShn/ejA9JqwZzj9MJ9
+ePNXMZbFS0iNvgH85NDIMMR772F2mUaaKDwAwnMi9/k99f/eI3Ww6pi1yf2jVmgz
+5a1Cq/oS8hktu0dMJRk+roOtaSqHqx4Qg6LIYOIMr5sfsvj6lHDsimnNPe78sl1b
+m6Uf5faY7Tj0/6vvFy/iSjf17b+m0FHid1POjgUbizpigeFWlWTaH/zTOGc9YbUp
+u76hnfzuyjE+PRKdDbk2ij8HQe6cp/HRMSTqRU63vktOZjHoqioIRR2klTdoCmsy
+Clg800PRJInKJUYt7gLX
+=kP7T
 -----END PGP SIGNATURE-----
 
---------------enigD6E4ADFC7B68138EFB2213C5--
+--0vzXIDBeUiKkjNJl--
