@@ -1,49 +1,113 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: OMAP baseline test results for v3.7-rc3
-Date: Mon, 05 Nov 2012 16:54:28 +0000
-Message-ID: <5097EF44.5030706@mimc.co.uk>
-References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk> <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EB51E84@DBDE01.ent.ti.com> <508FE8BA.1080404@ti.com> <50912A6F.1040501@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
+Date: Mon, 5 Nov 2012 17:59:36 +0100
+Message-ID: <5097F078.50701@ti.com>
+References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
+ <1352108549-9341-2-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:36272 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754464Ab2KEQyj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 11:54:39 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1352108549-9341-2-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+Cc: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 31/10/12 13:57, Hiremath, Vaibhav wrote:
-> On Wed, Oct 31, 2012 at 19:11:03, Mark Jackson wrote:
->> On 30/10/12 14:48, Vaibhav Hiremath wrote:
->>
->> Okay, so I'm now coming up against a brick wall regarding U-Boot.
->>
->> The Kernel boots fine (as per the tree + patch above) provided I build U-Boot using the
->> v2011.09_AM335xPSP_04.06.00.06 branch from git://arago-project.org/git/projects/u-boot-am33x.git
->>
->> If I try the latest mainline U-Boot (or the TI branch), I just get to "Starting kernel ..." and then
->> hangs.
->>
->> I'm going to raise this query on the U-Boot ML, but can you let me know which U-Boot image you're
->> using ?
->>
++ Mark
+
+On 11/05/2012 10:42 AM, AnilKumar Ch wrote:
+> From: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
 > 
+> Set tps65217 PMIC status to OFF if power enable toggle is
+> supported. Also adds platform data flag, which should be
+> passed from board init data.
 > 
-> I am using Mainline u-boot and it works for me. Can you paste u-boot boot 
-> log and environment variable here?
+> Signed-off-by: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+> [anilkumar-l0cyMroinI0@public.gmane.org: move the additions to tps65217 MFD driver]
+> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+> ---
+>  .../devicetree/bindings/regulator/tps65217.txt     |    4 ++++
+>  drivers/mfd/tps65217.c                             |   12 ++++++++++++
+>  2 files changed, 16 insertions(+)
 > 
-> Thanks,
-> Vaibhav
+> diff --git a/Documentation/devicetree/bindings/regulator/tps65217.txt b/Documentation/devicetree/bindings/regulator/tps65217.txt
+> index d316fb8..4f05d20 100644
+> --- a/Documentation/devicetree/bindings/regulator/tps65217.txt
+> +++ b/Documentation/devicetree/bindings/regulator/tps65217.txt
+> @@ -11,6 +11,9 @@ Required properties:
+>    using the standard binding for regulators found at
+>    Documentation/devicetree/bindings/regulator/regulator.txt.
+>  
+> +Optional properties:
+> +- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
 
-So I've now spent several days trying to fix this problem, but still no joy.
+That sounds like a generic functionality to me. Don't we have some more
+generic way to handle that?
 
-Did my previous emails give any clue as to where I'm going wrong ?
+If not, that should probably not be a TI only attribute.
 
-Thanks for any help you can provide.
+It looks like a GPIO like kind of interface at PMIC level.
 
-Mark J.
+Regards,
+Benoit
+
+> +
+>    The valid names for regulators are:
+>    tps65217: dcdc1, dcdc2, dcdc3, ldo1, ldo2, ldo3 and ldo4
+>  
+> @@ -20,6 +23,7 @@ Example:
+>  
+>  	tps: tps@24 {
+>  		compatible = "ti,tps65217";
+> +		ti,pmic-shutdown-controller;
+>  
+>  		regulators {
+>  			dcdc1_reg: dcdc1 {
+> diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+> index 3fb32e6..c7f17d8 100644
+> --- a/drivers/mfd/tps65217.c
+> +++ b/drivers/mfd/tps65217.c
+> @@ -160,6 +160,7 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+>  	unsigned int version;
+>  	unsigned int chip_id = ids->driver_data;
+>  	const struct of_device_id *match;
+> +	bool status_off = false;
+>  	int ret;
+>  
+>  	if (client->dev.of_node) {
+> @@ -170,6 +171,8 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+>  			return -EINVAL;
+>  		}
+>  		chip_id = (unsigned int)match->data;
+> +		status_off = of_property_read_bool(client->dev.of_node,
+> +					"ti,pmic-shutdown-controller");
+>  	}
+>  
+>  	if (!chip_id) {
+> @@ -207,6 +210,15 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+>  		return ret;
+>  	}
+>  
+> +	/* Set the PMIC to shutdown on PWR_EN toggle */
+> +	if (status_off) {
+> +		ret = tps65217_set_bits(tps, TPS65217_REG_STATUS,
+> +				TPS65217_STATUS_OFF, TPS65217_STATUS_OFF,
+> +				TPS65217_PROTECT_NONE);
+> +		if (ret)
+> +			dev_warn(tps->dev, "unable to set the status OFF\n");
+> +	}
+> +
+>  	dev_info(tps->dev, "TPS65217 ID %#x version 1.%d\n",
+>  			(version & TPS65217_CHIPID_CHIP_MASK) >> 4,
+>  			version & TPS65217_CHIPID_REV_MASK);
+> 
