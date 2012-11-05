@@ -1,64 +1,92 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Mon, 5 Nov 2012 06:44:10 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA63234@DBDE01.ent.ti.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
- <CACRpkdbSY-aH_Vf3Q4h-ufz35m6=vVXCEecGGS-WOsG7vmPZ0g@mail.gmail.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA3E24E@DBDE01.ent.ti.com>
- <CACRpkdZ_NxST-oJ=MWC5L=r8uQD_71eHUVUR85v4jfsYpqz=UQ@mail.gmail.com>
- <20121001154451.GI4840@atomide.com>
- <CACRpkdaib2M1_UwSbyUG8qwZC2h7xaT5VU7WMj=y+h4S4LianQ@mail.gmail.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA3F22E@DBDE01.ent.ti.com>
- <CACRpkdaeu3JaLqSbqETT=D0mdUu5VpwRpS_Xohd6M963rw8QMg@mail.gmail.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA5C598@DBDE01.ent.ti.com>
- <CACRpkdY_db3ju4LVnoR=0Wq8TFUxa48jNFGhvGM-3uSrmGZVew@mail.gmail.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH] pwm: export of_pwm_request
+Date: Mon, 5 Nov 2012 07:48:16 +0100
+Message-ID: <20121105064815.GA31066@avionic-0098.mockup.avionic-design.de>
+References: <1351699030-4401-1-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CACRpkdY_db3ju4LVnoR=0Wq8TFUxa48jNFGhvGM-3uSrmGZVew@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: "dong.aisheng@linaro.org" <dong.aisheng@linaro.org>, Stephen Warren <swarren@wwwdotorg.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1351699030-4401-1-git-send-email-panto@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Nov 04, 2012 at 23:07:44, Linus Walleij wrote:
-> On Tue, Oct 30, 2012 at 3:12 PM, AnilKumar, Chimata <anilkumar@ti.com> wrote:
-> 
-> > I completely understood this named modes, I have added named
-> > modes like this in am335x-xxx.dts files
-> 
-> I do not understand how the pinctrl-single dts files work actually,
-> so please get Tony to review this part.
-> 
-> > I think "pinctrl-1" state will be used in driver
-> > suspend/resume calls.
-> 
-> Hopefully, I think you should test the code and monitor the
-> system to make sure the right thing happens.
 
-I will test while adding "pinctrl-1" data to .dts files.
+--SLDf9lqlvOQaIe6s
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> > I have the pinmux/conf settings for default state but fully
-> > optimized pinmux/conf values in idle & suspend states are not
-> > available yet.
-> 
-> You have defined a "sleep" state which is what should be used
-> for suspend? Or do you mean that you do have a state but
-> you're just not defining it to the most optimal setting yet?
+On Wed, Oct 31, 2012 at 05:57:10PM +0200, Pantelis Antoniou wrote:
+> No need to hide of_pwm_request, it's useful to other in-kernel users.
 
-Yes, sleep state is used for suspend. Regarding to this suspend
-state fully optimized pinmux/conf values are not available.
+Can you specify which users that might be? I'm reluctant to export
+symbols which aren't used by any drivers.
 
-Thanks
-AnilKumar
+> diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+[...]
+> @@ -457,7 +457,7 @@ static struct pwm_chip *of_node_to_pwmchip(struct dev=
+ice_node *np)
+>   * becomes mandatory for devices that look up the PWM device via the con=
+_id
+>   * parameter.
+>   */
+> -static struct pwm_device *of_pwm_request(struct device_node *np,
+> +struct pwm_device *of_pwm_request(struct device_node *np,
+>  					 const char *con_id)
+
+Can you please make sure that this remains properly aligned?
+
+> diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+[...]
+> @@ -171,6 +171,7 @@ struct pwm_device *pwm_request_from_chip(struct pwm_c=
+hip *chip,
+>  					 unsigned int index,
+>  					 const char *label);
+> =20
+> +struct pwm_device *of_pwm_request(struct device_node *np, const char *co=
+nsumer);
+
+The second argument is called con_id, so please fix this up to keep it
+consistent.
+
+>  struct pwm_device *pwm_get(struct device *dev, const char *consumer);
+>  void pwm_put(struct pwm_device *pwm);
+> =20
+> @@ -204,6 +205,12 @@ static inline struct pwm_device *pwm_request_from_ch=
+ip(struct pwm_chip *chip,
+>  	return ERR_PTR(-ENODEV);
+>  }
+> =20
+> +static inline struct pwm_device *of_pwm_request(struct device_node *np,
+> +					 const char *consumer)
+
+Here as well. Also make sure the arguments are properly aligned.
+
+Thierry
+
+--SLDf9lqlvOQaIe6s
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQl2EvAAoJEN0jrNd/PrOhpowQAIaz+Sjp7sZQ0IPs94HxRZiu
+Ig79mR7joqP6u0K3BYhV2pA1a8fYnkh3cAPSciVLhX6cSGOTRT1WVAAfonx1n9Og
+8Z2JcuXke/NnKSjlAmPgL95rJ1Qex75YL6MXuXyVzZ8uVgK47jVGM+7CdTHS0A4m
+6bktg7IULo5uOx9N5yvpkYL15XT91d5lDiCbrU81hMZJE8Awo9sDWaUoBNELuYVl
+KfRFcxyos7t5GR/Y4/GP2ndngY7HAYhYpWu9t7+pdF6rAmM7kksYCVJeKgMttl2R
+6uRqnq2qyRJmGJFKlaHPlVgbYLn4uZaZ0ALvsNwiyGWW2gk/jnGqPS49ThKm8nsy
+hDr86g0byfOi+3xl9n3npLJK3GMEjtF98lImSv4PwRM5zbwheiB9VzRLC8swIfdc
+Zew2xItnm9DwwUTvbk9egpL0PIBD3l9ijgcfg1zXDFTZB5wvNjbd0Lk9Sovz6MUL
+JzM+IbWe/NLvtAaqC+42Tp+iZ727a8hxxodT9M+H+XTW25+ehHaUWcYciOa5RaP7
+bJ6EMGPamj/FK07G1gCn7xhhgaW4jtMMNk2e0u/68WgEPbW2JjdvkUzjr89ClXzI
+RzW+gSt+icvswGQPbvfR1lc1bsQ/qC/MfAqwQUcGgobXxDKoY8OqQM3DtVpsByjn
+HE264ashOaqsaL+IgW8C
+=EVPS
+-----END PGP SIGNATURE-----
+
+--SLDf9lqlvOQaIe6s--
