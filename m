@@ -1,84 +1,58 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH V2 2/3] ARM: dts: omap5: EMIF device tree data for OMAP5
- boards
-Date: Mon, 5 Nov 2012 11:55:48 +0100
-Message-ID: <50979B34.8010009@ti.com>
-References: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com> <1349959669-16366-3-git-send-email-lokeshvutla@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v3 2/4] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
+Date: Mon, 5 Nov 2012 10:57:00 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9DA7EC@DBDE01.ent.ti.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+ <1351869956-2787-3-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52041 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35562 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932092Ab2KEK4E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 05:56:04 -0500
-In-Reply-To: <1349959669-16366-3-git-send-email-lokeshvutla@ti.com>
+	id S1753136Ab2KEK6Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 05:58:16 -0500
+In-Reply-To: <1351869956-2787-3-git-send-email-zonque@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Daniel Mack <zonque@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 10/11/2012 02:47 PM, Lokesh Vutla wrote:
-> Adding EMIF device tree data for OMAP5 boards.
-> 
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+On Fri, Nov 02, 2012 at 20:55:54, Daniel Mack wrote:
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
 > ---
->  arch/arm/boot/dts/omap5.dtsi |   24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
+>  arch/arm/mach-omap2/gpmc-nand.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index 5db33f4..445aeea 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -319,5 +319,29 @@
->  			ti,buffer-size = <128>;
->  			ti,hwmods = "mcbsp3";
->  		};
-> +
-> +		emif1: emif@0x4c000000 {
-> +			compatible	= "ti,emif-4d5";
-> +			ti,hwmods	= "emif1";
-> +			phy-type	= <2>;
-> +			reg = <0x4c000000 0x3ff>;
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> index 8607735..c3616c6 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -92,7 +92,7 @@ static int omap2_nand_gpmc_retime(
+>  static bool __init gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+>  {
+>  	/* support only OMAP3 class */
+> -	if (!cpu_is_omap34xx()) {
+> +	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
+>  		pr_err("BCH ecc is not supported on this CPU\n");
+>  		return 0;
+>  	}
 
-Should 0x400. This parameter is the size, not the end address.
+Please add '!soc_is_am33xx()' check for BCH4 failure case also.
+BCH4 support tested in AM335x.
+https://lkml.org/lkml/2012/10/31/82
 
-> +			interrupts = <0 110 0x4>;
-> +			interrupt-parent = <&gic>;
+Thanks
+Avinash
 
-Please remove the interrupt-parent. It is not needed since DT will use
-the parent node to get it. It will avoid duplicating the entry for every
-nodes.
-
-> +			hw-caps-read-idle-ctrl;
-> +			hw-caps-ll-interface;
-> +			hw-caps-temp-alert;
-> +		};
-> +
-> +		emif2: emif@0x4d000000 {
-> +			compatible	= "ti,emif-4d5";
-> +			ti,hwmods	= "emif2";
-> +			phy-type	= <2>;
-
-Can you just add a comment to give more information. I know this is in
-the binding documentation, but some more comment never hurt.
-
-> +			reg = <0x4d000000 0x3ff>;
-
-0x400 as well.
-
-> +			interrupts = <0 111 0x4>;
-> +			interrupt-parent = <&gic>;
-
-Ditto.
-
-> +			hw-caps-read-idle-ctrl;
-> +			hw-caps-ll-interface;
-> +			hw-caps-temp-alert;
-> +		};
->  	};
->  };
+> -- 
+> 1.7.11.7
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 > 
 
-Regards,
-Benoit
