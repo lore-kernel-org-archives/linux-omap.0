@@ -1,41 +1,112 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Mon, 5 Nov 2012 14:25:33 +0100
-Message-ID: <C9F4DFD1-4BF4-423C-B749-74E37D51192A@antoniou-consulting.com>
-References: <1351783082-11411-1-git-send-email-panto@antoniou-consulting.com> <20121031175219.GH12739@atomide.com> <C9715CB7-D3E2-4CA7-8A93-2B10E8B70640@antoniou-consulting.com> <20121031180935.GL12739@atomide.com> <50918223.6080003@ti.com> <8AD2F7AF-8315-442B-A394-1A38DAB29F52@antoniou-consulting.com> <20121031212639.GQ12739@atomide.com> <8B058B00-6C21-4410-A24B-75651D49F6EC@antoniou-consulting.com> <20121031221402.GA29490@arwen.pp.htv.fi> <E4EE0D1F-C7AC-4620-86F2-D9C7C56E279F@antoniou-consulting.com> <50924DA3.1060901@ti.com> <F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com> <50925C49.7060004@ti.com> <CBDE21C5-1980-4BDC-9153-7653A07D0024@dominion.thruhere.net> <50938108.5040507@ti.com> <40797D3D-D62C-4E15-B0DF-75636C1637EE@antoniou-consulting.com> <CACxGe6s8qrP0itLgCyv1mBnek
- c-7K1n_q-kTKUR=MOJ57W_a1w@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC
+ timings and NAND
+Date: Mon, 5 Nov 2012 13:29:19 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+ <1351869956-2787-5-git-send-email-zonque@gmail.com>
+ <518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com>
+ <5097B7EE.3000508@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6s8qrP0itLgCyv1mBnekc-7K1n_q-kTKUR=MOJ57W_a1w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel <linux-kernel@vger.kernel.org>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <robherring2@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35143 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753469Ab2KENae convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 08:30:34 -0500
+In-Reply-To: <5097B7EE.3000508@gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-On Nov 5, 2012, at 1:22 AM, Grant Likely wrote:
-
-> On Fri, Nov 2, 2012 at 8:43 AM, Pantelis Antoniou
-> <panto@antoniou-consulting.com> wrote:
->> Assuming that we do work on a DT object format, and that the runtime resolution mechanism is approved,
->> then I agree that this part of the capebus patches can be dropped and the functionality assumed by generic
->> DT core.
->> 
->> The question is that this will take time, with no guarantees that this would be acceptable from
->> the device tree maintainers. So I am putting them in the CC list, to see what they think about it.
+On Mon, Nov 05, 2012 at 18:28:22, Daniel Mack wrote:
+> On 05.11.2012 12:03, Philip, Avinash wrote:
+> > On Fri, Nov 02, 2012 at 20:55:56, Daniel Mack wrote:
+> >> This patch adds basic DT bindings for OMAP GPMC.
+> >>
+> >> The actual peripherals are instanciated from child nodes within the GPMC
+> >> node, and the only type of device that is currently supported is NAND.
+> >>
+> >> Code was added to parse the generic GPMC timing parameters and some
+> >> documentation with examples on how to use them.
+> >>
+> >> Successfully tested on an AM33xx board.
+> >>
+> >> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> > [...]
+> >> +
+> >> +		nand@0,0 {
+> >> +			reg = <0 0 0>; /* CS0, offset 0 */
+> >> +			nand-bus-width = <16>;
+> >> +			nand-ecc-mode = "none";
+> >> +
+> >> +			gpmc,sync-clk = <0>;
+> >> +			gpmc,cs-on = <0>;
+> >> +			gpmc,cs-rd-off = <36>;
+> >> +			gpmc,cs-wr-off = <36>;
+> >> +			gpmc,adv-on = <6>;
+> >> +			gpmc,adv-rd-off = <24>;
+> >> +			gpmc,adv-wr-off = <36>;
+> >> +			gpmc,we-off = <30>;
+> >> +			gpmc,oe-off = <48>;
+> >> +			gpmc,access = <54>;
+> >> +			gpmc,rd-cycle = <72>;
+> >> +			gpmc,wr-cycle = <72>;
+> >> +			gpmc,wr-access = <30>;
+> >> +			gpmc,wr-data-mux-bus = <0>;
+> >> +
+> >> +			#address-cells = <1>;
+> >> +			#size-cells = <1>;
+> >> +
+> > 
+> > Can you take the timings (for example) from arago tree. The timings is tested in am335x-evm
+> > So the timings can be directly used to populate GPMC timings. Timings can found at
+> > 
+> > http://arago-project.org/git/projects/?p=linux-am33x.git;a=commitdiff;
+> > h=66bfbd2c5b35dc81edce0c24843c476161ab5978;hp=370630359cb8db711cf0941cd2a242e28ccfb61e
+> > 
+> > [...]
+> >> +static int gpmc_probe_dt(struct platform_device *pdev)
+> > 
+> > Can you take care of the following section mismatch.
+> > WARNING: vmlinux.o(.text+0x1e2d0): Section mismatch in reference
+> > from the function gpmc_probe_dt() to the function .init.text:gpmc_nand_init().
 > 
-> This is actually exactly the direction I want to go with DT, which the
-> ability to load supplemental DT data blobs from either a kernel module
-> or userspace using the firmware loading infrastructure.
+> Sore, both fixed for v4.
 > 
-> g.
+> > [...]
+> >> +
+> >> +		val = of_get_nand_ecc_mode(child);
+> >> +		if (val >= 0)
+> >> +			gpmc_nand_data->ecc_opt = val;
+> > 
+> > This will fail for BCH. Index of "soft_bch" is 5 & also don't have selection
+> > option between for BCH4 & BCH8 also.
+> > Can you use the of_property_read_u32 (as done early) to pass the ecc selection
+> > from dt file. This will help selection of BCH4 & BCH8 ecc options.
+> 
+> Hmm. Shouldn't we rather teach of_get_nand_ecc_mode() that two modes and
+> bring the enum in sync?
 
-Hi Grant,
+ecc_opt is for selecting different ecc layout and not for selecting ecc mode.
 
-That's pretty much our use case.
+In omap2 driver NAND_ECC_HW ecc mode supports 3 ecc layout
+	OMAP_ECC_HAMMING_CODE_HW_ROMCODE
+	OMAP_ECC_BCH4_CODE_HW
+	OMAP_ECC_BCH8_CODE_HW
 
-Regards
+So selection of ecc layout data should come from DT not ecc mode.
 
--- Pantelis
+Thanks
+Avinash
+
+> 
+> 
+> Daniel
+> 
+> 
+> 
+
