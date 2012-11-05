@@ -1,58 +1,93 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH V2 0/3] ARM: dts: omap5: EMIF and LPDDR2 device tree data
-Date: Mon, 5 Nov 2012 16:36:10 +0530
-Message-ID: <50979DA2.1080301@ti.com>
-References: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com> <50975581.7010508@ti.com> <50979A14.1050805@ti.com> <50979D10.1070406@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: AM33XX: Add usbss node
+Date: Mon, 5 Nov 2012 12:07:45 +0100
+Message-ID: <50979E01.4030203@ti.com>
+References: <1352095204-29028-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58176 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751721Ab2KELGT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 06:06:19 -0500
-In-Reply-To: <50979D10.1070406@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1352095204-29028-1-git-send-email-afzal-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Santhapuri Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Benoit,
++ Felipe
 
-On Monday 05 November 2012 04:33 PM, Benoit Cousson wrote:
-> On 11/05/2012 11:51 AM, Benoit Cousson wrote:
->> Hi Lokesh,
->>
->> On 11/05/2012 06:58 AM, Lokesh Vutla wrote:
->>> Hi,
->>> On Thursday 11 October 2012 06:17 PM, Lokesh Vutla wrote:
->>>> This patch series adds Device tree data for the EMIF
->>>> sdram controllers in OMAP5 and LPDDR2 memory devices
->>>> in OMAP5-evm board.
->>>>
->>>> Testing:
->>>> - Boot tested on OMAP5430 evm.
->>>> - Built EMIF as a module.
->>>>
->>>> Changes from v1:
->>>> * Created a seperate dtsi file for Samsung LPDDR2 memory device
->>>>     used in OMAP5-evm.
->>>> * Passing reg and interrupt fields from dt for EMIF1 and EMIF2.
->>> Gentle ping on this series.
->>
->> Sorry, I missed it. It might be too late for 3.8, since Tony wanted us
->> to push before -rc4. I'll pull the series anyway just in case.
->>
->> I have a least one comment.
->
-> Could you just rebase on top of the for_3.8 branch, fix the minor
-> comments and repost ASAP.
-OK I ll rebase and repost.
+Hi Afzal,
 
-Thanks
-Lokesh
->
-> Thanks,
-> Benoit
->
+On 11/05/2012 06:59 AM, Afzal Mohammed wrote:
+> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> 
+> Device tree node for usbss on AM33XX. There are two musb
+> controllers on am33xx platform so have port0-mode and
+> port1-mode data.
+> 
+> [afzal-l0cyMroinI0@public.gmane.org: reg & interrupt property addition]
+> 
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Santhapuri, Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+> ---
+> 
+> Hi Benoit,
+> 
+> This is based on your "for_3.8/dts" branch.
+> 
+> This is made on top of "usb: musb: am335x support"
+> (http://marc.info/?l=linux-omap&m=135187391904863&w=2)
+> and has been tested on Beagle Bone.
 
+That looks good to me, I just like to get an Ack from Felipe for the
+accuracy of the data part.
+
+Regards,
+Benoit
+
+
+> 
+> Regards
+> Afzal
+> 
+>  arch/arm/boot/dts/am33xx.dtsi | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 5dfd682..78340a5 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -321,5 +321,22 @@
+>  			ti,hwmods = "spi1";
+>  			status = "disabled";
+>  		};
+> +
+> +		usb_otg_hs@47400000 {
+> +			compatible = "ti,musb-am33xx";
+> +			reg = <0x47400000 0x1000	/* usbss */
+> +			       0x47401000 0x800		/* musb instance 0 */
+> +			       0x47401800 0x800>;	/* musb instance 1 */
+> +			interrupts = <17		/* usbss */
+> +				      18		/* musb instance 0 */
+> +				      19>;		/* musb instance 1 */
+> +			multipoint = <1>;
+> +			num-eps = <16>;
+> +			ram-bits = <12>;
+> +			port0-mode = <3>;
+> +			port1-mode = <3>;
+> +			power = <250>;
+> +			ti,hwmods = "usb_otg_hs";
+> +		};
+>  	};
+>  };
+> 
