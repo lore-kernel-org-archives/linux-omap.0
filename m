@@ -1,92 +1,107 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH] pwm: export of_pwm_request
-Date: Mon, 5 Nov 2012 07:48:16 +0100
-Message-ID: <20121105064815.GA31066@avionic-0098.mockup.avionic-design.de>
-References: <1351699030-4401-1-git-send-email-panto@antoniou-consulting.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [PATCH 04/15] ARM: OMAP2+: hwmod: Update the reset API for AM33XX
+Date: Mon, 5 Nov 2012 12:28:36 +0530
+Message-ID: <5097639C.7000800@ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-5-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1351699030-4401-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37654 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751677Ab2KEG6r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 01:58:47 -0500
+In-Reply-To: <1351859566-24818-5-git-send-email-vaibhav.bedia@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com
 
 
---SLDf9lqlvOQaIe6s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 31, 2012 at 05:57:10PM +0200, Pantelis Antoniou wrote:
-> No need to hide of_pwm_request, it's useful to other in-kernel users.
+On 11/2/2012 6:02 PM, Vaibhav Bedia wrote:
+> WKUP-M3 has a reset status bit (RM_WKUP_STST.WKUP_M3_LRST)
+> Update the hardreset API to take care of the same to ensure
+> that the reset line properly deasserted.
+> 
 
-Can you specify which users that might be? I'm reluctant to export
-symbols which aren't used by any drivers.
+Thanks for the patch, comments below -
 
-> diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
-[...]
-> @@ -457,7 +457,7 @@ static struct pwm_chip *of_node_to_pwmchip(struct dev=
-ice_node *np)
->   * becomes mandatory for devices that look up the PWM device via the con=
-_id
->   * parameter.
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c |    5 +----
+>  arch/arm/mach-omap2/prm33xx.c    |   15 +++++++--------
+>  arch/arm/mach-omap2/prm33xx.h    |    2 +-
+>  3 files changed, 9 insertions(+), 13 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 37eeb45..a1d5835 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -2944,11 +2944,8 @@ static int _am33xx_assert_hardreset(struct omap_hwmod *oh,
+>  static int _am33xx_deassert_hardreset(struct omap_hwmod *oh,
+>  				     struct omap_hwmod_rst_info *ohri)
+>  {
+> -	if (ohri->st_shift)
+> -		pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
+> -		       oh->name, ohri->name);
+> -
+>  	return am33xx_prm_deassert_hardreset(ohri->rst_shift,
+> +				ohri->st_shift,
+>  				oh->clkdm->pwrdm.ptr->prcm_offs,
+>  				oh->prcm.omap4.rstctrl_offs,
+>  				oh->prcm.omap4.rstst_offs);
+> diff --git a/arch/arm/mach-omap2/prm33xx.c b/arch/arm/mach-omap2/prm33xx.c
+> index 53ec9cb..0f29cb9 100644
+> --- a/arch/arm/mach-omap2/prm33xx.c
+> +++ b/arch/arm/mach-omap2/prm33xx.c
+> @@ -112,23 +112,22 @@ int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs)
+>   * -EINVAL upon an argument error, -EEXIST if the submodule was already out
+>   * of reset, or -EBUSY if the submodule did not exit reset promptly.
 >   */
-> -static struct pwm_device *of_pwm_request(struct device_node *np,
-> +struct pwm_device *of_pwm_request(struct device_node *np,
->  					 const char *con_id)
+> -int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
+> +int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
+>  		u16 rstctrl_offs, u16 rstst_offs)
+>  {
+>  	int c;
+> -	u32 mask = 1 << shift;
+> -
+> -	/* Check the current status to avoid  de-asserting the line twice */
+> -	if (am33xx_prm_is_hardreset_asserted(shift, inst, rstctrl_offs) == 0)
+> -		return -EEXIST;
 
-Can you please make sure that this remains properly aligned?
+Any specific reason why you have removed this check?
 
-> diff --git a/include/linux/pwm.h b/include/linux/pwm.h
-[...]
-> @@ -171,6 +171,7 @@ struct pwm_device *pwm_request_from_chip(struct pwm_c=
-hip *chip,
->  					 unsigned int index,
->  					 const char *label);
-> =20
-> +struct pwm_device *of_pwm_request(struct device_node *np, const char *co=
-nsumer);
+Thanks,
+Vaibhav
 
-The second argument is called con_id, so please fix this up to keep it
-consistent.
-
->  struct pwm_device *pwm_get(struct device *dev, const char *consumer);
->  void pwm_put(struct pwm_device *pwm);
-> =20
-> @@ -204,6 +205,12 @@ static inline struct pwm_device *pwm_request_from_ch=
-ip(struct pwm_chip *chip,
->  	return ERR_PTR(-ENODEV);
->  }
-> =20
-> +static inline struct pwm_device *of_pwm_request(struct device_node *np,
-> +					 const char *consumer)
-
-Here as well. Also make sure the arguments are properly aligned.
-
-Thierry
-
---SLDf9lqlvOQaIe6s
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQl2EvAAoJEN0jrNd/PrOhpowQAIaz+Sjp7sZQ0IPs94HxRZiu
-Ig79mR7joqP6u0K3BYhV2pA1a8fYnkh3cAPSciVLhX6cSGOTRT1WVAAfonx1n9Og
-8Z2JcuXke/NnKSjlAmPgL95rJ1Qex75YL6MXuXyVzZ8uVgK47jVGM+7CdTHS0A4m
-6bktg7IULo5uOx9N5yvpkYL15XT91d5lDiCbrU81hMZJE8Awo9sDWaUoBNELuYVl
-KfRFcxyos7t5GR/Y4/GP2ndngY7HAYhYpWu9t7+pdF6rAmM7kksYCVJeKgMttl2R
-6uRqnq2qyRJmGJFKlaHPlVgbYLn4uZaZ0ALvsNwiyGWW2gk/jnGqPS49ThKm8nsy
-hDr86g0byfOi+3xl9n3npLJK3GMEjtF98lImSv4PwRM5zbwheiB9VzRLC8swIfdc
-Zew2xItnm9DwwUTvbk9egpL0PIBD3l9ijgcfg1zXDFTZB5wvNjbd0Lk9Sovz6MUL
-JzM+IbWe/NLvtAaqC+42Tp+iZ727a8hxxodT9M+H+XTW25+ehHaUWcYciOa5RaP7
-bJ6EMGPamj/FK07G1gCn7xhhgaW4jtMMNk2e0u/68WgEPbW2JjdvkUzjr89ClXzI
-RzW+gSt+icvswGQPbvfR1lc1bsQ/qC/MfAqwQUcGgobXxDKoY8OqQM3DtVpsByjn
-HE264ashOaqsaL+IgW8C
-=EVPS
------END PGP SIGNATURE-----
-
---SLDf9lqlvOQaIe6s--
+> +	u32 mask = 1 << st_shift;
+>  
+>  	/* Clear the reset status by writing 1 to the status bit */
+>  	am33xx_prm_rmw_reg_bits(0xffffffff, mask, inst, rstst_offs);
+> +
+>  	/* de-assert the reset control line */
+> +	mask = 1 << shift;
+> +
+>  	am33xx_prm_rmw_reg_bits(mask, 0, inst, rstctrl_offs);
+> -	/* wait the status to be set */
+>  
+> -	omap_test_timeout(am33xx_prm_is_hardreset_asserted(shift, inst,
+> +	/* wait the status to be set */
+> +	omap_test_timeout(am33xx_prm_is_hardreset_asserted(st_shift, inst,
+>  							   rstst_offs),
+>  			  MAX_MODULE_HARDRESET_WAIT, c);
+>  
+> diff --git a/arch/arm/mach-omap2/prm33xx.h b/arch/arm/mach-omap2/prm33xx.h
+> index 3f25c56..181fdab 100644
+> --- a/arch/arm/mach-omap2/prm33xx.h
+> +++ b/arch/arm/mach-omap2/prm33xx.h
+> @@ -124,6 +124,6 @@ extern void am33xx_prm_global_warm_sw_reset(void);
+>  extern int am33xx_prm_is_hardreset_asserted(u8 shift, s16 inst,
+>  		u16 rstctrl_offs);
+>  extern int am33xx_prm_assert_hardreset(u8 shift, s16 inst, u16 rstctrl_offs);
+> -extern int am33xx_prm_deassert_hardreset(u8 shift, s16 inst,
+> +extern int am33xx_prm_deassert_hardreset(u8 shift, u8 st_shift, s16 inst,
+>  		u16 rstctrl_offs, u16 rstst_offs);
+>  #endif
+> 
