@@ -1,297 +1,96 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Mon, 5 Nov 2012 20:40:30 +0000
-Message-ID: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
+ for clockevent device
+Date: Mon, 5 Nov 2012 15:04:05 -0600
+Message-ID: <509829C5.100@ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>
-Cc: Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58536 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752788Ab2KEVEN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 16:04:13 -0500
+In-Reply-To: <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hey folks,
-
-As promised, here is my early draft to try and capture what device
-tree overlays need to do and how to get there. Comments and
-suggestions greatly appreciated.
-
-Device Tree Overlay Feature
-
-Purpose
-=======
-Sometimes it is not convenient to describe an entire system with a
-single FDT. For example, processor modules that are plugged into one or
-more modules (a la the BeagleBone), or systems with an FPGA peripheral
-that is programmed after the system is booted.
-
-For these cases it is proposed to implement an overlay feature for the
-so that the initial device tree data can be modified by userspace at
-runtime by loading additional overlay FDTs that amend the original data.
-
-User Stories
-============
-Note - These are potential use cases, but just because it is listed here
-doesn't mean it is important. I just want to thoroughly think through the
-implications before making design decisions.
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
 
-Jane is building custom BeagleBone expansion boards called 'capes'. She
-can boot the system with a stock BeagleBoard device tree, but additional
-data is needed before a cape can be used. She could replace the FDT file
-used by U-Boot with one that contains the extra data, but she uses the
-same Linux system image regardless of the cape, and it is inconvenient
-to have to select a different device tree at boot time depending on the
-cape.
+On 11/02/2012 07:32 AM, Vaibhav Bedia wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> The current OMAP timer code registers two timers -
+> one as clocksource and one as clockevent.
+> AM33XX has only one usable timer in the WKUP domain
+> so one of the timers needs suspend-resume support
+> to restore the configuration to pre-suspend state.
+> 
+> commit adc78e6 (timekeeping: Add suspend and resume
+> of clock event devices) introduced .suspend and .resume
+> callbacks for clock event devices. Leverages these
+> callbacks to have AM33XX clockevent timer which is
+> in not in WKUP domain to behave properly across system
+> suspend.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> ---
+>  arch/arm/mach-omap2/timer.c |   31 +++++++++++++++++++++++++++++++
+>  1 files changed, 31 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 6584ee0..e8781fd 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -135,6 +135,35 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+>  	}
+>  }
+>  
+> +static void omap_clkevt_suspend(struct clock_event_device *unused)
+> +{
+> +	char name[10];
+> +	struct omap_hwmod *oh;
+> +
+> +	sprintf(name, "timer%d", 2);
+> +	oh = omap_hwmod_lookup(name);
+> +	if (!oh)
+> +		return;
+> +
+> +	omap_hwmod_idle(oh);
+> +}
+> +
+> +static void omap_clkevt_resume(struct clock_event_device *unused)
+> +{
+> +	char name[10];
+> +	struct omap_hwmod *oh;
+> +
+> +	sprintf(name, "timer%d", 2);
+> +	oh = omap_hwmod_lookup(name);
+> +	if (!oh)
+> +		return;
+> +
+> +	omap_hwmod_enable(oh);
+> +	__omap_dm_timer_load_start(&clkev,
+> +			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
+> +	__omap_dm_timer_int_enable(&clkev, OMAP_TIMER_INT_OVERFLOW);
+> +}
+> +
+>  static struct clock_event_device clockevent_gpt = {
+>  	.name		= "gp_timer",
+>  	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
+> @@ -142,6 +171,8 @@ static struct clock_event_device clockevent_gpt = {
+>  	.rating		= 300,
+>  	.set_next_event	= omap2_gp_timer_set_next_event,
+>  	.set_mode	= omap2_gp_timer_set_mode,
+> +	.suspend	= omap_clkevt_suspend,
+> +	.resume		= omap_clkevt_resume,
 
-Jane solves this problem by storing an FDT overlay for each cape in the
-root filesystem. When the kernel detects that a cape is installed it
-reads the cape's eeprom to identify it and uses request_firmware() to
-obtain the appropriate overlay. Userspace passes the overlay to the
-kernel in the normal way. If the cape doesn't have an eeprom, then the
-kernel will still use firmware_request(), but userspace needs to already
-know which cape is installed.
+So these suspend/resume callbacks are going to be called for all OMAP2+
+and AMxxxx devices? I don't think we want that. AFAIK OMAP timers will
+idle on their own when stopped and don't require this.
 
-
-Nigel is building a real-time video processing system around a MIPS SoC
-and a Virtex FPGA. Video data is streamed through the FPGA for post
-processing operations like motion tracking or compression. The FPGA is
-configured via the SPI bus, and is also connected to GPIO lines and the
-memory mapped peripheral bus. Nigel has designed several FPGA
-configurations for different video processing tasks. The user will
-choose which configuration to load which can even be reprogrammed at
-runtime to switch tasks.
-
-Each FPGA has a different interface to the processor, so the kernel
-needs additional data before it can use each device. Nigel is passing
-that data to the kernel using an FDT overlay. When Linux loads a new
-FPGA configuration, it uses request_firmare() to obtain the overlay for
-that FPGA. When the FPGA gets reprogrammed, the kernel throws away the
-previous overlay data and uses request_firmware() to get the overlay for
-the new design.
-
-
-Mandy has a Raspberry Pi which she has wired by hand up to sensors and
-motor controllers in her prototype autonomous robot project. She is doing
-self-hosted driver development on the Raspberry Pi itself. However, she
-needs a method to tell the kernel about the attached devices.
-
-By installing dtc on the Pi, Mandy compiles the overlay for her
-prototype hardware. However, she doesn't have a copy of the Pi's
-original FDT source, so instead she uses the dtc 'fs' input format to
-compile the overlay file against the live DT data in /proc.
-
-
-Amit is writing kernel drivers for Jane's BeagleBone capes, but he
-finds loading new DT files into the root filesystem inconvenient.
-Instead, he includes the FDT overlay file in the initramfs that is built
-and linked in at kernel compile time so that the kernel can find and
-load overlays automatically.
-
-
-Joanne has purchased one of Jane's capes and packaged it into a rugged
-case for data logging. As far as Joanne is concerned, the BeagleBone and
-cape together are a single unit and she'd prefer a single monolithic FDT
-instead of using an FDT overlay.
-Option A: Using dtc, she uses the BeagleBone and cape .dts source files
-          to generate a single .dtb for the entire system which is
-          loaded by U-Boot. -or-
-Option B: Joanne uses a tool to merge the BeagleBone and cape .dtb files
-          (instead of .dts files), -or-
-Option C: U-Boot loads both the base and overlay FDT files, merges them,
-          and passes the resolved tree to the kernel.
-
-....
-
-Summary points:
-- Create an FDT overlay data format and usage model
-  - SHALL reliable resolve or validate of phandles between base and
-    overlay trees
-  - SHOULD reliably handle changes between different underlying overlays
-    (ie. what happens to existing .dtb overly files if the structure of
-    the dtb it is layered over changes. If not possible, then SHALL
-    detect when the base tree doesn't match and refuse to apply the
-    overlay.
-- dts syntax needs to be extended for overlay .dtb files
-- DTC tool needs to be modified to support overlay .dtb generation
-- Overlays SHOULD be able to be applied either by firmware or the kernel
-- libfdt SHALL be extended to parse and apply overlays
-- Linux SHALL be extended to parse and apply overlays from userspace
-- Linux SHALL be extended to notify drivers of changes to device tree
-- Linux MAY use request_firmware() to load overlays via sysfs
-  - (mechanism for triggering overlay load TBD)
-- Linux MAY support removal of overlays (harder, but some use-cases want
-  this)
-- Linux MAY be extended to remove devices associated with removed overlays
-
-Technical details to resolve:
-- How does an overlay get attached to the correct base tree nodes?
-- How are phandles fixed up and/or verified?
-- What is the model for overlays?
-  - Can an overlay modify existing properties?
-  - Can an overlay add new properties to existing nodes?
-  - Can an overlay delete existing nodes/properties?
-- Does FDT need a schema? - Schema should be tightly associated with binding
-  documentation. Verifying schema at runtime should be simple. Runtime
-  checking is harder, but could be used as part of phandle fixup.
-- Similarly, does FDT need data typing? Other than reading the binding
-  there is no mechanism to determine if a single cell is a phandle, an
-  integer (possibly enum), a flags field, or part of a string.
-  - Data typing would require additional per-property data; probably by
-    adding companion properties containing the data typing.  ie. an
-    optional '.reg,format' property could contain the format of the
-    'reg' property.  (The naming scheme for the new property can be
-    debated, it just needs to be something that won't conflict with
-    regular names).
-  - Data type data could be used as part of phandle fixups.
-- How do bus drivers get notified when FDT data changes?
-  - node addition/removal
-  - property changes on existing nodes
-  - A notifier chain may work here, or maybe a generic "firmware data
-    changed" device driver callback. I could see this being generically
-    useful for other driver data like ACPI
-
-Project plan
-============
-
-1) Create syntax for overlays
------------------------------
-DTC already uses an overlay model internally which is often used in
-conjunction with .dtsi files. It should be a natural extension to
-generate FDT overlay files from the existing syntax (maybe minor
-modifications)
-
-Doing this will require a method to differentiate between overlay and
-include directives.  Maybe they aren't really different at all and it
-will depend on dtc options to determine whether or not to produce an
-overlay. Suggestions are welcome here.
-
-2) Create a data format for overlays
-------------------------------------
-The overlay data format could be a direct extension from the existing
-dtb data format. One option is to construct the overlay tree by creating
-empty nodes for each node that it either adds children to or references
-the phandle of in the base tree. Empty nodes could even be tagged as a
-prereq by adding a '.readonly' property to those nodes. When an overlay
-parser encounters those nodes, it would know that it needs to already
-exist in the tree.
-
-There is a problem though with phandles. If the phandle values in the
-base tree don't match the ones in the overlay, then the overlay won't be
-able to correctly reference base nodes. At a minimum, the parser must
-verify that the phandles match before applying the overlay. Ideally,
-phandles in the overlay should be fixed up at application time, but this
-isn't easy. It would probably require first adding property data type
-information to the device tree.
-
-It may be sufficient to solve it by making the phandle values less
-volatile. Right now dtc generates phandles linearly. Generated phandles
-could be overridden with explicit phandle properties, but it isn't a
-fantastic solution. Perhaps generating the phandle from a hash of the
-node name would be sufficient.
-
-Example: an overlay source file might look something like this:
-
-/include/ "base-file.dts"  /* 'include' may not be the best syntax here */
-&i2c0 {		/* i2c0 resolved by label */
-	touchpad@10 {
-		compatible = "acme,touchpad";
-		reg = <0x10>;
-		interrupt-parent = <&intc>;
-		interrupts = <100>;
-	};
-};
-
-And the generated overlay dtb may look like this:
-
-/ {
-	.readonly;
-	interrupt-controller@0x10005000 {
-		.readonly;
-		phandle = <0x1234>;
-	};
-	peripheral-bus {
-		.readonly;
-		i2c@20001000 {
-			touchpad@10 {
-				compatible = "acme,touchpad";
-				reg = <0x10>;
-				interrupt-parent = <0x1234>;
-				interrupts = <100>;
-			};
-		};
-	};
-};
-
-Which is obviously missing a bunch of information for the rest of the
-system, but contains enough data to ensure that the path to the touchpad
-node is valid and that the phandle has not changed.
-
-This handles many of the use cases, but it assumes that an overlay is
-board specific. If it ever is required to support multiple base boards
-with a single overlay file then there is a problem. The .dtb overlays
-generated in this manor cannot handle different phandles or nodes that
-are in a different place. On the other hand, the overlay source files
-should have no problem being compiled for multiple targets.
-
-3) Modify DTC and libfdt to process overlays
---------------------------------------------
-Direct follow on from above. This will require DTC to be modified to
-generate the overlay output format and new test cases to verify it
-works.
-
-In the process libfdt will get modified to add overlay support which
-will immediately be available to U-Boot and other bootloaders.
-
-4) Teach Linux to request FDT overlays
---------------------------------------
-Add request_firmware() hook for adding overlays. If the platform
-supports detecting the attached expansion board, then this may
-manipulate the filename for a specific file.
-
-The kernel will graft the overlay into the existing live tree
-
-Workitems:
-Document device tree node lifecycle
-Add tests to enforce device tree node lifecycle
-Add interface to firmware_request() an FDT overlay
-Add support to merge overlay FDT nodes into base tree
-Add support to track FDT changes per-overlay
-Add runtime fixups of overlay phandles
-- Without this overlay phandles must exactly match the base tree
-Add support to remove an overlay (question: is this important?)
-
-5) Teach Linux driver model to respond to device tree changes
--------------------------------------------------------------
-There are several parts to this. The most obvious are adding hooks for
-platform_device, i2c_device and spi_device creation. In all three cases,
-the users should already be providing enough information to support
-dynamic addition (and possibly removal) of dt nodes.
-of_platform_populate() is called for platform devices,
-of_register_spi_devices() for spi and of_i2c_register_devices(). Right
-now all three functions register all the child devices and then
-immediately return. However, if they could set up a notifier for node
-addition, then it would be easy to trigger additional device creation
-when new nodes are added.
-
-Other busses would be similar, but i2c, spi and platform are the most
-common use cases currently.
-
-Workitems:
-Modify of_platform_populate() to get new node notifications
-Modify of_register_spi_devices to get new node notifications
-Modify of_register_i2c_devices to get new node notifications
-
-6) Other work
--------------
-The device node user space interface could use some work. Here are some
-random work items that are peripherally related to the overlay feature.
-
-Other Workitems:
-Define FDT schema syntax
-Add FDT schema support to FDT (basically lint-style testing)
-Investigate runtime schema validation
-Make device_nodes first-class kobjects and remove the procfs interface
- - it can be emulated with a symlink
-Add symlinks from devices to devicetree nodes in sysfs
+Cheers
+Jon
