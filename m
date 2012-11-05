@@ -1,93 +1,55 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: AM33XX: Add usbss node
-Date: Mon, 5 Nov 2012 12:07:45 +0100
-Message-ID: <50979E01.4030203@ti.com>
-References: <1352095204-29028-1-git-send-email-afzal@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: OMAP: omap_device: Correct resource handling
+ for DT boot
+Date: Mon, 5 Nov 2012 12:25:40 +0100
+Message-ID: <5097A234.7070504@ti.com>
+References: <1351596296-13825-1-git-send-email-peter.ujfalusi@ti.com> <1351596296-13825-3-git-send-email-peter.ujfalusi@ti.com> <5094D648.80608@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1352095204-29028-1-git-send-email-afzal-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Santhapuri Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:58813 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751636Ab2KELZw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 06:25:52 -0500
+In-Reply-To: <5094D648.80608@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+ Felipe
+Hi Kevin,
 
-Hi Afzal,
+On 11/03/2012 09:31 AM, Kevin Hilman wrote:
+> On 10/30/2012 12:24 PM, Peter Ujfalusi wrote:
+>> When booting with DT the OF core can fill up the resources provided
+>> within
+>> the DT blob.
+>> The current way of handling the DT boot prevents us from removing
+>> hwmod data
+>> for platforms only suppose to boot with DT (OMAP5 for example) since
+>> we need
+>> to keep the whole hwmod database intact in order to have more
+>> resources in
+>> hwmod than in DT (to be able to append the DMA resource from hwmod).
+>>
+>> To fix this issue we just examine the OF provided resources:
+>> If we do not have resources we use hwmod to fill them.
+>> If we have resources we check if we already able to recive DMA
+>> resource, if
+>> no we only append the DMA resurce from hwmod to the OF provided ones.
+>>
+>> In this way we can start removing hwmod data for devices which have their
+>> resources correctly configured in DT without regressions.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>ke
+> 
+> Acked-by: Kevin Hilman <khilman@ti.com>
+> 
+> Benoit, feel free to take this one as well.
 
-On 11/05/2012 06:59 AM, Afzal Mohammed wrote:
-> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> 
-> Device tree node for usbss on AM33XX. There are two musb
-> controllers on am33xx platform so have port0-mode and
-> port1-mode data.
-> 
-> [afzal-l0cyMroinI0@public.gmane.org: reg & interrupt property addition]
-> 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Santhapuri, Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-> ---
-> 
-> Hi Benoit,
-> 
-> This is based on your "for_3.8/dts" branch.
-> 
-> This is made on top of "usb: musb: am335x support"
-> (http://marc.info/?l=linux-omap&m=135187391904863&w=2)
-> and has been tested on Beagle Bone.
-
-That looks good to me, I just like to get an Ack from Felipe for the
-accuracy of the data part.
+Thanks, I'll do.
 
 Regards,
 Benoit
 
-
-> 
-> Regards
-> Afzal
-> 
->  arch/arm/boot/dts/am33xx.dtsi | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 5dfd682..78340a5 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -321,5 +321,22 @@
->  			ti,hwmods = "spi1";
->  			status = "disabled";
->  		};
-> +
-> +		usb_otg_hs@47400000 {
-> +			compatible = "ti,musb-am33xx";
-> +			reg = <0x47400000 0x1000	/* usbss */
-> +			       0x47401000 0x800		/* musb instance 0 */
-> +			       0x47401800 0x800>;	/* musb instance 1 */
-> +			interrupts = <17		/* usbss */
-> +				      18		/* musb instance 0 */
-> +				      19>;		/* musb instance 1 */
-> +			multipoint = <1>;
-> +			num-eps = <16>;
-> +			ram-bits = <12>;
-> +			port0-mode = <3>;
-> +			port1-mode = <3>;
-> +			power = <250>;
-> +			ti,hwmods = "usb_otg_hs";
-> +		};
->  	};
->  };
-> 
