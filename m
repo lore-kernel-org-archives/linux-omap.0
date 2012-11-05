@@ -1,78 +1,77 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 3/6] OMAPDSS: HACK: look for regulators with omap4 names
-Date: Mon, 5 Nov 2012 15:14:16 +0200
-Message-ID: <1352121259-5836-4-git-send-email-tomi.valkeinen@ti.com>
-References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 0/6] OMAPDSS: enable DSS for Panda & SDP with devtree
+Date: Mon, 5 Nov 2012 15:14:13 +0200
+Message-ID: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56876 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40809 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932301Ab2KENOk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 08:14:40 -0500
-In-Reply-To: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
+	id S1754128Ab2KENO1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 08:14:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: b-cousson@ti.com, s-guiriec@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Normally the omapdss driver gets the regulators using the regulator
-names assigned for omapdss. However, in an effort to get a minimal DSS
-support for DT enabled kernel on selected boards, we will add omapdss
-devices and platform data the old way even for DT kernel. This causes
-the problem that omapdss cannot find the regulators using omapdss's
-regulator names.
+Hi,
 
-This patch creates a temporary workaround for DSI and HDMI by trying to
-get the regulators also using native OMAP4 regulator names.
+OMAPDSS device tree support is still some way in the future. Tony has requested
+to get DSS working for Panda & SDP boards with DT kernel, so that we'll have
+fully working boards with DT.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dsi.c  |    8 ++++++++
- drivers/video/omap2/dss/hdmi.c |    4 ++++
- 2 files changed, 12 insertions(+)
+This series makes a few hacks to get a working display on OMAP4 Panda and SDP
+boards. The idea is to setup the omapdss with the non-DT method, creating the
+omapdss devices and passing platform data to them. This setup code is called
+from board-generic for Panda and SDP boards.
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index d64ac38..738f3c4 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -1753,6 +1753,10 @@ int dsi_pll_init(struct platform_device *dsidev, bool enable_hsclk,
- 
- 		vdds_dsi = regulator_get(&dsi->pdev->dev, "vdds_dsi");
- 
-+		/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
-+		if (IS_ERR(vdds_dsi))
-+			vdds_dsi = regulator_get(&dsi->pdev->dev, "VCXIO");
-+
- 		if (IS_ERR(vdds_dsi)) {
- 			DSSERR("can't get VDDS_DSI regulator\n");
- 			return PTR_ERR(vdds_dsi);
-@@ -4972,6 +4976,10 @@ static int __init dsi_init_display(struct omap_dss_device *dssdev)
- 
- 		vdds_dsi = regulator_get(&dsi->pdev->dev, "vdds_dsi");
- 
-+		/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
-+		if (IS_ERR(vdds_dsi))
-+			vdds_dsi = regulator_get(&dsi->pdev->dev, "VCXIO");
-+
- 		if (IS_ERR(vdds_dsi)) {
- 			DSSERR("can't get VDDS_DSI regulator\n");
- 			return PTR_ERR(vdds_dsi);
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index a48a7dd..deaeb6c 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -340,6 +340,10 @@ static int __init hdmi_init_display(struct omap_dss_device *dssdev)
- 
- 		reg = devm_regulator_get(&hdmi.pdev->dev, "vdda_hdmi_dac");
- 
-+		/* DT HACK: try VDAC to make omapdss work for o4 sdp/panda */
-+		if (IS_ERR(reg))
-+			reg = devm_regulator_get(&hdmi.pdev->dev, "VDAC");
-+
- 		if (IS_ERR(reg)) {
- 			DSSERR("can't get VDDA_HDMI_DAC regulator\n");
- 			return PTR_ERR(reg);
+There was one problem with this approach: omapdss cannot get regulators using
+the omapdss's names fro the regulators. Thus there's a hack patch to get the
+regulators using the OMAP4 "native" regulator names, thus circumventing the
+problem.
+
+Tony, if these look good, how do you want to merge these? There are three parts
+here, and I think they can be merged independently if so wished:
+
+* .dts changes for the pinmuxing (2 patches)
+* dss-common.c and board-generic.c changes (3 patches)
+* DSS hack for the regulators (1 patch)
+
+If one of those parts is missing, DSS won't start with DT kernel, but otherwise
+there shouldn't be any problems. So to avoid conflicts, I suggest that you take
+the first two parts, and I'll merge the DSS hack via omapdss tree.
+
+ Tomi
+
+Ricardo Neri (2):
+  ARM/dts: omap4-panda: Add pinmux configuration for HDMI
+  ARM/dts: omap4-sdp: Add pinmux configuration for HDMI
+
+Tomi Valkeinen (4):
+  OMAPDSS: HACK: look for regulators with omap4 names
+  OMAP: panda: move display init from board file to dss-common.c
+  OMAP: omap4sdp: move display init from board file to dss-common.c
+  OMAP: board-generic: enable DSS for panda & sdp boards
+
+ arch/arm/boot/dts/omap4-panda-a4.dts     |   17 ++
+ arch/arm/boot/dts/omap4-panda.dts        |   18 ++
+ arch/arm/boot/dts/omap4-pandaES.dts      |    9 +
+ arch/arm/boot/dts/omap4-sdp-es23plus.dts |   17 ++
+ arch/arm/boot/dts/omap4-sdp.dts          |   18 ++
+ arch/arm/mach-omap2/Makefile             |    2 +-
+ arch/arm/mach-omap2/board-4430sdp.c      |  157 +----------------
+ arch/arm/mach-omap2/board-generic.c      |   10 ++
+ arch/arm/mach-omap2/board-omap4panda.c   |   68 +-------
+ arch/arm/mach-omap2/dss-common.c         |  276 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/dss-common.h         |   14 ++
+ drivers/video/omap2/dss/dsi.c            |    8 +
+ drivers/video/omap2/dss/hdmi.c           |    4 +
+ 13 files changed, 394 insertions(+), 224 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
+ create mode 100644 arch/arm/boot/dts/omap4-sdp-es23plus.dts
+ create mode 100644 arch/arm/mach-omap2/dss-common.c
+ create mode 100644 arch/arm/mach-omap2/dss-common.h
+
 -- 
 1.7.10.4
 
