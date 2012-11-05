@@ -1,46 +1,59 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] ARM: OMAP4: PM: fix regulator name for VDD_MPU
-Date: Mon,  5 Nov 2012 15:49:11 -0800
-Message-ID: <1352159351-15380-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:33211 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752164Ab2KEXtO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 18:49:14 -0500
-Received: by mail-da0-f46.google.com with SMTP id n41so2903142dak.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Nov 2012 15:49:13 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Mon, 05 Nov 2012 23:58:25 +0000
+Message-ID: <7dbed965-f75d-4ad3-9f88-4c3cd0b9e602@email.android.com>
+References: <50924DA3.1060901@ti.com> <20121101124025.GA12489@arwen.pp.htv.fi> <A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com> <20121101131609.GC12489@arwen.pp.htv.fi> <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com> <20121101135148.382aec00@pyramind.ukuu.org.uk> <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com> <20121101220518.GE14982@arwen.pp.htv.fi> <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com> <20121102112104.4657fb7b@pyramind.ukuu.org.uk> <0EC43413-1DD7-4E2A-879B-0B5B926FFDFE@antoniou-consulting.com> <CACxGe6uuK6ew5uxh0BjtYAtPZCTLeUpHc4emXRAnMUtNmEzmGg@mail.gmail.com> <AC5129F0-FF30-46ED-AD57-3FA6CA919F99@antoniou-consulting.com> <CACxGe6v9cyybV4+5tQJ-DG8qdyEHfsLa7t+-3CTL+97Q9msrFw@mail.gmail.com> <18667A4E-5513-4D74-922
+ F-30D091609F16@antoniou-consulting.com> <CACxGe6uR5VhHsCS1vmayURkGBKmhagaeWBBaCnyfsfOjZ2Dutg@mail.gmail.com> <CAD=GYpYc9L5yKqgar5jB2jG8+GiX7Lb0zevP9Pxaq0HdaVXQ5Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAD=GYpYc9L5yKqgar5jB2jG8+GiX7Lb0zevP9Pxaq0HdaVXQ5Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel A Fernandes <agnel.joel@gmail.com>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <robherring2@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 
-From: Kevin Hilman <khilman@ti.com>
 
-commit 24d7b40a (ARM: OMAP2+: PM: MPU DVFS: use generic CPU device for
-MPU-SS) updated the regulator name used for the MPU regulator, but only
-updated OMAP3, not OMAP4.  Fix the OMAP4 name as well, otherwise CPUfreq
-fails to find the MPU regulator.
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Applies to v3.7-rc4
+Joel A Fernandes <agnel.joel@gmail.com> wrote:
 
- arch/arm/mach-omap2/twl-common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>Hi Grant,
+>
+>On Mon, Nov 5, 2012 at 2:14 PM, Grant Likely
+><grant.likely@secretlab.ca> wrote:
+>> I'm open to suggestions if anyone has any. I have not objections to a
+>> fixup approach, but I'm not comfortable with anything that is fragile
+>> to modifications to the fragment.
+>
+>I am fairly new to the DT world so please bear with me, but how about
+>a method that resolves symbols the same way that the linux dynamic
+>linker does when shared libraries are loaded?
+>
+>A separate table (similar to .PLT/GOT sections  in the ELF object
+>format) could be created when the fragment is loaded, and the phandle
+>references could be fixed to point to the table offsets during compile
+>time. This table would be a second level indirection and the kernel
+>would populate this table with the in-kernel values of the phandles
+>that the dt fragment refers to.
 
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 635e109..44c4205 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -366,7 +366,7 @@ static struct regulator_init_data omap4_clk32kg_idata = {
- };
- 
- static struct regulator_consumer_supply omap4_vdd1_supply[] = {
--	REGULATOR_SUPPLY("vcc", "mpu.0"),
-+	REGULATOR_SUPPLY("vcc", "cpu0"),
- };
- 
- static struct regulator_consumer_supply omap4_vdd2_supply[] = {
+That's an interesting idea that is worth exploring. That would make it possible to avoid a fixup stage, but it also means that any parsing code must know how to handle the got-like table. It won't be backwards compatible with existing tools. It also wouldn't easily support the case of firmware applying the overlay and passing the resulting tree to the kernel. Hmmm.... Not being backwards compatible at the data level is a big problem. I really want a method that can resolve back to the current data format or is a compatible extension of it.
+
+>
+>This might involve changes to the DT core, but as such, this method
+>wouldn't suffer from the fragility problem of either base or fragment
+>DT trees being modified.
+>
+>The table itself could be added to the tree by the compiler, and the
+>phandles could point to it (fixed). such phandles could be marked for
+>special handling to facilitate the 1-level indirection.
+
+That's part of the problem. Property values are essentially anaonymous data. There is no mechanism currently for marking data such as indicate which data values are phandles. If there were then it would be a simple matter to find all the phandles and fix them up.
+
+We could possibly add data type suppplementary properties to the tree to solve that problem. They would have to be optional for the base tree to retain backwards compatibility, but could be required on overlays.
+
+g.
+
 -- 
-1.8.0
-
+Sent from my Android phone with K-9 Mail. Please excuse my brevity.
