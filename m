@@ -1,37 +1,52 @@
 From: Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Mon, 5 Nov 2012 00:37:25 +0000
-Message-ID: <CACxGe6uuK6ew5uxh0BjtYAtPZCTLeUpHc4emXRAnMUtNmEzmGg@mail.gmail.com>
+Date: Mon, 5 Nov 2012 01:05:39 +0000
+Message-ID: <CACxGe6uKag_7kKvqKPHa_3W_F3=HLLR9SmyTo8vHRYN3VU+XnQ@mail.gmail.com>
 References: <50924DA3.1060901@ti.com> <F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
  <20121101110418.GF410@arwen.pp.htv.fi> <3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
  <20121101124025.GA12489@arwen.pp.htv.fi> <A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
  <20121101131609.GC12489@arwen.pp.htv.fi> <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
  <20121101135148.382aec00@pyramind.ukuu.org.uk> <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
  <20121101220518.GE14982@arwen.pp.htv.fi> <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
- <20121102112104.4657fb7b@pyramind.ukuu.org.uk> <0EC43413-1DD7-4E2A-879B-0B5B926FFDFE@antoniou-consulting.com>
+ <20121102112104.4657fb7b@pyramind.ukuu.org.uk> <CA+T6QPkWLXx6-Bh-4VdsdoHypHNkJ4hTdkk-rqUEyGEswpW6fQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0EC43413-1DD7-4E2A-879B-0B5B926FFDFE@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <robherring2@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:51461 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035Ab2KEBGB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 20:06:01 -0500
+Received: by mail-da0-f46.google.com with SMTP id n41so2444371dak.19
+        for <linux-omap@vger.kernel.org>; Sun, 04 Nov 2012 17:06:00 -0800 (PST)
+In-Reply-To: <CA+T6QPkWLXx6-Bh-4VdsdoHypHNkJ4hTdkk-rqUEyGEswpW6fQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jason Kridner <jkridner@beagleboard.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Russ Dill <Russ.Dill@ti.com>, balbi@ti.com, Pantelis Antoniou <panto@antoniou-consulting.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Fri, Nov 2, 2012 at 12:32 PM, Pantelis Antoniou
-<panto@antoniou-consulting.com> wrote:
-> The i2c2 alias cannot be resolved at compile time; there has to be
+On Fri, Nov 2, 2012 at 4:07 PM, Jason Kridner <jkridner@beagleboard.org> wrote:
+>> Take a look at arch/x86/platform/mrst/mrst.c. It's a specific example of
+>> a platform which parses tables and attaches devices to the right physical
+>> bus in a manner they can be reliably probed even when the device has no
+>> sane autodetect.
 >
-> a) A DT object format where unresolved aliases (symbols) are tracked
-> b) A runtime DT linker that will resolve the alias, and will insert the
->    i2c2-devices child nodes as children in the i2c2 node.
-> c) A method to trigger platform device creation for the child nodes just
->    inserted.
->
-> DT core changes aren't bound to be easily accepted, so without having a clear
-> signal from the DT maintainers that they would consider such a method people
-> are just hesitant to go down this road.
+> I know I *am* the slow person in the room, but doesn't this approach
+> require the code to be compiled into the kernel to support the devices
+> ahead of time? While I think it might be reasonable to have hardware
+> developers provide DT fragments in their EEPROMs, there's no way to
+> get them to submit code patches in order to get their hardware to
+> work. They need to ship hardware that works with pre-existing
+> software, since there will be hundreds of boards created by people
+> with little to no previous Linux experience (akin to Arduino). I seem
+> to be missing how that approach would get us there.
 
-I do agree and will accept such a method.
+If it is truly new hardware, then there really is no way around them
+either a) submitting new kernel drivers or b) driving them from
+userspace.
+
+If it is devices with existing drivers populated onto new custom cape
+boards, then the DT fragment approach should be sufficient for
+populating them into the Linux driver model. (assuming of course those
+drivers are already compiled into the kernel)
 
 g.
