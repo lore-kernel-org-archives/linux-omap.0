@@ -1,57 +1,74 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 08/15] ARM: OMAP2+: hwmod: Fix the omap_hwmod_addr_space
- for CPGMAC0
-Date: Mon, 5 Nov 2012 09:10:31 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC00B9B@DBDE01.ent.ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <1351859566-24818-9-git-send-email-vaibhav.bedia@ti.com>
- <509543E8.60209@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2 3/7] i2c: omap: remove the dtrev
+Date: Mon, 5 Nov 2012 11:05:17 +0200
+Message-ID: <20121105090517.GB2913@arwen.pp.htv.fi>
+References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
+ <1352025873-27492-4-git-send-email-shubhrajyoti@ti.com>
+ <20121105075320.GD32468@arwen.pp.htv.fi>
+ <50977C80.8090000@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qlTNgmc+xy1dBmNv"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47229 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45207 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753664Ab2KEJKk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 04:10:40 -0500
-Content-Language: en-US
+	id S1753711Ab2KEJLl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 04:11:41 -0500
+Content-Disposition: inline
+In-Reply-To: <50977C80.8090000@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, w.sang@pengutronix.de
 
-On Sun, Nov 04, 2012 at 20:54:17, Bedia, Vaibhav wrote:
-> On Sat, Nov 03, 2012 at 21:48:48, Shilimkar, Santosh wrote:
-> > On Friday 02 November 2012 06:02 PM, Vaibhav Bedia wrote:
-> > > The first entry for CPGMAC0 should be ADDR_MAP_ON_INIT
-> > > instead of ADDR_TYPE_RT to ensure the omap hwmod code
-> > > maps the memory space at init and writes to the SYSCONFIG
-> > > registers.
-> > >
-> > > Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> > > ---
-> > Sorry again similar question.
-> > 
-> > Why CPGMAC0 should be mapped and sysconfig updated early ?
-> > 
-> 
-> Hmm I need to revisit this one. CPGMAC0 was not going to standby
-> without this. Maybe something else is wrong in the hwmod data and
-> needs fixing.
-> 
+--qlTNgmc+xy1dBmNv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ok I checked this one. The change I made was indirectly fixing another
-issue with the AM33xx hwmod data. am33xx_cpgmac0_addr_space[] has two
-entries and the SYSC register is part of the second entry. The function
-_find_mpu_rt_addr_space in omap_hwmod.c looks for the first entry with
-the flag ADDR_TYPE_RT flag. The change I made indirectly made the second
-entry in am33xx_cpgmac0_addr_space[] become the first memory space with
-the ADDR_TYPE_RT flag. Due to this the hwmod code wrote to the correct
-SYSC address of CPGMAC0 and the IP went to standby during bootup. 
-After changing the order of the entries in am33xx_cpgmac0_addr_space[]
-things work fine.
+Hi,
 
-I'll make the changes in the next version.
+On Mon, Nov 05, 2012 at 02:14:48PM +0530, Shubhrajyoti wrote:
+> On Monday 05 November 2012 01:23 PM, Felipe Balbi wrote:
+> > Hi,
+> >
+> > On Sun, Nov 04, 2012 at 04:14:29PM +0530, Shubhrajyoti D wrote:
+> >> The dtrev is used only for the comments. Remove the same and use
+> >> the scheme instead to know if it is version2.
+> >>
+> >> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> > I would drop dtrev completely and not use scheme to "emulate" it.
+> However for ver2 ie omap4plus and previous versions the
+> register map is different.
+>=20
+> So the scheme may still be required.
 
-Regards,
-Vaibhav
+fair enough, but drop it from debugging messages.
+
+--=20
+balbi
+
+--qlTNgmc+xy1dBmNv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQl4FNAAoJEIaOsuA1yqRExbMP/3sqtevJtVmXDphwPhkvnPKm
+vE+Rh+6Yal1iH+Web+9yOu48PKG8e322cx4HOk4FzPaLzS7OEX4HL+SrKO1n+6p/
+WxRH4rkOXL7Tj6LmH9NQsDRxpcwkBqlipLM5BW85Glx4DEDoo92iwMHzWcs3AswS
+YSbBvcQXVP+KBsjrIFVm7N22hMF84Xg97WYKTUqaHzT8jPEhYyR5egsUArdgwcjR
+ZLJo3KmxtGk0/n7ZAZ9MDF0JKb8Cw53+6HIsJCs+0704MGG1y/lZ7bqu8VsMnoCI
+IH/0u0LOrAHgouZuC+STc/2Q6YxDVt2gHYn9tHTVSana6IlB44MgbuY+IT/BCgTS
+2VIBjXfD9JwfEomDtV4DiC8K4QqPIE+ZB/cZU1oWjIqbY4iNGuk3l1KFN08Mxde/
+IoB9FPDDs0uZY6TqUa+dd5M6Ra6uM53OHi1bku4QqFjMjkR0vriyNgrsO1TuqoHg
+dIw8h2yEjSRPyg6wvlXpsBOenSuKILy2C/cLHu3IpFCTR5LjQVhUaFZOEqfu3Kx6
+5QnSanvaCEfFniO3sa0bSR1SKEQol4TRczTvfUxAc1AVE9EPJ/TCSAMMOhG6oURj
+46O5RZ8xNJwj4FUMuNlTqbpCtShOqqn5cVFBvNxBcyMzyrKt3BpMja+SkTxnyTUm
+YDawaKuV3IfuMsom+dcc
+=gD2w
+-----END PGP SIGNATURE-----
+
+--qlTNgmc+xy1dBmNv--
