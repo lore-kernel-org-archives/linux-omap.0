@@ -1,72 +1,67 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
- for clockevent device
-Date: Mon, 5 Nov 2012 15:20:50 -0600
-Message-ID: <50982DB2.4000104@ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com> <50950AC7.1030707@deeprootsystems.com> <B5906170F1614E41A8A28DE3B8D121433EBFEA88@DBDE01.ent.ti.com>
+From: Tabi Timur-B04825 <B04825-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Mon, 5 Nov 2012 21:40:16 +0000
+Message-ID: <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40590 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751499Ab2KEVU4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 16:20:56 -0500
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBFEA88@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Content-ID: <6932259F391B4F4AB9A0C0DF5FBDE793-725oAoX4OcF2GV6JINhBVAC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Wood Scott-B07421 <B07421-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
+On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> wrote:
 
-On 11/03/2012 08:17 AM, Bedia, Vaibhav wrote:
-> On Sat, Nov 03, 2012 at 17:45:03, Kevin Hilman wrote:
->> On 11/02/2012 01:32 PM, Vaibhav Bedia wrote:
->>> From: Vaibhav Hiremath <hvaibhav@ti.com>
->>>
->>> The current OMAP timer code registers two timers -
->>> one as clocksource and one as clockevent.
->>> AM33XX has only one usable timer in the WKUP domain
->>> so one of the timers needs suspend-resume support
->>> to restore the configuration to pre-suspend state.
->>
->> The changelog describes "what", but doesn't answer "why?"
->>
-> 
-> Sorry I'll try to take of this in the future.
-> 
->>> commit adc78e6 (timekeeping: Add suspend and resume
->>> of clock event devices) introduced .suspend and .resume
->>> callbacks for clock event devices. Leverages these
->>> callbacks to have AM33XX clockevent timer which is
->>> in not in WKUP domain to behave properly across system
->>> suspend.
->>
->> You say it behaves properly without describing what improper
->> behavior is happening.
->>
-> 
-> There are two issues. One is that the clockevent timer doesn't
-> get idled which blocks PER domain transition. 
+> Jane is building custom BeagleBone expansion boards called 'capes'. She
+> can boot the system with a stock BeagleBoard device tree, but additional
+> data is needed before a cape can be used. She could replace the FDT file
+> used by U-Boot with one that contains the extra data, but she uses the
+> same Linux system image regardless of the cape, and it is inconvenient
+> to have to select a different device tree at boot time depending on the
+> cape.
 
-Why is this? How is the dmtimer TIOCP_CFG register configured on AM33xx?
-Is it using smart-idle?
+What's wrong with having the boot loader detect the presence of the
+Cape and update the device tree accordingly?  We do this all the time
+in U-Boot.  Doing stuff like reading EEPROMs and testing for the
+presence of hardware is easier in U-Boot than in Linux.
 
-> The next one is that
-> the clockevent doesn't generate any further interrupts once the
-> system resumes. We need to restore the pre-suspend configuration.
-> I haven't tried but I guess we could have used the save and restore
-> of timer registers here.
+For configurations that can be determined by the boot loader, I'm not
+sure overlays are practical.
 
-It would be interesting to try using an non-wakeup domain timer on
-OMAP3/4 for clock events and seeing if suspend/resume works.
+> Nigel is building a real-time video processing system around a MIPS SoC
+> and a Virtex FPGA. Video data is streamed through the FPGA for post
+> processing operations like motion tracking or compression. The FPGA is
+> configured via the SPI bus, and is also connected to GPIO lines and the
+> memory mapped peripheral bus. Nigel has designed several FPGA
+> configurations for different video processing tasks. The user will
+> choose which configuration to load which can even be reprogrammed at
+> runtime to switch tasks.
 
-Do you know what the exact problem here is? I understand that the timer
-context could get lost, but exactly what is not getting restarted by the
-kernel? For example, the only place we set the interrupt enable is
-during the clock event init and so if the context is lost, then I could
-see no more interrupts occurring. So is it enough to just restore the
-interrupt enable register, do you really need to program the timer again?
+Now this, on the other hand, makes more sense.  If the hardware
+configuration is literally user-configurable, then okay.  However, I'm
+not sure I see the need to update the device tree.  The device tree is
+generally for hardware that cannot be discovered/probed by the device
+driver.  If we're loading a configuration from user space, doesn't the
+driver already know what the hardware's capabilities are, since it's
+the one doing the uploading of a new FPGA code?  Why not skip the
+device tree update and just tell the driver what the new capabilities
+are?
 
-Cheers
-Jon
+-- 
+Timur Tabi
+Linux kernel developer at Freescale
