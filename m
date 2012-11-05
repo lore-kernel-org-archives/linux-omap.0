@@ -1,50 +1,94 @@
 From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 0/4] pm: Add power off control
-Date: Mon, 5 Nov 2012 15:12:25 +0530
-Message-ID: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
+Subject: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
+Date: Mon, 5 Nov 2012 15:12:26 +0530
+Message-ID: <1352108549-9341-2-git-send-email-anilkumar@ti.com>
+References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: a.zummo@towertech.it, sameo@linux.intel.com, tony@atomide.com
-Cc: rtc-linux@googlegroups.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60482 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752673Ab2KEJnH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 04:43:07 -0500
+In-Reply-To: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: a.zummo@towertech.it, sameo@linux.intel.com, tony@atomide.com
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Colin Foe-Parker <colin.foeparker@logicpd.com>, AnilKumar Ch <anilkumar@ti.com>
 
-Add PM power_off control to rtc driver, along with this PMIC status
-is set to STATUS_OFF to shutdown PMIC if PWR_EN is toggled by RTC
-module.
+From: Colin Foe-Parker <colin.foeparker@logicpd.com>
 
-System power off sequence:-
-* Set PMIC STATUS_OFF when PMIC_POWER_EN is pulled low
-* Enable PMIC_POWER_EN in rtc module
-* Set rtc ALARM2 time
-* Enable ALARM2 interrupt
+Set tps65217 PMIC status to OFF if power enable toggle is
+supported. Also adds platform data flag, which should be
+passed from board init data.
 
-These patches were tested on AM335x-Bone.
+Signed-off-by: Colin Foe-Parker <colin.foeparker@logicpd.com>
+[anilkumar@ti.com: move the additions to tps65217 MFD driver]
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ .../devicetree/bindings/regulator/tps65217.txt     |    4 ++++
+ drivers/mfd/tps65217.c                             |   12 ++++++++++++
+ 2 files changed, 16 insertions(+)
 
-AnilKumar Ch (2):
-  ARM: dts: AM33XX: Set pmic-shutdown-controller for BeagleBone
-  ARM: dts: AM33XX: Enable system power off control in am335x-bone
-
-Colin Foe-Parker (2):
-  mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
-  rtc: OMAP: Add system pm_power_off to rtc driver
-
- .../devicetree/bindings/regulator/tps65217.txt     |    4 +
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |    5 ++
- arch/arm/boot/dts/am335x-bone.dts                  |    6 ++
- drivers/mfd/tps65217.c                             |   12 +++
- drivers/rtc/rtc-omap.c                             |   79 +++++++++++++++++++-
- 5 files changed, 105 insertions(+), 1 deletion(-)
-
+diff --git a/Documentation/devicetree/bindings/regulator/tps65217.txt b/Documentation/devicetree/bindings/regulator/tps65217.txt
+index d316fb8..4f05d20 100644
+--- a/Documentation/devicetree/bindings/regulator/tps65217.txt
++++ b/Documentation/devicetree/bindings/regulator/tps65217.txt
+@@ -11,6 +11,9 @@ Required properties:
+   using the standard binding for regulators found at
+   Documentation/devicetree/bindings/regulator/regulator.txt.
+ 
++Optional properties:
++- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
++
+   The valid names for regulators are:
+   tps65217: dcdc1, dcdc2, dcdc3, ldo1, ldo2, ldo3 and ldo4
+ 
+@@ -20,6 +23,7 @@ Example:
+ 
+ 	tps: tps@24 {
+ 		compatible = "ti,tps65217";
++		ti,pmic-shutdown-controller;
+ 
+ 		regulators {
+ 			dcdc1_reg: dcdc1 {
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+index 3fb32e6..c7f17d8 100644
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -160,6 +160,7 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 	unsigned int version;
+ 	unsigned int chip_id = ids->driver_data;
+ 	const struct of_device_id *match;
++	bool status_off = false;
+ 	int ret;
+ 
+ 	if (client->dev.of_node) {
+@@ -170,6 +171,8 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 			return -EINVAL;
+ 		}
+ 		chip_id = (unsigned int)match->data;
++		status_off = of_property_read_bool(client->dev.of_node,
++					"ti,pmic-shutdown-controller");
+ 	}
+ 
+ 	if (!chip_id) {
+@@ -207,6 +210,15 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
++	/* Set the PMIC to shutdown on PWR_EN toggle */
++	if (status_off) {
++		ret = tps65217_set_bits(tps, TPS65217_REG_STATUS,
++				TPS65217_STATUS_OFF, TPS65217_STATUS_OFF,
++				TPS65217_PROTECT_NONE);
++		if (ret)
++			dev_warn(tps->dev, "unable to set the status OFF\n");
++	}
++
+ 	dev_info(tps->dev, "TPS65217 ID %#x version 1.%d\n",
+ 			(version & TPS65217_CHIPID_CHIP_MASK) >> 4,
+ 			version & TPS65217_CHIPID_REV_MASK);
 -- 
 1.7.9.5
+
