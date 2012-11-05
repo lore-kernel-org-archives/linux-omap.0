@@ -1,73 +1,56 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] i2c: omap: ensure writes to dev->buf_len are ordered
-Date: Mon, 5 Nov 2012 10:04:43 +0200
-Message-ID: <1352102683-2243-1-git-send-email-balbi@ti.com>
-References: <20121102085447.GE17063@arwen.pp.htv.fi>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] ARM: OMAP2+: AM33XX: clock data: fix mcasp entries
+Date: Mon, 5 Nov 2012 09:13:18 +0100
+Message-ID: <20121105081317.GC28886@opensource.wolfsonmicro.com>
+References: <1349879449-22657-1-git-send-email-mporter@ti.com>
+ <1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
+ <CAD=GYpZ9w=D55G9DOiMqZ4BCGGdGszsgG3fumHUGZ12xx+TKjw@mail.gmail.com>
+ <1BAFE6F6C881BF42822005164F1491C33EAB973D@DBDE01.ent.ti.com>
+ <CAD=GYpYuyfGuEgAWJyE2nkKx4GEsm=eDYAhV966sWVLbEPaqYQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121102085447.GE17063-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jousvV0MzM2p6OtC"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAD=GYpYuyfGuEgAWJyE2nkKx4GEsm=eDYAhV966sWVLbEPaqYQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joel A Fernandes <agnel.joel@gmail.com>
+Cc: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Porter, Matt" <mporter@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-if we allow compiler reorder our writes, we could
-fall into a situation where dev->buf_len is reset
-for no apparent reason.
 
-This bug was found with a simple script which would
-transfer data to an i2c client from 1 to 1024 bytes
-(a simple for loop), when we got to transfer sizes
-bigger than the fifo size, dev->buf_len was reset
-to zero before we had an oportunity to handle XDR
-Interrupt. Because dev->buf_len was zero, we entered
-omap_i2c_transmit_data() to transfer zero bytes,
-which would mean we would just silently exit
-omap_i2c_transmit_data() without actually writing
-anything to DATA register. That would cause XDR
-IRQ to trigger forever and we would never transfer
-the remaining bytes.
+--jousvV0MzM2p6OtC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-After adding the memory barrier, we also drop resetting
-dev->buf_len to zero in omap_i2c_xfer_msg() because
-both omap_i2c_transmit_data() and omap_i2c_receive_data()
-will act until dev->buf_len reaches zero, rendering the
-other write in omap_i2c_xfer_msg() redundant.
+On Sat, Nov 03, 2012 at 02:32:59PM -0500, Joel A Fernandes wrote:
 
-This patch has been tested with pandaboard for a few
-iterations of the script mentioned above.
+> beaglebone_defconfig: Add dummy regulator to init tlv320aic3x
+> https://github.com/joelagnel/linux-kernel/commit/db5672dfe548d82625cf40ed688d05ba7cee5c93
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
+This should never be done in production, you should ensure that the
+appropriate supplies are provided by the board file or device tree.
 
-Changes since v1:
-	- use barrier() instead of wmb()
+--jousvV0MzM2p6OtC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Note: this version was compile-tested only
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
- drivers/i2c/busses/i2c-omap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+iQIcBAEBAgAGBQJQl3UWAAoJELSic+t+oim9rQ4QAJaDz1fahgALubBbZZwIOWZA
+a0acT49+VwL6sWjiS9sKReDRAzEpsF/Odn+V8wpZqoCTUtR3cKdCU4dUaU4gr0YN
+Wv0200azme+UbibIcK61kMmtZytQ2fulu1ul1MSpntQ6eA5sika762pMbgagZozb
+VO4bYHA1uDHytlElVubHmsIunoAuTPRyreSynGmn6XjoKOiWQP4qWIkIXUtKEGXj
+WAlWLvemu+K6XOJdPCU2Y30Y0RZ4BMkjc+wtf8Xj+RUKNn6U3lV2n3wYlKzEFESQ
+8AwCNTrNpyvpoI5jqYNiOSngBTENfwszpivneqxTBJ6SiDoQmhIPxHOKO2RziYvq
+XO7f7edXbebSlXy5Y4SSTJRt8qgR/Y2UkqxrYc+3p3zUouxYYbrHsIY0Ag8b6ohY
+MZH9Wo6wN7uKSHCka14gwppUQlL/eN7RY0Ly2rAfedxXqMhGl0wPbGZWHGHKG1g3
+88qFoYulNvEP1OUHWAPVLxWu4ykut/YXG8jExrpxUyuxK5mvRJTgzDmiCzGfMVnB
+BadoMvZek7XEXPn346lNuydh8isdCtaV3PEjJGIgha3MZuuyLwC6NPCChzjT28W4
+qs2rX0pQJjN0i57ClD9otipSdYF71f7oYW5wAnn3BKj+YOLmql5ynaWkHNt7SnLq
+9/7In8V4jcLcAl2EC6Pb
+=ouct
+-----END PGP SIGNATURE-----
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index db31eae..ba03bec 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -521,6 +521,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	/* REVISIT: Could the STB bit of I2C_CON be used with probing? */
- 	dev->buf = msg->buf;
- 	dev->buf_len = msg->len;
-+	barrier();
- 
- 	omap_i2c_write_reg(dev, OMAP_I2C_CNT_REG, dev->buf_len);
- 
-@@ -579,7 +580,6 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	 */
- 	timeout = wait_for_completion_timeout(&dev->cmd_complete,
- 						OMAP_I2C_TIMEOUT);
--	dev->buf_len = 0;
- 	if (timeout == 0) {
- 		dev_err(dev->dev, "controller timed out\n");
- 		omap_i2c_init(dev);
--- 
-1.8.0
+--jousvV0MzM2p6OtC--
