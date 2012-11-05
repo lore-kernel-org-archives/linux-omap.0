@@ -1,428 +1,78 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/6] OMAP: omap4sdp: move display init from board file to dss-common.c
-Date: Mon, 5 Nov 2012 15:14:18 +0200
-Message-ID: <1352121259-5836-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/6] OMAPDSS: HACK: look for regulators with omap4 names
+Date: Mon, 5 Nov 2012 15:14:16 +0200
+Message-ID: <1352121259-5836-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56880 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56876 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932305Ab2KENOn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 08:14:43 -0500
+	id S932301Ab2KENOk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 08:14:40 -0500
 In-Reply-To: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: b-cousson@ti.com, s-guiriec@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Device tree support for omapdss is still some way in the future.  In an
-effort to get a minimal DSS support for DT enabled kernel on selected
-OMAP4 boards, we'll go for a temporary solution: We will call the same
-non-DT omapdss setup code for OMAP4 SDP and Pandaboards from
-board-generic.c, thus enabling DSS for those boards.
+Normally the omapdss driver gets the regulators using the regulator
+names assigned for omapdss. However, in an effort to get a minimal DSS
+support for DT enabled kernel on selected boards, we will add omapdss
+devices and platform data the old way even for DT kernel. This causes
+the problem that omapdss cannot find the regulators using omapdss's
+regulator names.
 
-This patch moves the display setup code from board-4430sdp.c to
-dss-common.c. dss-common.c will be called by the board-4430sdp.c when
-running on non-DT kernel, and by board-generic.c when running on DT
-enabled kernel.
+This patch creates a temporary workaround for DSI and HDMI by trying to
+get the regulators also using native OMAP4 regulator names.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |  157 +-------------------------------
- arch/arm/mach-omap2/dss-common.c    |  172 +++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/dss-common.h    |    2 +
- 3 files changed, 175 insertions(+), 156 deletions(-)
+ drivers/video/omap2/dss/dsi.c  |    8 ++++++++
+ drivers/video/omap2/dss/hdmi.c |    4 ++++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 3669c12..8ce98ae 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -37,9 +37,6 @@
- #include <plat/usb.h>
- #include <plat/mmc.h>
- #include "omap4-keypad.h"
--#include <video/omapdss.h>
--#include <video/omap-panel-nokia-dsi.h>
--#include <video/omap-panel-picodlp.h>
- #include <linux/wl12xx.h>
- #include <linux/platform_data/omap-abe-twl6040.h>
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index d64ac38..738f3c4 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1753,6 +1753,10 @@ int dsi_pll_init(struct platform_device *dsidev, bool enable_hsclk,
  
-@@ -48,17 +45,13 @@
- #include "hsmmc.h"
- #include "control.h"
- #include "common-board-devices.h"
-+#include "dss-common.h"
+ 		vdds_dsi = regulator_get(&dsi->pdev->dev, "vdds_dsi");
  
- #define ETH_KS8851_IRQ			34
- #define ETH_KS8851_POWER_ON		48
- #define ETH_KS8851_QUART		138
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
- #define OMAP4_SFH7741_ENABLE_GPIO		188
--#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
--#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
--#define HDMI_GPIO_HPD  63 /* Hotplug detect */
--#define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
--#define DLP_POWER_ON_GPIO	40
++		/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
++		if (IS_ERR(vdds_dsi))
++			vdds_dsi = regulator_get(&dsi->pdev->dev, "VCXIO");
++
+ 		if (IS_ERR(vdds_dsi)) {
+ 			DSSERR("can't get VDDS_DSI regulator\n");
+ 			return PTR_ERR(vdds_dsi);
+@@ -4972,6 +4976,10 @@ static int __init dsi_init_display(struct omap_dss_device *dssdev)
  
- #define GPIO_WIFI_PMENA		54
- #define GPIO_WIFI_IRQ		53
-@@ -607,154 +600,6 @@ static void __init omap_sfh7741prox_init(void)
- 			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
- }
+ 		vdds_dsi = regulator_get(&dsi->pdev->dev, "vdds_dsi");
  
--static struct nokia_dsi_panel_data dsi1_panel = {
--		.name		= "taal",
--		.reset_gpio	= 102,
--		.use_ext_te	= false,
--		.ext_te_gpio	= 101,
--		.esd_interval	= 0,
--		.pin_config = {
--			.num_pins	= 6,
--			.pins		= { 0, 1, 2, 3, 4, 5 },
--		},
--};
--
--static struct omap_dss_device sdp4430_lcd_device = {
--	.name			= "lcd",
--	.driver_name		= "taal",
--	.type			= OMAP_DISPLAY_TYPE_DSI,
--	.data			= &dsi1_panel,
--	.phy.dsi		= {
--		.module		= 0,
--	},
--	.channel		= OMAP_DSS_CHANNEL_LCD,
--};
--
--static struct nokia_dsi_panel_data dsi2_panel = {
--		.name		= "taal",
--		.reset_gpio	= 104,
--		.use_ext_te	= false,
--		.ext_te_gpio	= 103,
--		.esd_interval	= 0,
--		.pin_config = {
--			.num_pins	= 6,
--			.pins		= { 0, 1, 2, 3, 4, 5 },
--		},
--};
--
--static struct omap_dss_device sdp4430_lcd2_device = {
--	.name			= "lcd2",
--	.driver_name		= "taal",
--	.type			= OMAP_DISPLAY_TYPE_DSI,
--	.data			= &dsi2_panel,
--	.phy.dsi		= {
--
--		.module		= 1,
--	},
--	.channel		= OMAP_DSS_CHANNEL_LCD2,
--};
--
--static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
--	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
--	.ls_oe_gpio = HDMI_GPIO_LS_OE,
--	.hpd_gpio = HDMI_GPIO_HPD,
--};
--
--static struct omap_dss_device sdp4430_hdmi_device = {
--	.name = "hdmi",
--	.driver_name = "hdmi_panel",
--	.type = OMAP_DISPLAY_TYPE_HDMI,
--	.channel = OMAP_DSS_CHANNEL_DIGIT,
--	.data = &sdp4430_hdmi_data,
--};
--
--static struct picodlp_panel_data sdp4430_picodlp_pdata = {
--	.picodlp_adapter_id	= 2,
--	.emu_done_gpio		= 44,
--	.pwrgood_gpio		= 45,
--};
--
--static void sdp4430_picodlp_init(void)
--{
--	int r;
--	const struct gpio picodlp_gpios[] = {
--		{DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
--			"DLP POWER ON"},
--		{sdp4430_picodlp_pdata.emu_done_gpio, GPIOF_IN,
--			"DLP EMU DONE"},
--		{sdp4430_picodlp_pdata.pwrgood_gpio, GPIOF_OUT_INIT_LOW,
--			"DLP PWRGOOD"},
--	};
--
--	r = gpio_request_array(picodlp_gpios, ARRAY_SIZE(picodlp_gpios));
--	if (r)
--		pr_err("Cannot request PicoDLP GPIOs, error %d\n", r);
--}
--
--static int sdp4430_panel_enable_picodlp(struct omap_dss_device *dssdev)
--{
--	gpio_set_value(DISPLAY_SEL_GPIO, 0);
--	gpio_set_value(DLP_POWER_ON_GPIO, 1);
--
--	return 0;
--}
--
--static void sdp4430_panel_disable_picodlp(struct omap_dss_device *dssdev)
--{
--	gpio_set_value(DLP_POWER_ON_GPIO, 0);
--	gpio_set_value(DISPLAY_SEL_GPIO, 1);
--}
--
--static struct omap_dss_device sdp4430_picodlp_device = {
--	.name			= "picodlp",
--	.driver_name		= "picodlp_panel",
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.phy.dpi.data_lines	= 24,
--	.channel		= OMAP_DSS_CHANNEL_LCD2,
--	.platform_enable	= sdp4430_panel_enable_picodlp,
--	.platform_disable	= sdp4430_panel_disable_picodlp,
--	.data			= &sdp4430_picodlp_pdata,
--};
--
--static struct omap_dss_device *sdp4430_dss_devices[] = {
--	&sdp4430_lcd_device,
--	&sdp4430_lcd2_device,
--	&sdp4430_hdmi_device,
--	&sdp4430_picodlp_device,
--};
--
--static struct omap_dss_board_info sdp4430_dss_data = {
--	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
--	.devices	= sdp4430_dss_devices,
--	.default_device	= &sdp4430_lcd_device,
--};
--
--static void __init omap_4430sdp_display_init(void)
--{
--	int r;
--
--	/* Enable LCD2 by default (instead of Pico DLP) */
--	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
--			"display_sel");
--	if (r)
--		pr_err("%s: Could not get display_sel GPIO\n", __func__);
--
--	sdp4430_picodlp_init();
--	omap_display_init(&sdp4430_dss_data);
--	/*
--	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
--	 * later have external pull up on the HDMI I2C lines
--	 */
--	if (cpu_is_omap446x() || omap_rev() > OMAP4430_REV_ES2_2)
--		omap_hdmi_init(OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP);
--	else
--		omap_hdmi_init(0);
--
--	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
--	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
--	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
--}
--
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
-index 62d7b15..679a047 100644
---- a/arch/arm/mach-omap2/dss-common.c
-+++ b/arch/arm/mach-omap2/dss-common.c
-@@ -24,8 +24,12 @@
-  */
++		/* DT HACK: try VCXIO to make omapdss work for o4 sdp/panda */
++		if (IS_ERR(vdds_dsi))
++			vdds_dsi = regulator_get(&dsi->pdev->dev, "VCXIO");
++
+ 		if (IS_ERR(vdds_dsi)) {
+ 			DSSERR("can't get VDDS_DSI regulator\n");
+ 			return PTR_ERR(vdds_dsi);
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index a48a7dd..deaeb6c 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -340,6 +340,10 @@ static int __init hdmi_init_display(struct omap_dss_device *dssdev)
  
- #include <linux/kernel.h>
-+#include <linux/gpio.h>
-+
- #include <video/omapdss.h>
- #include <video/omap-panel-tfp410.h>
-+#include <video/omap-panel-nokia-dsi.h>
-+#include <video/omap-panel-picodlp.h>
+ 		reg = devm_regulator_get(&hdmi.pdev->dev, "vdda_hdmi_dac");
  
- #include <plat/cpu.h>
- 
-@@ -102,3 +106,171 @@ void __init omap4_panda_display_init_of(void)
- {
- 	omap_display_init(&omap4_panda_dss_data);
- }
++		/* DT HACK: try VDAC to make omapdss work for o4 sdp/panda */
++		if (IS_ERR(reg))
++			reg = devm_regulator_get(&hdmi.pdev->dev, "VDAC");
 +
-+
-+/* OMAP4 Blaze display data */
-+
-+#define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
-+#define DLP_POWER_ON_GPIO	40
-+
-+static struct nokia_dsi_panel_data dsi1_panel = {
-+		.name		= "taal",
-+		.reset_gpio	= 102,
-+		.use_ext_te	= false,
-+		.ext_te_gpio	= 101,
-+		.esd_interval	= 0,
-+		.pin_config = {
-+			.num_pins	= 6,
-+			.pins		= { 0, 1, 2, 3, 4, 5 },
-+		},
-+};
-+
-+static struct omap_dss_device sdp4430_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "taal",
-+	.type			= OMAP_DISPLAY_TYPE_DSI,
-+	.data			= &dsi1_panel,
-+	.phy.dsi		= {
-+		.module		= 0,
-+	},
-+	.channel		= OMAP_DSS_CHANNEL_LCD,
-+};
-+
-+static struct nokia_dsi_panel_data dsi2_panel = {
-+		.name		= "taal",
-+		.reset_gpio	= 104,
-+		.use_ext_te	= false,
-+		.ext_te_gpio	= 103,
-+		.esd_interval	= 0,
-+		.pin_config = {
-+			.num_pins	= 6,
-+			.pins		= { 0, 1, 2, 3, 4, 5 },
-+		},
-+};
-+
-+static struct omap_dss_device sdp4430_lcd2_device = {
-+	.name			= "lcd2",
-+	.driver_name		= "taal",
-+	.type			= OMAP_DISPLAY_TYPE_DSI,
-+	.data			= &dsi2_panel,
-+	.phy.dsi		= {
-+
-+		.module		= 1,
-+	},
-+	.channel		= OMAP_DSS_CHANNEL_LCD2,
-+};
-+
-+static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
-+	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
-+	.ls_oe_gpio = HDMI_GPIO_LS_OE,
-+	.hpd_gpio = HDMI_GPIO_HPD,
-+};
-+
-+static struct omap_dss_device sdp4430_hdmi_device = {
-+	.name = "hdmi",
-+	.driver_name = "hdmi_panel",
-+	.type = OMAP_DISPLAY_TYPE_HDMI,
-+	.channel = OMAP_DSS_CHANNEL_DIGIT,
-+	.data = &sdp4430_hdmi_data,
-+};
-+
-+static struct picodlp_panel_data sdp4430_picodlp_pdata = {
-+	.picodlp_adapter_id	= 2,
-+	.emu_done_gpio		= 44,
-+	.pwrgood_gpio		= 45,
-+};
-+
-+static void sdp4430_picodlp_init(void)
-+{
-+	int r;
-+	const struct gpio picodlp_gpios[] = {
-+		{DLP_POWER_ON_GPIO, GPIOF_OUT_INIT_LOW,
-+			"DLP POWER ON"},
-+		{sdp4430_picodlp_pdata.emu_done_gpio, GPIOF_IN,
-+			"DLP EMU DONE"},
-+		{sdp4430_picodlp_pdata.pwrgood_gpio, GPIOF_OUT_INIT_LOW,
-+			"DLP PWRGOOD"},
-+	};
-+
-+	r = gpio_request_array(picodlp_gpios, ARRAY_SIZE(picodlp_gpios));
-+	if (r)
-+		pr_err("Cannot request PicoDLP GPIOs, error %d\n", r);
-+}
-+
-+static int sdp4430_panel_enable_picodlp(struct omap_dss_device *dssdev)
-+{
-+	gpio_set_value(DISPLAY_SEL_GPIO, 0);
-+	gpio_set_value(DLP_POWER_ON_GPIO, 1);
-+
-+	return 0;
-+}
-+
-+static void sdp4430_panel_disable_picodlp(struct omap_dss_device *dssdev)
-+{
-+	gpio_set_value(DLP_POWER_ON_GPIO, 0);
-+	gpio_set_value(DISPLAY_SEL_GPIO, 1);
-+}
-+
-+static struct omap_dss_device sdp4430_picodlp_device = {
-+	.name			= "picodlp",
-+	.driver_name		= "picodlp_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 24,
-+	.channel		= OMAP_DSS_CHANNEL_LCD2,
-+	.platform_enable	= sdp4430_panel_enable_picodlp,
-+	.platform_disable	= sdp4430_panel_disable_picodlp,
-+	.data			= &sdp4430_picodlp_pdata,
-+};
-+
-+static struct omap_dss_device *sdp4430_dss_devices[] = {
-+	&sdp4430_lcd_device,
-+	&sdp4430_lcd2_device,
-+	&sdp4430_hdmi_device,
-+	&sdp4430_picodlp_device,
-+};
-+
-+static struct omap_dss_board_info sdp4430_dss_data = {
-+	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
-+	.devices	= sdp4430_dss_devices,
-+	.default_device	= &sdp4430_lcd_device,
-+};
-+
-+void __init omap_4430sdp_display_init(void)
-+{
-+	int r;
-+
-+	/* Enable LCD2 by default (instead of Pico DLP) */
-+	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
-+			"display_sel");
-+	if (r)
-+		pr_err("%s: Could not get display_sel GPIO\n", __func__);
-+
-+	sdp4430_picodlp_init();
-+	omap_display_init(&sdp4430_dss_data);
-+	/*
-+	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
-+	 * later have external pull up on the HDMI I2C lines
-+	 */
-+	if (cpu_is_omap446x() || omap_rev() > OMAP4430_REV_ES2_2)
-+		omap_hdmi_init(OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP);
-+	else
-+		omap_hdmi_init(0);
-+
-+	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
-+	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
-+	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
-+}
-+
-+void __init omap_4430sdp_display_init_of(void)
-+{
-+	int r;
-+
-+	/* Enable LCD2 by default (instead of Pico DLP) */
-+	r = gpio_request_one(DISPLAY_SEL_GPIO, GPIOF_OUT_INIT_HIGH,
-+			"display_sel");
-+	if (r)
-+		pr_err("%s: Could not get display_sel GPIO\n", __func__);
-+
-+	sdp4430_picodlp_init();
-+	omap_display_init(&sdp4430_dss_data);
-+}
-diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
-index 6fac6a8..915f6ff 100644
---- a/arch/arm/mach-omap2/dss-common.h
-+++ b/arch/arm/mach-omap2/dss-common.h
-@@ -8,5 +8,7 @@
- 
- void __init omap4_panda_display_init(void);
- void __init omap4_panda_display_init_of(void);
-+void __init omap_4430sdp_display_init(void);
-+void __init omap_4430sdp_display_init_of(void);
- 
- #endif
+ 		if (IS_ERR(reg)) {
+ 			DSSERR("can't get VDDA_HDMI_DAC regulator\n");
+ 			return PTR_ERR(reg);
 -- 
 1.7.10.4
 
