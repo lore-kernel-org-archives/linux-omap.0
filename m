@@ -1,71 +1,143 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 3/3] omap prcm cleanup for v3.8 merge window, part1
-Date: Mon, 5 Nov 2012 10:51:33 -0800
-Message-ID: <20121105185133.GC22301@quad.lixom.net>
-References: <pull-1351286620-406688>
- <E1TRrO0-00087R-UM@merlin.infradead.org>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Mon, 5 Nov 2012 19:10:27 +0000
+Message-ID: <CACxGe6v9cyybV4+5tQJ-DG8qdyEHfsLa7t+-3CTL+97Q9msrFw@mail.gmail.com>
+References: <50924DA3.1060901@ti.com> <F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
+ <20121101110418.GF410@arwen.pp.htv.fi> <3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
+ <20121101124025.GA12489@arwen.pp.htv.fi> <A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
+ <20121101131609.GC12489@arwen.pp.htv.fi> <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
+ <20121101135148.382aec00@pyramind.ukuu.org.uk> <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
+ <20121101220518.GE14982@arwen.pp.htv.fi> <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
+ <20121102112104.4657fb7b@pyramind.ukuu.org.uk> <0EC43413-1DD7-4E2A-879B-0B5B926FFDFE@antoniou-consulting.com>
+ <CACxGe6uuK6ew5uxh0BjtYAtPZCTLeUpHc4emXRAnMUtNmEzmGg@mail.gmail.com> <AC5129F0-FF30-46ED-AD57-3FA6CA919F99@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:63316 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932107Ab2KESv2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 13:51:28 -0500
-Received: by mail-pb0-f46.google.com with SMTP id rr4so4122086pbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Nov 2012 10:51:28 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <E1TRrO0-00087R-UM@merlin.infradead.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AC5129F0-FF30-46ED-AD57-3FA6CA919F99@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <robherring2@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Oct 26, 2012 at 02:23:40PM -0700, Tony Lindgren wrote:
-> The following changes since commit a0212796b58061a9716178d261f318925c246643:
-> 
->   Merge tag 'omap-cleanup-fixes-a-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/cleanup-headers (2012-10-26 13:18:19 -0700)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-prcm-part1-take2-signed
-> 
-> for you to fetch changes up to 7fc54fd3084457c7f11b9e2e1e3fcd19a3badc33:
-> 
->   Merge branch 'omap-for-v3.8/cleanup-headers' into omap-for-v3.8/cleanup-prcm (2012-10-26 13:32:22 -0700)
-> 
-> ----------------------------------------------------------------
-> 
-> From Paul Walmsley <paul@pwsan.com>:
-> 
-> The first set of OMAP PRM/CM-related cleanup patches for 3.8.
-> Prepares for the future move of the PRM/CM code to drivers/.  Also
-> includes some prcm.[ch] cleanup patches from the WDTIMER cleanup
-> series that don't need external acks.
-> 
-> ----------------------------------------------------------------
-> Paul Walmsley (9):
->       ARM: OMAP2+: PRM: remove PRM weak functions
->       ARM: OMAP2+: PRM: split PRM functions into OMAP2, OMAP3-specific files
->       ARM: OMAP2+: powerdomain/PRM: move the low-level powerdomain functions into PRM
->       ARM: OMAP2+: CM/hwmod: split CM functions into OMAP2, OMAP3-specific files
->       ARM: OMAP2/3: clockdomain/PRM/CM: move the low-level clockdomain functions into PRM/CM
->       ARM: OMAP2+: PRM: prepare for use of prm_ll_data function pointers
->       ARM: OMAP2+: CM: prepare for use of cm_ll_data function pointers
->       ARM: OMAP1: create read_reset_sources() function (for initial use by watchdog)
->       ARM: OMAP2+: PRM: create PRM reset source API for the watchdog timer driver
-> 
-> Tony Lindgren (2):
->       Merge tag 'omap-cleanup-a-for-3.8' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.8/cleanup-prcm
->       Merge branch 'omap-for-v3.8/cleanup-headers' into omap-for-v3.8/cleanup-prcm
+On Mon, Nov 5, 2012 at 3:37 PM, Pantelis Antoniou
+<panto@antoniou-consulting.com> wrote:
+> Hi Grant,
+>
+> On Nov 5, 2012, at 1:37 AM, Grant Likely wrote:
+>
+>> On Fri, Nov 2, 2012 at 12:32 PM, Pantelis Antoniou
+>> <panto@antoniou-consulting.com> wrote:
+>>> The i2c2 alias cannot be resolved at compile time; there has to be
+>>>
+>>> a) A DT object format where unresolved aliases (symbols) are tracked
+>>> b) A runtime DT linker that will resolve the alias, and will insert the
+>>>   i2c2-devices child nodes as children in the i2c2 node.
+>>> c) A method to trigger platform device creation for the child nodes just
+>>>   inserted.
+>>>
+>>> DT core changes aren't bound to be easily accepted, so without having a clear
+>>> signal from the DT maintainers that they would consider such a method people
+>>> are just hesitant to go down this road.
+>>
+>> I do agree and will accept such a method.
+>>
+>> g.
+>
+> Understood.
+>
+> I'll think about the issues and come up with a design for the format, but
+> let's talk about this in the open for a while.
 
-Hi,
+Agreed. I'm planning to post my first draft/RFC tonight.
 
-The history of this branch looks a little odd. Did you mean to merge in
-cleanup-headers on top of Paul's branch in it? It seems to add no value -- all
-that code is already in our branch and it resolves no conflicts, etc.
+> I don't want to modify the DTB format, in order to avoid impacting any other
+> DT users.
 
-That being said, it causes no harm, and I've pulled it in as is.
+Ditto. It should be a direct extension.
 
+> So would something like this work for you?
+[...]
+> The dt-resolution node, can be appended to the dt fragment contents and
+> can be generated by the compiler.
+>
+> Upon injection of the DT fragment the in-kernel loader can perform
+> symbol resolution and replace the phandles with the in-kernel values.
+>
+> I know there's an aliases node, but I don't know if it's wise to modify it.
+>
+> What do you think?
 
--Olof
+If I'm reading your intent correctly, your primary worry is the
+problem of matching up phandles from the base dt with (potentially
+different) phandle values in the overlay. This solution solves it by
+encoding all of the phandle locations as offsets from the start of the
+file into the dt-resolution node. Correct? My concern with this
+approach is that it is fragile. Any changes to the fragment file, such
+as to add extra properties or nodes, or even to repack the tree will
+break all the offsets; probably silently.
+
+It would be less fragile if each property containing phandles had some
+kind of .<prop>-phandle-offsets companion property that listed the
+phandles that need to be fixed up as an offset to the beginning of
+only that properties' data. Better, in that modifying the tree won't
+break the links, but I still worry that it is fragile and possibly too
+complex.
+
+However, the problem is based on the assumption that phandles are
+effectively random and could change ever time the tree is recompiled.
+Well, what if they weren't? What if dtc generated phandles using a
+hash of the node full name so that the value changed rarely? Also,
+what if the format was oriented around detecting if the phandles don't
+match instead of fixing things up? The solution becomes a lot simpler
+if the parser only has to verify that the referenced phandles already
+exist at the right path in the tree.
+
+Something like this:
+
+/include/ "base-file.dts"  /* include might not be the right syntax here */
+&i2c0 {         /* i2c0 resolved by label */
+        touchpad@10 {
+                compatible = "acme,touchpad";
+                reg = <0x10>;
+                interrupt-parent = <&intc>;
+                interrupts = <100>;
+        };
+};
+
+And the generated overlay dtb may look like this:
+
+/ {
+        .readonly;
+        interrupt-controller@0x10005000 {
+                .readonly;
+                phandle = <0x1234>;
+        };
+
+        peripheral-bus {
+                .readonly;
+                i2c@20001000 {
+                        touchpad@10 {
+                                compatible = "acme,touchpad";
+                                reg = <0x10>;
+                                interrupt-parent = <0x1234>;
+                                interrupts = <100>;
+                        };
+                };
+        };
+};
+
+Which is obviously missing a bunch of information for the rest of the
+system, but contains enough data to ensure that the path to the touchpad
+node is valid and that the phandle has not changed.
+
+This handles many of the use cases, but it assumes that an overlay is
+board specific. If it ever is required to support multiple base boards
+with a single overlay file then there is a problem. The .dtb overlays
+generated in this manor cannot handle different phandles or nodes that
+are in a different place. On the other hand, the overlay source files
+should have no problem being compiled for multiple targets, so maybe
+it isn't an issue. Plus if dtc is installed on the target, then the
+live tree from /proc can be used as the reference when compiling the
+overlay.
+
+g.
