@@ -1,21 +1,73 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 3/7] i2c: omap: remove the dtrev
-Date: Mon, 5 Nov 2012 14:56:23 +0530
-Message-ID: <5097863F.7030105@ti.com>
-References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com> <1352025873-27492-4-git-send-email-shubhrajyoti@ti.com> <20121105075320.GD32468@arwen.pp.htv.fi> <50977C80.8090000@ti.com> <20121105090517.GB2913@arwen.pp.htv.fi>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: [PATCH 0/8] Support for AM33xx PWM Susbsytem
+Date: Mon, 5 Nov 2012 14:42:21 +0530
+Message-ID: <1352106749-9437-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121105090517.GB2913-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: thierry.reding@avionic-design.de, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com
+Cc: hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 05 November 2012 02:35 PM, Felipe Balbi wrote:
->> egister map is different.
->> > 
->> > So the scheme may still be required.
-> fair enough, but drop it from debugging messages.
-OK thanks.
+In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
+PWM subsystem. All these submodules shares the resources (clock) & has
+a clock gating register in PWM Subsystem. This patch series creates a
+parent PWM Subsystem driver to handle access synchronization of shared
+resources & clock gating from PWM Subsystem configuration space.
+Also Device tree nodes populated to support parent child relation
+between PWMSS, ECAP & EHRPWM submodules.
+In addition EHRPWM module requires explicit clock gating from control
+module & is handled by patch #2 & 6.
+
+Patch #4 & 5 submitted is a second revision as suggested by  Thierry
+for handling clock gating with a global function . This requires config
+space handling done independent from driver and is done at parent driver.
+So the parent<->child relation adopted to handle
+1. pm runtime synchronization
+2. PWM subsystem common config space clock gating for PWM submodules.
+
+Patches supports
+- Driver support for parent child relation handled patch #1
+- Optional EHRPWM tb clock in patch #2
+- Parent child in HWMOD handled at patch #3
+- Device tree binding support handled in patch #4-6
+- DT node populated in patch #7-8.
+
+This patch series based on linux-next/20121102 and tested on AM335x-evm.
+It depends on [1]
+
+1. https://lkml.org/lkml/2012/10/29/589
+pwm: Device tree support for PWM polarity
+
+Philip, Avinash (8):
+  PWMSS: Add PWM Subsystem driver for parent<->child relationship
+  ARM: am33xx: clk: Add optional clock for EHRPWM
+  ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
+    subsystem
+  pwm: pwm-tiecap: Add device-tree binding support for APWM driver
+  pwm: pwm-tiehrpwm: Add device-tree binding support for EHRPWM driver
+  pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+  ARM: dts: AM33XX: Add PWMSS device tree nodes
+  ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
+
+ .../devicetree/bindings/pwm/pwm-tiecap.txt         |   22 +
+ .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |   25 ++
+ Documentation/devicetree/bindings/pwm/tipwmss.txt  |   30 ++
+ arch/arm/boot/dts/am335x-evm.dts                   |   21 +
+ arch/arm/boot/dts/am33xx.dtsi                      |   90 +++++
+ arch/arm/mach-omap2/clock33xx_data.c               |   37 ++
+ arch/arm/mach-omap2/control.h                      |    8 +
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  414 +++++++++++++-------
+ drivers/pwm/Kconfig                                |   11 +
+ drivers/pwm/Makefile                               |    1 +
+ drivers/pwm/pwm-tiecap.c                           |   36 ++-
+ drivers/pwm/pwm-tiehrpwm.c                         |   53 +++-
+ drivers/pwm/tipwmss.c                              |  136 +++++++
+ drivers/pwm/tipwmss.h                              |    8 +
+ 14 files changed, 754 insertions(+), 138 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+ create mode 100644 Documentation/devicetree/bindings/pwm/tipwmss.txt
+ create mode 100644 drivers/pwm/tipwmss.c
+ create mode 100644 drivers/pwm/tipwmss.h
