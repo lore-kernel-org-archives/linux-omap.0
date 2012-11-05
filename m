@@ -1,93 +1,58 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/6] ARM/dts: omap4-sdp: Add pinmux configuration for HDMI
-Date: Mon, 5 Nov 2012 15:14:15 +0200
-Message-ID: <1352121259-5836-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 6/6] OMAP: board-generic: enable DSS for panda & sdp boards
+Date: Mon, 5 Nov 2012 15:14:19 +0200
+Message-ID: <1352121259-5836-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56961 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56877 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754152Ab2KENOb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 08:14:31 -0500
+	id S932302Ab2KENOk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 08:14:40 -0500
 In-Reply-To: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: b-cousson@ti.com, s-guiriec@ti.com, Ricardo Neri <ricardo.neri@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: b-cousson@ti.com, s-guiriec@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-From: Ricardo Neri <ricardo.neri@ti.com>
+Call the non-DT omapdss setup code from board-generic if the board is
+omap4-panda or omap4-sdp. This will give us working omapdss for those
+boards when using DT kernel.
 
-Add the pinmux configuration for HDMI and TPD12S015A. Configure the
-gpios for the TPD12S015A and SDA, SCL and CEC for HDMI.
-
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/boot/dts/omap4-sdp-es23plus.dts |   17 +++++++++++++++++
- arch/arm/boot/dts/omap4-sdp.dts          |   18 ++++++++++++++++++
- 2 files changed, 35 insertions(+)
- create mode 100644 arch/arm/boot/dts/omap4-sdp-es23plus.dts
+ arch/arm/mach-omap2/board-generic.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp-es23plus.dts b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
-new file mode 100644
-index 0000000..b4a40ff
---- /dev/null
-+++ b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
-@@ -0,0 +1,17 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/include/ "omap4-sdp.dts"
-+
-+/* SDP boards with 4430 ES2.3+ or 4460 have external pullups on SCL & SDA */
-+&dss_hdmi_pins {
-+	pinctrl-single,pins = <
-+		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
-+		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
-+		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
-+		>;
-+};
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 5b7e04f..7b14bb3 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -124,6 +124,8 @@
- 			&dmic_pins
- 			&mcbsp1_pins
- 			&mcbsp2_pins
-+			&dss_hdmi_pins
-+			&tpd12s015_pins
- 	>;
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 601ecdf..8f5f21c 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -21,6 +21,7 @@
  
- 	uart2_pins: pinmux_uart2_pins {
-@@ -194,6 +196,22 @@
- 			0xbc 0x100	/* abe_mcbsp2_fsx.abe_mcbsp2_fsx INPUT | MODE0 */
- 		>;
- 	};
-+
-+	dss_hdmi_pins: pinmux_dss_hdmi_pins {
-+		pinctrl-single,pins = <
-+			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
-+			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
-+			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
-+		>;
-+	};
-+
-+	tpd12s015_pins: pinmux_tpd12s015_pins {
-+		pinctrl-single,pins = <
-+			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
-+			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
-+			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
-+		>;
-+	};
- };
+ #include "common.h"
+ #include "common-board-devices.h"
++#include "dss-common.h"
  
- &i2c1 {
+ #if !(defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3))
+ #define intc_of_init	NULL
+@@ -40,6 +41,15 @@ static void __init omap_generic_init(void)
+ 	omap_sdrc_init(NULL, NULL);
+ 
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
++
++	/*
++	 * HACK: call display setup code for selected boards to enable omapdss.
++	 * This will be removed when omapdss supports DT.
++	 */
++	if (of_machine_is_compatible("ti,omap4-panda"))
++		omap4_panda_display_init_of();
++	else if (of_machine_is_compatible("ti,omap4-sdp"))
++		omap_4430sdp_display_init_of();
+ }
+ 
+ #ifdef CONFIG_SOC_OMAP2420
 -- 
 1.7.10.4
 
