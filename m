@@ -1,61 +1,140 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: Remove plat-omap/common.c
-Date: Mon, 5 Nov 2012 07:36:33 -0800
-Message-ID: <20121105153632.GH4953@atomide.com>
-References: <20121101224703.2103.95474.stgit@muffinssi.local>
- <20121101224828.2103.82950.stgit@muffinssi.local>
- <50936A6E.3020202@ti.com>
- <5093891D.6070302@ti.com>
- <50938A69.9040908@ti.com>
- <20121102154901.GU15766@atomide.com>
- <20121102185453.GY15766@atomide.com>
- <50977319.9070902@ti.com>
-Mime-Version: 1.0
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Mon, 5 Nov 2012 16:37:14 +0100
+Message-ID: <AC5129F0-FF30-46ED-AD57-3FA6CA919F99@antoniou-consulting.com>
+References: <50924DA3.1060901@ti.com> <F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com> <20121101110418.GF410@arwen.pp.htv.fi> <3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com> <20121101124025.GA12489@arwen.pp.htv.fi> <A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com> <20121101131609.GC12489@arwen.pp.htv.fi> <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com> <20121101135148.382aec00@pyramind.ukuu.org.uk> <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com> <20121101220518.GE14982@arwen.pp.htv.fi> <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com> <20121102112104.4657fb7b@pyramind.ukuu.org.uk> <0EC43413-1DD7-4E2A-879B-0B5B926FFDFE@antoniou-consulting.com> <CACxGe6uuK6ew5uxh0BjtYAtPZCTLeUpHc4emXRAnMUtNmEzmGg@mail.g
+ mail.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39199 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932618Ab2KEPgg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 10:36:36 -0500
-Content-Disposition: inline
-In-Reply-To: <50977319.9070902@ti.com>
+Received: from li42-95.members.linode.com ([209.123.162.95]:35079 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932830Ab2KEPhW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 10:37:22 -0500
+In-Reply-To: <CACxGe6uuK6ew5uxh0BjtYAtPZCTLeUpHc4emXRAnMUtNmEzmGg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <robherring2@gmail.com>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [121105 00:06]:
-> On 2012-11-02 20:54, Tony Lindgren wrote:
-> >> * Santosh Shilimkar <santosh.shilimkar@ti.com> [121102 01:56]:
-> >>> On Friday 02 November 2012 02:19 PM, Tomi Valkeinen wrote:
-> >>>> On 2012-11-02 08:38, Santosh Shilimkar wrote:
-> >>>>>
-> >>>>> Lets not move this in DMA code since the above is really related
-> >>>>> to frame buffer. It reserves more DMA area for dma_alloc_coherent()
-> >>>>> etc than default 2 MB. Infact, we should no longer need this with
-> >>>>> CMA and memblock in place.
-> >>>>>
-> >>>>> Tomi,
-> >>>>> Can we not get rid of the above memory reservation ?
-> >>>>
-> >>>> Yes, I think so. This one is only used for the old omapfb, i.e. omap1,
-> >>>> and I have no means to test it out, though. But below is a patch to
-> >>>> remove it. I also attached the patch, as it looks like thunderbird wants
-> >>>> to reformat the pasted patch... I'll remove the
-> >>>> CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE from the omapfb driver's Kconfig file
-> >>>> in my tree later.
-> > 
-> > Hmm actually, is it safe to remove for omap1, or should we
-> > still keep it around for omap1?
+Hi Grant,
+
+On Nov 5, 2012, at 1:37 AM, Grant Likely wrote:
+
+> On Fri, Nov 2, 2012 at 12:32 PM, Pantelis Antoniou
+> <panto@antoniou-consulting.com> wrote:
+>> The i2c2 alias cannot be resolved at compile time; there has to be
+>> 
+>> a) A DT object format where unresolved aliases (symbols) are tracked
+>> b) A runtime DT linker that will resolve the alias, and will insert the
+>>   i2c2-devices child nodes as children in the i2c2 node.
+>> c) A method to trigger platform device creation for the child nodes just
+>>   inserted.
+>> 
+>> DT core changes aren't bound to be easily accepted, so without having a clear
+>> signal from the DT maintainers that they would consider such a method people
+>> are just hesitant to go down this road.
 > 
-> Why wouldn't it be safe? Do you mean that CMA doesn't work on omap1,
-> or...? I'm no expert on CMA, but as far as I can see with it's ARM
-> generic stuff.
+> I do agree and will accept such a method.
+> 
+> g.
 
-Just wondering after your comment "This one is only used for the old
-omapfb, i.e. omap1". But sounds like it should no longer be needed
-there either if I parse that right.
+Understood.
 
-Regards,
+I'll think about the issues and come up with a design for the format, but
+let's talk about this in the open for a while.
 
-Tony
+I don't want to modify the DTB format, in order to avoid impacting any other
+DT users.
+
+So would something like this work for you?
+
+-----8<--------8<--------
+
+/* booting DT (all symbols are resolved) */
+/* this is a valid DTB today */
+
+/ {
+
+	i2c2: i2c@4819c000 { 
+		compatible = "ti,omap4-i2c";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		ti,hwmods = "i2c3"; /* TODO: Fix hwmod */
+		reg = <0x4819c000 0x1000>;
+		interrupt-parent = <&intc>;
+		interrupts = <30>;
+		status = "on-demand";
+	}; 
+	
+	/* .... others nodes .... */
+
+	/* the symbols node can be generated by the DTC */
+	symbols {
+		compatible = "dt,symbols";
+
+		symbol@0 {
+			name = "i2c2";
+			phandle = <&i2c2>;
+		};
+
+		...
+	};
+};
+
+-----8<--------8<--------
+
+/* fragment DT (not all symbols are resolved) */
+
+/ {
+	i2c2-append {
+		compatible = "dt,append";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		append-at = <&i2c2>;	/* offset F00, either -1 (end of list) */
+					/* or next offset in the list of i2c2 refs. */
+
+		/* Ambient light sensor */ 
+		tsl2550@39 {
+			compatible = "tsl,tsl2550";
+			reg = <0x39>;
+		};
+	};
+};
+
+-----8<--------8<--------
+
+The <&i2c2> value can't be resolved at compile time.
+
+We can use a simple linked list method for keeping track of the
+locations in the fragment which we need to resolve, terminating with -1.
+
+The compiler can add the following nodes to mark the entries requiring
+resolution.
+
+For example i2c2...
+
+dt-resolution {
+	i2c2 = <0xf00>; /* first offset in the dtb fragment requiring */
+			/* resolution of i2c2 */
+	....
+};
+
+The dt-resolution node, can be appended to the dt fragment contents and
+can be generated by the compiler.
+
+Upon injection of the DT fragment the in-kernel loader can perform
+symbol resolution and replace the phandles with the in-kernel values.
+
+I know there's an aliases node, but I don't know if it's wise to modify it.
+
+What do you think?
+
+Regards
+
+-- Pantelis
+
+
