@@ -1,74 +1,89 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv9 2/8] ARM: OMAP4: PM: add errata support
-Date: Mon, 05 Nov 2012 14:36:25 -0800
-Message-ID: <87zk2vekye.fsf@deeprootsystems.com>
-References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
-	<1350552010-28760-3-git-send-email-t-kristo@ti.com>
+From: Joel A Fernandes <agnel.joel@gmail.com>
+Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
+Date: Mon, 5 Nov 2012 16:59:56 -0600
+Message-ID: <CAD=GYpYc9L5yKqgar5jB2jG8+GiX7Lb0zevP9Pxaq0HdaVXQ5Q@mail.gmail.com>
+References: <50924DA3.1060901@ti.com>
+	<F49CA12D-4DAC-4293-AD4D-FC7EDCEA6993@antoniou-consulting.com>
+	<20121101110418.GF410@arwen.pp.htv.fi>
+	<3AF5A6FC-61D9-40CA-85B3-81C2C788CB76@antoniou-consulting.com>
+	<20121101124025.GA12489@arwen.pp.htv.fi>
+	<A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com>
+	<20121101131609.GC12489@arwen.pp.htv.fi>
+	<E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com>
+	<20121101135148.382aec00@pyramind.ukuu.org.uk>
+	<9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com>
+	<20121101220518.GE14982@arwen.pp.htv.fi>
+	<CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com>
+	<20121102112104.4657fb7b@pyramind.ukuu.org.uk>
+	<0EC43413-1DD7-4E2A-879B-0B5B926FFDFE@antoniou-consulting.com>
+	<CACxGe6uuK6ew5uxh0BjtYAtPZCTLeUpHc4emXRAnMUtNmEzmGg@mail.gmail.com>
+	<AC5129F0-FF30-46ED-AD57-3FA6CA919F99@antoniou-consulting.com>
+	<CACxGe6v9cyybV4+5tQJ-DG8qdyEHfsLa7t+-3CTL+97Q9msrFw@mail.gmail.com>
+	<18667A4E-5513-4D74-922F-30D091609F16@antoniou-consulting.com>
+	<CACxGe6uR5VhHsCS1vmayURkGBKmhagaeWBBaCnyfsfOjZ2Dutg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:43499 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932348Ab2KEWgZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 17:36:25 -0500
-Received: by mail-da0-f46.google.com with SMTP id n41so2880065dak.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Nov 2012 14:36:25 -0800 (PST)
-In-Reply-To: <1350552010-28760-3-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Thu, 18 Oct 2012 12:20:04 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6uR5VhHsCS1vmayURkGBKmhagaeWBBaCnyfsfOjZ2Dutg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <robherring2@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Tero Kristo <t-kristo@ti.com> writes:
+Hi Grant,
 
-> Added similar PM errata flag support as omap3 has. This should be used
-> in similar manner, set the flags during init time, and check the flag
-> values during runtime.
+On Mon, Nov 5, 2012 at 2:14 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+> On Mon, Nov 5, 2012 at 7:54 PM, Pantelis Antoniou
+> <panto@antoniou-consulting.com> wrote:
+>>> This handles many of the use cases, but it assumes that an overlay is
+>>> board specific. If it ever is required to support multiple base boards
+>>> with a single overlay file then there is a problem. The .dtb overlays
+>>> generated in this manor cannot handle different phandles or nodes that
+>>> are in a different place. On the other hand, the overlay source files
+>>> should have no problem being compiled for multiple targets, so maybe
+>>> it isn't an issue. Plus if dtc is installed on the target, then the
+>>> live tree from /proc can be used as the reference when compiling the
+>>> overlay.
+>>
+>> My worry is that this format is dependent on linking against the board
+>> DTS file. One of the ideas thrown around here was that it might make
+>> sense to store the DTB fragment in the EEPROM of the device.
 >
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-
-These allow basic suspend/resume to work on 4460/Panda-ES, so I'm going
-to queue these up as fixes.
-
-However, since they're not technically regressions, it may be too late
-to get them in for v3.7, but they'll be in for v3.8 for sure.
-
-Kevin
-
-
-> ---
->  arch/arm/mach-omap2/pm.h     |    7 +++++++
->  arch/arm/mach-omap2/pm44xx.c |    1 +
->  2 files changed, 8 insertions(+), 0 deletions(-)
+> Right, that wouldn't work well if the base DT changed, or if a
+> BeagleBone2 is released that has the same header configuration, but
+> different backing devices. It would be nice to have a solution for
+> that.
 >
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 707e9cb..f26f2d7 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -100,6 +100,13 @@ extern void enable_omap3630_toggle_l2_on_restore(void);
->  static inline void enable_omap3630_toggle_l2_on_restore(void) { }
->  #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
->  
-> +#if defined(CONFIG_ARCH_OMAP4)
-> +extern u16 pm44xx_errata;
-> +#define IS_PM44XX_ERRATUM(id)		(pm44xx_errata & (id))
-> +#else
-> +#define IS_PM44XX_ERRATUM(id)		0
-> +#endif
-> +
->  #ifdef CONFIG_POWER_AVS_OMAP
->  extern int omap_devinit_smartreflex(void);
->  extern void omap_enable_smartreflex_on_init(void);
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> index ba06300..07e7ef2 100644
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -33,6 +33,7 @@ struct power_state {
->  };
->  
->  static LIST_HEAD(pwrst_list);
-> +u16 pm44xx_errata;
->  
->  #ifdef CONFIG_SUSPEND
->  static int omap4_pm_suspend(void)
+>> In that case you have a OS independent hardware description, which can
+>> be even used even by the bootloader to access devices it knows not about
+>> at compile time.
+>>
+>> Other than that, I have no other objections.
+>
+> I'm open to suggestions if anyone has any. I have not objections to a
+> fixup approach, but I'm not comfortable with anything that is fragile
+> to modifications to the fragment.
+
+I am fairly new to the DT world so please bear with me, but how about
+a method that resolves symbols the same way that the linux dynamic
+linker does when shared libraries are loaded?
+
+A separate table (similar to .PLT/GOT sections  in the ELF object
+format) could be created when the fragment is loaded, and the phandle
+references could be fixed to point to the table offsets during compile
+time. This table would be a second level indirection and the kernel
+would populate this table with the in-kernel values of the phandles
+that the dt fragment refers to.
+
+This might involve changes to the DT core, but as such, this method
+wouldn't suffer from the fragility problem of either base or fragment
+DT trees being modified.
+
+The table itself could be added to the tree by the compiler, and the
+phandles could point to it (fixed). such phandles could be marked for
+special handling to facilitate the 1-level indirection.
+
+What do you think about this?
+
+Regards,
+Joel
