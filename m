@@ -1,281 +1,93 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 4/6] OMAP: panda: move display init from board file to dss-common.c
-Date: Mon, 5 Nov 2012 15:14:17 +0200
-Message-ID: <1352121259-5836-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/6] ARM/dts: omap4-sdp: Add pinmux configuration for HDMI
+Date: Mon, 5 Nov 2012 15:14:15 +0200
+Message-ID: <1352121259-5836-3-git-send-email-tomi.valkeinen@ti.com>
 References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40814 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56961 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754128Ab2KENOg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 08:14:36 -0500
+	id S1754152Ab2KENOb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 08:14:31 -0500
 In-Reply-To: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: b-cousson@ti.com, s-guiriec@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: b-cousson@ti.com, s-guiriec@ti.com, Ricardo Neri <ricardo.neri@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Device tree support for omapdss is still some way in the future.  In an
-effort to get a minimal DSS support for DT enabled kernel on selected
-OMAP4 boards, we'll go for a temporary solution: We will call the same
-non-DT omapdss setup code for OMAP4 SDP and Pandaboards from
-board-generic.c, thus enabling DSS for those boards.
+From: Ricardo Neri <ricardo.neri@ti.com>
 
-This patch moves the display setup code from board-omap4panda.c to
-dss-common.c. dss-common.c will be called by the board-omap4panda.c when
-running on non-DT kernel, and by board-generic.c when running on DT
-enabled kernel.
+Add the pinmux configuration for HDMI and TPD12S015A. Configure the
+gpios for the TPD12S015A and SDA, SCL and CEC for HDMI.
 
+Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/Makefile           |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c |   68 +--------------------
- arch/arm/mach-omap2/dss-common.c       |  104 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/dss-common.h       |   12 ++++
- 4 files changed, 118 insertions(+), 68 deletions(-)
- create mode 100644 arch/arm/mach-omap2/dss-common.c
- create mode 100644 arch/arm/mach-omap2/dss-common.h
+ arch/arm/boot/dts/omap4-sdp-es23plus.dts |   17 +++++++++++++++++
+ arch/arm/boot/dts/omap4-sdp.dts          |   18 ++++++++++++++++++
+ 2 files changed, 35 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap4-sdp-es23plus.dts
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index fe40d9e..fb38a9b 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -279,4 +279,4 @@ endif
- emac-$(CONFIG_TI_DAVINCI_EMAC)		:= am35xx-emac.o
- obj-y					+= $(emac-m) $(emac-y)
- 
--obj-y					+= common-board-devices.o twl-common.o
-+obj-y					+= common-board-devices.o twl-common.o dss-common.o
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index bfcd397..ab505a2 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -36,26 +36,22 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
--#include <video/omapdss.h>
- 
- #include "common.h"
- #include <plat/usb.h>
- #include <plat/mmc.h>
--#include <video/omap-panel-tfp410.h>
- 
- #include "soc.h"
- #include "hsmmc.h"
- #include "control.h"
- #include "mux.h"
- #include "common-board-devices.h"
-+#include "dss-common.h"
- 
- #define GPIO_HUB_POWER		1
- #define GPIO_HUB_NRESET		62
- #define GPIO_WIFI_PMENA		43
- #define GPIO_WIFI_IRQ		53
--#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
--#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
--#define HDMI_GPIO_HPD  63 /* Hotplug detect */
- 
- /* wl127x BT, FM, GPS connectivity chip */
- static struct ti_st_plat_data wilink_platform_data = {
-@@ -409,68 +405,6 @@ static struct omap_board_mux board_mux[] __initdata = {
- #define board_mux	NULL
- #endif
- 
--/* Display DVI */
--#define PANDA_DVI_TFP410_POWER_DOWN_GPIO	0
--
--/* Using generic display panel */
--static struct tfp410_platform_data omap4_dvi_panel = {
--	.i2c_bus_num		= 3,
--	.power_down_gpio	= PANDA_DVI_TFP410_POWER_DOWN_GPIO,
--};
--
--static struct omap_dss_device omap4_panda_dvi_device = {
--	.type			= OMAP_DISPLAY_TYPE_DPI,
--	.name			= "dvi",
--	.driver_name		= "tfp410",
--	.data			= &omap4_dvi_panel,
--	.phy.dpi.data_lines	= 24,
--	.reset_gpio		= PANDA_DVI_TFP410_POWER_DOWN_GPIO,
--	.channel		= OMAP_DSS_CHANNEL_LCD2,
--};
--
--static struct omap_dss_hdmi_data omap4_panda_hdmi_data = {
--	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
--	.ls_oe_gpio = HDMI_GPIO_LS_OE,
--	.hpd_gpio = HDMI_GPIO_HPD,
--};
--
--static struct omap_dss_device  omap4_panda_hdmi_device = {
--	.name = "hdmi",
--	.driver_name = "hdmi_panel",
--	.type = OMAP_DISPLAY_TYPE_HDMI,
--	.channel = OMAP_DSS_CHANNEL_DIGIT,
--	.data = &omap4_panda_hdmi_data,
--};
--
--static struct omap_dss_device *omap4_panda_dss_devices[] = {
--	&omap4_panda_dvi_device,
--	&omap4_panda_hdmi_device,
--};
--
--static struct omap_dss_board_info omap4_panda_dss_data = {
--	.num_devices	= ARRAY_SIZE(omap4_panda_dss_devices),
--	.devices	= omap4_panda_dss_devices,
--	.default_device	= &omap4_panda_dvi_device,
--};
--
--static void __init omap4_panda_display_init(void)
--{
--
--	omap_display_init(&omap4_panda_dss_data);
--
--	/*
--	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
--	 * later have external pull up on the HDMI I2C lines
--	 */
--	if (cpu_is_omap446x() || omap_rev() > OMAP4430_REV_ES2_2)
--		omap_hdmi_init(OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP);
--	else
--		omap_hdmi_init(0);
--
--	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
--	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
--	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
--}
- 
- static void omap4_panda_init_rev(void)
- {
-diff --git a/arch/arm/mach-omap2/dss-common.c b/arch/arm/mach-omap2/dss-common.c
+diff --git a/arch/arm/boot/dts/omap4-sdp-es23plus.dts b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
 new file mode 100644
-index 0000000..62d7b15
+index 0000000..b4a40ff
 --- /dev/null
-+++ b/arch/arm/mach-omap2/dss-common.c
-@@ -0,0 +1,104 @@
++++ b/arch/arm/boot/dts/omap4-sdp-es23plus.dts
+@@ -0,0 +1,17 @@
 +/*
-+ * Copyright (C) 2012 Texas Instruments, Inc..
-+ * Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
++/include/ "omap4-sdp.dts"
 +
-+/*
-+ * NOTE: this is a transitional file to help with DT adaptation.
-+ * This file will be removed when DSS supports DT.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <video/omapdss.h>
-+#include <video/omap-panel-tfp410.h>
-+
-+#include <plat/cpu.h>
-+
-+#include "dss-common.h"
-+#include "mux.h"
-+
-+#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
-+#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
-+#define HDMI_GPIO_HPD  63 /* Hotplug detect */
-+
-+/* Display DVI */
-+#define PANDA_DVI_TFP410_POWER_DOWN_GPIO	0
-+
-+/* Using generic display panel */
-+static struct tfp410_platform_data omap4_dvi_panel = {
-+	.i2c_bus_num		= 3,
-+	.power_down_gpio	= PANDA_DVI_TFP410_POWER_DOWN_GPIO,
++/* SDP boards with 4430 ES2.3+ or 4460 have external pullups on SCL & SDA */
++&dss_hdmi_pins {
++	pinctrl-single,pins = <
++		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
++		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
++		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
++		>;
 +};
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 5b7e04f..7b14bb3 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -124,6 +124,8 @@
+ 			&dmic_pins
+ 			&mcbsp1_pins
+ 			&mcbsp2_pins
++			&dss_hdmi_pins
++			&tpd12s015_pins
+ 	>;
+ 
+ 	uart2_pins: pinmux_uart2_pins {
+@@ -194,6 +196,22 @@
+ 			0xbc 0x100	/* abe_mcbsp2_fsx.abe_mcbsp2_fsx INPUT | MODE0 */
+ 		>;
+ 	};
 +
-+static struct omap_dss_device omap4_panda_dvi_device = {
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.name			= "dvi",
-+	.driver_name		= "tfp410",
-+	.data			= &omap4_dvi_panel,
-+	.phy.dpi.data_lines	= 24,
-+	.reset_gpio		= PANDA_DVI_TFP410_POWER_DOWN_GPIO,
-+	.channel		= OMAP_DSS_CHANNEL_LCD2,
-+};
++	dss_hdmi_pins: pinmux_dss_hdmi_pins {
++		pinctrl-single,pins = <
++			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
++			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
++			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
++		>;
++	};
 +
-+static struct omap_dss_hdmi_data omap4_panda_hdmi_data = {
-+	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
-+	.ls_oe_gpio = HDMI_GPIO_LS_OE,
-+	.hpd_gpio = HDMI_GPIO_HPD,
-+};
-+
-+static struct omap_dss_device  omap4_panda_hdmi_device = {
-+	.name = "hdmi",
-+	.driver_name = "hdmi_panel",
-+	.type = OMAP_DISPLAY_TYPE_HDMI,
-+	.channel = OMAP_DSS_CHANNEL_DIGIT,
-+	.data = &omap4_panda_hdmi_data,
-+};
-+
-+static struct omap_dss_device *omap4_panda_dss_devices[] = {
-+	&omap4_panda_dvi_device,
-+	&omap4_panda_hdmi_device,
-+};
-+
-+static struct omap_dss_board_info omap4_panda_dss_data = {
-+	.num_devices	= ARRAY_SIZE(omap4_panda_dss_devices),
-+	.devices	= omap4_panda_dss_devices,
-+	.default_device	= &omap4_panda_dvi_device,
-+};
-+
-+void __init omap4_panda_display_init(void)
-+{
-+	omap_display_init(&omap4_panda_dss_data);
-+
-+	/*
-+	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
-+	 * later have external pull up on the HDMI I2C lines
-+	 */
-+	if (cpu_is_omap446x() || omap_rev() > OMAP4430_REV_ES2_2)
-+		omap_hdmi_init(OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP);
-+	else
-+		omap_hdmi_init(0);
-+
-+	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
-+	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
-+	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
-+}
-+
-+void __init omap4_panda_display_init_of(void)
-+{
-+	omap_display_init(&omap4_panda_dss_data);
-+}
-diff --git a/arch/arm/mach-omap2/dss-common.h b/arch/arm/mach-omap2/dss-common.h
-new file mode 100644
-index 0000000..6fac6a8
---- /dev/null
-+++ b/arch/arm/mach-omap2/dss-common.h
-@@ -0,0 +1,12 @@
-+#ifndef __OMAP_DSS_COMMON__
-+#define __OMAP_DSS_COMMON__
-+
-+/*
-+ * NOTE: this is a transitional file to help with DT adaptation.
-+ * This file will be removed when DSS supports DT.
-+ */
-+
-+void __init omap4_panda_display_init(void);
-+void __init omap4_panda_display_init_of(void);
-+
-+#endif
++	tpd12s015_pins: pinmux_tpd12s015_pins {
++		pinctrl-single,pins = <
++			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
++			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
++			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
++		>;
++	};
+ };
+ 
+ &i2c1 {
 -- 
 1.7.10.4
 
