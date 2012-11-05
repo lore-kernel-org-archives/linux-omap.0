@@ -1,134 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 12/12] OMAPDSS: DPI: always use DSI PLL if available
-Date: Mon, 5 Nov 2012 10:55:11 +0200
-Message-ID: <50977EEF.3040403@ti.com>
-References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-13-git-send-email-tomi.valkeinen@ti.com> <5090D28E.6050703@ti.com> <50939B84.6090602@ti.com> <5093A3FB.1060806@ti.com> <5093A530.5050302@ti.com> <5093A9E8.70106@ti.com> <5093AE79.9010603@ti.com> <5093B4F3.1000703@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv2 1/7] i2c: omap: Fix the revision register read
+Date: Mon, 5 Nov 2012 11:04:12 +0200
+Message-ID: <20121105090412.GA2913@arwen.pp.htv.fi>
+References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
+ <1352025873-27492-2-git-send-email-shubhrajyoti@ti.com>
+ <20121105075026.GB32468@arwen.pp.htv.fi>
+ <50977A30.6040907@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigD9F82EE1C89DAB7BFEB8B8C1"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57864 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753018Ab2KEIzN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 03:55:13 -0500
-In-Reply-To: <5093B4F3.1000703@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <50977A30.6040907-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com
 
---------------enigD9F82EE1C89DAB7BFEB8B8C1
-Content-Type: text/plain; charset=ISO-8859-1
+--0F1p//8PRICkK4MW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-11-02 13:56, Archit Taneja wrote:
-> On Friday 02 November 2012 04:58 PM, Tomi Valkeinen wrote:
->> On 2012-11-02 13:09, Archit Taneja wrote:
->>> On Friday 02 November 2012 04:19 PM, Tomi Valkeinen wrote:
->>>> On 2012-11-02 12:44, Archit Taneja wrote:
->>>>
->>>>> Hmm, that makes sense. Anyway, I don't think it's really bad if we
->>>>> refer
->>>>> to dssdev->channel for now.
->>>>
->>>> It is, because dssdev->channel doesn't exist with DT.
->>>>
->>>> With DT we either need to figure out the channel in omapdss at runti=
-me,
->>>> or add a property to the DT data telling the channel. And adding suc=
-h a
->>>> property is not correct, as DT should be about describing the HW.
->>>
->>> Ok.
->>>
->>> I don't totally agree with your idea of figuring out the manager in
->>> panel the panel's probe. If it's done in the panel driver's probe
->>> itself, then by this point of time we have already set
->>> mgr->output->device links. If omapdss only does this stuff, then
->>
->> Hmm, I'm not sure I understand what's your point above? If figuring ou=
-t
->> the mgr is done in panel's probe, the mgr->output link is not yet made=
+Hi,
 
->> before that time.
->=20
-> My point is that we are trying to find a manager at panel's probe
-> itself. It think that's what we do now. But one of your recent patch
-> moves that to omapfb.
+On Mon, Nov 05, 2012 at 02:04:56PM +0530, Shubhrajyoti wrote:
+> >> @@ -1155,7 +1187,7 @@ omap_i2c_probe(struct platform_device *pdev)
+> >> =20
+> >>  		dev->fifo_size =3D (dev->fifo_size / 2);
+> >> =20
+> >> -		if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
+> >> +		if (dev->rev < OMAP_I2C_REV_ON_3630)
+> >>  			dev->b_hw =3D 1; /* Enable hardware fixes */
+> > looks like this was applicable to 4430 too, what happened ?
+> No actually this can be deleted completely once the
+> start -> transaction -> stop sequence recommendation is followed.
 
-Ah. Yes, that's true.
+yes, but we're not there just yet and this patch is changing the
+behavior of the driver in ways which don't belong to $SUBJECT.
 
->>> omapfb/omapdrm have just the job of connecting the overlays to the
->>> manager. Do you think that's okay?
->>
->> Yes, that's how I think it should be. I don't see why omapfb/omapdrm
->> should care about which manager is being used for the output, it doesn=
-'t
->> really matter as long there is one and it works.
->>
->> Then again, I don't have anything against omapfb/omapdrm choosing the
->> manager, but I don't see how they would have any better idea of which
->> manager to use than omapdss.
->>
->> But as doing the connections at probe time is a bit problematic, perha=
-ps
->> we should have a new step in this whole sequence. Something like
->> "connect" or whatever, which would lock the required blocks in the who=
-le
->> pipeline, and acquire the required resources that couldn't be gotten a=
-t
->> probe time.
->>
->> But even then, choosing the manager is not easy, as whoever chooses th=
-e
->> manager needs to observe all the possible displays used at the same
->> time...
->=20
-> Right. I was wondering if omapfb/omapdrm could understand the 'all
-> possible displays information' better compared to a panel's probe.
->=20
-> Even omapdrm/omafb can't be perfect because we could insert a panel
-> driver module at any time, and omapfb/omapdrm may miss that out.
+--=20
+balbi
 
-True, omapdrm/fb may have a better idea. It's still unclear though.
-Currently we have quite strict order in the sequence the modules need to
-be loaded, which is quite bad and causes issues. We should make things
-more dynamic, so that the initialization of the drivers could happen
-more freely.
-
-But that creates more problems: when booting up, omapfb starts. But
-omapfb can't know if all the panel drivers have already been loaded.
-omapfb may see that DVI is the default display, but what should it do if
-DVI doesn't have a driver yet? It could wait, but perhaps the driver for
-DVI will never even be loaded.
-
- Tomi
-
-
-
---------------enigD9F82EE1C89DAB7BFEB8B8C1
+--0F1p//8PRICkK4MW
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQl37vAAoJEPo9qoy8lh71x9MQAIXcV52yZtuqx9BjYhUr5Uz5
-EPpowMArNtsJ0MBOkO05gpUl9zJrLaTfrwwwqe6Y3m4kAU0y5LHOdTok0zxXCI/H
-59tCMyLmLvI4GVB2pIU8VUZhPFXooxdk/YkooS2zMRfGmSzCUS/cCqD2xUyD9CAO
-9Lwhi9vZJWWv+1jXwMqu/Hf7mLiXPvcqFHCcQJpnYEARayNsY35X/tDuUXvRh4br
-xukvS89FE6sIdy0qfpvXIpFwPvdRzzje++NiTeQbqnK1n/TEtmIPhbgcq0LYvdJu
-YsQ314pkwbOsTgBeV2VjUXgcODFgF3/Np4VDhSaMJzLU2/Y1xX+qZNjumpwJkrRo
-8pZ4kpy2ZtIIhfPKOKRyPckjwaQ5vZbaTt7S4SPn0Mo2UDmXky4pc1m9Bgf8MYYr
-zbzSKGbdiwUOn1CDg72q/Cn0i44HHE78tv1hWDKW1R+ItZt2nR0jySQEwgdDPKfa
-1wbQo+DxrgLk3izDtFZWTPTn6RxBG7rsPQ/SFi1hXJ+tsAq26RSfeQRjEBVvQZQO
-PUXKAT8CFc8KQWrLAMq3kVgrbxYDDbeVUZnX6nWLIg8ySoDRgK1P72vjHeY/aOeY
-bIIRZzNmMHDBJu+ggjJJwiS7tUSZYSjcRI4bqZLf1ET9vfNIFvPgn8XhYShYyb80
-twBK2RJZw8COgzceWRyP
-=9LaY
+iQIcBAEBAgAGBQJQl4EMAAoJEIaOsuA1yqREO70P/ivVHQ5h64EIg1pkCfXQtluH
+bJ2UMgH8a+FnxpzIlWhQ+c5ffNFMLmGLCji7J4lVUEzVkeUbiAUNC3HgqqX0fbtq
+VEMWlmP6ci+8pkFe4zMENmCiibxNUVPKiL5+rVIUuVBcar6J+0Hbv5RlmatgfZhH
+D0BBigLpfWLqW4ThfcCL5fAH2A9n/2jMORH9XypoWjPkmkflJwAiOP42762h7OZD
+Xb6sz0ZjCtQkaXWeg0Jc3mfUwbajs7oyGgQC5k30ylH7DfDZblDgFkNMF2mEnfk1
+qZlPE9vB8/x1tt/xXnBa7YI4BG1fky8MpZpqC6Jikg7TJDt2HKPjwnqhCQbCuJxf
+Lzi51DeufmPnSIVtpzUJiEMOsJLDw4appuV02g05iGgIWdNKRVJxe+/PiZnDi4Ml
+aRpLVvqjIgxBry6JAZTFnp8emnUefE1YC+uR/+wSCwTozd+v8xH7y/Fqs23VqoC/
+fn9x6IIwEguGQYWDrQ0E7Jg5sDtfbMfe3QZaHMffZd6jz0tEi2o7A4xUxYNgB6kM
+R6Sv2AnvsneT7qbdkl39yOGnjmIgPQS3NSlQeO0PrV/nnNdG4zcKfephfc43HdL4
+528e1zoO32IYHrVdIFPt6JbbDBa+vkcLJ6Q51bZz8bQyC46b9NzUK8j4XcNRf3Xu
+tRl2+lyFL9xrGpPlmLYJ
+=ZQE6
 -----END PGP SIGNATURE-----
 
---------------enigD9F82EE1C89DAB7BFEB8B8C1--
+--0F1p//8PRICkK4MW--
