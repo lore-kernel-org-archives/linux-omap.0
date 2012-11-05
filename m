@@ -1,48 +1,64 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 00/10] ARM: dts: AM33XX: Add device tree data
-Date: Mon, 5 Nov 2012 16:15:40 +0530
-Message-ID: <1352112350-13398-1-git-send-email-anilkumar@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH V2 0/3] ARM: dts: omap5: EMIF and LPDDR2 device tree data
+Date: Mon, 5 Nov 2012 11:51:00 +0100
+Message-ID: <50979A14.1050805@ti.com>
+References: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com> <50975581.7010508@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57527 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753327Ab2KEKqJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 05:46:09 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:50589 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753136Ab2KEKvP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 05:51:15 -0500
+In-Reply-To: <50975581.7010508@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, AnilKumar Ch <anilkumar@ti.com>
+To: Lokesh Vutla <lokeshvutla@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Add device tree date for GPIO based various drivers matrix keypad,
-volume keys, push buttons and use leds accross three AM33XX devices
-viz EVM, BeagleBone and Starter Kit.
+Hi Lokesh,
 
-To make it functional this series also adds pinctrl data for all
-the GPIOs used by various drivers. In this series only default state
-pinmux/conf settings are added because of sleep/idle state pinctrl
-values are not available.
+On 11/05/2012 06:58 AM, Lokesh Vutla wrote:
+> Hi,
+> On Thursday 11 October 2012 06:17 PM, Lokesh Vutla wrote:
+>> This patch series adds Device tree data for the EMIF
+>> sdram controllers in OMAP5 and LPDDR2 memory devices
+>> in OMAP5-evm board.
+>>
+>> Testing:
+>> - Boot tested on OMAP5430 evm.
+>> - Built EMIF as a module.
+>>
+>> Changes from v1:
+>> * Created a seperate dtsi file for Samsung LPDDR2 memory device
+>>    used in OMAP5-evm.
+>> * Passing reg and interrupt fields from dt for EMIF1 and EMIF2.
+> Gentle ping on this series.
 
-These patches are based on linux-omap-dt:for_3.8/dts tree and these
-were tested on am33xx devices according to added functionality.
+Sorry, I missed it. It might be too late for 3.8, since Tony wanted us
+to push before -rc4. I'll pull the series anyway just in case.
 
-AnilKumar Ch (10):
-  ARM: dts: AM33XX: Add pinmux configuration for matrix keypad to EVM
-  ARM: dts: AM33XX: Add matrix keypad device tree data to am335x-evm
-  ARM: dts: AM33XX: Add pinmux configuration for volume-keys to EVM
-  ARM: dts: AM33XX: Add volume-keys device tree data to am335x-evm
-  ARM: dts: AM33XX: Add pinmux configuration for user-leds to BONE
-  ARM: dts: AM33XX: Add user-leds device tree data to am335x-bone
-  ARM: dts: AM33XX: Add pinmux configuration for gpio-leds to EVMSK
-  ARM: dts: AM33XX: Add user-leds device tree data to am335x-evmsk
-  ARM: dts: AM33XX: Add pinmux configuration for gpio-keys to EVMSK
-  ARM: dts: AM33XX: Add push-buttons device tree data to am335x-evmsk
+I have a least one comment.
 
- arch/arm/boot/dts/am335x-bone.dts  |   44 +++++++++++++++++++
- arch/arm/boot/dts/am335x-evm.dts   |   63 +++++++++++++++++++++++++++
- arch/arm/boot/dts/am335x-evmsk.dts |   84 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 191 insertions(+)
+Regards,
+Benoit
 
--- 
-1.7.9.5
+> 
+> Thanks
+> Lokesh
+>>
+>> Lokesh Vutla (3):
+>>    ARM: dts: omap5-evm: Fix size of memory defined for EVM
+>>    ARM: dts: omap5: EMIF device tree data for OMAP5 boards
+>>    ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
+>>
+>>   arch/arm/boot/dts/omap5-evm.dts           |   13 +++++-
+>>   arch/arm/boot/dts/omap5.dtsi              |   24 +++++++++++
+>>   arch/arm/boot/dts/samsung_k3pe0e000b.dtsi |   67
+>> +++++++++++++++++++++++++++++
+>>   3 files changed, 103 insertions(+), 1 deletion(-)
+>>   create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+>>
+> 
 
