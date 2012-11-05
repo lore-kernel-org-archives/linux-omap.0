@@ -1,85 +1,131 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv3 3/8] i2c: omap: remove the dtrev
-Date: Mon, 5 Nov 2012 17:53:38 +0530
-Message-ID: <1352118223-3796-4-git-send-email-shubhrajyoti@ti.com>
-References: <1352118223-3796-1-git-send-email-shubhrajyoti@ti.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: [PATCH V3 3/3] ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
+Date: Mon, 5 Nov 2012 18:22:52 +0530
+Message-ID: <1352119972-13710-4-git-send-email-lokeshvutla@ti.com>
+References: <1352119972-13710-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1352118223-3796-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:39968 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752281Ab2KEMxI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 07:53:08 -0500
+In-Reply-To: <1352119972-13710-1-git-send-email-lokeshvutla@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: b-cousson@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, devicetree-discuss@lists.ozlabs.org, lokeshvutla@ti.com
 
-The dtrev is used only for the comments. Remove the same and use
-the scheme instead to know if it is version2.
+Samsung's K3PE0E000B memory part is used in OMAP5-evm board.
+Adding timings and geometry details for Samsung's memory part and
+attaching the same to device-handle of EMIF1/2.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
 ---
-v3: remove the scheme from the commments.
-todo: remove the dtrev from hwmod etc.
+ arch/arm/boot/dts/omap5-evm.dts           |   11 +++++
+ arch/arm/boot/dts/samsung_k3pe0e000b.dtsi |   67 +++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+)
+ create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
 
- drivers/i2c/busses/i2c-omap.c |   12 +++++-------
- 1 files changed, 5 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 737d843..5f0c06c 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -191,7 +191,6 @@ struct omap_i2c_dev {
- 	u32			latency;	/* maximum MPU wkup latency */
- 	struct pm_qos_request	pm_qos_request;
- 	u32			speed;		/* Speed of bus in kHz */
--	u32			dtrev;		/* extra revision from DT */
- 	u32			flags;
- 	u16			cmd_err;
- 	u8			*buf;
-@@ -1076,7 +1075,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	int irq;
- 	int r;
- 	u32 rev;
--	u16 minor, major;
-+	u16 minor, major, scheme;
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index 88d3d9b8..8722c15 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -8,6 +8,7 @@
+ /dts-v1/;
  
- 	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1108,7 +1107,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 		u32 freq = 100000; /* default to 100000 Hz */
+ /include/ "omap5.dtsi"
++/include/ "samsung_k3pe0e000b.dtsi"
  
- 		pdata = match->data;
--		dev->dtrev = pdata->rev;
- 		dev->flags = pdata->flags;
- 
- 		of_property_read_u32(node, "clock-frequency", &freq);
-@@ -1117,7 +1115,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 	} else if (pdata != NULL) {
- 		dev->speed = pdata->clkrate;
- 		dev->flags = pdata->flags;
--		dev->dtrev = pdata->rev;
- 	}
- 
- 	dev->dev = &pdev->dev;
-@@ -1146,7 +1143,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 	 */
- 	rev = __raw_readw(dev->base + 0x04);
- 
--	switch (OMAP_I2C_SCHEME(rev)) {
-+	scheme = OMAP_I2C_SCHEME(rev);
-+	switch (scheme) {
- 	case OMAP_I2C_SCHEME_0:
- 		dev->regs = (u8 *)reg_map_ip_v1;
- 		dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG);
-@@ -1230,8 +1228,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_unuse_clocks;
- 	}
- 
--	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
--		 dev->dtrev, major, minor, dev->speed);
-+	dev_info(dev->dev, "bus %d rev%d.%d at %d kHz\n", adap->nr,
-+		 major, minor, dev->speed);
- 
- 	of_i2c_register_devices(adap);
- 
+ / {
+ 	model = "TI OMAP5 EVM board";
+@@ -140,3 +141,13 @@
+ &mcbsp3 {
+ 	status = "disabled";
+ };
++
++&emif1 {
++	cs1-used;
++	device-handle = <&samsung_K3PE0E000B>;
++};
++
++&emif2 {
++	cs1-used;
++	device-handle = <&samsung_K3PE0E000B>;
++};
+diff --git a/arch/arm/boot/dts/samsung_k3pe0e000b.dtsi b/arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+new file mode 100644
+index 0000000..9657a5c
+--- /dev/null
++++ b/arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+@@ -0,0 +1,67 @@
++/*
++ * Timings and Geometry for Samsung K3PE0E000B memory part
++ */
++
++/ {
++	samsung_K3PE0E000B: lpddr2 {
++		compatible	= "Samsung,K3PE0E000B","jedec,lpddr2-s4";
++		density		= <4096>;
++		io-width	= <32>;
++
++		tRPab-min-tck	= <3>;
++		tRCD-min-tck	= <3>;
++		tWR-min-tck	= <3>;
++		tRASmin-min-tck	= <3>;
++		tRRD-min-tck	= <2>;
++		tWTR-min-tck	= <2>;
++		tXP-min-tck	= <2>;
++		tRTP-min-tck	= <2>;
++		tCKE-min-tck	= <3>;
++		tCKESR-min-tck	= <3>;
++		tFAW-min-tck	= <8>;
++
++		timings_samsung_K3PE0E000B_533MHz: lpddr2-timings@0 {
++			compatible	= "jedec,lpddr2-timings";
++			min-freq	= <10000000>;
++			max-freq	= <533333333>;
++			tRPab		= <21000>;
++			tRCD		= <18000>;
++			tWR		= <15000>;
++			tRAS-min	= <42000>;
++			tRRD		= <10000>;
++			tWTR		= <7500>;
++			tXP		= <7500>;
++			tRTP		= <7500>;
++			tCKESR		= <15000>;
++			tDQSCK-max	= <5500>;
++			tFAW		= <50000>;
++			tZQCS		= <90000>;
++			tZQCL		= <360000>;
++			tZQinit		= <1000000>;
++			tRAS-max-ns	= <70000>;
++			tDQSCK-max-derated = <6000>;
++		};
++
++		timings_samsung_K3PE0E000B_266MHz: lpddr2-timings@1 {
++			compatible	= "jedec,lpddr2-timings";
++			min-freq	= <10000000>;
++			max-freq	= <266666666>;
++			tRPab		= <21000>;
++			tRCD		= <18000>;
++			tWR		= <15000>;
++			tRAS-min	= <42000>;
++			tRRD		= <10000>;
++			tWTR		= <7500>;
++			tXP		= <7500>;
++			tRTP		= <7500>;
++			tCKESR		= <15000>;
++			tDQSCK-max	= <5500>;
++			tFAW		= <50000>;
++			tZQCS		= <90000>;
++			tZQCL		= <360000>;
++			tZQinit		= <1000000>;
++			tRAS-max-ns	= <70000>;
++			tDQSCK-max-derated = <6000>;
++		};
++	};
++};
 -- 
-1.7.5.4
+1.7.9.5
+
