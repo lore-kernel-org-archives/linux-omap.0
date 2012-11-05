@@ -1,35 +1,49 @@
-From: Joel A Fernandes <agnel.joel@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP2+: AM33XX: clock data: fix mcasp entries
-Date: Mon, 5 Nov 2012 11:52:57 -0500
-Message-ID: <CAD=GYpZ2BhXz4=0bG-ST06mbVxbmAZyzBTDz-MKcRBCb_cqKPw@mail.gmail.com>
-References: <1349879449-22657-1-git-send-email-mporter@ti.com>
-	<1BAFE6F6C881BF42822005164F1491C33EAB8596@DBDE01.ent.ti.com>
-	<CAD=GYpZ9w=D55G9DOiMqZ4BCGGdGszsgG3fumHUGZ12xx+TKjw@mail.gmail.com>
-	<1BAFE6F6C881BF42822005164F1491C33EAB973D@DBDE01.ent.ti.com>
-	<CAD=GYpYuyfGuEgAWJyE2nkKx4GEsm=eDYAhV966sWVLbEPaqYQ@mail.gmail.com>
-	<20121105081317.GC28886@opensource.wolfsonmicro.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: OMAP baseline test results for v3.7-rc3
+Date: Mon, 05 Nov 2012 16:54:28 +0000
+Message-ID: <5097EF44.5030706@mimc.co.uk>
+References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk> <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EB51E84@DBDE01.ent.ti.com> <508FE8BA.1080404@ti.com> <50912A6F.1040501@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121105081317.GC28886@opensource.wolfsonmicro.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Porter, Matt" <mporter@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mercuryimc.plus.com ([80.229.200.144]:36272 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754464Ab2KEQyj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 11:54:39 -0500
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Mark,
+On 31/10/12 13:57, Hiremath, Vaibhav wrote:
+> On Wed, Oct 31, 2012 at 19:11:03, Mark Jackson wrote:
+>> On 30/10/12 14:48, Vaibhav Hiremath wrote:
+>>
+>> Okay, so I'm now coming up against a brick wall regarding U-Boot.
+>>
+>> The Kernel boots fine (as per the tree + patch above) provided I build U-Boot using the
+>> v2011.09_AM335xPSP_04.06.00.06 branch from git://arago-project.org/git/projects/u-boot-am33x.git
+>>
+>> If I try the latest mainline U-Boot (or the TI branch), I just get to "Starting kernel ..." and then
+>> hangs.
+>>
+>> I'm going to raise this query on the U-Boot ML, but can you let me know which U-Boot image you're
+>> using ?
+>>
+> 
+> 
+> I am using Mainline u-boot and it works for me. Can you paste u-boot boot 
+> log and environment variable here?
+> 
+> Thanks,
+> Vaibhav
 
-On Mon, Nov 5, 2012 at 3:13 AM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Sat, Nov 03, 2012 at 02:32:59PM -0500, Joel A Fernandes wrote:
->
->> beaglebone_defconfig: Add dummy regulator to init tlv320aic3x
->> https://github.com/joelagnel/linux-kernel/commit/db5672dfe548d82625cf40ed688d05ba7cee5c93
->
-> This should never be done in production, you should ensure that the
-> appropriate supplies are provided by the board file or device tree.
+So I've now spent several days trying to fix this problem, but still no joy.
 
-Sure I just did this for debugging purpose,
+Did my previous emails give any clue as to where I'm going wrong ?
 
-Thanks,
-Joel
+Thanks for any help you can provide.
+
+Mark J.
