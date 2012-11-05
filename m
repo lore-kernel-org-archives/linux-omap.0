@@ -1,50 +1,69 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH V2 0/3] ARM: dts: omap5: EMIF and LPDDR2 device tree data
-Date: Mon, 5 Nov 2012 11:28:25 +0530
-Message-ID: <50975581.7010508@ti.com>
-References: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH] ARM: dts: AM33XX: Add usbss node
+Date: Mon, 5 Nov 2012 11:29:59 +0530
+Message-ID: <1352095204-29028-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48609 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750961Ab2KEF6n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 00:58:43 -0500
-In-Reply-To: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Ravi Babu <ravibabu@ti.com>, Santhapuri Damodar <damodar.santhapuri@ti.com>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, AnilKumar Ch <anilkumar@ti.com>, Rob Herring <rob.herring@calxeda.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Hi,
-On Thursday 11 October 2012 06:17 PM, Lokesh Vutla wrote:
-> This patch series adds Device tree data for the EMIF
-> sdram controllers in OMAP5 and LPDDR2 memory devices
-> in OMAP5-evm board.
->
-> Testing:
-> - Boot tested on OMAP5430 evm.
-> - Built EMIF as a module.
->
-> Changes from v1:
-> * Created a seperate dtsi file for Samsung LPDDR2 memory device
->    used in OMAP5-evm.
-> * Passing reg and interrupt fields from dt for EMIF1 and EMIF2.
-Gentle ping on this series.
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Thanks
-Lokesh
->
-> Lokesh Vutla (3):
->    ARM: dts: omap5-evm: Fix size of memory defined for EVM
->    ARM: dts: omap5: EMIF device tree data for OMAP5 boards
->    ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
->
->   arch/arm/boot/dts/omap5-evm.dts           |   13 +++++-
->   arch/arm/boot/dts/omap5.dtsi              |   24 +++++++++++
->   arch/arm/boot/dts/samsung_k3pe0e000b.dtsi |   67 +++++++++++++++++++++++++++++
->   3 files changed, 103 insertions(+), 1 deletion(-)
->   create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
->
+Device tree node for usbss on AM33XX. There are two musb
+controllers on am33xx platform so have port0-mode and
+port1-mode data.
 
+[afzal@ti.com: reg & interrupt property addition]
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Santhapuri, Damodar <damodar.santhapuri@ti.com>
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+
+Hi Benoit,
+
+This is based on your "for_3.8/dts" branch.
+
+This is made on top of "usb: musb: am335x support"
+(http://marc.info/?l=linux-omap&m=135187391904863&w=2)
+and has been tested on Beagle Bone.
+
+Regards
+Afzal
+
+ arch/arm/boot/dts/am33xx.dtsi | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 5dfd682..78340a5 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -321,5 +321,22 @@
+ 			ti,hwmods = "spi1";
+ 			status = "disabled";
+ 		};
++
++		usb_otg_hs@47400000 {
++			compatible = "ti,musb-am33xx";
++			reg = <0x47400000 0x1000	/* usbss */
++			       0x47401000 0x800		/* musb instance 0 */
++			       0x47401800 0x800>;	/* musb instance 1 */
++			interrupts = <17		/* usbss */
++				      18		/* musb instance 0 */
++				      19>;		/* musb instance 1 */
++			multipoint = <1>;
++			num-eps = <16>;
++			ram-bits = <12>;
++			port0-mode = <3>;
++			port1-mode = <3>;
++			power = <250>;
++			ti,hwmods = "usb_otg_hs";
++		};
+ 	};
+ };
+-- 
+1.7.12
