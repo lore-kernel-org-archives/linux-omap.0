@@ -1,46 +1,59 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 2/6] ARM: OMAP: voltage: remove duplicate header definitions
-Date: Mon, 5 Nov 2012 09:02:10 -0600
-Message-ID: <1352127734-30103-4-git-send-email-nm@ti.com>
-References: <1352127734-30103-1-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH V2] ARM: PMU: fix runtime PM enable
+Date: Mon, 5 Nov 2012 07:30:44 -0800
+Message-ID: <20121105153044.GE4953@atomide.com>
+References: <1351196598-26667-1-git-send-email-jon-hunter@ti.com>
+ <20121026100312.GF20914@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1352127734-30103-1-git-send-email-nm@ti.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Rafael <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbouatmailru@gmail.com>, linux-pm <linux-pm@vger.kernel.org>, Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:25357 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932984Ab2KEPau (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 10:30:50 -0500
+Content-Disposition: inline
+In-Reply-To: <20121026100312.GF20914@mudshark.cambridge.arm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-remove duplicate definitions which are already present
-in linux/platform_data/voltage-omap.h
+* Will Deacon <will.deacon@arm.com> [121026 03:04]:
+> On Thu, Oct 25, 2012 at 09:23:18PM +0100, Jon Hunter wrote:
+> > Commit 7be2958 (ARM: PMU: Add runtime PM Support) updated the ARM PMU code to
+> > use runtime PM which was prototyped and validated on the OMAP devices. In this
+> > commit, there is no call pm_runtime_enable() and for OMAP devices
+> > pm_runtime_enable() is currently being called from the OMAP PMU code when the
+> > PMU device is created. However, there are two problems with this:
+> > 
+> > 1. For any other ARM device wishing to use runtime PM for PMU they will need
+> >    to call pm_runtime_enable() for runtime PM to work.
+> > 2. When booting with device-tree and using device-tree to create the PMU
+> >    device, pm_runtime_enable() needs to be called from within the ARM PERF
+> >    driver as we are no longer calling any device specific code to create the
+> >    device. Hence, PMU does not work on OMAP devices that use the runtime PM
+> >    callbacks when using device-tree to create the PMU device.
+> > 
+> > Therefore,  call pm_runtime_enable() directly from the ARM PMU driver when
+> > registering the device. For platforms that do not use runtime PM,
+> > pm_runtime_enable() does nothing and for platforms that do use runtime PM but
+> > may not require it specifically for PMU, this will just add a little overhead
+> > when initialising and uninitialising the PMU device.
+> > 
+> > Tested with PERF on OMAP2420, OMAP3430 and OMAP4460.
+> > 
+> > V2 changes:
+> > - Call pm_runtime_enable() unconditionally on registering the PMU device.
+> > 
+> > Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> > ---
+> 
+> Cheers Jon! Looks a bit weird without the matching pm_runtime_disable, but
+> we don't really have anywhere to put that since the PMU is not deregistered.
+> 
+> Can we split this patch into two (even smaller!) patches so that I can take
+> the perf part and the omap bit can go to Tony?
 
-Acked-by: Jean Pihet <j-pihet@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/voltage.h |    3 ---
- 1 file changed, 3 deletions(-)
+The omap bit looks OK for me to queue via perf:
 
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 7283b7e..af9d469 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -142,7 +142,6 @@ extern void omap3xxx_voltagedomains_init(void);
- extern void am33xx_voltagedomains_init(void);
- extern void omap44xx_voltagedomains_init(void);
- 
--struct voltagedomain *voltdm_lookup(const char *name);
- void voltdm_init(struct voltagedomain **voltdm_list);
- int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
- int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
-@@ -150,7 +149,5 @@ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
- int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
- 			  int (*fn)(struct voltagedomain *voltdm,
- 				    struct powerdomain *pwrdm));
--int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
- void voltdm_reset(struct voltagedomain *voltdm);
--unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
- #endif
--- 
-1.7.9.5
-
+Acked-by: Tony Lindgren <tony@atomide.com>
