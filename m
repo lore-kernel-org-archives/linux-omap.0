@@ -1,195 +1,139 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv2 5/7] i2c: omap: re-factor omap_i2c_init function
-Date: Mon, 5 Nov 2012 09:54:48 +0200
-Message-ID: <20121105075448.GF32468@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2 6/7] i2c: omap: make reset a seperate function
+Date: Mon, 5 Nov 2012 09:55:25 +0200
+Message-ID: <20121105075525.GG32468@arwen.pp.htv.fi>
 References: <1352025873-27492-1-git-send-email-shubhrajyoti@ti.com>
- <1352025873-27492-6-git-send-email-shubhrajyoti@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1352025873-27492-7-git-send-email-shubhrajyoti@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ULyIDA2m8JTe+TiX"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="0z5c7mBtSy1wdr4F"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49858 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753052Ab2KEIBt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 03:01:49 -0500
 Content-Disposition: inline
-In-Reply-To: <1352025873-27492-6-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+In-Reply-To: <1352025873-27492-7-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, w.sang@pengutronix.de
 
---ULyIDA2m8JTe+TiX
+--0z5c7mBtSy1wdr4F
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 04, 2012 at 04:14:31PM +0530, Shubhrajyoti D wrote:
-> re-factor omap_i2c_init() so that we can re-use it for resume.
-> While at it also remove the bufstate variable as we write it
-> in omap_i2c_resize_fifo for every transfer.
->=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Hi,
 
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+On Sun, Nov 04, 2012 at 04:14:32PM +0530, Shubhrajyoti D wrote:
+> Implement reset as a separate function.
+> This will enable us to make sure that we don't do the
+> calculation again on every transfer.
+> Also at probe the reset is not added as the hwmod is doing that
+> for us.
+>=20
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
 > ---
->  drivers/i2c/busses/i2c-omap.c |   75 +++++++++++++++++++----------------=
-------
->  1 files changed, 35 insertions(+), 40 deletions(-)
+> todo: reprodue the errors and optimise the reset if possible.
+>=20
+>  drivers/i2c/busses/i2c-omap.c |   25 ++++++++++++++++---------
+>  1 files changed, 16 insertions(+), 9 deletions(-)
 >=20
 > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 8a54efc..a87c20a 100644
+> index a87c20a..70d43b7 100644
 > --- a/drivers/i2c/busses/i2c-omap.c
 > +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -209,7 +209,6 @@ struct omap_i2c_dev {
->  	u16			pscstate;
->  	u16			scllstate;
->  	u16			sclhstate;
-> -	u16			bufstate;
->  	u16			syscstate;
->  	u16			westate;
->  	u16			errata;
-> @@ -275,9 +274,34 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_=
-dev *i2c_dev, int reg)
->  				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
+> @@ -299,15 +299,9 @@ static void __omap_i2c_init(struct omap_i2c_dev *dev)
+>  		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
 >  }
 > =20
-> +static void __omap_i2c_init(struct omap_i2c_dev *dev)
-> +{
-> +
-> +	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-> +
-> +	/* Setup clock prescaler to obtain approx 12MHz I2C module clock: */
-> +	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-> +
-> +	/* SCL low and high time values */
-> +	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-> +	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
-> +	if (dev->rev >=3D OMAP_I2C_REV_ON_3430_3530)
-> +		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
-> +
-> +	/* Take the I2C module out of reset: */
-> +	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-> +
-> +	/*
-> +	 * Don't write to this register if the IE state is 0 as it can
-> +	 * cause deadlock.
-> +	 */
-> +	if (dev->iestate)
-> +		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-> +}
-> +
->  static int omap_i2c_init(struct omap_i2c_dev *dev)
+> -static int omap_i2c_init(struct omap_i2c_dev *dev)
+> +static int omap_i2c_reset(struct omap_i2c_dev *dev)
 >  {
-> -	u16 psc =3D 0, scll =3D 0, sclh =3D 0, buf =3D 0;
-> +	u16 psc =3D 0, scll =3D 0, sclh =3D 0;
->  	u16 fsscll =3D 0, fssclh =3D 0, hsscll =3D 0, hssclh =3D 0;
->  	unsigned long fclk_rate =3D 12000000;
+> -	u16 psc =3D 0, scll =3D 0, sclh =3D 0;
+> -	u16 fsscll =3D 0, fssclh =3D 0, hsscll =3D 0, hssclh =3D 0;
+> -	unsigned long fclk_rate =3D 12000000;
 >  	unsigned long timeout;
-> @@ -327,11 +351,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			 * REVISIT: Some wkup sources might not be needed.
->  			 */
+> -	unsigned long internal_clk =3D 0;
+> -	struct clk *fclk;
+> -
+>  	if (dev->rev >=3D OMAP_I2C_OMAP1_REV_2) {
+>  		/* Disable I2C controller before soft reset */
+>  		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> @@ -353,6 +347,17 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
 >  			dev->westate =3D OMAP_I2C_WE_ALL;
-> -			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-> -							dev->westate);
 >  		}
 >  	}
-> -	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> +	return 0;
+> +}
+> +
+> +static int omap_i2c_init(struct omap_i2c_dev *dev)
+> +{
+> +	u16 psc =3D 0, scll =3D 0, sclh =3D 0;
+> +	u16 fsscll =3D 0, fssclh =3D 0, hsscll =3D 0, hssclh =3D 0;
+> +	unsigned long fclk_rate =3D 12000000;
+> +	unsigned long internal_clk =3D 0;
+> +	struct clk *fclk;
+> +
 > =20
 >  	if (dev->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
 >  		/*
-> @@ -416,28 +437,17 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  		sclh =3D fclk_rate / (dev->speed * 2) - 7 + psc;
+> @@ -592,7 +597,8 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  	dev->buf_len =3D 0;
+>  	if (timeout =3D=3D 0) {
+>  		dev_err(dev->dev, "controller timed out\n");
+> -		omap_i2c_init(dev);
+> +		omap_i2c_reset(dev);
+> +		__omap_i2c_init(dev);
+>  		return -ETIMEDOUT;
 >  	}
 > =20
-> -	/* Setup clock prescaler to obtain approx 12MHz I2C module clock: */
-> -	omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, psc);
-> -
-> -	/* SCL low and high time values */
-> -	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
-> -	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
-> -
-> -	/* Take the I2C module out of reset: */
-> -	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-> -
-> -	/* Enable interrupts */
->  	dev->iestate =3D (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
->  			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
->  			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
->  				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
-> -	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-> -	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-> -		dev->pscstate =3D psc;
-> -		dev->scllstate =3D scll;
-> -		dev->sclhstate =3D sclh;
-> -		dev->bufstate =3D buf;
-> -	}
-> +
-> +	dev->pscstate =3D psc;
-> +	dev->scllstate =3D scll;
-> +	dev->sclhstate =3D sclh;
-> +
-> +	__omap_i2c_init(dev);
-> +
->  	return 0;
->  }
+> @@ -602,7 +608,8 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  	/* We have an error */
+>  	if (dev->cmd_err & (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+>  			    OMAP_I2C_STAT_XUDF)) {
+> -		omap_i2c_init(dev);
+> +		omap_i2c_reset(dev);
+> +		__omap_i2c_init(dev);
+>  		return -EIO;
+>  	}
 > =20
-> @@ -1297,23 +1307,8 @@ static int omap_i2c_runtime_resume(struct device *=
-dev)
->  	if (!_dev->regs)
->  		return 0;
-> =20
-> -	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-> -	}
-> -
-> -	/*
-> -	 * Don't write to this register if the IE state is 0 as it can
-> -	 * cause deadlock.
-> -	 */
-> -	if (_dev->iestate)
-> -		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
-> +	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE)
-> +		__omap_i2c_init(_dev);
-> =20
->  	return 0;
->  }
 > --=20
 > 1.7.5.4
 >=20
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --=20
 balbi
 
---ULyIDA2m8JTe+TiX
+--0z5c7mBtSy1wdr4F
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQl3DIAAoJEIaOsuA1yqREdHgQAK71CvlrG4R3a6wTp7cgRwr5
-W52+QVGSS6h5Npt9qC12hefuYcfqAl01AaNI7oPXgsMcDOe9nHnrvEHSPnNUgNxR
-St6MCNVN3d/lmY8B2SvkGUoja05j+7IPLb5MhyqqcJHPBCR7VGQqPoIjDeYxu6K6
-+lsF7PavgV5/ZIZjI8qCFtqqOlz5NJlDMABeS7nKIURSMvMVE0cbaSyHz5koMl/q
-jr8FMlBEgwf+uu6Cw5UjriTbfxzAsoU7mx/nG9ffeaYXb3+VKBGFsVr2Khm9RYV3
-dz4QSO9MXKAO7pzeji6Ud9b0BZ3faMFg4R+1voYANck3dkl+AKL4zJH9MnKhXim/
-QrhyXhrGVjAbsCfqfnPDZ+zLnRObhOP7BB1KhFQ/NwnHGXZCl016Cw1Vz4RgKARj
-2OImkwXKW2FAveFSMWASyOoLv5Ty1rbVPvCIARSuL32pO1vkYbDojSk8+6+nrSi9
-oegvt8mMM/nDvBim2lIsCpS+mWnp4FXrrORDJ2/KGJOpBm80fbWCGMuTMH868c7s
-vCbZPIc0dXmp2LdyWojzU8Dlur33EtQrR3UindMqIyTlqjRYMw/6yVWD7obMzl8z
-TrbXcuJtQVabnOCqbUkKFoDZleE6OyMoFm1LZpYlvj6WW5SyeGUfvrxxGw6s4i4w
-Se4ybFDNv/bWLJ+qvCdK
-=vjU5
+iQIcBAEBAgAGBQJQl3DtAAoJEIaOsuA1yqREGFoP/jZRQEy4GNEdCa5ixS8icjqg
+nXgIAUqaVgE5zNJwP9IMHSFTdhKF+9AMBUp2pDwERFLSjdK+/03BzFuytjGOHZAd
+3QnzGaN5dYRnwhW++OGvORt4z8Ig1kNVk97/pBouK11QshP+ryEPuZlmurPfA69T
+R6VYWEXy61Umi/HhybxVGEwcAEtlLgznupj0AFonxYNPo3YPMoU6TzAQNtzoSxhQ
++N/rdeZSz2nt9ny4qhWiULRyUs/fjo5V+yMMEUWSPvIb2k8nwcC/TQwQi5kCT48R
+QkpU9OU+iBpiblDlPbMk4cBr105v17NJvoeqScu/9y8TBSiekhSMSoad5hQ3krHk
+qE0tkfQz9gR57WpPSVhYie+AE5ug1GznbtgEAZfs3GZS1xnpPNFoQOpuNlB1k2fd
+kXalkUdwBTT6iSi5k0v8VM2iqUxG4FTOUsf37No2sLV+KG8cV0dfFRY90GYth7Pb
+kaBcAvJVaxu2mweftZhEGZmuAtlYm4fKzWnLjevtaMAiMhx/GEpbnngRwyYT3yj6
+LNf7LC4cU3JSw8tXpB2heHyJMRUEA0ZTJPS0yoZfz0fNA7VW5CLWaMuN1JemXZcz
+WbwOoVpfwR3UKE9We3iwUwmkiwZx0BrjDuu4DzC9iCKQVQgCrn+3PHVeAd6QYalF
+WlS/J362KTqrIURWWCiM
+=LqIp
 -----END PGP SIGNATURE-----
 
---ULyIDA2m8JTe+TiX--
+--0z5c7mBtSy1wdr4F--
