@@ -1,55 +1,35 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP: omap_device: Correct resource handling
- for DT boot
-Date: Mon, 5 Nov 2012 12:25:40 +0100
-Message-ID: <5097A234.7070504@ti.com>
-References: <1351596296-13825-1-git-send-email-peter.ujfalusi@ti.com> <1351596296-13825-3-git-send-email-peter.ujfalusi@ti.com> <5094D648.80608@deeprootsystems.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v3] ARM: dts: AM33xx: Add SPI node
+Date: Mon, 5 Nov 2012 11:32:40 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9DAB5F@DBDE01.ent.ti.com>
+References: <1351680669-20718-1-git-send-email-avinashphilip@ti.com>
+ <50927DF5.4080008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58813 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636Ab2KELZw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 06:25:52 -0500
-In-Reply-To: <5094D648.80608@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50927DF5.4080008@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
-
-On 11/03/2012 09:31 AM, Kevin Hilman wrote:
-> On 10/30/2012 12:24 PM, Peter Ujfalusi wrote:
->> When booting with DT the OF core can fill up the resources provided
->> within
->> the DT blob.
->> The current way of handling the DT boot prevents us from removing
->> hwmod data
->> for platforms only suppose to boot with DT (OMAP5 for example) since
->> we need
->> to keep the whole hwmod database intact in order to have more
->> resources in
->> hwmod than in DT (to be able to append the DMA resource from hwmod).
->>
->> To fix this issue we just examine the OF provided resources:
->> If we do not have resources we use hwmod to fill them.
->> If we have resources we check if we already able to recive DMA
->> resource, if
->> no we only append the DMA resurce from hwmod to the OF provided ones.
->>
->> In this way we can start removing hwmod data for devices which have their
->> resources correctly configured in DT without regressions.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>ke
+On Thu, Nov 01, 2012 at 19:19:41, Cousson, Benoit wrote:
+> Hi Avinash,
 > 
-> Acked-by: Kevin Hilman <khilman@ti.com>
+> On 10/31/2012 11:51 AM, Philip, Avinash wrote:
+> > Add McSPI data node to AM33XX device tree file. The McSPI module (and so
+> > as the driver) is reused from OMAP4.
+> > 
+> > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+> > Tested-by: Matt Porter <mporter@ti.com>
 > 
-> Benoit, feel free to take this one as well.
+> I've just realized the interrupt-parent was still there, so I removed both.
+> 
+> Please find below the updated version.
 
-Thanks, I'll do.
+I tested it and thanks for the fix.
 
-Regards,
-Benoit
-
+Thanks
+Avinash
