@@ -1,140 +1,156 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Mon, 5 Nov 2012 15:46:17 -0600
-Message-ID: <509833A9.8080902@ti.com>
-References: <1351794970-14675-1-git-send-email-zonque@gmail.com> <1351794970-14675-5-git-send-email-zonque@gmail.com> <5093A36B.70101@ti.com> <5093AB14.9090402@gmail.com> <50941C6C.3030403@ti.com> <50941DC4.2050209@gmail.com> <50942590.5010202@ti.com> <50942BDC.9060806@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 15/15] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Tue, 6 Nov 2012 03:22:16 +0530
+Message-ID: <50983510.80000@ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-16-git-send-email-vaibhav.bedia@ti.com> <87txt4aqyc.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56473 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753394Ab2KEVq1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 16:46:27 -0500
-In-Reply-To: <50942BDC.9060806@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35173 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab2KEVwU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 16:52:20 -0500
+In-Reply-To: <87txt4aqyc.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, robherring2@gmail.com, linux-omap@vger.kernel.org, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Vaibhav Bedia <vaibhav.bedia@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com
 
-
-On 11/02/2012 03:23 PM, Daniel Mack wrote:
-> On 02.11.2012 20:57, Jon Hunter wrote:
->> On 11/02/2012 02:23 PM, Daniel Mack wrote:
->>> On 02.11.2012 20:18, Jon Hunter wrote:
->>>> On 11/02/2012 06:14 AM, Daniel Mack wrote:
-> 
->>>>>>> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>>>>>> new file mode 100644
->>>>>>> index 0000000..6f44487
->>>>>>> --- /dev/null
->>>>>>> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>>>>>> @@ -0,0 +1,73 @@
->>>>>>> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
->>>>>>> +
->>>>>>> +The actual devices are instantiated from the child nodes of a GPMC node.
->>>>>>> +
->>>>>>> +Required properties:
->>>>>>> +
->>>>>>> + - compatible:		Should be set to "ti,gpmc"
->>>>>>> + - reg:			A resource specifier for the register space
->>>>>>> +			(see the example below)
->>>>>>> + - ti,hwmods:		Should be set to "ti,gpmc" until the DT transition is
->>>>>>> +			completed.
->>>>>>> + - #address-cells:	Must be set to 2 to allow memory address translation
->>>>>>> + - #size-cells:		Must be set to 1 to allow CS address passing
->>>>>>> + - ranges:		Must be set up to reflect the memory layout
->>>>>>> +			Note that this property is not currently parsed.
->>>>>>> +			Calculated values derived from the contents of
->>>>>>> +			GPMC_CS_CONFIG7 as set up by the bootloader. That will
->>>>>>> +			change in the future, so be sure to fill the correct
->>>>>>> +			values here.
->>>>>>
->>>>>> I still think it would be good to add number of chip-selects and
->>>>>> wait-pins here.
->>>>>
->>>>> The number of chip-selects can be derived from the ranges property.
->>>>> Namely, each 4-value entry to this property maps to one chip-select. I
->>>>> can try and make the more clear in the documentation.
->>>>
->>>> Yes but that only tells you how many you are using. The binding should
->>>> describe the hardware and so should tell us how many chip-selects we
->>>> have. We should get away from using GPMC_CS_NUM in the code.
->>>
->>> Maybe I don't get your point, but we only need to care for as many cs
->>> lines as we actually use, right?
+On Monday 05 November 2012 11:10 PM, Kevin Hilman wrote:
+> +Santosh (to help with EMIF questions/comments)
+>
+> On 11/02/2012 12:32 PM, Vaibhav Bedia wrote:
+>> AM335x supports various low power modes as documented
+>> in section 8.1.4.3 of the AM335x TRM which is available
+>> @ http://www.ti.com/litv/pdf/spruh73f
 >>
->> But how many does your device have? How many clients can you support?
-> 
-> Well, you state that in the ranges property. Even if the chip could in
-> theory support 8 CS lines - if the actual setup only uses the first one
-> of them, the code would only need to allocate and set up the one that is
-> in use. And as the entries in "ranges" are mandatory, there can actually
-> be no mis-allocation.
-
-Ah, I see your point now. Well typically, we have been putting the
-device-level peripheral info in the device's *.dtsi (ie. am33xx.dtsi)
-and then board specific stuff in the board *.dts file (am335x-bone.dts).
-So I would envision that the device-level info (reg, ti,hwmods,
-interrupt, num-cs) be in am33xx.dtsi and ranges be in am335x.dts. So it
-would still be nice to catch any badly configured ranges property in the
-driver by querying in the number of chip-selects.
-
-> I can still add the maximum number as a separate property, but I wanted
-> to outline my idea here. Is "num-cs" a good name for the property?
-
-Sounds good.
-
->> If we know how many the device has and then we can get rid of "#define
->> GPMC_CS_NUM". We currently allocate the CS by calling gpmc_cs_request().
->> Hmmm ... I now see that your patch is not calling this before
->> configuring the CS and so that needs to be fixed too.
-> 
-> It does implicitly, by calling gpmc_nand_init().
-
-Yes, you are right!
-
->> Without knowing the total CS available, how do we ensure we have the CS
->> available that someone is asking for?
+>> DeepSleep0 mode offers the lowest power mode with limited
+>> wakeup sources without a system reboot and is mapped as
+>> the suspend state in the kernel. In this state, MPU and
+>> PER domains are turned off with the internal RAM held in
+>> retention to facilitate resume process. As part of the boot
+>> process, the assembly code is copied over to OCMCRAM using
+>> the OMAP SRAM code.
 >>
->>>> What about wait-pins?
->>>
->>> Afaik, their use depends on the driver acting as GPMC client, right?
->>> Could you point me to code that acts conditionally and that should be
->>> reflected in DT?
+>> AM335x has a Cortex-M3 (WKUP_M3) which assists the MPU
+>> in DeepSleep0 entry and exit. WKUP_M3 takes care of the
+>> clockdomain and powerdomain transitions based on the
+>> intended low power state. MPU needs to load the appropriate
+>> WKUP_M3 binary onto the WKUP_M3 memory space before it can
+>> leverage any of the PM features like DeepSleep.
 >>
->> Again we need to know how many the device has. Clients may or may not
->> use these. However, if a client wants one they need to request one which
->> is just like a chip-select. This is not in the current driver but Afzal
->> has a patch for this [1].
-> 
-> Ah, thanks for the pointer to the patch. Ok, I'll add a "num-waitpins"
-> property. Does that name sound appropriate?
-
-Yes, that would be great!
-
->> Bottom line, for such hardware specific features, device tree is a good
->> place to describe how many resources we have. Then we can eliminate such
->> #defines from the driver code.
-> 
-> Agreed.
-> 
->>> Quoting Documentation/devicetree/bindings/mtd/gpmc-nand.txt:
->>>
->>> 	For NAND specific properties such as ECC modes or bus width,
->>> 	please refer to Documentation/devicetree/bindings/mtd/nand.txt
+>> The IPC mechanism between MPU and WKUP_M3 uses a mailbox
+>> sub-module and 8 IPC registers in the Control module. MPU
+>> uses the assigned Mailbox for issuing an interrupt to
+>> WKUP_M3 which then goes and checks the IPC registers for
+>> the payload. WKUP_M3 has the ability to trigger on interrupt
+>> to MPU by executing the "sev" instruction.
 >>
->> Ok, thanks I see that now. Looking at other bindings, some also include
->> these details but not all. Could be worth listing ecc-mode under
->> mandatory and bus-width under optional with a reference to nand.txt
->> binding. I don't think it is worth duplicating but listing the actual
->> property names would be nice.
-> 
-> Ok, I amended my local version. With the details above sorted out and
-> "num-cs" and "num-waitpins" in place, do you think we're ready for v4?
+>> In the current implementation when the suspend process
+>> is initiated MPU interrupts the WKUP_M3 to let about the
+>> intent of entering DeepSleep0 and waits for an ACK. When
+>> the ACK is received, MPU continues with its suspend process
+>> to suspend all the drivers and then jumps to assembly in
+>> OCMC RAM to put the PLLs in bypass, put the external RAM in
+>> self-refresh mode and then finally execute the WFI instruction.
+>> The WFI instruction triggers another interrupt to the WKUP_M3
+>> which then continues wiht the power down sequence wherein the
+>> clockdomain and powerdomain transition takes place. As part of
+>> the sleep sequence, WKUP_M3 unmasks the interrupt lines for
+>> the wakeup sources. When WKUP_M3 executes WFI, the hardware
+>> disables the main oscillator.
+>>
+>> When a wakeup event occurs, WKUP_M3 starts the power-up
+>> sequence by switching on the power domains and finally
+>> enabling the clock to MPU. Since the MPU gets powered down
+>> as part of the sleep sequence, in the resume path ROM code
+>> starts executing. The ROM code detects a wakeup from sleep
+>> and then jumps to the resume location in OCMC which was
+>> populated in one of the IPC registers as part of the suspend
+>> sequence.
+>>
+>> The low level code in OCMC relocks the PLLs, enables access
+>> to external RAM and then jumps to the cpu_resume code of
+>> the kernel to finish the resume process.
+>>
+>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>
+> Very well summarized.  Thanks for the thorough changelog.
+>
+> First, some general comments.  This is a big patch and probably should
+> be broken up a bit.  I suspect it could be broken up a bit, maybe into
+> at least:
+>
+> - EMIF interface
+> - SCM interface, new APIs
+> - assembly/OCM code
+> - pm33xx.[ch]
+> - lastly, the late_init stuff that actually initizlizes
+>
+> I have a handful of comments below.  I wrote this up on the plane over
+> the weekend, and I see that Santosh has already made some similar
+> comments, but I'll send mine anyways.
+>
+[...]
 
-Yes, thanks for doing this.
+>
+>> +extern void __iomem *am33xx_get_emif_base(void);
+>> +int wkup_mbox_msg(struct notifier_block *self, unsigned long len, void *msg);
+>> +#endif
+>> +
+>> +#define	IPC_CMD_DS0			0x3
+>> +#define IPC_CMD_RESET                   0xe
+>> +#define DS_IPC_DEFAULT			0xffffffff
+>> +
+>> +#define IPC_RESP_SHIFT			16
+>> +#define IPC_RESP_MASK			(0xffff << 16)
+>> +
+>> +#define M3_STATE_UNKNOWN		0
+>> +#define M3_STATE_RESET			1
+>> +#define M3_STATE_INITED			2
+>> +#define M3_STATE_MSG_FOR_LP		3
+>> +#define M3_STATE_MSG_FOR_RESET		4
+>> +
+>> +#define AM33XX_OCMC_END			0x40310000
+>> +#define AM33XX_EMIF_BASE		0x4C000000
+>> +
+>> +/*
+>> + * This a subset of registers defined in drivers/memory/emif.h
+>> + * Move that to include/linux/?
+>> + */
+>
+> I'd probably suggest just moving the register definitions you
+> need into <plat/emif_plat.h> so they can be shared with the driver.
+>
+> Also, the EMIF stuff would benefit greatly from using symbolic defines
+> for the values being written.  Probably having those in
+> <plat/emif_plat.h> would also help out here.
+>
+> Or, maybe the EMIF driver can provide some self-contained stubs that can
+> be copied to OCP RAM for the functionality needed here?
+>
+> Santosh, what do you think of that?
+>
+Thats what I mentioned in my comment. I also don't know why such a bad
+hardware choice was made when we have perfectly working EMIF IP across
+low power states. Even the self refresh control is managed inside
+hardware upon idle.  My guess is DDR self-refresh might be the reason
+to use OCMC RAM.
 
-Cheers
-Jon
+In either case, Keeping EMIF changes separate as part of EMIF 
+driver/platform code is right way to go about it. May be the
+disable_selfrefresh() might need to kept in assembly files since it 
+needs to be running from SRAM but rest need not be part of
+PM code.
+
+Regards
+Santosh
+
+For
+
+Regards
+Santosh
+
+
+
