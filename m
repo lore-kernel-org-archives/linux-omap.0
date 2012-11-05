@@ -1,59 +1,71 @@
 From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 07/10] ARM: dts: AM33XX: Add pinmux configuration for gpio-leds to EVMSK
-Date: Mon, 5 Nov 2012 16:15:47 +0530
-Message-ID: <1352112350-13398-8-git-send-email-anilkumar@ti.com>
+Subject: [PATCH 10/10] ARM: dts: AM33XX: Add push-buttons device tree data to am335x-evmsk
+Date: Mon, 5 Nov 2012 16:15:50 +0530
+Message-ID: <1352112350-13398-11-git-send-email-anilkumar@ti.com>
 References: <1352112350-13398-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57531 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754083Ab2KEKqK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 05:46:10 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:50357 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753909Ab2KEKqH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 05:46:07 -0500
 In-Reply-To: <1352112350-13398-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, AnilKumar Ch <anilkumar@ti.com>
 
-Add pinmux configurations for gpio based volume keys to am335x-evmsk.
-In this patch, only single named mode/state is added and these pins
-are configured during pinctrl driver initialization.
-
-Default mode is nothing but the values required for the module during
-active state. With this configurations module is functional as
-expected.
+Add gpio based push buttons device tree data to am335x-evmsk device
+by adding all the necessary parameters like key-code, gpios and etc.
 
 Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 ---
- arch/arm/boot/dts/am335x-evmsk.dts |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ arch/arm/boot/dts/am335x-evmsk.dts |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 6f53879..659ec5b 100644
+index 0f825dd..f5a6162 100644
 --- a/arch/arm/boot/dts/am335x-evmsk.dts
 +++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -30,6 +30,20 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
+@@ -139,6 +139,37 @@
+ 			default-state = "off";
+ 		};
  	};
- 
-+	am33xx_pinmux: pinmux@44e10800 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&user_leds_s0>;
 +
-+		user_leds_s0: user_leds_s0 {
-+			pinctrl-single,pins = <
-+				0x10 0x7	/* gpmc_ad4.gpio1_4, OUTPUT | MODE7 */
-+				0x14 0x7	/* gpmc_ad5.gpio1_5, OUTPUT | MODE7 */
-+				0x18 0x7	/* gpmc_ad6.gpio1_6, OUTPUT | MODE7 */
-+				0x1c 0x7	/* gpmc_ad7.gpio1_7, OUTPUT | MODE7 */
-+			>;
++	gpio_buttons: gpio_buttons@0 {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		switch@1 {
++			label = "button0";
++			linux,code = <0x100>;
++			gpios = <&gpio3 3 0>;
++		};
++
++		switch@2 {
++			label = "button1";
++			linux,code = <0x101>;
++			gpios = <&gpio3 2 0>;
++		};
++
++		switch@3 {
++			label = "button2";
++			linux,code = <0x102>;
++			gpios = <&gpio1 30 0>;
++			gpio-key,wakeup;
++		};
++
++		switch@4 {
++			label = "button3";
++			linux,code = <0x103>;
++			gpios = <&gpio3 5 0>;
 +		};
 +	};
-+
- 	ocp {
- 		uart1: serial@44e09000 {
- 			status = "okay";
+ };
+ 
+ /include/ "tps65910.dtsi"
 -- 
 1.7.9.5
 
