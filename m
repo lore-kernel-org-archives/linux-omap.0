@@ -1,46 +1,44 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: hdmi on 4430 (kernel 3.4)
-Date: Mon, 5 Nov 2012 17:21:14 -0600
-Message-ID: <509849EA.7080403@ti.com>
-References: <32739C29-CEEA-481C-B070-1754E3CA94C8@studiofuga.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Mon, 5 Nov 2012 15:22:19 -0800
+Message-ID: <20121105232218.GA8284@atomide.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39411 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751683Ab2KEXVR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 18:21:17 -0500
-In-Reply-To: <32739C29-CEEA-481C-B070-1754E3CA94C8@studiofuga.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tabi Timur-B04825 <B04825@freescale.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wood Scott-B07421 <B07421@freescale.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 List-Id: linux-omap@vger.kernel.org
-To: Federico Fuga <ml@studiofuga.com>
-Cc: linux-omap@vger.kernel.org
 
+Hi,
 
-On 11/05/2012 03:59 PM, Federico Fuga wrote:
-> Hi Everybody,
+* Tabi Timur-B04825 <B04825@freescale.com> [121105 13:42]:
+> On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
 > 
-> I am working on a custom OMAP4430 board with HDMI support. I am using the latest omapzoom ubuntu-integration kernel (3.4.0-1487.6) 
-> I tested the same on the pandaboard with the same cpu, with the same result. Both are lacking the "HDMI Companion chip" (U6 on pandaboard with 4430), because on our custom board we don't need EDID support (we are using an HDMI to VGA chip converter), for testing purpose it was removed from the pandaboard.
-> I am unable to make HDMI working. 
-> I was assured that this kernel is correctly working with HDMI on pandaboard, so I'd guess that the problem is due to the missing edid, but I am not 100% sure.
-> For simplicity, I removed the DVI configuration on the panda board file, by removing the DVI display configuration, and changing the default device to HDMI.
-> The hdmi interface seems to be configured correctly , the overlay/manager/display chain is correctly setup and enabled, but no signal is detected by the monitor, and the screen is black.
-> No errors are present in the logs - I'll send a copy of it with omapdss.debug=y tomorrow, eventually.
-> I wanted to check the HDMI registers, but I didn't find the hdmi registers table on the TRM.
-> Does someone have some hint, comment or previous experience on that? 
-> Where can I find the hdmi registers list on the manual or other documentation?
-> Note that as far as i know, the 2.6.35 kernel was working correctly (I can't check right now, unfortunately).
-> Thank you.
+> > Jane is building custom BeagleBone expansion boards called 'capes'. She
+> > can boot the system with a stock BeagleBoard device tree, but additional
+> > data is needed before a cape can be used. She could replace the FDT file
+> > used by U-Boot with one that contains the extra data, but she uses the
+> > same Linux system image regardless of the cape, and it is inconvenient
+> > to have to select a different device tree at boot time depending on the
+> > cape.
+> 
+> What's wrong with having the boot loader detect the presence of the
+> Cape and update the device tree accordingly?  We do this all the time
+> in U-Boot.  Doing stuff like reading EEPROMs and testing for the
+> presence of hardware is easier in U-Boot than in Linux.
+> 
+> For configurations that can be determined by the boot loader, I'm not
+> sure overlays are practical.
 
-I would recommend posting this query on the TI E2E forum for Linux [1].
-You may get better help there seeing that this is with regard to a
-specific TI development kernel branch.
+I guess the beaglebone capes could be stackable and hotpluggable if
+handled carefully enough.
 
-Cheers
-Jon
+Regards,
 
-[1] http://e2e.ti.com/support/embedded/linux/default.aspx
-
-
+Tony
