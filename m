@@ -1,58 +1,59 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv3 8/8] i2c: omap: cleanup the sysc write
-Date: Mon, 5 Nov 2012 23:59:07 +0530
-Message-ID: <CAM=Q2csELdqM2PRtaswx7Ug6KxB+CwVakXnBY6O=FJrKkBWz6A@mail.gmail.com>
-References: <1352118223-3796-1-git-send-email-shubhrajyoti@ti.com>
-	<1352118223-3796-9-git-send-email-shubhrajyoti@ti.com>
-	<20121105141442.GD4815@arwen.pp.htv.fi>
-	<5097CBF1.6060108@ti.com>
-	<20121105142517.GG4815@arwen.pp.htv.fi>
-	<5097F642.9010803@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 2/3] omap plat header removal for v3.8 merge window,
+ part3
+Date: Mon, 5 Nov 2012 10:31:50 -0800
+Message-ID: <20121105183150.GB22301@quad.lixom.net>
+References: <pull-1351286620-406688>
+ <508aff60.4688e50a.0457.ffff898bSMTPIN_ADDED@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5097F642.9010803-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:65352 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753530Ab2KESbq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 13:31:46 -0500
+Received: by mail-pa0-f46.google.com with SMTP id hz1so4121473pad.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Nov 2012 10:31:45 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <508aff60.4688e50a.0457.ffff898bSMTPIN_ADDED@mx.google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 11/5/12, Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
-> On 11/5/2012 3:25 PM, Felipe Balbi wrote:
->> Hi,
->>
->> On Mon, Nov 05, 2012 at 07:53:45PM +0530, Shubhrajyoti wrote:
->>> On Monday 05 November 2012 07:44 PM, Felipe Balbi wrote:
->>>>> -							dev->syscstate);
->>>>>> -		}
->>>> not sure if this will work. What about the first time you call reset()
->>>> ?
->>>> won't SYSC just contain the reset values ?
->>> No actually the hwmod sets the value.
->>
->> ahaaa, ok good. Let's get an Ack from Benoit, then.
->
-> Well, in fact, I'm a little bit surprised that we still have to hack the
+On Fri, Oct 26, 2012 at 02:23:40PM -0700, Tony Lindgren wrote:
+> The following changes since commit 3d82cbbb3aadb4f8a30e3f614e51be96574a0855:
+> 
+>   ARM: OMAP: Split plat/serial.h for omap1 and omap2+ (2012-10-24 13:34:31 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-headers-part3-signed
+> 
+> for you to fetch changes up to a0212796b58061a9716178d261f318925c246643:
+> 
+>   Merge tag 'omap-cleanup-fixes-a-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/cleanup-headers (2012-10-26 13:18:19 -0700)
+> 
+> ----------------------------------------------------------------
+> 
+> Here is the third set of plat header removal for omap2+.
+> 
+> This is based on the following minimal topic branches
+> coordinated with the related driver maintainers:
+> 
+> omap-for-v3.8/cleanup-headers-usb
+> omap-for-v3.8/cleanup-headers-menelaus
+> 
+> In addition to that, there are few fixes to the previously
+> merged patches that can show up with customized configs.
 
-there was an attempt [1]
+Thanks, I pulled in the two branches above as explicit dependencies, and
+resolved the conflicts the same way you did.
 
-the pdata stuff may have issues with dt having to deal with more pdata [2]
+New branches are:
 
+depends/omap-cleanup-headers-menelaus
+depends/omap-cleanup-headers-usb
+omap/cleanup-headers-3
 
-> SYSC directly without using an omap_device API.
-
- Paul was not happy with omap device api  [3]
-
-As far as the patch is concerned it is only getting rid of the hard coded flags
-and the rev check.
-
-> I know that we have to
-> do some weird stuff for reseting that IP, but didn't we already exposed
-> something to allow that?
->
-> Regards,
-> Benoit
-
-[1]  http://www.spinics.net/lists/linux-i2c/msg06810.html
-[2]  http://www.spinics.net/lists/linux-i2c/msg06937.html
-[3] http://www.spinics.net/lists/linux-i2c/msg06943.html
+-Olof
