@@ -1,43 +1,50 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 11/15] ARM: OMAP: timer: Interchange clksrc and clkevt
- for AM33XX
-Date: Mon, 5 Nov 2012 04:40:00 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC002B4@DBDE01.ent.ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com>
- <509544A8.7010507@deeprootsystems.com>
+From: Lokesh Vutla <lokeshvutla@ti.com>
+Subject: Re: [PATCH V2 0/3] ARM: dts: omap5: EMIF and LPDDR2 device tree data
+Date: Mon, 5 Nov 2012 11:28:25 +0530
+Message-ID: <50975581.7010508@ti.com>
+References: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34983 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48609 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750841Ab2KEEkP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Nov 2012 23:40:15 -0500
-In-Reply-To: <509544A8.7010507@deeprootsystems.com>
-Content-Language: en-US
+	id S1750961Ab2KEF6n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 00:58:43 -0500
+In-Reply-To: <1349959669-16366-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: b-cousson@ti.com
+Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Kevin,
+Hi,
+On Thursday 11 October 2012 06:17 PM, Lokesh Vutla wrote:
+> This patch series adds Device tree data for the EMIF
+> sdram controllers in OMAP5 and LPDDR2 memory devices
+> in OMAP5-evm board.
+>
+> Testing:
+> - Boot tested on OMAP5430 evm.
+> - Built EMIF as a module.
+>
+> Changes from v1:
+> * Created a seperate dtsi file for Samsung LPDDR2 memory device
+>    used in OMAP5-evm.
+> * Passing reg and interrupt fields from dt for EMIF1 and EMIF2.
+Gentle ping on this series.
 
-On Sat, Nov 03, 2012 at 21:52:00, Kevin Hilman wrote:
-> On 11/02/2012 12:32 PM, Vaibhav Bedia wrote:
-> > AM33XX has only one usable timer in the WKUP domain.
-> 
-> After reading the TRM, it seems there are two: DMTIMER0 and DMTIMER1.
-> 
-> Looking at the hwmod data though, I don't see a hwmod for DMTIMER0.  Can
-> you explain a little about why DMTIMER0 is missing/broken?
-> 
+Thanks
+Lokesh
+>
+> Lokesh Vutla (3):
+>    ARM: dts: omap5-evm: Fix size of memory defined for EVM
+>    ARM: dts: omap5: EMIF device tree data for OMAP5 boards
+>    ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
+>
+>   arch/arm/boot/dts/omap5-evm.dts           |   13 +++++-
+>   arch/arm/boot/dts/omap5.dtsi              |   24 +++++++++++
+>   arch/arm/boot/dts/samsung_k3pe0e000b.dtsi |   67 +++++++++++++++++++++++++++++
+>   3 files changed, 103 insertions(+), 1 deletion(-)
+>   create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+>
 
-DMTimer0 is usable only in secure devices only. This timer by default runs
-from an inaccurate RC oscillator the frequency of which can be anywhere
-from 16-60KHz based on process variations. There is a mux to change the
-clock source but the register for the mux can't be modified in GP devices.
-(will add this in the changelog)
-
-Regards,
-Vaibhav
