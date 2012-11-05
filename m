@@ -1,47 +1,62 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 02/15] ARM: OMAP2+: mailbox: Add support for AM33XX
-Date: Mon, 5 Nov 2012 20:30:37 +0530
-Message-ID: <5097D495.6000704@ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-3-git-send-email-vaibhav.bedia@ti.com> <509541FD.4040307@ti.com> <B5906170F1614E41A8A28DE3B8D121433EBFFD1A@DBDE01.ent.ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/6] ARM: OMAP3+: move smartreflex-class3.c to drivers/power/avs
+Date: Mon, 5 Nov 2012 09:02:08 -0600
+Message-ID: <1352127734-30103-2-git-send-email-nm@ti.com>
+References: <1352127734-30103-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46585 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932251Ab2KEPAo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 10:00:44 -0500
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EBFFD1A@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1352127734-30103-1-git-send-email-nm@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Rafael <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbouatmailru@gmail.com>, linux-pm <linux-pm@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Sunday 04 November 2012 08:56 PM, Bedia, Vaibhav wrote:
-> On Sat, Nov 03, 2012 at 21:40:37, Shilimkar, Santosh wrote:
-> [...]
->
->>> +#if defined(CONFIG_SOC_AM33XX)
->>> +	else if (soc_is_am33xx()) {
->>> +		list = am33xx_mboxes;
->>> +
->>> +		list[0]->irq = platform_get_irq(pdev, 0);
->>> +	}
->>> +#endif
->> #ifdef in middle of the function looks really ugly. But I can't complain
->> just for your patch because looks like rest of the mailbox code is
->> flooded with #ifdeffery.
->>
->> Mailbox needs cleanup. and probably can be moved out of
->> arch/arm/*omap*/ to some driver directory.
->>
->
-> Tony pointed out that the movement to drivers directory
-> is underway [1]. Getting rid of the #ifdeffery could be next.
->
-Thanks for the pointer. Nice to see mailbox is getting moved
-to drivers directory.
+smartreflex.c now resides in drivers/power/avs directory,
+but class driver is in mach-omap2. High time we move it
+to drivers/power/avs.
 
-Regards
-Santosh
+This series *does not* try to fix VP/VC to be voltage
+regulator OR introduce a new OMAP voltage regulator series.
+Instead, it purely tries to do the minimal changes needed
+to move code to drivers/power/avs as a start.
+
+Baseline: k.org v3.7-rc4
+Testing: Platform: beagle XM C1 (3730)
+while [ 1 ]
+do
+echo -n "0" >/sys/kernel/debug/smartreflex/smartreflex_core/autocomp
+date
+echo -n "1" >/sys/kernel/debug/smartreflex/smartreflex_core/autocomp
+done
+Screen capture after the series(RFC): on inductor L5 (VDD2 - core):
+https://plus.google.com/photos/112464029509057661457/albums/5715034179943520193/5802619719180530114
+
+RFC: http://marc.info/?t=135102876700003&r=1&w=2
+
+Nishanth Menon (6):
+  PM / AVS / OMAP: move Kconfig definition of smartreflex to avs
+    directory
+  ARM: OMAP: voltage: remove duplicate header definitions
+  ARM: OMAP: voltage: move voltdm_reset to platform_data header
+  ARM: OMAP: SmartReflex: provide SoC integration API for VP
+  ARM: OMAP: SmartReflex: use pr_warn instead of pr_warning
+  PM / AVS / OMAP: move Smartreflex-class3 driver to power/avs
+
+ arch/arm/mach-omap2/Makefile                       |    1 -
+ arch/arm/mach-omap2/sr_device.c                    |    5 ++++
+ arch/arm/mach-omap2/voltage.h                      |    4 ---
+ arch/arm/plat-omap/Kconfig                         |   31 --------------------
+ drivers/power/avs/Kconfig                          |   31 ++++++++++++++++++++
+ drivers/power/avs/Makefile                         |    1 +
+ .../power/avs}/smartreflex-class3.c                |   20 +++++++++----
+ drivers/power/avs/smartreflex.c                    |    2 ++
+ include/linux/platform_data/voltage-omap.h         |    1 +
+ include/linux/power/smartreflex.h                  |   18 ++++++++++++
+ 10 files changed, 73 insertions(+), 41 deletions(-)
+ rename {arch/arm/mach-omap2 => drivers/power/avs}/smartreflex-class3.c (75%)
+Regards,
+Nishanth Menon
+-- 
+1.7.9.5
 
