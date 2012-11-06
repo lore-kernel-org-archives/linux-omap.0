@@ -1,64 +1,45 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [RFC/PATCH] mmc: omap_hsmmc: introduce omap_hsmmc_prepare/complete
-Date: Tue, 6 Nov 2012 21:20:04 +0530
-Message-ID: <CAOyx1Lr1g=5RrOZdUiUcgWU0wjoNnpzH6Hr5JfqK8s0n5uoShw@mail.gmail.com>
-References: <1350910768-8522-1-git-send-email-balbi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: hdmi on 4430 (kernel 3.4)
+Date: Tue, 6 Nov 2012 09:56:06 -0600
+Message-ID: <50993316.3020102@ti.com>
+References: <32739C29-CEEA-481C-B070-1754E3CA94C8@studiofuga.com> <509849EA.7080403@ti.com> <36593A51-4838-4382-BEC1-4F261454390A@studiofuga.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1350910768-8522-1-git-send-email-balbi@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, linux-mmc@vger.kernel.org, cjb@laptop.org, Tony Lindgren <tony@atomide.com>, Balaji T K <balajitk@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55397 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752084Ab2KFP4J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 10:56:09 -0500
+In-Reply-To: <36593A51-4838-4382-BEC1-4F261454390A@studiofuga.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Federico Fuga <ml@studiofuga.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Oct 22, 2012 at 6:29 PM, Felipe Balbi <balbi@ti.com> wrote:
-> prepare() is supposed to prevent new children from
-> being registered. On the MMC subsystem, children
-> (new cards) registration starts with the card
-> detect IRQ.
->
-> Move card detect IRQ disabling to prepare() so that
-> no new cards will be registered while we're trying
-> to suspend.
->
-> Likewise, move card detect IRQ enabling to complete()
-> so we only try to register new children after our MMC
-> IP is back up.
->
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->
-> Venkat, do you think the patch below makes sense ?
 
-Except for the minor nit mentioned below, it works well.
-I'll include it in my patch series.
+On 11/06/2012 03:05 AM, Federico Fuga wrote:
+> Hi Jon,
+> 
+> 
+> Il giorno 06/nov/2012, alle ore 00:21, Jon Hunter <jon-hunter@ti.com> ha scritto:
+> 
+>>> I wanted to check the HDMI registers, but I didn't find the hdmi registers table on the TRM.
+>>> Does someone have some hint, comment or previous experience on that? 
+>>> Where can I find the hdmi registers list on the manual or other documentation?
+>>> Note that as far as i know, the 2.6.35 kernel was working correctly (I can't check right now, unfortunately).
+>>> Thank you.
+>>
+>> I would recommend posting this query on the TI E2E forum for Linux [1].
+>> You may get better help there seeing that this is with regard to a
+>> specific TI development kernel branch.
+>>
+> 
+> 
+> Thank you very much for the suggestion! I'll post there.
+> Can you confirm that the kernel version I am using works without problem with HDMI-1080p? 
 
->
-> cheers
->
->  drivers/mmc/host/omap_hsmmc.c | 45 ++++++++++++++++++++++++-------------------
->  1 file changed, 25 insertions(+), 20 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 54bfd0c..4c8b41e 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2022,6 +2022,26 @@ static int __devexit omap_hsmmc_remove(struct platform_device *pdev)
->  }
->
->  #ifdef CONFIG_PM
-> +static int omap_hsmmc_prepare(struct device *dev)
-> +{
-> +       struct omap_hsmmc_host *host = dev_get_drvdata(dev);
-> +
-> +       if (host->pdata->suspend)
-> +               return host->pdata->suspend(dev, host->slot_id);
-> +
-> +       return 0;
-> +}
-> +
-> +static int omap_hsmmc_complete(struct device *dev)
+Sorry, I have not tried. However, hopefully someone from the forum can help.
 
-The .complete() function prototype requires to return void.
-This one emits a compilation warning.
+Cheers
+Jon
