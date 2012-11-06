@@ -1,11 +1,14 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] spi: omap2-mcspi: Reorder the wait_for_completion for tx
-Date: Tue, 6 Nov 2012 14:47:27 +0530
-Message-ID: <1352193447-23335-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] spi: omap2-mcspi: Reorder the wait_for_completion for tx
+Date: Tue, 6 Nov 2012 14:47:57 +0530
+Message-ID: <CAM=Q2ctSOEC+6=Mor_aceis5txdE7C-YEp-6NGtwEQ8Tqqvtbg@mail.gmail.com>
+References: <1352192419-22872-1-git-send-email-shubhrajyoti@ti.com>
+	<20121106090353.GI5044@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20121106090353.GI5044-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
 	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
@@ -14,69 +17,24 @@ List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@pu
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
 	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Cc: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-VGhlIGNvbW1pdCAgZDdiNDM5NGVbQ2xlYW51cCB0aGUgb21hcDJfbWNzcGlfdHhyeF9kbWEgZnVu
-Y3Rpb25dCmNoYW5nZWQgdGhlIHdhaXRfZm9yX2NvbXBsZXRpb24gb3JkZXIuIE1vdmUgdGhlIHdh
-aXQgc28gdGhhdCB0aGUKcnggZG9lc25vdCB3YWl0IGZvciB0aGUgdHggdG8gY29tcGxldGUuCgpS
-ZXBvcnRlZC1hbmQtdGVzdGVkLWJ5OiBTw7hyZW5zZW4sIFN0ZWZhbiA8U29yZW5zZW5AcG9seWNv
-bS5jb20+ClNpZ25lZC1vZmYtYnk6IFNodWJocmFqeW90aSBEIDxzaHViaHJhanlvdGlAdGkuY29t
-PgotLS0KIGRyaXZlcnMvc3BpL3NwaS1vbWFwMi1tY3NwaS5jIHwgICAzOSArKysrKysrKysrKysr
-KysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgMTkgaW5zZXJ0aW9u
-cygrKSwgMjAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9zcGkvc3BpLW9tYXAy
-LW1jc3BpLmMgYi9kcml2ZXJzL3NwaS9zcGktb21hcDItbWNzcGkuYwppbmRleCBiY2ZkMDYyLi4y
-NTFmNmQwIDEwMDY0NAotLS0gYS9kcml2ZXJzL3NwaS9zcGktb21hcDItbWNzcGkuYworKysgYi9k
-cml2ZXJzL3NwaS9zcGktb21hcDItbWNzcGkuYwpAQCAtMzIzLDE4ICszMjMsMTMgQEAgc3RhdGlj
-IHZvaWQgb21hcDJfbWNzcGlfdHhfZG1hKHN0cnVjdCBzcGlfZGV2aWNlICpzcGksCiAJc3RydWN0
-IG9tYXAyX21jc3BpCSptY3NwaTsKIAlzdHJ1Y3Qgb21hcDJfbWNzcGlfZG1hICAqbWNzcGlfZG1h
-OwogCXVuc2lnbmVkIGludAkJY291bnQ7Ci0JdTgJCQkqIHJ4OwogCWNvbnN0IHU4CQkqIHR4Owot
-CXZvaWQgX19pb21lbQkJKmNoc3RhdF9yZWc7Ci0Jc3RydWN0IG9tYXAyX21jc3BpX2NzCSpjcyA9
-IHNwaS0+Y29udHJvbGxlcl9zdGF0ZTsKIAogCW1jc3BpID0gc3BpX21hc3Rlcl9nZXRfZGV2ZGF0
-YShzcGktPm1hc3Rlcik7CiAJbWNzcGlfZG1hID0gJm1jc3BpLT5kbWFfY2hhbm5lbHNbc3BpLT5j
-aGlwX3NlbGVjdF07CiAJY291bnQgPSB4ZmVyLT5sZW47CiAKLQlyeCA9IHhmZXItPnJ4X2J1ZjsK
-IAl0eCA9IHhmZXItPnR4X2J1ZjsKLQljaHN0YXRfcmVnID0gY3MtPmJhc2UgKyBPTUFQMl9NQ1NQ
-SV9DSFNUQVQwOwogCiAJaWYgKG1jc3BpX2RtYS0+ZG1hX3R4KSB7CiAJCXN0cnVjdCBkbWFfYXN5
-bmNfdHhfZGVzY3JpcHRvciAqdHg7CkBAIC0zNTksMTkgKzM1NCw2IEBAIHN0YXRpYyB2b2lkIG9t
-YXAyX21jc3BpX3R4X2RtYShzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpLAogCWRtYV9hc3luY19pc3N1
-ZV9wZW5kaW5nKG1jc3BpX2RtYS0+ZG1hX3R4KTsKIAlvbWFwMl9tY3NwaV9zZXRfZG1hX3JlcShz
-cGksIDAsIDEpOwogCi0Jd2FpdF9mb3JfY29tcGxldGlvbigmbWNzcGlfZG1hLT5kbWFfdHhfY29t
-cGxldGlvbik7Ci0JZG1hX3VubWFwX3NpbmdsZShtY3NwaS0+ZGV2LCB4ZmVyLT50eF9kbWEsIGNv
-dW50LAotCQkJIERNQV9UT19ERVZJQ0UpOwotCi0JLyogZm9yIFRYX09OTFkgbW9kZSwgYmUgc3Vy
-ZSBhbGwgd29yZHMgaGF2ZSBzaGlmdGVkIG91dCAqLwotCWlmIChyeCA9PSBOVUxMKSB7Ci0JCWlm
-IChtY3NwaV93YWl0X2Zvcl9yZWdfYml0KGNoc3RhdF9yZWcsCi0JCQkJCU9NQVAyX01DU1BJX0NI
-U1RBVF9UWFMpIDwgMCkKLQkJCWRldl9lcnIoJnNwaS0+ZGV2LCAiVFhTIHRpbWVkIG91dFxuIik7
-Ci0JCWVsc2UgaWYgKG1jc3BpX3dhaXRfZm9yX3JlZ19iaXQoY2hzdGF0X3JlZywKLQkJCQkJT01B
-UDJfTUNTUElfQ0hTVEFUX0VPVCkgPCAwKQotCQkJZGV2X2Vycigmc3BpLT5kZXYsICJFT1QgdGlt
-ZWQgb3V0XG4iKTsKLQl9CiB9CiAKIHN0YXRpYyB1bnNpZ25lZApAQCAtNDkyLDYgKzQ3NCw3IEBA
-IG9tYXAyX21jc3BpX3R4cnhfZG1hKHN0cnVjdCBzcGlfZGV2aWNlICpzcGksIHN0cnVjdCBzcGlf
-dHJhbnNmZXIgKnhmZXIpCiAJc3RydWN0IGRtYV9zbGF2ZV9jb25maWcJY2ZnOwogCWVudW0gZG1h
-X3NsYXZlX2J1c3dpZHRoIHdpZHRoOwogCXVuc2lnbmVkIGVzOworCXZvaWQgX19pb21lbQkJKmNo
-c3RhdF9yZWc7CiAKIAltY3NwaSA9IHNwaV9tYXN0ZXJfZ2V0X2RldmRhdGEoc3BpLT5tYXN0ZXIp
-OwogCW1jc3BpX2RtYSA9ICZtY3NwaS0+ZG1hX2NoYW5uZWxzW3NwaS0+Y2hpcF9zZWxlY3RdOwpA
-QCAtNTI2LDggKzUwOSwyNCBAQCBvbWFwMl9tY3NwaV90eHJ4X2RtYShzdHJ1Y3Qgc3BpX2Rldmlj
-ZSAqc3BpLCBzdHJ1Y3Qgc3BpX3RyYW5zZmVyICp4ZmVyKQogCQlvbWFwMl9tY3NwaV90eF9kbWEo
-c3BpLCB4ZmVyLCBjZmcpOwogCiAJaWYgKHJ4ICE9IE5VTEwpCi0JCXJldHVybiBvbWFwMl9tY3Nw
-aV9yeF9kbWEoc3BpLCB4ZmVyLCBjZmcsIGVzKTsKLQorCQljb3VudCA9IG9tYXAyX21jc3BpX3J4
-X2RtYShzcGksIHhmZXIsIGNmZywgZXMpOworCisJaWYgKHR4ICE9IE5VTEwpIHsKKwkJY2hzdGF0
-X3JlZyA9IGNzLT5iYXNlICsgT01BUDJfTUNTUElfQ0hTVEFUMDsKKwkJd2FpdF9mb3JfY29tcGxl
-dGlvbigmbWNzcGlfZG1hLT5kbWFfdHhfY29tcGxldGlvbik7CisJCWRtYV91bm1hcF9zaW5nbGUo
-bWNzcGktPmRldiwgeGZlci0+dHhfZG1hLCB4ZmVyLT5sZW4sCisJCQkJIERNQV9UT19ERVZJQ0Up
-OworCisJCS8qIGZvciBUWF9PTkxZIG1vZGUsIGJlIHN1cmUgYWxsIHdvcmRzIGhhdmUgc2hpZnRl
-ZCBvdXQgKi8KKwkJaWYgKHJ4ID09IE5VTEwpIHsKKwkJCWlmIChtY3NwaV93YWl0X2Zvcl9yZWdf
-Yml0KGNoc3RhdF9yZWcsCisJCQkJCQlPTUFQMl9NQ1NQSV9DSFNUQVRfVFhTKSA8IDApCisJCQkJ
-ZGV2X2Vycigmc3BpLT5kZXYsICJUWFMgdGltZWQgb3V0XG4iKTsKKwkJCWVsc2UgaWYgKG1jc3Bp
-X3dhaXRfZm9yX3JlZ19iaXQoY2hzdGF0X3JlZywKKwkJCQkJCU9NQVAyX01DU1BJX0NIU1RBVF9F
-T1QpIDwgMCkKKwkJCQlkZXZfZXJyKCZzcGktPmRldiwgIkVPVCB0aW1lZCBvdXRcbiIpOworCQl9
-CisJfQogCXJldHVybiBjb3VudDsKIH0KIAotLSAKMS43LjUuNAoKCi0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLQpMb2dNZUluIENlbnRyYWw6IEluc3RhbnQsIGFueXdoZXJlLCBSZW1vdGUgUEMgYWNjZXNz
-IGFuZCBtYW5hZ2VtZW50LgpTdGF5IGluIGNvbnRyb2wsIHVwZGF0ZSBzb2Z0d2FyZSwgYW5kIG1h
-bmFnZSBQQ3MgZnJvbSBvbmUgY29tbWFuZCBjZW50ZXIKRGlhZ25vc2UgcHJvYmxlbXMgYW5kIGlt
-cHJvdmUgdmlzaWJpbGl0eSBpbnRvIGVtZXJnaW5nIElUIGlzc3VlcwpBdXRvbWF0ZSwgbW9uaXRv
-ciBhbmQgbWFuYWdlLiBEbyBtb3JlIGluIGxlc3MgdGltZSB3aXRoIENlbnRyYWwKaHR0cDovL3Au
-c2YubmV0L3NmdS9sb2dtZWluMTIzMzFfZDJkCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCnNwaS1kZXZlbC1nZW5lcmFsIG1haWxpbmcgbGlzdApzcGktZGV2
-ZWwtZ2VuZXJhbEBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQKaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3Jn
-ZS5uZXQvbGlzdHMvbGlzdGluZm8vc3BpLWRldmVsLWdlbmVyYWwK
+On Tue, Nov 6, 2012 at 2:33 PM, Mark Brown
+<broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org> wrote:
+> On Tue, Nov 06, 2012 at 02:30:19PM +0530, Shubhrajyoti D wrote:
+>> The commit  d7b4394e[Cleanup the omap2_mcspi_txrx_dma function]
+>> changed the wait_for_completion order. Move the wait so that the
+>> rx doesnot wait for the tx to complete.
+>
+> Applied, thanks.
+
+Thanks Mark,
+
+------------------------------------------------------------------------------
+LogMeIn Central: Instant, anywhere, Remote PC access and management.
+Stay in control, update software, and manage PCs from one command center
+Diagnose problems and improve visibility into emerging IT issues
+Automate, monitor and manage. Do more in less time with Central
+http://p.sf.net/sfu/logmein12331_d2d
