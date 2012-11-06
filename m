@@ -1,70 +1,80 @@
-From: Adam Wozniak <awozniak@irobot.com>
-Subject: need help debugging ISP problem
-Date: Mon, 5 Nov 2012 16:02:08 -0800
-Message-ID: <50985380.8000706@irobot.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
+Date: Tue, 06 Nov 2012 00:07:03 +0000
+Message-ID: <f5e162ce-090e-4561-b27c-2b041ca0bee9@email.android.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:33632
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224Ab2KFACj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 19:02:39 -0500
-Received: from mail155-ch1 (localhost [127.0.0.1])	by
- mail155-ch1-R.bigfish.com (Postfix) with ESMTP id DAAFD480144	for
- <linux-omap@vger.kernel.org>; Tue,  6 Nov 2012 00:02:37 +0000 (UTC)
-Received: from CH1EHSMHS020.bigfish.com (snatpool1.int.messaging.microsoft.com
- [10.43.68.242])	by mail155-ch1.bigfish.com (Postfix) with ESMTP id
- 725A7420112	for <linux-omap@vger.kernel.org>; Tue,  6 Nov 2012 00:02:35 +0000
- (UTC)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tabi Timur-B04825 <B04825@freescale.com>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wood Scott-B07421 <B07421@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-
-I'm working with a custom board based on an Overo WaterStorm com. The 
-processor is a DM3730.  The kernel is 2.6.32 based.
-
-I'm trying to stress test the camera ISP by rapidly opening and closing 
-the video device with ( while true; do gst-launch v4l2src 
-device=/dev/video0 ! video/x-raw-yuv,width=320,height=240 ! 
-ffmpegcolorspace ! pngenc snapshot=true ! fakesink; done )
-
-After many iterations, I will see the kernel spit out:
-
-[ 2502.802795] Unhandled fault: external abort on non-linefetch (0x1028) 
-at 0xfa0bce04
-[ 2502.810516] Internal error: : 1028 [#1]
-[ ... ]
-[ 2502.846893] PC is at isp_reg_readl+0x18/0x20
-[ 2502.851196] LR is at isp_reg_readl+0x10/0x20
-[ ... ]
-[ 2503.296447] [<c02954a0>] (isp_reg_readl+0x18/0x20) from [<c02954f8>] 
-(isp_reg_and_or+0x1c/0x38)
-[ 2503.305206] [<c02954f8>] (isp_reg_and_or+0x1c/0x38) from [<c029bad0>] 
-(isppreview_config_cfa+0x38/0x90)
-[ 2503.314666] [<c029bad0>] (isppreview_config_cfa+0x38/0x90) from 
-[<c029bc5c>] (isppreview_config_datapath+0x134/0x330)
-[ 2503.325347] [<c029bc5c>] (isppreview_config_datapath+0x134/0x330) 
-from [<c029be68>] (isppreview_s_pipeline+0x10/0xd0)
-[ 2503.336029] [<c029be68>] (isppreview_s_pipeline+0x10/0xd0) from 
-[<c0296e98>] (isp_s_pipeline+0x1d8/0x280)
-[ 2503.345672] [<c0296e98>] (isp_s_pipeline+0x1d8/0x280) from 
-[<bf036b98>] (cammux_streamon+0x218/0xa28 [cammux])
-[ ... ]
 
 
-The register we're trying to access here is the ISP PRV_PCR.  If I try 
-to add debug code to read ISP_CTRL right before the fault, the ISP_CTRL 
-access faults in the same way (i.e. the whole ISP is borked, not just 
-the previewer).
 
-At first I thought the clocks were being disabled somehow, but tracking 
-them seems to indicate that's not the case.  Adding an early return in 
-arch/arm/mach/omap2/clock.c omap2_dflt_clk_disable() (i.e. to disable 
-disabling of clocks) does NOT help.
+Tabi Timur-B04825 <B04825@freescale.com> wrote:
 
-What else might I be missing?  What is necessary to be able to read the 
-ISP registers?
+>On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely
+><grant.likely@secretlab.ca> wrote:
+>
+>> Jane is building custom BeagleBone expansion boards called 'capes'.
+>She
+>> can boot the system with a stock BeagleBoard device tree, but
+>additional
+>> data is needed before a cape can be used. She could replace the FDT
+>file
+>> used by U-Boot with one that contains the extra data, but she uses
+>the
+>> same Linux system image regardless of the cape, and it is
+>inconvenient
+>> to have to select a different device tree at boot time depending on
+>the
+>> cape.
+>
+>What's wrong with having the boot loader detect the presence of the
+>Cape and update the device tree accordingly?  We do this all the time
+>in U-Boot.  Doing stuff like reading EEPROMs and testing for the
+>presence of hardware is easier in U-Boot than in Linux.
+>
+>For configurations that can be determined by the boot loader, I'm not
+>sure overlays are practical.
 
---Adam
+>From the discussion in the previous thread, I'm sufficiently convinced that it is an important use case. I certainly disagree with the assertion that it is always easier to do it in U-Boot. Sometimes the kernel is the better place.
 
+>
+>> Nigel is building a real-time video processing system around a MIPS
+>SoC
+>> and a Virtex FPGA. Video data is streamed through the FPGA for post
+>> processing operations like motion tracking or compression. The FPGA
+>is
+>> configured via the SPI bus, and is also connected to GPIO lines and
+>the
+>> memory mapped peripheral bus. Nigel has designed several FPGA
+>> configurations for different video processing tasks. The user will
+>> choose which configuration to load which can even be reprogrammed at
+>> runtime to switch tasks.
+>
+>Now this, on the other hand, makes more sense.  If the hardware
+>configuration is literally user-configurable, then okay.  However, I'm
+>not sure I see the need to update the device tree.  The device tree is
+>generally for hardware that cannot be discovered/probed by the device
+>driver.  If we're loading a configuration from user space, doesn't the
+>driver already know what the hardware's capabilities are, since it's
+>the one doing the uploading of a new FPGA code?
+
+Not if the driver is only responsible for loading the bitstream. There is already a xilinx driver that does things this way.
+
+> Why not skip the
+>device tree update and just tell the driver what the new capabilities
+>are?
+
+How? What format will that data be in if not device tree?
+
+g.
+
+-- 
+Sent from my Android phone with K-9 Mail. Please excuse my brevity.
