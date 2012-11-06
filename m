@@ -1,312 +1,65 @@
 From: Matthieu CASTET <matthieu.castet@parrot.com>
-Subject: [PATCH 2/3] mtd nand : get timings from onfi
-Date: Tue,  6 Nov 2012 17:44:36 +0100
-Message-ID: <1352220277-4251-2-git-send-email-matthieu.castet@parrot.com>
-References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
+Subject: Re: [PATCH 3/3] omap3 nand : use NAND_BUSWIDTH_AUTO
+Date: Tue, 6 Nov 2012 17:47:18 +0100
+Message-ID: <50993F16.8070908@parrot.com>
+References: <1352199105-30215-1-git-send-email-matthieu.castet@parrot.com> <1352199105-30215-3-git-send-email-matthieu.castet@parrot.com> <50990473.2090300@compulab.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:62480 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751158Ab2KFQou (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 11:44:50 -0500
-Received: by mail-bk0-f46.google.com with SMTP id jk13so317573bkc.19
-        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 08:44:49 -0800 (PST)
-In-Reply-To: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
+Received: from co202.xi-lite.net ([149.6.83.202]:46302 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750867Ab2KFQrY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 11:47:24 -0500
+In-Reply-To: <50990473.2090300@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: dedekind1@gmail.com, Matthieu CASTET <matthieu.castet@parrot.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>
 
-We get from onfi param the max speed supported by the chip.
-A precomputed table for ONFI timings is generated.
+Igor Grinberg a =E9crit :
+> Cc: Tony Lindgren, Afzal Mohammed,
+>=20
+> On 11/06/12 12:51, Matthieu CASTET wrote:
+>> This allow to clean the omap nand driver that were trying in x8 and =
+x16 bits mode.
+>>
+>> This also make work onfi detection on beagleboard :
+>>
+>> Before :
+>> [    1.954803] NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Mi=
+cron NAND 256MiB 1,8V 16-bit), page size: 2048, OOB size: 64
+>>
+>> After :
+>> [    1.914825] ONFI param page 0 valid
+>> [    1.919158] ONFI flash detected
+>> [    1.922515] NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Mi=
+cron MT29F2G16ABD), page size: 2048, OOB size: 64
+>>
+>> platform data devsize is renamed bussize. It now indicate the maximu=
+n size of the nand bus.
+>>
+>> Signed-off-by: Matthieu CASTET <matthieu.castet@parrot.com>
+>=20
+> I think, you should base on one of Tony's branches with that kind of =
+patches.
+> Because, for example the omap_nand_flash_init() function does not exi=
+st anymore
+> in Tony's master and may be several more things will need to have adj=
+ustments.
+> Also, the GPMC related stuff inside the NAND driver
+> should probably be coordinated with Afzal, as he is reworking the who=
+le
+> GPMC related code.
 
-Signed-off-by: Matthieu CASTET <matthieu.castet@parrot.com>
----
- drivers/mtd/nand/Makefile      |    2 +-
- drivers/mtd/nand/nand_base.c   |    1 +
- drivers/mtd/nand/nand_timing.c |  170 ++++++++++++++++++++++++++++++++++++++++
- include/linux/mtd/nand.h       |   56 +++++++++++++
- 4 files changed, 228 insertions(+), 1 deletion(-)
- create mode 100644 drivers/mtd/nand/nand_timing.c
+Thanks for the info.
 
-diff --git a/drivers/mtd/nand/Makefile b/drivers/mtd/nand/Makefile
-index 2cbd091..2fc1a99 100644
---- a/drivers/mtd/nand/Makefile
-+++ b/drivers/mtd/nand/Makefile
-@@ -54,4 +54,4 @@ obj-$(CONFIG_MTD_NAND_JZ4740)		+= jz4740_nand.o
- obj-$(CONFIG_MTD_NAND_GPMI_NAND)	+= gpmi-nand/
- obj-$(CONFIG_MTD_NAND_XWAY)		+= xway_nand.o
- 
--nand-objs := nand_base.o nand_bbt.o
-+nand-objs := nand_base.o nand_bbt.o nand_timing.o
-diff --git a/drivers/mtd/nand/nand_base.c b/drivers/mtd/nand/nand_base.c
-index 8916bc6..0d6bd88 100644
---- a/drivers/mtd/nand/nand_base.c
-+++ b/drivers/mtd/nand/nand_base.c
-@@ -3238,6 +3238,7 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
- 	if (*maf_id != NAND_MFR_SAMSUNG && !type->pagesize)
- 		chip->options &= ~NAND_SAMSUNG_LP_OPTIONS;
- ident_done:
-+	nand_select_speed(chip, *maf_id, *dev_id);
- 
- 	/* Try to identify manufacturer */
- 	for (maf_idx = 0; nand_manuf_ids[maf_idx].id != 0x0; maf_idx++) {
-diff --git a/drivers/mtd/nand/nand_timing.c b/drivers/mtd/nand/nand_timing.c
-new file mode 100644
-index 0000000..7211c9c
---- /dev/null
-+++ b/drivers/mtd/nand/nand_timing.c
-@@ -0,0 +1,170 @@
-+/*
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/nand.h>
-+
-+/*
-+ * this table is precomputed from onfi timings with the following program
-+ */
-+#if 0
-+int print_timing(const struct onfi_timings *timings, int edo_off)
-+{
-+	struct reduced_onfi t;
-+	int tmp;
-+	int edo = timings->tRC < 30 && !edo_off;
-+
-+	/* nWE low */
-+	t.twp = max(timings->tWP, timings->tDS);
-+
-+	/* nCS low to nWE low */
-+	tmp = max(timings->tCLS, timings->tCS);
-+	tmp = max(tmp, timings->tALS);
-+	t.twsetup = tmp - t.twp;
-+	assert(t.twsetup >= 0);
-+
-+	/* nWE high */
-+	tmp = max(timings->tWH, timings->tDH); /* nWE high & data hold */
-+	tmp = max(tmp, timings->tCH); /* cs hold */
-+	tmp = max(tmp, timings->tCLH); /* cmd hold */
-+	t.twh = max(tmp, timings->tALH); /* addr hold */
-+
-+	assert(t.twp + t.twh <= timings->tWC);
-+	t.twc = timings->tWC;
-+
-+	t.edo = edo;
-+	if (edo == 0) {
-+
-+		/* nRE low */
-+		t.trp = max(timings->tRP, timings->tREA);
-+
-+		/* nRE high */
-+		t.treh = timings->tREH;
-+		t.trc = max(timings->tRC, t.trp + t.treh);
-+	}
-+	else {
-+		/* nRE low */
-+		t.trp = timings->tRP;
-+
-+		/* nRE high */
-+		t.treh = timings->tREH;
-+
-+		t.trc = max(timings->tRC, timings->tREA);
-+	}
-+
-+	/* nCS low to nRE low */
-+	t.trsetup = max(timings->tCEA - timings->tREA, timings->tCLR);
-+
-+	/* Min time from rdn rising edge to output hi-Z */
-+	t.bta = timings->tRHZ;
-+
-+	/* Min time from busy rising edge and rdn falling edge (read).*/
-+	t.tbusy = timings->tRR;
-+
-+	/* Min time from wrn rising edge to rdn falling edge. */
-+	t.twhr = timings->tWHR;
-+	assert(t.twhr >= 0);
-+
-+	t.tceh = 0;
-+
-+	printf("{\n");
-+	printf("/* %s edo=%d */\n", timings->name, t.edo);
-+	printf(".twp = %3d,  .twh = %3d, .twc = %3d, .twsetup = %d,\n",
-+			t.twp, t.twh, t.twc, t.twsetup);
-+	printf(".trp = %3d,  .treh = %3d, .trc = %3d, .trsetup = %d,\n",
-+			t.trp, t.treh, t.trc, t.trsetup);
-+	printf(".twhr = %d, .tceh = %d,  .bta = %d, .tbusy = %d, .edo = %d,\n",
-+			t.twhr, t.tceh, t.bta, t.tbusy, t.edo);
-+	printf("},\n");
-+#endif
-+
-+static struct reduced_onfi nand_timing[] =
-+{
-+	{
-+		/* onfi mode 0 edo=0 */
-+		.twp =  50,  .twh =  30, .twc = 100, .twsetup = 20,
-+		.trp =  50,  .treh =  30, .trc = 100, .trsetup = 60,
-+		.twhr = 120, .tceh = 0,  .bta = 200, .tbusy = 39, .edo = 0,
-+	},
-+	{
-+		/* onfi mode 1 edo=0 */
-+		.twp =  25,  .twh =  15, .twc =  45, .twsetup = 10,
-+		.trp =  30,  .treh =  15, .trc =  50, .trsetup = 15,
-+		.twhr = 80, .tceh = 0,  .bta = 100, .tbusy = 20, .edo = 0,
-+	},
-+	{
-+		/* onfi mode 2 edo=0 */
-+		.twp =  17,  .twh =  15, .twc =  35, .twsetup = 8,
-+		.trp =  25,  .treh =  15, .trc =  40, .trsetup = 10,
-+		.twhr = 80, .tceh = 0,  .bta = 100, .tbusy = 20, .edo = 0,
-+	},
-+	{
-+		/* onfi mode 3 edo=0 */
-+		.twp =  15,  .twh =  10, .twc =  30, .twsetup = 10,
-+		.trp =  20,  .treh =  10, .trc =  30, .trsetup = 10,
-+		.twhr = 60, .tceh = 0,  .bta = 100, .tbusy = 20, .edo = 0,
-+	},
-+	{
-+		/* onfi mode 4 edo=1 */
-+		.twp =  12,  .twh =  10, .twc =  25, .twsetup = 8,
-+		.trp =  12,  .treh =  10, .trc =  25, .trsetup = 10,
-+		.twhr = 60, .tceh = 0,  .bta = 100, .tbusy = 20, .edo = 1,
-+	},
-+	{
-+		/* onfi mode 5 edo=1 */
-+		.twp =  10,  .twh =   7, .twc =  20, .twsetup = 5,
-+		.trp =  10,  .treh =   7, .trc =  20, .trsetup = 10,
-+		.twhr = 60, .tceh = 0,  .bta = 100, .tbusy = 20, .edo = 1,
-+	},
-+	{
-+		/* onfi mode 4 edo=0 */
-+		.twp =  12,  .twh =  10, .twc =  25, .twsetup = 8,
-+		.trp =  20,  .treh =  10, .trc =  30, .trsetup = 10,
-+		.twhr = 60, .tceh = 0,  .bta = 100, .tbusy = 20, .edo = 0,
-+	},
-+	{
-+		/* onfi mode 5 edo=0 */
-+		.twp =  10,  .twh =   7, .twc =  20, .twsetup = 5,
-+		.trp =  16,  .treh =   7, .trc =  23, .trsetup = 10,
-+		.twhr = 60, .tceh = 0,  .bta = 100, .tbusy = 20, .edo = 0,
-+	},
-+};
-+
-+void nand_select_speed(struct nand_chip *chip, int maf_id, int dev_id)
-+{
-+	int i;
-+	chip->onfi_speed = -1;
-+	if (chip->onfi_version) {
-+		int mode = le16_to_cpu(chip->onfi_params.async_timing_mode);
-+		int max_mode = 0;
-+		for (i = 0; i <= 5; i++) {
-+			if (mode & (1 << i))
-+				max_mode = i;
-+		}
-+		chip->onfi_speed = max_mode;
-+	}
-+	/*
-+	 * For flash that are not ONFI we could use maf_id and dev_id to select a
-+	 * speed. But we need to make sure to select a speed compatible with all
-+	 * flash generation that share the same ids.
-+	 */
-+}
-+
-+const struct reduced_onfi *nand_get_timing(int mode, int edo)
-+{
-+	if (mode < 0)
-+		mode = 0;
-+	if (!edo && mode >= 4)
-+		mode += 2;
-+	if (mode >  ARRAY_SIZE(nand_timing))
-+		mode = 0;
-+	return &(nand_timing[mode]);
-+}
-+EXPORT_SYMBOL_GPL(nand_get_timing);
-diff --git a/include/linux/mtd/nand.h b/include/linux/mtd/nand.h
-index c8518d4..95f2871 100644
---- a/include/linux/mtd/nand.h
-+++ b/include/linux/mtd/nand.h
-@@ -474,6 +474,7 @@ struct nand_buffers {
-  * @pagebuf_bitflips:	[INTERN] holds the bitflip count for the page which is
-  *			currently in data_buf.
-  * @subpagesize:	[INTERN] holds the subpagesize
-+ * @onfi_speed:		[INTERN] holds the ONFI speed, -1 if not supported.
-  * @onfi_version:	[INTERN] holds the chip ONFI version (BCD encoded),
-  *			non 0 if ONFI supported.
-  * @onfi_params:	[INTERN] holds the ONFI page parameter when ONFI is
-@@ -545,6 +546,7 @@ struct nand_chip {
- 	int badblockpos;
- 	int badblockbits;
- 
-+	int	onfi_speed;
- 	int onfi_version;
- 	struct nand_onfi_params	onfi_params;
- 
-@@ -691,6 +693,60 @@ struct platform_nand_data {
- 	struct platform_nand_ctrl ctrl;
- };
- 
-+/**
-+ * timing in ns,
-+ *  there are computed from onfi table :
-+ *  twsetup = max(tCLS, tCS, tALS) - twp
-+ *  twp = max(tWP, tDS)
-+ *  twh = max(tCLH, tCH, tALH, tDH, tWH)
-+ *  twc = tWC
-+ *  trsetup = max(tCEA-tREA, tCLR)
-+ *  treh = tREH
-+ *  if (edo == 0) {
-+ *    trp = max(tRP, tREA)
-+ *    trc = max(tRC, trp + treh)
-+ *  }
-+ *  else {
-+ *    trp = tRP
-+ *    trc = max(tRC, tREA)
-+ *  }
-+ *
-+ *  bta = max(tRHZ, tCHZ)
-+ *  busy = tRR
-+ *  twhr = tWHR
-+ *
-+ *  Note that twp + twh can be smaller than twc, so you should do :
-+ *  twp_clk = ns_to_ticks(twp)
-+ *  twh_clk = ns_to_ticks(max(twh, twc - ticks_to_ns(twp_clk)))
-+ *  or
-+ *  twh_clk = ps_to_ticks(max(ns_to_ps(twh), ns_to_ps(twc) - ticks_to_ps(twp_clk)))
-+ *  using picosecond can help for rounding. For example a 156Mhz, mode=4 edo=1
-+ *  with ps we got twp_clk=twh_clk=2 (12820 ps)
-+ *  without ps we got twp_clk = 2 (12 ns) and twh_clk=3 (18 ns)
-+ *  This is because 12820 + 12820 > 15000 but 12 + 12 < 15.
-+ */
-+struct reduced_onfi {
-+	u8 twsetup; /* nCS low to nWE low */
-+	u8 twp; /* nWE low */
-+	u8 twh; /* nWE high */
-+	u8 twc; /* write cyle */
-+
-+	u8 trsetup; /* nCS low to nRE low */
-+	u8 trp; /* nRE low */
-+	u8 treh; /* nRE high */
-+	u8 trc; /* read cycle */
-+
-+	u8 bta; /* Min time from nRE rising edge to output hi-Z */
-+	u8 tbusy; /* Min time from busy rising edge and nRE falling edge */
-+	u8 twhr; /* Min time from nWE rising edge to nRE falling edge. */
-+	u8 tceh; /* Min time for nCE high */
-+
-+	u8 edo; /* edo mode */
-+};
-+
-+void nand_select_speed(struct nand_chip *chip, int maf_id, int dev_id);
-+const struct reduced_onfi *nand_get_timing(int mode, int edo);
-+
- /* Some helpers to access the data structures */
- static inline
- struct platform_nand_chip *get_platform_nandchip(struct mtd_info *mtd)
--- 
-1.7.10.4
+Where such tree could be found ?
 
+
+Matthieu
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
