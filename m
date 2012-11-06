@@ -1,57 +1,104 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 08/15] ARM: OMAP2+: hwmod: Fix the omap_hwmod_addr_space
- for CPGMAC0
-Date: Tue, 6 Nov 2012 13:08:08 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB64336@DBDE01.ent.ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <1351859566-24818-9-git-send-email-vaibhav.bedia@ti.com>
- <509543E8.60209@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EC00B9B@DBDE01.ent.ti.com>
- <5098D889.60909@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EC049E4@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 4/5] usb: musb: dsps: dt binding - add resources, example
+Date: Tue, 6 Nov 2012 15:02:45 +0200
+Message-ID: <20121106130245.GK11931@arwen.pp.htv.fi>
+References: <cover.1351870620.git.afzal@ti.com>
+ <392aceb635682614b8509b4090943f806b3236f2.1351870620.git.afzal@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50307 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751343Ab2KFNIO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 08:08:14 -0500
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC049E4@DBDE01.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sMZCuqyhuhd4ycTi"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <392aceb635682614b8509b4090943f806b3236f2.1351870620.git.afzal@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Santhapuri Damodar <damodar.santhapuri@ti.com>, Ravi Babu <ravibabu@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Tue, Nov 06, 2012 at 15:39:14, Bedia, Vaibhav wrote:
-> On Tue, Nov 06, 2012 at 14:59:45, Hiremath, Vaibhav wrote:
-> [...]
-> > > 
-> > > Ok I checked this one. The change I made was indirectly fixing another
-> > > issue with the AM33xx hwmod data. am33xx_cpgmac0_addr_space[] has two
-> > > entries and the SYSC register is part of the second entry. The function
-> > > _find_mpu_rt_addr_space in omap_hwmod.c looks for the first entry with
-> > > the flag ADDR_TYPE_RT flag. The change I made indirectly made the second
-> > > entry in am33xx_cpgmac0_addr_space[] become the first memory space with
-> > > the ADDR_TYPE_RT flag. Due to this the hwmod code wrote to the correct
-> > > SYSC address of CPGMAC0 and the IP went to standby during bootup. 
-> > > After changing the order of the entries in am33xx_cpgmac0_addr_space[]
-> > > things work fine.
-> > > 
-> > 
-> > Good catch.
-> > 
-> > Just a side note on this, driver expects the addresses in this order
-> > only, first SS and then WR.
-> > 
-> 
-> Sorry I didn't understand your comment. For HWMOD code to work as expected,
-> we need to change the order. 
+--sMZCuqyhuhd4ycTi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Why do you want to change the order? Just specify "ADDR_TYPE_RT", that 
-should be it.
+On Fri, Nov 02, 2012 at 10:02:47PM +0530, Afzal Mohammed wrote:
+> OMAP2+ family of devices are now obtaining resources via DT, earlier
+> it was obtained from hwmod. Update binding document accrodingly, while
+> at it add example.
+>=20
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+>  .../devicetree/bindings/usb/am33xx-usb.txt          | 21 +++++++++++++++=
+++++++
+>  1 file changed, 21 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Docum=
+entation/devicetree/bindings/usb/am33xx-usb.txt
+> index a922505..6b7e3bd 100644
+> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+> @@ -1,5 +1,7 @@
+>  AM33XX MUSB GLUE
+>   - compatible : Should be "ti,musb-am33xx"
+> + - reg : offset and length of register sets, first usbss, then for musb =
+instances
+> + - interrupts : usbss, musb instance interrupts in order
+>   - ti,hwmods : must be "usb_otg_hs"
+>   - multipoint : Should be "1" indicating the musb controller supports
+>     multipoint. This is a MUSB configuration-specific setting.
+> @@ -12,3 +14,22 @@ AM33XX MUSB GLUE
+>     represents PERIPHERAL.
+>   - power : Should be "250". This signifies the controller can supply upto
+>     500mA when operating in host mode.
+> +
+> +Example:
+> +
+> +usb_otg_hs@47400000  {
 
-Thanks,
-Vaibhav
+this should be usb@47400000.
 
+> +	compatible =3D "ti,musb-am33xx";
+> +	reg =3D <0x47400000 0x1000	/* usbss */
+> +	       0x47401000 0x800		/* musb instance 0 */
+> +	       0x47401800 0x800>;	/* musb instance 1 */
+> +	interrupts =3D <17		/* usbss */
+> +		      18		/* musb instance 0 */
+> +		      19>;		/* musb instance 1 */
+> +	multipoint =3D <1>;
+> +	num-eps =3D <16>;
+> +	ram-bits =3D <12>;
+> +	port0-mode =3D <3>;
+> +	port1-mode =3D <3>;
+> +	power =3D <250>;
+> +	ti,hwmods =3D "usb_otg_hs";
+> +};
+> --=20
+> 1.7.12
+>=20
+
+--=20
+balbi
+
+--sMZCuqyhuhd4ycTi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQmQp1AAoJEIaOsuA1yqRE/5kQALWyGwXCFZ8/kVNUM8u+IAby
+HcnhQmrpsnBLwaghfcY12we0+pF1pAcIxPAJ87MnVsEGOjoWkuKToAeS5guGCrp7
+UApouhAiDKeLA+f2z2R81Lr+a0/iM9GEX1Dw5LtLMqsLdx/PUEwV0M8yqe885qp8
+/6gSu6e+Sxugr+pK2fOUInE0EiQx0m90awvHirtb6ri8XLKI3XHdi379Vld7nn8n
+iS4VkrYN83H4Eo/w6uHWiD7OKOXnMKGRGQsmCuwBG+0T61oqZk5CGaegP+7XzwGh
+9xcYscnX7qoDmyBxs32RQpfTCJcn/SM6lnu4duMKSmad/OAo79x7oRY07ljc1ox5
+uNcBqkHapUzOJGvESXzVCc/tZUBUQZWiRM9A6H1xMkxiHzK7IPhRzrJB7K7mQFJr
+H8sTSYtuG5ZKn52DCJ7zxKRPxNEa3et+SJYAuIefbJoDKt3HSEawxoBUwa2RpcEV
+vWOH5Eesub3Iar8RVMI+Odx0xO1FiO0dDxRa5d0Lk0xKMpNdCJRQuCglB63LtYUQ
+ZxQWaUKgj9xWpBhsXN6sqAyoIKmSkl2jiHy2PJ0AvsnnPbAYrj/lob92hlRblbrD
+9dwnzXelRlW2A+LiFkJFhrlORiArLkBBj7wmOYyKJaZu0vMhVnDIZnL410Fmt+ri
+RCnxPlJ5qlW7jUr/CXMF
+=rNBG
+-----END PGP SIGNATURE-----
+
+--sMZCuqyhuhd4ycTi--
