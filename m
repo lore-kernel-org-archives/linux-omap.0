@@ -1,51 +1,44 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] spi: omap2-mcspi: Reorder the wait_for_completion for tx
-Date: Tue, 6 Nov 2012 10:03:54 +0100
-Message-ID: <20121106090353.GI5044@opensource.wolfsonmicro.com>
-References: <1352192419-22872-1-git-send-email-shubhrajyoti@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Op27XXJsWz80g3oF"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1352192419-22872-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Federico Fuga <ml@studiofuga.com>
+Subject: Re: hdmi on 4430 (kernel 3.4)
+Date: Tue, 6 Nov 2012 10:05:05 +0100
+Message-ID: <36593A51-4838-4382-BEC1-4F261454390A@studiofuga.com>
+References: <32739C29-CEEA-481C-B070-1754E3CA94C8@studiofuga.com> <509849EA.7080403@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from oproxy12-pub.bluehost.com ([50.87.16.10]:54623 "HELO
+	oproxy12-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750875Ab2KFJFI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 04:05:08 -0500
+In-Reply-To: <509849EA.7080403@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org
+
+Hi Jon,
 
 
---Op27XXJsWz80g3oF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Il giorno 06/nov/2012, alle ore 00:21, Jon Hunter <jon-hunter@ti.com> ha scritto:
 
-On Tue, Nov 06, 2012 at 02:30:19PM +0530, Shubhrajyoti D wrote:
-> The commit  d7b4394e[Cleanup the omap2_mcspi_txrx_dma function]
-> changed the wait_for_completion order. Move the wait so that the
-> rx doesnot wait for the tx to complete.
+>> I wanted to check the HDMI registers, but I didn't find the hdmi registers table on the TRM.
+>> Does someone have some hint, comment or previous experience on that? 
+>> Where can I find the hdmi registers list on the manual or other documentation?
+>> Note that as far as i know, the 2.6.35 kernel was working correctly (I can't check right now, unfortunately).
+>> Thank you.
+> 
+> I would recommend posting this query on the TI E2E forum for Linux [1].
+> You may get better help there seeing that this is with regard to a
+> specific TI development kernel branch.
+> 
 
-Applied, thanks.
 
---Op27XXJsWz80g3oF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thank you very much for the suggestion! I'll post there.
+Can you confirm that the kernel version I am using works without problem with HDMI-1080p? 
+Thanks 
+Cheers
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Federico
 
-iQIcBAEBAgAGBQJQmNJtAAoJELSic+t+oim9eOEQAITlEeyV8StC2jLjvPAp4Pac
-XLKNyp/PerjtPTuFyqkPy1w3q5wFaIpZcRpkx2JqOcHC90vaK/lloe28nr+Zli2G
-LcTyA3c3LRexCzg9OOdCKrkTjqm+Ux8xQdba2cGlwN2ALsedXbEJpOICGgiQbYoc
-a4azKWPEKf7PNaBP6dJK/bPFA7GfXnZDycKhl9KvcE1LIfw0cclKmZ+0Q++dF9P7
-X+2MG75/2mSGXdkLgAfbTBkzXobd6eiD0TOOdvD+EqJweR44zOiyxUCDmVJXdgpz
-EFHda0n/WzJw6KdzCMcuDIiAdI+Quqmm8Py8+25+qDwO/l+saURP9IkgEZ/Iirat
-GRvIfmULDsorK5HhVuSxRUHPsMEyNaxUwWH+wdBjdng26mOUpAz9mTJ6O3bH02Oq
-9JGXT1fHJ4VYLtYfYtVVPOw8wySSBTpAezuyix3JeSkCjhwGq+4yrn4QN7rt666/
-t/GUnkP9/qtWgZrODbhD8AupVHc1smTyR5zHu3NVXXUO9OS3jH4/SivHhFS2cQHw
-z1Wm14m3eal4z7pbtoWmqCEP9nNG2mo4Ksz4zWPKdf1n5bpi2v689k7QE+1LVm9E
-PU45xI8efxFH8DIn/2x6u+RW4V4OxQiTV1vsd29sFi+NNrpu5v4d+FnCGJWlZeBG
-kRtS62SWIlPAdjJnIciq
-=OTHT
------END PGP SIGNATURE-----
 
---Op27XXJsWz80g3oF--
