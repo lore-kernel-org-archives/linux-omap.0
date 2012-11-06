@@ -1,83 +1,122 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
- to mach-omap2)
-Date: Tue, 06 Nov 2012 15:17:58 -0700
-Message-ID: <50998C96.9090601@wwwdotorg.org>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com> <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com> <20121106183531.GH6801@atomide.com> <CA+Bv8XZOt7h3dtDsk1SaR71J3tYFOTsPJSjZLSP3RVuLdYdFDg@mail.gmail.com> <56051C08-3ECF-4C0A-9B88-64B4C1DDDF45@antoniou-consulting.com>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Tue, 06 Nov 2012 15:37:57 -0700
+Message-ID: <50999145.2070306@wwwdotorg.org>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:50265 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270Ab2KFWSC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 17:18:02 -0500
-In-Reply-To: <56051C08-3ECF-4C0A-9B88-64B4C1DDDF45@antoniou-consulting.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Russ Dill <Russ.Dill@ti.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On 11/06/2012 12:41 PM, Pantelis Antoniou wrote:
-> Hi Russ,
->=20
-> On Nov 6, 2012, at 8:29 PM, Russ Dill wrote:
->=20
->> On Tue, Nov 6, 2012 at 10:35 AM, Tony Lindgren <tony@atomide.com> wr=
-ote:
->>> * Grant Likely <grant.likely@secretlab.ca> [121106 03:16]:
->>>> On Tue, Nov 6, 2012 at 10:30 AM, Pantelis Antoniou
->>>> <panto@antoniou-consulting.com> wrote:
->>>>>
->>>>> Another can of worms is the pinctrl nodes.
->>>>
->>>> Yes... new pinctrl data would need to trigger adding new data to
->>>> pinctrl. I don't know if the pinctrl api supports that.
->>>
->>> The actual pins stay the same, just their configuration
->>> changes. AFAIK all that is already supported using the
->>> pinctrl framework.
->>>
->>> For example, considering hotplugging capes on the beaglebone:
-=2E..
->> That assumes that for a particular external bus, certain pins aren't
->> already shared with functions already on the board, for instance if =
-an
->> I=B2C bus brought out to the external bus already has a chip connect=
-ed
->> to it.
->=20
-> This is our case on the bone. We don't enable the peripheral until
-> a cape that references it is enabled.
->=20
-> I don't think that very big changes are going to be needed TBH.
-=2E..
-> Ideally if we could do this in the cape definition:
->=20
-> 	cape_pinmux {
-> 		parent =3D <&am3358_pinmux>;
+On 11/05/2012 01:40 PM, Grant Likely wrote:
+> Hey folks,
+> 
+> As promised, here is my early draft to try and capture what device
+> tree overlays need to do and how to get there. Comments and
+> suggestions greatly appreciated.
 
-I think the cape overlay would simply add nodes to the existing pin
-controller node, so I'd presume you would replace the two lines
-immediately above with:
+Interesting. This just came up internally at NVIDIA within the last
+couple weeks, and was discussed on the U-Boot mailing list very recently
+too:
 
-am3358_pinmux: pinmux {
+http://lists.denx.de/pipermail/u-boot/2012-October/thread.html#138227
+(it spills into the November archive too)
 
->=20
->                 bone_dvi_cape_led_pins: pinmux_bone_dvi_cape_led_pins=
- {
->                         pinctrl-single,pins =3D <
->                                 0x48 0x07       /* gpmc_a2.gpio1_18, =
-OUTPUT | MODE7 */
->                                 0x4c 0x07       /* gpmc_a3.gpio1_19, =
-OUTPUT | MODE7 */
->                         >;
-> 	};
->=20
->         pinctrl-0 =3D <&bone_geiger_cape_pins>;
+> For these cases it is proposed to implement an overlay feature for the
+> so that the initial device tree data can be modified by userspace at
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't know if you're maintaining this as a document and taking patches
+to it, but if so:
+
+"for the so" split across those two lines.
+
+> Jane solves this problem by storing an FDT overlay for each cape in the
+> root filesystem. When the kernel detects that a cape is installed it
+> reads the cape's eeprom to identify it and uses request_firmware() to
+> obtain the appropriate overlay. Userspace passes the overlay to the
+> kernel in the normal way. If the cape doesn't have an eeprom, then the
+> kernel will still use firmware_request(), but userspace needs to already
+> know which cape is installed.
+
+As mentioned by Pantelis, multiple versions of a board is also very
+common. We already have the following .dts files in the kernel where
+this applies, for the main board even:
+
+arch/arm/boot/dts/tegra30-cardhu.dtsi
+arch/arm/boot/dts/tegra30-cardhu-a02.dts
+arch/arm/boot/dts/tegra30-cardhu-a04.dts
+
+> Summary points:
+
+>   - SHOULD reliably handle changes between different underlying overlays
+>     (ie. what happens to existing .dtb overly files if the structure of
+>     the dtb it is layered over changes. If not possible, then SHALL
+>     detect when the base tree doesn't match and refuse to apply the
+>     overlay.
+
+Perhaps use (versioned) DT bindings to represent the interface between
+the two .dts files? See the links to the U-Boot mailing list discussions
+below?
+
+> - What is the model for overlays?
+>   - Can an overlay modify existing properties?
+>   - Can an overlay add new properties to existing nodes?
+>   - Can an overlay delete existing nodes/properties?
+
+This proposal is very oriented at an overlay-based approach. I'm not
+totally convinced that a pure overlay approach (as in how dtc does
+overlayed DT nodes) will be flexible enough, but would love to be
+persuaded. Again see below.
+
+> It may be sufficient to solve it by making the phandle values less
+> volatile. Right now dtc generates phandles linearly. Generated phandles
+> could be overridden with explicit phandle properties, but it isn't a
+> fantastic solution. Perhaps generating the phandle from a hash of the
+> node name would be sufficient.
+
+Node names don't have to be unique though right; perhaps hash the
+path-name instead of the node-name? But then, why not just reference by
+path name; similar to <{&/path/to/node}> rather than <&label>?
+
+> This handles many of the use cases, but it assumes that an overlay is
+> board specific. If it ever is required to support multiple base boards
+> with a single overlay file then there is a problem. The .dtb overlays
+> generated in this manor cannot handle different phandles or nodes that
+> are in a different place. On the other hand, the overlay source files
+> should have no problem being compiled for multiple targets.
+
+s/manor/manner/
+
+I do rather suspect this use-case is quite common. NVIDIA certainly has
+a bunch of development boards with pluggable
+PMIC/audio/WiFi/display/..., and I believe there's some ability to
+re-use the pluggable components with a variety of base-boards.
+
+Given people within NVIDIA started talking about this recently, I asked
+them to enumerate all the boards we have that support pluggable
+components, and how common it is that some boards support being plugged
+into different main boards. I don't know when that enumeration will
+complete (or even start) but hopefully I can provide some feedback on
+how common the use-case is for us once it's done.
+
+My earlier thoughts on how to support this included explicit
+inter-board/-component connector objects in the .dts files that allow
+"renaming" of GPIOs, I2C buses, regulators, etc.:
+
+http://lists.denx.de/pipermail/u-boot/2012-October/138476.html
+http://lists.denx.de/pipermail/u-boot/2012-November/138925.html
