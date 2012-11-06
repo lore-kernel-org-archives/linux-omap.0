@@ -1,51 +1,64 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.7-rc1
-Date: Tue, 6 Nov 2012 16:13:00 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211061611460.20573@utopia.booyaka.com>
-References: <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com> <20121029200032.GD30152@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com> <20121030123254.GD29095@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301239310.12697@utopia.booyaka.com>
- <20121030125419.GG29095@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301313190.12697@utopia.booyaka.com> <CAORVsuWqoqrza-qrJskpMTj=2MW6JxNEhVzjWVXkM1mpqVO8cQ@mail.gmail.com> <87fw4u3oh5.fsf@deeprootsystems.com> <CAORVsuUWD3gHh1NcMLeGwZ=hF=UiOG2VyJkADZNcGVr1g1TFgQ@mail.gmail.com>
- <alpine.DEB.2.00.1211010242001.6693@utopia.booyaka.com> <CAORVsuXHxqhcTHv8Y=8gw4N+0+rx+N91bh971zK-TmcsrTu5nQ@mail.gmail.com> <CAORVsuUda69_sE9LpBnuETXSA2jPxw7nQ=MkAq=Or8B7t1fvcA@mail.gmail.com> <alpine.DEB.2.00.1211050313130.23228@utopia.booyaka.com>
- <CAORVsuUGcydD13-VcaNjmAmrsyo9ZVHGTRoSKgLyr4-Bkw7zhg@mail.gmail.com> <87fw4neh0i.fsf@deeprootsystems.com> <CAORVsuUm4zKoSaZQ0D=gf3toKHWznjfNvQ+q4=jsgkRaJXygMg@mail.gmail.com>
+From: Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
+Subject: Re: [PATCH] i2c: omap: Move the remove constraint
+Date: Tue, 6 Nov 2012 17:24:34 +0100
+Message-ID: <CAORVsuW_VAiemnauUs-yW+GcQpv+qpESP4kzyQm=Unmofa4k_Q@mail.gmail.com>
+References: <1352195673-31559-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42888 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab2KFQNB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 11:13:01 -0500
-In-Reply-To: <CAORVsuUm4zKoSaZQ0D=gf3toKHWznjfNvQ+q4=jsgkRaJXygMg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1352195673-31559-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Felipe Balbi <balbi@ti.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-On Tue, 6 Nov 2012, Jean Pihet wrote:
+Hi Shubhrajyoti,
 
-> On Tue, Nov 6, 2012 at 1:01 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
+On Tue, Nov 6, 2012 at 10:54 AM, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> wrote:
+> Currently we just queue the transfer and release the
+> qos constraints, however we donot wait for the transfer
+> to complete to release the constraint. Move the remove
+> constraint after the bus busy as we are sure that the
+> transfers are completed by then.
 >
-> > FYI... I just ran across what appears to be the same bug on 3430/n900
-> > during suspend/resume testing.  With CPUidle enabled, this happens every
-> > time.
-> >
-> > Reverting the I2C QoS patch makes it work again.
-> 
-> That makes sense with CPU_IDLE enabled and suspend.
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 
-...
+Good catch, the change definitely makes sense. Feel free to add:
 
-> For the records here are the patches that have been submitted to
-> support the OMAP PM QoS:
-> - func power states [1],
-> - OMAP PM QoS support [2], which includes the latency figures update
-> and which depends on [1],
-> - the conversion of I2C to PM QoS [3],
-> - the removal of the old no-op OMAP PM API [4], which depends on [3],
-> 
-> The chicken-and-egg problem is clearly visible since [3] depends on [2].
+Acked-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
 
-Well it's definitely time for a revert, then.  #3 should not have been 
-sent until #2 was merged.  Will send this in a new thread, please ack it.
+Thanks,
+Jean.
 
-
-- Paul
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 94ff685..8b079d7 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -655,13 +655,13 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+>                         break;
+>         }
+>
+> -       if (dev->latency)
+> -               pm_qos_remove_request(&dev->pm_qos_request);
+> -
+>         if (r == 0)
+>                 r = num;
+>
+>         omap_i2c_wait_for_bb(dev);
+> +
+> +       if (dev->latency)
+> +               pm_qos_remove_request(&dev->pm_qos_request);
+>  out:
+>         pm_runtime_mark_last_busy(dev->dev);
+>         pm_runtime_put_autosuspend(dev->dev);
+> --
+> 1.7.5.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
