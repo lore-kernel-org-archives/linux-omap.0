@@ -1,138 +1,131 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 1/6] ARM/dts: omap4-panda: Add pinmux configuration for
- HDMI
-Date: Mon, 5 Nov 2012 23:24:41 -0600
-Message-ID: <50989F19.70401@ti.com>
-References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com> <1352121259-5836-2-git-send-email-tomi.valkeinen@ti.com> <5097BC67.5050508@ti.com>
+Subject: Re: [PATCH v2 7/7] OMAPDSS: HDMI: Create platform device for audio
+ support
+Date: Mon, 5 Nov 2012 23:27:09 -0600
+Message-ID: <50989FAD.3050601@ti.com>
+References: <1351902708-866-1-git-send-email-ricardo.neri@ti.com> <1351902708-866-8-git-send-email-ricardo.neri@ti.com> <50977CD7.7070609@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57910 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57975 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753256Ab2KFE1I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Nov 2012 23:27:08 -0500
-In-Reply-To: <5097BC67.5050508@ti.com>
+	id S1753297Ab2KFE3b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Nov 2012 23:29:31 -0500
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id qA64TVLX027330
+	for <linux-omap@vger.kernel.org>; Mon, 5 Nov 2012 22:29:31 -0600
+Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id qA64TVQw002847
+	for <linux-omap@vger.kernel.org>; Mon, 5 Nov 2012 22:29:31 -0600
+In-Reply-To: <50977CD7.7070609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, s-guiriec@ti.com
+Cc: peter.ujfalusi@ti.com, s-guiriec@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org
 
 Hi Tomi,
 
-On 11/05/2012 07:17 AM, Tomi Valkeinen wrote:
-> Hi Ricardo,
->
-> On 2012-11-05 15:14, Tomi Valkeinen wrote:
->> From: Ricardo Neri <ricardo.neri@ti.com>
+Thanks for reviewing.
+
+On 11/05/2012 02:46 AM, Tomi Valkeinen wrote:
+> On 2012-11-03 02:31, Ricardo Neri wrote:
+>> Creating the accessory devices, such as audio, from the HDMI driver
+>> allows to regard HDMI as a single entity with audio an display
+>> functionality. This intends to follow the design of drivers such
+>> as MFD, in which a single entity handles the creation of the accessory
+>> devices. Such devices are then used by domain-specific drivers; audio in
+>> this case.
 >>
->> Add the pinmux configuration for HDMI and TPD12S015A. Configure the
->> gpios for the TPD12S015A and SDA, SCL and CEC for HDMI.
+>> Also, this is in line with the DT implementation of HDMI, in which we will
+>> have a single node to describe this feature of the OMAP SoC.
 >>
 >> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 >> ---
->>   arch/arm/boot/dts/omap4-panda-a4.dts |   17 +++++++++++++++++
->>   arch/arm/boot/dts/omap4-panda.dts    |   18 ++++++++++++++++++
->>   arch/arm/boot/dts/omap4-pandaES.dts  |    9 +++++++++
->>   3 files changed, 44 insertions(+)
->>   create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
+>>   drivers/video/omap2/dss/hdmi.c |   62 ++++++++++++++++++++++++++++++++++++++++
+>>   1 files changed, 62 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+>> index 4adf830..d6ce4c6 100644
+>> --- a/drivers/video/omap2/dss/hdmi.c
+>> +++ b/drivers/video/omap2/dss/hdmi.c
+>> @@ -60,6 +60,9 @@
+>>   static struct {
+>>   	struct mutex lock;
+>>   	struct platform_device *pdev;
+>> +#if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+>> +	struct platform_device *audio_pdev;
+>> +#endif
+>>
+>>   	struct hdmi_ip_data ip_data;
+>>
+>> @@ -766,6 +769,54 @@ static void hdmi_put_clocks(void)
+>>   }
+>>
+>>   #if defined(CONFIG_OMAP4_DSS_HDMI_AUDIO)
+>> +static int hdmi_probe_audio(struct platform_device *pdev)
+>> +{
+>> +	struct resource *res;
+>> +	u32 port_offset, port_size;
+>> +	struct resource aud_res[2] = {
+>> +		DEFINE_RES_MEM(-1, -1),
+>> +		DEFINE_RES_DMA(-1),
+>> +	};
+>> +
+>> +	hdmi.audio_pdev = ERR_PTR(-EINVAL);
 >
-> Ricardo, I modified this and the other dts patch to add new .dts files
-> for the board revisions with external pull on the SCL/SDA lines. Can you
-> verify that these are correct?
+> I don't like this. I think ERR_PTR stuff should be used only for return
+> values, not when storing pointers. I think it's much more natural and
+> less error prone to do if (hdmi.audio_pdev == NULL) than if
+> (IS_ERR(hdmi.audio_pdev)).
+>
+> So store the return value from platform_dev_register first to a local
+> variable, check IS_ERR for that, and only then store it to hdmi.audio_pdev.
 
-I verified the pinmux values to make sure that the OMAP internal pull is 
-not enabled in Pandaboard A4/4430 ES2.3+. It looks correct to me.
+OK. I'll implement the change.
+>
+>> +	res = platform_get_resource(hdmi.pdev, IORESOURCE_MEM, 0);
+>> +	if (!res) {
+>> +		DSSERR("can't get IORESOURCE_MEM HDMI\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/*
+>> +	 * Pass DMA audio port to audio drivers.
+>> +	 * Audio drivers should not ioremap it.
+>> +	 */
+>> +	hdmi.ip_data.ops->audio_get_dma_port(&port_offset, &port_size);
+>> +
+>> +	aud_res[0].start = res->start + port_offset;
+>> +	aud_res[0].end = aud_res[0].start + port_size - 1;
+>> +
+>> +	res = platform_get_resource(hdmi.pdev, IORESOURCE_DMA, 0);
+>> +	if (!res) {
+>> +		DSSERR("can't get IORESOURCE_DMA HDMI\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/* Pass the audio DMA request resource to audio drivers. */
+>> +	aud_res[1].start = res->start;
+>> +
+>> +	/* create platform device for HDMI audio driver */
+>> +	hdmi.audio_pdev = platform_device_register_simple(
+>> +							  "omap_hdmi_audio",
+>> +							  -1, aud_res,
+>> +							   ARRAY_SIZE(aud_res));
+>
+> Not a problem for the time being, but the above prevents us from having
+> two HDMI outputs. Perhaps you could use hdmi pdev's ID instead of -1 above?
 
-I also tested it on 4430 ES2.1 and 4430 ES2.3 SDPs and works fine.
+I guess it is fine as you suggest. I will have to work on the ASoC side 
+to support more than one HDMI outputs as well.
 
 BR,
 
 Ricardo
-
-Tested-by: Ricardo Neri <ricardo.neri@ti.com>
-Reviewed-by: Ricardo Neri <ricardo.neri@ti.com>
-
+>
+> Otherwise I think the series is ok.
 >
 >   Tomi
->
->> diff --git a/arch/arm/boot/dts/omap4-panda-a4.dts b/arch/arm/boot/dts/omap4-panda-a4.dts
->> new file mode 100644
->> index 0000000..75466d2
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/omap4-panda-a4.dts
->> @@ -0,0 +1,17 @@
->> +/*
->> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +/include/ "omap4-panda.dts"
->> +
->> +/* Pandaboard Rev A4+ have external pullups on SCL & SDA */
->> +&dss_hdmi_pins {
->> +	pinctrl-single,pins = <
->> +		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
->> +		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
->> +		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
->> +		>;
->> +};
->> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
->> index e8f927c..8060f5b 100644
->> --- a/arch/arm/boot/dts/omap4-panda.dts
->> +++ b/arch/arm/boot/dts/omap4-panda.dts
->> @@ -65,6 +65,8 @@
->>   			&twl6040_pins
->>   			&mcpdm_pins
->>   			&mcbsp1_pins
->> +			&dss_hdmi_pins
->> +			&tpd12s015_pins
->>   	>;
->>
->>   	twl6040_pins: pinmux_twl6040_pins {
->> @@ -92,6 +94,22 @@
->>   			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
->>   		>;
->>   	};
->> +
->> +	dss_hdmi_pins: pinmux_dss_hdmi_pins {
->> +		pinctrl-single,pins = <
->> +			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
->> +			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
->> +			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
->> +		>;
->> +	};
->> +
->> +	tpd12s015_pins: pinmux_tpd12s015_pins {
->> +		pinctrl-single,pins = <
->> +			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
->> +			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
->> +			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
->> +		>;
->> +	};
->>   };
->>
->>   &i2c1 {
->> diff --git a/arch/arm/boot/dts/omap4-pandaES.dts b/arch/arm/boot/dts/omap4-pandaES.dts
->> index d4ba43a..73bc1a6 100644
->> --- a/arch/arm/boot/dts/omap4-pandaES.dts
->> +++ b/arch/arm/boot/dts/omap4-pandaES.dts
->> @@ -22,3 +22,12 @@
->>   		"AFML", "Line In",
->>   		"AFMR", "Line In";
->>   };
->> +
->> +/* PandaboardES has external pullups on SCL & SDA */
->> +&dss_hdmi_pins {
->> +	pinctrl-single,pins = <
->> +		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
->> +		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
->> +		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
->> +		>;
->> +};
->>
 >
 >
