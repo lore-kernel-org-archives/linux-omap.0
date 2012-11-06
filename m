@@ -1,43 +1,81 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Tue, 6 Nov 2012 20:50:17 +0000
-Message-ID: <CACxGe6t-_CLOdkMLbErSu_dYkXRkCpwHA=obRr=nRCUCSOCW5Q@mail.gmail.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
- <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com> <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv9 0/8] ARM: OMAP4: core retention support
+Date: Tue, 06 Nov 2012 13:19:05 -0800
+Message-ID: <87wqxy77li.fsf@deeprootsystems.com>
+References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
+	<87d2zrg04t.fsf@deeprootsystems.com>
+	<1352193483.8788.43.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:44547 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751871Ab2KFVTJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 16:19:09 -0500
+Received: by mail-da0-f46.google.com with SMTP id n41so366397dak.19
+        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 13:19:09 -0800 (PST)
+In-Reply-To: <1352193483.8788.43.camel@sokoban> (Tero Kristo's message of
+	"Tue, 6 Nov 2012 11:18:02 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, Nov 6, 2012 at 8:45 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> The back of a napkin calculation indicates that on this platform
-> /proc/devicetree costs 76kB and /sys/device-tree costs 60kb. I'm happy
-> to see that using /sys instead of /proc appears to be slightly cheaper
-> which makes it easier to justify the change. The diffstat makes me
-> even happier:
+Tero Kristo <t-kristo@ti.com> writes:
+
+> Hi Kevin,
 >
-> arch/arm/plat-omap/Kconfig                |    1 -
->  arch/powerpc/platforms/pseries/dlpar.c    |   23 -----------
->  arch/powerpc/platforms/pseries/reconfig.c |   40 ------------------
->  drivers/of/Kconfig                        |    8 ----
->  drivers/of/base.c                         |  116
-> ++++++++++++++++++++++++++++------------------------
->  drivers/of/fdt.c                          |    5 ++-
->  fs/proc/Makefile                          |    1 -
->  fs/proc/proc_devtree.c                    |   13 +-----
->  fs/proc/root.c                            |    4 +-
->  include/linux/of.h                        |   35 ++++++++++++----
->  include/linux/proc_fs.h                   |   16 --------
->  include/linux/string.h                    |   11 +++++
->  12 files changed, 107 insertions(+), 166 deletions(-)
+> On Mon, 2012-11-05 at 14:23 -0800, Kevin Hilman wrote:
+>> Hi Tero,
+>> 
+>> Tero Kristo <t-kristo@ti.com> writes:
+>> 
+>> > Hi,
+>> >
+>> > Changes compared to previous version:
+>> > - rebased on top of 3.7-rc1
+>> > - applies on top of latest func pwrst code (v6)
+>> > - added back patch #1 to this set (it wasn't queued yet after all)
+>> > - added patch #7 for fixing a bug in the functional pwrst code
+>> > - added patch #8 for fixing a regression with MUSB PHY power handling
+>> >   (not quite sure if this is the correct way to fix this or not)
+>> >
+>> > Tested with omap4460 gp panda + omap4430 emu blaze boards, with cpuidle +
+>> > suspend.
+>> >
+>> > Branch also available here:
+>> > git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+>> > branch: mainline-3.7-rc1-omap4-ret-v9
+>> 
+>> I tested this branch on 4430/Panda and 4460/Panda-ES and I'm seeing
+>> several domains not hitting target power state in suspend[1].
+>> 
+>> Am I missing some other fixes?  Using omap2plus_defconfig, I tried your
+>> branch alone, and merged with v3.7-rc4, and I get the same errors.
 
-Make that 96 insertions. I got an extra patch caught up in that diffstat.
+[...]
 
-g.
+> This looks like a combination of boot loader/kernel problems. My guess
+> is that l3init is probably held on by the USB, and both ivahd / tesla
+> are held on by some DSP/IVA modules which are not idling properly.
+>
+> The last patch in this set should fix the USB problems at least
+> partially, but also the USB DPLL itself might be in wrong state,
+> attached patch might help for that one and get l3init to idle.
+>
+> For DSP I don't have a patch right now, what is the boot loader you are
+> using? (Can you provide git / commit / config info?)
+
+I was using mainline u-boot at tag v2012.04.01 when I saw the errors.  
+
+To check the bootloader, I upgraded to the latest mainline tag
+(v2012.10) and the problems are gone on both 4430/Panda and
+4460/Panda-ES...   Interesting.
+
+That suggests that there's still some kernel assumptions/dependencies on
+the bootloader that need to be addressed.
+
+Kevin
+
+
+
