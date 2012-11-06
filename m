@@ -1,60 +1,47 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: OMAP baseline test results for v3.7-rc1
-Date: Tue, 6 Nov 2012 15:36:45 +0530
-Message-ID: <CAM=Q2cs2LO3LOQxSMJTXZLZNsmMiLAOxMcWwSf0Wxt-Fnz6QZA@mail.gmail.com>
-References: <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com>
-	<CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com>
-	<20121025101212.GD21217@arwen.pp.htv.fi>
-	<20121026201539.GD29548@arwen.pp.htv.fi>
-	<alpine.DEB.2.00.1210262201500.11258@utopia.booyaka.com>
-	<20121029200032.GD30152@arwen.pp.htv.fi>
-	<alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com>
-	<20121030123254.GD29095@arwen.pp.htv.fi>
-	<alpine.DEB.2.00.1210301239310.12697@utopia.booyaka.com>
-	<20121030125419.GG29095@arwen.pp.htv.fi>
-	<alpine.DEB.2.00.1210301313190.12697@utopia.booyaka.com>
-	<CAORVsuWqoqrza-qrJskpMTj=2MW6JxNEhVzjWVXkM1mpqVO8cQ@mail.gmail.com>
-	<87fw4u3oh5.fsf@deeprootsystems.com>
-	<CAORVsuUWD3gHh1NcMLeGwZ=hF=UiOG2VyJkADZNcGVr1g1TFgQ@mail.gmail.com>
-	<alpine.DEB.2.00.1211010242001.6693@utopia.booyaka.com>
-	<CAORVsuXHxqhcTHv8Y=8gw4N+0+rx+N91bh971zK-TmcsrTu5nQ@mail.gmail.com>
-	<CAORVsuUda69_sE9LpBnuETXSA2jPxw7nQ=MkAq=Or8B7t1fvcA@mail.gmail.com>
-	<alpine.DEB.2.00.1211050313130.23228@utopia.booyaka.com>
-	<CAORVsuUGcydD13-VcaNjmAmrsyo9ZVHGTRoSKgLyr4-Bkw7zhg@mail.gmail.com>
-	<87fw4neh0i.fsf@deeprootsystems.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 3/7] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
+ davinci_mdio module
+Date: Tue, 6 Nov 2012 10:09:08 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC049CC@DBDE01.ent.ti.com>
+References: <1352189545-26303-1-git-send-email-mugunthanvnm@ti.com>
+ <1352189545-26303-4-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:37754 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab2KFKGr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 05:06:47 -0500
-Received: by mail-la0-f46.google.com with SMTP id h6so187043lag.19
-        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 02:06:45 -0800 (PST)
-In-Reply-To: <87fw4neh0i.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1352189545-26303-4-git-send-email-mugunthanvnm@ti.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: "N, Mugunthan V" <mugunthanvnm@ti.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: Richard Cochran <richardcochran@gmail.com>, Paul Walmsley <paul@pwsan.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Nov 6, 2012 at 5:31 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
-> [...]
->
->> I ran some intensive stress tests on the I2C and ... unfortunately I
->> could not trigger the problem. It looks like the issue is caused by
->> some transient situation where the CORE and/or I2C is in a low power
->> state.
->
-> FYI... I just ran across what appears to be the same bug on 3430/n900
-> during suspend/resume testing.  With CPUidle enabled, this happens every
-> time.
->
-> Reverting the I2C QoS patch makes it work again.
+On Tue, Nov 06, 2012 at 13:42:21, N, Mugunthan V wrote:
+[...]
+> +struct omap_hwmod_addr_space am33xx_mdio_addr_space[] = {
+> +	{
+> +		.pa_start	= 0x4A101000,
+> +		.pa_end		= 0x4A101000 + SZ_256 - 1,
+> +		.flags		= ADDR_MAP_ON_INIT,
 
-I think we should defer the release of the constraints
+Based on the recent discussions and looking the hwmod code,
+I guess ADDR_MAP_ON_INIT does not make sense here. Since you
+are just creating a parent-child relationship here, maybe no
+flag is needed? 
 
-Does this help
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg79841.html
+> +	},
+> +	{ }
+> +};
+> +
+> +struct omap_hwmod_ocp_if am33xx_cpgmac0__mdio = {
+> +	.master		= &am33xx_cpgmac0_hwmod,
+> +	.slave		= &am33xx_mdio_hwmod,
+> +	.addr		= am33xx_mdio_addr_space,
+> +	.user		= OCP_USER_MPU,
+
+Is this flag necessary? Shouldn't you just skip the
+user field since there's nothing for the hwmod code
+to do here?
+
+Regards,
+Vaibhav
