@@ -1,85 +1,80 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2] usb: musb: dsps: dt binding - add resources, example
-Date: Tue, 6 Nov 2012 17:58:57 +0100
-Message-ID: <509941D1.6020405@ti.com>
-References: <1352210166-7253-1-git-send-email-afzal@ti.com> <20121106164445.GE3993@arwen.pp.htv.fi>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/3] omap gpmc : add support of setting CYCLE2CYCLEDELAY
+ and BUSTURNAROUND
+Date: Tue, 6 Nov 2012 11:23:22 -0600
+Message-ID: <5099478A.50901@ti.com>
+References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20121106164445.GE3993@arwen.pp.htv.fi>
-Sender: linux-doc-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Afzal Mohammed <afzal@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Santhapuri Damodar <damodar.santhapuri@ti.com>, Ravi Babu <ravibabu@ti.com>, Daniel Mack <zonque@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40873 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750867Ab2KFRX3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 12:23:29 -0500
+In-Reply-To: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthieu CASTET <matthieu.castet@parrot.com>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, dedekind1@gmail.com
 
-On 11/06/2012 05:44 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Tue, Nov 06, 2012 at 07:26:06PM +0530, Afzal Mohammed wrote:
->> OMAP2+ family of devices are now obtaining resources via DT, earlier
->> it was obtained from hwmod. Update binding document accrodingly, while
->> at it add example.
->>
->> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> 
-> this looks fine to me:
-> 
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> 
-> Benoit, do you take Documentation patches too ?
 
-Well, ideally it should go with the driver change. But if this is a
-simple change related to generic attribute I can take it.
+On 11/06/2012 10:44 AM, Matthieu CASTET wrote:
+> Signed-off-by: Matthieu CASTET <matthieu.castet@parrot.com>
 
-Regards,
-Benoit
+I think you need to have something in the changelog for the patch
+describing why this change is needed and what device this has been
+tested on.
 
+> ---
+>  arch/arm/mach-omap2/gpmc.c             |    7 ++++++-
+>  arch/arm/plat-omap/include/plat/gpmc.h |    2 ++
+>  2 files changed, 8 insertions(+), 1 deletion(-)
 > 
->> ---
->>
->> v2: node name changed to "usb"
->>
->>  .../devicetree/bindings/usb/am33xx-usb.txt          | 21 +++++++++++++++++++++
->>  1 file changed, 21 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
->> index a922505..ea840f7 100644
->> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
->> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
->> @@ -1,5 +1,7 @@
->>  AM33XX MUSB GLUE
->>   - compatible : Should be "ti,musb-am33xx"
->> + - reg : offset and length of register sets, first usbss, then for musb instances
->> + - interrupts : usbss, musb instance interrupts in order
->>   - ti,hwmods : must be "usb_otg_hs"
->>   - multipoint : Should be "1" indicating the musb controller supports
->>     multipoint. This is a MUSB configuration-specific setting.
->> @@ -12,3 +14,22 @@ AM33XX MUSB GLUE
->>     represents PERIPHERAL.
->>   - power : Should be "250". This signifies the controller can supply upto
->>     500mA when operating in host mode.
->> +
->> +Example:
->> +
->> +usb@47400000  {
->> +	compatible = "ti,musb-am33xx";
->> +	reg = <0x47400000 0x1000	/* usbss */
->> +	       0x47401000 0x800		/* musb instance 0 */
->> +	       0x47401800 0x800>;	/* musb instance 1 */
->> +	interrupts = <17		/* usbss */
->> +		      18		/* musb instance 0 */
->> +		      19>;		/* musb instance 1 */
->> +	multipoint = <1>;
->> +	num-eps = <16>;
->> +	ram-bits = <12>;
->> +	port0-mode = <3>;
->> +	port1-mode = <3>;
->> +	power = <250>;
->> +	ti,hwmods = "usb_otg_hs";
->> +};
->> -- 
->> 1.7.12
->>
-> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 8ab1e1b..3957ffc 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -333,8 +333,13 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+>  
+>  	if (gpmc_capability & GPMC_HAS_WR_DATA_MUX_BUS)
+>  		GPMC_SET_ONE(GPMC_CS_CONFIG6, 16, 19, wr_data_mux_bus);
+> -	if (gpmc_capability & GPMC_HAS_WR_ACCESS)
+> +	if (gpmc_capability & GPMC_HAS_WR_ACCESS) {
+> +		/* XXX check on which hardware it is supported */
 
+I understand that you may not have all the documentation but lets fix
+this now.
+
+> +		GPMC_SET_ONE(GPMC_CS_CONFIG6,  0,  3, busturnaround);
+> +		GPMC_SET_ONE(GPMC_CS_CONFIG6,  8, 11, cycle2cycledelay);
+
+Looking at the documentation for OMAP2420, OMAP3430, OMAP4430 and
+OMAP5430, the above fields are present and same size location for all
+OMAP devices. So this does not need to be done under the HAS_WR_ACCESS
+field test. In fact, I believe that Afzal was going to add these fields
+in a patch and was doing it for all devices [1].
+
+>  		GPMC_SET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
+> +	}
+>  
+>  	/* caller is expected to have initialized CONFIG1 to cover
+>  	 * at least sync vs async
+> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
+> index 2e6e259..34ca454 100644
+> --- a/arch/arm/plat-omap/include/plat/gpmc.h
+> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
+> @@ -131,6 +131,8 @@ struct gpmc_timings {
+>  	/* The following are only on OMAP3430 */
+>  	u16 wr_access;		/* WRACCESSTIME */
+>  	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+> +	u16 cycle2cycledelay;	/* CYCLE2CYCLEDELAY */
+> +	u16 busturnaround;		/* BUSTURNAROUND */
+
+So you should be able to move these out of OMAP3430 specific as they are
+generic.
+
+Cheers
+Jon
+
+[1] http://marc.info/?l=linux-omap&m=134037095705900&w=2
