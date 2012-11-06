@@ -1,63 +1,51 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
- for clockevent device
-Date: Tue, 6 Nov 2012 10:02:25 -0600
-Message-ID: <50993491.6060606@ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com> <50950AC7.1030707@deeprootsystems.com> <B5906170F1614E41A8A28DE3B8D121433EBFEA88@DBDE01.ent.ti.com> <50982DB2.4000104@ti.com> <B5906170F1614E41A8A28DE3B8D121433EC04897@DBDE01.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Tue, 6 Nov 2012 16:13:00 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211061611460.20573@utopia.booyaka.com>
+References: <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com> <20121029200032.GD30152@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com> <20121030123254.GD29095@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301239310.12697@utopia.booyaka.com>
+ <20121030125419.GG29095@arwen.pp.htv.fi> <alpine.DEB.2.00.1210301313190.12697@utopia.booyaka.com> <CAORVsuWqoqrza-qrJskpMTj=2MW6JxNEhVzjWVXkM1mpqVO8cQ@mail.gmail.com> <87fw4u3oh5.fsf@deeprootsystems.com> <CAORVsuUWD3gHh1NcMLeGwZ=hF=UiOG2VyJkADZNcGVr1g1TFgQ@mail.gmail.com>
+ <alpine.DEB.2.00.1211010242001.6693@utopia.booyaka.com> <CAORVsuXHxqhcTHv8Y=8gw4N+0+rx+N91bh971zK-TmcsrTu5nQ@mail.gmail.com> <CAORVsuUda69_sE9LpBnuETXSA2jPxw7nQ=MkAq=Or8B7t1fvcA@mail.gmail.com> <alpine.DEB.2.00.1211050313130.23228@utopia.booyaka.com>
+ <CAORVsuUGcydD13-VcaNjmAmrsyo9ZVHGTRoSKgLyr4-Bkw7zhg@mail.gmail.com> <87fw4neh0i.fsf@deeprootsystems.com> <CAORVsuUm4zKoSaZQ0D=gf3toKHWznjfNvQ+q4=jsgkRaJXygMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34019 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752459Ab2KFQCa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Nov 2012 11:02:30 -0500
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC04897@DBDE01.ent.ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:42888 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751851Ab2KFQNB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 11:13:01 -0500
+In-Reply-To: <CAORVsuUm4zKoSaZQ0D=gf3toKHWznjfNvQ+q4=jsgkRaJXygMg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Felipe Balbi <balbi@ti.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+
+On Tue, 6 Nov 2012, Jean Pihet wrote:
+
+> On Tue, Nov 6, 2012 at 1:01 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>
+> > FYI... I just ran across what appears to be the same bug on 3430/n900
+> > during suspend/resume testing.  With CPUidle enabled, this happens every
+> > time.
+> >
+> > Reverting the I2C QoS patch makes it work again.
+> 
+> That makes sense with CPU_IDLE enabled and suspend.
+
+...
+
+> For the records here are the patches that have been submitted to
+> support the OMAP PM QoS:
+> - func power states [1],
+> - OMAP PM QoS support [2], which includes the latency figures update
+> and which depends on [1],
+> - the conversion of I2C to PM QoS [3],
+> - the removal of the old no-op OMAP PM API [4], which depends on [3],
+> 
+> The chicken-and-egg problem is clearly visible since [3] depends on [2].
+
+Well it's definitely time for a revert, then.  #3 should not have been 
+sent until #2 was merged.  Will send this in a new thread, please ack it.
 
 
-On 11/06/2012 03:38 AM, Bedia, Vaibhav wrote:
-> Hi Jon,
-> 
-> On Tue, Nov 06, 2012 at 02:50:50, Hunter, Jon wrote:
-> [...]
->>
->> Why is this? How is the dmtimer TIOCP_CFG register configured on AM33xx?
->> Is it using smart-idle?
->>
-> 
-> Yes, it is set to smart-idle with wakeup capable mode. (this needs a fixup
-> since this timer is not wakeup capable) but unfortunately this is not
-> sufficient. On AM33xx there's no HW_AUTO mode magic so unless the IPs in
-> PER domain are disabled by s/w, PER domain can't transition.
-> 
->>> The next one is that
->>> the clockevent doesn't generate any further interrupts once the
->>> system resumes. We need to restore the pre-suspend configuration.
->>> I haven't tried but I guess we could have used the save and restore
->>> of timer registers here.
->>
->> It would be interesting to try using an non-wakeup domain timer on
->> OMAP3/4 for clock events and seeing if suspend/resume works.
->>
->> Do you know what the exact problem here is? I understand that the timer
->> context could get lost, but exactly what is not getting restarted by the
->> kernel? For example, the only place we set the interrupt enable is
->> during the clock event init and so if the context is lost, then I could
->> see no more interrupts occurring. So is it enough to just restore the
->> interrupt enable register, do you really need to program the timer again?
->>
-> 
-> Just restoring the interrupt enable register works. But since there's no logic
-> retention I think a context save-restore would be better.
-
-Ok, we may need to check the order in which events occur following
-resume. The kernel will restart the clock-events and we just need to
-make sure we do not restore the context after the clock-events has been
-restarted.
-
-Cheers
-Jon
+- Paul
