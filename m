@@ -1,65 +1,116 @@
-From: Matthieu CASTET <matthieu.castet@parrot.com>
-Subject: Re: [PATCH 3/3] omap3 nand : use NAND_BUSWIDTH_AUTO
-Date: Tue, 6 Nov 2012 17:47:18 +0100
-Message-ID: <50993F16.8070908@parrot.com>
-References: <1352199105-30215-1-git-send-email-matthieu.castet@parrot.com> <1352199105-30215-3-git-send-email-matthieu.castet@parrot.com> <50990473.2090300@compulab.co.il>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] usb: musb: dsps: dt binding - add resources, example
+Date: Tue, 6 Nov 2012 18:44:45 +0200
+Message-ID: <20121106164445.GE3993@arwen.pp.htv.fi>
+References: <1352210166-7253-1-git-send-email-afzal@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from co202.xi-lite.net ([149.6.83.202]:46302 "EHLO co202.xi-lite.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750867Ab2KFQrY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Nov 2012 11:47:24 -0500
-In-Reply-To: <50990473.2090300@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VdOwlNaOFKGAtAAV"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1352210166-7253-1-git-send-email-afzal-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Santhapuri Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>, Tony Lindgren <tony@atomide.com>, Afzal Mohammed <afzal@ti.com>
 
-Igor Grinberg a =E9crit :
-> Cc: Tony Lindgren, Afzal Mohammed,
+--VdOwlNaOFKGAtAAV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Tue, Nov 06, 2012 at 07:26:06PM +0530, Afzal Mohammed wrote:
+> OMAP2+ family of devices are now obtaining resources via DT, earlier
+> it was obtained from hwmod. Update binding document accrodingly, while
+> at it add example.
 >=20
-> On 11/06/12 12:51, Matthieu CASTET wrote:
->> This allow to clean the omap nand driver that were trying in x8 and =
-x16 bits mode.
->>
->> This also make work onfi detection on beagleboard :
->>
->> Before :
->> [    1.954803] NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Mi=
-cron NAND 256MiB 1,8V 16-bit), page size: 2048, OOB size: 64
->>
->> After :
->> [    1.914825] ONFI param page 0 valid
->> [    1.919158] ONFI flash detected
->> [    1.922515] NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Mi=
-cron MT29F2G16ABD), page size: 2048, OOB size: 64
->>
->> platform data devsize is renamed bussize. It now indicate the maximu=
-n size of the nand bus.
->>
->> Signed-off-by: Matthieu CASTET <matthieu.castet@parrot.com>
+> Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+
+this looks fine to me:
+
+Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+
+Benoit, do you take Documentation patches too ?
+
+> ---
 >=20
-> I think, you should base on one of Tony's branches with that kind of =
-patches.
-> Because, for example the omap_nand_flash_init() function does not exi=
-st anymore
-> in Tony's master and may be several more things will need to have adj=
-ustments.
-> Also, the GPMC related stuff inside the NAND driver
-> should probably be coordinated with Afzal, as he is reworking the who=
-le
-> GPMC related code.
+> v2: node name changed to "usb"
+>=20
+>  .../devicetree/bindings/usb/am33xx-usb.txt          | 21 +++++++++++++++=
+++++++
+>  1 file changed, 21 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Docum=
+entation/devicetree/bindings/usb/am33xx-usb.txt
+> index a922505..ea840f7 100644
+> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+> @@ -1,5 +1,7 @@
+>  AM33XX MUSB GLUE
+>   - compatible : Should be "ti,musb-am33xx"
+> + - reg : offset and length of register sets, first usbss, then for musb =
+instances
+> + - interrupts : usbss, musb instance interrupts in order
+>   - ti,hwmods : must be "usb_otg_hs"
+>   - multipoint : Should be "1" indicating the musb controller supports
+>     multipoint. This is a MUSB configuration-specific setting.
+> @@ -12,3 +14,22 @@ AM33XX MUSB GLUE
+>     represents PERIPHERAL.
+>   - power : Should be "250". This signifies the controller can supply upto
+>     500mA when operating in host mode.
+> +
+> +Example:
+> +
+> +usb@47400000  {
+> +	compatible =3D "ti,musb-am33xx";
+> +	reg =3D <0x47400000 0x1000	/* usbss */
+> +	       0x47401000 0x800		/* musb instance 0 */
+> +	       0x47401800 0x800>;	/* musb instance 1 */
+> +	interrupts =3D <17		/* usbss */
+> +		      18		/* musb instance 0 */
+> +		      19>;		/* musb instance 1 */
+> +	multipoint =3D <1>;
+> +	num-eps =3D <16>;
+> +	ram-bits =3D <12>;
+> +	port0-mode =3D <3>;
+> +	port1-mode =3D <3>;
+> +	power =3D <250>;
+> +	ti,hwmods =3D "usb_otg_hs";
+> +};
+> --=20
+> 1.7.12
+>=20
 
-Thanks for the info.
+--=20
+balbi
 
-Where such tree could be found ?
+--VdOwlNaOFKGAtAAV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Matthieu
+iQIcBAEBAgAGBQJQmT59AAoJEIaOsuA1yqREVkEP/R4FP39QR4XBy80kqIGrdGOC
+xCRBgBWuYG0WMlX0mHMf2kmKODucs/wVTUuBMmmxq6DUyI6zZHTDyRIhwM0n7A0c
+vOkkXqgfCxLr8E49S8UoYSoWHcTQbd8e+TNOhudHoln7d+AtJ/GxvkZnaaW/BGM2
+jG7wMbphBh28lOYCqrf32S8ntG99xzq/T75YrSJUJnuDTlt+f17sbuYmPYSTx2pL
+6+yD5G0eo02N4YVyXXCGeie0QwbQpAANbcJWlrRed/hlj8laqmF0WwMl0Zrh1kTu
+2uHUfuwKWzlpuI0mnwiCxEP24OuQvDXliHoyg90CMWTUIKJzPlIAcxIDJclxlvhN
+Ze9zRL7unjjJRQq3OR0IC4AtaiBrjhWgrBhuxfFCwbTGFjGO2f8MZueb2eP0NLaL
+5qAscsGCvRctAVuFGdxWy2oLIJoaDQKr5ztlh9oVJdt0jbdFACUR1nZt1b3cICZ3
+ft8yhKbJ0Ry+RklhGf7JYZO7sp5QF2Lv7KstZm1LCX78+jlJcXkCAwOGIGLnXMF5
+CgSDYlapsgexjt+dkSlDorVgC8+9clclDQIle29AeRV5N9c+MCBe7NIG75wA8KWs
+AoI4P1yec/JOFDVOWh/0K4I9mZVvfp6NFNRNWSyQOB2Z5K7EoXmCCK6i0uqSRsGN
+SQr4HjRHTL5ZQ3RKd/lr
+=wPeN
+-----END PGP SIGNATURE-----
+
+--VdOwlNaOFKGAtAAV--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
