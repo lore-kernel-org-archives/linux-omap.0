@@ -1,91 +1,60 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP: voltage: move voltdm_reset to
- platform_data header
-Date: Tue, 6 Nov 2012 15:48:19 -0600
-Message-ID: <20121106214819.GA16246@kahuna>
-References: <1352127734-30103-1-git-send-email-nm@ti.com>
- <1352127734-30103-5-git-send-email-nm@ti.com>
- <20121106184935.GL6801@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv9 2/8] ARM: OMAP4: PM: add errata support
+Date: Tue, 06 Nov 2012 13:52:43 -0800
+Message-ID: <87d2zq761g.fsf@deeprootsystems.com>
+References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
+	<1350552010-28760-3-git-send-email-t-kristo@ti.com>
+	<87zk2vekye.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55509 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752547Ab2KFVsX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Nov 2012 16:48:23 -0500
-Content-Disposition: inline
-In-Reply-To: <20121106184935.GL6801@atomide.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:47293 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137Ab2KFVwq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 16:52:46 -0500
+Received: by mail-pa0-f46.google.com with SMTP id hz1so639076pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 13:52:46 -0800 (PST)
+In-Reply-To: <87zk2vekye.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Mon, 05 Nov 2012 14:36:25 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Rafael <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbouatmailru@gmail.com>, linux-pm <linux-pm@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 10:49-20121106, Tony Lindgren wrote:
-> * Nishanth Menon <nm@ti.com> [121105 07:04]:
-> > Move voltdm_reset to include/linux/platform_data/voltage-omap.h
-> > 
-> > Acked-by: Jean Pihet <j-pihet@ti.com>
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/voltage.h              |    1 -
-> >  include/linux/platform_data/voltage-omap.h |    1 +
-> >  2 files changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-> > index af9d469..0665f21 100644
-> > --- a/arch/arm/mach-omap2/voltage.h
-> > +++ b/arch/arm/mach-omap2/voltage.h
-> > @@ -149,5 +149,4 @@ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
-> >  int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
-> >  			  int (*fn)(struct voltagedomain *voltdm,
-> >  				    struct powerdomain *pwrdm));
-> > -void voltdm_reset(struct voltagedomain *voltdm);
-> >  #endif
-> > diff --git a/include/linux/platform_data/voltage-omap.h b/include/linux/platform_data/voltage-omap.h
-> > index 5be4d5d..4eb3d43 100644
-> > --- a/include/linux/platform_data/voltage-omap.h
-> > +++ b/include/linux/platform_data/voltage-omap.h
-> > @@ -36,4 +36,5 @@ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
-> >  unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
-> >  struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
-> >  		unsigned long volt);
-> > +void voltdm_reset(struct voltagedomain *voltdm);
-> >  #endif
-> 
-> The include/linux/platform_data/voltage-omap.h should only contain
-> pure platform_data, these should internal defines to the driver.
-considering the move took place as part of:
-commit 2203747c97712975accc5e69bdaf1ad38a691635
-(ARM: omap: move platform_data definitions)
-I suppose we should clean up the following as well
-include/linux/platform_data/dsp-omap.h - has function - reserve
-include/linux/platform_data/mtd-nand-omap2.h - has function -init
-include/linux/platform_data/mtd-onenand-omap2.h - has function -init
-include/linux/platform_data/remoteproc-omap.h - has function - reserve
-> 
-> Looks like there are other things there too that's not platform data:
-> 
-> struct voltagedomain *voltdm_lookup(const char *name);
-> int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
-> unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
-> struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
-> 		unsigned long volt);
-> 
-> Can you please add a patch fixing that ASAP?
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-Agreed include/linux/platform_data/voltage-omap.h has more functions as well.
-Considering it did:
-rename arch/arm/plat-omap/include/plat/voltage.h =>
-include/linux/platform_data/voltage-omap.h
+> Tero Kristo <t-kristo@ti.com> writes:
+>
+>> Added similar PM errata flag support as omap3 has. This should be used
+>> in similar manner, set the flags during init time, and check the flag
+>> values during runtime.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>
+> These allow basic suspend/resume to work on 4460/Panda-ES, so I'm going
+> to queue these up as fixes.
+>
+> However, since they're not technically regressions, it may be too late
+> to get them in for v3.7, but they'll be in for v3.8 for sure.
 
-Where do we move these functions to?
+To be more specific, I'm planning on queuing patches 2, 3 and 6 as fixes
+for v3.8 (branch: for_3.8/fixes/pm).
 
-drivers/power/avs/smartreflex.c needs:
-omap_voltage_get_voltdata
-and
-drivers/power/avs/smartreflex-class3.c
-will need voltdm_reset and voltdm_get_voltage
+Paul has already queued patch 1, so that leaves patches 4, 5, 7 & 8.
 
--- 
-Regards,
-Nishanth Menon
+I think we can get this series in for v3.8 if we drop the functional
+pwrst dependency.  To test, I dropped patches 5 & 7, and tested on
+4430/Panda and 4460/Panda-ES (with latest mainline u-boot) and CORE
+is hitting retention just fine in suspend.
+
+If you can respin patch 8 based on the feedback from Felipe, I'll queue
+up patches 4 & 8 for v3.8 as well, then we'll at least have CORE
+retention in suspend in mainline.  Then, the  rest can be done when
+functional pwrsts are ready.
+
+Kevin
+
+P.S. do you have any patches to add any OMAP4 CPUidle support for CORE
+     retention?
+Paul has already queued patch 1, and that leaves the 
+
