@@ -1,34 +1,68 @@
-From: Afzal Mohammed <x0148406-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 4/5] usb: musb: dsps: dt binding - add resources, example
-Date: Tue, 6 Nov 2012 20:07:30 +0530
-Message-ID: <509920AA.8050805@ti.com>
-References: <cover.1351870620.git.afzal@ti.com> <392aceb635682614b8509b4090943f806b3236f2.1351870620.git.afzal@ti.com> <20121106130245.GK11931@arwen.pp.htv.fi>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 11/15] ARM: OMAP: timer: Interchange clksrc and clkevt
+ for AM33XX
+Date: Tue, 6 Nov 2012 14:38:48 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC05561@DBDE01.ent.ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+ <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com>
+ <5095037A.2020503@deeprootsystems.com>
+ <B5906170F1614E41A8A28DE3B8D121433EBFEA0E@DBDE01.ent.ti.com>
+ <5095165E.10403@deeprootsystems.com>
+ <B5906170F1614E41A8A28DE3B8D121433EBFEB57@DBDE01.ent.ti.com>
+ <87pq3s7wro.fsf@deeprootsystems.com> <509836BA.5030507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121106130245.GK11931-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Santhapuri Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:51307 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752064Ab2KFOi4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 09:38:56 -0500
+In-Reply-To: <509836BA.5030507@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi Balbi,
+Hi Santosh,
 
-On Tuesday 06 November 2012 06:32 PM, Felipe Balbi wrote:
-> On Fri, Nov 02, 2012 at 10:02:47PM +0530, Afzal Mohammed wrote:
+On Tue, Nov 06, 2012 at 03:29:22, Shilimkar, Santosh wrote:
 
->> +Example:
->> +
->> +usb_otg_hs@47400000  {
+[...]
 
-> this should be usb@47400000.
+> >
+> > IMO, assuming that idle will not be useful from the begining is leading
+> > down the path to poor design choices that will be much more difficult to
+> > fixup down the road in order to add idle support later.  We need to
+> > design both idle and suspend at the same time.
+> >
+> I agree with Kevin. Not supporting CPUIDLE deep states can hit the
+> active power numbers dearly. I just don't know why the SOCs don't share
+> the standard and must have design choices. But thats another discussion.
+> 
 
-Updated version with the above change has been posted.
+Yes, active power numbers are not comparable to OMAP :(
 
-Regards
-Afzal
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> How about leaving the timer choices as is. PER timer for clock source
+> and wakeuptimer for clock event. Anyway in suspend the clock-source
+> can be suspended and that is evident from recent discussion. The only
+> downside is you won't count time in suspend which is any way the case.
+> 
+> Vaibhav,
+> Do you guys see any implementation bottleneck for above ?
+> 
+
+Looking at the timekeeping code I see one more potential reason for making
+this change. OMAP registers the 32k sync timer as the persistent clock and
+since there's no 32k sync timer in AM33xx it doesn't register a persistent
+clock right now. Based on what I understood, we need to have to register
+one and DMTimer1 is the only clock that can serve as the persistent clock
+in suspend state. When we do so we might as well use it as the clocksource.
+
+A related question that I had was, is there a mechanism to handle the 32k
+counter (DMTimer or sync timer) wraparound condition in suspend?
+
+Regards,
+Vaibhav
+
