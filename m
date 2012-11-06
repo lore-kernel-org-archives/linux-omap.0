@@ -1,59 +1,87 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 0/3] capebus moving omap_devices to mach-omap2
-Date: Mon, 05 Nov 2012 23:58:25 +0000
-Message-ID: <7dbed965-f75d-4ad3-9f88-4c3cd0b9e602@email.android.com>
-References: <50924DA3.1060901@ti.com> <20121101124025.GA12489@arwen.pp.htv.fi> <A16B0ABF-AB9D-4F48-88BD-96F123FFEF2F@antoniou-consulting.com> <20121101131609.GC12489@arwen.pp.htv.fi> <E911D0B7-0397-4ED0-828E-71F9531E84E0@antoniou-consulting.com> <20121101135148.382aec00@pyramind.ukuu.org.uk> <9F25E89E-9194-4725-8A8C-053DCBADA1DB@antoniou-consulting.com> <20121101220518.GE14982@arwen.pp.htv.fi> <CA+Bv8XbAvEXe=zDaA8W2+ROD2duYMRcJu4-bms31OH=V_ScKow@mail.gmail.com> <20121102112104.4657fb7b@pyramind.ukuu.org.uk> <0EC43413-1DD7-4E2A-879B-0B5B926FFDFE@antoniou-consulting.com> <CACxGe6uuK6ew5uxh0BjtYAtPZCTLeUpHc4emXRAnMUtNmEzmGg@mail.gmail.com> <AC5129F0-FF30-46ED-AD57-3FA6CA919F99@antoniou-consulting.com> <CACxGe6v9cyybV4+5tQJ-DG8qdyEHfsLa7t+-3CTL+97Q9msrFw@mail.gmail.com> <18667A4E-5513-4D74-922
- F-30D091609F16@antoniou-consulting.com> <CACxGe6uR5VhHsCS1vmayURkGBKmhagaeWBBaCnyfsfOjZ2Dutg@mail.gmail.com> <CAD=GYpYc9L5yKqgar5jB2jG8+GiX7Lb0zevP9Pxaq0HdaVXQ5Q@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: OMAP baseline test results for v3.7-rc1
+Date: Mon, 05 Nov 2012 16:01:33 -0800
+Message-ID: <87fw4neh0i.fsf@deeprootsystems.com>
+References: <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com>
+	<CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com>
+	<20121025101212.GD21217@arwen.pp.htv.fi>
+	<20121026201539.GD29548@arwen.pp.htv.fi>
+	<alpine.DEB.2.00.1210262201500.11258@utopia.booyaka.com>
+	<20121029200032.GD30152@arwen.pp.htv.fi>
+	<alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com>
+	<20121030123254.GD29095@arwen.pp.htv.fi>
+	<alpine.DEB.2.00.1210301239310.12697@utopia.booyaka.com>
+	<20121030125419.GG29095@arwen.pp.htv.fi>
+	<alpine.DEB.2.00.1210301313190.12697@utopia.booyaka.com>
+	<CAORVsuWqoqrza-qrJskpMTj=2MW6JxNEhVzjWVXkM1mpqVO8cQ@mail.gmail.com>
+	<87fw4u3oh5.fsf@deeprootsystems.com>
+	<CAORVsuUWD3gHh1NcMLeGwZ=hF=UiOG2VyJkADZNcGVr1g1TFgQ@mail.gmail.com>
+	<alpine.DEB.2.00.1211010242001.6693@utopia.booyaka.com>
+	<CAORVsuXHxqhcTHv8Y=8gw4N+0+rx+N91bh971zK-TmcsrTu5nQ@mail.gmail.com>
+	<CAORVsuUda69_sE9LpBnuETXSA2jPxw7nQ=MkAq=Or8B7t1fvcA@mail.gmail.com>
+	<alpine.DEB.2.00.1211050313130.23228@utopia.booyaka.com>
+	<CAORVsuUGcydD13-VcaNjmAmrsyo9ZVHGTRoSKgLyr4-Bkw7zhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAD=GYpYc9L5yKqgar5jB2jG8+GiX7Lb0zevP9Pxaq0HdaVXQ5Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel A Fernandes <agnel.joel@gmail.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org, Rob Herring <robherring2@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:54447 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751074Ab2KFABe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 19:01:34 -0500
+Received: by mail-pa0-f46.google.com with SMTP id hz1so4305583pad.19
+        for <linux-omap@vger.kernel.org>; Mon, 05 Nov 2012 16:01:33 -0800 (PST)
+In-Reply-To: <CAORVsuUGcydD13-VcaNjmAmrsyo9ZVHGTRoSKgLyr4-Bkw7zhg@mail.gmail.com>
+	(Jean Pihet's message of "Mon, 5 Nov 2012 10:26:27 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+Jean Pihet <jean.pihet@newoldbits.com> writes:
+
+[...]
+
+> I ran some intensive stress tests on the I2C and ... unfortunately I
+> could not trigger the problem. It looks like the issue is caused by
+> some transient situation where the CORE and/or I2C is in a low power
+> state.
+
+FYI... I just ran across what appears to be the same bug on 3430/n900
+during suspend/resume testing.  With CPUidle enabled, this happens every
+time.
+
+Reverting the I2C QoS patch makes it work again.
+
+Kevin
 
 
-
-Joel A Fernandes <agnel.joel@gmail.com> wrote:
-
->Hi Grant,
->
->On Mon, Nov 5, 2012 at 2:14 PM, Grant Likely
-><grant.likely@secretlab.ca> wrote:
->> I'm open to suggestions if anyone has any. I have not objections to a
->> fixup approach, but I'm not comfortable with anything that is fragile
->> to modifications to the fragment.
->
->I am fairly new to the DT world so please bear with me, but how about
->a method that resolves symbols the same way that the linux dynamic
->linker does when shared libraries are loaded?
->
->A separate table (similar to .PLT/GOT sections  in the ELF object
->format) could be created when the fragment is loaded, and the phandle
->references could be fixed to point to the table offsets during compile
->time. This table would be a second level indirection and the kernel
->would populate this table with the in-kernel values of the phandles
->that the dt fragment refers to.
-
-That's an interesting idea that is worth exploring. That would make it possible to avoid a fixup stage, but it also means that any parsing code must know how to handle the got-like table. It won't be backwards compatible with existing tools. It also wouldn't easily support the case of firmware applying the overlay and passing the resulting tree to the kernel. Hmmm.... Not being backwards compatible at the data level is a big problem. I really want a method that can resolve back to the current data format or is a compatible extension of it.
-
->
->This might involve changes to the DT core, but as such, this method
->wouldn't suffer from the fragility problem of either base or fragment
->DT trees being modified.
->
->The table itself could be added to the tree by the compiler, and the
->phandles could point to it (fixed). such phandles could be marked for
->special handling to facilitate the 1-level indirection.
-
-That's part of the problem. Property values are essentially anaonymous data. There is no mechanism currently for marking data such as indicate which data values are phandles. If there were then it would be a simple matter to find all the phandles and fix them up.
-
-We could possibly add data type suppplementary properties to the tree to solve that problem. They would have to be optional for the base tree to retain backwards compatibility, but could be required on overlays.
-
-g.
-
--- 
-Sent from my Android phone with K-9 Mail. Please excuse my brevity.
+# rtcwake -m mem -s 1
+Date:    Fri Dec 31 17:00:34 MST 1999
+hwclock: Sat Jan  1 00:00:34 2000  0.000000 seconds
+[   38.819732] omap_i2c omap_i2c.1: timeout waiting for bus ready
+wakeup from "mem" at Sat Jan  1 00:00:36 2000
+[   38.841949] PM: Syncing filesystems ... done.
+[   38.859466] Freezing user space processes ... (elapsed 0.01 seconds) done.
+[   38.885284] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+[   38.916412] Suspending console(s) (use no_console_suspend to debug)
+[   39.944274] omap_i2c omap_i2c.1: timeout waiting for bus ready
+[   39.944305] twl: i2c_read failed to transfer all messages
+[   39.944305] twl_rtc: Could not read TWLregister D - error -110
+[   39.944335] twl_rtc twl_rtc: twl_rtc_read_time: reading CTRL_REG, error -110
+[   40.975524] omap_i2c omap_i2c.1: timeout waiting for bus ready
+[   40.975555] twl: i2c_read failed to transfer all messages
+[   40.975555] VMMC2_IO_18: failed to disable
+[   40.978698] PM: suspend of devices complete after 2049.163 msecs
+[   40.984222] PM: late suspend of devices complete after 5.493 msecs
+[   40.992126] PM: noirq suspend of devices complete after 7.873 msecs
+[   40.992187] Disabling non-boot CPUs ...
+[   40.992675] Successfully put all powerdomains to target state
+[   40.997009] PM: noirq resume of devices complete after 4.058 msecs
+[   41.002014] PM: early resume of devices complete after 3.601 msecs
+[   41.179016] PM: resume of devices complete after 176.818 msecs
+[   41.277740] Restarting tasks ... done.
+real    0m 3.50s
+user    0m 0.00s
+sys     0m 0.10s
+Date:    Fri Dec 31 17:00:40 MST 1999
+hwclock: Sat Jan  1 00:00:40 2000  0.000000 seconds
