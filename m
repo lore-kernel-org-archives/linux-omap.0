@@ -1,49 +1,51 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH/RESEND 1/2] Revert "usb: musb: dsps: remove explicit NOP device creation"
-Date: Tue, 6 Nov 2012 20:47:24 +0530
-Message-ID: <5d9482ddbe3ea6d51dffb10c9e635084196d45a0.1352213124.git.afzal@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH/RESEND 2/2] usb: musb: dsps: document dt bindings properly
+Date: Tue, 6 Nov 2012 20:47:35 +0530
+Message-ID: <ca479a9bf35ee34190b3305a640b3a1d806bef48.1352213124.git.afzal@ti.com>
 References: <cover.1352213124.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1352213124.git.afzal-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59625 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751930Ab2KFPRi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 10:17:38 -0500
+In-Reply-To: <cover.1352213124.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-This reverts commit d8c3ef256f88b7c6ecd673d03073b5645be9c5e4.
+DT bindings normally use '-' (hyphens) instead of '_' (underscore),
+driver has it the proper way, but binding documentation does not
+reflect it, fix it.
 
-Above mentioned change was made along with multi usb phy change and
-adding DT support for nop transceiver. But other two changes did not
-make it to mainline. This in effect makes dsps musb wrapper unusable
-even for single instance.
-
-Hence revert it so that at least single instance can be supported.
-
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- drivers/usb/musb/musb_dsps.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/usb/am33xx-usb.txt | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 6053af1..e770f79 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -411,7 +411,8 @@ static int dsps_musb_init(struct musb *musb)
- 	/* mentor core register starts at offset of 0x400 from musb base */
- 	musb->mregs += wrp->musb_core_offset;
- 
--	/* Get the NOP PHY */
-+	/* NOP driver needs change if supporting dual instance */
-+	usb_nop_xceiv_register();
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		return -ENODEV;
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+index ca8fa56..a922505 100644
+--- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -3,12 +3,12 @@ AM33XX MUSB GLUE
+  - ti,hwmods : must be "usb_otg_hs"
+  - multipoint : Should be "1" indicating the musb controller supports
+    multipoint. This is a MUSB configuration-specific setting.
+- - num_eps : Specifies the number of endpoints. This is also a
++ - num-eps : Specifies the number of endpoints. This is also a
+    MUSB configuration-specific setting. Should be set to "16"
+- - ram_bits : Specifies the ram address size. Should be set to "12"
+- - port0_mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
++ - ram-bits : Specifies the ram address size. Should be set to "12"
++ - port0-mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
+    represents PERIPHERAL.
+- - port1_mode : Should be "1" to represent HOST. "3" signifies OTG and "2"
++ - port1-mode : Should be "1" to represent HOST. "3" signifies OTG and "2"
+    represents PERIPHERAL.
+  - power : Should be "250". This signifies the controller can supply upto
+    500mA when operating in host mode.
 -- 
 1.7.12
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
