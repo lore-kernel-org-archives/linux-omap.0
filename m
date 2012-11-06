@@ -1,80 +1,49 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/3] omap gpmc : add support of setting CYCLE2CYCLEDELAY
- and BUSTURNAROUND
-Date: Tue, 6 Nov 2012 11:23:22 -0600
-Message-ID: <5099478A.50901@ti.com>
-References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH V4 1/7] net: davinci_mdio: Fix typo mistake in calling runtime-pm api
+Date: Tue, 6 Nov 2012 23:02:33 +0530
+Message-ID: <1352223159-27504-2-git-send-email-mugunthanvnm@ti.com>
+References: <1352223159-27504-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40873 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750867Ab2KFRX3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Nov 2012 12:23:29 -0500
-In-Reply-To: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1352223159-27504-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Matthieu CASTET <matthieu.castet@parrot.com>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, dedekind1@gmail.com
 
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-On 11/06/2012 10:44 AM, Matthieu CASTET wrote:
-> Signed-off-by: Matthieu CASTET <matthieu.castet@parrot.com>
+By mistake (most likely a copy-paste), instead of pm_runtime_get_sync()
+api, driver is calling pm_runtime_put_sync() api in resume callback
+function. The bug was introduced by commit id (ae2c07aaf74:
+davinci_mdio: runtime PM support).
 
-I think you need to have something in the changelog for the patch
-describing why this change is needed and what device this has been
-tested on.
+Now, the reason why it didn't impact functionality is, the patch has
+been tested on AM335x-EVM and BeagleBone platform while submitting;
+and in case of AM335x the MDIO driver doesn't control the module
+enable/disable part, which is handled by CPSW driver.
 
-> ---
->  arch/arm/mach-omap2/gpmc.c             |    7 ++++++-
->  arch/arm/plat-omap/include/plat/gpmc.h |    2 ++
->  2 files changed, 8 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 8ab1e1b..3957ffc 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -333,8 +333,13 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
->  
->  	if (gpmc_capability & GPMC_HAS_WR_DATA_MUX_BUS)
->  		GPMC_SET_ONE(GPMC_CS_CONFIG6, 16, 19, wr_data_mux_bus);
-> -	if (gpmc_capability & GPMC_HAS_WR_ACCESS)
-> +	if (gpmc_capability & GPMC_HAS_WR_ACCESS) {
-> +		/* XXX check on which hardware it is supported */
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+Acked-by: Richard Cochran <richardcochran@gmail.com>
+---
+ drivers/net/ethernet/ti/davinci_mdio.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I understand that you may not have all the documentation but lets fix
-this now.
-
-> +		GPMC_SET_ONE(GPMC_CS_CONFIG6,  0,  3, busturnaround);
-> +		GPMC_SET_ONE(GPMC_CS_CONFIG6,  8, 11, cycle2cycledelay);
-
-Looking at the documentation for OMAP2420, OMAP3430, OMAP4430 and
-OMAP5430, the above fields are present and same size location for all
-OMAP devices. So this does not need to be done under the HAS_WR_ACCESS
-field test. In fact, I believe that Afzal was going to add these fields
-in a patch and was doing it for all devices [1].
-
->  		GPMC_SET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
-> +	}
->  
->  	/* caller is expected to have initialized CONFIG1 to cover
->  	 * at least sync vs async
-> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-> index 2e6e259..34ca454 100644
-> --- a/arch/arm/plat-omap/include/plat/gpmc.h
-> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
-> @@ -131,6 +131,8 @@ struct gpmc_timings {
->  	/* The following are only on OMAP3430 */
->  	u16 wr_access;		/* WRACCESSTIME */
->  	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
-> +	u16 cycle2cycledelay;	/* CYCLE2CYCLEDELAY */
-> +	u16 busturnaround;		/* BUSTURNAROUND */
-
-So you should be able to move these out of OMAP3430 specific as they are
-generic.
-
-Cheers
-Jon
-
-[1] http://marc.info/?l=linux-omap&m=134037095705900&w=2
+diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/ethernet/ti/davinci_mdio.c
+index 51a96db..ae74280 100644
+--- a/drivers/net/ethernet/ti/davinci_mdio.c
++++ b/drivers/net/ethernet/ti/davinci_mdio.c
+@@ -465,7 +465,7 @@ static int davinci_mdio_resume(struct device *dev)
+ 	u32 ctrl;
+ 
+ 	spin_lock(&data->lock);
+-	pm_runtime_put_sync(data->dev);
++	pm_runtime_get_sync(data->dev);
+ 
+ 	/* restart the scan state machine */
+ 	ctrl = __raw_readl(&data->regs->control);
+-- 
+1.7.0.4
