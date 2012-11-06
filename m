@@ -1,123 +1,113 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 11/15] ARM: OMAP: timer: Interchange clksrc and clkevt
- for AM33XX
-Date: Tue, 6 Nov 2012 14:33:20 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC054F1@DBDE01.ent.ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
-	<1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com>
-	<5095037A.2020503@deeprootsystems.com>
-	<B5906170F1614E41A8A28DE3B8D121433EBFEA0E@DBDE01.ent.ti.com>
-	<5095165E.10403@deeprootsystems.com>
-	<B5906170F1614E41A8A28DE3B8D121433EBFEB57@DBDE01.ent.ti.com>
- <87pq3s7wro.fsf@deeprootsystems.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2] ARM: dts: AM33XX: Add usbss node
+Date: Tue, 6 Nov 2012 16:29:50 +0200
+Message-ID: <20121106142950.GA3056@arwen.pp.htv.fi>
+References: <1352212178-8472-1-git-send-email-afzal@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Dxnq1zWXvFF0Q93v"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50974 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905Ab2KFOd2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 09:33:28 -0500
-In-Reply-To: <87pq3s7wro.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:55447 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751377Ab2KFOgJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 09:36:09 -0500
+Content-Disposition: inline
+In-Reply-To: <1352212178-8472-1-git-send-email-afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Vaibhav Hiremath <hvaibhav@ti.com>, AnilKumar Ch <anilkumar@ti.com>, Ravi Babu <ravibabu@ti.com>, Santhapuri Damodar <damodar.santhapuri@ti.com>, Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Kevin,
+--Dxnq1zWXvFF0Q93v
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 05, 2012 at 23:33:07, Kevin Hilman wrote:
-> "Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
-> 
-> > On Sat, Nov 03, 2012 at 18:34:30, Kevin Hilman wrote:
-> > [...]
-> >> >>
-> >> >> Doesn't this also mean that you won't get timer wakeups
-> >> >> in idle?  Or are you keeping the domain where the clockevent is
-> >> >> on during idle?
-> >> >>
-> >> >
-> >> > The lowest idle state that we are targeting will have MPU powered
-> >> > off with external memory in self-refresh mode. Peripheral domain
-> >> > with the clockevent will be kept on.
-> >> 
-> >> Is this a limitation of the hardware?  or the software?
-> >> 
-> >
-> > Well, making the lowest idle state same as the suspend state will
-> > require us to involve WKUP_M3 in the idle path and wakeup sources get
-> > limited to the IPs in the WKUP domain alone. There's no IO daisy
-> > chaining in AM33XX so that's one big difference compared to OMAP.  The
-> > other potential problem is that the IPC mechanism that we have uses
-> > interrupts.
-> 
-> It can still interrupt the M3, it's only the interrupt back to the MPU
-> that is the issue, right?  That being said, there's no reason it
-> couldn't use polling in the idle path, right?  
-> 
+Hi,
 
-Yes we could use polling but I think we have a bigger problem in the
-chip architecture.
+On Tue, Nov 06, 2012 at 07:59:38PM +0530, Afzal Mohammed wrote:
+> From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+>=20
+> Device tree node for usbss on AM33XX. There are two musb
+> controllers on am33xx platform so have port0-mode and
+> port1-mode data.
+>=20
+> [afzal@ti.com: reg & interrupt property addition]
+>=20
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> Signed-off-by: Santhapuri, Damodar <damodar.santhapuri@ti.com>
+> Signed-off-by: Ravi Babu <ravibabu@ti.com>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
 
-> > Assuming that the lowest idle state, say Cx, is the same as the
-> > suspend state, we'll need to communicate with the WKUP_M3 using
-> > interrupts once we decide to enter Cx. I am not sure if we can do
-> > something in the cpuidle implementation to work around the "interrupt
-> > for idle" problem. 
-> >
-> > We could probably not wait for an ACK when we want to enter Cx, 
-> 
-> why not?
-> 
-> Are the response times from the M3 really up to 500ms (guessing based on
-> the timeout you used in the suspend path.)  That seems rather unlikely.
-> 
+to my eyes, this looks ok.
 
-No 500ms is too high. Actual delays would be much lower, I need to check
-with the design team on the expected number.
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-> Hmm, but as I think about it.  Why does the MPU need to wait for an ACK
-> at all?  Why not just send the cmd and WFI?
-> 
+> ---
+>=20
+> v2: node named as "usb"
+>=20
+> Depends on "usb: musb: dsps: dt binding - add resources, example"
+> (https://patchwork.kernel.org/patch/1704691/)
+>=20
+>  arch/arm/boot/dts/am33xx.dtsi | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 5dfd682..20a3f29 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -321,5 +321,22 @@
+>  			ti,hwmods =3D "spi1";
+>  			status =3D "disabled";
+>  		};
+> +
+> +		usb@47400000 {
+> +			compatible =3D "ti,musb-am33xx";
+> +			reg =3D <0x47400000 0x1000	/* usbss */
+> +			       0x47401000 0x800		/* musb instance 0 */
+> +			       0x47401800 0x800>;	/* musb instance 1 */
+> +			interrupts =3D <17		/* usbss */
+> +				      18		/* musb instance 0 */
+> +				      19>;		/* musb instance 1 */
+> +			multipoint =3D <1>;
+> +			num-eps =3D <16>;
+> +			ram-bits =3D <12>;
+> +			port0-mode =3D <3>;
+> +			port1-mode =3D <3>;
+> +			power =3D <250>;
+> +			ti,hwmods =3D "usb_otg_hs";
+> +		};
+>  	};
+>  };
+> --=20
+> 1.7.12
+>=20
 
-I have myself being going back and forth on this. There are lot of things
-that we do in software, DDR being one of them. We can't do some of the
-DDR related stuff unless memory enter self-refresh AND EMIF gets disabled.
-Doing so essentially means that the drivers have entered sort of suspend
-state. Given this h/w limitation I don't see how we could handle without
-impacting a running system.
+--=20
+balbi
 
-> > but the problem of limited wakeup sources remains. If we let the
-> > various drivers block the entry to Cx, since almost all the IPs are in
-> > the peripheral domain a system which uses anything other than UART and
-> > Timer in WKUP domain will probably never be able enter Cx.
-> 
-> Even so, I think the system needs to be designed to hit the same power
-> states in idle and suspend.  Then, the states can be restricted based
-> wakeup capabilities as you described.  This would be easy to do in the
-> runtime PM implementation for this device.
-> 
-> IMO, assuming that idle will not be useful from the begining is leading
-> down the path to poor design choices that will be much more difficult to
-> fixup down the road in order to add idle support later.  We need to
-> design both idle and suspend at the same time.
-> 
+--Dxnq1zWXvFF0Q93v
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Getting PER to transition on a running system is something I can't figure out.
-Maybe MPU OFF is the lowest we can go.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> Also, don't forget about GPIO0.  Systems could easily be built such that
-> peripherals which want to wakeup but don't have native wakeup
-> capabilities could use a GPIO in bank 0 to wake the system.
-> 
-> Similarily, I2C0 is in WKUP, and brought out to capes, so some simple
-> designs with with I2C devices on a cape might be perfectly capable of
-> hitting deep power states in idle.
-> 
+iQIcBAEBAgAGBQJQmR7eAAoJEIaOsuA1yqREyo8QAIWAaQipdRuVOlMmpPT2WfhW
+CXSuufMu4CbTLv9IHpAgr3b7IC9chiSKQxHAduoUwF7ewe4ydu5QB3rUCZu2yDC5
+FzGK6pLlyzO31Z7E2RFQgK5h/sRtxGJeLQiL6QLKlINz9r7iJMznaktCXMbQ+rFD
+b2IH74lAQ66dvUkEmGPu5leOf67gV8XZFEi8XbcvYwZruY0kmIeqcuSS85F+cYjA
+5+bFRsOQtPCLNJhpAChKm2n/tv5NH7jfFCKVsliEE68gaAr+mg/kcAQbMG5kmBPw
+wQL1LATCbO6/efXmnJSFAGahQOMIh0l+yBWrdYhxJ5C29r80bL8if8dT5ORiULV8
+q2hLrZbAE4tNAheprMJLyozjrjTeHq67Ze8XIYLKZ+wmhYTZg+d3noXjhZKVoF0x
+Lq46ih+52UWK6ggMFas+zC7iKrcO5ydlQzkzTBrmoRNv7u9ciTsXY6QqBjytIFmt
+Vrpf7lx0jG9G9326ZeFy7iumVxL0vknfb5yTyZBQe9AZTflNGbBEJSHmBFy/JNYx
+5trrGgVgvq69SrLOUiXCcZ4zJDGAJK+wircvIXWNYgPuXgJF6IlxoWG/pE+9kwJ9
+hfUo1Pb3oWDm0/800fWqErUS/tAziNUJiCqmx6n59KbjdWBXZ/iztF8gGL5XmQkM
+BLRfM310cdcRvbsViRAn
+=uzYp
+-----END PGP SIGNATURE-----
 
-Ok this is interesting. AFAIK I2C wakeup requires the device to be operating
-in slave mode. If so, is this something that's already supported on OMAP?
-
-Regards,
-Vaibhav
+--Dxnq1zWXvFF0Q93v--
