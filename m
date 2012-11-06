@@ -1,44 +1,38 @@
-From: Federico Fuga <ml@studiofuga.com>
-Subject: Re: hdmi on 4430 (kernel 3.4)
-Date: Tue, 6 Nov 2012 10:05:05 +0100
-Message-ID: <36593A51-4838-4382-BEC1-4F261454390A@studiofuga.com>
-References: <32739C29-CEEA-481C-B070-1754E3CA94C8@studiofuga.com> <509849EA.7080403@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv9 6/8] ARM: OMAP4: retrigger localtimers after
+ re-enabling gic
+Date: Tue, 6 Nov 2012 11:15:25 +0200
+Message-ID: <1352193325.8788.40.camel@sokoban>
+References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
+	 <1350552010-28760-7-git-send-email-t-kristo@ti.com>
+	 <878vafg008.fsf@deeprootsystems.com>
+Reply-To: <t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from oproxy12-pub.bluehost.com ([50.87.16.10]:54623 "HELO
-	oproxy12-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750875Ab2KFJFI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 04:05:08 -0500
-In-Reply-To: <509849EA.7080403@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42413 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752570Ab2KFJPj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 04:15:39 -0500
+In-Reply-To: <878vafg008.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Colin Cross <ccross@android.com>, Sebastien Jan <s-jan@ti.com>
 
-Hi Jon,
-
-
-Il giorno 06/nov/2012, alle ore 00:21, Jon Hunter <jon-hunter@ti.com> ha scritto:
-
->> I wanted to check the HDMI registers, but I didn't find the hdmi registers table on the TRM.
->> Does someone have some hint, comment or previous experience on that? 
->> Where can I find the hdmi registers list on the manual or other documentation?
->> Note that as far as i know, the 2.6.35 kernel was working correctly (I can't check right now, unfortunately).
->> Thank you.
+On Mon, 2012-11-05 at 14:25 -0800, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
 > 
-> I would recommend posting this query on the TI E2E forum for Linux [1].
-> You may get better help there seeing that this is with regard to a
-> specific TI development kernel branch.
+> > From: Colin Cross <ccross@android.com>
+> >
+> > 'Workaround for ROM bug because of CA9 r2pX gic control'
+> > register change disables the gic distributor while the secondary
+> 
+> Just to clarify: this is referring to PATCH 3/8 of this series, correct?
 > 
 
+Yes.
 
-Thank you very much for the suggestion! I'll post there.
-Can you confirm that the kernel version I am using works without problem with HDMI-1080p? 
-Thanks 
-Cheers
-
-Federico
-
+-Tero
 
