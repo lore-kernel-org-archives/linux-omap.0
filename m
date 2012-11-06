@@ -1,38 +1,51 @@
 From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 04/15] ARM: OMAP2+: hwmod: Update the reset API for
- AM33XX
-Date: Tue, 6 Nov 2012 07:19:26 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC04552@DBDE01.ent.ti.com>
+Subject: RE: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
+ for clockevent device
+Date: Tue, 6 Nov 2012 07:32:19 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC045C5@DBDE01.ent.ti.com>
 References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <1351859566-24818-5-git-send-email-vaibhav.bedia@ti.com>
- <5097639C.7000800@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EC0336F@DBDE01.ent.ti.com>
- <79CD15C6BA57404B839C016229A409A83EB635A4@DBDE01.ent.ti.com>
+ <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
+ <509829C5.100@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50612 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752068Ab2KFHTg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 02:19:36 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB635A4@DBDE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59141 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752631Ab2KFHcZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 02:32:25 -0500
+In-Reply-To: <509829C5.100@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Tue, Nov 06, 2012 at 11:36:20, Hiremath, Vaibhav wrote:
+Hi Jon,
+
+On Tue, Nov 06, 2012 at 02:34:05, Hunter, Jon wrote:
 [...]
-
+> >  static struct clock_event_device clockevent_gpt = {
+> >  	.name		= "gp_timer",
+> >  	.features       = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
+> > @@ -142,6 +171,8 @@ static struct clock_event_device clockevent_gpt = {
+> >  	.rating		= 300,
+> >  	.set_next_event	= omap2_gp_timer_set_next_event,
+> >  	.set_mode	= omap2_gp_timer_set_mode,
+> > +	.suspend	= omap_clkevt_suspend,
+> > +	.resume		= omap_clkevt_resume,
 > 
-> The code is checking whether the line is already de-asserted (== 0), so I am 
-> not sure how this will change if hardreset line is asserted during bootup.
+> So these suspend/resume callbacks are going to be called for all OMAP2+
+> and AMxxxx devices? I don't think we want that. AFAIK OMAP timers will
+> idle on their own when stopped and don't require this.
+> 
 
-You are right. I just checked the behavior since I recall seeing something odd
-earlier. Looks like this is needed to avoid issues with subsequent hardreset
-deassertions so I'll put it back in.
+IMO instead of skipping the callback registration we could have checks in the
+suspend/resume callbacks to decide what to do. 
+
+I'll check if the idling part is AM33xx specific. If not, based on the recent timer
+changes that you did, perhaps checking if the clockevent selected doesn't have the
+"ti,timer-alwon" capability will be good enough. What do you think?
 
 Regards.
 Vaibhav
