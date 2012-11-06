@@ -1,81 +1,91 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv9 0/8] ARM: OMAP4: core retention support
-Date: Tue, 06 Nov 2012 13:19:05 -0800
-Message-ID: <87wqxy77li.fsf@deeprootsystems.com>
-References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
-	<87d2zrg04t.fsf@deeprootsystems.com>
-	<1352193483.8788.43.camel@sokoban>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP: voltage: move voltdm_reset to
+ platform_data header
+Date: Tue, 6 Nov 2012 15:48:19 -0600
+Message-ID: <20121106214819.GA16246@kahuna>
+References: <1352127734-30103-1-git-send-email-nm@ti.com>
+ <1352127734-30103-5-git-send-email-nm@ti.com>
+ <20121106184935.GL6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:44547 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871Ab2KFVTJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 16:19:09 -0500
-Received: by mail-da0-f46.google.com with SMTP id n41so366397dak.19
-        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 13:19:09 -0800 (PST)
-In-Reply-To: <1352193483.8788.43.camel@sokoban> (Tero Kristo's message of
-	"Tue, 6 Nov 2012 11:18:02 +0200")
+Received: from bear.ext.ti.com ([192.94.94.41]:55509 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752547Ab2KFVsX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 16:48:23 -0500
+Content-Disposition: inline
+In-Reply-To: <20121106184935.GL6801@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Rafael <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbouatmailru@gmail.com>, linux-pm <linux-pm@vger.kernel.org>
 
-Tero Kristo <t-kristo@ti.com> writes:
+On 10:49-20121106, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [121105 07:04]:
+> > Move voltdm_reset to include/linux/platform_data/voltage-omap.h
+> > 
+> > Acked-by: Jean Pihet <j-pihet@ti.com>
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/voltage.h              |    1 -
+> >  include/linux/platform_data/voltage-omap.h |    1 +
+> >  2 files changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> > index af9d469..0665f21 100644
+> > --- a/arch/arm/mach-omap2/voltage.h
+> > +++ b/arch/arm/mach-omap2/voltage.h
+> > @@ -149,5 +149,4 @@ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
+> >  int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+> >  			  int (*fn)(struct voltagedomain *voltdm,
+> >  				    struct powerdomain *pwrdm));
+> > -void voltdm_reset(struct voltagedomain *voltdm);
+> >  #endif
+> > diff --git a/include/linux/platform_data/voltage-omap.h b/include/linux/platform_data/voltage-omap.h
+> > index 5be4d5d..4eb3d43 100644
+> > --- a/include/linux/platform_data/voltage-omap.h
+> > +++ b/include/linux/platform_data/voltage-omap.h
+> > @@ -36,4 +36,5 @@ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+> >  unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+> >  struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+> >  		unsigned long volt);
+> > +void voltdm_reset(struct voltagedomain *voltdm);
+> >  #endif
+> 
+> The include/linux/platform_data/voltage-omap.h should only contain
+> pure platform_data, these should internal defines to the driver.
+considering the move took place as part of:
+commit 2203747c97712975accc5e69bdaf1ad38a691635
+(ARM: omap: move platform_data definitions)
+I suppose we should clean up the following as well
+include/linux/platform_data/dsp-omap.h - has function - reserve
+include/linux/platform_data/mtd-nand-omap2.h - has function -init
+include/linux/platform_data/mtd-onenand-omap2.h - has function -init
+include/linux/platform_data/remoteproc-omap.h - has function - reserve
+> 
+> Looks like there are other things there too that's not platform data:
+> 
+> struct voltagedomain *voltdm_lookup(const char *name);
+> int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+> unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+> struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+> 		unsigned long volt);
+> 
+> Can you please add a patch fixing that ASAP?
 
-> Hi Kevin,
->
-> On Mon, 2012-11-05 at 14:23 -0800, Kevin Hilman wrote:
->> Hi Tero,
->> 
->> Tero Kristo <t-kristo@ti.com> writes:
->> 
->> > Hi,
->> >
->> > Changes compared to previous version:
->> > - rebased on top of 3.7-rc1
->> > - applies on top of latest func pwrst code (v6)
->> > - added back patch #1 to this set (it wasn't queued yet after all)
->> > - added patch #7 for fixing a bug in the functional pwrst code
->> > - added patch #8 for fixing a regression with MUSB PHY power handling
->> >   (not quite sure if this is the correct way to fix this or not)
->> >
->> > Tested with omap4460 gp panda + omap4430 emu blaze boards, with cpuidle +
->> > suspend.
->> >
->> > Branch also available here:
->> > git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
->> > branch: mainline-3.7-rc1-omap4-ret-v9
->> 
->> I tested this branch on 4430/Panda and 4460/Panda-ES and I'm seeing
->> several domains not hitting target power state in suspend[1].
->> 
->> Am I missing some other fixes?  Using omap2plus_defconfig, I tried your
->> branch alone, and merged with v3.7-rc4, and I get the same errors.
+Agreed include/linux/platform_data/voltage-omap.h has more functions as well.
+Considering it did:
+rename arch/arm/plat-omap/include/plat/voltage.h =>
+include/linux/platform_data/voltage-omap.h
 
-[...]
+Where do we move these functions to?
 
-> This looks like a combination of boot loader/kernel problems. My guess
-> is that l3init is probably held on by the USB, and both ivahd / tesla
-> are held on by some DSP/IVA modules which are not idling properly.
->
-> The last patch in this set should fix the USB problems at least
-> partially, but also the USB DPLL itself might be in wrong state,
-> attached patch might help for that one and get l3init to idle.
->
-> For DSP I don't have a patch right now, what is the boot loader you are
-> using? (Can you provide git / commit / config info?)
+drivers/power/avs/smartreflex.c needs:
+omap_voltage_get_voltdata
+and
+drivers/power/avs/smartreflex-class3.c
+will need voltdm_reset and voltdm_get_voltage
 
-I was using mainline u-boot at tag v2012.04.01 when I saw the errors.  
-
-To check the bootloader, I upgraded to the latest mainline tag
-(v2012.10) and the problems are gone on both 4430/Panda and
-4460/Panda-ES...   Interesting.
-
-That suggests that there's still some kernel assumptions/dependencies on
-the bootloader that need to be addressed.
-
-Kevin
-
-
-
+-- 
+Regards,
+Nishanth Menon
