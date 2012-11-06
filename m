@@ -1,71 +1,59 @@
 From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH RESEND 08/10] ARM: dts: AM33XX: Add user-leds device tree data to am335x-evmsk
-Date: Tue, 6 Nov 2012 19:18:36 +0530
-Message-ID: <1352209718-5586-9-git-send-email-anilkumar@ti.com>
+Subject: [PATCH RESEND 05/10] ARM: dts: AM33XX: Add pinmux configuration for user-leds to BONE
+Date: Tue, 6 Nov 2012 19:18:33 +0530
+Message-ID: <1352209718-5586-6-git-send-email-anilkumar@ti.com>
 References: <1352209718-5586-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52685 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52688 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752143Ab2KFNuE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Nov 2012 08:50:04 -0500
+	id S1752196Ab2KFNuF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 08:50:05 -0500
 In-Reply-To: <1352209718-5586-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, AnilKumar Ch <anilkumar@ti.com>
 
-Add gpio-leds device tree data to am335x-evmsk device to enable gpio
-based user-leds (USR0, USR1, USR2 and USR3) present on am335x starter
-kit.
+Add pinmux configurations for gpio based user-keys to am335x-bone.
+In this patch, only single named mode/state is added and these pins
+are configured during pinctrl driver initialization.
+
+Default mode is nothing but the values required for the module during
+active state. With this configurations module is functional as
+expected.
 
 Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 ---
- arch/arm/boot/dts/am335x-evmsk.dts |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ arch/arm/boot/dts/am335x-bone.dts |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index 659ec5b..7262fa8 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -100,6 +100,36 @@
- 		regulator-name = "lis3_reg";
- 		regulator-boot-on;
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 91eee97..1aac58b 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -24,6 +24,20 @@
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
  	};
+ 
++	am33xx_pinmux: pinmux@44e10800 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&user_leds_s0>;
 +
-+	leds {
-+		compatible = "gpio-leds";
-+
-+		led@1 {
-+			label = "evmsk:green:usr0";
-+			gpios = <&gpio2 4 0>;
-+			default-state = "off";
-+		};
-+
-+		led@2 {
-+			label = "evmsk:green:usr1";
-+			gpios = <&gpio2 5 0>;
-+			default-state = "off";
-+		};
-+
-+		led@3 {
-+			label = "evmsk:green:mmc0";
-+			gpios = <&gpio2 6 0>;
-+			linux,default-trigger = "mmc0";
-+			default-state = "off";
-+		};
-+
-+		led@4 {
-+			label = "evmsk:green:heartbeat";
-+			gpios = <&gpio2 7 0>;
-+			linux,default-trigger = "heartbeat";
-+			default-state = "off";
++		user_leds_s0: user_leds_s0 {
++			pinctrl-single,pins = <
++				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
++				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
++				0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
++				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
++			>;
 +		};
 +	};
- };
- 
- /include/ "tps65910.dtsi"
++
+ 	ocp {
+ 		uart1: serial@44e09000 {
+ 			status = "okay";
 -- 
 1.7.9.5
 
