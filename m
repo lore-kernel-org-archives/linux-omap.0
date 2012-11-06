@@ -1,58 +1,51 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: OMAP baseline test results for v3.7-rc3
-Date: Tue, 06 Nov 2012 09:47:10 +0000
-Message-ID: <5098DC9E.3090307@mimc.co.uk>
-References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk> <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EB51E84@DBDE01.ent.ti.com> <508FE8BA.1080404@ti.com> <50912A6F.1040501@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com> <5097EF44.5030706@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB63609@DBDE01.ent.ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] i2c: omap: Move the remove constraint
+Date: Tue, 6 Nov 2012 15:24:33 +0530
+Message-ID: <1352195673-31559-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mercuryimc.plus.com ([80.229.200.144]:40242 "EHLO
-	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750988Ab2KFJrM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 04:47:12 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB63609@DBDE01.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58107 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750935Ab2KFJzH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 04:55:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On 06/11/12 06:16, Hiremath, Vaibhav wrote:
-> 
-> Where is your DTB? Is it appended to Kernel image?
-> Can you try below sequence/commands from u-boot?
-> 
-> 
-> mmc rescan 0
-> fatload mmc 0 80000000 am335x-bone.dtb
-> fatload mmc 0 81000000 uImage
-> setenv bootargs console=ttyO0,115200n8 mem=256M root=/dev/mmcblk0p2 rw noinitrd rootfstype=ext3 rootwait earlyprink=serial
-> sendln 'bootm 81000000 - 80000000'
-> 
-> 
-> 
-> To build DTB files, use "make dtbs" command on your kernel home directory.
+Currently we just queue the transfer and release the
+qos constraints, however we donot wait for the transfer
+to complete to release the constraint. Move the remove
+constraint after the bus busy as we are sure that the
+transfers are completed by then.
 
-That works ... great !!
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-But now I'm confused, since I thought the DTB was appended to the uImage file.
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 94ff685..8b079d7 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -655,13 +655,13 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 			break;
+ 	}
+ 
+-	if (dev->latency)
+-		pm_qos_remove_request(&dev->pm_qos_request);
+-
+ 	if (r == 0)
+ 		r = num;
+ 
+ 	omap_i2c_wait_for_bb(dev);
++
++	if (dev->latency)
++		pm_qos_remove_request(&dev->pm_qos_request);
+ out:
+ 	pm_runtime_mark_last_busy(dev->dev);
+ 	pm_runtime_put_autosuspend(dev->dev);
+-- 
+1.7.5.4
 
-I have the following in my .config:-
-
-ARM_ATAG_DTB_COMPAT=y
-ARM_APPENDED_DTB=y
-ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
-
-And then I create my uImage file using:-
-
-$ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux- uImage
-$ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux- am335x-bone.dtb
-$ cat arch/arm/boot/uImage arch/arm/boot/am335x-bone.dtb > arch/arm/boot/uImage-dtb.am335x-bone
-$ cp arch/arm/boot/uImage-dtb.am335x-bone /media/boot/uImage
-
-Do you now have to load the DTB as a separate file ?
-
-Or should the appended DTB still work ?
-
-Cheers
-Mark J.
