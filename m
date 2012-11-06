@@ -1,136 +1,64 @@
-From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Tue, 6 Nov 2012 20:41:00 +0100
-Message-ID: <56051C08-3ECF-4C0A-9B88-64B4C1DDDF45@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
- <20121106183531.GH6801@atomide.com>
- <CA+Bv8XZOt7h3dtDsk1SaR71J3tYFOTsPJSjZLSP3RVuLdYdFDg@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CA+Bv8XZOt7h3dtDsk1SaR71J3tYFOTsPJSjZLSP3RVuLdYdFDg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/3] omap gpmc : add support of setting CYCLE2CYCLEDELAY
+ and BUSTURNAROUND
+Date: Tue, 6 Nov 2012 14:34:03 -0600
+Message-ID: <5099743B.3040804@ti.com>
+References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com> <5099478A.50901@ti.com> <5099504A.5060505@parrot.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33860 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752324Ab2KFUeK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 15:34:10 -0500
+In-Reply-To: <5099504A.5060505@parrot.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthieu CASTET <matthieu.castet@parrot.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>, Afzal Mohammed <afzal@ti.com>
 
-Hi Russ,
 
-On Nov 6, 2012, at 8:29 PM, Russ Dill wrote:
+On 11/06/2012 12:00 PM, Matthieu CASTET wrote:
+> Jon Hunter a =E9crit :
+>> On 11/06/2012 10:44 AM, Matthieu CASTET wrote:
+>>> =20
+>>>  	/* caller is expected to have initialized CONFIG1 to cover
+>>>  	 * at least sync vs async
+>>> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat=
+-omap/include/plat/gpmc.h
+>>> index 2e6e259..34ca454 100644
+>>> --- a/arch/arm/plat-omap/include/plat/gpmc.h
+>>> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
+>>> @@ -131,6 +131,8 @@ struct gpmc_timings {
+>>>  	/* The following are only on OMAP3430 */
+>>>  	u16 wr_access;		/* WRACCESSTIME */
+>>>  	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+>>> +	u16 cycle2cycledelay;	/* CYCLE2CYCLEDELAY */
+>>> +	u16 busturnaround;		/* BUSTURNAROUND */
+>>
+>> So you should be able to move these out of OMAP3430 specific as they=
+ are
+>> generic.
+> Thanks for the quick review.
+>=20
+> I will post another patch, unless this is already done in  Afzal patc=
+h (Is there
+> a tree where I can get Afzal pending patches ?)
 
-> On Tue, Nov 6, 2012 at 10:35 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
->> * Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> [121106 03:16]:
->>> On Tue, Nov 6, 2012 at 10:30 AM, Pantelis Antoniou
->>> <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> wrote:
->>>> =
+Afzal keeps his kernel tree on gitorious [1]. However, I am not sure
+what Afzal's plans are for the remaining patches not yet merged and
+which branch you should look at (I have a lot of problems viewing
+anything on gitorious these days).
 
->>>> Another can of worms is the pinctrl nodes.
->>> =
+Afzal, let us know how you prefer to handle this.
 
->>> Yes... new pinctrl data would need to trigger adding new data to
->>> pinctrl. I don't know if the pinctrl api supports that.
->> =
+Cheers
+Jon
 
->> The actual pins stay the same, just their configuration
->> changes. AFAIK all that is already supported using the
->> pinctrl framework.
->> =
-
->> For example, considering hotplugging capes on the beaglebone:
->> =
-
->> 1. You need to map all the sensible modes for the pins exposed
->>   to the capes in the board specific .dts file. This will
->>   add roughly 4 x nr_capbus_pins named modes in the .dts file
->>   so not too bad.
->> =
-
->> 2. Claim all the capebus pins during the capbus driver probe
->>   and set them to some safe mode.
->> =
-
->> 3. Try to detect the connected cape(s) over i2c.
->> =
-
->> 4. Use pinctr_select_state to set the desired modes for
->>   the pins used by the cape(s).
->> =
-
->> 5. Enable capebus regulators and clocks etc.
->> =
-
->> 6. Load the driver modules for whatever omap internal
->>   devices the cape supports.
->> =
-
->> You could also claim the pin for the omap internal
->> devices instead of claiming them in the capebus, but then
->> things can get messy with binding and unbinding the
->> drivers. So just claiming all the pins in the capebus
->> probably keeps things simpler.
-> =
-
-> That assumes that for a particular external bus, certain pins aren't
-> already shared with functions already on the board, for instance if an
-> I=B2C bus brought out to the external bus already has a chip connected
-> to it.
-
-This is our case on the bone. We don't enable the peripheral until
-a cape that references it is enabled.
-
-I don't think that very big changes are going to be needed TBH.
-
-So now we use:
-
-        am3358_pinmux: pinmux@44e10800 {
-		....
-                bone_dvi_cape_led_pins: pinmux_bone_dvi_cape_led_pins {
-                        pinctrl-single,pins =3D <
-                                0x48 0x07       /* gpmc_a2.gpio1_18, OUTPUT=
- | MODE7 */
-                                0x4c 0x07       /* gpmc_a3.gpio1_19, OUTPUT=
- | MODE7 */
-                        >;
-                };
-		....
-	};
-
-And in the cape definition:
-
-        pinctrl-0 =3D <&bone_geiger_cape_pins>;
-
-Ideally if we could do this in the cape definition:
-
-	cape_pinmux {
-		parent =3D <&am3358_pinmux>;
-
-                bone_dvi_cape_led_pins: pinmux_bone_dvi_cape_led_pins {
-                        pinctrl-single,pins =3D <
-                                0x48 0x07       /* gpmc_a2.gpio1_18, OUTPUT=
- | MODE7 */
-                                0x4c 0x07       /* gpmc_a3.gpio1_19, OUTPUT=
- | MODE7 */
-                        >;
-	};
-
-        pinctrl-0 =3D <&bone_geiger_cape_pins>;
-	=
-
-It would be just fine.
-
-Regards
-
--- Pantelis
+[1] http://gitorious.org/x0148406-public/linux-kernel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
