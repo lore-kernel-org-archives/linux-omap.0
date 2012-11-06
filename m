@@ -1,83 +1,125 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: [PATCH 5/5] mmc: omap_hsmmc: convert critical failure reports to dev_err
-Date: Tue, 6 Nov 2012 22:22:16 +0530
-Message-ID: <1352220737-14071-6-git-send-email-svenkatr@ti.com>
-References: <1352220737-14071-1-git-send-email-svenkatr@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 2/4] rtc: OMAP: Add system pm_power_off to rtc driver
+Date: Tue, 6 Nov 2012 17:56:54 +0100
+Message-ID: <50994156.4080305@ti.com>
+References: <1352108549-9341-1-git-send-email-anilkumar@ti.com> <1352108549-9341-3-git-send-email-anilkumar@ti.com> <5097ECAD.9010101@ti.com> <331ABD5ECB02734CA317220B2BBEABC13EA64F14@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1352220737-14071-1-git-send-email-svenkatr@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: cjb@vger.kernel.org
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Venkatraman S <svenkatr@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38385 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751387Ab2KFQ5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 11:57:46 -0500
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA64F14@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: Colin Foe-Parker <colin.foeparker@logicpd.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-Fatal errors for the driver are not reported when just error
-debug is enabled. Convert selected dev_dbg to dev_err for
-accurate error reporting.
+Hi Anil,
 
-Reported-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+On 11/06/2012 06:07 AM, AnilKumar, Chimata wrote:
+> On Mon, Nov 05, 2012 at 22:13:25, Cousson, Benoit wrote:
+>> Hi Anil / Colin,
+>>
+>> On 11/05/2012 10:42 AM, AnilKumar Ch wrote:
+>>> From: Colin Foe-Parker <colin.foeparker@logicpd.com>
+>>>
+>>> Add system power off control to rtc driver which is the in-charge
+>>> of controlling the BeagleBone system power. The power_off routine
+>>> can be hooked up to "pm_power_off" system call.
+>>>
+>>> System power off sequence:-
+>>> * Set PMIC STATUS_OFF when PMIC_POWER_EN is pulled low
+>>> * Enable PMIC_POWER_EN in rtc module
+>>> * Set rtc ALARM2 time
+>>> * Enable ALARM2 interrupt
+>>>
+>>> Added while (1); after the above steps to make sure that no other
+>>> process acquire cpu. Otherwise we might see an unexpected behaviour
+>>> because we are shutting down all the power rails of SoC except RTC.
+>>>
+>>> Signed-off-by: Colin Foe-Parker <colin.foeparker@logicpd.com>
+>>> [anilkumar@ti.com: move poweroff additions to rtc driver]
+>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+>>> ---
+>>>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |    5 ++
+>>>  drivers/rtc/rtc-omap.c                             |   79 +++++++++++++++++++-
+>>>  2 files changed, 83 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>>> index b47aa41..8d9f4f9 100644
+>>> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>>> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+>>> @@ -6,6 +6,10 @@ Required properties:
+>>>  - interrupts: rtc timer, alarm interrupts in order
+>>>  - interrupt-parent: phandle for the interrupt controller
+>>>  
+>>> +Optional properties:
+>>> +- ti,system-power-controller: Telling whether or not rtc is controlling
+>>> +  the system power.
+>>
+>> I don't know how it is connected at board level, but I'm not sure the
+>> binding is the proper one.
+> 
+> Hi Benoit,
+>  ________________________________
+> |   ______          _______      |
+> |  |      |        |       |     |
+> |  |RTC   |        |       |     |
+> |  |PMIC  |  Line  |       |     |
+> |  |PWR_EN|=======>|PWR_EN |     |
+> |  |______|        |_______|     |
+> |  AM335x SoC       TPS65217     |
+> |                                |
+> |________________________________|
+>           BeagleBone
+> 
+> This is how RTC PMIC_PWR_EN is connected to PWR_EN of TPS65217 PMIC. Only when
+> RTC pull low in PMIC_PWR_EN then PMIC will go to power off state provided TPS65217
+> status should be changed to STATUS_OFF.
+> 
+> ALARM2 event should be trigger to configure PMIC_PWR_EN properly then the "Line"
+> driven low so that PMIC will go to shutdown mode.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index d16ef0f..830c59b 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -313,7 +313,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- 
- 	reg = regulator_get(host->dev, "vmmc");
- 	if (IS_ERR(reg)) {
--		dev_dbg(host->dev, "vmmc regulator missing\n");
-+		dev_err(host->dev, "vmmc regulator missing\n");
- 		return PTR_ERR(reg);
- 	} else {
- 		mmc_slot(host).set_power = omap_hsmmc_set_power;
-@@ -1136,7 +1136,7 @@ static int omap_hsmmc_switch_opcond(struct omap_hsmmc_host *host, int vdd)
- 
- 	return 0;
- err:
--	dev_dbg(mmc_dev(host->mmc), "Unable to switch operating voltage\n");
-+	dev_err(mmc_dev(host->mmc), "Unable to switch operating voltage\n");
- 	return ret;
- }
- 
-@@ -1395,7 +1395,7 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
- 	if (host->use_dma) {
- 		ret = omap_hsmmc_start_dma_transfer(host, req);
- 		if (ret != 0) {
--			dev_dbg(mmc_dev(host->mmc), "MMC start dma failure\n");
-+			dev_err(mmc_dev(host->mmc), "MMC start dma failure\n");
- 			return ret;
- 		}
- 	}
-@@ -1930,13 +1930,13 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 	ret = request_irq(host->irq, omap_hsmmc_irq, 0,
- 			mmc_hostname(mmc), host);
- 	if (ret) {
--		dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
-+		dev_err(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
- 		goto err_irq;
- 	}
- 
- 	if (pdata->init != NULL) {
- 		if (pdata->init(&pdev->dev) != 0) {
--			dev_dbg(mmc_dev(host->mmc),
-+			dev_err(mmc_dev(host->mmc),
- 				"Unable to configure MMC IRQs\n");
- 			goto err_irq_cd_init;
- 		}
-@@ -1959,7 +1959,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 					   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
- 					   mmc_hostname(mmc), host);
- 		if (ret) {
--			dev_dbg(mmc_dev(host->mmc),
-+			dev_err(mmc_dev(host->mmc),
- 				"Unable to grab MMC CD IRQ\n");
- 			goto err_irq_cd;
- 		}
--- 
-1.8.0
+Thanks for the nice diagram :-)
+
+I'm wondering if we cannot abuse the gpio binding to describe that
+connection instead of creating two custom attributes (PMIC + RTC).
+
+Ideally we should do that without having to change the RTC to use the
+gpiolib at all.
+
+
+rtc: rtc@44e3e000 {
+	compatible = "ti,da830-rtc";
+	reg = <0x44e3e000 0x1000>;
+	interrupts = <75, 76>;
+	ti,hwmods = "rtc";
+
+	/* expose the PWR_EN functionality of this RTC*/
+	gpio-controller;
+	#gpio-cells = <0>; /* assuming we can use 0 ??? */
+};
+
+...
+
+tps: tps@24 {
+ 	compatible = "ti,tps65217";
+	/*
+         * Enable the power enable feature from
+         * the input line if that attribute is there.
+         */
+	gpio-power-en = <&rtc>; /* PWR_EN */
+
+	...
+}	
+
+Any thought?
+
+Regards,
+Benoit
+
+
 
