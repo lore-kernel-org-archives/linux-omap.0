@@ -1,50 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: PM: few more fixes for v3.7-rc
-Date: Tue, 6 Nov 2012 10:51:45 -0800
-Message-ID: <20121106185144.GO6801@atomide.com>
-References: <87objbczw8.fsf@deeprootsystems.com>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Tue, 6 Nov 2012 11:29:59 -0800
+Message-ID: <CA+Bv8XZOt7h3dtDsk1SaR71J3tYFOTsPJSjZLSP3RVuLdYdFDg@mail.gmail.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+	<02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
+	<CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
+	<20121106183531.GH6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47326 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751631Ab2KFSvq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 13:51:46 -0500
-Content-Disposition: inline
-In-Reply-To: <87objbczw8.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121106183531.GH6801@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [121105 16:58]:
-> Hi Tony,
-> 
-> Here's a couple more trivial fixes for v3.7-rc.
-> 
-> Thanks,
-> 
-> Kevin
-> 
-> 
-> The following changes since commit 6f0c0580b70c89094b3422ba81118c7b959c7556:
-> 
->   Linux 3.7-rc2 (2012-10-20 12:11:32 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/for_3.7-rc5-fixes-pm
-> 
-> for you to fetch changes up to 73c503cb981394872db41dd5cde385cb5373b4b9:
-> 
->   ARM: OMAP4: PM: fix regulator name for VDD_MPU (2012-11-05 16:30:29 -0800)
-> 
-> ----------------------------------------------------------------
-> Minor OMAP PM fixes for v3.7-rc
-> 
+On Tue, Nov 6, 2012 at 10:35 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Grant Likely <grant.likely@secretlab.ca> [121106 03:16]:
+>> On Tue, Nov 6, 2012 at 10:30 AM, Pantelis Antoniou
+>> <panto@antoniou-consulting.com> wrote:
+>> >
+>> > Another can of worms is the pinctrl nodes.
+>>
+>> Yes... new pinctrl data would need to trigger adding new data to
+>> pinctrl. I don't know if the pinctrl api supports that.
+>
+> The actual pins stay the same, just their configuration
+> changes. AFAIK all that is already supported using the
+> pinctrl framework.
+>
+> For example, considering hotplugging capes on the beaglebone:
+>
+> 1. You need to map all the sensible modes for the pins exposed
+>    to the capes in the board specific .dts file. This will
+>    add roughly 4 x nr_capbus_pins named modes in the .dts file
+>    so not too bad.
+>
+> 2. Claim all the capebus pins during the capbus driver probe
+>    and set them to some safe mode.
+>
+> 3. Try to detect the connected cape(s) over i2c.
+>
+> 4. Use pinctr_select_state to set the desired modes for
+>    the pins used by the cape(s).
+>
+> 5. Enable capebus regulators and clocks etc.
+>
+> 6. Load the driver modules for whatever omap internal
+>    devices the cape supports.
+>
+> You could also claim the pin for the omap internal
+> devices instead of claiming them in the capebus, but then
+> things can get messy with binding and unbinding the
+> drivers. So just claiming all the pins in the capebus
+> probably keeps things simpler.
 
-Thanks pulling into omap-for-v3.7-rc4/fixes.
-
-Regards,
-
-Tony
+That assumes that for a particular external bus, certain pins aren't
+already shared with functions already on the board, for instance if an
+I=C2=B2C bus brought out to the external bus already has a chip connect=
+ed
+to it.
