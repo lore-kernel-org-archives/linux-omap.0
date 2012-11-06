@@ -1,40 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 3/3] omap prcm cleanup for v3.8 merge window, part1
-Date: Tue, 6 Nov 2012 09:59:59 -0800
-Message-ID: <20121106175959.GC6801@atomide.com>
-References: <pull-1351286620-406688>
- <E1TRrO0-00087R-UM@merlin.infradead.org>
- <20121105185133.GC22301@quad.lixom.net>
+From: Matthieu CASTET <matthieu.castet@parrot.com>
+Subject: Re: [PATCH 1/3] omap gpmc : add support of setting CYCLE2CYCLEDELAY
+ and BUSTURNAROUND
+Date: Tue, 6 Nov 2012 19:00:42 +0100
+Message-ID: <5099504A.5060505@parrot.com>
+References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com> <5099478A.50901@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:58271 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750989Ab2KFSAF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 13:00:05 -0500
-Content-Disposition: inline
-In-Reply-To: <20121105185133.GC22301@quad.lixom.net>
+Received: from co202.xi-lite.net ([149.6.83.202]:33113 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750987Ab2KFSAr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 13:00:47 -0500
+In-Reply-To: <5099478A.50901@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>, Afzal Mohammed <afzal@ti.com>
 
-* Olof Johansson <olof@lixom.net> [121105 10:53]:
-> 
-> The history of this branch looks a little odd. Did you mean to merge in
-> cleanup-headers on top of Paul's branch in it? It seems to add no value -- all
-> that code is already in our branch and it resolves no conflicts, etc.
+Jon Hunter a =E9crit :
+> On 11/06/2012 10:44 AM, Matthieu CASTET wrote:
+>> =20
+>>  	/* caller is expected to have initialized CONFIG1 to cover
+>>  	 * at least sync vs async
+>> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-=
+omap/include/plat/gpmc.h
+>> index 2e6e259..34ca454 100644
+>> --- a/arch/arm/plat-omap/include/plat/gpmc.h
+>> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
+>> @@ -131,6 +131,8 @@ struct gpmc_timings {
+>>  	/* The following are only on OMAP3430 */
+>>  	u16 wr_access;		/* WRACCESSTIME */
+>>  	u16 wr_data_mux_bus;	/* WRDATAONADMUXBUS */
+>> +	u16 cycle2cycledelay;	/* CYCLE2CYCLEDELAY */
+>> +	u16 busturnaround;		/* BUSTURNAROUND */
+>=20
+> So you should be able to move these out of OMAP3430 specific as they =
+are
+> generic.
+Thanks for the quick review.
 
-Oh that was because I wanted to keep the header clean up separate
-and Paul needed some base for further PRCM work that would not
-conflict with the header changes. And I wanted to get the first
-set of Paul's changes into linux next early to avoid a big pile
-of pull requests later on.
- 
-> That being said, it causes no harm, and I've pulled it in as is.
+I will post another patch, unless this is already done in  Afzal patch =
+(Is there
+a tree where I can get Afzal pending patches ?)
 
-OK thanks.
 
-Regards,
-
-Tony
+Matthieu
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
