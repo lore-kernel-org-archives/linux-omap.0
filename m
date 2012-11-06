@@ -1,87 +1,70 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP baseline test results for v3.7-rc1
-Date: Mon, 05 Nov 2012 16:01:33 -0800
-Message-ID: <87fw4neh0i.fsf@deeprootsystems.com>
-References: <CAORVsuWFzH3UmXCaY=iqmYsE72KOecLo40tG9BcTUBirJQ5iLA@mail.gmail.com>
-	<CAORVsuV9_4oc6+voEM9PkqzkXKHipor5XJqaXfDNxAWLofXcxg@mail.gmail.com>
-	<20121025101212.GD21217@arwen.pp.htv.fi>
-	<20121026201539.GD29548@arwen.pp.htv.fi>
-	<alpine.DEB.2.00.1210262201500.11258@utopia.booyaka.com>
-	<20121029200032.GD30152@arwen.pp.htv.fi>
-	<alpine.DEB.2.00.1210301216330.12697@utopia.booyaka.com>
-	<20121030123254.GD29095@arwen.pp.htv.fi>
-	<alpine.DEB.2.00.1210301239310.12697@utopia.booyaka.com>
-	<20121030125419.GG29095@arwen.pp.htv.fi>
-	<alpine.DEB.2.00.1210301313190.12697@utopia.booyaka.com>
-	<CAORVsuWqoqrza-qrJskpMTj=2MW6JxNEhVzjWVXkM1mpqVO8cQ@mail.gmail.com>
-	<87fw4u3oh5.fsf@deeprootsystems.com>
-	<CAORVsuUWD3gHh1NcMLeGwZ=hF=UiOG2VyJkADZNcGVr1g1TFgQ@mail.gmail.com>
-	<alpine.DEB.2.00.1211010242001.6693@utopia.booyaka.com>
-	<CAORVsuXHxqhcTHv8Y=8gw4N+0+rx+N91bh971zK-TmcsrTu5nQ@mail.gmail.com>
-	<CAORVsuUda69_sE9LpBnuETXSA2jPxw7nQ=MkAq=Or8B7t1fvcA@mail.gmail.com>
-	<alpine.DEB.2.00.1211050313130.23228@utopia.booyaka.com>
-	<CAORVsuUGcydD13-VcaNjmAmrsyo9ZVHGTRoSKgLyr4-Bkw7zhg@mail.gmail.com>
+From: Adam Wozniak <awozniak@irobot.com>
+Subject: need help debugging ISP problem
+Date: Mon, 5 Nov 2012 16:02:08 -0800
+Message-ID: <50985380.8000706@irobot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:54447 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751074Ab2KFABe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 19:01:34 -0500
-Received: by mail-pa0-f46.google.com with SMTP id hz1so4305583pad.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Nov 2012 16:01:33 -0800 (PST)
-In-Reply-To: <CAORVsuUGcydD13-VcaNjmAmrsyo9ZVHGTRoSKgLyr4-Bkw7zhg@mail.gmail.com>
-	(Jean Pihet's message of "Mon, 5 Nov 2012 10:26:27 +0100")
+Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:33632
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753224Ab2KFACj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Nov 2012 19:02:39 -0500
+Received: from mail155-ch1 (localhost [127.0.0.1])	by
+ mail155-ch1-R.bigfish.com (Postfix) with ESMTP id DAAFD480144	for
+ <linux-omap@vger.kernel.org>; Tue,  6 Nov 2012 00:02:37 +0000 (UTC)
+Received: from CH1EHSMHS020.bigfish.com (snatpool1.int.messaging.microsoft.com
+ [10.43.68.242])	by mail155-ch1.bigfish.com (Postfix) with ESMTP id
+ 725A7420112	for <linux-omap@vger.kernel.org>; Tue,  6 Nov 2012 00:02:35 +0000
+ (UTC)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, aaro.koskinen@iki.fi, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+I'm working with a custom board based on an Overo WaterStorm com. The 
+processor is a DM3730.  The kernel is 2.6.32 based.
 
-[...]
+I'm trying to stress test the camera ISP by rapidly opening and closing 
+the video device with ( while true; do gst-launch v4l2src 
+device=/dev/video0 ! video/x-raw-yuv,width=320,height=240 ! 
+ffmpegcolorspace ! pngenc snapshot=true ! fakesink; done )
 
-> I ran some intensive stress tests on the I2C and ... unfortunately I
-> could not trigger the problem. It looks like the issue is caused by
-> some transient situation where the CORE and/or I2C is in a low power
-> state.
+After many iterations, I will see the kernel spit out:
 
-FYI... I just ran across what appears to be the same bug on 3430/n900
-during suspend/resume testing.  With CPUidle enabled, this happens every
-time.
+[ 2502.802795] Unhandled fault: external abort on non-linefetch (0x1028) 
+at 0xfa0bce04
+[ 2502.810516] Internal error: : 1028 [#1]
+[ ... ]
+[ 2502.846893] PC is at isp_reg_readl+0x18/0x20
+[ 2502.851196] LR is at isp_reg_readl+0x10/0x20
+[ ... ]
+[ 2503.296447] [<c02954a0>] (isp_reg_readl+0x18/0x20) from [<c02954f8>] 
+(isp_reg_and_or+0x1c/0x38)
+[ 2503.305206] [<c02954f8>] (isp_reg_and_or+0x1c/0x38) from [<c029bad0>] 
+(isppreview_config_cfa+0x38/0x90)
+[ 2503.314666] [<c029bad0>] (isppreview_config_cfa+0x38/0x90) from 
+[<c029bc5c>] (isppreview_config_datapath+0x134/0x330)
+[ 2503.325347] [<c029bc5c>] (isppreview_config_datapath+0x134/0x330) 
+from [<c029be68>] (isppreview_s_pipeline+0x10/0xd0)
+[ 2503.336029] [<c029be68>] (isppreview_s_pipeline+0x10/0xd0) from 
+[<c0296e98>] (isp_s_pipeline+0x1d8/0x280)
+[ 2503.345672] [<c0296e98>] (isp_s_pipeline+0x1d8/0x280) from 
+[<bf036b98>] (cammux_streamon+0x218/0xa28 [cammux])
+[ ... ]
 
-Reverting the I2C QoS patch makes it work again.
 
-Kevin
+The register we're trying to access here is the ISP PRV_PCR.  If I try 
+to add debug code to read ISP_CTRL right before the fault, the ISP_CTRL 
+access faults in the same way (i.e. the whole ISP is borked, not just 
+the previewer).
 
+At first I thought the clocks were being disabled somehow, but tracking 
+them seems to indicate that's not the case.  Adding an early return in 
+arch/arm/mach/omap2/clock.c omap2_dflt_clk_disable() (i.e. to disable 
+disabling of clocks) does NOT help.
 
-# rtcwake -m mem -s 1
-Date:    Fri Dec 31 17:00:34 MST 1999
-hwclock: Sat Jan  1 00:00:34 2000  0.000000 seconds
-[   38.819732] omap_i2c omap_i2c.1: timeout waiting for bus ready
-wakeup from "mem" at Sat Jan  1 00:00:36 2000
-[   38.841949] PM: Syncing filesystems ... done.
-[   38.859466] Freezing user space processes ... (elapsed 0.01 seconds) done.
-[   38.885284] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-[   38.916412] Suspending console(s) (use no_console_suspend to debug)
-[   39.944274] omap_i2c omap_i2c.1: timeout waiting for bus ready
-[   39.944305] twl: i2c_read failed to transfer all messages
-[   39.944305] twl_rtc: Could not read TWLregister D - error -110
-[   39.944335] twl_rtc twl_rtc: twl_rtc_read_time: reading CTRL_REG, error -110
-[   40.975524] omap_i2c omap_i2c.1: timeout waiting for bus ready
-[   40.975555] twl: i2c_read failed to transfer all messages
-[   40.975555] VMMC2_IO_18: failed to disable
-[   40.978698] PM: suspend of devices complete after 2049.163 msecs
-[   40.984222] PM: late suspend of devices complete after 5.493 msecs
-[   40.992126] PM: noirq suspend of devices complete after 7.873 msecs
-[   40.992187] Disabling non-boot CPUs ...
-[   40.992675] Successfully put all powerdomains to target state
-[   40.997009] PM: noirq resume of devices complete after 4.058 msecs
-[   41.002014] PM: early resume of devices complete after 3.601 msecs
-[   41.179016] PM: resume of devices complete after 176.818 msecs
-[   41.277740] Restarting tasks ... done.
-real    0m 3.50s
-user    0m 0.00s
-sys     0m 0.10s
-Date:    Fri Dec 31 17:00:40 MST 1999
-hwclock: Sat Jan  1 00:00:40 2000  0.000000 seconds
+What else might I be missing?  What is necessary to be able to read the 
+ISP registers?
+
+--Adam
+
