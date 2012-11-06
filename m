@@ -1,42 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 1/6] arch: Change defconfigs to point to
- g_mass_storage.
-Date: Tue, 6 Nov 2012 10:42:27 -0800
-Message-ID: <20121106184227.GK6801@atomide.com>
-References: <cover.1351715302.v2.git.mina86@mina86.com>
- <46dde680f525562e9fd19567deb5247f0bf26842.1351715302.v2.git.mina86@mina86.com>
- <20121106113157.GE11931@arwen.pp.htv.fi>
- <20121106184117.GJ6801@atomide.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP: voltage: move voltdm_reset to
+ platform_data header
+Date: Tue, 6 Nov 2012 10:49:36 -0800
+Message-ID: <20121106184935.GL6801@atomide.com>
+References: <1352127734-30103-1-git-send-email-nm@ti.com>
+ <1352127734-30103-5-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20121106184117.GJ6801@atomide.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Michal Nazarewicz <mpn@google.com>, linux-usb@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Michal Nazarewicz <mina86@mina86.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Mike Frysinger <vapier@gentoo.org>, uclinux-dist-devel@blackfin.uclinux.org, Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+In-Reply-To: <1352127734-30103-5-git-send-email-nm@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Rafael <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbouatmailru@gmail.com>, linux-pm <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [121106 10:41]:
-> * Felipe Balbi <balbi@ti.com> [121106 03:40]:
-> > Hi,
-> > 
-> > On Fri, Nov 02, 2012 at 02:31:50PM +0100, Michal Nazarewicz wrote:
-> > > From: Michal Nazarewicz <mina86@mina86.com>
-> > > 
-> > > The File-backed Storage Gadget (g_file_storage) is being removed, since
-> > > it has been replaced by Mass Storage Gadget (g_mass_storage).  This commit
-> > > changes defconfigs point to the new gadget.
-> > > 
-> > > Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-> > 
-> > I need more Acks here. Only got one from Nicolas. Anyone else ?
+* Nishanth Menon <nm@ti.com> [121105 07:04]:
+> Move voltdm_reset to include/linux/platform_data/voltage-omap.h
 > 
-> For omaps:
+> Acked-by: Jean Pihet <j-pihet@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/voltage.h              |    1 -
+>  include/linux/platform_data/voltage-omap.h |    1 +
+>  2 files changed, 1 insertion(+), 1 deletion(-)
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> index af9d469..0665f21 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -149,5 +149,4 @@ int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
+>  int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+>  			  int (*fn)(struct voltagedomain *voltdm,
+>  				    struct powerdomain *pwrdm));
+> -void voltdm_reset(struct voltagedomain *voltdm);
+>  #endif
+> diff --git a/include/linux/platform_data/voltage-omap.h b/include/linux/platform_data/voltage-omap.h
+> index 5be4d5d..4eb3d43 100644
+> --- a/include/linux/platform_data/voltage-omap.h
+> +++ b/include/linux/platform_data/voltage-omap.h
+> @@ -36,4 +36,5 @@ int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+>  unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+>  struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+>  		unsigned long volt);
+> +void voltdm_reset(struct voltagedomain *voltdm);
+>  #endif
 
-Heh I guess no omap changes there, so probably not
-worth adding then.
+The include/linux/platform_data/voltage-omap.h should only contain
+pure platform_data, these should internal defines to the driver.
+
+Looks like there are other things there too that's not platform data:
+
+struct voltagedomain *voltdm_lookup(const char *name);
+int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+		unsigned long volt);
+
+Can you please add a patch fixing that ASAP?
+
+Thanks,
 
 Tony
