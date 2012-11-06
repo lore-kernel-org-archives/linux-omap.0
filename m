@@ -1,71 +1,61 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH 08/15] ARM: OMAP2+: hwmod: Fix the omap_hwmod_addr_space
- for CPGMAC0
-Date: Tue, 6 Nov 2012 14:59:45 +0530
-Message-ID: <5098D889.60909@ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-9-git-send-email-vaibhav.bedia@ti.com> <509543E8.60209@ti.com> <B5906170F1614E41A8A28DE3B8D121433EC00B9B@DBDE01.ent.ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 12/15] ARM: OMAP: timer: Add suspend-resume callbacks
+ for clockevent device
+Date: Tue, 6 Nov 2012 09:38:04 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC04897@DBDE01.ent.ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+ <1351859566-24818-13-git-send-email-vaibhav.bedia@ti.com>
+ <50950AC7.1030707@deeprootsystems.com>
+ <B5906170F1614E41A8A28DE3B8D121433EBFEA88@DBDE01.ent.ti.com>
+ <50982DB2.4000104@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36471 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37138 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901Ab2KFJ3z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 04:29:55 -0500
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC00B9B@DBDE01.ent.ti.com>
+	with ESMTP id S1750864Ab2KFJiS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 04:38:18 -0500
+In-Reply-To: <50982DB2.4000104@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
+Hi Jon,
 
-
-On 11/5/2012 2:40 PM, Bedia, Vaibhav wrote:
-> On Sun, Nov 04, 2012 at 20:54:17, Bedia, Vaibhav wrote:
->> On Sat, Nov 03, 2012 at 21:48:48, Shilimkar, Santosh wrote:
->>> On Friday 02 November 2012 06:02 PM, Vaibhav Bedia wrote:
->>>> The first entry for CPGMAC0 should be ADDR_MAP_ON_INIT
->>>> instead of ADDR_TYPE_RT to ensure the omap hwmod code
->>>> maps the memory space at init and writes to the SYSCONFIG
->>>> registers.
->>>>
->>>> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>>> ---
->>> Sorry again similar question.
->>>
->>> Why CPGMAC0 should be mapped and sysconfig updated early ?
->>>
->>
->> Hmm I need to revisit this one. CPGMAC0 was not going to standby
->> without this. Maybe something else is wrong in the hwmod data and
->> needs fixing.
->>
+On Tue, Nov 06, 2012 at 02:50:50, Hunter, Jon wrote:
+[...]
 > 
-> Ok I checked this one. The change I made was indirectly fixing another
-> issue with the AM33xx hwmod data. am33xx_cpgmac0_addr_space[] has two
-> entries and the SYSC register is part of the second entry. The function
-> _find_mpu_rt_addr_space in omap_hwmod.c looks for the first entry with
-> the flag ADDR_TYPE_RT flag. The change I made indirectly made the second
-> entry in am33xx_cpgmac0_addr_space[] become the first memory space with
-> the ADDR_TYPE_RT flag. Due to this the hwmod code wrote to the correct
-> SYSC address of CPGMAC0 and the IP went to standby during bootup. 
-> After changing the order of the entries in am33xx_cpgmac0_addr_space[]
-> things work fine.
+> Why is this? How is the dmtimer TIOCP_CFG register configured on AM33xx?
+> Is it using smart-idle?
 > 
 
-Good catch.
+Yes, it is set to smart-idle with wakeup capable mode. (this needs a fixup
+since this timer is not wakeup capable) but unfortunately this is not
+sufficient. On AM33xx there's no HW_AUTO mode magic so unless the IPs in
+PER domain are disabled by s/w, PER domain can't transition.
 
-Just a side note on this, driver expects the addresses in this order
-only, first SS and then WR.
+> > The next one is that
+> > the clockevent doesn't generate any further interrupts once the
+> > system resumes. We need to restore the pre-suspend configuration.
+> > I haven't tried but I guess we could have used the save and restore
+> > of timer registers here.
+> 
+> It would be interesting to try using an non-wakeup domain timer on
+> OMAP3/4 for clock events and seeing if suspend/resume works.
+>
+> Do you know what the exact problem here is? I understand that the timer
+> context could get lost, but exactly what is not getting restarted by the
+> kernel? For example, the only place we set the interrupt enable is
+> during the clock event init and so if the context is lost, then I could
+> see no more interrupts occurring. So is it enough to just restore the
+> interrupt enable register, do you really need to program the timer again?
+> 
 
-Thanks,
+Just restoring the interrupt enable register works. But since there's no logic
+retention I think a context save-restore would be better.
+
+Regards,
 Vaibhav
-> I'll make the changes in the next version.
-> 
-> Regards,
-> Vaibhav
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
