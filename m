@@ -1,116 +1,159 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] usb: musb: dsps: dt binding - add resources, example
-Date: Tue, 6 Nov 2012 18:44:45 +0200
-Message-ID: <20121106164445.GE3993@arwen.pp.htv.fi>
-References: <1352210166-7253-1-git-send-email-afzal@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: [PATCH 4/5] mmc: omap_hsmmc: cleanup the bitmap definitions of Interrupt Register
+Date: Tue, 6 Nov 2012 22:22:15 +0530
+Message-ID: <1352220737-14071-5-git-send-email-svenkatr@ti.com>
+References: <1352220737-14071-1-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VdOwlNaOFKGAtAAV"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1352210166-7253-1-git-send-email-afzal-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Santhapuri Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37418 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750967Ab2KFQwp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 11:52:45 -0500
+In-Reply-To: <1352220737-14071-1-git-send-email-svenkatr@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: cjb@vger.kernel.org
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Venkatraman S <svenkatr@ti.com>
 
---VdOwlNaOFKGAtAAV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Define the most frequently used bitmasks of the Interrupt Enable /
+Interrupt Status register with consistent naming ( with _EN suffix).
 
-Hi,
+Use meaningful concatenation of bitfields for INT_EN_MASK, which shows
+which interrupts are enabled by default.
+No functional changes.
 
-On Tue, Nov 06, 2012 at 07:26:06PM +0530, Afzal Mohammed wrote:
-> OMAP2+ family of devices are now obtaining resources via DT, earlier
-> it was obtained from hwmod. Update binding document accrodingly, while
-> at it add example.
->=20
-> Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Venkatraman S <svenkatr@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c | 54 +++++++++++++++++++++++++------------------
+ 1 file changed, 31 insertions(+), 23 deletions(-)
 
-this looks fine to me:
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e91e85a..d16ef0f 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -80,29 +80,17 @@
+ #define CLKD_SHIFT		6
+ #define DTO_MASK		0x000F0000
+ #define DTO_SHIFT		16
+-#define INT_EN_MASK		0x307F0033
+-#define BWR_ENABLE		(1 << 4)
+-#define BRR_ENABLE		(1 << 5)
+-#define DTO_ENABLE		(1 << 20)
+ #define INIT_STREAM		(1 << 1)
+ #define DP_SELECT		(1 << 21)
+ #define DDIR			(1 << 4)
+-#define DMA_EN			0x1
++#define DMAE			0x1
+ #define MSBS			(1 << 5)
+ #define BCE			(1 << 1)
+ #define FOUR_BIT		(1 << 1)
+ #define HSPE			(1 << 2)
+ #define DDR			(1 << 19)
+ #define DW8			(1 << 5)
+-#define CC			0x1
+-#define TC			0x02
+ #define OD			0x1
+-#define ERR			(1 << 15)
+-#define CMD_TIMEOUT		(1 << 16)
+-#define DATA_TIMEOUT		(1 << 20)
+-#define CMD_CRC			(1 << 17)
+-#define DATA_CRC		(1 << 21)
+-#define CARD_ERR		(1 << 28)
+ #define STAT_CLEAR		0xFFFFFFFF
+ #define INIT_STREAM_CMD		0x00000000
+ #define DUAL_VOLT_OCR_BIT	7
+@@ -111,6 +99,26 @@
+ #define SOFTRESET		(1 << 1)
+ #define RESETDONE		(1 << 0)
+ 
++/* Interrupt masks for IE and ISE register */
++#define CC_EN			(1 << 0)
++#define TC_EN			(1 << 1)
++#define BWR_EN			(1 << 4)
++#define BRR_EN			(1 << 5)
++#define ERR_EN			(1 << 15)
++#define CTO_EN			(1 << 16)
++#define CCRC_EN			(1 << 17)
++#define CEB_EN			(1 << 18)
++#define CIE_EN			(1 << 19)
++#define DTO_EN			(1 << 20)
++#define DCRC_EN			(1 << 21)
++#define DEB_EN			(1 << 22)
++#define CERR_EN			(1 << 28)
++#define BADA_EN			(1 << 29)
++
++#define INT_EN_MASK		(BADA_EN | CERR_EN | DEB_EN | DCRC_EN |\
++		DTO_EN | CIE_EN | CEB_EN | CCRC_EN | CTO_EN | ERR_EN |\
++		BRR_EN | BWR_EN | TC_EN | CC_EN)
++
+ #define MMC_AUTOSUSPEND_DELAY	100
+ #define MMC_TIMEOUT_MS		20
+ #define OMAP_MMC_MIN_CLOCK	400000
+@@ -458,13 +466,13 @@ static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
+ 	unsigned int irq_mask;
+ 
+ 	if (host->use_dma)
+-		irq_mask = INT_EN_MASK & ~(BRR_ENABLE | BWR_ENABLE);
++		irq_mask = INT_EN_MASK & ~(BRR_EN | BWR_EN);
+ 	else
+ 		irq_mask = INT_EN_MASK;
+ 
+ 	/* Disable timeout for erases */
+ 	if (cmd->opcode == MMC_ERASE)
+-		irq_mask &= ~DTO_ENABLE;
++		irq_mask &= ~DTO_EN;
+ 
+ 	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+ 	OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
+@@ -702,8 +710,8 @@ static void send_init_stream(struct omap_hsmmc_host *host)
+ 	OMAP_HSMMC_WRITE(host->base, CMD, INIT_STREAM_CMD);
+ 
+ 	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
+-	while ((reg != CC) && time_before(jiffies, timeout))
+-		reg = OMAP_HSMMC_READ(host->base, STAT) & CC;
++	while ((reg != CC_EN) && time_before(jiffies, timeout))
++		reg = OMAP_HSMMC_READ(host->base, STAT) & CC_EN;
+ 
+ 	OMAP_HSMMC_WRITE(host->base, CON,
+ 		OMAP_HSMMC_READ(host->base, CON) & ~INIT_STREAM);
+@@ -794,7 +802,7 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
+ 	}
+ 
+ 	if (host->use_dma)
+-		cmdreg |= DMA_EN;
++		cmdreg |= DMAE;
+ 
+ 	host->req_in_progress = 1;
+ 
+@@ -1014,11 +1022,11 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+ 	data = host->data;
+ 	dev_vdbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
+ 
+-	if (status & ERR) {
++	if (status & ERR_EN) {
+ 		omap_hsmmc_dbg_report_irq(host, status);
+-		if (status & (CMD_TIMEOUT | DATA_TIMEOUT))
++		if (status & (CTO_EN | DTO_EN))
+ 			hsmmc_command_incomplete(host, -ETIMEDOUT);
+-		else if (status & (CMD_CRC | DATA_CRC))
++		else if (status & (CCRC_EN | DCRC_EN))
+ 			hsmmc_command_incomplete(host, -EILSEQ);
+ 
+ 		if (host->cmd)
+@@ -1029,9 +1037,9 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+ 		}
+ 	}
+ 
+-	if (end_cmd || ((status & CC) && host->cmd))
++	if (end_cmd || ((status & CC_EN) && host->cmd))
+ 		omap_hsmmc_cmd_done(host, host->cmd);
+-	if ((end_trans || (status & TC)) && host->mrq)
++	if ((end_trans || (status & TC_EN)) && host->mrq)
+ 		omap_hsmmc_xfer_done(host, data);
+ }
+ 
+-- 
+1.8.0
 
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-
-Benoit, do you take Documentation patches too ?
-
-> ---
->=20
-> v2: node name changed to "usb"
->=20
->  .../devicetree/bindings/usb/am33xx-usb.txt          | 21 +++++++++++++++=
-++++++
->  1 file changed, 21 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Docum=
-entation/devicetree/bindings/usb/am33xx-usb.txt
-> index a922505..ea840f7 100644
-> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> @@ -1,5 +1,7 @@
->  AM33XX MUSB GLUE
->   - compatible : Should be "ti,musb-am33xx"
-> + - reg : offset and length of register sets, first usbss, then for musb =
-instances
-> + - interrupts : usbss, musb instance interrupts in order
->   - ti,hwmods : must be "usb_otg_hs"
->   - multipoint : Should be "1" indicating the musb controller supports
->     multipoint. This is a MUSB configuration-specific setting.
-> @@ -12,3 +14,22 @@ AM33XX MUSB GLUE
->     represents PERIPHERAL.
->   - power : Should be "250". This signifies the controller can supply upto
->     500mA when operating in host mode.
-> +
-> +Example:
-> +
-> +usb@47400000  {
-> +	compatible =3D "ti,musb-am33xx";
-> +	reg =3D <0x47400000 0x1000	/* usbss */
-> +	       0x47401000 0x800		/* musb instance 0 */
-> +	       0x47401800 0x800>;	/* musb instance 1 */
-> +	interrupts =3D <17		/* usbss */
-> +		      18		/* musb instance 0 */
-> +		      19>;		/* musb instance 1 */
-> +	multipoint =3D <1>;
-> +	num-eps =3D <16>;
-> +	ram-bits =3D <12>;
-> +	port0-mode =3D <3>;
-> +	port1-mode =3D <3>;
-> +	power =3D <250>;
-> +	ti,hwmods =3D "usb_otg_hs";
-> +};
-> --=20
-> 1.7.12
->=20
-
---=20
-balbi
-
---VdOwlNaOFKGAtAAV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQmT59AAoJEIaOsuA1yqREVkEP/R4FP39QR4XBy80kqIGrdGOC
-xCRBgBWuYG0WMlX0mHMf2kmKODucs/wVTUuBMmmxq6DUyI6zZHTDyRIhwM0n7A0c
-vOkkXqgfCxLr8E49S8UoYSoWHcTQbd8e+TNOhudHoln7d+AtJ/GxvkZnaaW/BGM2
-jG7wMbphBh28lOYCqrf32S8ntG99xzq/T75YrSJUJnuDTlt+f17sbuYmPYSTx2pL
-6+yD5G0eo02N4YVyXXCGeie0QwbQpAANbcJWlrRed/hlj8laqmF0WwMl0Zrh1kTu
-2uHUfuwKWzlpuI0mnwiCxEP24OuQvDXliHoyg90CMWTUIKJzPlIAcxIDJclxlvhN
-Ze9zRL7unjjJRQq3OR0IC4AtaiBrjhWgrBhuxfFCwbTGFjGO2f8MZueb2eP0NLaL
-5qAscsGCvRctAVuFGdxWy2oLIJoaDQKr5ztlh9oVJdt0jbdFACUR1nZt1b3cICZ3
-ft8yhKbJ0Ry+RklhGf7JYZO7sp5QF2Lv7KstZm1LCX78+jlJcXkCAwOGIGLnXMF5
-CgSDYlapsgexjt+dkSlDorVgC8+9clclDQIle29AeRV5N9c+MCBe7NIG75wA8KWs
-AoI4P1yec/JOFDVOWh/0K4I9mZVvfp6NFNRNWSyQOB2Z5K7EoXmCCK6i0uqSRsGN
-SQr4HjRHTL5ZQ3RKd/lr
-=wPeN
------END PGP SIGNATURE-----
-
---VdOwlNaOFKGAtAAV--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
