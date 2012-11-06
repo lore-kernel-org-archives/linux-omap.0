@@ -1,71 +1,79 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
-Date: Tue, 6 Nov 2012 05:13:23 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA64F94@DBDE01.ent.ti.com>
-References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
- <1352108549-9341-2-git-send-email-anilkumar@ti.com> <5097F078.50701@ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH v3 0/7] Create platform device for audio support
+Date: Tue, 6 Nov 2012 00:19:10 -0600
+Message-ID: <1352182757-1216-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5097F078.50701-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54615 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254Ab2KFFVt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 00:21:49 -0500
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id qA65LmO1001767
+	for <linux-omap@vger.kernel.org>; Mon, 5 Nov 2012 23:21:48 -0600
+Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id qA65LmGD016068
+	for <linux-omap@vger.kernel.org>; Mon, 5 Nov 2012 23:21:48 -0600
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: peter.ujfalusi@ti.com, s-guiriec@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
-On Mon, Nov 05, 2012 at 22:29:36, Cousson, Benoit wrote:
-> + Mark
-> 
-> On 11/05/2012 10:42 AM, AnilKumar Ch wrote:
-> > From: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
-> > 
-> > Set tps65217 PMIC status to OFF if power enable toggle is
-> > supported. Also adds platform data flag, which should be
-> > passed from board init data.
-> > 
-> > Signed-off-by: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
-> > [anilkumar-l0cyMroinI0@public.gmane.org: move the additions to tps65217 MFD driver]
-> > Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  .../devicetree/bindings/regulator/tps65217.txt     |    4 ++++
-> >  drivers/mfd/tps65217.c                             |   12 ++++++++++++
-> >  2 files changed, 16 insertions(+)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/regulator/tps65217.txt b/Documentation/devicetree/bindings/regulator/tps65217.txt
-> > index d316fb8..4f05d20 100644
-> > --- a/Documentation/devicetree/bindings/regulator/tps65217.txt
-> > +++ b/Documentation/devicetree/bindings/regulator/tps65217.txt
-> > @@ -11,6 +11,9 @@ Required properties:
-> >    using the standard binding for regulators found at
-> >    Documentation/devicetree/bindings/regulator/regulator.txt.
-> >  
-> > +Optional properties:
-> > +- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
-> 
-> That sounds like a generic functionality to me. Don't we have some more
-> generic way to handle that?
+Hi Tomi, l-o list,
 
-But STATUS_OFF should be set only if Board supports it, otherwise
-this change doesn't make sense.
+The main purpose of this patch set is to create a platform device for audio
+support from the OMAPDSS HDMI driver. This tries to follow an approach similar
+to MFD drivers in which a core driver creates domain-specific devices. Under
+this approach, the OMAPDSS HDMI drivers acts as the core driver, retrieves its
+resources (from DT or hwmod) and passes the relevant audio resources for
+other drivers to use.
 
-> 
-> If not, that should probably not be a TI only attribute.
-> 
-> It looks like a GPIO like kind of interface at PMIC level.
+This is also beneficial for future DT boot support, as the OMAP HDMI IP will be
+represented by a single node in the tree.
 
-I agree this should be a generic parameter, but in some regulators this STATUS OFF
-control might not be available. This is in my mind while name this parameter.
+Before creating the platform device for audio, I also did minor cleanup to the
+OMAPDSS HDMI driver probe function.
 
-Thanks
-AnilKumar
+Changes from v2:
+*Check the validity of the audio platform device by checking a non-NULL condition
+ rather than an error pointer condition.
+*Pass the ID of the HDMI platform device to handle more than one instance of
+ HDMI audio platform devices. This is for future implementations that support
+ more than one HDMI output.
+
+Changes from v1:
+*Simplify ioremap further by using devm_request_and_ioremap.
+*Pass to the audio driver only the DMA port and not the whole register space.
+*Use a local array for the audio resources and init them with DEFINE_RES_MEM.
+*Obtain the DMA port address offset and size from the HDMI IP-specific library.
+
+v2 is accessible here:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg79529.html
+
+v1 is accessible here:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg77861.html
+
+BR,
+
+Ricardo
+
+Ricardo Neri (7):
+  OMAPDSS: HDMI: Rename resource variable at probe.
+  OMAPDSS: HDMI: Convert to devm_request_and_ioremap
+  OMAPDSS: HDMI: Make panel return dssdev register errors
+  OMAPDSS: HDMI: Handle panel init error at probe
+  OMAPDSS: HDMI: Uninit display on device add error
+  OMAPDSS: HDMI: Add op to get audio DMA port address offset
+  OMAPDSS: HDMI: Create platform device for audio support
+
+ drivers/video/omap2/dss/dss_features.c    |    1 +
+ drivers/video/omap2/dss/hdmi.c            |   90 +++++++++++++++++++++++++----
+ drivers/video/omap2/dss/hdmi_panel.c      |    4 +-
+ drivers/video/omap2/dss/ti_hdmi.h         |    3 +
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    9 +++
+ 5 files changed, 93 insertions(+), 14 deletions(-)
+
+-- 
+1.7.5.4
+
