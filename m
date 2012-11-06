@@ -1,59 +1,69 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH RESEND 05/10] ARM: dts: AM33XX: Add pinmux configuration for user-leds to BONE
-Date: Tue, 6 Nov 2012 19:18:33 +0530
-Message-ID: <1352209718-5586-6-git-send-email-anilkumar@ti.com>
-References: <1352209718-5586-1-git-send-email-anilkumar@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 08/15] ARM: OMAP2+: hwmod: Fix the omap_hwmod_addr_space
+ for CPGMAC0
+Date: Tue, 6 Nov 2012 14:50:46 +0100
+Message-ID: <509915B6.1070405@ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-9-git-send-email-vaibhav.bedia@ti.com> <509543E8.60209@ti.com> <B5906170F1614E41A8A28DE3B8D121433EC00B9B@DBDE01.ent.ti.com> <5098D889.60909@ti.com> <B5906170F1614E41A8A28DE3B8D121433EC049E4@DBDE01.ent.ti.com> <79CD15C6BA57404B839C016229A409A83EB64336@DBDE01.ent.ti.com> <B5906170F1614E41A8A28DE3B8D121433EC05260@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52688 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39390 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752196Ab2KFNuF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Nov 2012 08:50:05 -0500
-In-Reply-To: <1352209718-5586-1-git-send-email-anilkumar@ti.com>
+	id S1751445Ab2KFNu7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 08:50:59 -0500
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC05260@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, AnilKumar Ch <anilkumar@ti.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>
 
-Add pinmux configurations for gpio based user-keys to am335x-bone.
-In this patch, only single named mode/state is added and these pins
-are configured during pinctrl driver initialization.
+Hi Vaibhav & Vaibhav,
 
-Default mode is nothing but the values required for the module during
-active state. With this configurations module is functional as
-expected.
+On 11/06/2012 02:46 PM, Bedia, Vaibhav wrote:
+> On Tue, Nov 06, 2012 at 18:38:08, Hiremath, Vaibhav wrote:
+>> On Tue, Nov 06, 2012 at 15:39:14, Bedia, Vaibhav wrote:
+>>> On Tue, Nov 06, 2012 at 14:59:45, Hiremath, Vaibhav wrote:
+>>> [...]
+>>>>>
+>>>>> Ok I checked this one. The change I made was indirectly fixing another
+>>>>> issue with the AM33xx hwmod data. am33xx_cpgmac0_addr_space[] has two
+>>>>> entries and the SYSC register is part of the second entry. The function
+>>>>> _find_mpu_rt_addr_space in omap_hwmod.c looks for the first entry with
+>>>>> the flag ADDR_TYPE_RT flag. The change I made indirectly made the second
+>>>>> entry in am33xx_cpgmac0_addr_space[] become the first memory space with
+>>>>> the ADDR_TYPE_RT flag. Due to this the hwmod code wrote to the correct
+>>>>> SYSC address of CPGMAC0 and the IP went to standby during bootup. 
+>>>>> After changing the order of the entries in am33xx_cpgmac0_addr_space[]
+>>>>> things work fine.
+>>>>>
+>>>>
+>>>> Good catch.
+>>>>
+>>>> Just a side note on this, driver expects the addresses in this order
+>>>> only, first SS and then WR.
+>>>>
+>>>
+>>> Sorry I didn't understand your comment. For HWMOD code to work as expected,
+>>> we need to change the order. 
+>>
+>> Why do you want to change the order? Just specify "ADDR_TYPE_RT", that 
+>> should be it.
+>>
+> 
+> The problem is that the memory space without the SYSC comes first and is labeled
+> as ADDR_TYPE_RT. I think this is not correct and hence either we change the order
+> or remove the flag from the first entry. If we do the latter then taking the logic
+> of putting in the flag only for memory spaces with SYSC further we need to fixup
+> the entries for ephrpwm0/1/2 and ecap0/1/2.
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
- arch/arm/boot/dts/am335x-bone.dts |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+The order should not matter, just use ADDR_TYPE_RT for the relevant
+entry. I have a patch ongoing to remove this flag for the non-SYSC entry
+to avoid this kind of confusion.
+The name should probably be changed as well to reflect that at some point.
+Since these entries will be removed anyway with pure DT boot, that
+should be a temporary issue.
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 91eee97..1aac58b 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -24,6 +24,20 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- 
-+	am33xx_pinmux: pinmux@44e10800 {
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&user_leds_s0>;
-+
-+		user_leds_s0: user_leds_s0 {
-+			pinctrl-single,pins = <
-+				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
-+				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
-+				0x5c 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
-+				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
-+			>;
-+		};
-+	};
-+
- 	ocp {
- 		uart1: serial@44e09000 {
- 			status = "okay";
--- 
-1.7.9.5
+Regards,
+Benoit
 
