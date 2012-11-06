@@ -1,76 +1,60 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2] usb: musb: dsps: dt binding - add resources, example
-Date: Tue, 6 Nov 2012 20:22:07 +0200
-Message-ID: <20121106182207.GB5252@arwen.pp.htv.fi>
-References: <1352210166-7253-1-git-send-email-afzal@ti.com>
- <20121106164445.GE3993@arwen.pp.htv.fi>
- <509941D1.6020405@ti.com>
-Reply-To: <balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Tue, 6 Nov 2012 10:35:32 -0800
+Message-ID: <20121106183531.GH6801@atomide.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
+ <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OwLcNYc0lM97+oe1"
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <509941D1.6020405@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: balbi@ti.com, Afzal Mohammed <afzal@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, Santhapuri Damodar <damodar.santhapuri@ti.com>, Ravi Babu <ravibabu@ti.com>, Daniel Mack <zonque@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
---OwLcNYc0lM97+oe1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Grant Likely <grant.likely@secretlab.ca> [121106 03:16]:
+> On Tue, Nov 6, 2012 at 10:30 AM, Pantelis Antoniou
+> <panto@antoniou-consulting.com> wrote:
+> >
+> > Another can of worms is the pinctrl nodes.
+> 
+> Yes... new pinctrl data would need to trigger adding new data to
+> pinctrl. I don't know if the pinctrl api supports that.
 
-Hi,
+The actual pins stay the same, just their configuration
+changes. AFAIK all that is already supported using the
+pinctrl framework.
 
-On Tue, Nov 06, 2012 at 05:58:57PM +0100, Benoit Cousson wrote:
-> On 11/06/2012 05:44 PM, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Tue, Nov 06, 2012 at 07:26:06PM +0530, Afzal Mohammed wrote:
-> >> OMAP2+ family of devices are now obtaining resources via DT, earlier
-> >> it was obtained from hwmod. Update binding document accrodingly, while
-> >> at it add example.
-> >>
-> >> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> >=20
-> > this looks fine to me:
-> >=20
-> > Reviewed-by: Felipe Balbi <balbi@ti.com>
-> >=20
-> > Benoit, do you take Documentation patches too ?
->=20
-> Well, ideally it should go with the driver change. But if this is a
-> simple change related to generic attribute I can take it.
+For example, considering hotplugging capes on the beaglebone:
 
-ok, cool. Please take this via your tree.
+1. You need to map all the sensible modes for the pins exposed
+   to the capes in the board specific .dts file. This will
+   add roughly 4 x nr_capbus_pins named modes in the .dts file
+   so not too bad.
 
-thanks
+2. Claim all the capebus pins during the capbus driver probe
+   and set them to some safe mode.
 
---=20
-balbi
+3. Try to detect the connected cape(s) over i2c.
 
---OwLcNYc0lM97+oe1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+4. Use pinctr_select_state to set the desired modes for
+   the pins used by the cape(s).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+5. Enable capebus regulators and clocks etc.
 
-iQIcBAEBAgAGBQJQmVVPAAoJEIaOsuA1yqREPRYQAIzqJLx25l2XtKXXKPpxsoEA
-v0oiyxzdhaa3xuYRc7UTETdceLMA3YpoIERJvh4fnSxBPOAH3vUF/UIBV3lGJ9BV
-yKqr2LJioz7K2uQfYq7ySE0XZS5LhemccYcWNTOPJAKqY3m6YMn7MylhnU58UHQp
-sx4hWyJT31ioHJ3Xf5jK4WcYWFUHC0m+9Dfl+jA0VjgAk69rVWos7ZmW7uxVxbCX
-Ngv3c/Fqup61JMY20ZqgCRsed5otGuGhCI3J8j1Hf8ca2LLVIqVST11tPCH05H27
-hsGSkGa24sXeOsI9J9yX3M+owubPn17P9xHBqqWA2ByDpxviQ5lLohjQprzuZHL3
-1h668DRegVIB0emOj31xPkNgRRg/CUoH4PceYBEdkA4hWnqYzDVt3avI51BglXGN
-KUu4ATgecDTIvT0hoqMM5/EEw/ZNPdSy+KjaZRCLf5Oos0sn/0dl+Qq9jHclcEgJ
-7A/0+Q6jk/tNeTyinTdXZlcX0Y467oGCgQ8MpQQ41aaaqoXFonWI4yLo1aMxILNM
-G7BXArcb4ArEA9B4KcE3Kbsbk//fJDdVQWl+YGiRo5xXvEUWO0LBz1no6LEj/9sC
-FZXKI8CJV8iW0Mu/HDqNe7DCUPsem9kkyKCcEqc8WP2veqTKylZJdgd2yudpVonp
-Me+Qb/kBJYdHrn8xbguO
-=ILMi
------END PGP SIGNATURE-----
+6. Load the driver modules for whatever omap internal
+   devices the cape supports.
 
---OwLcNYc0lM97+oe1--
+You could also claim the pin for the omap internal
+devices instead of claiming them in the capebus, but then
+things can get messy with binding and unbinding the
+drivers. So just claiming all the pins in the capebus
+probably keeps things simpler.
+
+Regards,
+
+Tony
