@@ -1,29 +1,58 @@
-From: "O.F.I.D" <onlinenotification741@cox.net>
-Subject: OFID Grant Award to you
-Date: Tue, 6 Nov 2012 1:26:40 -0800
-Message-ID: <20121106042640.JJMTH.46590.imail@fed1rmwml208>
-Reply-To: ofiddonationteam@aol.co.uk
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: OMAP baseline test results for v3.7-rc3
+Date: Tue, 06 Nov 2012 09:47:10 +0000
+Message-ID: <5098DC9E.3090307@mimc.co.uk>
+References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk> <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EB51E84@DBDE01.ent.ti.com> <508FE8BA.1080404@ti.com> <50912A6F.1040501@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com> <5097EF44.5030706@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB63609@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fed1rmfepi101.cox.net ([68.230.241.132]:34346 "EHLO
-	fed1rmfepi101.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2KFJih convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 04:38:37 -0500
-Received: from fed1rmimpo110 ([68.230.241.159]) by fed1rmfepo201.cox.net
-          (InterMail vM.8.01.04.00 201-2260-137-20101110) with ESMTP
-          id <20121106092640.CSGS29577.fed1rmfepo201.cox.net@fed1rmimpo110>
-          for <linux-omap@vger.kernel.org>; Tue, 6 Nov 2012 04:26:40 -0500
+Received: from mercuryimc.plus.com ([80.229.200.144]:40242 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750988Ab2KFJrM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 04:47:12 -0500
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB63609@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-NB: Grant Qualification Code ( OFID/SAJ302/OGA3/N66 )
-The sum of =C2=A3756,728 GBP has been awarded to you as Grant Donation/=
-Award from OFID. Contact Mr. Kelvin Green by replying to this notificat=
-ion.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 06/11/12 06:16, Hiremath, Vaibhav wrote:
+> 
+> Where is your DTB? Is it appended to Kernel image?
+> Can you try below sequence/commands from u-boot?
+> 
+> 
+> mmc rescan 0
+> fatload mmc 0 80000000 am335x-bone.dtb
+> fatload mmc 0 81000000 uImage
+> setenv bootargs console=ttyO0,115200n8 mem=256M root=/dev/mmcblk0p2 rw noinitrd rootfstype=ext3 rootwait earlyprink=serial
+> sendln 'bootm 81000000 - 80000000'
+> 
+> 
+> 
+> To build DTB files, use "make dtbs" command on your kernel home directory.
+
+That works ... great !!
+
+But now I'm confused, since I thought the DTB was appended to the uImage file.
+
+I have the following in my .config:-
+
+ARM_ATAG_DTB_COMPAT=y
+ARM_APPENDED_DTB=y
+ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
+
+And then I create my uImage file using:-
+
+$ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux- uImage
+$ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux- am335x-bone.dtb
+$ cat arch/arm/boot/uImage arch/arm/boot/am335x-bone.dtb > arch/arm/boot/uImage-dtb.am335x-bone
+$ cp arch/arm/boot/uImage-dtb.am335x-bone /media/boot/uImage
+
+Do you now have to load the DTB as a separate file ?
+
+Or should the appended DTB still work ?
+
+Cheers
+Mark J.
