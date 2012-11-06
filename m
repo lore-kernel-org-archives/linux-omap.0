@@ -1,36 +1,52 @@
 From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 3/8] ARM: OMAP: AM33xx hwmod: Add parent-child
- relationship for PWM subsystem
-Date: Tue, 6 Nov 2012 10:09:11 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC049D9@DBDE01.ent.ti.com>
-References: <1352106749-9437-1-git-send-email-avinashphilip@ti.com>
- <1352106749-9437-4-git-send-email-avinashphilip@ti.com>
+Subject: RE: [PATCH 08/15] ARM: OMAP2+: hwmod: Fix the omap_hwmod_addr_space
+ for CPGMAC0
+Date: Tue, 6 Nov 2012 10:09:14 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC049E4@DBDE01.ent.ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+ <1351859566-24818-9-git-send-email-vaibhav.bedia@ti.com>
+ <509543E8.60209@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EC00B9B@DBDE01.ent.ti.com>
+ <5098D889.60909@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352106749-9437-4-git-send-email-avinashphilip@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42082 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751365Ab2KFKJb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 05:09:31 -0500
+In-Reply-To: <5098D889.60909@ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Mon, Nov 05, 2012 at 14:42:24, Philip, Avinash wrote:
+On Tue, Nov 06, 2012 at 14:59:45, Hiremath, Vaibhav wrote:
 [...]
+> > 
+> > Ok I checked this one. The change I made was indirectly fixing another
+> > issue with the AM33xx hwmod data. am33xx_cpgmac0_addr_space[] has two
+> > entries and the SYSC register is part of the second entry. The function
+> > _find_mpu_rt_addr_space in omap_hwmod.c looks for the first entry with
+> > the flag ADDR_TYPE_RT flag. The change I made indirectly made the second
+> > entry in am33xx_cpgmac0_addr_space[] become the first memory space with
+> > the ADDR_TYPE_RT flag. Due to this the hwmod code wrote to the correct
+> > SYSC address of CPGMAC0 and the IP went to standby during bootup. 
+> > After changing the order of the entries in am33xx_cpgmac0_addr_space[]
+> > things work fine.
+> > 
+> 
+> Good catch.
+> 
+> Just a side note on this, driver expects the addresses in this order
+> only, first SS and then WR.
+> 
 
-> +
-> +static struct omap_hwmod_ocp_if am33xx_epwmss0__ecap0 = {
-> +	.master		= &am33xx_epwmss0_hwmod,
-> +	.slave		= &am33xx_ecap0_hwmod,
-> +	.clk		= "l4ls_gclk",
-> +	.addr		= am33xx_ecap0_addr_space,
-> +	.user		= OCP_USER_MPU,
-> +};
-
-Noticed this in another patch which is quite similar so commenting here
-again. Is the user field required if you are just creating a parent-child
-relationship here?
+Sorry I didn't understand your comment. For HWMOD code to work as expected,
+we need to change the order. Are you saying that I should not be doing this
+because the driver will get affected?
 
 Regards,
-Vaibhav 
+Vaibhav
