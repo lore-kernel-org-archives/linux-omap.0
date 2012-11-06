@@ -1,47 +1,36 @@
 From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 3/7] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for
- davinci_mdio module
-Date: Tue, 6 Nov 2012 10:09:08 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC049CC@DBDE01.ent.ti.com>
-References: <1352189545-26303-1-git-send-email-mugunthanvnm@ti.com>
- <1352189545-26303-4-git-send-email-mugunthanvnm@ti.com>
+Subject: RE: [PATCH 3/8] ARM: OMAP: AM33xx hwmod: Add parent-child
+ relationship for PWM subsystem
+Date: Tue, 6 Nov 2012 10:09:11 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC049D9@DBDE01.ent.ti.com>
+References: <1352106749-9437-1-git-send-email-avinashphilip@ti.com>
+ <1352106749-9437-4-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1352189545-26303-4-git-send-email-mugunthanvnm@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1352106749-9437-4-git-send-email-avinashphilip@ti.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: "N, Mugunthan V" <mugunthanvnm@ti.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Cc: Richard Cochran <richardcochran@gmail.com>, Paul Walmsley <paul@pwsan.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Philip, Avinash" <avinashphilip@ti.com>, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 06, 2012 at 13:42:21, N, Mugunthan V wrote:
+On Mon, Nov 05, 2012 at 14:42:24, Philip, Avinash wrote:
 [...]
-> +struct omap_hwmod_addr_space am33xx_mdio_addr_space[] = {
-> +	{
-> +		.pa_start	= 0x4A101000,
-> +		.pa_end		= 0x4A101000 + SZ_256 - 1,
-> +		.flags		= ADDR_MAP_ON_INIT,
 
-Based on the recent discussions and looking the hwmod code,
-I guess ADDR_MAP_ON_INIT does not make sense here. Since you
-are just creating a parent-child relationship here, maybe no
-flag is needed? 
-
-> +	},
-> +	{ }
-> +};
 > +
-> +struct omap_hwmod_ocp_if am33xx_cpgmac0__mdio = {
-> +	.master		= &am33xx_cpgmac0_hwmod,
-> +	.slave		= &am33xx_mdio_hwmod,
-> +	.addr		= am33xx_mdio_addr_space,
+> +static struct omap_hwmod_ocp_if am33xx_epwmss0__ecap0 = {
+> +	.master		= &am33xx_epwmss0_hwmod,
+> +	.slave		= &am33xx_ecap0_hwmod,
+> +	.clk		= "l4ls_gclk",
+> +	.addr		= am33xx_ecap0_addr_space,
 > +	.user		= OCP_USER_MPU,
+> +};
 
-Is this flag necessary? Shouldn't you just skip the
-user field since there's nothing for the hwmod code
-to do here?
+Noticed this in another patch which is quite similar so commenting here
+again. Is the user field required if you are just creating a parent-child
+relationship here?
 
 Regards,
-Vaibhav
+Vaibhav 
