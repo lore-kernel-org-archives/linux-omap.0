@@ -1,255 +1,378 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: OMAP baseline test results for v3.7-rc3
-Date: Tue, 6 Nov 2012 10:24:09 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB63E9C@DBDE01.ent.ti.com>
-References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com>
- <508F59FB.7080400@ti.com>
- <alpine.DEB.2.00.1211050239530.23228@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
+Date: Tue, 6 Nov 2012 11:30:00 +0100
+Message-ID: <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42956 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750755Ab2KFKYV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 05:24:21 -0500
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Nov 06, 2012 at 11:39:18, Hiremath, Vaibhav wrote:
-> On Mon, Nov 05, 2012 at 08:11:24, Paul Walmsley wrote:
-> > Hi
-> > 
-> > On Tue, 30 Oct 2012, Vaibhav Hiremath wrote:
-> > 
-> > > This is surprising, I have tested v3.7-rc3 branch on AM335xBone platform
-> > > and its booting up for me without any issues.
-> > > Jon had submitted another patch which fixes boot issue on Bone.
-> > > 
-> > > https://patchwork.kernel.org/patch/1606471/
-> > 
-> > v3.7-rc4 failed for me with a detached .dtb in a quick test.  Probably it 
-> > is due to the original u-boot that was shipped with the MMC card:
-> > 
+Hi Grant,
+
+On Nov 5, 2012, at 9:40 PM, Grant Likely wrote:
+
+> Hey folks,
 > 
-> Pulling the tree, let me try now and update you shortly...
+> As promised, here is my early draft to try and capture what device
+> tree overlays need to do and how to get there. Comments and
+> suggestions greatly appreciated.
+> 
+> Device Tree Overlay Feature
+> 
+> Purpose
+> =======
+> Sometimes it is not convenient to describe an entire system with a
+> single FDT. For example, processor modules that are plugged into one or
+> more modules (a la the BeagleBone), or systems with an FPGA peripheral
+> that is programmed after the system is booted.
+> 
+> For these cases it is proposed to implement an overlay feature for the
+> so that the initial device tree data can be modified by userspace at
+> runtime by loading additional overlay FDTs that amend the original data.
+> 
+> User Stories
+> ============
+> Note - These are potential use cases, but just because it is listed here
+> doesn't mean it is important. I just want to thoroughly think through the
+> implications before making design decisions.
+> 
+> 
+> Jane is building custom BeagleBone expansion boards called 'capes'. She
+> can boot the system with a stock BeagleBoard device tree, but additional
+> data is needed before a cape can be used. She could replace the FDT file
+> used by U-Boot with one that contains the extra data, but she uses the
+> same Linux system image regardless of the cape, and it is inconvenient
+> to have to select a different device tree at boot time depending on the
+> cape.
+> 
+> Jane solves this problem by storing an FDT overlay for each cape in the
+> root filesystem. When the kernel detects that a cape is installed it
+> reads the cape's eeprom to identify it and uses request_firmware() to
+> obtain the appropriate overlay. Userspace passes the overlay to the
+> kernel in the normal way. If the cape doesn't have an eeprom, then the
+> kernel will still use firmware_request(), but userspace needs to already
+> know which cape is installed.
+
+Jane is a really productive hardware engineer - she manages to fix a
+number of problems with her cape design by spinning different revisions
+of the cape. Using the flexibility that the DT provides, documents and
+defines the hardware changes of the cape revisions in the FDT overlay.
+The loader matches the revision of the cape with the proper FDT overlay
+so that the drivers are relieved of having to do revision management.
+
+> 
+> 
+> Nigel is building a real-time video processing system around a MIPS SoC
+> and a Virtex FPGA. Video data is streamed through the FPGA for post
+> processing operations like motion tracking or compression. The FPGA is
+> configured via the SPI bus, and is also connected to GPIO lines and the
+> memory mapped peripheral bus. Nigel has designed several FPGA
+> configurations for different video processing tasks. The user will
+> choose which configuration to load which can even be reprogrammed at
+> runtime to switch tasks.
+> 
+> Each FPGA has a different interface to the processor, so the kernel
+> needs additional data before it can use each device. Nigel is passing
+> that data to the kernel using an FDT overlay. When Linux loads a new
+> FPGA configuration, it uses request_firmare() to obtain the overlay for
+> that FPGA. When the FPGA gets reprogrammed, the kernel throws away the
+> previous overlay data and uses request_firmware() to get the overlay for
+> the new design.
+> 
+> 
+> Mandy has a Raspberry Pi which she has wired by hand up to sensors and
+> motor controllers in her prototype autonomous robot project. She is doing
+> self-hosted driver development on the Raspberry Pi itself. However, she
+> needs a method to tell the kernel about the attached devices.
+> 
+> By installing dtc on the Pi, Mandy compiles the overlay for her
+> prototype hardware. However, she doesn't have a copy of the Pi's
+> original FDT source, so instead she uses the dtc 'fs' input format to
+> compile the overlay file against the live DT data in /proc.
+> 
 > 
 
-Just tried -rc4, and it boots up fine for me. I tested it with Mainline u-
-boot and mainline Kernel, I have pasted log below for reference -
+Jane (the cape designer) can use this too. Developing the cape, she really
+appreciates that she doesn't have to reboot every time she makes a change
+in the cape hardware. By removing the FDT overlay, compiling with the dtc
+on the board, and re-inserting the overlay, she can be more productive by
+waiting less.
 
+Johnny, Jane's little son, doesn't know anything about device trees, linux
+kernel trees, or hard-core s/w engineering. He is a bright kid, and due to
+the board having a node.js based educational electronic design kit, he
+can use the web-based simplified development environment, that allows
+him graphically to connect the parts in his kit. He can save the design
+and the IDE creates on the fly the DT overlay for later use. 
 
-> > U-Boot 2011.09-00009-gcf6e04d (Mar 08 2012 - 17:15:43)
-> > arm-arago-linux-gnueabi-gcc (GCC) 4.5.3 20110311 (prerelease)
-> > 
+> Amit is writing kernel drivers for Jane's BeagleBone capes, but he
+> finds loading new DT files into the root filesystem inconvenient.
+> Instead, he includes the FDT overlay file in the initramfs that is built
+> and linked in at kernel compile time so that the kernel can find and
+> load overlays automatically.
+> 
+> 
+> Joanne has purchased one of Jane's capes and packaged it into a rugged
+> case for data logging. As far as Joanne is concerned, the BeagleBone and
+> cape together are a single unit and she'd prefer a single monolithic FDT
+> instead of using an FDT overlay.
+> Option A: Using dtc, she uses the BeagleBone and cape .dts source files
+>          to generate a single .dtb for the entire system which is
+>          loaded by U-Boot. -or-
 
-I do not suspect anything here, but still think we should use mainline 
-u-boot version. Can you share the images with me, so that I can try them?
+Unlikely. 
+> Option B: Joanne uses a tool to merge the BeagleBone and cape .dtb files
+>          (instead of .dts files), -or-
+Possible but low probability.
 
+> Option C: U-Boot loads both the base and overlay FDT files, merges them,
+>          and passes the resolved tree to the kernel.
+> 
 
-====================Log=======================
+Could be made to work. Only really required if Joanne wants the 
+cape interface to work for u-boot too. For example if the cape has some
+kind of network interface that u-boot will use to boot from.
 
+> ....
+> 
+> Summary points:
+> - Create an FDT overlay data format and usage model
+>  - SHALL reliable resolve or validate of phandles between base and
+>    overlay trees
+>  - SHOULD reliably handle changes between different underlying overlays
+>    (ie. what happens to existing .dtb overly files if the structure of
+>    the dtb it is layered over changes. If not possible, then SHALL
+>    detect when the base tree doesn't match and refuse to apply the
+>    overlay.
+> - dts syntax needs to be extended for overlay .dtb files
+> - DTC tool needs to be modified to support overlay .dtb generation
+> - Overlays SHOULD be able to be applied either by firmware or the kernel
+> - libfdt SHALL be extended to parse and apply overlays
 
-U-Boot SPL 2013.01-rc1-00071-g1cc619b (Nov 06 2012 - 15:33:43)
-OMAP SD/MMC: 0
-reading u-boot.img
-reading u-boot.img
+- ftdump should be fixed and work for the overlay syntax too.
 
+> - Linux SHALL be extended to parse and apply overlays from userspace
+> - Linux SHALL be extended to notify drivers of changes to device tree
+> - Linux MAY use request_firmware() to load overlays via sysfs
+>  - (mechanism for triggering overlay load TBD)
+> - Linux MAY support removal of overlays (harder, but some use-cases want
+>  this)
+> - Linux MAY be extended to remove devices associated with removed overlays
+> 
+> Technical details to resolve:
+> - How does an overlay get attached to the correct base tree nodes?
+> - How are phandles fixed up and/or verified?
+> - What is the model for overlays?
+>  - Can an overlay modify existing properties?
+>  - Can an overlay add new properties to existing nodes?
+>  - Can an overlay delete existing nodes/properties?
+> - Does FDT need a schema? - Schema should be tightly associated with binding
+>  documentation. Verifying schema at runtime should be simple. Runtime
+>  checking is harder, but could be used as part of phandle fixup.
+> - Similarly, does FDT need data typing? Other than reading the binding
+>  there is no mechanism to determine if a single cell is a phandle, an
+>  integer (possibly enum), a flags field, or part of a string.
+>  - Data typing would require additional per-property data; probably by
+>    adding companion properties containing the data typing.  ie. an
+>    optional '.reg,format' property could contain the format of the
+>    'reg' property.  (The naming scheme for the new property can be
+>    debated, it just needs to be something that won't conflict with
+>    regular names).
+>  - Data type data could be used as part of phandle fixups.
+> - How do bus drivers get notified when FDT data changes?
+>  - node addition/removal
+>  - property changes on existing nodes
+>  - A notifier chain may work here, or maybe a generic "firmware data
+>    changed" device driver callback. I could see this being generically
+>    useful for other driver data like ACPI
+> 
 
-U-Boot 2013.01-rc1-00071-g1cc619b (Nov 06 2012 - 15:33:43)
+This is much grander in vision that I had in mind :)
 
-I2C:   ready
-DRAM:  256 MiB
-WARNING: Caches not enabled
-MMC:   OMAP SD/MMC: 0, OMAP SD/MMC: 1
-Using default environment
+It can handle our use cases, but I'm worried if we're bitting more
+that what we can chew. Perhaps a staged approach? I.e. target the
+low hanging fruit first, get it work, and then work on the hardest
+parts?
 
-Net:   cpsw
-Hit any key to stop autoboot:  0
-U-Boot#
-U-Boot#
-U-Boot# mmc rescan 0
-U-Boot# fatload mmc 0 80000000 am335x-bone.dtb
-reading am335x-bone.dtb
-4391 bytes read
-U-Boot# fatload mmc 0 81000000 uImage
-reading uImage
-3842256 bytes read
-U-Boot# fatload mmc 0 82000000 ramdisk-pm.gz
-reading ramdisk-pm.gz
-2022580 bytes read
-U-Boot# setenv bootargs console=ttyO0,115200n8 mem=256M root=/dev/ram rw initrd=0x82000000,16MB ramdisk_size=65536 earlyprintk=serial
-U-Boot# bootm 81000000 - 80000000
-## Booting kernel from Legacy Image at 81000000 ...
-   Image Name:   Linux-3.7.0-rc4
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    3842192 Bytes = 3.7 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-## Flattened Device Tree blob at 80000000
-   Booting using the fdt blob at 0x80000000
-   Loading Kernel Image ... OK
-OK
-   Loading Device Tree to 8fe65000, end 8fe69126 ... OK
+> Project plan
+> ============
+> 
+> 1) Create syntax for overlays
+> -----------------------------
+> DTC already uses an overlay model internally which is often used in
+> conjunction with .dtsi files. It should be a natural extension to
+> generate FDT overlay files from the existing syntax (maybe minor
+> modifications)
+> 
+> Doing this will require a method to differentiate between overlay and
+> include directives.  Maybe they aren't really different at all and it
+> will depend on dtc options to determine whether or not to produce an
+> overlay. Suggestions are welcome here.
+> 
+> 2) Create a data format for overlays
+> ------------------------------------
+> The overlay data format could be a direct extension from the existing
+> dtb data format. One option is to construct the overlay tree by creating
+> empty nodes for each node that it either adds children to or references
+> the phandle of in the base tree. Empty nodes could even be tagged as a
+> prereq by adding a '.readonly' property to those nodes. When an overlay
+> parser encounters those nodes, it would know that it needs to already
+> exist in the tree.
+> 
+> There is a problem though with phandles. If the phandle values in the
+> base tree don't match the ones in the overlay, then the overlay won't be
+> able to correctly reference base nodes. At a minimum, the parser must
+> verify that the phandles match before applying the overlay. Ideally,
+> phandles in the overlay should be fixed up at application time, but this
+> isn't easy. It would probably require first adding property data type
+> information to the device tree.
+> 
+> It may be sufficient to solve it by making the phandle values less
+> volatile. Right now dtc generates phandles linearly. Generated phandles
+> could be overridden with explicit phandle properties, but it isn't a
+> fantastic solution. Perhaps generating the phandle from a hash of the
+> node name would be sufficient.
+> 
 
-Starting kernel ...
+I doubt the hash method will work reliably. We only have 32 bits to work with,
+nothing like the SHA hashes of git.
 
-[    0.000000] Booting Linux on physical CPU 0
-[    0.000000] Linux version 3.7.0-rc4 (a0393758@psplinux064) (gcc version 4.5.3 20110311 (prerelease) (GCC) ) #1 SMP Tue Nov 6 15:28:21 IST 2012
-[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c53c7d
-[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
-[    0.000000] Machine: Generic AM33XX (Flattened Device Tree), model: TI AM335x BeagleBone
-[    0.000000] Memory policy: ECC disabled, Data cache writeback
-[    0.000000] AM335X ES1.0 (neon )
-[    0.000000] PERCPU: Embedded 9 pages/cpu @c0f03000 s12928 r8192 d15744 u36864
-[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 64768
-[    0.000000] Kernel command line: console=ttyO0,115200n8 mem=256M root=/dev/ram rw initrd=0x82000000,16MB ramdisk_size=65536 earlyprintk=serial
-[    0.000000] PID hash table entries: 1024 (order: 0, 4096 bytes)
-[    0.000000] Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
-[    0.000000] Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
-[    0.000000] Memory: 255MB = 255MB total
-[    0.000000] Memory: 229112k/229112k available, 33032k reserved, 0K highmem
-[    0.000000] Virtual kernel memory layout:
-[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
-[    0.000000]     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
-[    0.000000]     vmalloc : 0xd0800000 - 0xff000000   ( 744 MB)
-[    0.000000]     lowmem  : 0xc0000000 - 0xd0000000   ( 256 MB)
-[    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
-[    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
-[    0.000000]       .text : 0xc0008000 - 0xc06c4b94   (6899 kB)
-[    0.000000]       .init : 0xc06c5000 - 0xc0715280   ( 321 kB)
-[    0.000000]       .data : 0xc0716000 - 0xc07a13a0   ( 557 kB)
-[    0.000000]        .bss : 0xc07a13c4 - 0xc0cfbd6c   (5483 kB)
-[    0.000000] Hierarchical RCU implementation.
-[    0.000000]  RCU restricting CPUs from NR_CPUS=2 to nr_cpu_ids=1.
-[    0.000000] NR_IRQS:16 nr_irqs:16 16
-[    0.000000] IRQ: Found an INTC at 0xfa200000 (revision 5.0) with 128 interrupts
-[    0.000000] Total of 128 interrupts on 1 active controller
-[    0.000000] OMAP clockevent source: GPTIMER1 at 24000000 Hz
-[    0.000000] sched_clock: 32 bits at 24MHz, resolution 41ns, wraps every 178956ms
-[    0.000000] OMAP clocksource: GPTIMER2 at 24000000 Hz
-[    0.000000] Console: colour dummy device 80x30
-[    0.000000] Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
-[    0.000000] ... MAX_LOCKDEP_SUBCLASSES:  8
-[    0.000000] ... MAX_LOCK_DEPTH:          48
-[    0.000000] ... MAX_LOCKDEP_KEYS:        8191
-[    0.000000] ... CLASSHASH_SIZE:          4096
-[    0.000000] ... MAX_LOCKDEP_ENTRIES:     16384
-[    0.000000] ... MAX_LOCKDEP_CHAINS:      32768
-[    0.000000] ... CHAINHASH_SIZE:          16384
-[    0.000000]  memory used by lock dependency info: 3695 kB
-[    0.000000]  per task-struct memory footprint: 1152 bytes
-[    0.001135] Calibrating delay loop... 364.48 BogoMIPS (lpj=1425408)
-[    0.107571] pid_max: default: 32768 minimum: 301
-[    0.108255] Security Framework initialized
-[    0.108464] Mount-cache hash table entries: 512
-[    0.118582] CPU: Testing write buffer coherency: ok
-[    0.119703] CPU0: thread -1, cpu 0, socket -1, mpidr 0
-[    0.119790] Setting up static identity map for 0x804d61e0 - 0x804d6250
-[    0.122980] Brought up 1 CPUs
-[    0.123012] SMP: Total of 1 processors activated (364.48 BogoMIPS).
-[    0.147821] pinctrl core: initialized pinctrl subsystem
-[    0.156108] regulator-dummy: no parameters
-[    0.158717] NET: Registered protocol family 16
-[    0.159696] DMA: preallocated 256 KiB pool for atomic coherent allocations
-[    0.161182] omap-gpmc omap-gpmc: GPMC revision 6.0
-[    0.161403] omap-gpmc omap-gpmc: failed to reserve memory
-[    0.161501] omap-gpmc: probe of omap-gpmc failed with error -16
-[    0.190475] OMAP GPIO hardware version 0.1
-[    0.206060] No ATAGs?
-[    0.206089] hw-breakpoint: debug architecture 0x4 unsupported.
-[    0.293133] bio: create slab <bio-0> at 0
-[    0.400112] omap-dma-engine omap-dma-engine: OMAP DMA engine driver
-[    0.407996] SCSI subsystem initialized
-[    0.410955] usbcore: registered new interface driver usbfs
-[    0.411594] usbcore: registered new interface driver hub
-[    0.413229] usbcore: registered new device driver usb
-[    0.418391] omap_i2c 44e0b000.i2c: bus 0 rev2.4.0 at 400 kHz
-[    0.430593] Switching to clocksource gp_timer
-[    0.586714] NET: Registered protocol family 2
-[    0.589620] TCP established hash table entries: 8192 (order: 4, 65536 bytes)
-[    0.590148] TCP bind hash table entries: 8192 (order: 6, 294912 bytes)
-[    0.595587] TCP: Hash tables configured (established 8192 bind 8192)
-[    0.595897] TCP: reno registered
-[    0.595941] UDP hash table entries: 256 (order: 2, 20480 bytes)
-[    0.596311] UDP-Lite hash table entries: 256 (order: 2, 20480 bytes)
-[    0.597375] NET: Registered protocol family 1
-[    0.599070] RPC: Registered named UNIX socket transport module.
-[    0.599101] RPC: Registered udp transport module.
-[    0.599117] RPC: Registered tcp transport module.
-[    0.599133] RPC: Registered tcp NFSv4.1 backchannel transport module.
-[    0.600475] Trying to unpack rootfs image as initramfs...
-[    0.603605] rootfs image is not initramfs (no cpio magic); looks like an initrd
-[    0.746420] Freeing initrd memory: 16384K
-[    0.746624] NetWinder Floating Point Emulator V0.97 (double precision)
-[    0.747263] CPU PMU: probing PMU on CPU 0
-[    0.747496] hw perfevents: enabled with ARMv7 Cortex-A8 PMU driver, 5 counters available
-[    0.953802] VFS: Disk quotas dquot_6.5.2
-[    0.954099] Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
-[    0.957740] NFS: Registering the id_resolver key type
-[    0.958396] Key type id_resolver registered
-[    0.958425] Key type id_legacy registered
-[    0.958612] jffs2: version 2.2. (NAND) (SUMMARY)  (c) 2001-2006 Red Hat, Inc.
-[    0.959333] msgmni has been set to 479
-[    0.964156] io scheduler noop registered
-[    0.964191] io scheduler deadline registered
-[    0.964331] io scheduler cfq registered (default)
-[    0.967982] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
-[    0.975911] omap_uart 44e09000.serial: did not get pins for uart0 error: -19
-[    0.976583] 44e09000.serial: ttyO0 at MMIO 0x44e09000 (irq = 88) is a OMAP UART0
-[    1.579209] console [ttyO0] enabled
-[    1.622741] brd: module loaded
-[    1.651866] loop: module loaded
-[    1.661935] mtdoops: mtd device (mtddev=name/number) must be supplied
-[    1.670613] OneNAND driver initializing
-[    1.682234] usbcore: registered new interface driver asix
-[    1.688544] usbcore: registered new interface driver cdc_ether
-[    1.695670] usbcore: registered new interface driver smsc95xx
-[    1.702759] usbcore: registered new interface driver net1080
-[    1.709533] usbcore: registered new interface driver cdc_subset
-[    1.716526] usbcore: registered new interface driver zaurus
-[    1.723296] usbcore: registered new interface driver cdc_ncm
-[    1.732034] usbcore: registered new interface driver cdc_wdm
-[    1.738182] Initializing USB Mass Storage driver...
-[    1.744230] usbcore: registered new interface driver usb-storage
-[    1.750559] USB Mass Storage support registered.
-[    1.756198] usbcore: registered new interface driver usbtest
-[    1.764520] mousedev: PS/2 mouse device common for all mice
-[    1.775792] i2c /dev entries driver
-[    1.782078] Driver for 1-wire Dallas network protocol.
-[    1.792090] omap_wdt: OMAP Watchdog Timer Rev 0x01: initial timeout 60 sec
-[    1.805350] usbcore: registered new interface driver usbhid
-[    1.811484] usbhid: USB HID core driver
-[    1.817257] oprofile: using arm/armv7
-[    1.822333] TCP: cubic registered
-[    1.825843] Initializing XFRM netlink socket
-[    1.830589] NET: Registered protocol family 17
-[    1.835398] NET: Registered protocol family 15
-[    1.840638] Key type dns_resolver registered
-[    1.845380] VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 3
-[    1.853623] ThumbEE CPU extension supported.
-[    1.870806] clock: disabling unused clocks to save power
-[    1.884043] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
-[    1.895403] RAMDISK: gzip image found at block 0
-[    2.375558] VFS: Mounted root (ext2 filesystem) on device 1:0.
-[    2.382761] Freeing init memory: 320K
-mount: mounting none on /var/shm failed: No such file or directory
-  ::
-  :: Enabling hot-plug  : [SUCCESS]
-  ::
-  ::
-   : Populating /dev    : [SUCCESS]
-[SUCCESS]
-  ::
-  ::
-  :: Setting PATH
-  ::
-   : syslogd            : [SUCCESS]
-   : telnetd            : [SUCCESS]
+> Example: an overlay source file might look something like this:
+> 
+> /include/ "base-file.dts"  /* 'include' may not be the best syntax here */
+> &i2c0 {		/* i2c0 resolved by label */
+> 	touchpad@10 {
+> 		compatible = "acme,touchpad";
+> 		reg = <0x10>;
+> 		interrupt-parent = <&intc>;
+> 		interrupts = <100>;
+> 	};
+> };
+> 
+> And the generated overlay dtb may look like this:
+> 
+> / {
+> 	.readonly;
+> 	interrupt-controller@0x10005000 {
+> 		.readonly;
+> 		phandle = <0x1234>;
+> 	};
+> 	peripheral-bus {
+> 		.readonly;
+> 		i2c@20001000 {
+> 			touchpad@10 {
+> 				compatible = "acme,touchpad";
+> 				reg = <0x10>;
+> 				interrupt-parent = <0x1234>;
+> 				interrupts = <100>;
+> 			};
+> 		};
+> 	};
+> };
+> 
+> Which is obviously missing a bunch of information for the rest of the
+> system, but contains enough data to ensure that the path to the touchpad
+> node is valid and that the phandle has not changed.
+> 
+> This handles many of the use cases, but it assumes that an overlay is
+> board specific. If it ever is required to support multiple base boards
+> with a single overlay file then there is a problem. The .dtb overlays
+> generated in this manor cannot handle different phandles or nodes that
+> are in a different place. On the other hand, the overlay source files
+> should have no problem being compiled for multiple targets.
 
-Please press Enter to activate this console.
+It will work for our case. The board-file dependency problem is not a big
+concern right now.
 
+> 
+> 3) Modify DTC and libfdt to process overlays
+> --------------------------------------------
+> Direct follow on from above. This will require DTC to be modified to
+> generate the overlay output format and new test cases to verify it
+> works.
+> 
+> In the process libfdt will get modified to add overlay support which
+> will immediately be available to U-Boot and other bootloaders.
+> 
+> 4) Teach Linux to request FDT overlays
+> --------------------------------------
+> Add request_firmware() hook for adding overlays. If the platform
+> supports detecting the attached expansion board, then this may
+> manipulate the filename for a specific file.
+> 
+> The kernel will graft the overlay into the existing live tree
+> 
+
+5) Have a method to attach FDT overlay to a kernel module.
+
+For some drivers it might be better if the kernel module and the 
+DT overlay is packaged in the same file. You be in a part of
+the module binary as a special section that request_firmware can
+pick up automatically. 
+
+> Workitems:
+> Document device tree node lifecycle
+> Add tests to enforce device tree node lifecycle
+> Add interface to firmware_request() an FDT overlay
+> Add support to merge overlay FDT nodes into base tree
+> Add support to track FDT changes per-overlay
+> Add runtime fixups of overlay phandles
+> - Without this overlay phandles must exactly match the base tree
+> Add support to remove an overlay (question: is this important?)
+> 
+
+For hot-plugging, you need it. Whether kernel code can deal with
+large parts of the DT going away... How about we use the dead
+properties method and move/tag the removed modes as such, and not
+really remove them.
+
+> 5) Teach Linux driver model to respond to device tree changes
+> -------------------------------------------------------------
+> There are several parts to this. The most obvious are adding hooks for
+> platform_device, i2c_device and spi_device creation. In all three cases,
+> the users should already be providing enough information to support
+> dynamic addition (and possibly removal) of dt nodes.
+> of_platform_populate() is called for platform devices,
+> of_register_spi_devices() for spi and of_i2c_register_devices(). Right
+> now all three functions register all the child devices and then
+> immediately return. However, if they could set up a notifier for node
+> addition, then it would be easy to trigger additional device creation
+> when new nodes are added.
+> 
+> Other busses would be similar, but i2c, spi and platform are the most
+> common use cases currently.
+> 
+> Workitems:
+> Modify of_platform_populate() to get new node notifications
+> Modify of_register_spi_devices to get new node notifications
+> Modify of_register_i2c_devices to get new node notifications
+> 
+
+w1 is the same. Possibly more.
+
+Another can of worms is the pinctrl nodes. 
+
+> 6) Other work
+> -------------
+> The device node user space interface could use some work. Here are some
+> random work items that are peripherally related to the overlay feature.
+> 
+> Other Workitems:
+> Define FDT schema syntax
+> Add FDT schema support to FDT (basically lint-style testing)
+> Investigate runtime schema validation
+> Make device_nodes first-class kobjects and remove the procfs interface
+> - it can be emulated with a symlink
+> Add symlinks from devices to devicetree nodes in sysfs
+
+That's going to take a while :)
+
+Regards
+
+-- Pantelis
