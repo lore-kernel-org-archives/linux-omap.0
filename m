@@ -1,58 +1,52 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 09/14] ARM: OMAP: Don't restore of DMTIMER TISTAT register
-Date: Wed, 7 Nov 2012 13:01:25 -0600
-Message-ID: <1352314890-22224-10-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 08/14] ARM: OMAP: Fix dmtimer reset for timer1
+Date: Wed, 7 Nov 2012 13:01:24 -0600
+Message-ID: <1352314890-22224-9-git-send-email-jon-hunter@ti.com>
 References: <1352314890-22224-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36097 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57428 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754196Ab2KGTBt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 14:01:49 -0500
+	id S1754196Ab2KGTBr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 14:01:47 -0500
 In-Reply-To: <1352314890-22224-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-The timer TISTAT register is a read-only register and therefore restoring the
-context is not needed. Furthermore, the context of TISTAT is never saved
-anywhere in the current code. The TISTAT register is read-only for all OMAP
-devices from OMAP1 to OMAP4. OMAP5 timers no longer have this register.
+In commit e32f7ec2 (ARM: OMAP: Fix 32 kHz timer and modify GP timer to use GPT1)
+a fix was added to prevent timer1 being reset in the function
+omap_dm_timer_reset() because timer1 was being used as the system timer for
+OMAP2 devices. Although timer1 is still used by most OMAP2+ devices as a system
+timer, the function omap_dm_timer_reset() is now only being called for OMAP1
+devices and OMAP1 does not use timer1 as a system timer. Therefore, remove the
+check in omap_dm_timer_reset() so that timer1 is reset for OMAP1 devices.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c              |    3 ---
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 2 files changed, 4 deletions(-)
+ arch/arm/plat-omap/dmtimer.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 5a9f29b..a350f12 100644
+index bf484aa..5a9f29b 100644
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -86,9 +86,6 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
+@@ -124,11 +124,8 @@ static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
  
- static void omap_timer_restore_context(struct omap_dm_timer *timer)
+ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
  {
--	if (timer->revision == 1)
--		__raw_writel(timer->context.tistat, timer->sys_stat);
+-	if (timer->pdev->id != 1) {
+-		omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG, 0x06);
+-		omap_dm_timer_wait_for_reset(timer);
+-	}
 -
- 	__raw_writel(timer->context.tisr, timer->irq_stat);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_WAKEUP_EN_REG,
- 				timer->context.twer);
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index ef93017..36b71a5 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -85,7 +85,6 @@ struct omap_dm_timer;
++	omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG, 0x06);
++	omap_dm_timer_wait_for_reset(timer);
+ 	__omap_dm_timer_reset(timer, 0, 0);
+ }
  
- struct timer_regs {
- 	u32 tidr;
--	u32 tistat;
- 	u32 tisr;
- 	u32 tier;
- 	u32 twer;
 -- 
 1.7.9.5
 
