@@ -1,143 +1,74 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
-Date: Wed, 7 Nov 2012 09:47:47 +0100
-Message-ID: <5A5C45CB-CDF8-4D93-8698-46A27143ABFA@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <50999145.2070306@wwwdotorg.org>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50999145.2070306@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 1/3] omap gpmc : add support of setting CYCLE2CYCLEDELAY
+ and BUSTURNAROUND
+Date: Wed, 7 Nov 2012 08:58:51 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA0E2D6@DBDE01.ent.ti.com>
+References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
+ <5099478A.50901@ti.com> <5099504A.5060505@parrot.com>
+ <5099743B.3040804@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47863 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492Ab2KGI7H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 03:59:07 -0500
+In-Reply-To: <5099743B.3040804@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hunter, Jon" <jon-hunter@ti.com>, Matthieu CASTET <matthieu.castet@parrot.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>
 
-Hi Stephen,
-
-On Nov 6, 2012, at 11:37 PM, Stephen Warren wrote:
-
-> On 11/05/2012 01:40 PM, Grant Likely wrote:
->> Hey folks,
->> 
->> As promised, here is my early draft to try and capture what device
->> tree overlays need to do and how to get there. Comments and
->> suggestions greatly appreciated.
-> 
-> Interesting. This just came up internally at NVIDIA within the last
-> couple weeks, and was discussed on the U-Boot mailing list very recently
-> too:
-> 
-> http://lists.denx.de/pipermail/u-boot/2012-October/thread.html#138227
-> (it spills into the November archive too)
-
-I am aware of this discussion. For our use case u-boot DT manipulation was
-tried, but then abandoned. Asking our user base to modify anything in u-boot
-was ruled out.
- 
-> 
->> For these cases it is proposed to implement an overlay feature for the
->> so that the initial device tree data can be modified by userspace at
-> 
-> I don't know if you're maintaining this as a document and taking patches
-> to it, but if so:
-> 
-> "for the so" split across those two lines.
-> 
->> Jane solves this problem by storing an FDT overlay for each cape in the
->> root filesystem. When the kernel detects that a cape is installed it
->> reads the cape's eeprom to identify it and uses request_firmware() to
->> obtain the appropriate overlay. Userspace passes the overlay to the
->> kernel in the normal way. If the cape doesn't have an eeprom, then the
->> kernel will still use firmware_request(), but userspace needs to already
->> know which cape is installed.
-> 
-> As mentioned by Pantelis, multiple versions of a board is also very
-> common. We already have the following .dts files in the kernel where
-> this applies, for the main board even:
-> 
-> arch/arm/boot/dts/tegra30-cardhu.dtsi
-> arch/arm/boot/dts/tegra30-cardhu-a02.dts
-> arch/arm/boot/dts/tegra30-cardhu-a04.dts
-> 
-
-Exactly. I've made this point in another email, but IMHO board-revision
-management is exactly the same with cape revision management.
-
-Ideally you'd like to get rid of those three, and replace it with only
-one that's properly versioned.
-
-
->> Summary points:
-> 
->>  - SHOULD reliably handle changes between different underlying overlays
->>    (ie. what happens to existing .dtb overly files if the structure of
->>    the dtb it is layered over changes. If not possible, then SHALL
->>    detect when the base tree doesn't match and refuse to apply the
->>    overlay.
-> 
-> Perhaps use (versioned) DT bindings to represent the interface between
-> the two .dts files? See the links to the U-Boot mailing list discussions
-> below?
-> 
->> - What is the model for overlays?
->>  - Can an overlay modify existing properties?
->>  - Can an overlay add new properties to existing nodes?
->>  - Can an overlay delete existing nodes/properties?
-> 
-> This proposal is very oriented at an overlay-based approach. I'm not
-> totally convinced that a pure overlay approach (as in how dtc does
-> overlayed DT nodes) will be flexible enough, but would love to be
-> persuaded. Again see below.
-> 
->> It may be sufficient to solve it by making the phandle values less
->> volatile. Right now dtc generates phandles linearly. Generated phandles
->> could be overridden with explicit phandle properties, but it isn't a
->> fantastic solution. Perhaps generating the phandle from a hash of the
->> node name would be sufficient.
-> 
-> Node names don't have to be unique though right; perhaps hash the
-> path-name instead of the node-name? But then, why not just reference by
-> path name; similar to <{&/path/to/node}> rather than <&label>?
-> 
-
-It would work for references to the known base DTS. If you have a
-cape that's cross-device compatible that can simply fail.
-
-I like this for it's simplicity though.
-
->> This handles many of the use cases, but it assumes that an overlay is
->> board specific. If it ever is required to support multiple base boards
->> with a single overlay file then there is a problem. The .dtb overlays
->> generated in this manor cannot handle different phandles or nodes that
->> are in a different place. On the other hand, the overlay source files
->> should have no problem being compiled for multiple targets.
-> 
-> s/manor/manner/
-> 
-> I do rather suspect this use-case is quite common. NVIDIA certainly has
-> a bunch of development boards with pluggable
-> PMIC/audio/WiFi/display/..., and I believe there's some ability to
-> re-use the pluggable components with a variety of base-boards.
-> 
-> Given people within NVIDIA started talking about this recently, I asked
-> them to enumerate all the boards we have that support pluggable
-> components, and how common it is that some boards support being plugged
-> into different main boards. I don't know when that enumeration will
-> complete (or even start) but hopefully I can provide some feedback on
-> how common the use-case is for us once it's done.
-> 
-> My earlier thoughts on how to support this included explicit
-> inter-board/-component connector objects in the .dts files that allow
-> "renaming" of GPIOs, I2C buses, regulators, etc.:
-> 
-> http://lists.denx.de/pipermail/u-boot/2012-October/138476.html
-> http://lists.denx.de/pipermail/u-boot/2012-November/138925.html
-
-Sounds very similar to our case.
-
-Very interesting to say the least ;)
-
-Regards
-
--- Pantelis
+KyBUb255LCBEYW5pZWwNCg0KSGksDQoNCk9uIFdlZCwgTm92IDA3LCAyMDEyIGF0IDAyOjA0OjAz
+LCBIdW50ZXIsIEpvbiB3cm90ZToNCj4gT24gMTEvMDYvMjAxMiAxMjowMCBQTSwgTWF0dGhpZXUg
+Q0FTVEVUIHdyb3RlOg0KDQo+ID4gSSB3aWxsIHBvc3QgYW5vdGhlciBwYXRjaCwgdW5sZXNzIHRo
+aXMgaXMgYWxyZWFkeSBkb25lIGluICBBZnphbCBwYXRjaCAoSXMgdGhlcmUNCj4gPiBhIHRyZWUg
+d2hlcmUgSSBjYW4gZ2V0IEFmemFsIHBlbmRpbmcgcGF0Y2hlcyA/KQ0KDQo+IEFmemFsIGtlZXBz
+IGhpcyBrZXJuZWwgdHJlZSBvbiBnaXRvcmlvdXMgWzFdLiBIb3dldmVyLCBJIGFtIG5vdCBzdXJl
+DQo+IHdoYXQgQWZ6YWwncyBwbGFucyBhcmUgZm9yIHRoZSByZW1haW5pbmcgcGF0Y2hlcyBub3Qg
+eWV0IG1lcmdlZCBhbmQNCj4gd2hpY2ggYnJhbmNoIHlvdSBzaG91bGQgbG9vayBhdCAoSSBoYXZl
+IGEgbG90IG9mIHByb2JsZW1zIHZpZXdpbmcNCj4gYW55dGhpbmcgb24gZ2l0b3Jpb3VzIHRoZXNl
+IGRheXMpLg0KPiANCj4gQWZ6YWwsIGxldCB1cyBrbm93IGhvdyB5b3UgcHJlZmVyIHRvIGhhbmRs
+ZSB0aGlzLg0KDQpNeSBpbml0aWFsIHBsYW4gd2FzIHRvIGRvIHRpbWluZyByZWxhdGVkIGNoYW5n
+ZXMgZmlyc3QgYW5kIHRoZW4gZHQNCmNvbnZlcnNpb24uIEJ1dCBhdCB0aGUgcHJlc2VudCBtb21l
+bnQsIGl0IHNlZW1zIGhpZ2hlciBwcmlvcml0eSBoYXMNCnRvIGJlIGdpdmVuIGZvciBkdCBjb252
+ZXJzaW9uIG92ZXIgdGltaW5nIGNoYW5nZXMgKGl0IGludm9sdmVzDQp1c2luZyBnZW5lcmljIHRp
+bWluZyByb3V0aW5lIGZvciBhbGwgcmVxdWlyZWQgZ3BtYyBwZXJpcGhlcmFscywNCmhhbmRsaW5n
+IGFkZGl0aW9uYWwgdGltaW5ncyBpbmNsdXNpdmUgb2YgJHN1YmplY3QpIGFuZCBoZW5jZSB0aW1p
+bmcNCnJlbGF0ZWQgY2hhbmdlcyB3ZXJlIHB1dCBpbiBzdXNwZW5kZWQgYW5pbWF0aW9uIGZvciBu
+b3cuDQoNCkFuZCBEYW5pZWwgaGFzIHN0YXJ0ZWQgd29ya2luZyBvbiBncG1jIGR0LiBMZXQgdXMg
+dGFrZSBUb255J3MNCm9waW5pb24gb24gaG93IHRvIGRlYWwgd2l0aCB0aGlzLCBUb255ID8NCg0K
+Rm9sbG93aW5nIGFyZSB0aGUgcGVuZGluZyBjaGFuZ2VzIHcuci50IHRpbWluZyBhdmFpbGFibGUg
+QFsxXQ0KKHBsZWFzZSBub3RlIHRoYXQgdGhlc2Ugd291bGQgaGF2ZSB0byBiZSByZWJhc2VkIG92
+ZXIgYnJhbmNoL3RhZw0Kc3BlY2lmaWVkIGJ5IFRvbnkgaW4gcmVwbHkgdG8gTWF0dGhpZXUncyBw
+YXRjaCAzLzMpDQphLiBkNDJlYWZhIEFSTTogT01BUDIrOiBuYW5kOiByZW1vdmUgcmVkdW5kYW50
+IHJvdW5kaW5nDQpiLiBmMjI5YWJhIEFSTTogT01BUDIrOiBncG1jOiBoYW5kbGUgYWRkaXRpb25h
+bCB0aW1pbmdzDQpjLiAxNGNiYjg3IEFSTTogT01BUDIrOiBncG1jOiBnZW5lcmljIHRpbWluZyBj
+YWxjdWxhdGlvbg0KZC4gOTgzMDI2NCBBUk06IE9NQVAyKzogb25lbmFuZDogZ2VuZXJpYyB0aW1p
+bmcgY2FsY3VsYXRpb24NCmUuIDVmMzNlYTUgQVJNOiBPTUFQMis6IHNtYzkxeDogZ2VuZXJpYyB0
+aW1pbmcgY2FsY3VsYXRpb24NCmYuIDk4NzYwMjAgQVJNOiBPTUFQMis6IHR1c2I2MDEwOiBnZW5l
+cmljIHRpbWluZyBjYWxjdWxhdGlvbiAoSEVBRCkNCg0KJ2InIGlzIGEgc3VwZXJzZXQgb2YgJHN1
+YmplY3QNCg0KT3JpZ2luYWxseSAnYScgYW5kICdiJyB3YXMgcGFydCBvZiBncG1jIGNsZWFudXAg
+c2VyaWVzIGZvciBjb21tb24NCnpJbWFnZSwgdGhlbiBUb255IHJlcXVlc3RlZCBmb3IgbWluaW1h
+bCBjaGFuZ2VzIGZvciBpdCwgaGVuY2UNCidhJyAmICdiJyB3YXMgbGVmdCBvdXQgaW4gdGhlIHB1
+bGwgcmVxdWVzdCAocGlja2VkIHVwIGJ5IFRvbnkpLA0Kc28gdGhhdCBncG1jIGNvbW1vbiB6SW1h
+Z2UgY2xlYW51cCBzZXJpZXMgd291bGQgbm90IGNyZWF0ZSBhbnkNCnRpbWluZyByZWxhdGVkIGlz
+c3Vlcy4NCg0KT25lIHRoaW5nIHRvIG5vdGUgaXMgdGhhdCBjeWNsZTJjeWNsZWRlbGF5IGFuZCBi
+dXN0dXJuYXJvdW5kIGZpZWxkJ3MNCndvdWxkIGdldCB6ZXJvZWQgb3V0IHdpdGggJHN1YmplY3Qg
+cGF0Y2ggZm9yIHRob3NlIHBlcmlwaGVyYWwncyB0aGF0DQpjYWxsIGdwbWNfY3Nfc2V0X3RpbWlu
+Z3MoKS4gSWYgdGhlcmUgYXJlIGFueSBib2FyZHMgc2lsZW50bHkNCmRlcGVuZGluZyBvbiBib290
+bG9hZGVyIHNldHRpbmcgdGhlc2UgdmFsdWVzLCBpdCBtYXkgYmUgYWZmZWN0ZWQsIHNvDQp0aGlz
+IGNoYW5nZSB3b3VsZCBuZWVkIHRvIGJlIHZlcmlmaWVkIGZvciBleGlzdGluZyBib2FyZHMgaW4g
+bWFpbmxpbmUuDQoNClBlcmhhcHMgJ2InIChmb3IgJHN1YmplY3QgcGF0Y2gpIGNhbiBiZSB0YWtl
+biBhaGVhZCBpZiBUb255IGlzDQpoYXBweSB3aXRoIGl0Lg0KDQpBbmQgcmVnYXJkaW5nIHBhdGNo
+ZXMgMiAmIDMgb2YgTWF0dGhpZXUncyBzZXJpZXMgdGhhdCBjYWxjdWxhdGUNCnRpbWluZ3MsIEkg
+d2FzIHdvbmRlcmluZyB3aGV0aGVyIGdlbmVyaWMgdGltaW5nIHJvdXRpbmUgKGMpIGNhbg0KbGVh
+cm4gZnJvbSBpdCBhcyB3ZWxsIGFzIHZpY2UtdmVyc2EuIEFsc28gd2l0aCBncG1jIGNvbW1vbiB6
+SW1hZ2UNCnNlcmllcywgb21hcC1uYW5kIGRyaXZlciBkb2VzIG5vdCBoYXZlIGFjY2VzcyB0byB0
+aW1pbmcgcmVsYXRlZA0KZ3BtYyBmdW5jdGlvbnMsIGEgbmV3IGdwbWMgZnVuY3Rpb24gd291bGQg
+aGF2ZSB0byBiZSBleHBvcnRlZA0KdGhhdCB0cmFuc2xhdGVzIG9uZmkgdGltaW5ncyB0byBncG1j
+IChvciBlZHVjYXRlIGdlbmVyaWMgdGltaW5nDQpyb3V0aW5lIHdpdGggb25maSB0cmFuc2xhdGlv
+biB0b28gPykNCg0KUmVnYXJkcw0KQWZ6YWwNCg0KW2FdIGdpdDovL2dpdG9yaW91cy5vcmcveDAx
+NDg0MDYtcHVibGljL2xpbnV4LWtlcm5lbC5naXQgZ3BtYy10aW1pbmcNCg0K
