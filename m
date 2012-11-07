@@ -1,90 +1,120 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: HDMI: Remove __exit macro from hdmi_uninit_display
-Date: Wed, 7 Nov 2012 09:21:02 +0200
-Message-ID: <509A0BDE.60201@ti.com>
-References: <1352259434-21196-1-git-send-email-ricardo.neri@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig80475CF6D195BFC1D5AF6D0C"
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
+Date: Wed, 7 Nov 2012 09:06:53 +0100
+Message-ID: <B1277EA3-9284-4856-A7E8-1B1CA9D30327@antoniou-consulting.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com> <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com> <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com> <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60444 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751577Ab2KGHVE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 02:21:04 -0500
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id qA77L44H004917
-	for <linux-omap@vger.kernel.org>; Wed, 7 Nov 2012 01:21:04 -0600
-Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id qA77L4JY031391
-	for <linux-omap@vger.kernel.org>; Wed, 7 Nov 2012 01:21:04 -0600
-In-Reply-To: <1352259434-21196-1-git-send-email-ricardo.neri@ti.com>
+Received: from li42-95.members.linode.com ([209.123.162.95]:59999 "EHLO
+	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750761Ab2KGIHa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 03:07:30 -0500
+In-Reply-To: <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
 
---------------enig80475CF6D195BFC1D5AF6D0C
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Grant,
 
-On 2012-11-07 05:37, Ricardo Neri wrote:
-> This function is now used in the driver init path to handle
-> probe errors properly. Thus, it may be possible to use this function
-> outside the exit path.
->=20
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-> Reported-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
-> ---
->  drivers/video/omap2/dss/hdmi.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/h=
-dmi.c
-> index 0c2f35b..6cf2fe2 100644
-> --- a/drivers/video/omap2/dss/hdmi.c
-> +++ b/drivers/video/omap2/dss/hdmi.c
-> @@ -365,7 +365,7 @@ static int __init hdmi_init_display(struct omap_dss=
-_device *dssdev)
->  	return 0;
->  }
-> =20
-> -static void __exit hdmi_uninit_display(struct omap_dss_device *dssdev)=
+On Nov 6, 2012, at 9:45 PM, Grant Likely wrote:
 
-> +static void hdmi_uninit_display(struct omap_dss_device *dssdev)
->  {
->  	DSSDBG("uninit_display\n");
+> On Tue, Nov 6, 2012 at 7:34 PM, Pantelis Antoniou
+> <panto@antoniou-consulting.com> wrote:
+>> On Nov 6, 2012, at 12:14 PM, Grant Likely wrote:
+>>> On Tue, Nov 6, 2012 at 10:30 AM, Pantelis Antoniou
+>>> <panto@antoniou-consulting.com> wrote:
+>>>> For hot-plugging, you need it. Whether kernel code can deal with
+>>>> large parts of the DT going away... How about we use the dead
+>>>> properties method and move/tag the removed modes as such, and not
+>>>> really remove them.
+>>> 
+>>> Nodes already use krefs, and I'm thinking about making them kobjects
+>>> so that they appear in sysfs and we'll have some tools to figure out
+>>> when reference counts don't get decremented properly.
+>>> 
+>> 
+>> From the little I've looked in the of code, and the drivers, it's going
+>> to be pretty bad. I don't think all users take references properly, and
+>> we have a big global lock for accessing the DT.
+> 
+> I'm a lot more optimistic on this front... I wrote a patch today to
+> make the change and took some measurements:
+> 
+> On the versatile express qemu model I measured the free memory with
+> /proc/device-tree, with /sys/device-tree, and with both. Here's what I
+> found:
+> 
+> /proc/device-tree only: 114776kB free
+> /sys/device-tree only: 114792kB free
+> both enabled: 114716kB free
+> 
+> The back of a napkin calculation indicates that on this platform
+> /proc/devicetree costs 76kB and /sys/device-tree costs 60kb. I'm happy
+> to see that using /sys instead of /proc appears to be slightly cheaper
+> which makes it easier to justify the change. The diffstat makes me
+> even happier:
+> 
+> arch/arm/plat-omap/Kconfig                |    1 -
+> arch/powerpc/platforms/pseries/dlpar.c    |   23 -----------
+> arch/powerpc/platforms/pseries/reconfig.c |   40 ------------------
+> drivers/of/Kconfig                        |    8 ----
+> drivers/of/base.c                         |  116
+> ++++++++++++++++++++++++++++------------------------
+> drivers/of/fdt.c                          |    5 ++-
+> fs/proc/Makefile                          |    1 -
+> fs/proc/proc_devtree.c                    |   13 +-----
+> fs/proc/root.c                            |    4 +-
+> include/linux/of.h                        |   35 ++++++++++++----
+> include/linux/proc_fs.h                   |   16 --------
+> include/linux/string.h                    |   11 +++++
+> 12 files changed, 107 insertions(+), 166 deletions(-)
+> 
 
-Thanks, I'll apply.
+Interesting. Not so bad then.
 
- Tomi
+> There are still a few odds and ends that need to be tidied up, but
+> I'll get it out for review shortly. I've not touched the sparc code
+> yet, and I need to take another look over the existing OF_DYNAMIC
+> code. I think that CONFIG_OF_DYNAMIC will probably go away and the add
+> node/property functions will get used by fdt.c and pdt.c for initial
+> construction of the device tree.
+
+CONFIG_OF_DYNAMIC never made sense to me. Glad to see the config option
+gone. I'm not totally up to date with the -next dt stuff, but if we're
+there can we rename all the prom_ functions to something saner?
+
+> 
+>> Adding and removing nodes at runtime as part of the normal operation of
+>> the system (and not as something that happens once in a blue moon under
+>> controlled conditions) will uncover lots of bugs.
+> 
+> I'm hoping so! Its time to clean that mess up. :-) Fortunately adding
+> nodes is not where we're going to have problems. The problems will be
+> on node removal. Addition-only at least means we can have something
+> useful before hunting down and squashing all the bugs.
+
+I'll admit that removing nodes is going to be quite rare at least for
+me use cases. I did come across a couple of people that do hot-plugging
+(using something completely different) that could use it for sure.
+
+> 
+>> So let's think about locking too
+> 
+> Yes, the locking does need to be sorted out.
+> 
+
+Perhaps come up with a dt-stress test tool/boot time validator?
+
+> g.
+
+Regards
+
+-- Pantelis
+
+P.S. Lots of teeth grinding in the ELCE about the lack of a DT preprocessor.
+The pinctrl arguments have been mentioned more than once.
 
 
-
-
---------------enig80475CF6D195BFC1D5AF6D0C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQmgveAAoJEPo9qoy8lh71pL0QAJFsWk5E7HwcM1ZEQQzmlzwi
-H2UtBgXTjjrDuY7DS6+hR1HMv0LFCE3srN0aKzuhukRavezGXV2E7wDp6RlZupxd
-e41Y9oTaeYDe5+XlD4a9G7HFJX59A72g10gnwhzWtOC/WUZI7D22zDVPqeAoAUaY
-SSuUo4+uphTuAavJ9vCEzhZzrqSuUzfZY6n1EMW8GhABu6xPz/+Rdv8ROjhLB25K
-wR2K8e0HghG0RTH7ttywEYnm+2REyuFrojsijAAmjA2yOUoHrxv6cx2fqob7FJ3+
-k6R7GcCqxeQu6IH9x88xmCyR4A0Lypz7GpcXjkGfX5EaynN25C1B3zE+GxKcq6T7
-kzwRfi9DabF7L5YKiwz+1bhdusSrp3yf7GAE38OEHPLJzvZCA+rikjLL4MPhiupU
-64vQkWdCxhOrH0DyAkOB3Zi9ns5OsafNYARhxt6tYMKMzXEmqHzfQx9qVG2GKYVB
-4wVquFJqb5x64pMx1ZjlBVhd4zFGBEOUPBNgnWJDSVUxTRhMphyWL1kKNEeZcgnI
-2t6Y5EGQOaXAo8ddoGAIyvbTi4slZR3rvY8Opel/U7WWlUzd77y+BjPcDKGq7gQG
-OD1VfKA+BD50JqyHqdlXXfrnb89Og7f03UTFwYK93MKXm0jiTQmQYqoiwylc9bDv
-qNn8rMHgifrx9QODe+pn
-=/pcq
------END PGP SIGNATURE-----
-
---------------enig80475CF6D195BFC1D5AF6D0C--
