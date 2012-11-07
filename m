@@ -1,147 +1,68 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 2/3] pwm: New driver to support PWMs on TWL4030/6030
- series of PMICs
-Date: Wed, 7 Nov 2012 19:50:53 +0200
-Message-ID: <CANOLnOM7sp+O+KBKjiRk2drWh_63D6-bY86dx+upWkrvs7pp9w@mail.gmail.com>
-References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
-	<1352299488-11351-3-git-send-email-peter.ujfalusi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: OMAP baseline test results for v3.7-rc4
+Date: Wed, 7 Nov 2012 12:07:08 -0600
+Message-ID: <509AA34C.9030203@ti.com>
+References: <alpine.DEB.2.00.1211050241410.23228@utopia.booyaka.com> <509A96DA.2010003@ti.com> <alpine.DEB.2.00.1211071728310.20704@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352299488-11351-3-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:32864 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751346Ab2KGSHN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 13:07:13 -0500
+In-Reply-To: <alpine.DEB.2.00.1211071728310.20704@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Wed, Nov 7, 2012 at 4:44 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> =
-wrote:
-> The driver supports the following PWM outputs:
-> TWL4030 PWM0 and PWM1
-> TWL6030 PWM1 and PWM2
->
-> On TWL4030 the PWM signals are muxed. Upon requesting the PWM the dri=
-ver
-> will select the correct mux so the PWM can be used. When the PWM has =
-been
-> freed the original configuration going to be restored.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  drivers/pwm/Kconfig   |  10 ++
->  drivers/pwm/Makefile  |   1 +
->  drivers/pwm/pwm-twl.c | 304 ++++++++++++++++++++++++++++++++++++++++=
-++++++++++
->  3 files changed, 315 insertions(+)
->  create mode 100644 drivers/pwm/pwm-twl.c
->
-
-<snip>
-
-> --- /dev/null
-> +++ b/drivers/pwm/pwm-twl.c
-
-<snip>
-
-> +
-> +static int twl4030_pwm_enable(struct pwm_chip *chip, struct pwm_devi=
-ce *pwm)
-> +{
-> +       int ret;
-> +       u8 val;
-> +
-> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_G=
-PBR1_REG);
-> +       if (ret < 0) {
-> +               dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm-=
->label);
-> +               return ret;
-> +       }
-> +
-> +       val |=3D TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_BITS);
-
-In my experience doing it like this doesn't work reliably, i.e.
-sometimes it just won't enable. I had to first set CLK_ENABLE bit, and
-then ENABLE bit with separate i2c write. Perhaps it needs a cycle or
-two of 32k clock or something (that doesn't seem to be documented
-though).
-
-> +
-> +       ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_G=
-PBR1_REG);
-> +       if (ret < 0)
-> +               dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm-=
->label);
-> +
-> +       return ret;
-> +}
-> +
-> +static void twl4030_pwm_disable(struct pwm_chip *chip, struct pwm_de=
-vice *pwm)
-> +{
-> +       int ret;
-> +       u8 val;
-> +
-> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_G=
-PBR1_REG);
-> +       if (ret < 0) {
-> +               dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm-=
->label);
-> +               return;
-> +       }
-> +
-> +       val &=3D ~TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_BITS);
-
-Same problem here, I would sometimes get LED stuck at full brightness
-after this, first clearing ENABLE and then CLK_ENABLE fixed it (we
-have charger LED connected to PWM1 on pandora).
-
-> +
-> +       ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_G=
-PBR1_REG);
-> +       if (ret < 0)
-> +               dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm=
-->label);
-> +}
-> +
-> +static int twl4030_pwm_request(struct pwm_chip *chip, struct pwm_dev=
-ice *pwm)
-> +{
-> +       struct twl_pwm_chip *twl =3D container_of(chip, struct twl_pw=
-m_chip,
-> +                                               chip);
-> +       int ret;
-> +       u8 val, mask, bits;
-> +
-> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_P=
-MBR1_REG);
-> +       if (ret < 0) {
-> +               dev_err(chip->dev, "%s: Failed to read PMBR1\n", pwm-=
->label);
-> +               return ret;
-> +       }
-> +
-> +       if (pwm->hwpwm) {
-> +               /* PWM 1 */
-> +               mask =3D TWL4030_GPIO7_VIBRASYNC_PWM1_MASK;
-> +               bits =3D TWL4030_GPIO7_VIBRASYNC_PWM1_PWM1;
-> +       } else {
-> +               /* PWM 0 */
-> +               mask =3D TWL4030_GPIO6_PWM0_MUTE_MASK;
-> +               bits =3D TWL4030_GPIO6_PWM0_MUTE_PWM0;
-> +       }
-> +
-> +       /* Save the current MUX configuration for the PWM */
-> +       twl->twl4030_pwm_mux &=3D ~mask;
-> +       twl->twl4030_pwm_mux |=3D (val & mask);
-
-Do we really need this mask clearing here? After probe twl4030_pwm_mux
-should be zero, and if twl4030_pwm_request is called twice you don't
-clear the important bits before |=3D, I think 'twl4030_pwm_mux =3D val =
-&
-mask' would be better here.
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 
---=20
-Gra=C5=BEvydas
+On 11/07/2012 11:32 AM, Paul Walmsley wrote:
+> On Wed, 7 Nov 2012, Jon Hunter wrote:
+> 
+>> On 11/04/2012 08:46 PM, Paul Walmsley wrote:
+>>
+>>> * 4460pandaes: boot fails early
+>>>   - Appears to be due to X-loader problems here
+>>>   - Need to note the X-loader version so we know it's broken
+>>
+>> Are you still planning to investigate this further or migrate to a new
+>> bootloader?
+> 
+> Yes.  The problem with the current boot setup is that the new 
+> bootloader is breaking as well! :-(
+
+Ugh!
+
+> This can be seen by comparing:
+> 
+> http://www.pwsan.com/omap/testlogs/test_v3.7-rc1/20121017205513/boot/4460pandaes/4460pandaes_log.txt
+> 
+> (the old bootloader)
+> 
+> with
+> 
+> http://www.pwsan.com/omap/testlogs/test_v3.7-rc4/20121104142910/boot/4460pandaes/4460pandaes_log.txt
+> 
+> (the new bootloader)
+
+If you get chance, it would be good to test u-boot v2012.10 release, as
+I am using this and it is working fine. I see the "new" bootloader you
+are using is v2012.07 (however, I though this was working too). Weird ...
+
+> Dealing with this will require hands-on access, and unfortunately, right 
+> now I am traveling and away from my testbed.  Next week, will take a 
+> closer look.
+> 
+>> With 4460 and 3.7-rc4, I am seeing that resume from suspend is not
+>> working (not sure when this broke though). I am just curious if anyone
+>> else sees this. My u-boot version is v2012.10.
+> 
+> If you have the chance, it would be useful to know if any of the v3.7-rcs 
+> worked.  Otherwise, will look at this next week.
+
+Ok, I will see if I can figure out where this broke.
+
+Cheers
+Jon
