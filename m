@@ -1,110 +1,140 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Wed, 7 Nov 2012 11:19:01 +0100
-Message-ID: <509A3595.7050600@ti.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
- <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com>
- <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
- <5ED17D42-07B8-4D4F-B54F-82B4CC60584C@antoniou-consulting.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 1/6] ARM/dts: omap4-panda: Add pinmux configuration for
+ HDMI
+Date: Wed, 7 Nov 2012 11:56:44 +0100
+Message-ID: <509A3E6C.9080007@ti.com>
+References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com> <1352121259-5836-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5ED17D42-07B8-4D4F-B54F-82B4CC60584C-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60959 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752412Ab2KGK46 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 05:56:58 -0500
+In-Reply-To: <1352121259-5836-2-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, s-guiriec@ti.com, Ricardo Neri <ricardo.neri@ti.com>
 
-Hi Panto,
+Hi Tomi,
 
-On 11/07/2012 09:13 AM, Pantelis Antoniou wrote:
-> Hi Grant
+On 11/05/2012 02:14 PM, Tomi Valkeinen wrote:
+> From: Ricardo Neri <ricardo.neri@ti.com>
 > 
-> On Nov 6, 2012, at 9:45 PM, Grant Likely wrote:
+> Add the pinmux configuration for HDMI and TPD12S015A. Configure the
+> gpios for the TPD12S015A and SDA, SCL and CEC for HDMI.
 > 
->> On Tue, Nov 6, 2012 at 7:34 PM, Pantelis Antoniou
->> <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> wrote:
-> 
-> [ snip ]
->>
->> g.
-> 
-> Since we've started talking about longer term goals, and the versioning
-> provision seems to stand, I hope we address how much the fragment versioning
-> thing is similar to the way board revisions progress.
-> 
-> If a versioning syntax is available then one could create a single DT 
-> file for a bunch of 'almost' similar board and board revisions.
+> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  arch/arm/boot/dts/omap4-panda-a4.dts |   17 +++++++++++++++++
+>  arch/arm/boot/dts/omap4-panda.dts    |   18 ++++++++++++++++++
+>  arch/arm/boot/dts/omap4-pandaES.dts  |    9 +++++++++
 
-I even think that the version issue is probably much more important for the short term than the overlay aspect. Well at least as important. We start having as well a bunch a panda board version with different HW setup.
+I've just changed the subject, file name and applied it in the for_3.8/dts_part2 branch.
 
-Having a single board-XXX.dts that will support all these versions is probably the best approach to avoid choosing that from the bootloader.
-
-We need to figure out a format + mechanism compatible with the current non-versioned format to allow filtering the nodes at runtime to keep only the relevant one.
-
-Something that can find the driver that will provide the proper board version or subsystem version or whatever like that:
-
-	compatible-version = "ti,panda-version", "panda";
-
-Then at runtime we should create only the node with the correct match between the driver version and the string version.
-
-
-/* regular panda audio routing */
-sound: sound {
-	compatible = "ti,abe-twl6040";
-	ti,model = "PandaBoard";
-	compatible-version = "ti,panda-version", "panda";
-
-	/* Audio routing */
-	ti,audio-routing =
-		"Headset Stereophone", "HSOL",
-		"Headset Stereophone", "HSOR",
-		"Ext Spk", "HFL",
-		"Ext Spk", "HFR",
-		"Line Out", "AUXL",
-		"Line Out", "AUXR",
-		"HSMIC", "Headset Mic",
-		"Headset Mic", "Headset Mic Bias",
-		"AFML", "Line In",
-		"AFMR", "Line In";
-};
-
-
-/* Audio routing is different between PandaBoard4430 and PandaBoardES */
-&sound {
-	ti,model = "PandaBoardES";
-	compatible-version = "ti,panda-version", "panda-es";
-
-	/* Audio routing */
-	ti,audio-routing =
-		"Headset Stereophone", "HSOL",
-		"Headset Stereophone", "HSOR",
-		"Ext Spk", "HFL",
-		"Ext Spk", "HFR",
-		"Line Out", "AUXL",
-		"Line Out", "AUXR",
-		"AFML", "Line In",
-		"AFMR", "Line In";
-};
-
-
-Maybe some extra version match table can just be passed during the board machine_init 
-
-	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL, panda_version_match_table);
-
+Please find below the updated version.
 
 Regards,
-Benoit  
+Benoit 
+
+---
+>From 0d9250c4cb2387436c0ccc7a580f6cb4f3544e40 Mon Sep 17 00:00:00 2001
+From: Ricardo Neri <ricardo.neri@ti.com>
+Date: Mon, 5 Nov 2012 15:14:14 +0200
+Subject: [PATCH 1/2] ARM: dts: omap4-panda: Add pinmux configuration for HDMI
+
+Add the pinmux configuration for HDMI and TPD12S015A. Configure the
+gpios for the TPD12S015A and SDA, SCL and CEC for HDMI.
+
+Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/boot/dts/omap4-panda-a4.dts |   17 +++++++++++++++++
+ arch/arm/boot/dts/omap4-panda-es.dts |    9 +++++++++
+ arch/arm/boot/dts/omap4-panda.dts    |   18 ++++++++++++++++++
+ 3 files changed, 44 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
+
+diff --git a/arch/arm/boot/dts/omap4-panda-a4.dts b/arch/arm/boot/dts/omap4-panda-a4.dts
+new file mode 100644
+index 0000000..75466d2
+--- /dev/null
++++ b/arch/arm/boot/dts/omap4-panda-a4.dts
+@@ -0,0 +1,17 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/include/ "omap4-panda.dts"
++
++/* Pandaboard Rev A4+ have external pullups on SCL & SDA */
++&dss_hdmi_pins {
++	pinctrl-single,pins = <
++		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
++		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
++		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
++		>;
++};
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index d4ba43a..73bc1a6 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -22,3 +22,12 @@
+ 		"AFML", "Line In",
+ 		"AFMR", "Line In";
+ };
++
++/* PandaboardES has external pullups on SCL & SDA */
++&dss_hdmi_pins {
++	pinctrl-single,pins = <
++		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
++		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
++		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
++		>;
++};
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 32baf65..4122efe 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -65,6 +65,8 @@
+ 			&twl6040_pins
+ 			&mcpdm_pins
+ 			&mcbsp1_pins
++			&dss_hdmi_pins
++			&tpd12s015_pins
+ 	>;
+ 
+ 	twl6040_pins: pinmux_twl6040_pins {
+@@ -92,6 +94,22 @@
+ 			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
+ 		>;
+ 	};
++
++	dss_hdmi_pins: pinmux_dss_hdmi_pins {
++		pinctrl-single,pins = <
++			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
++			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
++			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
++		>;
++	};
++
++	tpd12s015_pins: pinmux_tpd12s015_pins {
++		pinctrl-single,pins = <
++			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
++			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
++			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
++		>;
++	};
+ };
+ 
+ &i2c1 {
+-- 
+1.7.0.4
+
