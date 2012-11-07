@@ -1,110 +1,76 @@
-From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/8] PWMSS: Add PWM Subsystem driver for parent<->child
- relationship
-Date: Wed, 7 Nov 2012 15:20:26 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9DE3A0@DBDE01.ent.ti.com>
-References: <1352106749-9437-1-git-send-email-avinashphilip@ti.com>
- <1352106749-9437-2-git-send-email-avinashphilip@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EC0444A@DBDE01.ent.ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH V4 0/7] ARM: AM33XX: net: Add DT support to CPGMAC and
+ MDIO driver
+Date: Wed, 7 Nov 2012 20:54:41 +0530
+Message-ID: <509A7D39.8050506@ti.com>
+References: <1352223159-27504-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC0444A-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org" <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>, "paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org" <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hebbar,
- Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1352223159-27504-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: b-cousson@ti.com, davem@davemloft.net, Paul Walmsley <paul@pwsan.com>
+Cc: netdev@vger.kernel.org, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 06, 2012 at 12:05:24, Bedia, Vaibhav wrote:
-> On Mon, Nov 05, 2012 at 14:42:22, Philip, Avinash wrote:
-> [...]
-> > +pwmss0: pwmss@48300000 {
-> > +	compatible = "ti,am33xx-pwmss";
-> > +	reg = <0x48300000 0x10
-> > +		0x48300100 0x80
-> > +		0x48300180 0x80
-> > +		0x48300200 0x80>;
-> Do you really need the 4 address ranges here? You eventually do add in
-> child nodes with other address ranges so isn't the first entry sufficient?
-> I haven't really looked at the DT details so it is enforced by that let me
-> know.
+On 11/6/2012 11:02 PM, Mugunthan V N wrote:
+> This patch-series adds support for,
+>
+> [1/7]: Typo mistake in CPSW driver while invoking runtime_pm api's
+>
+> [2/7]: Adds parent<->child relation between CPSW & MDIO module inside cpsw
+>         driver, as in case of AM33XX, the resources are shared and common
+>         register bit-field is provided to control module/clock enable/disable,
+>         makes it difficult to handle common resource.
+>
+>         So the solution here is, to create parent<->child relation between them.
+>
+> [3/7]: Add hwmod entry for MDIO module, required for MDIO driver.
+>
+> [4/7]: cpsw: simplify the setup of the register pointers
+>
+> [5/7]: Add DT device nodes for both CPSW and MDIO modules in am33xx.dtsi,
+>         am335x-evm.dts and am335x-bone.dts file
+>
+> [6/7]: Enable CPSW support to omap2plus_defconfig
+>
+> [7/7]: cpsw: Kernel warn fix during suspend
+>
+> This patch series has been created on top of net-next/master and tested
+> on BeagleBone platform for NFS boot and basic ping test cases.
+>
+> Changes from V3:
+> * Removed unnecessary flags in Davinci MDIO Hwmod entry.
+>
+> Mugunthan V N (4):
+>    ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for davinci_mdio module
+>    arm/dts: am33xx: Add CPSW and MDIO module nodes for AM33XX
+>    ARM: OMAP2+: omap2plus_defconfig: Enable CPSW support
+>    net: cpsw: halt network stack before halting the device during
+>      suspend
+>
+> Richard Cochran (1):
+>    cpsw: simplify the setup of the register pointers
+>
+> Vaibhav Hiremath (2):
+>    net: davinci_mdio: Fix typo mistake in calling runtime-pm api
+>    net: cpsw: Add parent<->child relation support between cpsw and mdio
+>
+>   Documentation/devicetree/bindings/net/cpsw.txt |   34 ----
+>   arch/arm/boot/dts/am335x-bone.dts              |    8 +
+>   arch/arm/boot/dts/am335x-evm.dts               |    8 +
+>   arch/arm/boot/dts/am33xx.dtsi                  |   42 +++++
+>   arch/arm/configs/omap2plus_defconfig           |    3 +
+>   arch/arm/mach-omap2/omap_hwmod_33xx_data.c     |   31 ++++
+>   drivers/net/ethernet/ti/cpsw.c                 |  231 ++++++++++--------------
+>   drivers/net/ethernet/ti/davinci_mdio.c         |    2 +-
+>   include/linux/platform_data/cpsw.h             |   19 --
+>   9 files changed, 192 insertions(+), 186 deletions(-)
+>
+Paul/Benoit
 
-This is required to define child nodes ranges so that childs reg space
-entries are defined in the range.
+Do you any comments
 
-> 
-> [...]
-> > +
-> > +#define PWMSS_CLKCONFIG		8
-> > +
-> 
-> This #def can use a comment.
-
-Ok I will add.
-
-> 
-> > +void pwmss_submodule_state_change(struct device *dev, int pos, bool enable)
-> > +{
-> > +	struct pwmss_info *info = dev_get_drvdata(dev);
-> > +	u16 val;
-> > +
-> > +	val = readw(info->mmio_base + PWMSS_CLKCONFIG);
-> > +	if (enable)
-> > +		val |= 1 << pos;
-> > +	else
-> > +		val &= ~(1 << pos);
-> > +	mutex_lock(&info->pwmss_lock);
-> > +	writew(val , info->mmio_base + PWMSS_CLKCONFIG);
-> > +	mutex_unlock(&info->pwmss_lock);
-> > +}
-> > +EXPORT_SYMBOL(pwmss_submodule_state_change);
-> 
-> I see a clk_en_ack field in the clock status register. You should be checking that.
-
-Ok. I will add for check & return status from pwmss_submodule_state_change().
-
-> 
-> [...]
-> 
-> > +
-> > +MODULE_DESCRIPTION("pwmss driver");
-> > +MODULE_AUTHOR("Texas Instruments");
-> > +MODULE_LICENSE("GPL");
-> > diff --git a/drivers/pwm/tipwmss.h b/drivers/pwm/tipwmss.h
-> > new file mode 100644
-> > index 0000000..83fdc29
-> > --- /dev/null
-> > +++ b/drivers/pwm/tipwmss.h
-> > @@ -0,0 +1,8 @@
-> 
-> License text?
-
-Ok I will add.
-
-Thanks
-Avinash
->  
-> > +#ifdef CONFIG_PWM_TIPWMSS
-> > +extern void pwmss_submodule_state_change(struct device *dev, int pos,
-> > +		bool enable);
-> > +#else
-> > +static inline void pwmss_submodule_state_change(struct device *dev, int pos,
-> > +		bool enable)
-> > +{}
-> > +#endif
-> 
-> Regards,
-> Vaibhav
-> 
+Regards
+Mugunthan V N
