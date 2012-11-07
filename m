@@ -1,120 +1,84 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
-Date: Wed, 7 Nov 2012 09:06:53 +0100
-Message-ID: <B1277EA3-9284-4856-A7E8-1B1CA9D30327@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com> <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com> <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com> <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH RESEND 00/10] ARM: dts: AM33XX: Add device tree data
+Date: Wed, 7 Nov 2012 08:10:02 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA6602E@DBDE01.ent.ti.com>
+References: <1352209718-5586-1-git-send-email-anilkumar@ti.com>
+ <50992530.8030501@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:59999 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750761Ab2KGIHa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 03:07:30 -0500
-In-Reply-To: <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34231 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750768Ab2KGIKR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 03:10:17 -0500
+In-Reply-To: <50992530.8030501@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-Hi Grant,
-
-On Nov 6, 2012, at 9:45 PM, Grant Likely wrote:
-
-> On Tue, Nov 6, 2012 at 7:34 PM, Pantelis Antoniou
-> <panto@antoniou-consulting.com> wrote:
->> On Nov 6, 2012, at 12:14 PM, Grant Likely wrote:
->>> On Tue, Nov 6, 2012 at 10:30 AM, Pantelis Antoniou
->>> <panto@antoniou-consulting.com> wrote:
->>>> For hot-plugging, you need it. Whether kernel code can deal with
->>>> large parts of the DT going away... How about we use the dead
->>>> properties method and move/tag the removed modes as such, and not
->>>> really remove them.
->>> 
->>> Nodes already use krefs, and I'm thinking about making them kobjects
->>> so that they appear in sysfs and we'll have some tools to figure out
->>> when reference counts don't get decremented properly.
->>> 
->> 
->> From the little I've looked in the of code, and the drivers, it's going
->> to be pretty bad. I don't think all users take references properly, and
->> we have a big global lock for accessing the DT.
+On Tue, Nov 06, 2012 at 20:26:48, Cousson, Benoit wrote:
+> Hi Anil,
 > 
-> I'm a lot more optimistic on this front... I wrote a patch today to
-> make the change and took some measurements:
+> On 11/06/2012 02:48 PM, AnilKumar Ch wrote:
+> > Add device tree date for GPIO based various drivers matrix keypad,
+> > volume keys, push buttons and use leds accross three AM33XX devices
+> > viz EVM, BeagleBone and Starter Kit.
+> > 
+> > To make it functional this series also adds pinctrl data for all
+> > the GPIOs used by various drivers. In this series only default state
+> > pinmux/conf settings are added because of sleep/idle state pinctrl
+> > values are not available.
+> > 
+> > These patches are based on linux-omap-dt:for_3.8/dts_part2 tree and
+> > these were tested on am33xx devices according to added functionality.
+> > 
+> > Change log:
+> > 	- Rebased on for_3.8/dts_part2
 > 
-> On the versatile express qemu model I measured the free memory with
-> /proc/device-tree, with /sys/device-tree, and with both. Here's what I
-> found:
+> Thanks for the update. Applied in for_3.8/dts_part2.
 > 
-> /proc/device-tree only: 114776kB free
-> /sys/device-tree only: 114792kB free
-> both enabled: 114716kB free
+> BTW, I've just noticed that am335x-evmsk is not built with make dtbs. The target was missing from the arch/arm/boot/dts/Makefile.
 > 
-> The back of a napkin calculation indicates that on this platform
-> /proc/devicetree costs 76kB and /sys/device-tree costs 60kb. I'm happy
-> to see that using /sys instead of /proc appears to be slightly cheaper
-> which makes it easier to justify the change. The diffstat makes me
-> even happier:
+> Please find below the patch to add it.
+
+Hi Benoit,
+
+Thanks for addition. Below change is missed from evmsk patch.
+
+Thanks
+AnilKumar
+ 
+> ---
+> From 6990451aca80a5107206688308302241f799057a Mon Sep 17 00:00:00 2001
+> From: Benoit Cousson <b-cousson@ti.com>
+> Date: Tue, 6 Nov 2012 15:52:23 +0100
+> Subject: [PATCH] ARM: dts: Makefile: Add the am335x-evmsk target in dtbs list
 > 
-> arch/arm/plat-omap/Kconfig                |    1 -
-> arch/powerpc/platforms/pseries/dlpar.c    |   23 -----------
-> arch/powerpc/platforms/pseries/reconfig.c |   40 ------------------
-> drivers/of/Kconfig                        |    8 ----
-> drivers/of/base.c                         |  116
-> ++++++++++++++++++++++++++++------------------------
-> drivers/of/fdt.c                          |    5 ++-
-> fs/proc/Makefile                          |    1 -
-> fs/proc/proc_devtree.c                    |   13 +-----
-> fs/proc/root.c                            |    4 +-
-> include/linux/of.h                        |   35 ++++++++++++----
-> include/linux/proc_fs.h                   |   16 --------
-> include/linux/string.h                    |   11 +++++
-> 12 files changed, 107 insertions(+), 166 deletions(-)
+> The EVMSK was not built with the 'make dtbs' command.
+> Add the missing antry in the dts Makefile.
 > 
-
-Interesting. Not so bad then.
-
-> There are still a few odds and ends that need to be tidied up, but
-> I'll get it out for review shortly. I've not touched the sparc code
-> yet, and I need to take another look over the existing OF_DYNAMIC
-> code. I think that CONFIG_OF_DYNAMIC will probably go away and the add
-> node/property functions will get used by fdt.c and pdt.c for initial
-> construction of the device tree.
-
-CONFIG_OF_DYNAMIC never made sense to me. Glad to see the config option
-gone. I'm not totally up to date with the -next dt stuff, but if we're
-there can we rename all the prom_ functions to something saner?
-
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> ---
+>  arch/arm/boot/dts/Makefile |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
->> Adding and removing nodes at runtime as part of the normal operation of
->> the system (and not as something that happens once in a blue moon under
->> controlled conditions) will uncover lots of bugs.
+> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+> index 634bd42..2458b69 100644
+> --- a/arch/arm/boot/dts/Makefile
+> +++ b/arch/arm/boot/dts/Makefile
+> @@ -73,6 +73,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
+>  	omap4-sdp.dtb \
+>  	omap5-evm.dtb \
+>  	am335x-evm.dtb \
+> +	am335x-evmsk.dtb \
+>  	am335x-bone.dtb
+>  dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
+>  dtb-$(CONFIG_ARCH_U8500) += snowball.dtb
+> -- 
+> 1.7.0.4
 > 
-> I'm hoping so! Its time to clean that mess up. :-) Fortunately adding
-> nodes is not where we're going to have problems. The problems will be
-> on node removal. Addition-only at least means we can have something
-> useful before hunting down and squashing all the bugs.
-
-I'll admit that removing nodes is going to be quite rare at least for
-me use cases. I did come across a couple of people that do hot-plugging
-(using something completely different) that could use it for sure.
-
 > 
->> So let's think about locking too
-> 
-> Yes, the locking does need to be sorted out.
-> 
-
-Perhaps come up with a dt-stress test tool/boot time validator?
-
-> g.
-
-Regards
-
--- Pantelis
-
-P.S. Lots of teeth grinding in the ELCE about the lack of a DT preprocessor.
-The pinctrl arguments have been mentioned more than once.
-
 
