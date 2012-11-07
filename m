@@ -1,61 +1,78 @@
-From: Tony Lindgren <ton@atomide.com>
-Subject: [GIT PULL 1/1] omap fixes for v3.7-rc4
-Date: Wed, 7 Nov 2012 09:17:11 -0800
-Message-ID: <40326.3159831569$1352308652@news.gmane.org>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
+ to mach-omap2)
+Date: Wed, 07 Nov 2012 10:18:08 -0700
+Message-ID: <509A97D0.5010006@wwwdotorg.org>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <50999145.2070306@wwwdotorg.org> <5A5C45CB-CDF8-4D93-8698-46A27143ABFA@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:61628 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752940Ab2KGRRR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 12:17:17 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5A5C45CB-CDF8-4D93-8698-46A27143ABFA@antoniou-consulting.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The following changes since commit 3d70f8c617a436c7146ecb81df2265b4626dfe89:
+On 11/07/2012 01:47 AM, Pantelis Antoniou wrote:
+> Hi Stephen,
+> 
+> On Nov 6, 2012, at 11:37 PM, Stephen Warren wrote:
+> 
+>> On 11/05/2012 01:40 PM, Grant Likely wrote:
+>>> Hey folks,
+>>>
+>>> As promised, here is my early draft to try and capture what device
+>>> tree overlays need to do and how to get there. Comments and
+>>> suggestions greatly appreciated.
+>>
+>> Interesting. This just came up internally at NVIDIA within the last
+>> couple weeks, and was discussed on the U-Boot mailing list very recently
+>> too:
+>>
+>> http://lists.denx.de/pipermail/u-boot/2012-October/thread.html#138227
+>> (it spills into the November archive too)
+> 
+> I am aware of this discussion. For our use case u-boot DT manipulation was
+> tried, but then abandoned. Asking our user base to modify anything in u-boot
+> was ruled out.
+>  
+>>
+>>> For these cases it is proposed to implement an overlay feature for the
+>>> so that the initial device tree data can be modified by userspace at
+>>
+>> I don't know if you're maintaining this as a document and taking patches
+>> to it, but if so:
+>>
+>> "for the so" split across those two lines.
+>>
+>>> Jane solves this problem by storing an FDT overlay for each cape in the
+>>> root filesystem. When the kernel detects that a cape is installed it
+>>> reads the cape's eeprom to identify it and uses request_firmware() to
+>>> obtain the appropriate overlay. Userspace passes the overlay to the
+>>> kernel in the normal way. If the cape doesn't have an eeprom, then the
+>>> kernel will still use firmware_request(), but userspace needs to already
+>>> know which cape is installed.
+>>
+>> As mentioned by Pantelis, multiple versions of a board is also very
+>> common. We already have the following .dts files in the kernel where
+>> this applies, for the main board even:
+>>
+>> arch/arm/boot/dts/tegra30-cardhu.dtsi
+>> arch/arm/boot/dts/tegra30-cardhu-a02.dts
+>> arch/arm/boot/dts/tegra30-cardhu-a04.dts
+> 
+> Exactly. I've made this point in another email, but IMHO board-revision
+> management is exactly the same with cape revision management.
+> 
+> Ideally you'd like to get rid of those three, and replace it with only
+> one that's properly versioned.
 
-  Linux 3.7-rc4 (2012-11-04 11:07:39 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc4/fixes-signed
-
-for you to fetch changes up to 5dfcb3b58c6c8934dec8898827736a1e26732cdd:
-
-  Merge tag 'omap-fixes-b2-for-3.7-rc' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.7-rc4/fixes (2012-11-06 09:55:20 -0800)
-
-----------------------------------------------------------------
-
-Minor OMAP PM and hwmod fixes for v3.7-rc series via
-Kevin Hilman and Paul Walmsley.
-
-----------------------------------------------------------------
-Kevin Hilman (2):
-      ARM: OMAP2+: PM: add missing newline to VC warning message
-      ARM: OMAP4: PM: fix regulator name for VDD_MPU
-
-Miguel Vadillo (1):
-      ARM: OMAP2+: clockdomain: Fix OMAP4 ISS clk domain to support only SWSUP
-
-Paul Walmsley (2):
-      ARM: OMAP2+: hwmod: add flag to prevent hwmod code from touching IP block during init
-      ARM: OMAP4: hwmod data: do not enable or reset the McPDM during kernel init
-
-Tero Kristo (1):
-      ARM: OMAP: hwmod: wait for sysreset complete after enabling hwmod
-
-Tony Lindgren (2):
-      Merge tag 'for_3.7-rc5-fixes-pm' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.7-rc4/fixes
-      Merge tag 'omap-fixes-b2-for-3.7-rc' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.7-rc4/fixes
-
- arch/arm/mach-omap2/clockdomains44xx_data.c  |  2 +-
- arch/arm/mach-omap2/omap_hwmod.c             | 63 +++++++++++++++++++++-------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  8 ++++
- arch/arm/mach-omap2/twl-common.c             |  2 +-
- arch/arm/mach-omap2/vc.c                     |  2 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |  6 +++
- 6 files changed, 66 insertions(+), 17 deletions(-)
+I don't expect we would ever get rid of some of those .dts files; there
+is after all a common subset that applies to all boards, and an
+incremental difference that applies to only A02/3, and another for
+A04/5/... Representing those as separate source files seems appropriate
+to me. If we try and dump all the multiple versions into a single file
+with some markup indicating which version of the board some sub-sections
+of the .dts apply to, I think we'll end up with rather complex .dts
+files. In this case, the simple overlay model works extremely well.
