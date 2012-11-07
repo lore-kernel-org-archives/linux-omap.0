@@ -1,74 +1,36 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 1/3] omap gpmc : add support of setting CYCLE2CYCLEDELAY
- and BUSTURNAROUND
-Date: Wed, 7 Nov 2012 08:58:51 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA0E2D6@DBDE01.ent.ti.com>
-References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
- <5099478A.50901@ti.com> <5099504A.5060505@parrot.com>
- <5099743B.3040804@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 0/3] OMAPDSS: APPLY: Misc Fixes
+Date: Wed, 7 Nov 2012 14:47:21 +0530
+Message-ID: <1352279844-10494-1-git-send-email-archit@ti.com>
+References: <n>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47863 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492Ab2KGI7H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 03:59:07 -0500
-In-Reply-To: <5099743B.3040804@ti.com>
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37202 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751573Ab2KGJRs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 04:17:48 -0500
+In-Reply-To: <n>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>, Matthieu CASTET <matthieu.castet@parrot.com>, Tony Lindgren <tony@atomide.com>, Daniel Mack <zonque@gmail.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>
+To: tomi.valkeinen@ti.com
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-KyBUb255LCBEYW5pZWwNCg0KSGksDQoNCk9uIFdlZCwgTm92IDA3LCAyMDEyIGF0IDAyOjA0OjAz
-LCBIdW50ZXIsIEpvbiB3cm90ZToNCj4gT24gMTEvMDYvMjAxMiAxMjowMCBQTSwgTWF0dGhpZXUg
-Q0FTVEVUIHdyb3RlOg0KDQo+ID4gSSB3aWxsIHBvc3QgYW5vdGhlciBwYXRjaCwgdW5sZXNzIHRo
-aXMgaXMgYWxyZWFkeSBkb25lIGluICBBZnphbCBwYXRjaCAoSXMgdGhlcmUNCj4gPiBhIHRyZWUg
-d2hlcmUgSSBjYW4gZ2V0IEFmemFsIHBlbmRpbmcgcGF0Y2hlcyA/KQ0KDQo+IEFmemFsIGtlZXBz
-IGhpcyBrZXJuZWwgdHJlZSBvbiBnaXRvcmlvdXMgWzFdLiBIb3dldmVyLCBJIGFtIG5vdCBzdXJl
-DQo+IHdoYXQgQWZ6YWwncyBwbGFucyBhcmUgZm9yIHRoZSByZW1haW5pbmcgcGF0Y2hlcyBub3Qg
-eWV0IG1lcmdlZCBhbmQNCj4gd2hpY2ggYnJhbmNoIHlvdSBzaG91bGQgbG9vayBhdCAoSSBoYXZl
-IGEgbG90IG9mIHByb2JsZW1zIHZpZXdpbmcNCj4gYW55dGhpbmcgb24gZ2l0b3Jpb3VzIHRoZXNl
-IGRheXMpLg0KPiANCj4gQWZ6YWwsIGxldCB1cyBrbm93IGhvdyB5b3UgcHJlZmVyIHRvIGhhbmRs
-ZSB0aGlzLg0KDQpNeSBpbml0aWFsIHBsYW4gd2FzIHRvIGRvIHRpbWluZyByZWxhdGVkIGNoYW5n
-ZXMgZmlyc3QgYW5kIHRoZW4gZHQNCmNvbnZlcnNpb24uIEJ1dCBhdCB0aGUgcHJlc2VudCBtb21l
-bnQsIGl0IHNlZW1zIGhpZ2hlciBwcmlvcml0eSBoYXMNCnRvIGJlIGdpdmVuIGZvciBkdCBjb252
-ZXJzaW9uIG92ZXIgdGltaW5nIGNoYW5nZXMgKGl0IGludm9sdmVzDQp1c2luZyBnZW5lcmljIHRp
-bWluZyByb3V0aW5lIGZvciBhbGwgcmVxdWlyZWQgZ3BtYyBwZXJpcGhlcmFscywNCmhhbmRsaW5n
-IGFkZGl0aW9uYWwgdGltaW5ncyBpbmNsdXNpdmUgb2YgJHN1YmplY3QpIGFuZCBoZW5jZSB0aW1p
-bmcNCnJlbGF0ZWQgY2hhbmdlcyB3ZXJlIHB1dCBpbiBzdXNwZW5kZWQgYW5pbWF0aW9uIGZvciBu
-b3cuDQoNCkFuZCBEYW5pZWwgaGFzIHN0YXJ0ZWQgd29ya2luZyBvbiBncG1jIGR0LiBMZXQgdXMg
-dGFrZSBUb255J3MNCm9waW5pb24gb24gaG93IHRvIGRlYWwgd2l0aCB0aGlzLCBUb255ID8NCg0K
-Rm9sbG93aW5nIGFyZSB0aGUgcGVuZGluZyBjaGFuZ2VzIHcuci50IHRpbWluZyBhdmFpbGFibGUg
-QFsxXQ0KKHBsZWFzZSBub3RlIHRoYXQgdGhlc2Ugd291bGQgaGF2ZSB0byBiZSByZWJhc2VkIG92
-ZXIgYnJhbmNoL3RhZw0Kc3BlY2lmaWVkIGJ5IFRvbnkgaW4gcmVwbHkgdG8gTWF0dGhpZXUncyBw
-YXRjaCAzLzMpDQphLiBkNDJlYWZhIEFSTTogT01BUDIrOiBuYW5kOiByZW1vdmUgcmVkdW5kYW50
-IHJvdW5kaW5nDQpiLiBmMjI5YWJhIEFSTTogT01BUDIrOiBncG1jOiBoYW5kbGUgYWRkaXRpb25h
-bCB0aW1pbmdzDQpjLiAxNGNiYjg3IEFSTTogT01BUDIrOiBncG1jOiBnZW5lcmljIHRpbWluZyBj
-YWxjdWxhdGlvbg0KZC4gOTgzMDI2NCBBUk06IE9NQVAyKzogb25lbmFuZDogZ2VuZXJpYyB0aW1p
-bmcgY2FsY3VsYXRpb24NCmUuIDVmMzNlYTUgQVJNOiBPTUFQMis6IHNtYzkxeDogZ2VuZXJpYyB0
-aW1pbmcgY2FsY3VsYXRpb24NCmYuIDk4NzYwMjAgQVJNOiBPTUFQMis6IHR1c2I2MDEwOiBnZW5l
-cmljIHRpbWluZyBjYWxjdWxhdGlvbiAoSEVBRCkNCg0KJ2InIGlzIGEgc3VwZXJzZXQgb2YgJHN1
-YmplY3QNCg0KT3JpZ2luYWxseSAnYScgYW5kICdiJyB3YXMgcGFydCBvZiBncG1jIGNsZWFudXAg
-c2VyaWVzIGZvciBjb21tb24NCnpJbWFnZSwgdGhlbiBUb255IHJlcXVlc3RlZCBmb3IgbWluaW1h
-bCBjaGFuZ2VzIGZvciBpdCwgaGVuY2UNCidhJyAmICdiJyB3YXMgbGVmdCBvdXQgaW4gdGhlIHB1
-bGwgcmVxdWVzdCAocGlja2VkIHVwIGJ5IFRvbnkpLA0Kc28gdGhhdCBncG1jIGNvbW1vbiB6SW1h
-Z2UgY2xlYW51cCBzZXJpZXMgd291bGQgbm90IGNyZWF0ZSBhbnkNCnRpbWluZyByZWxhdGVkIGlz
-c3Vlcy4NCg0KT25lIHRoaW5nIHRvIG5vdGUgaXMgdGhhdCBjeWNsZTJjeWNsZWRlbGF5IGFuZCBi
-dXN0dXJuYXJvdW5kIGZpZWxkJ3MNCndvdWxkIGdldCB6ZXJvZWQgb3V0IHdpdGggJHN1YmplY3Qg
-cGF0Y2ggZm9yIHRob3NlIHBlcmlwaGVyYWwncyB0aGF0DQpjYWxsIGdwbWNfY3Nfc2V0X3RpbWlu
-Z3MoKS4gSWYgdGhlcmUgYXJlIGFueSBib2FyZHMgc2lsZW50bHkNCmRlcGVuZGluZyBvbiBib290
-bG9hZGVyIHNldHRpbmcgdGhlc2UgdmFsdWVzLCBpdCBtYXkgYmUgYWZmZWN0ZWQsIHNvDQp0aGlz
-IGNoYW5nZSB3b3VsZCBuZWVkIHRvIGJlIHZlcmlmaWVkIGZvciBleGlzdGluZyBib2FyZHMgaW4g
-bWFpbmxpbmUuDQoNClBlcmhhcHMgJ2InIChmb3IgJHN1YmplY3QgcGF0Y2gpIGNhbiBiZSB0YWtl
-biBhaGVhZCBpZiBUb255IGlzDQpoYXBweSB3aXRoIGl0Lg0KDQpBbmQgcmVnYXJkaW5nIHBhdGNo
-ZXMgMiAmIDMgb2YgTWF0dGhpZXUncyBzZXJpZXMgdGhhdCBjYWxjdWxhdGUNCnRpbWluZ3MsIEkg
-d2FzIHdvbmRlcmluZyB3aGV0aGVyIGdlbmVyaWMgdGltaW5nIHJvdXRpbmUgKGMpIGNhbg0KbGVh
-cm4gZnJvbSBpdCBhcyB3ZWxsIGFzIHZpY2UtdmVyc2EuIEFsc28gd2l0aCBncG1jIGNvbW1vbiB6
-SW1hZ2UNCnNlcmllcywgb21hcC1uYW5kIGRyaXZlciBkb2VzIG5vdCBoYXZlIGFjY2VzcyB0byB0
-aW1pbmcgcmVsYXRlZA0KZ3BtYyBmdW5jdGlvbnMsIGEgbmV3IGdwbWMgZnVuY3Rpb24gd291bGQg
-aGF2ZSB0byBiZSBleHBvcnRlZA0KdGhhdCB0cmFuc2xhdGVzIG9uZmkgdGltaW5ncyB0byBncG1j
-IChvciBlZHVjYXRlIGdlbmVyaWMgdGltaW5nDQpyb3V0aW5lIHdpdGggb25maSB0cmFuc2xhdGlv
-biB0b28gPykNCg0KUmVnYXJkcw0KQWZ6YWwNCg0KW2FdIGdpdDovL2dpdG9yaW91cy5vcmcveDAx
-NDg0MDYtcHVibGljL2xpbnV4LWtlcm5lbC5naXQgZ3BtYy10aW1pbmcNCg0K
+This series resolves a few minor issues with APPLY. Tested on a 4430sdp, checked
+switching overlays between DSI command mode and HDMI displays for any unexpected
+behavior.
+
+Reference tree:
+git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git 3.8/apply_fixes
+
+Archit Taneja (3):
+  OMAPDSS: APPLY: Don't treat an overlay's channel out as shadow bits
+  OMAPDSS: APPLY: Remove unnecessary variable in dss_apply_irq_handler
+  OMAPDSS: APPLY: Remove unnecessary call to mg_clear_shadow_dirty
+
+ drivers/video/omap2/dss/apply.c |   48 +++++++++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 22 deletions(-)
+
+-- 
+1.7.9.5
+
