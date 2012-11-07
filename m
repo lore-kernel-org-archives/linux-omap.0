@@ -1,66 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND] [PATCH 3.6.0- 1/6] ARM/omap1: use
- module_platform_driver macro
-Date: Tue, 6 Nov 2012 17:21:53 -0800
-Message-ID: <20121107012153.GA6801@atomide.com>
-References: <1350025868-30482-1-git-send-email-srinivas.kandagatla@st.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP: voltage: move voltdm_reset to
+ platform_data header
+Date: Tue, 6 Nov 2012 19:28:38 -0600
+Message-ID: <20121107012838.GA13630@kahuna>
+References: <1352127734-30103-1-git-send-email-nm@ti.com>
+ <1352127734-30103-5-git-send-email-nm@ti.com>
+ <20121106184935.GL6801@atomide.com>
+ <20121106214819.GA16246@kahuna>
+ <20121107011808.GZ6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:16159 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753314Ab2KGBWC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:22:02 -0500
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1350025868-30482-1-git-send-email-srinivas.kandagatla@st.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20121107011808.GZ6801@atomide.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Rafael <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbouatmailru@gmail.com>, linux-pm <linux-pm@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Cc: paul@pwsan.com, rnayak@ti.com, Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, grinberg@compulab.co.il, eric.y.miao@gmail.com, linux-arm-kernel@lists.infradead.org, juha.yrjola@nokia.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, dsaxena@plexity.net, mpm@selenic.com, herbert@gondor.apana.org.au
 
-* Srinivas KANDAGATLA <srinivas.kandagatla@st.com> [121012 00:14]:
-> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+On 17:18-20121106, Tony Lindgren wrote:
+> * Nishanth Menon <nm@ti.com> [121106 13:50]:
+> > On 10:49-20121106, Tony Lindgren wrote:
+> > > 
+> > > Looks like there are other things there too that's not platform data:
+> > > 
+> > > struct voltagedomain *voltdm_lookup(const char *name);
+> > > int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
+> > > unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
+> > > struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+> > > 		unsigned long volt);
+> > > 
+> > > Can you please add a patch fixing that ASAP?
+> > 
+> > Agreed include/linux/platform_data/voltage-omap.h has more functions as well.
+> > Considering it did:
+> > rename arch/arm/plat-omap/include/plat/voltage.h =>
+> > include/linux/platform_data/voltage-omap.h
+> > 
+> > Where do we move these functions to?
+> > 
+> > drivers/power/avs/smartreflex.c needs:
+> > omap_voltage_get_voltdata
+> > and
+> > drivers/power/avs/smartreflex-class3.c
+> > will need voltdm_reset and voltdm_get_voltage
 > 
-> This patch removes some code duplication by using
-> module_platform_driver.
-
-Sorry for delay on these, we're moving the mailbox code to
-live under drivers, so these may need to wait a little bit.
-
+> How about something local drivers/power/avs/smartreflex.h?
+These APIs are exposed by voltage layer, not smartreflex :(
+stuff like voltdm_scale will have to be used by regulator logic
+eventually, so moving to AVS driver header is probably not right.
+-- 
 Regards,
-
-Tony
- 
-> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> ---
->  arch/arm/mach-omap1/mailbox.c |   14 +-------------
->  1 files changed, 1 insertions(+), 13 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
-> index e962926..45c8719 100644
-> --- a/arch/arm/mach-omap1/mailbox.c
-> +++ b/arch/arm/mach-omap1/mailbox.c
-> @@ -179,19 +179,7 @@ static struct platform_driver omap1_mbox_driver = {
->  		.name	= "omap-mailbox",
->  	},
->  };
-> -
-> -static int __init omap1_mbox_init(void)
-> -{
-> -	return platform_driver_register(&omap1_mbox_driver);
-> -}
-> -
-> -static void __exit omap1_mbox_exit(void)
-> -{
-> -	platform_driver_unregister(&omap1_mbox_driver);
-> -}
-> -
-> -module_init(omap1_mbox_init);
-> -module_exit(omap1_mbox_exit);
-> +module_platform_driver(omap1_mbox_driver);
->  
->  MODULE_LICENSE("GPL v2");
->  MODULE_DESCRIPTION("omap mailbox: omap1 architecture specific functions");
-> -- 
-> 1.7.0.4
-> 
+Nishanth Menon
