@@ -1,37 +1,73 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V2 04/14] ARM: OMAP: Fix timer posted mode support
-Date: Wed, 7 Nov 2012 16:21:07 -0600
-Message-ID: <509ADED3.1050901@ti.com>
-References: <1352314890-22224-1-git-send-email-jon-hunter@ti.com> <1352314890-22224-5-git-send-email-jon-hunter@ti.com>
+Subject: Re: [PATCH V2 00/14] ARM: OMAP: DMTIMER fixes
+Date: Wed, 7 Nov 2012 16:27:52 -0600
+Message-ID: <509AE068.7040401@ti.com>
+References: <1352314890-22224-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45994 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39563 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753688Ab2KGWVK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 17:21:10 -0500
-In-Reply-To: <1352314890-22224-5-git-send-email-jon-hunter@ti.com>
+	id S1752506Ab2KGW17 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 17:27:59 -0500
+In-Reply-To: <1352314890-22224-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Wednesday 07 November 2012 01:01 PM, Jon Hunter wrote:
-> Currently the dmtimer posted mode is being enabled when the function
-> omap_dm_timer_enable_posted() is called. This function is only being called
-> for OMAP1 timers and OMAP2+ timers that are being used as system timers. Hence,
-> for OMAP2+ timers that are NOT being used as a system timer, posted mode is
-> not enabled but the "timer->posted" variable is still set (incorrectly) in
-> the omap_dm_timer_prepare() function.
->
-> This is a regression introduced by commit 3392cdd3 (ARM: OMAP: dmtimer:
-> switch-over to platform device driver) which was before the
-> omap_dm_timer_enable_posted() function was introduced. Although this is a
-> regression from the original code it only impacts performance and so is not
-> needed for stable.
->
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Jon,
 
+On Wednesday 07 November 2012 01:01 PM, Jon Hunter wrote:
+> This series includes several fixes for the OMAP DMTIMER driver. This is
+> based upon 3.7-rc4 with the two series adding device-tree support for
+> DMTIMERs [1] and the 32kHz Counter [2]
+>
+> Tested on OMAP5912 OSK, OMAP2420 H4, OMAP3430 Beagle and OMAP4430 Panda.
+> Testing includes ...
+> 1. Booting kernel on above boards
+> 2. Set date and ensuring time of day is correct after 24 hours
+> 3. Checking the timer counter is incrementing when configuring and starting
+>     a timer
+> 4. Checking the timer overflow interrupt when timer expires.
+> 5. Using different clock sources to operate the timer with.
+> 6. Running a loop test overnight that continually runs test #3 and #4 for
+>     each available timer
+>
+> This has also been boot tested on the AM335x Beagle Bone.
+>
+> [1] http://marc.info/?l=linux-omap&m=135065875808614&w=2
+> [2] http://marc.info/?l=linux-omap&m=135119308123513&w=2
+>
+> Jon Hunter (14):
+>    ARM: OMAP: Add DMTIMER definitions for posted mode
+>    ARM: OMAP2+: Disable posted mode for the clocksource timer
+>    ARM: OMAP3+: Implement timer workaround for errata i103 and i767
+>    ARM: OMAP: Fix timer posted mode support
+>    ARM: OMAP3: Correct HWMOD DMTIMER SYSC register declarations
+>    ARM: OMAP2/3: Define HWMOD software reset status for DMTIMERs
+>    ARM: OMAP2+: Don't use __omap_dm_timer_reset()
+>    ARM: OMAP: Fix dmtimer reset for timer1
+>    ARM: OMAP: Don't restore of DMTIMER TISTAT register
+>    ARM: OMAP: Don't restore DMTIMER interrupt status register
+>    ARM: OMAP: Fix spurious interrupts when using timer match feature
+>    ARM: OMAP: Add dmtimer interrupt disable function
+>    ARM: OMAP: Remove unnecessary call to clk_get()
+>    ARM: OMAP: Remove __omap_dm_timer_set_source function
+>
+>   arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   15 ++-
+>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   41 +++---
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    4 +
+>   arch/arm/mach-omap2/timer.c                        |   73 ++++++++---
+>   arch/arm/plat-omap/dmtimer.c                       |  132 +++++++++++++++-----
+>   arch/arm/plat-omap/include/plat/dmtimer.h          |   47 ++++---
+>   6 files changed, 215 insertions(+), 97 deletions(-)
+>
+Nice work. Apart from some minor comments, this series looks pretty
+good to me.
+
+Feel free to add my ack for entire series.
+
+Regards
+Santosh
