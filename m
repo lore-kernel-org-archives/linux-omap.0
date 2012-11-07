@@ -1,139 +1,72 @@
-From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Wed, 7 Nov 2012 23:10:34 +0100
-Message-ID: <37BFD75A-5A27-4E3F-A494-A0707E48B236@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
- <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com>
- <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
- <5ED17D42-07B8-4D4F-B54F-82B4CC60584C@antoniou-consulting.com>
- <509A3595.7050600@ti.com> <509A9984.3000709@wwwdotorg.org>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset="us-ascii"
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V2 01/14] ARM: OMAP: Add DMTIMER definitions for posted
+ mode
+Date: Wed, 7 Nov 2012 16:11:37 -0600
+Message-ID: <509ADC99.3020106@ti.com>
+References: <1352314890-22224-1-git-send-email-jon-hunter@ti.com> <1352314890-22224-2-git-send-email-jon-hunter@ti.com> <509ADAFE.4070109@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <509A9984.3000709-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57929 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188Ab2KGWLk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 17:11:40 -0500
+In-Reply-To: <509ADAFE.4070109@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Stephen,
 
-On Nov 7, 2012, at 6:25 PM, Stephen Warren wrote:
+On 11/07/2012 04:04 PM, Santosh Shilimkar wrote:
+> On Wednesday 07 November 2012 01:01 PM, Jon Hunter wrote:
+>> For OMAP2+ devices, when using DMTIMERs for system timers
+>> (clock-events and
+>> clock-source) the posted mode configuration of the timers is used. To
+>> allow
+>> the compiler to optimise the functions for configuring and reading the
+>> system
+>> timers, the posted flag variable is hard-coded with the value 1. To
+>> make it
+>> clear that posted mode is being used add some definitions so that it
+>> is more
+>> readable.
+>>
+>> Add separate definitions for the clock-events and clock-source timers
+>> so that
+>> we can change the posted mode of clock-events and clock-source
+>> independently.
+>>
+>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/timer.c               |   26
+>> +++++++++++++++++++-------
+>>   arch/arm/plat-omap/include/plat/dmtimer.h |    4 ++++
+>>   2 files changed, 23 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>> index 0758bae..28c6078 100644
+>> --- a/arch/arm/mach-omap2/timer.c
+>> +++ b/arch/arm/mach-omap2/timer.c
+>> @@ -82,6 +82,13 @@
+>>   #define INCREMENTER_DENUMERATOR_RELOAD_OFFSET        0x14
+>>   #define NUMERATOR_DENUMERATOR_MASK            0xfffff000
+>>
+>> +/*
+>> + * For clock-events timer, always use posted mode to
+>> + * minimise CPU overhead for configuring the timer.
+>> + */
+>> +#define OMAP_CLKEVT_POSTEDMODE    OMAP_TIMER_POSTED
+>> +#define OMAP_CLKSRC_POSTEDMODE    OMAP_TIMER_POSTED
+>> +
+> I don't see need of above defines. Just use OMAP_TIMER_POSTED directly
+> with API. Rest of the patch looks fine.
 
-> On 11/07/2012 03:19 AM, Benoit Cousson wrote:
->> Hi Panto,
->> 
->> On 11/07/2012 09:13 AM, Pantelis Antoniou wrote:
->>> Hi Grant
->>> 
->>> On Nov 6, 2012, at 9:45 PM, Grant Likely wrote:
->>> 
->>>> On Tue, Nov 6, 2012 at 7:34 PM, Pantelis Antoniou
->>>> <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> wrote:
->>> 
->>> [ snip ]
->>>> 
->>>> g.
->>> 
->>> Since we've started talking about longer term goals, and the versioning
->>> provision seems to stand, I hope we address how much the fragment versioning
->>> thing is similar to the way board revisions progress.
->>> 
->>> If a versioning syntax is available then one could create a single DT 
->>> file for a bunch of 'almost' similar board and board revisions.
->> 
->> I even think that the version issue is probably much more important for the short term than the overlay aspect. Well at least as important. We start having as well a bunch a panda board version with different HW setup.
->> 
->> Having a single board-XXX.dts that will support all these versions is probably the best approach to avoid choosing that from the bootloader.
->> 
->> We need to figure out a format + mechanism compatible with the current non-versioned format to allow filtering the nodes at runtime to keep only the relevant one.
->> 
->> Something that can find the driver that will provide the proper board version or subsystem version or whatever like that:
->> 
->> 	compatible-version = "ti,panda-version", "panda";
->> 
->> Then at runtime we should create only the node with the correct match between the driver version and the string version.
->> 
->> 
->> /* regular panda audio routing */
->> sound: sound {
->> 	compatible = "ti,abe-twl6040";
->> 	ti,model = "PandaBoard";
->> 	compatible-version = "ti,panda-version", "panda";
->> 
->> 	/* Audio routing */
->> 	ti,audio-routing =
->> 		"Headset Stereophone", "HSOL",
->> 		"Headset Stereophone", "HSOR",
->> 		"Ext Spk", "HFL",
->> 		"Ext Spk", "HFR",
->> 		"Line Out", "AUXL",
->> 		"Line Out", "AUXR",
->> 		"HSMIC", "Headset Mic",
->> 		"Headset Mic", "Headset Mic Bias",
->> 		"AFML", "Line In",
->> 		"AFMR", "Line In";
->> };
->> 
->> 
->> /* Audio routing is different between PandaBoard4430 and PandaBoardES */
->> &sound {
->> 	ti,model = "PandaBoardES";
->> 	compatible-version = "ti,panda-version", "panda-es";
->> 
->> 	/* Audio routing */
->> 	ti,audio-routing =
->> 		"Headset Stereophone", "HSOL",
->> 		"Headset Stereophone", "HSOR",
->> 		"Ext Spk", "HFL",
->> 		"Ext Spk", "HFR",
->> 		"Line Out", "AUXL",
->> 		"Line Out", "AUXR",
->> 		"AFML", "Line In",
->> 		"AFMR", "Line In";
->> };
->> 
->> 
->> Maybe some extra version match table can just be passed during the board machine_init 
->> 
->> 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL, panda_version_match_table);
-> 
-> Is the only difference here the content of the ti,audio-routing
-> property? If so, then I don't think there's any need for infra-structure
-> for this; the driver code already reads that property and adjusts its
-> behaviour based upon it.
-> 
-> I do see that "Headset Mic" exists only in one of the tables above.
-> Perhaps the driver could scan the routing table, and only create the
-> ASoC object for the headset if it's mentioned in the routing table?
-> 
-> If there are additional differences, then you can always use the .data
-> field in of_device_id to automatically associate some configuration data
-> with different compatible values.
-> 
-> Even better might be to extend the binding so that all HW differences
-> are represented explicitly as properties; that way you wouldn't even
-> need different compatible values.
+Yes that's possible, however, in patch #2, I am disabling posted mode
+for clock-source (see changelog of patch #2 for details). Having these
+#defines makes it easier to change the posted configuration. That was
+the real motivation here.
 
-I think that perhaps the choice of the SoC specific driver was unfortunate.
-
-There are cases where a standard driver should be configured differently
-depending on the board revision/model. In that case per-revision 
-driver changes are out of the question.
-
-Regards
-
--- Pantelis
+Cheers
+Jon
