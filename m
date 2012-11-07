@@ -1,71 +1,43 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
-Date: Wed, 7 Nov 2012 12:23:25 +0100
-Message-ID: <4F38B158-14F7-474E-8232-F455177E774C@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com> <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com> <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com> <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com> <5ED17D42-07B8-4D4F-B54F-82B4CC60584C@antoniou-consulting.com> <509A3595.7050600@ti.com> <A6697FB9-3614-4027-A71B-59C7556005BF@antoniou-consulting.com> <509A4232.9090709@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <509A4232.9090709@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH -next] ARM: OMAP2+: remove duplicated include from board-overo.c
+Date: Wed, 7 Nov 2012 20:53:49 +0800
+Message-ID: <CAPgLHd9ZWdBzaM15ZBckZUGwSq-xcMncFayUrLtWjs0V+QYeqg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:48605 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753419Ab2KGMxt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 07:53:49 -0500
+Received: by mail-qa0-f46.google.com with SMTP id n12so418646qat.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Nov 2012 04:53:49 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux@arm.linux.org.uk
+Cc: yongjun_wei@trendmicro.com.cn, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Benoit,
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-On Nov 7, 2012, at 12:12 PM, Benoit Cousson wrote:
+Remove duplicated include.
 
-> On 11/07/2012 12:02 PM, Pantelis Antoniou wrote:
->> Hi Benoit,
->> 
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
 
-[snip]
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ arch/arm/mach-omap2/board-overo.c | 1 -
+ 1 file changed, 1 deletion(-)
 
->> I don't know if this breaks any conventions but seems to work fine for our case.
-> 
-> Yeah, my main concern with that approach is that you change the
-> structure of the tree by adding an extra node/hierarchy that will not be
-> there in case of non-versioned tree.
-> That's why I think we should have something lighter that will not change
-> the structure.
-> Ideally we should be able to add extra versioned node to the original
-> dts without changing it at all.
-> 
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 1cfb037..f5ba43f 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -45,7 +45,6 @@
+ #include <asm/mach/flash.h>
+ #include <asm/mach/map.h>
+ 
+-#include "common.h"
+ #include <video/omapdss.h>
+ #include <video/omap-panel-generic-dpi.h>
+ #include <video/omap-panel-tfp410.h>
 
-You will still need the versioned nodes to be injected to the non-versioned
-ones. FWIW the driver will use the standard of_property_read_* interface.
-
-You can patch of_property_read to hide the version node matching, and it will
-work.
-
-I'll leave Grant answer what approach is better, I don't claim to have the insight
-to handle all cases.
-
->>> Maybe some extra version match table can just be passed during the board machine_init 
->>> 
->>> 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL, panda_version_match_table);
->>> 
->> 
->> Would we need explicit of_platform_populate calls if we have node modification notifiers?
->> In that case the notifier would pick it up automatically, and can do the per
->> version matching internally.
-> 
-> Yes indeed, but here I was thinking about an intermediate step, i.e.
-> now, without any dynamic node insertion mechanism.
-> Thanks to this simple approach, when can already fix the board
-> versionning problem.
-> 
-
-As I pointed, with a kind of injection mechanism. the versioned node contents end up in
-the proper place in the device tree.
-Your method will work in a much more simpler way.
-
-> Regards,
-> Benoit
-> 
-
-Regards
-
--- Pantelis
