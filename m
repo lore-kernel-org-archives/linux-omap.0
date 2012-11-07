@@ -1,57 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL] ARM: OMAP: second set of PRCM cleanups for 3.8
-Date: Wed, 7 Nov 2012 02:39:07 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211070227500.8758@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1211011216130.26661@utopia.booyaka.com> <20121106220833.GQ6801@atomide.com> <alpine.DEB.2.00.1211070150100.8758@utopia.booyaka.com> <20121107015841.GC6801@atomide.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH] OMAPDSS: HDMI: Remove __exit macro from hdmi_uninit_display
+Date: Tue, 6 Nov 2012 21:37:14 -0600
+Message-ID: <1352259434-21196-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:45224 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752619Ab2KGCjI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 21:39:08 -0500
-In-Reply-To: <20121107015841.GC6801@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40205 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752619Ab2KGCjn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Nov 2012 21:39:43 -0500
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id qA72dhOw013263
+	for <linux-omap@vger.kernel.org>; Tue, 6 Nov 2012 20:39:43 -0600
+Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id qA72dhVA008219
+	for <linux-omap@vger.kernel.org>; Tue, 6 Nov 2012 20:39:43 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
-On Tue, 6 Nov 2012, Tony Lindgren wrote:
+This function is now used in the driver init path to handle
+probe errors properly. Thus, it may be possible to use this function
+outside the exit path.
 
-> * Paul Walmsley <paul@pwsan.com> [121106 17:54]:
-> > On Tue, 6 Nov 2012, Tony Lindgren wrote:
-> > 
-> > > ..now wondering which configs do not build for you at 7fc54fd3?
-> > > 
-> > > It builds at least all my test configs. Well at least the ones
-> > > I have recovered after accidentally deleting some files yesterday,
-> > > did not have a back up copy of two of them.
-> 
-> The build errors you are talking about are the ones I already pulled
-> into one of the cleanup branches, right? If so, that's fine.
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+---
+ drivers/video/omap2/dss/hdmi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The build logs I sent were for the "ARM: OMAP: second set of PRCM 
-cleanups for 3.8" branch.  The last commit in that branch is 
-f17d60d20eb8e679cdd1e9d507394237e58ce0d8 and it is based on 	
-7fc54fd3084457c7f11b9e2e1e3fcd19a3badc33.  That one builds cleanly.
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 0c2f35b..6cf2fe2 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -365,7 +365,7 @@ static int __init hdmi_init_display(struct omap_dss_device *dssdev)
+ 	return 0;
+ }
+ 
+-static void __exit hdmi_uninit_display(struct omap_dss_device *dssdev)
++static void hdmi_uninit_display(struct omap_dss_device *dssdev)
+ {
+ 	DSSDBG("uninit_display\n");
+ 
+-- 
+1.7.5.4
 
-If you're asking for a test build of the base commit, 
-7fc54fd3084457c7f11b9e2e1e3fcd19a3badc33, I just kicked off a test build 
-of that; will post when done.
-
-> > Maybe the versions of the rmk configs you're using are different than 
-> > mine?  The ones here were updated during the v3.6 -> v3.7-rc1 transition.
-> > You can find mine at:
-> > 
-> > http://www.pwsan.com/omap/testlogs/prcm_cleanup_b_3.8/20121101044824/build/rmk_omap3430_ldp_oldconfig/rmk_omap3430_ldp_oldconfig
-> > 
-> > http://www.pwsan.com/omap/testlogs/prcm_cleanup_b_3.8/20121101044824/build/rmk_omap4430_sdp_oldconfig/rmk_omap4430_sdp_oldconfig
-> 
-> I'm getting errors with the allnoconfig ones, there are total four
-> omap defconfigs there not counting the randconfigs.
-
-That might indeed explain the discrepancy; so far only have been building 
-his oldconfig seeds here.  Will add his allnoconfig seeds and test again.
-
-
-- Paul
