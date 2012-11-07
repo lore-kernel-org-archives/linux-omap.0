@@ -1,67 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP: voltage: move voltdm_reset to
- platform_data header
-Date: Tue, 6 Nov 2012 17:46:09 -0800
-Message-ID: <20121107014608.GB6801@atomide.com>
-References: <1352127734-30103-1-git-send-email-nm@ti.com>
- <1352127734-30103-5-git-send-email-nm@ti.com>
- <20121106184935.GL6801@atomide.com>
- <20121106214819.GA16246@kahuna>
- <20121107011808.GZ6801@atomide.com>
- <20121107012838.GA13630@kahuna>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40209 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752027Ab2KGBqL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:46:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20121107012838.GA13630@kahuna>
-Sender: linux-omap-owner@vger.kernel.org
+From: Joshua Emele <jemele@gmail.com>
+Subject: [PATCH 0/4] cpufreq: OMAP: if available, scale the iva coprocessor
+Date: Tue,  6 Nov 2012 17:47:37 -0800
+Message-ID: <1352252861-18384-1-git-send-email-jemele@gmail.com>
+Return-path: <cpufreq-owner@vger.kernel.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Joshua Emele <jemele@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Rafael <rjw@sisk.pl>, Kevin Hilman <khilman@ti.com>, Anton Vorontsov <cbouatmailru@gmail.com>, linux-pm <linux-pm@vger.kernel.org>
 
-* Nishanth Menon <nm@ti.com> [121106 17:30]:
-> On 17:18-20121106, Tony Lindgren wrote:
-> > * Nishanth Menon <nm@ti.com> [121106 13:50]:
-> > > On 10:49-20121106, Tony Lindgren wrote:
-> > > > 
-> > > > Looks like there are other things there too that's not platform data:
-> > > > 
-> > > > struct voltagedomain *voltdm_lookup(const char *name);
-> > > > int voltdm_scale(struct voltagedomain *voltdm, unsigned long target_volt);
-> > > > unsigned long voltdm_get_voltage(struct voltagedomain *voltdm);
-> > > > struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
-> > > > 		unsigned long volt);
-> > > > 
-> > > > Can you please add a patch fixing that ASAP?
-> > > 
-> > > Agreed include/linux/platform_data/voltage-omap.h has more functions as well.
-> > > Considering it did:
-> > > rename arch/arm/plat-omap/include/plat/voltage.h =>
-> > > include/linux/platform_data/voltage-omap.h
-> > > 
-> > > Where do we move these functions to?
-> > > 
-> > > drivers/power/avs/smartreflex.c needs:
-> > > omap_voltage_get_voltdata
-> > > and
-> > > drivers/power/avs/smartreflex-class3.c
-> > > will need voltdm_reset and voltdm_get_voltage
-> > 
-> > How about something local drivers/power/avs/smartreflex.h?
-> These APIs are exposed by voltage layer, not smartreflex :(
-> stuff like voltdm_scale will have to be used by regulator logic
-> eventually, so moving to AVS driver header is probably not right.
+The iva coprocessor, available on some omap platforms, shares a voltage domain
+with the mpu. If cpufreq is active and the mpu processor is scaled down, the iva
+coprocessor should also be scaled. The goal is to make sure we do not ramp down
+the voltage on the domain and affect clocking on the iva coprocessor leading to
+a dsp crash.
 
-Well ideally you'd have some generic API doing it rather than
-these omap specifc exported functions.
+I only have access to an omap3evm-ish device, so I do not know what the iva
+clock name is for omap24xx and omap44xx. This detail can be added later if the
+general approach is approved.
 
-Meanwhile, I guess you need to find some suitable location
-for the header file that works for Rafael.
+I have tested a version of this patch against the linux-3.3 kernel, so this my
+attempt at a forward port against the current mainline. I have based my patch
+series against linux-omap-pm/pm-next.
 
-Regards,
+Joshua Emele (4):
+  cpufreq: OMAP: if an iva clock name is specified, load iva resources
+  cpufreq: OMAP: for omap3 devices, specify the iva clock name
+  cpufreq: OMAP: ensure the iva coprocessor is at the same opp as the
+    mpu
+  cpufreq: OMAP: scale the iva coprocessor if available
 
-Tony
+ drivers/cpufreq/omap-cpufreq.c |  113 +++++++++++++++++++++++++++++++++------
+ 1 files changed, 95 insertions(+), 18 deletions(-)
+
+-- 
+1.7.6.5
+
