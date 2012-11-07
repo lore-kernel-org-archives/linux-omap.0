@@ -1,193 +1,356 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [RFC 11/11] Example: OMAPFB: clear framebuffers using writeback
-Date: Wed, 7 Nov 2012 20:14:29 +0530
-Message-ID: <1352299469-17609-12-git-send-email-archit@ti.com>
-References: <n>
- <1352299469-17609-1-git-send-email-archit@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 3/3] pwm: New driver to support PWM driven LEDs on TWL4030/6030 series of PMICs
+Date: Wed, 7 Nov 2012 15:44:48 +0100
+Message-ID: <1352299488-11351-4-git-send-email-peter.ujfalusi@ti.com>
+References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33935 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753978Ab2KGOpa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 09:45:30 -0500
-In-Reply-To: <1352299469-17609-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-This is an example to demonstrate how writeback is used to clear framebuffers.
+The driver supports the following LED outputs as generic PWM driver:
+TWL4030 LEDA and LEDB (PWMA and PWMB)
+TWL6030 Charging indicator LED (PWM LED)
 
-The function omapfb_clear_fb_writeback is added as an alternative to the MPU
-intensive function cfb_fillrect.
+On TWL6030 when the PWM requested LED is configured to be controlled by SW.
+In this case the user can enable/disable and set the duty period freely.
+When the PWM has been freed, the LED driver is put back to HW control.
 
-The writeback is attached to a free manager which has no overlays connected to
-it, the manager's default color is set to black, and the size of both writeback
-and manager are set to the framebuffer size. writeback_info is configured to
-write the manager's output to the framebuffer address, and a mem to me update is
-done.
-
-This currently isn't full proof as it the logic of getting a free manager isn't
-optimal yet and has a few corner cases.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/video/omap2/omapfb/omapfb-main.c |  132 +++++++++++++++++++++++++++++-
- 1 file changed, 131 insertions(+), 1 deletion(-)
+ drivers/pwm/Kconfig       |  10 ++
+ drivers/pwm/Makefile      |   1 +
+ drivers/pwm/pwm-twl-led.c | 287 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 298 insertions(+)
+ create mode 100644 drivers/pwm/pwm-twl-led.c
 
-diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index be9096c..680f1eb 100644
---- a/drivers/video/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -1590,8 +1590,131 @@ static int omapfb_allocate_all_fbs(struct omapfb2_device *fbdev)
- 	return 0;
- }
+diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+index c577db9..49c2082 100644
+--- a/drivers/pwm/Kconfig
++++ b/drivers/pwm/Kconfig
+@@ -152,6 +152,16 @@ config PWM_TWL
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called pwm-twl.
  
-+static struct omap_overlay_manager *get_free_manager(struct fb_info *fbi)
++config PWM_TWL_LED
++	tristate "TWL4030/6030 PWM support for LED drivers"
++	select HAVE_PWM
++	depends on TWL4030_CORE
++	help
++	  Generic PWM framework driver for TWL4030/6030 LED.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called pwm-twl-led.
++
+ config PWM_VT8500
+ 	tristate "vt8500 pwm support"
+ 	depends on ARCH_VT8500
+diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
+index 3324c06..5f26134 100644
+--- a/drivers/pwm/Makefile
++++ b/drivers/pwm/Makefile
+@@ -12,4 +12,5 @@ obj-$(CONFIG_PWM_TEGRA)		+= pwm-tegra.o
+ obj-$(CONFIG_PWM_TIECAP)	+= pwm-tiecap.o
+ obj-$(CONFIG_PWM_TIEHRPWM)	+= pwm-tiehrpwm.o
+ obj-$(CONFIG_PWM_TWL)		+= pwm-twl.o
++obj-$(CONFIG_PWM_TWL_LED)	+= pwm-twl-led.o
+ obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
+diff --git a/drivers/pwm/pwm-twl-led.c b/drivers/pwm/pwm-twl-led.c
+new file mode 100644
+index 0000000..4d6ddc9
+--- /dev/null
++++ b/drivers/pwm/pwm-twl-led.c
+@@ -0,0 +1,287 @@
++/*
++ * Driver for TWL4030/6030 Pulse Width Modulator used as LED driver
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
++ *
++ * This driver is a complete rewrite of the former pwm-twl6030.c authorded by:
++ * Hemanth V <hemanthv@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/pwm.h>
++#include <linux/i2c/twl.h>
++#include <linux/slab.h>
++
++#define TWL4030_LED_MAX		0x7f
++#define TWL6030_LED_MAX		0xff
++
++/* Registers, bits and macro for TWL4030 */
++#define TWL4030_LEDEN_REG	0x00
++#define TWL4030_PWMA_REG	0x01
++
++#define TWL4030_LEDXON		(1 << 0)
++#define TWL4030_LEDXPWM		(1 << 4)
++#define TWL4030_LED_PINS	(TWL4030_LEDXON | TWL4030_LEDXPWM)
++#define TWL4030_LED_TOGGLE(led, x)	((x) << (led))
++
++/* Register, bits and macro for TWL6030 */
++#define TWL6030_LED_PWM_CTRL1	0xf4
++#define TWL6030_LED_PWM_CTRL2	0xf5
++
++#define TWL6040_LED_MODE_HW	0x00
++#define TWL6040_LED_MODE_ON	0x01
++#define TWL6040_LED_MODE_OFF	0x02
++#define TWL6040_LED_MODE_MASK	0x03
++
++struct twl_pwmled_chip {
++	struct pwm_chip chip;
++};
++
++static int twl4030_pwmled_config(struct pwm_chip *chip, struct pwm_device *pwm,
++			      int duty_ns, int period_ns)
 +{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omap_overlay *ovl;
-+	struct omap_overlay_manager *mgr, *def_mgr;
-+	int i;
++	int duty_cycle = (duty_ns * TWL4030_LED_MAX) / period_ns;
++	u8 on_time;
++	u8 pwm_config[2];
++	int base, ret;
 +
-+	ovl = omap_dss_get_overlay(0);
-+	def_mgr = ovl->manager;
++	if (duty_cycle >= TWL4030_LED_MAX)
++		on_time = TWL4030_LED_MAX;
++	else if (!duty_cycle)
++		on_time = TWL4030_LED_MAX - 1;
++	else
++		on_time = TWL4030_LED_MAX - duty_cycle;
 +
-+	for (i = 0; i < fbdev->num_managers; i++) {
-+		mgr = fbdev->managers[i];
-+		if (mgr != def_mgr)
-+			return mgr;
-+	}
++	base = pwm->hwpwm * 2 + TWL4030_PWMA_REG;
 +
-+	return NULL;
++	pwm_config[0] = on_time;
++	pwm_config[1] = TWL4030_LED_MAX;
++
++	ret = twl_i2c_write(TWL4030_MODULE_LED, pwm_config, base, 2);
++	if (ret < 0)
++		dev_err(chip->dev, "%s: Failed to configure PWM\n", pwm->label);
++
++	return ret;
 +}
 +
-+static void wb_callback(int err, void *data)
++static int twl4030_pwmled_enable(struct pwm_chip *chip, struct pwm_device *pwm)
 +{
-+	struct omap_dss_output *wb = (struct omap_dss_output *) data;
++	int ret;
++	u8 val;
 +
-+	omapdss_writeback_bus_unlock(wb);
-+}
-+
-+static int omapfb_clear_fb_writeback(struct fb_info *fbi)
-+{
-+	struct fb_var_screeninfo *var = &fbi->var;
-+	struct fb_fix_screeninfo *fix = &fbi->fix;
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omap_overlay_manager *mgr = NULL;
-+	struct omap_overlay_manager_info mgr_info;
-+	struct omap_dss_output *wb, *orig_out = NULL;
-+	struct omap_dss_writeback_info wb_info;
-+	enum omap_color_mode mode;
-+	u32 data_start_p = 0;
-+	int r;
-+
-+	wb = omap_dss_get_writeback();
-+	if (!wb)
-+		return -ENODEV;
-+
-+	/* find the first unused overlay manager */
-+	mgr = get_free_manager(fbi);
-+	if (!mgr)
-+		return -ENODEV;
-+
-+	/* free the manager output */
-+	if (mgr->output) {
-+		orig_out = mgr->output;
-+		mgr->unset_output(mgr);
++	ret = twl_i2c_read_u8(TWL4030_MODULE_LED, &val, TWL4030_LEDEN_REG);
++	if (ret < 0) {
++		dev_err(chip->dev, "%s: Failed to read LEDEN\n", pwm->label);
++		return ret;
 +	}
 +
-+	/* get framebuffer color mode */
-+	r = fb_mode_to_dss_mode(var, &mode);
-+	if (r)
-+		return r;
++	val |= TWL4030_LED_TOGGLE(pwm->hwpwm, TWL4030_LED_PINS);
 +
-+	/* calculate framebuffer buffer address */
-+	if (ofbi->region->size)
-+		omapfb_calc_addr(ofbi, var, fix, 0, &data_start_p);
++	ret = twl_i2c_write_u8(TWL4030_MODULE_LED, val, TWL4030_LEDEN_REG);
++	if (ret < 0)
++		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
 +
-+	/* link the free overlay manager to writeback */
-+	mgr->set_output(mgr, wb);
++	return ret;
++}
 +
-+	omapdss_writeback_bus_lock(wb);
++static void twl4030_pwmled_disable(struct pwm_chip *chip,
++				   struct pwm_device *pwm)
++{
++	int ret;
++	u8 val;
 +
-+	/* enable writeback to configure writeback and overlay manager params */
-+	omapdss_writeback_enable(wb);
++	ret = twl_i2c_read_u8(TWL4030_MODULE_LED, &val, TWL4030_LEDEN_REG);
++	if (ret < 0) {
++		dev_err(chip->dev, "%s: Failed to read LEDEN\n", pwm->label);
++		return;
++	}
 +
-+	/* configure and apply manager info to set default color to zero */
-+	mgr->get_manager_info(mgr, &mgr_info);
++	val &= ~TWL4030_LED_TOGGLE(pwm->hwpwm, TWL4030_LED_PINS);
 +
-+	mgr_info.default_color = 0x0;
++	ret = twl_i2c_write_u8(TWL4030_MODULE_LED, val, TWL4030_LEDEN_REG);
++	if (ret < 0)
++		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
++}
 +
-+	mgr->set_manager_info(mgr, &mgr_info);
++static int twl6030_pwmled_config(struct pwm_chip *chip, struct pwm_device *pwm,
++			      int duty_ns, int period_ns)
++{
++	int duty_cycle = (duty_ns * TWL6030_LED_MAX) / period_ns;
++	u8 on_time;
++	int ret;
 +
-+	mgr->apply(mgr);
++	on_time = duty_cycle & 0xff;
 +
-+	/*
-+	 * configure writeback parameters to write manager output to
-+	 * framebuffer
-+	 */
-+	omapdss_writeback_set_input_size(wb, fbi->var.xres_virtual,
-+		fbi->var.yres_virtual);
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, on_time,
++			       TWL6030_LED_PWM_CTRL1);
++	if (ret < 0)
++		dev_err(chip->dev, "%s: Failed to configure PWM\n", pwm->label);
 +
-+	omapdss_writeback_get_info(wb, &wb_info);
++	return ret;
++}
 +
-+	wb_info.paddr = data_start_p;
-+	wb_info.rotation_type = OMAP_DSS_ROT_DMA;
-+	wb_info.rotation = 0;
-+	wb_info.mirror = 0;
-+	wb_info.width = fbi->var.xres_virtual;
-+	wb_info.buf_width = fbi->var.xres_virtual;
-+	wb_info.height = fbi->var.yres_virtual;
-+	wb_info.color_mode = mode;
++static int twl6030_pwmled_enable(struct pwm_chip *chip, struct pwm_device *pwm)
++{
++	int ret;
++	u8 val;
 +
-+	omapdss_writeback_set_info(wb, &wb_info);
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, TWL6030_LED_PWM_CTRL2);
++	if (ret < 0) {
++		dev_err(chip->dev, "%s: Failed to read PWM_CTRL2\n",
++			pwm->label);
++		return ret;
++	}
 +
-+	omapdss_writeback_apply(wb);
++	val &= ~TWL6040_LED_MODE_MASK;
++	val |= TWL6040_LED_MODE_ON;
 +
-+	/* start writeback update */
-+	omapdss_writeback_update(wb, wb_callback, wb);
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_LED_PWM_CTRL2);
++	if (ret < 0)
++		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
 +
-+	omapdss_writeback_bus_lock(wb);
++	return ret;
++}
 +
-+	/* disable writeback(and the connected manager) */
-+	omapdss_writeback_disable(wb);
++static void twl6030_pwmled_disable(struct pwm_chip *chip,
++				   struct pwm_device *pwm)
++{
++	int ret;
++	u8 val;
 +
-+	omapdss_writeback_bus_unlock(wb);
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, TWL6030_LED_PWM_CTRL2);
++	if (ret < 0) {
++		dev_err(chip->dev, "%s: Failed to read PWM_CTRL2\n",
++			pwm->label);
++		return;
++	}
 +
-+	/* restore manager back to it's old state */
-+	mgr->unset_output(mgr);
++	val &= ~TWL6040_LED_MODE_MASK;
++	val |= TWL6040_LED_MODE_OFF;
 +
-+	if (orig_out)
-+		mgr->set_output(mgr, orig_out);
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_LED_PWM_CTRL2);
++	if (ret < 0)
++		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
++}
++
++static int twl6030_pwmled_request(struct pwm_chip *chip, struct pwm_device *pwm)
++{
++	int ret;
++	u8 val;
++
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, TWL6030_LED_PWM_CTRL2);
++	if (ret < 0) {
++		dev_err(chip->dev, "%s: Failed to read PWM_CTRL2\n",
++			pwm->label);
++		return ret;
++	}
++
++	val &= ~TWL6040_LED_MODE_MASK;
++	val |= TWL6040_LED_MODE_OFF;
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_LED_PWM_CTRL2);
++	if (ret < 0)
++		dev_err(chip->dev, "%s: Failed to request PWM\n", pwm->label);
++
++	return ret;
++}
++
++static void twl6030_pwmled_free(struct pwm_chip *chip, struct pwm_device *pwm)
++{
++	int ret;
++	u8 val;
++
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, TWL6030_LED_PWM_CTRL2);
++	if (ret < 0) {
++		dev_err(chip->dev, "%s: Failed to read PWM_CTRL2\n",
++			pwm->label);
++		return;
++	}
++
++	val &= ~TWL6040_LED_MODE_MASK;
++	val |= TWL6040_LED_MODE_HW;
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_LED_PWM_CTRL2);
++	if (ret < 0)
++		dev_err(chip->dev, "%s: Failed to free PWM\n", pwm->label);
++}
++
++static struct pwm_ops twl_pwmled_ops;
++
++static int twl_pwmled_probe(struct platform_device *pdev)
++{
++	struct twl_pwmled_chip *twl;
++	int ret;
++
++	twl = devm_kzalloc(&pdev->dev, sizeof(*twl), GFP_KERNEL);
++	if (!twl)
++		return -ENOMEM;
++
++	if (twl_class_is_4030()) {
++		twl_pwmled_ops.enable = twl4030_pwmled_enable;
++		twl_pwmled_ops.disable = twl4030_pwmled_disable;
++		twl_pwmled_ops.config = twl4030_pwmled_config;
++		twl->chip.npwm = 2;
++	} else {
++		twl_pwmled_ops.enable = twl6030_pwmled_enable;
++		twl_pwmled_ops.disable = twl6030_pwmled_disable;
++		twl_pwmled_ops.config = twl6030_pwmled_config;
++		twl_pwmled_ops.request = twl6030_pwmled_request;
++		twl_pwmled_ops.free = twl6030_pwmled_free;
++		twl->chip.npwm = 1;
++	}
++
++	twl->chip.dev = &pdev->dev;
++	twl->chip.ops = &twl_pwmled_ops;
++	twl->chip.base = -1;
++
++	ret = pwmchip_add(&twl->chip);
++	if (ret < 0)
++		return ret;
++
++	platform_set_drvdata(pdev, twl);
 +
 +	return 0;
 +}
 +
- static void omapfb_clear_fb(struct fb_info *fbi)
- {
-+	int r;
- 	const struct fb_fillrect rect = {
- 		.dx = 0,
- 		.dy = 0,
-@@ -1601,7 +1724,14 @@ static void omapfb_clear_fb(struct fb_info *fbi)
- 		.rop = ROP_COPY,
- 	};
- 
--	cfb_fillrect(fbi, &rect);
-+	r = omapfb_clear_fb_writeback(fbi);
++static int twl_pwmled_remove(struct platform_device *pdev)
++{
++	struct twl_pwmled_chip *twl = platform_get_drvdata(pdev);
 +
-+	/*
-+	 * if clearing through writeback failed, revert to clearing the
-+	 * framebuffer through MPU
-+	 */
-+	if (r)
-+		cfb_fillrect(fbi, &rect);
- }
- 
- int omapfb_realloc_fbmem(struct fb_info *fbi, unsigned long size, int type)
++	return pwmchip_remove(&twl->chip);
++}
++
++static struct of_device_id twl_pwmled_of_match[] = {
++	{ .compatible = "ti,twl4030-pwmled" },
++	{ .compatible = "ti,twl6030-pwmled" },
++};
++
++MODULE_DEVICE_TABLE(of, twl_pwmled_of_match);
++
++static struct platform_driver twl_pwmled_driver = {
++	.driver = {
++		.name = "twl-pwmled",
++		.of_match_table = of_match_ptr(twl_pwmled_of_match),
++	},
++	.probe = twl_pwmled_probe,
++	.remove = __devexit_p(twl_pwmled_remove),
++};
++module_platform_driver(twl_pwmled_driver);
++
++MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
++MODULE_DESCRIPTION("PWM driver for TWL4030 and TWL6030 LED outputs");
++MODULE_ALIAS("platform:twl-pwm");
++MODULE_LICENSE("GPL");
 -- 
-1.7.9.5
-
+1.8.0
