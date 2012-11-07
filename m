@@ -1,58 +1,77 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: Re: [PATCH v2 1/2] mailbox: OMAP: introduce mailbox framework
-Date: Tue, 6 Nov 2012 19:05:13 -0600
-Message-ID: <CALLhW=5AypWUzRbCkO4fKO=qAtUPTC3H8VjHgXWV_uFUp=GJzA@mail.gmail.com>
-References: <1352170552-29564-1-git-send-email-omar.luna@linaro.org>
-	<1352170552-29564-2-git-send-email-omar.luna@linaro.org>
-	<509886A2.5060509@wwwdotorg.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 15/15] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Tue, 06 Nov 2012 17:06:06 -0800
+Message-ID: <87r4o68bnl.fsf@deeprootsystems.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+	<1351859566-24818-16-git-send-email-vaibhav.bedia@ti.com>
+	<87txt4aqyc.fsf@deeprootsystems.com>
+	<B5906170F1614E41A8A28DE3B8D121433EC04AE5@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:46792 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754099Ab2KGBFO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:05:14 -0500
-Received: by mail-vc0-f174.google.com with SMTP id fk26so1023154vcb.19
-        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 17:05:13 -0800 (PST)
-In-Reply-To: <509886A2.5060509@wwwdotorg.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:46186 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754064Ab2KGBGI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:06:08 -0500
+Received: by mail-pa0-f46.google.com with SMTP id hz1so739813pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 17:06:08 -0800 (PST)
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC04AE5@DBDE01.ent.ti.com>
+	(Vaibhav Bedia's message of "Tue, 6 Nov 2012 10:40:09 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Loic PALLARDY <loic.pallardy@st.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Linus Walleij <linus.walleij@linaro.org>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi Stephen,
+"Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
 
-On 5 November 2012 21:40, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> On 11/05/2012 07:55 PM, Omar Ramirez Luna wrote:
->> Actually moving it from plat-omap, as this framework/driver code is
->> supposed to be under drivers/ folder. The framework should work with
->> the current supported OMAP processors (OMAP1+) that have mailbox and
->> can be used as a method of interprocessor communication.
->>
->> The mailbox hardware (in OMAP) uses a queued mailbox-interrupt mechanism
->> that provides a communication channel between processors through a set of
->> registers and their associated interrupt signals by sending and receiving
->> messages.
+> On Mon, Nov 05, 2012 at 23:10:27, Kevin Hilman wrote:
+
+[...]
+
+>> 
+>> Also, if there are drivers for these devices, won't this interfere?
+>> 
 >
->> diff --git a/drivers/mailbox/mailbox.h b/drivers/mailbox/mailbox.h
+> Hmm, I can think of the following scenarios
 >
-> Is this a public interface to the driver? If so, shouldn't the header be
-> in include/linux somewhere?
+> 1. Runtime PM adapted drivers are compiled in - We'll have to ensure that
+> in their suspend callbacks they end up doing omap_hwmod_idle() via the
+> runtime PM APIs. 
+
+That already happens for all omap_devices.
+
+> In this case the omap_hwmod_enable() followed by omap_hwmod_idle() is
+> not necessary in the PM code.
+
+Correct.
+
+> 2. The drivers are not compiled in - In this case, the hwmod code puts
+> the IPs in standby during bootup so the first suspend-resume iteration
+> will pass. During resuming, the SYSC configuration for forced standby will
+> be lost, 
+
+Please clarify how the SYSC is lost in this case.
+
+> so in the subsequent iterations these IPs won't go standby and the
+> hwmod code does not touch them since they never got enabled. In this case
+> we do need the sequence that is there currently.
 >
-> Is this a generic interface to any mailbox driver? If so, then I don't
-> think having "omap" in the symbol names is appropriate. If the header is
-> specific to the OMAP driver, I don't think using the very generic
-> filename "mailbox.h" is appropriate; use omap_mailbox.h instead?
+> 3. For some reason the respective drivers don't idle the IPs during suspend -
+> (no_idle_on_suspend flag for the hwmod in DT?). In this scenario I think
+> we should abort the suspend process since we know that the suspend is not
+> going to work. 
 
-It was a mixture between the two, the next patch splits the API from
-the mailbox driver interfaces.
+Agreed.
 
-I kept the files named as plain mailbox.[ch], in hopes that we could
-progress with the cleanup after moving the files from plat-omap, as it
-seems they interfere with the current single Image effort, but if it
-is preferred (as it seems to be) I can resend again after removing the
-omap_ prefixes from the intended-to-be generic code.
+> Is there some other scenario that needs to be covered?
 
-Thanks,
+You covered the ones I was thinking of.
 
-Omar
+> How about adding some flag in hwmod code for handling this? Something
+> similar to what was done for MMC [1]. I think the problem that we have
+> is in some ways similar to the one addressed in [1].
+
+Except that in the absence of drivers, no hwmod code is executed on the
+suspend/resume path.
+
+Kevin
