@@ -1,165 +1,248 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [RFC 02/11] OMAPDSS: APPLY: Add get/set info functions for writeback
-Date: Wed, 7 Nov 2012 20:14:20 +0530
-Message-ID: <1352299469-17609-3-git-send-email-archit@ti.com>
-References: <n>
- <1352299469-17609-1-git-send-email-archit@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 1/3] pwm: Remove pwm-twl6030 driver
+Date: Wed, 7 Nov 2012 15:44:46 +0100
+Message-ID: <1352299488-11351-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47545 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753530Ab2KGOo6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 09:44:58 -0500
-In-Reply-To: <1352299469-17609-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Writeback contains overlay-like parameters which need to be applied by a user
-of writeback.
+This driver only supported the Charging indicator LED.
+New set of drivers going to provide support for both PWMs and LEDs for twl4030
+and twl6030 series of PMICs.
 
-Create functions in APPLY which get and set user_info of type
-omap_dss_writeback_info, these are similar to overlay's dss_ovl_get_info and
-dss_ovl_set_info ops. The writeback output driver provides equivalent functions
-for a writeback user, these finally call the above APPLY functions.
-
-Add a private data struct for writeback which stores the user_info and it's
-state. This struct will be later added with more params to represent the other
-levels of the APPLY cache. Add a helper function to retrieve the private data.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/video/omap2/dss/apply.c     |   42 +++++++++++++++++++++++++++++++++++
- drivers/video/omap2/dss/dss.h       |    5 +++++
- drivers/video/omap2/dss/writeback.c |   14 ++++++++++++
- include/video/omapdss.h             |    4 ++++
- 4 files changed, 65 insertions(+)
+ drivers/pwm/Kconfig       |   9 ---
+ drivers/pwm/Makefile      |   1 -
+ drivers/pwm/pwm-twl6030.c | 184 ----------------------------------------------
+ 3 files changed, 194 deletions(-)
+ delete mode 100644 drivers/pwm/pwm-twl6030.c
 
-diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index 7a7b820..b2e4f6a 100644
---- a/drivers/video/omap2/dss/apply.c
-+++ b/drivers/video/omap2/dss/apply.c
-@@ -106,9 +106,16 @@ struct mgr_priv_data {
- 	struct dss_lcd_mgr_config lcd_config;
- };
+diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+index ed81720..e678005 100644
+--- a/drivers/pwm/Kconfig
++++ b/drivers/pwm/Kconfig
+@@ -142,15 +142,6 @@ config  PWM_TIEHRPWM
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called pwm-tiehrpwm.
  
-+struct wb_priv_data {
-+
-+	bool user_info_dirty;
-+	struct omap_dss_writeback_info user_info;
-+};
-+
- static struct {
- 	struct ovl_priv_data ovl_priv_data_array[MAX_DSS_OVERLAYS];
- 	struct mgr_priv_data mgr_priv_data_array[MAX_DSS_MANAGERS];
-+	struct wb_priv_data wb_priv_data;
- 
- 	bool irq_enabled;
- } dss_data;
-@@ -131,6 +138,11 @@ static struct mgr_priv_data *get_mgr_priv(struct omap_overlay_manager *mgr)
- 	return &dss_data.mgr_priv_data_array[mgr->id];
- }
- 
-+static struct wb_priv_data *get_wb_priv(struct omap_dss_output *wb)
-+{
-+	return &dss_data.wb_priv_data;
-+}
-+
- void dss_apply_init(void)
- {
- 	const int num_ovls = dss_feat_get_num_ovls();
-@@ -1465,3 +1477,33 @@ err:
- 	return r;
- }
- 
-+int dss_wb_set_info(struct omap_dss_output *wb,
-+		struct omap_dss_writeback_info *info)
-+{
-+	struct wb_priv_data *wp = get_wb_priv(wb);
-+	unsigned long flags;
-+
-+	/* TODO: Check validity of info */
-+
-+	spin_lock_irqsave(&data_lock, flags);
-+
-+	wp->user_info = *info;
-+	wp->user_info_dirty = true;
-+
-+	spin_unlock_irqrestore(&data_lock, flags);
-+
-+	return 0;
-+}
-+
-+void dss_wb_get_info(struct omap_dss_output *wb,
-+		struct omap_dss_writeback_info *info)
-+{
-+	struct wb_priv_data *wp = get_wb_priv(wb);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&data_lock, flags);
-+
-+	*info = wp->user_info;
-+
-+	spin_unlock_irqrestore(&data_lock, flags);
-+}
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index f7eb7d6..f738c1e 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -210,6 +210,11 @@ int dss_ovl_set_manager(struct omap_overlay *ovl,
- 		struct omap_overlay_manager *mgr);
- int dss_ovl_unset_manager(struct omap_overlay *ovl);
- 
-+int dss_wb_set_info(struct omap_dss_output *wb,
-+		struct omap_dss_writeback_info *info);
-+void dss_wb_get_info(struct omap_dss_output *wb,
-+		struct omap_dss_writeback_info *info);
-+
- /* output */
- void dss_register_output(struct omap_dss_output *out);
- void dss_unregister_output(struct omap_dss_output *out);
-diff --git a/drivers/video/omap2/dss/writeback.c b/drivers/video/omap2/dss/writeback.c
-index b5c6406..be7027b 100644
---- a/drivers/video/omap2/dss/writeback.c
-+++ b/drivers/video/omap2/dss/writeback.c
-@@ -42,6 +42,20 @@ static inline struct platform_device *writeback_get_wbdev_from_output(struct oma
- 	return out->pdev;
- }
- 
-+int omapdss_writeback_set_info(struct omap_dss_output *wb,
-+		struct omap_dss_writeback_info *info)
-+{
-+	return dss_wb_set_info(wb, info);
-+}
-+EXPORT_SYMBOL(omapdss_writeback_set_info);
-+
-+void omapdss_writeback_get_info(struct omap_dss_output *wb,
-+		struct omap_dss_writeback_info *info)
-+{
-+	dss_wb_get_info(wb, info);
-+}
-+EXPORT_SYMBOL(omapdss_writeback_get_info);
-+
- struct omap_dss_output *omap_dss_get_writeback(void)
- {
- 	return omap_dss_get_output(OMAP_DSS_OUTPUT_WB);
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index e81fcb2..2a3a878 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -837,6 +837,10 @@ void omapdss_rfbi_set_data_lines(struct omap_dss_device *dssdev,
- void omapdss_rfbi_set_interface_timings(struct omap_dss_device *dssdev,
- 		struct rfbi_timings *timings);
- 
-+int omapdss_writeback_set_info(struct omap_dss_output *wb,
-+		struct omap_dss_writeback_info *info);
-+void omapdss_writeback_get_info(struct omap_dss_output *wb,
-+		struct omap_dss_writeback_info *info);
- #ifdef CONFIG_OMAP4_DSS_WRITEBACK
- struct omap_dss_output *omap_dss_get_writeback(void);
- #else
+-config PWM_TWL6030
+-	tristate "TWL6030 PWM support"
+-	depends on TWL4030_CORE
+-	help
+-	  Generic PWM framework driver for TWL6030.
+-
+-	  To compile this driver as a module, choose M here: the module
+-	  will be called pwm-twl6030.
+-
+ config PWM_VT8500
+ 	tristate "vt8500 pwm support"
+ 	depends on ARCH_VT8500
+diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
+index acfe482..29cf57e 100644
+--- a/drivers/pwm/Makefile
++++ b/drivers/pwm/Makefile
+@@ -11,5 +11,4 @@ obj-$(CONFIG_PWM_SAMSUNG)	+= pwm-samsung.o
+ obj-$(CONFIG_PWM_TEGRA)		+= pwm-tegra.o
+ obj-$(CONFIG_PWM_TIECAP)	+= pwm-tiecap.o
+ obj-$(CONFIG_PWM_TIEHRPWM)	+= pwm-tiehrpwm.o
+-obj-$(CONFIG_PWM_TWL6030)	+= pwm-twl6030.o
+ obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
+diff --git a/drivers/pwm/pwm-twl6030.c b/drivers/pwm/pwm-twl6030.c
+deleted file mode 100644
+index 8e63878..0000000
+--- a/drivers/pwm/pwm-twl6030.c
++++ /dev/null
+@@ -1,184 +0,0 @@
+-/*
+- * twl6030_pwm.c
+- * Driver for PHOENIX (TWL6030) Pulse Width Modulator
+- *
+- * Copyright (C) 2010 Texas Instruments
+- * Author: Hemanth V <hemanthv@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License version 2 as published by
+- * the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- *
+- * You should have received a copy of the GNU General Public License along with
+- * this program.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/platform_device.h>
+-#include <linux/pwm.h>
+-#include <linux/i2c/twl.h>
+-#include <linux/slab.h>
+-
+-#define LED_PWM_CTRL1	0xF4
+-#define LED_PWM_CTRL2	0xF5
+-
+-/* Max value for CTRL1 register */
+-#define PWM_CTRL1_MAX	255
+-
+-/* Pull down disable */
+-#define PWM_CTRL2_DIS_PD	(1 << 6)
+-
+-/* Current control 2.5 milli Amps */
+-#define PWM_CTRL2_CURR_02	(2 << 4)
+-
+-/* LED supply source */
+-#define PWM_CTRL2_SRC_VAC	(1 << 2)
+-
+-/* LED modes */
+-#define PWM_CTRL2_MODE_HW	(0 << 0)
+-#define PWM_CTRL2_MODE_SW	(1 << 0)
+-#define PWM_CTRL2_MODE_DIS	(2 << 0)
+-
+-#define PWM_CTRL2_MODE_MASK	0x3
+-
+-struct twl6030_pwm_chip {
+-	struct pwm_chip chip;
+-};
+-
+-static int twl6030_pwm_request(struct pwm_chip *chip, struct pwm_device *pwm)
+-{
+-	int ret;
+-	u8 val;
+-
+-	/* Configure PWM */
+-	val = PWM_CTRL2_DIS_PD | PWM_CTRL2_CURR_02 | PWM_CTRL2_SRC_VAC |
+-	      PWM_CTRL2_MODE_HW;
+-
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		dev_err(chip->dev, "%s: Failed to configure PWM, Error %d\n",
+-			pwm->label, ret);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+-static int twl6030_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+-			      int duty_ns, int period_ns)
+-{
+-	u8 duty_cycle = (duty_ns * PWM_CTRL1_MAX) / period_ns;
+-	int ret;
+-
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, duty_cycle, LED_PWM_CTRL1);
+-	if (ret < 0) {
+-		pr_err("%s: Failed to configure PWM, Error %d\n",
+-			pwm->label, ret);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+-static int twl6030_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+-{
+-	int ret;
+-	u8 val;
+-
+-	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		dev_err(chip->dev, "%s: Failed to enable PWM, Error %d\n",
+-			pwm->label, ret);
+-		return ret;
+-	}
+-
+-	/* Change mode to software control */
+-	val &= ~PWM_CTRL2_MODE_MASK;
+-	val |= PWM_CTRL2_MODE_SW;
+-
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		dev_err(chip->dev, "%s: Failed to enable PWM, Error %d\n",
+-			pwm->label, ret);
+-		return ret;
+-	}
+-
+-	twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
+-	return 0;
+-}
+-
+-static void twl6030_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
+-{
+-	int ret;
+-	u8 val;
+-
+-	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		dev_err(chip->dev, "%s: Failed to disable PWM, Error %d\n",
+-			pwm->label, ret);
+-		return;
+-	}
+-
+-	val &= ~PWM_CTRL2_MODE_MASK;
+-	val |= PWM_CTRL2_MODE_HW;
+-
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		dev_err(chip->dev, "%s: Failed to disable PWM, Error %d\n",
+-			pwm->label, ret);
+-	}
+-}
+-
+-static const struct pwm_ops twl6030_pwm_ops = {
+-	.request = twl6030_pwm_request,
+-	.config = twl6030_pwm_config,
+-	.enable = twl6030_pwm_enable,
+-	.disable = twl6030_pwm_disable,
+-};
+-
+-static int twl6030_pwm_probe(struct platform_device *pdev)
+-{
+-	struct twl6030_pwm_chip *twl6030;
+-	int ret;
+-
+-	twl6030 = devm_kzalloc(&pdev->dev, sizeof(*twl6030), GFP_KERNEL);
+-	if (!twl6030)
+-		return -ENOMEM;
+-
+-	twl6030->chip.dev = &pdev->dev;
+-	twl6030->chip.ops = &twl6030_pwm_ops;
+-	twl6030->chip.base = -1;
+-	twl6030->chip.npwm = 1;
+-
+-	ret = pwmchip_add(&twl6030->chip);
+-	if (ret < 0)
+-		return ret;
+-
+-	platform_set_drvdata(pdev, twl6030);
+-
+-	return 0;
+-}
+-
+-static int twl6030_pwm_remove(struct platform_device *pdev)
+-{
+-	struct twl6030_pwm_chip *twl6030 = platform_get_drvdata(pdev);
+-
+-	return pwmchip_remove(&twl6030->chip);
+-}
+-
+-static struct platform_driver twl6030_pwm_driver = {
+-	.driver = {
+-		.name = "twl6030-pwm",
+-	},
+-	.probe = twl6030_pwm_probe,
+-	.remove = __devexit_p(twl6030_pwm_remove),
+-};
+-module_platform_driver(twl6030_pwm_driver);
+-
+-MODULE_ALIAS("platform:twl6030-pwm");
+-MODULE_LICENSE("GPL");
 -- 
-1.7.9.5
-
+1.8.0
