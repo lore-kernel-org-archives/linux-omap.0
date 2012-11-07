@@ -1,51 +1,52 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP4/Panda: u-boot upgrade v2012.04.01 -> v2012.10 breaks RTC wakeups
-Date: Wed, 07 Nov 2012 07:21:20 -0800
-Message-ID: <87390l8mmn.fsf@deeprootsystems.com>
-References: <87obja9r3x.fsf@deeprootsystems.com> <5099B0FB.3060203@ti.com>
-	<5099F3BA.6090302@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH 6/8] pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+Date: Wed, 7 Nov 2012 15:20:30 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9DE3AA@DBDE01.ent.ti.com>
+References: <1352106749-9437-1-git-send-email-avinashphilip@ti.com>
+ <1352106749-9437-7-git-send-email-avinashphilip@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EC04483@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:41902 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492Ab2KGPVW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 10:21:22 -0500
-Received: by mail-pb0-f46.google.com with SMTP id rr4so1278266pbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 07 Nov 2012 07:21:22 -0800 (PST)
-In-Reply-To: <5099F3BA.6090302@ti.com> (R. Sricharan's message of "Wed, 7 Nov
-	2012 11:08:02 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC04483@DBDE01.ent.ti.com>
+Content-Language: en-US
+Sender: linux-doc-owner@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: R Sricharan <r.sricharan@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, u-boot@lists.denx.de, linux-omap <linux-omap@vger.kernel.org>, trini@ti.com
 
-Hi Sricharan,
+On Tue, Nov 06, 2012 at 12:16:13, Bedia, Vaibhav wrote:
+> On Mon, Nov 05, 2012 at 14:42:27, Philip, Avinash wrote:
+> [...]
+> 
+> > +	/* Some platforms require explicit tbclk gating */
+> > +	if (of_property_read_bool(pdev->dev.of_node, "tbclkgating")) {
+> > +		pc->tbclk = clk_get(&pdev->dev, "tbclk");
+> > +		if (IS_ERR(pc->tbclk)) {
+> > +			dev_err(&pdev->dev, "Could not get EHRPWM TBCLK\n");
+> > +			return PTR_ERR(pc->tbclk);
+> > +		}
+> > +	}
+> > +
+> > +	/* Enable tbclk & leave */
+> > +	if (pc->tbclk)
+> > +		clk_enable(pc->tbclk);
+> > +
+> 
+> Here also why are you leaving this clock always running?
 
-R Sricharan <r.sricharan@ti.com> writes:
+This is an additional clock gating for EHRPWM functional clock from
+control module. The enabling of this clock to pwm_enable 
+& disabling to pwm_disable. I will correct it.
 
->  In the latest, pad mux and clocks for all
->  non-essential modules at U-BOOT were removed.
->
->  This might also cause the problem.
->  We can bring this back in u-boot by adding the following macros
->  and check if it works fine again.
->
->   include/configs/omap4_common.h
->   ------------------------------
->   #define CONFIG_SYS_ENABLE_PADS_ALL
->   #define CONFIG_SYS_CLOCKS_ENABLE_ALL
 
-Thanks for the pointer, that got things working again.  It's actually
-CONFIG_SYS_ENABLE_PADS_ALL alone which got things working again.
 
-I'm glad to see u-boot going in this direction.  In the kernel, we've
-also been trying to get rid of bootloader dependencies also, but it's
-clear we haven't got all of them yet.
+Thanks
+Avinash
 
-I'll keep digging to see what's missing in the kernel pads setup to get
-RTC working again.
-
-Kevin
-
+> 
+> Regards,
+> Vaibhav
+> 
 
