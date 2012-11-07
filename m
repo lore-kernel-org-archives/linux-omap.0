@@ -1,60 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/6] OMAPDSS: enable DSS for Panda & SDP with devtree
-Date: Tue, 6 Nov 2012 17:04:05 -0800
-Message-ID: <20121107010405.GU6801@atomide.com>
-References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH v2 1/2] mailbox: OMAP: introduce mailbox framework
+Date: Tue, 6 Nov 2012 19:05:13 -0600
+Message-ID: <CALLhW=5AypWUzRbCkO4fKO=qAtUPTC3H8VjHgXWV_uFUp=GJzA@mail.gmail.com>
+References: <1352170552-29564-1-git-send-email-omar.luna@linaro.org>
+	<1352170552-29564-2-git-send-email-omar.luna@linaro.org>
+	<509886A2.5060509@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:52742 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753129Ab2KGBEI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:04:08 -0500
-Content-Disposition: inline
-In-Reply-To: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:46792 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754099Ab2KGBFO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:05:14 -0500
+Received: by mail-vc0-f174.google.com with SMTP id fk26so1023154vcb.19
+        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 17:05:13 -0800 (PST)
+In-Reply-To: <509886A2.5060509@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: archit@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, s-guiriec@ti.com
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Loic PALLARDY <loic.pallardy@st.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Linus Walleij <linus.walleij@linaro.org>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [121105 05:16]:
-> Hi,
-> 
-> OMAPDSS device tree support is still some way in the future. Tony has requested
-> to get DSS working for Panda & SDP boards with DT kernel, so that we'll have
-> fully working boards with DT.
-> 
-> This series makes a few hacks to get a working display on OMAP4 Panda and SDP
-> boards. The idea is to setup the omapdss with the non-DT method, creating the
-> omapdss devices and passing platform data to them. This setup code is called
-> from board-generic for Panda and SDP boards.
-> 
-> There was one problem with this approach: omapdss cannot get regulators using
-> the omapdss's names fro the regulators. Thus there's a hack patch to get the
-> regulators using the OMAP4 "native" regulator names, thus circumventing the
-> problem.
-> 
-> Tony, if these look good, how do you want to merge these? There are three parts
-> here, and I think they can be merged independently if so wished:
-> 
-> * .dts changes for the pinmuxing (2 patches)
+Hi Stephen,
 
-Let's let Benoit queue these.
+On 5 November 2012 21:40, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> On 11/05/2012 07:55 PM, Omar Ramirez Luna wrote:
+>> Actually moving it from plat-omap, as this framework/driver code is
+>> supposed to be under drivers/ folder. The framework should work with
+>> the current supported OMAP processors (OMAP1+) that have mailbox and
+>> can be used as a method of interprocessor communication.
+>>
+>> The mailbox hardware (in OMAP) uses a queued mailbox-interrupt mechanism
+>> that provides a communication channel between processors through a set of
+>> registers and their associated interrupt signals by sending and receiving
+>> messages.
+>
+>> diff --git a/drivers/mailbox/mailbox.h b/drivers/mailbox/mailbox.h
+>
+> Is this a public interface to the driver? If so, shouldn't the header be
+> in include/linux somewhere?
+>
+> Is this a generic interface to any mailbox driver? If so, then I don't
+> think having "omap" in the symbol names is appropriate. If the header is
+> specific to the OMAP driver, I don't think using the very generic
+> filename "mailbox.h" is appropriate; use omap_mailbox.h instead?
 
-> * dss-common.c and board-generic.c changes (3 patches)
+It was a mixture between the two, the next patch splits the API from
+the mailbox driver interfaces.
 
-And I can take these.
+I kept the files named as plain mailbox.[ch], in hopes that we could
+progress with the cleanup after moving the files from plat-omap, as it
+seems they interfere with the current single Image effort, but if it
+is preferred (as it seems to be) I can resend again after removing the
+omap_ prefixes from the intended-to-be generic code.
 
-> * DSS hack for the regulators (1 patch)
+Thanks,
 
-And you can take this.
- 
-> If one of those parts is missing, DSS won't start with DT kernel, but otherwise
-> there shouldn't be any problems. So to avoid conflicts, I suggest that you take
-> the first two parts, and I'll merge the DSS hack via omapdss tree.
-
-Cool thanks for doing this. Looks OK to me until we have the DT bindings ready.
-
-Regards,
-
-Tony
+Omar
