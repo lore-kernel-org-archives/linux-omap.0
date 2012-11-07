@@ -1,230 +1,104 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Wed, 7 Nov 2012 15:36:56 -0600
-Message-ID: <509AD478.1050904@ti.com>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] omap gpmc : add support of setting
+ CYCLE2CYCLEDELAY and BUSTURNAROUND
+Date: Wed, 7 Nov 2012 13:40:14 -0800
+Message-ID: <20121107214014.GM6801@atomide.com>
+References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
+ <5099478A.50901@ti.com>
+ <5099504A.5060505@parrot.com>
+ <5099743B.3040804@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA0E2D6@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37274 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751111Ab2KGVhD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 16:37:03 -0500
-In-Reply-To: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:10972 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753187Ab2KGVkV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 16:40:21 -0500
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA0E2D6@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, Matthieu CASTET <matthieu.castet@parrot.com>, Daniel Mack <zonque@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>
 
-Hi Igor,
-
-On 11/07/2012 08:42 AM, Igor Grinberg wrote:
-> CONFIG_OMAP_32K_TIMER is kind of standing on the single zImage way.
-> Make OMAP2+ timer code independant from the CONFIG_OMAP_32K_TIMER
-> setting.
-> To remove the dependancy, several conversions/additions had to be done:
-> 1) Timer structures and initialization functions are named by the platform
->    name and the clock source in use. The decision which timer is
->    used is done statically from the machine_desc structure. In the
->    future it should come from DT.
-> 2) Settings under the CONFIG_OMAP_32K_TIMER option are expanded into
->    separate timer structures along with the timer init functions.
->    This removes the CONFIG_OMAP_32K_TIMER on OMAP2+ timer code.
-> 3) Since we have all the timers defined inside machine_desc structure
->    and we no longer need the fallback to gp_timer clock source in case
->    32k_timer clock source is unavailable (namely on AM33xx), we no
->    longer need the #ifdef around __omap2_sync32k_clocksource_init()
->    function. Remove the #ifdef CONFIG_OMAP_32K_TIMER around the
->    __omap2_sync32k_clocksource_init() function.
+* Mohammed, Afzal <afzal@ti.com> [121107 01:00]:
+> + Tony, Daniel
 > 
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> Cc: Jon Hunter <jon-hunter@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+> Hi,
+> 
+> On Wed, Nov 07, 2012 at 02:04:03, Hunter, Jon wrote:
+> > On 11/06/2012 12:00 PM, Matthieu CASTET wrote:
+> 
+> > > I will post another patch, unless this is already done in  Afzal patch (Is there
+> > > a tree where I can get Afzal pending patches ?)
+> 
+> > Afzal keeps his kernel tree on gitorious [1]. However, I am not sure
+> > what Afzal's plans are for the remaining patches not yet merged and
+> > which branch you should look at (I have a lot of problems viewing
+> > anything on gitorious these days).
+> > 
+> > Afzal, let us know how you prefer to handle this.
+> 
+> My initial plan was to do timing related changes first and then dt
+> conversion. But at the present moment, it seems higher priority has
+> to be given for dt conversion over timing changes (it involves
+> using generic timing routine for all required gpmc peripherals,
+> handling additional timings inclusive of $subject) and hence timing
+> related changes were put in suspended animation for now.
+> 
+> And Daniel has started working on gpmc dt. Let us take Tony's
+> opinion on how to deal with this, Tony ?
 
-[snip]
+Up to you to figure out the ordering.
+ 
+> Following are the pending changes w.r.t timing available @[1]
+> (please note that these would have to be rebased over branch/tag
+> specified by Tony in reply to Matthieu's patch 3/3)
+> a. d42eafa ARM: OMAP2+: nand: remove redundant rounding
+> b. f229aba ARM: OMAP2+: gpmc: handle additional timings
+> c. 14cbb87 ARM: OMAP2+: gpmc: generic timing calculation
+> d. 9830264 ARM: OMAP2+: onenand: generic timing calculation
+> e. 5f33ea5 ARM: OMAP2+: smc91x: generic timing calculation
+> f. 9876020 ARM: OMAP2+: tusb6010: generic timing calculation (HEAD)
+> 
+> 'b' is a superset of $subject
+> 
+> Originally 'a' and 'b' was part of gpmc cleanup series for common
+> zImage, then Tony requested for minimal changes for it, hence
+> 'a' & 'b' was left out in the pull request (picked up by Tony),
+> so that gpmc common zImage cleanup series would not create any
+> timing related issues.
 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 684d2fc..a4ad7a0 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -63,20 +63,8 @@
->  #define OMAP2_32K_SOURCE	"func_32k_ck"
->  #define OMAP3_32K_SOURCE	"omap_32k_fck"
->  #define OMAP4_32K_SOURCE	"sys_32k_ck"
-> -
-> -#ifdef CONFIG_OMAP_32K_TIMER
-> -#define OMAP2_CLKEV_SOURCE	OMAP2_32K_SOURCE
-> -#define OMAP3_CLKEV_SOURCE	OMAP3_32K_SOURCE
-> -#define OMAP4_CLKEV_SOURCE	OMAP4_32K_SOURCE
-> -#define OMAP3_SECURE_TIMER	12
->  #define TIMER_PROP_SECURE	"ti,timer-secure"
-> -#else
-> -#define OMAP2_CLKEV_SOURCE	OMAP2_MPU_SOURCE
-> -#define OMAP3_CLKEV_SOURCE	OMAP3_MPU_SOURCE
-> -#define OMAP4_CLKEV_SOURCE	OMAP4_MPU_SOURCE
-> -#define OMAP3_SECURE_TIMER	1
-> -#define TIMER_PROP_SECURE	"ti,timer-alwon"
-> -#endif
-> +#define TIMER_PROP_ALWON	"ti,timer-alwon"
+Maybe send pull requests for the ones that are ready to go?
 
-Nit-pick, can we drop the TIMER_PROP_SECURE/ALWON and use the
-"ti,timer-secure" and "ti,timer-alwon" directly?
+They should be done against what we have in clean-up probably, so
+omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3 or against
+omap-for-v3.8/cleanup-headers-gpmc it that merges easily with
+the cleanup branch.
+ 
+> One thing to note is that cycle2cycledelay and busturnaround field's
+> would get zeroed out with $subject patch for those peripheral's that
+> call gpmc_cs_set_timings(). If there are any boards silently
+> depending on bootloader setting these values, it may be affected, so
+> this change would need to be verified for existing boards in mainline.
+> 
+> Perhaps 'b' (for $subject patch) can be taken ahead if Tony is
+> happy with it.
+> 
+> And regarding patches 2 & 3 of Matthieu's series that calculate
+> timings, I was wondering whether generic timing routine (c) can
+> learn from it as well as vice-versa. Also with gpmc common zImage
+> series, omap-nand driver does not have access to timing related
+> gpmc functions, a new gpmc function would have to be exported
+> that translates onfi timings to gpmc (or educate generic timing
+> routine with onfi translation too ?)
 
-Initially, I also defined TIMER_PROP_ALWON and Rob Herring's feedback
-was to drop this and use the property string directly to remove any
-abstraction.
+Right, once we enable CONFIG_ARCH_MULTIPLATFORM, drivers trying
+to include <mach/*.h> or <plat/*.h> files will fail to build.
 
->  #define REALTIME_COUNTER_BASE				0x48243200
->  #define INCREMENTER_NUMERATOR_OFFSET			0x10
-> @@ -216,7 +204,7 @@ void __init omap_dmtimer_init(void)
->  
->  	/* If we are a secure device, remove any secure timer nodes */
->  	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)) {
-> -		np = omap_get_timer_dt(omap_timer_match, "ti,timer-secure");
-> +		np = omap_get_timer_dt(omap_timer_match, TIMER_PROP_SECURE);
->  		if (np)
->  			of_node_put(np);
->  	}
-> @@ -378,9 +366,8 @@ static u32 notrace dmtimer_read_sched_clock(void)
->  	return 0;
->  }
->  
-> -#ifdef CONFIG_OMAP_32K_TIMER
->  /* Setup free-running counter for clocksource */
-> -static int __init omap2_sync32k_clocksource_init(void)
-> +static int __init __omap2_sync32k_clocksource_init(void)
+Regards,
 
-Not sure I follow why you renamed this function here ...
-
->  {
->  	int ret;
->  	struct device_node *np = NULL;
-> @@ -439,15 +426,9 @@ static int __init omap2_sync32k_clocksource_init(void)
->  
->  	return ret;
->  }
-> -#else
-> -static inline int omap2_sync32k_clocksource_init(void)
-> -{
-> -	return -ENODEV;
-> -}
-> -#endif
->  
-> -static void __init omap2_gptimer_clocksource_init(int gptimer_id,
-> -						const char *fck_source)
-> +static void __init omap2_gp_clocksource_init(int gptimer_id,
-> +					     const char *fck_source)
-
-Nit, I personally prefer keeping gptimer, because gp just means
-"general-purpose" and does not imply a timer per-se.
-
->  {
->  	int res;
->  
-> @@ -466,23 +447,10 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
->  			gptimer_id, clksrc.rate);
->  }
->  
-> -static void __init omap2_clocksource_init(int gptimer_id,
-> -						const char *fck_source)
-> +static void __init omap2_sync32k_clocksource_init(int gptimer_id,
-> +						  const char *fck_source)
->  {
-> -	/*
-> -	 * First give preference to kernel parameter configuration
-> -	 * by user (clocksource="gp_timer").
-> -	 *
-> -	 * In case of missing kernel parameter for clocksource,
-> -	 * first check for availability for 32k-sync timer, in case
-> -	 * of failure in finding 32k_counter module or registering
-> -	 * it as clocksource, execution will fallback to gp-timer.
-> -	 */
-> -	if (use_gptimer_clksrc == true)
-> -		omap2_gptimer_clocksource_init(gptimer_id, fck_source);
-> -	else if (omap2_sync32k_clocksource_init())
-> -		/* Fall back to gp-timer code */
-> -		omap2_gptimer_clocksource_init(gptimer_id, fck_source);
-> +	__omap2_sync32k_clocksource_init();
->  }
-
-... this just appears to be a wrapper function, but I don't see why this
-is needed? Do we need this wrapper?
-
->  #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
-> @@ -563,52 +531,64 @@ static inline void __init realtime_counter_init(void)
->  {}
->  #endif
->  
-> -#define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
-> -				clksrc_nr, clksrc_src)			\
-> -static void __init omap##name##_timer_init(void)			\
-> +#define OMAP_SYS_TIMER_INIT(n, clksrc_name, clkev_nr, clkev_src,	\
-> +				clkev_prop, clksrc_nr, clksrc_src)	\
-> +static void __init omap##n##_##clksrc_name##_timer_init(void)		\
-
-
->  {									\
->  	omap_dmtimer_init();						\
->  	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
-> -	omap2_clocksource_init((clksrc_nr), clksrc_src);		\
-> +									\
-> +	if (use_gptimer_clksrc)						\
-> +		omap2_gp_clocksource_init((clksrc_nr), clksrc_src);	\
-> +	else								\
-> +		omap2_##clksrc_name##_clocksource_init((clksrc_nr),	\
-> +						       clksrc_src);	\
-
-Something here seems a little odd. If "clksrc_name" is "gp", then the
-if-else parts will call the same function. Or am I missing something here?
-
-I think that I prefer how it works today where we call just
-omap2_clocksource_init(), and it determines whether to use the gptimer
-or the 32k-sync.
-
-For OMAP I think that it is fine to default to the 32k-sync and then if
-the gptimer is selected, it uses the higher frequency sys_clk as the
-timer source.
-
-For AMxxx, devices, sync-32k does not exist, and so I understand it does
-not work the same.
-
-I am wondering if the use_gptimer_clksrc, should become
-use_sysclk_clksrc, and then ...
-
-For OMAP ...
-use_sysclk_clksrc = 0 --> use sync-32k (default)
-use_sysclk_clksrc = 1 --> use gptimer with sys_clk
-
-For AM33xx ...
-use_sysclk_clksrc = 0 --> use gptimer with 32khz clock (default)
-use_sysclk_clksrc = 1 --> use gptimer with sys_clk
-
->  }
->  
-> -#define OMAP_SYS_TIMER(name)						\
-> -struct sys_timer omap##name##_timer = {					\
-> -	.init	= omap##name##_timer_init,				\
-> -};
-> +#define OMAP_SYS_TIMER(n, clksrc)					\
-> +struct sys_timer omap##n##_##clksrc##_timer = {				\
-> +	.init	= omap##n##_##clksrc##_timer_init,			\
-> +}
->  
->  #ifdef CONFIG_ARCH_OMAP2
-> -OMAP_SYS_TIMER_INIT(2, 1, OMAP2_CLKEV_SOURCE, "ti,timer-alwon",
-> -		    2, OMAP2_MPU_SOURCE)
-> -OMAP_SYS_TIMER(2)
-> +OMAP_SYS_TIMER_INIT(2, sync32k, 1, OMAP2_32K_SOURCE, TIMER_PROP_ALWON,
-> +		    2, OMAP2_MPU_SOURCE);
-> +OMAP_SYS_TIMER(2, sync32k);
-> +OMAP_SYS_TIMER_INIT(2, gp, 1, OMAP2_MPU_SOURCE, TIMER_PROP_ALWON,
-> +		    2, OMAP2_MPU_SOURCE);
-> +OMAP_SYS_TIMER(2, gp);
-
-It would be good if we can avoid having two timer_init functions for
-each OMAP generation.
-
-Cheers
-Jon
+Tony
+ 
+> [a] git://gitorious.org/x0148406-public/linux-kernel.git gpmc-timing
