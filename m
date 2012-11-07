@@ -1,77 +1,47 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 15/15] ARM: OMAP2+: AM33XX: Basic suspend resume support
-Date: Tue, 06 Nov 2012 17:06:06 -0800
-Message-ID: <87r4o68bnl.fsf@deeprootsystems.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
-	<1351859566-24818-16-git-send-email-vaibhav.bedia@ti.com>
-	<87txt4aqyc.fsf@deeprootsystems.com>
-	<B5906170F1614E41A8A28DE3B8D121433EC04AE5@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] OMAP: PM: cleanups for v3.8
+Date: Tue, 6 Nov 2012 17:07:26 -0800
+Message-ID: <20121107010725.GV6801@atomide.com>
+References: <87zk2u1edh.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:46186 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754064Ab2KGBGI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:06:08 -0500
-Received: by mail-pa0-f46.google.com with SMTP id hz1so739813pad.19
-        for <linux-omap@vger.kernel.org>; Tue, 06 Nov 2012 17:06:08 -0800 (PST)
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC04AE5@DBDE01.ent.ti.com>
-	(Vaibhav Bedia's message of "Tue, 6 Nov 2012 10:40:09 +0000")
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:56052 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753693Ab2KGBH1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:07:27 -0500
+Content-Disposition: inline
+In-Reply-To: <87zk2u1edh.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-"Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
+* Kevin Hilman <khilman@deeprootsystems.com> [121106 15:51]:
+> Tony,
+> 
+> Here is some PM related cleanup targetted for v3.8.
+> 
+> Kevin
+> 
+> 
+> The following changes since commit 6f0c0580b70c89094b3422ba81118c7b959c7556:
+> 
+>   Linux 3.7-rc2 (2012-10-20 12:11:32 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/for_3.8-cleanup-pm
+> 
+> for you to fetch changes up to 9bb053787d5ca12ec388bb5f871c79ffb83762ab:
+> 
+>   ARM: OMAP2+: PM: VP: minor pr_warn updates (2012-10-25 14:32:34 -0700)
+> 
+> ----------------------------------------------------------------
+> Minor pr_warn() cleanup for OMAP2+ Voltage Processor (VP)
 
-> On Mon, Nov 05, 2012 at 23:10:27, Kevin Hilman wrote:
+Thanks pulling into omap-for-v3.8/pm.
 
-[...]
+Regards,
 
->> 
->> Also, if there are drivers for these devices, won't this interfere?
->> 
->
-> Hmm, I can think of the following scenarios
->
-> 1. Runtime PM adapted drivers are compiled in - We'll have to ensure that
-> in their suspend callbacks they end up doing omap_hwmod_idle() via the
-> runtime PM APIs. 
-
-That already happens for all omap_devices.
-
-> In this case the omap_hwmod_enable() followed by omap_hwmod_idle() is
-> not necessary in the PM code.
-
-Correct.
-
-> 2. The drivers are not compiled in - In this case, the hwmod code puts
-> the IPs in standby during bootup so the first suspend-resume iteration
-> will pass. During resuming, the SYSC configuration for forced standby will
-> be lost, 
-
-Please clarify how the SYSC is lost in this case.
-
-> so in the subsequent iterations these IPs won't go standby and the
-> hwmod code does not touch them since they never got enabled. In this case
-> we do need the sequence that is there currently.
->
-> 3. For some reason the respective drivers don't idle the IPs during suspend -
-> (no_idle_on_suspend flag for the hwmod in DT?). In this scenario I think
-> we should abort the suspend process since we know that the suspend is not
-> going to work. 
-
-Agreed.
-
-> Is there some other scenario that needs to be covered?
-
-You covered the ones I was thinking of.
-
-> How about adding some flag in hwmod code for handling this? Something
-> similar to what was done for MMC [1]. I think the problem that we have
-> is in some ways similar to the one addressed in [1].
-
-Except that in the absence of drivers, no hwmod code is executed on the
-suspend/resume path.
-
-Kevin
+Tony
