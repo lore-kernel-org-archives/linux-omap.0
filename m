@@ -1,142 +1,122 @@
-From: Alan Tull <atull@altera.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Wed, 7 Nov 2012 09:33:21 -0600
-Message-ID: <1352302401.4067.11.camel@atull-linux1>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
-	 <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
-	 <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
-	 <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com>
-	 <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
-	 <B1277EA3-9284-4856-A7E8-1B1CA9D30327@antoniou-consulting.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC
+ timings and NAND
+Date: Wed, 7 Nov 2012 15:37:02 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+ <1351869956-2787-5-git-send-email-zonque@gmail.com>
+ <518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com>
+ <5097B7EE.3000508@gmail.com>
+ <518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com>
+ <509A2E75.5060307@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <B1277EA3-9284-4856-A7E8-1B1CA9D30327@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53648 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751428Ab2KGPiR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 10:38:17 -0500
+In-Reply-To: <509A2E75.5060307@gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2012-11-07 at 09:06 +0100, Pantelis Antoniou wrote:
-> Hi Grant,
-> 
-> On Nov 6, 2012, at 9:45 PM, Grant Likely wrote:
-> 
-> > On Tue, Nov 6, 2012 at 7:34 PM, Pantelis Antoniou
-> > <panto@antoniou-consulting.com> wrote:
-> >> On Nov 6, 2012, at 12:14 PM, Grant Likely wrote:
-> >>> On Tue, Nov 6, 2012 at 10:30 AM, Pantelis Antoniou
-> >>> <panto@antoniou-consulting.com> wrote:
-> >>>> For hot-plugging, you need it. Whether kernel code can deal with
-> >>>> large parts of the DT going away... How about we use the dead
-> >>>> properties method and move/tag the removed modes as such, and not
-> >>>> really remove them.
-> >>> 
-> >>> Nodes already use krefs, and I'm thinking about making them kobjects
-> >>> so that they appear in sysfs and we'll have some tools to figure out
-> >>> when reference counts don't get decremented properly.
-> >>> 
-> >> 
-> >> From the little I've looked in the of code, and the drivers, it's going
-> >> to be pretty bad. I don't think all users take references properly, and
-> >> we have a big global lock for accessing the DT.
+On Wed, Nov 07, 2012 at 15:18:37, Daniel Mack wrote:
+> On 05.11.2012 14:29, Philip, Avinash wrote:
+> > On Mon, Nov 05, 2012 at 18:28:22, Daniel Mack wrote:
+> >> On 05.11.2012 12:03, Philip, Avinash wrote:
+> >>> On Fri, Nov 02, 2012 at 20:55:56, Daniel Mack wrote:
+> >>>> This patch adds basic DT bindings for OMAP GPMC.
+> >>>>
+> >>>> The actual peripherals are instanciated from child nodes within the GPMC
+> >>>> node, and the only type of device that is currently supported is NAND.
+> >>>>
+> >>>> Code was added to parse the generic GPMC timing parameters and some
+> >>>> documentation with examples on how to use them.
+> >>>>
+> >>>> Successfully tested on an AM33xx board.
+> >>>>
+> >>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> >>> [...]
+> >>>> +
+> >>>> +		nand@0,0 {
+> >>>> +			reg = <0 0 0>; /* CS0, offset 0 */
+> >>>> +			nand-bus-width = <16>;
+> >>>> +			nand-ecc-mode = "none";
+> >>>> +
+> >>>> +			gpmc,sync-clk = <0>;
+> >>>> +			gpmc,cs-on = <0>;
+> >>>> +			gpmc,cs-rd-off = <36>;
+> >>>> +			gpmc,cs-wr-off = <36>;
+> >>>> +			gpmc,adv-on = <6>;
+> >>>> +			gpmc,adv-rd-off = <24>;
+> >>>> +			gpmc,adv-wr-off = <36>;
+> >>>> +			gpmc,we-off = <30>;
+> >>>> +			gpmc,oe-off = <48>;
+> >>>> +			gpmc,access = <54>;
+> >>>> +			gpmc,rd-cycle = <72>;
+> >>>> +			gpmc,wr-cycle = <72>;
+> >>>> +			gpmc,wr-access = <30>;
+> >>>> +			gpmc,wr-data-mux-bus = <0>;
+> >>>> +
+> >>>> +			#address-cells = <1>;
+> >>>> +			#size-cells = <1>;
+> >>>> +
+> >>>
+> >>> Can you take the timings (for example) from arago tree. The timings is tested in am335x-evm
+> >>> So the timings can be directly used to populate GPMC timings. Timings can found at
+> >>>
+> >>> http://arago-project.org/git/projects/?p=linux-am33x.git;a=commitdiff;
+> >>> h=66bfbd2c5b35dc81edce0c24843c476161ab5978;hp=370630359cb8db711cf0941cd2a242e28ccfb61e
+> >>>
+> >>> [...]
+> >>>> +static int gpmc_probe_dt(struct platform_device *pdev)
+> >>>
+> >>> Can you take care of the following section mismatch.
+> >>> WARNING: vmlinux.o(.text+0x1e2d0): Section mismatch in reference
+> >>> from the function gpmc_probe_dt() to the function .init.text:gpmc_nand_init().
+> >>
+> >> Sore, both fixed for v4.
+> >>
+> >>> [...]
+> >>>> +
+> >>>> +		val = of_get_nand_ecc_mode(child);
+> >>>> +		if (val >= 0)
+> >>>> +			gpmc_nand_data->ecc_opt = val;
+> >>>
+> >>> This will fail for BCH. Index of "soft_bch" is 5 & also don't have selection
+> >>> option between for BCH4 & BCH8 also.
+> >>> Can you use the of_property_read_u32 (as done early) to pass the ecc selection
+> >>> from dt file. This will help selection of BCH4 & BCH8 ecc options.
+> >>
+> >> Hmm. Shouldn't we rather teach of_get_nand_ecc_mode() that two modes and
+> >> bring the enum in sync?
 > > 
-> > I'm a lot more optimistic on this front... I wrote a patch today to
-> > make the change and took some measurements:
+> > ecc_opt is for selecting different ecc layout and not for selecting ecc mode.
 > > 
-> > On the versatile express qemu model I measured the free memory with
-> > /proc/device-tree, with /sys/device-tree, and with both. Here's what I
-> > found:
+> > In omap2 driver NAND_ECC_HW ecc mode supports 3 ecc layout
+> > 	OMAP_ECC_HAMMING_CODE_HW_ROMCODE
+> > 	OMAP_ECC_BCH4_CODE_HW
+> > 	OMAP_ECC_BCH8_CODE_HW
 > > 
-> > /proc/device-tree only: 114776kB free
-> > /sys/device-tree only: 114792kB free
-> > both enabled: 114716kB free
-> > 
-> > The back of a napkin calculation indicates that on this platform
-> > /proc/devicetree costs 76kB and /sys/device-tree costs 60kb. I'm happy
-> > to see that using /sys instead of /proc appears to be slightly cheaper
-> > which makes it easier to justify the change. The diffstat makes me
-> > even happier:
-> > 
-> > arch/arm/plat-omap/Kconfig                |    1 -
-> > arch/powerpc/platforms/pseries/dlpar.c    |   23 -----------
-> > arch/powerpc/platforms/pseries/reconfig.c |   40 ------------------
-> > drivers/of/Kconfig                        |    8 ----
-> > drivers/of/base.c                         |  116
-> > ++++++++++++++++++++++++++++------------------------
-> > drivers/of/fdt.c                          |    5 ++-
-> > fs/proc/Makefile                          |    1 -
-> > fs/proc/proc_devtree.c                    |   13 +-----
-> > fs/proc/root.c                            |    4 +-
-> > include/linux/of.h                        |   35 ++++++++++++----
-> > include/linux/proc_fs.h                   |   16 --------
-> > include/linux/string.h                    |   11 +++++
-> > 12 files changed, 107 insertions(+), 166 deletions(-)
-> > 
+> > So selection of ecc layout data should come from DT not ecc mode.
 > 
-> Interesting. Not so bad then.
-> 
-> > There are still a few odds and ends that need to be tidied up, but
-> > I'll get it out for review shortly. I've not touched the sparc code
-> > yet, and I need to take another look over the existing OF_DYNAMIC
-> > code. I think that CONFIG_OF_DYNAMIC will probably go away and the add
-> > node/property functions will get used by fdt.c and pdt.c for initial
-> > construction of the device tree.
-> 
-> CONFIG_OF_DYNAMIC never made sense to me. Glad to see the config option
-> gone. I'm not totally up to date with the -next dt stuff, but if we're
-> there can we rename all the prom_ functions to something saner?
-> 
-I'd be glad to see the dynamic stuff be integrated better than it
-currently is.  Currently unflatten_dt_node assumes that the flattened
-tree will stay around and not be freed.  So using it to unflatten dynamic
-nodes after boot is problematic if the nodes may be later removed.
+> Ok, I see. I would still like to set them by string rather than magic
+> numbers that map to enum entries. Valid values would be "none", "hw",
+> "hw-romcode", "bch4" and "bch8". Are you ok with that?
 
-> > 
-> >> Adding and removing nodes at runtime as part of the normal operation of
-> >> the system (and not as something that happens once in a blue moon under
-> >> controlled conditions) will uncover lots of bugs.
-> > 
-> > I'm hoping so! Its time to clean that mess up. :-) Fortunately adding
-> > nodes is not where we're going to have problems. The problems will be
-> > on node removal. Addition-only at least means we can have something
-> > useful before hunting down and squashing all the bugs.
-> 
-> I'll admit that removing nodes is going to be quite rare at least for
-> me use cases. I did come across a couple of people that do hot-plugging
-> (using something completely different) that could use it for sure.
->
+Ok, that's nice. Better use ecc_opt instead of ecc_mode.
 
-We have been looking at an approach that would allow adding/deleting
-whole nodes under userspace direction.  Such as a variation of the real-time
-video processing system example where the FPGA has some IP blocks that are
-dsp filters.  The user could rearrange them from
-some userspace GUI without having to reboot.  For that to work, device nodes that
-are removed really have to be freed or there's a memory leak.
+Thanks
+Avinash
 
+> 
+> 
+> Thanks,
+> Daniel
+> 
+> 
 
-> > 
-> >> So let's think about locking too
-> > 
-> > Yes, the locking does need to be sorted out.
-> > 
-> 
-> Perhaps come up with a dt-stress test tool/boot time validator?
-> 
-> > g.
-> 
-> Regards
-> 
-> -- Pantelis
-> 
-> P.S. Lots of teeth grinding in the ELCE about the lack of a DT preprocessor.
-> The pinctrl arguments have been mentioned more than once.
-> 
-> 
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
-> 
