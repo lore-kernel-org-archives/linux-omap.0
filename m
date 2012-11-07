@@ -1,109 +1,99 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: OMAP baseline test results for v3.7-rc4
-Date: Wed, 7 Nov 2012 11:14:02 -0600
-Message-ID: <509A96DA.2010003@ti.com>
-References: <alpine.DEB.2.00.1211050241410.23228@utopia.booyaka.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 15/15] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Wed, 07 Nov 2012 09:15:20 -0800
+Message-ID: <87pq3p72s7.fsf@deeprootsystems.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+	<1351859566-24818-16-git-send-email-vaibhav.bedia@ti.com>
+	<87txt4aqyc.fsf@deeprootsystems.com>
+	<B5906170F1614E41A8A28DE3B8D121433EC04AE5@DBDE01.ent.ti.com>
+	<87r4o68bnl.fsf@deeprootsystems.com>
+	<B5906170F1614E41A8A28DE3B8D121433EC085EE@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58173 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751748Ab2KGROH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 12:14:07 -0500
-In-Reply-To: <alpine.DEB.2.00.1211050241410.23228@utopia.booyaka.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:60270 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346Ab2KGRPW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 12:15:22 -0500
+Received: by mail-pa0-f46.google.com with SMTP id hz1so1292264pad.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Nov 2012 09:15:21 -0800 (PST)
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC085EE@DBDE01.ent.ti.com>
+	(Vaibhav Bedia's message of "Wed, 7 Nov 2012 13:25:56 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+
+"Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
+
+> Hi Kevin,
+>
+> On Wed, Nov 07, 2012 at 06:36:06, Kevin Hilman wrote:
+>> "Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
+>> 
+>> > On Mon, Nov 05, 2012 at 23:10:27, Kevin Hilman wrote:
+>> 
+>> [...]
+>> 
+>> >> 
+>> >> Also, if there are drivers for these devices, won't this interfere?
+>> >> 
+>> >
+>> > Hmm, I can think of the following scenarios
+>> >
+>> > 1. Runtime PM adapted drivers are compiled in - We'll have to ensure that
+>> > in their suspend callbacks they end up doing omap_hwmod_idle() via the
+>> > runtime PM APIs. 
+>> 
+>> That already happens for all omap_devices.
+>> 
+>> > In this case the omap_hwmod_enable() followed by omap_hwmod_idle() is
+>> > not necessary in the PM code.
+>> 
+>> Correct.
+>> 
+>> > 2. The drivers are not compiled in - In this case, the hwmod code puts
+>> > the IPs in standby during bootup so the first suspend-resume iteration
+>> > will pass. During resuming, the SYSC configuration for forced standby will
+>> > be lost, 
+>> 
+>> Please clarify how the SYSC is lost in this case.
+>
+> The register configuration of IPs in the PER domain is lost when we enter
+> the suspend state. So the forced standby configuration from SYSC is lost
+> and we need to do this for every successful suspend-resume cycle.
+>
+>> 
+>> > so in the subsequent iterations these IPs won't go standby and the
+>> > hwmod code does not touch them since they never got enabled. In this case
+>> > we do need the sequence that is there currently.
+>> >
+>> > 3. For some reason the respective drivers don't idle the IPs during suspend -
+>> > (no_idle_on_suspend flag for the hwmod in DT?). In this scenario I think
+>> > we should abort the suspend process since we know that the suspend is not
+>> > going to work. 
+>> 
+>> Agreed.
+>> 
+>> > Is there some other scenario that needs to be covered?
+>> 
+>> You covered the ones I was thinking of.
+>> 
+>> > How about adding some flag in hwmod code for handling this? Something
+>> > similar to what was done for MMC [1]. I think the problem that we have
+>> > is in some ways similar to the one addressed in [1].
+>> 
+>> Except that in the absence of drivers, no hwmod code is executed on the
+>> suspend/resume path.
+>> 
+>
+> We could perhaps add a couple of APIs to check the SYSC values when coming
+> out of suspend and take appropriate action if the sysc cache does not match?
+
+Yes, for IPs with only SW support and no drivers, we may need something
+like this.  But again, it needs to be suspend and idle aware, not just
+suspend.
+
+Kevin
 
 
-On 11/04/2012 08:46 PM, Paul Walmsley wrote:
-> 
-> Here are some basic OMAP test results for Linux v3.7-rc4.
-> Logs and other details at:
-> 
->     http://www.pwsan.com/omap/testlogs/test_v3.7-rc4/20121104142910/
-> 
-> 
-> Passing tests
-> -------------
-> 
-> Boot to userspace: 2420n800, 3517evm, 3530es3beagle, 3730beaglexm, 37xxevm,
->                    4430es2panda, 5912osk, am335xbone
-> 
-> PM ret/off, suspend + dynamic idle: (none)
-> 
-> 
-> Failing tests: fixed by posted patches
-> --------------------------------------
-> 
-> Boot tests:
-> 
-> * 2430sdp: vfp_reload_hw oops during MMC initialization
->   - Kernel attempts to save FP registers that don't exist; fix posted:
->     - http://www.spinics.net/lists/arm-kernel/msg200646.html
->     - added to rmk's patch system as 7566/1
-> 
-> * AM335x Beaglebone: omap2plus_defconfig kernels don't boot
->   - Due to GPMC missing support for DT
->   - Temporary workaround at 
-> http://www.spinics.net/lists/arm-kernel/msg200787.html
->   - May be fixed now, pending retest:
->     - http://marc.info/?l=linux-omap&m=135082257727502&w=2
->   - Not yet part of the automated test suite
->   * May be due to an old U-boot with FDT support problems?
-> 
-> PM tests:
-> 
-> * 3530es3beagle, 37xxevm, 3730beaglexm: I2C fails during resume from suspend
->   - Causes MMC to become unusable since regulators are not reenabled
->   - Caused by RT throttling
->   - Fixed by http://www.spinics.net/lists/arm-kernel/msg202224.html
->   - Patch in rmk's patch system as 7565/1
-> 
-> * 3530es3beagle: hangs during off-mode dynamic idle test
->   - Appears to be caused by commit 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c:
->     - http://marc.info/?l=linux-omap&m=135075364705188&w=2
->   - Fixed by http://www.spinics.net/lists/arm-kernel/msg202116.html
->  
-> Other:
-> 
-> * 2420N800: powers down 30 seconds after boot
->   - Presumably due to missing CBUS patches for watchdog control
->   - http://lkml.org/lkml/2012/9/3/265
-> 
-> * 4430es2panda: omap_hwmod: mcpdm: cannot be enabled for reset (3)
->   - clock source is from an external I2C-controlled source
->   - must skip reset until the switchover to hwmod late init
->   - http://www.spinics.net/lists/arm-kernel/msg178138.html
-> 
-> 
-> Failing tests: needing investigation
-> ------------------------------------
-> 
-> Boot tests:
-> 
-> * CM-T3517: L3 in-band error with IPSS during boot
->   - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
->   - Longstanding issue; does not occur on the 3517EVM
-> 
-> * 3517EVM & CM-T3517: boot hangs with NFS root
->   - Likely some Kconfig, board file, and PM issues with EMAC
-> 
-> * CM-T3517: boot hangs with MMC boot
->   - Due to missing MMC setup in board file
-> 
-> * 4460pandaes: boot fails early
->   - Appears to be due to X-loader problems here
->   - Need to note the X-loader version so we know it's broken
-
-Are you still planning to investigate this further or migrate to a new
-bootloader?
-
-With 4460 and 3.7-rc4, I am seeing that resume from suspend is not
-working (not sure when this broke though). I am just curious if anyone
-else sees this. My u-boot version is v2012.10.
-
-Cheers
-Jon
