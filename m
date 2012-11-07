@@ -1,38 +1,88 @@
-From: Ryan Mallon <rmallon@gmail.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
- to mach-omap2)
-Date: Thu, 08 Nov 2012 09:35:51 +1100
-Message-ID: <509AE247.3000404@gmail.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V2 02/14] ARM: OMAP2+: Disable posted mode for the clocksource
+ timer
+Date: Wed, 7 Nov 2012 16:41:47 -0600
+Message-ID: <509AE3AB.8080008@ti.com>
+References: <1352314890-22224-1-git-send-email-jon-hunter@ti.com> <1352314890-22224-3-git-send-email-jon-hunter@ti.com> <509ADC5F.7020307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tabi Timur-B04825 <B04825@freescale.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wood Scott-B07421 <B07421@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46872 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750845Ab2KGWly (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 17:41:54 -0500
+In-Reply-To: <509ADC5F.7020307@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 06/11/12 08:40, Tabi Timur-B04825 wrote:
-> On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
-> 
->> Jane is building custom BeagleBone expansion boards called 'capes'. She
->> can boot the system with a stock BeagleBoard device tree, but additional
->> data is needed before a cape can be used. She could replace the FDT file
->> used by U-Boot with one that contains the extra data, but she uses the
->> same Linux system image regardless of the cape, and it is inconvenient
->> to have to select a different device tree at boot time depending on the
->> cape.
-> 
-> What's wrong with having the boot loader detect the presence of the
-> Cape and update the device tree accordingly?  We do this all the time
-> in U-Boot.  Doing stuff like reading EEPROMs and testing for the
-> presence of hardware is easier in U-Boot than in Linux.
 
-This is probably okay for some hardware, but doesn't work in the general
-case. Not all hardware is detectable, for example a cape which just adds
-a set of LEDs for GPIO pins. Also, some hardware might not easily be
-detectable without adding additional complexity to the boot loader.
+On 11/07/2012 04:10 PM, Santosh Shilimkar wrote:
+> On Wednesday 07 November 2012 01:01 PM, Jon Hunter wrote:
+>> When using a DMTIMER as the clock-source timer, posted mode
+>> configuration of
+>> the DMTIMER is used. Posted mode is only benefical when configuring
+>> timers as
+>> it allows writes to be posted and does not stall the CPU until the
+>> write is
+>> complete. The clock-source timer is only configured once on boot and
+>> so using
+>> posted mode has no benefit. In fact, by using posted mode, it adds
+>> overhead
+>> to reading the timer. Therefore, by default disable posted mode for
+>> DMTIMERs
+>> used for clock-source.
+>>
+>> Using objdump this change reduces the function clocksource_read_cycles()
+>> function from a total of 15 instructions (including 3 branches and 7
+>> loads)
+>> to 5 instructions (including 1 branch and 3 loads). Please note that
+>> before
+>> the minimum number of instructions that would be executed when calling
+>> clocksource_read_cycles() would be 9 instructions (including 2
+>> branches and 5
+>> loads) where as now it will always be 5 instructions.
+>>
+>> This change also reduces the function dmtimer_read_sched_clock()
+>> function from
+>> a total of 17 instructions (including 4 branches and 8 loads) to 6
+>> instructions
+>> (including 1 branch and 4 loads). Please note that before the minimum
+>> number of
+>> instructions that would be executed when calling
+>> dmtimer_read_sched_clock()
+>> would be 11 instructions (including 2 branches and 6 loads) where as
+>> now it
+>> will always be 6 instructions.
+>>
+> This isn't right way to calculate the penalty of posted mode. Non-posted
+> mode can results in 100 of cycles wait over interconnect
+> and that can not be justified with few instructions savings.
 
-~Ryan
+Right, I see your point. Non-posted reads are going to add
+re-synchronisation overhead. However, our hands are tied here because of
+errata i103 we can't use posted mode for reading the counter.
+
+So may be I should squash this change with patch #3 and just make this
+part of the errata workaround. I can always re-visit later and do some
+profiling to see what the optimal configuration should be.
+
+>> This change removes the configuration of posted mode from the
+>> __omap_dm_timer_reset() function and adds a new function called
+>> omap_dm_timer_enable_posted() for enabling posted mode. Hence, call
+>> omap_dm_timer_enable_posted() where ever we are calling
+>> __omap_dm_timer_reset().
+>>
+>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>> ---
+> But clock-source doesn't involve much into writes so patch as
+> such is fine.
+
+Yes writes are only on init.
+
+Cheers
+Jon
+
+
