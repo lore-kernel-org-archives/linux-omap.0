@@ -1,60 +1,37 @@
-From: R Sricharan <r.sricharan@ti.com>
-Subject: Re: OMAP4/Panda: u-boot upgrade v2012.04.01 -> v2012.10 breaks RTC
- wakeups
-Date: Wed, 7 Nov 2012 11:08:02 +0530
-Message-ID: <5099F3BA.6090302@ti.com>
-References: <87obja9r3x.fsf@deeprootsystems.com> <5099B0FB.3060203@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCH] Revert "ARM: OMAP: convert I2C driver to PM QoS for MPU
+ latency constraints"
+Date: Wed, 7 Nov 2012 11:30:07 +0530
+Message-ID: <CAM=Q2cuqQvdgCbH+_KS8FFbVsMDgkh9Kszq2ZLnzQYf6=H8B1g@mail.gmail.com>
+References: <alpine.DEB.2.00.1211061619461.20573@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39425 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750829Ab2KGFiU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 00:38:20 -0500
-In-Reply-To: <5099B0FB.3060203@ti.com>
+Received: from mail-ia0-f174.google.com ([209.85.210.174]:39117 "EHLO
+	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761Ab2KGGAI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 01:00:08 -0500
+In-Reply-To: <alpine.DEB.2.00.1211061619461.20573@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, u-boot@lists.denx.de, linux-omap <linux-omap@vger.kernel.org>, trini@ti.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-i2c@vger.kernel.org, ben-linux@fluff.org, w.sang@pengutronix.de, Jean Pihet <jean.pihet@newoldbits.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Felipe Balbi <balbi@ti.com>
 
-Hi Kevin,
-  In the latest, pad mux and clocks for all
-  non-essential modules at U-BOOT were removed.
-
-  This might also cause the problem.
-  We can bring this back in u-boot by adding the following macros
-  and check if it works fine again.
-
-   include/configs/omap4_common.h
-   ------------------------------
-   #define CONFIG_SYS_ENABLE_PADS_ALL
-   #define CONFIG_SYS_CLOCKS_ENABLE_ALL
-
-
-Regards,
-  Sricharan
-
-
-On Wednesday 07 November 2012 06:23 AM, Santosh Shilimkar wrote:
-> + Sricharan,
+On Tue, Nov 6, 2012 at 10:01 PM, Paul Walmsley <paul@pwsan.com> wrote:
 >
-> On Tuesday 06 November 2012 06:46 PM, Kevin Hilman wrote:
->> Hello,
->>
->> I just noticed that the kernel wakeup from suspend using RTC is broken
->> after I upgraded u-boot from v2012.04.01 to v2012.10 on my
->> OMAP4430/Panda and OMAP4460/Panda-ES.
->>
->> I haven't isolated the cause yet, but am hoping someone might have a
->> pointer about where to start digging.
->>
->> Kevin
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> This reverts commit 3db11feffc1ad2ab9dea27789e6b5b3032827adc.
+> This commit causes I2C timeouts to appear on several OMAP3430/3530-based
+> boards:
+>
+>   http://marc.info/?l=linux-arm-kernel&m=135071372426971&w=2
+>   http://marc.info/?l=linux-arm-kernel&m=135067558415214&w=2
+>   http://marc.info/?l=linux-arm-kernel&m=135216013608196&w=2
+>
+> and appears to have been sent for merging before one of its prerequisites
+> was merged:
+>
+>   http://marc.info/?l=linux-arm-kernel&m=135219411617621&w=2
 >
 
-
+Not a comment however was curious does merging the dependency.
+make the issue go away?
