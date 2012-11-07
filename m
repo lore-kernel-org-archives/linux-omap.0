@@ -1,373 +1,185 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 2/3] pwm: New driver to support PWMs on TWL4030/6030 series of PMICs
-Date: Wed, 7 Nov 2012 15:44:47 +0100
-Message-ID: <1352299488-11351-3-git-send-email-peter.ujfalusi@ti.com>
-References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [RFC 03/11] OMAPDSS: APPLY: Apply writeback configurations
+Date: Wed, 7 Nov 2012 20:14:21 +0530
+Message-ID: <1352299469-17609-4-git-send-email-archit@ti.com>
+References: <n>
+ <1352299469-17609-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50622 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753700Ab2KGOpA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 09:45:00 -0500
+In-Reply-To: <1352299469-17609-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The driver supports the following PWM outputs:
-TWL4030 PWM0 and PWM1
-TWL6030 PWM1 and PWM2
+Add changes in apply to let a user apply writeback configurations. This
+basically involves a writeback user to commit the writeback_info it has set
+previously.
 
-On TWL4030 the PWM signals are muxed. Upon requesting the PWM the driver
-will select the correct mux so the PWM can be used. When the PWM has been
-freed the original configuration going to be restored.
+Only memory to memory mode is supported for now in APPLY. Actual register
+writes would only happen when a mem to mem update is initiated. Therefore,
+there isn't a need to support the cases of shadow registers being dirty.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Add the following:
+- info and info_dirty fields in private data to represent the lower cache of
+  writeback info in APPLY.
+- Function omap_dss_wb_apply which propagates user_info to info, and an
+  equivalent function in writeback output driver exposed to writeback users.
+- Function dss_wb_write_regs to be used by APPLY to configure writeback DISPC
+  registers.
+- Helper function which tells the mode of writeback.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/pwm/Kconfig   |  10 ++
- drivers/pwm/Makefile  |   1 +
- drivers/pwm/pwm-twl.c | 304 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 315 insertions(+)
- create mode 100644 drivers/pwm/pwm-twl.c
+ drivers/video/omap2/dss/apply.c     |   68 +++++++++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/dss.h       |    1 +
+ drivers/video/omap2/dss/writeback.c |    6 ++++
+ include/video/omapdss.h             |    1 +
+ 4 files changed, 76 insertions(+)
 
-diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index e678005..c577db9 100644
---- a/drivers/pwm/Kconfig
-+++ b/drivers/pwm/Kconfig
-@@ -142,6 +142,16 @@ config  PWM_TIEHRPWM
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called pwm-tiehrpwm.
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index b2e4f6a..76886da 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -110,6 +110,15 @@ struct wb_priv_data {
  
-+config PWM_TWL
-+	tristate "TWL4030/6030 PWM support"
-+	select HAVE_PWM
-+	depends on TWL4030_CORE
-+	help
-+	  Generic PWM framework driver for TWL4030/6030.
+ 	bool user_info_dirty;
+ 	struct omap_dss_writeback_info user_info;
 +
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called pwm-twl.
++	bool info_dirty;
++	struct omap_dss_writeback_info info;
 +
- config PWM_VT8500
- 	tristate "vt8500 pwm support"
- 	depends on ARCH_VT8500
-diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
-index 29cf57e..3324c06 100644
---- a/drivers/pwm/Makefile
-+++ b/drivers/pwm/Makefile
-@@ -11,4 +11,5 @@ obj-$(CONFIG_PWM_SAMSUNG)	+= pwm-samsung.o
- obj-$(CONFIG_PWM_TEGRA)		+= pwm-tegra.o
- obj-$(CONFIG_PWM_TIECAP)	+= pwm-tiecap.o
- obj-$(CONFIG_PWM_TIEHRPWM)	+= pwm-tiehrpwm.o
-+obj-$(CONFIG_PWM_TWL)		+= pwm-twl.o
- obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
-diff --git a/drivers/pwm/pwm-twl.c b/drivers/pwm/pwm-twl.c
-new file mode 100644
-index 0000000..0821ffe
---- /dev/null
-+++ b/drivers/pwm/pwm-twl.c
-@@ -0,0 +1,304 @@
-+/*
-+ * Driver for TWL4030/6030 Generic Pulse Width Modulator
-+ *
-+ * Copyright (C) 2012 Texas Instruments
-+ * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/pwm.h>
-+#include <linux/i2c/twl.h>
-+#include <linux/slab.h>
-+
-+#define TWL_PWM_MAX		0x7f
-+
-+/* Registers, bits and macro for TWL4030 */
-+#define TWL4030_GPBR1_REG	0x0c
-+#define TWL4030_PMBR1_REG	0x0d
-+
-+/* GPBR1 register bits */
-+#define TWL4030_PWMXCLK_ENABLE	(1 << 0)
-+#define TWL4030_PWMX_ENABLE	(1 << 2)
-+#define TWL4030_PWMX_BITS	(TWL4030_PWMX_ENABLE | TWL4030_PWMXCLK_ENABLE)
-+#define TWL4030_PWM_TOGGLE(pwm, x)	((x) << (pwm))
-+
-+/* PMBR1 register bits */
-+#define TWL4030_GPIO6_PWM0_MUTE_MASK		(0x03 << 2)
-+#define TWL4030_GPIO6_PWM0_MUTE_PWM0		(0x01 << 2)
-+#define TWL4030_GPIO7_VIBRASYNC_PWM1_MASK	(0x03 << 4)
-+#define TWL4030_GPIO7_VIBRASYNC_PWM1_PWM1	(0x03 << 4)
-+
-+/* Register, bits and macro for TWL6030 */
-+#define TWL6030_TOGGLE3_REG	0x92
-+
-+#define TWL6030_PWMXR		(1 << 0)
-+#define TWL6030_PWMXS		(1 << 1)
-+#define TWL6030_PWMXEN		(1 << 2)
-+#define TWL6030_PWM_TOGGLE(pwm, x)	((x) << (pwm * 3))
-+
-+struct twl_pwm_chip {
-+	struct pwm_chip chip;
-+	u8 twl6030_toggle3;
-+	u8 twl4030_pwm_mux;
-+};
-+
-+static int twl_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
-+			      int duty_ns, int period_ns)
++	/*
++	 * If true in memory to memory mode, a manager is connected to it.
++	 * However, it may not be active.
++	 */
++	bool enabled;
+ };
+ 
+ static struct {
+@@ -209,6 +218,11 @@ static bool mgr_manual_update(struct omap_overlay_manager *mgr)
+ 	return mp->lcd_config.stallmode;
+ }
+ 
++static bool wb_manual_update(struct omap_dss_output *wb)
 +{
-+	int duty_cycle = (duty_ns * TWL_PWM_MAX) / period_ns;
-+	u8 on_time;
-+	u8 pwm_config[2];
-+	int base, ret;
-+
-+	if (duty_cycle >= TWL_PWM_MAX)
-+		on_time = TWL_PWM_MAX;
-+	else if (!duty_cycle)
-+		on_time = TWL_PWM_MAX - 1;
-+	else
-+		on_time = TWL_PWM_MAX - duty_cycle;
-+
-+	base = pwm->hwpwm * 3;
-+
-+	pwm_config[0] = on_time;
-+	pwm_config[1] = TWL_PWM_MAX;
-+
-+	ret = twl_i2c_write(TWL_MODULE_PWM, pwm_config, base, 2);
-+	if (ret < 0)
-+		dev_err(chip->dev, "%s: Failed to configure PWM\n", pwm->label);
-+
-+	return ret;
++	return true;
 +}
 +
-+static int twl4030_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+ static int dss_check_settings_low(struct omap_overlay_manager *mgr,
+ 		bool applying)
+ {
+@@ -684,6 +698,36 @@ static void dss_mgr_write_regs_extra(struct omap_overlay_manager *mgr)
+ 		mp->shadow_extra_info_dirty = true;
+ }
+ 
++static void dss_wb_write_regs(struct omap_dss_output *wb)
 +{
-+	int ret;
-+	u8 val;
++	struct wb_priv_data *wp = get_wb_priv(wb);
++	struct omap_dss_writeback_info *wi;
++	struct mgr_priv_data *mp;
++	u32 fifo_low, fifo_high;
++	bool use_fifo_merge = false;
++	int r;
 +
-+	ret = twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_GPBR1_REG);
-+	if (ret < 0) {
-+		dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm->label);
-+		return ret;
-+	}
++	if (!wp->enabled || !wp->info_dirty)
++		return;
 +
-+	val |= TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_BITS);
++	wi = &wp->info;
 +
-+	ret = twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_GPBR1_REG);
-+	if (ret < 0)
-+		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
++	mp = get_mgr_priv(wb->manager);
 +
-+	return ret;
-+}
++	dispc_ovl_compute_fifo_thresholds(OMAP_DSS_WB, &fifo_low, &fifo_high,
++			use_fifo_merge, wb_manual_update(wb));
 +
-+static void twl4030_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
-+{
-+	int ret;
-+	u8 val;
++	dispc_ovl_set_fifo_threshold(OMAP_DSS_WB, fifo_low, fifo_high);
 +
-+	ret = twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_GPBR1_REG);
-+	if (ret < 0) {
-+		dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm->label);
++	r = dispc_wb_setup(wi, wb_manual_update(wb), &mp->timings);
++	if (r) {
++		DSSERR("dispc_wb_setup failed %d\n", r);
 +		return;
 +	}
 +
-+	val &= ~TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_BITS);
-+
-+	ret = twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_GPBR1_REG);
-+	if (ret < 0)
-+		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
++	wp->info_dirty = false;
 +}
 +
-+static int twl4030_pwm_request(struct pwm_chip *chip, struct pwm_device *pwm)
+ static void dss_write_regs(void)
+ {
+ 	const int num_mgrs = omap_dss_get_num_overlay_managers();
+@@ -1507,3 +1551,27 @@ void dss_wb_get_info(struct omap_dss_output *wb,
+ 
+ 	spin_unlock_irqrestore(&data_lock, flags);
+ }
++
++int omap_dss_wb_apply(struct omap_dss_output *wb)
 +{
-+	struct twl_pwm_chip *twl = container_of(chip, struct twl_pwm_chip,
-+						chip);
-+	int ret;
-+	u8 val, mask, bits;
++	struct wb_priv_data *wp = get_wb_priv(wb);
++	unsigned long flags;
 +
-+	ret = twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_PMBR1_REG);
-+	if (ret < 0) {
-+		dev_err(chip->dev, "%s: Failed to read PMBR1\n", pwm->label);
-+		return ret;
-+	}
++	DSSDBG("omap_dss_wb_apply\n");
 +
-+	if (pwm->hwpwm) {
-+		/* PWM 1 */
-+		mask = TWL4030_GPIO7_VIBRASYNC_PWM1_MASK;
-+		bits = TWL4030_GPIO7_VIBRASYNC_PWM1_PWM1;
-+	} else {
-+		/* PWM 0 */
-+		mask = TWL4030_GPIO6_PWM0_MUTE_MASK;
-+		bits = TWL4030_GPIO6_PWM0_MUTE_PWM0;
-+	}
++	spin_lock_irqsave(&data_lock, flags);
 +
-+	/* Save the current MUX configuration for the PWM */
-+	twl->twl4030_pwm_mux &= ~mask;
-+	twl->twl4030_pwm_mux |= (val & mask);
++	/* check for settings here */
 +
-+	/* Select PWM functionality */
-+	val &= ~mask;
-+	val |= bits;
++	if (!wp->user_info_dirty)
++		goto end;
 +
-+	ret = twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_PMBR1_REG);
-+	if (ret < 0)
-+		dev_err(chip->dev, "%s: Failed to request PWM\n", pwm->label);
++	wp->user_info_dirty = false;
++	wp->info_dirty = true;
++	wp->info = wp->user_info;
 +
-+	return ret;
-+}
-+
-+static void twl4030_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
-+{
-+	struct twl_pwm_chip *twl = container_of(chip, struct twl_pwm_chip,
-+						chip);
-+	int ret;
-+	u8 val, mask;
-+
-+	ret = twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_PMBR1_REG);
-+	if (ret < 0) {
-+		dev_err(chip->dev, "%s: Failed to read PMBR1\n", pwm->label);
-+		return;
-+	}
-+
-+	if (pwm->hwpwm)
-+		/* PWM 1 */
-+		mask = TWL4030_GPIO7_VIBRASYNC_PWM1_MASK;
-+	else
-+		/* PWM 0 */
-+		mask = TWL4030_GPIO6_PWM0_MUTE_MASK;
-+
-+	/* Restore the MUX configuration for the PWM */
-+	val &= ~mask;
-+	val |= (twl->twl4030_pwm_mux & mask);
-+
-+	ret = twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_PMBR1_REG);
-+	if (ret < 0)
-+		dev_err(chip->dev, "%s: Failed to free PWM\n", pwm->label);
-+}
-+
-+static int twl6030_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
-+{
-+	struct twl_pwm_chip *twl = container_of(chip, struct twl_pwm_chip,
-+						chip);
-+	int ret;
-+	u8 val;
-+
-+	val = twl->twl6030_toggle3;
-+	val |= TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXS | TWL6030_PWMXEN);
-+	val &= ~TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXR);
-+
-+	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_REG);
-+	if (ret < 0) {
-+		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
-+		return ret;
-+	}
-+
-+	twl->twl6030_toggle3 = val;
++end:
++	spin_unlock_irqrestore(&data_lock, flags);
 +
 +	return 0;
 +}
-+
-+static void twl6030_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index f738c1e..1b9c936 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -214,6 +214,7 @@ int dss_wb_set_info(struct omap_dss_output *wb,
+ 		struct omap_dss_writeback_info *info);
+ void dss_wb_get_info(struct omap_dss_output *wb,
+ 		struct omap_dss_writeback_info *info);
++int omap_dss_wb_apply(struct omap_dss_output *wb);
+ 
+ /* output */
+ void dss_register_output(struct omap_dss_output *out);
+diff --git a/drivers/video/omap2/dss/writeback.c b/drivers/video/omap2/dss/writeback.c
+index be7027b..c05dd54 100644
+--- a/drivers/video/omap2/dss/writeback.c
++++ b/drivers/video/omap2/dss/writeback.c
+@@ -42,6 +42,12 @@ static inline struct platform_device *writeback_get_wbdev_from_output(struct oma
+ 	return out->pdev;
+ }
+ 
++int omapdss_writeback_apply(struct omap_dss_output *wb)
 +{
-+	struct twl_pwm_chip *twl = container_of(chip, struct twl_pwm_chip,
-+						chip);
-+	int ret;
-+	u8 val;
-+
-+	val = twl->twl6030_toggle3;
-+	val |= TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXR);
-+	val &= ~TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXS | TWL6030_PWMXEN);
-+
-+	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_REG);
-+	if (ret < 0) {
-+		dev_err(chip->dev, "%s: Failed to read TOGGLE3\n", pwm->label);
-+		return;
-+	}
-+
-+	val |= TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXS | TWL6030_PWMXEN);
-+
-+	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_REG);
-+	if (ret < 0) {
-+		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
-+		return;
-+	}
-+
-+	twl->twl6030_toggle3 = val;
++	return omap_dss_wb_apply(wb);
 +}
++EXPORT_SYMBOL(omapdss_writeback_apply);
 +
-+static struct pwm_ops twl_pwm_ops = {
-+	.config = twl_pwm_config,
-+};
-+
-+static int twl_pwm_probe(struct platform_device *pdev)
-+{
-+	struct twl_pwm_chip *twl;
-+	int ret;
-+
-+	twl = devm_kzalloc(&pdev->dev, sizeof(*twl), GFP_KERNEL);
-+	if (!twl)
-+		return -ENOMEM;
-+
-+	if (twl_class_is_4030()) {
-+		twl_pwm_ops.enable = twl4030_pwm_enable;
-+		twl_pwm_ops.disable = twl4030_pwm_disable;
-+		twl_pwm_ops.request = twl4030_pwm_request;
-+		twl_pwm_ops.free = twl4030_pwm_free;
-+	} else {
-+		twl_pwm_ops.enable = twl6030_pwm_enable;
-+		twl_pwm_ops.disable = twl6030_pwm_disable;
-+	}
-+
-+	twl->chip.dev = &pdev->dev;
-+	twl->chip.ops = &twl_pwm_ops;
-+	twl->chip.base = -1;
-+	twl->chip.npwm = 2;
-+
-+	ret = pwmchip_add(&twl->chip);
-+	if (ret < 0)
-+		return ret;
-+
-+	platform_set_drvdata(pdev, twl);
-+
-+	return 0;
-+}
-+
-+static int twl_pwm_remove(struct platform_device *pdev)
-+{
-+	struct twl_pwm_chip *twl = platform_get_drvdata(pdev);
-+
-+	return pwmchip_remove(&twl->chip);
-+}
-+
-+static struct of_device_id twl_pwm_of_match[] = {
-+	{ .compatible = "ti,twl4030-pwm" },
-+	{ .compatible = "ti,twl6030-pwm" },
-+};
-+
-+MODULE_DEVICE_TABLE(of, twl_pwm_of_match);
-+
-+static struct platform_driver twl_pwm_driver = {
-+	.driver = {
-+		.name = "twl-pwm",
-+		.of_match_table = of_match_ptr(twl_pwm_of_match),
-+	},
-+	.probe = twl_pwm_probe,
-+	.remove = __devexit_p(twl_pwm_remove),
-+};
-+module_platform_driver(twl_pwm_driver);
-+
-+MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
-+MODULE_DESCRIPTION("PWM driver for TWL4030 and TWL6030");
-+MODULE_ALIAS("platform:twl-pwm");
-+MODULE_LICENSE("GPL");
+ int omapdss_writeback_set_info(struct omap_dss_output *wb,
+ 		struct omap_dss_writeback_info *info)
+ {
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 2a3a878..2bc10cb 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -837,6 +837,7 @@ void omapdss_rfbi_set_data_lines(struct omap_dss_device *dssdev,
+ void omapdss_rfbi_set_interface_timings(struct omap_dss_device *dssdev,
+ 		struct rfbi_timings *timings);
+ 
++int omapdss_writeback_apply(struct omap_dss_output *wb);
+ int omapdss_writeback_set_info(struct omap_dss_output *wb,
+ 		struct omap_dss_writeback_info *info);
+ void omapdss_writeback_get_info(struct omap_dss_output *wb,
 -- 
-1.8.0
+1.7.9.5
+
