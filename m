@@ -1,248 +1,251 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 1/3] pwm: Remove pwm-twl6030 driver
-Date: Wed, 7 Nov 2012 15:44:46 +0100
-Message-ID: <1352299488-11351-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [RFC 01/11] OMAPDSS: Add writeback output driver
+Date: Wed, 7 Nov 2012 20:14:19 +0530
+Message-ID: <1352299469-17609-2-git-send-email-archit@ti.com>
+References: <n>
+ <1352299469-17609-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50616 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753091Ab2KGOoz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 09:44:55 -0500
+In-Reply-To: <1352299469-17609-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-This driver only supported the Charging indicator LED.
-New set of drivers going to provide support for both PWMs and LEDs for twl4030
-and twl6030 series of PMICs.
+Writeback is implemented as an output driver. This lets writeback to connect
+to overlay managers, and configure writeback's manager like properties the same
+way other output drivers do.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+This driver can be considered something similar to the DPI output driver. It
+provides functions which configure the writeback's manager-like registers via
+apply. One difference though is that these functions won't be used by a panel
+driver. They'd be used by a writeback user directly.
+
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/pwm/Kconfig       |   9 ---
- drivers/pwm/Makefile      |   1 -
- drivers/pwm/pwm-twl6030.c | 184 ----------------------------------------------
- 3 files changed, 194 deletions(-)
- delete mode 100644 drivers/pwm/pwm-twl6030.c
+ drivers/video/omap2/dss/Kconfig     |   13 +++++
+ drivers/video/omap2/dss/Makefile    |    1 +
+ drivers/video/omap2/dss/core.c      |    6 +++
+ drivers/video/omap2/dss/dss.h       |    6 +++
+ drivers/video/omap2/dss/writeback.c |  102 +++++++++++++++++++++++++++++++++++
+ include/video/omapdss.h             |   10 ++++
+ 6 files changed, 138 insertions(+)
+ create mode 100644 drivers/video/omap2/dss/writeback.c
 
-diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index ed81720..e678005 100644
---- a/drivers/pwm/Kconfig
-+++ b/drivers/pwm/Kconfig
-@@ -142,15 +142,6 @@ config  PWM_TIEHRPWM
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called pwm-tiehrpwm.
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index 50e8802..9e52d4b 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -99,6 +99,19 @@ config OMAP2_DSS_DSI
  
--config PWM_TWL6030
--	tristate "TWL6030 PWM support"
--	depends on TWL4030_CORE
--	help
--	  Generic PWM framework driver for TWL6030.
--
--	  To compile this driver as a module, choose M here: the module
--	  will be called pwm-twl6030.
--
- config PWM_VT8500
- 	tristate "vt8500 pwm support"
- 	depends on ARCH_VT8500
-diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
-index acfe482..29cf57e 100644
---- a/drivers/pwm/Makefile
-+++ b/drivers/pwm/Makefile
-@@ -11,5 +11,4 @@ obj-$(CONFIG_PWM_SAMSUNG)	+= pwm-samsung.o
- obj-$(CONFIG_PWM_TEGRA)		+= pwm-tegra.o
- obj-$(CONFIG_PWM_TIECAP)	+= pwm-tiecap.o
- obj-$(CONFIG_PWM_TIEHRPWM)	+= pwm-tiehrpwm.o
--obj-$(CONFIG_PWM_TWL6030)	+= pwm-twl6030.o
- obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
-diff --git a/drivers/pwm/pwm-twl6030.c b/drivers/pwm/pwm-twl6030.c
-deleted file mode 100644
-index 8e63878..0000000
---- a/drivers/pwm/pwm-twl6030.c
-+++ /dev/null
-@@ -1,184 +0,0 @@
--/*
-- * twl6030_pwm.c
-- * Driver for PHOENIX (TWL6030) Pulse Width Modulator
-- *
-- * Copyright (C) 2010 Texas Instruments
-- * Author: Hemanth V <hemanthv@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License version 2 as published by
-- * the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- *
-- * You should have received a copy of the GNU General Public License along with
-- * this program.  If not, see <http://www.gnu.org/licenses/>.
-- */
--
--#include <linux/module.h>
--#include <linux/platform_device.h>
--#include <linux/pwm.h>
--#include <linux/i2c/twl.h>
--#include <linux/slab.h>
--
--#define LED_PWM_CTRL1	0xF4
--#define LED_PWM_CTRL2	0xF5
--
--/* Max value for CTRL1 register */
--#define PWM_CTRL1_MAX	255
--
--/* Pull down disable */
--#define PWM_CTRL2_DIS_PD	(1 << 6)
--
--/* Current control 2.5 milli Amps */
--#define PWM_CTRL2_CURR_02	(2 << 4)
--
--/* LED supply source */
--#define PWM_CTRL2_SRC_VAC	(1 << 2)
--
--/* LED modes */
--#define PWM_CTRL2_MODE_HW	(0 << 0)
--#define PWM_CTRL2_MODE_SW	(1 << 0)
--#define PWM_CTRL2_MODE_DIS	(2 << 0)
--
--#define PWM_CTRL2_MODE_MASK	0x3
--
--struct twl6030_pwm_chip {
--	struct pwm_chip chip;
--};
--
--static int twl6030_pwm_request(struct pwm_chip *chip, struct pwm_device *pwm)
--{
--	int ret;
--	u8 val;
--
--	/* Configure PWM */
--	val = PWM_CTRL2_DIS_PD | PWM_CTRL2_CURR_02 | PWM_CTRL2_SRC_VAC |
--	      PWM_CTRL2_MODE_HW;
--
--	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
--	if (ret < 0) {
--		dev_err(chip->dev, "%s: Failed to configure PWM, Error %d\n",
--			pwm->label, ret);
--		return ret;
--	}
--
--	return 0;
--}
--
--static int twl6030_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
--			      int duty_ns, int period_ns)
--{
--	u8 duty_cycle = (duty_ns * PWM_CTRL1_MAX) / period_ns;
--	int ret;
--
--	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, duty_cycle, LED_PWM_CTRL1);
--	if (ret < 0) {
--		pr_err("%s: Failed to configure PWM, Error %d\n",
--			pwm->label, ret);
--		return ret;
--	}
--
--	return 0;
--}
--
--static int twl6030_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
--{
--	int ret;
--	u8 val;
--
--	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
--	if (ret < 0) {
--		dev_err(chip->dev, "%s: Failed to enable PWM, Error %d\n",
--			pwm->label, ret);
--		return ret;
--	}
--
--	/* Change mode to software control */
--	val &= ~PWM_CTRL2_MODE_MASK;
--	val |= PWM_CTRL2_MODE_SW;
--
--	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
--	if (ret < 0) {
--		dev_err(chip->dev, "%s: Failed to enable PWM, Error %d\n",
--			pwm->label, ret);
--		return ret;
--	}
--
--	twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
--	return 0;
--}
--
--static void twl6030_pwm_disable(struct pwm_chip *chip, struct pwm_device *pwm)
--{
--	int ret;
--	u8 val;
--
--	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
--	if (ret < 0) {
--		dev_err(chip->dev, "%s: Failed to disable PWM, Error %d\n",
--			pwm->label, ret);
--		return;
--	}
--
--	val &= ~PWM_CTRL2_MODE_MASK;
--	val |= PWM_CTRL2_MODE_HW;
--
--	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
--	if (ret < 0) {
--		dev_err(chip->dev, "%s: Failed to disable PWM, Error %d\n",
--			pwm->label, ret);
--	}
--}
--
--static const struct pwm_ops twl6030_pwm_ops = {
--	.request = twl6030_pwm_request,
--	.config = twl6030_pwm_config,
--	.enable = twl6030_pwm_enable,
--	.disable = twl6030_pwm_disable,
--};
--
--static int twl6030_pwm_probe(struct platform_device *pdev)
--{
--	struct twl6030_pwm_chip *twl6030;
--	int ret;
--
--	twl6030 = devm_kzalloc(&pdev->dev, sizeof(*twl6030), GFP_KERNEL);
--	if (!twl6030)
--		return -ENOMEM;
--
--	twl6030->chip.dev = &pdev->dev;
--	twl6030->chip.ops = &twl6030_pwm_ops;
--	twl6030->chip.base = -1;
--	twl6030->chip.npwm = 1;
--
--	ret = pwmchip_add(&twl6030->chip);
--	if (ret < 0)
--		return ret;
--
--	platform_set_drvdata(pdev, twl6030);
--
--	return 0;
--}
--
--static int twl6030_pwm_remove(struct platform_device *pdev)
--{
--	struct twl6030_pwm_chip *twl6030 = platform_get_drvdata(pdev);
--
--	return pwmchip_remove(&twl6030->chip);
--}
--
--static struct platform_driver twl6030_pwm_driver = {
--	.driver = {
--		.name = "twl6030-pwm",
--	},
--	.probe = twl6030_pwm_probe,
--	.remove = __devexit_p(twl6030_pwm_remove),
--};
--module_platform_driver(twl6030_pwm_driver);
--
--MODULE_ALIAS("platform:twl6030-pwm");
--MODULE_LICENSE("GPL");
+ 	  See http://www.mipi.org/ for DSI specifications.
+ 
++config OMAP4_DSS_WRITEBACK
++	bool "writeback support"
++	default n
++	help
++	  writeback is a DISPC pipeline that takes pixel data from an overlay
++	  output or a overlay manager output and writes it back into a specified
++	  address in memory.
++
++	  writeback pipeline allows us to take benefit of the hardware
++	  processing available inside the DISPC like color space conversion,
++	  rescaling, compositing etc and perform either a memory-to-memory
++	  transfer with data processing, or capture a displayed frame.
++
+ config OMAP2_DSS_MIN_FCK_PER_PCK
+ 	int "Minimum FCK/PCK ratio (for scaling)"
+ 	range 0 32
+diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
+index 4070191..211a290 100644
+--- a/drivers/video/omap2/dss/Makefile
++++ b/drivers/video/omap2/dss/Makefile
+@@ -8,4 +8,5 @@ omapdss-$(CONFIG_OMAP2_DSS_SDI) += sdi.o
+ omapdss-$(CONFIG_OMAP2_DSS_DSI) += dsi.o
+ omapdss-$(CONFIG_OMAP4_DSS_HDMI) += hdmi.o \
+ 				    hdmi_panel.o ti_hdmi_4xxx_ip.o
++omapdss-$(CONFIG_OMAP4_DSS_WRITEBACK) += writeback.o
+ ccflags-$(CONFIG_OMAP2_DSS_DEBUG) += -DDEBUG
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index b1a9ce1..4040868 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -528,6 +528,9 @@ static int (*dss_output_drv_reg_funcs[])(void) __initdata = {
+ #ifdef CONFIG_OMAP4_DSS_HDMI
+ 	hdmi_init_platform_driver,
+ #endif
++#ifdef CONFIG_OMAP4_DSS_WRITEBACK
++	writeback_init_platform_driver,
++#endif
+ };
+ 
+ static void (*dss_output_drv_unreg_funcs[])(void) __exitdata = {
+@@ -549,6 +552,9 @@ static void (*dss_output_drv_unreg_funcs[])(void) __exitdata = {
+ #ifdef CONFIG_OMAP4_DSS_HDMI
+ 	hdmi_uninit_platform_driver,
+ #endif
++#ifdef CONFIG_OMAP4_DSS_WRITEBACK
++	writeback_uninit_platform_driver,
++#endif
+ };
+ 
+ static bool dss_output_drv_loaded[ARRAY_SIZE(dss_output_drv_reg_funcs)];
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 84a7f6a..f7eb7d6 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -528,6 +528,12 @@ bool hdmi_mode_has_audio(void);
+ int hdmi_audio_config(struct omap_dss_audio *audio);
+ #endif
+ 
++/* Writeback */
++#ifdef CONFIG_OMAP4_DSS_WRITEBACK
++int writeback_init_platform_driver(void) __init;
++void writeback_uninit_platform_driver(void) __exit;
++#endif
++
+ /* RFBI */
+ int rfbi_init_platform_driver(void) __init;
+ void rfbi_uninit_platform_driver(void) __exit;
+diff --git a/drivers/video/omap2/dss/writeback.c b/drivers/video/omap2/dss/writeback.c
+new file mode 100644
+index 0000000..b5c6406
+--- /dev/null
++++ b/drivers/video/omap2/dss/writeback.c
+@@ -0,0 +1,102 @@
++/*
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Archit Taneja <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#define DSS_SUBSYS_NAME "WB"
++
++#include <linux/kernel.h>
++#include <linux/err.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++
++#include <video/omapdss.h>
++
++#include "dss.h"
++
++struct writeback_data {
++	struct mutex lock;
++
++	struct omap_dss_output output;
++};
++
++static inline struct writeback_data *writeback_get_drv_data(struct platform_device *wbdev)
++{
++	return dev_get_drvdata(&wbdev->dev);
++}
++
++static inline struct platform_device *writeback_get_wbdev_from_output(struct omap_dss_output *out)
++{
++	return out->pdev;
++}
++
++struct omap_dss_output *omap_dss_get_writeback(void)
++{
++	return omap_dss_get_output(OMAP_DSS_OUTPUT_WB);
++}
++EXPORT_SYMBOL(omap_dss_get_writeback);
++
++static void __init writeback_init_output(struct platform_device *pdev,
++		struct writeback_data *wb_data)
++{
++	struct omap_dss_output *out = &wb_data->output;
++
++	dss_register_output(out);
++
++	out->pdev = pdev;
++	out->id = OMAP_DSS_OUTPUT_WB;
++	out->type = OMAP_DISPLAY_TYPE_NONE;
++}
++
++static int __init omap_writeback_probe(struct platform_device *pdev)
++{
++	struct writeback_data *wb_data;
++
++	wb_data = devm_kzalloc(&pdev->dev, sizeof(*wb_data), GFP_KERNEL);
++	if (!wb_data)
++		return -ENOMEM;
++
++	dev_set_drvdata(&pdev->dev, wb_data);
++
++	mutex_init(&wb_data->lock);
++
++	writeback_init_output(pdev, wb_data);
++
++	return 0;
++}
++
++static int __exit omap_writeback_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static struct platform_driver omap_writeback_driver = {
++	.remove         = __exit_p(omap_writeback_remove),
++	.driver         = {
++		.name   = "omapdss_writeback",
++		.owner  = THIS_MODULE,
++	},
++};
++
++int __init writeback_init_platform_driver(void)
++{
++	return platform_driver_probe(&omap_writeback_driver,
++			omap_writeback_probe);
++}
++
++void __exit writeback_uninit_platform_driver(void)
++{
++	platform_driver_unregister(&omap_writeback_driver);
++}
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index b1248c2..e81fcb2 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -217,6 +217,7 @@ enum omap_dss_output_id {
+ 	OMAP_DSS_OUTPUT_DSI2	= 1 << 4,
+ 	OMAP_DSS_OUTPUT_VENC	= 1 << 5,
+ 	OMAP_DSS_OUTPUT_HDMI	= 1 << 6,
++	OMAP_DSS_OUTPUT_WB	= 1 << 7,
+ };
+ 
+ /* RFBI */
+@@ -836,4 +837,13 @@ void omapdss_rfbi_set_data_lines(struct omap_dss_device *dssdev,
+ void omapdss_rfbi_set_interface_timings(struct omap_dss_device *dssdev,
+ 		struct rfbi_timings *timings);
+ 
++#ifdef CONFIG_OMAP4_DSS_WRITEBACK
++struct omap_dss_output *omap_dss_get_writeback(void);
++#else
++static inline struct omap_dss_output *omap_dss_get_writeback(void)
++{
++	return NULL;
++}
++#endif
++
+ #endif
 -- 
-1.8.0
+1.7.9.5
+
