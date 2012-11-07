@@ -1,38 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: igep0020: Set WIFI/BT GPIO pins in correct
- mux mode
-Date: Wed, 7 Nov 2012 14:00:37 -0800
-Message-ID: <20121107220036.GO6801@atomide.com>
-References: <1351533073-5974-1-git-send-email-anders.j.hedlund@gmail.com>
- <CAFqH_53q8yTy=yBxDE=SFQ=j-ogy4yNF5KpNBsLd1OQ9dbA37g@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH V2 01/14] ARM: OMAP: Add DMTIMER definitions for posted
+ mode
+Date: Wed, 7 Nov 2012 16:04:46 -0600
+Message-ID: <509ADAFE.4070109@ti.com>
+References: <1352314890-22224-1-git-send-email-jon-hunter@ti.com> <1352314890-22224-2-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12073 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752377Ab2KGWAk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 17:00:40 -0500
-Content-Disposition: inline
-In-Reply-To: <CAFqH_53q8yTy=yBxDE=SFQ=j-ogy4yNF5KpNBsLd1OQ9dbA37g@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45288 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753492Ab2KGWEu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 17:04:50 -0500
+In-Reply-To: <1352314890-22224-2-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: Anders Hedlund <anders.j.hedlund@gmail.com>, linux-omap@vger.kernel.org, Jonas Zetterberg <jozz@jozz.se>, Javier Martinez Canillas <martinez.javier@gmail.com>, Matthias Brugger <mbrugger@iseebcn.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Enric Balletbo Serra <eballetbo@gmail.com> [121029 11:33]:
-> 
-> Tony, after corrections, as this is a fix could be included ?  Or we
-> need to wait to the next merge window.
-> 
-> The problem is, with recent u-boot these pins are not muxed because
-> u-boot sets only the minimum required for uboot functionality and
-> kernel boot. In kernel these pins must be muxed in order to get the
-> wifi and bluetooth work.
+On Wednesday 07 November 2012 01:01 PM, Jon Hunter wrote:
+> For OMAP2+ devices, when using DMTIMERs for system timers (clock-events and
+> clock-source) the posted mode configuration of the timers is used. To allow
+> the compiler to optimise the functions for configuring and reading the system
+> timers, the posted flag variable is hard-coded with the value 1. To make it
+> clear that posted mode is being used add some definitions so that it is more
+> readable.
+>
+> Add separate definitions for the clock-events and clock-source timers so that
+> we can change the posted mode of clock-events and clock-source independently.
+>
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>   arch/arm/mach-omap2/timer.c               |   26 +++++++++++++++++++-------
+>   arch/arm/plat-omap/include/plat/dmtimer.h |    4 ++++
+>   2 files changed, 23 insertions(+), 7 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 0758bae..28c6078 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -82,6 +82,13 @@
+>   #define INCREMENTER_DENUMERATOR_RELOAD_OFFSET		0x14
+>   #define NUMERATOR_DENUMERATOR_MASK			0xfffff000
+>
+> +/*
+> + * For clock-events timer, always use posted mode to
+> + * minimise CPU overhead for configuring the timer.
+> + */
+> +#define OMAP_CLKEVT_POSTEDMODE	OMAP_TIMER_POSTED
+> +#define OMAP_CLKSRC_POSTEDMODE	OMAP_TIMER_POSTED
+> +
+I don't see need of above defines. Just use OMAP_TIMER_POSTED directly
+with API. Rest of the patch looks fine.
 
-OK I'll add it to omap-for-v3.7-rc4/fixes-part2 with updated description
-for the regression. Will also move the maintainers entry there from
-the board branch.
+Apart from above one comment,
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Regards,
 
-Tony
