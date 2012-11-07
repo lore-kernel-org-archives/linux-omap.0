@@ -1,84 +1,40 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH RESEND 00/10] ARM: dts: AM33XX: Add device tree data
-Date: Wed, 7 Nov 2012 08:10:02 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA6602E@DBDE01.ent.ti.com>
-References: <1352209718-5586-1-git-send-email-anilkumar@ti.com>
- <50992530.8030501@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34231 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750768Ab2KGIKR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 03:10:17 -0500
-In-Reply-To: <50992530.8030501@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
+Date: Wed, 7 Nov 2012 09:13:36 +0100
+Message-ID: <5ED17D42-07B8-4D4F-B54F-82B4CC60584C@antoniou-consulting.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com> <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com> <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com> <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On Tue, Nov 06, 2012 at 20:26:48, Cousson, Benoit wrote:
-> Hi Anil,
-> 
-> On 11/06/2012 02:48 PM, AnilKumar Ch wrote:
-> > Add device tree date for GPIO based various drivers matrix keypad,
-> > volume keys, push buttons and use leds accross three AM33XX devices
-> > viz EVM, BeagleBone and Starter Kit.
-> > 
-> > To make it functional this series also adds pinctrl data for all
-> > the GPIOs used by various drivers. In this series only default state
-> > pinmux/conf settings are added because of sleep/idle state pinctrl
-> > values are not available.
-> > 
-> > These patches are based on linux-omap-dt:for_3.8/dts_part2 tree and
-> > these were tested on am33xx devices according to added functionality.
-> > 
-> > Change log:
-> > 	- Rebased on for_3.8/dts_part2
-> 
-> Thanks for the update. Applied in for_3.8/dts_part2.
-> 
-> BTW, I've just noticed that am335x-evmsk is not built with make dtbs. The target was missing from the arch/arm/boot/dts/Makefile.
-> 
-> Please find below the patch to add it.
+Hi Grant
 
-Hi Benoit,
+On Nov 6, 2012, at 9:45 PM, Grant Likely wrote:
 
-Thanks for addition. Below change is missed from evmsk patch.
+> On Tue, Nov 6, 2012 at 7:34 PM, Pantelis Antoniou
+> <panto@antoniou-consulting.com> wrote:
 
-Thanks
-AnilKumar
- 
-> ---
-> From 6990451aca80a5107206688308302241f799057a Mon Sep 17 00:00:00 2001
-> From: Benoit Cousson <b-cousson@ti.com>
-> Date: Tue, 6 Nov 2012 15:52:23 +0100
-> Subject: [PATCH] ARM: dts: Makefile: Add the am335x-evmsk target in dtbs list
+[ snip ]
 > 
-> The EVMSK was not built with the 'make dtbs' command.
-> Add the missing antry in the dts Makefile.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> ---
->  arch/arm/boot/dts/Makefile |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-> index 634bd42..2458b69 100644
-> --- a/arch/arm/boot/dts/Makefile
-> +++ b/arch/arm/boot/dts/Makefile
-> @@ -73,6 +73,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
->  	omap4-sdp.dtb \
->  	omap5-evm.dtb \
->  	am335x-evm.dtb \
-> +	am335x-evmsk.dtb \
->  	am335x-bone.dtb
->  dtb-$(CONFIG_ARCH_PRIMA2) += prima2-evb.dtb
->  dtb-$(CONFIG_ARCH_U8500) += snowball.dtb
-> -- 
-> 1.7.0.4
-> 
-> 
+> g.
 
+Since we've started talking about longer term goals, and the versioning
+provision seems to stand, I hope we address how much the fragment versioning
+thing is similar to the way board revisions progress.
+
+If a versioning syntax is available then one could create a single DT 
+file for a bunch of 'almost' similar board and board revisions.
+
+Using a single DTB in the same manner you have a single uImage would
+make some people quite happy, since you won't have to do any bootloader
+magic to make sure you pass the correct DTB for the specific revision.
+
+Regards
+
+-- Pantelis
