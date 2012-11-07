@@ -1,110 +1,163 @@
-From: "=?ISO-8859-1?Q?Andreas_Bie=DFmann?=" <andreas.devel@googlemail.com>
-Subject: Re: [PATCH] Revert "serial: omap: fix software flow control"
-Date: Wed, 07 Nov 2012 10:56:59 +0100
-Message-ID: <509A306B.10409@gmail.com>
-References: <1350396562-32579-1-git-send-email-balbi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 12/12] OMAPDSS: DPI: always use DSI PLL if available
+Date: Wed, 7 Nov 2012 12:01:21 +0200
+Message-ID: <509A3171.8010100@ti.com>
+References: <1351613409-21186-1-git-send-email-tomi.valkeinen@ti.com> <1351613409-21186-13-git-send-email-tomi.valkeinen@ti.com> <5090D28E.6050703@ti.com> <50939B84.6090602@ti.com> <5093A3FB.1060806@ti.com> <5093A530.5050302@ti.com> <5093A9E8.70106@ti.com> <5093AE79.9010603@ti.com> <5093B4F3.1000703@ti.com> <50977EEF.3040403@ti.com> <5097CB81.7050204@ti.com> <509913A4.5080408@iki.fi> <CAF6AEGuNyqO-teda1sv8c8m9x1j8Fm13HYuWB4N3gccJeKFTFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig62730C598A176A43CDACCAD9"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:37990 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987Ab2KGJ5D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 04:57:03 -0500
-In-Reply-To: <1350396562-32579-1-git-send-email-balbi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58734 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753909Ab2KGKBg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 05:01:36 -0500
+In-Reply-To: <CAF6AEGuNyqO-teda1sv8c8m9x1j8Fm13HYuWB4N3gccJeKFTFg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, linux@arm.linux.org.uk, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, stable@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: Tomi Valkeinen <tomba@iki.fi>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-On 16.10.2012 16:09, Felipe Balbi wrote:
-> This reverts commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6
-> (serial: omap: fix software flow control).
->=20
-> As Russell has pointed out, that commit isn't fixing
-> Software Flow Control at all, and it actually makes
-> it even more broken.
->=20
-> It was agreed to revert this commit and use Russell's
-> latest UART patches instead.
->=20
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+--------------enig62730C598A176A43CDACCAD9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-since 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6 made it into stable (at
-least 3.4) I think it would be good decision to also apply this revert
-to stable until a working solution exists.
+On 2012-11-06 16:40, Rob Clark wrote:
 
-Best regards
+> I mean, similar to how we handle the subdev for dmm..  the
+> omap_drm_init() does the platform_driver_register() for the dmm device
+> before the platform_driver_register() for omapdrm itself, so we know
+> if there is a dmm device, the driver gets probed first before omapdrm.
 
-Andreas Bie=DFmann
+Well, I consider that a bit hacky too. That's not how linux device
+framework is supposed to be used. I know it makes life easier to do the
+registering like that, though.
 
-> ---
->=20
-> Hi Greg,
->=20
-> you might prefer to do the revert yourself, in that case just
-> revert commit 957ee7270d632245b43f6feb0e70d9a5e9ea6cf6.
->=20
-> thanks
->=20
->  arch/arm/plat-omap/include/plat/omap-serial.h |  4 ++--
->  drivers/tty/serial/omap-serial.c              | 12 ++++++------
->  2 files changed, 8 insertions(+), 8 deletions(-)
->=20
-> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm=
-/plat-omap/include/plat/omap-serial.h
-> index f4a4cd0..1957a85 100644
-> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
-> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-> @@ -40,10 +40,10 @@
->  #define OMAP_UART_WER_MOD_WKUP	0X7F
-> =20
->  /* Enable XON/XOFF flow control on output */
-> -#define OMAP_UART_SW_TX		0x8
-> +#define OMAP_UART_SW_TX		0x04
-> =20
->  /* Enable XON/XOFF flow control on input */
-> -#define OMAP_UART_SW_RX		0x2
-> +#define OMAP_UART_SW_RX		0x04
-> =20
->  #define OMAP_UART_SYSC_RESET	0X07
->  #define OMAP_UART_TCR_TRIG	0X0F
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
-ap-serial.c
-> index 6ede6fd..6d3d26a 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -671,19 +671,19 @@ serial_omap_configure_xonxoff
-> =20
->  	/*
->  	 * IXON Flag:
-> -	 * Flow control for OMAP.TX
-> -	 * OMAP.RX should listen for XON/XOFF
-> +	 * Enable XON/XOFF flow control on output.
-> +	 * Transmit XON1, XOFF1
->  	 */
->  	if (termios->c_iflag & IXON)
-> -		up->efr |=3D OMAP_UART_SW_RX;
-> +		up->efr |=3D OMAP_UART_SW_TX;
-> =20
->  	/*
->  	 * IXOFF Flag:
-> -	 * Flow control for OMAP.RX
-> -	 * OMAP.TX should send XON/XOFF
-> +	 * Enable XON/XOFF flow control on input.
-> +	 * Receiver compares XON1, XOFF1.
->  	 */
->  	if (termios->c_iflag & IXOFF)
-> -		up->efr |=3D OMAP_UART_SW_TX;
-> +		up->efr |=3D OMAP_UART_SW_RX;
-> =20
->  	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
->=20
+> It could be a matter of iterating through a list, or something like
+> this.. that is basically an implementation detail.  But the end result
+> is that the order the drivers are registered is controlled so the
+> probe sequence works out properly (not to mention suspend/resume
+> sequence).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I feel that this kind of solution just tries to solve the generic
+problem of init/suspend ordering in a single driver, instead of fixing
+the device framework itself.
+
+Or, of course it's possible that our drive architecture just sucks, and
+the device framework is fine. In that case the workaround is even worse,
+and we should fix our drivers.
+
+>> I think we should support proper hotplugging of the panels. This would=
+
+>> fix the problem about init order, but it would also give us device
+>> hotplug support. Obviously nobody is going to solder panel to a runnin=
+g
+>> board, but I don't see any reason why panels, or, more likely, panels =
+on
+>> an add-on boards (like the capes being discussed in omap ml) would not=
+
+>> be hotpluggable using whatever connector is used on the particular use=
+ case.
+>>
+>> And even if we don't support removing of the devices, things like the
+>> add-on capes could cause the panel on the cape to be identified at som=
+e
+>> late time (the panel is not described in the board file or DT data, bu=
+t
+>> found at runtime depending on the ID of the cape). This would add
+>> another step to the init sequence that should be just right, if we don=
+'t
+>> support hotplug.
+>=20
+> If capes are really hot-pluggable, then maybe it is worth thinking
+> about how to make this more dynamic.  Although it is a bigger problem,
+> which involves userspace being aware that connectors can dynamically
+> appear/disappear.  And the dynamic disappearing is something I worry
+> about more.. it adds the possibility of all sorts of interesting race
+> conditions, such as connectors disappearing in the middle of modeset.
+> I prefer not making things more complicated and error prone than they
+> need to be.  If there is not a legitimate use case for connector hw
+> dynamically appearing/disappearing then I don't think we should go
+> there.  It sounds nice and simple and clean, but in reality I think it
+> just introduces a whole lot of ways for things to go wrong.  A wise
+
+Yes, I agree that it complicates things.
+
+> man once said:
+>=20
+> https://github.com/robclark/kernel-omap4/blob/master/Documentation/Subm=
+ittingPatches#L700
+
+I've done things simple lots of times in the omapdss driver, only to
+have to rewrite the thing in more complex way later to accommodate new
+scenarios. I think it's good to write the code in a bit more generic way
+than the use case at the moment of writing requires, because more often
+than not, it'll save time in the future.
+
+Hotplugging is not some abstract future scenario, we already have
+hardware that could use it. For example, omap3 SDP board has a
+switchable output to DVI or LCD panel. In this case we know what the two
+options are, but the disabled component is still effectually removed
+from the system, and plugged back in when it's enabled.
+
+Hotplug is not a high priority item, but I do wish we get it supported
+in common panel framework. Then it's at least possible to extend drm in
+the future to support it.
+
+
+
+Anyway, this makes me wonder... omapdrm currently maps the elements of
+the whole video pipeline to drm elements (encoder, connector, etc).
+Would it make more sense to just map the DISPC to these drm elements?
+Connector would then be the output from DISPC.
+
+This would map the drm elements to the static hardware blocks, and the
+meaning of those blocks would be quite similar to what they are in the
+desktop world (I guess).
+
+The panel driver, the external chips, and the DSS internal output blocks
+(dsi, dpi, ...) would be handled separately from those drm elements. The
+DSS internal blocks are static, of course, but they can be effectively
+considered the same way as external chips.
+
+The omapdrm driver needs of course to access those separate elements
+also, but that shouldn't be a problem. If omapdrm needs to call a
+function in the panel driver, all it needs to do is go through the chain
+to find the panel. Well, except if one output connected two two panels
+via a bridge chip...
+
+And if drm is at some point extended to support panel drivers, or chains
+of external display entities, it would be easier to add that support.
+
+What would it require the manage the elements like that? Would it help?
+It sounds to me that this would simplify the model.
+
+ Tomi
+
+
+
+--------------enig62730C598A176A43CDACCAD9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQmjFxAAoJEPo9qoy8lh717LQP/1YNhqG8muCrKUMN7rSueHWc
+mdq10UeDjVXlNgtIR3AMZZAY02bvW56qRjd6nTmYSpNYL6SJB6iOVVDk+vJFduKO
+rnTDMTG+yphYHc8cw+uNhOTDMyG7/J5wA0ScWFxqVcdGEmTIuqbSIcx3CAk6w3mj
+kV6V8JXrGCjS+2854sT8/VjVjrPDuU4HWd2zDfGP1RcPqQeZ5LUjLqI/vdShaJ70
+q2R6mkwdpy3FA2pHmhqzf+9tTykOtr4NE2ee02R0OSV22ekkjCRM9Lq5um/TNJ9z
+swnHwMZNuTkEjtCw7WGRDsSUVppIH5bTsXR1hx6Yyba2F36uQGFvPDQocS1/ApiJ
+sqNvkfb1GIrI7lCD4RP7uRljrBp96pRs5mOM5Wc6kOVr203Z+/8yhcliDY3dwqPv
+5yYbyaGy/RR1Gsp9rmH7EJPDZ82+/i6zbZrSDjJjalBBZH1wfkgnN7NzSe0xL24+
+DLDmx7xHnthDIv88ugqe7WfryR1KBug0SJZNp3fOqU5lo/e2Q52LBUXe2MdVgzQq
+ZqBIAjlW3InT/Ipo/EroD9CTT21Nhuupgvw9/5ppkuYv0yy6WKb+pk3YitKJq1hW
+hXDAHTHTdL62rAdJlMM5Qc0ClMLD8kyGDzvExvgAfkzVFizcH/HYQAZ6Mda2fZVB
+/MwUKEfg8xWZ4eYkRfWN
+=GKqO
+-----END PGP SIGNATURE-----
+
+--------------enig62730C598A176A43CDACCAD9--
