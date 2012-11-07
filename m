@@ -1,61 +1,48 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [RFC 00/11] OMAPDSS: Add writeback mem to mem mode support
-Date: Wed, 7 Nov 2012 20:14:18 +0530
-Message-ID: <1352299469-17609-1-git-send-email-archit@ti.com>
-References: <n>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 0/3] pwm: Drivers for twl4030/6030 PWMs and LEDs
+Date: Wed, 7 Nov 2012 15:44:45 +0100
+Message-ID: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42415 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47536 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751762Ab2KGOow (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 09:44:52 -0500
-In-Reply-To: <n>
+	id S1752850Ab2KGOoy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 09:44:54 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-This series adds a writeback output driver and makes changes in APPLY to get
-mem to mem mode working when writeback is connected to an overlay manager.
+Hello,
 
-A user of writeback is supposed to use the fuctions exported by the writeback
-output driver to configure writeback and start a mem to mem transfer. The output
-driver internally calls function in APPLY to configure the writeback related
-DISPC registers.
+The currently available pwm-twl6030.c driver only supports TWL6030's Charging
+indication LED.
+Remove this driver and add two new ones which implements support for all PWM
+driven outputs:
+pwm-twl driver supports twl4030 (PWM 0/1) and twl6030 (PWM 1/2) instances
+pwm-twl-led driver supports twl4030 (PWM driven LED A/B ports) and twl6030's
+Charging indication LED (PWM driven).
 
-An example usage of writeback in omapfb is provided as the last patch.
+Regards,
+Peter
+---
+Peter Ujfalusi (3):
+  pwm: Remove pwm-twl6030 driver
+  pwm: New driver to support PWMs on TWL4030/6030 series of PMICs
+  pwm: New driver to support PWM driven LEDs on TWL4030/6030 series of
+    PMICs
 
-Reference tree:
-git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git 3.8/wb_mem_to_mem
-
-Archit Taneja (11):
-  OMAPDSS: Add writeback output driver
-  OMAPDSS: APPLY: Add get/set info functions for writeback
-  OMAPDSS: APPLY: Apply writeback configurations
-  OMAPDSS: writeback: Configure writeback input size
-  OMAPDSS: APPLY: Add writeback enable/disable funcs
-  OMAPDSS: APPLY: configure channel_in for writeback
-  OMAPDSS: writeback: add mechanism to do mem to mem updates
-  OMAPDSS: APPLY: Check if overlay is connected in mem to mem mode
-  OMAPDSS: FEATURES: Add writeback as supported outputs for OMAP4
-    managers
-  ARCH: ARM: OMAP: Create a platform device for writeback
-  Example: OMAPFB: clear framebuffers using writeback
-
- arch/arm/mach-omap2/display.c            |    9 +
- drivers/video/omap2/dss/Kconfig          |   13 ++
- drivers/video/omap2/dss/Makefile         |    1 +
- drivers/video/omap2/dss/apply.c          |  321 ++++++++++++++++++++++++++-
- drivers/video/omap2/dss/core.c           |    6 +
- drivers/video/omap2/dss/dss.h            |   24 +++
- drivers/video/omap2/dss/dss_features.c   |    6 +-
- drivers/video/omap2/dss/writeback.c      |  345 ++++++++++++++++++++++++++++++
- drivers/video/omap2/omapfb/omapfb-main.c |  132 +++++++++++-
- include/video/omapdss.h                  |   22 ++
- 10 files changed, 873 insertions(+), 6 deletions(-)
- create mode 100644 drivers/video/omap2/dss/writeback.c
+ drivers/pwm/Kconfig       |  19 ++-
+ drivers/pwm/Makefile      |   3 +-
+ drivers/pwm/pwm-twl-led.c | 287 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/pwm/pwm-twl.c     | 304 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pwm/pwm-twl6030.c | 184 ----------------------------
+ 5 files changed, 608 insertions(+), 189 deletions(-)
+ create mode 100644 drivers/pwm/pwm-twl-led.c
+ create mode 100644 drivers/pwm/pwm-twl.c
+ delete mode 100644 drivers/pwm/pwm-twl6030.c
 
 -- 
-1.7.9.5
+1.8.0
 
