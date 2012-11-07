@@ -1,73 +1,38 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V2 00/14] ARM: OMAP: DMTIMER fixes
-Date: Wed, 7 Nov 2012 16:27:52 -0600
-Message-ID: <509AE068.7040401@ti.com>
-References: <1352314890-22224-1-git-send-email-jon-hunter@ti.com>
+From: Ryan Mallon <rmallon@gmail.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
+ to mach-omap2)
+Date: Thu, 08 Nov 2012 09:35:51 +1100
+Message-ID: <509AE247.3000404@gmail.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39563 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752506Ab2KGW17 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 17:27:59 -0500
-In-Reply-To: <1352314890-22224-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tabi Timur-B04825 <B04825@freescale.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wood Scott-B07421 <B07421@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Jon,
+On 06/11/12 08:40, Tabi Timur-B04825 wrote:
+> On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+> 
+>> Jane is building custom BeagleBone expansion boards called 'capes'. She
+>> can boot the system with a stock BeagleBoard device tree, but additional
+>> data is needed before a cape can be used. She could replace the FDT file
+>> used by U-Boot with one that contains the extra data, but she uses the
+>> same Linux system image regardless of the cape, and it is inconvenient
+>> to have to select a different device tree at boot time depending on the
+>> cape.
+> 
+> What's wrong with having the boot loader detect the presence of the
+> Cape and update the device tree accordingly?  We do this all the time
+> in U-Boot.  Doing stuff like reading EEPROMs and testing for the
+> presence of hardware is easier in U-Boot than in Linux.
 
-On Wednesday 07 November 2012 01:01 PM, Jon Hunter wrote:
-> This series includes several fixes for the OMAP DMTIMER driver. This is
-> based upon 3.7-rc4 with the two series adding device-tree support for
-> DMTIMERs [1] and the 32kHz Counter [2]
->
-> Tested on OMAP5912 OSK, OMAP2420 H4, OMAP3430 Beagle and OMAP4430 Panda.
-> Testing includes ...
-> 1. Booting kernel on above boards
-> 2. Set date and ensuring time of day is correct after 24 hours
-> 3. Checking the timer counter is incrementing when configuring and starting
->     a timer
-> 4. Checking the timer overflow interrupt when timer expires.
-> 5. Using different clock sources to operate the timer with.
-> 6. Running a loop test overnight that continually runs test #3 and #4 for
->     each available timer
->
-> This has also been boot tested on the AM335x Beagle Bone.
->
-> [1] http://marc.info/?l=linux-omap&m=135065875808614&w=2
-> [2] http://marc.info/?l=linux-omap&m=135119308123513&w=2
->
-> Jon Hunter (14):
->    ARM: OMAP: Add DMTIMER definitions for posted mode
->    ARM: OMAP2+: Disable posted mode for the clocksource timer
->    ARM: OMAP3+: Implement timer workaround for errata i103 and i767
->    ARM: OMAP: Fix timer posted mode support
->    ARM: OMAP3: Correct HWMOD DMTIMER SYSC register declarations
->    ARM: OMAP2/3: Define HWMOD software reset status for DMTIMERs
->    ARM: OMAP2+: Don't use __omap_dm_timer_reset()
->    ARM: OMAP: Fix dmtimer reset for timer1
->    ARM: OMAP: Don't restore of DMTIMER TISTAT register
->    ARM: OMAP: Don't restore DMTIMER interrupt status register
->    ARM: OMAP: Fix spurious interrupts when using timer match feature
->    ARM: OMAP: Add dmtimer interrupt disable function
->    ARM: OMAP: Remove unnecessary call to clk_get()
->    ARM: OMAP: Remove __omap_dm_timer_set_source function
->
->   arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   15 ++-
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   41 +++---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    4 +
->   arch/arm/mach-omap2/timer.c                        |   73 ++++++++---
->   arch/arm/plat-omap/dmtimer.c                       |  132 +++++++++++++++-----
->   arch/arm/plat-omap/include/plat/dmtimer.h          |   47 ++++---
->   6 files changed, 215 insertions(+), 97 deletions(-)
->
-Nice work. Apart from some minor comments, this series looks pretty
-good to me.
+This is probably okay for some hardware, but doesn't work in the general
+case. Not all hardware is detectable, for example a cape which just adds
+a set of LEDs for GPIO pins. Also, some hardware might not easily be
+detectable without adding additional complexity to the boot loader.
 
-Feel free to add my ack for entire series.
-
-Regards
-Santosh
+~Ryan
