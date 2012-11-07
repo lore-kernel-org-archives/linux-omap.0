@@ -1,122 +1,96 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC
- timings and NAND
-Date: Wed, 7 Nov 2012 15:37:02 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
-References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
- <1351869956-2787-5-git-send-email-zonque@gmail.com>
- <518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com>
- <5097B7EE.3000508@gmail.com>
- <518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com>
- <509A2E75.5060307@gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH V4 0/7] ARM: AM33XX: net: Add DT support to CPGMAC and
+ MDIO driver
+Date: Wed, 7 Nov 2012 16:45:41 +0100
+Message-ID: <509A8225.8050508@ti.com>
+References: <1352223159-27504-1-git-send-email-mugunthanvnm@ti.com> <509A7D39.8050506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53648 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751428Ab2KGPiR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 10:38:17 -0500
-In-Reply-To: <509A2E75.5060307@gmail.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:37875 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368Ab2KGPqD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 10:46:03 -0500
+In-Reply-To: <509A7D39.8050506@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: davem@davemloft.net, Paul Walmsley <paul@pwsan.com>, netdev@vger.kernel.org, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Nov 07, 2012 at 15:18:37, Daniel Mack wrote:
-> On 05.11.2012 14:29, Philip, Avinash wrote:
-> > On Mon, Nov 05, 2012 at 18:28:22, Daniel Mack wrote:
-> >> On 05.11.2012 12:03, Philip, Avinash wrote:
-> >>> On Fri, Nov 02, 2012 at 20:55:56, Daniel Mack wrote:
-> >>>> This patch adds basic DT bindings for OMAP GPMC.
-> >>>>
-> >>>> The actual peripherals are instanciated from child nodes within the GPMC
-> >>>> node, and the only type of device that is currently supported is NAND.
-> >>>>
-> >>>> Code was added to parse the generic GPMC timing parameters and some
-> >>>> documentation with examples on how to use them.
-> >>>>
-> >>>> Successfully tested on an AM33xx board.
-> >>>>
-> >>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> >>> [...]
-> >>>> +
-> >>>> +		nand@0,0 {
-> >>>> +			reg = <0 0 0>; /* CS0, offset 0 */
-> >>>> +			nand-bus-width = <16>;
-> >>>> +			nand-ecc-mode = "none";
-> >>>> +
-> >>>> +			gpmc,sync-clk = <0>;
-> >>>> +			gpmc,cs-on = <0>;
-> >>>> +			gpmc,cs-rd-off = <36>;
-> >>>> +			gpmc,cs-wr-off = <36>;
-> >>>> +			gpmc,adv-on = <6>;
-> >>>> +			gpmc,adv-rd-off = <24>;
-> >>>> +			gpmc,adv-wr-off = <36>;
-> >>>> +			gpmc,we-off = <30>;
-> >>>> +			gpmc,oe-off = <48>;
-> >>>> +			gpmc,access = <54>;
-> >>>> +			gpmc,rd-cycle = <72>;
-> >>>> +			gpmc,wr-cycle = <72>;
-> >>>> +			gpmc,wr-access = <30>;
-> >>>> +			gpmc,wr-data-mux-bus = <0>;
-> >>>> +
-> >>>> +			#address-cells = <1>;
-> >>>> +			#size-cells = <1>;
-> >>>> +
-> >>>
-> >>> Can you take the timings (for example) from arago tree. The timings is tested in am335x-evm
-> >>> So the timings can be directly used to populate GPMC timings. Timings can found at
-> >>>
-> >>> http://arago-project.org/git/projects/?p=linux-am33x.git;a=commitdiff;
-> >>> h=66bfbd2c5b35dc81edce0c24843c476161ab5978;hp=370630359cb8db711cf0941cd2a242e28ccfb61e
-> >>>
-> >>> [...]
-> >>>> +static int gpmc_probe_dt(struct platform_device *pdev)
-> >>>
-> >>> Can you take care of the following section mismatch.
-> >>> WARNING: vmlinux.o(.text+0x1e2d0): Section mismatch in reference
-> >>> from the function gpmc_probe_dt() to the function .init.text:gpmc_nand_init().
-> >>
-> >> Sore, both fixed for v4.
-> >>
-> >>> [...]
-> >>>> +
-> >>>> +		val = of_get_nand_ecc_mode(child);
-> >>>> +		if (val >= 0)
-> >>>> +			gpmc_nand_data->ecc_opt = val;
-> >>>
-> >>> This will fail for BCH. Index of "soft_bch" is 5 & also don't have selection
-> >>> option between for BCH4 & BCH8 also.
-> >>> Can you use the of_property_read_u32 (as done early) to pass the ecc selection
-> >>> from dt file. This will help selection of BCH4 & BCH8 ecc options.
-> >>
-> >> Hmm. Shouldn't we rather teach of_get_nand_ecc_mode() that two modes and
-> >> bring the enum in sync?
-> > 
-> > ecc_opt is for selecting different ecc layout and not for selecting ecc mode.
-> > 
-> > In omap2 driver NAND_ECC_HW ecc mode supports 3 ecc layout
-> > 	OMAP_ECC_HAMMING_CODE_HW_ROMCODE
-> > 	OMAP_ECC_BCH4_CODE_HW
-> > 	OMAP_ECC_BCH8_CODE_HW
-> > 
-> > So selection of ecc layout data should come from DT not ecc mode.
-> 
-> Ok, I see. I would still like to set them by string rather than magic
-> numbers that map to enum entries. Valid values would be "none", "hw",
-> "hw-romcode", "bch4" and "bch8". Are you ok with that?
+Hi Mugunthan,
 
-Ok, that's nice. Better use ecc_opt instead of ecc_mode.
+On 11/07/2012 04:24 PM, Mugunthan V N wrote:
+> On 11/6/2012 11:02 PM, Mugunthan V N wrote:
+>> This patch-series adds support for,
+>>
+>> [1/7]: Typo mistake in CPSW driver while invoking runtime_pm api's
+>>
+>> [2/7]: Adds parent<->child relation between CPSW & MDIO module inside
+>> cpsw
+>>         driver, as in case of AM33XX, the resources are shared and common
+>>         register bit-field is provided to control module/clock
+>> enable/disable,
+>>         makes it difficult to handle common resource.
+>>
+>>         So the solution here is, to create parent<->child relation
+>> between them.
+>>
+>> [3/7]: Add hwmod entry for MDIO module, required for MDIO driver.
+>>
+>> [4/7]: cpsw: simplify the setup of the register pointers
+>>
+>> [5/7]: Add DT device nodes for both CPSW and MDIO modules in am33xx.dtsi,
+>>         am335x-evm.dts and am335x-bone.dts file
+>>
+>> [6/7]: Enable CPSW support to omap2plus_defconfig
+>>
+>> [7/7]: cpsw: Kernel warn fix during suspend
+>>
+>> This patch series has been created on top of net-next/master and tested
+>> on BeagleBone platform for NFS boot and basic ping test cases.
+>>
+>> Changes from V3:
+>> * Removed unnecessary flags in Davinci MDIO Hwmod entry.
+>>
+>> Mugunthan V N (4):
+>>    ARM: OMAP3+: hwmod: Add AM33XX HWMOD data for davinci_mdio module
+>>    arm/dts: am33xx: Add CPSW and MDIO module nodes for AM33XX
+>>    ARM: OMAP2+: omap2plus_defconfig: Enable CPSW support
+>>    net: cpsw: halt network stack before halting the device during
+>>      suspend
+>>
+>> Richard Cochran (1):
+>>    cpsw: simplify the setup of the register pointers
+>>
+>> Vaibhav Hiremath (2):
+>>    net: davinci_mdio: Fix typo mistake in calling runtime-pm api
+>>    net: cpsw: Add parent<->child relation support between cpsw and mdio
+>>
+>>   Documentation/devicetree/bindings/net/cpsw.txt |   34 ----
+>>   arch/arm/boot/dts/am335x-bone.dts              |    8 +
+>>   arch/arm/boot/dts/am335x-evm.dts               |    8 +
+>>   arch/arm/boot/dts/am33xx.dtsi                  |   42 +++++
+>>   arch/arm/configs/omap2plus_defconfig           |    3 +
+>>   arch/arm/mach-omap2/omap_hwmod_33xx_data.c     |   31 ++++
+>>   drivers/net/ethernet/ti/cpsw.c                 |  231
+>> ++++++++++--------------
+>>   drivers/net/ethernet/ti/davinci_mdio.c         |    2 +-
+>>   include/linux/platform_data/cpsw.h             |   19 --
+>>   9 files changed, 192 insertions(+), 186 deletions(-)
+>>
+> Paul/Benoit
+> 
+> Do you any comments
 
-Thanks
-Avinash
+The DTS looks better thanks to Richard cleanup.
+But you did not take into account the minor cosmetic comments I did last
+time.
 
-> 
-> 
-> Thanks,
-> Daniel
-> 
-> 
+Could you just clean the DTS based on last time comments and change the
+subject to be compliant with the other ones and I will take it in my
+for_3.8/dts_part2 branch.
+
+Thanks,
+Benoit
 
