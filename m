@@ -1,104 +1,60 @@
-From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Wed, 7 Nov 2012 23:08:06 +0100
-Message-ID: <CCACD7FB-2EEB-470C-8942-BC67092D93AD@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <50999145.2070306@wwwdotorg.org>
- <5A5C45CB-CDF8-4D93-8698-46A27143ABFA@antoniou-consulting.com>
- <509A97D0.5010006@wwwdotorg.org>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset="us-ascii"
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH V2 02/14] ARM: OMAP2+: Disable posted mode for the clocksource
+ timer
+Date: Wed, 7 Nov 2012 16:10:39 -0600
+Message-ID: <509ADC5F.7020307@ti.com>
+References: <1352314890-22224-1-git-send-email-jon-hunter@ti.com> <1352314890-22224-3-git-send-email-jon-hunter@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <509A97D0.5010006-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57890 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753689Ab2KGWKl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 17:10:41 -0500
+In-Reply-To: <1352314890-22224-3-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Stephen,
+On Wednesday 07 November 2012 01:01 PM, Jon Hunter wrote:
+> When using a DMTIMER as the clock-source timer, posted mode configuration of
+> the DMTIMER is used. Posted mode is only benefical when configuring timers as
+> it allows writes to be posted and does not stall the CPU until the write is
+> complete. The clock-source timer is only configured once on boot and so using
+> posted mode has no benefit. In fact, by using posted mode, it adds overhead
+> to reading the timer. Therefore, by default disable posted mode for DMTIMERs
+> used for clock-source.
+>
+> Using objdump this change reduces the function clocksource_read_cycles()
+> function from a total of 15 instructions (including 3 branches and 7 loads)
+> to 5 instructions (including 1 branch and 3 loads). Please note that before
+> the minimum number of instructions that would be executed when calling
+> clocksource_read_cycles() would be 9 instructions (including 2 branches and 5
+> loads) where as now it will always be 5 instructions.
+>
+> This change also reduces the function dmtimer_read_sched_clock() function from
+> a total of 17 instructions (including 4 branches and 8 loads) to 6 instructions
+> (including 1 branch and 4 loads). Please note that before the minimum number of
+> instructions that would be executed when calling dmtimer_read_sched_clock()
+> would be 11 instructions (including 2 branches and 6 loads) where as now it
+> will always be 6 instructions.
+>
+This isn't right way to calculate the penalty of posted mode. Non-posted 
+mode can results in 100 of cycles wait over interconnect
+and that can not be justified with few instructions savings.
 
-On Nov 7, 2012, at 6:18 PM, Stephen Warren wrote:
-
-> On 11/07/2012 01:47 AM, Pantelis Antoniou wrote:
->> Hi Stephen,
->> 
->> On Nov 6, 2012, at 11:37 PM, Stephen Warren wrote:
->> 
->>> On 11/05/2012 01:40 PM, Grant Likely wrote:
->>>> Hey folks,
->>>> 
->>>> As promised, here is my early draft to try and capture what device
->>>> tree overlays need to do and how to get there. Comments and
->>>> suggestions greatly appreciated.
->>> 
->>> Interesting. This just came up internally at NVIDIA within the last
->>> couple weeks, and was discussed on the U-Boot mailing list very recently
->>> too:
->>> 
->>> http://lists.denx.de/pipermail/u-boot/2012-October/thread.html#138227
->>> (it spills into the November archive too)
->> 
->> I am aware of this discussion. For our use case u-boot DT manipulation was
->> tried, but then abandoned. Asking our user base to modify anything in u-boot
->> was ruled out.
->> 
->>> 
->>>> For these cases it is proposed to implement an overlay feature for the
->>>> so that the initial device tree data can be modified by userspace at
->>> 
->>> I don't know if you're maintaining this as a document and taking patches
->>> to it, but if so:
->>> 
->>> "for the so" split across those two lines.
->>> 
->>>> Jane solves this problem by storing an FDT overlay for each cape in the
->>>> root filesystem. When the kernel detects that a cape is installed it
->>>> reads the cape's eeprom to identify it and uses request_firmware() to
->>>> obtain the appropriate overlay. Userspace passes the overlay to the
->>>> kernel in the normal way. If the cape doesn't have an eeprom, then the
->>>> kernel will still use firmware_request(), but userspace needs to already
->>>> know which cape is installed.
->>> 
->>> As mentioned by Pantelis, multiple versions of a board is also very
->>> common. We already have the following .dts files in the kernel where
->>> this applies, for the main board even:
->>> 
->>> arch/arm/boot/dts/tegra30-cardhu.dtsi
->>> arch/arm/boot/dts/tegra30-cardhu-a02.dts
->>> arch/arm/boot/dts/tegra30-cardhu-a04.dts
->> 
->> Exactly. I've made this point in another email, but IMHO board-revision
->> management is exactly the same with cape revision management.
->> 
->> Ideally you'd like to get rid of those three, and replace it with only
->> one that's properly versioned.
-> 
-> I don't expect we would ever get rid of some of those .dts files; there
-> is after all a common subset that applies to all boards, and an
-> incremental difference that applies to only A02/3, and another for
-> A04/5/... Representing those as separate source files seems appropriate
-> to me. If we try and dump all the multiple versions into a single file
-> with some markup indicating which version of the board some sub-sections
-> of the .dts apply to, I think we'll end up with rather complex .dts
-> files. In this case, the simple overlay model works extremely well.
-
-If that's your use case, fine. We're not really trying to impose any
-special format for the DT files. We think that for our use cases
-a single DT works better, not so much from the developer point of view
-but from the users. A single DT is much easier to support, especially
-for users that aren't so great at boot-loader option juggling.
+> This change removes the configuration of posted mode from the
+> __omap_dm_timer_reset() function and adds a new function called
+> omap_dm_timer_enable_posted() for enabling posted mode. Hence, call
+> omap_dm_timer_enable_posted() where ever we are calling __omap_dm_timer_reset().
+>
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+But clock-source doesn't involve much into writes so patch as
+such is fine.
 
 Regards
+Santosh
 
--- Pantelis
