@@ -1,16 +1,16 @@
 From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 5/8] pwm: pwm-tiehrpwm: Add device-tree binding support
- for EHRPWM driver
-Date: Wed, 7 Nov 2012 15:20:28 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9DE3A5@DBDE01.ent.ti.com>
+Subject: RE: [PATCH 1/8] PWMSS: Add PWM Subsystem driver for parent<->child
+ relationship
+Date: Wed, 7 Nov 2012 15:20:26 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9DE3A0@DBDE01.ent.ti.com>
 References: <1352106749-9437-1-git-send-email-avinashphilip@ti.com>
- <1352106749-9437-6-git-send-email-avinashphilip@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EC0447E@DBDE01.ent.ti.com>
+ <1352106749-9437-2-git-send-email-avinashphilip@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EC0444A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC0447E-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EC0444A-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
@@ -27,106 +27,83 @@ Cc: "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76
  Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 06, 2012 at 12:16:13, Bedia, Vaibhav wrote:
-> On Mon, Nov 05, 2012 at 14:42:26, Philip, Avinash wrote:
+On Tue, Nov 06, 2012 at 12:05:24, Bedia, Vaibhav wrote:
+> On Mon, Nov 05, 2012 at 14:42:22, Philip, Avinash wrote:
 > [...]
-> 	
-> > +#include <linux/of_device.h>
-> > +#include <linux/pinctrl/consumer.h>
+> > +pwmss0: pwmss@48300000 {
+> > +	compatible = "ti,am33xx-pwmss";
+> > +	reg = <0x48300000 0x10
+> > +		0x48300100 0x80
+> > +		0x48300180 0x80
+> > +		0x48300200 0x80>;
+> Do you really need the 4 address ranges here? You eventually do add in
+> child nodes with other address ranges so isn't the first entry sufficient?
+> I haven't really looked at the DT details so it is enforced by that let me
+> know.
+
+This is required to define child nodes ranges so that childs reg space
+entries are defined in the range.
+
 > 
-> Pinctrl changes should be separate patch. Morevoer, you don't mention
-> that you making this change.
+> [...]
+> > +
+> > +#define PWMSS_CLKCONFIG		8
+> > +
+> 
+> This #def can use a comment.
 
-Ok. I will make a separate patch for pinctrl changes.
+Ok I will add.
 
+> 
+> > +void pwmss_submodule_state_change(struct device *dev, int pos, bool enable)
+> > +{
+> > +	struct pwmss_info *info = dev_get_drvdata(dev);
+> > +	u16 val;
+> > +
+> > +	val = readw(info->mmio_base + PWMSS_CLKCONFIG);
+> > +	if (enable)
+> > +		val |= 1 << pos;
+> > +	else
+> > +		val &= ~(1 << pos);
+> > +	mutex_lock(&info->pwmss_lock);
+> > +	writew(val , info->mmio_base + PWMSS_CLKCONFIG);
+> > +	mutex_unlock(&info->pwmss_lock);
+> > +}
+> > +EXPORT_SYMBOL(pwmss_submodule_state_change);
+> 
+> I see a clk_en_ack field in the clock status register. You should be checking that.
+
+Ok. I will add for check & return status from pwmss_submodule_state_change().
+
+> 
+> [...]
 > 
 > > +
-> > +#include "tipwmss.h"
-> >  
-> >  /* EHRPWM registers and bits definitions */
-> >  
-> > @@ -107,6 +111,10 @@
-> >  #define AQCSFRC_CSFA_FRCHIGH	BIT(1)
-> >  #define AQCSFRC_CSFA_DISSWFRC	(BIT(1) | BIT(0))
-> >  
-> > +#define EPWMCLK_EN_SHIFT	8
-> > +
-> > +#define PWM_CELL_SIZE		3
-> > +
-> >  #define NUM_PWM_CHANNEL		2	/* EHRPWM channels */
-> >  
-> >  struct ehrpwm_pwm_chip {
-> > @@ -392,12 +400,27 @@ static const struct pwm_ops ehrpwm_pwm_ops = {
-> >  	.owner		= THIS_MODULE,
-> >  };
-> >  
-> > +#ifdef CONFIG_OF
-> > +static const struct of_device_id ehrpwm_of_match[] = {
-> > +	{
-> > +		.compatible	= "ti,am33xx-ehrpwm",
-> > +	},
-> > +	{},
-> > +};
-> > +MODULE_DEVICE_TABLE(of, ehrpwm_of_match);
-> > +#endif
-> > +
-> >  static int __devinit ehrpwm_pwm_probe(struct platform_device *pdev)
-> >  {
-> >  	int ret;
-> >  	struct resource *r;
-> >  	struct clk *clk;
-> >  	struct ehrpwm_pwm_chip *pc;
-> > +	struct pinctrl *pinctrl;
-> > +
-> > +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+> > +MODULE_DESCRIPTION("pwmss driver");
+> > +MODULE_AUTHOR("Texas Instruments");
+> > +MODULE_LICENSE("GPL");
+> > diff --git a/drivers/pwm/tipwmss.h b/drivers/pwm/tipwmss.h
+> > new file mode 100644
+> > index 0000000..83fdc29
+> > --- /dev/null
+> > +++ b/drivers/pwm/tipwmss.h
+> > @@ -0,0 +1,8 @@
 > 
-> I didn't see a patch adding the pinctrl entries.
+> License text?
 
-Patch 8/8 has pinctrl entries in DT. First driver changes for supporting
-DT data. 
-
-> 
-> > +	if (IS_ERR(pinctrl))
-> > +		dev_warn(&pdev->dev, "failed to configure pins from driver\n");
-> >  
-> >  	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
-> >  	if (!pc) {
-> > @@ -419,6 +442,7 @@ static int __devinit ehrpwm_pwm_probe(struct platform_device *pdev)
-> >  
-> >  	pc->chip.dev = &pdev->dev;
-> >  	pc->chip.ops = &ehrpwm_pwm_ops;
-> > +	pc->chip.of_pwm_n_cells = PWM_CELL_SIZE;
-> >  	pc->chip.base = -1;
-> >  	pc->chip.npwm = NUM_PWM_CHANNEL;
-> >  
-> > @@ -437,8 +461,11 @@ static int __devinit ehrpwm_pwm_probe(struct platform_device *pdev)
-> >  		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
-> >  		return ret;
-> >  	}
-> > -
-> >  	pm_runtime_enable(&pdev->dev);
-> > +	pm_runtime_get_sync(&pdev->dev);
-> > +	pwmss_submodule_state_change(pdev->dev.parent, EPWMCLK_EN_SHIFT, true);
-> 
-> I think you should modify this API to return the status for drivers to check.
-
-Check for status check will add.
-
-> 
-> Another related question, why should this clock be enabled in probe and not only when it
-> is required?
-
-This is another clock gating from PWM subsystem as all sub modules shared the clock resource.
-Still this gating from PWM subsystem is required to access PWM sub modules.
-Handling of this for context loss & restore done at pwmss driver, will add the support.
-
-> Shouldn't it be disabled in suspend?
-
-Will take care when adding suspend/resume functionality.
+Ok I will add.
 
 Thanks
 Avinash
-
+>  
+> > +#ifdef CONFIG_PWM_TIPWMSS
+> > +extern void pwmss_submodule_state_change(struct device *dev, int pos,
+> > +		bool enable);
+> > +#else
+> > +static inline void pwmss_submodule_state_change(struct device *dev, int pos,
+> > +		bool enable)
+> > +{}
+> > +#endif
 > 
 > Regards,
 > Vaibhav
