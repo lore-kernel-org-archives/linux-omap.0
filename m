@@ -1,49 +1,57 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH] OMAPDSS: HDMI: Remove __exit macro from hdmi_uninit_display
-Date: Tue, 6 Nov 2012 21:37:14 -0600
-Message-ID: <1352259434-21196-1-git-send-email-ricardo.neri@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40205 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619Ab2KGCjn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Nov 2012 21:39:43 -0500
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id qA72dhOw013263
-	for <linux-omap@vger.kernel.org>; Tue, 6 Nov 2012 20:39:43 -0600
-Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id qA72dhVA008219
-	for <linux-omap@vger.kernel.org>; Tue, 6 Nov 2012 20:39:43 -0600
-Sender: linux-omap-owner@vger.kernel.org
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: [PATCH v3 2/7] ARM: OMAP2xxx: hwmod: Add DMA support for SHAM module
+Date: Tue,  6 Nov 2012 19:57:08 -0700
+Message-ID: <1352257033-32495-3-git-send-email-mgreer@animalcreek.com>
+References: <1352257033-32495-1-git-send-email-mgreer@animalcreek.com>
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <1352257033-32495-1-git-send-email-mgreer@animalcreek.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, dmitry.kasatkin@intel.com, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com, "Mark A. Greer" <mgreer@animalcreek.com>
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
-This function is now used in the driver init path to handle
-probe errors properly. Thus, it may be possible to use this function
-outside the exit path.
+From: "Mark A. Greer" <mgreer@animalcreek.com>
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Reported-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+The current OMAP2 SHAM support doesn't enable DMA
+so add that support so it can use DMA just like OMAP3.
+
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- drivers/video/omap2/dss/hdmi.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c      | 6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 0c2f35b..6cf2fe2 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -365,7 +365,7 @@ static int __init hdmi_init_display(struct omap_dss_device *dssdev)
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
+index bb314c5..4b4fd5f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
+@@ -405,5 +405,5 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__sham = {
+ 	.slave		= &omap2xxx_sham_hwmod,
+ 	.clk		= "sha_ick",
+ 	.addr		= omap2xxx_sham_addrs,
+-	.user		= OCP_USER_MPU,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index a041670..703b269 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -873,9 +873,15 @@ struct omap_hwmod_irq_info omap2_sham_mpu_irqs[] = {
+ 	{ .irq = -1 }
+ };
  
--static void __exit hdmi_uninit_display(struct omap_dss_device *dssdev)
-+static void hdmi_uninit_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("uninit_display\n");
- 
++struct omap_hwmod_dma_info omap2_sham_sdma_chs[] = {
++	{ .name = "rx", .dma_req = OMAP24XX_DMA_SHA1MD5_RX },
++	{ .dma_req = -1 }
++};
++
+ struct omap_hwmod omap2xxx_sham_hwmod = {
+ 	.name		= "sham",
+ 	.mpu_irqs	= omap2_sham_mpu_irqs,
++	.sdma_reqs	= omap2_sham_sdma_chs,
+ 	.main_clk	= "l4_ck",
+ 	.prcm		= {
+ 		.omap2 = {
 -- 
-1.7.5.4
-
+1.7.12
