@@ -1,145 +1,60 @@
-From: Mitch Bradley <wmb-D5eQfiDGL7eakBO8gow8eQ@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Tue, 06 Nov 2012 14:54:40 -1000
-Message-ID: <5099B150.7070808@firmworks.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <50999145.2070306@wwwdotorg.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/6] OMAPDSS: enable DSS for Panda & SDP with devtree
+Date: Tue, 6 Nov 2012 17:04:05 -0800
+Message-ID: <20121107010405.GU6801@atomide.com>
+References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <50999145.2070306-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:52742 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753129Ab2KGBEI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 20:04:08 -0500
+Content-Disposition: inline
+In-Reply-To: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: archit@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, s-guiriec@ti.com
 
-On 11/6/2012 12:37 PM, Stephen Warren wrote:
-> On 11/05/2012 01:40 PM, Grant Likely wrote:
->> Hey folks,
->>
->> As promised, here is my early draft to try and capture what device
->> tree overlays need to do and how to get there. Comments and
->> suggestions greatly appreciated.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [121105 05:16]:
+> Hi,
 > 
-> Interesting. This just came up internally at NVIDIA within the last
-> couple weeks, and was discussed on the U-Boot mailing list very recently
-> too:
+> OMAPDSS device tree support is still some way in the future. Tony has requested
+> to get DSS working for Panda & SDP boards with DT kernel, so that we'll have
+> fully working boards with DT.
 > 
-> http://lists.denx.de/pipermail/u-boot/2012-October/thread.html#138227
-> (it spills into the November archive too)
+> This series makes a few hacks to get a working display on OMAP4 Panda and SDP
+> boards. The idea is to setup the omapdss with the non-DT method, creating the
+> omapdss devices and passing platform data to them. This setup code is called
+> from board-generic for Panda and SDP boards.
 > 
->> For these cases it is proposed to implement an overlay feature for the
->> so that the initial device tree data can be modified by userspace at
+> There was one problem with this approach: omapdss cannot get regulators using
+> the omapdss's names fro the regulators. Thus there's a hack patch to get the
+> regulators using the OMAP4 "native" regulator names, thus circumventing the
+> problem.
 > 
-> I don't know if you're maintaining this as a document and taking patches
-> to it, but if so:
+> Tony, if these look good, how do you want to merge these? There are three parts
+> here, and I think they can be merged independently if so wished:
 > 
-> "for the so" split across those two lines.
-> 
->> Jane solves this problem by storing an FDT overlay for each cape in the
->> root filesystem. When the kernel detects that a cape is installed it
->> reads the cape's eeprom to identify it and uses request_firmware() to
->> obtain the appropriate overlay. Userspace passes the overlay to the
->> kernel in the normal way. If the cape doesn't have an eeprom, then the
->> kernel will still use firmware_request(), but userspace needs to already
->> know which cape is installed.
-> 
-> As mentioned by Pantelis, multiple versions of a board is also very
-> common. We already have the following .dts files in the kernel where
-> this applies, for the main board even:
-> 
-> arch/arm/boot/dts/tegra30-cardhu.dtsi
-> arch/arm/boot/dts/tegra30-cardhu-a02.dts
-> arch/arm/boot/dts/tegra30-cardhu-a04.dts
-> 
->> Summary points:
-> 
->>   - SHOULD reliably handle changes between different underlying overlays
->>     (ie. what happens to existing .dtb overly files if the structure of
->>     the dtb it is layered over changes. If not possible, then SHALL
->>     detect when the base tree doesn't match and refuse to apply the
->>     overlay.
-> 
-> Perhaps use (versioned) DT bindings to represent the interface between
-> the two .dts files? See the links to the U-Boot mailing list discussions
-> below?
-> 
->> - What is the model for overlays?
->>   - Can an overlay modify existing properties?
->>   - Can an overlay add new properties to existing nodes?
->>   - Can an overlay delete existing nodes/properties?
-> 
-> This proposal is very oriented at an overlay-based approach. I'm not
-> totally convinced that a pure overlay approach (as in how dtc does
-> overlayed DT nodes) will be flexible enough, but would love to be
-> persuaded. Again see below.
+> * .dts changes for the pinmuxing (2 patches)
 
+Let's let Benoit queue these.
 
-An overlay approach will not be powerful enough to solve the sorts of
-problems that occur when a product goes into full production, becomes a
-family, and starts to evolve.  Issues like second-source parts that
-aren't quite compatible and need to be detected and reported,
-board-stuff options for different customer profiles, speed grades of
-parts that aren't properly probeable but instead need to be identified
-by some subterfuge, the list of tedious issues goes on and on.
+> * dss-common.c and board-generic.c changes (3 patches)
 
-It's nice to pretend that the world fits into a few coherent simple
-use cases, but 30 years of experience shipping computer product families
-proves otherwise.  You need a programming language to solve the full
-set of problems - which I why the device tree is designed so it can
-be generated and modified by a program.
+And I can take these.
 
-> 
->> It may be sufficient to solve it by making the phandle values less
->> volatile. Right now dtc generates phandles linearly. Generated phandles
->> could be overridden with explicit phandle properties, but it isn't a
->> fantastic solution. Perhaps generating the phandle from a hash of the
->> node name would be sufficient.
-> 
-> Node names don't have to be unique though right; perhaps hash the
-> path-name instead of the node-name? But then, why not just reference by
-> path name; similar to <{&/path/to/node}> rather than <&label>?
-> 
->> This handles many of the use cases, but it assumes that an overlay is
->> board specific. If it ever is required to support multiple base boards
->> with a single overlay file then there is a problem. The .dtb overlays
->> generated in this manor cannot handle different phandles or nodes that
->> are in a different place. On the other hand, the overlay source files
->> should have no problem being compiled for multiple targets.
-> 
-> s/manor/manner/
-> 
-> I do rather suspect this use-case is quite common. NVIDIA certainly has
-> a bunch of development boards with pluggable
-> PMIC/audio/WiFi/display/..., and I believe there's some ability to
-> re-use the pluggable components with a variety of base-boards.
-> 
-> Given people within NVIDIA started talking about this recently, I asked
-> them to enumerate all the boards we have that support pluggable
-> components, and how common it is that some boards support being plugged
-> into different main boards. I don't know when that enumeration will
-> complete (or even start) but hopefully I can provide some feedback on
-> how common the use-case is for us once it's done.
-> 
-> My earlier thoughts on how to support this included explicit
-> inter-board/-component connector objects in the .dts files that allow
-> "renaming" of GPIOs, I2C buses, regulators, etc.:
-> 
-> http://lists.denx.de/pipermail/u-boot/2012-October/138476.html
-> http://lists.denx.de/pipermail/u-boot/2012-November/138925.html
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
-> 
+> * DSS hack for the regulators (1 patch)
+
+And you can take this.
+ 
+> If one of those parts is missing, DSS won't start with DT kernel, but otherwise
+> there shouldn't be any problems. So to avoid conflicts, I suggest that you take
+> the first two parts, and I'll merge the DSS hack via omapdss tree.
+
+Cool thanks for doing this. Looks OK to me until we have the DT bindings ready.
+
+Regards,
+
+Tony
