@@ -1,39 +1,70 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: OMAP4/Panda: u-boot upgrade v2012.04.01 -> v2012.10 breaks RTC
- wakeups
-Date: Tue, 6 Nov 2012 18:53:15 -0600
-Message-ID: <5099B0FB.3060203@ti.com>
-References: <87obja9r3x.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] OMAP: PM: misc. fixes for v3.8
+Date: Tue, 6 Nov 2012 16:53:52 -0800
+Message-ID: <20121107005352.GT6801@atomide.com>
+References: <877gpy2t0n.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35581 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753320Ab2KGAxW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Nov 2012 19:53:22 -0500
-In-Reply-To: <87obja9r3x.fsf@deeprootsystems.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40708 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751428Ab2KGAxy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Nov 2012 19:53:54 -0500
+Content-Disposition: inline
+In-Reply-To: <877gpy2t0n.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: u-boot@lists.denx.de, linux-omap <linux-omap@vger.kernel.org>, trini@ti.com, R Sricharan <r.sricharan@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-+ Sricharan,
-
-On Tuesday 06 November 2012 06:46 PM, Kevin Hilman wrote:
-> Hello,
->
-> I just noticed that the kernel wakeup from suspend using RTC is broken
-> after I upgraded u-boot from v2012.04.01 to v2012.10 on my
-> OMAP4430/Panda and OMAP4460/Panda-ES.
->
-> I haven't isolated the cause yet, but am hoping someone might have a
-> pointer about where to start digging.
->
+* Kevin Hilman <khilman@deeprootsystems.com> [121106 15:49]:
+> Tony,
+> 
+> Here's a small series that fixes some errata to make suspend/resume
+> work on OMAP4460.
+> 
+> This is not a regression and has been broken for awhile, so this is v3.8
+> material, not v3.7.
+> 
 > Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> 
+> The following changes since commit 3d70f8c617a436c7146ecb81df2265b4626dfe89:
+> 
+>   Linux 3.7-rc4 (2012-11-04 11:07:39 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/for_3.8-fixes-pm
 
+Thanks pulling into omap-for-v3.8/fixes-non-critical.
+
+Regards,
+
+Tony
+
+> 
+> for you to fetch changes up to cd8ce159031813eb870a5f3d5b27c3be36cd6e3a:
+> 
+>   ARM: OMAP4: retrigger localtimers after re-enabling gic (2012-11-05 14:26:43 -0800)
+> 
+> ----------------------------------------------------------------
+> Some non-regression fixes for OMAP4460 PM support.
+> 
+> ----------------------------------------------------------------
+> Colin Cross (1):
+>       ARM: OMAP4: retrigger localtimers after re-enabling gic
+> 
+> Santosh Shilimkar (1):
+>       ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX GIC control register change.
+> 
+> Tero Kristo (1):
+>       ARM: OMAP4: PM: add errata support
+> 
+>  arch/arm/mach-omap2/common.h              |  4 +++
+>  arch/arm/mach-omap2/omap-headsmp.S        | 38 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |  9 ++++++-
+>  arch/arm/mach-omap2/omap-smp.c            | 39 +++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/omap4-common.c        | 42 ++++++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/pm.h                  |  9 +++++++
+>  arch/arm/mach-omap2/pm44xx.c              |  1 +
+>  7 files changed, 139 insertions(+), 3 deletions(-)
