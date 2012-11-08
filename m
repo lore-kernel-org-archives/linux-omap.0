@@ -1,111 +1,90 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: TWL: mux sys_drm_msecure as output for PMIC
-Date: Thu, 8 Nov 2012 21:28:34 +0200
-Message-ID: <20121108192834.GA2962@arwen.pp.htv.fi>
-References: <1352401730-4269-1-git-send-email-khilman@deeprootsystems.com>
-Reply-To: <balbi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: Timer and Counter DT Updates for v3.8
+Date: Thu, 8 Nov 2012 13:47:10 -0600
+Message-ID: <509C0C3E.6070204@ti.com>
+References: <50941812.2070501@ti.com> <20121107004703.GS6801@atomide.com> <20121107234403.GS6801@atomide.com> <509BE9B0.5040608@ti.com> <20121108173824.GE6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zYM0uCDKw75PZbzx"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40152 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53277 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752466Ab2KHTeq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 14:34:46 -0500
-Content-Disposition: inline
-In-Reply-To: <1352401730-4269-1-git-send-email-khilman@deeprootsystems.com>
+	id S1752466Ab2KHTrW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Nov 2012 14:47:22 -0500
+In-Reply-To: <20121108173824.GE6801@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
---zYM0uCDKw75PZbzx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On 11/08/2012 11:38 AM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [121108 09:21]:
+>>
+>> On 11/07/2012 05:44 PM, Tony Lindgren wrote:
+>>
+>> That's a bugger. I completely missed your patch last week sorry (I will blame the Danish
+>> beer) and had clearly not folded in to my testing!
+> 
+> :)
+>  
+>>> I guess we should apply the following fix somewhere or
+>>> do we need to check other places too?
+>>
+>> I will re-test your master branch today and put it through my dmtimer tests to double check.
+>> However, in general I did ensure that we checked pdata was not NULL before accessing when 
+>> I introduced the dt stuff. In my changelog [1] I had ...
+>>
+>> "5. When device-tree is present the platform_data structure will be NULL and so check for
+>> this."
+>>
+>> I just need to make sure that get_context_loss_count() is not called before checking it is
+>> populated.  
+> 
+> OK
+> 
+>   
+>>> +
+>>> +	if (pdata) {
+>>> +		timer->capability = pdata->timer_capability;
+>>
+>> You don't need this it is already handled a few lines before.
+>>
+>>> +		timer->get_context_loss_count = pdata->get_context_loss_count;
+>>
+>> We could probably move this too. For example ...
+> 
+> OK yeah makes sense to me.
+> 
+> Regards,
+> 
+> Tony
+>  
+>> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+>> index 38c12ef..9dca23e 100644
+>> --- a/arch/arm/plat-omap/dmtimer.c
+>> +++ b/arch/arm/plat-omap/dmtimer.c
+>> @@ -799,12 +799,11 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+>>                 timer->id = pdev->id;
+>>                 timer->capability = pdata->timer_capability;
+>>                 timer->reserved = omap_dm_timer_reserved_systimer(timer->id);
+>> +               timer->get_context_loss_count = pdata->get_context_loss_count;
+>>         }
+>>  
+>>         timer->irq = irq->start;
+>>         timer->pdev = pdev;
+>> -       timer->capability = pdata->timer_capability;
+>> -       timer->get_context_loss_count = pdata->get_context_loss_count;
+>>  
+>>         /* Skip pm_runtime_enable for OMAP1 */
+>>         if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
 
-On Thu, Nov 08, 2012 at 11:08:50AM -0800, Kevin Hilman wrote:
-> From: Kevin Hilman <khilman@ti.com>
->=20
-> On OMAP4 boards using the TWL6030 PMIC, the sys_drm_msecure is
-> connected to the MSECURE input of the TWL6030 PMIC.  This signal
-> controls the secure-mode operation of the PMIC.  If its not mux'd
-> correctly, some functionality of the PMIC will not be accessible since
-> the PMIC will be in secure mode.
->=20
-> For example, if the TWL RTC is in secure mode, most of its registers
-> are read-only, meaning (re)programming the RTC (e.g. for wakeup from
-> suspend) will fail.
->=20
-> To fix, ensure the signal is properly mux'd as output when TWL is
-> intialized.
->=20
-> This fix is required when using recent versions of u-boot (>=3D v2012.04.=
-01)
-> since u-boot is no longer setting the default mux for this pin.
->=20
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Based on v3.7-rc4.  Targetted as a fix for v3.7.
->=20
-> A correponding DT fix for this is needed as well, but that will be part o=
-f=20
-> a bigger series to get PM working with DT boot and needs to include other
-> pins like sys_nirq1.
->=20
->  arch/arm/mach-omap2/twl-common.c | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-c=
-ommon.c
-> index 635e109..96cae8b 100644
-> --- a/arch/arm/mach-omap2/twl-common.c
-> +++ b/arch/arm/mach-omap2/twl-common.c
-> @@ -73,6 +73,7 @@ void __init omap4_pmic_init(const char *pmic_type,
->  {
->  	/* PMIC part*/
->  	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_=
-WAKEUPENABLE);
-> +	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
->  	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data=
-);
-> =20
->  	/* Register additional devices on i2c1 bus if needed */
+I have tested the dmtimers with this on the 3430-beagle and 4430-panda
+with and without device tree and is working fine.
 
-not entirely related to $SUBJECT but this essentially means we're
-dropping the security feature whenever Linux runs.
+Do you want to generate the patch or me?
 
-Shouldn't we try to change that pin at register write boundaries so we
-keep the secure feature enabled until we know we're going to write to
-the HW ?
+Cheers
+Jon
 
-Maybe it could even be done later through pinctrl, perhaps ?
-
---=20
-balbi
-
---zYM0uCDKw75PZbzx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQnAfiAAoJEIaOsuA1yqREE9UP/3a/qiYpdOd26wnlTQL7q9rw
-nbpcWIgV5DZDfWRUrW7L3E+b9JjN4AT41ipwAn/Pz7DPjrxI3cNkL+8p7C1K4nln
-2jHvmrWRr+b0hNCVRhknz6BIJMS2R6d29KOHCBSzmPmAiu+5ug6HujXS/qDxr+Rw
-7ZX05ZPejLlUoIzd9PXz4TU4PI1pyIcaCpQUm+Inc8cyBk7nomjBnL0nSZ6mJaTH
-t6h5NSWanAO3MzPmrTZl4Y6f51xDMjQZid6JQxz7hUfDVj0eIuKvDuV3cDvsbP5R
-PVAvqKuJcS9JpBPsNDFy0XeocRIMoU3uo/rD1MhBzfzKH4177SPA8f6q43QaaMK8
-grDh64ul1Q8xH/UlKYJwPeUPb9Nc9NvDN7dQpfitZzfPLQMR9jz+FT3ByITJ20BA
-uNVOf9gFMmPOUOJKaQZFYPJLNXcYP6Hs2ArgDukgoUf5RJnbIITyBYsz+94sjR0z
-YvFSrKdCc07Sgt+6v1bs1dxORSA/h6Ay+n0ObsWVZ0I3QqumDNIGORBQUKvcBhbz
-56OBXiohegljmNA9KTOoork3jUb1WQwvaWTLXJdTESUC9qMmO9EP7CuYOoX8aa+T
-9lQwJ/QfJFUL1YKz7uhwVqeAgH2dtS5dnCknIXGOs3vd8I9sYPNqEbo5YG9ahbFT
-y91iZob9Ei9yMXvmYEPT
-=FRVv
------END PGP SIGNATURE-----
-
---zYM0uCDKw75PZbzx--
+>> [1] http://marc.info/?l=linux-omap&m=135065877008624&w=2
