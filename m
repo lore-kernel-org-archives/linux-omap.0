@@ -1,112 +1,138 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Thu, 08 Nov 2012 09:13:08 +0200
-Message-ID: <509B5B84.50605@compulab.co.il>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <20121107173343.GF6801@atomide.com>
+From: =?UTF-8?B?UMOpdGVyIFVqZmFsdXNp?= <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/3] pwm: New driver to support PWMs on TWL4030/6030 series
+ of PMICs
+Date: Thu, 8 Nov 2012 08:14:36 +0100
+Message-ID: <509B5BDC.3030005@ti.com>
+References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com> <1352299488-11351-3-git-send-email-peter.ujfalusi@ti.com> <CANOLnOM7sp+O+KBKjiRk2drWh_63D6-bY86dx+upWkrvs7pp9w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:59390 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752134Ab2KHHNO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 02:13:14 -0500
-In-Reply-To: <20121107173343.GF6801@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANOLnOM7sp+O+KBKjiRk2drWh_63D6-bY86dx+upWkrvs7pp9w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On 11/07/12 19:33, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [121107 06:44]:
->> CONFIG_OMAP_32K_TIMER is kind of standing on the single zImage way.
->> Make OMAP2+ timer code independant from the CONFIG_OMAP_32K_TIMER
->> setting.
->> To remove the dependancy, several conversions/additions had to be done:
->> 1) Timer structures and initialization functions are named by the platform
->>    name and the clock source in use. The decision which timer is
->>    used is done statically from the machine_desc structure. In the
->>    future it should come from DT.
->> 2) Settings under the CONFIG_OMAP_32K_TIMER option are expanded into
->>    separate timer structures along with the timer init functions.
->>    This removes the CONFIG_OMAP_32K_TIMER on OMAP2+ timer code.
-> 
-> I think this should be the default for the timers as that counter
-> does not stop during deeper idle states.
+On 11/07/2012 06:50 PM, Grazvydas Ignotas wrote:
+>> +static int twl4030_pwm_enable(struct pwm_chip *chip, struct pwm_dev=
+ice *pwm)
+>> +{
+>> +       int ret;
+>> +       u8 val;
+>> +
+>> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_=
+GPBR1_REG);
+>> +       if (ret < 0) {
+>> +               dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm=
+->label);
+>> +               return ret;
+>> +       }
+>> +
+>> +       val |=3D TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_BITS);
+>=20
+> In my experience doing it like this doesn't work reliably, i.e.
+> sometimes it just won't enable. I had to first set CLK_ENABLE bit, an=
+d
+> then ENABLE bit with separate i2c write. Perhaps it needs a cycle or
+> two of 32k clock or something (that doesn't seem to be documented
+> though).
 
-Well, it is the default as you can see from the patch.
-The problem is that for boards that for some reason do not have
-the 32k wired and rely on MPU/GP timer source, the default will not work
-and currently there is no way for board to specify which timer source
-it can use.
-We have discussed this in San Diego (remember?) and you actually proposed
-this way as a solution. Well, may be I took it a bit further than you
-thought, but this is because the board code cannot know which timer source
-should be used at runtime and the fall back described below, does not work.
+Thanks, I'll change to the reliable sequence. I do not have HW where I =
+can
+test the twl4030 PWMs.
 
-> 
->> 3) Since we have all the timers defined inside machine_desc structure
->>    and we no longer need the fallback to gp_timer clock source in case
->>    32k_timer clock source is unavailable (namely on AM33xx), we no
->>    longer need the #ifdef around __omap2_sync32k_clocksource_init()
->>    function. Remove the #ifdef CONFIG_OMAP_32K_TIMER around the
->>    __omap2_sync32k_clocksource_init() function.
->>
->> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
->> Cc: Jon Hunter <jon-hunter@ti.com>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Vaibhav Hiremath <hvaibhav@ti.com>
->> ---
->> Finally I'm sending this out...
->> I've lost following Tony's branches and deciding which one to base on,
->> so I used linux-omap/master as a base for the patch.
->> Tony, tell me if you want it based on some other branch.
->> This has been compile tested on omap1|2plus_defconfig only.
-> 
-> Yes sorry it's been a bit crazy with branches to get this
-> header clean up done.. If it applies to master it should
-> be easy to apply on others.
+>=20
+>> +
+>> +       ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_=
+GPBR1_REG);
+>> +       if (ret < 0)
+>> +               dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm=
+->label);
+>> +
+>> +       return ret;
+>> +}
+>> +
+>> +static void twl4030_pwm_disable(struct pwm_chip *chip, struct pwm_d=
+evice *pwm)
+>> +{
+>> +       int ret;
+>> +       u8 val;
+>> +
+>> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_=
+GPBR1_REG);
+>> +       if (ret < 0) {
+>> +               dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm=
+->label);
+>> +               return;
+>> +       }
+>> +
+>> +       val &=3D ~TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_BITS);
+>=20
+> Same problem here, I would sometimes get LED stuck at full brightness
+> after this, first clearing ENABLE and then CLK_ENABLE fixed it (we
+> have charger LED connected to PWM1 on pandora).
 
-No problem ;-)
+I would guessed that if we need special care we should have turned off =
+CLK
+followed by disabling the PWM.
+I'll use the sequence you described in the next version.
 
-> 
->> --- a/arch/arm/mach-omap2/board-2430sdp.c
->> +++ b/arch/arm/mach-omap2/board-2430sdp.c
->> @@ -284,6 +284,6 @@ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
->>  	.handle_irq	= omap2_intc_handle_irq,
->>  	.init_machine	= omap_2430sdp_init,
->>  	.init_late	= omap2430_init_late,
->> -	.timer		= &omap2_timer,
->> +	.timer		= &omap2_sync32k_timer,
->>  	.restart	= omap_prcm_restart,
->>  MACHINE_END
->> --- a/arch/arm/mach-omap2/board-3430sdp.c
->> +++ b/arch/arm/mach-omap2/board-3430sdp.c
->> @@ -596,6 +596,6 @@ MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
->>  	.handle_irq	= omap3_intc_handle_irq,
->>  	.init_machine	= omap_3430sdp_init,
->>  	.init_late	= omap3430_init_late,
->> -	.timer		= &omap3_timer,
->> +	.timer		= &omap3_sync32k_timer,
->>  	.restart	= omap_prcm_restart,
->>  MACHINE_END
-> ...
-> 
-> Can't we assume that the default timer is omap[234]_sync32k_timer to
-> avoid renaming the timer entries in all the board files?
+>=20
+>> +
+>> +       ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_=
+GPBR1_REG);
+>> +       if (ret < 0)
+>> +               dev_err(chip->dev, "%s: Failed to disable PWM\n", pw=
+m->label);
+>> +}
+>> +
+>> +static int twl4030_pwm_request(struct pwm_chip *chip, struct pwm_de=
+vice *pwm)
+>> +{
+>> +       struct twl_pwm_chip *twl =3D container_of(chip, struct twl_p=
+wm_chip,
+>> +                                               chip);
+>> +       int ret;
+>> +       u8 val, mask, bits;
+>> +
+>> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_=
+PMBR1_REG);
+>> +       if (ret < 0) {
+>> +               dev_err(chip->dev, "%s: Failed to read PMBR1\n", pwm=
+->label);
+>> +               return ret;
+>> +       }
+>> +
+>> +       if (pwm->hwpwm) {
+>> +               /* PWM 1 */
+>> +               mask =3D TWL4030_GPIO7_VIBRASYNC_PWM1_MASK;
+>> +               bits =3D TWL4030_GPIO7_VIBRASYNC_PWM1_PWM1;
+>> +       } else {
+>> +               /* PWM 0 */
+>> +               mask =3D TWL4030_GPIO6_PWM0_MUTE_MASK;
+>> +               bits =3D TWL4030_GPIO6_PWM0_MUTE_PWM0;
+>> +       }
+>> +
+>> +       /* Save the current MUX configuration for the PWM */
+>> +       twl->twl4030_pwm_mux &=3D ~mask;
+>> +       twl->twl4030_pwm_mux |=3D (val & mask);
+>=20
+> Do we really need this mask clearing here? After probe twl4030_pwm_mu=
+x
+> should be zero, and if twl4030_pwm_request is called twice you don't
+> clear the important bits before |=3D, I think 'twl4030_pwm_mux =3D va=
+l &
+> mask' would be better here.
 
-Hmmm...
-How will this work with the macros defining the sys_timer structure?
-I would also not want to hide the exact timer used under the default name.
+I'm storing both PWM's state in the same variable, but in different off=
+sets:
+PWM0: bits 2-3
+PWM1: bits 4-5
+Probably it is over engineering to clear the relevant bits in the backu=
+p
+storage, but better to be safe IMHO.
+I would leave this part as it is.
 
-> 
-> Then we just need a new timer entries for the hardware that does
-> not have the sycn32k_timer available?
-
-Well, I tried to make it small patch just for the hardware that needs it,
-but I always found some corner case where, IMHO, this does not work/look good.
-
-
--- 
-Regards,
-Igor.
+--=20
+P=C3=A9ter
