@@ -1,28 +1,36 @@
-From: Rajendra Nayak <rnayak@ti.com>
+From: Mike Turquette <mturquette@ti.com>
 Subject: Re: [PATCH v2 00/26] Move OMAP2+ over to common clk framework
-Date: Thu, 8 Nov 2012 10:32:59 +0530
-Message-ID: <509B3D03.4080003@ti.com>
+Date: Wed, 7 Nov 2012 21:19:32 -0800
+Message-ID: <20121108051932.17381.55116@nucleus>
 References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
+ <509B3D03.4080003@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35287 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56558 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751217Ab2KHFDK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 00:03:10 -0500
-In-Reply-To: <1352337181-29427-1-git-send-email-mturquette@ti.com>
+	id S1750881Ab2KHFTu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 00:19:50 -0500
+In-Reply-To: <509B3D03.4080003@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org, patches@linaro.org, Mike Turquette <mturquette@linaro.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org, patches@linaro.org
 
-On Thursday 08 November 2012 06:42 AM, Mike Turquette wrote:
-> I also tested on OMAP4460 Panda-ES.  Boot is fine and PRCM programming
-> appears sane.  However Panda-ES never comes back from suspend/resume.
-> This problem exists on the PRM/CM branch I based on and was not
-> introduced by this series.  I am investigating that independently of
-> this series.
+Quoting Rajendra Nayak (2012-11-07 21:02:59)
+> On Thursday 08 November 2012 06:42 AM, Mike Turquette wrote:
+> > I also tested on OMAP4460 Panda-ES.  Boot is fine and PRCM programming
+> > appears sane.  However Panda-ES never comes back from suspend/resume.
+> > This problem exists on the PRM/CM branch I based on and was not
+> > introduced by this series.  I am investigating that independently of
+> > this series.
+> 
+> Don't bother. Its been a know issue for a long time now.
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg72056.html
 
-Don't bother. Its been a know issue for a long time now.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg72056.html
+Thanks.  I realized that after posting!  I think there are fixes posted
+to the list so I will re-test with those fixes tomorrow.
+
+Regards,
+Mike
