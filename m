@@ -1,47 +1,45 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Thu, 8 Nov 2012 13:16:28 -0600
-Message-ID: <509C050C.6010201@ti.com>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BFFDF.9040605@ti.com> <79CD15C6BA57404B839C016229A409A83EB68799@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 00/26] Move OMAP2+ over to common clk framework
+Date: Thu, 08 Nov 2012 11:20:10 -0800
+Message-ID: <87haoz6gwl.fsf@deeprootsystems.com>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
+	<509B3D03.4080003@ti.com> <20121108051932.17381.55116@nucleus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58374 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756656Ab2KHTQe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 14:16:34 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB68799@DBDE01.ent.ti.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:36893 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756662Ab2KHTUM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 14:20:12 -0500
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2205914pad.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Nov 2012 11:20:12 -0800 (PST)
+In-Reply-To: <20121108051932.17381.55116@nucleus> (Mike Turquette's message of
+	"Wed, 7 Nov 2012 21:19:32 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Mike Turquette <mturquette@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org, patches@linaro.org
 
+Mike Turquette <mturquette@ti.com> writes:
 
-On 11/08/2012 12:59 PM, Hiremath, Vaibhav wrote:
-> On Fri, Nov 09, 2012 at 00:24:23, Hunter, Jon wrote:
->>
->> On 11/08/2012 01:59 AM, Igor Grinberg wrote:
->>
->> [snip]
->>
->>> There is no reliable way to determine which source should be used in runtime
->>> for boards that do not have the 32k oscillator wired.
->>
->> So thinking about this some more and given that we are moving away from
->> board files, if a board does not provide a 32kHz clock source, then this
->> should be reflected in the device-tree source file for that board.
->> Hence, at boot time we should be able to determine if a 32kHz clock
->> source can be used.
->>
-> 
-> Let me feed some more thoughts here :)
-> 
-> The way it is being detected currently is based on timer idle status bit.
-> I am worried that, this is the only option we have.
+> Quoting Rajendra Nayak (2012-11-07 21:02:59)
+>> On Thursday 08 November 2012 06:42 AM, Mike Turquette wrote:
+>> > I also tested on OMAP4460 Panda-ES.  Boot is fine and PRCM programming
+>> > appears sane.  However Panda-ES never comes back from suspend/resume.
+>> > This problem exists on the PRM/CM branch I based on and was not
+>> > introduced by this series.  I am investigating that independently of
+>> > this series.
+>> 
+>> Don't bother. Its been a know issue for a long time now.
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg72056.html
+>
+> Thanks.  I realized that after posting!  I think there are fixes posted
+> to the list so I will re-test with those fixes tomorrow.
 
-Why not use device-tree to indicate the presence of a 32k clock source?
-This seems like a board level configuration and so device-tree seems to
-be the perfect place for this IMO.
+I recently sent a pull request for these:
 
-Jon
+http://marc.info/?l=linux-omap&m=135224963505956&w=2
+
+With that, suspend/resume is working fine on 4460/Panda-ES.
+
+Kevin
