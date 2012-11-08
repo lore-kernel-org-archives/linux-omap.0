@@ -1,105 +1,58 @@
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: [PATCH] ARM: OMAP1: use BUG_ON where possible
-Date: Thu,  8 Nov 2012 15:23:09 -0500
-Message-ID: <1352406191-14303-7-git-send-email-sasha.levin@oracle.com>
-References: <1352406191-14303-1-git-send-email-sasha.levin@oracle.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 11/15] ARM: OMAP: timer: Interchange clksrc and clkevt
+ for AM33XX
+Date: Thu, 8 Nov 2012 14:41:50 -0600
+Message-ID: <509C190E.8010001@ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com> <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1352406191-14303-1-git-send-email-sasha.levin@oracle.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Sasha Levin <sasha.levin@oracle.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:34312 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756504Ab2KHUl5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 15:41:57 -0500
+In-Reply-To: <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com
 
-Just use BUG_ON() instead of constructions such as:
 
-	if (...)
-		BUG()
+On 11/02/2012 07:32 AM, Vaibhav Bedia wrote:
+> AM33XX has only one usable timer in the WKUP domain.
+> Currently the timer instance in WKUP domain is used
+> as the clockevent and the timer in non-WKUP domain
+> as the clocksource. The timer in WKUP domain can keep
+> running in suspend from a 32K clock and hence serve
+> as the persistent clock. To enable this, interchange
+> the timers used as clocksource and clockevent for
+> AM33XX. A subsequent patch will add suspend-resume
+> support for the clockevent to ensure that there are
+> no issues with timekeeping.
+> 
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> ---
+>  arch/arm/mach-omap2/timer.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 565e575..6584ee0 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -460,7 +460,7 @@ OMAP_SYS_TIMER(3_secure)
+>  #endif
+>  
+>  #ifdef CONFIG_SOC_AM33XX
+> -OMAP_SYS_TIMER_INIT(3_am33xx, 1, OMAP4_MPU_SOURCE, 2, OMAP4_MPU_SOURCE)
+> +OMAP_SYS_TIMER_INIT(3_am33xx, 2, OMAP4_MPU_SOURCE, 1, OMAP4_MPU_SOURCE)
+>  OMAP_SYS_TIMER(3_am33xx)
+>  #endif
 
-A simplified version of the semantic patch that makes this transformation
-is as follows: (http://coccinelle.lip6.fr/)
+By the way, for v3.8 (assuming that timer DT patches go in, currently
+queued in Tony's master), when booting with DT the clock-source and
+clock-events will be selected by timer feature and not ID. So you may
+wish to rebase on top of Tony's master.
 
-// <smpl>
-@@
-expression e;
-@@
-- if (e) BUG();
-+ BUG_ON(e);
-// </smpl>
-
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
----
- arch/arm/mach-omap1/board-fsample.c  |    3 +--
- arch/arm/mach-omap1/board-h2.c       |    3 +--
- arch/arm/mach-omap1/board-h3.c       |    3 +--
- arch/arm/mach-omap1/board-perseus2.c |    3 +--
- 4 files changed, 4 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
-index 8b5800a..7ca6cc4 100644
---- a/arch/arm/mach-omap1/board-fsample.c
-+++ b/arch/arm/mach-omap1/board-fsample.c
-@@ -307,8 +307,7 @@ static void __init omap_fsample_init(void)
- 
- 	fsample_init_smc91x();
- 
--	if (gpio_request(FSAMPLE_NAND_RB_GPIO_PIN, "NAND ready") < 0)
--		BUG();
-+	BUG_ON(gpio_request(FSAMPLE_NAND_RB_GPIO_PIN, "NAND ready") < 0);
- 	gpio_direction_input(FSAMPLE_NAND_RB_GPIO_PIN);
- 
- 	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 9134b64..4953cf7 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -412,8 +412,7 @@ static void __init h2_init(void)
- 
- 	h2_nand_resource.end = h2_nand_resource.start = OMAP_CS2B_PHYS;
- 	h2_nand_resource.end += SZ_4K - 1;
--	if (gpio_request(H2_NAND_RB_GPIO_PIN, "NAND ready") < 0)
--		BUG();
-+	BUG_ON(gpio_request(H2_NAND_RB_GPIO_PIN, "NAND ready") < 0);
- 	gpio_direction_input(H2_NAND_RB_GPIO_PIN);
- 
- 	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index bf213d1..563ba16 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -406,8 +406,7 @@ static void __init h3_init(void)
- 
- 	nand_resource.end = nand_resource.start = OMAP_CS2B_PHYS;
- 	nand_resource.end += SZ_4K - 1;
--	if (gpio_request(H3_NAND_RB_GPIO_PIN, "NAND ready") < 0)
--		BUG();
-+	BUG_ON(gpio_request(H3_NAND_RB_GPIO_PIN, "NAND ready") < 0);
- 	gpio_direction_input(H3_NAND_RB_GPIO_PIN);
- 
- 	/* GPIO10 Func_MUX_CTRL reg bit 29:27, Configure V2 to mode1 as GPIO */
-diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
-index 030bd48..67c2612 100644
---- a/arch/arm/mach-omap1/board-perseus2.c
-+++ b/arch/arm/mach-omap1/board-perseus2.c
-@@ -275,8 +275,7 @@ static void __init omap_perseus2_init(void)
- 
- 	perseus2_init_smc91x();
- 
--	if (gpio_request(P2_NAND_RB_GPIO_PIN, "NAND ready") < 0)
--		BUG();
-+	BUG_ON(gpio_request(P2_NAND_RB_GPIO_PIN, "NAND ready") < 0);
- 	gpio_direction_input(P2_NAND_RB_GPIO_PIN);
- 
- 	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
--- 
-1.7.10.4
+Cheers
+Jon
