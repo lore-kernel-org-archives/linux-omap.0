@@ -1,60 +1,47 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] ARM: OMAP4: TWL: mux sys_drm_msecure as output for PMIC
-Date: Thu,  8 Nov 2012 11:08:50 -0800
-Message-ID: <1352401730-4269-1-git-send-email-khilman@deeprootsystems.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
+Date: Thu, 8 Nov 2012 13:16:28 -0600
+Message-ID: <509C050C.6010201@ti.com>
+References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BFFDF.9040605@ti.com> <79CD15C6BA57404B839C016229A409A83EB68799@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:33109 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189Ab2KHTIw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 14:08:52 -0500
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2199870pad.19
-        for <linux-omap@vger.kernel.org>; Thu, 08 Nov 2012 11:08:52 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:58374 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756656Ab2KHTQe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 14:16:34 -0500
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB68799@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-From: Kevin Hilman <khilman@ti.com>
 
-On OMAP4 boards using the TWL6030 PMIC, the sys_drm_msecure is
-connected to the MSECURE input of the TWL6030 PMIC.  This signal
-controls the secure-mode operation of the PMIC.  If its not mux'd
-correctly, some functionality of the PMIC will not be accessible since
-the PMIC will be in secure mode.
+On 11/08/2012 12:59 PM, Hiremath, Vaibhav wrote:
+> On Fri, Nov 09, 2012 at 00:24:23, Hunter, Jon wrote:
+>>
+>> On 11/08/2012 01:59 AM, Igor Grinberg wrote:
+>>
+>> [snip]
+>>
+>>> There is no reliable way to determine which source should be used in runtime
+>>> for boards that do not have the 32k oscillator wired.
+>>
+>> So thinking about this some more and given that we are moving away from
+>> board files, if a board does not provide a 32kHz clock source, then this
+>> should be reflected in the device-tree source file for that board.
+>> Hence, at boot time we should be able to determine if a 32kHz clock
+>> source can be used.
+>>
+> 
+> Let me feed some more thoughts here :)
+> 
+> The way it is being detected currently is based on timer idle status bit.
+> I am worried that, this is the only option we have.
 
-For example, if the TWL RTC is in secure mode, most of its registers
-are read-only, meaning (re)programming the RTC (e.g. for wakeup from
-suspend) will fail.
+Why not use device-tree to indicate the presence of a 32k clock source?
+This seems like a board level configuration and so device-tree seems to
+be the perfect place for this IMO.
 
-To fix, ensure the signal is properly mux'd as output when TWL is
-intialized.
-
-This fix is required when using recent versions of u-boot (>= v2012.04.01)
-since u-boot is no longer setting the default mux for this pin.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Based on v3.7-rc4.  Targetted as a fix for v3.7.
-
-A correponding DT fix for this is needed as well, but that will be part of 
-a bigger series to get PM working with DT boot and needs to include other
-pins like sys_nirq1.
-
- arch/arm/mach-omap2/twl-common.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 635e109..96cae8b 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -73,6 +73,7 @@ void __init omap4_pmic_init(const char *pmic_type,
- {
- 	/* PMIC part*/
- 	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
-+	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
- 	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
- 
- 	/* Register additional devices on i2c1 bus if needed */
--- 
-1.8.0
-
+Jon
