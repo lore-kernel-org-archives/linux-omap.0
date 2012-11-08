@@ -1,15 +1,15 @@
 From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 17/26] ARM: OMAP: hwmod: Cleanup !CONFIG_COMMON_CLK parts
-Date: Wed, 7 Nov 2012 17:12:52 -0800
-Message-ID: <1352337181-29427-18-git-send-email-mturquette@ti.com>
+Subject: [PATCH 04/26] ARM: OMAP3: clock: Convert to common clk
+Date: Wed, 7 Nov 2012 17:12:39 -0800
+Message-ID: <1352337181-29427-5-git-send-email-mturquette@ti.com>
 References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53082 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754290Ab2KHBNm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Nov 2012 20:13:42 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:36664 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751853Ab2KHBNb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 20:13:31 -0500
 In-Reply-To: <1352337181-29427-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,74 +18,491 @@ Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org,
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-Clean all #ifdef's added as part of fixing the clkdm
-accesses from hwmod.
+Convert all OMAP3 specific platform files to use COMMON clk
+and keep all the chnages under the CONFIG_COMMON_CLK macro check
+so it does not break any existing code. At a later point switch
+to COMMON clk and get rid of all old/legacy code.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Mike Turquette <mturquette@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   18 ++----------------
- 1 file changed, 2 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c |   13 ++++++++
+ arch/arm/mach-omap2/clkt_iclk.c        |   13 ++++++++
+ arch/arm/mach-omap2/clock.h            |   22 ++++++++++++--
+ arch/arm/mach-omap2/clock34xx.c        |   51 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock3517.c        |   37 +++++++++++++++++++----
+ arch/arm/mach-omap2/clock36xx.c        |   25 +++++++++++++---
+ arch/arm/mach-omap2/clock36xx.h        |    4 +++
+ arch/arm/mach-omap2/clock3xxx.c        |   10 ++++++-
+ arch/arm/mach-omap2/clock3xxx.h        |    7 +++++
+ 9 files changed, 170 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 22a41f6..25052d6 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -130,11 +130,7 @@
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/io.h>
--#ifdef CONFIG_COMMON_CLK
- #include <linux/clk-provider.h>
--#else
--#include <linux/clk.h>
--#endif
- #include <linux/delay.h>
- #include <linux/err.h>
- #include <linux/list.h>
-@@ -623,17 +619,13 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
- 
- struct clockdomain *_get_clkdm(struct omap_hwmod *oh)
+diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+index 5510d92..aeaaa87 100644
+--- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
++++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+@@ -45,8 +45,15 @@
+  * Program the DPLL M2 divider with the rounded target rate.  Returns
+  * -EINVAL upon error, or 0 upon success.
+  */
++#ifdef CONFIG_COMMON_CLK
++int omap3_core_dpll_m2_set_rate(struct clk_hw *hw, unsigned long rate,
++					unsigned long parent_rate)
++{
++	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
++#else
+ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
  {
-+	struct clk_hw_omap *clk;
-+
- 	if (oh->clkdm) {
- 		return oh->clkdm;
- 	} else if (oh->_clk) {
--#ifdef CONFIG_COMMON_CLK
--		struct clk_hw_omap *clk;
--
- 		clk = to_clk_hw_omap(__clk_get_hw(oh->_clk));
- 		return  clk->clkdm;
--#else
--		return oh->_clk->clkdm;
--#endif
- 	}
- 	return NULL;
++#endif
+ 	u32 new_div = 0;
+ 	u32 unlock_dll = 0;
+ 	u32 c;
+@@ -64,7 +71,11 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 		return -EINVAL;
+ 
+ 	sdrcrate = __clk_get_rate(sdrc_ick_p);
++#ifdef CONFIG_COMMON_CLK
++	clkrate = __clk_get_rate(hw->clk);
++#else
+ 	clkrate = __clk_get_rate(clk);
++#endif
+ 	if (rate > clkrate)
+ 		sdrcrate <<= ((rate / clkrate) >> 1);
+ 	else
+@@ -113,7 +124,9 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
+ 				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
+ 				  0, 0, 0, 0);
++#ifndef CONFIG_COMMON_CLK
+ 	clk->rate = rate;
++#endif
+ 
+ 	return 0;
  }
-@@ -3590,9 +3582,7 @@ struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
- 	struct clk *c;
- 	struct omap_hwmod_ocp_if *oi;
- 	struct clockdomain *clkdm;
--#ifdef CONFIG_COMMON_CLK
- 	struct clk_hw_omap *clk;
--#endif
+diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/arch/arm/mach-omap2/clkt_iclk.c
+index d9852c9..13dadf4 100644
+--- a/arch/arm/mach-omap2/clkt_iclk.c
++++ b/arch/arm/mach-omap2/clkt_iclk.c
+@@ -28,7 +28,11 @@
+ /* Private functions */
  
- 	if (!oh)
- 		return NULL;
-@@ -3609,12 +3599,8 @@ struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
- 		c = oi->_clk;
+ /* XXX */
++#ifdef CONFIG_COMMON_CLK
++void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk)
++#else
+ void omap2_clkt_iclk_allow_idle(struct clk *clk)
++#endif
+ {
+ 	u32 v, r;
+ 
+@@ -40,7 +44,11 @@ void omap2_clkt_iclk_allow_idle(struct clk *clk)
+ }
+ 
+ /* XXX */
++#ifdef CONFIG_COMMON_CLK
++void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk)
++#else
+ void omap2_clkt_iclk_deny_idle(struct clk *clk)
++#endif
+ {
+ 	u32 v, r;
+ 
+@@ -54,6 +62,11 @@ void omap2_clkt_iclk_deny_idle(struct clk *clk)
+ /* Public data */
+ 
+ #ifdef CONFIG_COMMON_CLK
++const struct clk_hw_omap_ops clkhwops_iclk = {
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
++};
++
+ const struct clk_hw_omap_ops clkhwops_iclk_wait = {
+ 	.allow_idle	= omap2_clkt_iclk_allow_idle,
+ 	.deny_idle	= omap2_clkt_iclk_deny_idle,
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 003520c..d78f90e 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -509,8 +509,13 @@ int omap2_clksel_set_parent(struct clk *clk, struct clk *new_parent);
+ #endif
+ 
+ /* clkt_iclk.c public functions */
++#ifdef CONFIG_COMMON_CLK
++extern void omap2_clkt_iclk_allow_idle(struct clk_hw_omap *clk);
++extern void omap2_clkt_iclk_deny_idle(struct clk_hw_omap *clk);
++#else
+ extern void omap2_clkt_iclk_allow_idle(struct clk *clk);
+ extern void omap2_clkt_iclk_deny_idle(struct clk *clk);
++#endif
+ 
+ #ifdef CONFIG_COMMON_CLK
+ u8 omap2_init_dpll_parent(struct clk_hw *hw);
+@@ -589,8 +594,20 @@ extern const struct clk_hw_omap_ops clkhwops_omap3_dpll;
+ extern const struct clk_hw_omap_ops clkhwops_iclk_wait;
+ extern const struct clk_hw_omap_ops clkhwops_wait;
+ extern const struct clk_hw_omap_ops clkhwops_omap4_dpllmx;
+-#endif
+-
++extern const struct clk_hw_omap_ops clkhwops_iclk;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait;
++extern const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait;
++extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait;
++extern const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait;
++extern const struct clk_hw_omap_ops clkhwops_apll54;
++extern const struct clk_hw_omap_ops clkhwops_apll96;
++extern const struct clk_hw_omap_ops clkhwops_omap2xxx_dpll;
++extern const struct clk_hw_omap_ops clkhwops_omap2430_i2chs_wait;
++#else
+ extern const struct clkops clkops_omap2_iclk_dflt_wait;
+ extern const struct clkops clkops_omap2_iclk_dflt;
+ extern const struct clkops clkops_omap2_iclk_idle_only;
+@@ -599,6 +616,7 @@ extern const struct clkops clkops_omap2xxx_dpll_ops;
+ extern const struct clkops clkops_omap3_noncore_dpll_ops;
+ extern const struct clkops clkops_omap3_core_dpll_ops;
+ extern const struct clkops clkops_omap4_dpllmx_ops;
++#endif /* CONFIG_COMMON_CLK */
+ 
+ /* clksel_rate blocks shared between OMAP44xx and AM33xx */
+ extern const struct clksel_rate div_1_0_rates[];
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index e41819b..b398a46 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -37,7 +37,11 @@
+  * from the CM_{I,F}CLKEN bit.  Pass back the correct info via
+  * @idlest_reg and @idlest_bit.  No return value.
+  */
++#ifdef CONFIG_COMMON_CLK
++static void omap3430es2_clk_ssi_find_idlest(struct clk_hw_omap *clk,
++#else
+ static void omap3430es2_clk_ssi_find_idlest(struct clk *clk,
++#endif
+ 					    void __iomem **idlest_reg,
+ 					    u8 *idlest_bit,
+ 					    u8 *idlest_val)
+@@ -49,7 +53,19 @@ static void omap3430es2_clk_ssi_find_idlest(struct clk *clk,
+ 	*idlest_bit = OMAP3430ES2_ST_SSI_IDLE_SHIFT;
+ 	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
+ }
++#ifdef CONFIG_COMMON_CLK
++const struct clk_hw_omap_ops clkhwops_omap3430es2_ssi_wait = {
++	.find_idlest	= omap3430es2_clk_ssi_find_idlest,
++	.find_companion	= omap2_clk_dflt_find_companion,
++};
+ 
++const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_ssi_wait = {
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
++	.find_idlest	= omap3430es2_clk_ssi_find_idlest,
++	.find_companion = omap2_clk_dflt_find_companion,
++};
++#else
+ const struct clkops clkops_omap3430es2_ssi_wait = {
+ 	.enable		= omap2_dflt_clk_enable,
+ 	.disable	= omap2_dflt_clk_disable,
+@@ -65,6 +81,7 @@ const struct clkops clkops_omap3430es2_iclk_ssi_wait = {
+ 	.allow_idle	= omap2_clkt_iclk_allow_idle,
+ 	.deny_idle	= omap2_clkt_iclk_deny_idle,
+ };
++#endif
+ 
+ /**
+  * omap3430es2_clk_dss_usbhost_find_idlest - CM_IDLEST info for DSS, USBHOST
+@@ -80,7 +97,11 @@ const struct clkops clkops_omap3430es2_iclk_ssi_wait = {
+  * default find_idlest code assumes that they are at the same
+  * position.)  No return value.
+  */
++#ifdef CONFIG_COMMON_CLK
++static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk_hw_omap *clk,
++#else
+ static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk *clk,
++#endif
+ 						    void __iomem **idlest_reg,
+ 						    u8 *idlest_bit,
+ 						    u8 *idlest_val)
+@@ -93,7 +114,19 @@ static void omap3430es2_clk_dss_usbhost_find_idlest(struct clk *clk,
+ 	*idlest_bit = OMAP3430ES2_ST_DSS_IDLE_SHIFT;
+ 	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
+ }
++#ifdef CONFIG_COMMON_CLK
++const struct clk_hw_omap_ops clkhwops_omap3430es2_dss_usbhost_wait = {
++	.find_idlest	= omap3430es2_clk_dss_usbhost_find_idlest,
++	.find_companion	= omap2_clk_dflt_find_companion,
++};
+ 
++const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_dss_usbhost_wait = {
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
++	.find_idlest	= omap3430es2_clk_dss_usbhost_find_idlest,
++	.find_companion	= omap2_clk_dflt_find_companion,
++};
++#else
+ const struct clkops clkops_omap3430es2_dss_usbhost_wait = {
+ 	.enable		= omap2_dflt_clk_enable,
+ 	.disable	= omap2_dflt_clk_disable,
+@@ -109,6 +142,7 @@ const struct clkops clkops_omap3430es2_iclk_dss_usbhost_wait = {
+ 	.allow_idle	= omap2_clkt_iclk_allow_idle,
+ 	.deny_idle	= omap2_clkt_iclk_deny_idle,
+ };
++#endif
+ 
+ /**
+  * omap3430es2_clk_hsotgusb_find_idlest - return CM_IDLEST info for HSOTGUSB
+@@ -121,7 +155,11 @@ const struct clkops clkops_omap3430es2_iclk_dss_usbhost_wait = {
+  * shift from the CM_{I,F}CLKEN bit.  Pass back the correct info via
+  * @idlest_reg and @idlest_bit.  No return value.
+  */
++#ifdef CONFIG_COMMON_CLK
++static void omap3430es2_clk_hsotgusb_find_idlest(struct clk_hw_omap *clk,
++#else
+ static void omap3430es2_clk_hsotgusb_find_idlest(struct clk *clk,
++#endif
+ 						 void __iomem **idlest_reg,
+ 						 u8 *idlest_bit,
+ 						 u8 *idlest_val)
+@@ -133,7 +171,19 @@ static void omap3430es2_clk_hsotgusb_find_idlest(struct clk *clk,
+ 	*idlest_bit = OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT;
+ 	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
+ }
++#ifdef CONFIG_COMMON_CLK
++const struct clk_hw_omap_ops clkhwops_omap3430es2_iclk_hsotgusb_wait = {
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
++	.find_idlest	= omap3430es2_clk_hsotgusb_find_idlest,
++	.find_companion	= omap2_clk_dflt_find_companion,
++};
+ 
++const struct clk_hw_omap_ops clkhwops_omap3430es2_hsotgusb_wait = {
++	.find_idlest	= omap3430es2_clk_hsotgusb_find_idlest,
++	.find_companion	= omap2_clk_dflt_find_companion,
++};
++#else
+ const struct clkops clkops_omap3430es2_hsotgusb_wait = {
+ 	.enable		= omap2_dflt_clk_enable,
+ 	.disable	= omap2_dflt_clk_disable,
+@@ -149,3 +199,4 @@ const struct clkops clkops_omap3430es2_iclk_hsotgusb_wait = {
+ 	.allow_idle	= omap2_clkt_iclk_allow_idle,
+ 	.deny_idle	= omap2_clkt_iclk_deny_idle,
+ };
++#endif
+diff --git a/arch/arm/mach-omap2/clock3517.c b/arch/arm/mach-omap2/clock3517.c
+index 622ea05..467d8bc 100644
+--- a/arch/arm/mach-omap2/clock3517.c
++++ b/arch/arm/mach-omap2/clock3517.c
+@@ -47,7 +47,11 @@
+  * in the enable register itsel at a bit offset of 4 from the enable
+  * bit. A value of 1 indicates that clock is enabled.
+  */
++#ifdef CONFIG_COMMON_CLK
++static void am35xx_clk_find_idlest(struct clk_hw_omap *clk,
++#else
+ static void am35xx_clk_find_idlest(struct clk *clk,
++#endif
+ 					    void __iomem **idlest_reg,
+ 					    u8 *idlest_bit,
+ 					    u8 *idlest_val)
+@@ -71,8 +75,14 @@ static void am35xx_clk_find_idlest(struct clk *clk,
+  * associate this type of code with per-module data structures to
+  * avoid this issue, and remove the casts.  No return value.
+  */
+-static void am35xx_clk_find_companion(struct clk *clk, void __iomem **other_reg,
+-					    u8 *other_bit)
++#ifdef CONFIG_COMMON_CLK
++static void am35xx_clk_find_companion(struct clk_hw_omap *clk,
++				      void __iomem **other_reg,
++#else
++static void am35xx_clk_find_companion(struct clk *clk,
++				      void __iomem **other_reg,
++#endif
++				      u8 *other_bit)
+ {
+ 	*other_reg = (__force void __iomem *)(clk->enable_reg);
+ 	if (clk->enable_bit & AM35XX_IPSS_ICK_MASK)
+@@ -80,13 +90,19 @@ static void am35xx_clk_find_companion(struct clk *clk, void __iomem **other_reg,
+ 	else
+ 		*other_bit = clk->enable_bit - AM35XX_IPSS_ICK_FCK_OFFSET;
+ }
+-
++#ifdef CONFIG_COMMON_CLK
++const struct clk_hw_omap_ops clkhwops_am35xx_ipss_module_wait = {
++	.find_idlest	= am35xx_clk_find_idlest,
++	.find_companion	= am35xx_clk_find_companion,
++};
++#else
+ const struct clkops clkops_am35xx_ipss_module_wait = {
+ 	.enable		= omap2_dflt_clk_enable,
+ 	.disable	= omap2_dflt_clk_disable,
+ 	.find_idlest	= am35xx_clk_find_idlest,
+ 	.find_companion	= am35xx_clk_find_companion,
+ };
++#endif
+ 
+ /**
+  * am35xx_clk_ipss_find_idlest - return CM_IDLEST info for IPSS
+@@ -99,7 +115,11 @@ const struct clkops clkops_am35xx_ipss_module_wait = {
+  * CM_{I,F}CLKEN bit.  Pass back the correct info via @idlest_reg
+  * and @idlest_bit.  No return value.
+  */
++#ifdef CONFIG_COMMON_CLK
++static void am35xx_clk_ipss_find_idlest(struct clk_hw_omap *clk,
++#else
+ static void am35xx_clk_ipss_find_idlest(struct clk *clk,
++#endif
+ 					    void __iomem **idlest_reg,
+ 					    u8 *idlest_bit,
+ 					    u8 *idlest_val)
+@@ -111,7 +131,14 @@ static void am35xx_clk_ipss_find_idlest(struct clk *clk,
+ 	*idlest_bit = AM35XX_ST_IPSS_SHIFT;
+ 	*idlest_val = OMAP34XX_CM_IDLEST_VAL;
+ }
+-
++#ifdef CONFIG_COMMON_CLK
++const struct clk_hw_omap_ops clkhwops_am35xx_ipss_wait = {
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
++	.find_idlest	= am35xx_clk_ipss_find_idlest,
++	.find_companion	= omap2_clk_dflt_find_companion,
++};
++#else
+ const struct clkops clkops_am35xx_ipss_wait = {
+ 	.enable		= omap2_dflt_clk_enable,
+ 	.disable	= omap2_dflt_clk_disable,
+@@ -120,5 +147,5 @@ const struct clkops clkops_am35xx_ipss_wait = {
+ 	.allow_idle	= omap2_clkt_iclk_allow_idle,
+ 	.deny_idle	= omap2_clkt_iclk_deny_idle,
+ };
+-
++#endif
+ 
+diff --git a/arch/arm/mach-omap2/clock36xx.c b/arch/arm/mach-omap2/clock36xx.c
+index 0e1e9e4..9f50e97 100644
+--- a/arch/arm/mach-omap2/clock36xx.c
++++ b/arch/arm/mach-omap2/clock36xx.c
+@@ -37,34 +37,51 @@
+  * (Any other value different from the Read value) to the
+  * corresponding CM_CLKSEL register will refresh the dividers.
+  */
++#ifdef CONFIG_COMMON_CLK
++int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk_hw *clk)
++{
++	struct clk_hw_omap *parent;
++	struct clk_hw *parent_hw;
++#else
+ static int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk *clk)
+ {
++	struct clk *parent;
++#endif
+ 	u32 dummy_v, orig_v, clksel_shift;
+ 	int ret;
+ 
+ 	/* Clear PWRDN bit of HSDIVIDER */
+ 	ret = omap2_dflt_clk_enable(clk);
+ 
++#ifdef CONFIG_COMMON_CLK
++	parent_hw = __clk_get_hw(__clk_get_parent(clk->clk));
++	parent = to_clk_hw_omap(parent_hw);
++#else
++	parent = clk->parent;
++#endif
++
+ 	/* Restore the dividers */
+ 	if (!ret) {
+-		clksel_shift = __ffs(clk->parent->clksel_mask);
+-		orig_v = __raw_readl(clk->parent->clksel_reg);
++		clksel_shift = __ffs(parent->clksel_mask);
++		orig_v = __raw_readl(parent->clksel_reg);
+ 		dummy_v = orig_v;
+ 
+ 		/* Write any other value different from the Read value */
+ 		dummy_v ^= (1 << clksel_shift);
+-		__raw_writel(dummy_v, clk->parent->clksel_reg);
++		__raw_writel(dummy_v, parent->clksel_reg);
+ 
+ 		/* Write the original divider */
+-		__raw_writel(orig_v, clk->parent->clksel_reg);
++		__raw_writel(orig_v, parent->clksel_reg);
  	}
  
--#ifdef CONFIG_COMMON_CLK
- 	clk = to_clk_hw_omap(__clk_get_hw(c));
- 	clkdm = clk->clkdm;
--#else
--	clkdm = c->clkdm;
--#endif
- 	if (!clkdm)
- 		return NULL;
+ 	return ret;
+ }
  
++#ifndef CONFIG_COMMON_CLK
+ const struct clkops clkops_omap36xx_pwrdn_with_hsdiv_wait_restore = {
+ 	.enable		= omap36xx_pwrdn_clk_enable_with_hsdiv_restore,
+ 	.disable	= omap2_dflt_clk_disable,
+ 	.find_companion	= omap2_clk_dflt_find_companion,
+ 	.find_idlest	= omap2_clk_dflt_find_idlest,
+ };
++#endif
+diff --git a/arch/arm/mach-omap2/clock36xx.h b/arch/arm/mach-omap2/clock36xx.h
+index a7dee5b..e6a748e 100644
+--- a/arch/arm/mach-omap2/clock36xx.h
++++ b/arch/arm/mach-omap2/clock36xx.h
+@@ -8,6 +8,10 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CLOCK36XX_H
+ #define __ARCH_ARM_MACH_OMAP2_CLOCK36XX_H
+ 
++#ifdef CONFIG_COMMON_CLK
++extern int omap36xx_pwrdn_clk_enable_with_hsdiv_restore(struct clk_hw *hw);
++#else
+ extern const struct clkops clkops_omap36xx_pwrdn_with_hsdiv_wait_restore;
++#endif
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
+index 3e8aca2..a6f75cd 100644
+--- a/arch/arm/mach-omap2/clock3xxx.c
++++ b/arch/arm/mach-omap2/clock3xxx.c
+@@ -38,8 +38,12 @@
+ 
+ /* needed by omap3_core_dpll_m2_set_rate() */
+ struct clk *sdrc_ick_p, *arm_fck_p;
+-
++#ifdef CONFIG_COMMON_CLK
++int omap3_dpll4_set_rate(struct clk_hw *hw, unsigned long rate,
++				unsigned long parent_rate)
++#else
+ int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
++#endif
+ {
+ 	/*
+ 	 * According to the 12-5 CDP code from TI, "Limitation 2.5"
+@@ -51,7 +55,11 @@ int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
+ 		return -EINVAL;
+ 	}
+ 
++#ifdef CONFIG_COMMON_CLK
++	return omap3_noncore_dpll_set_rate(hw, rate, parent_rate);
++#else
+ 	return omap3_noncore_dpll_set_rate(clk, rate);
++#endif
+ }
+ 
+ void __init omap3_clk_lock_dpll5(void)
+diff --git a/arch/arm/mach-omap2/clock3xxx.h b/arch/arm/mach-omap2/clock3xxx.h
+index 8bbeeaf..87f098d 100644
+--- a/arch/arm/mach-omap2/clock3xxx.h
++++ b/arch/arm/mach-omap2/clock3xxx.h
+@@ -9,8 +9,15 @@
+ #define __ARCH_ARM_MACH_OMAP2_CLOCK3XXX_H
+ 
+ int omap3xxx_clk_init(void);
++#ifdef CONFIG_COMMON_CLK
++int omap3_dpll4_set_rate(struct clk_hw *clk, unsigned long rate,
++					unsigned long parent_rate);
++int omap3_core_dpll_m2_set_rate(struct clk_hw *clk, unsigned long rate,
++					unsigned long parent_rate);
++#else
+ int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate);
+ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate);
++#endif
+ void omap3_clk_lock_dpll5(void);
+ 
+ extern struct clk *sdrc_ick_p;
 -- 
 1.7.9.5
 
