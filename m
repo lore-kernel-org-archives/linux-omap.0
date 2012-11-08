@@ -1,99 +1,481 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 14/26] ARM: OMAP3: clock: Add 3xxx data using common
- struct clk
-Date: Thu, 8 Nov 2012 22:01:33 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211082158310.20703@utopia.booyaka.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-15-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com>
+Subject: Re: [PATCH 08/13] ARM: OMAP2+: CM/clock: convert _omap2_module_wait_ready()
+ to use SoC-independent CM functions
+Date: Thu, 8 Nov 2012 22:15:46 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211082212090.20703@utopia.booyaka.com>
+References: <20121025231818.17558.57884.stgit@dusk.lan> <20121025232117.17558.83100.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:54910 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:54953 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757098Ab2KHWBe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 17:01:34 -0500
-In-Reply-To: <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com>
+	with ESMTP id S1752466Ab2KHWPr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 17:15:47 -0500
+In-Reply-To: <20121025232117.17558.83100.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 8 Nov 2012, Paul Walmsley wrote:
+On Thu, 25 Oct 2012, Paul Walmsley wrote:
 
-> Am seeing warnings during the disable-unused-clocks phase of the boot on 
-> the OMAP3 test boards here.
+> Convert the OMAP clock code's _omap2_module_wait_ready() to use
+> SoC-independent CM functions that are provided by the CM code, rather
+> than using a deprecated function from mach-omap2/prcm.c.
+> 
+> This facilitates the future conversion of the CM code to a driver, and
+> also removes a mach-omap2/prcm.c user.  mach-omap2/prcm.c will be removed
+> by a subsequent patch.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Similar problems during system suspend on 3530ES3 Beagle.  Not sure
-what's causing these yet.  At this point the clockdomain usecounts
-should be accurate.
+Here's an update of this one.  Further testing with the AM3517/3505 boards 
+resulted in a warning message being logged from _omap2_wait_module_ready() 
+for emac_ick.  The AM3517 designers didn't integrate the IPSS IDLEST bits 
+into the CM as other OMAPs do.  They just put them into the SCM module.  
+This shortcut taken during hardware integration just resulted in more time 
+wasted on the software side :-(
 
 
 - Paul
 
+From: Paul Walmsley <paul@pwsan.com>
+Date: Mon, 29 Oct 2012 20:56:29 -0600
+Subject: [PATCH] ARM: OMAP2+: CM/clock: convert _omap2_module_wait_ready() to
+ use SoC-independent CM functions
+
+Convert the OMAP clock code's _omap2_module_wait_ready() to use
+SoC-independent CM functions that are provided by the CM code, rather
+than using a deprecated function from mach-omap2/prcm.c.
+
+This facilitates the future conversion of the CM code to a driver, and
+also removes a mach-omap2/prcm.c user.  mach-omap2/prcm.c will be removed
+by a subsequent patch.
+
+Some modules have IDLEST registers that aren't in the CM module, such
+as the AM3517 IDLEST bits.  So we also need a fallback function for
+these non-CM odd cases.  Create a temporary one in mach-omap2/clock.c,
+intended to exist until the SCM drivers are ready.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/clock.c     |   56 +++++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/cm.h        |   12 ++++++-
+ arch/arm/mach-omap2/cm2xxx.c    |   65 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cm2xxx.h    |    4 +++
+ arch/arm/mach-omap2/cm3xxx.c    |   66 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cm3xxx.h    |    5 +++
+ arch/arm/mach-omap2/cm_common.c |   48 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/io.c        |    5 +++
+ 8 files changed, 257 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 9205ea7..2fe57d6 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -33,10 +33,18 @@
+ #include "soc.h"
+ #include "clockdomain.h"
+ #include "clock.h"
++#include "cm.h"
+ #include "cm2xxx.h"
+ #include "cm3xxx.h"
+ #include "cm-regbits-24xx.h"
+ #include "cm-regbits-34xx.h"
++#include "common.h"
++
++/*
++ * MAX_MODULE_ENABLE_WAIT: maximum of number of microseconds to wait
++ * for a module to indicate that it is no longer in idle
++ */
++#define MAX_MODULE_ENABLE_WAIT		100000
  
-root@beagleboard:~# echo mem > /sys/power/state
-[   36.488800] PM: Syncing filesystems ... done.
-[   37.037841] Freezing user space processes ... (elapsed 0.01 seconds) done.
-[   37.059600] Freezing remaining freezable tasks ... (elapsed 0.01 seconds) done.
-[   37.082885] Suspending console(s) (use no_console_suspend to debug)
-[   37.222747] PM: suspend of devices complete after 129.791 msecs
-[   37.228057] PM: late suspend of devices complete after 5.310 msecs
-[   37.235412] ------------[ cut here ]------------
-[   37.235473] WARNING: at arch/arm/mach-omap2/clockdomain.c:961 _clkdm_clk_hwmod_disable+0xc4/0xd8()
-[   37.235504] Modules linked in:
-[   37.235565] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c00435f8>] (warn_slowpath_common+0x4c/0x64)
-[   37.235565] [<c00435f8>] (warn_slowpath_common+0x4c/0x64) from [<c004362c>] (warn_slowpath_null+0x1c/0x24)
-[   37.235595] [<c004362c>] (warn_slowpath_null+0x1c/0x24) from [<c003697c>] (_clkdm_clk_hwmod_disable+0xc4/0xd8)
-[   37.235626] [<c003697c>] (_clkdm_clk_hwmod_disable+0xc4/0xd8) from [<c0437d1c>] (__clk_disable+0x70/0xa8)
-[   37.235656] [<c0437d1c>] (__clk_disable+0x70/0xa8) from [<c0437d74>] (clk_disable+0x20/0x34)
-[   37.235687] [<c0437d74>] (clk_disable+0x20/0x34) from [<c002a330>] (_disable_clocks+0x18/0x68)
-[   37.235717] [<c002a330>] (_disable_clocks+0x18/0x68) from [<c002b09c>] (_idle+0xf8/0x1b4)
-[   37.235717] [<c002b09c>] (_idle+0xf8/0x1b4) from [<c002bf08>] (omap_hwmod_idle+0x24/0x40)
-[   37.235748] [<c002bf08>] (omap_hwmod_idle+0x24/0x40) from [<c002ce34>] (omap_device_idle_hwmods+0x24/0x3c)
-[   37.235778] [<c002ce34>] (omap_device_idle_hwmods+0x24/0x3c) from [<c002d024>] (_omap_device_deactivate+0x9c/0x138)
-[   37.235778] [<c002d024>] (_omap_device_deactivate+0x9c/0x138) from [<c002d984>] (omap_device_idle+0x28/0x54)
-[   37.235809] [<c002d984>] (omap_device_idle+0x28/0x54) from [<c002da48>] (_od_suspend_noirq+0x74/0x7c)
-[   37.235839] [<c002da48>] (_od_suspend_noirq+0x74/0x7c) from [<c034cbec>] (dpm_run_callback.clone.9+0x30/0xb4)
-[   37.235870] [<c034cbec>] (dpm_run_callback.clone.9+0x30/0xb4) from [<c034d440>] (dpm_suspend_end+0x364/0x554)
-[   37.235870] [<c034d440>] (dpm_suspend_end+0x364/0x554) from [<c0084ec0>] (suspend_devices_and_enter+0xbc/0x2d0)
-[   37.235900] [<c0084ec0>] (suspend_devices_and_enter+0xbc/0x2d0) from [<c0085260>] (pm_suspend+0x18c/0x208)
-[   37.235931] [<c0085260>] (pm_suspend+0x18c/0x208) from [<c00844f4>] (state_store+0x120/0x134)
-[   37.235961] [<c00844f4>] (state_store+0x120/0x134) from [<c02d29b8>] (kobj_attr_store+0x14/0x20)
-[   37.235992] [<c02d29b8>] (kobj_attr_store+0x14/0x20) from [<c017a630>] (sysfs_write_file+0x100/0x184)
-[   37.236022] [<c017a630>] (sysfs_write_file+0x100/0x184) from [<c0116630>] (vfs_write+0xb4/0x148)
-[   37.236022] [<c0116630>] (vfs_write+0xb4/0x148) from [<c01168b4>] (sys_write+0x40/0x6c)
-[   37.236053] [<c01168b4>] (sys_write+0x40/0x6c) from [<c0013ee0>] (ret_fast_syscall+0x0/0x3c)
-[   37.236083] ---[ end trace 86835b3ee8ec9dde ]---
-[   37.236083] ------------[ cut here ]------------
-[   37.236114] WARNING: at arch/arm/mach-omap2/clockdomain.c:961 _clkdm_clk_hwmod_disable+0xc4/0xd8()
-[   37.236145] Modules linked in:
-[   37.236175] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c00435f8>] (warn_slowpath_common+0x4c/0x64)
-[   37.236175] [<c00435f8>] (warn_slowpath_common+0x4c/0x64) from [<c004362c>] (warn_slowpath_null+0x1c/0x24)
-[   37.236206] [<c004362c>] (warn_slowpath_null+0x1c/0x24) from [<c003697c>] (_clkdm_clk_hwmod_disable+0xc4/0xd8)
-[   37.236236] [<c003697c>] (_clkdm_clk_hwmod_disable+0xc4/0xd8) from [<c0437d1c>] (__clk_disable+0x70/0xa8)
-[   37.236267] [<c0437d1c>] (__clk_disable+0x70/0xa8) from [<c0437d74>] (clk_disable+0x20/0x34)
-[   37.236267] [<c0437d74>] (clk_disable+0x20/0x34) from [<c002a330>] (_disable_clocks+0x18/0x68)
-[   37.236297] [<c002a330>] (_disable_clocks+0x18/0x68) from [<c002b09c>] (_idle+0xf8/0x1b4)
-[   37.236328] [<c002b09c>] (_idle+0xf8/0x1b4) from [<c002bf08>] (omap_hwmod_idle+0x24/0x40)
-[   37.236328] [<c002bf08>] (omap_hwmod_idle+0x24/0x40) from [<c002ce34>] (omap_device_idle_hwmods+0x24/0x3c)
-[   37.236358] [<c002ce34>] (omap_device_idle_hwmods+0x24/0x3c) from [<c002d024>] (_omap_device_deactivate+0x9c/0x138)
-[   37.236389] [<c002d024>] (_omap_device_deactivate+0x9c/0x138) from [<c002d984>] (omap_device_idle+0x28/0x54)
-[   37.236389] [<c002d984>] (omap_device_idle+0x28/0x54) from [<c002da48>] (_od_suspend_noirq+0x74/0x7c)
-[   37.236419] [<c002da48>] (_od_suspend_noirq+0x74/0x7c) from [<c034cbec>] (dpm_run_callback.clone.9+0x30/0xb4)
-[   37.236450] [<c034cbec>] (dpm_run_callback.clone.9+0x30/0xb4) from [<c034d440>] (dpm_suspend_end+0x364/0x554)
-[   37.236450] [<c034d440>] (dpm_suspend_end+0x364/0x554) from [<c0084ec0>] (suspend_devices_and_enter+0xbc/0x2d0)
-[   37.236480] [<c0084ec0>] (suspend_devices_and_enter+0xbc/0x2d0) from [<c0085260>] (pm_suspend+0x18c/0x208)
-[   37.236511] [<c0085260>] (pm_suspend+0x18c/0x208) from [<c00844f4>] (state_store+0x120/0x134)
-[   37.236541] [<c00844f4>] (state_store+0x120/0x134) from [<c02d29b8>] (kobj_attr_store+0x14/0x20)
-[   37.236541] [<c02d29b8>] (kobj_attr_store+0x14/0x20) from [<c017a630>] (sysfs_write_file+0x100/0x184)
-[   37.236572] [<c017a630>] (sysfs_write_file+0x100/0x184) from [<c0116630>] (vfs_write+0xb4/0x148)
-[   37.236602] [<c0116630>] (vfs_write+0xb4/0x148) from [<c01168b4>] (sys_write+0x40/0x6c)
-[   37.236602] [<c01168b4>] (sys_write+0x40/0x6c) from [<c0013ee0>] (ret_fast_syscall+0x0/0x3c)
-[   37.236633] ---[ end trace 86835b3ee8ec9ddf ]---
-[   37.237213] PM: noirq suspend of devices complete after 9.124 msecs
-[   37.237304] Disabling non-boot CPUs ...
-[   37.237792] Successfully put all powerdomains to target state
-[   37.242034] PM: noirq resume of devices complete after 3.967 msecs
-[   37.247161] PM: early resume of devices complete after 3.570 msecs
-[   37.536956] PM: resume of devices complete after 289.550 msecs
-[   37.815185] Restarting tasks ... done.
-root@beagleboard:~# 
+ u16 cpu_mask;
+ 
+@@ -58,6 +66,40 @@ static DEFINE_SPINLOCK(clockfw_lock);
+ 
+ /* Private functions */
+ 
++
++/**
++ * _wait_idlest_generic - wait for a module to leave the idle state
++ * @reg: virtual address of module IDLEST register
++ * @mask: value to mask against to determine if the module is active
++ * @idlest: idle state indicator (0 or 1) for the clock
++ * @name: name of the clock (for printk)
++ *
++ * Wait for a module to leave idle, where its idle-status register is
++ * not inside the CM module.  Returns 1 if the module left idle
++ * promptly, or 0 if the module did not leave idle before the timeout
++ * elapsed.  XXX Deprecated - should be moved into drivers for the
++ * individual IP block that the IDLEST register exists in.
++ */
++static int _wait_idlest_generic(void __iomem *reg, u32 mask, u8 idlest,
++				const char *name)
++{
++	int i = 0, ena = 0;
++
++	ena = (idlest) ? 0 : mask;
++
++	omap_test_timeout(((__raw_readl(reg) & mask) == ena),
++			  MAX_MODULE_ENABLE_WAIT, i);
++
++	if (i < MAX_MODULE_ENABLE_WAIT)
++		pr_debug("omap clock: module associated with clock %s ready after %d loops\n",
++			 name, i);
++	else
++		pr_err("omap clock: module associated with clock %s didn't enable in %d tries\n",
++		       name, MAX_MODULE_ENABLE_WAIT);
++
++	return (i < MAX_MODULE_ENABLE_WAIT) ? 1 : 0;
++};
++
+ /**
+  * _omap2_module_wait_ready - wait for an OMAP module to leave IDLE
+  * @clk: struct clk * belonging to the module
+@@ -71,7 +113,9 @@ static DEFINE_SPINLOCK(clockfw_lock);
+ static void _omap2_module_wait_ready(struct clk *clk)
+ {
+ 	void __iomem *companion_reg, *idlest_reg;
+-	u8 other_bit, idlest_bit, idlest_val;
++	u8 other_bit, idlest_bit, idlest_val, idlest_reg_id;
++	s16 prcm_mod;
++	int r;
+ 
+ 	/* Not all modules have multiple clocks that their IDLEST depends on */
+ 	if (clk->ops->find_companion) {
+@@ -82,8 +126,14 @@ static void _omap2_module_wait_ready(struct clk *clk)
+ 
+ 	clk->ops->find_idlest(clk, &idlest_reg, &idlest_bit, &idlest_val);
+ 
+-	omap2_cm_wait_idlest(idlest_reg, (1 << idlest_bit), idlest_val,
+-			     __clk_get_name(clk));
++	r = cm_split_idlest_reg(idlest_reg, &prcm_mod, &idlest_reg_id);
++	if (r) {
++		/* IDLEST register not in the CM module */
++		_wait_idlest_generic(idlest_reg, (1 << idlest_bit), idlest_val,
++				     clk->name);
++	} else {
++		cm_wait_module_ready(prcm_mod, idlest_reg_id, idlest_bit);
++	};
+ }
+ 
+ /* Public functions */
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index b3cee91..e419ecb 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -37,8 +37,18 @@
+ 
+ /**
+  * struct cm_ll_data - fn ptrs to per-SoC CM function implementations
++ * @split_idlest_reg: ptr to the SoC CM-specific split_idlest_reg impl
++ * @wait_module_ready: ptr to the SoC CM-specific wait_module_ready impl
+  */
+-struct cm_ll_data {};
++struct cm_ll_data {
++	int (*split_idlest_reg)(void __iomem *idlest_reg, s16 *prcm_inst,
++				u8 *idlest_reg_id);
++	int (*wait_module_ready)(s16 prcm_mod, u8 idlest_id, u8 idlest_shift);
++};
++
++extern int cm_split_idlest_reg(void __iomem *idlest_reg, s16 *prcm_inst,
++			       u8 *idlest_reg_id);
++extern int cm_wait_module_ready(s16 prcm_mod, u8 idlest_id, u8 idlest_shift);
+ 
+ extern int cm_register(struct cm_ll_data *cld);
+ extern int cm_unregister(struct cm_ll_data *cld);
+diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
+index e96cd70..db65069 100644
+--- a/arch/arm/mach-omap2/cm2xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx.c
+@@ -198,6 +198,43 @@ void omap2xxx_cm_apll96_disable(void)
+ 	_omap2xxx_apll_disable(OMAP24XX_EN_96M_PLL_SHIFT);
+ }
+ 
++/**
++ * omap2xxx_cm_split_idlest_reg - split CM_IDLEST reg addr into its components
++ * @idlest_reg: CM_IDLEST* virtual address
++ * @prcm_inst: pointer to an s16 to return the PRCM instance offset
++ * @idlest_reg_id: pointer to a u8 to return the CM_IDLESTx register ID
++ *
++ * XXX This function is only needed until absolute register addresses are
++ * removed from the OMAP struct clk records.
++ */
++int omap2xxx_cm_split_idlest_reg(void __iomem *idlest_reg, s16 *prcm_inst,
++				 u8 *idlest_reg_id)
++{
++	unsigned long offs;
++	u8 idlest_offs;
++	int i;
++
++	if (idlest_reg < cm_base || idlest_reg > (cm_base + 0x0fff))
++		return -EINVAL;
++
++	idlest_offs = (unsigned long)idlest_reg & 0xff;
++	for (i = 0; i < ARRAY_SIZE(omap2xxx_cm_idlest_offs); i++) {
++		if (idlest_offs == omap2xxx_cm_idlest_offs[i]) {
++			*idlest_reg_id = i + 1;
++			break;
++		}
++	}
++
++	if (i == ARRAY_SIZE(omap2xxx_cm_idlest_offs))
++		return -EINVAL;
++
++	offs = idlest_reg - cm_base;
++	offs &= 0xff00;
++	*prcm_inst = offs;
++
++	return 0;
++}
++
+ /*
+  *
+  */
+@@ -314,3 +351,31 @@ struct clkdm_ops omap2_clkdm_operations = {
+ 	.clkdm_clk_enable	= omap2xxx_clkdm_clk_enable,
+ 	.clkdm_clk_disable	= omap2xxx_clkdm_clk_disable,
+ };
++
++/*
++ *
++ */
++
++static struct cm_ll_data omap2xxx_cm_ll_data = {
++	.split_idlest_reg	= &omap2xxx_cm_split_idlest_reg,
++	.wait_module_ready	= &omap2xxx_cm_wait_module_ready,
++};
++
++int __init omap2xxx_cm_init(void)
++{
++	if (!cpu_is_omap24xx())
++		return 0;
++
++	return cm_register(&omap2xxx_cm_ll_data);
++}
++
++static void __exit omap2xxx_cm_exit(void)
++{
++	if (!cpu_is_omap24xx())
++		return;
++
++	/* Should never happen */
++	WARN(cm_unregister(&omap2xxx_cm_ll_data),
++	     "%s: cm_ll_data function pointer mismatch\n", __func__);
++}
++__exitcall(omap2xxx_cm_exit);
+diff --git a/arch/arm/mach-omap2/cm2xxx.h b/arch/arm/mach-omap2/cm2xxx.h
+index bce3c4b..4cbb39b 100644
+--- a/arch/arm/mach-omap2/cm2xxx.h
++++ b/arch/arm/mach-omap2/cm2xxx.h
+@@ -60,6 +60,10 @@ extern void omap2xxx_cm_set_apll96_auto_low_power_stop(void);
+ extern bool omap2xxx_cm_is_clkdm_in_hwsup(s16 module, u32 mask);
+ extern int omap2xxx_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id,
+ 					 u8 idlest_shift);
++extern int omap2xxx_cm_split_idlest_reg(void __iomem *idlest_reg,
++					s16 *prcm_inst, u8 *idlest_reg_id);
++
++extern int __init omap2xxx_cm_init(void);
+ 
+ #endif
+ 
+diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
+index 8b03ec2..c2086f2 100644
+--- a/arch/arm/mach-omap2/cm3xxx.c
++++ b/arch/arm/mach-omap2/cm3xxx.c
+@@ -110,6 +110,44 @@ int omap3xxx_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id, u8 idlest_shift)
+ 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+ }
+ 
++/**
++ * omap3xxx_cm_split_idlest_reg - split CM_IDLEST reg addr into its components
++ * @idlest_reg: CM_IDLEST* virtual address
++ * @prcm_inst: pointer to an s16 to return the PRCM instance offset
++ * @idlest_reg_id: pointer to a u8 to return the CM_IDLESTx register ID
++ *
++ * XXX This function is only needed until absolute register addresses are
++ * removed from the OMAP struct clk records.
++ */
++int omap3xxx_cm_split_idlest_reg(void __iomem *idlest_reg, s16 *prcm_inst,
++				 u8 *idlest_reg_id)
++{
++	unsigned long offs;
++	u8 idlest_offs;
++	int i;
++
++	if (idlest_reg < (cm_base + OMAP3430_IVA2_MOD) ||
++	    idlest_reg > (cm_base + 0x1ffff))
++		return -EINVAL;
++
++	idlest_offs = (unsigned long)idlest_reg & 0xff;
++	for (i = 0; i < ARRAY_SIZE(omap3xxx_cm_idlest_offs); i++) {
++		if (idlest_offs == omap3xxx_cm_idlest_offs[i]) {
++			*idlest_reg_id = i + 1;
++			break;
++		}
++	}
++
++	if (i == ARRAY_SIZE(omap3xxx_cm_idlest_offs))
++		return -EINVAL;
++
++	offs = idlest_reg - cm_base;
++	offs &= 0xff00;
++	*prcm_inst = offs;
++
++	return 0;
++}
++
+ /* Clockdomain low-level operations */
+ 
+ static int omap3xxx_clkdm_add_sleepdep(struct clockdomain *clkdm1,
+@@ -597,3 +635,31 @@ void omap3_cm_restore_context(void)
+ 	omap2_cm_write_mod_reg(cm_context.cm_clkout_ctrl, OMAP3430_CCR_MOD,
+ 			       OMAP3_CM_CLKOUT_CTRL_OFFSET);
+ }
++
++/*
++ *
++ */
++
++static struct cm_ll_data omap3xxx_cm_ll_data = {
++	.split_idlest_reg	= &omap3xxx_cm_split_idlest_reg,
++	.wait_module_ready	= &omap3xxx_cm_wait_module_ready,
++};
++
++int __init omap3xxx_cm_init(void)
++{
++	if (!cpu_is_omap34xx())
++		return 0;
++
++	return cm_register(&omap3xxx_cm_ll_data);
++}
++
++static void __exit omap3xxx_cm_exit(void)
++{
++	if (!cpu_is_omap34xx())
++		return;
++
++	/* Should never happen */
++	WARN(cm_unregister(&omap3xxx_cm_ll_data),
++	     "%s: cm_ll_data function pointer mismatch\n", __func__);
++}
++__exitcall(omap3xxx_cm_exit);
+diff --git a/arch/arm/mach-omap2/cm3xxx.h b/arch/arm/mach-omap2/cm3xxx.h
+index 4a6ac81..e8e146f 100644
+--- a/arch/arm/mach-omap2/cm3xxx.h
++++ b/arch/arm/mach-omap2/cm3xxx.h
+@@ -78,9 +78,14 @@ extern bool omap3xxx_cm_is_clkdm_in_hwsup(s16 module, u32 mask);
+ extern int omap3xxx_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id,
+ 					 u8 idlest_shift);
+ 
++extern int omap3xxx_cm_split_idlest_reg(void __iomem *idlest_reg,
++					s16 *prcm_inst, u8 *idlest_reg_id);
++
+ extern void omap3_cm_save_context(void);
+ extern void omap3_cm_restore_context(void);
+ 
++extern int __init omap3xxx_cm_init(void);
++
+ #endif
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_common.c
+index 3246cef..561969b 100644
+--- a/arch/arm/mach-omap2/cm_common.c
++++ b/arch/arm/mach-omap2/cm_common.c
+@@ -26,6 +26,54 @@ static struct cm_ll_data null_cm_ll_data;
+ static struct cm_ll_data *cm_ll_data = &null_cm_ll_data;
+ 
+ /**
++ * cm_split_idlest_reg - split CM_IDLEST reg addr into its components
++ * @idlest_reg: CM_IDLEST* virtual address
++ * @prcm_inst: pointer to an s16 to return the PRCM instance offset
++ * @idlest_reg_id: pointer to a u8 to return the CM_IDLESTx register ID
++ *
++ * Given an absolute CM_IDLEST register address @idlest_reg, passes
++ * the PRCM instance offset and IDLEST register ID back to the caller
++ * via the @prcm_inst and @idlest_reg_id.  Returns -EINVAL upon error,
++ * or 0 upon success.  XXX This function is only needed until absolute
++ * register addresses are removed from the OMAP struct clk records.
++ */
++int cm_split_idlest_reg(void __iomem *idlest_reg, s16 *prcm_inst,
++			u8 *idlest_reg_id)
++{
++	if (!cm_ll_data->split_idlest_reg) {
++		WARN_ONCE(1, "cm: %s: no low-level function defined\n",
++			  __func__);
++		return -EINVAL;
++	}
++
++	return cm_ll_data->split_idlest_reg(idlest_reg, prcm_inst,
++					   idlest_reg_id);
++}
++
++/**
++ * cm_wait_module_ready - wait for a module to leave idle or standby
++ * @prcm_mod: PRCM module offset
++ * @idlest_id: CM_IDLESTx register ID (i.e., x = 1, 2, 3)
++ * @idlest_shift: shift of the bit in the CM_IDLEST* register to check
++ *
++ * Wait for the PRCM to indicate that the module identified by
++ * (@prcm_mod, @idlest_id, @idlest_shift) is clocked.  Return 0 upon
++ * success, -EBUSY if the module doesn't enable in time, or -EINVAL if
++ * no per-SoC wait_module_ready() function pointer has been registered
++ * or if the idlest register is unknown on the SoC.
++ */
++int cm_wait_module_ready(s16 prcm_mod, u8 idlest_id, u8 idlest_shift)
++{
++	if (!cm_ll_data->wait_module_ready) {
++		WARN_ONCE(1, "cm: %s: no low-level function defined\n",
++			  __func__);
++		return -EINVAL;
++	}
++
++	return cm_ll_data->wait_module_ready(prcm_mod, idlest_id, idlest_shift);
++}
++
++/**
+  * cm_register - register per-SoC low-level data with the CM
+  * @cld: low-level per-SoC OMAP CM data & function pointers to register
+  *
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index a204b70..772dc7e 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -45,6 +45,8 @@
+ #include "sdrc.h"
+ #include "control.h"
+ #include "serial.h"
++#include "cm2xxx.h"
++#include "cm3xxx.h"
+ 
+ /*
+  * The machine specific code may provide the extra mapping besides the
+@@ -388,6 +390,7 @@ void __init omap2420_init_early(void)
+ 			       OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE),
+ 			       NULL, NULL);
+ 	omap2xxx_check_revision();
++	omap2xxx_cm_init();
+ 	omap_common_init_early();
+ 	omap2xxx_voltagedomains_init();
+ 	omap242x_powerdomains_init();
+@@ -417,6 +420,7 @@ void __init omap2430_init_early(void)
+ 			       OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE),
+ 			       NULL, NULL);
+ 	omap2xxx_check_revision();
++	omap2xxx_cm_init();
+ 	omap_common_init_early();
+ 	omap2xxx_voltagedomains_init();
+ 	omap243x_powerdomains_init();
+@@ -451,6 +455,7 @@ void __init omap3_init_early(void)
+ 			       NULL, NULL);
+ 	omap3xxx_check_revision();
+ 	omap3xxx_check_features();
++	omap3xxx_cm_init();
+ 	omap_common_init_early();
+ 	omap3xxx_voltagedomains_init();
+ 	omap3xxx_powerdomains_init();
+-- 
+1.7.10.4
+
