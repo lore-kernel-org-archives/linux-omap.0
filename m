@@ -1,64 +1,342 @@
-From: Mitch Bradley <wmb@firmworks.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
- to mach-omap2)
-Date: Thu, 08 Nov 2012 07:00:47 -1000
-Message-ID: <509BE53F.4040609@firmworks.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net> <509AE247.3000404@gmail.com> <356155A1-776B-4AA5-A912-14CE7D9AE42C@dominion.thruhere.net>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
+Date: Thu, 8 Nov 2012 17:08:31 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EB68589@DBDE01.ent.ti.com>
+References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il>
+ <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il>
+ <509BDAF5.1010703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rs130.luxsci.com ([72.32.115.17]:58816 "EHLO rs130.luxsci.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36259 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756426Ab2KHRBq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 12:01:46 -0500
-In-Reply-To: <356155A1-776B-4AA5-A912-14CE7D9AE42C@dominion.thruhere.net>
+	id S1751429Ab2KHRIo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 12:08:44 -0500
+In-Reply-To: <509BDAF5.1010703@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Ryan Mallon <rmallon@gmail.com>, Kevin Hilman <khilman@ti.com>, Wood Scott-B07421 <B07421@freescale.com>, Matt Porter <mporter@ti.com>, Tabi Timur-B04825 <B04825@freescale.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Russ Dill <Russ.Dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hunter, Jon" <jon-hunter@ti.com>, Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On 11/8/2012 3:28 AM, Koen Kooi wrote:
+On Thu, Nov 08, 2012 at 21:46:53, Hunter, Jon wrote:
 > 
-> Op 7 nov. 2012, om 23:35 heeft Ryan Mallon <rmallon@gmail.com> het volgende geschreven:
+> On 11/08/2012 01:59 AM, Igor Grinberg wrote:
+> > On 11/07/12 23:36, Jon Hunter wrote:
+> >> Hi Igor,
+> >>
+> >> On 11/07/2012 08:42 AM, Igor Grinberg wrote:
+> >>> CONFIG_OMAP_32K_TIMER is kind of standing on the single zImage way.
+> >>> Make OMAP2+ timer code independant from the CONFIG_OMAP_32K_TIMER
+> >>> setting.
+> >>> To remove the dependancy, several conversions/additions had to be done:
+> >>> 1) Timer structures and initialization functions are named by the platform
+> >>>    name and the clock source in use. The decision which timer is
+> >>>    used is done statically from the machine_desc structure. In the
+> >>>    future it should come from DT.
+> >>> 2) Settings under the CONFIG_OMAP_32K_TIMER option are expanded into
+> >>>    separate timer structures along with the timer init functions.
+> >>>    This removes the CONFIG_OMAP_32K_TIMER on OMAP2+ timer code.
+> >>> 3) Since we have all the timers defined inside machine_desc structure
+> >>>    and we no longer need the fallback to gp_timer clock source in case
+> >>>    32k_timer clock source is unavailable (namely on AM33xx), we no
+> >>>    longer need the #ifdef around __omap2_sync32k_clocksource_init()
+> >>>    function. Remove the #ifdef CONFIG_OMAP_32K_TIMER around the
+> >>>    __omap2_sync32k_clocksource_init() function.
+> >>>
+> >>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> >>> Cc: Jon Hunter <jon-hunter@ti.com>
+> >>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >>> Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+> >>
+> >> [snip]
+> >>
+> >>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> >>> index 684d2fc..a4ad7a0 100644
+> >>> --- a/arch/arm/mach-omap2/timer.c
+> >>> +++ b/arch/arm/mach-omap2/timer.c
+> >>> @@ -63,20 +63,8 @@
+> >>>  #define OMAP2_32K_SOURCE	"func_32k_ck"
+> >>>  #define OMAP3_32K_SOURCE	"omap_32k_fck"
+> >>>  #define OMAP4_32K_SOURCE	"sys_32k_ck"
+> >>> -
+> >>> -#ifdef CONFIG_OMAP_32K_TIMER
+> >>> -#define OMAP2_CLKEV_SOURCE	OMAP2_32K_SOURCE
+> >>> -#define OMAP3_CLKEV_SOURCE	OMAP3_32K_SOURCE
+> >>> -#define OMAP4_CLKEV_SOURCE	OMAP4_32K_SOURCE
+> >>> -#define OMAP3_SECURE_TIMER	12
+> >>>  #define TIMER_PROP_SECURE	"ti,timer-secure"
+> >>> -#else
+> >>> -#define OMAP2_CLKEV_SOURCE	OMAP2_MPU_SOURCE
+> >>> -#define OMAP3_CLKEV_SOURCE	OMAP3_MPU_SOURCE
+> >>> -#define OMAP4_CLKEV_SOURCE	OMAP4_MPU_SOURCE
+> >>> -#define OMAP3_SECURE_TIMER	1
+> >>> -#define TIMER_PROP_SECURE	"ti,timer-alwon"
+> >>> -#endif
+> >>> +#define TIMER_PROP_ALWON	"ti,timer-alwon"
+> >>
+> >> Nit-pick, can we drop the TIMER_PROP_SECURE/ALWON and use the
+> >> "ti,timer-secure" and "ti,timer-alwon" directly?
+> >>
+> >> Initially, I also defined TIMER_PROP_ALWON and Rob Herring's feedback
+> >> was to drop this and use the property string directly to remove any
+> >> abstraction.
+> > 
+> > Well, I don't understand what do you mean by "any abstraction".
+> > The purpose of defining those two was to eliminate multiple occurrences
+> > of the string in the code, so for example if someone decides to change the
+> > property string for some currently unknown reason - it will be easy and small.
+> > Defines are a common practice for that, no?
+> > If you still think it should be inlined, I will do.
 > 
->> On 06/11/12 08:40, Tabi Timur-B04825 wrote:
->>> On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
->>>
->>>> Jane is building custom BeagleBone expansion boards called 'capes'. She
->>>> can boot the system with a stock BeagleBoard device tree, but additional
->>>> data is needed before a cape can be used. She could replace the FDT file
->>>> used by U-Boot with one that contains the extra data, but she uses the
->>>> same Linux system image regardless of the cape, and it is inconvenient
->>>> to have to select a different device tree at boot time depending on the
->>>> cape.
->>>
->>> What's wrong with having the boot loader detect the presence of the
->>> Cape and update the device tree accordingly?  We do this all the time
->>> in U-Boot.  Doing stuff like reading EEPROMs and testing for the
->>> presence of hardware is easier in U-Boot than in Linux.
->>
->> This is probably okay for some hardware, but doesn't work in the general
->> case. Not all hardware is detectable, for example a cape which just adds
->> a set of LEDs for GPIO pins. Also, some hardware might not easily be
->> detectable without adding additional complexity to the boot loader.
+> I understand your point, but right now I don't anticipate that we will
+> have many options here and so I think that we should drop these.
 > 
-> And as Pantelis mentioned before, I really don't want my users to change the bootloader whenever they add a new LED. Touching the bootloader is just too accident prone, we had a ton of RMA requests for older versions of the beagleboard from people trying to upgrade u-boot.
+> >>>  #define REALTIME_COUNTER_BASE				0x48243200
+> >>>  #define INCREMENTER_NUMERATOR_OFFSET			0x10
+> >>> @@ -216,7 +204,7 @@ void __init omap_dmtimer_init(void)
+> >>>  
+> >>>  	/* If we are a secure device, remove any secure timer nodes */
+> >>>  	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)) {
+> >>> -		np = omap_get_timer_dt(omap_timer_match, "ti,timer-secure");
+> >>> +		np = omap_get_timer_dt(omap_timer_match, TIMER_PROP_SECURE);
+> >>>  		if (np)
+> >>>  			of_node_put(np);
+> >>>  	}
+> >>> @@ -378,9 +366,8 @@ static u32 notrace dmtimer_read_sched_clock(void)
+> >>>  	return 0;
+> >>>  }
+> >>>  
+> >>> -#ifdef CONFIG_OMAP_32K_TIMER
+> >>>  /* Setup free-running counter for clocksource */
+> >>> -static int __init omap2_sync32k_clocksource_init(void)
+> >>> +static int __init __omap2_sync32k_clocksource_init(void)
+> >>
+> >> Not sure I follow why you renamed this function here ...
+> > 
+> > I didn't want to add unused arguments to this function, so I've made a
+> > wrapper below to have both the sync32k and the gp functions have the same
+> > signature (argument list) and be called from a single macro.
+> > Anyway, see below.
+> 
+> Ok.
+> 
+> >>
+> >>>  {
+> >>>  	int ret;
+> >>>  	struct device_node *np = NULL;
+> >>> @@ -439,15 +426,9 @@ static int __init omap2_sync32k_clocksource_init(void)
+> >>>  
+> >>>  	return ret;
+> >>>  }
+> >>> -#else
+> >>> -static inline int omap2_sync32k_clocksource_init(void)
+> >>> -{
+> >>> -	return -ENODEV;
+> >>> -}
+> >>> -#endif
+> >>>  
+> >>> -static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+> >>> -						const char *fck_source)
+> >>> +static void __init omap2_gp_clocksource_init(int gptimer_id,
+> >>> +					     const char *fck_source)
+> >>
+> >> Nit, I personally prefer keeping gptimer, because gp just means
+> >> "general-purpose" and does not imply a timer per-se.
+> > 
+> > I've made this change, so we will not get something like:
+> > omapx_gptimer_timer_init(), but this really does not meter to me,
+> > so no problem will do for v2.
+> 
+> Thanks.
+> 
+> >>
+> >>>  {
+> >>>  	int res;
+> >>>  
+> >>> @@ -466,23 +447,10 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+> >>>  			gptimer_id, clksrc.rate);
+> >>>  }
+> >>>  
+> >>> -static void __init omap2_clocksource_init(int gptimer_id,
+> >>> -						const char *fck_source)
+> >>> +static void __init omap2_sync32k_clocksource_init(int gptimer_id,
+> >>> +						  const char *fck_source)
+> >>>  {
+> >>> -	/*
+> >>> -	 * First give preference to kernel parameter configuration
+> >>> -	 * by user (clocksource="gp_timer").
+> >>> -	 *
+> >>> -	 * In case of missing kernel parameter for clocksource,
+> >>> -	 * first check for availability for 32k-sync timer, in case
+> >>> -	 * of failure in finding 32k_counter module or registering
+> >>> -	 * it as clocksource, execution will fallback to gp-timer.
+> >>> -	 */
+> >>> -	if (use_gptimer_clksrc == true)
+> >>> -		omap2_gptimer_clocksource_init(gptimer_id, fck_source);
+> >>> -	else if (omap2_sync32k_clocksource_init())
+> >>> -		/* Fall back to gp-timer code */
+> >>> -		omap2_gptimer_clocksource_init(gptimer_id, fck_source);
+> >>> +	__omap2_sync32k_clocksource_init();
+> >>>  }
+> >>
+> >> ... this just appears to be a wrapper function, but I don't see why this
+> >> is needed? Do we need this wrapper?
+> > 
+> > no, not really, just consider the explanation above.
+> > I will remove the wrapper for v2.
+> 
+> Ok, thanks.
+> 
+> >>
+> >>>  #ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
+> >>> @@ -563,52 +531,64 @@ static inline void __init realtime_counter_init(void)
+> >>>  {}
+> >>>  #endif
+> >>>  
+> >>> -#define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src, clkev_prop,	\
+> >>> -				clksrc_nr, clksrc_src)			\
+> >>> -static void __init omap##name##_timer_init(void)			\
+> >>> +#define OMAP_SYS_TIMER_INIT(n, clksrc_name, clkev_nr, clkev_src,	\
+> >>> +				clkev_prop, clksrc_nr, clksrc_src)	\
+> >>> +static void __init omap##n##_##clksrc_name##_timer_init(void)		\
+> >>
+> >>
+> >>>  {									\
+> >>>  	omap_dmtimer_init();						\
+> >>>  	omap2_gp_clockevent_init((clkev_nr), clkev_src, clkev_prop);	\
+> >>> -	omap2_clocksource_init((clksrc_nr), clksrc_src);		\
+> >>> +									\
+> >>> +	if (use_gptimer_clksrc)						\
+> >>> +		omap2_gp_clocksource_init((clksrc_nr), clksrc_src);	\
+> >>> +	else								\
+> >>> +		omap2_##clksrc_name##_clocksource_init((clksrc_nr),	\
+> >>> +						       clksrc_src);	\
+> >>
+> >> Something here seems a little odd. If "clksrc_name" is "gp", then the
+> >> if-else parts will call the same function. Or am I missing something here?
+> > 
+> > Yes, you are right - this is odd.
+> > What do you think of:
+> > 
+> > if (use_gptimer_clksrc) {
+> > 	omap2_gp_clocksource_init((clksrc_nr), clksrc_src);
+> > 	return;
+> > }
+> > omap2_##clksrc_name##_clocksource_init((clksrc_nr), clksrc_src);
+> 
+> Yes, but it still seems a little odd that we could have ...
+> 
+>  if (use_gptimer_clksrc) {
+>  	omap2_gp_clocksource_init((clksrc_nr), clksrc_src);
+>  	return;
+>  }
+>  omap2_gp_clocksource_init((clksrc_nr), clksrc_src);
+> 
+> >>
+> >> I think that I prefer how it works today where we call just
+> >> omap2_clocksource_init(), and it determines whether to use the gptimer
+> >> or the 32k-sync.
+> > 
+> > There is no reliable way to determine which source should be used in runtime
+> > for boards that do not have the 32k oscillator wired.
+> 
+> Hmmm ... well for OMAP devices the 32kHz clock is mandatory AFAIK. At
+> least for OMAP devices and I would need to check on the AM33xx but I
+> would imagine they are the same. Which devices are you referring to
+> where the 32kHz is optional?
+> 
+No we do not have 32k_counter block in AM335x.
 
-One possibility for dynamic device tree mods would be to run Open
-Firmware from u-boot and have it generate the device tree and possibly
-modify it either interactively or from a script loaded from a file or
-the network.  OFW could then either load Linux directly or return to
-u-boot, which would proceed with loading.
+If you are referring to 32Khz clock availability alone, then yes, we need to 
+get persistent clock and we use RTC 32Khz clock source for it. 
+But please note that this is not a 32k_counter block which OMAP family of 
+devices has.
 
+The way AM335x works is, we have timers (0-7), timer0 being secure timer.
+We use timer1 and timer2 for clockevent and clocksource and they are driven 
+by 26MHz OSC clock currently. So when you go into Low power state, OSC is turned off and you need persistent clock for time keeping, right?
+
+And only persistent clock available is RTC 32khz crystal clock, being RTC is 
+in wakeup domain.
+
+Thanks,
+Vaibhav
+
+> >> For OMAP I think that it is fine to default to the 32k-sync and then if
+> >> the gptimer is selected, it uses the higher frequency sys_clk as the
+> >> timer source.
+> > 
+> > I agree for the 32k-sync as a default, but gptimer will not be selected
+> > on SoC that have 32k while board does not have the 32k wired.
 > 
-> Apart from the above I'd like to have fewer points of failure. Right now I need to keep uImage and foo.dtb in sync and I hate to add u-boot to that equasion as well.
+> Ok, again let me know which device(s) this applies too.
 > 
-> regards,
+> >>
+> >> For AMxxx, devices, sync-32k does not exist, and so I understand it does
+> >> not work the same.
+> >>
+> >> I am wondering if the use_gptimer_clksrc, should become
+> >> use_sysclk_clksrc, and then ...
+> >>
+> >> For OMAP ...
+> >> use_sysclk_clksrc = 0 --> use sync-32k (default)
+> >> use_sysclk_clksrc = 1 --> use gptimer with sys_clk
+> >>
+> >> For AM33xx ...
+> >> use_sysclk_clksrc = 0 --> use gptimer with 32khz clock (default)
+> >> use_sysclk_clksrc = 1 --> use gptimer with sys_clk
+> > 
+> > Well, this is more or less how it works today, but it does not consider
+> > the board wiring information that after all defines which source should
+> > be used. (Not all boards out there are clones of beagles and evms...)
+> > And the generic code should be flexible enough
+> > to enable any legal configuration.
 > 
-> Koen
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> My whole thought here was that the 32kHz is always present. If that is
+> not the case then I would agree this would not work.
 > 
+> >>
+> >>>  }
+> >>>  
+> >>> -#define OMAP_SYS_TIMER(name)						\
+> >>> -struct sys_timer omap##name##_timer = {					\
+> >>> -	.init	= omap##name##_timer_init,				\
+> >>> -};
+> >>> +#define OMAP_SYS_TIMER(n, clksrc)					\
+> >>> +struct sys_timer omap##n##_##clksrc##_timer = {				\
+> >>> +	.init	= omap##n##_##clksrc##_timer_init,			\
+> >>> +}
+> >>>  
+> >>>  #ifdef CONFIG_ARCH_OMAP2
+> >>> -OMAP_SYS_TIMER_INIT(2, 1, OMAP2_CLKEV_SOURCE, "ti,timer-alwon",
+> >>> -		    2, OMAP2_MPU_SOURCE)
+> >>> -OMAP_SYS_TIMER(2)
+> >>> +OMAP_SYS_TIMER_INIT(2, sync32k, 1, OMAP2_32K_SOURCE, TIMER_PROP_ALWON,
+> >>> +		    2, OMAP2_MPU_SOURCE);
+> >>> +OMAP_SYS_TIMER(2, sync32k);
+> >>> +OMAP_SYS_TIMER_INIT(2, gp, 1, OMAP2_MPU_SOURCE, TIMER_PROP_ALWON,
+> >>> +		    2, OMAP2_MPU_SOURCE);
+> >>> +OMAP_SYS_TIMER(2, gp);
+> >>
+> >> It would be good if we can avoid having two timer_init functions for
+> >> each OMAP generation.
+> > 
+> > Yes, but then we will not have the right description of the hardware
+> > but IMHO workarounds on workarounds on...
+> > 
+> > There are several clock sources - all can be used,
+> > why not have them described and ready for use?
+> 
+> Well we really want to simplify this code and so I was thinking that if
+> a device has a 32k-sync timer AND there is a 32kHz source, then what's
+> the point in having an option to use a gptimer with a 32kHz source for
+> that device? I guess I don't see the benefit there, at least for OMAP2-5
+> devices specifically.
+> 
+> Cheers
+> Jon
+> 
+> 
+
