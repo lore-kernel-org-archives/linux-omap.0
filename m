@@ -1,138 +1,80 @@
 From: =?UTF-8?B?UMOpdGVyIFVqZmFsdXNp?= <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 2/3] pwm: New driver to support PWMs on TWL4030/6030 series
- of PMICs
-Date: Thu, 8 Nov 2012 08:14:36 +0100
-Message-ID: <509B5BDC.3030005@ti.com>
-References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com> <1352299488-11351-3-git-send-email-peter.ujfalusi@ti.com> <CANOLnOM7sp+O+KBKjiRk2drWh_63D6-bY86dx+upWkrvs7pp9w@mail.gmail.com>
+Subject: Re: [PATCH 3/3] pwm: New driver to support PWM driven LEDs on TWL4030/6030
+ series of PMICs
+Date: Thu, 8 Nov 2012 08:34:31 +0100
+Message-ID: <509B6087.2040004@ti.com>
+References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com> <1352299488-11351-4-git-send-email-peter.ujfalusi@ti.com> <CANOLnONc29=cDZE=UXubs7DYOUWbgLJspPPVT2Hfq9E3zXkgVQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANOLnOM7sp+O+KBKjiRk2drWh_63D6-bY86dx+upWkrvs7pp9w@mail.gmail.com>
+In-Reply-To: <CANOLnONc29=cDZE=UXubs7DYOUWbgLJspPPVT2Hfq9E3zXkgVQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Grazvydas Ignotas <notasas@gmail.com>
 Cc: Thierry Reding <thierry.reding@avionic-design.de>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/07/2012 06:50 PM, Grazvydas Ignotas wrote:
->> +static int twl4030_pwm_enable(struct pwm_chip *chip, struct pwm_dev=
-ice *pwm)
+On 11/07/2012 07:12 PM, Grazvydas Ignotas wrote:
+>> +static int twl4030_pwmled_config(struct pwm_chip *chip, struct pwm_=
+device *pwm,
+>> +                             int duty_ns, int period_ns)
 >> +{
->> +       int ret;
->> +       u8 val;
+>> +       int duty_cycle =3D (duty_ns * TWL4030_LED_MAX) / period_ns;
+>> +       u8 on_time;
+>> +       u8 pwm_config[2];
+>> +       int base, ret;
 >> +
->> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_=
-GPBR1_REG);
->> +       if (ret < 0) {
->> +               dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm=
-->label);
->> +               return ret;
->> +       }
+>> +       if (duty_cycle >=3D TWL4030_LED_MAX)
+>> +               on_time =3D TWL4030_LED_MAX;
+>> +       else if (!duty_cycle)
+>> +               on_time =3D TWL4030_LED_MAX - 1;
+>> +       else
+>> +               on_time =3D TWL4030_LED_MAX - duty_cycle;
 >> +
->> +       val |=3D TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_BITS);
+>> +       base =3D pwm->hwpwm * 2 + TWL4030_PWMA_REG;
+>> +
+>> +       pwm_config[0] =3D on_time;
+>> +       pwm_config[1] =3D TWL4030_LED_MAX;
+>> +
+>> +       ret =3D twl_i2c_write(TWL4030_MODULE_LED, pwm_config, base, =
+2);
 >=20
-> In my experience doing it like this doesn't work reliably, i.e.
-> sometimes it just won't enable. I had to first set CLK_ENABLE bit, an=
+> Shouldn't this use TWL4030_MODULE_PWMA and TWL4030_MODULE_PWMB as
+> first argument? I can guess it works your way too, but
+> TWL4030_MODULE_PWMx would match the TRM better.
+
+I don't have strong opinion regarding to this. You mean changing from:
+
+base =3D pwm->hwpwm * 2 + TWL4030_PWMA_REG;
+ret =3D twl_i2c_write(TWL4030_MODULE_LED, pwm_config, base, 2);
+
+to:
+
+if (pwm->hwpwm)
+	module =3D TWL4030_MODULE_PWMB;
+else
+	module =3D TWL4030_MODULE_PWMA;
+ret =3D twl_i2c_write(module, pwm_config, 0, 2);
+
+But I want to note that I'm currently trying to clean up the mess aroun=
 d
-> then ENABLE bit with separate i2c write. Perhaps it needs a cycle or
-> two of 32k clock or something (that doesn't seem to be documented
-> though).
+twl-core. In my view we have quite a bit of redundancy in there. The PW=
+M A/B
+is for driving the LED A/B outputs. We should have only these modules f=
+or
+PWM/LED in twl-core:
+TWL_MODULE_PWM - offset for PWM0ON register in twl4030 and PWM1ON for t=
+wl6030
+TWL_MODULE_LED - offset for LEDEN register in twl4030 and LED_PWM_CTRL1
+		 for twl6030
 
-Thanks, I'll change to the reliable sequence. I do not have HW where I =
-can
-test the twl4030 PWMs.
+=46rom here the driver can figure out what to do IMHO.
 
->=20
->> +
->> +       ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_=
-GPBR1_REG);
->> +       if (ret < 0)
->> +               dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm=
-->label);
->> +
->> +       return ret;
->> +}
->> +
->> +static void twl4030_pwm_disable(struct pwm_chip *chip, struct pwm_d=
-evice *pwm)
->> +{
->> +       int ret;
->> +       u8 val;
->> +
->> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_=
-GPBR1_REG);
->> +       if (ret < 0) {
->> +               dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm=
-->label);
->> +               return;
->> +       }
->> +
->> +       val &=3D ~TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_BITS);
->=20
-> Same problem here, I would sometimes get LED stuck at full brightness
-> after this, first clearing ENABLE and then CLK_ENABLE fixed it (we
-> have charger LED connected to PWM1 on pandora).
-
-I would guessed that if we need special care we should have turned off =
-CLK
-followed by disabling the PWM.
-I'll use the sequence you described in the next version.
-
->=20
->> +
->> +       ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_=
-GPBR1_REG);
->> +       if (ret < 0)
->> +               dev_err(chip->dev, "%s: Failed to disable PWM\n", pw=
-m->label);
->> +}
->> +
->> +static int twl4030_pwm_request(struct pwm_chip *chip, struct pwm_de=
-vice *pwm)
->> +{
->> +       struct twl_pwm_chip *twl =3D container_of(chip, struct twl_p=
-wm_chip,
->> +                                               chip);
->> +       int ret;
->> +       u8 val, mask, bits;
->> +
->> +       ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_=
-PMBR1_REG);
->> +       if (ret < 0) {
->> +               dev_err(chip->dev, "%s: Failed to read PMBR1\n", pwm=
-->label);
->> +               return ret;
->> +       }
->> +
->> +       if (pwm->hwpwm) {
->> +               /* PWM 1 */
->> +               mask =3D TWL4030_GPIO7_VIBRASYNC_PWM1_MASK;
->> +               bits =3D TWL4030_GPIO7_VIBRASYNC_PWM1_PWM1;
->> +       } else {
->> +               /* PWM 0 */
->> +               mask =3D TWL4030_GPIO6_PWM0_MUTE_MASK;
->> +               bits =3D TWL4030_GPIO6_PWM0_MUTE_PWM0;
->> +       }
->> +
->> +       /* Save the current MUX configuration for the PWM */
->> +       twl->twl4030_pwm_mux &=3D ~mask;
->> +       twl->twl4030_pwm_mux |=3D (val & mask);
->=20
-> Do we really need this mask clearing here? After probe twl4030_pwm_mu=
-x
-> should be zero, and if twl4030_pwm_request is called twice you don't
-> clear the important bits before |=3D, I think 'twl4030_pwm_mux =3D va=
-l &
-> mask' would be better here.
-
-I'm storing both PWM's state in the same variable, but in different off=
-sets:
-PWM0: bits 2-3
-PWM1: bits 4-5
-Probably it is over engineering to clear the relevant bits in the backu=
-p
-storage, but better to be safe IMHO.
-I would leave this part as it is.
+There's no need to have separate TWL 'modules' for:
+TWL4030_BASEADD_PWM0
+TWL4030_BASEADD_PWM1
+TWL4030_BASEADD_PWMA
+TWL4030_BASEADD_PWMB
 
 --=20
 P=C3=A9ter
