@@ -1,95 +1,105 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: TWL: mux sys_drm_msecure as output for PMIC
-Date: Thu, 8 Nov 2012 14:10:45 -0600
-Message-ID: <20121108201045.GA579@kahuna>
-References: <1352401730-4269-1-git-send-email-khilman@deeprootsystems.com>
- <20121108192834.GA2962@arwen.pp.htv.fi>
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: [PATCH] ARM: OMAP1: use BUG_ON where possible
+Date: Thu,  8 Nov 2012 15:23:09 -0500
+Message-ID: <1352406191-14303-7-git-send-email-sasha.levin@oracle.com>
+References: <1352406191-14303-1-git-send-email-sasha.levin@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41981 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756668Ab2KHUKt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 15:10:49 -0500
-Content-Disposition: inline
-In-Reply-To: <20121108192834.GA2962@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1352406191-14303-1-git-send-email-sasha.levin@oracle.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Sasha Levin <sasha.levin@oracle.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 21:28-20121108, Felipe Balbi wrote:
-> Hi,
-> 
-> On Thu, Nov 08, 2012 at 11:08:50AM -0800, Kevin Hilman wrote:
-> > From: Kevin Hilman <khilman@ti.com>
-> > 
-> > On OMAP4 boards using the TWL6030 PMIC, the sys_drm_msecure is
-> > connected to the MSECURE input of the TWL6030 PMIC.  This signal
-> > controls the secure-mode operation of the PMIC.  If its not mux'd
-> > correctly, some functionality of the PMIC will not be accessible since
-> > the PMIC will be in secure mode.
-> > 
-> > For example, if the TWL RTC is in secure mode, most of its registers
-> > are read-only, meaning (re)programming the RTC (e.g. for wakeup from
-> > suspend) will fail.
-> > 
-> > To fix, ensure the signal is properly mux'd as output when TWL is
-> > intialized.
-> > 
-> > This fix is required when using recent versions of u-boot (>= v2012.04.01)
-> > since u-boot is no longer setting the default mux for this pin.
-> > 
-> > Signed-off-by: Kevin Hilman <khilman@ti.com>
-> > ---
-> > Based on v3.7-rc4.  Targetted as a fix for v3.7.
-> > 
-> > A correponding DT fix for this is needed as well, but that will be part of 
-> > a bigger series to get PM working with DT boot and needs to include other
-> > pins like sys_nirq1.
-> > 
-> >  arch/arm/mach-omap2/twl-common.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-> > index 635e109..96cae8b 100644
-> > --- a/arch/arm/mach-omap2/twl-common.c
-> > +++ b/arch/arm/mach-omap2/twl-common.c
-> > @@ -73,6 +73,7 @@ void __init omap4_pmic_init(const char *pmic_type,
-> >  {
-> >  	/* PMIC part*/
-> >  	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
-> > +	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
-> >  	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
-> >  
-> >  	/* Register additional devices on i2c1 bus if needed */
-> 
-> not entirely related to $SUBJECT but this essentially means we're
-> dropping the security feature whenever Linux runs.
-Unless we intend to remove RTC driver in it's entirety and implement RTC
-time change update in secure driver, current twl rtc driver was never
-meant to exist with RTC time updates only in trustzone mode. Neither does
-it drop any security feature when ever Linux runs- msecure pin has not
-been used for any other purpose to my knowledge with Linux. So, this
-change does not change the status quo we are currently in,
-> 
-> Shouldn't we try to change that pin at register write boundaries so we
-> keep the secure feature enabled until we know we're going to write to
-> the HW ?
-> 
-> Maybe it could even be done later through pinctrl, perhaps ?
-That might be a better solution I agree. We might be locking down to a
-specific pin name here, which could potentially change in a future SoC.
-The right approach IMHO would be omap_gpio_mux equivalent.
+Just use BUG_ON() instead of constructions such as:
 
-Example change for OMAP5 purely from a board perspective(gerrit warning):
-http://review.omapzoom.org/#/c/23819/5/arch/arm/mach-omap2/board-omap5evm.c,unified
+	if (...)
+		BUG()
 
-Further, depending on how it is hooked on a different board (not that I
-have seen any different other than msecure), it might even be hooked on
-to another GPIO, making this scenario not scaling to "theoretical board
-configuration".
+A simplified version of the semantic patch that makes this transformation
+is as follows: (http://coccinelle.lip6.fr/)
 
+// <smpl>
+@@
+expression e;
+@@
+- if (e) BUG();
++ BUG_ON(e);
+// </smpl>
+
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+---
+ arch/arm/mach-omap1/board-fsample.c  |    3 +--
+ arch/arm/mach-omap1/board-h2.c       |    3 +--
+ arch/arm/mach-omap1/board-h3.c       |    3 +--
+ arch/arm/mach-omap1/board-perseus2.c |    3 +--
+ 4 files changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+index 8b5800a..7ca6cc4 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -307,8 +307,7 @@ static void __init omap_fsample_init(void)
+ 
+ 	fsample_init_smc91x();
+ 
+-	if (gpio_request(FSAMPLE_NAND_RB_GPIO_PIN, "NAND ready") < 0)
+-		BUG();
++	BUG_ON(gpio_request(FSAMPLE_NAND_RB_GPIO_PIN, "NAND ready") < 0);
+ 	gpio_direction_input(FSAMPLE_NAND_RB_GPIO_PIN);
+ 
+ 	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
+diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+index 9134b64..4953cf7 100644
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -412,8 +412,7 @@ static void __init h2_init(void)
+ 
+ 	h2_nand_resource.end = h2_nand_resource.start = OMAP_CS2B_PHYS;
+ 	h2_nand_resource.end += SZ_4K - 1;
+-	if (gpio_request(H2_NAND_RB_GPIO_PIN, "NAND ready") < 0)
+-		BUG();
++	BUG_ON(gpio_request(H2_NAND_RB_GPIO_PIN, "NAND ready") < 0);
+ 	gpio_direction_input(H2_NAND_RB_GPIO_PIN);
+ 
+ 	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
+diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
+index bf213d1..563ba16 100644
+--- a/arch/arm/mach-omap1/board-h3.c
++++ b/arch/arm/mach-omap1/board-h3.c
+@@ -406,8 +406,7 @@ static void __init h3_init(void)
+ 
+ 	nand_resource.end = nand_resource.start = OMAP_CS2B_PHYS;
+ 	nand_resource.end += SZ_4K - 1;
+-	if (gpio_request(H3_NAND_RB_GPIO_PIN, "NAND ready") < 0)
+-		BUG();
++	BUG_ON(gpio_request(H3_NAND_RB_GPIO_PIN, "NAND ready") < 0);
+ 	gpio_direction_input(H3_NAND_RB_GPIO_PIN);
+ 
+ 	/* GPIO10 Func_MUX_CTRL reg bit 29:27, Configure V2 to mode1 as GPIO */
+diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+index 030bd48..67c2612 100644
+--- a/arch/arm/mach-omap1/board-perseus2.c
++++ b/arch/arm/mach-omap1/board-perseus2.c
+@@ -275,8 +275,7 @@ static void __init omap_perseus2_init(void)
+ 
+ 	perseus2_init_smc91x();
+ 
+-	if (gpio_request(P2_NAND_RB_GPIO_PIN, "NAND ready") < 0)
+-		BUG();
++	BUG_ON(gpio_request(P2_NAND_RB_GPIO_PIN, "NAND ready") < 0);
+ 	gpio_direction_input(P2_NAND_RB_GPIO_PIN);
+ 
+ 	omap_cfg_reg(L3_1610_FLASH_CS2B_OE);
 -- 
-Regards,
-Nishanth Menon
+1.7.10.4
