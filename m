@@ -1,117 +1,57 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
- to mach-omap2)
-Date: Thu, 8 Nov 2012 11:36:54 +0100
-Message-ID: <509B8B46.8040703@ti.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com> <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com> <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com> <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com> <5ED17D42-07B8-4D4F-B54F-82B4CC60584C@antoniou-consulting.com> <509A3595.7050600@ti.com> <509A9984.3000709@wwwdotorg.org>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 2/3] pwm: New driver to support PWMs on TWL4030/6030
+ series of PMICs
+Date: Thu, 8 Nov 2012 13:53:43 +0200
+Message-ID: <CANOLnOM6dp2_WthKUo31X_0os4cwax9Y42qSLqi09XiR-HF-Uw@mail.gmail.com>
+References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
+	<1352299488-11351-3-git-send-email-peter.ujfalusi@ti.com>
+	<CANOLnOM7sp+O+KBKjiRk2drWh_63D6-bY86dx+upWkrvs7pp9w@mail.gmail.com>
+	<509B5BDC.3030005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52025 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752571Ab2KHKhE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 05:37:04 -0500
-In-Reply-To: <509A9984.3000709@wwwdotorg.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <509B5BDC.3030005@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-+ Peter
-
-Hi Stephen,
-
-On 11/7/2012 6:25 PM, Stephen Warren wrote:
-> On 11/07/2012 03:19 AM, Benoit Cousson wrote:
->> Hi Panto,
+On Thu, Nov 8, 2012 at 9:14 AM, P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.=
+com> wrote:
+> On 11/07/2012 06:50 PM, Grazvydas Ignotas wrote:
+>>> +       if (pwm->hwpwm) {
+>>> +               /* PWM 1 */
+>>> +               mask =3D TWL4030_GPIO7_VIBRASYNC_PWM1_MASK;
+>>> +               bits =3D TWL4030_GPIO7_VIBRASYNC_PWM1_PWM1;
+>>> +       } else {
+>>> +               /* PWM 0 */
+>>> +               mask =3D TWL4030_GPIO6_PWM0_MUTE_MASK;
+>>> +               bits =3D TWL4030_GPIO6_PWM0_MUTE_PWM0;
+>>> +       }
+>>> +
+>>> +       /* Save the current MUX configuration for the PWM */
+>>> +       twl->twl4030_pwm_mux &=3D ~mask;
+>>> +       twl->twl4030_pwm_mux |=3D (val & mask);
 >>
->> On 11/07/2012 09:13 AM, Pantelis Antoniou wrote:
->>> Hi Grant
->>>
->>> On Nov 6, 2012, at 9:45 PM, Grant Likely wrote:
->>>
->>>> On Tue, Nov 6, 2012 at 7:34 PM, Pantelis Antoniou
->>>> <panto@antoniou-consulting.com> wrote:
->>>
->>> [ snip ]
->>>>
->>>> g.
->>>
->>> Since we've started talking about longer term goals, and the versioning
->>> provision seems to stand, I hope we address how much the fragment versioning
->>> thing is similar to the way board revisions progress.
->>>
->>> If a versioning syntax is available then one could create a single DT
->>> file for a bunch of 'almost' similar board and board revisions.
->>
->> I even think that the version issue is probably much more important for the short term than the overlay aspect. Well at least as important. We start having as well a bunch a panda board version with different HW setup.
->>
->> Having a single board-XXX.dts that will support all these versions is probably the best approach to avoid choosing that from the bootloader.
->>
->> We need to figure out a format + mechanism compatible with the current non-versioned format to allow filtering the nodes at runtime to keep only the relevant one.
->>
->> Something that can find the driver that will provide the proper board version or subsystem version or whatever like that:
->>
->> 	compatible-version = "ti,panda-version", "panda";
->>
->> Then at runtime we should create only the node with the correct match between the driver version and the string version.
->>
->>
->> /* regular panda audio routing */
->> sound: sound {
->> 	compatible = "ti,abe-twl6040";
->> 	ti,model = "PandaBoard";
->> 	compatible-version = "ti,panda-version", "panda";
->>
->> 	/* Audio routing */
->> 	ti,audio-routing =
->> 		"Headset Stereophone", "HSOL",
->> 		"Headset Stereophone", "HSOR",
->> 		"Ext Spk", "HFL",
->> 		"Ext Spk", "HFR",
->> 		"Line Out", "AUXL",
->> 		"Line Out", "AUXR",
->> 		"HSMIC", "Headset Mic",
->> 		"Headset Mic", "Headset Mic Bias",
->> 		"AFML", "Line In",
->> 		"AFMR", "Line In";
->> };
->>
->>
->> /* Audio routing is different between PandaBoard4430 and PandaBoardES */
->> &sound {
->> 	ti,model = "PandaBoardES";
->> 	compatible-version = "ti,panda-version", "panda-es";
->>
->> 	/* Audio routing */
->> 	ti,audio-routing =
->> 		"Headset Stereophone", "HSOL",
->> 		"Headset Stereophone", "HSOR",
->> 		"Ext Spk", "HFL",
->> 		"Ext Spk", "HFR",
->> 		"Line Out", "AUXL",
->> 		"Line Out", "AUXR",
->> 		"AFML", "Line In",
->> 		"AFMR", "Line In";
->> };
->>
->>
->> Maybe some extra version match table can just be passed during the board machine_init
->>
->> 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL, panda_version_match_table);
+>> Do we really need this mask clearing here? After probe twl4030_pwm_m=
+ux
+>> should be zero, and if twl4030_pwm_request is called twice you don't
+>> clear the important bits before |=3D, I think 'twl4030_pwm_mux =3D v=
+al &
+>> mask' would be better here.
 >
-> Is the only difference here the content of the ti,audio-routing
-> property? If so, then I don't think there's any need for infra-structure
-> for this; the driver code already reads that property and adjusts its
-> behaviour based upon it.
+> I'm storing both PWM's state in the same variable, but in different o=
+ffsets:
+> PWM0: bits 2-3
+> PWM1: bits 4-5
+> Probably it is over engineering to clear the relevant bits in the bac=
+kup
+> storage, but better to be safe IMHO.
+> I would leave this part as it is.
 
-That was just an example, and maybe not the best one. It could be any 
-kind of HW differences, like a different GPIO line, a different I2C 
-peripheral, an extra DCDC...
-The point was just that you might have several version of the same node 
-with different attributes depending of the board revision.
+Oh, it should be good then.
 
-Regards,
-Benoit
 
+--=20
+Gra=C5=BEvydas
