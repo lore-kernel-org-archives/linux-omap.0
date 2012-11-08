@@ -1,69 +1,134 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: Timer and Counter DT Updates for v3.8
-Date: Wed, 7 Nov 2012 15:44:04 -0800
-Message-ID: <20121107234403.GS6801@atomide.com>
-References: <50941812.2070501@ti.com>
- <20121107004703.GS6801@atomide.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: [PATCH 01/26] ARM: OMAP: clock: Nuke plat/clock.c & reuse struct clk as clk_hw_omap
+Date: Wed, 7 Nov 2012 17:12:36 -0800
+Message-ID: <1352337181-29427-2-git-send-email-mturquette@ti.com>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16257 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752204Ab2KGXoH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 18:44:07 -0500
-Content-Disposition: inline
-In-Reply-To: <20121107004703.GS6801@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53052 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750720Ab2KHBN2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 20:13:28 -0500
+In-Reply-To: <1352337181-29427-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
+To: paul@pwsan.com
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org, patches@linaro.org, Mike Turquette <mturquette@ti.com>
 
-Hi Jon,
+From: Rajendra Nayak <rnayak@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [121106 16:48]:
-> * Jon Hunter <jon-hunter@ti.com> [121102 12:01]:
-> > 
-> >   git@github.com:jonhunter/linux.git dev-dt-timer
-> 
-> Thanks pulling into omap-for-v3.8/dt branch.
+plat/clock.c which has most of usecounting/locking infrastructure will
+be used only for OMAP1 until that is moved to use COMMON clk.
 
-Looks like omap-for-v3.8/dt boots OK on blaze when booted
-with device tree, but then current omap-for-v3.8/tmp-merge
-oopses.
+reuse most of what plat/clock.h has while we move to common clk, and
+move most of what 'struct clk' was as 'struct clk_hw_omap' which
+will then be used to define platform specific parameters.
+All usecounting/locking related variables from 'struct clk' are
+dropped as they will not be used with 'struct clk_hw_omap'.
 
-I guess we should apply the following fix somewhere or
-do we need to check other places too?
+Based on the original changes from Mike Turquette.
 
-Regards,
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Mike Turquette <mturquette@ti.com>
+---
+ arch/arm/mach-omap2/clock.h |   64 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-Tony
-
-[<c04e3d30>] (omap_dm_timer_probe+0x110/0x310) from [<c0334a18>] (platform_drv_probe+0x1c/0x24)
-[<c0334a18>] (platform_drv_probe+0x1c/0x24) from [<c03335d4>] (really_probe+0x60/0x1f4)
-[<c03335d4>] (really_probe+0x60/0x1f4) from [<c033379c>] (driver_probe_device+0x34/0x50)
-[<c033379c>] (driver_probe_device+0x34/0x50) from [<c033384c>] (__driver_attach+0x94/0x98)
-[<c033384c>] (__driver_attach+0x94/0x98) from [<c0331df8>] (bus_for_each_dev+0x60/0x8c)
-[<c0331df8>] (bus_for_each_dev+0x60/0x8c) from [<c03326c4>] (bus_add_driver+0x18c/0x254)
-[<c03326c4>] (bus_add_driver+0x18c/0x254) from [<c0333e44>] (driver_register+0x5c/0x150)
-[<c0333e44>] (driver_register+0x5c/0x150) from [<c0008868>] (do_one_initcall+0x2c/0x178)
-[<c0008868>] (do_one_initcall+0x2c/0x178) from [<c06df2a0>] (do_basic_setup+0x94/0xd0)
-[<c06df2a0>] (do_basic_setup+0x94/0xd0) from [<c06df358>] (kernel_init_freeable+0x7c/0x124)
-[<c06df358>] (kernel_init_freeable+0x7c/0x124) from [<c04e1810>] (kernel_init+0x8/0x1a8)
-[<c04e1810>] (kernel_init+0x8/0x1a8) from [<c0014410>] (ret_from_fork+0x14/0x24)
-
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -803,8 +803,11 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index cfba1ff..1fb9ecb 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -52,6 +52,14 @@ struct omap_clk {
+ #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
+ #define CK_3XXX		(CK_34XX | CK_AM35XX | CK_36XX)
  
- 	timer->irq = irq->start;
- 	timer->pdev = pdev;
--	timer->capability = pdata->timer_capability;
--	timer->get_context_loss_count = pdata->get_context_loss_count;
++#ifdef CONFIG_COMMON_CLK
++#include <linux/clk-provider.h>
 +
-+	if (pdata) {
-+		timer->capability = pdata->timer_capability;
-+		timer->get_context_loss_count = pdata->get_context_loss_count;
-+	}
++struct clockdomain;
++#define to_clk_hw_omap(_hw) container_of(_hw, struct clk_hw_omap, hw)
++
++#else
++
+ struct module;
+ struct clk;
+ struct clockdomain;
+@@ -89,6 +97,7 @@ struct clkops {
+ 	void			(*allow_idle)(struct clk *);
+ 	void			(*deny_idle)(struct clk *);
+ };
++#endif
  
- 	/* Skip pm_runtime_enable for OMAP1 */
- 	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
+ /* struct clksel_rate.flags possibilities */
+ #define RATE_IN_242X		(1 << 0)
+@@ -228,6 +237,60 @@ struct dpll_data {
+ #define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
+ #define CLOCK_CLKOUTX2		(1 << 5)
+ 
++#ifdef CONFIG_COMMON_CLK
++/**
++ * struct clk_hw_omap - OMAP struct clk
++ * @node: list_head connecting this clock into the full clock list
++ * @enable_reg: register to write to enable the clock (see @enable_bit)
++ * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
++ * @flags: see "struct clk.flags possibilities" above
++ * @clksel_reg: for clksel clks, register va containing src/divisor select
++ * @clksel_mask: bitmask in @clksel_reg for the src/divisor selector
++ * @clksel: for clksel clks, pointer to struct clksel for this clock
++ * @dpll_data: for DPLLs, pointer to struct dpll_data for this clock
++ * @clkdm_name: clockdomain name that this clock is contained in
++ * @clkdm: pointer to struct clockdomain, resolved from @clkdm_name at runtime
++ * @rate_offset: bitshift for rate selection bitfield (OMAP1 only)
++ * @src_offset: bitshift for source selection bitfield (OMAP1 only)
++ *
++ * XXX @rate_offset, @src_offset should probably be removed and OMAP1
++ * clock code converted to use clksel.
++ *
++ */
++
++struct clk_hw_omap_ops;
++
++struct clk_hw_omap {
++	struct clk_hw		hw;
++	struct list_head	node;
++	unsigned long		fixed_rate;
++	u8			fixed_div;
++	void __iomem		*enable_reg;
++	u8			enable_bit;
++	u8			flags;
++	void __iomem		*clksel_reg;
++	u32			clksel_mask;
++	const struct clksel	*clksel;
++	struct dpll_data	*dpll_data;
++	const char		*clkdm_name;
++	struct clockdomain	*clkdm;
++	const struct clk_hw_omap_ops	*ops;
++};
++
++struct clk_hw_omap_ops {
++	void			(*find_idlest)(struct clk_hw_omap *oclk,
++					void __iomem **idlest_reg,
++					u8 *idlest_bit, u8 *idlest_val);
++	void			(*find_companion)(struct clk_hw_omap *oclk,
++					void __iomem **other_reg,
++					u8 *other_bit);
++	void			(*allow_idle)(struct clk_hw_omap *oclk);
++	void			(*deny_idle)(struct clk_hw_omap *oclk);
++};
++
++unsigned long omap_fixed_divisor_recalc(struct clk_hw *hw,
++		unsigned long parent_rate);
++#else
+ /**
+  * struct clk - OMAP struct clk
+  * @node: list_head connecting this clock into the full clock list
+@@ -484,4 +547,5 @@ extern struct clk virt_26000000_ck;
+ 
+ extern int am33xx_clk_init(void);
+ 
++#endif /* CONFIG_COMMON_CLK */
+ #endif
+-- 
+1.7.9.5
+
