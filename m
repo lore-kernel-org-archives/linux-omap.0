@@ -1,153 +1,60 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH v2 00/26] Move OMAP2+ over to common clk framework
-Date: Fri, 9 Nov 2012 00:34:52 +0530
-Message-ID: <509C0254.4080603@ti.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] ARM: OMAP4: TWL: mux sys_drm_msecure as output for PMIC
+Date: Thu,  8 Nov 2012 11:08:50 -0800
+Message-ID: <1352401730-4269-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50814 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752222Ab2KHTE7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 14:04:59 -0500
-In-Reply-To: <1352337181-29427-1-git-send-email-mturquette@ti.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:33109 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752189Ab2KHTIw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 14:08:52 -0500
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2199870pad.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Nov 2012 11:08:52 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: paul@pwsan.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org, patches@linaro.org, Mike Turquette <mturquette@linaro.org>
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
+From: Kevin Hilman <khilman@ti.com>
 
+On OMAP4 boards using the TWL6030 PMIC, the sys_drm_msecure is
+connected to the MSECURE input of the TWL6030 PMIC.  This signal
+controls the secure-mode operation of the PMIC.  If its not mux'd
+correctly, some functionality of the PMIC will not be accessible since
+the PMIC will be in secure mode.
 
-On 11/8/2012 6:42 AM, Mike Turquette wrote:
-> From: Mike Turquette <mturquette@linaro.org>
-> 
-> Hi all,
-> 
-> This series is based on top of Paul's PRM/CM clean-up work.  It is a
-> refresh of the patches Rajendra sent out a while back[1], with the
-> addition of several fixes for PM regressions[2] across several
-> platforms.
-> 
-> I have tested on OMAP4430 Panda including PRCM diffing against pre-CCF
-> patches (delta is zero) and also suspend/resume.
-> 
-> I also tested on OMAP4460 Panda-ES.  Boot is fine and PRCM programming
-> appears sane.  However Panda-ES never comes back from suspend/resume.
-> This problem exists on the PRM/CM branch I based on and was not
-> introduced by this series.  I am investigating that independently of
-> this series.
-> 
-> Anyone wanting to pull the work can find it at:
-> git://git.linaro.org/people/mturquette/linux.git clk-omap-3.8
-> 
-> [1] http://article.gmane.org/gmane.linux.ports.arm.omap/78771
-> [2] http://article.gmane.org/gmane.linux.ports.arm.omap/84015
-> 
-> Mike Turquette (3):
->   ARM: OMAP4: clock: Convert to common clk
->   ARM: OMAP2+: clock: remove unnecessary declarations
->   ARM: OMAP2+: clock: Cleanup !CONFIG_COMMON_CLK parts
-> 
-> Paul Walmsley (7):
->   ARM: OMAP2xxx: clock: add APLL rate recalculation functions
->   ARM: OMAP2+: clock: add OMAP CCF convenience macros to
->     mach-omap2/clock.h
->   ARM: AM33XX: clock: add clock data in common clock format
->   ARM: OMAP44xx: clock: drop obsolete clock data
->   ARM: OMAP3xxx: clk: drop obsolete clock data
->   ARM: AM33xx: clock: drop obsolete clock data
->   ARM: OMAP2xxx: clock: drop obsolete clock data
-> 
-> Rajendra Nayak (15):
->   ARM: OMAP: clock: Nuke plat/clock.c & reuse struct clk as clk_hw_omap
->   ARM: OMAP: hwmod: Fix up hwmod based clkdm accesses
->   ARM: OMAP3: clock: Convert to common clk
->   ARM: OMAP2: clock: Convert to common clk
->   ARM: OMAP: clock: list all clk_hw_omap clks to enable/disable
->     autoidle
->   ARM: OMAP: clock: Define a function to enable clocks at init
->   ARM: OMAP: clock: Get rid of some clkdm assocations within clks
->   ARM: OMAP4: clock: Add 44xx data using common struct clk
->   ARM: OMAP3: clock: Add 3xxx data using common struct clk
->   ARM: omap2: clock: Add 24xx data using common struct clk
->   ARM: OMAP: clock: Switch to COMMON clk
->   ARM: OMAP: hwmod: Cleanup !CONFIG_COMMON_CLK parts
->   ARM: OMAP4: clock: Cleanup !CONFIG_COMMON_CLK parts
->   ARM: omap3: clock: Cleanup !CONFIG_COMMON_CLK parts
->   ARM: omap2: clock: Cleanup !CONFIG_COMMON_CLK parts
-> 
-> Vaibhav Hiremath (1):
->   ARM: OMAP2+: hwmod: Invoke init_clkdm before other init functions
-> 
->  arch/arm/mach-omap2/Kconfig                  |    5 +
->  arch/arm/mach-omap2/Makefile                 |   10 +-
->  arch/arm/mach-omap2/cclock2420_data.c        | 1959 ++++++++++++++
->  arch/arm/mach-omap2/cclock2430_data.c        | 2073 +++++++++++++++
->  arch/arm/mach-omap2/cclock33xx_data.c        |  961 +++++++
->  arch/arm/mach-omap2/cclock3xxx_data.c        | 3595 +++++++++++++++++++++++++
->  arch/arm/mach-omap2/cclock44xx_data.c        | 1991 ++++++++++++++
->  arch/arm/mach-omap2/clkt2xxx_apll.c          |   66 +-
->  arch/arm/mach-omap2/clkt2xxx_dpll.c          |    8 +-
->  arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |   12 +-
->  arch/arm/mach-omap2/clkt2xxx_osc.c           |   13 +-
->  arch/arm/mach-omap2/clkt2xxx_sys.c           |    7 +-
->  arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   11 +-
->  arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |    8 +-
->  arch/arm/mach-omap2/clkt_clksel.c            |  194 +-
->  arch/arm/mach-omap2/clkt_dpll.c              |   28 +-
->  arch/arm/mach-omap2/clkt_iclk.c              |   31 +-
->  arch/arm/mach-omap2/clock.c                  |  845 ++----
->  arch/arm/mach-omap2/clock.h                  |  356 ++-
->  arch/arm/mach-omap2/clock2420_data.c         | 1986 --------------
->  arch/arm/mach-omap2/clock2430.c              |    8 +-
->  arch/arm/mach-omap2/clock2430_data.c         | 2085 ---------------
->  arch/arm/mach-omap2/clock2xxx.c              |    1 +
->  arch/arm/mach-omap2/clock2xxx.h              |   47 +-
->  arch/arm/mach-omap2/clock33xx_data.c         | 1107 --------
->  arch/arm/mach-omap2/clock34xx.c              |   51 +-
->  arch/arm/mach-omap2/clock3517.c              |   24 +-
->  arch/arm/mach-omap2/clock36xx.c              |   22 +-
->  arch/arm/mach-omap2/clock36xx.h              |    2 +-
->  arch/arm/mach-omap2/clock3xxx.c              |    6 +-
->  arch/arm/mach-omap2/clock3xxx.h              |    6 +-
->  arch/arm/mach-omap2/clock3xxx_data.c         | 3613 --------------------------
->  arch/arm/mach-omap2/clock44xx_data.c         | 3398 ------------------------
->  arch/arm/mach-omap2/clock_common_data.c      |   22 +-
->  arch/arm/mach-omap2/cm-regbits-24xx.h        |    5 +
->  arch/arm/mach-omap2/cm-regbits-34xx.h        |   31 +
->  arch/arm/mach-omap2/cm2xxx_3xxx.h            |    1 +
->  arch/arm/mach-omap2/dpll3xxx.c               |  226 +-
->  arch/arm/mach-omap2/dpll44xx.c               |   21 +-
->  arch/arm/mach-omap2/io.c                     |   25 +
->  arch/arm/mach-omap2/omap_hwmod.c             |   63 +-
->  arch/arm/mach-omap2/pm24xx.c                 |    4 +-
->  arch/arm/mach-omap2/prm-regbits-24xx.h       |    2 +
->  arch/arm/mach-omap2/prm-regbits-34xx.h       |    1 +
->  arch/arm/mach-omap2/prm2xxx_3xxx.h           |    1 +
->  arch/arm/mach-omap2/scrm44xx.h               |    2 +
->  46 files changed, 11539 insertions(+), 13394 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/cclock2420_data.c
->  create mode 100644 arch/arm/mach-omap2/cclock2430_data.c
->  create mode 100644 arch/arm/mach-omap2/cclock33xx_data.c
->  create mode 100644 arch/arm/mach-omap2/cclock3xxx_data.c
->  create mode 100644 arch/arm/mach-omap2/cclock44xx_data.c
->  delete mode 100644 arch/arm/mach-omap2/clock2420_data.c
->  delete mode 100644 arch/arm/mach-omap2/clock2430_data.c
->  delete mode 100644 arch/arm/mach-omap2/clock33xx_data.c
->  delete mode 100644 arch/arm/mach-omap2/clock3xxx_data.c
->  delete mode 100644 arch/arm/mach-omap2/clock44xx_data.c
-> 
+For example, if the TWL RTC is in secure mode, most of its registers
+are read-only, meaning (re)programming the RTC (e.g. for wakeup from
+suspend) will fail.
 
+To fix, ensure the signal is properly mux'd as output when TWL is
+intialized.
 
-Thanks Mike for the patches.
-Just boot tested it on BeagleBone Platform, and it is booting up fine
-for me without any issues. Also I did some basic clk_rate check, and it
-came out well.
+This fix is required when using recent versions of u-boot (>= v2012.04.01)
+since u-boot is no longer setting the default mux for this pin.
 
-Anyway, I will try to review it tomorrow (if time permits).
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Based on v3.7-rc4.  Targetted as a fix for v3.7.
 
-Thanks,
-Vaibhav
+A correponding DT fix for this is needed as well, but that will be part of 
+a bigger series to get PM working with DT boot and needs to include other
+pins like sys_nirq1.
 
+ arch/arm/mach-omap2/twl-common.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 635e109..96cae8b 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -73,6 +73,7 @@ void __init omap4_pmic_init(const char *pmic_type,
+ {
+ 	/* PMIC part*/
+ 	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
++	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
+ 	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
+ 
+ 	/* Register additional devices on i2c1 bus if needed */
+-- 
+1.8.0
 
