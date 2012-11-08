@@ -1,15 +1,15 @@
 From: Mike Turquette <mturquette@ti.com>
-Subject: [PATCH 18/26] ARM: OMAP4: clock: Cleanup !CONFIG_COMMON_CLK parts
-Date: Wed, 7 Nov 2012 17:12:53 -0800
-Message-ID: <1352337181-29427-19-git-send-email-mturquette@ti.com>
+Subject: [PATCH 16/26] ARM: OMAP: clock: Switch to COMMON clk
+Date: Wed, 7 Nov 2012 17:12:51 -0800
+Message-ID: <1352337181-29427-17-git-send-email-mturquette@ti.com>
 References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36686 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754314Ab2KHBNn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Nov 2012 20:13:43 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52130 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754162Ab2KHBNl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Nov 2012 20:13:41 -0500
 In-Reply-To: <1352337181-29427-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,132 +18,92 @@ Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org,
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-Clean all #ifdef's added to OMAP4 clock code to make it COMMON clk
-ready, now that CONFIG_COMMON_CLK is enabled.
+Select COMMON_CLK for all OMAP2+ SoCs and switch over to using new
+data files for OMAP2/3/4.
+
+The older data files will get removed in subsequent patches.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[paul@pwsan.com: move 'select COMMON_CLK' from ARCH_OMAP2PLUS_TYPICAL to
+ the per-SoC and per-"arch" Kconfig sections]
 Signed-off-by: Mike Turquette <mturquette@ti.com>
+[mturquette@ti.com: fixed up #ifdef mismatch in clock.h in previous
+  patch which drops that change from this patch]
 ---
- arch/arm/mach-omap2/dpll44xx.c |   33 ---------------------------------
- arch/arm/mach-omap2/io.c       |    2 --
- 2 files changed, 35 deletions(-)
+ arch/arm/mach-omap2/Kconfig  |    5 +++++
+ arch/arm/mach-omap2/Makefile |   10 +++++-----
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dpll44xx.c b/arch/arm/mach-omap2/dpll44xx.c
-index aa75a3c..d3326c4 100644
---- a/arch/arm/mach-omap2/dpll44xx.c
-+++ b/arch/arm/mach-omap2/dpll44xx.c
-@@ -21,11 +21,7 @@
- #include "cm-regbits-44xx.h"
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 2a1a898..98268fa 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -35,6 +35,7 @@ config ARCH_OMAP2
+ 	select CPU_V6
+ 	select MULTI_IRQ_HANDLER
+ 	select SOC_HAS_OMAP2_SDRC
++	select COMMON_CLK
  
- /* Supported only on OMAP4 */
--#ifdef CONFIG_COMMON_CLK
- int omap4_dpllmx_gatectrl_read(struct clk_hw_omap *clk)
--#else
--int omap4_dpllmx_gatectrl_read(struct clk *clk)
--#endif
- {
- 	u32 v;
- 	u32 mask;
-@@ -44,11 +40,7 @@ int omap4_dpllmx_gatectrl_read(struct clk *clk)
- 	return v;
- }
+ config ARCH_OMAP3
+ 	bool "TI OMAP3"
+@@ -48,6 +49,7 @@ config ARCH_OMAP3
+ 	select PM_OPP if PM
+ 	select PM_RUNTIME if CPU_IDLE
+ 	select SOC_HAS_OMAP2_SDRC
++	select COMMON_CLK
+ 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
  
--#ifdef CONFIG_COMMON_CLK
- void omap4_dpllmx_allow_gatectrl(struct clk_hw_omap *clk)
--#else
--void omap4_dpllmx_allow_gatectrl(struct clk *clk)
--#endif
- {
- 	u32 v;
- 	u32 mask;
-@@ -66,11 +58,7 @@ void omap4_dpllmx_allow_gatectrl(struct clk *clk)
- 	__raw_writel(v, clk->clksel_reg);
- }
+ config ARCH_OMAP4
+@@ -69,6 +71,7 @@ config ARCH_OMAP4
+ 	select PM_OPP if PM
+ 	select PM_RUNTIME if CPU_IDLE
+ 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
++	select COMMON_CLK
  
--#ifdef CONFIG_COMMON_CLK
- void omap4_dpllmx_deny_gatectrl(struct clk_hw_omap *clk)
--#else
--void omap4_dpllmx_deny_gatectrl(struct clk *clk)
--#endif
- {
- 	u32 v;
- 	u32 mask;
-@@ -88,17 +76,10 @@ void omap4_dpllmx_deny_gatectrl(struct clk *clk)
- 	__raw_writel(v, clk->clksel_reg);
- }
+ config SOC_OMAP5
+ 	bool "TI OMAP5"
+@@ -78,6 +81,7 @@ config SOC_OMAP5
+ 	select CPU_V7
+ 	select HAVE_SMP
+ 	select SOC_HAS_REALTIME_COUNTER
++	select COMMON_CLK
  
--#ifdef CONFIG_COMMON_CLK
- const struct clk_hw_omap_ops clkhwops_omap4_dpllmx = {
- 	.allow_idle	= omap4_dpllmx_allow_gatectrl,
- 	.deny_idle      = omap4_dpllmx_deny_gatectrl,
- };
--#else
--const struct clkops clkops_omap4_dpllmx_ops = {
--	.allow_idle	= omap4_dpllmx_allow_gatectrl,
--	.deny_idle	= omap4_dpllmx_deny_gatectrl,
--};
--#endif
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+@@ -112,6 +116,7 @@ config SOC_AM33XX
+ 	select ARM_CPU_SUSPEND if PM
+ 	select CPU_V7
+ 	select MULTI_IRQ_HANDLER
++	select COMMON_CLK
  
- /**
-  * omap4_dpll_regm4xen_recalc - compute DPLL rate, considering REGM4XEN bit
-@@ -109,15 +90,10 @@ const struct clkops clkops_omap4_dpllmx_ops = {
-  * OMAP4 ABE DPLL.  Returns the DPLL's output rate (before M-dividers)
-  * upon success, or 0 upon error.
-  */
--#ifdef CONFIG_COMMON_CLK
- unsigned long omap4_dpll_regm4xen_recalc(struct clk_hw *hw,
- 			unsigned long parent_rate)
- {
- 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
--#else
--unsigned long omap4_dpll_regm4xen_recalc(struct clk *clk)
--{
--#endif
- 	u32 v;
- 	unsigned long rate;
- 	struct dpll_data *dd;
-@@ -149,16 +125,11 @@ unsigned long omap4_dpll_regm4xen_recalc(struct clk *clk)
-  * M-dividers) upon success, -EINVAL if @clk is null or not a DPLL, or
-  * ~0 if an error occurred in omap2_dpll_round_rate().
-  */
--#ifdef CONFIG_COMMON_CLK
- long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
- 				    unsigned long target_rate,
- 				    unsigned long *parent_rate)
- {
- 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
--#else
--long omap4_dpll_regm4xen_round_rate(struct clk *clk, unsigned long target_rate)
--{
--#endif
- 	u32 v;
- 	struct dpll_data *dd;
- 	long r;
-@@ -174,11 +145,7 @@ long omap4_dpll_regm4xen_round_rate(struct clk *clk, unsigned long target_rate)
- 	if (v)
- 		target_rate = target_rate / OMAP4430_REGM4XEN_MULT;
- 
--#ifdef CONFIG_COMMON_CLK
- 	r = omap2_dpll_round_rate(hw, target_rate, NULL);
--#else
--	r = omap2_dpll_round_rate(clk, target_rate);
--#endif
- 	if (r == ~0)
- 		return r;
- 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index a62010e..e6192cb 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -574,9 +574,7 @@ void __init omap4430_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap4_pm_init();
--#ifdef CONFIG_COMMON_CLK
- 	omap2_clk_enable_autoidle_all();
--#endif
- }
- #endif
+ config OMAP_PACKAGE_ZAF
+        bool
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index ae87a3e..f8dbf0c 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -153,17 +153,17 @@ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpllcore.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_virt_prcm_set.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_apll.o clkt2xxx_osc.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= clkt2xxx_dpll.o clkt_iclk.o
+-obj-$(CONFIG_SOC_OMAP2420)		+= clock2420_data.o
+-obj-$(CONFIG_SOC_OMAP2430)		+= clock2430.o clock2430_data.o
++obj-$(CONFIG_SOC_OMAP2420)		+= cclock2420_data.o
++obj-$(CONFIG_SOC_OMAP2430)		+= clock2430.o cclock2430_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o clkt34xx_dpll3m2.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clock3517.o clock36xx.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o clock3xxx_data.o
++obj-$(CONFIG_ARCH_OMAP3)		+= dpll3xxx.o cclock3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o
++obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) cclock44xx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
+ obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
+-obj-$(CONFIG_SOC_AM33XX)		+= clock33xx_data.o
++obj-$(CONFIG_SOC_AM33XX)		+= cclock33xx_data.o
+ obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common)
+ obj-$(CONFIG_SOC_OMAP5)			+= dpll3xxx.o dpll44xx.o
  
 -- 
 1.7.9.5
