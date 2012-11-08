@@ -1,72 +1,52 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 11/15] ARM: OMAP: timer: Interchange clksrc and clkevt
- for AM33XX
-Date: Thu, 8 Nov 2012 13:15:10 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC0B48E@DBDE01.ent.ti.com>
-References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
- <1351859566-24818-12-git-send-email-vaibhav.bedia@ti.com>
- <5095037A.2020503@deeprootsystems.com>
- <B5906170F1614E41A8A28DE3B8D121433EBFEA0E@DBDE01.ent.ti.com>
- <5095165E.10403@deeprootsystems.com>
- <B5906170F1614E41A8A28DE3B8D121433EBFEB57@DBDE01.ent.ti.com>
- <87pq3s7wro.fsf@deeprootsystems.com> <509836BA.5030507@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
+Date: Thu, 8 Nov 2012 14:28:39 +0100
+Message-ID: <356155A1-776B-4AA5-A912-14CE7D9AE42C@dominion.thruhere.net>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net> <509AE247.3000404@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52107 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755671Ab2KHNPS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 08:15:18 -0500
-Content-Language: en-US
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:49993 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755582Ab2KHN2n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 08:28:43 -0500
+Received: by mail-wg0-f44.google.com with SMTP id dr13so1829166wgb.1
+        for <linux-omap@vger.kernel.org>; Thu, 08 Nov 2012 05:28:42 -0800 (PST)
+In-Reply-To: <509AE247.3000404@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Ryan Mallon <rmallon@gmail.com>
+Cc: Tabi Timur-B04825 <B04825@freescale.com>, Grant Likely <grant.likely@secretlab.ca>, Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wood Scott-B07421 <B07421@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-Hi Santosh,
 
-On Tue, Nov 06, 2012 at 20:05:40, Bedia, Vaibhav wrote:
-> Hi Santosh,
-> 
-> On Tue, Nov 06, 2012 at 03:29:22, Shilimkar, Santosh wrote:
-> 
-> [...]
-> 
-> > >
-> > > IMO, assuming that idle will not be useful from the begining is leading
-> > > down the path to poor design choices that will be much more difficult to
-> > > fixup down the road in order to add idle support later.  We need to
-> > > design both idle and suspend at the same time.
-> > >
-> > I agree with Kevin. Not supporting CPUIDLE deep states can hit the
-> > active power numbers dearly. I just don't know why the SOCs don't share
-> > the standard and must have design choices. But thats another discussion.
-> > 
-> 
-> Yes, active power numbers are not comparable to OMAP :(
-> 
-> > How about leaving the timer choices as is. PER timer for clock source
-> > and wakeuptimer for clock event. Anyway in suspend the clock-source
-> > can be suspended and that is evident from recent discussion. The only
-> > downside is you won't count time in suspend which is any way the case.
-> > 
-> > Vaibhav,
-> > Do you guys see any implementation bottleneck for above ?
-> > 
-> 
-> Looking at the timekeeping code I see one more potential reason for making
-> this change. OMAP registers the 32k sync timer as the persistent clock and
-> since there's no 32k sync timer in AM33xx it doesn't register a persistent
-> clock right now. Based on what I understood, we need to have to register
-> one and DMTimer1 is the only clock that can serve as the persistent clock
-> in suspend state. When we do so we might as well use it as the clocksource.
-> 
-> A related question that I had was, is there a mechanism to handle the 32k
-> counter (DMTimer or sync timer) wraparound condition in suspend?
-> 
+Op 7 nov. 2012, om 23:35 heeft Ryan Mallon <rmallon@gmail.com> het volgende geschreven:
 
-Does interchanging the clksrc and clkevt look fine to you?
+> On 06/11/12 08:40, Tabi Timur-B04825 wrote:
+>> On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+>> 
+>>> Jane is building custom BeagleBone expansion boards called 'capes'. She
+>>> can boot the system with a stock BeagleBoard device tree, but additional
+>>> data is needed before a cape can be used. She could replace the FDT file
+>>> used by U-Boot with one that contains the extra data, but she uses the
+>>> same Linux system image regardless of the cape, and it is inconvenient
+>>> to have to select a different device tree at boot time depending on the
+>>> cape.
+>> 
+>> What's wrong with having the boot loader detect the presence of the
+>> Cape and update the device tree accordingly?  We do this all the time
+>> in U-Boot.  Doing stuff like reading EEPROMs and testing for the
+>> presence of hardware is easier in U-Boot than in Linux.
+> 
+> This is probably okay for some hardware, but doesn't work in the general
+> case. Not all hardware is detectable, for example a cape which just adds
+> a set of LEDs for GPIO pins. Also, some hardware might not easily be
+> detectable without adding additional complexity to the boot loader.
 
-Regards,
-Vaibhav
+And as Pantelis mentioned before, I really don't want my users to change the bootloader whenever they add a new LED. Touching the bootloader is just too accident prone, we had a ton of RMA requests for older versions of the beagleboard from people trying to upgrade u-boot.
+
+Apart from the above I'd like to have fewer points of failure. Right now I need to keep uImage and foo.dtb in sync and I hate to add u-boot to that equasion as well.
+
+regards,
+
+Koen
