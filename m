@@ -1,49 +1,43 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 4/4] arm/dts: am33xx: Add CPSW and MDIO module nodes for
- AM33XX
-Date: Thu, 8 Nov 2012 18:29:12 +0530
-Message-ID: <509BACA0.8060409@ti.com>
-References: <1351498881-32482-1-git-send-email-hvaibhav@ti.com> <1351498881-32482-6-git-send-email-hvaibhav@ti.com> <50914107.2090909@ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 15/15] ARM: OMAP2+: AM33XX: Basic suspend resume support
+Date: Thu, 8 Nov 2012 13:05:18 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC0B451@DBDE01.ent.ti.com>
+References: <1351859566-24818-1-git-send-email-vaibhav.bedia@ti.com>
+	<1351859566-24818-16-git-send-email-vaibhav.bedia@ti.com>
+	<87txt4aqyc.fsf@deeprootsystems.com>
+	<B5906170F1614E41A8A28DE3B8D121433EC04AE5@DBDE01.ent.ti.com>
+	<87r4o68bnl.fsf@deeprootsystems.com>
+	<B5906170F1614E41A8A28DE3B8D121433EC085EE@DBDE01.ent.ti.com>
+ <87pq3p72s7.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46911 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58192 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751477Ab2KHM7o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 07:59:44 -0500
-In-Reply-To: <50914107.2090909@ti.com>
+	id S1751304Ab2KHNF1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 08:05:27 -0500
+In-Reply-To: <87pq3p72s7.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, netdev@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Richard Cochran <richardcochran@gmail.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On 10/31/2012 8:47 PM, Benoit Cousson wrote:
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index c634f87..e233cfa 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -78,3 +78,11 @@
->   		};
->   	};
->   };
-> +
-> +&cpsw_emac0 {
-> +	phy_id = "4a101000.mdio:00";
-> Why are you using that kind of interface? You seem to want a reference
-> to a device.
->
-> Cannot you have something less hard coded like:
-> phy_id = <&davinci_mdio>, <0>;
-Benoit
+On Wed, Nov 07, 2012 at 22:45:20, Kevin Hilman wrote:
+[...]
+> >> 
+> >
+> > We could perhaps add a couple of APIs to check the SYSC values when coming
+> > out of suspend and take appropriate action if the sysc cache does not match?
+> 
+> Yes, for IPs with only SW support and no drivers, we may need something
+> like this.  But again, it needs to be suspend and idle aware, not just
+> suspend.
+> 
 
-I am having a issue in converting the above phy_id conversion from 
-"<&davinci_mdio>, <0>" to
-"4a101000.mdio:00". Since davinci_mdio is a child node to cpsw, the 
-platform device for mdio is
-not created to get the mdio device name "4a101000.mdio".
-Can you point me a reference to get the right implementation.
+Ok, if the pwrmdm pre and post transition callbacks do this that should take
+care of both suspend and idle.
 
-Regards
-Mugunthan V N
-
+Regards,
+Vaibhav
