@@ -1,90 +1,49 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 3/3] pwm: New driver to support PWM driven LEDs on
- TWL4030/6030 series of PMICs
-Date: Thu, 8 Nov 2012 14:29:52 +0200
-Message-ID: <CANOLnONQf6HH4GbVo2M9RbMytS4GfihypU5grOvDRs8LyP+M6Q@mail.gmail.com>
-References: <1352299488-11351-1-git-send-email-peter.ujfalusi@ti.com>
-	<1352299488-11351-4-git-send-email-peter.ujfalusi@ti.com>
-	<CANOLnONc29=cDZE=UXubs7DYOUWbgLJspPPVT2Hfq9E3zXkgVQ@mail.gmail.com>
-	<509B6087.2040004@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 1/3] omap gpmc : add support of setting CYCLE2CYCLEDELAY
+ and BUSTURNAROUND
+Date: Thu, 8 Nov 2012 12:54:48 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA0ED9E@DBDE01.ent.ti.com>
+References: <1352220277-4251-1-git-send-email-matthieu.castet@parrot.com>
+ <5099478A.50901@ti.com> <5099504A.5060505@parrot.com>
+ <5099743B.3040804@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA0E2D6@DBDE01.ent.ti.com>
+ <20121107214014.GM6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <509B6087.2040004@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>, Tero Kristo <t-kristo@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:37072 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755419Ab2KHMzA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 07:55:00 -0500
+In-Reply-To: <20121107214014.GM6801@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, Matthieu CASTET <matthieu.castet@parrot.com>, Daniel Mack <zonque@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dedekind1@gmail.com" <dedekind1@gmail.com>
 
-On Thu, Nov 8, 2012 at 9:34 AM, P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.=
-com> wrote:
-> On 11/07/2012 07:12 PM, Grazvydas Ignotas wrote:
->>> +static int twl4030_pwmled_config(struct pwm_chip *chip, struct pwm=
-_device *pwm,
->>> +                             int duty_ns, int period_ns)
->>> +{
->>> +       int duty_cycle =3D (duty_ns * TWL4030_LED_MAX) / period_ns;
->>> +       u8 on_time;
->>> +       u8 pwm_config[2];
->>> +       int base, ret;
->>> +
->>> +       if (duty_cycle >=3D TWL4030_LED_MAX)
->>> +               on_time =3D TWL4030_LED_MAX;
->>> +       else if (!duty_cycle)
->>> +               on_time =3D TWL4030_LED_MAX - 1;
->>> +       else
->>> +               on_time =3D TWL4030_LED_MAX - duty_cycle;
->>> +
->>> +       base =3D pwm->hwpwm * 2 + TWL4030_PWMA_REG;
->>> +
->>> +       pwm_config[0] =3D on_time;
->>> +       pwm_config[1] =3D TWL4030_LED_MAX;
->>> +
->>> +       ret =3D twl_i2c_write(TWL4030_MODULE_LED, pwm_config, base,=
- 2);
->>
->> Shouldn't this use TWL4030_MODULE_PWMA and TWL4030_MODULE_PWMB as
->> first argument? I can guess it works your way too, but
->> TWL4030_MODULE_PWMx would match the TRM better.
->
-> I don't have strong opinion regarding to this. You mean changing from=
-:
->
-> base =3D pwm->hwpwm * 2 + TWL4030_PWMA_REG;
-> ret =3D twl_i2c_write(TWL4030_MODULE_LED, pwm_config, base, 2);
->
-> to:
->
-> if (pwm->hwpwm)
->         module =3D TWL4030_MODULE_PWMB;
-> else
->         module =3D TWL4030_MODULE_PWMA;
-> ret =3D twl_i2c_write(module, pwm_config, 0, 2);
->
-> But I want to note that I'm currently trying to clean up the mess aro=
-und
-> twl-core. In my view we have quite a bit of redundancy in there. The =
-PWM A/B
-> is for driving the LED A/B outputs. We should have only these modules=
- for
-> PWM/LED in twl-core:
-> TWL_MODULE_PWM - offset for PWM0ON register in twl4030 and PWM1ON for=
- twl6030
-> TWL_MODULE_LED - offset for LEDEN register in twl4030 and LED_PWM_CTR=
-L1
->                  for twl6030
->
-> From here the driver can figure out what to do IMHO.
->
-> There's no need to have separate TWL 'modules' for:
-> TWL4030_BASEADD_PWM0
-> TWL4030_BASEADD_PWM1
-> TWL4030_BASEADD_PWMA
-> TWL4030_BASEADD_PWMB
-
-Well all these seem to come from TRM, no hard feelings here too but if
-you are going to remove them, probably worth adding a comment.
-
---=20
-Gra=C5=BEvydas
+SGkgVG9ueSwNCg0KT24gVGh1LCBOb3YgMDgsIDIwMTIgYXQgMDM6MTA6MTQsIFRvbnkgTGluZGdy
+ZW4gd3JvdGU6DQo+ICogTW9oYW1tZWQsIEFmemFsIDxhZnphbEB0aS5jb20+IFsxMjExMDcgMDE6
+MDBdOg0KDQo+ID4gQW5kIERhbmllbCBoYXMgc3RhcnRlZCB3b3JraW5nIG9uIGdwbWMgZHQuIExl
+dCB1cyB0YWtlIFRvbnkncw0KPiA+IG9waW5pb24gb24gaG93IHRvIGRlYWwgd2l0aCB0aGlzLCBU
+b255ID8NCg0KPiBVcCB0byB5b3UgdG8gZmlndXJlIG91dCB0aGUgb3JkZXJpbmcuDQoNCj4gTWF5
+YmUgc2VuZCBwdWxsIHJlcXVlc3RzIGZvciB0aGUgb25lcyB0aGF0IGFyZSByZWFkeSB0byBnbz8N
+Cg0KUGVuZGluZyB0aW1pbmcgcmVsYXRlZCBwYXRjaGVzLA0KDQphLiBBUk06IE9NQVAyKzogbmFu
+ZDogcmVtb3ZlIHJlZHVuZGFudCByb3VuZGluZw0KYi4gQVJNOiBPTUFQMis6IGdwbWM6IGhhbmRs
+ZSBhZGRpdGlvbmFsIHRpbWluZ3MNCmMuIEFSTTogT01BUDIrOiBncG1jOiBnZW5lcmljIHRpbWlu
+ZyBjYWxjdWxhdGlvbg0KZC4gQVJNOiBPTUFQMis6IG9uZW5hbmQ6IGdlbmVyaWMgdGltaW5nIGNh
+bGN1bGF0aW9uDQplLiBBUk06IE9NQVAyKzogc21jOTF4OiBnZW5lcmljIHRpbWluZyBjYWxjdWxh
+dGlvbg0KZi4gQVJNOiBPTUFQMis6IHR1c2I2MDEwOiBnZW5lcmljIHRpbWluZyBjYWxjdWxhdGlv
+bg0KDQpjYW4gYmUgZGl2aWRlZCB0byB0d28gY2F0ZWdvcmllcywNCg0KMS4gdGltaW5nIGNsZWFu
+dXAgKGEsYikNCjIuIG1pZ3JhdGUgdG8gZ2VuZXJpYyB0aW1pbmcgcm91dGluZSAoYy1mKQ0KDQon
+MScgaGFzIGJlZW4gdGVzdGVkIG9uIG9tYXAzZXZtIChhbHNvIHdpdGggdGhlIGhlbHAgb2YgYSBs
+b2NhbCBwYXRjaA0KYWRkaW5nIG9uZW5hbmQgc3VwcG9ydCkuDQoNCicyJyBoYXMgYmVlbiB2ZXJp
+ZmllZCBvbiBvbWFwM2V2bSBvbmVuYW5kIGFzeW5jIG9wZXJhdGlvbiAoc3VwcG9ydCBmb3INCm9t
+YXAzZXZtIG9uZW5hbmQgaXMgbm90IHByZXNlbnQgaW4gbWFpbmxpbmUpIGFuZCBieSBzaW11bGF0
+aW9uLiBUaGVzZQ0KY2hhbmdlcyBjb3VsZCBub3QgYmUgdmFsaWRhdGVkIG9uIGJvYXJkcyBzdXBw
+b3J0ZWQgaW4gbWFpbmxpbmUgdGhhdA0KbWFrZSB1c2Ugb2YgcnVudGltZSB0aW1pbmcgY2FsY3Vs
+YXRpb24gYXMgSSBkbyBub3QgaGF2ZSB0aG9zZSBib2FyZHMuDQoNCkkgd2lsbCBiZSBzZW5kaW5n
+IHB1bGwgcmVxdWVzdCBjb250YWluaW5nIGJvdGggc2V0cyAxICYgMiwgcGxlYXNlIGxldA0KbWUg
+a25vdyBpbiBjYXNlIHlvdSBoYXZlIGEgZGlmZmVyZW50IG9waW5pb24uDQoNClJlZ2FyZHMNCkFm
+emFsDQoNCg==
