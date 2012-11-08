@@ -1,91 +1,42 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 14/26] ARM: OMAP3: clock: Add 3xxx data using common
- struct clk
-Date: Thu, 8 Nov 2012 18:08:16 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-15-git-send-email-mturquette@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
+Date: Thu, 8 Nov 2012 12:08:37 -0600
+Message-ID: <509BF525.80309@ti.com>
+References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BDAF5.1010703@ti.com> <79CD15C6BA57404B839C016229A409A83EB68589@DBDE01.ent.ti.com> <509BEE6D.9000902@ti.com> <alpine.DEB.2.00.1211081754390.20703@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:53909 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755643Ab2KHSIR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 13:08:17 -0500
-In-Reply-To: <1352337181-29427-15-git-send-email-mturquette@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54774 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756593Ab2KHSIo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 13:08:44 -0500
+In-Reply-To: <alpine.DEB.2.00.1211081754390.20703@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On Wed, 7 Nov 2012, Mike Turquette wrote:
 
-> From: Rajendra Nayak <rnayak@ti.com>
+On 11/08/2012 11:58 AM, Paul Walmsley wrote:
+> On Thu, 8 Nov 2012, Jon Hunter wrote:
 > 
-> The patch is the output from a python script which converts
-> from the old OMAP clk format to COMMON clk format using a
-> JSON parser in between which was developed by Paul Walmsley.
+>> Igor was mentioning a h/w scenario where the 32kHz source is not
+>> present. However, I am not sure which devices support this and is
+>> applicable too.
 > 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> [paul@pwsan.com: AM3517/05: dropped bogus hsotgusb "ick" and "fck"
->  clkdev aliases; added hsotgusb_fck alias; added emac_ick and emac_fck
->  aliases; replace omap2_init_clksel_parent() with
->  omap2_clksel_find_parent_index(); reflow macros and parent name
->  lists; add clkdm_name argument to DEFINE_STRUCT_CLK_HW_OMAP macros]
-> Signed-off-by: Mike Turquette <mturquette@ti.com>
+> Pretty sure Igor is referring to the AM3517/3505.  This is very poorly 
+> documented, but can be observed in the AM3517 TRM Rev B (SPRUGR0B) Figure 
+> 4-23 "PRM Clock Generator" and the AM3517 DM Rev C (SPRS550C) Section 4 
+> "Clock Specifications".
 
-Am seeing warnings during the disable-unused-clocks phase of the boot
-on the OMAP3 test boards here.  Log is included at the bottom of this
-E-mail, with some debugging added for extra context.  The problem
-appears to be that the clock code is disabling clocks that are active
-in the hardware, but for which the clockdomain use count is 0, since
-they've never been enabled.
+Thanks Paul. But AFAICT, even in that h/w configuration the internal 32k
+oscillator will be used and so the gptimer will still have a 32k clock
+source.
 
-Ideally there would be some way for the core CCF code to indicate to the 
-underlying clock hardware implementation that the disable-unused-clock 
-process is a 'force disable'.  The OMAP clock hardware implementation code 
-could then also put the clockdomain to sleep (and skip the warning) in 
-such a circumstance.
+So I still don't see a use-case where the gptimer would not have a 32k
+source available. Admittedly, I could be missing one somewhere or I am
+just plain old wrong ...
 
-
-- Paul
-
-[    2.685943] disabling sys_clkout1: ec = 0
-[    2.690277] disabling wdt1_ick: ec = 0
-[    2.694366] disabling cam_mclk: ec = 0
-[    2.698333] ------------[ cut here ]------------
-[    2.703216] WARNING: at arch/arm/mach-omap2/clockdomain.c:961 _clkdm_clk_hwmod_disable+0xc4/0xd8()
-[    2.712646] Modules linked in:
-[    2.715911] [<c001c38c>] (unwind_backtrace+0x0/0xf0) from [<c0043cd8>] (warn_slowpath_common+0x4c/0x64)
-[    2.725799] [<c0043cd8>] (warn_slowpath_common+0x4c/0x64) from [<c0043d0c>] (warn_slowpath_null+0x1c/0x24)
-[    2.735961] [<c0043d0c>] (warn_slowpath_null+0x1c/0x24) from [<c003705c>] (_clkdm_clk_hwmod_disable+0xc4/0xd8)
-[    2.746520] [<c003705c>] (_clkdm_clk_hwmod_disable+0xc4/0xd8) from [<c0437bd0>] (clk_disable_unused_subtree+0xb0/0xbc)
-[    2.757781] [<c0437bd0>] (clk_disable_unused_subtree+0xb0/0xbc) from [<c0437b40>] (clk_disable_unused_subtree+0x20/0xbc)
-[    2.769226] ---[ end trace ebefd5468131571a ]---
-[    2.774261] disabling mspro_fck: ec = 0
-[    2.778320] disabling ssi_ssr_fck_3430es2: ec = 0
-[    2.783355] disabling pka_ick: ec = 0
-[    2.787231] disabling sad2d_ick: ec = 0
-[    2.791259] ------------[ cut here ]------------
-[    2.796142] WARNING: at arch/arm/mach-omap2/clockdomain.c:961 _clkdm_clk_hwmod_disable+0xc4/0xd8()
-[    2.805572] Modules linked in:
-[    2.808807] [<c001c38c>] (unwind_backtrace+0x0/0xf0) from [<c0043cd8>] (warn_slowpath_common+0x4c/0x64)
-[    2.818695] [<c0043cd8>] (warn_slowpath_common+0x4c/0x64) from [<c0043d0c>] (warn_slowpath_null+0x1c/0x24)
-[    2.828857] [<c0043d0c>] (warn_slowpath_null+0x1c/0x24) from [<c003705c>] (_clkdm_clk_hwmod_disable+0xc4/0xd8)
-[    2.839416] [<c003705c>] (_clkdm_clk_hwmod_disable+0xc4/0xd8) from [<c0437bd0>] (clk_disable_unused_subtree+0xb0/0xbc)
-[    2.850677] [<c0437bd0>] (clk_disable_unused_subtree+0xb0/0xbc) from [<c0437b40>] (clk_disable_unused_subtree+0x20/0xbc)
-[    2.862121] ---[ end trace ebefd5468131571b ]---
-[    2.867065] disabling wdt3_ick: ec = 0
-[    2.871032] disabling des1_ick: ec = 0
-[    2.875030] disabling sha11_ick: ec = 0
-[    2.879089] disabling rng_ick: ec = 0
-[    2.882995] disabling aes1_ick: ec = 0
-[    2.886932] disabling ssi_ick_3430es2: ec = 0
-[    2.891601] disabling mspro_ick: ec = 0
-[    2.895660] disabling des2_ick: ec = 0
-[    2.899658] disabling sha12_ick: ec = 0
-[    2.903686] disabling aes2_ick: ec = 0
-[    2.907684] disabling icr_ick: ec = 0
-[    2.911621] disabling wdt3_fck: ec = 0
-
-
-
+Cheers
+Jon
