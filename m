@@ -1,67 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: pinctrl-single: Fix the pins debug output
-Date: Thu, 8 Nov 2012 09:58:37 -0800
-Message-ID: <20121108175836.GF6801@atomide.com>
-References: <509BEF60.1030805@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] ARM: OMAP: second set of PRCM cleanups for 3.8
+Date: Thu, 8 Nov 2012 17:59:55 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211081759000.20703@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1211011216130.26661@utopia.booyaka.com> <20121106220833.GQ6801@atomide.com> <alpine.DEB.2.00.1211070150100.8758@utopia.booyaka.com> <20121107015841.GC6801@atomide.com> <alpine.DEB.2.00.1211070227500.8758@utopia.booyaka.com>
+ <alpine.DEB.2.00.1211071655000.20704@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:11443 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756373Ab2KHR6k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 12:58:40 -0500
-Content-Disposition: inline
-In-Reply-To: <509BEF60.1030805@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:53863 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756497Ab2KHR74 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 12:59:56 -0500
+In-Reply-To: <alpine.DEB.2.00.1211071655000.20704@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Benoit Cousson <b-cousson@ti.com> [121108 09:46]:
-> The offset parameter is in fact the pin index. The printed
-> value is then most of the time wrong.
-> Multiply that value by the width to get the proper offset.
+On Wed, 7 Nov 2012, Paul Walmsley wrote:
+
+> On Wed, 7 Nov 2012, Paul Walmsley wrote:
 > 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> ---
+> > On Tue, 6 Nov 2012, Tony Lindgren wrote:
+> > 
+> > > I'm getting errors with the allnoconfig ones, there are total four
+> > > omap defconfigs there not counting the randconfigs.
+> > 
+> > That might indeed explain the discrepancy; so far only have been building 
+> > his oldconfig seeds here.  Will add his allnoconfig seeds and test again.
 > 
-> Hi Tony,
-> 
-> I guess that should probably go for 3.7-rc.
-> 
-> Regards,
-> Benoit
+> Can reproduce this here.  Thanks for catching this.  Will fix and send a 
+> new pull request today and ensure that the two allnoconfigs are added to 
+> the build tests from now on.
 
-There is a similar patch already posted by Haojian at:
+Just a quick followup on this one: I observed a couple of minor 
+regressions during the retest, so, will deal with those before sending out 
+a new pull request.
 
-http://www.spinics.net/lists/arm-kernel/msg205682.html
 
-Linus' take was that by definition a debug output fix
-is not a fix, so not for the -rc cycle.
-
-Haojian is adding support for pinconf, so let's use his
-version as it also removes the fmask allowing it to
-show the whole register.
-
-Regards,
-
-Tony
- 
->  drivers/pinctrl/pinctrl-single.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-> index 726a729..aeca3bd 100644
-> --- a/drivers/pinctrl/pinctrl-single.c
-> +++ b/drivers/pinctrl/pinctrl-single.c
-> @@ -251,7 +251,7 @@ static void pcs_pin_dbg_show(struct pinctrl_dev *pctldev,
->  
->  	pcs = pinctrl_dev_get_drvdata(pctldev);
->  
-> -	val = pcs->read(pcs->base + offset);
-> +	val = pcs->read(pcs->base + offset * (pcs->width / BITS_PER_BYTE));
->  	val &= pcs->fmask;
->  
->  	seq_printf(s, "%08x %s " , val, DRIVER_NAME);
-> -- 
-> 1.7.0.4
+- Paul
