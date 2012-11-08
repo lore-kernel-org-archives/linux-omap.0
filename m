@@ -1,100 +1,108 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Thu, 8 Nov 2012 17:09:04 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB68593@DBDE01.ent.ti.com>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il>
- <20121107173343.GF6801@atomide.com> <509B5B84.50605@compulab.co.il>
- <20121108162004.GA6801@atomide.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: Timer and Counter DT Updates for v3.8
+Date: Thu, 8 Nov 2012 11:19:44 -0600
+Message-ID: <509BE9B0.5040608@ti.com>
+References: <50941812.2070501@ti.com> <20121107004703.GS6801@atomide.com> <20121107234403.GS6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36287 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486Ab2KHRJK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 12:09:10 -0500
-In-Reply-To: <20121108162004.GA6801@atomide.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:51324 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756024Ab2KHRTx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 12:19:53 -0500
+In-Reply-To: <20121107234403.GS6801@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Igor Grinberg <grinberg@compulab.co.il>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hunter, Jon" <jon-hunter@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-On Thu, Nov 08, 2012 at 21:50:05, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [121107 23:15]:
-> > On 11/07/12 19:33, Tony Lindgren wrote:
-> > > 
-> > > I think this should be the default for the timers as that counter
-> > > does not stop during deeper idle states.
-> > 
-> > Well, it is the default as you can see from the patch.
-> > The problem is that for boards that for some reason do not have
-> > the 32k wired and rely on MPU/GP timer source, the default will not work
-> > and currently there is no way for board to specify which timer source
-> > it can use.
-> 
-> Yes. I was just wondering if we can avoid patching all the board
-> files by doing it the other way around by introducing a new
-> omap_gp_timer rather than renaming all the existing ones?
-> 
-> > We have discussed this in San Diego (remember?) and you actually proposed
-> > this way as a solution. Well, may be I took it a bit further than you
-> > thought, but this is because the board code cannot know which timer source
-> > should be used at runtime and the fall back described below, does not work.
-> 
-> Yes thanks I agree we should get rid of that Kconfig option for sure. 
-> 
-> > >> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> > >> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> > >> @@ -284,6 +284,6 @@ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
-> > >>  	.handle_irq	= omap2_intc_handle_irq,
-> > >>  	.init_machine	= omap_2430sdp_init,
-> > >>  	.init_late	= omap2430_init_late,
-> > >> -	.timer		= &omap2_timer,
-> > >> +	.timer		= &omap2_sync32k_timer,
-> > >>  	.restart	= omap_prcm_restart,
-> > >>  MACHINE_END
-> > >> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> > >> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> > >> @@ -596,6 +596,6 @@ MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
-> > >>  	.handle_irq	= omap3_intc_handle_irq,
-> > >>  	.init_machine	= omap_3430sdp_init,
-> > >>  	.init_late	= omap3430_init_late,
-> > >> -	.timer		= &omap3_timer,
-> > >> +	.timer		= &omap3_sync32k_timer,
-> > >>  	.restart	= omap_prcm_restart,
-> > >>  MACHINE_END
-> > > ...
-> > > 
-> > > Can't we assume that the default timer is omap[234]_sync32k_timer to
-> > > avoid renaming the timer entries in all the board files?
-> > 
-> > Hmmm...
-> > How will this work with the macros defining the sys_timer structure?
-> > I would also not want to hide the exact timer used under the default name.
-> 
-> Can't you just add a new sys_timer (or a new macro) for GP only setups? 
->  
-> > > Then we just need a new timer entries for the hardware that does
-> > > not have the sycn32k_timer available?
-> > 
-> > Well, I tried to make it small patch just for the hardware that needs it,
-> > but I always found some corner case where, IMHO, this does not work/look good.
-> 
-> Can you explain a bit further?
-> 
-> I guess what I'm after is just to avoid renaming the existing
-> timers in the board-*.c files and only rename the ones that
-> need gp timer only.
-> 
 
-That would be AM33xx family :)
+On 11/07/2012 05:44 PM, Tony Lindgren wrote:
+> Hi Jon,
+> 
+> * Tony Lindgren <tony@atomide.com> [121106 16:48]:
+>> * Jon Hunter <jon-hunter@ti.com> [121102 12:01]:
+>>>
+>>>   git@github.com:jonhunter/linux.git dev-dt-timer
+>>
+>> Thanks pulling into omap-for-v3.8/dt branch.
+> 
+> Looks like omap-for-v3.8/dt boots OK on blaze when booted
+> with device tree, but then current omap-for-v3.8/tmp-merge
+> oopses.
 
-Thanks,
-Vaibhav
+That's a bugger. I completely missed your patch last week sorry (I will blame the Danish
+beer) and had clearly not folded in to my testing!
 
+> I guess we should apply the following fix somewhere or
+> do we need to check other places too?
+
+I will re-test your master branch today and put it through my dmtimer tests to double check.
+However, in general I did ensure that we checked pdata was not NULL before accessing when 
+I introduced the dt stuff. In my changelog [1] I had ...
+
+"5. When device-tree is present the platform_data structure will be NULL and so check for
+this."
+
+I just need to make sure that get_context_loss_count() is not called before checking it is
+populated.  
+ 
 > Regards,
 > 
 > Tony
 > 
+> [<c04e3d30>] (omap_dm_timer_probe+0x110/0x310) from [<c0334a18>] (platform_drv_probe+0x1c/0x24)
+> [<c0334a18>] (platform_drv_probe+0x1c/0x24) from [<c03335d4>] (really_probe+0x60/0x1f4)
+> [<c03335d4>] (really_probe+0x60/0x1f4) from [<c033379c>] (driver_probe_device+0x34/0x50)
+> [<c033379c>] (driver_probe_device+0x34/0x50) from [<c033384c>] (__driver_attach+0x94/0x98)
+> [<c033384c>] (__driver_attach+0x94/0x98) from [<c0331df8>] (bus_for_each_dev+0x60/0x8c)
+> [<c0331df8>] (bus_for_each_dev+0x60/0x8c) from [<c03326c4>] (bus_add_driver+0x18c/0x254)
+> [<c03326c4>] (bus_add_driver+0x18c/0x254) from [<c0333e44>] (driver_register+0x5c/0x150)
+> [<c0333e44>] (driver_register+0x5c/0x150) from [<c0008868>] (do_one_initcall+0x2c/0x178)
+> [<c0008868>] (do_one_initcall+0x2c/0x178) from [<c06df2a0>] (do_basic_setup+0x94/0xd0)
+> [<c06df2a0>] (do_basic_setup+0x94/0xd0) from [<c06df358>] (kernel_init_freeable+0x7c/0x124)
+> [<c06df358>] (kernel_init_freeable+0x7c/0x124) from [<c04e1810>] (kernel_init+0x8/0x1a8)
+> [<c04e1810>] (kernel_init+0x8/0x1a8) from [<c0014410>] (ret_from_fork+0x14/0x24)
+> 
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -803,8 +803,11 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+>  
+>  	timer->irq = irq->start;
+>  	timer->pdev = pdev;
+> -	timer->capability = pdata->timer_capability;
+> -	timer->get_context_loss_count = pdata->get_context_loss_count;
+> +
+> +	if (pdata) {
+> +		timer->capability = pdata->timer_capability;
 
+You don't need this it is already handled a few lines before.
+
+> +		timer->get_context_loss_count = pdata->get_context_loss_count;
+
+We could probably move this too. For example ...
+
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 38c12ef..9dca23e 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -799,12 +799,11 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+                timer->id = pdev->id;
+                timer->capability = pdata->timer_capability;
+                timer->reserved = omap_dm_timer_reserved_systimer(timer->id);
++               timer->get_context_loss_count = pdata->get_context_loss_count;
+        }
+ 
+        timer->irq = irq->start;
+        timer->pdev = pdev;
+-       timer->capability = pdata->timer_capability;
+-       timer->get_context_loss_count = pdata->get_context_loss_count;
+ 
+        /* Skip pm_runtime_enable for OMAP1 */
+        if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
+
+Cheers
+Jon
+
+[1] http://marc.info/?l=linux-omap&m=135065877008624&w=2
