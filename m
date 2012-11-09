@@ -1,129 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv2] ARM: OMAP4: USB: power down MUSB PHY during boot
-Date: Fri, 9 Nov 2012 16:30:34 +0200
-Message-ID: <20121109143033.GB10718@arwen.pp.htv.fi>
-References: <1352471435-9560-1-git-send-email-t-kristo@ti.com>
-Reply-To: <balbi@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc: Fix Oops in case of data errors
+Date: Fri, 9 Nov 2012 20:11:19 +0530
+Message-ID: <1352472079-1512-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GID0FwUMdk1T2AWN"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60168 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753441Ab2KIOgu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Nov 2012 09:36:50 -0500
-Content-Disposition: inline
-In-Reply-To: <1352471435-9560-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, cjb@laptop.org
+Cc: linux-omap@vger.kernel.org, svenkatr@ti.com, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 
---GID0FwUMdk1T2AWN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Setting end_cmd to 1 for Data Timeout/CRC leads to NULL pointer dereference of
+host->cmd as the command complete has previously been handled.
+Set end_cmd only in case of Data Timeout/CRC.
 
-HI,
+While at it restore error handling behaviour as was before the
+"commit ae4bf788ee9bf7c2d51b0309117d1fcccbdd50a2
+mmc: omap_hsmmc: consolidate error report handling of HSMMC IRQ"
 
-On Fri, Nov 09, 2012 at 04:30:35PM +0200, Tero Kristo wrote:
-> Commit c9e4412ab8eb8ef82d645d8749c4ce96ad490007 removed all of the USB
-> PHY functions for OMAP4, but this causes a problem with core retention
-> as the MUSB module remains enabled if omap-usb2 phy driver is not used.
-> This keeps the USB DPLL enabled and prevents l3_init pwrdm from idling.
->=20
-> Fixed by adding a minimal function back that disables the USB PHY during
-> boot.
->=20
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Kishon Vijay Abraham I <kishon@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@ti.com>
+host->cmd->error should not be updated on data error case, only
+host->data->error needs to be updated.
+end_trans and end_crc should not to be set together, to avoid
+mmc_request_done being called twice in case of Command CRC or command
+Timeout.
+Avoid soft reset of command internal state machine on data errors.
 
-looks good to me. I would still suggest adding a REVISIT or FIXME note
-stating that this should be moved to SCM driver eventually ;-)
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+based on mmc-fixes-for-3.7-rc5 in mmc_next
 
-Other than that:
+ drivers/mmc/host/omap_hsmmc.c |   23 +++++++++++++++--------
+ 1 files changed, 15 insertions(+), 8 deletions(-)
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index fedd258..6ea1da3 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -968,15 +968,20 @@ static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_host *host,
+ 			__func__);
+ }
+ 
+-static void hsmmc_command_incomplete(struct omap_hsmmc_host *host, int err)
++static void hsmmc_command_incomplete(struct omap_hsmmc_host *host,
++					int err, int end_cmd)
+ {
+-	omap_hsmmc_reset_controller_fsm(host, SRC);
+-	host->cmd->error = err;
++	if (end_cmd) {
++		omap_hsmmc_reset_controller_fsm(host, SRC);
++		if (host->cmd)
++			host->cmd->error = err;
++	}
+ 
+ 	if (host->data) {
+ 		omap_hsmmc_reset_controller_fsm(host, SRD);
+ 		omap_hsmmc_dma_cleanup(host, err);
+-	}
++	} else if (host->mrq && host->mrq->cmd)
++		host->mrq->cmd->error = err;
+ 
+ }
+ 
+@@ -990,14 +995,16 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
+ 
+ 	if (status & ERR) {
+ 		omap_hsmmc_dbg_report_irq(host, status);
++
++		if (status & (CMD_TIMEOUT | CMD_CRC))
++			end_cmd = 1;
+ 		if (status & (CMD_TIMEOUT | DATA_TIMEOUT))
+-			hsmmc_command_incomplete(host, -ETIMEDOUT);
++			hsmmc_command_incomplete(host, -ETIMEDOUT, end_cmd);
+ 		else if (status & (CMD_CRC | DATA_CRC))
+-			hsmmc_command_incomplete(host, -EILSEQ);
++			hsmmc_command_incomplete(host, -EILSEQ, end_cmd);
+ 
+-		end_cmd = 1;
+ 		if (host->data || host->response_busy) {
+-			end_trans = 1;
++			end_trans = !end_cmd;
+ 			host->response_busy = 0;
+ 		}
+ 	}
+-- 
+1.7.5.4
 
-> ---
->  arch/arm/mach-omap2/omap_phy_internal.c |   32 +++++++++++++++++++++++++=
-++++++
->  1 files changed, 32 insertions(+), 0 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap=
-2/omap_phy_internal.c
-> index d992db8..9b56e5e 100644
-> --- a/arch/arm/mach-omap2/omap_phy_internal.c
-> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-> @@ -33,6 +33,38 @@
->  #include "soc.h"
->  #include "control.h"
-> =20
-> +#define CONTROL_DEV_CONF		0x300
-> +#define PHY_PD				0x1
-> +
-> +/**
-> + * omap4430_phy_power_down: disable MUSB PHY during early init
-> + *
-> + * OMAP4 MUSB PHY module is enabled by default on reset, but this will
-> + * prevent core retention if not disabled by SW. USB driver will
-> + * later on enable this, once and if the driver needs it.
-> + */
-> +static int __init omap4430_phy_power_down(void)
-> +{
-> +	void __iomem *ctrl_base;
-> +
-> +	if (!cpu_is_omap44xx())
-> +		return 0;
-> +
-> +	ctrl_base =3D ioremap(OMAP443X_SCM_BASE, SZ_1K);
-> +	if (!ctrl_base) {
-> +		pr_err("control module ioremap failed\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	/* Power down the phy */
-> +	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-> +
-> +	iounmap(ctrl_base);
-> +
-> +	return 0;
-> +}
-> +early_initcall(omap4430_phy_power_down);
-> +
->  void am35x_musb_reset(void)
->  {
->  	u32	regval;
-> --=20
-> 1.7.4.1
->=20
-
---=20
-balbi
-
---GID0FwUMdk1T2AWN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQnROJAAoJEIaOsuA1yqREFy4P/jq1KtxgG38cIFN8ufZM1/Yc
-OVqMnD7LqncVldngrPmzCSeKYSrI0SIUs++JuTyTipwlcv7tUti1aW4a358kNPv9
-fGYggLLFK9lqd0o9LCnq+YbPgmDeavg1uue32K3L+z2W7NbC+7Jk78NJSPGLDEN5
-PDiXANm9x4kdfCrxPx8tlrf1F+nqyduvrMhiwx1y1Gx5SQvT/MX3fSx3n0VGCRhv
-1/xvphWSQKqy+dR12wf3g3vZZslGe0c3yNlKrw9hgnIUun6x8YZdjw/W4RjWCz0m
-44RV9EmDWeQnj1CobjMwrtJHvMVRLs5kHk20auNUiO5YSNP34gPV26LswfjksXIs
-6L4eKcwLXtg9fJ7lgDQSpZpfITx18ImltZ1ZPZ0qXHg2BEogYJLvD6fTcWxYSpx2
-wXpKLS6/cIhkMZXllKUNKt0HH31vBGdrqSyHO9UDIJ6n82/1CM7ijHQZuiBc64e0
-+i08IUO/cKdthTeADJrKY/KTpcBTBln2PPEkiQ2X6Gy57h6uRnSv0NFTGiCQWyMl
-v44IMB2wqXfyIKtM5Go1wVTM4TNsKXgdSQRyMOWhuPSW0KB/hmDeUhycwCTVc5RD
-G3PVbUAInMxaey9YZ2VkU2R44AlPNycrVP3iVZcrcjT/I44QSba4RSSb9UMvtjGJ
-SFz3W19i9ywx9OG8+qz5
-=2tiA
------END PGP SIGNATURE-----
-
---GID0FwUMdk1T2AWN--
