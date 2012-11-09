@@ -1,39 +1,32 @@
 From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v2 06/10] pwm: pwm-tiehrpwm: Add device-tree binding
- support for EHRPWM driver
-Date: Fri, 9 Nov 2012 09:07:27 +0100
-Message-ID: <20121109080727.GA26007@avionic-0098.mockup.avionic-design.de>
+Subject: Re: [PATCH v2 08/10] pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+Date: Fri, 9 Nov 2012 09:11:04 +0100
+Message-ID: <20121109081104.GB26007@avionic-0098.mockup.avionic-design.de>
 References: <1352361197-27442-1-git-send-email-avinashphilip@ti.com>
- <1352361197-27442-7-git-send-email-avinashphilip@ti.com>
+ <1352361197-27442-9-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pWyiEgJYm5f9v55/"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61657 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057Ab2KIIHp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 03:07:45 -0500
+	protocol="application/pgp-signature"; boundary="f2QGlHpHGjS2mn6Y"
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1352361197-27442-7-git-send-email-avinashphilip@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1352361197-27442-9-git-send-email-avinashphilip@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: "Philip, Avinash" <avinashphilip@ti.com>
 Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+List-Id: linux-omap@vger.kernel.org
 
 
---pWyiEgJYm5f9v55/
+--f2QGlHpHGjS2mn6Y
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 08, 2012 at 01:23:13PM +0530, Philip, Avinash wrote:
-> This patch
-> 1. Add support for device-tree binding for EHRWPM driver.
-> 2. Set size of pwm-cells set to 3 to support PWM channel number, PWM
->    period & polarity configuration from device tree.
-> 3. Add enable/disable clock gating in PWM subsystem common config space.
-> 4. When here set .owner member in platform_driver structure to
->    THIS_MODULE.
+On Thu, Nov 08, 2012 at 01:23:15PM +0530, Philip, Avinash wrote:
+> Some platforms (like AM33XX) requires clock gating from control module
+> explicitly for TBCLK. Enabling of this clock required for the
+> functioning of the time base sub module in EHRPWM module. So adding
+> optional TBCLK handling if DT node populated with tbclkgating. This
+> helps the driver can coexist for Davinci platforms.
 >=20
 > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
 > Cc:	Grant Likely <grant.likely@secretlab.ca>
@@ -41,42 +34,92 @@ On Thu, Nov 08, 2012 at 01:23:13PM +0530, Philip, Avinash wrote:
 > Cc: Rob Landley <rob@landley.net>
 > ---
 > Changes since v1:
-> 	- Add separate patch for pinctrl support
-> 	- Add conditional check for PWM subsystem clock enable.
-> 	- Combined with HWMOD changes & DT bindings.
-> 	- Remove the custom of xlate support.
+> 	- Moved TBCLK enable from probe to .pwm_enable & disable from
+> 	  remove to .pwm_disable
 >=20
-> :000000 100644 0000000... aa2ed0a... A	Documentation/devicetree/bindings/=
-pwm/pwm-tiehrpwm.txt
-> :100644 100644 d3c1dff... fba7f9b... M	drivers/pwm/pwm-tiehrpwm.c
->  .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |   25 ++++++++++
->  drivers/pwm/pwm-tiehrpwm.c                         |   49 ++++++++++++++=
-+++++-
->  2 files changed, 72 insertions(+), 2 deletions(-)
+> :100644 100644 07911e6... 927a8ed... M	drivers/pwm/pwm-tiehrpwm.c
+>  drivers/pwm/pwm-tiehrpwm.c |   22 ++++++++++++++++++++++
+>  1 files changed, 22 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
+> index 07911e6..927a8ed 100644
+> --- a/drivers/pwm/pwm-tiehrpwm.c
+> +++ b/drivers/pwm/pwm-tiehrpwm.c
+> @@ -126,6 +126,7 @@ struct ehrpwm_pwm_chip {
+>  	void __iomem	*mmio_base;
+>  	unsigned long period_cycles[NUM_PWM_CHANNEL];
+>  	enum pwm_polarity polarity[NUM_PWM_CHANNEL];
+> +	struct	clk	*tbclk;
+>  };
+> =20
+>  static inline struct ehrpwm_pwm_chip *to_ehrpwm_pwm_chip(struct pwm_chip=
+ *chip)
+> @@ -346,6 +347,13 @@ static int ehrpwm_pwm_enable(struct pwm_chip *chip, =
+struct pwm_device *pwm)
+>  	/* Channels polarity can be configured from action qualifier module */
+>  	configure_polarity(pc, pwm->hwpwm);
+> =20
+> +	/*
+> +	 * Platforms require explicit clock enabling of TBCLK has
+> +	 * to enable TBCLK explicitly before enabling PWM device
+> +	 */
+> +	if (pc->tbclk)
+> +		clk_enable(pc->tbclk);
+> +
+>  	/* Enable time counter for free_run */
+>  	ehrpwm_modify(pc->mmio_base, TBCTL, TBCTL_RUN_MASK, TBCTL_FREE_RUN);
+>  	return 0;
+> @@ -374,6 +382,10 @@ static void ehrpwm_pwm_disable(struct pwm_chip *chip=
+, struct pwm_device *pwm)
+> =20
+>  	ehrpwm_modify(pc->mmio_base, AQCSFRC, aqcsfrc_mask, aqcsfrc_val);
+> =20
+> +	/* Disabling TBCLK on PWM disable */
+> +	if (pc->tbclk)
+> +		clk_disable(pc->tbclk);
+> +
+>  	/* Stop Time base counter */
+>  	ehrpwm_modify(pc->mmio_base, TBCTL, TBCTL_RUN_MASK, TBCTL_STOP_NEXT);
+> =20
+> @@ -464,6 +476,16 @@ static int __devinit ehrpwm_pwm_probe(struct platfor=
+m_device *pdev)
+>  		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
+>  		return ret;
+>  	}
+> +
+> +	/* Some platforms require explicit tbclk gating */
+> +	if (of_property_read_bool(pdev->dev.of_node, "tbclkgating")) {
 
-The same comments apply as for the pwm-tiecap driver patch.
+Is it really necessary to have an extra boolean property for this?
+Couldn't this just be handled by not defining a clock for the tbclk
+consumer in board setup/DT
+
+> +		pc->tbclk =3D clk_get(&pdev->dev, "tbclk");
+
+You should be using devm_clk_get() or add a matching clk_put() in
+=2Eremove().
 
 Thierry
 
---pWyiEgJYm5f9v55/
+--f2QGlHpHGjS2mn6Y
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.19 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQnLm/AAoJEN0jrNd/PrOhmOgP/0B/6MWQw+hqwUreKowC5m05
-RaRQQABNOrIZTmIgPbKDT1wiqIgv5uK4otqIyfzGTHq2t0PXiALnRRcm1PisHuTi
-+JlGGhhmRAROR2bhFNPnyPLkJoUoznO9Cf72j4TCVyMXUGBl+je4abAiQIECJ3bg
-7VFn9XfIJ6YFILIdFpZP7yYyAwySdgP4wMMTDp7MoZmNnWm14GyZPQtha3jLdzwh
-2JZbJ2VnpCKx9JulwHroCx+PFbdeupGaWEuKFF0Nqh/nEgrd7EXtQgjplpqXStjy
-N+k1zWevk5yYbYbeDVVw8vtYhT9C+Ea2GgN+jugaTDh8TKpCZK9ADuvgXRGGB7Dp
-dTeR0Ef0mr3yHsYVvHngsimExKrgpq0DcXGJ2iGJn2E+8ppemoBS4I+mQaN+OIkY
-uDTvYPdC5hcTynsIORIIj4UuJTb/aZc2/RCCuWrZOON1UrbqCk3faM3X4nWgChr5
-EudX+Oc5Vp0lc07qAfzNaUclWFAXEN4EzCv1GmNx3+VtInif8iBvf4+sg0b2R22D
-KD/36eCBPzOLLwEB5IJZcA326dCtt/qQLcFxEEGkyCbw3xLyTi8dM0qaoEn1MJz8
-w/odpqMlnodJWBhMqPH1rxMJD3qwV4icsXurTtYXe0SudT96kNf9eTDdZqHMzzek
-jcvsNEBOXaGm9RW4lRFk
-=/1ye
+iQIcBAEBAgAGBQJQnLqYAAoJEN0jrNd/PrOhHg4P+wTUIZpgbX9390s5ZeIEXOTr
+zrsjPXF8qkOAL0siWyipO0mPvu/K7Lr9/aMEBMOfkTS2C/HWj1wzhyDBmHdvDCmW
+gBzT1zEi66QFST9OGDtBeEGDIN+0pjC5uJ7GNnr2rkqBzuKADSncBXQNkPp1xKvu
+N8nXm4LBr3BHzqbWRYCmrDsvq82XX4tLoZLXc0iU1BivHzfl4OL9KkE8AsXY/a0I
+EdqLrhdB/igrt5nB32AI2keENeMJ3Qfwt+JTE/HFM98+sutlmSBjeXANu/dTioO/
+lG2eJ3w9oGWB2MhmHuRAANbfvNfmMRUBYRkE+pucvqFSv4Yta7cXxUR6otbphNFb
+CjjPPuEBAKDgff2KogagZMpdABszWbFKyo0Cse5KLtf6VEa1v9RiQqSM8HZt6rgm
+9k8GezDZOKDMlUd+9c3PEuDL2Hej26vvJHsD3CrkH/d3rOIUjumeqjQ7NR+BCtUp
+5q1/SJ59qba6PDSynRZH/XORqtiqEGZdXfon35mE83MpTQtmuC+BDVEHJx9TdqO4
+rxAdUzL1jb+SqxCWt83g8eDn2cafWWhQYtdAp6wff3VRNZP5h4uZ9xl+IHW7ibVt
+qMFvNnprnhd7csrY4DllF82IfrttE6zFCW8t4DTk4xKAaD4IUlK+iJYj653yeBRO
+ibbTVuZs3cDWzqDsVhgi
+=JtKg
 -----END PGP SIGNATURE-----
 
---pWyiEgJYm5f9v55/--
+--f2QGlHpHGjS2mn6Y--
