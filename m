@@ -1,53 +1,80 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH v3 1/7] ARM: OMAP2xxx: hwmod: Convert SHAM crypto
- device data to hwmod
-Date: Fri, 9 Nov 2012 11:20:24 -0700
-Message-ID: <20121109182024.GF13898@animalcreek.com>
-References: <1352257033-32495-1-git-send-email-mgreer@animalcreek.com>
- <1352257033-32495-2-git-send-email-mgreer@animalcreek.com>
- <CALLzPKY7TCFe0yvpwJFNf8U2=h4k1Jcb8g9Q0UpGM8qv2FcSwg@mail.gmail.com>
- <20121109170703.GA13898@animalcreek.com>
- <alpine.DEB.2.00.1211091709000.20703@utopia.booyaka.com>
- <20121109180031.GQ6801@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] mmc: hsmmc: Fix NULL pointer dereference on unload when
+ booted with device tree
+Date: Fri, 9 Nov 2012 10:25:34 -0800
+Message-ID: <20121109182534.GR6801@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20121109180031.GQ6801@atomide.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Kasatkin, Dmitry" <dmitry.kasatkin@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, rmk+kernel@arm.linux.org.uk, khilman@deeprootsystems.com
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Venkatraman S <svenkatr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 09, 2012 at 10:00:31AM -0800, Tony Lindgren wrote:
-> * Paul Walmsley <paul@pwsan.com> [121109 09:13]:
-> > On Fri, 9 Nov 2012, Mark A. Greer wrote:
-> > 
-> > > On Fri, Nov 09, 2012 at 06:10:20PM +0200, Kasatkin, Dmitry wrote:
-> > >
-> > > > Why not using macros as it was before?
-> > > > 
-> > > > OMAP24XX_SEC_SHA1MD5_BASE
-> > > 
-> > > I am following the precedent set in the existing code of that file
-> > > which uses the actual address instead of a macro (except for uart).
-> > > 
-> > > I have no preference but I believe that is how Paul prefers it.
-> > > 
-> > > Paul?
-> > 
-> > My upstream prefers the raw addresses, I believe, under the rationale that 
-> > it allows the macro definitions to be removed from arch/arm/mach-omap2.  
-> > This reduces the total number of lines of code in that directory - and 
-> > this is currently an overriding concern of my upstreams.
-> > 
-> > So, yes the address format in your patch is fine.
-> 
-> Yes that should be the only place where that address is defined.
-> If OMAP24XX_SEC_SHA1MD5_BASE is used in multiple locations, then
-> it makes sense to define it in some local header.
+When booting with device tree, we don't have any pdata, and will
+get the following when trying to unload omap_hsmmc:
 
-According to my 'git grep', its the only place so the patch should be good.
+Unable to handle kernel NULL pointer dereference at virtual address 00000044
+pgd = edafc000
+*pgd=adbbd831, *pte=00000000, *ppte=00000000
+SMP ARM
+Modules linked in: omap_hsmmc(-) omap_serial pinctrl_single
+CPU: 1    Not tainted  (3.7.0-rc4-00044-g8ca5f6a-dirty #245)
+PC is at omap_hsmmc_gpio_free+0x8/0x3c [omap_hsmmc]
+LR is at omap_hsmmc_remove+0xf0/0x174 [omap_hsmmc]
+   psr: 60000113
+sp : ee887ef0  ip : 00000040  fp : be83cc14
+r10: 00000000  r9 : ee886000  r8 : c0014348
+r7 : ee886000  r6 : eea1d010  r5 : eea1d000  r4 : 00000000
+r3 : 00000000  r2 : 00000000  r1 : 00000000  r0 : 00000000
+Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+Control: 10c53c7d  Table: adafc04a  DAC: 00000015
+Process rmmod (pid: 1758, stack limit = 0xee886240)
+Stack: (0xee887ef0 to 0xee888000)
+7ee0:                                     edbe1400 bf01250c eea1d018 eea1d010
+7f00: bf0138ac c0331c64 ee886000 c0330528 eea1d010 bf0138ac eea1d044 c033063c
+7f20: 00000000 bf0138ac c079f250 c032f618 00000000 00000880 bf013980 c00a42d0
+7f40: c02ce9b4 70616d6f 6d73685f 0000636d c04ef560 c0014348 ee886000 ee886000
+7f60: eeb21600 00000001 c00142a0 60000110 00000000 ef000000 be83cc14 00095f40
+7f80: bf013980 00000880 ee887f8c 00000000 00000081 be83cba8 00000000 00000000
+7fa0: 00000081 c00141a0 be83cba8 00000000 be83cba8 00000880 00000880 be83cba8
+7fc0: be83cba8 00000000 00000000 00000081 00000000 00000000 b6f42000 be83cc14
+7fe0: 00000000 be83cba0 000091cc b6eb48bc 60000110 be83cba8 aaaaaaaa aabaaaaa
+(omap_hsmmc_remove+0xf0/0x174 [omap_hsmmc])
+(platform_drv_remove+0x1c/0x24)
+(__device_release_driver+0x90/0xf0)
+(driver_detach+0xb4/0xb8)
+(bus_remove_driver+0x88/0xdc)
+(sys_delete_module+0x144/0x220)
+(ret_fast_syscall+0x0/0x3c)
+Code: eaffffbe c073a1f0 e92d4010 e1a04000 (e5900044)
 
-Mark
---
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+---
+
+This is against v3.7-rc4, would be nice to get in during the -rc cycle.
+
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -377,6 +377,9 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
+ {
+ 	int ret;
+ 
++	if (!pdata)
++		return 0;
++
+ 	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
+ 		if (pdata->slots[0].cover)
+ 			pdata->slots[0].get_cover_state =
+@@ -418,6 +421,9 @@ err_free_sp:
+ 
+ static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pdata)
+ {
++	if (!pdata)
++		return;
++
+ 	if (gpio_is_valid(pdata->slots[0].gpio_wp))
+ 		gpio_free(pdata->slots[0].gpio_wp);
+ 	if (gpio_is_valid(pdata->slots[0].switch_pin))
