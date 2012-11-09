@@ -1,99 +1,59 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP baseline test results for v3.7-rc4
-Date: Fri, 09 Nov 2012 15:23:23 -0800
-Message-ID: <87390iicno.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1211050241410.23228@utopia.booyaka.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
+ to mach-omap2)
+Date: Fri, 09 Nov 2012 16:23:53 -0700
+Message-ID: <509D9089.7020407@wwwdotorg.org>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <50999145.2070306@wwwdotorg.org> <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1211050241410.23228@utopia.booyaka.com> (Paul
- Walmsley's message of "Mon, 5 Nov 2012 02:46:51 +0000 (UTC)")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, Venkatraman S <svenkatr@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-+Felipe, Venkat
+On 11/09/2012 09:28 AM, Grant Likely wrote:
+> On Tue, Nov 6, 2012 at 10:37 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+...
+>> I do rather suspect this use-case is quite common. NVIDIA certainly has
+>> a bunch of development boards with pluggable
+>> PMIC/audio/WiFi/display/..., and I believe there's some ability to
+>> re-use the pluggable components with a variety of base-boards.
+>>
+>> Given people within NVIDIA started talking about this recently, I asked
+>> them to enumerate all the boards we have that support pluggable
+>> components, and how common it is that some boards support being plugged
+>> into different main boards. I don't know when that enumeration will
+>> complete (or even start) but hopefully I can provide some feedback on
+>> how common the use-case is for us once it's done.
+> 
+> From your perspective, is it important to use the exact same .dtb
+> overlays for those add-on boards, or is it okay to have a separate
+> build of the overlay for each base tree?
 
-Paul Walmsley <paul@pwsan.com> writes:
+I certainly think it'd be extremely beneficial to use the exact same
+child board .dtb with arbitrary base boards.
 
-[...]
+Consider something like the Arduino shield connector format, which I
+/believe/ has been re-used across a wide variety of Arduino boards and
+other compatible or imitation boards. Now consider a vendor of an
+Arduino shield. The shield vendor probably wants to publish a single
+.dtb file that works for users irrespective of which board they're using
+it with.
 
-> Failing tests: needing investigation
-> ------------------------------------
->
+(Well, I'm not sure that Arduino can run Linux; perhaps that's why you
+picked BeagleBone capes for your document!)
 
-Here's another one for v3.7-rc4.
+I suppose it would be acceptable for the shield vendor to ship the .dts
+file rather than the .dtb, and hence need to build the shield .dtb for a
+specific base board.
 
-On all OMAP3 platforms I tested (3430/n900, 3530/Beagle, 3530/Overo,
-3730/OveroSTORM, 3730/Beagle-xM), a system suspend (retention or off)
-fails to wake up after a dynamic idle off-mode test (test script
-below[1]).
-
-I found that disabling MMC in the config made the tests pass again, so
-then bisected it down to the commit below removing SYSCONFIG
-accesses[2].  I haven't had the time to find out exactly the cause, but
-clearly the code that was removed was doing something that hwmod is not
-taking care of automatically.
-
-Venkat, Felipe, could you please investigate this and hopefully get a
-fix out for v3.7-rc?
-
-Thanks,
-
-Kevin
-
-
-[1] Test for system suspend (retention) after off-idle
-
-#!/bin/sh
-
-echo 1 > /debug/pm_debug/enable_off_mode
-
-echo 3000 > /sys/devices/platform/omap_uart.0/power/autosuspend_delay_ms
-echo 3000 > /sys/devices/platform/omap_uart.1/power/autosuspend_delay_ms
-echo 3000 > /sys/devices/platform/omap_uart.2/power/autosuspend_delay_ms
-if [ -e /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms ]; then 
-   echo 3000 > /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms
-fi
-
-sleep 5
-
-echo -1 > /sys/devices/platform/omap_uart.0/power/autosuspend_delay_ms
-echo -1 > /sys/devices/platform/omap_uart.1/power/autosuspend_delay_ms
-echo -1 > /sys/devices/platform/omap_uart.2/power/autosuspend_delay_ms
-if [ -e /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms ]; then 
-   echo -1 > /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms
-fi
-
-echo 0 > /debug/pm_debug/enable_off_mode
-
-rtcwake -m mem -s 1
-
-
-[2]
-commit 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c
-Author: Venkatraman S <svenkatr@ti.com>
-Date:   Wed Aug 8 14:26:52 2012 +0530
-
-    mmc: omap_hsmmc: remove access to SYSCONFIG register
-    
-    SYSCONFIG register of HSMMC IP is managed by the omap hwmod
-    abstraction layer. Resetting the IP and configuring the correct
-    SYSCONFIG mode is centrally managed by hwmod.
-    
-    Remove code which manipulates IP reset and SYSCONFIG directly in
-    the driver.
-    
-    Signed-off-by: Venkatraman S <svenkatr@ti.com>
-    Acked-by: Felipe Balbi <balbi@ti.com>
-    Signed-off-by: Chris Ball <cjb@laptop.org>
+However, I think the process for an end-user needs to be as simple as
+"drop this .dts/.dtb file into some standard directory", and I imagine
+it'll be much easier for distros/... to make that process work if
+they're dealing with a .dtb that they can just blast into the kernel's
+firmware loader interface, rather than having to also locate the
+base-board .dts/.dtb file, and run dtc and/or other tools on both .dts
+files together.
