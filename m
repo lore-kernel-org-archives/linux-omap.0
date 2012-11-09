@@ -1,82 +1,57 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [GIT PULL] ARM: OMAP: DTS for 3.8 part 2
-Date: Fri, 9 Nov 2012 15:01:40 +0100
-Message-ID: <509D0CC4.4080305@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [GIT PULL] ARM: OMAP: GPMC generic timing
+Date: Fri, 9 Nov 2012 19:51:50 +0530
+Message-ID: <1352470910-9630-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58531 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47249 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753188Ab2KIOB6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Nov 2012 09:01:58 -0500
+	id S1753441Ab2KIOWA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Nov 2012 09:22:00 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "AnilKumar, Chimata" <anilkumar@ti.com>, Ricardo Neri <ricardo.neri@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Mohammed, Afzal" <afzal@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+The following changes since commit 6ba54ab4a49bbad736b0254aa6bdf0cb83013815:
 
-Please pull some more OMAP5 and AM33xx data for 3.8.
-
-Thanks,
-Benoit
-
-
-
-The following changes since commit 3b3132f7e80e3d786f8ad5d5b97d4b6122be9aaa:
-  Jon Hunter (1):
-        ARM: dts: OMAP5: Add counter node
+  ARM: OMAP: Remove omap_init_consistent_dma_size() (2012-11-06 16:01:19 -0800)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.8/dts_part2
+  git://gitorious.org/x0148406-public/linux-kernel.git tags/gpmc-generic-timing
 
-Afzal Mohammed (1):
-      usb: musb: dsps: dt binding - add resources, example
+for you to fetch changes up to 47acde16726080e5157b602f23937d00a04cd2ed:
 
-Ajay Kumar Gupta (1):
-      ARM: dts: AM33XX: Add usbss node
+  ARM: OMAP2+: tusb6010: generic timing calculation (2012-11-09 18:07:23 +0530)
 
-AnilKumar Ch (10):
-      ARM: dts: AM33XX: Add pinmux configuration for matrix keypad to EVM
-      ARM: dts: AM33XX: Add matrix keypad device tree data to am335x-evm
-      ARM: dts: AM33XX: Add pinmux configuration for volume-keys to EVM
-      ARM: dts: AM33XX: Add volume-keys device tree data to am335x-evm
-      ARM: dts: AM33XX: Add pinmux configuration for user-leds to BONE
-      ARM: dts: AM33XX: Add user-leds device tree data to am335x-bone
-      ARM: dts: AM33XX: Add pinmux configuration for gpio-leds to EVMSK
-      ARM: dts: AM33XX: Add user-leds device tree data to am335x-evmsk
-      ARM: dts: AM33XX: Add pinmux configuration for gpio-keys to EVMSK
-      ARM: dts: AM33XX: Add push-buttons device tree data to am335x-evmsk
+----------------------------------------------------------------
+These changes provide a generic gpmc timing calculation method,
+migrates existing peripherals that makes use of custom gpmc timing
+calculation method to use the new generic one.
 
-Benoit Cousson (1):
-      ARM: dts: Makefile: Add the am335x-evmsk target in dtbs list
+Generic routine has been verified for onenand async timing calculation
+on omap3evm (with a local change to add onenand support). Generic
+timing calculation method were verified for other peripherals by
+simulation. Generic method has to be verified on peripherals supported
+in mainline.
 
-Lokesh Vutla (3):
-      ARM: dts: omap5-evm: Fix size of memory defined for EVM
-      ARM: dts: omap5: EMIF device tree data for OMAP5 boards
-      ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
+----------------------------------------------------------------
+Afzal Mohammed (6):
+      ARM: OMAP2+: nand: remove redundant rounding
+      ARM: OMAP2+: gpmc: handle additional timings
+      ARM: OMAP2+: gpmc: generic timing calculation
+      ARM: OMAP2+: onenand: generic timing calculation
+      ARM: OMAP2+: smc91x: generic timing calculation
+      ARM: OMAP2+: tusb6010: generic timing calculation
 
-Ricardo Neri (2):
-      ARM: dts: omap4-panda: Add pinmux configuration for HDMI
-      ARM: dts: omap4-sdp: Add pinmux configuration for HDMI
-
- .../devicetree/bindings/usb/am33xx-usb.txt         |   21 +++++
- arch/arm/boot/dts/Makefile                         |    1 +
- arch/arm/boot/dts/am335x-bone.dts                  |   44 ++++++++++
- arch/arm/boot/dts/am335x-evm.dts                   |   63 +++++++++++++++
- arch/arm/boot/dts/am335x-evmsk.dts                 |   84 ++++++++++++++++++++
- arch/arm/boot/dts/am33xx.dtsi                      |   17 ++++
- arch/arm/boot/dts/omap4-panda-a4.dts               |   17 ++++
- arch/arm/boot/dts/omap4-panda-es.dts               |    9 ++
- arch/arm/boot/dts/omap4-panda.dts                  |   18 ++++
- arch/arm/boot/dts/omap4-sdp-es23plus.dts           |   17 ++++
- arch/arm/boot/dts/omap4-sdp.dts                    |   18 ++++
- arch/arm/boot/dts/omap5-evm.dts                    |   13 +++-
- arch/arm/boot/dts/omap5.dtsi                       |   22 +++++
- arch/arm/boot/dts/samsung_k3pe0e000b.dtsi          |   67 ++++++++++++++++
- 14 files changed, 410 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
- create mode 100644 arch/arm/boot/dts/omap4-sdp-es23plus.dts
- create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+ Documentation/bus-devices/ti-gpmc.txt | 122 +++++++++++
+ arch/arm/mach-omap2/gpmc-nand.c       |  26 +--
+ arch/arm/mach-omap2/gpmc-onenand.c    | 143 ++++---------
+ arch/arm/mach-omap2/gpmc-smc91x.c     |  43 ++--
+ arch/arm/mach-omap2/gpmc.c            | 373 ++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc.h            | 113 ++++++++--
+ arch/arm/mach-omap2/usb-tusb6010.c    | 181 ++++-------------
+ 7 files changed, 709 insertions(+), 292 deletions(-)
+ create mode 100644 Documentation/bus-devices/ti-gpmc.txt
