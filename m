@@ -1,149 +1,40 @@
-From: David Gibson <david@gibson.dropbear.id.au>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Fri, 9 Nov 2012 13:26:24 +1100
-Message-ID: <20121109022624.GI23553@truffula.fritz.box>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH/RESEND 0/2] usb: musb: am335x support part-2
+Date: Fri, 9 Nov 2012 05:06:14 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA0F363@DBDE01.ent.ti.com>
+References: <cover.1352213124.git.afzal@ti.com>
+ <20121108181707.GB2228@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35923 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750783Ab2KIFGT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Nov 2012 00:06:19 -0500
+In-Reply-To: <20121108181707.GB2228@arwen.pp.htv.fi>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Nov 05, 2012 at 08:40:30PM +0000, Grant Likely wrote:
-> Hey folks,
-> 
-> As promised, here is my early draft to try and capture what device
-> tree overlays need to do and how to get there. Comments and
-> suggestions greatly appreciated.
-> 
-> Device Tree Overlay Feature
-
-Hrm.  So, you may yet convince me otherwise, but I'm really getting a
-feeling of overengineering from this proposal so far.
-
-> Purpose
-> =======
-> Sometimes it is not convenient to describe an entire system with a
-> single FDT. For example, processor modules that are plugged into one or
-> more modules (a la the BeagleBone), or systems with an FPGA peripheral
-> that is programmed after the system is booted.
-> 
-> For these cases it is proposed to implement an overlay feature for the
-> so that the initial device tree data can be modified by userspace at
-> runtime by loading additional overlay FDTs that amend the original data.
-> 
-> User Stories
-> ============
-
-[snip]
-
-The user stories mostly sound reasonable to me, but I don't know
-enough about the hardware in question to know what they'll mean in
-terms of what needs to be added to the base device tree.
-
-> Summary points:
-> - Create an FDT overlay data format and usage model
->   - SHALL reliable resolve or validate of phandles between base and
->     overlay trees
-
-So, I'm not at all clear on what this proposed phandle validation
-would involve.  I'm also not convinced it's as necessary as you
-think, more on that below.
-
-[snip - lots of technical stuff]
-
-So, let me take a stab at this from a more bottom-up approach, and see
-if we meet in the middle somewhere.  As I discussed in the other
-thread with Daniel Mack, I can see two different operationso on the
-fdt that might be useful in this context.  I think of them as "graft"
-- which takes one fdt and adds it as a new subtree to an existing fdt
-- and "overlay" where a new fdt adds or overrides arbitrary properties
-in an existing tree.  Overlay is more or less what we do at the source
-level in dtc already.
-
-Overlay is obviously more general - you can add, change and possibly
-delete any existing node or property.
-
-Graft can only add new nodes and properties, not modify existing ones.
-But that restriction comes with some advantages: reversing the
-operation is just a matter of deleting the subtree with no extra
-tracking info required.  It's simple to see how to have rules or
-permissions about where subtrees can be grafted, and if the graft
-point is identified by a label or id, rather than full path, it
-automatically adapts to at least some changes in the base tree
-structure.
-
-I think graft is basically a safer operation, particular if we're
-doing this at runtime with userspace passing in these fdt fragments.
-In fact I'd go so far as to say if you really need the full overlay
-functionality, then you really ought to be working at the bootloader
-or early kernel load level to assemble the correct full device tree.
-And as Mitch says, an existing programming language (C, OFW Forth or
-whatever as you please) will serve you better for this sort of general
-manipulation than a limited template system.
-
-I also think graft will handle most of your use cases, although as I
-said I don't fully understand the implications of some of them, so I
-could be wrong.  So, the actual insertion of the subtree is pretty
-trivial to implement.  phandles are the obvious other matter to be
-dealt with.  I haven't found the right thread where what you've
-envisaged so far is discussed, so here are things I can see:
-
-1) Avoiding phandle collisions between main tree and subtree (or
-   between subtrees).
-
-I'm hopeful that this can be resolved just by establishing some
-conventions about the ranges of phandles to be used for various
-components.  I'd certainly be happy to add a directive to dtc which
-enforces allocation of phandles within a specified range.
-
-2) Resolving phandle references within a subtree
-
-If we can handle (1) by convention, we don't need anything here, the
-references are fine as is.
-
-(3) Resolving phandle references from the subtree to the main tree.
-
-So, I think this can actually be avoided, at least in cases where what
-physical connections are available to the expansion module is well
-defined.  The main causes to have external references are interrupts
-and gpios.  Interrupts we handle by defining an interrupt specifier
-space for the interrupts available on the expansion
-socket/connector/bus/whatever.  In the master tree we then have
-something like:
-
-...
-	expansion-socket@XXXX {
-		expansion-id = "SlotA";
-		interrupt-map = < /* map expansion irq specs to
-				     board interrupt controllers */ >;
-		interrupt-map-mask = < ... >;
-		ranges = < /* map expansion local addresses to global
-		              mmio */ >;
-	};
-
-The subtree for the expansion module gets attached as a subnode of
-this one.  It doesn't use explicit interrupt-parents but instead just
-uses the expansion local irq specifiers, letting the parent be the
-default which will bubble up to this socket node where the
-interrupt-map will send them to the right places.
-
-I don't recall the gpio bindings off hand, but as I recall we based
-them off the irq tree bindings so we ought to be able to do the same
-thing for them.
-
-Likewise, if there are several interchangeable expansion sockets that
-have some address bits hard wired to distinguish them, we can just use
-socket local mmio addresses within the subtree and the ranges property
-here will sort that out.
-
--- 
-David Gibson			| I'll have my music baroque, and my code
-david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-				| _way_ _around_!
-http://www.ozlabs.org/~dgibson
+SGkgQmFsYmksDQoNCk9uIFRodSwgTm92IDA4LCAyMDEyIGF0IDIzOjQ3OjA4LCBCYWxiaSwgRmVs
+aXBlIHdyb3RlOg0KPiBPbiBUdWUsIE5vdiAwNiwgMjAxMiBhdCAwODo0NDo1OVBNICswNTMwLCBB
+ZnphbCBNb2hhbW1lZCB3cm90ZToNCg0KPiA+IFRoaXMgaXMgYSByZXNlbmQgb2YgcmVtYWluaW5n
+IGNoYW5nZXMgdG8gZ2V0IGFtMzM1eCB1c2Igd29ya2luZy4gVGhlc2UNCj4gPiB3ZXJlIHNlbnQg
+b24gMzEgT2N0IHdpdGggc3ViamVjdCwgInVzYjogbXVzYjogZHNwczogZml4ZXMgZm9yIC1yYy4N
+Cj4gDQo+IHRoZXJlIGlzIG5vIG1vcmUgdGltZSBmb3IgdGhpcyB0byByZWFjaCAtcmMuIERvIHdl
+IG5lZWQgaXQgZm9yIHYzLjgNCj4gbWVyZ2Ugd2luZG93ID8NCg0KWWVzLCB3ZSBuZWVkIGl0IGZv
+ciAzLjgsIHBsZWFzZSBjb25zaWRlciBpdCBmb3IgaW5jbHVzaW9uIGluDQozLjggbWVyZ2Ugd2lu
+ZG93Lg0KDQo+ID4gRmlyc3Qgb25lIHJlc3RvcmVzIGNhcGFiaWxpdHkgdG8gc3VwcG9ydCBhdCBs
+ZWFzdCBvbmUgaW5zdGFuY2Ugb2YgbXVzYi4NCj4gPiBXaXRob3V0IGl0LCBldmVuIGEgc2luZ2xl
+IGluc3RhbmNlIGNhbid0IGJlIHN1cHBvcnRlZCBhcyBjaGFuZ2Ugd2hpY2gNCj4gPiBpcyByZXZl
+cnRlZCBieSBpdCB3YXMgbWFkZSBhbG9uZyB3aXRoIG11bHRpIHBoeSBjaGFuZ2VzIGFuZCBub3AN
+Cj4gPiB0cmFuc2NpZXZlciBkdCBzdXBwb3J0LCBib3RoIG90aGVyIGNoYW5nZXMgZGlkbid0IG1h
+a2UgaXQgdG8gbWFpbmxpbmUuIA0KPiA+IA0KPiA+IFNlY29uZCBvbmUgY29ycmVjdHMgYmluZGlu
+ZyBkb2N1bWVudDsgY2hhbmdlcyB3ZXJlIG1hZGUgaW4gZHJpdmVyIGFzDQo+ID4gcGVyIHJldmll
+dyBjb21tZW50cywgYnV0IGRvY3VtZW50YXRpb24gd2FzIG5vdCB1cGRhdGVkLg0KPiANCj4gc2Vj
+b25kIG9uZSBpcyBjbGVhcmx5IG5vdCBmb3IgLXJjLg0KDQpPaywgcGxlYXNlIGNvbnNpZGVyIGJv
+dGggZm9yIG1lcmdlIHdpbmRvdywgd2l0aG91dCBmaXJzdCBvbmUsDQphbTMzNXggKGhlbmNlIGJl
+YWdsZSBib25lKSB1c2Igd2lsbCBub3Qgd29yay4NCg0KUmVnYXJkcw0KQWZ6YWwNCg==
