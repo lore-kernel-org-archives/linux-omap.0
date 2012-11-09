@@ -1,62 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Prevent redefinition errors for soc.h
-Date: Fri, 9 Nov 2012 13:10:52 -0800
-Message-ID: <20121109211052.GS6801@atomide.com>
-References: <1352477961-7634-1-git-send-email-jon-hunter@ti.com>
- <20121109162259.GO6801@atomide.com>
- <509D2F77.6090702@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 00/26] Move OMAP2+ over to common clk framework
+Date: Fri, 9 Nov 2012 21:12:24 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211092058540.20703@utopia.booyaka.com>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:23034 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752689Ab2KIVKz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 16:10:55 -0500
-Content-Disposition: inline
-In-Reply-To: <509D2F77.6090702@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:60131 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755617Ab2KIVMZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 16:12:25 -0500
+In-Reply-To: <1352337181-29427-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Mike Turquette <mturquette@ti.com>, rnayak@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Mike Turquette <mturquette@linaro.org>
 
-* Jon Hunter <jon-hunter@ti.com> [121109 08:31]:
-> 
-> On 11/09/2012 10:22 AM, Tony Lindgren wrote:
-> > * Jon Hunter <jon-hunter@ti.com> [121109 08:21]:
-> >> If the header soc.h is included more than once in a source (for example
-> >> once directly by the source file and once indirectly by another header
-> >> file), then the compiler will generate redefintion errors for the macros
-> >> in soc.h. Prevent this by only allowing the content in soc.h to be
-> >> included once.
-> >>
-> >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> >> ---
-> >>
-> >> Please note that I ran into this problem when rebasing my dmtimer fixes
-> >> series [1] on Tony's Linux-OMAP master branch. I am including plat/cpu.h
-> >> in dmtimer.h and I found several other files including dmtimer.h are also
-> >> including soc.h and so generate a lot of errors.
-> >>
-> >> [1] http://marc.info/?l=linux-omap&m=135231490218361&w=2
-> > 
-> > As these headers are private to mach-omap2, I'd rather not allow including
-> > them more than once so we can eventually clean up the includes further.
-> > 
-> > We should include the headers directly where used, except for the
-> > legacy board-*.c files that will be going away anyways.
-> > 
-> > Including the files directly should fix this easily, if not let me
-> > know.
-> 
-> The alternative fix is to ensure anyone including dmtimer.h also
-> includes soc.h. However, I did not know if we should have such a
-> dependency. If you are ok with that then that is what I will do for now.
-> It is not a massive change.
 
-Do you mean anything under mach-omap2/*.c including dmtimer.h also
-needs to also include soc.h? If sounds OK to me as long as we don't
-need to include soc.h outside mach-omap2.
+Hi
 
-Regards,
+With the fixes that have been posted, this is testing clean here.  Mike 
+and Rajendra have put in months of work on these patches under 
+often-difficult conditions, and it's really great that we've arrived at 
+this point with zero obvious remaining regressions from the current code. 
 
-Tony
+The branch has been posted for the time being at 
+git://git.pwsan.com/linux-2.6 in the branch 'common_clk_devel_3.8', with 
+the head at commit 376676b429cb6dc95c39cdac82b2be816ea22893, in case 
+anyone else wants to try it.  
+
+Anyway, barring any further regressions that haven't reared their ugly 
+heads yet, and barring anything truly horrible in the code or data that 
+I've missed so far, will take this branch from here.  It still needs some 
+more work before it's ready to merge.  The clockdomain usecounting fix 
+patch needs to be split and moved earlier in the patch stack so 'git 
+bisect' doesn't result in warnings and broken PM on OMAP3.  And it all is 
+going to be rebased on the second set of PRCM cleanup patches at commit 
+b99db36cdf37decb1b5575c5f293d170cbbc53d6, which I'm assuming Tony is 
+planning to pull.  Then will plan to send that pull request to Tony.
+
+Then after that, if there's still time to merge some of the clock changes 
+that have showed up on the lists for 3.8, those will get stacked onto a 
+topic branch based on the branch that's sent to Tony.
+
+
+- Paul
