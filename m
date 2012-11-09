@@ -1,30 +1,85 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 14/26] ARM: OMAP3: clock: Add 3xxx data using common
- struct clk
-Date: Fri, 9 Nov 2012 00:49:16 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211090047250.20703@utopia.booyaka.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-15-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com> <alpine.DEB.2.00.1211082158310.20703@utopia.booyaka.com>
- <alpine.DEB.2.00.1211090002380.20703@utopia.booyaka.com> <alpine.DEB.2.00.1211090028250.20703@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
+Date: Thu, 8 Nov 2012 18:55:49 -0600
+Message-ID: <509C5495.1010109@ti.com>
+References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BDAF5.1010703@ti.com> <79CD15C6BA57404B839C016229A409A83EB68589@DBDE01.ent.ti.com> <509BEE6D.9000902@ti.com> <79CD15C6BA57404B839C016229A409A83EB68654@DBDE01.ent.ti.com> <509BF2DD.2090308@ti.com> <79CD15C6BA57404B839C016229A409A83EB686AC@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:55466 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757264Ab2KIAtR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 19:49:17 -0500
-In-Reply-To: <alpine.DEB.2.00.1211090028250.20703@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57125 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754044Ab2KIAzz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Nov 2012 19:55:55 -0500
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB686AC@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On Fri, 9 Nov 2012, Paul Walmsley wrote:
 
-> The enables and disables of dpll4_m2x2_ck from the entire log appear to be balanced:
+On 11/08/2012 12:06 PM, Hiremath, Vaibhav wrote:
+> On Thu, Nov 08, 2012 at 23:28:53, Hunter, Jon wrote:
+>>
+>> On 11/08/2012 11:47 AM, Hiremath, Vaibhav wrote:
+>>> On Thu, Nov 08, 2012 at 23:09:57, Hunter, Jon wrote:
+>>
+>> [snip]
+>>
+>>>> I think you are missing the point here. For OMAP devices we have two
+>>>> main external clock sources which are the 32kHz clock and the sys_clk
+>>>> (can be a range of frequencies from 12-38.4MHz for OMAP4). The point is
+>>>> for OMAP these clock sources are always present and AFAIK there is no
+>>>> h/w configuration that allows you not to have the 32kHz clock source.
+>>>> PRCM needs it and I think for OMAP1 the reset logic needs it (if memory
+>>>> serves).
+>>>>
+>>>> Igor was mentioning a h/w scenario where the 32kHz source is not
+>>>> present. However, I am not sure which devices support this and is
+>>>> applicable too.
+>>>>
+>>>> So we are not discussing the 32k-sync-timer here. We are discussing
+>>>> whether there are any device configurations where a 32k clock source
+>>>> would not be available for the gptimer.
+>>>>
+>>>
+>>> Exactly that is the point I am trying to make here,
+>>>
+>>> In case of AM33xx, it is certainly possible to build the system without 
+>>> this 32Khz clock. 
+>>>
+>>> Interesting point here is, this 32KHz clock is external clock coming from 
+>>> crystal connected to in-built RTC module.
+>>
+>> Thanks. Looking at the AM3358 data manual it states ...
+>>
+>> "The OSC1 oscillator provides a 32.768-kHz reference clock to the
+>> real-time clock (RTC) and is connected to the RTC_XTALIN and RTC_XTALOUT
+>> terminals. OSC1 is disabled by default after power is applied. This
+>> clock input is optional and may not be required if the RTC is configured
+>> to receive a clock from the internal 32k RC oscillator (CLK_RC32K) or
+>> peripheral PLL (CLK_32KHZ) which receives a reference clock from the
+>> OSC0 input."
+>>
+>> So what is clear to me that an external 32k clock source is optional.
+>> However, it still appears that you will always have an internal 32k
+>> source and so regardless of the h/w configuration, a gptimer will always
+>> have an 32k clock available on the AM335x devices. Is that correct?
+>>
+> 
+> Internal RC oscillator is not accurate at all, so not guaranteed to give 
+> accurate 32.768Hz clock. The oscillation band is from 16Khz to 64Khz.
+> 
+> So it may not be useful as a system clocks, right?
 
-Looks like this is an artifact of the disable-unused-clocks problem.  The 
-disable of dpll4_m6x2_ck during that phase removes the usecount that was 
-previously added by the enable of dpll4_m2x2_ck.  So fixing that problem 
-should clean this one up.
+By the way, according to the AM3358 data manual (paragraph above), even
+if there is no external 32k clock source and if you don't use the
+internal 32k oscillator, you can still generate a 32k clock from the PER
+PLL (CLK_32KHZ). So therefore, there should always be a 32k clock source
+available for the gptimer. Is that correct?
 
-- Paul
+At the end of the day, I am just trying to understand if any OMAP/AM
+device supports a h/w configuration where there is no 32k clock source
+available for the gptimer.
+
+Jon
