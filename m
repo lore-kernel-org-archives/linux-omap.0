@@ -1,129 +1,49 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH] ARM: add get_user() support for 8 byte types
-Date: Fri,  9 Nov 2012 15:17:33 -0600
-Message-ID: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 15/26] ARM: omap2: clock: Add 24xx data using common
+ struct clk
+Date: Fri, 9 Nov 2012 21:22:00 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211092112340.20703@utopia.booyaka.com>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-16-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1211081532210.20703@utopia.booyaka.com> <alpine.DEB.2.00.1211092030360.20703@utopia.booyaka.com>
+ <20121109210543.17381.15878@nucleus>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:64535 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753562Ab2KIVSc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 16:18:32 -0500
+Received: from utopia.booyaka.com ([74.50.51.50]:60169 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755761Ab2KIVWB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 16:22:01 -0500
+In-Reply-To: <20121109210543.17381.15878@nucleus>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>, Russell King <rmk+kernel@arm.linux.org.uk>, Rob Clark <rob@ti.com>
+To: Mike Turquette <mturquette@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-From: Rob Clark <rob@ti.com>
+On Fri, 9 Nov 2012, Mike Turquette wrote:
 
-A new atomic modeset/pageflip ioctl being developed in DRM requires
-get_user() to work for 64bit types (in addition to just put_user()).
+> Quoting Paul Walmsley (2012-11-09 12:32:59)
+> > Here's another update on this one to add the twl.fck clock alias, recently 
+> > added by commit defa6be1c8216ed2d52d65db81a8a148e73be5f7 ("mfd: Fix 
+> > compile for twl-core.c by removing cpu_is_omap usage").
+> > 
+> 
+> I'll post a new series to the list with these fixes rolled in.  
 
-Signed-off-by: Rob Clark <rob@ti.com>
----
- arch/arm/include/asm/uaccess.h | 25 ++++++++++++++++++++-----
- arch/arm/lib/getuser.S         | 17 ++++++++++++++++-
- 2 files changed, 36 insertions(+), 6 deletions(-)
+Unless you've got other changes, no need to worry about it -  will deal 
+with it here.
 
-diff --git a/arch/arm/include/asm/uaccess.h b/arch/arm/include/asm/uaccess.h
-index 7e1f760..2e3fdb2 100644
---- a/arch/arm/include/asm/uaccess.h
-+++ b/arch/arm/include/asm/uaccess.h
-@@ -100,6 +100,7 @@ static inline void set_fs(mm_segment_t fs)
- extern int __get_user_1(void *);
- extern int __get_user_2(void *);
- extern int __get_user_4(void *);
-+extern int __get_user_8(void *);
- 
- #define __GUP_CLOBBER_1	"lr", "cc"
- #ifdef CONFIG_CPU_USE_DOMAINS
-@@ -108,6 +109,7 @@ extern int __get_user_4(void *);
- #define __GUP_CLOBBER_2 "lr", "cc"
- #endif
- #define __GUP_CLOBBER_4	"lr", "cc"
-+#define __GUP_CLOBBER_8	"lr", "cc"
- 
- #define __get_user_x(__r2,__p,__e,__l,__s)				\
- 	   __asm__ __volatile__ (					\
-@@ -122,22 +124,35 @@ extern int __get_user_4(void *);
- 	({								\
- 		unsigned long __limit = current_thread_info()->addr_limit - 1; \
- 		register const typeof(*(p)) __user *__p asm("r0") = (p);\
--		register unsigned long __r2 asm("r2");			\
- 		register unsigned long __l asm("r1") = __limit;		\
- 		register int __e asm("r0");				\
- 		switch (sizeof(*(__p))) {				\
--		case 1:							\
-+		case 1: {						\
-+			register unsigned long __r2 asm("r2");		\
- 			__get_user_x(__r2, __p, __e, __l, 1);		\
-+			x = (typeof(*(p))) __r2;			\
- 			break;						\
--		case 2:							\
-+		}							\
-+		case 2: {						\
-+			register unsigned long __r2 asm("r2");		\
- 			__get_user_x(__r2, __p, __e, __l, 2);		\
-+			x = (typeof(*(p))) __r2;			\
- 			break;						\
--		case 4:							\
-+		}							\
-+		case 4: {						\
-+			register unsigned long __r2 asm("r2");		\
- 			__get_user_x(__r2, __p, __e, __l, 4);		\
-+			x = (typeof(*(p))) __r2;			\
-+			break;						\
-+		}							\
-+		case 8: {						\
-+			register unsigned long long __r2 asm("r2");	\
-+			__get_user_x(__r2, __p, __e, __l, 8);		\
-+			x = (typeof(*(p))) __r2;			\
- 			break;						\
-+		}							\
- 		default: __e = __get_user_bad(); break;			\
- 		}							\
--		x = (typeof(*(p))) __r2;				\
- 		__e;							\
- 	})
- 
-diff --git a/arch/arm/lib/getuser.S b/arch/arm/lib/getuser.S
-index 9b06bb4..d05285c 100644
---- a/arch/arm/lib/getuser.S
-+++ b/arch/arm/lib/getuser.S
-@@ -18,7 +18,7 @@
-  * Inputs:	r0 contains the address
-  *		r1 contains the address limit, which must be preserved
-  * Outputs:	r0 is the error code
-- *		r2 contains the zero-extended value
-+ *		r2, r3 contains the zero-extended value
-  *		lr corrupted
-  *
-  * No other registers must be altered.  (see <asm/uaccess.h>
-@@ -66,6 +66,19 @@ ENTRY(__get_user_4)
- 	mov	pc, lr
- ENDPROC(__get_user_4)
- 
-+ENTRY(__get_user_8)
-+	check_uaccess r0, 4, r1, r2, __get_user_bad
-+#ifdef CONFIG_THUMB2_KERNEL
-+5: TUSER(ldr)	r2, [r0]
-+6: TUSER(ldr)	r3, [r0, #4]
-+#else
-+5: TUSER(ldr)	r2, [r0], #4
-+6: TUSER(ldr)	r3, [r0]
-+#endif
-+	mov	r0, #0
-+	mov	pc, lr
-+ENDPROC(__get_user_8)
-+
- __get_user_bad:
- 	mov	r2, #0
- 	mov	r0, #-EFAULT
-@@ -77,4 +90,6 @@ ENDPROC(__get_user_bad)
- 	.long	2b, __get_user_bad
- 	.long	3b, __get_user_bad
- 	.long	4b, __get_user_bad
-+	.long	5b, __get_user_bad
-+	.long	6b, __get_user_bad
- .popsection
--- 
-1.8.0
+> Do you want me to squash the clkdm_clk_disable/usecount patch into 
+> another patch in the series or keep it separate?  Separate might be good 
+> since we're going to replace that solution with some force-disable thing 
+> in the future.
 
+Have moved that one up earlier in the patch stack and added the matching 
+cleanup to the last patch.  Will repush the branch once it completes 
+testing again.
+
+Re the upstream CCF support for this, would suggest adding the CCF support 
+for the new function pointer in this merge window (3.8) since it should 
+be relatively straightforward.  Then during the 3.9 merge window, the 
+OMAP code can be switched over to use it.
+
+
+- Paul
