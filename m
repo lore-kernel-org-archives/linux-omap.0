@@ -1,57 +1,82 @@
-From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Fri, 9 Nov 2012 12:06:02 +0000
-Message-ID: <CACxGe6s1ksem-6=fxVMeCoGw=vLN8n_j1CmfNJMdPS0e3fUxWw@mail.gmail.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
- <20121105232218.GA8284@atomide.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [GIT PULL] ARM: OMAP: DTS for 3.8 part 2
+Date: Fri, 9 Nov 2012 15:01:40 +0100
+Message-ID: <509D0CC4.4080305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121105232218.GA8284-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Wood Scott-B07421 <B07421-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Tabi Timur-B04825 <B04825-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:58531 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753188Ab2KIOB6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Nov 2012 09:01:58 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "AnilKumar, Chimata" <anilkumar@ti.com>, Ricardo Neri <ricardo.neri@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Mohammed, Afzal" <afzal@ti.com>
 
-On Mon, Nov 5, 2012 at 11:22 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> Hi,
->
-> * Tabi Timur-B04825 <B04825-KZfg59tc24xl57MIdRCFDg@public.gmane.org> [121105 13:42]:
->> On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> wrote:
->>
->> > Jane is building custom BeagleBone expansion boards called 'capes'. She
->> > can boot the system with a stock BeagleBoard device tree, but additional
->> > data is needed before a cape can be used. She could replace the FDT file
->> > used by U-Boot with one that contains the extra data, but she uses the
->> > same Linux system image regardless of the cape, and it is inconvenient
->> > to have to select a different device tree at boot time depending on the
->> > cape.
->>
->> What's wrong with having the boot loader detect the presence of the
->> Cape and update the device tree accordingly?  We do this all the time
->> in U-Boot.  Doing stuff like reading EEPROMs and testing for the
->> presence of hardware is easier in U-Boot than in Linux.
->>
->> For configurations that can be determined by the boot loader, I'm not
->> sure overlays are practical.
->
-> I guess the beaglebone capes could be stackable and hotpluggable if
-> handled carefully enough.
+Hi Tony,
 
-And even if it can't on the beaglebone, it will happen somewhere else.
-I don't want to exclude that use-case just because nobody thought
-about it.
+Please pull some more OMAP5 and AM33xx data for 3.8.
 
-g.
+Thanks,
+Benoit
+
+
+
+The following changes since commit 3b3132f7e80e3d786f8ad5d5b97d4b6122be9aaa:
+  Jon Hunter (1):
+        ARM: dts: OMAP5: Add counter node
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.8/dts_part2
+
+Afzal Mohammed (1):
+      usb: musb: dsps: dt binding - add resources, example
+
+Ajay Kumar Gupta (1):
+      ARM: dts: AM33XX: Add usbss node
+
+AnilKumar Ch (10):
+      ARM: dts: AM33XX: Add pinmux configuration for matrix keypad to EVM
+      ARM: dts: AM33XX: Add matrix keypad device tree data to am335x-evm
+      ARM: dts: AM33XX: Add pinmux configuration for volume-keys to EVM
+      ARM: dts: AM33XX: Add volume-keys device tree data to am335x-evm
+      ARM: dts: AM33XX: Add pinmux configuration for user-leds to BONE
+      ARM: dts: AM33XX: Add user-leds device tree data to am335x-bone
+      ARM: dts: AM33XX: Add pinmux configuration for gpio-leds to EVMSK
+      ARM: dts: AM33XX: Add user-leds device tree data to am335x-evmsk
+      ARM: dts: AM33XX: Add pinmux configuration for gpio-keys to EVMSK
+      ARM: dts: AM33XX: Add push-buttons device tree data to am335x-evmsk
+
+Benoit Cousson (1):
+      ARM: dts: Makefile: Add the am335x-evmsk target in dtbs list
+
+Lokesh Vutla (3):
+      ARM: dts: omap5-evm: Fix size of memory defined for EVM
+      ARM: dts: omap5: EMIF device tree data for OMAP5 boards
+      ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
+
+Ricardo Neri (2):
+      ARM: dts: omap4-panda: Add pinmux configuration for HDMI
+      ARM: dts: omap4-sdp: Add pinmux configuration for HDMI
+
+ .../devicetree/bindings/usb/am33xx-usb.txt         |   21 +++++
+ arch/arm/boot/dts/Makefile                         |    1 +
+ arch/arm/boot/dts/am335x-bone.dts                  |   44 ++++++++++
+ arch/arm/boot/dts/am335x-evm.dts                   |   63 +++++++++++++++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |   84 ++++++++++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |   17 ++++
+ arch/arm/boot/dts/omap4-panda-a4.dts               |   17 ++++
+ arch/arm/boot/dts/omap4-panda-es.dts               |    9 ++
+ arch/arm/boot/dts/omap4-panda.dts                  |   18 ++++
+ arch/arm/boot/dts/omap4-sdp-es23plus.dts           |   17 ++++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   18 ++++
+ arch/arm/boot/dts/omap5-evm.dts                    |   13 +++-
+ arch/arm/boot/dts/omap5.dtsi                       |   22 +++++
+ arch/arm/boot/dts/samsung_k3pe0e000b.dtsi          |   67 ++++++++++++++++
+ 14 files changed, 410 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
+ create mode 100644 arch/arm/boot/dts/omap4-sdp-es23plus.dts
+ create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
