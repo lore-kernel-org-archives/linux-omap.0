@@ -1,70 +1,57 @@
 From: Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
  omap_devices to mach-omap2)
-Date: Fri, 9 Nov 2012 23:27:01 +0000
-Message-ID: <CACxGe6tBxN6yZbAfqq9KW4j2Mf2hv2XRX2tb3K=udkKt-cBOHQ@mail.gmail.com>
+Date: Fri, 9 Nov 2012 23:32:10 +0000
+Message-ID: <CACxGe6vAqO-JFAVssYyZ8MXtgp=yVDW8aKw_jB4Uz4bHtBJz=A@mail.gmail.com>
 References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <20121109022624.GI23553@truffula.fritz.box> <509D8A62.1080102@wwwdotorg.org>
+ <509D8C69.7060004@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <509D8A62.1080102@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: David Gibson <david@gibson.dropbear.id.au>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:46505 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751664Ab2KIXcc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 18:32:32 -0500
+Received: by mail-da0-f46.google.com with SMTP id n41so1866672dak.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Nov 2012 15:32:31 -0800 (PST)
+In-Reply-To: <509D8C69.7060004@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On Fri, Nov 9, 2012 at 10:57 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> On 11/08/2012 07:26 PM, David Gibson wrote:
-> ...
->> I also think graft will handle most of your use cases, although as I
->> said I don't fully understand the implications of some of them, so I
->> could be wrong.  So, the actual insertion of the subtree is pretty
->> trivial to implement.  phandles are the obvious other matter to be
->> dealt with.  I haven't found the right thread where what you've
->> envisaged so far is discussed, so here are things I can see:
->>
->> 1) Avoiding phandle collisions between main tree and subtree (or
->>    between subtrees).
->>
->> I'm hopeful that this can be resolved just by establishing some
->> conventions about the ranges of phandles to be used for various
->> components.  I'd certainly be happy to add a directive to dtc which
->> enforces allocation of phandles within a specified range.
+On Fri, Nov 9, 2012 at 11:06 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> On 11/05/2012 01:40 PM, Grant Likely wrote:
+>> As promised, here is my early draft to try and capture what device
+>> tree overlays need to do and how to get there. Comments and
+>> suggestions greatly appreciated.
 >
-> One case I wonder about is:
+> Here's one other requirement I'd like that I don't think I saw
+> explicitly mentioned in your document:
 >
-> Base board A that's split into two .dts files e.g. due to there being
-> two versions of the base board which are 90% identical, yet there being
-> a few differences between them.
->
-> Base board B that's just a single .dts file.
->
-> We might allocate phandle range 0..999 for the base board.
->
-> Child board X plugs into either, so the two base boards need to "export"
-> the same set of phandle IDs to the child board to allow it to reference
-> them.
+> Assuming a base file board.dts and a child board file child.dts, the
+> compiled file child.dtb should be usable with a modified board.dtb
+> assuming it exports the same set of attachment-points (hashed phandles,
+> socket objects, whatever). This allows bug-fixes etc. to board.dts
+> without forcing every child.dts to be recompiled.
 
-It's more than just that. The boards really need to be equivalent
-since the irq specifiers and gpio specifiers need to match the gpio
-and irq controllers provided by the board. So a simple overlay design
-won't cover the case of a single file that will work generically on
-any board.
+No, I hadn't explicitly captured that one, but yes it is the intent.
 
-> If base board A version 2 comes along after the phandle IDs that the
-> child board uses are defined, then how do we handle assigning a specific
-> phandle ID range to each of base board A's two version-specific
-> overlays, when the version-specific changes might affect arbitrary
-> phandle IDs within the range, and require some to be moved into the base
-> board version-specific overlays and some to stay in the common base
-> board .dts?
+> If the attachment points is hashed node names or node content from
+> board.dts, I'm not sure how this is possible?
 
-With the design I'm currently considering, at the dts level the
-overlay could be compiled against any base boards if the specifiers
-are equivalent and the labels match up as indicated above. The
-compiled dtb could also be somewhat portable, but only if care is
-taken to make sure the phandles match too; possibly by explicitly
-specifying them instead of letting them be generated by a hash.
+Ummm, I think there is misunderstanding about the hashed phandles. My
+thought is merely that using a hash to generate a phandle is 'better'
+than starting at 1 and counting upwards when dtc compiles the tree.
+That way, if the path to the node has not changed, then the phandle
+will not have changed.
+
+However, phandles can still be explicitly specified if slightly
+different trees need to have the same target point.
+
+That said, if portability of dtb files is a strong requirement, then
+it will be difficult to do with simple overlays. Even if the phandles
+line up, the irq/gpio specifiers probably need to be different. That
+makes things harder.
 
 g.
