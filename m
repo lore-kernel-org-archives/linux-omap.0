@@ -1,68 +1,56 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v2 04/10] pwm: pwm-tiecap: Add device-tree binding
- support for APWM driver
-Date: Fri, 9 Nov 2012 09:12:55 +0100
-Message-ID: <20121109081255.GC26007@avionic-0098.mockup.avionic-design.de>
+From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v2 08/10] pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+Date: Fri, 9 Nov 2012 10:59:30 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9E4501@DBDE01.ent.ti.com>
 References: <1352361197-27442-1-git-send-email-avinashphilip@ti.com>
- <1352361197-27442-5-git-send-email-avinashphilip@ti.com>
- <20121109075219.GA22224@avionic-0098.mockup.avionic-design.de>
+ <1352361197-27442-9-git-send-email-avinashphilip@ti.com>
+ <20121109081104.GB26007@avionic-0098.mockup.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="32u276st3Jlj2kUU"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121109075219.GA22224@avionic-0098.mockup.avionic-design.de>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121109081104.GB26007-RM9K5IK7kjIQXX3q8xo1gnVAuStQJXxyR5q1nwbD4aMs9pC9oP6+/A@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
+Cc: "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hebbar,
+ Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, Nov 09, 2012 at 13:41:04, Thierry Reding wrote:
+> On Thu, Nov 08, 2012 at 01:23:15PM +0530, Philip, Avinash wrote:
+...
+> > +	/* Some platforms require explicit tbclk gating */
+> > +	if (of_property_read_bool(pdev->dev.of_node, "tbclkgating")) {
+> 
+> Is it really necessary to have an extra boolean property for this?
+> Couldn't this just be handled by not defining a clock for the tbclk
+> consumer in board setup/DT
 
---32u276st3Jlj2kUU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If no clk node defined, driver can still continue expecting this platform 
+the requirement is not there. So I will check for tbclk with devm_clk_get()
+and continue by removing Boolean property.
 
-On Fri, Nov 09, 2012 at 08:52:19AM +0100, Thierry Reding wrote:
-> On Thu, Nov 08, 2012 at 01:23:11PM +0530, Philip, Avinash wrote:
-[...]
-> >  static int __devinit ecap_pwm_probe(struct platform_device *pdev)
->=20
-> __devinit can go away.
-[...]
-> >  static int __devexit ecap_pwm_remove(struct platform_device *pdev)
->=20
-> No __devexit please.
-[...]
-> >  	.remove =3D __devexit_p(ecap_pwm_remove),
->=20
-> No __devexit_p() please.
+> 
+> > +		pc->tbclk = clk_get(&pdev->dev, "tbclk");
+> 
+> You should be using devm_clk_get() or add a matching clk_put() in
+> .remove().
 
-Okay, ignore these comments. The annotation were not added in this patch
-so they can be removed in a separate patch. Or when Greg finally removes
-all traces of them.
+Ok
 
-Thierry
+Thanks
+Avinash
 
---32u276st3Jlj2kUU
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQnLsHAAoJEN0jrNd/PrOhaDoP/1IecPaBxybYw3CLpAogOm+3
-XG5BlgNxwDRIH9ToLIs91szu21uikmD/d5YMforrCBhMHWXSCKwOgUfFFqoP9/lI
-tx8xXvczymB9tTjjU7j8zumDWxQOMbSxP3aZ0qysJSd2kqKEunocZJ8MfDGi6f+k
-Krf3RcdFTjLUSvHFcwWQLG8yw59jfYFDy8hk3srUJdFwFX32fCfliBBhiq8Qg1ux
-oHOSvbtAlFzHmsE5OfanTJt+L30Dq2gv95TLhC1KVw+9w5hC9qSicJ4/9BJ7ATN5
-CYYz1KC5Xi1nC48fHLKdYyJLbnopSVhlNCwcshygvpdw/n/tdePl3c1hi9oMj/5V
-sLPdTDnhUQlzjnev4lKFXBX5QMeGmwirzuC91LgfH37IG5Lbasv/3xvcmf9HLNpI
-/+clGz5Xxg7ECQzzIH8qg4X85/csICxIfOD87cyMlSsBxlVazRsX1I75AhEFzlhn
-KgfQJiw9r5sjJsFsxzkydPEMIqOxJZLxSxplF9khTnvQ8nQAOKhnmzNJ6J9VqDQP
-jtDjnH5DzbcnILS1S7kNqdxtufyOvKxo+qj75ewtb+w+Y7wUYH5K1OfoPCyq8wcF
-DxzjxksBBwGJqwoKOjkScgtfWJw1SFhfUun7pPorc1fdVXfXlKg9XuF5tOBVlnR3
-MTfB6BrPsyVSqscdb6yV
-=x33E
------END PGP SIGNATURE-----
-
---32u276st3Jlj2kUU--
+> 
+> Thierry
+> 
