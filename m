@@ -1,65 +1,57 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v2 04/10] pwm: pwm-tiecap: Add device-tree binding
- support for APWM driver
-Date: Fri, 9 Nov 2012 12:19:28 +0100
-Message-ID: <20121109111928.GA2391@avionic-0098.mockup.avionic-design.de>
-References: <1352361197-27442-1-git-send-email-avinashphilip@ti.com>
- <1352361197-27442-5-git-send-email-avinashphilip@ti.com>
- <20121109075219.GA22224@avionic-0098.mockup.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E9E44FC@DBDE01.ent.ti.com>
+From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Fri, 9 Nov 2012 12:06:02 +0000
+Message-ID: <CACxGe6s1ksem-6=fxVMeCoGw=vLN8n_j1CmfNJMdPS0e3fUxWw@mail.gmail.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <6AE080B68D46FC4BA2D2769E68D765B708174B7D@039-SN2MPN1-023.039d.mgd.msft.net>
+ <20121105232218.GA8284@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E9E44FC@DBDE01.ent.ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121105232218.GA8284-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Wood Scott-B07421 <B07421-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Tabi Timur-B04825 <B04825-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Nov 5, 2012 at 11:22 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> Hi,
+>
+> * Tabi Timur-B04825 <B04825-KZfg59tc24xl57MIdRCFDg@public.gmane.org> [121105 13:42]:
+>> On Mon, Nov 5, 2012 at 2:40 PM, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> wrote:
+>>
+>> > Jane is building custom BeagleBone expansion boards called 'capes'. She
+>> > can boot the system with a stock BeagleBoard device tree, but additional
+>> > data is needed before a cape can be used. She could replace the FDT file
+>> > used by U-Boot with one that contains the extra data, but she uses the
+>> > same Linux system image regardless of the cape, and it is inconvenient
+>> > to have to select a different device tree at boot time depending on the
+>> > cape.
+>>
+>> What's wrong with having the boot loader detect the presence of the
+>> Cape and update the device tree accordingly?  We do this all the time
+>> in U-Boot.  Doing stuff like reading EEPROMs and testing for the
+>> presence of hardware is easier in U-Boot than in Linux.
+>>
+>> For configurations that can be determined by the boot loader, I'm not
+>> sure overlays are practical.
+>
+> I guess the beaglebone capes could be stackable and hotpluggable if
+> handled carefully enough.
 
---envbJBWh7q8WU6mo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+And even if it can't on the beaglebone, it will happen somewhere else.
+I don't want to exclude that use-case just because nobody thought
+about it.
 
-On Fri, Nov 09, 2012 at 10:59:30AM +0000, Philip, Avinash wrote:
-> On Fri, Nov 09, 2012 at 13:22:19, Thierry Reding wrote:
-> > On Thu, Nov 08, 2012 at 01:23:11PM +0530, Philip, Avinash wrote:
-> > > +#define ECAPCLK_EN			BIT(0)
-> > > +#define ECAPCLK_STOP_REQ	BIT(1)
-> >=20
-> > This one doesn't seem to align with the rest. Also, why is bit 0 called
-> > _EN and bit 1 _STOP_REQ? Couldn't they be made more consistent, i.e.
-> > _START and _STOP? Or _ENABLE and _DISABLE?
->=20
-> Ok I will change to PWMSS_ECAPCLK_EN & PWMSS_ECAPCLK_STPO_REQ
-
-While at it, maybe move these defines to the pwm-tipwmss.h header file?
-After all that's the module that accesses the register that contains
-these bits.
-
-
---envbJBWh7q8WU6mo
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQnObAAAoJEN0jrNd/PrOh12oQALgj+/7wakFIGEHh3SWHMok5
-S91TEkAovcubKqekRnN/38Bh+XcXHObKRCkhnmiJYTR0eZNSIA+rR/L5KAAgHpdQ
-Lg5VHaGmm6fk5JCCNjUvqnsyquoMLVJQts/uvjSmwh0Rz+/hiZLwMBPWZAKvVoEu
-PXQfjAm4m4NB3SlHbW/AtKF/QDe2RrrQYpggNiiGwjNmAkxyxQOXmgPBs13IcBG/
-GIco9kEwALeJ+TVxvneWw6qxgTDylaKGD7hJFq3ItcZoTxgTLcaB+huejOtQQFJr
-/4/Q6/ZpcDhjtSGK4CySjYcU4eD6aGzmRKONxKIG8qBTg3Yqyv/Ap6t3C4l9WzfT
-AcIwKy9Knp46W9uf+oUHDYPQOJdQkDjdraZuhZI/cPUGXStMdd+SjU0lyKsKsc0E
-eao43XmGx0GFlCiMULuV7dGfhBNLRgt1u39FgowT/DEmcgSjyHUHgZUtRTRHQGwS
-QMUmX6hfDUVp7iyqJnTI9lU26/BxZw1YaFgTfqDWbhAzsetW4ARSg4YTyhqoJiSs
-yKMdjjGXmGlhtqYGxr4j3+vSppPeMu4mKwtpEqwE0igUM7802DIwpJR5qHSPlpir
-qUNtDAYQTup8siYt5cKSsmASmyfZguwm7fB1vhCm/Qx8WXSZEjLb29Iq5EC1Nj5T
-a6eGVYJSyuswdwIWJiwl
-=WQOh
------END PGP SIGNATURE-----
-
---envbJBWh7q8WU6mo--
+g.
