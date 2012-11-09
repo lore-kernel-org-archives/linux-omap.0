@@ -1,68 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] musb regression fixes for v3.7-rc4
-Date: Fri, 9 Nov 2012 14:39:39 -0800
-Message-ID: <20121109223939.GZ6801@atomide.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
+ to mach-omap2)
+Date: Fri, 09 Nov 2012 15:57:38 -0700
+Message-ID: <509D8A62.1080102@wwwdotorg.org>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <20121109022624.GI23553@truffula.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40248 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755968Ab2KIWjo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 17:39:44 -0500
-Content-Disposition: inline
+Received: from avon.wwwdotorg.org ([70.85.31.133]:52939 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755968Ab2KIW5n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 17:57:43 -0500
+In-Reply-To: <20121109022624.GI23553@truffula.fritz.box>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-The following changes since commit 3d70f8c617a436c7146ecb81df2265b4626dfe89:
+On 11/08/2012 07:26 PM, David Gibson wrote:
+...
+> I also think graft will handle most of your use cases, although as I
+> said I don't fully understand the implications of some of them, so I
+> could be wrong.  So, the actual insertion of the subtree is pretty
+> trivial to implement.  phandles are the obvious other matter to be
+> dealt with.  I haven't found the right thread where what you've
+> envisaged so far is discussed, so here are things I can see:
+> 
+> 1) Avoiding phandle collisions between main tree and subtree (or
+>    between subtrees).
+> 
+> I'm hopeful that this can be resolved just by establishing some
+> conventions about the ranges of phandles to be used for various
+> components.  I'd certainly be happy to add a directive to dtc which
+> enforces allocation of phandles within a specified range.
 
-  Linux 3.7-rc4 (2012-11-04 11:07:39 -0800)
+One case I wonder about is:
 
-are available in the git repository at:
+Base board A that's split into two .dts files e.g. due to there being
+two versions of the base board which are 90% identical, yet there being
+a few differences between them.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc4/musb-regression-signed
+Base board B that's just a single .dts file.
 
-for you to fetch changes up to 459bc971eba0fe84b3fe857cf0a71c5fd102f06b:
+We might allocate phandle range 0..999 for the base board.
 
-  ARM: OMAP: ocp2scp: create omap device for ocp2scp (2012-11-07 10:10:28 -0800)
+Child board X plugs into either, so the two base boards need to "export"
+the same set of phandle IDs to the child board to allow it to reference
+them.
 
-----------------------------------------------------------------
-This series fixes an annoying regression to make MUSB working
-on omap4 again. Although it's getting rather late for these
-changes for the -rc cycle, it is important as many devices
-are using MUSB for charging and connectivity.
+If base board A version 2 comes along after the phandle IDs that the
+child board uses are defined, then how do we handle assigning a specific
+phandle ID range to each of base board A's two version-specific
+overlays, when the version-specific changes might affect arbitrary
+phandle IDs within the range, and require some to be moved into the base
+board version-specific overlays and some to stay in the common base
+board .dts?
 
-With the USB PHY changes, MUSB started using the newly added
-drivers/usb/phy/omap-usb2.c driver introduced by commit
-657b306a (usb: phy: add a new driver for omap usb2 phy)
-that is using the newly introduced drivers/bus/omap-ocp2scp.c
-introduced by commit 26a84b3e (drivers: bus: add a new driver
-for omap-ocp2scp).
+> 2) Resolving phandle references within a subtree
+> 
+> If we can handle (1) by convention, we don't need anything here, the
+> references are fine as is.
+> 
+> (3) Resolving phandle references from the subtree to the main tree.
+> 
+> So, I think this can actually be avoided, at least in cases where what
+> physical connections are available to the expansion module is well
+> defined.  The main causes to have external references are interrupts
+> and gpios.  Interrupts we handle by defining an interrupt specifier
+> space for the interrupts available on the expansion
+> socket/connector/bus/whatever.  In the master tree we then have
+> something like:
+> 
+> ...
+> 	expansion-socket@XXXX {
+> 		expansion-id = "SlotA";
+> 		interrupt-map = < /* map expansion irq specs to
+> 				     board interrupt controllers */ >;
+> 		interrupt-map-mask = < ... >;
+> 		ranges = < /* map expansion local addresses to global
+> 		              mmio */ >;
+> 	};
 
-These changes allowed dropping a lot of PHY related code from
-arch/arm/mach-omap2/omap_phy_internal.c and have it live in
-the device driver like it should with commit c9e4412a (arm: omap:
-phy: remove unused functions from omap-phy-internal.c).
+We would end up needing an interrupt-map or ranges type of property for
+basically any resource type.
 
-However, MUSB on omap4 broke with these changes for legacy
-platform data boot, and now only works with device tree for
-omap4. Unfortunately we are still few critical bindings away
-from being able to make omap4 usbale with device tree.
-
-Fix the regression properly by adding platform data support
-to the ocp2scp driver so we can avoid adding back the driver
-code to arch/arm/mach-omap2.
-
-----------------------------------------------------------------
-Kishon Vijay Abraham I (3):
-      drivers: bus: ocp2scp: add pdata support
-      ARM: OMAP4: add _dev_attr_ to ocp2scp for representing usb_phy
-      ARM: OMAP: ocp2scp: create omap device for ocp2scp
-
- arch/arm/mach-omap2/devices.c              | 79 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 28 +++++++++++
- drivers/bus/omap-ocp2scp.c                 | 68 +++++++++++++++++++++++--
- include/linux/platform_data/omap_ocp2scp.h | 31 ++++++++++++
- 4 files changed, 203 insertions(+), 3 deletions(-)
- create mode 100644 include/linux/platform_data/omap_ocp2scp.h
+For example, what about an I2C bus that's routed to the daughter board,
+and the daughter board contains an I2C bus mux, whose control path isn't
+through I2C but rather GPIOs? In this case, the I2C bus mux isn't a
+child of the I2C bus, but a separate entity that indicates its parent
+I2C bus using a phandle. I presume a similar argument applies to almost
+any kind of resource. This is probably do-able, but certainly something
+to consider with the socket approach. I do like the socket approach though.
