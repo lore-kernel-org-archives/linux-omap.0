@@ -1,39 +1,64 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Fri, 9 Nov 2012 20:33:47 +0000
-Message-ID: <CACxGe6uXyTt_kr4=0ob+-ubgV9he+SfobLwux6X0m6y7yQU7EA@mail.gmail.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
- <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com>
- <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
- <5ED17D42-07B8-4D4F-B54F-82B4CC60584C@antoniou-consulting.com>
- <509A3595.7050600@ti.com> <A6697FB9-3614-4027-A71B-59C7556005BF@antoniou-consulting.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: clockdomain: disabling unused clks
+Date: Fri, 9 Nov 2012 20:53:34 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211092036170.20703@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com> <1352417516-15213-1-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1211090052100.20703@utopia.booyaka.com> <20121109011738.17381.88199@nucleus> <alpine.DEB.2.00.1211091900250.20703@utopia.booyaka.com>
+ <alpine.DEB.2.00.1211091906340.20703@utopia.booyaka.com> <20121109194023.17381.62227@nucleus> <alpine.DEB.2.00.1211091951080.20703@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <A6697FB9-3614-4027-A71B-59C7556005BF@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:60041 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753511Ab2KIUxe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 15:53:34 -0500
+In-Reply-To: <alpine.DEB.2.00.1211091951080.20703@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Nov 7, 2012 at 11:02 AM, Pantelis Antoniou
-<panto@antoniou-consulting.com> wrote:
-> On Nov 7, 2012, at 11:19 AM, Benoit Cousson wrote:
->> Maybe some extra version match table can just be passed during the board machine_init
->>
->>       of_platform_populate(NULL, omap_dt_match_table, NULL, NULL, panda_version_match_table);
->>
->
-> Would we need explicit of_platform_populate calls if we have node modification notifiers?
-> In that case the notifier would pick it up automatically, and can do the per
-> version matching internally.
+On Fri, 9 Nov 2012, Paul Walmsley wrote:
 
-There still needs to be something to register "everything below this
-node is interesting" which is exactly what of_platform_populate() does
-now. I see the notifiers being used by the of_platform_populate
-backend to know when nodes have been created (or destroyed).
+> On Fri, 9 Nov 2012, Mike Turquette wrote:
+> 
+> > But I'm OK with the below patch in the short term.  I just have one
+> > question: did you observe any PM regressions by skipping the clkdm
+> > programming?
+> 
+> It's still under test here but 3530ES3 Beagle passed the PM tests with it, 
+> with no obvious warnings.
 
-g.
+OK I'm satisfied with this general fix.  Will have to break it up into 
+pieces and move it earlier in the patch stack to ensure that PM doesn't 
+break in the middle of the series, but the idea seems reasonably sound for 
+short-term use.  A clock should only be disabled during the 
+disable-unused-clocks phase if its usecount is zero and it's enabled in 
+the hardware.  As far as I can tell, this can only happen when the clock 
+is enabled by the bootloader/ROM code/PPA, and never touched by the kernel 
+before the disable-unused-clocks phase.  The only regression cases that 
+come to mind at the moment are:
+
+1. CONFIG_PM=n and a clockdomain only contains unused clocks; or
+
+2. CONFIG_PM=y and a clockdomain only contains unused clocks and that same 
+clockdomain does not support hardware-supervised autoidle or force-idle
+
+In those cases, I'd assume the clockdomain would effectively get stuck on.  
+#1 we don't really care about since CONFIG_PM=n anyway.  #2 is more of a 
+concern but it should disappear completely once hwmods are present for all 
+of the IP blocks on the device.  (The presence of the hwmods will ensure 
+that every clock that matters from an idle-management perspective is 
+enabled at least once when the IP block is reset.)  For this reason, it's 
+important to note that when the hwmod reset code is moved to run late in 
+the boot process, it will have to run before the unused clocks are 
+disabled.
+
+One nice side-effect of this bug is that it highlighted that we're still 
+missing OMAP3 hwmods for the camera subsystem, and that the reset code for 
+the SAD2D module needs to be moved out of 
+arch/arm/mach-omap2/pm34xx.c:omap3_d2d_idle() and into something that can 
+be called from the hwmod reset code.
+
+
+- Paul
+
