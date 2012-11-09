@@ -1,88 +1,214 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 3/3] mmc: omap_hsmmc: update error code for
- response_busy cmd
-Date: Fri, 9 Nov 2012 18:40:54 +0200
-Message-ID: <20121109164054.GE11417@arwen.pp.htv.fi>
-References: <20121109145218.GA10873@arwen.pp.htv.fi>
- <1352477176-6673-1-git-send-email-balajitk@ti.com>
- <1352477176-6673-4-git-send-email-balajitk@ti.com>
-Reply-To: <balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL v2] ARM: OMAP: second set of PRCM cleanups for 3.8
+Date: Fri, 9 Nov 2012 16:56:03 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211091654590.20703@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J4XPiPrVK1ev6Sgr"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1352477176-6673-4-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, svenkatr@ti.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:58880 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754031Ab2KIQ4E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 11:56:04 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---J4XPiPrVK1ev6Sgr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hi,
+Hi Tony,
 
-On Fri, Nov 09, 2012 at 09:36:16PM +0530, Balaji T K wrote:
-> update error code to cmd->error for commands with response_busy and no da=
-ta
->=20
-> Signed-off-by: Balaji T K <balajitk@ti.com>
+The following changes since commit 7fc54fd3084457c7f11b9e2e1e3fcd19a3badc33:
 
-Just one comment below, otherwise:
+  Merge branch 'omap-for-v3.8/cleanup-headers' into omap-for-v3.8/cleanup-prcm (2012-10-26 13:32:22 -0700)
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
+are available in the git repository at:
 
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index d931e08..1503808 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -980,8 +980,8 @@ static void hsmmc_command_incomplete(struct omap_hsmm=
-c_host *host,
->  	if (host->data) {
->  		omap_hsmmc_reset_controller_fsm(host, SRD);
->  		omap_hsmmc_dma_cleanup(host, err);
-> -	}
-> -
-> +	} else if (host->mrq && host->mrq->cmd)
-> +		host->mrq->cmd->error =3D err;
 
-if you have curly braces in one branch, you need to put in all of them,
-so this should be:
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-cleanup-b2-for-3.8
 
-+	} else if (host->mrq && host->mrq->cmd) {
-+		host->mrq->cmd->error =3D err;
-+	}
+for you to fetch changes up to b99db36cdf37decb1b5575c5f293d170cbbc53d6:
 
---=20
-balbi
+  ARM: OMAP2+: PRCM: remove obsolete prcm.[ch] (2012-11-08 15:09:26 -0700)
 
---J4XPiPrVK1ev6Sgr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+- ----------------------------------------------------------------
+Second set of OMAP PRCM cleanups for 3.8.
 
+These patches remove the use of omap_prcm_get_reset_sources() from the
+OMAP watchdog driver, and remove mach-omap2/prcm.c and
+plat-omap/include/plat/prcm.h.
+
+Basic test logs for this branch on top of Tony's cleanup-prcm branch
+at commit 7fc54fd3084457c7f11b9e2e1e3fcd19a3badc33 are here:
+
+    http://www.pwsan.com/omap/testlogs/prcm_cleanup_b_3.8/20121108151646/
+
+However, cleanup-prcm at 7fc54fd3 does not include some fixes
+that are needed for a successful test.  With several reverts,
+fixes, and workarounds applied, the following test logs were
+obtained:
+
+    http://www.pwsan.com/omap/testlogs/TEST_prcm_cleanup_b_3.8/20121108151930/
+
+ which indicate that the series tests cleanly.
+
+This second pull request updates one of the patches which broke
+with rmk's allnoconfigs, and also updates the tag description to
+indicate that 7fc54fd3 is building cleanly here.
+
+- ----------------------------------------------------------------
+
+vmlinux object size
+(delta in bytes from test_cleanup-prcm_7fc54fd_v3.7-rc (7fc54fd3084457c7f11b9e2e1e3fcd19a3badc33)):
+   text     data      bss    total  kernel
+   -104      -72        0     -176  am33xx_only
+   +120      -64        0      +56  n800_multi_omap2xxx
+   +336      -32        0     +304  n800_only_a
+    +88      -24        0      +64  omap1_defconfig
+      0        0        0        0  omap1_defconfig_1510innovator_only
+   +132       -8        0     +124  omap1_defconfig_5912osk_only
+   +788     -232        0     +556  omap2plus_defconfig
+   +336      -32        0     +304  omap2plus_defconfig_2430sdp_only
+   +788     -240        0     +548  omap2plus_defconfig_cpupm
+   +844     -224        0     +620  omap2plus_defconfig_no_pm
+   +336     -144        0     +192  omap2plus_defconfig_omap2_4_only
+  +4528     -112        0    +4416  omap2plus_defconfig_omap3_4_only
+  +1524     -248    +3472    +4748  rmk_omap3430_ldp_allnoconfig
+   +312      -48        0     +264  rmk_omap3430_ldp_oldconfig
+  +1524     -248    +3472    +4748  rmk_omap4430_sdp_allnoconfig
+   +208      -48        0     +160  rmk_omap4430_sdp_oldconfig
+
+
+Paul Walmsley (17):
+      ARM: OMAP1: CGRM: fix omap1_get_reset_sources() return type
+      ARM: OMAP2+: WDT: move init; add read_reset_sources pdata function pointer
+      watchdog: OMAP: use standard GETBOOTSTATUS interface; use platform_data fn ptr
+      ARM: OMAP2+: PRCM: remove omap_prcm_get_reset_sources()
+      ARM: OMAP2+: common: remove mach-omap2/common.c globals and map_common_io code
+      ARM: OMAP2/3: PRM: add SoC reset functions (using the CORE DPLL method)
+      ARM: OMAP2xxx: clock: remove global 'dclk' variable
+      ARM: OMAP2xxx: clock: move virt_prcm_set code into clkt2xxx_virt_prcm_set.c
+      ARM: OMAP2+: PRCM: create SoC-specific chip restart functions
+      ARM: OMAP2+: board files: use SoC-specific system restart functions
+      ARM: OMAP2xxx: APLL/CM: convert to use omap2_cm_wait_module_ready()
+      ARM: OMAP2+: CM/clock: convert _omap2_module_wait_ready() to use SoC-independent CM functions
+      ARM: OMAP2+: PRCM: remove omap2_cm_wait_idlest()
+      ARM: OMAP2+: PRCM: split and relocate the PRM/CM globals setup
+      ARM: OMAP2+: PRCM: consolidate PRCM-related timeout macros
+      ARM: OMAP2+: hwmod: call to _omap4_disable_module() should use the SoC-specific call
+      ARM: OMAP2+: PRCM: remove obsolete prcm.[ch]
+
+ arch/arm/mach-omap1/common.h                 |    2 +-
+ arch/arm/mach-omap1/devices.c                |   21 ++-
+ arch/arm/mach-omap1/reset.c                  |    9 +-
+ arch/arm/mach-omap2/Makefile                 |    7 +-
+ arch/arm/mach-omap2/am33xx.h                 |    1 +
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-3630sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-4430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-am3517crane.c      |    2 +-
+ arch/arm/mach-omap2/board-am3517evm.c        |    2 +-
+ arch/arm/mach-omap2/board-apollon.c          |    2 +-
+ arch/arm/mach-omap2/board-cm-t35.c           |   18 +--
+ arch/arm/mach-omap2/board-cm-t3517.c         |    2 +-
+ arch/arm/mach-omap2/board-devkit8000.c       |    2 +-
+ arch/arm/mach-omap2/board-generic.c          |   10 +-
+ arch/arm/mach-omap2/board-h4.c               |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c         |    4 +-
+ arch/arm/mach-omap2/board-ldp.c              |    2 +-
+ arch/arm/mach-omap2/board-n8x0.c             |    6 +-
+ arch/arm/mach-omap2/board-omap3beagle.c      |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c         |    2 +-
+ arch/arm/mach-omap2/board-omap3logic.c       |    4 +-
+ arch/arm/mach-omap2/board-omap3pandora.c     |    2 +-
+ arch/arm/mach-omap2/board-omap3stalker.c     |    2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+ arch/arm/mach-omap2/board-overo.c            |    2 +-
+ arch/arm/mach-omap2/board-rm680.c            |    4 +-
+ arch/arm/mach-omap2/board-rx51.c             |    2 +-
+ arch/arm/mach-omap2/board-ti8168evm.c        |    4 +-
+ arch/arm/mach-omap2/board-zoom.c             |    4 +-
+ arch/arm/mach-omap2/clkt2xxx_apll.c          |   57 ++------
+ arch/arm/mach-omap2/clkt2xxx_dpllcore.c      |   36 ++++-
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   70 ++++++++--
+ arch/arm/mach-omap2/clkt_iclk.c              |    1 -
+ arch/arm/mach-omap2/clock.c                  |   57 +++++++-
+ arch/arm/mach-omap2/clock.h                  |   28 ----
+ arch/arm/mach-omap2/clock2420_data.c         |   26 +---
+ arch/arm/mach-omap2/clock2430_data.c         |   26 +---
+ arch/arm/mach-omap2/clock2xxx.c              |   16 ---
+ arch/arm/mach-omap2/clock2xxx.h              |    9 +-
+ arch/arm/mach-omap2/cm-regbits-24xx.h        |    2 +
+ arch/arm/mach-omap2/cm.h                     |   20 ++-
+ arch/arm/mach-omap2/cm2xxx.c                 |  128 ++++++++++++++++-
+ arch/arm/mach-omap2/cm2xxx.h                 |    4 +
+ arch/arm/mach-omap2/cm2xxx_3xxx.h            |    8 +-
+ arch/arm/mach-omap2/cm3xxx.c                 |   66 +++++++++
+ arch/arm/mach-omap2/cm3xxx.h                 |    5 +
+ arch/arm/mach-omap2/cm_common.c              |   70 +++++++++-
+ arch/arm/mach-omap2/cminst44xx.h             |    2 +
+ arch/arm/mach-omap2/common.c                 |  183 -------------------------
+ arch/arm/mach-omap2/common.h                 |  133 +++++-------------
+ arch/arm/mach-omap2/control.c                |   10 +-
+ arch/arm/mach-omap2/control.h                |    2 +
+ arch/arm/mach-omap2/cpuidle34xx.c            |    1 -
+ arch/arm/mach-omap2/devices.c                |   26 ----
+ arch/arm/mach-omap2/display.c                |    2 +-
+ arch/arm/mach-omap2/hdq1w.c                  |    4 +-
+ arch/arm/mach-omap2/i2c.c                    |    6 +-
+ arch/arm/mach-omap2/id.c                     |    7 +-
+ arch/arm/mach-omap2/io.c                     |   86 ++++++++++--
+ arch/arm/mach-omap2/mcbsp.c                  |    2 +-
+ arch/arm/mach-omap2/msdi.c                   |    4 +-
+ arch/arm/mach-omap2/omap2-restart.c          |   65 +++++++++
+ arch/arm/mach-omap2/omap3-restart.c          |   36 +++++
+ arch/arm/mach-omap2/omap4-common.c           |   19 +++
+ arch/arm/mach-omap2/omap_hwmod.c             |    8 +-
+ arch/arm/mach-omap2/pm34xx.c                 |    1 -
+ arch/arm/mach-omap2/powerdomain.c            |    2 -
+ arch/arm/mach-omap2/prcm-common.h            |   22 ---
+ arch/arm/mach-omap2/prcm.c                   |  189 --------------------------
+ arch/arm/mach-omap2/prcm_mpu44xx.c           |   17 +++
+ arch/arm/mach-omap2/prcm_mpu44xx.h           |    9 +-
+ arch/arm/mach-omap2/prm.h                    |   24 +++-
+ arch/arm/mach-omap2/prm2xxx.c                |   15 +-
+ arch/arm/mach-omap2/prm2xxx.h                |    2 +
+ arch/arm/mach-omap2/prm2xxx_3xxx.h           |    7 -
+ arch/arm/mach-omap2/prm3xxx.c                |   16 ++-
+ arch/arm/mach-omap2/prm3xxx.h                |    2 +
+ arch/arm/mach-omap2/prm44xx.c                |    1 -
+ arch/arm/mach-omap2/prm_common.c             |   16 ++-
+ arch/arm/mach-omap2/prminst44xx.h            |    2 +
+ arch/arm/mach-omap2/sdrc.c                   |    8 +-
+ arch/arm/mach-omap2/sdrc.h                   |    2 +
+ arch/arm/mach-omap2/ti81xx.h                 |    9 ++
+ arch/arm/mach-omap2/wd_timer.c               |   40 +++++-
+ arch/arm/plat-omap/include/plat/prcm.h       |   37 -----
+ drivers/watchdog/omap_wdt.c                  |   26 ++--
+ include/linux/platform_data/omap-wd-timer.h  |   38 ++++++
+ 90 files changed, 991 insertions(+), 851 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap2-restart.c
+ create mode 100644 arch/arm/mach-omap2/omap3-restart.c
+ delete mode 100644 arch/arm/mach-omap2/prcm.c
+ delete mode 100644 arch/arm/plat-omap/include/plat/prcm.h
+ create mode 100644 include/linux/platform_data/omap-wd-timer.h
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQnTIWAAoJEIaOsuA1yqREkawP/2dTZjf71SHECx2URYqwtM8u
-E7vFjpryeAh6/o4TQrQ/2InZd1+lLvvLtLeAgBEWsaDAxNqI+FyxyS9xud+xg8YQ
-ZEeXBx7lJ7YbdJ3EFgUljmmxwmr3bHKLDA+1Td5tx63bc/3xJ7ah9ZYWC6n/hyF+
-kBk5eXGTWgB2Pt1IpH65EUzL/11wHdigSLjk7RY1o4cZMav+zPz0KbDBxFyUaW+h
-Tz72mb9sjsvAAlMRd2oJifem4PO9enYrlA5GHP5rYP3/8hLTbjfqrgQZRm6HmGWC
-bNV2M/03ScEZf06UooRKL2J36Ms/8EBx7kA9oSNwwC1A7wElVZVYv5rn1W8N0hwU
-m7FHEo1+KomGw3X/n5/lMntKmBmGz+b3DtguIcdgzoLrH53RmXWL2Z0GaDiONRze
-R1euS0VrJ01mTsYiYdMomaRxRsZF7UxFZPG5HTrCR1Y+tgyQazFE8JkPV8ZEx14G
-MyLv0uGLVjd5Hj/XjWRMKxuRXMwN/orXBy7S/6sdqNhQTi9we4X++yk8LMQ5lBH4
-38h6s3olsI6vRGJHoOObAUkL6XwK6+6pIWDh95xLkZAO88xk3Oa1NSYdRLXQxBp6
-ehbJczfJDIBsgG/lUSZ0XdjkPkyv6AJEhOH/9kT2Mv+CMg7H4YVqg6m/ZTv5EBvE
-ah0hxfZHtARE3QiUk0DH
-=oNZF
+iQIcBAEBAgAGBQJQnTVXAAoJEMePsQ0LvSpLRJQP+QGaUAh8fr6WCF29unEVZN/8
+U/WTNoJnH2WyCjo8dw/xrhFvMfrFFo4aX5HMC9uHlPdkfK5qWFN47+Rw7DYeJsqT
+OchzlfG3ECmg1L1SeUviI+9MdQ37QSQd5+Fb7oT8oYsZbndQ2cD1tV9X/Wa5xNUw
+ka3yTmR60zu8LGII8lscuk9/FgyP6anSH6nZLoUilTxO1Ux8ae4kQt0vUFRSg2Yn
+HKXLJMoL1hedZxVcfMGHZJ/Q1YwiGGsk8myyRtdeTihXPB2VM7Jsf+2zI3yYQpZV
+LH1mrtiHQP3OC396zg5ELMuj+VO1vZi0Nw/Khdk3haPC73XFWAHyTX2tfXeTcoS4
+ffeHvzQGkj/SVBs8i58nnegJQaBzuFY7koiW4arZd9J7h4al4Y4mXk0nThYidTDU
+5TdjHJXa1bHPq4YKPz4l0QMkWDkyVNYtE5xHY0xl7yGcZkp/JCPixEwGE+c+SZMt
+EqyonivsXecek8N4wlLmWw6kyjvuA9MxkZUClLSWkSx5KCoF1S1Cha5eyWIA1c6k
+zovfEmiT3qw4yVaBOi7sI4ijrD0XKFbtErfsrKXn8uJFiMVZ9GX8Dn1FpyjOTvuE
+MiV4yOxgVSv8sSn8gUE3V1MmHEOjGuGtPS41I7wpVeRaKolaKEYuMiDIJWxJ+LUu
+Ur0wUp6HUXX6uVrmQfZI
+=sFm/
 -----END PGP SIGNATURE-----
-
---J4XPiPrVK1ev6Sgr--
