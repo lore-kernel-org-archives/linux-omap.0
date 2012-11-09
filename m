@@ -1,52 +1,99 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Fri, 09 Nov 2012 16:14:26 -0700
-Message-ID: <509D8E52.1010505@wwwdotorg.org>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <20121109022624.GI23553@truffula.fritz.box>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: OMAP baseline test results for v3.7-rc4
+Date: Fri, 09 Nov 2012 15:23:23 -0800
+Message-ID: <87390iicno.fsf@deeprootsystems.com>
+References: <alpine.DEB.2.00.1211050241410.23228@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121109022624.GI23553-W9XWwYn+TF0XU02nzanrWNbf9cGiqdzd@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: David Gibson <david-xT8FGy+AXnRB3Ne2BGzF6laj5H9X9Tb+@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1211050241410.23228@utopia.booyaka.com> (Paul
+ Walmsley's message of "Mon, 5 Nov 2012 02:46:51 +0000 (UTC)")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>, Venkatraman S <svenkatr@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/08/2012 07:26 PM, David Gibson wrote:
-...
-> So, let me take a stab at this from a more bottom-up approach, and see
-> if we meet in the middle somewhere.  As I discussed in the other
-> thread with Daniel Mack, I can see two different operationso on the
-> fdt that might be useful in this context.  I think of them as "graft"
-> - which takes one fdt and adds it as a new subtree to an existing fdt
-> - and "overlay" where a new fdt adds or overrides arbitrary properties
-> in an existing tree.  Overlay is more or less what we do at the source
-> level in dtc already.
++Felipe, Venkat
 
-One more thought on the differences between overlay and grafting:
+Paul Walmsley <paul@pwsan.com> writes:
 
-With overlay, it's possible to make your overlay a complete DT tree
-rooted at /. In some cases, you might find a lower-level node which all
-overlaid elements share, and root the overlay process there.
+[...]
 
-With grafting, you're basically guaranteed to want the child/graft file
-to have different parts of itself grafted into different points in the
-parent/underlying tree, e.g. to add nodes to an I2C bus, an SPI bus, and
-perhaps some bus-less devices at the root (e.g. a new gpio-leds device).
-This will require that a child/graft file to consist of multiple chunks
-of DT all to be grafted as separate operations, whereas with overlay you
-may be able to get away with a single chunk to be overlaid (although
-with some of the use-cases discussed, even the overlay approach might
-require multiple chunks to be applied).
+> Failing tests: needing investigation
+> ------------------------------------
+>
+
+Here's another one for v3.7-rc4.
+
+On all OMAP3 platforms I tested (3430/n900, 3530/Beagle, 3530/Overo,
+3730/OveroSTORM, 3730/Beagle-xM), a system suspend (retention or off)
+fails to wake up after a dynamic idle off-mode test (test script
+below[1]).
+
+I found that disabling MMC in the config made the tests pass again, so
+then bisected it down to the commit below removing SYSCONFIG
+accesses[2].  I haven't had the time to find out exactly the cause, but
+clearly the code that was removed was doing something that hwmod is not
+taking care of automatically.
+
+Venkat, Felipe, could you please investigate this and hopefully get a
+fix out for v3.7-rc?
+
+Thanks,
+
+Kevin
+
+
+[1] Test for system suspend (retention) after off-idle
+
+#!/bin/sh
+
+echo 1 > /debug/pm_debug/enable_off_mode
+
+echo 3000 > /sys/devices/platform/omap_uart.0/power/autosuspend_delay_ms
+echo 3000 > /sys/devices/platform/omap_uart.1/power/autosuspend_delay_ms
+echo 3000 > /sys/devices/platform/omap_uart.2/power/autosuspend_delay_ms
+if [ -e /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms ]; then 
+   echo 3000 > /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms
+fi
+
+sleep 5
+
+echo -1 > /sys/devices/platform/omap_uart.0/power/autosuspend_delay_ms
+echo -1 > /sys/devices/platform/omap_uart.1/power/autosuspend_delay_ms
+echo -1 > /sys/devices/platform/omap_uart.2/power/autosuspend_delay_ms
+if [ -e /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms ]; then 
+   echo -1 > /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms
+fi
+
+echo 0 > /debug/pm_debug/enable_off_mode
+
+rtcwake -m mem -s 1
+
+
+[2]
+commit 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c
+Author: Venkatraman S <svenkatr@ti.com>
+Date:   Wed Aug 8 14:26:52 2012 +0530
+
+    mmc: omap_hsmmc: remove access to SYSCONFIG register
+    
+    SYSCONFIG register of HSMMC IP is managed by the omap hwmod
+    abstraction layer. Resetting the IP and configuring the correct
+    SYSCONFIG mode is centrally managed by hwmod.
+    
+    Remove code which manipulates IP reset and SYSCONFIG directly in
+    the driver.
+    
+    Signed-off-by: Venkatraman S <svenkatr@ti.com>
+    Acked-by: Felipe Balbi <balbi@ti.com>
+    Signed-off-by: Chris Ball <cjb@laptop.org>
