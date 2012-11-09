@@ -1,98 +1,79 @@
-From: David Gibson <david@gibson.dropbear.id.au>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Sat, 10 Nov 2012 01:29:08 +1100
-Message-ID: <20121109142908.GB4696@truffula.fritz.box>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <CAD=GYpbeKtW37Cj9cXr8F7F83d9Fgs-moqu9p6cOaPE1VxwbSg@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv2] ARM: OMAP4: USB: power down MUSB PHY during boot
+Date: Fri, 9 Nov 2012 16:30:35 +0200
+Message-ID: <1352471435-9560-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:49388 "EHLO ozlabs.org"
+Received: from bear.ext.ti.com ([192.94.94.41]:59840 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752851Ab2KIO1h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Nov 2012 09:27:37 -0500
-Content-Disposition: inline
-In-Reply-To: <CAD=GYpbeKtW37Cj9cXr8F7F83d9Fgs-moqu9p6cOaPE1VxwbSg@mail.gmail.com>
+	id S1752877Ab2KIOal (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Nov 2012 09:30:41 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joel A Fernandes <agnel.joel@gmail.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Kishon Vijay Abraham I <kishon@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 
-On Fri, Nov 09, 2012 at 12:32:09AM -0500, Joel A Fernandes wrote:
-> Hi Pantelis,
-> 
-> I hope I'm not too late to reply as I'm traveling.
-> 
-> On Nov 6, 2012, at 5:30 AM, Pantelis Antoniou
-> <panto@antoniou-consulting.com> wrote:
-> 
-> >> Joanne has purchased one of Jane's capes and packaged it into a rugged
-> >> case for data logging. As far as Joanne is concerned, the BeagleBone and
-> >> cape together are a single unit and she'd prefer a single monolithic FDT
-> >> instead of using an FDT overlay.
-> >> Option A: Using dtc, she uses the BeagleBone and cape .dts source files
-> >>        to generate a single .dtb for the entire system which is
-> >>        loaded by U-Boot. -or-
-> >
-> > Unlikely.
-> >> Option B: Joanne uses a tool to merge the BeagleBone and cape .dtb files
-> >>        (instead of .dts files), -or-
-> > Possible but low probability.
-> >
-> >> Option C: U-Boot loads both the base and overlay FDT files, merges them,
-> >>        and passes the resolved tree to the kernel.
-> >>
-> >
-> > Could be made to work. Only really required if Joanne wants the
-> > cape interface to work for u-boot too. For example if the cape has some
-> > kind of network interface that u-boot will use to boot from.
-> >
-> 
-> I love Grant's hashing idea a lot keeping the phandle problem for
-> compile time and not requiring fixups.
+Commit c9e4412ab8eb8ef82d645d8749c4ce96ad490007 removed all of the USB
+PHY functions for OMAP4, but this causes a problem with core retention
+as the MUSB module remains enabled if omap-usb2 phy driver is not used.
+This keeps the USB DPLL enabled and prevents l3_init pwrdm from idling.
 
-Well, using a hash only moves the problem of fixed phandles to a
-problem of fixed node paths.  The details of node paths are, if
-anything, more mutable than phandles.
+Fixed by adding a minimal function back that disables the USB PHY during
+boot.
 
-[snip]
-> Alternatively to hashing, reading David Gibson's paper I followed,
-> phandle is supposed to 'uniquely' identity node. I wonder why the node
-> name itself is not sufficient to uniquely identify.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/omap_phy_internal.c |   32 +++++++++++++++++++++++++++++++
+ 1 files changed, 32 insertions(+), 0 deletions(-)
 
-Node names are not unique, not even close.  If you have two similar
-NICs in slot 0 of two different PCI domains, they'll almost certainly
-both be called 'ethernet@0,0'.  Similar examples abound on other
-buses.  Node paths are unique, but they are long.
-
-The other big reason for phandles in OF history is that they would be
-more stable than paths.  The device tree could be manipulated during
-OF runtime, but phandles would generally be internal pointers in OF
-and so remain a consistent handle even if the node moved in the tree.
-That's not really relevant for flat trees, but we need to work with
-the same structures.
-
-> The code that does
-> the tree walking can then just strcmp the node name while it walks the
-> tree instead of having to find a node with a phandle number. I guess
-> the reason is phandles are small to store as data values. Another
-> approach can be to arrange the string block in alphabetical order
-> (unless it already is),
-
-They're not, and doing so would be a painful change to maintain
-compatibility across.  And in any case only property names use the
-strings block, not node names.
-
-> and store phandle as index of the node name
-> referenced relative to the starting of the strong block. This will not
-> affect nodes in dtb being moved around since they will still have the
-> same index value. the problem being adding or removing nodes Changes
-> the index of all other nodes in the string block as well.. Hmm.
-
+diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+index d992db8..9b56e5e 100644
+--- a/arch/arm/mach-omap2/omap_phy_internal.c
++++ b/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -33,6 +33,38 @@
+ #include "soc.h"
+ #include "control.h"
+ 
++#define CONTROL_DEV_CONF		0x300
++#define PHY_PD				0x1
++
++/**
++ * omap4430_phy_power_down: disable MUSB PHY during early init
++ *
++ * OMAP4 MUSB PHY module is enabled by default on reset, but this will
++ * prevent core retention if not disabled by SW. USB driver will
++ * later on enable this, once and if the driver needs it.
++ */
++static int __init omap4430_phy_power_down(void)
++{
++	void __iomem *ctrl_base;
++
++	if (!cpu_is_omap44xx())
++		return 0;
++
++	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
++	if (!ctrl_base) {
++		pr_err("control module ioremap failed\n");
++		return -ENOMEM;
++	}
++
++	/* Power down the phy */
++	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
++
++	iounmap(ctrl_base);
++
++	return 0;
++}
++early_initcall(omap4430_phy_power_down);
++
+ void am35x_musb_reset(void)
+ {
+ 	u32	regval;
 -- 
-David Gibson			| I'll have my music baroque, and my code
-david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-				| _way_ _around_!
-http://www.ozlabs.org/~dgibson
+1.7.4.1
+
