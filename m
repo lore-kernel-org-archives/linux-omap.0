@@ -1,39 +1,52 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
- to mach-omap2)
-Date: Fri, 09 Nov 2012 16:06:17 -0700
-Message-ID: <509D8C69.7060004@wwwdotorg.org>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Fri, 09 Nov 2012 16:14:26 -0700
+Message-ID: <509D8E52.1010505@wwwdotorg.org>
 References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <20121109022624.GI23553@truffula.fritz.box>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:47541 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751659Ab2KIXGV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 18:06:21 -0500
-In-Reply-To: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121109022624.GI23553-W9XWwYn+TF0XU02nzanrWNbf9cGiqdzd@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: David Gibson <david-xT8FGy+AXnRB3Ne2BGzF6laj5H9X9Tb+@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On 11/05/2012 01:40 PM, Grant Likely wrote:
-> As promised, here is my early draft to try and capture what device
-> tree overlays need to do and how to get there. Comments and
-> suggestions greatly appreciated.
+On 11/08/2012 07:26 PM, David Gibson wrote:
+...
+> So, let me take a stab at this from a more bottom-up approach, and see
+> if we meet in the middle somewhere.  As I discussed in the other
+> thread with Daniel Mack, I can see two different operationso on the
+> fdt that might be useful in this context.  I think of them as "graft"
+> - which takes one fdt and adds it as a new subtree to an existing fdt
+> - and "overlay" where a new fdt adds or overrides arbitrary properties
+> in an existing tree.  Overlay is more or less what we do at the source
+> level in dtc already.
 
-Here's one other requirement I'd like that I don't think I saw
-explicitly mentioned in your document:
+One more thought on the differences between overlay and grafting:
 
-Assuming a base file board.dts and a child board file child.dts, the
-compiled file child.dtb should be usable with a modified board.dtb
-assuming it exports the same set of attachment-points (hashed phandles,
-socket objects, whatever). This allows bug-fixes etc. to board.dts
-without forcing every child.dts to be recompiled.
+With overlay, it's possible to make your overlay a complete DT tree
+rooted at /. In some cases, you might find a lower-level node which all
+overlaid elements share, and root the overlay process there.
 
-If the attachment points is hashed node names or node content from
-board.dts, I'm not sure how this is possible?
-
-I suppose this is implicit if child.dtb can be used with either
-board-a.dtb and board-b.dtb though.
+With grafting, you're basically guaranteed to want the child/graft file
+to have different parts of itself grafted into different points in the
+parent/underlying tree, e.g. to add nodes to an I2C bus, an SPI bus, and
+perhaps some bus-less devices at the root (e.g. a new gpio-leds device).
+This will require that a child/graft file to consist of multiple chunks
+of DT all to be grafted as separate operations, whereas with overlay you
+may be able to get away with a single chunk to be overlaid (although
+with some of the use-cases discussed, even the overlay approach might
+require multiple chunks to be applied).
