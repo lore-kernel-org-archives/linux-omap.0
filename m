@@ -1,85 +1,160 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Thu, 8 Nov 2012 18:55:49 -0600
-Message-ID: <509C5495.1010109@ti.com>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BDAF5.1010703@ti.com> <79CD15C6BA57404B839C016229A409A83EB68589@DBDE01.ent.ti.com> <509BEE6D.9000902@ti.com> <79CD15C6BA57404B839C016229A409A83EB68654@DBDE01.ent.ti.com> <509BF2DD.2090308@ti.com> <79CD15C6BA57404B839C016229A409A83EB686AC@DBDE01.ent.ti.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH 14/26] ARM: OMAP3: clock: Add 3xxx data using common struct clk
+Date: Thu, 8 Nov 2012 16:57:27 -0800
+Message-ID: <20121109005727.17381.5145@nucleus>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
+ <1352337181-29427-15-git-send-email-mturquette@ti.com>
+ <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com>
+ <alpine.DEB.2.00.1211082158310.20703@utopia.booyaka.com>
+ <alpine.DEB.2.00.1211090002380.20703@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57125 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57192 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754044Ab2KIAzz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Nov 2012 19:55:55 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB686AC@DBDE01.ent.ti.com>
+	id S1753722Ab2KIA5q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 19:57:46 -0500
+In-Reply-To: <alpine.DEB.2.00.1211090002380.20703@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-
-On 11/08/2012 12:06 PM, Hiremath, Vaibhav wrote:
-> On Thu, Nov 08, 2012 at 23:28:53, Hunter, Jon wrote:
->>
->> On 11/08/2012 11:47 AM, Hiremath, Vaibhav wrote:
->>> On Thu, Nov 08, 2012 at 23:09:57, Hunter, Jon wrote:
->>
->> [snip]
->>
->>>> I think you are missing the point here. For OMAP devices we have two
->>>> main external clock sources which are the 32kHz clock and the sys_clk
->>>> (can be a range of frequencies from 12-38.4MHz for OMAP4). The point is
->>>> for OMAP these clock sources are always present and AFAIK there is no
->>>> h/w configuration that allows you not to have the 32kHz clock source.
->>>> PRCM needs it and I think for OMAP1 the reset logic needs it (if memory
->>>> serves).
->>>>
->>>> Igor was mentioning a h/w scenario where the 32kHz source is not
->>>> present. However, I am not sure which devices support this and is
->>>> applicable too.
->>>>
->>>> So we are not discussing the 32k-sync-timer here. We are discussing
->>>> whether there are any device configurations where a 32k clock source
->>>> would not be available for the gptimer.
->>>>
->>>
->>> Exactly that is the point I am trying to make here,
->>>
->>> In case of AM33xx, it is certainly possible to build the system without 
->>> this 32Khz clock. 
->>>
->>> Interesting point here is, this 32KHz clock is external clock coming from 
->>> crystal connected to in-built RTC module.
->>
->> Thanks. Looking at the AM3358 data manual it states ...
->>
->> "The OSC1 oscillator provides a 32.768-kHz reference clock to the
->> real-time clock (RTC) and is connected to the RTC_XTALIN and RTC_XTALOUT
->> terminals. OSC1 is disabled by default after power is applied. This
->> clock input is optional and may not be required if the RTC is configured
->> to receive a clock from the internal 32k RC oscillator (CLK_RC32K) or
->> peripheral PLL (CLK_32KHZ) which receives a reference clock from the
->> OSC0 input."
->>
->> So what is clear to me that an external 32k clock source is optional.
->> However, it still appears that you will always have an internal 32k
->> source and so regardless of the h/w configuration, a gptimer will always
->> have an 32k clock available on the AM335x devices. Is that correct?
->>
+Quoting Paul Walmsley (2012-11-08 16:11:12)
+> On Thu, 8 Nov 2012, Paul Walmsley wrote:
 > 
-> Internal RC oscillator is not accurate at all, so not guaranteed to give 
-> accurate 32.768Hz clock. The oscillation band is from 16Khz to 64Khz.
+> > On Thu, 8 Nov 2012, Paul Walmsley wrote:
+> > 
+> > > Am seeing warnings during the disable-unused-clocks phase of the boot on 
+> > > the OMAP3 test boards here.
+> > 
+> > Similar problems during system suspend on 3530ES3 Beagle.  Not sure
+> > what's causing these yet.  At this point the clockdomain usecounts
+> > should be accurate.
 > 
-> So it may not be useful as a system clocks, right?
+> Here's a redacted debugging log for these cases.  The suspend events start 
+> around the 30 second mark.
+> 
+> One observation is that dpll4_m5x2_ck and dpll4_m6x2_ck are never enabled.  
+> The tracebacks occur when something in the suspend path tries to disable 
+> those clocks.
 
-By the way, according to the AM3358 data manual (paragraph above), even
-if there is no external 32k clock source and if you don't use the
-internal 32k oscillator, you can still generate a 32k clock from the PER
-PLL (CLK_32KHZ). So therefore, there should always be a 32k clock source
-available for the gptimer. Is that correct?
+Hi Paul,
 
-At the end of the day, I am just trying to understand if any OMAP/AM
-device supports a h/w configuration where there is no 32k clock source
-available for the gptimer.
+My instrumentation shows that dpll4_ck & dpll4_m2x2_ck are triggering
+the WARNs:
 
-Jon
+[   25.214599] _clkdm_clk_hwmod_disable: dpll4_m2x2_ck
+[   25.214599] ------------[ cut here ]------------
+[   25.214660] WARNING: at arch/arm/mach-omap2/clockdomain.c:967
+_clkdm_clk_hwmod_disable+0xd0/0x118()
+...
+[   25.215209] _clkdm_clk_hwmod_disable: dpll4_ck
+[   25.215209] ------------[ cut here ]------------
+[   25.215240] WARNING: at arch/arm/mach-omap2/clockdomain.c:967
+_clkdm_clk_hwmod_disable+0xd0/0x118()
+
+Patch that give that information:
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 64e5046..a9d5965 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -947,7 +947,8 @@ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+ 	return 0;
+ }
+ 
+-static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
++static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm,
++		struct clk *clk)
+ {
+ 	unsigned long flags;
+ 
+@@ -957,6 +958,9 @@ static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
+ 	spin_lock_irqsave(&clkdm->lock, flags);
+ 
+ 	if (atomic_read(&clkdm->usecount) == 0) {
++		if (clk)
++			pr_err("%s: %s\n", __func__, __clk_get_name(clk));
++
+ 		spin_unlock_irqrestore(&clkdm->lock, flags);
+ 		WARN_ON(1); /* underflow */
+ 		return -ERANGE;
+@@ -1026,7 +1030,7 @@ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	if (!clk)
+ 		return -EINVAL;
+ 
+-	return _clkdm_clk_hwmod_disable(clkdm);
++	return _clkdm_clk_hwmod_disable(clkdm, clk);
+ }
+ 
+ /**
+@@ -1089,6 +1093,6 @@ int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh)
+ 	if (!oh)
+ 		return -EINVAL;
+ 
+-	return _clkdm_clk_hwmod_disable(clkdm);
++	return _clkdm_clk_hwmod_disable(clkdm, NULL);
+ }
+ 
+Regards,
+Mike
+
+> 
+> 
+> - Paul
+> 
+> [    0.135528] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
+> [    0.135559] clockdomain: dpll4_clkdm: enabled
+> [    0.135589] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
+> [    0.135681] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
+> [    0.135681] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
+> [    0.135711] clockdomain: dpll4_clkdm: disabled
+> [    0.135772] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
+> [    0.135803] clockdomain: dpll4_clkdm: enabled
+> [    0.135833] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
+> [    0.135894] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
+> [    0.135925] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
+> [    0.135955] clockdomain: dpll4_clkdm: disabled
+> [    0.135986] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
+> [    0.136016] clockdomain: dpll4_clkdm: enabled
+> [    0.136047] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
+> [    0.136138] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
+> [    0.136169] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
+> [    0.136169] clockdomain: dpll4_clkdm: disabled
+> [    0.136260] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
+> [    0.136291] clockdomain: dpll4_clkdm: enabled
+> [    0.136322] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
+> [    0.140594] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
+> [    0.140686] enabling clkdm dpll4_clkdm during enable of clk dpll4_m3x2_ck
+> [    0.140838] disabling clkdm dpll4_clkdm during disable of clk dpll4_m3x2_ck
+> [    0.140930] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
+> [    0.141479] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
+> [    0.141571] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
+> [    0.141601] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
+> [    0.141662] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
+> [    0.141693] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
+> [    0.141784] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
+> [    0.141815] enabling clkdm dpll4_clkdm during enable of clk dpll4_m3x2_ck
+> [    0.141876] disabling clkdm dpll4_clkdm during disable of clk dpll4_m3x2_ck
+> [    3.399200] disabling clkdm dpll4_clkdm during disable of clk dpll4_m6x2_ck
+> [    3.417694] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
+> [    3.445251] ---[ end trace 72e2d7bdcf98ea8b ]---
+> [    3.450134] disabling clkdm dpll4_clkdm during disable of clk dpll4_m5x2_ck
+> [    3.453918] clockdomain: dpll4_clkdm: disabled
+> [    3.477569] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
+> [    3.505096] ---[ end trace 72e2d7bdcf98ea8c ]---
+> [    3.531280] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
+> [    3.558807] ---[ end trace 72e2d7bdcf98ea8d ]---
+> [   38.999145] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
+> [   38.999267] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
+> [   38.999816] ---[ end trace 72e2d7bdcf98ea8e ]---
+> [   38.999816] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
+> [   38.999908] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
+> [   39.000366] ---[ end trace 72e2d7bdcf98ea8f ]---
+> [   42.169647] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
+> [   42.169647] clockdomain: dpll4_clkdm: enabled
+> [   42.169677] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
+> [   45.730346] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
+> [   45.795654] ---[ end trace 72e2d7bdcf98ea90 ]---
