@@ -1,87 +1,92 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Fri, 9 Nov 2012 21:42:37 +0000
-Message-ID: <CACxGe6vQ50aS0Fe7QvTHKfV=EDpsZoLC7SOxXLGc0pkMvyk5DQ@mail.gmail.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <20121109022624.GI23553@truffula.fritz.box>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: DTS for 3.8 part 2
+Date: Fri, 9 Nov 2012 14:00:05 -0800
+Message-ID: <20121109220005.GU6801@atomide.com>
+References: <509D0CC4.4080305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121109022624.GI23553@truffula.fritz.box>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23468 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755906Ab2KIWAK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 17:00:10 -0500
+Content-Disposition: inline
+In-Reply-To: <509D0CC4.4080305@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "AnilKumar, Chimata" <anilkumar@ti.com>, Ricardo Neri <ricardo.neri@ti.com>, "Vutla, Lokesh" <lokeshvutla@ti.com>, "Mohammed, Afzal" <afzal@ti.com>
 
-On Fri, Nov 9, 2012 at 2:26 AM, David Gibson
-<david@gibson.dropbear.id.au> wrote:
-> (3) Resolving phandle references from the subtree to the main tree.
->
-> So, I think this can actually be avoided, at least in cases where what
-> physical connections are available to the expansion module is well
-> defined.  The main causes to have external references are interrupts
-> and gpios.  Interrupts we handle by defining an interrupt specifier
-> space for the interrupts available on the expansion
-> socket/connector/bus/whatever.  In the master tree we then have
-> something like:
->
-> ...
->         expansion-socket@XXXX {
->                 expansion-id = "SlotA";
->                 interrupt-map = < /* map expansion irq specs to
->                                      board interrupt controllers */ >;
->                 interrupt-map-mask = < ... >;
->                 ranges = < /* map expansion local addresses to global
->                               mmio */ >;
->         };
->
-> The subtree for the expansion module gets attached as a subnode of
-> this one.  It doesn't use explicit interrupt-parents but instead just
-> uses the expansion local irq specifiers, letting the parent be the
-> default which will bubble up to this socket node where the
-> interrupt-map will send them to the right places.
->
-> I don't recall the gpio bindings off hand, but as I recall we based
-> them off the irq tree bindings so we ought to be able to do the same
-> thing for them.
->
-> Likewise, if there are several interchangeable expansion sockets that
-> have some address bits hard wired to distinguish them, we can just use
-> socket local mmio addresses within the subtree and the ranges property
-> here will sort that out.
+* Benoit Cousson <b-cousson@ti.com> [121109 06:03]:
+> Hi Tony,
+> 
+> Please pull some more OMAP5 and AM33xx data for 3.8.
 
-If I'm reading correctly, the suggestion is that everything be grafted
-below a single node and all connections route through that node using
-mapping. Correct?
+Thanks pulling into omap-for-v3.8/dt.
 
-For interrupts that works today
-For gpios, it isn't currently supported, but we could do it.
-For SPI it would mean that the new spi devices would not appear below
-the actual spi bus they are attached to
-For I2C, MDIO, and one wire, same problem.
-For memory mapped devices, the expansion node would need to a ranges
-for all the windows that map through it, and it assumes only one
-memory mapped bus (or at least it prefers only one memory mapped bus.
-If there were more than one then the expansion node placement wouldn't
-have a natural place to sit)
+Regards,
 
-The problem is that this is not like a PCI bus where there is only one
-kind of interface. It is a whole bunch of interfaces that happen to be
-grouped together loosely (as an expansion connector in the beaglebone
-case, but expansion isn't the only problem that I'm hearing about).
+Tony
 
-So, with a group of i2c, spi, memory mapped and other devices than are
-all plugged in together, how does that look? They really should not
-sit on the same level. An spi device cannot be a peer of an i2c device
-for instance, the address mapping is entirely different. The kernel
-really wants i2c devices to be a child of the actual i2c bus which may
-already have an i2c device or too on the main board. Does the
-expansion node need to have some kind of redirect node for each of the
-busses where the children of it need to create devices as children of
-the master bus?
-
-To me that seems to get really complex in a hurry. More complex than
-the overlay approach.
-
-g.
+> 
+> Thanks,
+> Benoit
+> 
+> 
+> 
+> The following changes since commit 3b3132f7e80e3d786f8ad5d5b97d4b6122be9aaa:
+>   Jon Hunter (1):
+>         ARM: dts: OMAP5: Add counter node
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.8/dts_part2
+> 
+> Afzal Mohammed (1):
+>       usb: musb: dsps: dt binding - add resources, example
+> 
+> Ajay Kumar Gupta (1):
+>       ARM: dts: AM33XX: Add usbss node
+> 
+> AnilKumar Ch (10):
+>       ARM: dts: AM33XX: Add pinmux configuration for matrix keypad to EVM
+>       ARM: dts: AM33XX: Add matrix keypad device tree data to am335x-evm
+>       ARM: dts: AM33XX: Add pinmux configuration for volume-keys to EVM
+>       ARM: dts: AM33XX: Add volume-keys device tree data to am335x-evm
+>       ARM: dts: AM33XX: Add pinmux configuration for user-leds to BONE
+>       ARM: dts: AM33XX: Add user-leds device tree data to am335x-bone
+>       ARM: dts: AM33XX: Add pinmux configuration for gpio-leds to EVMSK
+>       ARM: dts: AM33XX: Add user-leds device tree data to am335x-evmsk
+>       ARM: dts: AM33XX: Add pinmux configuration for gpio-keys to EVMSK
+>       ARM: dts: AM33XX: Add push-buttons device tree data to am335x-evmsk
+> 
+> Benoit Cousson (1):
+>       ARM: dts: Makefile: Add the am335x-evmsk target in dtbs list
+> 
+> Lokesh Vutla (3):
+>       ARM: dts: omap5-evm: Fix size of memory defined for EVM
+>       ARM: dts: omap5: EMIF device tree data for OMAP5 boards
+>       ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
+> 
+> Ricardo Neri (2):
+>       ARM: dts: omap4-panda: Add pinmux configuration for HDMI
+>       ARM: dts: omap4-sdp: Add pinmux configuration for HDMI
+> 
+>  .../devicetree/bindings/usb/am33xx-usb.txt         |   21 +++++
+>  arch/arm/boot/dts/Makefile                         |    1 +
+>  arch/arm/boot/dts/am335x-bone.dts                  |   44 ++++++++++
+>  arch/arm/boot/dts/am335x-evm.dts                   |   63 +++++++++++++++
+>  arch/arm/boot/dts/am335x-evmsk.dts                 |   84 ++++++++++++++++++++
+>  arch/arm/boot/dts/am33xx.dtsi                      |   17 ++++
+>  arch/arm/boot/dts/omap4-panda-a4.dts               |   17 ++++
+>  arch/arm/boot/dts/omap4-panda-es.dts               |    9 ++
+>  arch/arm/boot/dts/omap4-panda.dts                  |   18 ++++
+>  arch/arm/boot/dts/omap4-sdp-es23plus.dts           |   17 ++++
+>  arch/arm/boot/dts/omap4-sdp.dts                    |   18 ++++
+>  arch/arm/boot/dts/omap5-evm.dts                    |   13 +++-
+>  arch/arm/boot/dts/omap5.dtsi                       |   22 +++++
+>  arch/arm/boot/dts/samsung_k3pe0e000b.dtsi          |   67 ++++++++++++++++
+>  14 files changed, 410 insertions(+), 1 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
+>  create mode 100644 arch/arm/boot/dts/omap4-sdp-es23plus.dts
+>  create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
