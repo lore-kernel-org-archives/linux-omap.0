@@ -1,29 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: clockdomain: disabling unused clks
-Date: Fri, 9 Nov 2012 19:52:21 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211091951080.20703@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com> <1352417516-15213-1-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1211090052100.20703@utopia.booyaka.com> <20121109011738.17381.88199@nucleus> <alpine.DEB.2.00.1211091900250.20703@utopia.booyaka.com>
- <alpine.DEB.2.00.1211091906340.20703@utopia.booyaka.com> <20121109194023.17381.62227@nucleus>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a slave
+ DMA channel
+Date: Fri, 9 Nov 2012 14:01:12 -0600
+Message-ID: <509D6108.1060304@ti.com>
+References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>  <1347662517-4210-3-git-send-email-jon-hunter@ti.com>  <1347852805.1943.130.camel@vkoul-udesk3> <201209171159.27359.arnd@arndb.de>  <20120917223619.GC12445@n2100.arm.linux.org.uk>  <1347938035.1943.162.camel@vkoul-udesk3> <5060DDEB.4000600@ti.com>  <1348547701.1943.190.camel@vkoul-udesk3>  <20121016024318.GF24393@S2101-09.ap.freescale.net> <1350355144.1648.5259.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:59789 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752655Ab2KITwW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 14:52:22 -0500
-In-Reply-To: <20121109194023.17381.62227@nucleus>
+Received: from devils.ext.ti.com ([198.47.26.153]:36291 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752689Ab2KIUB3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 15:01:29 -0500
+In-Reply-To: <1350355144.1648.5259.camel@vkoul-udesk3>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>, Stephen Warren <swarren@nvidia.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 9 Nov 2012, Mike Turquette wrote:
 
-> But I'm OK with the below patch in the short term.  I just have one
-> question: did you observe any PM regressions by skipping the clkdm
-> programming?
+On 10/15/2012 09:39 PM, Vinod Koul wrote:
+> On Tue, 2012-10-16 at 10:43 +0800, Shawn Guo wrote:
+>> On Tue, Sep 25, 2012 at 10:05:01AM +0530, Vinod Koul wrote:
+>>> On Mon, 2012-09-24 at 17:25 -0500, Jon Hunter wrote:
+>>>>> For DT bindings, I think the binding itself shouldn't change based on my
+>>>>> work but I would like these same bindings to help build the DMA engine
+>>>>> code mappings.
+>>>>>
+>>>>> Now would it make sense to NOT merge these changes for 3.7 and postpone
+>>>>> to 3.8. I can host these patches on a topic branch and merge them when
+>>>>> we are ready. I plan to spend some good amount of time on my work this
+>>>>> week so we should be ready pretty soon.
+>>>>> One these changes are merged, users can start moving to this scheme.
+>>>>
+>>>> I just wanted to see how things are progressing your side. Did you
+>>>> create a topic branch for this? If so let me know where I can find it, I
+>>>> did not find a branch on your infradead git tree.
+>>>>
+>>>> I wanted to pull in the latest patches for some testing. 
+>>> Sorry for delay, I had everything ready, but couldn't manage to commit
+>>> and push. I have pushed to topic/dmaengine_dt, it is pushing out now...
+>>>
+>> Vinod,
+>>
+>> Looks it seemed 3.7-rc1.  Does that mean we have to wait for 3.8, or
+>> will it show on later -rc for 3.7?
+> Yes this will be merged once we work out the common interface, otherwise
+> we will end up redoing interfaces for all drivers.
 
-It's still under test here but 3530ES3 Beagle passed the PM tests with it, 
-with no obvious warnings.
+Hi Vinod,
 
-- Paul
+A few people have been asking me if getting device-tree support for DMA
+engine is plan for record for v3.8. I know that you were working through
+implementing a common interface and so I wanted to check how that is
+going. Do you have any insight to when device-tree support may get added?
+
+Cheers
+Jon
+
