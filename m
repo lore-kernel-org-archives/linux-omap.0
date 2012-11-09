@@ -1,64 +1,106 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: clockdomain: disabling unused clks
-Date: Fri, 9 Nov 2012 20:53:34 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211092036170.20703@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com> <1352417516-15213-1-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1211090052100.20703@utopia.booyaka.com> <20121109011738.17381.88199@nucleus> <alpine.DEB.2.00.1211091900250.20703@utopia.booyaka.com>
- <alpine.DEB.2.00.1211091906340.20703@utopia.booyaka.com> <20121109194023.17381.62227@nucleus> <alpine.DEB.2.00.1211091951080.20703@utopia.booyaka.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Fri, 9 Nov 2012 21:08:14 +0000
+Message-ID: <CACxGe6v7q2=Dxn6BE_V-w9CEKxAsZ6zQd5Uqm4TeYGYCCu76cg@mail.gmail.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <20121109022624.GI23553@truffula.fritz.box>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60041 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753511Ab2KIUxe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 15:53:34 -0500
-In-Reply-To: <alpine.DEB.2.00.1211091951080.20703@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121109022624.GI23553@truffula.fritz.box>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 9 Nov 2012, Paul Walmsley wrote:
+On Fri, Nov 9, 2012 at 2:26 AM, David Gibson
+<david@gibson.dropbear.id.au> wrote:
+>> Summary points:
+>> - Create an FDT overlay data format and usage model
+>>   - SHALL reliable resolve or validate of phandles between base and
+>>     overlay trees
+>
+> So, I'm not at all clear on what this proposed phandle validation
+> would involve.  I'm also not convinced it's as necessary as you
+> think, more on that below.
 
-> On Fri, 9 Nov 2012, Mike Turquette wrote:
-> 
-> > But I'm OK with the below patch in the short term.  I just have one
-> > question: did you observe any PM regressions by skipping the clkdm
-> > programming?
-> 
-> It's still under test here but 3530ES3 Beagle passed the PM tests with it, 
-> with no obvious warnings.
+Simply this: I'm taking this example from the omap3-beagle-xm.dts. It
+has the following stanza which is currently rolled into the resulting
+.dtb when compiled.
 
-OK I'm satisfied with this general fix.  Will have to break it up into 
-pieces and move it earlier in the patch stack to ensure that PM doesn't 
-break in the middle of the series, but the idea seems reasonably sound for 
-short-term use.  A clock should only be disabled during the 
-disable-unused-clocks phase if its usecount is zero and it's enabled in 
-the hardware.  As far as I can tell, this can only happen when the clock 
-is enabled by the bootloader/ROM code/PPA, and never touched by the kernel 
-before the disable-unused-clocks phase.  The only regression cases that 
-come to mind at the moment are:
+&i2c1 {
+        clock-frequency = <2600000>;
 
-1. CONFIG_PM=n and a clockdomain only contains unused clocks; or
+        twl: twl@48 {
+                reg = <0x48>;
+                interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+                interrupt-parent = <&intc>;
 
-2. CONFIG_PM=y and a clockdomain only contains unused clocks and that same 
-clockdomain does not support hardware-supervised autoidle or force-idle
+                vsim: regulator-vsim {
+                        compatible = "ti,twl4030-vsim";
+                        regulator-min-microvolt = <1800000>;
+                        regulator-max-microvolt = <3000000>;
+                };
 
-In those cases, I'd assume the clockdomain would effectively get stuck on.  
-#1 we don't really care about since CONFIG_PM=n anyway.  #2 is more of a 
-concern but it should disappear completely once hwmods are present for all 
-of the IP blocks on the device.  (The presence of the hwmods will ensure 
-that every clock that matters from an idle-management perspective is 
-enabled at least once when the IP block is reset.)  For this reason, it's 
-important to note that when the hwmod reset code is moved to run late in 
-the boot process, it will have to run before the unused clocks are 
-disabled.
+                twl_audio: audio {
+                        compatible = "ti,twl4030-audio";
+                        codec {
+                        };
+                };
+        };
+};
 
-One nice side-effect of this bug is that it highlighted that we're still 
-missing OMAP3 hwmods for the camera subsystem, and that the reset code for 
-the SAD2D module needs to be moved out of 
-arch/arm/mach-omap2/pm34xx.c:omap3_d2d_idle() and into something that can 
-be called from the hwmod reset code.
+However, if it were compiled into a separate dtb overlay it might look
+like this:
 
+/ {
+    .readonly;
+    ocp {
+        .readonly;
+        interrupt-controller@48200000 {
+            phandle = <0x1234>; /* EXPECTED PHANDLE */
+            .readonly;
+        };
+        i2c@48070000 {
+            .must-exist;
+            clock-frequency = <2600000>;
 
-- Paul
+            twl@48 {
+                reg = <0x48>;
+                interrupts = <7>;
+                interrupt-parent = <0x1234>;   /* RESOLVED PHANDLE */
 
+                vsim: regulator-vsim {
+                        compatible = "ti,twl4030-vsim";
+                        regulator-min-microvolt = <1800000>;
+                        regulator-max-microvolt = <3000000>;
+                };
+
+                twl_audio: audio {
+                        compatible = "ti,twl4030-audio";
+                        codec {
+                        };
+                };
+            };
+        };
+    };
+};
+
+Notice I've included the intc node and it's phandle. By phandle
+validation I merely mean that when applying an overly the firmware or
+kernel must verify that the phandles in the overlay match the phandle
+in the base tree. If they don't match, then refuse to apply the
+overhead. This approach avoids the need to find and fixup phandles in
+the overlay. And if the phandle is generated from a hash of the
+full_name, then the resulting phandle will only change if the node
+moves.
+
+Similarly, at application time it should be verified that the nodes
+with a .readonly or .must-exist property could be verified to actually
+exist before attempting to apply the overlay. I used two different
+properties with the idea that only certain nodes would need to be
+modified... exactly what the policies should be is yet to be
+determined.
+
+g.
