@@ -1,57 +1,98 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [GIT PULL] ARM: OMAP: GPMC generic timing
-Date: Fri, 9 Nov 2012 19:51:50 +0530
-Message-ID: <1352470910-9630-1-git-send-email-afzal@ti.com>
+From: David Gibson <david@gibson.dropbear.id.au>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Sat, 10 Nov 2012 01:29:08 +1100
+Message-ID: <20121109142908.GB4696@truffula.fritz.box>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
+ <CAD=GYpbeKtW37Cj9cXr8F7F83d9Fgs-moqu9p6cOaPE1VxwbSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47249 "EHLO comal.ext.ti.com"
+Received: from ozlabs.org ([203.10.76.45]:49388 "EHLO ozlabs.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753441Ab2KIOWA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Nov 2012 09:22:00 -0500
+	id S1752851Ab2KIO1h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Nov 2012 09:27:37 -0500
+Content-Disposition: inline
+In-Reply-To: <CAD=GYpbeKtW37Cj9cXr8F7F83d9Fgs-moqu9p6cOaPE1VxwbSg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Joel A Fernandes <agnel.joel@gmail.com>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-The following changes since commit 6ba54ab4a49bbad736b0254aa6bdf0cb83013815:
+On Fri, Nov 09, 2012 at 12:32:09AM -0500, Joel A Fernandes wrote:
+> Hi Pantelis,
+> 
+> I hope I'm not too late to reply as I'm traveling.
+> 
+> On Nov 6, 2012, at 5:30 AM, Pantelis Antoniou
+> <panto@antoniou-consulting.com> wrote:
+> 
+> >> Joanne has purchased one of Jane's capes and packaged it into a rugged
+> >> case for data logging. As far as Joanne is concerned, the BeagleBone and
+> >> cape together are a single unit and she'd prefer a single monolithic FDT
+> >> instead of using an FDT overlay.
+> >> Option A: Using dtc, she uses the BeagleBone and cape .dts source files
+> >>        to generate a single .dtb for the entire system which is
+> >>        loaded by U-Boot. -or-
+> >
+> > Unlikely.
+> >> Option B: Joanne uses a tool to merge the BeagleBone and cape .dtb files
+> >>        (instead of .dts files), -or-
+> > Possible but low probability.
+> >
+> >> Option C: U-Boot loads both the base and overlay FDT files, merges them,
+> >>        and passes the resolved tree to the kernel.
+> >>
+> >
+> > Could be made to work. Only really required if Joanne wants the
+> > cape interface to work for u-boot too. For example if the cape has some
+> > kind of network interface that u-boot will use to boot from.
+> >
+> 
+> I love Grant's hashing idea a lot keeping the phandle problem for
+> compile time and not requiring fixups.
 
-  ARM: OMAP: Remove omap_init_consistent_dma_size() (2012-11-06 16:01:19 -0800)
+Well, using a hash only moves the problem of fixed phandles to a
+problem of fixed node paths.  The details of node paths are, if
+anything, more mutable than phandles.
 
-are available in the git repository at:
+[snip]
+> Alternatively to hashing, reading David Gibson's paper I followed,
+> phandle is supposed to 'uniquely' identity node. I wonder why the node
+> name itself is not sufficient to uniquely identify.
 
-  git://gitorious.org/x0148406-public/linux-kernel.git tags/gpmc-generic-timing
+Node names are not unique, not even close.  If you have two similar
+NICs in slot 0 of two different PCI domains, they'll almost certainly
+both be called 'ethernet@0,0'.  Similar examples abound on other
+buses.  Node paths are unique, but they are long.
 
-for you to fetch changes up to 47acde16726080e5157b602f23937d00a04cd2ed:
+The other big reason for phandles in OF history is that they would be
+more stable than paths.  The device tree could be manipulated during
+OF runtime, but phandles would generally be internal pointers in OF
+and so remain a consistent handle even if the node moved in the tree.
+That's not really relevant for flat trees, but we need to work with
+the same structures.
 
-  ARM: OMAP2+: tusb6010: generic timing calculation (2012-11-09 18:07:23 +0530)
+> The code that does
+> the tree walking can then just strcmp the node name while it walks the
+> tree instead of having to find a node with a phandle number. I guess
+> the reason is phandles are small to store as data values. Another
+> approach can be to arrange the string block in alphabetical order
+> (unless it already is),
 
-----------------------------------------------------------------
-These changes provide a generic gpmc timing calculation method,
-migrates existing peripherals that makes use of custom gpmc timing
-calculation method to use the new generic one.
+They're not, and doing so would be a painful change to maintain
+compatibility across.  And in any case only property names use the
+strings block, not node names.
 
-Generic routine has been verified for onenand async timing calculation
-on omap3evm (with a local change to add onenand support). Generic
-timing calculation method were verified for other peripherals by
-simulation. Generic method has to be verified on peripherals supported
-in mainline.
+> and store phandle as index of the node name
+> referenced relative to the starting of the strong block. This will not
+> affect nodes in dtb being moved around since they will still have the
+> same index value. the problem being adding or removing nodes Changes
+> the index of all other nodes in the string block as well.. Hmm.
 
-----------------------------------------------------------------
-Afzal Mohammed (6):
-      ARM: OMAP2+: nand: remove redundant rounding
-      ARM: OMAP2+: gpmc: handle additional timings
-      ARM: OMAP2+: gpmc: generic timing calculation
-      ARM: OMAP2+: onenand: generic timing calculation
-      ARM: OMAP2+: smc91x: generic timing calculation
-      ARM: OMAP2+: tusb6010: generic timing calculation
-
- Documentation/bus-devices/ti-gpmc.txt | 122 +++++++++++
- arch/arm/mach-omap2/gpmc-nand.c       |  26 +--
- arch/arm/mach-omap2/gpmc-onenand.c    | 143 ++++---------
- arch/arm/mach-omap2/gpmc-smc91x.c     |  43 ++--
- arch/arm/mach-omap2/gpmc.c            | 373 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc.h            | 113 ++++++++--
- arch/arm/mach-omap2/usb-tusb6010.c    | 181 ++++-------------
- 7 files changed, 709 insertions(+), 292 deletions(-)
- create mode 100644 Documentation/bus-devices/ti-gpmc.txt
+-- 
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
