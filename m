@@ -1,160 +1,42 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: Re: [PATCH 14/26] ARM: OMAP3: clock: Add 3xxx data using common struct clk
-Date: Thu, 8 Nov 2012 16:57:27 -0800
-Message-ID: <20121109005727.17381.5145@nucleus>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
- <1352337181-29427-15-git-send-email-mturquette@ti.com>
- <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com>
- <alpine.DEB.2.00.1211082158310.20703@utopia.booyaka.com>
- <alpine.DEB.2.00.1211090002380.20703@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: clockdomain: disabling unused clks
+Date: Fri, 9 Nov 2012 00:58:21 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211090052100.20703@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com> <1352417516-15213-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57192 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753722Ab2KIA5q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 19:57:46 -0500
-In-Reply-To: <alpine.DEB.2.00.1211090002380.20703@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:55510 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722Ab2KIA6W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 19:58:22 -0500
+In-Reply-To: <1352417516-15213-1-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Quoting Paul Walmsley (2012-11-08 16:11:12)
-> On Thu, 8 Nov 2012, Paul Walmsley wrote:
+On Thu, 8 Nov 2012, Mike Turquette wrote:
+
+> The OMAP port to the common clk framework[1] resulted in spurious WARNs
+> while disable unused clocks.  This is due to _clkdm_clk_hwmod_disable
+> catching clkdm->usecount's with a value of zero.  Even less desirable it
+> would not allow the clkdm_clk_disable function pointer to get called due
+> to an early return of -ERANGE.
 > 
-> > On Thu, 8 Nov 2012, Paul Walmsley wrote:
-> > 
-> > > Am seeing warnings during the disable-unused-clocks phase of the boot on 
-> > > the OMAP3 test boards here.
-> > 
-> > Similar problems during system suspend on 3530ES3 Beagle.  Not sure
-> > what's causing these yet.  At this point the clockdomain usecounts
-> > should be accurate.
+> This patch adds a check for such a corner case by skipping the WARN and
+> early return in the event that clkdm->usecount and clk->enable_usecount
+> are both zero.  Presumably this could only happen during the check for
+> unused clocks at boot-time.
 > 
-> Here's a redacted debugging log for these cases.  The suspend events start 
-> around the 30 second mark.
+> [1] http://article.gmane.org/gmane.linux.ports.arm.omap/88824
 > 
-> One observation is that dpll4_m5x2_ck and dpll4_m6x2_ck are never enabled.  
-> The tracebacks occur when something in the suspend path tries to disable 
-> those clocks.
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
 
-Hi Paul,
+I don't think this is going to work, as it currently stands.  The code 
+will just bypass the warning and the error return.  The clockdomain 
+usecount still will be decremented, which is going to cause problems since 
+the usecount will be inaccurate.
 
-My instrumentation shows that dpll4_ck & dpll4_m2x2_ck are triggering
-the WARNs:
 
-[   25.214599] _clkdm_clk_hwmod_disable: dpll4_m2x2_ck
-[   25.214599] ------------[ cut here ]------------
-[   25.214660] WARNING: at arch/arm/mach-omap2/clockdomain.c:967
-_clkdm_clk_hwmod_disable+0xd0/0x118()
-...
-[   25.215209] _clkdm_clk_hwmod_disable: dpll4_ck
-[   25.215209] ------------[ cut here ]------------
-[   25.215240] WARNING: at arch/arm/mach-omap2/clockdomain.c:967
-_clkdm_clk_hwmod_disable+0xd0/0x118()
-
-Patch that give that information:
-
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 64e5046..a9d5965 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -947,7 +947,8 @@ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
- 	return 0;
- }
- 
--static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
-+static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm,
-+		struct clk *clk)
- {
- 	unsigned long flags;
- 
-@@ -957,6 +958,9 @@ static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
- 	spin_lock_irqsave(&clkdm->lock, flags);
- 
- 	if (atomic_read(&clkdm->usecount) == 0) {
-+		if (clk)
-+			pr_err("%s: %s\n", __func__, __clk_get_name(clk));
-+
- 		spin_unlock_irqrestore(&clkdm->lock, flags);
- 		WARN_ON(1); /* underflow */
- 		return -ERANGE;
-@@ -1026,7 +1030,7 @@ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
- 	if (!clk)
- 		return -EINVAL;
- 
--	return _clkdm_clk_hwmod_disable(clkdm);
-+	return _clkdm_clk_hwmod_disable(clkdm, clk);
- }
- 
- /**
-@@ -1089,6 +1093,6 @@ int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	return _clkdm_clk_hwmod_disable(clkdm);
-+	return _clkdm_clk_hwmod_disable(clkdm, NULL);
- }
- 
-Regards,
-Mike
-
-> 
-> 
-> - Paul
-> 
-> [    0.135528] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-> [    0.135559] clockdomain: dpll4_clkdm: enabled
-> [    0.135589] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-> [    0.135681] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
-> [    0.135681] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
-> [    0.135711] clockdomain: dpll4_clkdm: disabled
-> [    0.135772] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-> [    0.135803] clockdomain: dpll4_clkdm: enabled
-> [    0.135833] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-> [    0.135894] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
-> [    0.135925] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
-> [    0.135955] clockdomain: dpll4_clkdm: disabled
-> [    0.135986] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-> [    0.136016] clockdomain: dpll4_clkdm: enabled
-> [    0.136047] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-> [    0.136138] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
-> [    0.136169] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
-> [    0.136169] clockdomain: dpll4_clkdm: disabled
-> [    0.136260] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-> [    0.136291] clockdomain: dpll4_clkdm: enabled
-> [    0.136322] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-> [    0.140594] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
-> [    0.140686] enabling clkdm dpll4_clkdm during enable of clk dpll4_m3x2_ck
-> [    0.140838] disabling clkdm dpll4_clkdm during disable of clk dpll4_m3x2_ck
-> [    0.140930] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
-> [    0.141479] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
-> [    0.141571] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
-> [    0.141601] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
-> [    0.141662] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
-> [    0.141693] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
-> [    0.141784] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
-> [    0.141815] enabling clkdm dpll4_clkdm during enable of clk dpll4_m3x2_ck
-> [    0.141876] disabling clkdm dpll4_clkdm during disable of clk dpll4_m3x2_ck
-> [    3.399200] disabling clkdm dpll4_clkdm during disable of clk dpll4_m6x2_ck
-> [    3.417694] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-> [    3.445251] ---[ end trace 72e2d7bdcf98ea8b ]---
-> [    3.450134] disabling clkdm dpll4_clkdm during disable of clk dpll4_m5x2_ck
-> [    3.453918] clockdomain: dpll4_clkdm: disabled
-> [    3.477569] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-> [    3.505096] ---[ end trace 72e2d7bdcf98ea8c ]---
-> [    3.531280] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-> [    3.558807] ---[ end trace 72e2d7bdcf98ea8d ]---
-> [   38.999145] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
-> [   38.999267] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-> [   38.999816] ---[ end trace 72e2d7bdcf98ea8e ]---
-> [   38.999816] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
-> [   38.999908] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-> [   39.000366] ---[ end trace 72e2d7bdcf98ea8f ]---
-> [   42.169647] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-> [   42.169647] clockdomain: dpll4_clkdm: enabled
-> [   42.169677] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-> [   45.730346] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-> [   45.795654] ---[ end trace 72e2d7bdcf98ea90 ]---
+- Paul
