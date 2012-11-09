@@ -1,106 +1,62 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Fri, 9 Nov 2012 21:08:14 +0000
-Message-ID: <CACxGe6v7q2=Dxn6BE_V-w9CEKxAsZ6zQd5Uqm4TeYGYCCu76cg@mail.gmail.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <20121109022624.GI23553@truffula.fritz.box>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Prevent redefinition errors for soc.h
+Date: Fri, 9 Nov 2012 13:10:52 -0800
+Message-ID: <20121109211052.GS6801@atomide.com>
+References: <1352477961-7634-1-git-send-email-jon-hunter@ti.com>
+ <20121109162259.GO6801@atomide.com>
+ <509D2F77.6090702@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121109022624.GI23553@truffula.fritz.box>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:23034 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752689Ab2KIVKz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 16:10:55 -0500
+Content-Disposition: inline
+In-Reply-To: <509D2F77.6090702@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Nov 9, 2012 at 2:26 AM, David Gibson
-<david@gibson.dropbear.id.au> wrote:
->> Summary points:
->> - Create an FDT overlay data format and usage model
->>   - SHALL reliable resolve or validate of phandles between base and
->>     overlay trees
->
-> So, I'm not at all clear on what this proposed phandle validation
-> would involve.  I'm also not convinced it's as necessary as you
-> think, more on that below.
+* Jon Hunter <jon-hunter@ti.com> [121109 08:31]:
+> 
+> On 11/09/2012 10:22 AM, Tony Lindgren wrote:
+> > * Jon Hunter <jon-hunter@ti.com> [121109 08:21]:
+> >> If the header soc.h is included more than once in a source (for example
+> >> once directly by the source file and once indirectly by another header
+> >> file), then the compiler will generate redefintion errors for the macros
+> >> in soc.h. Prevent this by only allowing the content in soc.h to be
+> >> included once.
+> >>
+> >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> >> ---
+> >>
+> >> Please note that I ran into this problem when rebasing my dmtimer fixes
+> >> series [1] on Tony's Linux-OMAP master branch. I am including plat/cpu.h
+> >> in dmtimer.h and I found several other files including dmtimer.h are also
+> >> including soc.h and so generate a lot of errors.
+> >>
+> >> [1] http://marc.info/?l=linux-omap&m=135231490218361&w=2
+> > 
+> > As these headers are private to mach-omap2, I'd rather not allow including
+> > them more than once so we can eventually clean up the includes further.
+> > 
+> > We should include the headers directly where used, except for the
+> > legacy board-*.c files that will be going away anyways.
+> > 
+> > Including the files directly should fix this easily, if not let me
+> > know.
+> 
+> The alternative fix is to ensure anyone including dmtimer.h also
+> includes soc.h. However, I did not know if we should have such a
+> dependency. If you are ok with that then that is what I will do for now.
+> It is not a massive change.
 
-Simply this: I'm taking this example from the omap3-beagle-xm.dts. It
-has the following stanza which is currently rolled into the resulting
-.dtb when compiled.
+Do you mean anything under mach-omap2/*.c including dmtimer.h also
+needs to also include soc.h? If sounds OK to me as long as we don't
+need to include soc.h outside mach-omap2.
 
-&i2c1 {
-        clock-frequency = <2600000>;
+Regards,
 
-        twl: twl@48 {
-                reg = <0x48>;
-                interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-                interrupt-parent = <&intc>;
-
-                vsim: regulator-vsim {
-                        compatible = "ti,twl4030-vsim";
-                        regulator-min-microvolt = <1800000>;
-                        regulator-max-microvolt = <3000000>;
-                };
-
-                twl_audio: audio {
-                        compatible = "ti,twl4030-audio";
-                        codec {
-                        };
-                };
-        };
-};
-
-However, if it were compiled into a separate dtb overlay it might look
-like this:
-
-/ {
-    .readonly;
-    ocp {
-        .readonly;
-        interrupt-controller@48200000 {
-            phandle = <0x1234>; /* EXPECTED PHANDLE */
-            .readonly;
-        };
-        i2c@48070000 {
-            .must-exist;
-            clock-frequency = <2600000>;
-
-            twl@48 {
-                reg = <0x48>;
-                interrupts = <7>;
-                interrupt-parent = <0x1234>;   /* RESOLVED PHANDLE */
-
-                vsim: regulator-vsim {
-                        compatible = "ti,twl4030-vsim";
-                        regulator-min-microvolt = <1800000>;
-                        regulator-max-microvolt = <3000000>;
-                };
-
-                twl_audio: audio {
-                        compatible = "ti,twl4030-audio";
-                        codec {
-                        };
-                };
-            };
-        };
-    };
-};
-
-Notice I've included the intc node and it's phandle. By phandle
-validation I merely mean that when applying an overly the firmware or
-kernel must verify that the phandles in the overlay match the phandle
-in the base tree. If they don't match, then refuse to apply the
-overhead. This approach avoids the need to find and fixup phandles in
-the overlay. And if the phandle is generated from a hash of the
-full_name, then the resulting phandle will only change if the node
-moves.
-
-Similarly, at application time it should be verified that the nodes
-with a .readonly or .must-exist property could be verified to actually
-exist before attempting to apply the overlay. I used two different
-properties with the idea that only certain nodes would need to be
-modified... exactly what the policies should be is yet to be
-determined.
-
-g.
+Tony
