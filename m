@@ -1,93 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 14/26] ARM: OMAP3: clock: Add 3xxx data using common
- struct clk
-Date: Fri, 9 Nov 2012 00:11:12 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211090002380.20703@utopia.booyaka.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-15-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1211081800210.20703@utopia.booyaka.com> <alpine.DEB.2.00.1211082158310.20703@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] ARM: OMAP: Fix kernel panic in dmtimer probe
+Date: Thu, 8 Nov 2012 18:17:23 -0600
+Message-ID: <1352420243-31803-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:55326 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425Ab2KIALN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 19:11:13 -0500
-In-Reply-To: <alpine.DEB.2.00.1211082158310.20703@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43496 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722Ab2KIAR3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Nov 2012 19:17:29 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-On Thu, 8 Nov 2012, Paul Walmsley wrote:
+When booting with device-tree the kernel is panicing in the probe of the
+DMTIMER driver. The panic is caused because the pointer to platform_data
+structure is NULL when booting with device-tree and the driver is
+attempting to access the structure without checking if the pointer is
+valid.
 
-> On Thu, 8 Nov 2012, Paul Walmsley wrote:
-> 
-> > Am seeing warnings during the disable-unused-clocks phase of the boot on 
-> > the OMAP3 test boards here.
-> 
-> Similar problems during system suspend on 3530ES3 Beagle.  Not sure
-> what's causing these yet.  At this point the clockdomain usecounts
-> should be accurate.
+Fix this by moving the code that accesses the platform data structure
+under the "else" clause of the "if (dev->of_node)" statement because
+here the pointer to platform_data is guaranteed to be valid. The code
+accessing the "timer_capability" member of the platform data is simply
+removed as this is already handled under the else clause.
 
-Here's a redacted debugging log for these cases.  The suspend events start 
-around the 30 second mark.
+This regression was introduced while integrating commit "ARM: OMAP: Add
+DT support for timer driver" to add device-tree support to the DMTIMER
+driver and commit "ARM: OMAP: Move omap-pm-noop.c local to mach-omap2"
+to prepare for single zImage support.
 
-One observation is that dpll4_m5x2_ck and dpll4_m6x2_ck are never enabled.  
-The tracebacks occur when something in the suspend path tries to disable 
-those clocks.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/plat-omap/dmtimer.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 38c12ef..9dca23e 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -799,12 +799,11 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+ 		timer->id = pdev->id;
+ 		timer->capability = pdata->timer_capability;
+ 		timer->reserved = omap_dm_timer_reserved_systimer(timer->id);
++		timer->get_context_loss_count = pdata->get_context_loss_count;
+ 	}
+ 
+ 	timer->irq = irq->start;
+ 	timer->pdev = pdev;
+-	timer->capability = pdata->timer_capability;
+-	timer->get_context_loss_count = pdata->get_context_loss_count;
+ 
+ 	/* Skip pm_runtime_enable for OMAP1 */
+ 	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
+-- 
+1.7.9.5
 
-- Paul
-
-[    0.135528] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-[    0.135559] clockdomain: dpll4_clkdm: enabled
-[    0.135589] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-[    0.135681] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
-[    0.135681] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
-[    0.135711] clockdomain: dpll4_clkdm: disabled
-[    0.135772] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-[    0.135803] clockdomain: dpll4_clkdm: enabled
-[    0.135833] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-[    0.135894] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
-[    0.135925] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
-[    0.135955] clockdomain: dpll4_clkdm: disabled
-[    0.135986] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-[    0.136016] clockdomain: dpll4_clkdm: enabled
-[    0.136047] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-[    0.136138] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
-[    0.136169] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
-[    0.136169] clockdomain: dpll4_clkdm: disabled
-[    0.136260] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-[    0.136291] clockdomain: dpll4_clkdm: enabled
-[    0.136322] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-[    0.140594] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
-[    0.140686] enabling clkdm dpll4_clkdm during enable of clk dpll4_m3x2_ck
-[    0.140838] disabling clkdm dpll4_clkdm during disable of clk dpll4_m3x2_ck
-[    0.140930] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
-[    0.141479] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
-[    0.141571] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
-[    0.141601] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
-[    0.141662] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
-[    0.141693] enabling clkdm dpll4_clkdm during enable of clk dpll4_m4x2_ck
-[    0.141784] disabling clkdm dpll4_clkdm during disable of clk dpll4_m4x2_ck
-[    0.141815] enabling clkdm dpll4_clkdm during enable of clk dpll4_m3x2_ck
-[    0.141876] disabling clkdm dpll4_clkdm during disable of clk dpll4_m3x2_ck
-[    3.399200] disabling clkdm dpll4_clkdm during disable of clk dpll4_m6x2_ck
-[    3.417694] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-[    3.445251] ---[ end trace 72e2d7bdcf98ea8b ]---
-[    3.450134] disabling clkdm dpll4_clkdm during disable of clk dpll4_m5x2_ck
-[    3.453918] clockdomain: dpll4_clkdm: disabled
-[    3.477569] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-[    3.505096] ---[ end trace 72e2d7bdcf98ea8c ]---
-[    3.531280] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-[    3.558807] ---[ end trace 72e2d7bdcf98ea8d ]---
-[   38.999145] disabling clkdm dpll4_clkdm during disable of clk dpll4_m2x2_ck
-[   38.999267] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-[   38.999816] ---[ end trace 72e2d7bdcf98ea8e ]---
-[   38.999816] disabling clkdm dpll4_clkdm during disable of clk dpll4_ck
-[   38.999908] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-[   39.000366] ---[ end trace 72e2d7bdcf98ea8f ]---
-[   42.169647] enabling clkdm dpll4_clkdm during enable of clk dpll4_ck
-[   42.169647] clockdomain: dpll4_clkdm: enabled
-[   42.169677] enabling clkdm dpll4_clkdm during enable of clk dpll4_m2x2_ck
-[   45.730346] [<c001c1cc>] (unwind_backtrace+0x0/0xf0) from [<c0043680>] (warn_slowpath_common+0x4c/0x64)
-[   45.795654] ---[ end trace 72e2d7bdcf98ea90 ]---
