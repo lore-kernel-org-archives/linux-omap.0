@@ -1,258 +1,107 @@
 From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v2 04/10] pwm: pwm-tiecap: Add device-tree binding
- support for APWM driver
-Date: Fri, 9 Nov 2012 08:52:19 +0100
-Message-ID: <20121109075219.GA22224@avionic-0098.mockup.avionic-design.de>
-References: <1352361197-27442-1-git-send-email-avinashphilip@ti.com>
- <1352361197-27442-5-git-send-email-avinashphilip@ti.com>
+Subject: Re: [PATCH] pwm-backlight: Pinctrl-fy
+Date: Fri, 9 Nov 2012 09:06:04 +0100
+Message-ID: <20121109080604.GA25611@avionic-0098.mockup.avionic-design.de>
+References: <1351699047-4487-1-git-send-email-panto@antoniou-consulting.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
-Return-path: <linux-doc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:55393 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711Ab2KIIGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Nov 2012 03:06:32 -0500
 Content-Disposition: inline
-In-Reply-To: <1352361197-27442-5-git-send-email-avinashphilip@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>
+In-Reply-To: <1351699047-4487-1-git-send-email-panto@antoniou-consulting.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 
 
---DocE+STaALJfprDB
+--CE+1k2dSO48ffgeK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 08, 2012 at 01:23:11PM +0530, Philip, Avinash wrote:
-> This patch
-> 1. Add support for device-tree binding for ECAP APWM driver.
-> 2. Set size of pwm-cells set to 3 to support PWM channel number, PWM
->    period & polarity configuration from device tree.
-> 3. Add enable/disable clock gating in PWM subsystem common config space.
-> 4. When here set .owner member in platform_driver structure to
->    THIS_MODULE.
+On Wed, Oct 31, 2012 at 05:57:27PM +0200, Pantelis Antoniou wrote:
+> Enable pinctrl for pwm-backlight.
 >=20
-> Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
-> Cc:	Grant Likely <grant.likely@secretlab.ca>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Rob Landley <rob@landley.net>
+> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 > ---
-> Changes since v1:
-> 	- Add separate patch for pinctrl support
-> 	- Add conditional check for PWM subsystem clock enable.
-> 	- Combined with HWMOD changes & DT bindings.
-> 	- Remove the custom of xlate support.
+>  drivers/video/backlight/pwm_bl.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 >=20
-> :000000 100644 0000000... fe24cac... A	Documentation/devicetree/bindings/=
-pwm/pwm-tiecap.txt
-> :100644 100644 d6d4cf0... 0d43266... M	drivers/pwm/pwm-tiecap.c
->  .../devicetree/bindings/pwm/pwm-tiecap.txt         |   22 +++++++++
->  drivers/pwm/pwm-tiecap.c                           |   48 ++++++++++++++=
-+++++-
->  2 files changed, 69 insertions(+), 1 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt b/Docum=
-entation/devicetree/bindings/pwm/pwm-tiecap.txt
-> new file mode 100644
-> index 0000000..fe24cac
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
-> @@ -0,0 +1,22 @@
-> +TI SOC ECAP based APWM controller
-> +
-> +Required properties:
-> +- compatible: Must be "ti,am33xx-ecap"
-> +- #pwm-cells: Should be 3. Number of cells being used to specify PWM pro=
-perty.
-> +  First cell specifies the per-chip index of the PWM to use, the second
-> +  cell is the period cycle in nanoseconds and bit 0 in the third cell is
-
-I think this should be "period in nanoseconds". I haven't heard "period
-cycle" before.
-
-> +  used to encode the polarity of PWM output.
-
-Maybe you should explicitly say how this is encoded.
-
-> +- reg: physical base address and size of the registers map.
-> +
-> +Optional properties:
-> +- ti,hwmods: Name of the hwmod associated to the ECAP:
-> +  "ecap<x>", <x> being the 0-based instance number from the HW spec
-> +
-> +Example:
-> +
-> +ecap0: ecap@0 {
-> +	compatible =3D "ti,am33xx-ecap";
-> +	#pwm-cells =3D <3>;
-> +	reg =3D <0x48300100 0x80>;
-> +	ti,hwmods =3D "ecap0";
-> +};
-> diff --git a/drivers/pwm/pwm-tiecap.c b/drivers/pwm/pwm-tiecap.c
-> index d6d4cf0..0d43266 100644
-> --- a/drivers/pwm/pwm-tiecap.c
-> +++ b/drivers/pwm/pwm-tiecap.c
-> @@ -25,6 +25,9 @@
->  #include <linux/clk.h>
->  #include <linux/pm_runtime.h>
+> diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight/p=
+wm_bl.c
+> index 0c91023..f3b6194 100644
+> --- a/drivers/video/backlight/pwm_bl.c
+> +++ b/drivers/video/backlight/pwm_bl.c
+> @@ -20,6 +20,8 @@
 >  #include <linux/pwm.h>
-> +#include <linux/of_device.h>
-> +
-> +#include "tipwmss.h"
+>  #include <linux/pwm_backlight.h>
+>  #include <linux/slab.h>
+> +#include <linux/pinctrl/consumer.h>
+> +#include <linux/err.h>
 > =20
->  /* ECAP registers and bits definitions */
->  #define CAP1			0x08
-> @@ -37,6 +40,13 @@
->  #define ECCTL2_SYNC_SEL_DISA	(BIT(7) | BIT(6))
->  #define ECCTL2_TSCTR_FREERUN	BIT(4)
-> =20
-> +#define ECAPCLK_EN			BIT(0)
-> +#define ECAPCLK_STOP_REQ	BIT(1)
-
-This one doesn't seem to align with the rest. Also, why is bit 0 called
-_EN and bit 1 _STOP_REQ? Couldn't they be made more consistent, i.e.
-_START and _STOP? Or _ENABLE and _DISABLE?
-
-> +
-> +#define ECAPCLK_EN_ACK		BIT(0)
-> +
-> +#define PWM_CELL_SIZE		3
-
-You don't need a define for this.
-
-> +
->  struct ecap_pwm_chip {
->  	struct pwm_chip	chip;
->  	unsigned int	clk_rate;
-> @@ -184,6 +194,16 @@ static const struct pwm_ops ecap_pwm_ops =3D {
->  	.owner		=3D THIS_MODULE,
->  };
-> =20
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id ecap_of_match[] =3D {
-> +	{
-> +		.compatible	=3D "ti,am33xx-ecap",
-> +	},
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, ecap_of_match);
-> +#endif
-> +
-
-I'm not sure if I remember correctly, but wasn't AM33xx support supposed
-to be DT only? In that case you don't need the CONFIG_OF guards.
-
->  static int __devinit ecap_pwm_probe(struct platform_device *pdev)
-
-__devinit can go away.
-
->  {
+>  struct pwm_bl_data {
+>  	struct pwm_device	*pwm;
+> @@ -180,9 +182,14 @@ static int pwm_backlight_probe(struct platform_devic=
+e *pdev)
+>  	struct backlight_properties props;
+>  	struct backlight_device *bl;
+>  	struct pwm_bl_data *pb;
+> +	struct pinctrl *pinctrl;
+>  	unsigned int max;
 >  	int ret;
-> @@ -211,6 +231,7 @@ static int __devinit ecap_pwm_probe(struct platform_d=
-evice *pdev)
 > =20
->  	pc->chip.dev =3D &pdev->dev;
->  	pc->chip.ops =3D &ecap_pwm_ops;
-> +	pc->chip.of_pwm_n_cells =3D PWM_CELL_SIZE;
->  	pc->chip.base =3D -1;
->  	pc->chip.npwm =3D 1;
-> =20
-> @@ -231,14 +252,37 @@ static int __devinit ecap_pwm_probe(struct platform=
-_device *pdev)
->  	}
-> =20
->  	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_get_sync(&pdev->dev);
-
-Maybe put a blank line after this for readability.
-
-> +	if (!(pwmss_submodule_state_change(pdev->dev.parent, ECAPCLK_EN) &
-> +				ECAPCLK_EN_ACK)) {
-
-This is very hard to read, can you split this up into something like the
-following please?
-
-	status =3D pwmss_submodule_state_change(pdev->dev.parent, ECAPCLK_EN);
-	if (!(status & ECAPCLK_EN_ACK)) {
-		...
-	}
-
-> +		dev_err(&pdev->dev, "PWMSS config space clock enable failure\n");
-> +		ret =3D -EINVAL;
-> +		goto pwmss_clk_failure;
-> +	}
-> +	pm_runtime_put_sync(&pdev->dev);
-
-Another blank line between the two above would be good.
-
+> +	pinctrl =3D devm_pinctrl_get_select_default(&pdev->dev);
+> +	if (IS_ERR(pinctrl))
+> +		dev_warn(&pdev->dev, "unable to select pin group\n");
 > +
->  	platform_set_drvdata(pdev, pc);
->  	return 0;
-> +
-> +pwmss_clk_failure:
-> +	pm_runtime_put_sync(&pdev->dev);
-> +	pm_runtime_disable(&pdev->dev);
-> +	pwmchip_remove(&pc->chip);
-> +	return ret;
->  }
-> =20
->  static int __devexit ecap_pwm_remove(struct platform_device *pdev)
 
-No __devexit please.
+I just saw this done in a similar way in some other driver and then
+remembered your patch. When I reviewed this I wasn't sure if a warning
+was good enough in this case. I've checked the kernel tree and it seems
+like a majority handled this as failure instead of a warning. I took a
+look at the pinctrl core and it seems like indeed if neither pinctrl is
+enabled or if there isn't actually a pinmux configuration for a device,
+then devm_pinctrl_get_select_default() will actually not return an
+error, so in those cases where an error is returned it should actually
+be handled as a fatal error.
 
->  {
->  	struct ecap_pwm_chip *pc =3D platform_get_drvdata(pdev);
-> =20
-> +	pm_runtime_get_sync(&pdev->dev);
-> +	/*
-> +	 * Due to hardware misbehaviour, acknowledge of the stop_req
-> +	 * is missing. Hence checking of the status bit skipped.
-> +	 */
-> +	pwmss_submodule_state_change(pdev->dev.parent, ECAPCLK_STOP_REQ);
-> +	pm_runtime_put_sync(&pdev->dev);
-> +
->  	pm_runtime_put_sync(&pdev->dev);
->  	pm_runtime_disable(&pdev->dev);
->  	return pwmchip_remove(&pc->chip);
-> @@ -246,7 +290,9 @@ static int __devexit ecap_pwm_remove(struct platform_=
-device *pdev)
-> =20
->  static struct platform_driver ecap_pwm_driver =3D {
->  	.driver =3D {
-> -		.name =3D "ecap",
-> +		.name	=3D "ecap",
-> +		.owner	=3D THIS_MODULE,
-> +		.of_match_table =3D of_match_ptr(ecap_of_match),
-
-Here as well, if AM33xx is DT-only, then the of_match_ptr() can be
-dropped.
-
->  	},
->  	.probe =3D ecap_pwm_probe,
->  	.remove =3D __devexit_p(ecap_pwm_remove),
-
-No __devexit_p() please.
+I'm Cc'ing Linus Walleij, maybe he knows what to do.
 
 Thierry
 
---DocE+STaALJfprDB
+>  	if (!data) {
+>  		ret =3D pwm_backlight_parse_dt(&pdev->dev, &defdata);
+>  		if (ret < 0) {
+> --=20
+> 1.7.12
+>=20
+>=20
+>=20
+
+--CE+1k2dSO48ffgeK
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.19 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQnLYzAAoJEN0jrNd/PrOhfg0P/1eqOl7vyXecM/q2Kui1gCun
-s3hGnJMKudAO4IZXx/aU7gzbZr1lgoP62g0jF5p2lPsbQygrR0fuVKwnv+O0Mqdt
-TmjmnOBMAsxoQa4w8Ka6dMlkLKrgCta/POcWaXu0DMmc9WcEf1EkLtxNqEYag6QC
-Pw80Koe5nlPs+eku8sdeAKXA2CM2UjkZY4ROmwjxO12NV5hjHWpBoFCZmHnVx2I1
-t1Rd3YLRf2yYEF+0A33Wdhs7jQkyThXVqoksWfrJr7XrErSMDNITE1HAOmQFfMLN
-BxRZEeZHYsa3lN3KbfiJBkLJL0auxbKg/rEWAEpIyV+Bx7gEacdwG0BLmKPpt/eN
-Vdk10oGnW8DmEiWL0Lld4ggvvvkJw9ByCruwiTSV9PM7Lr2TFXqu1NiYkB/I+N4V
-d/sNJjF0Ijy1LRsdVSYHEZsPdzmPP2WMclDiuRBgvkKPvoxeZ+eajUO5ew8HhJtW
-duiTWsDKSAXT0OFdI75sX5ArRjEHX8Aqd4CNBB6grvtaY+P4bK9a3+gBLet1FxLR
-5vsfR2i8u0jsN0uIarMvDXNgsqNPIZ7FkeRqZw+MYLhRQwVQ+9lla8XVVLeJTBVU
-gyyhz0xUABa1kJQm07i2f6voZGYm3w8NgSKxs8PNcqq7EWtGl6EbLaEGFNL2j2rK
-2x+F31jTK8js0Wc+nhjc
-=YojD
+iQIcBAEBAgAGBQJQnLlsAAoJEN0jrNd/PrOhPyAQAKKFa+hm98eF89n9eweQiQ/J
+VlzY2S6XiSOZaCGbekwla/B7lh6Tq2rqbUM3OZYdDKGvY/sCDcBZRK/8UmmwSoVx
+GvZD+6Mq0IRnBkF0xJPO5bYp1lAVOosDP9XYucmIKK5USqV67TKg/Tims1N3yEim
+29nnJlLNgHDrbkEQ3gVHdQB9Pfb2mYvbEflGOf6Wc+keVmRNTYtgmjmxNY18Igi8
+h7Gxb/15Ic0ytIQdtZ0zRos2V1lfvreWAxCCSl/4i1jwGjVY2Cy3U+K8fNiQy0nA
+fBV5OpbwjUCSgia8vQGZ1gA8+saO//ys0OV2Ul8ejztDKW/DN1z3D4fLxCDCeAOE
+e5LCfd6IVpFeU/SHSWF7Yw30WisvCYrc7QCnaHR2v1W8q1rEtGwLZEUIrPq5NO80
+eyoULAQs8mL/AyYQVArU/vzoWf0ZP6VNQHqVfCKnXRGdbD5N+mhkCOIfhG/hLSg2
+VcYd3ZmZ7K3ejhhQ4zRXuJunNdbYMNJ++6rnszdkBFCD18QE/ljWjuQDfUqZ6wOT
+OxHr9BNnKHqSnXi2N1i0ITBuqQO3UJByiJQATXUhyISMpMRB7lnX1liH4Q2S7j7p
+8hHFq8Ixob0ALmSdjY++wOmdnUX5kpmCNa3x/OeQu1CA9r1f4VneJUlPnv3ezSNm
+L6fBMPqs9Lh7ZtLRgUZA
+=inHc
 -----END PGP SIGNATURE-----
 
---DocE+STaALJfprDB--
+--CE+1k2dSO48ffgeK--
