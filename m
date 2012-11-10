@@ -1,91 +1,123 @@
-From: Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Fri, 9 Nov 2012 21:36:26 -0600
-Message-ID: <CAD=GYpZwpRRUD=Qy529KkiL-5e2zHaCWMZM9+CTQEnMqSR3yEw@mail.gmail.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <-4237940489086529028@unknownmsgid>
- <559B8433-67C3-4A1A-A5D6-859907655176@antoniou-consulting.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC timings
+ and NAND
+Date: Sat, 10 Nov 2012 19:56:32 +0100
+Message-ID: <509EA360.2050504@gmail.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com> <1351869956-2787-5-git-send-email-zonque@gmail.com> <518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com> <5097B7EE.3000508@gmail.com> <518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com> <509A2E75.5060307@gmail.com> <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <559B8433-67C3-4A1A-A5D6-859907655176-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:38854 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752402Ab2KJS4h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Nov 2012 13:56:37 -0500
+Received: by mail-bk0-f46.google.com with SMTP id jk13so1965773bkc.19
+        for <linux-omap@vger.kernel.org>; Sat, 10 Nov 2012 10:56:35 -0800 (PST)
+In-Reply-To: <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Philip, Avinash" <avinashphilip@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Pantelis,
-
-On Fri, Nov 9, 2012 at 2:13 AM, Pantelis Antoniou
-<panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> wrote:
-
->>>> Option C: U-Boot loads both the base and overlay FDT files, merges them,
->>>>       and passes the resolved tree to the kernel.
+On 07.11.2012 16:37, Philip, Avinash wrote:
+> On Wed, Nov 07, 2012 at 15:18:37, Daniel Mack wrote:
+>> On 05.11.2012 14:29, Philip, Avinash wrote:
+>>> On Mon, Nov 05, 2012 at 18:28:22, Daniel Mack wrote:
+>>>> On 05.11.2012 12:03, Philip, Avinash wrote:
+>>>>> On Fri, Nov 02, 2012 at 20:55:56, Daniel Mack wrote:
+>>>>>> This patch adds basic DT bindings for OMAP GPMC.
+>>>>>>
+>>>>>> The actual peripherals are instanciated from child nodes within the GPMC
+>>>>>> node, and the only type of device that is currently supported is NAND.
+>>>>>>
+>>>>>> Code was added to parse the generic GPMC timing parameters and some
+>>>>>> documentation with examples on how to use them.
+>>>>>>
+>>>>>> Successfully tested on an AM33xx board.
+>>>>>>
+>>>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>>>> [...]
+>>>>>> +
+>>>>>> +		nand@0,0 {
+>>>>>> +			reg = <0 0 0>; /* CS0, offset 0 */
+>>>>>> +			nand-bus-width = <16>;
+>>>>>> +			nand-ecc-mode = "none";
+>>>>>> +
+>>>>>> +			gpmc,sync-clk = <0>;
+>>>>>> +			gpmc,cs-on = <0>;
+>>>>>> +			gpmc,cs-rd-off = <36>;
+>>>>>> +			gpmc,cs-wr-off = <36>;
+>>>>>> +			gpmc,adv-on = <6>;
+>>>>>> +			gpmc,adv-rd-off = <24>;
+>>>>>> +			gpmc,adv-wr-off = <36>;
+>>>>>> +			gpmc,we-off = <30>;
+>>>>>> +			gpmc,oe-off = <48>;
+>>>>>> +			gpmc,access = <54>;
+>>>>>> +			gpmc,rd-cycle = <72>;
+>>>>>> +			gpmc,wr-cycle = <72>;
+>>>>>> +			gpmc,wr-access = <30>;
+>>>>>> +			gpmc,wr-data-mux-bus = <0>;
+>>>>>> +
+>>>>>> +			#address-cells = <1>;
+>>>>>> +			#size-cells = <1>;
+>>>>>> +
+>>>>>
+>>>>> Can you take the timings (for example) from arago tree. The timings is tested in am335x-evm
+>>>>> So the timings can be directly used to populate GPMC timings. Timings can found at
+>>>>>
+>>>>> http://arago-project.org/git/projects/?p=linux-am33x.git;a=commitdiff;
+>>>>> h=66bfbd2c5b35dc81edce0c24843c476161ab5978;hp=370630359cb8db711cf0941cd2a242e28ccfb61e
+>>>>>
+>>>>> [...]
+>>>>>> +static int gpmc_probe_dt(struct platform_device *pdev)
+>>>>>
+>>>>> Can you take care of the following section mismatch.
+>>>>> WARNING: vmlinux.o(.text+0x1e2d0): Section mismatch in reference
+>>>>> from the function gpmc_probe_dt() to the function .init.text:gpmc_nand_init().
 >>>>
+>>>> Sore, both fixed for v4.
+>>>>
+>>>>> [...]
+>>>>>> +
+>>>>>> +		val = of_get_nand_ecc_mode(child);
+>>>>>> +		if (val >= 0)
+>>>>>> +			gpmc_nand_data->ecc_opt = val;
+>>>>>
+>>>>> This will fail for BCH. Index of "soft_bch" is 5 & also don't have selection
+>>>>> option between for BCH4 & BCH8 also.
+>>>>> Can you use the of_property_read_u32 (as done early) to pass the ecc selection
+>>>>> from dt file. This will help selection of BCH4 & BCH8 ecc options.
+>>>>
+>>>> Hmm. Shouldn't we rather teach of_get_nand_ecc_mode() that two modes and
+>>>> bring the enum in sync?
 >>>
->>> Could be made to work. Only really required if Joanne wants the
->>> cape interface to work for u-boot too. For example if the cape has some
->>> kind of network interface that u-boot will use to boot from.
+>>> ecc_opt is for selecting different ecc layout and not for selecting ecc mode.
 >>>
+>>> In omap2 driver NAND_ECC_HW ecc mode supports 3 ecc layout
+>>> 	OMAP_ECC_HAMMING_CODE_HW_ROMCODE
+>>> 	OMAP_ECC_BCH4_CODE_HW
+>>> 	OMAP_ECC_BCH8_CODE_HW
+>>>
+>>> So selection of ecc layout data should come from DT not ecc mode.
 >>
->> I love Grant's hashing idea a lot keeping the phandle problem for
->> compile time and not requiring fixups.
->>
->> IMO it is still a cleaner approach if u-boot does the tree merging for
->> all cases, and not the kernel.
->>
->> That way from a development standpoint, very little or nothing will
->> have to be changed in kernel (except for scripts/dtc) considering we
->> are moving forward with hashing.
->>
->> Also this discussed a while back but at some point is going to brought
->> up again-  loading of dt fragment directly from EEPROM and merging at
->> run time. If we were to implement this in kernel, we would have to add
->> cape specific EEPROM reading code, merge the tree before it is
->> unflattened and parse. I think doing tree merging in kernel is messy
->> and we should do it in uboot. Ideally reading the fragment from the
->> EEPROM for all capes and merging without worrying about version
->> detection, Doing the merge and passing the merged blob to the kernel
->> which (kernel) works the same way it does today.
->
-> Not going to work, for a lot of cases. Doing it in the kernel seems to be
-> the cleaner option. There are valid use cases for doing in u-boot too.
+>> Ok, I see. I would still like to set them by string rather than magic
+>> numbers that map to enum entries. Valid values would be "none", "hw",
+>> "hw-romcode", "bch4" and "bch8". Are you ok with that?
+> 
+> Ok, that's nice. Better use ecc_opt instead of ecc_mode.
 
-True, if dynamic runtime stuff from userspace is what we're talking
-about, then yeah I see the important need for kernel to do the merge.
+I did some more extensive tests that include reading the same nand pages
+from both U-Boot and the kernel with BCH8 ECC, and it turns out that
+->is_elm_used needs to be set in the pdata in order to make this work.
 
->> Alternatively to hashing, reading david gibsons paper I followed,
->> phandle is supposed to 'uniquely' identity node. I wonder why the node
->> name itself is not sufficient to unquiely identify. The code that does
->> the tree walking can then just strcmp the node name while it walks the
->> tree instead of having to find a node with a phandle number. I guess
->> the reason is phandles are small to store as data values. Another
->> approach can be to arrange the string block in alphabetical order
->> (unless it already is), and store phandle as index of the node name
->> referenced relative to the starting of the strong block. This will not
->> affect nodes in dtb being moved around since they will still have the
->> same index value. the problem being adding or removing nodes Changes
->> the offsets of all other nodes in the string block as well.. Hmm.
->>
->
-> This is pretty radical change to the DT format, no?
+So the question is whether we actually want to have a DT property for
+that or just always enable that bit in case a hardware supported ecc
+mode is selected. Any opinion on this?
 
-Yes, true and the only way hypothetically to replace the phandle
-tree-walking mechanism is to store node paths instead of phandle which
-David pointed is too long to store, so I guess this wont work after
-all. Anyway this was an interesting exercise, thanks.
+That's the last topic before I'm clear to send off v4.
 
-Regards,
-Joel
+
+Thanks,
+Daniel
+
