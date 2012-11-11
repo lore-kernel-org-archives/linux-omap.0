@@ -1,57 +1,55 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] pwm-backlight: Pinctrl-fy
-Date: Sun, 11 Nov 2012 19:26:38 +0100
-Message-ID: <CACRpkdY_sXu12k455XcEBOj3_3syxromdCWObE4didKiU_F2cA@mail.gmail.com>
-References: <1351699047-4487-1-git-send-email-panto@antoniou-consulting.com>
-	<20121109080604.GA25611@avionic-0098.mockup.avionic-design.de>
+From: Rob Landley <rob@landley.net>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Sun, 11 Nov 2012 14:47:13 -0600
+Message-ID: <1352666833.20434.5@driftwood>
+References: <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:37846 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753393Ab2KKS0k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Nov 2012 13:26:40 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so2985716eek.19
-        for <linux-omap@vger.kernel.org>; Sun, 11 Nov 2012 10:26:39 -0800 (PST)
-In-Reply-To: <20121109080604.GA25611@avionic-0098.mockup.avionic-design.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; DelSp=Yes; Format=Flowed
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
+	(from grant.likely@secretlab.ca on Fri Nov  9 10:28:59 2012)
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Richard Purdie <rpurdie@rpsys.net>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, Nov 9, 2012 at 9:06 AM, Thierry Reding
-<thierry.reding@avionic-design.de> wrote:
-> On Wed, Oct 31, 2012 at 05:57:27PM +0200, Pantelis Antoniou wrote:
+               On 11/09/2012 10:28:59 AM, Grant Likely wrote:
+> On Tue, Nov 6, 2012 at 10:37 PM, Stephen Warren  
+> <swarren@wwwdotorg.org> wrote:
+> > On 11/05/2012 01:40 PM, Grant Likely wrote:
+> I'm not actually opposed to it, but it needs to be done in an elegant
+> way. The DT data model already imposes more of a conceptual learning
+> curve than I wish it did and I don't want to make that worse with a
+> versioning model that is difficult to get ones head around.
 
->> +     pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
->> +     if (IS_ERR(pinctrl))
->> +             dev_warn(&pdev->dev, "unable to select pin group\n");
->> +
->
-> I just saw this done in a similar way in some other driver and then
-> remembered your patch. When I reviewed this I wasn't sure if a warning
-> was good enough in this case. I've checked the kernel tree and it seems
-> like a majority handled this as failure instead of a warning. I took a
-> look at the pinctrl core and it seems like indeed if neither pinctrl is
-> enabled or if there isn't actually a pinmux configuration for a device,
-> then devm_pinctrl_get_select_default() will actually not return an
-> error, so in those cases where an error is returned it should actually
-> be handled as a fatal error.
+Speaking of which...
 
-So it depends.
+I want to poke at board emulation in qemu, from scratch. Specifically,  
+I want to start with an unpopulated board (just the processor), add a  
+block of physical memory and a serial device, and boot an initramfs in  
+there with stdin/stdout. Then I want to incrementally add an RTC,  
+network card, and three block devices.
 
-One good reason to just error out and return the error code is
-if the error returned is -EPROBE_DEFER, right?
+I'd like to define this board by giving qemu and the kernel the same  
+device tree they can parse, and I'd like to _build_ this device tree so  
+I understand what's in it. I'd like to repeat this exercize for arm,  
+mips, ppc, x86, x86-64, sparc, sh4, and maybe other boards.
 
-Because then you're pinctrl driver is not up yet, and you
-need to bail out and be revisited later.
+And I'd like to write up an article on doing it as a learning exercise.
 
-On a related key we have this debate going on with some
-subsystem maintainers as to whether we should try do
-centralize boilerplate like this, the lates suggestion is:
-http://marc.info/?l=linux-kernel&m=135263661110528&w=2
+Last time I checked, doing this wasn't possible. (qemu couldn't define  
+a board by parsing a device tree, the kernel used the device tree as a  
+guideline but it only really read data the drivers you linked in were  
+expecting, the only documentation about what any of the nodes were was  
+was read the other device trees as examples or read the source code of  
+the drivers looking for data in the tree...)
 
-The fun never ends...
+Is it a more realistic project now? If so, where would I start? (Once  
+upon a time I read the booting-without-of document, back when it lived  
+in the ppc directory. It didn't really say what should go in any of the  
+nodes.)
 
-Yours,
-Linus Walleij
+Rob
