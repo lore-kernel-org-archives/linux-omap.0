@@ -1,68 +1,102 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Sun, 11 Nov 2012 13:35:07 +0200
-Message-ID: <509F8D6B.5070504@compulab.co.il>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BDAF5.1010703@ti.com> <79CD15C6BA57404B839C016229A409A83EB68589@DBDE01.ent.ti.com> <509BEE6D.9000902@ti.com> <alpine.DEB.2.00.1211081754390.20703@utopia.booyaka.com> <509BF525.80309@ti.com> <alpine.DEB.2.00.1211081809470.20703@utopia.booyaka.com> <509BFB4E.2090802@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCHv2] Input: omap4-keypad: Add pinctrl support
+Date: Sun, 11 Nov 2012 13:32:35 +0100
+Message-ID: <CACRpkdZy1zRQM8Ww3RGc=Q+yt_eS6ekb02MDM-ixzaG8LDRacQ@mail.gmail.com>
+References: <1350911580-20307-1-git-send-email-sourav.poddar@ti.com>
+	<20121024161429.GA16350@core.coreip.homeip.net>
+	<CACRpkdai3NocZQnW6YRF+k6GXUSx3P_Ge=F-tkuivrFm6tBbLg@mail.gmail.com>
+	<4099134.xWUIfbbahk@dtor-d630.eng.vmware.com>
+	<CACRpkdaiLXVeUg1quuw3XPTenbKOjn+aWbGQezpcyvzQCtCWow@mail.gmail.com>
+	<20121030113407.GA24335@sirena.org.uk>
+	<CACRpkdapQJY0aoam741O0fb8EeM9BLk_Psq5TaPG84J7wEvCLw@mail.gmail.com>
+	<87obji8kta.fsf@deeprootsystems.com>
+	<CACRpkdbCk9+HSBPtfT-1dO8paSRYJ5VXX_0SxiyxgrObnJEvmQ@mail.gmail.com>
+	<20121101120713.GA4413@opensource.wolfsonmicro.com>
+	<CACRpkdawAdbwackZeST4iDkFZx9-exhTVoUzAABaWr1G89tATg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:50804 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751244Ab2KKLfN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Nov 2012 06:35:13 -0500
-In-Reply-To: <509BFB4E.2090802@ti.com>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:36017 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825Ab2KKMch (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Nov 2012 07:32:37 -0500
+Received: by mail-ea0-f174.google.com with SMTP id c13so2035797eaa.19
+        for <linux-omap@vger.kernel.org>; Sun, 11 Nov 2012 04:32:36 -0800 (PST)
+In-Reply-To: <CACRpkdawAdbwackZeST4iDkFZx9-exhTVoUzAABaWr1G89tATg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Greg KH <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@secretlab.ca>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
+On Thu, Nov 1, 2012 at 3:01 PM, Linus Walleij <linus.walleij@linaro.org> wrote:
+> On Thu, Nov 1, 2012 at 1:07 PM, Mark Brown
+> <broonie@opensource.wolfsonmicro.com> wrote:
+>> On Thu, Nov 01, 2012 at 09:54:00AM +0100, Linus Walleij wrote:
+>
+>> For the pin hogging I'd actually been thinking separately that we should
+>> just have the device core do a devm_pinctrl_get_set_default() prior to
+>> probing the device and store the result in the struct device.  That
+>> would immediately remove almost all of the current pinctrl users, users
+>> that do need to do things with the data or check the result can then
+>> pick up the pinctrl pointer from the device struct.
+>
+> I never thought of that. This sounds like it would work.
 
+So I've looked closer at this.
 
-On 11/08/12 20:34, Jon Hunter wrote:
-> 
-> On 11/08/2012 12:17 PM, Paul Walmsley wrote:
->> On Thu, 8 Nov 2012, Jon Hunter wrote:
->>
->>> On 11/08/2012 11:58 AM, Paul Walmsley wrote:
->>>> On Thu, 8 Nov 2012, Jon Hunter wrote:
->>>>
->>>>> Igor was mentioning a h/w scenario where the 32kHz source is not
->>>>> present. However, I am not sure which devices support this and is
->>>>> applicable too.
->>>>
->>>> Pretty sure Igor is referring to the AM3517/3505.  This is very poorly 
->>>> documented, but can be observed in the AM3517 TRM Rev B (SPRUGR0B) Figure 
->>>> 4-23 "PRM Clock Generator" and the AM3517 DM Rev C (SPRS550C) Section 4 
->>>> "Clock Specifications".
->>>
->>> But AFAICT, even in that h/w configuration the internal 32k
->>> oscillator will be used
->>
->> Just to clarify, there's no internal 32k oscillator used on the 3517/3505; 
->> just a divider from the HF clock.
-> 
-> Ah yes I see that now!
-> 
->>> and so the gptimer will still have a 32k clock source.
->>
->> That's a good question and you might want to check with Igor on that one,
->> the AM3517 TRM conflicts with the DM as to whether it's available to the 
->> GPTIMER or not :-(
-> 
-> Well the external 32k and internal divided down version go through the
-> same mux and so that seems to imply either they are both available to
-> the gptimer or neither is.
+> And the good thing is that this is a clean cut so we
+> will centralized code without having to decide right now
+> how to handle the pm idle/sleep cases.
+>
+> Talking here with Kevin Hilman on my left and Grant
+> Likely on my right (they're physically here) there is some
+> worry about stashing stuff into struct device.
+>
+> What if I retrieve this in the pinctrl subsystem using
+> bus notifiers and then expose the struct pinctrl * to
+> the clients by using pinctrl_get() and when you get
+> such a handle in your probe() you know that the
+> pinctrl subsystem has already fetched the handle and
+> set it to "default" at that point?
 
-Yep, but the /800 do not get you the 32768...
-and that makes the timer suck.
-Of course this can be dealt with in the clock subsystem
-(I remember Paul said that he will look into that), but it will take time.
+I have sent out an RFC for this approach. It actually
+works quite well on the U300 for example.
 
-Also, what about having the sys_clk instead of 32k for higher precision?
-Is that possible already (without my patch)?
+However as stated in the patch we run into another
+problem: what if the pinctrl provider returns
+-EDEFER_PROBE?
 
+(The same will be true for clocks, regulators etc I
+guess...)
 
--- 
-Regards,
-Igor.
+If I use notifiers like this, I cannot return -EPROBE_DEFER
+to the core. :-(
+
+The PM domains seem to be built on the notification
+mechanism as well (AFAICT), so it will not allow drivers to
+defer their probes, as it is an optional layer after all.
+
+As a matter of fact it seems that there is an implicit
+assumption in PM domains that the resources that
+are taken there cannot defer any probing, so they are
+assumed to always be present. Is this correct?
+If so, any resources that may be deferred (such as
+pinctrl) can never be handled in PM domains. Only
+simple stuff that the SoC controls directly e.g through
+some fixed register pokes to voltage domains.
+
+So then the only option that remains to centralize
+pinctrl handling is indeed to do that in the device core,
+before probe(). I need to know Greg's feelings about that.
+
+At the same time this sort of give me the feeling that
+we might be doing something wrong. The distributed
+nature of deferred probes will become quite elusive
+if the deferral request comes from some place
+before probe() is even called on the driver.
+
+Please check my RFC patch and tell me above errors
+in the above reasoning....
+
+Yours,
+Linus Walleij
