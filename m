@@ -1,123 +1,113 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Sat, 10 Nov 2012 19:56:32 +0100
-Message-ID: <509EA360.2050504@gmail.com>
-References: <1351869956-2787-1-git-send-email-zonque@gmail.com> <1351869956-2787-5-git-send-email-zonque@gmail.com> <518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com> <5097B7EE.3000508@gmail.com> <518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com> <509A2E75.5060307@gmail.com> <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
+Date: Sun, 11 Nov 2012 11:16:19 +0200
+Message-ID: <509F6CE3.50806@compulab.co.il>
+References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <20121107173343.GF6801@atomide.com> <509B5B84.50605@compulab.co.il> <20121108162004.GA6801@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:38854 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752402Ab2KJS4h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Nov 2012 13:56:37 -0500
-Received: by mail-bk0-f46.google.com with SMTP id jk13so1965773bkc.19
-        for <linux-omap@vger.kernel.org>; Sat, 10 Nov 2012 10:56:35 -0800 (PST)
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:39460 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751562Ab2KKJQ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Nov 2012 04:16:26 -0500
+In-Reply-To: <20121108162004.GA6801@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On 07.11.2012 16:37, Philip, Avinash wrote:
-> On Wed, Nov 07, 2012 at 15:18:37, Daniel Mack wrote:
->> On 05.11.2012 14:29, Philip, Avinash wrote:
->>> On Mon, Nov 05, 2012 at 18:28:22, Daniel Mack wrote:
->>>> On 05.11.2012 12:03, Philip, Avinash wrote:
->>>>> On Fri, Nov 02, 2012 at 20:55:56, Daniel Mack wrote:
->>>>>> This patch adds basic DT bindings for OMAP GPMC.
->>>>>>
->>>>>> The actual peripherals are instanciated from child nodes within the GPMC
->>>>>> node, and the only type of device that is currently supported is NAND.
->>>>>>
->>>>>> Code was added to parse the generic GPMC timing parameters and some
->>>>>> documentation with examples on how to use them.
->>>>>>
->>>>>> Successfully tested on an AM33xx board.
->>>>>>
->>>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
->>>>> [...]
->>>>>> +
->>>>>> +		nand@0,0 {
->>>>>> +			reg = <0 0 0>; /* CS0, offset 0 */
->>>>>> +			nand-bus-width = <16>;
->>>>>> +			nand-ecc-mode = "none";
->>>>>> +
->>>>>> +			gpmc,sync-clk = <0>;
->>>>>> +			gpmc,cs-on = <0>;
->>>>>> +			gpmc,cs-rd-off = <36>;
->>>>>> +			gpmc,cs-wr-off = <36>;
->>>>>> +			gpmc,adv-on = <6>;
->>>>>> +			gpmc,adv-rd-off = <24>;
->>>>>> +			gpmc,adv-wr-off = <36>;
->>>>>> +			gpmc,we-off = <30>;
->>>>>> +			gpmc,oe-off = <48>;
->>>>>> +			gpmc,access = <54>;
->>>>>> +			gpmc,rd-cycle = <72>;
->>>>>> +			gpmc,wr-cycle = <72>;
->>>>>> +			gpmc,wr-access = <30>;
->>>>>> +			gpmc,wr-data-mux-bus = <0>;
->>>>>> +
->>>>>> +			#address-cells = <1>;
->>>>>> +			#size-cells = <1>;
->>>>>> +
->>>>>
->>>>> Can you take the timings (for example) from arago tree. The timings is tested in am335x-evm
->>>>> So the timings can be directly used to populate GPMC timings. Timings can found at
->>>>>
->>>>> http://arago-project.org/git/projects/?p=linux-am33x.git;a=commitdiff;
->>>>> h=66bfbd2c5b35dc81edce0c24843c476161ab5978;hp=370630359cb8db711cf0941cd2a242e28ccfb61e
->>>>>
->>>>> [...]
->>>>>> +static int gpmc_probe_dt(struct platform_device *pdev)
->>>>>
->>>>> Can you take care of the following section mismatch.
->>>>> WARNING: vmlinux.o(.text+0x1e2d0): Section mismatch in reference
->>>>> from the function gpmc_probe_dt() to the function .init.text:gpmc_nand_init().
->>>>
->>>> Sore, both fixed for v4.
->>>>
->>>>> [...]
->>>>>> +
->>>>>> +		val = of_get_nand_ecc_mode(child);
->>>>>> +		if (val >= 0)
->>>>>> +			gpmc_nand_data->ecc_opt = val;
->>>>>
->>>>> This will fail for BCH. Index of "soft_bch" is 5 & also don't have selection
->>>>> option between for BCH4 & BCH8 also.
->>>>> Can you use the of_property_read_u32 (as done early) to pass the ecc selection
->>>>> from dt file. This will help selection of BCH4 & BCH8 ecc options.
->>>>
->>>> Hmm. Shouldn't we rather teach of_get_nand_ecc_mode() that two modes and
->>>> bring the enum in sync?
+On 11/08/12 18:20, Tony Lindgren wrote:
+> * Igor Grinberg <grinberg@compulab.co.il> [121107 23:15]:
+>> On 11/07/12 19:33, Tony Lindgren wrote:
 >>>
->>> ecc_opt is for selecting different ecc layout and not for selecting ecc mode.
->>>
->>> In omap2 driver NAND_ECC_HW ecc mode supports 3 ecc layout
->>> 	OMAP_ECC_HAMMING_CODE_HW_ROMCODE
->>> 	OMAP_ECC_BCH4_CODE_HW
->>> 	OMAP_ECC_BCH8_CODE_HW
->>>
->>> So selection of ecc layout data should come from DT not ecc mode.
+>>> I think this should be the default for the timers as that counter
+>>> does not stop during deeper idle states.
 >>
->> Ok, I see. I would still like to set them by string rather than magic
->> numbers that map to enum entries. Valid values would be "none", "hw",
->> "hw-romcode", "bch4" and "bch8". Are you ok with that?
+>> Well, it is the default as you can see from the patch.
+>> The problem is that for boards that for some reason do not have
+>> the 32k wired and rely on MPU/GP timer source, the default will not work
+>> and currently there is no way for board to specify which timer source
+>> it can use.
 > 
-> Ok, that's nice. Better use ecc_opt instead of ecc_mode.
+> Yes. I was just wondering if we can avoid patching all the board
+> files by doing it the other way around by introducing a new
+> omap_gp_timer rather than renaming all the existing ones?
 
-I did some more extensive tests that include reading the same nand pages
-from both U-Boot and the kernel with BCH8 ECC, and it turns out that
-->is_elm_used needs to be set in the pdata in order to make this work.
+Is the renaming that bad? One line per machine_desc structure?
+Of course we can skip the renaming, but then it will be less consistent
+and will not reflect the actual timer source used.
+I tried to make it flexible as much as possible and self explanatory.
+So above are my considerations, but at this point in time I don't really
+care if we rename them or just add a new one, but we have to get rid of
+the ugly fall back.
 
-So the question is whether we actually want to have a DT property for
-that or just always enable that bit in case a hardware supported ecc
-mode is selected. Any opinion on this?
+> 
+>> We have discussed this in San Diego (remember?) and you actually proposed
+>> this way as a solution. Well, may be I took it a bit further than you
+>> thought, but this is because the board code cannot know which timer source
+>> should be used at runtime and the fall back described below, does not work.
+> 
+> Yes thanks I agree we should get rid of that Kconfig option for sure. 
+> 
+>>>> --- a/arch/arm/mach-omap2/board-2430sdp.c
+>>>> +++ b/arch/arm/mach-omap2/board-2430sdp.c
+>>>> @@ -284,6 +284,6 @@ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
+>>>>  	.handle_irq	= omap2_intc_handle_irq,
+>>>>  	.init_machine	= omap_2430sdp_init,
+>>>>  	.init_late	= omap2430_init_late,
+>>>> -	.timer		= &omap2_timer,
+>>>> +	.timer		= &omap2_sync32k_timer,
+>>>>  	.restart	= omap_prcm_restart,
+>>>>  MACHINE_END
+>>>> --- a/arch/arm/mach-omap2/board-3430sdp.c
+>>>> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+>>>> @@ -596,6 +596,6 @@ MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
+>>>>  	.handle_irq	= omap3_intc_handle_irq,
+>>>>  	.init_machine	= omap_3430sdp_init,
+>>>>  	.init_late	= omap3430_init_late,
+>>>> -	.timer		= &omap3_timer,
+>>>> +	.timer		= &omap3_sync32k_timer,
+>>>>  	.restart	= omap_prcm_restart,
+>>>>  MACHINE_END
+>>> ...
+>>>
+>>> Can't we assume that the default timer is omap[234]_sync32k_timer to
+>>> avoid renaming the timer entries in all the board files?
+>>
+>> Hmmm...
+>> How will this work with the macros defining the sys_timer structure?
+>> I would also not want to hide the exact timer used under the default name.
+> 
+> Can't you just add a new sys_timer (or a new macro) for GP only setups? 
 
-That's the last topic before I'm clear to send off v4.
+Of course I can... but I tried to create a flexible generic code, so
+no meter how a board will be wired, you just need to specify which timer source
+it uses and be done with it.
+
+>  
+>>> Then we just need a new timer entries for the hardware that does
+>>> not have the sycn32k_timer available?
+>>
+>> Well, I tried to make it small patch just for the hardware that needs it,
+>> but I always found some corner case where, IMHO, this does not work/look good.
+> 
+> Can you explain a bit further?
+
+Yes, OMAP4 has its own "local" timer function, OMAP5 - the real time timer
+function, we have that fall back from 32k to gptimer for AM33xx and we also
+have the use_gptimer_clksrc parameter.
+All the above call the same timer source init functions at the end.
+
+> 
+> I guess what I'm after is just to avoid renaming the existing
+> timers in the board-*.c files and only rename the ones that
+> need gp timer only.
+
+This means: get rid of the 32k to gptimer fall back.
+I've got your point, will cook something shortly.
 
 
-Thanks,
-Daniel
-
+-- 
+Regards,
+Igor.
