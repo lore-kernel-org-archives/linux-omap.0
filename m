@@ -1,53 +1,66 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
 Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Sun, 11 Nov 2012 13:28:47 +0200
-Message-ID: <509F8BEF.90008@compulab.co.il>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BFFDF.9040605@ti.com> <79CD15C6BA57404B839C016229A409A83EB68799@DBDE01.ent.ti.com> <509C050C.6010201@ti.com>
+Date: Sun, 11 Nov 2012 13:35:07 +0200
+Message-ID: <509F8D6B.5070504@compulab.co.il>
+References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BDAF5.1010703@ti.com> <79CD15C6BA57404B839C016229A409A83EB68589@DBDE01.ent.ti.com> <509BEE6D.9000902@ti.com> <alpine.DEB.2.00.1211081754390.20703@utopia.booyaka.com> <509BF525.80309@ti.com> <alpine.DEB.2.00.1211081809470.20703@utopia.booyaka.com> <509BFB4E.2090802@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:35255 "EHLO
+Received: from softlayer.compulab.co.il ([50.23.254.55]:50804 "EHLO
 	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751050Ab2KKL2x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Nov 2012 06:28:53 -0500
-In-Reply-To: <509C050C.6010201@ti.com>
+	id S1751244Ab2KKLfN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Nov 2012 06:35:13 -0500
+In-Reply-To: <509BFB4E.2090802@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jon Hunter <jon-hunter@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
 
 
-On 11/08/12 21:16, Jon Hunter wrote:
+On 11/08/12 20:34, Jon Hunter wrote:
 > 
-> On 11/08/2012 12:59 PM, Hiremath, Vaibhav wrote:
->> On Fri, Nov 09, 2012 at 00:24:23, Hunter, Jon wrote:
->>>
->>> On 11/08/2012 01:59 AM, Igor Grinberg wrote:
->>>
->>> [snip]
->>>
->>>> There is no reliable way to determine which source should be used in runtime
->>>> for boards that do not have the 32k oscillator wired.
->>>
->>> So thinking about this some more and given that we are moving away from
->>> board files, if a board does not provide a 32kHz clock source, then this
->>> should be reflected in the device-tree source file for that board.
->>> Hence, at boot time we should be able to determine if a 32kHz clock
->>> source can be used.
->>>
+> On 11/08/2012 12:17 PM, Paul Walmsley wrote:
+>> On Thu, 8 Nov 2012, Jon Hunter wrote:
 >>
->> Let me feed some more thoughts here :)
+>>> On 11/08/2012 11:58 AM, Paul Walmsley wrote:
+>>>> On Thu, 8 Nov 2012, Jon Hunter wrote:
+>>>>
+>>>>> Igor was mentioning a h/w scenario where the 32kHz source is not
+>>>>> present. However, I am not sure which devices support this and is
+>>>>> applicable too.
+>>>>
+>>>> Pretty sure Igor is referring to the AM3517/3505.  This is very poorly 
+>>>> documented, but can be observed in the AM3517 TRM Rev B (SPRUGR0B) Figure 
+>>>> 4-23 "PRM Clock Generator" and the AM3517 DM Rev C (SPRS550C) Section 4 
+>>>> "Clock Specifications".
+>>>
+>>> But AFAICT, even in that h/w configuration the internal 32k
+>>> oscillator will be used
 >>
->> The way it is being detected currently is based on timer idle status bit.
->> I am worried that, this is the only option we have.
+>> Just to clarify, there's no internal 32k oscillator used on the 3517/3505; 
+>> just a divider from the HF clock.
 > 
-> Why not use device-tree to indicate the presence of a 32k clock source?
-> This seems like a board level configuration and so device-tree seems to
-> be the perfect place for this IMO.
+> Ah yes I see that now!
+> 
+>>> and so the gptimer will still have a 32k clock source.
+>>
+>> That's a good question and you might want to check with Igor on that one,
+>> the AM3517 TRM conflicts with the DM as to whether it's available to the 
+>> GPTIMER or not :-(
+> 
+> Well the external 32k and internal divided down version go through the
+> same mux and so that seems to imply either they are both available to
+> the gptimer or neither is.
 
-Well, that is what my commit message says...
+Yep, but the /800 do not get you the 32768...
+and that makes the timer suck.
+Of course this can be dealt with in the clock subsystem
+(I remember Paul said that he will look into that), but it will take time.
+
+Also, what about having the sys_clk instead of 32k for higher precision?
+Is that possible already (without my patch)?
 
 
 -- 
