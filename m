@@ -1,43 +1,185 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
-Date: Mon, 12 Nov 2012 13:34:13 +0200
-Message-ID: <AEFB103E-C71E-4A3C-B946-19ABD9025A17@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com> <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com> <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com> <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com> <5ED17D42-07B8-4D4F-B54F-82B4CC60584C@antoniou-consulting.com> <509A3595.7050600@ti.com> <A6697FB9-3614-4027-A71B-59C7556005BF@antoniou-consulting.com> <CACxGe6uXyTt_kr4=0ob+-ubgV9he+SfobLwux6X0m6y7yQU7EA@mail.gmail.com>
+From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Mon, 12 Nov 2012 13:47:59 +0200
+Message-ID: <14968148-872C-441A-B162-0FF93A70E489@antoniou-consulting.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
+ <CAD=GYpbeKtW37Cj9cXr8F7F83d9Fgs-moqu9p6cOaPE1VxwbSg@mail.gmail.com>
+ <CACxGe6vL9gbAKyDWcZWWAQ4WO=nTgdAioXS-h2e1jtJK9pmZUg@mail.gmail.com>
 Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6uXyTt_kr4=0ob+-ubgV9he+SfobLwux6X0m6y7yQU7EA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Benoit Cousson <b-cousson@ti.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CACxGe6vL9gbAKyDWcZWWAQ4WO=nTgdAioXS-h2e1jtJK9pmZUg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi Grant,
 
-On Nov 9, 2012, at 10:33 PM, Grant Likely wrote:
+On Nov 9, 2012, at 11:22 PM, Grant Likely wrote:
 
-> On Wed, Nov 7, 2012 at 11:02 AM, Pantelis Antoniou
-> <panto@antoniou-consulting.com> wrote:
->> On Nov 7, 2012, at 11:19 AM, Benoit Cousson wrote:
->>> Maybe some extra version match table can just be passed during the board machine_init
+> On Fri, Nov 9, 2012 at 5:32 AM, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Hi Pantelis,
+>> 
+>> I hope I'm not too late to reply as I'm traveling.
+>> 
+>> On Nov 6, 2012, at 5:30 AM, Pantelis Antoniou
+>> <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> wrote:
+>> 
 >>> 
->>>      of_platform_populate(NULL, omap_dt_match_table, NULL, NULL, panda_version_match_table);
+>>>> 
+>>>> Joanne has purchased one of Jane's capes and packaged it into a rugged
+>>>> case for data logging. As far as Joanne is concerned, the BeagleBone and
+>>>> cape together are a single unit and she'd prefer a single monolithic FDT
+>>>> instead of using an FDT overlay.
+>>>> Option A: Using dtc, she uses the BeagleBone and cape .dts source files
+>>>>       to generate a single .dtb for the entire system which is
+>>>>       loaded by U-Boot. -or-
+>>> 
+>>> Unlikely.
+>>>> Option B: Joanne uses a tool to merge the BeagleBone and cape .dtb files
+>>>>       (instead of .dts files), -or-
+>>> Possible but low probability.
+>>> 
+>>>> Option C: U-Boot loads both the base and overlay FDT files, merges them,
+>>>>       and passes the resolved tree to the kernel.
+>>>> 
+>>> 
+>>> Could be made to work. Only really required if Joanne wants the
+>>> cape interface to work for u-boot too. For example if the cape has some
+>>> kind of network interface that u-boot will use to boot from.
 >>> 
 >> 
->> Would we need explicit of_platform_populate calls if we have node modification notifiers?
->> In that case the notifier would pick it up automatically, and can do the per
->> version matching internally.
+>> I love Grant's hashing idea a lot keeping the phandle problem for
+>> compile time and not requiring fixups.
+>> 
+>> IMO it is still a cleaner approach if u-boot does the simple tree merging for
+>> all cases, and not the kernel reasons mentioned below.
 > 
-> There still needs to be something to register "everything below this
-> node is interesting" which is exactly what of_platform_populate() does
-> now. I see the notifiers being used by the of_platform_populate
-> backend to know when nodes have been created (or destroyed).
+> I'm more than sufficiently convinced that making changes at runtime
+> from userspace is pretty much required.
+> 
+> Also consider: it is order of magnitudes easier to modify the kernel
+> than it is to change the firmware for end users.
+> 
+
+Complete agreement here.
+
+>> (1)
+>> From a development standpoint, very little or nothing will
+>> have to be changed in kernel (except for scripts/dtc) considering we
+>> are moving forward with hashing.
+>> 
+>> (2)
+>> Also this discussed a while back but at some point is going to brought
+>> up again-  loading of dt fragment directly from EEPROM and merging at
+>> run time. If we were to implement this in kernel, we would have to add
+>> cape specific EEPROM reading code, merge the tree before it is
+>> unflattened and parse.
+> 
+> Unless it is required for boot to userspace I'm not considering
+> merging before userspace starts. That's well after the tree is
+> unflattened into the live form. If it is require to boot then I agree
+> that is should be done in firmware. I see zero problem with having a
+> beaglebone specific cape driver that knows to read the eeprom and
+> request a specific configuration file. Heck, the kernel doesn't even
+> need to parse the eeprom data. It can be read from userspace and
+> userspace decides which overlay to provide. There's nothing stopping
+> userspace from reading the eeprom, looking up the correct dts for the
+> board, downloading the file from the Internet, compiling it with dtc
+> and installing it.... and yes that is getting a little extreme.
+> 
+
+We're trying to come up with the method that will work best for us.
+
+>From an ease of use perspective, having a kernel driver doing the 
+probing and performing the DT fragment insertion looks the best.
+It's especially nice for the manufacturer, since he can make sure
+that when he ships a board a single kernel image will contain everything
+with no possibility of RMAs. 
+
+For h/w prototyping, where the user is tinkering around with his
+own design, the user space approach would be best.
+
+The downloading over the internet DTS file, is a bit extreme for now :)
+
+>> I think doing tree merging in kernel is messy
+>> and we should do it in uboot considering we might have to read EEPROM for
+>> this use case. Ideally reading the fragment from the EEPROM for all capes
+>> and merging without worrying about version detection, Doing the merge and
+>> passing the merged blob to the kernel which (kernel) works the same way
+>> it does today.
+>> 
+>>>> It may be sufficient to solve it by making the phandle values less
+>>>> volatile. Right now dtc generates phandles linearly. Generated phandles
+>>>> could be overridden with explicit phandle properties, but it isn't a
+>>>> fantastic solution. Perhaps generating the phandle from a hash of the
+>>>> node name would be sufficient.
+>>>> 
+>>> 
+>>> I doubt the hash method will work reliably. We only have 32 bits to work with,
+>>> nothing like the SHA hashes of git.
+>>> 
+>> 
+>> I was wondering I have worked with kernel's crypto code in the past to
+>> generate 32 bit md5sums of 1000s of dataitems, from what I've seen,
+>> collisions are rare and since we are talking about just a few nodes
+>> that are being referenced in the base dt. I think the probability is
+>> even less (ofcourse such an analysis strongly depends on dataset).
+>> this method also takes away a lot of complexity with having it to do
+>> runtime fixups and will help us get off the ground quickly.
+> 
+> It wouldn't be hard to put together a test and run it on all the .dts
+> files in the kernel; generating md5 sums for all the full_name paths
+> and seeing if we've got any collisions yet.
+> 
+>> We can also put in a collision handling mechanism if needed.
+>> I think it is worthy doing a sample hash of all nodes in all dts we
+>> have in a script and see for once if we have collisions and what it
+>> looks like.
+> 
+> Collision handling is a must, but again this is all internal to dtc. I
+> don't foresee any problems with it.
+> 
+>> Alternatively to hashing, reading David Gibson's paper I followed,
+>> phandle is supposed to 'uniquely' identity node. I wonder why the node
+>> name itself is not sufficient to uniquely identify.
+> 
+> Simply because the FDT draws upon the existing OFW bindings which use
+> a 32bit value to reference other nodes.
+> 
+>> The code that does
+>> the tree walking can then just strcmp the node name while it walks the
+>> tree instead of having to find a node with a phandle number. I guess
+>> the reason is phandles are small to store as data values. Another
+>> approach can be to arrange the string block in alphabetical order
+>> (unless it already is), and store phandle as index of the node name
+>> referenced relative to the starting of the strong block. This will not
+>> affect nodes in dtb being moved around since they will still have the
+>> same index value. the problem being adding or removing nodes Changes
+>> the index of all other nodes in the string block as well.. Hmm.
+> 
+> And that still doesn't help find all the phandle locations in the tree
+> for doing fixups. It would need to be a table of
+> nodes+properties+offsets that contain phandles for fixup to work, but
+> I shy away from that approach because I think it will be fragile.
 > 
 > g.
 
-I see. So of_platform_populate could just register the notifier and
-not do the tree walk itself. Perhaps the name is a bit misleading then?
+Maybe, but IMHO it will work. I don't know, we're at the point where
+we have to start coding and see what come out.
 
 Regards
 
