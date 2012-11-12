@@ -1,100 +1,194 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP4: TWL: mux sys_drm_msecure as output for PMIC
-Date: Mon, 12 Nov 2012 14:14:03 -0800
-Message-ID: <20121112221402.GR6801@atomide.com>
-References: <1352401730-4269-1-git-send-email-khilman@deeprootsystems.com>
- <20121108192834.GA2962@arwen.pp.htv.fi>
- <20121108201045.GA579@kahuna>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 02/26] ARM: OMAP: hwmod: Fix up hwmod based clkdm
+ accesses
+Date: Mon, 12 Nov 2012 22:15:39 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211122214370.22487@utopia.booyaka.com>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-3-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40725 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752140Ab2KLWOG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 17:14:06 -0500
-Content-Disposition: inline
-In-Reply-To: <20121108201045.GA579@kahuna>
+Received: from utopia.booyaka.com ([74.50.51.50]:42875 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462Ab2KLWPk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 17:15:40 -0500
+In-Reply-To: <1352337181-29427-3-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-* Nishanth Menon <nm@ti.com> [121108 12:12]:
-> On 21:28-20121108, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Thu, Nov 08, 2012 at 11:08:50AM -0800, Kevin Hilman wrote:
-> > > From: Kevin Hilman <khilman@ti.com>
-> > > 
-> > > On OMAP4 boards using the TWL6030 PMIC, the sys_drm_msecure is
-> > > connected to the MSECURE input of the TWL6030 PMIC.  This signal
-> > > controls the secure-mode operation of the PMIC.  If its not mux'd
-> > > correctly, some functionality of the PMIC will not be accessible since
-> > > the PMIC will be in secure mode.
-> > > 
-> > > For example, if the TWL RTC is in secure mode, most of its registers
-> > > are read-only, meaning (re)programming the RTC (e.g. for wakeup from
-> > > suspend) will fail.
-> > > 
-> > > To fix, ensure the signal is properly mux'd as output when TWL is
-> > > intialized.
-> > > 
-> > > This fix is required when using recent versions of u-boot (>= v2012.04.01)
-> > > since u-boot is no longer setting the default mux for this pin.
-> > > 
-> > > Signed-off-by: Kevin Hilman <khilman@ti.com>
-> > > ---
-> > > Based on v3.7-rc4.  Targetted as a fix for v3.7.
-> > > 
-> > > A correponding DT fix for this is needed as well, but that will be part of 
-> > > a bigger series to get PM working with DT boot and needs to include other
-> > > pins like sys_nirq1.
-> > > 
-> > >  arch/arm/mach-omap2/twl-common.c | 1 +
-> > >  1 file changed, 1 insertion(+)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-> > > index 635e109..96cae8b 100644
-> > > --- a/arch/arm/mach-omap2/twl-common.c
-> > > +++ b/arch/arm/mach-omap2/twl-common.c
-> > > @@ -73,6 +73,7 @@ void __init omap4_pmic_init(const char *pmic_type,
-> > >  {
-> > >  	/* PMIC part*/
-> > >  	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
-> > > +	omap_mux_init_signal("fref_clk0_out.sys_drm_msecure", OMAP_PIN_OUTPUT);
-> > >  	omap_pmic_init(1, 400, pmic_type, 7 + OMAP44XX_IRQ_GIC_START, pmic_data);
-> > >  
-> > >  	/* Register additional devices on i2c1 bus if needed */
-> > 
-> > not entirely related to $SUBJECT but this essentially means we're
-> > dropping the security feature whenever Linux runs.
-> Unless we intend to remove RTC driver in it's entirety and implement RTC
-> time change update in secure driver, current twl rtc driver was never
-> meant to exist with RTC time updates only in trustzone mode. Neither does
-> it drop any security feature when ever Linux runs- msecure pin has not
-> been used for any other purpose to my knowledge with Linux. So, this
-> change does not change the status quo we are currently in,
-> > 
-> > Shouldn't we try to change that pin at register write boundaries so we
-> > keep the secure feature enabled until we know we're going to write to
-> > the HW ?
-> > 
-> > Maybe it could even be done later through pinctrl, perhaps ?
-> That might be a better solution I agree. We might be locking down to a
-> specific pin name here, which could potentially change in a future SoC.
-> The right approach IMHO would be omap_gpio_mux equivalent.
-> 
-> Example change for OMAP5 purely from a board perspective(gerrit warning):
-> http://review.omapzoom.org/#/c/23819/5/arch/arm/mach-omap2/board-omap5evm.c,unified
-> 
-> Further, depending on how it is hooked on a different board (not that I
-> have seen any different other than msecure), it might even be hooked on
-> to another GPIO, making this scenario not scaling to "theoretical board
-> configuration".
 
-Sounds like the discussion is planning for further work and not affecting
-this patch. So applying into omap-for-v3.7-rc4/fixes-part2.
+This patch needed to be modified to avoid some sparse warnings; updated 
+patch follows.
 
-Regards,
 
-Tony
+- Paul
+
+ARM: OMAP: hwmod: Fix up hwmod based clkdm accesses
+
+From: Rajendra Nayak <rnayak@ti.com>
+
+hwmod uses deferencing the clk pointer to acccess the clkdm.
+With COMMON clk hwoever this will need to be deferenced through
+the clk_hw_omap pointer, so do the necessary changes.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Mike Turquette <mturquette@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   70 ++++++++++++++++++++++++++++++--------
+ 1 file changed, 56 insertions(+), 14 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 139adca..f38e4ce 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -130,7 +130,11 @@
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/io.h>
++#ifdef CONFIG_COMMON_CLK
++#include <linux/clk-provider.h>
++#else
+ #include <linux/clk.h>
++#endif
+ #include <linux/delay.h>
+ #include <linux/err.h>
+ #include <linux/list.h>
+@@ -614,6 +618,23 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+ 	return 0;
+ }
+ 
++static struct clockdomain *_get_clkdm(struct omap_hwmod *oh)
++{
++	if (oh->clkdm) {
++		return oh->clkdm;
++	} else if (oh->_clk) {
++#ifdef CONFIG_COMMON_CLK
++		struct clk_hw_omap *clk;
++
++		clk = to_clk_hw_omap(__clk_get_hw(oh->_clk));
++		return  clk->clkdm;
++#else
++		return oh->_clk->clkdm;
++#endif
++	}
++	return NULL;
++}
++
+ /**
+  * _add_initiator_dep: prevent @oh from smart-idling while @init_oh is active
+  * @oh: struct omap_hwmod *
+@@ -629,13 +650,18 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+  */
+ static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+ {
+-	if (!oh->_clk)
++	struct clockdomain *clkdm, *init_clkdm;
++
++	clkdm = _get_clkdm(oh);
++	init_clkdm = _get_clkdm(init_oh);
++
++	if (!clkdm || !init_clkdm)
+ 		return -EINVAL;
+ 
+-	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
++	if (clkdm && clkdm->flags & CLKDM_NO_AUTODEPS)
+ 		return 0;
+ 
+-	return clkdm_add_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
++	return clkdm_add_sleepdep(clkdm, init_clkdm);
+ }
+ 
+ /**
+@@ -653,13 +679,18 @@ static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+  */
+ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+ {
+-	if (!oh->_clk)
++	struct clockdomain *clkdm, *init_clkdm;
++
++	clkdm = _get_clkdm(oh);
++	init_clkdm = _get_clkdm(init_oh);
++
++	if (!clkdm || !init_clkdm)
+ 		return -EINVAL;
+ 
+-	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
++	if (clkdm && clkdm->flags & CLKDM_NO_AUTODEPS)
+ 		return 0;
+ 
+-	return clkdm_del_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
++	return clkdm_del_sleepdep(clkdm, init_clkdm);
+ }
+ 
+ /**
+@@ -693,7 +724,7 @@ static int _init_main_clk(struct omap_hwmod *oh)
+ 	 */
+ 	clk_prepare(oh->_clk);
+ 
+-	if (!oh->_clk->clkdm)
++	if (!_get_clkdm(oh))
+ 		pr_debug("omap_hwmod: %s: missing clockdomain for %s.\n",
+ 			   oh->name, oh->main_clk);
+ 
+@@ -1276,6 +1307,7 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 	u8 idlemode, sf;
+ 	u32 v;
+ 	bool clkdm_act;
++	struct clockdomain *clkdm;
+ 
+ 	if (!oh->class->sysc)
+ 		return;
+@@ -1283,11 +1315,9 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	sf = oh->class->sysc->sysc_flags;
+ 
++	clkdm = _get_clkdm(oh);
+ 	if (sf & SYSC_HAS_SIDLEMODE) {
+-		clkdm_act = ((oh->clkdm &&
+-			      oh->clkdm->flags & CLKDM_ACTIVE_WITH_MPU) ||
+-			     (oh->_clk && oh->_clk->clkdm &&
+-			      oh->_clk->clkdm->flags & CLKDM_ACTIVE_WITH_MPU));
++		clkdm_act = (clkdm && clkdm->flags & CLKDM_ACTIVE_WITH_MPU);
+ 		if (clkdm_act && !(oh->class->sysc->idlemodes &
+ 				   (SIDLE_SMART | SIDLE_SMART_WKUP)))
+ 			idlemode = HWMOD_IDLEMODE_FORCE;
+@@ -3556,10 +3586,17 @@ struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
+ {
+ 	struct clk *c;
+ 	struct omap_hwmod_ocp_if *oi;
++	struct clockdomain *clkdm;
++#ifdef CONFIG_COMMON_CLK
++	struct clk_hw_omap *clk;
++#endif
+ 
+ 	if (!oh)
+ 		return NULL;
+ 
++	if (oh->clkdm)
++		return oh->clkdm->pwrdm.ptr;
++
+ 	if (oh->_clk) {
+ 		c = oh->_clk;
+ 	} else {
+@@ -3569,11 +3606,16 @@ struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
+ 		c = oi->_clk;
+ 	}
+ 
+-	if (!c->clkdm)
++#ifdef CONFIG_COMMON_CLK
++	clk = to_clk_hw_omap(__clk_get_hw(c));
++	clkdm = clk->clkdm;
++#else
++	clkdm = c->clkdm;
++#endif
++	if (!clkdm)
+ 		return NULL;
+ 
+-	return c->clkdm->pwrdm.ptr;
+-
++	return clkdm->pwrdm.ptr;
+ }
+ 
+ /**
