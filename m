@@ -1,51 +1,52 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 1/1] omap plat header removal for v3.8 merge window, part4
-Date: Mon, 12 Nov 2012 21:57:51 +0000
-Message-ID: <201211122157.51602.arnd@arndb.de>
-References: <pull-1352312855-617904>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 0/6] Move rest of omap-iommu to live in drivers/iommu
+Date: Mon, 12 Nov 2012 14:00:34 -0800
+Message-ID: <20121112220033.GO6801@atomide.com>
+References: <20121102192221.4253.34303.stgit@muffinssi.local>
+ <CAK=WgbYR8UMyDjySJLRC0tEbJO3FaFgjWxceNwMyVdMgEgwPig@mail.gmail.com>
+ <CALLhW=5WNg8X0nX8U+AExocyNKW=wJ7oS36xg4ENMnfyJkX8RQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53538 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632Ab2KLV55 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 16:57:57 -0500
-In-Reply-To: <pull-1352312855-617904>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CALLhW=5WNg8X0nX8U+AExocyNKW=wJ7oS36xg4ENMnfyJkX8RQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joro@8bytes.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <ton@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wednesday 07 November 2012, Tony Lindgren wrote:
-> The following changes since commit a0212796b58061a9716178d261f318925c246643:
+* Omar Ramirez Luna <omar.luna@linaro.org> [121112 10:42]:
+> Hi,
 > 
->   Merge tag 'omap-cleanup-fixes-a-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/cleanup-headers (2012-10-26 13:18:19 -0700)
+> On 11 November 2012 03:39, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > On Fri, Nov 2, 2012 at 9:23 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >> We need to move the iommu code to live under drivers
+> >> for arm common zImage support.
+> >
+> > For the iommu changes in the entire series:
+> >
+> > Acked-by: Ohad Ben-Cohen <ohad@wizery.com>
+> >
+> > Joerg, it might relieve some pain if this will go through Tony's tree,
+> > as there are some OMAP platform iommu changes coming in from Omar as
+> > well (part of which might have already been merged in the omap
+> > branches). Hope it's ok with both of you guys?
+> >
+> > Omar, do you still have any iommu changes coming in ?
 > 
-> are available in the git repository at:
+> Yes, I have the hwmod and runtime pm changes for iommu, I was waiting
+> for Tony to publish a branch with these changes to submit (as per
+> Tony's suggestion), but I already have the patches rebased onto these.
 > 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3-signed
-> 
-> for you to fetch changes up to 6ba54ab4a49bbad736b0254aa6bdf0cb83013815:
-> 
->   ARM: OMAP: Remove omap_init_consistent_dma_size() (2012-11-06 16:01:19 -0800)
-> 
-> ----------------------------------------------------------------
-> These changes deal with the issues of relative includes
-> introduced by the earlier clean-up and clean up few more
-> things for enabling multiplatform support.
-> 
-> The multiplatform kernel has been booted on omaps on
-> top of this branch with the work-in-progress patches
-> applied manually.
-> 
-> We cannot yet enable the multiplatform support though.
-> We still need the common clock framework patches, some
-> solution for dma-omap.h, and serial-omap.h moved before
-> we can enable it.
+> I will submit them.
 
-Pulled into next/headers branch now, sorry for the delay.
+Assuming Joerg is OK with these changes, I can push them into
+an immutable branch that Joerg can merge in as needed.
 
-	Arnd
+Further patches on top of this series can then be queued by
+Joerg as arch/arm/*omap* and me are then out of the way of
+iommu development.
+
+Regards,
+
+Tony
