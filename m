@@ -1,77 +1,76 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Mon, 12 Nov 2012 09:24:59 +0200
-Message-ID: <50A0A44B.6080604@compulab.co.il>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BDAF5.1010703@ti.com> <79CD15C6BA57404B839C016229A409A83EB68589@DBDE01.ent.ti.com> <509BEE6D.9000902@ti.com> <alpine.DEB.2.00.1211081754390.20703@utopia.booyaka.com> <509BF525.80309@ti.com> <alpine.DEB.2.00.1211081809470.20703@utopia.booyaka.com> <509BFB4E.2090802@ti.com> <509F8D6B.5070504@compulab.co.il> <79CD15C6BA57404B839C016229A409A83EB70E88@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Porting board initialization for fdt
+Date: Mon, 12 Nov 2012 10:01:34 +0200
+Message-ID: <20121112080134.GB25465@arwen.pp.htv.fi>
+References: <CAE7jHC-Z9wy=5HPzhZZpupcBVn862ERq1LRF9KQ=Ed7BXiDFBA@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:47692 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751233Ab2KLHZF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 02:25:05 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB70E88@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MfFXiAuoTsnnDAfZ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAE7jHC-Z9wy=5HPzhZZpupcBVn862ERq1LRF9KQ=Ed7BXiDFBA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Constantine Shulyupin <const@makelinux.com>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tim.bird@am.sony.com, pandaboard@googlegroups.com, Keshava Munegowda <keshava_mgowda@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On 11/12/12 08:38, Hiremath, Vaibhav wrote:
-> On Sun, Nov 11, 2012 at 17:05:07, Igor Grinberg wrote:
->>
->>
->> On 11/08/12 20:34, Jon Hunter wrote:
->>>
->>> On 11/08/2012 12:17 PM, Paul Walmsley wrote:
->>>> On Thu, 8 Nov 2012, Jon Hunter wrote:
->>>>
->>>>> On 11/08/2012 11:58 AM, Paul Walmsley wrote:
->>>>>> On Thu, 8 Nov 2012, Jon Hunter wrote:
->>>>>>
->>>>>>> Igor was mentioning a h/w scenario where the 32kHz source is not
->>>>>>> present. However, I am not sure which devices support this and is
->>>>>>> applicable too.
->>>>>>
->>>>>> Pretty sure Igor is referring to the AM3517/3505.  This is very poorly 
->>>>>> documented, but can be observed in the AM3517 TRM Rev B (SPRUGR0B) Figure 
->>>>>> 4-23 "PRM Clock Generator" and the AM3517 DM Rev C (SPRS550C) Section 4 
->>>>>> "Clock Specifications".
->>>>>
->>>>> But AFAICT, even in that h/w configuration the internal 32k
->>>>> oscillator will be used
->>>>
->>>> Just to clarify, there's no internal 32k oscillator used on the 3517/3505; 
->>>> just a divider from the HF clock.
->>>
->>> Ah yes I see that now!
->>>
->>>>> and so the gptimer will still have a 32k clock source.
->>>>
->>>> That's a good question and you might want to check with Igor on that one,
->>>> the AM3517 TRM conflicts with the DM as to whether it's available to the 
->>>> GPTIMER or not :-(
->>>
->>> Well the external 32k and internal divided down version go through the
->>> same mux and so that seems to imply either they are both available to
->>> the gptimer or neither is.
->>
->> Yep, but the /800 do not get you the 32768...
->> and that makes the timer suck.
->> Of course this can be dealt with in the clock subsystem
->> (I remember Paul said that he will look into that), but it will take time.
->>
->> Also, what about having the sys_clk instead of 32k for higher precision?
->> Is that possible already (without my patch)?
->>
-> 
-> Yes, it is possible. You can choose it through bootargs.
+--MfFXiAuoTsnnDAfZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Is the kernel command line the only way for doing this?
-I personally dislike it, because it brings multiple maintenance problems.
-This must be possible at least through DT.
+Hi,
 
+On Mon, Nov 12, 2012 at 12:38:37AM +0200, Constantine Shulyupin wrote:
+> What is architecture and the best strategy to port board initialization t=
+o fdt?
+>=20
+> Let's see for example omap4_ehci_init and usbhs_bdata @
+> arch/arm/mach-omap2/board-omap4panda.c.
 
--- 
-Regards,
-Igor.
+before getting rid of platform_data, we need to switch over to proper
+frameworks for muxing, clock, etc. In case of EHCI, pinctrl migration is
+currently under development by Keshava (in Cc). After that we need to
+take a look at platform and see if there are any function pointers in
+there, if there are, those need to be removed.
+
+> How to perform board specific initializations?
+> Can omap4_ehci_init be converted to probe function of new platform
+> driver  omap4_ehci?
+
+yeah, that function is actually wrong. First, that GPIO pin belongs to
+the HUB driver, not the EHCI driver.
+
+Second, those clocks belong to the PHY, not EHCI either. Before those
+details are cleaned up, we will always have hacky solutions which will
+break in one way or another.
+
+When those cleanups are done, conversion to FDT is not a problem at all.
+
+--=20
+balbi
+
+--MfFXiAuoTsnnDAfZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQoKzeAAoJEIaOsuA1yqREVr0P/2t4Asi3h/ntLrVmmWPAYP4M
+mXVTtO59w3j+P2MT+qpbPo0Cqr2JJAX++spTI5tRk+aALcoquExtTn3Av80+UfvD
+C6cjKqd/MUnJleqqZX+0UmbnK+JHX0H5qrbxOz6XLmPaIoWv9Oe9oF8VnLexR5NB
+4TTJdYyqz3zPBmN/dKeeRR6K2sy5Flvq1ufzAPx9JAAAcPz0m3r9vCBevFPQ0P8K
+KN+syhq4JiFQ74InUuADYmdf4eU3hI2e+zJMFQtSKuXO0MF0USymrOq4mTMsAf27
+msunMpPZ0Yb+DjdIAZGWI2lSwi05shK0TC84m5KIFV1mCAyCWIHNFPp9RuGJ6U6R
+w7hThNSc8a2k51QOmEd4VkEdp56/2zeMVHzS+zIF5jvsZv9Q8oAmF8jQ+DgMttnD
+H/YFCzaJ+CVgnBmpXJGLmn9eeCjvjbiCxtx6R1bdLcfebjQk2mBetNHzOZUp7RoC
+NKU0fija4FR9YMp2nSF/4ur8ezq3XtUkCjpMaq/3bz7yzfuAxg6U0LRUjWl2Iscj
+H8BVM5QPgE9humMUekRE4yZVrd6ypX1y8/xVG5BYPU4E4FZrBIy+6hF0sE6IHWLU
+jhWqJgk8qUn1/2+K73jrBFjN1d6/uZci5CILeLsmbthXA0/1yoosLrGR2I0My953
+dPC/aQLJesRQLAHCNE1i
+=tg7Z
+-----END PGP SIGNATURE-----
+
+--MfFXiAuoTsnnDAfZ--
