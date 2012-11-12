@@ -1,87 +1,80 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: =?UTF-8?q?=5BRESEND=20PATCH=20v3=202/4=5D=20mfd=3A=20introduce=20retu-mfd=20driver?=
-Date: Mon, 12 Nov 2012 21:08:43 +0200
-Message-ID: <1352747326-2195-3-git-send-email-aaro.koskinen@iki.fi>
+Subject: [RESEND PATCH v3 3/4] watchdog: introduce retu_wdt driver
+Date: Mon, 12 Nov 2012 21:08:44 +0200
+Message-ID: <1352747326-2195-4-git-send-email-aaro.koskinen@iki.fi>
 References: <1352747326-2195-1-git-send-email-aaro.koskinen@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1352747326-2195-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, sameo@linux.intel.com
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, linux-watchdog@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>
 List-Id: linux-omap@vger.kernel.org
 
-Retu is a multi-function device found on Nokia Internet Tablets
-implementing at least watchdog, RTC, headset detection and power button
-functionality.
+Introduce Retu watchdog driver.
 
-This patch implements minimum functionality providing register access,
-IRQ handling and power off functions.
-
-Cc: sameo@linux.intel.com
+Cc: linux-watchdog@vger.kernel.org
 Acked-by: Felipe Balbi <balbi@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 ---
- drivers/mfd/Kconfig      |    9 ++
- drivers/mfd/Makefile     |    1 +
- drivers/mfd/retu-mfd.c   |  264 ++++++++++++++++++++++++++++++++++++++=
-++++++++
- include/linux/mfd/retu.h |   22 ++++
- 4 files changed, 296 insertions(+), 0 deletions(-)
- create mode 100644 drivers/mfd/retu-mfd.c
- create mode 100644 include/linux/mfd/retu.h
+ drivers/watchdog/Kconfig    |   12 +++
+ drivers/watchdog/Makefile   |    1 +
+ drivers/watchdog/retu_wdt.c |  178 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 191 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/watchdog/retu_wdt.c
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index acab3ef..7528c5e 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1044,6 +1044,15 @@ config MFD_PALMAS
- 	  If you say yes here you get support for the Palmas
- 	  series of PMIC chips from Texas Instruments.
-=20
-+config MFD_RETU
-+	tristate "Support for Retu multi-function device"
-+	select MFD_CORE
-+	depends on I2C
-+	select REGMAP_IRQ
+diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+index ad1bb93..c3a836d 100644
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -352,6 +352,18 @@ config IMX2_WDT
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called imx2_wdt.
+ 
++config RETU_WATCHDOG
++	tristate "Retu watchdog"
++	depends on MFD_RETU
++	select WATCHDOG_CORE
 +	help
-+	  Retu is a multi-function device found on Nokia Internet Tablets
-+	  (770, N800 and N810).
++	  Retu watchdog driver for Nokia Internet Tablets (700, N800,
++	  N810). At least on N800 the watchdog cannot be disabled, so
++	  this driver is essential and you should enable it.
 +
- endmenu
- endif
-=20
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index d8ccb63..ad7879f 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -138,3 +138,4 @@ obj-$(CONFIG_MFD_RC5T583)	+=3D rc5t583.o rc5t583-ir=
-q.o
- obj-$(CONFIG_MFD_SEC_CORE)	+=3D sec-core.o sec-irq.o
- obj-$(CONFIG_MFD_SYSCON)	+=3D syscon.o
- obj-$(CONFIG_MFD_LM3533)	+=3D lm3533-core.o lm3533-ctrlbank.o
-+obj-$(CONFIG_MFD_RETU)		+=3D retu-mfd.o
-diff --git a/drivers/mfd/retu-mfd.c b/drivers/mfd/retu-mfd.c
++	  To compile this driver as a module, choose M here: the
++	  module will be called retu_wdt.
++
+ # AVR32 Architecture
+ 
+ config AT32AP700X_WDT
+diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
+index 572b39b..d2f1c0c 100644
+--- a/drivers/watchdog/Makefile
++++ b/drivers/watchdog/Makefile
+@@ -52,6 +52,7 @@ obj-$(CONFIG_STMP3XXX_WATCHDOG) += stmp3xxx_wdt.o
+ obj-$(CONFIG_NUC900_WATCHDOG) += nuc900_wdt.o
+ obj-$(CONFIG_TS72XX_WATCHDOG) += ts72xx_wdt.o
+ obj-$(CONFIG_IMX2_WDT) += imx2_wdt.o
++obj-$(CONFIG_RETU_WATCHDOG) += retu_wdt.o
+ 
+ # AVR32 Architecture
+ obj-$(CONFIG_AT32AP700X_WDT) += at32ap700x_wdt.o
+diff --git a/drivers/watchdog/retu_wdt.c b/drivers/watchdog/retu_wdt.c
 new file mode 100644
-index 0000000..7ff4a37
+index 0000000..aeb0f39
 --- /dev/null
-+++ b/drivers/mfd/retu-mfd.c
-@@ -0,0 +1,264 @@
++++ b/drivers/watchdog/retu_wdt.c
+@@ -0,0 +1,178 @@
 +/*
-+ * Retu MFD driver
++ * Retu watchdog driver
 + *
 + * Copyright (C) 2004, 2005 Nokia Corporation
 + *
-+ * Based on code written by Juha Yrj=C3=B6l=C3=A4, David Weinehall and=
- Mikko Ylinen.
++ * Based on code written by Amit Kucheria and Michael Buesch.
 + * Rewritten by Aaro Koskinen.
 + *
 + * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of thi=
-s
++ * Public License. See the file "COPYING" in the main directory of this
 + * archive for more details.
 + *
 + * This program is distributed in the hope that it will be useful,
@@ -90,283 +83,165 @@ s
 + * GNU General Public License for more details.
 + */
 +
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include <linux/irq.h>
 +#include <linux/init.h>
 +#include <linux/slab.h>
-+#include <linux/mutex.h>
++#include <linux/errno.h>
++#include <linux/device.h>
++#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/regmap.h>
-+#include <linux/mfd/core.h>
 +#include <linux/mfd/retu.h>
-+#include <linux/interrupt.h>
-+#include <linux/moduleparam.h>
++#include <linux/watchdog.h>
++#include <linux/platform_device.h>
 +
-+/* Registers */
-+#define RETU_REG_ASICR		0x00		/* ASIC ID and revision */
-+#define RETU_REG_ASICR_VILMA	(1 << 7)	/* Bit indicating Vilma */
-+#define RETU_REG_IDR		0x01		/* Interrupt ID */
-+#define RETU_REG_IMR		0x02		/* Interrupt mask */
++/* Watchdog timer values in seconds */
++#define RETU_WDT_MAX_TIMER	63
 +
-+/* Interrupt sources */
-+#define RETU_INT_PWR		0		/* Power button */
-+
-+struct retu_dev {
-+	struct regmap			*regmap;
-+	struct device			*dev;
-+	struct mutex			mutex;
-+	struct regmap_irq_chip_data	*irq_data;
++struct retu_wdt_dev {
++	struct retu_dev		*rdev;
++	struct device		*dev;
++	struct delayed_work	ping_work;
 +};
 +
-+static struct resource retu_pwrbutton_res[] =3D {
-+	{
-+		.name	=3D "retu-pwrbutton",
-+		.start	=3D RETU_INT_PWR,
-+		.end	=3D RETU_INT_PWR,
-+		.flags	=3D IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct mfd_cell retu_devs[] =3D {
-+	{
-+		.name		=3D "retu-wdt"
-+	},
-+	{
-+		.name		=3D "retu-pwrbutton",
-+		.resources	=3D retu_pwrbutton_res,
-+		.num_resources	=3D ARRAY_SIZE(retu_pwrbutton_res),
-+	}
-+};
-+
-+static struct regmap_irq retu_irqs[] =3D {
-+	[RETU_INT_PWR] =3D {
-+		.mask =3D 1 << RETU_INT_PWR,
-+	}
-+};
-+
-+static struct regmap_irq_chip retu_irq_chip =3D {
-+	.name		=3D "RETU",
-+	.irqs		=3D retu_irqs,
-+	.num_irqs	=3D ARRAY_SIZE(retu_irqs),
-+	.num_regs	=3D 1,
-+	.status_base	=3D RETU_REG_IDR,
-+	.mask_base	=3D RETU_REG_IMR,
-+	.ack_base	=3D RETU_REG_IDR,
-+};
-+
-+/* Retu device registered for the power off. */
-+static struct retu_dev *retu_pm_power_off;
-+
-+int retu_read(struct retu_dev *rdev, u8 reg)
++/*
++ * Since Retu watchdog cannot be disabled in hardware, we must kick it
++ * with a timer until userspace watchdog software takes over. If
++ * CONFIG_WATCHDOG_NOWAYOUT is set, we never start the feeding.
++ */
++static void retu_wdt_ping_enable(struct retu_wdt_dev *wdev)
 +{
-+	int ret;
-+	int value;
-+
-+	mutex_lock(&rdev->mutex);
-+	ret =3D regmap_read(rdev->regmap, reg, &value);
-+	mutex_unlock(&rdev->mutex);
-+
-+	return ret ? ret : value;
-+}
-+EXPORT_SYMBOL_GPL(retu_read);
-+
-+int retu_write(struct retu_dev *rdev, u8 reg, u16 data)
-+{
-+	int ret;
-+
-+	mutex_lock(&rdev->mutex);
-+	ret =3D regmap_write(rdev->regmap, reg, data);
-+	mutex_unlock(&rdev->mutex);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(retu_write);
-+
-+static void retu_power_off(void)
-+{
-+	struct retu_dev *rdev =3D retu_pm_power_off;
-+	int reg;
-+
-+	mutex_lock(&retu_pm_power_off->mutex);
-+
-+	/* Ignore power button state */
-+	regmap_read(rdev->regmap, RETU_REG_CC1, &reg);
-+	regmap_write(rdev->regmap, RETU_REG_CC1, reg | 2);
-+
-+	/* Expire watchdog immediately */
-+	regmap_write(rdev->regmap, RETU_REG_WATCHDOG, 0);
-+
-+	/* Wait for poweroff */
-+	for (;;)
-+		cpu_relax();
-+
-+	mutex_unlock(&retu_pm_power_off->mutex);
++	retu_write(wdev->rdev, RETU_REG_WATCHDOG, RETU_WDT_MAX_TIMER);
++	schedule_delayed_work(&wdev->ping_work,
++			round_jiffies_relative(RETU_WDT_MAX_TIMER * HZ / 2));
 +}
 +
-+static int retu_regmap_read(void *context, const void *reg, size_t reg=
-_size,
-+			    void *val, size_t val_size)
++static void retu_wdt_ping_disable(struct retu_wdt_dev *wdev)
 +{
-+	int ret;
-+	struct device *dev =3D context;
-+	struct i2c_client *i2c =3D to_i2c_client(dev);
++	retu_write(wdev->rdev, RETU_REG_WATCHDOG, RETU_WDT_MAX_TIMER);
++	cancel_delayed_work_sync(&wdev->ping_work);
++}
 +
-+	BUG_ON(reg_size !=3D 1 || val_size !=3D 2);
++static void retu_wdt_ping_work(struct work_struct *work)
++{
++	struct retu_wdt_dev *wdev = container_of(to_delayed_work(work),
++						struct retu_wdt_dev, ping_work);
++	retu_wdt_ping_enable(wdev);
++}
 +
-+	ret =3D i2c_smbus_read_word_data(i2c, *(u8 const *)reg);
-+	if (ret < 0)
-+		return ret;
++static int retu_wdt_start(struct watchdog_device *wdog)
++{
++	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
 +
-+	*(u16 *)val =3D ret;
++	retu_wdt_ping_disable(wdev);
++
++	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
++}
++
++static int retu_wdt_stop(struct watchdog_device *wdog)
++{
++	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
++
++	retu_wdt_ping_enable(wdev);
++
 +	return 0;
 +}
 +
-+static int retu_regmap_write(void *context, const void *data, size_t c=
-ount)
++static int retu_wdt_ping(struct watchdog_device *wdog)
 +{
-+	u8 reg;
-+	u16 val;
-+	struct device *dev =3D context;
-+	struct i2c_client *i2c =3D to_i2c_client(dev);
++	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
 +
-+	BUG_ON(count !=3D sizeof(reg) + sizeof(val));
-+	memcpy(&reg, data, sizeof(reg));
-+	memcpy(&val, data + sizeof(reg), sizeof(val));
-+	return i2c_smbus_write_word_data(i2c, reg, val);
++	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
 +}
 +
-+static struct regmap_bus retu_bus =3D {
-+	.read =3D retu_regmap_read,
-+	.write =3D retu_regmap_write,
-+	.val_format_endian_default =3D REGMAP_ENDIAN_NATIVE,
-+};
-+
-+static struct regmap_config retu_config =3D {
-+	.reg_bits =3D 8,
-+	.val_bits =3D 16,
-+};
-+
-+static int __devinit retu_probe(struct i2c_client *i2c,
-+				const struct i2c_device_id *id)
++static int retu_wdt_set_timeout(struct watchdog_device *wdog,
++				unsigned int timeout)
 +{
-+	struct retu_dev *rdev;
++	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
++
++	wdog->timeout = timeout;
++	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
++}
++
++static const struct watchdog_info retu_wdt_info = {
++	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
++	.identity = "Retu watchdog",
++};
++
++static const struct watchdog_ops retu_wdt_ops = {
++	.owner		= THIS_MODULE,
++	.start		= retu_wdt_start,
++	.stop		= retu_wdt_stop,
++	.ping		= retu_wdt_ping,
++	.set_timeout	= retu_wdt_set_timeout,
++};
++
++static int __devinit retu_wdt_probe(struct platform_device *pdev)
++{
++	struct retu_dev *rdev = dev_get_drvdata(pdev->dev.parent);
++	bool nowayout = WATCHDOG_NOWAYOUT;
++	struct watchdog_device *retu_wdt;
++	struct retu_wdt_dev *wdev;
 +	int ret;
 +
-+	rdev =3D devm_kzalloc(&i2c->dev, sizeof(*rdev), GFP_KERNEL);
-+	if (rdev =3D=3D NULL)
++	retu_wdt = devm_kzalloc(&pdev->dev, sizeof(*retu_wdt), GFP_KERNEL);
++	if (!retu_wdt)
 +		return -ENOMEM;
 +
-+	i2c_set_clientdata(i2c, rdev);
-+	rdev->dev =3D &i2c->dev;
-+	mutex_init(&rdev->mutex);
-+	rdev->regmap =3D devm_regmap_init(&i2c->dev, &retu_bus, &i2c->dev,
-+					&retu_config);
-+	if (IS_ERR(rdev->regmap))
-+		return PTR_ERR(rdev->regmap);
++	wdev = devm_kzalloc(&pdev->dev, sizeof(*wdev), GFP_KERNEL);
++	if (!wdev)
++		return -ENOMEM;
 +
-+	ret =3D retu_read(rdev, RETU_REG_ASICR);
-+	if (ret < 0) {
-+		dev_err(rdev->dev, "could not read Retu revision: %d\n", ret);
-+		return ret;
-+	}
++	retu_wdt->info		= &retu_wdt_info;
++	retu_wdt->ops		= &retu_wdt_ops;
++	retu_wdt->timeout	= RETU_WDT_MAX_TIMER;
++	retu_wdt->min_timeout	= 0;
++	retu_wdt->max_timeout	= RETU_WDT_MAX_TIMER;
 +
-+	dev_info(rdev->dev, "Retu%s v%d.%d found\n",
-+		 (ret & RETU_REG_ASICR_VILMA) ? " & Vilma" : "",
-+		 (ret >> 4) & 0x7, ret & 0xf);
++	watchdog_set_drvdata(retu_wdt, wdev);
++	watchdog_set_nowayout(retu_wdt, nowayout);
 +
-+	/* Mask all RETU interrupts. */
-+	ret =3D retu_write(rdev, RETU_REG_IMR, 0xffff);
++	wdev->rdev		= rdev;
++	wdev->dev		= &pdev->dev;
++
++	INIT_DELAYED_WORK(&wdev->ping_work, retu_wdt_ping_work);
++
++	ret = watchdog_register_device(retu_wdt);
 +	if (ret < 0)
 +		return ret;
 +
-+	ret =3D regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, -1,
-+				  &retu_irq_chip, &rdev->irq_data);
-+	if (ret < 0)
-+		return ret;
++	if (nowayout)
++		retu_wdt_ping(retu_wdt);
++	else
++		retu_wdt_ping_enable(wdev);
 +
-+	ret =3D mfd_add_devices(rdev->dev, -1, retu_devs, ARRAY_SIZE(retu_dev=
-s),
-+			      NULL, regmap_irq_chip_get_base(rdev->irq_data),
-+			      NULL);
-+	if (ret < 0) {
-+		regmap_del_irq_chip(i2c->irq, rdev->irq_data);
-+		return ret;
-+	}
-+
-+	if (!pm_power_off) {
-+		retu_pm_power_off =3D rdev;
-+		pm_power_off	  =3D retu_power_off;
-+	}
++	platform_set_drvdata(pdev, retu_wdt);
 +
 +	return 0;
 +}
 +
-+static int __devexit retu_remove(struct i2c_client *i2c)
++static int __devexit retu_wdt_remove(struct platform_device *pdev)
 +{
-+	struct retu_dev *rdev =3D i2c_get_clientdata(i2c);
++	struct watchdog_device *wdog = platform_get_drvdata(pdev);
++	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
 +
-+	if (retu_pm_power_off =3D=3D rdev) {
-+		pm_power_off	  =3D NULL;
-+		retu_pm_power_off =3D NULL;
-+	}
-+	mfd_remove_devices(rdev->dev);
-+	regmap_del_irq_chip(i2c->irq, rdev->irq_data);
++	watchdog_unregister_device(wdog);
++	cancel_delayed_work_sync(&wdev->ping_work);
 +
 +	return 0;
 +}
 +
-+static const struct i2c_device_id retu_id[] =3D {
-+	{ "retu-mfd", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, retu_id);
-+
-+static struct i2c_driver retu_driver =3D {
-+	.driver		=3D {
-+		.name =3D "retu-mfd",
-+		.owner =3D THIS_MODULE,
++static struct platform_driver retu_wdt_driver = {
++	.probe		= retu_wdt_probe,
++	.remove		= __devexit_p(retu_wdt_remove),
++	.driver		= {
++		.name	= "retu-wdt",
 +	},
-+	.probe		=3D retu_probe,
-+	.remove		=3D retu_remove,
-+	.id_table	=3D retu_id,
 +};
-+module_i2c_driver(retu_driver);
++module_platform_driver(retu_wdt_driver);
 +
-+MODULE_DESCRIPTION("Retu MFD driver");
-+MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
-+MODULE_AUTHOR("David Weinehall");
-+MODULE_AUTHOR("Mikko Ylinen");
++MODULE_ALIAS("platform:retu-wdt");
++MODULE_DESCRIPTION("Retu watchdog");
++MODULE_AUTHOR("Amit Kucheria");
 +MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
 +MODULE_LICENSE("GPL");
-diff --git a/include/linux/mfd/retu.h b/include/linux/mfd/retu.h
-new file mode 100644
-index 0000000..1e2715d
---- /dev/null
-+++ b/include/linux/mfd/retu.h
-@@ -0,0 +1,22 @@
-+/*
-+ * Retu MFD driver interface
-+ *
-+ * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of thi=
-s
-+ * archive for more details.
-+ */
-+
-+#ifndef __LINUX_MFD_RETU_H
-+#define __LINUX_MFD_RETU_H
-+
-+struct retu_dev;
-+
-+int retu_read(struct retu_dev *, u8);
-+int retu_write(struct retu_dev *, u8, u16);
-+
-+/* Registers */
-+#define RETU_REG_WATCHDOG	0x17		/* Watchdog */
-+#define RETU_REG_CC1		0x0d		/* Common control register 1 */
-+#define RETU_REG_STATUS		0x16		/* Status register */
-+
-+#endif /* __LINUX_MFD_RETU_H */
---=20
+-- 
 1.7.2.5
