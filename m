@@ -1,72 +1,53 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
-Date: Mon, 12 Nov 2012 17:33:41 -0600
-Message-ID: <CAF6AEGtLKjJ=BfBnOq+oE6cgneF5YqsbYqNnCPrz4sTFRzdibg@mail.gmail.com>
-References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
-	<20121112192727.GB28341@n2100.arm.linux.org.uk>
-	<CAF6AEGu4L+ukxhMBLYK3d2g4CBBXi6o5nN_wXvakZCT8qMfSEA@mail.gmail.com>
-	<20121112230819.GC28341@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: GPMC generic timing
+Date: Mon, 12 Nov 2012 15:50:43 -0800
+Message-ID: <20121112235042.GY6801@atomide.com>
+References: <1352470910-9630-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121112230819.GC28341@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29985 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752506Ab2KLXuq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 18:50:46 -0500
+Content-Disposition: inline
+In-Reply-To: <1352470910-9630-1-git-send-email-afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Nov 12, 2012 at 5:08 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Mon, Nov 12, 2012 at 01:58:32PM -0600, Rob Clark wrote:
->> On Mon, Nov 12, 2012 at 1:27 PM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> > On Fri, Nov 09, 2012 at 03:17:33PM -0600, Rob Clark wrote:
->> >> From: Rob Clark <rob@ti.com>
->> >>
->> >> A new atomic modeset/pageflip ioctl being developed in DRM requires
->> >> get_user() to work for 64bit types (in addition to just put_user()).
->> >
->> > NAK.
->> >
->> > (I did write a better email explaining all the ins and outs of why this
->> > won't work and why 64-bit get_user isn't possible, but my editor crapped
->> > out and lost all that well written message; I don't fancy typing it all
->> > out again.)
->> >
->> > Nevertheless,
->> > int test_ptr(unsigned int **v, unsigned int **p)
->> > {
->> >         return get_user(*v, p);
->> > }
->> >
->> > produces a warning, and you can't get away from that if you stick 64-bit
->> > support into get_user().
->>
->> Actually, it seems like using 'register typeof(x) __r2 asm("r2");'
->> does avoid that warning..
->
-> That seems to pass the checks I've done on it so far, and seems rather
-> obvious (there's been a number of people looking at this, none of whom
-> have come up with that solution).  Provided the final cast is kept
-> (which is there to ensure proper typechecking), it seems like it might
-> be a solution.
+* Afzal Mohammed <afzal@ti.com> [121109 06:23]:
+> The following changes since commit 6ba54ab4a49bbad736b0254aa6bdf0cb83013815:
+> 
+>   ARM: OMAP: Remove omap_init_consistent_dma_size() (2012-11-06 16:01:19 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://gitorious.org/x0148406-public/linux-kernel.git tags/gpmc-generic-timing
+> 
+> for you to fetch changes up to 47acde16726080e5157b602f23937d00a04cd2ed:
+> 
+>   ARM: OMAP2+: tusb6010: generic timing calculation (2012-11-09 18:07:23 +0530)
+> 
+> ----------------------------------------------------------------
+> These changes provide a generic gpmc timing calculation method,
+> migrates existing peripherals that makes use of custom gpmc timing
+> calculation method to use the new generic one.
+> 
+> Generic routine has been verified for onenand async timing calculation
+> on omap3evm (with a local change to add onenand support). Generic
+> timing calculation method were verified for other peripherals by
+> simulation. Generic method has to be verified on peripherals supported
+> in mainline.
 
-I'm sort of thinking maybe we want to change 'switch (sizeof(*(__p)))'
-with 'switch (sizeof(typeof(x)))' in case someone ignores the compiler
-warning when they try something like:
+Thanks pulled into omap-for-v3.8/gpmc. I've replaced the second paragraph
+in my tag with the following as that's what I've tried it with:
 
-   uint32_t x;
-   uint64_t *p = ...;
-   get_user(x, p);
+The generic timing routine has been tested with onenand, smsc911x,
+and tusb6010 devices connected to GPMC in addition to simulating
+other devices support in the mainline kernel.
 
-that was my one concern about 'register typeof(x) __r2 ...', but I
-think just changing the switch condition is enough.  But maybe good to
-have some eyes on in case there is something else I'm not thinking of.
+Regards,
 
-BR,
--R
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
