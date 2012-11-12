@@ -1,24 +1,24 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH 0/5] OMAPFB: use dma_alloc instead of omap's vram
-Date: Mon, 12 Nov 2012 15:50:28 +0200
-Message-ID: <50A0FEA4.20304@ti.com>
+Date: Mon, 12 Nov 2012 15:57:34 +0200
+Message-ID: <50A1004E.8000203@ti.com>
 References: <1352715906-16946-1-git-send-email-tomi.valkeinen@ti.com> <CANOLnOO0yMabku-_3yhi=1bwohbrb=rtFDOuKf1LPCAFv_OqCQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enig805F4B598FC11630188F18F4"
+	boundary="------------enig3FDC3557D04656C0BA93B455"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42168 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42508 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752979Ab2KLNug (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 08:50:36 -0500
+	id S1751628Ab2KLN5k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Nov 2012 08:57:40 -0500
 In-Reply-To: <CANOLnOO0yMabku-_3yhi=1bwohbrb=rtFDOuKf1LPCAFv_OqCQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Grazvydas Ignotas <notasas@gmail.com>
 Cc: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
 
---------------enig805F4B598FC11630188F18F4
+--------------enig3FDC3557D04656C0BA93B455
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
@@ -44,32 +44,51 @@ ides:
 >> applications will interpret as "there's enough vram".
 >=20
 > Do at least OMAPFB_QUERY_MEM/OMAPFB_SETUP_MEM still work?
-
-Yes.
-
+>=20
 >> 4) "vram" kernel parameter to define how much ram to reserve for video=
  use no
 >> longer works. The user needs to enable CMA and use "cma" parameter.
 >=20
 > That's a significant change, you should update Documentation/ .
 
-Ah right. The documentation. I never remember =3D).
+I've added the following documentation change:
 
-> What about omapfb.vram, is it still there?
+diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
+index a564cee..4484e02 100644
+--- a/Documentation/arm/OMAP/DSS
++++ b/Documentation/arm/OMAP/DSS
+@@ -285,7 +285,10 @@ FB0 +-- GFX  ---- LCD ---- LCD
+ Misc notes
+ ----------
+=20
+-OMAP FB allocates the framebuffer memory using the OMAP VRAM allocator.
++OMAP FB allocates the framebuffer memory using the standard dma allocato=
+r. You
++can enable Contiguous Memory Allocator (CONFIG_CMA) to improve the dma
++allocator, and if CMA is enabled, you use "cma=3D" kernel parameter to i=
+ncrease
++the global memory area for CMA.
+=20
+ Using DSI DPLL to generate pixel clock it is possible produce the pixel =
+clock
+ of 86.5MHz (max possible), and with that you get 1280x1024@57 output fro=
+m DVI.
+@@ -301,11 +304,6 @@ framebuffer parameters.
+ Kernel boot arguments
+ ---------------------
+=20
+-vram=3D<size>[,<physaddr>]
+-       - Amount of total VRAM to preallocate and optionally a physical s=
+tart
+-         memory address. For example, "10M". omapfb allocates memory for=
 
-Yes.
-
-> Perhaps we also need to select/depend on CMA?
-
-dma_alloc_* funcs work fine without CMA. CMA only makes them work
-better. Thus I don't think OMAPFB should depend on CMA, but perhaps CMA
-should be enabled by default in omap2plus_defconfig?
-
- Tomi
+-         framebuffers from VRAM.
+-
 
 
 
---------------enig805F4B598FC11630188F18F4
+
+--------------enig3FDC3557D04656C0BA93B455
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -78,19 +97,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQoP6kAAoJEPo9qoy8lh71bIgP/3fEbeaDbK+XsTpwOEvqW3T5
-iIh2cJwLhVkJ8TXDqoolE14iDR+xUSxsWBzMsH3lnwyYyL8JiA9IgZrztRSv/NWD
-EzXEqI1bXMeyXyE9tL8PX4SIHJTyHNt2GGVsvM9uSi5dXO8ZY0Z64RkhI4BM/aS+
-9zXJwK/T2/f47psj+gP28IGqPifQ1JUnKZeKTrLP2VYdjzyg+PbwL97i1FHLq10Y
-JzFcJwChmsMf2SESazS0U1sRRuv/uJ2i7NpbolHzc9hDvRUbP1bQQigHFZ5ARmD+
-myjJvhPV1gLptzjP7IFu6CCtmyv7Hi0J2oV/Q4Iftyhg09Kmk093CirB5aR1u3W4
-W5kgpQpcMx/nYATLpQFk3fj4sh2nYjtebl+u3/hSBQlS0i/dXCx0CV9oi5DTs7Ef
-3a6VoLzd97ThNdAFZE51ZuR7K/fPvTkWMLaWUmZJc5HCmfRio6EejhWHTd39fA3Q
-RRzk6yshd9g963r3lRiLLEAp/bH7415hUwj0u57F/s7W2T+0QpPqSyvifW5yyCsQ
-VKJTxRaEtDrUWhjc1LihtZWqUnmx+bn4CQoO4jVZmG0/4Jf9abjL33KZfB4pmKnU
-GaY/oKu+QVPM5LlxAhX3EC3esOxsmRh7Zy7Bm6ZInrNdGAy1mdY3MvSbQdcg+jQE
-SKMFfRHLz7EpXpWOoXbE
-=ewP2
+iQIcBAEBAgAGBQJQoQBOAAoJEPo9qoy8lh712bwP/AjZHqo7PMkCAYiJztEILYGs
+/tn5AyfC1E/F5GvWugYh/HYtGlDC+Hy9pX1pwOIYTWYEmULfuKBZGt2ykRsolTHR
+4FiaOKW2Cm3k8DLn5BaTQ4bQf/ZYR5FYM3MDX0v2IA3aRRWS8vVn5AFOeCLnjjlW
+SRmmz/V5bv0MJsQBRc/TQP6+rbhsIZcIFkD8+SWILKOWdAwxhAVoAqUKqhM3fQX9
+cHkuPnTCDT9ZT6+wLU37DqpTvLfXn07W7E7qlayNJ++saCcecAjDw1/IVryNHtKo
+JMeUOut83J6/bXdgdOTmd6wd8gMphKuykiw1z7llvKPNcBSWIcVujI0wekN8T5rb
+Q/JJ8gOy1v+OMM+p2hOEl6ucpB/JwAZ+onzWwAG330w3kwT/eO+djrjqNAN27LgJ
+Sg2z2Gq7rlp7+kaQpWja0oxYeoxdTG9bqVTplB2qPzv5z7k9Rj672J08E6R+PvUb
+sle/c/mok8Qs/QA+oF+ezlZAQ0JqpPyphNxHmpUN4RP77OectfACPmy3kK63jPgJ
+flkxi1eZN9v0ZtgIALrUcYkBQ/8PbBJoRMz3p/cy+S2hZeuAReAI6Wd1jfoYfBM7
+dPhBsKi51VqHNBQd2dtnax1m6jh+68HOho2qj3lbuaX06XNO16ltTk1WOOc7nAec
+3UizWchsCBZmnASmygWg
+=i4tL
 -----END PGP SIGNATURE-----
 
---------------enig805F4B598FC11630188F18F4--
+--------------enig3FDC3557D04656C0BA93B455--
