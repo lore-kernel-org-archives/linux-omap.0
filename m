@@ -1,186 +1,75 @@
-From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Mon, 12 Nov 2012 13:47:59 +0200
-Message-ID: <14968148-872C-441A-B162-0FF93A70E489@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <CAD=GYpbeKtW37Cj9cXr8F7F83d9Fgs-moqu9p6cOaPE1VxwbSg@mail.gmail.com>
- <CACxGe6vL9gbAKyDWcZWWAQ4WO=nTgdAioXS-h2e1jtJK9pmZUg@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CACxGe6vL9gbAKyDWcZWWAQ4WO=nTgdAioXS-h2e1jtJK9pmZUg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/3] OMAPDSS: DISPC: Writeback fixes
+Date: Mon, 12 Nov 2012 14:00:08 +0200
+Message-ID: <50A0E4C8.1070902@ti.com>
+References: <1352268905-31093-1-git-send-email-archit@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig3988900EB0C543D261D29443"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37874 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752649Ab2KLMAM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Nov 2012 07:00:12 -0500
+In-Reply-To: <1352268905-31093-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Grant,
+--------------enig3988900EB0C543D261D29443
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Nov 9, 2012, at 11:22 PM, Grant Likely wrote:
+On 2012-11-07 08:15, Archit Taneja wrote:
+> Some issues were found in the DISPC driver when performing scaling with=
 
-> On Fri, Nov 9, 2012 at 5:32 AM, Joel A Fernandes <agnel.joel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> Hi Pantelis,
->> 
->> I hope I'm not too late to reply as I'm traveling.
->> 
->> On Nov 6, 2012, at 5:30 AM, Pantelis Antoniou
->> <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org> wrote:
->> 
->>> 
->>>> 
->>>> Joanne has purchased one of Jane's capes and packaged it into a rugged
->>>> case for data logging. As far as Joanne is concerned, the BeagleBone and
->>>> cape together are a single unit and she'd prefer a single monolithic FDT
->>>> instead of using an FDT overlay.
->>>> Option A: Using dtc, she uses the BeagleBone and cape .dts source files
->>>>       to generate a single .dtb for the entire system which is
->>>>       loaded by U-Boot. -or-
->>> 
->>> Unlikely.
->>>> Option B: Joanne uses a tool to merge the BeagleBone and cape .dtb files
->>>>       (instead of .dts files), -or-
->>> Possible but low probability.
->>> 
->>>> Option C: U-Boot loads both the base and overlay FDT files, merges them,
->>>>       and passes the resolved tree to the kernel.
->>>> 
->>> 
->>> Could be made to work. Only really required if Joanne wants the
->>> cape interface to work for u-boot too. For example if the cape has some
->>> kind of network interface that u-boot will use to boot from.
->>> 
->> 
->> I love Grant's hashing idea a lot keeping the phandle problem for
->> compile time and not requiring fixups.
->> 
->> IMO it is still a cleaner approach if u-boot does the simple tree merging for
->> all cases, and not the kernel reasons mentioned below.
-> 
-> I'm more than sufficiently convinced that making changes at runtime
-> from userspace is pretty much required.
-> 
-> Also consider: it is order of magnitudes easier to modify the kernel
-> than it is to change the firmware for end users.
-> 
+> writeback pipeline. This series fixes those issues.
+>=20
+> Reference tree:
+> git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git 3.8/w=
+riteback_fixes_dispc
+>=20
+> Archit Taneja (3):
+>   OMAPDSS: DISPC: Fix calc_scaling_44xx() bugs for writeback pipeline
+>   OMAPDSS: DISPC: Don't allow predecimation for writeback
+>   OMAPDSS: DISPC: Use output width and height to calculate row/pix inc
+>     for writeback
+>=20
+>  drivers/video/omap2/dss/dispc.c |   39 +++++++++++++++++++++++++++----=
+--------
+>  1 file changed, 27 insertions(+), 12 deletions(-)
+>=20
 
-Complete agreement here.
+Thanks, looks ok. I'll apply to omapdss tree.
 
->> (1)
->> From a development standpoint, very little or nothing will
->> have to be changed in kernel (except for scripts/dtc) considering we
->> are moving forward with hashing.
->> 
->> (2)
->> Also this discussed a while back but at some point is going to brought
->> up again-  loading of dt fragment directly from EEPROM and merging at
->> run time. If we were to implement this in kernel, we would have to add
->> cape specific EEPROM reading code, merge the tree before it is
->> unflattened and parse.
-> 
-> Unless it is required for boot to userspace I'm not considering
-> merging before userspace starts. That's well after the tree is
-> unflattened into the live form. If it is require to boot then I agree
-> that is should be done in firmware. I see zero problem with having a
-> beaglebone specific cape driver that knows to read the eeprom and
-> request a specific configuration file. Heck, the kernel doesn't even
-> need to parse the eeprom data. It can be read from userspace and
-> userspace decides which overlay to provide. There's nothing stopping
-> userspace from reading the eeprom, looking up the correct dts for the
-> board, downloading the file from the Internet, compiling it with dtc
-> and installing it.... and yes that is getting a little extreme.
-> 
+ Tomi
 
-We're trying to come up with the method that will work best for us.
 
->From an ease of use perspective, having a kernel driver doing the 
-probing and performing the DT fragment insertion looks the best.
-It's especially nice for the manufacturer, since he can make sure
-that when he ships a board a single kernel image will contain everything
-with no possibility of RMAs. 
 
-For h/w prototyping, where the user is tinkering around with his
-own design, the user space approach would be best.
+--------------enig3988900EB0C543D261D29443
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-The downloading over the internet DTS file, is a bit extreme for now :)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
->> I think doing tree merging in kernel is messy
->> and we should do it in uboot considering we might have to read EEPROM for
->> this use case. Ideally reading the fragment from the EEPROM for all capes
->> and merging without worrying about version detection, Doing the merge and
->> passing the merged blob to the kernel which (kernel) works the same way
->> it does today.
->> 
->>>> It may be sufficient to solve it by making the phandle values less
->>>> volatile. Right now dtc generates phandles linearly. Generated phandles
->>>> could be overridden with explicit phandle properties, but it isn't a
->>>> fantastic solution. Perhaps generating the phandle from a hash of the
->>>> node name would be sufficient.
->>>> 
->>> 
->>> I doubt the hash method will work reliably. We only have 32 bits to work with,
->>> nothing like the SHA hashes of git.
->>> 
->> 
->> I was wondering I have worked with kernel's crypto code in the past to
->> generate 32 bit md5sums of 1000s of dataitems, from what I've seen,
->> collisions are rare and since we are talking about just a few nodes
->> that are being referenced in the base dt. I think the probability is
->> even less (ofcourse such an analysis strongly depends on dataset).
->> this method also takes away a lot of complexity with having it to do
->> runtime fixups and will help us get off the ground quickly.
-> 
-> It wouldn't be hard to put together a test and run it on all the .dts
-> files in the kernel; generating md5 sums for all the full_name paths
-> and seeing if we've got any collisions yet.
-> 
->> We can also put in a collision handling mechanism if needed.
->> I think it is worthy doing a sample hash of all nodes in all dts we
->> have in a script and see for once if we have collisions and what it
->> looks like.
-> 
-> Collision handling is a must, but again this is all internal to dtc. I
-> don't foresee any problems with it.
-> 
->> Alternatively to hashing, reading David Gibson's paper I followed,
->> phandle is supposed to 'uniquely' identity node. I wonder why the node
->> name itself is not sufficient to uniquely identify.
-> 
-> Simply because the FDT draws upon the existing OFW bindings which use
-> a 32bit value to reference other nodes.
-> 
->> The code that does
->> the tree walking can then just strcmp the node name while it walks the
->> tree instead of having to find a node with a phandle number. I guess
->> the reason is phandles are small to store as data values. Another
->> approach can be to arrange the string block in alphabetical order
->> (unless it already is), and store phandle as index of the node name
->> referenced relative to the starting of the strong block. This will not
->> affect nodes in dtb being moved around since they will still have the
->> same index value. the problem being adding or removing nodes Changes
->> the index of all other nodes in the string block as well.. Hmm.
-> 
-> And that still doesn't help find all the phandle locations in the tree
-> for doing fixups. It would need to be a table of
-> nodes+properties+offsets that contain phandles for fixup to work, but
-> I shy away from that approach because I think it will be fragile.
-> 
-> g.
+iQIcBAEBAgAGBQJQoOTIAAoJEPo9qoy8lh71aU0P/0QCbTt0uQxTDXYOAUpgNPYC
+2uoStaZEPvAlM9wJ86s3vMN5DdwKT/oc3IQInmX5xXf9XaNJePYw6vwhl0I6DKCl
+iO9s9PwA26NAHZEYAB9LLLWyYkfHHOO0YkBdyO19OTMb84fDqaamPhxrgvsvHTfp
+jL3Af/674gAwefUm8OSDqLRdpygF170jSJaVDpLEsgbSLszxOFBG8o1Dip9HDDEU
+1w/n7AQXM7xhOHwuu0je9fc4fno+S6/DrRsZtwSkuKniEH25fe2gPios3zGQk+Ei
+QOP2WNSKbclh6XsFQEer6lJDsOrJ3gLXw6K4IgiJQKAnZl8OJ3/IXzca4a4B0cZm
+ppG62b2++Pd+s5lgAXoUUxUqvQG+5mDo+9rh0RDYEqoBSfnhSHkhMDXhPDxhfnXj
+Un0b+NPPaoFyvMHFifp0dX1QphK7Du5oK0OomVIFUehw4lxZ/LFCQ5Z0qbDthf/r
+cxpISr+fNHBHUiuBkCl6mKIC62johepc2IUnRZ5hGQAgOmWhgvs3wW5hbH6SMEPR
+Vadi7cYpisvIwWVLbsDp9drwn8WpOvhk6rpldXOE6pGXmSTS/a7Ax+KISsP7+fdT
+yZbWTGz7hIwSWW3QraTbI1ao19yobA60YLG5ailDdzfE5JP4C29g5jhZZylcEKkr
+0zlASXdo6+qWuJsH/SUl
+=a7mf
+-----END PGP SIGNATURE-----
 
-Maybe, but IMHO it will work. I don't know, we're at the point where
-we have to start coding and see what come out.
-
-Regards
-
--- Pantelis
+--------------enig3988900EB0C543D261D29443--
