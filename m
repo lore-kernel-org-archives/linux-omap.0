@@ -1,234 +1,88 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 07/26] ARM: OMAP: clock: list all clk_hw_omap clks to
- enable/disable autoidle
-Date: Mon, 12 Nov 2012 23:00:07 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211122259300.22487@utopia.booyaka.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-8-git-send-email-mturquette@ti.com>
+Subject: Re: [PATCH 08/26] ARM: OMAP: clock: Define a function to enable
+ clocks at init
+Date: Mon, 12 Nov 2012 23:01:24 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211122300450.22487@utopia.booyaka.com>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-9-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43062 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:43076 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267Ab2KLXAH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 18:00:07 -0500
-In-Reply-To: <1352337181-29427-8-git-send-email-mturquette@ti.com>
+	with ESMTP id S1752267Ab2KLXBZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 18:01:25 -0500
+In-Reply-To: <1352337181-29427-9-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mike Turquette <mturquette@ti.com>
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
 
-Added kerneldoc to the non-trivial new functions added by this patch, as 
-is local policy.  Updated patch below.
-
+Added kerneldoc on the new non-trivial function in this patch, as is local 
+policy.  Updated patch follows.
 
 - Paul
 
 From: Rajendra Nayak <rnayak@ti.com>
 Date: Fri, 1 Jun 2012 14:02:49 +0530
-Subject: [PATCH] ARM: OMAP: clock: list all clk_hw_omap clks to
- enable/disable autoidle
+Subject: [PATCH] ARM: OMAP: clock: Define a function to enable clocks at init
 
-Platforms can call omap2_init_clk_hw_omap_clocks() to register a clock
-using clk_hw_omap. omap2_clk_enable_autoidle_all() and
-omap2_clk_disable_autoidle_all() can then be used to run through
-all the clocks which support autoidle to enable/disable them.
+Platform code can use omap2_clk_enable_init_clocks() to enable a
+list of clocks that are needed to be enabled at init.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Mike Turquette <mturquette@ti.com>
-[paul@pwsan.com: added kerneldoc on non-trivial new functions]
+[paul@pwsan.com: added kerneldoc to non-trivial new function]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c |   59 +++++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock.h |    3 +++
- arch/arm/mach-omap2/io.c    |   27 ++++++++++++++++++++
- 3 files changed, 89 insertions(+)
+ arch/arm/mach-omap2/clock.c |   21 +++++++++++++++++++++
+ arch/arm/mach-omap2/clock.h |    1 +
+ 2 files changed, 22 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 72d7105..c64203e 100644
+index c64203e..744e6eb 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -66,6 +66,7 @@ static DEFINE_SPINLOCK(clockfw_lock);
- #endif
- 
- #ifdef CONFIG_COMMON_CLK
-+static LIST_HEAD(clk_hw_omap_clocks);
- 
- /*
-  * Used for clocks that have the same value as the parent clock,
-@@ -521,6 +522,64 @@ static int __init omap_clk_setup(char *str)
+@@ -580,6 +580,27 @@ int omap2_clk_disable_autoidle_all(void)
+ 	return 0;
  }
- __setup("mpurate=", omap_clk_setup);
  
 +/**
-+ * omap2_init_clk_hw_omap_clocks - initialize an OMAP clock
-+ * @clk: struct clk * to initialize
++ * omap2_clk_enable_init_clocks - prepare & enable a list of clocks
++ * @clk_names: ptr to an array of strings of clock names to enable
++ * @num_clocks: number of clock names in @clk_names
 + *
-+ * Add an OMAP clock @clk to the internal list of OMAP clocks.  Used
-+ * temporarily for autoidle handling, until this support can be
-+ * integrated into the common clock framework code in some way.  No
-+ * return value.
++ * Prepare and enable a list of clocks, named by @clk_names.  No
++ * return value. XXX Deprecated; only needed until these clocks are
++ * properly claimed and enabled by the drivers or core code that uses
++ * them.  XXX What code disables & calls clk_put on these clocks?
 + */
-+void omap2_init_clk_hw_omap_clocks(struct clk *clk)
++void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks)
 +{
-+	struct clk_hw_omap *c;
++	struct clk *init_clk;
++	int i;
 +
-+	if (__clk_get_flags(clk) & CLK_IS_BASIC)
-+		return;
-+
-+	c = to_clk_hw_omap(__clk_get_hw(clk));
-+	list_add(&c->node, &clk_hw_omap_clocks);
-+}
-+
-+/**
-+ * omap2_clk_enable_autoidle_all - enable autoidle on all OMAP clocks that
-+ * support it
-+ *
-+ * Enable clock autoidle on all OMAP clocks that have allow_idle
-+ * function pointers associated with them.  This function is intended
-+ * to be temporary until support for this is added to the common clock
-+ * code.  Returns 0.
-+ */
-+int omap2_clk_enable_autoidle_all(void)
-+{
-+	struct clk_hw_omap *c;
-+
-+	list_for_each_entry(c, &clk_hw_omap_clocks, node)
-+		if (c->ops && c->ops->allow_idle)
-+			c->ops->allow_idle(c);
-+	return 0;
-+}
-+
-+/**
-+ * omap2_clk_disable_autoidle_all - disable autoidle on all OMAP clocks that
-+ * support it
-+ *
-+ * Disable clock autoidle on all OMAP clocks that have allow_idle
-+ * function pointers associated with them.  This function is intended
-+ * to be temporary until support for this is added to the common clock
-+ * code.  Returns 0.
-+ */
-+int omap2_clk_disable_autoidle_all(void)
-+{
-+	struct clk_hw_omap *c;
-+
-+	list_for_each_entry(c, &clk_hw_omap_clocks, node)
-+		if (c->ops && c->ops->deny_idle)
-+			c->ops->deny_idle(c);
-+	return 0;
++	for (i = 0; i < num_clocks; i++) {
++		init_clk = clk_get(NULL, clk_names[i]);
++		clk_prepare_enable(init_clk);
++	}
 +}
 +
  const struct clk_hw_omap_ops clkhwops_wait = {
  	.find_idlest	= omap2_clk_dflt_find_idlest,
  	.find_companion	= omap2_clk_dflt_find_companion,
 diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 6800d5f..20a3be7 100644
+index 20a3be7..e669fc8 100644
 --- a/arch/arm/mach-omap2/clock.h
 +++ b/arch/arm/mach-omap2/clock.h
-@@ -535,6 +535,9 @@ void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
- void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
- 				void __iomem **idlest_reg,
- 				u8 *idlest_bit, u8 *idlest_val);
-+void omap2_init_clk_hw_omap_clocks(struct clk *clk);
-+int omap2_clk_enable_autoidle_all(void);
-+int omap2_clk_disable_autoidle_all(void);
+@@ -538,6 +538,7 @@ void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
+ void omap2_init_clk_hw_omap_clocks(struct clk *clk);
+ int omap2_clk_enable_autoidle_all(void);
+ int omap2_clk_disable_autoidle_all(void);
++void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
  #else
  int omap2_dflt_clk_enable(struct clk *clk);
  void omap2_dflt_clk_disable(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index c3472bd..41c6013 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -407,6 +407,9 @@ void __init omap2420_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap2_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- #endif
- 
-@@ -436,6 +439,9 @@ void __init omap2430_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap2_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- #endif
- 
-@@ -509,6 +515,9 @@ void __init omap3_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap3_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- 
- void __init omap3430_init_late(void)
-@@ -516,6 +525,9 @@ void __init omap3430_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap3_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- 
- void __init omap35xx_init_late(void)
-@@ -523,6 +535,9 @@ void __init omap35xx_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap3_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- 
- void __init omap3630_init_late(void)
-@@ -530,6 +545,9 @@ void __init omap3630_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap3_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- 
- void __init am35xx_init_late(void)
-@@ -537,6 +555,9 @@ void __init am35xx_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap3_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- 
- void __init ti81xx_init_late(void)
-@@ -544,6 +565,9 @@ void __init ti81xx_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap3_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- #endif
- 
-@@ -597,6 +621,9 @@ void __init omap4430_init_late(void)
- 	omap_mux_late_init();
- 	omap2_common_pm_late_init();
- 	omap4_pm_init();
-+#ifdef CONFIG_COMMON_CLK
-+	omap2_clk_enable_autoidle_all();
-+#endif
- }
- #endif
- 
 -- 
 1.7.10.4
 
