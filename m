@@ -1,76 +1,141 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Porting board initialization for fdt
-Date: Mon, 12 Nov 2012 10:01:34 +0200
-Message-ID: <20121112080134.GB25465@arwen.pp.htv.fi>
-References: <CAE7jHC-Z9wy=5HPzhZZpupcBVn862ERq1LRF9KQ=Ed7BXiDFBA@mail.gmail.com>
-Reply-To: <balbi@ti.com>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/4] rtc: OMAP: Add system pm_power_off to rtc driver
+Date: Mon, 12 Nov 2012 09:47:14 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA69B13@DBDE01.ent.ti.com>
+References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
+ <1352108549-9341-3-git-send-email-anilkumar@ti.com>
+ <5097ECAD.9010101@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA64F14@DBDE01.ent.ti.com>
+ <50994156.4080305@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MfFXiAuoTsnnDAfZ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAE7jHC-Z9wy=5HPzhZZpupcBVn862ERq1LRF9KQ=Ed7BXiDFBA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Constantine Shulyupin <const@makelinux.com>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, nsekhar@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, tim.bird@am.sony.com, pandaboard@googlegroups.com, Keshava Munegowda <keshava_mgowda@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <50994156.4080305-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---MfFXiAuoTsnnDAfZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Nov 06, 2012 at 22:26:54, Cousson, Benoit wrote:
+> Hi Anil,
+> 
+> On 11/06/2012 06:07 AM, AnilKumar, Chimata wrote:
+> > On Mon, Nov 05, 2012 at 22:13:25, Cousson, Benoit wrote:
+> >> Hi Anil / Colin,
+> >>
+> >> On 11/05/2012 10:42 AM, AnilKumar Ch wrote:
+> >>> From: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+> >>>
+> >>> Add system power off control to rtc driver which is the in-charge
+> >>> of controlling the BeagleBone system power. The power_off routine
+> >>> can be hooked up to "pm_power_off" system call.
+> >>>
+> >>> System power off sequence:-
+> >>> * Set PMIC STATUS_OFF when PMIC_POWER_EN is pulled low
+> >>> * Enable PMIC_POWER_EN in rtc module
+> >>> * Set rtc ALARM2 time
+> >>> * Enable ALARM2 interrupt
+> >>>
+> >>> Added while (1); after the above steps to make sure that no other
+> >>> process acquire cpu. Otherwise we might see an unexpected behaviour
+> >>> because we are shutting down all the power rails of SoC except RTC.
+> >>>
+> >>> Signed-off-by: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+> >>> [anilkumar-l0cyMroinI0@public.gmane.org: move poweroff additions to rtc driver]
+> >>> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+> >>> ---
+> >>>  Documentation/devicetree/bindings/rtc/rtc-omap.txt |    5 ++
+> >>>  drivers/rtc/rtc-omap.c                             |   79 +++++++++++++++++++-
+> >>>  2 files changed, 83 insertions(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> >>> index b47aa41..8d9f4f9 100644
+> >>> --- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> >>> +++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
+> >>> @@ -6,6 +6,10 @@ Required properties:
+> >>>  - interrupts: rtc timer, alarm interrupts in order
+> >>>  - interrupt-parent: phandle for the interrupt controller
+> >>>  
+> >>> +Optional properties:
+> >>> +- ti,system-power-controller: Telling whether or not rtc is controlling
+> >>> +  the system power.
+> >>
+> >> I don't know how it is connected at board level, but I'm not sure the
+> >> binding is the proper one.
+> > 
+> > Hi Benoit,
+> >  ________________________________
+> > |   ______          _______      |
+> > |  |      |        |       |     |
+> > |  |RTC   |        |       |     |
+> > |  |PMIC  |  Line  |       |     |
+> > |  |PWR_EN|=======>|PWR_EN |     |
+> > |  |______|        |_______|     |
+> > |  AM335x SoC       TPS65217     |
+> > |                                |
+> > |________________________________|
+> >           BeagleBone
+> > 
+> > This is how RTC PMIC_PWR_EN is connected to PWR_EN of TPS65217 PMIC. Only when
+> > RTC pull low in PMIC_PWR_EN then PMIC will go to power off state provided TPS65217
+> > status should be changed to STATUS_OFF.
+> > 
+> > ALARM2 event should be trigger to configure PMIC_PWR_EN properly then the "Line"
+> > driven low so that PMIC will go to shutdown mode.
+> 
+> Thanks for the nice diagram :-)
 
-Hi,
+I missed this mail thread so delayed in response
 
-On Mon, Nov 12, 2012 at 12:38:37AM +0200, Constantine Shulyupin wrote:
-> What is architecture and the best strategy to port board initialization t=
-o fdt?
->=20
-> Let's see for example omap4_ehci_init and usbhs_bdata @
-> arch/arm/mach-omap2/board-omap4panda.c.
+> 
+> I'm wondering if we cannot abuse the gpio binding to describe that
+> connection instead of creating two custom attributes (PMIC + RTC).
+> 
+> Ideally we should do that without having to change the RTC to use the
+> gpiolib at all.
+> 
+> 
+> rtc: rtc@44e3e000 {
+> 	compatible = "ti,da830-rtc";
+> 	reg = <0x44e3e000 0x1000>;
+> 	interrupts = <75, 76>;
+> 	ti,hwmods = "rtc";
+> 
+> 	/* expose the PWR_EN functionality of this RTC*/
+> 	gpio-controller;
+> 	#gpio-cells = <0>; /* assuming we can use 0 ??? */
+> };
+> 
+> ...
+> 
+> tps: tps@24 {
+>  	compatible = "ti,tps65217";
+> 	/*
+>          * Enable the power enable feature from
+>          * the input line if that attribute is there.
+>          */
+> 	gpio-power-en = <&rtc>; /* PWR_EN */
+> 
+> 	...
+> }	
+> 
+> Any thought?
 
-before getting rid of platform_data, we need to switch over to proper
-frameworks for muxing, clock, etc. In case of EHCI, pinctrl migration is
-currently under development by Keshava (in Cc). After that we need to
-take a look at platform and see if there are any function pointers in
-there, if there are, those need to be removed.
+No, these two are independent controllers. PMIC can go to power
+off mode if we pull PWR_EN to low. We can pull down that line
+by any means like PRCM or GPIO or some other. So these two flags
+should be independent from each other.
 
-> How to perform board specific initializations?
-> Can omap4_ehci_init be converted to probe function of new platform
-> driver  omap4_ehci?
-
-yeah, that function is actually wrong. First, that GPIO pin belongs to
-the HUB driver, not the EHCI driver.
-
-Second, those clocks belong to the PHY, not EHCI either. Before those
-details are cleaned up, we will always have hacky solutions which will
-break in one way or another.
-
-When those cleanups are done, conversion to FDT is not a problem at all.
-
---=20
-balbi
-
---MfFXiAuoTsnnDAfZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQoKzeAAoJEIaOsuA1yqREVr0P/2t4Asi3h/ntLrVmmWPAYP4M
-mXVTtO59w3j+P2MT+qpbPo0Cqr2JJAX++spTI5tRk+aALcoquExtTn3Av80+UfvD
-C6cjKqd/MUnJleqqZX+0UmbnK+JHX0H5qrbxOz6XLmPaIoWv9Oe9oF8VnLexR5NB
-4TTJdYyqz3zPBmN/dKeeRR6K2sy5Flvq1ufzAPx9JAAAcPz0m3r9vCBevFPQ0P8K
-KN+syhq4JiFQ74InUuADYmdf4eU3hI2e+zJMFQtSKuXO0MF0USymrOq4mTMsAf27
-msunMpPZ0Yb+DjdIAZGWI2lSwi05shK0TC84m5KIFV1mCAyCWIHNFPp9RuGJ6U6R
-w7hThNSc8a2k51QOmEd4VkEdp56/2zeMVHzS+zIF5jvsZv9Q8oAmF8jQ+DgMttnD
-H/YFCzaJ+CVgnBmpXJGLmn9eeCjvjbiCxtx6R1bdLcfebjQk2mBetNHzOZUp7RoC
-NKU0fija4FR9YMp2nSF/4ur8ezq3XtUkCjpMaq/3bz7yzfuAxg6U0LRUjWl2Iscj
-H8BVM5QPgE9humMUekRE4yZVrd6ypX1y8/xVG5BYPU4E4FZrBIy+6hF0sE6IHWLU
-jhWqJgk8qUn1/2+K73jrBFjN1d6/uZci5CILeLsmbthXA0/1yoosLrGR2I0My953
-dPC/aQLJesRQLAHCNE1i
-=tg7Z
------END PGP SIGNATURE-----
-
---MfFXiAuoTsnnDAfZ--
+Thanks
+AnilKumar
