@@ -1,103 +1,42 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 11/13] ARM: OMAP: Add dmtimer interrupt disable function
-Date: Mon, 12 Nov 2012 12:20:42 -0600
-Message-ID: <1352744444-2633-12-git-send-email-jon-hunter@ti.com>
-References: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH v5 0/6] Move rest of omap-iommu to live in drivers/iommu
+Date: Mon, 12 Nov 2012 12:40:06 -0600
+Message-ID: <CALLhW=5WNg8X0nX8U+AExocyNKW=wJ7oS36xg4ENMnfyJkX8RQ@mail.gmail.com>
+References: <20121102192221.4253.34303.stgit@muffinssi.local>
+	<CAK=WgbYR8UMyDjySJLRC0tEbJO3FaFgjWxceNwMyVdMgEgwPig@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55673 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752039Ab2KLSVI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 13:21:08 -0500
-In-Reply-To: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbYR8UMyDjySJLRC0tEbJO3FaFgjWxceNwMyVdMgEgwPig@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>
+Cc: Joerg Roedel <joro@8bytes.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-The OMAP dmtimer driver does not currently have a function to disable the
-timer interrupts. For some timer instances the timer interrupt enable
-function can be used to disable the interrupts because the same interrupt
-enable register is used to disable interrupts. However, some timer instances
-have separate interrupt enable/disable registers and so this will not work.
-Therefore, add a dedicated function to disable interrupts.
+Hi,
 
-This change is required for OMAP4+ devices. For OMAP4, all timers apart from 1,
-2 and 10 need this function and for OMAP5 all timers need this function.
-Please note that the interrupt disable function has been written so that it
-can be used by all OMAP devices.
+On 11 November 2012 03:39, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> On Fri, Nov 2, 2012 at 9:23 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> We need to move the iommu code to live under drivers
+>> for arm common zImage support.
+>
+> For the iommu changes in the entire series:
+>
+> Acked-by: Ohad Ben-Cohen <ohad@wizery.com>
+>
+> Joerg, it might relieve some pain if this will go through Tony's tree,
+> as there are some OMAP platform iommu changes coming in from Omar as
+> well (part of which might have already been merged in the omap
+> branches). Hope it's ok with both of you guys?
+>
+> Omar, do you still have any iommu changes coming in ?
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/plat-omap/dmtimer.c              |   31 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/dmtimer.h |    3 ++-
- 2 files changed, 33 insertions(+), 1 deletion(-)
+Yes, I have the hwmod and runtime pm changes for iommu, I was waiting
+for Tony to publish a branch with these changes to submit (as per
+Tony's suggestion), but I already have the patches rebased onto these.
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index a38e896..b4e6634 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -661,6 +661,37 @@ int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_set_int_enable);
- 
-+/**
-+ * omap_dm_timer_set_int_disable - disable timer interrupts
-+ * @timer:	pointer to timer handle
-+ * @mask:	bit mask of interrupts to be disabled
-+ *
-+ * Disables the specified timer interrupts for a timer.
-+ */
-+int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask)
-+{
-+	u32 l = mask;
-+
-+	if (unlikely(!timer))
-+		return -EINVAL;
-+
-+	omap_dm_timer_enable(timer);
-+
-+	if (timer->revision == 1)
-+		l = __raw_readl(timer->irq_ena) & ~mask;
-+
-+	__raw_writel(l, timer->irq_dis);
-+	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_WAKEUP_EN_REG) & ~mask;
-+	omap_dm_timer_write_reg(timer, OMAP_TIMER_WAKEUP_EN_REG, l);
-+
-+	/* Save the context */
-+	timer->context.tier &= ~mask;
-+	timer->context.twer &= ~mask;
-+	omap_dm_timer_disable(timer);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_int_disable);
-+
- unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
- {
- 	unsigned int l;
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 0c07e37..769efb6 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -135,6 +135,7 @@ int omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on, int toggle, i
- int omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler);
- 
- int omap_dm_timer_set_int_enable(struct omap_dm_timer *timer, unsigned int value);
-+int omap_dm_timer_set_int_disable(struct omap_dm_timer *timer, u32 mask);
- 
- unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer);
- int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value);
-@@ -321,7 +322,7 @@ static inline void __omap_dm_timer_init_regs(struct omap_dm_timer *timer)
- 				OMAP_TIMER_V1_SYS_STAT_OFFSET;
- 		timer->irq_stat = timer->io_base + OMAP_TIMER_V1_STAT_OFFSET;
- 		timer->irq_ena = timer->io_base + OMAP_TIMER_V1_INT_EN_OFFSET;
--		timer->irq_dis = NULL;
-+		timer->irq_dis = timer->io_base + OMAP_TIMER_V1_INT_EN_OFFSET;
- 		timer->pend = timer->io_base + _OMAP_TIMER_WRITE_PEND_OFFSET;
- 		timer->func_base = timer->io_base;
- 	} else {
--- 
-1.7.9.5
+I will submit them.
 
+Cheers,
+
+Omar
