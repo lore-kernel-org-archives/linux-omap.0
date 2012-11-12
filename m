@@ -1,151 +1,234 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP baseline test results for v3.7-rc5
-Date: Mon, 12 Nov 2012 14:58:31 -0800
-Message-ID: <20121112225830.GW6801@atomide.com>
-References: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 07/26] ARM: OMAP: clock: list all clk_hw_omap clks to
+ enable/disable autoidle
+Date: Mon, 12 Nov 2012 23:00:07 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211122259300.22487@utopia.booyaka.com>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-8-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:55592 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752267Ab2KLW6e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 17:58:34 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:43062 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752267Ab2KLXAH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 18:00:07 -0500
+In-Reply-To: <1352337181-29427-8-git-send-email-mturquette@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
-* Paul Walmsley <paul@pwsan.com> [121112 11:33]:
-> 
-> Here are some basic OMAP test results for Linux v3.7-rc5.
-> Logs and other details at:
-> 
->     http://www.pwsan.com/omap/testlogs/test_v3.7-rc5/20121111081034/
-> 
-> 
-> Passing tests
-> -------------
-> 
-> Boot to userspace (9/11): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
->     3730beaglexm, 37xxevm, 4430es2panda, 5912osk, am335xbone
->   
-> PM ret/off, suspend + dynamic idle (2/4): 3730beaglexm, 37xxevm
-> 
-> 
-> Failing tests: fixed by posted patches
-> --------------------------------------
-> 
-> Boot tests:
-> 
-> * 3530ES3 Beagle: I2C timeouts during userspace init
->   - Intermittent, appears on 5 out of 6 boots here
->   - Aaro Koskinen observes this also on N900
->   - Appears to be caused by commit 3db11feffc1ad2ab9dea27789e6b5b3032827adc
->     - http://marc.info/?l=linux-arm-kernel&m=135071372426971&w=2
->     - http://marc.info/?l=linux-omap&m=135197877112220&w=2
->   - Revert posted, pending I2C maintainers:
->     - http://marc.info/?l=linux-arm-kernel&m=135221953727077&w=2
 
-Here's one more booting issue I recently ran into:
+Added kerneldoc to the non-trivial new functions added by this patch, as 
+is local policy.  Updated patch below.
 
-    - If DEBUG_LL and earlyprintk are enabled, and omap-serial.c
-      is compiled as a module, the kernel boot hangs early as the
-      clocks for serial port are cut while earlyprintk still uses
-      the port. This might be regression from v3.6.
+
+- Paul
+
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Fri, 1 Jun 2012 14:02:49 +0530
+Subject: [PATCH] ARM: OMAP: clock: list all clk_hw_omap clks to
+ enable/disable autoidle
+
+Platforms can call omap2_init_clk_hw_omap_clocks() to register a clock
+using clk_hw_omap. omap2_clk_enable_autoidle_all() and
+omap2_clk_disable_autoidle_all() can then be used to run through
+all the clocks which support autoidle to enable/disable them.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Mike Turquette <mturquette@ti.com>
+[paul@pwsan.com: added kerneldoc on non-trivial new functions]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock.c |   59 +++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock.h |    3 +++
+ arch/arm/mach-omap2/io.c    |   27 ++++++++++++++++++++
+ 3 files changed, 89 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 72d7105..c64203e 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -66,6 +66,7 @@ static DEFINE_SPINLOCK(clockfw_lock);
+ #endif
  
-> PM tests:
-> 
-> * 3530es3beagle: hangs during off-mode dynamic idle test
->   - Appears to be caused by commit 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c:
->     - http://marc.info/?l=linux-omap&m=135075364705188&w=2
->   - Fixed by http://www.spinics.net/lists/arm-kernel/msg202116.html
->  
-> Other:
-> 
-> * 2420N800: powers down 30 seconds after boot
->   - Presumably due to missing CBUS patches for watchdog control
->   - http://lkml.org/lkml/2012/9/3/265
-> 
-> * 4430es2panda: omap_hwmod: mcpdm: cannot be enabled for reset (3)
->   - clock source is from an external I2C-controlled source
->   - must skip reset until the switchover to hwmod late init
->   - http://www.spinics.net/lists/arm-kernel/msg178138.html
-> 
-> 
-> Failing tests: needing investigation
-> ------------------------------------
-> 
-> Boot tests:
-> 
-> * CM-T3517: L3 in-band error with IPSS during boot
->   - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
->   - Longstanding issue; does not occur on the 3517EVM
-> 
-> * 3517EVM & CM-T3517: boot hangs with NFS root
->   - Likely some Kconfig, board file, and PM issues with EMAC
-> 
-> * CM-T3517: boot hangs with MMC boot
->   - Due to missing MMC setup in board file
-> 
-> Other:
-> 
-> * 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
->   - Unknown cause; could be due to the lack of hierarchical enable/disable
->     in hwmod code
->   - Jon Hunter reports this does not appear with the same X-loader/bootloader
->     on his 4430ES2.3 Panda, so could be ES-level dependent
-> 
-> 
-> Failing tests: needing local investigation (may be due to testbed issues)
-> -------------------------------------------------------------------------
-> 
-> Boot tests:
-> 
-> * AM335x Beaglebone: omap2plus_defconfig kernels don't boot
->   - May be fixed now, pending retest:
->     - http://marc.info/?l=linux-omap&m=135082257727502&w=2
->   - Not yet part of the automated test suite
->   * May be due to an old U-boot with FDT support problems used here?
->     Pending local investigation and re-test
-> 
-> * 4460pandaes: boot fails early
->   - Appears to be due to X-loader problems here
->   - Need to note the X-loader version so we know it's broken
-> 
-> PM tests:
-> 
-> * 3730 Beagle XM: does not serial wake from off-idle suspend when console
->   UART doesn't clock gate ("debug ignore_loglevel")
->   - Not shown in the current test logs; cause unknown
->   - Pending re-test
-> 
-> 
-> vmlinux object size
-> (delta in bytes from test_v3.7-rc4 (3d70f8c617a436c7146ecb81df2265b4626dfe89)):
->    text     data      bss    total  kernel
->    +500       -8        0     +492  am33xx_only
->    +456      +16        0     +472  n800_multi_omap2xxx
->    +424      +16        0     +440  n800_only_a
->    +164        0        0     +164  omap1_defconfig
->    +164        0        0     +164  omap1_defconfig_1510innovator_only
->    +164        0        0     +164  omap1_defconfig_5912osk_only
->    +940       -8        0     +932  omap2plus_defconfig
->    +796       -8        0     +788  omap2plus_defconfig_2430sdp_only
->    +940      +24        0     +964  omap2plus_defconfig_cpupm
->    +940       -8        0     +932  omap2plus_defconfig_no_pm
->    +940      +16        0     +956  omap2plus_defconfig_omap2_4_only
->    +820      +16        0     +836  omap2plus_defconfig_omap3_4_only
->     +20       +8      +48      +76  rmk_omap3430_ldp_allnoconfig
->    +124        0        0     +124  rmk_omap3430_ldp_oldconfig
->     +20       +8      +48      +76  rmk_omap4430_sdp_allnoconfig
->    +124       +8        0     +132  rmk_omap4430_sdp_oldconfig
-> 
-> 
-> - Paul
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ #ifdef CONFIG_COMMON_CLK
++static LIST_HEAD(clk_hw_omap_clocks);
+ 
+ /*
+  * Used for clocks that have the same value as the parent clock,
+@@ -521,6 +522,64 @@ static int __init omap_clk_setup(char *str)
+ }
+ __setup("mpurate=", omap_clk_setup);
+ 
++/**
++ * omap2_init_clk_hw_omap_clocks - initialize an OMAP clock
++ * @clk: struct clk * to initialize
++ *
++ * Add an OMAP clock @clk to the internal list of OMAP clocks.  Used
++ * temporarily for autoidle handling, until this support can be
++ * integrated into the common clock framework code in some way.  No
++ * return value.
++ */
++void omap2_init_clk_hw_omap_clocks(struct clk *clk)
++{
++	struct clk_hw_omap *c;
++
++	if (__clk_get_flags(clk) & CLK_IS_BASIC)
++		return;
++
++	c = to_clk_hw_omap(__clk_get_hw(clk));
++	list_add(&c->node, &clk_hw_omap_clocks);
++}
++
++/**
++ * omap2_clk_enable_autoidle_all - enable autoidle on all OMAP clocks that
++ * support it
++ *
++ * Enable clock autoidle on all OMAP clocks that have allow_idle
++ * function pointers associated with them.  This function is intended
++ * to be temporary until support for this is added to the common clock
++ * code.  Returns 0.
++ */
++int omap2_clk_enable_autoidle_all(void)
++{
++	struct clk_hw_omap *c;
++
++	list_for_each_entry(c, &clk_hw_omap_clocks, node)
++		if (c->ops && c->ops->allow_idle)
++			c->ops->allow_idle(c);
++	return 0;
++}
++
++/**
++ * omap2_clk_disable_autoidle_all - disable autoidle on all OMAP clocks that
++ * support it
++ *
++ * Disable clock autoidle on all OMAP clocks that have allow_idle
++ * function pointers associated with them.  This function is intended
++ * to be temporary until support for this is added to the common clock
++ * code.  Returns 0.
++ */
++int omap2_clk_disable_autoidle_all(void)
++{
++	struct clk_hw_omap *c;
++
++	list_for_each_entry(c, &clk_hw_omap_clocks, node)
++		if (c->ops && c->ops->deny_idle)
++			c->ops->deny_idle(c);
++	return 0;
++}
++
+ const struct clk_hw_omap_ops clkhwops_wait = {
+ 	.find_idlest	= omap2_clk_dflt_find_idlest,
+ 	.find_companion	= omap2_clk_dflt_find_companion,
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 6800d5f..20a3be7 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -535,6 +535,9 @@ void omap2_clk_dflt_find_companion(struct clk_hw_omap *clk,
+ void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
+ 				void __iomem **idlest_reg,
+ 				u8 *idlest_bit, u8 *idlest_val);
++void omap2_init_clk_hw_omap_clocks(struct clk *clk);
++int omap2_clk_enable_autoidle_all(void);
++int omap2_clk_disable_autoidle_all(void);
+ #else
+ int omap2_dflt_clk_enable(struct clk *clk);
+ void omap2_dflt_clk_disable(struct clk *clk);
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index c3472bd..41c6013 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -407,6 +407,9 @@ void __init omap2420_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap2_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ #endif
+ 
+@@ -436,6 +439,9 @@ void __init omap2430_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap2_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ #endif
+ 
+@@ -509,6 +515,9 @@ void __init omap3_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap3_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ 
+ void __init omap3430_init_late(void)
+@@ -516,6 +525,9 @@ void __init omap3430_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap3_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ 
+ void __init omap35xx_init_late(void)
+@@ -523,6 +535,9 @@ void __init omap35xx_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap3_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ 
+ void __init omap3630_init_late(void)
+@@ -530,6 +545,9 @@ void __init omap3630_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap3_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ 
+ void __init am35xx_init_late(void)
+@@ -537,6 +555,9 @@ void __init am35xx_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap3_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ 
+ void __init ti81xx_init_late(void)
+@@ -544,6 +565,9 @@ void __init ti81xx_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap3_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ #endif
+ 
+@@ -597,6 +621,9 @@ void __init omap4430_init_late(void)
+ 	omap_mux_late_init();
+ 	omap2_common_pm_late_init();
+ 	omap4_pm_init();
++#ifdef CONFIG_COMMON_CLK
++	omap2_clk_enable_autoidle_all();
++#endif
+ }
+ #endif
+ 
+-- 
+1.7.10.4
+
