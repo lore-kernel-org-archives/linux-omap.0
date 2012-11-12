@@ -1,77 +1,81 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 09/13] ARM: OMAP: Don't restore DMTIMER interrupt status register
-Date: Mon, 12 Nov 2012 12:20:40 -0600
-Message-ID: <1352744444-2633-10-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 12/13] ARM: OMAP: Remove unnecessary call to clk_get()
+Date: Mon, 12 Nov 2012 12:20:43 -0600
+Message-ID: <1352744444-2633-13-git-send-email-jon-hunter@ti.com>
 References: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33319 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751925Ab2KLSVE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 13:21:04 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:54565 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752067Ab2KLSVI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 13:21:08 -0500
 In-Reply-To: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Restoring the timer interrupt status is not possible because writing a 1 to any
-bit in the register clears that bit if set and writing a 0 has no affect.
-Furthermore, if an interrupt is pending when someone attempts to disable a
-timer, the timer will fail to transition to the idle state and hence it's
-context will not be lost. Users should take care to service all interrupts
-before disabling the timer.
+Whenever we call the function omap_dm_timer_set_source() to set the clock
+source of a dmtimer we look-up the dmtimer functional clock source by
+calling clk_get(). This is not necessary because on requesting a dmtimer
+we look-up the functional clock source and store it in the omap_dm_timer
+structure. So instead of looking up the clock again used the clock handle
+that stored in the omap_dm_timer structure.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c              |    5 +----
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 2 files changed, 1 insertion(+), 5 deletions(-)
+ arch/arm/plat-omap/dmtimer.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 320d103..f0a3c4c 100644
+index b4e6634..305faf5 100644
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -83,7 +83,6 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
- 
- static void omap_timer_restore_context(struct omap_dm_timer *timer)
+@@ -448,7 +448,7 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
  {
--	__raw_writel(timer->context.tisr, timer->irq_stat);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_WAKEUP_EN_REG,
- 				timer->context.twer);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_COUNTER_REG,
-@@ -440,7 +439,6 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
- 	 */
- 	timer->context.tclr =
- 			omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
--	timer->context.tisr = __raw_readl(timer->irq_stat);
- 	omap_dm_timer_disable(timer);
- 	return 0;
- }
-@@ -684,8 +682,7 @@ int omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
+ 	int ret;
+ 	char *parent_name = NULL;
+-	struct clk *fclk, *parent;
++	struct clk *parent;
+ 	struct dmtimer_platform_data *pdata;
+ 
+ 	if (unlikely(!timer))
+@@ -467,11 +467,8 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ 	if (pdata && pdata->set_timer_src)
+ 		return pdata->set_timer_src(timer->pdev, source);
+ 
+-	fclk = clk_get(&timer->pdev->dev, "fck");
+-	if (IS_ERR_OR_NULL(fclk)) {
+-		pr_err("%s: fck not found\n", __func__);
++	if (!timer->fclk)
  		return -EINVAL;
+-	}
  
- 	__omap_dm_timer_write_status(timer, value);
--	/* Save the context */
--	timer->context.tisr = value;
-+
- 	return 0;
+ 	switch (source) {
+ 	case OMAP_TIMER_SRC_SYS_CLK:
+@@ -490,18 +487,15 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ 	parent = clk_get(&timer->pdev->dev, parent_name);
+ 	if (IS_ERR_OR_NULL(parent)) {
+ 		pr_err("%s: %s not found\n", __func__, parent_name);
+-		ret = -EINVAL;
+-		goto out;
++		return -EINVAL;
+ 	}
+ 
+-	ret = clk_set_parent(fclk, parent);
++	ret = clk_set_parent(timer->fclk, parent);
+ 	if (IS_ERR_VALUE(ret))
+ 		pr_err("%s: failed to set %s as parent\n", __func__,
+ 			parent_name);
+ 
+ 	clk_put(parent);
+-out:
+-	clk_put(fclk);
+ 
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(omap_dm_timer_write_status);
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 2f9fd1d..0c07e37 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -84,7 +84,6 @@ struct omap_dm_timer;
- 
- struct timer_regs {
- 	u32 tidr;
--	u32 tisr;
- 	u32 tier;
- 	u32 twer;
- 	u32 tclr;
 -- 
 1.7.9.5
 
