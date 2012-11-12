@@ -1,82 +1,90 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH linux-next] ARM: OMAP2: Fix compillation error in
- cm_common
-Date: Mon, 12 Nov 2012 16:26:01 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211121625150.6043@utopia.booyaka.com>
-References: <1352733428-27889-1-git-send-email-peter.ujfalusi@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
+ to mach-omap2)
+Date: Mon, 12 Nov 2012 09:45:45 -0700
+Message-ID: <50A127B9.1000601@wwwdotorg.org>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <50999145.2070306@wwwdotorg.org> <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-2133751661-1352737561=:6043"
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <1352733428-27889-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 11/09/2012 09:28 AM, Grant Likely wrote:
+> On Tue, Nov 6, 2012 at 10:37 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+>> On 11/05/2012 01:40 PM, Grant Likely wrote:
+>>> Hey folks,
+>>>
+>>> As promised, here is my early draft to try and capture what device
+>>> tree overlays need to do and how to get there. Comments and
+>>> suggestions greatly appreciated.
+>>
+>> Interesting. This just came up internally at NVIDIA within the last
+>> couple weeks, and was discussed on the U-Boot mailing list very recently
+>> too:
+>>
+>> http://lists.denx.de/pipermail/u-boot/2012-October/thread.html#138227
+>> (it spills into the November archive too)
+>>
+>>> For these cases it is proposed to implement an overlay feature for the
+>>> so that the initial device tree data can be modified by userspace at
+>>
+>> I don't know if you're maintaining this as a document and taking patches
+>> to it, but if so:
+> 
+> Sure, why not...
+> 
+> http://git.secretlab.ca/?p=devicetree-overlays.git;a=summary
+> 
+>>
+>> "for the so" split across those two lines.
+> 
+> fixed
+> 
+>>>   - SHOULD reliably handle changes between different underlying overlays
+>>>     (ie. what happens to existing .dtb overly files if the structure of
+>>>     the dtb it is layered over changes. If not possible, then SHALL
+>>>     detect when the base tree doesn't match and refuse to apply the
+>>>     overlay.
+>>
+>> Perhaps use (versioned) DT bindings to represent the interface between
+>> the two .dts files? See the links to the U-Boot mailing list discussions
+>> below?
+> 
+> Implementing versioning is conceptually a lot more complex than plain
+> overlays since it means either the kernel or u-boot needs to start
+> filtering the data that it's given. This can get really complex in a
+> hurry. Mitch makes a valid point later in this thread that when it
+> comes to manipulating the data depending on the board then the data
+> overlay model alone doesn't handle it well.
 
---843723315-2133751661-1352737561=:6043
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+What I was thinking of sounds a lot simpler than what I think you're
+responding to.
 
-Hi
+All I was thinking about was that we define some kind of explicit
+interface between .dts files, e.g. some kind of direct representation of
+the connector between the boards.
 
-On Mon, 12 Nov 2012, Peter Ujfalusi wrote:
+The versioning aspect is then:
 
-> Fixes the following error:
->   CC      arch/arm/mach-omap2/cm_common.o
-> arch/arm/mach-omap2/cm_common.c: In function =E2=80=98cm_register=E2=80=
-=99:
-> arch/arm/mach-omap2/cm_common.c:42:11: error: =E2=80=98EINVAL=E2=80=99 un=
-declared (first use in this function)
-> arch/arm/mach-omap2/cm_common.c:42:11: note: each undeclared identifier i=
-s reported only once for each function it appears in
-> arch/arm/mach-omap2/cm_common.c:45:11: error: =E2=80=98EEXIST=E2=80=99 un=
-declared (first use in this function)
-> arch/arm/mach-omap2/cm_common.c: In function =E2=80=98cm_unregister=E2=80=
-=99:
-> arch/arm/mach-omap2/cm_common.c:66:11: error: =E2=80=98EINVAL=E2=80=99 un=
-declared (first use in this function)
-> make[1]: *** [arch/arm/mach-omap2/cm_common.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
->=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->=20
-> Hi,
->=20
-> with today's linux-next the kernel build failed with the abive error for =
-OMAP.
->=20
-> Regards,
-> Peter
->=20
->  arch/arm/mach-omap2/cm_common.c | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_com=
-mon.c
-> index 3246cef..3fafc27 100644
-> --- a/arch/arm/mach-omap2/cm_common.c
-> +++ b/arch/arm/mach-omap2/cm_common.c
-> @@ -13,6 +13,7 @@
-> =20
->  #include <linux/kernel.h>
->  #include <linux/init.h>
-> +#include <linux/errno.h>
-> =20
->  #include "cm2xxx.h"
->  #include "cm3xxx.h"
-> --=20
-> 1.8.0
+Then, when the connector design changes, we change the naming of that
+interface representation. This would happen in just the same way that
+we'd name/represent the connector design of a BeagleBone differently
+from that of an Arduino.
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+So, perhaps we start out with:
 
-Thanks Peter.
+ti,beaglebone-cape-connector
+arduino,shield-connector
 
-Tony, how would you like to handle this one?
+and later end up with:
 
+ti,beaglebone-cape-connector-v2
 
-- Paul
---843723315-2133751661-1352737561=:6043--
+as far as any code that handled/references the v1/v2 interface
+definitions, they'd probably be completely unrelated types in the
+general case, just named very similarly.
