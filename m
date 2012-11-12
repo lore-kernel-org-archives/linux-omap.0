@@ -1,127 +1,65 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
-Date: Mon, 12 Nov 2012 10:46:01 +0000
-Message-ID: <20121112104601.GB2346@mudshark.cambridge.arm.com>
-References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 12/11] ARM: OMAP: Fix relative includes for fpga.h
+Date: Mon, 12 Nov 2012 11:47:34 +0100
+Message-ID: <50A0D3C6.4070206@ti.com>
+References: <20121030234852.25936.12482.stgit@muffinssi.local> <20121031215252.GB15766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Rob Clark <rob@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33448 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750888Ab2KLKrr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 05:47:47 -0500
+In-Reply-To: <20121031215252.GB15766@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Nov 09, 2012 at 09:17:33PM +0000, Rob Clark wrote:
-> From: Rob Clark <rob@ti.com>
-> 
-> A new atomic modeset/pageflip ioctl being developed in DRM requires
-> get_user() to work for 64bit types (in addition to just put_user()).
-> 
-> Signed-off-by: Rob Clark <rob@ti.com>
-> ---
->  arch/arm/include/asm/uaccess.h | 25 ++++++++++++++++++++-----
->  arch/arm/lib/getuser.S         | 17 ++++++++++++++++-
->  2 files changed, 36 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/include/asm/uaccess.h b/arch/arm/include/asm/uaccess.h
-> index 7e1f760..2e3fdb2 100644
-> --- a/arch/arm/include/asm/uaccess.h
-> +++ b/arch/arm/include/asm/uaccess.h
-> @@ -100,6 +100,7 @@ static inline void set_fs(mm_segment_t fs)
->  extern int __get_user_1(void *);
->  extern int __get_user_2(void *);
->  extern int __get_user_4(void *);
-> +extern int __get_user_8(void *);
->  
->  #define __GUP_CLOBBER_1	"lr", "cc"
->  #ifdef CONFIG_CPU_USE_DOMAINS
-> @@ -108,6 +109,7 @@ extern int __get_user_4(void *);
->  #define __GUP_CLOBBER_2 "lr", "cc"
->  #endif
->  #define __GUP_CLOBBER_4	"lr", "cc"
-> +#define __GUP_CLOBBER_8	"lr", "cc"
->  
->  #define __get_user_x(__r2,__p,__e,__l,__s)				\
->  	   __asm__ __volatile__ (					\
-> @@ -122,22 +124,35 @@ extern int __get_user_4(void *);
->  	({								\
->  		unsigned long __limit = current_thread_info()->addr_limit - 1; \
->  		register const typeof(*(p)) __user *__p asm("r0") = (p);\
-> -		register unsigned long __r2 asm("r2");			\
->  		register unsigned long __l asm("r1") = __limit;		\
->  		register int __e asm("r0");				\
->  		switch (sizeof(*(__p))) {				\
-> -		case 1:							\
-> +		case 1: {						\
-> +			register unsigned long __r2 asm("r2");		\
->  			__get_user_x(__r2, __p, __e, __l, 1);		\
-> +			x = (typeof(*(p))) __r2;			\
->  			break;						\
-> -		case 2:							\
-> +		}							\
-> +		case 2: {						\
-> +			register unsigned long __r2 asm("r2");		\
->  			__get_user_x(__r2, __p, __e, __l, 2);		\
-> +			x = (typeof(*(p))) __r2;			\
->  			break;						\
-> -		case 4:							\
-> +		}							\
-> +		case 4: {						\
-> +			register unsigned long __r2 asm("r2");		\
->  			__get_user_x(__r2, __p, __e, __l, 4);		\
-> +			x = (typeof(*(p))) __r2;			\
-> +			break;						\
-> +		}							\
-> +		case 8: {						\
-> +			register unsigned long long __r2 asm("r2");	\
+Hi Tony,
 
-Does this matter? For EABI, we'll pass in (r2, r3) and it's all handcrafted
-asm, so the compiler shouldn't care much. For OABI, I think you may have to
-do some more work to get the two words where you want them.
+After rebasing on top of your omap-for-v3.8/tmp-merge, I realized that this patch is generating a build break due to removal of the fpga.h include from debug-leds.c.
 
-> +			__get_user_x(__r2, __p, __e, __l, 8);		\
-> +			x = (typeof(*(p))) __r2;			\
->  			break;						\
-> +		}							\
->  		default: __e = __get_user_bad(); break;			\
->  		}							\
-> -		x = (typeof(*(p))) __r2;				\
->  		__e;							\
->  	})
->  
-> diff --git a/arch/arm/lib/getuser.S b/arch/arm/lib/getuser.S
-> index 9b06bb4..d05285c 100644
-> --- a/arch/arm/lib/getuser.S
-> +++ b/arch/arm/lib/getuser.S
-> @@ -18,7 +18,7 @@
->   * Inputs:	r0 contains the address
->   *		r1 contains the address limit, which must be preserved
->   * Outputs:	r0 is the error code
-> - *		r2 contains the zero-extended value
-> + *		r2, r3 contains the zero-extended value
->   *		lr corrupted
->   *
->   * No other registers must be altered.  (see <asm/uaccess.h>
-> @@ -66,6 +66,19 @@ ENTRY(__get_user_4)
->  	mov	pc, lr
->  ENDPROC(__get_user_4)
->  
-> +ENTRY(__get_user_8)
-> +	check_uaccess r0, 4, r1, r2, __get_user_bad
+arch/arm/plat-omap/debug-leds.c: In function 'fpga_probe':
+arch/arm/plat-omap/debug-leds.c:114:9: error: 'H2P2_DBG_FPGA_SIZE' undeclared (first use in this function)
+arch/arm/plat-omap/debug-leds.c:114:9: note: each undeclared identifier is reported only once for each function it appears in
 
-Shouldn't you be passing 8 here, so that we validate the correct range?
+It does not appear with the omap2plus_config but will appear if you enable the NEW_LEDS support that enable OMAP_DEBUG_LEDS.
 
-> +#ifdef CONFIG_THUMB2_KERNEL
-> +5: TUSER(ldr)	r2, [r0]
-> +6: TUSER(ldr)	r3, [r0, #4]
-> +#else
-> +5: TUSER(ldr)	r2, [r0], #4
-> +6: TUSER(ldr)	r3, [r0]
-> +#endif
+I'm not sure why the size is still hard coded. In theory, assuming the resource is properly initialized, resource_size should be usable.
+The patch below is fixing that.
 
-This doesn't work for EABI big-endian systems.
+Regards,
+Benoit
 
-Will
+---
+>From 81e1c3dddd1cd78b1f5a04983cf920b287764f11 Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Mon, 12 Nov 2012 11:44:03 +0100
+Subject: [PATCH] ARM: OMAP: debug-leds: Use resource_size instead of hard coded macro
+
+The debug-leds driver should not rely on hard coded macro for
+the iomem size but use the resource size instead.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/plat-omap/debug-leds.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/debug-leds.c b/arch/arm/plat-omap/debug-leds.c
+index c43ea21..aa7ebc6 100644
+--- a/arch/arm/plat-omap/debug-leds.c
++++ b/arch/arm/plat-omap/debug-leds.c
+@@ -111,7 +111,7 @@ static int fpga_probe(struct platform_device *pdev)
+ 	if (!iomem)
+ 		return -ENODEV;
+ 
+-	fpga = ioremap(iomem->start, H2P2_DBG_FPGA_SIZE);
++	fpga = ioremap(iomem->start, resource_size(iomem));
+ 	__raw_writew(0xff, &fpga->leds);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(dbg_leds); i++) {
+-- 
+1.7.0.4
+
