@@ -1,66 +1,38 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Mon, 12 Nov 2012 13:15:29 -0600
-Message-ID: <50A14AD1.4070704@ti.com>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BFFDF.9040605@ti.com> <79CD15C6BA57404B839C016229A409A83EB68799@DBDE01.ent.ti.com> <509C050C.6010201@ti.com> <509F8BEF.90008@compulab.co.il>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
+Date: Mon, 12 Nov 2012 19:27:27 +0000
+Message-ID: <20121112192727.GB28341@n2100.arm.linux.org.uk>
+References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58834 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751974Ab2KLTPe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 14:15:34 -0500
-In-Reply-To: <509F8BEF.90008@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-
-On 11/11/2012 05:28 AM, Igor Grinberg wrote:
+On Fri, Nov 09, 2012 at 03:17:33PM -0600, Rob Clark wrote:
+> From: Rob Clark <rob@ti.com>
 > 
-> 
-> On 11/08/12 21:16, Jon Hunter wrote:
->>
->> On 11/08/2012 12:59 PM, Hiremath, Vaibhav wrote:
->>> On Fri, Nov 09, 2012 at 00:24:23, Hunter, Jon wrote:
->>>>
->>>> On 11/08/2012 01:59 AM, Igor Grinberg wrote:
->>>>
->>>> [snip]
->>>>
->>>>> There is no reliable way to determine which source should be used in runtime
->>>>> for boards that do not have the 32k oscillator wired.
->>>>
->>>> So thinking about this some more and given that we are moving away from
->>>> board files, if a board does not provide a 32kHz clock source, then this
->>>> should be reflected in the device-tree source file for that board.
->>>> Hence, at boot time we should be able to determine if a 32kHz clock
->>>> source can be used.
->>>>
->>>
->>> Let me feed some more thoughts here :)
->>>
->>> The way it is being detected currently is based on timer idle status bit.
->>> I am worried that, this is the only option we have.
->>
->> Why not use device-tree to indicate the presence of a 32k clock source?
->> This seems like a board level configuration and so device-tree seems to
->> be the perfect place for this IMO.
-> 
-> Well, that is what my commit message says...
+> A new atomic modeset/pageflip ioctl being developed in DRM requires
+> get_user() to work for 64bit types (in addition to just put_user()).
 
-Sorry, but that was not clear to me from whats in the commit message.
+NAK.
 
-Should we be doing this now instead of adding all these static timer
-init functions?
+(I did write a better email explaining all the ins and outs of why this
+won't work and why 64-bit get_user isn't possible, but my editor crapped
+out and lost all that well written message; I don't fancy typing it all
+out again.)
 
-Are there any boards today (supported in the kernel that is), that don't
-support a 32k?
+Nevertheless,
+int test_ptr(unsigned int **v, unsigned int **p)
+{
+        return get_user(*v, p);
+}
 
-If not, then this becomes simpler for the non-DT case and given that
-boards such as the AM335x will only support DT boot then we can figure
-out how to detect the presence of the 32k for DT only.
+produces a warning, and you can't get away from that if you stick 64-bit
+support into get_user().
 
-Jon
+Sorry, 64-bit get_user() is a no-no.
