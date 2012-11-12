@@ -1,72 +1,58 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH] pwm-backlight: Pinctrl-fy
-Date: Mon, 12 Nov 2012 11:21:39 +0100
-Message-ID: <29FD452C-C0A0-4D22-BB52-823ACCD0D479@antoniou-consulting.com>
-References: <1351699047-4487-1-git-send-email-panto@antoniou-consulting.com> <20121109080604.GA25611@avionic-0098.mockup.avionic-design.de> <CACRpkdY_sXu12k455XcEBOj3_3syxromdCWObE4didKiU_F2cA@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/5] OMAP: FB: use DMA_BIT_MASK() for fb's coherent_dma_mask
+Date: Mon, 12 Nov 2012 12:25:02 +0200
+Message-ID: <1352715906-16946-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1352715906-16946-1-git-send-email-tomi.valkeinen@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:57921 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750918Ab2KLKV4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 05:21:56 -0500
-In-Reply-To: <CACRpkdY_sXu12k455XcEBOj3_3syxromdCWObE4didKiU_F2cA@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60805 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751602Ab2KLKZR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 05:25:17 -0500
+In-Reply-To: <1352715906-16946-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>, Richard Purdie <rpurdie@rpsys.net>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org
+To: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi Linus,
+Use DMA_BIT_MASK() for fb's coherent_dma_mask for clarity.
 
-On Nov 11, 2012, at 7:26 PM, Linus Walleij wrote:
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/plat-omap/fb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-> On Fri, Nov 9, 2012 at 9:06 AM, Thierry Reding
-> <thierry.reding@avionic-design.de> wrote:
->> On Wed, Oct 31, 2012 at 05:57:27PM +0200, Pantelis Antoniou wrote:
-> 
->>> +     pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
->>> +     if (IS_ERR(pinctrl))
->>> +             dev_warn(&pdev->dev, "unable to select pin group\n");
->>> +
->> 
->> I just saw this done in a similar way in some other driver and then
->> remembered your patch. When I reviewed this I wasn't sure if a warning
->> was good enough in this case. I've checked the kernel tree and it seems
->> like a majority handled this as failure instead of a warning. I took a
->> look at the pinctrl core and it seems like indeed if neither pinctrl is
->> enabled or if there isn't actually a pinmux configuration for a device,
->> then devm_pinctrl_get_select_default() will actually not return an
->> error, so in those cases where an error is returned it should actually
->> be handled as a fatal error.
-> 
-> So it depends.
-> 
-> One good reason to just error out and return the error code is
-> if the error returned is -EPROBE_DEFER, right?
-> 
-> Because then you're pinctrl driver is not up yet, and you
-> need to bail out and be revisited later.
-> 
-> On a related key we have this debate going on with some
-> subsystem maintainers as to whether we should try do
-> centralize boilerplate like this, the lates suggestion is:
-> http://marc.info/?l=linux-kernel&m=135263661110528&w=2
-> 
-
-Interesting... This is certainly much nicer than peppering all the
-devices with pinctrl calls.
-
-> The fun never ends...
-> 
-
-Indeed.
-
-> Yours,
-> Linus Walleij
-
-Regards
-
--- Pantelis
+diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
+index bcbb9d5..218963b 100644
+--- a/arch/arm/plat-omap/fb.c
++++ b/arch/arm/plat-omap/fb.c
+@@ -29,6 +29,7 @@
+ #include <linux/memblock.h>
+ #include <linux/io.h>
+ #include <linux/omapfb.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach/map.h>
+@@ -45,7 +46,7 @@ static struct platform_device omap_fb_device = {
+ 	.id		= -1,
+ 	.dev = {
+ 		.dma_mask		= &omap_fb_dma_mask,
+-		.coherent_dma_mask	= ~(u32)0,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
+ 		.platform_data		= &omapfb_config,
+ 	},
+ 	.num_resources = 0,
+@@ -81,7 +82,7 @@ static struct platform_device omap_fb_device = {
+ 	.id		= -1,
+ 	.dev = {
+ 		.dma_mask		= &omap_fb_dma_mask,
+-		.coherent_dma_mask	= ~(u32)0,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
+ 		.platform_data		= &omapfb_config,
+ 	},
+ 	.num_resources = 0,
+-- 
+1.7.10.4
 
