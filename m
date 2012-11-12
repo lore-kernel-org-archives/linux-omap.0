@@ -1,115 +1,121 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/5] OMAPFB: use dma_alloc instead of omap's vram
-Date: Mon, 12 Nov 2012 15:57:34 +0200
-Message-ID: <50A1004E.8000203@ti.com>
-References: <1352715906-16946-1-git-send-email-tomi.valkeinen@ti.com> <CANOLnOO0yMabku-_3yhi=1bwohbrb=rtFDOuKf1LPCAFv_OqCQ@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
+Date: Mon, 12 Nov 2012 14:38:46 +0000
+Message-ID: <20121112143846.GI2346@mudshark.cambridge.arm.com>
+References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
+ <20121112104601.GB2346@mudshark.cambridge.arm.com>
+ <CAF6AEGtR0WBjoWbb2BF-hJa9sQi2Aa75dfrfb1u5EncaOB7Pyw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig3FDC3557D04656C0BA93B455"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42508 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751628Ab2KLN5k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 08:57:40 -0500
-In-Reply-To: <CANOLnOO0yMabku-_3yhi=1bwohbrb=rtFDOuKf1LPCAFv_OqCQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAF6AEGtR0WBjoWbb2BF-hJa9sQi2Aa75dfrfb1u5EncaOB7Pyw@mail.gmail.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Russell King <rmk+kernel@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
 
---------------enig3FDC3557D04656C0BA93B455
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Mon, Nov 12, 2012 at 01:46:57PM +0000, Rob Clark wrote:
+> On Mon, Nov 12, 2012 at 4:46 AM, Will Deacon <will.deacon@arm.com> wrote:
+> > On Fri, Nov 09, 2012 at 09:17:33PM +0000, Rob Clark wrote:
+> >> @@ -122,22 +124,35 @@ extern int __get_user_4(void *);
+> >>       ({                                                              \
+> >>               unsigned long __limit = current_thread_info()->addr_limit - 1; \
+> >>               register const typeof(*(p)) __user *__p asm("r0") = (p);\
+> >> -             register unsigned long __r2 asm("r2");                  \
+> >>               register unsigned long __l asm("r1") = __limit;         \
+> >>               register int __e asm("r0");                             \
+> >>               switch (sizeof(*(__p))) {                               \
+> >> -             case 1:                                                 \
+> >> +             case 1: {                                               \
+> >> +                     register unsigned long __r2 asm("r2");          \
+> >>                       __get_user_x(__r2, __p, __e, __l, 1);           \
+> >> +                     x = (typeof(*(p))) __r2;                        \
+> >>                       break;                                          \
+> >> -             case 2:                                                 \
+> >> +             }                                                       \
+> >> +             case 2: {                                               \
+> >> +                     register unsigned long __r2 asm("r2");          \
+> >>                       __get_user_x(__r2, __p, __e, __l, 2);           \
+> >> +                     x = (typeof(*(p))) __r2;                        \
+> >>                       break;                                          \
+> >> -             case 4:                                                 \
+> >> +             }                                                       \
+> >> +             case 4: {                                               \
+> >> +                     register unsigned long __r2 asm("r2");          \
+> >>                       __get_user_x(__r2, __p, __e, __l, 4);           \
+> >> +                     x = (typeof(*(p))) __r2;                        \
+> >> +                     break;                                          \
+> >> +             }                                                       \
+> >> +             case 8: {                                               \
+> >> +                     register unsigned long long __r2 asm("r2");     \
+> >
+> > Does this matter? For EABI, we'll pass in (r2, r3) and it's all handcrafted
+> > asm, so the compiler shouldn't care much. For OABI, I think you may have to
+> > do some more work to get the two words where you want them.
+> 
+> Is the question whether the compiler is guaranteed to allocate r2 and
+> r3 in all cases?  I'm not quite sure, I confess to usually trying to
+> avoid inline asm.  But from looking at the disassembly (for little
+> endian EABI build) it seemed to do the right thing.
 
-On 2012-11-12 15:39, Grazvydas Ignotas wrote:
-> Hi,
->=20
-> On Mon, Nov 12, 2012 at 12:25 PM, Tomi Valkeinen <tomi.valkeinen@ti.com=
-> wrote:
->> This series changes omapfb to use standard dma_alloc funcs instead of =
-omap
->> specific vram allocator. This let's us remove the omap vram allocator,=
- making
->> omapfb platform independent.
->>
->> However, note that using standard dma funcs causes the following downs=
-ides:
->>
->> ...
->>
->> 3) OMAPFB_GET_VRAM_INFO ioctl cannot return real values anymore. I
->> changed the ioctl to return 64M for all the values, which, I hope, the=
+I can't recall how OABI represents 64-bit values and particularly whether this
+differs between little and big-endian, so I wondered whether you may have to
+do some marshalling when you assign x. However, a few quick experiments with
+GCC suggest that the register representation matches EABI in regards to word
+ordering (it just doesn't require an even base register), although it would
+be good to find this written down somewhere...
 
->> applications will interpret as "there's enough vram".
->=20
-> Do at least OMAPFB_QUERY_MEM/OMAPFB_SETUP_MEM still work?
->=20
->> 4) "vram" kernel parameter to define how much ram to reserve for video=
- use no
->> longer works. The user needs to enable CMA and use "cma" parameter.
->=20
-> That's a significant change, you should update Documentation/ .
+> The only other idea I had was to explicitly declare two 'unsigned
+> long's and then shift them into a 64bit x, although I'm open to
+> suggestions if there is a better way.
 
-I've added the following documentation change:
+Can't you just use register unsigned long long for all cases? Even better,
+follow what put_user does and use typeof(*(p))?
 
-diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
-index a564cee..4484e02 100644
---- a/Documentation/arm/OMAP/DSS
-+++ b/Documentation/arm/OMAP/DSS
-@@ -285,7 +285,10 @@ FB0 +-- GFX  ---- LCD ---- LCD
- Misc notes
- ----------
-=20
--OMAP FB allocates the framebuffer memory using the OMAP VRAM allocator.
-+OMAP FB allocates the framebuffer memory using the standard dma allocato=
-r. You
-+can enable Contiguous Memory Allocator (CONFIG_CMA) to improve the dma
-+allocator, and if CMA is enabled, you use "cma=3D" kernel parameter to i=
-ncrease
-+the global memory area for CMA.
-=20
- Using DSI DPLL to generate pixel clock it is possible produce the pixel =
-clock
- of 86.5MHz (max possible), and with that you get 1280x1024@57 output fro=
-m DVI.
-@@ -301,11 +304,6 @@ framebuffer parameters.
- Kernel boot arguments
- ---------------------
-=20
--vram=3D<size>[,<physaddr>]
--       - Amount of total VRAM to preallocate and optionally a physical s=
-tart
--         memory address. For example, "10M". omapfb allocates memory for=
+> >> diff --git a/arch/arm/lib/getuser.S b/arch/arm/lib/getuser.S
+> >> index 9b06bb4..d05285c 100644
+> >> --- a/arch/arm/lib/getuser.S
+> >> +++ b/arch/arm/lib/getuser.S
+> >> @@ -18,7 +18,7 @@
+> >>   * Inputs:   r0 contains the address
+> >>   *           r1 contains the address limit, which must be preserved
+> >>   * Outputs:  r0 is the error code
+> >> - *           r2 contains the zero-extended value
+> >> + *           r2, r3 contains the zero-extended value
+> >>   *           lr corrupted
+> >>   *
+> >>   * No other registers must be altered.  (see <asm/uaccess.h>
+> >> @@ -66,6 +66,19 @@ ENTRY(__get_user_4)
+> >>       mov     pc, lr
+> >>  ENDPROC(__get_user_4)
+> >>
+> >> +ENTRY(__get_user_8)
+> >> +     check_uaccess r0, 4, r1, r2, __get_user_bad
+> >
+> > Shouldn't you be passing 8 here, so that we validate the correct range?
+> 
+> yes, sorry, I'll fix that
+> 
+> >> +#ifdef CONFIG_THUMB2_KERNEL
+> >> +5: TUSER(ldr)        r2, [r0]
+> >> +6: TUSER(ldr)        r3, [r0, #4]
+> >> +#else
+> >> +5: TUSER(ldr)        r2, [r0], #4
+> >> +6: TUSER(ldr)        r3, [r0]
+> >> +#endif
+> >
+> > This doesn't work for EABI big-endian systems.
+> 
+> Hmm, is that true?  Wouldn't put_user() then have the same problem?
 
--         framebuffers from VRAM.
--
+I dug up the PCS and it seems that we arrange the two halves of the
+doubleword to match the ldm/stm memory representation for EABI, so sorry
+for the confusion.
 
+> I guess __ARMEB__ is the flag for big-endian?
 
+That's the thing defined by the compiler, yes.
 
-
---------------enig3FDC3557D04656C0BA93B455
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQoQBOAAoJEPo9qoy8lh712bwP/AjZHqo7PMkCAYiJztEILYGs
-/tn5AyfC1E/F5GvWugYh/HYtGlDC+Hy9pX1pwOIYTWYEmULfuKBZGt2ykRsolTHR
-4FiaOKW2Cm3k8DLn5BaTQ4bQf/ZYR5FYM3MDX0v2IA3aRRWS8vVn5AFOeCLnjjlW
-SRmmz/V5bv0MJsQBRc/TQP6+rbhsIZcIFkD8+SWILKOWdAwxhAVoAqUKqhM3fQX9
-cHkuPnTCDT9ZT6+wLU37DqpTvLfXn07W7E7qlayNJ++saCcecAjDw1/IVryNHtKo
-JMeUOut83J6/bXdgdOTmd6wd8gMphKuykiw1z7llvKPNcBSWIcVujI0wekN8T5rb
-Q/JJ8gOy1v+OMM+p2hOEl6ucpB/JwAZ+onzWwAG330w3kwT/eO+djrjqNAN27LgJ
-Sg2z2Gq7rlp7+kaQpWja0oxYeoxdTG9bqVTplB2qPzv5z7k9Rj672J08E6R+PvUb
-sle/c/mok8Qs/QA+oF+ezlZAQ0JqpPyphNxHmpUN4RP77OectfACPmy3kK63jPgJ
-flkxi1eZN9v0ZtgIALrUcYkBQ/8PbBJoRMz3p/cy+S2hZeuAReAI6Wd1jfoYfBM7
-dPhBsKi51VqHNBQd2dtnax1m6jh+68HOho2qj3lbuaX06XNO16ltTk1WOOc7nAec
-3UizWchsCBZmnASmygWg
-=i4tL
------END PGP SIGNATURE-----
-
---------------enig3FDC3557D04656C0BA93B455--
+Will
