@@ -1,156 +1,81 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
-Date: Mon, 12 Nov 2012 19:38:27 +0200
-Message-ID: <A54653A0-BF09-40D4-BD6B-B542B4AD97FF@antoniou-consulting.com>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <50999145.2070306@wwwdotorg.org> <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com> <C3971D11-2BAC-4B58-AF8D-987FF8FFF678@antoniou-consulting.com> <50A128AF.1010803@wwwdotorg.org> <7C181180-2FE7-4EE4-BB5A-D7A1ACEC4244@antoniou-consulting.com> <50A12D9D.5030300@wwwdotorg.org> <F7FF2B16-6880-4D64-A630-6D22DCC695BD@antoniou-consulting.com> <50A131DD.8020201@wwwdotorg.org>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from li42-95.members.linode.com ([209.123.162.95]:57086 "EHLO
-	li42-95.members.linode.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751339Ab2KLRig convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 12:38:36 -0500
-In-Reply-To: <50A131DD.8020201@wwwdotorg.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH linux-next] ARM: OMAP2: Fix compillation error in
+ cm_common
+Date: Mon, 12 Nov 2012 09:38:47 -0800
+Message-ID: <20121112173847.GJ6801@atomide.com>
+References: <1352733428-27889-1-git-send-email-peter.ujfalusi@ti.com>
+ <alpine.DEB.2.00.1211121625150.6043@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1211121625150.6043@utopia.booyaka.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Stephen,
+* Paul Walmsley <paul@pwsan.com> [121112 08:27]:
+> Hi
+>=20
+> On Mon, 12 Nov 2012, Peter Ujfalusi wrote:
+>=20
+> > Fixes the following error:
+> >   CC      arch/arm/mach-omap2/cm_common.o
+> > arch/arm/mach-omap2/cm_common.c: In function =E2=80=98cm_register=E2=
+=80=99:
+> > arch/arm/mach-omap2/cm_common.c:42:11: error: =E2=80=98EINVAL=E2=80=
+=99 undeclared (first use in this function)
+> > arch/arm/mach-omap2/cm_common.c:42:11: note: each undeclared identi=
+fier is reported only once for each function it appears in
+> > arch/arm/mach-omap2/cm_common.c:45:11: error: =E2=80=98EEXIST=E2=80=
+=99 undeclared (first use in this function)
+> > arch/arm/mach-omap2/cm_common.c: In function =E2=80=98cm_unregister=
+=E2=80=99:
+> > arch/arm/mach-omap2/cm_common.c:66:11: error: =E2=80=98EINVAL=E2=80=
+=99 undeclared (first use in this function)
+> > make[1]: *** [arch/arm/mach-omap2/cm_common.o] Error 1
+> > make: *** [arch/arm/mach-omap2] Error 2
+> >=20
+> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> > ---
+> >=20
+> > Hi,
+> >=20
+> > with today's linux-next the kernel build failed with the abive erro=
+r for OMAP.
+> >=20
+> > Regards,
+> > Peter
+> >=20
+> >  arch/arm/mach-omap2/cm_common.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> >=20
+> > diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/=
+cm_common.c
+> > index 3246cef..3fafc27 100644
+> > --- a/arch/arm/mach-omap2/cm_common.c
+> > +++ b/arch/arm/mach-omap2/cm_common.c
+> > @@ -13,6 +13,7 @@
+> > =20
+> >  #include <linux/kernel.h>
+> >  #include <linux/init.h>
+> > +#include <linux/errno.h>
+> > =20
+> >  #include "cm2xxx.h"
+> >  #include "cm3xxx.h"
+> > --=20
+> > 1.8.0
+>=20
+> Acked-by: Paul Walmsley <paul@pwsan.com>
+>=20
+> Thanks Peter.
+>=20
+> Tony, how would you like to handle this one?
 
-On Nov 12, 2012, at 7:29 PM, Stephen Warren wrote:
+I can queue it.
 
-> On 11/12/2012 10:19 AM, Pantelis Antoniou wrote:
->> Hi Stephen,
->> 
->> On Nov 12, 2012, at 7:10 PM, Stephen Warren wrote:
->> 
->>> On 11/12/2012 10:00 AM, Pantelis Antoniou wrote:
->>>> Hi Stephen,
->>>> 
->>>> On Nov 12, 2012, at 6:49 PM, Stephen Warren wrote:
->>>> 
->>>>> On 11/12/2012 04:23 AM, Pantelis Antoniou wrote:
->>>>>> Hi Grant,
->>>>>> 
->>>>>> Sorry for the late comments, travelling...
->>>>>> 
->>>>>> On Nov 9, 2012, at 6:28 PM, Grant Likely wrote:
->>>>> ...
->>>>>>> *with the caveat that not all types of changes are a good idea and we
->>>>>>> may disallow. For example, is changing properties in existing nodes a
->>>>>>> good idea?
->>>>>> 
->>>>>> Yes, changing properties is something that we need. One such change is
->>>>>> the change of the bus controller 'status' properties to enabled upon
->>>>>> insertion of a child device node, and change back to 'on-demand' when
->>>>>> all the child device nodes are gone.
->>>>> 
->>>>> Do we actually need to do that?
->>>>> 
->>>>> From the base-board perspective, consider an SoC's I2C channel that is
->>>>> routed to the child board connector. The routing to the connector is
->>>>> always present on the base board. Only the presence (or lack thereof) of
->>>>> devices on that I2C bus is influenced by whether a child board is
->>>>> connected or not, and the design of the child board. Therefore, wouldn't
->>>>> it make sense for the base board to always enable the I2C controller?
->>>>> 
->>>>> That would make it easier for someone to hook up a couple wires to the
->>>>> I2C pins and use utilities such as i2cget/set to communicate with it,
->>>>> without going through the whole process of creating a DT to represent
->>>>> the device. This could speed up simple hacking/prototyping and allow it
->>>>> to proceed in a less structured way.
->>>> 
->>>> Unfortunately that doesn't work for the beaglebone (am355x) and a large
->>>> number of general purpose SoCs.
->>>> 
->>>> What is different between general purpose SoCs and vertical market SoCs
->>>> (i.e. OMAP) is that the design of the the latter is for devices where
->>>> pretty much all the interfaces are expected to be active at the same time.
->>>> 
->>>> General purpose SoCs put more peripherals in the SoC, but due to packaging
->>>> considerations (and price), the peripheral pins are highly muxed.
->>>> 
->>>> So the i2c bus pins are shared with the LCD controller are shared with the
->>>> analog input and so on.
->>>> 
->>>> It is impossible (and on top of that really dangerous) to enable peripheral
->>>> blocks without knowing what's connected on the other side.
->>>> 
->>>> In a nutshell, for the bone and similar devices, probing with the devices
->>>> enabled doesn't work.
->>> 
->>> I think this can be solved by deferring the pinmux to the .dts for the
->>> child board. Presumably the I2C controller node can be enabled just
->>> fine, but the I2C signals not actually routed out to any pins on the SoC
->>> until the specific pinmux configuration is loaded.
->>> 
->> 
->> Well, I2C is just an example; same thing happens with SPI, LCD, audio, etc.
->> 
->> So you'll end up hacking the device drivers to handle a weird state that
->> basically means 'don't activate until I tell you to go'. It is simpler
->> just not to create the device.
->> 
->>> But your explanation still feels a little odd; is it really true on the
->>> BeagleBone, you can either use LCD for graphics /or/ you can use the I2C
->>> controller to communicate with a cape? I certainly fully understand that
->>> from a SoC's perspective (and soc.dtsi perspective) you can't just
->>> enable everything due to pinmux constraints, but it seems that once you
->>> get to the level of a particular board design, the designer has made
->>> those trade-offs and so you know which specific combination is to be
->>> selected.
->> 
->> There are multiple I2C busses, multiple SPI buses, multiple options to
->> connect something that produces audio, and so on. It is not odd at the least
->> for the kind of market these chips are for.
->> 
->> Even TI doesn't know exactly the kind of applications these devices will be 
->> used for. The chip is there to provide connection option at a (cheap) price
->> point.
->> 
->> Think of a swiss-army knife with some tools that can be used at the
->> same time, and some that can't.
-> 
-> Yes, I fully understand the flexibility of the SoC; the NVIDIA Tegra SoC
-> I maintain has exactly the same kind of flexibility.
-> 
-> However, I'm still thining that presumably the pins that could be used
-> for hypothetical example as any of (a) LCD, (b) I2C controller 2, (c)
-> UART 3 have been routed to the cape-bus connector specifically for the
-> purpose of e.g. I2C controller 2, and hence their usage has been locked in.
-> 
-> Is that not the case? Is it instead true that some SoC pins are routed
-> to both an LCD connector /and/ the cape-bus connector so the board
-> itself has a usage conflict, or is it true that the cape-bus connector
-> is in fact just a set of 100 "random" pins each with no specific
-> pre-defined purpose, and it's up to the cape designer to pick the SoC's
-> pinmux configuration rather than the base board designer? That would
-> make the cape-bus pinout specific to the BeagleBone or the specific SoC
-> on the board, which if IIUC is something very different to the Arduino
-> shield pinout design, where each pin on the connector is designated for
-> a specific purpose, and hence arbitrary different SoCs could (and do)
-> host the same connector design without needing the same pinmux HW
-> design, which would obviously be impossible.
+Regards,
 
-There is no LCD specific connector, and no preset pin configuration.
-The only set of pins that are defined to have a set configuration are
-the pins of the i2c2 bus, on which the EEPROM identifying the cape
-is located.
-
-And of the pins that do connect a standard peripheral, all of them
-can be reconfigured for basic GPIO for starters.
-
-The beaglebone is infinitely more flexible and capable than an arduino.
-
-Everything is up to the cape designer. All that the kernel can do
-is handle conflicts and not enable capes that conflict with each other.
-
-Regards
-
--- Pantelis
-
-
-
+Tony
