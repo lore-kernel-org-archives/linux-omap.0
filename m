@@ -1,102 +1,94 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Mon, 12 Nov 2012 13:05:58 -0600
-Message-ID: <50A14896.1080504@ti.com>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <20121107173343.GF6801@atomide.com> <509B5B84.50605@compulab.co.il> <20121108162004.GA6801@atomide.com> <509F6CE3.50806@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58528 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751949Ab2KLTGZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 14:06:25 -0500
-In-Reply-To: <509F6CE3.50806@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [RESEND PATCH v3 0/4] cbus/retu drivers
+Date: Mon, 12 Nov 2012 21:08:41 +0200
+Message-ID: <1352747326-2195-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
+This patch set introduces drivers for CBUS access and Retu multifunction
+chip found on Nokia Internet Tablets (770, N800, N810). It would be
+nice get these patches applied as the functionality of these devices is
+severely lacking without Retu. E.g. watchdog support is mandatory at
+least on Nokia N800, you cannot currently run the mainline kernel for
+longer than ~60 seconds (there is no way to disable the watchdog).
 
-On 11/11/2012 03:16 AM, Igor Grinberg wrote:
-> On 11/08/12 18:20, Tony Lindgren wrote:
->> * Igor Grinberg <grinberg@compulab.co.il> [121107 23:15]:
->>> On 11/07/12 19:33, Tony Lindgren wrote:
->>>>
->>>> I think this should be the default for the timers as that counter
->>>> does not stop during deeper idle states.
->>>
->>> Well, it is the default as you can see from the patch.
->>> The problem is that for boards that for some reason do not have
->>> the 32k wired and rely on MPU/GP timer source, the default will not work
->>> and currently there is no way for board to specify which timer source
->>> it can use.
->>
->> Yes. I was just wondering if we can avoid patching all the board
->> files by doing it the other way around by introducing a new
->> omap_gp_timer rather than renaming all the existing ones?
-> 
-> Is the renaming that bad? One line per machine_desc structure?
-> Of course we can skip the renaming, but then it will be less consistent
-> and will not reflect the actual timer source used.
-> I tried to make it flexible as much as possible and self explanatory.
-> So above are my considerations, but at this point in time I don't really
-> care if we rename them or just add a new one, but we have to get rid of
-> the ugly fall back.
+Drivers originate from linux-omap cbus branch and have been cleaned
+up/rewritten around i2c and MFD core.
 
-I am not sure if you guys disagree, but does it make sense to start
-thinking about this with regard to device-tree? With device-tree all the
-boards files will become obsolete and so we need to be able to handle
-this during boot time and not compile time.
+Patches have been tested on top of 3.7-rc5 with Nokia N800 (watchdog
+feeding works, power off shuts down the device, power button triggers
+IRQs and input events, loading and unloading retu-pwrbutton module in a
+loop while manically pressing the power button does not crash the kernel).
 
->>
->>> We have discussed this in San Diego (remember?) and you actually proposed
->>> this way as a solution. Well, may be I took it a bit further than you
->>> thought, but this is because the board code cannot know which timer source
->>> should be used at runtime and the fall back described below, does not work.
->>
->> Yes thanks I agree we should get rid of that Kconfig option for sure. 
->>
->>>>> --- a/arch/arm/mach-omap2/board-2430sdp.c
->>>>> +++ b/arch/arm/mach-omap2/board-2430sdp.c
->>>>> @@ -284,6 +284,6 @@ MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
->>>>>  	.handle_irq	= omap2_intc_handle_irq,
->>>>>  	.init_machine	= omap_2430sdp_init,
->>>>>  	.init_late	= omap2430_init_late,
->>>>> -	.timer		= &omap2_timer,
->>>>> +	.timer		= &omap2_sync32k_timer,
->>>>>  	.restart	= omap_prcm_restart,
->>>>>  MACHINE_END
->>>>> --- a/arch/arm/mach-omap2/board-3430sdp.c
->>>>> +++ b/arch/arm/mach-omap2/board-3430sdp.c
->>>>> @@ -596,6 +596,6 @@ MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
->>>>>  	.handle_irq	= omap3_intc_handle_irq,
->>>>>  	.init_machine	= omap_3430sdp_init,
->>>>>  	.init_late	= omap3430_init_late,
->>>>> -	.timer		= &omap3_timer,
->>>>> +	.timer		= &omap3_sync32k_timer,
->>>>>  	.restart	= omap_prcm_restart,
->>>>>  MACHINE_END
->>>> ...
->>>>
->>>> Can't we assume that the default timer is omap[234]_sync32k_timer to
->>>> avoid renaming the timer entries in all the board files?
->>>
->>> Hmmm...
->>> How will this work with the macros defining the sys_timer structure?
->>> I would also not want to hide the exact timer used under the default name.
->>
->> Can't you just add a new sys_timer (or a new macro) for GP only setups? 
-> 
-> Of course I can... but I tried to create a flexible generic code, so
-> no meter how a board will be wired, you just need to specify which timer source
-> it uses and be done with it.
+Changes since the second version (https://lkml.org/lkml/2012/10/31/520):
+	- i2c-cbus:
+		- move i2c-cbus.h under linux/platform_data
+	- retu-mfd
+		- replace "&retu_pwrbutton_res[0]" expression with simpler
+		  "retu_pwrbutton_res".
+	- retu-pwrbutton:
+		- eliminate struct retu_pwrbutton
+		- delete checks for duplicate events
+		- rework probe to avoid races
+		- disable IRQ before unregister in retu_pwrbutton_remove() to
+		  avoid races
+		- eliminate double free in retu_pwrbutton_remove()
+		- add .owner = THIS_MODULE
 
-If you are concerned about how a board is wired up (if the 32k is
-present), then I think that that is best handled via device-tree and we
-should query device-tree on boot to see what our options are.
+Changes since the first version (https://lkml.org/lkml/2012/9/3/265):
+	- i2c-cbus:
+		- use devres
+		- improve comments
+		- simplify and delete redundant code
+		- refactoring & bug fixes on error handling
+		- discard "input" parameter from cbus_send_bit/data()
+	- retu-mfd:
+		- use devres
+		- use regmap
+	- retu_wdt: use devres
+	- retu-pwrbutton: use devres
 
-What do you guys think?
+Changes since the RFC version
+(http://marc.info/?l=linux-omap&m=134618967116737&w=2):
+        - added DT support for getting i2c-cbus GPIO pins
+        - merged n8x0 board file changes into i2c-cbus patch
+        - corrected typo in Kconfig for MFD_RETU
+        - added power off functionality to retu-mfd
+        - added IRQ functionality to retu-mfd
+        - added power button key driver
+        - some cleanups
 
-Cheers
-Jon
+Aaro Koskinen (4):
+  i2c: introduce i2c-cbus driver
+  mfd: introduce retu-mfd driver
+  watchdog: introduce retu_wdt driver
+  input: misc: introduce retu-pwrbutton
+
+ arch/arm/mach-omap2/board-n8x0.c       |   42 +++++
+ drivers/i2c/busses/Kconfig             |   10 +
+ drivers/i2c/busses/Makefile            |    1 +
+ drivers/i2c/busses/i2c-cbus.c          |  300 ++++++++++++++++++++++++++++++++
+ drivers/input/misc/Kconfig             |   10 +
+ drivers/input/misc/Makefile            |    1 +
+ drivers/input/misc/retu-pwrbutton.c    |  102 +++++++++++
+ drivers/mfd/Kconfig                    |    9 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/retu-mfd.c                 |  264 ++++++++++++++++++++++++++++
+ drivers/watchdog/Kconfig               |   12 ++
+ drivers/watchdog/Makefile              |    1 +
+ drivers/watchdog/retu_wdt.c            |  178 +++++++++++++++++++
+ include/linux/mfd/retu.h               |   22 +++
+ include/linux/platform_data/i2c-cbus.h |   27 +++
+ 15 files changed, 980 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/i2c/busses/i2c-cbus.c
+ create mode 100644 drivers/input/misc/retu-pwrbutton.c
+ create mode 100644 drivers/mfd/retu-mfd.c
+ create mode 100644 drivers/watchdog/retu_wdt.c
+ create mode 100644 include/linux/mfd/retu.h
+ create mode 100644 include/linux/platform_data/i2c-cbus.h
+
+-- 
+1.7.2.5
