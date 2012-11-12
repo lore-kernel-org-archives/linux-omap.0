@@ -1,121 +1,98 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
-Date: Mon, 12 Nov 2012 14:38:46 +0000
-Message-ID: <20121112143846.GI2346@mudshark.cambridge.arm.com>
-References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
- <20121112104601.GB2346@mudshark.cambridge.arm.com>
- <CAF6AEGtR0WBjoWbb2BF-hJa9sQi2Aa75dfrfb1u5EncaOB7Pyw@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv9 0/8] ARM: OMAP4: core retention support
+Date: Mon, 12 Nov 2012 16:41:47 +0200
+Message-ID: <1352731307.2406.40.camel@sokoban>
+References: <1350552010-28760-1-git-send-email-t-kristo@ti.com>
+	 <87d2zrg04t.fsf@deeprootsystems.com> <1352193483.8788.43.camel@sokoban>
+	 <87wqxy77li.fsf@deeprootsystems.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAF6AEGtR0WBjoWbb2BF-hJa9sQi2Aa75dfrfb1u5EncaOB7Pyw@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Russell King <rmk+kernel@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49597 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753608Ab2KLOly (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Nov 2012 09:41:54 -0500
+In-Reply-To: <87wqxy77li.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Mon, Nov 12, 2012 at 01:46:57PM +0000, Rob Clark wrote:
-> On Mon, Nov 12, 2012 at 4:46 AM, Will Deacon <will.deacon@arm.com> wrote:
-> > On Fri, Nov 09, 2012 at 09:17:33PM +0000, Rob Clark wrote:
-> >> @@ -122,22 +124,35 @@ extern int __get_user_4(void *);
-> >>       ({                                                              \
-> >>               unsigned long __limit = current_thread_info()->addr_limit - 1; \
-> >>               register const typeof(*(p)) __user *__p asm("r0") = (p);\
-> >> -             register unsigned long __r2 asm("r2");                  \
-> >>               register unsigned long __l asm("r1") = __limit;         \
-> >>               register int __e asm("r0");                             \
-> >>               switch (sizeof(*(__p))) {                               \
-> >> -             case 1:                                                 \
-> >> +             case 1: {                                               \
-> >> +                     register unsigned long __r2 asm("r2");          \
-> >>                       __get_user_x(__r2, __p, __e, __l, 1);           \
-> >> +                     x = (typeof(*(p))) __r2;                        \
-> >>                       break;                                          \
-> >> -             case 2:                                                 \
-> >> +             }                                                       \
-> >> +             case 2: {                                               \
-> >> +                     register unsigned long __r2 asm("r2");          \
-> >>                       __get_user_x(__r2, __p, __e, __l, 2);           \
-> >> +                     x = (typeof(*(p))) __r2;                        \
-> >>                       break;                                          \
-> >> -             case 4:                                                 \
-> >> +             }                                                       \
-> >> +             case 4: {                                               \
-> >> +                     register unsigned long __r2 asm("r2");          \
-> >>                       __get_user_x(__r2, __p, __e, __l, 4);           \
-> >> +                     x = (typeof(*(p))) __r2;                        \
-> >> +                     break;                                          \
-> >> +             }                                                       \
-> >> +             case 8: {                                               \
-> >> +                     register unsigned long long __r2 asm("r2");     \
+On Tue, 2012-11-06 at 13:19 -0800, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > Hi Kevin,
 > >
-> > Does this matter? For EABI, we'll pass in (r2, r3) and it's all handcrafted
-> > asm, so the compiler shouldn't care much. For OABI, I think you may have to
-> > do some more work to get the two words where you want them.
+> > On Mon, 2012-11-05 at 14:23 -0800, Kevin Hilman wrote:
+> >> Hi Tero,
+> >> 
+> >> Tero Kristo <t-kristo@ti.com> writes:
+> >> 
+> >> > Hi,
+> >> >
+> >> > Changes compared to previous version:
+> >> > - rebased on top of 3.7-rc1
+> >> > - applies on top of latest func pwrst code (v6)
+> >> > - added back patch #1 to this set (it wasn't queued yet after all)
+> >> > - added patch #7 for fixing a bug in the functional pwrst code
+> >> > - added patch #8 for fixing a regression with MUSB PHY power handling
+> >> >   (not quite sure if this is the correct way to fix this or not)
+> >> >
+> >> > Tested with omap4460 gp panda + omap4430 emu blaze boards, with cpuidle +
+> >> > suspend.
+> >> >
+> >> > Branch also available here:
+> >> > git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
+> >> > branch: mainline-3.7-rc1-omap4-ret-v9
+> >> 
+> >> I tested this branch on 4430/Panda and 4460/Panda-ES and I'm seeing
+> >> several domains not hitting target power state in suspend[1].
+> >> 
+> >> Am I missing some other fixes?  Using omap2plus_defconfig, I tried your
+> >> branch alone, and merged with v3.7-rc4, and I get the same errors.
 > 
-> Is the question whether the compiler is guaranteed to allocate r2 and
-> r3 in all cases?  I'm not quite sure, I confess to usually trying to
-> avoid inline asm.  But from looking at the disassembly (for little
-> endian EABI build) it seemed to do the right thing.
-
-I can't recall how OABI represents 64-bit values and particularly whether this
-differs between little and big-endian, so I wondered whether you may have to
-do some marshalling when you assign x. However, a few quick experiments with
-GCC suggest that the register representation matches EABI in regards to word
-ordering (it just doesn't require an even base register), although it would
-be good to find this written down somewhere...
-
-> The only other idea I had was to explicitly declare two 'unsigned
-> long's and then shift them into a 64bit x, although I'm open to
-> suggestions if there is a better way.
-
-Can't you just use register unsigned long long for all cases? Even better,
-follow what put_user does and use typeof(*(p))?
-
-> >> diff --git a/arch/arm/lib/getuser.S b/arch/arm/lib/getuser.S
-> >> index 9b06bb4..d05285c 100644
-> >> --- a/arch/arm/lib/getuser.S
-> >> +++ b/arch/arm/lib/getuser.S
-> >> @@ -18,7 +18,7 @@
-> >>   * Inputs:   r0 contains the address
-> >>   *           r1 contains the address limit, which must be preserved
-> >>   * Outputs:  r0 is the error code
-> >> - *           r2 contains the zero-extended value
-> >> + *           r2, r3 contains the zero-extended value
-> >>   *           lr corrupted
-> >>   *
-> >>   * No other registers must be altered.  (see <asm/uaccess.h>
-> >> @@ -66,6 +66,19 @@ ENTRY(__get_user_4)
-> >>       mov     pc, lr
-> >>  ENDPROC(__get_user_4)
-> >>
-> >> +ENTRY(__get_user_8)
-> >> +     check_uaccess r0, 4, r1, r2, __get_user_bad
+> [...]
+> 
+> > This looks like a combination of boot loader/kernel problems. My guess
+> > is that l3init is probably held on by the USB, and both ivahd / tesla
+> > are held on by some DSP/IVA modules which are not idling properly.
 > >
-> > Shouldn't you be passing 8 here, so that we validate the correct range?
-> 
-> yes, sorry, I'll fix that
-> 
-> >> +#ifdef CONFIG_THUMB2_KERNEL
-> >> +5: TUSER(ldr)        r2, [r0]
-> >> +6: TUSER(ldr)        r3, [r0, #4]
-> >> +#else
-> >> +5: TUSER(ldr)        r2, [r0], #4
-> >> +6: TUSER(ldr)        r3, [r0]
-> >> +#endif
+> > The last patch in this set should fix the USB problems at least
+> > partially, but also the USB DPLL itself might be in wrong state,
+> > attached patch might help for that one and get l3init to idle.
 > >
-> > This doesn't work for EABI big-endian systems.
+> > For DSP I don't have a patch right now, what is the boot loader you are
+> > using? (Can you provide git / commit / config info?)
 > 
-> Hmm, is that true?  Wouldn't put_user() then have the same problem?
+> I was using mainline u-boot at tag v2012.04.01 when I saw the errors.  
+> 
+> To check the bootloader, I upgraded to the latest mainline tag
+> (v2012.10) and the problems are gone on both 4430/Panda and
+> 4460/Panda-ES...   Interesting.
+> 
+> That suggests that there's still some kernel assumptions/dependencies on
+> the bootloader that need to be addressed.
 
-I dug up the PCS and it seems that we arrange the two halves of the
-doubleword to match the ldm/stm memory representation for EABI, so sorry
-for the confusion.
+After a little bit of looking into this, this is pretty similar to what
+I was working on quite a while back once I tried to get the core ret
+work with mainline kernel. I ended up sending patches against the
+boot-loader as there wasn't a readily visible solution to some of the
+issues on kernel side => so now if you update the u-boot, it gets fixed.
 
-> I guess __ARMEB__ is the flag for big-endian?
+I am seeing (at least) following subsystems being non-idle with the old
+bootloader:
+- M3 cortex (stuck in transition)
+- DSP (stuck in transition)
+- SL2IF (stuck in transition)
+- FSUSB (stuck in transition)
 
-That's the thing defined by the compiler, yes.
+...but I am not aware of any way to get these to working properly from
+this state without POR. Some of them probably require firmware to be
+loaded and letting them out of reset also (M3 / DSP.) Benoit, do you
+have any clues?
 
-Will
+-Tero
+
+
