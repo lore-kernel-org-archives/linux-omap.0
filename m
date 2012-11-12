@@ -1,49 +1,57 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
-Date: Mon, 12 Nov 2012 14:50:47 +0200
-Message-ID: <ABAD0875-A618-405D-954F-CD76F09DDF04@antoniou-consulting.com>
-References: <1352666833.20434.5@driftwood>
-Mime-Version: 1.0 (Apple Message framework v1085)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Mon, 12 Nov 2012 13:01:27 +0000
+Message-ID: <CACxGe6sXnhFpGWG3Ak431=dnu0p-kFPLVDMfWLeyWE-ETeykKQ@mail.gmail.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
+ <CACxGe6vDzmPWsOZ53HTwkYmDEivg9TpnRrvudY2FK95V06O24w@mail.gmail.com>
+ <A5170602-2AE7-4EC4-BE0F-0DF015A287D7@antoniou-consulting.com>
+ <CACxGe6sJXubOSGGg5AmDK6DQMjv60H44nax9wUnnCGsqXGbfxw@mail.gmail.com>
+ <5ED17D42-07B8-4D4F-B54F-82B4CC60584C@antoniou-consulting.com>
+ <509A3595.7050600@ti.com> <A6697FB9-3614-4027-A71B-59C7556005BF@antoniou-consulting.com>
+ <CACxGe6uXyTt_kr4=0ob+-ubgV9he+SfobLwux6X0m6y7yQU7EA@mail.gmail.com> <AEFB103E-C71E-4A3C-B946-19ABD9025A17@antoniou-consulting.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352666833.20434.5@driftwood>
+In-Reply-To: <AEFB103E-C71E-4A3C-B946-19ABD9025A17@antoniou-consulting.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Landley <rob@landley.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Stephen Warren <swarren@wwwdotorg.org>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob.
+On Mon, Nov 12, 2012 at 11:34 AM, Pantelis Antoniou
+<panto@antoniou-consulting.com> wrote:
+> Hi Grant,
+>
+> On Nov 9, 2012, at 10:33 PM, Grant Likely wrote:
+>
+>> On Wed, Nov 7, 2012 at 11:02 AM, Pantelis Antoniou
+>> <panto@antoniou-consulting.com> wrote:
+>>> On Nov 7, 2012, at 11:19 AM, Benoit Cousson wrote:
+>>>> Maybe some extra version match table can just be passed during the board machine_init
+>>>>
+>>>>      of_platform_populate(NULL, omap_dt_match_table, NULL, NULL, panda_version_match_table);
+>>>>
+>>>
+>>> Would we need explicit of_platform_populate calls if we have node modification notifiers?
+>>> In that case the notifier would pick it up automatically, and can do the per
+>>> version matching internally.
+>>
+>> There still needs to be something to register "everything below this
+>> node is interesting" which is exactly what of_platform_populate() does
+>> now. I see the notifiers being used by the of_platform_populate
+>> backend to know when nodes have been created (or destroyed).
+>>
+>> g.
+>
+> I see. So of_platform_populate could just register the notifier and
+> not do the tree walk itself. Perhaps the name is a bit misleading then?
 
-On Nov 11, 2012, at 10:47 PM, Rob Landley wrote:
+Kind of, yes. of_platform_populate() would still have the same effect
+that it does now except that it would also pay attention to additions
+and removals from the DT nodes it is interested in. This would work
+cleanly enough for node additions/removals, but it wouldn't process
+changes to properties on existing nodes.
 
->              On 11/09/2012 10:28:59 AM, Grant Likely wrote:
->> On Tue, Nov 6, 2012 at 10:37 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
->> > On 11/05/2012 01:40 PM, Grant Likely wrote:
->> I'm not actually opposed to it, but it needs to be done in an elegant
->> way. The DT data model already imposes more of a conceptual learning
->> curve than I wish it did and I don't want to make that worse with a
->> versioning model that is difficult to get ones head around.
-> 
-> Speaking of which...
-> 
-> I want to poke at board emulation in qemu, from scratch. Specifically, I want to start with an unpopulated board (just the processor), add a block of physical memory and a serial device, and boot an initramfs in there with stdin/stdout. Then I want to incrementally add an RTC, network card, and three block devices.
-> 
-> I'd like to define this board by giving qemu and the kernel the same device tree they can parse, and I'd like to _build_ this device tree so I understand what's in it. I'd like to repeat this exercize for arm, mips, ppc, x86, x86-64, sparc, sh4, and maybe other boards.
-> 
-> And I'd like to write up an article on doing it as a learning exercise.
-> 
-> Last time I checked, doing this wasn't possible. (qemu couldn't define a board by parsing a device tree, the kernel used the device tree as a guideline but it only really read data the drivers you linked in were expecting, the only documentation about what any of the nodes were was was read the other device trees as examples or read the source code of the drivers looking for data in the tree...)
-> 
-> Is it a more realistic project now? If so, where would I start? (Once upon a time I read the booting-without-of document, back when it lived in the ppc directory. It didn't really say what should go in any of the nodes.)
-> 
-> Rob
-
-It should be possible when the stuff we're talking about is ready.
-
-I don't know what you'll find is broken during the exercise, but I guess
-your article is going to be entertaining at least :)
-
-Regards
-
--- Pantelis
+g.
