@@ -1,45 +1,46 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/3] OMAPDSS: DISPC: Writeback fixes
-Date: Mon, 12 Nov 2012 14:00:08 +0200
-Message-ID: <50A0E4C8.1070902@ti.com>
-References: <1352268905-31093-1-git-send-email-archit@ti.com>
+Subject: Re: [PATCH 0/3] OMAPDSS: APPLY: Misc Fixes
+Date: Mon, 12 Nov 2012 14:00:30 +0200
+Message-ID: <50A0E4DE.60401@ti.com>
+References: <n> <1352279844-10494-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enig3988900EB0C543D261D29443"
+	boundary="------------enigF0A23A7A609AC770BCB93089"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37874 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37892 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752649Ab2KLMAM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 07:00:12 -0500
-In-Reply-To: <1352268905-31093-1-git-send-email-archit@ti.com>
+	id S1752504Ab2KLMAd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Nov 2012 07:00:33 -0500
+In-Reply-To: <1352279844-10494-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
---------------enig3988900EB0C543D261D29443
+--------------enigF0A23A7A609AC770BCB93089
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-11-07 08:15, Archit Taneja wrote:
-> Some issues were found in the DISPC driver when performing scaling with=
-
-> writeback pipeline. This series fixes those issues.
+On 2012-11-07 11:17, Archit Taneja wrote:
+> This series resolves a few minor issues with APPLY. Tested on a 4430sdp=
+, checked
+> switching overlays between DSI command mode and HDMI displays for any u=
+nexpected
+> behavior.
 >=20
 > Reference tree:
-> git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git 3.8/w=
-riteback_fixes_dispc
+> git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git 3.8/a=
+pply_fixes
 >=20
 > Archit Taneja (3):
->   OMAPDSS: DISPC: Fix calc_scaling_44xx() bugs for writeback pipeline
->   OMAPDSS: DISPC: Don't allow predecimation for writeback
->   OMAPDSS: DISPC: Use output width and height to calculate row/pix inc
->     for writeback
+>   OMAPDSS: APPLY: Don't treat an overlay's channel out as shadow bits
+>   OMAPDSS: APPLY: Remove unnecessary variable in dss_apply_irq_handler
+>   OMAPDSS: APPLY: Remove unnecessary call to mg_clear_shadow_dirty
 >=20
->  drivers/video/omap2/dss/dispc.c |   39 +++++++++++++++++++++++++++----=
+>  drivers/video/omap2/dss/apply.c |   48 +++++++++++++++++++++----------=
 --------
->  1 file changed, 27 insertions(+), 12 deletions(-)
+>  1 file changed, 26 insertions(+), 22 deletions(-)
 >=20
 
 Thanks, looks ok. I'll apply to omapdss tree.
@@ -48,7 +49,7 @@ Thanks, looks ok. I'll apply to omapdss tree.
 
 
 
---------------enig3988900EB0C543D261D29443
+--------------enigF0A23A7A609AC770BCB93089
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -57,19 +58,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQoOTIAAoJEPo9qoy8lh71aU0P/0QCbTt0uQxTDXYOAUpgNPYC
-2uoStaZEPvAlM9wJ86s3vMN5DdwKT/oc3IQInmX5xXf9XaNJePYw6vwhl0I6DKCl
-iO9s9PwA26NAHZEYAB9LLLWyYkfHHOO0YkBdyO19OTMb84fDqaamPhxrgvsvHTfp
-jL3Af/674gAwefUm8OSDqLRdpygF170jSJaVDpLEsgbSLszxOFBG8o1Dip9HDDEU
-1w/n7AQXM7xhOHwuu0je9fc4fno+S6/DrRsZtwSkuKniEH25fe2gPios3zGQk+Ei
-QOP2WNSKbclh6XsFQEer6lJDsOrJ3gLXw6K4IgiJQKAnZl8OJ3/IXzca4a4B0cZm
-ppG62b2++Pd+s5lgAXoUUxUqvQG+5mDo+9rh0RDYEqoBSfnhSHkhMDXhPDxhfnXj
-Un0b+NPPaoFyvMHFifp0dX1QphK7Du5oK0OomVIFUehw4lxZ/LFCQ5Z0qbDthf/r
-cxpISr+fNHBHUiuBkCl6mKIC62johepc2IUnRZ5hGQAgOmWhgvs3wW5hbH6SMEPR
-Vadi7cYpisvIwWVLbsDp9drwn8WpOvhk6rpldXOE6pGXmSTS/a7Ax+KISsP7+fdT
-yZbWTGz7hIwSWW3QraTbI1ao19yobA60YLG5ailDdzfE5JP4C29g5jhZZylcEKkr
-0zlASXdo6+qWuJsH/SUl
-=a7mf
+iQIcBAEBAgAGBQJQoOTeAAoJEPo9qoy8lh71Aw0P/RAhPv7jeG4NDczD2K2CBcsH
+Ezgp59Px+53wFIY5seVo/Zomj8SNyecWE811K6fwb/A9df9wBxr4F341L5EjgOmP
+UzXLDeX1X53QvbTdbgmc2gLp3sMHlqeYOjxCfX/puB4j/EXjmKMinM2TevbeyWPA
+LZmFE46Ua5UMFANMn96vhTMlbgwHgNOJo74+TI/mesYR/4825fyKq2ZlzZTl8LnR
+iLsBaVMG3otlGalgIbNU10AGGKnGjvbPF7uEKzXpE1QdEyG3BvuX6sjNakbl/CaZ
+bt2k+BJbiK4i3CkDZe/i0SRF4uSA2OaamFmJM3juNwgkkCe7js9XhC9Qbgi/4Vb/
+39TovUNVKVc0Nd8dfpwHEEwvfFrL3rS6vJKRiiD0z/zRSlBNpK2Rbu0vtfUGRwA1
+bGR7RUcZhKv7QPIEVclXn6AlvrLwXZH24LLyl3Wvd1zBwDKhdril6miIppTJmFuw
+3EIVTISI1sho4O4P8SulrEGZ73FaZls9IK9Om/U3T8TnVCOJPwaUMBy5fL+eO8ii
+ZBGIxYVSrtrZCQ4UiFJ1jM4UUQh2rjbKMph8bIcxOSexRZKI6dyBt3MeK8p9gY5g
+lnHI92H+In90hq6fbiQscXMulOhN2BmXT7Wft+NbzuLPRS7o4d7wk4G/2tMY7vIR
+BRvgz8KGQ855CJkQdSf4
+=NsmV
 -----END PGP SIGNATURE-----
 
---------------enig3988900EB0C543D261D29443--
+--------------enigF0A23A7A609AC770BCB93089--
