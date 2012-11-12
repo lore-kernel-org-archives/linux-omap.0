@@ -1,115 +1,307 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 01/13] ARM: OMAP: Add DMTIMER definitions for posted mode
-Date: Mon, 12 Nov 2012 12:20:32 -0600
-Message-ID: <1352744444-2633-2-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 02/13] ARM: OMAP3+: Implement timer workaround for errata i103 and i767
+Date: Mon, 12 Nov 2012 12:20:33 -0600
+Message-ID: <1352744444-2633-3-git-send-email-jon-hunter@ti.com>
 References: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54539 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666Ab2KLSUy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 13:20:54 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56618 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750988Ab2KLSUx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Nov 2012 13:20:53 -0500
 In-Reply-To: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-For OMAP2+ devices, when using DMTIMERs for system timers (clock-events and
-clock-source) the posted mode configuration of the timers is used. To allow
-the compiler to optimise the functions for configuring and reading the system
-timers, the posted flag variable is hard-coded with the value 1. To make it
-clear that posted mode is being used add some definitions so that it is more
-readable.
+Errata Titles:
+i103: Delay needed to read some GP timer, WD timer and sync timer
+      registers after wakeup (OMAP3/4)
+i767: Delay needed to read some GP timer registers after wakeup (OMAP5)
+
+Description (i103/i767):
+If a General Purpose Timer (GPTimer) is in posted mode
+(TSICR [2].POSTED=1), due to internal resynchronizations, values read in
+TCRR, TCAR1 and TCAR2 registers right after the timer interface clock
+(L4) goes from stopped to active may not return the expected values. The
+most common event leading to this situation occurs upon wake up from
+idle.
+
+GPTimer non-posted synchronization mode is not impacted by this
+limitation.
+
+Workarounds:
+1). Disable posted mode
+2). Use static dependency between timer clock domain and MPUSS clock
+    domain
+3). Use no-idle mode when the timer is active
+
+Workarounds #2 and #3 are not pratical from a power standpoint and so
+workaround #1 has been implemented. Disabling posted mode adds some CPU
+overhead for configuring and reading the timers as the CPU has to wait
+for accesses to be re-synchronised within the timer. However, disabling
+posted mode guarantees correct operation.
+
+Please note that it is safe to use posted mode for timers if the counter
+(TCRR) and capture (TCARx) registers will never be read. An example of
+this is the clock-event system timer. This is used by the kernel to
+schedule events however, the timers counter is never read and capture
+registers are not used. Given that the kernel configures this timer
+often yet never reads the counter register it is safe to enable posted
+mode in this case. Hence, for the timer used for kernel clock-events,
+posted mode is enabled by overriding the errata for devices that are
+impacted by this defect.
+
+For drivers using the timers that do not read the counter or capture
+registers and wish to use posted mode, can override the errata and
+enable posted mode by making the following function calls.
+
+	__omap_dm_timer_override_errata(timer, OMAP_TIMER_ERRATA_I103_I767);
+	__omap_dm_timer_enable_posted(timer);
+
+Both dmtimers and watchdogs are impacted by this defect this patch only
+implements the workaround for the dmtimer. Currently the watchdog driver
+does not read the counter register and so no workaround is necessary.
+
+Posted mode will be disabled for all OMAP2+ devices (including AM33xx)
+using a GP timer as a clock-source timer to guarantee correct operation.
+This is not necessary for OMAP24xx devices but the default clock-source
+timer for OMAP24xx devices is the 32k-sync timer and not the GP timer
+and so should not have any impact. This should be re-visited for future
+devices if this errata is fixed.
+
+Confirmed with Vaibhav Hiremath that this bug also impacts AM33xx
+devices.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/timer.c               |   17 ++++++++++-------
- arch/arm/plat-omap/include/plat/dmtimer.h |    4 ++++
- 2 files changed, 14 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/timer.c               |   49 ++++++++++++++++++++++-----
+ arch/arm/plat-omap/dmtimer.c              |    3 +-
+ arch/arm/plat-omap/include/plat/dmtimer.h |   52 +++++++++++++++++++++++++++--
+ 3 files changed, 93 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 684d2fc..a135d28 100644
+index a135d28..63229c5 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -108,7 +108,7 @@ static int omap2_gp_timer_set_next_event(unsigned long cycles,
- 					 struct clock_event_device *evt)
- {
- 	__omap_dm_timer_load_start(&clkev, OMAP_TIMER_CTRL_ST,
--						0xffffffff - cycles, 1);
-+				   0xffffffff - cycles, OMAP_TIMER_POSTED);
- 
- 	return 0;
+@@ -222,10 +222,24 @@ void __init omap_dmtimer_init(void)
+ 	}
  }
-@@ -118,7 +118,7 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+ 
++/**
++ * omap_dm_timer_get_errata - get errata flags for a timer
++ *
++ * Get the timer errata flags that are specific to the OMAP device being used.
++ */
++u32 __init omap_dm_timer_get_errata(void)
++{
++	if (cpu_is_omap24xx())
++		return 0;
++
++	return OMAP_TIMER_ERRATA_I103_I767;
++}
++
+ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 						int gptimer_id,
+ 						const char *fck_source,
+-						const char *property)
++						const char *property,
++						int posted)
  {
- 	u32 period;
+ 	char name[10]; /* 10 = sizeof("gptXX_Xck0") */
+ 	const char *oh_name;
+@@ -311,10 +325,15 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	}
+ 	__omap_dm_timer_init_regs(timer);
+ 	__omap_dm_timer_reset(timer, 1, 1);
+-	timer->posted = 1;
  
--	__omap_dm_timer_stop(&clkev, 1, clkev.rate);
-+	__omap_dm_timer_stop(&clkev, OMAP_TIMER_POSTED, clkev.rate);
+-	timer->rate = clk_get_rate(timer->fclk);
++	if (posted)
++		__omap_dm_timer_enable_posted(timer);
++
++	/* Check that the intended posted configuration matches the actual */
++	if (posted != timer->posted)
++		return -EINVAL;
  
- 	switch (mode) {
- 	case CLOCK_EVT_MODE_PERIODIC:
-@@ -126,10 +126,10 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- 		period -= 1;
- 		/* Looks like we need to first set the load value separately */
- 		__omap_dm_timer_write(&clkev, OMAP_TIMER_LOAD_REG,
--					0xffffffff - period, 1);
-+				      0xffffffff - period, OMAP_TIMER_POSTED);
- 		__omap_dm_timer_load_start(&clkev,
- 					OMAP_TIMER_CTRL_AR | OMAP_TIMER_CTRL_ST,
--						0xffffffff - period, 1);
-+					0xffffffff - period, OMAP_TIMER_POSTED);
- 		break;
- 	case CLOCK_EVT_MODE_ONESHOT:
- 		break;
-@@ -359,7 +359,8 @@ static bool use_gptimer_clksrc;
-  */
++	timer->rate = clk_get_rate(timer->fclk);
+ 	timer->reserved = 1;
+ 
+ 	return res;
+@@ -326,7 +345,17 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+ {
+ 	int res;
+ 
+-	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source, property);
++	clkev.errata = omap_dm_timer_get_errata();
++
++	/*
++	 * For clock-event timers we never read the timer counter and
++	 * so we are not impacted by errata i103 and i767. Therefore,
++	 * we can safely ignore this errata for clock-event timers.
++	 */
++	__omap_dm_timer_override_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
++
++	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source, property,
++				     OMAP_TIMER_POSTED);
+ 	BUG_ON(res);
+ 
+ 	omap2_gp_timer_irq.dev_id = &clkev;
+@@ -360,7 +389,7 @@ static bool use_gptimer_clksrc;
  static cycle_t clocksource_read_cycles(struct clocksource *cs)
  {
--	return (cycle_t)__omap_dm_timer_read_counter(&clksrc, 1);
-+	return (cycle_t)__omap_dm_timer_read_counter(&clksrc,
-+						     OMAP_TIMER_POSTED);
+ 	return (cycle_t)__omap_dm_timer_read_counter(&clksrc,
+-						     OMAP_TIMER_POSTED);
++						     OMAP_TIMER_NONPOSTED);
  }
  
  static struct clocksource clocksource_gpt = {
-@@ -373,7 +374,8 @@ static struct clocksource clocksource_gpt = {
- static u32 notrace dmtimer_read_sched_clock(void)
+@@ -375,7 +404,7 @@ static u32 notrace dmtimer_read_sched_clock(void)
  {
  	if (clksrc.reserved)
--		return __omap_dm_timer_read_counter(&clksrc, 1);
-+		return __omap_dm_timer_read_counter(&clksrc,
-+						    OMAP_TIMER_POSTED);
+ 		return __omap_dm_timer_read_counter(&clksrc,
+-						    OMAP_TIMER_POSTED);
++						    OMAP_TIMER_NONPOSTED);
  
  	return 0;
  }
-@@ -455,7 +457,8 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+@@ -453,12 +482,15 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
+ {
+ 	int res;
+ 
+-	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source, NULL);
++	clksrc.errata = omap_dm_timer_get_errata();
++
++	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source, NULL,
++				     OMAP_TIMER_NONPOSTED);
  	BUG_ON(res);
  
  	__omap_dm_timer_load_start(&clksrc,
--			OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0, 1);
-+				   OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0,
-+				   OMAP_TIMER_POSTED);
+ 				   OMAP_TIMER_CTRL_ST | OMAP_TIMER_CTRL_AR, 0,
+-				   OMAP_TIMER_POSTED);
++				   OMAP_TIMER_NONPOSTED);
  	setup_sched_clock(dmtimer_read_sched_clock, 32, clksrc.rate);
  
  	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
+@@ -696,6 +728,7 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+ 	if (timer_dev_attr)
+ 		pdata->timer_capability = timer_dev_attr->timer_capability;
+ 
++	pdata->timer_errata = omap_dm_timer_get_errata();
+ 	pdata->get_context_loss_count = omap_pm_get_dev_context_loss_count;
+ 
+ 	pdev = omap_device_build(name, id, oh, pdata, sizeof(*pdata),
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 9dca23e..381a612 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -128,8 +128,8 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
+ 	}
+ 
+ 	__omap_dm_timer_reset(timer, 0, 0);
++	__omap_dm_timer_enable_posted(timer);
+ 	omap_dm_timer_disable(timer);
+-	timer->posted = 1;
+ }
+ 
+ int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+@@ -797,6 +797,7 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+ 			timer->capability |= OMAP_TIMER_SECURE;
+ 	} else {
+ 		timer->id = pdev->id;
++		timer->errata = pdata->timer_errata;
+ 		timer->capability = pdata->timer_capability;
+ 		timer->reserved = omap_dm_timer_reserved_systimer(timer->id);
+ 		timer->get_context_loss_count = pdata->get_context_loss_count;
 diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index f8943c8..1bee0ac 100644
+index 1bee0ac..ac16f1e 100644
 --- a/arch/arm/plat-omap/include/plat/dmtimer.h
 +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -55,6 +55,10 @@
- #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
- #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
+@@ -66,6 +66,16 @@
+ #define OMAP_TIMER_NEEDS_RESET				0x10000000
+ #define OMAP_TIMER_HAS_DSP_IRQ				0x08000000
  
-+/* posted mode types */
-+#define OMAP_TIMER_NONPOSTED			0x00
-+#define OMAP_TIMER_POSTED			0x01
++/*
++ * timer errata flags
++ *
++ * Errata i103/i767 impacts all OMAP3/4/5 devices including AM33xx. This
++ * errata prevents us from using posted mode on these devices, unless the
++ * timer counter register is never read. For more details please refer to
++ * the OMAP3/4/5 errata documents.
++ */
++#define OMAP_TIMER_ERRATA_I103_I767			0x80000000
 +
- /* timer capabilities used in hwmod database */
- #define OMAP_TIMER_SECURE				0x80000000
- #define OMAP_TIMER_ALWON				0x40000000
+ struct omap_timer_capability_dev_attr {
+ 	u32 timer_capability;
+ };
+@@ -97,6 +107,7 @@ struct timer_regs {
+ struct dmtimer_platform_data {
+ 	/* set_timer_src - Only used for OMAP1 devices */
+ 	int (*set_timer_src)(struct platform_device *pdev, int source);
++	u32 timer_errata;
+ 	u32 timer_capability;
+ 	int (*get_context_loss_count)(struct device *);
+ };
+@@ -273,6 +284,7 @@ struct omap_dm_timer {
+ 	int ctx_loss_count;
+ 	int revision;
+ 	u32 capability;
++	u32 errata;
+ 	struct platform_device *pdev;
+ 	struct list_head node;
+ };
+@@ -344,10 +356,46 @@ static inline void __omap_dm_timer_reset(struct omap_dm_timer *timer,
+ 		l |= 1 << 2;
+ 
+ 	__raw_writel(l, timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET);
++}
++
++/*
++ * __omap_dm_timer_enable_posted - enables write posted mode
++ * @timer:      pointer to timer instance handle
++ *
++ * Enables the write posted mode for the timer. When posted mode is enabled
++ * writes to certain timer registers are immediately acknowledged by the
++ * internal bus and hence prevents stalling the CPU waiting for the write to
++ * complete. Enabling this feature can improve performance for writing to the
++ * timer registers.
++ */
++static inline void __omap_dm_timer_enable_posted(struct omap_dm_timer *timer)
++{
++	if (timer->posted)
++		return;
++
++	if (timer->errata & OMAP_TIMER_ERRATA_I103_I767)
++		return;
+ 
+-	/* Match hardware reset default of posted mode */
+ 	__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG,
+-					OMAP_TIMER_CTRL_POSTED, 0);
++			      OMAP_TIMER_CTRL_POSTED, 0);
++	timer->context.tsicr = OMAP_TIMER_CTRL_POSTED;
++	timer->posted = OMAP_TIMER_POSTED;
++}
++
++/**
++ * __omap_dm_timer_override_errata - override errata flags for a timer
++ * @timer:      pointer to timer handle
++ * @errata:	errata flags to be ignored
++ *
++ * For a given timer, override a timer errata by clearing the flags
++ * specified by the errata argument. A specific erratum should only be
++ * overridden for a timer if the timer is used in such a way the erratum
++ * has no impact.
++ */
++static inline void __omap_dm_timer_override_errata(struct omap_dm_timer *timer,
++						   u32 errata)
++{
++	timer->errata &= ~errata;
+ }
+ 
+ static inline int __omap_dm_timer_set_source(struct clk *timer_fck,
 -- 
 1.7.9.5
 
