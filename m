@@ -1,194 +1,51 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 02/26] ARM: OMAP: hwmod: Fix up hwmod based clkdm
- accesses
-Date: Mon, 12 Nov 2012 22:15:39 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211122214370.22487@utopia.booyaka.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-3-git-send-email-mturquette@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] mmc: hsmmc: Fix NULL pointer dereference on unload
+ when booted with device tree
+Date: Mon, 12 Nov 2012 14:16:09 -0800
+Message-ID: <20121112221608.GS6801@atomide.com>
+References: <20121109182534.GR6801@atomide.com>
+ <50A0F78C.6030600@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42875 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462Ab2KLWPk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 17:15:40 -0500
-In-Reply-To: <1352337181-29427-3-git-send-email-mturquette@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:44082 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752462Ab2KLWQL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 17:16:11 -0500
+Content-Disposition: inline
+In-Reply-To: <50A0F78C.6030600@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
+To: Balaji T K <balajitk@ti.com>
+Cc: Chris Ball <cjb@laptop.org>, Venkatraman S <svenkatr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
+* Balaji T K <balajitk@ti.com> [121112 05:22]:
+> On Friday 09 November 2012 11:55 PM, Tony Lindgren wrote:
+> >When booting with device tree, we don't have any pdata, and will
+> >get the following when trying to unload omap_hsmmc:
+> >
+> >Unable to handle kernel NULL pointer dereference at virtual address 00000044
+> >pgd = edafc000
+> >*pgd=adbbd831, *pte=00000000, *ppte=00000000
+> >SMP ARM
+> >Modules linked in: omap_hsmmc(-) omap_serial pinctrl_single
+> >CPU: 1    Not tainted  (3.7.0-rc4-00044-g8ca5f6a-dirty #245)
+> >PC is at omap_hsmmc_gpio_free+0x8/0x3c [omap_hsmmc]
+> >LR is at omap_hsmmc_remove+0xf0/0x174 [omap_hsmmc]
+> <snip>
+> >
+> >Signed-off-by: Tony Lindgren <tony@atomide.com>
+> >
+> >---
+> >
+> >This is against v3.7-rc4, would be nice to get in during the -rc cycle.
+> >
+> Hi Tony,
+> 
+> Got fixed by below commit, merged in rc5
+> 
+> http://git.kernel.org/?p=linux/kernel/git/cjb/mmc.git;a=commit;h=9ea28ecbeb090159a3383ff60b29dee00c489774
 
-This patch needed to be modified to avoid some sparse warnings; updated 
-patch follows.
+OK thanks!
 
-
-- Paul
-
-ARM: OMAP: hwmod: Fix up hwmod based clkdm accesses
-
-From: Rajendra Nayak <rnayak@ti.com>
-
-hwmod uses deferencing the clk pointer to acccess the clkdm.
-With COMMON clk hwoever this will need to be deferenced through
-the clk_hw_omap pointer, so do the necessary changes.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Mike Turquette <mturquette@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   70 ++++++++++++++++++++++++++++++--------
- 1 file changed, 56 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 139adca..f38e4ce 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -130,7 +130,11 @@
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/io.h>
-+#ifdef CONFIG_COMMON_CLK
-+#include <linux/clk-provider.h>
-+#else
- #include <linux/clk.h>
-+#endif
- #include <linux/delay.h>
- #include <linux/err.h>
- #include <linux/list.h>
-@@ -614,6 +618,23 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
- 	return 0;
- }
- 
-+static struct clockdomain *_get_clkdm(struct omap_hwmod *oh)
-+{
-+	if (oh->clkdm) {
-+		return oh->clkdm;
-+	} else if (oh->_clk) {
-+#ifdef CONFIG_COMMON_CLK
-+		struct clk_hw_omap *clk;
-+
-+		clk = to_clk_hw_omap(__clk_get_hw(oh->_clk));
-+		return  clk->clkdm;
-+#else
-+		return oh->_clk->clkdm;
-+#endif
-+	}
-+	return NULL;
-+}
-+
- /**
-  * _add_initiator_dep: prevent @oh from smart-idling while @init_oh is active
-  * @oh: struct omap_hwmod *
-@@ -629,13 +650,18 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
-  */
- static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
- {
--	if (!oh->_clk)
-+	struct clockdomain *clkdm, *init_clkdm;
-+
-+	clkdm = _get_clkdm(oh);
-+	init_clkdm = _get_clkdm(init_oh);
-+
-+	if (!clkdm || !init_clkdm)
- 		return -EINVAL;
- 
--	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
-+	if (clkdm && clkdm->flags & CLKDM_NO_AUTODEPS)
- 		return 0;
- 
--	return clkdm_add_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
-+	return clkdm_add_sleepdep(clkdm, init_clkdm);
- }
- 
- /**
-@@ -653,13 +679,18 @@ static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
-  */
- static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
- {
--	if (!oh->_clk)
-+	struct clockdomain *clkdm, *init_clkdm;
-+
-+	clkdm = _get_clkdm(oh);
-+	init_clkdm = _get_clkdm(init_oh);
-+
-+	if (!clkdm || !init_clkdm)
- 		return -EINVAL;
- 
--	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
-+	if (clkdm && clkdm->flags & CLKDM_NO_AUTODEPS)
- 		return 0;
- 
--	return clkdm_del_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
-+	return clkdm_del_sleepdep(clkdm, init_clkdm);
- }
- 
- /**
-@@ -693,7 +724,7 @@ static int _init_main_clk(struct omap_hwmod *oh)
- 	 */
- 	clk_prepare(oh->_clk);
- 
--	if (!oh->_clk->clkdm)
-+	if (!_get_clkdm(oh))
- 		pr_debug("omap_hwmod: %s: missing clockdomain for %s.\n",
- 			   oh->name, oh->main_clk);
- 
-@@ -1276,6 +1307,7 @@ static void _enable_sysc(struct omap_hwmod *oh)
- 	u8 idlemode, sf;
- 	u32 v;
- 	bool clkdm_act;
-+	struct clockdomain *clkdm;
- 
- 	if (!oh->class->sysc)
- 		return;
-@@ -1283,11 +1315,9 @@ static void _enable_sysc(struct omap_hwmod *oh)
- 	v = oh->_sysc_cache;
- 	sf = oh->class->sysc->sysc_flags;
- 
-+	clkdm = _get_clkdm(oh);
- 	if (sf & SYSC_HAS_SIDLEMODE) {
--		clkdm_act = ((oh->clkdm &&
--			      oh->clkdm->flags & CLKDM_ACTIVE_WITH_MPU) ||
--			     (oh->_clk && oh->_clk->clkdm &&
--			      oh->_clk->clkdm->flags & CLKDM_ACTIVE_WITH_MPU));
-+		clkdm_act = (clkdm && clkdm->flags & CLKDM_ACTIVE_WITH_MPU);
- 		if (clkdm_act && !(oh->class->sysc->idlemodes &
- 				   (SIDLE_SMART | SIDLE_SMART_WKUP)))
- 			idlemode = HWMOD_IDLEMODE_FORCE;
-@@ -3556,10 +3586,17 @@ struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
- {
- 	struct clk *c;
- 	struct omap_hwmod_ocp_if *oi;
-+	struct clockdomain *clkdm;
-+#ifdef CONFIG_COMMON_CLK
-+	struct clk_hw_omap *clk;
-+#endif
- 
- 	if (!oh)
- 		return NULL;
- 
-+	if (oh->clkdm)
-+		return oh->clkdm->pwrdm.ptr;
-+
- 	if (oh->_clk) {
- 		c = oh->_clk;
- 	} else {
-@@ -3569,11 +3606,16 @@ struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
- 		c = oi->_clk;
- 	}
- 
--	if (!c->clkdm)
-+#ifdef CONFIG_COMMON_CLK
-+	clk = to_clk_hw_omap(__clk_get_hw(c));
-+	clkdm = clk->clkdm;
-+#else
-+	clkdm = c->clkdm;
-+#endif
-+	if (!clkdm)
- 		return NULL;
- 
--	return c->clkdm->pwrdm.ptr;
--
-+	return clkdm->pwrdm.ptr;
- }
- 
- /**
+Tony 
