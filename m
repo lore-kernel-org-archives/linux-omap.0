@@ -1,189 +1,59 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
-Date: Mon, 12 Nov 2012 09:09:19 -0600
-Message-ID: <CAF6AEGsSng_Ma_0Q6PXTRHOVYRtC5RRBA65=fpBCM8O2QThQWg@mail.gmail.com>
-References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
-	<20121112104601.GB2346@mudshark.cambridge.arm.com>
-	<CAF6AEGtR0WBjoWbb2BF-hJa9sQi2Aa75dfrfb1u5EncaOB7Pyw@mail.gmail.com>
-	<20121112143846.GI2346@mudshark.cambridge.arm.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH linux-next] ARM: OMAP2: Fix compillation error in cm_common
+Date: Mon, 12 Nov 2012 16:17:08 +0100
+Message-ID: <1352733428-27889-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121112143846.GI2346@mudshark.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Arnd Bergmann <arnd@arndb.de>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Russell King <rmk+kernel@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 12, 2012 at 8:38 AM, Will Deacon <will.deacon@arm.com> wrot=
-e:
-> On Mon, Nov 12, 2012 at 01:46:57PM +0000, Rob Clark wrote:
->> On Mon, Nov 12, 2012 at 4:46 AM, Will Deacon <will.deacon@arm.com> w=
-rote:
->> > On Fri, Nov 09, 2012 at 09:17:33PM +0000, Rob Clark wrote:
->> >> @@ -122,22 +124,35 @@ extern int __get_user_4(void *);
->> >>       ({                                                         =
-     \
->> >>               unsigned long __limit =3D current_thread_info()->ad=
-dr_limit - 1; \
->> >>               register const typeof(*(p)) __user *__p asm("r0") =3D=
- (p);\
->> >> -             register unsigned long __r2 asm("r2");             =
-     \
->> >>               register unsigned long __l asm("r1") =3D __limit;  =
-       \
->> >>               register int __e asm("r0");                        =
-     \
->> >>               switch (sizeof(*(__p))) {                          =
-     \
->> >> -             case 1:                                            =
-     \
->> >> +             case 1: {                                          =
-     \
->> >> +                     register unsigned long __r2 asm("r2");     =
-     \
->> >>                       __get_user_x(__r2, __p, __e, __l, 1);      =
-     \
->> >> +                     x =3D (typeof(*(p))) __r2;                 =
-       \
->> >>                       break;                                     =
-     \
->> >> -             case 2:                                            =
-     \
->> >> +             }                                                  =
-     \
->> >> +             case 2: {                                          =
-     \
->> >> +                     register unsigned long __r2 asm("r2");     =
-     \
->> >>                       __get_user_x(__r2, __p, __e, __l, 2);      =
-     \
->> >> +                     x =3D (typeof(*(p))) __r2;                 =
-       \
->> >>                       break;                                     =
-     \
->> >> -             case 4:                                            =
-     \
->> >> +             }                                                  =
-     \
->> >> +             case 4: {                                          =
-     \
->> >> +                     register unsigned long __r2 asm("r2");     =
-     \
->> >>                       __get_user_x(__r2, __p, __e, __l, 4);      =
-     \
->> >> +                     x =3D (typeof(*(p))) __r2;                 =
-       \
->> >> +                     break;                                     =
-     \
->> >> +             }                                                  =
-     \
->> >> +             case 8: {                                          =
-     \
->> >> +                     register unsigned long long __r2 asm("r2");=
-     \
->> >
->> > Does this matter? For EABI, we'll pass in (r2, r3) and it's all ha=
-ndcrafted
->> > asm, so the compiler shouldn't care much. For OABI, I think you ma=
-y have to
->> > do some more work to get the two words where you want them.
->>
->> Is the question whether the compiler is guaranteed to allocate r2 an=
-d
->> r3 in all cases?  I'm not quite sure, I confess to usually trying to
->> avoid inline asm.  But from looking at the disassembly (for little
->> endian EABI build) it seemed to do the right thing.
->
-> I can't recall how OABI represents 64-bit values and particularly whe=
-ther this
-> differs between little and big-endian, so I wondered whether you may =
-have to
-> do some marshalling when you assign x. However, a few quick experimen=
-ts with
-> GCC suggest that the register representation matches EABI in regards =
-to word
-> ordering (it just doesn't require an even base register), although it=
- would
-> be good to find this written down somewhere...
+=46ixes the following error:
+  CC      arch/arm/mach-omap2/cm_common.o
+arch/arm/mach-omap2/cm_common.c: In function =E2=80=98cm_register=E2=80=
+=99:
+arch/arm/mach-omap2/cm_common.c:42:11: error: =E2=80=98EINVAL=E2=80=99 =
+undeclared (first use in this function)
+arch/arm/mach-omap2/cm_common.c:42:11: note: each undeclared identifier=
+ is reported only once for each function it appears in
+arch/arm/mach-omap2/cm_common.c:45:11: error: =E2=80=98EEXIST=E2=80=99 =
+undeclared (first use in this function)
+arch/arm/mach-omap2/cm_common.c: In function =E2=80=98cm_unregister=E2=80=
+=99:
+arch/arm/mach-omap2/cm_common.c:66:11: error: =E2=80=98EINVAL=E2=80=99 =
+undeclared (first use in this function)
+make[1]: *** [arch/arm/mach-omap2/cm_common.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
-yeah, I was kinda hoping that someone a bit closer to the compiler
-would speak up here :-)
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
 
->> The only other idea I had was to explicitly declare two 'unsigned
->> long's and then shift them into a 64bit x, although I'm open to
->> suggestions if there is a better way.
->
-> Can't you just use register unsigned long long for all cases? Even be=
-tter,
-> follow what put_user does and use typeof(*(p))?
+Hi,
 
-typeof(*(p) was my first try but:
+with today's linux-next the kernel build failed with the abive error fo=
+r OMAP.
 
-  register typeof(*(p)) __r2 asm("r2");
+Regards,
+Peter
 
-gives me the error:
+ arch/arm/mach-omap2/cm_common.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-  error: read-only variable =91__r2=92 used as =91asm=92 output
-
-I guess because 'const' ends up being part of the typeof *p?  I
-suppose I could do typeof(x) instead
-
-BR,
--R
-
->> >> diff --git a/arch/arm/lib/getuser.S b/arch/arm/lib/getuser.S
->> >> index 9b06bb4..d05285c 100644
->> >> --- a/arch/arm/lib/getuser.S
->> >> +++ b/arch/arm/lib/getuser.S
->> >> @@ -18,7 +18,7 @@
->> >>   * Inputs:   r0 contains the address
->> >>   *           r1 contains the address limit, which must be preser=
-ved
->> >>   * Outputs:  r0 is the error code
->> >> - *           r2 contains the zero-extended value
->> >> + *           r2, r3 contains the zero-extended value
->> >>   *           lr corrupted
->> >>   *
->> >>   * No other registers must be altered.  (see <asm/uaccess.h>
->> >> @@ -66,6 +66,19 @@ ENTRY(__get_user_4)
->> >>       mov     pc, lr
->> >>  ENDPROC(__get_user_4)
->> >>
->> >> +ENTRY(__get_user_8)
->> >> +     check_uaccess r0, 4, r1, r2, __get_user_bad
->> >
->> > Shouldn't you be passing 8 here, so that we validate the correct r=
-ange?
->>
->> yes, sorry, I'll fix that
->>
->> >> +#ifdef CONFIG_THUMB2_KERNEL
->> >> +5: TUSER(ldr)        r2, [r0]
->> >> +6: TUSER(ldr)        r3, [r0, #4]
->> >> +#else
->> >> +5: TUSER(ldr)        r2, [r0], #4
->> >> +6: TUSER(ldr)        r3, [r0]
->> >> +#endif
->> >
->> > This doesn't work for EABI big-endian systems.
->>
->> Hmm, is that true?  Wouldn't put_user() then have the same problem?
->
-> I dug up the PCS and it seems that we arrange the two halves of the
-> doubleword to match the ldm/stm memory representation for EABI, so so=
-rry
-> for the confusion.
->
->> I guess __ARMEB__ is the flag for big-endian?
->
-> That's the thing defined by the compiler, yes.
->
-> Will
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm_c=
+ommon.c
+index 3246cef..3fafc27 100644
+--- a/arch/arm/mach-omap2/cm_common.c
++++ b/arch/arm/mach-omap2/cm_common.c
+@@ -13,6 +13,7 @@
+=20
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/errno.h>
+=20
+ #include "cm2xxx.h"
+ #include "cm3xxx.h"
+--=20
+1.8.0
