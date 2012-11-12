@@ -1,88 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 08/26] ARM: OMAP: clock: Define a function to enable
- clocks at init
-Date: Mon, 12 Nov 2012 23:01:24 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211122300450.22487@utopia.booyaka.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-9-git-send-email-mturquette@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
+Date: Mon, 12 Nov 2012 23:08:19 +0000
+Message-ID: <20121112230819.GC28341@n2100.arm.linux.org.uk>
+References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org> <20121112192727.GB28341@n2100.arm.linux.org.uk> <CAF6AEGu4L+ukxhMBLYK3d2g4CBBXi6o5nN_wXvakZCT8qMfSEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43076 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267Ab2KLXBZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 18:01:25 -0500
-In-Reply-To: <1352337181-29427-9-git-send-email-mturquette@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGu4L+ukxhMBLYK3d2g4CBBXi6o5nN_wXvakZCT8qMfSEA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
+On Mon, Nov 12, 2012 at 01:58:32PM -0600, Rob Clark wrote:
+> On Mon, Nov 12, 2012 at 1:27 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Fri, Nov 09, 2012 at 03:17:33PM -0600, Rob Clark wrote:
+> >> From: Rob Clark <rob@ti.com>
+> >>
+> >> A new atomic modeset/pageflip ioctl being developed in DRM requires
+> >> get_user() to work for 64bit types (in addition to just put_user()).
+> >
+> > NAK.
+> >
+> > (I did write a better email explaining all the ins and outs of why this
+> > won't work and why 64-bit get_user isn't possible, but my editor crapped
+> > out and lost all that well written message; I don't fancy typing it all
+> > out again.)
+> >
+> > Nevertheless,
+> > int test_ptr(unsigned int **v, unsigned int **p)
+> > {
+> >         return get_user(*v, p);
+> > }
+> >
+> > produces a warning, and you can't get away from that if you stick 64-bit
+> > support into get_user().
+> 
+> Actually, it seems like using 'register typeof(x) __r2 asm("r2");'
+> does avoid that warning..
 
-Added kerneldoc on the new non-trivial function in this patch, as is local 
-policy.  Updated patch follows.
-
-- Paul
-
-From: Rajendra Nayak <rnayak@ti.com>
-Date: Fri, 1 Jun 2012 14:02:49 +0530
-Subject: [PATCH] ARM: OMAP: clock: Define a function to enable clocks at init
-
-Platform code can use omap2_clk_enable_init_clocks() to enable a
-list of clocks that are needed to be enabled at init.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Mike Turquette <mturquette@ti.com>
-[paul@pwsan.com: added kerneldoc to non-trivial new function]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock.c |   21 +++++++++++++++++++++
- arch/arm/mach-omap2/clock.h |    1 +
- 2 files changed, 22 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index c64203e..744e6eb 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -580,6 +580,27 @@ int omap2_clk_disable_autoidle_all(void)
- 	return 0;
- }
- 
-+/**
-+ * omap2_clk_enable_init_clocks - prepare & enable a list of clocks
-+ * @clk_names: ptr to an array of strings of clock names to enable
-+ * @num_clocks: number of clock names in @clk_names
-+ *
-+ * Prepare and enable a list of clocks, named by @clk_names.  No
-+ * return value. XXX Deprecated; only needed until these clocks are
-+ * properly claimed and enabled by the drivers or core code that uses
-+ * them.  XXX What code disables & calls clk_put on these clocks?
-+ */
-+void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks)
-+{
-+	struct clk *init_clk;
-+	int i;
-+
-+	for (i = 0; i < num_clocks; i++) {
-+		init_clk = clk_get(NULL, clk_names[i]);
-+		clk_prepare_enable(init_clk);
-+	}
-+}
-+
- const struct clk_hw_omap_ops clkhwops_wait = {
- 	.find_idlest	= omap2_clk_dflt_find_idlest,
- 	.find_companion	= omap2_clk_dflt_find_companion,
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 20a3be7..e669fc8 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -538,6 +538,7 @@ void omap2_clk_dflt_find_idlest(struct clk_hw_omap *clk,
- void omap2_init_clk_hw_omap_clocks(struct clk *clk);
- int omap2_clk_enable_autoidle_all(void);
- int omap2_clk_disable_autoidle_all(void);
-+void omap2_clk_enable_init_clocks(const char **clk_names, u8 num_clocks);
- #else
- int omap2_dflt_clk_enable(struct clk *clk);
- void omap2_dflt_clk_disable(struct clk *clk);
--- 
-1.7.10.4
-
+That seems to pass the checks I've done on it so far, and seems rather
+obvious (there's been a number of people looking at this, none of whom
+have come up with that solution).  Provided the final cast is kept
+(which is there to ensure proper typechecking), it seems like it might
+be a solution.
