@@ -1,59 +1,181 @@
-From: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Mon, 12 Nov 2012 12:03:23 +0100
-Message-ID: <11727BE5-7173-4383-BD0E-751EFD093706@dominion.thruhere.net>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
+Date: Mon, 12 Nov 2012 13:23:48 +0200
+Message-ID: <C3971D11-2BAC-4B58-AF8D-987FF8FFF678@antoniou-consulting.com>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <50999145.2070306@wwwdotorg.org> <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1085)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
+Hi Grant,
 
-Op 5 nov. 2012, om 21:40 heeft Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> het volgende geschreven:
+Sorry for the late comments, travelling...
 
-> Hey folks,
-> 
-> As promised, here is my early draft to try and capture what device
-> tree overlays need to do and how to get there. Comments and
-> suggestions greatly appreciated.
-> 
-> Device Tree Overlay Feature
-> 
-> Purpose
-> =======
-> Sometimes it is not convenient to describe an entire system with a
-> single FDT. For example, processor modules that are plugged into one or
-> more modules (a la the BeagleBone), or systems with an FPGA peripheral
-> that is programmed after the system is booted.
-> 
-> For these cases it is proposed to implement an overlay feature for the
-> so that the initial device tree data can be modified by userspace at
-> runtime by loading additional overlay FDTs that amend the original data.
-> 
-> User Stories
-> ============
-> Note - These are potential use cases, but just because it is listed here
-> doesn't mean it is important. I just want to thoroughly think through the
-> implications before making design decisions.
+On Nov 9, 2012, at 6:28 PM, Grant Likely wrote:
 
-I think the beaglebone use cases cover it as well, but it deserves a seperate mention: SOMs. Gumstix is a good example of those, their website has a list of the different expansionboards they sell so we can see if we missed a use case somewhere.
-Their expansionboards have an EEPROM to ID them, just like the beagleboard classic/xM expansionboards, but I don't know if all 3rd party vendors honour that standard. I know the Ettus USRP E-100 on my desk has it.
+> On Tue, Nov 6, 2012 at 10:37 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+>> On 11/05/2012 01:40 PM, Grant Likely wrote:
+>>> Hey folks,
+>>> 
+>>> As promised, here is my early draft to try and capture what device
+>>> tree overlays need to do and how to get there. Comments and
+>>> suggestions greatly appreciated.
+>> 
+>> Interesting. This just came up internally at NVIDIA within the last
+>> couple weeks, and was discussed on the U-Boot mailing list very recently
+>> too:
+>> 
+>> http://lists.denx.de/pipermail/u-boot/2012-October/thread.html#138227
+>> (it spills into the November archive too)
+>> 
+>>> For these cases it is proposed to implement an overlay feature for the
+>>> so that the initial device tree data can be modified by userspace at
+>> 
+>> I don't know if you're maintaining this as a document and taking patches
+>> to it, but if so:
+> 
+> Sure, why not...
+> 
+> http://git.secretlab.ca/?p=devicetree-overlays.git;a=summary
+> 
+>> 
+>> "for the so" split across those two lines.
+> 
+> fixed
+> 
+>>>  - SHOULD reliably handle changes between different underlying overlays
+>>>    (ie. what happens to existing .dtb overly files if the structure of
+>>>    the dtb it is layered over changes. If not possible, then SHALL
+>>>    detect when the base tree doesn't match and refuse to apply the
+>>>    overlay.
+>> 
+>> Perhaps use (versioned) DT bindings to represent the interface between
+>> the two .dts files? See the links to the U-Boot mailing list discussions
+>> below?
+> 
+> Implementing versioning is conceptually a lot more complex than plain
+> overlays since it means either the kernel or u-boot needs to start
+> filtering the data that it's given. This can get really complex in a
+> hurry. Mitch makes a valid point later in this thread that when it
+> comes to manipulating the data depending on the board then the data
+> overlay model alone doesn't handle it well.
+> 
+> I'm not actually opposed to it, but it needs to be done in an elegant
+> way. The DT data model already imposes more of a conceptual learning
+> curve than I wish it did and I don't want to make that worse with a
+> versioning model that is difficult to get ones head around.
+> 
+> Suggestions and proposals are definitely welcome here.
+> 
 
-regards,
+I didn't find versioning all that difficult TBH.
 
-Koen
+Making the property access functions work sanely with versioning
+should cover most (if not all) kernel users.
+Keep non versioned property access function available to possibly
+users with a prefix for those that need it.
+
+>> 
+>>> - What is the model for overlays?
+>>>  - Can an overlay modify existing properties?
+>>>  - Can an overlay add new properties to existing nodes?
+>>>  - Can an overlay delete existing nodes/properties?
+>> 
+>> This proposal is very oriented at an overlay-based approach. I'm not
+>> totally convinced that a pure overlay approach (as in how dtc does
+>> overlayed DT nodes) will be flexible enough, but would love to be
+>> persuaded. Again see below.
+> 
+> The way I'm currently thinking about the overlay approach is as a
+> discrete set of changes that all can be applied at once.* That
+> certainly doesn't preclude the change being generated with a script or
+> other tool in either firmware or userspace. For most changes it works
+> really well. Of the scenarios that don't work well, I can think of
+> two. The first is it moving or renaming existing nodes, and the second
+> is if the structure of the base tree changes (say due to a firmware
+> update). Although the second limitation is specifically with binary
+> .dtb overlays. Recompiling the dts overlay against the new tree would
+> work fine.**
+> 
+
+Atomicity should be handled correctly. I can't imagine how hard would
+be to back out a semi-applied overlay without some kind of core DT
+tracking support. Leaving it to the driver/user is too difficult to get 
+right.
+
+About moving and renaming nodes, I can't think of a user-case today that
+needs it. Perhaps it can be handled by removal & re-insertion?
+
+> *with the caveat that not all types of changes are a good idea and we
+> may disallow. For example, is changing properties in existing nodes a
+> good idea?
+
+Yes, changing properties is something that we need. One such change is
+the change of the bus controller 'status' properties to enabled upon
+insertion of a child device node, and change back to 'on-demand' when
+all the child device nodes are gone.
+
+> ** all this is based on my current ideas about the .dtb overlay format
+> which would be trivial to implement, but I'm not committed to that
+> approach just yet. The above problems could be solved.
+> 
+>>> It may be sufficient to solve it by making the phandle values less
+>>> volatile. Right now dtc generates phandles linearly. Generated phandles
+>>> could be overridden with explicit phandle properties, but it isn't a
+>>> fantastic solution. Perhaps generating the phandle from a hash of the
+>>> node name would be sufficient.
+>> 
+>> Node names don't have to be unique though right; perhaps hash the
+>> path-name instead of the node-name? But then, why not just reference by
+>> path name; similar to <{&/path/to/node}> rather than <&label>?
+> 
+> I was thinking about using the full_name for generating phandles. On
+> the odd chance there is a collision, one of the nodes will get
+> something like the hash value +1. Or in that condition we can require
+> one of the nodes to have the phandle value explicitly set in the
+> source file.
+> 
+> Note; this doesn't actually affect anything outside of dtc. Right now
+> dtc starts at 1 and assigns phandles incrementally. I'm suggesting
+> using a hash of the full_name to assign the phandle for a node so that
+> it will not change unless the full_path changes.
+> 
+>>> This handles many of the use cases, but it assumes that an overlay is
+>>> board specific. If it ever is required to support multiple base boards
+>>> with a single overlay file then there is a problem. The .dtb overlays
+>>> generated in this manor cannot handle different phandles or nodes that
+>>> are in a different place. On the other hand, the overlay source files
+>>> should have no problem being compiled for multiple targets.
+>> 
+>> s/manor/manner/
+> 
+> Fixed
+> 
+>> 
+>> I do rather suspect this use-case is quite common. NVIDIA certainly has
+>> a bunch of development boards with pluggable
+>> PMIC/audio/WiFi/display/..., and I believe there's some ability to
+>> re-use the pluggable components with a variety of base-boards.
+>> 
+>> Given people within NVIDIA started talking about this recently, I asked
+>> them to enumerate all the boards we have that support pluggable
+>> components, and how common it is that some boards support being plugged
+>> into different main boards. I don't know when that enumeration will
+>> complete (or even start) but hopefully I can provide some feedback on
+>> how common the use-case is for us once it's done.
+> 
+> From your perspective, is it important to use the exact same .dtb
+> overlays for those add-on boards, or is it okay to have a separate
+> build of the overlay for each base tree?
+> 
+> g.
+
+Regards
+
+-- Pantelis
