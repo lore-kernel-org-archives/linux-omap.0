@@ -1,59 +1,157 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 08/13] ARM: OMAP: Don't restore of DMTIMER TISTAT register
-Date: Mon, 12 Nov 2012 12:20:39 -0600
-Message-ID: <1352744444-2633-9-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 13/13] ARM: OMAP: Remove __omap_dm_timer_set_source function
+Date: Mon, 12 Nov 2012 12:20:44 -0600
+Message-ID: <1352744444-2633-14-git-send-email-jon-hunter@ti.com>
 References: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33314 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751925Ab2KLSVB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 13:21:01 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:54564 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925Ab2KLSVI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 13:21:08 -0500
 In-Reply-To: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-The timer TISTAT register is a read-only register and therefore restoring the
-context is not needed. Furthermore, the context of TISTAT is never saved
-anywhere in the current code. The TISTAT register is read-only for all OMAP
-devices from OMAP1 to OMAP4. OMAP5 timers no longer have this register.
+The __omap_dm_timer_set_source() function is only used by the system timer
+(clock-events and clock-source) code for OMAP2+ devices. Therefore, we can
+remove this code from the dmtimer driver and move it to the system timer
+code for OMAP2+ devices.
+
+The current __omap_dm_timer_set_source() function calls clk_disable() before
+calling clk_set_parent() and clk_enable() afterwards. We can avoid these calls
+to clk_disable/enable by moving the calls to omap_hwmod_setup_one() and
+omap_hwmod_enable() to after the call to clk_set_parent() in
+omap_dm_timer_init_one().
+
+The function omap_hwmod_setup_one() will enable the timers functional clock
+and therefore increment the use-count of the functional clock to 1.
+clk_set_parent() will fail if the use-count is not 0 when called. Hence, if
+omap_hwmod_setup_one() is called before clk_set_parent(), we will need to call
+clk_disable() before calling clk_set_parent() to decrement the use-count.
+Hence, avoid these extra calls to disable and enable the functional clock by
+moving the calls to omap_hwmod_setup_one() and omap_hwmod_enable() to after
+clk_set_parent().
+
+We can also remove the delay from the __omap_dm_timer_set_source() function
+because enabling the clock will now be handled via the HWMOD framework by
+calling omap_hwmod_setup_one(). Therefore, by moving the calls to
+omap_hwmod_setup_one() and omap_hwmod_enable() to after the call to
+clk_set_parent(), we can simply replace __omap_dm_timer_set_source() with
+clk_set_parent().
+
+It should be safe to move these hwmod calls to later in the
+omap_dm_timer_init_one() because other calls to the hwmod layer that occur
+before are just requesting resource information.
+
+Testing includes boot testing on OMAP2420 H4, OMAP3430 SDP and OMAP4430 Blaze
+with the following configurations:
+1. CONFIG_OMAP_32K_TIMER=y
+2. CONFIG_OMAP_32K_TIMER=y and boot parameter "clocksource=gp_timer"
+3. CONFIG_OMAP_32K_TIMER not set
+4. CONFIG_OMAP_32K_TIMER not set and boot parameter "clocksource=gp_timer"
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c              |    3 ---
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 2 files changed, 4 deletions(-)
+ arch/arm/mach-omap2/timer.c               |    9 ++++-----
+ arch/arm/plat-omap/dmtimer.c              |    1 +
+ arch/arm/plat-omap/include/plat/dmtimer.h |   19 -------------------
+ 3 files changed, 5 insertions(+), 24 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 19765bd..099e406 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -274,9 +274,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 		oh_name = name;
+ 	}
+ 
+-	omap_hwmod_setup_one(oh_name);
+ 	oh = omap_hwmod_lookup(oh_name);
+-
+ 	if (!oh)
+ 		return -ENODEV;
+ 
+@@ -306,8 +304,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 	if (IS_ERR(timer->fclk))
+ 		return -ENODEV;
+ 
+-	omap_hwmod_enable(oh);
+-
+ 	/* FIXME: Need to remove hard-coded test on timer ID */
+ 	if (gptimer_id != 12) {
+ 		struct clk *src;
+@@ -316,13 +312,16 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 		if (IS_ERR(src)) {
+ 			res = -EINVAL;
+ 		} else {
+-			res = __omap_dm_timer_set_source(timer->fclk, src);
++			res = clk_set_parent(timer->fclk, src);
+ 			if (IS_ERR_VALUE(res))
+ 				pr_warn("%s: %s cannot set source\n",
+ 					__func__, oh->name);
+ 			clk_put(src);
+ 		}
+ 	}
++
++	omap_hwmod_setup_one(oh_name);
++	omap_hwmod_enable(oh);
+ 	__omap_dm_timer_init_regs(timer);
+ 
+ 	if (posted)
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index d4f9541..320d103 100644
+index 305faf5..9deeb30 100644
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -83,9 +83,6 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
+@@ -35,6 +35,7 @@
+  * 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
- static void omap_timer_restore_context(struct omap_dm_timer *timer)
- {
--	if (timer->revision == 1)
--		__raw_writel(timer->context.tistat, timer->sys_stat);
--
- 	__raw_writel(timer->context.tisr, timer->irq_stat);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_WAKEUP_EN_REG,
- 				timer->context.twer);
++#include <linux/clk.h>
+ #include <linux/module.h>
+ #include <linux/io.h>
+ #include <linux/device.h>
 diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index ac16f1e..2f9fd1d 100644
+index 769efb6..05a36e1 100644
 --- a/arch/arm/plat-omap/include/plat/dmtimer.h
 +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -84,7 +84,6 @@ struct omap_dm_timer;
+@@ -32,7 +32,6 @@
+  * 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
- struct timer_regs {
- 	u32 tidr;
--	u32 tistat;
- 	u32 tisr;
- 	u32 tier;
- 	u32 twer;
+-#include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+@@ -397,24 +396,6 @@ static inline void __omap_dm_timer_override_errata(struct omap_dm_timer *timer,
+ 	timer->errata &= ~errata;
+ }
+ 
+-static inline int __omap_dm_timer_set_source(struct clk *timer_fck,
+-						struct clk *parent)
+-{
+-	int ret;
+-
+-	clk_disable(timer_fck);
+-	ret = clk_set_parent(timer_fck, parent);
+-	clk_enable(timer_fck);
+-
+-	/*
+-	 * When the functional clock disappears, too quick writes seem
+-	 * to cause an abort. XXX Is this still necessary?
+-	 */
+-	__delay(300000);
+-
+-	return ret;
+-}
+-
+ static inline void __omap_dm_timer_stop(struct omap_dm_timer *timer,
+ 					int posted, unsigned long rate)
+ {
 -- 
 1.7.9.5
 
