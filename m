@@ -1,46 +1,47 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: Re: [PATCH] mmc: hsmmc: Fix NULL pointer dereference on unload when
- booted with device tree
-Date: Mon, 12 Nov 2012 18:50:12 +0530
-Message-ID: <50A0F78C.6030600@ti.com>
-References: <20121109182534.GR6801@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 0/2] omap_vout: remove cpu_is_* uses
+Date: Mon, 12 Nov 2012 15:33:38 +0200
+Message-ID: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40851 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41464 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751555Ab2KLNUT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Nov 2012 08:20:19 -0500
-In-Reply-To: <20121109182534.GR6801@atomide.com>
+	id S1751353Ab2KLNd7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Nov 2012 08:33:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chris Ball <cjb@laptop.org>, Venkatraman S <svenkatr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: hvaibhav@ti.com, linux-media@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Friday 09 November 2012 11:55 PM, Tony Lindgren wrote:
-> When booting with device tree, we don't have any pdata, and will
-> get the following when trying to unload omap_hsmmc:
->
-> Unable to handle kernel NULL pointer dereference at virtual address 00000044
-> pgd = edafc000
-> *pgd=adbbd831, *pte=00000000, *ppte=00000000
-> SMP ARM
-> Modules linked in: omap_hsmmc(-) omap_serial pinctrl_single
-> CPU: 1    Not tainted  (3.7.0-rc4-00044-g8ca5f6a-dirty #245)
-> PC is at omap_hsmmc_gpio_free+0x8/0x3c [omap_hsmmc]
-> LR is at omap_hsmmc_remove+0xf0/0x174 [omap_hsmmc]
-<snip>
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> ---
->
-> This is against v3.7-rc4, would be nice to get in during the -rc cycle.
->
-Hi Tony,
+Hi,
 
-Got fixed by below commit, merged in rc5
+This patch removes use of cpu_is_* funcs from omap_vout, and uses omapdss's
+version instead. The other patch removes an unneeded plat/dma.h include.
 
-http://git.kernel.org/?p=linux/kernel/git/cjb/mmc.git;a=commit;h=9ea28ecbeb090159a3383ff60b29dee00c489774
+These are based on current omapdss master branch, which has the omapdss version
+code. The omapdss version code is queued for v3.8. I'm not sure which is the
+best way to handle these patches due to the dependency to omapdss. The easiest
+option is to merge these for 3.9.
+
+There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last OMAP
+dependency in the omap_vout driver. I'm not going to touch that, as it doesn't
+look as trivial as this cpu_is_* removal, and I don't have much knowledge of
+the omap_vout driver.
+
+Compiled, but not tested.
+
+ Tomi
+
+Tomi Valkeinen (2):
+  [media] omap_vout: use omapdss's version instead of cpu_is_*
+  [media] omap_vout: remove extra include
+
+ drivers/media/platform/omap/omap_vout.c    |    4 +--
+ drivers/media/platform/omap/omap_voutlib.c |   38 ++++++++++++++++++++--------
+ drivers/media/platform/omap/omap_voutlib.h |    3 +++
+ 3 files changed, 32 insertions(+), 13 deletions(-)
+
+-- 
+1.7.10.4
 
