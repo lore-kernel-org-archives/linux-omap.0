@@ -1,81 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH linux-next] ARM: OMAP2: Fix compillation error in
- cm_common
-Date: Mon, 12 Nov 2012 09:38:47 -0800
-Message-ID: <20121112173847.GJ6801@atomide.com>
-References: <1352733428-27889-1-git-send-email-peter.ujfalusi@ti.com>
- <alpine.DEB.2.00.1211121625150.6043@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH V3 00/13] ARM: OMAP: DMTIMER fixes
+Date: Mon, 12 Nov 2012 12:20:31 -0600
+Message-ID: <1352744444-2633-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1211121625150.6043@utopia.booyaka.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56615 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750988Ab2KLSUw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Nov 2012 13:20:52 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [121112 08:27]:
-> Hi
->=20
-> On Mon, 12 Nov 2012, Peter Ujfalusi wrote:
->=20
-> > Fixes the following error:
-> >   CC      arch/arm/mach-omap2/cm_common.o
-> > arch/arm/mach-omap2/cm_common.c: In function =E2=80=98cm_register=E2=
-=80=99:
-> > arch/arm/mach-omap2/cm_common.c:42:11: error: =E2=80=98EINVAL=E2=80=
-=99 undeclared (first use in this function)
-> > arch/arm/mach-omap2/cm_common.c:42:11: note: each undeclared identi=
-fier is reported only once for each function it appears in
-> > arch/arm/mach-omap2/cm_common.c:45:11: error: =E2=80=98EEXIST=E2=80=
-=99 undeclared (first use in this function)
-> > arch/arm/mach-omap2/cm_common.c: In function =E2=80=98cm_unregister=
-=E2=80=99:
-> > arch/arm/mach-omap2/cm_common.c:66:11: error: =E2=80=98EINVAL=E2=80=
-=99 undeclared (first use in this function)
-> > make[1]: *** [arch/arm/mach-omap2/cm_common.o] Error 1
-> > make: *** [arch/arm/mach-omap2] Error 2
-> >=20
-> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > ---
-> >=20
-> > Hi,
-> >=20
-> > with today's linux-next the kernel build failed with the abive erro=
-r for OMAP.
-> >=20
-> > Regards,
-> > Peter
-> >=20
-> >  arch/arm/mach-omap2/cm_common.c | 1 +
-> >  1 file changed, 1 insertion(+)
-> >=20
-> > diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/=
-cm_common.c
-> > index 3246cef..3fafc27 100644
-> > --- a/arch/arm/mach-omap2/cm_common.c
-> > +++ b/arch/arm/mach-omap2/cm_common.c
-> > @@ -13,6 +13,7 @@
-> > =20
-> >  #include <linux/kernel.h>
-> >  #include <linux/init.h>
-> > +#include <linux/errno.h>
-> > =20
-> >  #include "cm2xxx.h"
-> >  #include "cm3xxx.h"
-> > --=20
-> > 1.8.0
->=20
-> Acked-by: Paul Walmsley <paul@pwsan.com>
->=20
-> Thanks Peter.
->=20
-> Tony, how would you like to handle this one?
+This series includes several fixes for the OMAP DMTIMER driver. This is
+based upon Tony Lindgren's current master branch [1].
 
-I can queue it.
+Tested on OMAP5912 OSK, OMAP2420 H4, OMAP3430 Beagle and OMAP4430 Panda.
+Testing includes ...
+1. Booting kernel on above boards
+2. Set date and ensuring time of day is correct after 24 hours
+3. Checking the timer counter is incrementing when configuring and starting
+   a timer
+4. Checking the timer overflow interrupt when timer expires.
+5. Using different clock sources to operate the timer with.
+6. Running a loop test overnight that continually runs test #3 and #4 for
+   each available timer
 
-Regards,
+This has also been boot tested on the AM335x Beagle Bone.
 
-Tony
+V3 changes:
+- Combined patches #2 and #3 in version 2 series into single patch.
+- Updated errata i103/i767 workaround to pass errata information via
+  platform data to avoid using cpu_is_xxxx() macros in dmtimer driver.
+
+[1] http://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+
+Jon Hunter (13):
+  ARM: OMAP: Add DMTIMER definitions for posted mode
+  ARM: OMAP3+: Implement timer workaround for errata i103 and i767
+  ARM: OMAP: Fix timer posted mode support
+  ARM: OMAP3: Correct HWMOD DMTIMER SYSC register declarations
+  ARM: OMAP2/3: Define HWMOD software reset status for DMTIMERs
+  ARM: OMAP2+: Don't use __omap_dm_timer_reset()
+  ARM: OMAP: Fix dmtimer reset for timer1
+  ARM: OMAP: Don't restore of DMTIMER TISTAT register
+  ARM: OMAP: Don't restore DMTIMER interrupt status register
+  ARM: OMAP: Fix spurious interrupts when using timer match feature
+  ARM: OMAP: Add dmtimer interrupt disable function
+  ARM: OMAP: Remove unnecessary call to clk_get()
+  ARM: OMAP: Remove __omap_dm_timer_set_source function
+
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   15 +++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   41 +++++------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    4 +
+ arch/arm/mach-omap2/timer.c                        |   70 +++++++++++++-----
+ arch/arm/plat-omap/dmtimer.c                       |   77 ++++++++++++--------
+ arch/arm/plat-omap/include/plat/dmtimer.h          |   72 +++++++++++++-----
+ 6 files changed, 188 insertions(+), 91 deletions(-)
+
+-- 
+1.7.9.5
+
