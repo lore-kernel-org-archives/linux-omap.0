@@ -1,79 +1,59 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Mon, 12 Nov 2012 12:01:00 +0100
-Message-ID: <50A0D6EC.2040608@ti.com>
-References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BFFDF.9040605@ti.com> <79CD15C6BA57404B839C016229A409A83EB68799@DBDE01.ent.ti.com> <509C050C.6010201@ti.com> <79CD15C6BA57404B839C016229A409A83EB71352@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+From: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Mon, 12 Nov 2012 12:03:23 +0100
+Message-ID: <11727BE5-7173-4383-BD0E-751EFD093706@dominion.thruhere.net>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33994 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751751Ab2KLLBX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 06:01:23 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB71352@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Hi Vaibhav,
 
-On 11/12/2012 11:38 AM, Hiremath, Vaibhav wrote:
-> On Fri, Nov 09, 2012 at 00:46:28, Hunter, Jon wrote:
->>
->> On 11/08/2012 12:59 PM, Hiremath, Vaibhav wrote:
->>> On Fri, Nov 09, 2012 at 00:24:23, Hunter, Jon wrote:
->>>>
->>>> On 11/08/2012 01:59 AM, Igor Grinberg wrote:
->>>>
->>>> [snip]
->>>>
->>>>> There is no reliable way to determine which source should be used in runtime
->>>>> for boards that do not have the 32k oscillator wired.
->>>>
->>>> So thinking about this some more and given that we are moving away from
->>>> board files, if a board does not provide a 32kHz clock source, then this
->>>> should be reflected in the device-tree source file for that board.
->>>> Hence, at boot time we should be able to determine if a 32kHz clock
->>>> source can be used.
->>>>
->>>
->>> Let me feed some more thoughts here :)
->>>
->>> The way it is being detected currently is based on timer idle status bit.
->>> I am worried that, this is the only option we have.
->>
->> Why not use device-tree to indicate the presence of a 32k clock source?
->> This seems like a board level configuration and so device-tree seems to
->> be the perfect place for this IMO.
->>
+Op 5 nov. 2012, om 21:40 heeft Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> het volgende geschreven:
+
+> Hey folks,
 > 
-> I think I agree with you, but for this to happen in clean way, its time to 
-> start populating clock-nodes in DT, don't you think? Something like,
+> As promised, here is my early draft to try and capture what device
+> tree overlays need to do and how to get there. Comments and
+> suggestions greatly appreciated.
 > 
+> Device Tree Overlay Feature
 > 
-> clocks {
-> 	rtc_clk: clk@X {
-> 		compatible = "crystal-32k, per-32k, xyz";
-> 		clock-frequency = <32768>;
-> 	};
-> 	...
-> };
+> Purpose
+> =======
+> Sometimes it is not convenient to describe an entire system with a
+> single FDT. For example, processor modules that are plugged into one or
+> more modules (a la the BeagleBone), or systems with an FPGA peripheral
+> that is programmed after the system is booted.
 > 
-> Timer {
+> For these cases it is proposed to implement an overlay feature for the
+> so that the initial device tree data can be modified by userspace at
+> runtime by loading additional overlay FDTs that amend the original data.
 > 
-> 	ref-clock = <&rtc_clk>;
-> };
-> 
-> What do you think?
+> User Stories
+> ============
+> Note - These are potential use cases, but just because it is listed here
+> doesn't mean it is important. I just want to thoroughly think through the
+> implications before making design decisions.
 
-That's indeed the proper way to do it, since this is a pure board level
-parameter and we do have the binding to express that.
-We just have to add that in the DTS:-)
+I think the beaglebone use cases cover it as well, but it deserves a seperate mention: SOMs. Gumstix is a good example of those, their website has a list of the different expansionboards they sell so we can see if we missed a use case somewhere.
+Their expansionboards have an EEPROM to ID them, just like the beagleboard classic/xM expansionboards, but I don't know if all 3rd party vendors honour that standard. I know the Ettus USRP E-100 on my desk has it.
 
-Regards,
-Benoit
+regards,
 
-
-
+Koen
