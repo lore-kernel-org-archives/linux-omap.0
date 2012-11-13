@@ -1,51 +1,185 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/6] omap cleanup fixes for v3.8 merge window
-Date: Mon, 12 Nov 2012 17:05:40 -0800
-Message-ID: <20121113010539.GZ6801@atomide.com>
-References: <pull-1352768345-815774>
+From: David Gibson <david-xT8FGy+AXnRB3Ne2BGzF6laj5H9X9Tb+@public.gmane.org>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Tue, 13 Nov 2012 12:05:05 +1100
+Message-ID: <20121113010505.GR4696@truffula.fritz.box>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <20121109022624.GI23553@truffula.fritz.box>
+ <CACxGe6vQ50aS0Fe7QvTHKfV=EDpsZoLC7SOxXLGc0pkMvyk5DQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45292 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754213Ab2KMBFq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 20:05:46 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <pull-1352768345-815774>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CACxGe6vQ50aS0Fe7QvTHKfV=EDpsZoLC7SOxXLGc0pkMvyk5DQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Deepak Saxena <dsaxena-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <ton@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <ton@atomide.com> [121112 17:01]:
-> The following changes since commit edf8dde393f879fc2d8c22d4bc01ff8d37b80e1a:
+On Fri, Nov 09, 2012 at 09:42:37PM +0000, Grant Likely wrote:
+> On Fri, Nov 9, 2012 at 2:26 AM, David Gibson
+> <david-xT8FGy+AXnRB3Ne2BGzF6laj5H9X9Tb+@public.gmane.org> wrote:
+> > (3) Resolving phandle references from the subtree to the main tree.
+> >
+> > So, I think this can actually be avoided, at least in cases where what
+> > physical connections are available to the expansion module is well
+> > defined.  The main causes to have external references are interrupts
+> > and gpios.  Interrupts we handle by defining an interrupt specifier
+> > space for the interrupts available on the expansion
+> > socket/connector/bus/whatever.  In the master tree we then have
+> > something like:
+> >
+> > ...
+> >         expansion-socket@XXXX {
+> >                 expansion-id = "SlotA";
+> >                 interrupt-map = < /* map expansion irq specs to
+> >                                      board interrupt controllers */ >;
+> >                 interrupt-map-mask = < ... >;
+> >                 ranges = < /* map expansion local addresses to global
+> >                               mmio */ >;
+> >         };
+> >
+> > The subtree for the expansion module gets attached as a subnode of
+> > this one.  It doesn't use explicit interrupt-parents but instead just
+> > uses the expansion local irq specifiers, letting the parent be the
+> > default which will bubble up to this socket node where the
+> > interrupt-map will send them to the right places.
+> >
+> > I don't recall the gpio bindings off hand, but as I recall we based
+> > them off the irq tree bindings so we ought to be able to do the same
+> > thing for them.
+> >
+> > Likewise, if there are several interchangeable expansion sockets that
+> > have some address bits hard wired to distinguish them, we can just use
+> > socket local mmio addresses within the subtree and the ranges property
+> > here will sort that out.
 > 
->   Merge branch 'linus' into omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3 (2012-11-09 14:58:01 -0800)
+> If I'm reading correctly, the suggestion is that everything be grafted
+> below a single node and all connections route through that node using
+> mapping. Correct?
 > 
-> are available in the git repository at:
+> For interrupts that works today
+> For gpios, it isn't currently supported, but we could do it.
+> For SPI it would mean that the new spi devices would not appear below
+> the actual spi bus they are attached to
+> For I2C, MDIO, and one wire, same problem.
+> For memory mapped devices, the expansion node would need to a ranges
+> for all the windows that map through it, and it assumes only one
+> memory mapped bus (or at least it prefers only one memory mapped bus.
+> If there were more than one then the expansion node placement wouldn't
+> have a natural place to sit)
 > 
+> The problem is that this is not like a PCI bus where there is only one
+> kind of interface. It is a whole bunch of interfaces that happen to be
+> grouped together loosely (as an expansion connector in the beaglebone
+> case, but expansion isn't the only problem that I'm hearing about).
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-fixes-signed
+> So, with a group of i2c, spi, memory mapped and other devices than are
+> all plugged in together, how does that look? They really should not
+> sit on the same level. An spi device cannot be a peer of an i2c device
+> for instance, the address mapping is entirely different. The kernel
+> really wants i2c devices to be a child of the actual i2c bus which may
+> already have an i2c device or too on the main board. Does the
+> expansion node need to have some kind of redirect node for each of the
+> busses where the children of it need to create devices as children of
+> the master bus?
 > 
-> for you to fetch changes up to e05cf58d50e3ce3601ebf753728eee0df759e38f:
-> 
->   ARM: OMAP2+: remove duplicated include from board-overo.c (2012-11-12 14:02:48 -0800)
-> 
-> ----------------------------------------------------------------
-> Minor fixes to the clean-up done for ARM common multi-platform
-> support for omaps.
+> To me that seems to get really complex in a hurry. More complex than
+> the overlay approach.
 
-FYI, some of the pull requests after this one may break
-compile for omap2plus_defconfig when merging them in.
+Ah, yes, I see.  Yeah, that's a genuine showstopper for my original
+proposal.  Ok, let me offer a couple of counter-proposals:
 
-I suggest you pull requests 2 - 6 with --no-commit option and
-make sure it builds after each pull if you have a chance.
-Or I can follow up with fixes if needed.
+1) bus-ranges
 
-If in doubt, I've pushded omap-for-v3.8/tmp-merge that's a
-merge of v3.7-rc5 + recently pulled omap fixes + these pull
-requests merged together for reference.
+The notion of bus-reg and bus-ranges properties is something I've
+toyed with before for other reasons, as a way of augmenting the
+"normal" DT tree structure with interrupt-tree like DAG sections.
+bus-reg and bus-ranges would act like the normal reg and ranges
+properties except that each entry includes a phandle explicitly giving
+the parent bus.  In that case a suitable 'bus-ranges' in the socket
+node would resurrect my graft proposal.
 
-Cheers,
+I'm not particularly sold on this idea, but I mention it because it
+has applications other than this one.  In particular it would mean we
+could avoid having two different nodes for a device which is mostly
+accessed via MMIO but also has a few sideband registers controlled by
+i2c (or whatever).
 
-Tony
+2) graft bundle
+
+The base tree has something like this:
+
+	...
+	i2c@XXX {
+		...
+		cape-socket {
+			compatible = "vendor,cape-socket";
+			id = "Socket-A";
+			piece-id = "i2c";
+			ranges = < ... >;
+		};
+	};
+	...
+	spi@YYY {
+		...
+		cape-socket {
+			compatible = "vendor,cape-socket";
+			id = "Socket-A";
+			piece-id = "spi";
+			ranges = < ... >;
+		};
+	};
+	...
+	cape-socket {
+		compatible = "vendor,cape-socket";
+		id = "Socket-A";
+		piece-id = "misc";
+		interrupt-map = < ... >;
+		interrupt-map-mask = < ... >;
+		gpio-map = < ... >;
+		gpio-map-mask = < ... >;
+	};
+
+Then instead of grafting a single subtree for the socket, we install a
+"bundle" of subtrees, one each for each of the pieces within the
+socket.  That bundle could either be an actual set of multiple fdts,
+or they could be placed into one fdt with a dummy root node, something like:
+	/ {
+		plugin-bundle;
+		compatible = "vendor,cape-plugin";
+		version = ...;
+		i2c-piece = {
+			piece-id = "i2c";
+			...
+		};
+		misc-piece = {
+			piece-id = "misc";
+			...
+		};
+	};
+That does have the additional advantage of letting us easily expand
+the metadata in the future by adding more properties to the dummy root
+node.
+
+It's a bit more complex than the overlay proposal, but I think it's
+safer - because the base tree clearly defines where it can be
+extended.  Plus it has the big advantage that it's no longer dependent
+on the exact node paths in the base tree, the matching for each
+component is done by the piece-id or other metadata.
+
+-- 
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
