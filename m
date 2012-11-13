@@ -1,189 +1,130 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] usb: otg: twl4030: Change TWL4030_MODULE_* ids to TWL_MODULE_*
-Date: Tue, 13 Nov 2012 11:28:15 +0100
-Message-ID: <50A220BF.7020901@ti.com>
-References: <1352799818-22363-1-git-send-email-peter.ujfalusi@ti.com> <20121113094722.GB10395@arwen.pp.htv.fi>
+Subject: [PATCH] ARM: OMAP: board-4430sdp: Proper support for TWL6030 PWM LED/Backlight
+Date: Tue, 13 Nov 2012 11:38:13 +0100
+Message-ID: <1352803093-26203-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121113094722.GB10395@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:36902 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754800Ab2KMKiX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Nov 2012 05:38:23 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi Felipe,
+New PWM drivers are being prepared for twl series which will enable the use
+of all PWMs (PWMs and LEDs).
+They are implemented as generic PWM drivers to be able to use them for different
+purposes.
+The current platform code was broken: the leds_pwm driver was not able to pick
+up the PWM since the pwm_id was incorrect.
 
-On 11/13/2012 10:47 AM, Felipe Balbi wrote:
-> On Tue, Nov 13, 2012 at 10:43:38AM +0100, Peter Ujfalusi wrote:
->> To facilitate upcoming cleanup in twl stack.
->> No functional changes.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->=20
-> I guess this one must go together with the rest of your series...
+With the other patches we will be able to control the followings:
+LCD backlight via pwm-backlight driver
+Keypad leds via leds_pwm driver as normal LED
+Charging indicator via leds_pwm driver as normal LED
 
-I made the split between the patches and they are good to go in their s=
-eparate
-ways to avoid cross tree hassle.
-All of the defines were in place originally but they were used in non
-consistent ways.
-All of these will help in the future to clean up the twl core without b=
-reaking
-the child drivers.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+Hello,
 
---=20
-P=E9ter
+This patch needs the following series to work:
+- twl regmap IO conversion series:
+http://lkml.org/lkml/2012/11/13/97
 
-> Acked-by: Felipe Balbi <balbi@ti.com>
->=20
->> ---
->>  drivers/usb/otg/twl4030-usb.c | 46 ++++++++++++++++++++------------=
------------
->>  1 file changed, 21 insertions(+), 25 deletions(-)
->>
->> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030=
--usb.c
->> index f0d2e75..11b2a12 100644
->> --- a/drivers/usb/otg/twl4030-usb.c
->> +++ b/drivers/usb/otg/twl4030-usb.c
->> @@ -123,10 +123,10 @@
->>  #define PHY_CLK_CTRL_STS		0xFF
->>  #define PHY_DPLL_CLK			(1 << 0)
->> =20
->> -/* In module TWL4030_MODULE_PM_MASTER */
->> +/* In module TWL_MODULE_PM_MASTER */
->>  #define STS_HW_CONDITIONS		0x0F
->> =20
->> -/* In module TWL4030_MODULE_PM_RECEIVER */
->> +/* In module TWL_MODULE_PM_RECEIVER */
->>  #define VUSB_DEDICATED1			0x7D
->>  #define VUSB_DEDICATED2			0x7E
->>  #define VUSB1V5_DEV_GRP			0x71
->> @@ -195,14 +195,14 @@ static int twl4030_i2c_write_u8_verify(struct =
-twl4030_usb *twl,
->>  }
->> =20
->>  #define twl4030_usb_write_verify(twl, address, data)	\
->> -	twl4030_i2c_write_u8_verify(twl, TWL4030_MODULE_USB, (data), (addr=
-ess))
->> +	twl4030_i2c_write_u8_verify(twl, TWL_MODULE_USB, (data), (address)=
-)
->> =20
->>  static inline int twl4030_usb_write(struct twl4030_usb *twl,
->>  		u8 address, u8 data)
->>  {
->>  	int ret =3D 0;
->> =20
->> -	ret =3D twl_i2c_write_u8(TWL4030_MODULE_USB, data, address);
->> +	ret =3D twl_i2c_write_u8(TWL_MODULE_USB, data, address);
->>  	if (ret < 0)
->>  		dev_dbg(twl->dev,
->>  			"TWL4030:USB:Write[0x%x] Error %d\n", address, ret);
->> @@ -227,7 +227,7 @@ static inline int twl4030_readb(struct twl4030_u=
-sb *twl, u8 module, u8 address)
->> =20
->>  static inline int twl4030_usb_read(struct twl4030_usb *twl, u8 addr=
-ess)
->>  {
->> -	return twl4030_readb(twl, TWL4030_MODULE_USB, address);
->> +	return twl4030_readb(twl, TWL_MODULE_USB, address);
->>  }
->> =20
->>  /*-----------------------------------------------------------------=
---------*/
->> @@ -264,8 +264,7 @@ static enum omap_musb_vbus_id_status
->>  	 * signal is active, the OTG module is activated, and
->>  	 * its interrupt may be raised (may wake the system).
->>  	 */
->> -	status =3D twl4030_readb(twl, TWL4030_MODULE_PM_MASTER,
->> -			STS_HW_CONDITIONS);
->> +	status =3D twl4030_readb(twl, TWL_MODULE_PM_MASTER, STS_HW_CONDITI=
-ONS);
->>  	if (status < 0)
->>  		dev_err(twl->dev, "USB link status err %d\n", status);
->>  	else if (status & (BIT(7) | BIT(2))) {
->> @@ -372,8 +371,7 @@ static void twl4030_phy_power(struct twl4030_usb=
- *twl, int on)
->>  		 * SLEEP. We work around this by clearing the bit after usv3v1
->>  		 * is re-activated. This ensures that VUSB3V1 is really active.
->>  		 */
->> -		twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0,
->> -							VUSB_DEDICATED2);
->> +		twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB_DEDICATED2);
->>  		regulator_enable(twl->usb1v5);
->>  		__twl4030_phy_power(twl, 1);
->>  		twl4030_usb_write(twl, PHY_CLK_CTRL,
->> @@ -419,50 +417,48 @@ static void twl4030_phy_resume(struct twl4030_=
-usb *twl)
->>  static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
->>  {
->>  	/* Enable writing to power configuration registers */
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER,
->> -			TWL4030_PM_MASTER_KEY_CFG1,
->> -			TWL4030_PM_MASTER_PROTECT_KEY);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KEY_CFG1,
->> +			 TWL4030_PM_MASTER_PROTECT_KEY);
->> =20
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER,
->> -			TWL4030_PM_MASTER_KEY_CFG2,
->> -			TWL4030_PM_MASTER_PROTECT_KEY);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_MASTER, TWL4030_PM_MASTER_KEY_CFG2,
->> +			 TWL4030_PM_MASTER_PROTECT_KEY);
->> =20
->>  	/* Keep VUSB3V1 LDO in sleep state until VBUS/ID change detected*/
->> -	/*twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB_DEDICATED2)=
-;*/
->> +	/*twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB_DEDICATED2);*/
->> =20
->>  	/* input to VUSB3V1 LDO is from VBAT, not VBUS */
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x14, VUSB_DEDICATED1=
-);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0x14, VUSB_DEDICATED1);
->> =20
->>  	/* Initialize 3.1V regulator */
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_DEV_GRP);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB3V1_DEV_GRP);
->> =20
->>  	twl->usb3v1 =3D regulator_get(twl->dev, "usb3v1");
->>  	if (IS_ERR(twl->usb3v1))
->>  		return -ENODEV;
->> =20
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_TYPE);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB3V1_TYPE);
->> =20
->>  	/* Initialize 1.5V regulator */
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_DEV_GRP);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB1V5_DEV_GRP);
->> =20
->>  	twl->usb1v5 =3D regulator_get(twl->dev, "usb1v5");
->>  	if (IS_ERR(twl->usb1v5))
->>  		goto fail1;
->> =20
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
->> =20
->>  	/* Initialize 1.8V regulator */
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_DEV_GRP);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB1V8_DEV_GRP);
->> =20
->>  	twl->usb1v8 =3D regulator_get(twl->dev, "usb1v8");
->>  	if (IS_ERR(twl->usb1v8))
->>  		goto fail2;
->> =20
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
->> =20
->>  	/* disable access to power configuration registers */
->> -	twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0,
->> -			TWL4030_PM_MASTER_PROTECT_KEY);
->> +	twl_i2c_write_u8(TWL_MODULE_PM_MASTER, 0,
->> +			 TWL4030_PM_MASTER_PROTECT_KEY);
->> =20
->>  	return 0;
->> =20
->> --=20
->> 1.8.0
->>
->=20
+- PWM drivers for twl4030/6030 (v2):
+https://lkml.org/lkml/2012/11/8/219
+
+- leds-pwm series (v2):
+https://lkml.org/lkml/2012/11/12/222
+
+With these in place we can have keypad light and LCD backlight working on Blaze
+when booting in legacy mode.
+I will send the DT patches after the leds-pwm DT support has been accepted.
+
+Regards,
+Peter
+
+ arch/arm/mach-omap2/board-4430sdp.c | 31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 3669c12..8cf781e 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -24,8 +24,10 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
++#include <linux/pwm.h>
+ #include <linux/leds.h>
+ #include <linux/leds_pwm.h>
++#include <linux/pwm_backlight.h>
+ #include <linux/platform_data/omap4-keypad.h>
+ 
+ #include <asm/hardware/gic.h>
+@@ -263,10 +265,20 @@ static struct gpio_led_platform_data sdp4430_led_data = {
+ 	.num_leds	= ARRAY_SIZE(sdp4430_gpio_leds),
+ };
+ 
++static struct pwm_lookup sdp4430_pwm_lookup[] = {
++	PWM_LOOKUP("twl-pwm", 0, "leds_pwm", "omap4::keypad"),
++	PWM_LOOKUP("twl-pwm", 1, "pwm-backlight", "backlight"),
++	PWM_LOOKUP("twl-pwmled", 0, "leds_pwm", "omap4:green:chrg"),
++};
++
+ static struct led_pwm sdp4430_pwm_leds[] = {
+ 	{
++		.name		= "omap4::keypad",
++		.max_brightness	= 127,
++		.pwm_period_ns	= 7812500,
++	},
++	{
+ 		.name		= "omap4:green:chrg",
+-		.pwm_id		= 1,
+ 		.max_brightness	= 255,
+ 		.pwm_period_ns	= 7812500,
+ 	},
+@@ -285,6 +297,21 @@ static struct platform_device sdp4430_leds_pwm = {
+ 	},
+ };
+ 
++static struct platform_pwm_backlight_data sdp4430_backlight_data = {
++	.pwm_id = 1,
++	.max_brightness = 127,
++	.dft_brightness = 127,
++	.pwm_period_ns = 7812500,
++};
++
++static struct platform_device sdp4430_backlight_pwm = {
++	.name   = "pwm-backlight",
++	.id     = -1,
++	.dev    = {
++		.platform_data = &sdp4430_backlight_data,
++	},
++};
++
+ static int omap_prox_activate(struct device *dev)
+ {
+ 	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 1);
+@@ -419,6 +446,7 @@ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_gpio_keys_device,
+ 	&sdp4430_leds_gpio,
+ 	&sdp4430_leds_pwm,
++	&sdp4430_backlight_pwm,
+ 	&sdp4430_vbat,
+ 	&sdp4430_dmic_codec,
+ 	&sdp4430_abe_audio,
+@@ -862,6 +890,7 @@ static void __init omap_4430sdp_init(void)
+ 				ARRAY_SIZE(sdp4430_spi_board_info));
+ 	}
+ 
++	pwm_add_table(sdp4430_pwm_lookup, ARRAY_SIZE(sdp4430_pwm_lookup));
+ 	status = omap4_keyboard_init(&sdp4430_keypad_data, &keypad_data);
+ 	if (status)
+ 		pr_err("Keypad initialization failed: %d\n", status);
+-- 
+1.8.0
+
