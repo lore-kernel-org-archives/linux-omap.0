@@ -1,32 +1,34 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [PATCH 12/26] ARM: OMAP4: clock: Add 44xx data using common
  struct clk
-Date: Tue, 13 Nov 2012 01:37:06 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211130135170.22487@utopia.booyaka.com>
-References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-13-git-send-email-mturquette@ti.com>
+Date: Tue, 13 Nov 2012 02:16:31 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211130204290.22487@utopia.booyaka.com>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com> <1352337181-29427-13-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1211130135170.22487@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:43679 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:43817 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754057Ab2KMBhH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 20:37:07 -0500
-In-Reply-To: <1352337181-29427-13-git-send-email-mturquette@ti.com>
+	with ESMTP id S1752882Ab2KMCQc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Nov 2012 21:16:32 -0500
+In-Reply-To: <alpine.DEB.2.00.1211130135170.22487@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mike Turquette <mturquette@ti.com>
 Cc: rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, patches@linaro.org
 
 
-This one missed the new omap-gpmc.fck alias added by commit 
-a2e5b90b0879e42eee4bef49bd217661abc35ee6; updated patch follows.
+This patch included some code modifications to mach-omap2/dpll3xxx.c which 
+belong in a different patch.  So they've been moved to the 'ARM: OMAP4: 
+clock: Convert to common clk' patch where the other dpll3xxx.c code 
+modifications are.
 
-commit a2e5b90b0879e42eee4bef49bd217661abc35ee6
-Author: Benoit Cousson <b-cousson@ti.com>
-Date:   Tue Oct 16 11:19:17 2012 -0700
+The patch also had some checkpatch issues that were previously lost in the 
+storm of clkdev 80-column warnings and static const char * array warnings; 
+these have been resolved.
 
-    ARM: OMAP2+: clock data: Add dev-id for the omap-gpmc dummy fck
-    
+Updated patch follows.
+
 
 - Paul
 
@@ -47,24 +49,25 @@ Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 [mturquette@ti.com: converted DPLL outputs to HSDIVIDER macro; trace_clk_div_ck
  has clkdm ops]
 Signed-off-by: Mike Turquette <mturquette@ti.com>
-[paul@pwsan.com: fixed the omap-gpmc.fck alias per commit a2e5b90b]
+[paul@pwsan.com: fixed the omap-gpmc.fck alias per commit a2e5b90b; fixed
+ several checkpatch issues; moved the dpll3xxx.c clockdomain modifications to
+ another patch]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/cclock44xx_data.c   | 1991 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cclock44xx_data.c   | 1987 +++++++++++++++++++++++++++++++
  arch/arm/mach-omap2/clock.h             |    2 +
  arch/arm/mach-omap2/clock44xx_data.c    |    8 -
  arch/arm/mach-omap2/clock_common_data.c |   22 +
- arch/arm/mach-omap2/dpll3xxx.c          |   20 +-
  arch/arm/mach-omap2/scrm44xx.h          |    2 +
- 6 files changed, 2036 insertions(+), 9 deletions(-)
+ 5 files changed, 2013 insertions(+), 8 deletions(-)
  create mode 100644 arch/arm/mach-omap2/cclock44xx_data.c
 
 diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
 new file mode 100644
-index 0000000..ff0424e
+index 0000000..aa56c3e
 --- /dev/null
 +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -0,0 +1,1991 @@
+@@ -0,0 +1,1987 @@
 +/*
 + * OMAP4 Clock data
 + *
@@ -250,8 +253,8 @@ index 0000000..ff0424e
 +};
 +
 +DEFINE_CLK_OMAP_HSDIVIDER(dpll_abe_m2x2_ck, "dpll_abe_x2_ck", &dpll_abe_x2_ck,
-+		   0x0, OMAP4430_CM_DIV_M2_DPLL_ABE,
-+		   OMAP4430_DPLL_CLKOUT_DIV_MASK);
++			  0x0, OMAP4430_CM_DIV_M2_DPLL_ABE,
++			  OMAP4430_DPLL_CLKOUT_DIV_MASK);
 +
 +DEFINE_CLK_FIXED_FACTOR(abe_24m_fclk, "dpll_abe_m2x2_ck", &dpll_abe_m2x2_ck,
 +			0x0, 1, 8);
@@ -266,9 +269,9 @@ index 0000000..ff0424e
 +		   OMAP4430_CLKSEL_AESS_FCLK_WIDTH,
 +		   0x0, NULL);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_abe_m3x2_ck, "dpll_abe_x2_ck", &dpll_abe_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M3_DPLL_ABE,
-+		   OMAP4430_DPLL_CLKOUTHIF_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_abe_m3x2_ck, "dpll_abe_x2_ck", &dpll_abe_x2_ck,
++			  0x0, OMAP4430_CM_DIV_M3_DPLL_ABE,
++			  OMAP4430_DPLL_CLKOUTHIF_DIV_MASK);
 +
 +static const char *core_hsd_byp_clk_mux_ck_parents[] = {
 +	"sys_clkin_ck", "dpll_abe_m3x2_ck",
@@ -334,34 +337,36 @@ index 0000000..ff0424e
 +
 +DEFINE_STRUCT_CLK(dpll_core_x2_ck, dpll_core_x2_ck_parents, dpll_abe_x2_ck_ops);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m6x2_ck, "dpll_core_x2_ck", &dpll_core_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M6_DPLL_CORE,
-+		   OMAP4430_HSDIVIDER_CLKOUT3_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m6x2_ck, "dpll_core_x2_ck",
++			  &dpll_core_x2_ck, 0x0, OMAP4430_CM_DIV_M6_DPLL_CORE,
++			  OMAP4430_HSDIVIDER_CLKOUT3_DIV_MASK);
 +
 +DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m2_ck, "dpll_core_ck", &dpll_core_ck, 0x0,
-+		   OMAP4430_CM_DIV_M2_DPLL_CORE, OMAP4430_DPLL_CLKOUT_DIV_MASK);
++			  OMAP4430_CM_DIV_M2_DPLL_CORE,
++			  OMAP4430_DPLL_CLKOUT_DIV_MASK);
 +
 +DEFINE_CLK_FIXED_FACTOR(ddrphy_ck, "dpll_core_m2_ck", &dpll_core_m2_ck, 0x0, 1,
 +			2);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m5x2_ck, "dpll_core_x2_ck", &dpll_core_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M5_DPLL_CORE,
-+		   OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m5x2_ck, "dpll_core_x2_ck",
++			  &dpll_core_x2_ck, 0x0, OMAP4430_CM_DIV_M5_DPLL_CORE,
++			  OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK);
 +
 +DEFINE_CLK_DIVIDER(div_core_ck, "dpll_core_m5x2_ck", &dpll_core_m5x2_ck, 0x0,
 +		   OMAP4430_CM_CLKSEL_CORE, OMAP4430_CLKSEL_CORE_SHIFT,
 +		   OMAP4430_CLKSEL_CORE_WIDTH, 0x0, NULL);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(div_iva_hs_clk, "dpll_core_m5x2_ck", &dpll_core_m5x2_ck, 0x0,
-+		   OMAP4430_CM_BYPCLK_DPLL_IVA, OMAP4430_CLKSEL_0_1_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(div_iva_hs_clk, "dpll_core_m5x2_ck",
++			  &dpll_core_m5x2_ck, 0x0, OMAP4430_CM_BYPCLK_DPLL_IVA,
++			  OMAP4430_CLKSEL_0_1_MASK);
 +
 +DEFINE_CLK_DIVIDER(div_mpu_hs_clk, "dpll_core_m5x2_ck", &dpll_core_m5x2_ck,
 +		   0x0, OMAP4430_CM_BYPCLK_DPLL_MPU, OMAP4430_CLKSEL_0_1_SHIFT,
 +		   OMAP4430_CLKSEL_0_1_WIDTH, CLK_DIVIDER_POWER_OF_TWO, NULL);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m4x2_ck, "dpll_core_x2_ck", &dpll_core_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M4_DPLL_CORE,
-+		   OMAP4430_HSDIVIDER_CLKOUT1_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m4x2_ck, "dpll_core_x2_ck",
++			  &dpll_core_x2_ck, 0x0, OMAP4430_CM_DIV_M4_DPLL_CORE,
++			  OMAP4430_HSDIVIDER_CLKOUT1_DIV_MASK);
 +
 +DEFINE_CLK_FIXED_FACTOR(dll_clk_div_ck, "dpll_core_m4x2_ck", &dpll_core_m4x2_ck,
 +			0x0, 1, 2);
@@ -397,9 +402,9 @@ index 0000000..ff0424e
 +			 OMAP4430_DPLL_CLKOUTHIF_GATE_CTRL_SHIFT, NULL,
 +			 dpll_core_m3x2_ck_parents, dmic_fck_ops);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m7x2_ck, "dpll_core_x2_ck", &dpll_core_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M7_DPLL_CORE,
-+		   OMAP4430_HSDIVIDER_CLKOUT4_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_core_m7x2_ck, "dpll_core_x2_ck",
++			  &dpll_core_x2_ck, 0x0, OMAP4430_CM_DIV_M7_DPLL_CORE,
++			  OMAP4430_HSDIVIDER_CLKOUT4_DIV_MASK);
 +
 +static const char *iva_hsd_byp_clk_mux_ck_parents[] = {
 +	"sys_clkin_ck", "div_iva_hs_clk",
@@ -428,7 +433,6 @@ index 0000000..ff0424e
 +	.min_divider	= 1,
 +};
 +
-+
 +static struct clk dpll_iva_ck;
 +
 +static struct clk_hw_omap dpll_iva_ck_hw = {
@@ -455,13 +459,13 @@ index 0000000..ff0424e
 +
 +DEFINE_STRUCT_CLK(dpll_iva_x2_ck, dpll_iva_x2_ck_parents, dpll_abe_x2_ck_ops);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_iva_m4x2_ck, "dpll_iva_x2_ck", &dpll_iva_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M4_DPLL_IVA,
-+		   OMAP4430_HSDIVIDER_CLKOUT1_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_iva_m4x2_ck, "dpll_iva_x2_ck", &dpll_iva_x2_ck,
++			  0x0, OMAP4430_CM_DIV_M4_DPLL_IVA,
++			  OMAP4430_HSDIVIDER_CLKOUT1_DIV_MASK);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_iva_m5x2_ck, "dpll_iva_x2_ck", &dpll_iva_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M5_DPLL_IVA,
-+		   OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_iva_m5x2_ck, "dpll_iva_x2_ck", &dpll_iva_x2_ck,
++			  0x0, OMAP4430_CM_DIV_M5_DPLL_IVA,
++			  OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK);
 +
 +/* DPLL_MPU */
 +static struct dpll_data dpll_mpu_dd = {
@@ -482,7 +486,6 @@ index 0000000..ff0424e
 +	.min_divider	= 1,
 +};
 +
-+
 +static struct clk dpll_mpu_ck;
 +
 +static struct clk_hw_omap dpll_mpu_ck_hw = {
@@ -498,10 +501,11 @@ index 0000000..ff0424e
 +DEFINE_CLK_FIXED_FACTOR(mpu_periphclk, "dpll_mpu_ck", &dpll_mpu_ck, 0x0, 1, 2);
 +
 +DEFINE_CLK_OMAP_HSDIVIDER(dpll_mpu_m2_ck, "dpll_mpu_ck", &dpll_mpu_ck, 0x0,
-+		   OMAP4430_CM_DIV_M2_DPLL_MPU, OMAP4430_DPLL_CLKOUT_DIV_MASK);
++			  OMAP4430_CM_DIV_M2_DPLL_MPU,
++			  OMAP4430_DPLL_CLKOUT_DIV_MASK);
 +
 +DEFINE_CLK_FIXED_FACTOR(per_hs_clk_div_ck, "dpll_abe_m3x2_ck",
-+			&dpll_abe_m3x2_ck, 0x0,	1, 2);
++			&dpll_abe_m3x2_ck, 0x0, 1, 2);
 +
 +static const char *per_hsd_byp_clk_mux_ck_parents[] = {
 +	"sys_clkin_ck", "per_hs_clk_div_ck",
@@ -564,8 +568,9 @@ index 0000000..ff0424e
 +
 +DEFINE_STRUCT_CLK(dpll_per_x2_ck, dpll_per_x2_ck_parents, dpll_abe_x2_ck_ops);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m2x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M2_DPLL_PER, OMAP4430_DPLL_CLKOUT_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m2x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck,
++			  0x0, OMAP4430_CM_DIV_M2_DPLL_PER,
++			  OMAP4430_DPLL_CLKOUT_DIV_MASK);
 +
 +static const char *dpll_per_m3x2_ck_parents[] = {
 +	"dpll_per_x2_ck",
@@ -584,21 +589,21 @@ index 0000000..ff0424e
 +			 OMAP4430_DPLL_CLKOUTHIF_GATE_CTRL_SHIFT, NULL,
 +			 dpll_per_m3x2_ck_parents, dmic_fck_ops);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m4x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M4_DPLL_PER,
-+		   OMAP4430_HSDIVIDER_CLKOUT1_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m4x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck,
++			  0x0, OMAP4430_CM_DIV_M4_DPLL_PER,
++			  OMAP4430_HSDIVIDER_CLKOUT1_DIV_MASK);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m5x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M5_DPLL_PER,
-+		   OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m5x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck,
++			  0x0, OMAP4430_CM_DIV_M5_DPLL_PER,
++			  OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m6x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M6_DPLL_PER,
-+		   OMAP4430_HSDIVIDER_CLKOUT3_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m6x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck,
++			  0x0, OMAP4430_CM_DIV_M6_DPLL_PER,
++			  OMAP4430_HSDIVIDER_CLKOUT3_DIV_MASK);
 +
-+DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m7x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck, 0x0,
-+		   OMAP4430_CM_DIV_M7_DPLL_PER,
-+		   OMAP4430_HSDIVIDER_CLKOUT4_DIV_MASK);
++DEFINE_CLK_OMAP_HSDIVIDER(dpll_per_m7x2_ck, "dpll_per_x2_ck", &dpll_per_x2_ck,
++			  0x0, OMAP4430_CM_DIV_M7_DPLL_PER,
++			  OMAP4430_HSDIVIDER_CLKOUT4_DIV_MASK);
 +
 +DEFINE_CLK_FIXED_FACTOR(usb_hs_clk_div_ck, "dpll_abe_m3x2_ck",
 +			&dpll_abe_m3x2_ck, 0x0, 1, 3);
@@ -623,7 +628,6 @@ index 0000000..ff0424e
 +	.max_divider	= 256,
 +	.min_divider	= 1,
 +};
-+
 +
 +static struct clk dpll_usb_ck;
 +
@@ -658,8 +662,8 @@ index 0000000..ff0424e
 +		  dpll_usb_clkdcoldo_ck_ops);
 +
 +DEFINE_CLK_OMAP_HSDIVIDER(dpll_usb_m2_ck, "dpll_usb_ck", &dpll_usb_ck, 0x0,
-+		   OMAP4430_CM_DIV_M2_DPLL_USB,
-+		   OMAP4430_DPLL_CLKOUT_DIV_0_6_MASK);
++			  OMAP4430_CM_DIV_M2_DPLL_USB,
++			  OMAP4430_DPLL_CLKOUT_DIV_0_6_MASK);
 +
 +static const char *ducati_clk_mux_ck_parents[] = {
 +	"div_core_ck", "dpll_per_m6x2_ck",
@@ -1031,12 +1035,6 @@ index 0000000..ff0424e
 +};
 +
 +DEFINE_STRUCT_CLK(l3_main_3_ick, l3_instr_ick_parent_names, l3_instr_ick_ops);
-+
-+#if 0
-+DEFINE_CLK_GATE(l3_main_3_ick, "l3_div_ck", &l3_div_ck, 0x0,
-+		OMAP4430_CM_L3INSTR_L3_3_CLKCTRL,
-+		OMAP4430_MODULEMODE_HWCTRL_SHIFT, 0x0, NULL);
-+#endif
 +
 +DEFINE_CLK_MUX(mcasp_sync_mux_ck, dmic_sync_mux_ck_parents, NULL, 0x0,
 +	       OMAP4430_CM1_ABE_MCASP_CLKCTRL,
@@ -1608,7 +1606,8 @@ index 0000000..ff0424e
 +	.clksel_mask	= OMAP4430_CLKSEL_PMD_TRACE_CLK_MASK,
 +};
 +
-+DEFINE_STRUCT_CLK(trace_clk_div_ck, trace_clk_div_ck_parents, trace_clk_div_ck_ops);
++DEFINE_STRUCT_CLK(trace_clk_div_ck, trace_clk_div_ck_parents,
++		  trace_clk_div_ck_ops);
 +
 +/* SCRM aux clk nodes */
 +
@@ -2146,55 +2145,6 @@ index b9f3ba6..c0d02a9 100644
  };
 +
 +#endif
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index 721588f..f72dedb 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -29,6 +29,7 @@
- #include <linux/clkdev.h>
- 
- #include "soc.h"
-+#include "clockdomain.h"
- #include "clock.h"
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-34xx.h"
-@@ -460,6 +461,17 @@ int omap3_noncore_dpll_enable(struct clk *clk)
- 		return -EINVAL;
- 
- #ifdef CONFIG_COMMON_CLK
-+	if (clk->clkdm) {
-+		r = clkdm_clk_enable(clk->clkdm, hw->clk);
-+		if (r) {
-+			WARN(1,
-+			     "%s: could not enable %s's clockdomain %s: %d\n",
-+			     __func__, __clk_get_name(hw->clk),
-+			     clk->clkdm->name, r);
-+			return r;
-+		}
-+	}
-+
- 	parent = __clk_get_parent(hw->clk);
- 
- 	if (__clk_get_rate(hw->clk) == __clk_get_rate(dd->clk_bypass)) {
-@@ -499,11 +511,17 @@ int omap3_noncore_dpll_enable(struct clk *clk)
- void omap3_noncore_dpll_disable(struct clk_hw *hw)
- {
- 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
-+
-+	_omap3_noncore_dpll_stop(clk);
-+	if (clk->clkdm)
-+		clkdm_clk_disable(clk->clkdm, hw->clk);
- #else
- void omap3_noncore_dpll_disable(struct clk *clk)
- {
--#endif
- 	_omap3_noncore_dpll_stop(clk);
-+	if (clk->clkdm)
-+		clkdm_clk_disable(clk->clkdm, clk);
-+#endif
- }
- 
- 
 diff --git a/arch/arm/mach-omap2/scrm44xx.h b/arch/arm/mach-omap2/scrm44xx.h
 index 701bf2d..e897ac8 100644
 --- a/arch/arm/mach-omap2/scrm44xx.h
