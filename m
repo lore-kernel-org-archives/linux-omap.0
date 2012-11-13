@@ -1,55 +1,51 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 03/13] MFD: twl-core: Convert to use regmap for I/O
-Date: Tue, 13 Nov 2012 17:32:23 +0900
-Message-ID: <20121113083222.GQ18224@opensource.wolfsonmicro.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 02/13] MFD: twl-core: Support for proper PWM drivers
+Date: Tue, 13 Nov 2012 09:28:43 +0100
+Message-ID: <1352795334-7406-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
- <1352795334-7406-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rJ8inJ6ig7iY3YX9"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1352795334-7406-4-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+The twl6030-pwm driver is going to be deleted since it was only able to
+control the Charging indicator LED on the twl6030 PMIC.
+The new set of drivers are going to provide support for both PWMs and PWM
+driven LED outputs on TWL4030 and TWL6030 PMICs.
+The twl-pwm driver will handle the PWMs (2 instance) while the twl-pwmled
+driver is to control the two LED instance on TWL4030 and to charging
+indicator LED (1 instance) on TWL6030.
 
---rJ8inJ6ig7iY3YX9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ drivers/mfd/twl-core.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-On Tue, Nov 13, 2012 at 09:28:44AM +0100, Peter Ujfalusi wrote:
-> Remove the custom code to do I/O and replace it with standard regmap call=
-s.
->=20
-> CC: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-
---rJ8inJ6ig7iY3YX9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQogWJAAoJELSic+t+oim9VdUP/0PPz7bZam2L+nwbVsze+imO
-6hxO53FNukm+GZolqXifUaFhTKnrGJPhD8vZPMzZAuF7VM+gz5dMSKuFQD8mhaBr
-K1l71bNWLp7kvLK9oTBTdB87yuc2BM7hcvyuNoliAWA2TvFq0z72uPeyPE8X+/9z
-KJDPdlFW4KmLPJShO8tsVNsB6MAgPlrlNZhLpqHAU08gD8vlbXlvbWqhnytyJFIw
-NcVqNV/zCwliPSvhL6Z6kdeo4yXezHUH3NJIOMUz4prr8D9f76zfuSYuLKDm9SP3
-IGmVyvbtPBM11f8MkCtbQhByzRNjUsHcOqK7RK3+vCao4Gik2usKaNTLsZEZKEJG
-XCAJ1uXYrNQUqk+ZkWMaubCU226BfJL/N6TRyBuWS6MCjrb3Uw/iK89j5QRpXa67
-GiswiL56ghWaBVT4otH+HtunmhFmiwZSuCY7abGF6CMRdf1lcs7vZAVlcdSk+hQY
-DYcZHnYk3JywDfjs7kS5Cc1UdiOlMb/9RupY5UwxIg+PyV4TDWS+Zz4/yPQJETju
-SINuY1X2eqE6dANOCM2Pvt/fe+mKaLIHAKtR7tGDRKKcpG4dAsb7QxnouEkI+7bM
-yl0lJWvDb6OdyYKv8bSBLStA6wV5Hgb1A1iHTMb5mgTYOa58nCb6+0GasFReEBgb
-rg1R8HZ2K79TUWws983E
-=axQW
------END PGP SIGNATURE-----
-
---rJ8inJ6ig7iY3YX9--
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index d7577cb..1dfd583 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -671,8 +671,15 @@ add_children(struct twl4030_platform_data *pdata, unsigned irq_base,
+ 			return PTR_ERR(child);
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_PWM_TWL6030) && twl_class_is_6030()) {
+-		child = add_child(SUB_CHIP_ID1, "twl6030-pwm", NULL, 0,
++	if (IS_ENABLED(CONFIG_PWM_TWL)) {
++		child = add_child(SUB_CHIP_ID1, "twl-pwm", NULL, 0,
++				  false, 0, 0);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++	}
++
++	if (IS_ENABLED(CONFIG_PWM_TWL_LED)) {
++		child = add_child(SUB_CHIP_ID1, "twl-pwmled", NULL, 0,
+ 				  false, 0, 0);
+ 		if (IS_ERR(child))
+ 			return PTR_ERR(child);
+-- 
+1.8.0
