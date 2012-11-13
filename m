@@ -1,162 +1,81 @@
-From: Igor Mazanov <i.mazanov@gmail.com>
-Subject: Re: OMAP baseline test results for v3.7-rc5
-Date: Tue, 13 Nov 2012 20:00:57 +0400
-Message-ID: <50A26EB9.8090401@gmail.com>
-References: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
-Reply-To: i.mazanov@gmail.com
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH v2 00/26] Move OMAP2+ over to common clk framework
+Date: Tue, 13 Nov 2012 08:43:23 -0800
+Message-ID: <20121113164323.20034.34462@nucleus>
+References: <1352337181-29427-1-git-send-email-mturquette@ti.com>
+ <3718991.PIry3KaXBM@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:54731 "EHLO plane.gmane.org"
+Received: from bear.ext.ti.com ([192.94.94.41]:52304 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755032Ab2KMQO5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Nov 2012 11:14:57 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1TYJ8i-0002Q6-Oe
-	for linux-omap@vger.kernel.org; Tue, 13 Nov 2012 17:15:04 +0100
-Received: from 77.232.56.122 ([77.232.56.122])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 13 Nov 2012 17:15:04 +0100
-Received: from i.mazanov by 77.232.56.122 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 13 Nov 2012 17:15:04 +0100
-In-Reply-To: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
+	id S1754942Ab2KMQnr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Nov 2012 11:43:47 -0500
+In-Reply-To: <3718991.PIry3KaXBM@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: paul@pwsan.com, rnayak@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org, patches@linaro.org
 
-Paul Walmsley wrote:
-> Here are some basic OMAP test results for Linux v3.7-rc5.
-> Logs and other details at:
+Quoting Laurent Pinchart (2012-11-13 05:42:35)
+> Hi Mike,
 > 
->     http://www.pwsan.com/omap/testlogs/test_v3.7-rc5/20121111081034/
+> Thank you for the patches.
 > 
+> On Wednesday 07 November 2012 17:12:35 Mike Turquette wrote:
+> > From: Mike Turquette <mturquette@linaro.org>
+> > 
+> > Hi all,
+> > 
+> > This series is based on top of Paul's PRM/CM clean-up work.  It is a
+> > refresh of the patches Rajendra sent out a while back[1], with the
+> > addition of several fixes for PM regressions[2] across several
+> > platforms.
+> > 
+> > I have tested on OMAP4430 Panda including PRCM diffing against pre-CCF
+> > patches (delta is zero) and also suspend/resume.
+> > 
+> > I also tested on OMAP4460 Panda-ES.  Boot is fine and PRCM programming
+> > appears sane.  However Panda-ES never comes back from suspend/resume.
+> > This problem exists on the PRM/CM branch I based on and was not
+> > introduced by this series.  I am investigating that independently of
+> > this series.
+> > 
+> > Anyone wanting to pull the work can find it at:
+> > git://git.linaro.org/people/mturquette/linux.git clk-omap-3.8
+> > 
+> > [1] http://article.gmane.org/gmane.linux.ports.arm.omap/78771
+> > [2] http://article.gmane.org/gmane.linux.ports.arm.omap/84015
 > 
-> Passing tests
-> -------------
-> 
-> Boot to userspace (9/11): 2420n800, 2430sdp, 3517evm, 3530es3beagle,
->     3730beaglexm, 37xxevm, 4430es2panda, 5912osk, am335xbone
->   
-> PM ret/off, suspend + dynamic idle (2/4): 3730beaglexm, 37xxevm
-> 
-> 
-> Failing tests: fixed by posted patches
-> --------------------------------------
-> 
-> Boot tests:
-> 
-> * 3530ES3 Beagle: I2C timeouts during userspace init
->   - Intermittent, appears on 5 out of 6 boots here
->   - Aaro Koskinen observes this also on N900
->   - Appears to be caused by commit 3db11feffc1ad2ab9dea27789e6b5b3032827adc
->     - http://marc.info/?l=linux-arm-kernel&m=135071372426971&w=2
->     - http://marc.info/?l=linux-omap&m=135197877112220&w=2
->   - Revert posted, pending I2C maintainers:
->     - http://marc.info/?l=linux-arm-kernel&m=135221953727077&w=2
-> 
-> PM tests:
-> 
-> * 3530es3beagle: hangs during off-mode dynamic idle test
->   - Appears to be caused by commit 6c31b2150ff96755d24e0ab6d6fea08a7bf5c44c:
->     - http://marc.info/?l=linux-omap&m=135075364705188&w=2
->   - Fixed by http://www.spinics.net/lists/arm-kernel/msg202116.html
->  
-> Other:
-> 
-> * 2420N800: powers down 30 seconds after boot
->   - Presumably due to missing CBUS patches for watchdog control
->   - http://lkml.org/lkml/2012/9/3/265
-> 
-> * 4430es2panda: omap_hwmod: mcpdm: cannot be enabled for reset (3)
->   - clock source is from an external I2C-controlled source
->   - must skip reset until the switchover to hwmod late init
->   - http://www.spinics.net/lists/arm-kernel/msg178138.html
-> 
-> 
-> Failing tests: needing investigation
-> ------------------------------------
-> 
-> Boot tests:
-> 
-> * CM-T3517: L3 in-band error with IPSS during boot
->   - Cause unknown but see http://marc.info/?l=linux-omap&m=134833869730129&w=2
->   - Longstanding issue; does not occur on the 3517EVM
-> 
-> * 3517EVM & CM-T3517: boot hangs with NFS root
->   - Likely some Kconfig, board file, and PM issues with EMAC
-> 
-> * CM-T3517: boot hangs with MMC boot
->   - Due to missing MMC setup in board file
-> 
-> Other:
-> 
-> * 4430es2panda: omap_hwmod: l3_instr: _wait_target_disable failed
->   - Unknown cause; could be due to the lack of hierarchical enable/disable
->     in hwmod code
->   - Jon Hunter reports this does not appear with the same X-loader/bootloader
->     on his 4430ES2.3 Panda, so could be ES-level dependent
-> 
-> 
-> Failing tests: needing local investigation (may be due to testbed issues)
-> -------------------------------------------------------------------------
-> 
-> Boot tests:
-> 
-> * AM335x Beaglebone: omap2plus_defconfig kernels don't boot
->   - May be fixed now, pending retest:
->     - http://marc.info/?l=linux-omap&m=135082257727502&w=2
->   - Not yet part of the automated test suite
->   * May be due to an old U-boot with FDT support problems used here?
->     Pending local investigation and re-test
-
-I have the same result with omap2plus_defconfig and kernel 3.7.0-rc5. I dumped 
-the kernel log buffer via JTAG and can send this log if it could be useful.
-
-> 
-> * 4460pandaes: boot fails early
->   - Appears to be due to X-loader problems here
->   - Need to note the X-loader version so we know it's broken
-> 
-> PM tests:
-> 
-> * 3730 Beagle XM: does not serial wake from off-idle suspend when console
->   UART doesn't clock gate ("debug ignore_loglevel")
->   - Not shown in the current test logs; cause unknown
->   - Pending re-test
-> 
-> 
-> vmlinux object size
-> (delta in bytes from test_v3.7-rc4 (3d70f8c617a436c7146ecb81df2265b4626dfe89)):
->    text     data      bss    total  kernel
->    +500       -8        0     +492  am33xx_only
->    +456      +16        0     +472  n800_multi_omap2xxx
->    +424      +16        0     +440  n800_only_a
->    +164        0        0     +164  omap1_defconfig
->    +164        0        0     +164  omap1_defconfig_1510innovator_only
->    +164        0        0     +164  omap1_defconfig_5912osk_only
->    +940       -8        0     +932  omap2plus_defconfig
->    +796       -8        0     +788  omap2plus_defconfig_2430sdp_only
->    +940      +24        0     +964  omap2plus_defconfig_cpupm
->    +940       -8        0     +932  omap2plus_defconfig_no_pm
->    +940      +16        0     +956  omap2plus_defconfig_omap2_4_only
->    +820      +16        0     +836  omap2plus_defconfig_omap3_4_only
->     +20       +8      +48      +76  rmk_omap3430_ldp_allnoconfig
->    +124        0        0     +124  rmk_omap3430_ldp_oldconfig
->     +20       +8      +48      +76  rmk_omap4430_sdp_allnoconfig
->    +124       +8        0     +132  rmk_omap4430_sdp_oldconfig
-> 
-> 
-> - Paul
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I've tested the whole series on a Beagleboard-xM. The kernel boots fine but 
+> spits a couple of WARN_ON due to missing clk_prepare in USB-related drivers. I 
+> haven't noticed any regression in the OMAP3 ISP driver.
 > 
 
+Those drivers need to be fixed.  Can you provide a log?
 
+> I've also successfully tested rate back-propagation (CLK_SET_RATE_PARENT) on 
+> the dpll4_m5x2_ck and cam_mclk clocks with the OMAP3 ISP driver. I'll send a 
+> patch for that on top of your v3.
+> 
+
+It is great to see this feature in action.  Do you think the OMAP3 ISP
+driver can have parent clock info removed?  The goal of the
+CLK_SET_RATE_PARENT flag is to make life easier for drivers by not
+having to know the details of the clock tree topology.
+
+> So,
+> 
+> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+
+Thanks for testing!
+
+Regards,
+Mike
+
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
