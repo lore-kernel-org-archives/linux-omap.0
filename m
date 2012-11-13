@@ -1,90 +1,107 @@
-From: David Gibson <david@gibson.dropbear.id.au>
+From: Joel A Fernandes <agnel.joel@gmail.com>
 Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
  omap_devices to mach-omap2)
-Date: Tue, 13 Nov 2012 13:28:08 +1100
-Message-ID: <20121113022808.GS4696@truffula.fritz.box>
+Date: Mon, 12 Nov 2012 21:59:13 -0600
+Message-ID: <CAD=GYpYHwXvcCzANOA90S0_PyAufnuF5MR-Wdk-9uygYbWDBYA@mail.gmail.com>
 References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
- <-4237940489086529028@unknownmsgid>
- <559B8433-67C3-4A1A-A5D6-859907655176@antoniou-consulting.com>
- <CAD=GYpZwpRRUD=Qy529KkiL-5e2zHaCWMZM9+CTQEnMqSR3yEw@mail.gmail.com>
+	<02FF5400-9F97-4B8A-AEF0-267B01C8099F@antoniou-consulting.com>
+	<CAD=GYpbeKtW37Cj9cXr8F7F83d9Fgs-moqu9p6cOaPE1VxwbSg@mail.gmail.com>
+	<CACxGe6vL9gbAKyDWcZWWAQ4WO=nTgdAioXS-h2e1jtJK9pmZUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAD=GYpZwpRRUD=Qy529KkiL-5e2zHaCWMZM9+CTQEnMqSR3yEw@mail.gmail.com>
+In-Reply-To: <CACxGe6vL9gbAKyDWcZWWAQ4WO=nTgdAioXS-h2e1jtJK9pmZUg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joel A Fernandes <agnel.joel@gmail.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Rob Herring <robherring2@gmail.com>, Deepak Saxena <dsaxena@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Scott Wood <scottwood@freescale.com>, Tony Lindgren <tony@atomide.com>, Russ Dill <Russ.Dill@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, Matt Porter <mporter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 09, 2012 at 09:36:26PM -0600, Joel A Fernandes wrote:
-> Hi Pantelis,
-> 
-> On Fri, Nov 9, 2012 at 2:13 AM, Pantelis Antoniou
-> <panto@antoniou-consulting.com> wrote:
-> 
-> >>>> Option C: U-Boot loads both the base and overlay FDT files, merges them,
-> >>>>       and passes the resolved tree to the kernel.
-> >>>>
-> >>>
-> >>> Could be made to work. Only really required if Joanne wants the
-> >>> cape interface to work for u-boot too. For example if the cape has some
-> >>> kind of network interface that u-boot will use to boot from.
-> >>>
-> >>
-> >> I love Grant's hashing idea a lot keeping the phandle problem for
-> >> compile time and not requiring fixups.
-> >>
-> >> IMO it is still a cleaner approach if u-boot does the tree merging for
-> >> all cases, and not the kernel.
-> >>
-> >> That way from a development standpoint, very little or nothing will
-> >> have to be changed in kernel (except for scripts/dtc) considering we
-> >> are moving forward with hashing.
-> >>
-> >> Also this discussed a while back but at some point is going to brought
-> >> up again-  loading of dt fragment directly from EEPROM and merging at
-> >> run time. If we were to implement this in kernel, we would have to add
-> >> cape specific EEPROM reading code, merge the tree before it is
-> >> unflattened and parse. I think doing tree merging in kernel is messy
-> >> and we should do it in uboot. Ideally reading the fragment from the
-> >> EEPROM for all capes and merging without worrying about version
-> >> detection, Doing the merge and passing the merged blob to the kernel
-> >> which (kernel) works the same way it does today.
-> >
-> > Not going to work, for a lot of cases. Doing it in the kernel seems to be
-> > the cleaner option. There are valid use cases for doing in u-boot too.
-> 
-> True, if dynamic runtime stuff from userspace is what we're talking
-> about, then yeah I see the important need for kernel to do the merge.
-> 
-> >> Alternatively to hashing, reading david gibsons paper I followed,
-> >> phandle is supposed to 'uniquely' identity node. I wonder why the node
-> >> name itself is not sufficient to unquiely identify. The code that does
-> >> the tree walking can then just strcmp the node name while it walks the
-> >> tree instead of having to find a node with a phandle number. I guess
-> >> the reason is phandles are small to store as data values. Another
-> >> approach can be to arrange the string block in alphabetical order
-> >> (unless it already is), and store phandle as index of the node name
-> >> referenced relative to the starting of the strong block. This will not
-> >> affect nodes in dtb being moved around since they will still have the
-> >> same index value. the problem being adding or removing nodes Changes
-> >> the offsets of all other nodes in the string block as well.. Hmm.
-> >>
-> >
-> > This is pretty radical change to the DT format, no?
-> 
-> Yes, true and the only way hypothetically to replace the phandle
-> tree-walking mechanism is to store node paths instead of phandle which
-> David pointed is too long to store, so I guess this wont work after
-> all. Anyway this was an interesting exercise, thanks.
+Hi Grant,
 
-They're not too long to store, but changing to paths would break years
-of existing OF practice.
+On Fri, Nov 9, 2012 at 3:22 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+>> (2)
+>> Also this discussed a while back but at some point is going to brought
+>> up again-  loading of dt fragment directly from EEPROM and merging at
+>> run time. If we were to implement this in kernel, we would have to add
+>> cape specific EEPROM reading code, merge the tree before it is
+>> unflattened and parse.
+>
+> Unless it is required for boot to userspace I'm not considering
+> merging before userspace starts. That's well after the tree is
+> unflattened into the live form. If it is require to boot then I agree
+> that is should be done in firmware. I see zero problem with having a
+> beaglebone specific cape driver that knows to read the eeprom and
+> request a specific configuration file. Heck, the kernel doesn't even
+> need to parse the eeprom data. It can be read from userspace and
+> userspace decides which overlay to provide. There's nothing stopping
+> userspace from reading the eeprom, looking up the correct dts for the
+> board, downloading the file from the Internet, compiling it with dtc
+> and installing it.... and yes that is getting a little extreme.
 
--- 
-David Gibson			| I'll have my music baroque, and my code
-david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-				| _way_ _around_!
-http://www.ozlabs.org/~dgibson
+Actually, I was speaking of the case where today we read EEPROM anyway
+for capes before userspace, so it would convenient do the overlay this
+way. Further, userspace doesn't have to do any parsing as
+kernel/u-boot could blindly load the dtb overlay directly from EEPROM
+regardless of which cape. So we don't have do any revision detection
+and dtb search, the dtb itself being in the EEPROM.
+That way no matter what the userspace is, the cape hardware is already
+configured and ready to use by userspace. This might be a corner-case
+just for beaglebone though, and if requesting overlay from userspace
+is a more general solution for all usecases, then probably we should
+go with that approach. OTOH, I guess there's no harm in doing some
+overlays from kernel for some cases, and userspace for others.
+
+>> The code that does
+>> the tree walking can then just strcmp the node name while it walks the
+>> tree instead of having to find a node with a phandle number. I guess
+>> the reason is phandles are small to store as data values. Another
+>> approach can be to arrange the string block in alphabetical order
+>> (unless it already is), and store phandle as index of the node name
+>> referenced relative to the starting of the strong block. This will not
+>> affect nodes in dtb being moved around since they will still have the
+>> same index value. the problem being adding or removing nodes Changes
+>> the index of all other nodes in the string block as well.. Hmm.
+>
+> And that still doesn't help find all the phandle locations in the tree
+> for doing fixups. It would need to be a table of
+> nodes+properties+offsets that contain phandles for fixup to work, but
+> I shy away from that approach because I think it will be fragile.
+
+I guess this approach (which wouldn't work for other reasons) was
+intended to serve the same purpose as Hashing, having a phandle that
+doesn't easily change hence not requiring overlay fixups.
+
+Actually I'm a bit confused if how maintaining a list of
+name/node-paths for fix up will even work, because node names are not
+unique as we discussed. Also node paths can change, so what will the
+overlay dtb store in its fixup table (say there is one)? A table of
+node,properties etc as you mentioned might not be unique as there can
+be 2 nodes with same name and properties. Also if we use node path,
+instead of node name, in this table, then moving nodes around wont be
+possible as the fixup table will be pointing to node path references
+that have now changed- how will the kernel now what's the node's new
+actual path, say, if there are 2 nodes with the same name? Only thing
+possible is, to do a _mandatory_ recompile of overlay dtb if a node's
+path changes.
+
+Would be you be in agreement that- When a node's path changes in base
+dtb, Overlays have to be recompiled and a new fixup table has to be
+created, or a new hash has to be generated out of the new node path
+regardless. So moving nodes around in base dtb can't be dynamically
+accommodated without recompiling overlay.
+
+Considering the above is ok, the only 2 approaches I can see for
+phandle resolutions are:
+(1) hashing of the full node path and avoiding runtime fixups.
+(2) Using today's linear phandle increment approach, maintaining a
+table in the overlay with the key as 'node path' and value as 'phandle
+fixup offset', and then doing runtime fixups.
+
+I believe (2) is considered fragile and it does the same thing as (1)
+except that (2) can even handle collisions but at the cost of storing
+the full node path in the overlay's fixup table. So (1) looks like our
+only possible and meaningful approach. Do you agree with this
+analysis? Or, maybe I am missing something.
+
+Regards,
+Joel
