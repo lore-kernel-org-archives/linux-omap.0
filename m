@@ -1,94 +1,128 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 7/8] ARM: OMAP: Remove unnecessary inclusion of dmtimer.h
-Date: Tue, 13 Nov 2012 12:13:22 -0600
-Message-ID: <1352830403-1706-8-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 6/8] ARM: OMAP: Add platform data header for DMTIMERs
+Date: Tue, 13 Nov 2012 12:13:21 -0600
+Message-ID: <1352830403-1706-7-git-send-email-jon-hunter@ti.com>
 References: <1352830403-1706-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40710 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57231 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755494Ab2KMSNj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Nov 2012 13:13:39 -0500
+	id S1755261Ab2KMSNl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Nov 2012 13:13:41 -0500
 In-Reply-To: <1352830403-1706-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Some source files are including dmtimer.h but not actually using any dmtimer
-definitions or functions. Therefore, remove the inclusion dmtimer.h from these
-source files.
+Move definition of dmtimer platform data structure in to its own header
+under <linux/platform_data>.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap1/timer32k.c             |    1 -
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    1 -
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    1 -
- arch/arm/mach-omap2/pm-debug.c             |    1 -
- drivers/staging/tidspbridge/core/ue_deh.c  |    1 -
- 5 files changed, 5 deletions(-)
+ arch/arm/mach-omap1/timer.c                |    1 +
+ arch/arm/mach-omap2/timer.c                |    2 ++
+ arch/arm/plat-omap/dmtimer.c               |    2 ++
+ arch/arm/plat-omap/include/plat/dmtimer.h  |    8 -------
+ include/linux/platform_data/dmtimer-omap.h |   31 ++++++++++++++++++++++++++++
+ 5 files changed, 36 insertions(+), 8 deletions(-)
+ create mode 100644 include/linux/platform_data/dmtimer-omap.h
 
-diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
-index 8936819..41152fa 100644
---- a/arch/arm/mach-omap1/timer32k.c
-+++ b/arch/arm/mach-omap1/timer32k.c
-@@ -51,7 +51,6 @@
+diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
+index cdeb9d3..bde7a35 100644
+--- a/arch/arm/mach-omap1/timer.c
++++ b/arch/arm/mach-omap1/timer.c
+@@ -25,6 +25,7 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <linux/platform_device.h>
++#include <linux/platform_data/dmtimer-omap.h>
+ 
+ #include <mach/irqs.h>
+ 
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 1a662df..4daa8b4 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -39,6 +39,8 @@
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/of_irq.h>
++#include <linux/platform_device.h>
++#include <linux/platform_data/dmtimer-omap.h>
+ 
  #include <asm/mach/time.h>
+ #include <asm/smp_twd.h>
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index efe4774..89585c2 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -43,6 +43,8 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/platform_device.h>
++#include <linux/platform_data/dmtimer-omap.h>
  
- #include <plat/counter-32k.h>
--#include <plat/dmtimer.h>
+ #include <plat/dmtimer.h>
  
- #include <mach/hardware.h>
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index b3cd91b..a3fbc48 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -124,14 +124,6 @@ struct omap_dm_timer {
+ 	struct list_head node;
+ };
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index a8b3368..e8efe3d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -17,7 +17,6 @@
- #include <linux/platform_data/spi-omap2-mcspi.h>
- 
- #include <plat-omap/dma-omap.h>
--#include <plat/dmtimer.h>
- 
- #include "omap_hwmod.h"
- #include "l3_2xxx.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index dc768c5..32d17e3 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -18,7 +18,6 @@
- #include <linux/platform_data/spi-omap2-mcspi.h>
- 
- #include <plat-omap/dma-omap.h>
--#include <plat/dmtimer.h>
- 
- #include "omap_hwmod.h"
- #include "mmc.h"
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 3cf4fdf..e2c291f 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -30,7 +30,6 @@
- #include "clock.h"
- #include "powerdomain.h"
- #include "clockdomain.h"
--#include <plat/dmtimer.h>
- #include "omap-pm.h"
- 
- #include "soc.h"
-diff --git a/drivers/staging/tidspbridge/core/ue_deh.c b/drivers/staging/tidspbridge/core/ue_deh.c
-index 3d28b23..6aea6f1 100644
---- a/drivers/staging/tidspbridge/core/ue_deh.c
-+++ b/drivers/staging/tidspbridge/core/ue_deh.c
-@@ -19,7 +19,6 @@
- 
- #include <linux/kernel.h>
- #include <linux/interrupt.h>
--#include <plat/dmtimer.h>
- 
- #include <dspbridge/dbdefs.h>
- #include <dspbridge/dspdeh.h>
+-struct dmtimer_platform_data {
+-	/* set_timer_src - Only used for OMAP1 devices */
+-	int (*set_timer_src)(struct platform_device *pdev, int source);
+-	u32 timer_errata;
+-	u32 timer_capability;
+-	int (*get_context_loss_count)(struct device *);
+-};
+-
+ int omap_dm_timer_reserve_systimer(int id);
+ struct omap_dm_timer *omap_dm_timer_request(void);
+ struct omap_dm_timer *omap_dm_timer_request_specific(int timer_id);
+diff --git a/include/linux/platform_data/dmtimer-omap.h b/include/linux/platform_data/dmtimer-omap.h
+new file mode 100644
+index 0000000..a19b78d
+--- /dev/null
++++ b/include/linux/platform_data/dmtimer-omap.h
+@@ -0,0 +1,31 @@
++/*
++ * DMTIMER platform data for TI OMAP platforms
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Jon Hunter <jon-hunter@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __PLATFORM_DATA_DMTIMER_OMAP_H__
++#define __PLATFORM_DATA_DMTIMER_OMAP_H__
++
++struct dmtimer_platform_data {
++	/* set_timer_src - Only used for OMAP1 devices */
++	int (*set_timer_src)(struct platform_device *pdev, int source);
++	u32 timer_capability;
++	u32 timer_errata;
++	int (*get_context_loss_count)(struct device *);
++};
++
++#endif /* __PLATFORM_DATA_DMTIMER_OMAP_H__ */
 -- 
 1.7.9.5
 
