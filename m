@@ -1,13 +1,13 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] wdt: twl4030: Change TWL4030_MODULE_PM_RECEIVER to TWL_MODULE_PM_RECEIVER
-Date: Tue, 13 Nov 2012 10:40:22 +0100
-Message-ID: <1352799622-22280-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH] power: twl4030_charger: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+Date: Tue, 13 Nov 2012 10:42:11 +0100
+Message-ID: <1352799731-22324-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wim Van Sebroeck <wim@iguana.be>
-Cc: linux-watchdog@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Anton Vorontsov <cbou@mail.ru>, David Woodhouse <dwmw2@infradead.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 To facilitate upcoming cleanup in twl stack.
@@ -15,23 +15,63 @@ No functional changes.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/watchdog/twl4030_wdt.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/power/twl4030_charger.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/watchdog/twl4030_wdt.c b/drivers/watchdog/twl4030_wdt.c
-index 249f113..0501638 100644
---- a/drivers/watchdog/twl4030_wdt.c
-+++ b/drivers/watchdog/twl4030_wdt.c
-@@ -49,8 +49,8 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
+diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
+index f9e70cf..a69d0d1 100644
+--- a/drivers/power/twl4030_charger.c
++++ b/drivers/power/twl4030_charger.c
+@@ -114,12 +114,12 @@ static int twl4030_clear_set(u8 mod_no, u8 clear, u8 set, u8 reg)
  
- static int twl4030_wdt_write(unsigned char val)
+ static int twl4030_bci_read(u8 reg, u8 *val)
  {
--	return twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, val,
--					TWL4030_WATCHDOG_CFG_REG_OFFS);
-+	return twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, val,
-+				TWL4030_WATCHDOG_CFG_REG_OFFS);
+-	return twl_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, val, reg);
++	return twl_i2c_read_u8(TWL_MODULE_MAIN_CHARGE, val, reg);
  }
  
- static int twl4030_wdt_enable(struct twl4030_wdt *wdt)
+ static int twl4030_clear_set_boot_bci(u8 clear, u8 set)
+ {
+-	return twl4030_clear_set(TWL4030_MODULE_PM_MASTER, clear,
++	return twl4030_clear_set(TWL_MODULE_PM_MASTER, clear,
+ 			TWL4030_CONFIG_DONE | TWL4030_BCIAUTOWEN | set,
+ 			TWL4030_PM_MASTER_BOOT_BCI);
+ }
+@@ -152,7 +152,7 @@ static int twl4030_bci_have_vbus(struct twl4030_bci *bci)
+ 	int ret;
+ 	u8 hwsts;
+ 
+-	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &hwsts,
++	ret = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &hwsts,
+ 			      TWL4030_PM_MASTER_STS_HW_CONDITIONS);
+ 	if (ret < 0)
+ 		return 0;
+@@ -199,7 +199,7 @@ static int twl4030_charger_enable_usb(struct twl4030_bci *bci, bool enable)
+ 			return ret;
+ 
+ 		/* forcing USBFASTMCHG(BCIMFSTS4[2]) to 1 */
+-		ret = twl4030_clear_set(TWL4030_MODULE_MAIN_CHARGE, 0,
++		ret = twl4030_clear_set(TWL_MODULE_MAIN_CHARGE, 0,
+ 			TWL4030_USBFASTMCHG, TWL4030_BCIMFSTS4);
+ 	} else {
+ 		ret = twl4030_clear_set_boot_bci(TWL4030_BCIAUTOUSB, 0);
+@@ -238,7 +238,7 @@ static int twl4030_charger_enable_backup(int uvolt, int uamp)
+ 	if (uvolt < 2500000 ||
+ 	    uamp < 25) {
+ 		/* disable charging of backup battery */
+-		ret = twl4030_clear_set(TWL4030_MODULE_PM_RECEIVER,
++		ret = twl4030_clear_set(TWL_MODULE_PM_RECEIVER,
+ 					TWL4030_BBCHEN, 0, TWL4030_BB_CFG);
+ 		return ret;
+ 	}
+@@ -262,7 +262,7 @@ static int twl4030_charger_enable_backup(int uvolt, int uamp)
+ 	else
+ 		flags |= TWL4030_BBISEL_25uA;
+ 
+-	ret = twl4030_clear_set(TWL4030_MODULE_PM_RECEIVER,
++	ret = twl4030_clear_set(TWL_MODULE_PM_RECEIVER,
+ 				TWL4030_BBSEL_MASK | TWL4030_BBISEL_MASK,
+ 				flags,
+ 				TWL4030_BB_CFG);
 -- 
 1.8.0
