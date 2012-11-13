@@ -1,121 +1,62 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH] ARM: add get_user() support for 8 byte types
-Date: Tue, 13 Nov 2012 09:00:54 -0600
-Message-ID: <1352818854-10958-1-git-send-email-rob.clark@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>, Russell King <rmk+kernel@arm.linux.org.uk>, Rob Clark <rob@ti.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: OMAP baseline test results for v3.7-rc3
+Date: Tue, 13 Nov 2012 15:26:58 +0000
+Message-ID: <50A266C2.4030303@mimc.co.uk>
+References: <alpine.DEB.2.00.1210300229590.12697@utopia.booyaka.com> <508FB226.20604@mimc.co.uk> <alpine.DEB.2.00.1210301143420.12697@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EB51E84@DBDE01.ent.ti.com> <508FE8BA.1080404@ti.com> <50912A6F.1040501@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB563F8@DBDE01.ent.ti.com> <5097EF44.5030706@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EB63609@DBDE01.ent.ti.com> <5098DC9E.3090307@mimc.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mercuryimc.plus.com ([80.229.200.144]:58035 "EHLO
+	centos1.newflow.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750779Ab2KMP1A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Nov 2012 10:27:00 -0500
+In-Reply-To: <5098DC9E.3090307@mimc.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Rob Clark <rob@ti.com>
+On 06/11/12 09:47, Mark Jackson wrote:
+> On 06/11/12 06:16, Hiremath, Vaibhav wrote:
+>>
+>> Where is your DTB? Is it appended to Kernel image?
+>> Can you try below sequence/commands from u-boot?
+>>
+>>
+>> mmc rescan 0
+>> fatload mmc 0 80000000 am335x-bone.dtb
+>> fatload mmc 0 81000000 uImage
+>> setenv bootargs console=ttyO0,115200n8 mem=256M root=/dev/mmcblk0p2 rw noinitrd rootfstype=ext3 rootwait earlyprink=serial
+>> sendln 'bootm 81000000 - 80000000'
+>>
+>>
+>>
+>> To build DTB files, use "make dtbs" command on your kernel home directory.
+> 
+> That works ... great !!
+> 
+> But now I'm confused, since I thought the DTB was appended to the uImage file.
+> 
+> I have the following in my .config:-
+> 
+> ARM_ATAG_DTB_COMPAT=y
+> ARM_APPENDED_DTB=y
+> ARM_ATAG_DTB_COMPAT_CMDLINE_FROM_BOOTLOADER=y
+> 
+> And then I create my uImage file using:-
+> 
+> $ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux- uImage
+> $ make -j 8 ARCH=arm CROSS_COMPILE=arm-linux- am335x-bone.dtb
+> $ cat arch/arm/boot/uImage arch/arm/boot/am335x-bone.dtb > arch/arm/boot/uImage-dtb.am335x-bone
+> $ cp arch/arm/boot/uImage-dtb.am335x-bone /media/boot/uImage
+> 
+> Do you now have to load the DTB as a separate file ?
+> 
+> Or should the appended DTB still work ?
 
-A new atomic modeset/pageflip ioctl being developed in DRM requires
-get_user() to work for 64bit types (in addition to just put_user()).
+Any update on this ?
 
-v1: original
-v2: pass correct size to check_uaccess, and better handling of narrowing
-    double word read with __get_user_xb() (Russell King's suggestion)
+Cheers
+Mark J.
 
-Signed-off-by: Rob Clark <rob@ti.com>
----
- arch/arm/include/asm/uaccess.h | 18 +++++++++++++++++-
- arch/arm/lib/getuser.S         | 17 ++++++++++++++++-
- 2 files changed, 33 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/include/asm/uaccess.h b/arch/arm/include/asm/uaccess.h
-index 7e1f760..e2236ad 100644
---- a/arch/arm/include/asm/uaccess.h
-+++ b/arch/arm/include/asm/uaccess.h
-@@ -100,6 +100,7 @@ static inline void set_fs(mm_segment_t fs)
- extern int __get_user_1(void *);
- extern int __get_user_2(void *);
- extern int __get_user_4(void *);
-+extern int __get_user_8(void *);
- 
- #define __GUP_CLOBBER_1	"lr", "cc"
- #ifdef CONFIG_CPU_USE_DOMAINS
-@@ -108,6 +109,7 @@ extern int __get_user_4(void *);
- #define __GUP_CLOBBER_2 "lr", "cc"
- #endif
- #define __GUP_CLOBBER_4	"lr", "cc"
-+#define __GUP_CLOBBER_8	"lr", "cc"
- 
- #define __get_user_x(__r2,__p,__e,__l,__s)				\
- 	   __asm__ __volatile__ (					\
-@@ -118,11 +120,19 @@ extern int __get_user_4(void *);
- 		: "0" (__p), "r" (__l)					\
- 		: __GUP_CLOBBER_##__s)
- 
-+/* narrowing a double-word get into a single 32bit word register: */
-+#ifdef BIG_ENDIAN
-+#define __get_user_xb(__r2,__p,__e,__l,__s)				\
-+	__get_user_x(__r2,(uintptr_t)__p + 4,__e,__l,__s)
-+#else
-+#define __get_user_xb __get_user_x
-+#endif
-+
- #define __get_user_check(x,p)							\
- 	({								\
- 		unsigned long __limit = current_thread_info()->addr_limit - 1; \
- 		register const typeof(*(p)) __user *__p asm("r0") = (p);\
--		register unsigned long __r2 asm("r2");			\
-+		register typeof(x) __r2 asm("r2");			\
- 		register unsigned long __l asm("r1") = __limit;		\
- 		register int __e asm("r0");				\
- 		switch (sizeof(*(__p))) {				\
-@@ -135,6 +145,12 @@ extern int __get_user_4(void *);
- 		case 4:							\
- 			__get_user_x(__r2, __p, __e, __l, 4);		\
- 			break;						\
-+		case 8:							\
-+			if (sizeof((x)) < 8)				\
-+				__get_user_xb(__r2, __p, __e, __l, 4);	\
-+			else						\
-+				__get_user_x(__r2, __p, __e, __l, 8);	\
-+			break;						\
- 		default: __e = __get_user_bad(); break;			\
- 		}							\
- 		x = (typeof(*(p))) __r2;				\
-diff --git a/arch/arm/lib/getuser.S b/arch/arm/lib/getuser.S
-index 9b06bb4..ed98707 100644
---- a/arch/arm/lib/getuser.S
-+++ b/arch/arm/lib/getuser.S
-@@ -18,7 +18,7 @@
-  * Inputs:	r0 contains the address
-  *		r1 contains the address limit, which must be preserved
-  * Outputs:	r0 is the error code
-- *		r2 contains the zero-extended value
-+ *		r2, r3 contains the zero-extended value
-  *		lr corrupted
-  *
-  * No other registers must be altered.  (see <asm/uaccess.h>
-@@ -66,6 +66,19 @@ ENTRY(__get_user_4)
- 	mov	pc, lr
- ENDPROC(__get_user_4)
- 
-+ENTRY(__get_user_8)
-+	check_uaccess r0, 8, r1, r2, __get_user_bad
-+#ifdef CONFIG_THUMB2_KERNEL
-+5: TUSER(ldr)	r2, [r0]
-+6: TUSER(ldr)	r3, [r0, #4]
-+#else
-+5: TUSER(ldr)	r2, [r0], #4
-+6: TUSER(ldr)	r3, [r0]
-+#endif
-+	mov	r0, #0
-+	mov	pc, lr
-+ENDPROC(__get_user_8)
-+
- __get_user_bad:
- 	mov	r2, #0
- 	mov	r0, #-EFAULT
-@@ -77,4 +90,6 @@ ENDPROC(__get_user_bad)
- 	.long	2b, __get_user_bad
- 	.long	3b, __get_user_bad
- 	.long	4b, __get_user_bad
-+	.long	5b, __get_user_bad
-+	.long	6b, __get_user_bad
- .popsection
--- 
-1.8.0
