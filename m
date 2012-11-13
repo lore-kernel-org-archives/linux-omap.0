@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 03/13] MFD: twl-core: Convert to use regmap for I/O
-Date: Tue, 13 Nov 2012 09:28:44 +0100
-Message-ID: <1352795334-7406-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 09/13] MFD: twl-core: re-group the twl_mapping table for easier reading
+Date: Tue, 13 Nov 2012 09:28:50 +0100
+Message-ID: <1352795334-7406-10-git-send-email-peter.ujfalusi@ti.com>
 References: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,260 +9,64 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Remove the custom code to do I/O and replace it with standard regmap calls.
+Group the twl_mapping table in 5 lines chunks so it is more easier to find
+the row we are looking for (if we need to).
 
-CC: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/mfd/twl-core.c | 147 +++++++++++++++++++++++++++----------------------
- 1 file changed, 80 insertions(+), 67 deletions(-)
+ drivers/mfd/twl-core.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 1dfd583..5043f505a 100644
+index bb33b52..f857097 100644
 --- a/drivers/mfd/twl-core.c
 +++ b/drivers/mfd/twl-core.c
-@@ -32,6 +32,7 @@
- #include <linux/mutex.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
-+#include <linux/regmap.h>
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/device.h>
-@@ -171,13 +172,7 @@ EXPORT_SYMBOL(twl_rev);
- /* Structure for each TWL4030/TWL6030 Slave */
- struct twl_client {
- 	struct i2c_client *client;
--	u8 address;
--
--	/* max numb of i2c_msg required is for read =2 */
--	struct i2c_msg xfer_msg[2];
--
--	/* To lock access to xfer_msg */
--	struct mutex xfer_lock;
-+	struct regmap *regmap;
- };
+@@ -189,28 +189,29 @@ static struct twl_mapping twl4030_map[] = {
+ 	 */
  
- static struct twl_client twl_modules[TWL_NUM_SLAVES];
-@@ -225,6 +220,33 @@ static struct twl_mapping twl4030_map[TWL4030_MODULE_LAST + 1] = {
- 	{ 3, TWL4030_BASEADD_SECURED_REG },
- };
+ 	{ 0, TWL4030_BASEADD_USB },
+-
+ 	{ 1, TWL4030_BASEADD_AUDIO_VOICE },
+ 	{ 1, TWL4030_BASEADD_GPIO },
+ 	{ 1, TWL4030_BASEADD_INTBR },
+ 	{ 1, TWL4030_BASEADD_PIH },
+-	{ 1, TWL4030_BASEADD_TEST },
  
-+static struct regmap_config twl4030_regmap_config[4] = {
-+	{
-+		/* Address 0x48 */
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+		.max_register = 0xff,
-+	},
-+	{
-+		/* Address 0x49 */
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+		.max_register = 0xff,
-+	},
-+	{
-+		/* Address 0x4a */
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+		.max_register = 0xff,
-+	},
-+	{
-+		/* Address 0x4b */
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+		.max_register = 0xff,
-+	},
-+};
++	{ 1, TWL4030_BASEADD_TEST },
+ 	{ 2, TWL4030_BASEADD_KEYPAD },
+ 	{ 2, TWL4030_BASEADD_MADC },
+ 	{ 2, TWL4030_BASEADD_INTERRUPTS },
+ 	{ 2, TWL4030_BASEADD_LED },
 +
- static struct twl_mapping twl6030_map[] = {
- 	/*
- 	 * NOTE:  don't change this table without updating the
-@@ -262,6 +284,27 @@ static struct twl_mapping twl6030_map[] = {
+ 	{ 2, TWL4030_BASEADD_MAIN_CHARGE },
+ 	{ 2, TWL4030_BASEADD_PRECHARGE },
+ 	{ 2, TWL4030_BASEADD_PWM0 },
+ 	{ 2, TWL4030_BASEADD_PWM1 },
+ 	{ 2, TWL4030_BASEADD_PWMA },
++
+ 	{ 2, TWL4030_BASEADD_PWMB },
+ 	{ 2, TWL5031_BASEADD_ACCESSORY },
+ 	{ 2, TWL5031_BASEADD_INTERRUPTS },
+-
+ 	{ 3, TWL4030_BASEADD_BACKUP },
+ 	{ 3, TWL4030_BASEADD_INT },
++
+ 	{ 3, TWL4030_BASEADD_PM_MASTER },
+ 	{ 3, TWL4030_BASEADD_PM_RECEIVER },
+ 	{ 3, TWL4030_BASEADD_RTC },
+@@ -273,9 +274,9 @@ static struct twl_mapping twl6030_map[] = {
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
++
+ 	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_MASTER },
+ 	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_SLAVE_MISC },
+-
+ 	{ SUB_CHIP_ID0, TWL6030_BASEADD_RTC },
+ 	{ SUB_CHIP_ID0, TWL6030_BASEADD_MEM },
  	{ SUB_CHIP_ID1, TWL6025_BASEADD_CHARGER },
- };
- 
-+static struct regmap_config twl6030_regmap_config[3] = {
-+	{
-+		/* Address 0x48 */
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+		.max_register = 0xff,
-+	},
-+	{
-+		/* Address 0x49 */
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+		.max_register = 0xff,
-+	},
-+	{
-+		/* Address 0x4a */
-+		.reg_bits = 8,
-+		.val_bits = 8,
-+		.max_register = 0xff,
-+	},
-+};
-+
- /*----------------------------------------------------------------------*/
- 
- /* Exported Functions */
-@@ -283,7 +326,6 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 	int ret;
- 	int sid;
- 	struct twl_client *twl;
--	struct i2c_msg *msg;
- 
- 	if (unlikely(mod_no > TWL_MODULE_LAST)) {
- 		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
-@@ -301,32 +343,14 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 	}
- 	twl = &twl_modules[sid];
- 
--	mutex_lock(&twl->xfer_lock);
--	/*
--	 * [MSG1]: fill the register address data
--	 * fill the data Tx buffer
--	 */
--	msg = &twl->xfer_msg[0];
--	msg->addr = twl->address;
--	msg->len = num_bytes + 1;
--	msg->flags = 0;
--	msg->buf = value;
--	/* over write the first byte of buffer with the register address */
--	*value = twl_map[mod_no].base + reg;
--	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
--	mutex_unlock(&twl->xfer_lock);
--
--	/* i2c_transfer returns number of messages transferred */
--	if (ret != 1) {
--		pr_err("%s: i2c_write failed to transfer all messages\n",
--			DRIVER_NAME);
--		if (ret < 0)
--			return ret;
--		else
--			return -EIO;
--	} else {
--		return 0;
--	}
-+	ret = regmap_bulk_write(twl->regmap, twl_map[mod_no].base + reg,
-+				&value[1], num_bytes);
-+
-+	if (ret)
-+		pr_err("%s: Write failed (mod %d, reg 0x%02x count %d)\n",
-+		       DRIVER_NAME, mod_no, reg, num_bytes);
-+
-+	return ret;
- }
- EXPORT_SYMBOL(twl_i2c_write);
- 
-@@ -342,10 +366,8 @@ EXPORT_SYMBOL(twl_i2c_write);
- int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- {
- 	int ret;
--	u8 val;
- 	int sid;
- 	struct twl_client *twl;
--	struct i2c_msg *msg;
- 
- 	if (unlikely(mod_no > TWL_MODULE_LAST)) {
- 		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
-@@ -363,34 +385,14 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 	}
- 	twl = &twl_modules[sid];
- 
--	mutex_lock(&twl->xfer_lock);
--	/* [MSG1] fill the register address data */
--	msg = &twl->xfer_msg[0];
--	msg->addr = twl->address;
--	msg->len = 1;
--	msg->flags = 0;	/* Read the register value */
--	val = twl_map[mod_no].base + reg;
--	msg->buf = &val;
--	/* [MSG2] fill the data rx buffer */
--	msg = &twl->xfer_msg[1];
--	msg->addr = twl->address;
--	msg->flags = I2C_M_RD;	/* Read the register value */
--	msg->len = num_bytes;	/* only n bytes */
--	msg->buf = value;
--	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
--	mutex_unlock(&twl->xfer_lock);
--
--	/* i2c_transfer returns number of messages transferred */
--	if (ret != 2) {
--		pr_err("%s: i2c_read failed to transfer all messages\n",
--			DRIVER_NAME);
--		if (ret < 0)
--			return ret;
--		else
--			return -EIO;
--	} else {
--		return 0;
--	}
-+	ret = regmap_bulk_read(twl->regmap, twl_map[mod_no].base + reg,
-+			       value, num_bytes);
-+
-+	if (ret)
-+		pr_err("%s: Read failed (mod %d, reg 0x%02x count %d)\n",
-+		       DRIVER_NAME, mod_no, reg, num_bytes);
-+
-+	return ret;
- }
- EXPORT_SYMBOL(twl_i2c_read);
- 
-@@ -1184,6 +1186,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	struct twl4030_platform_data	*pdata = client->dev.platform_data;
- 	struct device_node		*node = client->dev.of_node;
- 	struct platform_device		*pdev;
-+	struct regmap_config		*twl_regmap_config;
- 	int				irq_base = 0;
- 	int				status;
- 	unsigned			i, num_slaves;
-@@ -1237,22 +1240,23 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	if ((id->driver_data) & TWL6030_CLASS) {
- 		twl_id = TWL6030_CLASS_ID;
- 		twl_map = &twl6030_map[0];
-+		twl_regmap_config = twl6030_regmap_config;
- 		num_slaves = TWL_NUM_SLAVES - 1;
- 	} else {
- 		twl_id = TWL4030_CLASS_ID;
- 		twl_map = &twl4030_map[0];
-+		twl_regmap_config = twl4030_regmap_config;
- 		num_slaves = TWL_NUM_SLAVES;
- 	}
- 
- 	for (i = 0; i < num_slaves; i++) {
- 		struct twl_client *twl = &twl_modules[i];
- 
--		twl->address = client->addr + i;
- 		if (i == 0) {
- 			twl->client = client;
- 		} else {
- 			twl->client = i2c_new_dummy(client->adapter,
--					twl->address);
-+						    client->addr + i);
- 			if (!twl->client) {
- 				dev_err(&client->dev,
- 					"can't attach client %d\n", i);
-@@ -1260,7 +1264,16 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 				goto fail;
- 			}
- 		}
--		mutex_init(&twl->xfer_lock);
-+
-+		twl->regmap = devm_regmap_init_i2c(twl->client,
-+						   &twl_regmap_config[i]);
-+		if (IS_ERR(twl->regmap)) {
-+			status = PTR_ERR(twl->regmap);
-+			dev_err(&client->dev,
-+				"Failed to allocate regmap %d, err: %d\n", i,
-+				status);
-+			goto fail;
-+		}
- 	}
- 
- 	inuse = true;
 -- 
 1.8.0
