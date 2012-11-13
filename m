@@ -1,51 +1,37 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP baseline test results for v3.7-rc4
-Date: Tue, 13 Nov 2012 10:50:30 -0800
-Message-ID: <87r4nxgww9.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1211050241410.23228@utopia.booyaka.com>
-	<87390iicno.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.1211092347520.20703@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 1/6] omap cleanup fixes for v3.8 merge window
+Date: Tue, 13 Nov 2012 11:03:08 -0800
+Message-ID: <20121113190306.GD6801@atomide.com>
+References: <pull-1352768345-815774>
+ <20121113010539.GZ6801@atomide.com>
+ <20121113174413.GC6801@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:33281 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755167Ab2KMSuY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Nov 2012 13:50:24 -0500
-Received: by mail-pa0-f46.google.com with SMTP id hz1so5218893pad.19
-        for <linux-omap@vger.kernel.org>; Tue, 13 Nov 2012 10:50:23 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1211092347520.20703@utopia.booyaka.com> (Paul
-	Walmsley's message of "Fri, 9 Nov 2012 23:49:14 +0000 (UTC)")
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38112 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755662Ab2KMTDN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Nov 2012 14:03:13 -0500
+Content-Disposition: inline
+In-Reply-To: <20121113174413.GC6801@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Venkatraman S <svenkatr@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <ton@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Paul Walmsley <paul@pwsan.com> writes:
+* Tony Lindgren <tony@atomide.com> [121113 09:46]:
+> * Tony Lindgren <tony@atomide.com> [121112 17:07]:
+> > * Tony Lindgren <ton@atomide.com> [121112 17:01]:
 
-> On Fri, 9 Nov 2012, Kevin Hilman wrote:
->
->> I found that disabling MMC in the config made the tests pass again, so
->> then bisected it down to the commit below removing SYSCONFIG
->> accesses[2].  I haven't had the time to find out exactly the cause, but
->> clearly the code that was removed was doing something that hwmod is not
->> taking care of automatically.
->> 
->> Venkat, Felipe, could you please investigate this and hopefully get a
->> fix out for v3.7-rc?
->
-> This one might fix it -- it fixes another PM bug in the v3.7-rcs involving 
-> the same commit:
->
-> http://git.kernel.org/?p=linux/kernel/git/pjw/omap-pending.git;a=commit;h=613ad0e98c3596cd2524172fae2a795c3fc57e4a
->
+Ah, I have a typo    ^^^ in my script..
 
-Indeed, that fixes it.  Somehow I thought I was already including that
-fix, but I wasn't.  
+> Hmm looks like requests 2 - 6 never made it to the lists
+> for whatever reason. I'll resend these, no changes have been
+> made to the pull requests.
 
-Thanks,
+..which probably causes the rest of the thread to be blocked
+by the mailing lists. I'll post the missing pull requests
+manually to the second attempt which also has the typo in
+the first message. Sorry for the spam.
 
-Kevin
-
-
-
+Tony
