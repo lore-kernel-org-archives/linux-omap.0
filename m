@@ -1,156 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/6] omap device tree updates for v3.8 merge window
-Date: Tue, 13 Nov 2012 11:10:28 -0800
-Message-ID: <20121113191027.GF6801@atomide.com>
-References: <pull-1352828737-887235>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH 1/6] ARM/dts: omap4-panda: Add pinmux configuration for
+ HDMI
+Date: Tue, 13 Nov 2012 13:10:10 -0600
+Message-ID: <50A29B12.9030906@ti.com>
+References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com> <1352121259-5836-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:17430 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754329Ab2KMTKd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Nov 2012 14:10:33 -0500
-Content-Disposition: inline
-In-Reply-To: <pull-1352828737-887235>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59432 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754638Ab2KMTLI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Nov 2012 14:11:08 -0500
+In-Reply-To: <1352121259-5836-2-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, s-guiriec@ti.com
 
-The following changes since commit edf8dde393f879fc2d8c22d4bc01ff8d37b80e1a:
+Hi Tomi,
 
-  Merge branch 'linus' into omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3 (2012-11-09 14:58:01 -0800)
+On 11/05/2012 07:14 AM, Tomi Valkeinen wrote:
+> From: Ricardo Neri <ricardo.neri@ti.com>
+>
+> Add the pinmux configuration for HDMI and TPD12S015A. Configure the
+> gpios for the TPD12S015A and SDA, SCL and CEC for HDMI.
 
-are available in the git repository at:
+Do you plan to upstream the complete DT-boot support for DSS 
+(specifically, HDMI) for 3.8? I am asking so that I can upstream the 
+audio part.
 
+Thanks!
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/dt-signed
-
-for you to fetch changes up to d308ba50a1234b299a00e63a95e61fdeb2f1a2df:
-
-  Merge branch 'omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3' into omap-for-v3.8/dt (2012-11-09 14:58:34 -0800)
-
-----------------------------------------------------------------
-
-Device tree related changes for omaps updating the
-various .dts files, and timer related changes to allow
-configuring the timer via device tree.
-
-----------------------------------------------------------------
-Afzal Mohammed (2):
-      ARM: dts: AM33XX: Add rtc node
-      usb: musb: dsps: dt binding - add resources, example
-
-Ajay Kumar Gupta (1):
-      ARM: dts: AM33XX: Add usbss node
-
-AnilKumar Ch (18):
-      ARM: dts: AM33XX: Add device tree OPP table
-      ARM: dts: AM33XX: Add basic pinctrl device tree data
-      ARM: dts: AM33XX: Add D_CAN device tree data
-      ARM: dts: AM33XX: Add lis331dlh device tree data to am335x-evm
-      ARM: dts: AM33XX: Add temperature sensor device tree data to am335x-evm
-      ARM: dts: AM33XX: Add tsl2550 ambient light sensor DT data
-      ARM: dts: Add am335x-evmsk.dts
-      Documentation: dt: i2c: Update trivial-devices list
-      ARM: dts: AM33XX: Add pinmux configuration for matrix keypad to EVM
-      ARM: dts: AM33XX: Add matrix keypad device tree data to am335x-evm
-      ARM: dts: AM33XX: Add pinmux configuration for volume-keys to EVM
-      ARM: dts: AM33XX: Add volume-keys device tree data to am335x-evm
-      ARM: dts: AM33XX: Add pinmux configuration for user-leds to BONE
-      ARM: dts: AM33XX: Add user-leds device tree data to am335x-bone
-      ARM: dts: AM33XX: Add pinmux configuration for gpio-leds to EVMSK
-      ARM: dts: AM33XX: Add user-leds device tree data to am335x-evmsk
-      ARM: dts: AM33XX: Add pinmux configuration for gpio-keys to EVMSK
-      ARM: dts: AM33XX: Add push-buttons device tree data to am335x-evmsk
-
-Benoit Cousson (3):
-      ARM: dts: OMAP: Move interrupt-parent to the root node to avoid duplication
-      ARM: dts: OMAP: Rename pandaES and var_som for consistency
-      ARM: dts: Makefile: Add the am335x-evmsk target in dtbs list
-
-Jon Hunter (11):
-      ARM: dts: Add omap3-beagle.dts
-      ARM: dts: OMAP: Add timer nodes
-      ARM: dts: OMAP: Add counter-32k nodes
-      ARM: dts: OMAP4: Update timer addresses
-      ARM: dts: OMAP5: Add timer nodes
-      ARM: dts: OMAP5: Add counter node
-      ARM: OMAP3: Dynamically disable secure timer nodes for secure devices
-      ARM: OMAP: Add function to request a timer by capability
-      ARM: OMAP3: Add generic machine descriptor for boards with OMAP3 GP devices
-      ARM: OMAP: Add DT support for timer driver
-      ARM: OMAP2+: Add device-tree support for 32kHz counter
-
-Kishon Vijay Abraham I (3):
-      ARM: dts: Add twl6030-usb data
-      ARM: dts: Add twl4030-usb data
-      ARM: dts: OMAP4: add *reg* property for ocp2scp
-
-Lokesh Vutla (3):
-      ARM: dts: omap5-evm: Fix size of memory defined for EVM
-      ARM: dts: omap5: EMIF device tree data for OMAP5 boards
-      ARM: dts: omap5-evm: LPDDR2 memory device details for EVM
-
-Philip, Avinash (1):
-      ARM: dts: AM33XX: Add SPI node
-
-Ricardo Neri (2):
-      ARM: dts: omap4-panda: Add pinmux configuration for HDMI
-      ARM: dts: omap4-sdp: Add pinmux configuration for HDMI
-
-Sebastien Guiriec (4):
-      ARM: dts: omap5: Update GPIO with address space and interrupts
-      ARM: dts: omap5: Update I2C with address space and interrupts
-      ARM: dts: omap5: Update UART with address space and interrupts
-      ARM: dts: omap5: Update MMC with address space and interrupts
-
-Tony Lindgren (5):
-      Merge branch 'for_3.8/dts' of git://git.kernel.org/.../bcousson/linux-omap-dt into omap-for-v3.8/dt
-      Merge branch 'dev-dt-timer' of github.com:jonhunter/linux into omap-for-v3.8/dt
-      Merge branch 'for_3.8/dts_part2' of git://git.kernel.org/.../bcousson/linux-omap-dt into omap-for-v3.8/dt
-      Merge branch 'omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3' into omap-for-v3.8/dt
-      Merge branch 'omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3' into omap-for-v3.8/dt
-
- .../devicetree/bindings/arm/omap/counter.txt       |  15 ++
- .../devicetree/bindings/arm/omap/timer.txt         |  31 +++
- .../devicetree/bindings/bus/omap-ocp2scp.txt       |  18 ++
- .../devicetree/bindings/i2c/trivial-devices.txt    |   2 +
- .../devicetree/bindings/usb/am33xx-usb.txt         |  21 ++
- arch/arm/boot/dts/Makefile                         |   6 +-
- arch/arm/boot/dts/am335x-bone.dts                  |  50 +++++
- arch/arm/boot/dts/am335x-evm.dts                   | 118 ++++++++++
- arch/arm/boot/dts/am335x-evmsk.dts                 | 250 +++++++++++++++++++++
- arch/arm/boot/dts/am33xx.dtsi                      | 156 +++++++++++--
- arch/arm/boot/dts/omap2.dtsi                       |  86 +++++++
- arch/arm/boot/dts/omap2420.dtsi                    |  16 +-
- arch/arm/boot/dts/omap2430.dtsi                    |  19 +-
- arch/arm/boot/dts/omap3-beagle-xm.dts              |   6 -
- arch/arm/boot/dts/omap3-beagle.dts                 |  67 ++++++
- arch/arm/boot/dts/omap3.dtsi                       | 107 ++++++++-
- arch/arm/boot/dts/omap4-panda-a4.dts               |  17 ++
- .../dts/{omap4-pandaES.dts => omap4-panda-es.dts}  |   9 +
- arch/arm/boot/dts/omap4-panda.dts                  |  22 ++
- arch/arm/boot/dts/omap4-sdp-es23plus.dts           |  17 ++
- arch/arm/boot/dts/omap4-sdp.dts                    |  22 ++
- .../dts/{omap4-var_som.dts => omap4-var-som.dts}   |   0
- arch/arm/boot/dts/omap4.dtsi                       | 105 ++++++++-
- arch/arm/boot/dts/omap5-evm.dts                    |  13 +-
- arch/arm/boot/dts/omap5.dtsi                       | 178 ++++++++++++++-
- arch/arm/boot/dts/samsung_k3pe0e000b.dtsi          |  67 ++++++
- arch/arm/boot/dts/twl4030.dtsi                     |  27 +++
- arch/arm/boot/dts/twl6030.dtsi                     |   5 +
- arch/arm/mach-omap2/board-generic.c                |  17 ++
- arch/arm/mach-omap2/timer.c                        | 203 ++++++++++++++---
- arch/arm/plat-omap/dmtimer.c                       |  95 +++++++-
- arch/arm/plat-omap/include/plat/dmtimer.h          |   1 +
- 32 files changed, 1675 insertions(+), 91 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/counter.txt
- create mode 100644 Documentation/devicetree/bindings/arm/omap/timer.txt
- create mode 100644 arch/arm/boot/dts/am335x-evmsk.dts
- create mode 100644 arch/arm/boot/dts/omap3-beagle.dts
- create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
- rename arch/arm/boot/dts/{omap4-pandaES.dts => omap4-panda-es.dts} (70%)
- create mode 100644 arch/arm/boot/dts/omap4-sdp-es23plus.dts
- rename arch/arm/boot/dts/{omap4-var_som.dts => omap4-var-som.dts} (100%)
- create mode 100644 arch/arm/boot/dts/samsung_k3pe0e000b.dtsi
+Ricardo
+>
+> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   arch/arm/boot/dts/omap4-panda-a4.dts |   17 +++++++++++++++++
+>   arch/arm/boot/dts/omap4-panda.dts    |   18 ++++++++++++++++++
+>   arch/arm/boot/dts/omap4-pandaES.dts  |    9 +++++++++
+>   3 files changed, 44 insertions(+)
+>   create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
+>
+> diff --git a/arch/arm/boot/dts/omap4-panda-a4.dts b/arch/arm/boot/dts/omap4-panda-a4.dts
+> new file mode 100644
+> index 0000000..75466d2
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap4-panda-a4.dts
+> @@ -0,0 +1,17 @@
+> +/*
+> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +/include/ "omap4-panda.dts"
+> +
+> +/* Pandaboard Rev A4+ have external pullups on SCL & SDA */
+> +&dss_hdmi_pins {
+> +	pinctrl-single,pins = <
+> +		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
+> +		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
+> +		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
+> +		>;
+> +};
+> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+> index e8f927c..8060f5b 100644
+> --- a/arch/arm/boot/dts/omap4-panda.dts
+> +++ b/arch/arm/boot/dts/omap4-panda.dts
+> @@ -65,6 +65,8 @@
+>   			&twl6040_pins
+>   			&mcpdm_pins
+>   			&mcbsp1_pins
+> +			&dss_hdmi_pins
+> +			&tpd12s015_pins
+>   	>;
+>
+>   	twl6040_pins: pinmux_twl6040_pins {
+> @@ -92,6 +94,22 @@
+>   			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
+>   		>;
+>   	};
+> +
+> +	dss_hdmi_pins: pinmux_dss_hdmi_pins {
+> +		pinctrl-single,pins = <
+> +			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
+> +			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
+> +			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
+> +		>;
+> +	};
+> +
+> +	tpd12s015_pins: pinmux_tpd12s015_pins {
+> +		pinctrl-single,pins = <
+> +			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
+> +			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
+> +			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
+> +		>;
+> +	};
+>   };
+>
+>   &i2c1 {
+> diff --git a/arch/arm/boot/dts/omap4-pandaES.dts b/arch/arm/boot/dts/omap4-pandaES.dts
+> index d4ba43a..73bc1a6 100644
+> --- a/arch/arm/boot/dts/omap4-pandaES.dts
+> +++ b/arch/arm/boot/dts/omap4-pandaES.dts
+> @@ -22,3 +22,12 @@
+>   		"AFML", "Line In",
+>   		"AFMR", "Line In";
+>   };
+> +
+> +/* PandaboardES has external pullups on SCL & SDA */
+> +&dss_hdmi_pins {
+> +	pinctrl-single,pins = <
+> +		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
+> +		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
+> +		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
+> +		>;
+> +};
+>
