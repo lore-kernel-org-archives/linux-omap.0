@@ -1,33 +1,39 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] usb: otg: twl4030: Change TWL4030_MODULE_* ids to TWL_MODULE_*
-Date: Tue, 13 Nov 2012 11:57:13 +0100
-Message-ID: <50A22789.7070103@ti.com>
-References: <1352799818-22363-1-git-send-email-peter.ujfalusi@ti.com> <20121113094722.GB10395@arwen.pp.htv.fi> <50A220BF.7020901@ti.com> <20121113103757.GE10951@arwen.pp.htv.fi>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
+Date: Tue, 13 Nov 2012 11:04:54 +0000
+Message-ID: <20121113110454.GE28341@n2100.arm.linux.org.uk>
+References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org> <20121112192727.GB28341@n2100.arm.linux.org.uk> <CAF6AEGu4L+ukxhMBLYK3d2g4CBBXi6o5nN_wXvakZCT8qMfSEA@mail.gmail.com> <20121112230819.GC28341@n2100.arm.linux.org.uk> <CAF6AEGtLKjJ=BfBnOq+oE6cgneF5YqsbYqNnCPrz4sTFRzdibg@mail.gmail.com> <20121112235348.GD28341@n2100.arm.linux.org.uk> <CAF6AEGvoXR3YJomjV1YOeNvjr46aYJ2mVxS+jZfH+41+v1nAvw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121113103757.GE10951@arwen.pp.htv.fi>
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGvoXR3YJomjV1YOeNvjr46aYJ2mVxS+jZfH+41+v1nAvw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/13/2012 11:37 AM, Felipe Balbi wrote:
-> ok good. Unfortunately I have already sent this merge window's pull
-> request to Greg so I'd have to delay this until v3.9. If that's ok wi=
-th
-> you, I can take it through my tree.
+On Mon, Nov 12, 2012 at 06:31:50PM -0600, Rob Clark wrote:
+> right, that is what I was worried about..  but what about something
+> along the lines of:
+> 
+> 		case 8: {						\
+> 			if (sizeof(x) < 8)				\
+> 				__get_user_x(__r2, __p, __e, __l, 4);	\
+> 			else						\
+> 				__get_user_x(__r2, __p, __e, __l, 8);	\
+> 			break;						\
+> 		}							\
+> 
+> maybe we need a special variant of __get_user_8() instead to get the
+> right 32bits on big vs little endian systems, but I think something
+> roughly along these lines could work.
 
-I hoped that this can go with 3.8 since in 3.9 I'm planning to remove a=
-ll of
-these TWL4030_MODULE_* defines which have TWL_MODULE_* counterpart.
-In this case I will introduce dummy defines to point to the correct pla=
-ce for
-the USB in 3.9 and we can get rid of the rest of these in 3.10. Oh well=
-=2E This
-is going to take a bit longer than I have anticipated.
-I can't think of any other subsytem this can go through...
+The problem with that is... big endian systems - where the 32-bit word we
+want is the second one, so you can't just reduce that down to a 32-bit
+access like that.  You also need to add an offset to the pointer in the BE
+case (which can be done.)
 
---=20
-P=E9ter
+I'd suggest calling the 4-byte version in there __get_user_xb() and doing
+the 4-byte offset for BE inside that (or aliasing it to __get_user_x for
+LE systems).
