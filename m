@@ -1,47 +1,53 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH 0/5] staging: omap-thermal fixes
-Date: Tue, 13 Nov 2012 13:45:45 -0400
-Message-ID: <50A28749.5040103@ti.com>
-References: <1352821402-13458-1-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCHv2 0/5] staging: omap-thermal fixes
+Date: Tue, 13 Nov 2012 14:09:59 -0400
+Message-ID: <1352830204-21546-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352821402-13458-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: gregkh@linuxfoundation.org, b-cousson@ti.com, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
+List-Post: <mailto:devel@linuxdriverproject.org>
+List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
+ <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: devel-bounces@linuxdriverproject.org
+Sender: "devel" <devel-bounces@linuxdriverproject.org>
+To: gregkh@linuxfoundation.org
+Cc: devel@driverdev.osuosl.org, Eduardo Valentin <eduardo.valentin@ti.com>, linux-omap@vger.kernel.org, b-cousson@ti.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Greg,
+Hello again Greg,
 
-I will repost this series as I found I sent you wrong set of patches.
+So here is the correct set of changes. They now include the
+right version of the patches and with the fixes reported
+by Enric. Thanks Enric for the heads up.
 
-Please check the next version.
+So, Several compilation fixes and a couple of debugging prints
+added to the omap-thermal driver under staging area.
 
-On 13-11-2012 11:43, Eduardo Valentin wrote:
-> Hello Greg,
->
-> Several compilation fixes and a couple of debugging prints
-> added to the omap-thermal driver under staging area.
->
-> Patches are also available here:
->
-> git@gitorious.org:thermal-framework/thermal-framework.git thermal_work/omap/omap-thermal-fixes
->
-> Cheers,
->
-> Eduardo Valentin (4):
->    staging: omap-thermal: fix compilation
->    staging: omap-thermal: remove platform data nomenclature
->    staging: omap-thermal: remove freq_clip table
->    staging: omap-thermal: add IRQ debugging messaging
->
-> Radhesh Fadnis (1):
->    staging: omap-thermal: fix context restore function
->
->   drivers/staging/omap-thermal/omap-bandgap.c        |   63 ++++++++----------
->   drivers/staging/omap-thermal/omap-bandgap.h        |    9 ---
->   drivers/staging/omap-thermal/omap-thermal-common.c |   69 ++------------------
->   3 files changed, 34 insertions(+), 107 deletions(-)
->
+Patches are also available here:
+
+git@gitorious.org:thermal-framework/thermal-framework.git thermal_work/omap/omap-thermal-fixes_3.7
+
+
+Cheers,
+
+Eduardo Valentin (4):
+  staging: omap-thermal: fix compilation
+  staging: omap-thermal: remove platform data nomenclature
+  staging: omap-thermal: remove freq_clip table
+  staging: omap-thermal: add IRQ debugging messaging
+
+Radhesh Fadnis (1):
+  staging: omap-thermal: fix context restore function
+
+ drivers/staging/omap-thermal/omap-bandgap.c        |   63 ++++++++----------
+ drivers/staging/omap-thermal/omap-bandgap.h        |    9 ---
+ drivers/staging/omap-thermal/omap-thermal-common.c |   69 ++------------------
+ 3 files changed, 33 insertions(+), 108 deletions(-)
+
+-- 
+1.7.7.1.488.ge8e1c
