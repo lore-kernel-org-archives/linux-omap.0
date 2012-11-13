@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 1/5] staging: omap-thermal: fix compilation
-Date: Tue, 13 Nov 2012 11:43:18 -0400
-Message-ID: <1352821402-13458-2-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 2/5] staging: omap-thermal: remove platform data nomenclature
+Date: Tue, 13 Nov 2012 11:43:19 -0400
+Message-ID: <1352821402-13458-3-git-send-email-eduardo.valentin@ti.com>
 References: <1352821402-13458-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,25 +12,41 @@ To: gregkh@linuxfoundation.org
 Cc: b-cousson@ti.com, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Because we are not including asm/io.h, the driver is not compiling.
-This patch adds the missing header.
+Because the driver is not really using platform data, this patch
+removes the pdata nomenclature from this driver.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/staging/omap-thermal/omap-bandgap.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/staging/omap-thermal/omap-thermal-common.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
-index 368a2e1..1cae5ed 100644
---- a/drivers/staging/omap-thermal/omap-bandgap.c
-+++ b/drivers/staging/omap-thermal/omap-bandgap.c
-@@ -38,6 +38,7 @@
- #include <linux/of_device.h>
- #include <linux/of_platform.h>
- #include <linux/of_irq.h>
-+#include <linux/io.h>
+diff --git a/drivers/staging/omap-thermal/omap-thermal-common.c b/drivers/staging/omap-thermal/omap-thermal-common.c
+index 5c0c203b..5be66d7 100644
+--- a/drivers/staging/omap-thermal/omap-thermal-common.c
++++ b/drivers/staging/omap-thermal/omap-thermal-common.c
+@@ -256,12 +256,12 @@ static struct omap_thermal_data
+ int omap_thermal_expose_sensor(struct omap_bandgap *bg_ptr, int id,
+ 			       char *domain)
+ {
+-	struct omap_thermal_pdata pdata;
++	struct omap_thermal_data *data;
  
- #include "omap-bandgap.h"
+ 	data = omap_bandgap_get_sensor_data(bg_ptr, id);
  
+ 	if (!data)
+-		data = omap_thermal_build_pdata(bg_ptr, id);
++		data = omap_thermal_build_data(bg_ptr, id);
+ 
+ 	if (!data)
+ 		return -EINVAL;
+@@ -359,7 +359,7 @@ int omap_thermal_register_cpu_cooling(struct omap_bandgap *bg_ptr, int id)
+ 
+ 	data = omap_bandgap_get_sensor_data(bg_ptr, id);
+ 	if (!data)
+-		data = omap_thermal_build_pdata(bg_ptr, id);
++		data = omap_thermal_build_data(bg_ptr, id);
+ 
+ 	if (!data)
+ 		return -EINVAL;
 -- 
 1.7.7.1.488.ge8e1c
