@@ -1,86 +1,85 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices
- to mach-omap2)
-Date: Mon, 12 Nov 2012 22:22:07 -0700
-Message-ID: <50A1D8FF.7060104@wwwdotorg.org>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <20121109022624.GI23553@truffula.fritz.box> <CACxGe6vQ50aS0Fe7QvTHKfV=EDpsZoLC7SOxXLGc0pkMvyk5DQ@mail.gmail.com> <20121113010505.GR4696@truffula.fritz.box>
+From: David Gibson <david@gibson.dropbear.id.au>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Tue, 13 Nov 2012 18:25:17 +1100
+Message-ID: <20121113072517.GE25915@truffula.fritz.box>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <50999145.2070306@wwwdotorg.org>
+ <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
+ <509D9089.7020407@wwwdotorg.org>
+ <5B124797-6DFD-4C5E-90D7-665AFD4A7873@antoniou-consulting.com>
+ <50A12950.6090808@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:48449 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752957Ab2KMFWJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Nov 2012 00:22:09 -0500
-In-Reply-To: <20121113010505.GR4696@truffula.fritz.box>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <50A12950.6090808@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-On 11/12/2012 06:05 PM, David Gibson wrote:
-> On Fri, Nov 09, 2012 at 09:42:37PM +0000, Grant Likely wrote:
-...
-> 2) graft bundle
+On Mon, Nov 12, 2012 at 09:52:32AM -0700, Stephen Warren wrote:
+> On 11/12/2012 05:10 AM, Pantelis Antoniou wrote:
+[snip]
+> > Oh yes. In fact if one was to use a single kernel image for beagleboard
+> > and beaglebone, for the cape to work for both, it is required for it's
+> > dtb to be compatible. 
 > 
-> The base tree has something like this:
-> 
-> 	...
-> 	i2c@XXX {
-> 		...
-> 		cape-socket {
-> 			compatible = "vendor,cape-socket";
-> 			id = "Socket-A";
-> 			piece-id = "i2c";
-> 			ranges = < ... >;
-> 		};
-> 	};
-> 	...
-> 	spi@YYY {
-> 		...
-> 		cape-socket {
-> 			compatible = "vendor,cape-socket";
-> 			id = "Socket-A";
-> 			piece-id = "spi";
-> 			ranges = < ... >;
-> 		};
-> 	};
-> 	...
-> 	cape-socket {
-> 		compatible = "vendor,cape-socket";
-> 		id = "Socket-A";
-> 		piece-id = "misc";
-> 		interrupt-map = < ... >;
-> 		interrupt-map-mask = < ... >;
-> 		gpio-map = < ... >;
-> 		gpio-map-mask = < ... >;
-> 	};
-> 
-> Then instead of grafting a single subtree for the socket, we install a
-> "bundle" of subtrees, one each for each of the pieces within the
-> socket.  That bundle could either be an actual set of multiple fdts,
-> or they could be placed into one fdt with a dummy root node, something like:
->
-> 	/ {
-> 		plugin-bundle;
-> 		compatible = "vendor,cape-plugin";
-> 		version = ...;
-> 		i2c-piece = {
-> 			piece-id = "i2c";
-> 			...
-> 		};
-> 		misc-piece = {
-> 			piece-id = "misc";
-> 			...
-> 		};
-> 	};
+> Well, as Grant pointed out, it's not actually strictly necessary for the
+> .dtb to be compatible; only the .dts /need/ be compatible, and the .dtb
+> can be generated at run-time using dtc for example.
 
-I do like this approach; it's the kind of thing I proposed at:
+So, actually, I think a whole bunch of problems with phandle
+resolution disappear if we don't try to define an overlay .dtb format,
+or at least treat it only as a very shortlived object.  A more precise
+proposal below.  Note that this works more or less equally well with
+either the original overlay approach or the graft/graft-bundle
+proposal I made elsewhere.
 
-> http://www.mail-archive.com/devicetree-discuss@lists.ozlabs.org/msg20414.html
+1) We annotate the base tree with some extra label information for
+nodes which overlays are likely to want to reference by phandle.  e.g.
 
-One question though: Perhaps the base board has two instances of the
-same type of connector vendor,cape-socket, allowing 2 independent capes
-to be plugged in. When overlaying/grafting the child board's .dts, we'd
-need some way to specify the socket ID that was being plugged into. Is
-that the intent of the "id" property in your base board example above?
+	beaglebone_pic: interrupt-controller@XXXXX {
+		...
+		phandle,symbolic-name = "beaglebone_pic";
+	};
+
+We could extend dtc to (optionally?) auto-generate those properties
+from its existing label syntax.  Not sure if that's a good idea or
+not yet.  In any case, we compile this augmented base tree to .dtb as
+normal and boot our kernel with it.
+
+2) The information for the capes/modules/whatever is
+distributed/packaged as .dts, never .dtb.  When userspace detects the
+new module (or the user explicitly tells it, if it's not probeable) it
+picks up the correct dts and runs it through dtc in a special mode.
+In this mode dtc takes the existing base tree (from /proc/device-tree,
+say) as well as the new dts.  In this mode, dtc allocates phandles for
+the new tree fragment so as not to collide with anything from the
+supplied base tree (as well as avoiding internal conflicts,
+obviously).  It also allows node references to the base tree by using
+those label annotations from (1) to match symbolic names to the
+phandle values in the base tree.
+
+3) The resulting partial .dtb for the module is highly specific to the
+base tree (which if the base tree was generated at runtime by firmware
+could even be specific to a particular boot).  But that's ok, because
+we just spit it into the kernel, absolute phandle values and all, then
+throw it away.  Next time we need the module info, we recompile it
+again.
+
+> Of course, relying on .dts compatibility rather than .dtb compatibility
+> might negatively impact the complexity of an initrd environment if we
+> end up loading overlays from there...
+
+Well, it does mean we'd need dtc in the initrd.  But dtc has no
+library dependencies except libc, so that really shouldn't be too
+bad.  In return we entirely avoid inventing a new phandle resolution
+protocol.
+
+-- 
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
