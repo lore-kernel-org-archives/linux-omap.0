@@ -1,53 +1,111 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: OMAP2+: omap_twl: Change TWL4030_MODULE_PM_RECEIVER to TWL_MODULE_PM_RECEIVER
-Date: Tue, 13 Nov 2012 10:32:32 +0100
-Message-ID: <1352799152-20980-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH] gpio: twl4030: Use only TWL4030_MODULE_LED for LED configuration
+Date: Tue, 13 Nov 2012 10:35:13 +0100
+Message-ID: <1352799313-21019-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44414 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753330Ab2KMJcm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Nov 2012 04:32:42 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@ti.com>
 
-To facilitate upcoming cleanup in twl stack.
-No functional change.
+Avoid using the TWL4030_MODULE_PWMA/B as module ID. The LEDEN, PWMA ON/OFF
+and PWMB ON/OFF registers are in a continuous range starting from LED base.
+This is going to be helpful for further cleanup in the twl stack.
+
+No functional changes.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/omap_twl.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/gpio/gpio-twl4030.c | 35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index 2bf35dc..018abb4 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -337,8 +337,8 @@ int __init omap3_twl_set_sr_bit(bool enable)
- 	if (twl_sr_enable_autoinit)
- 		pr_warning("%s: unexpected multiple calls\n", __func__);
+diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
+index c5f8ca2..d2138b0 100644
+--- a/drivers/gpio/gpio-twl4030.c
++++ b/drivers/gpio/gpio-twl4030.c
+@@ -88,11 +88,15 @@ static inline int gpio_twl4030_write(u8 address, u8 data)
+ /*----------------------------------------------------------------------*/
  
--	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &temp,
--					TWL4030_DCDC_GLOBAL_CFG);
-+	ret = twl_i2c_read_u8(TWL_MODULE_PM_RECEIVER, &temp,
-+			      TWL4030_DCDC_GLOBAL_CFG);
- 	if (ret)
- 		goto err;
+ /*
+- * LED register offsets (use TWL4030_MODULE_{LED,PWMA,PWMB}))
++ * LED register offsets from TWL_MODULE_LED base
+  * PWMs A and B are dedicated to LEDs A and B, respectively.
+  */
  
-@@ -347,8 +347,8 @@ int __init omap3_twl_set_sr_bit(bool enable)
+-#define TWL4030_LED_LEDEN	0x0
++#define TWL4030_LED_LEDEN_REG	0x00
++#define TWL4030_PWMAON_REG	0x01
++#define TWL4030_PWMAOFF_REG	0x02
++#define TWL4030_PWMBON_REG	0x03
++#define TWL4030_PWMBOFF_REG	0x04
+ 
+ /* LEDEN bits */
+ #define LEDEN_LEDAON		BIT(0)
+@@ -104,9 +108,6 @@ static inline int gpio_twl4030_write(u8 address, u8 data)
+ #define LEDEN_PWM_LENGTHA	BIT(6)
+ #define LEDEN_PWM_LENGTHB	BIT(7)
+ 
+-#define TWL4030_PWMx_PWMxON	0x0
+-#define TWL4030_PWMx_PWMxOFF	0x1
+-
+ #define PWMxON_LENGTH		BIT(7)
+ 
+ /*----------------------------------------------------------------------*/
+@@ -145,7 +146,7 @@ static void twl4030_led_set_value(int led, int value)
  	else
- 		temp &= ~SMARTREFLEX_ENABLE;
+ 		cached_leden |= mask;
+ 	status = twl_i2c_write_u8(TWL4030_MODULE_LED, cached_leden,
+-			TWL4030_LED_LEDEN);
++				  TWL4030_LED_LEDEN_REG);
+ 	mutex_unlock(&gpio_lock);
+ }
  
--	ret = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, temp,
--				TWL4030_DCDC_GLOBAL_CFG);
-+	ret = twl_i2c_write_u8(TWL_MODULE_PM_RECEIVER, temp,
-+			       TWL4030_DCDC_GLOBAL_CFG);
- 	if (!ret) {
- 		twl_sr_enable_autoinit = true;
- 		return 0;
+@@ -216,33 +217,33 @@ static int twl_request(struct gpio_chip *chip, unsigned offset)
+ 	if (offset >= TWL4030_GPIO_MAX) {
+ 		u8	ledclr_mask = LEDEN_LEDAON | LEDEN_LEDAEXT
+ 				| LEDEN_LEDAPWM | LEDEN_PWM_LENGTHA;
+-		u8	module = TWL4030_MODULE_PWMA;
++		u8	reg = TWL4030_PWMAON_REG;
+ 
+ 		offset -= TWL4030_GPIO_MAX;
+ 		if (offset) {
+ 			ledclr_mask <<= 1;
+-			module = TWL4030_MODULE_PWMB;
++			reg = TWL4030_PWMBON_REG;
+ 		}
+ 
+ 		/* initialize PWM to always-drive */
+-		status = twl_i2c_write_u8(module, 0x7f,
+-				TWL4030_PWMx_PWMxOFF);
++		/* Configure PWM OFF register first */
++		status = twl_i2c_write_u8(TWL4030_MODULE_LED, 0x7f, reg + 1);
+ 		if (status < 0)
+ 			goto done;
+-		status = twl_i2c_write_u8(module, 0x7f,
+-				TWL4030_PWMx_PWMxON);
++
++		/* Followed by PWM ON register */
++		status = twl_i2c_write_u8(TWL4030_MODULE_LED, 0x7f, reg);
+ 		if (status < 0)
+ 			goto done;
+ 
+ 		/* init LED to not-driven (high) */
+-		module = TWL4030_MODULE_LED;
+-		status = twl_i2c_read_u8(module, &cached_leden,
+-				TWL4030_LED_LEDEN);
++		status = twl_i2c_read_u8(TWL4030_MODULE_LED, &cached_leden,
++					 TWL4030_LED_LEDEN_REG);
+ 		if (status < 0)
+ 			goto done;
+ 		cached_leden &= ~ledclr_mask;
+-		status = twl_i2c_write_u8(module, cached_leden,
+-				TWL4030_LED_LEDEN);
++		status = twl_i2c_write_u8(TWL4030_MODULE_LED, cached_leden,
++					  TWL4030_LED_LEDEN_REG);
+ 		if (status < 0)
+ 			goto done;
+ 
 -- 
 1.8.0
-
