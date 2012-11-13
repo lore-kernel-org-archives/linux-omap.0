@@ -1,130 +1,78 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: OMAP: board-4430sdp: Proper support for TWL6030 PWM LED/Backlight
-Date: Tue, 13 Nov 2012 11:38:13 +0100
-Message-ID: <1352803093-26203-1-git-send-email-peter.ujfalusi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: otg: twl4030: Change TWL4030_MODULE_* ids to
+ TWL_MODULE_*
+Date: Tue, 13 Nov 2012 12:37:57 +0200
+Message-ID: <20121113103757.GE10951@arwen.pp.htv.fi>
+References: <1352799818-22363-1-git-send-email-peter.ujfalusi@ti.com>
+ <20121113094722.GB10395@arwen.pp.htv.fi>
+ <50A220BF.7020901@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36902 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754800Ab2KMKiX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Nov 2012 05:38:23 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="u5E4XgoOPWr4PD9E"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <50A220BF.7020901@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: balbi@ti.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-New PWM drivers are being prepared for twl series which will enable the use
-of all PWMs (PWMs and LEDs).
-They are implemented as generic PWM drivers to be able to use them for different
-purposes.
-The current platform code was broken: the leds_pwm driver was not able to pick
-up the PWM since the pwm_id was incorrect.
+--u5E4XgoOPWr4PD9E
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-With the other patches we will be able to control the followings:
-LCD backlight via pwm-backlight driver
-Keypad leds via leds_pwm driver as normal LED
-Charging indicator via leds_pwm driver as normal LED
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-Hello,
+On Tue, Nov 13, 2012 at 11:28:15AM +0100, Peter Ujfalusi wrote:
+> Hi Felipe,
+>=20
+> On 11/13/2012 10:47 AM, Felipe Balbi wrote:
+> > On Tue, Nov 13, 2012 at 10:43:38AM +0100, Peter Ujfalusi wrote:
+> >> To facilitate upcoming cleanup in twl stack.
+> >> No functional changes.
+> >>
+> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> >=20
+> > I guess this one must go together with the rest of your series...
+>=20
+> I made the split between the patches and they are good to go in their sep=
+arate
+> ways to avoid cross tree hassle.
+> All of the defines were in place originally but they were used in non
+> consistent ways.
+> All of these will help in the future to clean up the twl core without bre=
+aking
+> the child drivers.
 
-This patch needs the following series to work:
-- twl regmap IO conversion series:
-http://lkml.org/lkml/2012/11/13/97
+ok good. Unfortunately I have already sent this merge window's pull
+request to Greg so I'd have to delay this until v3.9. If that's ok with
+you, I can take it through my tree.
 
-- PWM drivers for twl4030/6030 (v2):
-https://lkml.org/lkml/2012/11/8/219
+--=20
+balbi
 
-- leds-pwm series (v2):
-https://lkml.org/lkml/2012/11/12/222
+--u5E4XgoOPWr4PD9E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-With these in place we can have keypad light and LCD backlight working on Blaze
-when booting in legacy mode.
-I will send the DT patches after the leds-pwm DT support has been accepted.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Regards,
-Peter
+iQIcBAEBAgAGBQJQoiMFAAoJEIaOsuA1yqREk24P/0i0bC0b8W15F3mglrzk0cVo
+DOaqwUIc92jz6FtMfpPTO2H9NhOCnkdZylaMJNakP9ONKZ7T7eWZ+h+gXO2Iamj9
+SX29uYgux3eTYSYsXLiLDxvAbzvHnEzSMA6r7ZMaiukMBeZR+cUiijsYSBXQhYvL
+Mux9Cde5UZP0x3MJNMfEryFiOKbrtNw3MSnSR/vNHfURUACc2ZoxZF6RklR24B30
+ZZbK1tf8Cxlk7SZ07tb5NLPBujDz4iI7hX789nWNLWsDDfbMrBi9UX2ghVfS38D4
+AocEH8wTwgexkazLh6qMvWiDU+uWXRkegdv6f7hO2rc0UZxB4cO9RI1BZsr6UN5E
+/YXIF/SaDrGHdUlVy2cTqcgCbgnfWMRLZJsBMbwbOqtaaIqIiwBwzMPrmIPTXgAW
+KGExxBmB5JaqHwEnVw4i27mbdIeVNl/XjmhQyqeP1fzV78QnpVaSzlybyTCY0jf2
+1TCvKDGIyAJF08Tenke8SjthvfUxIOJ2/4p90ch53COoE0Wx1cp6Y+kUExQTNntM
+o+SB3Mg289V/70mLRckLtdj0FHdLBgq6xZk5mrdLYB8cY5CkmhLQTSGc35oAKZtD
+YoZSMyX+bHvPPp5B00XfXlrLxNniHMzXG31h8RS5b35ytdOuveKNtyVNpb4uhoYn
+g7/LOTKNoLCQA5KL2DhF
+=OzIR
+-----END PGP SIGNATURE-----
 
- arch/arm/mach-omap2/board-4430sdp.c | 31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 3669c12..8cf781e 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -24,8 +24,10 @@
- #include <linux/gpio_keys.h>
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
-+#include <linux/pwm.h>
- #include <linux/leds.h>
- #include <linux/leds_pwm.h>
-+#include <linux/pwm_backlight.h>
- #include <linux/platform_data/omap4-keypad.h>
- 
- #include <asm/hardware/gic.h>
-@@ -263,10 +265,20 @@ static struct gpio_led_platform_data sdp4430_led_data = {
- 	.num_leds	= ARRAY_SIZE(sdp4430_gpio_leds),
- };
- 
-+static struct pwm_lookup sdp4430_pwm_lookup[] = {
-+	PWM_LOOKUP("twl-pwm", 0, "leds_pwm", "omap4::keypad"),
-+	PWM_LOOKUP("twl-pwm", 1, "pwm-backlight", "backlight"),
-+	PWM_LOOKUP("twl-pwmled", 0, "leds_pwm", "omap4:green:chrg"),
-+};
-+
- static struct led_pwm sdp4430_pwm_leds[] = {
- 	{
-+		.name		= "omap4::keypad",
-+		.max_brightness	= 127,
-+		.pwm_period_ns	= 7812500,
-+	},
-+	{
- 		.name		= "omap4:green:chrg",
--		.pwm_id		= 1,
- 		.max_brightness	= 255,
- 		.pwm_period_ns	= 7812500,
- 	},
-@@ -285,6 +297,21 @@ static struct platform_device sdp4430_leds_pwm = {
- 	},
- };
- 
-+static struct platform_pwm_backlight_data sdp4430_backlight_data = {
-+	.pwm_id = 1,
-+	.max_brightness = 127,
-+	.dft_brightness = 127,
-+	.pwm_period_ns = 7812500,
-+};
-+
-+static struct platform_device sdp4430_backlight_pwm = {
-+	.name   = "pwm-backlight",
-+	.id     = -1,
-+	.dev    = {
-+		.platform_data = &sdp4430_backlight_data,
-+	},
-+};
-+
- static int omap_prox_activate(struct device *dev)
- {
- 	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 1);
-@@ -419,6 +446,7 @@ static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- 	&sdp4430_leds_pwm,
-+	&sdp4430_backlight_pwm,
- 	&sdp4430_vbat,
- 	&sdp4430_dmic_codec,
- 	&sdp4430_abe_audio,
-@@ -862,6 +890,7 @@ static void __init omap_4430sdp_init(void)
- 				ARRAY_SIZE(sdp4430_spi_board_info));
- 	}
- 
-+	pwm_add_table(sdp4430_pwm_lookup, ARRAY_SIZE(sdp4430_pwm_lookup));
- 	status = omap4_keyboard_init(&sdp4430_keypad_data, &keypad_data);
- 	if (status)
- 		pr_err("Keypad initialization failed: %d\n", status);
--- 
-1.8.0
-
+--u5E4XgoOPWr4PD9E--
