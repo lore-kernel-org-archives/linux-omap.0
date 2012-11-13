@@ -1,28 +1,28 @@
 From: Igor Mazanov <i.mazanov@gmail.com>
 Subject: Re: OMAP baseline test results for v3.7-rc5
-Date: Tue, 13 Nov 2012 20:04:08 +0400
-Message-ID: <50A26F78.7070602@gmail.com>
+Date: Tue, 13 Nov 2012 20:05:26 +0400
+Message-ID: <50A26FC6.4070201@gmail.com>
 References: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
 Reply-To: i.mazanov@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:49650 "EHLO plane.gmane.org"
+Received: from plane.gmane.org ([80.91.229.3]:41766 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751576Ab2KMQE4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Nov 2012 11:04:56 -0500
+	id S1754554Ab2KMQJ6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Nov 2012 11:09:58 -0500
 Received: from list by plane.gmane.org with local (Exim 4.69)
 	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1TYIz2-0004tx-EO
-	for linux-omap@vger.kernel.org; Tue, 13 Nov 2012 17:05:04 +0100
+	id 1TYJ3r-0007rX-Pa
+	for linux-omap@vger.kernel.org; Tue, 13 Nov 2012 17:10:03 +0100
 Received: from 77.232.56.122 ([77.232.56.122])
         by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
         id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 13 Nov 2012 17:05:04 +0100
+        for <linux-omap@vger.kernel.org>; Tue, 13 Nov 2012 17:10:03 +0100
 Received: from i.mazanov by 77.232.56.122 with local (Gmexim 0.1 (Debian))
         id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 13 Nov 2012 17:05:04 +0100
+        for <linux-omap@vger.kernel.org>; Tue, 13 Nov 2012 17:10:03 +0100
 In-Reply-To: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
