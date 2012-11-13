@@ -1,122 +1,98 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 1/6] ARM/dts: omap4-panda: Add pinmux configuration for
- HDMI
-Date: Tue, 13 Nov 2012 13:10:10 -0600
-Message-ID: <50A29B12.9030906@ti.com>
-References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com> <1352121259-5836-2-git-send-email-tomi.valkeinen@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 4/6] omap pm updates for v3.8 merge window
+Date: Tue, 13 Nov 2012 11:11:32 -0800
+Message-ID: <20121113191132.GG6801@atomide.com>
+References: <pull-1352828737-887235>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59432 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754638Ab2KMTLI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Nov 2012 14:11:08 -0500
-In-Reply-To: <1352121259-5836-2-git-send-email-tomi.valkeinen@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20047 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754296Ab2KMTLg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Nov 2012 14:11:36 -0500
+Content-Disposition: inline
+In-Reply-To: <pull-1352828737-887235>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, s-guiriec@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Tomi,
+The following changes since commit 3d70f8c617a436c7146ecb81df2265b4626dfe89:
 
-On 11/05/2012 07:14 AM, Tomi Valkeinen wrote:
-> From: Ricardo Neri <ricardo.neri@ti.com>
->
-> Add the pinmux configuration for HDMI and TPD12S015A. Configure the
-> gpios for the TPD12S015A and SDA, SCL and CEC for HDMI.
+  Linux 3.7-rc4 (2012-11-04 11:07:39 -0800)
 
-Do you plan to upstream the complete DT-boot support for DSS 
-(specifically, HDMI) for 3.8? I am asking so that I can upstream the 
-audio part.
+are available in the git repository at:
 
-Thanks!
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/pm-signed
 
-Ricardo
->
-> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   arch/arm/boot/dts/omap4-panda-a4.dts |   17 +++++++++++++++++
->   arch/arm/boot/dts/omap4-panda.dts    |   18 ++++++++++++++++++
->   arch/arm/boot/dts/omap4-pandaES.dts  |    9 +++++++++
->   3 files changed, 44 insertions(+)
->   create mode 100644 arch/arm/boot/dts/omap4-panda-a4.dts
->
-> diff --git a/arch/arm/boot/dts/omap4-panda-a4.dts b/arch/arm/boot/dts/omap4-panda-a4.dts
-> new file mode 100644
-> index 0000000..75466d2
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap4-panda-a4.dts
-> @@ -0,0 +1,17 @@
-> +/*
-> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +/include/ "omap4-panda.dts"
-> +
-> +/* Pandaboard Rev A4+ have external pullups on SCL & SDA */
-> +&dss_hdmi_pins {
-> +	pinctrl-single,pins = <
-> +		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
-> +		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
-> +		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
-> +		>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-> index e8f927c..8060f5b 100644
-> --- a/arch/arm/boot/dts/omap4-panda.dts
-> +++ b/arch/arm/boot/dts/omap4-panda.dts
-> @@ -65,6 +65,8 @@
->   			&twl6040_pins
->   			&mcpdm_pins
->   			&mcbsp1_pins
-> +			&dss_hdmi_pins
-> +			&tpd12s015_pins
->   	>;
->
->   	twl6040_pins: pinmux_twl6040_pins {
-> @@ -92,6 +94,22 @@
->   			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
->   		>;
->   	};
-> +
-> +	dss_hdmi_pins: pinmux_dss_hdmi_pins {
-> +		pinctrl-single,pins = <
-> +			0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
-> +			0x5c 0x118	/* hdmi_scl.hdmi_scl INPUT PULLUP | MODE 0 */
-> +			0x5e 0x118	/* hdmi_sda.hdmi_sda INPUT PULLUP | MODE 0 */
-> +		>;
-> +	};
-> +
-> +	tpd12s015_pins: pinmux_tpd12s015_pins {
-> +		pinctrl-single,pins = <
-> +			0x22 0x3	/* gpmc_a17.gpio_41 OUTPUT | MODE3 */
-> +			0x48 0x3	/* gpmc_nbe1.gpio_60 OUTPUT | MODE3 */
-> +			0x58 0x10b	/* hdmi_hpd.gpio_63 INPUT PULLDOWN | MODE3 */
-> +		>;
-> +	};
->   };
->
->   &i2c1 {
-> diff --git a/arch/arm/boot/dts/omap4-pandaES.dts b/arch/arm/boot/dts/omap4-pandaES.dts
-> index d4ba43a..73bc1a6 100644
-> --- a/arch/arm/boot/dts/omap4-pandaES.dts
-> +++ b/arch/arm/boot/dts/omap4-pandaES.dts
-> @@ -22,3 +22,12 @@
->   		"AFML", "Line In",
->   		"AFMR", "Line In";
->   };
-> +
-> +/* PandaboardES has external pullups on SCL & SDA */
-> +&dss_hdmi_pins {
-> +	pinctrl-single,pins = <
-> +		0x5a 0x118	/* hdmi_cec.hdmi_cec INPUT PULLUP | MODE 0 */
-> +		0x5c 0x100	/* hdmi_scl.hdmi_scl INPUT | MODE 0 */
-> +		0x5e 0x100	/* hdmi_sda.hdmi_sda INPUT | MODE 0 */
-> +		>;
-> +};
->
+for you to fetch changes up to 46bf4a562207c5ebd24e1dde5e5ee326cd3d6b91:
+
+  Merge tag 'for_3.8-pm-voltage' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.8/pm (2012-11-06 17:06:37 -0800)
+
+----------------------------------------------------------------
+
+PM updates for omaps via Kevin Hilman <khilman@deeprootsystems.com>:
+
+- Minor pr_warn() cleanup for OMAP2+ Voltage Processor (VP)
+
+- OMAP: SmartReflex: pass device-independent data via platform_data
+
+- OMAP voltage layer updates towards supporting auto-retention/auto-off
+
+----------------------------------------------------------------
+Jean Pihet (2):
+      ARM: OMAP: hwmod: align the SmartReflex fck names
+      ARM: OMAP: SmartReflex: pass device dependent data via platform data
+
+Nishanth Menon (2):
+      ARM: OMAP2+: PM: VP: minor pr_warn updates
+      ARM: OMAP3+: PM: VP: use uV for max and min voltage limits
+
+Tero Kristo (13):
+      ARM: OMAP: voltage: renamed vp_vddmin and vp_vddmax fields
+      ARM: OMAP3+: voltage: introduce omap vc / vp params for voltagedomains
+      ARM: OMAP3: VC: calculate ramp times
+      ARM: OMAP4: voltage: add support for VOLTSETUP_x_OFF register
+      ARM: OMAP4: VC: calculate ramp times
+      ARM: OMAP: add support for oscillator setup
+      ARM: OMAP3+: vp: use new vp_params for calculating vddmin and vddmax
+      ARM: OMAP3+: voltage: use oscillator data to calculate setup times
+      ARM: OMAP: TWL: change the vddmin / vddmax voltages to spec
+      ARM: OMAP3+: voltage: remove unused volt_setup_time parameter
+      ARM: OMAP4: vc: fix channel configuration
+      ARM: OMAP4: VC: setup I2C parameters based on board data
+      ARM: OMAP4: TWL: enable high speed mode for PMIC communication
+
+Tony Lindgren (3):
+      Merge tag 'for_3.8-cleanup-pm' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.8/pm
+      Merge tag 'for_3.8-pm-sr' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.8/pm
+      Merge tag 'for_3.8-pm-voltage' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.8/pm
+
+Vishwanath Sripathy (1):
+      ARM: OMAP4: OPP: add OMAP4460 definitions
+
+ arch/arm/mach-omap2/clock33xx_data.c          |  12 +-
+ arch/arm/mach-omap2/clock3xxx_data.c          |  12 +-
+ arch/arm/mach-omap2/clock44xx_data.c          |   6 +-
+ arch/arm/mach-omap2/control.h                 |   1 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   8 +-
+ arch/arm/mach-omap2/omap_opp_data.h           |   9 +-
+ arch/arm/mach-omap2/omap_twl.c                |  73 +----
+ arch/arm/mach-omap2/opp4xxx_data.c            |  98 +++++-
+ arch/arm/mach-omap2/pm.c                      |  30 ++
+ arch/arm/mach-omap2/pm.h                      |  10 +
+ arch/arm/mach-omap2/sr_device.c               |  13 +
+ arch/arm/mach-omap2/vc.c                      | 451 ++++++++++++++++++++++++--
+ arch/arm/mach-omap2/vc.h                      |   8 +-
+ arch/arm/mach-omap2/vc3xxx_data.c             |  22 ++
+ arch/arm/mach-omap2/vc44xx_data.c             |  28 ++
+ arch/arm/mach-omap2/voltage.h                 |  44 ++-
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |   5 +
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |  23 +-
+ arch/arm/mach-omap2/vp.c                      |  19 +-
+ arch/arm/mach-omap2/vp.h                      |   7 +
+ arch/arm/mach-omap2/vp3xxx_data.c             |  10 +
+ arch/arm/mach-omap2/vp44xx_data.c             |  15 +
+ drivers/power/avs/smartreflex.c               |  54 +--
+ include/linux/power/smartreflex.h             |  14 +-
+ 24 files changed, 792 insertions(+), 180 deletions(-)
