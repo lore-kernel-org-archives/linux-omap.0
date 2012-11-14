@@ -1,62 +1,50 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 1/3] ASoC: OMAP: HDMI: Update machine driver name
-Date: Wed, 14 Nov 2012 11:00:54 -0600
-Message-ID: <50A3CE46.8050207@ti.com>
-References: <1352860249-26348-1-git-send-email-ricardo.neri@ti.com> <1352860249-26348-2-git-send-email-ricardo.neri@ti.com> <50A36F98.7060103@ti.com>
+Subject: Re: [PATCH 3/3] ASoC: OMAP: HDMI: Obtain DMA port from resources
+Date: Wed, 14 Nov 2012 11:07:09 -0600
+Message-ID: <50A3CFBD.5080903@ti.com>
+References: <1352860249-26348-1-git-send-email-ricardo.neri@ti.com> <1352860249-26348-4-git-send-email-ricardo.neri@ti.com> <20121114032712.GQ4415@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60381 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755181Ab2KNRBx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 12:01:53 -0500
-In-Reply-To: <50A36F98.7060103@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58147 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932188Ab2KNRIJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Nov 2012 12:08:09 -0500
+In-Reply-To: <20121114032712.GQ4415@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-Hi Liam,
+Hi Mark,
 
-Thanks for reviewing!
+Thanks for reviewing!				
 
-On 11/14/2012 04:16 AM, Liam Girdwood wrote:
-> On 14/11/12 02:30, Ricardo Neri wrote:
->> Being the name of a machine driver, it aims to describe the
->> connection between the HDMI IP of the processor and the companion
->> chip it uses to connect to the outside world. This name tries to
->> follow the same naming convention as in the OMAP-ABE-TWL6040
->> machine driver.
->>
->> TPD12S015 is an HDMI companion chip for DC-DC step-up, I2C level
->> shifter and low-capacitance ESD protection. This chip is used on
->> all OMAP4 Pandaboards an SDPs as well as in OMAP5 EVMs.
->>
+On 11/13/2012 09:27 PM, Mark Brown wrote:
+> On Tue, Nov 13, 2012 at 08:30:49PM -0600, Ricardo Neri wrote:
+>> Instead of defining the address offset of the DMA port for transfers of
+>> audio samples, obtain this information from the resources of the device.
+>> This device and its resources are created by the OMAPDSS HDMI driver.
 >
-> Is the TPD12S015 passive or actively controlled by the CPU in this
-> case ?
+> Presumably this needs some other corresponding change in the resource
+> setup to go in simultaneously...
 
-Yes the CPU controls the TPD12S015 actively through two GPIOs. One GPIO
-is used to enable data transfer. The second GPIO is enable the TPD to
-detect cable connection. However, this abstracted by the OMAPDSS HDMI 
-driver and the ASoC driver does not know about it.
+Yes, the change in the resources setup has been submitted to the OMAPDSS 
+HDMI driver and accepted by Tomi [1].
+
 >
-> If it's passive then it's not really worth changing the driver name
-> since other OMAP4/5 devices may use other HDMI companion chips (an we
->  can reuse this driver without changes).
+>> -	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start
+>> -		+ OMAP_HDMI_AUDIO_DMA_PORT;
+>> +	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start;
+>
+> ...both before and after versions use the resource.
 
-I believe it would be good to change the name of the driver to describe 
-better the machine. omap-hdmi-audio makes reference only to the 
-processor and sounds good to reserve it for the CPU DAI driver. Maybe 
-something more generic could be used if the ASoC driver will not control 
-the companion chip. How about omap-hdmi-board-audio or 
-omap-hdmi-machine-audio? omap-hdmi-[companion]-audio was the 
-best-looking to me.
+This change should be present in K3.8.
+>
 
 BR,
 
 Ricardo
 
->
-> Liam
+[1].http://www.mail-archive.com/linux-omap@vger.kernel.org/msg79801.html
