@@ -1,83 +1,75 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
-Date: Wed, 14 Nov 2012 17:41:03 +0100
-Message-ID: <CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
-References: <k80da6$61d$1@ger.gmane.org>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCH v3] i2c: omap: ensure writes to dev->buf_len are ordered
+Date: Wed, 14 Nov 2012 17:46:00 +0100
+Message-ID: <20121114164600.GA1020@pengutronix.de>
+References: <20121114112050.GG5954@pengutronix.de>
+ <1352902965-25666-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:52612 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161219Ab2KNQlE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 11:41:04 -0500
-Received: by mail-ia0-f174.google.com with SMTP id y25so400242iay.19
-        for <linux-omap@vger.kernel.org>; Wed, 14 Nov 2012 08:41:04 -0800 (PST)
-In-Reply-To: <k80da6$61d$1@ger.gmane.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:53631 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964820Ab2KNQqE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 11:46:04 -0500
+Content-Disposition: inline
+In-Reply-To: <1352902965-25666-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: i.mazanov@gmail.com, Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-i2c@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi,
 
-On Wed, Nov 14, 2012 at 4:28 PM, Igor Mazanov <i.mazanov@gmail.com> wrote:
-> Hello,
->
-> Beaglebone boot process is broken with the current git kernel. I use
-> omap2plus_defconfig for tests.
->
-> It looks like the boot process stops due to the last changes in the AM33xx
-> clock sysbsystem. A following patch resolves this issue:
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> index ad8d43b..858e180 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> @@ -586,7 +586,7 @@ static struct omap_hwmod am33xx_smartreflex0_hwmod = {
->         .class          = &am33xx_smartreflex_hwmod_class,
->         .clkdm_name     = "l4_wkup_clkdm",
->         .mpu_irqs       = am33xx_smartreflex0_irqs,
-> -       .main_clk       = "smartreflex0_fck",
-> +       .main_clk       = "smartreflex_mpu_fck",
->         .prcm           = {
->                 .omap4  = {
->                         .clkctrl_offs   =
-> AM33XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET,
-> @@ -606,7 +606,7 @@ static struct omap_hwmod am33xx_smartreflex1_hwmod = {
->         .class          = &am33xx_smartreflex_hwmod_class,
->         .clkdm_name     = "l4_wkup_clkdm",
->         .mpu_irqs       = am33xx_smartreflex1_irqs,
-> -       .main_clk       = "smartreflex1_fck",
-> +       .main_clk       = "smartreflex_core_fck",
->         .prcm           = {
->                 .omap4  = {
->                         .clkctrl_offs   =
-> AM33XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET,
->
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-About the name field in the hwmod entry: the SR code checks on the
-value of "smartreflex_mpu_iva" to differentiate the SR IP blocks and
-to apply the correct parameters to each of them. Cf. the function
-sr_set_regfields in drivers/power/avs/smartreflex.c.
+On Wed, Nov 14, 2012 at 04:22:45PM +0200, Felipe Balbi wrote:
+> if we allow compiler reorder our writes, we could
+> fall into a situation where dev->buf_len is reset
+> for no apparent reason.
+>=20
+> This bug was found with a simple script which would
+> transfer data to an i2c client from 1 to 1024 bytes
+> (a simple for loop), when we got to transfer sizes
+> bigger than the fifo size, dev->buf_len was reset
+> to zero before we had an oportunity to handle XDR
+> Interrupt. Because dev->buf_len was zero, we entered
+> omap_i2c_transmit_data() to transfer zero bytes,
+> which would mean we would just silently exit
+> omap_i2c_transmit_data() without actually writing
+> anything to DATA register. That would cause XDR
+> IRQ to trigger forever and we would never transfer
+> the remaining bytes.
+>=20
+> After adding the memory barrier, we also drop resetting
+> dev->buf_len to zero in omap_i2c_xfer_msg() because
+> both omap_i2c_transmit_data() and omap_i2c_receive_data()
+> will act until dev->buf_len reaches zero, rendering the
+> other write in omap_i2c_xfer_msg() redundant.
+>=20
+> This patch has been tested with pandaboard for a few
+> iterations of the script mentioned above.
+>=20
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-The patch should change the name of the hwmod entry as well, can you
-fold this change in the current patch?
+Applied to for-current, thanks!
 
-Note: I know the name "smartreflex_mpu_iva" is not perfect since it
-does not apply to all OMAP3 variants, maybe we could change the SR
-code to be more generic.
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
-Nishant, what do you think?
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Regards,
-Jean
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
->
-> Regards,
-> Igor.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iEYEARECAAYFAlCjysgACgkQD27XaX1/VRt0ygCeLKAAJi6/98/w5nbrO07/oo/R
+LI8An3BcHpIUHjMmccsM9DQMIX5Bc+JA
+=mHPm
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
