@@ -1,101 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP* Latest build failures
-Date: Wed, 14 Nov 2012 08:59:48 -0800
-Message-ID: <20121114165947.GR6801@atomide.com>
-References: <20121114092643.GG3290@n2100.arm.linux.org.uk>
- <50A3844B.8040208@ti.com>
- <20121114164801.GQ6801@atomide.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH 1/3] ASoC: OMAP: HDMI: Update machine driver name
+Date: Wed, 14 Nov 2012 11:00:54 -0600
+Message-ID: <50A3CE46.8050207@ti.com>
+References: <1352860249-26348-1-git-send-email-ricardo.neri@ti.com> <1352860249-26348-2-git-send-email-ricardo.neri@ti.com> <50A36F98.7060103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:51308 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754000Ab2KNQ7y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 11:59:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20121114164801.GQ6801@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60381 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755181Ab2KNRBx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 12:01:53 -0500
+In-Reply-To: <50A36F98.7060103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Liam Girdwood <lrg@ti.com>
+Cc: broonie@opensource.wolfsonmicro.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-* Tony Lindgren <tony@atomide.com> [121114 08:50]:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [121114 03:47]:
-> > On 2012-11-14 11:26, Russell King - ARM Linux wrote:
-> > > OMAP* allnoconfig fails:
-> > > 
-> > > arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput':
-> > > twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bus_tput'
-> > > arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup':
-> > > twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_early_init'
-> > > arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
-> > > twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > > arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
-> > > twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > > arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
-> > > twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_init'
-> > > arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
-> > > twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > > arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
-> > > twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > 
-> > I'm not able to reproduce this. I took v3.7-rc5, and the omap4430-sdp
-> > noconfig
-> > (http://www.arm.linux.org.uk/developer/build/file.php?type=config&idx=2711),
-> > and it builds fine for me.
-> 
-> It happens if in arm-soc/for-next and rmk/for-next. Looks like the
-> CONFIG_OMAP_PM_NOOP can't be under CONFIG_PM in the makefile where I moved it
-> in commit 6e740f9a8.
+Hi Liam,
 
-This should say just "It happens in arm-soc/for-next".
- 
-> Looks like in my test configs I run make oldnoconfig on Russell's seed
-> config, and I do get CONFIG_PM=y set while Russell's generated config
-> does not have that. No ideas yet why oldnoconfig add CONFIG_PM=y..
-> 
-> Anyways, patch below to make it behave like earlier.
-> 
-> Regards,
-> 
-> Tony
-> 
->  
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Wed, 14 Nov 2012 08:40:00 -0800
-> Subject: [PATCH] ARM: OMAP: Fix compile for OMAP_PM_NOOP if PM is not selected
-> 
-> Commit 6e740f9a8 (ARM: OMAP: Move omap-pm-noop.c local to mach-omap2)
-> moved omap-pm-noop to be local to mach-omap2. However, the makefile
-> entry got placed within ifeq ($(CONFIG_PM),y) which was not the
-> case earlier.
-> 
-> Fix the issue by moving it out of the ifeq ($(CONFIG_PM),y) in
-> the makefile as these stubs are needed also when PM is not set.
-> 
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -68,6 +68,8 @@ obj-$(CONFIG_ARCH_OMAP4)		+= opp4xxx_data.o
->  endif
->  
->  # Power Management
-> +obj-$(CONFIG_OMAP_PM_NOOP)		+= omap-pm-noop.o
-> +
->  ifeq ($(CONFIG_PM),y)
->  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
->  obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
-> @@ -75,7 +77,6 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
->  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
->  obj-$(CONFIG_SOC_OMAP5)			+= omap-mpuss-lowpower.o
->  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
-> -obj-$(CONFIG_OMAP_PM_NOOP)		+= omap-pm-noop.o
->  
->  obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
->  obj-$(CONFIG_POWER_AVS_OMAP_CLASS3)    += smartreflex-class3.o
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for reviewing!
+
+On 11/14/2012 04:16 AM, Liam Girdwood wrote:
+> On 14/11/12 02:30, Ricardo Neri wrote:
+>> Being the name of a machine driver, it aims to describe the
+>> connection between the HDMI IP of the processor and the companion
+>> chip it uses to connect to the outside world. This name tries to
+>> follow the same naming convention as in the OMAP-ABE-TWL6040
+>> machine driver.
+>>
+>> TPD12S015 is an HDMI companion chip for DC-DC step-up, I2C level
+>> shifter and low-capacitance ESD protection. This chip is used on
+>> all OMAP4 Pandaboards an SDPs as well as in OMAP5 EVMs.
+>>
+>
+> Is the TPD12S015 passive or actively controlled by the CPU in this
+> case ?
+
+Yes the CPU controls the TPD12S015 actively through two GPIOs. One GPIO
+is used to enable data transfer. The second GPIO is enable the TPD to
+detect cable connection. However, this abstracted by the OMAPDSS HDMI 
+driver and the ASoC driver does not know about it.
+>
+> If it's passive then it's not really worth changing the driver name
+> since other OMAP4/5 devices may use other HDMI companion chips (an we
+>  can reuse this driver without changes).
+
+I believe it would be good to change the name of the driver to describe 
+better the machine. omap-hdmi-audio makes reference only to the 
+processor and sounds good to reserve it for the CPU DAI driver. Maybe 
+something more generic could be used if the ASoC driver will not control 
+the companion chip. How about omap-hdmi-board-audio or 
+omap-hdmi-machine-audio? omap-hdmi-[companion]-audio was the 
+best-looking to me.
+
+BR,
+
+Ricardo
+
+>
+> Liam
