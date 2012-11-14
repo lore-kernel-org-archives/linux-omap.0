@@ -1,37 +1,57 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
-Date: Wed, 14 Nov 2012 13:06:53 -0600
-Message-ID: <50A3EBCD.3040801@ti.com>
-References: <20121114185335.GU6801@atomide.com>
+From: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH V5 4/7] net: cpsw: halt network stack before halting the
+ device during suspend
+Date: Thu, 15 Nov 2012 00:37:57 +0530
+Message-ID: <1352920080-6179-5-git-send-email-mugunthanvnm@ti.com>
+References: <1352920080-6179-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60399 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423130Ab2KNTHH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Nov 2012 14:07:07 -0500
-In-Reply-To: <20121114185335.GU6801@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1352920080-6179-1-git-send-email-mugunthanvnm-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Dave Martin <dave.martin@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
+Move network stack halt APIs before halting the hardware to ensure no
+packets are queued to hardware during closing the device during
+suspend sequence.
 
-On 11/14/2012 12:53 PM, Tony Lindgren wrote:
-> Looks like enabling CONFIG_ARM_ERRATA_751472 causes omap4 blaze
-> to not boot when enabled. The ARM core on it is an earlier r1p2:
-> 
-> CPU: ARMv7 Processor [411fc092] revision 2 (ARMv7), cr=10c53c7d
-> 
-> Unfortunately I don't have the details of errata 751472, but I'm
-> guessing we need to disable it for r1p*.
+Signed-off-by: Mugunthan V N <mugunthanvnm-l0cyMroinI0@public.gmane.org>
+Acked-by: Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/net/ethernet/ti/cpsw.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-I checked the CA9MP errata document and this erratum impacts all
-r0/r1/r2 CPUs. I am wondering if the problem is because the workaround
-requires you to set a bit in the Diagnostic Control register and the
-read-modify-write sequence provided in the workaround is for secure
-mode. Not sure if there is a non-secure workaround available :-(
-
-Cheers
-Jon
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index 0da9c75..02c2477 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -698,12 +698,12 @@ static int cpsw_ndo_stop(struct net_device *ndev)
+ 	struct cpsw_priv *priv = netdev_priv(ndev);
+ 
+ 	cpsw_info(priv, ifdown, "shutting down cpsw device\n");
+-	cpsw_intr_disable(priv);
+-	cpdma_ctlr_int_ctrl(priv->dma, false);
+-	cpdma_ctlr_stop(priv->dma);
+ 	netif_stop_queue(priv->ndev);
+ 	napi_disable(&priv->napi);
+ 	netif_carrier_off(priv->ndev);
++	cpsw_intr_disable(priv);
++	cpdma_ctlr_int_ctrl(priv->dma, false);
++	cpdma_ctlr_stop(priv->dma);
+ 	cpsw_ale_stop(priv->ale);
+ 	for_each_slave(priv, cpsw_slave_stop, priv);
+ 	pm_runtime_put_sync(&priv->pdev->dev);
+-- 
+1.7.0.4
