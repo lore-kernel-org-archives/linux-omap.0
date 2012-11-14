@@ -1,63 +1,67 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/4] rtc: OMAP: Add system pm_power_off to rtc driver
-Date: Wed, 14 Nov 2012 15:00:06 +0900
-Message-ID: <20121114060003.GA7407@opensource.wolfsonmicro.com>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
+Date: Wed, 14 Nov 2012 06:11:45 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA6B043@DBDE01.ent.ti.com>
 References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
- <1352108549-9341-3-git-send-email-anilkumar@ti.com>
- <5097ECAD.9010101@ti.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA64F14@DBDE01.ent.ti.com>
- <50994156.4080305@ti.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA6AFB4@DBDE01.ent.ti.com>
+ <1352108549-9341-2-git-send-email-anilkumar@ti.com> <5097F078.50701@ti.com>
+ <20121114022341.GM4415@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:52850 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756278Ab2KNGAU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Nov 2012 01:00:20 -0500
-Content-Disposition: inline
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA6AFB4@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Colin Foe-Parker <colin.foeparker@logicpd.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
+On Wed, Nov 14, 2012 at 10:40:18, AnilKumar, Chimata wrote:
+> On Wed, Nov 14, 2012 at 07:53:42, Mark Brown wrote:
+> > On Mon, Nov 05, 2012 at 05:59:36PM +0100, Benoit Cousson wrote:
+> > > On 11/05/2012 10:42 AM, AnilKumar Ch wrote:
+> > 
+> > > > +Optional properties:
+> > > > +- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
+> > 
+> > > That sounds like a generic functionality to me. Don't we have some more
+> > > generic way to handle that?
+> > 
+> > > If not, that should probably not be a TI only attribute.
+> > 
+> > It's pretty unusual to have this configurable as a single thing rather
+> > than as part of flexible power sequencing or something that's just fixed
+> > in silicon.
+> >
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Mark,
 
-On Wed, Nov 14, 2012 at 05:50:46AM +0000, AnilKumar, Chimata wrote:
-> On Wed, Nov 14, 2012 at 10:31:42, AnilKumar, Chimata wrote:
+>From these two threads we can infer that this is handled in power_off
+sequence only. And this is feature of PMIC to go to shutdown mode nothing
+to be fixed in silicon. PWR_EN line can be connected to any of these like
+PRCM control or GPIO or some other instead of RTC(in this case).
 
-*Please* cut out irrelevant context from your mails.
-
-> Details regarding how PMIC PWR_EN is connected to RTC module
-
-OK...  but what am I expected to do with this information?
-
---9amGYk9869ThD9tj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQozNGAAoJELSic+t+oim9tlUP/RGD6hFMs9XQ5zECDt84CB8m
-fIQJ7eU9Ojjr3fG/LHSldQEWV+yus85nXEtLir5Drly/T8unNXHDn5VqlHbkOfx5
-2nGD9sjarE71j8r9wBPN8Xr+w3wlrXQssyhE6jY/g/bPIKijyWehAVlSRrJ11rOS
-hhyQuAKTsRyvqon09pUEWlS6ROSZldMKJt22vlqMbQ8oB3u19Ow+27A6jX2P9DcZ
-wM+/MZw8dWuZKx3fs3H7LsUHMwetCj8u2xtbdSrO45sEtGdXMgvMqCyOW1CbCwTM
-lk8z0C6jqe2LnU+LMNnVrxUWOKxPBGTG4syZtqEAxN5ivK3zTy+ITTX/OH3eVK2r
-xVHP/l91IphVZrd4TRblFg6L+BsIynEq2eGm/g/Mp1OTGWF80iu8RkP4eW8Rslem
-1JYTYqpNLpsb3+FEIASmhcq6U7HSGmRiakl5ZGhpxgbWKkGbI8IeBg26QbwpvrQc
-NuINFVv2Ec9OhwkxS69bj/CYt4+VKXwHJeAHNyfoduKtK4wxSTWKEOqIMUMfXf0s
-YGkOlDPG8F8JqFu20GldOA0jyE0VwfaKlkPb6afWuIfAaIt4ktqYUVf+wVB1vJ+f
-+MetcSUjftP4iSORaCBJoxav9EDobtT9hnA6PHMsSbLJHDuZe95GAe2vL5E7J8wn
-q8iLRAOIj9bCYN7lXUZF
-=VmFG
------END PGP SIGNATURE-----
-
---9amGYk9869ThD9tj--
+Thanks
+AnilKumar
+ 
+> 
+> "[PATCH 2/4] rtc: OMAP: Add system pm_power_off to rtc driver" thread
+> have the details of how PMIC is connected to RTC module of SoC.
+> 
+> As part of the power_off sequence we have
+> 1. To write STATUS_OFF in TPS65217 PMIC. If we do so then PMIC will
+> go to shutdown if PWR_EN is pulled-down. (This patch doing this)
+> 2. To pull down the PWR_EN signal we have to set PMIC_PWR_EN in RTC
+> module and trigger ALARM2 event. (This piece of code in 2/4 patch).
+> 
+> Thanks
+> AnilKumar
+> 
