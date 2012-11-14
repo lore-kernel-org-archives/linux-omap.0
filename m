@@ -1,77 +1,76 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/6] ARM/dts: omap4-panda: Add pinmux configuration for
- HDMI
-Date: Wed, 14 Nov 2012 09:39:19 +0200
-Message-ID: <50A34AA7.8060700@ti.com>
-References: <1352121259-5836-1-git-send-email-tomi.valkeinen@ti.com> <1352121259-5836-2-git-send-email-tomi.valkeinen@ti.com> <50A29B12.9030906@ti.com>
+From: "Kasatkin, Dmitry" <dmitry.kasatkin@intel.com>
+Subject: Re: [PATCH v3 7/7] crypto: omap_sham: Remove usage of private DMA API
+Date: Tue, 13 Nov 2012 23:47:57 -0800
+Message-ID: <CALLzPKZ0qC-mm4tLsywzGi7jtnK8aSQcbW5sGxr2Z1g6hyBpsA@mail.gmail.com>
+References: <1352257033-32495-1-git-send-email-mgreer@animalcreek.com>
+	<1352257033-32495-8-git-send-email-mgreer@animalcreek.com>
+	<CALLzPKY9fRSwgSTw-t9-wRbCHVbKPA=m+RsTWW4=CaxtDCczcQ@mail.gmail.com>
+	<20121109171745.GB13898@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig349E398F91096F90ADED8D02"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36423 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239Ab2KNHj3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 02:39:29 -0500
-In-Reply-To: <50A29B12.9030906@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <20121109171745.GB13898@animalcreek.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: archit@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, s-guiriec@ti.com
 
---------------enig349E398F91096F90ADED8D02
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On 2012-11-13 21:10, Ricardo Neri wrote:
-> Hi Tomi,
->=20
-> On 11/05/2012 07:14 AM, Tomi Valkeinen wrote:
->> From: Ricardo Neri <ricardo.neri@ti.com>
+On Fri, Nov 9, 2012 at 9:17 AM, Mark A. Greer <mgreer@animalcreek.com> wrote:
+> On Fri, Nov 09, 2012 at 06:28:16PM +0200, Kasatkin, Dmitry wrote:
+>> On Wed, Nov 7, 2012 at 4:57 AM, Mark A. Greer <mgreer@animalcreek.com> wrote:
+>> > From: "Mark A. Greer" <mgreer@animalcreek.com>
+>> >
+>> > Remove usage of the private OMAP DMA API.
+>> > The dmaengine API will be used instead.
+>> >
+>> > CC: Russell King <rmk+kernel@arm.linux.org.uk>
+>> > CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
+>> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+>> > ---
+>> >  drivers/crypto/omap-sham.c | 117 ---------------------------------------------
+>> >  1 file changed, 117 deletions(-)
+>> >
+>> > diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+>> > index b57277c..ebb5255 100644
+>> > --- a/drivers/crypto/omap-sham.c
+>> > +++ b/drivers/crypto/omap-sham.c
+>
+>> > @@ -807,18 +762,6 @@ static int omap_sham_handle_queue(struct omap_sham_dev *dd,
+>> >         if (err)
+>> >                 goto err1;
+>> >
+>> > -#ifdef OMAP_SHAM_DMA_PRIVATE
+>> > -       omap_set_dma_dest_params(dd->dma_lch, 0,
+>> > -                       OMAP_DMA_AMODE_CONSTANT,
+>> > -                       dd->phys_base + SHA_REG_DIN(0), 0, 16);
+>> > -
+>> > -       omap_set_dma_dest_burst_mode(dd->dma_lch,
+>> > -                       OMAP_DMA_DATA_BURST_16);
+>> > -
+>> > -       omap_set_dma_src_burst_mode(dd->dma_lch,
+>> > -                       OMAP_DMA_DATA_BURST_4);
 >>
->> Add the pinmux configuration for HDMI and TPD12S015A. Configure the
->> gpios for the TPD12S015A and SDA, SCL and CEC for HDMI.
->=20
-> Do you plan to upstream the complete DT-boot support for DSS
-> (specifically, HDMI) for 3.8? I am asking so that I can upstream the
-> audio part.
+>> Burst mode significantly improves performance.
+>> How do you configure burst mode with new API?
+>
+> This is (or should be) taken care of by the dmaengine infrastructure.
+> I've noted that there's an issue and there is a discussion about it
+> here:
+>
+>         http://www.spinics.net/lists/linux-omap/msg79855.html
+>
+> We probably need to extend the dmaengine API to allow API-users to
+> request specific tweaks/optimizations/whatever but that's MHO.
+>
 
-No. This series will enable DSS with DT boot on panda and sdp boards,
-but it's achieved by a hack, as the DSS configuration still comes from
-platform data.
+Hello,
 
-To get full DSS DT support we need to pretty much rewrite the dss panel
-device handling and adapt to common panel framework (which isn't ready ye=
-t).
+I am in favor of new APIs.
+The only my concern is that it performs worse..
 
- Tomi
+Is it possible to keep burst mode setting there?
 
+- Dmitry
 
-
---------------enig349E398F91096F90ADED8D02
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQo0qrAAoJEPo9qoy8lh71CaMP/jeJDI/ltTkByXLjfBzDXfYM
-xg91H5j8djOC+nZxOlEt/ej/IcQ6c0zyX0nfq4naPIa+0mkSfDEmg+m16uni+TKp
-j64iSdGvnHqNzs1k4CR84TSvjaHJqLbW+8JCI7p+fj7OUowVJoZ9ipPTg/OvL4Uh
-T5KhTJaluewwbj7xvK9NyS0hR4JOSeFPVKeNBZx54psZdOoakJjACUtt8zdcKFCZ
-AVW7rQquvfZI4afNoxI0M5btRiAyDq1U+fU/YDzPDQmobvOr935D84EHPbegfiNx
-VSL0zUIU/ndAsfGJod89IrwGtJ3utto6rsnACzlFUK1JVYFZRQX9irZal5ti4JUA
-vEqysjOcj3IdTSDqpLSzwfjQ2azVLsv3YR93xgUCfhvm7DDRKqx07OuUFpoLY6GD
-37jnTTvoIjRJd9QZ4QvThtGH54Qzr+kR/ieMvTOtm//ST7Entjf34XF3cJqJVp2g
-jAH/cqx3y1iuvvgHSwC9P8mIc7REmolInWEn/Nk3DbQ6Vbv7+3NorBEoa/sFK90P
-wWq+yn6ZrxplJtiigu4IvFdJ/S2RfmwDH3pTYZsLy5X/TTJRkNcpgkuRsga3YAs5
-iGt42BLqq5nWqWZDkblOX1PfsBNFhjbmI8owCaXvjvyErhtDisG8qMZ6ZeyV6BAm
-xUAhr5S1NNyDT1NjuSkp
-=7jX2
------END PGP SIGNATURE-----
-
---------------enig349E398F91096F90ADED8D02--
+> Mark
+> --
