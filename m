@@ -1,50 +1,44 @@
-From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH] i2c: omap: don't save a value only needed for
- read-clearing
-Date: Wed, 14 Nov 2012 19:50:33 +0100
-Message-ID: <20121114185033.GB26955@pengutronix.de>
-References: <1352913666-11022-1-git-send-email-wolfram@the-dreams.de>
- <20121114183739.GA30212@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
+Date: Wed, 14 Nov 2012 10:53:35 -0800
+Message-ID: <20121114185335.GU6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20121114183739.GA30212-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Wolfram Sang <wolfram-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
-
---l76fUT7nc3MelDdI
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:24169 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1423016Ab2KNSxj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 13:53:39 -0500
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Dave Martin <dave.martin@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
+Looks like enabling CONFIG_ARM_ERRATA_751472 causes omap4 blaze
+to not boot when enabled. The ARM core on it is an earlier r1p2:
 
-> > This makes one of my code analyzers happy and makes me a part of the
->=20
-> anything open source which we could all be using ? :-)
+CPU: ARMv7 Processor [411fc092] revision 2 (ARMv7), cr=10c53c7d
 
-'my' as in 'one of those I am using'. It was cppcheck which found that
-flaw. Its use for kernel code is limited, but it does find one or the
-other thing.
+Unfortunately I don't have the details of errata 751472, but I'm
+guessing we need to disable it for r1p*.
 
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
---l76fUT7nc3MelDdI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+---
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Can somebody with access to the errata check if it has more
+info on which revisions this should be set on? Maybe it's just
+r2p* - r3p0?
 
-iEYEARECAAYFAlCj5/kACgkQD27XaX1/VRvc5QCcDluOrhhW+Jf6CiDgldHv0PWz
-JW0An2AF5Iu00ZBR+9xG//ys+u+ZekQy
-=vsOP
------END PGP SIGNATURE-----
-
---l76fUT7nc3MelDdI--
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -236,6 +236,8 @@ __v7_setup:
+ 	mcreq	p15, 0, r10, c15, c0, 1		@ write diagnostic register
+ #endif
+ #if defined(CONFIG_ARM_ERRATA_751472) && defined(CONFIG_SMP)
++	teq	r5, #0x00100000			@ fails at least on r1p2
++	beq	1f
+ 	ALT_SMP(cmp r6, #0x30)			@ present prior to r3p0
+ 	ALT_UP_B(1f)
+ 	mrclt	p15, 0, r10, c15, c0, 1		@ read diagnostic register
