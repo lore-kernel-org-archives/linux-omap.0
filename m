@@ -1,65 +1,114 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
-Date: Wed, 14 Nov 2012 16:00:48 +0900
-Message-ID: <20121114070046.GE7407@opensource.wolfsonmicro.com>
-References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
- <1352108549-9341-2-git-send-email-anilkumar@ti.com>
- <5097F078.50701@ti.com>
- <20121114022341.GM4415@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA6B043@DBDE01.ent.ti.com>
- <20121114062117.GC7407@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA6B0AF@DBDE01.ent.ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
+Date: Wed, 14 Nov 2012 09:23:57 +0200
+Message-ID: <50A3470D.3050202@compulab.co.il>
+References: <1352299344-8011-1-git-send-email-grinberg@compulab.co.il> <509AD478.1050904@ti.com> <509B666F.6080507@compulab.co.il> <509BFFDF.9040605@ti.com> <79CD15C6BA57404B839C016229A409A83EB68799@DBDE01.ent.ti.com> <509C050C.6010201@ti.com> <509F8BEF.90008@compulab.co.il> <50A14AD1.4070704@ti.com> <50A20F64.4010902@compulab.co.il> <50A271A7.2000305@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:43286 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754074Ab2KNHBA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Nov 2012 02:01:00 -0500
-Content-Disposition: inline
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA6B0AF@DBDE01.ent.ti.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:38176 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752500Ab2KNHYD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Nov 2012 02:24:03 -0500
+In-Reply-To: <50A271A7.2000305@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Colin Foe-Parker <colin.foeparker@logicpd.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+
+On 11/13/12 18:13, Jon Hunter wrote:
+> 
+> On 11/13/2012 03:14 AM, Igor Grinberg wrote:
+>> On 11/12/12 21:15, Jon Hunter wrote:
+>>>
+>>> On 11/11/2012 05:28 AM, Igor Grinberg wrote:
+>>>>
+>>>>
+>>>> On 11/08/12 21:16, Jon Hunter wrote:
+>>>>>
+>>>>> On 11/08/2012 12:59 PM, Hiremath, Vaibhav wrote:
+>>>>>> On Fri, Nov 09, 2012 at 00:24:23, Hunter, Jon wrote:
+>>>>>>>
+>>>>>>> On 11/08/2012 01:59 AM, Igor Grinberg wrote:
+>>>>>>>
+>>>>>>> [snip]
+>>>>>>>
+>>>>>>>> There is no reliable way to determine which source should be used in runtime
+>>>>>>>> for boards that do not have the 32k oscillator wired.
+>>>>>>>
+>>>>>>> So thinking about this some more and given that we are moving away from
+>>>>>>> board files, if a board does not provide a 32kHz clock source, then this
+>>>>>>> should be reflected in the device-tree source file for that board.
+>>>>>>> Hence, at boot time we should be able to determine if a 32kHz clock
+>>>>>>> source can be used.
+>>>>>>>
+>>>>>>
+>>>>>> Let me feed some more thoughts here :)
+>>>>>>
+>>>>>> The way it is being detected currently is based on timer idle status bit.
+>>>>>> I am worried that, this is the only option we have.
+>>>>>
+>>>>> Why not use device-tree to indicate the presence of a 32k clock source?
+>>>>> This seems like a board level configuration and so device-tree seems to
+>>>>> be the perfect place for this IMO.
+>>>>
+>>>> Well, that is what my commit message says...
+>>>
+>>> Sorry, but that was not clear to me from whats in the commit message.
+>>
+>> From the commit message:
+>> "1) Timer structures and initialization functions are named by the platform
+>>    name and the clock source in use. The decision which timer is
+>>    used is done statically from the machine_desc structure. In the
+>>    future it should come from DT."
+>>
+>> The last sentence has it.
+> 
+> Right, but it does not go into the details. It would be good to have
+> added a comment to the effect of "some boards do not have a 32k clock
+> source and in the future this should be handled by device-tree".
+
+Ok.
+
+> 
+>> The transition to DT is not immediate and we can't (still) neglect
+>> the non-DT setups.
+> 
+> Absolutely, but I am trying to understand if there are boards being
+> "neglected". I see now that your CM-T3517 would be. This was not clear
+> from your patch as even the CM-T3517 board was being configured to the
+> use the sync32k timer. So from looking at your patch I did not see any
+> neglected boards, however, I understand your motivation to add all these
+> init functions so that boards could be customised easily.
+
+I did not changed the CM-T3517, because I believe it should be done
+in a separate patch.
+
+> 
+>>> Should we be doing this now instead of adding all these static timer
+>>> init functions?
+>>
+>> I don't see this as "adding ...", I see this as expanding the setup
+>> which was previously hidden by the CONFIG_OMAP_32K_TIMER option.
+>>
+>>>
+>>> Are there any boards today (supported in the kernel that is), that don't
+>>> support a 32k?
+>>
+>> Yes, starting from revision 1.2, CM-T3517 does not have the 32k.
+> 
+> Thanks, this is the exact information I was looking for. You should put
+> this in your commit message to highlight the fact that there are boards
+> that don't have a 32k clock source.
+> 
+> I am familiar with the OMAP devices, but less familiar with these AMxxxx
+> derivatives (as I don't work with these) and so it is good to put these
+> specifics in the commit message.
+
+Ok.
 
 
---ZInfyf7laFu/Kiw7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Nov 14, 2012 at 06:49:58AM +0000, AnilKumar, Chimata wrote:
-
-> Earlier you have a comment on this thread, I am adding my comments
-> on top of it. Sorry if I am in wrong direction.
-
-Ah, I see.  I was just commenting because Benoit was asking if this
-should be supported with a standard framework feature - I'm not
-convinced that it should right now as there's not any clear patterns in
-hardware behaviour.  I've no specific interest in this system.
-
---ZInfyf7laFu/Kiw7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQo0GXAAoJELSic+t+oim9ZoMQAICMNJaR2FCijaJ2rlB5kIsh
-+REyBtSdryvSbR0iXw/bfAZuSpnFxbcMVtMffMIIFWonkCXC+LHRRAZ1EtRx/co+
-ajLSd5q8byQir2gcUvcqyf/LH9LJlEEd8bMF7l5tIBpu+w4Ay6oNZb8lFoop1RYN
-NmsoK0gllhy9tH/xr0sW0cWDTGsiHVz92u6aqVd0bHTpzyY0Pmol1RpxnLsqTN2y
-06TkAWLr8Wol30q+f0UX8cXXvOIKYGKPsprwxoi8Y+e0JhTSkT7wliOf626ZVZcI
-9e9ii239EGmfz91Kncit+3z90rL5apXxB/LI1OdZqufXy5Y6wj1Fcy3g5kL9qH0I
-z/J0ggMP5kTdSx51Uc4X33ZAlnhCF2NwGGMxoQ5F4/VCdh583YyJxnv2lnZyQ1Ci
-aK+8jx5DUacBTTCZZGbywCcHZL8kc67AwK0eM+BR0NulJMPtTZe2xrYrgcJfvzA1
-N/n5577AK07Jxqwh7Szpumzt4MPBr/FGbUvDJWcjvds01BHDyqiKpvbdJFlcw2tj
-SjTM0fFZTGKzyZ34cAqNb3AkozjOoCDJRXzn7QDe3n1yNPPQsAM7CKKa7KstSVsM
-3UVXYo4ptMU4Tgw8NUqPZPkosXumucAJncRniOm04dV8N2qnUnElnravEOwVCCj7
-+pqJHIcy5pFoerq6/+f5
-=8kZz
------END PGP SIGNATURE-----
-
---ZInfyf7laFu/Kiw7--
+-- 
+Regards,
+Igor.
