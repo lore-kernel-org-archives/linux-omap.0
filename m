@@ -1,25 +1,26 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
-Date: Wed, 14 Nov 2012 11:19:00 -0800
-Message-ID: <20121114191859.GW6801@atomide.com>
+Date: Wed, 14 Nov 2012 11:21:06 -0800
+Message-ID: <20121114192106.GX6801@atomide.com>
 References: <20121114185335.GU6801@atomide.com>
- <20121114190137.GD3332@n2100.arm.linux.org.uk>
+ <50A3EBCD.3040801@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19608 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:21324 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1161019Ab2KNTTH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 14:19:07 -0500
+	with ESMTP id S1423142Ab2KNTVJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 14:21:09 -0500
 Content-Disposition: inline
-In-Reply-To: <20121114190137.GD3332@n2100.arm.linux.org.uk>
+In-Reply-To: <50A3EBCD.3040801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Dave Martin <dave.martin@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Dave Martin <dave.martin@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [121114 11:03]:
-> On Wed, Nov 14, 2012 at 10:53:35AM -0800, Tony Lindgren wrote:
+* Jon Hunter <jon-hunter@ti.com> [121114 11:09]:
+> 
+> On 11/14/2012 12:53 PM, Tony Lindgren wrote:
 > > Looks like enabling CONFIG_ARM_ERRATA_751472 causes omap4 blaze
 > > to not boot when enabled. The ARM core on it is an earlier r1p2:
 > > 
@@ -28,20 +29,15 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Will Deaco
 > > Unfortunately I don't have the details of errata 751472, but I'm
 > > guessing we need to disable it for r1p*.
 > 
-> Fails because it can't write the diagnostic register from non-secure
-> mode or fails later?
+> I checked the CA9MP errata document and this erratum impacts all
+> r0/r1/r2 CPUs. I am wondering if the problem is because the workaround
+> requires you to set a bit in the Diagnostic Control register and the
+> read-modify-write sequence provided in the workaround is for secure
+> mode. Not sure if there is a non-secure workaround available :-(
 
-Hmm good question, it fails a bit later on during the boot just
-before __enable_mmu.
-
-But I just tried commenting out the setting of bit 11:
-
-@orrlt	r10, r10, #1 << 11              @ set bit #11
-
-And just trying to write the unmodified diagnostic register
-also makes it fail.
-
-So yeah it seems to be related to the secure crap instead :(
+So it seems :( And I guess we still don't have a generic way to
+check if the core has secure mode or not, and what registers are
+accessible in secure mode.
 
 Regards,
 
