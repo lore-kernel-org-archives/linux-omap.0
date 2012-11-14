@@ -1,58 +1,56 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 3/3] ASoC: OMAP: HDMI: Obtain DMA port from resources
-Date: Tue, 13 Nov 2012 20:30:49 -0600
-Message-ID: <1352860249-26348-4-git-send-email-ricardo.neri@ti.com>
-References: <1352860249-26348-1-git-send-email-ricardo.neri@ti.com>
+From: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH v4 0/2] OMAP: iommu: hwmod, reset handling and runtime PM
+Date: Tue, 13 Nov 2012 20:34:47 -0600
+Message-ID: <1352860489-19960-1-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49145 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932472Ab2KNCbz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Nov 2012 21:31:55 -0500
-In-Reply-To: <1352860249-26348-1-git-send-email-ricardo.neri@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mauro Carvalho Chehab <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, lrg@ti.com
-Cc: s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <ricardo.neri@ti.com>
 
-Instead of defining the address offset of the DMA port for transfers of
-audio samples, obtain this information from the resources of the device.
-This device and its resources are created by the OMAPDSS HDMI driver.
+These patches are needed for remoteproc to work on OMAP4.
 
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
----
- sound/soc/omap/omap-hdmi.c |    3 +--
- sound/soc/omap/omap-hdmi.h |    2 --
- 2 files changed, 1 insertions(+), 4 deletions(-)
+Introduced iommu hwmod support for OMAP3 (iva, isp) and
+OMAP4 (ipu, dsp), along with the corresponding runtime PM
+and routines to deassert reset lines, enable/disable clocks
+and configure sysc registers.
 
-diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-index 6592d6f..306fbfb 100644
---- a/sound/soc/omap/omap-hdmi.c
-+++ b/sound/soc/omap/omap-hdmi.c
-@@ -281,8 +281,7 @@ static __devinit int omap_hdmi_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start
--		+ OMAP_HDMI_AUDIO_DMA_PORT;
-+	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start;
- 
- 	hdmi_rsrc = platform_get_resource(pdev, IORESOURCE_DMA, 0);
- 	if (!hdmi_rsrc) {
-diff --git a/sound/soc/omap/omap-hdmi.h b/sound/soc/omap/omap-hdmi.h
-index 6ad2bf4..33d7a93 100644
---- a/sound/soc/omap/omap-hdmi.h
-+++ b/sound/soc/omap/omap-hdmi.h
-@@ -25,8 +25,6 @@
- #ifndef __OMAP_HDMI_H__
- #define __OMAP_HDMI_H__
- 
--#define OMAP_HDMI_AUDIO_DMA_PORT 0x8c
--
- #define OMAP_HDMI_RATES	(SNDRV_PCM_RATE_32000 | \
- 				SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | \
- 				SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | \
+For this series I dropped the patches already included in
+mainline, along with cleanup and refactoring patches for save and
+restore of mmu context, and DT bindings.
+
+Due to single Image support, I rebased these on top of k3.7-rc5 and
+DEPEND on:
+
+[PATCH v5 0/6] Move rest of omap-iommu to live in drivers/iommu
+http://thread.gmane.org/gmane.linux.kernel/1387788
+
+Minor rebasing might be needed if these are included on top of
+linux-omap, since they are affected by changes on headers being
+moved to include/linux/platform_data and arch/arm/mach-omap2.
+
+Omar Ramirez Luna (2):
+  ARM: OMAP3/4: iommu: migrate to hwmod framework
+  ARM: OMAP3/4: iommu: adapt to runtime pm
+
+ arch/arm/mach-omap2/devices.c            |    2 +-
+ arch/arm/mach-omap2/omap-iommu.c         |  167 +++++++-----------------------
+ drivers/iommu/omap-iommu.c               |   68 +++++++------
+ drivers/iommu/omap-iommu.h               |    3 -
+ drivers/iommu/omap-iommu2.c              |   36 -------
+ include/linux/platform_data/iommu-omap.h |    9 ++-
+ 6 files changed, 82 insertions(+), 203 deletions(-)
+
 -- 
-1.7.5.4
-
+1.7.4.1
