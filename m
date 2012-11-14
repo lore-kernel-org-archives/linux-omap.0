@@ -1,111 +1,64 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: [PATCH] ARM: OMAP4: hwmod data: ipu and dsp to use parent clocks instead of leaf clocks
-Date: Tue, 13 Nov 2012 20:39:10 -0600
-Message-ID: <1352860750-20100-1-git-send-email-omar.luna@linaro.org>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 3/3] ASoC: OMAP: HDMI: Obtain DMA port from resources
+Date: Wed, 14 Nov 2012 12:27:14 +0900
+Message-ID: <20121114032712.GQ4415@opensource.wolfsonmicro.com>
+References: <1352860249-26348-1-git-send-email-ricardo.neri@ti.com>
+ <1352860249-26348-4-git-send-email-ricardo.neri@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GTGEtWEe6jD60dxL"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:61243 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932489Ab2KNCjQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Nov 2012 21:39:16 -0500
-Received: by mail-oa0-f46.google.com with SMTP id h16so8189675oag.19
-        for <linux-omap@vger.kernel.org>; Tue, 13 Nov 2012 18:39:15 -0800 (PST)
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45707 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754691Ab2KND1V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Nov 2012 22:27:21 -0500
+Content-Disposition: inline
+In-Reply-To: <1352860249-26348-4-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.luna@linaro.org>
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-This prevents hwmod _enable_clocks...omap2_dflt_clk_enable path
-from enabling modulemode inside CLKCTRL using its clk->enable_reg
-field. Instead is left to _omap4_enable_module though soc_ops, as
-the one in charge of this setting.
 
-According to comments received[1] for related patches the idea is
-to get rid of leaf clocks in future. So remove these two while at it.
+--GTGEtWEe6jD60dxL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-[1] http://lkml.org/lkml/2012/8/20/226
+On Tue, Nov 13, 2012 at 08:30:49PM -0600, Ricardo Neri wrote:
+> Instead of defining the address offset of the DMA port for transfers of
+> audio samples, obtain this information from the resources of the device.
+> This device and its resources are created by the OMAPDSS HDMI driver.
 
-Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
----
- arch/arm/mach-omap2/clock44xx_data.c       |   22 ----------------------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    4 ++--
- 2 files changed, 2 insertions(+), 24 deletions(-)
+Presumably this needs some other corresponding change in the resource
+setup to go in simultaneously...
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 6efc30c..067c486 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -1316,16 +1316,6 @@ static struct clk dmic_fck = {
- 	.clkdm_name	= "abe_clkdm",
- };
- 
--static struct clk dsp_fck = {
--	.name		= "dsp_fck",
--	.ops		= &clkops_omap2_dflt,
--	.enable_reg	= OMAP4430_CM_TESLA_TESLA_CLKCTRL,
--	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
--	.clkdm_name	= "tesla_clkdm",
--	.parent		= &dpll_iva_m4x2_ck,
--	.recalc		= &followparent_recalc,
--};
--
- static struct clk dss_sys_clk = {
- 	.name		= "dss_sys_clk",
- 	.ops		= &clkops_omap2_dflt,
-@@ -1696,16 +1686,6 @@ static struct clk i2c4_fck = {
- 	.recalc		= &followparent_recalc,
- };
- 
--static struct clk ipu_fck = {
--	.name		= "ipu_fck",
--	.ops		= &clkops_omap2_dflt,
--	.enable_reg	= OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
--	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
--	.clkdm_name	= "ducati_clkdm",
--	.parent		= &ducati_clk_mux_ck,
--	.recalc		= &followparent_recalc,
--};
--
- static struct clk iss_ctrlclk = {
- 	.name		= "iss_ctrlclk",
- 	.ops		= &clkops_omap2_dflt,
-@@ -3151,7 +3131,6 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
- 	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
- 	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
--	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
- 	CLK(NULL,	"dss_sys_clk",			&dss_sys_clk,	CK_443X),
- 	CLK(NULL,	"dss_tv_clk",			&dss_tv_clk,	CK_443X),
- 	CLK(NULL,	"dss_48mhz_clk",		&dss_48mhz_clk,	CK_443X),
-@@ -3183,7 +3162,6 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"i2c2_fck",			&i2c2_fck,	CK_443X),
- 	CLK(NULL,	"i2c3_fck",			&i2c3_fck,	CK_443X),
- 	CLK(NULL,	"i2c4_fck",			&i2c4_fck,	CK_443X),
--	CLK(NULL,	"ipu_fck",			&ipu_fck,	CK_443X),
- 	CLK(NULL,	"iss_ctrlclk",			&iss_ctrlclk,	CK_443X),
- 	CLK(NULL,	"iss_fck",			&iss_fck,	CK_443X),
- 	CLK(NULL,	"iva_fck",			&iva_fck,	CK_443X),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index aab5c12..1f61093 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -650,7 +650,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
- 	.mpu_irqs	= omap44xx_dsp_irqs,
- 	.rst_lines	= omap44xx_dsp_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_resets),
--	.main_clk	= "dsp_fck",
-+	.main_clk	= "dpll_iva_m4x2_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET,
-@@ -1677,7 +1677,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
- 	.mpu_irqs	= omap44xx_ipu_irqs,
- 	.rst_lines	= omap44xx_ipu_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_resets),
--	.main_clk	= "ipu_fck",
-+	.main_clk	= "ducati_clk_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
--- 
-1.7.4.1
+> -	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start
+> -		+ OMAP_HDMI_AUDIO_DMA_PORT;
+> +	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start;
 
+...both before and after versions use the resource.
+
+--GTGEtWEe6jD60dxL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQow+JAAoJELSic+t+oim9sFQP+wSVqUY/3jR+DbYdycXueIZz
+utnT5UKWZRKWwb6HvRKF5u01vY/PBFsZwIGfhqdwFG8SLe/V5SVzqfalBA0tZeMY
+YYn8fr698dYLpEhIcnTW6m4Mqdl74VLe8nKJoc3wC3LGwXu8uy6Sq+8lSHPSgdcZ
+F1Oxe5o+Ui2ckuZhb1GaIWTLF4xfFN7GdzBe0BghYjN8k7sL5iPOohuG3tDQRs2M
+SH258oOLTz9InY8VvpMzSdaetjcGk2rkcXDBd65hHQ6crxcchvt4YyhmmdYvGTTt
+hEBXJ7G6mo+dSZem3wQSLDPyP7aRgo7uYcKayiZRlN3DRnSSUy0ln4f1Rtw2hseq
+BlHHf2AUHYp7uNJm6Jodfqx5hImBXjoQa5oZCOIxulEhvApj83HafL45BoPmTiAw
+R+gqAa4Tq1lfBcJRMPUFULOE80jFmOHbJWItRZU7+tzhvuTTH+zkuMMxEaK8DkBc
+1keu5a0JBbU564nwmiAC/m+Zuj/Ajy4Naw4QDdlgDVm3AHa1+2f77B/QFNIEbQRO
+C3tQeEAAcU9eDnT0Duz9pLA5Pb+I9YSAP9svwKmMIpV9Q4C9GikE1tLIQNuYQ+6f
+ibTxB+AyghcSH+3/h1sGXNV//46+Myq/xJ/eNy6hTgkR/bgHLoxkbS4idW3LrELw
+A4okke6KtBOqmYyiv/Q0
+=ddQz
+-----END PGP SIGNATURE-----
+
+--GTGEtWEe6jD60dxL--
