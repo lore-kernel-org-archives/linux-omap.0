@@ -1,42 +1,104 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP4: hwmod data: ipu and dsp to use parent clocks
- instead of leaf clocks
-Date: Wed, 14 Nov 2012 15:44:21 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211141542280.16047@utopia.booyaka.com>
-References: <1352860750-20100-1-git-send-email-omar.luna@linaro.org>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 7/8] ARM: OMAP: Remove unnecessary inclusion of dmtimer.h
+Date: Wed, 14 Nov 2012 09:53:41 -0600
+Message-ID: <50A3BE85.5000804@ti.com>
+References: <1352830403-1706-1-git-send-email-jon-hunter@ti.com> <1352830403-1706-8-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:54057 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755064Ab2KNPoW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 10:44:22 -0500
-In-Reply-To: <1352860750-20100-1-git-send-email-omar.luna@linaro.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:54077 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754316Ab2KNPxq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Nov 2012 10:53:46 -0500
+In-Reply-To: <1352830403-1706-8-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi
 
-On Tue, 13 Nov 2012, Omar Ramirez Luna wrote:
-
-> This prevents hwmod _enable_clocks...omap2_dflt_clk_enable path
-> from enabling modulemode inside CLKCTRL using its clk->enable_reg
-> field. Instead is left to _omap4_enable_module though soc_ops, as
-> the one in charge of this setting.
+On 11/13/2012 12:13 PM, Jon Hunter wrote:
+> Some source files are including dmtimer.h but not actually using any dmtimer
+> definitions or functions. Therefore, remove the inclusion dmtimer.h from these
+> source files.
 > 
-> According to comments received[1] for related patches the idea is
-> to get rid of leaf clocks in future. So remove these two while at it.
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  arch/arm/mach-omap1/timer32k.c             |    1 -
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |    1 -
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |    1 -
+>  arch/arm/mach-omap2/pm-debug.c             |    1 -
+>  drivers/staging/tidspbridge/core/ue_deh.c  |    1 -
+>  5 files changed, 5 deletions(-)
 > 
-> [1] http://lkml.org/lkml/2012/8/20/226
-> 
-> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+> diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+> index 8936819..41152fa 100644
+> --- a/arch/arm/mach-omap1/timer32k.c
+> +++ b/arch/arm/mach-omap1/timer32k.c
+> @@ -51,7 +51,6 @@
+>  #include <asm/mach/time.h>
+>  
+>  #include <plat/counter-32k.h>
+> -#include <plat/dmtimer.h>
+>  
+>  #include <mach/hardware.h>
+>  
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> index a8b3368..e8efe3d 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> @@ -17,7 +17,6 @@
+>  #include <linux/platform_data/spi-omap2-mcspi.h>
+>  
+>  #include <plat-omap/dma-omap.h>
+> -#include <plat/dmtimer.h>
+>  
+>  #include "omap_hwmod.h"
+>  #include "l3_2xxx.h"
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> index dc768c5..32d17e3 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> @@ -18,7 +18,6 @@
+>  #include <linux/platform_data/spi-omap2-mcspi.h>
+>  
+>  #include <plat-omap/dma-omap.h>
+> -#include <plat/dmtimer.h>
+>  
+>  #include "omap_hwmod.h"
+>  #include "mmc.h"
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index 3cf4fdf..e2c291f 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -30,7 +30,6 @@
+>  #include "clock.h"
+>  #include "powerdomain.h"
+>  #include "clockdomain.h"
+> -#include <plat/dmtimer.h>
+>  #include "omap-pm.h"
+>  
+>  #include "soc.h"
+> diff --git a/drivers/staging/tidspbridge/core/ue_deh.c b/drivers/staging/tidspbridge/core/ue_deh.c
+> index 3d28b23..6aea6f1 100644
+> --- a/drivers/staging/tidspbridge/core/ue_deh.c
+> +++ b/drivers/staging/tidspbridge/core/ue_deh.c
+> @@ -19,7 +19,6 @@
+>  
+>  #include <linux/kernel.h>
+>  #include <linux/interrupt.h>
+> -#include <plat/dmtimer.h>
+>  
+>  #include <dspbridge/dbdefs.h>
+>  #include <dspbridge/dspdeh.h>
 
-Does this one belong as part of the "OMAP: iommu: hwmod, reset 
-handling and runtime PM" series?  Looks like applying this one separately 
-might cause these clocks not to be disabled by either the clock code's 
-disable-unused-clocks code, or the hwmod code?
+Hi Omar, I should have had you in copy on this one. Are you ok with the
+removal of the above dmtimer.h include? It does not appear that this
+file needs to include dmtimer.h.
 
+Is it ok for this to go through Tony's tree? If so, care to ACK?
 
-- Paul
+Cheers
+Jon
+
