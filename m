@@ -1,80 +1,56 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: OMAP* Latest build failures
-Date: Wed, 14 Nov 2012 11:08:35 +0100
-Message-ID: <50A36DA3.2080201@ti.com>
-References: <20121114092643.GG3290@n2100.arm.linux.org.uk>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
+Date: Wed, 14 Nov 2012 11:08:49 +0100
+Message-ID: <50A36DB1.3010706@ti.com>
+References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
+ <1352108549-9341-2-git-send-email-anilkumar@ti.com> <5097F078.50701@ti.com>
+ <20121114022341.GM4415@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA6B043@DBDE01.ent.ti.com>
+ <20121114062117.GC7407@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA6B0AF@DBDE01.ent.ti.com>
+ <20121114070046.GE7407@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39849 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161069Ab2KNKIp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Nov 2012 05:08:45 -0500
-In-Reply-To: <20121114092643.GG3290@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121114070046.GE7407-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Cc: "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Russell,
+Hi Mark,
 
-On 11/14/2012 10:26 AM, Russell King - ARM Linux wrote:
-> OMAP* allnoconfig fails:
->=20
-> arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tpu=
-t':
-> twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_=
-bus_tput'
-> arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetu=
-p':
-> twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_e=
-arly_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
-> twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get=
-_dev_context_loss_count'
-> arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
-> twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get=
-_dev_context_loss_count'
-> arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
-> twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_=
-init'
-> arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
-> twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get=
-_dev_context_loss_count'
-> arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
-> twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get=
-_dev_context_loss_count'
+On 11/14/2012 08:00 AM, Mark Brown wrote:
+> On Wed, Nov 14, 2012 at 06:49:58AM +0000, AnilKumar, Chimata wrote:
+> 
+>> Earlier you have a comment on this thread, I am adding my comments
+>> on top of it. Sorry if I am in wrong direction.
+> 
+> Ah, I see.  I was just commenting because Benoit was asking if this
+> should be supported with a standard framework feature - I'm not
+> convinced that it should right now as there's not any clear patterns in
+> hardware behaviour.  I've no specific interest in this system.
 
-Not sure what is going on here but neither of these are referenced with=
-in
-twl-common.c directly.
+I was wondering that, because exposing a pin to control the whole PMIC
+low power mode seems to be something that should be generic enough to be
+handled by the regulator framework.
 
-> OMAP4 randconfig fails:
->=20
-> arch/arm/mach-omap2/cm_common.c: In function 'cm_register':
-> arch/arm/mach-omap2/cm_common.c:42:11: error: 'EINVAL' undeclared (fi=
-rst use in this function)
-> arch/arm/mach-omap2/cm_common.c:45:11: error: 'EEXIST' undeclared (fi=
-rst use in this function)
-> arch/arm/mach-omap2/cm_common.c: In function 'cm_unregister':
-> arch/arm/mach-omap2/cm_common.c:66:11: error: 'EINVAL' undeclared (fi=
-rst use in this function)
+In the current situation we do have a pwr_en pin that can be controlled
+by a GPIO or whatever signal from the SoC.
+That's very similar, at PMIC level, to the fixedregulator that allow a
+GPIO binding to enable it.
 
-I have already sent a patch to fix this:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-November/131=
-341.html
+Don't you think that should deserve a support in the fmwk?
 
-> You know where to find the build information and results...
-
-It seams I can not find the link in my mail archives. Could you point m=
-e to
-the correct place?
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Benoit
