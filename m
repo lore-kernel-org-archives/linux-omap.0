@@ -1,80 +1,64 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
-Date: Wed, 14 Nov 2012 19:24:53 +0900
-Message-ID: <20121114102452.GI7407@opensource.wolfsonmicro.com>
-References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
- <1352108549-9341-2-git-send-email-anilkumar@ti.com>
- <5097F078.50701@ti.com>
- <20121114022341.GM4415@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA6B043@DBDE01.ent.ti.com>
- <20121114062117.GC7407@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA6B0AF@DBDE01.ent.ti.com>
- <20121114070046.GE7407@opensource.wolfsonmicro.com>
- <50A36DB1.3010706@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP* Latest build failures
+Date: Wed, 14 Nov 2012 10:35:00 +0000
+Message-ID: <20121114103500.GA3332@n2100.arm.linux.org.uk>
+References: <20121114092643.GG3290@n2100.arm.linux.org.uk> <50A36DA3.2080201@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J+eNKFoVC4T1DV3f"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:41481 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161051Ab2KNKZh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Nov 2012 05:25:37 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42046 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754819Ab2KNKgG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 05:36:06 -0500
 Content-Disposition: inline
-In-Reply-To: <50A36DB1.3010706@ti.com>
+In-Reply-To: <50A36DA3.2080201@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Colin Foe-Parker <colin.foeparker@logicpd.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+On Wed, Nov 14, 2012 at 11:08:35AM +0100, Peter Ujfalusi wrote:
+> Hi Russell,
+> 
+> On 11/14/2012 10:26 AM, Russell King - ARM Linux wrote:
+> > OMAP* allnoconfig fails:
+> > 
+> > arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput':
+> > twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bus_tput'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup':
+> > twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_early_init'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
+> > twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
+> > twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
+> > twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_init'
+> > arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
+> > twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
+> > twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_dev_context_loss_count'
+> 
+> Not sure what is going on here but neither of these are referenced within
+> twl-common.c directly.
 
---J+eNKFoVC4T1DV3f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+You can't rely on the .c file issued by the linker.  omap_display_init()
+is not in twl-common.c, but is in arch/arm/mach-omap2/display.c.  So
+ignore the "twl-common.c".
 
-On Wed, Nov 14, 2012 at 11:08:49AM +0100, Benoit Cousson wrote:
+> > OMAP4 randconfig fails:
+> > 
+> > arch/arm/mach-omap2/cm_common.c: In function 'cm_register':
+> > arch/arm/mach-omap2/cm_common.c:42:11: error: 'EINVAL' undeclared (first use in this function)
+> > arch/arm/mach-omap2/cm_common.c:45:11: error: 'EEXIST' undeclared (first use in this function)
+> > arch/arm/mach-omap2/cm_common.c: In function 'cm_unregister':
+> > arch/arm/mach-omap2/cm_common.c:66:11: error: 'EINVAL' undeclared (first use in this function)
+> 
+> I have already sent a patch to fix this:
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-November/131341.html
+> 
+> > You know where to find the build information and results...
+> 
+> It seams I can not find the link in my mail archives. Could you point me to
+> the correct place?
 
-> I was wondering that, because exposing a pin to control the whole PMIC
-> low power mode seems to be something that should be generic enough to be
-> handled by the regulator framework.
-
-Having something that's controlled by software is really not at all
-generic - suspending a PMIC from a GPIO is generally tied in very
-closely with the CPU power sequencing which means it's typically some
-combination of very hard coded things that we can't control or part of
-much wider control of sequencing.
-
-> In the current situation we do have a pwr_en pin that can be controlled
-> by a GPIO or whatever signal from the SoC.
-> That's very similar, at PMIC level, to the fixedregulator that allow a
-> GPIO binding to enable it.
-
-> Don't you think that should deserve a support in the fmwk?
-
-I'm not seeing a coherent description of a feature here - what exactly
-are you proposing that we do?  When and how would this GPIO be set for
-example?
-
---J+eNKFoVC4T1DV3f
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQo3FnAAoJELSic+t+oim9B08P/3WEfoJ23vfINNuZWhTJMe+Q
-LLBwn2NFpsfc7lWYizWzeo7NfGYrXnxOlsHz1lRisvv++Hs+H6ArZhqb0ZA+pLGx
-CKcPIVTD0bkPa4+P0EGqExnIqXfO0KkqzNwSSFaLHL5MjK9B8sdVIm29gqZJqpS2
-9rKgcfemyCWKBTIbI8pPC53Vz0nPeA5LqUzDaV3pf6lbAxjS0pav3cK/9ClV52Hv
-YHo81n/oB5zNNTvYdUBZbTJCSQmYeauwixmtuk0FTAYjgMNR3WPQgw1Ioy4nYbkV
-GYD4F0cbPuN18TZU+eBv117t0fcC+0sP4Vnxr7yj1WXMgq7TGq2YGdXwLwkKRSPp
-owUq5aOtpg3agDn82axFa+LtVdTe9RPsXUBWA00rSYWdZb+SVkJCwpTkg6nomIRR
-ErSaTAlSIxnyTia26cndxTvcBnYCHFMLErp1kGtWa8oQpckrL3aPCKGTQvJo0Z2Z
-S8JTES8qpd1LQpCXtXvmHUZF1qGazksJ2uJCYLrLKpz3LmV1kfFwVFO/rwZjPCqc
-UYxbv8FJX4qUAug4RstuQl2RXyrYOx0UBkQNTjWdzvF0ADKSMLbTUpfltfIsYfYA
-xnmmmOaxqs1UvCGr3H3ewJJ41Nzm7CksD3y7suy87CG0BjcAq4FRQ8dlrPMCA5Xf
-NntaZ3S5kQnVp7MCQt7G
-=MaJN
------END PGP SIGNATURE-----
-
---J+eNKFoVC4T1DV3f--
+http://www.arm.linux.org.uk/developer/build/
