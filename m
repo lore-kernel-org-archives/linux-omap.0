@@ -1,67 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP* Latest build failures
-Date: Wed, 14 Nov 2012 09:17:31 -0800
-Message-ID: <20121114171730.GS6801@atomide.com>
-References: <20121114092643.GG3290@n2100.arm.linux.org.uk>
- <50A3844B.8040208@ti.com>
- <20121114164801.GQ6801@atomide.com>
- <20121114165947.GR6801@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:37483 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932188Ab2KNRRh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 12:17:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20121114165947.GR6801@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Wolfram Sang <wolfram-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+Subject: [PATCH] i2c: omap: don't save a value only needed for read-clearing
+Date: Wed, 14 Nov 2012 18:21:06 +0100
+Message-ID: <1352913666-11022-1-git-send-email-wolfram@the-dreams.de>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wolfram-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [121114 09:02]:
-> * Tony Lindgren <tony@atomide.com> [121114 08:50]:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [121114 03:47]:
-> > > On 2012-11-14 11:26, Russell King - ARM Linux wrote:
-> > > > OMAP* allnoconfig fails:
-> > > > 
-> > > > arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput':
-> > > > twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bus_tput'
-> > > > arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup':
-> > > > twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_early_init'
-> > > > arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
-> > > > twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > > > arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
-> > > > twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > > > arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
-> > > > twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_init'
-> > > > arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
-> > > > twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > > > arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
-> > > > twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > > 
-> > > I'm not able to reproduce this. I took v3.7-rc5, and the omap4430-sdp
-> > > noconfig
-> > > (http://www.arm.linux.org.uk/developer/build/file.php?type=config&idx=2711),
-> > > and it builds fine for me.
-> > 
-> > It happens if in arm-soc/for-next and rmk/for-next. Looks like the
-> > CONFIG_OMAP_PM_NOOP can't be under CONFIG_PM in the makefile where I moved it
-> > in commit 6e740f9a8.
-> 
-> This should say just "It happens in arm-soc/for-next".
->  
-> > Looks like in my test configs I run make oldnoconfig on Russell's seed
-> > config, and I do get CONFIG_PM=y set while Russell's generated config
-> > does not have that. No ideas yet why oldnoconfig add CONFIG_PM=y..
+Signed-off-by: Wolfram Sang <wolfram-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+---
 
-Looks like the way to do this not to use oldnoconfig but to do:
+This makes one of my code analyzers happy and makes me a part of the
+i2c-omap-patch crowd \o/
 
-$ make KCONFIG_ALLCONFIG=../configs/rmk-omap4430-sdp-noconfig allnoconfig
+ drivers/i2c/busses/i2c-omap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-It seems that oldnoconfig will pick the new options that have default y?
-
-Regards,
-
-Tony
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 482c63d..49b12fb 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1291,14 +1291,13 @@ static int omap_i2c_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
+-	u16 iv;
+ 
+ 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
+ 
+ 	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
+ 
+ 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
+-		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
++		omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
+ 	} else {
+ 		omap_i2c_write_reg(_dev, OMAP_I2C_STAT_REG, _dev->iestate);
+ 
+-- 
+1.7.10.4
