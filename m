@@ -1,94 +1,54 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP* Latest build failures
-Date: Wed, 14 Nov 2012 13:45:15 +0200
-Message-ID: <50A3844B.8040208@ti.com>
-References: <20121114092643.GG3290@n2100.arm.linux.org.uk>
+From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCHv3 0/7] i2c: omap: updates
+Date: Wed, 14 Nov 2012 13:04:00 +0100
+Message-ID: <20121114120400.GH5954@pengutronix.de>
+References: <1352118223-3796-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig35ED47BFC740C2A90C23EF4F"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40777 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161139Ab2KNLpb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Nov 2012 06:45:31 -0500
-In-Reply-To: <20121114092643.GG3290@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="cW+P/jduATWpL925"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1352118223-3796-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
---------------enig35ED47BFC740C2A90C23EF4F
-Content-Type: text/plain; charset=ISO-8859-1
+
+--cW+P/jduATWpL925
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-11-14 11:26, Russell King - ARM Linux wrote:
-> OMAP* allnoconfig fails:
->=20
-> arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput'=
-:
-> twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bu=
-s_tput'
-> arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup'=
-:
-> twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_ear=
-ly_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
-> twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_d=
-ev_context_loss_count'
-> arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
-> twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_d=
-ev_context_loss_count'
-> arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
-> twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_in=
-it'
-> arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
-> twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_d=
-ev_context_loss_count'
-> arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
-> twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_d=
-ev_context_loss_count'
+On Mon, Nov 05, 2012 at 05:53:35PM +0530, Shubhrajyoti D wrote:
 
-I'm not able to reproduce this. I took v3.7-rc5, and the omap4430-sdp
-noconfig
-(http://www.arm.linux.org.uk/developer/build/file.php?type=3Dconfig&idx=3D=
-2711),
-and it builds fine for me.
+> Shubhrajyoti D (8):
+>       i2c: omap: Fix the revision register read
+>       i2c: omap: use revision check for OMAP_I2C_FLAG_APPLY_ERRATA_I207
+>       i2c: omap: remove the dtrev
+>       ARM: i2c: omap: Remove the i207 errata flag
+>       i2c: omap: re-factor omap_i2c_init function
+>       i2c: omap: make reset a seperate function
+>       i2c: omap: Restore i2c context always
+>       i2c: omap: cleanup the sysc write
 
-=46rom the error log
-(http://www.arm.linux.org.uk/developer/build/result.php?type=3Dbuild&idx=3D=
-2711)
-I see that arch/arm/plat-omap/omap-pm-noop.c is not compiled, which is
-where the above functions are. However, the config contains
-CONFIG_OMAP_PM_NOOP=3Dy, which should cause omap-pm-noop.c to be compiled=
-=2E
+Pushed the series to for-next, after fixing a trivial merge conflict
+caused by reverting the QoS patch.
 
- Tomi
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
-
-
---------------enig35ED47BFC740C2A90C23EF4F
+--cW+P/jduATWpL925
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQo4RLAAoJEPo9qoy8lh71qDwP/0lpDtLEnfJZk+7ZV+xQ3Iwg
-yoe3+Rk4fMK2634VotvNeJ2AOqVlBQ3cmqepD0i7QLfW8R7ZRRwR2aIdoTOmu1m7
-dqSj48Tal9eHD7Kya3ixx+iOb/j4HR95J7+x85K8wzqPEhg9roDBVLWkN45k/dIW
-spBP71o5RMHD7rnZM4kwyK9+v7MhCkQqq0baUw1e+ofQysAOkRoSYjV86IYLTKPq
-9RD8TeJyn9rkm9LLVRUpMtYoepThRAQqJvwfKmiJgFvf4rQ/rAvu8XcrWg6RAlj0
-o70sbqGMAyfJmavCO0ywvVpXXXAg/GgIcWFy4wAMCqnr6BZeE3NnVdVQPKiAW6dS
-0QtixzUHjQJ+xAFnBfd+pqrNHMVQHgumdoGWHZiz0uhio94SvMVv3U3F8GbRJdAm
-WpTEmu0fAzJ1k3du7ZtjmDHIyy4aOu3FO/tvM8z6SvnON/OzYg6rGY1Jm1KBFvHJ
-R9gK2EDGoY6FSNHV8gfMi9+XKZkxfoeB/Qkwhu7qTcuG0oabUpINIMwnDfYftxiH
-elMW7CewFrHZlFOzfETTYb/0AemqRMbCeLDyS7g1pkXwhyptAJ8ESz+Cz/jy6h44
-CWrBFBtpqFC/KQDp9ogCiiDJjDYG2t0ViStIYwkVfwPToSnxmNgOUZgMz9XIDp9p
-wkvL8p5mr6Y88+wLNiYA
-=lvDs
+iEYEARECAAYFAlCjiLAACgkQD27XaX1/VRvj3gCbBIwgj4s0oWuHPpNHlGktwuks
+QbgAmwQ/GEnt/U/H1v6WWMGJ6yEIy+PR
+=KyJr
 -----END PGP SIGNATURE-----
 
---------------enig35ED47BFC740C2A90C23EF4F--
+--cW+P/jduATWpL925--
