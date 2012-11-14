@@ -1,41 +1,54 @@
-From: Wolfram Sang <wolfram-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Subject: [PATCH] i2c: omap: don't save a value only needed for read-clearing
-Date: Wed, 14 Nov 2012 18:21:06 +0100
-Message-ID: <1352913666-11022-1-git-send-email-wolfram@the-dreams.de>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Wolfram Sang <wolfram-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP* Latest build failures
+Date: Wed, 14 Nov 2012 17:42:11 +0000
+Message-ID: <20121114174211.GB3332@n2100.arm.linux.org.uk>
+References: <20121114092643.GG3290@n2100.arm.linux.org.uk> <50A3844B.8040208@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42322 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933028Ab2KNRmW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 12:42:22 -0500
+Content-Disposition: inline
+In-Reply-To: <50A3844B.8040208@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Signed-off-by: Wolfram Sang <wolfram-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
----
+On Wed, Nov 14, 2012 at 01:45:15PM +0200, Tomi Valkeinen wrote:
+> On 2012-11-14 11:26, Russell King - ARM Linux wrote:
+> > OMAP* allnoconfig fails:
+> > 
+> > arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput':
+> > twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bus_tput'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup':
+> > twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_early_init'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
+> > twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
+> > twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
+> > twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_init'
+> > arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
+> > twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
+> > twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_dev_context_loss_count'
+> 
+> I'm not able to reproduce this. I took v3.7-rc5, and the omap4430-sdp
+> noconfig
+> (http://www.arm.linux.org.uk/developer/build/file.php?type=config&idx=2711),
+> and it builds fine for me.
 
-This makes one of my code analyzers happy and makes me a part of the
-i2c-omap-patch crowd \o/
+That's not the kernel it builds - it builds mainline + my kernel (which
+is basically for-next + a few bits more) + arm-soc.
 
- drivers/i2c/busses/i2c-omap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+This error only just poped up, so I'm guessing there is a change in arm-soc
+which has broken it.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 482c63d..49b12fb 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1291,14 +1291,13 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
--	u16 iv;
- 
- 	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
- 
- 	omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
- 
- 	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
--		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
-+		omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
- 	} else {
- 		omap_i2c_write_reg(_dev, OMAP_I2C_STAT_REG, _dev->iestate);
- 
--- 
-1.7.10.4
+> I see that arch/arm/plat-omap/omap-pm-noop.c is not compiled, which is
+> where the above functions are. However, the config contains
+> CONFIG_OMAP_PM_NOOP=y, which should cause omap-pm-noop.c to be compiled.
+
+Suggest you retry with v3.7-rc5 + arm-soc.
