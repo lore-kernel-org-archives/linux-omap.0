@@ -1,55 +1,60 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
-Date: Wed, 14 Nov 2012 05:10:18 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA6AE78@DBDE01.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/4] rtc: OMAP: Add system pm_power_off to rtc driver
+Date: Wed, 14 Nov 2012 14:21:40 +0900
+Message-ID: <20121114052138.GS4415@opensource.wolfsonmicro.com>
 References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
- <1352108549-9341-2-git-send-email-anilkumar@ti.com> <5097F078.50701@ti.com>
- <20121114022341.GM4415@opensource.wolfsonmicro.com>
+ <1352108549-9341-3-git-send-email-anilkumar@ti.com>
+ <5097ECAD.9010101@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA64F14@DBDE01.ent.ti.com>
+ <50994156.4080305@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA6AE51@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121114022341.GM4415-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MT9SxUWSsctiw0kG"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:48381 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750765Ab2KNFVv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Nov 2012 00:21:51 -0500
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA6AE51@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Colin Foe-Parker <colin.foeparker@logicpd.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On Wed, Nov 14, 2012 at 07:53:42, Mark Brown wrote:
-> On Mon, Nov 05, 2012 at 05:59:36PM +0100, Benoit Cousson wrote:
-> > On 11/05/2012 10:42 AM, AnilKumar Ch wrote:
-> 
-> > > +Optional properties:
-> > > +- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
-> 
-> > That sounds like a generic functionality to me. Don't we have some more
-> > generic way to handle that?
-> 
-> > If not, that should probably not be a TI only attribute.
-> 
-> It's pretty unusual to have this configurable as a single thing rather
-> than as part of flexible power sequencing or something that's just fixed
-> in silicon.
-> 
 
-"[PATCH 2/4] rtc: OMAP: Add system pm_power_off to rtc driver" thread
-have the details of how PMIC is connected to RTC module of SoC.
+--MT9SxUWSsctiw0kG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-As part of the power_off sequence we have
-1. To write STATUS_OFF in TPS65217 PMIC. If we do so then PMIC will
-go to shutdown if PWR_EN is pulled-down. (This patch doing this)
-2. To pull down the PWR_EN signal we have to set PMIC_PWR_EN in RTC
-module and trigger ALARM2 event. (This piece of code in 2/4 patch).
+On Wed, Nov 14, 2012 at 05:01:45AM +0000, AnilKumar, Chimata wrote:
+> +Mark
 
-Thanks
-AnilKumar
+...without any words as to why I'm being added or what the content in
+the message is?
+
+--MT9SxUWSsctiw0kG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQoypWAAoJELSic+t+oim9EP4P/iwR9uXogcb42aTcvcFNhdtg
+EPoyIJ7pJQRckZ0HJOXdQ+h/mAwc7/qOrXPxBUmT65wjvGCAeuScAPwYeZ77njAY
+ZEKm0DZvlwQNSK+mdHRYlIwIQIwnXsXeClnAG7x2Kmbb7MBp7lWjJhO00DHxTeU3
+/9OhvU6b5Heh8nF9vgxwFvG+Lh3ajdaBI0WmbfHV7iFHqOL1uB3KHmaFhMV0IERJ
+teLpR+dobfQZf/SM6B7/FGd/6FvobUDVo/t100tHBpLkhAuiCjiLOoHVAmPrXgIR
+dCtEBzVpGh8Tqfeg9LIdTOY0v49yr3dSbizUvjKsDcKQ/RdIOhVO7IYynkxn2SSJ
+L2KWWEkPhI/LZvYQGyvJC07p76crc/iBPXJkI1DxpBxIJXI9jjBsREFF1IiZNXab
+pTxNgROnlFdqDuYCZBaNqT+sHplhd3DeNNwGFaBeWLQNUMbiSUSHhE4FGX236a2z
+JVt4vh663M6fk/K/B0a0iTfhQEhezgS4b7JY4iOu0HaA6G8m0R2/vhmII1bFzJPW
+WCRAXXNRe0+IQPHuEXTHQPktykuwKCF44DK5Kk+PB/vNiRYzaQITgaMYPneOVBv3
+4Cb8hElQZlT+YdHRvAP7+c9IXKryl1JNHESh2USFoga55idEdX05crFQCDCBE08W
+o2nGNyYWa1mlbBPtm2Tn
+=Nl75
+-----END PGP SIGNATURE-----
+
+--MT9SxUWSsctiw0kG--
