@@ -1,66 +1,42 @@
-From: Igor Mazanov <i.mazanov@gmail.com>
-Subject: AM335x: Beaglebone stops to boot with current git kernel
-Date: Wed, 14 Nov 2012 19:28:45 +0400
-Message-ID: <k80da6$61d$1@ger.gmane.org>
-Reply-To: i.mazanov@gmail.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP4: hwmod data: ipu and dsp to use parent clocks
+ instead of leaf clocks
+Date: Wed, 14 Nov 2012 15:44:21 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211141542280.16047@utopia.booyaka.com>
+References: <1352860750-20100-1-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:36828 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932736Ab2KNP2V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Nov 2012 10:28:21 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1TYet9-0003lc-DL
-	for linux-omap@vger.kernel.org; Wed, 14 Nov 2012 16:28:27 +0100
-Received: from 77.232.56.122 ([77.232.56.122])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Wed, 14 Nov 2012 16:28:27 +0100
-Received: from i.mazanov by 77.232.56.122 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Wed, 14 Nov 2012 16:28:27 +0100
+Received: from utopia.booyaka.com ([74.50.51.50]:54057 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755064Ab2KNPoW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 10:44:22 -0500
+In-Reply-To: <1352860750-20100-1-git-send-email-omar.luna@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello,
+Hi
 
-Beaglebone boot process is broken with the current git kernel. I use 
-omap2plus_defconfig for tests.
+On Tue, 13 Nov 2012, Omar Ramirez Luna wrote:
 
-It looks like the boot process stops due to the last changes in the AM33xx clock 
-sysbsystem. A following patch resolves this issue:
+> This prevents hwmod _enable_clocks...omap2_dflt_clk_enable path
+> from enabling modulemode inside CLKCTRL using its clk->enable_reg
+> field. Instead is left to _omap4_enable_module though soc_ops, as
+> the one in charge of this setting.
+> 
+> According to comments received[1] for related patches the idea is
+> to get rid of leaf clocks in future. So remove these two while at it.
+> 
+> [1] http://lkml.org/lkml/2012/8/20/226
+> 
+> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c 
-b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index ad8d43b..858e180 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -586,7 +586,7 @@ static struct omap_hwmod am33xx_smartreflex0_hwmod = {
-         .class          = &am33xx_smartreflex_hwmod_class,
-         .clkdm_name     = "l4_wkup_clkdm",
-         .mpu_irqs       = am33xx_smartreflex0_irqs,
--       .main_clk       = "smartreflex0_fck",
-+       .main_clk       = "smartreflex_mpu_fck",
-         .prcm           = {
-                 .omap4  = {
-                         .clkctrl_offs   = 
-AM33XX_CM_WKUP_SMARTREFLEX0_CLKCTRL_OFFSET,
-@@ -606,7 +606,7 @@ static struct omap_hwmod am33xx_smartreflex1_hwmod = {
-         .class          = &am33xx_smartreflex_hwmod_class,
-         .clkdm_name     = "l4_wkup_clkdm",
-         .mpu_irqs       = am33xx_smartreflex1_irqs,
--       .main_clk       = "smartreflex1_fck",
-+       .main_clk       = "smartreflex_core_fck",
-         .prcm           = {
-                 .omap4  = {
-                         .clkctrl_offs   = 
-AM33XX_CM_WKUP_SMARTREFLEX1_CLKCTRL_OFFSET,
+Does this one belong as part of the "OMAP: iommu: hwmod, reset 
+handling and runtime PM" series?  Looks like applying this one separately 
+might cause these clocks not to be disabled by either the clock code's 
+disable-unused-clocks code, or the hwmod code?
 
 
-Regards,
-Igor.
-
+- Paul
