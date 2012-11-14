@@ -1,60 +1,62 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCH] i2c: omap: Move the remove constraint
-Date: Wed, 14 Nov 2012 11:57:34 +0100
-Message-ID: <20121114105734.GE5954@pengutronix.de>
-References: <1352195673-31559-1-git-send-email-shubhrajyoti@ti.com>
- <CAORVsuW_VAiemnauUs-yW+GcQpv+qpESP4kzyQm=Unmofa4k_Q@mail.gmail.com>
+From: Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
+Subject: Re: [PATCH] Revert "ARM: OMAP: convert I2C driver to PM QoS for MPU
+ latency constraints"
+Date: Wed, 14 Nov 2012 12:00:39 +0100
+Message-ID: <CAORVsuUAmnX1ZBrO+a0HqUVAFtsRfwCx1Vro7ERYBnJgPo095g@mail.gmail.com>
+References: <alpine.DEB.2.00.1211061619461.20573@utopia.booyaka.com>
+	<20121114105102.GD5954@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="X3gaHHMYHkYqP6yf"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55199 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752104Ab2KNK5g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 05:57:36 -0500
-Content-Disposition: inline
-In-Reply-To: <CAORVsuW_VAiemnauUs-yW+GcQpv+qpESP4kzyQm=Unmofa4k_Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121114105102.GD5954-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, b-cousson@ti.com
 
+Hi Wolfram,
 
---X3gaHHMYHkYqP6yf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, Nov 14, 2012 at 11:51 AM, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> wrote:
+> On Tue, Nov 06, 2012 at 04:31:32PM +0000, Paul Walmsley wrote:
+>>
+>> This reverts commit 3db11feffc1ad2ab9dea27789e6b5b3032827adc.
+>
+> Here giving the patch name in parens would have really made sense.
+> Will fix that.
+The title is "ARM: OMAP: convert I2C driver to PM QoS for MPU latency
+constraints".
 
+>
+>> This commit causes I2C timeouts to appear on several OMAP3430/3530-based
+>> boards:
+>>
+>>   http://marc.info/?l=linux-arm-kernel&m=135071372426971&w=2
+>>   http://marc.info/?l=linux-arm-kernel&m=135067558415214&w=2
+>>   http://marc.info/?l=linux-arm-kernel&m=135216013608196&w=2
+There is no formal piecof evidence that the commit is the cause of it.
 
-> > Currently we just queue the transfer and release the
-> > qos constraints, however we donot wait for the transfer
-> > to complete to release the constraint. Move the remove
-> > constraint after the bus busy as we are sure that the
-> > transfers are completed by then.
-> >
-> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
->=20
-> Good catch, the change definitely makes sense. Feel free to add:
->=20
-> Acked-by: Jean Pihet <j-pihet@ti.com>
+>>
+>> and appears to have been sent for merging before one of its prerequisites
+>> was merged:
+However this is correct. My fault ;-|
 
-Since I just reverted the QoS patch, I suppose this gets merged into the
-original patch when resent?
+>>
+>>   http://marc.info/?l=linux-arm-kernel&m=135219411617621&w=2
+>
+> Hmm, any ideas how to avoid such things in the future?
+The only way is to figure out the dependencies with other features. In
+this case I overlooked them and assumed some other features were
+already merged in. Will take care next time.
 
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+>
+>> Signed-off-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>
+> Applied to for-current, thanks!
 
---X3gaHHMYHkYqP6yf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thanks!
+Jean
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEARECAAYFAlCjeR4ACgkQD27XaX1/VRuJogCfRvZ3l1XfWHZvGFR5PoraYtNK
-mC0AoI+oiVsw/CsWG8yTQySPmd+eHcTm
-=VNS8
------END PGP SIGNATURE-----
-
---X3gaHHMYHkYqP6yf--
+>
+> --
+> Pengutronix e.K.                           | Wolfram Sang                |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
