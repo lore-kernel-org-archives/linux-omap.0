@@ -1,75 +1,94 @@
 From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCH] i2c: omap: adopt pinctrl support
-Date: Wed, 14 Nov 2012 12:14:44 +0100
-Message-ID: <20121114111444.GF5954@pengutronix.de>
-References: <1350401000-9453-1-git-send-email-s-guiriec@ti.com>
- <20121022074201.GW14033@arwen.pp.htv.fi>
+Subject: Re: [PATCH v2] i2c: omap: ensure writes to dev->buf_len are ordered
+Date: Wed, 14 Nov 2012 12:20:50 +0100
+Message-ID: <20121114112050.GG5954@pengutronix.de>
+References: <20121102085447.GE17063@arwen.pp.htv.fi>
+ <1352102683-2243-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aPdhxNJGSeOG9wFI"
+	protocol="application/pgp-signature"; boundary="aYDVKSzuImP48n7V"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57060 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37573 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752390Ab2KNLOx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 06:14:53 -0500
+	with ESMTP id S1161052Ab2KNLUw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 06:20:52 -0500
 Content-Disposition: inline
-In-Reply-To: <20121022074201.GW14033@arwen.pp.htv.fi>
+In-Reply-To: <1352102683-2243-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Balbi <balbi@ti.com>
-Cc: Sebastien Guiriec <s-guiriec@ti.com>, Tony Lindgren <tony@atomide.com>, Jean Delvare <khali@linux-fr.org>, Ben Dooks <ben-linux@fluff.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, Shubhrajyoti Datta <shubhrajyoti@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-i2c@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
 
---aPdhxNJGSeOG9wFI
+--aYDVKSzuImP48n7V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 22, 2012 at 10:42:01AM +0300, Felipe Balbi wrote:
-> Hi,
+On Mon, Nov 05, 2012 at 10:04:43AM +0200, Felipe Balbi wrote:
+> if we allow compiler reorder our writes, we could
+> fall into a situation where dev->buf_len is reset
+> for no apparent reason.
 >=20
-> On Tue, Oct 16, 2012 at 05:23:20PM +0200, Sebastien Guiriec wrote:
-> > Some GPIO expanders need some early pin control muxing. Due to
-> > legacy boards sometimes the driver uses subsys_initcall instead of
-> > module_init. This patch takes advantage of defer probe feature
-> > and pin control in order to wait until pin control probing before
-> > GPIO driver probing. It has been tested on OMAP5 board with TCA6424
-> > driver.
-> >=20
-> > log:
-> >=20
-> > [0.482299] omap_i2c i2c.15: could not find pctldev for node /ocp/pinmux=
-@4a00
-> > 2840/pinmux_i2c5_pins, deferring probe
-> > [0.482330] platform i2c.15: Driver omap_i2c requests probe deferral
-> > [0.484466] Advanced Linux Sound Architecture Driver Initialized.
-> >=20
-> > [4.746917] omap_i2c i2c.15: bus 4 rev2.4.0 at 100 kHz
-> > [4.755279] gpiochip_find_base: found new base at 477
-> > [4.761169] gpiochip_add: registered GPIOs 477 to 500 on device: tca6424a
-> >=20
-> > Signed-off-by: Sebastien Guiriec <s-guiriec@ti.com>
+> This bug was found with a simple script which would
+> transfer data to an i2c client from 1 to 1024 bytes
+> (a simple for loop), when we got to transfer sizes
+> bigger than the fifo size, dev->buf_len was reset
+> to zero before we had an oportunity to handle XDR
+> Interrupt. Because dev->buf_len was zero, we entered
+> omap_i2c_transmit_data() to transfer zero bytes,
+> which would mean we would just silently exit
+> omap_i2c_transmit_data() without actually writing
+> anything to DATA register. That would cause XDR
+> IRQ to trigger forever and we would never transfer
+> the remaining bytes.
 >=20
-> looks good to me also, should go in v3.8 merge window:
+> After adding the memory barrier, we also drop resetting
+> dev->buf_len to zero in omap_i2c_xfer_msg() because
+> both omap_i2c_transmit_data() and omap_i2c_receive_data()
+> will act until dev->buf_len reaches zero, rendering the
+> other write in omap_i2c_xfer_msg() redundant.
 >=20
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
+> This patch has been tested with pandaboard for a few
+> iterations of the script mentioned above.
+>=20
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>=20
+> Changes since v1:
+> 	- use barrier() instead of wmb()
+>=20
+> Note: this version was compile-tested only
+>=20
+>  drivers/i2c/busses/i2c-omap.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index db31eae..ba03bec 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -521,6 +521,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  	/* REVISIT: Could the STB bit of I2C_CON be used with probing? */
+>  	dev->buf =3D msg->buf;
+>  	dev->buf_len =3D msg->len;
+> +	barrier();
 
-Applied to for-next, thanks!
+I agree adding a comment here is a good idea.
 
 --=20
 Pengutronix e.K.                           | Wolfram Sang                |
 Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
---aPdhxNJGSeOG9wFI
+--aYDVKSzuImP48n7V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iEYEARECAAYFAlCjfSQACgkQD27XaX1/VRvAaACgplUux5DaW4qrk8OAHkEHSfHe
-Ks8An3Be2QJ56zSnqdwAms8RizlxnWih
-=LI2R
+iEYEARECAAYFAlCjfpIACgkQD27XaX1/VRuPEgCfUNVseZMDikdRcTAf82oWQUHf
+iBAAnixd0hIqkR0P7aIvoquz+aXlUnxH
+=ZS6b
 -----END PGP SIGNATURE-----
 
---aPdhxNJGSeOG9wFI--
+--aYDVKSzuImP48n7V--
