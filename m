@@ -1,23 +1,24 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
-Date: Wed, 14 Nov 2012 19:01:37 +0000
-Message-ID: <20121114190137.GD3332@n2100.arm.linux.org.uk>
+Date: Wed, 14 Nov 2012 13:06:53 -0600
+Message-ID: <50A3EBCD.3040801@ti.com>
 References: <20121114185335.GU6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42360 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754528Ab2KNTBs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 14:01:48 -0500
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60399 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1423130Ab2KNTHH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Nov 2012 14:07:07 -0500
 In-Reply-To: <20121114185335.GU6801@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Dave Martin <dave.martin@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Dave Martin <dave.martin@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wed, Nov 14, 2012 at 10:53:35AM -0800, Tony Lindgren wrote:
+
+On 11/14/2012 12:53 PM, Tony Lindgren wrote:
 > Looks like enabling CONFIG_ARM_ERRATA_751472 causes omap4 blaze
 > to not boot when enabled. The ARM core on it is an earlier r1p2:
 > 
@@ -26,5 +27,11 @@ On Wed, Nov 14, 2012 at 10:53:35AM -0800, Tony Lindgren wrote:
 > Unfortunately I don't have the details of errata 751472, but I'm
 > guessing we need to disable it for r1p*.
 
-Fails because it can't write the diagnostic register from non-secure
-mode or fails later?
+I checked the CA9MP errata document and this erratum impacts all
+r0/r1/r2 CPUs. I am wondering if the problem is because the workaround
+requires you to set a bit in the Diagnostic Control register and the
+read-modify-write sequence provided in the workaround is for secure
+mode. Not sure if there is a non-secure workaround available :-(
+
+Cheers
+Jon
