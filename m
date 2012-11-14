@@ -1,64 +1,65 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP* Latest build failures
-Date: Wed, 14 Nov 2012 10:35:00 +0000
-Message-ID: <20121114103500.GA3332@n2100.arm.linux.org.uk>
-References: <20121114092643.GG3290@n2100.arm.linux.org.uk> <50A36DA3.2080201@ti.com>
+From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH] Revert "ARM: OMAP: convert I2C driver to PM QoS for MPU
+ latency constraints"
+Date: Wed, 14 Nov 2012 11:51:02 +0100
+Message-ID: <20121114105102.GD5954@pengutronix.de>
+References: <alpine.DEB.2.00.1211061619461.20573@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42046 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754819Ab2KNKgG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 05:36:06 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="osDK9TLjxFScVI/L"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <50A36DA3.2080201@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1211061619461.20573-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Nov 14, 2012 at 11:08:35AM +0100, Peter Ujfalusi wrote:
-> Hi Russell,
-> 
-> On 11/14/2012 10:26 AM, Russell King - ARM Linux wrote:
-> > OMAP* allnoconfig fails:
-> > 
-> > arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput':
-> > twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bus_tput'
-> > arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup':
-> > twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_early_init'
-> > arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
-> > twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
-> > twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
-> > twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_init'
-> > arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
-> > twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_dev_context_loss_count'
-> > arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
-> > twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_dev_context_loss_count'
-> 
-> Not sure what is going on here but neither of these are referenced within
-> twl-common.c directly.
 
-You can't rely on the .c file issued by the linker.  omap_display_init()
-is not in twl-common.c, but is in arch/arm/mach-omap2/display.c.  So
-ignore the "twl-common.c".
+--osDK9TLjxFScVI/L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > OMAP4 randconfig fails:
-> > 
-> > arch/arm/mach-omap2/cm_common.c: In function 'cm_register':
-> > arch/arm/mach-omap2/cm_common.c:42:11: error: 'EINVAL' undeclared (first use in this function)
-> > arch/arm/mach-omap2/cm_common.c:45:11: error: 'EEXIST' undeclared (first use in this function)
-> > arch/arm/mach-omap2/cm_common.c: In function 'cm_unregister':
-> > arch/arm/mach-omap2/cm_common.c:66:11: error: 'EINVAL' undeclared (first use in this function)
-> 
-> I have already sent a patch to fix this:
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-November/131341.html
-> 
-> > You know where to find the build information and results...
-> 
-> It seams I can not find the link in my mail archives. Could you point me to
-> the correct place?
+On Tue, Nov 06, 2012 at 04:31:32PM +0000, Paul Walmsley wrote:
+>=20
+> This reverts commit 3db11feffc1ad2ab9dea27789e6b5b3032827adc.
 
-http://www.arm.linux.org.uk/developer/build/
+Here giving the patch name in parens would have really made sense.
+Will fix that.
+
+> This commit causes I2C timeouts to appear on several OMAP3430/3530-based
+> boards:
+>=20
+>   http://marc.info/?l=3Dlinux-arm-kernel&m=3D135071372426971&w=3D2
+>   http://marc.info/?l=3Dlinux-arm-kernel&m=3D135067558415214&w=3D2
+>   http://marc.info/?l=3Dlinux-arm-kernel&m=3D135216013608196&w=3D2
+>=20
+> and appears to have been sent for merging before one of its prerequisites
+> was merged:
+>=20
+>   http://marc.info/?l=3Dlinux-arm-kernel&m=3D135219411617621&w=3D2
+
+Hmm, any ideas how to avoid such things in the future?
+
+> Signed-off-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+
+Applied to for-current, thanks!
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--osDK9TLjxFScVI/L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAlCjd5YACgkQD27XaX1/VRtTfgCcCDYM8HlwoMKphEKKlPB3VKB7
+x0gAnRay7YjlB7kdDsXFK6oSvrCb4ygZ
+=ePAo
+-----END PGP SIGNATURE-----
+
+--osDK9TLjxFScVI/L--
