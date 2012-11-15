@@ -1,54 +1,35 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCHv2] i2c: omap: Move the remove constraint
-Date: Thu, 15 Nov 2012 09:53:35 +0100
-Message-ID: <CAORVsuUE0pdmVyWO5-7TGZn=-XDib1jqbEVRK7Bmhj9bx_HGQQ@mail.gmail.com>
-References: <1352964883-9846-1-git-send-email-shubhrajyoti@ti.com>
-	<CAORVsuVuOLKpcx085VWiPRaD4syS-5F4+s+eKXGN8PPRRiTg2g@mail.gmail.com>
-	<CAM=Q2cvE2=c_L5YhkeXscx=2EfZp5MGtdnp6KowhwUQx_j1Muw@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
+Date: Thu, 15 Nov 2012 09:19:37 +0000
+Message-ID: <201211150919.37343.arnd@arndb.de>
+References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org> <201211130911.09613.arnd@arndb.de> <20121113112430.GF28341@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:52690 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992946Ab2KOIxg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 03:53:36 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k13so1939654iea.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Nov 2012 00:53:36 -0800 (PST)
-In-Reply-To: <CAM=Q2cvE2=c_L5YhkeXscx=2EfZp5MGtdnp6KowhwUQx_j1Muw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121113112430.GF28341@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rob Clark <rob.clark@linaro.org>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, balbi@ti.com, w.sang@pengutronix.de
 
-On Thu, Nov 15, 2012 at 9:51 AM, Shubhrajyoti Datta
-<omaplinuxkernel@gmail.com> wrote:
-> On Thu, Nov 15, 2012 at 1:46 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
->> Hi Shubhrajyoti,
->>
->> On Thu, Nov 15, 2012 at 8:34 AM, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
->>> Currently we just queue the transfer and release the
->>> qos constraints, however we donot wait for the transfer
->> Typo: donot
-> Just fixed and resent.
->
->>
->>> to complete to release the constraint. Move the remove
->>> constraint after the bus busy as we are sure that the
->>> transfers are completed by then.
->>>
->>> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
->> Looks good!
->> Acked-by: Jean Pihet <j-pihet@ti.com>
->
-> Thanks for review.
+On Tuesday 13 November 2012, Russell King - ARM Linux wrote:
+> You're missing something; that is one of the greatest powers of open
+> source.  The many eyes (and minds) effect.  Someone out there probably
+> has a solution to whatever problem, the trick is to find that person. :)
+> 
+> I think we have a working solution for this for ARM.  It won't be suitable
+> for every arch, where they have 8-bit and 16-bit registers able to be
+> allocated by the compiler, but for architectures where the minimum register
+> size is 32-bit, what we have below should work.
 
-Thanks!
+I don't mind at all adding the extension to ARM, and I think it's pretty
+cool that you guys actually found a working solution.
 
-Regards,
-Jean
+The part that worries me is that we are making architecture independent
+code depend on a clever hack that may or may not be possible to implement
+on a given architecture, and that most architecture maintainers wouldn't
+know how to implement correctly even if it's possible.
 
->
->>
->> Regards,
->> Jean
->>
+	Arnd
