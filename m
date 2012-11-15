@@ -1,48 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
-Date: Thu, 15 Nov 2012 08:27:44 -0800
-Message-ID: <20121115162743.GH6801@atomide.com>
-References: <k80da6$61d$1@ger.gmane.org>
- <CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
- <20121114175149.GT6801@atomide.com>
- <CAORVsuWAwCWktfsA1_juQ=B_pR26tnfSq5Fzjki0c1iW7nBn1g@mail.gmail.com>
+From: Ivan Djelic <ivan.djelic@parrot.com>
+Subject: Re: [PATCH v3] mtd: omap: nand: Remove 0xFF's that prefixed 16bit
+ NAND addresses
+Date: Thu, 15 Nov 2012 17:29:13 +0100
+Message-ID: <20121115162913.GA21835@parrot.com>
+References: <20121029195127.GA32749@harvey-pc.matrox.com>
+ <1352977329.2221.29.camel@sauron.fi.intel.com>
+ <20121115144800.GI2508@harvey-pc.matrox.com>
+ <1352992724.2221.61.camel@sauron.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:49507 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S2992633Ab2KOQ1r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 11:27:47 -0500
+Received: from co202.xi-lite.net ([149.6.83.202]:59843 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S2992633Ab2KOQ3Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 11:29:16 -0500
 Content-Disposition: inline
-In-Reply-To: <CAORVsuWAwCWktfsA1_juQ=B_pR26tnfSq5Fzjki0c1iW7nBn1g@mail.gmail.com>
+In-Reply-To: <1352992724.2221.61.camel@sauron.fi.intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: i.mazanov@gmail.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Christopher Harvey <charvey@matrox.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Jean Pihet <jean.pihet@newoldbits.com> [121115 06:49]:
-> Hi Tony,
+On Thu, Nov 15, 2012 at 03:18:44PM +0000, Artem Bityutskiy wrote:
+> On Thu, 2012-11-15 at 09:48 -0500, Christopher Harvey wrote:
+> > On Thu, Nov 15, 2012 at 01:02:09PM +0200, Artem Bityutskiy wrote:
+> > > On Mon, 2012-10-29 at 15:51 -0400, Christopher Harvey wrote:
+> > > > In 16bit NAND mode the GPMC would send the address 0xNN as 0xFFNN
+> > > > instead of 0x00NN on the bus. The 0xFFs were actually uninitialized
+> > > > bits that were left unset in the GPMC command output register. The
+> > > > reason they weren't initialized in 16bit mode is that if the same code
+> > > > that writes to this register was used in 8bit mode then 2 commands
+> > > > would be output in 8bit mode. One for the low byte, and an extra 0x0
+> > > > command for the high byte. This commit uses writew if we're using
+> > > > 16bit NAND. This commit also changes the high byte in the command
+> > > > output register, but they are ignored by NAND chips anyway.
+> > > > 
+> > > > Most chips seem fine with the extra 0xFFs, but the ONFI spec says
+> > > > otherwise.
+> > > > 
+> > > > Signed-off-by: Christopher Harvey <charvey@matrox.com>
+> > > 
+> > > Pushed to l2-mtd.git, thanks!
+> > 
+> > !!! Did anybody get around to testing this? I thought this patch had
+> >     been abandoned. Will testing get done on an omap chip now that it
+> >     is in a tree?
+> > 
+> > I should have prefixed it with RFC.
 > 
-> On Wed, Nov 14, 2012 at 6:51 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Jean Pihet <jean.pihet@newoldbits.com> [121114 08:43]:
-> >>
-> >> The patch should change the name of the hwmod entry as well, can you
-> >> fold this change in the current patch?
-> >
-> > This was caused by the merge of omap-for-v3.8/pm into omap-for-v3.8/clock.
-> > I noticed a smilar issue for omap3, but missed at least this one.
-> >
-> > Jean, can you please check omap-for-v3.8/clock for the smartreflex
-> > clock names in case there are more issues like this remaining?
-> The hwmod clock names are OK for 3xxx, 36xx, 33xx and 44xx. The hwmod
-> names are OK excepted for 33xx where they respectively should be
-> "smartreflex_mpu_iva" and ""smartreflex_core".
-> 
-> This issue is caused by 99e7938d "ARM: OMAP3: clock: Add 3xxx data
-> using common struct clk" in omap-for-v3.8/clock.
+> I assume _you_ tested it, and Ivan was happy. But if it is untested, I
+> am dropping it.
 
-OK thanks for checking.
-
-Regards,
-
-Tony
+Unfortunately I can't test it at the moment,
+BR,
+--
+Ivan
