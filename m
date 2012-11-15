@@ -1,140 +1,152 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 11/16] mfd: omap-usb-host: Manage HSIC clocks for HSIC mode
-Date: Thu, 15 Nov 2012 16:34:09 +0200
-Message-ID: <1352990054-14680-12-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and ETH when not in use
+Date: Thu, 15 Nov 2012 16:34:14 +0200
+Message-ID: <1352990054-14680-17-git-send-email-rogerq@ti.com>
 References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1352990054-14680-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54712 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768033Ab2KOOek (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 09:34:40 -0500
+In-Reply-To: <1352990054-14680-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com, Andy Green <andy.green@linaro.org>
 
-Enable the optional HSIC clocks (60MHz and 480MHz) for the ports
-that are configured in HSIC mode.
+From: Andy Green <andy.green@linaro.org>
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+This patch changes the management of the two GPIO for
+"hub reset" (actually controls enable of ULPI PHY and hub reset) and
+"hub power" (controls power to hub + eth).
+
+Because the only connection from the ULPI PHY output is to the hub+eth
+chip, there is no meaning in having the ULPI PHY running but not the
+hub+eth chip.
+
+The patch adds two regulators, the hub power one being the parent of the
+reset one, and binds the reset one to the hsusb driver by using the magic
+name "hsusb.0".
+
+The end result is the usb and eth driver may now be built modular, and
+when ehci-hcd is not inserted, the ULPI PHY, hub and ethernet are all
+depowered or held in reset.
+
+Signed-off-by: Andy Green <andy.green@linaro.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-host.c |   56 +++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 54 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/board-omap4panda.c |   80 +++++++++++++++++++++++--------
+ 1 files changed, 59 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 0d39bd7..e5ba193 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -88,6 +88,8 @@
- 
- struct usbhs_port {
- 	struct clk	*utmi_clk;
-+	struct clk	*hsic60m_clk;
-+	struct clk	*hsic480m_clk;
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b942abe..90fb2c4 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -156,32 +156,68 @@ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+ 	.clkrate[0] = 19200000,
  };
  
- struct usbhs_hcd_omap {
-@@ -300,6 +302,26 @@ static int usbhs_runtime_resume(struct device *dev)
- 				}
- 			}
- 		}
+-static struct gpio panda_ehci_gpios[] __initdata = {
+-	{ GPIO_HUB_POWER,	GPIOF_OUT_INIT_LOW,  "hub_power"  },
+-	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
++/*
++ * hub_nreset also enables the ULPI PHY
++ * ULPI PHY is always powered
++ * hub_power enables a 3.3V regulator for (hub + eth) chip
++ * however there's no point having ULPI PHY in use alone
++ * since it's only connected to the (hub + eth) chip
++ */
 +
-+		/* Enable HSIC clocks if required */
-+		if (is_ehci_hsic_mode(pdata->port_mode[i])) {
-+			if (omap->port[i].hsic60m_clk) {
-+				r = clk_enable(omap->port[i].hsic60m_clk);
-+				if (r) {
-+					dev_err(dev,
-+					 "%s: Can't enable port %d hsic60m clk : %d\n",
-+					 __func__, i, r);
-+				}
-+			}
-+			if (omap->port[i].hsic480m_clk) {
-+				r = clk_enable(omap->port[i].hsic480m_clk);
-+				if (r) {
-+					dev_err(dev,
-+					 "%s: Can't enable port %d hsic480m clk : %d\n",
-+					 __func__, i, r);
-+				}
-+			}
-+		}
- 	}
++static struct regulator_init_data panda_hub = {
++	.constraints = {
++		.name = "vhub",
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
+ };
  
- 	spin_unlock_irqrestore(&omap->lock, flags);
-@@ -323,6 +345,14 @@ static int usbhs_runtime_suspend(struct device *dev)
- 			if (omap->port[i].utmi_clk)
- 				clk_disable(omap->port[i].utmi_clk);
- 		}
-+
-+		if (is_ehci_hsic_mode(pdata->port_mode[i])) {
-+			if (omap->port[i].hsic60m_clk)
-+				clk_disable(omap->port[i].hsic60m_clk);
-+
-+			if (omap->port[i].hsic480m_clk)
-+				clk_disable(omap->port[i].hsic480m_clk);
-+		}
- 	}
+-static void __init omap4_ehci_init(void)
+-{
+-	int ret;
++static struct fixed_voltage_config panda_vhub = {
++	.supply_name = "vhub",
++	.microvolts = 3300000,
++	.gpio = GPIO_HUB_POWER,
++	.startup_delay = 70000, /* 70msec */
++	.enable_high = 1,
++	.enabled_at_boot = 0,
++	.init_data = &panda_hub,
++};
  
- 	if (omap->ehci_logic_fck && !IS_ERR(omap->ehci_logic_fck))
-@@ -575,6 +605,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
- 	for (i = 0; i < omap->nports; i++) {
- 		struct clk *pclk;
- 		char utmi_clk[] = "usb_host_hs_utmi_px_clk";
-+		char hsic_clk[] = "usb_host_hs_hsic480m_px_clk";
+-	/* disable the power to the usb hub prior to init and reset phy+hub */
+-	ret = gpio_request_array(panda_ehci_gpios,
+-				 ARRAY_SIZE(panda_ehci_gpios));
+-	if (ret) {
+-		pr_err("Unable to initialize EHCI power/reset\n");
+-		return;
+-	}
++static struct platform_device omap_vhub_device = {
++	.name		= "reg-fixed-voltage",
++	.id		= 2,
++	.dev = {
++		.platform_data = &panda_vhub,
++	},
++};
  
- 		/* clock names are indexed from 1*/
- 		sprintf(utmi_clk, "usb_host_hs_utmi_p%d_clk", i + 1);
-@@ -590,6 +621,21 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
- 		else
- 			omap->port[i].utmi_clk = pclk;
+-	gpio_export(GPIO_HUB_POWER, 0);
+-	gpio_export(GPIO_HUB_NRESET, 0);
+-	gpio_set_value(GPIO_HUB_NRESET, 1);
++static struct regulator_init_data panda_ulpireset = {
++	/*
++	 * idea is that when operating ulpireset, regulator api will make
++	 * sure that the hub+eth chip is powered, since it's the "parent"
++	 */
++	.supply_regulator = "vhub", /* we are a child of vhub */
++	.constraints = {
++		.name = "hsusb0",
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++};
  
-+		sprintf(hsic_clk, "usb_host_hs_hsic480m_p%d_clk", i + 1);
-+		pclk = clk_get(dev, hsic_clk);
-+		if (IS_ERR(pclk))
-+			dev_err(dev, "Failed to get clock : %s : %ld\n",
-+				hsic_clk, PTR_ERR(pclk));
-+		else
-+			omap->port[i].hsic480m_clk = pclk;
-+
-+		sprintf(hsic_clk, "usb_host_hs_hsic60m_p%d_clk", i + 1);
-+		pclk = clk_get(dev, hsic_clk);
-+		if (IS_ERR(pclk))
-+			dev_err(dev, "Failed to get clock : %s : %ld\n",
-+				hsic_clk, PTR_ERR(pclk));
-+		else
-+			omap->port[i].hsic60m_clk = pclk;
- 	}
+-	usbhs_init(&usbhs_bdata);
++static struct fixed_voltage_config panda_vulpireset = {
++	.supply_name = "hsusb0",  /* this name is magic for hsusb driver */
++	.microvolts = 3300000,
++	.gpio = GPIO_HUB_NRESET,
++	.startup_delay = 70000, /* 70msec */
++	.enable_high = 1,
++	.enabled_at_boot = 0,
++	.init_data = &panda_ulpireset,
++};
  
- 	if (is_ehci_phy_mode(pdata->port_mode[0])) {
-@@ -637,8 +683,11 @@ err_alloc:
- 	omap_usbhs_deinit(&pdev->dev);
- 	iounmap(omap->uhh_base);
+-	/* enable power to hub */
+-	gpio_set_value(GPIO_HUB_POWER, 1);
+-}
++static struct platform_device omap_vulpireset_device = {
++	.name		= "reg-fixed-voltage",
++	.id		= 3,
++	.dev = {
++		.platform_data = &panda_vulpireset,
++	},
++};
  
--	for (i = 0; i < omap->nports; i++)
-+	for (i = 0; i < omap->nports; i++) {
- 		clk_put(omap->port[i].utmi_clk);
-+		clk_put(omap->port[i].hsic60m_clk);
-+		clk_put(omap->port[i].hsic480m_clk);
-+	}
- 
- 	clk_put(omap->init_60m_fclk);
- 
-@@ -673,8 +722,11 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
- 	pm_runtime_disable(&pdev->dev);
- 	iounmap(omap->uhh_base);
- 
--	for (i = 0; i < omap->nports; i++)
-+	for (i = 0; i < omap->nports; i++) {
- 		clk_put(omap->port[i].utmi_clk);
-+		clk_put(omap->port[i].hsic60m_clk);
-+		clk_put(omap->port[i].hsic480m_clk);
-+	}
- 
- 	clk_put(omap->init_60m_fclk);
- 	clk_put(omap->xclk60mhsp2_ck);
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_UTMI,
+@@ -496,10 +532,12 @@ static void __init omap4_panda_init(void)
+ 	omap4_panda_i2c_init();
+ 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+ 	platform_device_register(&omap_vwlan_device);
++	platform_device_register(&omap_vhub_device);
++	platform_device_register(&omap_vulpireset_device);
+ 	omap_serial_init();
+ 	omap_sdrc_init(NULL, NULL);
+ 	omap4_twl6030_hsmmc_init(mmc);
+-	omap4_ehci_init();
++	usbhs_init(&usbhs_bdata);
+ 	usb_musb_init(&musb_board_data);
+ 	omap4_panda_display_init();
+ }
 -- 
 1.7.4.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
