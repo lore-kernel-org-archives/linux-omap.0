@@ -1,143 +1,274 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 07/16] mfd: omap_usb_host: Avoid creating copy of platform_data
-Date: Thu, 15 Nov 2012 16:34:05 +0200
-Message-ID: <1352990054-14680-8-git-send-email-rogerq@ti.com>
+Subject: [PATCH 02/16] mfd: omap-usb-tll: Clean up clock handling
+Date: Thu, 15 Nov 2012 16:34:00 +0200
+Message-ID: <1352990054-14680-3-git-send-email-rogerq@ti.com>
 References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45647 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45642 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1768004Ab2KOOe0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 09:34:26 -0500
+	id S1767985Ab2KOOeT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 09:34:19 -0500
 In-Reply-To: <1352990054-14680-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com
 Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com
 
-We can just hold the pointer to the platform data instead
-of creating a copy of it.
-
-Also get rid of the unnecessary missing platform data checks
-in runtime_suspend/resume. We are already checking for missing
-platform data in probe.
+Every channel has a functional clock that is similarly named.
+It makes sense to use a for loop to manage these clocks as OMAPs
+can come with upto 3 channels.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-host.c |   34 ++++++++++------------------------
- 1 files changed, 10 insertions(+), 24 deletions(-)
+ drivers/mfd/omap-usb-tll.c |  130 +++++++++++++++++++++++++-------------------
+ 1 files changed, 74 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 7303c41..44772ae 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -103,7 +103,7 @@ struct usbhs_hcd_omap {
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index d1750a4..943ac14 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -82,8 +82,12 @@
+ #define	OMAP_TLL_ULPI_DEBUG(num)			(0x815 + 0x100 * num)
+ #define	OMAP_TLL_ULPI_SCRATCH_REGISTER(num)		(0x816 + 0x100 * num)
  
- 	void __iomem			*uhh_base;
- 
--	struct usbhs_omap_platform_data	platdata;
-+	struct usbhs_omap_platform_data	*pdata;
- 
- 	u32				usbhs_rev;
- 	spinlock_t			lock;
-@@ -195,8 +195,8 @@ static int omap_usbhs_alloc_children(struct platform_device *pdev)
- 	int					ret;
- 
- 	omap = platform_get_drvdata(pdev);
--	ehci_data = omap->platdata.ehci_data;
--	ohci_data = omap->platdata.ohci_data;
-+	ehci_data = omap->pdata->ehci_data;
-+	ohci_data = omap->pdata->ohci_data;
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
- 	if (!res) {
-@@ -279,17 +279,12 @@ static bool is_ohci_port(enum usbhs_omap_port_mode pmode)
- static int usbhs_runtime_resume(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
- 	unsigned long			flags;
-+	struct usbhs_omap_platform_data *pdata = omap->pdata;
- 	int i, r;
- 
- 	dev_dbg(dev, "usbhs_runtime_resume\n");
- 
--	if (!pdata) {
--		dev_dbg(dev, "missing platform_data\n");
--		return  -ENODEV;
--	}
--
- 	omap_tll_enable();
- 	spin_lock_irqsave(&omap->lock, flags);
- 
-@@ -317,17 +312,12 @@ static int usbhs_runtime_resume(struct device *dev)
- static int usbhs_runtime_suspend(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
- 	unsigned long			flags;
-+	struct usbhs_omap_platform_data *pdata = omap->pdata;
- 	int i;
- 
- 	dev_dbg(dev, "usbhs_runtime_suspend\n");
- 
--	if (!pdata) {
--		dev_dbg(dev, "missing platform_data\n");
--		return  -ENODEV;
--	}
--
- 	spin_lock_irqsave(&omap->lock, flags);
- 
- 	for (i = 0; i < MAX_HS_USB_PORTS; i++) {
-@@ -349,7 +339,7 @@ static int usbhs_runtime_suspend(struct device *dev)
- static void omap_usbhs_init(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	struct usbhs_omap_platform_data	*pdata = omap->pdata;
- 	unsigned long			flags;
- 	unsigned			reg;
- 
-@@ -456,7 +446,7 @@ static void omap_usbhs_init(struct device *dev)
- static void omap_usbhs_deinit(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	struct usbhs_omap_platform_data	*pdata = omap->pdata;
- 
- 	if (pdata->ehci_data->phy_reset) {
- 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-@@ -509,19 +499,16 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&omap->lock);
- 
-+	omap->pdata = pdata;
-+	platform_set_drvdata(pdev, omap);
+-#define OMAP_REV2_TLL_CHANNEL_COUNT			2
+-#define OMAP_TLL_CHANNEL_COUNT				3
++#define REV2_TLL_CHANNEL_COUNT				2
++#define DEFAULT_TLL_CHANNEL_COUNT			3
 +
- 	need_logic_fck = false;
- 	for (i = 0; i < MAX_HS_USB_PORTS; i++) {
--		omap->platdata.port_mode[i] = pdata->port_mode[i];
--
- 		if (is_ehci_phy_mode(i) || is_ehci_tll_mode(i) ||
- 			is_ehci_hsic_mode(i))
- 				need_logic_fck |= true;
++/* Update if any chip has more */
++#define MAX_TLL_CHANNEL_COUNT				3
++
+ #define OMAP_TLL_CHANNEL_1_EN_MASK			(1 << 0)
+ #define OMAP_TLL_CHANNEL_2_EN_MASK			(1 << 1)
+ #define OMAP_TLL_CHANNEL_3_EN_MASK			(1 << 2)
+@@ -96,8 +100,9 @@
+ #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
+ 
+ struct usbtll_omap {
+-	struct clk				*usbtll_p1_fck;
+-	struct clk				*usbtll_p2_fck;
++	void __iomem				*base;
++	int					nch;	/* number of channels */
++	struct clk				*ch_clk[MAX_TLL_CHANNEL_COUNT];
+ 	struct usbtll_omap_platform_data	*pdata;
+ 	/* secure the register updates */
+ 	spinlock_t				lock;
+@@ -210,49 +215,35 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	unsigned				reg;
+ 	unsigned long				flags;
+ 	int					ret = 0;
+-	int					i, ver, count;
++	int					i, ver;
+ 
+ 	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
+ 
+ 	tll = kzalloc(sizeof(struct usbtll_omap), GFP_KERNEL);
+ 	if (!tll) {
+ 		dev_err(dev, "Memory allocation failed\n");
+-		ret = -ENOMEM;
+-		goto end;
++		return -ENOMEM;
  	}
  
--	omap->platdata.ehci_data = pdata->ehci_data;
--	omap->platdata.ohci_data = pdata->ohci_data;
+ 	spin_lock_init(&tll->lock);
+ 
+ 	tll->pdata = pdata;
+ 
+-	tll->usbtll_p1_fck = clk_get(dev, "usb_tll_hs_usb_ch0_clk");
+-	if (IS_ERR(tll->usbtll_p1_fck)) {
+-		ret = PTR_ERR(tll->usbtll_p1_fck);
+-		dev_err(dev, "usbtll_p1_fck failed error:%d\n", ret);
+-		goto err_tll;
+-	}
 -
+-	tll->usbtll_p2_fck = clk_get(dev, "usb_tll_hs_usb_ch1_clk");
+-	if (IS_ERR(tll->usbtll_p2_fck)) {
+-		ret = PTR_ERR(tll->usbtll_p2_fck);
+-		dev_err(dev, "usbtll_p2_fck failed error:%d\n", ret);
+-		goto err_usbtll_p1_fck;
+-	}
 -
- 	if (need_logic_fck) {
- 		omap->ehci_logic_fck = clk_get(dev, "ehci_logic_fck");
- 		if (IS_ERR(omap->ehci_logic_fck)) {
-@@ -600,7 +587,6 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
- 				"failed error:%d\n", ret);
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+ 		dev_err(dev, "usb tll get resource failed\n");
+ 		ret = -ENODEV;
+-		goto err_usbtll_p2_fck;
++		goto err_mem;
  	}
  
--	platform_set_drvdata(pdev, omap);
+ 	base = ioremap(res->start, resource_size(res));
+ 	if (!base) {
+ 		dev_err(dev, "TLL ioremap failed\n");
+ 		ret = -ENOMEM;
+-		goto err_usbtll_p2_fck;
++		goto err_mem;
+ 	}
  
++	tll->base = base;
+ 	platform_set_drvdata(pdev, tll);
  	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+@@ -262,16 +253,33 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	ver =  usbtll_read(base, OMAP_USBTLL_REVISION);
+ 	switch (ver) {
+ 	case OMAP_USBTLL_REV1:
+-	case OMAP_USBTLL_REV2:
+-		count = OMAP_TLL_CHANNEL_COUNT;
++		tll->nch = DEFAULT_TLL_CHANNEL_COUNT;
+ 		break;
++	case OMAP_USBTLL_REV2:
+ 	case OMAP_USBTLL_REV3:
+-		count = OMAP_REV2_TLL_CHANNEL_COUNT;
++		tll->nch = REV2_TLL_CHANNEL_COUNT;
+ 		break;
+ 	default:
+-		dev_err(dev, "TLL version failed\n");
+-		ret = -ENODEV;
+-		goto err_ioremap;
++		tll->nch = DEFAULT_TLL_CHANNEL_COUNT;
++		dev_info(dev,
++		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
++			ver, tll->nch);
++		break;
++	}
++
++	for (i = 0; i < tll->nch; i++) {
++		char clk_name[] = "usb_tll_hs_usb_chx_clk";
++		struct clk *fck;
++
++		sprintf(clk_name, "usb_tll_hs_usb_ch%d_clk", i);
++		fck = clk_get(dev, clk_name);
++
++		if (IS_ERR(fck)) {
++			dev_err(dev, "can't get clock : %s\n", clk_name);
++			ret = PTR_ERR(fck);
++			goto err_clk;
++		}
++		tll->ch_clk[i] = fck;
+ 	}
+ 
+ 	if (is_ehci_tll_mode(pdata->port_mode[0]) ||
+@@ -291,7 +299,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 		usbtll_write(base, OMAP_TLL_SHARED_CONF, reg);
+ 
+ 		/* Enable channels now */
+-		for (i = 0; i < count; i++) {
++		for (i = 0; i < tll->nch; i++) {
+ 			reg = usbtll_read(base,	OMAP_TLL_CHANNEL_CONF(i));
+ 
+ 			if (is_ohci_port(pdata->port_mode[i])) {
+@@ -319,25 +327,25 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-err_ioremap:
+-	spin_unlock_irqrestore(&tll->lock, flags);
+-	iounmap(base);
+-	pm_runtime_put_sync(dev);
+ 	tll_pdev = pdev;
+-	if (!ret)
+-		goto end;
+-	pm_runtime_disable(dev);
+ 
+-err_usbtll_p2_fck:
+-	clk_put(tll->usbtll_p2_fck);
++err_clk:
++	for (--i; i >= 0 ; i--)
++		clk_put(tll->ch_clk[i]);
+ 
+-err_usbtll_p1_fck:
+-	clk_put(tll->usbtll_p1_fck);
++	spin_unlock_irqrestore(&tll->lock, flags);
++	pm_runtime_put_sync(dev);
++	if (ret == 0) {
++		pr_info("OMAP USB TLL : revision 0x%x, channels %d\n",
++				ver, tll->nch);
++		return 0;
++	}
+ 
+-err_tll:
+-	kfree(tll);
++	iounmap(base);
++	pm_runtime_disable(dev);
+ 
+-end:
++err_mem:
++	kfree(tll);
+ 	return ret;
+ }
+ 
+@@ -350,9 +358,12 @@ end:
+ static int __devexit usbtll_omap_remove(struct platform_device *pdev)
+ {
+ 	struct usbtll_omap *tll = platform_get_drvdata(pdev);
++	int i;
++
++	iounmap(tll->base);
++	for (i = 0; i < tll->nch; i++)
++		clk_put(tll->ch_clk[i]);
+ 
+-	clk_put(tll->usbtll_p2_fck);
+-	clk_put(tll->usbtll_p1_fck);
+ 	pm_runtime_disable(&pdev->dev);
+ 	kfree(tll);
+ 	return 0;
+@@ -363,6 +374,7 @@ static int usbtll_runtime_resume(struct device *dev)
+ 	struct usbtll_omap			*tll = dev_get_drvdata(dev);
+ 	struct usbtll_omap_platform_data	*pdata = tll->pdata;
+ 	unsigned long				flags;
++	int i;
+ 
+ 	dev_dbg(dev, "usbtll_runtime_resume\n");
+ 
+@@ -373,11 +385,17 @@ static int usbtll_runtime_resume(struct device *dev)
+ 
+ 	spin_lock_irqsave(&tll->lock, flags);
+ 
+-	if (is_ehci_tll_mode(pdata->port_mode[0]))
+-		clk_enable(tll->usbtll_p1_fck);
+-
+-	if (is_ehci_tll_mode(pdata->port_mode[1]))
+-		clk_enable(tll->usbtll_p2_fck);
++	for (i = 0; i < tll->nch; i++) {
++		if (is_ehci_tll_mode(pdata->port_mode[i])) {
++			int r;
++			r = clk_enable(tll->ch_clk[i]);
++			if (r) {
++				dev_err(dev,
++				 "%s : Error enabling ch %d clock: %d\n",
++				 __func__, i, r);
++			}
++		}
++	}
+ 
+ 	spin_unlock_irqrestore(&tll->lock, flags);
+ 
+@@ -389,6 +407,7 @@ static int usbtll_runtime_suspend(struct device *dev)
+ 	struct usbtll_omap			*tll = dev_get_drvdata(dev);
+ 	struct usbtll_omap_platform_data	*pdata = tll->pdata;
+ 	unsigned long				flags;
++	int i;
+ 
+ 	dev_dbg(dev, "usbtll_runtime_suspend\n");
+ 
+@@ -399,11 +418,10 @@ static int usbtll_runtime_suspend(struct device *dev)
+ 
+ 	spin_lock_irqsave(&tll->lock, flags);
+ 
+-	if (is_ehci_tll_mode(pdata->port_mode[0]))
+-		clk_disable(tll->usbtll_p1_fck);
+-
+-	if (is_ehci_tll_mode(pdata->port_mode[1]))
+-		clk_disable(tll->usbtll_p2_fck);
++	for (i = 0; i < tll->nch; i++) {
++		if (is_ehci_tll_mode(pdata->port_mode[i]))
++			clk_disable(tll->ch_clk[i]);
++	}
+ 
+ 	spin_unlock_irqrestore(&tll->lock, flags);
  
 -- 
 1.7.4.1
