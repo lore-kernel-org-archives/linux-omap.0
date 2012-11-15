@@ -1,215 +1,67 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/4] ARM: OMAP: usb-host: Device tree support for USB Host
-Date: Thu, 15 Nov 2012 16:56:33 +0200
-Message-ID: <1352991396-19589-2-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH 2/4] ARM: OMAP4: USB: Add pin mux configuration for panda board
+Date: Thu, 15 Nov 2012 16:56:34 +0200
+Message-ID: <1352991396-19589-3-git-send-email-rogerq@ti.com>
 References: <1352991396-19589-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1352991396-19589-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55790 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768071Ab2KOO4m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 09:56:42 -0500
+In-Reply-To: <1352991396-19589-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: b-cousson@ti.com, balbi@ti.com, keshava_mgowda@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com
 
-Provides a means for the OMAP USB host subsystem to be initialized
-from Device tree. This is a first step for device tree migration where
-we specify only the board specific stuff. Things like I/O address space
-and interrupts are not yet specified in the device tree but can be
-done as a next step.
+From: Keshava Munegowda <keshava_mgowda@ti.com>
 
-This patch will allow boards to be booted with our without device tree
-and have USB host functional.
+The port1 of omap4 panda board is used in ULPI PHY mode.
+The pin mux of usbhs (usbb1) port 1 is configured accordingly.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 ---
- .../devicetree/bindings/arm/omap/usb-host.txt      |   60 +++++++++++++++++
- arch/arm/mach-omap2/board-generic.c                |    1 +
- arch/arm/mach-omap2/common.h                       |    2 +
- arch/arm/mach-omap2/usb-host.c                     |   71 ++++++++++++++++++++
- 4 files changed, 134 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/usb-host.txt
+ arch/arm/boot/dts/omap4-panda.dts |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/usb-host.txt b/Documentation/devicetree/bindings/arm/omap/usb-host.txt
-new file mode 100644
-index 0000000..f25cfa4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/arm/omap/usb-host.txt
-@@ -0,0 +1,60 @@
-+* usb-host - OMAP USB Host Subsystem
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index e8f927c..6811b37 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -65,6 +65,7 @@
+ 			&twl6040_pins
+ 			&mcpdm_pins
+ 			&mcbsp1_pins
++			&usbb1_pins	/* port 0 of omap usb host port pin mux configuration */
+ 	>;
+ 
+ 	twl6040_pins: pinmux_twl6040_pins {
+@@ -92,6 +93,23 @@
+ 			0xc4 0x100	/* abe_mcbsp1_fsx.abe_mcbsp1_fsx INPUT | MODE0 */
+ 		>;
+ 	};
 +
-+The OMAP USB host subsystem consists of the following modules
-+1) USBTLL (Tranceiverless interface)
-+2) USBHOST (Host Controller module) which includes both EHCI and OHCI controllers
-+
-+THe USB Host subsystem can be connected to the external world using 3 PORTs that could
-+be configured in various modes like  UTMI+ for external PHY, ULPI transceiverless link (TLL),
-+Serial TLL, High-speed interchip (HSIC), etc.
-+
-+Required proprties:
-+- compatible: Must be "ti,usb-host";
-+- num_ports: Number of physical ports available
-+
-+Optional properties:
-+- 1 child node for each available port.  These child nodes are usually supplied by the
-+  board support device tree as they are specific to how the ports are wired on the board
-+
-+  - mode: Integer specifying the mode in which the port is used
-+	* OMAP_USBHS_PORT_MODE_UNUSED		= 0,
-+	* OMAP_EHCI_PORT_MODE_PHY		= 1,
-+	* OMAP_EHCI_PORT_MODE_TLL		= 2,
-+	* OMAP_EHCI_PORT_MODE_HSIC		= 3,
-+	* OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0 	= 4,
-+	* OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM 	= 5,
-+	* OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0	= 6,
-+	* OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM	= 7,
-+	* OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0	= 8,
-+	* OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM	= 9,
-+	* OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0	= 10,
-+	* OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM	= 11,
-+	* OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0	= 12,
-+	* OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM	= 13,
-+   - clk: Name of the clock that needs to be active when using the port
-+   - clkrate: Frequency at which the above clk needs to be run at
-+
-+
-+Example:
-+
-+/* In the OMAP Core tree */
-+usbhost: usb-host {
-+	compatible = "ti,usb-host";
-+	num_ports = <3>;
-+};
-+
-+/* In the Board tree */
-+&usbhost {
-+	port@0 {
-+		mode = <1>;
-+		clk = "auxclk3_ck";
-+		clkrate = <19200000>;
++	usbb1_pins: pinmux_usbb1_pins {
++		pinctrl-single,pins = <
++			0x82 0x10C  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_clk INPUT | PULLDOWN */
++			0x84 0x4  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_stp OUTPUT */
++			0x86 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dir INPUT | PULLDOWN */
++			0x88 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_nxt INPUT | PULLDOWN */
++			0x8a 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat0 INPUT | PULLDOWN */
++			0x8c 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat1 INPUT | PULLDOWN */
++			0x8e 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat2 INPUT | PULLDOWN */
++			0x90 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat3 INPUT | PULLDOWN */
++			0x92 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat4 INPUT | PULLDOWN */
++			0x94 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat5 INPUT | PULLDOWN */
++			0x96 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat6 INPUT | PULLDOWN */
++			0x98 0x104  /* USBB1_ULPITLL_CLK_MUXMODE.usbb1_ulpiphy_dat7 INPUT | PULLDOWN */
++		>;
 +	};
-+	port@1 {
-+		mode = <0>;
-+	};
-+	port@2 {
-+		mode = <0>;
-+	};
-+};
-+
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 601ecdf..4e53b62 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -40,6 +40,7 @@ static void __init omap_generic_init(void)
- 	omap_sdrc_init(NULL, NULL);
+ };
  
- 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
-+	usbhost_init_of();
- }
- 
- #ifdef CONFIG_SOC_OMAP2420
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 7045e4d..b301fcb 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -339,5 +339,7 @@ extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- struct omap2_hsmmc_info;
- extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
- 
-+void __init usbhost_init_of(void);
-+
- #endif /* __ASSEMBLER__ */
- #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index bfab301..10a297d 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -22,6 +22,8 @@
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/dma-mapping.h>
-+#include <linux/of.h>
-+#include <linux/of_gpio.h>
- 
- #include <asm/io.h>
- 
-@@ -556,3 +558,72 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- }
- 
- #endif
-+
-+static struct usbhs_omap_board_data bdata;
-+
-+#define USBHS_NODE "usb-host"
-+
-+/**
-+ * usbhost_init_of - initialize USB Host subsystem from device tree
-+ *
-+ * Scans the device tree for required information and populates
-+ * platform data for the OMAP USB High Speed Host subsystem
-+ */
-+void __init usbhost_init_of(void)
-+{
-+	int r;
-+	struct device_node *node, *child;
-+	int num_ports;
-+	int i;
-+
-+	node = of_find_node_by_name(NULL, USBHS_NODE);
-+	if (!node) {
-+		pr_err("%s could not find OF node : %s\n",
-+					__func__, USBHS_NODE);
-+		return;
-+	}
-+
-+	r = of_property_read_u32(node, "num_ports", &num_ports);
-+	if (r) {
-+		pr_err("%s num_ports not specified in OF node %s\n",
-+				__func__, USBHS_NODE);
-+	}
-+
-+	r = of_property_read_bool(node, "phy_reset");
-+	bdata.phy_reset = r;
-+
-+	i = 0;
-+	for_each_child_of_node(node, child) {
-+		int mode;
-+		const char *clk_name;
-+		u32 clk_rate;
-+
-+		r = of_property_read_u32(child, "mode", &mode);
-+		if (r) {
-+			pr_err("%s mode not specified in OF node %s port %d\n",
-+				__func__, USBHS_NODE, i);
-+			bdata.port_mode[i] = OMAP_USBHS_PORT_MODE_UNUSED;
-+		} else {
-+			bdata.port_mode[i] = mode;
-+		}
-+
-+		r = of_get_named_gpio(child, "reset_gpio", 0);
-+		if (gpio_is_valid(r))
-+			bdata.reset_gpio_port[i] = r;
-+		else
-+			bdata.reset_gpio_port[i] = -EINVAL;
-+
-+		clk_name = of_get_property(child, "clk", NULL);
-+		if (clk_name)
-+			bdata.clk[i] = clk_name;
-+
-+		r = of_property_read_u32(child, "clkrate", &clk_rate);
-+		if (!r)
-+			bdata.clkrate[i] = clk_rate;
-+
-+		i++;
-+	}
-+
-+	usbhs_init(&bdata);
-+}
-+
+ &i2c1 {
 -- 
 1.7.4.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
