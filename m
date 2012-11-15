@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 3/4] ARM/dts: omap4-panda: Add USB Host support
-Date: Thu, 15 Nov 2012 16:56:35 +0200
-Message-ID: <1352991396-19589-4-git-send-email-rogerq@ti.com>
+Subject: [PATCH 1/4] ARM: OMAP: usb-host: Device tree support for USB Host
+Date: Thu, 15 Nov 2012 16:56:33 +0200
+Message-ID: <1352991396-19589-2-git-send-email-rogerq@ti.com>
 References: <1352991396-19589-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,61 +12,80 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 Cc: b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Get USB Host working. On Panda, two GPIOs are used, one for
-HUB/PHY reset and other for Hub power. We model them as fixed
-regulators. The regulator for RESET is made to depend on regulator
-for Hub power so that the Hub power is enabled by the regulator
-framework before RESET is removed.
+Provides a means for the OMAP USB host subsystem to be initialized
+from Device tree. This is a first step for device tree migration where
+we specify only the board specific stuff. Things like I/O address space
+and interrupts are not yet specified in the device tree but can be
+done as a next step.
 
-Tested on Panda ES B1.
+This patch will allow boards to be booted with our without device tree
+and have USB host functional.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4-panda.dts |   36 ++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi      |    5 +++++
- 2 files changed, 41 insertions(+), 0 deletions(-)
+ .../devicetree/bindings/arm/omap/usb-host.txt      |   60 +++++++++++++++++
+ arch/arm/mach-omap2/board-generic.c                |    1 +
+ arch/arm/mach-omap2/common.h                       |    2 +
+ arch/arm/mach-omap2/usb-host.c                     |   71 ++++++++++++++++++++
+ 4 files changed, 134 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/usb-host.txt
 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 6811b37..f67a65a 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -57,6 +57,27 @@
- 			"AFML", "Line In",
- 			"AFMR", "Line In";
- 	};
+diff --git a/Documentation/devicetree/bindings/arm/omap/usb-host.txt b/Documentation/devicetree/bindings/arm/omap/usb-host.txt
+new file mode 100644
+index 0000000..f25cfa4
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/usb-host.txt
+@@ -0,0 +1,60 @@
++* usb-host - OMAP USB Host Subsystem
 +
-+	hubpower: fixedregulator@0 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "vhub0";
-+			regulator-min-microvolt = <3300000>;
-+			regulator-max-microvolt = <3300000>;
-+			gpio = <&gpio1 1 0>;		/* gpio 1 : HUB Power */
-+			startup-delay-us = <70000>;
-+			enable-active-high;
-+	};
++The OMAP USB host subsystem consists of the following modules
++1) USBTLL (Tranceiverless interface)
++2) USBHOST (Host Controller module) which includes both EHCI and OHCI controllers
 +
-+	hubreset: fixedregulator@1 {
-+			compatible = "regulator-fixed";
-+			regulator-name = "hsusb0";	/* tag to associate with PORT 1 */
-+			regulator-min-microvolt = <3300000>;
-+			regulator-max-microvolt = <3300000>;
-+			gpio = <&gpio2 30 0>;	/* gpio 62 : HUB & PHY Reset */
-+			startup-delay-us = <70000>;
-+			enable-active-high;
-+			vin-supply = "vhub0"; /* Makes regulator f/w enable power before reset */
-+	};
- };
- 
- &omap4_pmx_core {
-@@ -136,6 +157,21 @@
- 	};
- };
- 
++THe USB Host subsystem can be connected to the external world using 3 PORTs that could
++be configured in various modes like  UTMI+ for external PHY, ULPI transceiverless link (TLL),
++Serial TLL, High-speed interchip (HSIC), etc.
 +
++Required proprties:
++- compatible: Must be "ti,usb-host";
++- num_ports: Number of physical ports available
++
++Optional properties:
++- 1 child node for each available port.  These child nodes are usually supplied by the
++  board support device tree as they are specific to how the ports are wired on the board
++
++  - mode: Integer specifying the mode in which the port is used
++	* OMAP_USBHS_PORT_MODE_UNUSED		= 0,
++	* OMAP_EHCI_PORT_MODE_PHY		= 1,
++	* OMAP_EHCI_PORT_MODE_TLL		= 2,
++	* OMAP_EHCI_PORT_MODE_HSIC		= 3,
++	* OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0 	= 4,
++	* OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM 	= 5,
++	* OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0	= 6,
++	* OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM	= 7,
++	* OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0	= 8,
++	* OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM	= 9,
++	* OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0	= 10,
++	* OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM	= 11,
++	* OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0	= 12,
++	* OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM	= 13,
++   - clk: Name of the clock that needs to be active when using the port
++   - clkrate: Frequency at which the above clk needs to be run at
++
++
++Example:
++
++/* In the OMAP Core tree */
++usbhost: usb-host {
++	compatible = "ti,usb-host";
++	num_ports = <3>;
++};
++
++/* In the Board tree */
 +&usbhost {
 +	port@0 {
-+		mode = <1>;		/* PHY mode */
-+		clk = "auxclk3_ck";	/* PHY clock on FREF_CLK3_OUT */
++		mode = <1>;
++		clk = "auxclk3_ck";
 +		clkrate = <19200000>;
 +	};
 +	port@1 {
@@ -77,24 +96,116 @@ index 6811b37..f67a65a 100644
 +	};
 +};
 +
- /include/ "twl6030.dtsi"
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 601ecdf..4e53b62 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -40,6 +40,7 @@ static void __init omap_generic_init(void)
+ 	omap_sdrc_init(NULL, NULL);
  
- &i2c2 {
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 3883f94..0062c59 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -438,5 +438,10 @@
- 			ranges;
- 			ti,hwmods = "ocp2scp_usb_phy";
- 		};
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
++	usbhost_init_of();
+ }
+ 
+ #ifdef CONFIG_SOC_OMAP2420
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 7045e4d..b301fcb 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -339,5 +339,7 @@ extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ struct omap2_hsmmc_info;
+ extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
+ 
++void __init usbhost_init_of(void);
 +
-+		usbhost: usb-host {
-+			compatible = "ti,usb-host";
-+			num_ports = <2>;
-+		};
- 	};
- };
+ #endif /* __ASSEMBLER__ */
+ #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index bfab301..10a297d 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -22,6 +22,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/dma-mapping.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -556,3 +558,72 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ }
+ 
+ #endif
++
++static struct usbhs_omap_board_data bdata;
++
++#define USBHS_NODE "usb-host"
++
++/**
++ * usbhost_init_of - initialize USB Host subsystem from device tree
++ *
++ * Scans the device tree for required information and populates
++ * platform data for the OMAP USB High Speed Host subsystem
++ */
++void __init usbhost_init_of(void)
++{
++	int r;
++	struct device_node *node, *child;
++	int num_ports;
++	int i;
++
++	node = of_find_node_by_name(NULL, USBHS_NODE);
++	if (!node) {
++		pr_err("%s could not find OF node : %s\n",
++					__func__, USBHS_NODE);
++		return;
++	}
++
++	r = of_property_read_u32(node, "num_ports", &num_ports);
++	if (r) {
++		pr_err("%s num_ports not specified in OF node %s\n",
++				__func__, USBHS_NODE);
++	}
++
++	r = of_property_read_bool(node, "phy_reset");
++	bdata.phy_reset = r;
++
++	i = 0;
++	for_each_child_of_node(node, child) {
++		int mode;
++		const char *clk_name;
++		u32 clk_rate;
++
++		r = of_property_read_u32(child, "mode", &mode);
++		if (r) {
++			pr_err("%s mode not specified in OF node %s port %d\n",
++				__func__, USBHS_NODE, i);
++			bdata.port_mode[i] = OMAP_USBHS_PORT_MODE_UNUSED;
++		} else {
++			bdata.port_mode[i] = mode;
++		}
++
++		r = of_get_named_gpio(child, "reset_gpio", 0);
++		if (gpio_is_valid(r))
++			bdata.reset_gpio_port[i] = r;
++		else
++			bdata.reset_gpio_port[i] = -EINVAL;
++
++		clk_name = of_get_property(child, "clk", NULL);
++		if (clk_name)
++			bdata.clk[i] = clk_name;
++
++		r = of_property_read_u32(child, "clkrate", &clk_rate);
++		if (!r)
++			bdata.clkrate[i] = clk_rate;
++
++		i++;
++	}
++
++	usbhs_init(&bdata);
++}
++
 -- 
 1.7.4.1
 
