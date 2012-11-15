@@ -1,42 +1,48 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
-Date: Thu, 15 Nov 2012 14:39:41 +0000
-Message-ID: <201211151439.41393.arnd@arndb.de>
-References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org> <201211151339.08016.arnd@arndb.de> <CAF6AEGuJReNtwUZX6HVZCE8GHuyEAyC8bM0GqZuVMV1=DrGJVw@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
+Date: Thu, 15 Nov 2012 15:47:03 +0100
+Message-ID: <CAORVsuWAwCWktfsA1_juQ=B_pR26tnfSq5Fzjki0c1iW7nBn1g@mail.gmail.com>
+References: <k80da6$61d$1@ger.gmane.org>
+	<CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
+	<20121114175149.GT6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAF6AEGuJReNtwUZX6HVZCE8GHuyEAyC8bM0GqZuVMV1=DrGJVw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:59170 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992479Ab2KOOrD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 09:47:03 -0500
+Received: by mail-ie0-f174.google.com with SMTP id k13so2237185iea.19
+        for <linux-omap@vger.kernel.org>; Thu, 15 Nov 2012 06:47:03 -0800 (PST)
+In-Reply-To: <20121114175149.GT6801@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: i.mazanov@gmail.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-On Thursday 15 November 2012, Rob Clark wrote:
-> > I still haven't heard a conclusive argument why we need to use get_user()
-> > rather than copy_from_user() in the DRM code. Is this about a fast path
-> > where you want to shave off a few cycles for each call, or does this
-> > simplify the code structure, or something else?
-> 
-> well, it is mostly because it seemed like a good idea to first try to
-> solve the root issue, rather than having to fix things up in each
-> driver when someone from x86-world introduces a 64b get_user()..
+Hi Tony,
 
-As pointed out by hpa earlier, x86-32 doesn't have a 64b get_user
-either. I don't think we have a lot of drivers that are used only
-on 64-bit x86 and on 32-bit ARM but not on 32-bit x86.
+On Wed, Nov 14, 2012 at 6:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Jean Pihet <jean.pihet@newoldbits.com> [121114 08:43]:
+>>
+>> The patch should change the name of the hwmod entry as well, can you
+>> fold this change in the current patch?
+>
+> This was caused by the merge of omap-for-v3.8/pm into omap-for-v3.8/clock.
+> I noticed a smilar issue for omap3, but missed at least this one.
+>
+> Jean, can you please check omap-for-v3.8/clock for the smartreflex
+> clock names in case there are more issues like this remaining?
+The hwmod clock names are OK for 3xxx, 36xx, 33xx and 44xx. The hwmod
+names are OK excepted for 33xx where they respectively should be
+"smartreflex_mpu_iva" and ""smartreflex_core".
 
-> There are some other arch's that don't have 64b get_user(), but I
-> don't think any that have any DRM drivers.  If 64b get_user() is
-> really not intended to be supported by all archs, it is better to
-> remove it from x86 and the other arch's that do currently support it,
-> rather than making it possible to write drivers that are broken on
-> some archs.
+This issue is caused by 99e7938d "ARM: OMAP3: clock: Add 3xxx data
+using common struct clk" in omap-for-v3.8/clock.
 
-The majority of architectures we support have PCI and should be able
-to build the regular (radeon, nouveau, MGA, VIA, ...) DRM drivers
-AFAICT.
+> Regards,
+>
+> Tony
 
-	Arnd
+Regards,
+Jean
