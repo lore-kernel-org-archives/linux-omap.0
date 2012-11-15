@@ -1,120 +1,144 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 12/16] ARM: OMAP2+: clock data: Merge utmi_px_gfclk into usb_host_hs_utmi_px_clk
-Date: Thu, 15 Nov 2012 16:34:10 +0200
-Message-ID: <1352990054-14680-13-git-send-email-rogerq@ti.com>
+Subject: [PATCH 07/16] mfd: omap_usb_host: Avoid creating copy of platform_data
+Date: Thu, 15 Nov 2012 16:34:05 +0200
+Message-ID: <1352990054-14680-8-git-send-email-rogerq@ti.com>
 References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52164 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45647 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1768031Ab2KOOed (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 09:34:33 -0500
+	id S1768004Ab2KOOe0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 09:34:26 -0500
 In-Reply-To: <1352990054-14680-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: balbi@ti.com
-Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com, Benoit Cousson <b-cousson@ti.com>
+Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, rogerq@ti.com
 
-There is no such clock as utmi_p1_gfclk. It is only a clock selector
-bit to select th the parent of usb_host_hs_utmi_p1_clk.
-So we get rid of utmi_p1_gfclk and utmi_p2_gfclk by merging them into
-usb_host_hs_utmi_p1_clk and usb_host_hs_utmi_p2_clk respectively.
+We can just hold the pointer to the platform data instead
+of creating a copy of it.
 
-CC: Benoit Cousson <b-cousson@ti.com>
+Also get rid of the unnecessary missing platform data checks
+in runtime_suspend/resume. We are already checking for missing
+platform data in probe.
+
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/clock3xxx_data.c |    2 --
- arch/arm/mach-omap2/clock44xx_data.c |   30 ++++++++----------------------
- 2 files changed, 8 insertions(+), 24 deletions(-)
+ drivers/mfd/omap-usb-host.c |   34 ++++++++++------------------------
+ 1 files changed, 10 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 1f42c9d..0d2ee04 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3400,8 +3400,6 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("usbhs_omap",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK(NULL,	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
--	CLK(NULL,	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 6efc30c..fc3e490 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2462,25 +2462,19 @@ static const struct clksel utmi_p1_gfclk_sel[] = {
- 	{ .parent = NULL },
- };
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 7303c41..44772ae 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -103,7 +103,7 @@ struct usbhs_hcd_omap {
  
--static struct clk utmi_p1_gfclk = {
--	.name		= "utmi_p1_gfclk",
-+/* Merged utmi_p1_gfclk into usb_host_hs_utmi_p1_clk */
-+static struct clk usb_host_hs_utmi_p1_clk = {
-+	.name		= "usb_host_hs_utmi_p1_clk",
- 	.parent		= &init_60m_fclk,
- 	.clksel		= utmi_p1_gfclk_sel,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
- 	.clksel_mask	= OMAP4430_CLKSEL_UTMI_P1_MASK,
--	.ops		= &clkops_null,
--	.recalc		= &omap2_clksel_recalc,
--};
+ 	void __iomem			*uhh_base;
+ 
+-	struct usbhs_omap_platform_data	platdata;
++	struct usbhs_omap_platform_data	*pdata;
+ 
+ 	u32				usbhs_rev;
+ 	spinlock_t			lock;
+@@ -195,8 +195,8 @@ static int omap_usbhs_alloc_children(struct platform_device *pdev)
+ 	int					ret;
+ 
+ 	omap = platform_get_drvdata(pdev);
+-	ehci_data = omap->platdata.ehci_data;
+-	ohci_data = omap->platdata.ohci_data;
++	ehci_data = omap->pdata->ehci_data;
++	ohci_data = omap->pdata->ohci_data;
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
+ 	if (!res) {
+@@ -279,17 +279,12 @@ static bool is_ohci_port(enum usbhs_omap_port_mode pmode)
+ static int usbhs_runtime_resume(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+ 	unsigned long			flags;
++	struct usbhs_omap_platform_data *pdata = omap->pdata;
+ 	int i, r;
+ 
+ 	dev_dbg(dev, "usbhs_runtime_resume\n");
+ 
+-	if (!pdata) {
+-		dev_dbg(dev, "missing platform_data\n");
+-		return  -ENODEV;
+-	}
 -
--static struct clk usb_host_hs_utmi_p1_clk = {
--	.name		= "usb_host_hs_utmi_p1_clk",
- 	.ops		= &clkops_omap2_dflt,
- 	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
- 	.enable_bit	= OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT,
- 	.clkdm_name	= "l3_init_clkdm",
--	.parent		= &utmi_p1_gfclk,
--	.recalc		= &followparent_recalc,
-+	.recalc		= &omap2_clksel_recalc,
- };
+ 	omap_tll_enable();
+ 	spin_lock_irqsave(&omap->lock, flags);
  
- static const struct clksel utmi_p2_gfclk_sel[] = {
-@@ -2489,25 +2483,19 @@ static const struct clksel utmi_p2_gfclk_sel[] = {
- 	{ .parent = NULL },
- };
+@@ -317,17 +312,12 @@ static int usbhs_runtime_resume(struct device *dev)
+ static int usbhs_runtime_suspend(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+ 	unsigned long			flags;
++	struct usbhs_omap_platform_data *pdata = omap->pdata;
+ 	int i;
  
--static struct clk utmi_p2_gfclk = {
--	.name		= "utmi_p2_gfclk",
-+/* Merged utmi_p2_gfclk into usb_host_hs_utmi_p2_clk */
-+static struct clk usb_host_hs_utmi_p2_clk = {
-+	.name		= "usb_host_hs_utmi_p2_clk",
- 	.parent		= &init_60m_fclk,
- 	.clksel		= utmi_p2_gfclk_sel,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
- 	.clksel_mask	= OMAP4430_CLKSEL_UTMI_P2_MASK,
--	.ops		= &clkops_null,
--	.recalc		= &omap2_clksel_recalc,
--};
+ 	dev_dbg(dev, "usbhs_runtime_suspend\n");
+ 
+-	if (!pdata) {
+-		dev_dbg(dev, "missing platform_data\n");
+-		return  -ENODEV;
+-	}
 -
--static struct clk usb_host_hs_utmi_p2_clk = {
--	.name		= "usb_host_hs_utmi_p2_clk",
- 	.ops		= &clkops_omap2_dflt,
- 	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
- 	.enable_bit	= OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT,
- 	.clkdm_name	= "l3_init_clkdm",
--	.parent		= &utmi_p2_gfclk,
--	.recalc		= &followparent_recalc,
-+	.recalc		= &omap2_clksel_recalc,
- };
+ 	spin_lock_irqsave(&omap->lock, flags);
  
- static struct clk usb_host_hs_utmi_p3_clk = {
-@@ -3246,9 +3234,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
- 	CLK("usbhs_omap",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
- 	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
--	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
--	CLK(NULL,	"utmi_p2_gfclk",		&utmi_p2_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p2_clk",	&usb_host_hs_utmi_p2_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p3_clk",	&usb_host_hs_utmi_p3_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_hsic480m_p1_clk",	&usb_host_hs_hsic480m_p1_clk,	CK_443X),
+ 	for (i = 0; i < MAX_HS_USB_PORTS; i++) {
+@@ -349,7 +339,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+ static void omap_usbhs_init(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++	struct usbhs_omap_platform_data	*pdata = omap->pdata;
+ 	unsigned long			flags;
+ 	unsigned			reg;
+ 
+@@ -456,7 +446,7 @@ static void omap_usbhs_init(struct device *dev)
+ static void omap_usbhs_deinit(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++	struct usbhs_omap_platform_data	*pdata = omap->pdata;
+ 
+ 	if (pdata->ehci_data->phy_reset) {
+ 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+@@ -509,19 +499,16 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&omap->lock);
+ 
++	omap->pdata = pdata;
++	platform_set_drvdata(pdev, omap);
++
+ 	need_logic_fck = false;
+ 	for (i = 0; i < MAX_HS_USB_PORTS; i++) {
+-		omap->platdata.port_mode[i] = pdata->port_mode[i];
+-
+ 		if (is_ehci_phy_mode(i) || is_ehci_tll_mode(i) ||
+ 			is_ehci_hsic_mode(i))
+ 				need_logic_fck |= true;
+ 	}
+ 
+-	omap->platdata.ehci_data = pdata->ehci_data;
+-	omap->platdata.ohci_data = pdata->ohci_data;
+-
+-
+ 	if (need_logic_fck) {
+ 		omap->ehci_logic_fck = clk_get(dev, "ehci_logic_fck");
+ 		if (IS_ERR(omap->ehci_logic_fck)) {
+@@ -600,7 +587,6 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ 				"failed error:%d\n", ret);
+ 	}
+ 
+-	platform_set_drvdata(pdev, omap);
+ 
+ 	pm_runtime_enable(dev);
+ 
 -- 
 1.7.4.1
 
