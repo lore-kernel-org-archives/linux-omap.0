@@ -1,73 +1,87 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH v3] mtd: omap: nand: Remove 0xFF's that prefixed 16bit
- NAND addresses
-Date: Thu, 15 Nov 2012 13:02:09 +0200
-Message-ID: <1352977329.2221.29.camel@sauron.fi.intel.com>
-References: <20121029195127.GA32749@harvey-pc.matrox.com>
-Reply-To: dedekind1@gmail.com
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
+Date: Thu, 15 Nov 2012 11:01:37 +0000
+Message-ID: <20121115110137.GA25985@arm.com>
+References: <20121114185335.GU6801@atomide.com>
+ <50A3EBCD.3040801@ti.com>
+ <20121114202244.GE3332@n2100.arm.linux.org.uk>
+ <20121114203221.GA6801@atomide.com>
+ <50A413D4.7000405@gmail.com>
+ <20121114222159.GB6801@atomide.com>
+ <50A43D58.5030404@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-h8zVQEMx5zNq4aKC1g1l"
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:63908 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993281Ab2KOLBc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 06:01:32 -0500
-In-Reply-To: <20121029195127.GA32749@harvey-pc.matrox.com>
+Received: from service87.mimecast.com ([91.220.42.44]:47263 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2993226Ab2KOLBs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 06:01:48 -0500
+In-Reply-To: <50A43D58.5030404@gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Christopher Harvey <charvey@matrox.com>
-Cc: linux-mtd@lists.infradead.org, Ivan Djelic <ivan.djelic@parrot.com>, linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+On Thu, Nov 15, 2012 at 12:54:48AM +0000, Rob Herring wrote:
+> On 11/14/2012 04:21 PM, Tony Lindgren wrote:
+> > * Rob Herring <robherring2@gmail.com> [121114 13:59]:
+> >> On 11/14/2012 02:32 PM, Tony Lindgren wrote:
+> >>>
+> >>> Checking for the bit already set should work in this case, I'll post
+> >>> a patch for that shortly.
+> >>
+> >> Can you actually read the state of the diagnostic register in non-secure
+> >> mode? If you can on the A9, is the same true on A8 or others?
+> > 
+> > Looks like it can be read on at least TI omap 4430 which is A9.
+> > But it reads as zero, so the below patch is what I came up with.
+> > 
+> > No idea if assuming that zero value for the diagnostic register
+> > is safe.. What's the default value of the diagnostic register supposed
+> > to be?
+> 
+> RTFM. Oh, wait it's a super secret, undocumented register. We shouldn't
+> even be talking about it.
+> 
+> It could vary by rev, but I see 0 for the reset value, so this would not
+> work if the bootloader did not do any setup of the diagnostic register.
+> 
+> One way to determine secure mode on the A9 would be seeing if you can
+> change the auxcr register. Something like this (untested):
+> 
+> mrc	p15, 0, r0, c1, c0, 1; Read ACTLR
+> eor	r1, r0, #0x100		; Modify alloc in 1 way
+> mcr	p15, 0, r1, c1, c0, 1
+> mrc	p15, 0, r2, c1, c0, 1; Read ACTLR
+> mcr	p15, 0, r0, c1, c0, 1	; Restore original value
+> cmp	r1, r2
+> bne	skip_errata
 
---=-h8zVQEMx5zNq4aKC1g1l
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This would fail on platforms where Linux runs in non-secure mode. What
+we do for some errata workarounds is to test whether the bit was already
+set and avoid writing the register. But this assumes that, for a given
+workaround in the kernel, there is a corresponding workaround in the
+code running before the kernel (boot-loader, firmware) which sets that
+bit.
 
-On Mon, 2012-10-29 at 15:51 -0400, Christopher Harvey wrote:
-> In 16bit NAND mode the GPMC would send the address 0xNN as 0xFFNN
-> instead of 0x00NN on the bus. The 0xFFs were actually uninitialized
-> bits that were left unset in the GPMC command output register. The
-> reason they weren't initialized in 16bit mode is that if the same code
-> that writes to this register was used in 8bit mode then 2 commands
-> would be output in 8bit mode. One for the low byte, and an extra 0x0
-> command for the high byte. This commit uses writew if we're using
-> 16bit NAND. This commit also changes the high byte in the command
-> output register, but they are ignored by NAND chips anyway.
->=20
-> Most chips seem fine with the extra 0xFFs, but the ONFI spec says
-> otherwise.
->=20
-> Signed-off-by: Christopher Harvey <charvey@matrox.com>
+Since the kernel will run more often in non-secure mode (on Cortex-A15
+you need this for the virtualisation extensions) I strongly suggest that
+the workaround (usually undocumented bit setting) is done before the
+kernel is started and we simply remove it from Linux (or add a clear
+comment that it only works if running in secure mode; if unsure say
+'N').
 
-Pushed to l2-mtd.git, thanks!
+I don't think it's worth the hassle detecting whether the kernel runs in
+secure or non-secure mode, just assume the latter and get SoC vendors to
+update the boot loaders or firmware (if possible) with any errata
+workarounds.
 
---=20
-Best Regards,
-Artem Bityutskiy
+Having a common SMC API for errata workarounds is not feasible since not
+all registers are public, most are implementation specific and it could
+have secure implications with exposing them.
 
---=-h8zVQEMx5zNq4aKC1g1l
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAABAgAGBQJQpMuyAAoJECmIfjd9wqK0Sd4QAJYOr/HBKvLNguC5XizN95PS
-vNKgIPl80fREXhc2PDOChYoHa4APL8N6VcrY3Yt9Vgw4PAtDB0Lv7sFCiA373UHo
-a0UCMqOB5cwlZo3ntPcucKREELgF/48IcCKkJXMl/oiuRGpscG99U9rGGLX/3PHC
-7NbqbL+clt7F3KM6dHhiGgQYADwQ+oR5p2uBMrP92ZpJCg2bWpRGVQ022+9tvcSo
-d4z8bdbIWtNscS7GQnCnX6E5WTuwwaCHfL5jN7pxT7SYMp9jRapRnmyVeCzy4MS3
-5YNJT4kNVg49EMHn3YupKKt5bdAH36ZpsDFZPVF5lqI1hYTyFaXBdnxfyNSCirar
-as7yNHzxDM1bXeKE9KjjIK0STghe8UhaTDvYzM5zgA6NHIhWPg9MyPRlyScG3kTZ
-BjBSh+oh/AfMdZH6M9mlfH4stPUqjmKauIk3YGOIupUh1AbjYeI6ACciP5kuEaGv
-6790Io4jcN9vRRQdDAKUNxC+bFIyL9hW1up35xv7KIHQzhqdy4i29sM4G5pXe1Qb
-28YWXkfA48mjQAuQQBCIt8WE5qjTE179cjzsrZFRxqwW5j3zmup/Y9J7EtqjM2UQ
-kUHtVxtQCYCEDsXWBLhDiFxICmfKdQmxE2O+DkkRVBRyhuhwuH/T7m3uT0EgXw9C
-EQzv9ci+FHud4W608PNC
-=gPY8
------END PGP SIGNATURE-----
-
---=-h8zVQEMx5zNq4aKC1g1l--
+-- 
+Catalin
 
