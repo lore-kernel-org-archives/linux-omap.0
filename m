@@ -1,53 +1,70 @@
-From: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 4/4] regulator: fixed: Properly use input_supply parameter
- from device tree
-Date: Thu, 15 Nov 2012 14:11:59 -0500
-Message-ID: <50A53E7F.6070705@nvidia.com>
-References: <1352991396-19589-1-git-send-email-rogerq@ti.com> <1352991396-19589-5-git-send-email-rogerq@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] ARM: OMAP2+: Fix compiler warning for 32k timer
+Date: Thu, 15 Nov 2012 13:44:04 -0600
+Message-ID: <1353008644-24745-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1352991396-19589-5-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "b-cousson-l0cyMroinI0@public.gmane.org" <b-cousson-l0cyMroinI0@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "keshava_mgowda-l0cyMroinI0@public.gmane.org" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60980 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1768750Ab2KOToR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 14:44:17 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Jon Hunter <jon-hunter@ti.com>
 
-On 11/15/2012 09:56 AM, Roger Quadros wrote:
-> The device tree node will provide the input supply name as
-> a string. Use that to populate the supply_name parameter of
-> the regulator descriptor.
->
-> Also correct the documentation to reflect the same.
->
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-> CC: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-> CC: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-> ---
->   		regulator-boot-on;
->   		gpio-open-drain;
-> -		vin-supply = <&parent_reg>;
-> +		vin-supply = "input-supply-name";
+Commit "ARM: OMAP2+: Add device-tree support for 32kHz counter"
+added structure omap_counter_match to the OMAP2 timer code. When
+CONFIG_OMAP_32K_TIMER is not defined this structure generates the
+following as it is not used.
 
-This is not correct as per the regulator binding. It says
-  - <name>-supply: phandle to the parent supply/regulator node
+  CC      arch/arm/mach-omap2/timer.o
+  arch/arm/mach-omap2/timer.c:163:28: warning: 'omap_counter_match'
+  defined but not used [-Wunused-variable]
 
-So we need to pass the phandle rather than string.
+Move the definition of omap_counter_match to avoid this warning when
+CONFIG_OMAP_32K_TIMER is not set.
 
-Just for curiosity, why do you want this change? What is the issue are 
-you facing.
+Thanks to Kevin Hilman for tracking down and reporting this problem.
 
-This change will creates regression on many platform.
+Reported-by: Kevin Hilam <khilman@deeprootsystems.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
 
+This is based upon Tony Lindgren's OMAP master branch.
 
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap2/timer.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 099e406..2b9d485 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -160,11 +160,6 @@ static struct of_device_id omap_timer_match[] __initdata = {
+ 	{ }
+ };
+ 
+-static struct of_device_id omap_counter_match[] __initdata = {
+-	{ .compatible = "ti,omap-counter32k", },
+-	{ }
+-};
+-
+ /**
+  * omap_get_timer_dt - get a timer using device-tree
+  * @match	- device-tree match structure for matching a device type
+@@ -408,6 +403,11 @@ static u32 notrace dmtimer_read_sched_clock(void)
+ }
+ 
+ #ifdef CONFIG_OMAP_32K_TIMER
++static struct of_device_id omap_counter_match[] __initdata = {
++	{ .compatible = "ti,omap-counter32k", },
++	{ }
++};
++
+ /* Setup free-running counter for clocksource */
+ static int __init omap2_sync32k_clocksource_init(void)
+ {
+-- 
+1.7.9.5
+
