@@ -1,57 +1,62 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 08/32] OMAPDSS: DISPC: use WARN_ON() in dispc_mgr_go
-Date: Thu, 15 Nov 2012 17:58:16 +0200
-Message-ID: <1352995120-3288-9-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 09/32] OMAPDSS: DISPC: pclk & lclk rates for writeback
+Date: Thu, 15 Nov 2012 17:58:17 +0200
+Message-ID: <1352995120-3288-10-git-send-email-tomi.valkeinen@ti.com>
 References: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59116 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768199Ab2KOP7W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 10:59:22 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52170 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1768125Ab2KOP7X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 10:59:23 -0500
 In-Reply-To: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, Rob Clark <rob@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-dispc_mgr_go() should never be called with manager output disabled or if
-the GO bit is already set. Change the current silent returns to
-WARN_ONs.
+Change the dispc_plane_pclk_rate and dispc_plane_lclk_rate functions to
+return 0 if the given plane is the writeback plane. The clocks are not
+valid for WB, but returning 0 from these functions instead of running
+into BUG() will simplify the code that uses these functions.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 662bf56..e219eda 100644
+index e219eda..8f8d628 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -565,20 +565,8 @@ bool dispc_mgr_go_busy(enum omap_channel channel)
+@@ -3226,14 +3226,24 @@ unsigned long dispc_core_clk_rate(void)
  
- void dispc_mgr_go(enum omap_channel channel)
+ static unsigned long dispc_plane_pclk_rate(enum omap_plane plane)
  {
--	bool enable_bit, go_bit;
--
--	/* if the channel is not enabled, we don't need GO */
--	enable_bit = mgr_fld_read(channel, DISPC_MGR_FLD_ENABLE) == 1;
--
--	if (!enable_bit)
--		return;
--
--	go_bit = mgr_fld_read(channel, DISPC_MGR_FLD_GO) == 1;
--
--	if (go_bit) {
--		DSSERR("GO bit not down for channel %d\n", channel);
--		return;
--	}
-+	WARN_ON(dispc_mgr_is_enabled(channel) == false);
-+	WARN_ON(dispc_mgr_go_busy(channel));
+-	enum omap_channel channel = dispc_ovl_get_channel_out(plane);
++	enum omap_channel channel;
++
++	if (plane == OMAP_DSS_WB)
++		return 0;
++
++	channel = dispc_ovl_get_channel_out(plane);
  
- 	DSSDBG("GO %s\n", mgr_desc[channel].name);
+ 	return dispc_mgr_pclk_rate(channel);
+ }
  
+ static unsigned long dispc_plane_lclk_rate(enum omap_plane plane)
+ {
+-	enum omap_channel channel = dispc_ovl_get_channel_out(plane);
++	enum omap_channel channel;
++
++	if (plane == OMAP_DSS_WB)
++		return 0;
++
++	channel	= dispc_ovl_get_channel_out(plane);
+ 
+ 	return dispc_mgr_lclk_rate(channel);
+ }
 -- 
 1.7.10.4
 
