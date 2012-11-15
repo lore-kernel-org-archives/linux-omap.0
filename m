@@ -1,117 +1,127 @@
-From: <oleg.matcovschi@ti.com>
-Subject: [PATCH] OMAP2+: mux: Fixed gpio mux mode analysis.
-Date: Thu, 15 Nov 2012 13:39:57 -0800
-Message-ID: <1353015597-22703-1-git-send-email-oleg.matcovschi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Oleg Matcovschi <oleg.matcovschi@ti.com>
+From: Rob Clark <rob.clark@linaro.org>
+Subject: [PATCH] ARM: add get_user() support for 8 byte types
+Date: Thu, 15 Nov 2012 16:01:19 -0600
+Message-ID: <1353016879-15007-1-git-send-email-rob.clark@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>, Russell King <rmk+kernel@arm.linux.org.uk>, Rob Clark <rob@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Oleg Matcovschi <oleg.matcovschi@ti.com>
+From: Rob Clark <rob@ti.com>
 
-OMAP_MODE_GPIO() macro verified only OMAP_MUX_MODE4.
-It is not correct for following platforms:
-    2430 - gpio mux mode 3
-    44xx - gpio mux mode 3
-    54xx - gpio mux mode 6
+A new atomic modeset/pageflip ioctl being developed in DRM requires
+get_user() to work for 64bit types (in addition to just put_user()).
 
-Patch reserves first 3 bits in partition flags for storing gpio mux
-mode in same format as stored in control pad register.
-Modified OMAP_MODE_GPIO() macro handles all possible cases of gpio mux mode.
-Modified omap_mux_init() flags of omap34xx to include OMAP_MUX_GPIO_IN_MODE4.
+v1: original
+v2: pass correct size to check_uaccess, and better handling of narrowing
+    double word read with __get_user_xb() (Russell King's suggestion)
+v3: explain in comment about why this works for narrowing fetch to 1,
+    2, or 4 byte type on ARM.
 
-Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
+Signed-off-by: Rob Clark <rob@ti.com>
 ---
- arch/arm/mach-omap2/mux.c     |    4 ++--
- arch/arm/mach-omap2/mux.h     |   18 +++++++++++++-----
- arch/arm/mach-omap2/mux34xx.c |    2 +-
- 3 files changed, 16 insertions(+), 8 deletions(-)
+ arch/arm/include/asm/uaccess.h | 22 +++++++++++++++++++++-
+ arch/arm/lib/getuser.S         | 17 ++++++++++++++++-
+ 2 files changed, 37 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 701e17c..75f854e 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -799,7 +799,7 @@ int __init omap_mux_late_init(void)
- 			struct omap_mux *m = &e->mux;
- 			u16 mode = omap_mux_read(partition, m->reg_offset);
+diff --git a/arch/arm/include/asm/uaccess.h b/arch/arm/include/asm/uaccess.h
+index 7e1f760..4cfa793 100644
+--- a/arch/arm/include/asm/uaccess.h
++++ b/arch/arm/include/asm/uaccess.h
+@@ -100,6 +100,7 @@ static inline void set_fs(mm_segment_t fs)
+ extern int __get_user_1(void *);
+ extern int __get_user_2(void *);
+ extern int __get_user_4(void *);
++extern int __get_user_8(void *);
  
--			if (OMAP_MODE_GPIO(mode))
-+			if (OMAP_MODE_GPIO(partition, mode))
- 				continue;
+ #define __GUP_CLOBBER_1	"lr", "cc"
+ #ifdef CONFIG_CPU_USE_DOMAINS
+@@ -108,6 +109,7 @@ extern int __get_user_4(void *);
+ #define __GUP_CLOBBER_2 "lr", "cc"
+ #endif
+ #define __GUP_CLOBBER_4	"lr", "cc"
++#define __GUP_CLOBBER_8	"lr", "cc"
  
- #ifndef CONFIG_DEBUG_FS
-@@ -1064,7 +1064,7 @@ static void __init omap_mux_init_list(struct omap_mux_partition *partition,
- 		}
- #else
- 		/* Skip pins that are not muxed as GPIO by bootloader */
--		if (!OMAP_MODE_GPIO(omap_mux_read(partition,
-+		if (!OMAP_MODE_GPIO(partition, omap_mux_read(partition,
- 				    superset->reg_offset))) {
- 			superset++;
- 			continue;
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index 76f9b3c..8393284 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -58,7 +58,8 @@
- #define OMAP_PIN_OFF_INPUT_PULLDOWN	(OMAP_OFF_EN | OMAP_OFF_PULL_EN)
- #define OMAP_PIN_OFF_WAKEUPENABLE	OMAP_WAKEUP_EN
+ #define __get_user_x(__r2,__p,__e,__l,__s)				\
+ 	   __asm__ __volatile__ (					\
+@@ -118,11 +120,23 @@ extern int __get_user_4(void *);
+ 		: "0" (__p), "r" (__l)					\
+ 		: __GUP_CLOBBER_##__s)
  
--#define OMAP_MODE_GPIO(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE4)
-+#define OMAP_MODE_GPIO(partition, x)	(((x) & OMAP_MUX_MODE7) == \
-+					  (partition->flags & OMAP_MUX_MODE7))
- #define OMAP_MODE_UART(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE0)
- 
- /* Flags for omapX_mux_init */
-@@ -79,13 +80,20 @@
- /*
-  * omap_mux_init flags definition:
++/*
++ * Narrowing a double-word get into a single 32bit word register, which works
++ * for 1, 2, or 4 byte types on ARM because there are no integer registers
++ * smaller than 32bit
++ */
++#ifdef BIG_ENDIAN
++#define __get_user_xb(__r2,__p,__e,__l,__s)				\
++	__get_user_x(__r2,(uintptr_t)__p + 4,__e,__l,__s)
++#else
++#define __get_user_xb __get_user_x
++#endif
++
+ #define __get_user_check(x,p)							\
+ 	({								\
+ 		unsigned long __limit = current_thread_info()->addr_limit - 1; \
+ 		register const typeof(*(p)) __user *__p asm("r0") = (p);\
+-		register unsigned long __r2 asm("r2");			\
++		register typeof(x) __r2 asm("r2");			\
+ 		register unsigned long __l asm("r1") = __limit;		\
+ 		register int __e asm("r0");				\
+ 		switch (sizeof(*(__p))) {				\
+@@ -135,6 +149,12 @@ extern int __get_user_4(void *);
+ 		case 4:							\
+ 			__get_user_x(__r2, __p, __e, __l, 4);		\
+ 			break;						\
++		case 8:							\
++			if (sizeof((x)) < 8)				\
++				__get_user_xb(__r2, __p, __e, __l, 4);	\
++			else						\
++				__get_user_x(__r2, __p, __e, __l, 8);	\
++			break;						\
+ 		default: __e = __get_user_bad(); break;			\
+ 		}							\
+ 		x = (typeof(*(p))) __r2;				\
+diff --git a/arch/arm/lib/getuser.S b/arch/arm/lib/getuser.S
+index 9b06bb4..ed98707 100644
+--- a/arch/arm/lib/getuser.S
++++ b/arch/arm/lib/getuser.S
+@@ -18,7 +18,7 @@
+  * Inputs:	r0 contains the address
+  *		r1 contains the address limit, which must be preserved
+  * Outputs:	r0 is the error code
+- *		r2 contains the zero-extended value
++ *		r2, r3 contains the zero-extended value
+  *		lr corrupted
   *
-+ * OMAP_GPIO_MUX_MODE, bits 0-2: gpio muxing mode, same like pad control
-+ *      register which includes values from 0-7.
-  * OMAP_MUX_REG_8BIT: Ensure that access to padconf is done in 8 bits.
-  * The default value is 16 bits.
-- * OMAP_MUX_GPIO_IN_MODE3: The GPIO is selected in mode3.
-- * The default is mode4.
-  */
--#define OMAP_MUX_REG_8BIT		(1 << 0)
--#define OMAP_MUX_GPIO_IN_MODE3		(1 << 1)
-+#define OMAP_MUX_GPIO_IN_MODE0		OMAP_MUX_MODE0
-+#define OMAP_MUX_GPIO_IN_MODE1		OMAP_MUX_MODE1
-+#define OMAP_MUX_GPIO_IN_MODE2		OMAP_MUX_MODE2
-+#define OMAP_MUX_GPIO_IN_MODE3		OMAP_MUX_MODE3
-+#define OMAP_MUX_GPIO_IN_MODE4		OMAP_MUX_MODE4
-+#define OMAP_MUX_GPIO_IN_MODE5		OMAP_MUX_MODE5
-+#define OMAP_MUX_GPIO_IN_MODE6		OMAP_MUX_MODE6
-+#define OMAP_MUX_GPIO_IN_MODE7		OMAP_MUX_MODE7
-+#define OMAP_MUX_REG_8BIT		(1 << 3)
+  * No other registers must be altered.  (see <asm/uaccess.h>
+@@ -66,6 +66,19 @@ ENTRY(__get_user_4)
+ 	mov	pc, lr
+ ENDPROC(__get_user_4)
  
- /**
-  * struct omap_board_data - board specific device data
-diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
-index c47140b..c53609f4 100644
---- a/arch/arm/mach-omap2/mux34xx.c
-+++ b/arch/arm/mach-omap2/mux34xx.c
-@@ -2053,7 +2053,7 @@ int __init omap3_mux_init(struct omap_board_mux *board_subset, int flags)
- 		return -EINVAL;
- 	}
- 
--	return omap_mux_init("core", 0,
-+	return omap_mux_init("core", OMAP_MUX_GPIO_IN_MODE4,
- 			     OMAP3_CONTROL_PADCONF_MUX_PBASE,
- 			     OMAP3_CONTROL_PADCONF_MUX_SIZE,
- 			     omap3_muxmodes, package_subset, board_subset,
++ENTRY(__get_user_8)
++	check_uaccess r0, 8, r1, r2, __get_user_bad
++#ifdef CONFIG_THUMB2_KERNEL
++5: TUSER(ldr)	r2, [r0]
++6: TUSER(ldr)	r3, [r0, #4]
++#else
++5: TUSER(ldr)	r2, [r0], #4
++6: TUSER(ldr)	r3, [r0]
++#endif
++	mov	r0, #0
++	mov	pc, lr
++ENDPROC(__get_user_8)
++
+ __get_user_bad:
+ 	mov	r2, #0
+ 	mov	r0, #-EFAULT
+@@ -77,4 +90,6 @@ ENDPROC(__get_user_bad)
+ 	.long	2b, __get_user_bad
+ 	.long	3b, __get_user_bad
+ 	.long	4b, __get_user_bad
++	.long	5b, __get_user_bad
++	.long	6b, __get_user_bad
+ .popsection
 -- 
-1.7.4.1
+1.8.0
