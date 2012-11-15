@@ -1,23 +1,26 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 01/32] OMAPDSS: remove declarations for non-existing functions
-Date: Thu, 15 Nov 2012 17:58:09 +0200
-Message-ID: <1352995120-3288-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 03/32] OMAPDSS: don't WARN if there's no DSI device
+Date: Thu, 15 Nov 2012 17:58:11 +0200
+Message-ID: <1352995120-3288-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50093 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52158 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993423Ab2KOP7K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 10:59:10 -0500
+	id S1768125Ab2KOP7N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 10:59:13 -0500
 In-Reply-To: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, Rob Clark <rob@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Remove dispc_mgr_is_channel_enabled() and dss_mgr_get_timings()
-declarations, as the function doesn't exist.
+dsi_get_dsidev_from_id() gives a WARN if DSI support is not compiled in.
+This warning is not right, as it's valid to call
+dsi_get_dsidev_from_id() to see if there is DSI support or not.
+
+Remove the WARN().
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
@@ -25,25 +28,18 @@ Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
  1 file changed, 2 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 84a7f6a..8adf8be 100644
+index 8adf8be..09d0651 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -197,7 +197,6 @@ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
- 		const struct omap_video_timings *timings);
- void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
- 		const struct dss_lcd_mgr_config *config);
--const struct omap_video_timings *dss_mgr_get_timings(struct omap_overlay_manager *mgr);
- 
- bool dss_ovl_is_enabled(struct omap_overlay *ovl);
- int dss_ovl_enable(struct omap_overlay *ovl);
-@@ -444,7 +443,6 @@ void dispc_mgr_enable(enum omap_channel channel, bool enable);
- bool dispc_mgr_is_enabled(enum omap_channel channel);
- void dispc_mgr_enable_sync(enum omap_channel channel);
- void dispc_mgr_disable_sync(enum omap_channel channel);
--bool dispc_mgr_is_channel_enabled(enum omap_channel channel);
- void dispc_mgr_set_lcd_config(enum omap_channel channel,
- 		const struct dss_lcd_mgr_config *config);
- void dispc_mgr_set_timings(enum omap_channel channel,
+@@ -382,8 +382,6 @@ static inline void dsi_wait_pll_hsdiv_dsi_active(struct platform_device *dsidev)
+ }
+ static inline struct platform_device *dsi_get_dsidev_from_id(int module)
+ {
+-	WARN("%s: DSI not compiled in, returning platform device as NULL\n",
+-			__func__);
+ 	return NULL;
+ }
+ #endif
 -- 
 1.7.10.4
 
