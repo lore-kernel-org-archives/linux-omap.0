@@ -1,73 +1,36 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCHv2] i2c: omap: Move the remove constraint
-Date: Thu, 15 Nov 2012 09:16:43 +0100
-Message-ID: <CAORVsuVuOLKpcx085VWiPRaD4syS-5F4+s+eKXGN8PPRRiTg2g@mail.gmail.com>
-References: <1352964883-9846-1-git-send-email-shubhrajyoti@ti.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: 32kHz clock removal causes problems omap_hsmmc
+Date: Thu, 15 Nov 2012 10:31:33 +0200
+Message-ID: <1352968293.10872.51.camel@cumari.coelho.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:44720 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695Ab2KOIQn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 03:16:43 -0500
-Received: by mail-ia0-f174.google.com with SMTP id y25so874585iay.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Nov 2012 00:16:43 -0800 (PST)
-In-Reply-To: <1352964883-9846-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: svenkatr@ti.com, linux-omap@vger.kernel.org
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, balbi@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, balbi@ti.com, w.sang@pengutronix.de
 
-Hi Shubhrajyoti,
+Hi,
 
-On Thu, Nov 15, 2012 at 8:34 AM, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
-> Currently we just queue the transfer and release the
-> qos constraints, however we donot wait for the transfer
-Typo: donot
+Since the 32KHz clock was removed from the twl-regulator (0e8e5c34
+regulator: twl: Remove references to 32kHz clock from DT bindings),
+we've been having problems with our wl12xx chip that is connected
+through the omap_hsmmc.
 
-> to complete to release the constraint. Move the remove
-> constraint after the bus busy as we are sure that the
-> transfers are completed by then.
->
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Looks good!
-Acked-by: Jean Pihet <j-pihet@ti.com>
+Our card simply doesn't get added to the system and we get lots of
+-ETIMEOUTs during mmc_attach.  If I revert 0e8e5c34 (plus a couple of
+associated patches), everything works fine.
 
-Regards,
-Jean
+I've been using a Blaze device with a WiLink 1283 chip connected in the
+COM (internal) port.  The funny thing is that I don't have the same
+problem with a WiLink 1853 chip (which is connected externally to
+another Blaze).
 
-> ---
-> v2: rebase to the for-next branch
->
->  drivers/i2c/busses/i2c-omap.c |    7 ++++---
->  1 files changed, 4 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 482c63d..fabcbe1 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -654,13 +654,14 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
->                         break;
->         }
->
-> -       if (dev->set_mpu_wkup_lat != NULL)
-> -               dev->set_mpu_wkup_lat(dev->dev, -1);
-> -
->         if (r == 0)
->                 r = num;
->
->         omap_i2c_wait_for_bb(dev);
-> +
-> +       if (dev->set_mpu_wkup_lat != NULL)
-> +               dev->set_mpu_wkup_lat(dev->dev, -1);
-> +
->  out:
->         pm_runtime_mark_last_busy(dev->dev);
->         pm_runtime_put_autosuspend(dev->dev);
-> --
-> 1.7.5.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Does anyone know what the problem could and how to fix it?
+
+This is a regression that has been there since 3.6-rc1.
+
+--
+Cheers,
+Luca.
