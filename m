@@ -1,26 +1,49 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
-Date: Thu, 15 Nov 2012 13:36:23 +0000
-Message-ID: <20121115133623.GG3332@n2100.arm.linux.org.uk>
-References: <20121114185335.GU6801@atomide.com> <50A3EBCD.3040801@ti.com> <20121114202244.GE3332@n2100.arm.linux.org.uk> <20121114203221.GA6801@atomide.com> <50A413D4.7000405@gmail.com> <20121114222159.GB6801@atomide.com> <50A43D58.5030404@gmail.com> <20121115110137.GA25985@arm.com> <CACY+gR3PurUofCbUeG40B6vXqXAoHrMmbOQSuwAGoc1LS8XXJQ@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
+Date: Thu, 15 Nov 2012 13:39:07 +0000
+Message-ID: <201211151339.08016.arnd@arndb.de>
+References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org> <201211150919.37343.arnd@arndb.de> <CAF6AEGv-O_D6nOnEwi5w8NUcv+dQFe7pJBXhUA8xq+tykG4dfg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42925 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1767735Ab2KONgq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 08:36:46 -0500
-Content-Disposition: inline
-In-Reply-To: <CACY+gR3PurUofCbUeG40B6vXqXAoHrMmbOQSuwAGoc1LS8XXJQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAF6AEGv-O_D6nOnEwi5w8NUcv+dQFe7pJBXhUA8xq+tykG4dfg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
-To: Siarhei Siamashka <siarhei.siamashka@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Rob Herring <robherring2@gmail.com>, Tony Lindgren <tony@atomide.com>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Nov 15, 2012 at 02:41:43PM +0200, Siarhei Siamashka wrote:
-> BTW, I always wondered about what could be preventing TI and the other
-> silicon vendors from using something like an SMC API based on
-> asymmetric cryptography?
+On Thursday 15 November 2012, Rob Clark wrote:
+> On Thu, Nov 15, 2012 at 3:19 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Tuesday 13 November 2012, Russell King - ARM Linux wrote:
+> >> You're missing something; that is one of the greatest powers of open
+> >> source.  The many eyes (and minds) effect.  Someone out there probably
+> >> has a solution to whatever problem, the trick is to find that person. :)
+> >>
+> >> I think we have a working solution for this for ARM.  It won't be suitable
+> >> for every arch, where they have 8-bit and 16-bit registers able to be
+> >> allocated by the compiler, but for architectures where the minimum register
+> >> size is 32-bit, what we have below should work.
+> >
+> > I don't mind at all adding the extension to ARM, and I think it's pretty
+> > cool that you guys actually found a working solution.
+> >
+> > The part that worries me is that we are making architecture independent
+> > code depend on a clever hack that may or may not be possible to implement
+> > on a given architecture, and that most architecture maintainers wouldn't
+> > know how to implement correctly even if it's possible.
+> 
+> I could always send a 3rd version with a comment smashed on about why
+> that works if you think this is a problem..
 
-The answer is... nothing.  But it didn't happen and we're stuck with the
-consequences of that.
+Comments are always good, so I'd surely like to see those get added.
+As I said, I don't have any objections to the addition of your patch to
+the ARM code, which sounds useful to have.
+
+I still haven't heard a conclusive argument why we need to use get_user()
+rather than copy_from_user() in the DRM code. Is this about a fast path
+where you want to shave off a few cycles for each call, or does this
+simplify the code structure, or something else?
+
+	Arnd
