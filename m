@@ -1,67 +1,116 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] ARM: OMAP4: PM: fix errata handling when CONFIG_PM=n
-Date: Wed, 14 Nov 2012 16:54:27 -0800
-Message-ID: <1352940867-8806-1-git-send-email-khilman@deeprootsystems.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
+Date: Wed, 14 Nov 2012 18:54:48 -0600
+Message-ID: <50A43D58.5030404@gmail.com>
+References: <20121114185335.GU6801@atomide.com> <50A3EBCD.3040801@ti.com> <20121114202244.GE3332@n2100.arm.linux.org.uk> <20121114203221.GA6801@atomide.com> <50A413D4.7000405@gmail.com> <20121114222159.GB6801@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:51620 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755497Ab2KOAya (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 19:54:30 -0500
-Received: by mail-da0-f46.google.com with SMTP id n41so421619dak.19
-        for <linux-omap@vger.kernel.org>; Wed, 14 Nov 2012 16:54:30 -0800 (PST)
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:43834 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755497Ab2KOAyw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Nov 2012 19:54:52 -0500
+Received: by mail-oa0-f46.google.com with SMTP id h16so1150670oag.19
+        for <linux-omap@vger.kernel.org>; Wed, 14 Nov 2012 16:54:51 -0800 (PST)
+In-Reply-To: <20121114222159.GB6801@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tero Kristo <t-kristo@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Dave Martin <dave.martin@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>Will Deacon <will.deacon@arm.com>
 
-From: Kevin Hilman <khilman@ti.com>
+On 11/14/2012 04:21 PM, Tony Lindgren wrote:
+> * Rob Herring <robherring2@gmail.com> [121114 13:59]:
+>> On 11/14/2012 02:32 PM, Tony Lindgren wrote:
+>>>
+>>> Checking for the bit already set should work in this case, I'll post
+>>> a patch for that shortly.
+>>
+>> Can you actually read the state of the diagnostic register in non-secure
+>> mode? If you can on the A9, is the same true on A8 or others?
+> 
+> Looks like it can be read on at least TI omap 4430 which is A9.
+> But it reads as zero, so the below patch is what I came up with.
+> 
+> No idea if assuming that zero value for the diagnostic register
+> is safe.. What's the default value of the diagnostic register supposed
+> to be?
 
-commit c9621844 (ARM: OMAP4: PM: add errata support) introduced errata
-handling for OMAP4, but was broken when CONFIG_PM=n.
+RTFM. Oh, wait it's a super secret, undocumented register. We shouldn't
+even be talking about it.
 
-When CONFIG_PM=n, pm44xx.c is not compiled, yet that is where pm44xx_errata
-is defined.  However, these errata are needed for the SMP boot/hotplug case
-also, and are primarily used in omap-smp.c.
+It could vary by rev, but I see 0 for the reset value, so this would not
+work if the bootloader did not do any setup of the diagnostic register.
 
-Move the definition of pm44xx_errata to omap-smp.c so that it's available
-even in the CONFIG_PM=n case.
+One way to determine secure mode on the A9 would be seeing if you can
+change the auxcr register. Something like this (untested):
 
-Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-This patch applies on top of Tony's fixes-non-critical-part-2.
-The bug was introduced in my for_3.8-fixes-pm tag (now included in Tony's fixes-non-critical-part2.)
+mrc	p15, 0, r0, c1, c0, 1; Read ACTLR
+eor	r1, r0, #0x100		; Modify alloc in 1 way
+mcr	p15, 0, r1, c1, c0, 1
+mrc	p15, 0, r2, c1, c0, 1; Read ACTLR
+mcr	p15, 0, r0, c1, c0, 1	; Restore original value
+cmp	r1, r2
+bne	skip_errata
 
 
- arch/arm/mach-omap2/omap-smp.c | 2 ++
- arch/arm/mach-omap2/pm44xx.c   | 1 -
- 2 files changed, 2 insertions(+), 1 deletion(-)
+It would be good to do this test for all the errata rather than just
+this one.
 
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 49a08df..cd42d92 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -40,6 +40,8 @@
- 
- #define OMAP5_CORE_COUNT	0x2
- 
-+u16 pm44xx_errata;
-+
- /* SCU base address */
- static void __iomem *scu_base;
- 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 0adbd7d..04922d1 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -34,7 +34,6 @@ struct power_state {
- };
- 
- static LIST_HEAD(pwrst_list);
--u16 pm44xx_errata;
- 
- #ifdef CONFIG_SUSPEND
- static int omap4_pm_suspend(void)
--- 
-1.8.0
+Rob
+
+>> Multi-platform kernels present a new problem in that we basically need
+>> to enable all errata work-arounds. I've been meaning to look thru the
+>> errata work-arounds to figure out which ones can be selected for
+>> multi-platform kernels without side effects on unaffected parts (i.e.
+>> set a chicken bit based on core revision). For any in runtime paths, we
+>> may need to do runtime patching if they have performance impact.
+> 
+> Yeah that's how I ran into it as multiplatform enabled omap booted
+> on other omaps but not on omap4.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Tue, 13 Nov 2012 16:57:42 -0800
+> Subject: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 for secure mode
+> 
+> Looks like enabling CONFIG_ARM_ERRATA_751472 causes TI omap4 blaze
+> to not boot when enabled. The ARM core on it is an earlier r1p2.
+> 
+> This seems to be caused by the write to the diagnostic register
+> that shortly after causes an exception as writing to the diagnostic
+> register on systems with secure mode is not allowed.
+> 
+> Also it seems that reading the diagnostic register results zero
+> so we may not be able to check if bit #11 is already set.
+> 
+> Let's assume that if the diagnostic register is zero, we don't
+> want to touch it as it seems to hint secure mode at least on
+> TI omaps. If it's non-zero, check if bit #11 is set and only
+> attempt to set it if not set.
+> 
+> --- a/arch/arm/mm/proc-v7.S
+> +++ b/arch/arm/mm/proc-v7.S
+> @@ -238,9 +238,13 @@ __v7_setup:
+>  #if defined(CONFIG_ARM_ERRATA_751472) && defined(CONFIG_SMP)
+>  	ALT_SMP(cmp r6, #0x30)			@ present prior to r3p0
+>  	ALT_UP_B(1f)
+> -	mrclt	p15, 0, r10, c15, c0, 1		@ read diagnostic register
+> -	orrlt	r10, r10, #1 << 11		@ set bit #11
+> -	mcrlt	p15, 0, r10, c15, c0, 1		@ write diagnostic register
+> +	bge	1f				@ not needed for r3p0 and later
+> +	mrc	p15, 0, r10, c15, c0, 1		@ read diagnostic register
+> +	teq	r10, #0				@ zero for secure mode?
+> +	beq	1f				@ bail out for secure mode
+> +	tst	r10, #1 << 11			@ bit #11 already set?
+> +	orreq	r10, r10, #1 << 11		@ set bit #11 if not set
+> +	mcreq	p15, 0, r10, c15, c0, 1		@ write diagnostic register
+>  1:
+>  #endif
+>  
+> 
 
