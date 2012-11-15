@@ -1,46 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL 3/6] omap device tree updates for v3.8 merge window
-Date: Thu, 15 Nov 2012 17:04:00 +0000
-Message-ID: <201211151704.00309.arnd@arndb.de>
-References: <0MaLIe-1TsCr93bz6-00K6Wu@mx.kundenserver.de>
+From: Igor Mazanov <i.mazanov@gmail.com>
+Subject: [PATCH] Remove inline from clock framework function definitions to
+ build the kernel with GCC 4.7
+Date: Thu, 15 Nov 2012 21:07:00 +0400
+Message-ID: <50A52134.2010502@gmail.com>
+Reply-To: i.mazanov@gmail.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=KOI8-R; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:64344 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992633Ab2KOREI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 12:04:08 -0500
-In-Reply-To: <0MaLIe-1TsCr93bz6-00K6Wu@mx.kundenserver.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <ton@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tuesday 13 November 2012, Tony Lindgren wrote:
-> The following changes since commit edf8dde393f879fc2d8c22d4bc01ff8d37b80e1a:
-> 
->   Merge branch 'linus' into omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3 (2012-11-09 14:58:01 -0800)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/dt-signed
-> 
-> for you to fetch changes up to d308ba50a1234b299a00e63a95e61fdeb2f1a2df:
-> 
->   Merge branch 'omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3' into omap-for-v3.8/dt (2012-11-09 14:58:34 -0800)
-> 
-> ----------------------------------------------------------------
-> 
-> Device tree related changes for omaps updating the
-> various .dts files, and timer related changes to allow
-> configuring the timer via device tree.
+  Remove inline from clock framework function definitions to
+  build the kernel with GCC 4.7
 
-I've ended up pulling the prcm cleanup into this branch as well, in order
-to resolve a conflict where we add a new machine descriptor here and the
-other branch changes all machine descriptors not to use 
-omap_prcm_restart.
+Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
+---
+  include/linux/clk-provider.h |    4 ++--
+  1 files changed, 2 insertions(+), 2 deletions(-)
 
-	Arnd
+diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+index c127315..f9f5e9e 100644
+--- a/include/linux/clk-provider.h
++++ b/include/linux/clk-provider.h
+@@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
+  struct clk_hw *__clk_get_hw(struct clk *clk);
+  u8 __clk_get_num_parents(struct clk *clk);
+  struct clk *__clk_get_parent(struct clk *clk);
+-inline int __clk_get_enable_count(struct clk *clk);
+-inline int __clk_get_prepare_count(struct clk *clk);
++int __clk_get_enable_count(struct clk *clk);
++int __clk_get_prepare_count(struct clk *clk);
+  unsigned long __clk_get_rate(struct clk *clk);
+  unsigned long __clk_get_flags(struct clk *clk);
+  int __clk_is_enabled(struct clk *clk);
+--
+1.7.4.4
