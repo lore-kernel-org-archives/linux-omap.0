@@ -1,91 +1,76 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 04/32] OMAPDSS: DISPC: add no_framedone_tv feat
-Date: Thu, 15 Nov 2012 17:58:12 +0200
-Message-ID: <1352995120-3288-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 05/32] OMAPDSS: DISPC: use get_framedone_irq in disable_digit_out
+Date: Thu, 15 Nov 2012 17:58:13 +0200
+Message-ID: <1352995120-3288-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52160 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52162 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1768185Ab2KOP7P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 10:59:15 -0500
+	id S1768125Ab2KOP7Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 10:59:16 -0500
 In-Reply-To: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, Rob Clark <rob@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-OMAP2/3 do not have FRAMEDONETV irq, but later omaps do. We currently
-always return 0 from dispc_mgr_get_framedone_irq() for TV output to be
-compatible with OMAP2/3.
+dispc_mgr_disable_digit_out() needs to wait until the DIGIT output is
+turned off. This is done with either VSYNC irq on OMAP2/3 and
+FRAMEDONETV on OMAP4+. It currently uses a rather hacky way to decide
+what irq to use.
 
-This patch implements "no_framedone_tv" dispc-feature that is used in
-dispc_mgr_get_framedone_irq to return either 0 for OMAP2/3, or the
-correct IRQ number for FRAMEDONETV on OMAP4+.
+This patch changes dispc_mgr_disable_digit_out to use
+dispc_mgr_get_framedone_irq to find out if there's framedone irq on this
+SoC, and if not, uses VSYNC.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/video/omap2/dss/dispc.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 170c98c..2ec6470 100644
+index 2ec6470..0972bd3 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -100,6 +100,9 @@ struct dispc_features {
- 
- 	/* swap GFX & WB fifos */
- 	bool gfx_fifo_workaround:1;
-+
-+	/* no DISPC_IRQ_FRAMEDONETV on this SoC */
-+	bool no_framedone_tv:1;
- };
- 
- #define DISPC_MAX_NR_FIFOS 5
-@@ -187,7 +190,7 @@ static const struct {
- 	[OMAP_DSS_CHANNEL_DIGIT] = {
- 		.name		= "DIGIT",
- 		.vsync_irq	= DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN,
--		.framedone_irq	= 0,
-+		.framedone_irq	= DISPC_IRQ_FRAMEDONETV,
- 		.sync_lost_irq	= DISPC_IRQ_SYNC_LOST_DIGIT,
- 		.reg_desc	= {
- 			[DISPC_MGR_FLD_ENABLE]		= { DISPC_CONTROL,  1,  1 },
-@@ -539,6 +542,9 @@ u32 dispc_mgr_get_vsync_irq(enum omap_channel channel)
- 
- u32 dispc_mgr_get_framedone_irq(enum omap_channel channel)
+@@ -2726,7 +2726,6 @@ static void dispc_mgr_enable_digit_out(void)
+ static void dispc_mgr_disable_digit_out(void)
  {
-+	if (channel == OMAP_DSS_CHANNEL_DIGIT && dispc.feat->no_framedone_tv)
-+		return 0;
+ 	DECLARE_COMPLETION_ONSTACK(framedone_compl);
+-	enum dss_hdmi_venc_clk_source_select src;
+ 	int r, i;
+ 	u32 irq_mask;
+ 	int num_irqs;
+@@ -2734,18 +2733,20 @@ static void dispc_mgr_disable_digit_out(void)
+ 	if (dispc_mgr_is_enabled(OMAP_DSS_CHANNEL_DIGIT) == false)
+ 		return;
+ 
+-	src = dss_get_hdmi_venc_clk_source();
+-
+ 	/*
+ 	 * When we disable the digit output, we need to wait for FRAMEDONE to
+-	 * know that DISPC has finished with the output. For analog tv out we'll
+-	 * use vsync, as omap2/3 don't have framedone for TV.
++	 * know that DISPC has finished with the output.
+ 	 */
+ 
+-	if (src == DSS_HDMI_M_PCLK) {
+-		irq_mask = DISPC_IRQ_FRAMEDONETV;
+-		num_irqs = 1;
+-	} else {
++	irq_mask = dispc_mgr_get_framedone_irq(OMAP_DSS_CHANNEL_DIGIT);
++	num_irqs = 1;
 +
- 	return mgr_desc[channel].framedone_irq;
- }
- 
-@@ -4085,6 +4091,7 @@ static const struct dispc_features omap24xx_dispc_feats __initconst = {
- 	.calc_scaling		=	dispc_ovl_calc_scaling_24xx,
- 	.calc_core_clk		=	calc_core_clk_24xx,
- 	.num_fifos		=	3,
-+	.no_framedone_tv	=	true,
- };
- 
- static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
-@@ -4097,6 +4104,7 @@ static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
- 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
- 	.calc_core_clk		=	calc_core_clk_34xx,
- 	.num_fifos		=	3,
-+	.no_framedone_tv	=	true,
- };
- 
- static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
-@@ -4109,6 +4117,7 @@ static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
- 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
- 	.calc_core_clk		=	calc_core_clk_34xx,
- 	.num_fifos		=	3,
-+	.no_framedone_tv	=	true,
- };
- 
- static const struct dispc_features omap44xx_dispc_feats __initconst = {
++	if (!irq_mask) {
++		/*
++		 * omap 2/3 don't have framedone irq for TV, so we need to use
++		 * vsyncs for this.
++		 */
++
+ 		irq_mask = dispc_mgr_get_vsync_irq(OMAP_DSS_CHANNEL_DIGIT);
+ 		/*
+ 		 * We need to wait for both even and odd vsyncs. Note that this
 -- 
 1.7.10.4
 
