@@ -1,57 +1,104 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH 0/4] Device tree support for OMAP USB Host
-Date: Thu, 15 Nov 2012 16:56:32 +0200
-Message-ID: <1352991396-19589-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 3/4] ARM/dts: omap4-panda: Add USB Host support
+Date: Thu, 15 Nov 2012 16:56:35 +0200
+Message-ID: <1352991396-19589-4-git-send-email-rogerq@ti.com>
+References: <1352991396-19589-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55786 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768071Ab2KOO4i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 09:56:38 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1352991396-19589-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: b-cousson@ti.com, balbi@ti.com, keshava_mgowda@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, rogerq@ti.com
 
-    Provides a means for the OMAP USB host subsystem to be initialized
-    from Device tree. This is a first step for device tree migration where
-    we specify only the board specific stuff. Things like I/O address space
-    and interrupts are not yet specified in the device tree but can be
-    done as a next step.
-    
-    This patch will allow boards to be booted with our without device tree
-    and have USB host functional.
+Get USB Host working. On Panda, two GPIOs are used, one for
+HUB/PHY reset and other for Hub power. We model them as fixed
+regulators. The regulator for RESET is made to depend on regulator
+for Hub power so that the Hub power is enabled by the regulator
+framework before RESET is removed.
 
-    Tested on OMAP4 Panda ES Rev B1.
+Tested on Panda ES B1.
 
-    This patchset depends on the following series
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg80691.html
-
-cheers,
--roger
-
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
-Keshava Munegowda (1):
-  ARM: OMAP4: USB: Add pin mux configuration for panda board
+ arch/arm/boot/dts/omap4-panda.dts |   36 ++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi      |    5 +++++
+ 2 files changed, 41 insertions(+), 0 deletions(-)
 
-Roger Quadros (3):
-  ARM: OMAP: usb-host: Device tree support for USB Host
-  ARM/dts: omap4-panda: Add USB Host support
-  regulator: fixed: Properly use input_supply parameter from device
-    tree
-
- .../devicetree/bindings/arm/omap/usb-host.txt      |   60 +++++++++++++++++
- .../bindings/regulator/fixed-regulator.txt         |    6 +-
- arch/arm/boot/dts/omap4-panda.dts                  |   54 +++++++++++++++
- arch/arm/boot/dts/omap4.dtsi                       |    5 ++
- arch/arm/mach-omap2/board-generic.c                |    1 +
- arch/arm/mach-omap2/common.h                       |    2 +
- arch/arm/mach-omap2/usb-host.c                     |   71 ++++++++++++++++++++
- drivers/regulator/fixed.c                          |    6 +-
- 8 files changed, 200 insertions(+), 5 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/usb-host.txt
-
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 6811b37..f67a65a 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -57,6 +57,27 @@
+ 			"AFML", "Line In",
+ 			"AFMR", "Line In";
+ 	};
++
++	hubpower: fixedregulator@0 {
++			compatible = "regulator-fixed";
++			regulator-name = "vhub0";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			gpio = <&gpio1 1 0>;		/* gpio 1 : HUB Power */
++			startup-delay-us = <70000>;
++			enable-active-high;
++	};
++
++	hubreset: fixedregulator@1 {
++			compatible = "regulator-fixed";
++			regulator-name = "hsusb0";	/* tag to associate with PORT 1 */
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			gpio = <&gpio2 30 0>;	/* gpio 62 : HUB & PHY Reset */
++			startup-delay-us = <70000>;
++			enable-active-high;
++			vin-supply = "vhub0"; /* Makes regulator f/w enable power before reset */
++	};
+ };
+ 
+ &omap4_pmx_core {
+@@ -136,6 +157,21 @@
+ 	};
+ };
+ 
++
++&usbhost {
++	port@0 {
++		mode = <1>;		/* PHY mode */
++		clk = "auxclk3_ck";	/* PHY clock on FREF_CLK3_OUT */
++		clkrate = <19200000>;
++	};
++	port@1 {
++		mode = <0>;
++	};
++	port@2 {
++		mode = <0>;
++	};
++};
++
+ /include/ "twl6030.dtsi"
+ 
+ &i2c2 {
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 3883f94..0062c59 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -438,5 +438,10 @@
+ 			ranges;
+ 			ti,hwmods = "ocp2scp_usb_phy";
+ 		};
++
++		usbhost: usb-host {
++			compatible = "ti,usb-host";
++			num_ports = <2>;
++		};
+ 	};
+ };
 -- 
 1.7.4.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
