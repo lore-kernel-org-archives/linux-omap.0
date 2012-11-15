@@ -1,70 +1,57 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] ARM: OMAP2+: Fix compiler warning for 32k timer
-Date: Thu, 15 Nov 2012 13:44:04 -0600
-Message-ID: <1353008644-24745-1-git-send-email-jon-hunter@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH 7/8] ARM: OMAP: Remove unnecessary inclusion of dmtimer.h
+Date: Thu, 15 Nov 2012 14:42:13 -0600
+Message-ID: <CALLhW=5wiTd9u0PorwDH_68K7XRS8_ajDSDOLB7x8F2qvtJvaA@mail.gmail.com>
+References: <1352830403-1706-1-git-send-email-jon-hunter@ti.com>
+ <1352830403-1706-8-git-send-email-jon-hunter@ti.com>
+ <50A3BE85.5000804@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60980 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1768750Ab2KOToR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 14:44:17 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <50A3BE85.5000804@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Jon Hunter <jon-hunter@ti.com>
 
-Commit "ARM: OMAP2+: Add device-tree support for 32kHz counter"
-added structure omap_counter_match to the OMAP2 timer code. When
-CONFIG_OMAP_32K_TIMER is not defined this structure generates the
-following as it is not used.
+Hi Jon,
 
-  CC      arch/arm/mach-omap2/timer.o
-  arch/arm/mach-omap2/timer.c:163:28: warning: 'omap_counter_match'
-  defined but not used [-Wunused-variable]
+On 14 November 2012 09:53, Jon Hunter <jon-hunter@ti.com> wrote:
+>> diff --git a/drivers/staging/tidspbridge/core/ue_deh.c b/drivers/staging/tidspbridge/core/ue_deh.c
+>> index 3d28b23..6aea6f1 100644
+>> --- a/drivers/staging/tidspbridge/core/ue_deh.c
+>> +++ b/drivers/staging/tidspbridge/core/ue_deh.c
+>> @@ -19,7 +19,6 @@
+>>
+>>  #include <linux/kernel.h>
+>>  #include <linux/interrupt.h>
+>> -#include <plat/dmtimer.h>
+>>
+>>  #include <dspbridge/dbdefs.h>
+>>  #include <dspbridge/dspdeh.h>
+>
+> Hi Omar, I should have had you in copy on this one. Are you ok with the
+> removal of the above dmtimer.h include? It does not appear that this
+> file needs to include dmtimer.h.
 
-Move the definition of omap_counter_match to avoid this warning when
-CONFIG_OMAP_32K_TIMER is not set.
+Indeed, we don't use it here.
 
-Thanks to Kevin Hilman for tracking down and reporting this problem.
+> Is it ok for this to go through Tony's tree? If so, care to ACK?
 
-Reported-by: Kevin Hilam <khilman@deeprootsystems.com>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
+Looks fine to me, but I believe you will want to let Greg know if this
+patch will bypass staging tree.
 
-This is based upon Tony Lindgren's OMAP master branch.
+Acked-by: Omar Ramirez Luna <omar.luna@linaro.org>
 
- arch/arm/mach-omap2/timer.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Cheers,
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 099e406..2b9d485 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -160,11 +160,6 @@ static struct of_device_id omap_timer_match[] __initdata = {
- 	{ }
- };
- 
--static struct of_device_id omap_counter_match[] __initdata = {
--	{ .compatible = "ti,omap-counter32k", },
--	{ }
--};
--
- /**
-  * omap_get_timer_dt - get a timer using device-tree
-  * @match	- device-tree match structure for matching a device type
-@@ -408,6 +403,11 @@ static u32 notrace dmtimer_read_sched_clock(void)
- }
- 
- #ifdef CONFIG_OMAP_32K_TIMER
-+static struct of_device_id omap_counter_match[] __initdata = {
-+	{ .compatible = "ti,omap-counter32k", },
-+	{ }
-+};
-+
- /* Setup free-running counter for clocksource */
- static int __init omap2_sync32k_clocksource_init(void)
- {
--- 
-1.7.9.5
-
+Omar
