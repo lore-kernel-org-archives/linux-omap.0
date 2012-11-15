@@ -1,163 +1,58 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 32/32] OMAPDSS: use omapdss_compat_init() in other drivers
-Date: Thu, 15 Nov 2012 17:58:40 +0200
-Message-ID: <1352995120-3288-33-git-send-email-tomi.valkeinen@ti.com>
-References: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
+Date: Thu, 15 Nov 2012 16:06:38 +0000
+Message-ID: <20121115160638.GA30579@arm.com>
+References: <50A3EBCD.3040801@ti.com>
+ <20121114202244.GE3332@n2100.arm.linux.org.uk>
+ <20121114203221.GA6801@atomide.com>
+ <50A413D4.7000405@gmail.com>
+ <20121114222159.GB6801@atomide.com>
+ <50A43D58.5030404@gmail.com>
+ <20121115110137.GA25985@arm.com>
+ <50A4FCC5.2080604@gmail.com>
+ <20121115143714.GF25985@arm.com>
+ <50A50C24.9010702@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56292 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1768316Ab2KOQAE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 11:00:04 -0500
-In-Reply-To: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from service87.mimecast.com ([91.220.42.44]:42297 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1767956Ab2KOQGr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 11:06:47 -0500
+In-Reply-To: <50A50C24.9010702@gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>, Rob Clark <rob@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-omapdss_compat_init() and omapdss_compat_uninit() is called internally
-by omapdss. This patch moves the calls to omapfb, omap_vout and omapdrm
-drivers. omapdrm driver can later remove the call after non-compat
-support has been implemented in omapdrm.
+On Thu, Nov 15, 2012 at 03:37:08PM +0000, Rob Herring wrote:
+> On 11/15/2012 08:37 AM, Catalin Marinas wrote:
+> > On Thu, Nov 15, 2012 at 02:31:33PM +0000, Rob Herring wrote:
+> >> Does that work for Versatile Express CA9? It needs ARM_ERRATA_751472.
+> > 
+> > On VE Linux runs in secure mode, so it's fine.
+> 
+> WTF? You are contradicting yourself.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/media/platform/omap/omap_vout.c  |   17 ++++++++++++++---
- drivers/staging/omapdrm/omap_drv.c       |   11 +++++++++++
- drivers/video/omap2/dss/core.c           |    4 ----
- drivers/video/omap2/omapfb/omapfb-main.c |    6 ++++++
- 4 files changed, 31 insertions(+), 7 deletions(-)
+No, it was just a statement that you can enable this workaround on VE
+CA9. Didn't realise you were referring to the MULTI_PLATFORM case (it's
+afternoon and coffee here not that great).
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 3ff94a3..32c596f 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -2186,14 +2186,23 @@ static int __init omap_vout_probe(struct platform_device *pdev)
- 	struct omap_dss_device *def_display;
- 	struct omap2video_device *vid_dev = NULL;
- 
-+	ret = omapdss_compat_init();
-+	if (ret) {
-+		dev_err(&pdev->dev, "failed to init dss\n");
-+		return ret;
-+	}
-+
- 	if (pdev->num_resources == 0) {
- 		dev_err(&pdev->dev, "probed for an unknown device\n");
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err_dss_init;
- 	}
- 
- 	vid_dev = kzalloc(sizeof(struct omap2video_device), GFP_KERNEL);
--	if (vid_dev == NULL)
--		return -ENOMEM;
-+	if (vid_dev == NULL) {
-+		ret = -ENOMEM;
-+		goto err_dss_init;
-+	}
- 
- 	vid_dev->num_displays = 0;
- 	for_each_dss_dev(dssdev) {
-@@ -2288,6 +2297,8 @@ probe_err1:
- 	}
- probe_err0:
- 	kfree(vid_dev);
-+err_dss_init:
-+	omapdss_compat_uninit();
- 	return ret;
- }
- 
-diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
-index ebdb0b6..2bf7259 100644
---- a/drivers/staging/omapdrm/omap_drv.c
-+++ b/drivers/staging/omapdrm/omap_drv.c
-@@ -572,6 +572,14 @@ static int dev_load(struct drm_device *dev, unsigned long flags)
- 
- 	dev->dev_private = priv;
- 
-+	ret = omapdss_compat_init();
-+	if (ret) {
-+		dev_err(dev->dev, "coult not init omapdss\n");
-+		dev->dev_private = NULL;
-+		kfree(priv);
-+		return ret;
-+	}
-+
- 	priv->wq = alloc_ordered_workqueue("omapdrm", 0);
- 
- 	INIT_LIST_HEAD(&priv->obj_list);
-@@ -583,6 +591,7 @@ static int dev_load(struct drm_device *dev, unsigned long flags)
- 		dev_err(dev->dev, "omap_modeset_init failed: ret=%d\n", ret);
- 		dev->dev_private = NULL;
- 		kfree(priv);
-+		omapdss_compat_uninit();
- 		return ret;
- 	}
- 
-@@ -618,6 +627,8 @@ static int dev_unload(struct drm_device *dev)
- 	flush_workqueue(priv->wq);
- 	destroy_workqueue(priv->wq);
- 
-+	omapdss_compat_uninit();
-+
- 	kfree(dev->dev_private);
- 	dev->dev_private = NULL;
- 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index cf2c619..3d33426 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -247,8 +247,6 @@ static int __init omap_dss_probe(struct platform_device *pdev)
- 
- 	dss_features_init(omapdss_get_version());
- 
--	omapdss_compat_init();
--
- 	r = dss_initialize_debugfs();
- 	if (r)
- 		goto err_debugfs;
-@@ -273,8 +271,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- 
- 	dss_uninitialize_debugfs();
- 
--	omapdss_compat_uninit();
--
- 	return 0;
- }
- 
-diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index be9096c..898470a 100644
---- a/drivers/video/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -2436,6 +2436,9 @@ static int __init omapfb_probe(struct platform_device *pdev)
- 				"ignoring the module parameter vrfb=y\n");
- 	}
- 
-+	r = omapdss_compat_init();
-+	if (r)
-+		goto err0;
- 
- 	mutex_init(&fbdev->mtx);
- 
-@@ -2559,6 +2562,7 @@ static int __init omapfb_probe(struct platform_device *pdev)
- 
- cleanup:
- 	omapfb_free_resources(fbdev);
-+	omapdss_compat_uninit();
- err0:
- 	dev_err(&pdev->dev, "failed to setup omapfb\n");
- 	return r;
-@@ -2574,6 +2578,8 @@ static int __exit omapfb_remove(struct platform_device *pdev)
- 
- 	omapfb_free_resources(fbdev);
- 
-+	omapdss_compat_uninit();
-+
- 	return 0;
- }
- 
+> Don't determine secure mode or not,
+> but apply work-arounds only in secure mode? How does a kernel built to
+> boot on secure and non-secure chips know that? The requirement would be
+> that every platform have proper work-arounds setup by the bootloader
+> regardless of running in secure or non-secure mode.
+
+Yes, so for such workarounds that require secure register access just
+make them depend on !MULTI_PLATFORM. Of course, VE CA9 would be affected
+since neither the boot loader nor boot monitor touch those bits (yet).
+But they definitely should as I don't see any other way to support
+multi-platform, especially when such bits need to be set long before the
+DT is parsed.
+
 -- 
-1.7.10.4
+Catalin
 
