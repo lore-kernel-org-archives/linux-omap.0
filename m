@@ -1,49 +1,54 @@
-From: David Gibson <david@gibson.dropbear.id.au>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Thu, 15 Nov 2012 15:57:18 +1100
-Message-ID: <20121115045718.GJ32290@truffula.fritz.box>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <50999145.2070306@wwwdotorg.org>
- <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
- <509D9089.7020407@wwwdotorg.org>
- <5B124797-6DFD-4C5E-90D7-665AFD4A7873@antoniou-consulting.com>
- <50A12950.6090808@wwwdotorg.org>
- <20121113072517.GE25915@truffula.fritz.box>
- <BD20AE03-C138-4BC6-AE02-F162AF6840B2@antoniou-consulting.com>
- <CACxGe6vQxmAk_joUYbaXw4r8J3_RbQt22zFg84ANvcw+ycCMHg@mail.gmail.com>
- <7A051C2B-C4FB-41A0-8338-60B607EA3BC1@antoniou-consulting.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv2] i2c: omap: Move the remove constraint
+Date: Thu, 15 Nov 2012 13:04:43 +0530
+Message-ID: <1352964883-9846-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7A051C2B-C4FB-41A0-8338-60B607EA3BC1@antoniou-consulting.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Stephen Warren <swarren@wwwdotorg.org>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33150 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S2992718Ab2KOHfT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 02:35:19 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, balbi@ti.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On Tue, Nov 13, 2012 at 03:38:18PM +0200, Pantelis Antoniou wrote:
-> Hi Grant,
-> 
-> On Nov 13, 2012, at 2:24 PM, Grant Likely wrote:
+Currently we just queue the transfer and release the
+qos constraints, however we donot wait for the transfer
+to complete to release the constraint. Move the remove
+constraint after the bus busy as we are sure that the
+transfers are completed by then.
 
-> > On Tue, Nov 13, 2012 at 8:09 AM, Pantelis Antoniou
-[snip]
-> My intention wasn't never to make overlays overly portable. My intention
-> was to make them in a way that portability can be introduced if the boards
-> are 'close' enough, but not for arbitrary boards.
-> 
-> There have to be compatible interfaces both on the base, and the overlay
-> dtbs.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+v2: rebase to the for-next branch
 
-Right.  And this is why I'm arguing that those interfaces should be
-described explicitly - using existing OF mechanisms like interrupt-map
-where possible, rather than having a very general, but very low-level
-interface to make arbitrary changes to the DT.
+ drivers/i2c/busses/i2c-omap.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 482c63d..fabcbe1 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -654,13 +654,14 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 			break;
+ 	}
+ 
+-	if (dev->set_mpu_wkup_lat != NULL)
+-		dev->set_mpu_wkup_lat(dev->dev, -1);
+-
+ 	if (r == 0)
+ 		r = num;
+ 
+ 	omap_i2c_wait_for_bb(dev);
++
++	if (dev->set_mpu_wkup_lat != NULL)
++		dev->set_mpu_wkup_lat(dev->dev, -1);
++
+ out:
+ 	pm_runtime_mark_last_busy(dev->dev);
+ 	pm_runtime_put_autosuspend(dev->dev);
 -- 
-David Gibson			| I'll have my music baroque, and my code
-david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-				| _way_ _around_!
-http://www.ozlabs.org/~dgibson
+1.7.5.4
+
