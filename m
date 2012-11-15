@@ -1,63 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 5/5] omap full-chip retention in suspend for v3.8 merge
- window
-Date: Wed, 14 Nov 2012 18:56:44 -0800
-Message-ID: <E1TYpe2-0007Iw-Ck@merlin.infradead.org>
-References: <pull-1352948204-277861>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH V5 0/7] ARM: AM33XX: net: Add DT support to CPSW and
+ MDIO driver
+Date: Wed, 14 Nov 2012 22:09:31 -0500 (EST)
+Message-ID: <20121114.220931.785168143706732441.davem@davemloft.net>
+References: <1352920080-6179-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1352948204-277861>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1352920080-6179-1-git-send-email-mugunthanvnm@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: mugunthanvnm@ti.com
+Cc: netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 46bf4a562207c5ebd24e1dde5e5ee326cd3d6b91:
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Date: Thu, 15 Nov 2012 00:37:53 +0530
 
-  Merge tag 'for_3.8-pm-voltage' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into omap-for-v3.8/pm (2012-11-06 17:06:37 -0800)
+> This patch-series adds support for,
+> 
+> [1/7]: Typo mistake in CPSW driver while invoking runtime_pm api's
+> 
+> [2/7]: Adds parent<->child relation between CPSW & MDIO module inside cpsw
+>        driver, as in case of AM33XX, the resources are shared and common
+>        register bit-field is provided to control module/clock enable/disable,
+>        makes it difficult to handle common resource.
+> 
+>        So the solution here is, to create parent<->child relation between them.
+> 
+> [3/7]: cpsw: simplify the setup of the register pointers
+> 
+> [4/7]: cpsw: Kernel warn fix during suspend
+> 
+> [5/7]: Add hwmod entry for MDIO module, required for MDIO driver.
+> 
+> [6/7]: Enable CPSW support to omap2plus_defconfig
+> 
+> [7/7]: Add DT device nodes for both CPSW and MDIO modules in am33xx.dtsi,
+>        am335x-evm.dts and am335x-bone.dts file
+> 
+> This patch series has been created on top of net-next/master and tested
+> on BeagleBone platform for NFS boot and basic ping test cases.
 
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/pm-part2-v3-signed
-
-for you to fetch changes up to 74d29168e9af59c9db1885e27493fbed4d24ef18:
-
-  ARM: OMAP2+: voltage: fixup oscillator handling when CONFIG_PM=n (2012-11-14 17:21:15 -0800)
-
-----------------------------------------------------------------
-PM changes via Kevin Hilman <khilman@deeprootsystems.com>:
-
-Add support for full-chip retention in suspend for OMAP4 SoCs
-
-----------------------------------------------------------------
-Kevin Hilman (1):
-      ARM: OMAP2+: voltage: fixup oscillator handling when CONFIG_PM=n
-
-Rajendra Nayak (1):
-      ARM: OMAP4: suspend: Program all domains to retention
-
-Tero Kristo (1):
-      ARM: OMAP4: USB: power down MUSB PHY during boot
-
-Tony Lindgren (2):
-      Merge tag 'for_3.8-pm-omap4-core-ret' of git://git.kernel.org/.../khilman/linux-omap-pm into omap-for-v3.8/pm-part2
-      Merge branch 'omap-for-v3.8/pm' into omap-for-v3.8/pm-part2
-
- arch/arm/mach-omap2/omap_phy_internal.c | 32 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.c                |  2 ++
- arch/arm/mach-omap2/pm.h                |  2 +-
- arch/arm/mach-omap2/pm44xx.c            |  7 -------
- arch/arm/mach-omap2/vc.c                |  2 ++
- 5 files changed, 37 insertions(+), 8 deletions(-)
+All applied, thanks.
