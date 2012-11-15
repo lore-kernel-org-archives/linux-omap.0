@@ -1,83 +1,55 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/4] regulator: fixed: Properly use input_supply parameter from device tree
-Date: Thu, 15 Nov 2012 16:56:36 +0200
-Message-ID: <1352991396-19589-5-git-send-email-rogerq@ti.com>
-References: <1352991396-19589-1-git-send-email-rogerq@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH] ARM: OMAP4: hwmod data: ipu and dsp to use parent clocks
+ instead of leaf clocks
+Date: Thu, 15 Nov 2012 09:10:31 -0600
+Message-ID: <CALLhW=6uwCzAwPLNbjOwVKWVW5KOui=UXZdTUm7HMp=3cZrCNg@mail.gmail.com>
+References: <1352860750-20100-1-git-send-email-omar.luna@linaro.org>
+	<alpine.DEB.2.00.1211141542280.16047@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1352991396-19589-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: b-cousson-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:52273 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768211Ab2KOPKc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 10:10:32 -0500
+Received: by mail-vb0-f46.google.com with SMTP id ff1so1746737vbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 15 Nov 2012 07:10:31 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1211141542280.16047@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The device tree node will provide the input supply name as
-a string. Use that to populate the supply_name parameter of
-the regulator descriptor.
+Hi,
 
-Also correct the documentation to reflect the same.
+On 14 November 2012 09:44, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi
+>
+> On Tue, 13 Nov 2012, Omar Ramirez Luna wrote:
+>
+>> This prevents hwmod _enable_clocks...omap2_dflt_clk_enable path
+>> from enabling modulemode inside CLKCTRL using its clk->enable_reg
+>> field. Instead is left to _omap4_enable_module though soc_ops, as
+>> the one in charge of this setting.
+>>
+>> According to comments received[1] for related patches the idea is
+>> to get rid of leaf clocks in future. So remove these two while at it.
+>>
+>> [1] http://lkml.org/lkml/2012/8/20/226
+>>
+>> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+>
+> Does this one belong as part of the "OMAP: iommu: hwmod, reset
+> handling and runtime PM" series?  Looks like applying this one separately
+> might cause these clocks not to be disabled by either the clock code's
+> disable-unused-clocks code, or the hwmod code?
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-CC: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-CC: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
----
- .../bindings/regulator/fixed-regulator.txt         |    6 +++---
- drivers/regulator/fixed.c                          |    6 ++++--
- 2 files changed, 7 insertions(+), 5 deletions(-)
+You are right, if applied right now, without the others it will break
+the current clocks iommu code uses.
 
-diff --git a/Documentation/devicetree/bindings/regulator/fixed-regulator.txt b/Documentation/devicetree/bindings/regulator/fixed-regulator.txt
-index 4fae41d..fe34114 100644
---- a/Documentation/devicetree/bindings/regulator/fixed-regulator.txt
-+++ b/Documentation/devicetree/bindings/regulator/fixed-regulator.txt
-@@ -7,10 +7,10 @@ Optional properties:
- - gpio: gpio to use for enable control
- - startup-delay-us: startup time in microseconds
- - enable-active-high: Polarity of GPIO is Active high
--If this property is missing, the default assumed is Active low.
-+  If this property is missing, the default assumed is Active low.
- - gpio-open-drain: GPIO is open drain type.
-   If this property is missing then default assumption is false.
---vin-supply: Input supply name.
-+- vin-supply: Input supply name.
- 
- Any property defined as part of the core regulator
- binding, defined in regulator.txt, can also be used.
-@@ -30,5 +30,5 @@ Example:
- 		enable-active-high;
- 		regulator-boot-on;
- 		gpio-open-drain;
--		vin-supply = <&parent_reg>;
-+		vin-supply = "input-supply-name";
- 	};
-diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
-index 185468c..3a6f4ad 100644
---- a/drivers/regulator/fixed.c
-+++ b/drivers/regulator/fixed.c
-@@ -53,6 +53,7 @@ of_get_fixed_voltage_config(struct device *dev)
- 	struct device_node *np = dev->of_node;
- 	const __be32 *delay;
- 	struct regulator_init_data *init_data;
-+	const char *vin_name;
- 
- 	config = devm_kzalloc(dev, sizeof(struct fixed_voltage_config),
- 								 GFP_KERNEL);
-@@ -102,8 +103,9 @@ of_get_fixed_voltage_config(struct device *dev)
- 	if (of_find_property(np, "gpio-open-drain", NULL))
- 		config->gpio_is_open_drain = true;
- 
--	if (of_find_property(np, "vin-supply", NULL))
--		config->input_supply = "vin";
-+	vin_name = of_get_property(np, "vin-supply", NULL);
-+	if (vin_name)
-+		config->input_supply = vin_name;
- 
- 	return config;
- }
--- 
-1.7.4.1
+I will put it along with the other series or wait for the acceptance
+of the other patches first.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Omar
