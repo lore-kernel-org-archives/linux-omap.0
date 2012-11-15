@@ -1,91 +1,26 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: GCC 4.7 stops to compile the current git kernel
-Date: Thu, 15 Nov 2012 15:25:05 +0200
-Message-ID: <20121115132505.GD7390@arwen.pp.htv.fi>
-References: <k82pkb$sba$1@ger.gmane.org>
-Reply-To: <balbi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
+Date: Thu, 15 Nov 2012 13:36:23 +0000
+Message-ID: <20121115133623.GG3332@n2100.arm.linux.org.uk>
+References: <20121114185335.GU6801@atomide.com> <50A3EBCD.3040801@ti.com> <20121114202244.GE3332@n2100.arm.linux.org.uk> <20121114203221.GA6801@atomide.com> <50A413D4.7000405@gmail.com> <20121114222159.GB6801@atomide.com> <50A43D58.5030404@gmail.com> <20121115110137.GA25985@arm.com> <CACY+gR3PurUofCbUeG40B6vXqXAoHrMmbOQSuwAGoc1LS8XXJQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xA/XKXTdy9G3iaIz"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52034 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1767722Ab2KONb0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 08:31:26 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42925 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1767735Ab2KONgq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 08:36:46 -0500
 Content-Disposition: inline
-In-Reply-To: <k82pkb$sba$1@ger.gmane.org>
+In-Reply-To: <CACY+gR3PurUofCbUeG40B6vXqXAoHrMmbOQSuwAGoc1LS8XXJQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Mazanov <i.mazanov@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Siarhei Siamashka <siarhei.siamashka@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Rob Herring <robherring2@gmail.com>, Tony Lindgren <tony@atomide.com>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---xA/XKXTdy9G3iaIz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Nov 15, 2012 at 02:41:43PM +0200, Siarhei Siamashka wrote:
+> BTW, I always wondered about what could be preventing TI and the other
+> silicon vendors from using something like an SMC API based on
+> asymmetric cryptography?
 
-Hi,
-
-On Thu, Nov 15, 2012 at 05:11:14PM +0400, Igor Mazanov wrote:
-> Hello,
->=20
-> After a conversion to common clock framework GCC 4.7 stops to compile
-> the current kernel with the following error:
->=20
->   CC      arch/arm/mach-omap2/clockdomain.o
-> In file included from arch/arm/mach-omap2/clockdomain.c:25:0:
-> arch/arm/mach-omap2/clockdomain.c: In function 'clkdm_clk_disable':
-> include/linux/clk-provider.h:338:12: error: inlining failed in call
-> to always_inline '__clk_get_enable_count': function body not
-> available
-> arch/arm/mach-omap2/clockdomain.c:1001:28: error: called from here
-> make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
->=20
-> This change helps:
->=20
-> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
-> index c127315..f9f5e9e 100644
-> --- a/include/linux/clk-provider.h
-> +++ b/include/linux/clk-provider.h
-> @@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
->  struct clk_hw *__clk_get_hw(struct clk *clk);
->  u8 __clk_get_num_parents(struct clk *clk);
->  struct clk *__clk_get_parent(struct clk *clk);
-> -inline int __clk_get_enable_count(struct clk *clk);
-> -inline int __clk_get_prepare_count(struct clk *clk);
-> +int __clk_get_enable_count(struct clk *clk);
-> +int __clk_get_prepare_count(struct clk *clk);
->  unsigned long __clk_get_rate(struct clk *clk);
->  unsigned long __clk_get_flags(struct clk *clk);
->  int __clk_is_enabled(struct clk *clk);
-
-care to send as a proper patch and Ccing proper lists and developers ?
-scripts/get_maintainer.pl will help you figure the audience ;-)
-
---=20
-balbi
-
---xA/XKXTdy9G3iaIz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQpO0xAAoJEIaOsuA1yqRE3tsP/3EhBCdqZRX8WyHgpGQu+bL7
-aoDnwHgNVmZh3c4CmodMRL+4vRy847n9I3ytl8Lkas3O7a6ocy32DJrDvZuqhoNR
-cqwhTbjOM3WBgaWrJmdf2tZ1oo/8ovuqryJqQzvg5+T90VvbCGEyOstqshhdsdfu
-bJDsEmP6Qx38FGo3lH/jEndyidTDmnoEX3vz1j0Aouskm4oEnMvRSFVheIzBPMxz
-4z/UR7xKyS7D77oIltB91QXWZQZGSF4vJ5oFjaWfihKLuiuOQA1tTvEd1IXtQoLb
-4U0jEm+kiDyM9tm3ZF0sz4+r+qs6t0CAz2z0Qmvcoag5+wnGlNnnlX2nQ6VUQf8Y
-28g4eOfQIdC9/MjEp9d4mqV+MqsgskrxxgIDH+mbQFDa/Phg41ZyiKTagW6yn/fi
-JmPV+mGrUvids0s5eVonovPyDLGAi8T61ZrX3SGP3HCdgvxZEJb1uK8hFcUP15BH
-TWmUvQHXEdwbauXneLhbCxQgOFfEgRnbr4mQAjWoe1B3fhlthGFPX9jUaEBzp8CX
-3TLwOFwgDJSKtmoMYMvjmhRbgSLCQsYU/3IaTW7lDib4yvceGkEIWS3m82EpHylJ
-qs5pNj+qUbe14wLAhR86pCYs/VGuXqhcTve3qVl5jo7tvLxPqM3nOw1GGT6LJ1qL
-QM29a2FmUPUb6B18LT83
-=0WXD
------END PGP SIGNATURE-----
-
---xA/XKXTdy9G3iaIz--
+The answer is... nothing.  But it didn't happen and we're stuck with the
+consequences of that.
