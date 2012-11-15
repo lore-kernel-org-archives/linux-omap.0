@@ -1,36 +1,51 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: 32kHz clock removal causes problems omap_hsmmc
-Date: Thu, 15 Nov 2012 10:31:33 +0200
-Message-ID: <1352968293.10872.51.camel@cumari.coelho.fi>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv3] i2c: omap: Move the remove constraint
+Date: Thu, 15 Nov 2012 14:19:21 +0530
+Message-ID: <1352969361-10521-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: svenkatr@ti.com, linux-omap@vger.kernel.org
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, balbi@ti.com, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Currently we just queue the transfer and release the
+qos constraints, however we do not wait for the transfer
+to complete to release the constraint. Move the remove
+constraint after the bus busy as we are sure that the
+transfers are completed by then.
 
-Since the 32KHz clock was removed from the twl-regulator (0e8e5c34
-regulator: twl: Remove references to 32kHz clock from DT bindings),
-we've been having problems with our wl12xx chip that is connected
-through the omap_hsmmc.
+Acked-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+v2: rebase to the for-next branch
+v3: Fix a typo
 
-Our card simply doesn't get added to the system and we get lots of
--ETIMEOUTs during mmc_attach.  If I revert 0e8e5c34 (plus a couple of
-associated patches), everything works fine.
+ drivers/i2c/busses/i2c-omap.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-I've been using a Blaze device with a WiLink 1283 chip connected in the
-COM (internal) port.  The funny thing is that I don't have the same
-problem with a WiLink 1853 chip (which is connected externally to
-another Blaze).
-
-Does anyone know what the problem could and how to fix it?
-
-This is a regression that has been there since 3.6-rc1.
-
---
-Cheers,
-Luca.
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 482c63d..fabcbe1 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -654,13 +654,14 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 			break;
+ 	}
+ 
+-	if (dev->set_mpu_wkup_lat != NULL)
+-		dev->set_mpu_wkup_lat(dev->dev, -1);
+-
+ 	if (r == 0)
+ 		r = num;
+ 
+ 	omap_i2c_wait_for_bb(dev);
++
++	if (dev->set_mpu_wkup_lat != NULL)
++		dev->set_mpu_wkup_lat(dev->dev, -1);
++
+ out:
+ 	pm_runtime_mark_last_busy(dev->dev);
+ 	pm_runtime_put_autosuspend(dev->dev);
+-- 
+1.7.5.4
