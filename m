@@ -1,35 +1,117 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Fix compiler warning for 32k timer
-Date: Thu, 15 Nov 2012 15:35:47 -0600
-Message-ID: <50A56033.6080908@ti.com>
-References: <1353008644-24745-1-git-send-email-jon-hunter@ti.com> <20121115204526.GC12466@arwen.pp.htv.fi>
+From: <oleg.matcovschi@ti.com>
+Subject: [PATCH] OMAP2+: mux: Fixed gpio mux mode analysis.
+Date: Thu, 15 Nov 2012 13:39:57 -0800
+Message-ID: <1353015597-22703-1-git-send-email-oleg.matcovschi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46567 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906Ab2KOVfw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 16:35:52 -0500
-In-Reply-To: <20121115204526.GC12466@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Oleg Matcovschi <oleg.matcovschi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
+From: Oleg Matcovschi <oleg.matcovschi@ti.com>
 
-On 11/15/2012 02:45 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Thu, Nov 15, 2012 at 01:44:04PM -0600, Jon Hunter wrote:
->> +static struct of_device_id omap_counter_match[] __initdata = {
-> 
-> not directly related to $SUBJECT, but shouldn't this be static const
-> __initconst ?
+OMAP_MODE_GPIO() macro verified only OMAP_MUX_MODE4.
+It is not correct for following platforms:
+    2430 - gpio mux mode 3
+    44xx - gpio mux mode 3
+    54xx - gpio mux mode 6
 
-Yes you are right. Looks like there are several other of_device_id
-structs in arch/arm/mach-omap2 that could be updated to const too.
+Patch reserves first 3 bits in partition flags for storing gpio mux
+mode in same format as stored in control pad register.
+Modified OMAP_MODE_GPIO() macro handles all possible cases of gpio mux mode.
+Modified omap_mux_init() flags of omap34xx to include OMAP_MUX_GPIO_IN_MODE4.
 
-Cheers
-Jon
+Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
+---
+ arch/arm/mach-omap2/mux.c     |    4 ++--
+ arch/arm/mach-omap2/mux.h     |   18 +++++++++++++-----
+ arch/arm/mach-omap2/mux34xx.c |    2 +-
+ 3 files changed, 16 insertions(+), 8 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 701e17c..75f854e 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -799,7 +799,7 @@ int __init omap_mux_late_init(void)
+ 			struct omap_mux *m = &e->mux;
+ 			u16 mode = omap_mux_read(partition, m->reg_offset);
+ 
+-			if (OMAP_MODE_GPIO(mode))
++			if (OMAP_MODE_GPIO(partition, mode))
+ 				continue;
+ 
+ #ifndef CONFIG_DEBUG_FS
+@@ -1064,7 +1064,7 @@ static void __init omap_mux_init_list(struct omap_mux_partition *partition,
+ 		}
+ #else
+ 		/* Skip pins that are not muxed as GPIO by bootloader */
+-		if (!OMAP_MODE_GPIO(omap_mux_read(partition,
++		if (!OMAP_MODE_GPIO(partition, omap_mux_read(partition,
+ 				    superset->reg_offset))) {
+ 			superset++;
+ 			continue;
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index 76f9b3c..8393284 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -58,7 +58,8 @@
+ #define OMAP_PIN_OFF_INPUT_PULLDOWN	(OMAP_OFF_EN | OMAP_OFF_PULL_EN)
+ #define OMAP_PIN_OFF_WAKEUPENABLE	OMAP_WAKEUP_EN
+ 
+-#define OMAP_MODE_GPIO(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE4)
++#define OMAP_MODE_GPIO(partition, x)	(((x) & OMAP_MUX_MODE7) == \
++					  (partition->flags & OMAP_MUX_MODE7))
+ #define OMAP_MODE_UART(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE0)
+ 
+ /* Flags for omapX_mux_init */
+@@ -79,13 +80,20 @@
+ /*
+  * omap_mux_init flags definition:
+  *
++ * OMAP_GPIO_MUX_MODE, bits 0-2: gpio muxing mode, same like pad control
++ *      register which includes values from 0-7.
+  * OMAP_MUX_REG_8BIT: Ensure that access to padconf is done in 8 bits.
+  * The default value is 16 bits.
+- * OMAP_MUX_GPIO_IN_MODE3: The GPIO is selected in mode3.
+- * The default is mode4.
+  */
+-#define OMAP_MUX_REG_8BIT		(1 << 0)
+-#define OMAP_MUX_GPIO_IN_MODE3		(1 << 1)
++#define OMAP_MUX_GPIO_IN_MODE0		OMAP_MUX_MODE0
++#define OMAP_MUX_GPIO_IN_MODE1		OMAP_MUX_MODE1
++#define OMAP_MUX_GPIO_IN_MODE2		OMAP_MUX_MODE2
++#define OMAP_MUX_GPIO_IN_MODE3		OMAP_MUX_MODE3
++#define OMAP_MUX_GPIO_IN_MODE4		OMAP_MUX_MODE4
++#define OMAP_MUX_GPIO_IN_MODE5		OMAP_MUX_MODE5
++#define OMAP_MUX_GPIO_IN_MODE6		OMAP_MUX_MODE6
++#define OMAP_MUX_GPIO_IN_MODE7		OMAP_MUX_MODE7
++#define OMAP_MUX_REG_8BIT		(1 << 3)
+ 
+ /**
+  * struct omap_board_data - board specific device data
+diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
+index c47140b..c53609f4 100644
+--- a/arch/arm/mach-omap2/mux34xx.c
++++ b/arch/arm/mach-omap2/mux34xx.c
+@@ -2053,7 +2053,7 @@ int __init omap3_mux_init(struct omap_board_mux *board_subset, int flags)
+ 		return -EINVAL;
+ 	}
+ 
+-	return omap_mux_init("core", 0,
++	return omap_mux_init("core", OMAP_MUX_GPIO_IN_MODE4,
+ 			     OMAP3_CONTROL_PADCONF_MUX_PBASE,
+ 			     OMAP3_CONTROL_PADCONF_MUX_SIZE,
+ 			     omap3_muxmodes, package_subset, board_subset,
+-- 
+1.7.4.1
