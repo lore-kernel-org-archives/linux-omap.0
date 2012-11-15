@@ -1,127 +1,103 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/3] ASoC: OMAP: HDMI: Obtain DMA port from resources
-Date: Thu, 15 Nov 2012 14:36:17 +0200
-Message-ID: <50A4E1C1.7080609@ti.com>
-References: <1352860249-26348-1-git-send-email-ricardo.neri@ti.com> <1352860249-26348-4-git-send-email-ricardo.neri@ti.com> <20121114032712.GQ4415@opensource.wolfsonmicro.com> <50A3CFBD.5080903@ti.com> <20121114230848.GA4536@opensource.wolfsonmicro.com> <50A45467.6070404@ti.com> <50A4B9A6.5070806@ti.com>
+From: Siarhei Siamashka <siarhei.siamashka@gmail.com>
+Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
+Date: Thu, 15 Nov 2012 14:41:43 +0200
+Message-ID: <CACY+gR3PurUofCbUeG40B6vXqXAoHrMmbOQSuwAGoc1LS8XXJQ@mail.gmail.com>
+References: <20121114185335.GU6801@atomide.com>
+	<50A3EBCD.3040801@ti.com>
+	<20121114202244.GE3332@n2100.arm.linux.org.uk>
+	<20121114203221.GA6801@atomide.com>
+	<50A413D4.7000405@gmail.com>
+	<20121114222159.GB6801@atomide.com>
+	<50A43D58.5030404@gmail.com>
+	<20121115110137.GA25985@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigB8803FFFB9D681A0BA5126E3"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47703 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2993283Ab2KOMgY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 07:36:24 -0500
-In-Reply-To: <50A4B9A6.5070806@ti.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:48377 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2993283Ab2KOMlo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 07:41:44 -0500
+Received: by mail-oa0-f46.google.com with SMTP id h16so1552913oag.19
+        for <linux-omap@vger.kernel.org>; Thu, 15 Nov 2012 04:41:43 -0800 (PST)
+In-Reply-To: <20121115110137.GA25985@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Rob Herring <robherring2@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---------------enigB8803FFFB9D681A0BA5126E3
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2012-11-15 11:45, Tomi Valkeinen wrote:
-> On 2012-11-15 04:33, Ricardo Neri wrote:
->> Hi Mark,
+On Thu, Nov 15, 2012 at 1:01 PM, Catalin Marinas
+<catalin.marinas@arm.com> wrote:
+> On Thu, Nov 15, 2012 at 12:54:48AM +0000, Rob Herring wrote:
+>> On 11/14/2012 04:21 PM, Tony Lindgren wrote:
+>> > * Rob Herring <robherring2@gmail.com> [121114 13:59]:
+>> >> On 11/14/2012 02:32 PM, Tony Lindgren wrote:
+>> >>>
+>> >>> Checking for the bit already set should work in this case, I'll post
+>> >>> a patch for that shortly.
+>> >>
+>> >> Can you actually read the state of the diagnostic register in non-secure
+>> >> mode? If you can on the A9, is the same true on A8 or others?
+>> >
+>> > Looks like it can be read on at least TI omap 4430 which is A9.
+>> > But it reads as zero, so the below patch is what I came up with.
+>> >
+>> > No idea if assuming that zero value for the diagnostic register
+>> > is safe.. What's the default value of the diagnostic register supposed
+>> > to be?
 >>
->> On 11/14/2012 05:08 PM, Mark Brown wrote:
->>> On Wed, Nov 14, 2012 at 11:07:09AM -0600, Ricardo Neri wrote:
->>>> On 11/13/2012 09:27 PM, Mark Brown wrote:
->>>
->>>>> Presumably this needs some other corresponding change in the resour=
-ce
->>>>> setup to go in simultaneously...
->>>
->>>> Yes, the change in the resources setup has been submitted to the
->>>> OMAPDSS HDMI driver and accepted by Tomi [1].
->>>
->>> Don't do this.  With a change like this which must be made at the sam=
-e
->>> time over multiple subsystems it is very important that you send all =
-the
->>> parts of the changes together.  Otherwise there's a risk that one of
->>> them won't get merged and even if they do both get merged you'll brea=
-k
->>> bisection - it's clear that nobody can be testing this on Tomi's bran=
-ch.
+>> RTFM. Oh, wait it's a super secret, undocumented register. We shouldn't
+>> even be talking about it.
 >>
->> but the changes will hit linux-next at some point and they could be
->> tested there, right?
+>> It could vary by rev, but I see 0 for the reset value, so this would not
+>> work if the bootloader did not do any setup of the diagnostic register.
 >>
->> Sorry, as changes for the HDMI drivers go to several maintainers, I wa=
-s
->> trying to send the relevant patches to the respective maintainers and
->> avoid potential merge/rebase issues.
+>> One way to determine secure mode on the A9 would be seeing if you can
+>> change the auxcr register. Something like this (untested):
 >>
->> Tomi has already taken the DSS changes. Perhaps, if you and Tomi agree=
-,
->> Tomi could also take the ASoC and the arch/arm/mach-omap2 changes. Thi=
-s
->> way all changes come from the same tree.
->=20
-> Hmm, ok, I'm a bit confused here.
->=20
-> I though the omap_hdmi_audio device was a new thing, and thus it was ok=
+>> mrc   p15, 0, r0, c1, c0, 1; Read ACTLR
+>> eor   r1, r0, #0x100          ; Modify alloc in 1 way
+>> mcr   p15, 0, r1, c1, c0, 1
+>> mrc   p15, 0, r2, c1, c0, 1; Read ACTLR
+>> mcr   p15, 0, r0, c1, c0, 1   ; Restore original value
+>> cmp   r1, r2
+>> bne   skip_errata
+>
+> This would fail on platforms where Linux runs in non-secure mode. What
+> we do for some errata workarounds is to test whether the bit was already
+> set and avoid writing the register. But this assumes that, for a given
+> workaround in the kernel, there is a corresponding workaround in the
+> code running before the kernel (boot-loader, firmware) which sets that
+> bit.
+>
+> Since the kernel will run more often in non-secure mode (on Cortex-A15
+> you need this for the virtualisation extensions) I strongly suggest that
+> the workaround (usually undocumented bit setting) is done before the
+> kernel is started and we simply remove it from Linux (or add a clear
+> comment that it only works if running in secure mode; if unsure say
+> 'N').
+>
+> I don't think it's worth the hassle detecting whether the kernel runs in
+> secure or non-secure mode, just assume the latter and get SoC vendors to
+> update the boot loaders or firmware (if possible) with any errata
+> workarounds.
+>
+> Having a common SMC API for errata workarounds is not feasible since not
+> all registers are public, most are implementation specific and it could
+> have secure implications with exposing them.
 
-> to add to omapdss. But now I see omap_hdmi_audio is already registered
-> in arch/arm/mach-omap2/devices.c, meaning the same platform device is
-> registered twice now. Well, with the exception of the device id, which
-> is -1 for the one from devices.c, and 0 for the one in omapdss.
->=20
-> Mark is right, this is not right. The kernel should work fine after eac=
-h
-> patch, which means that sometimes a patch will touch multiple different=
+BTW, I always wondered about what could be preventing TI and the other
+silicon vendors from using something like an SMC API based on
+asymmetric cryptography? My understanding is that for OMAP4 GP chips,
+ROM code switches to non-secure mode before passing control to the
+bootloader and there is simply no way to workaround bugs like this.
+The users are screwed.
 
-> areas of kernel.
->=20
-> omapdss master branch is a stable branch, so I don't want to rebase it.=
+Having some way to pass a small signed chunk of code through SMC API
+could be a life saver if the erratum is particularly nasty. The vendor
+could just contribute the signed piece of code with a few instructions
+to set the needed bits in the needed registers in the case of
+emergency.
 
-> But I guess I can "reset" it by merging a mainline using some merge
-> strategy. I haven't done that before, but I guess it'll work.
->=20
-> Can you look at all the HDMI patches related to this hdmi-device change=
-,
-> and rewrite them so that they'll keep the kernel working after each pat=
-ch?
-
-After some testing I think resetting my master branch with merge is not
-a very good option.
-
-However, the HDMI audio platform device patch is almost on top of the
-branch, so reverting it would only create a few steps where the HDMI
-audio may be broken.
-
-So I can revert the patch and apply a new series with the patches
-organized so that things will work.
-
- Tomi
-
-
-
---------------enigB8803FFFB9D681A0BA5126E3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQpOHBAAoJEPo9qoy8lh71SkgP/2JR1Qo7UNFwG0at9AUlj5Mz
-eNC4HCmbKMGHChbmk4zTUtukEJobyPWyyJV+TwdYgp0d49X57YJDQLhGHqOKEyW2
-u6cDFGS3CsCsOu80PDN321WQSzEAiaaTBkD6mD6oaGS4dY5CRFmgqcVN+zWxHxsB
-koyUqNmuXxvtzHzLzmjPAw4oGhao+CmN3q+DSq54IsErok+7OndaUuFFQT9EpfTi
-jmReImT4MzVmD7Qwz/ohOjWvllXpN4BdI0rHkWC+u5y1lGiesDeOp37rEha10drc
-ODZKBvQo7v2JAy6BZg6rtSwNX/F423kpn6uv2+yWZiAlYkQD3gPRUPcJnSaRyUuc
-T0DTeoocpPzEllwGpGSvuIUzX2wqsg9SKZVpTuuiENCQYbWlAME9qsCE2dF027tJ
-0G2VIVjQTnGEq+CmBEuSRzxNlxLS3eS+OfR7qiwMNSMLmDEOP+elWgqsncmdZ0r/
-1o/K2BLCZXuU6MaGHXruKamy67gIVNjqxFG3fj94pWBqDU4X1gXdatmldIiTLoqE
-xdNtpCIi92xi3eTDg0zLka+bF/fN4FqHbtpJoi7fXPFq0PnfF8bqkIbZ+BMnrS7+
-KwrE2GVSStQRC+Yv+oCZmlvoi1vTUF7hiJyZOmvxPV7sj+9n7mVtXkE6XxxK7Hbj
-K1R4EILO2bJULSnssdVb
-=TI5n
------END PGP SIGNATURE-----
-
---------------enigB8803FFFB9D681A0BA5126E3--
+-- 
+Best regards,
+Siarhei Siamashka
