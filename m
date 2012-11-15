@@ -1,82 +1,48 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/32] OMAPDSS: DISPC: Remove blocking code from dispc_wb_enable()
-Date: Thu, 15 Nov 2012 17:58:14 +0200
-Message-ID: <1352995120-3288-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 02/32] OMAPDSS: DPI: fix crash with dpi_verify_dsi_pll()
+Date: Thu, 15 Nov 2012 17:58:10 +0200
+Message-ID: <1352995120-3288-3-git-send-email-tomi.valkeinen@ti.com>
 References: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52163 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50096 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1768185Ab2KOP7S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 10:59:18 -0500
+	id S1768077Ab2KOP7L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Nov 2012 10:59:11 -0500
 In-Reply-To: <1352995120-3288-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, Rob Clark <rob@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-WB will not be used with compat-mode, i.e. from omapfb. This means we
-don't need the current complex dispc_wb_enable function, but can have a
-simple register write version of the function.
+If the DSI support has not been compiled in or the SoC doesn't have DSI
+hardware, dpi_get_dsidev() returns NULL. This NULL is passed to
+dpi_verify_dsi_pll() causing a crash. The bug was added with commit
+0e8276ef75f5c7811b038d1d23b2b42c16efc5ac (OMAPDSS: DPI: always use DSI
+PLL if available).
 
-This patch removes all the extra code from dispc_wb_enable()
+Fix this by checking if dsidev is NULL before calling
+dpi_verify_dsi_pll().
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   35 ++---------------------------------
- 1 file changed, 2 insertions(+), 33 deletions(-)
+ drivers/video/omap2/dss/dpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 0972bd3..0dca3ff 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -2804,43 +2804,12 @@ void dispc_mgr_disable_sync(enum omap_channel channel)
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 1e103b3..c109fa6 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -412,7 +412,7 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
+ 	 */
+ 	dsidev = dpi_get_dsidev(dssdev->channel);
  
- void dispc_wb_enable(bool enable)
- {
--	enum omap_plane plane = OMAP_DSS_WB;
--	struct completion frame_done_completion;
--	bool is_on;
--	int r;
--	u32 irq;
--
--	is_on = REG_GET(DISPC_OVL_ATTRIBUTES(plane), 0, 0);
--	irq = DISPC_IRQ_FRAMEDONEWB;
--
--	if (!enable && is_on) {
--		init_completion(&frame_done_completion);
--
--		r = omap_dispc_register_isr(dispc_mgr_disable_isr,
--				&frame_done_completion, irq);
--		if (r)
--			DSSERR("failed to register FRAMEDONEWB isr\n");
--	}
--
--	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), enable ? 1 : 0, 0, 0);
--
--	if (!enable && is_on) {
--		if (!wait_for_completion_timeout(&frame_done_completion,
--					msecs_to_jiffies(100)))
--			DSSERR("timeout waiting for FRAMEDONEWB\n");
--
--		r = omap_dispc_unregister_isr(dispc_mgr_disable_isr,
--				&frame_done_completion, irq);
--		if (r)
--			DSSERR("failed to unregister FRAMEDONEWB isr\n");
--	}
-+	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(OMAP_DSS_WB), enable ? 1 : 0, 0, 0);
- }
- 
- bool dispc_wb_is_enabled(void)
- {
--	enum omap_plane plane = OMAP_DSS_WB;
--
--	return REG_GET(DISPC_OVL_ATTRIBUTES(plane), 0, 0);
-+	return REG_GET(DISPC_OVL_ATTRIBUTES(OMAP_DSS_WB), 0, 0);
- }
- 
- static void dispc_lcd_enable_signal_polarity(bool act_high)
+-	if (dpi_verify_dsi_pll(dsidev)) {
++	if (dsidev && dpi_verify_dsi_pll(dsidev)) {
+ 		dsidev = NULL;
+ 		DSSWARN("DSI PLL not operational\n");
+ 	}
 -- 
 1.7.10.4
 
