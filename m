@@ -1,80 +1,69 @@
-From: Matthias Brugger <matthias.bgg@googlemail.com>
-Subject: [PATCH] mach-omap2/board-igep0020.c: Fix reboot problem
-Date: Thu, 15 Nov 2012 17:06:53 +0100
-Message-ID: <1352995613-17994-1-git-send-email-matthias.bgg@gmail.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH 3/3] ASoC: OMAP: HDMI: Obtain DMA port from resources
+Date: Thu, 15 Nov 2012 10:22:05 -0600
+Message-ID: <50A516AD.8000702@ti.com>
+References: <1352860249-26348-1-git-send-email-ricardo.neri@ti.com> <1352860249-26348-4-git-send-email-ricardo.neri@ti.com> <20121114032712.GQ4415@opensource.wolfsonmicro.com> <50A3CFBD.5080903@ti.com> <20121114230848.GA4536@opensource.wolfsonmicro.com> <50A45467.6070404@ti.com> <20121115040141.GC7599@opensource.wolfsonmicro.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:49385 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1767956Ab2KOQHO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 11:07:14 -0500
-Received: by mail-wg0-f44.google.com with SMTP id dr13so909965wgb.1
-        for <linux-omap@vger.kernel.org>; Thu, 15 Nov 2012 08:07:13 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:60428 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992633Ab2KOQXF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 11:23:05 -0500
+In-Reply-To: <20121115040141.GC7599@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: martinez.javier@gmail.com, eballetbo@iseebcn.com, Matthias Brugger <matthias.bgg@gmail.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
-This patch adds a generic power save script, which resets the TWL4030 when a
-warm reset occures. This way the OMAP3530 does not hang on reboot.
+Hi Mark,
 
-Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
----
- arch/arm/mach-omap2/board-igep0020.c |   36 ++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+On 11/14/2012 10:10 PM, Mark Brown wrote:
+> On Wed, Nov 14, 2012 at 08:33:11PM -0600, Ricardo Neri wrote:
+>> On 11/14/2012 05:08 PM, Mark Brown wrote:
+>
+>>> Don't do this.  With a change like this which must be made at the same
+>>> time over multiple subsystems it is very important that you send all the
+>
+>> but the changes will hit linux-next at some point and they could be
+>> tested there, right?
+>
+> This isn't much fun for anyone doing git bisect, it means the device
+> will be unusuable for large periods of history.
+>
+>> Sorry, as changes for the HDMI drivers go to several maintainers, I
+>> was trying to send the relevant patches to the respective
+>> maintainers and avoid potential merge/rebase issues.
+>
+> You need to make sure everyone involved knows what's going on - review
+> should really turn up the sort of issue I just highlighted.
+>
+>> Tomi has already taken the DSS changes. Perhaps, if you and Tomi
+>> agree, Tomi could also take the ASoC and the arch/arm/mach-omap2
+>> changes. This way all changes come from the same tree.
+>
+> Yes, we're going to need to do that.  Ideally all the changes would be
+> squashed into a single commit.
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 48d5e41..9ba1c4b 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -487,11 +487,47 @@ static struct twl4030_keypad_data igep2_keypad_pdata = {
- 	.rep		= 1,
- };
- 
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size   = ARRAY_SIZE(wrst_seq),
-+	.flags  = TWL4030_WRST_SCRIPT,
-+};
-+
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig twl4030_rconfig[] = {
-+	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
-+		.type2 = -1 },
-+	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
-+		.type2 = -1 },
-+	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
-+		.type2 = -1 },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data igep_twl4030_power_data = {
-+	.scripts	= twl4030_scripts,
-+	.num		= ARRAY_SIZE(twl4030_scripts),
-+	.resource_config = twl4030_rconfig,
-+};
-+
- static struct twl4030_platform_data igep_twldata = {
- 	/* platform_data for children goes here */
- 	.gpio		= &igep_twl4030_gpio_pdata,
- 	.vmmc1          = &igep_vmmc1,
- 	.vio		= &igep_vio,
-+	.power		= &igep_twl4030_power_data,
- };
- 
- static struct i2c_board_info __initdata igep2_i2c3_boardinfo[] = {
--- 
-1.7.9.5
+OK. Tomi has offered to revert the patch that create the platform 
+device. I will resubmit a new series with all the required changes 
+squashing all the platform devices into a single one.
 
+>
+>>>> This change should be present in K3.8.
+>
+>>> What is "K3.8"?
+>
+>> I meant that Tomi took the DSS changes in [1] on his master branch
+>> and he should push them upstream when the merge window for kernel
+>> v3.8 opens.
+>
+> Do you mean that "K3.8" is "v3.8"?
+
+Yes, that is what I mean.
+
+BR,
+
+Ricardo
+>
