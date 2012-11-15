@@ -1,58 +1,80 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
-Date: Thu, 15 Nov 2012 16:06:38 +0000
-Message-ID: <20121115160638.GA30579@arm.com>
-References: <50A3EBCD.3040801@ti.com>
- <20121114202244.GE3332@n2100.arm.linux.org.uk>
- <20121114203221.GA6801@atomide.com>
- <50A413D4.7000405@gmail.com>
- <20121114222159.GB6801@atomide.com>
- <50A43D58.5030404@gmail.com>
- <20121115110137.GA25985@arm.com>
- <50A4FCC5.2080604@gmail.com>
- <20121115143714.GF25985@arm.com>
- <50A50C24.9010702@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+From: Matthias Brugger <matthias.bgg@googlemail.com>
+Subject: [PATCH] mach-omap2/board-igep0020.c: Fix reboot problem
+Date: Thu, 15 Nov 2012 17:06:53 +0100
+Message-ID: <1352995613-17994-1-git-send-email-matthias.bgg@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:42297 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1767956Ab2KOQGr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 11:06:47 -0500
-In-Reply-To: <50A50C24.9010702@gmail.com>
-Content-Disposition: inline
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:49385 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1767956Ab2KOQHO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Nov 2012 11:07:14 -0500
+Received: by mail-wg0-f44.google.com with SMTP id dr13so909965wgb.1
+        for <linux-omap@vger.kernel.org>; Thu, 15 Nov 2012 08:07:13 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: martinez.javier@gmail.com, eballetbo@iseebcn.com, Matthias Brugger <matthias.bgg@gmail.com>
 
-On Thu, Nov 15, 2012 at 03:37:08PM +0000, Rob Herring wrote:
-> On 11/15/2012 08:37 AM, Catalin Marinas wrote:
-> > On Thu, Nov 15, 2012 at 02:31:33PM +0000, Rob Herring wrote:
-> >> Does that work for Versatile Express CA9? It needs ARM_ERRATA_751472.
-> > 
-> > On VE Linux runs in secure mode, so it's fine.
-> 
-> WTF? You are contradicting yourself.
+When rebooting an OMAP3530 at 125 MHz, the reboot hangs.
+This patch adds a generic power save script, which resets the TWL4030 when a
+warm reset occures. This way the OMAP3530 does not hang on reboot.
 
-No, it was just a statement that you can enable this workaround on VE
-CA9. Didn't realise you were referring to the MULTI_PLATFORM case (it's
-afternoon and coffee here not that great).
+Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
+---
+ arch/arm/mach-omap2/board-igep0020.c |   36 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-> Don't determine secure mode or not,
-> but apply work-arounds only in secure mode? How does a kernel built to
-> boot on secure and non-secure chips know that? The requirement would be
-> that every platform have proper work-arounds setup by the bootloader
-> regardless of running in secure or non-secure mode.
-
-Yes, so for such workarounds that require secure register access just
-make them depend on !MULTI_PLATFORM. Of course, VE CA9 would be affected
-since neither the boot loader nor boot monitor touch those bits (yet).
-But they definitely should as I don't see any other way to support
-multi-platform, especially when such bits need to be set long before the
-DT is parsed.
-
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 48d5e41..9ba1c4b 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -487,11 +487,47 @@ static struct twl4030_keypad_data igep2_keypad_pdata = {
+ 	.rep		= 1,
+ };
+ 
++static struct twl4030_ins wrst_seq[] __initdata = {
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_OFF), 2},
++	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_WRST), 15},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_WRST), 15},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_WRST), 0x60},
++	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
++	{MSG_SINGULAR(DEV_GRP_NULL, 0x1b, RES_STATE_ACTIVE), 2},
++};
++
++static struct twl4030_script wrst_script __initdata = {
++	.script = wrst_seq,
++	.size   = ARRAY_SIZE(wrst_seq),
++	.flags  = TWL4030_WRST_SCRIPT,
++};
++
++static struct twl4030_script *twl4030_scripts[] __initdata = {
++	&wrst_script,
++};
++
++static struct twl4030_resconfig twl4030_rconfig[] = {
++	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
++		.type2 = -1 },
++	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
++		.type2 = -1 },
++	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
++		.type2 = -1 },
++	{ 0, 0},
++};
++
++static struct twl4030_power_data igep_twl4030_power_data = {
++	.scripts	= twl4030_scripts,
++	.num		= ARRAY_SIZE(twl4030_scripts),
++	.resource_config = twl4030_rconfig,
++};
++
+ static struct twl4030_platform_data igep_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &igep_twl4030_gpio_pdata,
+ 	.vmmc1          = &igep_vmmc1,
+ 	.vio		= &igep_vio,
++	.power		= &igep_twl4030_power_data,
+ };
+ 
+ static struct i2c_board_info __initdata igep2_i2c3_boardinfo[] = {
 -- 
-Catalin
+1.7.9.5
 
