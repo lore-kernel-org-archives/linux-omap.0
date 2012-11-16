@@ -1,46 +1,137 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] drm/omap: use omapdss low level API
-Date: Fri, 16 Nov 2012 04:19:28 -0800
-Message-ID: <20121116121928.GA20226@kroah.com>
-References: <1353024058-11504-1-git-send-email-robdclark@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH] OMAP: board-files: fix i2c_bus for tfp410
+Date: Fri, 16 Nov 2012 14:22:33 +0200
+Message-ID: <1353068553-26897-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:44796 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751231Ab2KPMSn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Nov 2012 07:18:43 -0500
-Content-Disposition: inline
-In-Reply-To: <1353024058-11504-1-git-send-email-robdclark@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50353 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377Ab2KPMXa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Nov 2012 07:23:30 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, patches@linaro.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, stable@vger.kernel.org
 
-On Thu, Nov 15, 2012 at 06:00:58PM -0600, Rob Clark wrote:
-> This patch changes the omapdrm KMS to bypass the omapdss "compat"
-> layer and use the core omapdss API directly.  This solves some layering
-> issues that would cause unpin confusion vs GO bit status, because we
-> would not know whether a particular pageflip or overlay update has hit
-> the screen or not.  Now instead we explicitly manage the GO bits in
-> dispc and handle the vblank/framedone interrupts ourself so that we
-> always know which buffers are being scanned out at any given time, and
-> so on.
-> 
-> As an added bonus, we no longer leave the last overlay buffer pinned
-> when the display is disabled, and have been able to add the previously
-> missing vblank event handling.
-> 
-> Signed-off-by: Rob Clark <robdclark@gmail.com>
-> ---
-> Note: this patch applies on top of staging-next plus the "OMAPDSS:
-> create compat layer" patch series:
-> 
-> http://comments.gmane.org/gmane.linux.ports.arm.omap/89435
+The i2c handling in tfp410 driver, which handles converting parallel RGB
+to DVI, was changed in 958f2717b84e88bf833d996997fda8f73276f2af. The
+patch changed what value the driver considers as invalid/undefined.
+Before the patch 0 was the invalid value, but as 0 is a valid bus
+number, the patch changed this to -1.
 
-Hm, I can't take that patch set in staging-next, so how should this go
-in?
+However, the fact was missed that many board files do not define the bus
+number at all, thus it's left to 0. This causes the driver to fail to
+get the i2c bus, exiting from the driver's probe with an error, meaning
+that the DVI output does not work for those boards.
 
-thanks,
+This patch fixes the issue by changing the i2c_bus number field in the
+driver's platform data from u16 to int, and setting the bus number to -1
+in the board files for the boards that did not define the bus. The
+exception is devkit8000, for which the bus is set to 1, which is the
+correct bus for that board.
 
-greg k-h
+The bug exists in v3.5+ kernels.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Reported-by: Thomas Weber <thomas@tomweber.eu>
+[for v3.5, v3.6 stable kernels]
+Cc: stable@vger.kernel.org
+---
+ arch/arm/mach-omap2/board-3430sdp.c      |    1 +
+ arch/arm/mach-omap2/board-am3517evm.c    |    1 +
+ arch/arm/mach-omap2/board-cm-t35.c       |    1 +
+ arch/arm/mach-omap2/board-devkit8000.c   |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c     |    1 +
+ arch/arm/mach-omap2/board-omap3stalker.c |    1 +
+ include/video/omap-panel-tfp410.h        |    2 +-
+ 7 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 96cd369..09e1790 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -157,6 +157,7 @@ static struct omap_dss_device sdp3430_lcd_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= -1,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device sdp3430_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index e162897..f2a920a 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -208,6 +208,7 @@ static struct omap_dss_device am3517_evm_tv_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= -1,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device am3517_evm_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 376d26e..7ed0270 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -243,6 +243,7 @@ static struct omap_dss_device cm_t35_lcd_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= CM_T35_DVI_EN_GPIO,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device cm_t35_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 1fd161e..6f04f0f 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -139,6 +139,7 @@ static struct omap_dss_device devkit8000_lcd_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= -1,
++	.i2c_bus_num		= 1,
+ };
+ 
+ static struct omap_dss_device devkit8000_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index b9b776b..5631eb9 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -236,6 +236,7 @@ static struct omap_dss_device omap3_evm_tv_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= OMAP3EVM_DVI_PANEL_EN_GPIO,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device omap3_evm_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 731235e..797be22 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -119,6 +119,7 @@ static struct omap_dss_device omap3_stalker_tv_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= DSS_ENABLE_GPIO,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device omap3_stalker_dvi_device = {
+diff --git a/include/video/omap-panel-tfp410.h b/include/video/omap-panel-tfp410.h
+index 68c31d7..aef35e4 100644
+--- a/include/video/omap-panel-tfp410.h
++++ b/include/video/omap-panel-tfp410.h
+@@ -28,7 +28,7 @@ struct omap_dss_device;
+  * @power_down_gpio: gpio number for PD pin (or -1 if not available)
+  */
+ struct tfp410_platform_data {
+-	u16 i2c_bus_num;
++	int i2c_bus_num;
+ 	int power_down_gpio;
+ };
+ 
+-- 
+1.7.10.4
+
