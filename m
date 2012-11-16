@@ -1,117 +1,50 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [RFC PATCH v3 02/16] ARM: davinci: move private EDMA API to
- arm/common
-Date: Fri, 16 Nov 2012 11:49:30 -0500
-Message-ID: <20121116164930.GC20006@beef>
-References: <1350566815-409-1-git-send-email-mporter@ti.com>
- <1350566815-409-3-git-send-email-mporter@ti.com>
- <508CEA05.8060200@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
+Date: Fri, 16 Nov 2012 09:13:33 -0800
+Message-ID: <20121116171333.GL6801@atomide.com>
+References: <20121114202244.GE3332@n2100.arm.linux.org.uk>
+ <20121114203221.GA6801@atomide.com>
+ <50A413D4.7000405@gmail.com>
+ <20121114222159.GB6801@atomide.com>
+ <50A43D58.5030404@gmail.com>
+ <20121115110137.GA25985@arm.com>
+ <50A4FCC5.2080604@gmail.com>
+ <20121115143714.GF25985@arm.com>
+ <50A50C24.9010702@gmail.com>
+ <20121116100550.GI3332@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40570 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751773Ab2KPRNn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Nov 2012 12:13:43 -0500
 Content-Disposition: inline
-In-Reply-To: <508CEA05.8060200@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20121116100550.GI3332@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Rob Herring <robherring2@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sun, Oct 28, 2012 at 01:47:09PM +0530, Sekhar Nori wrote:
-> On 10/18/2012 6:56 PM, Matt Porter wrote:
-> > Move mach-davinci/dma.c to common/edma.c so it can be used
-> > by OMAP (specifically AM33xx) as well. This just moves the
-> > private EDMA API but does not support OMAP.
-> > 
-> > Signed-off-by: Matt Porter <mporter@ti.com>
-> > ---
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [121116 02:07]:
 > 
-> > diff --git a/arch/arm/mach-davinci/devices.c b/arch/arm/mach-davinci/devices.c
-> > index 4c48a36..f45d591 100644
-> > --- a/arch/arm/mach-davinci/devices.c
-> > +++ b/arch/arm/mach-davinci/devices.c
-> > @@ -19,9 +19,10 @@
-> >  #include <mach/irqs.h>
-> >  #include <mach/cputype.h>
-> >  #include <mach/mux.h>
-> > -#include <mach/edma.h>
-> >  #include <linux/platform_data/mmc-davinci.h>
-> >  #include <mach/time.h>
-> > +#include <linux/platform_data/edma.h>
-> 
-> Can you please introduce a patch to clean this mixture of linux/ and
-> mach/ includes?
+> So, we don't detect whether we're running in secure mode or not; as I've
+> already stated, we don't have a way to do that.  We instead only apply
+> work-arounds which aren't already enabled prior to the kernel booting.
+> So, even on a secure mode platform, we will avoid writing the bits if the
+> work-around has already been applied.
 
-Sure.
+This all assumes that we can read the value of the diagnostic register,
+and on my 4430 blaze the read returns zero. I have no idea if this is
+the correct value for the register, or if reads always just returns 0.
 
-> 
-> > +
-> >  
-> >  #include "davinci.h"
-> >  #include "clock.h"
-> > @@ -141,10 +142,10 @@ static struct resource mmcsd0_resources[] = {
-> >  	},
-> >  	/* DMA channels: RX, then TX */
-> >  	{
-> > -		.start = EDMA_CTLR_CHAN(0, DAVINCI_DMA_MMCRXEVT),
-> > +		.start = EDMA_CTLR_CHAN(0, 26),
-> 
-> Instead of just replacing the event #defines with plain numbers, can you
-> introduce a mach-davinci local edma.h which can then be included in the
-> davinci platform files which refer to edma channel numbers?
+If we can verify that the read of the diagnostic register returns the
+correct value, then we don't need to test for the secure mode like you
+are saying, and can require the bootrom or bootloader set the right bits.
 
-Yes.
+Can somebody confirm that reading of the diagnostic register without
+using SMI is supposed to return the correct value?
 
-> > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> > index 7cd56ed..153fab8 100644
-> > --- a/arch/arm/plat-omap/Kconfig
-> > +++ b/arch/arm/plat-omap/Kconfig
-> > @@ -28,6 +28,7 @@ config ARCH_OMAP2PLUS
-> >  	select OMAP_DM_TIMER
-> >  	select PROC_DEVICETREE if PROC_FS
-> >  	select SPARSE_IRQ
-> > +	select TI_PRIV_EDMA
-> 
-> This hunk does not seem to belong to subject of this patch.
+Regards,
 
-Yep, stray hunk..will move to the am335x enablement.
-
-> >  	select USE_OF
-> >  	help
-> >  	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
-> 
-> > diff --git a/include/linux/platform_data/edma.h b/include/linux/platform_data/edma.h
-> > new file mode 100644
-> > index 0000000..7396f0b3
-> > --- /dev/null
-> > +++ b/include/linux/platform_data/edma.h
-> > @@ -0,0 +1,198 @@
-> > +/*
-> > + *  TI DAVINCI dma definitions
-> > + *
-> > + *  Copyright (C) 2006-2009 Texas Instruments.
-> > + *
-> > + *  This program is free software; you can redistribute  it and/or modify it
-> > + *  under  the terms of  the GNU General  Public License as published by the
-> > + *  Free Software Foundation;  either version 2 of the  License, or (at your
-> > + *  option) any later version.
-> > + *
-> > + *  THIS  SOFTWARE  IS PROVIDED   ``AS  IS'' AND   ANY  EXPRESS OR IMPLIED
-> > + *  WARRANTIES,   INCLUDING, BUT NOT  LIMITED  TO, THE IMPLIED WARRANTIES OF
-> > + *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
-> > + *  NO  EVENT  SHALL   THE AUTHOR  BE    LIABLE FOR ANY   DIRECT, INDIRECT,
-> > + *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-> > + *  NOT LIMITED   TO, PROCUREMENT OF  SUBSTITUTE GOODS  OR SERVICES; LOSS OF
-> > + *  USE, DATA,  OR PROFITS; OR  BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-> > + *  ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR TORT
-> > + *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-> > + *  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> 
-> > + *  You should have received a copy of the  GNU General Public License along
-> > + *  with this program; if not, write  to the Free Software Foundation, Inc.,
-> > + *  675 Mass Ave, Cambridge, MA 02139, USA.
-> 
-> This part can be dropped, I suppose ;-)
-
-Ok :)
-
--Matt
+Tony
