@@ -1,90 +1,60 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 1/2] ARM: OMAP2+: HDMI: Relocate audio platform device
- creation
-Date: Fri, 16 Nov 2012 09:38:30 +0200
-Message-ID: <50A5ED76.4040308@ti.com>
-References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com> <1353029819-21809-2-git-send-email-ricardo.neri@ti.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: OMAP baseline test results for v3.7-rc5
+Date: Fri, 16 Nov 2012 08:47:55 +0100
+Message-ID: <20121116074754.GA25218@netboy.at.omicron.at>
+References: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
+ <50A26FC6.4070201@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig192DBA5546B76A61C23409F8"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33170 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750765Ab2KPHih (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Nov 2012 02:38:37 -0500
-In-Reply-To: <1353029819-21809-2-git-send-email-ricardo.neri@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <50A26FC6.4070201@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Igor Mazanov <i.mazanov@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
---------------enig192DBA5546B76A61C23409F8
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tue, Nov 13, 2012 at 08:05:26PM +0400, Igor Mazanov wrote:
+> Paul Walmsley wrote:
+> >
+> >* AM335x Beaglebone: omap2plus_defconfig kernels don't boot
+> >  - May be fixed now, pending retest:
+> >    - http://marc.info/?l=linux-omap&m=135082257727502&w=2
+> >  - Not yet part of the automated test suite
+> >  * May be due to an old U-boot with FDT support problems used here?
+> >    Pending local investigation and re-test
+> 
+> I have the same result with omap2plus_defconfig and kernel 3.7.0-rc5. I dumped
+> the kernel log buffer via JTAG and can send this log if it could be useful.
 
-Hi,
+I just got my BeagleBone replaced via RMA, and so I could try a fresh
+build of 3.7.0-rc5 with omap2plus_defconfig. It works just fine for me.
 
-On 2012-11-16 03:36, Ricardo Neri wrote:
-> Creating the accessory devices (such as audio) from the HDMI driver,
-> allows to regard HDMI as a single entity with audio an display
-> functionality. This intends to follow the design of drivers such
-> as MFD-type, in which a single entity handles the creation of the acces=
-sory
-> devices. Such devices are then used by domain-specific drivers (audio i=
-n
-> this case). This is in line with the DT implementation of HDMI, in whic=
-h
-> we will have a single node to describe this feature of the OMAP SoC. Ot=
-herwise,
-> we would need to have separate nodes for audio and video functionality.=
+A few details:
 
->=20
-> Previously, the platform device for the audio driver was created in
-> arch/arm/mach-omap2/devices.c. Thus, this is removed.
->=20
-> Also, as the platform device for audio created by the OMAPDSS HDMI now =
-provides
-> a resource for the DMA port for audio samples, we do not need to specif=
-y
-> any offset in the ASoC HDMI CPU DAI driver.
+U-Boot SPL 2012.10-rc1-00148-g4668a08 (Sep 30 2012 - 09:35:20)
+U-Boot 2012.10-rc1-00148-g4668a08 (Sep 30 2012 - 09:35:20)
 
-If you notice yourself writing "also, the patch does this" in the patch
-description, it's usually a sign that the patch needs to be split =3D).
+ setenv ipaddr 192.168.0.77
+ setenv serverip 192.168.0.12
+ setenv netmask 255.255.255.0
+ setenv bootargs console=ttyO0,115200n8 mem=256M root=/dev/ram rw initrd=0x82000000,16MB ramdisk_size=16384 earlyprintk=serial
+ tftp 81000000 uImage
+ tftp 82000000 beaglebone-initrd.gz
+ tftp 80000000 am335x-bone.dtb
+ bootm 81000000 - 80000000
 
-That's perhaps not so important when a patch only deals with one
-subsystem or one file, but when the patch changes arch, video and audio
-drivers at the same time I would like to have the patches as simple as
-possible.
+So I guess just using a recent u-boot will fix whatever issues you are
+seeing.
 
-Here I suggest you handle the DMA port change in a separate patch.
-
- Tomi
-
-
-
---------------enig192DBA5546B76A61C23409F8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQpe12AAoJEPo9qoy8lh71d2oP/2MDSXYGvJs98COpjMhLkBmZ
-AAnzmn1o6mFpTk13UbH+wy2+qdTpnDQPSvlC3o3vlCO+ImbLWB14WbM+TwkWsCxr
-lSjvfkNE7/0X0pMSX6CFAjO6wsEpME3VkjUUuAC8P62kAEN/uyIPbRfaPD+ywcpp
-42z7iozwKa6lET/IQypGQ8BUbVh6O89RS4XmI2E291Ow8fazkB4E1kBWku9wHt0m
-VbJxYXOqHDSXCkH9d7kAvt3VBMwL5Gkz8JCXgpTwM/ln7LZIVynG8SC3g2kYAUUz
-eW2tK6Be7Z3xxds/rdkVDDR0TQLsBJYi3ERZsPl0tRmI0iNq18i8cx6mc1uTAHqp
-p2+HoNjuB0Kp61E73HK+Afcs9Zi+OzrQWOmSjSaknYofxQ5bEPdz8RA2vBVzOBS5
-o9SDteXu2sn2tk0Dkn8wGGeknh48rquBpQW0AViRQqcEUuFsqA7KL41yl0LWtIHQ
-xvRs7z5RR5RrxSBWB0v62pT7ZBVrxhR5p66Lb7P92uCbuIP8AeXc0xUMRfVdvYKP
-qGZBfBSOGQLVNEAxZIjsP3yGHkRADktIXSBCNlkQZ9fNUqiV9Qumx5KJHdD41OeA
-53zsdPdvCfwD76ZGH1+X1dgds2UMMrA9BcSrlYh2VALWu4onurV7W3QV+5ZtnlNS
-7q8cwWRIcyc5YOln7stG
-=3Azt
------END PGP SIGNATURE-----
-
---------------enig192DBA5546B76A61C23409F8--
+Thanks,
+Richard
