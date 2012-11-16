@@ -1,85 +1,53 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH v3 7/7] crypto: omap_sham: Remove usage of private DMA
- API
-Date: Fri, 16 Nov 2012 15:40:19 -0700
-Message-ID: <20121116224019.GB25182@animalcreek.com>
-References: <1352257033-32495-1-git-send-email-mgreer@animalcreek.com>
- <1352257033-32495-8-git-send-email-mgreer@animalcreek.com>
- <CALLzPKY9fRSwgSTw-t9-wRbCHVbKPA=m+RsTWW4=CaxtDCczcQ@mail.gmail.com>
- <20121109171745.GB13898@animalcreek.com>
- <CALLzPKZ0qC-mm4tLsywzGi7jtnK8aSQcbW5sGxr2Z1g6hyBpsA@mail.gmail.com>
- <20121114164755.GA16925@animalcreek.com>
+From: Joel A Fernandes <joelagnel@ti.com>
+Subject: [PATCH] AM33XX: Clock: Fix JTAG disconnect during kernel boot
+Date: Fri, 16 Nov 2012 17:30:01 -0600
+Message-ID: <1353108601-25813-1-git-send-email-joelagnel@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121114164755.GA16925@animalcreek.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: "Kasatkin, Dmitry" <dmitry.kasatkin@intel.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43042 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753653Ab2KPX2B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Nov 2012 18:28:01 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id qAGNS0FZ010164
+	for <linux-omap@vger.kernel.org>; Fri, 16 Nov 2012 17:28:01 -0600
+Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id qAGNRwUI018589
+	for <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 04:57:59 +0530 (IST)
+Received: from joelbox.am.dhcp.ti.com (dbdp20.itg.ti.com [172.24.170.38])	by
+ dbdp32.itg.ti.com (8.13.8/8.13.8) with ESMTP id qAGNRuuo032028	for
+ <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 04:57:57 +0530
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Wed, Nov 14, 2012 at 09:47:55AM -0700, Mark A. Greer wrote:
-> On Tue, Nov 13, 2012 at 11:47:57PM -0800, Kasatkin, Dmitry wrote:
-> > On Fri, Nov 9, 2012 at 9:17 AM, Mark A. Greer <mgreer@animalcreek.com> wrote:
-> > > On Fri, Nov 09, 2012 at 06:28:16PM +0200, Kasatkin, Dmitry wrote:
-> > >> On Wed, Nov 7, 2012 at 4:57 AM, Mark A. Greer <mgreer@animalcreek.com> wrote:
-> > >> > From: "Mark A. Greer" <mgreer@animalcreek.com>
-> > >> >
-> > >> > Remove usage of the private OMAP DMA API.
-> > >> > The dmaengine API will be used instead.
-> > >> >
-> > >> > CC: Russell King <rmk+kernel@arm.linux.org.uk>
-> > >> > CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
-> > >> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> > >> > ---
-> > >> >  drivers/crypto/omap-sham.c | 117 ---------------------------------------------
-> > >> >  1 file changed, 117 deletions(-)
-> > >> >
-> > >> > diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-> > >> > index b57277c..ebb5255 100644
-> > >> > --- a/drivers/crypto/omap-sham.c
-> > >> > +++ b/drivers/crypto/omap-sham.c
-> > >
-> > >> > @@ -807,18 +762,6 @@ static int omap_sham_handle_queue(struct omap_sham_dev *dd,
-> > >> >         if (err)
-> > >> >                 goto err1;
-> > >> >
-> > >> > -#ifdef OMAP_SHAM_DMA_PRIVATE
-> > >> > -       omap_set_dma_dest_params(dd->dma_lch, 0,
-> > >> > -                       OMAP_DMA_AMODE_CONSTANT,
-> > >> > -                       dd->phys_base + SHA_REG_DIN(0), 0, 16);
-> > >> > -
-> > >> > -       omap_set_dma_dest_burst_mode(dd->dma_lch,
-> > >> > -                       OMAP_DMA_DATA_BURST_16);
-> > >> > -
-> > >> > -       omap_set_dma_src_burst_mode(dd->dma_lch,
-> > >> > -                       OMAP_DMA_DATA_BURST_4);
-> > >>
-> > >> Burst mode significantly improves performance.
-> > >> How do you configure burst mode with new API?
-> > >
-> > > This is (or should be) taken care of by the dmaengine infrastructure.
-> > > I've noted that there's an issue and there is a discussion about it
-> > > here:
-> > >
-> > >         http://www.spinics.net/lists/linux-omap/msg79855.html
-> > >
-> > > We probably need to extend the dmaengine API to allow API-users to
-> > > request specific tweaks/optimizations/whatever but that's MHO.
-> > >
-> > 
-> > Hello,
-> > 
-> > I am in favor of new APIs.
-> > The only my concern is that it performs worse..
-> > 
-> > Is it possible to keep burst mode setting there?
-> 
-> I'm going to respin the patch the I posted in the email thread above
-> to only set bursting for non-cyclic DMAs.
+Set ENABLE_ON_INIT for debugss clock so that it is on during init and the usecount is incremented.
+Not doing so causes kernel to disable debugss clock to save power when CONFIG_OMAP_RESET_CLOCKS
+is set, causing a JTAG disconnect.
 
-Just sent.  Should be in your inbox shortly.
+Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
+Cc: Russ Dill <Russ.Dill@ti.com>
+Cc: Matt Porter <mporter@ti.com>
+Cc: Steve Kipisz <s-kipisz2@ti.com>
+Cc: Jason Kridner <jkridner@beagleboard.org>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/clock33xx_data.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-Mark
---
+diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+index b7b7995..d0b4313 100644
+--- a/arch/arm/mach-omap2/clock33xx_data.c
++++ b/arch/arm/mach-omap2/clock33xx_data.c
+@@ -585,6 +585,7 @@ static struct clk debugss_ick = {
+ 	.clkdm_name	= "l3_aon_clkdm",
+ 	.parent		= &dpll_core_m4_ck,
+ 	.ops		= &clkops_omap2_dflt,
++	.flags		= ENABLE_ON_INIT,
+ 	.enable_reg	= AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
+ 	.enable_bit	= AM33XX_MODULEMODE_SWCTRL,
+ 	.recalc		= &followparent_recalc,
+-- 
+1.7.9.5
+
