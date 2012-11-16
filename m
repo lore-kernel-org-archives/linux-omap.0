@@ -1,14 +1,20 @@
 From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/4] rtc: OMAP: Add system pm_power_off to rtc driver
-Date: Fri, 16 Nov 2012 06:13:37 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA6D1A1@DBDE01.ent.ti.com>
+Subject: RE: [PATCH 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
+Date: Fri, 16 Nov 2012 06:16:02 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA6D1C4@DBDE01.ent.ti.com>
 References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
- <1352108549-9341-3-git-send-email-anilkumar@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EC04226@DBDE01.ent.ti.com>
+ <1352108549-9341-2-git-send-email-anilkumar@ti.com> <5097F078.50701@ti.com>
+ <20121114022341.GM4415@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA6B043@DBDE01.ent.ti.com>
+ <20121114062117.GC7407@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA6B0AF@DBDE01.ent.ti.com>
+ <20121114070046.GE7407@opensource.wolfsonmicro.com>
+ <50A36DB1.3010706@ti.com> <20121114102452.GI7407@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121114102452.GI7407-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
@@ -20,60 +26,37 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
 Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 Sender: "devicetree-discuss"
  <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>, "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 12, 2012 at 15:17:48, AnilKumar, Chimata wrote:
-> On Tue, Nov 06, 2012 at 11:15:34, Bedia, Vaibhav wrote:
-> > On Mon, Nov 05, 2012 at 15:12:27, AnilKumar, Chimata wrote:
-> > [...]
-> > >  
-> > > +#define SHUTDOWN_TIME_SEC		2
-> > > +#define SECS_IN_MIN			60
-> > > +#define WAIT_AFTER			(SECS_IN_MIN - SHUTDOWN_TIME_SEC)
-> > > +#define WAIT_TIME_MS			(SHUTDOWN_TIME_SEC * 1000)
-> > > +
-> > >  static void __iomem	*rtc_base;
-> > >  
-> > [...]
-> > > +
-> > > +	/* Wait few seconds instead of rollover */
-> > > +	do {
-> > > +		omap_rtc_read_time(NULL, &tm);
-> > > +		if (WAIT_AFTER <= tm.tm_sec)
-> > > +			mdelay(WAIT_TIME_MS);
-> > > +	} while (WAIT_AFTER <= tm.tm_sec);
-> > 
-> > This hardcoded wait for rollover doesn't look good. I see some
-> > helper functions in rtc-lib.c which probably could be used for
-> > converting the current time to elapsed seconds, add the delay and
-> > then convert it back to the time to be programmed in RTC without
-> > worrying about rollover. Why not use that?
+On Wed, Nov 14, 2012 at 15:54:53, Mark Brown wrote:
+> On Wed, Nov 14, 2012 at 11:08:49AM +0100, Benoit Cousson wrote:
 > 
-> I am not aware of those APIs, can you point some?
+> > I was wondering that, because exposing a pin to control the whole PMIC
+> > low power mode seems to be something that should be generic enough to be
+> > handled by the regulator framework.
+> 
+> Having something that's controlled by software is really not at all
+> generic - suspending a PMIC from a GPIO is generally tied in very
+> closely with the CPU power sequencing which means it's typically some
+> combination of very hard coded things that we can't control or part of
+> much wider control of sequencing.
+> 
+> > In the current situation we do have a pwr_en pin that can be controlled
+> > by a GPIO or whatever signal from the SoC.
+> > That's very similar, at PMIC level, to the fixedregulator that allow a
+> > GPIO binding to enable it.
+> 
+> > Don't you think that should deserve a support in the fmwk?
+> 
+> I'm not seeing a coherent description of a feature here - what exactly
+> are you proposing that we do?  When and how would this GPIO be set for
+> example?
 
-I have gone through rtc-lib.c, these are the API's I am seeing
-in the library
-
-1. rtc_time_to_tm: Convert seconds since 01-01-1970 00:00:00 to
-Gregorian date
-2. rtc_tm_to_time: Convert Gregorian date to seconds since
-01-01-1970 00:00:00
-
-Steps I followed:-
-================
-1: unsigned long time;
-2: omap_rtc_read_time(NULL, &tm);
-3: rtc_tm_to_time(tm, &time);
-4: pr_info("Time 1 %lu\n", time);
-5: time += 2; /* (2sec) */
-6: rtc_time_to_tm(time, tm);
-7: rtc_tm_to_time(tm, &time); /* Only for printing time value */
-8: pr_info("Time 2 %lu\n", time); 
-
-With the above steps I am seeing completely two different time
-values at step4 and step8
+It would be better if these patches are going in like this till the
+framework exists. We can change/move this portion once the framework
+is defined for this kind.
 
 Thanks
 AnilKumar
