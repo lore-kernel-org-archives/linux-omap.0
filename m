@@ -1,152 +1,51 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP: usb-host: Device tree support for USB
- Host
-Date: Fri, 16 Nov 2012 14:05:52 +0200
-Message-ID: <50A62C20.3030700@ti.com>
-References: <1352991396-19589-1-git-send-email-rogerq@ti.com> <1352991396-19589-2-git-send-email-rogerq@ti.com> <50A615C6.6060604@ti.com> <50A61BAF.7000200@ti.com> <50A61E3F.5050908@ti.com>
+From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 4/4] ARM: dts: AM33XX: Enable system power off control in
+ am335x-bone
+Date: Fri, 16 Nov 2012 17:38:26 +0530
+Message-ID: <1353067706-29491-5-git-send-email-anilkumar@ti.com>
+References: <1353067706-29491-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40445 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751438Ab2KPMFz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Nov 2012 07:05:55 -0500
-In-Reply-To: <50A61E3F.5050908@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1353067706-29491-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: tony@atomide.com, balbi@ti.com, keshava_mgowda@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-On 11/16/2012 01:06 PM, Benoit Cousson wrote:
-> On 11/16/2012 11:55 AM, Roger Quadros wrote:
->> Hi Benoit,
->>
->> On 11/16/2012 12:30 PM, Benoit Cousson wrote:
->>> Hi Roger,
->>>
->>> On 11/15/2012 03:56 PM, Roger Quadros wrote:
->>>> Provides a means for the OMAP USB host subsystem to be initialized
->>>> from Device tree. This is a first step for device tree migration where
->>>> we specify only the board specific stuff. Things like I/O address space
->>>> and interrupts are not yet specified in the device tree but can be
->>>> done as a next step.
->>>>
->>>> This patch will allow boards to be booted with our without device tree
->>>> and have USB host functional.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>  .../devicetree/bindings/arm/omap/usb-host.txt      |   60 +++++++++++++++++
->>>>  arch/arm/mach-omap2/board-generic.c                |    1 +
->>>>  arch/arm/mach-omap2/common.h                       |    2 +
->>>>  arch/arm/mach-omap2/usb-host.c                     |   71 ++++++++++++++++++++
->>>>  4 files changed, 134 insertions(+), 0 deletions(-)
->>>>  create mode 100644 Documentation/devicetree/bindings/arm/omap/usb-host.txt
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/arm/omap/usb-host.txt b/Documentation/devicetree/bindings/arm/omap/usb-host.txt
->>>> new file mode 100644
->>>> index 0000000..f25cfa4
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/arm/omap/usb-host.txt
->>>> @@ -0,0 +1,60 @@
->>>> +* usb-host - OMAP USB Host Subsystem
->>>> +
->>>> +The OMAP USB host subsystem consists of the following modules
->>>> +1) USBTLL (Tranceiverless interface)
->>>> +2) USBHOST (Host Controller module) which includes both EHCI and OHCI controllers
->>>> +
->>>> +THe USB Host subsystem can be connected to the external world using 3 PORTs that could
->>>> +be configured in various modes like  UTMI+ for external PHY, ULPI transceiverless link (TLL),
->>>> +Serial TLL, High-speed interchip (HSIC), etc.
->>>> +
->>>> +Required proprties:
->>>> +- compatible: Must be "ti,usb-host";
->>>> +- num_ports: Number of physical ports available
->>>> +
->>>> +Optional properties:
->>>> +- 1 child node for each available port.  These child nodes are usually supplied by the
->>>> +  board support device tree as they are specific to how the ports are wired on the board
->>>> +
->>>> +  - mode: Integer specifying the mode in which the port is used
->>>> +	* OMAP_USBHS_PORT_MODE_UNUSED		= 0,
->>>> +	* OMAP_EHCI_PORT_MODE_PHY		= 1,
->>>> +	* OMAP_EHCI_PORT_MODE_TLL		= 2,
->>>> +	* OMAP_EHCI_PORT_MODE_HSIC		= 3,
->>>> +	* OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0 	= 4,
->>>> +	* OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM 	= 5,
->>>> +	* OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0	= 6,
->>>> +	* OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM	= 7,
->>>> +	* OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0	= 8,
->>>> +	* OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM	= 9,
->>>> +	* OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0	= 10,
->>>> +	* OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM	= 11,
->>>> +	* OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0	= 12,
->>>> +	* OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM	= 13,
->>>> +   - clk: Name of the clock that needs to be active when using the port
->>>> +   - clkrate: Frequency at which the above clk needs to be run at
->>>> +
->>>> +
->>>> +Example:
->>>> +
->>>> +/* In the OMAP Core tree */
->>>> +usbhost: usb-host {
->>>> +	compatible = "ti,usb-host";
->>>> +	num_ports = <3>;
->>>> +};
->>>> +
->>>> +/* In the Board tree */
->>>> +&usbhost {
->>>> +	port@0 {
->>>> +		mode = <1>;
->>>> +		clk = "auxclk3_ck";
->>>> +		clkrate = <19200000>;
->>>> +	};
->>>> +	port@1 {
->>>> +		mode = <0>;
->>>> +	};
->>>> +	port@2 {
->>>> +		mode = <0>;
->>>> +	};
->>>> +};
->>>> +
->>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->>>> index 601ecdf..4e53b62 100644
->>>> --- a/arch/arm/mach-omap2/board-generic.c
->>>> +++ b/arch/arm/mach-omap2/board-generic.c
->>>> @@ -40,6 +40,7 @@ static void __init omap_generic_init(void)
->>>>  	omap_sdrc_init(NULL, NULL);
->>>>  
->>>>  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
->>>> +	usbhost_init_of();
->>>
->>> You should never have to add that kind of hacks in generic board file.
->>> Why do you need that during board init?
->>>
->>> In theory, the of_platform_populate will create all the devices, and
->>> during the driver probe you will create the sub nodes.
->>>
->>
->> OK. I was thinking of this as a temporary fix till the USB host drivers
->> support OF nodes natively. Maybe I should work on fixing up the host
->> drivers instead.
-> 
-> Well, yeah, that's clearly better.
-> 
->> But I'm not sure how the PM runtime calls map to omap_device/hwmod
->> framework when device tree boot is used. I can see that the device tree
->> node can specify "ti,hwmods = " parameter. Just can't seem to figure out
->> how all this adds up :P
-> 
-> It is done auto-magically in the omap_device code. As soon as you add
-> the "ti,hwmods: attribute, an omap_device will be created instead of a
-> regular platform_device. A custom PM domain is added to handle the
-> pm_runtime callback for OMAP IPs. And every omap_device belongs to that
-> PM domain.
-> 
+Enable system power off control for BeagleBone in am335x-bone.dts file
+under rtc node. RTC is the incharge of controlling the system power.
+This flag is used by the driver to hook up the pm_power_off system call.
 
-Thanks. Just figured out it happens through BUS_NOTIFY_ADD_DEVICE ->
-_omap_device_notifier_call() - > omap_device_build_from_dt()
+Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/am335x-bone.dts |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-cheers,
--roger
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index 1d55190..206c3eb 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -52,6 +52,10 @@
+ 			};
+ 
+ 		};
++
++		rtc@44e3e000 {
++			ti,system-power-controller;
++		};
+ 	};
+ 
+ 	leds {
+-- 
+1.7.9.5
