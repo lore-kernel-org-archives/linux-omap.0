@@ -1,50 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
-Date: Fri, 16 Nov 2012 09:13:33 -0800
-Message-ID: <20121116171333.GL6801@atomide.com>
-References: <20121114202244.GE3332@n2100.arm.linux.org.uk>
- <20121114203221.GA6801@atomide.com>
- <50A413D4.7000405@gmail.com>
- <20121114222159.GB6801@atomide.com>
- <50A43D58.5030404@gmail.com>
- <20121115110137.GA25985@arm.com>
- <50A4FCC5.2080604@gmail.com>
- <20121115143714.GF25985@arm.com>
- <50A50C24.9010702@gmail.com>
- <20121116100550.GI3332@n2100.arm.linux.org.uk>
+From: Igor Mazanov <i.mazanov@gmail.com>
+Subject: Re: [PATCH] Remove inline from clock framework function definitions
+ to build the kernel with GCC 4.7
+Date: Fri, 16 Nov 2012 21:16:02 +0400
+Message-ID: <50A674D2.9080403@gmail.com>
+References: <50A52134.2010502@gmail.com> <alpine.DEB.2.00.1211151845050.18192@utopia.booyaka.com>
+Reply-To: i.mazanov@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40570 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751773Ab2KPRNn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Nov 2012 12:13:43 -0500
-Content-Disposition: inline
-In-Reply-To: <20121116100550.GI3332@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1211151845050.18192@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: mturquette@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robherring2@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [121116 02:07]:
+Paul Walmsley wrote:
+> + Mike
 > 
-> So, we don't detect whether we're running in secure mode or not; as I've
-> already stated, we don't have a way to do that.  We instead only apply
-> work-arounds which aren't already enabled prior to the kernel booting.
-> So, even on a secure mode platform, we will avoid writing the bits if the
-> work-around has already been applied.
+> On Thu, 15 Nov 2012, Igor Mazanov wrote:
+> 
+>>  Remove inline from clock framework function definitions to
+>>  build the kernel with GCC 4.7
+> 
+> sparse warns about this also.
+> 
+>> Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
+> 
+> This one is for Mike to deal with as CCF maintainer; it's out of the hands 
+> of the OMAP folks.
 
-This all assumes that we can read the value of the diagnostic register,
-and on my 4430 blaze the read returns zero. I have no idea if this is
-the correct value for the register, or if reads always just returns 0.
+Thanks for comments, I'll bear in mind it for the future.
 
-If we can verify that the read of the diagnostic register returns the
-correct value, then we don't need to test for the secure mode like you
-are saying, and can require the bootrom or bootloader set the right bits.
-
-Can somebody confirm that reading of the diagnostic register without
-using SMI is supposed to return the correct value?
-
-Regards,
-
-Tony
+> 
+> Acked-by: Paul Walmsley <paul@pwsan.com>
+> 
+> 
+>> ---
+>>  include/linux/clk-provider.h |    4 ++--
+>>  1 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+>> index c127315..f9f5e9e 100644
+>> --- a/include/linux/clk-provider.h
+>> +++ b/include/linux/clk-provider.h
+>> @@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
+>>  struct clk_hw *__clk_get_hw(struct clk *clk);
+>>  u8 __clk_get_num_parents(struct clk *clk);
+>>  struct clk *__clk_get_parent(struct clk *clk);
+>> -inline int __clk_get_enable_count(struct clk *clk);
+>> -inline int __clk_get_prepare_count(struct clk *clk);
+>> +int __clk_get_enable_count(struct clk *clk);
+>> +int __clk_get_prepare_count(struct clk *clk);
+>>  unsigned long __clk_get_rate(struct clk *clk);
+>>  unsigned long __clk_get_flags(struct clk *clk);
+>>  int __clk_is_enabled(struct clk *clk);
+>> --
+>> 1.7.4.4
+>>
+> 
+> 
+> - Paul
