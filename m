@@ -1,84 +1,69 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/5] OMAPFB: use dma_alloc instead of omap's vram
-Date: Fri, 16 Nov 2012 09:15:13 +0200
-Message-ID: <50A5E801.3000100@ti.com>
-References: <1352715906-16946-1-git-send-email-tomi.valkeinen@ti.com> <20121112225037.GU6801@atomide.com>
+Subject: Re: [PATCH v2 1/2] ARM: OMAP2+: HDMI: Relocate audio platform device
+ creation
+Date: Fri, 16 Nov 2012 09:38:30 +0200
+Message-ID: <50A5ED76.4040308@ti.com>
+References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com> <1353029819-21809-2-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enig1A9442FB413F366B828C5EE3"
+	boundary="------------enig192DBA5546B76A61C23409F8"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60571 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33170 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750765Ab2KPHPX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Nov 2012 02:15:23 -0500
-In-Reply-To: <20121112225037.GU6801@atomide.com>
+	id S1750765Ab2KPHih (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Nov 2012 02:38:37 -0500
+In-Reply-To: <1353029819-21809-2-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: archit@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
---------------enig1A9442FB413F366B828C5EE3
+--------------enig192DBA5546B76A61C23409F8
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-11-13 00:50, Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [121112 02:27]:
->> Hi,
->>
->> This series changes omapfb to use standard dma_alloc funcs instead of =
-omap
->> specific vram allocator. This let's us remove the omap vram allocator,=
- making
->> omapfb platform independent.
->>
->> However, note that using standard dma funcs causes the following downs=
-ides:
->>
->> 1) dma_alloc_attrs doesn't let us allocate at certain physical address=
-=2E
->> However, this should not be a problem as this feature of vram allocato=
-r
->> is only used when reserving the framebuffer that was initialized by th=
-e
->> bootloader, and we don't currently support "passing" a framebuffer fro=
-m
->> the bootloader to the kernel anyway.
->>
->> 2) dma_alloc_attrs, as of now, always ioremaps the allocated area, and=
+Hi,
 
->> we don't need the ioremap when using VRFB. This patch uses
->> DMA_ATTR_NO_KERNEL_MAPPING for the allocation, but the flag is current=
-ly
->> not operational.
->>
->> 3) OMAPFB_GET_VRAM_INFO ioctl cannot return real values anymore. I
->> changed the ioctl to return 64M for all the values, which, I hope, the=
+On 2012-11-16 03:36, Ricardo Neri wrote:
+> Creating the accessory devices (such as audio) from the HDMI driver,
+> allows to regard HDMI as a single entity with audio an display
+> functionality. This intends to follow the design of drivers such
+> as MFD-type, in which a single entity handles the creation of the acces=
+sory
+> devices. Such devices are then used by domain-specific drivers (audio i=
+n
+> this case). This is in line with the DT implementation of HDMI, in whic=
+h
+> we will have a single node to describe this feature of the OMAP SoC. Ot=
+herwise,
+> we would need to have separate nodes for audio and video functionality.=
 
->> applications will interpret as "there's enough vram".
->>
->> 4) "vram" kernel parameter to define how much ram to reserve for video=
- use no
->> longer works. The user needs to enable CMA and use "cma" parameter.
 >=20
-> Great, thanks for fixing these. Could you please queue these into
-> a separate branch against v3.7-rc5 that I can also merge into
-> omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3?
+> Previously, the platform device for the audio driver was created in
+> arch/arm/mach-omap2/devices.c. Thus, this is removed.
 >=20
-> Feel free to add my Acked-by: Tony Lindgren <tony@atomide.com> to the
-> arch/arm/*omap*/* parts.
+> Also, as the platform device for audio created by the OMAPDSS HDMI now =
+provides
+> a resource for the DMA port for audio samples, we do not need to specif=
+y
+> any offset in the ASoC HDMI CPU DAI driver.
 
-I added your acks, and pushed:
+If you notice yourself writing "also, the patch does this" in the patch
+description, it's usually a sign that the patch needs to be split =3D).
 
-git://gitorious.org/linux-omap-dss2/linux.git 3.8/vram-conversion
+That's perhaps not so important when a patch only deals with one
+subsystem or one file, but when the patch changes arch, video and audio
+drivers at the same time I would like to have the patches as simple as
+possible.
 
-It's based on -rc4 as my other branches are based on that.
+Here I suggest you handle the DMA port change in a separate patch.
 
  Tomi
 
 
 
---------------enig1A9442FB413F366B828C5EE3
+--------------enig192DBA5546B76A61C23409F8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -87,19 +72,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQpegEAAoJEPo9qoy8lh71Dv0QAIBHXdsYNvcoppwcGUTNFpuc
-ScgwlQTzRajJWvTlYx1mJms/uboyPnBdwgfdDpPZFkg0r41FzO/BCwOiB9joFxag
-1Zm38UlB65Cif45+B5RoY9s7WYP/uCHQZu/guk3Dguzr0uCVuEMl9vHm1U7ZipB6
-WSeE843y9zrxirwM8erGnkBlCdGaJOWDUWmT7ZFXWSCJh+1i/TcepaXhWpYS9vn9
-fDkyNVKjwbChGdk9Ok+yoHeO5GyWIRjtvMYtjKeE0t5RUViVAcZ4NeIoehJCw4Nz
-n46wLBs2xRNrLO/pt8lwqT9wSOi+EBN6O8yQM4OwDA9kLSda29lY/zAAkj8Lj3WD
-KjHklL59azh5ia4zPDXTYMN5mAaaNslYuL6O8/UtUzRbh4iEqpBr88qgOrZ+3vgL
-A2238aQcrwJ1Nr0GBoy3HWlpAKvkfrG5wCT+dfrPXJhflbglIm0U7xC7tEraRWu7
-ClfGqa+v0Isqsd1vb86VhS96/RGGYcf9E3TSVjnB/71h4QSZW3S3r5EeMfkgNYDj
-1VTE0D45hmfiO2QUSdNdRtfcxm9MAXU6aPXxXq5cSLpxrKspi5Y6ma1lY97k2Nst
-HbPlyFGdBdYedgBwhaqbMSRyMiqT82QQcQ/YeIdKFNgbgbJ3pbDfsU3WiWfoe03U
-JV9kKwe0Oeqr9HwlVNKc
-=33Ev
+iQIcBAEBAgAGBQJQpe12AAoJEPo9qoy8lh71d2oP/2MDSXYGvJs98COpjMhLkBmZ
+AAnzmn1o6mFpTk13UbH+wy2+qdTpnDQPSvlC3o3vlCO+ImbLWB14WbM+TwkWsCxr
+lSjvfkNE7/0X0pMSX6CFAjO6wsEpME3VkjUUuAC8P62kAEN/uyIPbRfaPD+ywcpp
+42z7iozwKa6lET/IQypGQ8BUbVh6O89RS4XmI2E291Ow8fazkB4E1kBWku9wHt0m
+VbJxYXOqHDSXCkH9d7kAvt3VBMwL5Gkz8JCXgpTwM/ln7LZIVynG8SC3g2kYAUUz
+eW2tK6Be7Z3xxds/rdkVDDR0TQLsBJYi3ERZsPl0tRmI0iNq18i8cx6mc1uTAHqp
+p2+HoNjuB0Kp61E73HK+Afcs9Zi+OzrQWOmSjSaknYofxQ5bEPdz8RA2vBVzOBS5
+o9SDteXu2sn2tk0Dkn8wGGeknh48rquBpQW0AViRQqcEUuFsqA7KL41yl0LWtIHQ
+xvRs7z5RR5RrxSBWB0v62pT7ZBVrxhR5p66Lb7P92uCbuIP8AeXc0xUMRfVdvYKP
+qGZBfBSOGQLVNEAxZIjsP3yGHkRADktIXSBCNlkQZ9fNUqiV9Qumx5KJHdD41OeA
+53zsdPdvCfwD76ZGH1+X1dgds2UMMrA9BcSrlYh2VALWu4onurV7W3QV+5ZtnlNS
+7q8cwWRIcyc5YOln7stG
+=3Azt
 -----END PGP SIGNATURE-----
 
---------------enig1A9442FB413F366B828C5EE3--
+--------------enig192DBA5546B76A61C23409F8--
