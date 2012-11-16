@@ -1,52 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 4/4] ARM: dts: AM33XX: Enable system power off control in am335x-bone
-Date: Fri, 16 Nov 2012 11:10:04 -0800
-Message-ID: <87r4ntcqk3.fsf@deeprootsystems.com>
-References: <1353067706-29491-1-git-send-email-anilkumar@ti.com>
-	<1353067706-29491-5-git-send-email-anilkumar@ti.com>
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: Re: [PATCH 00/16] OMAP USB Host cleanup
+Date: Fri, 16 Nov 2012 12:08:02 -0800
+Message-ID: <87fw49cnvh.fsf@deeprootsystems.com>
+References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:54986 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753193Ab2KPTJx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Nov 2012 14:09:53 -0500
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2056939pad.19
-        for <linux-omap@vger.kernel.org>; Fri, 16 Nov 2012 11:09:53 -0800 (PST)
-In-Reply-To: <1353067706-29491-5-git-send-email-anilkumar@ti.com> (AnilKumar
-	Ch's message of "Fri, 16 Nov 2012 17:38:26 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1352990054-14680-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org> (Roger
+	Quadros's message of "Thu, 15 Nov 2012 16:33:58 +0200")
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: a.zummo@towertech.it, sameo@linux.intel.com, tony@atomide.com, grant.likely@secretlab.ca, broonie@opensource.wolfsonmicro.com, rob.herring@calxeda.com, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-AnilKumar Ch <anilkumar@ti.com> writes:
+Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
 
-> Enable system power off control for BeagleBone in am335x-bone.dts file
-> under rtc node. RTC is the incharge of controlling the system power.
-> This flag is used by the driver to hook up the pm_power_off system call.
+> Hi,
 >
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
->  arch/arm/boot/dts/am335x-bone.dts |    4 ++++
->  1 file changed, 4 insertions(+)
+> This patchset addresses the following
 >
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index 1d55190..206c3eb 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -52,6 +52,10 @@
->  			};
->  
->  		};
-> +
-> +		rtc@44e3e000 {
-> +			ti,system-power-controller;
-> +		};
->  	};
+> - Avoid addressing clocks one by one by name and use a for loop + bunch
+>   of cleanups.
+> - Get number of channels/ports dynamically either from revision register
+>   or from platform data. Avoids getting clocks that are not present.
+> - Add OMAP5 and HSIC mode (Not tested)
+> - Save power on Panda when EHCI driver is not loaded.
+>
 
-Also, I think this series is missing a patch that allows the RTC driver
-to be compiled on AM335x.
+Seeing the clock changes/cleanups, I gave this a spin on OMAP3
+(3530/Beagle, 3530/Overo, 3730/Beagle-xM, 3730/OveroSTORM) to see if it
+fixed up the problem where CORE does not hit retention in idle when USB
+host is enabled, even with no devices attached.
+
+Unfortunately, it didn't help. :(
+
+Felipe, Keshava, any plans to address this problem which has been around
+for a couple cycles now and led me to disable USB host in
+omap2plus_defconfig?[1]
 
 Kevin
 
+[1] https://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=06b4ba529528fbf9c24ce37b7618f4b0264750e2
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
