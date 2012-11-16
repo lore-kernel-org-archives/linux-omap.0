@@ -1,67 +1,48 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 00/13] MFD: twl drivers: Convert to regmap IO and
- cleanups
-Date: Fri, 16 Nov 2012 16:44:20 +0200
-Message-ID: <1353077060.786.18.camel@sokoban>
-References: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix compiler warning for 32k timer
+Date: Fri, 16 Nov 2012 09:03:55 -0600
+Message-ID: <50A655DB.30504@ti.com>
+References: <1353008644-24745-1-git-send-email-jon-hunter@ti.com> <20121115204526.GC12466@arwen.pp.htv.fi> <50A56033.6080908@ti.com> <20121116075258.GC15669@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53864 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751804Ab2KPPD7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Nov 2012 10:03:59 -0500
+In-Reply-To: <20121116075258.GC15669@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Peter / Samuel,
 
-I just tested this set on omap3beagle + omap4460 panda boards and both
-seem to work fine. Did a boot + simple PM test for both to see that
-regulator control (which is using the I2C related stuff you have
-changed) works. Also, looking at the code everything seems to be okay to
-me, thus for whole set:
+On 11/16/2012 01:52 AM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Thu, Nov 15, 2012 at 03:35:47PM -0600, Jon Hunter wrote:
+>>
+>> On 11/15/2012 02:45 PM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Thu, Nov 15, 2012 at 01:44:04PM -0600, Jon Hunter wrote:
+>>>> +static struct of_device_id omap_counter_match[] __initdata = {
+>>>
+>>> not directly related to $SUBJECT, but shouldn't this be static const
+>>> __initconst ?
+>>
+>> Yes you are right. Looks like there are several other of_device_id
+>> structs in arch/arm/mach-omap2 that could be updated to const too.
+> 
+> here's a quick sed substitution for you:
+> 
+> $ sed -i 's/static \(struct of_device_id\)\s\(\w\+\[\]\)\s\(__initdata\|\)/static const \1 \2 __initconst/' arch/arm/*omap*/*.c
+> 
+> It worked fine here.
 
-Acked-by: Tero Kristo <t-kristo@ti.com>
+Thanks. Will fix this up in a subsequent patch.
 
-On Tue, 2012-11-13 at 09:28 +0100, Peter Ujfalusi wrote:
-> Hello,
-> 
-> This series converts the twl-core to use regmap for IO towards the chip.
-> With the conversion to regmap IO we no longer need to allocate bigger buffer for
-> writes.
-> I have appended patches to this series to make some cleanups which will help in
-> the future to further clean up the twl stack.
-> 
-> The series depends on a regression fix patch for the twl-core:
-> https://patchwork.kernel.org/patch/1679421/
-> 
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (13):
->   MFD: twl-core: Register twl4030-madc child only for twl4030 class
->   MFD: twl-core: Support for proper PWM drivers
->   MFD: twl-core: Convert to use regmap for I/O
->   MFD/rtc/gpio: twl: No need to allocate bigger buffer for write
->   MFD: twl-core: Clean up and correct child registration
->   mfd: twl: Remove unused TWL_MODULE definitions
->   mfd: twl: Convert module id definitions to enums
->   mfd: twl: Use decimal numbers for TWL6030_MODULE_IDs
->   MFD: twl-core: re-group the twl_mapping table for easier reading
->   mfd: twl4030-madc: Change TWL4030_MODULE_* ids to TWL_MODULE_*
->   mfd: twl4030-power: Change TWL4030_MODULE_* ids to TWL_MODULE_*
->   mfd: twl4030-irq: Change TWL4030_MODULE_* ids to TWL_MODULE_*
->   mfd: twl-core: Change TWL4030_MODULE_* ids to TWL_MODULE_*
-> 
->  drivers/gpio/gpio-twl4030.c |  12 +--
->  drivers/mfd/twl-core.c      | 227 +++++++++++++++++++++++---------------------
->  drivers/mfd/twl4030-irq.c   |  10 +-
->  drivers/mfd/twl4030-madc.c  |  14 +--
->  drivers/mfd/twl4030-power.c | 124 ++++++++++--------------
->  drivers/mfd/twl6030-irq.c   |   4 +-
->  drivers/rtc/rtc-twl.c       |  32 +++----
->  include/linux/i2c/twl.h     |  73 +++++++-------
->  8 files changed, 241 insertions(+), 255 deletions(-)
-> 
+Cheers
+Jon
+
