@@ -1,44 +1,67 @@
-From: Igor Mazanov <i.mazanov@gmail.com>
-Subject: USB only powered Beaglebone powers off when ethernet cable is connected
-Date: Fri, 16 Nov 2012 18:34:43 +0400
-Message-ID: <k85isq$cv0$1@ger.gmane.org>
-Reply-To: i.mazanov@gmail.com
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 00/13] MFD: twl drivers: Convert to regmap IO and
+ cleanups
+Date: Fri, 16 Nov 2012 16:44:20 +0200
+Message-ID: <1353077060.786.18.camel@sokoban>
+References: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:35826 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751243Ab2KPOeW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:34:22 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1TZN00-0006L2-SZ
-	for linux-omap@vger.kernel.org; Fri, 16 Nov 2012 15:34:28 +0100
-Received: from 77.232.56.122 ([77.232.56.122])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Fri, 16 Nov 2012 15:34:28 +0100
-Received: from i.mazanov by 77.232.56.122 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Fri, 16 Nov 2012 15:34:28 +0100
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hello,
+Hi Peter / Samuel,
 
-Interesting, but Beaglebone powers off on the boot in case when the board is 
-powered only via USB and ethernet cable is connected. It looks like PMIC turns 
-off all voltages on the board - even Power LED doesn't light and USB device 
-disappears from the host. The described situation doesn't show with an external 
-PSU or without ethernet cable.
+I just tested this set on omap3beagle + omap4460 panda boards and both
+seem to work fine. Did a boot + simple PM test for both to see that
+regulator control (which is using the I2C related stuff you have
+changed) works. Also, looking at the code everything seems to be okay to
+me, thus for whole set:
 
-I don't think that is a hardware problem because the board boots fine with a 
-kernel/userland config from original supplied TF card.
+Acked-by: Tero Kristo <t-kristo@ti.com>
 
-I use the current git kernel with DTS and omap2plus_defconfig.
-
-Regards,
-Igor.
-
+On Tue, 2012-11-13 at 09:28 +0100, Peter Ujfalusi wrote:
+> Hello,
+> 
+> This series converts the twl-core to use regmap for IO towards the chip.
+> With the conversion to regmap IO we no longer need to allocate bigger buffer for
+> writes.
+> I have appended patches to this series to make some cleanups which will help in
+> the future to further clean up the twl stack.
+> 
+> The series depends on a regression fix patch for the twl-core:
+> https://patchwork.kernel.org/patch/1679421/
+> 
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (13):
+>   MFD: twl-core: Register twl4030-madc child only for twl4030 class
+>   MFD: twl-core: Support for proper PWM drivers
+>   MFD: twl-core: Convert to use regmap for I/O
+>   MFD/rtc/gpio: twl: No need to allocate bigger buffer for write
+>   MFD: twl-core: Clean up and correct child registration
+>   mfd: twl: Remove unused TWL_MODULE definitions
+>   mfd: twl: Convert module id definitions to enums
+>   mfd: twl: Use decimal numbers for TWL6030_MODULE_IDs
+>   MFD: twl-core: re-group the twl_mapping table for easier reading
+>   mfd: twl4030-madc: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+>   mfd: twl4030-power: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+>   mfd: twl4030-irq: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+>   mfd: twl-core: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+> 
+>  drivers/gpio/gpio-twl4030.c |  12 +--
+>  drivers/mfd/twl-core.c      | 227 +++++++++++++++++++++++---------------------
+>  drivers/mfd/twl4030-irq.c   |  10 +-
+>  drivers/mfd/twl4030-madc.c  |  14 +--
+>  drivers/mfd/twl4030-power.c | 124 ++++++++++--------------
+>  drivers/mfd/twl6030-irq.c   |   4 +-
+>  drivers/rtc/rtc-twl.c       |  32 +++----
+>  include/linux/i2c/twl.h     |  73 +++++++-------
+>  8 files changed, 241 insertions(+), 255 deletions(-)
+> 
