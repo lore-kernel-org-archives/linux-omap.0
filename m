@@ -1,26 +1,18 @@
 From: Joel A Fernandes <joelagnel@ti.com>
 Subject: [PATCH] AM33XX: Clock: Fix JTAG disconnect during kernel boot
-Date: Fri, 16 Nov 2012 17:30:01 -0600
-Message-ID: <1353108601-25813-1-git-send-email-joelagnel@ti.com>
+Date: Fri, 16 Nov 2012 17:44:42 -0600
+Message-ID: <1353109482-26478-1-git-send-email-joelagnel@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43042 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52025 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753653Ab2KPX2B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Nov 2012 18:28:01 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id qAGNS0FZ010164
-	for <linux-omap@vger.kernel.org>; Fri, 16 Nov 2012 17:28:01 -0600
-Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id qAGNRwUI018589
-	for <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 04:57:59 +0530 (IST)
-Received: from joelbox.am.dhcp.ti.com (dbdp20.itg.ti.com [172.24.170.38])	by
- dbdp32.itg.ti.com (8.13.8/8.13.8) with ESMTP id qAGNRuuo032028	for
- <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 04:57:57 +0530
+	id S1753537Ab2KPXmr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Nov 2012 18:42:47 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Russ Dill <Russ.Dill@ti.com>, Matt Porter <mporter@ti.com>, Steve Kipisz <s-kipisz2@ti.com>, Jason Kridner <jkridner@beagleboard.org>, Tony Lindgren <tony@atomide.com>
 
 Set ENABLE_ON_INIT for debugss clock so that it is on during init and the usecount is incremented.
 Not doing so causes kernel to disable debugss clock to save power when CONFIG_OMAP_RESET_CLOCKS
@@ -33,6 +25,8 @@ Cc: Steve Kipisz <s-kipisz2@ti.com>
 Cc: Jason Kridner <jkridner@beagleboard.org>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
+Resending, as Cc list was dropped.
+
  arch/arm/mach-omap2/clock33xx_data.c |    1 +
  1 file changed, 1 insertion(+)
 
