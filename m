@@ -1,49 +1,32 @@
-From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 3/4] ARM: dts: AM33XX: Set pmic-shutdown-controller for
- BeagleBone
-Date: Fri, 16 Nov 2012 17:38:25 +0530
-Message-ID: <1353067706-29491-4-git-send-email-anilkumar@ti.com>
-References: <1353067706-29491-1-git-send-email-anilkumar@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] usb: dwc3: core: move dwc3_cache_hwparams before dwc3_alloc_event_buffers
+Date: Fri, 16 Nov 2012 16:08:11 +0400
+Message-ID: <50A62CAB.90405@mvista.com>
+References: <1353047874-4981-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1353067706-29491-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1353047874-4981-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Set ti,pmic-shutdown-controller for BeagleBone in am335x-bone.dts
-file, this flag is used by the driver to set tps65217 PMIC status
-to OFF when PWR_EN toggle.
+Hello.
 
-Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/am335x-bone.dts |    2 ++
- 1 file changed, 2 insertions(+)
+On 16-11-2012 10:37, Kishon Vijay Abraham I wrote:
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index 2c33888..1d55190 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -88,6 +88,8 @@
- /include/ "tps65217.dtsi"
- 
- &tps {
-+	ti,pmic-shutdown-controller;
-+
- 	regulators {
- 		dcdc1_reg: regulator@0 {
- 			regulator-always-on;
--- 
-1.7.9.5
+> commit 392142
+
+    Please specify thta commit summary in parens.
+
+> moved event buffer allocation out of dwc3_core_init() but
+> event buffer allocation uses the cached copy of hwparams to determine
+> the number of event buffers and the caching is done in dwc3_core_init.
+> So moved dwc3_cache_hwparams function before dwc3_alloc_event_buffers so
+> that dwc3_alloc_event_buffers sees the correct number of event buffers.
+
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+WBR, Sergei
