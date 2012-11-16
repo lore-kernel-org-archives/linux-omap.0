@@ -1,57 +1,79 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: HDMI: Rearrange platform devices for
- ASoC drivers
-Date: Fri, 16 Nov 2012 11:05:22 +0900
-Message-ID: <20121116020520.GM4387@opensource.wolfsonmicro.com>
-References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com>
- <1353029819-21809-3-git-send-email-ricardo.neri@ti.com>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/4] rtc: OMAP: Add system pm_power_off to rtc driver
+Date: Fri, 16 Nov 2012 06:13:37 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA6D1A1@DBDE01.ent.ti.com>
+References: <1352108549-9341-1-git-send-email-anilkumar@ti.com>
+ <1352108549-9341-3-git-send-email-anilkumar@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EC04226@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="egxrhndXibJAPJ54"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45658 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751048Ab2KPCF3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Nov 2012 21:05:29 -0500
-Content-Disposition: inline
-In-Reply-To: <1353029819-21809-3-git-send-email-ricardo.neri@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>, "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: tony@atomide.com, tomi.valkeinen@ti.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
+On Mon, Nov 12, 2012 at 15:17:48, AnilKumar, Chimata wrote:
+> On Tue, Nov 06, 2012 at 11:15:34, Bedia, Vaibhav wrote:
+> > On Mon, Nov 05, 2012 at 15:12:27, AnilKumar, Chimata wrote:
+> > [...]
+> > >  
+> > > +#define SHUTDOWN_TIME_SEC		2
+> > > +#define SECS_IN_MIN			60
+> > > +#define WAIT_AFTER			(SECS_IN_MIN - SHUTDOWN_TIME_SEC)
+> > > +#define WAIT_TIME_MS			(SHUTDOWN_TIME_SEC * 1000)
+> > > +
+> > >  static void __iomem	*rtc_base;
+> > >  
+> > [...]
+> > > +
+> > > +	/* Wait few seconds instead of rollover */
+> > > +	do {
+> > > +		omap_rtc_read_time(NULL, &tm);
+> > > +		if (WAIT_AFTER <= tm.tm_sec)
+> > > +			mdelay(WAIT_TIME_MS);
+> > > +	} while (WAIT_AFTER <= tm.tm_sec);
+> > 
+> > This hardcoded wait for rollover doesn't look good. I see some
+> > helper functions in rtc-lib.c which probably could be used for
+> > converting the current time to elapsed seconds, add the delay and
+> > then convert it back to the time to be programmed in RTC without
+> > worrying about rollover. Why not use that?
+> 
+> I am not aware of those APIs, can you point some?
 
---egxrhndXibJAPJ54
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I have gone through rtc-lib.c, these are the API's I am seeing
+in the library
 
-On Thu, Nov 15, 2012 at 07:36:59PM -0600, Ricardo Neri wrote:
-> This relocates and renames the platform devices for ASoC HDMI drivers
-> to give them a more logical structure.
+1. rtc_time_to_tm: Convert seconds since 01-01-1970 00:00:00 to
+Gregorian date
+2. rtc_tm_to_time: Convert Gregorian date to seconds since
+01-01-1970 00:00:00
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Steps I followed:-
+================
+1: unsigned long time;
+2: omap_rtc_read_time(NULL, &tm);
+3: rtc_tm_to_time(tm, &time);
+4: pr_info("Time 1 %lu\n", time);
+5: time += 2; /* (2sec) */
+6: rtc_time_to_tm(time, tm);
+7: rtc_tm_to_time(tm, &time); /* Only for printing time value */
+8: pr_info("Time 2 %lu\n", time); 
 
---egxrhndXibJAPJ54
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+With the above steps I am seeing completely two different time
+values at step4 and step8
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQpZ9ZAAoJELSic+t+oim9HWUQAI1Zi9otovqhFBY1Lu4d35wY
-jmTNWEJ8B2vtrQDC8ksKwy7CqtY65jz8STA0xQDEfWbr6QQ8A3KusfPVtAM7cTS8
-EgbEPI/cGqrLgAj8eODsdiJL1KYUz7RYPzpSXWG8kL7TA2CNbSjv/q7X6TMYamiy
-2Ht7RQBxhgqwU6IoH3xZexkDKPbX6ZZLnQb0AAHRNvMZg//DtkOTQS7KekDO7Mp7
-M9cJdzwSqEQltaNHzKw2nx9twQtuvZMXneEempbvTzd6U1jNia6lNl5byPOgQAci
-FUwHWJYK8lftrluoE6MldFNOm9NtH22b6QqNG7BkERdc5ISG+EUhS+MFo56ibiqF
-62iL2HHuT3vRDgbjVRBqZeYYVYB/fqZaCEO4nD86fAZFkAWxjbAtqBdDtiFV7abp
-UJQyE/IlWLPJEIZTG6F9DGglk/YBjL76Vx+Qw2YWuk7fWAv/8V8Z7l5y81B+wNBx
-8VLBJJ8ptCuVCLFMliel9WQSWofJ2hDxkJX/fSc8hbPQMnZ07TXYK5rZGYgCodtm
-btP0SlMX9heTpjPI7VgpIcdnsDdg0+0oyvQuE+76fUBOJsI1vw+zBH4fG2pc0eJx
-DSZgbwUELvExqfGYeio533a278kZdQE1KvSpMDRdQuEoE8YhP//zScPXXFfCEp/N
-L7UGsf1v13bcIgnOGNlw
-=+SYL
------END PGP SIGNATURE-----
-
---egxrhndXibJAPJ54--
+Thanks
+AnilKumar
