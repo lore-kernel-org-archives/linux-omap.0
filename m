@@ -1,59 +1,72 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [GIT PULL] ARM: OMAP: Timer Clean-up
-Date: Fri, 16 Nov 2012 11:17:16 -0600
-Message-ID: <50A6751C.6080800@ti.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH] Remove inline from clock framework function definitions to build
+ the kernel with GCC 4.7
+Date: Fri, 16 Nov 2012 09:39:00 -0800
+Message-ID: <20121116173900.20639.18889@nucleus>
+References: <50A52134.2010502@gmail.com>
+ <alpine.DEB.2.00.1211151845050.18192@utopia.booyaka.com>
+ <50A674D2.9080403@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33995 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752859Ab2KPRRV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Nov 2012 12:17:21 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50A674D2.9080403@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: i.mazanov@gmail.comIgor Mazanov <i.mazanov@gmail.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-The following changes since commit 9dc57643738f9fbe45c10cc062903d5dfda5bdd9:
+Quoting Igor Mazanov (2012-11-16 09:16:02)
+> Paul Walmsley wrote:
+> > + Mike
+> > 
+> > On Thu, 15 Nov 2012, Igor Mazanov wrote:
+> > 
+> >>  Remove inline from clock framework function definitions to
+> >>  build the kernel with GCC 4.7
+> > 
+> > sparse warns about this also.
+> > 
+> >> Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
+> > 
+> > This one is for Mike to deal with as CCF maintainer; it's out of the hands 
+> > of the OMAP folks.
+> 
+> Thanks for comments, I'll bear in mind it for the future.
+> 
 
-  Merge branch 'fixes-timer' of github.com:jonhunter/linux into omap-for-v3.8/timer (2012-11-13 13:52:38 -0800)
+I forgot to reply to this thread yesterday.  A fixes request has been
+sent out, hopefully will be picked up for 3.7-rc6.
 
-are available in the git repository at:
+Thanks all,
+Mike
 
-  git://github.com/jonhunter/linux.git cleanup-timer
-
-for you to fetch changes up to 258e84af9799b8c81cf856dcbd8e2d4cc082741d:
-
-  ARM: OMAP2+: Fix compiler warning for 32k timer (2012-11-16 10:35:09 -0600)
-
-----------------------------------------------------------------
-Various OMAP timer clean-ups.
-
-I have dropped the patch to move dmtimer.h as discussed.
-
-I have also included the compilation warning fix for sync-32k
-reported by Kevin Hilman.
-----------------------------------------------------------------
-Jon Hunter (8):
-      ARM: OMAP: Clean-up dmtimer reset code
-      ARM: OMAP: Define omap_dm_timer_prepare function as static
-      ARM: OMAP: Don't store timers physical address
-      ARM: OMAP2+: Remove unnecessary local variable in timer code
-      ARM: OMAP: Remove unnecessary omap_dm_timer structure declaration
-      ARM: OMAP: Add platform data header for DMTIMERs
-      ARM: OMAP: Remove unnecessary inclusion of dmtimer.h
-      ARM: OMAP2+: Fix compiler warning for 32k timer
-
- arch/arm/mach-omap1/timer.c                |    1 +
- arch/arm/mach-omap1/timer32k.c             |    1 -
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    1 -
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    1 -
- arch/arm/mach-omap2/pm-debug.c             |    1 -
- arch/arm/mach-omap2/timer.c                |   36 ++++++-------
- arch/arm/plat-omap/dmtimer.c               |   54 ++++++++++++-------
- arch/arm/plat-omap/include/plat/dmtimer.h  |   80 ++++++++--------------------
- drivers/staging/tidspbridge/core/ue_deh.c  |    1 -
- include/linux/platform_data/dmtimer-omap.h |   31 +++++++++++
- 10 files changed, 105 insertions(+), 102 deletions(-)
- create mode 100644 include/linux/platform_data/dmtimer-omap.h
+> > 
+> > Acked-by: Paul Walmsley <paul@pwsan.com>
+> > 
+> > 
+> >> ---
+> >>  include/linux/clk-provider.h |    4 ++--
+> >>  1 files changed, 2 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
+> >> index c127315..f9f5e9e 100644
+> >> --- a/include/linux/clk-provider.h
+> >> +++ b/include/linux/clk-provider.h
+> >> @@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
+> >>  struct clk_hw *__clk_get_hw(struct clk *clk);
+> >>  u8 __clk_get_num_parents(struct clk *clk);
+> >>  struct clk *__clk_get_parent(struct clk *clk);
+> >> -inline int __clk_get_enable_count(struct clk *clk);
+> >> -inline int __clk_get_prepare_count(struct clk *clk);
+> >> +int __clk_get_enable_count(struct clk *clk);
+> >> +int __clk_get_prepare_count(struct clk *clk);
+> >>  unsigned long __clk_get_rate(struct clk *clk);
+> >>  unsigned long __clk_get_flags(struct clk *clk);
+> >>  int __clk_is_enabled(struct clk *clk);
+> >> --
+> >> 1.7.4.4
+> >>
+> > 
+> > 
+> > - Paul
