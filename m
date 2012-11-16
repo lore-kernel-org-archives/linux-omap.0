@@ -1,63 +1,70 @@
-From: Igor Mazanov <i.mazanov@gmail.com>
-Subject: Re: [PATCH] Remove inline from clock framework function definitions
- to build the kernel with GCC 4.7
-Date: Fri, 16 Nov 2012 21:16:02 +0400
-Message-ID: <50A674D2.9080403@gmail.com>
-References: <50A52134.2010502@gmail.com> <alpine.DEB.2.00.1211151845050.18192@utopia.booyaka.com>
-Reply-To: i.mazanov@gmail.com
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH v2 1/2] ARM: OMAP2+: HDMI: Relocate audio platform device
+ creation
+Date: Fri, 16 Nov 2012 11:14:56 -0600
+Message-ID: <50A67490.4080002@ti.com>
+References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com> <1353029819-21809-2-git-send-email-ricardo.neri@ti.com> <50A5ED76.4040308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1211151845050.18192@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: mturquette@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33888 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753140Ab2KPRP6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Nov 2012 12:15:58 -0500
+In-Reply-To: <50A5ED76.4040308@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-Paul Walmsley wrote:
-> + Mike
-> 
-> On Thu, 15 Nov 2012, Igor Mazanov wrote:
-> 
->>  Remove inline from clock framework function definitions to
->>  build the kernel with GCC 4.7
-> 
-> sparse warns about this also.
-> 
->> Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
-> 
-> This one is for Mike to deal with as CCF maintainer; it's out of the hands 
-> of the OMAP folks.
+Hi Tomi,
 
-Thanks for comments, I'll bear in mind it for the future.
-
-> 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
-> 
-> 
->> ---
->>  include/linux/clk-provider.h |    4 ++--
->>  1 files changed, 2 insertions(+), 2 deletions(-)
+On 11/16/2012 01:38 AM, Tomi Valkeinen wrote:
+> Hi,
+>
+> On 2012-11-16 03:36, Ricardo Neri wrote:
+>> Creating the accessory devices (such as audio) from the HDMI driver,
+>> allows to regard HDMI as a single entity with audio an display
+>> functionality. This intends to follow the design of drivers such
+>> as MFD-type, in which a single entity handles the creation of the accessory
+>> devices. Such devices are then used by domain-specific drivers (audio in
+>> this case). This is in line with the DT implementation of HDMI, in which
+>> we will have a single node to describe this feature of the OMAP SoC. Otherwise,
+>> we would need to have separate nodes for audio and video functionality.
 >>
->> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provider.h
->> index c127315..f9f5e9e 100644
->> --- a/include/linux/clk-provider.h
->> +++ b/include/linux/clk-provider.h
->> @@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
->>  struct clk_hw *__clk_get_hw(struct clk *clk);
->>  u8 __clk_get_num_parents(struct clk *clk);
->>  struct clk *__clk_get_parent(struct clk *clk);
->> -inline int __clk_get_enable_count(struct clk *clk);
->> -inline int __clk_get_prepare_count(struct clk *clk);
->> +int __clk_get_enable_count(struct clk *clk);
->> +int __clk_get_prepare_count(struct clk *clk);
->>  unsigned long __clk_get_rate(struct clk *clk);
->>  unsigned long __clk_get_flags(struct clk *clk);
->>  int __clk_is_enabled(struct clk *clk);
->> --
->> 1.7.4.4
+>> Previously, the platform device for the audio driver was created in
+>> arch/arm/mach-omap2/devices.c. Thus, this is removed.
 >>
-> 
-> 
-> - Paul
+>> Also, as the platform device for audio created by the OMAPDSS HDMI now provides
+>> a resource for the DMA port for audio samples, we do not need to specify
+>> any offset in the ASoC HDMI CPU DAI driver.
+>
+> If you notice yourself writing "also, the patch does this" in the patch
+> description, it's usually a sign that the patch needs to be split =).
+:)
+
+>
+> That's perhaps not so important when a patch only deals with one
+> subsystem or one file, but when the patch changes arch, video and audio
+> drivers at the same time I would like to have the patches as simple as
+> possible.
+>
+> Here I suggest you handle the DMA port change in a separate patch.
+
+I went ahead and submitted this part in the same patch to make sure that 
+HDMI audio works in every patch.
+
+What I can do is that a first patch creates the platform device for HDMI 
+and just passes the whole register space to the audio platform device to 
+not break ASoC HDMI. Then, a second patch will refine the pdev audio 
+resources and remove the offset from the ASoC HDMI driver. Does that 
+make sense to you?
+
+BR,
+
+Ricardo
+>
+>   Tomi
+>
+>
