@@ -1,53 +1,94 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: Fix errata 751472 handling on Cortex-A9 r1p*
-Date: Fri, 16 Nov 2012 10:05:50 +0000
-Message-ID: <20121116100550.GI3332@n2100.arm.linux.org.uk>
-References: <50A3EBCD.3040801@ti.com> <20121114202244.GE3332@n2100.arm.linux.org.uk> <20121114203221.GA6801@atomide.com> <50A413D4.7000405@gmail.com> <20121114222159.GB6801@atomide.com> <50A43D58.5030404@gmail.com> <20121115110137.GA25985@arm.com> <50A4FCC5.2080604@gmail.com> <20121115143714.GF25985@arm.com> <50A50C24.9010702@gmail.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 4/4] regulator: fixed: Properly use input_supply parameter
+ from device tree
+Date: Fri, 16 Nov 2012 12:23:43 +0200
+Message-ID: <50A6142F.1070404@ti.com>
+References: <1352991396-19589-1-git-send-email-rogerq@ti.com> <1352991396-19589-5-git-send-email-rogerq@ti.com> <50A53E7F.6070705@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43639 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab2KPKGG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Nov 2012 05:06:06 -0500
-Content-Disposition: inline
-In-Reply-To: <50A50C24.9010702@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50A53E7F.6070705-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "b-cousson-l0cyMroinI0@public.gmane.org" <b-cousson-l0cyMroinI0@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "keshava_mgowda-l0cyMroinI0@public.gmane.org" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Tony Lindgren <tony@atomide.com>, Dave Martin <dave.martin@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Nov 15, 2012 at 09:37:08AM -0600, Rob Herring wrote:
-> >> Does that work for Versatile Express CA9? It needs ARM_ERRATA_751472.
-> > 
-> > On VE Linux runs in secure mode, so it's fine.
+On 11/15/2012 09:11 PM, Laxman Dewangan wrote:
+> On 11/15/2012 09:56 AM, Roger Quadros wrote:
+>> The device tree node will provide the input supply name as
+>> a string. Use that to populate the supply_name parameter of
+>> the regulator descriptor.
+>>
+>> Also correct the documentation to reflect the same.
+>>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+>> CC: Laxman Dewangan <ldewangan-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+>> CC: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+>> ---
+>>           regulator-boot-on;
+>>           gpio-open-drain;
+>> -        vin-supply = <&parent_reg>;
+>> +        vin-supply = "input-supply-name";
 > 
-> WTF? You are contradicting yourself.
+> This is not correct as per the regulator binding. It says
+>  - <name>-supply: phandle to the parent supply/regulator node
+> 
+> So we need to pass the phandle rather than string.
+> 
 
-No, it's already been explained; the problem is lack of understanding.
+If you see of_get_fixed_voltage_config() in drivers/regulator/fixed.c,
+all it does (without my patch) is
 
-Versatile Express does indeed run in secure mode; it doesn't have any
-secure monitor present.  OMAP and many other platforms run in non-secure
-mode.
+	if (of_find_property(np, "vin-supply", NULL))
+		config->input_supply = "vin";
 
-The work-arounds are applied to secure mode registers which are sensitive
-to writes in the following manner:
-- we check the revision of the CPU to see whether the workaround is
-  applicable.  If it is, then...
-  - the register is read.
-  - the bit(s) are checked to see whether the work-around has already been
-    applied.
-  - the bit(s) is set to the appropriate state.
-  - the register is written _if_ the work-around has not already been applied.
+How is this supposed to work? How does phandle supplied in vin-supply
+map to config->input_supply?
 
-That means a platform running in secure mode gets the work-arounds applied
-as appropriate for the CPU.  It also means that a platform running in non-
-secure mode won't boot if the work-around has not already been applied.
-That is a good thing; some work-arounds fix data corrupting bugs, and we
-don't want an unsafe kernel running on such platforms.
+This config->input_supply is a string which is used in
+reg_fixed_voltage_probe() like below
 
-So, we don't detect whether we're running in secure mode or not; as I've
-already stated, we don't have a way to do that.  We instead only apply
-work-arounds which aren't already enabled prior to the kernel booting.
-So, even on a secure mode platform, we will avoid writing the bits if the
-work-around has already been applied.
+      if (config->input_supply) {
+               drvdata->desc.supply_name = kstrdup(config->input_supply,
+                                                        GFP_KERNEL);
+
+So I don't understand how supplying phandle would work. Maybe I missed
+something?
+
+> Just for curiosity, why do you want this change? What is the issue are
+> you facing.
+>
+
+Because I could not understood how the original approach would work. But
+if you can explain how it works maybe my patch is redundant.
+
+> This change will creates regression on many platform.
+> 
+
+Did you test your platform on 3.7-rc5?
+
+regards,
+-roger
+
+> 
+> -----------------------------------------------------------------------------------
+> 
+> This email message is for the sole use of the intended recipient(s) and
+> may contain
+> confidential information.  Any unauthorized review, use, disclosure or
+> distribution
+> is prohibited.  If you are not the intended recipient, please contact
+> the sender by
+> reply email and destroy all copies of the original message.
+> -----------------------------------------------------------------------------------
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
