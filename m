@@ -1,79 +1,62 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: OMAP baseline test results for v3.7-rc5
-Date: Fri, 16 Nov 2012 11:49:26 +0100
-Message-ID: <50A61A36.10708@visionsystems.de>
-References: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [RESEND PATCH v3 1/4] i2c: introduce i2c-cbus driver
+Date: Fri, 16 Nov 2012 12:30:14 +0100
+Message-ID: <20121116113014.GA19028@pengutronix.de>
+References: <1352747326-2195-1-git-send-email-aaro.koskinen@iki.fi>
+ <1352747326-2195-2-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.visionsystems.de ([62.145.30.242]:52569 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751746Ab2KPLXX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Nov 2012 06:23:23 -0500
-In-Reply-To: <alpine.DEB.2.00.1211121921160.12551@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1352747326-2195-2-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
 
 
-> Boot tests:
-> 
-> * AM335x Beaglebone: omap2plus_defconfig kernels don't boot
->   - May be fixed now, pending retest:
->     - http://marc.info/?l=linux-omap&m=135082257727502&w=2
->   - Not yet part of the automated test suite
->   * May be due to an old U-boot with FDT support problems used here?
->     Pending local investigation and re-test
+--nFreZHaLTZJo0R7j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm also trying to boot 3.7-rc5, but my board has console on ttyO3. So I took arch/arm/boot/dts/am335x-evm.dts and replaced uart definition to
+On Mon, Nov 12, 2012 at 09:08:42PM +0200, Aaro Koskinen wrote:
+> Add i2c driver to enable access to devices behind CBUS on Nokia Internet
+> Tablets.
+>=20
+> The patch also adds CBUS I2C configuration for N8x0 which is one of the
+> users of this driver.
+>=20
+> Cc: linux-i2c@vger.kernel.org
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: Wolfram Sang <w.sang@pengutronix.de>
 
- uart4: serial@481a6000 {
-                        status = "okay";
-                };
+Mostly good, but the devicetree binding description is missing.
+Please add a proper file with the same name as the driver to
+Documentation/devicetree/bindings/i2c.
+Also, it might make sense to rename the driver to i2c-cbus-gpio?
 
-is it sufficient?
+Thanks,
 
-In u-boot 
+   Wolfram
 
-commit 59852d03867108217fe88e3bfc3e1e9cedfe63c5
-Merge: 22b6fcb b3e5cd1
-Author: Tom Rini <trini@ti.com>
-Date:   Fri Nov 9 08:47:25 2012 -0700
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
-    Merge branch 'master' of git://www.denx.de/git/u-boot-microblaze
+--nFreZHaLTZJo0R7j
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-I use following commands and get following output:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-U-Boot#   mmc rescan ; fatload mmc 0 82000000 uImage;fatload mmc 0 80000000 am335x-evm.dtb
-reading uImage
-4222584 bytes read
-reading am335x-evm.dtb
-5172 bytes read
-U-Boot# fdt addr 80000000; fdt resize; bootm 82000000 - 80000000
-## Booting kernel from Legacy Image at 82000000 ...
-   Image Name:   Linux-3.7.0-rc5-00028-g79e979e
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    4222520 Bytes = 4 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-## Flattened Device Tree blob at 80000000
-   Booting using the fdt blob at 0x80000000
-   Loading Kernel Image ... OK
-OK
-   reserving fdt memory region: addr=80000000 size=2000
-   Loading Device Tree to 8fe64000, end 8fe68fff ... OK
+iEYEARECAAYFAlCmI8YACgkQD27XaX1/VRtX4QCdF84DsfMsJ9LYNWyLg7PrgTcz
+0SkAn310otDcbXSGDnFFgdkor3BYk6CF
+=x/v1
+-----END PGP SIGNATURE-----
 
-Starting kernel ...
-
-I force kernel to use default params, so I don't specify them in u-boot. Any idea?
-
-Best regards,
-Yegor
-
-
-
-
+--nFreZHaLTZJo0R7j--
