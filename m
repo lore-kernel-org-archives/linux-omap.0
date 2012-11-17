@@ -1,35 +1,34 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH v5 0/6] Move rest of omap-iommu to live in drivers/iommu
-Date: Sat, 17 Nov 2012 13:10:21 +0100
-Message-ID: <20121117121021.GS25742@8bytes.org>
-References: <20121102192221.4253.34303.stgit@muffinssi.local>
- <CAK=WgbYR8UMyDjySJLRC0tEbJO3FaFgjWxceNwMyVdMgEgwPig@mail.gmail.com>
- <CALLhW=5WNg8X0nX8U+AExocyNKW=wJ7oS36xg4ENMnfyJkX8RQ@mail.gmail.com>
- <20121112220033.GO6801@atomide.com>
+From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv3] i2c: omap: Move the remove constraint
+Date: Sat, 17 Nov 2012 23:15:18 +0530
+Message-ID: <CAM=Q2cuX4j1uELVOurtSuDfN3CtEn3VejYUdMS24yaO7ru=Mdg@mail.gmail.com>
+References: <1352969361-10521-1-git-send-email-shubhrajyoti@ti.com>
+	<20121116142006.GG7313@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121112220033.GO6801@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121116142006.GG7313-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 12, 2012 at 02:00:34PM -0800, Tony Lindgren wrote:
-> Assuming Joerg is OK with these changes, I can push them into
-> an immutable branch that Joerg can merge in as needed.
-> 
-> Further patches on top of this series can then be queued by
-> Joerg as arch/arm/*omap* and me are then out of the way of
-> iommu development.
+On Fri, Nov 16, 2012 at 7:50 PM, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> wrote:
+> On Thu, Nov 15, 2012 at 02:19:21PM +0530, Shubhrajyoti D wrote:
+>> Currently we just queue the transfer and release the
+>> qos constraints, however we do not wait for the transfer
+>> to complete to release the constraint. Move the remove
+>> constraint after the bus busy as we are sure that the
+>> transfers are completed by then.
+>>
+>> Acked-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>
+> Applied to for-next. Please let me know if it should go to for-current.
 
-Okay, from my side:
+I feel for-next should be fine.
 
-Acked-by: Joerg Roedel <joro@8bytes.org>
-
-Please let me know which branch I need to pull into my tree when you
-merged these patches.
-
-
-	Joerg
+>
+> --
+> Pengutronix e.K.                           | Wolfram Sang                |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
