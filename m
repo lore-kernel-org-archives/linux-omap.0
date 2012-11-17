@@ -1,54 +1,83 @@
-From: MARTIN RUUD <martin.ruud@danielsen-skoler.no>
-Subject: Re: OFID Grant Award to you
-Date: Sat, 17 Nov 2012 21:58:56 +0000 (UTC)
-Message-ID: <loom.20121117T225705-365@post.gmane.org>
-References: <20121106042640.JJMTH.46590.imail@fed1rmwml208>
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
+ omap_devices to mach-omap2)
+Date: Sat, 17 Nov 2012 23:27:18 +0100
+Message-ID: <20121117222718.GF31527@game.jcrosoft.org>
+References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
+ <50999145.2070306@wwwdotorg.org>
+ <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
+ <509D9089.7020407@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:60659 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752273Ab2KQWE4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 17 Nov 2012 17:04:56 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1TZqVc-0000hb-B3
-	for linux-omap@vger.kernel.org; Sat, 17 Nov 2012 23:05:04 +0100
-Received: from ti0153a380-dhcp0669.bb.online.no ([80.213.37.160])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 23:05:04 +0100
-Received: from martin.ruud by ti0153a380-dhcp0669.bb.online.no with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 23:05:04 +0100
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <509D9089.7020407@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-O.F.I.D <onlinenotification741 <at> cox.net> writes:
+On 16:23 Fri 09 Nov     , Stephen Warren wrote:
+> On 11/09/2012 09:28 AM, Grant Likely wrote:
+> > On Tue, Nov 6, 2012 at 10:37 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> ...
+> >> I do rather suspect this use-case is quite common. NVIDIA certainly has
+> >> a bunch of development boards with pluggable
+> >> PMIC/audio/WiFi/display/..., and I believe there's some ability to
+> >> re-use the pluggable components with a variety of base-boards.
+> >>
+> >> Given people within NVIDIA started talking about this recently, I asked
+> >> them to enumerate all the boards we have that support pluggable
+> >> components, and how common it is that some boards support being plugged
+> >> into different main boards. I don't know when that enumeration will
+> >> complete (or even start) but hopefully I can provide some feedback on
+> >> how common the use-case is for us once it's done.
+> > 
+> > From your perspective, is it important to use the exact same .dtb
+> > overlays for those add-on boards, or is it okay to have a separate
+> > build of the overlay for each base tree?
+> 
+> I certainly think it'd be extremely beneficial to use the exact same
+> child board .dtb with arbitrary base boards.
+> 
+> Consider something like the Arduino shield connector format, which I
+> /believe/ has been re-used across a wide variety of Arduino boards and
+> other compatible or imitation boards. Now consider a vendor of an
+> Arduino shield. The shield vendor probably wants to publish a single
+> .dtb file that works for users irrespective of which board they're using
+> it with.
+> 
+> (Well, I'm not sure that Arduino can run Linux; perhaps that's why you
+> picked BeagleBone capes for your document!)
+> 
+> I suppose it would be acceptable for the shield vendor to ship the .dts
+> file rather than the .dtb, and hence need to build the shield .dtb for a
+> specific base board.
+> 
+> However, I think the process for an end-user needs to be as simple as
+> "drop this .dts/.dtb file into some standard directory", and I imagine
+> it'll be much easier for distros/... to make that process work if
+> they're dealing with a .dtb that they can just blast into the kernel's
+> firmware loader interface, rather than having to also locate the
+> base-board .dts/.dtb file, and run dtc and/or other tools on both .dts
+> files together.
+I've exactly the same issue on Calao or the new atmel boards
 
->=20
-> NB: Grant Qualification Code ( OFID/SAJ302/OGA3/N66 )
-> The sum of =C2=A3756,728 GBP has been awarded to you as Grant Donatio=
-n/Award from
-OFID. Contact Mr. Kelvin Green
-> by replying to this notification.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo <at> vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
->=20
-yes, I am Martin Ruud
+We have lego boards
 
+with different cpu-modues running on differetn mother boards with
+diferrentdaugther boards
 
+on atmel we are lucky enough we can identity via 1-wire all of them but
+on Calao no
 
+On Somfy platform we can detect hardware version and need different pinctrl
 
+So personally I'll prefer to be able to request dtb from the kernel or push
+them from the userspace as it will depends where you will detect the hardware
+present
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The main concern will which part of the kenel will now handle hw detection?
+
+Best Regards,
+J.
