@@ -1,38 +1,35 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC] dmaengine: omap-dma: Allow DMA controller to prefetch
-	data
-Date: Sat, 17 Nov 2012 11:31:59 +0000
-Message-ID: <20121117113159.GM3332@n2100.arm.linux.org.uk>
-References: <20121018222046.GA28541@animalcreek.com> <20121018225540.GB28061@n2100.arm.linux.org.uk> <20121018232405.GA29064@animalcreek.com> <20121018233335.GC28061@n2100.arm.linux.org.uk> <50814B83.7090203@ti.com>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [PATCH v5 0/6] Move rest of omap-iommu to live in drivers/iommu
+Date: Sat, 17 Nov 2012 13:10:21 +0100
+Message-ID: <20121117121021.GS25742@8bytes.org>
+References: <20121102192221.4253.34303.stgit@muffinssi.local>
+ <CAK=WgbYR8UMyDjySJLRC0tEbJO3FaFgjWxceNwMyVdMgEgwPig@mail.gmail.com>
+ <CALLhW=5WNg8X0nX8U+AExocyNKW=wJ7oS36xg4ENMnfyJkX8RQ@mail.gmail.com>
+ <20121112220033.GO6801@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44280 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948Ab2KQLcp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Nov 2012 06:32:45 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <50814B83.7090203@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20121112220033.GO6801@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Omar Ramirez Luna <omar.luna@linaro.org>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-On Fri, Oct 19, 2012 at 02:45:55PM +0200, P=E9ter Ujfalusi wrote:
-> Hi,
->=20
-> On 10/19/2012 01:33 AM, Russell King - ARM Linux wrote:
-> > I'm merely pointing out here that we need their feedback here befor=
-e
-> > deciding if there's anything further that needs to happen.
->=20
-> Thanks Russell, I'll take a look at the implication of the prefetch f=
-or audio.
+On Mon, Nov 12, 2012 at 02:00:34PM -0800, Tony Lindgren wrote:
+> Assuming Joerg is OK with these changes, I can push them into
+> an immutable branch that Joerg can merge in as needed.
+> 
+> Further patches on top of this series can then be queued by
+> Joerg as arch/arm/*omap* and me are then out of the way of
+> iommu development.
 
-P=E9ter, any news?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Okay, from my side:
+
+Acked-by: Joerg Roedel <joro@8bytes.org>
+
+Please let me know which branch I need to pull into my tree when you
+merged these patches.
+
+
+	Joerg
