@@ -1,34 +1,36 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv3] i2c: omap: Move the remove constraint
-Date: Sat, 17 Nov 2012 23:15:18 +0530
-Message-ID: <CAM=Q2cuX4j1uELVOurtSuDfN3CtEn3VejYUdMS24yaO7ru=Mdg@mail.gmail.com>
-References: <1352969361-10521-1-git-send-email-shubhrajyoti@ti.com>
-	<20121116142006.GG7313@pengutronix.de>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH] gpio: twl4030: Use only TWL4030_MODULE_LED for LED configuration
+Date: Sat, 17 Nov 2012 21:16:10 +0100
+Message-ID: <CACRpkdayZK2sPXJW=COFi7C=P5=fbi-q7UukWbQ8dheaJ=bjAA@mail.gmail.com>
+References: <1352799313-21019-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121116142006.GG7313-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:34580 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752125Ab2KQUQL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Nov 2012 15:16:11 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so465700eek.19
+        for <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 12:16:10 -0800 (PST)
+In-Reply-To: <1352799313-21019-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, Nov 16, 2012 at 7:50 PM, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> wrote:
-> On Thu, Nov 15, 2012 at 02:19:21PM +0530, Shubhrajyoti D wrote:
->> Currently we just queue the transfer and release the
->> qos constraints, however we do not wait for the transfer
->> to complete to release the constraint. Move the remove
->> constraint after the bus busy as we are sure that the
->> transfers are completed by then.
->>
->> Acked-by: Jean Pihet <j-pihet-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+On Tue, Nov 13, 2012 at 10:35 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+
+> Avoid using the TWL4030_MODULE_PWMA/B as module ID. The LEDEN, PWMA ON/OFF
+> and PWMB ON/OFF registers are in a continuous range starting from LED base.
+> This is going to be helpful for further cleanup in the twl stack.
 >
-> Applied to for-next. Please let me know if it should go to for-current.
-
-I feel for-next should be fine.
-
+> No functional changes.
 >
-> --
-> Pengutronix e.K.                           | Wolfram Sang                |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+OK if you say so.
+
+Patch applied!
+
+Yours,
+Linus Walleij
