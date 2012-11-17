@@ -1,65 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2+: mux: Fixed gpio mux mode analysis.
-Date: Fri, 16 Nov 2012 17:22:32 -0800
-Message-ID: <20121117012231.GQ6801@atomide.com>
-References: <1353015597-22703-1-git-send-email-oleg.matcovschi@ti.com>
+From: Joel A Fernandes <agnel.joel@gmail.com>
+Subject: Re: [PATCH] AM33XX: Clock: Fix JTAG disconnect during kernel boot
+Date: Fri, 16 Nov 2012 20:44:00 -0600
+Message-ID: <CAD=GYpaWkKaPyXGvZtYvtcebrWYDTeF7sdgTSRzR18_Ntq6-tw@mail.gmail.com>
+References: <1353109482-26478-1-git-send-email-joelagnel@ti.com>
+	<50A6D672.1020104@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1353015597-22703-1-git-send-email-oleg.matcovschi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: oleg.matcovschi@ti.com
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:48297 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753956Ab2KQCoB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Nov 2012 21:44:01 -0500
+Received: by mail-qa0-f46.google.com with SMTP id c11so3732287qad.19
+        for <linux-omap@vger.kernel.org>; Fri, 16 Nov 2012 18:44:00 -0800 (PST)
+In-Reply-To: <50A6D672.1020104@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Joel A Fernandes <joelagnel@ti.com>, linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>, Matt Porter <mporter@ti.com>, Steve Kipisz <s-kipisz2@ti.com>, Jason Kridner <jkridner@beagleboard.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-* oleg.matcovschi@ti.com <oleg.matcovschi@ti.com> [121115 13:42]:
-> From: Oleg Matcovschi <oleg.matcovschi@ti.com>
-> 
-> OMAP_MODE_GPIO() macro verified only OMAP_MUX_MODE4.
+Hi Jon,
 
-Indeed, that needs to be fixed.
+On Fri, Nov 16, 2012 at 6:12 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+> > diff --git a/arch/arm/mach-omap2/clock33xx_data.c
+> > b/arch/arm/mach-omap2/clock33xx_data.c
+> > index b7b7995..d0b4313 100644
+> > --- a/arch/arm/mach-omap2/clock33xx_data.c
+> > +++ b/arch/arm/mach-omap2/clock33xx_data.c
+> > @@ -585,6 +585,7 @@ static struct clk debugss_ick = {
+> >       .clkdm_name     = "l3_aon_clkdm",
+> >       .parent         = &dpll_core_m4_ck,
+> >       .ops            = &clkops_omap2_dflt,
+> > +     .flags          = ENABLE_ON_INIT,
+> >       .enable_reg     = AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
+> >       .enable_bit     = AM33XX_MODULEMODE_SWCTRL,
+> >       .recalc         = &followparent_recalc,
+>
+> Does this mean this clock will always be enabled, even when not using
+> JTAG? If so, is that what you want?
 
-> It is not correct for following platforms:
->     2430 - gpio mux mode 3
->     44xx - gpio mux mode 3
+Yes, the clock will always be on, because some times we connect JTAG
+on a running Linux system without powering it down. I can't comment
+without doing measurements if keeping the clock on has significant
+impact on power, but I see what you mean. Definitely low power is a
+parameter and folks who want lowest possible power might need to turn
+off the clock and not have JTAG in production, but that depends on the
+user's requirement. I personally don't care about power as much as I
+care about not being able to JTAG, and I think there are other folks
+who suffer from the same JTAG problem who wouldn't necessarily want
+lowest power.
 
-Looks like these are set properly to GPIO_IN_MODE3 with
-omap_mux_init().
+> I was not sure if you are concerned about power at all. Or if having
+> that always enabled can inhibit low power states for suspend/idle etc.
 
->     54xx - gpio mux mode 6
+Maybe, suspend/resume code can turn off clock on suspend and enable it
+on resume.
 
-This will be only using pinctrl-single.c, so we don't
-really have to worrry about this one. But I guess we might
-as well fix that too while at it if somebody backports omap5
-support to some older kernel..
- 
-> Patch reserves first 3 bits in partition flags for storing gpio mux
-> mode in same format as stored in control pad register.
-> Modified OMAP_MODE_GPIO() macro handles all possible cases of gpio mux mode.
-> Modified omap_mux_init() flags of omap34xx to include OMAP_MUX_GPIO_IN_MODE4.
+> May be worth adding more details to the changelog about if there are
+> side-effects to this change or not.
 
-Why don't you just add int gpio to struct omap_mux_partition?
+Sure, will do after waiting for any other review comments.
 
-You're not saving many bytes as at most we have two partitions
-so far per SoC.
- 
-> --- a/arch/arm/mach-omap2/mux34xx.c
-> +++ b/arch/arm/mach-omap2/mux34xx.c
-> @@ -2053,7 +2053,7 @@ int __init omap3_mux_init(struct omap_board_mux *board_subset, int flags)
->  		return -EINVAL;
->  	}
->  
-> -	return omap_mux_init("core", 0,
-> +	return omap_mux_init("core", OMAP_MUX_GPIO_IN_MODE4,
->  			     OMAP3_CONTROL_PADCONF_MUX_PBASE,
->  			     OMAP3_CONTROL_PADCONF_MUX_SIZE,
->  			     omap3_muxmodes, package_subset, board_subset,
-
-The default is GPIO_IN_MODE4, but that seems to be a bad
-default choice as only omap3 uses it. So yeah, might as well
-initialize that too and not assume any defaults GPIO mode.
-
-Regards,
-
-Tony
+Thanks,
+Joel
