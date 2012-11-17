@@ -1,36 +1,54 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: twl4030: Use only TWL4030_MODULE_LED for LED configuration
-Date: Sat, 17 Nov 2012 21:16:10 +0100
-Message-ID: <CACRpkdayZK2sPXJW=COFi7C=P5=fbi-q7UukWbQ8dheaJ=bjAA@mail.gmail.com>
-References: <1352799313-21019-1-git-send-email-peter.ujfalusi@ti.com>
+From: MARTIN RUUD <martin.ruud@danielsen-skoler.no>
+Subject: Re: OFID Grant Award to you
+Date: Sat, 17 Nov 2012 21:58:56 +0000 (UTC)
+Message-ID: <loom.20121117T225705-365@post.gmane.org>
+References: <20121106042640.JJMTH.46590.imail@fed1rmwml208>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34580 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125Ab2KQUQL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Nov 2012 15:16:11 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so465700eek.19
-        for <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 12:16:10 -0800 (PST)
-In-Reply-To: <1352799313-21019-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from plane.gmane.org ([80.91.229.3]:60659 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752273Ab2KQWE4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 17 Nov 2012 17:04:56 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1TZqVc-0000hb-B3
+	for linux-omap@vger.kernel.org; Sat, 17 Nov 2012 23:05:04 +0100
+Received: from ti0153a380-dhcp0669.bb.online.no ([80.213.37.160])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 23:05:04 +0100
+Received: from martin.ruud by ti0153a380-dhcp0669.bb.online.no with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sat, 17 Nov 2012 23:05:04 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Tue, Nov 13, 2012 at 10:35 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+O.F.I.D <onlinenotification741 <at> cox.net> writes:
 
-> Avoid using the TWL4030_MODULE_PWMA/B as module ID. The LEDEN, PWMA ON/OFF
-> and PWMB ON/OFF registers are in a continuous range starting from LED base.
-> This is going to be helpful for further cleanup in the twl stack.
->
-> No functional changes.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>=20
+> NB: Grant Qualification Code ( OFID/SAJ302/OGA3/N66 )
+> The sum of =C2=A3756,728 GBP has been awarded to you as Grant Donatio=
+n/Award from
+OFID. Contact Mr. Kelvin Green
+> by replying to this notification.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo <at> vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+>=20
+yes, I am Martin Ruud
 
-OK if you say so.
 
-Patch applied!
 
-Yours,
-Linus Walleij
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
