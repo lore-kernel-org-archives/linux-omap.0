@@ -1,107 +1,104 @@
 From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCH 1/7] ir-rx51: Handle signals properly
-Date: Sun, 18 Nov 2012 17:13:03 +0200
-Message-ID: <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
+Subject: [PATCH 7/7] ir-rx51: Fix sparse warnings
+Date: Sun, 18 Nov 2012 17:13:09 +0200
+Message-ID: <1353251589-26143-8-git-send-email-timo.t.kokkonen@iki.fi>
 References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mta-out.inet.fi ([195.156.147.13]:42830 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752203Ab2KRPNO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 18 Nov 2012 10:13:14 -0500
 In-Reply-To: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-The lirc-dev expects the ir-code to be transmitted when the write call
-returns back to the user space. We should not leave TX ongoing no
-matter what is the reason we return to the user space. Easiest
-solution for that is to simply remove interruptible sleeps.
+Add missing __user annotation to all of the user space memory
+accesses. Otherwise sparse is complainign about address space
+difference in types.
 
-The first wait_event_interruptible is thus replaced with return -EBUSY
-in case there is still ongoing transfer. This should suffice as the
-concept of sending multiple codes in parallel does not make sense.
-
-The second wait_event_interruptible call is replaced with
-wait_even_timeout with a fixed and safe timeout that should prevent
-the process from getting stuck in kernel for too long.
-
-Also, from now on we will force the TX to stop before we return from
-write call. If the TX happened to time out for some reason, we should
-not leave the HW transmitting anything.
+Also struct lirc_rx51_platform_driver is missing static keyword even
+though it should have it.
 
 Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 11 deletions(-)
+ drivers/media/rc/ir-rx51.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 546199e..125d4c3 100644
+index edb1562..7ed0616 100644
 --- a/drivers/media/rc/ir-rx51.c
 +++ b/drivers/media/rc/ir-rx51.c
-@@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
- 			      OMAP_TIMER_TRIGGER_NONE);
+@@ -233,7 +233,7 @@ static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
+ 	return 0;
  }
  
-+static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
-+{
-+	if (lirc_rx51->wbuf_index < 0)
-+		return;
-+
-+	lirc_rx51_off(lirc_rx51);
-+	lirc_rx51->wbuf_index = -1;
-+	omap_dm_timer_stop(lirc_rx51->pwm_timer);
-+	omap_dm_timer_stop(lirc_rx51->pulse_timer);
-+	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
-+	wake_up(&lirc_rx51->wqueue);
-+}
-+
- static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+-static ssize_t lirc_rx51_write(struct file *file, const char *buf,
++static ssize_t lirc_rx51_write(struct file *file, const char __user *buf,
+ 			  size_t n, loff_t *ppos)
  {
- 	u32 load, match;
-@@ -163,13 +176,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 	int count, i;
+@@ -308,13 +308,13 @@ static long lirc_rx51_ioctl(struct file *filep,
  
- 	return IRQ_HANDLED;
- end:
--	/* Stop TX here */
--	lirc_rx51_off(lirc_rx51);
--	lirc_rx51->wbuf_index = -1;
--	omap_dm_timer_stop(lirc_rx51->pwm_timer);
--	omap_dm_timer_stop(lirc_rx51->pulse_timer);
--	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
--	wake_up_interruptible(&lirc_rx51->wqueue);
-+	lirc_rx51_stop_tx(lirc_rx51);
+ 	switch (cmd) {
+ 	case LIRC_GET_SEND_MODE:
+-		result = put_user(LIRC_MODE_PULSE, (unsigned long *)arg);
++		result = put_user(LIRC_MODE_PULSE, (unsigned long __user *)arg);
+ 		if (result)
+ 			return result;
+ 		break;
  
- 	return IRQ_HANDLED;
+ 	case LIRC_SET_SEND_MODE:
+-		result = get_user(value, (unsigned long *)arg);
++		result = get_user(value, (unsigned long __user *)arg);
+ 		if (result)
+ 			return result;
+ 
+@@ -324,7 +324,7 @@ static long lirc_rx51_ioctl(struct file *filep,
+ 		break;
+ 
+ 	case LIRC_GET_REC_MODE:
+-		result = put_user(0, (unsigned long *) arg);
++		result = put_user(0, (unsigned long __user *)arg);
+ 		if (result)
+ 			return result;
+ 		break;
+@@ -334,7 +334,7 @@ static long lirc_rx51_ioctl(struct file *filep,
+ 		break;
+ 
+ 	case LIRC_SET_SEND_DUTY_CYCLE:
+-		result = get_user(ivalue, (unsigned int *) arg);
++		result = get_user(ivalue, (unsigned int __user *)arg);
+ 		if (result)
+ 			return result;
+ 
+@@ -348,7 +348,7 @@ static long lirc_rx51_ioctl(struct file *filep,
+ 		break;
+ 
+ 	case LIRC_SET_SEND_CARRIER:
+-		result = get_user(ivalue, (unsigned int *) arg);
++		result = get_user(ivalue, (unsigned int __user *)arg);
+ 		if (result)
+ 			return result;
+ 
+@@ -363,7 +363,7 @@ static long lirc_rx51_ioctl(struct file *filep,
+ 
+ 	case LIRC_GET_FEATURES:
+ 		result = put_user(LIRC_RX51_DRIVER_FEATURES,
+-				  (unsigned long *) arg);
++				(unsigned long __user *)arg);
+ 		if (result)
+ 			return result;
+ 		break;
+@@ -484,7 +484,7 @@ static int __exit lirc_rx51_remove(struct platform_device *dev)
+ 	return lirc_unregister_driver(lirc_rx51_driver.minor);
  }
-@@ -249,8 +256,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 	if ((count > WBUF_LEN) || (count % 2 == 0))
- 		return -EINVAL;
  
--	/* Wait any pending transfers to finish */
--	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-+	/* We can have only one transmit at a time */
-+	if (lirc_rx51->wbuf_index >= 0)
-+		return -EBUSY;
- 
- 	if (copy_from_user(lirc_rx51->wbuf, buf, n))
- 		return -EFAULT;
-@@ -276,9 +284,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 
- 	/*
- 	 * Don't return back to the userspace until the transfer has
--	 * finished
-+	 * finished. However, we wish to not spend any more than 500ms
-+	 * in kernel. No IR code TX should ever take that long.
-+	 */
-+	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
-+			HZ / 2);
-+
-+	/*
-+	 * Ensure transmitting has really stopped, even if the timers
-+	 * went mad or something else happened that caused it still
-+	 * sending out something.
- 	 */
--	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-+	lirc_rx51_stop_tx(lirc_rx51);
- 
- 	/* We can sleep again */
- 	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
+-struct platform_driver lirc_rx51_platform_driver = {
++static struct platform_driver lirc_rx51_platform_driver = {
+ 	.probe		= lirc_rx51_probe,
+ 	.remove		= __exit_p(lirc_rx51_remove),
+ 	.suspend	= lirc_rx51_suspend,
 -- 
 1.8.0
+
