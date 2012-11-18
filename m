@@ -1,83 +1,36 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving
- omap_devices to mach-omap2)
-Date: Sat, 17 Nov 2012 23:27:18 +0100
-Message-ID: <20121117222718.GF31527@game.jcrosoft.org>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com>
- <50999145.2070306@wwwdotorg.org>
- <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com>
- <509D9089.7020407@wwwdotorg.org>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH 0/5] mmc: omap_hsmmc: Few patches for omap_hsmmc
+Date: Sat, 17 Nov 2012 20:09:21 -0500
+Message-ID: <87lidz7m4e.fsf@octavius.laptop.org>
+References: <1352220737-14071-1-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <509D9089.7020407@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from void.printf.net ([89.145.121.20]:36356 "EHLO void.printf.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752499Ab2KRBJ1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 17 Nov 2012 20:09:27 -0500
+In-Reply-To: <1352220737-14071-1-git-send-email-svenkatr@ti.com> (Venkatraman
+	S.'s message of "Tue, 6 Nov 2012 22:22:11 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 16:23 Fri 09 Nov     , Stephen Warren wrote:
-> On 11/09/2012 09:28 AM, Grant Likely wrote:
-> > On Tue, Nov 6, 2012 at 10:37 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
-> ...
-> >> I do rather suspect this use-case is quite common. NVIDIA certainly has
-> >> a bunch of development boards with pluggable
-> >> PMIC/audio/WiFi/display/..., and I believe there's some ability to
-> >> re-use the pluggable components with a variety of base-boards.
-> >>
-> >> Given people within NVIDIA started talking about this recently, I asked
-> >> them to enumerate all the boards we have that support pluggable
-> >> components, and how common it is that some boards support being plugged
-> >> into different main boards. I don't know when that enumeration will
-> >> complete (or even start) but hopefully I can provide some feedback on
-> >> how common the use-case is for us once it's done.
-> > 
-> > From your perspective, is it important to use the exact same .dtb
-> > overlays for those add-on boards, or is it okay to have a separate
-> > build of the overlay for each base tree?
-> 
-> I certainly think it'd be extremely beneficial to use the exact same
-> child board .dtb with arbitrary base boards.
-> 
-> Consider something like the Arduino shield connector format, which I
-> /believe/ has been re-used across a wide variety of Arduino boards and
-> other compatible or imitation boards. Now consider a vendor of an
-> Arduino shield. The shield vendor probably wants to publish a single
-> .dtb file that works for users irrespective of which board they're using
-> it with.
-> 
-> (Well, I'm not sure that Arduino can run Linux; perhaps that's why you
-> picked BeagleBone capes for your document!)
-> 
-> I suppose it would be acceptable for the shield vendor to ship the .dts
-> file rather than the .dtb, and hence need to build the shield .dtb for a
-> specific base board.
-> 
-> However, I think the process for an end-user needs to be as simple as
-> "drop this .dts/.dtb file into some standard directory", and I imagine
-> it'll be much easier for distros/... to make that process work if
-> they're dealing with a .dtb that they can just blast into the kernel's
-> firmware loader interface, rather than having to also locate the
-> base-board .dts/.dtb file, and run dtc and/or other tools on both .dts
-> files together.
-I've exactly the same issue on Calao or the new atmel boards
+Hi Venkat,
 
-We have lego boards
+On Tue, Nov 06 2012, Venkatraman S wrote:
+> Hi Chris,
+>   Please review and merge the below patches.
+> The first one is a bug fix that would be required to be sent
+> for 3.7-rcX, others are intended for 3.8.
 
-with different cpu-modues running on differetn mother boards with
-diferrentdaugther boards
+There have been some changes requested to these -- could you resend your
+3.8 queue to me, please?
 
-on atmel we are lucky enough we can identity via 1-wire all of them but
-on Calao no
+Thanks,
 
-On Somfy platform we can detect hardware version and need different pinctrl
-
-So personally I'll prefer to be able to request dtb from the kernel or push
-them from the userspace as it will depends where you will detect the hardware
-present
-
-The main concern will which part of the kenel will now handle hw detection?
-
-Best Regards,
-J.
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
