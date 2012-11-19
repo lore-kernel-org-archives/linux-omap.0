@@ -1,50 +1,46 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 159/493] usb: remove use of __devinit
-Date: Mon, 19 Nov 2012 22:15:26 +0200
-Message-ID: <20121119201526.GB24309@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 431/493] usb: remove use of __devexit
+Date: Mon, 19 Nov 2012 22:17:31 +0200
+Message-ID: <20121119201731.GE24309@arwen.pp.htv.fi>
 References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
- <1353349642-3677-159-git-send-email-wfp5p@virginia.edu>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1353349642-3677-431-git-send-email-wfp5p@virginia.edu>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LpQ9ahxlCli8rRTG"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="SWTRyWv/ijrBap1m"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1353349642-3677-159-git-send-email-wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Li Yang <leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Geoff Levand <geoff-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Wan ZongShun <mcuos.com-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Olav Kongas <ok-7zpu9HQY+G71rVmBwKKLGw@public.gmane.org>, Lennert Buytenhek <kernel-OLH4Qvv75CYX/NnBR394Jw@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, cbe-oss-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1353349642-3677-431-git-send-email-wfp5p@virginia.edu>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Bill Pemberton <wfp5p@virginia.edu>
+Cc: gregkh@linuxfoundation.org, Peter Korsgaard <jacmet@sunsite.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Li Yang <leoli@freescale.com>, Alan Stern <stern@rowland.harvard.edu>, Wan ZongShun <mcuos.com@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---LpQ9ahxlCli8rRTG
+--SWTRyWv/ijrBap1m
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Nov 19, 2012 at 01:21:48PM -0500, Bill Pemberton wrote:
-> CONFIG_HOTPLUG is going away as an option so __devinit is no longer
-> needed.
+On Mon, Nov 19, 2012 at 01:26:20PM -0500, Bill Pemberton wrote:
+> CONFIG_HOTPLUG is going away as an option so __devexit is no
+> longer needed.
 >=20
-> Signed-off-by: Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-> Cc: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>=20
-> Cc: Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>=20
-> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>=20
-> Cc: Li Yang <leoli-KZfg59tc24xl57MIdRCFDg@public.gmane.org>=20
-> Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>=20
-> Cc: Geoff Levand <geoff-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>=20
-> Cc: Wan ZongShun <mcuos.com-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>=20
-> Cc: Olav Kongas <ok-7zpu9HQY+G71rVmBwKKLGw@public.gmane.org>=20
-> Cc: Lennert Buytenhek <kernel-OLH4Qvv75CYX/NnBR394Jw@public.gmane.org>=20
-> Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>=20
-> Cc: Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>=20
-> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
-> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
-> Cc: linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org=20
-> Cc: cbe-oss-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org=20
-> Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org=20
-> Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
+> Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
+> Cc: Peter Korsgaard <jacmet@sunsite.dk>=20
+> Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>=20
+> Cc: Felipe Balbi <balbi@ti.com>=20
+> Cc: Li Yang <leoli@freescale.com>=20
+> Cc: Alan Stern <stern@rowland.harvard.edu>=20
+> Cc: Wan ZongShun <mcuos.com@gmail.com>=20
+> Cc: Ben Dooks <ben-linux@fluff.org>=20
+> Cc: Kukjin Kim <kgene.kim@samsung.com>=20
+> Cc: linux-usb@vger.kernel.org=20
+> Cc: linux-omap@vger.kernel.org=20
+> Cc: linuxppc-dev@lists.ozlabs.org=20
+> Cc: linux-arm-kernel@lists.infradead.org=20
+> Cc: linux-samsung-soc@vger.kernel.org=20
 > ---
 >  drivers/usb/c67x00/c67x00-drv.c      |  2 +-
 >  drivers/usb/chipidea/ci13xxx_imx.c   |  2 +-
@@ -52,119 +48,87 @@ On Mon, Nov 19, 2012 at 01:21:48PM -0500, Bill Pemberton wrote:
 >  drivers/usb/chipidea/ci13xxx_pci.c   |  2 +-
 >  drivers/usb/chipidea/core.c          |  2 +-
 >  drivers/usb/chipidea/usbmisc_imx6q.c |  2 +-
->  drivers/usb/dwc3/core.c              | 11 +++++------
+>  drivers/usb/dwc3/core.c              |  2 +-
 >  drivers/usb/dwc3/debugfs.c           |  2 +-
->  drivers/usb/dwc3/dwc3-exynos.c       |  4 ++--
->  drivers/usb/dwc3/dwc3-omap.c         |  4 ++--
->  drivers/usb/dwc3/dwc3-pci.c          |  4 ++--
->  drivers/usb/dwc3/gadget.c            |  4 ++--
->  drivers/usb/gadget/at91_udc.c        |  4 ++--
+>  drivers/usb/dwc3/dwc3-exynos.c       |  2 +-
+>  drivers/usb/dwc3/dwc3-omap.c         |  2 +-
+>  drivers/usb/dwc3/dwc3-pci.c          |  2 +-
 >  drivers/usb/gadget/bcm63xx_udc.c     |  2 +-
->  drivers/usb/gadget/f_uac2.c          |  2 +-
->  drivers/usb/gadget/fsl_qe_udc.c      |  8 ++++----
+>  drivers/usb/gadget/fsl_qe_udc.c      |  2 +-
+>  drivers/usb/gadget/hid.c             |  2 +-
+>  drivers/usb/gadget/lpc32xx_udc.c     |  2 +-
+>  drivers/usb/gadget/mv_u3d_core.c     |  2 +-
 >  drivers/usb/gadget/mv_udc_core.c     |  2 +-
->  drivers/usb/gadget/net2272.c         | 13 ++++++-------
->  drivers/usb/gadget/omap_udc.c        |  6 +++---
->  drivers/usb/gadget/s3c-hsotg.c       |  6 +++---
->  drivers/usb/gadget/s3c-hsudc.c       |  2 +-
->  drivers/usb/host/bcma-hcd.c          |  9 ++++-----
+>  drivers/usb/gadget/net2272.c         | 10 +++++-----
+>  drivers/usb/gadget/omap_udc.c        |  2 +-
+>  drivers/usb/gadget/s3c-hsotg.c       |  4 ++--
+>  drivers/usb/host/bcma-hcd.c          |  2 +-
 >  drivers/usb/host/ehci-atmel.c        |  2 +-
->  drivers/usb/host/ehci-grlib.c        |  2 +-
->  drivers/usb/host/ehci-orion.c        |  4 ++--
+>  drivers/usb/host/ehci-msm.c          |  2 +-
 >  drivers/usb/host/ehci-platform.c     |  2 +-
->  drivers/usb/host/ehci-ppc-of.c       |  4 ++--
->  drivers/usb/host/ehci-ps3.c          |  2 +-
 >  drivers/usb/host/ehci-s5p.c          |  2 +-
->  drivers/usb/host/ehci-w90x900.c      |  4 ++--
->  drivers/usb/host/ehci-xilinx-of.c    |  2 +-
->  drivers/usb/host/fhci-hcd.c          |  2 +-
->  drivers/usb/host/fsl-mph-dr-of.c     |  8 ++++----
->  drivers/usb/host/imx21-hcd.c         |  2 +-
->  drivers/usb/host/isp116x-hcd.c       |  2 +-
+>  drivers/usb/host/ehci-w90x900.c      |  2 +-
+>  drivers/usb/host/fhci-hcd.c          |  4 ++--
+>  drivers/usb/host/fsl-mph-dr-of.c     |  4 ++--
 >  drivers/usb/host/isp1362-hcd.c       |  2 +-
->  drivers/usb/host/isp1760-if.c        |  4 ++--
->  drivers/usb/host/ohci-at91.c         | 12 ++++++------
->  drivers/usb/host/ohci-ep93xx.c       |  2 +-
+>  drivers/usb/host/isp1760-if.c        |  2 +-
+>  drivers/usb/host/ohci-at91.c         |  6 +++---
 >  drivers/usb/host/ohci-exynos.c       |  2 +-
 >  drivers/usb/host/ohci-jz4740.c       |  2 +-
->  drivers/usb/host/ohci-nxp.c          |  4 ++--
->  drivers/usb/host/ohci-octeon.c       |  2 +-
 >  drivers/usb/host/ohci-omap3.c        |  2 +-
->  drivers/usb/host/ohci-pci.c          |  2 +-
 >  drivers/usb/host/ohci-platform.c     |  2 +-
->  drivers/usb/host/ohci-ppc-of.c       |  4 ++--
->  drivers/usb/host/ohci-ps3.c          |  4 ++--
->  drivers/usb/host/ohci-pxa27x.c       |  6 +++---
 >  drivers/usb/host/ohci-s3c2410.c      |  2 +-
->  drivers/usb/host/ohci-sa1111.c       |  2 +-
->  drivers/usb/host/ohci-spear.c        |  2 +-
 >  drivers/usb/host/ohci-tmio.c         |  2 +-
->  drivers/usb/host/pci-quirks.c        | 14 +++++++-------
 >  drivers/usb/host/r8a66597-hcd.c      |  2 +-
 >  drivers/usb/host/sl811-hcd.c         |  2 +-
->  drivers/usb/host/ssb-hcd.c           | 11 +++++------
+>  drivers/usb/host/ssb-hcd.c           |  4 ++--
 >  drivers/usb/host/u132-hcd.c          |  2 +-
->  drivers/usb/host/uhci-grlib.c        |  2 +-
->  drivers/usb/host/uhci-platform.c     |  2 +-
 >  drivers/usb/musb/am35x.c             |  2 +-
 >  drivers/usb/musb/blackfin.c          |  2 +-
->  drivers/usb/musb/cppi_dma.c          |  3 +--
 >  drivers/usb/musb/da8xx.c             |  2 +-
 >  drivers/usb/musb/davinci.c           |  2 +-
->  drivers/usb/musb/musb_core.c         | 15 +++++++--------
->  drivers/usb/musb/musb_debugfs.c      |  2 +-
->  drivers/usb/musb/musb_dma.h          |  3 +--
->  drivers/usb/musb/musb_dsps.c         |  4 ++--
->  drivers/usb/musb/musb_gadget.c       |  6 +++---
->  drivers/usb/musb/musbhsdma.c         |  3 +--
+>  drivers/usb/musb/musb_core.c         |  2 +-
+>  drivers/usb/musb/musb_dsps.c         |  2 +-
 >  drivers/usb/musb/omap2430.c          |  2 +-
 >  drivers/usb/musb/tusb6010.c          |  2 +-
->  drivers/usb/musb/tusb6010_omap.c     |  3 +--
 >  drivers/usb/musb/ux500.c             |  2 +-
->  drivers/usb/musb/ux500_dma.c         |  3 +--
 >  drivers/usb/otg/ab8500-usb.c         |  2 +-
 >  drivers/usb/otg/fsl_otg.c            |  2 +-
->  drivers/usb/otg/isp1301_omap.c       |  2 +-
+>  drivers/usb/otg/msm_otg.c            |  2 +-
+>  drivers/usb/otg/mxs-phy.c            |  2 +-
 >  drivers/usb/otg/nop-usb-xceiv.c      |  2 +-
->  drivers/usb/otg/twl4030-usb.c        |  2 +-
->  drivers/usb/otg/twl6030-usb.c        |  2 +-
->  drivers/usb/phy/mv_u3d_phy.c         |  2 +-
 >  drivers/usb/phy/omap-usb2.c          |  2 +-
 >  drivers/usb/phy/rcar-phy.c           |  2 +-
->  85 files changed, 145 insertions(+), 155 deletions(-)
+>  drivers/usb/renesas_usbhs/common.c   |  2 +-
 
 For drivers/usb/gadget, drivers/usb/dwc3/, drivers/usb/musb/,
 drivers/usb/otg/, drivers/usb/phy, and drivers/usb/renesas_usbhs:
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Acked-by: Felipe Balbi <balbi@ti.com>
 
 --=20
 balbi
 
---LpQ9ahxlCli8rRTG
+--SWTRyWv/ijrBap1m
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQqpNeAAoJEIaOsuA1yqREMrUP/jaYoehGFVHD69c20yGz1/b2
-cQHufSEQjN8g1619XBBRhoJ2fVyrvtyMVPAlMgN14RnnAr7C1SHHnFFNGsh3ObGC
-bSftZxKNrktIOi104fKJpGLYs0GgevDIfgHj4CXPA0e1wmasZ0PMj6CUGoYWMHby
-Vp7CkDXCMffodqjrhEzrC6+kmNadSQk53t5wsOQ+gBywyCZJ6hWpWgHcByHUEmY9
-w4lyBGsfB9+kttqa2IoITXjl+P/ftOP2poxIeALeYHDDd291K84LG5xdrVI52iuK
-NOuKdzIA9C6bIj4VCYa2EkL0eVhTwjjxVmvIIei7kwRp7uX9jfV+kTfbutrIY5Pt
-B3um65r46u317wGxxSHh+45Nhjbb0W2+hFD74yXsoKvTS1dAWeV+Cm4h/V4v/K6F
-cVFkSd4SAknghvFOMvvUMkuwHkW1irhqDbaM9E8xZWoRkoKYIytNd60nxD/ZfB1L
-d1tRKpb7M9tRGTuW8bDi3iv9jsM+B3SbvCCAdXHtHSrmT4NoA9gH6nLXmcdtCO0K
-DRWUWcjVE/FwIUKQG4VG7952qyj7BrkMNhiUR288F0tg4SRF6QMCQ4cysARy/eEi
-KHKXskG1aP6Dd/HwrpOa+LlIYWkMFchMm4YYMzjOJpohLAV9Hn/t4uFMVNWTupSM
-rxYDtjZ0Ny0ufAbJSHpD
-=8H6d
+iQIcBAEBAgAGBQJQqpPbAAoJEIaOsuA1yqREELAQAJeCLcJDvnan3uXKIm5HtOnW
+RKq2KWIcYwNEVRZtERha+ppAp+wmIGEijWxt/ppUNAx6gVEBbolhjAZT4pUKnCzK
+yJzpnp3EH+yzLAK+2LpztPryTDqG5kDMiJRzsqXNfBjb6edRXBH6+fhRiFLporDq
+25hhxKby3xasYKmp8wdXkpv6VE9a/Y4sLenaKBsBQkKDNEaFNiKjmDZIfijSJVnI
+I3sewckZr4+MbNevaHz9zbEFQ4LJewHRb1jqGb6OsKsTMwMp6T2i16P3qa0HbK+s
+vBMgUtI7j2Y/ga3fJyGz1J9sTqlgcnwOxE2aF/MpCQ+hGGBbDVIl4vCp+E6243lo
+KyFsU3NFCABxgOqAKpnXIEXB15+/AjOjHcjvZ0l4MTphlrXLmU9d2zh3edYsSb6w
+NHJh+XSPTd3o6RS8UT5eShXFtUO/sEUP8NMx+Wr6mPSR2tP09lGTC1gdFj04Rl2x
+ao9s8QkSS9Nog7BPZNm2zonyFa5HdPnoP1IGbWxNyNgQO6u1GvzkdVLRding8tye
+acP0elpea+6EcuYLleDadlVyp3nEhy4eG5tpIcflcK97eL1hAdqcnMquc+VHnuUk
+Q7btm+gtj/RX6qhNCEAVBU749S3YCuCMo9ef/X0BpnnaY30FInIdnYoYXsOpB0qP
+Y518o0ezuTBB3Q4fsd+/
+=Xsoi
 -----END PGP SIGNATURE-----
 
---LpQ9ahxlCli8rRTG--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--SWTRyWv/ijrBap1m--
