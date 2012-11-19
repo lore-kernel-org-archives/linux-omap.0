@@ -1,49 +1,79 @@
-From: "Autumn Hogle" <ahogle@hassk12.org>
-Subject: =?UTF-8?Q?Final=20Ozn=C3=A1menie-Ref:=20ES/9420X2/68.?=
-Date: Sun, 18 Nov 2012 06:36:02 -0500
-Message-ID: <50A882340200000D00034882@gw.hassk12.org>
+From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: Re: [PATCH] bq2415x charger driver
+Date: Sun, 18 Nov 2012 16:00:06 -0800
+Message-ID: <20121119000006.GD29066@lizard.sbx05977.paloaca.wayport.net>
+References: <1391088.VOCN5mxOBg@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from email.hastings.k12.mi.us ([198.108.164.7]:44844 "EHLO
-	gw.hassk12.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752603Ab2KRWuO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Nov 2012 17:50:14 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1391088.VOCN5mxOBg@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Sebastian Reichel <sre@debian.org>, Felipe Contreras <felipe.contreras@gmail.com>, Joerg Reisenweber <joerg@openmoko.org>, =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?= <freemangordon@abv.bg>, David Woodhouse <dwmw2@infradead.org>, Aliaksei Katovich <aliaksei.katovich@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-=46inal Ozn=C3=A1menie-Ref: ES/9420X2/68.
+On Fri, Nov 02, 2012 at 08:18:11PM +0100, Pali Roh=C3=A1r wrote:
+> Hello,
+>=20
+> I'm sending new version of bq2415x charger driver which is needed
+> for example on Nokia N900 for charging battery. Driver is part of
+> open source project to replace proprietary battery management.
+> Driver is based on old RFC version which I sent months ago.
+>=20
+> power_supply: Add bq2415x charger driver
+>=20
+> This patch implements driver for bq2415x charging chips.
+>=20
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
 
-V=C3=A1=C5=A1 e-mail ID vyhral (=E2=82=AC 450,000.00 eur) v medzin=C3=A1=
-rodn=C3=BDch s=C3=BA=C5=A5a=C5=BEiach
-=C5=A1panielskeho "El Gordo" v=C3=BDhra v lot=C3=A9rii e-mailu,
-=C5=A1=C5=A5astn=C3=A9 =C4=8D=C3=ADsla 9/11/13/24/43 a Ref: ES/9420X2/6=
-8.
+Applied, thanks!
 
-Objasnenie a postup Kontakt:
+Note that I had to add the Makefile/Kconfig entries and fix some style
+issues...
 
-Claire =C5=BDrebec MEGA AGENCY
-Juan Carlos
-Tel: +34698 214 598 (Speak a Angol =C5=A1paniel=C4=8Dina)
+commit 7ad85830736f3e0d854becf7621eba3a0c926d13
+Author: Anton Vorontsov <cbouatmailru@gmail.com>
+Date:   Sun Nov 18 15:48:52 2012 -0800
 
-E-mail: infostalon@aol.com
+    bq2415x_charger: Add Kconfig/Makefile entries
+   =20
+    This commit adds Kconfig and Makefile entries so that we could actu=
+ally
+    build the driver.
+   =20
+    Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
 
-Cel=C3=A9 meno, adresu, vek, povolanie, telef=C3=B3nne =C4=8D=C3=ADsla,
-
-Gratulujeme.
-
-S pozdravom,
-
-Pani Gema Antonio (Awards koordin=C3=A1tor)
-
-
-Pozn=C3=A1mka: Jedn=C3=A1 sa o medzin=C3=A1rodn=C3=BD program lot=C3=A9=
-rie, bolo ozn=C3=A1menie
-preklada=C5=A5 z Angol na Slovensko Preto=C5=BEe si v=C3=AD=C5=A5az.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
+index 5c3237f..523a580 100644
+--- a/drivers/power/Kconfig
++++ b/drivers/power/Kconfig
+@@ -322,6 +322,16 @@ config CHARGER_MAX8998
+ 	  Say Y to enable support for the battery charger control sysfs and
+ 	  platform data of MAX8998/LP3974 PMICs.
+=20
++config CHARGER_BQ2415X
++	tristate "TI BQ2415x battery charger driver"
++	depends on I2C
++	help
++	  Say Y to enable support for the TI BQ2415x battery charger
++	  PMICs.
++
++	  You'll need this driver to charge batteries on e.g. Nokia
++	  RX-51/N900.
++
+ config CHARGER_SMB347
+ 	tristate "Summit Microelectronics SMB347 Battery Charger"
+ 	depends on I2C
+diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+index bc81fe2..74dfd95 100644
+--- a/drivers/power/Makefile
++++ b/drivers/power/Makefile
+@@ -48,5 +48,6 @@ obj-$(CONFIG_CHARGER_GPIO)	+=3D gpio-charger.o
+ obj-$(CONFIG_CHARGER_MANAGER)	+=3D charger-manager.o
+ obj-$(CONFIG_CHARGER_MAX8997)	+=3D max8997_charger.o
+ obj-$(CONFIG_CHARGER_MAX8998)	+=3D max8998_charger.o
++obj-$(CONFIG_CHARGER_BQ2415X)	+=3D bq2415x_charger.o
+ obj-$(CONFIG_POWER_AVS)		+=3D avs/
+ obj-$(CONFIG_CHARGER_SMB347)	+=3D smb347-charger.o
