@@ -1,1558 +1,782 @@
 From: Bill Pemberton <wfp5p@virginia.edu>
-Subject: [PATCH 446/493] video: remove use of __devexit
-Date: Mon, 19 Nov 2012 13:26:35 -0500
-Message-ID: <1353349642-3677-446-git-send-email-wfp5p@virginia.edu>
+Subject: [PATCH 270/493] arm: remove use of __devinit
+Date: Mon, 19 Nov 2012 13:23:39 -0500
+Message-ID: <1353349642-3677-270-git-send-email-wfp5p@virginia.edu>
 References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
 Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
 Sender: linux-samsung-soc-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org
-Cc: Jaya Kumar <jayalk@intworks.biz>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Russell King <linux@arm.linux.org.uk>, Jingoo Han <jg1.han@samsung.com>, Inki Dae <inki.dae@samsung.com>, Donghwa Lee <dh09.lee@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Ferenc Bakonyi <fero@drama.obuda.kando.hu>, Sascha Hauer <kernel@pengutronix.de>, Maik Broemme <mbroemme@plusserver.de>, Antonino Daplas <adaplas@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Thomas Winischhofer <thomas@winischhofer.net>, Michal Januszewski <spock@gentoo.org>, Tony Prisk <linux@prisktech.co.nz>, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-geode@lists.infradead.org, linux-nvidia@lists.surfsouth
+Cc: Russell King <linux@arm.linux.org.uk>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Andrew Lunn <andrew@lunn.ch>, Sascha Hauer <kernel@pengutronix.de>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Barry Song <baohua.song@csr.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, patches@opensource.wolfsonmicro.com, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-CONFIG_HOTPLUG is going away as an option so __devexit is no
-longer needed.
+CONFIG_HOTPLUG is going away as an option so __devinit is no longer
+needed.
 
 Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Jaya Kumar <jayalk@intworks.biz> 
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de> 
-Cc: Paul Mackerras <paulus@samba.org> 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org> 
 Cc: Russell King <linux@arm.linux.org.uk> 
-Cc: Jingoo Han <jg1.han@samsung.com> 
-Cc: Inki Dae <inki.dae@samsung.com> 
-Cc: Donghwa Lee <dh09.lee@samsung.com> 
-Cc: Kyungmin Park <kyungmin.park@samsung.com> 
-Cc: Ferenc Bakonyi <fero@drama.obuda.kando.hu> 
+Cc: Will Deacon <will.deacon@arm.com> 
+Cc: Jason Cooper <jason@lakedaemon.net> 
+Cc: Andrew Lunn <andrew@lunn.ch> 
 Cc: Sascha Hauer <kernel@pengutronix.de> 
-Cc: Maik Broemme <mbroemme@plusserver.de> 
-Cc: Antonino Daplas <adaplas@gmail.com> 
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com> 
+Cc: Eric Miao <eric.y.miao@gmail.com> 
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com> 
+Cc: David Brown <davidb@codeaurora.org> 
+Cc: Daniel Walker <dwalker@fifo99.com> 
+Cc: Bryan Huntsman <bryanh@codeaurora.org> 
+Cc: Tony Lindgren <tony@atomide.com> 
+Cc: Kevin Hilman <khilman@ti.com> 
+Cc: Barry Song <baohua.song@csr.com> 
 Cc: Ben Dooks <ben-linux@fluff.org> 
 Cc: Kukjin Kim <kgene.kim@samsung.com> 
-Cc: Thomas Winischhofer <thomas@winischhofer.net> 
-Cc: Michal Januszewski <spock@gentoo.org> 
-Cc: Tony Prisk <linux@prisktech.co.nz> 
-Cc: linux-fbdev@vger.kernel.org 
 Cc: linux-arm-kernel@lists.infradead.org 
-Cc: linux-geode@lists.infradead.org 
-Cc: linux-nvidia@lists.surfsouth.com 
+Cc: linux-arm-msm@vger.kernel.org 
 Cc: linux-omap@vger.kernel.org 
 Cc: linux-samsung-soc@vger.kernel.org 
+Cc: patches@opensource.wolfsonmicro.com 
+Cc: linux-tegra@vger.kernel.org 
 ---
- drivers/video/arcfb.c                                   |  2 +-
- drivers/video/arkfb.c                                   |  2 +-
- drivers/video/asiliantfb.c                              |  2 +-
- drivers/video/aty/aty128fb.c                            |  2 +-
- drivers/video/aty/atyfb_base.c                          |  4 ++--
- drivers/video/aty/radeon_base.c                         |  2 +-
- drivers/video/au1200fb.c                                |  2 +-
- drivers/video/auo_k1900fb.c                             |  2 +-
- drivers/video/auo_k1901fb.c                             |  2 +-
- drivers/video/auo_k190x.c                               |  2 +-
- drivers/video/bf537-lq035.c                             |  4 ++--
- drivers/video/bf54x-lq043fb.c                           |  2 +-
- drivers/video/bfin-lq035q1-fb.c                         |  2 +-
- drivers/video/bfin-t350mcqb-fb.c                        |  2 +-
- drivers/video/bfin_adv7393fb.c                          |  2 +-
- drivers/video/broadsheetfb.c                            |  2 +-
- drivers/video/bw2.c                                     |  2 +-
- drivers/video/carminefb.c                               |  2 +-
- drivers/video/cg14.c                                    |  2 +-
- drivers/video/cg3.c                                     |  2 +-
- drivers/video/cg6.c                                     |  2 +-
- drivers/video/chipsfb.c                                 |  2 +-
- drivers/video/cirrusfb.c                                |  6 +++---
- drivers/video/cobalt_lcdfb.c                            |  2 +-
- drivers/video/console/sticore.c                         |  2 +-
- drivers/video/cyber2000fb.c                             |  4 ++--
- drivers/video/da8xx-fb.c                                |  2 +-
- drivers/video/ep93xx-fb.c                               |  2 +-
- drivers/video/exynos/exynos_dp_core.c                   |  2 +-
- drivers/video/exynos/exynos_mipi_dsi.c                  |  2 +-
- drivers/video/ffb.c                                     |  2 +-
- drivers/video/gbefb.c                                   |  4 ++--
- drivers/video/geode/gx1fb_core.c                        |  4 ++--
- drivers/video/geode/gxfb_core.c                         |  2 +-
- drivers/video/geode/lxfb_core.c                         |  2 +-
- drivers/video/grvga.c                                   |  2 +-
- drivers/video/gxt4500.c                                 |  2 +-
- drivers/video/hecubafb.c                                |  2 +-
- drivers/video/hgafb.c                                   |  2 +-
- drivers/video/hitfb.c                                   |  2 +-
- drivers/video/hpfb.c                                    |  2 +-
- drivers/video/i740fb.c                                  |  2 +-
- drivers/video/imsttfb.c                                 |  2 +-
- drivers/video/imxfb.c                                   |  2 +-
- drivers/video/intelfb/intelfbdrv.c                      |  4 ++--
- drivers/video/jz4740_fb.c                               |  2 +-
- drivers/video/kyro/fbdev.c                              |  2 +-
- drivers/video/leo.c                                     |  2 +-
- drivers/video/mb862xx/mb862xxfbdrv.c                    |  4 ++--
- drivers/video/mbx/mbxdebugfs.c                          |  2 +-
- drivers/video/mbx/mbxfb.c                               |  2 +-
- drivers/video/metronomefb.c                             |  2 +-
- drivers/video/mxsfb.c                                   |  4 ++--
- drivers/video/neofb.c                                   |  2 +-
- drivers/video/nvidia/nvidia.c                           |  2 +-
- drivers/video/omap2/displays/panel-lgphilips-lb035q02.c |  2 +-
- drivers/video/omap2/displays/panel-tpo-td043mtea1.c     |  2 +-
- drivers/video/p9100.c                                   |  2 +-
- drivers/video/platinumfb.c                              |  2 +-
- drivers/video/pm2fb.c                                   |  2 +-
- drivers/video/pm3fb.c                                   |  2 +-
- drivers/video/pvr2fb.c                                  |  2 +-
- drivers/video/pxa168fb.c                                |  2 +-
- drivers/video/pxa3xx-gcu.c                              |  2 +-
- drivers/video/pxafb.c                                   |  4 ++--
- drivers/video/riva/fbdev.c                              |  2 +-
- drivers/video/s3c-fb.c                                  |  2 +-
- drivers/video/s3c2410fb.c                               |  2 +-
- drivers/video/s3fb.c                                    |  2 +-
- drivers/video/savage/savagefb_driver.c                  |  2 +-
- drivers/video/sgivwfb.c                                 |  2 +-
- drivers/video/sh7760fb.c                                |  2 +-
- drivers/video/sh_mipi_dsi.c                             |  2 +-
- drivers/video/sis/sis_main.c                            |  2 +-
- drivers/video/skeletonfb.c                              |  4 ++--
- drivers/video/sstfb.c                                   |  6 +++---
- drivers/video/sunxvr1000.c                              |  2 +-
- drivers/video/sunxvr2500.c                              |  2 +-
- drivers/video/sunxvr500.c                               |  2 +-
- drivers/video/tcx.c                                     |  2 +-
- drivers/video/tdfxfb.c                                  |  4 ++--
- drivers/video/tgafb.c                                   | 14 +++++++-------
- drivers/video/tmiofb.c                                  |  2 +-
- drivers/video/tridentfb.c                               |  2 +-
- drivers/video/uvesafb.c                                 |  2 +-
- drivers/video/vermilion/vermilion.c                     |  2 +-
- drivers/video/vga16fb.c                                 |  2 +-
- drivers/video/via/via-core.c                            |  2 +-
- drivers/video/via/viafbdev.c                            |  2 +-
- drivers/video/vt8500lcdfb.c                             |  2 +-
- drivers/video/vt8623fb.c                                |  2 +-
- drivers/video/w100fb.c                                  |  2 +-
- drivers/video/wm8505fb.c                                |  2 +-
- drivers/video/wmt_ge_rops.c                             |  2 +-
- drivers/video/xilinxfb.c                                |  2 +-
- 95 files changed, 116 insertions(+), 116 deletions(-)
+ arch/arm/common/sa1111.c                     |  5 ++---
+ arch/arm/common/scoop.c                      |  2 +-
+ arch/arm/kernel/bios32.c                     | 16 ++++++++--------
+ arch/arm/kernel/etm.c                        |  4 ++--
+ arch/arm/kernel/perf_event_cpu.c             |  6 +++---
+ arch/arm/kernel/perf_event_v6.c              |  4 ++--
+ arch/arm/kernel/perf_event_v7.c              | 12 ++++++------
+ arch/arm/kernel/perf_event_xscale.c          |  4 ++--
+ arch/arm/mach-dove/pcie.c                    |  2 +-
+ arch/arm/mach-imx/cpufreq.c                  |  2 +-
+ arch/arm/mach-imx/mmdc.c                     |  2 +-
+ arch/arm/mach-iop13xx/pci.c                  |  2 +-
+ arch/arm/mach-kirkwood/pcie.c                |  2 +-
+ arch/arm/mach-ks8695/board-acs5k.c           |  2 +-
+ arch/arm/mach-mmp/sram.c                     |  2 +-
+ arch/arm/mach-msm/proc_comm.c                |  2 +-
+ arch/arm/mach-msm/smd.c                      |  2 +-
+ arch/arm/mach-mv78xx0/pcie.c                 |  2 +-
+ arch/arm/mach-omap1/mailbox.c                |  2 +-
+ arch/arm/mach-omap2/gpmc.c                   |  4 ++--
+ arch/arm/mach-omap2/mailbox.c                |  2 +-
+ arch/arm/mach-orion5x/pci.c                  |  2 +-
+ arch/arm/mach-prima2/pm.c                    |  2 +-
+ arch/arm/mach-prima2/rtciobrg.c              |  2 +-
+ arch/arm/mach-pxa/corgi_pm.c                 |  2 +-
+ arch/arm/mach-pxa/sharpsl_pm.c               |  4 ++--
+ arch/arm/mach-pxa/spitz_pm.c                 |  2 +-
+ arch/arm/mach-s3c24xx/h1940-bluetooth.c      |  2 +-
+ arch/arm/mach-s3c24xx/mach-osiris-dvs.c      |  2 +-
+ arch/arm/mach-s3c64xx/mach-crag6410-module.c |  2 +-
+ arch/arm/mach-sa1100/jornada720_ssp.c        |  2 +-
+ arch/arm/mach-sa1100/neponset.c              |  2 +-
+ arch/arm/mach-tegra/pcie.c                   |  6 +++---
+ arch/arm/mach-tegra/tegra2_emc.c             |  4 ++--
+ arch/arm/mach-u300/dummyspichip.c            |  2 +-
+ arch/arm/plat-omap/dma.c                     |  2 +-
+ arch/arm/plat-omap/dmtimer.c                 |  2 +-
+ arch/arm/plat-pxa/ssp.c                      |  2 +-
+ 38 files changed, 61 insertions(+), 62 deletions(-)
 
-diff --git a/drivers/video/arcfb.c b/drivers/video/arcfb.c
-index 3ef36a9..e43401a 100644
---- a/drivers/video/arcfb.c
-+++ b/drivers/video/arcfb.c
-@@ -587,7 +587,7 @@ err:
- 	return retval;
- }
- 
--static int __devexit arcfb_remove(struct platform_device *dev)
-+static int arcfb_remove(struct platform_device *dev)
+diff --git a/arch/arm/common/sa1111.c b/arch/arm/common/sa1111.c
+index 9173d11..e57d7e5 100644
+--- a/arch/arm/common/sa1111.c
++++ b/arch/arm/common/sa1111.c
+@@ -686,8 +686,7 @@ sa1111_init_one_child(struct sa1111 *sachip, struct resource *parent,
+  *	%-EINVAL	no platform data passed
+  *	%0		successful.
+  */
+-static int __devinit
+-__sa1111_probe(struct device *me, struct resource *mem, int irq)
++static int __sa1111_probe(struct device *me, struct resource *mem, int irq)
  {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 
-diff --git a/drivers/video/arkfb.c b/drivers/video/arkfb.c
-index 459b31e..94a51f1 100644
---- a/drivers/video/arkfb.c
-+++ b/drivers/video/arkfb.c
-@@ -1086,7 +1086,7 @@ err_enable_device:
- 
- /* PCI remove */
- 
--static void __devexit ark_pci_remove(struct pci_dev *dev)
-+static void ark_pci_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 
-diff --git a/drivers/video/asiliantfb.c b/drivers/video/asiliantfb.c
-index d291750..0e5ea94 100644
---- a/drivers/video/asiliantfb.c
-+++ b/drivers/video/asiliantfb.c
-@@ -581,7 +581,7 @@ asiliantfb_pci_init(struct pci_dev *dp, const struct pci_device_id *ent)
- 	return 0;
- }
- 
--static void __devexit asiliantfb_remove(struct pci_dev *dp)
-+static void asiliantfb_remove(struct pci_dev *dp)
- {
- 	struct fb_info *p = pci_get_drvdata(dp);
- 
-diff --git a/drivers/video/aty/aty128fb.c b/drivers/video/aty/aty128fb.c
-index e63fc9d..9cdf5a4 100644
---- a/drivers/video/aty/aty128fb.c
-+++ b/drivers/video/aty/aty128fb.c
-@@ -2156,7 +2156,7 @@ err_free_fb:
- 	return -ENODEV;
- }
- 
--static void __devexit aty128_remove(struct pci_dev *pdev)
-+static void aty128_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct aty128fb_par *par;
-diff --git a/drivers/video/aty/atyfb_base.c b/drivers/video/aty/atyfb_base.c
-index a3f117d..bdd98ac 100644
---- a/drivers/video/aty/atyfb_base.c
-+++ b/drivers/video/aty/atyfb_base.c
-@@ -3714,7 +3714,7 @@ static int __init atyfb_atari_probe(void)
- 
- #ifdef CONFIG_PCI
- 
--static void __devexit atyfb_remove(struct fb_info *info)
-+static void atyfb_remove(struct fb_info *info)
- {
- 	struct atyfb_par *par = (struct atyfb_par *) info->par;
- 
-@@ -3762,7 +3762,7 @@ static void __devexit atyfb_remove(struct fb_info *info)
- }
- 
- 
--static void __devexit atyfb_pci_remove(struct pci_dev *pdev)
-+static void atyfb_pci_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 
-diff --git a/drivers/video/aty/radeon_base.c b/drivers/video/aty/radeon_base.c
-index 7687179..6416137 100644
---- a/drivers/video/aty/radeon_base.c
-+++ b/drivers/video/aty/radeon_base.c
-@@ -2407,7 +2407,7 @@ err_out:
- 
- 
- 
--static void __devexit radeonfb_pci_unregister (struct pci_dev *pdev)
-+static void radeonfb_pci_unregister (struct pci_dev *pdev)
- {
-         struct fb_info *info = pci_get_drvdata(pdev);
-         struct radeonfb_info *rinfo = info->par;
-diff --git a/drivers/video/au1200fb.c b/drivers/video/au1200fb.c
-index b270a5c..1b59054 100644
---- a/drivers/video/au1200fb.c
-+++ b/drivers/video/au1200fb.c
-@@ -1798,7 +1798,7 @@ failed:
- 	return ret;
- }
- 
--static int __devexit au1200fb_drv_remove(struct platform_device *dev)
-+static int au1200fb_drv_remove(struct platform_device *dev)
- {
- 	struct au1200fb_platdata *pd = platform_get_drvdata(dev);
- 	struct au1200fb_device *fbdev;
-diff --git a/drivers/video/auo_k1900fb.c b/drivers/video/auo_k1900fb.c
-index 46ec47b..1a9ac6e 100644
---- a/drivers/video/auo_k1900fb.c
-+++ b/drivers/video/auo_k1900fb.c
-@@ -177,7 +177,7 @@ static int auok1900fb_probe(struct platform_device *pdev)
- 	return auok190x_common_probe(pdev, &init);
- }
- 
--static int __devexit auok1900fb_remove(struct platform_device *pdev)
-+static int auok1900fb_remove(struct platform_device *pdev)
- {
- 	return auok190x_common_remove(pdev);
- }
-diff --git a/drivers/video/auo_k1901fb.c b/drivers/video/auo_k1901fb.c
-index 9eb7eeb..d1db165 100644
---- a/drivers/video/auo_k1901fb.c
-+++ b/drivers/video/auo_k1901fb.c
-@@ -230,7 +230,7 @@ static int auok1901fb_probe(struct platform_device *pdev)
- 	return auok190x_common_probe(pdev, &init);
- }
- 
--static int __devexit auok1901fb_remove(struct platform_device *pdev)
-+static int auok1901fb_remove(struct platform_device *pdev)
- {
- 	return auok190x_common_remove(pdev);
- }
-diff --git a/drivers/video/auo_k190x.c b/drivers/video/auo_k190x.c
-index 70aa5d4..800898b 100644
---- a/drivers/video/auo_k190x.c
-+++ b/drivers/video/auo_k190x.c
-@@ -1006,7 +1006,7 @@ err_reg:
- }
- EXPORT_SYMBOL_GPL(auok190x_common_probe);
- 
--int  __devexit auok190x_common_remove(struct platform_device *pdev)
-+int  auok190x_common_remove(struct platform_device *pdev)
- {
- 	struct fb_info *info = platform_get_drvdata(pdev);
- 	struct auok190xfb_par *par = info->par;
-diff --git a/drivers/video/bf537-lq035.c b/drivers/video/bf537-lq035.c
-index 5b8e95d..44b8c36 100644
---- a/drivers/video/bf537-lq035.c
-+++ b/drivers/video/bf537-lq035.c
-@@ -108,7 +108,7 @@ static int ad5280_probe(struct i2c_client *client,
- 	return 0;
- }
- 
--static int __devexit ad5280_remove(struct i2c_client *client)
-+static int ad5280_remove(struct i2c_client *client)
- {
- 	ad5280_client = NULL;
- 	return 0;
-@@ -816,7 +816,7 @@ out_ports:
- 	return ret;
- }
- 
--static int __devexit bfin_lq035_remove(struct platform_device *pdev)
-+static int bfin_lq035_remove(struct platform_device *pdev)
- {
- 	if (fb_buffer != NULL)
- 		dma_free_coherent(NULL, TOTAL_VIDEO_MEM_SIZE, fb_buffer, 0);
-diff --git a/drivers/video/bf54x-lq043fb.c b/drivers/video/bf54x-lq043fb.c
-index 9f72580..2726a5b 100644
---- a/drivers/video/bf54x-lq043fb.c
-+++ b/drivers/video/bf54x-lq043fb.c
-@@ -686,7 +686,7 @@ out1:
- 	return ret;
- }
- 
--static int __devexit bfin_bf54x_remove(struct platform_device *pdev)
-+static int bfin_bf54x_remove(struct platform_device *pdev)
- {
- 
- 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
-diff --git a/drivers/video/bfin-lq035q1-fb.c b/drivers/video/bfin-lq035q1-fb.c
-index 353fb7c..20c26374 100644
---- a/drivers/video/bfin-lq035q1-fb.c
-+++ b/drivers/video/bfin-lq035q1-fb.c
-@@ -764,7 +764,7 @@ static int bfin_lq035q1_probe(struct platform_device *pdev)
- 	return ret;
- }
- 
--static int __devexit bfin_lq035q1_remove(struct platform_device *pdev)
-+static int bfin_lq035q1_remove(struct platform_device *pdev)
- {
- 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
- 	struct bfin_lq035q1fb_info *info = fbinfo->par;
-diff --git a/drivers/video/bfin-t350mcqb-fb.c b/drivers/video/bfin-t350mcqb-fb.c
-index 9456865..d46da01 100644
---- a/drivers/video/bfin-t350mcqb-fb.c
-+++ b/drivers/video/bfin-t350mcqb-fb.c
-@@ -583,7 +583,7 @@ out1:
- 	return ret;
- }
- 
--static int __devexit bfin_t350mcqb_remove(struct platform_device *pdev)
-+static int bfin_t350mcqb_remove(struct platform_device *pdev)
- {
- 
- 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
-diff --git a/drivers/video/bfin_adv7393fb.c b/drivers/video/bfin_adv7393fb.c
-index 5754140..90196d3 100644
---- a/drivers/video/bfin_adv7393fb.c
-+++ b/drivers/video/bfin_adv7393fb.c
-@@ -719,7 +719,7 @@ static int bfin_adv7393_fb_setcolreg(u_int regno, u_int red, u_int green,
- 	return 0;
- }
- 
--static int __devexit bfin_adv7393_fb_remove(struct i2c_client *client)
-+static int bfin_adv7393_fb_remove(struct i2c_client *client)
- {
- 	struct adv7393fb_device *fbdev = i2c_get_clientdata(client);
- 
-diff --git a/drivers/video/broadsheetfb.c b/drivers/video/broadsheetfb.c
-index bc04699..b09701c 100644
---- a/drivers/video/broadsheetfb.c
-+++ b/drivers/video/broadsheetfb.c
-@@ -1190,7 +1190,7 @@ err:
- 
- }
- 
--static int __devexit broadsheetfb_remove(struct platform_device *dev)
-+static int broadsheetfb_remove(struct platform_device *dev)
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 
-diff --git a/drivers/video/bw2.c b/drivers/video/bw2.c
-index 7695927..652b693 100644
---- a/drivers/video/bw2.c
-+++ b/drivers/video/bw2.c
-@@ -352,7 +352,7 @@ out_err:
- 	return err;
- }
- 
--static int __devexit bw2_remove(struct platform_device *op)
-+static int bw2_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct bw2_par *par = info->par;
-diff --git a/drivers/video/carminefb.c b/drivers/video/carminefb.c
-index ccbe958..5780afa 100644
---- a/drivers/video/carminefb.c
-+++ b/drivers/video/carminefb.c
-@@ -721,7 +721,7 @@ err_enable_pci:
- 	return ret;
- }
- 
--static void __devexit carminefb_remove(struct pci_dev *dev)
-+static void carminefb_remove(struct pci_dev *dev)
- {
- 	struct carmine_hw *hw = pci_get_drvdata(dev);
- 	struct fb_fix_screeninfo fix;
-diff --git a/drivers/video/cg14.c b/drivers/video/cg14.c
-index 1b95656..9738ca2 100644
---- a/drivers/video/cg14.c
-+++ b/drivers/video/cg14.c
-@@ -571,7 +571,7 @@ out_err:
- 	return err;
- }
- 
--static int __devexit cg14_remove(struct platform_device *op)
-+static int cg14_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct cg14_par *par = info->par;
-diff --git a/drivers/video/cg3.c b/drivers/video/cg3.c
-index 4d20257..a26ecfa 100644
---- a/drivers/video/cg3.c
-+++ b/drivers/video/cg3.c
-@@ -433,7 +433,7 @@ out_err:
- 	return err;
- }
- 
--static int __devexit cg3_remove(struct platform_device *op)
-+static int cg3_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct cg3_par *par = info->par;
-diff --git a/drivers/video/cg6.c b/drivers/video/cg6.c
-index 3204e5a..3545dec 100644
---- a/drivers/video/cg6.c
-+++ b/drivers/video/cg6.c
-@@ -827,7 +827,7 @@ out_err:
- 	return err;
- }
- 
--static int __devexit cg6_remove(struct platform_device *op)
-+static int cg6_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct cg6_par *par = info->par;
-diff --git a/drivers/video/chipsfb.c b/drivers/video/chipsfb.c
-index 71f46e3..ee60b3c 100644
---- a/drivers/video/chipsfb.c
-+++ b/drivers/video/chipsfb.c
-@@ -438,7 +438,7 @@ chipsfb_pci_init(struct pci_dev *dp, const struct pci_device_id *ent)
- 	return rc;
- }
- 
--static void __devexit chipsfb_remove(struct pci_dev *dp)
-+static void chipsfb_remove(struct pci_dev *dp)
- {
- 	struct fb_info *p = pci_get_drvdata(dp);
- 
-diff --git a/drivers/video/cirrusfb.c b/drivers/video/cirrusfb.c
-index f8961c3..12ba41f 100644
---- a/drivers/video/cirrusfb.c
-+++ b/drivers/video/cirrusfb.c
-@@ -2096,7 +2096,7 @@ err_dealloc_cmap:
- 	return err;
- }
- 
--static void __devexit cirrusfb_cleanup(struct fb_info *info)
-+static void cirrusfb_cleanup(struct fb_info *info)
- {
- 	struct cirrusfb_info *cinfo = info->par;
- 
-@@ -2215,7 +2215,7 @@ err_out:
- 	return ret;
- }
- 
--static void __devexit cirrusfb_pci_unregister(struct pci_dev *pdev)
-+static void cirrusfb_pci_unregister(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 
-@@ -2352,7 +2352,7 @@ err_release_fb:
- 	return error;
- }
- 
--void __devexit cirrusfb_zorro_unregister(struct zorro_dev *z)
-+void cirrusfb_zorro_unregister(struct zorro_dev *z)
- {
- 	struct fb_info *info = zorro_get_drvdata(z);
- 
-diff --git a/drivers/video/cobalt_lcdfb.c b/drivers/video/cobalt_lcdfb.c
-index bea956e..a903149 100644
---- a/drivers/video/cobalt_lcdfb.c
-+++ b/drivers/video/cobalt_lcdfb.c
-@@ -374,7 +374,7 @@ static int cobalt_lcdfb_probe(struct platform_device *dev)
- 	return 0;
- }
- 
--static int __devexit cobalt_lcdfb_remove(struct platform_device *dev)
-+static int cobalt_lcdfb_remove(struct platform_device *dev)
- {
- 	struct fb_info *info;
- 
-diff --git a/drivers/video/console/sticore.c b/drivers/video/console/sticore.c
-index a4827da..e5b654c 100644
---- a/drivers/video/console/sticore.c
-+++ b/drivers/video/console/sticore.c
-@@ -998,7 +998,7 @@ static int sticore_pci_init(struct pci_dev *pd,
- }
- 
- 
--static void __devexit sticore_pci_remove(struct pci_dev *pd)
-+static void sticore_pci_remove(struct pci_dev *pd)
- {
- 	BUG();
- }
-diff --git a/drivers/video/cyber2000fb.c b/drivers/video/cyber2000fb.c
-index b93cabc..bbdcac7 100644
---- a/drivers/video/cyber2000fb.c
-+++ b/drivers/video/cyber2000fb.c
-@@ -1615,7 +1615,7 @@ failed:
- 	return err;
- }
- 
--static void __devexit cyberpro_common_remove(struct cfb_info *cfb)
-+static void cyberpro_common_remove(struct cfb_info *cfb)
- {
- 	unregister_framebuffer(&cfb->fb);
- #ifdef CONFIG_FB_CYBER2000_DDC
-@@ -1863,7 +1863,7 @@ failed_release:
- 	return err;
- }
- 
--static void __devexit cyberpro_pci_remove(struct pci_dev *dev)
-+static void cyberpro_pci_remove(struct pci_dev *dev)
- {
- 	struct cfb_info *cfb = pci_get_drvdata(dev);
- 
-diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 33b286b..229b9bd 100644
---- a/drivers/video/da8xx-fb.c
-+++ b/drivers/video/da8xx-fb.c
-@@ -1012,7 +1012,7 @@ static inline void lcd_da8xx_cpufreq_deregister(struct da8xx_fb_par *par)
- }
+ 	struct sa1111_platform_data *pd = me->platform_data;
+ 	struct sa1111 *sachip;
+@@ -1011,7 +1010,7 @@ static int sa1111_resume(struct platform_device *dev)
+ #define sa1111_resume  NULL
  #endif
  
--static int __devexit fb_remove(struct platform_device *dev)
-+static int fb_remove(struct platform_device *dev)
+-static int __devinit sa1111_probe(struct platform_device *pdev)
++static int sa1111_probe(struct platform_device *pdev)
  {
- 	struct fb_info *info = dev_get_drvdata(&dev->dev);
+ 	struct resource *mem;
+ 	int irq;
+diff --git a/arch/arm/common/scoop.c b/arch/arm/common/scoop.c
+index 7cac8dd..2b62571 100644
+--- a/arch/arm/common/scoop.c
++++ b/arch/arm/common/scoop.c
+@@ -176,7 +176,7 @@ static int scoop_resume(struct platform_device *dev)
+ #define scoop_resume	NULL
+ #endif
  
-diff --git a/drivers/video/ep93xx-fb.c b/drivers/video/ep93xx-fb.c
-index ef4ca55..3f2519d 100644
---- a/drivers/video/ep93xx-fb.c
-+++ b/drivers/video/ep93xx-fb.c
-@@ -599,7 +599,7 @@ failed_cmap:
- 	return err;
- }
- 
--static int __devexit ep93xxfb_remove(struct platform_device *pdev)
-+static int ep93xxfb_remove(struct platform_device *pdev)
+-static int __devinit scoop_probe(struct platform_device *pdev)
++static int scoop_probe(struct platform_device *pdev)
  {
- 	struct fb_info *info = platform_get_drvdata(pdev);
- 	struct ep93xx_fbi *fbi = info->par;
-diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
-index 47f0448..aa845cd 100644
---- a/drivers/video/exynos/exynos_dp_core.c
-+++ b/drivers/video/exynos/exynos_dp_core.c
-@@ -948,7 +948,7 @@ static int exynos_dp_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int __devexit exynos_dp_remove(struct platform_device *pdev)
-+static int exynos_dp_remove(struct platform_device *pdev)
- {
- 	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
- 	struct exynos_dp_device *dp = platform_get_drvdata(pdev);
-diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
-index 1571db7..4a17cdc 100644
---- a/drivers/video/exynos/exynos_mipi_dsi.c
-+++ b/drivers/video/exynos/exynos_mipi_dsi.c
-@@ -490,7 +490,7 @@ err_platform_get_irq:
- 	return ret;
- }
- 
--static int __devexit exynos_mipi_dsi_remove(struct platform_device *pdev)
-+static int exynos_mipi_dsi_remove(struct platform_device *pdev)
- {
- 	struct mipi_dsim_device *dsim = platform_get_drvdata(pdev);
- 	struct mipi_dsim_ddi *dsim_ddi, *next;
-diff --git a/drivers/video/ffb.c b/drivers/video/ffb.c
-index 46aee0e..6d27447 100644
---- a/drivers/video/ffb.c
-+++ b/drivers/video/ffb.c
-@@ -1022,7 +1022,7 @@ out_err:
- 	return err;
- }
- 
--static int __devexit ffb_remove(struct platform_device *op)
-+static int ffb_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct ffb_par *par = info->par;
-diff --git a/drivers/video/gbefb.c b/drivers/video/gbefb.c
-index f2e9788..bda5e39 100644
---- a/drivers/video/gbefb.c
-+++ b/drivers/video/gbefb.c
-@@ -1082,7 +1082,7 @@ static ssize_t gbefb_show_rev(struct device *device, struct device_attribute *at
- 
- static DEVICE_ATTR(revision, S_IRUGO, gbefb_show_rev, NULL);
- 
--static void __devexit gbefb_remove_sysfs(struct device *dev)
-+static void gbefb_remove_sysfs(struct device *dev)
- {
- 	device_remove_file(dev, &dev_attr_size);
- 	device_remove_file(dev, &dev_attr_revision);
-@@ -1254,7 +1254,7 @@ out_release_framebuffer:
- 	return ret;
- }
- 
--static int __devexit gbefb_remove(struct platform_device* p_dev)
-+static int gbefb_remove(struct platform_device* p_dev)
- {
- 	struct fb_info *info = platform_get_drvdata(p_dev);
- 
-diff --git a/drivers/video/geode/gx1fb_core.c b/drivers/video/geode/gx1fb_core.c
-index cf97a70..ebbaada 100644
---- a/drivers/video/geode/gx1fb_core.c
-+++ b/drivers/video/geode/gx1fb_core.c
-@@ -382,7 +382,7 @@ static int gx1fb_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	return ret;
- }
- 
--static void __devexit gx1fb_remove(struct pci_dev *pdev)
-+static void gx1fb_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct geodefb_par *par = info->par;
-@@ -456,7 +456,7 @@ static int __init gx1fb_init(void)
- 	return pci_register_driver(&gx1fb_driver);
- }
- 
--static void __devexit gx1fb_cleanup(void)
-+static void gx1fb_cleanup(void)
- {
- 	pci_unregister_driver(&gx1fb_driver);
- }
-diff --git a/drivers/video/geode/gxfb_core.c b/drivers/video/geode/gxfb_core.c
-index d40a9eb..ca0a422 100644
---- a/drivers/video/geode/gxfb_core.c
-+++ b/drivers/video/geode/gxfb_core.c
-@@ -455,7 +455,7 @@ static int gxfb_probe(struct pci_dev *pdev,
- 	return ret;
- }
- 
--static void __devexit gxfb_remove(struct pci_dev *pdev)
-+static void gxfb_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct gxfb_par *par = info->par;
-diff --git a/drivers/video/geode/lxfb_core.c b/drivers/video/geode/lxfb_core.c
-index 04f0098..af07dce 100644
---- a/drivers/video/geode/lxfb_core.c
-+++ b/drivers/video/geode/lxfb_core.c
-@@ -590,7 +590,7 @@ err:
- 	return ret;
- }
- 
--static void __devexit lxfb_remove(struct pci_dev *pdev)
-+static void lxfb_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct lxfb_par *par = info->par;
-diff --git a/drivers/video/grvga.c b/drivers/video/grvga.c
-index 3cdfacd..8b1dd9a 100644
---- a/drivers/video/grvga.c
-+++ b/drivers/video/grvga.c
-@@ -512,7 +512,7 @@ free_fb:
- 	return retval;
- }
- 
--static int __devexit grvga_remove(struct platform_device *device)
-+static int grvga_remove(struct platform_device *device)
- {
- 	struct fb_info *info = dev_get_drvdata(&device->dev);
- 	struct grvga_par *par = info->par;
-diff --git a/drivers/video/gxt4500.c b/drivers/video/gxt4500.c
-index 58d3543..09133de 100644
---- a/drivers/video/gxt4500.c
-+++ b/drivers/video/gxt4500.c
-@@ -720,7 +720,7 @@ static int gxt4500_probe(struct pci_dev *pdev,
- 	return -ENODEV;
- }
- 
--static void __devexit gxt4500_remove(struct pci_dev *pdev)
-+static void gxt4500_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct gxt4500_par *par;
-diff --git a/drivers/video/hecubafb.c b/drivers/video/hecubafb.c
-index 298f977..59d2318 100644
---- a/drivers/video/hecubafb.c
-+++ b/drivers/video/hecubafb.c
-@@ -280,7 +280,7 @@ err_videomem_alloc:
- 	return retval;
- }
- 
--static int __devexit hecubafb_remove(struct platform_device *dev)
-+static int hecubafb_remove(struct platform_device *dev)
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 
-diff --git a/drivers/video/hgafb.c b/drivers/video/hgafb.c
-index 43b3976..1e9e2d8 100644
---- a/drivers/video/hgafb.c
-+++ b/drivers/video/hgafb.c
-@@ -592,7 +592,7 @@ static int hgafb_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int __devexit hgafb_remove(struct platform_device *pdev)
-+static int hgafb_remove(struct platform_device *pdev)
- {
- 	struct fb_info *info = platform_get_drvdata(pdev);
- 
-diff --git a/drivers/video/hitfb.c b/drivers/video/hitfb.c
-index adb6708..c2414d6 100644
---- a/drivers/video/hitfb.c
-+++ b/drivers/video/hitfb.c
-@@ -417,7 +417,7 @@ err_fb:
- 	return ret;
- }
- 
--static int __devexit hitfb_remove(struct platform_device *dev)
-+static int hitfb_remove(struct platform_device *dev)
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 
-diff --git a/drivers/video/hpfb.c b/drivers/video/hpfb.c
-index aa2abe8..d6bbd98 100644
---- a/drivers/video/hpfb.c
-+++ b/drivers/video/hpfb.c
-@@ -350,7 +350,7 @@ static int hpfb_dio_probe(struct dio_dev * d, const struct dio_device_id * ent)
- 	return 0;
- }
- 
--static void __devexit hpfb_remove_one(struct dio_dev *d)
-+static void hpfb_remove_one(struct dio_dev *d)
- {
- 	unregister_framebuffer(&fb_info);
- 	if (d->scode >= DIOII_SCBASE)
-diff --git a/drivers/video/i740fb.c b/drivers/video/i740fb.c
-index 05c7d94..47671f1 100644
---- a/drivers/video/i740fb.c
-+++ b/drivers/video/i740fb.c
-@@ -1174,7 +1174,7 @@ err_enable_device:
- 	return ret;
- }
- 
--static void __devexit i740fb_remove(struct pci_dev *dev)
-+static void i740fb_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 
-diff --git a/drivers/video/imsttfb.c b/drivers/video/imsttfb.c
-index 7060401..954ac45 100644
---- a/drivers/video/imsttfb.c
-+++ b/drivers/video/imsttfb.c
-@@ -1534,7 +1534,7 @@ imsttfb_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	return 0;
- }
- 
--static void __devexit
-+static void
- imsttfb_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
-diff --git a/drivers/video/imxfb.c b/drivers/video/imxfb.c
-index e1fbfb0..1252678 100644
---- a/drivers/video/imxfb.c
-+++ b/drivers/video/imxfb.c
-@@ -917,7 +917,7 @@ failed_init:
- 	return ret;
- }
- 
--static int __devexit imxfb_remove(struct platform_device *pdev)
-+static int imxfb_remove(struct platform_device *pdev)
- {
- 	struct imx_fb_platform_data *pdata;
- 	struct fb_info *info = platform_get_drvdata(pdev);
-diff --git a/drivers/video/intelfb/intelfbdrv.c b/drivers/video/intelfb/intelfbdrv.c
-index 184bbb7..524b87f 100644
---- a/drivers/video/intelfb/intelfbdrv.c
-+++ b/drivers/video/intelfb/intelfbdrv.c
-@@ -164,7 +164,7 @@ static int intelfb_ioctl(struct fb_info *info,
- 
- static int intelfb_pci_register(struct pci_dev *pdev,
- 					  const struct pci_device_id *ent);
--static void __devexit intelfb_pci_unregister(struct pci_dev *pdev);
-+static void intelfb_pci_unregister(struct pci_dev *pdev);
- static int intelfb_set_fbinfo(struct intelfb_info *dinfo);
- 
- /*
-@@ -921,7 +921,7 @@ err_out_cmap:
- 	return -ENODEV;
- }
- 
--static void __devexit
-+static void
- intelfb_pci_unregister(struct pci_dev *pdev)
- {
- 	struct intelfb_info *dinfo = pci_get_drvdata(pdev);
-diff --git a/drivers/video/jz4740_fb.c b/drivers/video/jz4740_fb.c
-index 9f5003f..d999bb5 100644
---- a/drivers/video/jz4740_fb.c
-+++ b/drivers/video/jz4740_fb.c
-@@ -725,7 +725,7 @@ err_framebuffer_release:
- 	return ret;
- }
- 
--static int __devexit jzfb_remove(struct platform_device *pdev)
-+static int jzfb_remove(struct platform_device *pdev)
- {
- 	struct jzfb *jzfb = platform_get_drvdata(pdev);
- 
-diff --git a/drivers/video/kyro/fbdev.c b/drivers/video/kyro/fbdev.c
-index 2f0effd..fea5b52 100644
---- a/drivers/video/kyro/fbdev.c
-+++ b/drivers/video/kyro/fbdev.c
-@@ -754,7 +754,7 @@ out_unmap:
- 	return -EINVAL;
- }
- 
--static void __devexit kyrofb_remove(struct pci_dev *pdev)
-+static void kyrofb_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct kyrofb_info *par = info->par;
-diff --git a/drivers/video/leo.c b/drivers/video/leo.c
-index 8c64c79..b17f500 100644
---- a/drivers/video/leo.c
-+++ b/drivers/video/leo.c
-@@ -636,7 +636,7 @@ out_err:
- 	return err;
- }
- 
--static int __devexit leo_remove(struct platform_device *op)
-+static int leo_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct leo_par *par = info->par;
-diff --git a/drivers/video/mb862xx/mb862xxfbdrv.c b/drivers/video/mb862xx/mb862xxfbdrv.c
-index 28ae8fb..a7611b7 100644
---- a/drivers/video/mb862xx/mb862xxfbdrv.c
-+++ b/drivers/video/mb862xx/mb862xxfbdrv.c
-@@ -786,7 +786,7 @@ fbrel:
- 	return ret;
- }
- 
--static int __devexit of_platform_mb862xx_remove(struct platform_device *ofdev)
-+static int of_platform_mb862xx_remove(struct platform_device *ofdev)
- {
- 	struct fb_info *fbi = dev_get_drvdata(&ofdev->dev);
- 	struct mb862xxfb_par *par = fbi->par;
-@@ -1133,7 +1133,7 @@ out:
- 	return ret;
- }
- 
--static void __devexit mb862xx_pci_remove(struct pci_dev *pdev)
-+static void mb862xx_pci_remove(struct pci_dev *pdev)
- {
- 	struct fb_info *fbi = pci_get_drvdata(pdev);
- 	struct mb862xxfb_par *par = fbi->par;
-diff --git a/drivers/video/mbx/mbxdebugfs.c b/drivers/video/mbx/mbxdebugfs.c
-index 474f94f..4449f24 100644
---- a/drivers/video/mbx/mbxdebugfs.c
-+++ b/drivers/video/mbx/mbxdebugfs.c
-@@ -236,7 +236,7 @@ static void mbxfb_debugfs_init(struct fb_info *fbi)
- 					fbi, &misc_fops);
- }
- 
--static void __devexit mbxfb_debugfs_remove(struct fb_info *fbi)
-+static void mbxfb_debugfs_remove(struct fb_info *fbi)
- {
- 	struct mbxfb_info *mfbi = fbi->par;
- 	struct mbxfb_debugfs_data *dbg = mfbi->debugfs_data;
-diff --git a/drivers/video/mbx/mbxfb.c b/drivers/video/mbx/mbxfb.c
-index faa171f..f3a9ede 100644
---- a/drivers/video/mbx/mbxfb.c
-+++ b/drivers/video/mbx/mbxfb.c
-@@ -1006,7 +1006,7 @@ err1:
- 	return ret;
- }
- 
--static int __devexit mbxfb_remove(struct platform_device *dev)
-+static int mbxfb_remove(struct platform_device *dev)
- {
- 	struct fb_info *fbi = platform_get_drvdata(dev);
- 
-diff --git a/drivers/video/metronomefb.c b/drivers/video/metronomefb.c
-index 6454888..d3fc9b1 100644
---- a/drivers/video/metronomefb.c
-+++ b/drivers/video/metronomefb.c
-@@ -741,7 +741,7 @@ err:
- 	return retval;
- }
- 
--static int __devexit metronomefb_remove(struct platform_device *dev)
-+static int metronomefb_remove(struct platform_device *dev)
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 
-diff --git a/drivers/video/mxsfb.c b/drivers/video/mxsfb.c
-index be26b36..a45b37c 100644
---- a/drivers/video/mxsfb.c
-+++ b/drivers/video/mxsfb.c
-@@ -739,7 +739,7 @@ static int mxsfb_init_fbinfo(struct mxsfb_info *host)
- 	return 0;
- }
- 
--static void __devexit mxsfb_free_videomem(struct mxsfb_info *host)
-+static void mxsfb_free_videomem(struct mxsfb_info *host)
- {
- 	struct fb_info *fb_info = &host->fb_info;
- 
-@@ -912,7 +912,7 @@ error_alloc_info:
- 	return ret;
- }
- 
--static int __devexit mxsfb_remove(struct platform_device *pdev)
-+static int mxsfb_remove(struct platform_device *pdev)
- {
- 	struct fb_info *fb_info = platform_get_drvdata(pdev);
- 	struct mxsfb_info *host = to_imxfb_host(fb_info);
-diff --git a/drivers/video/neofb.c b/drivers/video/neofb.c
-index b86fd96..9770ff3 100644
---- a/drivers/video/neofb.c
-+++ b/drivers/video/neofb.c
-@@ -2128,7 +2128,7 @@ err_map_mmio:
- 	return err;
- }
- 
--static void __devexit neofb_remove(struct pci_dev *dev)
-+static void neofb_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 
-diff --git a/drivers/video/nvidia/nvidia.c b/drivers/video/nvidia/nvidia.c
-index b7f8feb..fd4e7bf 100644
---- a/drivers/video/nvidia/nvidia.c
-+++ b/drivers/video/nvidia/nvidia.c
-@@ -1438,7 +1438,7 @@ err_out:
- 	return -ENODEV;
- }
- 
--static void __devexit nvidiafb_remove(struct pci_dev *pd)
-+static void nvidiafb_remove(struct pci_dev *pd)
- {
- 	struct fb_info *info = pci_get_drvdata(pd);
- 	struct nvidia_par *par = info->par;
-diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-index 4ed48af..0b36093 100644
---- a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-+++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-@@ -256,7 +256,7 @@ static int lb035q02_panel_spi_probe(struct spi_device *spi)
- 	return omap_dss_register_driver(&lb035q02_driver);
- }
- 
--static int __devexit lb035q02_panel_spi_remove(struct spi_device *spi)
-+static int lb035q02_panel_spi_remove(struct spi_device *spi)
- {
- 	omap_dss_unregister_driver(&lb035q02_driver);
- 	return 0;
-diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-index d655389..60f1990 100644
---- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-+++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-@@ -548,7 +548,7 @@ static int tpo_td043_spi_probe(struct spi_device *spi)
- 	return 0;
- }
- 
--static int __devexit tpo_td043_spi_remove(struct spi_device *spi)
-+static int tpo_td043_spi_remove(struct spi_device *spi)
- {
- 	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&spi->dev);
- 
-diff --git a/drivers/video/p9100.c b/drivers/video/p9100.c
-index 62d8339..4b23af6 100644
---- a/drivers/video/p9100.c
-+++ b/drivers/video/p9100.c
-@@ -326,7 +326,7 @@ out_err:
- 	return err;
- }
- 
--static int __devexit p9100_remove(struct platform_device *op)
-+static int p9100_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct p9100_par *par = info->par;
-diff --git a/drivers/video/platinumfb.c b/drivers/video/platinumfb.c
-index f638002..5113bf3 100644
---- a/drivers/video/platinumfb.c
-+++ b/drivers/video/platinumfb.c
-@@ -645,7 +645,7 @@ static int platinumfb_probe(struct platform_device* odev)
- 	return rc;
- }
- 
--static int __devexit platinumfb_remove(struct platform_device* odev)
-+static int platinumfb_remove(struct platform_device* odev)
- {
- 	struct fb_info		*info = dev_get_drvdata(&odev->dev);
- 	struct fb_info_platinum	*pinfo = info->par;
-diff --git a/drivers/video/pm2fb.c b/drivers/video/pm2fb.c
-index f3ab16b..8fbfcc2 100644
---- a/drivers/video/pm2fb.c
-+++ b/drivers/video/pm2fb.c
-@@ -1727,7 +1727,7 @@ static int pm2fb_probe(struct pci_dev *pdev,
-  *
-  * @param	pdev	PCI device to clean up.
+ 	struct scoop_dev *devptr;
+ 	struct scoop_config *inf;
+diff --git a/arch/arm/kernel/bios32.c b/arch/arm/kernel/bios32.c
+index f136307..7e25c18 100644
+--- a/arch/arm/kernel/bios32.c
++++ b/arch/arm/kernel/bios32.c
+@@ -78,7 +78,7 @@ void pcibios_report_status(u_int status_mask, int warn)
+  * Bug 3 is responsible for the sound DMA grinding to a halt.  We now
+  * live with bug 2.
   */
--static void __devexit pm2fb_remove(struct pci_dev *pdev)
-+static void pm2fb_remove(struct pci_dev *pdev)
+-static void __devinit pci_fixup_83c553(struct pci_dev *dev)
++static void pci_fixup_83c553(struct pci_dev *dev)
  {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct fb_fix_screeninfo *fix = &info->fix;
-diff --git a/drivers/video/pm3fb.c b/drivers/video/pm3fb.c
-index 60d608b..dbc75d0 100644
---- a/drivers/video/pm3fb.c
-+++ b/drivers/video/pm3fb.c
-@@ -1469,7 +1469,7 @@ static int pm3fb_probe(struct pci_dev *dev,
  	/*
- 	 *  Cleanup
- 	 */
--static void __devexit pm3fb_remove(struct pci_dev *dev)
-+static void pm3fb_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 
-diff --git a/drivers/video/pvr2fb.c b/drivers/video/pvr2fb.c
-index 05ca970..2e08e36 100644
---- a/drivers/video/pvr2fb.c
-+++ b/drivers/video/pvr2fb.c
-@@ -953,7 +953,7 @@ static int pvr2fb_pci_probe(struct pci_dev *pdev,
- 	return pvr2fb_common_init();
+ 	 * Set memory region to start at address 0, and enable IO
+@@ -130,7 +130,7 @@ static void __devinit pci_fixup_83c553(struct pci_dev *dev)
  }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_WINBOND, PCI_DEVICE_ID_WINBOND_83C553, pci_fixup_83c553);
  
--static void __devexit pvr2fb_pci_remove(struct pci_dev *pdev)
-+static void pvr2fb_pci_remove(struct pci_dev *pdev)
+-static void __devinit pci_fixup_unassign(struct pci_dev *dev)
++static void pci_fixup_unassign(struct pci_dev *dev)
  {
- 	if (fb_info->screen_base) {
- 		iounmap(fb_info->screen_base);
-diff --git a/drivers/video/pxa168fb.c b/drivers/video/pxa168fb.c
-index 49af862..aa9bd1f 100644
---- a/drivers/video/pxa168fb.c
-+++ b/drivers/video/pxa168fb.c
-@@ -783,7 +783,7 @@ failed_put_clk:
- 	return ret;
- }
- 
--static int __devexit pxa168fb_remove(struct platform_device *pdev)
-+static int pxa168fb_remove(struct platform_device *pdev)
- {
- 	struct pxa168fb_info *fbi = platform_get_drvdata(pdev);
- 	struct fb_info *info;
-diff --git a/drivers/video/pxa3xx-gcu.c b/drivers/video/pxa3xx-gcu.c
-index f163474..d658902 100644
---- a/drivers/video/pxa3xx-gcu.c
-+++ b/drivers/video/pxa3xx-gcu.c
-@@ -714,7 +714,7 @@ err_free_priv:
- 	return ret;
- }
- 
--static int __devexit
-+static int
- pxa3xx_gcu_remove(struct platform_device *dev)
- {
- 	struct pxa3xx_gcu_priv *priv = platform_get_drvdata(dev);
-diff --git a/drivers/video/pxafb.c b/drivers/video/pxafb.c
-index 9289bcf..082a602 100644
---- a/drivers/video/pxafb.c
-+++ b/drivers/video/pxafb.c
-@@ -959,7 +959,7 @@ static void pxafb_overlay_init(struct pxafb_info *fbi)
- 	pr_info("PXA Overlay driver loaded successfully!\n");
- }
- 
--static void __devexit pxafb_overlay_exit(struct pxafb_info *fbi)
-+static void pxafb_overlay_exit(struct pxafb_info *fbi)
+ 	dev->resource[0].end -= dev->resource[0].start;
+ 	dev->resource[0].start = 0;
+@@ -142,7 +142,7 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_WINBOND2, PCI_DEVICE_ID_WINBOND2_89C940F,
+  * if it is the host bridge by marking it as such.  These resources are of
+  * no consequence to the PCI layer (they are handled elsewhere).
+  */
+-static void __devinit pci_fixup_dec21285(struct pci_dev *dev)
++static void pci_fixup_dec21285(struct pci_dev *dev)
  {
  	int i;
  
-@@ -2263,7 +2263,7 @@ failed:
- 	return ret;
- }
- 
--static int __devexit pxafb_remove(struct platform_device *dev)
-+static int pxafb_remove(struct platform_device *dev)
- {
- 	struct pxafb_info *fbi = platform_get_drvdata(dev);
- 	struct resource *r;
-diff --git a/drivers/video/riva/fbdev.c b/drivers/video/riva/fbdev.c
-index 0cdf63b..b453625 100644
---- a/drivers/video/riva/fbdev.c
-+++ b/drivers/video/riva/fbdev.c
-@@ -2105,7 +2105,7 @@ err_ret:
- 	return ret;
- }
- 
--static void __devexit rivafb_remove(struct pci_dev *pd)
-+static void rivafb_remove(struct pci_dev *pd)
- {
- 	struct fb_info *info = pci_get_drvdata(pd);
- 	struct riva_par *par = info->par;
-diff --git a/drivers/video/s3c-fb.c b/drivers/video/s3c-fb.c
-index 141fefd..def429c 100644
---- a/drivers/video/s3c-fb.c
-+++ b/drivers/video/s3c-fb.c
-@@ -1519,7 +1519,7 @@ err_bus_clk:
-  * Shutdown and then release all the resources that the driver allocated
-  * on initialisation.
-  */
--static int __devexit s3c_fb_remove(struct platform_device *pdev)
-+static int s3c_fb_remove(struct platform_device *pdev)
- {
- 	struct s3c_fb *sfb = platform_get_drvdata(pdev);
- 	int win;
-diff --git a/drivers/video/s3c2410fb.c b/drivers/video/s3c2410fb.c
-index 528cec6..3ffbdd1 100644
---- a/drivers/video/s3c2410fb.c
-+++ b/drivers/video/s3c2410fb.c
-@@ -1024,7 +1024,7 @@ static int s3c2412fb_probe(struct platform_device *pdev)
+@@ -161,7 +161,7 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_DEC, PCI_DEVICE_ID_DEC_21285, pci_fixup_d
  /*
-  *  Cleanup
+  * PCI IDE controllers use non-standard I/O port decoding, respect it.
   */
--static int __devexit s3c2410fb_remove(struct platform_device *pdev)
-+static int s3c2410fb_remove(struct platform_device *pdev)
+-static void __devinit pci_fixup_ide_bases(struct pci_dev *dev)
++static void pci_fixup_ide_bases(struct pci_dev *dev)
  {
- 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
- 	struct s3c2410fb_info *info = fbinfo->par;
-diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
-index 0ff9a77..47ca86c 100644
---- a/drivers/video/s3fb.c
-+++ b/drivers/video/s3fb.c
-@@ -1403,7 +1403,7 @@ err_enable_device:
- 
- /* PCI remove */
- 
--static void __devexit s3_pci_remove(struct pci_dev *dev)
-+static void s3_pci_remove(struct pci_dev *dev)
+ 	struct resource *r;
+ 	int i;
+@@ -182,7 +182,7 @@ DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, pci_fixup_ide_bases);
+ /*
+  * Put the DEC21142 to sleep
+  */
+-static void __devinit pci_fixup_dec21142(struct pci_dev *dev)
++static void pci_fixup_dec21142(struct pci_dev *dev)
  {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 	struct s3fb_info __maybe_unused *par = info->par;
-diff --git a/drivers/video/savage/savagefb_driver.c b/drivers/video/savage/savagefb_driver.c
-index 4bfb8c6..8f3b531 100644
---- a/drivers/video/savage/savagefb_driver.c
-+++ b/drivers/video/savage/savagefb_driver.c
-@@ -2340,7 +2340,7 @@ static int savagefb_probe(struct pci_dev* dev,
- 	return err;
+ 	pci_write_config_dword(dev, 0x40, 0x80000000);
+ }
+@@ -204,7 +204,7 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_DEC, PCI_DEVICE_ID_DEC_21142, pci_fixup_d
+  * functional.  However, The CY82C693U _does not work_ in bus
+  * master mode without locking the PCI bus solid.
+  */
+-static void __devinit pci_fixup_cy82c693(struct pci_dev *dev)
++static void pci_fixup_cy82c693(struct pci_dev *dev)
+ {
+ 	if ((dev->class >> 8) == PCI_CLASS_STORAGE_IDE) {
+ 		u32 base0, base1;
+@@ -254,7 +254,7 @@ static void __devinit pci_fixup_cy82c693(struct pci_dev *dev)
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_CONTAQ, PCI_DEVICE_ID_CONTAQ_82C693, pci_fixup_cy82c693);
+ 
+-static void __devinit pci_fixup_it8152(struct pci_dev *dev)
++static void pci_fixup_it8152(struct pci_dev *dev)
+ {
+ 	int i;
+ 	/* fixup for ITE 8152 devices */
+@@ -380,7 +380,7 @@ EXPORT_SYMBOL(pcibios_fixup_bus);
+  * PCI standard swizzle is implemented on plug-in cards and Cardbus based
+  * PCI extenders, so it can not be ignored.
+  */
+-static u8 __devinit pcibios_swizzle(struct pci_dev *dev, u8 *pin)
++static u8 pcibios_swizzle(struct pci_dev *dev, u8 *pin)
+ {
+ 	struct pci_sys_data *sys = dev->sysdata;
+ 	int slot, oldpin = *pin;
+diff --git a/arch/arm/kernel/etm.c b/arch/arm/kernel/etm.c
+index 36d20bd..9b6de8c 100644
+--- a/arch/arm/kernel/etm.c
++++ b/arch/arm/kernel/etm.c
+@@ -339,7 +339,7 @@ static struct miscdevice etb_miscdev = {
+ 	.fops = &etb_fops,
+ };
+ 
+-static int __devinit etb_probe(struct amba_device *dev, const struct amba_id *id)
++static int etb_probe(struct amba_device *dev, const struct amba_id *id)
+ {
+ 	struct tracectx *t = &tracer;
+ 	int ret = 0;
+@@ -531,7 +531,7 @@ static ssize_t trace_mode_store(struct kobject *kobj,
+ static struct kobj_attribute trace_mode_attr =
+ 	__ATTR(trace_mode, 0644, trace_mode_show, trace_mode_store);
+ 
+-static int __devinit etm_probe(struct amba_device *dev, const struct amba_id *id)
++static int etm_probe(struct amba_device *dev, const struct amba_id *id)
+ {
+ 	struct tracectx *t = &tracer;
+ 	int ret = 0;
+diff --git a/arch/arm/kernel/perf_event_cpu.c b/arch/arm/kernel/perf_event_cpu.c
+index 9a4f630..cfc2728 100644
+--- a/arch/arm/kernel/perf_event_cpu.c
++++ b/arch/arm/kernel/perf_event_cpu.c
+@@ -132,7 +132,7 @@ static int cpu_pmu_request_irq(struct arm_pmu *cpu_pmu, irq_handler_t handler)
+ 	return 0;
  }
  
--static void __devexit savagefb_remove(struct pci_dev *dev)
-+static void savagefb_remove(struct pci_dev *dev)
+-static void __devinit cpu_pmu_init(struct arm_pmu *cpu_pmu)
++static void cpu_pmu_init(struct arm_pmu *cpu_pmu)
  {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 
-diff --git a/drivers/video/sgivwfb.c b/drivers/video/sgivwfb.c
-index 23df880..2331fad 100644
---- a/drivers/video/sgivwfb.c
-+++ b/drivers/video/sgivwfb.c
-@@ -825,7 +825,7 @@ fail_ioremap_regs:
- 	return -ENXIO;
- }
- 
--static int __devexit sgivwfb_remove(struct platform_device *dev)
-+static int sgivwfb_remove(struct platform_device *dev)
+ 	int cpu;
+ 	for_each_possible_cpu(cpu) {
+@@ -198,7 +198,7 @@ static struct platform_device_id __devinitdata cpu_pmu_plat_device_ids[] = {
+ /*
+  * CPU PMU identification and probing.
+  */
+-static int __devinit probe_current_pmu(struct arm_pmu *pmu)
++static int probe_current_pmu(struct arm_pmu *pmu)
  {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 
-diff --git a/drivers/video/sh7760fb.c b/drivers/video/sh7760fb.c
-index 0ad44d1..5fbb0c7 100644
---- a/drivers/video/sh7760fb.c
-+++ b/drivers/video/sh7760fb.c
-@@ -557,7 +557,7 @@ out_fb:
+ 	int cpu = get_cpu();
+ 	unsigned long cpuid = read_cpuid_id();
+@@ -252,7 +252,7 @@ static int __devinit probe_current_pmu(struct arm_pmu *pmu)
  	return ret;
  }
  
--static int __devexit sh7760fb_remove(struct platform_device *dev)
-+static int sh7760fb_remove(struct platform_device *dev)
+-static int __devinit cpu_pmu_device_probe(struct platform_device *pdev)
++static int cpu_pmu_device_probe(struct platform_device *pdev)
  {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 	struct sh7760fb_par *par = info->par;
-diff --git a/drivers/video/sh_mipi_dsi.c b/drivers/video/sh_mipi_dsi.c
-index ad47e48..80895c8 100644
---- a/drivers/video/sh_mipi_dsi.c
-+++ b/drivers/video/sh_mipi_dsi.c
-@@ -550,7 +550,7 @@ efindslot:
- 	return ret;
+ 	const struct of_device_id *of_id;
+ 	int (*init_fn)(struct arm_pmu *);
+diff --git a/arch/arm/kernel/perf_event_v6.c b/arch/arm/kernel/perf_event_v6.c
+index f3e22ff..041d052 100644
+--- a/arch/arm/kernel/perf_event_v6.c
++++ b/arch/arm/kernel/perf_event_v6.c
+@@ -653,7 +653,7 @@ static int armv6_map_event(struct perf_event *event)
+ 				&armv6_perf_cache_map, 0xFF);
  }
  
--static int __devexit sh_mipi_remove(struct platform_device *pdev)
-+static int sh_mipi_remove(struct platform_device *pdev)
+-static int __devinit armv6pmu_init(struct arm_pmu *cpu_pmu)
++static int armv6pmu_init(struct arm_pmu *cpu_pmu)
  {
- 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	struct resource *res2 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-diff --git a/drivers/video/sis/sis_main.c b/drivers/video/sis/sis_main.c
-index e60df84..832a8cf 100644
---- a/drivers/video/sis/sis_main.c
-+++ b/drivers/video/sis/sis_main.c
-@@ -6528,7 +6528,7 @@ error_3:	vfree(ivideo->bios_abase);
- /*                PCI DEVICE HANDLING                */
- /*****************************************************/
+ 	cpu_pmu->name		= "v6";
+ 	cpu_pmu->handle_irq	= armv6pmu_handle_irq;
+@@ -685,7 +685,7 @@ static int armv6mpcore_map_event(struct perf_event *event)
+ 				&armv6mpcore_perf_cache_map, 0xFF);
+ }
  
--static void __devexit sisfb_remove(struct pci_dev *pdev)
-+static void sisfb_remove(struct pci_dev *pdev)
+-static int __devinit armv6mpcore_pmu_init(struct arm_pmu *cpu_pmu)
++static int armv6mpcore_pmu_init(struct arm_pmu *cpu_pmu)
  {
- 	struct sis_video_info	*ivideo = pci_get_drvdata(pdev);
- 	struct fb_info		*sis_fb_info = ivideo->memyselfandi;
-diff --git a/drivers/video/skeletonfb.c b/drivers/video/skeletonfb.c
-index dde47f7..8dcc181 100644
---- a/drivers/video/skeletonfb.c
-+++ b/drivers/video/skeletonfb.c
-@@ -835,8 +835,8 @@ static int xxxfb_probe(struct pci_dev *dev,
-     /*
-      *  Cleanup
-      */
--/* static void __devexit xxxfb_remove(struct platform_device *pdev) */
--static void __devexit xxxfb_remove(struct pci_dev *dev)
-+/* static void xxxfb_remove(struct platform_device *pdev) */
-+static void xxxfb_remove(struct pci_dev *dev)
+ 	cpu_pmu->name		= "v6mpcore";
+ 	cpu_pmu->handle_irq	= armv6pmu_handle_irq;
+diff --git a/arch/arm/kernel/perf_event_v7.c b/arch/arm/kernel/perf_event_v7.c
+index 7d0cce8..4fbc757 100644
+--- a/arch/arm/kernel/perf_event_v7.c
++++ b/arch/arm/kernel/perf_event_v7.c
+@@ -1226,7 +1226,7 @@ static void armv7pmu_init(struct arm_pmu *cpu_pmu)
+ 	cpu_pmu->max_period	= (1LLU << 32) - 1;
+ };
+ 
+-static u32 __devinit armv7_read_num_pmnc_events(void)
++static u32 armv7_read_num_pmnc_events(void)
  {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 	/* or platform_get_drvdata(pdev); */
-diff --git a/drivers/video/sstfb.c b/drivers/video/sstfb.c
-index 49f9338..8f7c076 100644
---- a/drivers/video/sstfb.c
-+++ b/drivers/video/sstfb.c
-@@ -1239,7 +1239,7 @@ static int sst_init(struct fb_info *info, struct sstfb_par *par)
+ 	u32 nb_cnt;
+ 
+@@ -1237,7 +1237,7 @@ static u32 __devinit armv7_read_num_pmnc_events(void)
+ 	return nb_cnt + 1;
+ }
+ 
+-static int __devinit armv7_a8_pmu_init(struct arm_pmu *cpu_pmu)
++static int armv7_a8_pmu_init(struct arm_pmu *cpu_pmu)
+ {
+ 	armv7pmu_init(cpu_pmu);
+ 	cpu_pmu->name		= "ARMv7 Cortex-A8";
+@@ -1246,7 +1246,7 @@ static int __devinit armv7_a8_pmu_init(struct arm_pmu *cpu_pmu)
+ 	return 0;
+ }
+ 
+-static int __devinit armv7_a9_pmu_init(struct arm_pmu *cpu_pmu)
++static int armv7_a9_pmu_init(struct arm_pmu *cpu_pmu)
+ {
+ 	armv7pmu_init(cpu_pmu);
+ 	cpu_pmu->name		= "ARMv7 Cortex-A9";
+@@ -1255,7 +1255,7 @@ static int __devinit armv7_a9_pmu_init(struct arm_pmu *cpu_pmu)
+ 	return 0;
+ }
+ 
+-static int __devinit armv7_a5_pmu_init(struct arm_pmu *cpu_pmu)
++static int armv7_a5_pmu_init(struct arm_pmu *cpu_pmu)
+ {
+ 	armv7pmu_init(cpu_pmu);
+ 	cpu_pmu->name		= "ARMv7 Cortex-A5";
+@@ -1264,7 +1264,7 @@ static int __devinit armv7_a5_pmu_init(struct arm_pmu *cpu_pmu)
+ 	return 0;
+ }
+ 
+-static int __devinit armv7_a15_pmu_init(struct arm_pmu *cpu_pmu)
++static int armv7_a15_pmu_init(struct arm_pmu *cpu_pmu)
+ {
+ 	armv7pmu_init(cpu_pmu);
+ 	cpu_pmu->name		= "ARMv7 Cortex-A15";
+@@ -1274,7 +1274,7 @@ static int __devinit armv7_a15_pmu_init(struct arm_pmu *cpu_pmu)
+ 	return 0;
+ }
+ 
+-static int __devinit armv7_a7_pmu_init(struct arm_pmu *cpu_pmu)
++static int armv7_a7_pmu_init(struct arm_pmu *cpu_pmu)
+ {
+ 	armv7pmu_init(cpu_pmu);
+ 	cpu_pmu->name		= "ARMv7 Cortex-A7";
+diff --git a/arch/arm/kernel/perf_event_xscale.c b/arch/arm/kernel/perf_event_xscale.c
+index 0c8265e..2b0fe30 100644
+--- a/arch/arm/kernel/perf_event_xscale.c
++++ b/arch/arm/kernel/perf_event_xscale.c
+@@ -440,7 +440,7 @@ static int xscale_map_event(struct perf_event *event)
+ 				&xscale_perf_cache_map, 0xFF);
+ }
+ 
+-static int __devinit xscale1pmu_init(struct arm_pmu *cpu_pmu)
++static int xscale1pmu_init(struct arm_pmu *cpu_pmu)
+ {
+ 	cpu_pmu->name		= "xscale1";
+ 	cpu_pmu->handle_irq	= xscale1pmu_handle_irq;
+@@ -810,7 +810,7 @@ static inline void xscale2pmu_write_counter(struct perf_event *event, u32 val)
+ 	}
+ }
+ 
+-static int __devinit xscale2pmu_init(struct arm_pmu *cpu_pmu)
++static int xscale2pmu_init(struct arm_pmu *cpu_pmu)
+ {
+ 	cpu_pmu->name		= "xscale2";
+ 	cpu_pmu->handle_irq	= xscale2pmu_handle_irq;
+diff --git a/arch/arm/mach-dove/pcie.c b/arch/arm/mach-dove/pcie.c
+index 0ef4435..8a275f2 100644
+--- a/arch/arm/mach-dove/pcie.c
++++ b/arch/arm/mach-dove/pcie.c
+@@ -135,7 +135,7 @@ static struct pci_ops pcie_ops = {
+ 	.write = pcie_wr_conf,
+ };
+ 
+-static void __devinit rc_pci_fixup(struct pci_dev *dev)
++static void rc_pci_fixup(struct pci_dev *dev)
+ {
+ 	/*
+ 	 * Prevent enumeration of root complex.
+diff --git a/arch/arm/mach-imx/cpufreq.c b/arch/arm/mach-imx/cpufreq.c
+index 36e8b39..d8c75c3 100644
+--- a/arch/arm/mach-imx/cpufreq.c
++++ b/arch/arm/mach-imx/cpufreq.c
+@@ -188,7 +188,7 @@ static struct cpufreq_driver mxc_driver = {
+ 	.name = "imx",
+ };
+ 
+-static int __devinit mxc_cpufreq_driver_init(void)
++static int mxc_cpufreq_driver_init(void)
+ {
+ 	return cpufreq_register_driver(&mxc_driver);
+ }
+diff --git a/arch/arm/mach-imx/mmdc.c b/arch/arm/mach-imx/mmdc.c
+index c461e98..7a9686a 100644
+--- a/arch/arm/mach-imx/mmdc.c
++++ b/arch/arm/mach-imx/mmdc.c
+@@ -21,7 +21,7 @@
+ #define BP_MMDC_MAPSR_PSD	0
+ #define BP_MMDC_MAPSR_PSS	4
+ 
+-static int __devinit imx_mmdc_probe(struct platform_device *pdev)
++static int imx_mmdc_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+ 	void __iomem *mmdc_base, *reg;
+diff --git a/arch/arm/mach-iop13xx/pci.c b/arch/arm/mach-iop13xx/pci.c
+index 2f28018..9082b84 100644
+--- a/arch/arm/mach-iop13xx/pci.c
++++ b/arch/arm/mach-iop13xx/pci.c
+@@ -504,7 +504,7 @@ iop13xx_pci_abort(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+ 
+ /* Scan an IOP13XX PCI bus.  nr selects which ATU we use.
+  */
+-struct pci_bus * __devinit iop13xx_scan_bus(int nr, struct pci_sys_data *sys)
++struct pci_bus *iop13xx_scan_bus(int nr, struct pci_sys_data *sys)
+ {
+ 	int which_atu;
+ 	struct pci_bus *bus = NULL;
+diff --git a/arch/arm/mach-kirkwood/pcie.c b/arch/arm/mach-kirkwood/pcie.c
+index ec54491..3b65cae 100644
+--- a/arch/arm/mach-kirkwood/pcie.c
++++ b/arch/arm/mach-kirkwood/pcie.c
+@@ -207,7 +207,7 @@ static int __init kirkwood_pcie_setup(int nr, struct pci_sys_data *sys)
  	return 1;
  }
  
--static void  __devexit sst_shutdown(struct fb_info *info)
-+static void  sst_shutdown(struct fb_info *info)
+-static void __devinit rc_pci_fixup(struct pci_dev *dev)
++static void rc_pci_fixup(struct pci_dev *dev)
  {
- 	struct sstfb_par *par = info->par;
- 	struct pci_dev *dev = par->dev;
-@@ -1458,7 +1458,7 @@ fail_mmio_mem:
- 	return -ENXIO; 	/* no voodoo detected */
- }
+ 	/*
+ 	 * Prevent enumeration of root complex.
+diff --git a/arch/arm/mach-ks8695/board-acs5k.c b/arch/arm/mach-ks8695/board-acs5k.c
+index 255502d..b0c306c 100644
+--- a/arch/arm/mach-ks8695/board-acs5k.c
++++ b/arch/arm/mach-ks8695/board-acs5k.c
+@@ -92,7 +92,7 @@ static struct i2c_board_info acs5k_i2c_devs[] __initdata = {
+ 	},
+ };
  
--static void __devexit sstfb_remove(struct pci_dev *pdev)
-+static void sstfb_remove(struct pci_dev *pdev)
+-static void __devinit acs5k_i2c_init(void)
++static void acs5k_i2c_init(void)
  {
- 	struct sstfb_par *par;
- 	struct fb_info *info;
-@@ -1505,7 +1505,7 @@ static int sstfb_init(void)
- 	return pci_register_driver(&sstfb_driver);
+ 	/* The gpio interface */
+ 	platform_device_register(&acs5k_i2c_device);
+diff --git a/arch/arm/mach-mmp/sram.c b/arch/arm/mach-mmp/sram.c
+index a6c08ed..7e5765b 100644
+--- a/arch/arm/mach-mmp/sram.c
++++ b/arch/arm/mach-mmp/sram.c
+@@ -61,7 +61,7 @@ struct gen_pool *sram_get_gpool(char *pool_name)
  }
+ EXPORT_SYMBOL(sram_get_gpool);
  
--static void __devexit sstfb_exit(void)
-+static void sstfb_exit(void)
+-static int __devinit sram_probe(struct platform_device *pdev)
++static int sram_probe(struct platform_device *pdev)
  {
- 	pci_unregister_driver(&sstfb_driver);
- }
-diff --git a/drivers/video/sunxvr1000.c b/drivers/video/sunxvr1000.c
-index 9e86e3c..cc6f48b 100644
---- a/drivers/video/sunxvr1000.c
-+++ b/drivers/video/sunxvr1000.c
-@@ -173,7 +173,7 @@ err_out:
- 	return err;
- }
- 
--static int __devexit gfb_remove(struct platform_device *op)
-+static int gfb_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct gfb_info *gp = info->par;
-diff --git a/drivers/video/sunxvr2500.c b/drivers/video/sunxvr2500.c
-index b6a14d2..b6c2057 100644
---- a/drivers/video/sunxvr2500.c
-+++ b/drivers/video/sunxvr2500.c
-@@ -219,7 +219,7 @@ err_out:
- 	return err;
- }
- 
--static void __devexit s3d_pci_unregister(struct pci_dev *pdev)
-+static void s3d_pci_unregister(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct s3d_info *sp = info->par;
-diff --git a/drivers/video/sunxvr500.c b/drivers/video/sunxvr500.c
-index afcdab1..92202aa 100644
---- a/drivers/video/sunxvr500.c
-+++ b/drivers/video/sunxvr500.c
-@@ -392,7 +392,7 @@ err_out:
- 	return err;
- }
- 
--static void __devexit e3d_pci_unregister(struct pci_dev *pdev)
-+static void e3d_pci_unregister(struct pci_dev *pdev)
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct e3d_info *ep = info->par;
-diff --git a/drivers/video/tcx.c b/drivers/video/tcx.c
-index cfdc1bb..c000852 100644
---- a/drivers/video/tcx.c
-+++ b/drivers/video/tcx.c
-@@ -486,7 +486,7 @@ out_err:
- 	return err;
- }
- 
--static int __devexit tcx_remove(struct platform_device *op)
-+static int tcx_remove(struct platform_device *op)
- {
- 	struct fb_info *info = dev_get_drvdata(&op->dev);
- 	struct tcx_par *par = info->par;
-diff --git a/drivers/video/tdfxfb.c b/drivers/video/tdfxfb.c
-index 09ec76319..cb8373b 100644
---- a/drivers/video/tdfxfb.c
-+++ b/drivers/video/tdfxfb.c
-@@ -137,7 +137,7 @@ static struct fb_var_screeninfo tdfx_var = {
+ 	struct sram_platdata *pdata = pdev->dev.platform_data;
+ 	struct sram_bank_info *info;
+diff --git a/arch/arm/mach-msm/proc_comm.c b/arch/arm/mach-msm/proc_comm.c
+index 8f1eecd..507f5ca 100644
+--- a/arch/arm/mach-msm/proc_comm.c
++++ b/arch/arm/mach-msm/proc_comm.c
+@@ -120,7 +120,7 @@ int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
+  * and unknown state. This function should be called early to
+  * wait on the ARM9.
   */
- static int tdfxfb_probe(struct pci_dev *pdev,
- 				  const struct pci_device_id *id);
--static void __devexit tdfxfb_remove(struct pci_dev *pdev);
-+static void tdfxfb_remove(struct pci_dev *pdev);
- 
- static struct pci_device_id tdfxfb_id_table[] = {
- 	{ PCI_VENDOR_ID_3DFX, PCI_DEVICE_ID_3DFX_BANSHEE,
-@@ -1626,7 +1626,7 @@ static void __init tdfxfb_setup(char *options)
-  *      lifetime for the PCI device @pdev.
-  *
-  */
--static void __devexit tdfxfb_remove(struct pci_dev *pdev)
-+static void tdfxfb_remove(struct pci_dev *pdev)
+-void __devinit proc_comm_boot_wait(void)
++void proc_comm_boot_wait(void)
  {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 	struct tdfx_par *par = info->par;
-diff --git a/drivers/video/tgafb.c b/drivers/video/tgafb.c
-index 63fc5ba..945e09f 100644
---- a/drivers/video/tgafb.c
-+++ b/drivers/video/tgafb.c
-@@ -62,7 +62,7 @@ static void tgafb_copyarea(struct fb_info *, const struct fb_copyarea *);
- static int tgafb_pan_display(struct fb_var_screeninfo *var, struct fb_info *info);
- 
- static int tgafb_register(struct device *dev);
--static void __devexit tgafb_unregister(struct device *dev);
-+static void tgafb_unregister(struct device *dev);
- 
- static const char *mode_option;
- static const char *mode_option_pci = "640x480@60";
-@@ -95,7 +95,7 @@ static struct fb_ops tgafb_ops = {
-  */
- static int tgafb_pci_register(struct pci_dev *,
- 					const struct pci_device_id *);
--static void __devexit tgafb_pci_unregister(struct pci_dev *);
-+static void tgafb_pci_unregister(struct pci_dev *);
- 
- static struct pci_device_id const tgafb_pci_table[] = {
- 	{ PCI_DEVICE(PCI_VENDOR_ID_DEC, PCI_DEVICE_ID_DEC_TGA) },
-@@ -116,7 +116,7 @@ tgafb_pci_register(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	return tgafb_register(&pdev->dev);
- }
- 
--static void __devexit
-+static void
- tgafb_pci_unregister(struct pci_dev *pdev)
- {
- 	tgafb_unregister(&pdev->dev);
-@@ -128,7 +128,7 @@ tgafb_pci_unregister(struct pci_dev *pdev)
-  *  TC registration operations
-  */
- static int tgafb_tc_register(struct device *);
--static int __devexit tgafb_tc_unregister(struct device *);
-+static int tgafb_tc_unregister(struct device *);
- 
- static struct tc_device_id const tgafb_tc_table[] = {
- 	{ "DEC     ", "PMAGD-AA" },
-@@ -156,7 +156,7 @@ tgafb_tc_register(struct device *dev)
- 	return status;
- }
- 
--static int __devexit
-+static int
- tgafb_tc_unregister(struct device *dev)
- {
- 	put_device(dev);
-@@ -1692,7 +1692,7 @@ tgafb_register(struct device *dev)
- 	return ret;
- }
- 
--static void __devexit
-+static void
- tgafb_unregister(struct device *dev)
- {
- 	resource_size_t bar0_start = 0, bar0_len = 0;
-@@ -1721,7 +1721,7 @@ tgafb_unregister(struct device *dev)
- 	framebuffer_release(info);
- }
- 
--static void __devexit
-+static void
- tgafb_exit(void)
- {
- 	tc_unregister_driver(&tgafb_tc_driver);
-diff --git a/drivers/video/tmiofb.c b/drivers/video/tmiofb.c
-index 91246ab..dc4fb86 100644
---- a/drivers/video/tmiofb.c
-+++ b/drivers/video/tmiofb.c
-@@ -807,7 +807,7 @@ err_ioremap_ccr:
- 	return retval;
- }
- 
--static int __devexit tmiofb_remove(struct platform_device *dev)
-+static int tmiofb_remove(struct platform_device *dev)
- {
- 	const struct mfd_cell *cell = mfd_get_cell(dev);
- 	struct fb_info *info = platform_get_drvdata(dev);
-diff --git a/drivers/video/tridentfb.c b/drivers/video/tridentfb.c
-index 03edce6..fe72d6f 100644
---- a/drivers/video/tridentfb.c
-+++ b/drivers/video/tridentfb.c
-@@ -1543,7 +1543,7 @@ out_unmap1:
- 	return err;
- }
- 
--static void __devexit trident_pci_remove(struct pci_dev *dev)
-+static void trident_pci_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 	struct tridentfb_par *par = info->par;
-diff --git a/drivers/video/uvesafb.c b/drivers/video/uvesafb.c
-index ad5e72d..f9ca933 100644
---- a/drivers/video/uvesafb.c
-+++ b/drivers/video/uvesafb.c
-@@ -1994,7 +1994,7 @@ static int uvesafb_init(void)
- 
- module_init(uvesafb_init);
- 
--static void __devexit uvesafb_exit(void)
-+static void uvesafb_exit(void)
- {
- 	struct uvesafb_ktask *task;
- 
-diff --git a/drivers/video/vermilion/vermilion.c b/drivers/video/vermilion/vermilion.c
-index 3e92d0e..48c748a 100644
---- a/drivers/video/vermilion/vermilion.c
-+++ b/drivers/video/vermilion/vermilion.c
-@@ -393,7 +393,7 @@ static void vmlfb_release_devices(struct vml_par *par)
-  * Free up allocated resources for a device.
-  */
- 
--static void __devexit vml_pci_remove(struct pci_dev *dev)
-+static void vml_pci_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info;
- 	struct vml_info *vinfo;
-diff --git a/drivers/video/vga16fb.c b/drivers/video/vga16fb.c
-index 99c0edb..545faec 100644
---- a/drivers/video/vga16fb.c
-+++ b/drivers/video/vga16fb.c
-@@ -1395,7 +1395,7 @@ static int vga16fb_probe(struct platform_device *dev)
- 	return ret;
- }
- 
--static int __devexit vga16fb_remove(struct platform_device *dev)
-+static int vga16fb_remove(struct platform_device *dev)
- {
- 	struct fb_info *info = platform_get_drvdata(dev);
- 
-diff --git a/drivers/video/via/via-core.c b/drivers/video/via/via-core.c
-index e0d95d5..6ada670 100644
---- a/drivers/video/via/via-core.c
-+++ b/drivers/video/via/via-core.c
-@@ -716,7 +716,7 @@ out_disable:
- 	return ret;
- }
- 
--static void __devexit via_pci_remove(struct pci_dev *pdev)
-+static void via_pci_remove(struct pci_dev *pdev)
- {
- 	via_teardown_subdevs();
- 	via_fb_pci_remove(pdev);
-diff --git a/drivers/video/via/viafbdev.c b/drivers/video/via/viafbdev.c
-index bb41017..325c43c 100644
---- a/drivers/video/via/viafbdev.c
-+++ b/drivers/video/via/viafbdev.c
-@@ -1945,7 +1945,7 @@ out_fb_release:
- 	return rc;
- }
- 
--void __devexit via_fb_pci_remove(struct pci_dev *pdev)
-+void via_fb_pci_remove(struct pci_dev *pdev)
- {
- 	DEBUG_MSG(KERN_INFO "via_pci_remove!\n");
- 	fb_dealloc_cmap(&viafbinfo->cmap);
-diff --git a/drivers/video/vt8500lcdfb.c b/drivers/video/vt8500lcdfb.c
-index 1b94610..aa2579c 100644
---- a/drivers/video/vt8500lcdfb.c
-+++ b/drivers/video/vt8500lcdfb.c
-@@ -469,7 +469,7 @@ failed:
- 	return ret;
- }
- 
--static int __devexit vt8500lcd_remove(struct platform_device *pdev)
-+static int vt8500lcd_remove(struct platform_device *pdev)
- {
- 	struct vt8500lcd_info *fbi = platform_get_drvdata(pdev);
- 	struct resource *res;
-diff --git a/drivers/video/vt8623fb.c b/drivers/video/vt8623fb.c
-index a3cbe8f..e9557fa 100644
---- a/drivers/video/vt8623fb.c
-+++ b/drivers/video/vt8623fb.c
-@@ -807,7 +807,7 @@ err_enable_device:
- 
- /* PCI remove */
- 
--static void __devexit vt8623_pci_remove(struct pci_dev *dev)
-+static void vt8623_pci_remove(struct pci_dev *dev)
- {
- 	struct fb_info *info = pci_get_drvdata(dev);
- 
-diff --git a/drivers/video/w100fb.c b/drivers/video/w100fb.c
-index 1c2eaf2..7a299e95 100644
---- a/drivers/video/w100fb.c
-+++ b/drivers/video/w100fb.c
-@@ -783,7 +783,7 @@ out:
- }
- 
- 
--static int __devexit w100fb_remove(struct platform_device *pdev)
-+static int w100fb_remove(struct platform_device *pdev)
- {
- 	struct fb_info *info = platform_get_drvdata(pdev);
- 	struct w100fb_par *par=info->par;
-diff --git a/drivers/video/wm8505fb.c b/drivers/video/wm8505fb.c
-index 456694a..4dd0580 100644
---- a/drivers/video/wm8505fb.c
-+++ b/drivers/video/wm8505fb.c
-@@ -431,7 +431,7 @@ failed:
- 	return ret;
- }
- 
--static int __devexit wm8505fb_remove(struct platform_device *pdev)
-+static int wm8505fb_remove(struct platform_device *pdev)
- {
- 	struct wm8505fb_info *fbi = platform_get_drvdata(pdev);
- 	struct resource *res;
-diff --git a/drivers/video/wmt_ge_rops.c b/drivers/video/wmt_ge_rops.c
-index e65361d..4aaeb18 100644
---- a/drivers/video/wmt_ge_rops.c
-+++ b/drivers/video/wmt_ge_rops.c
-@@ -152,7 +152,7 @@ static int wmt_ge_rops_probe(struct platform_device *pdev)
+ 	void __iomem *base = MSM_SHARED_RAM_BASE;
+  
+diff --git a/arch/arm/mach-msm/smd.c b/arch/arm/mach-msm/smd.c
+index c5a2edd..b1588a1 100644
+--- a/arch/arm/mach-msm/smd.c
++++ b/arch/arm/mach-msm/smd.c
+@@ -988,7 +988,7 @@ int smd_core_init(void)
  	return 0;
  }
  
--static int __devexit wmt_ge_rops_remove(struct platform_device *pdev)
-+static int wmt_ge_rops_remove(struct platform_device *pdev)
+-static int __devinit msm_smd_probe(struct platform_device *pdev)
++static int msm_smd_probe(struct platform_device *pdev)
  {
- 	iounmap(regbase);
- 	return 0;
-diff --git a/drivers/video/xilinxfb.c b/drivers/video/xilinxfb.c
-index eab07ba..af0b4fd 100644
---- a/drivers/video/xilinxfb.c
-+++ b/drivers/video/xilinxfb.c
-@@ -485,7 +485,7 @@ static int xilinxfb_of_probe(struct platform_device *op)
- 	return -ENODEV;
+ 	/*
+ 	 * If we haven't waited for the ARM9 to boot up till now,
+diff --git a/arch/arm/mach-mv78xx0/pcie.c b/arch/arm/mach-mv78xx0/pcie.c
+index a9a154a..ee8c0b5 100644
+--- a/arch/arm/mach-mv78xx0/pcie.c
++++ b/arch/arm/mach-mv78xx0/pcie.c
+@@ -173,7 +173,7 @@ static struct pci_ops pcie_ops = {
+ 	.write = pcie_wr_conf,
+ };
+ 
+-static void __devinit rc_pci_fixup(struct pci_dev *dev)
++static void rc_pci_fixup(struct pci_dev *dev)
+ {
+ 	/*
+ 	 * Prevent enumeration of root complex.
+diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
+index e7e1f2a..f2109dd 100644
+--- a/arch/arm/mach-omap1/mailbox.c
++++ b/arch/arm/mach-omap1/mailbox.c
+@@ -142,7 +142,7 @@ static struct omap_mbox mbox_dsp_info = {
+ 
+ static struct omap_mbox *omap1_mboxes[] = { &mbox_dsp_info, NULL };
+ 
+-static int __devinit omap1_mbox_probe(struct platform_device *pdev)
++static int omap1_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct resource *mem;
+ 	int ret;
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index b4226a4..2fc3dd4 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -714,7 +714,7 @@ static void __devexit gpmc_mem_exit(void)
+ 
  }
  
--static int __devexit xilinxfb_of_remove(struct platform_device *op)
-+static int xilinxfb_of_remove(struct platform_device *op)
+-static int __devinit gpmc_mem_init(void)
++static int gpmc_mem_init(void)
  {
- 	return xilinxfb_release(&op->dev);
+ 	int cs, rc;
+ 	unsigned long boot_rom_space = 0;
+@@ -748,7 +748,7 @@ static int __devinit gpmc_mem_init(void)
+ 	return 0;
  }
+ 
+-static __devinit int gpmc_probe(struct platform_device *pdev)
++static int gpmc_probe(struct platform_device *pdev)
+ {
+ 	int rc;
+ 	u32 l;
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 64308f4..1e48d5e 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -342,7 +342,7 @@ struct omap_mbox mbox_2_info = {
+ struct omap_mbox *omap4_mboxes[] = { &mbox_1_info, &mbox_2_info, NULL };
+ #endif
+ 
+-static int __devinit omap2_mbox_probe(struct platform_device *pdev)
++static int omap2_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct resource *mem;
+ 	int ret;
+diff --git a/arch/arm/mach-orion5x/pci.c b/arch/arm/mach-orion5x/pci.c
+index cd50e32..d9c7c3b 100644
+--- a/arch/arm/mach-orion5x/pci.c
++++ b/arch/arm/mach-orion5x/pci.c
+@@ -506,7 +506,7 @@ static int __init pci_setup(struct pci_sys_data *sys)
+ /*****************************************************************************
+  * General PCIe + PCI
+  ****************************************************************************/
+-static void __devinit rc_pci_fixup(struct pci_dev *dev)
++static void rc_pci_fixup(struct pci_dev *dev)
+ {
+ 	/*
+ 	 * Prevent enumeration of root complex.
+diff --git a/arch/arm/mach-prima2/pm.c b/arch/arm/mach-prima2/pm.c
+index fb5a791..9936c18 100644
+--- a/arch/arm/mach-prima2/pm.c
++++ b/arch/arm/mach-prima2/pm.c
+@@ -123,7 +123,7 @@ static const struct of_device_id memc_ids[] = {
+ 	{}
+ };
+ 
+-static int __devinit sirfsoc_memc_probe(struct platform_device *op)
++static int sirfsoc_memc_probe(struct platform_device *op)
+ {
+ 	struct device_node *np = op->dev.of_node;
+ 
+diff --git a/arch/arm/mach-prima2/rtciobrg.c b/arch/arm/mach-prima2/rtciobrg.c
+index 9d80f1e..5573536 100644
+--- a/arch/arm/mach-prima2/rtciobrg.c
++++ b/arch/arm/mach-prima2/rtciobrg.c
+@@ -107,7 +107,7 @@ static const struct of_device_id rtciobrg_ids[] = {
+ 	{}
+ };
+ 
+-static int __devinit sirfsoc_rtciobrg_probe(struct platform_device *op)
++static int sirfsoc_rtciobrg_probe(struct platform_device *op)
+ {
+ 	struct device_node *np = op->dev.of_node;
+ 
+diff --git a/arch/arm/mach-pxa/corgi_pm.c b/arch/arm/mach-pxa/corgi_pm.c
+index 048c429..7a39efc 100644
+--- a/arch/arm/mach-pxa/corgi_pm.c
++++ b/arch/arm/mach-pxa/corgi_pm.c
+@@ -198,7 +198,7 @@ static struct sharpsl_charger_machinfo corgi_pm_machinfo = {
+ 
+ static struct platform_device *corgipm_device;
+ 
+-static int __devinit corgipm_init(void)
++static int corgipm_init(void)
+ {
+ 	int ret;
+ 
+diff --git a/arch/arm/mach-pxa/sharpsl_pm.c b/arch/arm/mach-pxa/sharpsl_pm.c
+index ec55c57..0a36d35 100644
+--- a/arch/arm/mach-pxa/sharpsl_pm.c
++++ b/arch/arm/mach-pxa/sharpsl_pm.c
+@@ -829,7 +829,7 @@ static const struct platform_suspend_ops sharpsl_pm_ops = {
+ };
+ #endif
+ 
+-static int __devinit sharpsl_pm_probe(struct platform_device *pdev)
++static int sharpsl_pm_probe(struct platform_device *pdev)
+ {
+ 	int ret, irq;
+ 
+@@ -941,7 +941,7 @@ static struct platform_driver sharpsl_pm_driver = {
+ 	},
+ };
+ 
+-static int __devinit sharpsl_pm_init(void)
++static int sharpsl_pm_init(void)
+ {
+ 	return platform_driver_register(&sharpsl_pm_driver);
+ }
+diff --git a/arch/arm/mach-pxa/spitz_pm.c b/arch/arm/mach-pxa/spitz_pm.c
+index 842596d..e191f99 100644
+--- a/arch/arm/mach-pxa/spitz_pm.c
++++ b/arch/arm/mach-pxa/spitz_pm.c
+@@ -232,7 +232,7 @@ struct sharpsl_charger_machinfo spitz_pm_machinfo = {
+ 
+ static struct platform_device *spitzpm_device;
+ 
+-static int __devinit spitzpm_init(void)
++static int spitzpm_init(void)
+ {
+ 	int ret;
+ 
+diff --git a/arch/arm/mach-s3c24xx/h1940-bluetooth.c b/arch/arm/mach-s3c24xx/h1940-bluetooth.c
+index 57aee91..3f40c61 100644
+--- a/arch/arm/mach-s3c24xx/h1940-bluetooth.c
++++ b/arch/arm/mach-s3c24xx/h1940-bluetooth.c
+@@ -62,7 +62,7 @@ static const struct rfkill_ops h1940bt_rfkill_ops = {
+ 	.set_block = h1940bt_set_block,
+ };
+ 
+-static int __devinit h1940bt_probe(struct platform_device *pdev)
++static int h1940bt_probe(struct platform_device *pdev)
+ {
+ 	struct rfkill *rfk;
+ 	int ret = 0;
+diff --git a/arch/arm/mach-s3c24xx/mach-osiris-dvs.c b/arch/arm/mach-s3c24xx/mach-osiris-dvs.c
+index b7b712b..08bd8fc 100644
+--- a/arch/arm/mach-s3c24xx/mach-osiris-dvs.c
++++ b/arch/arm/mach-s3c24xx/mach-osiris-dvs.c
+@@ -93,7 +93,7 @@ static struct notifier_block osiris_dvs_nb = {
+ 	.notifier_call	= osiris_dvs_notify,
+ };
+ 
+-static int __devinit osiris_dvs_probe(struct platform_device *pdev)
++static int osiris_dvs_probe(struct platform_device *pdev)
+ {
+ 	int ret;
+ 
+diff --git a/arch/arm/mach-s3c64xx/mach-crag6410-module.c b/arch/arm/mach-s3c64xx/mach-crag6410-module.c
+index c6d8dba..b4f7600c 100644
+--- a/arch/arm/mach-s3c64xx/mach-crag6410-module.c
++++ b/arch/arm/mach-s3c64xx/mach-crag6410-module.c
+@@ -343,7 +343,7 @@ static __devinitdata const struct {
+ 	  .i2c_devs = wm2200_i2c, .num_i2c_devs = ARRAY_SIZE(wm2200_i2c) },
+ };
+ 
+-static __devinit int wlf_gf_module_probe(struct i2c_client *i2c,
++static int wlf_gf_module_probe(struct i2c_client *i2c,
+ 					 const struct i2c_device_id *i2c_id)
+ {
+ 	int ret, i, j, id, rev;
+diff --git a/arch/arm/mach-sa1100/jornada720_ssp.c b/arch/arm/mach-sa1100/jornada720_ssp.c
+index 7f07f08..b143c46 100644
+--- a/arch/arm/mach-sa1100/jornada720_ssp.c
++++ b/arch/arm/mach-sa1100/jornada720_ssp.c
+@@ -130,7 +130,7 @@ void jornada_ssp_end(void)
+ };
+ EXPORT_SYMBOL(jornada_ssp_end);
+ 
+-static int __devinit jornada_ssp_probe(struct platform_device *dev)
++static int jornada_ssp_probe(struct platform_device *dev)
+ {
+ 	int ret;
+ 
+diff --git a/arch/arm/mach-sa1100/neponset.c b/arch/arm/mach-sa1100/neponset.c
+index c408b8b..a039b54 100644
+--- a/arch/arm/mach-sa1100/neponset.c
++++ b/arch/arm/mach-sa1100/neponset.c
+@@ -233,7 +233,7 @@ static struct sa1111_platform_data sa1111_info = {
+ 	.disable_devs	= SA1111_DEVID_PS2_MSE,
+ };
+ 
+-static int __devinit neponset_probe(struct platform_device *dev)
++static int neponset_probe(struct platform_device *dev)
+ {
+ 	struct neponset_drvdata *d;
+ 	struct resource *nep_res, *sa1111_res, *smc91x_res;
+diff --git a/arch/arm/mach-tegra/pcie.c b/arch/arm/mach-tegra/pcie.c
+index 53d0858..bffcd64 100644
+--- a/arch/arm/mach-tegra/pcie.c
++++ b/arch/arm/mach-tegra/pcie.c
+@@ -331,7 +331,7 @@ static struct pci_ops tegra_pcie_ops = {
+ 	.write	= tegra_pcie_write_conf,
+ };
+ 
+-static void __devinit tegra_pcie_fixup_bridge(struct pci_dev *dev)
++static void tegra_pcie_fixup_bridge(struct pci_dev *dev)
+ {
+ 	u16 reg;
+ 
+@@ -345,7 +345,7 @@ static void __devinit tegra_pcie_fixup_bridge(struct pci_dev *dev)
+ DECLARE_PCI_FIXUP_FINAL(PCI_ANY_ID, PCI_ANY_ID, tegra_pcie_fixup_bridge);
+ 
+ /* Tegra PCIE root complex wrongly reports device class */
+-static void __devinit tegra_pcie_fixup_class(struct pci_dev *dev)
++static void tegra_pcie_fixup_class(struct pci_dev *dev)
+ {
+ 	dev->class = PCI_CLASS_BRIDGE_PCI << 8;
+ }
+@@ -353,7 +353,7 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_NVIDIA, 0x0bf0, tegra_pcie_fixup_class);
+ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_NVIDIA, 0x0bf1, tegra_pcie_fixup_class);
+ 
+ /* Tegra PCIE requires relaxed ordering */
+-static void __devinit tegra_pcie_relax_enable(struct pci_dev *dev)
++static void tegra_pcie_relax_enable(struct pci_dev *dev)
+ {
+ 	pcie_capability_set_word(dev, PCI_EXP_DEVCTL, PCI_EXP_DEVCTL_RELAX_EN);
+ }
+diff --git a/arch/arm/mach-tegra/tegra2_emc.c b/arch/arm/mach-tegra/tegra2_emc.c
+index 837c7b9..30f40de 100644
+--- a/arch/arm/mach-tegra/tegra2_emc.c
++++ b/arch/arm/mach-tegra/tegra2_emc.c
+@@ -268,7 +268,7 @@ static struct tegra_emc_pdata *tegra_emc_dt_parse_pdata(
+ }
+ #endif
+ 
+-static struct tegra_emc_pdata __devinit *tegra_emc_fill_pdata(struct platform_device *pdev)
++static struct tegra_emc_pdata *tegra_emc_fill_pdata(struct platform_device *pdev)
+ {
+ 	struct clk *c = clk_get_sys(NULL, "emc");
+ 	struct tegra_emc_pdata *pdata;
+@@ -296,7 +296,7 @@ static struct tegra_emc_pdata __devinit *tegra_emc_fill_pdata(struct platform_de
+ 	return pdata;
+ }
+ 
+-static int __devinit tegra_emc_probe(struct platform_device *pdev)
++static int tegra_emc_probe(struct platform_device *pdev)
+ {
+ 	struct tegra_emc_pdata *pdata;
+ 	struct resource *res;
+diff --git a/arch/arm/mach-u300/dummyspichip.c b/arch/arm/mach-u300/dummyspichip.c
+index 7c06188..f7a2a92 100644
+--- a/arch/arm/mach-u300/dummyspichip.c
++++ b/arch/arm/mach-u300/dummyspichip.c
+@@ -222,7 +222,7 @@ static ssize_t dummy_looptest(struct device *dev,
+ 
+ static DEVICE_ATTR(looptest, S_IRUGO, dummy_looptest, NULL);
+ 
+-static int __devinit pl022_dummy_probe(struct spi_device *spi)
++static int pl022_dummy_probe(struct spi_device *spi)
+ {
+ 	struct dummy *p_dummy;
+ 	int status;
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 3317867..d33e814 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -2000,7 +2000,7 @@ void omap_dma_global_context_restore(void)
+ 			omap_clear_dma(ch);
+ }
+ 
+-static int __devinit omap_system_dma_probe(struct platform_device *pdev)
++static int omap_system_dma_probe(struct platform_device *pdev)
+ {
+ 	int ch, ret = 0;
+ 	int dma_irq;
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 4a40f25..97903e9 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -688,7 +688,7 @@ EXPORT_SYMBOL_GPL(omap_dm_timers_active);
+  * Called by driver framework at the end of device registration for all
+  * timer devices.
+  */
+-static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
++static int omap_dm_timer_probe(struct platform_device *pdev)
+ {
+ 	unsigned long flags;
+ 	struct omap_dm_timer *timer;
+diff --git a/arch/arm/plat-pxa/ssp.c b/arch/arm/plat-pxa/ssp.c
+index def0648..caa33eb 100644
+--- a/arch/arm/plat-pxa/ssp.c
++++ b/arch/arm/plat-pxa/ssp.c
+@@ -72,7 +72,7 @@ void pxa_ssp_free(struct ssp_device *ssp)
+ }
+ EXPORT_SYMBOL(pxa_ssp_free);
+ 
+-static int __devinit pxa_ssp_probe(struct platform_device *pdev)
++static int pxa_ssp_probe(struct platform_device *pdev)
+ {
+ 	const struct platform_device_id *id = platform_get_device_id(pdev);
+ 	struct resource *res;
 -- 
 1.8.0
