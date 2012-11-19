@@ -1,91 +1,81 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omap2/ompafb/omapfb-main.c: Delete if evaluating constant.
-Date: Mon, 19 Nov 2012 13:14:45 +0200
-Message-ID: <50AA14A5.8030600@ti.com>
-References: <1353088261-27085-1-git-send-email-matthias.bgg@gmail.com>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v2 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN
+ toggle
+Date: Mon, 19 Nov 2012 11:36:57 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA760FD@DBDE01.ent.ti.com>
+References: <1353067706-29491-1-git-send-email-anilkumar@ti.com>
+ <1353067706-29491-2-git-send-email-anilkumar@ti.com>
+ <87a9udn9xo.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigE108BB6EA1AC2B78AA1D1725"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35242 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751584Ab2KSLOt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Nov 2012 06:14:49 -0500
-In-Reply-To: <1353088261-27085-1-git-send-email-matthias.bgg@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <87a9udn9xo.fsf-D6SC8u56vOOJDPpyT6T3/w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
+Cc: "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org" <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@googlemail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Matthias Brugger <matthias.bgg@gmail.com>
 
---------------enigE108BB6EA1AC2B78AA1D1725
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Mon, Nov 19, 2012 at 16:20:27, Peter Korsgaard wrote:
+> >>>>> "AnilKumar" == AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> writes:
+> 
+> s/shutdowm/shutdown/ in the subject.
 
-On 2012-11-16 19:51, Matthias Brugger wrote:
-> Variable r is never set to any value different to zero.
-> Delete the if statement as it will never executed.
->=20
-> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
-> ---
->  drivers/video/omap2/omapfb/omapfb-main.c |    4 ----
->  1 file changed, 4 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/o=
-map2/omapfb/omapfb-main.c
-> index 16db158..85f9de0 100644
-> --- a/drivers/video/omap2/omapfb/omapfb-main.c
-> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
-> @@ -2411,7 +2411,6 @@ static int __init omapfb_probe(struct platform_de=
-vice *pdev)
->  	fbdev->dev =3D &pdev->dev;
->  	platform_set_drvdata(pdev, fbdev);
-> =20
-> -	r =3D 0;
->  	fbdev->num_displays =3D 0;
->  	dssdev =3D NULL;
->  	for_each_dss_dev(dssdev) {
-> @@ -2434,9 +2433,6 @@ static int __init omapfb_probe(struct platform_de=
-vice *pdev)
->  			d->update_mode =3D OMAPFB_AUTO_UPDATE;
->  	}
-> =20
-> -	if (r)
-> -		goto cleanup;
-> -
->  	if (fbdev->num_displays =3D=3D 0) {
->  		dev_err(&pdev->dev, "no displays\n");
->  		r =3D -EINVAL;
->=20
+I will change
 
-Thanks, I'll apply to omapdss tree.
+> 
+>  AnilKumar> From: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+>  AnilKumar> Set tps65217 PMIC status to OFF if power enable toggle is
+>  AnilKumar> supported. Also adds platform data flag, which should be
+>  AnilKumar> passed from board init data.
+> 
+> You're adding dt binding, not platform data.
 
- Tomi
+I will change
 
+> 
+>  AnilKumar> Signed-off-by: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+>  AnilKumar> [anilkumar-l0cyMroinI0@public.gmane.org: move the additions to tps65217 MFD driver]
+>  AnilKumar> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+>  AnilKumar> ---
+>  AnilKumar>  .../devicetree/bindings/regulator/tps65217.txt     |    4 ++++
+>  AnilKumar>  drivers/mfd/tps65217.c                             |   12 ++++++++++++
+>  AnilKumar>  2 files changed, 16 insertions(+)
+> 
+>  AnilKumar> diff --git a/Documentation/devicetree/bindings/regulator/tps65217.txt b/Documentation/devicetree/bindings/regulator/tps65217.txt
+>  AnilKumar> index d316fb8..4f05d20 100644
+>  AnilKumar> --- a/Documentation/devicetree/bindings/regulator/tps65217.txt
+>  AnilKumar> +++ b/Documentation/devicetree/bindings/regulator/tps65217.txt
+>  AnilKumar> @@ -11,6 +11,9 @@ Required properties:
+>  AnilKumar>    using the standard binding for regulators found at
+>  AnilKumar>    Documentation/devicetree/bindings/regulator/regulator.txt.
+>  
+>  AnilKumar> +Optional properties:
+>  AnilKumar> +- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
+> 
+> Ehh, I don't know the tps65217 particular well, but according to the
+> datasheet the REG_STATUS_OFF bit enables/disables the PB_IN pin, not
+> PWR_EN. It's also not only about powering down but also powering up
+> again.
+> 
+> I don't feel this property name is very clear. Perhaps something about
+> power button or push button monitor as it is called in the datasheet?
 
+Here I am writing "TPS65217_STATUS_OFF" to status register, BIT(7).
+Description of this bit field: "OFF bit. Set this bit to 1 to enter OFF state
+when PWR_EN pin is pulled low. Bit is automatically reset to 0."
 
---------------enigE108BB6EA1AC2B78AA1D1725
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+PWR_EN pin pull-down is doing by RTC module.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQqhSlAAoJEPo9qoy8lh71BFMP/2q15/zIkfdtanpvqvcTcFCE
-y2cvB6qtXruN16npCe4TcsMZf++xohblTdVwEtKOuQwICzhLPTOG6Umx7yUlVyRk
-FL9Jh/mEoWJXP5jxCUIAp15AA3TZPxdF6YWjuWbjR4LqmKJwCjVOnmmSsIG8Jcyp
-Tp6mVWqAq8xcE1DiXOpVERlmBAqDFR6hMajqLUS5/ViD0TNwYSdfErwenc7wxVdG
-of3owMizStDPup0+S2AjX/P4VcCnY28nHKqbmkwNimvkT6VfA2DVgtAM5Yj7ye46
-vPYUP0gQFwGysiM66ZTZU8NmlEt+KUBbXvnTEpuh0GfJUkQN6JOH6M89NY7sI7Pf
-t/SL95y+omoki3z0txr7pPqd5+c1ss2zxumIh45aFK9HEO/tyrh1Sw9lVusIAfE3
-bduJ7mX5l7PFYrEzy84mELpW44LKaZudrLMjUcLQgC8Z/wWaDBeipeBjvODISHX1
-neqCD20WUjfvsDc6WKm/FRlL+gMFc5/46OMD3Bm+Iayu/2uBdLLQ4RlEIe0mM+46
-q5+yLz8HKjLP2n4OH3Xtw87LBB00c4DSOtFJNaMC0G/eQ1kZ12PZXkUhKLmHJNTa
-pzc0FDOzjnSIXsIzn+uMN0iLVm9ghuBDsnuzefKcAtLtlOHP1vB4BXz+r7YgRhdj
-Jtcw+gyeG+u9V8a7uXp3
-=6gi3
------END PGP SIGNATURE-----
-
---------------enigE108BB6EA1AC2B78AA1D1725--
+Regards
+AnilKumar
