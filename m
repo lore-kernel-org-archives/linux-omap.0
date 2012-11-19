@@ -1,44 +1,40 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2 1/2] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Mon, 19 Nov 2012 10:27:18 -0600
-Message-ID: <50AA5DE6.4080700@ti.com>
-References: <1353251201-10990-1-git-send-email-grinberg@compulab.co.il>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: [PATCH 0/5] mmc: omap_hsmmc: Few patches for omap_hsmmc
+Date: Mon, 19 Nov 2012 21:57:26 +0530
+Message-ID: <CAOyx1Lo1eigGySjP+ygAp18zBcFNU0n-HGwdpVnNBuHXG4Lphg@mail.gmail.com>
+References: <1352220737-14071-1-git-send-email-svenkatr@ti.com>
+	<87lidz7m4e.fsf@octavius.laptop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50167 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753136Ab2KSQ1X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Nov 2012 11:27:23 -0500
-In-Reply-To: <1353251201-10990-1-git-send-email-grinberg@compulab.co.il>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:39415 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753136Ab2KSQ11 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 11:27:27 -0500
+In-Reply-To: <87lidz7m4e.fsf@octavius.laptop.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Chris Ball <cjb@laptop.org>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 
+On Sun, Nov 18, 2012 at 6:39 AM, Chris Ball <cjb@laptop.org> wrote:
+> Hi Venkat,
+>
+> On Tue, Nov 06 2012, Venkatraman S wrote:
+>> Hi Chris,
+>>   Please review and merge the below patches.
+>> The first one is a bug fix that would be required to be sent
+>> for 3.7-rcX, others are intended for 3.8.
+>
+> There have been some changes requested to these -- could you resend your
+> 3.8 queue to me, please?
+>
 
-On 11/18/2012 09:06 AM, Igor Grinberg wrote:
-> CONFIG_OMAP_32K_TIMER is kind of standing on the single zImage way.
-> Make OMAP2+ timer code independant from the CONFIG_OMAP_32K_TIMER
-> setting.
-> To remove the dependancy, several conversions/additions had to be done:
-> 1) Timer initialization functions are named by the platform
->    name and the clock source in use.
->    This also makes it possible to define and use the GPTIMER as the
->    clock source instead of the 32K timer on platforms that do not have
->    the 32K timer ip block or the 32K timer is not wired on the board.
->    Cirrently, the the timer is chosen in the machine_desc structure on
+Yes - I am sending you now a series of 7 patches that has updated /
+cleaned up revisions of
+the previous patches. Also, it includes Balaji's mini bug fix series,
+which is a better version of
+my own fix.
 
-Nit ...
-
-s/Cirrently/Currently
-
-Otherwise ...
-
-Reviewed-by: Jon Hunter <jon-hunter@ti.com>
-
-Thanks for updating this!
-
-Cheers
-Jon
+Thanks,
+Venkat.
