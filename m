@@ -1,78 +1,69 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
-Date: Mon, 19 Nov 2012 17:18:47 +0200
-Message-ID: <20121119151847.GB3296@intel.com>
-References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
- <201211151339.08016.arnd@arndb.de>
- <CAF6AEGuJReNtwUZX6HVZCE8GHuyEAyC8bM0GqZuVMV1=DrGJVw@mail.gmail.com>
- <201211151439.41393.arnd@arndb.de>
- <20121119143236.GA3296@intel.com>
- <20121119144806.GO3332@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH v4 0/3] OMAP GPMC DT bindings
+Date: Mon, 19 Nov 2012 23:29:13 +0800
+Message-ID: <1353338956-19420-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44463 "EHLO mga02.intel.com"
+Received: from svenfoo.org ([82.94.215.22]:49510 "EHLO mail.zonque.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753043Ab2KSPTS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Nov 2012 10:19:18 -0500
-Content-Disposition: inline
-In-Reply-To: <20121119144806.GO3332@n2100.arm.linux.org.uk>
+	id S1753203Ab2KSP3h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Nov 2012 10:29:37 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob.clark@linaro.org>, patches@linaro.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jamie Lokier <jamie@shareable.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, Daniel Mack <zonque@gmail.com>
 
-On Mon, Nov 19, 2012 at 02:48:06PM +0000, Russell King - ARM Linux wrot=
-e:
-> On Mon, Nov 19, 2012 at 04:32:36PM +0200, Ville Syrj=E4l=E4 wrote:
-> > On Thu, Nov 15, 2012 at 02:39:41PM +0000, Arnd Bergmann wrote:
-> > > On Thursday 15 November 2012, Rob Clark wrote:
-> > > > > I still haven't heard a conclusive argument why we need to us=
-e get_user()
-> > > > > rather than copy_from_user() in the DRM code. Is this about a=
- fast path
-> > > > > where you want to shave off a few cycles for each call, or do=
-es this
-> > > > > simplify the code structure, or something else?
-> > > >=20
-> > > > well, it is mostly because it seemed like a good idea to first =
-try to
-> > > > solve the root issue, rather than having to fix things up in ea=
-ch
-> > > > driver when someone from x86-world introduces a 64b get_user().=
-=2E
-> > >=20
-> > > As pointed out by hpa earlier, x86-32 doesn't have a 64b get_user
-> > > either. I don't think we have a lot of drivers that are used only
-> > > on 64-bit x86 and on 32-bit ARM but not on 32-bit x86.
-> >=20
-> > Ouch. I didn't realize that x86-32 doesn't have it. All the systems
-> > where I've run the new code are 64bit so I never noticed the proble=
-m.
-> >=20
-> > I see there was a patch [1] posted a long time ago to implement 64b=
-it
-> > get_user() on x86-32. I wonder what happened to it?
-> >=20
-> > [1] https://lkml.org/lkml/2004/4/20/96
->=20
-> Wonderful lkml.org after four "Negotiating SSL connection..." message=
-s
-> gives me under elinks...
-<snip>=20
-> what a wonderful site... please choose another LKML archive, preferab=
-ly
-> one which works.  Thanks.
+This is a series of patches to support GPMC peripherals on OMAP boards.
 
-This one look like the same thing:
-http://article.gmane.org/gmane.linux.kernel/198823
+Depends on Linus' master +
+omap-next (branch omap-for-v3.8/cleanup-headers-gpmc)
 
---=20
-Ville Syrj=E4l=E4
-Intel OTC
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The only supported peripheral for now is NAND, but other types would be
+easy to add.
+
+Version 2 addresses details pointed out by Jon Hunter, Afzal Mohammed
+and Rob Herring:
+
+ - add "reg" and "ti,hwmod" properties to Documentation
+ - use generic of_mtd functions and the property names defined by them,
+   namely "nand-bus-width" and "nand-ecc-mode"
+ - reduce the default register space size in the Documentation to 8K,
+   as found in the hwmod code
+ - switch to a DT layout based on ranges and address translation.
+   Although this property is not currently looked at as long as the
+   handling code still uses the runtime calculation methods, we now
+   have these values in the bindings, eventually allowing us to
+   switch the implementation with less pain.
+
+Version 3 includes fixes pointed out by Jon Hunter:
+
+ - better documentation of the 'ranges' property to describe the
+   fact that it's representing the CS lines
+ - GPMC_CS_CONFIGx -> GPMC_CONFIGx in comments
+ - drop interrupt-parent from example bindings
+ - add of_node_put() at the end of the child iteration
+
+Version 4 fixes compilation for !CONFIG_MTD_NAND and includes more
+details from Jon Hunter and Avinash, Philip:
+
+ - Add "num-cs" and "num-waitpins" properties, which will eventually
+   be used to get rid of GPMC_CS_NUM
+ - Better description of generic nand DT properties
+ - Dropped patch 3/4 as an equivalent fix was already merged
+ - Added ti,nand-ecc-use-elm property
+
+Daniel Mack (3):
+  mtd: omap-nand: pass device_node in platform data
+  ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
+  ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
+
+ .../devicetree/bindings/mtd/gpmc-nand.txt          |  84 ++++++++++
+ arch/arm/mach-omap2/gpmc-nand.c                    |   9 +-
+ arch/arm/mach-omap2/gpmc.c                         | 170 +++++++++++++++++++++
+ drivers/mtd/nand/omap2.c                           |   4 +-
+ include/linux/platform_data/mtd-nand-omap2.h       |   2 +
+ 5 files changed, 264 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+
+-- 
+1.7.11.7
+
