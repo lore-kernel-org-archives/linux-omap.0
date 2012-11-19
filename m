@@ -1,64 +1,51 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH] gpio: twl4030: Use only TWL4030_MODULE_LED for LED configuration
-Date: Mon, 19 Nov 2012 11:40:30 +0100
-Message-ID: <CACRpkdbvXFtHoOXThUrT4Z+8nO_HJCFq-May+4zaOsNv-886LA@mail.gmail.com>
-References: <1352799313-21019-1-git-send-email-peter.ujfalusi@ti.com>
-	<CACRpkdayZK2sPXJW=COFi7C=P5=fbi-q7UukWbQ8dheaJ=bjAA@mail.gmail.com>
-	<50A9F335.80107@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 1/2] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
+Date: Mon, 19 Nov 2012 16:12:33 +0530
+Message-ID: <50AA0D19.8040605@ti.com>
+References: <1353251201-10990-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:52567 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248Ab2KSKkb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 05:40:31 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so993276eek.19
-        for <linux-omap@vger.kernel.org>; Mon, 19 Nov 2012 02:40:30 -0800 (PST)
-In-Reply-To: <50A9F335.80107@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54956 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248Ab2KSKme (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 05:42:34 -0500
+In-Reply-To: <1353251201-10990-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Sascha Hauer <kernel@pengutronix.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Mon, Nov 19, 2012 at 9:52 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+On Sunday 18 November 2012 08:36 PM, Igor Grinberg wrote:
+> CONFIG_OMAP_32K_TIMER is kind of standing on the single zImage way.
+> Make OMAP2+ timer code independant from the CONFIG_OMAP_32K_TIMER
+> setting.
+> To remove the dependancy, several conversions/additions had to be done:
+> 1) Timer initialization functions are named by the platform
+>     name and the clock source in use.
+>     This also makes it possible to define and use the GPTIMER as the
+>     clock source instead of the 32K timer on platforms that do not have
+>     the 32K timer ip block or the 32K timer is not wired on the board.
+>     Cirrently, the the timer is chosen in the machine_desc structure on
+>     per board basis. Later, DT should be used to choose the timer.
+> 2) Settings under the CONFIG_OMAP_32K_TIMER option are used as defaults
+>     and those under !CONFIG_OMAP_32K_TIMER are removed.
+>     This removes the CONFIG_OMAP_32K_TIMER on OMAP2+ timer code.
+> 3) Since we have all the timers defined inside machine_desc structure
+>     and we no longer need the fallback to gp_timer clock source in case
+>     32k_timer clock source is unavailable (namely on AM33xx), we no
+>     longer need the #ifdef around __omap2_sync32k_clocksource_init()
+>     function. Remove the #ifdef CONFIG_OMAP_32K_TIMER around the
+>     __omap2_sync32k_clocksource_init() function.
+>
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> Cc: Jon Hunter <jon-hunter@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+nice clean-up Igor. Patch looks good to my eyes.
+Feel free to add ,
 
-> I was actually tempted to remove the whole LED (PWM) thing from the
-> gpio-twl4030 driver. It was a big surprise to me to see something like this in
-> there.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-It looks wrong. In theory I think this should be ripped out and moved to
-drivers/leds/leds-twl4030.c. But that would only be in case it was *always*
-exclusively used for a LED and as you say:
-
-> It turns out that on BeagleBoard the USB host enable signal is connected to
-> LEDA (PWMA) of twl4030... It is an enable signal. Seriously. So what we do
-> here is either configure the PWMs as full on, or turn it off.
-
-Sounds like some hardware engineer has been having fun or was
-just out of GPIOs to use... So this LED PWM is also used as a
-GPIO.
-
-I think this part of the driver should be moved to
-drivers/pwm/pwm-twl4030.c and modeled as a PWM. If some
-platform need to use the PWM as if it was a GPIO then that's just a
-special usecase. (Setting duty cycles to something like
-INT_MAX and just switching polarity to toggle it...)
-
-If it needs to be used by a LED there needs to be some generic
-LED type just using a standard pwm_request() to get some
-specific PWM, such as leds/leds-pwm.c or so. This way the
-PWM can be used for LEDs if need be or other things...
-
-Sounds correct, Sascha?
-
-> Either way this is wrong IMHO to handle the LEDA/B via the gpio-twl4030 driver.
-
-It's confusing indeed.
-
-So what we're dealing with is: a LED-specific PWM, being used
-as a PWM with eternal dutycycle and then being used as GPIO.
-
-Well, we get to deal with it ... :-/
-
-Yours,
-Linus Walleij
