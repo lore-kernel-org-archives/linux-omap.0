@@ -1,71 +1,71 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH v2 1/2] ads7846: enable pendown GPIO debounce time setting
-Date: Mon, 19 Nov 2012 19:01:13 +0200
-Message-ID: <1353344473-14753-1-git-send-email-grinberg@compulab.co.il>
-References: <1353341038-14381-2-git-send-email-grinberg@compulab.co.il>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:39760 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753785Ab2KSRBf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Nov 2012 12:01:35 -0500
-In-Reply-To: <1353341038-14381-2-git-send-email-grinberg@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: Re: [PATCH v2] New Nokia RX-51 power supply battery driver
+Date: Mon, 19 Nov 2012 10:20:02 -0800
+Message-ID: <20121119182002.GA2670@lizard>
+References: <19040462.WFXWijAIDd@pali>
+ <2562836.SjVVyiPAk1@pali>
+ <20121118231239.GC29066@lizard.sbx05977.paloaca.wayport.net>
+ <5320319.2WmO5VDT8j@pali>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5320319.2WmO5VDT8j@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, Joerg Reisenweber <joerg@openmoko.org>, Ivaylo Dimitrov <freemangordon@abv.bg>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-Some platforms need the pendown GPIO debounce time setting programmed.
-Since the pendown GPIO is handled by the driver, the debounce time
-should also be handled along with the pendown GPIO request.
+On Mon, Nov 19, 2012 at 01:18:29PM +0100, Pali Roh=C3=A1r wrote:
+[...]=20
+> Ok. Here is missing patch which register this driver in Nokia N900 bo=
+ard code. Without it driver is not loaded.
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
----
-v2: fix the comment style
+Cc'ing OMAP folks.
 
- drivers/input/touchscreen/ads7846.c |    6 +++++-
- include/linux/spi/ads7846.h         |    5 +++--
- 2 files changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
-index f02028e..78e5d9a 100644
---- a/drivers/input/touchscreen/ads7846.c
-+++ b/drivers/input/touchscreen/ads7846.c
-@@ -955,7 +955,8 @@ static int ads7846_resume(struct device *dev)
- 
- static SIMPLE_DEV_PM_OPS(ads7846_pm, ads7846_suspend, ads7846_resume);
- 
--static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads7846 *ts)
-+static int __devinit ads7846_setup_pendown(struct spi_device *spi,
-+					   struct ads7846 *ts)
- {
- 	struct ads7846_platform_data *pdata = spi->dev.platform_data;
- 	int err;
-@@ -981,6 +982,9 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
- 
- 		ts->gpio_pendown = pdata->gpio_pendown;
- 
-+		if (pdata->gpio_pendown_debounce)
-+			gpio_set_debounce(pdata->gpio_pendown,
-+					  pdata->gpio_pendown_debounce);
- 	} else {
- 		dev_err(&spi->dev, "no get_pendown_state nor gpio_pendown?\n");
- 		return -EINVAL;
-diff --git a/include/linux/spi/ads7846.h b/include/linux/spi/ads7846.h
-index c64de9d..2f694f3 100644
---- a/include/linux/spi/ads7846.h
-+++ b/include/linux/spi/ads7846.h
-@@ -46,8 +46,9 @@ struct ads7846_platform_data {
- 	u16	debounce_rep;		/* additional consecutive good readings
- 					 * required after the first two */
- 	int	gpio_pendown;		/* the GPIO used to decide the pendown
--					 * state if get_pendown_state == NULL
--					 */
-+					 * state if get_pendown_state == NULL */
-+	int	gpio_pendown_debounce;	/* platform specific debounce time for
-+					 * the gpio_pendown */
- 	int	(*get_pendown_state)(void);
- 	int	(*filter_init)	(const struct ads7846_platform_data *pdata,
- 				 void **filter_data);
--- 
-1.7.3.4
-
+> From 0b60efd06a71668439bcb761c6572dd7df91dc17 Mon Sep 17 00:00:00 200=
+1
+> From: =3D?UTF-8?q?Pali=3D20Roh=3DC3=3DA1r?=3D <pali.rohar@gmail.com>
+> Date: Mon, 19 Nov 2012 09:05:24 +0100
+> Subject: [PATCH 1/3] ARM: OMAP: rx51: Register platform device for
+>  rx51_battery driver
+> MIME-Version: 1.0
+> Content-Type: text/plain; charset=3DUTF-8
+> Content-Transfer-Encoding: 8bit
+>=20
+> Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
+>=20
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/=
+mach-omap2/board-rx51-peripherals.c
+> index 020e03c..fe1ac7e 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -271,11 +271,17 @@ static struct platform_device rx51_charger_devi=
+ce =3D {
+>  	},
+>  };
+> =20
+> +static struct platform_device rx51_battery_device =3D {
+> +	.name		=3D "rx51-battery",
+> +	.id		=3D -1,
+> +};
+> +
+>  static void __init rx51_charger_init(void)
+>  {
+>  	WARN_ON(gpio_request_one(RX51_USB_TRANSCEIVER_RST_GPIO,
+>  		GPIOF_OUT_INIT_HIGH, "isp1704_reset"));
+> =20
+> +	platform_device_register(&rx51_battery_device);
+>  	platform_device_register(&rx51_charger_device);
+>  }
+> =20
+> --=20
+> 1.7.10.4
+>=20
+> --=20
+> Pali Roh=C3=A1r
+> pali.rohar@gmail.com
