@@ -1,768 +1,939 @@
 From: Bill Pemberton <wfp5p@virginia.edu>
-Subject: [PATCH 404/493] i2c: remove use of __devexit
-Date: Mon, 19 Nov 2012 13:25:53 -0500
-Message-ID: <1353349642-3677-404-git-send-email-wfp5p@virginia.edu>
+Subject: [PATCH 431/493] usb: remove use of __devexit
+Date: Mon, 19 Nov 2012 13:26:20 -0500
+Message-ID: <1353349642-3677-431-git-send-email-wfp5p@virginia.edu>
 References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41487 "EHLO
+Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41503 "EHLO
 	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754263Ab2KSSe4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 13:34:56 -0500
+	with ESMTP id S1754309Ab2KSSfK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 13:35:10 -0500
 In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: gregkh@linuxfoundation.org
-Cc: Jean Delvare <khali@linux-fr.org>, Wolfram Sang <w.sang@pengutronix.de>, Ben Dooks  <ben-linux@fluff.org>, Rudolf Marek <r.marek@assembler.cz>, Jochen Friedrich <jochen@scram.de>, Peter Korsgaard <jacmet@sunsite.dk>, Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, Vitaly Wool <vitalywool@gmail.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Barry Song <baohua.song@csr.com>, "Mark M. Hoffman" <mhoffman@lightlink.com>, linux-i2c@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Peter Korsgaard <jacmet@sunsite.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Li Yang <leoli@freescale.com>, Alan Stern <stern@rowland.harvard.edu>, Wan ZongShun <mcuos.com@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org
 
 CONFIG_HOTPLUG is going away as an option so __devexit is no
 longer needed.
 
 Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Jean Delvare <khali@linux-fr.org> 
-Cc: Wolfram Sang <w.sang@pengutronix.de> 
-Cc: "Ben Dooks " <ben-linux@fluff.org> 
-Cc: Rudolf Marek <r.marek@assembler.cz> 
-Cc: Jochen Friedrich <jochen@scram.de> 
 Cc: Peter Korsgaard <jacmet@sunsite.dk> 
-Cc: Tony Lindgren <tony@atomide.com> 
-Cc: Olof Johansson <olof@lixom.net> 
-Cc: Vitaly Wool <vitalywool@gmail.com> 
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn> 
-Cc: Barry Song <baohua.song@csr.com> 
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com> 
-Cc: linux-i2c@vger.kernel.org 
-Cc: linuxppc-dev@lists.ozlabs.org 
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com> 
+Cc: Felipe Balbi <balbi@ti.com> 
+Cc: Li Yang <leoli@freescale.com> 
+Cc: Alan Stern <stern@rowland.harvard.edu> 
+Cc: Wan ZongShun <mcuos.com@gmail.com> 
+Cc: Ben Dooks <ben-linux@fluff.org> 
+Cc: Kukjin Kim <kgene.kim@samsung.com> 
+Cc: linux-usb@vger.kernel.org 
 Cc: linux-omap@vger.kernel.org 
+Cc: linuxppc-dev@lists.ozlabs.org 
 Cc: linux-arm-kernel@lists.infradead.org 
+Cc: linux-samsung-soc@vger.kernel.org 
 ---
- drivers/i2c/busses/i2c-ali1535.c            | 2 +-
- drivers/i2c/busses/i2c-ali1563.c            | 2 +-
- drivers/i2c/busses/i2c-ali15x3.c            | 2 +-
- drivers/i2c/busses/i2c-amd756.c             | 2 +-
- drivers/i2c/busses/i2c-amd8111.c            | 2 +-
- drivers/i2c/busses/i2c-at91.c               | 2 +-
- drivers/i2c/busses/i2c-au1550.c             | 2 +-
- drivers/i2c/busses/i2c-cpm.c                | 2 +-
- drivers/i2c/busses/i2c-designware-pcidrv.c  | 2 +-
- drivers/i2c/busses/i2c-designware-platdrv.c | 2 +-
- drivers/i2c/busses/i2c-eg20t.c              | 2 +-
- drivers/i2c/busses/i2c-elektor.c            | 2 +-
- drivers/i2c/busses/i2c-gpio.c               | 2 +-
- drivers/i2c/busses/i2c-highlander.c         | 2 +-
- drivers/i2c/busses/i2c-hydra.c              | 2 +-
- drivers/i2c/busses/i2c-i801.c               | 4 ++--
- drivers/i2c/busses/i2c-ibm_iic.c            | 2 +-
- drivers/i2c/busses/i2c-intel-mid.c          | 2 +-
- drivers/i2c/busses/i2c-isch.c               | 2 +-
- drivers/i2c/busses/i2c-mpc.c                | 2 +-
- drivers/i2c/busses/i2c-mv64xxx.c            | 2 +-
- drivers/i2c/busses/i2c-mxs.c                | 2 +-
- drivers/i2c/busses/i2c-nforce2.c            | 2 +-
- drivers/i2c/busses/i2c-nuc900.c             | 2 +-
- drivers/i2c/busses/i2c-ocores.c             | 2 +-
- drivers/i2c/busses/i2c-octeon.c             | 2 +-
- drivers/i2c/busses/i2c-omap.c               | 2 +-
- drivers/i2c/busses/i2c-parport-light.c      | 2 +-
- drivers/i2c/busses/i2c-pasemi.c             | 2 +-
- drivers/i2c/busses/i2c-pca-isa.c            | 2 +-
- drivers/i2c/busses/i2c-pca-platform.c       | 2 +-
- drivers/i2c/busses/i2c-piix4.c              | 4 ++--
- drivers/i2c/busses/i2c-pmcmsp.c             | 2 +-
- drivers/i2c/busses/i2c-pnx.c                | 2 +-
- drivers/i2c/busses/i2c-powermac.c           | 2 +-
- drivers/i2c/busses/i2c-puv3.c               | 2 +-
- drivers/i2c/busses/i2c-pxa-pci.c            | 2 +-
- drivers/i2c/busses/i2c-rcar.c               | 2 +-
- drivers/i2c/busses/i2c-s6000.c              | 2 +-
- drivers/i2c/busses/i2c-sh7760.c             | 2 +-
- drivers/i2c/busses/i2c-sirf.c               | 2 +-
- drivers/i2c/busses/i2c-sis630.c             | 2 +-
- drivers/i2c/busses/i2c-sis96x.c             | 2 +-
- drivers/i2c/busses/i2c-tegra.c              | 2 +-
- drivers/i2c/busses/i2c-via.c                | 2 +-
- drivers/i2c/busses/i2c-xiic.c               | 2 +-
- drivers/i2c/busses/i2c-xlr.c                | 2 +-
- drivers/i2c/busses/scx200_acb.c             | 4 ++--
- drivers/i2c/muxes/i2c-mux-gpio.c            | 2 +-
- drivers/i2c/muxes/i2c-mux-pinctrl.c         | 2 +-
- 50 files changed, 53 insertions(+), 53 deletions(-)
+ drivers/usb/c67x00/c67x00-drv.c      |  2 +-
+ drivers/usb/chipidea/ci13xxx_imx.c   |  2 +-
+ drivers/usb/chipidea/ci13xxx_msm.c   |  2 +-
+ drivers/usb/chipidea/ci13xxx_pci.c   |  2 +-
+ drivers/usb/chipidea/core.c          |  2 +-
+ drivers/usb/chipidea/usbmisc_imx6q.c |  2 +-
+ drivers/usb/dwc3/core.c              |  2 +-
+ drivers/usb/dwc3/debugfs.c           |  2 +-
+ drivers/usb/dwc3/dwc3-exynos.c       |  2 +-
+ drivers/usb/dwc3/dwc3-omap.c         |  2 +-
+ drivers/usb/dwc3/dwc3-pci.c          |  2 +-
+ drivers/usb/gadget/bcm63xx_udc.c     |  2 +-
+ drivers/usb/gadget/fsl_qe_udc.c      |  2 +-
+ drivers/usb/gadget/hid.c             |  2 +-
+ drivers/usb/gadget/lpc32xx_udc.c     |  2 +-
+ drivers/usb/gadget/mv_u3d_core.c     |  2 +-
+ drivers/usb/gadget/mv_udc_core.c     |  2 +-
+ drivers/usb/gadget/net2272.c         | 10 +++++-----
+ drivers/usb/gadget/omap_udc.c        |  2 +-
+ drivers/usb/gadget/s3c-hsotg.c       |  4 ++--
+ drivers/usb/host/bcma-hcd.c          |  2 +-
+ drivers/usb/host/ehci-atmel.c        |  2 +-
+ drivers/usb/host/ehci-msm.c          |  2 +-
+ drivers/usb/host/ehci-platform.c     |  2 +-
+ drivers/usb/host/ehci-s5p.c          |  2 +-
+ drivers/usb/host/ehci-w90x900.c      |  2 +-
+ drivers/usb/host/fhci-hcd.c          |  4 ++--
+ drivers/usb/host/fsl-mph-dr-of.c     |  4 ++--
+ drivers/usb/host/isp1362-hcd.c       |  2 +-
+ drivers/usb/host/isp1760-if.c        |  2 +-
+ drivers/usb/host/ohci-at91.c         |  6 +++---
+ drivers/usb/host/ohci-exynos.c       |  2 +-
+ drivers/usb/host/ohci-jz4740.c       |  2 +-
+ drivers/usb/host/ohci-omap3.c        |  2 +-
+ drivers/usb/host/ohci-platform.c     |  2 +-
+ drivers/usb/host/ohci-s3c2410.c      |  2 +-
+ drivers/usb/host/ohci-tmio.c         |  2 +-
+ drivers/usb/host/r8a66597-hcd.c      |  2 +-
+ drivers/usb/host/sl811-hcd.c         |  2 +-
+ drivers/usb/host/ssb-hcd.c           |  4 ++--
+ drivers/usb/host/u132-hcd.c          |  2 +-
+ drivers/usb/musb/am35x.c             |  2 +-
+ drivers/usb/musb/blackfin.c          |  2 +-
+ drivers/usb/musb/da8xx.c             |  2 +-
+ drivers/usb/musb/davinci.c           |  2 +-
+ drivers/usb/musb/musb_core.c         |  2 +-
+ drivers/usb/musb/musb_dsps.c         |  2 +-
+ drivers/usb/musb/omap2430.c          |  2 +-
+ drivers/usb/musb/tusb6010.c          |  2 +-
+ drivers/usb/musb/ux500.c             |  2 +-
+ drivers/usb/otg/ab8500-usb.c         |  2 +-
+ drivers/usb/otg/fsl_otg.c            |  2 +-
+ drivers/usb/otg/msm_otg.c            |  2 +-
+ drivers/usb/otg/mxs-phy.c            |  2 +-
+ drivers/usb/otg/nop-usb-xceiv.c      |  2 +-
+ drivers/usb/phy/omap-usb2.c          |  2 +-
+ drivers/usb/phy/rcar-phy.c           |  2 +-
+ drivers/usb/renesas_usbhs/common.c   |  2 +-
+ 58 files changed, 68 insertions(+), 68 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
-index 9ee96f0..3f49181 100644
---- a/drivers/i2c/busses/i2c-ali1535.c
-+++ b/drivers/i2c/busses/i2c-ali1535.c
-@@ -518,7 +518,7 @@ static int ali1535_probe(struct pci_dev *dev, const struct pci_device_id *id)
- 	return i2c_add_adapter(&ali1535_adapter);
+diff --git a/drivers/usb/c67x00/c67x00-drv.c b/drivers/usb/c67x00/c67x00-drv.c
+index 21913dfe..fe815ec 100644
+--- a/drivers/usb/c67x00/c67x00-drv.c
++++ b/drivers/usb/c67x00/c67x00-drv.c
+@@ -191,7 +191,7 @@ static int c67x00_drv_probe(struct platform_device *pdev)
+ 	return ret;
  }
  
--static void __devexit ali1535_remove(struct pci_dev *dev)
-+static void ali1535_remove(struct pci_dev *dev)
+-static int __devexit c67x00_drv_remove(struct platform_device *pdev)
++static int c67x00_drv_remove(struct platform_device *pdev)
  {
- 	i2c_del_adapter(&ali1535_adapter);
- 	release_region(ali1535_smba, ALI1535_SMB_IOSIZE);
-diff --git a/drivers/i2c/busses/i2c-ali1563.c b/drivers/i2c/busses/i2c-ali1563.c
-index 55c27b9..5b17c9f 100644
---- a/drivers/i2c/busses/i2c-ali1563.c
-+++ b/drivers/i2c/busses/i2c-ali1563.c
-@@ -411,7 +411,7 @@ exit:
- 	return error;
+ 	struct c67x00_device *c67x00 = platform_get_drvdata(pdev);
+ 	struct resource *res;
+diff --git a/drivers/usb/chipidea/ci13xxx_imx.c b/drivers/usb/chipidea/ci13xxx_imx.c
+index 1269780..8c29122 100644
+--- a/drivers/usb/chipidea/ci13xxx_imx.c
++++ b/drivers/usb/chipidea/ci13xxx_imx.c
+@@ -220,7 +220,7 @@ put_np:
+ 	return ret;
  }
  
--static void __devexit ali1563_remove(struct pci_dev * dev)
-+static void ali1563_remove(struct pci_dev * dev)
+-static int __devexit ci13xxx_imx_remove(struct platform_device *pdev)
++static int ci13xxx_imx_remove(struct platform_device *pdev)
  {
- 	i2c_del_adapter(&ali1563_adapter);
- 	ali1563_shutdown(dev);
-diff --git a/drivers/i2c/busses/i2c-ali15x3.c b/drivers/i2c/busses/i2c-ali15x3.c
-index 2d32690..26bcc61 100644
---- a/drivers/i2c/busses/i2c-ali15x3.c
-+++ b/drivers/i2c/busses/i2c-ali15x3.c
-@@ -500,7 +500,7 @@ static int ali15x3_probe(struct pci_dev *dev, const struct pci_device_id *id)
- 	return i2c_add_adapter(&ali15x3_adapter);
- }
+ 	struct ci13xxx_imx_data *data = platform_get_drvdata(pdev);
  
--static void __devexit ali15x3_remove(struct pci_dev *dev)
-+static void ali15x3_remove(struct pci_dev *dev)
- {
- 	i2c_del_adapter(&ali15x3_adapter);
- 	release_region(ali15x3_smba, ALI15X3_SMB_IOSIZE);
-diff --git a/drivers/i2c/busses/i2c-amd756.c b/drivers/i2c/busses/i2c-amd756.c
-index 46b2d5d..c98af91 100644
---- a/drivers/i2c/busses/i2c-amd756.c
-+++ b/drivers/i2c/busses/i2c-amd756.c
-@@ -397,7 +397,7 @@ static int amd756_probe(struct pci_dev *pdev,
- 	return error;
- }
- 
--static void __devexit amd756_remove(struct pci_dev *dev)
-+static void amd756_remove(struct pci_dev *dev)
- {
- 	i2c_del_adapter(&amd756_smbus);
- 	release_region(amd756_ioport, SMB_IOSIZE);
-diff --git a/drivers/i2c/busses/i2c-amd8111.c b/drivers/i2c/busses/i2c-amd8111.c
-index 1bfeb9b..b5c86c0 100644
---- a/drivers/i2c/busses/i2c-amd8111.c
-+++ b/drivers/i2c/busses/i2c-amd8111.c
-@@ -475,7 +475,7 @@ static int amd8111_probe(struct pci_dev *dev,
- 	return error;
- }
- 
--static void __devexit amd8111_remove(struct pci_dev *dev)
-+static void amd8111_remove(struct pci_dev *dev)
- {
- 	struct amd_smbus *smbus = pci_get_drvdata(dev);
- 
-diff --git a/drivers/i2c/busses/i2c-at91.c b/drivers/i2c/busses/i2c-at91.c
-index af29e3e..f8292eb 100644
---- a/drivers/i2c/busses/i2c-at91.c
-+++ b/drivers/i2c/busses/i2c-at91.c
-@@ -489,7 +489,7 @@ static int at91_twi_probe(struct platform_device *pdev)
+diff --git a/drivers/usb/chipidea/ci13xxx_msm.c b/drivers/usb/chipidea/ci13xxx_msm.c
+index e8a8ba3..7d16681 100644
+--- a/drivers/usb/chipidea/ci13xxx_msm.c
++++ b/drivers/usb/chipidea/ci13xxx_msm.c
+@@ -77,7 +77,7 @@ static int ci13xxx_msm_probe(struct platform_device *pdev)
  	return 0;
  }
  
--static int __devexit at91_twi_remove(struct platform_device *pdev)
-+static int at91_twi_remove(struct platform_device *pdev)
+-static int __devexit ci13xxx_msm_remove(struct platform_device *pdev)
++static int ci13xxx_msm_remove(struct platform_device *pdev)
  {
- 	struct at91_twi_dev *dev = platform_get_drvdata(pdev);
- 	int rc;
-diff --git a/drivers/i2c/busses/i2c-au1550.c b/drivers/i2c/busses/i2c-au1550.c
-index 0e8595d..b278298 100644
---- a/drivers/i2c/busses/i2c-au1550.c
-+++ b/drivers/i2c/busses/i2c-au1550.c
-@@ -372,7 +372,7 @@ out:
- 	return ret;
- }
+ 	struct platform_device *plat_ci = platform_get_drvdata(pdev);
  
--static int __devexit i2c_au1550_remove(struct platform_device *pdev)
-+static int i2c_au1550_remove(struct platform_device *pdev)
- {
- 	struct i2c_au1550_data *priv = platform_get_drvdata(pdev);
- 
-diff --git a/drivers/i2c/busses/i2c-cpm.c b/drivers/i2c/busses/i2c-cpm.c
-index a7ba41d..2e79c10 100644
---- a/drivers/i2c/busses/i2c-cpm.c
-+++ b/drivers/i2c/busses/i2c-cpm.c
-@@ -688,7 +688,7 @@ out_free:
- 	return result;
- }
- 
--static int __devexit cpm_i2c_remove(struct platform_device *ofdev)
-+static int cpm_i2c_remove(struct platform_device *ofdev)
- {
- 	struct cpm_i2c *cpm = dev_get_drvdata(&ofdev->dev);
- 
-diff --git a/drivers/i2c/busses/i2c-designware-pcidrv.c b/drivers/i2c/busses/i2c-designware-pcidrv.c
-index 1e14052..6add851 100644
---- a/drivers/i2c/busses/i2c-designware-pcidrv.c
-+++ b/drivers/i2c/busses/i2c-designware-pcidrv.c
-@@ -328,7 +328,7 @@ exit:
- 	return r;
- }
- 
--static void __devexit i2c_dw_pci_remove(struct pci_dev *pdev)
-+static void i2c_dw_pci_remove(struct pci_dev *pdev)
- {
- 	struct dw_i2c_dev *dev = pci_get_drvdata(pdev);
- 
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index b6e477d..343357a 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -169,7 +169,7 @@ err_release_region:
- 	return r;
- }
- 
--static int __devexit dw_i2c_remove(struct platform_device *pdev)
-+static int dw_i2c_remove(struct platform_device *pdev)
- {
- 	struct dw_i2c_dev *dev = platform_get_drvdata(pdev);
- 	struct resource *mem;
-diff --git a/drivers/i2c/busses/i2c-eg20t.c b/drivers/i2c/busses/i2c-eg20t.c
-index 3a4d78e..5e7886e7 100644
---- a/drivers/i2c/busses/i2c-eg20t.c
-+++ b/drivers/i2c/busses/i2c-eg20t.c
-@@ -851,7 +851,7 @@ err_pci_enable:
- 	return ret;
- }
- 
--static void __devexit pch_i2c_remove(struct pci_dev *pdev)
-+static void pch_i2c_remove(struct pci_dev *pdev)
- {
- 	int i;
- 	struct adapter_info *adap_info = pci_get_drvdata(pdev);
-diff --git a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
-index c13d242..4854970 100644
---- a/drivers/i2c/busses/i2c-elektor.c
-+++ b/drivers/i2c/busses/i2c-elektor.c
-@@ -293,7 +293,7 @@ static int elektor_probe(struct device *dev, unsigned int id)
- 	return -ENODEV;
- }
- 
--static int __devexit elektor_remove(struct device *dev, unsigned int id)
-+static int elektor_remove(struct device *dev, unsigned int id)
- {
- 	i2c_del_adapter(&pcf_isa_ops);
- 
-diff --git a/drivers/i2c/busses/i2c-gpio.c b/drivers/i2c/busses/i2c-gpio.c
-index 5daac71..f3fa433 100644
---- a/drivers/i2c/busses/i2c-gpio.c
-+++ b/drivers/i2c/busses/i2c-gpio.c
-@@ -218,7 +218,7 @@ err_request_sda:
- 	return ret;
- }
- 
--static int __devexit i2c_gpio_remove(struct platform_device *pdev)
-+static int i2c_gpio_remove(struct platform_device *pdev)
- {
- 	struct i2c_gpio_private_data *priv;
- 	struct i2c_gpio_platform_data *pdata;
-diff --git a/drivers/i2c/busses/i2c-highlander.c b/drivers/i2c/busses/i2c-highlander.c
-index 6a9d788..3351cc7 100644
---- a/drivers/i2c/busses/i2c-highlander.c
-+++ b/drivers/i2c/busses/i2c-highlander.c
-@@ -441,7 +441,7 @@ err:
- 	return ret;
- }
- 
--static int __devexit highlander_i2c_remove(struct platform_device *pdev)
-+static int highlander_i2c_remove(struct platform_device *pdev)
- {
- 	struct highlander_i2c_dev *dev = platform_get_drvdata(pdev);
- 
-diff --git a/drivers/i2c/busses/i2c-hydra.c b/drivers/i2c/busses/i2c-hydra.c
-index d836112..79c3d90 100644
---- a/drivers/i2c/busses/i2c-hydra.c
-+++ b/drivers/i2c/busses/i2c-hydra.c
-@@ -139,7 +139,7 @@ static int hydra_probe(struct pci_dev *dev,
- 	return 0;
- }
- 
--static void __devexit hydra_remove(struct pci_dev *dev)
-+static void hydra_remove(struct pci_dev *dev)
- {
- 	pdregw(hydra_bit_data.data, 0);		/* clear SCLK_OE and SDAT_OE */
- 	i2c_del_adapter(&hydra_adap);
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
-index 5971441..6c5a732 100644
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -1048,7 +1048,7 @@ static int i801_add_mux(struct i801_priv *priv)
- 	return 0;
- }
- 
--static void __devexit i801_del_mux(struct i801_priv *priv)
-+static void i801_del_mux(struct i801_priv *priv)
- {
- 	if (priv->mux_pdev)
- 		platform_device_unregister(priv->mux_pdev);
-@@ -1226,7 +1226,7 @@ exit:
- 	return err;
- }
- 
--static void __devexit i801_remove(struct pci_dev *dev)
-+static void i801_remove(struct pci_dev *dev)
- {
- 	struct i801_priv *priv = pci_get_drvdata(dev);
- 
-diff --git a/drivers/i2c/busses/i2c-ibm_iic.c b/drivers/i2c/busses/i2c-ibm_iic.c
-index e3d3b54..33a2abb 100644
---- a/drivers/i2c/busses/i2c-ibm_iic.c
-+++ b/drivers/i2c/busses/i2c-ibm_iic.c
-@@ -781,7 +781,7 @@ error_cleanup:
- /*
-  * Cleanup initialized IIC interface
+diff --git a/drivers/usb/chipidea/ci13xxx_pci.c b/drivers/usb/chipidea/ci13xxx_pci.c
+index cb7eb3e..9b227e3 100644
+--- a/drivers/usb/chipidea/ci13xxx_pci.c
++++ b/drivers/usb/chipidea/ci13xxx_pci.c
+@@ -107,7 +107,7 @@ static int ci13xxx_pci_probe(struct pci_dev *pdev,
+  * first invoking the udc_remove() and then releases
+  * all PCI resources allocated for this USB device controller
   */
--static int __devexit iic_remove(struct platform_device *ofdev)
-+static int iic_remove(struct platform_device *ofdev)
+-static void __devexit ci13xxx_pci_remove(struct pci_dev *pdev)
++static void ci13xxx_pci_remove(struct pci_dev *pdev)
  {
- 	struct ibm_iic_private *dev = dev_get_drvdata(&ofdev->dev);
+ 	struct platform_device *plat_ci = pci_get_drvdata(pdev);
  
-diff --git a/drivers/i2c/busses/i2c-intel-mid.c b/drivers/i2c/busses/i2c-intel-mid.c
-index e10e1e9..de3736b 100644
---- a/drivers/i2c/busses/i2c-intel-mid.c
-+++ b/drivers/i2c/busses/i2c-intel-mid.c
-@@ -1079,7 +1079,7 @@ exit:
- 	return err;
+diff --git a/drivers/usb/chipidea/core.c b/drivers/usb/chipidea/core.c
+index 7f9c0d2..5a4a5eca 100644
+--- a/drivers/usb/chipidea/core.c
++++ b/drivers/usb/chipidea/core.c
+@@ -508,7 +508,7 @@ rm_wq:
+ 	return ret;
  }
  
--static void __devexit intel_mid_i2c_remove(struct pci_dev *dev)
-+static void intel_mid_i2c_remove(struct pci_dev *dev)
+-static int __devexit ci_hdrc_remove(struct platform_device *pdev)
++static int ci_hdrc_remove(struct platform_device *pdev)
  {
- 	struct intel_mid_i2c_private *mrst = pci_get_drvdata(dev);
- 	intel_mid_i2c_disable(&mrst->adap);
-diff --git a/drivers/i2c/busses/i2c-isch.c b/drivers/i2c/busses/i2c-isch.c
-index 2b5b70e..4099f79 100644
---- a/drivers/i2c/busses/i2c-isch.c
-+++ b/drivers/i2c/busses/i2c-isch.c
-@@ -284,7 +284,7 @@ static int smbus_sch_probe(struct platform_device *dev)
+ 	struct ci13xxx *ci = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/chipidea/usbmisc_imx6q.c b/drivers/usb/chipidea/usbmisc_imx6q.c
+index ee6fa87..845efe2 100644
+--- a/drivers/usb/chipidea/usbmisc_imx6q.c
++++ b/drivers/usb/chipidea/usbmisc_imx6q.c
+@@ -127,7 +127,7 @@ static int usbmisc_imx6q_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __devexit usbmisc_imx6q_remove(struct platform_device *pdev)
++static int usbmisc_imx6q_remove(struct platform_device *pdev)
+ {
+ 	usbmisc_unset_ops(&imx6q_usbmisc_ops);
+ 	clk_disable_unprepare(usbmisc->clk);
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 8dceb83..b033c71 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -547,7 +547,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit dwc3_remove(struct platform_device *pdev)
++static int dwc3_remove(struct platform_device *pdev)
+ {
+ 	struct dwc3	*dwc = platform_get_drvdata(pdev);
+ 	struct resource	*res;
+diff --git a/drivers/usb/dwc3/debugfs.c b/drivers/usb/dwc3/debugfs.c
+index 33ae98c5..92604b4 100644
+--- a/drivers/usb/dwc3/debugfs.c
++++ b/drivers/usb/dwc3/debugfs.c
+@@ -703,7 +703,7 @@ err0:
+ 	return ret;
+ }
+ 
+-void __devexit dwc3_debugfs_exit(struct dwc3 *dwc)
++void dwc3_debugfs_exit(struct dwc3 *dwc)
+ {
+ 	debugfs_remove_recursive(dwc->root);
+ 	dwc->root = NULL;
+diff --git a/drivers/usb/dwc3/dwc3-exynos.c b/drivers/usb/dwc3/dwc3-exynos.c
+index d43f076..aae5328 100644
+--- a/drivers/usb/dwc3/dwc3-exynos.c
++++ b/drivers/usb/dwc3/dwc3-exynos.c
+@@ -170,7 +170,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit dwc3_exynos_remove(struct platform_device *pdev)
++static int dwc3_exynos_remove(struct platform_device *pdev)
+ {
+ 	struct dwc3_exynos	*exynos = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index e114bb5..f31867f 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -421,7 +421,7 @@ err2:
+ 	return ret;
+ }
+ 
+-static int __devexit dwc3_omap_remove(struct platform_device *pdev)
++static int dwc3_omap_remove(struct platform_device *pdev)
+ {
+ 	struct dwc3_omap	*omap = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/dwc3/dwc3-pci.c b/drivers/usb/dwc3/dwc3-pci.c
+index 68e389b..7d70f44 100644
+--- a/drivers/usb/dwc3/dwc3-pci.c
++++ b/drivers/usb/dwc3/dwc3-pci.c
+@@ -194,7 +194,7 @@ err1:
+ 	return ret;
+ }
+ 
+-static void __devexit dwc3_pci_remove(struct pci_dev *pci)
++static void dwc3_pci_remove(struct pci_dev *pci)
+ {
+ 	struct dwc3_pci	*glue = pci_get_drvdata(pci);
+ 
+diff --git a/drivers/usb/gadget/bcm63xx_udc.c b/drivers/usb/gadget/bcm63xx_udc.c
+index 18eff74..47a4993 100644
+--- a/drivers/usb/gadget/bcm63xx_udc.c
++++ b/drivers/usb/gadget/bcm63xx_udc.c
+@@ -2433,7 +2433,7 @@ out_uninit:
+  * bcm63xx_udc_remove - Remove the device from the system.
+  * @pdev: Platform device struct from the bcm63xx BSP code.
+  */
+-static int __devexit bcm63xx_udc_remove(struct platform_device *pdev)
++static int bcm63xx_udc_remove(struct platform_device *pdev)
+ {
+ 	struct bcm63xx_udc *udc = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/gadget/fsl_qe_udc.c b/drivers/usb/gadget/fsl_qe_udc.c
+index b13bc73..ec50f18 100644
+--- a/drivers/usb/gadget/fsl_qe_udc.c
++++ b/drivers/usb/gadget/fsl_qe_udc.c
+@@ -2651,7 +2651,7 @@ static int qe_udc_resume(struct platform_device *dev)
+ }
+ #endif
+ 
+-static int __devexit qe_udc_remove(struct platform_device *ofdev)
++static int qe_udc_remove(struct platform_device *ofdev)
+ {
+ 	struct qe_udc *udc = dev_get_drvdata(&ofdev->dev);
+ 	struct qe_ep *ep;
+diff --git a/drivers/usb/gadget/hid.c b/drivers/usb/gadget/hid.c
+index 33deed6..c36260ea 100644
+--- a/drivers/usb/gadget/hid.c
++++ b/drivers/usb/gadget/hid.c
+@@ -203,7 +203,7 @@ static int __init hidg_plat_driver_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __devexit hidg_plat_driver_remove(struct platform_device *pdev)
++static int hidg_plat_driver_remove(struct platform_device *pdev)
+ {
+ 	struct hidg_func_node *e, *n;
+ 
+diff --git a/drivers/usb/gadget/lpc32xx_udc.c b/drivers/usb/gadget/lpc32xx_udc.c
+index 52ad15c..dd1c9b1 100644
+--- a/drivers/usb/gadget/lpc32xx_udc.c
++++ b/drivers/usb/gadget/lpc32xx_udc.c
+@@ -3352,7 +3352,7 @@ phy_fail:
  	return retval;
  }
  
--static int __devexit smbus_sch_remove(struct platform_device *pdev)
-+static int smbus_sch_remove(struct platform_device *pdev)
+-static int __devexit lpc32xx_udc_remove(struct platform_device *pdev)
++static int lpc32xx_udc_remove(struct platform_device *pdev)
  {
- 	struct resource *res;
- 	if (sch_smba) {
-diff --git a/drivers/i2c/busses/i2c-mpc.c b/drivers/i2c/busses/i2c-mpc.c
-index 4327dba..a69459e 100644
---- a/drivers/i2c/busses/i2c-mpc.c
-+++ b/drivers/i2c/busses/i2c-mpc.c
-@@ -706,7 +706,7 @@ static int fsl_i2c_probe(struct platform_device *op)
- 	return result;
- };
+ 	struct lpc32xx_udc *udc = platform_get_drvdata(pdev);
  
--static int __devexit fsl_i2c_remove(struct platform_device *op)
-+static int fsl_i2c_remove(struct platform_device *op)
+diff --git a/drivers/usb/gadget/mv_u3d_core.c b/drivers/usb/gadget/mv_u3d_core.c
+index 8cfd5b0..b5cea27 100644
+--- a/drivers/usb/gadget/mv_u3d_core.c
++++ b/drivers/usb/gadget/mv_u3d_core.c
+@@ -1763,7 +1763,7 @@ static void mv_u3d_gadget_release(struct device *dev)
+ 	dev_dbg(dev, "%s\n", __func__);
+ }
+ 
+-static __devexit int mv_u3d_remove(struct platform_device *dev)
++static int mv_u3d_remove(struct platform_device *dev)
  {
- 	struct mpc_i2c *i2c = dev_get_drvdata(&op->dev);
+ 	struct mv_u3d *u3d = platform_get_drvdata(dev);
  
-diff --git a/drivers/i2c/busses/i2c-mv64xxx.c b/drivers/i2c/busses/i2c-mv64xxx.c
-index 39a0a78..8b20ef8 100644
---- a/drivers/i2c/busses/i2c-mv64xxx.c
-+++ b/drivers/i2c/busses/i2c-mv64xxx.c
-@@ -697,7 +697,7 @@ mv64xxx_i2c_probe(struct platform_device *pd)
- 	return rc;
+diff --git a/drivers/usb/gadget/mv_udc_core.c b/drivers/usb/gadget/mv_udc_core.c
+index 2419649..379aac7 100644
+--- a/drivers/usb/gadget/mv_udc_core.c
++++ b/drivers/usb/gadget/mv_udc_core.c
+@@ -2128,7 +2128,7 @@ static void gadget_release(struct device *_dev)
+ 	complete(udc->done);
+ }
+ 
+-static int __devexit mv_udc_remove(struct platform_device *dev)
++static int mv_udc_remove(struct platform_device *dev)
+ {
+ 	struct mv_udc *udc = the_controller;
+ 	int clk_i;
+diff --git a/drivers/usb/gadget/net2272.c b/drivers/usb/gadget/net2272.c
+index a20acc1..d226058 100644
+--- a/drivers/usb/gadget/net2272.c
++++ b/drivers/usb/gadget/net2272.c
+@@ -2193,7 +2193,7 @@ net2272_gadget_release(struct device *_dev)
+ 
+ /*---------------------------------------------------------------------------*/
+ 
+-static void __devexit
++static void
+ net2272_remove(struct net2272 *dev)
+ {
+ 	usb_del_gadget_udc(&dev->gadget);
+@@ -2488,7 +2488,7 @@ net2272_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	return ret;
+ }
+ 
+-static void __devexit
++static void
+ net2272_rdk1_remove(struct pci_dev *pdev, struct net2272 *dev)
+ {
+ 	int i;
+@@ -2510,7 +2510,7 @@ net2272_rdk1_remove(struct pci_dev *pdev, struct net2272 *dev)
+ 	}
+ }
+ 
+-static void __devexit
++static void
+ net2272_rdk2_remove(struct pci_dev *pdev, struct net2272 *dev)
+ {
+ 	int i;
+@@ -2529,7 +2529,7 @@ net2272_rdk2_remove(struct pci_dev *pdev, struct net2272 *dev)
+ 			pci_resource_len(pdev, i));
+ }
+ 
+-static void __devexit
++static void
+ net2272_pci_remove(struct pci_dev *pdev)
+ {
+ 	struct net2272 *dev = pci_get_drvdata(pdev);
+@@ -2660,7 +2660,7 @@ net2272_plat_probe(struct platform_device *pdev)
+ 	return ret;
  }
  
 -static int __devexit
 +static int
- mv64xxx_i2c_remove(struct platform_device *dev)
+ net2272_plat_remove(struct platform_device *pdev)
  {
- 	struct mv64xxx_i2c_data		*drv_data = platform_get_drvdata(dev);
-diff --git a/drivers/i2c/busses/i2c-mxs.c b/drivers/i2c/busses/i2c-mxs.c
-index 3a83303..f113e68 100644
---- a/drivers/i2c/busses/i2c-mxs.c
-+++ b/drivers/i2c/busses/i2c-mxs.c
-@@ -513,7 +513,7 @@ static int mxs_i2c_probe(struct platform_device *pdev)
- 	return 0;
+ 	struct net2272 *dev = platform_get_drvdata(pdev);
+diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
+index 164526f..09699f6 100644
+--- a/drivers/usb/gadget/omap_udc.c
++++ b/drivers/usb/gadget/omap_udc.c
+@@ -2976,7 +2976,7 @@ cleanup0:
+ 	return status;
  }
  
--static int __devexit mxs_i2c_remove(struct platform_device *pdev)
-+static int mxs_i2c_remove(struct platform_device *pdev)
+-static int __devexit omap_udc_remove(struct platform_device *pdev)
++static int omap_udc_remove(struct platform_device *pdev)
  {
- 	struct mxs_i2c_dev *i2c = platform_get_drvdata(pdev);
- 	int ret;
-diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
-index 1012183..fbea3cf 100644
---- a/drivers/i2c/busses/i2c-nforce2.c
-+++ b/drivers/i2c/busses/i2c-nforce2.c
-@@ -430,7 +430,7 @@ static int nforce2_probe(struct pci_dev *dev, const struct pci_device_id *id)
- }
+ 	DECLARE_COMPLETION_ONSTACK(done);
  
- 
--static void __devexit nforce2_remove(struct pci_dev *dev)
-+static void nforce2_remove(struct pci_dev *dev)
- {
- 	struct nforce2_smbus *smbuses = pci_get_drvdata(dev);
- 
-diff --git a/drivers/i2c/busses/i2c-nuc900.c b/drivers/i2c/busses/i2c-nuc900.c
-index aae1605..b1206dc 100644
---- a/drivers/i2c/busses/i2c-nuc900.c
-+++ b/drivers/i2c/busses/i2c-nuc900.c
-@@ -663,7 +663,7 @@ static int nuc900_i2c_probe(struct platform_device *pdev)
-  * called when device is removed from the bus
- */
- 
--static int __devexit nuc900_i2c_remove(struct platform_device *pdev)
-+static int nuc900_i2c_remove(struct platform_device *pdev)
- {
- 	struct nuc900_i2c *i2c = platform_get_drvdata(pdev);
- 
-diff --git a/drivers/i2c/busses/i2c-ocores.c b/drivers/i2c/busses/i2c-ocores.c
-index 0ee58f2..7892257 100644
---- a/drivers/i2c/busses/i2c-ocores.c
-+++ b/drivers/i2c/busses/i2c-ocores.c
-@@ -336,7 +336,7 @@ static int ocores_i2c_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int __devexit ocores_i2c_remove(struct platform_device *pdev)
-+static int ocores_i2c_remove(struct platform_device *pdev)
- {
- 	struct ocores_i2c *i2c = platform_get_drvdata(pdev);
- 
-diff --git a/drivers/i2c/busses/i2c-octeon.c b/drivers/i2c/busses/i2c-octeon.c
-index 6986d66..484ca77 100644
---- a/drivers/i2c/busses/i2c-octeon.c
-+++ b/drivers/i2c/busses/i2c-octeon.c
-@@ -609,7 +609,7 @@ out:
- 	return result;
- };
- 
--static int __devexit octeon_i2c_remove(struct platform_device *pdev)
-+static int octeon_i2c_remove(struct platform_device *pdev)
- {
- 	struct octeon_i2c *i2c = platform_get_drvdata(pdev);
- 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index a872a35..9764ec0 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1267,7 +1267,7 @@ err_free_mem:
- 	return r;
- }
- 
--static int __devexit omap_i2c_remove(struct platform_device *pdev)
-+static int omap_i2c_remove(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
- 	int ret;
-diff --git a/drivers/i2c/busses/i2c-parport-light.c b/drivers/i2c/busses/i2c-parport-light.c
-index b950d43..aa95778 100644
---- a/drivers/i2c/busses/i2c-parport-light.c
-+++ b/drivers/i2c/busses/i2c-parport-light.c
-@@ -169,7 +169,7 @@ static int i2c_parport_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int __devexit i2c_parport_remove(struct platform_device *pdev)
-+static int i2c_parport_remove(struct platform_device *pdev)
- {
- 	if (ara) {
- 		line_set(0, &parport_ctrl_irq);
-diff --git a/drivers/i2c/busses/i2c-pasemi.c b/drivers/i2c/busses/i2c-pasemi.c
-index 1860252..615f632 100644
---- a/drivers/i2c/busses/i2c-pasemi.c
-+++ b/drivers/i2c/busses/i2c-pasemi.c
-@@ -392,7 +392,7 @@ static int pasemi_smb_probe(struct pci_dev *dev,
- 	return error;
- }
- 
--static void __devexit pasemi_smb_remove(struct pci_dev *dev)
-+static void pasemi_smb_remove(struct pci_dev *dev)
- {
- 	struct pasemi_smbus *smbus = pci_get_drvdata(dev);
- 
-diff --git a/drivers/i2c/busses/i2c-pca-isa.c b/drivers/i2c/busses/i2c-pca-isa.c
-index 923f6e1..323f061 100644
---- a/drivers/i2c/busses/i2c-pca-isa.c
-+++ b/drivers/i2c/busses/i2c-pca-isa.c
-@@ -174,7 +174,7 @@ static int pca_isa_probe(struct device *dev, unsigned int id)
- 	return -ENODEV;
- }
- 
--static int __devexit pca_isa_remove(struct device *dev, unsigned int id)
-+static int pca_isa_remove(struct device *dev, unsigned int id)
- {
- 	i2c_del_adapter(&pca_isa_ops);
- 
-diff --git a/drivers/i2c/busses/i2c-pca-platform.c b/drivers/i2c/busses/i2c-pca-platform.c
-index 6e1c71f..a30d2f6 100644
---- a/drivers/i2c/busses/i2c-pca-platform.c
-+++ b/drivers/i2c/busses/i2c-pca-platform.c
-@@ -257,7 +257,7 @@ e_print:
- 	return ret;
- }
- 
--static int __devexit i2c_pca_pf_remove(struct platform_device *pdev)
-+static int i2c_pca_pf_remove(struct platform_device *pdev)
- {
- 	struct i2c_pca_pf_data *i2c = platform_get_drvdata(pdev);
- 	platform_set_drvdata(pdev, NULL);
-diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
-index 1cce916..80c5d9e 100644
---- a/drivers/i2c/busses/i2c-piix4.c
-+++ b/drivers/i2c/busses/i2c-piix4.c
-@@ -626,7 +626,7 @@ static int piix4_probe(struct pci_dev *dev,
- 	return 0;
- }
- 
--static void __devexit piix4_adap_remove(struct i2c_adapter *adap)
-+static void piix4_adap_remove(struct i2c_adapter *adap)
- {
- 	struct i2c_piix4_adapdata *adapdata = i2c_get_adapdata(adap);
- 
-@@ -638,7 +638,7 @@ static void __devexit piix4_adap_remove(struct i2c_adapter *adap)
- 	}
- }
- 
--static void __devexit piix4_remove(struct pci_dev *dev)
-+static void piix4_remove(struct pci_dev *dev)
- {
- 	if (piix4_main_adapter) {
- 		piix4_adap_remove(piix4_main_adapter);
-diff --git a/drivers/i2c/busses/i2c-pmcmsp.c b/drivers/i2c/busses/i2c-pmcmsp.c
-index dce9667..083d68c 100644
---- a/drivers/i2c/busses/i2c-pmcmsp.c
-+++ b/drivers/i2c/busses/i2c-pmcmsp.c
-@@ -368,7 +368,7 @@ ret_err:
- /*
-  * Release the device and return 0 if there is one.
+diff --git a/drivers/usb/gadget/s3c-hsotg.c b/drivers/usb/gadget/s3c-hsotg.c
+index 6fdb1bd..141971d 100644
+--- a/drivers/usb/gadget/s3c-hsotg.c
++++ b/drivers/usb/gadget/s3c-hsotg.c
+@@ -3460,7 +3460,7 @@ static void s3c_hsotg_create_debug(struct s3c_hsotg *hsotg)
+  *
+  * Cleanup (remove) the debugfs files for use on module exit.
   */
--static int __devexit pmcmsptwi_remove(struct platform_device *pldev)
-+static int pmcmsptwi_remove(struct platform_device *pldev)
+-static void __devexit s3c_hsotg_delete_debug(struct s3c_hsotg *hsotg)
++static void s3c_hsotg_delete_debug(struct s3c_hsotg *hsotg)
  {
- 	struct resource *res;
+ 	unsigned epidx;
  
-diff --git a/drivers/i2c/busses/i2c-pnx.c b/drivers/i2c/busses/i2c-pnx.c
-index 1c7844a..ce40970 100644
---- a/drivers/i2c/busses/i2c-pnx.c
-+++ b/drivers/i2c/busses/i2c-pnx.c
-@@ -765,7 +765,7 @@ err_kzalloc:
- 	return ret;
- }
- 
--static int __devexit i2c_pnx_remove(struct platform_device *pdev)
-+static int i2c_pnx_remove(struct platform_device *pdev)
+@@ -3675,7 +3675,7 @@ err_clk:
+  * s3c_hsotg_remove - remove function for hsotg driver
+  * @pdev: The platform information for the driver
+  */
+-static int __devexit s3c_hsotg_remove(struct platform_device *pdev)
++static int s3c_hsotg_remove(struct platform_device *pdev)
  {
- 	struct i2c_pnx_algo_data *alg_data = platform_get_drvdata(pdev);
+ 	struct s3c_hsotg *hsotg = platform_get_drvdata(pdev);
  
-diff --git a/drivers/i2c/busses/i2c-powermac.c b/drivers/i2c/busses/i2c-powermac.c
-index c2538fb..0dd5b33 100644
---- a/drivers/i2c/busses/i2c-powermac.c
-+++ b/drivers/i2c/busses/i2c-powermac.c
-@@ -210,7 +210,7 @@ static const struct i2c_algorithm i2c_powermac_algorithm = {
- };
- 
- 
--static int __devexit i2c_powermac_remove(struct platform_device *dev)
-+static int i2c_powermac_remove(struct platform_device *dev)
- {
- 	struct i2c_adapter	*adapter = platform_get_drvdata(dev);
- 	int			rc;
-diff --git a/drivers/i2c/busses/i2c-puv3.c b/drivers/i2c/busses/i2c-puv3.c
-index ec15a60..d7c512d 100644
---- a/drivers/i2c/busses/i2c-puv3.c
-+++ b/drivers/i2c/busses/i2c-puv3.c
-@@ -231,7 +231,7 @@ fail_nomem:
- 	return rc;
- }
- 
--static int __devexit puv3_i2c_remove(struct platform_device *pdev)
-+static int puv3_i2c_remove(struct platform_device *pdev)
- {
- 	struct i2c_adapter *adapter = platform_get_drvdata(pdev);
- 	struct resource *mem;
-diff --git a/drivers/i2c/busses/i2c-pxa-pci.c b/drivers/i2c/busses/i2c-pxa-pci.c
-index 0a534c3..3d49856 100644
---- a/drivers/i2c/busses/i2c-pxa-pci.c
-+++ b/drivers/i2c/busses/i2c-pxa-pci.c
-@@ -135,7 +135,7 @@ err_mem:
- 	return ret;
- }
- 
--static void __devexit ce4100_i2c_remove(struct pci_dev *dev)
-+static void ce4100_i2c_remove(struct pci_dev *dev)
- {
- 	struct ce4100_devices *sds;
- 	unsigned int i;
-diff --git a/drivers/i2c/busses/i2c-rcar.c b/drivers/i2c/busses/i2c-rcar.c
-index 77322b6..9bd4d73 100644
---- a/drivers/i2c/busses/i2c-rcar.c
-+++ b/drivers/i2c/busses/i2c-rcar.c
-@@ -682,7 +682,7 @@ static int rcar_i2c_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int __devexit rcar_i2c_remove(struct platform_device *pdev)
-+static int rcar_i2c_remove(struct platform_device *pdev)
- {
- 	struct rcar_i2c_priv *priv = platform_get_drvdata(pdev);
- 	struct device *dev = &pdev->dev;
-diff --git a/drivers/i2c/busses/i2c-s6000.c b/drivers/i2c/busses/i2c-s6000.c
-index 11332bb..0088364 100644
---- a/drivers/i2c/busses/i2c-s6000.c
-+++ b/drivers/i2c/busses/i2c-s6000.c
-@@ -361,7 +361,7 @@ err_out:
- 	return rc;
- }
- 
--static int __devexit s6i2c_remove(struct platform_device *pdev)
-+static int s6i2c_remove(struct platform_device *pdev)
- {
- 	struct s6i2c_if *iface = platform_get_drvdata(pdev);
- 	i2c_wr16(iface, S6_I2C_ENABLE, 0);
-diff --git a/drivers/i2c/busses/i2c-sh7760.c b/drivers/i2c/busses/i2c-sh7760.c
-index 75127148..3a2253e 100644
---- a/drivers/i2c/busses/i2c-sh7760.c
-+++ b/drivers/i2c/busses/i2c-sh7760.c
-@@ -536,7 +536,7 @@ out0:
- 	return ret;
- }
- 
--static int __devexit sh7760_i2c_remove(struct platform_device *pdev)
-+static int sh7760_i2c_remove(struct platform_device *pdev)
- {
- 	struct cami2c *id = platform_get_drvdata(pdev);
- 
-diff --git a/drivers/i2c/busses/i2c-sirf.c b/drivers/i2c/busses/i2c-sirf.c
-index 65de4aa..3f1818b 100644
---- a/drivers/i2c/busses/i2c-sirf.c
-+++ b/drivers/i2c/busses/i2c-sirf.c
-@@ -385,7 +385,7 @@ err_get_clk:
+diff --git a/drivers/usb/host/bcma-hcd.c b/drivers/usb/host/bcma-hcd.c
+index 649780b..df13d42 100644
+--- a/drivers/usb/host/bcma-hcd.c
++++ b/drivers/usb/host/bcma-hcd.c
+@@ -265,7 +265,7 @@ err_free_usb_dev:
  	return err;
  }
  
--static int __devexit i2c_sirfsoc_remove(struct platform_device *pdev)
-+static int i2c_sirfsoc_remove(struct platform_device *pdev)
+-static void __devexit bcma_hcd_remove(struct bcma_device *dev)
++static void bcma_hcd_remove(struct bcma_device *dev)
  {
- 	struct i2c_adapter *adapter = platform_get_drvdata(pdev);
- 	struct sirfsoc_i2c *siic = adapter->algo_data;
-diff --git a/drivers/i2c/busses/i2c-sis630.c b/drivers/i2c/busses/i2c-sis630.c
-index 9b79d37..de6dddb 100644
---- a/drivers/i2c/busses/i2c-sis630.c
-+++ b/drivers/i2c/busses/i2c-sis630.c
-@@ -496,7 +496,7 @@ static int sis630_probe(struct pci_dev *dev, const struct pci_device_id *id)
- 	return i2c_add_adapter(&sis630_adapter);
- }
- 
--static void __devexit sis630_remove(struct pci_dev *dev)
-+static void sis630_remove(struct pci_dev *dev)
- {
- 	if (acpi_base) {
- 		i2c_del_adapter(&sis630_adapter);
-diff --git a/drivers/i2c/busses/i2c-sis96x.c b/drivers/i2c/busses/i2c-sis96x.c
-index 3ca3387..b9faf9b 100644
---- a/drivers/i2c/busses/i2c-sis96x.c
-+++ b/drivers/i2c/busses/i2c-sis96x.c
-@@ -308,7 +308,7 @@ static int sis96x_probe(struct pci_dev *dev,
+ 	struct bcma_hcd_device *usb_dev = bcma_get_drvdata(dev);
+ 	struct platform_device *ohci_dev = usb_dev->ohci_dev;
+diff --git a/drivers/usb/host/ehci-atmel.c b/drivers/usb/host/ehci-atmel.c
+index 96bf00d..27639487 100644
+--- a/drivers/usb/host/ehci-atmel.c
++++ b/drivers/usb/host/ehci-atmel.c
+@@ -182,7 +182,7 @@ fail_create_hcd:
  	return retval;
  }
  
--static void __devexit sis96x_remove(struct pci_dev *dev)
-+static void sis96x_remove(struct pci_dev *dev)
+-static int __devexit ehci_atmel_drv_remove(struct platform_device *pdev)
++static int ehci_atmel_drv_remove(struct platform_device *pdev)
  {
- 	if (sis96x_smbus_base) {
- 		i2c_del_adapter(&sis96x_adapter);
-diff --git a/drivers/i2c/busses/i2c-tegra.c b/drivers/i2c/busses/i2c-tegra.c
-index c658daa..7b38877 100644
---- a/drivers/i2c/busses/i2c-tegra.c
-+++ b/drivers/i2c/busses/i2c-tegra.c
-@@ -769,7 +769,7 @@ static int tegra_i2c_probe(struct platform_device *pdev)
- 	return 0;
- }
+ 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
  
--static int __devexit tegra_i2c_remove(struct platform_device *pdev)
-+static int tegra_i2c_remove(struct platform_device *pdev)
- {
- 	struct tegra_i2c_dev *i2c_dev = platform_get_drvdata(pdev);
- 	i2c_del_adapter(&i2c_dev->adapter);
-diff --git a/drivers/i2c/busses/i2c-via.c b/drivers/i2c/busses/i2c-via.c
-index 188ef6e..be66251 100644
---- a/drivers/i2c/busses/i2c-via.c
-+++ b/drivers/i2c/busses/i2c-via.c
-@@ -146,7 +146,7 @@ static int vt586b_probe(struct pci_dev *dev, const struct pci_device_id *id)
- 	return 0;
- }
- 
--static void __devexit vt586b_remove(struct pci_dev *dev)
-+static void vt586b_remove(struct pci_dev *dev)
- {
- 	i2c_del_adapter(&vt586b_adapter);
- 	release_region(I2C_DIR, IOSPACE);
-diff --git a/drivers/i2c/busses/i2c-xiic.c b/drivers/i2c/busses/i2c-xiic.c
-index bb72d00..9aa8837 100644
---- a/drivers/i2c/busses/i2c-xiic.c
-+++ b/drivers/i2c/busses/i2c-xiic.c
-@@ -774,7 +774,7 @@ resource_missing:
- 	return -ENOENT;
- }
- 
--static int __devexit xiic_i2c_remove(struct platform_device* pdev)
-+static int xiic_i2c_remove(struct platform_device* pdev)
- {
- 	struct xiic_i2c *i2c = platform_get_drvdata(pdev);
- 	struct resource *res;
-diff --git a/drivers/i2c/busses/i2c-xlr.c b/drivers/i2c/busses/i2c-xlr.c
-index 68aa402..a005265 100644
---- a/drivers/i2c/busses/i2c-xlr.c
-+++ b/drivers/i2c/busses/i2c-xlr.c
-@@ -251,7 +251,7 @@ static int xlr_i2c_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int __devexit xlr_i2c_remove(struct platform_device *pdev)
-+static int xlr_i2c_remove(struct platform_device *pdev)
- {
- 	struct xlr_i2c_private *priv;
- 
-diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
-index 812a4c1..3862a95 100644
---- a/drivers/i2c/busses/scx200_acb.c
-+++ b/drivers/i2c/busses/scx200_acb.c
-@@ -530,14 +530,14 @@ static int scx200_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static void __devexit scx200_cleanup_iface(struct scx200_acb_iface *iface)
-+static void scx200_cleanup_iface(struct scx200_acb_iface *iface)
- {
- 	i2c_del_adapter(&iface->adapter);
- 	release_region(iface->base, 8);
- 	kfree(iface);
- }
- 
--static int __devexit scx200_remove(struct platform_device *pdev)
-+static int scx200_remove(struct platform_device *pdev)
- {
- 	struct scx200_acb_iface *iface;
- 
-diff --git a/drivers/i2c/muxes/i2c-mux-gpio.c b/drivers/i2c/muxes/i2c-mux-gpio.c
-index 4511c54..0f68f1f 100644
---- a/drivers/i2c/muxes/i2c-mux-gpio.c
-+++ b/drivers/i2c/muxes/i2c-mux-gpio.c
-@@ -163,7 +163,7 @@ alloc_failed:
+diff --git a/drivers/usb/host/ehci-msm.c b/drivers/usb/host/ehci-msm.c
+index e0acfd5..88a49c8 100644
+--- a/drivers/usb/host/ehci-msm.c
++++ b/drivers/usb/host/ehci-msm.c
+@@ -173,7 +173,7 @@ put_hcd:
  	return ret;
  }
  
--static int __devexit i2c_mux_gpio_remove(struct platform_device *pdev)
-+static int i2c_mux_gpio_remove(struct platform_device *pdev)
+-static int __devexit ehci_msm_remove(struct platform_device *pdev)
++static int ehci_msm_remove(struct platform_device *pdev)
  {
- 	struct gpiomux *mux = platform_get_drvdata(pdev);
- 	int i;
-diff --git a/drivers/i2c/muxes/i2c-mux-pinctrl.c b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-index c6b70b5..1e44d04 100644
---- a/drivers/i2c/muxes/i2c-mux-pinctrl.c
-+++ b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-@@ -241,7 +241,7 @@ err:
+ 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/host/ehci-platform.c b/drivers/usb/host/ehci-platform.c
+index 615cba0..58fa0c9 100644
+--- a/drivers/usb/host/ehci-platform.c
++++ b/drivers/usb/host/ehci-platform.c
+@@ -126,7 +126,7 @@ err_power:
+ 	return err;
+ }
+ 
+-static int __devexit ehci_platform_remove(struct platform_device *dev)
++static int ehci_platform_remove(struct platform_device *dev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(dev);
+ 	struct usb_ehci_pdata *pdata = dev->dev.platform_data;
+diff --git a/drivers/usb/host/ehci-s5p.c b/drivers/usb/host/ehci-s5p.c
+index 2cf19d1..319dcfa 100644
+--- a/drivers/usb/host/ehci-s5p.c
++++ b/drivers/usb/host/ehci-s5p.c
+@@ -189,7 +189,7 @@ fail_clk:
+ 	return err;
+ }
+ 
+-static int __devexit s5p_ehci_remove(struct platform_device *pdev)
++static int s5p_ehci_remove(struct platform_device *pdev)
+ {
+ 	struct s5p_ehci_platdata *pdata = pdev->dev.platform_data;
+ 	struct s5p_ehci_hcd *s5p_ehci = platform_get_drvdata(pdev);
+diff --git a/drivers/usb/host/ehci-w90x900.c b/drivers/usb/host/ehci-w90x900.c
+index bf8d462..59e0e24 100644
+--- a/drivers/usb/host/ehci-w90x900.c
++++ b/drivers/usb/host/ehci-w90x900.c
+@@ -155,7 +155,7 @@ static int ehci_w90x900_probe(struct platform_device *pdev)
+ 	return usb_w90x900_probe(&ehci_w90x900_hc_driver, pdev);
+ }
+ 
+-static int __devexit ehci_w90x900_remove(struct platform_device *pdev)
++static int ehci_w90x900_remove(struct platform_device *pdev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/host/fhci-hcd.c b/drivers/usb/host/fhci-hcd.c
+index 618f143..0b4654259 100644
+--- a/drivers/usb/host/fhci-hcd.c
++++ b/drivers/usb/host/fhci-hcd.c
+@@ -780,7 +780,7 @@ err_regs:
  	return ret;
  }
  
--static int __devexit i2c_mux_pinctrl_remove(struct platform_device *pdev)
-+static int i2c_mux_pinctrl_remove(struct platform_device *pdev)
+-static int __devexit fhci_remove(struct device *dev)
++static int fhci_remove(struct device *dev)
  {
- 	struct i2c_mux_pinctrl *mux = platform_get_drvdata(pdev);
- 	int i;
+ 	struct usb_hcd *hcd = dev_get_drvdata(dev);
+ 	struct fhci_hcd *fhci = hcd_to_fhci(hcd);
+@@ -803,7 +803,7 @@ static int __devexit fhci_remove(struct device *dev)
+ 	return 0;
+ }
+ 
+-static int __devexit of_fhci_remove(struct platform_device *ofdev)
++static int of_fhci_remove(struct platform_device *ofdev)
+ {
+ 	return fhci_remove(&ofdev->dev);
+ }
+diff --git a/drivers/usb/host/fsl-mph-dr-of.c b/drivers/usb/host/fsl-mph-dr-of.c
+index 5faf796..5105127 100644
+--- a/drivers/usb/host/fsl-mph-dr-of.c
++++ b/drivers/usb/host/fsl-mph-dr-of.c
+@@ -224,13 +224,13 @@ static int fsl_usb2_mph_dr_of_probe(struct platform_device *ofdev)
+ 	return 0;
+ }
+ 
+-static int __devexit __unregister_subdev(struct device *dev, void *d)
++static int __unregister_subdev(struct device *dev, void *d)
+ {
+ 	platform_device_unregister(to_platform_device(dev));
+ 	return 0;
+ }
+ 
+-static int __devexit fsl_usb2_mph_dr_of_remove(struct platform_device *ofdev)
++static int fsl_usb2_mph_dr_of_remove(struct platform_device *ofdev)
+ {
+ 	device_for_each_child(&ofdev->dev, NULL, __unregister_subdev);
+ 	return 0;
+diff --git a/drivers/usb/host/isp1362-hcd.c b/drivers/usb/host/isp1362-hcd.c
+index 5f8b63c..974480c 100644
+--- a/drivers/usb/host/isp1362-hcd.c
++++ b/drivers/usb/host/isp1362-hcd.c
+@@ -2645,7 +2645,7 @@ static struct hc_driver isp1362_hc_driver = {
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-static int __devexit isp1362_remove(struct platform_device *pdev)
++static int isp1362_remove(struct platform_device *pdev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+ 	struct isp1362_hcd *isp1362_hcd = hcd_to_isp1362_hcd(hcd);
+diff --git a/drivers/usb/host/isp1760-if.c b/drivers/usb/host/isp1760-if.c
+index d752a4c..bbb791b 100644
+--- a/drivers/usb/host/isp1760-if.c
++++ b/drivers/usb/host/isp1760-if.c
+@@ -413,7 +413,7 @@ out:
+ 	return ret;
+ }
+ 
+-static int __devexit isp1760_plat_remove(struct platform_device *pdev)
++static int isp1760_plat_remove(struct platform_device *pdev)
+ {
+ 	struct resource *mem_res;
+ 	resource_size_t mem_size;
+diff --git a/drivers/usb/host/ohci-at91.c b/drivers/usb/host/ohci-at91.c
+index 0518348..a0cb44f 100644
+--- a/drivers/usb/host/ohci-at91.c
++++ b/drivers/usb/host/ohci-at91.c
+@@ -94,7 +94,7 @@ static void at91_stop_hc(struct platform_device *pdev)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-static void __devexit usb_hcd_at91_remove (struct usb_hcd *, struct platform_device *);
++static void usb_hcd_at91_remove (struct usb_hcd *, struct platform_device *);
+ 
+ /* configure so an HC device and id are always provided */
+ /* always called with process context; sleeping is OK */
+@@ -203,7 +203,7 @@ static int usb_hcd_at91_probe(const struct hc_driver *driver,
+  * context, "rmmod" or something similar.
+  *
+  */
+-static void __devexit usb_hcd_at91_remove(struct usb_hcd *hcd,
++static void usb_hcd_at91_remove(struct usb_hcd *hcd,
+ 				struct platform_device *pdev)
+ {
+ 	usb_remove_hcd(hcd);
+@@ -641,7 +641,7 @@ static int ohci_hcd_at91_drv_probe(struct platform_device *pdev)
+ 	return usb_hcd_at91_probe(&ohci_at91_hc_driver, pdev);
+ }
+ 
+-static int __devexit ohci_hcd_at91_drv_remove(struct platform_device *pdev)
++static int ohci_hcd_at91_drv_remove(struct platform_device *pdev)
+ {
+ 	struct at91_usbh_data	*pdata = pdev->dev.platform_data;
+ 	int			i;
+diff --git a/drivers/usb/host/ohci-exynos.c b/drivers/usb/host/ohci-exynos.c
+index 1288cdb..aa3b884 100644
+--- a/drivers/usb/host/ohci-exynos.c
++++ b/drivers/usb/host/ohci-exynos.c
+@@ -175,7 +175,7 @@ fail_clk:
+ 	return err;
+ }
+ 
+-static int __devexit exynos_ohci_remove(struct platform_device *pdev)
++static int exynos_ohci_remove(struct platform_device *pdev)
+ {
+ 	struct exynos4_ohci_platdata *pdata = pdev->dev.platform_data;
+ 	struct exynos_ohci_hcd *exynos_ohci = platform_get_drvdata(pdev);
+diff --git a/drivers/usb/host/ohci-jz4740.c b/drivers/usb/host/ohci-jz4740.c
+index 59feb87..8062bb9 100644
+--- a/drivers/usb/host/ohci-jz4740.c
++++ b/drivers/usb/host/ohci-jz4740.c
+@@ -239,7 +239,7 @@ err_free:
+ 	return ret;
+ }
+ 
+-static __devexit int jz4740_ohci_remove(struct platform_device *pdev)
++static int jz4740_ohci_remove(struct platform_device *pdev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+ 	struct jz4740_ohci_hcd *jz4740_ohci = hcd_to_jz4740_hcd(hcd);
+diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
+index 41382fc..eb35d96 100644
+--- a/drivers/usb/host/ohci-omap3.c
++++ b/drivers/usb/host/ohci-omap3.c
+@@ -208,7 +208,7 @@ err_io:
+  * the HCD's stop() method.  It is always called from a thread
+  * context, normally "rmmod", "apmd", or something similar.
+  */
+-static int __devexit ohci_hcd_omap3_remove(struct platform_device *pdev)
++static int ohci_hcd_omap3_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev	= &pdev->dev;
+ 	struct usb_hcd *hcd	= dev_get_drvdata(dev);
+diff --git a/drivers/usb/host/ohci-platform.c b/drivers/usb/host/ohci-platform.c
+index c3f76fa..084503b 100644
+--- a/drivers/usb/host/ohci-platform.c
++++ b/drivers/usb/host/ohci-platform.c
+@@ -149,7 +149,7 @@ err_power:
+ 	return err;
+ }
+ 
+-static int __devexit ohci_platform_remove(struct platform_device *dev)
++static int ohci_platform_remove(struct platform_device *dev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(dev);
+ 	struct usb_ohci_pdata *pdata = dev->dev.platform_data;
+diff --git a/drivers/usb/host/ohci-s3c2410.c b/drivers/usb/host/ohci-s3c2410.c
+index 4f29e0b..ad0f552 100644
+--- a/drivers/usb/host/ohci-s3c2410.c
++++ b/drivers/usb/host/ohci-s3c2410.c
+@@ -463,7 +463,7 @@ static int ohci_hcd_s3c2410_drv_probe(struct platform_device *pdev)
+ 	return usb_hcd_s3c2410_probe(&ohci_s3c2410_hc_driver, pdev);
+ }
+ 
+-static int __devexit ohci_hcd_s3c2410_drv_remove(struct platform_device *pdev)
++static int ohci_hcd_s3c2410_drv_remove(struct platform_device *pdev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/host/ohci-tmio.c b/drivers/usb/host/ohci-tmio.c
+index 5996a3b..d370245 100644
+--- a/drivers/usb/host/ohci-tmio.c
++++ b/drivers/usb/host/ohci-tmio.c
+@@ -271,7 +271,7 @@ err_usb_create_hcd:
+ 	return ret;
+ }
+ 
+-static int __devexit ohci_hcd_tmio_drv_remove(struct platform_device *dev)
++static int ohci_hcd_tmio_drv_remove(struct platform_device *dev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(dev);
+ 	struct tmio_hcd *tmio = hcd_to_tmio(hcd);
+diff --git a/drivers/usb/host/r8a66597-hcd.c b/drivers/usb/host/r8a66597-hcd.c
+index e97dfad..a6fd8f53 100644
+--- a/drivers/usb/host/r8a66597-hcd.c
++++ b/drivers/usb/host/r8a66597-hcd.c
+@@ -2391,7 +2391,7 @@ static const struct dev_pm_ops r8a66597_dev_pm_ops = {
+ #define R8A66597_DEV_PM_OPS	NULL
+ #endif
+ 
+-static int __devexit r8a66597_remove(struct platform_device *pdev)
++static int r8a66597_remove(struct platform_device *pdev)
+ {
+ 	struct r8a66597		*r8a66597 = dev_get_drvdata(&pdev->dev);
+ 	struct usb_hcd		*hcd = r8a66597_to_hcd(r8a66597);
+diff --git a/drivers/usb/host/sl811-hcd.c b/drivers/usb/host/sl811-hcd.c
+index 782127d..d62f040 100644
+--- a/drivers/usb/host/sl811-hcd.c
++++ b/drivers/usb/host/sl811-hcd.c
+@@ -1595,7 +1595,7 @@ static struct hc_driver sl811h_hc_driver = {
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-static int __devexit
++static int
+ sl811h_remove(struct platform_device *dev)
+ {
+ 	struct usb_hcd		*hcd = platform_get_drvdata(dev);
+diff --git a/drivers/usb/host/ssb-hcd.c b/drivers/usb/host/ssb-hcd.c
+index bdb9d70..74af2c6 100644
+--- a/drivers/usb/host/ssb-hcd.c
++++ b/drivers/usb/host/ssb-hcd.c
+@@ -206,7 +206,7 @@ err_free_usb_dev:
+ 	return err;
+ }
+ 
+-static void __devexit ssb_hcd_remove(struct ssb_device *dev)
++static void ssb_hcd_remove(struct ssb_device *dev)
+ {
+ 	struct ssb_hcd_device *usb_dev = ssb_get_drvdata(dev);
+ 	struct platform_device *ohci_dev = usb_dev->ohci_dev;
+@@ -220,7 +220,7 @@ static void __devexit ssb_hcd_remove(struct ssb_device *dev)
+ 	ssb_device_disable(dev, 0);
+ }
+ 
+-static void __devexit ssb_hcd_shutdown(struct ssb_device *dev)
++static void ssb_hcd_shutdown(struct ssb_device *dev)
+ {
+ 	ssb_device_disable(dev, 0);
+ }
+diff --git a/drivers/usb/host/u132-hcd.c b/drivers/usb/host/u132-hcd.c
+index 8bf78e6..5efdffe 100644
+--- a/drivers/usb/host/u132-hcd.c
++++ b/drivers/usb/host/u132-hcd.c
+@@ -2990,7 +2990,7 @@ static struct hc_driver u132_hc_driver = {
+ * synchronously - but instead should immediately stop activity to the
+ * device and asynchronously call usb_remove_hcd()
+ */
+-static int __devexit u132_remove(struct platform_device *pdev)
++static int u132_remove(struct platform_device *pdev)
+ {
+ 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+ 	if (hcd) {
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 2363819..c107d7c 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -559,7 +559,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit am35x_remove(struct platform_device *pdev)
++static int am35x_remove(struct platform_device *pdev)
+ {
+ 	struct am35x_glue	*glue = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index 12beb0e..14dab9f 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -510,7 +510,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit bfin_remove(struct platform_device *pdev)
++static int bfin_remove(struct platform_device *pdev)
+ {
+ 	struct bfin_glue		*glue = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index c4fb235..97996af 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -555,7 +555,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit da8xx_remove(struct platform_device *pdev)
++static int da8xx_remove(struct platform_device *pdev)
+ {
+ 	struct da8xx_glue		*glue = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+index 8877c1a..b1c01ca 100644
+--- a/drivers/usb/musb/davinci.c
++++ b/drivers/usb/musb/davinci.c
+@@ -587,7 +587,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit davinci_remove(struct platform_device *pdev)
++static int davinci_remove(struct platform_device *pdev)
+ {
+ 	struct davinci_glue		*glue = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index a332bb8..57cc9c6 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2034,7 +2034,7 @@ static int musb_probe(struct platform_device *pdev)
+ 	return status;
+ }
+ 
+-static int __devexit musb_remove(struct platform_device *pdev)
++static int musb_remove(struct platform_device *pdev)
+ {
+ 	struct device	*dev = &pdev->dev;
+ 	struct musb	*musb = dev_to_musb(dev);
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 3377be8..e6f2ae8 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -667,7 +667,7 @@ err1:
+ err0:
+ 	return ret;
+ }
+-static int __devexit dsps_remove(struct platform_device *pdev)
++static int dsps_remove(struct platform_device *pdev)
+ {
+ 	struct dsps_glue *glue = platform_get_drvdata(pdev);
+ 	const struct dsps_musb_wrapper *wrp = glue->wrp;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 06850f2..da00af4 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -605,7 +605,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit omap2430_remove(struct platform_device *pdev)
++static int omap2430_remove(struct platform_device *pdev)
+ {
+ 	struct omap2430_glue		*glue = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index a03b7be..8bde6fc 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -1215,7 +1215,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit tusb_remove(struct platform_device *pdev)
++static int tusb_remove(struct platform_device *pdev)
+ {
+ 	struct tusb6010_glue		*glue = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/musb/ux500.c b/drivers/usb/musb/ux500.c
+index 6b12001..a27ca1a 100644
+--- a/drivers/usb/musb/ux500.c
++++ b/drivers/usb/musb/ux500.c
+@@ -163,7 +163,7 @@ err0:
+ 	return ret;
+ }
+ 
+-static int __devexit ux500_remove(struct platform_device *pdev)
++static int ux500_remove(struct platform_device *pdev)
+ {
+ 	struct ux500_glue	*glue = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/otg/ab8500-usb.c b/drivers/usb/otg/ab8500-usb.c
+index f0ba931..2d86f26 100644
+--- a/drivers/usb/otg/ab8500-usb.c
++++ b/drivers/usb/otg/ab8500-usb.c
+@@ -546,7 +546,7 @@ fail0:
+ 	return err;
+ }
+ 
+-static int __devexit ab8500_usb_remove(struct platform_device *pdev)
++static int ab8500_usb_remove(struct platform_device *pdev)
+ {
+ 	struct ab8500_usb *ab = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/otg/fsl_otg.c b/drivers/usb/otg/fsl_otg.c
+index 2b9a838..d16adb4 100644
+--- a/drivers/usb/otg/fsl_otg.c
++++ b/drivers/usb/otg/fsl_otg.c
+@@ -1144,7 +1144,7 @@ static int fsl_otg_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int __devexit fsl_otg_remove(struct platform_device *pdev)
++static int fsl_otg_remove(struct platform_device *pdev)
+ {
+ 	struct fsl_usb2_platform_data *pdata = pdev->dev.platform_data;
+ 
+diff --git a/drivers/usb/otg/msm_otg.c b/drivers/usb/otg/msm_otg.c
+index eef0dd2..3b9f0d9 100644
+--- a/drivers/usb/otg/msm_otg.c
++++ b/drivers/usb/otg/msm_otg.c
+@@ -1606,7 +1606,7 @@ free_motg:
+ 	return ret;
+ }
+ 
+-static int __devexit msm_otg_remove(struct platform_device *pdev)
++static int msm_otg_remove(struct platform_device *pdev)
+ {
+ 	struct msm_otg *motg = platform_get_drvdata(pdev);
+ 	struct usb_phy *phy = &motg->phy;
+diff --git a/drivers/usb/otg/mxs-phy.c b/drivers/usb/otg/mxs-phy.c
+index 825d860..965c8e1 100644
+--- a/drivers/usb/otg/mxs-phy.c
++++ b/drivers/usb/otg/mxs-phy.c
+@@ -176,7 +176,7 @@ static int mxs_phy_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __devexit mxs_phy_remove(struct platform_device *pdev)
++static int mxs_phy_remove(struct platform_device *pdev)
+ {
+ 	platform_set_drvdata(pdev, NULL);
+ 
+diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
+index 28f70e2..a3ce24b 100644
+--- a/drivers/usb/otg/nop-usb-xceiv.c
++++ b/drivers/usb/otg/nop-usb-xceiv.c
+@@ -141,7 +141,7 @@ exit:
+ 	return err;
+ }
+ 
+-static int __devexit nop_usb_xceiv_remove(struct platform_device *pdev)
++static int nop_usb_xceiv_remove(struct platform_device *pdev)
+ {
+ 	struct nop_usb_xceiv *nop = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
+index c10fb8b..26ae8f4 100644
+--- a/drivers/usb/phy/omap-usb2.c
++++ b/drivers/usb/phy/omap-usb2.c
+@@ -199,7 +199,7 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __devexit omap_usb2_remove(struct platform_device *pdev)
++static int omap_usb2_remove(struct platform_device *pdev)
+ {
+ 	struct omap_usb	*phy = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/phy/rcar-phy.c b/drivers/usb/phy/rcar-phy.c
+index 84ac2a7..a35681b 100644
+--- a/drivers/usb/phy/rcar-phy.c
++++ b/drivers/usb/phy/rcar-phy.c
+@@ -196,7 +196,7 @@ static int rcar_usb_phy_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int __devexit rcar_usb_phy_remove(struct platform_device *pdev)
++static int rcar_usb_phy_remove(struct platform_device *pdev)
+ {
+ 	struct rcar_usb_phy_priv *priv = platform_get_drvdata(pdev);
+ 
+diff --git a/drivers/usb/renesas_usbhs/common.c b/drivers/usb/renesas_usbhs/common.c
+index 2aa7c1a..38bce04 100644
+--- a/drivers/usb/renesas_usbhs/common.c
++++ b/drivers/usb/renesas_usbhs/common.c
+@@ -556,7 +556,7 @@ probe_end_pipe_exit:
+ 	return ret;
+ }
+ 
+-static int __devexit usbhs_remove(struct platform_device *pdev)
++static int usbhs_remove(struct platform_device *pdev)
+ {
+ 	struct usbhs_priv *priv = usbhs_pdev_to_priv(pdev);
+ 	struct renesas_usbhs_platform_info *info = pdev->dev.platform_data;
 -- 
 1.8.0
 
