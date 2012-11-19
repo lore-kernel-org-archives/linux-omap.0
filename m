@@ -1,100 +1,73 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH 2/2] ARM: OMAP: ads7846: fix pendown debounce setting
-Date: Mon, 19 Nov 2012 18:03:58 +0200
-Message-ID: <1353341038-14381-3-git-send-email-grinberg@compulab.co.il>
-References: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
-Sender: linux-input-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>, Zumeng Chen <zumeng.chen@windriver.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] AM33XX: Clock: Fix JTAG disconnect during kernel boot
+Date: Mon, 19 Nov 2012 10:15:16 -0600
+Message-ID: <50AA5B14.6010909@ti.com>
+References: <1353109482-26478-1-git-send-email-joelagnel@ti.com> <50A6D672.1020104@ti.com> <CAD=GYpaWkKaPyXGvZtYvtcebrWYDTeF7sdgTSRzR18_Ntq6-tw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49546 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752526Ab2KSQPU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Nov 2012 11:15:20 -0500
+In-Reply-To: <CAD=GYpaWkKaPyXGvZtYvtcebrWYDTeF7sdgTSRzR18_Ntq6-tw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joel A Fernandes <agnel.joel@gmail.com>
+Cc: Joel A Fernandes <joelagnel@ti.com>, linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>, Matt Porter <mporter@ti.com>, Steve Kipisz <s-kipisz2@ti.com>, Jason Kridner <jkridner@beagleboard.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-Commit 97ee9f01 (ARM: OMAP: fix the ads7846 init code) have enabled the
-pendown GPIO debounce time setting by the below sequence:
 
-  gpio_request_one()
-  gpio_set_debounce()
-  gpio_free()
+On 11/16/2012 08:44 PM, Joel A Fernandes wrote:
+> Hi Jon,
+> 
+> On Fri, Nov 16, 2012 at 6:12 PM, Jon Hunter <jon-hunter@ti.com> wrote:
+>>> diff --git a/arch/arm/mach-omap2/clock33xx_data.c
+>>> b/arch/arm/mach-omap2/clock33xx_data.c
+>>> index b7b7995..d0b4313 100644
+>>> --- a/arch/arm/mach-omap2/clock33xx_data.c
+>>> +++ b/arch/arm/mach-omap2/clock33xx_data.c
+>>> @@ -585,6 +585,7 @@ static struct clk debugss_ick = {
+>>>       .clkdm_name     = "l3_aon_clkdm",
+>>>       .parent         = &dpll_core_m4_ck,
+>>>       .ops            = &clkops_omap2_dflt,
+>>> +     .flags          = ENABLE_ON_INIT,
+>>>       .enable_reg     = AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
+>>>       .enable_bit     = AM33XX_MODULEMODE_SWCTRL,
+>>>       .recalc         = &followparent_recalc,
+>>
+>> Does this mean this clock will always be enabled, even when not using
+>> JTAG? If so, is that what you want?
+> 
+> Yes, the clock will always be on, because some times we connect JTAG
+> on a running Linux system without powering it down. I can't comment
+> without doing measurements if keeping the clock on has significant
+> impact on power, but I see what you mean. Definitely low power is a
+> parameter and folks who want lowest possible power might need to turn
+> off the clock and not have JTAG in production, but that depends on the
+> user's requirement. I personally don't care about power as much as I
+> care about not being able to JTAG, and I think there are other folks
+> who suffer from the same JTAG problem who wouldn't necessarily want
+> lowest power.
 
-It also revealed a bug in the OMAP GPIO handling code which prevented
-the GPIO debounce clock to be disabled and CORE transition to low power
-states.
+I can't say I am that familiar with the AM33xx architecture, but I know
+that on OMAP this would keep on the debugss clock and power domain.
 
-Commit c9c55d9 (gpio/omap: fix off-mode bug: clear debounce settings on
-free/reset) fixes the OMAP GPIO handling code by making sure that the
-GPIO debounce clock gets disabled if no GPIO is requested from current
-bank.
+Do you need this change to connect JTAG after the kernel has booted or
+just to maintain JTAG during kernel boot?
 
-While fixing the OMAP GPIO handling code (in the right way), the above
-commit makes the gpio_request->set_debounce->free sequence invalid as
-after freeing the GPIO, the debounce settings are lost.
+I am wondering if you should implement a new flag such as
+"DONT_DISABLE_ON_INIT" so if the clock is on it is not disabled, but if
+it is not enabled, you don't enabled it. Then that would be the best of
+both worlds.
 
-Fix the debounce settings by moving the debounce initialization to the
-actual GPIO requesting code - the ads7846 driver.
+>> I was not sure if you are concerned about power at all. Or if having
+>> that always enabled can inhibit low power states for suspend/idle etc.
+> 
+> Maybe, suspend/resume code can turn off clock on suspend and enable it
+> on resume.
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Zumeng Chen <zumeng.chen@windriver.com>
----
- arch/arm/mach-omap2/common-board-devices.c |   34 ++++++++++++++++-----------
- 1 files changed, 20 insertions(+), 14 deletions(-)
+Yes, but not ideal for a product assuming they are power sensitive.
 
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index ad85609..d246efd 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -63,30 +63,36 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
- 	int err;
- 
--	err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
--	if (err) {
--		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
--		return;
--	}
-+	/*
-+	 * If a board defines get_pendown_state() function, request the pendown
-+	 * GPIO and set the GPIO debounce time.
-+	 * If a board does not define the get_pendown_state() function, then
-+	 * the ads7846 driver will setup the pendown GPIO itself.
-+	 */
-+	if (board_pdata && board_pdata->get_pendown_state) {
-+		err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
-+		if (err) {
-+			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
-+			return;
-+		}
-+
-+		if (gpio_debounce)
-+			gpio_set_debounce(gpio_pendown, gpio_debounce);
- 
--	if (gpio_debounce)
--		gpio_set_debounce(gpio_pendown, gpio_debounce);
-+		gpio_export(gpio_pendown, 0);
-+	}
- 
- 	spi_bi->bus_num	= bus_num;
- 	spi_bi->irq	= gpio_to_irq(gpio_pendown);
- 
-+	ads7846_config.gpio_pendown = gpio_pendown;
-+
- 	if (board_pdata) {
- 		board_pdata->gpio_pendown = gpio_pendown;
-+		board_pdata->gpio_pendown_debounce = gpio_debounce;
- 		spi_bi->platform_data = board_pdata;
--		if (board_pdata->get_pendown_state)
--			gpio_export(gpio_pendown, 0);
--	} else {
--		ads7846_config.gpio_pendown = gpio_pendown;
- 	}
- 
--	if (!board_pdata || (board_pdata && !board_pdata->get_pendown_state))
--		gpio_free(gpio_pendown);
--
- 	spi_register_board_info(&ads7846_spi_board_info, 1);
- }
- #else
--- 
-1.7.3.4
-
+Cheers
+Jon
