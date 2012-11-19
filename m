@@ -1,73 +1,83 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] drm/omap: use omapdss low level API
-Date: Mon, 19 Nov 2012 10:10:46 +0200
-Message-ID: <50A9E986.7050302@ti.com>
-References: <1353024058-11504-1-git-send-email-robdclark@gmail.com> <20121116121928.GA20226@kroah.com>
+Subject: Re: [PATCH] OMAPDSS: OMAPFB: Fix possible null pointer dereferencing
+Date: Mon, 19 Nov 2012 10:44:01 +0200
+Message-ID: <50A9F151.3010607@ti.com>
+References: <1353301815-21277-1-git-send-email-tushar.behera@linaro.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enigBD658C003F4BA9E084330182"
+	boundary="------------enig90FD851EC1C168587686640B"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47487 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752829Ab2KSIK7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 03:10:59 -0500
-In-Reply-To: <20121116121928.GA20226@kroah.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33603 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753146Ab2KSIoF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Nov 2012 03:44:05 -0500
+In-Reply-To: <1353301815-21277-1-git-send-email-tushar.behera@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Rob Clark <robdclark@gmail.com>, dri-devel@lists.freedesktop.org, patches@linaro.org, linux-omap@vger.kernel.org
+To: Tushar Behera <tushar.behera@linaro.org>
+Cc: linux-omap@vger.kernel.org, archit@ti.com, patches@linaro.org
 
---------------enigBD658C003F4BA9E084330182
+--------------enig90FD851EC1C168587686640B
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-11-16 14:19, Greg KH wrote:
-> On Thu, Nov 15, 2012 at 06:00:58PM -0600, Rob Clark wrote:
->> This patch changes the omapdrm KMS to bypass the omapdss "compat"
->> layer and use the core omapdss API directly.  This solves some layerin=
-g
->> issues that would cause unpin confusion vs GO bit status, because we
->> would not know whether a particular pageflip or overlay update has hit=
-
->> the screen or not.  Now instead we explicitly manage the GO bits in
->> dispc and handle the vblank/framedone interrupts ourself so that we
->> always know which buffers are being scanned out at any given time, and=
-
->> so on.
->>
->> As an added bonus, we no longer leave the last overlay buffer pinned
->> when the display is disabled, and have been able to add the previously=
-
->> missing vblank event handling.
->>
->> Signed-off-by: Rob Clark <robdclark@gmail.com>
->> ---
->> Note: this patch applies on top of staging-next plus the "OMAPDSS:
->> create compat layer" patch series:
->>
->> http://comments.gmane.org/gmane.linux.ports.arm.omap/89435
+On 2012-11-19 07:10, Tushar Behera wrote:
+> If display is NULL, display->output would lead to kernel panic.
 >=20
-> Hm, I can't take that patch set in staging-next, so how should this go
-> in?
+> Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
+> ---
+>  drivers/video/omap2/omapfb/omapfb-ioctl.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>=20
+> diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/=
+omap2/omapfb/omapfb-ioctl.c
+> index 55a39be..532a31b 100644
+> --- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
+> +++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
+> @@ -787,7 +787,7 @@ int omapfb_ioctl(struct fb_info *fbi, unsigned int =
+cmd, unsigned long arg)
+> =20
+>  	case OMAPFB_WAITFORVSYNC:
+>  		DBG("ioctl WAITFORVSYNC\n");
+> -		if (!display && !display->output && !display->output->manager) {
+> +		if (!display || !display->output || !display->output->manager) {
+>  			r =3D -EINVAL;
+>  			break;
+>  		}
+>=20
 
-I wonder, could the omapdrm part go in for -rc2? It's "only" a driver in
-staging. I think that would be the easiest way. Perhaps it'd be even
-possible to split the patch into two, of which the first half would not
-depend on omapdss, but would prepare omapdrm for the change, thus making
-the patch for -rc2 smaller.
+Thanks, good catch. However, the patch description is not very good.
+If you agree with the change, I'll apply the patch with the description:
 
-Otherwise it's more tricky... Either wait for 3.9, or get omapdss,
-omapfb and omapdrm merged via the same tree. But which that would be?
-omapdss and omapfb usually go through fbdev tree. I don't know what its
-maintainer thinks of merging drm driver. And if the omapdrm depends on
-new drm changes, I guess fbdev is out of the question.
+
+OMAPFB: Fix possible null pointer dereferencing                          =
+
+                                                                         =
+
+Commit 952cbaaa9b8beacc425f9aedf370468cbb737a2c (OMAPFB: Change          =
+
+dssdev->manager references) added checks for OMAPFB_WAITFORVSYNC ioctl   =
+
+to verify that the display, output and overlay manager exist. However,   =
+
+the code erroneously uses && for each part, which means that             =
+
+OMAPFB_WAITFORVSYNC may crash the kernel if no display, output or        =
+
+manager is associated with the framebuffer.                              =
+
+                                                                         =
+
+This patch fixes the issue by using ||.                                  =
+
+
 
  Tomi
 
 
 
---------------enigBD658C003F4BA9E084330182
+--------------enig90FD851EC1C168587686640B
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -76,19 +86,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQqemNAAoJEPo9qoy8lh71MfIP/i8LVaU46sW3l7iOcTTlCKMq
-gJBMtiwou/CG6cPnQDswpfGBJDdCRFZ4R9mgTfcCC22A5gJ6UiYZv0FjKNilQUXL
-ocNCMQFxFXKvdxAPh8z8TUkEBXb3NKFTJIG0TYWnRJ2EiZ8RqbfLvfnhntNrF5zy
-H2oM9ARTuMJjlqp5LnEoT/pHDuuyxzLrsN6gYAY8GtTAO0I54MZneprOPtvkjFWT
-LIVxD8UJHtmOf8lIzuivJbrJRMnshhS1kfJ+RiMRDfUYJE85AbUB2UhaSY9uTVzQ
-f9Lw1ar7/Aeght0Ir/O7ndf38hQ80rRngqRk0ZX/hjQUOd/9gqDoQNeyTAMTg1jJ
-xAso5czEB8IHpjRA+7cOqpH+LNaw6ZcuUE1qde7hVfBBTPAZRmpDLHTb9x6ddcXq
-4WYabGHlu8ycMh8BtpPRrCNZ15a1Sc7K4KwSmQAf2S2ueFTlkKNzTA+AiW31mNqh
-wTVd+x5rYNlibQxXv1Uw2TywNGsqpBbZIwHpWCtveF0t/7/CaVYOARGP01DwbnOb
-w0uj6DCXUOhGN6pFc82F1yKlYUcgeXHoAErOvNZte25Dd3TsUD1aA4rj9YglcXKj
-nWhb9+H5LunHkuLkHAlZMv2ni7agR9h+o47eFVTp/3d4U3mb+X9UvulrRABSspP3
-6g+Y79I4vQ8NFzNeKpb7
-=gsSo
+iQIcBAEBAgAGBQJQqfFRAAoJEPo9qoy8lh71gnkP/3Tl03zSIaLDshMMAUk7fSjN
+Nsp5hBYLIIVYUF6RyyFIqW0HD4cquP9hEojb9TvjaCiRrZ3HOokrQOEyQYvXGSnA
+DFZu09CAWSi/e2a8hb2Y10i3D3mnXKmQLbjgwm8hRr+XgKInF55/9xcBHGN/IATY
+gp04uP9YqfoYObtFJ+VyO887c7lQy2ccovJqaPHdQWJjJ/1l6sebhrQ2dcyJPm7Q
+xZwafz5JDUSO6qD5A2eP6z80KnIEmwqe7PgR4ZlggqbL45xExTMvER1bA80qBT4D
+di55FxBxj/nLrlpYU1Gy+ST8CI90gZ9XLtAbaguBkwJEmJ+nU2MiQukxONKjJPjZ
+bjePz/WcfIuHxE7GHj6QZTxQE/i8EAuyX7iU+o4l4hGDqhMU9bpGgMvfcpYTSi3T
+6Yikr1A9NeDTZ99PwLoxJkrJp3Fe+3mfMu/VA81gBBgnJv3ekPjDMRQ9WcVS4Dh7
+UvImKsuC+tVTwqJ/J1SR9mIy36NXgaqu2mgXeSqQrGiAIYcD093sbacEUlgVByQ4
+OoWHvMoMC7W5kA0jaqFwOhpxqpK9tXoZp4yDESiEyJw2fbcKz44/ox6/prKL/9MQ
++lklmw/hQuWQ6LDjLbkKdzkTLLFLdtUgXE7/TQ2Bf50IXoMORhzU1P9c9Qbx3JFi
+jfpBHjVqRw3svyD0SpQY
+=8off
 -----END PGP SIGNATURE-----
 
---------------enigBD658C003F4BA9E084330182--
+--------------enig90FD851EC1C168587686640B--
