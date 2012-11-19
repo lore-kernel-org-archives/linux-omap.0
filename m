@@ -1,90 +1,49 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: HDMI: Rearrange platform devices
- for ASoC drivers
-Date: Mon, 19 Nov 2012 14:58:41 +0200
-Message-ID: <50AA2D01.5020302@ti.com>
-References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com> <1353029819-21809-3-git-send-email-ricardo.neri@ti.com> <50A5F0A5.2010105@ti.com> <50A6805C.3050004@ti.com>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+Subject: Re: [PATCH] ARM: add get_user() support for 8 byte types
+Date: Mon, 19 Nov 2012 16:32:36 +0200
+Message-ID: <20121119143236.GA3296@intel.com>
+References: <1352495853-9790-1-git-send-email-rob.clark@linaro.org>
+ <201211151339.08016.arnd@arndb.de>
+ <CAF6AEGuJReNtwUZX6HVZCE8GHuyEAyC8bM0GqZuVMV1=DrGJVw@mail.gmail.com>
+ <201211151439.41393.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigB15A76B562404C2E4540EE1C"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43724 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751827Ab2KSM6s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Nov 2012 07:58:48 -0500
-In-Reply-To: <50A6805C.3050004@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201211151439.41393.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Rob Clark <rob.clark@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, patches@linaro.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jamie Lokier <jamie@shareable.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
---------------enigB15A76B562404C2E4540EE1C
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Thu, Nov 15, 2012 at 02:39:41PM +0000, Arnd Bergmann wrote:
+> On Thursday 15 November 2012, Rob Clark wrote:
+> > > I still haven't heard a conclusive argument why we need to use ge=
+t_user()
+> > > rather than copy_from_user() in the DRM code. Is this about a fas=
+t path
+> > > where you want to shave off a few cycles for each call, or does t=
+his
+> > > simplify the code structure, or something else?
+> >=20
+> > well, it is mostly because it seemed like a good idea to first try =
+to
+> > solve the root issue, rather than having to fix things up in each
+> > driver when someone from x86-world introduces a 64b get_user()..
+>=20
+> As pointed out by hpa earlier, x86-32 doesn't have a 64b get_user
+> either. I don't think we have a lot of drivers that are used only
+> on 64-bit x86 and on 32-bit ARM but not on 32-bit x86.
 
-On 2012-11-16 20:05, Ricardo Neri wrote:
+Ouch. I didn't realize that x86-32 doesn't have it. All the systems
+where I've run the new code are 64bit so I never noticed the problem.
 
-> I hope the explanation above provides more clarity to you. I think HDMI=
+I see there was a patch [1] posted a long time ago to implement 64bit
+get_user() on x86-32. I wonder what happened to it?
 
-> does not fit seamlessly into the ASoC driver model, as we don't have a
-> real codec and no machine driver seems to be needed. This is the best I=
+[1] https://lkml.org/lkml/2004/4/20/96
 
-> could get. :/ :)
-
-Ok. I can't say I fully grasp everything about the audio architecture,
-but this clarified it anyway.
-
-So I'm fine with the three audio related devices. But I still have the
-following points:
-
-The name of the codec platform_device is "hdmi-audio-codec". Isn't that
-too generic name? Shouldn't it be "omap-hdmi-audio-codec"? Then again,
-you said in this case it represents the tv-set. If so, should it be a
-generic codec driver, without any reference to omap?
-
-I still don't understand why the codec and machine drivers need to be
-created in the board file. That just forces us to replicate the same
-code for all OMAP boards that have OMAP HDMI output. Why not create the
-devices in some common code, for example arch/arm/mach-omap2/display.c?
-
-With DT this should be similar: OMAP's hdmi devices should be presented
-in the omap4.dtsi file, not in each individual board dts. Although the
-DT data should represent the hardware, and if the code and machine
-devices are not really there in the HW, then... I don't know =3D).
-
-And something that confuses me: sound/soc/codecs/omap-hdmi.c contains a
-codec and dai drivers, but sound/soc/omap/omap-hdmi.c also contains a
-dai driver. The latter actually contains two dai drivers, the other a
-platform driver and the other a snd_soc_dai_driver. But I guess this is
-asoc details, and not relevant to this disuccsion =3D).
-
- Tomi
-
-
-
---------------enigB15A76B562404C2E4540EE1C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQqi0BAAoJEPo9qoy8lh71assP/2ugPYChUndgoJSGnqE4g8xe
-VwG5Lo9Ru5VTLQj2hZ2X2xA56ZygnxzNFGbCdGdbeUa8qDLs0J6uIRLBZdtwHVTI
-R8SXfmFrLw2lOpc0UWVjnY8FVAJcmu/t6JpYcqzdL7Ndn7K3UY615jE+ZC4rCZ3j
-HDabZ9rZl4l6VRYrCw6GW1ZiypspzJ7Cj0woift7uAOwS/Hq3UoOJHLbJqscXWsP
-CxOgxopVXqStz0iKQNZhJKKjnsD/le6CBz70Sfy0pt+KmzPp38Wm0ZcC09LQgSkC
-eoetJAWSewnEkLOmf7hBtPm2P+TzmDe4OqTwsAMcV4yWcLvXR8SL5oNC0+beylnd
-gS1mK9yjtJJIK1YdWnPdAxDKkveXqU+X6z8pd/BG29vczH3IEHyKcYAPzia+EVDf
-gfSMWFK9Jd6BneOifNutoFL2KIjLqjKiGtuAN7wiEXHXQ61kKk0OQgc6NIwBiF9q
-noJy59HeQNaA+0cRFtWo2CNV6O99kBhO6Wt8fI6tKfWkyu0/eXoUCZTFBypIAxF6
-uVyLWIT37lm1mM/JvIsMA163dUkTy6QvfQ7r6oe1yUFnPn1GtQi4aGdpeqQKxCkG
-ySENNY6RO619rAx6VD4prRY+syStA22DUchsoJMqR0pGQVeHLx8HDl2ALw+Fwd+H
-IHX4Uwyi14NTNmkxKQsy
-=GBD/
------END PGP SIGNATURE-----
-
---------------enigB15A76B562404C2E4540EE1C--
+--=20
+Ville Syrj=E4l=E4
+Intel OTC
