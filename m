@@ -1,57 +1,81 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: [RFC] dmaengine: omap-dma: Allow DMA controller to prefetch data
-Date: Mon, 19 Nov 2012 11:00:15 +0100
-Message-ID: <50AA032F.1010102@ti.com>
-References: <20121018222046.GA28541@animalcreek.com> <20121018225540.GB28061@n2100.arm.linux.org.uk> <20121018232405.GA29064@animalcreek.com> <20121018233335.GC28061@n2100.arm.linux.org.uk> <50814B83.7090203@ti.com> <20121117113159.GM3332@n2100.arm.linux.org.uk>
+Date: Mon, 19 Nov 2012 11:01:44 +0100
+Message-ID: <50AA0388.4020803@ti.com>
+References: <20121018222046.GA28541@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51381 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753315Ab2KSKBF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Nov 2012 05:01:05 -0500
-In-Reply-To: <20121117113159.GM3332@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20121018222046.GA28541@animalcreek.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-On 11/17/2012 12:31 PM, Russell King - ARM Linux wrote:
-> On Fri, Oct 19, 2012 at 02:45:55PM +0200, P=E9ter Ujfalusi wrote:
->> Hi,
->>
->> On 10/19/2012 01:33 AM, Russell King - ARM Linux wrote:
->>> I'm merely pointing out here that we need their feedback here befor=
-e
->>> deciding if there's anything further that needs to happen.
->>
->> Thanks Russell, I'll take a look at the implication of the prefetch =
-for audio.
->=20
-> P=E9ter, any news?
+Hi,
 
-Sorry, I was carried away with other things...
-I did some testing with and without the dma prefetch for audio (on Beag=
-leBoard
-with mplayer: -ao alsa/pulse).
-When we have prefetch enabled we tend to resume after pause from a slig=
-htly
-off place than when the prefetch is disabled.
-I also remember that in n9 we have had some issue with the DMA prefetch=
-=2E
+On 10/19/2012 12:20 AM, Mark A. Greer wrote:
+> Enable DMA prefetching by setting the 'OMAP_DMA_DST_SYNC_PREFETCH'
+> flag whenever there is a destination synchronized DMA transfer.
+> Prefetching is not allowed on source synchronized DMA transfers.
+> =
 
-So I would for sure enable the prefetch for non cyclic DMA.
-=46or the cyclic I would not enable it for now. I need to dig a bit dee=
-per in
-DMA/McBSP to have better view on the issue.
+> Enabling prefetch significantly improves DMA performance.
+> For example, running 'modprobe tcrypt sec=3D2 mode=3D403' which
+> exercises the omap-sham driver on an am37x EVM yeilds the
+> following results:
 
-I have one comment to the patch itself as well.
+>  drivers/dma/omap-dma.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> =
 
---=20
+> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+> index bb2d8e7..aadddb2 100644
+> --- a/drivers/dma/omap-dma.c
+> +++ b/drivers/dma/omap-dma.c
+> @@ -310,7 +310,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_=
+slave_sg(
+>  		dev_addr =3D c->cfg.dst_addr;
+>  		dev_width =3D c->cfg.dst_addr_width;
+>  		burst =3D c->cfg.dst_maxburst;
+> -		sync_type =3D OMAP_DMA_DST_SYNC;
+> +		sync_type =3D OMAP_DMA_DST_SYNC | OMAP_DMA_DST_SYNC_PREFETCH;
+
+This should be:
+ -		sync_type =3D OMAP_DMA_DST_SYNC;
+ +		sync_type =3D OMAP_DMA_DST_SYNC_PREFETCH;
+
+
+>  	} else {
+>  		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
+>  		return NULL;
+> @@ -387,7 +387,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_=
+dma_cyclic(
+>  		dev_addr =3D c->cfg.dst_addr;
+>  		dev_width =3D c->cfg.dst_addr_width;
+>  		burst =3D c->cfg.dst_maxburst;
+> -		sync_type =3D OMAP_DMA_DST_SYNC;
+> +		sync_type =3D OMAP_DMA_DST_SYNC | OMAP_DMA_DST_SYNC_PREFETCH;
+
+We should not enable the prefetch for cyclic right now. We will investigate=
+ it
+more.
+
+>  	} else {
+>  		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
+>  		return NULL;
+> =
+
+
+-- =
+
 P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
