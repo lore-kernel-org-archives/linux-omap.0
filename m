@@ -1,81 +1,50 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC] dmaengine: omap-dma: Allow DMA controller to prefetch data
-Date: Mon, 19 Nov 2012 11:01:44 +0100
-Message-ID: <50AA0388.4020803@ti.com>
-References: <20121018222046.GA28541@animalcreek.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 00/16] OMAP USB Host cleanup
+Date: Mon, 19 Nov 2012 12:11:15 +0200
+Message-ID: <50AA05C3.7010003@ti.com>
+References: <1352990054-14680-1-git-send-email-rogerq@ti.com> <87fw49cnvh.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20121018222046.GA28541@animalcreek.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87fw49cnvh.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Kevin,
 
-On 10/19/2012 12:20 AM, Mark A. Greer wrote:
-> Enable DMA prefetching by setting the 'OMAP_DMA_DST_SYNC_PREFETCH'
-> flag whenever there is a destination synchronized DMA transfer.
-> Prefetching is not allowed on source synchronized DMA transfers.
-> =
+On 11/16/2012 10:08 PM, Kevin Hilman wrote:
+> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+> 
+>> Hi,
+>>
+>> This patchset addresses the following
+>>
+>> - Avoid addressing clocks one by one by name and use a for loop + bunch
+>>   of cleanups.
+>> - Get number of channels/ports dynamically either from revision register
+>>   or from platform data. Avoids getting clocks that are not present.
+>> - Add OMAP5 and HSIC mode (Not tested)
+>> - Save power on Panda when EHCI driver is not loaded.
+>>
+> 
+> Seeing the clock changes/cleanups, I gave this a spin on OMAP3
+> (3530/Beagle, 3530/Overo, 3730/Beagle-xM, 3730/OveroSTORM) to see if it
+> fixed up the problem where CORE does not hit retention in idle when USB
+> host is enabled, even with no devices attached.
+> 
+> Unfortunately, it didn't help. :(
 
-> Enabling prefetch significantly improves DMA performance.
-> For example, running 'modprobe tcrypt sec=3D2 mode=3D403' which
-> exercises the omap-sham driver on an am37x EVM yeilds the
-> following results:
+oh that's bad. But this series wasn't meant to fix that ;).
 
->  drivers/dma/omap-dma.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> =
+I could take a look at it once I get hold of the serial cable to connect
+to the beagle.
 
-> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> index bb2d8e7..aadddb2 100644
-> --- a/drivers/dma/omap-dma.c
-> +++ b/drivers/dma/omap-dma.c
-> @@ -310,7 +310,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_=
-slave_sg(
->  		dev_addr =3D c->cfg.dst_addr;
->  		dev_width =3D c->cfg.dst_addr_width;
->  		burst =3D c->cfg.dst_maxburst;
-> -		sync_type =3D OMAP_DMA_DST_SYNC;
-> +		sync_type =3D OMAP_DMA_DST_SYNC | OMAP_DMA_DST_SYNC_PREFETCH;
-
-This should be:
- -		sync_type =3D OMAP_DMA_DST_SYNC;
- +		sync_type =3D OMAP_DMA_DST_SYNC_PREFETCH;
-
-
->  	} else {
->  		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
->  		return NULL;
-> @@ -387,7 +387,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_=
-dma_cyclic(
->  		dev_addr =3D c->cfg.dst_addr;
->  		dev_width =3D c->cfg.dst_addr_width;
->  		burst =3D c->cfg.dst_maxburst;
-> -		sync_type =3D OMAP_DMA_DST_SYNC;
-> +		sync_type =3D OMAP_DMA_DST_SYNC | OMAP_DMA_DST_SYNC_PREFETCH;
-
-We should not enable the prefetch for cyclic right now. We will investigate=
- it
-more.
-
->  	} else {
->  		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
->  		return NULL;
-> =
-
-
--- =
-
-P=E9ter
+regards,
+-roger
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
