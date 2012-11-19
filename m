@@ -1,33 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC] dmaengine: omap-dma: Allow DMA controller to prefetch
-	data
-Date: Mon, 19 Nov 2012 12:16:29 +0000
-Message-ID: <20121119121629.GN3332@n2100.arm.linux.org.uk>
-References: <20121018222046.GA28541@animalcreek.com> <20121018225540.GB28061@n2100.arm.linux.org.uk> <20121018232405.GA29064@animalcreek.com> <20121018233335.GC28061@n2100.arm.linux.org.uk> <50814B83.7090203@ti.com> <20121117113159.GM3332@n2100.arm.linux.org.uk> <50AA032F.1010102@ti.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH v2 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
+Date: Mon, 19 Nov 2012 13:17:59 +0100
+Message-ID: <87r4nplrbc.fsf@dell.be.48ers.dk>
+References: <1353067706-29491-1-git-send-email-anilkumar@ti.com>
+	<1353067706-29491-2-git-send-email-anilkumar@ti.com>
+	<87a9udn9xo.fsf@dell.be.48ers.dk>
+	<331ABD5ECB02734CA317220B2BBEABC13EA760FD@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45239 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751570Ab2KSMRN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 07:17:13 -0500
-Content-Disposition: inline
-In-Reply-To: <50AA032F.1010102@ti.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:44332 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752056Ab2KSMS0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 07:18:26 -0500
+Received: by mail-wg0-f44.google.com with SMTP id dr13so2801599wgb.1
+        for <linux-omap@vger.kernel.org>; Mon, 19 Nov 2012 04:18:24 -0800 (PST)
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA760FD@DBDE01.ent.ti.com>
+	(Chimata AnilKumar's message of "Mon, 19 Nov 2012 11:36:57 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "Mark A. Greer" <mgreer@animalcreek.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "a.zummo@towertech.it" <a.zummo@towertech.it>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, Colin Foe-Parker <colin.foeparker@logicpd.com>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Nov 19, 2012 at 11:00:15AM +0100, Peter Ujfalusi wrote:
-> When we have prefetch enabled we tend to resume after pause from a slightly
-> off place than when the prefetch is disabled.
+>>>>> "A" == AnilKumar, Chimata <anilkumar@ti.com> writes:
 
-That is exactly what I was expecting would happen having read how the
-DMA works.
+Hi,
 
-With memory->device transfers, if you stop them (there is no pause), the
-DMA hardware discards its buffers.  So if you allow it to prefetch data,
-you're going to throw more data away when you stop it.
+ >> I don't feel this property name is very clear. Perhaps something about
+ >> power button or push button monitor as it is called in the datasheet?
 
-For device->memory transfers, at least it will write the contents back to
-memory before stopping.
+ A> Here I am writing "TPS65217_STATUS_OFF" to status register, BIT(7).
+ A> Description of this bit field: "OFF bit. Set this bit to 1 to enter
+ A> OFF state when PWR_EN pin is pulled low. Bit is automatically reset
+ A> to 0."
+
+ A> PWR_EN pin pull-down is doing by RTC module.
+
+Ahh yes, sorry -ENOCOFFEE. I somehow misread the datasheet and looked at
+bit 0 instead.
+
+-- 
+Bye, Peter Korsgaard
