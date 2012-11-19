@@ -1,71 +1,44 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [RFC] dmaengine: omap-dma: Allow DMA controller to prefetch
- data
-Date: Mon, 19 Nov 2012 09:19:15 -0700
-Message-ID: <20121119161915.GA9758@animalcreek.com>
-References: <20121018222046.GA28541@animalcreek.com>
- <50AA0388.4020803@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2 1/2] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
+Date: Mon, 19 Nov 2012 10:27:18 -0600
+Message-ID: <50AA5DE6.4080700@ti.com>
+References: <1353251201-10990-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:39614 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637Ab2KSQTQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 11:19:16 -0500
-Content-Disposition: inline
-In-Reply-To: <50AA0388.4020803@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:50167 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753136Ab2KSQ1X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Nov 2012 11:27:23 -0500
+In-Reply-To: <1353251201-10990-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Mon, Nov 19, 2012 at 11:01:44AM +0100, Peter Ujfalusi wrote:
-> Hi,
-> 
-> On 10/19/2012 12:20 AM, Mark A. Greer wrote:
-> > Enable DMA prefetching by setting the 'OMAP_DMA_DST_SYNC_PREFETCH'
-> > flag whenever there is a destination synchronized DMA transfer.
-> > Prefetching is not allowed on source synchronized DMA transfers.
-> > 
-> > Enabling prefetch significantly improves DMA performance.
-> > For example, running 'modprobe tcrypt sec=2 mode=403' which
-> > exercises the omap-sham driver on an am37x EVM yeilds the
-> > following results:
-> 
-> >  drivers/dma/omap-dma.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> > index bb2d8e7..aadddb2 100644
-> > --- a/drivers/dma/omap-dma.c
-> > +++ b/drivers/dma/omap-dma.c
-> > @@ -310,7 +310,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
-> >  		dev_addr = c->cfg.dst_addr;
-> >  		dev_width = c->cfg.dst_addr_width;
-> >  		burst = c->cfg.dst_maxburst;
-> > -		sync_type = OMAP_DMA_DST_SYNC;
-> > +		sync_type = OMAP_DMA_DST_SYNC | OMAP_DMA_DST_SYNC_PREFETCH;
-> 
-> This should be:
->  -		sync_type = OMAP_DMA_DST_SYNC;
->  +		sync_type = OMAP_DMA_DST_SYNC_PREFETCH;
 
-Ah, right.  I will fix.
+On 11/18/2012 09:06 AM, Igor Grinberg wrote:
+> CONFIG_OMAP_32K_TIMER is kind of standing on the single zImage way.
+> Make OMAP2+ timer code independant from the CONFIG_OMAP_32K_TIMER
+> setting.
+> To remove the dependancy, several conversions/additions had to be done:
+> 1) Timer initialization functions are named by the platform
+>    name and the clock source in use.
+>    This also makes it possible to define and use the GPTIMER as the
+>    clock source instead of the 32K timer on platforms that do not have
+>    the 32K timer ip block or the 32K timer is not wired on the board.
+>    Cirrently, the the timer is chosen in the machine_desc structure on
 
-> >  	} else {
-> >  		dev_err(chan->device->dev, "%s: bad direction?\n", __func__);
-> >  		return NULL;
-> > @@ -387,7 +387,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
-> >  		dev_addr = c->cfg.dst_addr;
-> >  		dev_width = c->cfg.dst_addr_width;
-> >  		burst = c->cfg.dst_maxburst;
-> > -		sync_type = OMAP_DMA_DST_SYNC;
-> > +		sync_type = OMAP_DMA_DST_SYNC | OMAP_DMA_DST_SYNC_PREFETCH;
-> 
-> We should not enable the prefetch for cyclic right now. We will investigate it
-> more.
+Nit ...
 
-OK.  I'll send a patch in a few minutes.
+s/Cirrently/Currently
 
-Mark
---
+Otherwise ...
+
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+
+Thanks for updating this!
+
+Cheers
+Jon
