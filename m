@@ -1,51 +1,63 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 1/2] ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-Date: Mon, 19 Nov 2012 16:12:33 +0530
-Message-ID: <50AA0D19.8040605@ti.com>
-References: <1353251201-10990-1-git-send-email-grinberg@compulab.co.il>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH v2 1/4] mfd: tps65217: Set PMIC to shutdowm on PWR_EN toggle
+Date: Mon, 19 Nov 2012 11:50:27 +0100
+Message-ID: <87a9udn9xo.fsf@dell.be.48ers.dk>
+References: <1353067706-29491-1-git-send-email-anilkumar@ti.com>
+	<1353067706-29491-2-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54956 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248Ab2KSKme (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 05:42:34 -0500
-In-Reply-To: <1353251201-10990-1-git-send-email-grinberg@compulab.co.il>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:48996 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751470Ab2KSKub (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 05:50:31 -0500
+Received: by mail-wi0-f178.google.com with SMTP id hm6so1456231wib.1
+        for <linux-omap@vger.kernel.org>; Mon, 19 Nov 2012 02:50:30 -0800 (PST)
+In-Reply-To: <1353067706-29491-2-git-send-email-anilkumar@ti.com> (AnilKumar
+	Ch's message of "Fri, 16 Nov 2012 17:38:23 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: a.zummo@towertech.it, sameo@linux.intel.com, tony@atomide.com, Colin Foe-Parker <colin.foeparker@logicpd.com>, rtc-linux@googlegroups.com, devicetree-discuss@lists.ozlabs.org, broonie@opensource.wolfsonmicro.com, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sunday 18 November 2012 08:36 PM, Igor Grinberg wrote:
-> CONFIG_OMAP_32K_TIMER is kind of standing on the single zImage way.
-> Make OMAP2+ timer code independant from the CONFIG_OMAP_32K_TIMER
-> setting.
-> To remove the dependancy, several conversions/additions had to be done:
-> 1) Timer initialization functions are named by the platform
->     name and the clock source in use.
->     This also makes it possible to define and use the GPTIMER as the
->     clock source instead of the 32K timer on platforms that do not have
->     the 32K timer ip block or the 32K timer is not wired on the board.
->     Cirrently, the the timer is chosen in the machine_desc structure on
->     per board basis. Later, DT should be used to choose the timer.
-> 2) Settings under the CONFIG_OMAP_32K_TIMER option are used as defaults
->     and those under !CONFIG_OMAP_32K_TIMER are removed.
->     This removes the CONFIG_OMAP_32K_TIMER on OMAP2+ timer code.
-> 3) Since we have all the timers defined inside machine_desc structure
->     and we no longer need the fallback to gp_timer clock source in case
->     32k_timer clock source is unavailable (namely on AM33xx), we no
->     longer need the #ifdef around __omap2_sync32k_clocksource_init()
->     function. Remove the #ifdef CONFIG_OMAP_32K_TIMER around the
->     __omap2_sync32k_clocksource_init() function.
->
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> Cc: Jon Hunter <jon-hunter@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
-nice clean-up Igor. Patch looks good to my eyes.
-Feel free to add ,
+>>>>> "AnilKumar" == AnilKumar Ch <anilkumar@ti.com> writes:
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+s/shutdowm/shutdown/ in the subject.
 
+ AnilKumar> From: Colin Foe-Parker <colin.foeparker@logicpd.com>
+ AnilKumar> Set tps65217 PMIC status to OFF if power enable toggle is
+ AnilKumar> supported. Also adds platform data flag, which should be
+ AnilKumar> passed from board init data.
+
+You're adding dt binding, not platform data.
+
+
+ AnilKumar> Signed-off-by: Colin Foe-Parker <colin.foeparker@logicpd.com>
+ AnilKumar> [anilkumar@ti.com: move the additions to tps65217 MFD driver]
+ AnilKumar> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+ AnilKumar> ---
+ AnilKumar>  .../devicetree/bindings/regulator/tps65217.txt     |    4 ++++
+ AnilKumar>  drivers/mfd/tps65217.c                             |   12 ++++++++++++
+ AnilKumar>  2 files changed, 16 insertions(+)
+
+ AnilKumar> diff --git a/Documentation/devicetree/bindings/regulator/tps65217.txt b/Documentation/devicetree/bindings/regulator/tps65217.txt
+ AnilKumar> index d316fb8..4f05d20 100644
+ AnilKumar> --- a/Documentation/devicetree/bindings/regulator/tps65217.txt
+ AnilKumar> +++ b/Documentation/devicetree/bindings/regulator/tps65217.txt
+ AnilKumar> @@ -11,6 +11,9 @@ Required properties:
+ AnilKumar>    using the standard binding for regulators found at
+ AnilKumar>    Documentation/devicetree/bindings/regulator/regulator.txt.
+ 
+ AnilKumar> +Optional properties:
+ AnilKumar> +- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
+
+Ehh, I don't know the tps65217 particular well, but according to the
+datasheet the REG_STATUS_OFF bit enables/disables the PB_IN pin, not
+PWR_EN. It's also not only about powering down but also powering up
+again.
+
+I don't feel this property name is very clear. Perhaps something about
+power button or push button monitor as it is called in the datasheet?
+
+-- 
+Bye, Peter Korsgaard
