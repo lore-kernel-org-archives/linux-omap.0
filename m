@@ -1,737 +1,1378 @@
-From: Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Subject: [PATCH 065/493] i2c: remove use of __devexit_p
-Date: Mon, 19 Nov 2012 13:20:14 -0500
-Message-ID: <1353349642-3677-65-git-send-email-wfp5p@virginia.edu>
+From: Bill Pemberton <wfp5p@virginia.edu>
+Subject: [PATCH 121/493] video: remove use of __devexit_p
+Date: Mon, 19 Nov 2012 13:21:10 -0500
+Message-ID: <1353349642-3677-121-git-send-email-wfp5p@virginia.edu>
 References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Ben Dooks  <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rudolf Marek <r.marek-/xGekIyIa4Ap1Coe8Ar9gA@public.gmane.org>, Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>, Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, "Mark M. Hoffman" <mhoffman-xQSgfq/1h4JiLUuM0BA3LQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41683 "EHLO
+	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754531Ab2KSSiK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 13:38:10 -0500
+In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: Jaya Kumar <jayalk@intworks.biz>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Russell King <linux@arm.linux.org.uk>, Jingoo Han <jg1.han@samsung.com>, Inki Dae <inki.dae@samsung.com>, Donghwa Lee <dh09.lee@samsung.com>, Kyungmin Park <kyungmin.park@samsung.com>, Ferenc Bakonyi <fero@drama.obuda.kando.hu>, Sascha Hauer <kernel@pengutronix.de>, Maik Broemme <mbroemme@plusserver.de>, Antonino Daplas <adaplas@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, Thomas Winischhofer <thomas@winischhofer.net>, Tony Prisk <linux@prisktech.co.nz>, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-geode@lists.infradead.org, linux-nvidia@lists.surfsouth.com, linux-omap@vger.kernel.orglinux
 
 CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
 needed.
 
-Signed-off-by: Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Cc: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org> 
-Cc: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> 
-Cc: "Ben Dooks " <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org> 
-Cc: Rudolf Marek <r.marek-/xGekIyIa4Ap1Coe8Ar9gA@public.gmane.org> 
-Cc: Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org> 
-Cc: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org> 
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> 
-Cc: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org> 
-Cc: Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> 
-Cc: Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org> 
-Cc: Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org> 
-Cc: "Mark M. Hoffman" <mhoffman-xQSgfq/1h4JiLUuM0BA3LQ@public.gmane.org> 
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org 
-Cc: linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org 
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org 
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org 
+Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Jaya Kumar <jayalk@intworks.biz> 
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de> 
+Cc: Paul Mackerras <paulus@samba.org> 
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org> 
+Cc: Russell King <linux@arm.linux.org.uk> 
+Cc: Jingoo Han <jg1.han@samsung.com> 
+Cc: Inki Dae <inki.dae@samsung.com> 
+Cc: Donghwa Lee <dh09.lee@samsung.com> 
+Cc: Kyungmin Park <kyungmin.park@samsung.com> 
+Cc: Ferenc Bakonyi <fero@drama.obuda.kando.hu> 
+Cc: Sascha Hauer <kernel@pengutronix.de> 
+Cc: Maik Broemme <mbroemme@plusserver.de> 
+Cc: Antonino Daplas <adaplas@gmail.com> 
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com> 
+Cc: Ben Dooks <ben-linux@fluff.org> 
+Cc: Kukjin Kim <kgene.kim@samsung.com> 
+Cc: Thomas Winischhofer <thomas@winischhofer.net> 
+Cc: Tony Prisk <linux@prisktech.co.nz> 
+Cc: linux-fbdev@vger.kernel.org 
+Cc: linux-arm-kernel@lists.infradead.org 
+Cc: linux-geode@lists.infradead.org 
+Cc: linux-nvidia@lists.surfsouth.com 
+Cc: linux-omap@vger.kernel.org 
+Cc: linux-samsung-soc@vger.kernel.org 
 ---
- drivers/i2c/busses/i2c-ali1535.c            | 2 +-
- drivers/i2c/busses/i2c-ali1563.c            | 2 +-
- drivers/i2c/busses/i2c-ali15x3.c            | 2 +-
- drivers/i2c/busses/i2c-amd756.c             | 2 +-
- drivers/i2c/busses/i2c-amd8111.c            | 2 +-
- drivers/i2c/busses/i2c-at91.c               | 2 +-
- drivers/i2c/busses/i2c-au1550.c             | 2 +-
- drivers/i2c/busses/i2c-cpm.c                | 2 +-
- drivers/i2c/busses/i2c-designware-pcidrv.c  | 2 +-
- drivers/i2c/busses/i2c-designware-platdrv.c | 2 +-
- drivers/i2c/busses/i2c-eg20t.c              | 2 +-
- drivers/i2c/busses/i2c-elektor.c            | 2 +-
- drivers/i2c/busses/i2c-gpio.c               | 2 +-
- drivers/i2c/busses/i2c-highlander.c         | 2 +-
- drivers/i2c/busses/i2c-hydra.c              | 2 +-
- drivers/i2c/busses/i2c-i801.c               | 2 +-
- drivers/i2c/busses/i2c-ibm_iic.c            | 2 +-
- drivers/i2c/busses/i2c-intel-mid.c          | 2 +-
- drivers/i2c/busses/i2c-isch.c               | 2 +-
- drivers/i2c/busses/i2c-mpc.c                | 2 +-
- drivers/i2c/busses/i2c-mv64xxx.c            | 2 +-
- drivers/i2c/busses/i2c-mxs.c                | 2 +-
- drivers/i2c/busses/i2c-nforce2.c            | 2 +-
- drivers/i2c/busses/i2c-nuc900.c             | 2 +-
- drivers/i2c/busses/i2c-ocores.c             | 2 +-
- drivers/i2c/busses/i2c-octeon.c             | 2 +-
- drivers/i2c/busses/i2c-omap.c               | 2 +-
- drivers/i2c/busses/i2c-parport-light.c      | 2 +-
- drivers/i2c/busses/i2c-pasemi.c             | 2 +-
- drivers/i2c/busses/i2c-pca-isa.c            | 2 +-
- drivers/i2c/busses/i2c-pca-platform.c       | 2 +-
- drivers/i2c/busses/i2c-piix4.c              | 2 +-
- drivers/i2c/busses/i2c-pmcmsp.c             | 2 +-
- drivers/i2c/busses/i2c-pnx.c                | 2 +-
- drivers/i2c/busses/i2c-powermac.c           | 2 +-
- drivers/i2c/busses/i2c-puv3.c               | 2 +-
- drivers/i2c/busses/i2c-pxa-pci.c            | 2 +-
- drivers/i2c/busses/i2c-rcar.c               | 2 +-
- drivers/i2c/busses/i2c-s6000.c              | 2 +-
- drivers/i2c/busses/i2c-sh7760.c             | 2 +-
- drivers/i2c/busses/i2c-sirf.c               | 2 +-
- drivers/i2c/busses/i2c-sis630.c             | 2 +-
- drivers/i2c/busses/i2c-sis96x.c             | 2 +-
- drivers/i2c/busses/i2c-tegra.c              | 2 +-
- drivers/i2c/busses/i2c-via.c                | 2 +-
- drivers/i2c/busses/i2c-xiic.c               | 2 +-
- drivers/i2c/busses/i2c-xlr.c                | 2 +-
- drivers/i2c/busses/scx200_acb.c             | 2 +-
- drivers/i2c/muxes/i2c-mux-gpio.c            | 2 +-
- drivers/i2c/muxes/i2c-mux-pinctrl.c         | 2 +-
- 50 files changed, 50 insertions(+), 50 deletions(-)
+ drivers/video/arcfb.c                                   | 2 +-
+ drivers/video/arkfb.c                                   | 2 +-
+ drivers/video/asiliantfb.c                              | 2 +-
+ drivers/video/aty/aty128fb.c                            | 2 +-
+ drivers/video/aty/atyfb_base.c                          | 2 +-
+ drivers/video/aty/radeon_base.c                         | 2 +-
+ drivers/video/au1200fb.c                                | 2 +-
+ drivers/video/auo_k1900fb.c                             | 2 +-
+ drivers/video/auo_k1901fb.c                             | 2 +-
+ drivers/video/bf537-lq035.c                             | 4 ++--
+ drivers/video/bf54x-lq043fb.c                           | 2 +-
+ drivers/video/bfin-lq035q1-fb.c                         | 4 ++--
+ drivers/video/bfin-t350mcqb-fb.c                        | 2 +-
+ drivers/video/bfin_adv7393fb.c                          | 2 +-
+ drivers/video/broadsheetfb.c                            | 2 +-
+ drivers/video/bw2.c                                     | 2 +-
+ drivers/video/carminefb.c                               | 2 +-
+ drivers/video/cg14.c                                    | 2 +-
+ drivers/video/cg3.c                                     | 2 +-
+ drivers/video/cg6.c                                     | 2 +-
+ drivers/video/chipsfb.c                                 | 2 +-
+ drivers/video/cirrusfb.c                                | 4 ++--
+ drivers/video/cobalt_lcdfb.c                            | 2 +-
+ drivers/video/cyber2000fb.c                             | 2 +-
+ drivers/video/da8xx-fb.c                                | 2 +-
+ drivers/video/ep93xx-fb.c                               | 2 +-
+ drivers/video/exynos/exynos_dp_core.c                   | 2 +-
+ drivers/video/exynos/exynos_mipi_dsi.c                  | 2 +-
+ drivers/video/ffb.c                                     | 2 +-
+ drivers/video/gbefb.c                                   | 2 +-
+ drivers/video/geode/gx1fb_core.c                        | 2 +-
+ drivers/video/grvga.c                                   | 2 +-
+ drivers/video/gxt4500.c                                 | 2 +-
+ drivers/video/hecubafb.c                                | 2 +-
+ drivers/video/hgafb.c                                   | 2 +-
+ drivers/video/hitfb.c                                   | 2 +-
+ drivers/video/i740fb.c                                  | 2 +-
+ drivers/video/imsttfb.c                                 | 2 +-
+ drivers/video/imxfb.c                                   | 2 +-
+ drivers/video/intelfb/intelfbdrv.c                      | 2 +-
+ drivers/video/jz4740_fb.c                               | 2 +-
+ drivers/video/kyro/fbdev.c                              | 2 +-
+ drivers/video/leo.c                                     | 2 +-
+ drivers/video/mb862xx/mb862xxfbdrv.c                    | 4 ++--
+ drivers/video/mbx/mbxfb.c                               | 2 +-
+ drivers/video/metronomefb.c                             | 2 +-
+ drivers/video/mxsfb.c                                   | 2 +-
+ drivers/video/neofb.c                                   | 2 +-
+ drivers/video/nvidia/nvidia.c                           | 2 +-
+ drivers/video/omap/lcd_mipid.c                          | 2 +-
+ drivers/video/omap2/displays/panel-acx565akm.c          | 2 +-
+ drivers/video/omap2/displays/panel-lgphilips-lb035q02.c | 2 +-
+ drivers/video/omap2/displays/panel-n8x0.c               | 2 +-
+ drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c | 2 +-
+ drivers/video/omap2/displays/panel-tpo-td043mtea1.c     | 2 +-
+ drivers/video/p9100.c                                   | 2 +-
+ drivers/video/platinumfb.c                              | 2 +-
+ drivers/video/pm2fb.c                                   | 2 +-
+ drivers/video/pm3fb.c                                   | 2 +-
+ drivers/video/pvr2fb.c                                  | 2 +-
+ drivers/video/pxa168fb.c                                | 2 +-
+ drivers/video/pxa3xx-gcu.c                              | 2 +-
+ drivers/video/pxafb.c                                   | 2 +-
+ drivers/video/riva/fbdev.c                              | 2 +-
+ drivers/video/s3c-fb.c                                  | 2 +-
+ drivers/video/s3c2410fb.c                               | 4 ++--
+ drivers/video/s3fb.c                                    | 2 +-
+ drivers/video/savage/savagefb_driver.c                  | 2 +-
+ drivers/video/sgivwfb.c                                 | 2 +-
+ drivers/video/sh7760fb.c                                | 2 +-
+ drivers/video/sh_mipi_dsi.c                             | 2 +-
+ drivers/video/sis/sis_main.c                            | 2 +-
+ drivers/video/skeletonfb.c                              | 2 +-
+ drivers/video/sstfb.c                                   | 2 +-
+ drivers/video/sunxvr1000.c                              | 2 +-
+ drivers/video/sunxvr2500.c                              | 2 +-
+ drivers/video/sunxvr500.c                               | 2 +-
+ drivers/video/tcx.c                                     | 2 +-
+ drivers/video/tdfxfb.c                                  | 2 +-
+ drivers/video/tgafb.c                                   | 4 ++--
+ drivers/video/tmiofb.c                                  | 2 +-
+ drivers/video/tridentfb.c                               | 2 +-
+ drivers/video/vermilion/vermilion.c                     | 2 +-
+ drivers/video/vga16fb.c                                 | 2 +-
+ drivers/video/via/via-core.c                            | 2 +-
+ drivers/video/vt8500lcdfb.c                             | 2 +-
+ drivers/video/vt8623fb.c                                | 2 +-
+ drivers/video/w100fb.c                                  | 2 +-
+ drivers/video/wm8505fb.c                                | 2 +-
+ drivers/video/wmt_ge_rops.c                             | 2 +-
+ drivers/video/xilinxfb.c                                | 2 +-
+ 91 files changed, 97 insertions(+), 97 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-ali1535.c b/drivers/i2c/busses/i2c-ali1535.c
-index 125cd8e..cb30432 100644
---- a/drivers/i2c/busses/i2c-ali1535.c
-+++ b/drivers/i2c/busses/i2c-ali1535.c
-@@ -528,7 +528,7 @@ static struct pci_driver ali1535_driver = {
- 	.name		= "ali1535_smbus",
- 	.id_table	= ali1535_ids,
- 	.probe		= ali1535_probe,
--	.remove		= __devexit_p(ali1535_remove),
-+	.remove		= ali1535_remove,
- };
+diff --git a/drivers/video/arcfb.c b/drivers/video/arcfb.c
+index 4659d5d..00967d2 100644
+--- a/drivers/video/arcfb.c
++++ b/drivers/video/arcfb.c
+@@ -601,7 +601,7 @@ static int __devexit arcfb_remove(struct platform_device *dev)
  
- module_pci_driver(ali1535_driver);
-diff --git a/drivers/i2c/busses/i2c-ali1563.c b/drivers/i2c/busses/i2c-ali1563.c
-index e02d9f8..547a96f 100644
---- a/drivers/i2c/busses/i2c-ali1563.c
-+++ b/drivers/i2c/busses/i2c-ali1563.c
-@@ -428,7 +428,7 @@ static struct pci_driver ali1563_pci_driver = {
-  	.name		= "ali1563_smbus",
- 	.id_table	= ali1563_id_table,
-  	.probe		= ali1563_probe,
--	.remove		= __devexit_p(ali1563_remove),
-+	.remove		= ali1563_remove,
- };
- 
- module_pci_driver(ali1563_pci_driver);
-diff --git a/drivers/i2c/busses/i2c-ali15x3.c b/drivers/i2c/busses/i2c-ali15x3.c
-index ce8d26d..62692ec 100644
---- a/drivers/i2c/busses/i2c-ali15x3.c
-+++ b/drivers/i2c/busses/i2c-ali15x3.c
-@@ -510,7 +510,7 @@ static struct pci_driver ali15x3_driver = {
- 	.name		= "ali15x3_smbus",
- 	.id_table	= ali15x3_ids,
- 	.probe		= ali15x3_probe,
--	.remove		= __devexit_p(ali15x3_remove),
-+	.remove		= ali15x3_remove,
- };
- 
- module_pci_driver(ali15x3_driver);
-diff --git a/drivers/i2c/busses/i2c-amd756.c b/drivers/i2c/busses/i2c-amd756.c
-index 304aa03..b890764 100644
---- a/drivers/i2c/busses/i2c-amd756.c
-+++ b/drivers/i2c/busses/i2c-amd756.c
-@@ -407,7 +407,7 @@ static struct pci_driver amd756_driver = {
- 	.name		= "amd756_smbus",
- 	.id_table	= amd756_ids,
- 	.probe		= amd756_probe,
--	.remove		= __devexit_p(amd756_remove),
-+	.remove		= amd756_remove,
- };
- 
- module_pci_driver(amd756_driver);
-diff --git a/drivers/i2c/busses/i2c-amd8111.c b/drivers/i2c/busses/i2c-amd8111.c
-index 0919ac1..f5e5f70 100644
---- a/drivers/i2c/busses/i2c-amd8111.c
-+++ b/drivers/i2c/busses/i2c-amd8111.c
-@@ -488,7 +488,7 @@ static struct pci_driver amd8111_driver = {
- 	.name		= "amd8111_smbus2",
- 	.id_table	= amd8111_ids,
- 	.probe		= amd8111_probe,
--	.remove		= __devexit_p(amd8111_remove),
-+	.remove		= amd8111_remove,
- };
- 
- module_pci_driver(amd8111_driver);
-diff --git a/drivers/i2c/busses/i2c-at91.c b/drivers/i2c/busses/i2c-at91.c
-index c02bf20..d699e61 100644
---- a/drivers/i2c/busses/i2c-at91.c
-+++ b/drivers/i2c/busses/i2c-at91.c
-@@ -530,7 +530,7 @@ static const struct dev_pm_ops at91_twi_pm = {
- 
- static struct platform_driver at91_twi_driver = {
- 	.probe		= at91_twi_probe,
--	.remove		= __devexit_p(at91_twi_remove),
-+	.remove		= at91_twi_remove,
- 	.id_table	= at91_twi_devtypes,
- 	.driver		= {
- 		.name	= "at91_i2c",
-diff --git a/drivers/i2c/busses/i2c-au1550.c b/drivers/i2c/busses/i2c-au1550.c
-index 582d616..4c9cfc9 100644
---- a/drivers/i2c/busses/i2c-au1550.c
-+++ b/drivers/i2c/busses/i2c-au1550.c
-@@ -423,7 +423,7 @@ static struct platform_driver au1xpsc_smbus_driver = {
- 		.pm	= AU1XPSC_SMBUS_PMOPS,
+ static struct platform_driver arcfb_driver = {
+ 	.probe	= arcfb_probe,
+-	.remove = __devexit_p(arcfb_remove),
++	.remove = arcfb_remove,
+ 	.driver	= {
+ 		.name	= "arcfb",
  	},
- 	.probe		= i2c_au1550_probe,
--	.remove		= __devexit_p(i2c_au1550_remove),
-+	.remove		= i2c_au1550_remove,
+diff --git a/drivers/video/arkfb.c b/drivers/video/arkfb.c
+index 555dd4c..6bcb6c1 100644
+--- a/drivers/video/arkfb.c
++++ b/drivers/video/arkfb.c
+@@ -1196,7 +1196,7 @@ static struct pci_driver arkfb_pci_driver = {
+ 	.name		= "arkfb",
+ 	.id_table	= ark_devices,
+ 	.probe		= ark_pci_probe,
+-	.remove		= __devexit_p(ark_pci_remove),
++	.remove		= ark_pci_remove,
+ 	.suspend	= ark_pci_suspend,
+ 	.resume		= ark_pci_resume,
+ };
+diff --git a/drivers/video/asiliantfb.c b/drivers/video/asiliantfb.c
+index 8cdf88e..640cc69 100644
+--- a/drivers/video/asiliantfb.c
++++ b/drivers/video/asiliantfb.c
+@@ -604,7 +604,7 @@ static struct pci_driver asiliantfb_driver = {
+ 	.name =		"asiliantfb",
+ 	.id_table =	asiliantfb_pci_tbl,
+ 	.probe =	asiliantfb_pci_init,
+-	.remove =	__devexit_p(asiliantfb_remove),
++	.remove =	asiliantfb_remove,
  };
  
- module_platform_driver(au1xpsc_smbus_driver);
-diff --git a/drivers/i2c/busses/i2c-cpm.c b/drivers/i2c/busses/i2c-cpm.c
-index c1e1096..8d70fd3 100644
---- a/drivers/i2c/busses/i2c-cpm.c
-+++ b/drivers/i2c/busses/i2c-cpm.c
-@@ -716,7 +716,7 @@ MODULE_DEVICE_TABLE(of, cpm_i2c_match);
- 
- static struct platform_driver cpm_i2c_driver = {
- 	.probe		= cpm_i2c_probe,
--	.remove		= __devexit_p(cpm_i2c_remove),
-+	.remove		= cpm_i2c_remove,
- 	.driver = {
- 		.name = "fsl-i2c-cpm",
- 		.owner = THIS_MODULE,
-diff --git a/drivers/i2c/busses/i2c-designware-pcidrv.c b/drivers/i2c/busses/i2c-designware-pcidrv.c
-index 92a1e2c..85df062 100644
---- a/drivers/i2c/busses/i2c-designware-pcidrv.c
-+++ b/drivers/i2c/busses/i2c-designware-pcidrv.c
-@@ -368,7 +368,7 @@ static struct pci_driver dw_i2c_driver = {
- 	.name		= DRIVER_NAME,
- 	.id_table	= i2_designware_pci_ids,
- 	.probe		= i2c_dw_pci_probe,
--	.remove		= __devexit_p(i2c_dw_pci_remove),
-+	.remove		= i2c_dw_pci_remove,
- 	.driver         = {
- 		.pm     = &i2c_dw_pm_ops,
+ static int __init asiliantfb_init(void)
+diff --git a/drivers/video/aty/aty128fb.c b/drivers/video/aty/aty128fb.c
+index 0fefa84..426e3f2 100644
+--- a/drivers/video/aty/aty128fb.c
++++ b/drivers/video/aty/aty128fb.c
+@@ -275,7 +275,7 @@ static struct pci_driver aty128fb_driver = {
+ 	.name		= "aty128fb",
+ 	.id_table	= aty128_pci_tbl,
+ 	.probe		= aty128_probe,
+-	.remove		= __devexit_p(aty128_remove),
++	.remove		= aty128_remove,
+ 	.suspend	= aty128_pci_suspend,
+ 	.resume		= aty128_pci_resume,
+ };
+diff --git a/drivers/video/aty/atyfb_base.c b/drivers/video/aty/atyfb_base.c
+index 868932f..bab571b 100644
+--- a/drivers/video/aty/atyfb_base.c
++++ b/drivers/video/aty/atyfb_base.c
+@@ -3834,7 +3834,7 @@ static struct pci_driver atyfb_driver = {
+ 	.name		= "atyfb",
+ 	.id_table	= atyfb_pci_tbl,
+ 	.probe		= atyfb_pci_probe,
+-	.remove		= __devexit_p(atyfb_pci_remove),
++	.remove		= atyfb_pci_remove,
+ #ifdef CONFIG_PM
+ 	.suspend	= atyfb_pci_suspend,
+ 	.resume		= atyfb_pci_resume,
+diff --git a/drivers/video/aty/radeon_base.c b/drivers/video/aty/radeon_base.c
+index 9e279ee..dacaa4e 100644
+--- a/drivers/video/aty/radeon_base.c
++++ b/drivers/video/aty/radeon_base.c
+@@ -2465,7 +2465,7 @@ static struct pci_driver radeonfb_driver = {
+ 	.name		= "radeonfb",
+ 	.id_table	= radeonfb_pci_table,
+ 	.probe		= radeonfb_pci_register,
+-	.remove		= __devexit_p(radeonfb_pci_unregister),
++	.remove		= radeonfb_pci_unregister,
+ #ifdef CONFIG_PM
+ 	.suspend       	= radeonfb_pci_suspend,
+ 	.resume		= radeonfb_pci_resume,
+diff --git a/drivers/video/au1200fb.c b/drivers/video/au1200fb.c
+index 7ca79f0..4538b07 100644
+--- a/drivers/video/au1200fb.c
++++ b/drivers/video/au1200fb.c
+@@ -1876,7 +1876,7 @@ static struct platform_driver au1200fb_driver = {
+ 		.pm	= AU1200FB_PMOPS,
  	},
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index 0506fef..ccde6ec 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -228,7 +228,7 @@ static SIMPLE_DEV_PM_OPS(dw_i2c_dev_pm_ops, dw_i2c_suspend, dw_i2c_resume);
- MODULE_ALIAS("platform:i2c_designware");
- 
- static struct platform_driver dw_i2c_driver = {
--	.remove		= __devexit_p(dw_i2c_remove),
-+	.remove		= dw_i2c_remove,
- 	.driver		= {
- 		.name	= "i2c_designware",
- 		.owner	= THIS_MODULE,
-diff --git a/drivers/i2c/busses/i2c-eg20t.c b/drivers/i2c/busses/i2c-eg20t.c
-index 259f769..128c98c 100644
---- a/drivers/i2c/busses/i2c-eg20t.c
-+++ b/drivers/i2c/busses/i2c-eg20t.c
-@@ -948,7 +948,7 @@ static struct pci_driver pch_pcidriver = {
- 	.name = KBUILD_MODNAME,
- 	.id_table = pch_pcidev_id,
- 	.probe = pch_i2c_probe,
--	.remove = __devexit_p(pch_i2c_remove),
-+	.remove = pch_i2c_remove,
- 	.suspend = pch_i2c_suspend,
- 	.resume = pch_i2c_resume
- };
-diff --git a/drivers/i2c/busses/i2c-elektor.c b/drivers/i2c/busses/i2c-elektor.c
-index 37e2e82..14af6b4 100644
---- a/drivers/i2c/busses/i2c-elektor.c
-+++ b/drivers/i2c/busses/i2c-elektor.c
-@@ -316,7 +316,7 @@ static int __devexit elektor_remove(struct device *dev, unsigned int id)
- static struct isa_driver i2c_elektor_driver = {
- 	.match		= elektor_match,
- 	.probe		= elektor_probe,
--	.remove		= __devexit_p(elektor_remove),
-+	.remove		= elektor_remove,
- 	.driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= "i2c-elektor",
-diff --git a/drivers/i2c/busses/i2c-gpio.c b/drivers/i2c/busses/i2c-gpio.c
-index 257299a..be8cb0d 100644
---- a/drivers/i2c/busses/i2c-gpio.c
-+++ b/drivers/i2c/busses/i2c-gpio.c
-@@ -251,7 +251,7 @@ static struct platform_driver i2c_gpio_driver = {
- 		.of_match_table	= of_match_ptr(i2c_gpio_dt_ids),
- 	},
- 	.probe		= i2c_gpio_probe,
--	.remove		= __devexit_p(i2c_gpio_remove),
-+	.remove		= i2c_gpio_remove,
+ 	.probe		= au1200fb_drv_probe,
+-	.remove		= __devexit_p(au1200fb_drv_remove),
++	.remove		= au1200fb_drv_remove,
  };
  
- static int __init i2c_gpio_init(void)
-diff --git a/drivers/i2c/busses/i2c-highlander.c b/drivers/i2c/busses/i2c-highlander.c
-index 19515df..f2cfb34 100644
---- a/drivers/i2c/busses/i2c-highlander.c
-+++ b/drivers/i2c/busses/i2c-highlander.c
-@@ -465,7 +465,7 @@ static struct platform_driver highlander_i2c_driver = {
- 	},
+ /*-------------------------------------------------------------------------*/
+diff --git a/drivers/video/auo_k1900fb.c b/drivers/video/auo_k1900fb.c
+index c36cf96..1581dbf 100644
+--- a/drivers/video/auo_k1900fb.c
++++ b/drivers/video/auo_k1900fb.c
+@@ -184,7 +184,7 @@ static int __devexit auok1900fb_remove(struct platform_device *pdev)
  
- 	.probe		= highlander_i2c_probe,
--	.remove		= __devexit_p(highlander_i2c_remove),
-+	.remove		= highlander_i2c_remove,
- };
- 
- module_platform_driver(highlander_i2c_driver);
-diff --git a/drivers/i2c/busses/i2c-hydra.c b/drivers/i2c/busses/i2c-hydra.c
-index c9f95e1..b24be50 100644
---- a/drivers/i2c/busses/i2c-hydra.c
-+++ b/drivers/i2c/busses/i2c-hydra.c
-@@ -153,7 +153,7 @@ static struct pci_driver hydra_driver = {
- 	.name		= "hydra_smbus",
- 	.id_table	= hydra_ids,
- 	.probe		= hydra_probe,
--	.remove		= __devexit_p(hydra_remove),
-+	.remove		= hydra_remove,
- };
- 
- module_pci_driver(hydra_driver);
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
-index 1e73638..acaa47d 100644
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -1272,7 +1272,7 @@ static struct pci_driver i801_driver = {
- 	.name		= "i801_smbus",
- 	.id_table	= i801_ids,
- 	.probe		= i801_probe,
--	.remove		= __devexit_p(i801_remove),
-+	.remove		= i801_remove,
- 	.suspend	= i801_suspend,
- 	.resume		= i801_resume,
- };
-diff --git a/drivers/i2c/busses/i2c-ibm_iic.c b/drivers/i2c/busses/i2c-ibm_iic.c
-index 806e225..a10fdab 100644
---- a/drivers/i2c/busses/i2c-ibm_iic.c
-+++ b/drivers/i2c/busses/i2c-ibm_iic.c
-@@ -812,7 +812,7 @@ static struct platform_driver ibm_iic_driver = {
- 		.of_match_table = ibm_iic_match,
- 	},
- 	.probe	= iic_probe,
--	.remove	= __devexit_p(iic_remove),
-+	.remove	= iic_remove,
- };
- 
- module_platform_driver(ibm_iic_driver);
-diff --git a/drivers/i2c/busses/i2c-intel-mid.c b/drivers/i2c/busses/i2c-intel-mid.c
-index 7c28f10..7616007 100644
---- a/drivers/i2c/busses/i2c-intel-mid.c
-+++ b/drivers/i2c/busses/i2c-intel-mid.c
-@@ -1113,7 +1113,7 @@ static struct pci_driver intel_mid_i2c_driver = {
- 	.name		= DRIVER_NAME,
- 	.id_table	= intel_mid_i2c_ids,
- 	.probe		= intel_mid_i2c_probe,
--	.remove		= __devexit_p(intel_mid_i2c_remove),
-+	.remove		= intel_mid_i2c_remove,
- };
- 
- module_pci_driver(intel_mid_i2c_driver);
-diff --git a/drivers/i2c/busses/i2c-isch.c b/drivers/i2c/busses/i2c-isch.c
-index f90a605..1c050a6 100644
---- a/drivers/i2c/busses/i2c-isch.c
-+++ b/drivers/i2c/busses/i2c-isch.c
-@@ -303,7 +303,7 @@ static struct platform_driver smbus_sch_driver = {
- 		.owner = THIS_MODULE,
- 	},
- 	.probe		= smbus_sch_probe,
--	.remove		= __devexit_p(smbus_sch_remove),
-+	.remove		= smbus_sch_remove,
- };
- 
- module_platform_driver(smbus_sch_driver);
-diff --git a/drivers/i2c/busses/i2c-mpc.c b/drivers/i2c/busses/i2c-mpc.c
-index ca86430..f016eef 100644
---- a/drivers/i2c/busses/i2c-mpc.c
-+++ b/drivers/i2c/busses/i2c-mpc.c
-@@ -785,7 +785,7 @@ MODULE_DEVICE_TABLE(of, mpc_i2c_of_match);
- /* Structure for a device driver */
- static struct platform_driver mpc_i2c_driver = {
- 	.probe		= fsl_i2c_probe,
--	.remove		= __devexit_p(fsl_i2c_remove),
-+	.remove		= fsl_i2c_remove,
- 	.driver = {
- 		.owner = THIS_MODULE,
- 		.name = DRV_NAME,
-diff --git a/drivers/i2c/busses/i2c-mv64xxx.c b/drivers/i2c/busses/i2c-mv64xxx.c
-index 2e9d567..3107c0a 100644
---- a/drivers/i2c/busses/i2c-mv64xxx.c
-+++ b/drivers/i2c/busses/i2c-mv64xxx.c
-@@ -726,7 +726,7 @@ MODULE_DEVICE_TABLE(of, mv64xxx_i2c_of_match_table);
- 
- static struct platform_driver mv64xxx_i2c_driver = {
- 	.probe	= mv64xxx_i2c_probe,
--	.remove	= __devexit_p(mv64xxx_i2c_remove),
-+	.remove	= mv64xxx_i2c_remove,
+ static struct platform_driver auok1900fb_driver = {
+ 	.probe	= auok1900fb_probe,
+-	.remove = __devexit_p(auok1900fb_remove),
++	.remove = auok1900fb_remove,
  	.driver	= {
  		.owner	= THIS_MODULE,
- 		.name	= MV64XXX_I2C_CTLR_NAME,
-diff --git a/drivers/i2c/busses/i2c-mxs.c b/drivers/i2c/busses/i2c-mxs.c
-index 286ca19..e317b28 100644
---- a/drivers/i2c/busses/i2c-mxs.c
-+++ b/drivers/i2c/busses/i2c-mxs.c
-@@ -544,7 +544,7 @@ static struct platform_driver mxs_i2c_driver = {
- 		   .owner = THIS_MODULE,
- 		   .of_match_table = mxs_i2c_dt_ids,
- 		   },
--	.remove = __devexit_p(mxs_i2c_remove),
-+	.remove = mxs_i2c_remove,
- };
+ 		.name	= "auo_k1900fb",
+diff --git a/drivers/video/auo_k1901fb.c b/drivers/video/auo_k1901fb.c
+index 1c054c1..94a0e01 100644
+--- a/drivers/video/auo_k1901fb.c
++++ b/drivers/video/auo_k1901fb.c
+@@ -237,7 +237,7 @@ static int __devexit auok1901fb_remove(struct platform_device *pdev)
  
- static int __init mxs_i2c_init(void)
-diff --git a/drivers/i2c/busses/i2c-nforce2.c b/drivers/i2c/busses/i2c-nforce2.c
-index 392303b..9ed5721 100644
---- a/drivers/i2c/busses/i2c-nforce2.c
-+++ b/drivers/i2c/busses/i2c-nforce2.c
-@@ -450,7 +450,7 @@ static struct pci_driver nforce2_driver = {
- 	.name		= "nForce2_smbus",
- 	.id_table	= nforce2_ids,
- 	.probe		= nforce2_probe,
--	.remove		= __devexit_p(nforce2_remove),
-+	.remove		= nforce2_remove,
- };
- 
- module_pci_driver(nforce2_driver);
-diff --git a/drivers/i2c/busses/i2c-nuc900.c b/drivers/i2c/busses/i2c-nuc900.c
-index f41502e..29939f2 100644
---- a/drivers/i2c/busses/i2c-nuc900.c
-+++ b/drivers/i2c/busses/i2c-nuc900.c
-@@ -684,7 +684,7 @@ static int __devexit nuc900_i2c_remove(struct platform_device *pdev)
- 
- static struct platform_driver nuc900_i2c_driver = {
- 	.probe		= nuc900_i2c_probe,
--	.remove		= __devexit_p(nuc900_i2c_remove),
-+	.remove		= nuc900_i2c_remove,
- 	.driver		= {
+ static struct platform_driver auok1901fb_driver = {
+ 	.probe	= auok1901fb_probe,
+-	.remove = __devexit_p(auok1901fb_remove),
++	.remove = auok1901fb_remove,
+ 	.driver	= {
  		.owner	= THIS_MODULE,
- 		.name	= "nuc900-i2c0",
-diff --git a/drivers/i2c/busses/i2c-ocores.c b/drivers/i2c/busses/i2c-ocores.c
-index 1fad4ae..856fd5a 100644
---- a/drivers/i2c/busses/i2c-ocores.c
-+++ b/drivers/i2c/busses/i2c-ocores.c
-@@ -386,7 +386,7 @@ MODULE_DEVICE_TABLE(of, ocores_i2c_match);
- 
- static struct platform_driver ocores_i2c_driver = {
- 	.probe   = ocores_i2c_probe,
--	.remove  = __devexit_p(ocores_i2c_remove),
-+	.remove  = ocores_i2c_remove,
- 	.driver  = {
- 		.owner = THIS_MODULE,
- 		.name = "ocores-i2c",
-diff --git a/drivers/i2c/busses/i2c-octeon.c b/drivers/i2c/busses/i2c-octeon.c
-index f44c835..e5015d4 100644
---- a/drivers/i2c/busses/i2c-octeon.c
-+++ b/drivers/i2c/busses/i2c-octeon.c
-@@ -628,7 +628,7 @@ MODULE_DEVICE_TABLE(of, octeon_i2c_match);
- 
- static struct platform_driver octeon_i2c_driver = {
- 	.probe		= octeon_i2c_probe,
--	.remove		= __devexit_p(octeon_i2c_remove),
-+	.remove		= octeon_i2c_remove,
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= DRV_NAME,
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 482c63d..8721f98 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1334,7 +1334,7 @@ static struct dev_pm_ops omap_i2c_pm_ops = {
- 
- static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
--	.remove		= __devexit_p(omap_i2c_remove),
-+	.remove		= omap_i2c_remove,
- 	.driver		= {
- 		.name	= "omap_i2c",
- 		.owner	= THIS_MODULE,
-diff --git a/drivers/i2c/busses/i2c-parport-light.c b/drivers/i2c/busses/i2c-parport-light.c
-index 4b95f7a..240f724 100644
---- a/drivers/i2c/busses/i2c-parport-light.c
-+++ b/drivers/i2c/busses/i2c-parport-light.c
-@@ -191,7 +191,7 @@ static struct platform_driver i2c_parport_driver = {
- 		.name	= DRVNAME,
+ 		.name	= "auo_k1901fb",
+diff --git a/drivers/video/bf537-lq035.c b/drivers/video/bf537-lq035.c
+index 7347aa1..8081c7b 100644
+--- a/drivers/video/bf537-lq035.c
++++ b/drivers/video/bf537-lq035.c
+@@ -126,7 +126,7 @@ static struct i2c_driver ad5280_driver = {
+ 		.name = "bf537-lq035-ad5280",
  	},
- 	.probe		= i2c_parport_probe,
--	.remove		= __devexit_p(i2c_parport_remove),
-+	.remove		= i2c_parport_remove,
+ 	.probe = ad5280_probe,
+-	.remove = __devexit_p(ad5280_remove),
++	.remove = ad5280_remove,
+ 	.id_table = ad5280_id,
  };
  
- static int __init i2c_parport_device_add(u16 address)
-diff --git a/drivers/i2c/busses/i2c-pasemi.c b/drivers/i2c/busses/i2c-pasemi.c
-index 12edefd..dae53c3 100644
---- a/drivers/i2c/busses/i2c-pasemi.c
-+++ b/drivers/i2c/busses/i2c-pasemi.c
-@@ -412,7 +412,7 @@ static struct pci_driver pasemi_smb_driver = {
- 	.name		= "i2c-pasemi",
- 	.id_table	= pasemi_smb_ids,
- 	.probe		= pasemi_smb_probe,
--	.remove		= __devexit_p(pasemi_smb_remove),
-+	.remove		= pasemi_smb_remove,
- };
+@@ -889,7 +889,7 @@ static int bfin_lq035_resume(struct platform_device *pdev)
  
- module_pci_driver(pasemi_smb_driver);
-diff --git a/drivers/i2c/busses/i2c-pca-isa.c b/drivers/i2c/busses/i2c-pca-isa.c
-index 29933f8..7e75a12 100644
---- a/drivers/i2c/busses/i2c-pca-isa.c
-+++ b/drivers/i2c/busses/i2c-pca-isa.c
-@@ -190,7 +190,7 @@ static int __devexit pca_isa_remove(struct device *dev, unsigned int id)
- static struct isa_driver pca_isa_driver = {
- 	.match		= pca_isa_match,
- 	.probe		= pca_isa_probe,
--	.remove		= __devexit_p(pca_isa_remove),
-+	.remove		= pca_isa_remove,
+ static struct platform_driver bfin_lq035_driver = {
+ 	.probe = bfin_lq035_probe,
+-	.remove = __devexit_p(bfin_lq035_remove),
++	.remove = bfin_lq035_remove,
+ 	.suspend = bfin_lq035_suspend,
+ 	.resume = bfin_lq035_resume,
  	.driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= DRIVER,
-diff --git a/drivers/i2c/busses/i2c-pca-platform.c b/drivers/i2c/busses/i2c-pca-platform.c
-index 675878f..bffa7d6 100644
---- a/drivers/i2c/busses/i2c-pca-platform.c
-+++ b/drivers/i2c/busses/i2c-pca-platform.c
-@@ -279,7 +279,7 @@ static int __devexit i2c_pca_pf_remove(struct platform_device *pdev)
+diff --git a/drivers/video/bf54x-lq043fb.c b/drivers/video/bf54x-lq043fb.c
+index ff5663f..aff8520 100644
+--- a/drivers/video/bf54x-lq043fb.c
++++ b/drivers/video/bf54x-lq043fb.c
+@@ -754,7 +754,7 @@ static int bfin_bf54x_resume(struct platform_device *pdev)
  
- static struct platform_driver i2c_pca_pf_driver = {
- 	.probe = i2c_pca_pf_probe,
--	.remove = __devexit_p(i2c_pca_pf_remove),
-+	.remove = i2c_pca_pf_remove,
+ static struct platform_driver bfin_bf54x_driver = {
+ 	.probe = bfin_bf54x_probe,
+-	.remove = __devexit_p(bfin_bf54x_remove),
++	.remove = bfin_bf54x_remove,
+ 	.suspend = bfin_bf54x_suspend,
+ 	.resume = bfin_bf54x_resume,
  	.driver = {
- 		.name = "i2c-pca-platform",
- 		.owner = THIS_MODULE,
-diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
-index f7216ed..6253e0b 100644
---- a/drivers/i2c/busses/i2c-piix4.c
-+++ b/drivers/i2c/busses/i2c-piix4.c
-@@ -655,7 +655,7 @@ static struct pci_driver piix4_driver = {
- 	.name		= "piix4_smbus",
- 	.id_table	= piix4_ids,
- 	.probe		= piix4_probe,
--	.remove		= __devexit_p(piix4_remove),
-+	.remove		= piix4_remove,
- };
+diff --git a/drivers/video/bfin-lq035q1-fb.c b/drivers/video/bfin-lq035q1-fb.c
+index 6fbc75c..acd438c 100644
+--- a/drivers/video/bfin-lq035q1-fb.c
++++ b/drivers/video/bfin-lq035q1-fb.c
+@@ -706,7 +706,7 @@ static int __devinit bfin_lq035q1_probe(struct platform_device *pdev)
  
- module_pci_driver(piix4_driver);
-diff --git a/drivers/i2c/busses/i2c-pmcmsp.c b/drivers/i2c/busses/i2c-pmcmsp.c
-index 3d71395..4ef4a4c 100644
---- a/drivers/i2c/busses/i2c-pmcmsp.c
-+++ b/drivers/i2c/busses/i2c-pmcmsp.c
-@@ -628,7 +628,7 @@ static struct i2c_adapter pmcmsptwi_adapter = {
+ 	info->spidrv.driver.name = DRIVER_NAME"-spi";
+ 	info->spidrv.probe    = lq035q1_spidev_probe;
+-	info->spidrv.remove   = __devexit_p(lq035q1_spidev_remove);
++	info->spidrv.remove   = lq035q1_spidev_remove;
+ 	info->spidrv.shutdown = lq035q1_spidev_shutdown;
+ 	info->spidrv.suspend  = lq035q1_spidev_suspend;
+ 	info->spidrv.resume   = lq035q1_spidev_resume;
+@@ -845,7 +845,7 @@ static struct dev_pm_ops bfin_lq035q1_dev_pm_ops = {
  
- static struct platform_driver pmcmsptwi_driver = {
- 	.probe  = pmcmsptwi_probe,
--	.remove	= __devexit_p(pmcmsptwi_remove),
-+	.remove	= pmcmsptwi_remove,
+ static struct platform_driver bfin_lq035q1_driver = {
+ 	.probe   = bfin_lq035q1_probe,
+-	.remove  = __devexit_p(bfin_lq035q1_remove),
++	.remove  = bfin_lq035q1_remove,
  	.driver = {
- 		.name	= DRV_NAME,
- 		.owner	= THIS_MODULE,
-diff --git a/drivers/i2c/busses/i2c-pnx.c b/drivers/i2c/busses/i2c-pnx.c
-index 8488bdd..efd2c4f 100644
---- a/drivers/i2c/busses/i2c-pnx.c
-+++ b/drivers/i2c/busses/i2c-pnx.c
-@@ -797,7 +797,7 @@ static struct platform_driver i2c_pnx_driver = {
- 		.pm = PNX_I2C_PM,
- 	},
- 	.probe = i2c_pnx_probe,
--	.remove = __devexit_p(i2c_pnx_remove),
-+	.remove = i2c_pnx_remove,
- };
- 
- static int __init i2c_adap_pnx_init(void)
-diff --git a/drivers/i2c/busses/i2c-powermac.c b/drivers/i2c/busses/i2c-powermac.c
-index 5285f85..cb8ae67 100644
---- a/drivers/i2c/busses/i2c-powermac.c
-+++ b/drivers/i2c/busses/i2c-powermac.c
-@@ -467,7 +467,7 @@ static int __devinit i2c_powermac_probe(struct platform_device *dev)
- 
- static struct platform_driver i2c_powermac_driver = {
- 	.probe = i2c_powermac_probe,
--	.remove = __devexit_p(i2c_powermac_remove),
-+	.remove = i2c_powermac_remove,
- 	.driver = {
- 		.name = "i2c-powermac",
- 		.bus = &platform_bus_type,
-diff --git a/drivers/i2c/busses/i2c-puv3.c b/drivers/i2c/busses/i2c-puv3.c
-index d8515be..55a9e8c 100644
---- a/drivers/i2c/busses/i2c-puv3.c
-+++ b/drivers/i2c/busses/i2c-puv3.c
-@@ -276,7 +276,7 @@ static SIMPLE_DEV_PM_OPS(puv3_i2c_pm, puv3_i2c_suspend, NULL);
- 
- static struct platform_driver puv3_i2c_driver = {
- 	.probe		= puv3_i2c_probe,
--	.remove		= __devexit_p(puv3_i2c_remove),
-+	.remove		= puv3_i2c_remove,
- 	.driver		= {
- 		.name	= "PKUnity-v3-I2C",
- 		.owner	= THIS_MODULE,
-diff --git a/drivers/i2c/busses/i2c-pxa-pci.c b/drivers/i2c/busses/i2c-pxa-pci.c
-index 4dc9bef..9e1f180 100644
---- a/drivers/i2c/busses/i2c-pxa-pci.c
-+++ b/drivers/i2c/busses/i2c-pxa-pci.c
-@@ -160,7 +160,7 @@ static struct pci_driver ce4100_i2c_driver = {
- 	.name           = "ce4100_i2c",
- 	.id_table       = ce4100_i2c_devices,
- 	.probe          = ce4100_i2c_probe,
--	.remove         = __devexit_p(ce4100_i2c_remove),
-+	.remove         = ce4100_i2c_remove,
- };
- 
- module_pci_driver(ce4100_i2c_driver);
-diff --git a/drivers/i2c/busses/i2c-rcar.c b/drivers/i2c/busses/i2c-rcar.c
-index 72a8071..44a29bd 100644
---- a/drivers/i2c/busses/i2c-rcar.c
-+++ b/drivers/i2c/busses/i2c-rcar.c
-@@ -699,7 +699,7 @@ static struct platform_driver rcar_i2c_driver = {
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe		= rcar_i2c_probe,
--	.remove		= __devexit_p(rcar_i2c_remove),
-+	.remove		= rcar_i2c_remove,
- };
- 
- module_platform_driver(rcar_i2c_driver);
-diff --git a/drivers/i2c/busses/i2c-s6000.c b/drivers/i2c/busses/i2c-s6000.c
-index b76a29d..eebd9e1 100644
---- a/drivers/i2c/busses/i2c-s6000.c
-+++ b/drivers/i2c/busses/i2c-s6000.c
-@@ -378,7 +378,7 @@ static int __devexit s6i2c_remove(struct platform_device *pdev)
- 
- static struct platform_driver s6i2c_driver = {
- 	.probe		= s6i2c_probe,
--	.remove		= __devexit_p(s6i2c_remove),
-+	.remove		= s6i2c_remove,
- 	.driver		= {
- 		.name	= DRV_NAME,
- 		.owner	= THIS_MODULE,
-diff --git a/drivers/i2c/busses/i2c-sh7760.c b/drivers/i2c/busses/i2c-sh7760.c
-index c0c9dff..ada2b87 100644
---- a/drivers/i2c/busses/i2c-sh7760.c
-+++ b/drivers/i2c/busses/i2c-sh7760.c
-@@ -557,7 +557,7 @@ static struct platform_driver sh7760_i2c_drv = {
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe		= sh7760_i2c_probe,
--	.remove		= __devexit_p(sh7760_i2c_remove),
-+	.remove		= sh7760_i2c_remove,
- };
- 
- module_platform_driver(sh7760_i2c_drv);
-diff --git a/drivers/i2c/busses/i2c-sirf.c b/drivers/i2c/busses/i2c-sirf.c
-index 5574a47..87e70e5 100644
---- a/drivers/i2c/busses/i2c-sirf.c
-+++ b/drivers/i2c/busses/i2c-sirf.c
-@@ -449,7 +449,7 @@ static struct platform_driver i2c_sirfsoc_driver = {
- 		.of_match_table = sirfsoc_i2c_of_match,
- 	},
- 	.probe = i2c_sirfsoc_probe,
--	.remove = __devexit_p(i2c_sirfsoc_remove),
-+	.remove = i2c_sirfsoc_remove,
- };
- module_platform_driver(i2c_sirfsoc_driver);
- 
-diff --git a/drivers/i2c/busses/i2c-sis630.c b/drivers/i2c/busses/i2c-sis630.c
-index 5d6723b..ec8a4bc 100644
---- a/drivers/i2c/busses/i2c-sis630.c
-+++ b/drivers/i2c/busses/i2c-sis630.c
-@@ -510,7 +510,7 @@ static struct pci_driver sis630_driver = {
- 	.name		= "sis630_smbus",
- 	.id_table	= sis630_ids,
- 	.probe		= sis630_probe,
--	.remove		= __devexit_p(sis630_remove),
-+	.remove		= sis630_remove,
- };
- 
- module_pci_driver(sis630_driver);
-diff --git a/drivers/i2c/busses/i2c-sis96x.c b/drivers/i2c/busses/i2c-sis96x.c
-index 7b72614..8b64c17 100644
---- a/drivers/i2c/busses/i2c-sis96x.c
-+++ b/drivers/i2c/busses/i2c-sis96x.c
-@@ -321,7 +321,7 @@ static struct pci_driver sis96x_driver = {
- 	.name		= "sis96x_smbus",
- 	.id_table	= sis96x_ids,
- 	.probe		= sis96x_probe,
--	.remove		= __devexit_p(sis96x_remove),
-+	.remove		= sis96x_remove,
- };
- 
- module_pci_driver(sis96x_driver);
-diff --git a/drivers/i2c/busses/i2c-tegra.c b/drivers/i2c/busses/i2c-tegra.c
-index dcea77b..a2125b6 100644
---- a/drivers/i2c/busses/i2c-tegra.c
-+++ b/drivers/i2c/busses/i2c-tegra.c
-@@ -817,7 +817,7 @@ static SIMPLE_DEV_PM_OPS(tegra_i2c_pm, tegra_i2c_suspend, tegra_i2c_resume);
- 
- static struct platform_driver tegra_i2c_driver = {
- 	.probe   = tegra_i2c_probe,
--	.remove  = __devexit_p(tegra_i2c_remove),
-+	.remove  = tegra_i2c_remove,
- 	.driver  = {
- 		.name  = "tegra-i2c",
- 		.owner = THIS_MODULE,
-diff --git a/drivers/i2c/busses/i2c-via.c b/drivers/i2c/busses/i2c-via.c
-index 7ffee71..6278780 100644
---- a/drivers/i2c/busses/i2c-via.c
-+++ b/drivers/i2c/busses/i2c-via.c
-@@ -158,7 +158,7 @@ static struct pci_driver vt586b_driver = {
- 	.name		= "vt586b_smbus",
- 	.id_table	= vt586b_ids,
- 	.probe		= vt586b_probe,
--	.remove		= __devexit_p(vt586b_remove),
-+	.remove		= vt586b_remove,
- };
- 
- module_pci_driver(vt586b_driver);
-diff --git a/drivers/i2c/busses/i2c-xiic.c b/drivers/i2c/busses/i2c-xiic.c
-index 641d0e5..aac948a 100644
---- a/drivers/i2c/busses/i2c-xiic.c
-+++ b/drivers/i2c/busses/i2c-xiic.c
-@@ -809,7 +809,7 @@ MODULE_DEVICE_TABLE(of, xiic_of_match);
- 
- static struct platform_driver xiic_i2c_driver = {
- 	.probe   = xiic_i2c_probe,
--	.remove  = __devexit_p(xiic_i2c_remove),
-+	.remove  = xiic_i2c_remove,
- 	.driver  = {
- 		.owner = THIS_MODULE,
  		.name = DRIVER_NAME,
-diff --git a/drivers/i2c/busses/i2c-xlr.c b/drivers/i2c/busses/i2c-xlr.c
-index 96d3fab..eb7d5f7 100644
---- a/drivers/i2c/busses/i2c-xlr.c
-+++ b/drivers/i2c/busses/i2c-xlr.c
-@@ -263,7 +263,7 @@ static int __devexit xlr_i2c_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM
+diff --git a/drivers/video/bfin-t350mcqb-fb.c b/drivers/video/bfin-t350mcqb-fb.c
+index ae0fb24..c753abd 100644
+--- a/drivers/video/bfin-t350mcqb-fb.c
++++ b/drivers/video/bfin-t350mcqb-fb.c
+@@ -658,7 +658,7 @@ static int bfin_t350mcqb_resume(struct platform_device *pdev)
  
- static struct platform_driver xlr_i2c_driver = {
- 	.probe  = xlr_i2c_probe,
--	.remove = __devexit_p(xlr_i2c_remove),
-+	.remove = xlr_i2c_remove,
+ static struct platform_driver bfin_t350mcqb_driver = {
+ 	.probe = bfin_t350mcqb_probe,
+-	.remove = __devexit_p(bfin_t350mcqb_remove),
++	.remove = bfin_t350mcqb_remove,
+ 	.suspend = bfin_t350mcqb_suspend,
+ 	.resume = bfin_t350mcqb_resume,
  	.driver = {
- 		.name   = "xlr-i2cbus",
- 		.owner  = THIS_MODULE,
-diff --git a/drivers/i2c/busses/scx200_acb.c b/drivers/i2c/busses/scx200_acb.c
-index 08aab57..82971a8 100644
---- a/drivers/i2c/busses/scx200_acb.c
-+++ b/drivers/i2c/busses/scx200_acb.c
-@@ -554,7 +554,7 @@ static struct platform_driver scx200_pci_driver = {
- 		.owner = THIS_MODULE,
+diff --git a/drivers/video/bfin_adv7393fb.c b/drivers/video/bfin_adv7393fb.c
+index d0f121b..a32ef5a 100644
+--- a/drivers/video/bfin_adv7393fb.c
++++ b/drivers/video/bfin_adv7393fb.c
+@@ -794,7 +794,7 @@ static struct i2c_driver bfin_adv7393_fb_driver = {
+ #endif
  	},
- 	.probe = scx200_probe,
--	.remove = __devexit_p(scx200_remove),
-+	.remove = scx200_remove,
+ 	.probe = bfin_adv7393_fb_probe,
+-	.remove = __devexit_p(bfin_adv7393_fb_remove),
++	.remove = bfin_adv7393_fb_remove,
+ 	.id_table = bfin_adv7393_id,
  };
  
- static DEFINE_PCI_DEVICE_TABLE(scx200_isa) = {
-diff --git a/drivers/i2c/muxes/i2c-mux-gpio.c b/drivers/i2c/muxes/i2c-mux-gpio.c
-index 566a675..08fd89d 100644
---- a/drivers/i2c/muxes/i2c-mux-gpio.c
-+++ b/drivers/i2c/muxes/i2c-mux-gpio.c
-@@ -182,7 +182,7 @@ static int __devexit i2c_mux_gpio_remove(struct platform_device *pdev)
+diff --git a/drivers/video/broadsheetfb.c b/drivers/video/broadsheetfb.c
+index c95b417..377dde3 100644
+--- a/drivers/video/broadsheetfb.c
++++ b/drivers/video/broadsheetfb.c
+@@ -1211,7 +1211,7 @@ static int __devexit broadsheetfb_remove(struct platform_device *dev)
  
- static struct platform_driver i2c_mux_gpio_driver = {
- 	.probe	= i2c_mux_gpio_probe,
--	.remove	= __devexit_p(i2c_mux_gpio_remove),
-+	.remove	= i2c_mux_gpio_remove,
+ static struct platform_driver broadsheetfb_driver = {
+ 	.probe	= broadsheetfb_probe,
+-	.remove = __devexit_p(broadsheetfb_remove),
++	.remove = broadsheetfb_remove,
  	.driver	= {
  		.owner	= THIS_MODULE,
- 		.name	= "i2c-mux-gpio",
-diff --git a/drivers/i2c/muxes/i2c-mux-pinctrl.c b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-index 7fa5b24..f0b397d 100644
---- a/drivers/i2c/muxes/i2c-mux-pinctrl.c
-+++ b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-@@ -269,7 +269,7 @@ static struct platform_driver i2c_mux_pinctrl_driver = {
- 		.of_match_table = of_match_ptr(i2c_mux_pinctrl_of_match),
+ 		.name	= "broadsheetfb",
+diff --git a/drivers/video/bw2.c b/drivers/video/bw2.c
+index 6bea9a9..bc88682 100644
+--- a/drivers/video/bw2.c
++++ b/drivers/video/bw2.c
+@@ -384,7 +384,7 @@ static struct platform_driver bw2_driver = {
+ 		.of_match_table = bw2_match,
  	},
- 	.probe	= i2c_mux_pinctrl_probe,
--	.remove	= __devexit_p(i2c_mux_pinctrl_remove),
-+	.remove	= i2c_mux_pinctrl_remove,
+ 	.probe		= bw2_probe,
+-	.remove		= __devexit_p(bw2_remove),
++	.remove		= bw2_remove,
  };
- module_platform_driver(i2c_mux_pinctrl_driver);
  
+ static int __init bw2_init(void)
+diff --git a/drivers/video/carminefb.c b/drivers/video/carminefb.c
+index 2c76fdf..27561cc 100644
+--- a/drivers/video/carminefb.c
++++ b/drivers/video/carminefb.c
+@@ -764,7 +764,7 @@ static struct pci_driver carmine_pci_driver = {
+ 	.name		= "carminefb",
+ 	.id_table	= carmine_devices,
+ 	.probe		= carminefb_probe,
+-	.remove		= __devexit_p(carminefb_remove),
++	.remove		= carminefb_remove,
+ };
+ 
+ static int __init carminefb_init(void)
+diff --git a/drivers/video/cg14.c b/drivers/video/cg14.c
+index f188950..6889f0c 100644
+--- a/drivers/video/cg14.c
++++ b/drivers/video/cg14.c
+@@ -603,7 +603,7 @@ static struct platform_driver cg14_driver = {
+ 		.of_match_table = cg14_match,
+ 	},
+ 	.probe		= cg14_probe,
+-	.remove		= __devexit_p(cg14_remove),
++	.remove		= cg14_remove,
+ };
+ 
+ static int __init cg14_init(void)
+diff --git a/drivers/video/cg3.c b/drivers/video/cg3.c
+index c5e7612..0bd94d4 100644
+--- a/drivers/video/cg3.c
++++ b/drivers/video/cg3.c
+@@ -469,7 +469,7 @@ static struct platform_driver cg3_driver = {
+ 		.of_match_table = cg3_match,
+ 	},
+ 	.probe		= cg3_probe,
+-	.remove		= __devexit_p(cg3_remove),
++	.remove		= cg3_remove,
+ };
+ 
+ static int __init cg3_init(void)
+diff --git a/drivers/video/cg6.c b/drivers/video/cg6.c
+index 179e96c..70c7013 100644
+--- a/drivers/video/cg6.c
++++ b/drivers/video/cg6.c
+@@ -862,7 +862,7 @@ static struct platform_driver cg6_driver = {
+ 		.of_match_table = cg6_match,
+ 	},
+ 	.probe		= cg6_probe,
+-	.remove		= __devexit_p(cg6_remove),
++	.remove		= cg6_remove,
+ };
+ 
+ static int __init cg6_init(void)
+diff --git a/drivers/video/chipsfb.c b/drivers/video/chipsfb.c
+index cff742a..809857d 100644
+--- a/drivers/video/chipsfb.c
++++ b/drivers/video/chipsfb.c
+@@ -495,7 +495,7 @@ static struct pci_driver chipsfb_driver = {
+ 	.name =		"chipsfb",
+ 	.id_table =	chipsfb_pci_tbl,
+ 	.probe =	chipsfb_pci_init,
+-	.remove =	__devexit_p(chipsfb_remove),
++	.remove =	chipsfb_remove,
+ #ifdef CONFIG_PM
+ 	.suspend =	chipsfb_pci_suspend,
+ 	.resume =	chipsfb_pci_resume,
+diff --git a/drivers/video/cirrusfb.c b/drivers/video/cirrusfb.c
+index bc67d05..3ce6e55 100644
+--- a/drivers/video/cirrusfb.c
++++ b/drivers/video/cirrusfb.c
+@@ -2226,7 +2226,7 @@ static struct pci_driver cirrusfb_pci_driver = {
+ 	.name		= "cirrusfb",
+ 	.id_table	= cirrusfb_pci_table,
+ 	.probe		= cirrusfb_pci_register,
+-	.remove		= __devexit_p(cirrusfb_pci_unregister),
++	.remove		= cirrusfb_pci_unregister,
+ #ifdef CONFIG_PM
+ #if 0
+ 	.suspend	= cirrusfb_pci_suspend,
+@@ -2364,7 +2364,7 @@ static struct zorro_driver cirrusfb_zorro_driver = {
+ 	.name		= "cirrusfb",
+ 	.id_table	= cirrusfb_zorro_table,
+ 	.probe		= cirrusfb_zorro_register,
+-	.remove		= __devexit_p(cirrusfb_zorro_unregister),
++	.remove		= cirrusfb_zorro_unregister,
+ };
+ #endif /* CONFIG_ZORRO */
+ 
+diff --git a/drivers/video/cobalt_lcdfb.c b/drivers/video/cobalt_lcdfb.c
+index 01a4ee7..9f2dc21 100644
+--- a/drivers/video/cobalt_lcdfb.c
++++ b/drivers/video/cobalt_lcdfb.c
+@@ -389,7 +389,7 @@ static int __devexit cobalt_lcdfb_remove(struct platform_device *dev)
+ 
+ static struct platform_driver cobalt_lcdfb_driver = {
+ 	.probe	= cobalt_lcdfb_probe,
+-	.remove	= __devexit_p(cobalt_lcdfb_remove),
++	.remove	= cobalt_lcdfb_remove,
+ 	.driver	= {
+ 		.name	= "cobalt-lcd",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/video/cyber2000fb.c b/drivers/video/cyber2000fb.c
+index e40125c..9b75b29 100644
+--- a/drivers/video/cyber2000fb.c
++++ b/drivers/video/cyber2000fb.c
+@@ -1923,7 +1923,7 @@ MODULE_DEVICE_TABLE(pci, cyberpro_pci_table);
+ static struct pci_driver cyberpro_driver = {
+ 	.name		= "CyberPro",
+ 	.probe		= cyberpro_pci_probe,
+-	.remove		= __devexit_p(cyberpro_pci_remove),
++	.remove		= cyberpro_pci_remove,
+ 	.suspend	= cyberpro_pci_suspend,
+ 	.resume		= cyberpro_pci_resume,
+ 	.id_table	= cyberpro_pci_table
+diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+index 80665f6..b3aaf3b 100644
+--- a/drivers/video/da8xx-fb.c
++++ b/drivers/video/da8xx-fb.c
+@@ -1598,7 +1598,7 @@ static int fb_resume(struct platform_device *dev)
+ 
+ static struct platform_driver da8xx_fb_driver = {
+ 	.probe = fb_probe,
+-	.remove = __devexit_p(fb_remove),
++	.remove = fb_remove,
+ 	.suspend = fb_suspend,
+ 	.resume = fb_resume,
+ 	.driver = {
+diff --git a/drivers/video/ep93xx-fb.c b/drivers/video/ep93xx-fb.c
+index 755ef3e..2f08122 100644
+--- a/drivers/video/ep93xx-fb.c
++++ b/drivers/video/ep93xx-fb.c
+@@ -620,7 +620,7 @@ static int __devexit ep93xxfb_remove(struct platform_device *pdev)
+ 
+ static struct platform_driver ep93xxfb_driver = {
+ 	.probe		= ep93xxfb_probe,
+-	.remove		= __devexit_p(ep93xxfb_remove),
++	.remove		= ep93xxfb_remove,
+ 	.driver = {
+ 		.name	= "ep93xx-fb",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+index d55470e..07c0453 100644
+--- a/drivers/video/exynos/exynos_dp_core.c
++++ b/drivers/video/exynos/exynos_dp_core.c
+@@ -1015,7 +1015,7 @@ static const struct dev_pm_ops exynos_dp_pm_ops = {
+ 
+ static struct platform_driver exynos_dp_driver = {
+ 	.probe		= exynos_dp_probe,
+-	.remove		= __devexit_p(exynos_dp_remove),
++	.remove		= exynos_dp_remove,
+ 	.driver		= {
+ 		.name	= "exynos-dp",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
+index 07d70a3..1571db7 100644
+--- a/drivers/video/exynos/exynos_mipi_dsi.c
++++ b/drivers/video/exynos/exynos_mipi_dsi.c
+@@ -595,7 +595,7 @@ static const struct dev_pm_ops exynos_mipi_dsi_pm_ops = {
+ 
+ static struct platform_driver exynos_mipi_dsi_driver = {
+ 	.probe = exynos_mipi_dsi_probe,
+-	.remove = __devexit_p(exynos_mipi_dsi_remove),
++	.remove = exynos_mipi_dsi_remove,
+ 	.driver = {
+ 		   .name = "exynos-mipi-dsim",
+ 		   .owner = THIS_MODULE,
+diff --git a/drivers/video/ffb.c b/drivers/video/ffb.c
+index 14102a3..d78dc9a 100644
+--- a/drivers/video/ffb.c
++++ b/drivers/video/ffb.c
+@@ -1058,7 +1058,7 @@ static struct platform_driver ffb_driver = {
+ 		.of_match_table = ffb_match,
+ 	},
+ 	.probe		= ffb_probe,
+-	.remove		= __devexit_p(ffb_remove),
++	.remove		= ffb_remove,
+ };
+ 
+ static int __init ffb_init(void)
+diff --git a/drivers/video/gbefb.c b/drivers/video/gbefb.c
+index 3dad319..f19571b 100644
+--- a/drivers/video/gbefb.c
++++ b/drivers/video/gbefb.c
+@@ -1273,7 +1273,7 @@ static int __devexit gbefb_remove(struct platform_device* p_dev)
+ 
+ static struct platform_driver gbefb_driver = {
+ 	.probe = gbefb_probe,
+-	.remove = __devexit_p(gbefb_remove),
++	.remove = gbefb_remove,
+ 	.driver	= {
+ 		.name = "gbefb",
+ 	},
+diff --git a/drivers/video/geode/gx1fb_core.c b/drivers/video/geode/gx1fb_core.c
+index 265c5ed..094c352 100644
+--- a/drivers/video/geode/gx1fb_core.c
++++ b/drivers/video/geode/gx1fb_core.c
+@@ -441,7 +441,7 @@ static struct pci_driver gx1fb_driver = {
+ 	.name		= "gx1fb",
+ 	.id_table	= gx1fb_id_table,
+ 	.probe		= gx1fb_probe,
+-	.remove		= __devexit_p(gx1fb_remove),
++	.remove		= gx1fb_remove,
+ };
+ 
+ static int __init gx1fb_init(void)
+diff --git a/drivers/video/grvga.c b/drivers/video/grvga.c
+index 5245f9a..3ddf206 100644
+--- a/drivers/video/grvga.c
++++ b/drivers/video/grvga.c
+@@ -554,7 +554,7 @@ static struct platform_driver grvga_driver = {
+ 		.of_match_table = svgactrl_of_match,
+ 	},
+ 	.probe		= grvga_probe,
+-	.remove		= __devexit_p(grvga_remove),
++	.remove		= grvga_remove,
+ };
+ 
+ 
+diff --git a/drivers/video/gxt4500.c b/drivers/video/gxt4500.c
+index 4bdea6e..d4f103e 100644
+--- a/drivers/video/gxt4500.c
++++ b/drivers/video/gxt4500.c
+@@ -758,7 +758,7 @@ static struct pci_driver gxt4500_driver = {
+ 	.name = "gxt4500",
+ 	.id_table = gxt4500_pci_tbl,
+ 	.probe = gxt4500_probe,
+-	.remove = __devexit_p(gxt4500_remove),
++	.remove = gxt4500_remove,
+ };
+ 
+ static int __devinit gxt4500_init(void)
+diff --git a/drivers/video/hecubafb.c b/drivers/video/hecubafb.c
+index 614251a..b28a520 100644
+--- a/drivers/video/hecubafb.c
++++ b/drivers/video/hecubafb.c
+@@ -299,7 +299,7 @@ static int __devexit hecubafb_remove(struct platform_device *dev)
+ 
+ static struct platform_driver hecubafb_driver = {
+ 	.probe	= hecubafb_probe,
+-	.remove = __devexit_p(hecubafb_remove),
++	.remove = hecubafb_remove,
+ 	.driver	= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "hecubafb",
+diff --git a/drivers/video/hgafb.c b/drivers/video/hgafb.c
+index c645f92..f8a7036 100644
+--- a/drivers/video/hgafb.c
++++ b/drivers/video/hgafb.c
+@@ -617,7 +617,7 @@ static int __devexit hgafb_remove(struct platform_device *pdev)
+ 
+ static struct platform_driver hgafb_driver = {
+ 	.probe = hgafb_probe,
+-	.remove = __devexit_p(hgafb_remove),
++	.remove = hgafb_remove,
+ 	.driver = {
+ 		.name = "hgafb",
+ 	},
+diff --git a/drivers/video/hitfb.c b/drivers/video/hitfb.c
+index cfb8d64..4ceb978 100644
+--- a/drivers/video/hitfb.c
++++ b/drivers/video/hitfb.c
+@@ -462,7 +462,7 @@ static const struct dev_pm_ops hitfb_dev_pm_ops = {
+ 
+ static struct platform_driver hitfb_driver = {
+ 	.probe		= hitfb_probe,
+-	.remove		= __devexit_p(hitfb_remove),
++	.remove		= hitfb_remove,
+ 	.driver		= {
+ 		.name	= "hitfb",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/video/i740fb.c b/drivers/video/i740fb.c
+index ff3f880..1d3c8ee 100644
+--- a/drivers/video/i740fb.c
++++ b/drivers/video/i740fb.c
+@@ -1275,7 +1275,7 @@ static struct pci_driver i740fb_driver = {
+ 	.name		= "i740fb",
+ 	.id_table	= i740fb_id_table,
+ 	.probe		= i740fb_probe,
+-	.remove		= __devexit_p(i740fb_remove),
++	.remove		= i740fb_remove,
+ 	.suspend	= i740fb_suspend,
+ 	.resume		= i740fb_resume,
+ };
+diff --git a/drivers/video/imsttfb.c b/drivers/video/imsttfb.c
+index 8149356..1bb3934 100644
+--- a/drivers/video/imsttfb.c
++++ b/drivers/video/imsttfb.c
+@@ -1333,7 +1333,7 @@ static struct pci_driver imsttfb_pci_driver = {
+ 	.name =		"imsttfb",
+ 	.id_table =	imsttfb_pci_tbl,
+ 	.probe =	imsttfb_probe,
+-	.remove =	__devexit_p(imsttfb_remove),
++	.remove =	imsttfb_remove,
+ };
+ 
+ static struct fb_ops imsttfb_ops = {
+diff --git a/drivers/video/imxfb.c b/drivers/video/imxfb.c
+index e501dbc..e1fbfb0 100644
+--- a/drivers/video/imxfb.c
++++ b/drivers/video/imxfb.c
+@@ -959,7 +959,7 @@ void  imxfb_shutdown(struct platform_device * dev)
+ static struct platform_driver imxfb_driver = {
+ 	.suspend	= imxfb_suspend,
+ 	.resume		= imxfb_resume,
+-	.remove		= __devexit_p(imxfb_remove),
++	.remove		= imxfb_remove,
+ 	.shutdown	= imxfb_shutdown,
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+diff --git a/drivers/video/intelfb/intelfbdrv.c b/drivers/video/intelfb/intelfbdrv.c
+index bdcbfba..971b5d0 100644
+--- a/drivers/video/intelfb/intelfbdrv.c
++++ b/drivers/video/intelfb/intelfbdrv.c
+@@ -219,7 +219,7 @@ static struct pci_driver intelfb_driver = {
+ 	.name =		"intelfb",
+ 	.id_table =	intelfb_pci_table,
+ 	.probe =	intelfb_pci_register,
+-	.remove =	__devexit_p(intelfb_pci_unregister)
++	.remove =	intelfb_pci_unregister
+ };
+ 
+ /* Module description/parameters */
+diff --git a/drivers/video/jz4740_fb.c b/drivers/video/jz4740_fb.c
+index 4d25711..cb867b6 100644
+--- a/drivers/video/jz4740_fb.c
++++ b/drivers/video/jz4740_fb.c
+@@ -794,7 +794,7 @@ static const struct dev_pm_ops jzfb_pm_ops = {
+ 
+ static struct platform_driver jzfb_driver = {
+ 	.probe = jzfb_probe,
+-	.remove = __devexit_p(jzfb_remove),
++	.remove = jzfb_remove,
+ 	.driver = {
+ 		.name = "jz4740-fb",
+ 		.pm = JZFB_PM_OPS,
+diff --git a/drivers/video/kyro/fbdev.c b/drivers/video/kyro/fbdev.c
+index acb9370..2293f6a 100644
+--- a/drivers/video/kyro/fbdev.c
++++ b/drivers/video/kyro/fbdev.c
+@@ -653,7 +653,7 @@ static struct pci_driver kyrofb_pci_driver = {
+ 	.name		= "kyrofb",
+ 	.id_table	= kyrofb_pci_tbl,
+ 	.probe		= kyrofb_probe,
+-	.remove		= __devexit_p(kyrofb_remove),
++	.remove		= kyrofb_remove,
+ };
+ 
+ static struct fb_ops kyrofb_ops = {
+diff --git a/drivers/video/leo.c b/drivers/video/leo.c
+index 9e946e2..52a8678 100644
+--- a/drivers/video/leo.c
++++ b/drivers/video/leo.c
+@@ -668,7 +668,7 @@ static struct platform_driver leo_driver = {
+ 		.of_match_table = leo_match,
+ 	},
+ 	.probe		= leo_probe,
+-	.remove		= __devexit_p(leo_remove),
++	.remove		= leo_remove,
+ };
+ 
+ static int __init leo_init(void)
+diff --git a/drivers/video/mb862xx/mb862xxfbdrv.c b/drivers/video/mb862xx/mb862xxfbdrv.c
+index d68e332..3025cbb 100644
+--- a/drivers/video/mb862xx/mb862xxfbdrv.c
++++ b/drivers/video/mb862xx/mb862xxfbdrv.c
+@@ -841,7 +841,7 @@ static struct platform_driver of_platform_mb862xxfb_driver = {
+ 		.of_match_table = of_platform_mb862xx_tbl,
+ 	},
+ 	.probe		= of_platform_mb862xx_probe,
+-	.remove		= __devexit_p(of_platform_mb862xx_remove),
++	.remove		= of_platform_mb862xx_remove,
+ };
+ #endif
+ 
+@@ -1174,7 +1174,7 @@ static struct pci_driver mb862xxfb_pci_driver = {
+ 	.name		= DRV_NAME,
+ 	.id_table	= mb862xx_pci_tbl,
+ 	.probe		= mb862xx_pci_probe,
+-	.remove		= __devexit_p(mb862xx_pci_remove),
++	.remove		= mb862xx_pci_remove,
+ };
+ #endif
+ 
+diff --git a/drivers/video/mbx/mbxfb.c b/drivers/video/mbx/mbxfb.c
+index 6563e50..a8ba922 100644
+--- a/drivers/video/mbx/mbxfb.c
++++ b/drivers/video/mbx/mbxfb.c
+@@ -1038,7 +1038,7 @@ static int __devexit mbxfb_remove(struct platform_device *dev)
+ 
+ static struct platform_driver mbxfb_driver = {
+ 	.probe = mbxfb_probe,
+-	.remove = __devexit_p(mbxfb_remove),
++	.remove = mbxfb_remove,
+ 	.suspend = mbxfb_suspend,
+ 	.resume = mbxfb_resume,
+ 	.driver = {
+diff --git a/drivers/video/metronomefb.c b/drivers/video/metronomefb.c
+index 97d45e5..c0c358c 100644
+--- a/drivers/video/metronomefb.c
++++ b/drivers/video/metronomefb.c
+@@ -763,7 +763,7 @@ static int __devexit metronomefb_remove(struct platform_device *dev)
+ 
+ static struct platform_driver metronomefb_driver = {
+ 	.probe	= metronomefb_probe,
+-	.remove = __devexit_p(metronomefb_remove),
++	.remove = metronomefb_remove,
+ 	.driver	= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "metronomefb",
+diff --git a/drivers/video/mxsfb.c b/drivers/video/mxsfb.c
+index 49619b4..ddac96d 100644
+--- a/drivers/video/mxsfb.c
++++ b/drivers/video/mxsfb.c
+@@ -949,7 +949,7 @@ static void mxsfb_shutdown(struct platform_device *pdev)
+ 
+ static struct platform_driver mxsfb_driver = {
+ 	.probe = mxsfb_probe,
+-	.remove = __devexit_p(mxsfb_remove),
++	.remove = mxsfb_remove,
+ 	.shutdown = mxsfb_shutdown,
+ 	.id_table = mxsfb_devtype,
+ 	.driver = {
+diff --git a/drivers/video/neofb.c b/drivers/video/neofb.c
+index afc9521..15c3bef 100644
+--- a/drivers/video/neofb.c
++++ b/drivers/video/neofb.c
+@@ -2194,7 +2194,7 @@ static struct pci_driver neofb_driver = {
+ 	.name =		"neofb",
+ 	.id_table =	neofb_devices,
+ 	.probe =	neofb_probe,
+-	.remove =	__devexit_p(neofb_remove)
++	.remove =	neofb_remove
+ };
+ 
+ /* ************************* init in-kernel code ************************** */
+diff --git a/drivers/video/nvidia/nvidia.c b/drivers/video/nvidia/nvidia.c
+index fe13ac5..0bbed28 100644
+--- a/drivers/video/nvidia/nvidia.c
++++ b/drivers/video/nvidia/nvidia.c
+@@ -1529,7 +1529,7 @@ static struct pci_driver nvidiafb_driver = {
+ 	.probe    = nvidiafb_probe,
+ 	.suspend  = nvidiafb_suspend,
+ 	.resume   = nvidiafb_resume,
+-	.remove   = __devexit_p(nvidiafb_remove),
++	.remove   = nvidiafb_remove,
+ };
+ 
+ /* ------------------------------------------------------------------------- *
+diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
+index b739600..803fee6 100644
+--- a/drivers/video/omap/lcd_mipid.c
++++ b/drivers/video/omap/lcd_mipid.c
+@@ -606,7 +606,7 @@ static struct spi_driver mipid_spi_driver = {
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= mipid_spi_probe,
+-	.remove	= __devexit_p(mipid_spi_remove),
++	.remove	= mipid_spi_remove,
+ };
+ 
+ module_spi_driver(mipid_spi_driver);
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
+index c835aa7..4a0e1c8 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -800,7 +800,7 @@ static struct spi_driver acx565akm_spi_driver = {
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= acx565akm_spi_probe,
+-	.remove	= __devexit_p(acx565akm_spi_remove),
++	.remove	= acx565akm_spi_remove,
+ };
+ 
+ module_spi_driver(acx565akm_spi_driver);
+diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+index 90c1cab..bae244f 100644
+--- a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
++++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+@@ -268,7 +268,7 @@ static struct spi_driver lb035q02_spi_driver = {
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= lb035q02_panel_spi_probe,
+-	.remove		= __devexit_p(lb035q02_panel_spi_remove),
++	.remove		= lb035q02_panel_spi_remove,
+ };
+ 
+ module_spi_driver(lb035q02_spi_driver);
+diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
+index 3fc5ad0..7d836d1 100644
+--- a/drivers/video/omap2/displays/panel-n8x0.c
++++ b/drivers/video/omap2/displays/panel-n8x0.c
+@@ -723,7 +723,7 @@ static struct spi_driver mipid_spi_driver = {
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= mipid_spi_probe,
+-	.remove	= __devexit_p(mipid_spi_remove),
++	.remove	= mipid_spi_remove,
+ };
+ 
+ static int __init n8x0_panel_drv_init(void)
+diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+index 908fd26..5664209 100644
+--- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
++++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+@@ -347,7 +347,7 @@ static int nec_8048_spi_resume(struct spi_device *spi)
+ 
+ static struct spi_driver nec_8048_spi_driver = {
+ 	.probe		= nec_8048_spi_probe,
+-	.remove		= __devexit_p(nec_8048_spi_remove),
++	.remove		= nec_8048_spi_remove,
+ 	.suspend	= nec_8048_spi_suspend,
+ 	.resume		= nec_8048_spi_resume,
+ 	.driver		= {
+diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+index b5e6dbc..d655389 100644
+--- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
++++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+@@ -600,7 +600,7 @@ static struct spi_driver tpo_td043_spi_driver = {
+ 		.pm	= &tpo_td043_spi_pm,
+ 	},
+ 	.probe	= tpo_td043_spi_probe,
+-	.remove	= __devexit_p(tpo_td043_spi_remove),
++	.remove	= tpo_td043_spi_remove,
+ };
+ 
+ module_spi_driver(tpo_td043_spi_driver);
+diff --git a/drivers/video/p9100.c b/drivers/video/p9100.c
+index d57cc58..f402a69 100644
+--- a/drivers/video/p9100.c
++++ b/drivers/video/p9100.c
+@@ -359,7 +359,7 @@ static struct platform_driver p9100_driver = {
+ 		.of_match_table = p9100_match,
+ 	},
+ 	.probe		= p9100_probe,
+-	.remove		= __devexit_p(p9100_remove),
++	.remove		= p9100_remove,
+ };
+ 
+ static int __init p9100_init(void)
+diff --git a/drivers/video/platinumfb.c b/drivers/video/platinumfb.c
+index ae3caa6..6694923 100644
+--- a/drivers/video/platinumfb.c
++++ b/drivers/video/platinumfb.c
+@@ -683,7 +683,7 @@ static struct platform_driver platinum_driver =
+ 		.of_match_table = platinumfb_match,
+ 	},
+ 	.probe		= platinumfb_probe,
+-	.remove		= __devexit_p(platinumfb_remove),
++	.remove		= platinumfb_remove,
+ };
+ 
+ static int __init platinumfb_init(void)
+diff --git a/drivers/video/pm2fb.c b/drivers/video/pm2fb.c
+index df31a24..c4f639a 100644
+--- a/drivers/video/pm2fb.c
++++ b/drivers/video/pm2fb.c
+@@ -1765,7 +1765,7 @@ static struct pci_driver pm2fb_driver = {
+ 	.name		= "pm2fb",
+ 	.id_table	= pm2fb_id_table,
+ 	.probe		= pm2fb_probe,
+-	.remove		= __devexit_p(pm2fb_remove),
++	.remove		= pm2fb_remove,
+ };
+ 
+ MODULE_DEVICE_TABLE(pci, pm2fb_id_table);
+diff --git a/drivers/video/pm3fb.c b/drivers/video/pm3fb.c
+index 055e527..e9d8e23 100644
+--- a/drivers/video/pm3fb.c
++++ b/drivers/video/pm3fb.c
+@@ -1507,7 +1507,7 @@ static struct pci_driver pm3fb_driver = {
+ 	.name =		"pm3fb",
+ 	.id_table =	pm3fb_id_table,
+ 	.probe =	pm3fb_probe,
+-	.remove =	__devexit_p(pm3fb_remove),
++	.remove =	pm3fb_remove,
+ };
+ 
+ MODULE_DEVICE_TABLE(pci, pm3fb_id_table);
+diff --git a/drivers/video/pvr2fb.c b/drivers/video/pvr2fb.c
+index bcd44c3..69fc2c3 100644
+--- a/drivers/video/pvr2fb.c
++++ b/drivers/video/pvr2fb.c
+@@ -979,7 +979,7 @@ static struct pci_driver pvr2fb_pci_driver = {
+ 	.name		= "pvr2fb",
+ 	.id_table	= pvr2fb_pci_tbl,
+ 	.probe		= pvr2fb_pci_probe,
+-	.remove		= __devexit_p(pvr2fb_pci_remove),
++	.remove		= pvr2fb_pci_remove,
+ };
+ 
+ static int __init pvr2fb_pci_init(void)
+diff --git a/drivers/video/pxa168fb.c b/drivers/video/pxa168fb.c
+index f146089..a8fd898 100644
+--- a/drivers/video/pxa168fb.c
++++ b/drivers/video/pxa168fb.c
+@@ -826,7 +826,7 @@ static struct platform_driver pxa168fb_driver = {
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= pxa168fb_probe,
+-	.remove		= __devexit_p(pxa168fb_remove),
++	.remove		= pxa168fb_remove,
+ };
+ 
+ module_platform_driver(pxa168fb_driver);
+diff --git a/drivers/video/pxa3xx-gcu.c b/drivers/video/pxa3xx-gcu.c
+index 0b4ae0c..4493a47 100644
+--- a/drivers/video/pxa3xx-gcu.c
++++ b/drivers/video/pxa3xx-gcu.c
+@@ -737,7 +737,7 @@ pxa3xx_gcu_remove(struct platform_device *dev)
+ 
+ static struct platform_driver pxa3xx_gcu_driver = {
+ 	.probe	  = pxa3xx_gcu_probe,
+-	.remove	 = __devexit_p(pxa3xx_gcu_remove),
++	.remove	 = pxa3xx_gcu_remove,
+ 	.driver	 = {
+ 		.owner  = THIS_MODULE,
+ 		.name   = DRV_NAME,
+diff --git a/drivers/video/pxafb.c b/drivers/video/pxafb.c
+index 4fa2ad4..ffa62e2 100644
+--- a/drivers/video/pxafb.c
++++ b/drivers/video/pxafb.c
+@@ -2304,7 +2304,7 @@ static int __devexit pxafb_remove(struct platform_device *dev)
+ 
+ static struct platform_driver pxafb_driver = {
+ 	.probe		= pxafb_probe,
+-	.remove 	= __devexit_p(pxafb_remove),
++	.remove		= pxafb_remove,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "pxa2xx-fb",
+diff --git a/drivers/video/riva/fbdev.c b/drivers/video/riva/fbdev.c
+index 90df1a6..693ed5e 100644
+--- a/drivers/video/riva/fbdev.c
++++ b/drivers/video/riva/fbdev.c
+@@ -2186,7 +2186,7 @@ static struct pci_driver rivafb_driver = {
+ 	.name		= "rivafb",
+ 	.id_table	= rivafb_pci_tbl,
+ 	.probe		= rivafb_probe,
+-	.remove		= __devexit_p(rivafb_remove),
++	.remove		= rivafb_remove,
+ };
+ 
+ 
+diff --git a/drivers/video/s3c-fb.c b/drivers/video/s3c-fb.c
+index 2ed7b63..71981a5 100644
+--- a/drivers/video/s3c-fb.c
++++ b/drivers/video/s3c-fb.c
+@@ -2037,7 +2037,7 @@ static const struct dev_pm_ops s3cfb_pm_ops = {
+ 
+ static struct platform_driver s3c_fb_driver = {
+ 	.probe		= s3c_fb_probe,
+-	.remove		= __devexit_p(s3c_fb_remove),
++	.remove		= s3c_fb_remove,
+ 	.id_table	= s3c_fb_driver_ids,
+ 	.driver		= {
+ 		.name	= "s3c-fb",
+diff --git a/drivers/video/s3c2410fb.c b/drivers/video/s3c2410fb.c
+index 1083bb9..fbf3cea 100644
+--- a/drivers/video/s3c2410fb.c
++++ b/drivers/video/s3c2410fb.c
+@@ -1101,7 +1101,7 @@ static int s3c2410fb_resume(struct platform_device *dev)
+ 
+ static struct platform_driver s3c2410fb_driver = {
+ 	.probe		= s3c2410fb_probe,
+-	.remove		= __devexit_p(s3c2410fb_remove),
++	.remove		= s3c2410fb_remove,
+ 	.suspend	= s3c2410fb_suspend,
+ 	.resume		= s3c2410fb_resume,
+ 	.driver		= {
+@@ -1112,7 +1112,7 @@ static struct platform_driver s3c2410fb_driver = {
+ 
+ static struct platform_driver s3c2412fb_driver = {
+ 	.probe		= s3c2412fb_probe,
+-	.remove		= __devexit_p(s3c2410fb_remove),
++	.remove		= s3c2410fb_remove,
+ 	.suspend	= s3c2410fb_suspend,
+ 	.resume		= s3c2410fb_resume,
+ 	.driver		= {
+diff --git a/drivers/video/s3fb.c b/drivers/video/s3fb.c
+index 1d00736..1b4f146 100644
+--- a/drivers/video/s3fb.c
++++ b/drivers/video/s3fb.c
+@@ -1537,7 +1537,7 @@ static struct pci_driver s3fb_pci_driver = {
+ 	.name		= "s3fb",
+ 	.id_table	= s3_devices,
+ 	.probe		= s3_pci_probe,
+-	.remove		= __devexit_p(s3_pci_remove),
++	.remove		= s3_pci_remove,
+ 	.suspend	= s3_pci_suspend,
+ 	.resume		= s3_pci_resume,
+ };
+diff --git a/drivers/video/savage/savagefb_driver.c b/drivers/video/savage/savagefb_driver.c
+index f4f53b0..a1cc484 100644
+--- a/drivers/video/savage/savagefb_driver.c
++++ b/drivers/video/savage/savagefb_driver.c
+@@ -2530,7 +2530,7 @@ static struct pci_driver savagefb_driver = {
+ 	.probe =    savagefb_probe,
+ 	.suspend =  savagefb_suspend,
+ 	.resume =   savagefb_resume,
+-	.remove =   __devexit_p(savagefb_remove)
++	.remove =   savagefb_remove
+ };
+ 
+ /* **************************** exit-time only **************************** */
+diff --git a/drivers/video/sgivwfb.c b/drivers/video/sgivwfb.c
+index 53455f2..b5c30b9 100644
+--- a/drivers/video/sgivwfb.c
++++ b/drivers/video/sgivwfb.c
+@@ -845,7 +845,7 @@ static int __devexit sgivwfb_remove(struct platform_device *dev)
+ 
+ static struct platform_driver sgivwfb_driver = {
+ 	.probe	= sgivwfb_probe,
+-	.remove	= __devexit_p(sgivwfb_remove),
++	.remove	= sgivwfb_remove,
+ 	.driver	= {
+ 		.name	= "sgivwfb",
+ 	},
+diff --git a/drivers/video/sh7760fb.c b/drivers/video/sh7760fb.c
+index 83b16e2..ff93339 100644
+--- a/drivers/video/sh7760fb.c
++++ b/drivers/video/sh7760fb.c
+@@ -582,7 +582,7 @@ static struct platform_driver sh7760_lcdc_driver = {
+ 		   .owner = THIS_MODULE,
+ 		   },
+ 	.probe = sh7760fb_probe,
+-	.remove = __devexit_p(sh7760fb_remove),
++	.remove = sh7760fb_remove,
+ };
+ 
+ module_platform_driver(sh7760_lcdc_driver);
+diff --git a/drivers/video/sh_mipi_dsi.c b/drivers/video/sh_mipi_dsi.c
+index 3951fda..ad47e48 100644
+--- a/drivers/video/sh_mipi_dsi.c
++++ b/drivers/video/sh_mipi_dsi.c
+@@ -591,7 +591,7 @@ static int __devexit sh_mipi_remove(struct platform_device *pdev)
+ }
+ 
+ static struct platform_driver sh_mipi_driver = {
+-	.remove		= __devexit_p(sh_mipi_remove),
++	.remove		= sh_mipi_remove,
+ 	.shutdown	= sh_mipi_shutdown,
+ 	.driver = {
+ 		.name	= "sh-mipi-dsi",
+diff --git a/drivers/video/sis/sis_main.c b/drivers/video/sis/sis_main.c
+index a7a48db..5193138 100644
+--- a/drivers/video/sis/sis_main.c
++++ b/drivers/video/sis/sis_main.c
+@@ -6591,7 +6591,7 @@ static struct pci_driver sisfb_driver = {
+ 	.name		= "sisfb",
+ 	.id_table 	= sisfb_pci_table,
+ 	.probe		= sisfb_probe,
+-	.remove 	= __devexit_p(sisfb_remove)
++	.remove		= sisfb_remove
+ };
+ 
+ static int __init sisfb_init(void)
+diff --git a/drivers/video/skeletonfb.c b/drivers/video/skeletonfb.c
+index 5b6abc6..ce61d9d 100644
+--- a/drivers/video/skeletonfb.c
++++ b/drivers/video/skeletonfb.c
+@@ -899,7 +899,7 @@ static struct pci_driver xxxfb_driver = {
+ 	.name =		"xxxfb",
+ 	.id_table =	xxxfb_id_table,
+ 	.probe =	xxxfb_probe,
+-	.remove =	__devexit_p(xxxfb_remove),
++	.remove =	xxxfb_remove,
+ 	.suspend =      xxxfb_suspend, /* optional but recommended */
+ 	.resume =       xxxfb_resume,  /* optional but recommended */
+ };
+diff --git a/drivers/video/sstfb.c b/drivers/video/sstfb.c
+index 111fb32..871e074 100644
+--- a/drivers/video/sstfb.c
++++ b/drivers/video/sstfb.c
+@@ -1490,7 +1490,7 @@ static struct pci_driver sstfb_driver = {
+ 	.name		= "sstfb",
+ 	.id_table	= sstfb_id_tbl,
+ 	.probe		= sstfb_probe,
+-	.remove		= __devexit_p(sstfb_remove),
++	.remove		= sstfb_remove,
+ };
+ 
+ 
+diff --git a/drivers/video/sunxvr1000.c b/drivers/video/sunxvr1000.c
+index 729a507..cc9bf5f 100644
+--- a/drivers/video/sunxvr1000.c
++++ b/drivers/video/sunxvr1000.c
+@@ -201,7 +201,7 @@ MODULE_DEVICE_TABLE(of, ffb_match);
+ 
+ static struct platform_driver gfb_driver = {
+ 	.probe		= gfb_probe,
+-	.remove		= __devexit_p(gfb_remove),
++	.remove		= gfb_remove,
+ 	.driver = {
+ 		.name		= "gfb",
+ 		.owner		= THIS_MODULE,
+diff --git a/drivers/video/sunxvr2500.c b/drivers/video/sunxvr2500.c
+index 7fbcba8..49bd77a 100644
+--- a/drivers/video/sunxvr2500.c
++++ b/drivers/video/sunxvr2500.c
+@@ -251,7 +251,7 @@ static struct pci_driver s3d_driver = {
+ 	.name		= "s3d",
+ 	.id_table	= s3d_pci_table,
+ 	.probe		= s3d_pci_register,
+-	.remove		= __devexit_p(s3d_pci_unregister),
++	.remove		= s3d_pci_unregister,
+ };
+ 
+ static int __init s3d_init(void)
+diff --git a/drivers/video/sunxvr500.c b/drivers/video/sunxvr500.c
+index 6c71b1b..e94c799 100644
+--- a/drivers/video/sunxvr500.c
++++ b/drivers/video/sunxvr500.c
+@@ -437,7 +437,7 @@ static struct pci_driver e3d_driver = {
+ 	.name		= "e3d",
+ 	.id_table	= e3d_pci_table,
+ 	.probe		= e3d_pci_register,
+-	.remove		= __devexit_p(e3d_pci_unregister),
++	.remove		= e3d_pci_unregister,
+ };
+ 
+ static int __init e3d_init(void)
+diff --git a/drivers/video/tcx.c b/drivers/video/tcx.c
+index 07c66e9..9f57539 100644
+--- a/drivers/video/tcx.c
++++ b/drivers/video/tcx.c
+@@ -518,7 +518,7 @@ static struct platform_driver tcx_driver = {
+ 		.of_match_table = tcx_match,
+ 	},
+ 	.probe		= tcx_probe,
+-	.remove		= __devexit_p(tcx_remove),
++	.remove		= tcx_remove,
+ };
+ 
+ static int __init tcx_init(void)
+diff --git a/drivers/video/tdfxfb.c b/drivers/video/tdfxfb.c
+index e026724..bbb0d95 100644
+--- a/drivers/video/tdfxfb.c
++++ b/drivers/video/tdfxfb.c
+@@ -156,7 +156,7 @@ static struct pci_driver tdfxfb_driver = {
+ 	.name		= "tdfxfb",
+ 	.id_table	= tdfxfb_id_table,
+ 	.probe		= tdfxfb_probe,
+-	.remove		= __devexit_p(tdfxfb_remove),
++	.remove		= tdfxfb_remove,
+ };
+ 
+ MODULE_DEVICE_TABLE(pci, tdfxfb_id_table);
+diff --git a/drivers/video/tgafb.c b/drivers/video/tgafb.c
+index aba7686..7333152 100644
+--- a/drivers/video/tgafb.c
++++ b/drivers/video/tgafb.c
+@@ -107,7 +107,7 @@ static struct pci_driver tgafb_pci_driver = {
+ 	.name			= "tgafb",
+ 	.id_table		= tgafb_pci_table,
+ 	.probe			= tgafb_pci_register,
+-	.remove			= __devexit_p(tgafb_pci_unregister),
++	.remove			= tgafb_pci_unregister,
+ };
+ 
+ static int __devinit
+@@ -143,7 +143,7 @@ static struct tc_driver tgafb_tc_driver = {
+ 		.name		= "tgafb",
+ 		.bus		= &tc_bus_type,
+ 		.probe		= tgafb_tc_register,
+-		.remove		= __devexit_p(tgafb_tc_unregister),
++		.remove		= tgafb_tc_unregister,
+ 	},
+ };
+ 
+diff --git a/drivers/video/tmiofb.c b/drivers/video/tmiofb.c
+index b244f06..7c8133e 100644
+--- a/drivers/video/tmiofb.c
++++ b/drivers/video/tmiofb.c
+@@ -1002,7 +1002,7 @@ static struct platform_driver tmiofb_driver = {
+ 	.driver.name	= "tmio-fb",
+ 	.driver.owner	= THIS_MODULE,
+ 	.probe		= tmiofb_probe,
+-	.remove		= __devexit_p(tmiofb_remove),
++	.remove		= tmiofb_remove,
+ 	.suspend	= tmiofb_suspend,
+ 	.resume		= tmiofb_resume,
+ };
+diff --git a/drivers/video/tridentfb.c b/drivers/video/tridentfb.c
+index 34cf019..a3f207b 100644
+--- a/drivers/video/tridentfb.c
++++ b/drivers/video/tridentfb.c
+@@ -1591,7 +1591,7 @@ static struct pci_driver tridentfb_pci_driver = {
+ 	.name = "tridentfb",
+ 	.id_table = trident_devices,
+ 	.probe = trident_pci_probe,
+-	.remove = __devexit_p(trident_pci_remove)
++	.remove = trident_pci_remove
+ };
+ 
+ /*
+diff --git a/drivers/video/vermilion/vermilion.c b/drivers/video/vermilion/vermilion.c
+index 4709edc..a2bacf8 100644
+--- a/drivers/video/vermilion/vermilion.c
++++ b/drivers/video/vermilion/vermilion.c
+@@ -1060,7 +1060,7 @@ static struct pci_driver vmlfb_pci_driver = {
+ 	.name = "vmlfb",
+ 	.id_table = vml_ids,
+ 	.probe = vml_pci_probe,
+-	.remove = __devexit_p(vml_pci_remove)
++	.remove = vml_pci_remove
+ };
+ 
+ static void __exit vmlfb_cleanup(void)
+diff --git a/drivers/video/vga16fb.c b/drivers/video/vga16fb.c
+index 0267acd..1ab146a 100644
+--- a/drivers/video/vga16fb.c
++++ b/drivers/video/vga16fb.c
+@@ -1407,7 +1407,7 @@ static int __devexit vga16fb_remove(struct platform_device *dev)
+ 
+ static struct platform_driver vga16fb_driver = {
+ 	.probe = vga16fb_probe,
+-	.remove = __devexit_p(vga16fb_remove),
++	.remove = vga16fb_remove,
+ 	.driver = {
+ 		.name = "vga16fb",
+ 	},
+diff --git a/drivers/video/via/via-core.c b/drivers/video/via/via-core.c
+index dd58b53..29b3af8 100644
+--- a/drivers/video/via/via-core.c
++++ b/drivers/video/via/via-core.c
+@@ -760,7 +760,7 @@ static struct pci_driver via_driver = {
+ 	.name		= "viafb",
+ 	.id_table	= via_pci_table,
+ 	.probe		= via_pci_probe,
+-	.remove		= __devexit_p(via_pci_remove),
++	.remove		= via_pci_remove,
+ #ifdef CONFIG_PM
+ 	.suspend	= via_suspend,
+ 	.resume		= via_resume,
+diff --git a/drivers/video/vt8500lcdfb.c b/drivers/video/vt8500lcdfb.c
+index 9af8da7..22063bb 100644
+--- a/drivers/video/vt8500lcdfb.c
++++ b/drivers/video/vt8500lcdfb.c
+@@ -505,7 +505,7 @@ static const struct of_device_id via_dt_ids[] = {
+ 
+ static struct platform_driver vt8500lcd_driver = {
+ 	.probe		= vt8500lcd_probe,
+-	.remove		= __devexit_p(vt8500lcd_remove),
++	.remove		= vt8500lcd_remove,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "vt8500-lcd",
+diff --git a/drivers/video/vt8623fb.c b/drivers/video/vt8623fb.c
+index 4e74d26..f0bce7a 100644
+--- a/drivers/video/vt8623fb.c
++++ b/drivers/video/vt8623fb.c
+@@ -917,7 +917,7 @@ static struct pci_driver vt8623fb_pci_driver = {
+ 	.name		= "vt8623fb",
+ 	.id_table	= vt8623_devices,
+ 	.probe		= vt8623_pci_probe,
+-	.remove		= __devexit_p(vt8623_pci_remove),
++	.remove		= vt8623_pci_remove,
+ 	.suspend	= vt8623_pci_suspend,
+ 	.resume		= vt8623_pci_resume,
+ };
+diff --git a/drivers/video/w100fb.c b/drivers/video/w100fb.c
+index 2f6b2b8..614e1bd 100644
+--- a/drivers/video/w100fb.c
++++ b/drivers/video/w100fb.c
+@@ -1624,7 +1624,7 @@ static void w100_vsync(void)
+ 
+ static struct platform_driver w100fb_driver = {
+ 	.probe		= w100fb_probe,
+-	.remove		= __devexit_p(w100fb_remove),
++	.remove		= w100fb_remove,
+ 	.suspend	= w100fb_suspend,
+ 	.resume		= w100fb_resume,
+ 	.driver		= {
+diff --git a/drivers/video/wm8505fb.c b/drivers/video/wm8505fb.c
+index 77539c1..5c126af 100644
+--- a/drivers/video/wm8505fb.c
++++ b/drivers/video/wm8505fb.c
+@@ -462,7 +462,7 @@ static const struct of_device_id wmt_dt_ids[] = {
+ 
+ static struct platform_driver wm8505fb_driver = {
+ 	.probe		= wm8505fb_probe,
+-	.remove		= __devexit_p(wm8505fb_remove),
++	.remove		= wm8505fb_remove,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= DRIVER_NAME,
+diff --git a/drivers/video/wmt_ge_rops.c b/drivers/video/wmt_ge_rops.c
+index ba025b4..46b7a09 100644
+--- a/drivers/video/wmt_ge_rops.c
++++ b/drivers/video/wmt_ge_rops.c
+@@ -165,7 +165,7 @@ static const struct of_device_id wmt_dt_ids[] = {
+ 
+ static struct platform_driver wmt_ge_rops_driver = {
+ 	.probe		= wmt_ge_rops_probe,
+-	.remove		= __devexit_p(wmt_ge_rops_remove),
++	.remove		= wmt_ge_rops_remove,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "wmt_ge_rops",
+diff --git a/drivers/video/xilinxfb.c b/drivers/video/xilinxfb.c
+index 1808452..20a7c0e 100644
+--- a/drivers/video/xilinxfb.c
++++ b/drivers/video/xilinxfb.c
+@@ -503,7 +503,7 @@ MODULE_DEVICE_TABLE(of, xilinxfb_of_match);
+ 
+ static struct platform_driver xilinxfb_of_driver = {
+ 	.probe = xilinxfb_of_probe,
+-	.remove = __devexit_p(xilinxfb_of_remove),
++	.remove = xilinxfb_of_remove,
+ 	.driver = {
+ 		.name = DRIVER_NAME,
+ 		.owner = THIS_MODULE,
 -- 
 1.8.0
+
