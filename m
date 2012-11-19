@@ -1,120 +1,111 @@
 From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH V5 7/7] arm/dts: am33xx: Add CPSW and MDIO module nodes for AM33XX
-Date: Mon, 19 Nov 2012 21:24:53 +0100
-Message-ID: <877gphl4ru.fsf@dell.be.48ers.dk>
-References: <1352920080-6179-1-git-send-email-mugunthanvnm@ti.com>
-	<1352920080-6179-8-git-send-email-mugunthanvnm@ti.com>
+Subject: Re: [PATCH v4 3/3] ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
+Date: Mon, 19 Nov 2012 21:52:37 +0100
+Message-ID: <87zk2djox6.fsf@dell.be.48ers.dk>
+References: <1353338956-19420-1-git-send-email-zonque@gmail.com>
+	<1353338956-19420-4-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1352920080-6179-8-git-send-email-mugunthanvnm@ti.com> (Mugunthan
-	V. N.'s message of "Thu, 15 Nov 2012 00:38:00 +0530")
-Sender: netdev-owner@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com, Vaibhav Hiremath <hvaibhav@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:50841 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751624Ab2KSUwm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 15:52:42 -0500
+Received: by mail-wi0-f172.google.com with SMTP id hm9so321555wib.1
+        for <linux-omap@vger.kernel.org>; Mon, 19 Nov 2012 12:52:41 -0800 (PST)
+In-Reply-To: <1353338956-19420-4-git-send-email-zonque@gmail.com> (Daniel
+	Mack's message of "Mon, 19 Nov 2012 23:29:16 +0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
 
->>>>> "M" == Mugunthan V N <mugunthanvnm@ti.com> writes:
+>>>>> "D" == Daniel Mack <zonque@gmail.com> writes:
 
- M> Add CPSW and MDIO related device tree data for AM33XX.
- M> Also enable them into board/evm dts files by providing
- M> respective phy-id.
+Hi,
 
- M> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
- M> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
- M> Cc: Benoit Cousson <b-cousson@ti.com>
- M> Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
- M> Acked-by: Richard Cochran <richardcochran@gmail.com>
+ D> This patch adds basic DT bindings for OMAP GPMC.
+ D> The actual peripherals are instanciated from child nodes within the GPMC
 
- M> +++ b/arch/arm/boot/dts/am335x-bone.dts
- M> @@ -78,3 +78,11 @@
- M>  		};
- M>  	};
- M>  };
- M> +
- M> +&cpsw_emac0 {
- M> +	phy_id = <&davinci_mdio>, <0>;
- M> +};
- M> +
- M> +&cpsw_emac1 {
- M> +	phy_id = <&davinci_mdio>, <1>;
- M> +};
+s/instanciated/instantiated/
 
-I already acked this and the problem isn't caused by this patch itself,
-but it isn't really nice that you have to add a dummy emac1 even though
-only the first port is used on the bone.
+ D> node, and the only type of device that is currently supported is NAND.
 
-It would imho be nicer to get rid of the 'slaves' property in cpsw (just
-let the driver count available slave children), mark both slaves in
-am33xx.dtsi with status = 'disabled' and only loop over the available
-slaves in cpsw_probe_dt(), similar to E.G. how the uarts/i2c are handled.
+ D> Code was added to parse the generic GPMC timing parameters and some
+ D> documentation with examples on how to use them.
 
-Then am335x-bone.dts would just need to add:
+ D> Successfully tested on an AM33xx board.
 
-&cpsw_emac0 {
-    status = 'ok';
-    phy_id = <&davinci_mdio>, <0>;
-};
+ D> Signed-off-by: Daniel Mack <zonque@gmail.com>
+ D> ---
+ D>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  84 ++++++++++
+ D>  arch/arm/mach-omap2/gpmc.c                         | 170 +++++++++++++++++++++
+ D>  2 files changed, 254 insertions(+)
+ D>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
 
-I'll send a patch shortly to implement this.
+ D> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+ D> new file mode 100644
+ D> index 0000000..20aa5b9
+ D> --- /dev/null
+ D> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+ D> @@ -0,0 +1,84 @@
+ D> +Device tree bindings for GPMC connected NANDs
+ D> +
+ D> +GPMC connected NAND (found on OMAP boards) are represented as child nodes of
+ D> +the GPMC controller with a name of "nand".
+ D> +
+ D> +All timing relevant properties as well as generic gpmc child properties are
+ D> +explained in a separate documents - please refer to
+ D> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
+
+Which this patch seems to be missing?
 
 
- M> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
- M> index bb31bff..a4615b4 100644
- M> --- a/arch/arm/boot/dts/am33xx.dtsi
- M> +++ b/arch/arm/boot/dts/am33xx.dtsi
- M> @@ -210,5 +210,53 @@
- M>  			interrupt-parent = <&intc>;
- M>  			interrupts = <91>;
- M>  		};
- M> +
- M> +		mac: ethernet@4a100000 {
- M> +			compatible = "ti,cpsw";
- M> +			ti,hwmods = "cpgmac0";
- M> +			cpdma_channels = <8>;
- M> +			ale_entries = <1024>;
- M> +			bd_ram_size = <0x2000>;
- M> +			no_bd_ram = <0>;
- M> +			rx_descs = <64>;
- M> +			mac_control = <0x20>;
- M> +			slaves = <2>;
- M> +			cpts_active_slave = <0>;
- M> +			cpts_clock_mult = <0x80000000>;
- M> +			cpts_clock_shift = <29>;
- M> +			reg = <0x4a100000 0x800
- M> +			       0x4a101200 0x100>;
- M> +			#address-cells = <1>;
- M> +			#size-cells = <1>;
- M> +			interrupt-parent = <&intc>;
- M> +			/*
- M> +			 * c0_rx_thresh_pend
- M> +			 * c0_rx_pend
- M> +			 * c0_tx_pend
- M> +			 * c0_misc_pend
- M> +			 */
- M> +			interrupts = <40 41 42 43>;
- M> +			ranges;
- M> +
- M> +			davinci_mdio: mdio@4a101000 {
- M> +				compatible = "ti,davinci_mdio";
- M> +				#address-cells = <1>;
- M> +				#size-cells = <0>;
- M> +				ti,hwmods = "davinci_mdio";
- M> +				bus_freq = <1000000>;
- M> +				reg = <0x4a101000 0x100>;
- M> +			};
- M> +
- M> +			cpsw_emac0: slave@4a100200 {
- M> +				/* Filled in by U-Boot */
- M> +				mac-address = [ 00 00 00 00 00 00 ];
- M> +			};
- M> +
- M> +			cpsw_emac1: slave@4a100300 {
- M> +				/* Filled in by U-Boot */
- M> +				mac-address = [ 00 00 00 00 00 00 ];
- M> +			};
- M> +
- M> +		};
+ D> +
+ D> +For NAND specific properties such as ECC modes or bus width, please refer to
+ D> +Documentation/devicetree/bindings/mtd/nand.txt
+ D> +
+ D> +
+ D> +Required properties:
+ D> +
+ D> + - reg:		The CS line the peripheral is connected to
+ D> +
+ D> +Optional properties:
+ D> +
+ D> + - nand-bus-width: 		Set this numeric value to 16 if the hardware
+ D> +				is wired that way. If not specified, a bus
+ D> +				width of 8 is assumed.
+ D> + - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
+ D> +
+ D> +	Layouts for 1-bit ecc: stored at end of spare area:
+ D> +
+ D> +		"software"	Software method (default)
+ D> +		"hw"		Hardware method (let gpmc do the error detection)
+
+Nit: why are you spelling out 'software' when everything else is shortened?
+
+ D> +
+ D> +	Layouts for 1-bit ecc: stored at beginning of spare area as romcode:
+ D> +
+ D> +		"hw-romcode"	gpmc method & romcode layout
+ D> +		"bch4"		4-bit BCH ecc code
+ D> +		"bch8"		8-bit BCH ecc code
+ D> +
+
+These are not 1-bit - Well, romcode might be depending on SoC. Looking at
+omap2.c it seems to be an alias for hw, so that isn't really helpful on
+E.G. am33xx where you should select bch8 to have something compatible
+with the romcode.
+
+
+ D> + - ti,nand-ecc-use-elm:		Property without value to specify that the
+ D> +				hardware error correction mode should be used.
+
+It's called the error location module. Like you pointed out yourself,
+this property isn't really nice. I haven't looked at the elm bindings in
+detail, but couldn't the nand driver automatically use the elm if the
+device tree provides a node for it? Perhaps the elm should be a subnode
+of the nand one?
 
 -- 
 Bye, Peter Korsgaard
