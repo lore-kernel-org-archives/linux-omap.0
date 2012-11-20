@@ -1,71 +1,71 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: [PATCH v3 10/10] ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
-Date: Tue, 20 Nov 2012 10:33:51 +0530
-Message-ID: <1353387831-31538-11-git-send-email-avinashphilip@ti.com>
-References: <1353387831-31538-1-git-send-email-avinashphilip@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: Forward: [PATCH 146/493] ASoC: remove use of __devexit_p
+Date: Tue, 20 Nov 2012 15:30:08 +0900
+Message-ID: <20121120063006.GF10560@opensource.wolfsonmicro.com>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+ <1353349642-3677-146-git-send-email-wfp5p@virginia.edu>
+ <s5hehjordzj.wl%tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1353387831-31538-1-git-send-email-avinashphilip@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: thierry.reding@avionic-design.de, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com
-Cc: hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UBnjLfzoMQYIXCvq"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <s5hehjordzj.wl%tiwai@suse.de>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Bill Pemberton <wfp5p@virginia.edu>
+Cc: gregkh@linuxfoundation.org, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, M R Swami Reddy <mr.swami.reddy@ti.com>, Vishwas A Deshpande <vishwas.a.deshpande@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Eric Miao <eric.y.miao@gmail.com>, Russell King <linux@arm.linux.org.uk>, Haojian Zhuang <haojian.zhuang@gmail.com>, Philipp Zabel <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, alsa-devel@alsa-project.org, uclinux-dist-devel@blackfin.uclinux.org, device-drivers-devel@blackfin.uclinux.org, patches@opensource.wolfsonmicro.com, linuxppc-dev@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-PWM output from ecap0 uses as backlight source. Also adds low threshold
-value to have a uniform divisions in brightness-levels scales.
 
-Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
----
-:100644 100644 185d632... 9857050... M	arch/arm/boot/dts/am335x-evm.dts
- arch/arm/boot/dts/am335x-evm.dts |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+--UBnjLfzoMQYIXCvq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 185d632..9857050 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -18,6 +18,14 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- 
-+	am33xx_pinmux: pinmux@44e10800 {
-+		ecap0_pins: backlight_pins {
-+			pinctrl-single,pins = <
-+				0x164 0x0	/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
-+			>;
-+		};
-+	};
-+
- 	ocp {
- 		uart1: serial@44e09000 {
- 			status = "okay";
-@@ -31,6 +39,12 @@
- 				reg = <0x2d>;
- 			};
- 		};
-+
-+		ecap0: ecap@48300100 {
-+			status = "okay";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&ecap0_pins>;
-+		};
- 	};
- 
- 	vbat: fixedregulator@0 {
-@@ -40,6 +54,13 @@
- 		regulator-max-microvolt = <5000000>;
- 		regulator-boot-on;
- 	};
-+
-+	backlight {
-+		compatible	= "pwm-backlight";
-+		pwms = <&ecap0 0 50000 0>;
-+		brightness-levels = <0 51 53 56 62 75 101 152 255>;
-+		default-brightness-level = <8>;
-+	};
- };
- 
- /include/ "tps65910.dtsi"
--- 
-1.7.0.4
+On Tue, Nov 20, 2012 at 07:21:36AM +0100, Takashi Iwai wrote:
+> Yet another one for ASoC.
+
+> Date: Mon, 19 Nov 2012 13:21:35 -0500
+> From: Bill Pemberton <wfp5p@virginia.edu>
+> To: gregkh@linuxfoundation.org
+> Cc: Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, M R
+>  Swami Reddy <mr.swami.reddy@ti.com>, Vishwas A Deshpande
+>  <vishwas.a.deshpande@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>,
+>  Jarkko Nikula <jarkko.nikula@bitmer.com>, Eric Miao
+>  <eric.y.miao@gmail.com>, Russell King <linux@arm.linux.org.uk>, Haojian
+>  Zhuang <haojian.zhuang@gmail.com>, Philipp Zabel
+>  <philipp.zabel@gmail.com>, Paul Parsons <lost.distance@yahoo.com>, Ben
+>  Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>,
+>  alsa-devel@alsa-project.org, uclinux-dist-devel@blackfin.uclinux.org,
+>  device-drivers-devel@blackfin.uclinux.org,
+>  patches@opensource.wolfsonmicro.com, linuxppc-dev@lists.ozlabs.org,
+>  linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+>  linux-samsung-soc@vger.kernel.org
+
+This time you've got an extravagantly large CC list but not managed to
+CC the maintainers at all...  ho hum.  Anyway, this doesn't apply
+against current code due to the Atmel changes.  Please rebase against
+for-next (or ideally the topic branches) and resend.
+
+--UBnjLfzoMQYIXCvq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQqyNYAAoJELSic+t+oim95wYP/Ao+yLcsfcAssR0XvTqaJZGz
+9uN9W0/CIqqWsKUvEgDYrCF/alZdR7ardHD4EhfOe9CGSx1xpf9rQos7U1l5XyNr
+ASbvdsa5ftnSdsXcfrotuIPHyoD/7hwdZXcgxOy7JK3gJFIV/1ciXeN8sQr0zWU/
+kA+fZ0OFAd0Uj0+bSCVS7uKj56PTr+pXACc5bhX3HEhPyjdIh5XeJNcwRupu3R1M
+R7JqpM71NHfjfIHWOLLf3puuPCVGdvIpirsaWYB9RNhP4CxR9FhMmlOvWMEvv/OS
+mde/SG7drl6khu/BPadwL15DfWTqsT/as3KslhpmnaP3CeSwQ+ChrynduQaFN/RU
+GcGQjK5BAgJjYH8zlD13seI8OWRWCsZIIORuha+foSJKGd6lhMxfURdXdkXIk4U6
+7vihjewpOupG15/42MjLZRFsNpB5d3w200wV02qxInX5iEEHX8opg7EALgEj2jEc
+ruYzm2Uc9Eih1gX68JYxsrQUHv8efxeJh2T9+1N6fSK5INcAH9uq1EG8df5bgLWO
+P4hLj1OK7qSvoE6Fyw/eqejkdNUR+NDSmjwbLFRlHm+eXpC3m89J5dY8XmTwoaAr
+86SwZt1APBFYuB3/swbL/ldgZDsrmDmbeh7m1RqphfLPRJomx7UP8gHzG/o4VJ/G
+khn8xf+Xq3uFWG/DZOUu
+=sAw6
+-----END PGP SIGNATURE-----
+
+--UBnjLfzoMQYIXCvq--
