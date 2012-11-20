@@ -1,35 +1,67 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH v4 3/3] ARM: OMAP: gpmc: add DT bindings for GPMC
- timings and NAND
-Date: Tue, 20 Nov 2012 11:26:45 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9E94FE@DBDE01.ent.ti.com>
-References: <1353338956-19420-1-git-send-email-zonque@gmail.com>
- <1353338956-19420-4-git-send-email-zonque@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 3/3] pwm: New driver to support PWM driven LEDs on
+ TWL4030/6030 series of PMICs
+Date: Tue, 20 Nov 2012 12:54:11 +0100
+Message-ID: <50AB6F63.9040009@ti.com>
+References: <1353405382-9226-1-git-send-email-peter.ujfalusi@ti.com> <1353405382-9226-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45903 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818Ab2KTL1z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 06:27:55 -0500
-In-Reply-To: <1353338956-19420-4-git-send-email-zonque@gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1353405382-9226-4-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Tero Kristo <t-kristo@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>
 
-On Mon, Nov 19, 2012 at 20:59:16, Daniel Mack wrote:
-> This patch adds basic DT bindings for OMAP GPMC.
-> 
-...
+On 11/20/2012 10:56 AM, Peter Ujfalusi wrote:
+> The driver supports the following LED outputs as generic PWM driver:
+> TWL4030 LEDA and LEDB (PWMA and PWMB)
+> TWL6030 Charging indicator LED (PWM LED)
+>=20
+> On TWL6030 when the PWM requested LED is configured to be controlled =
+by SW.
+> In this case the user can enable/disable and set the duty period free=
+ly.
+> When the PWM has been freed, the LED driver is put back to HW control=
+=2E
+>=20
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/pwm/Kconfig       |  10 ++
+>  drivers/pwm/Makefile      |   1 +
+>  drivers/pwm/pwm-twl-led.c | 303 ++++++++++++++++++++++++++++++++++++=
+++++++++++
+>  3 files changed, 314 insertions(+)
+>  create mode 100644 drivers/pwm/pwm-twl-led.c
+
+=2E..
+
+> +static int twl4030_pwmled_config(struct pwm_chip *chip, struct pwm_d=
+evice *pwm,
+> +			      int duty_ns, int period_ns)
+> +{
+> +	int duty_cycle =3D DIV_ROUND_UP(duty_ns * TWL4030_LED_MAX, period_n=
+s);
+> +	u8 pwm_config[2] =3D {1, 0};
+> +	int base, ret;
 > +
-> +	if (of_get_property(child, "ti,nand-ecc-use-elm", NULL))
-> +		gpmc_nand_data->is_elm_used = 1;
+> +	/*
+> +	 * To configure the duty period:
+> +	 * On-cycle is set to 1 (the minimum allowed value)
+> +	 * The off time of 0 is not configurable, so the mapping is:
+> +	 * 0 -> off cycle =3D 2,
+> +	 * 1 -> off cycle =3D 2,
+> +	 * 2 -> off cycle =3D 3,
+> +	 * 125 - > off cycle 127,
+> +	 * 126 - > off cycle 1
 
-Can you set to bool value (true) here.
+Oh, I missed to save the updated comment before I commited the change.
+Can I just send and update patch instead of the whole series again?
 
-Thanks
-Avinash
+> +	 * When on cycle =3D=3D off cycle the PWM will be always on
+> +	 */
 
+
+--=20
+P=E9ter
