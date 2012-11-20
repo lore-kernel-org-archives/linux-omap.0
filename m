@@ -1,24 +1,58 @@
-From: Eric Miao <eric.y.miao@gmail.com>
-Subject: Re: [PATCH 484/493] arm: remove use of __devexit
-Date: Tue, 20 Nov 2012 15:24:25 +0800
-Message-ID: <CAMPhdO8z=XBJR-jWMHV0Uq_fAaSG9p1iuh_FYFrSdWnP8KBNDQ@mail.gmail.com>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu> <1353349642-3677-484-git-send-email-wfp5p@virginia.edu>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP: ads7846: fix pendown debounce setting
+Date: Tue, 20 Nov 2012 00:21:36 -0800
+Message-ID: <20121120082136.GB28115@core.coreip.homeip.net>
+References: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:44231 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513Ab2KTHYq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 02:24:46 -0500
-In-Reply-To: <1353349642-3677-484-git-send-email-wfp5p@virginia.edu>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:61517 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924Ab2KTIVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 03:21:41 -0500
+Content-Disposition: inline
+In-Reply-To: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Haojian Zhuang <haojian.zhuang@gmail.com>, Tony Lindgren <tony@atomide.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Nov 20, 2012 at 2:27 AM, Bill Pemberton <wfp5p@virginia.edu> wrote:
-> CONFIG_HOTPLUG is going away as an option so __devexit is no
-> longer needed.
->
+On Mon, Nov 19, 2012 at 06:03:56PM +0200, Igor Grinberg wrote:
+> Commit 97ee9f01 (ARM: OMAP: fix the ads7846 init code) have enabled the
+> pendown GPIO debounce time setting by the below sequence:
+> 
+>   gpio_request_one()
+>   gpio_set_debounce()
+>   gpio_free()
+> 
+> It also revealed a bug in the OMAP GPIO handling code which prevented
+> the GPIO debounce clock to be disabled and CORE transition to low power
+> states.
+> 
+> Commit c9c55d9 (gpio/omap: fix off-mode bug: clear debounce settings on
+> free/reset) fixes the OMAP GPIO handling code by making sure that the
+> GPIO debounce clock gets disabled if no GPIO is requested from current
+> bank.
+> 
+> While fixing the OMAP GPIO handling code (in the right way), the above
+> commit makes the gpio_request->set_debounce->free sequence invalid as
+> after freeing the GPIO, the debounce settings are lost.
+> 
+> This patch set:
+> 1) Adds the pendown GPIO debounce time setting to the platform data
+>    structure of the ads7846 driver.
+> 2) Fixes the OMAP platform code to pass the debounce time value
+>    to the driver instead of handling it by itself.
+> 
+> Igor Grinberg (2):
+>   ads7846: enable pendown GPIO debounce time setting
+>   ARM: OMAP: ads7846: fix pendown debounce setting
+> 
 
-Acked-by: Eric Miao <eric.y.miao@gmail.com>
+Makes sense to me. Tony, I have some stuff to push for 3.7 final, mind
+if I pick OMAP change as well?
+
+Thanks.
+
+-- 
+Dmitry
