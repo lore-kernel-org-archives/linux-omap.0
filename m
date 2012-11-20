@@ -1,31 +1,79 @@
-From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH 207/493] i2c: remove use of __devinit
-Date: Tue, 20 Nov 2012 09:20:46 +0100
-Message-ID: <20121120092046.24496415@endymion.delvare>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
-	<1353349642-3677-207-git-send-email-wfp5p@virginia.edu>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [RFC/RFT] OMAP: N770: remove custom implementation of
+ ads7846_get_pendown_state
+Date: Tue, 20 Nov 2012 00:30:53 -0800
+Message-ID: <20121120083052.GA29020@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1353349642-3677-207-git-send-email-wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Ben Dooks  <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rudolf Marek <r.marek-/xGekIyIa4Ap1Coe8Ar9gA@public.gmane.org>, Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>, Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, "Mark M. Hoffman" <mhoffman-xQSgfq/1h4JiLUuM0BA3LQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:37316 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752883Ab2KTIa5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 03:30:57 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so4111589pbc.19
+        for <linux-omap@vger.kernel.org>; Tue, 20 Nov 2012 00:30:57 -0800 (PST)
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
-Hi Bill,
+The default implementation matches exactly our custom one so we can switch
+to using the default one. As a bonus the driver will take care of setting
+GPIO line for us.
 
-On Mon, 19 Nov 2012 13:22:36 -0500, Bill Pemberton wrote:
-> CONFIG_HOTPLUG is going away as an option so __devinit is no longer
-> needed.
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
 
-Can you please point me/us to the discussion explaining the rationale
-behind this move, and the explanation of what will be done exactly?
-While I can easily understand that we want to drop CONFIG_HOTPLUG and
-always enable hot-plug support, I don't see where we are going with
-removing __devinit annotations and the like.
+No hardware so not tested...
 
-Thanks,
+Thanks!
+
+ arch/arm/mach-omap1/board-nokia770.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index 7d5c06d..be6490b 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -112,17 +112,6 @@ static void __init mipid_dev_init(void)
+ 	omapfb_set_lcd_config(&nokia770_lcd_config);
+ }
+ 
+-static void __init ads7846_dev_init(void)
+-{
+-	if (gpio_request(ADS7846_PENDOWN_GPIO, "ADS7846 pendown") < 0)
+-		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
+-}
+-
+-static int ads7846_get_pendown_state(void)
+-{
+-	return !gpio_get_value(ADS7846_PENDOWN_GPIO);
+-}
+-
+ static struct ads7846_platform_data nokia770_ads7846_platform_data __initdata = {
+ 	.x_max		= 0x0fff,
+ 	.y_max		= 0x0fff,
+@@ -131,7 +120,7 @@ static struct ads7846_platform_data nokia770_ads7846_platform_data __initdata =
+ 	.debounce_max	= 10,
+ 	.debounce_tol	= 3,
+ 	.debounce_rep	= 1,
+-	.get_pendown_state	= ads7846_get_pendown_state,
++	.gpio_pendown	= ADS7846_PENDOWN_GPIO,
+ };
+ 
+ static struct spi_board_info nokia770_spi_board_info[] __initdata = {
+@@ -241,7 +230,6 @@ static void __init omap_nokia770_init(void)
+ 	omap_serial_init();
+ 	omap_register_i2c_bus(1, 100, NULL, 0);
+ 	hwa742_dev_init();
+-	ads7846_dev_init();
+ 	mipid_dev_init();
+ 	omap1_usb_init(&nokia770_usb_config);
+ 	nokia770_mmc_init();
 -- 
-Jean Delvare
+1.7.11.7
+
+
+-- 
+Dmitry
