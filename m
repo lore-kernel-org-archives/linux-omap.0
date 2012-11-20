@@ -1,56 +1,60 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] fix compilation error in cm_common.c
-Date: Tue, 20 Nov 2012 10:52:55 +0100
-Message-ID: <50AB52F7.9000301@ti.com>
-References: <1353403553-13525-1-git-send-email-const@MakeLinux.com>
+Subject: [PATCH v3 0/3] pwm: Drivers for twl4030/6030 PWMs and LEDs
+Date: Tue, 20 Nov 2012 10:56:19 +0100
+Message-ID: <1353405382-9226-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56933 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751798Ab2KTJxG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Nov 2012 04:53:06 -0500
-In-Reply-To: <1353403553-13525-1-git-send-email-const@MakeLinux.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Tero Kristo <t-kristo@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Constantine Shulyupin <const@MakeLinux.com>
-Cc: paul@pwsan.com, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 11/20/2012 10:25 AM, Constantine Shulyupin wrote:
-> From: Constantine Shulyupin <const@MakeLinux.com>
->=20
-> Added required linux/errno.h
->=20
-> Signed-off-by: Constantine Shulyupin <const@MakeLinux.com>
+Hello,
 
-This supposed to be already fixed:
-https://patchwork.kernel.org/patch/1728521/
+Changes since v2:
+- New PWM cycle calculation for twl-pwm driver and twl4030's pwm-twl-led with
+  comment to document the expected behaviour.
 
-> ---
->  arch/arm/mach-omap2/cm_common.c |    1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/arch/arm/mach-omap2/cm_common.c b/arch/arm/mach-omap2/cm=
-_common.c
-> index 3246cef..3fafc27 100644
-> --- a/arch/arm/mach-omap2/cm_common.c
-> +++ b/arch/arm/mach-omap2/cm_common.c
-> @@ -13,6 +13,7 @@
-> =20
->  #include <linux/kernel.h>
->  #include <linux/init.h>
-> +#include <linux/errno.h>
-> =20
->  #include "cm2xxx.h"
->  #include "cm3xxx.h"
->=20
+Changes cince v1:
+- The turn on/off sequence has been corrected for twl4030 PWMs as suggested by
+  Grazvydas Ignotas
+- Comment section added to the new drivers to describe what they are controlling
 
+The series has been tested (with additional, pending patches):
+Zoom2 for twl4030 PWM0 (keypad light), PWM1 (LCD backlight)
+BeagleBoard for twl4030 LEDB (PWMB - pmu_stat led)
+OMAP4 Blaze (SDP4430) for twl6030 PWM1 (keypad light), PWM2 (LCD backlight) and
+LED (charging indication led).
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Intro mail from v1:
+
+The currently available pwm-twl6030.c driver only supports TWL6030's Charging
+indication LED.
+Remove this driver and add two new ones which implements support for all PWM
+driven outputs:
+pwm-twl driver supports twl4030 (PWM 0/1) and twl6030 (PWM 1/2) instances
+pwm-twl-led driver supports twl4030 (PWM driven LED A/B ports) and twl6030's
+Charging indication LED (PWM driven).
+
+Regards,
+Peter
+---
+Peter Ujfalusi (3):
+  pwm: Remove pwm-twl6030 driver
+  pwm: New driver to support PWMs on TWL4030/6030 series of PMICs
+  pwm: New driver to support PWM driven LEDs on TWL4030/6030 series of
+    PMICs
+
+ drivers/pwm/Kconfig       |  19 ++-
+ drivers/pwm/Makefile      |   3 +-
+ drivers/pwm/pwm-twl-led.c | 303 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/pwm/pwm-twl.c     | 330 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pwm/pwm-twl6030.c | 184 --------------------------
+ 5 files changed, 650 insertions(+), 189 deletions(-)
+ create mode 100644 drivers/pwm/pwm-twl-led.c
+ create mode 100644 drivers/pwm/pwm-twl.c
+ delete mode 100644 drivers/pwm/pwm-twl6030.c
+
+-- 
+1.8.0
