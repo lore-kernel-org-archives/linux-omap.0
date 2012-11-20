@@ -1,46 +1,84 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC] Device Tree Overlays Proposal (Was Re: capebus moving omap_devices to mach-omap2)
-Date: Tue, 20 Nov 2012 17:09:39 +0000
-Message-ID: <20121120170939.4F0043E102F@localhost>
-References: <CACxGe6vu8ek7-K-yDDMXyg9x-oKiFt_cSz+Pz-yZf5U5vwe=0g@mail.gmail.com> <50999145.2070306@wwwdotorg.org> <CACxGe6v=+8UKerzp9z5cZo6TbXJQ4Nb=fpKgfkuvib_B-BoVdw@mail.gmail.com> <509D9089.7020407@wwwdotorg.org> <20121117222718.GF31527@game.jcrosoft.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121117222718.GF31527@game.jcrosoft.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Stephen Warren <swarren@wwwdotorg.org>
-Cc: Kevin Hilman <khilman@ti.com>, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, linux-kernel <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Deepak Saxena <dsaxena@linaro.org>, Scott Wood <scottwood@freescale.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+From: Igor Mazanov <i.mazanov@gmail.com>
+Subject: Re: [PATCH] OMAP2+: enable TPS65217 support in omap2plus_defconfig
+Date: Tue, 20 Nov 2012 20:10:04 +0300
+Message-ID: <CAK0ocyD+N7t5Tm38p3Qt6fNSUEHuL-=_Pw7twDVPbDJ81K3-Xg@mail.gmail.com>
+References: <50AA1BD5.1000002@gmail.com>
+	<331ABD5ECB02734CA317220B2BBEABC13EA76FDB@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:33185 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753625Ab2KTRKF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 12:10:05 -0500
+Received: by mail-pa0-f46.google.com with SMTP id bh2so1396144pad.19
+        for <linux-omap@vger.kernel.org>; Tue, 20 Nov 2012 09:10:04 -0800 (PST)
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA76FDB@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sat, 17 Nov 2012 23:27:18 +0100, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com> wrote:
-> On 16:23 Fri 09 Nov     , Stephen Warren wrote:
-> > On 11/09/2012 09:28 AM, Grant Likely wrote:
-> > However, I think the process for an end-user needs to be as simple as
-> > "drop this .dts/.dtb file into some standard directory", and I imagine
-> > it'll be much easier for distros/... to make that process work if
-> > they're dealing with a .dtb that they can just blast into the kernel's
-> > firmware loader interface, rather than having to also locate the
-> > base-board .dts/.dtb file, and run dtc and/or other tools on both .dts
-> > files together.
-> I've exactly the same issue on Calao or the new atmel boards
-> 
-> We have lego boards
-> 
-> with different cpu-modues running on differetn mother boards with
-> diferrentdaugther boards
-> 
-> on atmel we are lucky enough we can identity via 1-wire all of them but
-> on Calao no
-> 
-> On Somfy platform we can detect hardware version and need different pinctrl
-> 
-> So personally I'll prefer to be able to request dtb from the kernel or push
-> them from the userspace as it will depends where you will detect the hardware
-> present
-> 
-> The main concern will which part of the kenel will now handle hw detection?
+On Tue, Nov 20, 2012 at 2:15 PM, AnilKumar, Chimata <anilkumar@ti.com> wrote:
+> On Mon, Nov 19, 2012 at 17:15:25, Igor Mazanov wrote:
+>> TPS65217 is described in arch/arm/boot/dts/am335x-bone.dts
+>> but doesn't enabled in arch/arm/configs/omap2plus_defconfig.
+>>
+>> Enable TPS65217 support in omap2plus_defconfig.
+>>
+>> Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
+>> ---
+>>   arch/arm/configs/omap2plus_defconfig |    3 +++
+>>   1 files changed, 3 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/configs/omap2plus_defconfig
+>> b/arch/arm/configs/omap2plus_defconfig
+>> index 6230304..00f2ce3 100644
+>> --- a/arch/arm/configs/omap2plus_defconfig
+>> +++ b/arch/arm/configs/omap2plus_defconfig
+>> @@ -240,3 +240,6 @@ CONFIG_CRC_ITU_T=y
+>>   CONFIG_CRC7=y
+>>   CONFIG_LIBCRC32C=y
+>>   CONFIG_SOC_OMAP5=y
+>> +CONFIG_MFD_CORE=y
+>> +CONFIG_MFD_TPS65217=y
+>> +CONFIG_REGULATOR_TPS65217=y
+>
+> Hi Igor,
+>
+> Can you try this, MFD_CORE is selected by default and note that
+> remaining flags should be added at appropriate places.
+>
+> Author: AnilKumar Ch <anilkumar@ti.com>
+> Date:   Tue Nov 20 15:34:51 2012 +0530
+>
+>     Custom: ARM: OMAP2+: omap2plus_defconfig: Add tps65217 support
+>
+>     Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+>
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 6230304..69ddbf7 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -132,9 +132,11 @@ CONFIG_POWER_SUPPLY=y
+>  CONFIG_WATCHDOG=y
+>  CONFIG_OMAP_WATCHDOG=y
+>  CONFIG_TWL4030_WATCHDOG=y
+> +CONFIG_MFD_TPS65217=y
+>  CONFIG_REGULATOR_TWL4030=y
+>  CONFIG_REGULATOR_TPS65023=y
+>  CONFIG_REGULATOR_TPS6507X=y
+> +CONFIG_REGULATOR_TPS65217=y
+>  CONFIG_FB=y
+>  CONFIG_FIRMWARE_EDID=y
+>  CONFIG_FB_MODE_HELPERS=y
+>
 
-Along the lines of what you said above, it will depend on the board. If
-the board /can/ be detected, then the kernel should do so and request
-the appropriate configuration. If it cannot, then it simply must be left
-up to either userspace or something explicit in the boot devicetree.
+OK, I made changes as you say and it works. Thanks for a tip about
+default selection of CONFIG_MFD.
 
-g.
+Regards,
+Igor.
+
+> Thanks
+> AnilKumar
