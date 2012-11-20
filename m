@@ -1,7 +1,7 @@
 From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 5/5] ARM: OMAP2+: omap2plus_defconfig: Enable RTC support
-Date: Tue, 20 Nov 2012 15:18:47 +0530
-Message-ID: <1353404927-14412-6-git-send-email-anilkumar@ti.com>
+Subject: [PATCH v3 2/5] mfd: tps65217: Set PMIC to shutdown on PWR_EN toggle
+Date: Tue, 20 Nov 2012 15:18:44 +0530
+Message-ID: <1353404927-14412-3-git-send-email-anilkumar@ti.com>
 References: <1353404927-14412-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,29 +19,82 @@ Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06c
 Sender: "devicetree-discuss"
  <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 To: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-AM33XX family of devices uses RTC module, one has to manually enable
-this support to use RTC features. So this patch enable RTC driver in
-omap2plus_defconfig.
+From: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
 
+Set tps65217 PMIC status to OFF if power enable toggle is supported.
+By setting this bit to 1 to enter PMIC to OFF state when PWR_EN pin
+is pulled low. Also adds a DT flag to specify that device pmic
+supports shutdown control or not.
+
+Signed-off-by: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
+[anilkumar-l0cyMroinI0@public.gmane.org: move the additions to tps65217 MFD driver]
 Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/configs/omap2plus_defconfig |    1 +
- 1 file changed, 1 insertion(+)
+ .../devicetree/bindings/regulator/tps65217.txt     |    4 ++++
+ drivers/mfd/tps65217.c                             |   12 ++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index a4b330e..8839ac9 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -194,6 +194,7 @@ CONFIG_SDIO_UART=y
- CONFIG_MMC_OMAP=y
- CONFIG_MMC_OMAP_HS=y
- CONFIG_RTC_CLASS=y
-+CONFIG_RTC_DRV_OMAP=y
- CONFIG_RTC_DRV_TWL92330=y
- CONFIG_RTC_DRV_TWL4030=y
- CONFIG_DMADEVICES=y
+diff --git a/Documentation/devicetree/bindings/regulator/tps65217.txt b/Documentation/devicetree/bindings/regulator/tps65217.txt
+index d316fb8..4f05d20 100644
+--- a/Documentation/devicetree/bindings/regulator/tps65217.txt
++++ b/Documentation/devicetree/bindings/regulator/tps65217.txt
+@@ -11,6 +11,9 @@ Required properties:
+   using the standard binding for regulators found at
+   Documentation/devicetree/bindings/regulator/regulator.txt.
+ 
++Optional properties:
++- ti,pmic-shutdown-controller: Telling the PMIC to shutdown on PWR_EN toggle.
++
+   The valid names for regulators are:
+   tps65217: dcdc1, dcdc2, dcdc3, ldo1, ldo2, ldo3 and ldo4
+ 
+@@ -20,6 +23,7 @@ Example:
+ 
+ 	tps: tps@24 {
+ 		compatible = "ti,tps65217";
++		ti,pmic-shutdown-controller;
+ 
+ 		regulators {
+ 			dcdc1_reg: dcdc1 {
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+index 3fb32e6..c7f17d8 100644
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -160,6 +160,7 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 	unsigned int version;
+ 	unsigned int chip_id = ids->driver_data;
+ 	const struct of_device_id *match;
++	bool status_off = false;
+ 	int ret;
+ 
+ 	if (client->dev.of_node) {
+@@ -170,6 +171,8 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 			return -EINVAL;
+ 		}
+ 		chip_id = (unsigned int)match->data;
++		status_off = of_property_read_bool(client->dev.of_node,
++					"ti,pmic-shutdown-controller");
+ 	}
+ 
+ 	if (!chip_id) {
+@@ -207,6 +210,15 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
++	/* Set the PMIC to shutdown on PWR_EN toggle */
++	if (status_off) {
++		ret = tps65217_set_bits(tps, TPS65217_REG_STATUS,
++				TPS65217_STATUS_OFF, TPS65217_STATUS_OFF,
++				TPS65217_PROTECT_NONE);
++		if (ret)
++			dev_warn(tps->dev, "unable to set the status OFF\n");
++	}
++
+ 	dev_info(tps->dev, "TPS65217 ID %#x version 1.%d\n",
+ 			(version & TPS65217_CHIPID_CHIP_MASK) >> 4,
+ 			version & TPS65217_CHIPID_REV_MASK);
 -- 
 1.7.9.5
