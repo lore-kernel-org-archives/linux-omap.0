@@ -1,83 +1,56 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: HDMI: Rearrange platform devices for
- ASoC drivers
-Date: Tue, 20 Nov 2012 10:15:28 +0900
-Message-ID: <20121120011526.GF4483@opensource.wolfsonmicro.com>
-References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com>
- <1353029819-21809-3-git-send-email-ricardo.neri@ti.com>
- <50A5F0A5.2010105@ti.com>
- <50A6805C.3050004@ti.com>
- <50AA2D01.5020302@ti.com>
+Subject: Re: [PATCH 205/493] gpio: remove use of __devinit
+Date: Tue, 20 Nov 2012 10:33:06 +0900
+Message-ID: <20121120013304.GM4483@opensource.wolfsonmicro.com>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+ <1353349642-3677-205-git-send-email-wfp5p@virginia.edu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E7i4zwmWs5DOuDSH"
+	protocol="application/pgp-signature"; boundary="2YJj5f1P6Th4nBRw"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:41524 "EHLO
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:56976 "EHLO
 	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751786Ab2KTBPh (ORCPT
+	by vger.kernel.org with ESMTP id S1751987Ab2KTBdP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Nov 2012 20:15:37 -0500
+	Mon, 19 Nov 2012 20:33:15 -0500
 Content-Disposition: inline
-In-Reply-To: <50AA2D01.5020302@ti.com>
+In-Reply-To: <1353349642-3677-205-git-send-email-wfp5p@virginia.edu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ricardo Neri <ricardo.neri@ti.com>, tony@atomide.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Bill Pemberton <wfp5p@virginia.edu>
+Cc: gregkh@linuxfoundation.org, Kevin Hilman <khilman@ti.com>, Linus Walleij <linus.walleij@linaro.org>, patches@opensource.wolfsonmicro.com, Grant Likely <grant.likely@secretlab.ca>, Peter Tyser <ptyser@xes-inc.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, device-drivers-devel@blackfin.uclinux.org, linux-omap@vger.kernel.org
 
 
---E7i4zwmWs5DOuDSH
+--2YJj5f1P6Th4nBRw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Nov 19, 2012 at 02:58:41PM +0200, Tomi Valkeinen wrote:
+On Mon, Nov 19, 2012 at 01:22:34PM -0500, Bill Pemberton wrote:
+> CONFIG_HOTPLUG is going away as an option so __devinit is no longer
+> needed.
 
-> I still don't understand why the codec and machine drivers need to be
-> created in the board file. That just forces us to replicate the same
-> code for all OMAP boards that have OMAP HDMI output. Why not create the
-> devices in some common code, for example arch/arm/mach-omap2/display.c?
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Yes, this would be more sensible if there's no board specifics involved.
-
-> With DT this should be similar: OMAP's hdmi devices should be presented
-> in the omap4.dtsi file, not in each individual board dts. Although the
-> DT data should represent the hardware, and if the code and machine
-> devices are not really there in the HW, then... I don't know =).
-
-Well, in a case like this where the sound card is essentially autoprobed
-based on the detection of the hardware at runtime the sound card
-probably shouldn't appear in the device tree at all - you'll probably
-want something to say there's a physical HDMI port it's worth looking at
-there but everything else should be figured out at runtime.
-
-> And something that confuses me: sound/soc/codecs/omap-hdmi.c contains a
-> codec and dai drivers, but sound/soc/omap/omap-hdmi.c also contains a
-> dai driver. The latter actually contains two dai drivers, the other a
-> platform driver and the other a snd_soc_dai_driver. But I guess this is
-> asoc details, and not relevant to this disuccsion =).
-
-There's an interaface on each end of the link, they're wired together to
-communicate between the two devices.
-
---E7i4zwmWs5DOuDSH
+--2YJj5f1P6Th4nBRw
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQqtl1AAoJELSic+t+oim9GfMP/3pRzznJdkqaNDCa2lLUVmXI
-Suy72Ie0YPrH5OudC6gyDH5TYs/RT6GzFlLr/6Ky3/xpV/RkZySb0Ac7MGKpTE52
-tJhjdTz+PoXxxBLRJUrM/SYyZ8vSKJRDx7bklnQcjqeuPTPcaahXhHkvftPk5+9c
-opYx9f0qgbEi5mklkF+PKSl1kQu2MbMSoP20gkt6kcD0qkdUpNMO9sBdNhrIt7Bf
-D60iZi/WHJEYPnsoBptlDeFzvqDmLR/LQIPLdgOj1ThdHS8PTIKHW8OprQyX2Qhx
-rpdSXu3B2QUt76Zd/0lNnfbuvZrSmyKLlFGCFZ4P1OgQTv+01MkrddJuLxoIfkhW
-yo5Kj20Hr2d4at5tDFUaQo5rc0UbB1/8I6YGcJwYlUv2aheis/x/i9hY8LL5Jnu5
-xdaZ777H/lmOD+6GRI1RltABAhdShxAsTJJWgvekEgh7mL0lR7u/3KDFHrirnm6w
-lefpLwVa3rfBxsfoK/eAPbCxJGZo1ItPHRku5zFXAS09Q7ufS+fC72I6S7ISzx+o
-czVF0vPoPWnoqxilCWXa8F56fBUVzpPlgRRe4okya0P4FJvs9/5+GuWUJtbYo5ZU
-f0HCFIFqoUac4nfoosGxq6Ye1lyHl1d168egl2ZDR4rLRyPVFkcmnXfhjmG9Vzw0
-gcfQqTIvS2tV+4hR6jMX
-=uIlM
+iQIcBAEBAgAGBQJQqt3IAAoJELSic+t+oim9D9UP+wUV4vR/oZACNxW5q56kjCpr
+612yCmZcINvUioR59u4f0MCd0oW9YJJF0bINVhFxbXxT28r6GHJdZKj5hIp3rfCM
+XrLJkyH5VHBDifmU6aA/u1bdGz+lufdZkbBaReEErPCcSJsZSU3N6iVXpLIRTVPn
+914uNtW0gv2Z5u41czvBx6w2DUO0HjGqpzLdyyyisVS+szfOTzyykqGHmVm5aXIY
+/bSLYrV3gbHdIpTCUFTziZIgxLoEsMHD+TML/gGruDg6HuNkxhz4kjeuIdPGfWbt
+ReFExNt0sXjYuZi6tyv2Em7EktQHszdVHypclrkZZMcXJkcvRKmHaVF3gTgSShJ6
+nl+wDOX3lCpC7J9tIDDbVudJD6NVskwiFCqGTVCbE9XxoWk84SB8qjgrR56kVzRQ
+heA/3AbRjI4BF+kbA/Y80R2ZVEJ7bu6fM8WutkVRSBNQYe0aMqewLURkLKQF/7nh
+LgAR/gyJzihoDGTeddKtTYkprlAfyzhCpoqs4mwnGPbLrQnJB9CEinCQUWyr2yFL
+dIrl3QdNn9yIRUqxSxxJXe4RkD2/nkatvU/KtOCf6iA2kWI847M5BSQBXF4Ce99I
+Y2lgDzJ5fkWJTkLp+QzXasO1IYj9EAzgu+l0Ykoxf1N6F+jEMFIW2jvHw8astULK
+lSR5og4FIZ+LW2shgHzD
+=p6uz
 -----END PGP SIGNATURE-----
 
---E7i4zwmWs5DOuDSH--
+--2YJj5f1P6Th4nBRw--
