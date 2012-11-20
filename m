@@ -1,53 +1,115 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 3/3] ARM: dts: AM33XX: Add memory resource to d_can node
-Date: Tue, 20 Nov 2012 10:23:57 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA7701D@DBDE01.ent.ti.com>
+From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH 3/3] ARM: dts: AM33XX: Add memory resource to d_can node
+Date: Tue, 20 Nov 2012 11:26:32 +0100
+Message-ID: <50AB5AD8.7060407@pengutronix.de>
 References: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
  <1352916505-12343-4-git-send-email-anilkumar@ti.com>
  <50AB57B0.7040502@pengutronix.de>
+ <331ABD5ECB02734CA317220B2BBEABC13EA7701D@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <50AB57B0.7040502@pengutronix.de>
-Content-Language: en-US
-Sender: linux-can-owner@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+Content-Type: multipart/mixed; boundary="===============8416709783757059190=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA7701D-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 20, 2012 at 15:43:04, Marc Kleine-Budde wrote:
-> On 11/14/2012 07:08 PM, AnilKumar Ch wrote:
-> > Add a new address space/memory resource to d_can device tree node. D_CAN
-> > RAM initialization is achieved through RAMINIT register which is part of
-> > AM33XX control module address space. D_CAN RAM init or de-init should be
-> > done by writing instance corresponding value to control module register.
-> > 
-> > Till we have a separate control module driver to write to control module,
-> > d_can driver will handle the register writes to control module by itself.
-> > So a new address space to represent this control module register is added
-> > to d_can driver.
-> > 
-> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> 
-> This does not apply to net-next/master:
-> 
-> Applying: ARM: dts: AM33XX: Add memory resource to d_can node
-> error: patch failed: arch/arm/boot/dts/am33xx.dtsi:227
-> error: arch/arm/boot/dts/am33xx.dtsi: patch does not apply
-> Patch failed at 0003 ARM: dts: AM33XX: Add memory resource to d_can node
-> 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============8416709783757059190==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig6F01BE00FA6B8D1ECFF72EF9"
 
-Marc,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig6F01BE00FA6B8D1ECFF72EF9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Sorry about this DT changes are present in linux-omap.
+On 11/20/2012 11:23 AM, AnilKumar, Chimata wrote:
+> On Tue, Nov 20, 2012 at 15:43:04, Marc Kleine-Budde wrote:
+>> On 11/14/2012 07:08 PM, AnilKumar Ch wrote:
+>>> Add a new address space/memory resource to d_can device tree node. D_=
+CAN
+>>> RAM initialization is achieved through RAMINIT register which is part=
+ of
+>>> AM33XX control module address space. D_CAN RAM init or de-init should=
+ be
+>>> done by writing instance corresponding value to control module regist=
+er.
+>>>
+>>> Till we have a separate control module driver to write to control mod=
+ule,
+>>> d_can driver will handle the register writes to control module by its=
+elf.
+>>> So a new address space to represent this control module register is a=
+dded
+>>> to d_can driver.
+>>>
+>>> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+>>
+>> This does not apply to net-next/master:
+>>
+>> Applying: ARM: dts: AM33XX: Add memory resource to d_can node
+>> error: patch failed: arch/arm/boot/dts/am33xx.dtsi:227
+>> error: arch/arm/boot/dts/am33xx.dtsi: patch does not apply
+>> Patch failed at 0003 ARM: dts: AM33XX: Add memory resource to d_can no=
+de
+>>
+>=20
+> Marc,
+>=20
+> Sorry about this DT changes are present in linux-omap.
+>=20
+> Could you please take the driver changes only and ACK on remaining will=
 
-Could you please take the driver changes only and ACK on remaining will
-help.
+> help.
 
-Tony/Benoit,
+Will do - I'm currently looking at the driver.
 
-Could you please take dt patches in this series to linux-omap?
+Marc
 
-Thanks
-AnilKumar
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--------------enig6F01BE00FA6B8D1ECFF72EF9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iEYEARECAAYFAlCrWtwACgkQjTAFq1RaXHOcCQCfe8QMGgUHyTuTkT9wobvAUBMM
+aa8An0escyK3mjpJiG5ygWYuOOOtPX9P
+=jgmc
+-----END PGP SIGNATURE-----
+
+--------------enig6F01BE00FA6B8D1ECFF72EF9--
+
+--===============8416709783757059190==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============8416709783757059190==--
