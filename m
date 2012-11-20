@@ -1,54 +1,39 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH 119/493] usb: remove use of __devexit_p
-Date: Tue, 20 Nov 2012 15:02:04 +0100
-Message-ID: <87r4nojrtv.fsf@dell.be.48ers.dk>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
-	<1353349642-3677-119-git-send-email-wfp5p@virginia.edu>
-	<50AB4D90.4080907@atmel.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [RFC/RFT] OMAP: N770: remove custom implementation of
+ ads7846_get_pendown_state
+Date: Tue, 20 Nov 2012 16:43:34 +0200
+Message-ID: <20121120144333.GA20727@blackmetal.musicnaut.iki.fi>
+References: <20121120083052.GA29020@core.coreip.homeip.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <50AB4D90.4080907@atmel.com> (Nicolas Ferre's message of "Tue, 20
-	Nov 2012 10:29:52 +0100")
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Bill Pemberton <wfp5p@virginia.edu>, gregkh@linuxfoundation.org, Kukjin Kim <kgene.kim@samsung.com>, Wan ZongShun <mcuos.com@gmail.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Ben Dooks <ben-linux@fluff.org>, Li Yang <leoli@freescale.com>, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:60048 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab2KTOni (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 09:43:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20121120083052.GA29020@core.coreip.homeip.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
->>>>> "Nicolas" == Nicolas Ferre <nicolas.ferre@atmel.com> writes:
+Hi,
 
- Nicolas> On 11/19/2012 07:21 PM, Bill Pemberton :
- >> CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
- >> needed.
- >> 
- >> Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
- >> Cc: Peter Korsgaard <jacmet@sunsite.dk> 
- >> Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com> 
- >> Cc: Felipe Balbi <balbi@ti.com> 
- >> Cc: Li Yang <leoli@freescale.com> 
- >> Cc: Alan Stern <stern@rowland.harvard.edu> 
- >> Cc: Wan ZongShun <mcuos.com@gmail.com> 
- >> Cc: Ben Dooks <ben-linux@fluff.org> 
- >> Cc: Kukjin Kim <kgene.kim@samsung.com> 
- >> Cc: linux-usb@vger.kernel.org 
- >> Cc: linux-omap@vger.kernel.org 
- >> Cc: linuxppc-dev@lists.ozlabs.org 
- >> Cc: linux-arm-kernel@lists.infradead.org 
- >> Cc: linux-samsung-soc@vger.kernel.org 
+On Tue, Nov 20, 2012 at 12:30:53AM -0800, Dmitry Torokhov wrote:
+> The default implementation matches exactly our custom one so we can switch
+> to using the default one. As a bonus the driver will take care of setting
+> GPIO line for us.
+> 
+> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> ---
+> 
+> No hardware so not tested...
 
- Nicolas> [..]
+This seems to work.
 
- >> drivers/usb/host/ehci-atmel.c        | 2 +-
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
- >> drivers/usb/host/ohci-at91.c         | 2 +-
+A minor nitpick, the board is just 770 not N770. :-)
 
- Nicolas> For Atmel:
-
- Nicolas> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-
-For c67x00 and g_hid:
-
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
-
--- 
-Bye, Peter Korsgaard
+A.
