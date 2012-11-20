@@ -1,42 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 0/6] Move rest of omap-iommu to live in drivers/iommu
-Date: Tue, 20 Nov 2012 12:00:53 -0800
-Message-ID: <20121120200051.GN18567@atomide.com>
-References: <20121102192221.4253.34303.stgit@muffinssi.local>
- <CAK=WgbYR8UMyDjySJLRC0tEbJO3FaFgjWxceNwMyVdMgEgwPig@mail.gmail.com>
- <CALLhW=5WNg8X0nX8U+AExocyNKW=wJ7oS36xg4ENMnfyJkX8RQ@mail.gmail.com>
- <20121112220033.GO6801@atomide.com>
- <20121117121021.GS25742@8bytes.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 159/493] usb: remove use of __devinit
+Date: Tue, 20 Nov 2012 16:44:13 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211201642540.1692-100000@iolanthe.rowland.org>
+References: <1353349642-3677-159-git-send-email-wfp5p@virginia.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121117121021.GS25742@8bytes.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:42297 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751754Ab2KTVoO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 16:44:14 -0500
+In-Reply-To: <1353349642-3677-159-git-send-email-wfp5p@virginia.edu>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Bill Pemberton <wfp5p@virginia.edu>
+Cc: gregkh@linuxfoundation.org, Peter Korsgaard <jacmet@sunsite.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Li Yang <leoli@freescale.com>, Geoff Levand <geoff@infradead.org>, Wan ZongShun <mcuos.com@gmail.com>, Olav Kongas <ok@artecdesign.ee>, Lennert Buytenhek <kernel@wantstofly.org>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, cbe-oss-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-samsung-soc@vger.kernel.org
 
-* Joerg Roedel <joro@8bytes.org> [121117 04:12]:
-> On Mon, Nov 12, 2012 at 02:00:34PM -0800, Tony Lindgren wrote:
-> > Assuming Joerg is OK with these changes, I can push them into
-> > an immutable branch that Joerg can merge in as needed.
-> > 
-> > Further patches on top of this series can then be queued by
-> > Joerg as arch/arm/*omap* and me are then out of the way of
-> > iommu development.
+On Mon, 19 Nov 2012, Bill Pemberton wrote:
+
+> CONFIG_HOTPLUG is going away as an option so __devinit is no longer
+> needed.
 > 
-> Okay, from my side:
-> 
-> Acked-by: Joerg Roedel <joro@8bytes.org>
-> 
-> Please let me know which branch I need to pull into my tree when you
-> merged these patches.
+> Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
 
-Thanks, I've pushed it out to omap-for-v3.8/cleanup-headers-iommu at
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-so you can merge it into the iommu tree.
+For all the __devinit* annotations and all the EHCI, OHCI, and UHCI 
+drivers:
 
-Regards,
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
-Tony
