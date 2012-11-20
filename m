@@ -1,48 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] pwm: pwm-twl-led: Correct comment for cycle configuration
-Date: Tue, 20 Nov 2012 13:05:48 +0100
-Message-ID: <1353413148-5319-1-git-send-email-peter.ujfalusi@ti.com>
+From: "Kasatkin, Dmitry" <dmitry.kasatkin@intel.com>
+Subject: Re: [PATCH 0/7] crypto: omap-aes updates
+Date: Tue, 20 Nov 2012 14:08:26 +0200
+Message-ID: <CALLzPKZ20iQXGw9k4sxiVW0VOTdV5pw6Gz8W8V4SRpe=qVY+4w@mail.gmail.com>
+References: <1353351832-6685-1-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Tero Kristo <t-kristo@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga05.intel.com ([192.55.52.89]:51272 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753196Ab2KTMI2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 07:08:28 -0500
+Received: by mail-vb0-f70.google.com with SMTP id fo1so10026845vbb.1
+        for <linux-omap@vger.kernel.org>; Tue, 20 Nov 2012 04:08:26 -0800 (PST)
+In-Reply-To: <1353351832-6685-1-git-send-email-mgreer@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com
 
-The original commit was not documenting correctly the behavior of the cycle
-configuration.
+Great. You also worked on AES...
+Will take a loos asap.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
-
-Hi Thierry,
-
-small update to the new pwm-twl-led driver to correct the comment describing the
-cycle configuration for the PWMA/B of TWL4030.
-The update is on top of v3 of the twl pwm series:
-https://lkml.org/lkml/2012/11/20/193
-
-Regards,
-Peter
-
- drivers/pwm/pwm-twl-led.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/pwm/pwm-twl-led.c b/drivers/pwm/pwm-twl-led.c
-index 9468720..e62b95e 100644
---- a/drivers/pwm/pwm-twl-led.c
-+++ b/drivers/pwm/pwm-twl-led.c
-@@ -73,8 +73,8 @@ static int twl4030_pwmled_config(struct pwm_chip *chip, struct pwm_device *pwm,
- 	 * 0 -> off cycle = 2,
- 	 * 1 -> off cycle = 2,
- 	 * 2 -> off cycle = 3,
--	 * 125 - > off cycle 127,
--	 * 126 - > off cycle 1
-+	 * 126 - > off cycle 127,
-+	 * 127 - > off cycle 1
- 	 * When on cycle == off cycle the PWM will be always on
- 	 */
- 	duty_cycle += 1;
--- 
-1.8.0
+On Mon, Nov 19, 2012 at 9:03 PM, Mark A. Greer <mgreer@animalcreek.com> wrote:
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+>
+> This series updates the crypto omap-aes driver and supporting
+> infrastructure.
+>
+> Notes:
+>
+> a) Based on omap-sham patches recently submitted, XXX
+>
+> b) Since these patches will likely go though the OMAP tree (and not
+>    through the crypto tree), it would be nice if the crypto guy(s)
+>    would ACK or NACK patches 4-7 which modify the
+>    drivers/crypto/omap-sham.c driver.
+>
+> c) These have only been tested on an omap2420 h4 and an am37x evm.
+>
+> d) Many thanks to Jon Hunter for testing on his omap2420 h4.
+>
+> Mark A. Greer (7):
+>   ARM: OMAP2xxx: hwmod: Convert AES crypto devcie data to hwmod
+>   ARM: OMAP3xxx: hwmod: Convert AES crypto device data to hwmod
+>   ARM: OMAP2+: Remove unnecessary message when no AES IP is present
+>   crypto: omap-aes: Remove cpu_is/omap_type check from driver
+>   crypto: omap-aes: Convert to use pm_runtime API
+>   crypto: omap-aes: Add code to use dmaengine API
+>   crypto: omap-aes: Remove usage of private DMA API
+>
+>  arch/arm/mach-omap2/clock2430_data.c               |   1 +
+>  arch/arm/mach-omap2/clock3xxx_data.c               |   1 +
+>  arch/arm/mach-omap2/devices.c                      |  75 +-------
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   1 +
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   1 +
+>  .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  18 ++
+>  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  38 ++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  62 +++++++
+>  arch/arm/mach-omap2/omap_hwmod_common_data.h       |   2 +
+>  drivers/crypto/omap-aes.c                          | 202 ++++++++++++---------
+>  10 files changed, 251 insertions(+), 150 deletions(-)
+>
+> --
+> 1.7.12
+>
