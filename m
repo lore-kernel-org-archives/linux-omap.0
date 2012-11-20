@@ -1,93 +1,35 @@
-From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCH 2/3] ARM: dts: AM33XX: Add d_can instances to aliases
-Date: Tue, 20 Nov 2012 11:51:42 +0100
-Message-ID: <50AB60BE.1080002@pengutronix.de>
-References: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
- <1352916505-12343-3-git-send-email-anilkumar@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v4 3/3] ARM: OMAP: gpmc: add DT bindings for GPMC
+ timings and NAND
+Date: Tue, 20 Nov 2012 11:26:45 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9E94FE@DBDE01.ent.ti.com>
+References: <1353338956-19420-1-git-send-email-zonque@gmail.com>
+ <1353338956-19420-4-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4694272490480711414=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1352916505-12343-3-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-List-Id: linux-omap@vger.kernel.org
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============4694272490480711414==
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig3B75AD3AC453A3D022E4E91C"
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig3B75AD3AC453A3D022E4E91C
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 11/14/2012 07:08 PM, AnilKumar Ch wrote:
-> Add d_can instances to aliases node to get the D_CAN instance number
-> from the driver. To initialize D_CAN message RAM, corresponding instanc=
-e
-> number is required.
->=20
-> To initialize instance 0 message RAM then 0x1 should be written and for=
-
-> instance 1 message RAM, 0x2 should be written to control module registe=
-r.
->=20
-> With device-tree framework ip instance number is "-1" by default for al=
-l
-> instances. To get device id/instance number then modules should be adde=
-d
-> to DT "aliases" node. of_alias_get_id() gives the device id number base=
-d
-> on number of alias nodes present in "aliases node".
->=20
-> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-
-Acked-by: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---------------enig3B75AD3AC453A3D022E4E91C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iEYEARECAAYFAlCrYL4ACgkQjTAFq1RaXHNq0wCfU1373zmRNgk3MpUSn9DY3w64
-v/wAn26Tvb6ZorUIQcbhMBlcg85xU3RC
-=f5IK
------END PGP SIGNATURE-----
-
---------------enig3B75AD3AC453A3D022E4E91C--
-
---===============4694272490480711414==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45903 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750818Ab2KTL1z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 06:27:55 -0500
+In-Reply-To: <1353338956-19420-4-git-send-email-zonque@gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>
 
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
+On Mon, Nov 19, 2012 at 20:59:16, Daniel Mack wrote:
+> This patch adds basic DT bindings for OMAP GPMC.
+> 
+...
+> +
+> +	if (of_get_property(child, "ti,nand-ecc-use-elm", NULL))
+> +		gpmc_nand_data->is_elm_used = 1;
 
---===============4694272490480711414==--
+Can you set to bool value (true) here.
+
+Thanks
+Avinash
+
