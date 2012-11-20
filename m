@@ -1,75 +1,53 @@
 From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] OMAP2+: enable TPS65217 support in omap2plus_defconfig
-Date: Tue, 20 Nov 2012 10:15:03 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA76FDB@DBDE01.ent.ti.com>
-References: <50AA1BD5.1000002@gmail.com>
+Subject: RE: [PATCH 3/3] ARM: dts: AM33XX: Add memory resource to d_can node
+Date: Tue, 20 Nov 2012 10:23:57 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA7701D@DBDE01.ent.ti.com>
+References: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
+ <1352916505-12343-4-git-send-email-anilkumar@ti.com>
+ <50AB57B0.7040502@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57998 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751871Ab2KTKPK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 05:15:10 -0500
-In-Reply-To: <50AA1BD5.1000002@gmail.com>
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <50AB57B0.7040502@pengutronix.de>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: "wg@grandegger.com" <wg@grandegger.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 List-Id: linux-omap@vger.kernel.org
-To: "i.mazanov@gmail.com" <i.mazanov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Nov 19, 2012 at 17:15:25, Igor Mazanov wrote:
-> TPS65217 is described in arch/arm/boot/dts/am335x-bone.dts
-> but doesn't enabled in arch/arm/configs/omap2plus_defconfig.
+On Tue, Nov 20, 2012 at 15:43:04, Marc Kleine-Budde wrote:
+> On 11/14/2012 07:08 PM, AnilKumar Ch wrote:
+> > Add a new address space/memory resource to d_can device tree node. D_CAN
+> > RAM initialization is achieved through RAMINIT register which is part of
+> > AM33XX control module address space. D_CAN RAM init or de-init should be
+> > done by writing instance corresponding value to control module register.
+> > 
+> > Till we have a separate control module driver to write to control module,
+> > d_can driver will handle the register writes to control module by itself.
+> > So a new address space to represent this control module register is added
+> > to d_can driver.
+> > 
+> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 > 
-> Enable TPS65217 support in omap2plus_defconfig.
+> This does not apply to net-next/master:
 > 
-> Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
-> ---
->   arch/arm/configs/omap2plus_defconfig |    3 +++
->   1 files changed, 3 insertions(+), 0 deletions(-)
+> Applying: ARM: dts: AM33XX: Add memory resource to d_can node
+> error: patch failed: arch/arm/boot/dts/am33xx.dtsi:227
+> error: arch/arm/boot/dts/am33xx.dtsi: patch does not apply
+> Patch failed at 0003 ARM: dts: AM33XX: Add memory resource to d_can node
 > 
-> diff --git a/arch/arm/configs/omap2plus_defconfig 
-> b/arch/arm/configs/omap2plus_defconfig
-> index 6230304..00f2ce3 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -240,3 +240,6 @@ CONFIG_CRC_ITU_T=y
->   CONFIG_CRC7=y
->   CONFIG_LIBCRC32C=y
->   CONFIG_SOC_OMAP5=y
-> +CONFIG_MFD_CORE=y
-> +CONFIG_MFD_TPS65217=y
-> +CONFIG_REGULATOR_TPS65217=y
 
-Hi Igor,
+Marc,
 
-Can you try this, MFD_CORE is selected by default and note that
-remaining flags should be added at appropriate places.
+Sorry about this DT changes are present in linux-omap.
 
-Author: AnilKumar Ch <anilkumar@ti.com>
-Date:   Tue Nov 20 15:34:51 2012 +0530
+Could you please take the driver changes only and ACK on remaining will
+help.
 
-    Custom: ARM: OMAP2+: omap2plus_defconfig: Add tps65217 support
-    
-    Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+Tony/Benoit,
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 6230304..69ddbf7 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -132,9 +132,11 @@ CONFIG_POWER_SUPPLY=y
- CONFIG_WATCHDOG=y
- CONFIG_OMAP_WATCHDOG=y
- CONFIG_TWL4030_WATCHDOG=y
-+CONFIG_MFD_TPS65217=y
- CONFIG_REGULATOR_TWL4030=y
- CONFIG_REGULATOR_TPS65023=y
- CONFIG_REGULATOR_TPS6507X=y
-+CONFIG_REGULATOR_TPS65217=y
- CONFIG_FB=y
- CONFIG_FIRMWARE_EDID=y
- CONFIG_FB_MODE_HELPERS=y
+Could you please take dt patches in this series to linux-omap?
 
 Thanks
 AnilKumar
