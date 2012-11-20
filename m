@@ -1,84 +1,60 @@
-From: Igor Mazanov <i.mazanov@gmail.com>
-Subject: Re: [PATCH] OMAP2+: enable TPS65217 support in omap2plus_defconfig
-Date: Tue, 20 Nov 2012 20:10:04 +0300
-Message-ID: <CAK0ocyD+N7t5Tm38p3Qt6fNSUEHuL-=_Pw7twDVPbDJ81K3-Xg@mail.gmail.com>
-References: <50AA1BD5.1000002@gmail.com>
-	<331ABD5ECB02734CA317220B2BBEABC13EA76FDB@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP* Latest build failures
+Date: Tue, 20 Nov 2012 09:57:33 -0800
+Message-ID: <20121120175733.GH18567@atomide.com>
+References: <20121114092643.GG3290@n2100.arm.linux.org.uk>
+ <20121117093307.GL3332@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:33185 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753625Ab2KTRKF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 12:10:05 -0500
-Received: by mail-pa0-f46.google.com with SMTP id bh2so1396144pad.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Nov 2012 09:10:04 -0800 (PST)
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA76FDB@DBDE01.ent.ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20357 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751754Ab2KTR5i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 12:57:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20121117093307.GL3332@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Radhesh Fadnis <radhesh.fadnis@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-On Tue, Nov 20, 2012 at 2:15 PM, AnilKumar, Chimata <anilkumar@ti.com> wrote:
-> On Mon, Nov 19, 2012 at 17:15:25, Igor Mazanov wrote:
->> TPS65217 is described in arch/arm/boot/dts/am335x-bone.dts
->> but doesn't enabled in arch/arm/configs/omap2plus_defconfig.
->>
->> Enable TPS65217 support in omap2plus_defconfig.
->>
->> Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
->> ---
->>   arch/arm/configs/omap2plus_defconfig |    3 +++
->>   1 files changed, 3 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/configs/omap2plus_defconfig
->> b/arch/arm/configs/omap2plus_defconfig
->> index 6230304..00f2ce3 100644
->> --- a/arch/arm/configs/omap2plus_defconfig
->> +++ b/arch/arm/configs/omap2plus_defconfig
->> @@ -240,3 +240,6 @@ CONFIG_CRC_ITU_T=y
->>   CONFIG_CRC7=y
->>   CONFIG_LIBCRC32C=y
->>   CONFIG_SOC_OMAP5=y
->> +CONFIG_MFD_CORE=y
->> +CONFIG_MFD_TPS65217=y
->> +CONFIG_REGULATOR_TPS65217=y
->
-> Hi Igor,
->
-> Can you try this, MFD_CORE is selected by default and note that
-> remaining flags should be added at appropriate places.
->
-> Author: AnilKumar Ch <anilkumar@ti.com>
-> Date:   Tue Nov 20 15:34:51 2012 +0530
->
->     Custom: ARM: OMAP2+: omap2plus_defconfig: Add tps65217 support
->
->     Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index 6230304..69ddbf7 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -132,9 +132,11 @@ CONFIG_POWER_SUPPLY=y
->  CONFIG_WATCHDOG=y
->  CONFIG_OMAP_WATCHDOG=y
->  CONFIG_TWL4030_WATCHDOG=y
-> +CONFIG_MFD_TPS65217=y
->  CONFIG_REGULATOR_TWL4030=y
->  CONFIG_REGULATOR_TPS65023=y
->  CONFIG_REGULATOR_TPS6507X=y
-> +CONFIG_REGULATOR_TPS65217=y
->  CONFIG_FB=y
->  CONFIG_FIRMWARE_EDID=y
->  CONFIG_FB_MODE_HELPERS=y
->
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [121117 01:35]:
+> On Wed, Nov 14, 2012 at 09:26:43AM +0000, Russell King - ARM Linux wrote:
+> > OMAP* allnoconfig fails:
+> > 
+> > arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput':
+> > twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bus_tput'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup':
+> > twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_early_init'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
+> > twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
+> > twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
+> > twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_init'
+> > arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
+> > twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_dev_context_loss_count'
+> > arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
+> > twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_dev_context_loss_count'
+> 
+> These are now gone, but we have a new warning:
+> 
+> arch/arm/mach-omap2/timer.c:163:28: warning: 'omap_counter_match' defined but not used
 
-OK, I made changes as you say and it works. Thanks for a tip about
-default selection of CONFIG_MFD.
+Jon, care to fix this one?
+ 
+> And the randconfig found:
+> 
+> drivers/staging/omap-thermal/omap-bandgap.c: In function 'omap_bandgap_readl':
+> drivers/staging/omap-thermal/omap-bandgap.c:46:2: error: implicit declaration of function 'readl'
+> drivers/staging/omap-thermal/omap-bandgap.c: In function 'omap_bandgap_writel':
+> drivers/staging/omap-thermal/omap-bandgap.c:51:2: error: implicit declaration of function 'writel'
+> 
+> Which, as its in staging, maybe its not important but it's another source
+> of unnecessary failure.
+
+Radhesh & Eduardo, can you fix this?
 
 Regards,
-Igor.
 
-> Thanks
-> AnilKumar
+Tony
