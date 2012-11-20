@@ -1,58 +1,31 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP: ads7846: fix pendown debounce setting
-Date: Tue, 20 Nov 2012 00:21:36 -0800
-Message-ID: <20121120082136.GB28115@core.coreip.homeip.net>
-References: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH 207/493] i2c: remove use of __devinit
+Date: Tue, 20 Nov 2012 09:20:46 +0100
+Message-ID: <20121120092046.24496415@endymion.delvare>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+	<1353349642-3677-207-git-send-email-wfp5p@virginia.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:61517 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751924Ab2KTIVl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 03:21:41 -0500
-Content-Disposition: inline
-In-Reply-To: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1353349642-3677-207-git-send-email-wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bill Pemberton <wfp5p-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Ben Dooks  <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Rudolf Marek <r.marek-/xGekIyIa4Ap1Coe8Ar9gA@public.gmane.org>, Jochen Friedrich <jochen-NIgtFMG+Po8@public.gmane.org>, Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, "Mark M. Hoffman" <mhoffman-xQSgfq/1h4JiLUuM0BA3LQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Nov 19, 2012 at 06:03:56PM +0200, Igor Grinberg wrote:
-> Commit 97ee9f01 (ARM: OMAP: fix the ads7846 init code) have enabled the
-> pendown GPIO debounce time setting by the below sequence:
-> 
->   gpio_request_one()
->   gpio_set_debounce()
->   gpio_free()
-> 
-> It also revealed a bug in the OMAP GPIO handling code which prevented
-> the GPIO debounce clock to be disabled and CORE transition to low power
-> states.
-> 
-> Commit c9c55d9 (gpio/omap: fix off-mode bug: clear debounce settings on
-> free/reset) fixes the OMAP GPIO handling code by making sure that the
-> GPIO debounce clock gets disabled if no GPIO is requested from current
-> bank.
-> 
-> While fixing the OMAP GPIO handling code (in the right way), the above
-> commit makes the gpio_request->set_debounce->free sequence invalid as
-> after freeing the GPIO, the debounce settings are lost.
-> 
-> This patch set:
-> 1) Adds the pendown GPIO debounce time setting to the platform data
->    structure of the ads7846 driver.
-> 2) Fixes the OMAP platform code to pass the debounce time value
->    to the driver instead of handling it by itself.
-> 
-> Igor Grinberg (2):
->   ads7846: enable pendown GPIO debounce time setting
->   ARM: OMAP: ads7846: fix pendown debounce setting
-> 
+Hi Bill,
 
-Makes sense to me. Tony, I have some stuff to push for 3.7 final, mind
-if I pick OMAP change as well?
+On Mon, 19 Nov 2012 13:22:36 -0500, Bill Pemberton wrote:
+> CONFIG_HOTPLUG is going away as an option so __devinit is no longer
+> needed.
 
-Thanks.
+Can you please point me/us to the discussion explaining the rationale
+behind this move, and the explanation of what will be done exactly?
+While I can easily understand that we want to drop CONFIG_HOTPLUG and
+always enable hot-plug support, I don't see where we are going with
+removing __devinit annotations and the like.
 
+Thanks,
 -- 
-Dmitry
+Jean Delvare
