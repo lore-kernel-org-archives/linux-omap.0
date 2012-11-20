@@ -1,66 +1,222 @@
-From: "Kasatkin, Dmitry" <dmitry.kasatkin@intel.com>
-Subject: Re: [PATCH 0/7] crypto: omap-aes updates
-Date: Tue, 20 Nov 2012 14:08:26 +0200
-Message-ID: <CALLzPKZ20iQXGw9k4sxiVW0VOTdV5pw6Gz8W8V4SRpe=qVY+4w@mail.gmail.com>
-References: <1353351832-6685-1-git-send-email-mgreer@animalcreek.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH 1/3] can: c_can: Add d_can raminit support
+Date: Tue, 20 Nov 2012 13:05:47 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA771E9@DBDE01.ent.ti.com>
+References: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
+ <1352916505-12343-2-git-send-email-anilkumar@ti.com>
+ <50AB6081.9060701@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:51272 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753196Ab2KTMI2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 07:08:28 -0500
-Received: by mail-vb0-f70.google.com with SMTP id fo1so10026845vbb.1
-        for <linux-omap@vger.kernel.org>; Tue, 20 Nov 2012 04:08:26 -0800 (PST)
-In-Reply-To: <1353351832-6685-1-git-send-email-mgreer@animalcreek.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:37215 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752727Ab2KTNGS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 08:06:18 -0500
+In-Reply-To: <50AB6081.9060701@pengutronix.de>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: "wg@grandegger.com" <wg@grandegger.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-Great. You also worked on AES...
-Will take a loos asap.
+On Tue, Nov 20, 2012 at 16:20:41, Marc Kleine-Budde wrote:
+> On 11/14/2012 07:08 PM, AnilKumar Ch wrote:
+> > Add D_CAN raminit support to C_CAN driver to enable D_CAN RAM,
+> > which holds all the message objects during transmission or
+> > receiving of data. This initialization/de-initialization should
+> > be done in synchronous with D_CAN clock.
+> > 
+> > In case of AM335X-EVM (active user of D_CAN driver) message RAM is
+> > controlled through control module register for both instances. So
+> > control module register details is required to initialization or
+> > de-initialization of message RAM according to instance number.
+> > 
+> > Control module memory resource is obtained from D_CAN dt node and
+> > instance number obtained from device tree aliases node.
+> > 
+> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> 
+> Some nitpicks inline.
 
-On Mon, Nov 19, 2012 at 9:03 PM, Mark A. Greer <mgreer@animalcreek.com> wrote:
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
->
-> This series updates the crypto omap-aes driver and supporting
-> infrastructure.
->
-> Notes:
->
-> a) Based on omap-sham patches recently submitted, XXX
->
-> b) Since these patches will likely go though the OMAP tree (and not
->    through the crypto tree), it would be nice if the crypto guy(s)
->    would ACK or NACK patches 4-7 which modify the
->    drivers/crypto/omap-sham.c driver.
->
-> c) These have only been tested on an omap2420 h4 and an am37x evm.
->
-> d) Many thanks to Jon Hunter for testing on his omap2420 h4.
->
-> Mark A. Greer (7):
->   ARM: OMAP2xxx: hwmod: Convert AES crypto devcie data to hwmod
->   ARM: OMAP3xxx: hwmod: Convert AES crypto device data to hwmod
->   ARM: OMAP2+: Remove unnecessary message when no AES IP is present
->   crypto: omap-aes: Remove cpu_is/omap_type check from driver
->   crypto: omap-aes: Convert to use pm_runtime API
->   crypto: omap-aes: Add code to use dmaengine API
->   crypto: omap-aes: Remove usage of private DMA API
->
->  arch/arm/mach-omap2/clock2430_data.c               |   1 +
->  arch/arm/mach-omap2/clock3xxx_data.c               |   1 +
->  arch/arm/mach-omap2/devices.c                      |  75 +-------
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   1 +
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   1 +
->  .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  18 ++
->  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  38 ++++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  62 +++++++
->  arch/arm/mach-omap2/omap_hwmod_common_data.h       |   2 +
->  drivers/crypto/omap-aes.c                          | 202 ++++++++++++---------
->  10 files changed, 251 insertions(+), 150 deletions(-)
->
-> --
-> 1.7.12
->
+Thanks for the review.
+ 
+> 
+> > ---
+> >  drivers/net/can/c_can/c_can.c          |   12 +++++++++++
+> >  drivers/net/can/c_can/c_can.h          |    3 +++
+> >  drivers/net/can/c_can/c_can_platform.c |   34 +++++++++++++++++++++++++++++++-
+> >  3 files changed, 48 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+> > index e5180df..c15830c 100644
+> > --- a/drivers/net/can/c_can/c_can.c
+> > +++ b/drivers/net/can/c_can/c_can.c
+> > @@ -233,6 +233,12 @@ static inline void c_can_pm_runtime_put_sync(const struct c_can_priv *priv)
+> >  		pm_runtime_put_sync(priv->device);
+> >  }
+> >  
+> > +static inline void c_can_reset_ram(const struct c_can_priv *priv, bool enable)
+> > +{
+> > +	if (priv->ram_init)
+> > +		priv->ram_init(priv, enable);
+> > +}
+> > +
+> >  static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
+> >  {
+> >  	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
+> > @@ -1090,6 +1096,7 @@ static int c_can_open(struct net_device *dev)
+> >  	struct c_can_priv *priv = netdev_priv(dev);
+> >  
+> >  	c_can_pm_runtime_get_sync(priv);
+> > +	c_can_reset_ram(priv, true);
+> >  
+> >  	/* open the can device */
+> >  	err = open_candev(dev);
+> > @@ -1118,6 +1125,7 @@ static int c_can_open(struct net_device *dev)
+> >  exit_irq_fail:
+> >  	close_candev(dev);
+> >  exit_open_fail:
+> > +	c_can_reset_ram(priv, false);
+> >  	c_can_pm_runtime_put_sync(priv);
+> >  	return err;
+> >  }
+> > @@ -1131,6 +1139,8 @@ static int c_can_close(struct net_device *dev)
+> >  	c_can_stop(dev);
+> >  	free_irq(dev->irq, dev);
+> >  	close_candev(dev);
+> > +
+> > +	c_can_reset_ram(priv, false);
+> >  	c_can_pm_runtime_put_sync(priv);
+> >  
+> >  	return 0;
+> > @@ -1188,6 +1198,7 @@ int c_can_power_down(struct net_device *dev)
+> >  
+> >  	c_can_stop(dev);
+> >  
+> > +	c_can_reset_ram(priv, false);
+> >  	c_can_pm_runtime_put_sync(priv);
+> >  
+> >  	return 0;
+> > @@ -1206,6 +1217,7 @@ int c_can_power_up(struct net_device *dev)
+> >  	WARN_ON(priv->type != BOSCH_D_CAN);
+> >  
+> >  	c_can_pm_runtime_get_sync(priv);
+> > +	c_can_reset_ram(priv, true);
+> >  
+> >  	/* Clear PDR and INIT bits */
+> >  	val = priv->read_reg(priv, C_CAN_CTRL_EX_REG);
+> > diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+> > index e5ed41d..419de5c 100644
+> > --- a/drivers/net/can/c_can/c_can.h
+> > +++ b/drivers/net/can/c_can/c_can.h
+> > @@ -169,6 +169,9 @@ struct c_can_priv {
+> >  	void *priv;		/* for board-specific data */
+> >  	u16 irqstatus;
+> >  	enum c_can_dev_id type;
+> > +	u32 __iomem *raminit_ctrlreg;
+> > +	unsigned int instance;
+> > +	void (*ram_init) (const struct c_can_priv *priv, bool enable);
+> >  };
+> >  
+> >  struct net_device *alloc_c_can_dev(void);
+> > diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+> > index ee141613..2e61d69 100644
+> > --- a/drivers/net/can/c_can/c_can_platform.c
+> > +++ b/drivers/net/can/c_can/c_can_platform.c
+> > @@ -38,6 +38,8 @@
+> >  
+> >  #include "c_can.h"
+> >  
+> > +#define CAN_RAMINIT_START_MASK(i)	(1 << (i))
+> > +
+> >  /*
+> >   * 16-bit c_can registers can be arranged differently in the memory
+> >   * architecture of different implementations. For example: 16-bit
+> > @@ -68,6 +70,24 @@ static void c_can_plat_write_reg_aligned_to_32bit(struct c_can_priv *priv,
+> >  	writew(val, priv->base + 2 * priv->regs[index]);
+> >  }
+> >  
+> > +static void c_can_hw_raminit(const struct c_can_priv *priv, bool enable)
+> > +{
+> > +	u32 val;
+> > +
+> > +	if (!priv->raminit_ctrlreg || (priv->instance < 0))
+> > +		return;
+> 
+> Can you move this sanity check to the probe function and only assign
+> priv->ram_init if the above is true?
+
+Sure, I will change
+
+> 
+> > +
+> > +	val = readl(priv->raminit_ctrlreg);
+> > +	if (enable) {
+> > +		val &= ~CAN_RAMINIT_START_MASK(priv->instance);
+> > +		val |= CAN_RAMINIT_START_MASK(priv->instance);
+> > +		writel(val, priv->raminit_ctrlreg);
+> > +	} else {
+> > +		val &= ~CAN_RAMINIT_START_MASK(priv->instance);
+> > +		writel(val, priv->raminit_ctrlreg);
+> > +	}
+> > +}
+> > +
+> >  static struct platform_device_id c_can_id_table[] = {
+> >  	[BOSCH_C_CAN_PLATFORM] = {
+> >  		.name = KBUILD_MODNAME,
+> > @@ -99,7 +119,7 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+> >  	const struct of_device_id *match;
+> >  	const struct platform_device_id *id;
+> >  	struct pinctrl *pinctrl;
+> > -	struct resource *mem;
+> > +	struct resource *mem, *res;
+> >  	int irq;
+> >  	struct clk *clk;
+> >  
+> > @@ -178,6 +198,18 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+> >  		priv->can.ctrlmode_supported |= CAN_CTRLMODE_3_SAMPLES;
+> >  		priv->read_reg = c_can_plat_read_reg_aligned_to_16bit;
+> >  		priv->write_reg = c_can_plat_write_reg_aligned_to_16bit;
+> > +
+> > +		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> > +		priv->raminit_ctrlreg =
+> > +				devm_request_and_ioremap(&pdev->dev, res);
+> 
+> What happens if there isn't a second IORESOURCE_MEM region? devm_request
+> will print an error in this case and any other error, too [1]. Do we
+> need streamlining here?
+> 
+> [1] http://lxr.free-electrons.com/source/drivers/base/platform.c#L59
+
+I did not get what the point is.
+
+In most of the cases above two API's returns NULL. Even res is NULL
+nothing to worry, first condition in devm_request_and_ioremap() is
+NULL pointer check of res. If "res" is NULL then devm_xx will return
+NULL which result into printing of below warning.
+
+> 
+> > +		if (!priv->raminit_ctrlreg)
+> > +			dev_warn(&pdev->dev, "failed to obtain control memory\n");
+
+I will change this warning to info
+
+if (!priv->raminit_ctrlreg)
+	dev_info(&pdev->dev, "control memory is not used for raminit\n");
+
+> > +
+> > +		if (pdev->dev.of_node)
+> > +			pdev->id = of_alias_get_id(pdev->dev.of_node, "d_can");
+> > +
+> > +		priv->instance = pdev->id;
+> 
+> Please do not modify the pdev, better you use something like this:
+> 
+>     pdev->id < 0 ? of_alias_get_id(pdev->dev.of_node, "d_can") :
+>         pdev->id;
+
+I will change accordingly.
+
+Thanks
+AnilKumar
