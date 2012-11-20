@@ -1,76 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/5] OMAPFB: use dma_alloc instead of omap's vram
-Date: Tue, 20 Nov 2012 17:09:10 +0200
-Message-ID: <50AB9D16.3010309@ti.com>
-References: <1352715906-16946-1-git-send-email-tomi.valkeinen@ti.com> <20121112225037.GU6801@atomide.com> <50A601FA.5060401@ti.com> <20121119220443.GD18567@atomide.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
+Date: Tue, 20 Nov 2012 16:59:48 +0100
+Message-ID: <87mwycjmdn.fsf@dell.be.48ers.dk>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+	<1351869956-2787-5-git-send-email-zonque@gmail.com>
+	<518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com>
+	<5097B7EE.3000508@gmail.com>
+	<518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com>
+	<509A2E75.5060307@gmail.com>
+	<518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
+	<509EA360.2050504@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig814EC106AC792CE8E67CBF4E"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53851 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751261Ab2KTPJU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Nov 2012 10:09:20 -0500
-In-Reply-To: <20121119220443.GD18567@atomide.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:65483 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850Ab2KTP7w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 10:59:52 -0500
+Received: by mail-we0-f174.google.com with SMTP id d7so1072463wer.19
+        for <linux-omap@vger.kernel.org>; Tue, 20 Nov 2012 07:59:51 -0800 (PST)
+In-Reply-To: <509EA360.2050504@gmail.com> (Daniel Mack's message of "Sat, 10
+	Nov 2012 19:56:32 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: archit@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: "Philip, Avinash" <avinashphilip@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---------------enig814EC106AC792CE8E67CBF4E
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+>>>>> "Daniel" == Daniel Mack <zonque@gmail.com> writes:
 
-On 2012-11-20 00:04, Tony Lindgren wrote:
+Hi,
 
->> Should we enable CMA by default in omap2plus_defconfig? And perhaps on=
+ >>>> In omap2 driver NAND_ECC_HW ecc mode supports 3 ecc layout
+ >>>> OMAP_ECC_HAMMING_CODE_HW_ROMCODE
+ >>>> OMAP_ECC_BCH4_CODE_HW
+ >>>> OMAP_ECC_BCH8_CODE_HW
+ >>>> 
+ >>>> So selection of ecc layout data should come from DT not ecc mode.
+ >>> 
+ >>> Ok, I see. I would still like to set them by string rather than magic
+ >>> numbers that map to enum entries. Valid values would be "none", "hw",
+ >>> "hw-romcode", "bch4" and "bch8". Are you ok with that?
+ >> 
+ >> Ok, that's nice. Better use ecc_opt instead of ecc_mode.
 
->> omap1 also?
->=20
-> Yes if that's now needed for DSS.
+ Daniel> I did some more extensive tests that include reading the same
+ Daniel> nand pages from both U-Boot and the kernel with BCH8 ECC, and
+ Daniel> it turns out that -> is_elm_used needs to be set in the pdata
+ Daniel> in order to make this work.
 
-DSS works fine without CMA, at least for small displays, and when fb
-allocation is done at boot time. So it's not a strict "need".
+So what you're saying is that the choice of ELM or not is not just an
+optimization, it really changes the ECC layout? Perhaps it should be
+treated as a seperate layout (E.G. bch8-elm) then?
 
-I'm not sure how easily FB allocations start to fail without CMA, and
-how much CMA helps.
-
-I'm not even sure what's the default DMA pool size on OMAP... If it's
-the one set with "coherent_pool" kernel parameter, then the default
-seems to be 256K, which is quite small for video use. For CMA the
-default global area is 16M. Both can, of course, be changed with boot
-params or kernel config (at least for CMA).
-
-But I think it makes sense to have CMA by default even if non-CMA kernel
-would work.
-
- Tomi
-
-
-
---------------enig814EC106AC792CE8E67CBF4E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQq50WAAoJEPo9qoy8lh71bvYP/iupOqgFPIe2IZ2mpn/9yhnC
-RIlEQQVBSNInSWWWZRcBf3Htz27uuc9IK88lYx5lEAEttQ1nfh7KU3Azwei+3nZa
-fcNkt41vHGIVHRKHkPJiQVRuLjYFtquTf2stYXcp/pNBUrXK/JCyvHYH/lm0fBRF
-Me0f7kCbtBb/HRSIhUwpmpECo0Ca79tDSBYdU1hAQZ+u/pmFbbWxDiChuwCrIepx
-kj4fXuWNI22hzkxW8ln5XehVebb0DRnMfPe1zXlRJesUQFiOdLduT1nMy9/nPBZX
-p3DBxmNOtRAnkXJZz+U3W5RBZzjqBQics380AG8MB7L7u7Y1YwWM6dGE0EjaKcrD
-3Z0aPT3JHVhZ3ZcoGt4dByPXAWneUL6rmRni2fXm2sgs1byfV7X7ptAv9oNtx6fd
-iaVYcLGrTOJ767eXltjAQYk/DyNZdjl0hLjgPe47P2EvLToLKuSDaR60D0jGz+iO
-O0lT8yZsx7m3ybKJAgKwTnAgswUlixz+k0cIWVWV23QnAIQH6xPd2o7zNzSs40G/
-ZjAAxc62HS23s9bABdmpXN9DMURZfYP047i51ZwOmRAEUReb1KnrjtRIjEeTdYJ6
-OMoMWIY1zaNNNfX86VsALyLKO9rAyGgZP0yXe5V9WzMXEwbOI0Jfm+xzkXZwzIIR
-6POofTSHonwCGmK54QY9
-=YnQi
------END PGP SIGNATURE-----
-
---------------enig814EC106AC792CE8E67CBF4E--
+-- 
+Bye, Peter Korsgaard
