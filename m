@@ -1,27 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 032/493] arm: remove use of __devexit_p
-Date: Tue, 20 Nov 2012 09:59:49 -0800
-Message-ID: <20121120175949.GI18567@atomide.com>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
- <1353349642-3677-32-git-send-email-wfp5p@virginia.edu>
+Subject: Re: [RFC/RFT] OMAP: N770: remove custom implementation of
+ ads7846_get_pendown_state
+Date: Tue, 20 Nov 2012 10:27:06 -0800
+Message-ID: <20121120182704.GJ18567@atomide.com>
+References: <20121120083052.GA29020@core.coreip.homeip.net>
+ <20121120144333.GA20727@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:24949 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:22104 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751868Ab2KTSAB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 13:00:01 -0500
+	with ESMTP id S1751635Ab2KTS1M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 13:27:12 -0500
 Content-Disposition: inline
-In-Reply-To: <1353349642-3677-32-git-send-email-wfp5p@virginia.edu>
+In-Reply-To: <20121120144333.GA20727@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bill Pemberton <wfp5p@virginia.edu>
-Cc: gregkh@linuxfoundation.org, Russell King <linux@arm.linux.org.uk>, Eric Miao <eric.y.miao@gmail.com>, Haojian Zhuang <haojian.zhuang@gmail.com>, Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
-* Bill Pemberton <wfp5p@virginia.edu> [121119 10:29]:
-> CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
-> needed.
+* Aaro Koskinen <aaro.koskinen@iki.fi> [121120 06:45]:
+> Hi,
+> 
+> On Tue, Nov 20, 2012 at 12:30:53AM -0800, Dmitry Torokhov wrote:
+> > The default implementation matches exactly our custom one so we can switch
+> > to using the default one. As a bonus the driver will take care of setting
+> > GPIO line for us.
+> > 
+> > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > ---
+> > 
+> > No hardware so not tested...
+> 
+> This seems to work.
+> 
+> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> 
+> A minor nitpick, the board is just 770 not N770. :-)
 
-For the arch/arm/*omap*/* touching patches:
+Nice. Looks safe to merge along with other input related
+patches:
 
 Acked-by: Tony Lindgren <tony@atomide.com>
