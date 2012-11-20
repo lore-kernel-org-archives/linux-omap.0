@@ -1,53 +1,63 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH 00/16] OMAP USB Host cleanup
-Date: Mon, 19 Nov 2012 15:22:29 -0800
-Message-ID: <876251b2kq.fsf@deeprootsystems.com>
-References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
-	<87fw49cnvh.fsf@deeprootsystems.com> <50AA05C3.7010003@ti.com>
+From: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH v5 0/5] OMAP: iommu: hwmod, reset handling and runtime PM
+Date: Mon, 19 Nov 2012 19:05:47 -0600
+Message-ID: <1353373552-16039-1-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50AA05C3.7010003-l0cyMroinI0@public.gmane.org> (Roger Quadros's message of "Mon, 19
-	Nov 2012 12:11:15 +0200")
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mauro Carvalho Chehab <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
+These patches are needed for remoteproc to work on OMAP4.
 
-> Kevin,
->
-> On 11/16/2012 10:08 PM, Kevin Hilman wrote:
->> Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> writes:
->> 
->>> Hi,
->>>
->>> This patchset addresses the following
->>>
->>> - Avoid addressing clocks one by one by name and use a for loop + bunch
->>>   of cleanups.
->>> - Get number of channels/ports dynamically either from revision register
->>>   or from platform data. Avoids getting clocks that are not present.
->>> - Add OMAP5 and HSIC mode (Not tested)
->>> - Save power on Panda when EHCI driver is not loaded.
->>>
->> 
->> Seeing the clock changes/cleanups, I gave this a spin on OMAP3
->> (3530/Beagle, 3530/Overo, 3730/Beagle-xM, 3730/OveroSTORM) to see if it
->> fixed up the problem where CORE does not hit retention in idle when USB
->> host is enabled, even with no devices attached.
->> 
->> Unfortunately, it didn't help. :(
->
-> oh that's bad. But this series wasn't meant to fix that ;).
+Introduced iommu hwmod support for OMAP3 (iva, isp) and
+OMAP4 (ipu, dsp), along with the corresponding runtime PM
+and routines to deassert reset lines, enable/disable clocks
+and configure sysc registers.
 
-Oh, sorry.  Yeah, I didn't mean this as a nak.  Just an opportunity to
-complain to the maintainers that a long-standing issue needs to be
-addressed.
+A couple of patches were added (first two) to be clearer on
+the reasons for such changes, they were previosuly bundled as part
+of runtime PM changes. The last patch corresponds to a change in the
+leaf clocks used and it depends on this series to work properly.
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Due to single Image support, I rebased these on top of k3.7-rc5 and
+DEPEND on:
+
+[PATCH v5 0/6] Move rest of omap-iommu to live in drivers/iommu
+http://thread.gmane.org/gmane.linux.kernel/1387788
+
+Minor rebasing might be needed if these are included on top of
+linux-omap, since they are affected by changes on headers being
+moved to include/linux/platform_data and arch/arm/mach-omap2.
+
+Omar Ramirez Luna (5):
+  iommu/omap: remove redundant clock handling on ISR
+  iommu/omap: keep mmu enabled when requested
+  iommu/omap: migrate to hwmod framework
+  iommu/omap: adapt to runtime pm
+  ARM: OMAP4: hwmod data: ipu and dsp to use parent clocks instead of
+    leaf clocks
+
+ arch/arm/mach-omap2/clock44xx_data.c       |   22 ----
+ arch/arm/mach-omap2/devices.c              |    2 +-
+ arch/arm/mach-omap2/omap-iommu.c           |  167 ++++++---------------------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    4 +-
+ drivers/iommu/omap-iommu.c                 |   68 ++++++-----
+ drivers/iommu/omap-iommu.h                 |    3 -
+ drivers/iommu/omap-iommu2.c                |   36 ------
+ include/linux/platform_data/iommu-omap.h   |    9 +-
+ 8 files changed, 84 insertions(+), 227 deletions(-)
+
+-- 
+1.7.4.1
