@@ -1,118 +1,83 @@
-From: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v5 5/5] ARM: OMAP4: hwmod data: ipu and dsp to use parent
-	clocks instead of leaf clocks
-Date: Mon, 19 Nov 2012 19:05:52 -0600
-Message-ID: <1353373552-16039-6-git-send-email-omar.luna@linaro.org>
-References: <1353373552-16039-1-git-send-email-omar.luna@linaro.org>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: HDMI: Rearrange platform devices for
+ ASoC drivers
+Date: Tue, 20 Nov 2012 10:15:28 +0900
+Message-ID: <20121120011526.GF4483@opensource.wolfsonmicro.com>
+References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com>
+ <1353029819-21809-3-git-send-email-ricardo.neri@ti.com>
+ <50A5F0A5.2010105@ti.com>
+ <50A6805C.3050004@ti.com>
+ <50AA2D01.5020302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1353373552-16039-1-git-send-email-omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mauro Carvalho Chehab <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E7i4zwmWs5DOuDSH"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:41524 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751786Ab2KTBPh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Nov 2012 20:15:37 -0500
+Content-Disposition: inline
+In-Reply-To: <50AA2D01.5020302@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Ricardo Neri <ricardo.neri@ti.com>, tony@atomide.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-This prevents hwmod _enable_clocks...omap2_dflt_clk_enable path
-from enabling modulemode inside CLKCTRL using its clk->enable_reg
-field. Instead is left to _omap4_enable_module though soc_ops, as
-the one in charge of this setting.
 
-According to comments received[1] for related patches the idea is
-to get rid of leaf clocks in future. So remove these two while at it.
+--E7i4zwmWs5DOuDSH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-[1] http://lkml.org/lkml/2012/8/20/226
+On Mon, Nov 19, 2012 at 02:58:41PM +0200, Tomi Valkeinen wrote:
 
-Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
----
- arch/arm/mach-omap2/clock44xx_data.c       |   22 ----------------------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    4 ++--
- 2 files changed, 2 insertions(+), 24 deletions(-)
+> I still don't understand why the codec and machine drivers need to be
+> created in the board file. That just forces us to replicate the same
+> code for all OMAP boards that have OMAP HDMI output. Why not create the
+> devices in some common code, for example arch/arm/mach-omap2/display.c?
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 6efc30c..067c486 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -1316,16 +1316,6 @@ static struct clk dmic_fck = {
- 	.clkdm_name	= "abe_clkdm",
- };
- 
--static struct clk dsp_fck = {
--	.name		= "dsp_fck",
--	.ops		= &clkops_omap2_dflt,
--	.enable_reg	= OMAP4430_CM_TESLA_TESLA_CLKCTRL,
--	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
--	.clkdm_name	= "tesla_clkdm",
--	.parent		= &dpll_iva_m4x2_ck,
--	.recalc		= &followparent_recalc,
--};
--
- static struct clk dss_sys_clk = {
- 	.name		= "dss_sys_clk",
- 	.ops		= &clkops_omap2_dflt,
-@@ -1696,16 +1686,6 @@ static struct clk i2c4_fck = {
- 	.recalc		= &followparent_recalc,
- };
- 
--static struct clk ipu_fck = {
--	.name		= "ipu_fck",
--	.ops		= &clkops_omap2_dflt,
--	.enable_reg	= OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
--	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
--	.clkdm_name	= "ducati_clkdm",
--	.parent		= &ducati_clk_mux_ck,
--	.recalc		= &followparent_recalc,
--};
--
- static struct clk iss_ctrlclk = {
- 	.name		= "iss_ctrlclk",
- 	.ops		= &clkops_omap2_dflt,
-@@ -3151,7 +3131,6 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
- 	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
- 	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
--	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
- 	CLK(NULL,	"dss_sys_clk",			&dss_sys_clk,	CK_443X),
- 	CLK(NULL,	"dss_tv_clk",			&dss_tv_clk,	CK_443X),
- 	CLK(NULL,	"dss_48mhz_clk",		&dss_48mhz_clk,	CK_443X),
-@@ -3183,7 +3162,6 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"i2c2_fck",			&i2c2_fck,	CK_443X),
- 	CLK(NULL,	"i2c3_fck",			&i2c3_fck,	CK_443X),
- 	CLK(NULL,	"i2c4_fck",			&i2c4_fck,	CK_443X),
--	CLK(NULL,	"ipu_fck",			&ipu_fck,	CK_443X),
- 	CLK(NULL,	"iss_ctrlclk",			&iss_ctrlclk,	CK_443X),
- 	CLK(NULL,	"iss_fck",			&iss_fck,	CK_443X),
- 	CLK(NULL,	"iva_fck",			&iva_fck,	CK_443X),
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index aab5c12..1f61093 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -650,7 +650,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
- 	.mpu_irqs	= omap44xx_dsp_irqs,
- 	.rst_lines	= omap44xx_dsp_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_resets),
--	.main_clk	= "dsp_fck",
-+	.main_clk	= "dpll_iva_m4x2_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET,
-@@ -1677,7 +1677,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
- 	.mpu_irqs	= omap44xx_ipu_irqs,
- 	.rst_lines	= omap44xx_ipu_resets,
- 	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_resets),
--	.main_clk	= "ipu_fck",
-+	.main_clk	= "ducati_clk_mux_ck",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
--- 
-1.7.4.1
+Yes, this would be more sensible if there's no board specifics involved.
+
+> With DT this should be similar: OMAP's hdmi devices should be presented
+> in the omap4.dtsi file, not in each individual board dts. Although the
+> DT data should represent the hardware, and if the code and machine
+> devices are not really there in the HW, then... I don't know =).
+
+Well, in a case like this where the sound card is essentially autoprobed
+based on the detection of the hardware at runtime the sound card
+probably shouldn't appear in the device tree at all - you'll probably
+want something to say there's a physical HDMI port it's worth looking at
+there but everything else should be figured out at runtime.
+
+> And something that confuses me: sound/soc/codecs/omap-hdmi.c contains a
+> codec and dai drivers, but sound/soc/omap/omap-hdmi.c also contains a
+> dai driver. The latter actually contains two dai drivers, the other a
+> platform driver and the other a snd_soc_dai_driver. But I guess this is
+> asoc details, and not relevant to this disuccsion =).
+
+There's an interaface on each end of the link, they're wired together to
+communicate between the two devices.
+
+--E7i4zwmWs5DOuDSH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQqtl1AAoJELSic+t+oim9GfMP/3pRzznJdkqaNDCa2lLUVmXI
+Suy72Ie0YPrH5OudC6gyDH5TYs/RT6GzFlLr/6Ky3/xpV/RkZySb0Ac7MGKpTE52
+tJhjdTz+PoXxxBLRJUrM/SYyZ8vSKJRDx7bklnQcjqeuPTPcaahXhHkvftPk5+9c
+opYx9f0qgbEi5mklkF+PKSl1kQu2MbMSoP20gkt6kcD0qkdUpNMO9sBdNhrIt7Bf
+D60iZi/WHJEYPnsoBptlDeFzvqDmLR/LQIPLdgOj1ThdHS8PTIKHW8OprQyX2Qhx
+rpdSXu3B2QUt76Zd/0lNnfbuvZrSmyKLlFGCFZ4P1OgQTv+01MkrddJuLxoIfkhW
+yo5Kj20Hr2d4at5tDFUaQo5rc0UbB1/8I6YGcJwYlUv2aheis/x/i9hY8LL5Jnu5
+xdaZ777H/lmOD+6GRI1RltABAhdShxAsTJJWgvekEgh7mL0lR7u/3KDFHrirnm6w
+lefpLwVa3rfBxsfoK/eAPbCxJGZo1ItPHRku5zFXAS09Q7ufS+fC72I6S7ISzx+o
+czVF0vPoPWnoqxilCWXa8F56fBUVzpPlgRRe4okya0P4FJvs9/5+GuWUJtbYo5ZU
+f0HCFIFqoUac4nfoosGxq6Ye1lyHl1d168egl2ZDR4rLRyPVFkcmnXfhjmG9Vzw0
+gcfQqTIvS2tV+4hR6jMX
+=uIlM
+-----END PGP SIGNATURE-----
+
+--E7i4zwmWs5DOuDSH--
