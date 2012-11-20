@@ -1,44 +1,396 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/RFT] OMAP: N770: remove custom implementation of
- ads7846_get_pendown_state
-Date: Tue, 20 Nov 2012 10:27:06 -0800
-Message-ID: <20121120182704.GJ18567@atomide.com>
-References: <20121120083052.GA29020@core.coreip.homeip.net>
- <20121120144333.GA20727@blackmetal.musicnaut.iki.fi>
+Subject: Re: [RESEND PATCH v3 2/4] mfd: introduce retu-mfd driver
+Date: Tue, 20 Nov 2012 10:34:27 -0800
+Message-ID: <20121120183427.GK18567@atomide.com>
+References: <1352747326-2195-1-git-send-email-aaro.koskinen@iki.fi>
+ <1352747326-2195-3-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:22104 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751635Ab2KTS1M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 13:27:12 -0500
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20121120144333.GA20727@blackmetal.musicnaut.iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1352747326-2195-3-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
+List-Id: linux-omap@vger.kernel.org
 
-* Aaro Koskinen <aaro.koskinen@iki.fi> [121120 06:45]:
-> Hi,
-> 
-> On Tue, Nov 20, 2012 at 12:30:53AM -0800, Dmitry Torokhov wrote:
-> > The default implementation matches exactly our custom one so we can switch
-> > to using the default one. As a bonus the driver will take care of setting
-> > GPIO line for us.
-> > 
-> > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> > ---
-> > 
-> > No hardware so not tested...
-> 
-> This seems to work.
-> 
-> Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> 
-> A minor nitpick, the board is just 770 not N770. :-)
+* Aaro Koskinen <aaro.koskinen@iki.fi> [121112 11:11]:
+> Retu is a multi-function device found on Nokia Internet Tablets
+> implementing at least watchdog, RTC, headset detection and power butt=
+on
+> functionality.
+>=20
+> This patch implements minimum functionality providing register access=
+,
+> IRQ handling and power off functions.
 
-Nice. Looks safe to merge along with other input related
-patches:
+Samuel, you can pick this one up separately now that Wolfram has taken
+the i2c-cbus driver.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Also, just noticed that this probably should depend on I2C_CBUS as this
+chip will not communicate over other I2C adapters?
+
+Regards,
+
+Tony
+=20
+> Cc: sameo@linux.intel.com
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> ---
+>  drivers/mfd/Kconfig      |    9 ++
+>  drivers/mfd/Makefile     |    1 +
+>  drivers/mfd/retu-mfd.c   |  264 ++++++++++++++++++++++++++++++++++++=
+++++++++++
+>  include/linux/mfd/retu.h |   22 ++++
+>  4 files changed, 296 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/mfd/retu-mfd.c
+>  create mode 100644 include/linux/mfd/retu.h
+>=20
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index acab3ef..7528c5e 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -1044,6 +1044,15 @@ config MFD_PALMAS
+>  	  If you say yes here you get support for the Palmas
+>  	  series of PMIC chips from Texas Instruments.
+> =20
+> +config MFD_RETU
+> +	tristate "Support for Retu multi-function device"
+> +	select MFD_CORE
+> +	depends on I2C
+> +	select REGMAP_IRQ
+> +	help
+> +	  Retu is a multi-function device found on Nokia Internet Tablets
+> +	  (770, N800 and N810).
+> +
+>  endmenu
+>  endif
+> =20
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index d8ccb63..ad7879f 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -138,3 +138,4 @@ obj-$(CONFIG_MFD_RC5T583)	+=3D rc5t583.o rc5t583-=
+irq.o
+>  obj-$(CONFIG_MFD_SEC_CORE)	+=3D sec-core.o sec-irq.o
+>  obj-$(CONFIG_MFD_SYSCON)	+=3D syscon.o
+>  obj-$(CONFIG_MFD_LM3533)	+=3D lm3533-core.o lm3533-ctrlbank.o
+> +obj-$(CONFIG_MFD_RETU)		+=3D retu-mfd.o
+> diff --git a/drivers/mfd/retu-mfd.c b/drivers/mfd/retu-mfd.c
+> new file mode 100644
+> index 0000000..7ff4a37
+> --- /dev/null
+> +++ b/drivers/mfd/retu-mfd.c
+> @@ -0,0 +1,264 @@
+> +/*
+> + * Retu MFD driver
+> + *
+> + * Copyright (C) 2004, 2005 Nokia Corporation
+> + *
+> + * Based on code written by Juha Yrj=C3=B6l=C3=A4, David Weinehall a=
+nd Mikko Ylinen.
+> + * Rewritten by Aaro Koskinen.
+> + *
+> + * This file is subject to the terms and conditions of the GNU Gener=
+al
+> + * Public License. See the file "COPYING" in the main directory of t=
+his
+> + * archive for more details.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/err.h>
+> +#include <linux/i2c.h>
+> +#include <linux/irq.h>
+> +#include <linux/init.h>
+> +#include <linux/slab.h>
+> +#include <linux/mutex.h>
+> +#include <linux/module.h>
+> +#include <linux/regmap.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/mfd/retu.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/moduleparam.h>
+> +
+> +/* Registers */
+> +#define RETU_REG_ASICR		0x00		/* ASIC ID and revision */
+> +#define RETU_REG_ASICR_VILMA	(1 << 7)	/* Bit indicating Vilma */
+> +#define RETU_REG_IDR		0x01		/* Interrupt ID */
+> +#define RETU_REG_IMR		0x02		/* Interrupt mask */
+> +
+> +/* Interrupt sources */
+> +#define RETU_INT_PWR		0		/* Power button */
+> +
+> +struct retu_dev {
+> +	struct regmap			*regmap;
+> +	struct device			*dev;
+> +	struct mutex			mutex;
+> +	struct regmap_irq_chip_data	*irq_data;
+> +};
+> +
+> +static struct resource retu_pwrbutton_res[] =3D {
+> +	{
+> +		.name	=3D "retu-pwrbutton",
+> +		.start	=3D RETU_INT_PWR,
+> +		.end	=3D RETU_INT_PWR,
+> +		.flags	=3D IORESOURCE_IRQ,
+> +	},
+> +};
+> +
+> +static struct mfd_cell retu_devs[] =3D {
+> +	{
+> +		.name		=3D "retu-wdt"
+> +	},
+> +	{
+> +		.name		=3D "retu-pwrbutton",
+> +		.resources	=3D retu_pwrbutton_res,
+> +		.num_resources	=3D ARRAY_SIZE(retu_pwrbutton_res),
+> +	}
+> +};
+> +
+> +static struct regmap_irq retu_irqs[] =3D {
+> +	[RETU_INT_PWR] =3D {
+> +		.mask =3D 1 << RETU_INT_PWR,
+> +	}
+> +};
+> +
+> +static struct regmap_irq_chip retu_irq_chip =3D {
+> +	.name		=3D "RETU",
+> +	.irqs		=3D retu_irqs,
+> +	.num_irqs	=3D ARRAY_SIZE(retu_irqs),
+> +	.num_regs	=3D 1,
+> +	.status_base	=3D RETU_REG_IDR,
+> +	.mask_base	=3D RETU_REG_IMR,
+> +	.ack_base	=3D RETU_REG_IDR,
+> +};
+> +
+> +/* Retu device registered for the power off. */
+> +static struct retu_dev *retu_pm_power_off;
+> +
+> +int retu_read(struct retu_dev *rdev, u8 reg)
+> +{
+> +	int ret;
+> +	int value;
+> +
+> +	mutex_lock(&rdev->mutex);
+> +	ret =3D regmap_read(rdev->regmap, reg, &value);
+> +	mutex_unlock(&rdev->mutex);
+> +
+> +	return ret ? ret : value;
+> +}
+> +EXPORT_SYMBOL_GPL(retu_read);
+> +
+> +int retu_write(struct retu_dev *rdev, u8 reg, u16 data)
+> +{
+> +	int ret;
+> +
+> +	mutex_lock(&rdev->mutex);
+> +	ret =3D regmap_write(rdev->regmap, reg, data);
+> +	mutex_unlock(&rdev->mutex);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(retu_write);
+> +
+> +static void retu_power_off(void)
+> +{
+> +	struct retu_dev *rdev =3D retu_pm_power_off;
+> +	int reg;
+> +
+> +	mutex_lock(&retu_pm_power_off->mutex);
+> +
+> +	/* Ignore power button state */
+> +	regmap_read(rdev->regmap, RETU_REG_CC1, &reg);
+> +	regmap_write(rdev->regmap, RETU_REG_CC1, reg | 2);
+> +
+> +	/* Expire watchdog immediately */
+> +	regmap_write(rdev->regmap, RETU_REG_WATCHDOG, 0);
+> +
+> +	/* Wait for poweroff */
+> +	for (;;)
+> +		cpu_relax();
+> +
+> +	mutex_unlock(&retu_pm_power_off->mutex);
+> +}
+> +
+> +static int retu_regmap_read(void *context, const void *reg, size_t r=
+eg_size,
+> +			    void *val, size_t val_size)
+> +{
+> +	int ret;
+> +	struct device *dev =3D context;
+> +	struct i2c_client *i2c =3D to_i2c_client(dev);
+> +
+> +	BUG_ON(reg_size !=3D 1 || val_size !=3D 2);
+> +
+> +	ret =3D i2c_smbus_read_word_data(i2c, *(u8 const *)reg);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	*(u16 *)val =3D ret;
+> +	return 0;
+> +}
+> +
+> +static int retu_regmap_write(void *context, const void *data, size_t=
+ count)
+> +{
+> +	u8 reg;
+> +	u16 val;
+> +	struct device *dev =3D context;
+> +	struct i2c_client *i2c =3D to_i2c_client(dev);
+> +
+> +	BUG_ON(count !=3D sizeof(reg) + sizeof(val));
+> +	memcpy(&reg, data, sizeof(reg));
+> +	memcpy(&val, data + sizeof(reg), sizeof(val));
+> +	return i2c_smbus_write_word_data(i2c, reg, val);
+> +}
+> +
+> +static struct regmap_bus retu_bus =3D {
+> +	.read =3D retu_regmap_read,
+> +	.write =3D retu_regmap_write,
+> +	.val_format_endian_default =3D REGMAP_ENDIAN_NATIVE,
+> +};
+> +
+> +static struct regmap_config retu_config =3D {
+> +	.reg_bits =3D 8,
+> +	.val_bits =3D 16,
+> +};
+> +
+> +static int __devinit retu_probe(struct i2c_client *i2c,
+> +				const struct i2c_device_id *id)
+> +{
+> +	struct retu_dev *rdev;
+> +	int ret;
+> +
+> +	rdev =3D devm_kzalloc(&i2c->dev, sizeof(*rdev), GFP_KERNEL);
+> +	if (rdev =3D=3D NULL)
+> +		return -ENOMEM;
+> +
+> +	i2c_set_clientdata(i2c, rdev);
+> +	rdev->dev =3D &i2c->dev;
+> +	mutex_init(&rdev->mutex);
+> +	rdev->regmap =3D devm_regmap_init(&i2c->dev, &retu_bus, &i2c->dev,
+> +					&retu_config);
+> +	if (IS_ERR(rdev->regmap))
+> +		return PTR_ERR(rdev->regmap);
+> +
+> +	ret =3D retu_read(rdev, RETU_REG_ASICR);
+> +	if (ret < 0) {
+> +		dev_err(rdev->dev, "could not read Retu revision: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	dev_info(rdev->dev, "Retu%s v%d.%d found\n",
+> +		 (ret & RETU_REG_ASICR_VILMA) ? " & Vilma" : "",
+> +		 (ret >> 4) & 0x7, ret & 0xf);
+> +
+> +	/* Mask all RETU interrupts. */
+> +	ret =3D retu_write(rdev, RETU_REG_IMR, 0xffff);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret =3D regmap_add_irq_chip(rdev->regmap, i2c->irq, IRQF_ONESHOT, -=
+1,
+> +				  &retu_irq_chip, &rdev->irq_data);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret =3D mfd_add_devices(rdev->dev, -1, retu_devs, ARRAY_SIZE(retu_d=
+evs),
+> +			      NULL, regmap_irq_chip_get_base(rdev->irq_data),
+> +			      NULL);
+> +	if (ret < 0) {
+> +		regmap_del_irq_chip(i2c->irq, rdev->irq_data);
+> +		return ret;
+> +	}
+> +
+> +	if (!pm_power_off) {
+> +		retu_pm_power_off =3D rdev;
+> +		pm_power_off	  =3D retu_power_off;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int __devexit retu_remove(struct i2c_client *i2c)
+> +{
+> +	struct retu_dev *rdev =3D i2c_get_clientdata(i2c);
+> +
+> +	if (retu_pm_power_off =3D=3D rdev) {
+> +		pm_power_off	  =3D NULL;
+> +		retu_pm_power_off =3D NULL;
+> +	}
+> +	mfd_remove_devices(rdev->dev);
+> +	regmap_del_irq_chip(i2c->irq, rdev->irq_data);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id retu_id[] =3D {
+> +	{ "retu-mfd", 0 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(i2c, retu_id);
+> +
+> +static struct i2c_driver retu_driver =3D {
+> +	.driver		=3D {
+> +		.name =3D "retu-mfd",
+> +		.owner =3D THIS_MODULE,
+> +	},
+> +	.probe		=3D retu_probe,
+> +	.remove		=3D retu_remove,
+> +	.id_table	=3D retu_id,
+> +};
+> +module_i2c_driver(retu_driver);
+> +
+> +MODULE_DESCRIPTION("Retu MFD driver");
+> +MODULE_AUTHOR("Juha Yrj=C3=B6l=C3=A4");
+> +MODULE_AUTHOR("David Weinehall");
+> +MODULE_AUTHOR("Mikko Ylinen");
+> +MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
+> +MODULE_LICENSE("GPL");
+> diff --git a/include/linux/mfd/retu.h b/include/linux/mfd/retu.h
+> new file mode 100644
+> index 0000000..1e2715d
+> --- /dev/null
+> +++ b/include/linux/mfd/retu.h
+> @@ -0,0 +1,22 @@
+> +/*
+> + * Retu MFD driver interface
+> + *
+> + * This file is subject to the terms and conditions of the GNU Gener=
+al
+> + * Public License. See the file "COPYING" in the main directory of t=
+his
+> + * archive for more details.
+> + */
+> +
+> +#ifndef __LINUX_MFD_RETU_H
+> +#define __LINUX_MFD_RETU_H
+> +
+> +struct retu_dev;
+> +
+> +int retu_read(struct retu_dev *, u8);
+> +int retu_write(struct retu_dev *, u8, u16);
+> +
+> +/* Registers */
+> +#define RETU_REG_WATCHDOG	0x17		/* Watchdog */
+> +#define RETU_REG_CC1		0x0d		/* Common control register 1 */
+> +#define RETU_REG_STATUS		0x16		/* Status register */
+> +
+> +#endif /* __LINUX_MFD_RETU_H */
+> --=20
+> 1.7.2.5
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
