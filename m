@@ -1,53 +1,55 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/2] OMAPDSS: DISPC: Update manager size limits for OMAP5
-Date: Tue, 20 Nov 2012 16:54:47 +0200
-Message-ID: <50AB99B7.9030102@ti.com>
-References: <1352881216-7490-1-git-send-email-archit@ti.com>
+Subject: Re: [PATCH 0/5] OMAPFB: use dma_alloc instead of omap's vram
+Date: Tue, 20 Nov 2012 17:09:10 +0200
+Message-ID: <50AB9D16.3010309@ti.com>
+References: <1352715906-16946-1-git-send-email-tomi.valkeinen@ti.com> <20121112225037.GU6801@atomide.com> <50A601FA.5060401@ti.com> <20121119220443.GD18567@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enig337D83812C2F7D9AC34E2467"
+	boundary="------------enig814EC106AC792CE8E67CBF4E"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55695 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53851 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751595Ab2KTOyu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Nov 2012 09:54:50 -0500
-In-Reply-To: <1352881216-7490-1-git-send-email-archit@ti.com>
+	id S1751261Ab2KTPJU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Nov 2012 10:09:20 -0500
+In-Reply-To: <20121119220443.GD18567@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: archit@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
 
---------------enig337D83812C2F7D9AC34E2467
+--------------enig814EC106AC792CE8E67CBF4E
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-11-14 10:20, Archit Taneja wrote:
-> Manager width and height can go up to 4K on OMAP5. Make manager width a=
-nd height
-> register field offsets and maximum limits as dispc_features. Create a n=
-ew
-> dispc_feature struct for OMAP5 which highlights this difference.
->=20
-> Archit Taneja (2):
->   OMAPDSS: Add overlay manager width and height limits as a dispc
->     feature
->   OMAPDSS: Add a dispc_features struct for OMAP5
->=20
->  drivers/video/omap2/dss/dispc.c        |   47 ++++++++++++++++++++++++=
-+++++---
->  drivers/video/omap2/dss/dss_features.c |    8 ------
->  drivers/video/omap2/dss/dss_features.h |    2 --
->  3 files changed, 43 insertions(+), 14 deletions(-)
->=20
+On 2012-11-20 00:04, Tony Lindgren wrote:
 
-Thanks, looks fine. I'll apply to omapdss tree.
+>> Should we enable CMA by default in omap2plus_defconfig? And perhaps on=
+
+>> omap1 also?
+>=20
+> Yes if that's now needed for DSS.
+
+DSS works fine without CMA, at least for small displays, and when fb
+allocation is done at boot time. So it's not a strict "need".
+
+I'm not sure how easily FB allocations start to fail without CMA, and
+how much CMA helps.
+
+I'm not even sure what's the default DMA pool size on OMAP... If it's
+the one set with "coherent_pool" kernel parameter, then the default
+seems to be 256K, which is quite small for video use. For CMA the
+default global area is 16M. Both can, of course, be changed with boot
+params or kernel config (at least for CMA).
+
+But I think it makes sense to have CMA by default even if non-CMA kernel
+would work.
 
  Tomi
 
 
 
---------------enig337D83812C2F7D9AC34E2467
+--------------enig814EC106AC792CE8E67CBF4E
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -56,19 +58,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQq5m3AAoJEPo9qoy8lh71a5AP/0dNcTBYMmcn08keB/2c+qHq
-xuOZDgzVKOucxv7C3uMQ2HTJ9T6QzzmSqrtuPLh++6556OrrlCqgwEetCGNA8ui8
-KBnxxQs9/1PWh5ymh+w/758kdCuemnOdvlDk6s0r94rGA+nprO0x1Zu5gc0bsaCT
-zEV7bkGu9Vxcl13jtaguTA6Cye1ttVVRiGbrXg+znScB+cj9FZPLKf7MDaugNegm
-K7oueByapiZ4n5MqCt4Sf5WS4T/Fmuj5hdRu/PY7riop9cfrI+KgFHv6PLORvZrS
-3G3puFo/3RFuB8+/bbQal50bBkIwHjgkniwuKWLCXwK+SVwVEUid9wp0oFDO/sW4
-SR7bnZ0nfg8vzazpdaHjpIEqGTexc4XR2szDlBiuzcp1TgaZ6Luu5iGfaj6c4AIy
-3EFpzKQO5/8gwbRJHEgkT09MVTRng8Q4RjdqEy2AYCDu820NWnvGKmEvZFZAw3/A
-1LB0l5kXM6/uhpr8Ei+mgzEMzjmC+qvyxYIXrwWe7o3cPL0aERZAvG6jLU9l9qMt
-tzhTZX2Om/JmN1cQTOb1Dq6DetbTLpKwfrrqiaF0xHB9OEMXHo2uDQBO0YaNcOFx
-0G/RqTMWLNbeDlEUx6H/W+LfavaD3bxpglepN/53CsZwqD7CqM9JZBiBmOTo6zg9
-WFWaI2nv0flu6Nuz2Fo0
-=5mNO
+iQIcBAEBAgAGBQJQq50WAAoJEPo9qoy8lh71bvYP/iupOqgFPIe2IZ2mpn/9yhnC
+RIlEQQVBSNInSWWWZRcBf3Htz27uuc9IK88lYx5lEAEttQ1nfh7KU3Azwei+3nZa
+fcNkt41vHGIVHRKHkPJiQVRuLjYFtquTf2stYXcp/pNBUrXK/JCyvHYH/lm0fBRF
+Me0f7kCbtBb/HRSIhUwpmpECo0Ca79tDSBYdU1hAQZ+u/pmFbbWxDiChuwCrIepx
+kj4fXuWNI22hzkxW8ln5XehVebb0DRnMfPe1zXlRJesUQFiOdLduT1nMy9/nPBZX
+p3DBxmNOtRAnkXJZz+U3W5RBZzjqBQics380AG8MB7L7u7Y1YwWM6dGE0EjaKcrD
+3Z0aPT3JHVhZ3ZcoGt4dByPXAWneUL6rmRni2fXm2sgs1byfV7X7ptAv9oNtx6fd
+iaVYcLGrTOJ767eXltjAQYk/DyNZdjl0hLjgPe47P2EvLToLKuSDaR60D0jGz+iO
+O0lT8yZsx7m3ybKJAgKwTnAgswUlixz+k0cIWVWV23QnAIQH6xPd2o7zNzSs40G/
+ZjAAxc62HS23s9bABdmpXN9DMURZfYP047i51ZwOmRAEUReb1KnrjtRIjEeTdYJ6
+OMoMWIY1zaNNNfX86VsALyLKO9rAyGgZP0yXe5V9WzMXEwbOI0Jfm+xzkXZwzIIR
+6POofTSHonwCGmK54QY9
+=YnQi
 -----END PGP SIGNATURE-----
 
---------------enig337D83812C2F7D9AC34E2467--
+--------------enig814EC106AC792CE8E67CBF4E--
