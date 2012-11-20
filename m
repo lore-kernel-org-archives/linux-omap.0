@@ -1,57 +1,77 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 0/3] can: Add D_CAN raminit support to am335x-evm
-Date: Tue, 20 Nov 2012 05:00:15 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA75C73@DBDE01.ent.ti.com>
-References: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: [PATCH v3 00/10] Support for AM33xx PWM Subsystem
+Date: Tue, 20 Nov 2012 10:33:41 +0530
+Message-ID: <1353387831-31538-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1352916505-12343-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org" <wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org>, "mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: thierry.reding@avionic-design.de, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com
+Cc: hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 14, 2012 at 23:38:22, AnilKumar, Chimata wrote:
-> This patch series adds d_can raminit support to c_can/d_can driver,
-> which is required to init/de-init D_CAN message RAM (holds message
-> objects). Added corresponding DT changes to get resource of RAMINIT
-> register and device instance.
-> 
-> These patches were tested on AM335x-EVM along with pinctrl data addition
-> patch, which is not added to am335x-evm.dts (only supports CPLD profile#0)
-> because d_can1 is supported under CPLD profile#1.
+In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
+PWM subsystem. All these submodules shares the resources (clock) & has
+a clock gating register in PWM Subsystem. This patch series creates a
+parent PWM Subsystem driver to handle access synchronization of shared
+resources & clock gating from PWM Subsystem configuration space.
+Also Device tree nodes populated to support parent child relation
+between PWMSS, ECAP & EHRPWM submodules.
+In addition EHRPWM module requires explicit clock gating from control
+module & is handled by patch #2 & 8.
 
-Hi Mark,
+Patch #4 & 6 submitted is a second revision as suggested by  Thierry
+for handling clock gating with a global function . This requires config
+space handling done independent from driver and is done at parent driver.
+So the parent<->child relation adopted to handle
+1. pm runtime synchronization
+2. PWM subsystem common config space clock gating for PWM submodules.
 
-Gentle remainder to this series
+Patches supports
+- Driver support for parent child relation handled patch #1
+- Optional EHRPWM tb clock in patch #2
+- Parent child in HWMOD handled at patch #3
+- Device tree binding support handled in patch #4, 6 &8
+- pinctrl support in patch #5 & 7.
+- DT node populated in patch #9 & 10.
 
-Thanks
-AnilKumar
- 
-> AnilKumar Ch (3):
->   can: c_can: Add d_can raminit support
->   ARM: dts: AM33XX: Add d_can instances to aliases
->   ARM: dts: AM33XX: Add memory resource to d_can node
-> 
->  arch/arm/boot/dts/am33xx.dtsi          |    8 ++++++--
->  drivers/net/can/c_can/c_can.c          |   12 +++++++++++
->  drivers/net/can/c_can/c_can.h          |    3 +++
->  drivers/net/can/c_can/c_can_platform.c |   34 +++++++++++++++++++++++++++++++-
->  4 files changed, 54 insertions(+), 3 deletions(-)
-> 
-> -- 
-> 1.7.9.5
-> 
-> 
+This patch series based on linux-next/20121115 and tested on AM33xx.
+It depends on [1]
+
+1. https://lkml.org/lkml/2012/11/19/338
+pwm: Device tree support for PWM polarity
+
+Philip, Avinash (10):
+  PWMSS: Add PWM Subsystem driver for parent<->child relationship
+  ARM: am33xx: clk: Add optional clock for EHRPWM
+  ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
+    subsystem
+  pwm: pwm-tiecap: Add device-tree binding support for APWM driver
+  pwm: pwm-tiecap: pinctrl support
+  pwm: pwm-tiehrpwm: Add device-tree binding support for EHRPWM driver
+  pwm: pwm-tiehrpwm: pinctrl support
+  pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+  ARM: dts: AM33XX: Add PWMSS device tree nodes
+  ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
+
+ .../devicetree/bindings/pwm/pwm-tiecap.txt         |   23 ++
+ .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |   23 ++
+ .../devicetree/bindings/pwm/pwm-tipwmss.txt        |   32 ++
+ arch/arm/boot/dts/am335x-evm.dts                   |   21 +
+ arch/arm/boot/dts/am33xx.dtsi                      |   84 ++++
+ arch/arm/mach-omap2/clock33xx_data.c               |   37 ++
+ arch/arm/mach-omap2/control.h                      |    8 +
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  419 +++++++++++++-------
+ drivers/pwm/Kconfig                                |   11 +
+ drivers/pwm/Makefile                               |    1 +
+ drivers/pwm/pwm-tiecap.c                           |   50 +++-
+ drivers/pwm/pwm-tiehrpwm.c                         |   65 +++-
+ drivers/pwm/pwm-tipwmss.c                          |  143 +++++++
+ drivers/pwm/tipwmss.h                              |   39 ++
+ 14 files changed, 811 insertions(+), 145 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
+ create mode 100644 drivers/pwm/pwm-tipwmss.c
+ create mode 100644 drivers/pwm/tipwmss.h
+
