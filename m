@@ -1,52 +1,57 @@
-From: viresh kumar <viresh.kumar@linaro.org>
-Subject: Re: [PATCH 237/493] mmc: remove use of __devinit
-Date: Tue, 20 Nov 2012 08:39:48 +0530
-Message-ID: <CAOh2x=mjF7fuptahGhSfbaonTMSDLg3VFYxxmG=K8yCbUcezuA@mail.gmail.com>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
-	<1353349642-3677-237-git-send-email-wfp5p@virginia.edu>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 0/3] can: Add D_CAN raminit support to am335x-evm
+Date: Tue, 20 Nov 2012 05:00:15 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA75C73@DBDE01.ent.ti.com>
+References: <1352916505-12343-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:37422 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752439Ab2KTDJt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Nov 2012 22:09:49 -0500
-In-Reply-To: <1353349642-3677-237-git-send-email-wfp5p@virginia.edu>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1352916505-12343-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org" <wg-5Yr1BZd7O62+XT7JhA+gdA@public.gmane.org>, "mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-can-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Bill Pemberton <wfp5p@virginia.edu>
-Cc: gregkh@linuxfoundation.org, Ludovic Desroches <ludovic.desroches@atmel.com>, Chris Ball <cjb@laptop.org>, Manuel Lauss <manuel.lauss@gmail.com>, =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, Venkatraman S <svenkatr@ti.com>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Ian Molton <ian@mnementh.co.uk>, Bruce Chang <brucechang@via.com.tw>, Harald Welte <HaraldWelte@viatech.com>, Pierre Ossman <pierre@ossman.eu>, linux-mmc@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, spear-devel@list.st.com
 
-On Mon, Nov 19, 2012 at 11:53 PM, Bill Pemberton <wfp5p@virginia.edu> w=
-rote:
-> CONFIG_HOTPLUG is going away as an option so __devinit is no longer
-> needed.
->
-> Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-> Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-> Cc: Chris Ball <cjb@laptop.org>
-> Cc: Manuel Lauss <manuel.lauss@gmail.com>
-> Cc: "Micha=C5=82 Miros=C5=82aw" <mirq-linux@rere.qmqm.pl>
-> Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-> Cc: Venkatraman S <svenkatr@ti.com>
-> Cc: Viresh Kumar <viresh.linux@gmail.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Ian Molton <ian@mnementh.co.uk>
-> Cc: Bruce Chang <brucechang@via.com.tw>
-> Cc: Harald Welte <HaraldWelte@viatech.com>
-> Cc: Pierre Ossman <pierre@ossman.eu>
-> Cc: linux-mmc@vger.kernel.org
-> Cc: uclinux-dist-devel@blackfin.uclinux.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: spear-devel@list.st.com
-> ---
->  drivers/mmc/host/sdhci-spear.c     |  8 +++-----
+On Wed, Nov 14, 2012 at 23:38:22, AnilKumar, Chimata wrote:
+> This patch series adds d_can raminit support to c_can/d_can driver,
+> which is required to init/de-init D_CAN message RAM (holds message
+> objects). Added corresponding DT changes to get resource of RAMINIT
+> register and device instance.
+> 
+> These patches were tested on AM335x-EVM along with pinctrl data addition
+> patch, which is not added to am335x-evm.dts (only supports CPLD profile#0)
+> because d_can1 is supported under CPLD profile#1.
 
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Mark,
+
+Gentle remainder to this series
+
+Thanks
+AnilKumar
+ 
+> AnilKumar Ch (3):
+>   can: c_can: Add d_can raminit support
+>   ARM: dts: AM33XX: Add d_can instances to aliases
+>   ARM: dts: AM33XX: Add memory resource to d_can node
+> 
+>  arch/arm/boot/dts/am33xx.dtsi          |    8 ++++++--
+>  drivers/net/can/c_can/c_can.c          |   12 +++++++++++
+>  drivers/net/can/c_can/c_can.h          |    3 +++
+>  drivers/net/can/c_can/c_can_platform.c |   34 +++++++++++++++++++++++++++++++-
+>  4 files changed, 54 insertions(+), 3 deletions(-)
+> 
+> -- 
+> 1.7.9.5
+> 
+> 
