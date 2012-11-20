@@ -1,56 +1,72 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: OMAP* Latest build failures
-Date: Tue, 20 Nov 2012 17:00:19 -0600
-Message-ID: <50AC0B83.9070704@ti.com>
-References: <20121114092643.GG3290@n2100.arm.linux.org.uk> <20121117093307.GL3332@n2100.arm.linux.org.uk> <20121120175733.GH18567@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/16] OMAP USB Host cleanup
+Date: Tue, 20 Nov 2012 15:13:12 -0800
+Message-ID: <20121120231312.GP18567@atomide.com>
+References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
+ <87fw49cnvh.fsf@deeprootsystems.com>
+ <50AA05C3.7010003@ti.com>
+ <876251b2kq.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37841 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752883Ab2KTXAc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Nov 2012 18:00:32 -0500
-In-Reply-To: <20121120175733.GH18567@atomide.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:62043 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752125Ab2KTXNQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 18:13:16 -0500
+Content-Disposition: inline
+In-Reply-To: <876251b2kq.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>, Radhesh Fadnis <radhesh.fadnis@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
+Hi Roger,
 
-On 11/20/2012 11:57 AM, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [121117 01:35]:
->> On Wed, Nov 14, 2012 at 09:26:43AM +0000, Russell King - ARM Linux wrote:
->>> OMAP* allnoconfig fails:
->>>
->>> arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput':
->>> twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bus_tput'
->>> arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup':
->>> twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_early_init'
->>> arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
->>> twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_dev_context_loss_count'
->>> arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
->>> twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_dev_context_loss_count'
->>> arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
->>> twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_init'
->>> arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
->>> twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_dev_context_loss_count'
->>> arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
->>> twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_dev_context_loss_count'
->>
->> These are now gone, but we have a new warning:
->>
->> arch/arm/mach-omap2/timer.c:163:28: warning: 'omap_counter_match' defined but not used
+* Kevin Hilman <khilman@deeprootsystems.com> [121119 15:24]:
+> Roger Quadros <rogerq@ti.com> writes:
 > 
-> Jon, care to fix this one?
+> > Kevin,
+> >
+> > On 11/16/2012 10:08 PM, Kevin Hilman wrote:
+> >> Roger Quadros <rogerq@ti.com> writes:
+> >> 
+> >>> Hi,
+> >>>
+> >>> This patchset addresses the following
+> >>>
+> >>> - Avoid addressing clocks one by one by name and use a for loop + bunch
+> >>>   of cleanups.
+> >>> - Get number of channels/ports dynamically either from revision register
+> >>>   or from platform data. Avoids getting clocks that are not present.
+> >>> - Add OMAP5 and HSIC mode (Not tested)
+> >>> - Save power on Panda when EHCI driver is not loaded.
+> >>>
+> >> 
+> >> Seeing the clock changes/cleanups, I gave this a spin on OMAP3
+> >> (3530/Beagle, 3530/Overo, 3730/Beagle-xM, 3730/OveroSTORM) to see if it
+> >> fixed up the problem where CORE does not hit retention in idle when USB
+> >> host is enabled, even with no devices attached.
+> >> 
+> >> Unfortunately, it didn't help. :(
+> >
+> > oh that's bad. But this series wasn't meant to fix that ;).
+> 
+> Oh, sorry.  Yeah, I didn't mean this as a nak.  Just an opportunity to
+> complain to the maintainers that a long-standing issue needs to be
+> addressed.
 
-Fix already available here [1]. I actually included this in my latest
-pull request with some other timer clean-ups [2]. Let me know if you are
-ok with this being part of this pull request or if you want to handle
-this separately.
+It seems that drivers/mfd/omap-usb-host.c is one of the last users
+of cpu_is_omap macros blocking enabling ARM multiplatform support for
+omap2+.
 
-Cheers
-Jon
+Please fix that ASAP as early as possible in this patch series to
+remove the dependencies between core omap code development and driver
+development.
 
-[1] http://marc.info/?l=linux-omap&m=135300866115036&w=2
-[2] http://marc.info/?l=linux-omap&m=135308624321232&w=2
+Basically you need to remove #include <plat/cpu.h> and pass the
+revision information in platform data (and device tree compatible
+flag when that is supported).
+
+Regards,
+
+Tony
