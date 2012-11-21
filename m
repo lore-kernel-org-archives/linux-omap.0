@@ -1,68 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 5/8] crypto: omap-sham: Remove cpu_is/omap_type
- check from driver
-Date: Tue, 20 Nov 2012 17:02:58 -0800
-Message-ID: <20121121010257.GR18567@atomide.com>
-References: <1353351301-6453-1-git-send-email-mgreer@animalcreek.com>
- <1353351301-6453-6-git-send-email-mgreer@animalcreek.com>
+Subject: Re: [PATCH 4/7] crypto: omap-aes: Remove cpu_is/omap_type check
+ from driver
+Date: Tue, 20 Nov 2012 17:03:43 -0800
+Message-ID: <20121121010343.GS18567@atomide.com>
+References: <1353351832-6685-1-git-send-email-mgreer@animalcreek.com>
+ <1353351832-6685-5-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51404 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753436Ab2KUBDF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 20:03:05 -0500
+Return-path: <linux-crypto-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1353351301-6453-6-git-send-email-mgreer@animalcreek.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1353351832-6685-5-git-send-email-mgreer@animalcreek.com>
+Sender: linux-crypto-owner@vger.kernel.org
 To: "Mark A. Greer" <mgreer@animalcreek.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, dmitry.kasatkin@intel.com, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com
+List-Id: linux-omap@vger.kernel.org
 
-* Mark A. Greer <mgreer@animalcreek.com> [121119 10:58]:
+* Mark A. Greer <mgreer@animalcreek.com> [121119 11:06]:
 > From: "Mark A. Greer" <mgreer@animalcreek.com>
 > 
-> The omap-sham driver should not check the CPU class or the
+> The omap-aes driver should not check the CPU class or the
 > type of OMAP device its on.  The platform code should do
 > that instead.
 
-I think I already have a similar patch queued in linux next.
+Similar patch for this one too should be queued already.
 
 Regards,
 
 Tony
  
-> CC: Paul Walmsley <paul@pwsan.com>
-> CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
 > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 > ---
->  drivers/crypto/omap-sham.c | 8 --------
->  1 file changed, 8 deletions(-)
+>  drivers/crypto/omap-aes.c | 5 -----
+>  1 file changed, 5 deletions(-)
 > 
-> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-> index a3fd6fc..f50387c 100644
-> --- a/drivers/crypto/omap-sham.c
-> +++ b/drivers/crypto/omap-sham.c
-> @@ -37,7 +37,6 @@
->  #include <crypto/hash.h>
->  #include <crypto/internal/hash.h>
->  
-> -#include <plat/cpu.h>
->  #include <plat/dma.h>
->  #include <mach/irqs.h>
->  
-> @@ -1289,13 +1288,6 @@ static int __init omap_sham_mod_init(void)
+> diff --git a/drivers/crypto/omap-aes.c b/drivers/crypto/omap-aes.c
+> index 093a8af..628c3cc 100644
+> --- a/drivers/crypto/omap-aes.c
+> +++ b/drivers/crypto/omap-aes.c
+> @@ -941,11 +941,6 @@ static int __init omap_aes_mod_init(void)
 >  {
->  	pr_info("loading %s driver\n", "omap-sham");
+>  	pr_info("loading %s driver\n", "omap-aes");
 >  
-> -	if (!cpu_class_is_omap2() ||
-> -		(omap_type() != OMAP2_DEVICE_TYPE_SEC &&
-> -			omap_type() != OMAP2_DEVICE_TYPE_EMU)) {
+> -	if (!cpu_class_is_omap2() || omap_type() != OMAP2_DEVICE_TYPE_SEC) {
 > -		pr_err("Unsupported cpu\n");
 > -		return -ENODEV;
 > -	}
 > -
->  	return platform_driver_register(&omap_sham_driver);
+>  	return  platform_driver_register(&omap_aes_driver);
 >  }
 >  
 > -- 
