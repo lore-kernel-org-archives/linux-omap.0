@@ -1,74 +1,44 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: [PATCH v4 11/11] ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
-Date: Wed, 21 Nov 2012 18:41:08 +0530
-Message-ID: <1353503469-18634-12-git-send-email-avinashphilip@ti.com>
-References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: thierry.reding@avionic-design.de, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com
-Cc: hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/1] ARM: OMAP2+: enable devtmpfs and devtmpfs automount
+Date: Wed, 21 Nov 2012 14:26:51 +0100
+Message-ID: <1353504411-19811-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:37661 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752159Ab2KUN1h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 08:27:37 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-PWM output from ecap2 uses as backlight source. Also adds low threshold
-value to have a uniform divisions in brightness-levels scales with
-inverse polarity.
+Since udev-182, udev no longer creates device nodes under /dev
+and this has to be managed by the kernel devtmpfs filesystem.
 
-Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+This means that a kernel built with the current OMAP2+ config
+will not boot on a system with a recent udev.
+
+Also, it is good to have /dev automatically mounted since some
+non-initramfs based setups assumes this and don't manually mount it.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 ---
-:100644 100644 f5a6162... 6f3de83... M	arch/arm/boot/dts/am335x-evmsk.dts
- arch/arm/boot/dts/am335x-evmsk.dts |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
+ arch/arm/configs/omap2plus_defconfig |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
-index f5a6162..6f3de83 100644
---- a/arch/arm/boot/dts/am335x-evmsk.dts
-+++ b/arch/arm/boot/dts/am335x-evmsk.dts
-@@ -51,6 +51,12 @@
- 				0x9c 0x27	/* gpmc_ben0_cle.gpio2_5, INPUT | MODE7 */
- 			>;
- 		};
-+
-+		ecap2_pins: backlight_pins {
-+			pinctrl-single,pins = <
-+				0x19c 0x4	/* mcasp0_ahclkr.ecap2_in_pwm2_out MODE4 */
-+			>;
-+		};
- 	};
- 
- 	ocp {
-@@ -94,6 +100,16 @@
- 				st,max-limit-z = <750>;
- 			};
- 		};
-+
-+		epwmss2: epwmss@48304000 {
-+			status = "okay";
-+
-+			ecap2: ecap@48304100 {
-+				status = "okay";
-+				pinctrl-names = "default";
-+				pinctrl-0 = <&ecap2_pins>;
-+			};
-+		};
- 	};
- 
- 	vbat: fixedregulator@0 {
-@@ -170,6 +186,13 @@
- 			gpios = <&gpio3 5 0>;
- 		};
- 	};
-+
-+	backlight {
-+		compatible	= "pwm-backlight";
-+		pwms = <&ecap2 0 50000 1>;
-+		brightness-levels = <0 58 61 66 75 90 125 170 255>;
-+		default-brightness-level = <8>;
-+	};
- };
- 
- /include/ "tps65910.dtsi"
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 6230304..6333e96 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -65,6 +65,8 @@ CONFIG_MAC80211_RC_PID=y
+ CONFIG_MAC80211_RC_DEFAULT_PID=y
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_CONNECTOR=y
++CONFIG_DEVTMPFS=y
++CONFIG_DEVTMPFS_MOUNT=y
+ CONFIG_MTD=y
+ CONFIG_MTD_CMDLINE_PARTS=y
+ CONFIG_MTD_CHAR=y
 -- 
-1.7.0.4
+1.7.7.6
+
