@@ -1,65 +1,45 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
- ETH when not in use
-Date: Wed, 21 Nov 2012 18:07:57 +0200
-Message-ID: <50ACFC5D.1090406@ti.com>
-References: <Pine.LNX.4.44L0.1211211028200.1731-100000@iolanthe.rowland.org>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 1/1] twl4030: Fix chained irq handling on resume from
+ suspend
+Date: Wed, 21 Nov 2012 17:47:29 +0100
+Message-ID: <20121121164729.GC18738@sortiz-mobl>
+References: <1350399575-13240-1-git-send-email-kalle.jokiniemi@jollamobile.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1211211028200.1731-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:19342 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755259Ab2KUQri (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Nov 2012 11:47:38 -0500
+Content-Disposition: inline
+In-Reply-To: <1350399575-13240-1-git-send-email-kalle.jokiniemi@jollamobile.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kalle Jokiniemi <kalle.jokiniemi@jollamobile.com>
+Cc: tony@atomide.com, khilman@deeprootsystems.com, omaplinuxkernel@gmail.com, linux-i2c@vger.kernel.org, w.sang@pengutronix.de, linux-omap@vger.kernel.org, grygorii.strashko@ti.com, shubhrajyoti@ti.com, huzefank@ti.com, nm@ti.com
 
-On 11/21/2012 05:32 PM, Alan Stern wrote:
-> On Wed, 21 Nov 2012, Roger Quadros wrote:
-> 
->> On 11/21/2012 04:52 PM, Alan Stern wrote:
->>> On Wed, 21 Nov 2012, Felipe Balbi wrote:
->>>
->>>> On Thu, Nov 15, 2012 at 04:34:14PM +0200, Roger Quadros wrote:
->>>>> From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>>>>
->>>>> This patch changes the management of the two GPIO for
->>>>> "hub reset" (actually controls enable of ULPI PHY and hub reset) and
->>>>> "hub power" (controls power to hub + eth).
->>>>
->>>> looks like this should be done by the hub driver. Alan, what would you
->>>> say ? Should the hub driver know how to power itself up ?
->>>
->>> Not knowing the context, I'm a little confused.  What is this hub 
->>> you're talking about?  Is it a separate USB hub incorporated into the 
->>> IP (like Intel's "rate-matching" hubs in their later chipsets)?  Or is 
->>> it the root hub?
->>>
->>
->> This is actually a USB HUB + Ethernet combo chip (LAN9514) that is hard
->> wired on the panda board with its Power and Reset pins controlled by 2
->> GPIOs from the OMAP SoC.
->>
->> When powered, this chip can consume significant power (~0.7 W) because
->> of the (integrated Ethernet even when suspended. I suppose the ethernet
->> driver SMSC95XX) doesn't put it into a low enough power state on suspend.
->>
->> It doesn't make sense to power the chip when USB is not required on the
->> whole (e.g. ehci_hcd module is not loaded). This is what this patch is
->> trying to fix.
-> 
-> Ah, okay.  Then yes, assuming you want to power this chip only when 
-> either ehci-hcd or the ethernet driver is loaded, the right places 
-> to manage the power GPIO are in the init and exit routines of the two 
-> drivers.
-> 
+Hi Kalle,
 
-The Ethernet function actually connects over USB within the chip. So
-managing the power only in the ehci-hcd driver should suffice.
+On Tue, Oct 16, 2012 at 05:59:35PM +0300, Kalle Jokiniemi wrote:
+> The irqs are enabled one-by-one in pm core resume_noirq phase.
+> This leads to situation where the twl4030 primary interrupt
+> handler (PIH) is enabled before the chained secondary handlers
+> (SIH). As the PIH cannot clear the pending interrupt, and
+> SIHs have not been enabled yet, a flood of interrupts hangs
+> the device.
+> 
+> Fixed the issue by setting the SIH irqs with IRQF_EARLY_RESUME
+> flags, so they get enabled before the PIH.
+> 
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@jollamobile.com>
+> ---
+>  drivers/mfd/twl4030-irq.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+Thanks, patch applied to my for-linus branch.
 
-cheers,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
