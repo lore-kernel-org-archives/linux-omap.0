@@ -1,84 +1,61 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v3] can: c_can: Add d_can raminit support
-Date: Wed, 21 Nov 2012 11:12:53 +0100
-Message-ID: <50ACA925.60900@pengutronix.de>
-References: <1353490282-10853-1-git-send-email-mkl@pengutronix.de> <331ABD5ECB02734CA317220B2BBEABC13EA77E29@DBDE01.ent.ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC timings
+ and NAND
+Date: Wed, 21 Nov 2012 11:15:23 +0100
+Message-ID: <50ACA9BB.7090106@gmail.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com> <1351869956-2787-5-git-send-email-zonque@gmail.com> <518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com> <5097B7EE.3000508@gmail.com> <518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com> <509A2E75.5060307@gmail.com> <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com> <509EA360.2050504@gmail.com> <87mwycjmdn.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig2C1F286584D44A07F647C6D6"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:32936 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051Ab2KUKNH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 05:13:07 -0500
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA77E29@DBDE01.ent.ti.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:59842 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051Ab2KUKRh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 05:17:37 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so2815848bkw.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Nov 2012 02:17:36 -0800 (PST)
+In-Reply-To: <87mwycjmdn.fsf@dell.be.48ers.dk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "wg@grandegger.com" <wg@grandegger.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
+To: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: "Philip, Avinash" <avinashphilip@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig2C1F286584D44A07F647C6D6
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On 20.11.2012 16:59, Peter Korsgaard wrote:
+>>>>>> "Daniel" == Daniel Mack <zonque@gmail.com> writes:
+> 
+> Hi,
+> 
+>  >>>> In omap2 driver NAND_ECC_HW ecc mode supports 3 ecc layout
+>  >>>> OMAP_ECC_HAMMING_CODE_HW_ROMCODE
+>  >>>> OMAP_ECC_BCH4_CODE_HW
+>  >>>> OMAP_ECC_BCH8_CODE_HW
+>  >>>> 
+>  >>>> So selection of ecc layout data should come from DT not ecc mode.
+>  >>> 
+>  >>> Ok, I see. I would still like to set them by string rather than magic
+>  >>> numbers that map to enum entries. Valid values would be "none", "hw",
+>  >>> "hw-romcode", "bch4" and "bch8". Are you ok with that?
+>  >> 
+>  >> Ok, that's nice. Better use ecc_opt instead of ecc_mode.
+> 
+>  Daniel> I did some more extensive tests that include reading the same
+>  Daniel> nand pages from both U-Boot and the kernel with BCH8 ECC, and
+>  Daniel> it turns out that -> is_elm_used needs to be set in the pdata
+>  Daniel> in order to make this work.
+> 
+> So what you're saying is that the choice of ELM or not is not just an
+> optimization, it really changes the ECC layout? Perhaps it should be
+> treated as a seperate layout (E.G. bch8-elm) then?
 
-On 11/21/2012 11:07 AM, AnilKumar, Chimata wrote:
-> On Wed, Nov 21, 2012 at 15:01:22, Marc Kleine-Budde wrote:
->> From: AnilKumar Ch <anilkumar@ti.com>
->>
->> Add D_CAN raminit support to C_CAN driver to enable D_CAN RAM,
->> which holds all the message objects during transmission or
->> receiving of data. This initialization/de-initialization should
->> be done in synchronous with D_CAN clock.
->>
->> In case of AM335X-EVM (current user of D_CAN driver) message RAM is
->> controlled through control module register for both instances. So
->> control module register details is required to initialization or
->> de-initialization of message RAM according to instance number.
->>
->> Control module memory resource is obtained from D_CAN dt node and
->> instance number obtained from device tree aliases node.
->>
->> This patch was tested on AM335x-EVM along with pinctrl data addition
->> patch, d_can dt aliases addition and control module data addition.
->> pinctrl data addition is not added to am335x-evm.dts (only supports
->> CPLD profile#0) because d_can1 is supported under CPLD profile#1.
->>
->> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->> [mkl: fix instance for non DT in probe, cleaned up raminit]
->> Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
->> ---
->> Hello,
->>
->> compile time tested only - please test on real HW.
->=20
-> Hi Marc,
->=20
-> I tested this patch, its working.
+That is what I experienced, yes. The kernel was unable to parse NAND
+pages that were written from U-Boot with bch8 hardware mode when the elm
+module was not active. Maybe someone from TI can explain that? Giving it
+a dedicated name would also solve the problem with the extra DT property.
 
-Tnx, pushed to linux-can-next/master
-
-Marc
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+I'll wait until this is decided before I resend a new set that also
+fixes the issue with the errornousely forgotten Documentation file.
 
 
---------------enig2C1F286584D44A07F647C6D6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Thanks,
+Daniel
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iEYEARECAAYFAlCsqSkACgkQjTAFq1RaXHNHuACfa4rtwoY7jJZHeQKq8bsxpgpp
-9FgAnjmvjIvugxGqW4DvaJJbIgwuoiiH
-=XFKw
------END PGP SIGNATURE-----
-
---------------enig2C1F286584D44A07F647C6D6--
