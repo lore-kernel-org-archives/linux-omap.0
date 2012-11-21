@@ -1,196 +1,126 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
- ETH when not in use
-Date: Wed, 21 Nov 2012 16:00:44 +0200
-Message-ID: <20121121140044.GQ10216@arwen.pp.htv.fi>
+Subject: Re: [PATCH 02/16] mfd: omap-usb-tll: Clean up clock handling
+Date: Wed, 21 Nov 2012 16:03:55 +0200
+Message-ID: <20121121140354.GR10216@arwen.pp.htv.fi>
 References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
- <1352990054-14680-17-git-send-email-rogerq@ti.com>
+ <1352990054-14680-3-git-send-email-rogerq@ti.com>
+ <20121121115556.GD10216@arwen.pp.htv.fi>
+ <50ACCAE0.3030907@ti.com>
 Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AsKt9WDFSpw8OJmf"
+	protocol="application/pgp-signature"; boundary="IfZ+tgy+ooJOsAAy"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60960 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:32872 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753831Ab2KUOHR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Nov 2012 09:07:17 -0500
+	id S1754591Ab2KUOKZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Nov 2012 09:10:25 -0500
 Content-Disposition: inline
-In-Reply-To: <1352990054-14680-17-git-send-email-rogerq@ti.com>
+In-Reply-To: <50ACCAE0.3030907@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>, Alan Stern <stern@rowland.harvard.edu>
+Cc: balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
---AsKt9WDFSpw8OJmf
+--IfZ+tgy+ooJOsAAy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 15, 2012 at 04:34:14PM +0200, Roger Quadros wrote:
-> From: Andy Green <andy.green@linaro.org>
->=20
-> This patch changes the management of the two GPIO for
-> "hub reset" (actually controls enable of ULPI PHY and hub reset) and
-> "hub power" (controls power to hub + eth).
+Hi,
 
-looks like this should be done by the hub driver. Alan, what would you
-say ? Should the hub driver know how to power itself up ?
+On Wed, Nov 21, 2012 at 02:36:48PM +0200, Roger Quadros wrote:
+> >>  		break;
+> >>  	default:
+> >> -		dev_err(dev, "TLL version failed\n");
+> >> -		ret =3D -ENODEV;
+> >> -		goto err_ioremap;
+> >> +		tll->nch =3D DEFAULT_TLL_CHANNEL_COUNT;
+> >> +		dev_info(dev,
+> >> +		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
+> >> +			ver, tll->nch);
+> >=20
+> > this hsould be dev_dbg().
+> >=20
+>=20
+> I think it should be more of a warning because it signals a problem.
+> There is another pr_info in the success path which could probably be a
+> dev_dbg.
 
-> Because the only connection from the ULPI PHY output is to the hub+eth
-> chip, there is no meaning in having the ULPI PHY running but not the
-> hub+eth chip.
+it's not a problem at all. It just means that a newer OMAP has come to
+market and perhaps we don't need extra code to support it. A revision
+detection should *never* be grounds to failure. When we can't understand
+the revision, we default to the highest possible value we know.
+
+that's not an error.
+
+> >> +		struct clk *fck;
+> >> +
+> >> +		sprintf(clk_name, "usb_tll_hs_usb_ch%d_clk", i);
+> >=20
+> > this will overflow if 'i' (for whatever reason) goes over 9.
 >=20
-> The patch adds two regulators, the hub power one being the parent of the
-> reset one, and binds the reset one to the hsusb driver by using the magic
-> name "hsusb.0".
+> OK i'll add an extra character. Highly unlikely to go above 99 :)
+
+I'd stick to snprintf() though, or something safer.
+
+> >> +		fck =3D clk_get(dev, clk_name);
+> >=20
+> > please use devm_clk_get().
+
+sidenote, it would be amazing to a patch at the top of this series
+converting to devm_* api ;-)
+
+> >> @@ -373,11 +385,17 @@ static int usbtll_runtime_resume(struct device *=
+dev)
+> >> =20
+> >>  	spin_lock_irqsave(&tll->lock, flags);
+> >> =20
+> >> -	if (is_ehci_tll_mode(pdata->port_mode[0]))
+> >> -		clk_enable(tll->usbtll_p1_fck);
+> >> -
+> >> -	if (is_ehci_tll_mode(pdata->port_mode[1]))
+> >> -		clk_enable(tll->usbtll_p2_fck);
+> >> +	for (i =3D 0; i < tll->nch; i++) {
+> >> +		if (is_ehci_tll_mode(pdata->port_mode[i])) {
+> >> +			int r;
+> >> +			r =3D clk_enable(tll->ch_clk[i]);
+> >> +			if (r) {
+> >> +				dev_err(dev,
+> >> +				 "%s : Error enabling ch %d clock: %d\n",
+> >> +				 __func__, i, r);
+> >=20
+> > you don't need __func__.
+> >=20
 >=20
-> The end result is the usb and eth driver may now be built modular, and
-> when ehci-hcd is not inserted, the ULPI PHY, hub and ethernet are all
-> depowered or held in reset.
->=20
-> Signed-off-by: Andy Green <andy.green@linaro.org>
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap4panda.c |   80 +++++++++++++++++++++++---=
------
->  1 files changed, 59 insertions(+), 21 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2=
-/board-omap4panda.c
-> index b942abe..90fb2c4 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -156,32 +156,68 @@ static const struct usbhs_omap_board_data usbhs_bda=
-ta __initconst =3D {
->  	.clkrate[0] =3D 19200000,
->  };
-> =20
-> -static struct gpio panda_ehci_gpios[] __initdata =3D {
-> -	{ GPIO_HUB_POWER,	GPIOF_OUT_INIT_LOW,  "hub_power"  },
-> -	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
-> +/*
-> + * hub_nreset also enables the ULPI PHY
-> + * ULPI PHY is always powered
-> + * hub_power enables a 3.3V regulator for (hub + eth) chip
-> + * however there's no point having ULPI PHY in use alone
-> + * since it's only connected to the (hub + eth) chip
-> + */
-> +
-> +static struct regulator_init_data panda_hub =3D {
-> +	.constraints =3D {
-> +		.name =3D "vhub",
-> +		.valid_ops_mask =3D REGULATOR_CHANGE_STATUS,
-> +	},
->  };
-> =20
-> -static void __init omap4_ehci_init(void)
-> -{
-> -	int ret;
-> +static struct fixed_voltage_config panda_vhub =3D {
-> +	.supply_name =3D "vhub",
-> +	.microvolts =3D 3300000,
-> +	.gpio =3D GPIO_HUB_POWER,
-> +	.startup_delay =3D 70000, /* 70msec */
-> +	.enable_high =3D 1,
-> +	.enabled_at_boot =3D 0,
-> +	.init_data =3D &panda_hub,
-> +};
-> =20
-> -	/* disable the power to the usb hub prior to init and reset phy+hub */
-> -	ret =3D gpio_request_array(panda_ehci_gpios,
-> -				 ARRAY_SIZE(panda_ehci_gpios));
-> -	if (ret) {
-> -		pr_err("Unable to initialize EHCI power/reset\n");
-> -		return;
-> -	}
-> +static struct platform_device omap_vhub_device =3D {
-> +	.name		=3D "reg-fixed-voltage",
-> +	.id		=3D 2,
-> +	.dev =3D {
-> +		.platform_data =3D &panda_vhub,
-> +	},
-> +};
-> =20
-> -	gpio_export(GPIO_HUB_POWER, 0);
-> -	gpio_export(GPIO_HUB_NRESET, 0);
-> -	gpio_set_value(GPIO_HUB_NRESET, 1);
-> +static struct regulator_init_data panda_ulpireset =3D {
-> +	/*
-> +	 * idea is that when operating ulpireset, regulator api will make
-> +	 * sure that the hub+eth chip is powered, since it's the "parent"
-> +	 */
-> +	.supply_regulator =3D "vhub", /* we are a child of vhub */
-> +	.constraints =3D {
-> +		.name =3D "hsusb0",
-> +		.valid_ops_mask =3D REGULATOR_CHANGE_STATUS,
-> +	},
-> +};
-> =20
-> -	usbhs_init(&usbhs_bdata);
-> +static struct fixed_voltage_config panda_vulpireset =3D {
-> +	.supply_name =3D "hsusb0",  /* this name is magic for hsusb driver */
-> +	.microvolts =3D 3300000,
-> +	.gpio =3D GPIO_HUB_NRESET,
-> +	.startup_delay =3D 70000, /* 70msec */
-> +	.enable_high =3D 1,
-> +	.enabled_at_boot =3D 0,
-> +	.init_data =3D &panda_ulpireset,
-> +};
-> =20
-> -	/* enable power to hub */
-> -	gpio_set_value(GPIO_HUB_POWER, 1);
-> -}
-> +static struct platform_device omap_vulpireset_device =3D {
-> +	.name		=3D "reg-fixed-voltage",
-> +	.id		=3D 3,
-> +	.dev =3D {
-> +		.platform_data =3D &panda_vulpireset,
-> +	},
-> +};
-> =20
->  static struct omap_musb_board_data musb_board_data =3D {
->  	.interface_type		=3D MUSB_INTERFACE_UTMI,
-> @@ -496,10 +532,12 @@ static void __init omap4_panda_init(void)
->  	omap4_panda_i2c_init();
->  	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
->  	platform_device_register(&omap_vwlan_device);
-> +	platform_device_register(&omap_vhub_device);
-> +	platform_device_register(&omap_vulpireset_device);
->  	omap_serial_init();
->  	omap_sdrc_init(NULL, NULL);
->  	omap4_twl6030_hsmmc_init(mmc);
-> -	omap4_ehci_init();
-> +	usbhs_init(&usbhs_bdata);
->  	usb_musb_init(&musb_board_data);
->  	omap4_panda_display_init();
->  }
-> --=20
-> 1.7.4.1
->=20
+> Thought it would be useful to point out where the message is coming
+> from. But it should be easy to grep too so I'll remove it.
+
+correct, if messages are unique, you don't need __func__ anyway ;-)
 
 --=20
 balbi
 
---AsKt9WDFSpw8OJmf
+--IfZ+tgy+ooJOsAAy
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQrN6MAAoJEIaOsuA1yqRE4FgQAK2duNa9q+aZZwCF+1OLDUtQ
-Z5cK5SXQ9Taxtdrw3fTUhVcerN2GeT4nnIRIQUT6FvUUtPv7xiV7lrYBEyPtISu3
-059NRIiOAfD7oxJ5pjonI3dN0gsxLh6oEQaNomecGKT7zTxBwWNjyyNB+WSPtIaL
-WFTAV6MElj1meBGE4NwTKmyLj31I4nPSzs2NImIx4obFl17dVyIsg8hD3xZpb55Z
-1TgM/Lyt6FiJ4feDcpthwzOC4zf+JKHnE/VlRLeEdHDZiR50/n6ptXqa8FPA7IxB
-lRBNWmD71jQyGM2xvWpEjZGfA2BeuUN6XOGXX6io1Ld49daA0dNUBdefhQf1KPjO
-7gQBcgQcxCxFt0PNQ4qV39rLgrC79IzH3qKveCZfX+uEQc1EHlEM3old3WTM+WqL
-e+Tk7fhooyg5EBn+CkuVkf1VMIKcjjUi8lqXhlKWZQBJwMUsVMMcb7X709yRcvPa
-Y4SwslWLvNGYA83c4WJ7WqrgXT7+LYs38+X3a5ZGc0ENs78X2N/YTkK/wvHg82/r
-N+NGwjuDVcRv+tgcSPMCxq+KmDkSNUIDai8z46wQDlwNWz+hYJjSEL03dxln6jY/
-AYu65H4xTaIfi+mXVH4PRqrE+cT6ewFnsUk0/zW5VH1NQRzgyDh5BymRfGVmTNvV
-avASrcFeZlMzq2ymsaDD
-=bsKc
+iQIcBAEBAgAGBQJQrN9KAAoJEIaOsuA1yqREbfQQALZhQMOnovjSy8b/MYSPcvdm
+KGmXEhHk+ij83fEYt3UZtJux0rbgbBQ3GjxCvR47JjeoSvLfDXL6Xe8khFigZuoB
+mxHTprFUvz3zYtVAeQwD4EcQ6qbV7GzgrjH4ei7vyYU6vJXGmSbSBsniru0Ju0rh
+zzNIW5P9e6+S0lI7+xpCjpRa4ql9POY3yDWN3gmSDuGwt5XkGPjXFYC1om4q7UpC
+E67sFs21W/o77ygxG6d4ZLPmPH/JiZxnZsFpnnzKJtm8TwBAU4sO6IT6AWJWTju8
+L0Wld6Trc7G/0z6XGzqs4kIRiL5sFzAHr4mQPiq7cZcXXv8ha5Y2A4dgO0ZNrVMI
+duukJIoHZhE270tlARVhAPcTCu00/kpfdmblv0P7xQfwBXmBFEHRHAOX9d8PS0sv
+xvzE0RIIb4h7jPlJoBEluiVuchfCSijRGWbl6Pk8GMum8Ehp60F3TGvehHeKahaZ
+12Qc8GCDLxZf/ar+KKspXplJCJHtU41EAFsOe3iQNS/HYcy5LZtoIalyiTsbgx1t
+f6jd+bIolTd0AJeM2iBIwq5jXDzFl3g5BWZApFSl3pK7CdvPuqZvBv1rhuoH1Rli
+uH3vmLLhARstCb2GYg+M2sQr1lQQ/POFKZWfF5pDw05Rb1HXY3tD9B6MLxMEXPkb
+IQZIjecLiO7+lsUfuogY
+=jksR
 -----END PGP SIGNATURE-----
 
---AsKt9WDFSpw8OJmf--
+--IfZ+tgy+ooJOsAAy--
