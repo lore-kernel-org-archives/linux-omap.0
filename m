@@ -1,55 +1,88 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH RESEND 02/10] ARM: dts: AM33XX: Add matrix keypad device tree data to am335x-evm
-Date: Wed, 21 Nov 2012 09:58:15 +0100
-Message-ID: <87624zjpso.fsf@dell.be.48ers.dk>
-References: <1352209718-5586-1-git-send-email-anilkumar@ti.com>
-	<1352209718-5586-3-git-send-email-anilkumar@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v2] can: c_can: Add d_can raminit support
+Date: Wed, 21 Nov 2012 08:58:03 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA77D25@DBDE01.ent.ti.com>
+References: <1353476650-24398-1-git-send-email-anilkumar@ti.com>
+ <50AC9578.4030505@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:35922 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653Ab2KUI6S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 03:58:18 -0500
-Received: by mail-we0-f174.google.com with SMTP id d7so1392326wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Nov 2012 00:58:17 -0800 (PST)
-In-Reply-To: <1352209718-5586-3-git-send-email-anilkumar@ti.com> (AnilKumar
-	Ch's message of "Tue, 6 Nov 2012 19:18:30 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <50AC9578.4030505@pengutronix.de>
+Content-Language: en-US
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: "wg@grandegger.com" <wg@grandegger.com>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org
 
->>>>> "A" == AnilKumar Ch <anilkumar@ti.com> writes:
+On Wed, Nov 21, 2012 at 14:18:56, Marc Kleine-Budde wrote:
+> On 11/21/2012 06:44 AM, AnilKumar Ch wrote:
+> > Add D_CAN raminit support to C_CAN driver to enable D_CAN RAM,
+> > which holds all the message objects during transmission or
+> > receiving of data. This initialization/de-initialization should
+> > be done in synchronous with D_CAN clock.
+> > 
+> > In case of AM335X-EVM (current user of D_CAN driver) message RAM is
+> > controlled through control module register for both instances. So
+> > control module register details is required to initialization or
+> > de-initialization of message RAM according to instance number.
+> > 
+> > Control module memory resource is obtained from D_CAN dt node and
+> > instance number obtained from device tree aliases node.
+> > 
+> > This patch was tested on AM335x-EVM along with pinctrl data addition
+> > patch, d_can dt aliases addition and control module data addition.
+> > pinctrl data addition is not added to am335x-evm.dts (only supports
+> > CPLD profile#0) because d_can1 is supported under CPLD profile#1.
+> > 
+> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> > ---
+> 
+> [...]
+> 
+> > @@ -178,6 +195,20 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+> >  		priv->can.ctrlmode_supported |= CAN_CTRLMODE_3_SAMPLES;
+> >  		priv->read_reg = c_can_plat_read_reg_aligned_to_16bit;
+> >  		priv->write_reg = c_can_plat_write_reg_aligned_to_16bit;
+> > +
+> > +		if (pdev->dev.of_node)
+> > +			priv->instance = pdev->id < 0 ?
+> > +				of_alias_get_id(pdev->dev.of_node, "d_can") :
+> > +				pdev->id;
+> 
+> This wouldn't work with non DT kernels, what about:
+> 
+> if (pdev->dev.of_node)
+> 	priv->instance = of_alias_get_id(pdev->dev.of_node, "d_can");
+> else
+> 	priv->instance = pdev->id;
+> 
 
- A> Add matrix keypad device tree data to am335x-evm by adding all
- A> the necessary parameters like keymap, row & column gpios and etc.
+I completely forgot this case, yes this is the correct way of doing it.
 
- A> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
- A> ---
- A>  arch/arm/boot/dts/am335x-evm.dts |   20 ++++++++++++++++++++
- A>  1 file changed, 20 insertions(+)
+Thanks
+AnilKumar
 
- A> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
- A> index 9199456..8076e66 100644
- A> --- a/arch/arm/boot/dts/am335x-evm.dts
- A> +++ b/arch/arm/boot/dts/am335x-evm.dts
- A> @@ -110,6 +110,26 @@
- A>  		regulator-name = "lis3_reg";
- A>  		regulator-boot-on;
- A>  	};
- A> +
- A> +	matrix_keypad: matrix_keypad@0 {
- A> +		compatible = "gpio-matrix-keypad";
- A> +		debounce-delay-ms = <5>;
- A> +		col-scan-delay-us = <2>;
- A> +
- A> +		row-gpios = <&gpio2 25 0	/* Bank1, pin25 */
- A> +			     &gpio2 26 0	/* Bank1, pin26 */
- A> +			     &gpio2 27 0>;	/* Bank1, pin27 */
+> > +
+> > +		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> > +		priv->raminit_ctrlreg =
+> > +				devm_request_and_ioremap(&pdev->dev, res);
+> > +		if (!priv->raminit_ctrlreg || priv->instance < 0) {
+> > +			dev_info(&pdev->dev, "control memory is not used for raminit\n");
+> > +			break;
+> > +		}
+> > +		priv->ram_init = c_can_hw_raminit;
+> >  		break;
+> >  	default:
+> >  		ret = -EINVAL;
+> > 
+> 
+> 
+> -- 
+> Pengutronix e.K.                  | Marc Kleine-Budde           |
+> Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+> Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+> Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+> 
+> 
 
-Sigh, can we PLEASE change am33xx.dtsi to use zero based index like the
-TRM and get rid of this madness?
-
--- 
-Bye, Peter Korsgaard
