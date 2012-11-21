@@ -1,35 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/5] ARM: OMAP: Move plat/omap-serial.h to
- include/linux/platform_data/serial-omap.h
-Date: Wed, 21 Nov 2012 10:41:32 -0800
-Message-ID: <20121121184131.GA18567@atomide.com>
-References: <20121121174201.25576.61961.stgit@muffinssi.local>
- <20121121174230.25576.64507.stgit@muffinssi.local>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v5 4/5] iommu/omap: adapt to runtime pm
+Date: Wed, 21 Nov 2012 10:50:03 -0800
+Message-ID: <20121121185002.GB18567@atomide.com>
+References: <1353373552-16039-1-git-send-email-omar.luna@linaro.org>
+	<1353373552-16039-5-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29318 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755667Ab2KUSli (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 13:41:38 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20121121174230.25576.64507.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1353373552-16039-5-git-send-email-omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mauro Carvalho Chehab <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Alan Cox <alan@linux.intel.com>
 
-* Tony Lindgren <tony@atomide.com> [121121 09:44]:
-> We need to move this file to allow ARM multiplatform configurations
-> to build for omap2+. This can now be done as this file now only
-> contains platform_data.
+* Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [121119 17:08]:
+> Use runtime PM functionality interfaced with hwmod enable/idle
+> functions, to replace direct clock operations and sysconfig
+> handling.
+> 
+> Due to reset sequence, pm_runtime_[get|put]_sync must be used, to
+> avoid possible operations with the module under reset. Because of
+> this and given that the driver uses spin_locks to protect their
+> critical sections, we must use pm_runtime_irq_safe in order for the
+> runtime ops to be happy, otherwise might_sleep_if checks in runtime
+> framework will complain.
+> 
+> The remaining pm_runtime out of iommu_enable and iommu_disable
+> corresponds to paths that can be accessed through debugfs, some of
+> them doesn't work if the module is not enabled first, but in future
+> if the mmu is idled withouth freeing, these are needed to debug.
+> 
+> Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/omap-iommu.c         |    1 -
+>  drivers/iommu/omap-iommu.c               |   40 ++++++++++++++---------------
+>  drivers/iommu/omap-iommu.h               |    3 --
+>  drivers/iommu/omap-iommu2.c              |   17 ------------
+>  include/linux/platform_data/iommu-omap.h |    1 -
+>  5 files changed, 19 insertions(+), 43 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+> index 02726a6..7642fc4 100644
+> --- a/arch/arm/mach-omap2/omap-iommu.c
+> +++ b/arch/arm/mach-omap2/omap-iommu.c
+> @@ -31,7 +31,6 @@ static int __init omap_iommu_dev_init(struct omap_hwmod *oh, void *unused)
+>  		return -ENOMEM;
+>  
+>  	pdata->name = oh->name;
+> -	pdata->clk_name = oh->main_clk;
+>  	pdata->nr_tlb_entries = a->nr_tlb_entries;
+>  	pdata->da_start = a->da_start;
+>  	pdata->da_end = a->da_end;
 
-Russell, this one depends on your commit fd9980c7 (SERIAL: omap:
-remove OMAP_UART_SYSC_RESET and OMAP_UART_FIFO_CLR).
+The runtime PM related changes would be good to be checked
+by Kevin, added him to cc. For the arch/arm/mach-omap2/ change above:
 
-Is that commit immutable and OK to merge as a dependency to my
-branch?
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
