@@ -1,37 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
-Date: Wed, 21 Nov 2012 10:38:09 -0800
-Message-ID: <20121121183809.GZ18567@atomide.com>
-References: <k80da6$61d$1@ger.gmane.org>
- <CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
+Subject: Re: [PATCH 3/5] ARM: OMAP: Move plat/omap-serial.h to
+ include/linux/platform_data/serial-omap.h
+Date: Wed, 21 Nov 2012 10:41:32 -0800
+Message-ID: <20121121184131.GA18567@atomide.com>
+References: <20121121174201.25576.61961.stgit@muffinssi.local>
+ <20121121174230.25576.64507.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:55994 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755579Ab2KUSiO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 13:38:14 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29318 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755667Ab2KUSli (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 13:41:38 -0500
 Content-Disposition: inline
-In-Reply-To: <CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
+In-Reply-To: <20121121174230.25576.64507.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: i.mazanov@gmail.com, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Alan Cox <alan@linux.intel.com>
 
-* Jean Pihet <jean.pihet@newoldbits.com> [121114 08:43]:
-> On Wed, Nov 14, 2012 at 4:28 PM, Igor Mazanov <i.mazanov@gmail.com> wrote:
-> >
-> > Beaglebone boot process is broken with the current git kernel. I use
-> > omap2plus_defconfig for tests.
-> >
-> > It looks like the boot process stops due to the last changes in the AM33xx
-> > clock sysbsystem. A following patch resolves this issue:
-...
- 
-> The patch should change the name of the hwmod entry as well, can you
-> fold this change in the current patch?
+* Tony Lindgren <tony@atomide.com> [121121 09:44]:
+> We need to move this file to allow ARM multiplatform configurations
+> to build for omap2+. This can now be done as this file now only
+> contains platform_data.
 
-Any news on updating this?
+Russell, this one depends on your commit fd9980c7 (SERIAL: omap:
+remove OMAP_UART_SYSC_RESET and OMAP_UART_FIFO_CLR).
+
+Is that commit immutable and OK to merge as a dependency to my
+branch?
 
 Regards,
 
