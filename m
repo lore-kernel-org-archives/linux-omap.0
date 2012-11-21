@@ -1,126 +1,107 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 02/16] mfd: omap-usb-tll: Clean up clock handling
-Date: Wed, 21 Nov 2012 16:03:55 +0200
-Message-ID: <20121121140354.GR10216@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 04/16] mfd: omap-usb-tll: Move port clock handling out of
+ runtime ops
+Date: Wed, 21 Nov 2012 16:07:00 +0200
+Message-ID: <20121121140700.GS10216@arwen.pp.htv.fi>
 References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
- <1352990054-14680-3-git-send-email-rogerq@ti.com>
- <20121121115556.GD10216@arwen.pp.htv.fi>
- <50ACCAE0.3030907@ti.com>
-Reply-To: <balbi@ti.com>
+ <1352990054-14680-5-git-send-email-rogerq@ti.com>
+ <20121121120408.GF10216@arwen.pp.htv.fi>
+ <50ACCCFA.6060605@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IfZ+tgy+ooJOsAAy"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32872 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754591Ab2KUOKZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Nov 2012 09:10:25 -0500
+	protocol="application/pgp-signature"; boundary="h/77pM/XNBmEJr8g"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <50ACCAE0.3030907@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <50ACCCFA.6060605-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
---IfZ+tgy+ooJOsAAy
+--h/77pM/XNBmEJr8g
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, Nov 21, 2012 at 02:36:48PM +0200, Roger Quadros wrote:
-> >>  		break;
-> >>  	default:
-> >> -		dev_err(dev, "TLL version failed\n");
-> >> -		ret =3D -ENODEV;
-> >> -		goto err_ioremap;
-> >> +		tll->nch =3D DEFAULT_TLL_CHANNEL_COUNT;
-> >> +		dev_info(dev,
-> >> +		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
-> >> +			ver, tll->nch);
-> >=20
-> > this hsould be dev_dbg().
-> >=20
->=20
-> I think it should be more of a warning because it signals a problem.
-> There is another pr_info in the success path which could probably be a
-> dev_dbg.
-
-it's not a problem at all. It just means that a newer OMAP has come to
-market and perhaps we don't need extra code to support it. A revision
-detection should *never* be grounds to failure. When we can't understand
-the revision, we default to the highest possible value we know.
-
-that's not an error.
-
-> >> +		struct clk *fck;
-> >> +
-> >> +		sprintf(clk_name, "usb_tll_hs_usb_ch%d_clk", i);
-> >=20
-> > this will overflow if 'i' (for whatever reason) goes over 9.
->=20
-> OK i'll add an extra character. Highly unlikely to go above 99 :)
-
-I'd stick to snprintf() though, or something safer.
-
-> >> +		fck =3D clk_get(dev, clk_name);
-> >=20
-> > please use devm_clk_get().
-
-sidenote, it would be amazing to a patch at the top of this series
-converting to devm_* api ;-)
-
-> >> @@ -373,11 +385,17 @@ static int usbtll_runtime_resume(struct device *=
-dev)
+On Wed, Nov 21, 2012 at 02:45:46PM +0200, Roger Quadros wrote:
+> >>  	spin_unlock_irqrestore(&tll->lock, flags);
 > >> =20
-> >>  	spin_lock_irqsave(&tll->lock, flags);
+> >> -	return 0;
+> >> +	return i;
+> >>  }
+> >> +EXPORT_SYMBOL_GPL(omap_tll_enable);
 > >> =20
-> >> -	if (is_ehci_tll_mode(pdata->port_mode[0]))
-> >> -		clk_enable(tll->usbtll_p1_fck);
-> >> -
-> >> -	if (is_ehci_tll_mode(pdata->port_mode[1]))
-> >> -		clk_enable(tll->usbtll_p2_fck);
-> >> +	for (i =3D 0; i < tll->nch; i++) {
-> >> +		if (is_ehci_tll_mode(pdata->port_mode[i])) {
-> >> +			int r;
-> >> +			r =3D clk_enable(tll->ch_clk[i]);
-> >> +			if (r) {
-> >> +				dev_err(dev,
-> >> +				 "%s : Error enabling ch %d clock: %d\n",
-> >> +				 __func__, i, r);
+> >> -static int usbtll_runtime_suspend(struct device *dev)
+> >> +int omap_tll_disable(void)
 > >=20
-> > you don't need __func__.
+> > why ?? Why are you actually dropping runtime PM from this driver ? have
+> > you tested PM transitions after applying this patch ?
 > >=20
 >=20
-> Thought it would be useful to point out where the message is coming
-> from. But it should be easy to grep too so I'll remove it.
+> I'm not dropping runtime PM as such. Just separating enabling of channel
+> clocks from runtime PM (read enabling hwmod). The only user for this
+> driver is omap-usb-host.c via the omap_tll_enable/disable() calls.
+>=20
+> These calls still call pm_runtime_get/put() to enable the TLL hwmod.
+>=20
+> I have tested PM transitions on bus suspend/resume and modprobe/rmmod.
+> They still work fine.
 
-correct, if messages are unique, you don't need __func__ anyway ;-)
+weird, I didn't see any dev_pm_ops being re-added to your
+platform_driver structure :-s
+
+On your original patch I see this:
+
+-static const struct dev_pm_ops usbtllomap_dev_pm_ops =3D {
+-	SET_RUNTIME_PM_OPS(usbtll_runtime_suspend,
+-			   usbtll_runtime_resume,
+-			   NULL)
+-};
+-
+-static struct platform_driver usbtll_omap_driver =3D {
+-	.driver =3D {
+-		.name		=3D (char *)usbtll_driver_name,
+-		.owner		=3D THIS_MODULE,
+-		.pm		=3D &usbtllomap_dev_pm_ops,
+-	},
+-	.probe		=3D usbtll_omap_probe,
+-	.remove		=3D __devexit_p(usbtll_omap_remove),
+-};
+
+but there is never anythying re-adding that dev_pm_ops, so runtime pm
+callbacks are literally dropped from this driver. If that's still fine,
+please make it clear on commit log.
 
 --=20
 balbi
 
---IfZ+tgy+ooJOsAAy
+--h/77pM/XNBmEJr8g
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQrN9KAAoJEIaOsuA1yqREbfQQALZhQMOnovjSy8b/MYSPcvdm
-KGmXEhHk+ij83fEYt3UZtJux0rbgbBQ3GjxCvR47JjeoSvLfDXL6Xe8khFigZuoB
-mxHTprFUvz3zYtVAeQwD4EcQ6qbV7GzgrjH4ei7vyYU6vJXGmSbSBsniru0Ju0rh
-zzNIW5P9e6+S0lI7+xpCjpRa4ql9POY3yDWN3gmSDuGwt5XkGPjXFYC1om4q7UpC
-E67sFs21W/o77ygxG6d4ZLPmPH/JiZxnZsFpnnzKJtm8TwBAU4sO6IT6AWJWTju8
-L0Wld6Trc7G/0z6XGzqs4kIRiL5sFzAHr4mQPiq7cZcXXv8ha5Y2A4dgO0ZNrVMI
-duukJIoHZhE270tlARVhAPcTCu00/kpfdmblv0P7xQfwBXmBFEHRHAOX9d8PS0sv
-xvzE0RIIb4h7jPlJoBEluiVuchfCSijRGWbl6Pk8GMum8Ehp60F3TGvehHeKahaZ
-12Qc8GCDLxZf/ar+KKspXplJCJHtU41EAFsOe3iQNS/HYcy5LZtoIalyiTsbgx1t
-f6jd+bIolTd0AJeM2iBIwq5jXDzFl3g5BWZApFSl3pK7CdvPuqZvBv1rhuoH1Rli
-uH3vmLLhARstCb2GYg+M2sQr1lQQ/POFKZWfF5pDw05Rb1HXY3tD9B6MLxMEXPkb
-IQZIjecLiO7+lsUfuogY
-=jksR
+iQIcBAEBAgAGBQJQrOAEAAoJEIaOsuA1yqREEKUQAI4/9frgL+fpI8R38XpMkdJb
+F+NaiVRI5JO3dYmOITVoK/uX+Zs0GQhjMemiwJU5NaCkCnlQGUIj/D4zTx0+KE1E
+LkjMSJid9j54v30nbfC29/tzkpTEh6KdUHajDJB/Y/H9K3viGmkoCOWimGWweNAQ
+LmpgXRCGg1J1U7kWQwe7zVB23dS/oNWBqr2ivhLcGD7eoVWZLZQ6DEkDbC1m8WdL
+an6bNRP3UpmKAfslvr1npw8dNX1uAkMnFZmprfehG49X7Z2sOG9xt7PXpo/UdAdi
+yp1vPLNYe4vP5dekoQeZmYcapjym46fNQXXv3VmdyggClBTpIOln0HeevLL9Ka3E
+gVmaUAE5KakgVx6qUHbSdeKZpWId+zQMis4Emf2ngcbMzRkZYc/6sSARdsOtRyfX
+Seear+ZLiKH2YLrgDSppoFPPEE4eCRmGdwYX97KibrfENRU2FKMJ+0AMFPLty3gr
+AS9YvyrJ9U2xaAPeS1BKxwxWZ/YEnXSaDUzpLFXfaC8YMXbyXlNE2iDUdXLYeUgR
+m98htArr57BhZggHGcT6Nb1ayKl2r4pxZbscnarFPARbhcgGWtDcTWUu0m2l9NIS
+iCETYkXmJI8VDJNq07FqdqZfwwiwkBNB3CoSCCe0Ll3B9NijxG35Q726QIwri7qw
+9lWohD3e5XrzGcDWtxc7
+=eM2e
 -----END PGP SIGNATURE-----
 
---IfZ+tgy+ooJOsAAy--
+--h/77pM/XNBmEJr8g--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
