@@ -1,180 +1,153 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 09/16] mfd: omap-usb-host: override number of ports from
- platform data
-Date: Wed, 21 Nov 2012 15:45:16 +0200
-Message-ID: <20121121134516.GK10216@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 10/16] mfd: omap-usb-host: Intialize all available ports
+Date: Wed, 21 Nov 2012 15:52:46 +0200
+Message-ID: <20121121135246.GL10216@arwen.pp.htv.fi>
 References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
- <1352990054-14680-10-git-send-email-rogerq@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+ <1352990054-14680-11-git-send-email-rogerq@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5LiOUhUlsRX0HDkW"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="I4g3zIzscEHdx6fd"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:44430 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754288Ab2KUN7R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 08:59:17 -0500
 Content-Disposition: inline
-In-Reply-To: <1352990054-14680-10-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1352990054-14680-11-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
---5LiOUhUlsRX0HDkW
+--I4g3zIzscEHdx6fd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 15, 2012 at 04:34:07PM +0200, Roger Quadros wrote:
-> For some platforms e.g. OMAP5, we cannot rely on USBHOST revision
-> to determine the number of ports available. In such cases we have
+On Thu, Nov 15, 2012 at 04:34:08PM +0200, Roger Quadros wrote:
+> OMAPs till date can have upto 3 ports. We need to initialize
 
-you need to make it clear *why* we can't. Imagine someone reading this 5
-years from now... he'll be all like: "why can't I find any documentation
-about this OMAP5 ? Why was it so special that its revision register
-wasn't enough to figure out number of ports ?"
+s/upto/up to/
 
-> to rely on platform data (or FDT) to give us the right number of
-> ports.
->=20
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> the port mode in HOSTCONFIG register for all of them.
+
+why *all* of them ? Isn't it enough to initialize only the ones we're
+going to use ? If not, why ?
+
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 > ---
->  arch/arm/mach-omap2/usb-host.c        |    1 +
->  arch/arm/plat-omap/include/plat/usb.h |    2 +
->  drivers/mfd/omap-usb-host.c           |   46 +++++++++++++++++++++++----=
-------
->  3 files changed, 35 insertions(+), 14 deletions(-)
+>  drivers/mfd/omap-usb-host.c |   31 ++++++++++++-------------------
+>  1 files changed, 12 insertions(+), 19 deletions(-)
 >=20
-> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-hos=
-t.c
-> index 3c43449..eb85528 100644
-> --- a/arch/arm/mach-omap2/usb-host.c
-> +++ b/arch/arm/mach-omap2/usb-host.c
-> @@ -504,6 +504,7 @@ void __init usbhs_init(const struct usbhs_omap_board_=
-data *pdata)
->  	ohci_data.es2_compatibility =3D pdata->es2_compatibility;
->  	usbhs_data.ehci_data =3D &ehci_data;
->  	usbhs_data.ohci_data =3D &ohci_data;
-> +	usbhs_data.nports =3D pdata->nports;
-> =20
->  	if (cpu_is_omap34xx()) {
->  		setup_ehci_io_mux(pdata->port_mode);
-> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/i=
-nclude/plat/usb.h
-> index 87ee140..6b618a1 100644
-> --- a/arch/arm/plat-omap/include/plat/usb.h
-> +++ b/arch/arm/plat-omap/include/plat/usb.h
-> @@ -27,6 +27,7 @@ enum usbhs_omap_port_mode {
->  };
-> =20
->  struct usbhs_omap_board_data {
-> +	int				nports;
->  	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-> =20
->  	/* have to be valid if phy_reset is true and portx is in phy mode */
-> @@ -59,6 +60,7 @@ struct ohci_hcd_omap_platform_data {
->  };
-> =20
->  struct usbhs_omap_platform_data {
-> +	int					nports;
->  	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
-> =20
->  	struct ehci_hcd_omap_platform_data	*ehci_data;
 > diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index ad89939..c20234b 100644
+> index c20234b..0d39bd7 100644
 > --- a/drivers/mfd/omap-usb-host.c
 > +++ b/drivers/mfd/omap-usb-host.c
-> @@ -500,8 +500,8 @@ static int __devinit usbhs_omap_probe(struct platform=
-_device *pdev)
+> @@ -67,12 +67,9 @@
+>  #define OMAP4_UHH_SYSCONFIG_NOSTDBY			(1 << 4)
+>  #define OMAP4_UHH_SYSCONFIG_SOFTRESET			(1 << 0)
 > =20
->  	omap->pdata =3D pdata;
->  	platform_set_drvdata(pdev, omap);
+> -#define OMAP4_P1_MODE_CLEAR				(3 << 16)
+> +#define OMAP4_P1_MODE_MASK				(3 << 16)
+
+changing this name isn't part of $SUBJECT.
+
+>  #define OMAP4_P1_MODE_TLL				(1 << 16)
+>  #define OMAP4_P1_MODE_HSIC				(3 << 16)
+> -#define OMAP4_P2_MODE_CLEAR				(3 << 18)
+> -#define OMAP4_P2_MODE_TLL				(1 << 18)
+> -#define OMAP4_P2_MODE_HSIC				(3 << 18)
+
+why do you delete these ? Also not part of $SUBJECT.
+
+> =20
+>  #define	OMAP_UHH_DEBUG_CSR				(0x44)
+> =20
+> @@ -343,6 +340,7 @@ static void omap_usbhs_init(struct device *dev)
+>  	struct usbhs_omap_platform_data	*pdata =3D omap->pdata;
+>  	unsigned long			flags;
+>  	unsigned			reg;
+> +	int i;
+> =20
+>  	dev_dbg(dev, "starting TI HSUSB Controller\n");
+> =20
+> @@ -403,21 +401,16 @@ static void omap_usbhs_init(struct device *dev)
+>  				reg |=3D OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
+>  		}
+>  	} else if (is_omap_usbhs_rev2(omap)) {
+> -		/* Clear port mode fields for PHY mode*/
+> -		reg &=3D ~OMAP4_P1_MODE_CLEAR;
+> -		reg &=3D ~OMAP4_P2_MODE_CLEAR;
 > -
->  	pm_runtime_enable(dev);
-> +
+> -		if (is_ehci_tll_mode(pdata->port_mode[0]) ||
+> -			(is_ohci_port(pdata->port_mode[0])))
+> -			reg |=3D OMAP4_P1_MODE_TLL;
+> -		else if (is_ehci_hsic_mode(pdata->port_mode[0]))
+> -			reg |=3D OMAP4_P1_MODE_HSIC;
+> -
+> -		if (is_ehci_tll_mode(pdata->port_mode[1]) ||
+> -			(is_ohci_port(pdata->port_mode[1])))
+> -			reg |=3D OMAP4_P2_MODE_TLL;
+> -		else if (is_ehci_hsic_mode(pdata->port_mode[1]))
+> -			reg |=3D OMAP4_P2_MODE_HSIC;
+> +		for (i =3D 0; i < omap->nports; i++) {
+> +			/* Clear port mode fields for PHY mode*/
+> +			reg &=3D ~(OMAP4_P1_MODE_MASK << 2*i);
 
-trailing change, not part of $SUBJECT.
+add spaces around '*' operator.
 
->  	pm_runtime_get_sync(dev);
->  	omap->usbhs_rev =3D usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
-> =20
-> @@ -510,19 +510,37 @@ static int __devinit usbhs_omap_probe(struct platfo=
-rm_device *pdev)
->  	 */
->  	pm_runtime_put_sync(dev);
-> =20
-> -	switch (omap->usbhs_rev) {
-> -	case OMAP_USBHS_REV1:
-> -		omap->nports =3D 3;
-> -		break;
-> -	case OMAP_USBHS_REV2:
-> -		omap->nports =3D 2;
-> -		break;
-> -	default:
-> -		omap->nports =3D MAX_HS_USB_PORTS;
-> -		dev_info(dev,
-> -		  "USB HOST Rev : 0x%d not recognized, assuming %d ports\n",
-> -		   omap->usbhs_rev, omap->nports);
-> -		break;
-> +	/*
-> +	 * If platform data contains nports then use that
-> +	 * else make out number of ports from USBHS revision
-> +	 */
-> +	if (pdata->nports) {
-> +		if (omap->nports > MAX_HS_USB_PORTS) {
-> +			dev_err(dev,
-> +			 "Platform data says %d ports but MAX_HS_USB_PORTS is %d\n",
-> +			 omap->nports, MAX_HS_USB_PORTS);
-> +		} else {
-> +			omap->nports =3D pdata->nports;
-> +		}
-> +	} else {
-> +		switch (omap->usbhs_rev) {
-> +		case OMAP_USBHS_REV1:
-> +			omap->nports =3D 3;
-> +			break;
-> +		case OMAP_USBHS_REV2:
-> +		/* Both OMAP4 and 5 show the same revision but they have
-> +		 * different number of ports i.e. 2 and 3 respectively.
-> +		 * OMAP5 platforms must supply nports via platform data.
-> +		 */
+> +			if (is_ehci_tll_mode(pdata->port_mode[i]) ||
+> +				(is_ohci_port(pdata->port_mode[i])))
+> +				reg |=3D OMAP4_P1_MODE_TLL << 2*i;
 
-comment indentation is wrong.
+ditto
 
-> +			omap->nports =3D 2;
-> +			break;
-> +		default:
-> +			omap->nports =3D MAX_HS_USB_PORTS;
-> +			dev_info(dev,
-> +			"USB HOST Rev:0x%d not recognized, assuming %d ports\n",
-> +				omap->usbhs_rev, omap->nports);
+> +			else if (is_ehci_hsic_mode(pdata->port_mode[i]))
+> +				reg |=3D OMAP4_P1_MODE_HSIC << 2*i;
 
-dev_dbg().
+ditto
+
+in fact, I would convert this construct into a switch which would look
+like:
+
+reg &=3D ~(OMAP4_P1_MODE_MASK << i * 2);
+
+switch (port_mode[i]) {
+case OMAP4_P1_MODE_TLL:
+	reg |=3D OMAP4_P1_MODE_TLL << i * 2;
+	break;
+case OMAP_P1_MODE_HSIC:
+	reg |=3D OMAP4_P1_MODE_HSIC << i * 2;
+	break;
+}
+
+Also, it looks like the whoel for loop with port mode settings could be
+re-factored to a separate function to aid readability.
 
 --=20
 balbi
 
---5LiOUhUlsRX0HDkW
+--I4g3zIzscEHdx6fd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQrNrsAAoJEIaOsuA1yqREJmEP/jNaemRfE79f9+kb50yRVoti
-gSjTA0GLRCYYnrbdOpwivkmeRylzr4hCmGT+3RLt4H688fcR0s0Xxe3RKwy9bhbV
-A2hJYV0j3GoX5HRj5Ip+tKubcLzRuNaTt7au67iHS+9o+/irHfBMpSs9ZNBrk+00
-Nzf3BwLy++aj7dFRCogcSfCFq+2rvQFwhkJOBXxvukUtMmIV/WfF9Bab9CCM3V42
-wP4Ka+kzkJM2yN4snlqOgTzoDYwlI9hdocPOoqxF0kc9zuNbm+tQlNVISEPgsK9v
-wX5xw8Wb6S7PSrfz3zPu3RPfFjEUKyVOwnV+/fqMHZGkHArrWA25ZPp9Qt/ru9y+
-lqeDHkfgAZQQCqVUxP9I1yqYIX3mPokEeR0qXuX5q2XKIzXBdrdBrEvoE/uLD0cg
-KMWNmRQ3g2SguJal+HCeavLUuAFF+TCQ3gKPbVKraRqw+QskTdWRBZ8GBmd81MXv
-iD+A4Oxtd09aoSteBOyCT3ygrrwQEcdYLpCOALbef+aC8KkzAsO6ZP6qBRutroQN
-cMYBRsYLjhfn0vyL4DPkWHD2UnxLzoxMuaujIeZwUuzMzD3IkjAMOu5g36v2CrKo
-/ehaZEgSNvQKSUMeAGFs2DWuJy5wanoGRQGkFODRl1CDdi9+Xa36IV56AqOufosU
-pEJEd7cta+slTRzTk/JC
-=iWb3
+iQIcBAEBAgAGBQJQrNyuAAoJEIaOsuA1yqRE2g8P/21ITC8wJBMQMt+cu7ekTk4t
+nbfSgFSxa4jeA42ValRqGeFjvMpoPsfk8v4v8Ez2Rd3NJgIPzKFqF4yWYiVA1QNB
+g3zdcf+PSeSOKfIdc7ISQ1oP+3ImSLpGAdNtqAAvDg/LJatP/R4c668IVDufCqse
+uo+bmQ2j/p8MKnICzRBUgWMoLbX0C/lWCq+hzinIHk5uqP45uNdeyMzIZszYqaBP
+N8hWODoDwFLeU1xpANEhk1J5OTwIXjWNw+pUhAKUxTmqU3eu/lqenXlYcS8uZtq9
+dcZ6cRXdEFkMMbytvkT+uWSG42DzJfClzrtr8jRuo9M2XLh3gTNhiGbQnUowwcIx
+te+sNZFTcXtHkQJ5TBtZCP94NnTKr71t3OBlzhNvW+bESS+qaq6v/S+ar6un8m0q
+Yt+y58QxFyBjDlHL9XgYaleOCeTOQL1kzAV1j9fd3e2nmgbfaogXkLfsNZ4a6ZPT
+0GqaDH6PF4WJ0eyZi3FIdKTXfs/bWonvuyZnu6XmTiuunJUlgndnRV52/kO+vd1g
+YIZDzzg7oRYoj4elDhEk+NTBxbjozeKTuKogWu+POaHvNcoiaVg0anPahQX3LW5g
+ezt329OvJdYFkawqvgBZ0BoEXFqhY89ODYfPt2Mon+o6ILWNFJu5PwcTY2m4Aw7H
+YJShEgtu4M6ZvGAhHFdT
+=HJOL
 -----END PGP SIGNATURE-----
 
---5LiOUhUlsRX0HDkW--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--I4g3zIzscEHdx6fd--
