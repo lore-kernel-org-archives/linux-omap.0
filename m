@@ -1,129 +1,112 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v5 5/5] ARM: OMAP4: hwmod data: ipu and dsp to use
-	parent clocks instead of leaf clocks
-Date: Wed, 21 Nov 2012 10:52:02 -0800
-Message-ID: <20121121185202.GC18567@atomide.com>
-References: <1353373552-16039-1-git-send-email-omar.luna@linaro.org>
-	<1353373552-16039-6-git-send-email-omar.luna@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: ads7846: fix pendown debounce setting
+Date: Wed, 21 Nov 2012 11:08:47 -0800
+Message-ID: <20121121190847.GE18567@atomide.com>
+References: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
+ <1353341038-14381-3-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:59438 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755566Ab2KUTIy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 14:08:54 -0500
 Content-Disposition: inline
-In-Reply-To: <1353373552-16039-6-git-send-email-omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mauro Carvalho Chehab <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1353341038-14381-3-git-send-email-grinberg@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Kevin Hilman <khilman@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Zumeng Chen <zumeng.chen@windriver.com>
 
-* Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [121119 17:08]:
-> This prevents hwmod _enable_clocks...omap2_dflt_clk_enable path
-> from enabling modulemode inside CLKCTRL using its clk->enable_reg
-> field. Instead is left to _omap4_enable_module though soc_ops, as
-> the one in charge of this setting.
+* Igor Grinberg <grinberg@compulab.co.il> [121119 08:06]:
+> Commit 97ee9f01 (ARM: OMAP: fix the ads7846 init code) have enabled the
+> pendown GPIO debounce time setting by the below sequence:
 > 
-> According to comments received[1] for related patches the idea is
-> to get rid of leaf clocks in future. So remove these two while at it.
+>   gpio_request_one()
+>   gpio_set_debounce()
+>   gpio_free()
 > 
-> [1] http://lkml.org/lkml/2012/8/20/226
+> It also revealed a bug in the OMAP GPIO handling code which prevented
+> the GPIO debounce clock to be disabled and CORE transition to low power
+> states.
+> 
+> Commit c9c55d9 (gpio/omap: fix off-mode bug: clear debounce settings on
+> free/reset) fixes the OMAP GPIO handling code by making sure that the
+> GPIO debounce clock gets disabled if no GPIO is requested from current
+> bank.
+> 
+> While fixing the OMAP GPIO handling code (in the right way), the above
+> commit makes the gpio_request->set_debounce->free sequence invalid as
+> after freeing the GPIO, the debounce settings are lost.
+> 
+> Fix the debounce settings by moving the debounce initialization to the
+> actual GPIO requesting code - the ads7846 driver.
+> 
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Zumeng Chen <zumeng.chen@windriver.com>
 
-This one should be queued by Paul, or at least acked by him.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Regards,
-
-Tony
-
- 
-> Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 > ---
->  arch/arm/mach-omap2/clock44xx_data.c       |   22 ----------------------
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    4 ++--
->  2 files changed, 2 insertions(+), 24 deletions(-)
+>  arch/arm/mach-omap2/common-board-devices.c |   34 ++++++++++++++++-----------
+>  1 files changed, 20 insertions(+), 14 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index 6efc30c..067c486 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -1316,16 +1316,6 @@ static struct clk dmic_fck = {
->  	.clkdm_name	= "abe_clkdm",
->  };
+> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+> index ad85609..d246efd 100644
+> --- a/arch/arm/mach-omap2/common-board-devices.c
+> +++ b/arch/arm/mach-omap2/common-board-devices.c
+> @@ -63,30 +63,36 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+>  	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
+>  	int err;
 >  
-> -static struct clk dsp_fck = {
-> -	.name		= "dsp_fck",
-> -	.ops		= &clkops_omap2_dflt,
-> -	.enable_reg	= OMAP4430_CM_TESLA_TESLA_CLKCTRL,
-> -	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
-> -	.clkdm_name	= "tesla_clkdm",
-> -	.parent		= &dpll_iva_m4x2_ck,
-> -	.recalc		= &followparent_recalc,
-> -};
-> -
->  static struct clk dss_sys_clk = {
->  	.name		= "dss_sys_clk",
->  	.ops		= &clkops_omap2_dflt,
-> @@ -1696,16 +1686,6 @@ static struct clk i2c4_fck = {
->  	.recalc		= &followparent_recalc,
->  };
+> -	err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+> -	if (err) {
+> -		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+> -		return;
+> -	}
+> +	/*
+> +	 * If a board defines get_pendown_state() function, request the pendown
+> +	 * GPIO and set the GPIO debounce time.
+> +	 * If a board does not define the get_pendown_state() function, then
+> +	 * the ads7846 driver will setup the pendown GPIO itself.
+> +	 */
+> +	if (board_pdata && board_pdata->get_pendown_state) {
+> +		err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+> +		if (err) {
+> +			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+> +			return;
+> +		}
+> +
+> +		if (gpio_debounce)
+> +			gpio_set_debounce(gpio_pendown, gpio_debounce);
 >  
-> -static struct clk ipu_fck = {
-> -	.name		= "ipu_fck",
-> -	.ops		= &clkops_omap2_dflt,
-> -	.enable_reg	= OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
-> -	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
-> -	.clkdm_name	= "ducati_clkdm",
-> -	.parent		= &ducati_clk_mux_ck,
-> -	.recalc		= &followparent_recalc,
-> -};
+> -	if (gpio_debounce)
+> -		gpio_set_debounce(gpio_pendown, gpio_debounce);
+> +		gpio_export(gpio_pendown, 0);
+> +	}
+>  
+>  	spi_bi->bus_num	= bus_num;
+>  	spi_bi->irq	= gpio_to_irq(gpio_pendown);
+>  
+> +	ads7846_config.gpio_pendown = gpio_pendown;
+> +
+>  	if (board_pdata) {
+>  		board_pdata->gpio_pendown = gpio_pendown;
+> +		board_pdata->gpio_pendown_debounce = gpio_debounce;
+>  		spi_bi->platform_data = board_pdata;
+> -		if (board_pdata->get_pendown_state)
+> -			gpio_export(gpio_pendown, 0);
+> -	} else {
+> -		ads7846_config.gpio_pendown = gpio_pendown;
+>  	}
+>  
+> -	if (!board_pdata || (board_pdata && !board_pdata->get_pendown_state))
+> -		gpio_free(gpio_pendown);
 > -
->  static struct clk iss_ctrlclk = {
->  	.name		= "iss_ctrlclk",
->  	.ops		= &clkops_omap2_dflt,
-> @@ -3151,7 +3131,6 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK(NULL,	"div_ts_ck",			&div_ts_ck,	CK_446X),
->  	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
->  	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
-> -	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
->  	CLK(NULL,	"dss_sys_clk",			&dss_sys_clk,	CK_443X),
->  	CLK(NULL,	"dss_tv_clk",			&dss_tv_clk,	CK_443X),
->  	CLK(NULL,	"dss_48mhz_clk",		&dss_48mhz_clk,	CK_443X),
-> @@ -3183,7 +3162,6 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK(NULL,	"i2c2_fck",			&i2c2_fck,	CK_443X),
->  	CLK(NULL,	"i2c3_fck",			&i2c3_fck,	CK_443X),
->  	CLK(NULL,	"i2c4_fck",			&i2c4_fck,	CK_443X),
-> -	CLK(NULL,	"ipu_fck",			&ipu_fck,	CK_443X),
->  	CLK(NULL,	"iss_ctrlclk",			&iss_ctrlclk,	CK_443X),
->  	CLK(NULL,	"iss_fck",			&iss_fck,	CK_443X),
->  	CLK(NULL,	"iva_fck",			&iva_fck,	CK_443X),
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index aab5c12..1f61093 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -650,7 +650,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
->  	.mpu_irqs	= omap44xx_dsp_irqs,
->  	.rst_lines	= omap44xx_dsp_resets,
->  	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_resets),
-> -	.main_clk	= "dsp_fck",
-> +	.main_clk	= "dpll_iva_m4x2_ck",
->  	.prcm = {
->  		.omap4 = {
->  			.clkctrl_offs = OMAP4_CM_TESLA_TESLA_CLKCTRL_OFFSET,
-> @@ -1677,7 +1677,7 @@ static struct omap_hwmod omap44xx_ipu_hwmod = {
->  	.mpu_irqs	= omap44xx_ipu_irqs,
->  	.rst_lines	= omap44xx_ipu_resets,
->  	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_ipu_resets),
-> -	.main_clk	= "ipu_fck",
-> +	.main_clk	= "ducati_clk_mux_ck",
->  	.prcm = {
->  		.omap4 = {
->  			.clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
+>  	spi_register_board_info(&ads7846_spi_board_info, 1);
+>  }
+>  #else
 > -- 
-> 1.7.4.1
+> 1.7.3.4
 > 
