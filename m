@@ -1,50 +1,54 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
- ETH when not in use
-Date: Wed, 21 Nov 2012 09:52:27 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1211210942570.1731-100000@iolanthe.rowland.org>
-References: <20121121140044.GQ10216@arwen.pp.htv.fi>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 00/13] MFD: twl drivers: Convert to regmap IO and cleanups
+Date: Wed, 21 Nov 2012 15:54:09 +0100
+Message-ID: <20121121145409.GY18738@sortiz-mobl>
+References: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121121140044.GQ10216-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 21 Nov 2012, Felipe Balbi wrote:
+Hi Peter,
 
-> On Thu, Nov 15, 2012 at 04:34:14PM +0200, Roger Quadros wrote:
-> > From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > 
-> > This patch changes the management of the two GPIO for
-> > "hub reset" (actually controls enable of ULPI PHY and hub reset) and
-> > "hub power" (controls power to hub + eth).
+On Tue, Nov 13, 2012 at 09:28:41AM +0100, Peter Ujfalusi wrote:
+> Hello,
 > 
-> looks like this should be done by the hub driver. Alan, what would you
-> say ? Should the hub driver know how to power itself up ?
+> This series converts the twl-core to use regmap for IO towards the chip.
+> With the conversion to regmap IO we no longer need to allocate bigger buffer for
+> writes.
+> I have appended patches to this series to make some cleanups which will help in
+> the future to further clean up the twl stack.
+> 
+> The series depends on a regression fix patch for the twl-core:
+> https://patchwork.kernel.org/patch/1679421/
+> 
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (13):
+>   MFD: twl-core: Register twl4030-madc child only for twl4030 class
+>   MFD: twl-core: Support for proper PWM drivers
+>   MFD: twl-core: Convert to use regmap for I/O
+>   MFD/rtc/gpio: twl: No need to allocate bigger buffer for write
+>   MFD: twl-core: Clean up and correct child registration
+>   mfd: twl: Remove unused TWL_MODULE definitions
+>   mfd: twl: Convert module id definitions to enums
+>   mfd: twl: Use decimal numbers for TWL6030_MODULE_IDs
+>   MFD: twl-core: re-group the twl_mapping table for easier reading
+>   mfd: twl4030-madc: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+>   mfd: twl4030-power: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+>   mfd: twl4030-irq: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+>   mfd: twl-core: Change TWL4030_MODULE_* ids to TWL_MODULE_*
+All patches applied now, thanks.
 
-Not knowing the context, I'm a little confused.  What is this hub 
-you're talking about?  Is it a separate USB hub incorporated into the 
-IP (like Intel's "rate-matching" hubs in their later chipsets)?  Or is 
-it the root hub?
+Cheers,
+Samuel.
 
-Under what circumstances would the hub not be powered (i.e., when is it
-not in use)?  If it isn't powered, can it be suspended?  Or enumerated?
-
-Is this the sort of thing that should be handled by a PM domain?
-
-As much as possible, the hub driver tries to ignore the differences
-between root hubs and non-root hubs.  So for example, all hubs have to
-be told to turn on VBUS power to their ports; therefore the hub driver
-tells them.  But external hubs are either self-powered or bus-powered;
-there's no need and no way for the hub driver to turn the hub power on
-or off.  Therefore it doesn't try, not even for root hubs.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
