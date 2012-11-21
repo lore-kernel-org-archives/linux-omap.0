@@ -1,72 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/16] OMAP USB Host cleanup
-Date: Tue, 20 Nov 2012 15:13:12 -0800
-Message-ID: <20121120231312.GP18567@atomide.com>
-References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
- <87fw49cnvh.fsf@deeprootsystems.com>
- <50AA05C3.7010003@ti.com>
- <876251b2kq.fsf@deeprootsystems.com>
+Subject: Re: [PATCH v4 5/8] crypto: omap-sham: Remove cpu_is/omap_type
+ check from driver
+Date: Tue, 20 Nov 2012 17:02:58 -0800
+Message-ID: <20121121010257.GR18567@atomide.com>
+References: <1353351301-6453-1-git-send-email-mgreer@animalcreek.com>
+ <1353351301-6453-6-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:62043 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752125Ab2KTXNQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 18:13:16 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51404 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753436Ab2KUBDF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Nov 2012 20:03:05 -0500
 Content-Disposition: inline
-In-Reply-To: <876251b2kq.fsf@deeprootsystems.com>
+In-Reply-To: <1353351301-6453-6-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, dmitry.kasatkin@intel.com, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com
 
-Hi Roger,
-
-* Kevin Hilman <khilman@deeprootsystems.com> [121119 15:24]:
-> Roger Quadros <rogerq@ti.com> writes:
+* Mark A. Greer <mgreer@animalcreek.com> [121119 10:58]:
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
 > 
-> > Kevin,
-> >
-> > On 11/16/2012 10:08 PM, Kevin Hilman wrote:
-> >> Roger Quadros <rogerq@ti.com> writes:
-> >> 
-> >>> Hi,
-> >>>
-> >>> This patchset addresses the following
-> >>>
-> >>> - Avoid addressing clocks one by one by name and use a for loop + bunch
-> >>>   of cleanups.
-> >>> - Get number of channels/ports dynamically either from revision register
-> >>>   or from platform data. Avoids getting clocks that are not present.
-> >>> - Add OMAP5 and HSIC mode (Not tested)
-> >>> - Save power on Panda when EHCI driver is not loaded.
-> >>>
-> >> 
-> >> Seeing the clock changes/cleanups, I gave this a spin on OMAP3
-> >> (3530/Beagle, 3530/Overo, 3730/Beagle-xM, 3730/OveroSTORM) to see if it
-> >> fixed up the problem where CORE does not hit retention in idle when USB
-> >> host is enabled, even with no devices attached.
-> >> 
-> >> Unfortunately, it didn't help. :(
-> >
-> > oh that's bad. But this series wasn't meant to fix that ;).
-> 
-> Oh, sorry.  Yeah, I didn't mean this as a nak.  Just an opportunity to
-> complain to the maintainers that a long-standing issue needs to be
-> addressed.
+> The omap-sham driver should not check the CPU class or the
+> type of OMAP device its on.  The platform code should do
+> that instead.
 
-It seems that drivers/mfd/omap-usb-host.c is one of the last users
-of cpu_is_omap macros blocking enabling ARM multiplatform support for
-omap2+.
-
-Please fix that ASAP as early as possible in this patch series to
-remove the dependencies between core omap code development and driver
-development.
-
-Basically you need to remove #include <plat/cpu.h> and pass the
-revision information in platform data (and device tree compatible
-flag when that is supported).
+I think I already have a similar patch queued in linux next.
 
 Regards,
 
 Tony
+ 
+> CC: Paul Walmsley <paul@pwsan.com>
+> CC: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
+> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+> ---
+>  drivers/crypto/omap-sham.c | 8 --------
+>  1 file changed, 8 deletions(-)
+> 
+> diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
+> index a3fd6fc..f50387c 100644
+> --- a/drivers/crypto/omap-sham.c
+> +++ b/drivers/crypto/omap-sham.c
+> @@ -37,7 +37,6 @@
+>  #include <crypto/hash.h>
+>  #include <crypto/internal/hash.h>
+>  
+> -#include <plat/cpu.h>
+>  #include <plat/dma.h>
+>  #include <mach/irqs.h>
+>  
+> @@ -1289,13 +1288,6 @@ static int __init omap_sham_mod_init(void)
+>  {
+>  	pr_info("loading %s driver\n", "omap-sham");
+>  
+> -	if (!cpu_class_is_omap2() ||
+> -		(omap_type() != OMAP2_DEVICE_TYPE_SEC &&
+> -			omap_type() != OMAP2_DEVICE_TYPE_EMU)) {
+> -		pr_err("Unsupported cpu\n");
+> -		return -ENODEV;
+> -	}
+> -
+>  	return platform_driver_register(&omap_sham_driver);
+>  }
+>  
+> -- 
+> 1.7.12
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
