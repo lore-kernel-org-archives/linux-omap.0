@@ -1,54 +1,53 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 00/13] MFD: twl drivers: Convert to regmap IO and cleanups
-Date: Wed, 21 Nov 2012 15:54:09 +0100
-Message-ID: <20121121145409.GY18738@sortiz-mobl>
-References: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
+ ETH when not in use
+Date: Wed, 21 Nov 2012 17:13:41 +0200
+Message-ID: <50ACEFA5.4080104@ti.com>
+References: <Pine.LNX.4.44L0.1211210942570.1731-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1352795334-7406-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47774 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755070Ab2KUPNo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 10:13:44 -0500
+In-Reply-To: <Pine.LNX.4.44L0.1211210942570.1731-100000@iolanthe.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Felipe Balbi <balbi@ti.com>, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Andy Green <andy.green@linaro.org>
 
-Hi Peter,
-
-On Tue, Nov 13, 2012 at 09:28:41AM +0100, Peter Ujfalusi wrote:
-> Hello,
+On 11/21/2012 04:52 PM, Alan Stern wrote:
+> On Wed, 21 Nov 2012, Felipe Balbi wrote:
 > 
-> This series converts the twl-core to use regmap for IO towards the chip.
-> With the conversion to regmap IO we no longer need to allocate bigger buffer for
-> writes.
-> I have appended patches to this series to make some cleanups which will help in
-> the future to further clean up the twl stack.
+>> On Thu, Nov 15, 2012 at 04:34:14PM +0200, Roger Quadros wrote:
+>>> From: Andy Green <andy.green@linaro.org>
+>>>
+>>> This patch changes the management of the two GPIO for
+>>> "hub reset" (actually controls enable of ULPI PHY and hub reset) and
+>>> "hub power" (controls power to hub + eth).
+>>
+>> looks like this should be done by the hub driver. Alan, what would you
+>> say ? Should the hub driver know how to power itself up ?
 > 
-> The series depends on a regression fix patch for the twl-core:
-> https://patchwork.kernel.org/patch/1679421/
+> Not knowing the context, I'm a little confused.  What is this hub 
+> you're talking about?  Is it a separate USB hub incorporated into the 
+> IP (like Intel's "rate-matching" hubs in their later chipsets)?  Or is 
+> it the root hub?
 > 
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (13):
->   MFD: twl-core: Register twl4030-madc child only for twl4030 class
->   MFD: twl-core: Support for proper PWM drivers
->   MFD: twl-core: Convert to use regmap for I/O
->   MFD/rtc/gpio: twl: No need to allocate bigger buffer for write
->   MFD: twl-core: Clean up and correct child registration
->   mfd: twl: Remove unused TWL_MODULE definitions
->   mfd: twl: Convert module id definitions to enums
->   mfd: twl: Use decimal numbers for TWL6030_MODULE_IDs
->   MFD: twl-core: re-group the twl_mapping table for easier reading
->   mfd: twl4030-madc: Change TWL4030_MODULE_* ids to TWL_MODULE_*
->   mfd: twl4030-power: Change TWL4030_MODULE_* ids to TWL_MODULE_*
->   mfd: twl4030-irq: Change TWL4030_MODULE_* ids to TWL_MODULE_*
->   mfd: twl-core: Change TWL4030_MODULE_* ids to TWL_MODULE_*
-All patches applied now, thanks.
 
-Cheers,
-Samuel.
+This is actually a USB HUB + Ethernet combo chip (LAN9514) that is hard
+wired on the panda board with its Power and Reset pins controlled by 2
+GPIOs from the OMAP SoC.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+When powered, this chip can consume significant power (~0.7 W) because
+of the (integrated Ethernet even when suspended. I suppose the ethernet
+driver SMSC95XX) doesn't put it into a low enough power state on suspend.
+
+It doesn't make sense to power the chip when USB is not required on the
+whole (e.g. ehci_hcd module is not loaded). This is what this patch is
+trying to fix.
+
+cheers,
+-roger
