@@ -1,185 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/5] RFC: ARM: OMAP: Prepare Kconfig and Makefiles for
- enabling ARCH_MULTIPLATFORM
-Date: Wed, 21 Nov 2012 09:42:44 -0800
-Message-ID: <20121121174244.25576.8576.stgit@muffinssi.local>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/5] ARM: OMAP: Move plat/omap-serial.h to
+ include/linux/platform_data/serial-omap.h
+Date: Wed, 21 Nov 2012 19:38:10 +0200
+Message-ID: <20121121173740.GA13262@arwen.pp.htv.fi>
 References: <20121121174201.25576.61961.stgit@muffinssi.local>
+ <20121121174230.25576.64507.stgit@muffinssi.local>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39695 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754273Ab2KURmp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Nov 2012 12:42:45 -0500
-In-Reply-To: <20121121174201.25576.61961.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JP+T4n/bALQSJXh8"
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121121174230.25576.64507.stgit@muffinssi.local>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Felipe Balbi <balbi@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, Alan Cox <alan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
 
-Not intended for merging yet as few more drivers need
-work. You may need to update your config to make sure
-you have:
+--JP+T4n/bALQSJXh8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-CONFIG_ARCH_MULTIPLATFORM=y
-CONFIG_ARCH_MULTI_V7=y
-CONFIG_ARCH_OMAP2PLUS=y
+On Wed, Nov 21, 2012 at 09:42:30AM -0800, Tony Lindgren wrote:
+> We need to move this file to allow ARM multiplatform configurations
+> to build for omap2+. This can now be done as this file now only
+> contains platform_data.
+>=20
+> cc: Russell King <linux@arm.linux.org.uk>
+> cc: Alan Cox <alan@linux.intel.com>
+> cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> cc: Govindraj.R <govindraj.raja@ti.com>
+> cc: Kevin Hilman <khilman@ti.com>
+> cc: Felipe Balbi <balbi@ti.com>
+> cc: linux-serial@vger.kernel.org
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-And may need CONFIG_ARCH_MULTI_V6=y too.
+nice, thanks :-)
 
-The omap2plus_defconfig has been updated in this patch.
----
- arch/arm/Kconfig                     |   13 ++++++++++---
- arch/arm/configs/omap2plus_defconfig |    2 +-
- arch/arm/mach-omap2/Kconfig          |   23 +++++++++++++++++++++++
- arch/arm/mach-omap2/Makefile         |    3 +++
- arch/arm/plat-omap/Kconfig           |   30 ------------------------------
- arch/arm/plat-omap/Makefile          |    2 ++
- 6 files changed, 39 insertions(+), 34 deletions(-)
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 041cf07..8d955b1 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -928,17 +928,24 @@ config ARCH_DAVINCI
- 	help
- 	  Support for TI's DaVinci platform.
- 
--config ARCH_OMAP
--	bool "TI OMAP"
-+config ARCH_OMAP1
-+	bool "TI OMAP1"
- 	depends on MMU
- 	select ARCH_HAS_CPUFREQ
- 	select ARCH_HAS_HOLES_MEMORYMODEL
-+	select ARCH_OMAP
- 	select ARCH_REQUIRE_GPIOLIB
-+	select CLKDEV_LOOKUP
- 	select CLKSRC_MMIO
- 	select GENERIC_CLOCKEVENTS
-+	select GENERIC_IRQ_CHIP
- 	select HAVE_CLK
-+	select HAVE_IDE
-+	select IRQ_DOMAIN
-+	select NEED_MACH_IO_H if PCCARD
-+	select NEED_MACH_MEMORY_H
- 	help
--	  Support for TI's OMAP platform (OMAP1/2/3/4).
-+	  Support for older TI OMAP1 (omap7xx, omap15xx or omap16xx)
- 
- config ARCH_VT8500
- 	bool "VIA/WonderMedia 85xx"
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 6230304..35907ab 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -20,7 +20,7 @@ CONFIG_MODULE_FORCE_UNLOAD=y
- CONFIG_MODVERSIONS=y
- CONFIG_MODULE_SRCVERSION_ALL=y
- # CONFIG_BLK_DEV_BSG is not set
--CONFIG_ARCH_OMAP=y
-+CONFIG_ARCH_OMAP2PLUS=y
- CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_MUX_DEBUG=y
- CONFIG_ARM_THUMBEE=y
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index c81bc50..fbd3f20 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -1,3 +1,26 @@
-+config ARCH_OMAP
-+	bool
-+
-+config ARCH_OMAP2PLUS
-+	bool "TI OMAP2/3/4/5 SoCs with device tree support" if (ARCH_MULTI_V6 || ARCH_MULTI_V7)
-+	select ARCH_HAS_CPUFREQ
-+	select ARCH_HAS_HOLES_MEMORYMODEL
-+	select ARCH_OMAP
-+	select ARCH_REQUIRE_GPIOLIB
-+	select CLKDEV_LOOKUP
-+	select CLKSRC_MMIO
-+	select GENERIC_CLOCKEVENTS
-+	select GENERIC_IRQ_CHIP
-+	select HAVE_CLK
-+	select OMAP_DM_TIMER
-+	select PINCTRL
-+	select PROC_DEVICETREE if PROC_FS
-+	select SPARSE_IRQ
-+	select USE_OF
-+	help
-+	  Systems based on OMAP2, OMAP3, OMAP4 or OMAP5
-+
-+
- if ARCH_OMAP2PLUS
- 
- menu "TI OMAP2/3/4 Specific Features"
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4a6e6d5..ca47d7a 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -2,6 +2,9 @@
- # Makefile for the linux kernel.
- #
- 
-+ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/$(src)/include \
-+	-I$(srctree)/arch/arm/plat-omap/include
-+
- # Common support
- obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer.o pm.o \
- 	 common.o gpio.o dma.o wd_timer.o display.o i2c.o hdq1w.o omap_hwmod.o \
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 82fcb20..fd440fb 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -5,36 +5,6 @@ menu "TI OMAP Common Features"
- config ARCH_OMAP_OTG
- 	bool
- 
--choice
--	prompt "OMAP System Type"
--	default ARCH_OMAP2PLUS
--
--config ARCH_OMAP1
--	bool "TI OMAP1"
--	select CLKDEV_LOOKUP
--	select CLKSRC_MMIO
--	select GENERIC_IRQ_CHIP
--	select HAVE_IDE
--	select IRQ_DOMAIN
--	select NEED_MACH_IO_H if PCCARD
--	select NEED_MACH_MEMORY_H
--	help
--	  "Systems based on omap7xx, omap15xx or omap16xx"
--
--config ARCH_OMAP2PLUS
--	bool "TI OMAP2/3/4"
--	select CLKDEV_LOOKUP
--	select GENERIC_IRQ_CHIP
--	select OMAP_DM_TIMER
--	select PINCTRL
--	select PROC_DEVICETREE if PROC_FS
--	select SPARSE_IRQ
--	select USE_OF
--	help
--	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
--
--endchoice
--
- comment "OMAP Feature Selections"
- 
- config OMAP_DEBUG_DEVICES
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 8d88584..cfc3372 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -2,6 +2,8 @@
- # Makefile for the linux kernel.
- #
- 
-+ccflags-$(CONFIG_ARCH_MULTIPLATFORM) := -I$(srctree)/arch/arm/plat-omap/include
-+
- # Common support
- obj-y := sram.o dma.o fb.o counter_32k.o
- obj-m :=
+> ---
+>  arch/arm/mach-omap2/serial.c                  |    4 +---
+>  drivers/tty/serial/omap-serial.c              |    3 +--
+>  include/linux/platform_data/serial-omap.h     |    0=20
+>  3 files changed, 2 insertions(+), 5 deletions(-)
+>  rename arch/arm/plat-omap/include/plat/omap-serial.h =3D> include/linux/=
+platform_data/serial-omap.h (100%)
+>=20
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index aa30a3c..25c799b 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -26,9 +26,7 @@
+>  #include <linux/slab.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/console.h>
+> -
+> -#include <plat/omap-serial.h>
+> -#include <plat-omap/dma-omap.h>
+> +#include <linux/platform_data/serial-omap.h>
+> =20
+>  #include "common.h"
+>  #include "omap_hwmod.h"
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-s=
+erial.c
+> index 17babde..0240aa8 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -41,8 +41,7 @@
+>  #include <linux/of.h>
+>  #include <linux/gpio.h>
+>  #include <linux/pinctrl/consumer.h>
+> -
+> -#include <plat/omap-serial.h>
+> +#include <linux/platform_data/serial-omap.h>
+> =20
+>  #define OMAP_MAX_HSUART_PORTS	6
+> =20
+> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/include/linu=
+x/platform_data/serial-omap.h
+> similarity index 100%
+> rename from arch/arm/plat-omap/include/plat/omap-serial.h
+> rename to include/linux/platform_data/serial-omap.h
+>=20
 
+--=20
+balbi
+
+--JP+T4n/bALQSJXh8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQrRGCAAoJEIaOsuA1yqREqisQAIRwtfAfVJ2aSfpJC3xQd9fi
+c5eazEag1kELfiVj1wXRnqXSHZrSh60J20hyl0BYZZvRZHdOV1V7KVhXB2UNDLXt
+LJ3sQv3T0qNLZ47e0d5OePonXGA9wXKb8NG+wqPxZ5ZT/wVlEncyd1dN+EHjWjOr
+VeERhMQ/gWyboj7gG5fjN+g7UsTj9cVB+sPY1jDNOAGNLflaWo2pfdnEganA6ahU
+RS4aSFIRs33jifr0cBlSS9DkeGCgMI6BcnNCLrWhI8FMjlN4LdHvqbIgIOgNXCvS
+tKI5hbG/EYaITssRen5nTZJHp2+Eufar4hWDi+XE/q1JjvNesTZCoSKlnoPYlyPT
+mFoTfsv4uqocvLPGlOshpDqz8j3ACxaHauxyGc1zO2ML9aLsLQIZu8UNfYfMHRt5
+fqnxV4Yd2PZAZ5hSnzAmBbe56nxtb1InDxDoJfxhn5FWmWtqb2y0rKJF5QtZ4koV
+2VDj7FIYrHbn2ELn0Fr+o3B4kI2J9CeY0V/SSr4Ihomt6uCCxdI5B/XG+uF1hIuT
+zPzTCEQwBck+8S6GgRJJ+/YpwReCLURMgEE196ej+EGef19EX2QD4cSjNc+GL5pl
+tIWlRbeBHZVtpS+NAecUuPGH1Gv1jRTiDBTmk6OKlie7w5kb8GadjcBlAdUMknqj
+QqMtgYXc2hrWXtmsxMZr
+=almK
+-----END PGP SIGNATURE-----
+
+--JP+T4n/bALQSJXh8--
