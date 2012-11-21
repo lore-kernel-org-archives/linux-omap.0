@@ -1,39 +1,50 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 09/16] mfd: omap-usb-host: override number of ports from
- platform data
-Date: Wed, 21 Nov 2012 16:50:42 +0200
-Message-ID: <50ACEA42.2030701@ti.com>
-References: <1352990054-14680-1-git-send-email-rogerq@ti.com> <1352990054-14680-10-git-send-email-rogerq@ti.com> <20121121134516.GK10216@arwen.pp.htv.fi>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
+ ETH when not in use
+Date: Wed, 21 Nov 2012 09:52:27 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211210942570.1731-100000@iolanthe.rowland.org>
+References: <20121121140044.GQ10216@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34808 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754784Ab2KUOuo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Nov 2012 09:50:44 -0500
-In-Reply-To: <20121121134516.GK10216@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121121140044.GQ10216-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 11/21/2012 03:45 PM, Felipe Balbi wrote:
-> On Thu, Nov 15, 2012 at 04:34:07PM +0200, Roger Quadros wrote:
->> For some platforms e.g. OMAP5, we cannot rely on USBHOST revision
->> to determine the number of ports available. In such cases we have
+On Wed, 21 Nov 2012, Felipe Balbi wrote:
+
+> On Thu, Nov 15, 2012 at 04:34:14PM +0200, Roger Quadros wrote:
+> > From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > 
+> > This patch changes the management of the two GPIO for
+> > "hub reset" (actually controls enable of ULPI PHY and hub reset) and
+> > "hub power" (controls power to hub + eth).
 > 
-> you need to make it clear *why* we can't. Imagine someone reading this 5
-> years from now... he'll be all like: "why can't I find any documentation
-> about this OMAP5 ? Why was it so special that its revision register
-> wasn't enough to figure out number of ports ?"
+> looks like this should be done by the hub driver. Alan, what would you
+> say ? Should the hub driver know how to power itself up ?
 
-OK, i'll add a note like this "both OMAP5 and OMAP4 exhibit the same
-revision ID in the USBHOST_REVISION register, but in fact have different
-number of ports physically available on the SoC (i.e. 2 for OMAP4 and 3
-for OMAP5 respectively). So we can't rely on REVISION register to
-determine number of ports for OMAP5 and depend on platform data/Device
-tree instead"
+Not knowing the context, I'm a little confused.  What is this hub 
+you're talking about?  Is it a separate USB hub incorporated into the 
+IP (like Intel's "rate-matching" hubs in their later chipsets)?  Or is 
+it the root hub?
 
-cheers,
--roger
+Under what circumstances would the hub not be powered (i.e., when is it
+not in use)?  If it isn't powered, can it be suspended?  Or enumerated?
+
+Is this the sort of thing that should be handled by a PM domain?
+
+As much as possible, the hub driver tries to ignore the differences
+between root hubs and non-root hubs.  So for example, all hubs have to
+be told to turn on VBUS power to their ports; therefore the hub driver
+tells them.  But external hubs are either self-powered or bus-powered;
+there's no need and no way for the hub driver to turn the hub power on
+or off.  Therefore it doesn't try, not even for root hubs.
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
