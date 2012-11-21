@@ -1,60 +1,52 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP: ads7846: fix pendown debounce setting
-Date: Wed, 21 Nov 2012 12:55:24 -0800
-Message-ID: <20121121205524.GB25470@core.coreip.homeip.net>
-References: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
- <20121120082136.GB28115@core.coreip.homeip.net>
- <20121121190929.GF18567@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] few omap regression fixes for v3.7-rc5
+Date: Wed, 21 Nov 2012 13:46:22 -0800
+Message-ID: <20121121214622.GH18567@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20121121190929.GF18567@atomide.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Kevin Hilman <khilman@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 21, 2012 at 11:09:30AM -0800, Tony Lindgren wrote:
-> * Dmitry Torokhov <dmitry.torokhov@gmail.com> [121120 00:23]:
-> > On Mon, Nov 19, 2012 at 06:03:56PM +0200, Igor Grinberg wrote:
-> > > Commit 97ee9f01 (ARM: OMAP: fix the ads7846 init code) have enabled the
-> > > pendown GPIO debounce time setting by the below sequence:
-> > > 
-> > >   gpio_request_one()
-> > >   gpio_set_debounce()
-> > >   gpio_free()
-> > > 
-> > > It also revealed a bug in the OMAP GPIO handling code which prevented
-> > > the GPIO debounce clock to be disabled and CORE transition to low power
-> > > states.
-> > > 
-> > > Commit c9c55d9 (gpio/omap: fix off-mode bug: clear debounce settings on
-> > > free/reset) fixes the OMAP GPIO handling code by making sure that the
-> > > GPIO debounce clock gets disabled if no GPIO is requested from current
-> > > bank.
-> > > 
-> > > While fixing the OMAP GPIO handling code (in the right way), the above
-> > > commit makes the gpio_request->set_debounce->free sequence invalid as
-> > > after freeing the GPIO, the debounce settings are lost.
-> > > 
-> > > This patch set:
-> > > 1) Adds the pendown GPIO debounce time setting to the platform data
-> > >    structure of the ads7846 driver.
-> > > 2) Fixes the OMAP platform code to pass the debounce time value
-> > >    to the driver instead of handling it by itself.
-> > > 
-> > > Igor Grinberg (2):
-> > >   ads7846: enable pendown GPIO debounce time setting
-> > >   ARM: OMAP: ads7846: fix pendown debounce setting
-> > > 
-> > 
-> > Makes sense to me. Tony, I have some stuff to push for 3.7 final, mind
-> > if I pick OMAP change as well?
-> 
-> No please go ahead, I just acked the related patch.
+The following changes since commit 3d70f8c617a436c7146ecb81df2265b4626dfe89:
 
-Thanks Tony.
+  Linux 3.7-rc4 (2012-11-04 11:07:39 -0800)
 
--- 
-Dmitry
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.7-rc5/fixes-signed
+
+for you to fetch changes up to 1ef43369c681bf30a980a4ba42df20514b15fdda:
+
+  ARM: OMAP4: TWL: mux sys_drm_msecure as output for PMIC (2012-11-12 14:11:47 -0800)
+
+----------------------------------------------------------------
+Few more regression fixes related to u-boot only muxing
+essential pins.
+
+----------------------------------------------------------------
+Anders Hedlund (1):
+      ARM: OMAP3: igep0020: Set WIFI/BT GPIO pins in correct mux mode
+
+Javier Martinez Canillas (1):
+      ARM: OMAP: Add maintainer entry for IGEP machines
+
+Kevin Hilman (1):
+      ARM: OMAP4: TWL: mux sys_drm_msecure as output for PMIC
+
+ MAINTAINERS                          | 8 ++++++++
+ arch/arm/mach-omap2/board-igep0020.c | 5 +++++
+ arch/arm/mach-omap2/twl-common.c     | 1 +
+ 3 files changed, 14 insertions(+)
