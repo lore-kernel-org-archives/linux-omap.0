@@ -1,57 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP: ads7846: fix pendown debounce setting
-Date: Wed, 21 Nov 2012 11:09:30 -0800
-Message-ID: <20121121190929.GF18567@atomide.com>
-References: <1353341038-14381-1-git-send-email-grinberg@compulab.co.il>
- <20121120082136.GB28115@core.coreip.homeip.net>
+Subject: Re: [PATCH v2] New Nokia RX-51 power supply battery driver
+Date: Wed, 21 Nov 2012 11:20:43 -0800
+Message-ID: <20121121192042.GG18567@atomide.com>
+References: <19040462.WFXWijAIDd@pali>
+ <2562836.SjVVyiPAk1@pali>
+ <20121118231239.GC29066@lizard.sbx05977.paloaca.wayport.net>
+ <5320319.2WmO5VDT8j@pali>
+ <20121119182002.GA2670@lizard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20121120082136.GB28115@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Kevin Hilman <khilman@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20121119182002.GA2670@lizard>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-kernel@vger.kernel.org, Joerg Reisenweber <joerg@openmoko.org>, Ivaylo Dimitrov <freemangordon@abv.bg>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Dmitry Torokhov <dmitry.torokhov@gmail.com> [121120 00:23]:
-> On Mon, Nov 19, 2012 at 06:03:56PM +0200, Igor Grinberg wrote:
-> > Commit 97ee9f01 (ARM: OMAP: fix the ads7846 init code) have enabled the
-> > pendown GPIO debounce time setting by the below sequence:
-> > 
-> >   gpio_request_one()
-> >   gpio_set_debounce()
-> >   gpio_free()
-> > 
-> > It also revealed a bug in the OMAP GPIO handling code which prevented
-> > the GPIO debounce clock to be disabled and CORE transition to low power
-> > states.
-> > 
-> > Commit c9c55d9 (gpio/omap: fix off-mode bug: clear debounce settings on
-> > free/reset) fixes the OMAP GPIO handling code by making sure that the
-> > GPIO debounce clock gets disabled if no GPIO is requested from current
-> > bank.
-> > 
-> > While fixing the OMAP GPIO handling code (in the right way), the above
-> > commit makes the gpio_request->set_debounce->free sequence invalid as
-> > after freeing the GPIO, the debounce settings are lost.
-> > 
-> > This patch set:
-> > 1) Adds the pendown GPIO debounce time setting to the platform data
-> >    structure of the ads7846 driver.
-> > 2) Fixes the OMAP platform code to pass the debounce time value
-> >    to the driver instead of handling it by itself.
-> > 
-> > Igor Grinberg (2):
-> >   ads7846: enable pendown GPIO debounce time setting
-> >   ARM: OMAP: ads7846: fix pendown debounce setting
-> > 
-> 
-> Makes sense to me. Tony, I have some stuff to push for 3.7 final, mind
-> if I pick OMAP change as well?
+* Anton Vorontsov <cbouatmailru@gmail.com> [121119 10:25]:
+> On Mon, Nov 19, 2012 at 01:18:29PM +0100, Pali Roh=C3=A1r wrote:
+> [...]=20
+> > Ok. Here is missing patch which register this driver in Nokia N900 =
+board code. Without it driver is not loaded.
+>=20
+> Cc'ing OMAP folks.
 
-No please go ahead, I just acked the related patch.
+Looks OK to me queue with the other patches in the series:
 
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
+=20
+ > From 0b60efd06a71668439bcb761c6572dd7df91dc17 Mon Sep 17 00:00:00 20=
+01
+> > From: =3D?UTF-8?q?Pali=3D20Roh=3DC3=3DA1r?=3D <pali.rohar@gmail.com=
+>
+> > Date: Mon, 19 Nov 2012 09:05:24 +0100
+> > Subject: [PATCH 1/3] ARM: OMAP: rx51: Register platform device for
+> >  rx51_battery driver
+> > MIME-Version: 1.0
+> > Content-Type: text/plain; charset=3DUTF-8
+> > Content-Transfer-Encoding: 8bit
+> >=20
+> > Signed-off-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+> > ---
+> >  arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++++++
+> >  1 file changed, 6 insertions(+)
+> >=20
+> > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/ar=
+m/mach-omap2/board-rx51-peripherals.c
+> > index 020e03c..fe1ac7e 100644
+> > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> > @@ -271,11 +271,17 @@ static struct platform_device rx51_charger_de=
+vice =3D {
+> >  	},
+> >  };
+> > =20
+> > +static struct platform_device rx51_battery_device =3D {
+> > +	.name		=3D "rx51-battery",
+> > +	.id		=3D -1,
+> > +};
+> > +
+> >  static void __init rx51_charger_init(void)
+> >  {
+> >  	WARN_ON(gpio_request_one(RX51_USB_TRANSCEIVER_RST_GPIO,
+> >  		GPIOF_OUT_INIT_HIGH, "isp1704_reset"));
+> > =20
+> > +	platform_device_register(&rx51_battery_device);
+> >  	platform_device_register(&rx51_charger_device);
+> >  }
+> > =20
+> > --=20
+> > 1.7.10.4
+> >=20
+> > --=20
+> > Pali Roh=C3=A1r
+> > pali.rohar@gmail.com
