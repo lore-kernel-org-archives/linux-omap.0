@@ -1,7 +1,7 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP2+: PRM: initialize some PRM functions early
-Date: Wed, 21 Nov 2012 23:09:34 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211212308210.32242@utopia.booyaka.com>
+Subject: [GIT PULL] ARM: OMAP2+: hwmod/PRM changes for 3.8
+Date: Thu, 22 Nov 2012 00:17:01 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211220016160.32242@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,213 +15,113 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Some PRM functions will need to be called by the hwmod code early in
-kernel init.  To handle this, split the PRM initialization code into
-early and late phases.  The early init is handled via mach-omap2/io.c,
-while the late init is handled by subsys_initcall().
+Hi Tony
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
+The following changes since commit 558a0780b0a04862a678f7823215424b4e5501f9:
 
-This one is needed in order for the updated version of "ARM: OMAP: hwmod: 
-Add support for per hwmod/module context lost count" to work correctly.
+  Merge tag 'omap-cleanup-c-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/clock (2012-11-13 13:32:24 -0800)
 
- arch/arm/mach-omap2/io.c      |    8 ++++++++
- arch/arm/mach-omap2/prm2xxx.c |    3 +--
- arch/arm/mach-omap2/prm2xxx.h |    3 +--
- arch/arm/mach-omap2/prm3xxx.c |   17 ++++++++++-------
- arch/arm/mach-omap2/prm3xxx.h |    1 +
- arch/arm/mach-omap2/prm44xx.c |   16 +++++++++-------
- arch/arm/mach-omap2/prm44xx.h |    1 +
- 7 files changed, 31 insertions(+), 18 deletions(-)
+are available in the git repository at:
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 924bf24..007dc4d 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -51,6 +51,10 @@
- #include "prcm_mpu44xx.h"
- #include "prminst44xx.h"
- #include "cminst44xx.h"
-+#include "prm2xxx.h"
-+#include "prm3xxx.h"
-+#include "prm44xx.h"
-+
- /*
-  * The machine specific code may provide the extra mapping besides the
-  * default mapping provided here.
-@@ -392,6 +396,7 @@ void __init omap2420_init_early(void)
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP2420_PRM_BASE));
- 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP2420_CM_BASE), NULL);
- 	omap2xxx_check_revision();
-+	omap2xxx_prm_init();
- 	omap2xxx_cm_init();
- 	omap_common_init_early();
- 	omap2xxx_voltagedomains_init();
-@@ -422,6 +427,7 @@ void __init omap2430_init_early(void)
- 	omap2_set_globals_prm(OMAP2_L4_IO_ADDRESS(OMAP2430_PRM_BASE));
- 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP2430_CM_BASE), NULL);
- 	omap2xxx_check_revision();
-+	omap2xxx_prm_init();
- 	omap2xxx_cm_init();
- 	omap_common_init_early();
- 	omap2xxx_voltagedomains_init();
-@@ -457,6 +463,7 @@ void __init omap3_init_early(void)
- 	omap2_set_globals_cm(OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE), NULL);
- 	omap3xxx_check_revision();
- 	omap3xxx_check_features();
-+	omap3xxx_prm_init();
- 	omap3xxx_cm_init();
- 	omap_common_init_early();
- 	omap3xxx_voltagedomains_init();
-@@ -591,6 +598,7 @@ void __init omap4430_init_early(void)
- 	omap_cm_base_init();
- 	omap4xxx_check_revision();
- 	omap4xxx_check_features();
-+	omap44xx_prm_init();
- 	omap_common_init_early();
- 	omap44xx_voltagedomains_init();
- 	omap44xx_powerdomains_init();
-diff --git a/arch/arm/mach-omap2/prm2xxx.c b/arch/arm/mach-omap2/prm2xxx.c
-index bf24fc4..faeab18 100644
---- a/arch/arm/mach-omap2/prm2xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx.c
-@@ -118,14 +118,13 @@ static struct prm_ll_data omap2xxx_prm_ll_data = {
- 	.read_reset_sources = &omap2xxx_prm_read_reset_sources,
- };
- 
--static int __init omap2xxx_prm_init(void)
-+int __init omap2xxx_prm_init(void)
- {
- 	if (!cpu_is_omap24xx())
- 		return 0;
- 
- 	return prm_register(&omap2xxx_prm_ll_data);
- }
--subsys_initcall(omap2xxx_prm_init);
- 
- static void __exit omap2xxx_prm_exit(void)
- {
-diff --git a/arch/arm/mach-omap2/prm2xxx.h b/arch/arm/mach-omap2/prm2xxx.h
-index fe8a14f..3194dd8 100644
---- a/arch/arm/mach-omap2/prm2xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx.h
-@@ -126,8 +126,7 @@ extern int omap2xxx_clkdm_wakeup(struct clockdomain *clkdm);
- 
- extern void omap2xxx_prm_dpll_reset(void);
- 
--extern int __init prm2xxx_init(void);
--extern int __exit prm2xxx_exit(void);
-+extern int __init omap2xxx_prm_init(void);
- 
- #endif
- 
-diff --git a/arch/arm/mach-omap2/prm3xxx.c b/arch/arm/mach-omap2/prm3xxx.c
-index b86116c..db198d0 100644
---- a/arch/arm/mach-omap2/prm3xxx.c
-+++ b/arch/arm/mach-omap2/prm3xxx.c
-@@ -383,27 +383,30 @@ static struct prm_ll_data omap3xxx_prm_ll_data = {
- 	.read_reset_sources = &omap3xxx_prm_read_reset_sources,
- };
- 
--static int __init omap3xxx_prm_init(void)
-+int __init omap3xxx_prm_init(void)
-+{
-+	if (!cpu_is_omap34xx())
-+		return 0;
-+
-+	return prm_register(&omap3xxx_prm_ll_data);
-+}
-+
-+static int __init omap3xxx_prm_late_init(void)
- {
- 	int ret;
- 
- 	if (!cpu_is_omap34xx())
- 		return 0;
- 
--	ret = prm_register(&omap3xxx_prm_ll_data);
--	if (ret)
--		return ret;
--
- 	omap3xxx_prm_enable_io_wakeup();
- 	ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
- 	if (!ret)
- 		irq_set_status_flags(omap_prcm_event_to_irq("io"),
- 				     IRQ_NOAUTOEN);
- 
--
- 	return ret;
- }
--subsys_initcall(omap3xxx_prm_init);
-+subsys_initcall(omap3xxx_prm_late_init);
- 
- static void __exit omap3xxx_prm_exit(void)
- {
-diff --git a/arch/arm/mach-omap2/prm3xxx.h b/arch/arm/mach-omap2/prm3xxx.h
-index 10cd41a..277f717 100644
---- a/arch/arm/mach-omap2/prm3xxx.h
-+++ b/arch/arm/mach-omap2/prm3xxx.h
-@@ -154,6 +154,7 @@ extern void omap3xxx_prm_restore_irqen(u32 *saved_mask);
- 
- extern void omap3xxx_prm_dpll3_reset(void);
- 
-+extern int __init omap3xxx_prm_init(void);
- extern u32 omap3xxx_prm_get_reset_sources(void);
- 
- #endif /* __ASSEMBLER */
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 6d3467a..9db1bd2 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -615,22 +615,24 @@ static struct prm_ll_data omap44xx_prm_ll_data = {
- 	.read_reset_sources = &omap44xx_prm_read_reset_sources,
- };
- 
--static int __init omap44xx_prm_init(void)
-+int __init omap44xx_prm_init(void)
- {
--	int ret;
--
- 	if (!cpu_is_omap44xx())
- 		return 0;
- 
--	ret = prm_register(&omap44xx_prm_ll_data);
--	if (ret)
--		return ret;
-+	return prm_register(&omap44xx_prm_ll_data);
-+}
-+
-+static int __init omap44xx_prm_late_init(void)
-+{
-+	if (!cpu_is_omap44xx())
-+		return 0;
- 
- 	omap44xx_prm_enable_io_wakeup();
- 
- 	return omap_prcm_register_chain_handler(&omap4_prcm_irq_setup);
- }
--subsys_initcall(omap44xx_prm_init);
-+subsys_initcall(omap44xx_prm_late_init);
- 
- static void __exit omap44xx_prm_exit(void)
- {
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index c8e1acc..22b0979 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -771,6 +771,7 @@ extern void omap44xx_prm_ocp_barrier(void);
- extern void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask);
- extern void omap44xx_prm_restore_irqen(u32 *saved_mask);
- 
-+extern int __init omap44xx_prm_init(void);
- extern u32 omap44xx_prm_get_reset_sources(void);
- 
- # endif
--- 
-1.7.10.4
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-a-for-3.8
+
+for you to fetch changes up to c567b0584c352e7f97ced003be46bed8581ddd5b:
+
+  ARM: OMAP2+: omap_device: Correct resource handling for DT boot (2012-11-21 16:15:18 -0700)
+
+- ----------------------------------------------------------------
+Some miscellaneous OMAP hwmod changes for 3.8, along with a PRM
+change needed for one of the hwmod patches to function.
+
+Basic test logs for this branch on top of Tony's
+omap-for-v3.8/clock branch at commit
+558a0780b0a04862a678f7823215424b4e5501f9 are here:
+
+http://www.pwsan.com/omap/testlogs/hwmod_devel_a_3.8/20121121161522/
+
+However, omap-for-v3.8/clock at 558a0780 does not include some fixes
+that are needed for a successful test.  With several reverts,
+fixes, and workarounds applied, the following test logs were
+obtained:
+
+http://www.pwsan.com/omap/testlogs/TEST_hwmod_devel_a_3.8/20121121162719/
+
+which indicate that the series tests cleanly.
+
+- ----------------------------------------------------------------
+
+vmlinux object size
+(delta in bytes from TEST_ccf_558a0780_v3.7-rc
+ (558a0780b0a04862a678f7823215424b4e5501f9)):
+   text     data      bss    total  kernel
+   +512     +256      +64     +832  am33xx_only
+   +392     +248        0     +640  n800_multi_omap2xxx
+   +392     +192        0     +584  n800_only_a
+      0        0        0        0  omap1_defconfig
+      0        0        0        0  omap1_defconfig_1510innovator_only
+      0        0        0        0  omap1_defconfig_5912osk_only
+   +756    +1256      +64    +2076  omap2plus_defconfig
+   +480     +192      +32     +704  omap2plus_defconfig_2430sdp_only
+   +756    +1288        0    +2044  omap2plus_defconfig_cpupm
+   +756    +1296        0    +2052  omap2plus_defconfig_no_pm
+   +728     +680      +64    +1472  omap2plus_defconfig_omap2_4_only
+   +756     +752        0    +1508  omap2plus_defconfig_omap3_4_only
+  +1128    +1212     -360    +1980  rmk_omap3430_ldp_allnoconfig
+   +452     +568        0    +1020  rmk_omap3430_ldp_oldconfig
+  +1128    +1212     -360    +1980  rmk_omap4430_sdp_allnoconfig
+   +648     +632        0    +1280  rmk_omap4430_sdp_oldconfig
+
+Boot-time memory difference
+(delta in bytes from TEST_ccf_558a0780_v3.7-rc (558a0780b0a04862a678f7823215424b4e5501f9))
+  avail  rsrvd   high  freed  board          kconfig
+    -8k     8k      .      .  2420n800       omap2plus_defconfig
+
+
+Paul Walmsley (1):
+      ARM: OMAP2+: PRM: initialize some PRM functions early
+
+Peter Ujfalusi (2):
+      ARM: OMAP2+: hwmod: Add possibility to count hwmod resources based on type
+      ARM: OMAP2+: omap_device: Correct resource handling for DT boot
+
+Rajendra Nayak (1):
+      ARM: OMAP2+: hwmod: Add support for per hwmod/module context lost count
+
+ arch/arm/mach-omap2/io.c          |    8 ++++
+ arch/arm/mach-omap2/omap_device.c |   87 +++++++++++++++++++++++--------------
+ arch/arm/mach-omap2/omap_hwmod.c  |   82 +++++++++++++++++++++++++++-------
+ arch/arm/mach-omap2/omap_hwmod.h  |   12 +++--
+ arch/arm/mach-omap2/prm.h         |   11 ++++-
+ arch/arm/mach-omap2/prm2xxx.c     |    3 +-
+ arch/arm/mach-omap2/prm2xxx.h     |    3 +-
+ arch/arm/mach-omap2/prm3xxx.c     |   17 +++++---
+ arch/arm/mach-omap2/prm3xxx.h     |    1 +
+ arch/arm/mach-omap2/prm44xx.c     |   49 ++++++++++++++++++---
+ arch/arm/mach-omap2/prm44xx.h     |    1 +
+ arch/arm/mach-omap2/prm_common.c  |   45 +++++++++++++++++++
+ 12 files changed, 249 insertions(+), 70 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQrW7FAAoJEMePsQ0LvSpLA5MP/jQd3a19hhtFbUJZcTcpjDyS
+56NfrigTTGKg4dvLugP9UZdL3mt6ePFLTQR+BZex5uXnRsmDyRQ5A2lqNPeqFlfY
+kUWptsDAm2/sLdNEgbXutv1OFNnhWchTCvkkQsO4DIN8G15j0vQt2OcG8TnuUMLt
++hLkqstZU5QqAafMFUh0mHPHdanCoHFxFD1ugx54c9Nw2uTFagZgEFe06c0qSmJp
+MIZuu1D1VTbhoY7GKIqC7WfJob9wremFI7i/D+WpGhkQ5KA9WLzzz/LW3mlZOg64
+MMKABnRSP0UHDdAWqmXykqXjdG0d9JR+Dnv78y0m2NskM+6nRePoC34YTMO1i2cF
+d18IeAv26ZnvncwSFNrvBGBkqx6IYtvFm9BwK47n8SuUuQJQWTtkrA6spcIbuWZ4
+TS/U88gF3etgp7SrzyTRLjR1wlN3HfMZ7+ksBGbY0R86oBy16dkVRZsaFvSBZ8pV
+pPK152FGTrjvrUlDktBiNZo9G860vS4Ma/uP7HAgnfd0ovTVNikneNouxa42OPed
+WBaRUxTkniqeGtB2uzbfRHMud9BTw8OeCVUKTAOjkwINO+rFwC/P7Jey7csdraZ3
+OeD8wBKmxRXaWRT5k68e8GA50fjTmhGk4iVqGAyNSJ/PLLQl8iCERp+PV2mbNcg2
+1u+JRzyxSyqDEWIKrdMW
+=gLWA
+-----END PGP SIGNATURE-----
