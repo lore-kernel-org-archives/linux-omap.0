@@ -1,61 +1,101 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v3 3/5] ARM: dts: AM33XX: Set pmic-shutdown-controller
- for BeagleBone
-Date: Thu, 22 Nov 2012 05:47:11 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA78AAC@DBDE01.ent.ti.com>
-References: <1353404927-14412-1-git-send-email-anilkumar@ti.com>
- <1353404927-14412-4-git-send-email-anilkumar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: tfp410 and i2c_bus_num
+Date: Thu, 22 Nov 2012 10:28:59 +0200
+Message-ID: <50ADE24B.7070006@ti.com>
+References: <50A64D35.9050109@ti.com> <20121116151959.GA19411@arwen.pp.htv.fi>
+ <50A65E40.9040208@ti.com> <20121116182146.GC20496@arwen.pp.htv.fi>
+ <50A72390.3050509@ti.com> <20121118113437.GB30462@arwen.pp.htv.fi>
+ <50A9D3DD.6040807@ti.com> <20121119092744.GB4211@arwen.pp.htv.fi>
+ <50AA1376.6060801@ti.com> <20121119121630.GC15540@arwen.pp.htv.fi>
+ <20121121175747.GV18567@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1353404927-14412-4-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>, "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org" <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============7891080559491515009=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20121121175747.GV18567@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 20, 2012 at 15:18:45, AnilKumar, Chimata wrote:
-> Set ti,pmic-shutdown-controller for BeagleBone in am335x-bone.dts
-> file, this flag is used by the driver to set tps65217 PMIC status
-> to OFF when PWR_EN toggle.
+--===============7891080559491515009==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig6947E0F39E1B136F74B3014B"
 
-Hi Tony,
+--------------enig6947E0F39E1B136F74B3014B
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Could you please pull these 3 patches? (3/5, 4/5 and 5/5)
+On 2012-11-21 19:57, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [121119 04:25]:
+>> On Mon, Nov 19, 2012 at 01:09:42PM +0200, Tomi Valkeinen wrote:
+>>> On 2012-11-19 11:27, Felipe Balbi wrote:
+>>>>
+>>>> fair enough... it looks like this is going nowhere, so best we come =
+back
+>>>> to this later. No reason to block your patch.
+>>>
+>>> Well, the patch is a fix for stable kernels, so even if we had a grea=
+t
+>>> idea how to rewrite the dss device handling, it wouldn't affect this
+>>> patch =3D).
+>>
+>> ok good ;-)
+>=20
+> FYI I'm assuming Tomi will resend the patch as there were some
+> changes requested early on in the thread.
 
-Thanks
-AnilKumar
+Yes, I'll resend.
 
-> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/boot/dts/am335x-bone.dts |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index 2c33888..1d55190 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -88,6 +88,8 @@
->  /include/ "tps65217.dtsi"
->  
->  &tps {
-> +	ti,pmic-shutdown-controller;
-> +
->  	regulators {
->  		dcdc1_reg: regulator@0 {
->  			regulator-always-on;
-> -- 
-> 1.7.9.5
-> 
-> 
+ Tomi
+
+
+
+
+--------------enig6947E0F39E1B136F74B3014B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQreJLAAoJEPo9qoy8lh71jd4P/jSaHrZpjgIh4elE9QO9jQoe
+edhhHOsBH6rGu9wLhvmeZ3rQ7/aoUisIOYdPbxLjp1W6DcxgLqOO6/l0oc6/DDRz
+qT/8pHZmT+A/t0M0E811CYv9J2FvqAa90OthJVY5ZUBt+NjrAboTol6+Qz7B3QWh
+Fjabv4ESHrus+WlhYNT9fJAhq79UW2XVS3iqKUeDqhd8IHRJECyOADX63ADj3KI5
+c3ljNKNVyQ7SPi00fcXx+6GasB4P9R/vCuWJujZaHKg7cOAzkjo5FuQQE+oqInXM
+fZgOxZYQJQzVynYionvq+/0VPQH1Pke63lUo9S0DBFmKvwncSGgQu0q8/E6U+MzG
+ulY0Die7Xo1ERmXR+DRrlW3ImRjEN2Tnb0d/AoaKFjEwkeEFjCbx/oU5rOJ7Cf8h
+Ui66tGadfY7PnPrxNSEOqwc+mbiNT3lJ+yoZLVbECgjzEcKR5crslmNY3BgFKd3z
+GvPbDsOhauiRIozmD2jQ0TzR8ipduw3i8QC4y+ek3rV/JYArTXhKRxO9fL0ZPZOT
+TzLfJQFKMluDnIC1VObqE2jmnPM16FazPh43mKbMNp+bE39bks8UlYJ8VMF+gf5/
+iKgv21oLx9QOYbjM6QWYN/ezAh5CTv7js6MZWEGX291FItfR0S5oZYZEO8kU4yfS
+Mjm+omSdGSGWFDxQ+eHc
+=qZc2
+-----END PGP SIGNATURE-----
+
+--------------enig6947E0F39E1B136F74B3014B--
+
+
+--===============7891080559491515009==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============7891080559491515009==--
