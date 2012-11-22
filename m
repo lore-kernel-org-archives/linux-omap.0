@@ -1,127 +1,140 @@
-From: Igor Mazanov <i.mazanov@gmail.com>
-Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
-Date: Thu, 22 Nov 2012 15:16:50 +0300
-Message-ID: <CAK0ocyCe3oJ8ynpNWpzcCFHtG3J4u7NBeNPTJK0GikFHaPAXOA@mail.gmail.com>
-References: <k80da6$61d$1@ger.gmane.org>
-	<CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
-	<20121121183809.GZ18567@atomide.com>
-	<CAK0ocyD25pRcQthN90inWy-95Yaa-B94rw724_uS5Y7FRA4qjQ@mail.gmail.com>
-	<50ADBB5B.7090401@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2] OMAP: board-files: fix i2c_bus for tfp410
+Date: Thu, 22 Nov 2012 10:39:56 +0200
+Message-ID: <1353573596-5550-1-git-send-email-tomi.valkeinen@ti.com>
+References: <1353068553-26897-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:63395 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754086Ab2KVTGc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Nov 2012 14:06:32 -0500
-Received: by mail-da0-f46.google.com with SMTP id p5so2307599dak.19
-        for <linux-omap@vger.kernel.org>; Thu, 22 Nov 2012 11:06:32 -0800 (PST)
-In-Reply-To: <50ADBB5B.7090401@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56334 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753236Ab2KVTMJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Nov 2012 14:12:09 -0500
+In-Reply-To: <1353068553-26897-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Jean Pihet <jean.pihet@newoldbits.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Thomas Weber <thomas@tomweber.eu>, stable@vger.kernel.org
 
-On Thu, Nov 22, 2012 at 9:42 AM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
->
->
-> On 11/22/2012 1:30 AM, Igor Mazanov wrote:
->> On Wed, Nov 21, 2012 at 9:38 PM, Tony Lindgren <tony@atomide.com> wrote:
->>> * Jean Pihet <jean.pihet@newoldbits.com> [121114 08:43]:
->>>> On Wed, Nov 14, 2012 at 4:28 PM, Igor Mazanov <i.mazanov@gmail.com> wrote:
->>>>>
->>>>> Beaglebone boot process is broken with the current git kernel. I use
->>>>> omap2plus_defconfig for tests.
->>>>>
->>>>> It looks like the boot process stops due to the last changes in the AM33xx
->>>>> clock sysbsystem. A following patch resolves this issue:
->>> ...
->>>
->>>> The patch should change the name of the hwmod entry as well, can you
->>>> fold this change in the current patch?
->>>
->>> Any news on updating this?
->>
->> The current kernel boots, but after a switching to CCF doesn't work
->> the debugss - it's just disabled in the current hwmod code. So, it
->> looks like we can't  use JTAG to connect to the running kernel.
->>
->
-> just resumed from vacation...
->
-> JTAG clock will get disabled because, CONFIG_OMAP_RESET_CLOCKS will
-> disable unused clocks, so as debugss clock.
->
-> There is another thread started by Joel on the similar issue,
->
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg80863.html
->
-> Something below should be done for debugss on AM33xx,
->
-> diff --git a/arch/arm/mach-omap2/clock33xx_data.c
-> b/arch/arm/mach-omap2/clock33xx_data.c
-> index 17e3de5..60e0b53 100644
-> --- a/arch/arm/mach-omap2/clock33xx_data.c
-> +++ b/arch/arm/mach-omap2/clock33xx_data.c
-> @@ -584,6 +584,9 @@ static struct clk debugss_ick = {
->         .clkdm_name     = "l3_aon_clkdm",
->         .parent         = &dpll_core_m4_ck,
->         .ops            = &clkops_omap2_dflt,
-> +#ifdef CONFIG_DEBUG_KERNEL
-> +       .flags          = ENABLE_ON_INIT,
-> +#endif
->         .enable_reg     = AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
->         .enable_bit     = AM33XX_MODULEMODE_SWCTRL,
->         .recalc         = &followparent_recalc,
+The i2c handling in tfp410 driver, which handles converting parallel RGB
+to DVI, was changed in 958f2717b84e88bf833d996997fda8f73276f2af
+(OMAPDSS: TFP410: pdata rewrite). The patch changed what value the
+driver considers as invalid/undefined.  Before the patch, 0 was the
+invalid value, but as 0 is a valid bus number, the patch changed this to
+-1.
 
-Yes, I noticed this thread. But now a clock subsystem in the current
-kernel is switched to Common Clock Framework and debugss (and several
-another modules) is disabled (#if 0 .... #endif) in
-omap_hwmod_33xx_data.c.
+However, the fact was missed that many board files do not define the bus
+number at all, thus it's left to 0. This causes the driver to fail to
+get the i2c bus, exiting from the driver's probe with an error, meaning
+that the DVI output does not work for those boards.
 
->From omap_hwmod_33xx_data.c:
+This patch fixes the issue by changing the i2c_bus number field in the
+driver's platform data from u16 to int, and setting the bus number to -1
+in the board files for the boards that did not define the bus. The
+exception is devkit8000, for which the bus is set to 1, which is the
+correct bus for that board.
 
-/*
- * Modules omap_hwmod structures
- *
- * The following IPs are excluded for the moment because:
- * - They do not need an explicit SW control using omap_hwmod API.
- * - They still need to be validated with the driver
- *   properly adapted to omap_hwmod / omap_device
- *
- *    - cEFUSE (doesn't fall under any ocp_if)
- *    - clkdiv32k
- *    - debugss
- *    - ocmc ram
- *    - ocp watch point
- *    - aes0
- *    - sha0
- */
+The bug exists in v3.5+ kernels.
 
-I uncommented the debugss entry in the omap_hwmod settings, but only
-got a warning like:
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Reported-by: Thomas Weber <thomas@tomweber.eu>
+Cc: Thomas Weber <thomas@tomweber.eu>
+Cc: <stable@vger.kernel.org> # v3.5+
+---
+ arch/arm/mach-omap2/board-3430sdp.c      |    1 +
+ arch/arm/mach-omap2/board-am3517evm.c    |    1 +
+ arch/arm/mach-omap2/board-cm-t35.c       |    1 +
+ arch/arm/mach-omap2/board-devkit8000.c   |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c     |    1 +
+ arch/arm/mach-omap2/board-omap3stalker.c |    1 +
+ include/video/omap-panel-tfp410.h        |    2 +-
+ 7 files changed, 7 insertions(+), 1 deletion(-)
 
- CC      arch/arm/mach-omap2/omap_hwmod_33xx_data.o
-arch/arm/mach-omap2/omap_hwmod_33xx_data.c:472:26: warning:
-'am33xx_debugss_hwmod' defined but not used [-Wunused-variable]
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 96cd369..09e1790 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -157,6 +157,7 @@ static struct omap_dss_device sdp3430_lcd_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= -1,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device sdp3430_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index e162897..f2a920a 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -208,6 +208,7 @@ static struct omap_dss_device am3517_evm_tv_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= -1,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device am3517_evm_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 376d26e..7ed0270 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -243,6 +243,7 @@ static struct omap_dss_device cm_t35_lcd_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= CM_T35_DVI_EN_GPIO,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device cm_t35_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 1fd161e..6f04f0f 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -139,6 +139,7 @@ static struct omap_dss_device devkit8000_lcd_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= -1,
++	.i2c_bus_num		= 1,
+ };
+ 
+ static struct omap_dss_device devkit8000_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index b9b776b..5631eb9 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -236,6 +236,7 @@ static struct omap_dss_device omap3_evm_tv_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= OMAP3EVM_DVI_PANEL_EN_GPIO,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device omap3_evm_dvi_device = {
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 731235e..797be22 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -119,6 +119,7 @@ static struct omap_dss_device omap3_stalker_tv_device = {
+ 
+ static struct tfp410_platform_data dvi_panel = {
+ 	.power_down_gpio	= DSS_ENABLE_GPIO,
++	.i2c_bus_num		= -1,
+ };
+ 
+ static struct omap_dss_device omap3_stalker_dvi_device = {
+diff --git a/include/video/omap-panel-tfp410.h b/include/video/omap-panel-tfp410.h
+index 68c31d7..aef35e4 100644
+--- a/include/video/omap-panel-tfp410.h
++++ b/include/video/omap-panel-tfp410.h
+@@ -28,7 +28,7 @@ struct omap_dss_device;
+  * @power_down_gpio: gpio number for PD pin (or -1 if not available)
+  */
+ struct tfp410_platform_data {
+-	u16 i2c_bus_num;
++	int i2c_bus_num;
+ 	int power_down_gpio;
+ };
+ 
+-- 
+1.7.10.4
 
-By the way, I need to use JTAG to trace a problem described in this thread:
-
-http://marc.info/?l=linux-omap&m=135307646415429&w=2
-
-May be, it's the clocks related issue too...
-
-> Thanks,
-> Vaibhav
->
->> Regards,
->> Igor.
->>
->>> Regards,
->>>
->>> Tony
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
