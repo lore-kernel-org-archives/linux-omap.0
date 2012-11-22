@@ -1,66 +1,86 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 02/16] mfd: omap-usb-tll: Clean up clock handling
-Date: Thu, 22 Nov 2012 10:19:17 +0200
-Message-ID: <50ADE005.5020300@ti.com>
-References: <1352990054-14680-1-git-send-email-rogerq@ti.com> <1352990054-14680-3-git-send-email-rogerq@ti.com> <20121121115556.GD10216@arwen.pp.htv.fi> <50ACCAE0.3030907@ti.com> <20121121140354.GR10216@arwen.pp.htv.fi> <50ACF5CD.9010209@ti.com> <20121121193952.GA14290@arwen.pp.htv.fi>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
+Date: Thu, 22 Nov 2012 11:12:51 +0530
+Message-ID: <50ADBB5B.7090401@ti.com>
+References: <k80da6$61d$1@ger.gmane.org> <CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com> <20121121183809.GZ18567@atomide.com> <CAK0ocyD25pRcQthN90inWy-95Yaa-B94rw724_uS5Y7FRA4qjQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43791 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754222Ab2KVTAI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Nov 2012 14:00:08 -0500
-In-Reply-To: <20121121193952.GA14290@arwen.pp.htv.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:50610 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349Ab2KVTEK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Nov 2012 14:04:10 -0500
+In-Reply-To: <CAK0ocyD25pRcQthN90inWy-95Yaa-B94rw724_uS5Y7FRA4qjQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Igor Mazanov <i.mazanov@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Jean Pihet <jean.pihet@newoldbits.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
 
-On 11/21/2012 09:39 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Nov 21, 2012 at 05:39:57PM +0200, Roger Quadros wrote:
->> On 11/21/2012 04:03 PM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Wed, Nov 21, 2012 at 02:36:48PM +0200, Roger Quadros wrote:
->>>>>>  		break;
->>>>>>  	default:
->>>>>> -		dev_err(dev, "TLL version failed\n");
->>>>>> -		ret = -ENODEV;
->>>>>> -		goto err_ioremap;
->>>>>> +		tll->nch = DEFAULT_TLL_CHANNEL_COUNT;
->>>>>> +		dev_info(dev,
->>>>>> +		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
->>>>>> +			ver, tll->nch);
->>>>>
->>>>> this hsould be dev_dbg().
->>>>>
+
+
+On 11/22/2012 1:30 AM, Igor Mazanov wrote:
+> On Wed, Nov 21, 2012 at 9:38 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Jean Pihet <jean.pihet@newoldbits.com> [121114 08:43]:
+>>> On Wed, Nov 14, 2012 at 4:28 PM, Igor Mazanov <i.mazanov@gmail.com> wrote:
 >>>>
->>>> I think it should be more of a warning because it signals a problem.
->>>> There is another pr_info in the success path which could probably be a
->>>> dev_dbg.
->>>
->>> it's not a problem at all. It just means that a newer OMAP has come to
->>> market and perhaps we don't need extra code to support it. A revision
->>> detection should *never* be grounds to failure. When we can't understand
->>> the revision, we default to the highest possible value we know.
->>>
->>> that's not an error.
+>>>> Beaglebone boot process is broken with the current git kernel. I use
+>>>> omap2plus_defconfig for tests.
+>>>>
+>>>> It looks like the boot process stops due to the last changes in the AM33xx
+>>>> clock sysbsystem. A following patch resolves this issue:
+>> ...
 >>
->> Agreed. I'm not treating it as an error. We still continue probe and the
->> driver should work for newer revisions. Just prints a line on the
->> console about the new revision. Thought it would be useful to us, but if
->> you think it is a problem I don't mind removing it :).
+>>> The patch should change the name of the hwmod entry as well, can you
+>>> fold this change in the current patch?
+>>
+>> Any news on updating this?
 > 
-> that's the thing. It _is_ useful to *us*, kernel/device-driver
-> engineers. But for the end user it just ends up as yet another
-> meaningless print in dmesg ;-)
+> The current kernel boots, but after a switching to CCF doesn't work
+> the debugss - it's just disabled in the current hwmod code. So, it
+> looks like we can't  use JTAG to connect to the running kernel.
 > 
 
-Okay, makes sense. I'll convert it to dev_dbg().
+just resumed from vacation...
 
---
-cheers,
--roger
+JTAG clock will get disabled because, CONFIG_OMAP_RESET_CLOCKS will
+disable unused clocks, so as debugss clock.
+
+There is another thread started by Joel on the similar issue,
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg80863.html
+
+Something below should be done for debugss on AM33xx,
+
+diff --git a/arch/arm/mach-omap2/clock33xx_data.c
+b/arch/arm/mach-omap2/clock33xx_data.c
+index 17e3de5..60e0b53 100644
+--- a/arch/arm/mach-omap2/clock33xx_data.c
++++ b/arch/arm/mach-omap2/clock33xx_data.c
+@@ -584,6 +584,9 @@ static struct clk debugss_ick = {
+        .clkdm_name     = "l3_aon_clkdm",
+        .parent         = &dpll_core_m4_ck,
+        .ops            = &clkops_omap2_dflt,
++#ifdef CONFIG_DEBUG_KERNEL
++       .flags          = ENABLE_ON_INIT,
++#endif
+        .enable_reg     = AM33XX_CM_WKUP_DEBUGSS_CLKCTRL,
+        .enable_bit     = AM33XX_MODULEMODE_SWCTRL,
+        .recalc         = &followparent_recalc,
+
+
+
+Thanks,
+Vaibhav
+
+> Regards,
+> Igor.
+> 
+>> Regards,
+>>
+>> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
