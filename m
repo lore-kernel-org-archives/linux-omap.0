@@ -1,103 +1,45 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: HDMI: Rearrange
- platform devices for ASoC drivers
-Date: Thu, 22 Nov 2012 10:03:59 +0900
-Message-ID: <20121122010358.GB4371@opensource.wolfsonmicro.com>
-References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com>
- <1353029819-21809-3-git-send-email-ricardo.neri@ti.com>
- <50A5F0A5.2010105@ti.com> <50A6805C.3050004@ti.com>
- <50AA2D01.5020302@ti.com>
- <20121120011526.GF4483@opensource.wolfsonmicro.com>
- <50AD6FB0.3050808@ti.com>
+From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v5 4/5] iommu/omap: adapt to runtime pm
+Date: Thu, 22 Nov 2012 03:47:31 +0100
+Message-ID: <CAMP44s0h+6XTaJv8q-MJe4vmDiBzNG2cjTugSn7nFyAsZPk+Ag@mail.gmail.com>
+References: <1353373552-16039-1-git-send-email-omar.luna@linaro.org>
+	<1353373552-16039-5-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2577513332348212933=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <50AD6FB0.3050808@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: alsa-devel@alsa-project.org, tony@atomide.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, s-guiriec@ti.com, linux-omap@vger.kernel.org, lrg@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1353373552-16039-5-git-send-email-omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Mauro Carvalho Chehab <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Nov 20, 2012 at 2:05 AM, Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
 
---===============2577513332348212933==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
-Content-Disposition: inline
+> @@ -1022,7 +1019,8 @@ static int __devexit omap_iommu_remove(struct platform_device *pdev)
+>         release_mem_region(res->start, resource_size(res));
+>         iounmap(obj->regbase);
+>
+> -       clk_put(obj->clk);
+> +       pm_runtime_disable(obj->dev);
+> +
+>         dev_info(&pdev->dev, "%s removed\n", obj->name);
+>         kfree(obj);
+>         return 0;
 
+I still believe this is not needed. The device framework does that
+when removing the device, and does it more properly, with
+__pm_runtime_disable(dev, false).
 
---jho1yZJdad60DJr+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cheers.
 
-On Wed, Nov 21, 2012 at 06:20:00PM -0600, Ricardo Neri wrote:
-> On 11/19/2012 07:15 PM, Mark Brown wrote:
-
-> >Yes, this would be more sensible if there's no board specifics involved.
-
-> I think they are truly board-specific. For instance, there could be
-> some board that does not have the OMAP HDMI IP wired to an external
-> connector. We don't want the drivers to be probed in that case. If
-> they are in common code, the devices will be created even if a board
-> does not have HDMI output.
-
-That's just a case of having a flag in the platform data for the device
-saying "don't use this port" as opposed to having the entire ASoC device
-instantiation infrastructure in there which is rather Linux specific.
-
-> Something like this:
-
-> 	sound_hdmi {
-> 		compatible = "ti,omap-hdmi-card-audio";
-> 		ti,model = "OMAP4HDMI";
-
-> 		ti,hdmi_audio = <&hdmi>;
-> 		ti,level_shifter = <&tpd12s015>;
-> 	};
-
-> The ASoC machine driver would create the platform device for the
-> HDMI codec if the DT has the required nodes.
-
-Why not just make this a property of the main HDMI controller - the
-compatible property here looks like it's describing the Linux specifics
-not the hardware?
-
---jho1yZJdad60DJr+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQrXnZAAoJELSic+t+oim9qnUP/2Ggni5pspU3gjhVDz+9FLoX
-3iaLbSfqey9T/0vmswksfqkYZCvmtQP6hmTzg8Uy6EWXTLVHS89zfyanhNJEmrLH
-nZZLPhsVu+zXN2l6iRtMS5Q7AbYoNCFYE5PK5UKmOVDzmMsRtC7UUYnAH8EIj5SF
-73+x4bTA5yVlYhq8eFz9YINSoZjYi/iO3vywNbj7KQYnqVlIj/MgjxafJFY5XqMB
-qXgRgNbc7xw1/D8UNlxIhWUYRLvbgpFq8ywEog3BYPqaIq98qIR8n/XRxBCJIKt8
-m/rhfj8X3U00WbZldZ0QQtD5wwKwdavSWuF5nQcKrCrCzsecwYoMsHYG8b2TkXed
-cHmjiedHc+AUd7vDCEDQ8n78UFt2FQDyjPf51Zykcljcco1C/+M/e1lwO1YS1CPX
-2ODTbHwlY4Ggb+4BPPFS9ZjZPw39yozl2UyNFchQ1yPyVfIih1JbN7LO6p9GxLse
-0VV6IaCorf9HLLUOADY8MqWf+JHVBT4VAbpc1nXU10tke6tFWR5xrwZPbOHTm6fh
-h2Zwn2aZFbUqI3HMG/yvquMRjc74QgPCyXbiiJe+Uzhijs55f1B2gnoT2+dkoB7/
-GmKS6fRJ3gijTDnVvrXveJVifZ6pOofUy3R+R1qRjMWfTt0+Zmk+jc1iTRKvtEGt
-lonz3fL7A9OU8FipTZmA
-=nzaP
------END PGP SIGNATURE-----
-
---jho1yZJdad60DJr+--
-
---===============2577513332348212933==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============2577513332348212933==--
+-- 
+Felipe Contreras
