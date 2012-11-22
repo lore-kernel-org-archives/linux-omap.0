@@ -1,13 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP4430 produces boot warnings
-Date: Thu, 22 Nov 2012 15:42:14 +0200
-Message-ID: <50AE2BB6.8080406@ti.com>
-References: <20121121230337.GR3332@n2100.arm.linux.org.uk>
- <50AE1DC0.3030002@ti.com>
+Subject: Re: [PATCH 0/5] OMAPFB: use dma_alloc instead of omap's vram
+Date: Thu, 22 Nov 2012 15:52:21 +0200
+Message-ID: <50AE2E15.2070501@ti.com>
+References: <1352715906-16946-1-git-send-email-tomi.valkeinen@ti.com>
+ <20121112225037.GU6801@atomide.com> <50A5E801.3000100@ti.com>
+ <20121120221456.GO18567@atomide.com>
+ <CAPFyZi52e+BPLFQoSn_scdru=MP2NeBUNUkHnym8W3t90JW2jA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2848856818512311166=="
+Content-Type: multipart/mixed; boundary="===============1717411510321147437=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <50AE1DC0.3030002@ti.com>
+In-Reply-To: <CAPFyZi52e+BPLFQoSn_scdru=MP2NeBUNUkHnym8W3t90JW2jA@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -17,77 +19,40 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Archit Taneja <archit@ti.com>, Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Shilimkar,
- Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+To: Jello huang <ruifeihuang@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---===============2848856818512311166==
+--===============1717411510321147437==
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enigEE43AFD3C6C999B3119087FA"
+	boundary="------------enig015F3325D81508E7A0630502"
 
---------------enigEE43AFD3C6C999B3119087FA
+--------------enig015F3325D81508E7A0630502
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-11-22 14:42, Archit Taneja wrote:
-> Hi,
->=20
-> On Thursday 22 November 2012 04:33 AM, Russell King - ARM Linux wrote:
->> This one is nice and long, from last nights boot test.  Looks like it =
-was
->> introduced sometime in the last couple of weeks.  Full log at:
->>
->> http://www.arm.linux.org.uk/developer/build/result.php?type=3Dboot&idx=
-=3D518
->>
->> and config:
->> http://www.arm.linux.org.uk/developer/build/file.php?type=3Dconfig&idx=
-=3D2786
->=20
-> Doing a bisect results in this commit:
->=20
-> commit 0c7018e232c5526869250e57da8043a86a45b5de
-> Author: Rajendra Nayak <rnayak@ti.com>
-> Date:   Thu Oct 18 12:20:06 2012 +0300
->=20
->     ARM: OMAP4: suspend: Program all domains to retention
->=20
->     Remove the FIXME's in the suspend sequence since
->     we now intend to support system level RET support.
->=20
->     Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->     Signed-off-by: Tero Kristo <t-kristo@ti.com>
->     Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->=20
-> I guess this commit will allow DSS to go to a lower power state. So wha=
-t
-> might be happening is:
->=20
-> - After returning back from the lower power state, the DISPC base
-> address register hasn't been restored. Leading to a fetch from a bad
-> address. Resulting in an OCP error.
->=20
-> or
->=20
-> -  DSS never came back to ON state, and it's not able to access
-> registers. I doubt this possibility because we got an OCP error
-> interrupt from DISPC.
+Hi,
 
-It seems that the problem is that dispc never restores the context,
-because get_ctx_loss_count always returns 1. I enabled pwrdm debug
-prints, and pwrdm_get_context_loss_count() always returns 1 for dss,
-even if the register contents have obviously been lost.
+On 2012-11-21 16:22, Jello huang wrote:
+> HI Tomi,
+> we need  one rank of cma to allocate the memory for driver in kernel
+> space .And the default CMA is for allocating memory frome usespace.So
+> if we allocate the memory from the
+> default CMA zone ,there maybe introduce fragmention to the default CMA
+> zone.The kernel space memory donot touch the memory from userspace
 
-Does the pwrdm mistakenly think that in RET state the DSS still keeps
-the register contents?
+Can you elaborate a bit? I didn't understand your point. Are you saying
+each kernel driver that uses dma_alloc should have their own CMA zone?
+That doesn't make sense...
+
+How do you allocate CMA memory from userspace?
 
  Tomi
 
 
 
---------------enigEE43AFD3C6C999B3119087FA
+--------------enig015F3325D81508E7A0630502
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -96,25 +61,25 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQriu2AAoJEPo9qoy8lh71JpMP/2e5DPimZdrAZNfIcKyb17HB
-b9e9Oc2c9Rn16Eyt2BeHtpRwhs8sGA4FMsLV4kVUULYInLV8231xAWqFw9KXwlWU
-OSg8yeopNDl11SpPB84E/HA06uYV+2vMFHmno/7lgX9ZLORv89INZVOhD0+jdqMO
-UawKWmGY9riUHAgZlRQ3vUnH3wwiVzUGrNOk+8ZpZ1tAN6SCPtvrlzKWVyBJy9XX
-9rQozpsCYIkh8Pt3tCw2/mO2+f77rLFU8qBTsIR+T/xs/JI+9N1ziPlZqfkoKhsv
-48PE5YzDCpR07nK5ar1EtIVL2pHJliRK0o0n4wDdkLX+m2vg1f/6Ejqmljm0EtfW
-adQXqZZirvKwGyPCbaK1deow2i5EOnbToVBpV0igfJmNifWmPe2t1NcPi5GNm+xP
-+7A/zjwInQUblZMm/oQjOhxym1uqD29dJ4wmPJJQMFZmpRjSIscvNHljb1iAqB38
-f1GZKFmyf9G58mcrV97PilaBPje8791CDDJJKVhdPVlh3yz8a6Rj3UhHfgIdnK8N
-M29pVppgyl7sDG7a/15K8qiydBrys2uH1C+O4svyx2qtB04HEYQJ7GSYt4IeUb78
-QBTrudQUCGIDgQdSnHgbBQQaq6JGogwCBgqvxMi2Eb/UYgFhsmw3KdeZGUyat1pa
-/q+PiwgEyEo4fdgakGSP
-=NOk/
+iQIcBAEBAgAGBQJQri4VAAoJEPo9qoy8lh71K2cQAKhHyJnxW5FFTEMSCCu1c0n0
+OHZ9N2A7bqrr6zHg+XUDak2Jlr8itacE5gKgPdp5P5dSF51Oc4mk+QccO4g5VAnC
+5VH/wJQwzwVyOGrFqCuboDh3mk8mqGr8jrw7+aGwr7OLHvngCpskEbRh7JOfXZqP
+7+G9ZBK7hwbijyK52Rn8xhdJjplAScPV2JcwglpmdbzYKtltjkT+YUmMc2Ygi9yq
+j0UcnI6pNW/1MAupHs48XlJodGMeRvhsbriQjwBgLFlxVXJL9JQ+Ee3rezokNmfe
+YkzOr+g3lkvhtDt4JOJ0WRZ/PCWBd1t4gQ3X8yAb9QIU4dPLE8/qbmFp6jNxi2sd
+i7KX74YcAJA6I9+4OCvVwyVWaAu4Xsf0QmMLKV0sa6MHEHfx493Etv0zzKejjJfq
+5dS2M2XjwmScmSW2g3sFiDmaRVhmYOjyohu89YtJO2FB0moeSv2pnlP/L8vKCYUo
+rlXgINkMtMz4uzNVGqAx2SUtI60wVws4g7LOvXKqH7Ts5bV+g/AXMsjrPfed7uy8
+tSmB+hVjeHq+1LWb94laKAd+SnIB8b6kV0Fj7be09S62MdMt1IASxJOkmvFnVgzK
+QvtJBIdzgEV8hSw7HTbfbQoVGhmiOO30z9VzwtXg/15JOQdvHnCQ0KVTDWjz9dFJ
+MuU+aZlNSaH/KsmxTRq2
+=hIWw
 -----END PGP SIGNATURE-----
 
---------------enigEE43AFD3C6C999B3119087FA--
+--------------enig015F3325D81508E7A0630502--
 
 
---===============2848856818512311166==
+--===============1717411510321147437==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -125,4 +90,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============2848856818512311166==--
+--===============1717411510321147437==--
