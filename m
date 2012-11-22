@@ -1,54 +1,40 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
- ETH when not in use
-Date: Thu, 22 Nov 2012 12:36:43 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1211221226360.2255-100000@netrider.rowland.org>
-References: <20121122135603.GA20066@arwen.pp.htv.fi>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH 2/2] OMAP: DSS: panel-n8x0: register the DSS driver after
+ SPI probe
+Date: Thu, 22 Nov 2012 17:17:28 +0200
+Message-ID: <20121122151728.GA13187@blackmetal.musicnaut.iki.fi>
+References: <1353527332-5216-1-git-send-email-aaro.koskinen@iki.fi>
+ <1353527332-5216-2-git-send-email-aaro.koskinen@iki.fi>
+ <50AE1831.90308@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:34638 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754182Ab2KVSgp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Nov 2012 13:36:45 -0500
-In-Reply-To: <20121122135603.GA20066@arwen.pp.htv.fi>
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:42217 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756208Ab2KVTBM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Nov 2012 14:01:12 -0500
+Content-Disposition: inline
+In-Reply-To: <50AE1831.90308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Andy Green <andy.green@linaro.org>, Roger Quadros <rogerq@ti.com>, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thu, 22 Nov 2012, Felipe Balbi wrote:
-
-> > If you mean change the regulator managing code from living in
-> > omap-hsusb to ehci-hcd, it sounds like a good idea.
+On Thu, Nov 22, 2012 at 02:18:57PM +0200, Tomi Valkeinen wrote:
+> Hi,
 > 
-> I mean that drivers/usb/core/hub.c should manage it, since that's what
-> actually manages the HUB entity.
+> On 2012-11-21 21:48, Aaro Koskinen wrote:
+> > Register the DSS driver after SPI probe. This simplifies the
+> > initialization. This is similar to what is being done e.g.
+> > in panel-acx565akm.
+> 
+> Is this a fix? The description sounds like it's just a cleanup.
 
-This is an interesting problem.  How should we handle devices which
-live on a discoverable bus but whose power is controlled by an
-undiscoverable platform-specific regulator?
+Yes, it's a cleanup. I should have sent it separately, sorry.
 
-Has this sort of thing come up in the past with other types of devices?
+> The first patch in the series needs to be sent for the next -rc, right?
 
-A big part of the problem is associating the hub, which is created
-dynamically by the USB core code, with the regulator, which is known
-from platform data at boot time.  The suggestion that the regulator
-should really be associated with a port on the hub's parent is
-reasonable at first glance.  But what if we don't know which port that
-is?
+Yes, it's fixing regression. There are OMAP2 boards with display
+configured (e.g. board-apollon) and those will see probe failing.
 
-Once we can solve this part of the problem, I think the rest of it will 
-fall into place.
-
-> as long as Alan is ok and it comes in the same series, I'd be really,
-> really glad to see such a patch and would happily review it.
-
-If we can figure out a good way to set up the necessary association, I
-won't mind adding the appropriate calls to the USB core.  But is the
-hub driver the right place?  What if a similar power arrangement is
-used for a different kind of USB-connected chip (for example, a webcam
-or a fingerprint reader)?
-
-Alan Stern
-
+A.
