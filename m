@@ -1,85 +1,66 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: omap DSS fails with tft410 driver panel?
-Date: Thu, 22 Nov 2012 10:47:33 +0200
-Message-ID: <50ADE6A5.3030001@ti.com>
-References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com> <CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH 02/16] mfd: omap-usb-tll: Clean up clock handling
+Date: Thu, 22 Nov 2012 10:19:17 +0200
+Message-ID: <50ADE005.5020300@ti.com>
+References: <1352990054-14680-1-git-send-email-rogerq@ti.com> <1352990054-14680-3-git-send-email-rogerq@ti.com> <20121121115556.GD10216@arwen.pp.htv.fi> <50ACCAE0.3030907@ti.com> <20121121140354.GR10216@arwen.pp.htv.fi> <50ACF5CD.9010209@ti.com> <20121121193952.GA14290@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigA85B669D7FCD7A99AB036A90"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56144 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43791 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753581Ab2KVTCH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Nov 2012 14:02:07 -0500
-In-Reply-To: <CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com>
+	id S1754222Ab2KVTAI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Nov 2012 14:00:08 -0500
+In-Reply-To: <20121121193952.GA14290@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
+To: balbi@ti.com
+Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
---------------enigA85B669D7FCD7A99AB036A90
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2012-11-22 02:08, Steve Sakoman wrote:
-> On Thu, Oct 11, 2012 at 8:58 AM, Enric Balletbo Serra
-> <eballetbo@gmail.com> wrote:
->=20
->> I see that commit dac8eb5f (OMAPDSS: TFP410: rename dvi files to
->> tfp410) and commit 2e6f2ee7 (OMAPDSS: TFP410: rename dvi -> tfp410)
->> changes the panel driver used on some boards. I tested current
->> linux-next-20101011 kernel with my IGEPv2 board and DSS fails with
->> following error (see http://pastebin.com/VjPGCQDt for full log) :
+On 11/21/2012 09:39 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Nov 21, 2012 at 05:39:57PM +0200, Roger Quadros wrote:
+>> On 11/21/2012 04:03 PM, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Wed, Nov 21, 2012 at 02:36:48PM +0200, Roger Quadros wrote:
+>>>>>>  		break;
+>>>>>>  	default:
+>>>>>> -		dev_err(dev, "TLL version failed\n");
+>>>>>> -		ret = -ENODEV;
+>>>>>> -		goto err_ioremap;
+>>>>>> +		tll->nch = DEFAULT_TLL_CHANNEL_COUNT;
+>>>>>> +		dev_info(dev,
+>>>>>> +		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
+>>>>>> +			ver, tll->nch);
+>>>>>
+>>>>> this hsould be dev_dbg().
+>>>>>
+>>>>
+>>>> I think it should be more of a warning because it signals a problem.
+>>>> There is another pr_info in the success path which could probably be a
+>>>> dev_dbg.
+>>>
+>>> it's not a problem at all. It just means that a newer OMAP has come to
+>>> market and perhaps we don't need extra code to support it. A revision
+>>> detection should *never* be grounds to failure. When we can't understand
+>>> the revision, we default to the highest possible value we know.
+>>>
+>>> that's not an error.
 >>
->>    [   21.222808] omapdss OVERLAY error: check_overlay: paddr cannot b=
-e 0
->>    [   21.229583] omapdss OVERLAY error: check_overlay: paddr cannot b=
-e 0
->>    [   21.236236] omapfb omapfb: setup_plane failed
->=20
-> Was there ever any resolution to this issue?
+>> Agreed. I'm not treating it as an error. We still continue probe and the
+>> driver should work for newer revisions. Just prints a line on the
+>> console about the new revision. Thought it would be useful to us, but if
+>> you think it is a problem I don't mind removing it :).
+> 
+> that's the thing. It _is_ useful to *us*, kernel/device-driver
+> engineers. But for the end user it just ends up as yet another
+> meaningless print in dmesg ;-)
+> 
 
-Not that I know.
+Okay, makes sense. I'll convert it to dev_dbg().
 
-> I am seeing the same errors on Overo.  The video output actually
-> works, but it appears that this error causes X to close and then
-> restart repeatedly.
->=20
-> I'll add the printk's to omapfb_setup_plane() that were requested by
-> Tomi and report back.
-
-How can I reproduce this? Is there a downloadable rootfs somewhere that
-I could try?
-
-Could you also copy full kernel boot log to pastebin or such?
-
- Tomi
-
-
-
---------------enigA85B669D7FCD7A99AB036A90
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQrealAAoJEPo9qoy8lh71N70P/31RLmNhK4/SHHUDbuFY0TP9
-+jgbdANgMxrUK10GtPRCvTj1+0sjGzvGPX+31urZYgUlNhmvvlpKaRDRgcd27MrL
-IbWdEh1+UMynf+MKfM5BUdusv1otyQuf188Q3e3YRxvSW2X021P+C2fDIEm9XH2/
-QKrFTNa1fcn3Nw2+qgRW+vdYmOsDuMAtIvuPnNSbkcc46SCalm1qZjZJrNP4IbDT
-yYjpf0cIuSWVybS307DLzY6r+nEROevgpXzBSYpfCEerS90ln5myvHkiRdc5yzIK
-eoKUEAr/9IcoFVe6uZ17xOwXIFgrV4v0DDUtzBCgQlR6QYHnhqUe3bUU2AGJ1nw3
-oKcYaHCFZU64nviKUrZepccmSX+tyRlPiB8TwlsCOVspMf3r2YmvTNqf7Bk1Uo7x
-j16KTl55MIIcFEWw50b92wYVw56PWqXi6er9I8EvvDaxFVl5qMRdVtO4ByasvFOq
-PrNmvHMQd7mrOQ5hXrrvH6g1g8+eIVv510OCw4qTXylwZHMH9rnetD2QXk3aHcfc
-qit18SRwjp3QCC6KpI6exPE5tZuV/7HPWx6tvdgQzQXli7MCRn7MJFcT7ioSKd3D
-vFj2u9iR/nK4NtkjOYuSXgbIsne2nxqiXn2uppSvsN/fKI3aOmtRGeCvlVYBR4gS
-UAQVbnvWUQswNSHQjkvG
-=7xl3
------END PGP SIGNATURE-----
-
---------------enigA85B669D7FCD7A99AB036A90--
+--
+cheers,
+-roger
