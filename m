@@ -1,45 +1,327 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH v4 05/11] pwm: pwm-tiecap: pinctrl support
-Date: Fri, 23 Nov 2012 13:48:51 +0100
-Message-ID: <87mwy8eb7w.fsf@dell.be.48ers.dk>
-References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
-	<1353503469-18634-6-git-send-email-avinashphilip@ti.com>
-	<20121122205944.GC16716@avionic-0098.adnet.avionic-design.de>
-	<518397C60809E147AF5323E0420B992E3E9EE991@DBDE01.ent.ti.com>
-	<20121123105110.GA6884@avionic-0098.adnet.avionic-design.de>
-	<518397C60809E147AF5323E0420B992E3E9EEAAA@DBDE01.ent.ti.com>
-	<20121123111811.GA5072@avionic-0098.adnet.avionic-design.de>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH v3 2/3] pwm: New driver to support PWMs on TWL4030/6030
+ series of PMICs
+Date: Fri, 23 Nov 2012 15:58:45 +0100
+Message-ID: <20121123145844.GA16810@avionic-0098.adnet.avionic-design.de>
+References: <1353405382-9226-1-git-send-email-peter.ujfalusi@ti.com>
+ <1353405382-9226-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121123111811.GA5072@avionic-0098.adnet.avionic-design.de>
-	(Thierry Reding's message of "Fri, 23 Nov 2012 12:18:11 +0100")
+Content-Disposition: inline
+In-Reply-To: <1353405382-9226-3-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: "Philip, Avinash" <avinashphilip@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Linus Walleij <linus.walleij@linaro.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
->>>>> "Thierry" == Thierry Reding <thierry.reding@avionic-design.de> writes:
 
-Hi,
+--yrj/dFKFPuw6o+aM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- Thierry> Everybody seems to be doing it with a warning, so I guess
- Thierry> that's fine for now. I just find it strange that if you
- Thierry> request the default pin group to be selected when in fact the
- Thierry> hardware doesn't support pinctrl at all you shouldn't be
- Thierry> getting an error either.
+On Tue, Nov 20, 2012 at 10:56:21AM +0100, Peter Ujfalusi wrote:
+> The driver supports the following PWM outputs:
+> TWL4030 PWM0 and PWM1
+> TWL6030 PWM1 and PWM2
+>=20
+> On TWL4030 the PWM signals are muxed. Upon requesting the PWM the driver
+> will select the correct mux so the PWM can be used. When the PWM has been
+> freed the original configuration going to be restored.
 
-There's several different situations:
+"configuration is going to be"
 
-- Platform without pinctrl support
-- Platform with pinctrl support but no pinmux specified in dt for device
-  (E.G. pinmux setup in bootloader)
-- Pinmux specified in dt
-- Some kind of misconfiguration in dt
+> +config PWM_TWL
+> +	tristate "TWL4030/6030 PWM support"
+> +	select HAVE_PWM
 
-You could argue that devm_pinctrl_get_select_default() shouldn't return
-an error for the first situation, but how should it be able to know the
-difference between 2 and 4?
+Why do you select HAVE_PWM?
 
--- 
-Bye, Peter Korsgaard
+> +static int twl_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+> +			      int duty_ns, int period_ns)
+> +{
+> +	int duty_cycle =3D DIV_ROUND_UP(duty_ns * TWL_PWM_MAX, period_ns);
+> +	u8 pwm_config[2] =3D {1, 0};
+> +	int base, ret;
+> +
+> +	/*
+> +	 * To configure the duty period:
+> +	 * On-cycle is set to 1 (the minimum allowed value)
+> +	 * The off time of 0 is not configurable, so the mapping is:
+> +	 * 0 -> off cycle =3D 2,
+> +	 * 1 -> off cycle =3D 2,
+> +	 * 2 -> off cycle =3D 3,
+> +	 * 126 - > off cycle 127,
+> +	 * 127 - > off cycle 1
+> +	 * When on cycle =3D=3D off cycle the PWM will be always on
+> +	 */
+> +	duty_cycle +=3D 1;
+
+The canonical form to write this would be "duty_cycle++", but maybe it
+would even be better to add it to the expression that defines
+duty_cycle?
+
+> +static int twl4030_pwm_enable(struct pwm_chip *chip, struct pwm_device *=
+pwm)
+> +{
+> +	int ret;
+> +	u8 val;
+> +
+> +	ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_GPBR1_REG);
+> +	if (ret < 0) {
+> +		dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm->label);
+> +		return ret;
+> +	}
+> +
+> +	val |=3D TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMXCLK_ENABLE);
+> +
+> +	ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_GPBR1_REG);
+> +	if (ret < 0)
+> +		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
+> +
+> +	val |=3D TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_ENABLE);
+> +
+> +	ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_GPBR1_REG);
+> +	if (ret < 0)
+> +		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
+> +
+> +	return ret;
+> +}
+
+Does this perhaps need some locking to make sure the read-modify-write
+sequence isn't interrupted?
+
+> +static void twl4030_pwm_disable(struct pwm_chip *chip, struct pwm_device=
+ *pwm)
+> +{
+> +	int ret;
+> +	u8 val;
+> +
+> +	ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_GPBR1_REG);
+> +	if (ret < 0) {
+> +		dev_err(chip->dev, "%s: Failed to read GPBR1\n", pwm->label);
+> +		return;
+> +	}
+> +
+> +	val &=3D ~TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMX_ENABLE);
+> +
+> +	ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_GPBR1_REG);
+> +	if (ret < 0)
+> +		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
+> +
+> +	val &=3D ~TWL4030_PWM_TOGGLE(pwm->hwpwm, TWL4030_PWMXCLK_ENABLE);
+> +
+> +	ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_GPBR1_REG);
+> +	if (ret < 0)
+> +		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
+> +}
+
+Same here.
+
+> +static int twl4030_pwm_request(struct pwm_chip *chip, struct pwm_device =
+*pwm)
+> +{
+> +	struct twl_pwm_chip *twl =3D container_of(chip, struct twl_pwm_chip,
+> +						chip);
+
+This could use a macro like to_twl(chip).
+
+> +	int ret;
+> +	u8 val, mask, bits;
+> +
+> +	ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_PMBR1_REG);
+> +	if (ret < 0) {
+> +		dev_err(chip->dev, "%s: Failed to read PMBR1\n", pwm->label);
+> +		return ret;
+> +	}
+> +
+> +	if (pwm->hwpwm) {
+> +		/* PWM 1 */
+> +		mask =3D TWL4030_GPIO7_VIBRASYNC_PWM1_MASK;
+> +		bits =3D TWL4030_GPIO7_VIBRASYNC_PWM1_PWM1;
+> +	} else {
+> +		/* PWM 0 */
+> +		mask =3D TWL4030_GPIO6_PWM0_MUTE_MASK;
+> +		bits =3D TWL4030_GPIO6_PWM0_MUTE_PWM0;
+> +	}
+> +
+> +	/* Save the current MUX configuration for the PWM */
+> +	twl->twl4030_pwm_mux &=3D ~mask;
+> +	twl->twl4030_pwm_mux |=3D (val & mask);
+> +
+> +	/* Select PWM functionality */
+> +	val &=3D ~mask;
+> +	val |=3D bits;
+> +
+> +	ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_PMBR1_REG);
+> +	if (ret < 0)
+> +		dev_err(chip->dev, "%s: Failed to request PWM\n", pwm->label);
+> +
+> +	return ret;
+> +}
+
+Again, more read-modify-write without locking.
+
+> +
+> +static void twl4030_pwm_free(struct pwm_chip *chip, struct pwm_device *p=
+wm)
+> +{
+> +	struct twl_pwm_chip *twl =3D container_of(chip, struct twl_pwm_chip,
+> +						chip);
+> +	int ret;
+> +	u8 val, mask;
+> +
+> +	ret =3D twl_i2c_read_u8(TWL4030_MODULE_INTBR, &val, TWL4030_PMBR1_REG);
+> +	if (ret < 0) {
+> +		dev_err(chip->dev, "%s: Failed to read PMBR1\n", pwm->label);
+> +		return;
+> +	}
+> +
+> +	if (pwm->hwpwm)
+> +		/* PWM 1 */
+> +		mask =3D TWL4030_GPIO7_VIBRASYNC_PWM1_MASK;
+> +	else
+> +		/* PWM 0 */
+> +		mask =3D TWL4030_GPIO6_PWM0_MUTE_MASK;
+
+I'm not sure how useful these comments are. You have both an explicit
+check for pwm->hwpwm to make it obvious that it isn't 0 and the mask
+macros contain the PWM0 and PWM1 substrings respectively.
+
+You could make it even more explicit perhaps by turning the check into:
+
+	if (pwm->hwpwm =3D=3D 1)
+
+But either way I think you can drop the /* PWM 1 */ and /* PWM 0 */
+comments.
+
+> +
+> +	/* Restore the MUX configuration for the PWM */
+> +	val &=3D ~mask;
+> +	val |=3D (twl->twl4030_pwm_mux & mask);
+> +
+> +	ret =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, val, TWL4030_PMBR1_REG);
+> +	if (ret < 0)
+> +		dev_err(chip->dev, "%s: Failed to free PWM\n", pwm->label);
+> +}
+> +
+> +static int twl6030_pwm_enable(struct pwm_chip *chip, struct pwm_device *=
+pwm)
+> +{
+> +	struct twl_pwm_chip *twl =3D container_of(chip, struct twl_pwm_chip,
+> +						chip);
+> +	int ret;
+> +	u8 val;
+> +
+> +	val =3D twl->twl6030_toggle3;
+> +	val |=3D TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXS | TWL6030_PWMXEN);
+> +	val &=3D ~TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXR);
+> +
+> +	ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_REG);
+> +	if (ret < 0) {
+> +		dev_err(chip->dev, "%s: Failed to enable PWM\n", pwm->label);
+> +		return ret;
+> +	}
+> +
+> +	twl->twl6030_toggle3 =3D val;
+> +
+> +	return 0;
+> +}
+> +
+> +static void twl6030_pwm_disable(struct pwm_chip *chip, struct pwm_device=
+ *pwm)
+> +{
+> +	struct twl_pwm_chip *twl =3D container_of(chip, struct twl_pwm_chip,
+> +						chip);
+> +	int ret;
+> +	u8 val;
+> +
+> +	val =3D twl->twl6030_toggle3;
+> +	val |=3D TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXR);
+> +	val &=3D ~TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXS | TWL6030_PWMXEN=
+);
+> +
+> +	ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_REG);
+> +	if (ret < 0) {
+> +		dev_err(chip->dev, "%s: Failed to read TOGGLE3\n", pwm->label);
+> +		return;
+> +	}
+> +
+> +	val |=3D TWL6030_PWM_TOGGLE(pwm->hwpwm, TWL6030_PWMXS | TWL6030_PWMXEN);
+> +
+> +	ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID1, val, TWL6030_TOGGLE3_REG);
+> +	if (ret < 0) {
+> +		dev_err(chip->dev, "%s: Failed to disable PWM\n", pwm->label);
+> +		return;
+> +	}
+> +
+> +	twl->twl6030_toggle3 =3D val;
+> +}
+> +
+> +static struct pwm_ops twl_pwm_ops =3D {
+> +	.config =3D twl_pwm_config,
+> +};
+
+It might actually be worth to split this into two pwm_ops structures,
+one for 4030 and one for 6030. In that case you would still be able to
+make them const, which probably outweighs the space savings here.
+
+Actually, I think this is even potentially buggy since you may have more
+than one instance of this driver. For instance if you have a TWL6030 and
+a TWL4030 in a single system this will break horribly since you'll over-
+write the pwm_ops of one of them.
+
+> +	if (twl_class_is_4030()) {
+> +		twl_pwm_ops.enable =3D twl4030_pwm_enable;
+> +		twl_pwm_ops.disable =3D twl4030_pwm_disable;
+> +		twl_pwm_ops.request =3D twl4030_pwm_request;
+> +		twl_pwm_ops.free =3D twl4030_pwm_free;
+
+This would become:
+
+		twl->chip.ops =3D &twl4030_pwm_ops;
+
+> +	} else {
+> +		twl_pwm_ops.enable =3D twl6030_pwm_enable;
+> +		twl_pwm_ops.disable =3D twl6030_pwm_disable;
+
+and:
+		twl->chip.ops =3D &twl6030_pwm_ops;
+
+> +static struct of_device_id twl_pwm_of_match[] =3D {
+> +	{ .compatible =3D "ti,twl4030-pwm" },
+> +	{ .compatible =3D "ti,twl6030-pwm" },
+> +};
+> +
+> +MODULE_DEVICE_TABLE(of, twl_pwm_of_match);
+
+Nit: I think the blank line between "};" and "MODULE_DEVICE_TABLE(...)"
+can go away. And you might want to protect this with an "#ifdef
+CONFIG_OF" since you don't depend on OF.
+
+Thierry
+
+--yrj/dFKFPuw6o+aM
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQr48kAAoJEN0jrNd/PrOhEQ8P/ib0KABVnAiOnU7W5E8DVIMw
+QxiyM4mjzCNHvr+tAwYAk6cYngcbSVxNQcHkh/v6gu7rdfKIecuYYZIuJ+ky821L
++RZcH9PWKfZk2vl9adxWezli9pOhIGlYqvLNQXDGw18afyMH1wRxVP7gkY/kANEI
+mdgMaLxXYc3JQS5undMU5mnShwy2Q0TUaMf0isVU4wJeUKlCGJIgvvECftq3SQ9u
+7TvkE0zayu1Pzfz+s4RiGe2nLNjwYbF2wekQbr/lImsUxzZ4LHM+htK3PMH1J3zq
+mz+opdCAhFoF5oK6bxWxdnNDABGtMNjZlEyWKaxgUDKvbBJYgJI4DSRCaZ/NMMBB
+YXDiQgK08r1QbPs8o18bs/5kvryrnhA3FCgvty75LSD2HiA9O1mjIOgcgd1q40+p
+0YAxsqLwsj2cZsERlZjOle6uKhPHY/fyvFWb7rYl6llnNO9nXObsPVloOKfRWngU
+52+TzkHspdlkYrtQBEuhfaZGz7OnZFn7bESyzSsQPTIyoz8ewWGLaHj2ev7Vvhqv
+0x6wRmKP9bOuhmVreOFM703pD/gAbAUo7S3gSoWzOrZmWS4wUwLA5HUwmbh3CmrP
+gd2g2WtvBooO0KR4V9diHkGaY3dtardTEUXwdpaCkHFD4nMgjM93/PGCh2KMBtYo
+/3sRUailrpChUSW5enxe
+=uj7x
+-----END PGP SIGNATURE-----
+
+--yrj/dFKFPuw6o+aM--
