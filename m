@@ -1,75 +1,51 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: omap DSS fails with tft410 driver panel?
-Date: Fri, 23 Nov 2012 07:20:04 -0800
-Message-ID: <CAGDS+nncx71OL7tiwEot6RcyFxipj_SVg=z5Sg-Qdv2n4iyL2A@mail.gmail.com>
-References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com>
-	<CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com>
-	<50ADE6A5.3030001@ti.com>
-	<CAGDS+nm2YVNyq+eAF-VSq785KAKWC2GM4v5U7N1vLGTNNDfa7Q@mail.gmail.com>
-	<50AF37EA.3080400@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
+ ETH when not in use
+Date: Fri, 23 Nov 2012 11:25:32 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211231108000.1734-100000@iolanthe.rowland.org>
+References: <20121123104416.GD29585@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:46927 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013Ab2KWPUF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Nov 2012 10:20:05 -0500
-Received: by mail-oa0-f46.google.com with SMTP id h16so8963365oag.19
-        for <linux-omap@vger.kernel.org>; Fri, 23 Nov 2012 07:20:05 -0800 (PST)
-In-Reply-To: <50AF37EA.3080400@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121123104416.GD29585-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
-On Fri, Nov 23, 2012 at 12:46 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+On Fri, 23 Nov 2012, Felipe Balbi wrote:
 
+> > Thanks for the example. The only problem is, how do we associate a
+> > regulator to a specific port in the system.
+> 
+> heh, that's the 1 million dollar question, isn't it ? :-)
+> 
+> that's what we need to figure out now. Luckily we have Alan Stern
+> helping us out ;-)
 
-> Ok, so hmm... So the overlay is disabled, and the paddr is zero. Can you
-> put a printk at dss/apply.c:dss_olv_set_info, and print ovl->id and
-> info->paddr? And perhaps also to omapfb-main.c:omapfb_setup_overlay, at
-> the point where it sets info.paddr, as I think that's the only place
-> where omapfb sets paddr.
+Some people might think having me around to interfere was not so lucky
+after all...  :-)
 
-OK, did that and here is what I get when starting up gdm, prior to
-that all is normal
+First question: Should we worry about individual ports?  Ordinarily I'd
+say No, because hubs always power up all of their ports.  But with Lan
+Tianyu's recent work, that won't be true any more.  In this case, it's
+conceivable that the user might want to power-off the LAN95xx in order
+to save energy, even though ehci-hcd is still loaded and managing other
+USB devices.
 
-root@omap3-multi:~# systemctl start gdm.service
-Starting Gnome Display Manager...
-Started Gnome Display Manager                                          [  OK  ]
-root@omap3-multi:~# [   83.475128] omapfb_setup_plane entry
-[   83.479492] setup_overlay 0, posx 0, posy 0, outw 1024, outh 768
-[   83.485809] omapfb_setup_overlay: setting info.paddr = 9f400000
-[   83.492431] dss_ovl_set_info entry
-[   83.496307]     ovl->id = 0
-[   83.499267]     info->paddr = 9f400000
-[   83.503601] omapfb_setup_plane: return success
-[   83.508697] omapfb_setup_plane entry
-[   83.513153] dss_ovl_set_info entry
-[   83.516723]     ovl->id = 2
-[   83.520111]     info->paddr = 0
-[   83.523406] omapdss OVERLAY error: check_overlay: paddr cannot be 0
-[   83.530426] omapfb_setup_plane: !pi->enabled & ovl->set_overlay_info
-[   83.537414] dss_ovl_set_info entry
-[   83.540985]     ovl->id = 2
-[   83.544250]     info->paddr = 0
-[   83.547546] omapdss OVERLAY error: check_overlay: paddr cannot be 0
+Either way, the regulator has to be associated with _something_: either
+a root-hub port or the host controller itself.  And this will most
+likely have to be done before the port's or the controller's struct
+device exists.
 
-<repeats  as X dies and restarts>
+Something like Andy's scheme might work.  It would require the kernel
+to parse name strings in various formats, which could get complicated.  
+It would be great if the difficult parts could be stuck in the PM core
+somewhere.
 
-> I don't know what's going on there, why the paddr is suddenly zero.
-> Looking at the log from Enric, SETUP_PLANE works fine just fine, and
-> then, for no reason, next SETUP_PLANE fails, and the log doesn't show
-> anything much happening between.
->
-> However, I think omapdss may have been more permissive in the past,
-> allowing paddr 0 if the overlay is disabled. I could add that back, but
-> I'd rather first understand what's happening here.
+Alan Stern
 
->From the above it seems that the first SETUP_PLANE is for ovl->id = 0
-and then those that fail are for ovl->id =2.
-
-No idea what is going on in user space, but maybe this will mean
-something to you :-)
-
-Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
