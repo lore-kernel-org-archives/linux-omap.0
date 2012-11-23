@@ -1,54 +1,97 @@
-From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v4 06/11] pwm: pwm-tiehrpwm: Add device-tree binding
- support for EHRPWM driver
-Date: Fri, 23 Nov 2012 10:35:01 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9EE9A4@DBDE01.ent.ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v4 00/11] Support for AM33xx PWM Subsystem
+Date: Fri, 23 Nov 2012 10:42:13 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9EE9FC@DBDE01.ent.ti.com>
 References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
- <1353503469-18634-7-git-send-email-avinashphilip@ti.com>
- <20121122210347.GD16716@avionic-0098.adnet.avionic-design.de>
+ <20121122211616.GK16716@avionic-0098.adnet.avionic-design.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121122210347.GD16716-RM9K5IK7kjIyiCvfTdI0JKcOhU4Rzj621B7CTYaBSLdn68oJJulU0Q@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121122211616.GK16716@avionic-0098.adnet.avionic-design.de>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
-Cc: "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hebbar,
- Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 23, 2012 at 02:33:47, Thierry Reding wrote:
-> On Wed, Nov 21, 2012 at 06:41:03PM +0530, Philip, Avinash wrote:
-> [...]
-> > +static const struct of_device_id ehrpwm_of_match[] = {
-> > +	{
-> > +		.compatible	= "ti,am33xx-ehrpwm",
-> > +	},
+On Fri, Nov 23, 2012 at 02:46:16, Thierry Reding wrote:
+> On Wed, Nov 21, 2012 at 06:40:57PM +0530, Philip, Avinash wrote:
+> > In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
+> > PWM subsystem. All these submodules shares the resources (clock) & has
+> > a clock gating register in PWM Subsystem. This patch series creates a
+> > parent PWM Subsystem driver to handle access synchronization of shared
+> > resources & clock gating from PWM Subsystem configuration space.
+> > Also Device tree nodes populated to support parent child relation
+> > between PWMSS, ECAP & EHRPWM submodules.
+> > In addition EHRPWM module requires explicit clock gating from control
+> > module & is handled by patch #2 & 8.
+> > 
+> > As suggested by  Thierry for handling clock gating for PWM submodules
+> > should handle with a global function. This requires config space
+> > handling done independent from driver and is done at parent driver.
+> > 
+> > So the parent<->child relation adopted to handle
+> > 1. pm runtime synchronization
+> > 2. PWM subsystem common config space clock gating for PWM submodules.
+> > 
+> > Patches supports
+> > - Driver support for parent child relation handled patch #1
+> > - Optional EHRPWM tb clock in patch #2
+> > - Parent child in HWMOD handled at patch #3
+> > - Device tree binding support handled in patch #4, 6 &8
+> > - pinctrl support in patch #5 & 7.
+> > - DT node populated in patch #9 ,10 & 11.
+> > 
+> > This patch series based on omap_dt/for_3.8/dts_part2 and tested
+> > on am335x-evm & am335x-evmsk.
+> > 
+> > It depends on [1]
+> > 
+> > 1. https://lkml.org/lkml/2012/11/21/70
+> > pwm: Device tree support for PWM polarity
+> > 
+> > Changes since v3:
+> > 	- Rebased on top of omap_dt/for_3.8/dts_part2
+> > 	- Add pwm backlight for am335xevm_sk
+> > 	- Moved tipwmss.h to pwm-tipwmss.h
+> > 
+> > Philip, Avinash (11):
+> >   PWMSS: Add PWM Subsystem driver for parent<->child relationship
+> >   ARM: am33xx: clk: Add optional clock for EHRPWM
+> >   ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
+> >     subsystem
+> >   pwm: pwm-tiecap: Add device-tree binding support for APWM driver
+> >   pwm: pwm-tiecap: pinctrl support
+> >   pwm: pwm-tiehrpwm: Add device-tree binding support for EHRPWM driver
+> >   pwm: pwm-tiehrpwm: pinctrl support
+> >   pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+> >   ARM: dts: AM33XX: Add PWMSS device tree nodes
+> >   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
+> >   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
 > 
-> Same comment as for patch 4.
-
-Ok I will correct it.
-
+> Hi,
 > 
-> > @@ -437,16 +451,41 @@ static int __devinit ehrpwm_pwm_probe(struct platform_device *pdev)
-> >  		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
-> >  		return ret;
-> >  	}
-> > -
-> 
-> I think this blank line actually improves readability so it can stay in.
+> So how do you want to get this merged? Should I take patches 1, 4, 5, 6,
+> 7 and 8 while the rest go through some ARM tree? Can we still merge this
+> for 3.8?
 
-I will add.
+These patches can go on, as DT node is not populated. Also without patch #3
+PWM Subsystem driver won't come and hence the platform devices for ECAP 
+& EHRPWM. So there is no issue in getting this merged in PWM subsystem.
+
+> The patches don't seem to have build dependencies on each other
+> but how about runtime dependencies?
+
+Patch #3 required for PWM subsystem driver to populate PWM subsystem HWMOD
+Entries and DT entries. 
+Patch #2 required for EHRPWM to have TBCLK handling. This patch required for
+EHRPWM driver functionality. But currently DT node is disabled for EHRPWM.
+
+So the dependency on the entire series is patch #3, for backlight through PWM
+ecap.
+
+I will follow up with OMAP subsystem community for getting reviews/ack
 
 Thanks
 Avinash
