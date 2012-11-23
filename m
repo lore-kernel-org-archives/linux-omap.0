@@ -1,101 +1,83 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH v4 00/11] Support for AM33xx PWM Subsystem
-Date: Fri, 23 Nov 2012 10:42:13 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9EE9FC@DBDE01.ent.ti.com>
-References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
- <20121122211616.GK16716@avionic-0098.adnet.avionic-design.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
+ ETH when not in use
+Date: Fri, 23 Nov 2012 12:38:17 +0200
+Message-ID: <20121123103817.GC29585@arwen.pp.htv.fi>
+References: <20121122201549.GA24320@arwen.pp.htv.fi>
+ <Pine.LNX.4.44L0.1211222130340.8245-100000@netrider.rowland.org>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121122211616.GK16716@avionic-0098.adnet.avionic-design.de>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51851 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752456Ab2KWKow (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Nov 2012 05:44:52 -0500
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1211222130340.8245-100000@netrider.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Felipe Balbi <balbi@ti.com>, Andy Green <andy.green@linaro.org>, Roger Quadros <rogerq@ti.com>, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, Nov 23, 2012 at 02:46:16, Thierry Reding wrote:
-> On Wed, Nov 21, 2012 at 06:40:57PM +0530, Philip, Avinash wrote:
-> > In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
-> > PWM subsystem. All these submodules shares the resources (clock) & has
-> > a clock gating register in PWM Subsystem. This patch series creates a
-> > parent PWM Subsystem driver to handle access synchronization of shared
-> > resources & clock gating from PWM Subsystem configuration space.
-> > Also Device tree nodes populated to support parent child relation
-> > between PWMSS, ECAP & EHRPWM submodules.
-> > In addition EHRPWM module requires explicit clock gating from control
-> > module & is handled by patch #2 & 8.
-> > 
-> > As suggested by  Thierry for handling clock gating for PWM submodules
-> > should handle with a global function. This requires config space
-> > handling done independent from driver and is done at parent driver.
-> > 
-> > So the parent<->child relation adopted to handle
-> > 1. pm runtime synchronization
-> > 2. PWM subsystem common config space clock gating for PWM submodules.
-> > 
-> > Patches supports
-> > - Driver support for parent child relation handled patch #1
-> > - Optional EHRPWM tb clock in patch #2
-> > - Parent child in HWMOD handled at patch #3
-> > - Device tree binding support handled in patch #4, 6 &8
-> > - pinctrl support in patch #5 & 7.
-> > - DT node populated in patch #9 ,10 & 11.
-> > 
-> > This patch series based on omap_dt/for_3.8/dts_part2 and tested
-> > on am335x-evm & am335x-evmsk.
-> > 
-> > It depends on [1]
-> > 
-> > 1. https://lkml.org/lkml/2012/11/21/70
-> > pwm: Device tree support for PWM polarity
-> > 
-> > Changes since v3:
-> > 	- Rebased on top of omap_dt/for_3.8/dts_part2
-> > 	- Add pwm backlight for am335xevm_sk
-> > 	- Moved tipwmss.h to pwm-tipwmss.h
-> > 
-> > Philip, Avinash (11):
-> >   PWMSS: Add PWM Subsystem driver for parent<->child relationship
-> >   ARM: am33xx: clk: Add optional clock for EHRPWM
-> >   ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
-> >     subsystem
-> >   pwm: pwm-tiecap: Add device-tree binding support for APWM driver
-> >   pwm: pwm-tiecap: pinctrl support
-> >   pwm: pwm-tiehrpwm: Add device-tree binding support for EHRPWM driver
-> >   pwm: pwm-tiehrpwm: pinctrl support
-> >   pwm: pwm-tiehrpwm: Adding TBCLK gating support.
-> >   ARM: dts: AM33XX: Add PWMSS device tree nodes
-> >   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
-> >   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
-> 
-> Hi,
-> 
-> So how do you want to get this merged? Should I take patches 1, 4, 5, 6,
-> 7 and 8 while the rest go through some ARM tree? Can we still merge this
-> for 3.8?
+--3siQDZowHQqNOShm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-These patches can go on, as DT node is not populated. Also without patch #3
-PWM Subsystem driver won't come and hence the platform devices for ECAP 
-& EHRPWM. So there is no issue in getting this merged in PWM subsystem.
+Hi,
 
-> The patches don't seem to have build dependencies on each other
-> but how about runtime dependencies?
+On Thu, Nov 22, 2012 at 09:35:06PM -0500, Alan Stern wrote:
+> On Thu, 22 Nov 2012, Felipe Balbi wrote:
+>=20
+> > > The latter, more or less.  For example, maybe we can tell usbcore
+> > > somehow that regulator X is in control of a device attached to host
+> > > controller Y (not sure how we would express X and Y though).  Then wh=
+en
+> > > usb_add_hcd() sees that the host controller being added is Y, it will
+> > > know to turn on regulator X.  Similarly for usb_remove_hcd().
+> >=20
+> > that'd look very nice indeed. Perhaps we could even take care of such
+> > details for the roothub, even. Maybe some systems might show up where
+> > roothub need external regulators provided by e.g. PMIC ?!?
+>=20
+> As far as I can see, that ought to work provided the controller's=20
+> platform driver is careful not to access the controller hardware before=
+=20
+> calling usb_add_hcd().
+>=20
+> And maybe the same sort of scheme could be used for clocks, although I=20
+> don't know how to do it in a generic way that will work on all=20
+> platforms.
 
-Patch #3 required for PWM subsystem driver to populate PWM subsystem HWMOD
-Entries and DT entries. 
-Patch #2 required for EHRPWM to have TBCLK handling. This patch required for
-EHRPWM driver functionality. But currently DT node is disabled for EHRPWM.
+perhaps making use of pm_clk_add() and letting PM layer do the rest for
+us ? If that doesn't work then it means PM layer's clk handling could be
+improved, I suppose.
 
-So the dependency on the entire series is patch #3, for backlight through PWM
-ecap.
+--=20
+balbi
 
-I will follow up with OMAP subsystem community for getting reviews/ack
+--3siQDZowHQqNOShm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Thanks
-Avinash
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> 
-> Thierry
-> 
+iQIcBAEBAgAGBQJQr1IYAAoJEIaOsuA1yqRENSwQAJtcPp6ptJBF569Xl+yH4xET
+3T+3vexqcykJ8Pnh2AakdpO5sBlxbvcb8vp8U6+sy0uxukrY5pmvj9Otzr+k1Dtt
+TT271CXhhM0+0bQrb7vV3gd3MkTwqAXs8cNdTkP5VBBGDrxRWX/s1svW2wMf7Lgg
+R49S9Xy4YlYnKL9zQ+V+u0oU4MJgUFe/Omvh/zm7UYjAnsMMPY6j4L+Dh3wHiF/A
+oV6oAy1mcPCJ+JnD6YIKb7hRgfFCe/cG3RaFqmrqSeh5mAxgW71x2I6KltpFQYPR
+SHak7JKnMnadMk205ZrE8ZyEePWq6CtpJKbbnCAHVi7vBZvUVHTZhBN6j/wQyqRR
+SG4/B/cKOgV7ZTqBmEzIlw7NFHyMdmRELipSiegA3Ndw2TseYnh0ByMClfrQexmf
+JdcjlP5L7Q7046LAehiQ60iPz66KdaOTKyaxry15TJ0VgrLrSQTjd2sxXma0Rnzp
+1YCIL11TDx24na9vEKfYsllV9FYnj3onFgAAIM+Ybd7o9ATfWQ1pq/slk1I2X3rq
+/YpggUv72BCYuhI5CXFbbnXO9orRztAezKUM3NwwrOl3oE+TY0kynZ+XVdUcy18m
+t921JdCmHv8HvrDDxRUoQpcpgnIcxHIHOH6Iw8tZUWN8gfClIS+GlG9AmJWxa0n1
+xPQFEsgOMEtXtO2cyhTV
+=SaUK
+-----END PGP SIGNATURE-----
+
+--3siQDZowHQqNOShm--
