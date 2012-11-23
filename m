@@ -1,91 +1,96 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v4 05/11] pwm: pwm-tiecap: pinctrl support
-Date: Fri, 23 Nov 2012 12:18:11 +0100
-Message-ID: <20121123111811.GA5072@avionic-0098.adnet.avionic-design.de>
-References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
- <1353503469-18634-6-git-send-email-avinashphilip@ti.com>
- <20121122205944.GC16716@avionic-0098.adnet.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E9EE991@DBDE01.ent.ti.com>
- <20121123105110.GA6884@avionic-0098.adnet.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E9EEAAA@DBDE01.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [GIT PULL] OMAPDSS fixes for 3.7-rc
+Date: Fri, 23 Nov 2012 13:30:27 +0200
+Message-ID: <50AF5E53.9060108@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gBBFr7Ir9EOA20Yy"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E9EEAAA@DBDE01.ent.ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Linus Walleij <linus.walleij@linaro.org>
+	protocol="application/pgp-signature";
+	boundary="------------enigA448A0F3739DAEE5C8E3BB6E"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49837 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750896Ab2KWLae (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Nov 2012 06:30:34 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-
---gBBFr7Ir9EOA20Yy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--------------enigA448A0F3739DAEE5C8E3BB6E
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 23, 2012 at 11:12:15AM +0000, Philip, Avinash wrote:
-> On Fri, Nov 23, 2012 at 16:21:10, Thierry Reding wrote:
-> > On Fri, Nov 23, 2012 at 10:34:02AM +0000, Philip, Avinash wrote:
-> > > On Fri, Nov 23, 2012 at 02:29:44, Thierry Reding wrote:
-> > > > On Wed, Nov 21, 2012 at 06:41:02PM +0530, Philip, Avinash wrote:
-> > > > [...]
-> > > > > +	pinctrl =3D devm_pinctrl_get_select_default(&pdev->dev);
-> > > > > +	if (IS_ERR(pinctrl))
-> > > > > +		dev_warn(&pdev->dev, "failed to configure pins from driver\n");
-> > > >=20
-> > > > I think we already discussed this, but shouldn't this be a fatal er=
-ror?
-> > >=20
-> > > I had checked relevant discussion and found this can be warning messa=
-ge.
-> > > This is because most boards don't have pinctrl implemented at this po=
-int,
-> > > or may never have.
-> > >=20
-> > > https://lkml.org/lkml/2012/9/11/369
-> > >=20
-> > > Any way I will change to
-> > > dev_warn(&pdev->dev, "unable to select pin group\n");
-> > > as in other drivers.
-> >=20
-> > But in case pinctrl isn't implemented, shouldn't the implementation of
-> > devm_pinctrl_get_select_default() just be a no-op?
->=20
-> So driver can still exist but pin mux functionality missing. Then warning
-> message will give hints.
-> I am also ok with error message & failure of driver with EPROBE_DEFER,
-> if you want?
+Hi Linus,
 
-Everybody seems to be doing it with a warning, so I guess that's fine
-for now. I just find it strange that if you request the default pin
-group to be selected when in fact the hardware doesn't support pinctrl
-at all you shouldn't be getting an error either.
+Here are a few OMAPDSS fixes for the next -rc. I'm sending these directly=
 
-I'm adding LinusW on Cc, perhaps he can shed some light on it.
+to you, and quite late, as the fbdev tree maintainer (Florian) has been
+busy with his work and hasn't had time to manage the fb patches.
 
-Thierry
+ Tomi
 
---gBBFr7Ir9EOA20Yy
-Content-Type: application/pgp-signature
+The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd=
+37:
+
+  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
+
+are available in the git repository at:
+
+  git://gitorious.org/linux-omap-dss2/linux.git tags/omapdss-for-3.7-rc
+
+for you to fetch changes up to 8ad9375f8b7c709b89f7de4de413bb2644ba3c24:
+
+  OMAPDSS: do not fail if dpll4_m4_ck is missing (2012-11-22 17:23:12 +02=
+00)
+
+----------------------------------------------------------------
+omapdss fixes for 3.7-rc
+
+----------------------------------------------------------------
+Aaro Koskinen (1):
+      OMAPDSS: do not fail if dpll4_m4_ck is missing
+
+Laurent Pinchart (1):
+      omapdss: dss: Fix clocks on OMAP363x
+
+Tomi Valkeinen (1):
+      OMAPDSS: DSI: fix dsi_get_dsidev_from_id()
+
+Tushar Behera (1):
+      OMAPFB: Fix possible null pointer dereferencing
+
+Wei Yongjun (1):
+      OMAPDSS: HDMI: fix missing unlock on error in hdmi_dump_regs()
+
+ drivers/video/omap2/dss/dsi.c             |   13 +++++++++++--
+ drivers/video/omap2/dss/dss.c             |   18 +++++++++++-------
+ drivers/video/omap2/dss/hdmi.c            |    4 +++-
+ drivers/video/omap2/omapfb/omapfb-ioctl.c |    2 +-
+ 4 files changed, 26 insertions(+), 11 deletions(-)
+
+
+--------------enigA448A0F3739DAEE5C8E3BB6E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQr1tzAAoJEN0jrNd/PrOh16UQAL57I3RPifYmJWDOvZINQB/p
-HUqkcHPMUtPdbdu4i83XohvOcp056elhTA1jYPaCJwNDg8u5kqR4tH0b9Tg+YSXc
-icPDao6lu9JJhaap32F5JA8saFgcIQoaSZyUdeUCnpBfKBtufcrix0vF1zZ/Bfs+
-HM9Kex3wuAoC2S6bNtiT6e831PcBBtoTmUug0BLcWEEecUulWLGY5ej4RexMfi/3
-R9L1YDSYRnpuYvsClBgPMK2v1ptXcOqDX/WsIioOvduLh3T3G5XL2OL/nH6hC8cj
-vP3LAsEJZbj8FEy26pMb1Q0qJ9bPes2OC7mm1YNluOY6unHEKP8JlGZVTHLSR51y
-LSP+0Fj3Ivr5uur7tnTUFmRsmn3TDBJAuwFvCaQfLbLP2LxI1snLyXDUyQC95txK
-0m8UYSCG2xrlLdu2bVI0uP/KooLCudhvPfMjzq8WcoExoe5FI6L9QIvl3Z6MNVh0
-fTZMti1I5bmWKT8GR+o1OPSaHAkLF+EKwgYsL/3KD7p2Tt/TLJyRs4xK5VbLWTC9
-jWxPQSM7nPOAsh6ynKfoksK3gb9odQrzkC/J4Vn72rzUxNKj+0cBXq5InekSMboM
-xCDFj9feVmLP+/LRwAyYbW43lDMSSCf6do4Tz5ZTrO6Xiz+yGnxkCZCITj7cm2vH
-ZVx03+bwB4r3dMItfKxR
-=1NHj
+iQIcBAEBAgAGBQJQr15TAAoJEPo9qoy8lh71Hd8QAIpyBjUhkApqd4Iq7oqsLrnd
+w3+upaV03DVZLLMIkd8nkkinRaOZ+wMkHcV692nkZr+8lVu0v7CjyvTg41SU7M/B
+fJuxyh6FB/2OdbCF1piEmU/j2SOCB2F+1rtyiC6VeGG5QhCRMxxAjhgV040jcolP
+D+0SOiwcjB7Lm/6/9tEMnNqkJFGc79pNHu2UrXxfh3Tm4sTROuyUBv11AtO2AsVH
+XM2py5B8OK8YIdgAAGDw9w27Flf/e20wLKDKiJ5kuJwKZ+SDecJP3QzvsbWWbmFb
+P1Vzy9EVSntCqtippe3Mf2lgggeiMDIyH5U19E18XKUIsyFdvk7dWsRI3Xj/Y9ih
+4pyP7Cwr754AvQCnScfI7soZ0jn0lCRqLUL5+lEpSCFmy/Hel/fZZmYHdP71OHVy
+t+Z1TBi/8uYRkJ866vapEF5eWEzmy4mqfLPV3l/ucXyS/SMk5qdpckD4TJaZQPTK
+84SRdd7LLSiD1jx00fXgyxOyMDMKSRcS9iLNKHlQ6dVG6H2wHiuYKlGM/whkjivB
+5gRulzEokfUvGA2aSVuL+G/tZLVS7G+UztHyhJDSoPLOfZ3JF+zZguh8qOxOHbPw
+ugM/ipw4rgNhcLVeIa8+ekYsfYDc/s/3XoWsn4VJvyXuEuNEK78vYW8rXFU/LM2K
+sXKA1P7EN3COuUC9nSnA
+=vHfN
 -----END PGP SIGNATURE-----
 
---gBBFr7Ir9EOA20Yy--
+--------------enigA448A0F3739DAEE5C8E3BB6E--
