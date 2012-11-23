@@ -1,96 +1,45 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [GIT PULL] OMAPDSS fixes for 3.7-rc
-Date: Fri, 23 Nov 2012 13:30:27 +0200
-Message-ID: <50AF5E53.9060108@ti.com>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH v4 05/11] pwm: pwm-tiecap: pinctrl support
+Date: Fri, 23 Nov 2012 13:48:51 +0100
+Message-ID: <87mwy8eb7w.fsf@dell.be.48ers.dk>
+References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
+	<1353503469-18634-6-git-send-email-avinashphilip@ti.com>
+	<20121122205944.GC16716@avionic-0098.adnet.avionic-design.de>
+	<518397C60809E147AF5323E0420B992E3E9EE991@DBDE01.ent.ti.com>
+	<20121123105110.GA6884@avionic-0098.adnet.avionic-design.de>
+	<518397C60809E147AF5323E0420B992E3E9EEAAA@DBDE01.ent.ti.com>
+	<20121123111811.GA5072@avionic-0098.adnet.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigA448A0F3739DAEE5C8E3BB6E"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49837 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750896Ab2KWLae (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:30:34 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121123111811.GA5072@avionic-0098.adnet.avionic-design.de>
+	(Thierry Reding's message of "Fri, 23 Nov 2012 12:18:11 +0100")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: "Philip, Avinash" <avinashphilip@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
---------------enigA448A0F3739DAEE5C8E3BB6E
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+>>>>> "Thierry" == Thierry Reding <thierry.reding@avionic-design.de> writes:
 
-Hi Linus,
+Hi,
 
-Here are a few OMAPDSS fixes for the next -rc. I'm sending these directly=
+ Thierry> Everybody seems to be doing it with a warning, so I guess
+ Thierry> that's fine for now. I just find it strange that if you
+ Thierry> request the default pin group to be selected when in fact the
+ Thierry> hardware doesn't support pinctrl at all you shouldn't be
+ Thierry> getting an error either.
 
-to you, and quite late, as the fbdev tree maintainer (Florian) has been
-busy with his work and hasn't had time to manage the fb patches.
+There's several different situations:
 
- Tomi
+- Platform without pinctrl support
+- Platform with pinctrl support but no pinmux specified in dt for device
+  (E.G. pinmux setup in bootloader)
+- Pinmux specified in dt
+- Some kind of misconfiguration in dt
 
-The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd=
-37:
+You could argue that devm_pinctrl_get_select_default() shouldn't return
+an error for the first situation, but how should it be able to know the
+difference between 2 and 4?
 
-  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
-
-are available in the git repository at:
-
-  git://gitorious.org/linux-omap-dss2/linux.git tags/omapdss-for-3.7-rc
-
-for you to fetch changes up to 8ad9375f8b7c709b89f7de4de413bb2644ba3c24:
-
-  OMAPDSS: do not fail if dpll4_m4_ck is missing (2012-11-22 17:23:12 +02=
-00)
-
-----------------------------------------------------------------
-omapdss fixes for 3.7-rc
-
-----------------------------------------------------------------
-Aaro Koskinen (1):
-      OMAPDSS: do not fail if dpll4_m4_ck is missing
-
-Laurent Pinchart (1):
-      omapdss: dss: Fix clocks on OMAP363x
-
-Tomi Valkeinen (1):
-      OMAPDSS: DSI: fix dsi_get_dsidev_from_id()
-
-Tushar Behera (1):
-      OMAPFB: Fix possible null pointer dereferencing
-
-Wei Yongjun (1):
-      OMAPDSS: HDMI: fix missing unlock on error in hdmi_dump_regs()
-
- drivers/video/omap2/dss/dsi.c             |   13 +++++++++++--
- drivers/video/omap2/dss/dss.c             |   18 +++++++++++-------
- drivers/video/omap2/dss/hdmi.c            |    4 +++-
- drivers/video/omap2/omapfb/omapfb-ioctl.c |    2 +-
- 4 files changed, 26 insertions(+), 11 deletions(-)
-
-
---------------enigA448A0F3739DAEE5C8E3BB6E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQr15TAAoJEPo9qoy8lh71Hd8QAIpyBjUhkApqd4Iq7oqsLrnd
-w3+upaV03DVZLLMIkd8nkkinRaOZ+wMkHcV692nkZr+8lVu0v7CjyvTg41SU7M/B
-fJuxyh6FB/2OdbCF1piEmU/j2SOCB2F+1rtyiC6VeGG5QhCRMxxAjhgV040jcolP
-D+0SOiwcjB7Lm/6/9tEMnNqkJFGc79pNHu2UrXxfh3Tm4sTROuyUBv11AtO2AsVH
-XM2py5B8OK8YIdgAAGDw9w27Flf/e20wLKDKiJ5kuJwKZ+SDecJP3QzvsbWWbmFb
-P1Vzy9EVSntCqtippe3Mf2lgggeiMDIyH5U19E18XKUIsyFdvk7dWsRI3Xj/Y9ih
-4pyP7Cwr754AvQCnScfI7soZ0jn0lCRqLUL5+lEpSCFmy/Hel/fZZmYHdP71OHVy
-t+Z1TBi/8uYRkJ866vapEF5eWEzmy4mqfLPV3l/ucXyS/SMk5qdpckD4TJaZQPTK
-84SRdd7LLSiD1jx00fXgyxOyMDMKSRcS9iLNKHlQ6dVG6H2wHiuYKlGM/whkjivB
-5gRulzEokfUvGA2aSVuL+G/tZLVS7G+UztHyhJDSoPLOfZ3JF+zZguh8qOxOHbPw
-ugM/ipw4rgNhcLVeIa8+ekYsfYDc/s/3XoWsn4VJvyXuEuNEK78vYW8rXFU/LM2K
-sXKA1P7EN3COuUC9nSnA
-=vHfN
------END PGP SIGNATURE-----
-
---------------enigA448A0F3739DAEE5C8E3BB6E--
+-- 
+Bye, Peter Korsgaard
