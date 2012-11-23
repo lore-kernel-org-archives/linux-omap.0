@@ -1,64 +1,72 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: HDMI: Rearrange platform devices for
- ASoC drivers
-Date: Fri, 23 Nov 2012 11:03:06 +0900
-Message-ID: <20121123020305.GI4385@opensource.wolfsonmicro.com>
-References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com>
- <1353029819-21809-3-git-send-email-ricardo.neri@ti.com>
- <50A5F0A5.2010105@ti.com>
- <50A6805C.3050004@ti.com>
- <50AA2D01.5020302@ti.com>
- <20121120011526.GF4483@opensource.wolfsonmicro.com>
- <50AD6FB0.3050808@ti.com>
- <50AE2022.8080607@ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH v2 2/2] ARM: OMAP4+: HDMI: Rearrange platform devices
+ for ASoC drivers
+Date: Thu, 22 Nov 2012 20:03:53 -0600
+Message-ID: <50AED989.40408@ti.com>
+References: <1353029819-21809-1-git-send-email-ricardo.neri@ti.com> <1353029819-21809-3-git-send-email-ricardo.neri@ti.com> <50A5F0A5.2010105@ti.com> <50A6805C.3050004@ti.com> <50AA2D01.5020302@ti.com> <20121120011526.GF4483@opensource.wolfsonmicro.com> <50AD6FB0.3050808@ti.com> <20121122010358.GB4371@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="M9kwpIYUMbI/2cCx"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45582 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758851Ab2KWCDL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Nov 2012 21:03:11 -0500
-Content-Disposition: inline
-In-Reply-To: <50AE2022.8080607@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55329 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756867Ab2KWCE7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Nov 2012 21:04:59 -0500
+In-Reply-To: <20121122010358.GB4371@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ricardo Neri <ricardo.neri@ti.com>, tony@atomide.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, tony@atomide.com, lrg@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
+Hi Mark,
 
---M9kwpIYUMbI/2cCx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 11/21/2012 07:03 PM, Mark Brown wrote:
+> On Wed, Nov 21, 2012 at 06:20:00PM -0600, Ricardo Neri wrote:
+>> On 11/19/2012 07:15 PM, Mark Brown wrote:
+>
+>>> Yes, this would be more sensible if there's no board specifics involved.
+>
+>> I think they are truly board-specific. For instance, there could be
+>> some board that does not have the OMAP HDMI IP wired to an external
+>> connector. We don't want the drivers to be probed in that case. If
+>> they are in common code, the devices will be created even if a board
+>> does not have HDMI output.
+>
+> That's just a case of having a flag in the platform data for the device
+> saying "don't use this port"
+Ok. I guess I can put code so that the devices for ASoC are created only 
+if there are HDMI displays in the omapdss_board_info.devices array.
 
-On Thu, Nov 22, 2012 at 02:52:50PM +0200, Tomi Valkeinen wrote:
+ > as opposed to having the entire ASoC device
 
-> Or is there something in ASoC that forces us to represent it in the
-> .dts? I don't think there's really anything related to HW to describe
+> instantiation infrastructure in there which is rather Linux specific.
+But the board files are only for Linux, right? The ASoC drivers will 
+always be initialized anyways. They will reach probe only if the devices 
+are present.
 
-There shouldn't be.
+>
+>> Something like this:
+>
+>> 	sound_hdmi {
+>> 		compatible = "ti,omap-hdmi-card-audio";
+>> 		ti,model = "OMAP4HDMI";
+>
+>> 		ti,hdmi_audio = <&hdmi>;
+>> 		ti,level_shifter = <&tpd12s015>;
+>> 	};
+>
+>> The ASoC machine driver would create the platform device for the
+>> HDMI codec if the DT has the required nodes.
+>
+> Why not just make this a property of the main HDMI controller - the
+> compatible property here looks like it's describing the Linux specifics
+> not the hardware?
 
---M9kwpIYUMbI/2cCx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I see. So it seems that there will be nothing to add for DT support for 
+HDMI from ASoC. Display code is able to take care of it. BTW, thanks for 
+pointing out the issue with the compatible property, I have not noticed it.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+BR,
 
-iQIcBAEBAgAGBQJQrtlRAAoJELSic+t+oim9oXMP/AvBsFEaO/xC9VBuSyZAVGzV
-XFCjYWsIFJqgd5OVLJ82+BwetebUwaeB8kySudk0Bahn2YTPptJ4Q1K0VY/vIvpN
-pvmpZc/acjOn8qXwxM7J7T78cqSGz4ijd7Qo7J+rGW6FF/WdYy5Z6ZxcDhCopOha
-07J1FYy91XdNzlrlQVA+L8JN2wQZHF2/z03YSuy4fcde7O4kx1FvMVf9LSd+nVt3
-ehoiRnFP4EEF2U43KPo0ABXbjrV6kExXTh850BDO6bALRs5HvWcvm0a35ZqRTbFN
-1b1zL8uJxKSi4l6W10ZjvqAZrDlL5xAKmO3JO2DEqcH3kB8TEs4RKkQFXmC2G3z7
-fNXbXdRYtZZUPVnMVtKn37qFSGyJKqaLa0vv+jvVlsXp67XZ3DEvn0HrGEcGXa1Q
-MA1hX5T5qhrZNHYBzWRs8WEwBHyJ2sAnQMn+R+TWSlusH5kaSlH0JAIXes7zODqK
-U1cxZcLne6RcuDUJNMcGKckE9OPAqYv5/1jyRHDOSVH01H9R3WEm4G6ZzafcVT/9
-skNxqyYrf1ButjMzEACwBdZJMn3ISTV5FB2bYiKektqiHiLt6AwfrlBRp1HotBrK
-x4zmbL8naPQqdcPqjCp+G4bm8t2gN1UfimKSSpoU3ivePow7fTZOk0qJbCEtmJeu
-mMA9ygYSGX4zPHgIoqoR
-=WAgv
------END PGP SIGNATURE-----
-
---M9kwpIYUMbI/2cCx--
+Ricardo
+>
