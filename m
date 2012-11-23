@@ -1,56 +1,45 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] gpio: New driver for GPO emulation using PWM generators
-Date: Fri, 23 Nov 2012 07:55:37 +0000
-Message-ID: <20121123075537.A14713E0A91@localhost>
-References: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Rob Landley <rob@landley.net>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] ARM: dts: am335x-evmsk: Add cpsw phy_id
+Date: Fri, 23 Nov 2012 14:02:14 +0530
+Message-ID: <1353659534-6071-1-git-send-email-mugunthanvnm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47851 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757115Ab2KWIcq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Nov 2012 03:32:46 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: b-cousson@ti.com
+Cc: netdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com, Mugunthan V N <mugunthanvnm@ti.com>
 
-On Thu, 22 Nov 2012 14:42:03 +0100, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> There seams to be board designs using PWM generators as enable/disable signals.
-> For these boards we used to have custom code as hacks to deal with such a
-> situations.
-> With the gpio-pwm driver we can emulate the GPIO functionality using PWM
-> generators via standard interfaces. The PWM will be configured to be off
-> when the GPIO is off and to full duty cycle when the GPIO is requested to be
-> on.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-> Hi Linus,
-> 
-> So this is the driver I came up regarding to the issue that some boards
-> (BeagleBoard for example) are using the PWM generators as enable/disable signal.
-> 
-> On BeagleBoard the situation is like this:
-> TWL4030 PWMA -> TWL4030 LEDA -> nUSBHOST_PWR_EN -> external power switch -> USB
-> host hub power.
-> 
-> So I have tested this driver on BeagleBoard:
-> - Custom code to toggle the GPIO just to see if it switches correctly
-> 
-> - Real life usecase:
-> fixed voltage regulator with GPIO control (the gpio is the gpio-pwm provided).
-> ehci-omap has been modified to allow deferred probe.
-> the regulator is used by ehci-omap.
-> 
-> All works fine.
+Add phy id for CPSW
 
-Ugh. and this is why I wanted the PWM and GPIO subsystems to use the
-same namespace and binding. <grumble, mutter> But that's not your fault.
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+The patch is verified with CPSW patches present in the following git repo
+git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git
 
-It's pretty horrible to have a separate translator node to convert a PWM
-into a GPIO (with output only of course). The gpio properties should
-appear directly in the PWM node itself and the translation code should
-be in either the pwm or the gpio core. I don't think it should look like
-a separate device.
+ arch/arm/boot/dts/am335x-evmsk.dts |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-g.
-
+diff --git a/arch/arm/boot/dts/am335x-evmsk.dts b/arch/arm/boot/dts/am335x-evmsk.dts
+index 6f53879..c629086 100644
+--- a/arch/arm/boot/dts/am335x-evmsk.dts
++++ b/arch/arm/boot/dts/am335x-evmsk.dts
+@@ -164,3 +164,11 @@
+ 		};
+ 	};
+ };
++
++&cpsw_emac0 {
++	phy_id = <&davinci_mdio>, <0>;
++};
++
++&cpsw_emac1 {
++	phy_id = <&davinci_mdio>, <1>;
++};
 -- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies, Ltd.
+1.7.0.4
+
