@@ -1,34 +1,46 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
- ETH when not in use
-Date: Fri, 23 Nov 2012 11:27:34 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1211231125350.1734-100000@iolanthe.rowland.org>
-References: <20121123103817.GC29585@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] remaining omap multiplatform patches for v3.8
+ merge window
+Date: Fri, 23 Nov 2012 08:54:15 -0800
+Message-ID: <20121123165414.GE5279@atomide.com>
+References: <20121121174201.25576.61961.stgit@muffinssi.local>
+ <20121122202431.GS3332@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20121123103817.GC29585-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:43229 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753594Ab2KWQyY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Nov 2012 11:54:24 -0500
+Content-Disposition: inline
+In-Reply-To: <20121122202431.GS3332@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, 23 Nov 2012, Felipe Balbi wrote:
-
-> > And maybe the same sort of scheme could be used for clocks, although I 
-> > don't know how to do it in a generic way that will work on all 
-> > platforms.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [121122 12:26]:
+> On Wed, Nov 21, 2012 at 09:42:19AM -0800, Tony Lindgren wrote:
+> > There are few drivers still breaking because of their
+> > use of plat/cpu.h and cpu_is_omap macros. The following
+> > already have patches queued in linux next:
+> > 
+> > - drivers/staging/omapdrm/omap_drv.c
+> > - drivers/staging/omapdrm/omap_dmm_tiler.h
 > 
-> perhaps making use of pm_clk_add() and letting PM layer do the rest for
-> us ? If that doesn't work then it means PM layer's clk handling could be
-> improved, I suppose.
+> Note that there's a bunch of OMAP drivers in staging which are trivially
+> broken anyway; I've not been bothering to report their breakages which
+> my build system is finding - I figure that if they're trivially broken
+> with compile time errors which aren't config related, and no one's
+> bothering to fixing them, then no one is even trying to build them -
+> which means they're not being used.
 
-Is the clock framework sufficiently generic at this point that it can
-be used by core code (like the PM layer)?
+Do you have a list of the broken drivers somewhere?
+ 
+> And if they're not being used, it's pointless them being in mainline.
 
-Alan Stern
+Yes makes sense to me.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
