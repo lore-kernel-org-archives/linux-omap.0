@@ -1,46 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] remaining omap multiplatform patches for v3.8
- merge window
-Date: Fri, 23 Nov 2012 08:54:15 -0800
-Message-ID: <20121123165414.GE5279@atomide.com>
-References: <20121121174201.25576.61961.stgit@muffinssi.local>
- <20121122202431.GS3332@n2100.arm.linux.org.uk>
+From: Igor Mazanov <i.mazanov@gmail.com>
+Subject: Re: [PATCH v3 5/5] ARM: OMAP2+: omap2plus_defconfig: Enable RTC support
+Date: Fri, 23 Nov 2012 20:55:07 +0400
+Message-ID: <50AFAA6B.9020706@gmail.com>
+References: <1353404927-14412-1-git-send-email-anilkumar@ti.com> <1353404927-14412-6-git-send-email-anilkumar@ti.com>
+Reply-To: i.mazanov@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:43229 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753594Ab2KWQyY (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:48851 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753564Ab2KWQyY (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Nov 2012 11:54:24 -0500
-Content-Disposition: inline
-In-Reply-To: <20121122202431.GS3332@n2100.arm.linux.org.uk>
+Received: by mail-lb0-f174.google.com with SMTP id gi11so4339706lbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 23 Nov 2012 08:54:23 -0800 (PST)
+In-Reply-To: <1353404927-14412-6-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: anilkumar@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [121122 12:26]:
-> On Wed, Nov 21, 2012 at 09:42:19AM -0800, Tony Lindgren wrote:
-> > There are few drivers still breaking because of their
-> > use of plat/cpu.h and cpu_is_omap macros. The following
-> > already have patches queued in linux next:
-> > 
-> > - drivers/staging/omapdrm/omap_drv.c
-> > - drivers/staging/omapdrm/omap_dmm_tiler.h
+AnilKumar Ch wrote:
+> AM33XX family of devices uses RTC module, one has to manually enable
+> this support to use RTC features. So this patch enable RTC driver in
+> omap2plus_defconfig.
 > 
-> Note that there's a bunch of OMAP drivers in staging which are trivially
-> broken anyway; I've not been bothering to report their breakages which
-> my build system is finding - I figure that if they're trivially broken
-> with compile time errors which aren't config related, and no one's
-> bothering to fixing them, then no one is even trying to build them -
-> which means they're not being used.
+> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/configs/omap2plus_defconfig |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index a4b330e..8839ac9 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -194,6 +194,7 @@ CONFIG_SDIO_UART=y
+>  CONFIG_MMC_OMAP=y
+>  CONFIG_MMC_OMAP_HS=y
+>  CONFIG_RTC_CLASS=y
+> +CONFIG_RTC_DRV_OMAP=y
+>  CONFIG_RTC_DRV_TWL92330=y
+>  CONFIG_RTC_DRV_TWL4030=y
+>  CONFIG_DMADEVICES=y
 
-Do you have a list of the broken drivers somewhere?
- 
-> And if they're not being used, it's pointless them being in mainline.
+Hello,
 
-Yes makes sense to me.
+But this is not enough, we need to change drivers/rtc/Kconfig too. This change 
+was offered in this thread
+
+http://marc.info/?l=linux-arm-kernel&m=135057569913027&w=2
+
+But, may be all this previous rtc-related changes accounted already in some 
+development branch. I just doesn't see it in the current master. In this case, 
+when could we get RTC support in the current kernel?
 
 Regards,
-
-Tony
+Igor.
