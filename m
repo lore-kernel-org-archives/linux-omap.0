@@ -1,69 +1,75 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v3 1/3] pwm: Remove pwm-twl6030 driver
-Date: Fri, 23 Nov 2012 16:05:48 +0100
-Message-ID: <20121123150548.GC16810@avionic-0098.adnet.avionic-design.de>
-References: <1353405382-9226-1-git-send-email-peter.ujfalusi@ti.com>
- <1353405382-9226-2-git-send-email-peter.ujfalusi@ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: omap DSS fails with tft410 driver panel?
+Date: Fri, 23 Nov 2012 07:20:04 -0800
+Message-ID: <CAGDS+nncx71OL7tiwEot6RcyFxipj_SVg=z5Sg-Qdv2n4iyL2A@mail.gmail.com>
+References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com>
+	<CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com>
+	<50ADE6A5.3030001@ti.com>
+	<CAGDS+nm2YVNyq+eAF-VSq785KAKWC2GM4v5U7N1vLGTNNDfa7Q@mail.gmail.com>
+	<50AF37EA.3080400@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ALfTUftag+2gvp1h"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51905 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798Ab2KWPGE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Nov 2012 10:06:04 -0500
-Content-Disposition: inline
-In-Reply-To: <1353405382-9226-2-git-send-email-peter.ujfalusi@ti.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:46927 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752013Ab2KWPUF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Nov 2012 10:20:05 -0500
+Received: by mail-oa0-f46.google.com with SMTP id h16so8963365oag.19
+        for <linux-omap@vger.kernel.org>; Fri, 23 Nov 2012 07:20:05 -0800 (PST)
+In-Reply-To: <50AF37EA.3080400@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
+
+On Fri, Nov 23, 2012 at 12:46 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 
 
---ALfTUftag+2gvp1h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Ok, so hmm... So the overlay is disabled, and the paddr is zero. Can you
+> put a printk at dss/apply.c:dss_olv_set_info, and print ovl->id and
+> info->paddr? And perhaps also to omapfb-main.c:omapfb_setup_overlay, at
+> the point where it sets info.paddr, as I think that's the only place
+> where omapfb sets paddr.
 
-On Tue, Nov 20, 2012 at 10:56:20AM +0100, Peter Ujfalusi wrote:
-> This driver only supported the Charging indicator LED.
-> New set of drivers going to provide support for both PWMs and LEDs for tw=
-l4030
-> and twl6030 series of PMICs.
->=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  drivers/pwm/Kconfig       |   9 ---
->  drivers/pwm/Makefile      |   1 -
->  drivers/pwm/pwm-twl6030.c | 184 ----------------------------------------=
-------
->  3 files changed, 194 deletions(-)
->  delete mode 100644 drivers/pwm/pwm-twl6030.c
+OK, did that and here is what I get when starting up gdm, prior to
+that all is normal
 
-I think I'd rather see this patch as the last in the series to make sure
-that no functionality is dropped across the series.
+root@omap3-multi:~# systemctl start gdm.service
+Starting Gnome Display Manager...
+Started Gnome Display Manager                                          [  OK  ]
+root@omap3-multi:~# [   83.475128] omapfb_setup_plane entry
+[   83.479492] setup_overlay 0, posx 0, posy 0, outw 1024, outh 768
+[   83.485809] omapfb_setup_overlay: setting info.paddr = 9f400000
+[   83.492431] dss_ovl_set_info entry
+[   83.496307]     ovl->id = 0
+[   83.499267]     info->paddr = 9f400000
+[   83.503601] omapfb_setup_plane: return success
+[   83.508697] omapfb_setup_plane entry
+[   83.513153] dss_ovl_set_info entry
+[   83.516723]     ovl->id = 2
+[   83.520111]     info->paddr = 0
+[   83.523406] omapdss OVERLAY error: check_overlay: paddr cannot be 0
+[   83.530426] omapfb_setup_plane: !pi->enabled & ovl->set_overlay_info
+[   83.537414] dss_ovl_set_info entry
+[   83.540985]     ovl->id = 2
+[   83.544250]     info->paddr = 0
+[   83.547546] omapdss OVERLAY error: check_overlay: paddr cannot be 0
 
-Thierry
+<repeats  as X dies and restarts>
 
---ALfTUftag+2gvp1h
-Content-Type: application/pgp-signature
+> I don't know what's going on there, why the paddr is suddenly zero.
+> Looking at the log from Enric, SETUP_PLANE works fine just fine, and
+> then, for no reason, next SETUP_PLANE fails, and the log doesn't show
+> anything much happening between.
+>
+> However, I think omapdss may have been more permissive in the past,
+> allowing paddr 0 if the overlay is disabled. I could add that back, but
+> I'd rather first understand what's happening here.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+>From the above it seems that the first SETUP_PLANE is for ovl->id = 0
+and then those that fail are for ovl->id =2.
 
-iQIcBAEBAgAGBQJQr5DMAAoJEN0jrNd/PrOh3rYQAL37GU4RrcHvhhlTyRomyeZi
-89Z9J/D7EJ2X/c639JRkXXuGZuZCLl1PNcxYPMsx42+rhaU15WDTFgs37MEdnAmo
-tjB/ljq/pYHdThBaizb+ZJC9xUzVhdsyQJohmmD/K7OF7e84bVQ7GkD3ERCvSk7S
-IxMpvkTH/nO5eM7F9GqthWkUqRBCspu+MuhzYfgv0QFkKs8BhzSKx0QH2GFr2bhn
-KKcbDoHbLLROeSfOE7WT5QbF+emOs5QcXDhQvm/y44NwZsvUor8x2PA89Ht5aopK
-WegFcaf3XSutoNBdrJRm3CKl2tIhsIKYmH4Wg2Rj54JtVhJKHzlH0wz5cL6D6A4v
-IUV1KFOQNUDJOrCwYkKb8vkYyzC7WhuU0q90MWJptHLeBYYBdz72cSHvzgsfL2HZ
-8v0D6ktwUUVOJvDGz0I6eqbGpds9dn7JMkUZwq9CNd65XAydteoDMclA7chYNPsR
-LuL1qSjqLk0xDJEVPIlflR2k6Dk3uQoRTCOf8QCB+HoCbfrqEyhfYwtanr0vgafX
-rn2ovXHDRTFrQ+ggMRpkGD1OCgekZuxNY+5C/yumsNgVQIjMCMJkPba8q3G5fI+g
-4eYG3K51z2l0eCXfBaXA5Q+K0nWQq379wyQ1tStX6zG4SPWRPVeFFinl7ainQmrQ
-4ZoN2a8JfZchAAeSG7VU
-=eI/N
------END PGP SIGNATURE-----
+No idea what is going on in user space, but maybe this will mean
+something to you :-)
 
---ALfTUftag+2gvp1h--
+Steve
