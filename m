@@ -1,60 +1,52 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH v4 10/11] ARM: dts: AM33XX: Add PWM backlight DT data to
- am335x-evm
+From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v4 09/11] ARM: dts: AM33XX: Add PWMSS device tree nodes
 Date: Fri, 23 Nov 2012 10:35:01 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3E9EE9AE@DBDE01.ent.ti.com>
+Message-ID: <518397C60809E147AF5323E0420B992E3E9EE9A9@DBDE01.ent.ti.com>
 References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
- <1353503469-18634-11-git-send-email-avinashphilip@ti.com>
- <20121122211147.GI16716@avionic-0098.adnet.avionic-design.de>
+ <1353503469-18634-10-git-send-email-avinashphilip@ti.com>
+ <20121122210857.GH16716@avionic-0098.adnet.avionic-design.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121122211147.GI16716@avionic-0098.adnet.avionic-design.de>
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121122210857.GH16716-RM9K5IK7kjIyiCvfTdI0JKcOhU4Rzj621B7CTYaBSLdn68oJJulU0Q@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
+Cc: "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hebbar,
+ Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Nov 23, 2012 at 02:41:47, Thierry Reding wrote:
-> On Wed, Nov 21, 2012 at 06:41:07PM +0530, Philip, Avinash wrote:
-> [...]
-> > diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> > index 9f65f17..4178ba4 100644
-> > --- a/arch/arm/boot/dts/am335x-evm.dts
-> > +++ b/arch/arm/boot/dts/am335x-evm.dts
-> > @@ -44,6 +44,12 @@
-> >  				0x154 0x27	/* spi0_d0.gpio0_3, INPUT | MODE7 */
-> >  			>;
-> >  		};
-> > +
-> > +		ecap0_pins: backlight_pins {
-> > +			pinctrl-single,pins = <
-> > +				0x164 0x0	/* eCAP0_in_PWM0_out.eCAP0_in_PWM0_out MODE0 */
-> > +			>;
+On Fri, Nov 23, 2012 at 02:38:57, Thierry Reding wrote:
+> On Wed, Nov 21, 2012 at 06:41:06PM +0530, Philip, Avinash wrote:
+> > Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
+> > AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
+> > adding necessary properties like pwm-cells, base reg & set disabled as
+> > status.
+> > 
+> > Signed-off-by: Philip, Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+> > ---
+> > Changes since v2:
+> > 	- ranges property populated to handle child devices address range
+> > 
+> > :100644 100644 20a3f29... 4393161... M	arch/arm/boot/dts/am33xx.dtsi
+> >  arch/arm/boot/dts/am33xx.dtsi |   84 +++++++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 84 insertions(+), 0 deletions(-)
 > 
-> This looks kind of funky, but I see the rest of the file uses similar
-> formatting, so I guess it's okay.
-> 
-> > @@ -158,6 +174,13 @@
-> >  			gpio-key,wakeup;
-> >  		};
-> >  	};
-> > +
-> > +	backlight {
-> > +		compatible	= "pwm-backlight";
-> 
-> Maybe you don't want a tab between "compatible" and "=", but a space
-> instead.
-
-I will correct it.
+> Looks good to me,
 
 Thanks
 Avinash
 
 > 
-> Other than that, looks good:
-> 
-> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Reviewed-by: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
 > 
