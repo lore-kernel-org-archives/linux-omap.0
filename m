@@ -1,99 +1,70 @@
-From: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
-Subject: Re: [PATCH v4 05/11] pwm: pwm-tiecap: pinctrl support
-Date: Fri, 23 Nov 2012 11:51:10 +0100
-Message-ID: <20121123105110.GA6884@avionic-0098.adnet.avionic-design.de>
-References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
- <1353503469-18634-6-git-send-email-avinashphilip@ti.com>
- <20121122205944.GC16716@avionic-0098.adnet.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E9EE991@DBDE01.ent.ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH v4 3/3] ARM: OMAP: gpmc: add DT bindings for GPMC timings
+ and NAND
+Date: Fri, 23 Nov 2012 11:55:12 +0100
+Message-ID: <50AF5610.7010505@gmail.com>
+References: <1353338956-19420-1-git-send-email-zonque@gmail.com> <1353338956-19420-4-git-send-email-zonque@gmail.com> <87zk2djox6.fsf@dell.be.48ers.dk> <50AF51AF.4050003@gmail.com> <87vccwegu2.fsf@dell.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2036185243435225448=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E9EE991-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Cc: "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hebbar,
- Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Id: linux-omap@vger.kernel.org
-
-
---===============2036185243435225448==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Content-Disposition: inline
-
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Nov 23, 2012 at 10:34:02AM +0000, Philip, Avinash wrote:
-> On Fri, Nov 23, 2012 at 02:29:44, Thierry Reding wrote:
-> > On Wed, Nov 21, 2012 at 06:41:02PM +0530, Philip, Avinash wrote:
-> > [...]
-> > > +	pinctrl =3D devm_pinctrl_get_select_default(&pdev->dev);
-> > > +	if (IS_ERR(pinctrl))
-> > > +		dev_warn(&pdev->dev, "failed to configure pins from driver\n");
-> >=20
-> > I think we already discussed this, but shouldn't this be a fatal error?
->=20
-> I had checked relevant discussion and found this can be warning message.
-> This is because most boards don't have pinctrl implemented at this point,
-> or may never have.
->=20
-> https://lkml.org/lkml/2012/9/11/369
->=20
-> Any way I will change to
-> dev_warn(&pdev->dev, "unable to select pin group\n");
-> as in other drivers.
-
-But in case pinctrl isn't implemented, shouldn't the implementation of
-devm_pinctrl_get_select_default() just be a no-op?
-
-Thierry
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQr1UeAAoJEN0jrNd/PrOhtp0P/3jPxTmRN9ImONWDo9JSKADw
-qWlakenC0K01Q+q4bd4kGlwfLEFQqT4OxRTng5/E6UPgNEb1EeMjYltbpLacEN44
-lpT859vobtjTAC3hSjJ+M+2uH0LKLflzN2OBXdwKXdr2VHpdrD58KqFSt5pKoTKH
-fdyMHdbfGw0gFKDGgh7/4zqj4wOCF1GmjZ+cVGIDRkpCCMW9qXXQ83bE+0CGkx4E
-iVPOOLODN/poWkAg4wVOnHU9AVt64IdSuTX+nzKrdZRgsyyw9lHxhJy9WDVli98h
-2PXypzzy8yxj01rSPyUoQkt6qfu9hNWIKOLbKmFh7DnSJLrsm8ywqVmWIaJt1Jxv
-N8/hfNyGaslUhwk6wQPNFWYFsT5mqeAH7GYMyeHbKgZo8XtoHkDuEUu3C0Zbjx5R
-fG/GzbHxACqfBeF6xoWopjczxmrmYwhmGE4Jrc8PDWMEqQtwzhBZQGiBFbGRpVdn
-am5s3VN7HfinTPhOjl7wCUv/+cksU3LN4NnU+QOd8V0vA7+Hmcuy0Px5qh6Hr2IV
-WyEwA8/+wWndDit1944llxV9FJiAeig4h61X2iYRPmbCok3jyBSfnLtvFC9nmuif
-OuijIcQzdhJA9986sPYjVO73lF1l19wShYOVFAdYGjN4TpuXnCxmxh3Vaj4kw9Zx
-ZHZPuc1cKGaZlRBHz6ck
-=0Z07
------END PGP SIGNATURE-----
-
---Nq2Wo0NMKNjxTN9z--
-
---===============2036185243435225448==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:61204 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753640Ab2KWKzU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Nov 2012 05:55:20 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so3785903bkw.19
+        for <linux-omap@vger.kernel.org>; Fri, 23 Nov 2012 02:55:18 -0800 (PST)
+In-Reply-To: <87vccwegu2.fsf@dell.be.48ers.dk>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com
 
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
+On 23.11.2012 11:47, Peter Korsgaard wrote:
+>>>>>> "Daniel" == Daniel Mack <zonque@gmail.com> writes:
+> 
+> Hi,
+> 
+>  D> +	Layouts for 1-bit ecc: stored at beginning of spare area as romcode:
+>  D> +
+>  D> +		"hw-romcode"	gpmc method & romcode layout
+>  D> +		"bch4"		4-bit BCH ecc code
+>  D> +		"bch8"		8-bit BCH ecc code
+>  D> +
+>  >> 
+>  >> These are not 1-bit - Well, romcode might be depending on SoC. Looking at
+>  >> omap2.c it seems to be an alias for hw, so that isn't really helpful on
+>  >> E.G. am33xx where you should select bch8 to have something compatible
+>  >> with the romcode.
+> 
+>  Daniel> Not sure whether I follow you here. drivers/mtd/nand/omap2.c handles
+>  Daniel> cases for pdata->ecc_opt == OMAP_ECC_BCH8_CODE_HW, so the DT bindings
+>  Daniel> need to offer a way to set it.
+> 
+>  Daniel> Or are you purely referring to the comments only?
+> 
+> Yes, but the document states (the first line I'm quotinge) 'Layouts for
+> 1-bit ecc'.
 
---===============2036185243435225448==--
+Ok, I guess I'll just remove these comments then.
+
+> The other comment was about hw-romcode not being a very good
+> name, as it apparently means the 1bit hamming code and ECC layout used
+> on the older omap3, and not E.G. the bch8/elm layout used by
+> E.G. am335x.
+
+So which name would you pick? "bch1"?
+
+> As discussed elsewhere, the elm also changes the ECC layout, so why not
+> just have bchN (software bchN layout) / bchN-elm selections instead of
+> the seperate ti,nand-ecc-use-elm?
+
+Avinash - what do you think?
+
+
+Thanks for the feedback - I'd also like to get these bindings right in
+the first place.
+
+
+Daniel
+
