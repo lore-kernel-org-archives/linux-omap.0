@@ -1,118 +1,125 @@
-From: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
-Subject: Re: [PATCH v4 05/11] pwm: pwm-tiecap: pinctrl support
-Date: Sat, 24 Nov 2012 21:34:23 +0100
-Message-ID: <20121124203423.GA26951@avionic-0098.adnet.avionic-design.de>
-References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
- <1353503469-18634-6-git-send-email-avinashphilip@ti.com>
- <20121122205944.GC16716@avionic-0098.adnet.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E9EE991@DBDE01.ent.ti.com>
- <20121123105110.GA6884@avionic-0098.adnet.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E9EEAAA@DBDE01.ent.ti.com>
- <20121123111811.GA5072@avionic-0098.adnet.avionic-design.de>
- <87mwy8eb7w.fsf@dell.be.48ers.dk>
+From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
+ ETH when not in use
+Date: Sun, 25 Nov 2012 06:00:53 +0800
+Message-ID: <50B14395.4010404@linaro.org>
+References: <Pine.LNX.4.44L0.1211241032490.4291-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1138786865794796498=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <87mwy8eb7w.fsf-D6SC8u56vOOJDPpyT6T3/w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Peter Korsgaard <jacmet-OfajU3CKLf1/SzgSGea1oA@public.gmane.org>
-Cc: "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hebbar,
- Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>, "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1211241032490.4291-100000-pYrvlCTfrz9XsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
+On 11/24/12 23:38, the mail apparently from Alan Stern included:
+> On Sat, 24 Nov 2012, Andy Green wrote:
+>
+>> If we're just looking at fixing the current "magic regulator name"
+>> scheme of "hsusb0" so that it can work with abstract devices like an=
+y
+>> hub / port, we could invert what my original "device path" scheme di=
+d.
+>>
+>> So instead of having a parser (which boiled down quite small, but is
+>> complicated by usb%d being the same for different usb drivers), we c=
+ould
+>> just add a helper function that walks the device parents to generate=
+ a
+>> string representing the device instance.  Like
+>>
+>> int device_path_generate(struct device *device, char *name, int len)=
+;
+>>
+>> if you called it from the hub driver's probe function (or anything
+>> else's probe function) with the new hub device pointer, it might fil=
+l
+>> name with "ehci1/usbhub1-1/1-1.1" or somesuch.
+>
+> It's not that simple.  In your example, the very same device might sh=
+ow
+> up, after rebooting, as "ehci2/usbhub2-1/2-1.1".  Even if a more or
+> less stable name for the controller is used, the bus-number parts of
+> the name (the '2's in this example) are always subject to change.  Th=
+e
 
---===============1138786865794796498==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
-Content-Disposition: inline
+Agreed; I pointed this out in a previous mail in this thread already,=20
+after someone else pointed it out to me some months ago.  Indeed we=20
+can't use "usb%d", the nth "usb" bus because the ordering of driver=20
+insertion for the various drivers that can create "usb%d"s breaks the=20
+determinism of it.
 
+So we can only use in the matching paths a %d that represents the nth=20
+instance of a device from a specific driver, the "nth ehci host=20
+controller" for example.
 
---6c2NcOVqGQ03X4Wi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> device_path_generate routine would have to possess special knowledge
+> about the USB subsystem's naming scheme to generate a truly stable
+> name.
 
-On Fri, Nov 23, 2012 at 01:48:51PM +0100, Peter Korsgaard wrote:
-> >>>>> "Thierry" =3D=3D Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org> =
-writes:
->=20
-> Hi,
->=20
->  Thierry> Everybody seems to be doing it with a warning, so I guess
->  Thierry> that's fine for now. I just find it strange that if you
->  Thierry> request the default pin group to be selected when in fact the
->  Thierry> hardware doesn't support pinctrl at all you shouldn't be
->  Thierry> getting an error either.
->=20
-> There's several different situations:
->=20
-> - Platform without pinctrl support
-> - Platform with pinctrl support but no pinmux specified in dt for device
->   (E.G. pinmux setup in bootloader)
-> - Pinmux specified in dt
-> - Some kind of misconfiguration in dt
->=20
-> You could argue that devm_pinctrl_get_select_default() shouldn't return
-> an error for the first situation, but how should it be able to know the
-> difference between 2 and 4?
+I think there's enough info exposed to do everything generically with n=
+o=20
+access to driver-private info.
 
-In case where the platform supports pinctrl but no pinmux is specified
-for the device it should just assume that no pinmuxing is needed. That
-sounds like the most logical behaviour to me. In those cases pinctrl
-could just assume that the default has already been selected and not
-return an error.
+When walking struct device "path" one of the things we know at each=20
+stage is matched driver name.  So we might meet a device of name "usb2"=
+=20
+but afaik we can trivially also see the matched driver has the name=20
+"ehci-hcd".
 
-But you can't reasonably expect to cope with misconfigured DT content.
-Heck, there's no way for you to even know if it is misconfigured.
+If we can walk a list of "usb%d"s, we can determine that our device is=20
+the nth device of that type belonging to "ehci-hcd" driver.  That list=20
+may be nondeterministic in terms of drivers getting modprobed in and=20
+out, say inserting themselves randomly in the ordering of the list=20
+before and after we modprobe ehci-hcd, but afaics no amount of insertio=
+n=20
+or removal will change the sequencing of other entries of the same type=
+=20
+already there (first ehci-hcd one will always appear in the list in the=
+=20
+same relative order to the second ehci-hcd one).  I think this would be=
+=20
+reliable for getting as far as "ehci1/" and it's generic code walking=20
+device path and bus member lists that will work on all buses with that=20
+problem.
 
-That said, I'm not sure how much of an issue this really is. Pinmuxing
-is only used for functions local to a given chip, right? So if an SoC
-supports pinctrl and a given peripheral needs pinmuxing then we can
-reasonably assume that your second case can't happen, can't we?
+> Presumably the same would hold for other subsystems too.
 
-Thierry
+Although it looks like that method will bounce off of usbhub%d since th=
+e=20
+driver name does not vary, I think it can also be alright.
 
---6c2NcOVqGQ03X4Wi
-Content-Type: application/pgp-signature
+If we can walk a list of usbhubs finding the ones that have the same=20
+parent pointer as the parent we arrived at in our walking, we should=20
+again get an ordinal we can use representing the nth hub on that=20
+particular host controller.  Afaics that should work for m hub levels=20
+too if we just filter by an opaque parent device pointer.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+Of course the code should not particularly know it's looking at "usb%d"=
+=20
+or "usbhub" just generic buses or classes or whatever it sees in use=20
+while walking the device path.  And although there's some walking aroun=
+d=20
+described, we only do it at probe time and only for devices that are=20
+interested in getting a deterministic device name to bind assets with.
 
-iQIcBAEBAgAGBQJQsS9PAAoJEN0jrNd/PrOha9oP/RS/X0G6dTICS4zTToAOG48Y
-BXZfFk6WqdhIFygeHfB1cQgO5zoitWTiH1/D5zA4yUIoJrgn670wZkN59b8uWhei
-vVfh6QmKfEIASd6DkQUFAuXibTLUBy/E5kcWpRZbQ5DZNOSU4NktrsLIYBG6DfAu
-O4FSZmw+TppRyuHvi/JG3WAyV0h2wfXTH259+nIJJM+iqPxnRQTZi+rAFwFL+vij
-r2BHZ17ozg5pXIaxEXwfNXCO9SE8LpX9d/Sxe1Er+ZwxstS9X2LTrlwU3JGu31zQ
-xoD/NpswTmgm9hUcbjZogpUsBAF52dmWC8dYOntF9MEO4Vzu2lj8T7fc+/FyuZ2H
-GQV7fdfFKRK7uBwAzUCTSswsemvRp0MCMHrx9RziuKEZGXjCoitqUVQpFxMkMkNT
-H8aYbXpUrWRdN+mvQrEbnR8Ts20hCQr2x8ioIeqCLXRefzPPRtj6mbg2kPQkd+pm
-ED2OvCU8PH+yl1iKX/rg29cHdQPHxNYlt63s0TQwfs5NjIjle039o1oLaoed/wcr
-+P288bxV4XEtlN0rwWdKiQhCIJgZ4E692nMoLcLO0LgM3rIraNVtnoOctqfTsfsG
-0YR5mxudEZQAS75EFGaM9cFf8fatw+AMC64jPmmFGr7VT0n6HA+W5UE28ZtbqEIC
-G1gK/343v+RBoCIbuJsc
-=V52s
------END PGP SIGNATURE-----
+The above is logically workable I think but to find out if it's=20
+practical to "walk usbhubs" and so on for me anyway the code needs to b=
+e=20
+attempted.  So I'm curious if you see any flaw already with this scheme=
+=2E
 
---6c2NcOVqGQ03X4Wi--
+-Andy
 
---===============1138786865794796498==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============1138786865794796498==--
+--=20
+Andy Green | TI Landing Team Leader
+Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
+http://facebook.com/pages/Linaro/155974581091106  -=20
+http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
