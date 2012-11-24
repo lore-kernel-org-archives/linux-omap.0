@@ -1,41 +1,49 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/1] ARM: OMAP3: igep0020: default boot status LED to On instead of Heartbeat
-Date: Sat, 24 Nov 2012 09:29:31 +0100
-Message-ID: <1353745771-29983-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:42273 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314Ab2KXI3r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Nov 2012 03:29:47 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] input: twl4030-pwrbutton: Change
+ TWL4030_MODULE_PM_MASTER to TWL_MODULE_PM_MASTER
+Date: Sat, 24 Nov 2012 00:32:03 -0800
+Message-ID: <20121124083203.GF24711@core.coreip.homeip.net>
+References: <1352799508-22212-1-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1352799508-22212-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-The IGEPv2 board uses an green GPIO LED to inform the user
-that the kernel could boot.
+On Tue, Nov 13, 2012 at 10:38:28AM +0100, Peter Ujfalusi wrote:
+> To facilitate upcoming cleanup in twl stack.
+> No functional changes.
 
-The green status GPIO LED was default to Heartbeat but On
-is better to signal that is running correctly.
+Applied, thank you Peter.
+ 
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/input/misc/twl4030-pwrbutton.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/input/misc/twl4030-pwrbutton.c b/drivers/input/misc/twl4030-pwrbutton.c
+> index b3dd96d..27c2bc8 100644
+> --- a/drivers/input/misc/twl4030-pwrbutton.c
+> +++ b/drivers/input/misc/twl4030-pwrbutton.c
+> @@ -39,8 +39,7 @@ static irqreturn_t powerbutton_irq(int irq, void *_pwr)
+>  	int err;
+>  	u8 value;
+>  
+> -	err = twl_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &value,
+> -				STS_HW_CONDITIONS);
+> +	err = twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &value, STS_HW_CONDITIONS);
+>  	if (!err)  {
+>  		pm_wakeup_event(pwr->dev.parent, 0);
+>  		input_report_key(pwr, KEY_POWER, value & PWR_PWRON_IRQ);
+> -- 
+> 1.8.0
+> 
+> 
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- arch/arm/mach-omap2/board-igep0020.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 0f24cb8..e526228 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -313,7 +313,7 @@ static struct gpio_led igep_gpio_leds[] = {
- 	},
- 	[3] = {
- 		.name			= "gpio-led:green:d1",
--		.default_trigger	= "heartbeat",
-+		.default_trigger	= "default-on",
- 		.gpio			= -EINVAL, /* gets replaced */
- 		.active_low		= 1,
- 	},
 -- 
-1.7.7.6
-
+Dmitry
