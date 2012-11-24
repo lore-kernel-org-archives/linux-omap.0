@@ -1,142 +1,128 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 4/6] ARM: OMAP3xxx: CPUIdle: optimize __omap3_enter_idle()
-Date: Fri, 23 Nov 2012 20:42:37 -0700
-Message-ID: <20121124034236.24638.93974.stgit@dusk.lan>
+Subject: [PATCH 5/6] ARM: OMAP4: MPUSS PM: remove unnecessary shim functions
+ for powerdomain control
+Date: Fri, 23 Nov 2012 20:42:38 -0700
+Message-ID: <20121124034237.24638.3621.stgit@dusk.lan>
 References: <20121124033809.24638.11090.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57026 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:57028 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932598Ab2KXDoR (ORCPT
+	with ESMTP id S932609Ab2KXDoR (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Nov 2012 22:44:17 -0500
 In-Reply-To: <20121124033809.24638.11090.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Avoid programming the MPU and CORE powerdomain next-power-state
-registers if those powerdomains will never enter low-power states
-(e.g., the state that people refer to as "C1").
-
-To avoid making assumptions about CPUIdle states based on their order
-in the list, use a flag to mark CPUIdle states that don't enter
-powerdomain low-power states.
-
-Avoid a previous-power-state register read on the MPU powerdomain
-unless we know that the MPU was supposed to go OFF during the last
-state transition.  Previous-power-state register reads can be very
-expensive, so it's worth avoiding these when possible.
-
-Since the CORE_L3 clockdomain can't go inactive unless the MPU is active,
-there's little point blocking autoidle on the CORE_L3 clockdomain in "C1"
-state, since we've programmed the MPU clockdomain to stay active.
-Remove the unnecessary code.
+The OMAP4 MPU subsystem power management code contains several unnecessary
+shim functions for powerdomain control; remove them.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   35 ++++++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |   43 +++++------------------------
+ 1 file changed, 7 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 0067467..ad70220 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -39,9 +39,21 @@ struct omap3_idle_statedata {
- 	u8 mpu_state;
- 	u8 core_state;
- 	u8 per_min_state;
-+	u8 flags;
- };
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 3f5fd7e..80d4742 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -86,37 +86,6 @@ static inline void set_cpu_wakeup_addr(unsigned int cpu_id, u32 addr)
+ }
  
  /*
-+ * Possible flag bits for struct omap3_idle_statedata.flags:
-+ *
-+ * OMAP_CPUIDLE_CX_NO_CLKDM_IDLE: don't allow the MPU clockdomain to go
-+ *    inactive.  This in turn prevents the MPU DPLL from entering autoidle
-+ *    mode, so wakeup latency is greatly reduced, at the cost of additional
-+ *    energy consumption.  This also prevents the CORE clockdomain from
-+ *    entering idle.
-+ */
-+#define OMAP_CPUIDLE_CX_NO_CLKDM_IDLE		BIT(0)
-+
-+/*
-  * Prevent PER OFF if CORE is not in RETention or OFF as this would
-  * disable PER wakeups completely.
+- * Set the CPUx powerdomain's previous power state
+- */
+-static inline void set_cpu_next_pwrst(unsigned int cpu_id,
+-				unsigned int power_state)
+-{
+-	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu_id);
+-
+-	pwrdm_set_next_pwrst(pm_info->pwrdm, power_state);
+-}
+-
+-/*
+- * Read CPU's previous power state
+- */
+-static inline unsigned int read_cpu_prev_pwrst(unsigned int cpu_id)
+-{
+-	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu_id);
+-
+-	return pwrdm_read_prev_pwrst(pm_info->pwrdm);
+-}
+-
+-/*
+- * Clear the CPUx powerdomain's previous power state
+- */
+-static inline void clear_cpu_prev_pwrst(unsigned int cpu_id)
+-{
+-	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu_id);
+-
+-	pwrdm_clear_all_prev_pwrst(pm_info->pwrdm);
+-}
+-
+-/*
+  * Store the SCU power status value to scratchpad memory
   */
-@@ -51,6 +63,7 @@ static struct omap3_idle_statedata omap3_idle_data[] = {
- 		.core_state = PWRDM_POWER_ON,
- 		/* In C1 do not allow PER state lower than CORE state */
- 		.per_min_state = PWRDM_POWER_ON,
-+		.flags = OMAP_CPUIDLE_CX_NO_CLKDM_IDLE,
- 	},
- 	{
- 		.mpu_state = PWRDM_POWER_ON,
-@@ -91,27 +104,25 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 				int index)
+ static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_state)
+@@ -229,6 +198,7 @@ static void save_l2x0_context(void)
+  */
+ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
  {
- 	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
--	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
++	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
+ 	unsigned int save_state = 0;
+ 	unsigned int wakeup_cpu;
  
- 	local_fiq_disable();
+@@ -267,7 +237,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 		save_state = 2;
  
--	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
--	pwrdm_set_next_pwrst(core_pd, core_state);
--
- 	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
- 
- 	/* Deny idle for C1 */
--	if (index == 0) {
-+	if (cx->flags & OMAP_CPUIDLE_CX_NO_CLKDM_IDLE) {
- 		clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
--		clkdm_deny_idle(core_pd->pwrdm_clkdms[0]);
-+	} else {
-+		pwrdm_set_next_pwrst(mpu_pd, cx->mpu_state);
-+		pwrdm_set_next_pwrst(core_pd, cx->core_state);
- 	}
- 
- 	/*
- 	 * Call idle CPU PM enter notifier chain so that
- 	 * VFP context is saved.
+ 	cpu_clear_prev_logic_pwrst(cpu);
+-	set_cpu_next_pwrst(cpu, power_state);
++	pwrdm_set_next_pwrst(pm_info->pwrdm, power_state);
+ 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
+ 	scu_pwrst_prepare(cpu, power_state);
+ 	l2x0_pwrst_prepare(cpu, save_state);
+@@ -285,7 +255,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	 * domain transition
  	 */
--	if (mpu_state == PWRDM_POWER_OFF)
-+	if (cx->mpu_state == PWRDM_POWER_OFF)
- 		cpu_pm_enter();
+ 	wakeup_cpu = smp_processor_id();
+-	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
++	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
  
- 	/* Execute ARM wfi */
-@@ -121,17 +132,15 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 	 * Call idle CPU PM enter notifier chain to restore
- 	 * VFP context.
+ 	pwrdm_post_transition(NULL);
+ 
+@@ -299,6 +269,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+  */
+ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+ {
++	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
+ 	unsigned int cpu_state = 0;
+ 
+ 	if (omap_rev() == OMAP4430_REV_ES1_0)
+@@ -307,8 +278,8 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+ 	if (power_state == PWRDM_POWER_OFF)
+ 		cpu_state = 1;
+ 
+-	clear_cpu_prev_pwrst(cpu);
+-	set_cpu_next_pwrst(cpu, power_state);
++	pwrdm_clear_all_prev_pwrst(pm_info->pwrdm);
++	pwrdm_set_next_pwrst(pm_info->pwrdm, power_state);
+ 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_secondary_startup));
+ 	scu_pwrst_prepare(cpu, power_state);
+ 
+@@ -319,7 +290,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
  	 */
--	if (pwrdm_read_prev_pwrst(mpu_pd) == PWRDM_POWER_OFF)
-+	if (cx->mpu_state == PWRDM_POWER_OFF &&
-+	    pwrdm_read_prev_pwrst(mpu_pd) == PWRDM_POWER_OFF)
- 		cpu_pm_exit();
+ 	omap4_finish_suspend(cpu_state);
  
- 	/* Re-allow idle for C1 */
--	if (index == 0) {
-+	if (cx->flags & OMAP_CPUIDLE_CX_NO_CLKDM_IDLE)
- 		clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
--		clkdm_allow_idle(core_pd->pwrdm_clkdms[0]);
--	}
+-	set_cpu_next_pwrst(cpu, PWRDM_POWER_ON);
++	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
+ 	return 0;
+ }
  
- return_sleep_time:
--
- 	local_fiq_enable();
- 
- 	return index;
-@@ -196,7 +205,7 @@ static int next_valid_state(struct cpuidle_device *dev,
- 	 * Start search from the next (lower) state.
- 	 */
- 	for (idx = index - 1; idx >= 0; idx--) {
--		cx =  &omap3_idle_data[idx];
-+		cx = &omap3_idle_data[idx];
- 		if ((cx->mpu_state >= mpu_deepest_state) &&
- 		    (cx->core_state >= core_deepest_state)) {
- 			next_index = idx;
 
 
