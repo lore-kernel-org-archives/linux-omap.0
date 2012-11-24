@@ -1,45 +1,48 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/1] ARM: OMAP2+: enable support for GPIO connected LEDs
-Date: Sat, 24 Nov 2012 10:34:02 +0100
-Message-ID: <1353749642-30255-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 16/16] ARM: OMAP: omap4panda: Power down the USB PHY and
+ ETH when not in use
+Date: Sat, 24 Nov 2012 10:38:23 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211241032490.4291-100000@netrider.rowland.org>
+References: <50AFDE74.6030805@linaro.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:42333 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964829Ab2KXJe0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Nov 2012 04:34:26 -0500
+Received: from netrider.rowland.org ([192.131.102.5]:38077 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751038Ab2KXPiY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Nov 2012 10:38:24 -0500
+In-Reply-To: <50AFDE74.6030805@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Andy Green <andy.green@linaro.org>
+Cc: Felipe Balbi <balbi@ti.com>, Roger Quadros <rogerq@ti.com>, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Many OMAP boards use GPIO LEDs to notify status to the user
-on boot. So, it is good to have by default support for GPIO
-connected LEDs as well as some commonly used triggers.
+On Sat, 24 Nov 2012, Andy Green wrote:
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- arch/arm/configs/omap2plus_defconfig |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+> If we're just looking at fixing the current "magic regulator name" 
+> scheme of "hsusb0" so that it can work with abstract devices like any 
+> hub / port, we could invert what my original "device path" scheme did.
+> 
+> So instead of having a parser (which boiled down quite small, but is 
+> complicated by usb%d being the same for different usb drivers), we could 
+> just add a helper function that walks the device parents to generate a 
+> string representing the device instance.  Like
+> 
+> int device_path_generate(struct device *device, char *name, int len);
+> 
+> if you called it from the hub driver's probe function (or anything 
+> else's probe function) with the new hub device pointer, it might fill 
+> name with "ehci1/usbhub1-1/1-1.1" or somesuch.
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 6333e96..7c6cbdf 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -193,6 +193,14 @@ CONFIG_MMC_UNSAFE_RESUME=y
- CONFIG_SDIO_UART=y
- CONFIG_MMC_OMAP=y
- CONFIG_MMC_OMAP_HS=y
-+CONFIG_NEW_LEDS=y
-+CONFIG_LEDS_CLASS=y
-+CONFIG_LEDS_GPIO=y
-+CONFIG_LEDS_TRIGGERS=y
-+CONFIG_LEDS_TRIGGER_HEARTBEAT=y
-+CONFIG_LEDS_TRIGGER_BACKLIGHT=y
-+CONFIG_LEDS_TRIGGER_GPIO=y
-+CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
- CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_TWL92330=y
- CONFIG_RTC_DRV_TWL4030=y
--- 
-1.7.7.6
+It's not that simple.  In your example, the very same device might show 
+up, after rebooting, as "ehci2/usbhub2-1/2-1.1".  Even if a more or 
+less stable name for the controller is used, the bus-number parts of 
+the name (the '2's in this example) are always subject to change.  The 
+device_path_generate routine would have to possess special knowledge 
+about the USB subsystem's naming scheme to generate a truly stable 
+name.
+
+Presumably the same would hold for other subsystems too.
+
+Alan Stern
 
