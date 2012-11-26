@@ -1,72 +1,143 @@
-From: Greg KH <gregkh@linuxfoundation.org>
+From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Mon, 26 Nov 2012 14:50:11 -0800
-Message-ID: <20121126225011.GA28995@kroah.com>
-References: <20121126192206.GB11239@kroah.com>
- <Pine.LNX.4.44L0.1211261555400.2168-100000@iolanthe.rowland.org>
+Date: Tue, 27 Nov 2012 07:26:44 +0800
+Message-ID: <50B3FAB4.7060904@linaro.org>
+References: <Pine.LNX.4.44L0.1211261348310.2168-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:37486 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932283Ab2KZWuN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 17:50:13 -0500
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1211261555400.2168-100000@iolanthe.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1211261348310.2168-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-On Mon, Nov 26, 2012 at 04:07:38PM -0500, Alan Stern wrote:
-> On Mon, 26 Nov 2012, Greg KH wrote:
-> 
-> > Ah, here's the root of your problem, right?  You need a way for your
-> > hardware to tell the kernel that you have a regulator attached to a
-> > specific device?  Using the device path and hard-coding it into the
-> > kernel is not the proper way to solve this, sorry.  Use some other
-> > unique way to describe the hardware, surely the hardware designers
-> > couldn't have been that foolish not to provide this [1]?
-> 
-> As far as I know, the kernel has no other way to describe devices.
-> 
-> What about using partial matches?  In this example, instead of doing a 
-> wildcard match against
-> 
-> 	/platform/usbhs_omap/ehci-omap.0/usb*
-> 
-> (which would fail if the "platform" part of the path changes), suppose 
-> the string "ehci-omap.0/usb*" could be associated with the usbhs_omap 
-> component somehow.  Or even better, the string "usb*" could be 
-> associated with the ehci-omap.0 device.
+On 11/27/2012 03:12 AM, the mail apparently from Alan Stern included:
+> On Mon, 26 Nov 2012, Andy Green wrote:
+>
+>> This adds a small optional API into drivers/base which deals with ge=
+nerating,
+>> matching and registration of wildcard device paths.
+>>
+>> >From a struct device * you can generate a string like
+>>
+>>   /platform/usbhs_omap/ehci-omap.0/usb1/1-1
+>>
+>> which enapsulates the path of the device's connection to the board.
+>>
+>> These can be used to match up other assets, for example struct regul=
+ators,
+>> that have been registed elsewhere with a device instance that is pro=
+bed
+>> asynchronously from the other board assets.
+>>
+>> If your device is on a bus, as it probably is, the device path will =
+feature
+>> redundant bus indexes that do not contain information about the conn=
+ectivity.
+>>
+>> For example if more than one driver can generate devices on the same=
+ bus,
+>> then the ordering of device probing will change the path, despite th=
+e
+>> connectivity remains the same.
+>>
+>> For that reason, to get a deterministic path for matching, wildcards=
+ are
+>> allowed.  If your target device has the path
+>>
+>>   /platform/usbhs_omap/ehci-omap.0/usb1/1-1
+>>
+>> generated, in the asset you wish to match with it you can instead us=
+e
+>>
+>> /platform/usbhs_omap/ehci-omap.0/usb*/*-1
+>>
+>> in order to only leave the useful, invariant parts of the path to ma=
+tch
+>> against.
+>
+> Have you considered limiting these wildcards in various useful ways?
+> In this example, the wildcard must match a string of decimal digits.
+> (Furthermore the two wildcard strings will always match each other,
+> although it's probably not necessary to add this sort of constraint.)
+>
+> I don't know what sort of matches people will want in the future.
+> Perhaps one for hex digits, or one for arbitrary text with the
+> exception of a few characters (such as '/' but perhaps others too).
+>
+> To do what you want for now, the match should be restricted to digits=
+=2E
 
-Yes, all you really care about here is the ehci-omap.0 device, so why
-even search for this, you "know" where the device is, you just created
-it :)
+I'm not sure what we'd use that for... it doesn't seem the biggest=20
+problem we have at the moment ^^
 
-> Then the path-matching code could restrict its attention to that part
-> of the path and to devices below the specified one.  Naming changes
-> wouldn't be an issue, because the changes themselves would be made in
-> the same source file that contains the partial path string.
-> 
-> 
-> On the other hand, this may be way more general than we really need.  
-> For this particular case, all we need to do is take special action the
-> first time any device is registered below the ehci-omap.0 platform
-> device.  There ought to be a more direct way to accomplish this,
-> without using string pattern-matching or sysfs pathnames (and without 
-> adding overhead every time a device is added or deleted).
-> 
-> I don't know if such an approach would be sufficiently general for 
-> future requirements, but it would solve the problem at hand.
+>> To avoid having to adapt every kind of "search by string" api to als=
+o use
+>> the wildcards, the api takes the approach you can register your wild=
+card,
+>> and if a matching path is generated for a device, the wildcard itsel=
+f is
+>> handed back as the device path instead.
+>>
+>> So if your board code or a (not yet done) DT binding registers this =
+wildcard
+>>
+>>   /platform/usbhs_omap/ehci-omap.0/usb*
+>>
+>> and the usb hub driver asks to generate its device path
+>>
+>> 	device_path_generate(dev, name, sizeof name);
+>>
+>> that is actually
+>>
+>>   /platform/usbhs_omap/ehci-omap.0/usb1
+>>
+>> then what will be returned is
+>>
+>>   /platform/usbhs_omap/ehci-omap.0/usb*
+>>
+>> providing the same literal string for ehci-omap.0 hub no matter how =
+many\
+>> usb buses have been registered before.
+>>
+>> This wildcard string can then be matched to regulators or other stri=
+ng-
+>> searchable assets intended for the device on that hardware path.
+>
+> That's not how I would do it, at least, not for this application.  I
+> would register tuples containing a name, a pointer, and two callback
+> routines.  For example,
+>
+> 	("/platform/usbhs_omap/ehci-omap.0/usb*", &omap_vhub_device,
+> 		turn_on_regulator, turn_off_regulator)
+>
+> The when a device is registered whose path matches the string in such=
+ a
+> tuple, the device core would know to invoke the first callback.  The
+> arguments would be a pointer to the device being registered and the
+> pointer in the tuple.  Similarly, the device core would invoke the
+> second callback when the device is unregistered.
+>
+> There doesn't have to be anything in this scheme that's specific to
+> hubs or even to USB.  In particular, no changes to the hub driver wou=
+ld
+> be needed.
 
-And given that this is a very specific problem, and the changes are only
-needed for one piece of problem hardware, I suggest keeping the existing
-code that implements it.  It's smaller, more specific to the exact
-platform, and we don't end up getting stuck with device paths to
-describe hardware that might change in the future in ways we do not
-anticipate (i.e. the platform change.)
+By just using paths, it's not restricted to regulators or binary=20
+operations on them but anything that needs a "floating" binding to=20
+another named kernel object can leverage it.
 
-thanks,
+-Andy
 
-greg k-h
+--=20
+Andy Green | TI Landing Team Leader
+Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
+http://facebook.com/pages/Linaro/155974581091106  -=20
+http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
