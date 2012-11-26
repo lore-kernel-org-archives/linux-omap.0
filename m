@@ -1,81 +1,83 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: OMAP build now completely broken in latest arm-soc
-Date: Sun, 25 Nov 2012 22:00:38 -0800
-Message-ID: <CAOesGMiv374Bhpt=Hu5o7E+eUGhX8R4w=1DLgxzzE6ieRUva=w@mail.gmail.com>
-References: <20121125093704.GV3332@n2100.arm.linux.org.uk>
-	<CAOesGMgvGxfghFbyki7aXE8dVbAA7QQP6nwBKhzHftngGRi0Tw@mail.gmail.com>
-	<20121125140701.GW3332@n2100.arm.linux.org.uk>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: OMAP4430 produces boot warnings
+Date: Mon, 26 Nov 2012 12:18:51 +0530
+Message-ID: <50B310D3.9050202@ti.com>
+References: <20121121230337.GR3332@n2100.arm.linux.org.uk>  <50AE1DC0.3030002@ti.com>  <50AE2BB6.8080406@ti.com>  <1353594842.786.45.camel@sokoban>  <50AE3A5B.5040603@ti.com> <1353663278.25248.4.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:44742 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330Ab2KZGAk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 01:00:40 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k11so5780704iea.19
-        for <linux-omap@vger.kernel.org>; Sun, 25 Nov 2012 22:00:38 -0800 (PST)
-In-Reply-To: <20121125140701.GW3332@n2100.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37101 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751893Ab2KZGt1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Nov 2012 01:49:27 -0500
+In-Reply-To: <1353663278.25248.4.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>, arm@kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: t-kristo@ti.com
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Rajendra Nayak <rnayak@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Hi,
-
-On Sun, Nov 25, 2012 at 6:07 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Sun, Nov 25, 2012 at 05:56:58AM -0800, Olof Johansson wrote:
->> Hi,
+On Friday 23 November 2012 03:04 PM, Tero Kristo wrote:
+> On Thu, 2012-11-22 at 16:44 +0200, Tomi Valkeinen wrote:
+>> On 2012-11-22 16:34, Tero Kristo wrote:
 >>
->> On Sun, Nov 25, 2012 at 1:37 AM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> > Not much more to say...
->> >
->> > arch/arm/plat-omap/i2c.c:35:1: error: expected identifier or '(' before '<<' token
+>>> I guess you checked that DSS pwrdm is switching between RET and ON in
+>>> your setup?
 >>
->> Hmm. In for-next, line 35 is a blank line.
+>> Yes:
 >>
->> Could this be because of a merge conflict in your local version? This
->> is one of the files that has conflicts with mainline right now; I'll
->> look to see if we can resolve those in our tree later today.
+>> # cat /debug/pm_debug/count |grep dss
+>> [   35.356567] pwrdm state mismatch(l3init_pwrdm) 3 != 1
+>> [   35.361938] pwrdm state mismatch(cam_pwrdm) 3 != 0
+>> [   35.366973] pwrdm state mismatch(ivahd_pwrdm) 3 != 1
+>> [   35.372253] pwrdm state mismatch(tesla_pwrdm) 3 != 1
+>> [   35.377532] pwrdm state mismatch(abe_pwrdm) 3 != 1
+>> dss_pwrdm (RET),OFF:1,RET:11,INA:0,ON:11,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+>> l3_dss_clkdm->dss_pwrdm (0)
+>>
+>> then I load and unload the dss modules, and then:
+>>
+>> # cat /debug/pm_debug/count |grep dss
+>> [   60.813629] pwrdm state mismatch(l3init_pwrdm) 3 != 1
+>> [   60.819000] pwrdm state mismatch(cam_pwrdm) 3 != 0
+>> [   60.824127] pwrdm state mismatch(ivahd_pwrdm) 3 != 1
+>> [   60.829376] pwrdm state mismatch(tesla_pwrdm) 3 != 1
+>> [   60.834625] pwrdm state mismatch(abe_pwrdm) 3 != 1
+>> dss_pwrdm (ON),OFF:1,RET:21,INA:0,ON:22,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+>> l3_dss_clkdm->dss_pwrdm (0)
+>>
+>>>> Does the pwrdm mistakenly think that in RET state the DSS still keeps
+>>>> the register contents?
+>>>
+>>> This might be the case, however the pwrdm code should be generic and
+>>> handle all domains properly. What is the tree / branch / commit you are
+>>> using for testing this stuff? I can take a look at this also.
+>>
+>> arm-soc/for-next
 >
-> Hmm, it looks like a merge conflict which didn't get fixed up... and
-> looking at it, it's beyond what I'd call trivial to fix.
+> I guess this is caused because some of the patches are still not in the
+> for-next branch, it looks like at least this is missing:
 >
-> So I'll shut down the build system until that can be resolved properly;
-> as OMAP is effectively unbuildable there's not much point it running the
-> builds.
-
-Tony, Tomi,
-
-I've taken a stab at resolving these conflicts. They seem to come from
-the cleanups combined with fixes that went upstream, and it seems like
-we want to stick to the arm-soc versions for most of the conflicts.
-
-I've pushed a merge of 3.7-rc7 into next/cleanup (and for-next) of
-arm-soc, can you please check and see if this is the correct
-resolution? As far as I can tell it is, but a double-check would be
-appreciated.
-
-Conflicts were in:
-
-        arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-        arch/arm/plat-omap/i2c.c
-        drivers/video/omap2/dss/dss.c
-
-The hwmod data was trivial (include files). i2c was a little hairier,
-a revert in mainline -- I presumed we're still good with our arm-soc
-contents so I stuck close to what we had there. The DSS change seems
-to be done completely differently in mainline, i.e. the surrounding
-code is different to what we have in arm-soc today, and it looks like
-the bugfix (3630-specific stuff) is taken care of in the version we
-had. So I stuck to that.
-
-But, please speak up ASAP if the above doesn't look correct, since we
-want to fix it up before we merge much on top.
+> https://patchwork.kernel.org/patch/1608901/
+>
+> ...or the latest update done by Paul to that one.
+>
+> The patch I posted appears to have a small merge induced bug, it is
+> registering the context loss soc_ops for am33xx when it should actually
+> register those for omap4. This might explain another bug I've been
+> looking at in a different branch recently... The update Paul posted does
+> not seem to have this problem, but I haven't tested it myself.
 
 
-Thanks!
+Applying the patch above, and registering the soc_ops for omap4 instead 
+of am33xx doesn't seem to help. The context lost count now always returns 0.
 
+And to verify Tomi's observation, if we don't rely on the context lost 
+count, and restore the registers always, we don't see the problem.
 
--Olof
+Btw, we use the function omap_pm_get_dev_context_loss_count to get the 
+count, do we use this or is there a new func to get the count?
+
+Thanks,
+Archit
+
