@@ -1,27 +1,65 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCH] i2c: omap: Remove the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE flag
-Date: Mon, 26 Nov 2012 15:26:45 +0530
-Message-ID: <CAM=Q2cszBPhnFwKX2j5DtgOiN1PxT5jApBVUcJohXr1PRckxUA@mail.gmail.com>
-References: <1353921235-22408-1-git-send-email-shubhrajyoti@ti.com>
-	<20121126091400.GD15766@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2] i2c: omap: Remove the
+ OMAP_I2C_FLAG_RESET_REGS_POSTIDLE flag
+Date: Mon, 26 Nov 2012 11:52:34 +0200
+Message-ID: <20121126095234.GA16256@arwen.pp.htv.fi>
+References: <1353923711-9615-1-git-send-email-shubhrajyoti@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:34587 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753671Ab2KZJ4r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 04:56:47 -0500
-In-Reply-To: <20121126091400.GD15766@arwen.pp.htv.fi>
+Received: from bear.ext.ti.com ([192.94.94.41]:45552 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753959Ab2KZJ7a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Nov 2012 04:59:30 -0500
+Content-Disposition: inline
+In-Reply-To: <1353923711-9615-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, w.sang@pengutronix.de
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, balbi@ti.com, w.sang@pengutronix.de
 
-On Mon, Nov 26, 2012 at 2:44 PM, Felipe Balbi <balbi@ti.com> wrote:
->
-> > -                       OMAP_I2C_FLAG_BUS_SHIFT_2,
-> > +     .flags          = OMAP_I2C_FLAG_BUS_SHIFT_2,
->
-> if it's not used anymore, how about removing its definition too ?
+--ew6BAiZeqk4r7MaW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Just updated the patch , thanks.
+Hi,
+
+On Mon, Nov 26, 2012 at 03:25:11PM +0530, Shubhrajyoti D wrote:
+> The OMAP_I2C_FLAG_RESET_REGS_POSTIDLE is not used anymore
+> in the i2c driver. Remove the flag.
+>=20
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+
+looks ok to me:
+
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--ew6BAiZeqk4r7MaW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQszviAAoJEIaOsuA1yqRE4HgQAJ2stHncFvCGgAHQfLknWIA4
+9V2cQAh42LQyNpYYvzQJmm1dO/KW7lUn5hlO3XSgY19b/o+lEFUsRCQ8YyfoLW4K
+zLf01izw9m49sFAbfGKcNjng704I31B/3W/R9RBishInyqn0uahBkXhMlcOJvCGl
+dtBF9eHWyFW7uQ1m2iUf2Q4DI16tc3movWyiSiqfSmrJ0cyQlYJN2MX93ffkK8RX
+Swl4zXxZet+66KK22+uVo9GPSQCIsBkop6VCM49l1dgC6h6lpE18pEnylZcFv3r0
+UhWk/hvGY79BkBouMtqO8qbrra08AtKXp7yzp3nYf8tFPYNqLfuf591f69SFbJc6
+iYellr7KKVJfWvBFbCr+8TThk2nNHZd6OuRIphOOzlSucnatJWJohspWd6QLhiXg
+JU0dsxcT4mZqmNhc66XrAcjdS2wx9kduB5lcTjzRxQFkNFoCBTgGQjcrPfmD4FAF
+kHJPEnBv8ZdIJ0N5rPiV8IoSNScbYc3kft95n6e2zuCPoxScqtkoIBA7A/0UhCt8
+9Du3PcIUVmSV+r3uYk2Sji3hjOaqEU9j5NdSNuW+B2n0TzwWTCUoNI5/SpAhkAhI
+/IC0voGWB4dp544gGoIqYNRU1YyxHXWNT101Ryoi8KaJoKfzymxiiC5d97lL3aq+
+l77XefyG50OOtgERDG8L
+=hrdt
+-----END PGP SIGNATURE-----
+
+--ew6BAiZeqk4r7MaW--
