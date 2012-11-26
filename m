@@ -1,56 +1,44 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP: Conditionally compile counter_32k
-Date: Mon, 26 Nov 2012 14:02:21 +0200
-Message-ID: <50B35A4D.8080501@compulab.co.il>
-References: <1353922083-1094-1-git-send-email-alessio.bogani@elettra.trieste.it>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCH RFC] i2c: omap: Remove the OMAP_I2C_IP_VERSION_*
+Date: Mon, 26 Nov 2012 17:33:39 +0530
+Message-ID: <CAM=Q2cvU9zH49qrRPJVxwn80DiuBC2NeBOCpoV3JYMJ3e9Eu0w@mail.gmail.com>
+References: <1353929982-13984-1-git-send-email-shubhrajyoti@ti.com>
+	<20121126115208.GA17605@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:58991 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754473Ab2KZMC2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 07:02:28 -0500
-In-Reply-To: <1353922083-1094-1-git-send-email-alessio.bogani@elettra.trieste.it>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:54573 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750975Ab2KZMDk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 07:03:40 -0500
+In-Reply-To: <20121126115208.GA17605@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alessio Igor Bogani <alessio.bogani@elettra.trieste.it>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: balbi@ti.com
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, w.sang@pengutronix.de
 
-On 11/26/12 11:28, Alessio Igor Bogani wrote:
-> The 32K timer isn't available on all OMAP devices.
-> 
-> Signed-off-by: Alessio Igor Bogani <alessio.bogani@elettra.trieste.it>
-> ---
->  arch/arm/plat-omap/Makefile |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index 8d88584..b1b321c 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -3,11 +3,13 @@
->  #
->  
->  # Common support
-> -obj-y := sram.o dma.o fb.o counter_32k.o
-> +obj-y := sram.o dma.o fb.o
->  obj-m :=
->  obj-n :=
->  obj-  :=
->  
-> +obj-$(CONFIG_OMAP_32K_TIMER) += counter_32k.o
+On Mon, Nov 26, 2012 at 5:22 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Mon, Nov 26, 2012 at 05:09:42PM +0530, Shubhrajyoti D wrote:
+>> The OMAP_I2C_IP_VERSION_1 and OMAP_I2C_IP_VERSION_2 was needed
+>> as on VER2 we were not reading all the 32-bits. Since now that
+>> we read the hi register we do not need the OMAP_I2C_IP_VERSION_*.
+>> Delete the same.
+>>
+>> The custom reset is also changed to detect VER2 based on the
+>> scheme.
+>
+> looks like this should become a series IMO.
+>
+> First patch would move the macros to common header, second patch would
+> switch the Reset part to use those macros and third patch gets rid of
+> OMAP_I2C_IP_VERSION_*
+>
+> other than that, looks very good to me.
 
-We are moving away from this config option in favor of runtime detection,
-so I don't think this patch is appropriate.
+OK will respin it accordingly.
 
-Why do you need this?
-
-> +
->  # omap_device support (OMAP2+ only at the moment)
->  
->  obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
-
--- 
-Regards,
-Igor.
+>
+> --
+> balbi
