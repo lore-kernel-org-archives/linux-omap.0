@@ -1,69 +1,126 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Mon, 26 Nov 2012 11:27:28 -0800
-Message-ID: <20121126192728.GA24510@kroah.com>
-References: <20121126123427.18106.4112.stgit@build.warmcat.com>
- <20121126124534.18106.44137.stgit@build.warmcat.com>
- <20121126192206.GB11239@kroah.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH] Don't mark shared helper functions as inline
+Date: Mon, 26 Nov 2012 11:57:42 -0800
+Message-ID: <20121126195742.21126.16500@nucleus>
+References: <1353957609-1295-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:58408 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753284Ab2KZT1a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 14:27:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20121126192206.GB11239@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1353957609-1295-1-git-send-email-Russ.Dill@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Russ Dill <Russ.Dill@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Andy Green <andy.green@linaro.org>
-Cc: stern@rowland.harvard.edu, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-On Mon, Nov 26, 2012 at 11:22:06AM -0800, Greg KH wrote:
-> On Mon, Nov 26, 2012 at 12:45:34PM +0000, Andy Green wrote:
-> > This adds a small optional API into drivers/base which deals with generating,
-> > matching and registration of wildcard device paths.
-> > 
-> > >From a struct device * you can generate a string like
-> > 
-> >  /platform/usbhs_omap/ehci-omap.0/usb1/1-1
-> > 
-> > which enapsulates the path of the device's connection to the board.
-> > 
-> > These can be used to match up other assets, for example struct regulators,
-> > that have been registed elsewhere with a device instance that is probed
-> > asynchronously from the other board assets.
-> > 
-> > If your device is on a bus, as it probably is, the device path will feature
-> > redundant bus indexes that do not contain information about the connectivity.
-> 
-> Huh?  A bus "index" does show the connectivity, well, one type of
-> connectivity, but perhaps it's not the one _you_ happen to want at the
-> moment.  Which is fine, but I don't see why you want to try to figure
-> this out using the device path in the first place, surely you have some
-> other way that the hardware can describe itself to the kernel as to
-> where it needs to be hooked up to?
-> 
-> > For example if more than one driver can generate devices on the same bus,
-> > then the ordering of device probing will change the path, despite the
-> > connectivity remains the same.
-> 
-> That's an expected thing, I don't see the issue here.
-> 
-> > For that reason, to get a deterministic path for matching, wildcards are
-> > allowed.  If your target device has the path
-> 
-> Wait, no, why would you want a deterministic path and have that
-> hard-coded into the kernel here?  You can't rely on that any more than
-> userspace can, so let's not start making the mistake that lots of
-> userspace programmers originally did when they started using sysfs
-> please.  We have learned from our past mistakes.
-> 
-> >  /platform/usbhs_omap/ehci-omap.0/usb1/1-1
+Quoting Russ Dill (2012-11-26 11:20:09)
+> The helper functions that access the opaque struct clk should
+> not be marked inline since they are contained in clk.c, but expected
+> to be used by other compilation units. This causes compile errors
+> under gcc-4.7
+>=20
+> In file included from arch/arm/mach-omap2/clockdomain.c:25:0:
+> arch/arm/mach-omap2/clockdomain.c: In function =E2=80=98clkdm_clk_dis=
+able=E2=80=99:
+> include/linux/clk-provider.h:338:12: error: inlining failed in call t=
+o always_inline =E2=80=98__clk_get_enable_count=E2=80=99: function body=
+ not available
+> arch/arm/mach-omap2/clockdomain.c:1001:28: error: called from here
+> make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
+>=20
 
-Oh, and further proof of this, there are patches floating around to drop
-the "platform" name from the sys/drivers/ tree, so your driver just
-broke if that goes through, showing you really don't want to be
-hard-coding sysfs paths in any type of logic.
+Hi Russ,
 
-greg k-h
+A fix for this was merged into rc7.  See 93532c8a, "clk: remove inline
+usage from clk-provider.h".
+
+Regardless, I'm still considering this patch.  I've heard many times
+that we should trust the compiler to optimize for us and some folks loo=
+k
+down on inlining in general.  If anyone has an opinion on removing
+inlines from the common clk core then please do speak up.
+
+Russ, can you update to the latest rc and verify if that fix is enough
+for you?
+
+Regards,
+Mike
+
+>=20
+> Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+> ---
+>  drivers/clk/clk.c            | 14 +++++++-------
+>  include/linux/clk-provider.h |  4 ++--
+>  2 files changed, 9 insertions(+), 9 deletions(-)
+>=20
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> index 56e4495e..ed01746 100644
+> --- a/drivers/clk/clk.c
+> +++ b/drivers/clk/clk.c
+> @@ -249,32 +249,32 @@ late_initcall(clk_disable_unused);
+> =20
+>  /***    helper functions   ***/
+> =20
+> -inline const char *__clk_get_name(struct clk *clk)
+> +const char *__clk_get_name(struct clk *clk)
+>  {
+>         return !clk ? NULL : clk->name;
+>  }
+> =20
+> -inline struct clk_hw *__clk_get_hw(struct clk *clk)
+> +struct clk_hw *__clk_get_hw(struct clk *clk)
+>  {
+>         return !clk ? NULL : clk->hw;
+>  }
+> =20
+> -inline u8 __clk_get_num_parents(struct clk *clk)
+> +u8 __clk_get_num_parents(struct clk *clk)
+>  {
+>         return !clk ? -EINVAL : clk->num_parents;
+>  }
+> =20
+> -inline struct clk *__clk_get_parent(struct clk *clk)
+> +struct clk *__clk_get_parent(struct clk *clk)
+>  {
+>         return !clk ? NULL : clk->parent;
+>  }
+> =20
+> -inline int __clk_get_enable_count(struct clk *clk)
+> +int __clk_get_enable_count(struct clk *clk)
+>  {
+>         return !clk ? -EINVAL : clk->enable_count;
+>  }
+> =20
+> -inline int __clk_get_prepare_count(struct clk *clk)
+> +int __clk_get_prepare_count(struct clk *clk)
+>  {
+>         return !clk ? -EINVAL : clk->prepare_count;
+>  }
+> @@ -300,7 +300,7 @@ out:
+>         return ret;
+>  }
+> =20
+> -inline unsigned long __clk_get_flags(struct clk *clk)
+> +unsigned long __clk_get_flags(struct clk *clk)
+>  {
+>         return !clk ? -EINVAL : clk->flags;
+>  }
+> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provide=
+r.h
+> index c127315..f9f5e9e 100644
+> --- a/include/linux/clk-provider.h
+> +++ b/include/linux/clk-provider.h
+> @@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
+>  struct clk_hw *__clk_get_hw(struct clk *clk);
+>  u8 __clk_get_num_parents(struct clk *clk);
+>  struct clk *__clk_get_parent(struct clk *clk);
+> -inline int __clk_get_enable_count(struct clk *clk);
+> -inline int __clk_get_prepare_count(struct clk *clk);
+> +int __clk_get_enable_count(struct clk *clk);
+> +int __clk_get_prepare_count(struct clk *clk);
+>  unsigned long __clk_get_rate(struct clk *clk);
+>  unsigned long __clk_get_flags(struct clk *clk);
+>  int __clk_is_enabled(struct clk *clk);
+> --=20
+> 1.8.0
