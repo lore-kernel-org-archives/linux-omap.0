@@ -1,74 +1,68 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH] i2c: omap: Remove the OMAP_I2C_FLAG_RESET_REGS_POSTIDLE flag
-Date: Mon, 26 Nov 2012 14:43:55 +0530
-Message-ID: <1353921235-22408-1-git-send-email-shubhrajyoti@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH 6/7] ARM: OMAP2+: omap2plus_defconfig: Enable leds-gpio
+ driver
+Date: Mon, 26 Nov 2012 09:17:39 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA7A776@DBDE01.ent.ti.com>
+References: <1353481163-29462-1-git-send-email-anilkumar@ti.com>
+ <1353481163-29462-7-git-send-email-anilkumar@ti.com>
+ <CAAwP0s1eL_VkRfR7FgNNmUfbAeHro9yaJGFa_HO+49tNuSS3yw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43495 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43986 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753169Ab2KZJO2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 04:14:28 -0500
+	id S1754573Ab2KZJRq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 04:17:46 -0500
+In-Reply-To: <CAAwP0s1eL_VkRfR7FgNNmUfbAeHro9yaJGFa_HO+49tNuSS3yw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, balbi@ti.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The OMAP_I2C_FLAG_RESET_REGS_POSTIDLE is not used anymore
-in the i2c driver. Remove the flag.
+On Mon, Nov 26, 2012 at 13:59:24, Javier Martinez Canillas wrote:
+> On Wed, Nov 21, 2012 at 7:59 AM, AnilKumar Ch <anilkumar@ti.com> wrote:
+> > AM335X-EVMSK and AM335X-BONE devices have gpio controlled user leds,
+> > one has to manually enable this support to use user leds. So this
+> > patch enables gpio-leds driver in omap2plus_defconfig. Also enables
+> > TRIGGER_TIMER and TRIGGER_HEARTBEAT.
+> >
+> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> > ---
+> >  arch/arm/configs/omap2plus_defconfig |    5 +++++
+> >  1 file changed, 5 insertions(+)
+> >
+> > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> > index 133f04a..5e1a763 100644
+> > --- a/arch/arm/configs/omap2plus_defconfig
+> > +++ b/arch/arm/configs/omap2plus_defconfig
+> > @@ -202,6 +202,11 @@ CONFIG_MMC_UNSAFE_RESUME=y
+> >  CONFIG_SDIO_UART=y
+> >  CONFIG_MMC_OMAP=y
+> >  CONFIG_MMC_OMAP_HS=y
+> > +CONFIG_NEW_LEDS=y
+> > +CONFIG_LEDS_GPIO=y
+> > +CONFIG_LEDS_TRIGGERS=y
+> > +CONFIG_LEDS_TRIGGER_TIMER=y
+> > +CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+> >  CONFIG_RTC_CLASS=y
+> >  CONFIG_RTC_DRV_OMAP=y
+> >  CONFIG_RTC_DRV_TWL92330=y
+> > --
+> > 1.7.9.5
+> >
+> 
+> Hi AnilKumar,
+> 
+> Your patch looks good to me but I would enable
+> CONFIG_LEDS_TRIGGER_DEFAULT_ON too
+> since this seems to be a very popular trigger used on many boards.
+> 
+> But this could be made on a follow up patch too, so is your call.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
-Has dependency on the below patch
-http://git.pengutronix.de/?p=wsa/linux.git;a=commitdiff;h=554c96744afd169886bd6fc2736fb0d9aaf634e8
+I will submit v2 (with this change) in few days. I am waiting
+for review comments on other patches in this series.
 
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +--
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +--
- drivers/i2c/busses/i2c-omap.c              |    3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 943222c4..3dd9e69 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -791,8 +791,7 @@ static struct omap_hwmod omap3xxx_dss_venc_hwmod = {
- /* I2C1 */
- static struct omap_i2c_dev_attr i2c1_dev_attr = {
- 	.fifo_depth	= 8, /* bytes */
--	.flags		= OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
--			  OMAP_I2C_FLAG_BUS_SHIFT_2,
-+	.flags		= OMAP_I2C_FLAG_BUS_SHIFT_2,
- };
- 
- static struct omap_hwmod omap3xxx_i2c1_hwmod = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 0b1249e..1afab5f 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1527,8 +1527,7 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
--	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE |
--			OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
-+	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE,
- };
- 
- /* i2c1 */
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 872444a..d3b853b 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1034,8 +1034,7 @@ static const struct i2c_algorithm omap_i2c_algo = {
- #ifdef CONFIG_OF
- static struct omap_i2c_bus_platform_data omap3_pdata = {
- 	.rev = OMAP_I2C_IP_VERSION_1,
--	.flags = OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
--		 OMAP_I2C_FLAG_BUS_SHIFT_2,
-+	.flags = OMAP_I2C_FLAG_BUS_SHIFT_2,
- };
- 
- static struct omap_i2c_bus_platform_data omap4_pdata = {
--- 
-1.7.5.4
-
+Thanks
+AnilKumar
