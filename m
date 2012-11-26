@@ -1,74 +1,71 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH v3 03/10] ARM: OMAP: AM33xx hwmod: Add parent-child
- relationship for PWM subsystem
-Date: Mon, 26 Nov 2012 11:07:36 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC4D5C7@DBDE01.ent.ti.com>
-References: <1353387831-31538-1-git-send-email-avinashphilip@ti.com>
- <1353387831-31538-4-git-send-email-avinashphilip@ti.com>
- <518397C60809E147AF5323E0420B992E3E9EEA8C@DBDE01.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EC4C0FA@DBDE01.ent.ti.com>
- <50B33043.2020700@ti.com>
+From: Mohan V <mohanvforum@gmail.com>
+Subject: Re: Problem with OHCI on OMAP4430
+Date: Mon, 26 Nov 2012 16:49:02 +0530
+Message-ID: <CANP3njxGYTRfJVs1OC9+79ZKkh1zbkrwEErjMHteB1z0dJYBxA@mail.gmail.com>
+References: <CANP3njwd94MQMW2JjB8e73-25YJu-14tz+QOybi8aP=uOPaSZg@mail.gmail.com>
+	<Pine.LNX.4.44L0.1210301151270.1363-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50B33043.2020700@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Philip, Avinash" <avinashphilip@ti.com>, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:46365 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754662Ab2KZLTD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 06:19:03 -0500
+In-Reply-To: <Pine.LNX.4.44L0.1210301151270.1363-100000@iolanthe.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, keshava_mgowda@ti.com
 
-Hi Benoit,
+Alan,
 
-On Mon, Nov 26, 2012 at 14:32:59, Cousson, Benoit wrote:
-> Hi Vaibhav,
-> 
-> On 11/26/2012 06:19 AM, Bedia, Vaibhav wrote:
-> > On Fri, Nov 23, 2012 at 16:36:06, Philip, Avinash wrote:
-> >> On Tue, Nov 20, 2012 at 10:33:44, Philip, Avinash wrote:
-> >>> As part of PWM subsystem integration, PWM subsystem are sharing
-> >>> resources like clock across submodules (ECAP, EQEP & EHRPWM).
-> >>> To handle resource sharing & IP integration
-> >>> 1. Rework on parent child relation between PWMSS and
-> >>>    ECAP, EQEP & EHRPWM child devices to support runtime PM.
-> >>> 2. Add support for opt_clks in EHRPWM HWMOD entry to handle additional
-> >>>    clock gating from control module.
-> >>> 3. Add HWMOD entries for EQEP PWM submodule.
-> >>>
-> >>
-> >> Is there any review on this patch?
-> >> This patch depends on ECAP & EHRPWM to work in am335x.
-> > 
-> > First of all, I think you should break up this patch as per the 3 points
-> > that you mentioned above.
-> > 
-> > The usage of opt_clks for this does not look right to me. Based on your
-> > description this clock is necessary and not optional on AM335x and on 
-> > Davinci platforms this clock does not exist.
+On Tue, Oct 30, 2012 at 9:34 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
+> On Tue, 30 Oct 2012, Mohan V wrote:
+>
+>> >> >> ------------------------Device not getting detected when connected---------------------------
+>> >> >>
+>> >> >> / # [  135.621002] usbhs_wakeup: Enabling clocks
+>> >> >> [  135.625762] usbhs_runtime_resume:++++++
+>> >> >> [  135.630371] usbhs_runtime_resume:------
+>> >> >> [  135.638183] USB IO PAD Wakeup event triggered##################
+>> >> >> [  135.644958] usbhs_runtime_suspend:++++++
+>> >> >> [  135.649749] usbhs_runtime_suspend:-----
+>> >> >
+>> >> > It appears that ohci_irq() didn't run.  Did
+>> >> > ohci_finish_controller_resume() get called?
+>> >> >
+>> >> This function is not used in ohci-omap3.c and is used only in ohci-omap.c.
+>> >> Is it necessary to call this function?
+>> >
+>> > It is necessary if the driver supports suspend/resume.  As far as I can
+>> > tell, the ohci-omap3 driver does not have this support (at least, not
+>> > in the 3.6 kernel) whereas the ohci-omap driver does.
+>> >
+>> > What driver produced the "usbhs_runtime_suspend" and
+>> > "usbhs_runtime_resume" messages above?  (No such messages are present
+>> > in ohci-omap3.c.)  Apparently that driver _does_ support
+>> > suspend/resume.
+>> >
+>> This driver is USBHS core driver for OMAP EHCI and OHCI
+>> (drivers/mfd/omap-usb-host.c)
+>
+> Okay.  I don't understand why the usbhs_runtime_suspend routine ever
+> got called.  Since ohci-omap3 never allows the OHCI controller to be
+> suspended, the parent platform device should never get suspended
+> either.
+>
+Sorry for the delay in confirmation. In the android kernel, it seems
+that somehow the OHCI interrupts are not
+propagated to ARM interrupt controller.
+So, reading one of the OHCI registers in usbhs_runtime_resume() seems
+to resolve the issue.
 
-I checked the DA830 TRM and looks like TBCLK for eHRPWM is an always on clock
-there. So, the only difference in AM335x is an additional enable bit.
+Thanks,
+Mohan
 
-Instead of adding this as opt_clk in hwmod, we could add an always on clock node
-in Davinci clock data and have the driver always do a clk_enable() on the tbclk
-as part of the probe sequence. On AM335x, with the right clock node this will enable
-the clock in hardware and on DA830 it turns into a NOP. This way we can avoid adding
-the opt_clk entry in hwmod of eHRPWM.
-
-> > 
-> > I think the custom activate/deactivate functions in the OMAP runtime PM
-> > implementation was a good fit for keeping this SoC integration detail out
-> > of the driver code. However, the current DT flow in omap_device.c seems to
-> > assign the default activate/deactivate ops. Is that approach deprecated?
-> 
-> The issue is that this approach is not doable anymore with DT, that's
-> why I had to provide a default set of functions.
-> 
-
-So once all OMAP drivers get converted to DT, will there be no notion of
-latency based activate/deactivate functions? Or will it get used in a different
-manner?
-
-Regards,
-Vaibhav
+> What do the various files in the /sys/devices/.../ohci-omap3.0/power
+> directory show?  What about the corresponding files in the power
+> subdirectory of the parent device?
+>
+> Alan Stern
+>
