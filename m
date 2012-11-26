@@ -1,126 +1,116 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: Re: [PATCH] Don't mark shared helper functions as inline
-Date: Mon, 26 Nov 2012 11:57:42 -0800
-Message-ID: <20121126195742.21126.16500@nucleus>
-References: <1353957609-1295-1-git-send-email-Russ.Dill@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 06/16] mfd: omap-usb-host: cleanup clock management code
+Date: Mon, 26 Nov 2012 22:02:42 +0200
+Message-ID: <20121126200242.GA15259@arwen.pp.htv.fi>
+References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
+ <1352990054-14680-7-git-send-email-rogerq@ti.com>
+ <20121121133913.GH10216@arwen.pp.htv.fi>
+ <50B38765.5070901@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1353957609-1295-1-git-send-email-Russ.Dill@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Russ Dill <Russ.Dill@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <50B38765.5070901-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Quoting Russ Dill (2012-11-26 11:20:09)
-> The helper functions that access the opaque struct clk should
-> not be marked inline since they are contained in clk.c, but expected
-> to be used by other compilation units. This causes compile errors
-> under gcc-4.7
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Mon, Nov 26, 2012 at 05:14:45PM +0200, Roger Quadros wrote:
+> Felipe,
 >=20
-> In file included from arch/arm/mach-omap2/clockdomain.c:25:0:
-> arch/arm/mach-omap2/clockdomain.c: In function =E2=80=98clkdm_clk_dis=
-able=E2=80=99:
-> include/linux/clk-provider.h:338:12: error: inlining failed in call t=
-o always_inline =E2=80=98__clk_get_enable_count=E2=80=99: function body=
- not available
-> arch/arm/mach-omap2/clockdomain.c:1001:28: error: called from here
-> make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
+> On 11/21/2012 03:39 PM, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Thu, Nov 15, 2012 at 04:34:04PM +0200, Roger Quadros wrote:
+> >> All ports have similarly named port clocks so we can
+> >> bunch them into a port data structure and use for loop
+> >> to enable/disable the clocks.
+> >>
+> >> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> >> ---
+> >>  drivers/mfd/omap-usb-host.c |  208 +++++++++++++++++++++-------------=
+---------
+> >>  1 files changed, 101 insertions(+), 107 deletions(-)
+> >>
+> >> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> >> index 23cec57..7303c41 100644
+> >> --- a/drivers/mfd/omap-usb-host.c
+> >> +++ b/drivers/mfd/omap-usb-host.c
+> >> @@ -76,6 +76,8 @@
+> >> =20
+> >>  #define	OMAP_UHH_DEBUG_CSR				(0x44)
+> >> =20
+> >> +#define MAX_HS_USB_PORTS	3	/* Increase this if any chip has more */
+> >> +
+> >>  /* Values of UHH_REVISION - Note: these are not given in the TRM */
+> >>  #define OMAP_USBHS_REV1		0x00000010	/* OMAP3 */
+> >>  #define OMAP_USBHS_REV2		0x50700100	/* OMAP4 */
+> >> @@ -87,14 +89,15 @@
+> >>  #define is_ehci_tll_mode(x)	(x =3D=3D OMAP_EHCI_PORT_MODE_TLL)
+> >>  #define is_ehci_hsic_mode(x)	(x =3D=3D OMAP_EHCI_PORT_MODE_HSIC)
+> >> =20
+> >> +struct usbhs_port {
+> >> +	struct clk	*utmi_clk;
+> >> +};
+> >=20
+> > I rather not since this will make it a lot more difficult to use
+> > pm_clk_add() :-s Also, this sort of thing should be dynamically
+> > allocated anyway ;-)
+> >=20
 >=20
-
-Hi Russ,
-
-A fix for this was merged into rc7.  See 93532c8a, "clk: remove inline
-usage from clk-provider.h".
-
-Regardless, I'm still considering this patch.  I've heard many times
-that we should trust the compiler to optimize for us and some folks loo=
-k
-down on inlining in general.  If anyone has an opinion on removing
-inlines from the common clk core then please do speak up.
-
-Russ, can you update to the latest rc and verify if that fix is enough
-for you?
-
-Regards,
-Mike
-
+> Why do you say so? The whole point of this patch is to group similarly
+> named clocks so that we can use a for loop and set number of ports (or
+> clocks) dynamically. I suppose it would be just a matter of replacing
+> clk_enable/disable() with pm_clk_add() later, right?
 >=20
-> Signed-off-by: Russ Dill <Russ.Dill@ti.com>
-> ---
->  drivers/clk/clk.c            | 14 +++++++-------
->  include/linux/clk-provider.h |  4 ++--
->  2 files changed, 9 insertions(+), 9 deletions(-)
->=20
-> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-> index 56e4495e..ed01746 100644
-> --- a/drivers/clk/clk.c
-> +++ b/drivers/clk/clk.c
-> @@ -249,32 +249,32 @@ late_initcall(clk_disable_unused);
-> =20
->  /***    helper functions   ***/
-> =20
-> -inline const char *__clk_get_name(struct clk *clk)
-> +const char *__clk_get_name(struct clk *clk)
->  {
->         return !clk ? NULL : clk->name;
->  }
-> =20
-> -inline struct clk_hw *__clk_get_hw(struct clk *clk)
-> +struct clk_hw *__clk_get_hw(struct clk *clk)
->  {
->         return !clk ? NULL : clk->hw;
->  }
-> =20
-> -inline u8 __clk_get_num_parents(struct clk *clk)
-> +u8 __clk_get_num_parents(struct clk *clk)
->  {
->         return !clk ? -EINVAL : clk->num_parents;
->  }
-> =20
-> -inline struct clk *__clk_get_parent(struct clk *clk)
-> +struct clk *__clk_get_parent(struct clk *clk)
->  {
->         return !clk ? NULL : clk->parent;
->  }
-> =20
-> -inline int __clk_get_enable_count(struct clk *clk)
-> +int __clk_get_enable_count(struct clk *clk)
->  {
->         return !clk ? -EINVAL : clk->enable_count;
->  }
-> =20
-> -inline int __clk_get_prepare_count(struct clk *clk)
-> +int __clk_get_prepare_count(struct clk *clk)
->  {
->         return !clk ? -EINVAL : clk->prepare_count;
->  }
-> @@ -300,7 +300,7 @@ out:
->         return ret;
->  }
-> =20
-> -inline unsigned long __clk_get_flags(struct clk *clk)
-> +unsigned long __clk_get_flags(struct clk *clk)
->  {
->         return !clk ? -EINVAL : clk->flags;
->  }
-> diff --git a/include/linux/clk-provider.h b/include/linux/clk-provide=
-r.h
-> index c127315..f9f5e9e 100644
-> --- a/include/linux/clk-provider.h
-> +++ b/include/linux/clk-provider.h
-> @@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
->  struct clk_hw *__clk_get_hw(struct clk *clk);
->  u8 __clk_get_num_parents(struct clk *clk);
->  struct clk *__clk_get_parent(struct clk *clk);
-> -inline int __clk_get_enable_count(struct clk *clk);
-> -inline int __clk_get_prepare_count(struct clk *clk);
-> +int __clk_get_enable_count(struct clk *clk);
-> +int __clk_get_prepare_count(struct clk *clk);
->  unsigned long __clk_get_rate(struct clk *clk);
->  unsigned long __clk_get_flags(struct clk *clk);
->  int __clk_is_enabled(struct clk *clk);
-> --=20
-> 1.8.0
+> If you see patch 11, we are adding 2 HSIC related clocks to this
+> structure. This means 9 clocks (i.e. 3 clocks for 3 ports) can be
+> managed using a simple for loop instead of coding each clock name by hand.
+
+that's usually not what you want, actually. You want clock management to
+be explicit so you can have micro-power optimizations. I fear that the
+time omap-usb-host.c gets *truly* stabilized and we move to more
+aggressive PM, we will undo these changes just to have a more granular
+control of the clocks, at which point your patch would be rendered
+useless.
+
+--=20
+balbi
+
+--gKMricLos+KVdGMg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQs8riAAoJEIaOsuA1yqREVvsP/16bJdMSbejQjecQgihHp1/d
+KqkVENxqZreUKiN0m71Ju4aZqUOM+oEPCvGw9lbhPuRcxrqC7Cc/TkLMHZU10owD
+66q8/CW7eo/fpdeGaOcSmZB7MN9mHg0HvNOMPBi87KH08vaCOzZFC4hssrPPqTKC
+wC+EFiDRmsa/AQBvKcV3G85HaLfUUtIA6oSyRzBoAn5MdeLmeSrf9WzGrH67NbF/
+Ak1+AGdt9U8UR6aJzrh+OfEKFN46in4NEd8UNOLbrChY3dNr9SWDKqEueWbSDLf4
+/eMNFMK/MU4dZbbw3HxIkv9szLrFLgWncvDNg8Zu9D7i2bmHccedi3mTOyAYRd0F
+KRwq3tTT43lWWGlCydhZoMOXFslsatnBPtIzgEn0RD5/3Ebzj+ShBNvDWYaOvsxV
+yTxBevEf+v8ipYeL1wWqDB8qt8uieLMHgfzCll/uCpD5MfKZ6qNyXzu0vQY3zIZM
+NF2iNNOI3U12VXlBQ8t0pMzf93K6UFGrStvsiYtgchyEXV3nBKrkPoWW9Zj5422z
+qWHbg2T20TAZ38ZomuqqWguMeLZCTlNgbgTs61j1YMtMdiBPMRCiWgM7XzI40uQL
+4oklvAPeHYRzGRsz6KgOcy4YF0Me3y/qgd+1EEeZ9f8GHrjCjE51axyw6GjBIBkl
+I7SzneNOeiUToVJmmRY/
+=Q9Ry
+-----END PGP SIGNATURE-----
+
+--gKMricLos+KVdGMg--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
