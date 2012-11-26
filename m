@@ -1,39 +1,56 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH 1/7] mmc: omap_hsmmc: Fix Oops in case of data errors
-Date: Mon, 26 Nov 2012 17:32:23 +0530
-Message-ID: <CAOyx1LqzYVCABRZ+7U8Tzp5mDdT25Dsawkbo4bftO6+NJfXB0w@mail.gmail.com>
-References: <1353342601-15210-1-git-send-email-svenkatr@ti.com>
-	<87sj7x76hd.fsf@octavius.laptop.org>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP: Conditionally compile counter_32k
+Date: Mon, 26 Nov 2012 14:02:21 +0200
+Message-ID: <50B35A4D.8080501@compulab.co.il>
+References: <1353922083-1094-1-git-send-email-alessio.bogani@elettra.trieste.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <87sj7x76hd.fsf@octavius.laptop.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:58991 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754473Ab2KZMC2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Nov 2012 07:02:28 -0500
+In-Reply-To: <1353922083-1094-1-git-send-email-alessio.bogani@elettra.trieste.it>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alessio Igor Bogani <alessio.bogani@elettra.trieste.it>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Nov 26, 2012 at 2:19 AM, Chris Ball <cjb@laptop.org> wrote:
-> Hi Venkat,
->
-> On Mon, Nov 19 2012, Venkatraman S wrote:
->> From: Balaji T K <balajitk@ti.com>
->>
->> "commit ae4bf788ee9bf7c2d51b0309117d1fcccbdd50a2
->> mmc: omap_hsmmc: consolidate error report handling of HSMMC IRQ"
->> sets both end_cmd and end_trans to 1.
->>
->> Setting end_cmd to 1 for Data Timeout/CRC leads to NULL pointer dereference of
->> host->cmd as the command complete has previously been handled.
->> Set end_cmd only in case of command Timeout/CRC.
->>
->> Moreover host->cmd->error should not be updated on data error case, only
->> host->data->error needs to be updated.
->>
->> Signed-off-by: Balaji T K <balajitk@ti.com>
->> Reviewed-by: Felipe Balbi <balbi@ti.com>
->> Signed-off-by: Venkatraman S <svenkatr@ti.com>
->
-> Thanks, pushed all 7 patches to mmc-next for 3.8.
->
-Great - Thank you !
+On 11/26/12 11:28, Alessio Igor Bogani wrote:
+> The 32K timer isn't available on all OMAP devices.
+> 
+> Signed-off-by: Alessio Igor Bogani <alessio.bogani@elettra.trieste.it>
+> ---
+>  arch/arm/plat-omap/Makefile |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 8d88584..b1b321c 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -3,11 +3,13 @@
+>  #
+>  
+>  # Common support
+> -obj-y := sram.o dma.o fb.o counter_32k.o
+> +obj-y := sram.o dma.o fb.o
+>  obj-m :=
+>  obj-n :=
+>  obj-  :=
+>  
+> +obj-$(CONFIG_OMAP_32K_TIMER) += counter_32k.o
+
+We are moving away from this config option in favor of runtime detection,
+so I don't think this patch is appropriate.
+
+Why do you need this?
+
+> +
+>  # omap_device support (OMAP2+ only at the moment)
+>  
+>  obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+
+-- 
+Regards,
+Igor.
