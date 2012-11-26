@@ -1,49 +1,48 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v3 1/5] rtc: OMAP: Add system pm_power_off to rtc driver
-Date: Mon, 26 Nov 2012 05:19:24 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC4C13C@DBDE01.ent.ti.com>
-References: <1353404927-14412-1-git-send-email-anilkumar@ti.com>
- <1353404927-14412-2-git-send-email-anilkumar@ti.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA78AA0@DBDE01.ent.ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH v3 03/10] ARM: OMAP: AM33xx hwmod: Add parent-child
+ relationship for PWM subsystem
+Date: Mon, 26 Nov 2012 05:19:23 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC4C0FA@DBDE01.ent.ti.com>
+References: <1353387831-31538-1-git-send-email-avinashphilip@ti.com>
+ <1353387831-31538-4-git-send-email-avinashphilip@ti.com>
+ <518397C60809E147AF5323E0420B992E3E9EEA8C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA78AA0-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <518397C60809E147AF5323E0420B992E3E9EEA8C@DBDE01.ent.ti.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>, "a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org" <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, "rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org" <rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org" <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Philip, Avinash" <avinashphilip@ti.com>, "thierry.reding@avionic-design.de" <thierry.reding@avionic-design.de>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 22, 2012 at 11:17:02, AnilKumar, Chimata wrote:
-> +Andrew Morton
+On Fri, Nov 23, 2012 at 16:36:06, Philip, Avinash wrote:
+> On Tue, Nov 20, 2012 at 10:33:44, Philip, Avinash wrote:
+> > As part of PWM subsystem integration, PWM subsystem are sharing
+> > resources like clock across submodules (ECAP, EQEP & EHRPWM).
+> > To handle resource sharing & IP integration
+> > 1. Rework on parent child relation between PWMSS and
+> >    ECAP, EQEP & EHRPWM child devices to support runtime PM.
+> > 2. Add support for opt_clks in EHRPWM HWMOD entry to handle additional
+> >    clock gating from control module.
+> > 3. Add HWMOD entries for EQEP PWM submodule.
+> > 
 > 
-> On Tue, Nov 20, 2012 at 15:18:43, AnilKumar, Chimata wrote:
-> > From: Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>
-> > 
-> > Add system power off control to rtc driver which is the in-charge
-> > of controlling the BeagleBone system power. The power_off routine
-> > can be hooked up to "pm_power_off" system call.
-> > 
-> > System power off sequence:-
-> > * Set PMIC STATUS_OFF when PMIC_POWER_EN is pulled low
-> > * Enable PMIC_POWER_EN in rtc module
-> > * Set rtc ALARM2 time
-> > * Enable ALARM2 interrupt
-> > 
-> > Added while (1); after the above steps to make sure that no other
-> > process acquire cpu. Otherwise we might see an unexpected behaviour
-> > because we are shutting down all the power rails of SoC except RTC.
-> 
+> Is there any review on this patch?
+> This patch depends on ECAP & EHRPWM to work in am335x.
 
-Reviewed-by: Vaibhav Bedia <vaibhav.bedia-l0cyMroinI0@public.gmane.org>
+First of all, I think you should break up this patch as per the 3 points
+that you mentioned above.
+
+The usage of opt_clks for this does not look right to me. Based on your
+description this clock is necessary and not optional on AM335x and on 
+Davinci platforms this clock does not exist. 
+
+I think the custom activate/deactivate functions in the OMAP runtime PM
+implementation was a good fit for keeping this SoC integration detail out
+of the driver code. However, the current DT flow in omap_device.c seems to
+assign the default activate/deactivate ops. Is that approach deprecated?
+
+Regards,
+Vaibhav
