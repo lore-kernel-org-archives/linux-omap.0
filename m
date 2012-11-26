@@ -1,177 +1,339 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: OMAP4430 produces boot warnings
-Date: Mon, 26 Nov 2012 17:44:06 +0530
-Message-ID: <50B35D0E.6000509@ti.com>
-References: <20121121230337.GR3332@n2100.arm.linux.org.uk>  <50AE1DC0.3030002@ti.com>  <50AE2BB6.8080406@ti.com>  <1353594842.786.45.camel@sokoban>  <50AE3A5B.5040603@ti.com> <1353663278.25248.4.camel@sokoban> <50B310D3.9050202@ti.com>
+From: Andy Green <andy.green@linaro.org>
+Subject: [RFC PATCH 1/5] drivers : introduce device_path api
+Date: Mon, 26 Nov 2012 12:45:34 +0000
+Message-ID: <20121126124534.18106.44137.stgit@build.warmcat.com>
+References: <20121126123427.18106.4112.stgit@build.warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58364 "EHLO comal.ext.ti.com"
+Received: from warmcat.com ([87.106.134.80]:41656 "EHLO warmcat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753752Ab2KZMOp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 07:14:45 -0500
-In-Reply-To: <50B310D3.9050202@ti.com>
+	id S1752349Ab2KZMpj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Nov 2012 07:45:39 -0500
+In-Reply-To: <20121126123427.18106.4112.stgit@build.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: stern@rowland.harvard.edu
+Cc: linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-Hi,
+This adds a small optional API into drivers/base which deals with generating,
+matching and registration of wildcard device paths.
 
-On Monday 26 November 2012 12:18 PM, Archit Taneja wrote:
-> On Friday 23 November 2012 03:04 PM, Tero Kristo wrote:
->> On Thu, 2012-11-22 at 16:44 +0200, Tomi Valkeinen wrote:
->>> On 2012-11-22 16:34, Tero Kristo wrote:
->>>
->>>> I guess you checked that DSS pwrdm is switching between RET and ON in
->>>> your setup?
->>>
->>> Yes:
->>>
->>> # cat /debug/pm_debug/count |grep dss
->>> [   35.356567] pwrdm state mismatch(l3init_pwrdm) 3 != 1
->>> [   35.361938] pwrdm state mismatch(cam_pwrdm) 3 != 0
->>> [   35.366973] pwrdm state mismatch(ivahd_pwrdm) 3 != 1
->>> [   35.372253] pwrdm state mismatch(tesla_pwrdm) 3 != 1
->>> [   35.377532] pwrdm state mismatch(abe_pwrdm) 3 != 1
->>> dss_pwrdm
->>> (RET),OFF:1,RET:11,INA:0,ON:11,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
->>> l3_dss_clkdm->dss_pwrdm (0)
->>>
->>> then I load and unload the dss modules, and then:
->>>
->>> # cat /debug/pm_debug/count |grep dss
->>> [   60.813629] pwrdm state mismatch(l3init_pwrdm) 3 != 1
->>> [   60.819000] pwrdm state mismatch(cam_pwrdm) 3 != 0
->>> [   60.824127] pwrdm state mismatch(ivahd_pwrdm) 3 != 1
->>> [   60.829376] pwrdm state mismatch(tesla_pwrdm) 3 != 1
->>> [   60.834625] pwrdm state mismatch(abe_pwrdm) 3 != 1
->>> dss_pwrdm
->>> (ON),OFF:1,RET:21,INA:0,ON:22,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
->>> l3_dss_clkdm->dss_pwrdm (0)
->>>
->>>>> Does the pwrdm mistakenly think that in RET state the DSS still keeps
->>>>> the register contents?
->>>>
->>>> This might be the case, however the pwrdm code should be generic and
->>>> handle all domains properly. What is the tree / branch / commit you are
->>>> using for testing this stuff? I can take a look at this also.
->>>
->>> arm-soc/for-next
->>
->> I guess this is caused because some of the patches are still not in the
->> for-next branch, it looks like at least this is missing:
->>
->> https://patchwork.kernel.org/patch/1608901/
->>
->> ...or the latest update done by Paul to that one.
->>
->> The patch I posted appears to have a small merge induced bug, it is
->> registering the context loss soc_ops for am33xx when it should actually
->> register those for omap4. This might explain another bug I've been
->> looking at in a different branch recently... The update Paul posted does
->> not seem to have this problem, but I haven't tested it myself.
->
->
-> Applying the patch above, and registering the soc_ops for omap4 instead
-> of am33xx doesn't seem to help. The context lost count now always
-> returns 0.
->
-> And to verify Tomi's observation, if we don't rely on the context lost
-> count, and restore the registers always, we don't see the problem.
+>From a struct device * you can generate a string like
 
-So Rajendra and I found the problem.
+ /platform/usbhs_omap/ehci-omap.0/usb1/1-1
 
-The function _omap4_update_context_lost() reads the register 
-RM_DSS_DSS_CONTEXT for all DSS hwmods, and increments the count if we 
-read a non zero value. The issue is that the DSS's parent platform 
-device (tied to dss_core hwmod) is called first when resuming, it 
-correctly reads the register and observes that DSS lost context, and 
-then clears the register.
+which enapsulates the path of the device's connection to the board.
 
-When the children hwmods are enabled, the see that the registers are 
-cleared, and hence never increment their count.
+These can be used to match up other assets, for example struct regulators,
+that have been registed elsewhere with a device instance that is probed
+asynchronously from the other board assets.
 
-One option is to make the DSS driver use the context lost count of the 
-hwmod corresponding to the parent platform device. It sort of makes a 
-bit of sense as all the DSS platform devices belong to the same power 
-domain, so considering only the parent's context lost count is not so bad.
+If your device is on a bus, as it probably is, the device path will feature
+redundant bus indexes that do not contain information about the connectivity.
 
-The second option would be to have some usecounting mechanism in 
-omap_hwmod where different hwmods belonging to the same power domain 
-don't have their PM_CONTEXT registers cleared until all the hwmods are 
-enabled.
+For example if more than one driver can generate devices on the same bus,
+then the ordering of device probing will change the path, despite the
+connectivity remains the same.
 
-The first option is easier to implement, here is a patch for the DISPC 
-driver:
+For that reason, to get a deterministic path for matching, wildcards are
+allowed.  If your target device has the path
 
+ /platform/usbhs_omap/ehci-omap.0/usb1/1-1
 
- From 619276fa0e62b90875475eb345a310f1223e82f6 Mon Sep 17 00:00:00 2001
-From: Archit Taneja <archit@ti.com>
-Date: Mon, 26 Nov 2012 17:22:27 +0530
-Subject: [PATCH] OMAPDSS: DISPC: Use DISPC's parent device to get context
-  lost count
+generated, in the asset you wish to match with it you can instead use
 
-When enabling a hwmod, omap_hwmod refers to the register mentioned in the
-hwmod struct's member 'prcm.omap4.context_offs' to see whether context was
-lost or not. It increments the context lost count for the hwmod and then 
-clears
-the register.
+/platform/usbhs_omap/ehci-omap.0/usb*/*-1
 
-All the DSS hwmods have the same register(RM_DSS_DSS_CONTEXT) as 
-context_offs.
-When DSS is enabled, the first hwmod to be enabled is the "dss_core" 
-hwmod since
-it's the parent platform device. The dss_core hwmod updates it's context 
-lost
-count correctly and clears the register. When the hwmods corresponding 
-to the
-children platform devices are enabled. They see that the register is 
-clear, and
-don't increment their context lost count. Therefore, all the children 
-platfrom
-devices never report a change in context.
+in order to only leave the useful, invariant parts of the path to match
+against.
 
-The DISPC driver currently gets the context lost count for DSS from it's
-corresponsing platform device instance. The DISPC platform device is one 
-of the
-child devices, and doesn't report the context lost count correctly.
+To avoid having to adapt every kind of "search by string" api to also use
+the wildcards, the api takes the approach you can register your wildcard,
+and if a matching path is generated for a device, the wildcard itself is
+handed back as the device path instead.
 
-Make the DISPC driver get the context lost count from it's parent. The 
-parent
-platform device's hwmod is the only one which correctly updates the 
-context lost
-count.
+So if your board code or a (not yet done) DT binding registers this wildcard
 
-Signed-off-by: Archit Taneja <archit@ti.com>
+ /platform/usbhs_omap/ehci-omap.0/usb*
+
+and the usb hub driver asks to generate its device path
+
+	device_path_generate(dev, name, sizeof name);
+
+that is actually
+
+ /platform/usbhs_omap/ehci-omap.0/usb1
+
+then what will be returned is
+
+ /platform/usbhs_omap/ehci-omap.0/usb*
+
+providing the same literal string for ehci-omap.0 hub no matter how many\
+usb buses have been registered before.
+
+This wildcard string can then be matched to regulators or other string-
+searchable assets intended for the device on that hardware path.
+
+Signed-off-by: Andy Green <andy.green@linaro.org>
 ---
-  drivers/video/omap2/dss/dispc.c |    4 ++--
-  1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/Kconfig   |    6 ++
+ drivers/base/Makefile  |    2 +
+ drivers/base/core.c    |    2 +
+ drivers/base/path.c    |  181 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/device.h |   12 +++
+ 5 files changed, 203 insertions(+)
+ create mode 100644 drivers/base/path.c
 
-diff --git a/drivers/video/omap2/dss/dispc.c 
-b/drivers/video/omap2/dss/dispc.c
-index a5ab354..d9dfc4ad 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -374,7 +374,7 @@ static void dispc_save_context(void)
-  	if (dss_has_feature(FEAT_CORE_CLK_DIV))
-  		SR(DIVISOR);
-
--	dispc.ctx_loss_cnt = dss_get_ctx_loss_count(&dispc.pdev->dev);
-+	dispc.ctx_loss_cnt = dss_get_ctx_loss_count(dispc.pdev->dev.parent);
-  	dispc.ctx_valid = true;
-
-  	DSSDBG("context saved, ctx_loss_count %d\n", dispc.ctx_loss_cnt);
-@@ -389,7 +389,7 @@ static void dispc_restore_context(void)
-  	if (!dispc.ctx_valid)
-  		return;
-
--	ctx = dss_get_ctx_loss_count(&dispc.pdev->dev);
-+	ctx = dss_get_ctx_loss_count(dispc.pdev->dev.parent);
-
-  	if (ctx >= 0 && ctx == dispc.ctx_loss_cnt)
-  		return;
--- 
-1.7.9.5
+diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+index b34b5cd..3324a55 100644
+--- a/drivers/base/Kconfig
++++ b/drivers/base/Kconfig
+@@ -282,4 +282,10 @@ config CMA_AREAS
+ 
+ endif
+ 
++config DEVICEPATH
++	bool "Device path api"
++	default n
++	help
++	  Include dynamicly probed path matching API
++
+ endmenu
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 5aa2d70..b8d5723 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -22,5 +22,7 @@ obj-$(CONFIG_SYS_HYPERVISOR) += hypervisor.o
+ obj-$(CONFIG_REGMAP)	+= regmap/
+ obj-$(CONFIG_SOC_BUS) += soc.o
+ 
++obj-$(CONFIG_DEVICEPATH) += path.o
++
+ ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+ 
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index abea76c..cc0ba02 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -1368,6 +1368,8 @@ int __init devices_init(void)
+ 	if (!sysfs_dev_char_kobj)
+ 		goto char_kobj_err;
+ 
++	device_path_init();
++
+ 	return 0;
+ 
+  char_kobj_err:
+diff --git a/drivers/base/path.c b/drivers/base/path.c
+new file mode 100644
+index 0000000..384e792
+--- /dev/null
++++ b/drivers/base/path.c
+@@ -0,0 +1,181 @@
++/*
++ * drivers/base/path.c - device_path apis for matching dynamic / variable
++ *  device paths on buses like usb / mmc to wildcard constants from
++ *  platform or DT
++ *
++ * Copyright (c) 2012 Linaro, LTD
++ * Author: Andy Green <andy.green@linaro.org>
++ *
++ * This file is released under the GPLv2
++ *
++ */
++
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/string.h>
++#include <linux/export.h>
++#include <linux/slab.h>
++
++struct device_path {
++	char *path;
++	struct list_head list;
++};
++
++struct device_path list;
++DEFINE_MUTEX(lock);
++
++static int device_path_compare_wildcard(const char *awc, const char *b)
++{
++	while (*awc && *b) {
++		if (*awc == '*') {
++			awc++;
++			/* wildcard disallowed from extening past / */
++			while (*b && *b != *awc && *b != '/')
++				b++;
++		}
++		if (*awc != *b)
++			return -ENOENT;
++		if (!*awc)
++			return 0;
++		awc++;
++		b++;
++	}
++
++	if (!*awc && !*b)
++		return 0;
++
++	return -ENOENT;
++}
++
++static const char *device_path_find_wildcard(const char *device_path)
++{
++	struct device_path *dp;
++
++	mutex_lock(&lock);
++	list_for_each_entry(dp, &list.list, list) {
++		if (device_path_compare_wildcard(dp->path, device_path) == 0) {
++			mutex_unlock(&lock);
++			return dp->path;
++		}
++	}
++
++	mutex_unlock(&lock);
++	return NULL;
++}
++
++static int _device_path_generate(struct device *device, char *name, int len)
++{
++	int n = 0;
++	int l;
++
++	if (!device)
++		return -ENODEV;
++
++	if (device->parent) {
++		n = _device_path_generate(device->parent, name, len);
++		if (n < 0)
++			return n;
++	}
++
++	l = strlen(dev_name(device));
++
++	if ((len - n) < l + 3)
++		return -E2BIG;
++
++	name[n++] = '/';
++	strcpy(&name[n], dev_name(device));
++
++	return n + l;
++}
++
++int device_path_generate(struct device *device, char *name, int len)
++{
++	int n;
++	const char *match;
++
++	n = _device_path_generate(device, name, len);
++	if (n < 0)
++		return n;
++
++	/*
++	 * if any registered wildcard matches, report that instead
++	 */
++	match = device_path_find_wildcard(name);
++	if (!match)
++		return 0;
++
++	n = strlen(match);
++	if (n >= len - 1)
++		return -E2BIG;
++
++	memcpy(name, match, n);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(device_path_generate);
++
++int device_path_register_wildcard_path(const char *wildcard_devpath)
++{
++	struct device_path *dp;
++	int ret = -ENOMEM;
++
++	if (strchr(wildcard_devpath, '*') == NULL)
++		return 0;
++
++	mutex_lock(&lock);
++	dp = kmalloc(sizeof(struct device_path), GFP_KERNEL);
++	if (!dp)
++		goto bail;
++
++	dp->path = kmalloc(strlen(wildcard_devpath) + 1, GFP_KERNEL);
++	if (!dp->path) {
++		kfree(dp);
++		goto bail;
++	}
++
++	strcpy(dp->path, wildcard_devpath);
++	list_add(&dp->list, &list.list);
++	ret = 0;
++
++bail:
++	mutex_unlock(&lock);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(device_path_register_wildcard_path);
++
++static void device_path_free(struct device_path *dp)
++{
++	kfree(dp->path);
++	kfree(dp);
++}
++
++int device_path_unregister_wildcard_path(const char *wildcard_devpath)
++{
++	struct device_path *dp;
++	struct list_head *pos, *q;
++
++	mutex_lock(&lock);
++	list_for_each_safe(pos, q, &list.list) {
++		dp = list_entry(pos, struct device_path, list);
++		if (strcmp(dp->path, wildcard_devpath) == 0) {
++			list_del(pos);
++			device_path_free(dp);
++			mutex_unlock(&lock);
++			return 0;
++		}
++	}
++
++	mutex_unlock(&lock);
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(device_path_unregister_wildcard_path);
++
++void __init device_path_init(void)
++{
++	INIT_LIST_HEAD(&list.list);
++	mutex_init(&lock);
++}
++EXPORT_SYMBOL_GPL(device_path_init);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 86ef6ab..ecaf3aa 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -875,6 +875,18 @@ extern int (*platform_notify)(struct device *dev);
+ 
+ extern int (*platform_notify_remove)(struct device *dev);
+ 
++/*
++ * optional device path api
++ */
++#ifdef CONFIG_DEVICEPATH
++#define MAX_DEV_PATH_SIZE 512
++extern int device_path_generate(struct device *device, char *name, int len);
++extern int device_path_unregister_wildcard_path(const char *wildcard_devpath);
++extern int device_path_register_wildcard_path(const char *wildcard_devpath);
++extern void device_path_init(void);
++#else
++static inline void device_path_init(void) { ; }
++#endif
+ 
+ /*
+  * get_device - atomically increment the reference count for the device.
 
