@@ -1,59 +1,57 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] Don't mark shared helper functions as inline
-Date: Mon, 26 Nov 2012 14:00:38 -0700
-Message-ID: <20121126210038.GA3987@animalcreek.com>
-References: <1353957609-1295-1-git-send-email-Russ.Dill@ti.com>
- <20121126195742.21126.16500@nucleus>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
+Date: Mon, 26 Nov 2012 16:07:38 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211261555400.2168-100000@iolanthe.rowland.org>
+References: <20121126192206.GB11239@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:36046 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756515Ab2KZVAj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 16:00:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20121126195742.21126.16500@nucleus>
+Received: from iolanthe.rowland.org ([192.131.102.54]:44150 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756054Ab2KZVHj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 16:07:39 -0500
+In-Reply-To: <20121126192206.GB11239@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-On Mon, Nov 26, 2012 at 11:57:42AM -0800, Mike Turquette wrote:
-> Quoting Russ Dill (2012-11-26 11:20:09)
-> > The helper functions that access the opaque struct clk should
-> > not be marked inline since they are contained in clk.c, but expecte=
-d
-> > to be used by other compilation units. This causes compile errors
-> > under gcc-4.7
-> >=20
-> > In file included from arch/arm/mach-omap2/clockdomain.c:25:0:
-> > arch/arm/mach-omap2/clockdomain.c: In function =E2=80=98clkdm_clk_d=
-isable=E2=80=99:
-> > include/linux/clk-provider.h:338:12: error: inlining failed in call=
- to always_inline =E2=80=98__clk_get_enable_count=E2=80=99: function bo=
-dy not available
-> > arch/arm/mach-omap2/clockdomain.c:1001:28: error: called from here
-> > make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
-> > make: *** [arch/arm/mach-omap2] Error 2
-> >=20
->=20
+On Mon, 26 Nov 2012, Greg KH wrote:
 
-Hi Mike.
+> Ah, here's the root of your problem, right?  You need a way for your
+> hardware to tell the kernel that you have a regulator attached to a
+> specific device?  Using the device path and hard-coding it into the
+> kernel is not the proper way to solve this, sorry.  Use some other
+> unique way to describe the hardware, surely the hardware designers
+> couldn't have been that foolish not to provide this [1]?
 
-> Regardless, I'm still considering this patch.  I've heard many times
-> that we should trust the compiler to optimize for us and some folks l=
-ook
-> down on inlining in general.  If anyone has an opinion on removing
-> inlines from the common clk core then please do speak up.
+As far as I know, the kernel has no other way to describe devices.
 
-You should take a look at "Chapter 15: The inline disease" in
-Documentation/CodingStyle.
+What about using partial matches?  In this example, instead of doing a 
+wildcard match against
 
-Mark
---
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	/platform/usbhs_omap/ehci-omap.0/usb*
+
+(which would fail if the "platform" part of the path changes), suppose 
+the string "ehci-omap.0/usb*" could be associated with the usbhs_omap 
+component somehow.  Or even better, the string "usb*" could be 
+associated with the ehci-omap.0 device.
+
+Then the path-matching code could restrict its attention to that part
+of the path and to devices below the specified one.  Naming changes
+wouldn't be an issue, because the changes themselves would be made in
+the same source file that contains the partial path string.
+
+
+On the other hand, this may be way more general than we really need.  
+For this particular case, all we need to do is take special action the
+first time any device is registered below the ehci-omap.0 platform
+device.  There ought to be a more direct way to accomplish this,
+without using string pattern-matching or sysfs pathnames (and without 
+adding overhead every time a device is added or deleted).
+
+I don't know if such an approach would be sufficiently general for 
+future requirements, but it would solve the problem at hand.
+
+Alan Stern
+
