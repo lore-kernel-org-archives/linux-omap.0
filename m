@@ -1,179 +1,59 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 4/5] omap4: panda: add smsc95xx regulator and reset
- dependent on root hub
-Date: Mon, 26 Nov 2012 18:20:00 +0200
-Message-ID: <50B396B0.4070800@ti.com>
-References: <20121126123427.18106.4112.stgit@build.warmcat.com> <20121126124550.18106.29133.stgit@build.warmcat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34342 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751406Ab2KZQUE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 11:20:04 -0500
-In-Reply-To: <20121126124550.18106.29133.stgit@build.warmcat.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH] gpio: New driver for GPO emulation using PWM generators
+Date: Mon, 26 Nov 2012 15:46:00 +0000
+Message-ID: <20121126154600.765E03E1AFD@localhost>
+References: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com> <20121123075537.A14713E0A91@localhost> <50AF3E21.4000009@ti.com> <50AF4584.7020604@ti.com>
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <50AF4584.7020604@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Rob Landley <rob@landley.net>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Green <andy.green@linaro.org>
-Cc: stern@rowland.harvard.edu, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com
 
-Hi Andy,
+On Fri, 23 Nov 2012 10:44:36 +0100, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> Hi Grant,
+> 
+> On 11/23/2012 10:13 AM, Peter Ujfalusi wrote:
+> > Hi Grant,
+> > 
+> > On 11/23/2012 08:55 AM, Grant Likely wrote:
+> >> Ugh. and this is why I wanted the PWM and GPIO subsystems to use the
+> >> same namespace and binding. <grumble, mutter> But that's not your fault.
+> >>
+> >> It's pretty horrible to have a separate translator node to convert a PWM
+> >> into a GPIO (with output only of course). The gpio properties should
+> >> appear directly in the PWM node itself and the translation code should
+> >> be in either the pwm or the gpio core. I don't think it should look like
+> >> a separate device.
+> > 
+> > Let me see if I understand your suggestion correctly. In the DT you suggest
+> > something like this:
+> > 
+> > twl_pwmled: pwmled {
+> > 	compatible = "ti,twl4030-pwmled";
+> > 	#pwm-cells = <2>;
+> > 	#gpio-cells = <2>;
+> > 	gpio-controller;
+> > };
+> 
+> After I thought about this.. Is this what we really want?
+> After all what we have here is a PWM generator used to emulate a GPIO signal.
+> The PWM itself can be used for driving a LED (standard LED or backlight and we
+> have DT bindings for these already), vibra motor, or other things.
+> If we combine the PWM with GPIO we should go and 'bloat' the DT node to also
+> include all sort of other uses of PWM at once?
+> 
+> IMHO it is better to keep them as separate things.
+> pwm node to describe the PWM generator,
+> separate nodes to describe it's uses like led, backlight, motor and gpio.
 
-On 11/26/2012 02:45 PM, Andy Green wrote:
-> This adds regulators which are controlled by the OMAP4 PandaBoard (ES)'s
-> EHCI logical root hub existing.
-> 
-> Without power control, the ULPI PHY + SMSC9614 on the Panda eats 700-900mW
-> all the time, which is around the same as the idle power of the SoC and
-> rest of the board.
-> 
-> This allows us to start off with it depowered, and only power it if the
-> ehci-hcd module is inserted.  When the module is removed, it's depowered
-> again.
-> 
-> Signed-off-by: Andy Green <andy.green@linaro.org>
-> ---
->  arch/arm/mach-omap2/Kconfig            |    1 
->  arch/arm/mach-omap2/board-omap4panda.c |   90 +++++++++++++++++++++++++-------
->  2 files changed, 72 insertions(+), 19 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index d669e22..5105109 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -368,6 +368,7 @@ config MACH_OMAP4_PANDA
->  	select OMAP_PACKAGE_CBL
->  	select OMAP_PACKAGE_CBS
->  	select REGULATOR_FIXED_VOLTAGE if REGULATOR
-> +	select USB_HUB_DEVICE_PATH_REGULATOR
->  
->  config OMAP3_EMU
->  	bool "OMAP3 debugging peripherals"
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index bfcd397..b032b6b 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -154,11 +154,6 @@ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
->  	.reset_gpio_port[2]  = -EINVAL
->  };
->  
-> -static struct gpio panda_ehci_gpios[] __initdata = {
-> -	{ GPIO_HUB_POWER,	GPIOF_OUT_INIT_LOW,  "hub_power"  },
-> -	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
-> -};
-> -
->  static void __init omap4_ehci_init(void)
->  {
->  	int ret;
-> @@ -173,23 +168,76 @@ static void __init omap4_ehci_init(void)
->  	clk_set_rate(phy_ref_clk, 19200000);
->  	clk_prepare_enable(phy_ref_clk);
->  
-> -	/* disable the power to the usb hub prior to init and reset phy+hub */
-> -	ret = gpio_request_array(panda_ehci_gpios,
-> -				 ARRAY_SIZE(panda_ehci_gpios));
-> -	if (ret) {
-> -		pr_err("Unable to initialize EHCI power/reset\n");
-> -		return;
-> -	}
-> +	usbhs_init(&usbhs_bdata);
-> +}
->  
-> -	gpio_export(GPIO_HUB_POWER, 0);
-> -	gpio_export(GPIO_HUB_NRESET, 0);
-> -	gpio_set_value(GPIO_HUB_NRESET, 1);
-> +/*
-> + * hub_nreset also resets the ULPI PHY and is required after powering SMSC chip
-> + *	ULPI PHY is always powered... need to do reset once for both once
-> + * hub_power enables a 3.3V regulator for (hub + eth) chip
-> + *	however there's no point having ULPI PHY in use alone
-> + *	since it's only connected to the (hub + eth) chip
-> + */
->  
-> -	usbhs_init(&usbhs_bdata);
-> +static struct regulator_init_data panda_hub = {
-> +	.constraints = {
-> +		.name = "vhub",
-> +		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-> +	},
-> +};
->  
-> -	/* enable power to hub */
-> -	gpio_set_value(GPIO_HUB_POWER, 1);
-> -}
-> +static struct fixed_voltage_config panda_vhub = {
-> +	.supply_name = "vhub",
-> +	.microvolts = 3300000,
-> +	.gpio = GPIO_HUB_POWER,
-> +	.startup_delay = 70000, /* 70msec */
-> +	.enable_high = 1,
-> +	.enabled_at_boot = 0,
-> +	.init_data = &panda_hub,
-> +};
-> +
-> +static struct platform_device omap_vhub_device = {
-> +	.name		= "reg-fixed-voltage",
-> +	.id		= 2,
-> +	.dev = {
-> +		.platform_data = &panda_vhub,
-> +	},
-> +};
-> +
-> +static struct regulator_init_data panda_ulpireset = {
-> +	/*
-> +	 * idea is that when operating ulpireset, regulator api will make
-> +	 * sure that the hub+eth chip is powered, since it's the "parent"
-> +	 */
-> +	.supply_regulator = "vhub", /* we are a child of vhub */
-> +	.constraints = {
-> +		/*
-> +		 * this magic string associates us with ehci-omap.0 root hub
-> +		 * when the root hub logical device is up, we will power
-> +		 * and reset [ ULPI PHY + [ HUB + ETH ] ]
-> +		 */
-> +		.name = "/platform/usbhs_omap/ehci-omap.0/usb*",
-> +		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-> +	},
-> +};
-> +
-> +static struct fixed_voltage_config panda_vulpireset = {
-> +	.supply_name = "/platform/usbhs_omap/ehci-omap.0/usb*",
+You're effectively asking the pwm layer to behave like a gpio (which
+is completely reasonable). Having a completely separate translation node
+really doesn't make sense because it is entirely a software construct.
+In fact, the way your using it is *entirely* to make the Linux driver
+model instantiate the translation code. It has *nothing* to do with the
+structure of the hardware. It makes complete sense that if a PWM is
+going to be used as a GPIO, then the PWM node should conform to the GPIO
+binding.
 
-Does this supply_name really needs to be the magic string?
-
-> +	.microvolts = 3300000,
-> +	.gpio = GPIO_HUB_NRESET,
-> +	.startup_delay = 70000, /* 70msec */
-> +	.enable_high = 1,
-> +	.enabled_at_boot = 0,
-> +	.init_data = &panda_ulpireset,
-> +};
-> +
-> +static struct platform_device omap_vulpireset_device = {
-> +	.name		= "reg-fixed-voltage",
-> +	.id		= 3,
-> +	.dev = {
-> +		.platform_data = &panda_vulpireset,
-> +	},
-> +};
->  
->  static struct omap_musb_board_data musb_board_data = {
->  	.interface_type		= MUSB_INTERFACE_UTMI,
-> @@ -503,7 +551,11 @@ static void __init omap4_panda_init(void)
->  	omap4_panda_init_rev();
->  	omap4_panda_i2c_init();
->  	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
-> +	/* let device_path api know anything matching this reports as this */
-> +	device_path_register_wildcard_path(panda_ulpireset.constraints.name);
->  	platform_device_register(&omap_vwlan_device);
-> +	platform_device_register(&omap_vhub_device);
-> +	platform_device_register(&omap_vulpireset_device);
->  	omap_serial_init();
->  	omap_sdrc_init(NULL, NULL);
->  	omap4_twl6030_hsmmc_init(mmc);
-> 
-
---
-cheers,
--roger
+g.
