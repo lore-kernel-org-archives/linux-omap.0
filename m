@@ -1,83 +1,61 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: OMAP4430 produces boot warnings
-Date: Mon, 26 Nov 2012 12:18:51 +0530
-Message-ID: <50B310D3.9050202@ti.com>
-References: <20121121230337.GR3332@n2100.arm.linux.org.uk>  <50AE1DC0.3030002@ti.com>  <50AE2BB6.8080406@ti.com>  <1353594842.786.45.camel@sokoban>  <50AE3A5B.5040603@ti.com> <1353663278.25248.4.camel@sokoban>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 6/7] ARM: OMAP2+: omap2plus_defconfig: Enable leds-gpio driver
+Date: Mon, 26 Nov 2012 09:29:24 +0100
+Message-ID: <CAAwP0s1eL_VkRfR7FgNNmUfbAeHro9yaJGFa_HO+49tNuSS3yw@mail.gmail.com>
+References: <1353481163-29462-1-git-send-email-anilkumar@ti.com> <1353481163-29462-7-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37101 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751893Ab2KZGt1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 01:49:27 -0500
-In-Reply-To: <1353663278.25248.4.camel@sokoban>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:63967 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754312Ab2KZI3p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 03:29:45 -0500
+Received: by mail-oa0-f46.google.com with SMTP id h16so10481259oag.19
+        for <linux-omap@vger.kernel.org>; Mon, 26 Nov 2012 00:29:44 -0800 (PST)
+In-Reply-To: <1353481163-29462-7-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Rajendra Nayak <rnayak@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Friday 23 November 2012 03:04 PM, Tero Kristo wrote:
-> On Thu, 2012-11-22 at 16:44 +0200, Tomi Valkeinen wrote:
->> On 2012-11-22 16:34, Tero Kristo wrote:
->>
->>> I guess you checked that DSS pwrdm is switching between RET and ON in
->>> your setup?
->>
->> Yes:
->>
->> # cat /debug/pm_debug/count |grep dss
->> [   35.356567] pwrdm state mismatch(l3init_pwrdm) 3 != 1
->> [   35.361938] pwrdm state mismatch(cam_pwrdm) 3 != 0
->> [   35.366973] pwrdm state mismatch(ivahd_pwrdm) 3 != 1
->> [   35.372253] pwrdm state mismatch(tesla_pwrdm) 3 != 1
->> [   35.377532] pwrdm state mismatch(abe_pwrdm) 3 != 1
->> dss_pwrdm (RET),OFF:1,RET:11,INA:0,ON:11,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
->> l3_dss_clkdm->dss_pwrdm (0)
->>
->> then I load and unload the dss modules, and then:
->>
->> # cat /debug/pm_debug/count |grep dss
->> [   60.813629] pwrdm state mismatch(l3init_pwrdm) 3 != 1
->> [   60.819000] pwrdm state mismatch(cam_pwrdm) 3 != 0
->> [   60.824127] pwrdm state mismatch(ivahd_pwrdm) 3 != 1
->> [   60.829376] pwrdm state mismatch(tesla_pwrdm) 3 != 1
->> [   60.834625] pwrdm state mismatch(abe_pwrdm) 3 != 1
->> dss_pwrdm (ON),OFF:1,RET:21,INA:0,ON:22,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
->> l3_dss_clkdm->dss_pwrdm (0)
->>
->>>> Does the pwrdm mistakenly think that in RET state the DSS still keeps
->>>> the register contents?
->>>
->>> This might be the case, however the pwrdm code should be generic and
->>> handle all domains properly. What is the tree / branch / commit you are
->>> using for testing this stuff? I can take a look at this also.
->>
->> arm-soc/for-next
+On Wed, Nov 21, 2012 at 7:59 AM, AnilKumar Ch <anilkumar@ti.com> wrote:
+> AM335X-EVMSK and AM335X-BONE devices have gpio controlled user leds,
+> one has to manually enable this support to use user leds. So this
+> patch enables gpio-leds driver in omap2plus_defconfig. Also enables
+> TRIGGER_TIMER and TRIGGER_HEARTBEAT.
 >
-> I guess this is caused because some of the patches are still not in the
-> for-next branch, it looks like at least this is missing:
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+>  arch/arm/configs/omap2plus_defconfig |    5 +++++
+>  1 file changed, 5 insertions(+)
 >
-> https://patchwork.kernel.org/patch/1608901/
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 133f04a..5e1a763 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -202,6 +202,11 @@ CONFIG_MMC_UNSAFE_RESUME=y
+>  CONFIG_SDIO_UART=y
+>  CONFIG_MMC_OMAP=y
+>  CONFIG_MMC_OMAP_HS=y
+> +CONFIG_NEW_LEDS=y
+> +CONFIG_LEDS_GPIO=y
+> +CONFIG_LEDS_TRIGGERS=y
+> +CONFIG_LEDS_TRIGGER_TIMER=y
+> +CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+>  CONFIG_RTC_CLASS=y
+>  CONFIG_RTC_DRV_OMAP=y
+>  CONFIG_RTC_DRV_TWL92330=y
+> --
+> 1.7.9.5
 >
-> ...or the latest update done by Paul to that one.
->
-> The patch I posted appears to have a small merge induced bug, it is
-> registering the context loss soc_ops for am33xx when it should actually
-> register those for omap4. This might explain another bug I've been
-> looking at in a different branch recently... The update Paul posted does
-> not seem to have this problem, but I haven't tested it myself.
 
+Hi AnilKumar,
 
-Applying the patch above, and registering the soc_ops for omap4 instead 
-of am33xx doesn't seem to help. The context lost count now always returns 0.
+Your patch looks good to me but I would enable
+CONFIG_LEDS_TRIGGER_DEFAULT_ON too
+since this seems to be a very popular trigger used on many boards.
 
-And to verify Tomi's observation, if we don't rely on the context lost 
-count, and restore the registers always, we don't see the problem.
+But this could be made on a follow up patch too, so is your call.
 
-Btw, we use the function omap_pm_get_dev_context_loss_count to get the 
-count, do we use this or is there a new func to get the count?
-
-Thanks,
-Archit
-
+Best regards,
+Javier
