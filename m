@@ -1,110 +1,79 @@
 From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Mon, 26 Nov 2012 11:22:06 -0800
-Message-ID: <20121126192206.GB11239@kroah.com>
+Subject: Re: [RFC PATCH 3/5] usb: hub: add device_path regulator control to
+ generic hub
+Date: Mon, 26 Nov 2012 11:23:23 -0800
+Message-ID: <20121126192323.GC11239@kroah.com>
 References: <20121126123427.18106.4112.stgit@build.warmcat.com>
- <20121126124534.18106.44137.stgit@build.warmcat.com>
+ <20121126124544.18106.60130.stgit@build.warmcat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:58219 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.19.201]:58260 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755253Ab2KZTWJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 14:22:09 -0500
+	id S1754635Ab2KZTXZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Nov 2012 14:23:25 -0500
 Content-Disposition: inline
-In-Reply-To: <20121126124534.18106.44137.stgit@build.warmcat.com>
+In-Reply-To: <20121126124544.18106.60130.stgit@build.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Andy Green <andy.green@linaro.org>
 Cc: stern@rowland.harvard.edu, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-On Mon, Nov 26, 2012 at 12:45:34PM +0000, Andy Green wrote:
-> This adds a small optional API into drivers/base which deals with generating,
-> matching and registration of wildcard device paths.
+On Mon, Nov 26, 2012 at 12:45:45PM +0000, Andy Green wrote:
+> This adds the config option to associate a regulator with each hub,
+> when the hub on a specific, interesting device path appears, then
+> the regular is powered while the logical hub exists.
 > 
-> >From a struct device * you can generate a string like
+> Signed-off-by: Andy Green <andy.green@linaro.org>
+> ---
+>  drivers/usb/core/Kconfig |   10 ++++++++++
+>  drivers/usb/core/hub.c   |   26 +++++++++++++++++++++++++-
+>  2 files changed, 35 insertions(+), 1 deletion(-)
 > 
->  /platform/usbhs_omap/ehci-omap.0/usb1/1-1
-> 
-> which enapsulates the path of the device's connection to the board.
-> 
-> These can be used to match up other assets, for example struct regulators,
-> that have been registed elsewhere with a device instance that is probed
-> asynchronously from the other board assets.
-> 
-> If your device is on a bus, as it probably is, the device path will feature
-> redundant bus indexes that do not contain information about the connectivity.
+> diff --git a/drivers/usb/core/Kconfig b/drivers/usb/core/Kconfig
+> index f70c1a1..4a91eb1 100644
+> --- a/drivers/usb/core/Kconfig
+> +++ b/drivers/usb/core/Kconfig
+> @@ -95,3 +95,13 @@ config USB_OTG_BLACKLIST_HUB
+>  	  and software costs by not supporting external hubs.  So
+>  	  are "Embedded Hosts" that don't offer OTG support.
+>  
+> +config USB_HUB_DEVICE_PATH_REGULATOR
+> +	bool "Support generic regulators at hubs"
+> +	select DEVICEPATH
+> +	depends on USB
+> +	default n
+> +	help
+> +	  Allows you to use the device_path APIs to associate kernel regulators
+> +	  with dynamically probed USB hubs, so the regulators are enabled
+> +	  as the appropriate hub instance gets created and disabled as it
+> +	  is destroyed.
 
-Huh?  A bus "index" does show the connectivity, well, one type of
-connectivity, but perhaps it's not the one _you_ happen to want at the
-moment.  Which is fine, but I don't see why you want to try to figure
-this out using the device path in the first place, surely you have some
-other way that the hardware can describe itself to the kernel as to
-where it needs to be hooked up to?
+Even if I did like the device_path code (which I do not), this needs to
+be rewritten to actually make sense to a user who would have to pick
+this option, not a kernel developer.
 
-> For example if more than one driver can generate devices on the same bus,
-> then the ordering of device probing will change the path, despite the
-> connectivity remains the same.
+> diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+> index a815fd2..49ebb5e 100644
+> --- a/drivers/usb/core/hub.c
+> +++ b/drivers/usb/core/hub.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/freezer.h>
+>  #include <linux/random.h>
+> +#include <linux/regulator/consumer.h>
+>  
+>  #include <asm/uaccess.h>
+>  #include <asm/byteorder.h>
+> @@ -54,7 +55,9 @@ struct usb_hub {
+>  	struct usb_device	*hdev;
+>  	struct kref		kref;
+>  	struct urb		*urb;		/* for interrupt polling pipe */
+> -
+> +#ifdef CONFIG_USB_HUB_DEVICE_PATH_REGULATOR
 
-That's an expected thing, I don't see the issue here.
-
-> For that reason, to get a deterministic path for matching, wildcards are
-> allowed.  If your target device has the path
-
-Wait, no, why would you want a deterministic path and have that
-hard-coded into the kernel here?  You can't rely on that any more than
-userspace can, so let's not start making the mistake that lots of
-userspace programmers originally did when they started using sysfs
-please.  We have learned from our past mistakes.
-
->  /platform/usbhs_omap/ehci-omap.0/usb1/1-1
-> 
-> generated, in the asset you wish to match with it you can instead use
-> 
-> /platform/usbhs_omap/ehci-omap.0/usb*/*-1
-> 
-> in order to only leave the useful, invariant parts of the path to match
-> against.
-> 
-> To avoid having to adapt every kind of "search by string" api to also use
-> the wildcards, the api takes the approach you can register your wildcard,
-> and if a matching path is generated for a device, the wildcard itself is
-> handed back as the device path instead.
-> 
-> So if your board code or a (not yet done) DT binding registers this wildcard
-> 
->  /platform/usbhs_omap/ehci-omap.0/usb*
-
-Device tree lists sysfs paths in it's descriptions?  That's news to me.
-
-> and the usb hub driver asks to generate its device path
-> 
-> 	device_path_generate(dev, name, sizeof name);
-> 
-> that is actually
-> 
->  /platform/usbhs_omap/ehci-omap.0/usb1
-> 
-> then what will be returned is
-> 
->  /platform/usbhs_omap/ehci-omap.0/usb*
-> 
-> providing the same literal string for ehci-omap.0 hub no matter how many\
-> usb buses have been registered before.
-> 
-> This wildcard string can then be matched to regulators or other string-
-> searchable assets intended for the device on that hardware path.
-
-Ah, here's the root of your problem, right?  You need a way for your
-hardware to tell the kernel that you have a regulator attached to a
-specific device?  Using the device path and hard-coding it into the
-kernel is not the proper way to solve this, sorry.  Use some other
-unique way to describe the hardware, surely the hardware designers
-couldn't have been that foolish not to provide this [1]?
+No #ifdefs in .c files, if at all possible please.
 
 thanks,
 
 greg k-h
-
-[1] Yeah, I know I'm being hopeful here, and probably wrong, but then
-    you need to push back.  We are not helpless here.
