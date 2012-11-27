@@ -1,63 +1,46 @@
-From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] usb: musb: dsps: header movement build error fix
-Date: Tue, 27 Nov 2012 20:15:22 +0530
-Message-ID: <1354027522-32485-1-git-send-email-afzal@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
+Date: Tue, 27 Nov 2012 11:30:11 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org>
+References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:42959 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755861Ab2K0QaN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Nov 2012 11:30:13 -0500
+In-Reply-To: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>, Felipe Balbi <balbi@ti.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, USB list <linux-usb@vger.kernel.org>, rogerq@ti.com
 
-"54db6ee ARM: OMAP2+: Introduce local usb.h" moved control module bit
-definitions from plat/usb.h (which dsps glue was using) to a local
-header in mach-omap2. And in parallel,
-"c68bb4c usb: musb: dsps: control module handling (quirk)" added
-control module handling capability to dsps glue driver that used
-those control module bit definitions.
+On Tue, 27 Nov 2012, Ming Lei wrote:
 
-Integration of above two changes would cause build error in musb dsps
-glue driver (they go through different trees upstream) as is seen now
-in linux-next. Fix it by adding necessary definitions in dsps glue
-driver.
+> IMO, all matches mean the devices are inside the ehci-omap bus, so
+> the direct/simple way is to enable/disable the regulators in the probe() and
+> remove() of ehci-omap controller driver.
 
-Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
----
+When this discussion started, Felipe argued against such an approach.  
+He pointed out that the same chip could be used in other platforms, and
+then the code added to ehci-omap.c would have to be duplicated in
+several other places.
 
-Hi Felipe,
+We should have a more generic solution in a more central location, like 
+the device core.
 
-This applies on top of your musb branch, please help this reach
-mainline along with other musb dsps changes for coming merge window
-so that they would not cause build error and so that we can have a
-working usb in mainline for am335x (beaglebone) at the earliest.
+For example, each struct platform_device could have a list of resources
+to be enabled when the device is bound to a driver and disabled when
+the device is unbound.  Such a list could include regulators, clocks,
+and whatever else people can invent.
 
-Regards
-Afzal
+In this case, when it is created the ehci-omap.0 platform device could
+get an entry pointing to the LAN95xx's regulator.  Then the regulator 
+would automatically be turned on when the platform device is bound to 
+the ehci-omap driver.
 
- drivers/usb/musb/musb_dsps.c | 5 +++++
- 1 file changed, 5 insertions(+)
+How does this sound?
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index e6f2ae8..f7d764d 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -134,6 +134,11 @@ static const resource_size_t dsps_control_module_phys[] = {
- 	DSPS_AM33XX_CONTROL_MODULE_PHYS_1,
- };
- 
-+#define USBPHY_CM_PWRDN		(1 << 0)
-+#define USBPHY_OTG_PWRDN	(1 << 1)
-+#define USBPHY_OTGVDET_EN	(1 << 19)
-+#define USBPHY_OTGSESSEND_EN	(1 << 20)
-+
- /**
-  * musb_dsps_phy_control - phy on/off
-  * @glue: struct dsps_glue *
--- 
-1.7.12
+Alan Stern
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
