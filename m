@@ -1,71 +1,67 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: need help debugging ISP problem
-Date: Tue, 27 Nov 2012 17:52:21 +0100
-Message-ID: <1508686.Xvv8pOooM8@avalon>
-References: <50985380.8000706@irobot.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP: fix build error in arch/arm/mach-omap2/timer.c
+Date: Tue, 27 Nov 2012 10:52:03 -0600
+Message-ID: <50B4EFB3.5060901@ti.com>
+References: <1354011886-31553-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <50985380.8000706@irobot.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Adam Wozniak <awozniak@irobot.com>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, sakari.ailus@iki.fi
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:46783 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756512Ab2K0Qw1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Nov 2012 11:52:27 -0500
+In-Reply-To: <1354011886-31553-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, paul@pwsan.com, nfont@linux.vnet.ibm.com
 
-Hi Adam,
 
-On Monday 05 November 2012 16:02:08 Adam Wozniak wrote:
-> I'm working with a custom board based on an Overo WaterStorm com. The
-> processor is a DM3730.  The kernel is 2.6.32 based.
+On 11/27/2012 04:24 AM, Mugunthan V N wrote:
+>   CC      arch/arm/mach-omap2/timer.o
+> arch/arm/mach-omap2/timer.c: In function 'omap_get_timer_dt':
+> arch/arm/mach-omap2/timer.c:195:3: error: implicit declaration of function 'prom_add_property'
+> make[1]: *** [arch/arm/mach-omap2/timer.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
 
-2.6.32 very probably means you're using the old TI driver. Please don't. 
-That's buggy and totally unsupported. I advice upgrading to the latest 
-mainline kernel.
+Thanks for sending. You may wish to mentioned that this is seen on
+today's linux-next (I am seeing the same problem).
 
-> I'm trying to stress test the camera ISP by rapidly opening and closing
-> the video device with ( while true; do gst-launch v4l2src
-> device=/dev/video0 ! video/x-raw-yuv,width=320,height=240 !
-> ffmpegcolorspace ! pngenc snapshot=true ! fakesink; done )
+> fix for build break as the functions "prom_*_property" is renamed to
+> of_*_property by the below patch
 > 
-> After many iterations, I will see the kernel spit out:
+> commit 79d1c712958f94372482ad74578b00f44e744c12
+> Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+> Date:   Tue Oct 2 16:58:46 2012 +0000
 > 
-> [ 2502.802795] Unhandled fault: external abort on non-linefetch (0x1028)
-> at 0xfa0bce04
-> [ 2502.810516] Internal error: : 1028 [#1]
-> [ ... ]
-> [ 2502.846893] PC is at isp_reg_readl+0x18/0x20
-> [ 2502.851196] LR is at isp_reg_readl+0x10/0x20
-> [ ... ]
-> [ 2503.296447] [<c02954a0>] (isp_reg_readl+0x18/0x20) from [<c02954f8>]
-> (isp_reg_and_or+0x1c/0x38)
-> [ 2503.305206] [<c02954f8>] (isp_reg_and_or+0x1c/0x38) from [<c029bad0>]
-> (isppreview_config_cfa+0x38/0x90)
-> [ 2503.314666] [<c029bad0>] (isppreview_config_cfa+0x38/0x90) from
-> [<c029bc5c>] (isppreview_config_datapath+0x134/0x330)
-> [ 2503.325347] [<c029bc5c>] (isppreview_config_datapath+0x134/0x330)
-> from [<c029be68>] (isppreview_s_pipeline+0x10/0xd0)
-> [ 2503.336029] [<c029be68>] (isppreview_s_pipeline+0x10/0xd0) from
-> [<c0296e98>] (isp_s_pipeline+0x1d8/0x280)
-> [ 2503.345672] [<c0296e98>] (isp_s_pipeline+0x1d8/0x280) from
-> [<bf036b98>] (cammux_streamon+0x218/0xa28 [cammux])
-> [ ... ]
+>     powerpc+of: Rename the drivers/of prom_* functions to of_*
 > 
+>     Rename the prom_*_property routines of the generic OF code to of_*_property.
+>     This brings them in line with the naming used by the rest of the OF code.
 > 
-> The register we're trying to access here is the ISP PRV_PCR.  If I try
-> to add debug code to read ISP_CTRL right before the fault, the ISP_CTRL
-> access faults in the same way (i.e. the whole ISP is borked, not just
-> the previewer).
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> ---
+>  arch/arm/mach-omap2/timer.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> At first I thought the clocks were being disabled somehow, but tracking
-> them seems to indicate that's not the case.  Adding an early return in
-> arch/arm/mach/omap2/clock.c omap2_dflt_clk_disable() (i.e. to disable
-> disabling of clocks) does NOT help.
-> 
-> What else might I be missing?  What is necessary to be able to read the
-> ISP registers?
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 099e406..5fd5e23 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -192,7 +192,7 @@ static struct device_node * __init omap_get_timer_dt(struct of_device_id *match,
+>  			continue;
+>  		}
+>  
+> -		prom_add_property(np, &device_disabled);
+> +		of_add_property(np, &device_disabled);
+>  		return np;
+>  	}
 
--- 
-Regards,
+I tested this on the AM335x device and it is working fine. So ...
 
-Laurent Pinchart
+Acked-by: Jon Hunter <jon-hunter@ti.com>
+Tested-by: Jon Hunter <jon-hunter@ti.com>
+
+Cheers
+Jon
