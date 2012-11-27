@@ -1,112 +1,56 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/16] OMAP USB Host cleanup
-Date: Tue, 27 Nov 2012 18:30:22 +0200
-Message-ID: <20121127163022.GB24240@arwen.pp.htv.fi>
-References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
- <87fw49cnvh.fsf@deeprootsystems.com>
- <50AA05C3.7010003@ti.com>
- <876251b2kq.fsf@deeprootsystems.com>
- <50B4D167.4090205@ti.com>
-Reply-To: <balbi@ti.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
+Date: Tue, 27 Nov 2012 11:37:58 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211271131130.1489-100000@iolanthe.rowland.org>
+References: <50B40320.2020206@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="U+BazGySraz5kW0T"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37742 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755861Ab2K0QhG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Nov 2012 11:37:06 -0500
-Content-Disposition: inline
-In-Reply-To: <50B4D167.4090205@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50B40320.2020206-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
---U+BazGySraz5kW0T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, 27 Nov 2012, Andy Green wrote:
 
-On Tue, Nov 27, 2012 at 04:42:47PM +0200, Roger Quadros wrote:
-> On 11/20/2012 01:22 AM, Kevin Hilman wrote:
-> > Roger Quadros <rogerq@ti.com> writes:
-> >=20
-> >> Kevin,
-> >>
-> >> On 11/16/2012 10:08 PM, Kevin Hilman wrote:
-> >>> Roger Quadros <rogerq@ti.com> writes:
-> >>>
-> >>>> Hi,
-> >>>>
-> >>>> This patchset addresses the following
-> >>>>
-> >>>> - Avoid addressing clocks one by one by name and use a for loop + bu=
-nch
-> >>>>   of cleanups.
-> >>>> - Get number of channels/ports dynamically either from revision regi=
-ster
-> >>>>   or from platform data. Avoids getting clocks that are not present.
-> >>>> - Add OMAP5 and HSIC mode (Not tested)
-> >>>> - Save power on Panda when EHCI driver is not loaded.
-> >>>>
-> >>>
-> >>> Seeing the clock changes/cleanups, I gave this a spin on OMAP3
-> >>> (3530/Beagle, 3530/Overo, 3730/Beagle-xM, 3730/OveroSTORM) to see if =
-it
-> >>> fixed up the problem where CORE does not hit retention in idle when U=
-SB
-> >>> host is enabled, even with no devices attached.
-> >>>
-> >>> Unfortunately, it didn't help. :(
-> >>
-> >> oh that's bad. But this series wasn't meant to fix that ;).
-> >=20
-> > Oh, sorry.  Yeah, I didn't mean this as a nak.  Just an opportunity to
-> > complain to the maintainers that a long-standing issue needs to be
-> > addressed.
-> >=20
->=20
-> Kevin,
->=20
-> I gave a quick look at the issue. It seems that the High Speed USB Host
-> module is kept in Software forced wakeup mode as a quick fix workaround
-> to a bunch of silicon erratas. And we do nothing on USB global suspend.
-> That's why CORE does not hit retention.
->=20
-> If we runtime_suspend the USB host module on USB global suspend then it
-> will be put in Force Idle mode. This will allow CORE to hit retention
-> but then we will no longer be able to detect USB device connect events.
->=20
-> So, till we have a better solution I will suggest to keep EHCI_HCD as a
-> module in omap2plus_defconfig.
+> > I don't know if such an approach would be sufficiently general for
+> > future requirements, but it would solve the problem at hand.
+> 
+> We can get a notification about device creation and do things there. 
+> But the cost of that is like the tuple suggestion, they'll only be able 
+> to do a fixed thing like operate on regulators.
 
-I guess that "better solution" would be I/O pads wakeup interrupts ? But
-I don't think that's already in mainline, is it ?
+I'm not quite sure what you mean by that.  _Any_ function is capable of 
+doing only a fixed thing.
 
---=20
-balbi
+> Actually the targeted device may have arbitrary associated assets like 
+> generic GPIO to turn on a "flash" for built-in webcam controlled 
+> out-of-band.  These also can be reached by known names.  And the driver 
+> may wish to do things with them that are more complex than enable / 
+> disable or follow logical lifecycle of the hub or whatever.
 
---U+BazGySraz5kW0T
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Let's worry about that when it arises.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> However when the guidance from Greg is that we can do nothing except 
+> complain at hardware designers for some reason I failed to quite 
+> identify, I fear we are moving deckchairs on the titanic.
 
-iQIcBAEBAgAGBQJQtOqeAAoJEIaOsuA1yqREK+wP/1muJ8ECRhpQD4TKdYENOSop
-eBUgezWS5flpM5Jiljr8Sd09ORfeoaRxdp+tzEcwprdhY7jpiKE7nubr6iVuM95l
-P0thIHB83smpf7yvsJE2H9rbTHGuPHod4e16Cw8V7OjI5rW21ZPkR6rufJPDBwOM
-FS/5Uk+68t5E+AGcF3LnxeVESdoyPYMORKN199vt5hR/YET5OSHxfpc8OEVGt4CA
-R6cMIRL8dPWCQpEff3l8OH1BOfOBmjMmBSWBXUYxuo2GkyKCBr0SpfuoI5ekiMzk
-Q+9w6ITWGprNLqMKfDvcJWCWAPZnmv0D1HWkpQkOsZu3r4RZWd93O8nk4galPifI
-gVt6GswYti48dOGANIIpwaf4arhAzMZ7Z7Z+VOZ6k3eXG0nqeU4ZeBlICfDlY7aE
-NllDfLDm3FsBp8TJsLbL/Q3xOC1JqYNVP3Vjl23EeKIWnGcgRpMyBmapMVyRU7P2
-lMqqGwrGxHZSLyrSYDvFWPnPtNFT6Zb+bskzeoY5st8aQ1ElXVmNXfw/hcMLnoOU
-zE/C0d+wOAyTNI1lICJFlp8s6NCbmAUqh1DRD7JYu8Q6293Ui9edErTP97Nq+m2q
-KfanQSx8fwl/FeiH1t9giANmiCEDIOPu7fF/C8pLFbKkj1Lx4LYMv4SS5qmVsSxn
-wrH23P8ASNGgJhHPFcAm
-=ZkWI
------END PGP SIGNATURE-----
+Greg's advice was simply not to rely on pathnames in sysfs because they 
+aren't fixed in stone.  That leaves plenty of other ways to approach 
+this problem.
 
---U+BazGySraz5kW0T--
+Basically, what you want is for something related to device A (the
+regulator or the GPIO) to happen whenever device B (the ehci-omap.0
+platform device) is bound to a driver.  The most straightforward way to
+arrange this is for A's driver to have a callback that is invoked
+whenever B is bound or unbound.  The most straightforward way to 
+arrange _that_ is to allow each platform_device to have a list of 
+callbacks.
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
