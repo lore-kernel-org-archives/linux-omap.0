@@ -1,7 +1,7 @@
 From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 09/12] pwm: pwm-tiehrpwm: pinctrl support
-Date: Tue, 27 Nov 2012 14:18:14 +0530
-Message-ID: <1354006097-25895-10-git-send-email-avinashphilip@ti.com>
+Subject: [PATCH v5 10/12] ARM: dts: AM33XX: Add PWMSS device tree nodes
+Date: Tue, 27 Nov 2012 14:18:15 +0530
+Message-ID: <1354006097-25895-11-git-send-email-avinashphilip@ti.com>
 References: <1354006097-25895-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,40 +23,113 @@ Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06c
  Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>, vaibhav.bedia-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Enable pinctrl for pwm-tiehrpwm if pinctrl driver available, else
-bail out with warning message.
+Add PWMSS device tree nodes in relation with ECAP & EHRPWM DT nodes to
+AM33XX SoC family. Also populates device tree nodes for ECAP & EHRPWM by
+adding necessary properties like pwm-cells, base reg & set disabled as
+status.
 
 Signed-off-by: Philip, Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
+Reviewed-by: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
 ---
-Changes since v4:
-	- Changes warning message.
+Changes since v2:
+	- ranges property populated to handle child devices address range
 
- drivers/pwm/pwm-tiehrpwm.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |   84 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 84 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/pwm/pwm-tiehrpwm.c b/drivers/pwm/pwm-tiehrpwm.c
-index d3194c0..e8683bc 100644
---- a/drivers/pwm/pwm-tiehrpwm.c
-+++ b/drivers/pwm/pwm-tiehrpwm.c
-@@ -26,6 +26,7 @@
- #include <linux/clk.h>
- #include <linux/pm_runtime.h>
- #include <linux/of_device.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include "pwm-tipwmss.h"
- 
-@@ -415,6 +416,11 @@ static int __devinit ehrpwm_pwm_probe(struct platform_device *pdev)
- 	struct clk *clk;
- 	struct ehrpwm_pwm_chip *pc;
- 	u16 status;
-+	struct pinctrl *pinctrl;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 20a3f29..4393161 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -338,5 +338,89 @@
+ 			power = <250>;
+ 			ti,hwmods = "usb_otg_hs";
+ 		};
 +
-+	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-+	if (IS_ERR(pinctrl))
-+		dev_warn(&pdev->dev, "unable to select pin group\n");
- 
- 	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
- 	if (!pc) {
++		epwmss0: epwmss@48300000 {
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48300000 0x10>;
++			ti,hwmods = "epwmss0";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges = <0x48300100 0x48300100 0x80   /* ECAP */
++				  0x48300180 0x48300180 0x80   /* EQEP */
++				  0x48300200 0x48300200 0x80>; /* EHRPWM */
++
++			ecap0: ecap@48300100 {
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48300100 0x80>;
++				ti,hwmods = "ecap0";
++				status = "disabled";
++			};
++
++			ehrpwm0: ehrpwm@48300200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48300200 0x80>;
++				ti,hwmods = "ehrpwm0";
++				status = "disabled";
++			};
++		};
++
++		epwmss1: epwmss@48302000 {
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48302000 0x10>;
++			ti,hwmods = "epwmss1";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges = <0x48302100 0x48302100 0x80   /* ECAP */
++				  0x48302180 0x48302180 0x80   /* EQEP */
++				  0x48302200 0x48302200 0x80>; /* EHRPWM */
++
++			ecap1: ecap@48302100 {
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48302100 0x80>;
++				ti,hwmods = "ecap1";
++				status = "disabled";
++			};
++
++			ehrpwm1: ehrpwm@48302200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48302200 0x80>;
++				ti,hwmods = "ehrpwm1";
++				status = "disabled";
++			};
++		};
++
++		epwmss2: epwmss@48304000 {
++			compatible = "ti,am33xx-pwmss";
++			reg = <0x48304000 0x10>;
++			ti,hwmods = "epwmss2";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			status = "disabled";
++			ranges = <0x48304100 0x48304100 0x80   /* ECAP */
++				  0x48304180 0x48304180 0x80   /* EQEP */
++				  0x48304200 0x48304200 0x80>; /* EHRPWM */
++
++			ecap2: ecap@48304100 {
++				compatible = "ti,am33xx-ecap";
++				#pwm-cells = <3>;
++				reg = <0x48304100 0x80>;
++				ti,hwmods = "ecap2";
++				status = "disabled";
++			};
++
++			ehrpwm2: ehrpwm@48304200 {
++				compatible = "ti,am33xx-ehrpwm";
++				#pwm-cells = <3>;
++				reg = <0x48304200 0x80>;
++				ti,hwmods = "ehrpwm2";
++				status = "disabled";
++			};
++		};
+ 	};
+ };
 -- 
 1.7.0.4
