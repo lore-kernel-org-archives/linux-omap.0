@@ -1,43 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP build now completely broken in latest arm-soc
-Date: Mon, 26 Nov 2012 17:13:42 -0800
-Message-ID: <20121127011341.GO5279@atomide.com>
-References: <20121125093704.GV3332@n2100.arm.linux.org.uk>
- <CAOesGMgvGxfghFbyki7aXE8dVbAA7QQP6nwBKhzHftngGRi0Tw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/1] ARM: OMAP2+: omap2plus_defconfig: enable twl4030 SoC audio
+Date: Tue, 27 Nov 2012 02:21:15 +0100
+Message-ID: <1353979275-6237-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50778 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757789Ab2K0BNr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 20:13:47 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOesGMgvGxfghFbyki7aXE8dVbAA7QQP6nwBKhzHftngGRi0Tw@mail.gmail.com>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:46248 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755549Ab2K0BVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 20:21:41 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, arm@kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-* Olof Johansson <olof@lixom.net> [121125 05:59]:
-> On Sun, Nov 25, 2012 at 1:37 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > But also, the:
-> >
-> > arch/arm/mach-omap2/timer.c:163:28: warning: 'omap_counter_match' defined but not used
-> >
-> > warning is still there.
-> 
-> There's a fix for this in Tony's tree, but he hasn't sent up the pull
-> request for it yet.
+Many TI OMAP SoC based boards that uses twl4030 as codec have
+been updated to use the unified audio driver (omap-twl4030)
+since they have similar audio setup.
 
-Sent a pull request for that as "omap late timer clean-up
-(and a warning fix) for v3.8 merge window". The fix is there
-there as the topmost third patch, but that probably does not
-matter in this case as the regression was introduced in the
-patches queued.
+So, is good to have it built to add audio support to these boards.
 
-Let me know if you want it separately though.
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+ arch/arm/configs/omap2plus_defconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Regards,
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 7c6cbdf..022212c 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -172,6 +172,7 @@ CONFIG_SND_DEBUG=y
+ CONFIG_SND_USB_AUDIO=m
+ CONFIG_SND_SOC=m
+ CONFIG_SND_OMAP_SOC=m
++CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
+ CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+ CONFIG_USB=y
+ CONFIG_USB_DEBUG=y
+-- 
+1.7.7.6
 
-Tony
