@@ -1,91 +1,142 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Wed, 28 Nov 2012 01:44:09 +0800
-Message-ID: <50B4FBE9.5080301@linaro.org>
-References: <Pine.LNX.4.44L0.1211271131130.1489-100000@iolanthe.rowland.org>
+From: Russ Dill <Russ.Dill@ti.com>
+Subject: Re: [PATCH] Don't mark shared helper functions as inline
+Date: Tue, 27 Nov 2012 09:52:50 -0800
+Message-ID: <CA+Bv8XbR68-VcOF3JkL47+L9yZFkpv16JTbQfA02yZUGnPZvEQ@mail.gmail.com>
+References: <1353957609-1295-1-git-send-email-Russ.Dill@ti.com>
+	<20121126195742.21126.16500@nucleus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:35349 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755972Ab2K0RoT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Nov 2012 12:44:19 -0500
-In-Reply-To: <Pine.LNX.4.44L0.1211271131130.1489-100000@iolanthe.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121126195742.21126.16500@nucleus>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-On 11/28/2012 12:37 AM, the mail apparently from Alan Stern included:
-> On Tue, 27 Nov 2012, Andy Green wrote:
+On Mon, Nov 26, 2012 at 11:57 AM, Mike Turquette <mturquette@ti.com> wr=
+ote:
 >
->>> I don't know if such an approach would be sufficiently general for
->>> future requirements, but it would solve the problem at hand.
->>
->> We can get a notification about device creation and do things there.
->> But the cost of that is like the tuple suggestion, they'll only be a=
-ble
->> to do a fixed thing like operate on regulators.
+> Quoting Russ Dill (2012-11-26 11:20:09)
+> > The helper functions that access the opaque struct clk should
+> > not be marked inline since they are contained in clk.c, but expecte=
+d
+> > to be used by other compilation units. This causes compile errors
+> > under gcc-4.7
+> >
+> > In file included from arch/arm/mach-omap2/clockdomain.c:25:0:
+> > arch/arm/mach-omap2/clockdomain.c: In function =E2=80=98clkdm_clk_d=
+isable=E2=80=99:
+> > include/linux/clk-provider.h:338:12: error: inlining failed in call=
+ to always_inline =E2=80=98__clk_get_enable_count=E2=80=99: function bo=
+dy not available
+> > arch/arm/mach-omap2/clockdomain.c:1001:28: error: called from here
+> > make[1]: *** [arch/arm/mach-omap2/clockdomain.o] Error 1
+> > make: *** [arch/arm/mach-omap2] Error 2
+> >
 >
-> I'm not quite sure what you mean by that.  _Any_ function is capable =
-of
-> doing only a fixed thing.
+> Hi Russ,
 >
->> Actually the targeted device may have arbitrary associated assets li=
-ke
->> generic GPIO to turn on a "flash" for built-in webcam controlled
->> out-of-band.  These also can be reached by known names.  And the dri=
-ver
->> may wish to do things with them that are more complex than enable /
->> disable or follow logical lifecycle of the hub or whatever.
+> A fix for this was merged into rc7.  See 93532c8a, "clk: remove inlin=
+e
+> usage from clk-provider.h".
 >
-> Let's worry about that when it arises.
+> Regardless, I'm still considering this patch.  I've heard many times
+> that we should trust the compiler to optimize for us and some folks l=
+ook
+> down on inlining in general.  If anyone has an opinion on removing
+> inlines from the common clk core then please do speak up.
 >
->> However when the guidance from Greg is that we can do nothing except
->> complain at hardware designers for some reason I failed to quite
->> identify, I fear we are moving deckchairs on the titanic.
+> Russ, can you update to the latest rc and verify if that fix is enoug=
+h
+> for you?
+
+Yes, that commit fixes the compile issue too. I'd go with the more
+complete removal of inlines though. If you have a declaration in a
+header, it makes no sense to call it inline in the .c
+
+> Regards,
+> Mike
 >
-> Greg's advice was simply not to rely on pathnames in sysfs because th=
-ey
-> aren't fixed in stone.  That leaves plenty of other ways to approach
-> this problem.
-
-It's sage advice, but there is zero code provided in my patches that=20
-"relies on pathnames in sysfs".
-
-> Basically, what you want is for something related to device A (the
-> regulator or the GPIO) to happen whenever device B (the ehci-omap.0
-> platform device) is bound to a driver.  The most straightforward way =
-to
-> arrange this is for A's driver to have a callback that is invoked
-> whenever B is bound or unbound.  The most straightforward way to
-> arrange _that_ is to allow each platform_device to have a list of
-> callbacks.
-
-Sorry I didn't really understand this proposal yet.  You want "A", the=20
-regulator, driver to grow a callback function that gets called when the=
-=20
-targeted platform_device ("B", ehci-omap.0) probe happens.  Could you=20
-expand what the callback prototype or new members in the struct might=20
-look like?  It's your tuple thing or we pass it an opaque pointer that=20
-is the struct regulator * or suchlike?
-
-Throwing out the path stuff and limiting this to platform_device means=20
-you cannot bind to dynamically created objects like hub or anything=20
-downstream of a hub.  So Felipe's identification of the hub as the=20
-happening place to do this is out of luck.
-
--Andy
-
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> > Signed-off-by: Russ Dill <Russ.Dill@ti.com>
+> > ---
+> >  drivers/clk/clk.c            | 14 +++++++-------
+> >  include/linux/clk-provider.h |  4 ++--
+> >  2 files changed, 9 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+> > index 56e4495e..ed01746 100644
+> > --- a/drivers/clk/clk.c
+> > +++ b/drivers/clk/clk.c
+> > @@ -249,32 +249,32 @@ late_initcall(clk_disable_unused);
+> >
+> >  /***    helper functions   ***/
+> >
+> > -inline const char *__clk_get_name(struct clk *clk)
+> > +const char *__clk_get_name(struct clk *clk)
+> >  {
+> >         return !clk ? NULL : clk->name;
+> >  }
+> >
+> > -inline struct clk_hw *__clk_get_hw(struct clk *clk)
+> > +struct clk_hw *__clk_get_hw(struct clk *clk)
+> >  {
+> >         return !clk ? NULL : clk->hw;
+> >  }
+> >
+> > -inline u8 __clk_get_num_parents(struct clk *clk)
+> > +u8 __clk_get_num_parents(struct clk *clk)
+> >  {
+> >         return !clk ? -EINVAL : clk->num_parents;
+> >  }
+> >
+> > -inline struct clk *__clk_get_parent(struct clk *clk)
+> > +struct clk *__clk_get_parent(struct clk *clk)
+> >  {
+> >         return !clk ? NULL : clk->parent;
+> >  }
+> >
+> > -inline int __clk_get_enable_count(struct clk *clk)
+> > +int __clk_get_enable_count(struct clk *clk)
+> >  {
+> >         return !clk ? -EINVAL : clk->enable_count;
+> >  }
+> >
+> > -inline int __clk_get_prepare_count(struct clk *clk)
+> > +int __clk_get_prepare_count(struct clk *clk)
+> >  {
+> >         return !clk ? -EINVAL : clk->prepare_count;
+> >  }
+> > @@ -300,7 +300,7 @@ out:
+> >         return ret;
+> >  }
+> >
+> > -inline unsigned long __clk_get_flags(struct clk *clk)
+> > +unsigned long __clk_get_flags(struct clk *clk)
+> >  {
+> >         return !clk ? -EINVAL : clk->flags;
+> >  }
+> > diff --git a/include/linux/clk-provider.h b/include/linux/clk-provi=
+der.h
+> > index c127315..f9f5e9e 100644
+> > --- a/include/linux/clk-provider.h
+> > +++ b/include/linux/clk-provider.h
+> > @@ -335,8 +335,8 @@ const char *__clk_get_name(struct clk *clk);
+> >  struct clk_hw *__clk_get_hw(struct clk *clk);
+> >  u8 __clk_get_num_parents(struct clk *clk);
+> >  struct clk *__clk_get_parent(struct clk *clk);
+> > -inline int __clk_get_enable_count(struct clk *clk);
+> > -inline int __clk_get_prepare_count(struct clk *clk);
+> > +int __clk_get_enable_count(struct clk *clk);
+> > +int __clk_get_prepare_count(struct clk *clk);
+> >  unsigned long __clk_get_rate(struct clk *clk);
+> >  unsigned long __clk_get_flags(struct clk *clk);
+> >  int __clk_is_enabled(struct clk *clk);
+> > --
+> > 1.8.0
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
