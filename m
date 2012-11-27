@@ -1,64 +1,48 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: omap2plus_defconfig: enable twl4030
- SoC audio
-Date: Tue, 27 Nov 2012 10:58:10 +0100
-Message-ID: <50B48EB2.1040804@ti.com>
-References: <1353979275-6237-1-git-send-email-javier.martinez@collabora.co.uk>
+From: "Thomas Weber" <thomas@tomweber.eu>
+Subject: Re: [PATCHv2] OMAP: board-files: fix i2c_bus for tfp410
+Date: Tue, 27 Nov 2012 11:02:52 +0100
+Message-ID: <f129a4f7c8bff131477f395d2ba4b2c2.squirrel@tomweber.eu>
+References: <1353068553-26897-1-git-send-email-tomi.valkeinen@ti.com>
+    <1353573596-5550-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1353979275-6237-1-git-send-email-javier.martinez@collabora.co.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1353573596-5550-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: stable-owner@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Thomas Weber <thomas@tomweber.eu>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/27/2012 02:21 AM, Javier Martinez Canillas wrote:
-> Many TI OMAP SoC based boards that uses twl4030 as codec have
-> been updated to use the unified audio driver (omap-twl4030)
-> since they have similar audio setup.
-> =
+Hello Tomi,
 
-> So, is good to have it built to add audio support to these boards.
-> =
+> The i2c handling in tfp410 driver, which handles converting parallel RGB
+> to DVI, was changed in 958f2717b84e88bf833d996997fda8f73276f2af
+> (OMAPDSS: TFP410: pdata rewrite). The patch changed what value the
+> driver considers as invalid/undefined.  Before the patch, 0 was the
+> invalid value, but as 0 is a valid bus number, the patch changed this to
+> -1.
+>
+> However, the fact was missed that many board files do not define the bus
+> number at all, thus it's left to 0. This causes the driver to fail to
+> get the i2c bus, exiting from the driver's probe with an error, meaning
+> that the DVI output does not work for those boards.
+>
+> This patch fixes the issue by changing the i2c_bus number field in the
+> driver's platform data from u16 to int, and setting the bus number to -1
+> in the board files for the boards that did not define the bus. The
+> exception is devkit8000, for which the bus is set to 1, which is the
+> correct bus for that board.
+>
+> The bug exists in v3.5+ kernels.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Reported-by: Thomas Weber <thomas@tomweber.eu>
+> Cc: Thomas Weber <thomas@tomweber.eu>
+> Cc: <stable@vger.kernel.org> # v3.5+
 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+I have tested the patch on Devkit8000.
+Tested-by: Thomas Weber <thomas@tomweber.eu>
 
-I also agree that it is a good practice to enable this in the defconfig.
+Thanks.
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-> ---
->  arch/arm/configs/omap2plus_defconfig |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> =
-
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap=
-2plus_defconfig
-> index 7c6cbdf..022212c 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -172,6 +172,7 @@ CONFIG_SND_DEBUG=3Dy
->  CONFIG_SND_USB_AUDIO=3Dm
->  CONFIG_SND_SOC=3Dm
->  CONFIG_SND_OMAP_SOC=3Dm
-> +CONFIG_SND_OMAP_SOC_OMAP_TWL4030=3Dm
->  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=3Dm
->  CONFIG_USB=3Dy
->  CONFIG_USB_DEBUG=3Dy
-> =
-
-
-
--- =
-
-P=E9ter
+Thomas
