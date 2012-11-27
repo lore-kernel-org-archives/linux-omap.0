@@ -1,108 +1,73 @@
-From: Andy Green <andy.green@linaro.org>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Wed, 28 Nov 2012 01:55:09 +0800
-Message-ID: <50B4FE7D.9030505@linaro.org>
-References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com> <Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org> <CACVXFVM_hPJcNSWp0qCVpexetDBcKgXZRCzR293KAYtK_fpOOg@mail.gmail.com>
+Date: Tue, 27 Nov 2012 13:09:55 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211271253230.1489-100000@iolanthe.rowland.org>
+References: <50B4FBE9.5080301@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:50990 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756132Ab2K0RzS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Nov 2012 12:55:18 -0500
-In-Reply-To: <CACVXFVM_hPJcNSWp0qCVpexetDBcKgXZRCzR293KAYtK_fpOOg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50B4FBE9.5080301-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, USB list <linux-usb@vger.kernel.org>, rogerq@ti.com
 
-On 11/28/2012 01:22 AM, the mail apparently from Ming Lei included:
-> On Wed, Nov 28, 2012 at 12:30 AM, Alan Stern <stern@rowland.harvard.e=
-du> wrote:
->> On Tue, 27 Nov 2012, Ming Lei wrote:
->>
->>> IMO, all matches mean the devices are inside the ehci-omap bus, so
->>> the direct/simple way is to enable/disable the regulators in the pr=
-obe() and
->>> remove() of ehci-omap controller driver.
->>
->> When this discussion started, Felipe argued against such an approach=
-=2E
->> He pointed out that the same chip could be used in other platforms, =
-and
->> then the code added to ehci-omap.c would have to be duplicated in
->> several other places.
->
->  From Andy's implementation, the 'general' code is to enable/disable
-> the regulators(patch 3/5), I am wondering if it is general enough, so=
- the
-> 'duplicated' code are just several lines of regulator_enable/regulato=
-r_disable,
-> which should be implemented in many platform drivers.
+On Wed, 28 Nov 2012, Andy Green wrote:
 
-=46air enough; my main interest was in the device path side when writin=
-g=20
-the patches.  I stuck enough in one place to confirm the series works o=
-n=20
-Panda case for power control.  So long as it doesn't get obsessed with=20
-just regulators some common implementation that seems to be discussed=20
-will be better.
+> > Greg's advice was simply not to rely on pathnames in sysfs because they
+> > aren't fixed in stone.  That leaves plenty of other ways to approach
+> > this problem.
+> 
+> It's sage advice, but there is zero code provided in my patches that 
+> "relies on pathnames in sysfs".
 
-(BTW let me take this opportunity to thank you for your great=20
-urbs-in-flight limiting patch on smsc95xx a while back)
+In your 1/5 patch, _device_path_generate() concatenates device name
+strings, starting from a device root and separating elements with '/'
+characters.  Isn't that the same as a sysfs pathname?
 
-> Also from my intuition, power domain should be involved in the proble=
-m,
-> because these hard-wired and self-powered USB devices should have
-> its own power domains, and the ehci-omap driver may enable/disable
-> these power domains before adding the bus.
+> > Basically, what you want is for something related to device A (the
+> > regulator or the GPIO) to happen whenever device B (the ehci-omap.0
+> > platform device) is bound to a driver.  The most straightforward way to
+> > arrange this is for A's driver to have a callback that is invoked
+> > whenever B is bound or unbound.  The most straightforward way to
+> > arrange _that_ is to allow each platform_device to have a list of
+> > callbacks.
+> 
+> Sorry I didn't really understand this proposal yet.  You want "A", the 
+> regulator, driver to grow a callback function that gets called when the 
+> targeted platform_device ("B", ehci-omap.0) probe happens.  Could you 
+> expand what the callback prototype or new members in the struct might 
+> look like?  It's your tuple thing or we pass it an opaque pointer that 
+> is the struct regulator * or suchlike?
 
-I don't know enough to have an opinion, but the arrangement on Panda is=
-=20
-literally a linear regulator is being controlled by a gpio, which fits=20
-into struct regulator model.  What else would a power domain for that=20
-buy us?
+Well, it won't be exactly the same as the tuple thing because no 
+strings will be involved, but it would be similar.  The callback would 
+receive an opaque pointer (presumably to the regulator) and a device 
+pointer (the B device).
 
->> We should have a more generic solution in a more central location, l=
-ike
->> the device core.
->>
->> For example, each struct platform_device could have a list of resour=
-ces
->> to be enabled when the device is bound to a driver and disabled when
->> the device is unbound.  Such a list could include regulators, clocks=
-,
->> and whatever else people can invent.
->>
->> In this case, when it is created the ehci-omap.0 platform device cou=
-ld
->> get an entry pointing to the LAN95xx's regulator.  Then the regulato=
-r
->> would automatically be turned on when the platform device is bound t=
-o
->> the ehci-omap driver.
->
-> The LAN95xx's regulator is still platform dependent(even for same LAN=
-95xx
-> USB devices on different platforms(omap, tegra, ..)) , so I am wonder=
-ing
-> why we don't enable it directly in probe() of ehci-omap.0 platform de=
-vice?
+> Throwing out the path stuff and limiting this to platform_device means 
+> you cannot bind to dynamically created objects like hub or anything 
+> downstream of a hub.  So Felipe's identification of the hub as the 
+> happening place to do this is out of luck.
 
-I didn't get this point, ehci-omap doesn't help if it's non-omap platfo=
-rm.
+Greg pointed out that this could be useful for arbitrary devices, not
+just platform devices, so it could be applied to dynamically created
+objects.
 
--Andy
+As for what Felipe said...  He suggested doing this when the hub driver 
+binds to the controller's root hub.  The root hub is created when the 
+controller's driver registers the new USB bus.  This happens as part of 
+the driver's probe routine.  So what I have been talking about is very 
+similar (in terms of when it happens) to what Felipe wanted.
 
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
+Besides, Felipe wasn't thinking in the most general terms.  (In fact,
+at first he confused the root hub with the LAN95xx's hub.)  There's no
+reason to restrict this sort of thing to USB hubs (or to regulators,
+for that matter).  The driver core is the right place for it.
+
+Alan Stern
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
