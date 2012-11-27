@@ -1,40 +1,49 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/1] ARM: OMAP2+: omap2plus_defconfig: enable twl4030 SoC audio
-Date: Tue, 27 Nov 2012 02:21:15 +0100
-Message-ID: <1353979275-6237-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
+Date: Tue, 27 Nov 2012 11:41:31 +0800
+Message-ID: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com>
+References: <20121126192206.GB11239@kroah.com>
+	<Pine.LNX.4.44L0.1211261555400.2168-100000@iolanthe.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:46248 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755549Ab2K0BVl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 20:21:41 -0500
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:40661 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933147Ab2K0Dlc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Nov 2012 22:41:32 -0500
+In-Reply-To: <Pine.LNX.4.44L0.1211261555400.2168-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-Many TI OMAP SoC based boards that uses twl4030 as codec have
-been updated to use the unified audio driver (omap-twl4030)
-since they have similar audio setup.
+On Tue, Nov 27, 2012 at 5:07 AM, Alan Stern <stern@rowland.harvard.edu> wrote:
+> On Mon, 26 Nov 2012, Greg KH wrote:
+>
+>> Ah, here's the root of your problem, right?  You need a way for your
+>> hardware to tell the kernel that you have a regulator attached to a
+>> specific device?  Using the device path and hard-coding it into the
+>> kernel is not the proper way to solve this, sorry.  Use some other
+>> unique way to describe the hardware, surely the hardware designers
+>> couldn't have been that foolish not to provide this [1]?
+>
+> As far as I know, the kernel has no other way to describe devices.
+>
+> What about using partial matches?  In this example, instead of doing a
+> wildcard match against
+>
+>         /platform/usbhs_omap/ehci-omap.0/usb*
 
-So, is good to have it built to add audio support to these boards.
+IMO, all matches mean the devices are inside the ehci-omap bus, so
+the direct/simple way is to enable/disable the regulators in the probe() and
+remove() of ehci-omap controller driver.
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- arch/arm/configs/omap2plus_defconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On the other side, both the two LAN95xx USB devices(hub + ethernet) are
+simple self-powered device. Just like other self-powered devices, the power
+should be provided from external world, instead of hub driver itself. And it is
+doable to power on the devices before creating the specific ehci-omap usb
+bus inside ehci-omap driver.
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 7c6cbdf..022212c 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -172,6 +172,7 @@ CONFIG_SND_DEBUG=y
- CONFIG_SND_USB_AUDIO=m
- CONFIG_SND_SOC=m
- CONFIG_SND_OMAP_SOC=m
-+CONFIG_SND_OMAP_SOC_OMAP_TWL4030=m
- CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
- CONFIG_USB=y
- CONFIG_USB_DEBUG=y
+Thanks,
 -- 
-1.7.7.6
-
+Ming Lei
