@@ -1,83 +1,210 @@
-From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Tue, 27 Nov 2012 08:02:40 +0800
-Message-ID: <50B40320.2020206@linaro.org>
-References: <Pine.LNX.4.44L0.1211261555400.2168-100000@iolanthe.rowland.org>
+From: Andy Green <andy.green@linaro.org>
+Subject: Re: [RFC PATCH 4/5] omap4: panda: add smsc95xx regulator and reset
+ dependent on root hub
+Date: Tue, 27 Nov 2012 08:17:37 +0800
+Message-ID: <50B406A1.6040904@linaro.org>
+References: <20121126123427.18106.4112.stgit@build.warmcat.com> <20121126124550.18106.29133.stgit@build.warmcat.com> <50B396B0.4070800@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1211261555400.2168-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from warmcat.com ([87.106.134.80]:41212 "EHLO warmcat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754323Ab2K0ARq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Nov 2012 19:17:46 -0500
+In-Reply-To: <50B396B0.4070800@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: stern@rowland.harvard.edu, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com
 
-On 11/27/2012 05:07 AM, the mail apparently from Alan Stern included:
-> On Mon, 26 Nov 2012, Greg KH wrote:
+On 11/27/2012 12:20 AM, the mail apparently from Roger Quadros included=
+:
+> Hi Andy,
 >
->> Ah, here's the root of your problem, right?  You need a way for your
->> hardware to tell the kernel that you have a regulator attached to a
->> specific device?  Using the device path and hard-coding it into the
->> kernel is not the proper way to solve this, sorry.  Use some other
->> unique way to describe the hardware, surely the hardware designers
->> couldn't have been that foolish not to provide this [1]?
->
-> As far as I know, the kernel has no other way to describe devices.
->
-> What about using partial matches?  In this example, instead of doing =
-a
-> wildcard match against
->
-> 	/platform/usbhs_omap/ehci-omap.0/usb*
->
-> (which would fail if the "platform" part of the path changes), suppos=
+> On 11/26/2012 02:45 PM, Andy Green wrote:
+>> This adds regulators which are controlled by the OMAP4 PandaBoard (E=
+S)'s
+>> EHCI logical root hub existing.
+>>
+>> Without power control, the ULPI PHY + SMSC9614 on the Panda eats 700=
+-900mW
+>> all the time, which is around the same as the idle power of the SoC =
+and
+>> rest of the board.
+>>
+>> This allows us to start off with it depowered, and only power it if =
+the
+>> ehci-hcd module is inserted.  When the module is removed, it's depow=
+ered
+>> again.
+>>
+>> Signed-off-by: Andy Green <andy.green@linaro.org>
+>> ---
+>>   arch/arm/mach-omap2/Kconfig            |    1
+>>   arch/arm/mach-omap2/board-omap4panda.c |   90 ++++++++++++++++++++=
++++++-------
+>>   2 files changed, 72 insertions(+), 19 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconf=
+ig
+>> index d669e22..5105109 100644
+>> --- a/arch/arm/mach-omap2/Kconfig
+>> +++ b/arch/arm/mach-omap2/Kconfig
+>> @@ -368,6 +368,7 @@ config MACH_OMAP4_PANDA
+>>   	select OMAP_PACKAGE_CBL
+>>   	select OMAP_PACKAGE_CBS
+>>   	select REGULATOR_FIXED_VOLTAGE if REGULATOR
+>> +	select USB_HUB_DEVICE_PATH_REGULATOR
+>>
+>>   config OMAP3_EMU
+>>   	bool "OMAP3 debugging peripherals"
+>> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-=
+omap2/board-omap4panda.c
+>> index bfcd397..b032b6b 100644
+>> --- a/arch/arm/mach-omap2/board-omap4panda.c
+>> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+>> @@ -154,11 +154,6 @@ static const struct usbhs_omap_board_data usbhs=
+_bdata __initconst =3D {
+>>   	.reset_gpio_port[2]  =3D -EINVAL
+>>   };
+>>
+>> -static struct gpio panda_ehci_gpios[] __initdata =3D {
+>> -	{ GPIO_HUB_POWER,	GPIOF_OUT_INIT_LOW,  "hub_power"  },
+>> -	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
+>> -};
+>> -
+>>   static void __init omap4_ehci_init(void)
+>>   {
+>>   	int ret;
+>> @@ -173,23 +168,76 @@ static void __init omap4_ehci_init(void)
+>>   	clk_set_rate(phy_ref_clk, 19200000);
+>>   	clk_prepare_enable(phy_ref_clk);
+>>
+>> -	/* disable the power to the usb hub prior to init and reset phy+hu=
+b */
+>> -	ret =3D gpio_request_array(panda_ehci_gpios,
+>> -				 ARRAY_SIZE(panda_ehci_gpios));
+>> -	if (ret) {
+>> -		pr_err("Unable to initialize EHCI power/reset\n");
+>> -		return;
+>> -	}
+>> +	usbhs_init(&usbhs_bdata);
+>> +}
+>>
+>> -	gpio_export(GPIO_HUB_POWER, 0);
+>> -	gpio_export(GPIO_HUB_NRESET, 0);
+>> -	gpio_set_value(GPIO_HUB_NRESET, 1);
+>> +/*
+>> + * hub_nreset also resets the ULPI PHY and is required after poweri=
+ng SMSC chip
+>> + *	ULPI PHY is always powered... need to do reset once for both onc=
 e
-> the string "ehci-omap.0/usb*" could be associated with the usbhs_omap
-> component somehow.  Or even better, the string "usb*" could be
-> associated with the ehci-omap.0 device.
+>> + * hub_power enables a 3.3V regulator for (hub + eth) chip
+>> + *	however there's no point having ULPI PHY in use alone
+>> + *	since it's only connected to the (hub + eth) chip
+>> + */
+>>
+>> -	usbhs_init(&usbhs_bdata);
+>> +static struct regulator_init_data panda_hub =3D {
+>> +	.constraints =3D {
+>> +		.name =3D "vhub",
+>> +		.valid_ops_mask =3D REGULATOR_CHANGE_STATUS,
+>> +	},
+>> +};
+>>
+>> -	/* enable power to hub */
+>> -	gpio_set_value(GPIO_HUB_POWER, 1);
+>> -}
+>> +static struct fixed_voltage_config panda_vhub =3D {
+>> +	.supply_name =3D "vhub",
+>> +	.microvolts =3D 3300000,
+>> +	.gpio =3D GPIO_HUB_POWER,
+>> +	.startup_delay =3D 70000, /* 70msec */
+>> +	.enable_high =3D 1,
+>> +	.enabled_at_boot =3D 0,
+>> +	.init_data =3D &panda_hub,
+>> +};
+>> +
+>> +static struct platform_device omap_vhub_device =3D {
+>> +	.name		=3D "reg-fixed-voltage",
+>> +	.id		=3D 2,
+>> +	.dev =3D {
+>> +		.platform_data =3D &panda_vhub,
+>> +	},
+>> +};
+>> +
+>> +static struct regulator_init_data panda_ulpireset =3D {
+>> +	/*
+>> +	 * idea is that when operating ulpireset, regulator api will make
+>> +	 * sure that the hub+eth chip is powered, since it's the "parent"
+>> +	 */
+>> +	.supply_regulator =3D "vhub", /* we are a child of vhub */
+>> +	.constraints =3D {
+>> +		/*
+>> +		 * this magic string associates us with ehci-omap.0 root hub
+>> +		 * when the root hub logical device is up, we will power
+>> +		 * and reset [ ULPI PHY + [ HUB + ETH ] ]
+>> +		 */
+>> +		.name =3D "/platform/usbhs_omap/ehci-omap.0/usb*",
+>> +		.valid_ops_mask =3D REGULATOR_CHANGE_STATUS,
+>> +	},
+>> +};
+>> +
+>> +static struct fixed_voltage_config panda_vulpireset =3D {
+>> +	.supply_name =3D "/platform/usbhs_omap/ehci-omap.0/usb*",
 >
-> Then the path-matching code could restrict its attention to that part
-> of the path and to devices below the specified one.  Naming changes
-> wouldn't be an issue, because the changes themselves would be made in
-> the same source file that contains the partial path string.
+> Does this supply_name really needs to be the magic string?
 
-Yes just dropping the starting / on the match and allowing a fragment t=
-o=20
-match further up the string would solve it.  ehci-omap.0 won't appear=20
-down any other earlier device paths than the right one.
+I believe that's how the two regulators bind together in the=20
+parent-child relationship.
 
-> On the other hand, this may be way more general than we really need.
-> For this particular case, all we need to do is take special action th=
-e
-> first time any device is registered below the ehci-omap.0 platform
-> device.  There ought to be a more direct way to accomplish this,
-> without using string pattern-matching or sysfs pathnames (and without
-> adding overhead every time a device is added or deleted).
-
-There are no sysfs pathnames involved here at all.  Greg invented that.
-
-> I don't know if such an approach would be sufficiently general for
-> future requirements, but it would solve the problem at hand.
-
-We can get a notification about device creation and do things there.=20
-But the cost of that is like the tuple suggestion, they'll only be able=
+Having the literal twice is bad I agree... it could be moved to a const=
 =20
-to do a fixed thing like operate on regulators.
-
-Actually the targeted device may have arbitrary associated assets like=20
-generic GPIO to turn on a "flash" for built-in webcam controlled=20
-out-of-band.  These also can be reached by known names.  And the driver=
-=20
-may wish to do things with them that are more complex than enable /=20
-disable or follow logical lifecycle of the hub or whatever.
-
-However when the guidance from Greg is that we can do nothing except=20
-complain at hardware designers for some reason I failed to quite=20
-identify, I fear we are moving deckchairs on the titanic.
+char * earlier and referenced as that.
 
 -Andy
+
+>> +	.microvolts =3D 3300000,
+>> +	.gpio =3D GPIO_HUB_NRESET,
+>> +	.startup_delay =3D 70000, /* 70msec */
+>> +	.enable_high =3D 1,
+>> +	.enabled_at_boot =3D 0,
+>> +	.init_data =3D &panda_ulpireset,
+>> +};
+>> +
+>> +static struct platform_device omap_vulpireset_device =3D {
+>> +	.name		=3D "reg-fixed-voltage",
+>> +	.id		=3D 3,
+>> +	.dev =3D {
+>> +		.platform_data =3D &panda_vulpireset,
+>> +	},
+>> +};
+>>
+>>   static struct omap_musb_board_data musb_board_data =3D {
+>>   	.interface_type		=3D MUSB_INTERFACE_UTMI,
+>> @@ -503,7 +551,11 @@ static void __init omap4_panda_init(void)
+>>   	omap4_panda_init_rev();
+>>   	omap4_panda_i2c_init();
+>>   	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+>> +	/* let device_path api know anything matching this reports as this=
+ */
+>> +	device_path_register_wildcard_path(panda_ulpireset.constraints.nam=
+e);
+>>   	platform_device_register(&omap_vwlan_device);
+>> +	platform_device_register(&omap_vhub_device);
+>> +	platform_device_register(&omap_vulpireset_device);
+>>   	omap_serial_init();
+>>   	omap_sdrc_init(NULL, NULL);
+>>   	omap4_twl6030_hsmmc_init(mmc);
+>>
+>
+> --
+> cheers,
+> -roger
+>
+
 
 --=20
 Andy Green | TI Landing Team Leader
@@ -85,6 +212,7 @@ Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
 http://facebook.com/pages/Linaro/155974581091106  -=20
 http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
