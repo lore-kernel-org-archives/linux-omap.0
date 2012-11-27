@@ -1,56 +1,71 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Tue, 27 Nov 2012 11:37:58 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1211271131130.1489-100000@iolanthe.rowland.org>
-References: <50B40320.2020206@linaro.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: need help debugging ISP problem
+Date: Tue, 27 Nov 2012 17:52:21 +0100
+Message-ID: <1508686.Xvv8pOooM8@avalon>
+References: <50985380.8000706@irobot.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50B40320.2020206-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <50985380.8000706@irobot.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Adam Wozniak <awozniak@irobot.com>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, sakari.ailus@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 27 Nov 2012, Andy Green wrote:
+Hi Adam,
 
-> > I don't know if such an approach would be sufficiently general for
-> > future requirements, but it would solve the problem at hand.
+On Monday 05 November 2012 16:02:08 Adam Wozniak wrote:
+> I'm working with a custom board based on an Overo WaterStorm com. The
+> processor is a DM3730.  The kernel is 2.6.32 based.
+
+2.6.32 very probably means you're using the old TI driver. Please don't. 
+That's buggy and totally unsupported. I advice upgrading to the latest 
+mainline kernel.
+
+> I'm trying to stress test the camera ISP by rapidly opening and closing
+> the video device with ( while true; do gst-launch v4l2src
+> device=/dev/video0 ! video/x-raw-yuv,width=320,height=240 !
+> ffmpegcolorspace ! pngenc snapshot=true ! fakesink; done )
 > 
-> We can get a notification about device creation and do things there. 
-> But the cost of that is like the tuple suggestion, they'll only be able 
-> to do a fixed thing like operate on regulators.
+> After many iterations, I will see the kernel spit out:
+> 
+> [ 2502.802795] Unhandled fault: external abort on non-linefetch (0x1028)
+> at 0xfa0bce04
+> [ 2502.810516] Internal error: : 1028 [#1]
+> [ ... ]
+> [ 2502.846893] PC is at isp_reg_readl+0x18/0x20
+> [ 2502.851196] LR is at isp_reg_readl+0x10/0x20
+> [ ... ]
+> [ 2503.296447] [<c02954a0>] (isp_reg_readl+0x18/0x20) from [<c02954f8>]
+> (isp_reg_and_or+0x1c/0x38)
+> [ 2503.305206] [<c02954f8>] (isp_reg_and_or+0x1c/0x38) from [<c029bad0>]
+> (isppreview_config_cfa+0x38/0x90)
+> [ 2503.314666] [<c029bad0>] (isppreview_config_cfa+0x38/0x90) from
+> [<c029bc5c>] (isppreview_config_datapath+0x134/0x330)
+> [ 2503.325347] [<c029bc5c>] (isppreview_config_datapath+0x134/0x330)
+> from [<c029be68>] (isppreview_s_pipeline+0x10/0xd0)
+> [ 2503.336029] [<c029be68>] (isppreview_s_pipeline+0x10/0xd0) from
+> [<c0296e98>] (isp_s_pipeline+0x1d8/0x280)
+> [ 2503.345672] [<c0296e98>] (isp_s_pipeline+0x1d8/0x280) from
+> [<bf036b98>] (cammux_streamon+0x218/0xa28 [cammux])
+> [ ... ]
+> 
+> 
+> The register we're trying to access here is the ISP PRV_PCR.  If I try
+> to add debug code to read ISP_CTRL right before the fault, the ISP_CTRL
+> access faults in the same way (i.e. the whole ISP is borked, not just
+> the previewer).
+> 
+> At first I thought the clocks were being disabled somehow, but tracking
+> them seems to indicate that's not the case.  Adding an early return in
+> arch/arm/mach/omap2/clock.c omap2_dflt_clk_disable() (i.e. to disable
+> disabling of clocks) does NOT help.
+> 
+> What else might I be missing?  What is necessary to be able to read the
+> ISP registers?
 
-I'm not quite sure what you mean by that.  _Any_ function is capable of 
-doing only a fixed thing.
+-- 
+Regards,
 
-> Actually the targeted device may have arbitrary associated assets like 
-> generic GPIO to turn on a "flash" for built-in webcam controlled 
-> out-of-band.  These also can be reached by known names.  And the driver 
-> may wish to do things with them that are more complex than enable / 
-> disable or follow logical lifecycle of the hub or whatever.
-
-Let's worry about that when it arises.
-
-> However when the guidance from Greg is that we can do nothing except 
-> complain at hardware designers for some reason I failed to quite 
-> identify, I fear we are moving deckchairs on the titanic.
-
-Greg's advice was simply not to rely on pathnames in sysfs because they 
-aren't fixed in stone.  That leaves plenty of other ways to approach 
-this problem.
-
-Basically, what you want is for something related to device A (the
-regulator or the GPIO) to happen whenever device B (the ehci-omap.0
-platform device) is bound to a driver.  The most straightforward way to
-arrange this is for A's driver to have a callback that is invoked
-whenever B is bound or unbound.  The most straightforward way to 
-arrange _that_ is to allow each platform_device to have a list of 
-callbacks.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
