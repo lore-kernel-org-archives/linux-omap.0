@@ -1,102 +1,64 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 06/16] mfd: omap-usb-host: cleanup clock management code
-Date: Tue, 27 Nov 2012 11:41:38 +0200
-Message-ID: <50B48AD2.7070008@ti.com>
-References: <1352990054-14680-1-git-send-email-rogerq@ti.com> <1352990054-14680-7-git-send-email-rogerq@ti.com> <20121121133913.GH10216@arwen.pp.htv.fi> <50B38765.5070901@ti.com> <20121126200242.GA15259@arwen.pp.htv.fi>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP2+: omap2plus_defconfig: enable twl4030
+ SoC audio
+Date: Tue, 27 Nov 2012 10:58:10 +0100
+Message-ID: <50B48EB2.1040804@ti.com>
+References: <1353979275-6237-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54227 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758561Ab2K0Jll (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Nov 2012 04:41:41 -0500
-In-Reply-To: <20121126200242.GA15259@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1353979275-6237-1-git-send-email-javier.martinez@collabora.co.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 11/26/2012 10:02 PM, Felipe Balbi wrote:
-> Hi,
-> 
-> On Mon, Nov 26, 2012 at 05:14:45PM +0200, Roger Quadros wrote:
->> Felipe,
->>
->> On 11/21/2012 03:39 PM, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Thu, Nov 15, 2012 at 04:34:04PM +0200, Roger Quadros wrote:
->>>> All ports have similarly named port clocks so we can
->>>> bunch them into a port data structure and use for loop
->>>> to enable/disable the clocks.
->>>>
->>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>>> ---
->>>>  drivers/mfd/omap-usb-host.c |  208 +++++++++++++++++++++----------------------
->>>>  1 files changed, 101 insertions(+), 107 deletions(-)
->>>>
->>>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
->>>> index 23cec57..7303c41 100644
->>>> --- a/drivers/mfd/omap-usb-host.c
->>>> +++ b/drivers/mfd/omap-usb-host.c
->>>> @@ -76,6 +76,8 @@
->>>>  
->>>>  #define	OMAP_UHH_DEBUG_CSR				(0x44)
->>>>  
->>>> +#define MAX_HS_USB_PORTS	3	/* Increase this if any chip has more */
->>>> +
->>>>  /* Values of UHH_REVISION - Note: these are not given in the TRM */
->>>>  #define OMAP_USBHS_REV1		0x00000010	/* OMAP3 */
->>>>  #define OMAP_USBHS_REV2		0x50700100	/* OMAP4 */
->>>> @@ -87,14 +89,15 @@
->>>>  #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
->>>>  #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
->>>>  
->>>> +struct usbhs_port {
->>>> +	struct clk	*utmi_clk;
->>>> +};
->>>
->>> I rather not since this will make it a lot more difficult to use
->>> pm_clk_add() :-s Also, this sort of thing should be dynamically
->>> allocated anyway ;-)
->>>
->>
->> Why do you say so? The whole point of this patch is to group similarly
->> named clocks so that we can use a for loop and set number of ports (or
->> clocks) dynamically. I suppose it would be just a matter of replacing
->> clk_enable/disable() with pm_clk_add() later, right?
->>
->> If you see patch 11, we are adding 2 HSIC related clocks to this
->> structure. This means 9 clocks (i.e. 3 clocks for 3 ports) can be
->> managed using a simple for loop instead of coding each clock name by hand.
-> 
-> that's usually not what you want, actually. You want clock management to
-> be explicit so you can have micro-power optimizations. I fear that the
-> time omap-usb-host.c gets *truly* stabilized and we move to more
-> aggressive PM, we will undo these changes just to have a more granular
-> control of the clocks, at which point your patch would be rendered
-> useless.
-> 
+On 11/27/2012 02:21 AM, Javier Martinez Canillas wrote:
+> Many TI OMAP SoC based boards that uses twl4030 as codec have
+> been updated to use the unified audio driver (omap-twl4030)
+> since they have similar audio setup.
+> =
 
-The granularity is still there, just that port clocks are grouped
-together. Do you think it is better if I get rid of 'struct usbhs_port'
-and keep the clocks in the main structure instead?
+> So, is good to have it built to add audio support to these boards.
+> =
 
-e.g.
+> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-struct usbhs_hcd_omap {
-	struct clk	**utmi_clk;
-	struct clk	**hsic1_clk;
-	struct clk	**hsic2_clk;
-...
-}
+I also agree that it is a good practice to enable this in the defconfig.
 
-The clocks can then be accessed as follows
+Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-	omap->utmi_clk[i];	/* i is port number */
+> ---
+>  arch/arm/configs/omap2plus_defconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> =
 
-Does this sound OK to you?
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap=
+2plus_defconfig
+> index 7c6cbdf..022212c 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -172,6 +172,7 @@ CONFIG_SND_DEBUG=3Dy
+>  CONFIG_SND_USB_AUDIO=3Dm
+>  CONFIG_SND_SOC=3Dm
+>  CONFIG_SND_OMAP_SOC=3Dm
+> +CONFIG_SND_OMAP_SOC_OMAP_TWL4030=3Dm
+>  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=3Dm
+>  CONFIG_USB=3Dy
+>  CONFIG_USB_DEBUG=3Dy
+> =
 
-cheers,
--roger
+
+
+-- =
+
+P=E9ter
