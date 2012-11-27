@@ -1,169 +1,81 @@
-From: Andy Green <andy.green@linaro.org>
+From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Tue, 27 Nov 2012 07:47:58 +0800
-Message-ID: <50B3FFAE.9070401@linaro.org>
-References: <20121126123427.18106.4112.stgit@build.warmcat.com> <20121126124534.18106.44137.stgit@build.warmcat.com> <20121126192206.GB11239@kroah.com>
+Date: Tue, 27 Nov 2012 08:02:40 +0800
+Message-ID: <50B40320.2020206@linaro.org>
+References: <Pine.LNX.4.44L0.1211261555400.2168-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:54603 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755589Ab2KZXsI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Nov 2012 18:48:08 -0500
-In-Reply-To: <20121126192206.GB11239@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1211261555400.2168-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: stern@rowland.harvard.edu, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-On 11/27/2012 03:22 AM, the mail apparently from Greg KH included:
-> On Mon, Nov 26, 2012 at 12:45:34PM +0000, Andy Green wrote:
->> This adds a small optional API into drivers/base which deals with ge=
-nerating,
->> matching and registration of wildcard device paths.
->>
->> >From a struct device * you can generate a string like
->>
->>   /platform/usbhs_omap/ehci-omap.0/usb1/1-1
->>
->> which enapsulates the path of the device's connection to the board.
->>
->> These can be used to match up other assets, for example struct regul=
-ators,
->> that have been registed elsewhere with a device instance that is pro=
-bed
->> asynchronously from the other board assets.
->>
->> If your device is on a bus, as it probably is, the device path will =
-feature
->> redundant bus indexes that do not contain information about the conn=
-ectivity.
+On 11/27/2012 05:07 AM, the mail apparently from Alan Stern included:
+> On Mon, 26 Nov 2012, Greg KH wrote:
 >
-> Huh?  A bus "index" does show the connectivity, well, one type of
-> connectivity, but perhaps it's not the one _you_ happen to want at th=
+>> Ah, here's the root of your problem, right?  You need a way for your
+>> hardware to tell the kernel that you have a regulator attached to a
+>> specific device?  Using the device path and hard-coding it into the
+>> kernel is not the proper way to solve this, sorry.  Use some other
+>> unique way to describe the hardware, surely the hardware designers
+>> couldn't have been that foolish not to provide this [1]?
+>
+> As far as I know, the kernel has no other way to describe devices.
+>
+> What about using partial matches?  In this example, instead of doing =
+a
+> wildcard match against
+>
+> 	/platform/usbhs_omap/ehci-omap.0/usb*
+>
+> (which would fail if the "platform" part of the path changes), suppos=
 e
-> moment.  Which is fine, but I don't see why you want to try to figure
-> this out using the device path in the first place, surely you have so=
-me
-> other way that the hardware can describe itself to the kernel as to
-> where it needs to be hooked up to?
+> the string "ehci-omap.0/usb*" could be associated with the usbhs_omap
+> component somehow.  Or even better, the string "usb*" could be
+> associated with the ehci-omap.0 device.
+>
+> Then the path-matching code could restrict its attention to that part
+> of the path and to devices below the specified one.  Naming changes
+> wouldn't be an issue, because the changes themselves would be made in
+> the same source file that contains the partial path string.
 
-The bus index is like a counter, it shows logical connectivity inside=20
-Linux that isn't repeatable and doesn't reflect hardware routing=20
-information directly.
+Yes just dropping the starting / on the match and allowing a fragment t=
+o=20
+match further up the string would solve it.  ehci-omap.0 won't appear=20
+down any other earlier device paths than the right one.
 
->> For example if more than one driver can generate devices on the same=
- bus,
->> then the ordering of device probing will change the path, despite th=
+> On the other hand, this may be way more general than we really need.
+> For this particular case, all we need to do is take special action th=
 e
->> connectivity remains the same.
->
-> That's an expected thing, I don't see the issue here.
+> first time any device is registered below the ehci-omap.0 platform
+> device.  There ought to be a more direct way to accomplish this,
+> without using string pattern-matching or sysfs pathnames (and without
+> adding overhead every time a device is added or deleted).
 
-Alan brought up in a thread here the last days, "wouldn't it be nice if=
+There are no sysfs pathnames involved here at all.  Greg invented that.
+
+> I don't know if such an approach would be sufficiently general for
+> future requirements, but it would solve the problem at hand.
+
+We can get a notification about device creation and do things there.=20
+But the cost of that is like the tuple suggestion, they'll only be able=
 =20
-we could arbitrarily bind regulators to asynchronously probed objects",=
+to do a fixed thing like operate on regulators.
+
+Actually the targeted device may have arbitrary associated assets like=20
+generic GPIO to turn on a "flash" for built-in webcam controlled=20
+out-of-band.  These also can be reached by known names.  And the driver=
 =20
-and after discussion proposed this wildcard matching scheme to mask=20
-these generated bus numbers.
+may wish to do things with them that are more complex than enable /=20
+disable or follow logical lifecycle of the hub or whatever.
 
->> For that reason, to get a deterministic path for matching, wildcards=
- are
->> allowed.  If your target device has the path
->
-> Wait, no, why would you want a deterministic path and have that
-> hard-coded into the kernel here?  You can't rely on that any more tha=
-n
-> userspace can, so let's not start making the mistake that lots of
-> userspace programmers originally did when they started using sysfs
-> please.  We have learned from our past mistakes.
-
-I guess that is a fair point.  I was going to say that it's no differen=
-t=20
-than using any kernel API in code, which history proves is very mutable=
-;=20
-people deal with it by changing the usages as they change the API=20
-definition.  But it's complicated a bit by DTs meant to be more stable=20
-and these paths would turn up in the DT.
-
-In "platform" case though, a heuristic that leaving off the initial /=20
-and allowing matches anywhere along the path then to the end would get=20
-around it.
-
->>   /platform/usbhs_omap/ehci-omap.0/usb1/1-1
->>
->> generated, in the asset you wish to match with it you can instead us=
-e
->>
->> /platform/usbhs_omap/ehci-omap.0/usb*/*-1
->>
->> in order to only leave the useful, invariant parts of the path to ma=
-tch
->> against.
->>
->> To avoid having to adapt every kind of "search by string" api to als=
-o use
->> the wildcards, the api takes the approach you can register your wild=
-card,
->> and if a matching path is generated for a device, the wildcard itsel=
-f is
->> handed back as the device path instead.
->>
->> So if your board code or a (not yet done) DT binding registers this =
-wildcard
->>
->>   /platform/usbhs_omap/ehci-omap.0/usb*
->
-> Device tree lists sysfs paths in it's descriptions?  That's news to m=
-e.
-
-It does not say that...
-
->> and the usb hub driver asks to generate its device path
->>
->> 	device_path_generate(dev, name, sizeof name);
->>
->> that is actually
->>
->>   /platform/usbhs_omap/ehci-omap.0/usb1
->>
->> then what will be returned is
->>
->>   /platform/usbhs_omap/ehci-omap.0/usb*
->>
->> providing the same literal string for ehci-omap.0 hub no matter how =
-many\
->> usb buses have been registered before.
->>
->> This wildcard string can then be matched to regulators or other stri=
-ng-
->> searchable assets intended for the device on that hardware path.
->
-> Ah, here's the root of your problem, right?  You need a way for your
-> hardware to tell the kernel that you have a regulator attached to a
-> specific device?  Using the device path and hard-coding it into the
-> kernel is not the proper way to solve this, sorry.  Use some other
-> unique way to describe the hardware, surely the hardware designers
-> couldn't have been that foolish not to provide this [1]?
->
-> thanks,
->
-> greg k-h
->
-> [1] Yeah, I know I'm being hopeful here, and probably wrong, but then
->      you need to push back.  We are not helpless here.
-
-Specific hardware information is something that's kept hidden away and=20
-private in the driver for good reasons.
-
-We could add elective, additional information at the driver for every=20
-physical interface it represented and match that way.  But I am not sur=
-e=20
-the effort involved is repaid by the relatively few instances that need=
-=20
-what is basically asynchronously probed platform_data.
+However when the guidance from Greg is that we can do nothing except=20
+complain at hardware designers for some reason I failed to quite=20
+identify, I fear we are moving deckchairs on the titanic.
 
 -Andy
 
@@ -173,7 +85,6 @@ Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
 http://facebook.com/pages/Linaro/155974581091106  -=20
 http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
