@@ -1,67 +1,49 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH v4 05/11] pwm: pwm-tiecap: pinctrl support
-Date: Tue, 27 Nov 2012 06:20:55 -0800
-Message-ID: <87txsb160o.fsf@dell.be.48ers.dk>
-References: <1353503469-18634-1-git-send-email-avinashphilip@ti.com>
-	<1353503469-18634-6-git-send-email-avinashphilip@ti.com>
-	<20121122205944.GC16716@avionic-0098.adnet.avionic-design.de>
-	<518397C60809E147AF5323E0420B992E3E9EE991@DBDE01.ent.ti.com>
-	<20121123105110.GA6884@avionic-0098.adnet.avionic-design.de>
-	<518397C60809E147AF5323E0420B992E3E9EEAAA@DBDE01.ent.ti.com>
-	<20121123111811.GA5072@avionic-0098.adnet.avionic-design.de>
-	<87mwy8eb7w.fsf@dell.be.48ers.dk>
-	<20121124203423.GA26951@avionic-0098.adnet.avionic-design.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/1] net: cpts: fix for build break after ARM SoC
+ integration
+Date: Tue, 27 Nov 2012 14:42:42 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1211271442270.20857@utopia.booyaka.com>
+References: <1354012034-31686-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20121124203423.GA26951@avionic-0098.adnet.avionic-design.de>
-	(Thierry Reding's message of "Sat, 24 Nov 2012 21:34:23 +0100")
-Sender: linux-doc-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: "Philip, Avinash" <avinashphilip@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Linus Walleij <linus.walleij@linaro.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:36974 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755302Ab2K0Omn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Nov 2012 09:42:43 -0500
+In-Reply-To: <1354012034-31686-1-git-send-email-mugunthanvnm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, b-cousson@ti.com, richardcochran@gmail.com
 
->>>>> "Thierry" == Thierry Reding <thierry.reding@avionic-design.de> writes:
+On Tue, 27 Nov 2012, Mugunthan V N wrote:
 
-Hi,
+>   CC      drivers/net/ethernet/ti/cpts.o
+> drivers/net/ethernet/ti/cpts.c:30:24: fatal error: plat/clock.h: No such file or directory
+> compilation terminated.
+> make[4]: *** [drivers/net/ethernet/ti/cpts.o] Error 1
+> make[3]: *** [drivers/net/ethernet/ti] Error 2
+> make[2]: *** [drivers/net/ethernet] Error 2
+> make[1]: *** [drivers/net] Error 2
+> 
+> fix for build break as the header file is removed from plat-omap as part of
+> the below patch
+> 
+> commit a135eaae524acba1509a3b19c97fae556e4da7cd
+> Author: Paul Walmsley <paul@pwsan.com>
+> Date:   Thu Sep 27 10:33:34 2012 -0600
+> 
+>     ARM: OMAP: remove plat/clock.h
+> 
+>     Remove arch/arm/plat-omap/include/plat/clock.h by merging it into
+>     arch/arm/mach-omap1/clock.h and arch/arm/mach-omap2/clock.h.
+>     The goal here is to facilitate ARM single image kernels by removing
+>     includes via the "plat/" symlink.
+> 
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
 
- >> There's several different situations:
- >> 
- >> - Platform without pinctrl support
- >> - Platform with pinctrl support but no pinmux specified in dt for device
- >> (E.G. pinmux setup in bootloader)
- >> - Pinmux specified in dt
- >> - Some kind of misconfiguration in dt
- >> 
- >> You could argue that devm_pinctrl_get_select_default() shouldn't return
- >> an error for the first situation, but how should it be able to know the
- >> difference between 2 and 4?
-
- Thierry> In case where the platform supports pinctrl but no pinmux is specified
- Thierry> for the device it should just assume that no pinmuxing is needed. That
- Thierry> sounds like the most logical behaviour to me. In those cases pinctrl
- Thierry> could just assume that the default has already been selected and not
- Thierry> return an error.
-
-Agreed.
-
- Thierry> But you can't reasonably expect to cope with misconfigured DT
- Thierry> content.  Heck, there's no way for you to even know if it is
- Thierry> misconfigured.
-
-With 'misconfigured DT' I just mean any kind of real error.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
 
- Thierry> That said, I'm not sure how much of an issue this really
- Thierry> is. Pinmuxing is only used for functions local to a given
- Thierry> chip, right? So if an SoC supports pinctrl and a given
- Thierry> peripheral needs pinmuxing then we can reasonably assume that
- Thierry> your second case can't happen, can't we?
-
-Well, peripherals only need pinmuxing if the bootloader didn't already
-set it up in advance. We could naturally enforce people to add
-"redundant" pinmux info to their .dts files, but I'm not sure I like
-that idea.
-
--- 
-Bye, Peter Korsgaard
+- Paul
