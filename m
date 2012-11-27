@@ -1,70 +1,63 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH 00/16] OMAP USB Host cleanup
-Date: Tue, 27 Nov 2012 16:42:47 +0200
-Message-ID: <50B4D167.4090205@ti.com>
-References: <1352990054-14680-1-git-send-email-rogerq@ti.com> <87fw49cnvh.fsf@deeprootsystems.com> <50AA05C3.7010003@ti.com> <876251b2kq.fsf@deeprootsystems.com>
+From: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] usb: musb: dsps: header movement build error fix
+Date: Tue, 27 Nov 2012 20:15:22 +0530
+Message-ID: <1354027522-32485-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45393 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755442Ab2K0Omt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Nov 2012 09:42:49 -0500
-In-Reply-To: <876251b2kq.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 11/20/2012 01:22 AM, Kevin Hilman wrote:
-> Roger Quadros <rogerq@ti.com> writes:
-> 
->> Kevin,
->>
->> On 11/16/2012 10:08 PM, Kevin Hilman wrote:
->>> Roger Quadros <rogerq@ti.com> writes:
->>>
->>>> Hi,
->>>>
->>>> This patchset addresses the following
->>>>
->>>> - Avoid addressing clocks one by one by name and use a for loop + bunch
->>>>   of cleanups.
->>>> - Get number of channels/ports dynamically either from revision register
->>>>   or from platform data. Avoids getting clocks that are not present.
->>>> - Add OMAP5 and HSIC mode (Not tested)
->>>> - Save power on Panda when EHCI driver is not loaded.
->>>>
->>>
->>> Seeing the clock changes/cleanups, I gave this a spin on OMAP3
->>> (3530/Beagle, 3530/Overo, 3730/Beagle-xM, 3730/OveroSTORM) to see if it
->>> fixed up the problem where CORE does not hit retention in idle when USB
->>> host is enabled, even with no devices attached.
->>>
->>> Unfortunately, it didn't help. :(
->>
->> oh that's bad. But this series wasn't meant to fix that ;).
-> 
-> Oh, sorry.  Yeah, I didn't mean this as a nak.  Just an opportunity to
-> complain to the maintainers that a long-standing issue needs to be
-> addressed.
-> 
+"54db6ee ARM: OMAP2+: Introduce local usb.h" moved control module bit
+definitions from plat/usb.h (which dsps glue was using) to a local
+header in mach-omap2. And in parallel,
+"c68bb4c usb: musb: dsps: control module handling (quirk)" added
+control module handling capability to dsps glue driver that used
+those control module bit definitions.
 
-Kevin,
+Integration of above two changes would cause build error in musb dsps
+glue driver (they go through different trees upstream) as is seen now
+in linux-next. Fix it by adding necessary definitions in dsps glue
+driver.
 
-I gave a quick look at the issue. It seems that the High Speed USB Host
-module is kept in Software forced wakeup mode as a quick fix workaround
-to a bunch of silicon erratas. And we do nothing on USB global suspend.
-That's why CORE does not hit retention.
+Signed-off-by: Afzal Mohammed <afzal-l0cyMroinI0@public.gmane.org>
+---
 
-If we runtime_suspend the USB host module on USB global suspend then it
-will be put in Force Idle mode. This will allow CORE to hit retention
-but then we will no longer be able to detect USB device connect events.
+Hi Felipe,
 
-So, till we have a better solution I will suggest to keep EHCI_HCD as a
-module in omap2plus_defconfig.
+This applies on top of your musb branch, please help this reach
+mainline along with other musb dsps changes for coming merge window
+so that they would not cause build error and so that we can have a
+working usb in mainline for am335x (beaglebone) at the earliest.
+
+Regards
+Afzal
+
+ drivers/usb/musb/musb_dsps.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index e6f2ae8..f7d764d 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -134,6 +134,11 @@ static const resource_size_t dsps_control_module_phys[] = {
+ 	DSPS_AM33XX_CONTROL_MODULE_PHYS_1,
+ };
+ 
++#define USBPHY_CM_PWRDN		(1 << 0)
++#define USBPHY_OTG_PWRDN	(1 << 1)
++#define USBPHY_OTGVDET_EN	(1 << 19)
++#define USBPHY_OTGSESSEND_EN	(1 << 20)
++
+ /**
+  * musb_dsps_phy_control - phy on/off
+  * @glue: struct dsps_glue *
+-- 
+1.7.12
 
 --
-regards,
--roger
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
