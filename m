@@ -1,42 +1,97 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: enable devtmpfs and devtmpfs automount
-Date: Tue, 27 Nov 2012 14:04:31 +0530
-Message-ID: <50B47B17.2040608@ti.com>
-References: <1353504411-19811-1-git-send-email-javier.martinez@collabora.co.uk>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: [PATCH v5 00/12] Support for AM33xx PWM Subsystem
+Date: Tue, 27 Nov 2012 14:18:05 +0530
+Message-ID: <1354006097-25895-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48259 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753313Ab2K0Ieu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Nov 2012 03:34:50 -0500
-In-Reply-To: <1353504411-19811-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: thierry.reding@avionic-design.de, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com
+Cc: hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 11/21/2012 6:56 PM, Javier Martinez Canillas wrote:
-> Since udev-182, udev no longer creates device nodes under /dev
+In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
+PWM subsystem. All these submodules shares the resources (clock) & has
+a clock gating register in PWM Subsystem. This patch series creates a
+parent PWM Subsystem driver to handle access synchronization of shared
+resources & clock gating from PWM Subsystem configuration space.
+Also Device tree nodes populated to support parent child relation
+between PWMSS, ECAP & EHRPWM submodules.
+In addition EHRPWM module requires explicit clock gating from control
+module & is handled by patch #6 & 7.
 
-Nit: Looks like this happened from udev-176 onward.
+As suggested by  Thierry for handling clock gating for PWM submodules
+should handle with a global function. This requires config space
+handling done independent from driver and is done at parent driver.
 
-http://permalink.gmane.org/gmane.linux.hotplug.devel/17230
+So the parent<->child relation adopted to handle
+1. pm runtime synchronization
+2. PWM subsystem common config space clock gating for PWM submodules.
 
-Whoever is taking the patch can _probably_ fix it up while applying.
+Patches supports
+- Driver support for parent child relation handled patch #1
+- HWMOD data correction in EPWMSS at patch #2
+- Parent child in HWMOD relation handled at patch #3
+- Optional EHRPWM tb clock in patch #6
+- Support for TBCLK clock gating at patch #7.
+- Device tree binding support handled in patch #4,8 
+- Pinctrl support in patch #5 & 9.
+- DT node populated in patch #10 ,11 & 12.
 
-> and this has to be managed by the kernel devtmpfs filesystem.
-> 
-> This means that a kernel built with the current OMAP2+ config
-> will not boot on a system with a recent udev.
+This patch series based on omap_dt/for_3.8/dts_part2 and tested
+on am335x-evm & am335x-evmsk.
 
-> Also, it is good to have /dev automatically mounted since some
-> non-initramfs based setups assumes this and don't manually mount it.
+This patch series will come under 3 subsystem basically. But sent
+it in single patch series to have a clearer picture of why the
+OMAP subsystem changes required.
 
-For curiosity sake, any examples of such setups? I am using fedora 17 on
-DaVinci and that doesn't seem to need it. Anyway, agreed that its better
-to keep it enabled.
+Patches come under PWM (1,4,5,7,8,9)
+Patches come under OMAP (2,3,6)
+Patches come under DT (10,11,12).
 
-Thanks,
-Sekhar
+It depends on [1]
+1. https://gitorious.org/linux-pwm/linux-pwm/commit/83af24027b3df1af5c5a9aa9adcdcfeb3429d3be
+pwm: Device tree support for PWM polarity
+
+Changes since v3:
+	- Rebased on top of omap_dt/for_3.8/dts_part2
+	- Add pwm backlight for am335xevm_sk
+	- Moved tipwmss.h to pwm-tipwmss.h
+
+Philip, Avinash (12):
+  PWMSS: Add PWM Subsystem driver for parent<->child relationship
+  ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem HWMOD entries
+  ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
+    subsystem
+  pwm: tiecap: Add device-tree binding
+  pwm: pwm-tiecap: pinctrl support
+  ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
+  pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+  pwm: tiehrpwm: Add device-tree binding
+  pwm: pwm-tiehrpwm: pinctrl support
+  ARM: dts: AM33XX: Add PWMSS device tree nodes
+  ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
+  ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
+
+ .../devicetree/bindings/pwm/pwm-tiecap.txt         |   23 ++
+ .../devicetree/bindings/pwm/pwm-tiehrpwm.txt       |   23 ++
+ .../devicetree/bindings/pwm/pwm-tipwmss.txt        |   31 ++
+ arch/arm/boot/dts/am335x-evm.dts                   |   23 ++
+ arch/arm/boot/dts/am335x-evmsk.dts                 |   23 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |   84 +++++
+ arch/arm/mach-omap2/clock33xx_data.c               |   37 ++
+ arch/arm/mach-omap2/control.h                      |    8 +
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c         |  388 +++++++++++++-------
+ drivers/pwm/Kconfig                                |   11 +
+ drivers/pwm/Makefile                               |    1 +
+ drivers/pwm/pwm-tiecap.c                           |   48 +++-
+ drivers/pwm/pwm-tiehrpwm.c                         |   62 +++-
+ drivers/pwm/pwm-tipwmss.c                          |  139 +++++++
+ drivers/pwm/pwm-tipwmss.h                          |   39 ++
+ 15 files changed, 797 insertions(+), 144 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-tiecap.txt
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-tiehrpwm.txt
+ create mode 100644 Documentation/devicetree/bindings/pwm/pwm-tipwmss.txt
+ create mode 100644 drivers/pwm/pwm-tipwmss.c
+ create mode 100644 drivers/pwm/pwm-tipwmss.h
+
