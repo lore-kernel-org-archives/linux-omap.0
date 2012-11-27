@@ -1,13 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/3] omap late timer clean-up (and a warning fix) for v3.8
- merge window
-Date: Mon, 26 Nov 2012 17:06:11 -0800
-Message-ID: <9931.29347120902$1353978426@news.gmane.org>
+Subject: [GIT PULL 2/3] omap late prcm changes for v3.8 merge window
+Date: Mon, 26 Nov 2012 17:06:12 -0800
+Message-ID: <E1Td9dE-0007rM-Ui@merlin.infradead.org>
+References: <pull-1353978372-642963>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
+In-Reply-To: <pull-1353978372-642963>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,56 +22,65 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 9dc57643738f9fbe45c10cc062903d5dfda5bdd9:
+The following changes since commit 558a0780b0a04862a678f7823215424b4e5501f9:
 
-  Merge branch 'fixes-timer' of github.com:jonhunter/linux into omap-for-v3.8/timer (2012-11-13 13:52:38 -0800)
+  Merge tag 'omap-cleanup-c-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/clock (2012-11-13 13:32:24 -0800)
 
 are available in the git repository at:
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-timer-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/devel-prcm-signed
 
-for you to fetch changes up to 26f01998b0657a61167a819f1c37cb9f9e9d674b:
+for you to fetch changes up to 8b9c1ac2e11a9fb3a5a8860fb7570ff7633aa7f7:
 
-  ARM: OMAP3: cm-t3517: use GPTIMER for system clock (2012-11-21 10:20:43 -0800)
-
-----------------------------------------------------------------
-Timer clean-up to get us closer to moving timer code to drivers,
-and to get rid of CONFIG_OMAP_32K_TIMER and rely on the board
-or devicetree provided timer configuration.
-
-Note that these changes are on top of the recent timer fixes.
+  Merge tag 'omap-devel-a-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/devel-pcrm (2012-11-26 12:32:50 -0800)
 
 ----------------------------------------------------------------
-Igor Grinberg (2):
-      ARM: OMAP2+: timer: remove CONFIG_OMAP_32K_TIMER
-      ARM: OMAP3: cm-t3517: use GPTIMER for system clock
 
-Jon Hunter (8):
-      ARM: OMAP: Clean-up dmtimer reset code
-      ARM: OMAP: Define omap_dm_timer_prepare function as static
-      ARM: OMAP: Don't store timers physical address
-      ARM: OMAP2+: Remove unnecessary local variable in timer code
-      ARM: OMAP: Remove unnecessary omap_dm_timer structure declaration
-      ARM: OMAP: Add platform data header for DMTIMERs
-      ARM: OMAP: Remove unnecessary inclusion of dmtimer.h
-      ARM: OMAP2+: Fix compiler warning for 32k timer
+omap prcm changes via Paul Walmsley <paul@pwsan.com>:
+
+Some miscellaneous OMAP hwmod changes for 3.8, along with a PRM
+change needed for one of the hwmod patches to function.
+
+Basic test logs for this branch on top of Tony's
+omap-for-v3.8/clock branch at commit
+558a0780b0a04862a678f7823215424b4e5501f9 are here:
+
+http://www.pwsan.com/omap/testlogs/hwmod_devel_a_3.8/20121121161522/
+
+However, omap-for-v3.8/clock at 558a0780 does not include some fixes
+that are needed for a successful test.  With several reverts,
+fixes, and workarounds applied, the following test logs were
+obtained:
+
+http://www.pwsan.com/omap/testlogs/TEST_hwmod_devel_a_3.8/20121121162719/
+
+which indicate that the series tests cleanly.
+
+----------------------------------------------------------------
+Paul Walmsley (1):
+      ARM: OMAP2+: PRM: initialize some PRM functions early
+
+Peter Ujfalusi (2):
+      ARM: OMAP2+: hwmod: Add possibility to count hwmod resources based on type
+      ARM: OMAP2+: omap_device: Correct resource handling for DT boot
+
+Rajendra Nayak (1):
+      ARM: OMAP2+: hwmod: Add support for per hwmod/module context lost count
 
 Tony Lindgren (1):
-      Merge branch 'cleanup-timer' of git://github.com/jonhunter/linux into omap-for-v3.8/timer
+      Merge tag 'omap-devel-a-for-3.8' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.8/devel-pcrm
 
- arch/arm/mach-omap1/timer.c                |   1 +
- arch/arm/mach-omap1/timer32k.c             |   1 -
- arch/arm/mach-omap2/board-cm-t3517.c       |   2 +-
- arch/arm/mach-omap2/common.h               |   1 +
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   1 -
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   1 -
- arch/arm/mach-omap2/pm-debug.c             |   1 -
- arch/arm/mach-omap2/timer.c                | 167 +++++++++++++----------------
- arch/arm/plat-omap/Kconfig                 |   6 ++
- arch/arm/plat-omap/dmtimer.c               |  54 ++++++----
- arch/arm/plat-omap/include/plat/dmtimer.h  |  80 ++++----------
- drivers/staging/tidspbridge/core/ue_deh.c  |   1 -
- include/linux/platform_data/dmtimer-omap.h |  31 ++++++
- 13 files changed, 168 insertions(+), 179 deletions(-)
- create mode 100644 include/linux/platform_data/dmtimer-omap.h
+ arch/arm/mach-omap2/io.c          |  8 ++++
+ arch/arm/mach-omap2/omap_device.c | 87 +++++++++++++++++++++++++--------------
+ arch/arm/mach-omap2/omap_hwmod.c  | 82 +++++++++++++++++++++++++++++-------
+ arch/arm/mach-omap2/omap_hwmod.h  | 12 ++++--
+ arch/arm/mach-omap2/prm.h         | 11 ++++-
+ arch/arm/mach-omap2/prm2xxx.c     |  3 +-
+ arch/arm/mach-omap2/prm2xxx.h     |  3 +-
+ arch/arm/mach-omap2/prm3xxx.c     | 17 ++++----
+ arch/arm/mach-omap2/prm3xxx.h     |  1 +
+ arch/arm/mach-omap2/prm44xx.c     | 49 ++++++++++++++++++----
+ arch/arm/mach-omap2/prm44xx.h     |  1 +
+ arch/arm/mach-omap2/prm_common.c  | 45 ++++++++++++++++++++
+ 12 files changed, 249 insertions(+), 70 deletions(-)
