@@ -1,48 +1,78 @@
-From: "Thomas Weber" <thomas@tomweber.eu>
-Subject: Re: [PATCHv2] OMAP: board-files: fix i2c_bus for tfp410
-Date: Tue, 27 Nov 2012 11:02:52 +0100
-Message-ID: <f129a4f7c8bff131477f395d2ba4b2c2.squirrel@tomweber.eu>
-References: <1353068553-26897-1-git-send-email-tomi.valkeinen@ti.com>
-    <1353573596-5550-1-git-send-email-tomi.valkeinen@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v4 0/3] pwm: Drivers for twl4030/6030 PWMs and LEDs
+Date: Tue, 27 Nov 2012 11:09:56 +0100
+Message-ID: <1354010999-31371-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1353573596-5550-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: stable-owner@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Thomas Weber <thomas@tomweber.eu>, stable@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Tero Kristo <t-kristo@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello Tomi,
+Hello,
 
-> The i2c handling in tfp410 driver, which handles converting parallel RGB
-> to DVI, was changed in 958f2717b84e88bf833d996997fda8f73276f2af
-> (OMAPDSS: TFP410: pdata rewrite). The patch changed what value the
-> driver considers as invalid/undefined.  Before the patch, 0 was the
-> invalid value, but as 0 is a valid bus number, the patch changed this to
-> -1.
->
-> However, the fact was missed that many board files do not define the bus
-> number at all, thus it's left to 0. This causes the driver to fail to
-> get the i2c bus, exiting from the driver's probe with an error, meaning
-> that the DVI output does not work for those boards.
->
-> This patch fixes the issue by changing the i2c_bus number field in the
-> driver's platform data from u16 to int, and setting the bus number to -1
-> in the board files for the boards that did not define the bus. The
-> exception is devkit8000, for which the bus is set to 1, which is the
-> correct bus for that board.
->
-> The bug exists in v3.5+ kernels.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Reported-by: Thomas Weber <thomas@tomweber.eu>
-> Cc: Thomas Weber <thomas@tomweber.eu>
-> Cc: <stable@vger.kernel.org> # v3.5+
+Changes since v3:
+- pwm-twl-led driver's comment fix patch squashed to the original patch
+- Documentation for the DT bindings of the PWM drivers
+Comments from Thierry Reding addressed:
+- pwm-twl6030 has been removed in the last patch
+- macro for twl_pwm_chip/twl_pwmled_chip lookup
+- locking for read-modify-write sequences
+- separate pwm_ops strictures for twl4030 and twl6030 class
+- _devexit_P() removed
+- Do not select HAVE_PWM in Kconfig file since it is going away AFAIK:
+  https://patchwork.kernel.org/patch/1544851/
+- Remaining (smaller) comments from Thierry also has been addressed.
 
-I have tested the patch on Devkit8000.
-Tested-by: Thomas Weber <thomas@tomweber.eu>
+Changes since v2:
+- New PWM cycle calculation for twl-pwm driver and twl4030's pwm-twl-led with
+  comment to document the expected behaviour.
 
-Thanks.
+Changes cince v1:
+- The turn on/off sequence has been corrected for twl4030 PWMs as suggested by
+  Grazvydas Ignotas
+- Comment section added to the new drivers to describe what they are controlling
 
-Thomas
+The series has been tested (with additional, pending patches):
+Zoom2 for twl4030 PWM0 (keypad light), PWM1 (LCD backlight)
+BeagleBoard for twl4030 LEDB (PWMB - pmu_stat led)
+OMAP4 Blaze (SDP4430) for twl6030 PWM1 (keypad light), PWM2 (LCD backlight) and
+LED (charging indication led).
+
+Intro mail from v1:
+
+The currently available pwm-twl6030.c driver only supports TWL6030's Charging
+indication LED.
+Remove this driver and add two new ones which implements support for all PWM
+driven outputs:
+pwm-twl driver supports twl4030 (PWM 0/1) and twl6030 (PWM 1/2) instances
+pwm-twl-led driver supports twl4030 (PWM driven LED A/B ports) and twl6030's
+Charging indication LED (PWM driven).
+
+Regards,
+Peter
+---
+Peter Ujfalusi (3):
+  pwm: New driver to support PWMs on TWL4030/6030 series of PMICs
+  pwm: New driver to support PWM driven LEDs on TWL4030/6030 series of
+    PMICs
+  pwm: Remove pwm-twl6030 driver
+
+ .../devicetree/bindings/pwm/ti,twl-pwm.txt         |  17 +
+ .../devicetree/bindings/pwm/ti,twl-pwmled.txt      |  17 +
+ drivers/pwm/Kconfig                                |  17 +-
+ drivers/pwm/Makefile                               |   3 +-
+ drivers/pwm/pwm-twl-led.c                          | 342 ++++++++++++++++++++
+ drivers/pwm/pwm-twl.c                              | 357 +++++++++++++++++++++
+ drivers/pwm/pwm-twl6030.c                          | 184 -----------
+ 7 files changed, 748 insertions(+), 189 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pwm/ti,twl-pwm.txt
+ create mode 100644 Documentation/devicetree/bindings/pwm/ti,twl-pwmled.txt
+ create mode 100644 drivers/pwm/pwm-twl-led.c
+ create mode 100644 drivers/pwm/pwm-twl.c
+ delete mode 100644 drivers/pwm/pwm-twl6030.c
+
+-- 
+1.8.0
+
