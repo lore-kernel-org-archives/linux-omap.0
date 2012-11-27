@@ -1,105 +1,99 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: RE: [PATCH v5 00/12] Support for AM33xx PWM Subsystem
-Date: Fri, 30 Nov 2012 09:45:13 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA0E480@DBDE01.ent.ti.com>
-References: <1354006097-25895-1-git-send-email-avinashphilip@ti.com>
- <20121128142101.GB21042@avionic-0098.adnet.avionic-design.de>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCH] Input: omap4-keypad: Remove the OMAP4_KBD_SYSCONFIG and
+ OMAP4_KBD_SYSSTATUS
+Date: Tue, 27 Nov 2012 10:46:12 +0530
+Message-ID: <CAM=Q2cuU4J81s9E3o95MTFcp0fnbrrn-p65qGiJFOQTsiT-oqg@mail.gmail.com>
+References: <1353927079-12493-1-git-send-email-shubhrajyoti@ti.com>
+ <20121126180158.GD14623@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34709 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756702Ab2K3Jqj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Nov 2012 04:46:39 -0500
-In-Reply-To: <20121128142101.GB21042@avionic-0098.adnet.avionic-design.de>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1982186891070239172=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20121126180158.GD14623@core.coreip.homeip.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
 
-On Wed, Nov 28, 2012 at 19:51:01, Thierry Reding wrote:
-> On Tue, Nov 27, 2012 at 02:18:05PM +0530, Philip, Avinash wrote:
-> > In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
-> > PWM subsystem. All these submodules shares the resources (clock) & has
-> > a clock gating register in PWM Subsystem. This patch series creates a
-> > parent PWM Subsystem driver to handle access synchronization of shared
-> > resources & clock gating from PWM Subsystem configuration space.
-> > Also Device tree nodes populated to support parent child relation
-> > between PWMSS, ECAP & EHRPWM submodules.
-> > In addition EHRPWM module requires explicit clock gating from control
-> > module & is handled by patch #6 & 7.
-> > 
-> > As suggested by  Thierry for handling clock gating for PWM submodules
-> > should handle with a global function. This requires config space
-> > handling done independent from driver and is done at parent driver.
-> > 
-> > So the parent<->child relation adopted to handle
-> > 1. pm runtime synchronization
-> > 2. PWM subsystem common config space clock gating for PWM submodules.
-> > 
-> > Patches supports
-> > - Driver support for parent child relation handled patch #1
-> > - HWMOD data correction in EPWMSS at patch #2
-> > - Parent child in HWMOD relation handled at patch #3
-> > - Optional EHRPWM tb clock in patch #6
-> > - Support for TBCLK clock gating at patch #7.
-> > - Device tree binding support handled in patch #4,8 
-> > - Pinctrl support in patch #5 & 9.
-> > - DT node populated in patch #10 ,11 & 12.
-> > 
-> > This patch series based on omap_dt/for_3.8/dts_part2 and tested
-> > on am335x-evm & am335x-evmsk.
-> > 
-> > This patch series will come under 3 subsystem basically. But sent
-> > it in single patch series to have a clearer picture of why the
-> > OMAP subsystem changes required.
-> > 
-> > Patches come under PWM (1,4,5,7,8,9)
-> > Patches come under OMAP (2,3,6)
-> > Patches come under DT (10,11,12).
-> > 
-> > It depends on [1]
-> > 1. https://gitorious.org/linux-pwm/linux-pwm/commit/83af24027b3df1af5c5a9aa9adcdcfeb3429d3be
-> > pwm: Device tree support for PWM polarity
-> > 
-> > Changes since v3:
-> > 	- Rebased on top of omap_dt/for_3.8/dts_part2
-> > 	- Add pwm backlight for am335xevm_sk
-> > 	- Moved tipwmss.h to pwm-tipwmss.h
-> > 
-> > Philip, Avinash (12):
-> >   PWMSS: Add PWM Subsystem driver for parent<->child relationship
-> >   ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem HWMOD entries
-> >   ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
-> >     subsystem
-> >   pwm: tiecap: Add device-tree binding
-> >   pwm: pwm-tiecap: pinctrl support
-> >   ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
-> >   pwm: pwm-tiehrpwm: Adding TBCLK gating support.
-> >   pwm: tiehrpwm: Add device-tree binding
-> >   pwm: pwm-tiehrpwm: pinctrl support
-> >   ARM: dts: AM33XX: Add PWMSS device tree nodes
-> >   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
-> >   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
-> 
-> Patches 1, 4, 5, 7, 8 and 9 applied, with a minor fixup to the subject
-> line of patch 1. Thanks.
+--===============1982186891070239172==
+Content-Type: multipart/alternative; boundary=14dae934090107f91404cf7326f9
 
-Thierry,
-Thanks for applying the PWM patches.
-I will follow up with OMAP community for other patches.
+--14dae934090107f91404cf7326f9
+Content-Type: text/plain; charset=ISO-8859-1
 
-Paul/Benoit,
+On Mon, Nov 26, 2012 at 11:31 PM, Dmitry Torokhov <dmitry.torokhov@gmail.com
+> wrote:
 
-Is there any way to get HWMOD and DT patches getting accepted in 3.8?
-Or should I wait and send rebased patch based on 3.8-rc1?
+> On Mon, Nov 26, 2012 at 04:21:19PM +0530, Shubhrajyoti D wrote:
+> > The macros OMAP4_KBD_SYSSTATUS and OMAP4_KBD_SYSSTATUS are not used
+> > so remove them.
+>
+> They document the existing registers and do not add bloat to the
+> generated objects so let's leave them be.
+>
 
-Thanks
-Avinash
+The objective of the patch is not to prevent bloat.
 
-> 
-> Thierry
-> 
+Actually these registers have power/system impact so it was decided that
+the drivers will not
+configure the sysc registers (infact not define). Currently hwmod
+configures the registers.
 
+To be safe I thought of deleting it.
+
+
+> Thanks.
+>
+
+--14dae934090107f91404cf7326f9
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<br><br><div class=3D"gmail_quote">On Mon, Nov 26, 2012 at 11:31 PM, Dmitry=
+ Torokhov <span dir=3D"ltr">&lt;<a href=3D"mailto:dmitry.torokhov@gmail.com=
+" target=3D"_blank">dmitry.torokhov@gmail.com</a>&gt;</span> wrote:<br><blo=
+ckquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #c=
+cc solid;padding-left:1ex">
+<div class=3D"im">On Mon, Nov 26, 2012 at 04:21:19PM +0530, Shubhrajyoti D =
+wrote:<br>
+&gt; The macros OMAP4_KBD_SYSSTATUS and OMAP4_KBD_SYSSTATUS are not used<br=
+>
+&gt; so remove them.<br>
+<br>
+</div>They document the existing registers and do not add bloat to the<br>
+generated objects so let&#39;s leave them be.<br></blockquote><div><br>The =
+objective of the patch is not to prevent bloat. <br></div><div><br>Actually=
+ these registers have power/system impact so it was decided that the driver=
+s will not<br>
+configure the sysc registers (infact not define). Currently hwmod configure=
+s the registers.<br><br>To be safe I thought of deleting it.<br><br></div><=
+blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px=
+ #ccc solid;padding-left:1ex">
+
+<br>
+Thanks.<div class=3D"yj6qo ajU"><div id=3D":yy" class=3D"ajR" tabindex=3D"0=
+"><img class=3D"ajT" src=3D"https://mail.google.com/mail/u/0/images/cleardo=
+t.gif"></div></div></blockquote></div><br>
+
+--14dae934090107f91404cf7326f9--
+
+
+--===============1982186891070239172==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============1982186891070239172==--
