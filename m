@@ -1,191 +1,189 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Tue, 27 Nov 2012 15:10:19 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1211271446430.1489-100000@iolanthe.rowland.org>
-References: <50B51313.2060003@linaro.org>
+Date: Wed, 28 Nov 2012 07:06:48 +0800
+Message-ID: <CACVXFVP8dSvenY-LAdJ02Dr5s1GjD5VFoTXok1A3p-jYoznKMA@mail.gmail.com>
+References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com>
+	<Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org>
+	<CACVXFVM_hPJcNSWp0qCVpexetDBcKgXZRCzR293KAYtK_fpOOg@mail.gmail.com>
+	<50B4FE7D.9030505@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:43100 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755682Ab2K0UKU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Nov 2012 15:10:20 -0500
-In-Reply-To: <50B51313.2060003@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50B4FE7D.9030505-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rogerq-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Green <andy.green@linaro.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com, rogerq@ti.com
 
-On Wed, 28 Nov 2012, Andy Green wrote:
+On Wed, Nov 28, 2012 at 1:55 AM, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+> On 11/28/2012 01:22 AM, the mail apparently from Ming Lei included:
+>
+>> On Wed, Nov 28, 2012 at 12:30 AM, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+>> wrote:
+>>>
+>>> On Tue, 27 Nov 2012, Ming Lei wrote:
+>>>
+>>>> IMO, all matches mean the devices are inside the ehci-omap bus, so
+>>>> the direct/simple way is to enable/disable the regulators in the probe()
+>>>> and
+>>>> remove() of ehci-omap controller driver.
+>>>
+>>>
+>>> When this discussion started, Felipe argued against such an approach.
+>>> He pointed out that the same chip could be used in other platforms, and
+>>> then the code added to ehci-omap.c would have to be duplicated in
+>>> several other places.
+>>
+>>
+>>  From Andy's implementation, the 'general' code is to enable/disable
+>> the regulators(patch 3/5), I am wondering if it is general enough, so the
+>> 'duplicated' code are just several lines of
+>> regulator_enable/regulator_disable,
+>> which should be implemented in many platform drivers.
+>
+>
+> Fair enough; my main interest was in the device path side when writing the
+> patches.  I stuck enough in one place to confirm the series works on Panda
+> case for power control.  So long as it doesn't get obsessed with just
+> regulators some common implementation that seems to be discussed will be
+> better.
+>
+> (BTW let me take this opportunity to thank you for your great urbs-in-flight
+> limiting patch on smsc95xx a while back)
+>
+>
+>> Also from my intuition, power domain should be involved in the problem,
+>> because these hard-wired and self-powered USB devices should have
+>> its own power domains, and the ehci-omap driver may enable/disable
+>> these power domains before adding the bus.
+>
+>
+> I don't know enough to have an opinion, but the arrangement on Panda is
+> literally a linear regulator is being controlled by a gpio, which fits into
+> struct regulator model.  What else would a power domain for that buy us?
 
-> OK.  So I try to sketch it out iteractively to try to get in sync:
-> 
-> device.h:
-> 
-> 	enum asset_event {
-> 		AE_PROBED,
-> 		AE_REMOVED
-> 	};
-> 
-> 	struct device_asset {
-> 		char *name; /* name of regulator, clock, etc */
-> 		void *asset; /* regulator, clock, etc */
-> 		int (*handler)(struct device *dev_owner, enum asset_event asset_event, 
-> struct device_asset *asset);
-> 	};
+One problem is that you are addressing to, another is that we may extend
+Tianyu's per port power off/on mechanism into non-acpi world.
 
-Another possibility is to have two handlers: one for pre-probe and the
-other for post-remove.  Then of course asset_event wouldn't be needed.  
-Linus tends to prefer this strategy -- separate functions for separate
-events.  That's why struct dev_pm_ops has so many method pointers.
+Considered that our discussion has been extended to general case instead
+of pandaboard only, there might be several bus devices which have different
+power control method, which should be the idea of power domain.
 
-> 	struct device {
-> 	...
-> 		struct device_asset *assets;
+I have a draft idea and let me describe it by a pseudo_patch, see below:
 
-Or a list instead of a NULL-terminated array.  It depends on whether
-people will want to add or remove assets dynamically.  For now an array
-would be fine.
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index ac17a7c..c97538f 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -220,6 +220,11 @@ static int ehci_hcd_omap_probe(struct
+platform_device *pdev)
+ 		goto err_io;
+ 	}
 
-> 	...
-> 	};
-> 
-> 
-> drivers/base/dd.c | really_probe():
-> 
-> ...
-> 	struct device_asset *asset;
-> ...
-> 	asset = dev->assets;
-> 	while (asset && asset->name) {
++	list_for_each_entry(ppd, pdata, port_power_domain) {
++		usb_unregister_port_pm_domain(&hcd->self, ppd);
++		ppd->port_power.power_on(ppd, on)
++	}
++
+ 	hcd->rsrc_start = res->start;
+ 	hcd->rsrc_len = resource_size(res);
+ 	hcd->regs = regs;
+@@ -290,6 +295,11 @@ static int ehci_hcd_omap_remove(struct
+platform_device *pdev)
+ 	struct usb_hcd *hcd				= dev_get_drvdata(dev);
+ 	struct ehci_hcd_omap_platform_data *pdata	= dev->platform_data;
 
-Maybe it would be better to test asset->handler.  Some assets might not 
-need names.
++	list_for_each_entry(ppd, pdata, port_power_domain) {
++		usb_unregister_port_pm_domain(&hcd->self, ppd);
++		ppd->port_power.power_off(ppd, on)
++	}
++
+ 	usb_remove_hcd(hcd);
+ 	disable_put_regulator(dev->platform_data);
+ 	iounmap(hcd->regs);
+diff --git a/include/linux/platform_data/usb-omap.h
+b/include/linux/platform_data/usb-omap.h
+index 8570bcf..30516c9 100644
+--- a/include/linux/platform_data/usb-omap.h
++++ b/include/linux/platform_data/usb-omap.h
+@@ -47,6 +47,8 @@ struct ehci_hcd_omap_platform_data {
+ 	int				reset_gpio_port[OMAP3_HS_USB_PORTS];
+ 	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
+ 	unsigned			phy_reset:1;
++
++	struct list_head		port_power_domain;
+ };
 
-> 		if (asset->handler(dev, AE_PROBED, asset)) {
-> 			/* clean up and bail */
-> 		}
-> 		asset++;
-> 	}
-> 
-> 	/* do probe */
-> ...
-> 
-> 
-> drivers/base/dd.c | __device_release_driver:  (is this really the best 
-> place to oppose probe()?)
+ struct ohci_hcd_omap_platform_data {
+diff --git a/include/linux/usb/hcd.h b/include/linux/usb/hcd.h
+index 608050b..89c31c0 100644
+--- a/include/linux/usb/hcd.h
++++ b/include/linux/usb/hcd.h
+@@ -448,6 +448,30 @@ extern void usb_disconnect(struct usb_device **);
+ extern int usb_get_configuration(struct usb_device *dev);
+ extern void usb_destroy_configuration(struct usb_device *dev);
 
-The right place is just after the remove method is called, so yes.
++/*
++ * Only apply in hardwired self-powered devices in bus
++ */
++struct port_power_domain {
++	struct usb_bus *bus;
++	/*
++	 * physical port location in which the power domain provides power on it,
++	 * the first number is the root hub port, and the second number is the
++	 * port number on the second layer hub, ...
++	 */
++	char port_info[32];		/*N-N-N...*/
++
++	/*
++	 * struct power_domain should be generic power thing, and should be
++	 * defined in power core
++	 */
++	struct power_domain port_power;
++};
++
++extern int usb_register_port_pm_domain(struct usb_bus *bus, struct
+port_power_domain *ppd);
++extern int usb_unregister_port_pm_domain(struct usb_bus *bus, struct
+port_power_domain *ppd);
++extern int usb_enable_port_pm_domain(struct usb_bus *bus, struct
+port_power_domain *ppd);
++extern int usb_disable_port_pm_domain(struct usb_bus *bus, struct
+port_power_domain *ppd);
++
+ /*-------------------------------------------------------------------------*/
 
-> ...
-> 	struct device_asset *asset;
-> ...
-> 
-> 	/* call device ->remove() */
-> ...
-> 	asset = dev->assets;
-> 	while (asset && asset->name) {
-> 		asset->handler(dev, AE_REMOVED, asset);
-> 		asset++;
-> 	}
+ /*
 
-It would be slightly safer to iterate in reverse order.
+>
+>>> We should have a more generic solution in a more central location, like
+>>> the device core.
+>>>
+>>> For example, each struct platform_device could have a list of resources
+>>> to be enabled when the device is bound to a driver and disabled when
+>>> the device is unbound.  Such a list could include regulators, clocks,
+>>> and whatever else people can invent.
+>>>
+>>> In this case, when it is created the ehci-omap.0 platform device could
+>>> get an entry pointing to the LAN95xx's regulator.  Then the regulator
+>>> would automatically be turned on when the platform device is bound to
+>>> the ehci-omap driver.
+>>
+>>
+>> The LAN95xx's regulator is still platform dependent(even for same LAN95xx
+>> USB devices on different platforms(omap, tegra, ..)) , so I am wondering
+>> why we don't enable it directly in probe() of ehci-omap.0 platform device?
+>
+>
+> I didn't get this point, ehci-omap doesn't help if it's non-omap platform.
 
-> ...
-> 
-> 
-> board file:
-> 
-> 	static struct regulator myreg = {
-> 		.name = "mydevice-regulator",
-> 	};
-> 
-> 	static struct device_asset mydevice_assets[] = {
-> 		{
-> 			.name = "mydevice-regulator",
-> 			.handler = regulator_default_asset_handler,
-> 		},
-> 		{ }
-> 	};
-> 
-> 	static struct platform_device mydevice = {
-> 	...
-> 		.dev = {
-> 			.assets = mydevice_assets,
-> 		},
-> 	...
-> 	};
-> 
-> 
-> regulator code:
-> 
-> int regulator_default_asset_handler(struct device *dev_owner, enum 
-> asset_event asset_event, struct device_asset *asset)
-> {
-> 	struct regulator **reg = &asset->asset;
-> 	int n;
-> 
-> 	switch (asset_event) {
-> 	case AE_PROBED:
-> 		*reg = regulator_get(dev_owner, asset->name);
-> 		if (IS_ERR(*reg))
-> 			return *reg;
+The other platform just does their way simply to support its power on/off.
 
-PTR_ERR.
 
-> 		n = regulator_enable(*reg);
-> 		if (n < 0)
-> 			regulator_put(*reg);
-> 		return n;
-> 
-> 	case AE_REMOVED:
-> 		regulator_put(*reg);
-> 		break;
-> 	}
-> 
-> 	return 0;
-> }
-> EXPORT_SYMBOL_GPL(regulator_default_asset_handler);
-> 
-> 
-> The subsystems that can expect to get used (clock...) might each want to 
-> define a default handler like the one for regulator.  That'll be an end 
-> to the code duplication issue.  The user can still do his own handler if 
-> he wants.
-> 
-> I put a name field in so we can use regulator_get() nicely, we don't 
-> need access to the object pointer or that it exists at boardfile-time 
-> that way either.  But I can see it's arguable.
-
-It hadn't occurred to me, but it seems like a good idea.
-
-Yes, overall this is almost exactly what I had in mind.
-
-> >> Throwing out the path stuff and limiting this to platform_device means
-> >> you cannot bind to dynamically created objects like hub or anything
-> >> downstream of a hub.  So Felipe's identification of the hub as the
-> >> happening place to do this is out of luck.
-> >
-> > Greg pointed out that this could be useful for arbitrary devices, not
-> > just platform devices, so it could be applied to dynamically created
-> > objects.
-> 
-> Well that is cool, but to exploit that in the dynamic object case 
-> arrangements for identifying the appropriate object has appeared are 
-> needed.
-
-For example, this scheme wouldn't lend itself easily to associating the
-regulator with the particular root-hub port that the LAN95xx is
-attached to.  I can't think of any reasonable way to do that other than
-the approaches we have already considered.
-
->  We have a nice array of platform_devices nicely there in the 
-> board file we can attach assets to like "pdev[1].dev.assets = xxx;" but 
-> that's not there in dynamic device case.  Anyway this sounds like what 
-> we're discussing can be well worth establishing and might lead to that 
-> later.
-
-Agreed.
-
-Alan Stern
-
+Thanks,
+-- 
+Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
