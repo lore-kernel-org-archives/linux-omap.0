@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/3] omap late prcm changes for v3.8 merge window
+Subject: [GIT PULL 3/3] omap late multiplatform cleanup for v3.8 merge window
 Date: Mon, 26 Nov 2012 17:06:12 -0800
-Message-ID: <E1Td9dE-0007rM-Ui@merlin.infradead.org>
+Message-ID: <E1Td9dT-0007vn-Cu@merlin.infradead.org>
 References: <pull-1353978372-642963>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,65 +22,83 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 558a0780b0a04862a678f7823215424b4e5501f9:
+The following changes since commit 0f9cb211ba5db93d488fe6b154138231fdd0e22d:
 
-  Merge tag 'omap-cleanup-c-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/clock (2012-11-13 13:32:24 -0800)
+  Merge tag 'v3.7-rc7' into next/cleanup (2012-11-25 21:34:34 -0800)
 
 are available in the git repository at:
 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/devel-prcm-signed
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-multiplatform-v2-signed
 
-for you to fetch changes up to 8b9c1ac2e11a9fb3a5a8860fb7570ff7633aa7f7:
+for you to fetch changes up to 5ebb428d045ea9b908864547819786d5bcebad05:
 
-  Merge tag 'omap-devel-a-for-3.8' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into omap-for-v3.8/devel-pcrm (2012-11-26 12:32:50 -0800)
-
-----------------------------------------------------------------
-
-omap prcm changes via Paul Walmsley <paul@pwsan.com>:
-
-Some miscellaneous OMAP hwmod changes for 3.8, along with a PRM
-change needed for one of the hwmod patches to function.
-
-Basic test logs for this branch on top of Tony's
-omap-for-v3.8/clock branch at commit
-558a0780b0a04862a678f7823215424b4e5501f9 are here:
-
-http://www.pwsan.com/omap/testlogs/hwmod_devel_a_3.8/20121121161522/
-
-However, omap-for-v3.8/clock at 558a0780 does not include some fixes
-that are needed for a successful test.  With several reverts,
-fixes, and workarounds applied, the following test logs were
-obtained:
-
-http://www.pwsan.com/omap/testlogs/TEST_hwmod_devel_a_3.8/20121121162719/
-
-which indicate that the series tests cleanly.
+  ARM: OMAP: Move plat-omap/dma-omap.h to include/linux/omap-dma.h (2012-11-26 13:19:23 -0800)
 
 ----------------------------------------------------------------
-Paul Walmsley (1):
-      ARM: OMAP2+: PRM: initialize some PRM functions early
+Remaining patches to allow omap2+ to build with multiplatform
+enabled. Unfortunately the DMA header patch had to be redone
+to avoid adding new multiplatform specific include paths, the
+other patches are just trivial compile fixes.
 
-Peter Ujfalusi (2):
-      ARM: OMAP2+: hwmod: Add possibility to count hwmod resources based on type
-      ARM: OMAP2+: omap_device: Correct resource handling for DT boot
+Note that this does not yet contain the necessary Kconfig
+changes as we are still waiting for some drivers to get
+fixed up first.
 
-Rajendra Nayak (1):
-      ARM: OMAP2+: hwmod: Add support for per hwmod/module context lost count
+----------------------------------------------------------------
+Tony Lindgren (3):
+      watchdog: OMAP: fixup for ARM multiplatform support
+      ASoC: OMAP: mcbsp fixes for enabling ARM multiplatform support
+      ARM: OMAP: Move plat-omap/dma-omap.h to include/linux/omap-dma.h
 
-Tony Lindgren (1):
-      Merge tag 'omap-devel-a-for-3.8' of git://git.kernel.org/.../pjw/omap-pending into omap-for-v3.8/devel-pcrm
-
- arch/arm/mach-omap2/io.c          |  8 ++++
- arch/arm/mach-omap2/omap_device.c | 87 +++++++++++++++++++++++++--------------
- arch/arm/mach-omap2/omap_hwmod.c  | 82 +++++++++++++++++++++++++++++-------
- arch/arm/mach-omap2/omap_hwmod.h  | 12 ++++--
- arch/arm/mach-omap2/prm.h         | 11 ++++-
- arch/arm/mach-omap2/prm2xxx.c     |  3 +-
- arch/arm/mach-omap2/prm2xxx.h     |  3 +-
- arch/arm/mach-omap2/prm3xxx.c     | 17 ++++----
- arch/arm/mach-omap2/prm3xxx.h     |  1 +
- arch/arm/mach-omap2/prm44xx.c     | 49 ++++++++++++++++++----
- arch/arm/mach-omap2/prm44xx.h     |  1 +
- arch/arm/mach-omap2/prm_common.c  | 45 ++++++++++++++++++++
- 12 files changed, 249 insertions(+), 70 deletions(-)
+ arch/arm/mach-omap1/board-h2.c                     |   2 +-
+ arch/arm/mach-omap1/board-h3.c                     |   2 +-
+ arch/arm/mach-omap1/board-palmte.c                 |   2 +-
+ arch/arm/mach-omap1/board-palmtt.c                 |   2 +-
+ arch/arm/mach-omap1/board-palmz71.c                |   2 +-
+ arch/arm/mach-omap1/board-sx1.c                    |   2 +-
+ arch/arm/mach-omap1/dma.c                          |   2 +-
+ arch/arm/mach-omap1/io.c                           |   2 +-
+ arch/arm/mach-omap1/lcd_dma.c                      |   2 +-
+ arch/arm/mach-omap1/mcbsp.c                        |   2 +-
+ arch/arm/mach-omap1/pm.c                           |   2 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |   2 +-
+ arch/arm/mach-omap2/board-h4.c                     |   2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   2 +-
+ arch/arm/mach-omap2/board-rx51.c                   |   2 +-
+ arch/arm/mach-omap2/devices.c                      |   2 +-
+ arch/arm/mach-omap2/dma.c                          |   2 +-
+ arch/arm/mach-omap2/io.c                           |   2 +-
+ arch/arm/mach-omap2/mcbsp.c                        |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   2 +-
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |   3 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   2 +-
+ arch/arm/mach-omap2/pm24xx.c                       |   2 +-
+ arch/arm/mach-omap2/pm34xx.c                       |   3 +-
+ arch/arm/mach-omap2/serial.c                       |   2 +-
+ arch/arm/plat-omap/dma.c                           |   2 +-
+ arch/arm/plat-omap/include/plat-omap/dma-omap.h    | 377 ---------------------
+ drivers/crypto/omap-aes.c                          |   2 +-
+ drivers/crypto/omap-sham.c                         |   2 +-
+ drivers/dma/omap-dma.c                             |   2 -
+ drivers/media/platform/omap/omap_vout.c            |   2 +-
+ drivers/media/platform/omap/omap_vout_vrfb.c       |   2 +-
+ drivers/media/platform/omap3isp/ispstat.h          |   2 +-
+ drivers/media/platform/soc_camera/omap1_camera.c   |   2 +-
+ drivers/mtd/nand/omap2.c                           |   1 -
+ drivers/mtd/onenand/omap2.c                        |   2 +-
+ drivers/usb/gadget/omap_udc.c                      |   2 +-
+ drivers/usb/musb/tusb6010_omap.c                   |   2 +-
+ drivers/video/omap/lcdc.c                          |   2 +-
+ drivers/video/omap/omapfb_main.c                   |   2 +-
+ drivers/video/omap/sossi.c                         |   2 +-
+ drivers/watchdog/omap_wdt.c                        |   2 -
+ include/linux/omap-dma.h                           | 366 ++++++++++++++++++++
+ sound/soc/omap/mcbsp.c                             |   4 +-
+ sound/soc/omap/mcbsp.h                             |   6 +
+ sound/soc/omap/omap-mcbsp.c                        |   5 +-
+ 49 files changed, 417 insertions(+), 430 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat-omap/dma-omap.h
