@@ -1,114 +1,52 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v5 00/12] Support for AM33xx PWM Subsystem
-Date: Wed, 28 Nov 2012 15:21:01 +0100
-Message-ID: <20121128142101.GB21042@avionic-0098.adnet.avionic-design.de>
-References: <1354006097-25895-1-git-send-email-avinashphilip@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="p4qYPpj5QlsIQJ0K"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1354006097-25895-1-git-send-email-avinashphilip@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH v5 2/4] ARM: OMAP: gpmc-nand: drop __init annotation
+Date: Wed, 28 Nov 2012 15:38:27 +0100
+Message-ID: <1354113509-7972-3-git-send-email-zonque@gmail.com>
+References: <1354113509-7972-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from svenfoo.org ([82.94.215.22]:60484 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755364Ab2K1Oih (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Nov 2012 09:38:37 -0500
+In-Reply-To: <1354113509-7972-1-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, jacmet@sunsite.dk, Daniel Mack <zonque@gmail.com>
 
+gpmc_nand_init() will be called from another driver's probe() function,
+so the easiest way to prevent section mismatches is to drop the
+annotation here.
 
---p4qYPpj5QlsIQJ0K
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+ arch/arm/mach-omap2/gpmc-nand.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-On Tue, Nov 27, 2012 at 02:18:05PM +0530, Philip, Avinash wrote:
-> In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
-> PWM subsystem. All these submodules shares the resources (clock) & has
-> a clock gating register in PWM Subsystem. This patch series creates a
-> parent PWM Subsystem driver to handle access synchronization of shared
-> resources & clock gating from PWM Subsystem configuration space.
-> Also Device tree nodes populated to support parent child relation
-> between PWMSS, ECAP & EHRPWM submodules.
-> In addition EHRPWM module requires explicit clock gating from control
-> module & is handled by patch #6 & 7.
->=20
-> As suggested by  Thierry for handling clock gating for PWM submodules
-> should handle with a global function. This requires config space
-> handling done independent from driver and is done at parent driver.
->=20
-> So the parent<->child relation adopted to handle
-> 1. pm runtime synchronization
-> 2. PWM subsystem common config space clock gating for PWM submodules.
->=20
-> Patches supports
-> - Driver support for parent child relation handled patch #1
-> - HWMOD data correction in EPWMSS at patch #2
-> - Parent child in HWMOD relation handled at patch #3
-> - Optional EHRPWM tb clock in patch #6
-> - Support for TBCLK clock gating at patch #7.
-> - Device tree binding support handled in patch #4,8=20
-> - Pinctrl support in patch #5 & 9.
-> - DT node populated in patch #10 ,11 & 12.
->=20
-> This patch series based on omap_dt/for_3.8/dts_part2 and tested
-> on am335x-evm & am335x-evmsk.
->=20
-> This patch series will come under 3 subsystem basically. But sent
-> it in single patch series to have a clearer picture of why the
-> OMAP subsystem changes required.
->=20
-> Patches come under PWM (1,4,5,7,8,9)
-> Patches come under OMAP (2,3,6)
-> Patches come under DT (10,11,12).
->=20
-> It depends on [1]
-> 1. https://gitorious.org/linux-pwm/linux-pwm/commit/83af24027b3df1af5c5a9=
-aa9adcdcfeb3429d3be
-> pwm: Device tree support for PWM polarity
->=20
-> Changes since v3:
-> 	- Rebased on top of omap_dt/for_3.8/dts_part2
-> 	- Add pwm backlight for am335xevm_sk
-> 	- Moved tipwmss.h to pwm-tipwmss.h
->=20
-> Philip, Avinash (12):
->   PWMSS: Add PWM Subsystem driver for parent<->child relationship
->   ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem HWMOD entries
->   ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
->     subsystem
->   pwm: tiecap: Add device-tree binding
->   pwm: pwm-tiecap: pinctrl support
->   ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
->   pwm: pwm-tiehrpwm: Adding TBCLK gating support.
->   pwm: tiehrpwm: Add device-tree binding
->   pwm: pwm-tiehrpwm: pinctrl support
->   ARM: dts: AM33XX: Add PWMSS device tree nodes
->   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
->   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index 8607735..f9f23a2 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -89,7 +89,7 @@ static int omap2_nand_gpmc_retime(
+ 	return 0;
+ }
+ 
+-static bool __init gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
++static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+ {
+ 	/* support only OMAP3 class */
+ 	if (!cpu_is_omap34xx()) {
+@@ -110,8 +110,8 @@ static bool __init gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+ 	return 1;
+ }
+ 
+-int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
+-			  struct gpmc_timings *gpmc_t)
++int gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand_data,
++		   struct gpmc_timings *gpmc_t)
+ {
+ 	int err	= 0;
+ 	struct device *dev = &gpmc_nand_device.dev;
+-- 
+1.7.11.7
 
-Patches 1, 4, 5, 7, 8 and 9 applied, with a minor fixup to the subject
-line of patch 1. Thanks.
-
-Thierry
-
---p4qYPpj5QlsIQJ0K
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQth3NAAoJEN0jrNd/PrOhXKkP/j4DH3rMhDb4W6uMjlxktpMC
-pSvhJgOeSDkD15MPmu3k9E6gBbA13GBrsk2V2DWBoRgn2FI4GXhj66u4Oxxme/Wl
-TN8zbkXlPkjw8svVIbjwqFu98U7/1xVPP53b+pY1KALhEPVFPgv/lSWWaEefk5qT
-vBAo/6SptYrhYQXj9C/hClD5EdDWAncrCTN+T22tkfAtsGsFeNWnwEx1MTSVdqhn
-lJrWBsSiX7I/okcQT6euC5HexZ9JR6MUUsERTz7/dowl4ZTA2JElXRVpLLuPjfwp
-oeFs6ZVgJgHE9ohL6XXfvTGW1AC6eEUNtoPphSCf72yWDornSnP3is42glr64ytB
-Gs5VL23pSiV853l+RJKtqnDYzm7Ta8k8v0+evxwfwxwGaOWHWULXfqsjE1ETWd4j
-70LR8mmGWqUuGVWkYXa6AHHYBfqCuCvwJD7HRsXV6UDToeSlWnKnsssRyP0gU+fQ
-90kgyrcND6qIP6hAF7lkueYnZ0X9mriQnPOMnr4Gpz53o8MdNLdt+8b//s8qTOOj
-nbo2ve40yiUdKQAYPyJwHnTU3urSPsuRUjZog5Cfr+mujPCRBcvM83GNnRmVWEXQ
-42qGyVNtpNQNkdk8KWZ8hWXXUoJ7/TaZoNlnvST6ILcmTve9/WnGbGlGsGMIMDL9
-p2fTpOT/KS7WusGTy24q
-=6/Du
------END PGP SIGNATURE-----
-
---p4qYPpj5QlsIQJ0K--
