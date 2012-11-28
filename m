@@ -1,251 +1,146 @@
-From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Wed, 28 Nov 2012 10:30:26 +0800
-Message-ID: <50B57742.2010107@linaro.org>
-References: <Pine.LNX.4.44L0.1211271446430.1489-100000@iolanthe.rowland.org>
+From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC
+ timings and NAND
+Date: Wed, 28 Nov 2012 05:01:30 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9F25CB@DBDE01.ent.ti.com>
+References: <1351869956-2787-1-git-send-email-zonque@gmail.com>
+ <1351869956-2787-5-git-send-email-zonque@gmail.com>
+ <518397C60809E147AF5323E0420B992E3E9DA81F@DBDE01.ent.ti.com>
+ <5097B7EE.3000508@gmail.com>
+ <518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com>
+ <509A2E75.5060307@gmail.com>
+ <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
+ <509EA360.2050504@gmail.com> <87mwycjmdn.fsf@dell.be.48ers.dk>
+ <50ACA9BB.7090106@gmail.com>
+ <518397C60809E147AF5323E0420B992E3E9EEA09@DBDE01.ent.ti.com>
+ <50B4C796.4010403@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1211271446430.1489-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <50B4C796.4010403-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org" <ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org>
+Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/28/2012 04:10 AM, the mail apparently from Alan Stern included:
-> On Wed, 28 Nov 2012, Andy Green wrote:
->
->> OK.  So I try to sketch it out iteractively to try to get in sync:
->>
->> device.h:
->>
->> 	enum asset_event {
->> 		AE_PROBED,
->> 		AE_REMOVED
->> 	};
->>
->> 	struct device_asset {
->> 		char *name; /* name of regulator, clock, etc */
->> 		void *asset; /* regulator, clock, etc */
->> 		int (*handler)(struct device *dev_owner, enum asset_event asset_ev=
-ent,
->> struct device_asset *asset);
->> 	};
->
-> Another possibility is to have two handlers: one for pre-probe and th=
-e
-> other for post-remove.  Then of course asset_event wouldn't be needed=
-=2E
-> Linus tends to prefer this strategy -- separate functions for separat=
-e
-> events.  That's why struct dev_pm_ops has so many method pointers.
+On Tue, Nov 27, 2012 at 19:30:54, Daniel Mack wrote:
+> Hi Avinash,
+> Hi Peter,
+> 
+> On 23.11.2012 11:43, Philip, Avinash wrote:
+> > On Wed, Nov 21, 2012 at 15:45:23, Daniel Mack wrote:
+> >> On 20.11.2012 16:59, Peter Korsgaard wrote:
+> >>>>>>>> "Daniel" == Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+> 
+> > Peter,
+> > 
+> > In patch [1], mtd: nand: omap2: Support for hardware BCH
+> > 
+> > ecc_layout made compatible with Rom Boot Loader ECC layout for am335x.
+> > 
+> > This action is based on is_elm_used flag.
+> > 
+> > Requirement of this flag is to identify the whether the platform
+> > ELM module & based on this configure ELM module if present.
+> > 
+> > But ideally BCH8 ecc lay out didn't have a dependency on ELM, it
+> > can work with software BCH ecc. RBL compatibility is missing
+> > in software BCH because of addition of constant polynomial to
+> > ecc vector. If we remove the dependency on erased page handling
+> > by ecc vector with constant polynomial, software BCH can do the
+> > job of RBL compatibility.
+> > 
+> > Ivan,
+> > Do you have any suggestions?
+> > Discussion for RBL compatibility found at [2].
+> > 
+> > It is good that software BCH also support RBL compatibility by suppressing
+> > constant polynomial modification. Then ecc layout can be selected from
+> > DT entry and error correction can be chosen between software/hardware
+> > depending on the availability of ELM hardware.
+> > Currently RBL BCH8 compatibility depends on the availability of ELM
+> > hardware. Later once software BCH start supporting RBL compatibility,
+> > we can remove  the check.
+> > 
+> >>
+> >> That is what I experienced, yes. The kernel was unable to parse NAND
+> >> pages that were written from U-Boot with bch8 hardware mode when the elm
+> >> module was not active. Maybe someone from TI can explain that? Giving it
+> >> a dedicated name would also solve the problem with the extra DT property.
+> > 
+> > Daniel,
+> > 
+> > Currently BCH8 is supported with software ecc error correction in mainline.
+> > The layout for BCH8 ECC layout is
+> > 0-1 -> BAD block markers
+> > 2-11-> oob free area
+> > 12-63-> BCH8 ECC.
+> > 
+> > RBL ECC layout is
+> > 0-1 -> BAD block markers
+> > 2-57-> BCH8 ecc layout
+> > 58-63-> OOB free area
+> > 
+> > As u-boot also maintain RBL ecc layout, write from U-boot
+> > and read from Linux requires compatibility with RBL ecc layout.
+> > The same is achieved in the patch [1], with by setting is_elm_used
+> > to true.
+> > 
+> > 1. https://lkml.org/lkml/2012/10/31/87
+> > 2. https://lkml.org/lkml/2012/10/11/20
+> 
+> So, after reading this, I'm still uncertain what's your preferred way of
+> handling the bindings here. Are you saying we should stick with the
+> is_elm_used flag, and subsequently care for BCH8 software mode
+> compatibility?
 
-OK.
+Ideally RBL compatibility didn't depend on the availability of ELM module. So
+from am335x perspective, RBL compatibility is achieved with ECC error correction
+with ELM module. I would submit one more revision of BCH8 ELM error correction
+support which would check for bch8-am335xrbl-compatible.
+Note: RBL ecc layout can vary from SOC to SOC
 
-I wonder if this needs extending to PM ops passing in to the assets.=20
-Regulator is usually self-sufficient but sometimes clocks at least need=
-=20
-meddling in suspend paths.
+Daniel,
 
-Maybe it's enough instead to offer a standalone api for drivers that=20
-want to meddle with assets, like enable / disable an asset clock...
+So can you start supporting "bch8-am335xrbl-compatible" and remove usage of
+is_elm_used in dt. This should come in ecc_opt field.
 
-void *device_find_asset(struct device *device, const char *name);
+In omap2 NAND driver, AM335x RBL compatibility is achieved depending on ecc_layout
+and runtime detection of elm module. So options related to can be
+1. bch8-am335xrbl-compatible is enabled and run time detection of
+   Of elm module passed, RBL compatibility achieved.
+2. bch8-am335xrbl-compatible is enabled and run time detection of
+   of elm module failed, RBL compatibility sacrificed but continue with
+   software BCH8 error correction. Sacrificing RBL compatibility
+   because of constant polynomial addition and usage of 14 byte instead of 13 byte.
 
-=2E..if it wants to touch anything like that it needs to mandate a=20
-nonambiguous name for the asset like "reg-mydriver-ehci-omap.0".
+Ivan,
+Do you have any plan of removing addition of constant polynomial to ecc data
+and go for extra byte checking to find erased pages?
+This way we can start support BCH8 with RBL compatible and kernel
+Didn't put any restriction of the ecc layout.
 
-This is also handy since the driver can then adapt around absence or=20
-presence of optional assets if it wants.
+Thanks
+Avinash
 
->> 	struct device {
->> 	...
->> 		struct device_asset *assets;
->
-> Or a list instead of a NULL-terminated array.  It depends on whether
-> people will want to add or remove assets dynamically.  For now an arr=
-ay
-> would be fine.
-
-OK.
-
->> 	...
->> 	};
->>
->>
->> drivers/base/dd.c | really_probe():
->>
->> ...
->> 	struct device_asset *asset;
->> ...
->> 	asset =3D dev->assets;
->> 	while (asset && asset->name) {
->
-> Maybe it would be better to test asset->handler.  Some assets might n=
-ot
-> need names.
-
-Good point.
-
->> 		if (asset->handler(dev, AE_PROBED, asset)) {
->> 			/* clean up and bail */
->> 		}
->> 		asset++;
->> 	}
->>
->> 	/* do probe */
->> ...
->>
->>
->> drivers/base/dd.c | __device_release_driver:  (is this really the be=
-st
->> place to oppose probe()?)
->
-> The right place is just after the remove method is called, so yes.
->
->> ...
->> 	struct device_asset *asset;
->> ...
->>
->> 	/* call device ->remove() */
->> ...
->> 	asset =3D dev->assets;
->> 	while (asset && asset->name) {
->> 		asset->handler(dev, AE_REMOVED, asset);
->> 		asset++;
->> 	}
->
-> It would be slightly safer to iterate in reverse order.
-
-Good point.
-
->> ...
->>
->>
->> board file:
->>
->> 	static struct regulator myreg =3D {
->> 		.name =3D "mydevice-regulator",
->> 	};
->>
->> 	static struct device_asset mydevice_assets[] =3D {
->> 		{
->> 			.name =3D "mydevice-regulator",
->> 			.handler =3D regulator_default_asset_handler,
->> 		},
->> 		{ }
->> 	};
->>
->> 	static struct platform_device mydevice =3D {
->> 	...
->> 		.dev =3D {
->> 			.assets =3D mydevice_assets,
->> 		},
->> 	...
->> 	};
->>
->>
->> regulator code:
->>
->> int regulator_default_asset_handler(struct device *dev_owner, enum
->> asset_event asset_event, struct device_asset *asset)
->> {
->> 	struct regulator **reg =3D &asset->asset;
->> 	int n;
->>
->> 	switch (asset_event) {
->> 	case AE_PROBED:
->> 		*reg =3D regulator_get(dev_owner, asset->name);
->> 		if (IS_ERR(*reg))
->> 			return *reg;
->
-> PTR_ERR.
-
-Right.
-
-I'll offer a series with these adaptations shortly.
-
--Andy
-
->> 		n =3D regulator_enable(*reg);
->> 		if (n < 0)
->> 			regulator_put(*reg);
->> 		return n;
->>
->> 	case AE_REMOVED:
->> 		regulator_put(*reg);
->> 		break;
->> 	}
->>
->> 	return 0;
->> }
->> EXPORT_SYMBOL_GPL(regulator_default_asset_handler);
->>
->>
->> The subsystems that can expect to get used (clock...) might each wan=
-t to
->> define a default handler like the one for regulator.  That'll be an =
-end
->> to the code duplication issue.  The user can still do his own handle=
-r if
->> he wants.
->>
->> I put a name field in so we can use regulator_get() nicely, we don't
->> need access to the object pointer or that it exists at boardfile-tim=
-e
->> that way either.  But I can see it's arguable.
->
-> It hadn't occurred to me, but it seems like a good idea.
->
-> Yes, overall this is almost exactly what I had in mind.
->
->>>> Throwing out the path stuff and limiting this to platform_device m=
-eans
->>>> you cannot bind to dynamically created objects like hub or anythin=
-g
->>>> downstream of a hub.  So Felipe's identification of the hub as the
->>>> happening place to do this is out of luck.
->>>
->>> Greg pointed out that this could be useful for arbitrary devices, n=
-ot
->>> just platform devices, so it could be applied to dynamically create=
-d
->>> objects.
->>
->> Well that is cool, but to exploit that in the dynamic object case
->> arrangements for identifying the appropriate object has appeared are
->> needed.
->
-> For example, this scheme wouldn't lend itself easily to associating t=
-he
-> regulator with the particular root-hub port that the LAN95xx is
-> attached to.  I can't think of any reasonable way to do that other th=
-an
-> the approaches we have already considered.
->
->>   We have a nice array of platform_devices nicely there in the
->> board file we can attach assets to like "pdev[1].dev.assets =3D xxx;=
-" but
->> that's not there in dynamic device case.  Anyway this sounds like wh=
-at
->> we're discussing can be well worth establishing and might lead to th=
-at
->> later.
->
-> Agreed.
->
-> Alan Stern
->
-
-
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> I would like to submit a new version soon, so it can be queued up for
+> the next merge window, and that decision is the last blocker currently
+> for sending out a new series.
+> 
+> 
+> Many thanks,
+> Daniel
+> 
+> 
