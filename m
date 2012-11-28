@@ -1,45 +1,54 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2 18/22] mfd: omap-usb-host: get rid of cpu_is_omap..()
- macros
-Date: Wed, 28 Nov 2012 18:49:31 +0200
-Message-ID: <50B6409B.1080009@ti.com>
-References: <1354114150-11941-1-git-send-email-rogerq@ti.com> <1354114150-11941-19-git-send-email-rogerq@ti.com> <20121128163632.GB5312@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH v5 3/4] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
+Date: Wed, 28 Nov 2012 17:58:58 +0100
+Message-ID: <1354121939-11246-4-git-send-email-zonque@gmail.com>
+References: <1354121939-11246-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56890 "EHLO bear.ext.ti.com"
+Received: from svenfoo.org ([82.94.215.22]:41521 "EHLO mail.zonque.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755445Ab2K1Qtd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Nov 2012 11:49:33 -0500
-In-Reply-To: <20121128163632.GB5312@atomide.com>
+	id S1754822Ab2K1Q7H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Nov 2012 11:59:07 -0500
+In-Reply-To: <1354121939-11246-1-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, jacmet@sunsite.dk, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>
 
-On 11/28/2012 06:36 PM, Tony Lindgren wrote:
-> * Roger Quadros <rogerq@ti.com> [121128 06:51]:
->> Instead of using cpu_is_omap..() macros in the device driver we
->> rely on information provided in the platform data.
->>
->> The only information we need is whether the USB Host module has
->> a single ULPI bypass control bit for all ports or individual bypass
->> control bits for each port. OMAP3 REV2.1 and earlier have the former.
-> 
-> Does this depend on the other patches in this series? If not,
-> this should be applied first as this is blocking omap multiplatform
-> development. And this too needs to be updated for the new location
-> of usb-omap.h in linux next.
+The am33xx is capable of handling bch error correction modes, so
+enable that feature in the driver.
 
-OK. I'll send this patch separately based on top of linux-next.
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+ arch/arm/mach-omap2/gpmc-nand.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-> 
-> Other than that:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+index f9f23a2..c8a72ba 100644
+--- a/arch/arm/mach-omap2/gpmc-nand.c
++++ b/arch/arm/mach-omap2/gpmc-nand.c
+@@ -92,17 +92,18 @@ static int omap2_nand_gpmc_retime(
+ static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+ {
+ 	/* support only OMAP3 class */
+-	if (!cpu_is_omap34xx()) {
++	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
+ 		pr_err("BCH ecc is not supported on this CPU\n");
+ 		return 0;
+ 	}
+ 
+ 	/*
+-	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1.
+-	 * Other chips may be added if confirmed to work.
++	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
++	 * and AM33xx derivates. Other chips may be added if confirmed to work.
+ 	 */
+ 	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
+-	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0))) {
++	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)) &&
++	    (!soc_is_am33xx())) {
+ 		pr_err("BCH 4-bit mode is not supported on this CPU\n");
+ 		return 0;
+ 	}
+-- 
+1.7.11.7
 
-Thanks.
-
-cheers,
--roger
