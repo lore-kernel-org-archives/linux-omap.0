@@ -1,170 +1,75 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: [try#1 PATCH 7/7] config omap2plus add ehci bits
-Date: Wed, 28 Nov 2012 13:00:05 +0000
-Message-ID: <20121128130005.29569.91029.stgit@build.warmcat.com>
-References: <20121128124744.29569.52739.stgit@build.warmcat.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: OMAP* Latest build failures
+Date: Wed, 28 Nov 2012 10:04:33 -0400
+Message-ID: <50B619F1.3000207@ti.com>
+References: <20121114092643.GG3290@n2100.arm.linux.org.uk> <20121117093307.GL3332@n2100.arm.linux.org.uk> <20121120175733.GH18567@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:59193 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755040Ab2K1NAK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Nov 2012 08:00:10 -0500
-In-Reply-To: <20121128124744.29569.52739.stgit@build.warmcat.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48292 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754826Ab2K1OEq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Nov 2012 09:04:46 -0500
+In-Reply-To: <20121120175733.GH18567@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: gregkh@linuxfoundation.org, rogerq@ti.com, keshava_mgowda@ti.com, balbi@ti.com, stern@rowland.harvard.edu
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Radhesh Fadnis <radhesh.fadnis@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-omap2plus seems to have rotted a bit, this is the delta that appears
-if we enable modular build for ehci-hcd and smsc95xx.
+Tony, Russell,
 
-Signed-off-by: Andy Green <andy.green@linaro.org>
----
- arch/arm/configs/omap2plus_defconfig |   42 ++++++++++++++--------------------
- 1 file changed, 17 insertions(+), 25 deletions(-)
+On 20-11-2012 13:57, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [121117 01:35]:
+>> On Wed, Nov 14, 2012 at 09:26:43AM +0000, Russell King - ARM Linux wrote:
+>>> OMAP* allnoconfig fails:
+>>>
+>>> arch/arm/mach-omap2/built-in.o: In function `omap_dss_set_min_bus_tput':
+>>> twl-common.c:(.text+0x1e08): undefined reference to `omap_pm_set_min_bus_tput'
+>>> arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_init_postsetup':
+>>> twl-common.c:(.init.text+0x8f8): undefined reference to `omap_pm_if_early_init'
+>>> arch/arm/mach-omap2/built-in.o: In function `omap_serial_init_port':
+>>> twl-common.c:(.init.text+0x1284): undefined reference to `omap_pm_get_dev_context_loss_count'
+>>> arch/arm/mach-omap2/built-in.o: In function `omap_timer_init':
+>>> twl-common.c:(.init.text+0x1544): undefined reference to `omap_pm_get_dev_context_loss_count'
+>>> arch/arm/mach-omap2/built-in.o: In function `omap2_common_pm_init':
+>>> twl-common.c:(.init.text+0x1af0): undefined reference to `omap_pm_if_init'
+>>> arch/arm/mach-omap2/built-in.o: In function `omap2_gpio_dev_init':
+>>> twl-common.c:(.init.text+0x2168): undefined reference to `omap_pm_get_dev_context_loss_count'
+>>> arch/arm/mach-omap2/built-in.o: In function `omap_display_init':
+>>> twl-common.c:(.init.text+0x25cc): undefined reference to `omap_pm_get_dev_context_loss_count'
+>>
+>> These are now gone, but we have a new warning:
+>>
+>> arch/arm/mach-omap2/timer.c:163:28: warning: 'omap_counter_match' defined but not used
+>
+> Jon, care to fix this one?
+>
+>> And the randconfig found:
+>>
+>> drivers/staging/omap-thermal/omap-bandgap.c: In function 'omap_bandgap_readl':
+>> drivers/staging/omap-thermal/omap-bandgap.c:46:2: error: implicit declaration of function 'readl'
+>> drivers/staging/omap-thermal/omap-bandgap.c: In function 'omap_bandgap_writel':
+>> drivers/staging/omap-thermal/omap-bandgap.c:51:2: error: implicit declaration of function 'writel'
+>>
+>> Which, as its in staging, maybe its not important but it's another source
+>> of unnecessary failure.
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 6230304..2f858a3 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -1,14 +1,14 @@
- CONFIG_EXPERIMENTAL=y
- CONFIG_SYSVIPC=y
- CONFIG_POSIX_MQUEUE=y
-+CONFIG_NO_HZ=y
-+CONFIG_HIGH_RES_TIMERS=y
- CONFIG_BSD_PROCESS_ACCT=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=16
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_EXPERT=y
--# CONFIG_SYSCTL_SYSCALL is not set
--CONFIG_KALLSYMS_EXTRA_PASS=y
- CONFIG_SLAB=y
- CONFIG_PROFILING=y
- CONFIG_OPROFILE=y
-@@ -20,16 +20,15 @@ CONFIG_MODULE_FORCE_UNLOAD=y
- CONFIG_MODVERSIONS=y
- CONFIG_MODULE_SRCVERSION_ALL=y
- # CONFIG_BLK_DEV_BSG is not set
-+CONFIG_PARTITION_ADVANCED=y
- CONFIG_ARCH_OMAP=y
- CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_MUX_DEBUG=y
-+CONFIG_SOC_OMAP5=y
- CONFIG_ARM_THUMBEE=y
- CONFIG_ARM_ERRATA_411920=y
--CONFIG_NO_HZ=y
--CONFIG_HIGH_RES_TIMERS=y
- CONFIG_SMP=y
- CONFIG_NR_CPUS=2
--CONFIG_LEDS=y
- CONFIG_ZBOOT_ROM_TEXT=0x0
- CONFIG_ZBOOT_ROM_BSS=0x0
- CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
-@@ -87,22 +86,21 @@ CONFIG_SCSI_MULTI_LUN=y
- CONFIG_SCSI_SCAN_ASYNC=y
- CONFIG_MD=y
- CONFIG_NETDEVICES=y
--CONFIG_SMSC_PHY=y
--CONFIG_NET_ETHERNET=y
--CONFIG_SMC91X=y
--CONFIG_SMSC911X=y
- CONFIG_KS8851=y
- CONFIG_KS8851_MLL=y
--CONFIG_LIBERTAS=m
--CONFIG_LIBERTAS_USB=m
--CONFIG_LIBERTAS_SDIO=m
--CONFIG_LIBERTAS_DEBUG=y
-+CONFIG_SMC91X=y
-+CONFIG_SMSC911X=y
-+CONFIG_SMSC_PHY=y
- CONFIG_USB_USBNET=y
--CONFIG_USB_NET_SMSC95XX=y
-+CONFIG_USB_NET_SMSC95XX=m
- CONFIG_USB_ALI_M5632=y
- CONFIG_USB_AN2720=y
- CONFIG_USB_EPSON2888=y
- CONFIG_USB_KC2190=y
-+CONFIG_LIBERTAS=m
-+CONFIG_LIBERTAS_USB=m
-+CONFIG_LIBERTAS_SDIO=m
-+CONFIG_LIBERTAS_DEBUG=y
- CONFIG_INPUT_JOYDEV=y
- CONFIG_INPUT_EVDEV=y
- CONFIG_KEYBOARD_GPIO=y
-@@ -132,14 +130,13 @@ CONFIG_POWER_SUPPLY=y
- CONFIG_WATCHDOG=y
- CONFIG_OMAP_WATCHDOG=y
- CONFIG_TWL4030_WATCHDOG=y
--CONFIG_REGULATOR_TWL4030=y
- CONFIG_REGULATOR_TPS65023=y
- CONFIG_REGULATOR_TPS6507X=y
-+CONFIG_REGULATOR_TWL4030=y
- CONFIG_FB=y
- CONFIG_FIRMWARE_EDID=y
- CONFIG_FB_MODE_HELPERS=y
- CONFIG_FB_TILEBLITTING=y
--CONFIG_FB_OMAP_LCD_VGA=y
- CONFIG_OMAP2_DSS=m
- CONFIG_OMAP2_DSS_RFBI=y
- CONFIG_OMAP2_DSS_SDI=y
-@@ -154,7 +151,6 @@ CONFIG_PANEL_ACX565AKM=m
- CONFIG_BACKLIGHT_LCD_SUPPORT=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_LCD_PLATFORM=y
--CONFIG_DISPLAY_SUPPORT=y
- CONFIG_FRAMEBUFFER_CONSOLE=y
- CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
- CONFIG_FONTS=y
-@@ -174,13 +170,15 @@ CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
- CONFIG_USB=y
- CONFIG_USB_DEBUG=y
- CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
--CONFIG_USB_DEVICEFS=y
- CONFIG_USB_SUSPEND=y
- CONFIG_USB_MON=y
-+CONFIG_USB_EHCI_HCD=m
-+CONFIG_USB_EHCI_ROOT_HUB_TT=y
-+CONFIG_USB_EHCI_HCD_PLATFORM=m
- CONFIG_USB_WDM=y
- CONFIG_USB_STORAGE=y
--CONFIG_USB_LIBUSUAL=y
- CONFIG_USB_TEST=y
-+CONFIG_OMAP_USB2=m
- CONFIG_USB_GADGET=y
- CONFIG_USB_GADGET_DEBUG=y
- CONFIG_USB_GADGET_DEBUG_FILES=y
-@@ -214,23 +212,18 @@ CONFIG_JFFS2_RUBIN=y
- CONFIG_UBIFS_FS=y
- CONFIG_CRAMFS=y
- CONFIG_NFS_FS=y
--CONFIG_NFS_V3=y
- CONFIG_NFS_V3_ACL=y
- CONFIG_NFS_V4=y
- CONFIG_ROOT_NFS=y
--CONFIG_PARTITION_ADVANCED=y
- CONFIG_NLS_CODEPAGE_437=y
- CONFIG_NLS_ISO8859_1=y
- CONFIG_PRINTK_TIME=y
- CONFIG_MAGIC_SYSRQ=y
--CONFIG_DEBUG_KERNEL=y
- CONFIG_SCHEDSTATS=y
- CONFIG_TIMER_STATS=y
- CONFIG_PROVE_LOCKING=y
--CONFIG_DEBUG_SPINLOCK_SLEEP=y
- # CONFIG_DEBUG_BUGVERBOSE is not set
- CONFIG_DEBUG_INFO=y
--# CONFIG_RCU_CPU_STALL_DETECTOR is not set
- CONFIG_SECURITY=y
- CONFIG_CRYPTO_MICHAEL_MIC=y
- # CONFIG_CRYPTO_ANSI_CPRNG is not set
-@@ -239,4 +232,3 @@ CONFIG_CRC_T10DIF=y
- CONFIG_CRC_ITU_T=y
- CONFIG_CRC7=y
- CONFIG_LIBCRC32C=y
--CONFIG_SOC_OMAP5=y
+Well, it is important, thanks for checking this code. I appreciate if 
+you keep your report.
+
+>
+> Radhesh & Eduardo, can you fix this?
+>
+
+This has been already fixed:
+https://patchwork.kernel.org/patch/1734621/
+
+And is already queued by Greg (staging-next):
+http://git.kernel.org/?p=linux/kernel/git/gregkh/staging.git;a=commit;h=2aeeb8acfc19f8a9f283081bbf77919b61b92042
+
+> Regards,
+>
+> Tony
+>
 
