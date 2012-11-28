@@ -1,53 +1,63 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCHv2] i2c: omap: Remove the
- OMAP_I2C_FLAG_RESET_REGS_POSTIDLE flag
-Date: Wed, 28 Nov 2012 11:38:49 +0100
-Message-ID: <20121128103849.GA14238@pengutronix.de>
-References: <1353923711-9615-1-git-send-email-shubhrajyoti@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: OMAP4430 produces boot warnings
+Date: Wed, 28 Nov 2012 16:14:58 +0530
+Message-ID: <50B5EB2A.3040204@ti.com>
+References: <20121121230337.GR3332@n2100.arm.linux.org.uk>  <50AE1DC0.3030002@ti.com>  <50AE2BB6.8080406@ti.com>  <1353594842.786.45.camel@sokoban>  <50AE3A5B.5040603@ti.com>  <1353663278.25248.4.camel@sokoban> <50B310D3.9050202@ti.com>  <50B35D0E.6000509@ti.com> <50B4A2B7.9080806@ti.com>  <50B4AA74.1090300@ti.com>  <50B4B045.7090603@ti.com> <1354019506.3250.10.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59771 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753896Ab2K1Kiv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Nov 2012 05:38:51 -0500
-Content-Disposition: inline
-In-Reply-To: <1353923711-9615-1-git-send-email-shubhrajyoti@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47490 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754398Ab2K1Kpk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Nov 2012 05:45:40 -0500
+In-Reply-To: <1354019506.3250.10.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, balbi@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: t-kristo@ti.com, Rajendra Nayak <rnayak@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
+On Tuesday 27 November 2012 06:01 PM, Tero Kristo wrote:
+> On Tue, 2012-11-27 at 14:21 +0200, Tomi Valkeinen wrote:
+>> On 2012-11-27 13:56, Archit Taneja wrote:
+>>> On Tuesday 27 November 2012 04:53 PM, Tomi Valkeinen wrote:
+>>
+>>>> Hmm, well this feels like a hack. DISPC driver doesn't know how the DSS
+>>>> modules are arranged, which module belongs to which power domain, etc.
+>>>>
+>>>> If it cannot be fixed in the arch code, I guess we could just have
+>>>> dss_get_ctx_loss_count(void) function which always returns the
+>>>> dss_core's ctx loss count, and define that on all the platforms omapdss
+>>>> is used, the dss_core's ctx loss count is the same as ctx loss count for
+>>>> all the dss submodules.
 
---UlVJffcvxoiEqYs2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Well the context lost count we are interested in isn't the "omapdss" 
+platform device in core.c, it's the "omapdss_dss" platform device in dss.c
 
-On Mon, Nov 26, 2012 at 03:25:11PM +0530, Shubhrajyoti D wrote:
-> The OMAP_I2C_FLAG_RESET_REGS_POSTIDLE is not used anymore
-> in the i2c driver. Remove the flag.
->=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+I was considering moving the dss_get_ctx_lost_count() to dss.c, as it 
+needs the "omapdss_dss" platform_device. It looks better in core.c, but 
+we would need a dirty way to give it the "omapdss_dss". What do you think?
 
-Trivial enough to still go into 3.8. Applied to -next, thanks!
+Archit
 
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+>>>>
+>>>> I think the above is true for all OMAPs. But it feels like a hack too,
+>>>> but not as bad as the above patch.
+>>>
+>>> Yes, a function taking in no platform device in dss's core.c would be
+>>> less hacky. I guess we would need this for now, because a solution in
+>>> omap_hwmod would be more complex and it may not be ready by the merge
+>>> window.
+>>
+>> Ok. Can you cook up a patch and test it?
+>>
+>> PM guys, does the above sound like an acceptable work-around?
+>
+> This sounds like a good approach to me at least.
+>
+> -Tero
+>
+>
+>
+>
 
---UlVJffcvxoiEqYs2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAlC16bkACgkQD27XaX1/VRuscQCcC335ehOYDB6RNeCxhKzDKibO
-6D8An1i4KKHlom7bVW/80fijpQHV+pbL
-=okLM
------END PGP SIGNATURE-----
-
---UlVJffcvxoiEqYs2--
