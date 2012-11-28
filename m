@@ -1,122 +1,114 @@
 From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v4 0/3] pwm: Drivers for twl4030/6030 PWMs and LEDs
-Date: Wed, 28 Nov 2012 15:20:00 +0100
-Message-ID: <20121128141957.GA21042@avionic-0098.adnet.avionic-design.de>
-References: <1354010999-31371-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v5 00/12] Support for AM33xx PWM Subsystem
+Date: Wed, 28 Nov 2012 15:21:01 +0100
+Message-ID: <20121128142101.GB21042@avionic-0098.adnet.avionic-design.de>
+References: <1354006097-25895-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zYM0uCDKw75PZbzx"
+	protocol="application/pgp-signature"; boundary="p4qYPpj5QlsIQJ0K"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1354010999-31371-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1354006097-25895-1-git-send-email-avinashphilip@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Rob Landley <rob@landley.net>, linux-doc@vger.kernel.org
+To: "Philip, Avinash" <avinashphilip@ti.com>
+Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, hvaibhav@ti.com, anilkumar@ti.com, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, vaibhav.bedia@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---zYM0uCDKw75PZbzx
+--p4qYPpj5QlsIQJ0K
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 27, 2012 at 11:09:56AM +0100, Peter Ujfalusi wrote:
-> Hello,
+On Tue, Nov 27, 2012 at 02:18:05PM +0530, Philip, Avinash wrote:
+> In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
+> PWM subsystem. All these submodules shares the resources (clock) & has
+> a clock gating register in PWM Subsystem. This patch series creates a
+> parent PWM Subsystem driver to handle access synchronization of shared
+> resources & clock gating from PWM Subsystem configuration space.
+> Also Device tree nodes populated to support parent child relation
+> between PWMSS, ECAP & EHRPWM submodules.
+> In addition EHRPWM module requires explicit clock gating from control
+> module & is handled by patch #6 & 7.
+>=20
+> As suggested by  Thierry for handling clock gating for PWM submodules
+> should handle with a global function. This requires config space
+> handling done independent from driver and is done at parent driver.
+>=20
+> So the parent<->child relation adopted to handle
+> 1. pm runtime synchronization
+> 2. PWM subsystem common config space clock gating for PWM submodules.
+>=20
+> Patches supports
+> - Driver support for parent child relation handled patch #1
+> - HWMOD data correction in EPWMSS at patch #2
+> - Parent child in HWMOD relation handled at patch #3
+> - Optional EHRPWM tb clock in patch #6
+> - Support for TBCLK clock gating at patch #7.
+> - Device tree binding support handled in patch #4,8=20
+> - Pinctrl support in patch #5 & 9.
+> - DT node populated in patch #10 ,11 & 12.
+>=20
+> This patch series based on omap_dt/for_3.8/dts_part2 and tested
+> on am335x-evm & am335x-evmsk.
+>=20
+> This patch series will come under 3 subsystem basically. But sent
+> it in single patch series to have a clearer picture of why the
+> OMAP subsystem changes required.
+>=20
+> Patches come under PWM (1,4,5,7,8,9)
+> Patches come under OMAP (2,3,6)
+> Patches come under DT (10,11,12).
+>=20
+> It depends on [1]
+> 1. https://gitorious.org/linux-pwm/linux-pwm/commit/83af24027b3df1af5c5a9=
+aa9adcdcfeb3429d3be
+> pwm: Device tree support for PWM polarity
 >=20
 > Changes since v3:
-> - pwm-twl-led driver's comment fix patch squashed to the original patch
-> - Documentation for the DT bindings of the PWM drivers
-> Comments from Thierry Reding addressed:
-> - pwm-twl6030 has been removed in the last patch
-> - macro for twl_pwm_chip/twl_pwmled_chip lookup
-> - locking for read-modify-write sequences
-> - separate pwm_ops strictures for twl4030 and twl6030 class
-> - _devexit_P() removed
-> - Do not select HAVE_PWM in Kconfig file since it is going away AFAIK:
->   https://patchwork.kernel.org/patch/1544851/
-> - Remaining (smaller) comments from Thierry also has been addressed.
+> 	- Rebased on top of omap_dt/for_3.8/dts_part2
+> 	- Add pwm backlight for am335xevm_sk
+> 	- Moved tipwmss.h to pwm-tipwmss.h
 >=20
-> Changes since v2:
-> - New PWM cycle calculation for twl-pwm driver and twl4030's pwm-twl-led =
-with
->   comment to document the expected behaviour.
->=20
-> Changes cince v1:
-> - The turn on/off sequence has been corrected for twl4030 PWMs as suggest=
-ed by
->   Grazvydas Ignotas
-> - Comment section added to the new drivers to describe what they are cont=
-rolling
->=20
-> The series has been tested (with additional, pending patches):
-> Zoom2 for twl4030 PWM0 (keypad light), PWM1 (LCD backlight)
-> BeagleBoard for twl4030 LEDB (PWMB - pmu_stat led)
-> OMAP4 Blaze (SDP4430) for twl6030 PWM1 (keypad light), PWM2 (LCD backligh=
-t) and
-> LED (charging indication led).
->=20
-> Intro mail from v1:
->=20
-> The currently available pwm-twl6030.c driver only supports TWL6030's Char=
-ging
-> indication LED.
-> Remove this driver and add two new ones which implements support for all =
-PWM
-> driven outputs:
-> pwm-twl driver supports twl4030 (PWM 0/1) and twl6030 (PWM 1/2) instances
-> pwm-twl-led driver supports twl4030 (PWM driven LED A/B ports) and twl603=
-0's
-> Charging indication LED (PWM driven).
->=20
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (3):
->   pwm: New driver to support PWMs on TWL4030/6030 series of PMICs
->   pwm: New driver to support PWM driven LEDs on TWL4030/6030 series of
->     PMICs
->   pwm: Remove pwm-twl6030 driver
->=20
->  .../devicetree/bindings/pwm/ti,twl-pwm.txt         |  17 +
->  .../devicetree/bindings/pwm/ti,twl-pwmled.txt      |  17 +
->  drivers/pwm/Kconfig                                |  17 +-
->  drivers/pwm/Makefile                               |   3 +-
->  drivers/pwm/pwm-twl-led.c                          | 342 +++++++++++++++=
-+++++
->  drivers/pwm/pwm-twl.c                              | 357 +++++++++++++++=
-++++++
->  drivers/pwm/pwm-twl6030.c                          | 184 -----------
->  7 files changed, 748 insertions(+), 189 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/pwm/ti,twl-pwm.txt
->  create mode 100644 Documentation/devicetree/bindings/pwm/ti,twl-pwmled.t=
-xt
->  create mode 100644 drivers/pwm/pwm-twl-led.c
->  create mode 100644 drivers/pwm/pwm-twl.c
->  delete mode 100644 drivers/pwm/pwm-twl6030.c
+> Philip, Avinash (12):
+>   PWMSS: Add PWM Subsystem driver for parent<->child relationship
+>   ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem HWMOD entries
+>   ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
+>     subsystem
+>   pwm: tiecap: Add device-tree binding
+>   pwm: pwm-tiecap: pinctrl support
+>   ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
+>   pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+>   pwm: tiehrpwm: Add device-tree binding
+>   pwm: pwm-tiehrpwm: pinctrl support
+>   ARM: dts: AM33XX: Add PWMSS device tree nodes
+>   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
+>   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
 
-Applied with minor fixups, thanks.
+Patches 1, 4, 5, 7, 8 and 9 applied, with a minor fixup to the subject
+line of patch 1. Thanks.
 
 Thierry
 
---zYM0uCDKw75PZbzx
+--p4qYPpj5QlsIQJ0K
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.19 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQth2NAAoJEN0jrNd/PrOhIz8QAJrLU7t9Af8zvzGCpz2+yKbW
-KSKUpGFZBVBibVqUMIoA6cCaD7yHWb1LoDcJaLUBOYBN/fDZWiWvBralearHyrnf
-l0pgG6tM+rhSF/A/gEZJN8f00BlrgELu5FMy3znaOkyQdMP9EWjbniIcekr80NDm
-2OU8n2ry3HfipxfxvDrV0lmE/zMqEKN/hCKDPLLNAxZsWr0HgDiF5GraUeifNk6u
-vA2t+usEOTlEghYsAayNdOf9h/c71QGd9d9cUjuag4BujjXTDfX/4bLCXwEuz1I4
-xF2aZ2/1bgUIwzpAa2FwwaYlaZCZfBHNefw5o+shNd6Oo+/p2CFdpVY8YAz5+DZb
-T4Pq5M1/48lGJ2C4kNNiBJIpnt5/Sds7qxuS5lEEhXivGG+JOUWrLaxha7Yms2vJ
-Nvkj5JN+NyQ8YwZ3fyzpMgVRgIEz+kzJwnlBtdRuYSZWGYw2mBG5RV86Th3BAPTc
-qSwnV55qJC8D5iPmwjtmCxN6qIX6joHFF58Y2vbHyTHZKjCWSzASHOCrtJ6Oe7mN
-5SjeY3mYR2xH3wgsP8KUPy4vSD4gKroDLv0gT0zsA+rLJXxcIj0QtWCeXtz4f7q2
-dq0MavSxmNM18HaDgPEFHhysdfxhDRtQzNsUi68wGiwVPXLA8h0ba7+HhhqJ5lxb
-CSiKjNFHQt0geAwTZBMF
-=1qMG
+iQIcBAEBAgAGBQJQth3NAAoJEN0jrNd/PrOhXKkP/j4DH3rMhDb4W6uMjlxktpMC
+pSvhJgOeSDkD15MPmu3k9E6gBbA13GBrsk2V2DWBoRgn2FI4GXhj66u4Oxxme/Wl
+TN8zbkXlPkjw8svVIbjwqFu98U7/1xVPP53b+pY1KALhEPVFPgv/lSWWaEefk5qT
+vBAo/6SptYrhYQXj9C/hClD5EdDWAncrCTN+T22tkfAtsGsFeNWnwEx1MTSVdqhn
+lJrWBsSiX7I/okcQT6euC5HexZ9JR6MUUsERTz7/dowl4ZTA2JElXRVpLLuPjfwp
+oeFs6ZVgJgHE9ohL6XXfvTGW1AC6eEUNtoPphSCf72yWDornSnP3is42glr64ytB
+Gs5VL23pSiV853l+RJKtqnDYzm7Ta8k8v0+evxwfwxwGaOWHWULXfqsjE1ETWd4j
+70LR8mmGWqUuGVWkYXa6AHHYBfqCuCvwJD7HRsXV6UDToeSlWnKnsssRyP0gU+fQ
+90kgyrcND6qIP6hAF7lkueYnZ0X9mriQnPOMnr4Gpz53o8MdNLdt+8b//s8qTOOj
+nbo2ve40yiUdKQAYPyJwHnTU3urSPsuRUjZog5Cfr+mujPCRBcvM83GNnRmVWEXQ
+42qGyVNtpNQNkdk8KWZ8hWXXUoJ7/TaZoNlnvST6ILcmTve9/WnGbGlGsGMIMDL9
+p2fTpOT/KS7WusGTy24q
+=6/Du
 -----END PGP SIGNATURE-----
 
---zYM0uCDKw75PZbzx--
+--p4qYPpj5QlsIQJ0K--
