@@ -1,62 +1,68 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
-Date: Wed, 28 Nov 2012 16:13:41 +0100
-Message-ID: <1421983.jJNXU7RvjW@avalon>
-References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP* Latest build failures
+Date: Wed, 28 Nov 2012 15:16:08 +0000
+Message-ID: <20121128151608.GY3332@n2100.arm.linux.org.uk>
+References: <20121114092643.GG3290@n2100.arm.linux.org.uk> <20121117093307.GL3332@n2100.arm.linux.org.uk> <20121120175733.GH18567@atomide.com> <50B619F1.3000207@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36470 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932301Ab2K1PMh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Nov 2012 10:12:37 -0500
-In-Reply-To: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51900 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932238Ab2K1PVY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Nov 2012 10:21:24 -0500
+Content-Disposition: inline
+In-Reply-To: <50B619F1.3000207@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: hvaibhav@ti.com, linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Radhesh Fadnis <radhesh.fadnis@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-Hi Tomi,
+On Wed, Nov 28, 2012 at 10:04:33AM -0400, Eduardo Valentin wrote:
+> Tony, Russell,
+>
+> On 20-11-2012 13:57, Tony Lindgren wrote:
+>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [121117 01:35]:
+>>> On Wed, Nov 14, 2012 at 09:26:43AM +0000, Russell King - ARM Linux wrote:
+>>> And the randconfig found:
+>>>
+>>> drivers/staging/omap-thermal/omap-bandgap.c: In function 'omap_bandgap_readl':
+>>> drivers/staging/omap-thermal/omap-bandgap.c:46:2: error: implicit declaration of function 'readl'
+>>> drivers/staging/omap-thermal/omap-bandgap.c: In function 'omap_bandgap_writel':
+>>> drivers/staging/omap-thermal/omap-bandgap.c:51:2: error: implicit declaration of function 'writel'
+>>>
+>>> Which, as its in staging, maybe its not important but it's another source
+>>> of unnecessary failure.
+>
+> Well, it is important, thanks for checking this code. I appreciate if  
+> you keep your report.
+>
+>>
+>> Radhesh & Eduardo, can you fix this?
+>>
+>
+> This has been already fixed:
+> https://patchwork.kernel.org/patch/1734621/
+>
+> And is already queued by Greg (staging-next):
+> http://git.kernel.org/?p=linux/kernel/git/gregkh/staging.git;a=commit;h=2aeeb8acfc19f8a9f283081bbf77919b61b92042
 
-On Monday 12 November 2012 15:33:38 Tomi Valkeinen wrote:
-> Hi,
-> 
-> This patch removes use of cpu_is_* funcs from omap_vout, and uses omapdss's
-> version instead. The other patch removes an unneeded plat/dma.h include.
-> 
-> These are based on current omapdss master branch, which has the omapdss
-> version code. The omapdss version code is queued for v3.8. I'm not sure
-> which is the best way to handle these patches due to the dependency to
-> omapdss. The easiest option is to merge these for 3.9.
-> 
-> There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last OMAP
-> dependency in the omap_vout driver. I'm not going to touch that, as it
-> doesn't look as trivial as this cpu_is_* removal, and I don't have much
-> knowledge of the omap_vout driver.
-> 
-> Compiled, but not tested.
+Good.  Now, there's also this too:
 
-Tested on a Beagleboard-xM.
+drivers/staging/omap-thermal/omap-thermal-common.c: In function 'omap_thermal_expose_sensor':
+drivers/staging/omap-thermal/omap-thermal-common.c:259:28: error: storage size of 'pdata' isn't known
+drivers/staging/omap-thermal/omap-thermal-common.c:261:2: error: 'data' undeclared (first use in this function)
+drivers/staging/omap-thermal/omap-thermal-common.c:264:3: error: implicit declaration of function 'omap_thermal_build_pdata'
+drivers/staging/omap-thermal/omap-thermal-common.c: In function 'omap_thermal_build_cpufreq_clip':
+drivers/staging/omap-thermal/omap-thermal-common.c:330:41: error: dereferencing pointer to incomplete type
+drivers/staging/omap-thermal/omap-thermal-common.c:343:3: error: invalid use of undefined type 'struct freq_clip_table'
+drivers/staging/omap-thermal/omap-thermal-common.c:343:3: error: invalid use of undefined type 'struct freq_clip_table'
+drivers/staging/omap-thermal/omap-thermal-common.c:343:6: error: dereferencing pointer to incomplete type
+drivers/staging/omap-thermal/omap-thermal-common.c:344:3: error: invalid use of undefined type 'struct freq_clip_table'
+drivers/staging/omap-thermal/omap-thermal-common.c:344:3: error: invalid use of undefined type 'struct freq_clip_table'
+drivers/staging/omap-thermal/omap-thermal-common.c:344:6: error: dereferencing pointer to incomplete type
+drivers/staging/omap-thermal/omap-thermal-common.c:345:3: error: invalid use of undefined type 'struct freq_clip_table'
+drivers/staging/omap-thermal/omap-thermal-common.c:345:3: error: invalid use of undefined type 'struct freq_clip_table'
+drivers/staging/omap-thermal/omap-thermal-common.c:345:6: error: dereferencing pointer to incomplete type
+drivers/staging/omap-thermal/omap-thermal-common.c:375:2: error: too many arguments to function 'cpufreq_cooling_register'
 
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-The patches depend on unmerged OMAP DSS patches. Would you like to push this 
-series through linuxtv or through your DSS tree ? The later might be easier, 
-depending on when the required DSS patches will hit mainline.
-
-> Tomi Valkeinen (2):
->   [media] omap_vout: use omapdss's version instead of cpu_is_*
->   [media] omap_vout: remove extra include
-> 
->  drivers/media/platform/omap/omap_vout.c    |    4 +--
->  drivers/media/platform/omap/omap_voutlib.c |   38 ++++++++++++++++++-------
->  drivers/media/platform/omap/omap_voutlib.h |    3 +++
->  3 files changed, 32 insertions(+), 13 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Is it also fixed in Gregkh's staging-next branch?
