@@ -1,89 +1,116 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 05/22] mfd: omap-usb-tll: introduce and use mode_needs_tll()
-Date: Wed, 28 Nov 2012 16:48:53 +0200
-Message-ID: <1354114150-11941-6-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2 03/22] mfd: omap-usb-tll: Use devm_kzalloc/ioremap and clean up error path
+Date: Wed, 28 Nov 2012 16:48:51 +0200
+Message-ID: <1354114150-11941-4-git-send-email-rogerq@ti.com>
 References: <1354114150-11941-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1354114150-11941-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49127 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932199Ab2K1OtR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Nov 2012 09:49:17 -0500
+In-Reply-To: <1354114150-11941-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: keshava_mgowda@ti.com, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-This is a handy macro to check if the port requires the
-USB TLL module or not. Use it to Enable the TLL module and manage
-the clocks.
+Use devm_ variants of kzalloc() and ioremap(). Simplify the error path.
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-tll.c |   20 ++++++++++++--------
- 1 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/mfd/omap-usb-tll.c |   37 +++++++++++--------------------------
+ 1 files changed, 11 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index ab5c2e7..99a3087 100644
+index c083001..ff5e16f 100644
 --- a/drivers/mfd/omap-usb-tll.c
 +++ b/drivers/mfd/omap-usb-tll.c
-@@ -95,6 +95,10 @@
- 
- #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
- 
-+/* only PHY and UNUSED modes don't need TLL */
-+#define omap_usb_mode_needs_tll(x)	((x != OMAP_USBHS_PORT_MODE_UNUSED) &&\
-+					 (x != OMAP_EHCI_PORT_MODE_PHY))
-+
- struct usbtll_omap {
- 	int					nch;	/* num. of channels */
- 	struct usbtll_omap_platform_data	*pdata;
-@@ -211,6 +215,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 	unsigned long				flags;
- 	int					ret = 0;
- 	int					i, ver;
-+	bool needs_tll;
+@@ -215,11 +215,10 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
  
  	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
  
-@@ -278,12 +283,11 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 			tll->ch_clk[i] = fck;
+-	tll = kzalloc(sizeof(struct usbtll_omap), GFP_KERNEL);
++	tll = devm_kzalloc(dev, sizeof(struct usbtll_omap), GFP_KERNEL);
+ 	if (!tll) {
+ 		dev_err(dev, "Memory allocation failed\n");
+-		ret = -ENOMEM;
+-		goto end;
++		return -ENOMEM;
  	}
  
--	if (is_ehci_tll_mode(pdata->port_mode[0]) ||
--	    is_ehci_tll_mode(pdata->port_mode[1]) ||
--	    is_ehci_tll_mode(pdata->port_mode[2]) ||
--	    is_ohci_port(pdata->port_mode[0]) ||
--	    is_ohci_port(pdata->port_mode[1]) ||
--	    is_ohci_port(pdata->port_mode[2])) {
-+	needs_tll = false;
-+	for (i = 0; i < tll->nch; i++)
-+		needs_tll |= omap_usb_mode_needs_tll(pdata->port_mode[i]);
+ 	spin_lock_init(&tll->lock);
+@@ -230,28 +229,21 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	if (IS_ERR(tll->usbtll_p1_fck)) {
+ 		ret = PTR_ERR(tll->usbtll_p1_fck);
+ 		dev_err(dev, "usbtll_p1_fck failed error:%d\n", ret);
+-		goto err_tll;
++		return ret;
+ 	}
+ 
+ 	tll->usbtll_p2_fck = clk_get(dev, "usb_tll_hs_usb_ch1_clk");
+ 	if (IS_ERR(tll->usbtll_p2_fck)) {
+ 		ret = PTR_ERR(tll->usbtll_p2_fck);
+ 		dev_err(dev, "usbtll_p2_fck failed error:%d\n", ret);
+-		goto err_usbtll_p1_fck;
++		goto err_p2_fck;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(dev, "usb tll get resource failed\n");
+-		ret = -ENODEV;
+-		goto err_usbtll_p2_fck;
+-	}
+-
+-	base = ioremap(res->start, resource_size(res));
++	base = devm_request_and_ioremap(dev, res);
+ 	if (!base) {
+-		dev_err(dev, "TLL ioremap failed\n");
+-		ret = -ENOMEM;
+-		goto err_usbtll_p2_fck;
++		ret = -EADDRNOTAVAIL;
++		goto err_res;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, tll);
+@@ -323,23 +315,17 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	spin_unlock_irqrestore(&tll->lock, flags);
+-	iounmap(base);
+ 	pm_runtime_put_sync(dev);
+ 	tll_pdev = pdev;
+-	if (!ret)
+-		goto end;
+-	pm_runtime_disable(dev);
+ 
+-err_usbtll_p2_fck:
++	return 0;
 +
-+	if (needs_tll) {
++err_res:
+ 	clk_put(tll->usbtll_p2_fck);
  
- 		/* Program Common TLL register */
- 		reg = usbtll_read(base, OMAP_TLL_SHARED_CONF);
-@@ -371,7 +375,7 @@ static int usbtll_runtime_resume(struct device *dev)
- 	spin_lock_irqsave(&tll->lock, flags);
+-err_usbtll_p1_fck:
++err_p2_fck:
+ 	clk_put(tll->usbtll_p1_fck);
  
- 	for (i = 0; i < tll->nch; i++) {
--		if (is_ehci_tll_mode(pdata->port_mode[i])) {
-+		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
- 			int r;
+-err_tll:
+-	kfree(tll);
+-
+-end:
+ 	return ret;
+ }
  
- 			if (!tll->ch_clk[i])
-@@ -407,7 +411,7 @@ static int usbtll_runtime_suspend(struct device *dev)
- 	spin_lock_irqsave(&tll->lock, flags);
+@@ -356,7 +342,6 @@ static int __devexit usbtll_omap_remove(struct platform_device *pdev)
+ 	clk_put(tll->usbtll_p2_fck);
+ 	clk_put(tll->usbtll_p1_fck);
+ 	pm_runtime_disable(&pdev->dev);
+-	kfree(tll);
+ 	return 0;
+ }
  
- 	for (i = 0; i < tll->nch; i++) {
--		if (is_ehci_tll_mode(pdata->port_mode[i])) {
-+		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
- 			if (tll->ch_clk[i])
- 				clk_disable(tll->ch_clk[i]);
- 		}
 -- 
 1.7.4.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
