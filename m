@@ -1,151 +1,145 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Wed, 28 Nov 2012 13:13:31 +0200
-Message-ID: <50B5F1DB.8090502@ti.com>
-References: <Pine.LNX.4.44L0.1211271253230.1489-100000@iolanthe.rowland.org> <50B51313.2060003@linaro.org>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] OMAPDSS: Use only "omapdss_dss" platform device to get context lost count
+Date: Wed, 28 Nov 2012 17:01:39 +0530
+Message-ID: <1354102299-4928-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50B51313.2060003-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38706 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754036Ab2K1LcV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Nov 2012 06:32:21 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vgerk.kernel.org, t-kristo@ti.com, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, Archit Taneja <archit@ti.com>
 
-On 11/27/2012 09:22 PM, Andy Green wrote:
-> On 11/28/2012 02:09 AM, the mail apparently from Alan Stern included:
->> On Wed, 28 Nov 2012, Andy Green wrote:
->>
->>>> Greg's advice was simply not to rely on pathnames in sysfs because they
->>>> aren't fixed in stone.  That leaves plenty of other ways to approach
->>>> this problem.
->>>
->>> It's sage advice, but there is zero code provided in my patches that
->>> "relies on pathnames in sysfs".
->>
->> In your 1/5 patch, _device_path_generate() concatenates device name
->> strings, starting from a device root and separating elements with '/'
->> characters.  Isn't that the same as a sysfs pathname?
-> 
-> It's nothing to do with sysfs... yes some unrelated bits of sysfs also
-> walk the device path.  If we want to talk about how fragile the device
-> path is as an id scheme over time we need to talk about likelihood of
-> individual device names changing, not "sysfs".  Anyway -->
-> 
->>>> Basically, what you want is for something related to device A (the
->>>> regulator or the GPIO) to happen whenever device B (the ehci-omap.0
->>>> platform device) is bound to a driver.  The most straightforward way to
->>>> arrange this is for A's driver to have a callback that is invoked
->>>> whenever B is bound or unbound.  The most straightforward way to
->>>> arrange _that_ is to allow each platform_device to have a list of
->>>> callbacks.
->>>
->>> Sorry I didn't really understand this proposal yet.  You want "A", the
->>> regulator, driver to grow a callback function that gets called when the
->>> targeted platform_device ("B", ehci-omap.0) probe happens.  Could you
->>> expand what the callback prototype or new members in the struct might
->>> look like?  It's your tuple thing or we pass it an opaque pointer that
->>> is the struct regulator * or suchlike?
->>
->> Well, it won't be exactly the same as the tuple thing because no
->> strings will be involved, but it would be similar.  The callback would
->> receive an opaque pointer (presumably to the regulator) and a device
->> pointer (the B device).
-> 
-> OK.  So I try to sketch it out iteractively to try to get in sync:
-> 
-> device.h:
-> 
->     enum asset_event {
->         AE_PROBED,
->         AE_REMOVED
->     };
-> 
->     struct device_asset {
->         char *name; /* name of regulator, clock, etc */
->         void *asset; /* regulator, clock, etc */
->         int (*handler)(struct device *dev_owner, enum asset_event
-> asset_event, struct device_asset *asset);
->     };
-> 
->     struct device {
->     ...
->         struct device_asset *assets;
->     ...
->     };
-> 
-> 
-> drivers/base/dd.c | really_probe():
-> 
-> ...
->     struct device_asset *asset;
-> ...
->     asset = dev->assets;
->     while (asset && asset->name) {
->         if (asset->handler(dev, AE_PROBED, asset)) {
->             /* clean up and bail */
->         }
->         asset++;
->     }
-> 
->     /* do probe */
-> ...
-> 
-> 
-> drivers/base/dd.c | __device_release_driver:  (is this really the best
-> place to oppose probe()?)
-> 
-> ...
->     struct device_asset *asset;
-> ...
-> 
->     /* call device ->remove() */
-> ...
->     asset = dev->assets;
->     while (asset && asset->name) {
->         asset->handler(dev, AE_REMOVED, asset);
->         asset++;
->     }
-> ...
-> 
-> 
-> board file:
-> 
->     static struct regulator myreg = {
->         .name = "mydevice-regulator",
->     };
-> 
->     static struct device_asset mydevice_assets[] = {
->         {
->             .name = "mydevice-regulator",
->             .handler = regulator_default_asset_handler,
->         },
->         { }
->     };
-> 
->     static struct platform_device mydevice = {
->     ...
->         .dev = {
->             .assets = mydevice_assets,
->         },
->     ...
->     };
-> 
+When enabling a hwmod, omap_hwmod refers to the register mentioned in the
+hwmod struct's member 'prcm.omap4.context_offs' to see whether context was
+lost or not. It increments the context lost count for the hwmod and then clears
+the register.
 
->From Pandaboard's point of view, is mydevice supposed to be referring to
-ehci-omap, LAN95xx or something else?
+All the DSS hwmods have the same register(RM_DSS_DSS_CONTEXT) as context_offs.
+When DSS is enabled, the first hwmod to be enabled is the "dss_core" hwmod since
+it's corresponding platform device is the parent platform device("omapdss_dss").
+The dss_core hwmod updates it's context lost count correctly and clears the
+register. When the hwmods corresponding to the children platform devices are
+enabled, they see that the register is clear, and don't increment their context
+lost count. Therefore, all the children platform devices never report a loss in
+context.
 
-Strictly speaking, the regulator doesn't belongs neither to ehci-omap
-nor LAN95xx. It belongs to a power domain on the board. And user should
-have control to switch it OFF when required without hampering operation
-of ehci-omap, so that the other USB ports are still usable.
+The DISPC driver currently gets the context lost count for DSS power domain from
+it's corresponding platform device instance("omapdss_dispc"). The DISPC platform
+device is one of the child devices, and it's corresponding hwmod("dss_dispc")
+doesn't report the context lost count correctly.
 
---
-regards,
--roger
+Modify dss_get_ctx_loss_count() such that it always takes the "omapdss_dss"
+platform device as it's input, move the function to dss.c so that it has access
+to that platform device.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/core.c  |   15 ---------------
+ drivers/video/omap2/dss/dispc.c |    4 ++--
+ drivers/video/omap2/dss/dss.c   |   15 +++++++++++++++
+ drivers/video/omap2/dss/dss.h   |    3 ++-
+ 4 files changed, 19 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index d94ef9e..ceb912b 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -93,21 +93,6 @@ struct regulator *dss_get_vdds_sdi(void)
+ 	return reg;
+ }
+ 
+-int dss_get_ctx_loss_count(struct device *dev)
+-{
+-	struct omap_dss_board_info *board_data = core.pdev->dev.platform_data;
+-	int cnt;
+-
+-	if (!board_data->get_context_loss_count)
+-		return -ENOENT;
+-
+-	cnt = board_data->get_context_loss_count(dev);
+-
+-	WARN_ONCE(cnt < 0, "get_context_loss_count failed: %d\n", cnt);
+-
+-	return cnt;
+-}
+-
+ int dss_dsi_enable_pads(int dsi_id, unsigned lane_mask)
+ {
+ 	struct omap_dss_board_info *board_data = core.pdev->dev.platform_data;
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index a5ab354..67d4497 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -374,7 +374,7 @@ static void dispc_save_context(void)
+ 	if (dss_has_feature(FEAT_CORE_CLK_DIV))
+ 		SR(DIVISOR);
+ 
+-	dispc.ctx_loss_cnt = dss_get_ctx_loss_count(&dispc.pdev->dev);
++	dispc.ctx_loss_cnt = dss_get_ctx_loss_count();
+ 	dispc.ctx_valid = true;
+ 
+ 	DSSDBG("context saved, ctx_loss_count %d\n", dispc.ctx_loss_cnt);
+@@ -389,7 +389,7 @@ static void dispc_restore_context(void)
+ 	if (!dispc.ctx_valid)
+ 		return;
+ 
+-	ctx = dss_get_ctx_loss_count(&dispc.pdev->dev);
++	ctx = dss_get_ctx_loss_count();
+ 
+ 	if (ctx >= 0 && ctx == dispc.ctx_loss_cnt)
+ 		return;
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 602102c..d2cbee2 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -151,6 +151,21 @@ static void dss_restore_context(void)
+ #undef SR
+ #undef RR
+ 
++int dss_get_ctx_loss_count(void)
++{
++	struct omap_dss_board_info *board_data = dss.pdev->dev.platform_data;
++	int cnt;
++
++	if (!board_data->get_context_loss_count)
++		return -ENOENT;
++
++	cnt = board_data->get_context_loss_count(&dss.pdev->dev);
++
++	WARN_ONCE(cnt < 0, "get_context_loss_count failed: %d\n", cnt);
++
++	return cnt;
++}
++
+ void dss_sdi_init(int datapairs)
+ {
+ 	u32 l;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 6728892..5577660 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -190,7 +190,6 @@ const char *dss_get_default_display_name(void);
+ struct bus_type *dss_get_bus(void);
+ struct regulator *dss_get_vdds_dsi(void);
+ struct regulator *dss_get_vdds_sdi(void);
+-int dss_get_ctx_loss_count(struct device *dev);
+ int dss_dsi_enable_pads(int dsi_id, unsigned lane_mask);
+ void dss_dsi_disable_pads(int dsi_id, unsigned lane_mask);
+ int dss_set_min_bus_tput(struct device *dev, unsigned long tput);
+@@ -309,6 +308,8 @@ void dss_dump_clocks(struct seq_file *s);
+ void dss_debug_dump_clocks(struct seq_file *s);
+ #endif
+ 
++int dss_get_ctx_loss_count(void);
++
+ void dss_sdi_init(int datapairs);
+ int dss_sdi_enable(void);
+ void dss_sdi_disable(void);
+-- 
+1.7.9.5
+
