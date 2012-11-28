@@ -1,63 +1,151 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [rtc-linux] [PATCH v3 1/5] rtc: OMAP: Add system pm_power_off
- to rtc driver
-Date: Wed, 28 Nov 2012 11:12:26 +0000
-Message-ID: <20121128111226.GX3332@n2100.arm.linux.org.uk>
-References: <1353404927-14412-1-git-send-email-anilkumar@ti.com>
- <1353404927-14412-2-git-send-email-anilkumar@ti.com>
- <20121127154239.0efad6d5.akpm@linux-foundation.org>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
+Date: Wed, 28 Nov 2012 13:13:31 +0200
+Message-ID: <50B5F1DB.8090502@ti.com>
+References: <Pine.LNX.4.44L0.1211271253230.1489-100000@iolanthe.rowland.org> <50B51313.2060003@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20121127154239.0efad6d5.akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Colin Foe-Parker <colin.foeparker-L+YfUVVR8+RBDgjK7y7TUQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50B51313.2060003-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 27, 2012 at 03:42:39PM -0800, Andrew Morton wrote:
-> > +	/* Do not allow to execute any other task */
-> > +	spin_lock_irqsave(&lock, flags);
-> > +	while (1);
+On 11/27/2012 09:22 PM, Andy Green wrote:
+> On 11/28/2012 02:09 AM, the mail apparently from Alan Stern included:
+>> On Wed, 28 Nov 2012, Andy Green wrote:
+>>
+>>>> Greg's advice was simply not to rely on pathnames in sysfs because they
+>>>> aren't fixed in stone.  That leaves plenty of other ways to approach
+>>>> this problem.
+>>>
+>>> It's sage advice, but there is zero code provided in my patches that
+>>> "relies on pathnames in sysfs".
+>>
+>> In your 1/5 patch, _device_path_generate() concatenates device name
+>> strings, starting from a device root and separating elements with '/'
+>> characters.  Isn't that the same as a sysfs pathname?
 > 
-> I suspect this doesn't do what you want it to do.
+> It's nothing to do with sysfs... yes some unrelated bits of sysfs also
+> walk the device path.  If we want to talk about how fragile the device
+> path is as an id scheme over time we need to talk about likelihood of
+> individual device names changing, not "sysfs".  Anyway -->
 > 
-> Firstly, please provide adequate code comments here so that code
-> readers do not also need to be mind readers.
+>>>> Basically, what you want is for something related to device A (the
+>>>> regulator or the GPIO) to happen whenever device B (the ehci-omap.0
+>>>> platform device) is bound to a driver.  The most straightforward way to
+>>>> arrange this is for A's driver to have a callback that is invoked
+>>>> whenever B is bound or unbound.  The most straightforward way to
+>>>> arrange _that_ is to allow each platform_device to have a list of
+>>>> callbacks.
+>>>
+>>> Sorry I didn't really understand this proposal yet.  You want "A", the
+>>> regulator, driver to grow a callback function that gets called when the
+>>> targeted platform_device ("B", ehci-omap.0) probe happens.  Could you
+>>> expand what the callback prototype or new members in the struct might
+>>> look like?  It's your tuple thing or we pass it an opaque pointer that
+>>> is the struct regulator * or suchlike?
+>>
+>> Well, it won't be exactly the same as the tuple thing because no
+>> strings will be involved, but it would be similar.  The callback would
+>> receive an opaque pointer (presumably to the regulator) and a device
+>> pointer (the B device).
 > 
-> If you want to stop this CPU dead in its tracks (why?) then
+> OK.  So I try to sketch it out iteractively to try to get in sync:
 > 
-> 	local_irq_disable();
-> 	while (1)
-> 		;		/* Note correct code layout */
+> device.h:
 > 
-> will do it.  But it means that the NMI watchdog (if present) will come
-> along and whack the machine in the head a few seconds later.  And this
-> does nothing to stop other CPUs.
+>     enum asset_event {
+>         AE_PROBED,
+>         AE_REMOVED
+>     };
 > 
-> But not being a mind reader, I'm really at a loss to suggest what
-> should be done here.  
+>     struct device_asset {
+>         char *name; /* name of regulator, clock, etc */
+>         void *asset; /* regulator, clock, etc */
+>         int (*handler)(struct device *dev_owner, enum asset_event
+> asset_event, struct device_asset *asset);
+>     };
+> 
+>     struct device {
+>     ...
+>         struct device_asset *assets;
+>     ...
+>     };
+> 
+> 
+> drivers/base/dd.c | really_probe():
+> 
+> ...
+>     struct device_asset *asset;
+> ...
+>     asset = dev->assets;
+>     while (asset && asset->name) {
+>         if (asset->handler(dev, AE_PROBED, asset)) {
+>             /* clean up and bail */
+>         }
+>         asset++;
+>     }
+> 
+>     /* do probe */
+> ...
+> 
+> 
+> drivers/base/dd.c | __device_release_driver:  (is this really the best
+> place to oppose probe()?)
+> 
+> ...
+>     struct device_asset *asset;
+> ...
+> 
+>     /* call device ->remove() */
+> ...
+>     asset = dev->assets;
+>     while (asset && asset->name) {
+>         asset->handler(dev, AE_REMOVED, asset);
+>         asset++;
+>     }
+> ...
+> 
+> 
+> board file:
+> 
+>     static struct regulator myreg = {
+>         .name = "mydevice-regulator",
+>     };
+> 
+>     static struct device_asset mydevice_assets[] = {
+>         {
+>             .name = "mydevice-regulator",
+>             .handler = regulator_default_asset_handler,
+>         },
+>         { }
+>     };
+> 
+>     static struct platform_device mydevice = {
+>     ...
+>         .dev = {
+>             .assets = mydevice_assets,
+>         },
+>     ...
+>     };
+> 
 
-It's hooking into the pm_power_off hook, which is called from kernel/sys.c
-via arch code.  We will have already stopped all other CPUs at this point.
+>From Pandaboard's point of view, is mydevice supposed to be referring to
+ehci-omap, LAN95xx or something else?
 
-Why there's that while (1) there I don't know; when pm_power_off is not
-hooked, we don't do anything like that - and what will happen in that
-case is we'll return all the way back to sys_reboot(), which will call
-do_exit(0) on us.
+Strictly speaking, the regulator doesn't belongs neither to ehci-omap
+nor LAN95xx. It belongs to a power domain on the board. And user should
+have control to switch it OFF when required without hampering operation
+of ehci-omap, so that the other USB ports are still usable.
 
-I don't see a problem with that, and I don't see why we need to spin
-(without any power saving too) waiting for some event.  If we've called
-sys_reboot with LINUX_REBOOT_CMD_POWER_OFF, we'd better have already
-killed most of userspace off by that time anyway.
+--
+regards,
+-roger
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
