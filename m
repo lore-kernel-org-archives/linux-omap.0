@@ -1,95 +1,111 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 07/22] mfd: omap-usb-tll: Fix error message
-Date: Wed, 28 Nov 2012 16:48:55 +0200
-Message-ID: <1354114150-11941-8-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 10/22] mfd: omap_usb_host: Avoid creating copy of platform_data
+Date: Wed, 28 Nov 2012 16:48:58 +0200
+Message-ID: <1354114150-11941-11-git-send-email-rogerq@ti.com>
 References: <1354114150-11941-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38149 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932227Ab2K1OtW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Nov 2012 09:49:22 -0500
-In-Reply-To: <1354114150-11941-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1354114150-11941-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: keshava_mgowda@ti.com, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-omap_enable/disable_tll() can fail if TLL device is not
-initialized. It could be due to multiple reasons and not only
-due to missing platform data.
+We can just hold the pointer to the platform data instead
+of creating a copy of it.
 
-Also make local variables static and use 'struct device *'
-instead of 'struct platform_device *' for global reference.
+Also get rid of the unnecessary missing platform data checks
+in runtime_suspend/resume. We are already checking for missing
+platform data in probe.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/mfd/omap-usb-tll.c |   21 ++++++++++++---------
- 1 files changed, 12 insertions(+), 9 deletions(-)
+ drivers/mfd/omap-usb-host.c |   30 ++++++++----------------------
+ 1 files changed, 8 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index a6a44de..f9c51cd 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -109,8 +109,8 @@ struct usbtll_omap {
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 23cec57..ffd2013 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -100,7 +100,7 @@ struct usbhs_hcd_omap {
  
- /*-------------------------------------------------------------------------*/
+ 	void __iomem			*uhh_base;
  
--const char usbtll_driver_name[] = USBTLL_DRIVER_NAME;
--struct platform_device	*tll_pdev;
-+static const char usbtll_driver_name[] = USBTLL_DRIVER_NAME;
-+static struct device	*tll_dev;
+-	struct usbhs_omap_platform_data	platdata;
++	struct usbhs_omap_platform_data	*pdata;
  
- /*-------------------------------------------------------------------------*/
+ 	u32				usbhs_rev;
+ 	spinlock_t			lock;
+@@ -192,8 +192,8 @@ static int omap_usbhs_alloc_children(struct platform_device *pdev)
+ 	int					ret;
  
-@@ -334,7 +334,8 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	omap = platform_get_drvdata(pdev);
+-	ehci_data = omap->platdata.ehci_data;
+-	ohci_data = omap->platdata.ohci_data;
++	ehci_data = omap->pdata->ehci_data;
++	ohci_data = omap->pdata->ohci_data;
  
- 	spin_unlock_irqrestore(&tll->lock, flags);
- 	pm_runtime_put_sync(dev);
--	tll_pdev = pdev;
-+	/* only after this can omap_tll_enable/disable work */
-+	tll_dev = dev;
- 
- 	return 0;
- 
-@@ -356,6 +357,8 @@ static int __devexit usbtll_omap_remove(struct platform_device *pdev)
- 	struct usbtll_omap *tll = platform_get_drvdata(pdev);
- 	int i;
- 
-+	tll_dev = NULL;
-+
- 	for (i = 0; i < tll->nch; i++)
- 		clk_put(tll->ch_clk[i]);
- 
-@@ -435,21 +438,21 @@ static struct platform_driver usbtll_omap_driver = {
- 
- int omap_tll_enable(void)
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
+ 	if (!res) {
+@@ -276,16 +276,11 @@ static bool is_ohci_port(enum usbhs_omap_port_mode pmode)
+ static int usbhs_runtime_resume(struct device *dev)
  {
--	if (!tll_pdev) {
--		pr_err("missing omap usbhs tll platform_data\n");
-+	if (!tll_dev) {
-+		pr_err("%s: OMAP USB TLL not initialized\n", __func__);
- 		return  -ENODEV;
- 	}
--	return pm_runtime_get_sync(&tll_pdev->dev);
-+	return pm_runtime_get_sync(tll_dev);
- }
- EXPORT_SYMBOL_GPL(omap_tll_enable);
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+ 	unsigned long			flags;
++	struct usbhs_omap_platform_data *pdata = omap->pdata;
  
- int omap_tll_disable(void)
+ 	dev_dbg(dev, "usbhs_runtime_resume\n");
+ 
+-	if (!pdata) {
+-		dev_dbg(dev, "missing platform_data\n");
+-		return  -ENODEV;
+-	}
+-
+ 	omap_tll_enable();
+ 	spin_lock_irqsave(&omap->lock, flags);
+ 
+@@ -308,16 +303,11 @@ static int usbhs_runtime_resume(struct device *dev)
+ static int usbhs_runtime_suspend(struct device *dev)
  {
--	if (!tll_pdev) {
--		pr_err("missing omap usbhs tll platform_data\n");
-+	if (!tll_dev) {
-+		pr_err("%s: OMAP USB TLL not initialized\n", __func__);
- 		return  -ENODEV;
- 	}
--	return pm_runtime_put_sync(&tll_pdev->dev);
-+	return pm_runtime_put_sync(tll_dev);
- }
- EXPORT_SYMBOL_GPL(omap_tll_disable);
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+ 	unsigned long			flags;
++	struct usbhs_omap_platform_data *pdata = omap->pdata;
  
--- 
-1.7.4.1
-
+ 	dev_dbg(dev, "usbhs_runtime_suspend\n");
+ 
+-	if (!pdata) {
+-		dev_dbg(dev, "missing platform_data\n");
+-		return  -ENODEV;
+-	}
+-
+ 	spin_lock_irqsave(&omap->lock, flags);
+ 
+ 	if (is_ehci_tll_mode(pdata->port_mode[0]))
+@@ -340,7 +330,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+ static void omap_usbhs_init(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++	struct usbhs_omap_platform_data	*pdata = omap->pdata;
+ 	unsigned long			flags;
+ 	unsigned			reg;
+ 
+@@ -447,7 +437,7 @@ static void omap_usbhs_init(struct device *dev)
+ static void omap_usbhs_deinit(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++	struct usbhs_omap_platform_data	*pdata = omap->pdata;
+ 
+ 	if (pdata->ehci_data->phy_reset) {
+ 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+@@ -488,11 +478,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&omap->lock);
+ 
+-	for (i = 0; i < OMAP3_HS_USB_PORTS; i++)
+-		omap->platdata.port_mode[i] = pdata->port_mode[i];
