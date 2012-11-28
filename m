@@ -1,93 +1,89 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2 02/22] mfd: omap-usb-tll: Fix channel count detection
-Date: Wed, 28 Nov 2012 16:48:50 +0200
-Message-ID: <1354114150-11941-3-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 05/22] mfd: omap-usb-tll: introduce and use mode_needs_tll()
+Date: Wed, 28 Nov 2012 16:48:53 +0200
+Message-ID: <1354114150-11941-6-git-send-email-rogerq@ti.com>
 References: <1354114150-11941-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38141 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932196Ab2K1OtP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Nov 2012 09:49:15 -0500
-In-Reply-To: <1354114150-11941-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1354114150-11941-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: keshava_mgowda@ti.com, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Fix channel count detecion for REV2. Also, don't give up
-if we don't recognize the IP Revision. We assume the default
-number of channels (i.e. 3) for unrecognized IPs.
+This is a handy macro to check if the port requires the
+USB TLL module or not. Use it to Enable the TLL module and manage
+the clocks.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/mfd/omap-usb-tll.c |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+ drivers/mfd/omap-usb-tll.c |   20 ++++++++++++--------
+ 1 files changed, 12 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index d1750a4..c083001 100644
+index ab5c2e7..99a3087 100644
 --- a/drivers/mfd/omap-usb-tll.c
 +++ b/drivers/mfd/omap-usb-tll.c
-@@ -98,6 +98,7 @@
+@@ -95,6 +95,10 @@
+ 
+ #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
+ 
++/* only PHY and UNUSED modes don't need TLL */
++#define omap_usb_mode_needs_tll(x)	((x != OMAP_USBHS_PORT_MODE_UNUSED) &&\
++					 (x != OMAP_EHCI_PORT_MODE_PHY))
++
  struct usbtll_omap {
- 	struct clk				*usbtll_p1_fck;
- 	struct clk				*usbtll_p2_fck;
-+	int					nch;	/* num. of channels */
+ 	int					nch;	/* num. of channels */
  	struct usbtll_omap_platform_data	*pdata;
- 	/* secure the register updates */
- 	spinlock_t				lock;
-@@ -210,7 +211,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 	unsigned				reg;
+@@ -211,6 +215,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
  	unsigned long				flags;
  	int					ret = 0;
--	int					i, ver, count;
-+	int					i, ver;
+ 	int					i, ver;
++	bool needs_tll;
  
  	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
  
-@@ -262,16 +263,18 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 	ver =  usbtll_read(base, OMAP_USBTLL_REVISION);
- 	switch (ver) {
- 	case OMAP_USBTLL_REV1:
--	case OMAP_USBTLL_REV2:
--		count = OMAP_TLL_CHANNEL_COUNT;
-+		tll->nch = OMAP_TLL_CHANNEL_COUNT;
- 		break;
-+	case OMAP_USBTLL_REV2:
- 	case OMAP_USBTLL_REV3:
--		count = OMAP_REV2_TLL_CHANNEL_COUNT;
-+		tll->nch = OMAP_REV2_TLL_CHANNEL_COUNT;
- 		break;
- 	default:
--		dev_err(dev, "TLL version failed\n");
--		ret = -ENODEV;
--		goto err_ioremap;
-+		tll->nch = OMAP_TLL_CHANNEL_COUNT;
-+		dev_dbg(dev,
-+		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
-+			ver, tll->nch);
-+		break;
+@@ -278,12 +283,11 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 			tll->ch_clk[i] = fck;
  	}
  
- 	if (is_ehci_tll_mode(pdata->port_mode[0]) ||
-@@ -291,7 +294,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 		usbtll_write(base, OMAP_TLL_SHARED_CONF, reg);
+-	if (is_ehci_tll_mode(pdata->port_mode[0]) ||
+-	    is_ehci_tll_mode(pdata->port_mode[1]) ||
+-	    is_ehci_tll_mode(pdata->port_mode[2]) ||
+-	    is_ohci_port(pdata->port_mode[0]) ||
+-	    is_ohci_port(pdata->port_mode[1]) ||
+-	    is_ohci_port(pdata->port_mode[2])) {
++	needs_tll = false;
++	for (i = 0; i < tll->nch; i++)
++		needs_tll |= omap_usb_mode_needs_tll(pdata->port_mode[i]);
++
++	if (needs_tll) {
  
- 		/* Enable channels now */
--		for (i = 0; i < count; i++) {
-+		for (i = 0; i < tll->nch; i++) {
- 			reg = usbtll_read(base,	OMAP_TLL_CHANNEL_CONF(i));
+ 		/* Program Common TLL register */
+ 		reg = usbtll_read(base, OMAP_TLL_SHARED_CONF);
+@@ -371,7 +375,7 @@ static int usbtll_runtime_resume(struct device *dev)
+ 	spin_lock_irqsave(&tll->lock, flags);
  
- 			if (is_ohci_port(pdata->port_mode[i])) {
-@@ -319,7 +322,6 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	for (i = 0; i < tll->nch; i++) {
+-		if (is_ehci_tll_mode(pdata->port_mode[i])) {
++		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
+ 			int r;
+ 
+ 			if (!tll->ch_clk[i])
+@@ -407,7 +411,7 @@ static int usbtll_runtime_suspend(struct device *dev)
+ 	spin_lock_irqsave(&tll->lock, flags);
+ 
+ 	for (i = 0; i < tll->nch; i++) {
+-		if (is_ehci_tll_mode(pdata->port_mode[i])) {
++		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
+ 			if (tll->ch_clk[i])
+ 				clk_disable(tll->ch_clk[i]);
  		}
- 	}
- 
--err_ioremap:
- 	spin_unlock_irqrestore(&tll->lock, flags);
- 	iounmap(base);
- 	pm_runtime_put_sync(dev);
 -- 
 1.7.4.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
