@@ -1,158 +1,123 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: [try#1 PATCH 1/7] drivers: base: introduce device assets
-Date: Wed, 28 Nov 2012 12:59:34 +0000
-Message-ID: <20121128125934.29569.1642.stgit@build.warmcat.com>
+From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [try#1 PATCH 2/7] regulator: core: add default device asset handlers
+Date: Wed, 28 Nov 2012 12:59:39 +0000
+Message-ID: <20121128125939.29569.72105.stgit@build.warmcat.com>
 References: <20121128124744.29569.52739.stgit@build.warmcat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:59170 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754955Ab2K1M7j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Nov 2012 07:59:39 -0500
-In-Reply-To: <20121128124744.29569.52739.stgit@build.warmcat.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20121128124744.29569.52739.stgit-Ak/hGR4SqtBG2qbu2SEcwgC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: gregkh@linuxfoundation.org, rogerq@ti.com, keshava_mgowda@ti.com, balbi@ti.com, stern@rowland.harvard.edu
 
-This patch adds support for a new struct device member "assets"
-which may point to an array of struct assets.
+This adds default device_asset handlers for struct regulator.  If you
+want an associated regulator asset of a device to be powered before
+probe, and depowered after removal, these callbacks will take care of
+everything including get and put.
 
-The array is terminated by one with a NULL pre_probe callback.
+By defining them here in regulator core, code duplication at the usages
+is nipped in the bud.
 
-These assets consist of named (in .name) or anonymous object
-pointers (.data) operated on by specified callbacks.  A void *
-is provided to give configuration data or pointer if needed.
-
-Before device probe, any assets associated with the device have
-their pre_probe() callback called, which will typically "enable"
-them, and after device removal the post_remove() callback is
-called which will typically disable them.
-
-Signed-off-by: Andy Green <andy.green@linaro.org>
+Signed-off-by: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 ---
- drivers/base/dd.c      |   36 ++++++++++++++++++++++++++++++++++++
- include/linux/device.h |   25 +++++++++++++++++++++++++
- 2 files changed, 61 insertions(+)
+ drivers/regulator/core.c          |   34 ++++++++++++++++++++++++++++++++++
+ include/linux/regulator/machine.h |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index e3bbed8..d37210a 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -261,6 +261,7 @@ static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index e872c8b..1834e41 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -3495,6 +3495,40 @@ void regulator_unregister(struct regulator_dev *rdev)
+ }
+ EXPORT_SYMBOL_GPL(regulator_unregister);
  
- static int really_probe(struct device *dev, struct device_driver *drv)
- {
-+	struct device_asset *asset;
- 	int ret = 0;
- 
- 	atomic_inc(&probe_count);
-@@ -275,6 +276,23 @@ static int really_probe(struct device *dev, struct device_driver *drv)
- 		goto probe_failed;
- 	}
- 
-+	asset = dev->assets;
-+	while (asset && asset->pre_probe) {
-+		dev_info(dev, "Enabling pre-probe asset %s\n", asset->name);
-+		ret = asset->pre_probe(dev, asset);
-+		if (ret) {
-+			dev_err(dev, "Error Enabling pre-probe asset %s\n",
-+								  asset->name);
-+			if (asset != dev->assets)
-+				do {
-+					asset--;
-+					asset->post_remove(dev, asset);
-+				} while (asset != dev->assets);
-+			goto probe_failed;
-+		}
-+		asset++;
-+	}
-+
- 	if (dev->bus->probe) {
- 		ret = dev->bus->probe(dev);
- 		if (ret)
-@@ -478,6 +496,7 @@ EXPORT_SYMBOL_GPL(driver_attach);
- static void __device_release_driver(struct device *dev)
- {
- 	struct device_driver *drv;
-+	struct device_asset *asset;
- 
- 	drv = dev->driver;
- 	if (drv) {
-@@ -496,6 +515,23 @@ static void __device_release_driver(struct device *dev)
- 			dev->bus->remove(dev);
- 		else if (drv->remove)
- 			drv->remove(dev);
-+
-+		asset = dev->assets;
-+		if (asset) {
-+			/* remove in reverse order */
-+			while (asset->pre_probe)
-+				asset++;
-+
-+			if (asset != dev->assets)
-+				do {
-+					asset--;
-+					dev_info(dev,
-+					   "Disabling post-remove asset %s\n",
-+								  asset->name);
-+					asset->post_remove(dev, asset);
-+				} while (asset != dev->assets);
-+		}
-+
- 		devres_release_all(dev);
- 		dev->driver = NULL;
- 		dev_set_drvdata(dev, NULL);
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 86ef6ab..6eabe1d 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -577,6 +577,26 @@ struct device_dma_parameters {
- };
- 
- /**
-+ * struct device_asset - a prerequisite for this device's probing
-+ * @name:	Name of the regulator, clock, etc.  Optional.
-+ * @asset:	Pointer to the regulator, clock, etc.  If no name is given,
-+ *		this can be set before device probe, otherwise the pre_probe
-+ *		handler will dereference the name and store a pointer here
-+ * @data:	Optional configuration data the asset may need
-+ * @pre_probe:	Called before this device this is associated with gets
-+ *		probed.
-+ * @post_remove: Called after this device instance gets removed.
++/*
++ * Default handlers for regulator asset preprobe and postremoval
 + */
++int regulator_asset_default_preprobe(struct device *device,
++						struct device_asset *asset)
++{
++	struct regulator **reg = (struct regulator **)&asset->asset;
++	int n;
 +
-+struct device_asset {
-+	const char *name;
-+	void *asset;
-+	void *data;
-+	int (*pre_probe)(struct device *device, struct device_asset *asset);
-+	void (*post_remove)(struct device *device, struct device_asset *asset);
-+};
++	*reg = regulator_get(device, asset->name);
++	if (IS_ERR(*reg))
++		return PTR_ERR(*reg);
++	n = regulator_enable(*reg);
++	if (n < 0)
++		regulator_put(*reg);
 +
-+/**
-  * struct device - The basic device structure
-  * @parent:	The device's "parent" device, the device to which it is attached.
-  * 		In most cases, a parent device is some sort of bus or host
-@@ -600,6 +620,9 @@ struct device_dma_parameters {
-  * 		variants, which GPIO pins act in what additional roles, and so
-  * 		on.  This shrinks the "Board Support Packages" (BSPs) and
-  * 		minimizes board-specific #ifdefs in drivers.
-+ * @assets:	Pointer to a NULL-pre_probe terminated array of named or
-+ *		pointed-to objects that should be enabled for this device
-+ *		just before probe and disabled after removal
-  * @power:	For device power management.
-  * 		See Documentation/power/devices.txt for details.
-  * @pm_domain:	Provide callbacks that are executed during system suspend,
-@@ -653,6 +676,8 @@ struct device {
- 					   device */
- 	void		*platform_data;	/* Platform specific data, device
- 					   core doesn't touch it */
-+	struct device_asset *assets; /* optional assets enabled before probe
-+				      * and disabled after removal */
- 	struct dev_pm_info	power;
- 	struct dev_pm_domain	*pm_domain;
++	dev_info(device, "Enabled regulator asset %s\n", asset->name);
++
++	return n;
++}
++EXPORT_SYMBOL_GPL(regulator_asset_default_preprobe);
++
++void regulator_asset_default_postremove(struct device *device,
++						struct device_asset *asset)
++{
++	struct regulator *reg = asset->asset;
++
++	dev_info(device, "Disabling post-remove asset %s\n", asset->name);
++
++	regulator_disable(reg);
++	regulator_put(reg);
++}
++EXPORT_SYMBOL_GPL(regulator_asset_default_postremove);
++
+ /**
+  * regulator_suspend_prepare - prepare regulators for system wide suspend
+  * @state: system suspend state
+diff --git a/include/linux/regulator/machine.h b/include/linux/regulator/machine.h
+index 36adbc8..151a330 100644
+--- a/include/linux/regulator/machine.h
++++ b/include/linux/regulator/machine.h
+@@ -191,9 +191,39 @@ int regulator_suspend_prepare(suspend_state_t state);
+ int regulator_suspend_finish(void);
  
+ #ifdef CONFIG_REGULATOR
++/**
++ * regulator_asset_default_preprobe: default probe handler for regulator assets
++ * @device:	the device whose assets we are enabling just before probing it
++ * @asset: the named regulator asset we are going to get and enable
++ *
++ * You can give this as the handler for .pre_probe callback in device_asset to
++ * deal with pre-enabling/get of a device's named regulator assets
++ */
++int regulator_asset_default_preprobe(struct device *device,
++						struct device_asset *asset);
++/**
++ * regulator_asset_default_postremove: default remove handler for reg assets
++ * @device:	the device whose assets we are disabling just after removing it
++ * @asset: the regulator asset we are going to disable and put
++ *
++ * You can give this as the handler for .post_remove callback in device_asset
++ * to deal with post-disabling/put of a device's regulator assets
++ */
++void regulator_asset_default_postremove(struct device *device,
++						struct device_asset *asset);
++
+ void regulator_has_full_constraints(void);
+ void regulator_use_dummy_regulator(void);
+ #else
++static inline int regulator_asset_default_preprobe(struct device *device,
++						    struct device_asset *asset)
++{
++	return 0;
++}
++static inline void regulator_asset_default_postremove(struct device *device,
++						    struct device_asset *asset)
++{
++}
+ static inline void regulator_has_full_constraints(void)
+ {
+ }
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
