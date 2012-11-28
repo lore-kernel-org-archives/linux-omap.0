@@ -1,51 +1,219 @@
-From: Vinod Koul <vkoul@infradead.org>
-Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a
- slave DMA channel
-Date: Wed, 28 Nov 2012 22:36:49 +0530
-Message-ID: <1354122409.7077.69.camel@vkoul-udesk3>
-References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
-	 <1347662517-4210-3-git-send-email-jon-hunter@ti.com>
-	 <1347852805.1943.130.camel@vkoul-udesk3> <201209171159.27359.arnd@arndb.de>
-	 <20120917223619.GC12445@n2100.arm.linux.org.uk>
-	 <1347938035.1943.162.camel@vkoul-udesk3> <5060DDEB.4000600@ti.com>
-	 <1348547701.1943.190.camel@vkoul-udesk3>
-	 <20121016024318.GF24393@S2101-09.ap.freescale.net>
-	 <1350355144.1648.5259.camel@vkoul-udesk3> <509D6108.1060304@ti.com>
-	 <1353029876.7077.56.camel@vkoul-udesk3>  <50A65F95.6060101@ti.com>
+From: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
+Subject: Re: [PATCH] gpio: New driver for GPO emulation using PWM generators
+Date: Wed, 28 Nov 2012 20:30:06 +0100
+Message-ID: <20121128193006.GB23444@avionic-0098.adnet.avionic-design.de>
+References: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com>
+ <20121123075537.A14713E0A91@localhost> <50AF3E21.4000009@ti.com>
+ <50AF4584.7020604@ti.com> <20121126154600.765E03E1AFD@localhost>
+ <50B5D161.6010200@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:60807
-	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751807Ab2K1R2n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Nov 2012 12:28:43 -0500
-In-Reply-To: <50A65F95.6060101@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============5127259896125415702=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <50B5D161.6010200-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: vinod.koul@intel.com, linux-omap <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Stephen Warren <swarren@nvidia.com>, Shawn Guo <shawn.guo@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 2012-11-16 at 09:45 -0600, Jon Hunter wrote:
-> 
-> Thanks, Vinod. Can you make sure you also pick up the two fixes  [1][2]
-> I sent out?
-> 
-> Cheers
-> Jon
-> 
-> [1] http://marc.info/?l=linux-omap&m=134859981920598&w=2
-> [2] http://marc.info/?l=linux-omap&m=134998461526129&w=2
-> 
-Applied both and merged the branch to my next.
-It should show up in linux-next tomorrow
 
-Please check
+--===============5127259896125415702==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8GpibOaaTibBMecb"
+Content-Disposition: inline
 
-Thanks
 
--- 
-Vinod Koul
-Intel Corp.
+--8GpibOaaTibBMecb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Nov 28, 2012 at 09:54:57AM +0100, Peter Ujfalusi wrote:
+> Hi Grant, Lars, Thierry,
+>=20
+> On 11/26/2012 04:46 PM, Grant Likely wrote:
+> > You're effectively asking the pwm layer to behave like a gpio (which
+> > is completely reasonable). Having a completely separate translation node
+> > really doesn't make sense because it is entirely a software construct.
+> > In fact, the way your using it is *entirely* to make the Linux driver
+> > model instantiate the translation code. It has *nothing* to do with the
+> > structure of the hardware. It makes complete sense that if a PWM is
+> > going to be used as a GPIO, then the PWM node should conform to the GPIO
+> > binding.
+>=20
+> I understand your point around this. I might say I agree with it as well.=
+=2E.
+> I spent yesterday with prototyping and I'm not really convinced that it i=
+s a
+> good approach from C code point of view. I got it working, yes.
+> In essence this is what I have on top of the slightly modified gpio-pwm.c
+> driver I have submitted:
+>=20
+> DTS files:
+> twl_pwm: pwm {
+> 	/* provides two PWMs (id 0, 1 for PWM1 and PWM2) */
+> 	compatible =3D "ti,twl6030-pwm";
+> 	#pwm-cells =3D <2>;
+>=20
+> 	/* Enable GPIO us of the PWMs */
+> 	gpio-controller =3D <1>;
+> 	#gpio-cells =3D <2>;
+> 	pwm,period_ns =3D <7812500>;
+> };
+>=20
+> leds {
+> 	compatible =3D "gpio-leds";
+> 	backlight {
+> 		label =3D "omap4::backlight";
+> 		gpios =3D <&twl_pwm 1 0>; /* PWM1 of twl6030 */
+> 	};
+>=20
+> 	keypad {
+> 		label =3D "omap4::keypad";
+> 		gpios =3D <&twl_pwm 0 0>; /* PWM0 of twl6030 */
+> 	};
+> };
+>=20
+> The bulk of the code in drivers/pwm/core.c to create the pwm-gpo device w=
+hen
+> it is requested going to look something like this. I have removed the err=
+or
+> checks for now and I still don't have the code to clean up the allocated
+> memory for the created device on error, or in case the module is unloaded=
+=2E We
+> should also prevent the pwm core from removal when the pwm-gpo driver is =
+loaded.
+> We need to create the platform device for gpo-pwm, create the pdata struc=
+ture
+> for it and fill it in. We also need to hand craft the pwm_lookup table so=
+ we
+> can use pwm_get() to request the PWM. I have other minor changes around t=
+his
+> to get things working when we booted with DT.
+> So the function to do the heavy lifting is something like this:
+> static void of_pwmchip_as_gpio(struct pwm_chip *chip)
+> {
+> 	struct platform_device *pdev;
+> 	struct gpio_pwm *gpos;
+> 	struct gpio_pwm_pdata *pdata;
+> 	struct pwm_lookup *lookup;
+> 	char gpodev_name[15];
+> 	int i;
+> 	u32 gpio_mode =3D 0;
+> 	u32 period_ns =3D 0;
+>=20
+> 	of_property_read_u32(chip->dev->of_node, "gpio-controller",
+> 			     &gpio_mode);
+> 	if (!gpio_mode)
+> 		return;
+>=20
+> 	of_property_read_u32(chip->dev->of_node, "pwm,period_ns", &period_ns);
+> 	if (!period_ns) {
+> 		dev_err(chip->dev,
+> 			"period_ns is not specified for GPIO use\n");
+> 		return;
+> 	}
+>=20
+> 	lookup =3D devm_kzalloc(chip->dev, sizeof(*lookup) * chip->npwm,
+> 			      GFP_KERNEL);
+> 	pdata =3D devm_kzalloc(chip->dev, sizeof(*pdata), GFP_KERNEL);
+> 	gpos =3D devm_kzalloc(chip->dev, sizeof(*gpos) * chip->npwm,
+> 			    GFP_KERNEL);
+>=20
+> 	pdata->gpos =3D gpos;
+> 	pdata->num_gpos =3D chip->npwm;
+> 	pdata->gpio_base =3D -1;
+>=20
+> 	pdev =3D platform_device_alloc("pwm-gpo", chip->base);
+> 	pdev->dev.parent =3D chip->dev;
+>=20
+> 	sprintf(gpodev_name, "pwm-gpo.%d", chip->base);
+> 	for (i =3D 0; i < chip->npwm; i++) {
+> 		struct gpio_pwm *gpo =3D &gpos[i];
+> 		struct pwm_lookup *pl =3D &lookup[i];
+> 		char con_id[15];
+>=20
+> 		sprintf(con_id, "pwm-gpo.%d", chip->base + i);
+>=20
+> 		/* prepare GPO information */
+> 		gpo->pwm_period_ns =3D period_ns;
+> 		gpo->name =3D kmemdup(con_id, sizeof(con_id), GFP_KERNEL);;
+>=20
+> 		/* prepare pwm lookup table */
+> 		pl->provider =3D dev_name(chip->dev);
+> 		pl->index =3D i;
+> 		pl->dev_id =3D kmemdup(gpodev_name, sizeof(gpodev_name),
+> 				     GFP_KERNEL);
+> 		pl->con_id =3D kmemdup(con_id, sizeof(con_id), GFP_KERNEL);
+> 	}
+>=20
+> 	platform_device_add_data(pdev, pdata, sizeof(*pdata));
+> 	pwm_add_table(lookup, chip->npwm);
+> 	platform_device_add(pdev);
+> }
+>=20
+> PS: as I have said I have removed the error check just to make the code
+> snippet more readable and yes we need to do some memory cleanup as well a=
+t the
+> right time.
+>=20
+> Is this something you would like to see?
+
+I must say I'm not terribly thrilled to integrate something like this
+into the PWM subsystem. I wish hardware engineers wouldn't come up with
+such designs. But since this seems to be a real use-case, if we want to
+support it we should try and find the "right" solution.
+
+Reading the above sounds overly complicated. Couldn't we, instead of
+instantiating an extra driver, just register a GPIO chip if a chip wants
+to support this functionality? Where the GPIO chip's request callback
+requests the given PWM so that it cannot be used elsewhere? The
+direction_input callback would need to always fail and the set callback
+can configure the PWM either to 0% or 100% duty-cycle depending on the
+desired output value.
+
+Thierry
+
+--8GpibOaaTibBMecb
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQtmY+AAoJEN0jrNd/PrOh0LMP/24mTk439aV5wWT76vFQS5of
+Yk/TixVrQNJ9wiedemQoRZK+p+R/+pcn1teemKshW7HqaRdqNevQ5CLuRvQZc9ie
+TEmVJe0YN/GbdO8OtgEwthNXvYQw73D+O5QLt3Egc5rxAng8i4cAnvCpewJOhxIq
+QKwJLVMXFC+66F768nvxeyRBV8PLc260WSsh0ZLVRDUGTk7FD7+4TqE98DfTEkKn
+OYiejdcLS0XhTidvhA6WbUizUopWdqjCyV5SSEywhMDgFxdUMi2R2e4ALszm5iE6
+ZRFm3OzzR6dgUxKUX6ObZY+rCE2B/x40JF9IytqFMY+XM9RNntek74XjDfkMSL9D
+MZpKGiZZ5snA0IzqGq25tfvNkOdYYpk7v119ocSJHa6fm1OTGm4qCqwiffhUCxax
+TsRgbJ1M3tB5YrIDtw+3+paHf1Hc9MIrMmdYbg40zBuXb2uXjLzn5VI9PScUSAKF
+f+fiAoh4oVtwV6wvpZ7F+AOOZOU+5m1aWPdrkrzGT54JzWAoo24Ib41yJOD2WN11
+vfxIj6TPm2exBY8krSfvrh9anF7seW4rLebA7qvr9F1bivl3ZMF8CBTnu/eMC+y1
+mHx4dvHE3DggmGfWA7VE7XfCTeVEcNL10N6LmCGEn6z6BBffC1+qOyrH4hgyDYYe
+E30w/w1ezQZFkqoV5Jjf
+=g5ex
+-----END PGP SIGNATURE-----
+
+--8GpibOaaTibBMecb--
+
+--===============5127259896125415702==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============5127259896125415702==--
