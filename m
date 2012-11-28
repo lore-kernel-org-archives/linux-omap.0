@@ -1,263 +1,170 @@
 From: Andy Green <andy.green@linaro.org>
-Subject: [try#1 PATCH 5/7] omap4: panda: add smsc95xx regulator and reset
- dependent on root hub
-Date: Wed, 28 Nov 2012 12:59:55 +0000
-Message-ID: <20121128125955.29569.25431.stgit@build.warmcat.com>
+Subject: [try#1 PATCH 7/7] config omap2plus add ehci bits
+Date: Wed, 28 Nov 2012 13:00:05 +0000
+Message-ID: <20121128130005.29569.91029.stgit@build.warmcat.com>
 References: <20121128124744.29569.52739.stgit@build.warmcat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:59186 "EHLO warmcat.com"
+Received: from warmcat.com ([87.106.134.80]:59193 "EHLO warmcat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754999Ab2K1M77 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Nov 2012 07:59:59 -0500
+	id S1755040Ab2K1NAK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Nov 2012 08:00:10 -0500
 In-Reply-To: <20121128124744.29569.52739.stgit@build.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 Cc: gregkh@linuxfoundation.org, rogerq@ti.com, keshava_mgowda@ti.com, balbi@ti.com, stern@rowland.harvard.edu
 
-This adds regulators which are controlled by the OMAP4 PandaBoard (ES)'s
-EHCI logical root hub existing.
-
-The regulators are made a device_asset of the EHCI logical root hub by
-passing them through the hsusb -> mfd path.  Although the ehci-related
-platform_device is created at boot time, it is not instantiated until the
-ehci-hcd module is inserted if it is modular.
-
-Since the regulator is an asset of the ehci-omap.0 device, it's turned on
-during successful probe and off when the device is removed.
-
-Without power control, the ULPI PHY + SMSC9614 on the Panda eats 700-900mW
-all the time, which is around the same as the idle power of the SoC and
-rest of the board.
-
-This allows us to start off with it depowered, and only power it if the
-ehci-hcd module is inserted.  When the module is removed, it's depowered
-again.
+omap2plus seems to have rotted a bit, this is the delta that appears
+if we enable modular build for ehci-hcd and smsc95xx.
 
 Signed-off-by: Andy Green <andy.green@linaro.org>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |  100 ++++++++++++++++++++++++++------
- arch/arm/mach-omap2/usb-host.c         |    1 
- arch/arm/plat-omap/include/plat/usb.h  |    2 +
- drivers/mfd/omap-usb-host.c            |    9 ++-
- 4 files changed, 89 insertions(+), 23 deletions(-)
+ arch/arm/configs/omap2plus_defconfig |   42 ++++++++++++++--------------------
+ 1 file changed, 17 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index bfcd397..52add03 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -144,6 +144,15 @@ static struct platform_device *panda_devices[] __initdata = {
- 	&btwilink_device,
- };
- 
-+static struct device_asset assets_ehci_omap0[] = {
-+	{
-+		.name = "reg-panda-smsc95xx",
-+		.pre_probe = regulator_asset_default_preprobe,
-+		.post_remove = regulator_asset_default_postremove,
-+	},
-+	{ }
-+};
-+
- static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
- 	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
-@@ -151,12 +160,8 @@ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 	.phy_reset  = false,
- 	.reset_gpio_port[0]  = -EINVAL,
- 	.reset_gpio_port[1]  = -EINVAL,
--	.reset_gpio_port[2]  = -EINVAL
--};
--
--static struct gpio panda_ehci_gpios[] __initdata = {
--	{ GPIO_HUB_POWER,	GPIOF_OUT_INIT_LOW,  "hub_power"  },
--	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
-+	.reset_gpio_port[2]  = -EINVAL,
-+	.assets = assets_ehci_omap0,
- };
- 
- static void __init omap4_ehci_init(void)
-@@ -173,23 +178,76 @@ static void __init omap4_ehci_init(void)
- 	clk_set_rate(phy_ref_clk, 19200000);
- 	clk_prepare_enable(phy_ref_clk);
- 
--	/* disable the power to the usb hub prior to init and reset phy+hub */
--	ret = gpio_request_array(panda_ehci_gpios,
--				 ARRAY_SIZE(panda_ehci_gpios));
--	if (ret) {
--		pr_err("Unable to initialize EHCI power/reset\n");
--		return;
--	}
-+	usbhs_init(&usbhs_bdata);
-+}
- 
--	gpio_export(GPIO_HUB_POWER, 0);
--	gpio_export(GPIO_HUB_NRESET, 0);
--	gpio_set_value(GPIO_HUB_NRESET, 1);
-+/*
-+ * hub_nreset also resets the ULPI PHY and is required after powering SMSC chip
-+ *	ULPI PHY is always powered... need to do reset once for both once
-+ * hub_power enables a 3.3V regulator for (hub + eth) chip
-+ *	however there's no point having ULPI PHY in use alone
-+ *	since it's only connected to the (hub + eth) chip
-+ */
- 
--	usbhs_init(&usbhs_bdata);
-+static struct regulator_init_data panda_hub = {
-+	.constraints = {
-+		.name = "vhub",
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+};
- 
--	/* enable power to hub */
--	gpio_set_value(GPIO_HUB_POWER, 1);
--}
-+static struct fixed_voltage_config panda_vhub = {
-+	.supply_name = "vhub",
-+	.microvolts = 3300000,
-+	.gpio = GPIO_HUB_POWER,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,
-+	.init_data = &panda_hub,
-+};
-+
-+static struct platform_device omap_vhub_device = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= 2,
-+	.dev = {
-+		.platform_data = &panda_vhub,
-+	},
-+};
-+
-+static struct regulator_init_data panda_ulpireset = {
-+	/*
-+	 * idea is that when operating ulpireset, regulator api will make
-+	 * sure that the hub+eth chip is powered, since it's the "parent"
-+	 */
-+	.supply_regulator = "vhub", /* we are a child of vhub */
-+	.constraints = {
-+		/*
-+		 * this magic string associates us with ehci-omap.0 root hub
-+		 * when the root hub logical device is up, we will power
-+		 * and reset [ ULPI PHY + [ HUB + ETH ] ]
-+		 */
-+		.name = "reg-panda-smsc95xx",
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+};
-+
-+static struct fixed_voltage_config panda_vulpireset = {
-+	.supply_name = "reg-panda-smsc95xx",
-+	.microvolts = 3300000,
-+	.gpio = GPIO_HUB_NRESET,
-+	.startup_delay = 70000, /* 70msec */
-+	.enable_high = 1,
-+	.enabled_at_boot = 0,
-+	.init_data = &panda_ulpireset,
-+};
-+
-+static struct platform_device omap_vulpireset_device = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= 3,
-+	.dev = {
-+		.platform_data = &panda_vulpireset,
-+	},
-+};
- 
- static struct omap_musb_board_data musb_board_data = {
- 	.interface_type		= MUSB_INTERFACE_UTMI,
-@@ -504,6 +562,8 @@ static void __init omap4_panda_init(void)
- 	omap4_panda_i2c_init();
- 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
- 	platform_device_register(&omap_vwlan_device);
-+	platform_device_register(&omap_vhub_device);
-+	platform_device_register(&omap_vulpireset_device);
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
- 	omap4_twl6030_hsmmc_init(mmc);
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index 98f3287..2a0fdf9 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -501,6 +501,7 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- 	}
- 	ehci_data.phy_reset = pdata->phy_reset;
- 	ohci_data.es2_compatibility = pdata->es2_compatibility;
-+	ehci_data.assets = pdata->assets;
- 	usbhs_data.ehci_data = &ehci_data;
- 	usbhs_data.ohci_data = &ohci_data;
- 
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 70acdee..6f6235e 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -36,6 +36,7 @@ struct usbhs_omap_board_data {
- 	unsigned			es2_compatibility:1;
- 
- 	unsigned			phy_reset:1;
-+	struct device_asset		*assets;
- };
- 
- #ifdef CONFIG_ARCH_OMAP2PLUS
-@@ -44,6 +45,7 @@ struct ehci_hcd_omap_platform_data {
- 	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
- 	int				reset_gpio_port[OMAP3_HS_USB_PORTS];
- 	unsigned			phy_reset:1;
-+	struct device_asset		*assets;
- };
- 
- struct ohci_hcd_omap_platform_data {
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 23cec57..6d57c9d 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -25,6 +25,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/spinlock.h>
- #include <linux/gpio.h>
-+#include <linux/device.h>
- #include <plat/cpu.h>
- #include <plat/usb.h>
- #include <linux/pm_runtime.h>
-@@ -136,7 +137,8 @@ static inline u8 usbhs_readb(void __iomem *base, u8 reg)
- 
- static struct platform_device *omap_usbhs_alloc_child(const char *name,
- 			struct resource	*res, int num_resources, void *pdata,
--			size_t pdata_size, struct device *dev)
-+			size_t pdata_size, struct device *dev,
-+			struct device_asset *assets)
- {
- 	struct platform_device	*child;
- 	int			ret;
-@@ -160,6 +162,7 @@ static struct platform_device *omap_usbhs_alloc_child(const char *name,
- 		goto err_alloc;
- 	}
- 
-+	child->dev.assets = assets;
- 	child->dev.dma_mask		= &usbhs_dmamask;
- 	dma_set_coherent_mask(&child->dev, DMA_BIT_MASK(32));
- 	child->dev.parent		= dev;
-@@ -212,7 +215,7 @@ static int omap_usbhs_alloc_children(struct platform_device *pdev)
- 	resources[1] = *res;
- 
- 	ehci = omap_usbhs_alloc_child(OMAP_EHCI_DEVICE, resources, 2, ehci_data,
--		sizeof(*ehci_data), dev);
-+		sizeof(*ehci_data), dev, ehci_data->assets);
- 
- 	if (!ehci) {
- 		dev_err(dev, "omap_usbhs_alloc_child failed\n");
-@@ -237,7 +240,7 @@ static int omap_usbhs_alloc_children(struct platform_device *pdev)
- 	resources[1] = *res;
- 
- 	ohci = omap_usbhs_alloc_child(OMAP_OHCI_DEVICE, resources, 2, ohci_data,
--		sizeof(*ohci_data), dev);
-+		sizeof(*ohci_data), dev, NULL);
- 	if (!ohci) {
- 		dev_err(dev, "omap_usbhs_alloc_child failed\n");
- 		ret = -ENOMEM;
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 6230304..2f858a3 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -1,14 +1,14 @@
+ CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
++CONFIG_NO_HZ=y
++CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_IKCONFIG=y
+ CONFIG_IKCONFIG_PROC=y
+ CONFIG_LOG_BUF_SHIFT=16
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_EXPERT=y
+-# CONFIG_SYSCTL_SYSCALL is not set
+-CONFIG_KALLSYMS_EXTRA_PASS=y
+ CONFIG_SLAB=y
+ CONFIG_PROFILING=y
+ CONFIG_OPROFILE=y
+@@ -20,16 +20,15 @@ CONFIG_MODULE_FORCE_UNLOAD=y
+ CONFIG_MODVERSIONS=y
+ CONFIG_MODULE_SRCVERSION_ALL=y
+ # CONFIG_BLK_DEV_BSG is not set
++CONFIG_PARTITION_ADVANCED=y
+ CONFIG_ARCH_OMAP=y
+ CONFIG_OMAP_RESET_CLOCKS=y
+ CONFIG_OMAP_MUX_DEBUG=y
++CONFIG_SOC_OMAP5=y
+ CONFIG_ARM_THUMBEE=y
+ CONFIG_ARM_ERRATA_411920=y
+-CONFIG_NO_HZ=y
+-CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_SMP=y
+ CONFIG_NR_CPUS=2
+-CONFIG_LEDS=y
+ CONFIG_ZBOOT_ROM_TEXT=0x0
+ CONFIG_ZBOOT_ROM_BSS=0x0
+ CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyO2,115200"
+@@ -87,22 +86,21 @@ CONFIG_SCSI_MULTI_LUN=y
+ CONFIG_SCSI_SCAN_ASYNC=y
+ CONFIG_MD=y
+ CONFIG_NETDEVICES=y
+-CONFIG_SMSC_PHY=y
+-CONFIG_NET_ETHERNET=y
+-CONFIG_SMC91X=y
+-CONFIG_SMSC911X=y
+ CONFIG_KS8851=y
+ CONFIG_KS8851_MLL=y
+-CONFIG_LIBERTAS=m
+-CONFIG_LIBERTAS_USB=m
+-CONFIG_LIBERTAS_SDIO=m
+-CONFIG_LIBERTAS_DEBUG=y
++CONFIG_SMC91X=y
++CONFIG_SMSC911X=y
++CONFIG_SMSC_PHY=y
+ CONFIG_USB_USBNET=y
+-CONFIG_USB_NET_SMSC95XX=y
++CONFIG_USB_NET_SMSC95XX=m
+ CONFIG_USB_ALI_M5632=y
+ CONFIG_USB_AN2720=y
+ CONFIG_USB_EPSON2888=y
+ CONFIG_USB_KC2190=y
++CONFIG_LIBERTAS=m
++CONFIG_LIBERTAS_USB=m
++CONFIG_LIBERTAS_SDIO=m
++CONFIG_LIBERTAS_DEBUG=y
+ CONFIG_INPUT_JOYDEV=y
+ CONFIG_INPUT_EVDEV=y
+ CONFIG_KEYBOARD_GPIO=y
+@@ -132,14 +130,13 @@ CONFIG_POWER_SUPPLY=y
+ CONFIG_WATCHDOG=y
+ CONFIG_OMAP_WATCHDOG=y
+ CONFIG_TWL4030_WATCHDOG=y
+-CONFIG_REGULATOR_TWL4030=y
+ CONFIG_REGULATOR_TPS65023=y
+ CONFIG_REGULATOR_TPS6507X=y
++CONFIG_REGULATOR_TWL4030=y
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
+ CONFIG_FB_TILEBLITTING=y
+-CONFIG_FB_OMAP_LCD_VGA=y
+ CONFIG_OMAP2_DSS=m
+ CONFIG_OMAP2_DSS_RFBI=y
+ CONFIG_OMAP2_DSS_SDI=y
+@@ -154,7 +151,6 @@ CONFIG_PANEL_ACX565AKM=m
+ CONFIG_BACKLIGHT_LCD_SUPPORT=y
+ CONFIG_LCD_CLASS_DEVICE=y
+ CONFIG_LCD_PLATFORM=y
+-CONFIG_DISPLAY_SUPPORT=y
+ CONFIG_FRAMEBUFFER_CONSOLE=y
+ CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+ CONFIG_FONTS=y
+@@ -174,13 +170,15 @@ CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+ CONFIG_USB=y
+ CONFIG_USB_DEBUG=y
+ CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+-CONFIG_USB_DEVICEFS=y
+ CONFIG_USB_SUSPEND=y
+ CONFIG_USB_MON=y
++CONFIG_USB_EHCI_HCD=m
++CONFIG_USB_EHCI_ROOT_HUB_TT=y
++CONFIG_USB_EHCI_HCD_PLATFORM=m
+ CONFIG_USB_WDM=y
+ CONFIG_USB_STORAGE=y
+-CONFIG_USB_LIBUSUAL=y
+ CONFIG_USB_TEST=y
++CONFIG_OMAP_USB2=m
+ CONFIG_USB_GADGET=y
+ CONFIG_USB_GADGET_DEBUG=y
+ CONFIG_USB_GADGET_DEBUG_FILES=y
+@@ -214,23 +212,18 @@ CONFIG_JFFS2_RUBIN=y
+ CONFIG_UBIFS_FS=y
+ CONFIG_CRAMFS=y
+ CONFIG_NFS_FS=y
+-CONFIG_NFS_V3=y
+ CONFIG_NFS_V3_ACL=y
+ CONFIG_NFS_V4=y
+ CONFIG_ROOT_NFS=y
+-CONFIG_PARTITION_ADVANCED=y
+ CONFIG_NLS_CODEPAGE_437=y
+ CONFIG_NLS_ISO8859_1=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_MAGIC_SYSRQ=y
+-CONFIG_DEBUG_KERNEL=y
+ CONFIG_SCHEDSTATS=y
+ CONFIG_TIMER_STATS=y
+ CONFIG_PROVE_LOCKING=y
+-CONFIG_DEBUG_SPINLOCK_SLEEP=y
+ # CONFIG_DEBUG_BUGVERBOSE is not set
+ CONFIG_DEBUG_INFO=y
+-# CONFIG_RCU_CPU_STALL_DETECTOR is not set
+ CONFIG_SECURITY=y
+ CONFIG_CRYPTO_MICHAEL_MIC=y
+ # CONFIG_CRYPTO_ANSI_CPRNG is not set
+@@ -239,4 +232,3 @@ CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=y
+ CONFIG_CRC7=y
+ CONFIG_LIBCRC32C=y
+-CONFIG_SOC_OMAP5=y
 
