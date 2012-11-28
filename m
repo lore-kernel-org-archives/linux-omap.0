@@ -1,88 +1,158 @@
-From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [try#1 PATCH 0/7] Introduce device_asset and use to control Panda
- HUB+ETH power and clock
-Date: Wed, 28 Nov 2012 12:59:29 +0000
-Message-ID: <20121128124744.29569.52739.stgit@build.warmcat.com>
+From: Andy Green <andy.green@linaro.org>
+Subject: [try#1 PATCH 1/7] drivers: base: introduce device assets
+Date: Wed, 28 Nov 2012 12:59:34 +0000
+Message-ID: <20121128125934.29569.1642.stgit@build.warmcat.com>
+References: <20121128124744.29569.52739.stgit@build.warmcat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from warmcat.com ([87.106.134.80]:59170 "EHLO warmcat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754955Ab2K1M7j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Nov 2012 07:59:39 -0500
+In-Reply-To: <20121128124744.29569.52739.stgit@build.warmcat.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: gregkh@linuxfoundation.org, rogerq@ti.com, keshava_mgowda@ti.com, balbi@ti.com, stern@rowland.harvard.edu
 
-The following series implements the device_asset addition to
-struct device that has been discussed on the usb and omap lists
-with Alan Stern and GKH.  Several of the ideas here are from Alan
-Stern.
+This patch adds support for a new struct device member "assets"
+which may point to an array of struct assets.
 
-First we add the new struct to linux/device.h and cause it to be
-used just before device probe with one device_asset-specific
-callback to "enable" the assets and just after device removal
-with another device_asset-specific callback to "disable" the
-associated assets.
+The array is terminated by one with a NULL pre_probe callback.
 
-Typical assets are things like regulators and clocks which are
-not known to the generic driver but which are bound to the
-specific device instance by hardware design.
+These assets consist of named (in .name) or anonymous object
+pointers (.data) operated on by specified callbacks.  A void *
+is provided to give configuration data or pointer if needed.
 
-Second we provide stock, default device_asset callbacks if your
-asset is a struct regulator.  You can just use those and the
-regulator will have a get and enable until the device instance
-is removed, when it will be disabled and put.
+Before device probe, any assets associated with the device have
+their pre_probe() callback called, which will typically "enable"
+them, and after device removal the post_remove() callback is
+called which will typically disable them.
 
-Third we provide the same for struct clk.  These stock callbacks
-mean there won't be any code duplication caused in the common case.
-
-Fourth we remove all the struct regulator code from ehci-omap.
-
-Fifth we implement Panda HUB+ETH (smsc95xx chip) regulator control
-using the device_asset scheme.  Since the right device, ehci-omap.0
-is created under mfd, the device_asset array is passed in
-platform_data to the right place where it's added to the
-platform_device's device before registration.
-
-Sixth we add the Panda's external ULPI PHY clock to the
-device_asset array we established for the regulator case above.
-
-The end result is we are able to remove the code about regulator
-and don't need any for clock control in the generic drivers.
-Instead we are able to associate the board-specific prerequisites
-for the drivers to work on a board externally with the enable and
-disable hidden in the plumbing.
-
-The end result is power and clock to the HUB+PHY (smsc95xx chip)
-remains off until ehci-hcd module is inserted, and both are
-disabled again when the module is removed.
-
+Signed-off-by: Andy Green <andy.green@linaro.org>
 ---
+ drivers/base/dd.c      |   36 ++++++++++++++++++++++++++++++++++++
+ include/linux/device.h |   25 +++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
 
-Andy Green (7):
-      drivers: base: introduce device assets
-      regulator: core: add default device asset handlers
-      clk: add default device asset handlers
-      usb: omap ehci: remove all regulator control from ehci omap
-      omap4: panda: add smsc95xx regulator and reset dependent on root hub
-      omap4 panda add smsc95xx clock dependent on root hub
-      config omap2plus add ehci bits
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index e3bbed8..d37210a 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -261,6 +261,7 @@ static DECLARE_WAIT_QUEUE_HEAD(probe_waitqueue);
+ 
+ static int really_probe(struct device *dev, struct device_driver *drv)
+ {
++	struct device_asset *asset;
+ 	int ret = 0;
+ 
+ 	atomic_inc(&probe_count);
+@@ -275,6 +276,23 @@ static int really_probe(struct device *dev, struct device_driver *drv)
+ 		goto probe_failed;
+ 	}
+ 
++	asset = dev->assets;
++	while (asset && asset->pre_probe) {
++		dev_info(dev, "Enabling pre-probe asset %s\n", asset->name);
++		ret = asset->pre_probe(dev, asset);
++		if (ret) {
++			dev_err(dev, "Error Enabling pre-probe asset %s\n",
++								  asset->name);
++			if (asset != dev->assets)
++				do {
++					asset--;
++					asset->post_remove(dev, asset);
++				} while (asset != dev->assets);
++			goto probe_failed;
++		}
++		asset++;
++	}
++
+ 	if (dev->bus->probe) {
+ 		ret = dev->bus->probe(dev);
+ 		if (ret)
+@@ -478,6 +496,7 @@ EXPORT_SYMBOL_GPL(driver_attach);
+ static void __device_release_driver(struct device *dev)
+ {
+ 	struct device_driver *drv;
++	struct device_asset *asset;
+ 
+ 	drv = dev->driver;
+ 	if (drv) {
+@@ -496,6 +515,23 @@ static void __device_release_driver(struct device *dev)
+ 			dev->bus->remove(dev);
+ 		else if (drv->remove)
+ 			drv->remove(dev);
++
++		asset = dev->assets;
++		if (asset) {
++			/* remove in reverse order */
++			while (asset->pre_probe)
++				asset++;
++
++			if (asset != dev->assets)
++				do {
++					asset--;
++					dev_info(dev,
++					   "Disabling post-remove asset %s\n",
++								  asset->name);
++					asset->post_remove(dev, asset);
++				} while (asset != dev->assets);
++		}
++
+ 		devres_release_all(dev);
+ 		dev->driver = NULL;
+ 		dev_set_drvdata(dev, NULL);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 86ef6ab..6eabe1d 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -577,6 +577,26 @@ struct device_dma_parameters {
+ };
+ 
+ /**
++ * struct device_asset - a prerequisite for this device's probing
++ * @name:	Name of the regulator, clock, etc.  Optional.
++ * @asset:	Pointer to the regulator, clock, etc.  If no name is given,
++ *		this can be set before device probe, otherwise the pre_probe
++ *		handler will dereference the name and store a pointer here
++ * @data:	Optional configuration data the asset may need
++ * @pre_probe:	Called before this device this is associated with gets
++ *		probed.
++ * @post_remove: Called after this device instance gets removed.
++ */
++
++struct device_asset {
++	const char *name;
++	void *asset;
++	void *data;
++	int (*pre_probe)(struct device *device, struct device_asset *asset);
++	void (*post_remove)(struct device *device, struct device_asset *asset);
++};
++
++/**
+  * struct device - The basic device structure
+  * @parent:	The device's "parent" device, the device to which it is attached.
+  * 		In most cases, a parent device is some sort of bus or host
+@@ -600,6 +620,9 @@ struct device_dma_parameters {
+  * 		variants, which GPIO pins act in what additional roles, and so
+  * 		on.  This shrinks the "Board Support Packages" (BSPs) and
+  * 		minimizes board-specific #ifdefs in drivers.
++ * @assets:	Pointer to a NULL-pre_probe terminated array of named or
++ *		pointed-to objects that should be enabled for this device
++ *		just before probe and disabled after removal
+  * @power:	For device power management.
+  * 		See Documentation/power/devices.txt for details.
+  * @pm_domain:	Provide callbacks that are executed during system suspend,
+@@ -653,6 +676,8 @@ struct device {
+ 					   device */
+ 	void		*platform_data;	/* Platform specific data, device
+ 					   core doesn't touch it */
++	struct device_asset *assets; /* optional assets enabled before probe
++				      * and disabled after removal */
+ 	struct dev_pm_info	power;
+ 	struct dev_pm_domain	*pm_domain;
+ 
 
-
- arch/arm/configs/omap2plus_defconfig   |   42 +++++-------
- arch/arm/mach-omap2/board-omap4panda.c |  113 +++++++++++++++++++++++---------
- arch/arm/mach-omap2/usb-host.c         |    2 -
- arch/arm/plat-omap/include/plat/usb.h  |    9 +--
- drivers/base/dd.c                      |   36 ++++++++++
- drivers/clk/clkdev.c                   |   39 +++++++++++
- drivers/mfd/omap-usb-host.c            |    9 ++-
- drivers/regulator/core.c               |   34 ++++++++++
- drivers/usb/host/ehci-omap.c           |   37 ----------
- include/linux/clk.h                    |   33 +++++++++
- include/linux/device.h                 |   25 +++++++
- include/linux/regulator/machine.h      |   30 ++++++++
- 12 files changed, 303 insertions(+), 106 deletions(-)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
