@@ -1,213 +1,125 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: Fix realtime_counter_init warning in
- timer.c
-Date: Wed, 28 Nov 2012 21:36:53 +0530
-Message-ID: <50B6369D.1010108@ti.com>
-References: <1354068915-3378-1-git-send-email-jon-hunter@ti.com> <1354068915-3378-2-git-send-email-jon-hunter@ti.com> <50B5AAB4.9010103@ti.com> <50B631F8.8010608@ti.com> <50B63406.60906@ti.com> <50B6354D.3070408@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 13/22] mfd: omap-usb-host: override number of ports
+ from platform data
+Date: Wed, 28 Nov 2012 08:33:08 -0800
+Message-ID: <20121128163307.GA5312@atomide.com>
+References: <1354114150-11941-1-git-send-email-rogerq@ti.com>
+ <1354114150-11941-14-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39764 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750910Ab2K1QGf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Nov 2012 11:06:35 -0500
-In-Reply-To: <50B6354D.3070408@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:17494 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752173Ab2K1QdL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Nov 2012 11:33:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1354114150-11941-14-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Roger Quadros <rogerq@ti.com>
+Cc: balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Wednesday 28 November 2012 09:31 PM, Jon Hunter wrote:
->
-> On 11/28/2012 09:55 AM, Santosh Shilimkar wrote:
->> On Wednesday 28 November 2012 09:17 PM, Jon Hunter wrote:
->>>
->>> On 11/28/2012 12:09 AM, Santosh Shilimkar wrote:
->>>> On Wednesday 28 November 2012 07:45 AM, Jon Hunter wrote:
->>>>> In commit fa6d79d (ARM: OMAP: Add initialisation for the real-tim=
-e
->>>>> counter), the function realtime_counter_init() was added. However=
-, if
->>>>> the kernel configuration option CONFIG_SOC_OMAP5 is not selected =
-then
->>>>> the following compiler warning is observed.
->>>>>
->>>>>      CC      arch/arm/mach-omap2/timer.o
->>>>>      arch/arm/mach-omap2/timer.c:489:20: warning:
->>>>> =91realtime_counter_init=92
->>>>>      defined but not used [-Wunused-function]
->>>>>
->>>>> Commit fa6d79d also introduced the kernel configuration option
->>>>> CONFIG_SOC_HAS_REALTIME_COUNTER. If this option is not selected t=
-hen
->>>>> the
->>>>> a stub function for realtime_counter_init() is defined.
->>>>>
->>>>> The option CONFIG_SOC_HAS_REALTIME_COUNTER and stub function are =
-not
->>>>> really needed because ...
->>>>>
->>>>> 1. For non-OMAP5 devices, there is no realtime counter and so
->>>>>       realtime_counter_init() function is not used.
->>>>> 2. For OMAP5 devices, CONFIG_SOC_HAS_REALTIME_COUNTER is always
->>>>> selected
->>>>>       and cannot be disabled, so the stub function for
->>>>> realtime_counter_init()
->>>>>       is never used.
->>>>>
->>>>> Fix this warning by removing the kernel configuration option
->>>>> CONFIG_SOC_HAS_REALTIME_COUNTER and stub function, and only inclu=
-de
->>>>> the function realtime_counter_init() if CONFIG_SOC_OMAP5 is selec=
-ted.
->>>>>
->>>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>>
->>>>> Reported-by: Tony Lindgren <tony@atomide.com>
->>>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>>>> ---
->>>> The #ifdef was avoided because the real-time counter can be used o=
-n
->>>> other future SOCs. And the those SOCs just select
->>>> SOC_HAS_REALTIME_COUNTER. And that stub was added because OMAP5 ca=
-n
->>>> work without real-time counter configuration enabled using 32K cou=
-nter.
->>>> But since we are any way have that SOC_HAS_REALTIME_COUNTER always
->>>> set for SOC which wants to use it, we can actually remove the stub
->>>> and hence avoid the warning. Let me know if below patch is ok
->>>> with you ? attached the same for mailer issues
->>>>
->>>>   From e000aa13e47e29fbe3473bfd0277cb057c3160cc Mon Sep 17 00:00:0=
-0 2001
->>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Date: Wed, 28 Nov 2012 11:28:57 +0530
->>>> Subject: [PATCH] ARM: OMAP2+: Fix realtime_counter_init warning in
->>>> timer.c
->>>> MIME-Version: 1.0
->>>> Content-Type: text/plain; charset=3DUTF-8
->>>> Content-Transfer-Encoding: 8bit
->>>>
->>>> In commit fa6d79d (ARM: OMAP: Add initialisation for the real-time
->>>> counter), the function realtime_counter_init() was added. However,=
- if
->>>> the kernel configuration option CONFIG_SOC_OMAP5 is not selected t=
-hen
->>>> the following compiler warning is observed.
->>>>
->>>>       CC      arch/arm/mach-omap2/timer.o
->>>>       arch/arm/mach-omap2/timer.c:489:20: warning:
->>>> =91realtime_counter_init=92
->>>>       defined but not used [-Wunused-function]
->>>>
->>>> It is because of the stub init function which was added for the ca=
-ses
->>>> where realtime_counter_init() is called with
->>>> !CONFIG_SOC_HAS_REALTIME_COUNTER.
->>>> This is actually not necessary since the SOC which need this featu=
-re
->>>> will explicitly select the configuration.
->>>>
->>>> So just drop the unused stub to avoid the build warning.
->>>>
->>>> Patch is made after seeing Jon's patch which was wrapping the
->>>> real-time counter code under needed SOC #ifdef
->>>>
->>>> Cc: Jon Hunter <jon-hunter@ti.com>
->>>>
->>>> Reported-by: Tony Lindgren <tony@atomide.com>
->>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> ---
->>>>    arch/arm/mach-omap2/timer.c |    3 ---
->>>>    1 file changed, 3 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/tim=
-er.c
->>>> index 69e4663..79d8e6b 100644
->>>> --- a/arch/arm/mach-omap2/timer.c
->>>> +++ b/arch/arm/mach-omap2/timer.c
->>>> @@ -428,9 +428,6 @@ static void __init realtime_counter_init(void)
->>>>
->>>>        iounmap(base);
->>>>    }
->>>> -#else
->>>> -static inline void __init realtime_counter_init(void)
->>>> -{}
->>>>    #endif
->>>>
->>>>    #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,         =
-   \
->>>
->>> Hi Santosh,
->>>
->>> Thanks for the feedback. Unfortunately, the above is not enough. If=
- I
->>> disable SOC_OMAP5 and leave SOC_HAS_REALTIME_COUNTER enabled, then =
-I
->>> still see the warning message. So I could see that people could sti=
-ll
->>> hit this with randconfig.
->>>
->> I did mention that but since OMAP5 selects the feature, I was thinki=
-ng
->> it is fine.
->>
->>> Understand the desire to make this a selectable configuration, but =
-given
->>> to date only OMAP5 uses it, it was simpler and cleaner just to remo=
-ve
->>> the option. However, we could keep the option and just do something
->>> like ...
->>>
->>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kcon=
-fig
->>> index 813c267..500f2f6 100644
->>> --- a/arch/arm/mach-omap2/Kconfig
->>> +++ b/arch/arm/mach-omap2/Kconfig
->>> @@ -26,6 +26,8 @@ config SOC_HAS_OMAP2_SDRC
->>>
->>>    config SOC_HAS_REALTIME_COUNTER
->>>           bool "Real time free running counter"
->>> +       depends on SOC_OMAP5
->>> +       default y
->>>
->>>    config ARCH_OMAP2
->>>           bool "TI OMAP2"
->>> @@ -79,7 +81,6 @@ config SOC_OMAP5
->>>           select ARM_GIC
->>>           select CPU_V7
->>>           select HAVE_SMP
->>> -       select SOC_HAS_REALTIME_COUNTER
->>>           select COMMON_CLK
->>>
->>> I have tested this and this resolves the warning.
->>>
->> Go ahead and fold above change on top of my patch which
->> drops the stub.
->
-> Well if we drop the stub then we cannot make it selectable for OMAP5.=
- So
-> in other words folding the above change on top of your patch will sti=
-ll
-> not work ;-)
->
-Oh yes.. Just ignore another follow up email which i sent thinking I
-lost the connection in between.
+* Roger Quadros <rogerq@ti.com> [121128 06:52]:
+> Both OMAP4 and 5 exhibit the same revision ID in the REVISION register
+> but they have different number of ports i.e. 2 and 3 respectively.
+> So we can't rely on REVISION register for number of ports on OMAP5
+> and depend on platform data (or device tree) instead.
+> 
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+> ---
+>  arch/arm/mach-omap2/usb-host.c        |    1 +
+>  arch/arm/plat-omap/include/plat/usb.h |    2 +
+>  drivers/mfd/omap-usb-host.c           |   34 ++++++++++++++++++++------------
+>  3 files changed, 24 insertions(+), 13 deletions(-)
 
-> The above patch will only allow you to use the REALTIME COUNTER on
-> OMAP5, but it makes it selectable and so the stub is needed now. If
-> future devices wish to use the REALTIME COUNTER then they can be adde=
-d
-> to the "depends on" statement.
->
-> The above patch should be all we need.
->
-I agree. Feel free to add my ack when you cook up the patch
+Note that plat/usb.h is now include/linux/platform_data/usb-omap.h
+in linux next so you need to coordinate with that.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For the arch/arm/*omap*/* parts:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+ 
+> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+> index 3c43449..eb85528 100644
+> --- a/arch/arm/mach-omap2/usb-host.c
+> +++ b/arch/arm/mach-omap2/usb-host.c
+> @@ -504,6 +504,7 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+>  	ohci_data.es2_compatibility = pdata->es2_compatibility;
+>  	usbhs_data.ehci_data = &ehci_data;
+>  	usbhs_data.ohci_data = &ohci_data;
+> +	usbhs_data.nports = pdata->nports;
+>  
+>  	if (cpu_is_omap34xx()) {
+>  		setup_ehci_io_mux(pdata->port_mode);
+> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+> index 87ee140..6b618a1 100644
+> --- a/arch/arm/plat-omap/include/plat/usb.h
+> +++ b/arch/arm/plat-omap/include/plat/usb.h
+> @@ -27,6 +27,7 @@ enum usbhs_omap_port_mode {
+>  };
+>  
+>  struct usbhs_omap_board_data {
+> +	int				nports;
+>  	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+>  
+>  	/* have to be valid if phy_reset is true and portx is in phy mode */
+> @@ -59,6 +60,7 @@ struct ohci_hcd_omap_platform_data {
+>  };
+>  
+>  struct usbhs_omap_platform_data {
+> +	int					nports;
+>  	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
+>  
+>  	struct ehci_hcd_omap_platform_data	*ehci_data;
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 87b574b..fda235a 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -495,19 +495,27 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+>  	 */
+>  	pm_runtime_put_sync(dev);
+>  
+> -	switch (omap->usbhs_rev) {
+> -	case OMAP_USBHS_REV1:
+> -		omap->nports = 3;
+> -		break;
+> -	case OMAP_USBHS_REV2:
+> -		omap->nports = 2;
+> -		break;
+> -	default:
+> -		omap->nports = OMAP3_HS_USB_PORTS;
+> -		dev_dbg(dev,
+> -		  "USB HOST Rev : 0x%d not recognized, assuming %d ports\n",
+> -		   omap->usbhs_rev, omap->nports);
+> -		break;
+> +	/*
+> +	 * If platform data contains nports then use that
+> +	 * else make out number of ports from USBHS revision
+> +	 */
+> +	if (pdata->nports) {
+> +			omap->nports = pdata->nports;
+> +	} else {
+> +		switch (omap->usbhs_rev) {
+> +		case OMAP_USBHS_REV1:
+> +			omap->nports = 3;
+> +			break;
+> +		case OMAP_USBHS_REV2:
+> +			omap->nports = 2;
+> +			break;
+> +		default:
+> +			omap->nports = OMAP3_HS_USB_PORTS;
+> +			dev_dbg(dev,
+> +			"USB HOST Rev:0x%d not recognized, assuming %d ports\n",
+> +				omap->usbhs_rev, omap->nports);
+> +			break;
+> +		}
+>  	}
+>  
+>  	for (i = 0; i < omap->nports; i++)
+> -- 
+> 1.7.4.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
