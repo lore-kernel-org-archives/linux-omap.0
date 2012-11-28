@@ -1,12 +1,12 @@
 From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH v5 3/4] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
-Date: Wed, 28 Nov 2012 17:58:58 +0100
-Message-ID: <1354121939-11246-4-git-send-email-zonque@gmail.com>
+Subject: [PATCH v5 1/4] mtd: omap-nand: pass device_node in platform data
+Date: Wed, 28 Nov 2012 17:58:56 +0100
+Message-ID: <1354121939-11246-2-git-send-email-zonque@gmail.com>
 References: <1354121939-11246-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:41521 "EHLO mail.zonque.de"
+Received: from svenfoo.org ([82.94.215.22]:41492 "EHLO mail.zonque.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754822Ab2K1Q7H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751730Ab2K1Q7H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 28 Nov 2012 11:59:07 -0500
 In-Reply-To: <1354121939-11246-1-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,41 +14,40 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, jacmet@sunsite.dk, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>
 
-The am33xx is capable of handling bch error correction modes, so
-enable that feature in the driver.
+Pass an optional device_node pointer in the platform data, which in turn
+will be put into a mtd_part_parser_data. This way, code that sets up the
+platform devices can pass along the node from DT so that the partitions
+can be parsed.
+
+For non-DT boards, this change has no effect.
 
 Signed-off-by: Daniel Mack <zonque@gmail.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/mtd/nand/omap2.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index f9f23a2..c8a72ba 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -92,17 +92,18 @@ static int omap2_nand_gpmc_retime(
- static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
- {
- 	/* support only OMAP3 class */
--	if (!cpu_is_omap34xx()) {
-+	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
- 		pr_err("BCH ecc is not supported on this CPU\n");
- 		return 0;
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 3282b15..a733f15 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1331,6 +1331,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	dma_cap_mask_t mask;
+ 	unsigned sig;
+ 	struct resource			*res;
++	struct mtd_part_parser_data	ppdata = {};
+ 
+ 	pdata = pdev->dev.platform_data;
+ 	if (pdata == NULL) {
+@@ -1556,7 +1557,8 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		goto out_release_mem_region;
  	}
  
- 	/*
--	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1.
--	 * Other chips may be added if confirmed to work.
-+	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
-+	 * and AM33xx derivates. Other chips may be added if confirmed to work.
- 	 */
- 	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
--	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0))) {
-+	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)) &&
-+	    (!soc_is_am33xx())) {
- 		pr_err("BCH 4-bit mode is not supported on this CPU\n");
- 		return 0;
- 	}
+-	mtd_device_parse_register(&info->mtd, NULL, NULL, pdata->parts,
++	ppdata.of_node = pdata->of_node;
++	mtd_device_parse_register(&info->mtd, NULL, &ppdata, pdata->parts,
+ 				  pdata->nr_parts);
+ 
+ 	platform_set_drvdata(pdev, &info->mtd);
 -- 
 1.7.11.7
 
