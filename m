@@ -1,121 +1,85 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/7] OMAPDSS: DISPC: Move DISPC specific dss_reg_fields
- to dispc_features
-Date: Thu, 29 Nov 2012 14:18:20 +0200
-Message-ID: <50B7528C.1090507@ti.com>
-References: <cover.1354086150.git.cmahapatra@ti.com> <a5bbbc9af3ef5ca2636d3c4dea6cbbe9834e0f62.1354086150.git.cmahapatra@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] gpio: New driver for GPO emulation using PWM generators
+Date: Thu, 29 Nov 2012 13:18:11 +0100
+Message-ID: <50B75283.6010207@ti.com>
+References: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com> <20121123075537.A14713E0A91@localhost> <50AF3E21.4000009@ti.com> <50AF4584.7020604@ti.com> <20121126154600.765E03E1AFD@localhost> <50B5D161.6010200@ti.com> <20121128193006.GB23444@avionic-0098.adnet.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigB4A499D2F9B334E4BB6422A2"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53768 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751348Ab2K2MSW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Nov 2012 07:18:22 -0500
-In-Reply-To: <a5bbbc9af3ef5ca2636d3c4dea6cbbe9834e0f62.1354086150.git.cmahapatra@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-
---------------enigB4A499D2F9B334E4BB6422A2
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20121128193006.GB23444@avionic-0098.adnet.avionic-design.de>
+Sender: linux-doc-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, Rob Landley <rob@landley.net>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-On 2012-11-28 12:41, Chandrabhanu Mahapatra wrote:
-> The register fields in dss_reg_fields specific to DISPC are moved from =
-struct
-> omap_dss_features to corresponding dispc_reg_fields, initialized in str=
-uct
-> dispc_features, thereby enabling local access.
+On 11/28/2012 08:30 PM, Thierry Reding wrote:
+> I must say I'm not terribly thrilled to integrate something like this
+> into the PWM subsystem.
+
+I agree. I would not really want to add my name to something like this =
+either...
+
+> I wish hardware engineers wouldn't come up with such designs.
+
+I have checked and rechecked the schematics and datasheets. Still can n=
+ot
+understand how anyone would come to this HW solution (when the twl4030 =
+have at
+least 4 unused GPIO line left unconnected).
+
+> But since this seems to be a real use-case, if we want to
+> support it we should try and find the "right" solution.
 >=20
-> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-> ---
->  drivers/video/omap2/dss/dispc.c        |   87 ++++++++++++++++++++++++=
-++++----
->  drivers/video/omap2/dss/dss.h          |    4 ++
->  drivers/video/omap2/dss/dss_features.c |   28 ----------
->  drivers/video/omap2/dss/dss_features.h |    7 ---
->  4 files changed, 80 insertions(+), 46 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/=
-dispc.c
-> index 9f259ba..21fc522 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -80,6 +80,16 @@ struct dispc_irq_stats {
->  	unsigned irqs[32];
->  };
-> =20
-> +enum dispc_feat_reg_field {
-> +	FEAT_REG_FIRHINC,
-> +	FEAT_REG_FIRVINC,
-> +	FEAT_REG_FIFOLOWTHRESHOLD,
-> +	FEAT_REG_FIFOHIGHTHRESHOLD,
-> +	FEAT_REG_FIFOSIZE,
-> +	FEAT_REG_HORIZONTALACCU,
-> +	FEAT_REG_VERTICALACCU,
-> +};
-> +
->  struct dispc_features {
->  	u8 sw_start;
->  	u8 fp_start;
-> @@ -107,6 +117,8 @@ struct dispc_features {
-> =20
->  	u32 buffer_size_unit;
->  	u32 burst_size_unit;
-> +
-> +	struct register_field *reg_fields;
->  };
+> Reading the above sounds overly complicated. Couldn't we, instead of
+> instantiating an extra driver, just register a GPIO chip if a chip wa=
+nts
+> to support this functionality? Where the GPIO chip's request callback
+> requests the given PWM so that it cannot be used elsewhere? The
+> direction_input callback would need to always fail and the set callba=
+ck
+> can configure the PWM either to 0% or 100% duty-cycle depending on th=
+e
+> desired output value.
 
-Hmm, would it be simpler to have an explicit struct for the reg fields.
-I mean something like:
+The original driver was doing exactly this. Basically I have added a GP=
+O chip
+(which was just a translator from PWM to GPO). In DT it looked like thi=
+s:
 
-struct dispc_reg_fields {
-	struct register_field firhinc;
-	struct register_field firvinc;
-	struct register_field fifo_low_threshold;
-	...
+twl_pwm: pwm {
+	compatible =3D "ti,twl4030-pwmled";
+	#pwm-cells =3D <2>;
 };
 
-Then accessing it would be
+pwm_gpo1: gpo1 {
+	compatible =3D "pwm-gpo";
+	#gpio-cells =3D <1>;
+	gpio-controller;
+	pwms =3D <&twl_pwm 0 7812500>;
+	pwm-names =3D "nUSBHOST_PWR_EN";
+};
 
-dispc.feat->reg_fields.firhinc.start;
+user@1 {
+	compatible =3D "example,testuser";
+	gpios =3D <&pwm_gpo1 0>;
+};
 
-instead of
+When we boot with DT the pwm_get() needs pwms phandle from the device y=
+ou are
+calling it in order to find the PWM in question. If we do not have DT e=
+ntry
+for the GPO driver, we need to build up a pwm_lookup table to ensure th=
+at the
+pwm_get() will find the PWM we want to handle.
 
-dispc.feat->reg_fields[FEAT_REG_FIFOSIZE].start;
+We could implement the GPIO related code under for example
+drivers/pwm/pwm-as-gpo.c
+But then I should merge the code from drivers/gpio/gpio-pwm.c inside.
+This is not nice either since we will have a GPIO driver living under p=
+wm/
+directory and I'm not sure how this would use the pwm API when the GPO
+functionality is requested.
 
-Not a big difference, but I don't see any benefit in having an array of
-reg fields here.
-
- Tomi
-
-
-
---------------enigB4A499D2F9B334E4BB6422A2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQt1KMAAoJEPo9qoy8lh71fTMP/iYAgHtdt/ZIzWhEHl7rMXTB
-bS0SImiLzhwy1ZiX5aYZW0gR/AJ3yggw0V+ZDJGaYQ77cFg1UzvPFgSau8BWuhN6
-ppukIkOCaaQAZBb7JqTe6IgyQEYqFMBPHmsvMCR14r8lbdxU8d5MMJUHOV3t5dW2
-IMKxN5WMr613+qb6krfvtyHjbUD41ZlpbV0j2gpV7sDy9SiEmVfg+kQ+N16Ft8ep
-2IQKlH6jtvEXAs0mb5YPRtBitq8P9DISWbkf37NR8hPUA4/rI04oatle44gk74Bz
-zbu7U5eb/t7mnQfBzMRMET4kR9tLvJVd9m+1TtjeGhoZ5etTnj7TfyQSH4ny3EDO
-DDMbFRzleu9TUs3z4LEUXH74wtaDUGTifkpINXQtHU7nJ9gNB0pBmCxoTY1+KyLr
-gtb2Ob1nCBCWnx5vzdYEbK306uW1pbLUuVKtcu5FWeygnKP33x1Bda7ItWI1QFcK
-AhKIzLeuv+dc/ieOOIEqTz/1EK9oqrLFAohip+0/WMUCSEco0VvgqzOn8ZDgpMg3
-kFkdsZcQ5Ixd9pISv6AP0M44KcZwsSHCrq8iHh+cU2fyYJ3TKA/Yf4P19UdMMSQX
-l2yD1cYwWs/tIalXpWBBPEprlJ++Y/SJoFEJA7PKoXHnYdozEZtmzVhPPS9cmciW
-upz2E+zeU17oCU1FuTY6
-=z7eN
------END PGP SIGNATURE-----
-
---------------enigB4A499D2F9B334E4BB6422A2--
+--=20
+P=E9ter
