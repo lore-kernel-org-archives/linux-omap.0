@@ -1,200 +1,154 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v6 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Thu, 29 Nov 2012 21:56:18 +0100
-Message-ID: <50B7CBF2.3040908@gmail.com>
-References: <1354204892-22762-1-git-send-email-zonque@gmail.com> <1354204892-22762-6-git-send-email-zonque@gmail.com> <50B7C57C.3070701@ti.com>
+From: Andy Green <andy.green@linaro.org>
+Subject: Re: [try#1 PATCH 5/7] omap4: panda: add smsc95xx regulator and reset
+ dependent on root hub
+Date: Fri, 30 Nov 2012 04:58:51 +0800
+Message-ID: <50B7CC8B.5050802@linaro.org>
+References: <Pine.LNX.4.44L0.1211291247130.1535-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:56132 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751689Ab2K2U4Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 15:56:24 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so6493465bkw.19
-        for <linux-omap@vger.kernel.org>; Thu, 29 Nov 2012 12:56:23 -0800 (PST)
-In-Reply-To: <50B7C57C.3070701@ti.com>
+Received: from warmcat.com ([87.106.134.80]:51071 "EHLO warmcat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751689Ab2K2U7E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Nov 2012 15:59:04 -0500
+In-Reply-To: <Pine.LNX.4.44L0.1211291247130.1535-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, jacmet@sunsite.dk, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, keshava_mgowda@ti.com, balbi@ti.com
 
-On 29.11.2012 21:28, Jon Hunter wrote:
-> 
-> On 11/29/2012 10:01 AM, Daniel Mack wrote:
->> This patch adds basic DT bindings for OMAP GPMC.
->>
->> The actual peripherals are instantiated from child nodes within the GPMC
->> node, and the only type of device that is currently supported is NAND.
->>
->> Code was added to parse the generic GPMC timing parameters and some
->> documentation with examples on how to use them.
->>
->> Successfully tested on an AM33xx board.
->>
->> Signed-off-by: Daniel Mack <zonque@gmail.com>
->> ---
->>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  76 +++++++++
->>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  76 +++++++++
->>  arch/arm/mach-omap2/gpmc.c                         | 171 ++++++++++++++++++++-
->>  3 files changed, 322 insertions(+), 1 deletion(-)
->>  create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->>
->> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> new file mode 100644
->> index 0000000..ba3d6a5
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> @@ -0,0 +1,76 @@
->> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
->> +
->> +The actual devices are instantiated from the child nodes of a GPMC node.
->> +
->> +Required properties:
->> +
->> + - compatible:		Should be set to "ti,gpmc"
->> + - reg:			A resource specifier for the register space
->> +			(see the example below)
->> + - ti,hwmods:		Should be set to "ti,gpmc" until the DT transition is
->> +			completed.
->> + - #address-cells:	Must be set to 2 to allow memory address translation
->> + - #size-cells:		Must be set to 1 to allow CS address passing
->> + - num-cs:		The maximum number of chip-select lines that controller
->> +			can support.
->> + - num-waitpins:	The maximum number of wait pins that controller can
->> +			support.
->> + - ranges:		Must be set up to reflect the memory layout with four
->> +			integer values for each chip-select line in use:
->> +
->> +			   <cs-number> 0 <physical address of mapping> <size>
->> +
->> +			Note that this property is not currently parsed.
->> +			Calculated values derived from the contents of the
->> +			per-CS register GPMC_CONFIG7 (as set up by the
->> +			bootloader) are used. That will change in the future,
->> +			so be sure to fill the correct values here.
->> +
->> +Timing properties for child nodes. All are optional and default to 0.
->> +
->> + - gpmc,sync-clk:	Minimum clock period for synchronous mode, in picoseconds
->> +
->> + Chip-select signal timings corresponding to GPMC_CONFIG2:
->> + - gpmc,cs-on:		Assertion time
->> + - gpmc,cs-rd-off:	Read deassertion time
->> + - gpmc,cs-wr-off:	Write deassertion time
->> +
->> + ADV signal timings corresponding to GPMC_CONFIG3:
->> + - gpmc,adv-on:		Assertion time
->> + - gpmc,adv-rd-off:	Read deassertion time
->> + - gpmc,adv-wr-off:	Write deassertion time
->> +
->> + WE signals timings corresponding to GPMC_CONFIG4:
->> + - gpmc,we-on:		Assertion time
->> + - gpmc,we-off:		Deassertion time
->> +
->> + OE signals timings corresponding to GPMC_CONFIG4:
->> + - gpmc,oe-on:		Assertion time
->> + - gpmc,oe-off:		Deassertion time
->> +
->> + Access time and cycle time timings corresponding to GPMC_CONFIG5:
->> + - gpmc,page-burst-access: Multiple access word delay
->> + - gpmc,access:		Start-cycle to first data valid delay
->> + - gpmc,rd-cycle:	Total read cycle time
->> + - gpmc,wr-cycle:	Total write cycle time
->> +
->> +The following are only on OMAP3430:
->> + - gpmc,wr-access
->> + - gpmc,wr-data-mux-bus
-> 
-> Actually, these are applicable to AM335x as well. I believe that the
-> comment should be "applicable to OMAP3+ and AM335x". The gpmc driver was
-> updated to set the flags for these features based upon gpmc version ID.
-> 
->> +
->> +
->> +Example for an AM33xx board:
->> +
->> +	gpmc: gpmc@50000000 {
->> +		compatible = "ti,gpmc";
->> +		ti,hwmods = "gpmc";
->> +		reg = <0x50000000 0x2000>;
->> +		interrupts = <100>;
->> +
->> +		num-cs = <8>;
->> +		#address-cells = <2>;
->> +		#size-cells = <1>;
->> +		ranges = <0 0 0x08000000 0x10000000>; /* CS0 @addr 0x8000000, size 0x10000000 */
-> 
-> Nit, you have num-wait pins as a required property but not shown here in
-> the example.
-> 
->> +
->> +		/* child nodes go here */
->> +	};
->> diff --git a/Documentation/devicetree/bindings/mtd/gpmc-nand.txt b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->> new file mode 100644
->> index 0000000..58c876f
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->> @@ -0,0 +1,76 @@
->> +Device tree bindings for GPMC connected NANDs
->> +
->> +GPMC connected NAND (found on OMAP boards) are represented as child nodes of
->> +the GPMC controller with a name of "nand".
->> +
->> +All timing relevant properties as well as generic gpmc child properties are
->> +explained in a separate documents - please refer to
->> +Documentation/devicetree/bindings/bus/ti-gpmc.txt
->> +
->> +For NAND specific properties such as ECC modes or bus width, please refer to
->> +Documentation/devicetree/bindings/mtd/nand.txt
->> +
->> +
->> +Required properties:
->> +
->> + - reg:		The CS line the peripheral is connected to
->> +
->> +Optional properties:
->> +
->> + - nand-bus-width: 		Set this numeric value to 16 if the hardware
->> +				is wired that way. If not specified, a bus
->> +				width of 8 is assumed.
->> +
->> + - ti,nand-ecc-opt:		A string setting the ECC layout to use. One of:
->> +
->> +		"sw"		Software method (default)
->> +		"hw"		Hardware method
->> +		"hw-romcode"	gpmc hamming mode method & romcode layout
->> +		"bch4"		4-bit BCH ecc code
->> +		"bch8"		8-bit BCH ecc code
->> +
->> +For inline partiton table parsing (optional):
->> +
->> + - #address-cells: should be set to 1
->> + - #size-cells: should be set to 1
->> +
->> +Example for an AM33xx board:
->> +
->> +	gpmc: gpmc@50000000 {
->> +		compatible = "ti,gpmc";
->> +		ti,hwmods = "gpmc";
->> +		reg = <0x50000000 0x1000000>;
-> 
-> Nit, good to make reg size consistent with the above example.
-> 
->> +		interrupts = <100>;
->> +		num-cs = <8>;
->> +		num-waitpins = <8>;
-> 
-> Nit, AM335x only has 2 wait-pins. Number of wait-pins is typically less
-> than number of CS pins.
-> 
-> Other than these minor comments, looks good to me. Thanks for updating.
+On 11/30/2012 01:57 AM, the mail apparently from Alan Stern included:
+> On Thu, 29 Nov 2012, Andy Green wrote:
+>
+>> However I think what you're saying about binding to hub power is goo=
+d.
+>> The hub ports are not devices, but it would be possible to bind an a=
+sset
+>> array to them and make the pre- and post- code functions.
+>
+> In the 3.6 kernel, hub ports are not devices.  In 3.7 they are -- tha=
+t
+> is, each hub port has its own struct device.
 
-Thanks for these remarks! All fixed locally. I can send out a v7 tomorrow.
+Right, I should have seen this in hub.c before.  It's much better like =
+that.
+
+>> I think it will be possible to address objections around the "pathin=
+ess"
+>> by being able to seed the path match with a platform_device pointer
+>> (there exists in the board file time a platform_device for ehci-omap=
+=2E0
+>> ...) and just matching the remainder on a single usb device's name, =
+like
+>> "*-1.1-1".
+>
+> Can you think of a way to do this without checking for a match every
+> time a new device is registered?  For instance, in this case it would
+> be preferable to do this match only for descendants of ehci-omap.0.  =
+To
+> match the port device, the string would have to be something like
+> "*-0:1.0/port2".
+
+Yes.  How about adding a third callback to struct device_asset, along=20
+the lines of
+
+	int (*pre_child_register)(struct device *child);
+
+then, in register_device() we add code that before we get down to it, w=
+e=20
+walk up the new device's parents calling ->pre_child_register() on any=20
+assets the parents may have.  In the typical case that's a rapid NOP=20
+once per device registration.
+
+However... if we had arranged back at boot time that the ehci-omap.0=20
+struct device had an asset with only pre_device_register callback set,=20
+we can use that asset's .name for the right-justified child device name=
+=20
+we are looking for like "-0:1.0/port2", and its .asset member to point=20
+to another asset table the pre_child_register callback will attach to=20
+the child device if the name matches.  So in the board file:
+
+	struct device_asset ehci_omap0_smsc_hub_port_assets[] =3D {
+		/* the smsc regulator and clock assets destined for the hub port */
+		{ }
+	};
+
+	/* below is attached to ehci-omap.0 like in try#1 */
+
+	struct device_asset ehci_omap0_assets[] =3D {
+		{
+			.name =3D "-0:1.0/port2",
+			.asset =3D ehci_omap0_smsc_hub_port_assets,
+			.pre_child_register =3D device_asset_attach_to_child,
+		},
+		{ }
+	};
+
+In that way we can project as many stashed asset tables on to=20
+dynamically probed devices as we like from the platform_devices at boot=
+=20
+time.  Only children of the right platform devices do any checking or=20
+processing.
+
+> In fact, if the match were anchored at the end of the string, we
+> wouldn't need the wildcard at all -- at least, not in this case.  The
+> string could simply be "-0:1.0/port2".  But that's only if the match =
+is
+> restricted to devices below ehci-omap.0.
+
+It's a good idea, it won't get fooled by a hub getting plugged there=20
+which has its own port2 either, the -0:1.0 bit will have been elaborate=
+d=20
+for the subsequent hub "path" and won't match.
 
 
-Best,
-Daniel
+It may be neater to split out the device_asset callbacks to an ..._ops=20
+struct.
+
+	struct device_asset_ops {
+		int (*pre_probe)(struct device *device, struct device_asset *asset);
+		void (*post_remove)(struct device *device, struct device_asset *asset=
+);
+		int (*pre_child_register)(struct device *child);
+	};
+
+	struct device_asset {
+		...
+		struct device_asset_ops *ops;
+	};
+
+that also lets us export and set one thing to select say regulator=20
+"handler", instead of n callbacks that must match.
+
+
+Something else I think mux would be a great target for device_asset=20
+support.  That way it could become normal for mux function to get set a=
+s=20
+part of the specific device instantiation, so if you know you have an=20
+8-bit ULPI PHY that will be logically created by the platform_device,=20
+you can attach ULPI-mode mux config appropriate for your exact SoC as a=
+n=20
+asset to the platform_device.
+
+When the device is destroyed, balls can go back to safe mode and save=20
+power, and if the balls are muxed with other things again the right mux=
+=20
+asset can be associated with that so it switches automagically accordin=
+g=20
+to what you are doing.  That's a lot better than forcing them once at=20
+boot which is the current method.  Are there any gotchas with that?
+
+-Andy
+
+--=20
+Andy Green | TI Landing Team Leader
+Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
+http://facebook.com/pages/Linaro/155974581091106  -=20
+http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
