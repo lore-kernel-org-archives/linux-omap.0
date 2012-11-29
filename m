@@ -1,154 +1,104 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [try#1 PATCH 5/7] omap4: panda: add smsc95xx regulator and reset
- dependent on root hub
-Date: Fri, 30 Nov 2012 04:58:51 +0800
-Message-ID: <50B7CC8B.5050802@linaro.org>
-References: <Pine.LNX.4.44L0.1211291247130.1535-100000@iolanthe.rowland.org>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v6 4/5] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
+Date: Thu, 29 Nov 2012 14:59:29 -0600
+Message-ID: <50B7CCB1.6000506@ti.com>
+References: <1354204892-22762-1-git-send-email-zonque@gmail.com> <1354204892-22762-5-git-send-email-zonque@gmail.com> <50B7BE9C.6040506@ti.com> <50B7C677.7090504@ti.com> <50B7C8BE.7050002@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:51071 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751689Ab2K2U7E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Nov 2012 15:59:04 -0500
-In-Reply-To: <Pine.LNX.4.44L0.1211291247130.1535-100000@iolanthe.rowland.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57827 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754836Ab2K2U7i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 15:59:38 -0500
+In-Reply-To: <50B7C8BE.7050002@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Roger Quadros <rogerq@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, gregkh@linuxfoundation.org, keshava_mgowda@ti.com, balbi@ti.com
-
-On 11/30/2012 01:57 AM, the mail apparently from Alan Stern included:
-> On Thu, 29 Nov 2012, Andy Green wrote:
->
->> However I think what you're saying about binding to hub power is goo=
-d.
->> The hub ports are not devices, but it would be possible to bind an a=
-sset
->> array to them and make the pre- and post- code functions.
->
-> In the 3.6 kernel, hub ports are not devices.  In 3.7 they are -- tha=
-t
-> is, each hub port has its own struct device.
-
-Right, I should have seen this in hub.c before.  It's much better like =
-that.
-
->> I think it will be possible to address objections around the "pathin=
-ess"
->> by being able to seed the path match with a platform_device pointer
->> (there exists in the board file time a platform_device for ehci-omap=
-=2E0
->> ...) and just matching the remainder on a single usb device's name, =
-like
->> "*-1.1-1".
->
-> Can you think of a way to do this without checking for a match every
-> time a new device is registered?  For instance, in this case it would
-> be preferable to do this match only for descendants of ehci-omap.0.  =
-To
-> match the port device, the string would have to be something like
-> "*-0:1.0/port2".
-
-Yes.  How about adding a third callback to struct device_asset, along=20
-the lines of
-
-	int (*pre_child_register)(struct device *child);
-
-then, in register_device() we add code that before we get down to it, w=
-e=20
-walk up the new device's parents calling ->pre_child_register() on any=20
-assets the parents may have.  In the typical case that's a rapid NOP=20
-once per device registration.
-
-However... if we had arranged back at boot time that the ehci-omap.0=20
-struct device had an asset with only pre_device_register callback set,=20
-we can use that asset's .name for the right-justified child device name=
-=20
-we are looking for like "-0:1.0/port2", and its .asset member to point=20
-to another asset table the pre_child_register callback will attach to=20
-the child device if the name matches.  So in the board file:
-
-	struct device_asset ehci_omap0_smsc_hub_port_assets[] =3D {
-		/* the smsc regulator and clock assets destined for the hub port */
-		{ }
-	};
-
-	/* below is attached to ehci-omap.0 like in try#1 */
-
-	struct device_asset ehci_omap0_assets[] =3D {
-		{
-			.name =3D "-0:1.0/port2",
-			.asset =3D ehci_omap0_smsc_hub_port_assets,
-			.pre_child_register =3D device_asset_attach_to_child,
-		},
-		{ }
-	};
-
-In that way we can project as many stashed asset tables on to=20
-dynamically probed devices as we like from the platform_devices at boot=
-=20
-time.  Only children of the right platform devices do any checking or=20
-processing.
-
-> In fact, if the match were anchored at the end of the string, we
-> wouldn't need the wildcard at all -- at least, not in this case.  The
-> string could simply be "-0:1.0/port2".  But that's only if the match =
-is
-> restricted to devices below ehci-omap.0.
-
-It's a good idea, it won't get fooled by a hub getting plugged there=20
-which has its own port2 either, the -0:1.0 bit will have been elaborate=
-d=20
-for the subsequent hub "path" and won't match.
+To: Daniel Mack <zonque@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, x0148406@ti.com, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, rob.herring@calxeda.com, avinashphilip@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 
-It may be neater to split out the device_asset callbacks to an ..._ops=20
-struct.
 
-	struct device_asset_ops {
-		int (*pre_probe)(struct device *device, struct device_asset *asset);
-		void (*post_remove)(struct device *device, struct device_asset *asset=
-);
-		int (*pre_child_register)(struct device *child);
-	};
+On 11/29/2012 02:42 PM, Daniel Mack wrote:
+> On 29.11.2012 21:32, Jon Hunter wrote:
+>>
+>> On 11/29/2012 01:59 PM, Jon Hunter wrote:
+>>>
+>>> On 11/29/2012 10:01 AM, Daniel Mack wrote:
+>>>> The am33xx is capable of handling bch error correction modes, so
+>>>> enable that feature in the driver.
+>>>>
+>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>>> ---
+>>>>  arch/arm/mach-omap2/gpmc-nand.c | 9 +++++----
+>>>>  1 file changed, 5 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+>>>> index f9f23a2..c8a72ba 100644
+>>>> --- a/arch/arm/mach-omap2/gpmc-nand.c
+>>>> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+>>>> @@ -92,17 +92,18 @@ static int omap2_nand_gpmc_retime(
+>>>>  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+>>>>  {
+>>>>  	/* support only OMAP3 class */
+>>>> -	if (!cpu_is_omap34xx()) {
+>>>> +	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
+>>>>  		pr_err("BCH ecc is not supported on this CPU\n");
+>>>>  		return 0;
+>>>>  	}
+>>>>  
+>>>>  	/*
+>>>> -	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1.
+>>>> -	 * Other chips may be added if confirmed to work.
+>>>> +	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
+>>>> +	 * and AM33xx derivates. Other chips may be added if confirmed to work.
+>>>>  	 */
+>>>>  	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
+>>>> -	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0))) {
+>>>> +	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)) &&
+>>>> +	    (!soc_is_am33xx())) {
+>>>>  		pr_err("BCH 4-bit mode is not supported on this CPU\n");
+>>>>  		return 0;
+>>>>  	}
+>>>
+>>> Sorry I should have seen this earlier. Ideally, this type of thing
+>>> should be reflected by the device-tree/platform-data and we should get
+>>> away from these cpu_is_xxxx macros for hardware features (where we can).
+>>> Furthermore, we need to avoid including plat-omap/gpmc.h in drivers for
+>>> the single zImage work (I see the omap nand driver is including gpmc.h).
+>>>
+>>> Tony, should this be addressed now or can we live this for the minute
+>>> and fix-up later?
+>>
+>> Actually, I see that you do read the ecc mode from DT, so is this really
+>> needed? It would be good to eliminate this.
+> 
+> The ecc mode is read from DT, right. But the gpmc bindings can be used
+> for many OMAP derivates in the future, and this check is there to make
+> sure the configured settings are supported by the hardware after all,
+> just like if the ecc mode would have been passed as static platform
+> data. So what is it exactly that you want to get rid of?
 
-	struct device_asset {
-		...
-		struct device_asset_ops *ops;
-	};
+The above function.
 
-that also lets us export and set one thing to select say regulator=20
-"handler", instead of n callbacks that must match.
+If there is a hardware bug that prevents us from using the hw-ecc mode
+that is supported (which is the case for omap3630 es1.0), then we should
+have a GPMC_ERRATA_xxx flag somewhere to indicate this and these errata
+flags should be populated at probe.
 
+> I agree though that we could solve this with via the of_device_id's data
+> pointer of the matching driver. But as you said yourself, this can well
+> be done later, and the problem here is that we still need the
+> cpu_is_xxx() macros for older platforms, right?
 
-Something else I think mux would be a great target for device_asset=20
-support.  That way it could become normal for mux function to get set a=
-s=20
-part of the specific device instantiation, so if you know you have an=20
-8-bit ULPI PHY that will be logically created by the platform_device,=20
-you can attach ULPI-mode mux config appropriate for your exact SoC as a=
-n=20
-asset to the platform_device.
+Yes, but we cannot/shouldn't use these cpu_is_xxx macros from within
+driver code. Ok, here we can calling a platform function that is calling
+the macro, but for single zImage we cannot do that either. We cannot
+include platform headers in drivers for single zImage. We have to get
+away from that. Therefore, such information needs to be passed by
+platform data, device tree, etc.
 
-When the device is destroyed, balls can go back to safe mode and save=20
-power, and if the balls are muxed with other things again the right mux=
-=20
-asset can be associated with that so it switches automagically accordin=
-g=20
-to what you are doing.  That's a lot better than forcing them once at=20
-boot which is the current method.  Are there any gotchas with that?
+I will let Tony decide on how he wants us to handle this.
 
--Andy
-
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers
+Jon
