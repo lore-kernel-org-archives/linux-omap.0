@@ -1,82 +1,82 @@
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-Subject: Re: [PATCH] staging: drm/omap: fix missing include on omap_crtc
-Date: Thu, 29 Nov 2012 22:48:15 +0100
-Message-ID: <CAFqH_512yjfuPJ1OWbihMwDYcDLn+Ok9ytZes9Qnn8NB2E9zBA@mail.gmail.com>
-References: <1354107300-26619-1-git-send-email-eballetbo@gmail.com>
-	<50B7CFEC.6040109@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] of: dma: Fix-up for warnings !CONFIG_OF
+Date: Thu, 29 Nov 2012 16:24:27 -0600
+Message-ID: <1354227867-13357-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:57860 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754972Ab2K2VsP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 16:48:15 -0500
-Received: by mail-pa0-f46.google.com with SMTP id bh2so7930439pad.19
-        for <linux-omap@vger.kernel.org>; Thu, 29 Nov 2012 13:48:15 -0800 (PST)
-In-Reply-To: <50B7CFEC.6040109@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:60018 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751384Ab2K2WYw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Nov 2012 17:24:52 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob@ti.com>
-Cc: gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Rob Herring <robherring2@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Fengguang Wu <fengguang.wu@intel.com>, Jon Hunter <jon-hunter@ti.com>
 
-Hi Rob,
+When compiling the kernel with DMA engine support enabled and device-tree
+support disabled, the following warnings are observed.
 
-2012/11/29 Rob Clark <rob@ti.com>:
-> On 11/28/2012 06:55 AM, Enric Balletbo i Serra wrote:
->>
->> From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
->>
->> This fixes following error:
->>
->> | ...
->> | CC [M]  drivers/staging/omapdrm/omap_crtc.o
->> | .../omapdrm/omap_crtc.c:22:22: fatal error: drm_mode.h: No such file or
->> directory
->> | ...
->
->
-> fwiw, I have this patch in my local tree that is fixing the same issue:
->
-> https://patchwork.kernel.org/patch/1588461/
->
+In file included from drivers/dma/dmaengine.c:65:0:
+include/linux/of_dma.h: In function 'of_dma_controller_free':
+include/linux/of_dma.h:57:1: warning: no return statement in function
+	returning non-void [-Wreturn-type]
+drivers/dma/dmaengine.c: At top level:
+include/linux/of_dma.h:47:12: warning: 'of_dma_controller_register'
+	defined but not used [-Wunused-function]
+include/linux/of_dma.h:55:12: warning: 'of_dma_controller_free' defined
+	but not used [-Wunused-function]
+include/linux/of_dma.h:65:25: warning: 'of_dma_simple_xlate' defined
+	but not used [-Wunused-function]
 
-Thanks, I didn't see this patch in linux-omap ML and others ML that
-I'm subscribed. Please skip this patch.
+Fix-up the warnings by adding a return value for the
+of_dma_controller_free() stub and make all the stubs static inline to
+avoid the unused warnings.
 
->
-> and I think I've seen at least one other patch for the same thing..   it
-> would be nice to at least get one version of this fix in 3.7..
->
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ include/linux/of_dma.h |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-Completely agree.
+diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
+index 84b64f8..b14a34f 100644
+--- a/include/linux/of_dma.h
++++ b/include/linux/of_dma.h
+@@ -44,7 +44,7 @@ extern struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+ extern struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
+ 		struct of_dma *ofdma);
+ #else
+-static int of_dma_controller_register(struct device_node *np,
++static inline int of_dma_controller_register(struct device_node *np,
+ 		struct dma_chan *(*of_dma_xlate)
+ 		(struct of_phandle_args *, struct of_dma *),
+ 		void *data)
+@@ -52,18 +52,19 @@ static int of_dma_controller_register(struct device_node *np,
+ 	return -ENODEV;
+ }
+ 
+-static int of_dma_controller_free(struct device_node *np)
++static inline int of_dma_controller_free(struct device_node *np)
+ {
++	return 0;
+ }
+ 
+-static struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+-						     char *name)
++static inline struct dma_chan *of_dma_request_slave_channel(
++		struct device_node *np, char *name)
+ {
+ 	return NULL;
+ }
+ 
+-static struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
+-		struct of_dma *ofdma)
++static inline struct dma_chan *of_dma_simple_xlate(
++		struct of_phandle_args *dma_spec, struct of_dma *ofdma)
+ {
+ 	return NULL;
+ }
+-- 
+1.7.10.4
 
-Best regards,
-   Enric
-
-> BR,
-> -R
->
->
->>
->> Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
->> ---
->>   drivers/staging/omapdrm/omap_crtc.c |    4 ++--
->>   1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/staging/omapdrm/omap_crtc.c
->> b/drivers/staging/omapdrm/omap_crtc.c
->> index 732f2ad..1d54fe9 100644
->> --- a/drivers/staging/omapdrm/omap_crtc.c
->> +++ b/drivers/staging/omapdrm/omap_crtc.c
->> @@ -17,9 +17,9 @@
->>    * this program.  If not, see <http://www.gnu.org/licenses/>.
->>    */
->>   -#include "omap_drv.h"
->> +#include <drm/drm_mode.h>
->>   -#include "drm_mode.h"
->> +#include "omap_drv.h"
->>   #include "drm_crtc.h"
->>   #include "drm_crtc_helper.h"
->>
->
->
