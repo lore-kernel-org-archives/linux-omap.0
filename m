@@ -1,47 +1,59 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [try#1 PATCH 5/7] omap4: panda: add smsc95xx regulator and reset
- dependent on root hub
-Date: Thu, 29 Nov 2012 12:57:09 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1211291247130.1535-100000@iolanthe.rowland.org>
-References: <50B6F8CF.8020304@linaro.org>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v6 1/5] ARM: OMAP: gpmc: don't create devices from initcall
+ on DT
+Date: Thu, 29 Nov 2012 12:00:43 -0600
+Message-ID: <50B7A2CB.4020407@ti.com>
+References: <1354204892-22762-1-git-send-email-zonque@gmail.com>
+ <1354204892-22762-2-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50B6F8CF.8020304-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1354204892-22762-2-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, avinashphilip-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 29 Nov 2012, Andy Green wrote:
 
-> However I think what you're saying about binding to hub power is good. 
-> The hub ports are not devices, but it would be possible to bind an asset 
-> array to them and make the pre- and post- code functions.
+On 11/29/2012 10:01 AM, Daniel Mack wrote:
+> On DT driven boards, the gpmc node will match the driver. Hence, there's
+> no need to do that unconditionally from the initcall.
+> 
+> Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/gpmc.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index 60f1cce..1dcb30c 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -844,6 +844,13 @@ static int __init omap_gpmc_init(void)
+>  	struct platform_device *pdev;
+>  	char *oh_name = "gpmc";
+>  
+> +	/*
+> +	 * if the board boots up with a populated DT, do not
+> +	 * manually add the device from this initcall
+> +	 */
+> +	if (of_have_populated_dt())
+> +		return -ENODEV;
+> +
+>  	oh = omap_hwmod_lookup(oh_name);
+>  	if (!oh) {
+>  		pr_err("Could not look up %s\n", oh_name);
 
-In the 3.6 kernel, hub ports are not devices.  In 3.7 they are -- that 
-is, each hub port has its own struct device.
+Acked-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 
-> I think it will be possible to address objections around the "pathiness" 
-> by being able to seed the path match with a platform_device pointer 
-> (there exists in the board file time a platform_device for ehci-omap.0 
-> ...) and just matching the remainder on a single usb device's name, like 
-> "*-1.1-1".
-
-Can you think of a way to do this without checking for a match every 
-time a new device is registered?  For instance, in this case it would 
-be preferable to do this match only for descendants of ehci-omap.0.  To 
-match the port device, the string would have to be something like 
-"*-0:1.0/port2".
-
-In fact, if the match were anchored at the end of the string, we 
-wouldn't need the wildcard at all -- at least, not in this case.  The 
-string could simply be "-0:1.0/port2".  But that's only if the match is 
-restricted to devices below ehci-omap.0.
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Jon
