@@ -1,56 +1,43 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v5 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Thu, 29 Nov 2012 13:41:42 +0100
-Message-ID: <50B75806.8030501@gmail.com>
-References: <1354121939-11246-1-git-send-email-zonque@gmail.com> <1354121939-11246-5-git-send-email-zonque@gmail.com> <518397C60809E147AF5323E0420B992E3EA0B986@DBDE01.ent.ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: omap DSS fails with tft410 driver panel?
+Date: Thu, 29 Nov 2012 06:18:52 -0800
+Message-ID: <CAGDS+n=oQYr+24mX6bdgtW=fzvfvfX5rAvNXXpxM4YKPxHDodQ@mail.gmail.com>
+References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com>
+	<CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com>
+	<50ADE6A5.3030001@ti.com>
+	<CAGDS+nm2YVNyq+eAF-VSq785KAKWC2GM4v5U7N1vLGTNNDfa7Q@mail.gmail.com>
+	<50AF37EA.3080400@ti.com>
+	<CAGDS+nncx71OL7tiwEot6RcyFxipj_SVg=z5Sg-Qdv2n4iyL2A@mail.gmail.com>
+	<50B4A4D7.2070203@ti.com>
+	<CAGDS+nmaGK1igkYnz0EQEycUU=LsD5yz9wxmipSnWohKvAPTXA@mail.gmail.com>
+	<50B74592.3020308@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:46767 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753896Ab2K2Mls (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 07:41:48 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so6230488bkw.19
-        for <linux-omap@vger.kernel.org>; Thu, 29 Nov 2012 04:41:46 -0800 (PST)
-In-Reply-To: <518397C60809E147AF5323E0420B992E3EA0B986@DBDE01.ent.ti.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:60410 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754398Ab2K2OSy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 09:18:54 -0500
+Received: by mail-oa0-f46.google.com with SMTP id h16so14510414oag.19
+        for <linux-omap@vger.kernel.org>; Thu, 29 Nov 2012 06:18:54 -0800 (PST)
+In-Reply-To: <50B74592.3020308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, "jacmet@sunsite.dk" <jacmet@sunsite.dk>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
-On 29.11.2012 13:36, Philip, Avinash wrote:
-> On Wed, Nov 28, 2012 at 22:28:59, Daniel Mack wrote:
-> [...]
->> +	if (!of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
->> +		for (val = 0; val < ARRAY_SIZE(nand_ecc_opts); val++)
->> +			if (!strcasecmp(s, nand_ecc_opts[val])) {
->> +				gpmc_nand_data->ecc_opt = val;
->> +				break;
->> +			}
->> +
->> +		/*
->> +		 *  AM335x RBL compatibility mode - dependns on runtime
->> +		 * detection of the error location module.
->> +		 */
->> +		if (!strcasecmp(s, "bch8-am335xrbl-compatible")) {
->> +			gpmc_nand_data->ecc_opt = OMAP_ECC_BCH8_CODE_HW;
->> +			gpmc_nand_data->is_elm_used = true;
-> 
-> Remove is_elm_used from struct omap_nand_platform_data. Now this data
-> populated as part of run time detection of elm module. So please remove
-> The usage of is_elm_used;
+On Thu, Nov 29, 2012 at 3:22 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 2012-11-27 21:15, Steve Sakoman wrote:
+>> It seems that dss_mgr_check_timings is being called with a null dssdev->manager.
+>>
+>> Other than the fact that there should be a null pointer check in the
+>> code, it seems that this is a regression since it used to be possible
+>> to switch the default display in this fashion.  Is this no longer
+>> allowed?
+>
+> It is allowed. Which kernel is that? I tried v3.7-rc4 and the current
+> omapdss master, both work for me with overo + lcd43 add on.
 
-So why do we need "bch8-am335xrbl-compatible" as special case then?
+It is stock Linux 3.6 (i.e. commit a0d271cbfed1dd50278c6b06bead3d00ba0a88f9)
 
-I thought the whole idea here is to tell the driver we want bch8 *and*
-the usage of the elm, instead of falling back to the (incompatible)
-software mode? If I remove that assignment, "bch8-am335xrbl-compatible"
-is the same than "bch8".
-
-Which detail am I missing? :)
-
-
-Daniel
-
+Steve
