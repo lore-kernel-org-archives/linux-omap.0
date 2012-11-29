@@ -1,7 +1,7 @@
 From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: [PATCH 1/3] omap: craneboard: support NAND device
-Date: Thu, 29 Nov 2012 06:41:37 +0000
-Message-ID: <A874F61F95741C4A9BA573A70FE3998F6418F138@DQHE02.ent.ti.com>
+Subject: [PATCH 2/3] omap: craneboard: support the TPS65910 PMU
+Date: Thu, 29 Nov 2012 06:41:46 +0000
+Message-ID: <A874F61F95741C4A9BA573A70FE3998F6418F140@DQHE02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,86 +12,70 @@ To: "tony@atomide.com" <tony@atomide.com>
 Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "srinath@mistralsolutions.com" <srinath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
- This patch enables the NAND device on the AM3517 Craneboard.
+ This patch supports the TPS65910 PMU function on the AM3517 Craneboard.
+ The IRQ pin, SYS_NIRQ is dedicated connection between the AM3517 and
+ the TPS65910 PMU.
+ To handle the PMU IRQs, mux configuration is required.
 
- MTD partitions are created as below.
- 0x000000000000-0x000000080000 : "X-Loader"
- 0x000000080000-0x000000240000 : "U-Boot"
- 0x000000240000-0x000000280000 : "U-Boot Env"
- 0x000000280000-0x000000780000 : "Kernel"
- 0x000000780000-0x000010000000 : "File System"
+ Platform data configuration:
+ .IRQ number : SYS_NIRQ (M_IRQ_7)
+ .External clock source : external 32KHz clock is connected
 
 Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
 ---
- arch/arm/mach-omap2/board-am3517crane.c |   38 +++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ arch/arm/mach-omap2/board-am3517crane.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-index 51b96a1..37646e5 100644
+index 37646e5..82805de 100644
 --- a/arch/arm/mach-omap2/board-am3517crane.c
 +++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -20,12 +20,17 @@
+@@ -20,6 +20,7 @@
  #include <linux/kernel.h>
  #include <linux/init.h>
  #include <linux/gpio.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/nand.h>
-+#include <linux/mtd/partitions.h>
++#include <linux/mfd/tps65910.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
+@@ -41,6 +42,7 @@
  
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
- 
- #include "common.h"
-+#include "common-board-devices.h"
-+#include "board-flash.h"
- 
- #include "am35xx-emac.h"
- #include "mux.h"
-@@ -51,6 +56,36 @@ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
- 	.reset_gpio_port[2]  = -EINVAL
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	OMAP3_MUX(SYS_NIRQ, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #endif
+@@ -86,6 +88,24 @@ static struct mtd_partition crane_nand_partitions[] = {
+ 	},
  };
  
-+static struct mtd_partition crane_nand_partitions[] = {
++static struct tps65910_board tps65910_pdata = {
++	.irq = 7 + OMAP_INTC_START,
++	.en_ck32k_xtal = true,
++};
++
++static struct i2c_board_info __initdata tps65910_board_info[] = {
 +	{
-+		.name		= "X-Loader",
-+		.offset		= 0,
-+		.size		= 4 * NAND_BLOCK_SIZE,
-+		.mask_flags	= MTD_WRITEABLE,
-+	},
-+	{
-+		.name		= "U-Boot",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 14 * NAND_BLOCK_SIZE,
-+		.mask_flags	= MTD_WRITEABLE,
-+	},
-+	{
-+		.name		= "U-Boot Env",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 2 * NAND_BLOCK_SIZE,
-+	},
-+	{
-+		.name		= "Kernel",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 40 * NAND_BLOCK_SIZE,
-+	},
-+	{
-+		.name		= "File System",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= MTDPART_SIZ_FULL,
++		I2C_BOARD_INFO("tps65910", 0x2d),
++		.platform_data = &tps65910_pdata,
 +	},
 +};
++
++static void __init am3517_crane_i2c_init(void)
++{
++	omap_register_i2c_bus(1, 2600, tps65910_board_info,
++			ARRAY_SIZE(tps65910_board_info));
++}
 +
  static void __init am3517_crane_init(void)
  {
  	int ret;
-@@ -58,6 +93,9 @@ static void __init am3517_crane_init(void)
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
-+	board_nand_init(crane_nand_partitions,
-+			ARRAY_SIZE(crane_nand_partitions), 0,
-+			NAND_BUSWIDTH_16, NULL);
+@@ -96,6 +116,7 @@ static void __init am3517_crane_init(void)
+ 	board_nand_init(crane_nand_partitions,
+ 			ARRAY_SIZE(crane_nand_partitions), 0,
+ 			NAND_BUSWIDTH_16, NULL);
++	am3517_crane_i2c_init();
  
  	/* Configure GPIO for EHCI port */
  	if (omap_mux_init_gpio(GPIO_USB_NRESET, OMAP_PIN_OUTPUT)) {
