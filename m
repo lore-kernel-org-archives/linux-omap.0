@@ -1,108 +1,80 @@
-From: Steve Sakoman <sakoman@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: omap DSS fails with tft410 driver panel?
-Date: Thu, 29 Nov 2012 06:53:55 -0800
-Message-ID: <CAGDS+n=dbuEQgdw9nJ_mYQpuJr5huSgX6e3sBDcvy0+C6T5hFQ@mail.gmail.com>
-References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com>
-	<CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com>
-	<50ADE6A5.3030001@ti.com>
-	<CAGDS+nm2YVNyq+eAF-VSq785KAKWC2GM4v5U7N1vLGTNNDfa7Q@mail.gmail.com>
-	<50AF37EA.3080400@ti.com>
-	<CAGDS+nncx71OL7tiwEot6RcyFxipj_SVg=z5Sg-Qdv2n4iyL2A@mail.gmail.com>
-	<50B4A4D7.2070203@ti.com>
-	<CAGDS+nmaGK1igkYnz0EQEycUU=LsD5yz9wxmipSnWohKvAPTXA@mail.gmail.com>
-	<50B74592.3020308@ti.com>
-	<CAGDS+n=oQYr+24mX6bdgtW=fzvfvfX5rAvNXXpxM4YKPxHDodQ@mail.gmail.com>
-	<50B771D3.8050907@ti.com>
+Date: Thu, 29 Nov 2012 16:56:35 +0200
+Message-ID: <50B777A3.1080803@ti.com>
+References: <CAFqH_50PVJdbX0CMwo9t3RuAhzi3q6jcBwzq2R3UFighkrF7iw@mail.gmail.com> <CAGDS+nmx8qFSx932TudMN6ikmZ=OGkbvrZuCV=Ump+HETkU-tw@mail.gmail.com> <50ADE6A5.3030001@ti.com> <CAGDS+nm2YVNyq+eAF-VSq785KAKWC2GM4v5U7N1vLGTNNDfa7Q@mail.gmail.com> <50AF37EA.3080400@ti.com> <CAGDS+nncx71OL7tiwEot6RcyFxipj_SVg=z5Sg-Qdv2n4iyL2A@mail.gmail.com> <50B4A4D7.2070203@ti.com> <CAGDS+nmaGK1igkYnz0EQEycUU=LsD5yz9wxmipSnWohKvAPTXA@mail.gmail.com> <50B74592.3020308@ti.com> <CAGDS+n=oQYr+24mX6bdgtW=fzvfvfX5rAvNXXpxM4YKPxHDodQ@mail.gmail.com> <50B771D3.8050907@ti.com> <CAGDS+n=dbuEQgdw9nJ_mYQpuJr5huSgX6e3sBDcvy0+C6T5hFQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigA0EAC8A330CD95694F845421"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:37899 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754765Ab2K2Ox4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 09:53:56 -0500
-Received: by mail-ob0-f174.google.com with SMTP id wc20so13086888obb.19
-        for <linux-omap@vger.kernel.org>; Thu, 29 Nov 2012 06:53:56 -0800 (PST)
-In-Reply-To: <50B771D3.8050907@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39371 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753407Ab2K2O4k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 09:56:40 -0500
+In-Reply-To: <CAGDS+n=dbuEQgdw9nJ_mYQpuJr5huSgX6e3sBDcvy0+C6T5hFQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Steve Sakoman <sakoman@gmail.com>
 Cc: Enric Balletbo Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>
 
-On Thu, Nov 29, 2012 at 6:31 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+--------------enigA0EAC8A330CD95694F845421
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
->> It is stock Linux 3.6 (i.e. commit a0d271cbfed1dd50278c6b06bead3d00ba0a88f9)
->
-> Still can't reproduce. So does the null pointer deref happen at boot
-> time? What display related kernel boot options do you have? This looks
-> funny, considering lcd43 is a bit smaller lcd:
+On 2012-11-29 16:53, Steve Sakoman wrote:
+> On Thu, Nov 29, 2012 at 6:31 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+>=20
+>>> It is stock Linux 3.6 (i.e. commit a0d271cbfed1dd50278c6b06bead3d00ba=
+0a88f9)
+>>
+>> Still can't reproduce. So does the null pointer deref happen at boot
+>> time? What display related kernel boot options do you have? This looks=
 
-Yes, it happens at boot time.
+>> funny, considering lcd43 is a bit smaller lcd:
+>=20
+> Yes, it happens at boot time.
+>=20
+> The boot options:
+>=20
+> [    0.000000] Kernel command line: console=3DttyO2,115200n8 mpurate=3D=
+500
+> vram=3D12M omapfb.mode=3Ddvi:1024x768MR-16@60 omapdss.def_disp=3Dlcd43
+> root=3D/dev/mmcblk0p2 rw rootfstype=3Dext3 rootwait
 
-The boot options:
+Ok, now I see it. It happens because DVI is not configured to be used,
+but you have DVI video mode specified in the command line.
 
-[    0.000000] Kernel command line: console=ttyO2,115200n8 mpurate=500
-vram=12M omapfb.mode=dvi:1024x768MR-16@60 omapdss.def_disp=lcd43
-root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait
+I'll study this further and make a fix.
 
-My DSS config options:
-
-#
-# Frame buffer hardware drivers
-#
-# CONFIG_FB_S1D13XXX is not set
-# CONFIG_FB_TMIO is not set
-# CONFIG_FB_SMSCUFX is not set
-# CONFIG_FB_UDL is not set
-# CONFIG_FB_VIRTUAL is not set
-# CONFIG_FB_METRONOME is not set
-# CONFIG_FB_BROADSHEET is not set
-# CONFIG_FB_AUO_K190X is not set
-CONFIG_OMAP2_VRAM=y
-CONFIG_OMAP2_VRFB=y
-CONFIG_OMAP2_DSS=y
-CONFIG_OMAP2_VRAM_SIZE=12
-CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-# CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS is not set
-CONFIG_OMAP2_DSS_DPI=y
-# CONFIG_OMAP2_DSS_RFBI is not set
-CONFIG_OMAP2_DSS_VENC=y
-# CONFIG_OMAP2_DSS_SDI is not set
-CONFIG_OMAP2_DSS_DSI=y
-CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
-CONFIG_OMAP2_DSS_SLEEP_AFTER_VENC_RESET=y
-CONFIG_FB_OMAP2=y
-CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-CONFIG_FB_OMAP2_NUM_FBS=3
-
-#
-# OMAP2/3 Display Device Drivers
-#
-CONFIG_PANEL_GENERIC_DPI=y
-CONFIG_PANEL_TFP410=y
-CONFIG_PANEL_LGPHILIPS_LB035Q02=y
-CONFIG_PANEL_SHARP_LS037V7DW01=y
-# CONFIG_PANEL_NEC_NL8048HL11_01B is not set
-# CONFIG_PANEL_PICODLP is not set
-# CONFIG_PANEL_TAAL is not set
-# CONFIG_PANEL_TPO_TD043MTEA1 is not set
-# CONFIG_EXYNOS_VIDEO is not set
-CONFIG_BACKLIGHT_LCD_SUPPORT=y
-CONFIG_LCD_CLASS_DEVICE=m
-# CONFIG_LCD_L4F00242T03 is not set
-# CONFIG_LCD_LMS283GF05 is not set
-# CONFIG_LCD_LTV350QV is not set
-# CONFIG_LCD_TDO24M is not set
-# CONFIG_LCD_VGG2432A4 is not set
-# CONFIG_LCD_PLATFORM is not set
-# CONFIG_LCD_S6E63M0 is not set
-# CONFIG_LCD_LD9040 is not set
-# CONFIG_LCD_AMS369FG06 is not set
-CONFIG_BACKLIGHT_CLASS_DEVICE=y
-CONFIG_BACKLIGHT_GENERIC=m
-# CONFIG_BACKLIGHT_ADP8860 is not set
-# CONFIG_BACKLIGHT_ADP8870 is not set
-# CONFIG_BACKLIGHT_LP855X is not set
-# CONFIG_BACKLIGHT_PANDORA is not set
+ Tomi
 
 
-Steve
+
+
+--------------enigA0EAC8A330CD95694F845421
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQt3ejAAoJEPo9qoy8lh71ILcQAIHnzdochwzwxvdepBvLtHPe
+WG7CLBSAEWSabXj6+Nv4xie27Pnpkt3ZyK1fqRvNOZOErqpfmPMsQVtPi3D7/hOI
+aN23FLtEvsz7EMlLZrV8kZSmm11ryy4o+DnaJKZ7SK6sxpbq/51VhkTMrK1D1Xvh
+E16hCMDv/sYjaXe6QY4sddVlNCPs0pN6uD2LAzvi5uVa2j5X1sUCdkS2YDKiNX0k
+576+OFLIWBAcYCUOiSV16cneBpksmpM13N+e8N+Ig5tco+Ja37I6d1emkM2wPB81
+KwN9FcU+CnDIdzeyek2uzf9IdsJDrpFdIX7MuDqJ9mK9PTs6lBkKDwDXunkJ+oA3
+sj3PtY8soHf2ewQqFdq1TyawTenigk+l0+K7yAbdz1lMzWWtmyW2hMF4+XDFcmFO
+YxRBsgeXmrR7Bj7boqaSD4hZ+TygM0o1LUznEHFs1Z4YxPHPSWAnCNGEZTUIUGo0
+egtBHySsyY+ctjki8TZkw8t8ez1ONbYjjvfaTs1DO+2tN0USAw7dV657n0yYqMoF
+Z8E9dr83nMR+UmJO3sBpYumRHa/T39egGFHh6euX65xq/DobTlGlT1Lzl3Egs6oQ
+zPeyFfn+yb6a+7yay2Ixia9M9vRhB2zdGXt4pcCBEvdb1shieUC24ORPuPycdjZN
+qQ1Ez08Wh+mQ+ALupjNL
+=Z0do
+-----END PGP SIGNATURE-----
+
+--------------enigA0EAC8A330CD95694F845421--
