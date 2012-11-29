@@ -1,66 +1,66 @@
-From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 0/3] mtd: nand: OMAP: ELM error correction support for BCH
- ecc
-Date: Thu, 29 Nov 2012 17:16:31 +0530
-Message-ID: <1354189595-12784-1-git-send-email-avinashphilip@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: [PATCH v3 1/3] mtd: nand: omap2: Update nerrors using ecc.strength
+Date: Thu, 29 Nov 2012 17:16:32 +0530
+Message-ID: <1354189595-12784-2-git-send-email-avinashphilip@ti.com>
+References: <1354189595-12784-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, afzal-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gururaja.hebbar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>, ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1354189595-12784-1-git-send-email-avinashphilip@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, afzal@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, rmk+kernel@arm.linux.org.uk, gregkh@linuxfoundation.org
+Cc: linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, gururaja.hebbar@ti.com, ivan.djelic@parrot.com, "Philip, Avinash" <avinashphilip@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Support to use ELM as BCH 4 & 8 bit error correction module. Also performance
-enhancement by adding single shot read_page and write_page functions for the
-nand flashes with page size less than 4 KB.
+Update number of errors using nand ecc strength.
+Also add macro definitions BCH8_ERROR_MAX & BCH4_ERROR_MAX
 
-ELM module can be used to correct errors reported by BCH 4, 8 & 16 bit
-ECC scheme. For now only 4 & 8 bit support is added.
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+:100644 100644 359293e... 7e61dac... M	drivers/mtd/nand/omap2.c
+ drivers/mtd/nand/omap2.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-BCH 4 & 8 bit error detection support is already available in mainline
-kernel and works with software error correction.
-
-This series is based on [1] and tested with RFC: OMAP GPMC bindings
-patch series
-
-1. linux-next/20121129
-
-Tested on am335x-evm for BCH 4 and 8 bit error correction.
-
-Changes since v1:
-	- Erased page is identified by checking byte [13/7] in read
-	  ecc. To filter out bit flips in OOB area, check 0 bits in
-	  the byte greater than 4.
-	- GPMC ecc engine configuration moves to omap2.c NAND driver.
-
-Changes since v2:
-	- Added runtime detection of elm module, instead of depending
-	  on platform data.
-	- Added bit flip correction in OOB ecc data if bit flip happen
-	  OOB data.
-
-Philip, Avinash (3):
-  mtd: nand: omap2: Update nerrors using ecc.strength
-  mtd: devices: elm: Add support for ELM error correction
-  mtd: nand: omap2: Support for hardware BCH error correction.
-
- Documentation/devicetree/bindings/mtd/elm.txt |   17 +
- drivers/mtd/devices/Makefile                  |    4 +-
- drivers/mtd/devices/elm.c                     |  418 ++++++++++++++++++
- drivers/mtd/nand/omap2.c                      |  563 +++++++++++++++++++++++--
- include/linux/platform_data/elm.h             |   55 +++
- 5 files changed, 1017 insertions(+), 41 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mtd/elm.txt
- create mode 100644 drivers/mtd/devices/elm.c
- create mode 100644 include/linux/platform_data/elm.h
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 359293e..7e61dac 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -118,6 +118,9 @@
+ 
+ #define OMAP24XX_DMA_GPMC		4
+ 
++#define BCH8_MAX_ERROR		8	/* upto 8 bit correctable */
++#define BCH4_MAX_ERROR		4	/* upto 4 bit correctable */
++
+ /* oob info generated runtime depending on ecc algorithm and layout selected */
+ static struct nand_ecclayout omap_oobinfo;
+ /* Define some generic bad / good block scan pattern which are used
+@@ -1042,7 +1045,7 @@ static void omap3_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+ 	struct nand_chip *chip = mtd->priv;
+ 	u32 val;
+ 
+-	nerrors = (info->nand.ecc.bytes == 13) ? 8 : 4;
++	nerrors = info->nand.ecc.strength;
+ 	dev_width = (chip->options & NAND_BUSWIDTH_16) ? 1 : 0;
+ 	nsectors = 1;
+ 	/*
+@@ -1219,13 +1222,14 @@ static int omap3_init_bch(struct mtd_info *mtd, int ecc_opt)
+ 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+ 						   mtd);
+ #ifdef CONFIG_MTD_NAND_OMAP_BCH8
+-	const int hw_errors = 8;
++	const int hw_errors = BCH8_MAX_ERROR;
+ #else
+-	const int hw_errors = 4;
++	const int hw_errors = BCH4_MAX_ERROR;
+ #endif
+ 	info->bch = NULL;
+ 
+-	max_errors = (ecc_opt == OMAP_ECC_BCH8_CODE_HW) ? 8 : 4;
++	max_errors = (ecc_opt == OMAP_ECC_BCH8_CODE_HW) ?
++		BCH8_MAX_ERROR : BCH4_MAX_ERROR;
+ 	if (max_errors != hw_errors) {
+ 		pr_err("cannot configure %d-bit BCH ecc, only %d-bit supported",
+ 		       max_errors, hw_errors);
+-- 
+1.7.0.4
