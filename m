@@ -1,59 +1,69 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 1/5] ARM: OMAP: gpmc: don't create devices from initcall
- on DT
-Date: Thu, 29 Nov 2012 12:00:43 -0600
-Message-ID: <50B7A2CB.4020407@ti.com>
-References: <1354204892-22762-1-git-send-email-zonque@gmail.com>
- <1354204892-22762-2-git-send-email-zonque@gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v6 4/5] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
+Date: Thu, 29 Nov 2012 13:59:24 -0600
+Message-ID: <50B7BE9C.6040506@ti.com>
+References: <1354204892-22762-1-git-send-email-zonque@gmail.com> <1354204892-22762-5-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1354204892-22762-2-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, avinashphilip-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54430 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334Ab2K2T7p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 14:59:45 -0500
+In-Reply-To: <1354204892-22762-5-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, jacmet@sunsite.dk, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org
 
 
 On 11/29/2012 10:01 AM, Daniel Mack wrote:
-> On DT driven boards, the gpmc node will match the driver. Hence, there's
-> no need to do that unconditionally from the initcall.
+> The am33xx is capable of handling bch error correction modes, so
+> enable that feature in the driver.
 > 
-> Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
 > ---
->  arch/arm/mach-omap2/gpmc.c | 7 +++++++
->  1 file changed, 7 insertions(+)
+>  arch/arm/mach-omap2/gpmc-nand.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 60f1cce..1dcb30c 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -844,6 +844,13 @@ static int __init omap_gpmc_init(void)
->  	struct platform_device *pdev;
->  	char *oh_name = "gpmc";
+> diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
+> index f9f23a2..c8a72ba 100644
+> --- a/arch/arm/mach-omap2/gpmc-nand.c
+> +++ b/arch/arm/mach-omap2/gpmc-nand.c
+> @@ -92,17 +92,18 @@ static int omap2_nand_gpmc_retime(
+>  static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
+>  {
+>  	/* support only OMAP3 class */
+> -	if (!cpu_is_omap34xx()) {
+> +	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
+>  		pr_err("BCH ecc is not supported on this CPU\n");
+>  		return 0;
+>  	}
 >  
-> +	/*
-> +	 * if the board boots up with a populated DT, do not
-> +	 * manually add the device from this initcall
-> +	 */
-> +	if (of_have_populated_dt())
-> +		return -ENODEV;
-> +
->  	oh = omap_hwmod_lookup(oh_name);
->  	if (!oh) {
->  		pr_err("Could not look up %s\n", oh_name);
+>  	/*
+> -	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1.
+> -	 * Other chips may be added if confirmed to work.
+> +	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
+> +	 * and AM33xx derivates. Other chips may be added if confirmed to work.
+>  	 */
+>  	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
+> -	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0))) {
+> +	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)) &&
+> +	    (!soc_is_am33xx())) {
+>  		pr_err("BCH 4-bit mode is not supported on this CPU\n");
+>  		return 0;
+>  	}
 
-Acked-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Sorry I should have seen this earlier. Ideally, this type of thing
+should be reflected by the device-tree/platform-data and we should get
+away from these cpu_is_xxxx macros for hardware features (where we can).
+Furthermore, we need to avoid including plat-omap/gpmc.h in drivers for
+the single zImage work (I see the omap nand driver is including gpmc.h).
 
-Thanks
+Tony, should this be addressed now or can we live this for the minute
+and fix-up later?
+
+Cheers
 Jon
+
