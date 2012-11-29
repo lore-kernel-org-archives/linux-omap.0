@@ -1,85 +1,53 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] gpio: New driver for GPO emulation using PWM generators
-Date: Thu, 29 Nov 2012 13:18:11 +0100
-Message-ID: <50B75283.6010207@ti.com>
-References: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com> <20121123075537.A14713E0A91@localhost> <50AF3E21.4000009@ti.com> <50AF4584.7020604@ti.com> <20121126154600.765E03E1AFD@localhost> <50B5D161.6010200@ti.com> <20121128193006.GB23444@avionic-0098.adnet.avionic-design.de>
+From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v5 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC
+ timings and NAND
+Date: Thu, 29 Nov 2012 12:36:05 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA0B986@DBDE01.ent.ti.com>
+References: <1354121939-11246-1-git-send-email-zonque@gmail.com>
+ <1354121939-11246-5-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20121128193006.GB23444@avionic-0098.adnet.avionic-design.de>
-Sender: linux-doc-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, Rob Landley <rob@landley.net>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1354121939-11246-5-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Cc: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 11/28/2012 08:30 PM, Thierry Reding wrote:
-> I must say I'm not terribly thrilled to integrate something like this
-> into the PWM subsystem.
+On Wed, Nov 28, 2012 at 22:28:59, Daniel Mack wrote:
+[...]
+> +	if (!of_property_read_string(child, "ti,nand-ecc-opt", &s)) {
+> +		for (val = 0; val < ARRAY_SIZE(nand_ecc_opts); val++)
+> +			if (!strcasecmp(s, nand_ecc_opts[val])) {
+> +				gpmc_nand_data->ecc_opt = val;
+> +				break;
+> +			}
+> +
+> +		/*
+> +		 *  AM335x RBL compatibility mode - dependns on runtime
+> +		 * detection of the error location module.
+> +		 */
+> +		if (!strcasecmp(s, "bch8-am335xrbl-compatible")) {
+> +			gpmc_nand_data->ecc_opt = OMAP_ECC_BCH8_CODE_HW;
+> +			gpmc_nand_data->is_elm_used = true;
 
-I agree. I would not really want to add my name to something like this =
-either...
+Remove is_elm_used from struct omap_nand_platform_data. Now this data
+populated as part of run time detection of elm module. So please remove
+The usage of is_elm_used;
 
-> I wish hardware engineers wouldn't come up with such designs.
+http://www.spinics.net/lists/arm-kernel/msg210549.html
 
-I have checked and rechecked the schematics and datasheets. Still can n=
-ot
-understand how anyone would come to this HW solution (when the twl4030 =
-have at
-least 4 unused GPIO line left unconnected).
-
-> But since this seems to be a real use-case, if we want to
-> support it we should try and find the "right" solution.
->=20
-> Reading the above sounds overly complicated. Couldn't we, instead of
-> instantiating an extra driver, just register a GPIO chip if a chip wa=
-nts
-> to support this functionality? Where the GPIO chip's request callback
-> requests the given PWM so that it cannot be used elsewhere? The
-> direction_input callback would need to always fail and the set callba=
-ck
-> can configure the PWM either to 0% or 100% duty-cycle depending on th=
-e
-> desired output value.
-
-The original driver was doing exactly this. Basically I have added a GP=
-O chip
-(which was just a translator from PWM to GPO). In DT it looked like thi=
-s:
-
-twl_pwm: pwm {
-	compatible =3D "ti,twl4030-pwmled";
-	#pwm-cells =3D <2>;
-};
-
-pwm_gpo1: gpo1 {
-	compatible =3D "pwm-gpo";
-	#gpio-cells =3D <1>;
-	gpio-controller;
-	pwms =3D <&twl_pwm 0 7812500>;
-	pwm-names =3D "nUSBHOST_PWR_EN";
-};
-
-user@1 {
-	compatible =3D "example,testuser";
-	gpios =3D <&pwm_gpo1 0>;
-};
-
-When we boot with DT the pwm_get() needs pwms phandle from the device y=
-ou are
-calling it in order to find the PWM in question. If we do not have DT e=
-ntry
-for the GPO driver, we need to build up a pwm_lookup table to ensure th=
-at the
-pwm_get() will find the PWM we want to handle.
-
-We could implement the GPIO related code under for example
-drivers/pwm/pwm-as-gpo.c
-But then I should merge the code from drivers/gpio/gpio-pwm.c inside.
-This is not nice either since we will have a GPIO driver living under p=
-wm/
-directory and I'm not sure how this would use the pwm API when the GPO
-functionality is requested.
-
---=20
-P=E9ter
+Thanks
+Avinash 
+> 
