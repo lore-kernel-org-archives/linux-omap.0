@@ -1,82 +1,88 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Thu, 29 Nov 2012 12:05:05 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1211291152290.1535-100000@iolanthe.rowland.org>
-References: <CACVXFVN6Dh5pwB_Pg2f0_N2iDU4oyCDusFWLMHRJmajnhDOpKQ@mail.gmail.com>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
+Date: Thu, 29 Nov 2012 15:05:35 -0200
+Message-ID: <20121129150535.17ea00e9@redhat.com>
+References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
+	<4208124.v72gFsjH2D@avalon>
+	<20121129162927.GF5312@atomide.com>
+	<2148719.6v36XORg4e@avalon>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:48867 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751100Ab2K2RFH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 12:05:07 -0500
-In-Reply-To: <CACVXFVN6Dh5pwB_Pg2f0_N2iDU4oyCDusFWLMHRJmajnhDOpKQ@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:12390 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751135Ab2K2RFm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Nov 2012 12:05:42 -0500
+In-Reply-To: <2148719.6v36XORg4e@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Roger Quadros <rogerq@ti.com>, Andy Green <andy.green@linaro.org>, Greg KH <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, balbi@ti.com
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, hvaibhav@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Thu, 29 Nov 2012, Ming Lei wrote:
+Em Thu, 29 Nov 2012 17:39:45 +0100
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-> If we want to set up the association between usb port and power domain,
-> usb knowledge is required, at least bus info and port topology are needed.
+> Hi Tony,
 > 
-> One difficulty is the fact that the device(such as usb port) is independent
-> with the 'power domain', for example, the device isn't created(ports of the
-> root hub is created after ehci-omap probe, and port device of non-root
-> hub may depend on powering on the power domain) when defining the regulator
-> things, so could we figure out one general way in theory to describe the
-> associated device with the 'power domain'? Andy has tried the wildcard dev
-> path, and port topology string is introduced in my suggestion, looks both
-> are not general.
-
-The device path approach probably could be made to work, but it does
-have the problem that it depends on device names which may change in
-the future.  However, I can't think of any other general-purpose
-approach.  And most especially, I can't think of any approach that
-doesn't require extra overhead _every_ time a new device is registered.
-
-The port topology string is, of course, specific to USB.
-
-> I admit the suggestion is partial because we still have not a general abstract
-> on 'power domain' in this problem, and once it is ready, the solution might be
-> in a shape at least for USB. In PC world, ACPI might do sort of something of
-> the 'power domain'
-
-I'm not worried about the "power domain" part.  For now, a regulator is 
-all we need.  It should be easy enough to expand that later on.
-
-> Maybe we need to create a new thread on this discussion and make more
-> guys involved(PM/USB/driver core/OMAP/....). I will study the problem further,
-> and hope I can post something for starting the discussion later.
+> On Thursday 29 November 2012 08:29:27 Tony Lindgren wrote:
+> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121129 01:37]:
+> > > On Thursday 29 November 2012 11:30:28 Tomi Valkeinen wrote:
+> > > > On 2012-11-28 17:13, Laurent Pinchart wrote:
+> > > > > On Monday 12 November 2012 15:33:38 Tomi Valkeinen wrote:
+> > > > >> Hi,
+> > > > >> 
+> > > > >> This patch removes use of cpu_is_* funcs from omap_vout, and uses
+> > > > >> omapdss's version instead. The other patch removes an unneeded
+> > > > >> plat/dma.h include.
+> > > > >> 
+> > > > >> These are based on current omapdss master branch, which has the
+> > > > >> omapdss version code. The omapdss version code is queued for v3.8.
+> > > > >> I'm not sure which is the best way to handle these patches due to the
+> > > > >> dependency to omapdss. The easiest option is to merge these for 3.9.
+> > > > >> 
+> > > > >> There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last
+> > > > >> OMAP dependency in the omap_vout driver. I'm not going to touch that,
+> > > > >> as it doesn't look as trivial as this cpu_is_* removal, and I don't
+> > > > >> have much knowledge of the omap_vout driver.
+> > > > >> 
+> > > > >> Compiled, but not tested.
+> > > > > 
+> > > > > Tested on a Beagleboard-xM.
+> > > > > 
+> > > > > Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > 
+> > > > Thanks.
+> > > > 
+> > > > > The patches depend on unmerged OMAP DSS patches. Would you like to
+> > > > > push this series through linuxtv or through your DSS tree ? The later
+> > > > > might be easier, depending on when the required DSS patches will hit
+> > > > > mainline.
+> > > > 
+> > > > The DSS patches will be merged for 3.8. I can take this via the omapdss
+> > > > tree, as there probably won't be any conflicts with other v4l2 stuff.
+> > > > 
+> > > > Or, we can just delay these until 3.9. These patches remove omap
+> > > > platform dependencies, helping the effort to get common ARM kernel.
+> > > > However, as there's still the VRFB code in the omap_vout driver, the
+> > > > dependency remains. Thus, in way, these patches alone don't help
+> > > > anything, and we could delay these for 3.9 and hope that
+> > > > omap_vout_vrfb.c gets converted also for that merge window.
+> > > 
+> > > OK, I'll queue them for v3.9 then.
+> > 
+> > Please rather queue the cpu_is_omap removal to v3.8 so I can
+> > remove plat/cpu.h for omap2+.
 > 
-> > It would be better to have a more general approach.  So far nobody has
-> 
-> Yes, I agree. IMO, my suggestion is still in the direction to being general,
-> because a general 'power domain' concept is introduced in it, for example
-> the 'struct power_domain' is associated with 'struct port_power_domain'.
+> In that case the patches should go through the DSS tree. Mauro, are you fine 
+> with that ?
 
-It's general, but in the wrong direction.  The hard part isn't the 
-power domain aspect; it is setting up the match between the power 
-domain and the dynamically created device.
+Sure.
 
-> I understand the same 'power domain' concept should be applied to other
-> device or bus too, and the power associated with this device can be switched off
-> sometimes too for saving power consumption. But still looks specific
-> device/subsystem knowledge is required to set up the association.
-> 
-> Alan, so could the above be your concern on a more general approach?
-> Or you hope a more general way(such as, do it in driver core or dev PM core)
-> to associate the 'power domain' with one device(for example, usb port in
-> the LAN95xx problem) too? Or other things?
+For both patches:
 
-Right now we don't have _any_ general (i.e., not bus-specific) way to 
-identify individual devices except for the device name strings.
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I don't know -- maybe this shouldn't have a general solution at all.  
-Maybe we just need a platform-specific way to associate a regulator or
-clock with a USB port, something that the port driver would know about
-explicitly.
-
-Alan Stern
-
+Regards,
+Mauro
