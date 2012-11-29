@@ -1,41 +1,42 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v5 0/5] OMAP: iommu: hwmod, reset handling and runtime PM
-Date: Thu, 29 Nov 2012 09:52:41 +0200
-Message-ID: <CAK=Wgba1eu1+NFsS1+xcO4rq+steWi9-HW6RgySAU3FX1XsEeg@mail.gmail.com>
-References: <1353373552-16039-1-git-send-email-omar.luna@linaro.org>
+Subject: [GIT PULL] remoteproc: a single fix for 3.7
+Date: Thu, 29 Nov 2012 10:35:01 +0200
+Message-ID: <CAK=WgbZjufLpFevD2BJbceRGS4HQqK9fas=yakDDZ2uUcdrU-w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:51097 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269Ab2K2HxD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 02:53:03 -0500
-Received: by mail-lb0-f174.google.com with SMTP id gi11so8312515lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 28 Nov 2012 23:53:02 -0800 (PST)
-In-Reply-To: <1353373552-16039-1-git-send-email-omar.luna@linaro.org>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:51536 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187Ab2K2IfX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 03:35:23 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so8452382lag.19
+        for <linux-omap@vger.kernel.org>; Thu, 29 Nov 2012 00:35:21 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Joerg Roedel <joro@8bytes.org>, Russell King <linux@arm.linux.org.uk>, Ido Yariv <ido@wizery.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, Paul Walmsley <paul@pwsan.com>, Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ido Yariv <ido@wizery.com>
 
-On Tue, Nov 20, 2012 at 3:05 AM, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
-> These patches are needed for remoteproc to work on OMAP4.
->
-> Introduced iommu hwmod support for OMAP3 (iva, isp) and
-> OMAP4 (ipu, dsp), along with the corresponding runtime PM
-> and routines to deassert reset lines, enable/disable clocks
-> and configure sysc registers.
+Hi Linus,
 
-I tested the entire series with remoteproc/rpmsg on OMAP4 and it looks good.
+The following changes since commit 6f0c0580b70c89094b3422ba81118c7b959c7556:
 
-Since this is super needed, and have already been going on for quite a
-while, I'd really like to see this go in. We could then incrementally
-deal with any outstanding comment or issue that might show up.
+  Linux 3.7-rc2 (2012-10-20 12:11:32 -0700)
 
-Joerg, can you please take it (or at least its first four patches) ?
-We have Tony's ack for the mach-omap2 parts.
+are available in the git repository at:
 
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
+tags/rproc-3.7-fix
 
-Thanks,
-Ohad.
+for you to fetch changes up to dab55bbafdb491ce2c3f2d7136e54101e948b911:
+
+  remoteproc: fix error path of ->find_vqs (2012-11-29 10:05:09 +0200)
+
+----------------------------------------------------------------
+A single remoteproc fix for an error path issue reported by Ido Yariv.
+
+----------------------------------------------------------------
+Ohad Ben-Cohen (1):
+      remoteproc: fix error path of ->find_vqs
+
+ drivers/remoteproc/remoteproc_virtio.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
