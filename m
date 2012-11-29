@@ -1,74 +1,88 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
-Date: Thu, 29 Nov 2012 17:39:45 +0100
-Message-ID: <2148719.6v36XORg4e@avalon>
-References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com> <4208124.v72gFsjH2D@avalon> <20121129162927.GF5312@atomide.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP4: Update timer clock aliases
+Date: Thu, 29 Nov 2012 11:02:17 -0600
+Message-ID: <50B79519.3080509@ti.com>
+References: <1352313782-21602-1-git-send-email-jon-hunter@ti.com> <1352313782-21602-2-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1211291048580.20529@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20121129162927.GF5312@atomide.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, hvaibhav@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>, mchehab@redhat.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42928 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751069Ab2K2RCW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Nov 2012 12:02:22 -0500
+In-Reply-To: <alpine.DEB.2.00.1211291048580.20529@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
 
-On Thursday 29 November 2012 08:29:27 Tony Lindgren wrote:
-> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121129 01:37]:
-> > On Thursday 29 November 2012 11:30:28 Tomi Valkeinen wrote:
-> > > On 2012-11-28 17:13, Laurent Pinchart wrote:
-> > > > On Monday 12 November 2012 15:33:38 Tomi Valkeinen wrote:
-> > > >> Hi,
-> > > >> 
-> > > >> This patch removes use of cpu_is_* funcs from omap_vout, and uses
-> > > >> omapdss's version instead. The other patch removes an unneeded
-> > > >> plat/dma.h include.
-> > > >> 
-> > > >> These are based on current omapdss master branch, which has the
-> > > >> omapdss version code. The omapdss version code is queued for v3.8.
-> > > >> I'm not sure which is the best way to handle these patches due to the
-> > > >> dependency to omapdss. The easiest option is to merge these for 3.9.
-> > > >> 
-> > > >> There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last
-> > > >> OMAP dependency in the omap_vout driver. I'm not going to touch that,
-> > > >> as it doesn't look as trivial as this cpu_is_* removal, and I don't
-> > > >> have much knowledge of the omap_vout driver.
-> > > >> 
-> > > >> Compiled, but not tested.
-> > > > 
-> > > > Tested on a Beagleboard-xM.
-> > > > 
-> > > > Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > 
-> > > Thanks.
-> > > 
-> > > > The patches depend on unmerged OMAP DSS patches. Would you like to
-> > > > push this series through linuxtv or through your DSS tree ? The later
-> > > > might be easier, depending on when the required DSS patches will hit
-> > > > mainline.
-> > > 
-> > > The DSS patches will be merged for 3.8. I can take this via the omapdss
-> > > tree, as there probably won't be any conflicts with other v4l2 stuff.
-> > > 
-> > > Or, we can just delay these until 3.9. These patches remove omap
-> > > platform dependencies, helping the effort to get common ARM kernel.
-> > > However, as there's still the VRFB code in the omap_vout driver, the
-> > > dependency remains. Thus, in way, these patches alone don't help
-> > > anything, and we could delay these for 3.9 and hope that
-> > > omap_vout_vrfb.c gets converted also for that merge window.
-> > 
-> > OK, I'll queue them for v3.9 then.
+On 11/29/2012 04:53 AM, Paul Walmsley wrote:
+> Hi Jon,
 > 
-> Please rather queue the cpu_is_omap removal to v3.8 so I can
-> remove plat/cpu.h for omap2+.
+> On Wed, 7 Nov 2012, Jon Hunter wrote:
+> 
+>> Commit "ARM: dts: OMAP4: Update timer addresses" updated the device-tree
+>> names of the OMAP4 timers 5-7 because the default address for the timers
+>> was changed from the L3 address to the MPU private address. When booting
+>> with device-tree, this introduces a regression when attempting to set
+>> the parent clock of timers 5-7 to the sys_clk_div_ck. Therefore, update
+>> the clock aliases for timer 5-7 to reflect the updated device-tree name
+>> for the timers.
+> 
+> Reviewing my E-mail inbox, just saw that this one is marked as being 
+> needed for v3.8.  Is that still the case?  If so, we should ask Tony to 
+> take an updated version of this patch, given the recent CCF conversion.
 
-In that case the patches should go through the DSS tree. Mauro, are you fine 
-with that ?
+Yes this is still needed for v3.8.
 
--- 
-Regards,
+> Following is the updated patch.
 
-Laurent Pinchart
+Thanks, looks good to me.
+
+Cheers
+Jon
+
+> 
+> - Paul
+> 
+> From: Jon Hunter <jon-hunter@ti.com>
+> Date: Thu, 29 Nov 2012 03:47:46 -0700
+> Subject: [PATCH] ARM: OMAP4: Update timer clock aliases
+> 
+> Commit "ARM: dts: OMAP4: Update timer addresses" updated the device-tree
+> names of the OMAP4 timers 5-7 because the default address for the timers
+> was changed from the L3 address to the MPU private address. When booting
+> with device-tree, this introduces a regression when attempting to set
+> the parent clock of timers 5-7 to the sys_clk_div_ck. Therefore, update
+> the clock aliases for timer 5-7 to reflect the updated device-tree name
+> for the timers.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> [paul@pwsan.com: updated to apply after the CCF conversion]
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/cclock44xx_data.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+> index aa56c3e..a1f0b55 100644
+> --- a/arch/arm/mach-omap2/cclock44xx_data.c
+> +++ b/arch/arm/mach-omap2/cclock44xx_data.c
+> @@ -1935,10 +1935,10 @@ static struct omap_clk omap44xx_clks[] = {
+>  	CLK("4803e000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
+>  	CLK("48086000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
+>  	CLK("48088000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
+> -	CLK("49038000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+> -	CLK("4903a000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+> -	CLK("4903c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+> -	CLK("4903e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+> +	CLK("40138000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+> +	CLK("4013a000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+> +	CLK("4013c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+> +	CLK("4013e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+>  	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
+>  };
+>  
+> 
