@@ -1,107 +1,47 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP4: Update timer clock aliases (fwd)
-Date: Thu, 29 Nov 2012 17:17:30 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1211291713530.20529@utopia.booyaka.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [try#1 PATCH 5/7] omap4: panda: add smsc95xx regulator and reset
+ dependent on root hub
+Date: Thu, 29 Nov 2012 12:57:09 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1211291247130.1535-100000@iolanthe.rowland.org>
+References: <50B6F8CF.8020304@linaro.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:44079 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753074Ab2K2RRb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Nov 2012 12:17:31 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50B6F8CF.8020304-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Thu, 29 Nov 2012, Andy Green wrote:
 
-Hi Tony,
+> However I think what you're saying about binding to hub power is good. 
+> The hub ports are not devices, but it would be possible to bind an asset 
+> array to them and make the pre- and post- code functions.
 
-well it seems that I did miss at least one important clock patch for v3.8.  
-This appears to be needed to avoid failures when attempting to set parent 
-clocks for GPTIMER5-7 on OMAP4.  Could you consider this one for late 
-v3.8?  If you prefer, I can send a pull request for it.  Otherwise, will 
-send it as part of the v3.8-rc1 integration fixes.
+In the 3.6 kernel, hub ports are not devices.  In 3.7 they are -- that 
+is, each hub port has its own struct device.
 
-thanks,
+> I think it will be possible to address objections around the "pathiness" 
+> by being able to seed the path match with a platform_device pointer 
+> (there exists in the board file time a platform_device for ehci-omap.0 
+> ...) and just matching the remainder on a single usb device's name, like 
+> "*-1.1-1".
 
+Can you think of a way to do this without checking for a match every 
+time a new device is registered?  For instance, in this case it would 
+be preferable to do this match only for descendants of ehci-omap.0.  To 
+match the port device, the string would have to be something like 
+"*-0:1.0/port2".
 
-- Paul
+In fact, if the match were anchored at the end of the string, we 
+wouldn't need the wildcard at all -- at least, not in this case.  The 
+string could simply be "-0:1.0/port2".  But that's only if the match is 
+restricted to devices below ehci-omap.0.
 
----------- Forwarded message ----------
-Date: Thu, 29 Nov 2012 11:02:17 -0600
-From: Jon Hunter <jon-hunter@ti.com>
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>,
-    linux-arm <linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH 1/3] ARM: OMAP4: Update timer clock aliases
+Alan Stern
 
-
-On 11/29/2012 04:53 AM, Paul Walmsley wrote:
-> Hi Jon,
-> 
-> On Wed, 7 Nov 2012, Jon Hunter wrote:
-> 
->> Commit "ARM: dts: OMAP4: Update timer addresses" updated the device-tree
->> names of the OMAP4 timers 5-7 because the default address for the timers
->> was changed from the L3 address to the MPU private address. When booting
->> with device-tree, this introduces a regression when attempting to set
->> the parent clock of timers 5-7 to the sys_clk_div_ck. Therefore, update
->> the clock aliases for timer 5-7 to reflect the updated device-tree name
->> for the timers.
-> 
-> Reviewing my E-mail inbox, just saw that this one is marked as being 
-> needed for v3.8.  Is that still the case?  If so, we should ask Tony to 
-> take an updated version of this patch, given the recent CCF conversion.
-
-Yes this is still needed for v3.8.
-
-> Following is the updated patch.
-
-Thanks, looks good to me.
-
-Cheers
-Jon
-
-
-From: Jon Hunter <jon-hunter@ti.com>
-Date: Thu, 29 Nov 2012 03:47:46 -0700
-Subject: [PATCH] ARM: OMAP4: Update timer clock aliases
-
-Commit "ARM: dts: OMAP4: Update timer addresses" updated the device-tree
-names of the OMAP4 timers 5-7 because the default address for the timers
-was changed from the L3 address to the MPU private address. When booting
-with device-tree, this introduces a regression when attempting to set
-the parent clock of timers 5-7 to the sys_clk_div_ck. Therefore, update
-the clock aliases for timer 5-7 to reflect the updated device-tree name
-for the timers.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-[paul@pwsan.com: updated to apply after the CCF conversion]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/cclock44xx_data.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-index aa56c3e..a1f0b55 100644
---- a/arch/arm/mach-omap2/cclock44xx_data.c
-+++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -1935,10 +1935,10 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK("4803e000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
- 	CLK("48086000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
- 	CLK("48088000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
--	CLK("49038000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
--	CLK("4903a000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
--	CLK("4903c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
--	CLK("4903e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("40138000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("4013a000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("4013c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("4013e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
- 	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
- };
- 
--- 
-1.7.10.4
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
