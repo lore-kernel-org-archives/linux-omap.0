@@ -1,40 +1,104 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 0/3] ARM/dts: omap3: Add DT support for IGEP devices
-Date: Fri, 30 Nov 2012 11:08:54 +0100
-Message-ID: <1354270137-31538-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] gpio: New driver for GPO emulation using PWM generators
+Date: Fri, 30 Nov 2012 11:47:59 +0100
+Message-ID: <50B88EDF.9000109@ti.com>
+References: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com> <20121123075537.A14713E0A91@localhost> <50AF3E21.4000009@ti.com> <50AF4584.7020604@ti.com> <20121126154600.765E03E1AFD@localhost> <50B5D161.6010200@ti.com> <20121129161024.EEA803E0912@localhost> <20121130064752.GB26474@avionic-0098.adnet.avionic-design.de> <20121130102039.0267E3E129E@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:59352 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756978Ab2K3KJM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Nov 2012 05:09:12 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:35050 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756045Ab2K3KsT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Nov 2012 05:48:19 -0500
+In-Reply-To: <20121130102039.0267E3E129E@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Enrico Butera <ebutera@gmail.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, Rob Landley <rob@landley.net>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
 
-IGEP technology devices are TI OMAP3 SoC based industrial embedded
-and computer-on-module boards. This patch-set adds initial device
-tree support for these devices.
+On 11/30/2012 11:20 AM, Grant Likely wrote:
+> Umm, I agree with you on duty cycle, but that's got nothing to do wit=
+h
+> period. 100% duty cycle looks exactly the same whether the period is
+> 10ns or 100s.
 
-The device tree allows to boot from an MMC/SD and are working all
-the components that already have device tree support on OMAP3 SoCs:
+Yes this is true. But some PWM hw can select it's clock based on the pe=
+riod_ns
+provided.
+In most cases we could hardwire 10000 as period_ns but there might be H=
+W which
+checks this and only allow the use of supported frequencies.
 
-- MMC/SD
-- UARTs
-- GPIO LEDs
-- TWL4030 codec audio
-- pinmux/pinconf pinctrl
+>> Unless you're proposing to not include that in the PWM core but rath=
+er
+>> in individual drivers. Then I suppose the driver could choose some
+>> sensible default.
+>=20
+> Mostly I'm asking questions because I'm not familiar with the subsyst=
+em.
+> If the property is needed then I have no objections, but at the momen=
+t
+> it doesn't make any sense to me.
+>=20
+>> One other problem is that some PWM devices cannot be setup to achiev=
+e a
+>> 0% or 100% duty-cycle but instead will toggle for at least one perio=
+d.
+>> This would be another argument in favour of moving the functionality=
+ to
+>> the individual drivers, perhaps with some functionality provided by =
+the
+>> core to do the gpio_chip registration (a period could be passed to t=
+hat
+>> function at registration time), which will likely be the same for al=
+l
+>> hardware that can and wants to support this feature.
+>=20
+> It is a bit of an oddball case where if the hardware engineer wires u=
+p a
+> PWM to use as a GPIO, then he better be sure that it is actually fit =
+for
+> the purpose.
 
-Some peripheral are still not working such as Flash storage and
-Ethernet but support for these will also be included once the
-OMAP GPMC device tree binding patches hit mainline.
+If we inspect the situation from a different angle: a standard GPIO is =
+a PWM
+with either turned off state or with full duty cycle (where the duty cy=
+cle
+means nothing since the signal on the line is constantly high).
 
-This is a v2 of the patch-set that solves issues pointed out by
-Enric Balletbo and it is composed of the following patches:
+> That doesn't prevent the PWM core having some
+> gpio-emulation helper functionality, but do need to be careful about =
+it.
 
-[PATCH v2 1/3] ARM/dts: omap3: Add generic DT support for IGEP devices
-[PATCH v2 2/3] ARM/dts: omap3: Add support for IGEPv2 board
-[PATCH v2 3/3] ARM/dts: omap3: Add support for IGEP COM Module
+If you give designers a way to take short cuts, they will take it whene=
+ver
+they can. Even if it makes no sense. IMHO. But the BeagleBoard has been
+designed before we had any indication from the SW that we could handle =
+this
+case. I guess the thinking was that in the bootloader the SW will confi=
+gure
+the PWM to always on and forget about it in the running code.
 
-Best regards,
-Javier
+As a note: I noticed this during my cleanup work around the twl-core. I=
+f you
+take a look at the kernel code there are other drivers configuring the =
+PWMs of
+twl in various places to handle them.
+I wrote the pwm-twl and pwm-twl-led drivers so we can get rid of this w=
+hole mess:
+- the gpio-twl4030 extends itself to handle the PWMA/B (LEDA/B) as GPIO=
+=2E So
+drivers are doing OMAP_MAX_GPIO + TWL_NUM_GPIO + 1/2 to control the PWM=
+A/B.
+- mach-omap2/board-zoom-display.c have custom code to control the same =
+thing
+and the list goes.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
