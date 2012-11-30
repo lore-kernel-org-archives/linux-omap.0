@@ -1,60 +1,105 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] gpio: New driver for GPO emulation using PWM generators
-Date: Fri, 30 Nov 2012 11:09:54 +0000
-Message-ID: <CACxGe6sOhvRC4YFxKmDSc1xJ3Q6DomPpAKjtk3_gdY4XpfONRg@mail.gmail.com>
-References: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com>
- <20121123075537.A14713E0A91@localhost> <50AF3E21.4000009@ti.com>
- <50AF4584.7020604@ti.com> <20121126154600.765E03E1AFD@localhost>
- <50B5D161.6010200@ti.com> <20121129161024.EEA803E0912@localhost>
- <20121130064752.GB26474@avionic-0098.adnet.avionic-design.de>
- <20121130102039.0267E3E129E@localhost> <20121130110400.GA9400@avionic-0098.adnet.avionic-design.de>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH v5 00/12] Support for AM33xx PWM Subsystem
+Date: Fri, 30 Nov 2012 09:45:13 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3EA0E480@DBDE01.ent.ti.com>
+References: <1354006097-25895-1-git-send-email-avinashphilip@ti.com>
+ <20121128142101.GB21042@avionic-0098.adnet.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20121130110400.GA9400@avionic-0098.adnet.avionic-design.de>
-Sender: linux-doc-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, Rob Landley <rob@landley.net>, devicetree-discuss <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:34709 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756702Ab2K3Jqj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Nov 2012 04:46:39 -0500
+In-Reply-To: <20121128142101.GB21042@avionic-0098.adnet.avionic-design.de>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
 
-On Fri, Nov 30, 2012 at 11:04 AM, Thierry Reding
-<thierry.reding@avionic-design.de> wrote:
+On Wed, Nov 28, 2012 at 19:51:01, Thierry Reding wrote:
+> On Tue, Nov 27, 2012 at 02:18:05PM +0530, Philip, Avinash wrote:
+> > In AM33xx PWM sub modules like ECAP, EHRPWM & EQEP are  integrated to
+> > PWM subsystem. All these submodules shares the resources (clock) & has
+> > a clock gating register in PWM Subsystem. This patch series creates a
+> > parent PWM Subsystem driver to handle access synchronization of shared
+> > resources & clock gating from PWM Subsystem configuration space.
+> > Also Device tree nodes populated to support parent child relation
+> > between PWMSS, ECAP & EHRPWM submodules.
+> > In addition EHRPWM module requires explicit clock gating from control
+> > module & is handled by patch #6 & 7.
+> > 
+> > As suggested by  Thierry for handling clock gating for PWM submodules
+> > should handle with a global function. This requires config space
+> > handling done independent from driver and is done at parent driver.
+> > 
+> > So the parent<->child relation adopted to handle
+> > 1. pm runtime synchronization
+> > 2. PWM subsystem common config space clock gating for PWM submodules.
+> > 
+> > Patches supports
+> > - Driver support for parent child relation handled patch #1
+> > - HWMOD data correction in EPWMSS at patch #2
+> > - Parent child in HWMOD relation handled at patch #3
+> > - Optional EHRPWM tb clock in patch #6
+> > - Support for TBCLK clock gating at patch #7.
+> > - Device tree binding support handled in patch #4,8 
+> > - Pinctrl support in patch #5 & 9.
+> > - DT node populated in patch #10 ,11 & 12.
+> > 
+> > This patch series based on omap_dt/for_3.8/dts_part2 and tested
+> > on am335x-evm & am335x-evmsk.
+> > 
+> > This patch series will come under 3 subsystem basically. But sent
+> > it in single patch series to have a clearer picture of why the
+> > OMAP subsystem changes required.
+> > 
+> > Patches come under PWM (1,4,5,7,8,9)
+> > Patches come under OMAP (2,3,6)
+> > Patches come under DT (10,11,12).
+> > 
+> > It depends on [1]
+> > 1. https://gitorious.org/linux-pwm/linux-pwm/commit/83af24027b3df1af5c5a9aa9adcdcfeb3429d3be
+> > pwm: Device tree support for PWM polarity
+> > 
+> > Changes since v3:
+> > 	- Rebased on top of omap_dt/for_3.8/dts_part2
+> > 	- Add pwm backlight for am335xevm_sk
+> > 	- Moved tipwmss.h to pwm-tipwmss.h
+> > 
+> > Philip, Avinash (12):
+> >   PWMSS: Add PWM Subsystem driver for parent<->child relationship
+> >   ARM: OMAP: AM33xx hwmod: Corrects PWM subsystem HWMOD entries
+> >   ARM: OMAP: AM33xx hwmod: Add parent-child relationship for PWM
+> >     subsystem
+> >   pwm: tiecap: Add device-tree binding
+> >   pwm: pwm-tiecap: pinctrl support
+> >   ARM: AM33XX: clk: Add clock node for EHRPWM TBCLK
+> >   pwm: pwm-tiehrpwm: Adding TBCLK gating support.
+> >   pwm: tiehrpwm: Add device-tree binding
+> >   pwm: pwm-tiehrpwm: pinctrl support
+> >   ARM: dts: AM33XX: Add PWMSS device tree nodes
+> >   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evm
+> >   ARM: dts: AM33XX: Add PWM backlight DT data to am335x-evmsk
+> 
+> Patches 1, 4, 5, 7, 8 and 9 applied, with a minor fixup to the subject
+> line of patch 1. Thanks.
 
->> > One other problem is that some PWM devices cannot be setup to achieve a
->> > 0% or 100% duty-cycle but instead will toggle for at least one period.
->> > This would be another argument in favour of moving the functionality to
->> > the individual drivers, perhaps with some functionality provided by the
->> > core to do the gpio_chip registration (a period could be passed to that
->> > function at registration time), which will likely be the same for all
->> > hardware that can and wants to support this feature.
->>
->> It is a bit of an oddball case where if the hardware engineer wires up a
->> PWM to use as a GPIO, then he better be sure that it is actually fit for
->> the purpose.
->
-> Yes, I agree. So what we really want is to make this configurable in
-> some way. For DT this could just be controlled by the gpio-controller
-> property. The PWM core could easily setup the gpio_chip in the presence
-> of that property.
->
-> For non-DT it could probably be done via a flag that is passed to the
-> driver via platform data, in which case the driver would have to call
-> the helper explicitly based on the setting of this flag.
->
->> That doesn't prevent the PWM core having some gpio-emulation helper
->> functionality, but do need to be careful about it.
->
-> On the other hand, if we turn that support into a helper maybe it is
-> easier to leave it up to the driver whether to call it or not. A big
-> advantage of this would be that the driver could pass a period along
-> that it can choose sensibly according to the chip's capabilities.
->
-> Something as simple as:
->
->         int pwmchip_emulate_gpio(struct pwm_chip *chip, unsigned long period);
->
-> could do. Cleanup could be done automatically in pwmchip_remove().
+Thierry,
+Thanks for applying the PWM patches.
+I will follow up with OMAP community for other patches.
 
-Looks reasonable.
+Paul/Benoit,
 
-g.
+Is there any way to get HWMOD and DT patches getting accepted in 3.8?
+Or should I wait and send rebased patch based on 3.8-rc1?
+
+Thanks
+Avinash
+
+> 
+> Thierry
+> 
+
