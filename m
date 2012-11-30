@@ -1,80 +1,40 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Add terminating entry for picodlp_i2c_id table
-Date: Fri, 30 Nov 2012 10:54:55 +0200
-Message-ID: <50B8745F.4020701@ti.com>
-References: <1354249845.18712.2.camel@phoenix>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig3C2E0DFF10C4F0CF3288AA4D"
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH v2 0/3] ARM/dts: omap3: Add DT support for IGEP devices
+Date: Fri, 30 Nov 2012 11:08:54 +0100
+Message-ID: <1354270137-31538-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52958 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751357Ab2K3Iy6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Nov 2012 03:54:58 -0500
-In-Reply-To: <1354249845.18712.2.camel@phoenix>
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:59352 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756978Ab2K3KJM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Nov 2012 05:09:12 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Axel Lin <axel.lin@ingics.com>
-Cc: Archit Taneja <archit@ti.com>, Mythri P K <mythripk@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Enrico Butera <ebutera@gmail.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 
---------------enig3C2E0DFF10C4F0CF3288AA4D
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+IGEP technology devices are TI OMAP3 SoC based industrial embedded
+and computer-on-module boards. This patch-set adds initial device
+tree support for these devices.
 
-Hi,
+The device tree allows to boot from an MMC/SD and are working all
+the components that already have device tree support on OMAP3 SoCs:
 
-On 2012-11-30 06:30, Axel Lin wrote:
-> The i2c_device_id table is supposed to be zero-terminated.
->=20
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> ---
->  drivers/video/omap2/displays/panel-picodlp.c |    1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/vid=
-eo/omap2/displays/panel-picodlp.c
-> index e3a6c19..1b94018 100644
-> --- a/drivers/video/omap2/displays/panel-picodlp.c
-> +++ b/drivers/video/omap2/displays/panel-picodlp.c
-> @@ -50,6 +50,7 @@ struct picodlp_i2c_data {
-> =20
->  static struct i2c_device_id picodlp_i2c_id[] =3D {
->  	{ "picodlp_i2c_driver", 0 },
-> +	{ }
->  };
-> =20
->  struct picodlp_i2c_command {
+- MMC/SD
+- UARTs
+- GPIO LEDs
+- TWL4030 codec audio
+- pinmux/pinconf pinctrl
 
-Thanks, I'll apply to omapdss tree.
+Some peripheral are still not working such as Flash storage and
+Ethernet but support for these will also be included once the
+OMAP GPMC device tree binding patches hit mainline.
 
- Tomi
+This is a v2 of the patch-set that solves issues pointed out by
+Enric Balletbo and it is composed of the following patches:
 
+[PATCH v2 1/3] ARM/dts: omap3: Add generic DT support for IGEP devices
+[PATCH v2 2/3] ARM/dts: omap3: Add support for IGEPv2 board
+[PATCH v2 3/3] ARM/dts: omap3: Add support for IGEP COM Module
 
-
-
---------------enig3C2E0DFF10C4F0CF3288AA4D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQuHRfAAoJEPo9qoy8lh71BgMP/iokScfkKLA2NHTpv8aUoblR
-mfIGKtggJ21fYVMHbmhyD/ohy3RRofX/KZSJXPSNuygN8cwjD/LbrxlfMvGsB1/R
-frbFHG98E/im31MKm8e/R7GmZgmceUgtjaPq3pEkatN1VrCpcfREAEmFWAgYetad
-Jn9U/qNf0M08vQ2Pyd9mXiGIuYZ2AcXavtEuvjVAgsKLjgeSwTpp61MzN/X2wBrQ
-HqXmCCEAd3FoJARBofzdXBiw0DBg34umYFDbg7AFRHTv9m7pdRtONf7Yl/qHgCEn
-u1ylOpV7jmVnKqEnjAH5whQhu9bEMAxCI7mJ8XWJBn2D+0vD+wYhG08qwAluBkJY
-+/zAj3P5RDcmSLvcLZZsv085v7AYM/yI4XQf3XF5y41PDLW2jZPqVYVhDjn+r1fS
-4rjcZ3QQpdvegyvqg3NhP7eUeyQ4H5911PUYxjmKk9eAqyAB9BHzpQovCKGm6IBO
-I52VwRgBraIN0oVOLDRK6UPJML3rFbIHXhz+AP+LFClRo5BHuWJCCwJwoP75+UOw
-X4Tkhhhr8LyjE6PEuDWExZ/qi/oVhN/fUwOuciQzP8rQiKLdwkpUrKlpVkzrX/Iz
-+Zz3yUcjBrXlTPD+fNEU4LBhOBYFXwOCLyFq97miwf4BZZ+KAwpb4RNQac4+dfrM
-EngBNyWsk61lvUbn2Hmf
-=1gRk
------END PGP SIGNATURE-----
-
---------------enig3C2E0DFF10C4F0CF3288AA4D--
+Best regards,
+Javier
