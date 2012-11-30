@@ -1,102 +1,80 @@
-From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH RESEND v5 0/4] OMAP GPMC DT bindings
-Date: Fri, 30 Nov 2012 11:23:43 +0530
-Message-ID: <50B849E7.30600@ti.com>
-References: <1354121939-11246-1-git-send-email-zonque@gmail.com>
- <518397C60809E147AF5323E0420B992E3EA07317@DBDE01.ent.ti.com>
- <50B74DCC.5060808@gmail.com>
- <518397C60809E147AF5323E0420B992E3EA0BB6B@DBDE01.ent.ti.com>
- <50B77DD5.4090001@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: Add terminating entry for picodlp_i2c_id table
+Date: Fri, 30 Nov 2012 10:54:55 +0200
+Message-ID: <50B8745F.4020701@ti.com>
+References: <1354249845.18712.2.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <50B77DD5.4090001-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Philip,
- Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig3C2E0DFF10C4F0CF3288AA4D"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52958 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751357Ab2K3Iy6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Nov 2012 03:54:58 -0500
+In-Reply-To: <1354249845.18712.2.camel@phoenix>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Axel Lin <axel.lin@ingics.com>
+Cc: Archit Taneja <archit@ti.com>, Mythri P K <mythripk@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+
+--------------enig3C2E0DFF10C4F0CF3288AA4D
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On 2012-11-30 06:30, Axel Lin wrote:
+> The i2c_device_id table is supposed to be zero-terminated.
+>=20
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> ---
+>  drivers/video/omap2/displays/panel-picodlp.c |    1 +
+>  1 file changed, 1 insertion(+)
+>=20
+> diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/vid=
+eo/omap2/displays/panel-picodlp.c
+> index e3a6c19..1b94018 100644
+> --- a/drivers/video/omap2/displays/panel-picodlp.c
+> +++ b/drivers/video/omap2/displays/panel-picodlp.c
+> @@ -50,6 +50,7 @@ struct picodlp_i2c_data {
+> =20
+>  static struct i2c_device_id picodlp_i2c_id[] =3D {
+>  	{ "picodlp_i2c_driver", 0 },
+> +	{ }
+>  };
+> =20
+>  struct picodlp_i2c_command {
+
+Thanks, I'll apply to omapdss tree.
+
+ Tomi
 
 
 
-On 11/29/2012 8:53 PM, Daniel Mack wrote:
-> On 29.11.2012 16:08, Philip, Avinash wrote:
->> On Thu, Nov 29, 2012 at 17:28:04, Daniel Mack wrote:
->>> Hi Avinash,
->>>
->>> On 29.11.2012 06:24, Philip, Avinash wrote:
->>>> On Wed, Nov 28, 2012 at 22:28:55, Daniel Mack wrote:
->>>>> [Resending +devicetree-discuss, +Rob, +Grant]
->>>>>
->>>>>
->>>>> This is a series of patches to support GPMC peripherals on OMAP boards.
->>>>>
->>>>> Depends on Linus' master +
->>>>> omap-next (branch omap-for-v3.8/cleanup-headers-gpmc)
->>>>
->>>> Can you resend this series on top of linux_next?
->>>
->>> The only branch these patches depend on is the
->>> "omap-for-v3.8/cleanup-headers-gpmc" branch from omap_next. Are you
->>> actually seeing any merge conflicts with my series? If so, which branch
->>> are you referring to exactly?
->>>
->>>> Some of the missing items I seen 
->>>> 1. Of_node not populated in  omap_nand_platform_data structure.
->>>
->>> Hmm - gpmc_probe_nand_child() from 4/4 adds
->>>
->>>   gpmc_nand_data->of_node = child;
->>>
->>> Do I miss anything?
->>
->> I didn't found definition for of_node member in omap_nand_platform_data
->> structure. This also might be missing in liniux-next?
-> 
-> Ah, right. I got that entry from your patch ("mtd: nand: omap2: Support
-> for hardware BCH error correction"). But you're right, it should be part
-> of my series. Will add that when resending, but note that your ELM
-> series will then cause a (trivial) merge conflict.
-> 
->>>> 2. Remove platform device creation from hwmod as GPMC DT is populating.
->>>>    Currently GPMC device creaing from DT & HWMOD.
->>>
->>> This is already addressed in cd00b0530 ("ARM: OMAP2+: gpmc: Fix kernel
->>> BUG for DT boot mode") by Vaibhav Hiremath, which I got via Afzal's USB
->>> branch:
->>
->> Purpose of VH's patch was to get beagle bone booting, but Jon sent another
->> patch that made beagle bone boot and it has reached mainline by v3.7-rc2,
->> hence the patch you are referring to is currently not going upstream. Still to
->> have GPMC DT work, we need that patch as other wise there would be two GPMC
->> devices. In earlier versions of your series, you had a similar patch, it is
->> required, can you please add it to your series as otherwise with your series
->> GPMC DT won't work.
-> 
-> Ok, fine. Will do.
->
 
-Feel free to take that patch forward, merge into your series.
+--------------enig3C2E0DFF10C4F0CF3288AA4D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Thanks,
-Vaibhav
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
+iQIcBAEBAgAGBQJQuHRfAAoJEPo9qoy8lh71BgMP/iokScfkKLA2NHTpv8aUoblR
+mfIGKtggJ21fYVMHbmhyD/ohy3RRofX/KZSJXPSNuygN8cwjD/LbrxlfMvGsB1/R
+frbFHG98E/im31MKm8e/R7GmZgmceUgtjaPq3pEkatN1VrCpcfREAEmFWAgYetad
+Jn9U/qNf0M08vQ2Pyd9mXiGIuYZ2AcXavtEuvjVAgsKLjgeSwTpp61MzN/X2wBrQ
+HqXmCCEAd3FoJARBofzdXBiw0DBg34umYFDbg7AFRHTv9m7pdRtONf7Yl/qHgCEn
+u1ylOpV7jmVnKqEnjAH5whQhu9bEMAxCI7mJ8XWJBn2D+0vD+wYhG08qwAluBkJY
++/zAj3P5RDcmSLvcLZZsv085v7AYM/yI4XQf3XF5y41PDLW2jZPqVYVhDjn+r1fS
+4rjcZ3QQpdvegyvqg3NhP7eUeyQ4H5911PUYxjmKk9eAqyAB9BHzpQovCKGm6IBO
+I52VwRgBraIN0oVOLDRK6UPJML3rFbIHXhz+AP+LFClRo5BHuWJCCwJwoP75+UOw
+X4Tkhhhr8LyjE6PEuDWExZ/qi/oVhN/fUwOuciQzP8rQiKLdwkpUrKlpVkzrX/Iz
++Zz3yUcjBrXlTPD+fNEU4LBhOBYFXwOCLyFq97miwf4BZZ+KAwpb4RNQac4+dfrM
+EngBNyWsk61lvUbn2Hmf
+=1gRk
+-----END PGP SIGNATURE-----
 
-> 
-> Daniel
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--------------enig3C2E0DFF10C4F0CF3288AA4D--
