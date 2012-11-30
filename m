@@ -1,133 +1,232 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: Re: [PATCH 2/7] OMAPDSS: DISPC: Move DISPC specific dss_reg_fields
- to dispc_features
-Date: Fri, 30 Nov 2012 15:32:54 +0530
-Message-ID: <50B8844E.2010903@ti.com>
-References: <cover.1354086150.git.cmahapatra@ti.com> <a5bbbc9af3ef5ca2636d3c4dea6cbbe9834e0f62.1354086150.git.cmahapatra@ti.com> <50B74F98.2030108@ti.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH] gpio: New driver for GPO emulation using PWM generators
+Date: Fri, 30 Nov 2012 12:04:00 +0100
+Message-ID: <20121130110400.GA9400@avionic-0098.adnet.avionic-design.de>
+References: <1353591723-25233-1-git-send-email-peter.ujfalusi@ti.com>
+ <20121123075537.A14713E0A91@localhost>
+ <50AF3E21.4000009@ti.com>
+ <50AF4584.7020604@ti.com>
+ <20121126154600.765E03E1AFD@localhost>
+ <50B5D161.6010200@ti.com>
+ <20121129161024.EEA803E0912@localhost>
+ <20121130064752.GB26474@avionic-0098.adnet.avionic-design.de>
+ <20121130102039.0267E3E129E@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35740 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753193Ab2K3KGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Nov 2012 05:06:18 -0500
-In-Reply-To: <50B74F98.2030108@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121130102039.0267E3E129E@localhost>
+Sender: linux-doc-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Linus Walleij <linus.walleij@linaro.org>, Rob Landley <rob@landley.net>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thursday 29 November 2012 05:35 PM, Tomi Valkeinen wrote:
-> On 2012-11-28 12:41, Chandrabhanu Mahapatra wrote:
->> The register fields in dss_reg_fields specific to DISPC are moved from struct
->> omap_dss_features to corresponding dispc_reg_fields, initialized in struct
->> dispc_features, thereby enabling local access.
->>
->> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
->> ---
->>  drivers/video/omap2/dss/dispc.c        |   87 ++++++++++++++++++++++++++++----
->>  drivers/video/omap2/dss/dss.h          |    4 ++
->>  drivers/video/omap2/dss/dss_features.c |   28 ----------
->>  drivers/video/omap2/dss/dss_features.h |    7 ---
->>  4 files changed, 80 insertions(+), 46 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
->> index 9f259ba..21fc522 100644
->> --- a/drivers/video/omap2/dss/dispc.c
->> +++ b/drivers/video/omap2/dss/dispc.c
->> @@ -80,6 +80,16 @@ struct dispc_irq_stats {
->>  	unsigned irqs[32];
->>  };
->>  
->> +enum dispc_feat_reg_field {
->> +	FEAT_REG_FIRHINC,
->> +	FEAT_REG_FIRVINC,
->> +	FEAT_REG_FIFOLOWTHRESHOLD,
->> +	FEAT_REG_FIFOHIGHTHRESHOLD,
->> +	FEAT_REG_FIFOSIZE,
->> +	FEAT_REG_HORIZONTALACCU,
->> +	FEAT_REG_VERTICALACCU,
->> +};
->> +
->>  struct dispc_features {
->>  	u8 sw_start;
->>  	u8 fp_start;
->> @@ -107,6 +117,8 @@ struct dispc_features {
->>  
->>  	u32 buffer_size_unit;
->>  	u32 burst_size_unit;
->> +
->> +	struct register_field *reg_fields;
->>  };
->>  
->>  #define DISPC_MAX_NR_FIFOS 5
->> @@ -1150,7 +1162,8 @@ static void dispc_init_fifos(void)
->>  
->>  	unit = dispc.feat->buffer_size_unit;
->>  
->> -	dss_feat_get_reg_field(FEAT_REG_FIFOSIZE, &start, &end);
->> +	start = dispc.feat->reg_fields[FEAT_REG_FIFOSIZE].start;
->> +	end = dispc.feat->reg_fields[FEAT_REG_FIFOSIZE].end;
->>  
->>  	for (fifo = 0; fifo < dispc.feat->num_fifos; ++fifo) {
->>  		size = REG_GET(DISPC_OVL_FIFO_SIZE_STATUS(fifo), start, end);
->> @@ -1214,8 +1227,10 @@ void dispc_ovl_set_fifo_threshold(enum omap_plane plane, u32 low, u32 high)
->>  	low /= unit;
->>  	high /= unit;
->>  
->> -	dss_feat_get_reg_field(FEAT_REG_FIFOHIGHTHRESHOLD, &hi_start, &hi_end);
->> -	dss_feat_get_reg_field(FEAT_REG_FIFOLOWTHRESHOLD, &lo_start, &lo_end);
->> +	hi_start = dispc.feat->reg_fields[FEAT_REG_FIFOHIGHTHRESHOLD].start;
->> +	hi_end = dispc.feat->reg_fields[FEAT_REG_FIFOHIGHTHRESHOLD].end;
->> +	lo_start = dispc.feat->reg_fields[FEAT_REG_FIFOLOWTHRESHOLD].start;
->> +	lo_end = dispc.feat->reg_fields[FEAT_REG_FIFOLOWTHRESHOLD].end;
-> 
-> I think these are quite verbose. Perhaps a helper function which does
-> the same as dss_feat_get_reg_field() would be better. Or alternatively,
-> maybe something like:
-> 
-> const struct dss_reg_field *hi_field =
-> &dispc.feat->reg_fields[FEAT_REG_FIFOHIGHTHRESHOLD];
-> 
-> and then use "hi_field.start" instead of hi_start.
-> 
-> Or something else that makes the above easier to read.
 
-OK.
+--AqsLC8rIMeq19msA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
->> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
->> index 84a7f6a..aa273d8 100644
->> --- a/drivers/video/omap2/dss/dss.h
->> +++ b/drivers/video/omap2/dss/dss.h
->> @@ -143,6 +143,10 @@ struct reg_field {
->>  	u8 low;
->>  };
->>  
->> +struct register_field {
->> +	u8 start, end;
->> +};
->> +
-> 
-> We already have the dss_reg_field struct. I think it's better to move
-> that to dss.h, and use it, instead of creating an exact duplicate.
-> 
->  Tomi
-> 
-> 
+On Fri, Nov 30, 2012 at 10:20:38AM +0000, Grant Likely wrote:
+> On Fri, 30 Nov 2012 07:47:52 +0100, Thierry Reding <thierry.reding@avioni=
+c-design.de> wrote:
+> > On Thu, Nov 29, 2012 at 04:10:24PM +0000, Grant Likely wrote:
+> > > On Wed, 28 Nov 2012 09:54:57 +0100, Peter Ujfalusi <peter.ujfalusi@ti=
+=2Ecom> wrote:
+> > > > Hi Grant, Lars, Thierry,
+> > > >=20
+> > > > On 11/26/2012 04:46 PM, Grant Likely wrote:
+> > > > > You're effectively asking the pwm layer to behave like a gpio (wh=
+ich
+> > > > > is completely reasonable). Having a completely separate translati=
+on node
+> > > > > really doesn't make sense because it is entirely a software const=
+ruct.
+> > > > > In fact, the way your using it is *entirely* to make the Linux dr=
+iver
+> > > > > model instantiate the translation code. It has *nothing* to do wi=
+th the
+> > > > > structure of the hardware. It makes complete sense that if a PWM =
+is
+> > > > > going to be used as a GPIO, then the PWM node should conform to t=
+he GPIO
+> > > > > binding.
+> > > >=20
+> > > > I understand your point around this. I might say I agree with it as=
+ well...
+> > > > I spent yesterday with prototyping and I'm not really convinced tha=
+t it is a
+> > > > good approach from C code point of view. I got it working, yes.
+> > > > In essence this is what I have on top of the slightly modified gpio=
+-pwm.c
+> > > > driver I have submitted:
+> > > >=20
+> > > > DTS files:
+> > > > twl_pwm: pwm {
+> > > > 	/* provides two PWMs (id 0, 1 for PWM1 and PWM2) */
+> > > > 	compatible =3D "ti,twl6030-pwm";
+> > > > 	#pwm-cells =3D <2>;
+> > > >=20
+> > > > 	/* Enable GPIO us of the PWMs */
+> > > > 	gpio-controller =3D <1>;
+> > >=20
+> > > This line should be simply (the property shouldn't have any data):
+> > > 	gpio-controller;
+> > >=20
+> > > > 	#gpio-cells =3D <2>;
+> > > > 	pwm,period_ns =3D <7812500>;
+> > >=20
+> > > Nit: property names should use '-' instead of '_'.
+> > >=20
+> > > > };
+> > > >=20
+> > > > leds {
+> > > > 	compatible =3D "gpio-leds";
+> > > > 	backlight {
+> > > > 		label =3D "omap4::backlight";
+> > > > 		gpios =3D <&twl_pwm 1 0>; /* PWM1 of twl6030 */
+> > > > 	};
+> > > >=20
+> > > > 	keypad {
+> > > > 		label =3D "omap4::keypad";
+> > > > 		gpios =3D <&twl_pwm 0 0>; /* PWM0 of twl6030 */
+> > > > 	};
+> > > > };
+> > > >=20
+> > > > The bulk of the code in drivers/pwm/core.c to create the pwm-gpo de=
+vice when
+> > > > it is requested going to look something like this. I have removed t=
+he error
+> > > > checks for now and I still don't have the code to clean up the allo=
+cated
+> > > > memory for the created device on error, or in case the module is un=
+loaded. We
+> > > > should also prevent the pwm core from removal when the pwm-gpo driv=
+er is loaded.
+> > > > We need to create the platform device for gpo-pwm, create the pdata=
+ structure
+> > > > for it and fill it in. We also need to hand craft the pwm_lookup ta=
+ble so we
+> > > > can use pwm_get() to request the PWM. I have other minor changes ar=
+ound this
+> > > > to get things working when we booted with DT.
+> > > > So the function to do the heavy lifting is something like this:
+> > > > static void of_pwmchip_as_gpio(struct pwm_chip *chip)
+> > > > {
+> > > > 	struct platform_device *pdev;
+> > > > 	struct gpio_pwm *gpos;
+> > > > 	struct gpio_pwm_pdata *pdata;
+> > > > 	struct pwm_lookup *lookup;
+> > > > 	char gpodev_name[15];
+> > > > 	int i;
+> > > > 	u32 gpio_mode =3D 0;
+> > > > 	u32 period_ns =3D 0;
+> > > >=20
+> > > > 	of_property_read_u32(chip->dev->of_node, "gpio-controller",
+> > > > 			     &gpio_mode);
+> > > > 	if (!gpio_mode)
+> > > > 		return;
+> > > >=20
+> > > > 	of_property_read_u32(chip->dev->of_node, "pwm,period_ns", &period_=
+ns);
+> > > > 	if (!period_ns) {
+> > > > 		dev_err(chip->dev,
+> > > > 			"period_ns is not specified for GPIO use\n");
+> > > > 		return;
+> > > > 	}
+> > >=20
+> > > This property name seems ambiguous. What do you need to encode here? =
+It
+> > > looks like there is a specific PWM period used for the 'on' state. Wh=
+at
+> > > about the 'off' state? Would different pwm outputs have different
+> > > frequencies required for GPIO usage.
+> > >=20
+> > > Actually, I'm a bit surprised here that a period value is needed at a=
+ll.
+> > > I would expect if a PWM is used as a GPIO then the driver would alrea=
+dy
+> > > know how to set it up that way.
+> >=20
+> > Just to make sure we're talking about the same thing here: if a PWM is
+> > used as GPIO the assumption is that it would be set to 0% duty-cycle
+> > when the GPIO value is set to 0 and 100% duty-cycle when set to the 1.
+> > The period will still need to be set here, otherwise how would the PWM
+> > core know what the hardware even supports?
+>=20
+> Umm, I agree with you on duty cycle, but that's got nothing to do with
+> period. 100% duty cycle looks exactly the same whether the period is
+> 10ns or 100s.
 
-register_field appears to be a more generic a name rather than
-dss_reg_field. Also I was thinking to initialise
+Yes, that's true. My concern was more that any value for period that we
+choose more or less arbitrarily as the default for GPIO operation would
+end up not being supported by some hardware.
 
-struct dispc_reg_fields {
-	struct register_field firhinc;
-	struct register_field firvinc;
-	struct register_field fifo_low_threshold;
-	...
-};
- similarly, dss_reg_fields and dsi_reg_fields from register_field.
+> > Unless you're proposing to not include that in the PWM core but rather
+> > in individual drivers. Then I suppose the driver could choose some
+> > sensible default.
+>=20
+> Mostly I'm asking questions because I'm not familiar with the subsystem.
+> If the property is needed then I have no objections, but at the moment
+> it doesn't make any sense to me.
+>=20
+> > One other problem is that some PWM devices cannot be setup to achieve a
+> > 0% or 100% duty-cycle but instead will toggle for at least one period.
+> > This would be another argument in favour of moving the functionality to
+> > the individual drivers, perhaps with some functionality provided by the
+> > core to do the gpio_chip registration (a period could be passed to that
+> > function at registration time), which will likely be the same for all
+> > hardware that can and wants to support this feature.
+>=20
+> It is a bit of an oddball case where if the hardware engineer wires up a
+> PWM to use as a GPIO, then he better be sure that it is actually fit for
+> the purpose.
 
--- 
-Chandrabhanu Mahapatra
-Texas Instruments India Pvt. Ltd.
+Yes, I agree. So what we really want is to make this configurable in
+some way. For DT this could just be controlled by the gpio-controller
+property. The PWM core could easily setup the gpio_chip in the presence
+of that property.
+
+For non-DT it could probably be done via a flag that is passed to the
+driver via platform data, in which case the driver would have to call
+the helper explicitly based on the setting of this flag.
+
+> That doesn't prevent the PWM core having some gpio-emulation helper
+> functionality, but do need to be careful about it.
+
+On the other hand, if we turn that support into a helper maybe it is
+easier to leave it up to the driver whether to call it or not. A big
+advantage of this would be that the driver could pass a period along
+that it can choose sensibly according to the chip's capabilities.
+
+Something as simple as:
+
+	int pwmchip_emulate_gpio(struct pwm_chip *chip, unsigned long period);
+
+could do. Cleanup could be done automatically in pwmchip_remove().
+
+Thierry
+
+--AqsLC8rIMeq19msA
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQuJKgAAoJEN0jrNd/PrOhqE0P/jGTE3MR3oU9g7lGsnUBqjIV
+xL+QUXPS3aAg5sM11m8KUhZACplR0l+ToVfiL7FAi9Z7hS1Bk/LCnQ08ki/h0hV1
+C47romjUi3S/47LcUVYd8DrkChDz+QeM+8vbuLz83rI51CJ/LvVgJMT2tnHeUqDg
+MaOfWark35HidbqBKuIe9TLBXfNco6/+Rs1t5y7Y9pCGnHt12jxa7I2lQRk3sez6
+MUwtgy2lEAg9ZsfHIl+BsvjZmlfbnIS0QmjVqngAP1z6KkybOdw7zJUa3izSMaDm
+6+f5pAZxXmuTggDe6MdqHjVxO311Ja9u2rcuA6+3tDiw0HvlRc9ZLRQTHfPyZmls
+1jkKksBh84xBlfy3en1y1ThDeFhGjfbMqeTyskbl2oq5XRH4Aka9h8BVVG0psPus
+TqZmXYXevZX2+uaDems/lkpjSwzK0rCGCPn+4/4w/KFHwn2h/Obn1aNqfjKb+zXo
+gJl9UK6OgK9mHOYP/L4kCHGjOj6uPGY0gXtG3dbVQxf/kiC745yUCh9vSLytpbnq
+9k+JaWSjHL+6Fl2iSC8A57pqfN3JsZJ1LTWjbvfnRLXLsCvFFzsnjE7sxFWoBh7g
+jHXmSdVtHVTh95bilTYD/ilgZNBmd0ubBzt2VxWjjm1s+Vw8guY+xPjZFP1rwsKh
+Bgf/Fd/95opKlmW62PRY
+=FexT
+-----END PGP SIGNATURE-----
+
+--AqsLC8rIMeq19msA--
