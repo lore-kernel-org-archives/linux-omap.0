@@ -1,152 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 3/3] omap late multiplatform cleanup for v3.8 merge
- window
-Date: Fri, 30 Nov 2012 09:26:43 -0800
-Message-ID: <20121130172643.GI5312@atomide.com>
-References: <pull-1353978372-642963>
- <50b4120b.d088e50a.742e.ffffd3d3SMTPIN_ADDED_MISSING@mx.google.com>
- <20121130065314.GB6899@quad.lixom.net>
+Subject: Re: [GIT PULL 1/3] omap late timer clean-up (and a warning fix)
+ for v3.8 merge window
+Date: Fri, 30 Nov 2012 09:28:33 -0800
+Message-ID: <20121130172833.GJ5312@atomide.com>
+References: <50b41207.c188e50a.6d1e.ffffd469SMTPIN_ADDED_BROKEN@mx.google.com>
+ <20121130071833.GD6899@quad.lixom.net>
+ <50B868A1.2090001@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:55400 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:59109 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750709Ab2K3R0u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Nov 2012 12:26:50 -0500
+	with ESMTP id S1753463Ab2K3R2i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Nov 2012 12:28:38 -0500
 Content-Disposition: inline
-In-Reply-To: <20121130065314.GB6899@quad.lixom.net>
+In-Reply-To: <50B868A1.2090001@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Igor Grinberg <grinberg@compulab.co.il>
 
-* Olof Johansson <olof@lixom.net> [121129 22:55]:
-> On Mon, Nov 26, 2012 at 05:06:12PM -0800, Tony Lindgren wrote:
-> > The following changes since commit 0f9cb211ba5db93d488fe6b154138231fdd0e22d:
-> > 
-> >   Merge tag 'v3.7-rc7' into next/cleanup (2012-11-25 21:34:34 -0800)
-> > 
-> > are available in the git repository at:
-> > 
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-multiplatform-v2-signed
-> > 
-> > for you to fetch changes up to 5ebb428d045ea9b908864547819786d5bcebad05:
-> > 
-> >   ARM: OMAP: Move plat-omap/dma-omap.h to include/linux/omap-dma.h (2012-11-26 13:19:23 -0800)
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [121130 00:06]:
+> Olof,
 > 
-> Tony,
-> 
-> Did you mean to base this branch on next/cleanup? We normally try to avoid
-> having vendor branches based on our common next/* branches, since it adds
-> dependencies that makes it hard to rebuild our branch if needed for some
-> reason.
+> On Friday 30 November 2012 12:48 PM, Olof Johansson wrote:
+> >On Mon, Nov 26, 2012 at 05:06:11PM -0800, Tony Lindgren wrote:
+> >>The following changes since commit 9dc57643738f9fbe45c10cc062903d5dfda5bdd9:
+> >>
+> >>   Merge branch 'fixes-timer' of github.com:jonhunter/linux into omap-for-v3.8/timer (2012-11-13 13:52:38 -0800)
+> >>
+> >>are available in the git repository at:
+> >>
+> >>
+> >>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/cleanup-timer-signed
+> >>
+> >>for you to fetch changes up to 26f01998b0657a61167a819f1c37cb9f9e9d674b:
+> >>
+> >>   ARM: OMAP3: cm-t3517: use GPTIMER for system clock (2012-11-21 10:20:43 -0800)
+> >
+> >By the way, I had to apply the following fixup on top of this (in next/cleanup)
+> >to fix a compilation failure. Seems to be caused by "ARM: OMAP2+: timer: remove
+> >CONFIG_OMAP_32K_TIMER" from Igor.
 
-Sorry I should have asked before. I wanted to base this on something
-that compiles for with multiplatform support and is bootable with
-minimal patching and does not produce new merge conflicts.
+Yes thanks.
 
-But I only need the resulting branch for testing, so as long as we
-the resulting arm-soc/for-next branch is usable for me until -rc1
-is out, I'll be happy.
+> There was similar patch [1] like yours from Jon to fix above build
+> break.
 
-For merging, the dependencies for these three patches are:
-
-omap-for-v3.8/cleanup-fixes-part2-v2-signed (all the header clean-up)
-omap-for-v3.8/devel-prcm-signed (needed the wdt changes)
-
-So I've merged those two to use as a base, the patches on top
-are the same. Hope that works for you better.
-
-It's now missing the common clock changes, but that's OK as the
-branch does not yet enable the multiplatform support. Updated pull
-request below.
-
-BTW, note that "[GIT PULL] omap iommu clean-up dependency branch for
-v3.8 merge window" is still pending it seems?
+There's also few more fixes that I'll queue once these pending
+branches are merged.
 
 Regards,
 
 Tony
-
-
-The following changes since commit 2589d056122f6dcb405d411eae872aac8cf9da1b:
-
-  Merge tag 'tags/omap-for-v3.8/devel-prcm-signed' into omap-for-v3.8/cleanup-headers-prepare-multiplatform-v3 (2012-11-30 08:40:31 -0800)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/tags/omap-for-v3.8/cleanup-multiplatform-no-clock-signed
-
-for you to fetch changes up to 45c3eb7d3a07eb08d1b5b0f5983a996d41610b84:
-
-  ARM: OMAP: Move plat-omap/dma-omap.h to include/linux/omap-dma.h (2012-11-30 08:41:50 -0800)
-
-----------------------------------------------------------------
-Remaining patches to allow omap2+ to build with multiplatform
-enabled. Unfortunately the DMA header patch had to be redone
-to avoid adding new multiplatform specific include paths, the
-other patches are just trivial compile fixes.
-
-Note that this does not yet contain the necessary Kconfig
-changes as we are still waiting for some drivers to get
-fixed up first.
-
-----------------------------------------------------------------
-Tony Lindgren (3):
-      watchdog: OMAP: fixup for ARM multiplatform support
-      ASoC: OMAP: mcbsp fixes for enabling ARM multiplatform support
-      ARM: OMAP: Move plat-omap/dma-omap.h to include/linux/omap-dma.h
-
- arch/arm/mach-omap1/board-h2.c                     |   2 +-
- arch/arm/mach-omap1/board-h3.c                     |   2 +-
- arch/arm/mach-omap1/board-palmte.c                 |   2 +-
- arch/arm/mach-omap1/board-palmtt.c                 |   2 +-
- arch/arm/mach-omap1/board-palmz71.c                |   2 +-
- arch/arm/mach-omap1/board-sx1.c                    |   2 +-
- arch/arm/mach-omap1/dma.c                          |   2 +-
- arch/arm/mach-omap1/io.c                           |   2 +-
- arch/arm/mach-omap1/lcd_dma.c                      |   2 +-
- arch/arm/mach-omap1/mcbsp.c                        |   2 +-
- arch/arm/mach-omap1/pm.c                           |   2 +-
- arch/arm/mach-omap2/board-3430sdp.c                |   2 +-
- arch/arm/mach-omap2/board-h4.c                     |   2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c       |   2 +-
- arch/arm/mach-omap2/board-rx51.c                   |   2 +-
- arch/arm/mach-omap2/devices.c                      |   2 +-
- arch/arm/mach-omap2/dma.c                          |   2 +-
- arch/arm/mach-omap2/io.c                           |   2 +-
- arch/arm/mach-omap2/mcbsp.c                        |   2 +-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   2 +-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   2 +-
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |   3 +-
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   2 +-
- arch/arm/mach-omap2/pm24xx.c                       |   2 +-
- arch/arm/mach-omap2/pm34xx.c                       |   3 +-
- arch/arm/mach-omap2/serial.c                       |   2 +-
- arch/arm/plat-omap/dma.c                           |   2 +-
- arch/arm/plat-omap/include/plat-omap/dma-omap.h    | 377 ---------------------
- drivers/crypto/omap-aes.c                          |   2 +-
- drivers/crypto/omap-sham.c                         |   2 +-
- drivers/dma/omap-dma.c                             |   2 -
- drivers/media/platform/omap/omap_vout.c            |   2 +-
- drivers/media/platform/omap/omap_vout_vrfb.c       |   2 +-
- drivers/media/platform/omap3isp/ispstat.h          |   2 +-
- drivers/media/platform/soc_camera/omap1_camera.c   |   2 +-
- drivers/mtd/nand/omap2.c                           |   1 -
- drivers/mtd/onenand/omap2.c                        |   2 +-
- drivers/usb/gadget/omap_udc.c                      |   2 +-
- drivers/usb/musb/tusb6010_omap.c                   |   2 +-
- drivers/video/omap/lcdc.c                          |   2 +-
- drivers/video/omap/omapfb_main.c                   |   2 +-
- drivers/video/omap/sossi.c                         |   2 +-
- drivers/watchdog/omap_wdt.c                        |   2 -
- include/linux/omap-dma.h                           | 366 ++++++++++++++++++++
- sound/soc/omap/mcbsp.c                             |   4 +-
- sound/soc/omap/mcbsp.h                             |   6 +
- sound/soc/omap/omap-mcbsp.c                        |   5 +-
- 49 files changed, 417 insertions(+), 430 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/plat-omap/dma-omap.h
+ 
+> [1] http://www.spinics.net/lists/linux-omap/msg83260.html
