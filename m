@@ -1,115 +1,124 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: [RFC PATCH 2/5] driver core: introduce global device ADD/DEL notifier
-Date: Sun,  2 Dec 2012 23:01:04 +0800
-Message-ID: <1354460467-28006-3-git-send-email-tom.leiming@gmail.com>
+From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [RFC PATCH 3/5] USB: hub: apply power controller on usb port
+Date: Sun,  2 Dec 2012 23:01:05 +0800
+Message-ID: <1354460467-28006-4-git-send-email-tom.leiming@gmail.com>
 References: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>, Andy Green <andy.green@linaro.org>, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1354460467-28006-1-git-send-email-tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-The global device ADD/DEL notifier is introduced so that
-some platform code can bind some device resource to the
-device. When this platform code runs, there is no any bus
-information about the device, so have to resort to the
-global notifier.
+This patch applies the power controller on usb port, so that
+hub driver can power on one port which isn't provided power
+by bus.
 
-Cc: Andy Green <andy.green@linaro.org>
-Cc: Roger Quadros <rogerq@ti.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Cc: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/base/core.c    |   21 +++++++++++++++++++++
- include/linux/device.h |   13 +++++++++++++
- 2 files changed, 34 insertions(+)
+ drivers/usb/core/hub.c   |   31 ++++++++++++++++++++++++++++---
+ include/linux/usb/port.h |   16 ++++++++++++++++
+ 2 files changed, 44 insertions(+), 3 deletions(-)
+ create mode 100644 include/linux/usb/port.h
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index a235085..37f11ff 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -43,6 +43,9 @@ static __init int sysfs_deprecated_setup(char *arg)
- early_param("sysfs.deprecated", sysfs_deprecated_setup);
- #endif
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index a815fd2..f8075d7 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -26,6 +26,8 @@
+ #include <linux/mutex.h>
+ #include <linux/freezer.h>
+ #include <linux/random.h>
++#include <linux/power_controller.h>
++#include <linux/usb/port.h>
  
-+/* global device nofifier */
-+struct blocking_notifier_head dev_notifier;
+ #include <asm/uaccess.h>
+ #include <asm/byteorder.h>
+@@ -848,8 +850,15 @@ static unsigned hub_power_on(struct usb_hub *hub, bool do_delay)
+ 	else
+ 		dev_dbg(hub->intfdev, "trying to enable port power on "
+ 				"non-switchable hub\n");
+-	for (port1 = 1; port1 <= hub->descriptor->bNbrPorts; port1++)
++	for (port1 = 1; port1 <= hub->descriptor->bNbrPorts; port1++) {
++		struct usb_port *port = hub->ports[port1 - 1];
++		struct pc_dev_data *pc_data = dev_pc_get_data(&port->dev);
 +
- int (*platform_notify)(struct device *dev) = NULL;
- int (*platform_notify_remove)(struct device *dev) = NULL;
- static struct kobject *dev_kobj;
-@@ -1041,6 +1044,8 @@ int device_add(struct device *dev)
- 	if (platform_notify)
- 		platform_notify(dev);
++		/* The power supply for this port isn't managed by bus only */
++		if (pc_data)
++			dev_pc_power_on(&port->dev);
+ 		set_port_feature(hub->hdev, port1, USB_PORT_FEAT_POWER);
++	}
  
-+	blocking_notifier_call_chain(&dev_notifier, DEV_NOTIFY_ADD_DEVICE, dev);
+ 	/* Wait at least 100 msec for power to become stable */
+ 	delay = max(pgood_delay, (unsigned) 100);
+@@ -1541,10 +1550,20 @@ static int hub_configure(struct usb_hub *hub,
+ 	if (hub->has_indicators && blinkenlights)
+ 		hub->indicator [0] = INDICATOR_CYCLE;
+ 
+-	for (i = 0; i < hdev->maxchild; i++)
++	for (i = 0; i < hdev->maxchild; i++) {
+ 		if (usb_hub_create_port_device(hub, i + 1) < 0)
+ 			dev_err(hub->intfdev,
+ 				"couldn't create port%d device.\n", i + 1);
++		else {
++			struct usb_port *port = hub->ports[i];
++			struct pc_dev_data *pc_data = dev_pc_get_data(&port->dev);
++			if (pc_data && pc_data->dev_data) {
++				struct usb_port_power_switch_data *up =
++					pc_data->dev_data;
++				usb_set_hub_port_connect_type(hdev, i + 1, up->type);
++			}
++		}
++	}
+ 
+ 	hub_activate(hub, HUB_INIT);
+ 	return 0;
+@@ -1587,8 +1606,14 @@ static void hub_disconnect(struct usb_interface *intf)
+ 
+ 	usb_set_intfdata (intf, NULL);
+ 
+-	for (i = 0; i < hdev->maxchild; i++)
++	for (i = 0; i < hdev->maxchild; i++) {
++		struct usb_port *port = hub->ports[i];
++		struct pc_dev_data *pc_data = dev_pc_get_data(&port->dev);
++		if (pc_data)
++			dev_pc_power_off(&port->dev);
 +
- 	error = device_create_file(dev, &uevent_attr);
- 	if (error)
- 		goto attrError;
-@@ -1228,6 +1233,7 @@ void device_del(struct device *dev)
- 	device_pm_remove(dev);
- 	driver_deferred_probe_del(dev);
+ 		usb_hub_remove_port_device(hub, i + 1);
++	}
+ 	hub->hdev->maxchild = 0;
  
-+	blocking_notifier_call_chain(&dev_notifier, DEV_NOTIFY_DEL_DEVICE, dev);
- 	/* Notify the platform of the removal, in case they
- 	 * need to do anything...
- 	 */
-@@ -1376,6 +1382,8 @@ struct device *device_find_child(struct device *parent, void *data,
- 
- int __init devices_init(void)
- {
-+	BLOCKING_INIT_NOTIFIER_HEAD(&dev_notifier);
+ 	if (hub->hdev->speed == USB_SPEED_HIGH)
+diff --git a/include/linux/usb/port.h b/include/linux/usb/port.h
+new file mode 100644
+index 0000000..a853d5e
+--- /dev/null
++++ b/include/linux/usb/port.h
+@@ -0,0 +1,16 @@
++#ifndef __USB_CORE_PORT_H
++#define __USB_CORE_PORT_H
 +
- 	devices_kset = kset_create_and_add("devices", &device_uevent_ops, NULL);
- 	if (!devices_kset)
- 		return -ENOMEM;
-@@ -1995,6 +2003,19 @@ int dev_printk(const char *level, const struct device *dev,
- }
- EXPORT_SYMBOL(dev_printk);
- 
-+/* The notifier should be avoided as far as possible */
-+int dev_register_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&dev_notifier, nb);
-+}
-+EXPORT_SYMBOL_GPL(dev_register_notifier);
++#include <linux/usb.h>
 +
-+int dev_unregister_notifier(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_unregister(&dev_notifier, nb);
-+}
-+EXPORT_SYMBOL_GPL(dev_unregister_notifier);
-+
- #define define_dev_printk_level(func, kern_level)		\
- int func(const struct device *dev, const char *fmt, ...)	\
- {								\
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 43dcda9..aeb54f6 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -179,6 +179,19 @@ extern int bus_unregister_notifier(struct bus_type *bus,
- #define BUS_NOTIFY_UNBOUND_DRIVER	0x00000006 /* driver is unbound
- 						      from the device */
- 
-+/* All 2 notifers below get called with the target struct device *
-+ * as an argument. Note that those functions are likely to be called
-+ * with the device lock held in the core, so be careful.
++/*
++ * Only used for describing power switch which provide power to
++ * hardwired self-powered device which attached to the port
 + */
-+#define DEV_NOTIFY_ADD_DEVICE          0x00000001 /* device added */
-+#define DEV_NOTIFY_DEL_DEVICE          0x00000002 /* device removed */
-+extern int dev_register_notifier(struct notifier_block *nb);
-+extern int dev_unregister_notifier(struct notifier_block *nb);
++struct usb_port_power_switch_data {
++	int hub_tier;	/* root hub is zero, next tier is 1, ... */
++	int port_number;
++	enum usb_port_connect_type type;
++};
 +
-+extern struct kset *bus_get_kset(struct bus_type *bus);
-+extern struct klist *bus_get_device_klist(struct bus_type *bus);
-+
-+
- extern struct kset *bus_get_kset(struct bus_type *bus);
- extern struct klist *bus_get_device_klist(struct bus_type *bus);
- 
++#endif
 -- 
 1.7.9.5
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
