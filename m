@@ -1,79 +1,99 @@
-From: Ivan Djelic <ivan.djelic@parrot.com>
-Subject: Re: [PATCH v3 4/4] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Sat, 1 Dec 2012 22:50:14 +0100
-Message-ID: <20121201215014.GA11236@parrot.com>
-References: <5097B7EE.3000508@gmail.com>
- <518397C60809E147AF5323E0420B992E3E9DC1F1@DBDE01.ent.ti.com>
- <509A2E75.5060307@gmail.com>
- <518397C60809E147AF5323E0420B992E3E9DE420@DBDE01.ent.ti.com>
- <509EA360.2050504@gmail.com>
- <87mwycjmdn.fsf@dell.be.48ers.dk>
- <50ACA9BB.7090106@gmail.com>
- <518397C60809E147AF5323E0420B992E3E9EEA09@DBDE01.ent.ti.com>
- <50B4C796.4010403@gmail.com>
- <518397C60809E147AF5323E0420B992E3E9F25CB@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from co202.xi-lite.net ([149.6.83.202]:58962 "EHLO co202.xi-lite.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753509Ab2LAVuU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 1 Dec 2012 16:50:20 -0500
-Content-Disposition: inline
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E9F25CB@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [RFC PATCH 0/5] USB: prepare for support port power off on non-ACPI device
+Date: Sun,  2 Dec 2012 23:01:02 +0800
+Message-ID: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, Peter Korsgaard <jacmet@sunsite.dk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "Nori, Sekhar" <nsekhar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Nov 28, 2012 at 05:01:30AM +0000, Philip, Avinash wrote:
-(...)
-> 
-> Daniel,
-> 
-> So can you start supporting "bch8-am335xrbl-compatible" and remove usage of
-> is_elm_used in dt. This should come in ecc_opt field.
-> 
-> In omap2 NAND driver, AM335x RBL compatibility is achieved depending on ecc_layout
-> and runtime detection of elm module. So options related to can be
-> 1. bch8-am335xrbl-compatible is enabled and run time detection of
->    Of elm module passed, RBL compatibility achieved.
-> 2. bch8-am335xrbl-compatible is enabled and run time detection of
->    of elm module failed, RBL compatibility sacrificed but continue with
->    software BCH8 error correction. Sacrificing RBL compatibility
->    because of constant polynomial addition and usage of 14 byte instead of 13 byte.
-> 
-> Ivan,
-> Do you have any plan of removing addition of constant polynomial to ecc data
-> and go for extra byte checking to find erased pages?
-> This way we can start support BCH8 with RBL compatible and kernel
-> Didn't put any restriction of the ecc layout.
+Hi,
 
-Hello Avinash,
+This patch set trys to prepare for support of usb port power
+off mechanism on non-ACPI devices. The port power off mechasnism
+has been discussed for some time[1][2], and support for ACPI
+devices has been in shape:
 
-Sorry about the response delay.
-First a short reminder of pros and cons of the "constant polynomial addition"
-(let's just call it "CPA") feature:
+	- usb port device is introduced
+	- port connect type is introduced and set via ACPI
+	- usb root port power can be switched on/off via ACPI
 
-pros:
-- it elegantly solves all problems related to reading an erased page (no clumsy hack needed)
-- better performance: when a bitflip appears on an erased page (often this is a "sticky" bitflip),
-  there is no need to perform a full scan+cleanup of the page each time it is read
+The above has been merged to upstream, and Tianyu is pushing
+patches[3] to enable auto port power feature.
 
-cons:
-- the ecc vector is not compatible with RBL
+So it is time to discuss how to support it for non-ACPI usb
+devices, and there are many embedded system in which some of
+usb devices are hardwired(often self-powered) into board, such as,
+beagle board, pandaboard, Arndaleboard, etc. So powering on/off
+these devices may involve platform dependent way, just like
+ACPI power control is used in Tianyu's patch. 
 
-RBL compatibility is not necessary in my case, because I'm using the OMAP MLC ROM boot mode.
-Rather than completely removing the CPA feature, I'd like to keep it as an option; it could
-even be used with the ELM module.
+This patch set introduces power controller to hide the power
+switch implementation detail to usb subsytem, in theroy it can
+be used to other devices and subsystem, and the power controller
+instance is stored as device's resource. So the power controller
+can be used to power on/off the power supply from the usb port,
+and makes support of port power off possible on non-ACPI devices.
 
-I'm OK to submit a patch in this direction, but first I'd like to wait for the dust to settle
-on arch/arm/mach-omap2 and mtd/nand/omap2.c with Afzal patches and everything; things have become
-a bit complicated to follow recently :-)
-Also, I think it would be nice to move BCH code out of omap2.c into a separate file.
-What do you think ?
+Associating power controller with one device(such as usb port)
+which providing power logically is not an easy thing, because
+platform dependent knowledge(port topology, hardware power domain
+on the port, ...) has to be applied and the usb port device isn't
+a platform device and it is created during hub probe(). So looks
+there is no general approach to do it. This patchset introduces
+one global device ADD/DEL notifier in driver core, so when a new
+device is added, one match function in platform code is called to
+check if the device can be associated with the power controller.
+This patchset implements the match function on OMAP4 based Pandaboard,
+and defines the power controller to control power for lan95xx hub
+and ethernet device.
 
-BR,
+Another idea of associating power controller with port device
+is by introducing usb port driver, and move all this port power
+control stuff from platform code to port driver, which is just
+what I think of and looks doable. I'd like to get some feedback
+about which one is better, then I can do it in next cycle.
+
+Also the two things on Pandaboard have been done at the same time:
+
+	- powering on the two devices can be delayed to the ehci-omap
+	root hub probing.
+
+	- the regulatores which are used for these two hardwired and
+	self-powered devices are moved out from ehci-omap driver
+
+In fact, Andy Green has been working[4][5] on the above two things,
+but which isn't the main purpose of these patches, and they might be
+seen as byproduct of the patchset. Inevitably, there are some overlap
+between Andy's work and this patchset, hope we can compare, discuss
+and figure out the perfect solution.
+
+ arch/arm/mach-omap2/board-omap4panda.c |   99 +++++++++++++++++++++++++++-
+ drivers/base/core.c                    |   21 ++++++
+ drivers/base/power/Makefile            |    1 +
+ drivers/base/power/power_controller.c  |  110 ++++++++++++++++++++++++++++++++
+ drivers/usb/core/hub.c                 |   31 ++++++++-
+ drivers/usb/host/ehci-omap.c           |   36 -----------
+ include/linux/device.h                 |   13 ++++
+ include/linux/power_controller.h       |   48 ++++++++++++++
+ include/linux/usb/port.h               |   16 +++++
+ kernel/power/Kconfig                   |    6 ++
+ 10 files changed, 339 insertions(+), 42 deletions(-)
+
+Thanks,
 --
-Ivan
+Ming Lei
+
+
+[1], http://marc.info/?t=134818354900003&r=1&w=2
+[2], http://marc.info/?t=134303384500003&r=1&w=2
+[3], http://marc.info/?l=linux-usb&m=135314427413307&w=2
+[4], http://marc.info/?t=135393394700003&r=1&w=2
+[5], http://www.spinics.net/lists/linux-omap/msg83191.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
