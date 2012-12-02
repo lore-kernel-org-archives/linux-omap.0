@@ -1,168 +1,121 @@
 From: Ming Lei <tom.leiming@gmail.com>
-Subject: [RFC PATCH 4/5] arm: omap2: support port power on lan95xx devices
-Date: Sun,  2 Dec 2012 23:01:06 +0800
-Message-ID: <1354460467-28006-5-git-send-email-tom.leiming@gmail.com>
+Subject: [RFC PATCH 5/5] usb: omap ehci: remove all regulator control from ehci omap
+Date: Sun,  2 Dec 2012 23:01:07 +0800
+Message-ID: <1354460467-28006-6-git-send-email-tom.leiming@gmail.com>
 References: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:37750 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753488Ab2LBPC4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Dec 2012 10:02:56 -0500
 In-Reply-To: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>, Andy Green <andy.green@linaro.org>, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Andy Green <andy.green@linaro.org>, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>, Ming Lei <tom.leiming@gmail.com>
 
-This patch defines power controller for powering on/off LAN95xx
-USB hub and USB ethernet devices, and implements one match function
-to associate the power controller with related USB port device.
-The big problem of this approach is that it depends on the global
-device ADD/DEL notifier.
+From: Andy Green <andy.green@linaro.org>
 
-Another idea of associating power controller with port device
-is by introducing usb port driver, and move all this port power
-control stuff from platform code to the port driver, which is just
-what I think of and looks doable. The problem of the idea is that
-port driver is per board, so maybe cause lots of platform sort of
-code to be put under drivers/usb/port/, but this approach can avoid
-global device ADD/DEL notifier.
-
-I'd like to get some feedback about which one is better or other choice,
-then I may do it in next cycle.
+This series migrates it to the hub driver as suggested by
+Felipe Balbi.
 
 Cc: Andy Green <andy.green@linaro.org>
 Cc: Roger Quadros <rogerq@ti.com>
 Cc: Alan Stern <stern@rowland.harvard.edu>
 Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Andy Green <andy.green@linaro.org>
 Signed-off-by: Ming Lei <tom.leiming@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |   99 +++++++++++++++++++++++++++++++-
- 1 file changed, 96 insertions(+), 3 deletions(-)
+ drivers/usb/host/ehci-omap.c |   36 ------------------------------------
+ 1 file changed, 36 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 5c8e9ce..3183832 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -32,6 +32,8 @@
- #include <linux/usb/musb.h>
- #include <linux/wl12xx.h>
- #include <linux/platform_data/omap-abe-twl6040.h>
-+#include <linux/power_controller.h>
-+#include <linux/usb/port.h>
- 
- #include <asm/hardware/gic.h>
- #include <asm/mach-types.h>
-@@ -154,6 +156,99 @@ static struct gpio panda_ehci_gpios[] __initdata = {
- 	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
- };
- 
-+static void ehci_hub_power_on(struct power_controller *pc, struct device *dev)
-+{
-+	gpio_set_value(GPIO_HUB_NRESET, 1);
-+	gpio_set_value(GPIO_HUB_POWER, 1);
-+}
-+
-+static void ehci_hub_power_off(struct power_controller *pc, struct device *dev)
-+{
-+	gpio_set_value(GPIO_HUB_NRESET, 0);
-+	gpio_set_value(GPIO_HUB_POWER, 0);
-+}
-+
-+static struct usb_port_power_switch_data root_hub_port_data = {
-+	.hub_tier	= 0,
-+	.port_number = 1,
-+	.type = USB_PORT_CONNECT_TYPE_HARD_WIRED,
-+};
-+
-+static struct usb_port_power_switch_data smsc_hub_port_data = {
-+	.hub_tier	= 1,
-+	.port_number = 1,
-+	.type = USB_PORT_CONNECT_TYPE_HARD_WIRED,
-+};
-+
-+static struct power_controller pc = {
-+	.name = "omap_hub_eth_pc",
-+	.count = ATOMIC_INIT(0),
-+	.power_on = ehci_hub_power_on,
-+	.power_off = ehci_hub_power_off,
-+};
-+
-+static inline int omap_ehci_hub_port(struct device *dev)
-+{
-+	/* we expect dev->parent points to ehcd controller */
-+	if (dev->parent && !strcmp(dev_name(dev->parent), "ehci-omap.0"))
-+		return 1;
-+	return 0;
-+}
-+
-+static inline int dev_pc_match(struct device *dev)
-+{
-+	struct device *anc;
-+	int ret = 0;
-+
-+	if (likely(strcmp(dev_name(dev), "port1")))
-+		goto exit;
-+
-+	if (dev->parent && (anc = dev->parent->parent)) {
-+		if (omap_ehci_hub_port(anc)) {
-+			ret = 1;
-+			goto exit;
-+		}
-+
-+		/* is it port of lan95xx hub? */
-+		if ((anc = anc->parent) && omap_ehci_hub_port(anc)) {
-+			ret = 2;
-+			goto exit;
-+		}
-+	}
-+exit:
-+	return ret;
-+}
-+
-+/*
-+ * Notifications of device registration
-+ */
-+static int device_notify(struct notifier_block *nb, unsigned long action, void *data)
-+{
-+	struct device *dev = data;
-+	int ret;
-+
-+	switch (action) {
-+	case DEV_NOTIFY_ADD_DEVICE:
-+		ret = dev_pc_match(dev);
-+		if (likely(!ret))
-+			goto exit;
-+		if (ret == 1)
-+			dev_pc_bind(&pc, dev, &root_hub_port_data, sizeof(root_hub_port_data));
-+		else
-+			dev_pc_bind(&pc, dev, &smsc_hub_port_data, sizeof(smsc_hub_port_data));
-+		break;
-+
-+	case DEV_NOTIFY_DEL_DEVICE:
-+		break;
-+	}
-+exit:
-+	return 0;
-+}
-+
-+static struct notifier_block usb_port_nb = {
-+	.notifier_call = device_notify,
-+};
-+
- static void __init omap4_ehci_init(void)
- {
- 	int ret;
-@@ -178,12 +273,10 @@ static void __init omap4_ehci_init(void)
- 
- 	gpio_export(GPIO_HUB_POWER, 0);
- 	gpio_export(GPIO_HUB_NRESET, 0);
--	gpio_set_value(GPIO_HUB_NRESET, 1);
- 
- 	usbhs_init(&usbhs_bdata);
- 
--	/* enable power to hub */
--	gpio_set_value(GPIO_HUB_POWER, 1);
-+	dev_register_notifier(&usb_port_nb);
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index ac17a7c..d25e39e 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -39,7 +39,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/usb/ulpi.h>
+-#include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/gpio.h>
+ #include <linux/clk.h>
+@@ -150,19 +149,6 @@ static int omap_ehci_init(struct usb_hcd *hcd)
+ 	return rc;
  }
  
- static struct omap_musb_board_data musb_board_data = {
+-static void disable_put_regulator(
+-		struct ehci_hcd_omap_platform_data *pdata)
+-{
+-	int i;
+-
+-	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
+-		if (pdata->regulator[i]) {
+-			regulator_disable(pdata->regulator[i]);
+-			regulator_put(pdata->regulator[i]);
+-		}
+-	}
+-}
+-
+ /* configure so an HC device and id are always provided */
+ /* always called with process context; sleeping is OK */
+ 
+@@ -176,14 +162,11 @@ static void disable_put_regulator(
+ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ {
+ 	struct device				*dev = &pdev->dev;
+-	struct ehci_hcd_omap_platform_data	*pdata = dev->platform_data;
+ 	struct resource				*res;
+ 	struct usb_hcd				*hcd;
+ 	void __iomem				*regs;
+ 	int					ret = -ENODEV;
+ 	int					irq;
+-	int					i;
+-	char					supply[7];
+ 
+ 	if (usb_disabled())
+ 		return -ENODEV;
+@@ -224,23 +207,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	hcd->rsrc_len = resource_size(res);
+ 	hcd->regs = regs;
+ 
+-	/* get ehci regulator and enable */
+-	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
+-		if (pdata->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY) {
+-			pdata->regulator[i] = NULL;
+-			continue;
+-		}
+-		snprintf(supply, sizeof(supply), "hsusb%d", i);
+-		pdata->regulator[i] = regulator_get(dev, supply);
+-		if (IS_ERR(pdata->regulator[i])) {
+-			pdata->regulator[i] = NULL;
+-			dev_dbg(dev,
+-			"failed to get ehci port%d regulator\n", i);
+-		} else {
+-			regulator_enable(pdata->regulator[i]);
+-		}
+-	}
+-
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+ 
+@@ -266,7 +232,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_pm_runtime:
+-	disable_put_regulator(pdata);
+ 	pm_runtime_put_sync(dev);
+ 	usb_put_hcd(hcd);
+ 
+@@ -291,7 +256,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ 	struct ehci_hcd_omap_platform_data *pdata	= dev->platform_data;
+ 
+ 	usb_remove_hcd(hcd);
+-	disable_put_regulator(dev->platform_data);
+ 	iounmap(hcd->regs);
+ 	usb_put_hcd(hcd);
+ 
 -- 
 1.7.9.5
 
