@@ -1,99 +1,243 @@
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [RFC PATCH 0/5] USB: prepare for support port power off on non-ACPI device
-Date: Sun,  2 Dec 2012 23:01:02 +0800
-Message-ID: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: [RFC PATCH 1/5] Device Power: introduce power controller
+Date: Sun,  2 Dec 2012 23:01:03 +0800
+Message-ID: <1354460467-28006-2-git-send-email-tom.leiming@gmail.com>
+References: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56131 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751553Ab2LBPBv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Dec 2012 10:01:51 -0500
+In-Reply-To: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>, Andy Green <andy.green@linaro.org>, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Hi,
+Power controller is an abstract on simple power on/off switch.
 
-This patch set trys to prepare for support of usb port power
-off mechanism on non-ACPI devices. The port power off mechasnism
-has been discussed for some time[1][2], and support for ACPI
-devices has been in shape:
+One power controller can bind to more than one device, which
+provides power logically, for example, we can think one usb port
+in hub provides power to the usb device attached to the port, even
+though the power is supplied actually by other ways, eg. the usb
+hub is a self-power device. From hardware view, more than one
+device can share one power domain, and power controller can power
+on if one of these devices need to provide power, and power off if
+all these devices don't need to provide power.
 
-	- usb port device is introduced
-	- port connect type is introduced and set via ACPI
-	- usb root port power can be switched on/off via ACPI
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andy Green <andy.green@linaro.org>
+Cc: Roger Quadros <rogerq@ti.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+---
+ drivers/base/power/Makefile           |    1 +
+ drivers/base/power/power_controller.c |  110 +++++++++++++++++++++++++++++++++
+ include/linux/power_controller.h      |   48 ++++++++++++++
+ kernel/power/Kconfig                  |    6 ++
+ 4 files changed, 165 insertions(+)
+ create mode 100644 drivers/base/power/power_controller.c
+ create mode 100644 include/linux/power_controller.h
 
-The above has been merged to upstream, and Tianyu is pushing
-patches[3] to enable auto port power feature.
+diff --git a/drivers/base/power/Makefile b/drivers/base/power/Makefile
+index 2e58ebb..c08bfc9 100644
+--- a/drivers/base/power/Makefile
++++ b/drivers/base/power/Makefile
+@@ -5,5 +5,6 @@ obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
+ obj-$(CONFIG_PM_OPP)	+= opp.o
+ obj-$(CONFIG_PM_GENERIC_DOMAINS)	+=  domain.o domain_governor.o
+ obj-$(CONFIG_HAVE_CLK)	+= clock_ops.o
++obj-$(CONFIG_POWER_CONTROLLER)	+= power_controller.o
+ 
+ ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+diff --git a/drivers/base/power/power_controller.c b/drivers/base/power/power_controller.c
+new file mode 100644
+index 0000000..d7671fb
+--- /dev/null
++++ b/drivers/base/power/power_controller.c
+@@ -0,0 +1,110 @@
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/power_controller.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/export.h>
++
++static DEFINE_MUTEX(pc_lock);
++
++static void pc_devm_release(struct device *dev, void *res)
++{
++}
++
++static int pc_devm_match(struct device *dev, void *res, void *match_data)
++{
++	struct pc_dev_data *data = res;
++
++	return (data->magic == (unsigned long)pc_devm_release);
++}
++
++static struct pc_dev_data *dev_pc_data(struct device *dev)
++{
++	struct pc_dev_data *data;
++
++	data = devres_find(dev, pc_devm_release, pc_devm_match, NULL);
++	return data;
++}
++
++static int pc_add_devm_data(struct device *dev, struct power_controller *pc,
++			    void *dev_data, int dev_data_size)
++{
++	struct pc_dev_data *data;
++	int ret = 0;
++
++	mutex_lock(&pc_lock);
++
++	/* each device should only have one power controller resource */
++	data = dev_pc_data(dev);
++	if (data) {
++		ret = 1;
++		goto exit;
++	}
++
++	data = devres_alloc(pc_devm_release, sizeof(struct pc_dev_data) +
++			    dev_data_size, GFP_KERNEL);
++	if (!data) {
++		ret = -ENOMEM;
++		goto exit;
++	}
++
++	data->magic = (unsigned long)pc_devm_release;
++	data->pc = pc;
++	data->dev_data = &data[1];
++	memcpy(data->dev_data, dev_data, dev_data_size);
++	devres_add(dev, data);
++
++exit:
++	mutex_unlock(&pc_lock);
++	return ret;
++}
++
++static struct power_controller *dev_pc(struct device *dev)
++{
++	struct pc_dev_data *data = dev_pc_data(dev);
++
++	if (data)
++		return data->pc;
++	return NULL;
++}
++
++struct pc_dev_data *dev_pc_get_data(struct device *dev)
++{
++	struct pc_dev_data *data = dev_pc_data(dev);
++	return data;
++}
++EXPORT_SYMBOL(dev_pc_get_data);
++
++int dev_pc_bind(struct power_controller *pc, struct device *dev,
++		void *dev_data, int dev_data_size)
++{
++	return pc_add_devm_data(dev, pc, dev_data, dev_data_size);
++}
++EXPORT_SYMBOL(dev_pc_bind);
++
++void dev_pc_unbind(struct power_controller *pc, struct device *dev)
++{
++}
++EXPORT_SYMBOL(dev_pc_unbind);
++
++void dev_pc_power_on(struct device *dev)
++{
++	struct power_controller *pc = dev_pc(dev);
++
++	if (!pc)	return;
++
++	if (atomic_inc_return(&pc->count) == 1)
++		pc->power_on(pc, dev);
++}
++EXPORT_SYMBOL(dev_pc_power_on);
++
++void dev_pc_power_off(struct device *dev)
++{
++	struct power_controller *pc = dev_pc(dev);
++
++	if (!pc)	return;
++
++	if (!atomic_dec_return(&pc->count))
++		pc->power_off(pc, dev);
++}
++EXPORT_SYMBOL(dev_pc_power_off);
+diff --git a/include/linux/power_controller.h b/include/linux/power_controller.h
+new file mode 100644
+index 0000000..772f6d7
+--- /dev/null
++++ b/include/linux/power_controller.h
+@@ -0,0 +1,48 @@
++#ifndef _LINUX_POWER_CONTROLLER_H
++#define _LINUX_POWER_CONTROLLER_H
++
++#include <linux/device.h>
++
++/*
++ * One power controller provides simple power on and power off.
++ *
++ * One power controller can bind to more than one device, which
++ * provides power logically, for example, we can think one usb port
++ * in hub provides power to the usb device attached to the port, even
++ * though the power is supplied actually by other ways, eg. the usb
++ * hub is a self-power device. From hardware view, more than one
++ * device can share one power domain, and power controller can power
++ * on if one of these devices need to provide power, and power off if
++ * all these devices don't need to provide power.
++ *
++ * The abstract is introduced to hide the implementation details of
++ * power controller, and only let platform code handle the details.
++ */
++struct power_controller {
++	atomic_t count;			/* Number of users with power "on" */
++	char *name;
++	void (*power_off)(struct power_controller *pc, struct device *dev);
++	void (*power_on)(struct power_controller *pc, struct device *dev);
++};
++
++struct pc_dev_data {
++	unsigned long magic;
++	struct power_controller *pc;
++	void	*dev_data;
++};
++
++#ifdef CONFIG_POWER_CONTROLLER
++extern struct pc_dev_data *dev_pc_get_data(struct device *dev);
++extern int dev_pc_bind(struct power_controller *pc, struct device *dev, void *dev_data, int dev_data_size);
++extern void dev_pc_unbind(struct power_controller *pc, struct device *dev);
++extern void dev_pc_power_on(struct device *dev);
++extern void dev_pc_power_off(struct device *dev);
++#else
++static inline struct pc_dev_data *dev_pc_get_data(struct device *dev){return NULL;}
++static inline int dev_pc_bind(struct power_controller *pc, struct device *dev, void *dev_data,
++				int dev_data_size){return 0;}
++static inline void dev_pc_unbind(struct power_controller *pc, struct device *dev){}
++static inline void dev_pc_power_on(struct device *dev){}
++static inline void dev_pc_power_off(struct device *dev){}
++#endif
++#endif /* _LINUX_POWER_CONTROLLER_H */
+diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
+index 5dfdc9e..51803a9 100644
+--- a/kernel/power/Kconfig
++++ b/kernel/power/Kconfig
+@@ -255,6 +255,12 @@ config PM_OPP
+ 	  implementations a ready to use framework to manage OPPs.
+ 	  For more information, read <file:Documentation/power/opp.txt>
+ 
++config POWER_CONTROLLER
++	bool "Power Controller"
++	---help---
++	Power Controller is an abstract on power switch which can be
++	shared by more than more devices.
++
+ config PM_CLK
+ 	def_bool y
+ 	depends on PM && HAVE_CLK
+-- 
+1.7.9.5
 
-So it is time to discuss how to support it for non-ACPI usb
-devices, and there are many embedded system in which some of
-usb devices are hardwired(often self-powered) into board, such as,
-beagle board, pandaboard, Arndaleboard, etc. So powering on/off
-these devices may involve platform dependent way, just like
-ACPI power control is used in Tianyu's patch. 
-
-This patch set introduces power controller to hide the power
-switch implementation detail to usb subsytem, in theroy it can
-be used to other devices and subsystem, and the power controller
-instance is stored as device's resource. So the power controller
-can be used to power on/off the power supply from the usb port,
-and makes support of port power off possible on non-ACPI devices.
-
-Associating power controller with one device(such as usb port)
-which providing power logically is not an easy thing, because
-platform dependent knowledge(port topology, hardware power domain
-on the port, ...) has to be applied and the usb port device isn't
-a platform device and it is created during hub probe(). So looks
-there is no general approach to do it. This patchset introduces
-one global device ADD/DEL notifier in driver core, so when a new
-device is added, one match function in platform code is called to
-check if the device can be associated with the power controller.
-This patchset implements the match function on OMAP4 based Pandaboard,
-and defines the power controller to control power for lan95xx hub
-and ethernet device.
-
-Another idea of associating power controller with port device
-is by introducing usb port driver, and move all this port power
-control stuff from platform code to port driver, which is just
-what I think of and looks doable. I'd like to get some feedback
-about which one is better, then I can do it in next cycle.
-
-Also the two things on Pandaboard have been done at the same time:
-
-	- powering on the two devices can be delayed to the ehci-omap
-	root hub probing.
-
-	- the regulatores which are used for these two hardwired and
-	self-powered devices are moved out from ehci-omap driver
-
-In fact, Andy Green has been working[4][5] on the above two things,
-but which isn't the main purpose of these patches, and they might be
-seen as byproduct of the patchset. Inevitably, there are some overlap
-between Andy's work and this patchset, hope we can compare, discuss
-and figure out the perfect solution.
-
- arch/arm/mach-omap2/board-omap4panda.c |   99 +++++++++++++++++++++++++++-
- drivers/base/core.c                    |   21 ++++++
- drivers/base/power/Makefile            |    1 +
- drivers/base/power/power_controller.c  |  110 ++++++++++++++++++++++++++++++++
- drivers/usb/core/hub.c                 |   31 ++++++++-
- drivers/usb/host/ehci-omap.c           |   36 -----------
- include/linux/device.h                 |   13 ++++
- include/linux/power_controller.h       |   48 ++++++++++++++
- include/linux/usb/port.h               |   16 +++++
- kernel/power/Kconfig                   |    6 ++
- 10 files changed, 339 insertions(+), 42 deletions(-)
-
-Thanks,
---
-Ming Lei
-
-
-[1], http://marc.info/?t=134818354900003&r=1&w=2
-[2], http://marc.info/?t=134303384500003&r=1&w=2
-[3], http://marc.info/?l=linux-usb&m=135314427413307&w=2
-[4], http://marc.info/?t=135393394700003&r=1&w=2
-[5], http://www.spinics.net/lists/linux-omap/msg83191.html
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
