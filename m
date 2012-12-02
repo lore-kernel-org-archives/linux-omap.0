@@ -1,154 +1,222 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [RFC PATCH 2/5] driver core: introduce global device ADD/DEL
- notifier
-Date: Mon, 03 Dec 2012 00:13:21 +0800
-Message-ID: <50BB7E21.1080200@linaro.org>
-References: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com> <1354460467-28006-3-git-send-email-tom.leiming@gmail.com>
+From: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH 4/5] arm: omap2: support port power on lan95xx devices
+Date: Mon, 03 Dec 2012 00:37:53 +0800
+Message-ID: <50BB83E1.7020408@linaro.org>
+References: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com> <1354460467-28006-5-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:38760 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753905Ab2LBQNk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 2 Dec 2012 11:13:40 -0500
-In-Reply-To: <1354460467-28006-3-git-send-email-tom.leiming@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1354460467-28006-5-git-send-email-tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
 
 On 02/12/12 23:01, the mail apparently from Ming Lei included:
-> The global device ADD/DEL notifier is introduced so that
-> some platform code can bind some device resource to the
-> device. When this platform code runs, there is no any bus
-> information about the device, so have to resort to the
-> global notifier.
+
+Hi -
+
+> This patch defines power controller for powering on/off LAN95xx
+> USB hub and USB ethernet devices, and implements one match function
+> to associate the power controller with related USB port device.
+> The big problem of this approach is that it depends on the global
+> device ADD/DEL notifier.
 >
-> Cc: Andy Green <andy.green@linaro.org>
-> Cc: Roger Quadros <rogerq@ti.com>
-> Cc: Alan Stern <stern@rowland.harvard.edu>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+> Another idea of associating power controller with port device
+> is by introducing usb port driver, and move all this port power
+> control stuff from platform code to the port driver, which is just
+> what I think of and looks doable. The problem of the idea is that
+> port driver is per board, so maybe cause lots of platform sort of
+> code to be put under drivers/usb/port/, but this approach can avoid
+> global device ADD/DEL notifier.
+>
+> I'd like to get some feedback about which one is better or other choi=
+ce,
+> then I may do it in next cycle.
+>
+> Cc: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
->   drivers/base/core.c    |   21 +++++++++++++++++++++
->   include/linux/device.h |   13 +++++++++++++
->   2 files changed, 34 insertions(+)
+>   arch/arm/mach-omap2/board-omap4panda.c |   99 +++++++++++++++++++++=
+++++++++++-
+>   1 file changed, 96 insertions(+), 3 deletions(-)
 >
-> diff --git a/drivers/base/core.c b/drivers/base/core.c
-> index a235085..37f11ff 100644
-> --- a/drivers/base/core.c
-> +++ b/drivers/base/core.c
-> @@ -43,6 +43,9 @@ static __init int sysfs_deprecated_setup(char *arg)
->   early_param("sysfs.deprecated", sysfs_deprecated_setup);
->   #endif
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-o=
+map2/board-omap4panda.c
+> index 5c8e9ce..3183832 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -32,6 +32,8 @@
+>   #include <linux/usb/musb.h>
+>   #include <linux/wl12xx.h>
+>   #include <linux/platform_data/omap-abe-twl6040.h>
+> +#include <linux/power_controller.h>
+> +#include <linux/usb/port.h>
 >
-> +/* global device nofifier */
-> +struct blocking_notifier_head dev_notifier;
-> +
->   int (*platform_notify)(struct device *dev) =3D NULL;
->   int (*platform_notify_remove)(struct device *dev) =3D NULL;
->   static struct kobject *dev_kobj;
-> @@ -1041,6 +1044,8 @@ int device_add(struct device *dev)
->   	if (platform_notify)
->   		platform_notify(dev);
+>   #include <asm/hardware/gic.h>
+>   #include <asm/mach-types.h>
+> @@ -154,6 +156,99 @@ static struct gpio panda_ehci_gpios[] __initdata=
+ =3D {
+>   	{ GPIO_HUB_NRESET,	GPIOF_OUT_INIT_LOW,  "hub_nreset" },
+>   };
 >
-> +	blocking_notifier_call_chain(&dev_notifier, DEV_NOTIFY_ADD_DEVICE, =
-dev);
-> +
->   	error =3D device_create_file(dev, &uevent_attr);
->   	if (error)
->   		goto attrError;
-> @@ -1228,6 +1233,7 @@ void device_del(struct device *dev)
->   	device_pm_remove(dev);
->   	driver_deferred_probe_del(dev);
->
-> +	blocking_notifier_call_chain(&dev_notifier, DEV_NOTIFY_DEL_DEVICE, =
-dev);
->   	/* Notify the platform of the removal, in case they
->   	 * need to do anything...
->   	 */
-> @@ -1376,6 +1382,8 @@ struct device *device_find_child(struct device =
-*parent, void *data,
->
->   int __init devices_init(void)
->   {
-> +	BLOCKING_INIT_NOTIFIER_HEAD(&dev_notifier);
-> +
->   	devices_kset =3D kset_create_and_add("devices", &device_uevent_ops=
-, NULL);
->   	if (!devices_kset)
->   		return -ENOMEM;
-> @@ -1995,6 +2003,19 @@ int dev_printk(const char *level, const struct=
- device *dev,
->   }
->   EXPORT_SYMBOL(dev_printk);
->
-> +/* The notifier should be avoided as far as possible */
-> +int dev_register_notifier(struct notifier_block *nb)
+> +static void ehci_hub_power_on(struct power_controller *pc, struct de=
+vice *dev)
 > +{
-> +	return blocking_notifier_chain_register(&dev_notifier, nb);
+> +	gpio_set_value(GPIO_HUB_NRESET, 1);
+> +	gpio_set_value(GPIO_HUB_POWER, 1);
 > +}
-> +EXPORT_SYMBOL_GPL(dev_register_notifier);
-> +
-> +int dev_unregister_notifier(struct notifier_block *nb)
-> +{
-> +	return blocking_notifier_chain_unregister(&dev_notifier, nb);
-> +}
-> +EXPORT_SYMBOL_GPL(dev_unregister_notifier);
-> +
->   #define define_dev_printk_level(func, kern_level)		\
->   int func(const struct device *dev, const char *fmt, ...)	\
->   {								\
-> diff --git a/include/linux/device.h b/include/linux/device.h
-> index 43dcda9..aeb54f6 100644
-> --- a/include/linux/device.h
-> +++ b/include/linux/device.h
-> @@ -179,6 +179,19 @@ extern int bus_unregister_notifier(struct bus_ty=
-pe *bus,
->   #define BUS_NOTIFY_UNBOUND_DRIVER	0x00000006 /* driver is unbound
->   						      from the device */
->
-> +/* All 2 notifers below get called with the target struct device *
-> + * as an argument. Note that those functions are likely to be called
-> + * with the device lock held in the core, so be careful.
-> + */
-> +#define DEV_NOTIFY_ADD_DEVICE          0x00000001 /* device added */
-> +#define DEV_NOTIFY_DEL_DEVICE          0x00000002 /* device removed =
-*/
-> +extern int dev_register_notifier(struct notifier_block *nb);
-> +extern int dev_unregister_notifier(struct notifier_block *nb);
-> +
-> +extern struct kset *bus_get_kset(struct bus_type *bus);
-> +extern struct klist *bus_get_device_klist(struct bus_type *bus);
-> +
-> +
->   extern struct kset *bus_get_kset(struct bus_type *bus);
->   extern struct klist *bus_get_device_klist(struct bus_type *bus);
 
-Device de/registraton time is not necessarily a good choice for the=20
-notification point.  At boot time, platform_devices may be being=20
-registered with no sign of driver and anything getting enabled in the=20
-notifier without further filtering (at each notifier...) will then=20
-always be enabled the whole session whether in use or not.
-
-probe() and remove() are more interesting because at that point the=20
-driver is present and we're definitely instantiating the thing or=20
-finished with its instantiation, and it's valid for non-usb devices too=
-=2E
-
-In the one case you're servicing in the series, usb hub port, the devic=
-e=20
-is very unusual in that it has no driver.  However if you're going to=20
-add a global notifier in generic device code, you should have it do the=
+You should wait a bit after applying power to the smsc chip before=20
+letting go of nReset too.  In the regulator-based implementation I sent=
 =20
-right thing for normal device case so other people can use it... how I=20
-solved this for hub port was to simply normalize hub port by introducin=
-g=20
-a stub driver for it, so you get a probe / remove like anything else.
+it's handled by delays encoded in the regulator structs.
+
+> +static void ehci_hub_power_off(struct power_controller *pc, struct d=
+evice *dev)
+> +{
+> +	gpio_set_value(GPIO_HUB_NRESET, 0);
+> +	gpio_set_value(GPIO_HUB_POWER, 0);
+> +}
+> +
+> +static struct usb_port_power_switch_data root_hub_port_data =3D {
+> +	.hub_tier	=3D 0,
+> +	.port_number =3D 1,
+> +	.type =3D USB_PORT_CONNECT_TYPE_HARD_WIRED,
+> +};
+> +
+> +static struct usb_port_power_switch_data smsc_hub_port_data =3D {
+> +	.hub_tier	=3D 1,
+> +	.port_number =3D 1,
+> +	.type =3D USB_PORT_CONNECT_TYPE_HARD_WIRED,
+> +};
+> +
+> +static struct power_controller pc =3D {
+> +	.name =3D "omap_hub_eth_pc",
+> +	.count =3D ATOMIC_INIT(0),
+> +	.power_on =3D ehci_hub_power_on,
+> +	.power_off =3D ehci_hub_power_off,
+> +};
+> +
+> +static inline int omap_ehci_hub_port(struct device *dev)
+> +{
+> +	/* we expect dev->parent points to ehcd controller */
+> +	if (dev->parent && !strcmp(dev_name(dev->parent), "ehci-omap.0"))
+> +		return 1;
+> +	return 0;
+> +}
+> +
+> +static inline int dev_pc_match(struct device *dev)
+> +{
+> +	struct device *anc;
+> +	int ret =3D 0;
+> +
+> +	if (likely(strcmp(dev_name(dev), "port1")))
+> +		goto exit;
+> +
+> +	if (dev->parent && (anc =3D dev->parent->parent)) {
+> +		if (omap_ehci_hub_port(anc)) {
+> +			ret =3D 1;
+> +			goto exit;
+> +		}
+> +
+> +		/* is it port of lan95xx hub? */
+> +		if ((anc =3D anc->parent) && omap_ehci_hub_port(anc)) {
+> +			ret =3D 2;
+> +			goto exit;
+> +		}
+> +	}
+> +exit:
+> +	return ret;
+> +}
+> +
+> +/*
+> + * Notifications of device registration
+> + */
+> +static int device_notify(struct notifier_block *nb, unsigned long ac=
+tion, void *data)
+> +{
+> +	struct device *dev =3D data;
+> +	int ret;
+> +
+> +	switch (action) {
+> +	case DEV_NOTIFY_ADD_DEVICE:
+> +		ret =3D dev_pc_match(dev);
+> +		if (likely(!ret))
+> +			goto exit;
+> +		if (ret =3D=3D 1)
+> +			dev_pc_bind(&pc, dev, &root_hub_port_data, sizeof(root_hub_port_d=
+ata));
+> +		else
+> +			dev_pc_bind(&pc, dev, &smsc_hub_port_data, sizeof(smsc_hub_port_d=
+ata));
+> +		break;
+> +
+> +	case DEV_NOTIFY_DEL_DEVICE:
+> +		break;
+> +	}
+> +exit:
+> +	return 0;
+> +}
+> +
+> +static struct notifier_block usb_port_nb =3D {
+> +	.notifier_call =3D device_notify,
+> +};
+> +
+
+Some thoughts on trying to make this functionality specific to power=20
+only and ehci hub port only:
+
+  - Quite a few boards have smsc95xx... they're all going to carry thes=
+e=20
+additions in the board file?  Surely you'll have to generalize the=20
+pieces that perform device_path business out of the omap4panda board=20
+file at least.  At that point the path matching code becomes generic=20
+end-of-the-device-path matching code.
+
+  - How could these literals like "port1" etc be nicely provided by=20
+Device Tree?  In ARM-land there's pressure to eventually eliminate boar=
+d=20
+files completely and pass in everything from dtb.  device_asset can=20
+neatly grow DT bindings in a generic way, since the footprint in the=20
+board file is some regulators that already have dt bindings and some=20
+device_asset structs.  Similarly there's pressure for magic code to=20
+service a board (rather than SoC) to go elsewhere than the board file.
+
+  - Shouldn't this take care of enabling and disabling the ULPI PHY=20
+clock on Panda too?  There's no purpose leaving it running if the one=20
+thing the ULPI PHY is connected to is depowered, and when you do power=20
+it, on Panda you will reset the ULPI PHY at the same time anyway (smsc=20
+reset and ULPI PHY reset are connected together on Panda).  Then you ca=
+n=20
+eliminate omap4_ehci_init() in the board file.
 
 -Andy
+
+>   static void __init omap4_ehci_init(void)
+>   {
+>   	int ret;
+> @@ -178,12 +273,10 @@ static void __init omap4_ehci_init(void)
+>
+>   	gpio_export(GPIO_HUB_POWER, 0);
+>   	gpio_export(GPIO_HUB_NRESET, 0);
+> -	gpio_set_value(GPIO_HUB_NRESET, 1);
+>
+>   	usbhs_init(&usbhs_bdata);
+>
+> -	/* enable power to hub */
+> -	gpio_set_value(GPIO_HUB_POWER, 1);
+> +	dev_register_notifier(&usb_port_nb);
+>   }
+>
+>   static struct omap_musb_board_data musb_board_data =3D {
+>
+
 
 --=20
 Andy Green | TI Landing Team Leader
@@ -156,7 +224,6 @@ Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
 http://facebook.com/pages/Linaro/155974581091106  -=20
 http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
