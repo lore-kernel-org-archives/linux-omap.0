@@ -1,46 +1,82 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 22/22] mfd: omap-usb-host: Don't spam console on clk_set_parent
- failure
-Date: Mon, 3 Dec 2012 17:50:04 +0200
-Message-ID: <50BCCA2C.5060609@ti.com>
-References: <1354114150-11941-1-git-send-email-rogerq@ti.com> <1354114150-11941-23-git-send-email-rogerq@ti.com> <50BB8B78.9010207@mvista.com> <87ehj7y3s2.fsf@nemi.mork.no>
+Subject: Re: [PATCH v2 13/22] mfd: omap-usb-host: override number of ports
+ from platform data
+Date: Mon, 3 Dec 2012 17:58:09 +0200
+Message-ID: <50BCCC11.1030304@ti.com>
+References: <1354114150-11941-1-git-send-email-rogerq@ti.com> <1354114150-11941-14-git-send-email-rogerq@ti.com> <50BB8C73.7060008@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87ehj7y3s2.fsf-lbf33ChDnrE/G1V5fR+Y7Q@public.gmane.org>
+In-Reply-To: <50BB8C73.7060008-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn-yOkvZcmFvRU@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/03/2012 09:48 AM, Bj=C3=B8rn Mork wrote:
-> Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org> writes:
->> On 28-11-2012 18:49, Roger Quadros wrote:
->>>   		ret =3D clk_set_parent(omap->utmi_clk[0],
->>>   					omap->xclk60mhsp1_ck);
->>>   		if (ret !=3D 0)
->>> -			dev_err(dev, "xclk60mhsp1_ck set parent"
->>> +			dev_dbg(dev, "xclk60mhsp1_ck set parent"
+On 12/02/2012 07:14 PM, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 28-11-2012 18:49, Roger Quadros wrote:
+> 
+>> Both OMAP4 and 5 exhibit the same revision ID in the REVISION register
+>> but they have different number of ports i.e. 2 and 3 respectively.
+>> So we can't rely on REVISION register for number of ports on OMAP5
+>> and depend on platform data (or device tree) instead.
+> 
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+> [...]
+> 
+>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+>> index 87b574b..fda235a 100644
+>> --- a/drivers/mfd/omap-usb-host.c
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -495,19 +495,27 @@ static int __devinit usbhs_omap_probe(struct
+>> platform_device *pdev)
+>>        */
+>>       pm_runtime_put_sync(dev);
 >>
->>    Need space at the end of this substring, else you get "parentfail=
-ed"
->>
->>>   				"failed error:%d\n", ret);
->=20
->=20
-> Wouldn't it be better to change all these to conform with
-> Documentation/CodingStyle when touching them anyway?  That would make
-> the missing space problem obvious as well as making the messages
-> greppable.
->=20
-> From Chapter 2: Breaking long lines and strings:
->=20
-> "However, never break user-visible strings such as printk messages,
-> because that breaks the ability to grep for them."
->=20
+>> -    switch (omap->usbhs_rev) {
+>> -    case OMAP_USBHS_REV1:
+>> -        omap->nports = 3;
+>> -        break;
+>> -    case OMAP_USBHS_REV2:
+>> -        omap->nports = 2;
+>> -        break;
+>> -    default:
+>> -        omap->nports = OMAP3_HS_USB_PORTS;
+>> -        dev_dbg(dev,
+>> -          "USB HOST Rev : 0x%d not recognized, assuming %d ports\n",
+>> -           omap->usbhs_rev, omap->nports);
+>> -        break;
+>> +    /*
+>> +     * If platform data contains nports then use that
+>> +     * else make out number of ports from USBHS revision
+>> +     */
+>> +    if (pdata->nports) {
+>> +            omap->nports = pdata->nports;
+> 
+>    Overindented line?
 
-Agreed. I'll fix it in next spin. Thanks.
+Sorry, I didn't get it. Did you mean extra tab/space?
+
+> 
+>> +    } else {
+>> +        switch (omap->usbhs_rev) {
+>> +        case OMAP_USBHS_REV1:
+>> +            omap->nports = 3;
+>> +            break;
+>> +        case OMAP_USBHS_REV2:
+>> +            omap->nports = 2;
+>> +            break;
+>> +        default:
+>> +            omap->nports = OMAP3_HS_USB_PORTS;
+>> +            dev_dbg(dev,
+>> +            "USB HOST Rev:0x%d not recognized, assuming %d ports\n",
+> 
+>    Indent this string a bit to the right please.
+
+OK.
 
 cheers,
 -roger
