@@ -1,123 +1,38 @@
 From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v3 1/3] ARM/dts: omap3: Add generic DT support for IGEP devices
-Date: Mon,  3 Dec 2012 13:41:41 +0100
-Message-ID: <1354538503-22671-2-git-send-email-javier.martinez@collabora.co.uk>
-References: <1354538503-22671-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH v3 0/3] ARM/dts: omap3: Add DT support for IGEP devices
+Date: Mon,  3 Dec 2012 13:41:40 +0100
+Message-ID: <1354538503-22671-1-git-send-email-javier.martinez@collabora.co.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1354538503-22671-1-git-send-email-javier.martinez@collabora.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Enrico Butera <ebutera@gmail.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Enrico Butera <ebutera@gmail.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add a generic .dtsi device tree source file for the
-common characteristics across IGEP Technology devices.
+IGEP technology devices are TI OMAP3 SoC based industrial embedded
+and computer-on-module boards. This patch-set adds initial device
+tree support for these devices.
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Acked-by: Matthias Brugger <matthias.bgg@gmail.com>
-Tested-by: Enric Balletbo i Serra <eballetbo@gmail.com>
----
+The device trees allows to boot from an MMC and are working all the
+components that already have device tree support on OMAP3 SoCs:
 
-Changes since v2:
-    - Associate uart3_pins in uart3 device node.
-    - Remove mcbsp2_ins for now until SMSC9221 Ethernet support is added.
+- MMC/SD
+- UARTs
+- GPIO LEDs
+- TWL4030 codec audio
+- pinmux/pinconf pinctrl
 
- arch/arm/boot/dts/omap3-igep.dtsi |   87 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 87 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-igep.dtsi
+Some peripheral are still not working such as Flash storage and
+Ethernet but support for these will also be included once the
+OMAP GPMC device tree binding patches land on mainline.
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-new file mode 100644
-index 0000000..125fe00
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -0,0 +1,87 @@
-+/*
-+ * Device Tree Source for IGEP Technology devices
-+ *
-+ * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
-+ * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap3.dtsi"
-+
-+/ {
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x20000000>; /* 512 MB */
-+	};
-+
-+	sound {
-+		compatible = "ti,omap-twl4030";
-+		ti,model = "igep2";
-+		ti,mcbsp = <&mcbsp2>;
-+		ti,codec = <&twl_audio>;
-+	};
-+};
-+
-+&omap3_pmx_core {
-+	uart3_pins: pinmux_uart3_pins {
-+		pinctrl-single,pins = <
-+			0x16e 0x100	/* uart3_rx.uart3_rx INPUT | MODE0 */
-+			0x170 0		/* uart3_tx.uart3_tx OUTPUT | MODE0 */
-+		>;
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+
-+		vsim: regulator@10 {
-+			compatible = "ti,twl4030-vsim";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <3000000>;
-+		};
-+
-+		twl_audio: audio {
-+			compatible = "ti,twl4030-audio";
-+			codec {
-+			      };
-+		};
-+	};
-+};
-+
-+/include/ "twl4030.dtsi"
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmc1>;
-+	vmmc_aux-supply = <&vsim>;
-+	bus-width = <8>;
-+};
-+
-+&mmc2 {
-+	status = "disabled";
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-+
-+&uart3 {
-+       pinctrl-names = "default";
-+       pinctrl-0 = <&uart3_pins>;
-+};
-+
-+&twl_gpio {
-+	ti,use-leds;
-+};
--- 
-1.7.7.6
+This is a v3 of the patch-set that solves issues pointed out by
+Enric Balletbo and Benoit Cousson.
+
+The patch-set is composed of the following patches:
+
+[PATCH v3 1/3] ARM/dts: omap3: Add generic DT support for IGEP devices
+[PATCH v3 2/3] ARM/dts: omap3: Add support for IGEPv2 board
+[PATCH v3 3/3] ARM/dts: omap3: Add support for IGEP COM Module
+
+Best regards,
+Javier
