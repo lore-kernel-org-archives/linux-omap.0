@@ -1,82 +1,137 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP: fix build error in arch/arm/mach-omap2/timer.c
-Date: Mon, 3 Dec 2012 16:53:06 +0530
-Message-ID: <50BC8B9A.6040104@ti.com>
-References: <1354011886-31553-1-git-send-email-mugunthanvnm@ti.com> <50B4EFB3.5060901@ti.com>
+From: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] ARM/dts: omap3: Add generic DT support for IGEP
+ devices
+Date: Mon, 03 Dec 2012 13:16:51 +0100
+Message-ID: <50BC9833.6060205@collabora.co.uk>
+References: <1354270137-31538-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1354270137-31538-2-git-send-email-javier.martinez@collabora.co.uk>
+ <50BC8685.20105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55428 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754150Ab2LCLXY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Dec 2012 06:23:24 -0500
-In-Reply-To: <50B4EFB3.5060901@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <50BC8685.20105-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Matthias Brugger <matthias.bgg-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Enrico Butera <ebutera-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, paul@pwsan.com, nfont@linux.vnet.ibm.com
 
-
-
-On 11/27/2012 10:22 PM, Jon Hunter wrote:
-> 
-> On 11/27/2012 04:24 AM, Mugunthan V N wrote:
->>   CC      arch/arm/mach-omap2/timer.o
->> arch/arm/mach-omap2/timer.c: In function 'omap_get_timer_dt':
->> arch/arm/mach-omap2/timer.c:195:3: error: implicit declaration of function 'prom_add_property'
->> make[1]: *** [arch/arm/mach-omap2/timer.o] Error 1
->> make: *** [arch/arm/mach-omap2] Error 2
-> 
-> Thanks for sending. You may wish to mentioned that this is seen on
-> today's linux-next (I am seeing the same problem).
-> 
->> fix for build break as the functions "prom_*_property" is renamed to
->> of_*_property by the below patch
->>
->> commit 79d1c712958f94372482ad74578b00f44e744c12
->> Author: Nathan Fontenot <nfont@linux.vnet.ibm.com>
->> Date:   Tue Oct 2 16:58:46 2012 +0000
->>
->>     powerpc+of: Rename the drivers/of prom_* functions to of_*
->>
->>     Rename the prom_*_property routines of the generic OF code to of_*_property.
->>     This brings them in line with the naming used by the rest of the OF code.
->>
->> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+On 12/03/2012 12:01 PM, Benoit Cousson wrote:
+> On 11/30/2012 11:08 AM, Javier Martinez Canillas wrote:
+>> Add a generic .dtsi device tree source file for the
+>> common characteristics across IGEP Technology devices.
+>> 
+>> Signed-off-by: Javier Martinez Canillas <javier.martinez-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+>> Acked-by: Matthias Brugger <matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 >> ---
->>  arch/arm/mach-omap2/timer.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->> index 099e406..5fd5e23 100644
->> --- a/arch/arm/mach-omap2/timer.c
->> +++ b/arch/arm/mach-omap2/timer.c
->> @@ -192,7 +192,7 @@ static struct device_node * __init omap_get_timer_dt(struct of_device_id *match,
->>  			continue;
->>  		}
->>  
->> -		prom_add_property(np, &device_disabled);
->> +		of_add_property(np, &device_disabled);
->>  		return np;
->>  	}
+>>  arch/arm/boot/dts/omap3-igep.dtsi |   93 +++++++++++++++++++++++++++++++++++++
+>>  1 files changed, 93 insertions(+), 0 deletions(-)
+>>  create mode 100644 arch/arm/boot/dts/omap3-igep.dtsi
+>> 
+>> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+>> new file mode 100644
+>> index 0000000..a093bff
+>> --- /dev/null
+>> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
+>> @@ -0,0 +1,93 @@
+>> +/*
+>> + * Device Tree Source for IGEP Technology devices
+>> + *
+>> + * Copyright (C) 2012 Javier Martinez Canillas <javier-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+>> + * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +/dts-v1/;
+>> +
+>> +/include/ "omap3.dtsi"
+>> +
+>> +/ {
+>> +	memory {
+>> +		device_type = "memory";
+>> +		reg = <0x80000000 0x20000000>; /* 512 MB */
+>> +	};
+>> +
+>> +	sound {
+>> +		compatible = "ti,omap-twl4030";
+>> +		ti,model = "igep2";
+>> +		ti,mcbsp = <&mcbsp2>;
+>> +		ti,codec = <&twl_audio>;
+>> +	};
+>> +};
+>> +
+>> +&omap3_pmx_core {
+>> +	pinctrl-names = "default";
+>> +	pinctrl-0 = <
+>> +		  &mcbsp2_pins
+>> +	>;
 > 
-> I tested this on the AM335x device and it is working fine. So ...
+> Tony made a comment to avoid associating these data inside the pmx_core
+> and instead do that in the dedicated device part.
+>
+
+Hi Benoit,
+
+Thanks a lot for your feedback.
+
+I didn't know about this convention, the OMAP mcspi1_cs2 pin is configured in
+gpio_176 mode (OMAP_MUX_MODE4) because this GPIO line is used as the SMSC9221
+LAN Ethernet controller IRQ.
+
+But since the ethernet chip is connected to the OMAP3 processor thourgh its GPMC
+and the DT support for GPMC is still not merged in mainline, DT support this
+this pheripheral is still missing on this initial DT.
+
+So, I'll just removes mcbsp2_pins for now and this can be added again on the
+ethernet device part once support for this pheripheral is added.
+
+>> +
+>> +	uart3_pins: pinmux_uart3_pins {
+>> +		pinctrl-single,pins = <
+>> +			0x16e 0x100	/* uart3_rx.uart3_rx INPUT | MODE0 */
+>> +			0x170 0		/* uart3_tx.uart3_tx OUTPUT | MODE0 */
+>> +		>;
+>> +	};
+>> +
+>> +	mcbsp2_pins: pinmux_mcbsp2_pins {
+>> +		pinctrl-single,pins = <
+>> +			0x1a2 0x0104	/* mcspi1_cs2.gpio_176 INPUT | MODE4 */
+>> +		>;
+>> +	};
 > 
-> Acked-by: Jon Hunter <jon-hunter@ti.com>
-> Tested-by: Jon Hunter <jon-hunter@ti.com>
+> BTW, in this case, the UART3 does not seems to have any connection with
+> the pins settings. Sine your don't have it in the pmx_core you should
+> have it in side the UART3 node.
+> 
+> &uart3 {
+> 	pinctrl-names = "default";
+> 	pinctrl-0 = <&uart3_pins>;
+> };
 > 
 
-This patch still not made its way to linux-next, so still build is
-broken for all OMAP platforms.
+Yes, I missed that. Thanks for pointing this out.
 
-Thanks,
-Vaibhav
-
-> Cheers
-> Jon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The rational is that, the mux will be done only if the driver is probed
+> and not unconditionally during pmx_core probe like it will be the case
+> otherwise.
 > 
+> Regards,
+> Benoit
+> 
+> 
+
+I'll post a v3 with your suggestions.
+
+Thanks a lot and best regards,
+Javier
