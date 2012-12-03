@@ -1,63 +1,77 @@
-From: Jan Luebbe <jlu@pengutronix.de>
-Subject: [PATCH 2/3] net: cpsw: verify correct number of slaves in DT
-Date: Mon,  3 Dec 2012 14:49:28 +0100
-Message-ID: <1354542569-6165-2-git-send-email-jlu@pengutronix.de>
+From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: Re: [PATCH 3/3] net: cpsw: implement ioctl for MII
+Date: Mon, 3 Dec 2012 14:16:51 +0000
+Message-ID: <1354544211.7030.32.camel@deadeye.wl.decadent.org.uk>
 References: <1354542569-6165-1-git-send-email-jlu@pengutronix.de>
+	 <1354542569-6165-3-git-send-email-jlu@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53713 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459Ab2LCNtv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Dec 2012 08:49:51 -0500
-In-Reply-To: <1354542569-6165-1-git-send-email-jlu@pengutronix.de>
+Received: from webmail.solarflare.com ([12.187.104.25]:59461 "EHLO
+	webmail.solarflare.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754480Ab2LCOQ4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Dec 2012 09:16:56 -0500
+In-Reply-To: <1354542569-6165-3-git-send-email-jlu@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Jan Luebbe <jlu@pengutronix.de>
+To: Jan Luebbe <jlu@pengutronix.de>
+Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Check that the number of available slaves passed from DT matches the
-value of the "slaves" property in the cpsw node. Otherwise, priv->slaves
-would be the wrong size.
+On Mon, 2012-12-03 at 14:49 +0100, Jan Luebbe wrote:
+> This allows using tools like mii-diag on CPSW.
+> 
+> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+> ---
+>  drivers/net/ethernet/ti/cpsw.c |   15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+> index 8de3e92..f476c03 100644
+> --- a/drivers/net/ethernet/ti/cpsw.c
+> +++ b/drivers/net/ethernet/ti/cpsw.c
+> @@ -629,6 +629,20 @@ static void cpsw_ndo_change_rx_flags(struct net_device *ndev, int flags)
+>  		dev_err(&ndev->dev, "multicast traffic cannot be filtered!\n");
+>  }
+>  
+> +static int cpsw_ndo_do_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
+> +{
+> +	struct cpsw_priv *priv = netdev_priv(ndev);
+> +	struct phy_device *phy = priv->slaves[0].phy;
+> +
+> +	if (!netif_running(ndev))
+> +		return -EINVAL;
 
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
----
- drivers/net/ethernet/ti/cpsw.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+This is consistent with other drivers, and I'm not going to object to
+one more instance, but I don't think this is the proper error code - we
+don't know that there's anything wrong with the arguments, it's just
+that the *device* is in the wrong state.  I don't know what the right
+error code is, though.  Really I would prefer that MDIO would work even
+when the device is down, unless you know that all MDIO-manageable
+devices are powered off.
 
-diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index c0e676a..8de3e92 100644
---- a/drivers/net/ethernet/ti/cpsw.c
-+++ b/drivers/net/ethernet/ti/cpsw.c
-@@ -832,6 +832,16 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 		const char *phy_id = NULL;
- 		const void *mac_addr = NULL;
- 
-+		if (!of_device_is_available(slave_node))
-+			continue;
-+
-+		if (i >= data->slaves) {
-+			dev_err(&pdev->dev, "Too many slaves in the DT (> %d).\n",
-+				data->slaves);
-+			ret = -EINVAL;
-+			goto error_ret;
-+		}
-+
- 		if (of_property_read_string(slave_node, "phy_id", &phy_id)) {
- 			dev_err(&pdev->dev, "Missing slave[%d] phy_id property.\n", i);
- 			ret = -EINVAL;
-@@ -861,6 +871,13 @@ static int cpsw_probe_dt(struct cpsw_platform_data *data,
- 		i++;
- 	}
- 
-+	if (i < data->slaves) {
-+		dev_err(&pdev->dev, "Not enough slaves in the DT (< %d).\n",
-+			data->slaves);
-+		ret = -EINVAL;
-+		goto error_ret;
-+	}
-+
- 	/*
- 	 * Populate all the child nodes here...
- 	 */
+Ben.
+
+> +	if (!phy)
+> +		return -ENODEV;
+> +
+> +	return phy_mii_ioctl(phy, rq, cmd);
+> +}
+> +
+>  static void cpsw_ndo_tx_timeout(struct net_device *ndev)
+>  {
+>  	struct cpsw_priv *priv = netdev_priv(ndev);
+> @@ -670,6 +684,7 @@ static const struct net_device_ops cpsw_netdev_ops = {
+>  	.ndo_start_xmit		= cpsw_ndo_start_xmit,
+>  	.ndo_change_rx_flags	= cpsw_ndo_change_rx_flags,
+>  	.ndo_validate_addr	= eth_validate_addr,
+> +	.ndo_do_ioctl		= cpsw_ndo_do_ioctl,
+>  	.ndo_change_mtu		= eth_change_mtu,
+>  	.ndo_tx_timeout		= cpsw_ndo_tx_timeout,
+>  	.ndo_get_stats		= cpsw_ndo_get_stats,
+
 -- 
-1.7.10.4
+Ben Hutchings, Staff Engineer, Solarflare
+Not speaking for my employer; that's the marketing department's job.
+They asked us to note that Solarflare product names are trademarked.
 
