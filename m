@@ -1,62 +1,58 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 4/5] arm: omap2: support port power on lan95xx devices
-Date: Mon, 3 Dec 2012 12:09:58 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1212031154460.1309-100000@iolanthe.rowland.org>
-References: <50BC3003.80608@linaro.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
+Date: Mon, 03 Dec 2012 10:19:36 -0800
+Message-ID: <87mwxvathj.fsf@deeprootsystems.com>
+References: <k80da6$61d$1@ger.gmane.org>
+	<CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
+	<20121121183809.GZ18567@atomide.com>
+	<CAK0ocyD25pRcQthN90inWy-95Yaa-B94rw724_uS5Y7FRA4qjQ@mail.gmail.com>
+	<50ADBB5B.7090401@ti.com>
+	<CAK0ocyCe3oJ8ynpNWpzcCFHtG3J4u7NBeNPTJK0GikFHaPAXOA@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83EB7F222@DBDE01.ent.ti.com>
+	<CAK0ocyD7fGzj1GuFP7EhFYqmLv66A0phNrxV6rAL9b9ejPYfvg@mail.gmail.com>
+	<CAD=GYparyZ8kB+pX+SptSaNPHD-Ey9vBC1Q4nDcTKJLenpNK=w@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83EB7FB16@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:44094 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754918Ab2LCRJ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Dec 2012 12:09:59 -0500
-In-Reply-To: <50BC3003.80608@linaro.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:61149 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812Ab2LCST2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Dec 2012 13:19:28 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so2183139pbc.19
+        for <linux-omap@vger.kernel.org>; Mon, 03 Dec 2012 10:19:28 -0800 (PST)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB7FB16@DBDE01.ent.ti.com>
+	(Vaibhav Hiremath's message of "Fri, 23 Nov 2012 06:04:03 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Green <andy.green@linaro.org>
-Cc: Ming Lei <tom.leiming@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Joel A Fernandes <agnel.joel@gmail.com>, Igor Mazanov <i.mazanov@gmail.com>, Tony Lindgren <tony@atomide.com>, Jean Pihet <jean.pihet@newoldbits.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 3 Dec 2012, Andy Green wrote:
+"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
 
-> Unless someone NAKs it for sure already (if you're already sure you're 
-> going to, please do so to avoid wasting time), I'll issue a try#2 of my 
-> code later which demonstrates what I mean.  At least I guess it's useful 
-> for comparative purposes.
+>> >>> +static struct omap_hwmod am33xx_debugss_hwmod = {
+>> >>> +       .name           = "debugss",
+>> >>> +       .class          = &am33xx_debugss_hwmod_class,
+>> >>> +       .clkdm_name     = "l3_aon_clkdm",
+>> >>> +       .main_clk       = "debugss_ick",
+>> >>> +       .flags          =  (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
+>> 
+>> Setting these flags would still leave the problem where JTAG clocks
+>> are on when its not required no? In that case, what is the advantage
+>> of this patch?
+>> 
+>
+> I missed to wrap it around #ifdef CONFIG_DEBUG_KERNEL. I will submit the 
+> formal patch shortly.
 
-Before you go writing a whole lot more code, we should discuss the 
-basics a bit more clearly.  There are several unsettled issues here:
+IMO, this should not be handled in the data at all (neither clock nor
+hwmod), and should be handled at runtime/boot-time, not compile time.
 
-     1. Should the LAN95xx stuff be associated with the ehci-omap.0's
-	driver or with the hub port?  The port would be more flexible,
-	offering the ability to turn the power off and on while the
-	system is running without affecting anything else.  But the 
-	port code is currently in flux, which could cause this new 
-	addition to be delayed.
+The solution to this is to rather to have a small bit of code that
+requests the debugss clocks that are needed for JTAG debug, so the
+kernel knows they are in use.
 
-	(On the other hand, since the LAN95xx is the only thing
-	connected to the root hub, it could be powered off and on by
-	unbinding the ehci-omap.0 device from its driver and rebinding
-	it.)
+That code could then be enabled at boot time via command-line or DT
+option.
 
-     2. If we do choose the port, do we want to identify it by matching
-	against a device name string or by matching a sequence of port
-	numbers (in this case, a length-1 sequence)?  The port numbers
-	are fixed by the board design, whereas the device name strings
-	might  get changed in the future.  On the other hand, the port 
-	numbers apply only to USB whereas device names can be used by 
-	any subsystem.
-
-     3. Should the matching mechanism go into the device core or into
-	the USB port code?  (This is related to the previous question.)
-
-     4. Should this be implemented simply as a regulator (or a pair of
-	regulators)?  Or should it be generalized to some sort of PM
-	domain thing?  The generic_pm_domain structure defined in
-	include/linux/pm_domain.h seems like overkill, but maybe it's
-	the most appropriate thing to use.
-
-Until we decide on the answers to these questions, there's no point 
-writing detailed patches.
-
-Alan Stern
-
+Kevin
