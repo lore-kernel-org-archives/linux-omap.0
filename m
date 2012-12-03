@@ -1,77 +1,52 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Subject: Re: [PATCH 3/3] net: cpsw: implement ioctl for MII
-Date: Mon, 3 Dec 2012 14:16:51 +0000
-Message-ID: <1354544211.7030.32.camel@deadeye.wl.decadent.org.uk>
-References: <1354542569-6165-1-git-send-email-jlu@pengutronix.de>
-	 <1354542569-6165-3-git-send-email-jlu@pengutronix.de>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v2 22/22] mfd: omap-usb-host: Don't spam console on clk_set_parent
+ failure
+Date: Mon, 3 Dec 2012 17:48:55 +0200
+Message-ID: <50BCC9E7.7090106@ti.com>
+References: <1354114150-11941-1-git-send-email-rogerq@ti.com> <1354114150-11941-23-git-send-email-rogerq@ti.com> <50BB8B78.9010207@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from webmail.solarflare.com ([12.187.104.25]:59461 "EHLO
-	webmail.solarflare.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754480Ab2LCOQ4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Dec 2012 09:16:56 -0500
-In-Reply-To: <1354542569-6165-3-git-send-email-jlu@pengutronix.de>
+Received: from comal.ext.ti.com ([198.47.26.152]:58468 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753906Ab2LCPs5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Dec 2012 10:48:57 -0500
+In-Reply-To: <50BB8B78.9010207@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jan Luebbe <jlu@pengutronix.de>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Mugunthan V N <mugunthanvnm@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: balbi@ti.com, keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Mon, 2012-12-03 at 14:49 +0100, Jan Luebbe wrote:
-> This allows using tools like mii-diag on CPSW.
+On 12/02/2012 07:10 PM, Sergei Shtylyov wrote:
+> Hello.
 > 
-> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-> ---
->  drivers/net/ethernet/ti/cpsw.c |   15 +++++++++++++++
->  1 file changed, 15 insertions(+)
+> On 28-11-2012 18:49, Roger Quadros wrote:
 > 
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 8de3e92..f476c03 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -629,6 +629,20 @@ static void cpsw_ndo_change_rx_flags(struct net_device *ndev, int flags)
->  		dev_err(&ndev->dev, "multicast traffic cannot be filtered!\n");
->  }
->  
-> +static int cpsw_ndo_do_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
-> +{
-> +	struct cpsw_priv *priv = netdev_priv(ndev);
-> +	struct phy_device *phy = priv->slaves[0].phy;
-> +
-> +	if (!netif_running(ndev))
-> +		return -EINVAL;
+>> clk_set_parent is expected to fail on OMAP3 platforms. We don't
+>> consider that as fatal so don't spam console.
+> 
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   drivers/mfd/omap-usb-host.c |   10 +++++-----
+>>   1 files changed, 5 insertions(+), 5 deletions(-)
+> 
+>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+>> index 6ede319..493e010 100644
+>> --- a/drivers/mfd/omap-usb-host.c
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -653,17 +653,17 @@ static int __devinit usbhs_omap_probe(struct
+>> platform_device *pdev)
+>>       }
+>>
+>>       if (is_ehci_phy_mode(pdata->port_mode[0])) {
+>> -        /* for OMAP3 , the clk set paretn fails */
+>> +        /* for OMAP3 , the clk set parent fails */
+> 
+>    Worth removing spave before comma too.
+>
+All valid points. Thanks for review.
 
-This is consistent with other drivers, and I'm not going to object to
-one more instance, but I don't think this is the proper error code - we
-don't know that there's anything wrong with the arguments, it's just
-that the *device* is in the wrong state.  I don't know what the right
-error code is, though.  Really I would prefer that MDIO would work even
-when the device is down, unless you know that all MDIO-manageable
-devices are powered off.
-
-Ben.
-
-> +	if (!phy)
-> +		return -ENODEV;
-> +
-> +	return phy_mii_ioctl(phy, rq, cmd);
-> +}
-> +
->  static void cpsw_ndo_tx_timeout(struct net_device *ndev)
->  {
->  	struct cpsw_priv *priv = netdev_priv(ndev);
-> @@ -670,6 +684,7 @@ static const struct net_device_ops cpsw_netdev_ops = {
->  	.ndo_start_xmit		= cpsw_ndo_start_xmit,
->  	.ndo_change_rx_flags	= cpsw_ndo_change_rx_flags,
->  	.ndo_validate_addr	= eth_validate_addr,
-> +	.ndo_do_ioctl		= cpsw_ndo_do_ioctl,
->  	.ndo_change_mtu		= eth_change_mtu,
->  	.ndo_tx_timeout		= cpsw_ndo_tx_timeout,
->  	.ndo_get_stats		= cpsw_ndo_get_stats,
-
--- 
-Ben Hutchings, Staff Engineer, Solarflare
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
+cheers,
+-roger
 
