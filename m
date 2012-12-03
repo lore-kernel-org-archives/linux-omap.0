@@ -1,79 +1,56 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 13/22] mfd: omap-usb-host: override number of ports
- from platform data
-Date: Sun, 02 Dec 2012 21:14:27 +0400
-Message-ID: <50BB8C73.7060008@mvista.com>
-References: <1354114150-11941-1-git-send-email-rogerq@ti.com> <1354114150-11941-14-git-send-email-rogerq@ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [RFC PATCH 1/5] Device Power: introduce power controller
+Date: Mon, 3 Dec 2012 11:00:44 +0800
+Message-ID: <CACVXFVNfGZRE4y0+LpBixiMab2=QhOKCcRG_QEz-u7ZwuPnMvQ@mail.gmail.com>
+References: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
+	<1354460467-28006-2-git-send-email-tom.leiming@gmail.com>
+	<50BB7BA9.4090902@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1354114150-11941-14-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:49992 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754637Ab2LCDAq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Dec 2012 22:00:46 -0500
+In-Reply-To: <50BB7BA9.4090902@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andy Green <andy.green@linaro.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Hello.
-
-On 28-11-2012 18:49, Roger Quadros wrote:
-
-> Both OMAP4 and 5 exhibit the same revision ID in the REVISION register
-> but they have different number of ports i.e. 2 and 3 respectively.
-> So we can't rely on REVISION register for number of ports on OMAP5
-> and depend on platform data (or device tree) instead.
-
-> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-[...]
-
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index 87b574b..fda235a 100644
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -495,19 +495,27 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
->   	 */
->   	pm_runtime_put_sync(dev);
+On Mon, Dec 3, 2012 at 12:02 AM, Andy Green <andy.green@linaro.org> wrote:
+> On 02/12/12 23:01, the mail apparently from Ming Lei included:
 >
-> -	switch (omap->usbhs_rev) {
-> -	case OMAP_USBHS_REV1:
-> -		omap->nports = 3;
-> -		break;
-> -	case OMAP_USBHS_REV2:
-> -		omap->nports = 2;
-> -		break;
-> -	default:
-> -		omap->nports = OMAP3_HS_USB_PORTS;
-> -		dev_dbg(dev,
-> -		  "USB HOST Rev : 0x%d not recognized, assuming %d ports\n",
-> -		   omap->usbhs_rev, omap->nports);
-> -		break;
-> +	/*
-> +	 * If platform data contains nports then use that
-> +	 * else make out number of ports from USBHS revision
-> +	 */
-> +	if (pdata->nports) {
-> +			omap->nports = pdata->nports;
+>> Power controller is an abstract on simple power on/off switch.
+>>
+>> One power controller can bind to more than one device, which
+>> provides power logically, for example, we can think one usb port
+>> in hub provides power to the usb device attached to the port, even
+>> though the power is supplied actually by other ways, eg. the usb
+>> hub is a self-power device. From hardware view, more than one
+>> device can share one power domain, and power controller can power
+>> on if one of these devices need to provide power, and power off if
+>> all these devices don't need to provide power.
+>
+>
+> What stops us using struct regulator here?  If you have child regulators
+> supplied by a parent supply, isn't that the right semantic already without
+> introducing a whole new thing?  Apologies if I missed the point.
 
-    Overindented line?
+There are two purposes:
 
-> +	} else {
-> +		switch (omap->usbhs_rev) {
-> +		case OMAP_USBHS_REV1:
-> +			omap->nports = 3;
-> +			break;
-> +		case OMAP_USBHS_REV2:
-> +			omap->nports = 2;
-> +			break;
-> +		default:
-> +			omap->nports = OMAP3_HS_USB_PORTS;
-> +			dev_dbg(dev,
-> +			"USB HOST Rev:0x%d not recognized, assuming %d ports\n",
+One is to hide the implementation details of the power controller because
+the user doesn't care how it is implemented, maybe clock, regulator, gpio
+and other platform dependent stuffs involved, so the patch simplify the usage
+from the view of users.
 
-    Indent this string a bit to the right please.
+Another is that several users may share one power controller, and the
+introduced power controller can help users to use it.
 
-WBR, Sergei
+Also the power controller is stored as device resource, not any new
+stuff added into 'struct device', and all users of the power controller
+needn't write code to operate device resource things too.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+-- 
+Ming Lei
