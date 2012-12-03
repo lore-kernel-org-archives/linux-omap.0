@@ -1,98 +1,305 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 2/4] ARM: OMAP4: Add function table for non-M4X dplls
-Date: Mon, 3 Dec 2012 14:41:13 -0600
-Message-ID: <1354567275-6447-3-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 3/4] ARM: OMAP4: Enhance support for DPLLs with 4X multiplier
+Date: Mon, 3 Dec 2012 14:41:14 -0600
+Message-ID: <1354567275-6447-4-git-send-email-jon-hunter@ti.com>
 References: <1354567275-6447-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55724 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49499 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752009Ab2LCUl0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Dec 2012 15:41:26 -0500
+	id S1752049Ab2LCUlc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Dec 2012 15:41:32 -0500
 In-Reply-To: <1354567275-6447-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Currently all OMAP4 non-core DPLLs use the same function table for
-configuring DPLLs. For these DPLLs, the function
-omap4_dpll_regm4xen_recalc() is used to recalculate the DPLL rate and
-the function omap4_dpll_regm4xen_round_rate() is used to calculate the
-closest rate to that requested. However, these omap4_dpll_regm4xen_xxx()
-functions are only applicable to the ABE DPLL and not the other non-core
-DPLLs. Therefore, add a new function table for non-core DPLLs that do
-not include the 4X-multiplier (M4X).
+On OMAP4 devices, the ABE DPLL has an internal 4X multiplier that can
+be enabled or disabled in addition to the standard configurable
+multiplier (M) for OMAP DPLLs. When configuring the ABE DPLL the 4X
+multiplier is accounted for by checking to see whether it is enabled or
+not. However, when calculating a new rate we only check to see if the
+rate can be achieved with the current setting for the 4X multiplier.
+Enhance the round_rate() function for such DPLLs to see if the rate
+can be achieved with the 4X multiplier if it cannot be achieved without
+the 4X multiplier.
 
-Please note that using these omap4_dpll_regm4x_xxx() function works for
-the non-M4X DPLLs today because we only check to see if the 4X
-multiplier is enabled when calculating the rate. However, it is planned
-that the dpll functions will be enhanced to enable the 4X multiplier as
-necessary (in order to achieve the requested rate) and so calling these
-functions for non-M4X dplls will no longer work.
+This change is necessary, because when using the 32kHz clock as the
+source clock for the ABE DPLL, the default DPLL frequency for the ABE
+DPLL cannot be achieved without enabling the 4X multiplier.
+
+When using the 32kHz clock as the source clock for the ABE DPLL and
+attempting to lock the DPLL to 98.304MHz (default frequency), it was
+found that the DPLL would fail to lock if the low-power mode for the DPLL
+was not enabled. From reviewing boot-loader settings that configure the
+ABE DPLL it was found that the low-power mode is enabled when using the
+32kHz clock source, however, the documentation for OMAP does not state
+that this is a requirement. Therefore, introduce a new function for
+OMAP4 devices to see if low-power mode can be enabled when calculating a
+new rate to ensure the DPLL will lock.
+
+New variables for the last calculated 4X multiplier and low-power
+setting have been added to the dpll data structure as well as variables
+defining the bit mask for enabling these features via the DPLL's
+control_reg. It is possible that we could eliminate these bit masks from
+the dpll data structure as these bit masks are not unique to OMAP4, if
+it is preferred.
+
+The function omap3_noncore_program_dpll() has been updated to avoid
+passing the calculated values for the multiplier (M) and divider (N) as
+these are stored in the clk structure.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/cclock44xx_data.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/cclock44xx_data.c |    2 ++
+ arch/arm/mach-omap2/clock.h           |   10 ++++++
+ arch/arm/mach-omap2/dpll3xxx.c        |   46 ++++++++++++++++--------
+ arch/arm/mach-omap2/dpll44xx.c        |   64 ++++++++++++++++++++++++++++-----
+ 4 files changed, 99 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-index a1f0b55..7c1ffe6 100644
+index 7c1ffe6..44ef54f 100644
 --- a/arch/arm/mach-omap2/cclock44xx_data.c
 +++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -365,6 +365,15 @@ static struct dpll_data dpll_iva_dd = {
+@@ -124,6 +124,8 @@ static struct dpll_data dpll_abe_dd = {
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
++	.m4xen_mask	= OMAP4430_DPLL_REGM4XEN_MASK,
++	.lpmode_mask	= OMAP4430_DPLL_LPMODE_EN_MASK,
+ 	.max_multiplier	= 2047,
+ 	.max_divider	= 128,
+ 	.min_divider	= 1,
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 9917f79..b402048 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -195,6 +195,10 @@ struct clksel {
+  * @enable_mask: mask of the DPLL mode bitfield in @control_reg
+  * @last_rounded_rate: cache of the last rate result of omap2_dpll_round_rate()
+  * @last_rounded_m: cache of the last M result of omap2_dpll_round_rate()
++ * @last_rounded_m4xen: cache of the last M4X result of
++ *			omap4_dpll_regm4xen_round_rate()
++ * @last_rounded_lpmode: cache of the last lpmode result of
++ *			 omap4_dpll_lpmode_recalc()
+  * @max_multiplier: maximum valid non-bypass multiplier value (actual)
+  * @last_rounded_n: cache of the last N result of omap2_dpll_round_rate()
+  * @min_divider: minimum valid non-bypass divider value (actual)
+@@ -205,6 +209,8 @@ struct clksel {
+  * @autoidle_mask: mask of the DPLL autoidle mode bitfield in @autoidle_reg
+  * @freqsel_mask: mask of the DPLL jitter correction bitfield in @control_reg
+  * @idlest_mask: mask of the DPLL idle status bitfield in @idlest_reg
++ * @lpmode_mask: mask of the DPLL low-power mode bitfield in @control_reg
++ * @m4xen_mask: mask of the DPLL M4X multiplier bitfield in @control_reg
+  * @auto_recal_bit: bitshift of the driftguard enable bit in @control_reg
+  * @recal_en_bit: bitshift of the PRM_IRQENABLE_* bit for recalibration IRQs
+  * @recal_st_bit: bitshift of the PRM_IRQSTATUS_* bit for recalibration IRQs
+@@ -233,6 +239,8 @@ struct dpll_data {
+ 	u32			enable_mask;
+ 	unsigned long		last_rounded_rate;
+ 	u16			last_rounded_m;
++	u8			last_rounded_m4xen;
++	u8			last_rounded_lpmode;
+ 	u16			max_multiplier;
+ 	u8			last_rounded_n;
+ 	u8			min_divider;
+@@ -245,6 +253,8 @@ struct dpll_data {
+ 	u32			idlest_mask;
+ 	u32			dco_mask;
+ 	u32			sddiv_mask;
++	u32			lpmode_mask;
++	u32			m4xen_mask;
+ 	u8			auto_recal_bit;
+ 	u8			recal_en_bit;
+ 	u8			recal_st_bit;
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index fafb28c..2bb1883 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -291,16 +291,13 @@ static void _lookup_sddiv(struct clk_hw_omap *clk, u8 *sd_div, u16 m, u8 n)
  
- static struct clk dpll_iva_ck;
+ /*
+  * _omap3_noncore_dpll_program - set non-core DPLL M,N values directly
+- * @clk: struct clk * of DPLL to set
+- * @m: DPLL multiplier to set
+- * @n: DPLL divider to set
+- * @freqsel: FREQSEL value to set
++ * @clk:	struct clk * of DPLL to set
++ * @freqsel:	FREQSEL value to set
+  *
+- * Program the DPLL with the supplied M, N values, and wait for the DPLL to
+- * lock..  Returns -EINVAL upon error, or 0 upon success.
++ * Program the DPLL with the last M, N values calculated, and wait for
++ * the DPLL to lock. Returns -EINVAL upon error, or 0 upon success.
+  */
+-static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 m, u8 n,
+-				      u16 freqsel)
++static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 freqsel)
+ {
+ 	struct dpll_data *dd = clk->dpll_data;
+ 	u8 dco, sd_div;
+@@ -323,23 +320,45 @@ static int omap3_noncore_dpll_program(struct clk_hw_omap *clk, u16 m, u8 n,
+ 	/* Set DPLL multiplier, divider */
+ 	v = __raw_readl(dd->mult_div1_reg);
+ 	v &= ~(dd->mult_mask | dd->div1_mask);
+-	v |= m << __ffs(dd->mult_mask);
+-	v |= (n - 1) << __ffs(dd->div1_mask);
++	v |= dd->last_rounded_m << __ffs(dd->mult_mask);
++	v |= (dd->last_rounded_n - 1) << __ffs(dd->div1_mask);
  
-+static const struct clk_ops dpll_ck_ops = {
-+	.enable		= &omap3_noncore_dpll_enable,
-+	.disable	= &omap3_noncore_dpll_disable,
-+	.recalc_rate	= &omap3_dpll_recalc,
-+	.round_rate	= &omap2_dpll_round_rate,
-+	.set_rate	= &omap3_noncore_dpll_set_rate,
-+	.get_parent	= &omap2_init_dpll_parent,
-+};
+ 	/* Configure dco and sd_div for dplls that have these fields */
+ 	if (dd->dco_mask) {
+-		_lookup_dco(clk, &dco, m, n);
++		_lookup_dco(clk, &dco, dd->last_rounded_m, dd->last_rounded_n);
+ 		v &= ~(dd->dco_mask);
+ 		v |= dco << __ffs(dd->dco_mask);
+ 	}
+ 	if (dd->sddiv_mask) {
+-		_lookup_sddiv(clk, &sd_div, m, n);
++		_lookup_sddiv(clk, &sd_div, dd->last_rounded_m,
++			      dd->last_rounded_n);
+ 		v &= ~(dd->sddiv_mask);
+ 		v |= sd_div << __ffs(dd->sddiv_mask);
+ 	}
+ 
+ 	__raw_writel(v, dd->mult_div1_reg);
+ 
++	/* Set 4X multiplier and low-power mode */
++	if (dd->m4xen_mask || dd->lpmode_mask) {
++		v = __raw_readl(dd->control_reg);
 +
- static struct clk_hw_omap dpll_iva_ck_hw = {
- 	.hw = {
- 		.clk = &dpll_iva_ck,
-@@ -373,7 +382,7 @@ static struct clk_hw_omap dpll_iva_ck_hw = {
- 	.ops		= &clkhwops_omap3_dpll,
++		if (dd->m4xen_mask) {
++			if (dd->last_rounded_m4xen)
++				v |= dd->m4xen_mask;
++			else
++				v &= ~dd->m4xen_mask;
++		}
++
++		if (dd->lpmode_mask) {
++			if (dd->last_rounded_lpmode)
++				v |= dd->lpmode_mask;
++			else
++				v &= ~dd->lpmode_mask;
++		}
++
++		__raw_writel(v, dd->control_reg);
++	}
++
+ 	/* We let the clock framework set the other output dividers later */
+ 
+ 	/* REVISIT: Set ramp-up delay? */
+@@ -492,8 +511,7 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
+ 		pr_debug("%s: %s: set rate: locking rate to %lu.\n",
+ 			 __func__, __clk_get_name(hw->clk), rate);
+ 
+-		ret = omap3_noncore_dpll_program(clk, dd->last_rounded_m,
+-						dd->last_rounded_n, freqsel);
++		ret = omap3_noncore_dpll_program(clk, freqsel);
+ 		if (!ret)
+ 			new_parent = dd->clk_ref;
+ 	}
+diff --git a/arch/arm/mach-omap2/dpll44xx.c b/arch/arm/mach-omap2/dpll44xx.c
+index d3326c4..d28b0f7 100644
+--- a/arch/arm/mach-omap2/dpll44xx.c
++++ b/arch/arm/mach-omap2/dpll44xx.c
+@@ -20,6 +20,15 @@
+ #include "clock44xx.h"
+ #include "cm-regbits-44xx.h"
+ 
++/*
++ * Maximum DPLL input frequency (FINT) and output frequency (FOUT) that
++ * can supported when using the DPLL low-power mode. Frequencies are
++ * defined in OMAP4430/60 Public TRM section 3.6.3.3.2 "Enable Control,
++ * Status, and Low-Power Operation Mode".
++ */
++#define OMAP4_DPLL_LP_FINT_MAX	1000000
++#define OMAP4_DPLL_LP_FOUT_MAX	100000000
++
+ /* Supported only on OMAP4 */
+ int omap4_dpllmx_gatectrl_read(struct clk_hw_omap *clk)
+ {
+@@ -82,6 +91,31 @@ const struct clk_hw_omap_ops clkhwops_omap4_dpllmx = {
  };
  
--DEFINE_STRUCT_CLK(dpll_iva_ck, dpll_core_ck_parents, dpll_abe_ck_ops);
-+DEFINE_STRUCT_CLK(dpll_iva_ck, dpll_core_ck_parents, dpll_ck_ops);
+ /**
++ * omap4_dpll_lpmode_recalc - compute DPLL low-power setting
++ * @dd: pointer to the dpll data structure
++ *
++ * Calculates if low-power mode can be enabled based upon the last
++ * multiplier and divider values calculated. If low-power mode can be
++ * enabled, then the bit to enable low-power mode is stored in the
++ * last_rounded_lpmode variable. This implementation is based upon the
++ * criteria for enabling low-power mode as described in the OMAP4430/60
++ * Public TRM section 3.6.3.3.2 "Enable Control, Status, and Low-Power
++ * Operation Mode".
++ */
++static void omap4_dpll_lpmode_recalc(struct dpll_data *dd)
++{
++	long fint, fout;
++
++	fint = __clk_get_rate(dd->clk_ref) / (dd->last_rounded_n + 1);
++	fout = fint * dd->last_rounded_m;
++
++	if ((fint < OMAP4_DPLL_LP_FINT_MAX) && (fout < OMAP4_DPLL_LP_FOUT_MAX))
++		dd->last_rounded_lpmode = 1;
++	else
++		dd->last_rounded_lpmode = 0;
++}
++
++/**
+  * omap4_dpll_regm4xen_recalc - compute DPLL rate, considering REGM4XEN bit
+  * @clk: struct clk * of the DPLL to compute the rate for
+  *
+@@ -130,7 +164,6 @@ long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
+ 				    unsigned long *parent_rate)
+ {
+ 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
+-	u32 v;
+ 	struct dpll_data *dd;
+ 	long r;
  
- static const char *dpll_iva_x2_ck_parents[] = {
- 	"dpll_iva_ck",
-@@ -426,7 +435,7 @@ static struct clk_hw_omap dpll_mpu_ck_hw = {
- 	.ops		= &clkhwops_omap3_dpll,
- };
+@@ -139,18 +172,31 @@ long omap4_dpll_regm4xen_round_rate(struct clk_hw *hw,
  
--DEFINE_STRUCT_CLK(dpll_mpu_ck, dpll_core_ck_parents, dpll_abe_ck_ops);
-+DEFINE_STRUCT_CLK(dpll_mpu_ck, dpll_core_ck_parents, dpll_ck_ops);
+ 	dd = clk->dpll_data;
  
- DEFINE_CLK_FIXED_FACTOR(mpu_periphclk, "dpll_mpu_ck", &dpll_mpu_ck, 0x0, 1, 2);
+-	/* regm4xen adds a multiplier of 4 to DPLL calculations */
+-	v = __raw_readl(dd->control_reg) & OMAP4430_DPLL_REGM4XEN_MASK;
+-
+-	if (v)
+-		target_rate = target_rate / OMAP4430_REGM4XEN_MULT;
++	dd->last_rounded_m4xen = 0;
  
-@@ -475,7 +484,7 @@ static struct clk_hw_omap dpll_per_ck_hw = {
- 	.ops		= &clkhwops_omap3_dpll,
- };
++	/*
++	 * First try to compute the DPLL configuration for
++	 * target rate without using the 4X multiplier.
++	 */
+ 	r = omap2_dpll_round_rate(hw, target_rate, NULL);
++	if (r != ~0)
++		goto out;
++
++	/*
++	 * If we did not find a valid DPLL configuration, try again, but
++	 * this time see if using the 4X multiplier can help. Enabling the
++	 * 4X multiplier is equivalent to dividing the target rate by 4.
++	 */
++	r = omap2_dpll_round_rate(hw, target_rate / OMAP4430_REGM4XEN_MULT,
++				  NULL);
+ 	if (r == ~0)
+ 		return r;
  
--DEFINE_STRUCT_CLK(dpll_per_ck, dpll_core_ck_parents, dpll_abe_ck_ops);
-+DEFINE_STRUCT_CLK(dpll_per_ck, dpll_core_ck_parents, dpll_ck_ops);
+-	if (v)
+-		clk->dpll_data->last_rounded_rate *= OMAP4430_REGM4XEN_MULT;
++	dd->last_rounded_rate *= OMAP4430_REGM4XEN_MULT;
++	dd->last_rounded_m4xen = 1;
++
++out:
++	omap4_dpll_lpmode_recalc(dd);
  
- DEFINE_CLK_DIVIDER(dpll_per_m2_ck, "dpll_per_ck", &dpll_per_ck, 0x0,
- 		   OMAP4430_CM_DIV_M2_DPLL_PER, OMAP4430_DPLL_CLKOUT_DIV_SHIFT,
-@@ -569,7 +578,7 @@ static struct clk_hw_omap dpll_usb_ck_hw = {
- 	.ops		= &clkhwops_omap3_dpll,
- };
- 
--DEFINE_STRUCT_CLK(dpll_usb_ck, dpll_core_ck_parents, dpll_abe_ck_ops);
-+DEFINE_STRUCT_CLK(dpll_usb_ck, dpll_core_ck_parents, dpll_ck_ops);
- 
- static const char *dpll_usb_clkdcoldo_ck_parents[] = {
- 	"dpll_usb_ck",
+-	return clk->dpll_data->last_rounded_rate;
++	return dd->last_rounded_rate;
+ }
 -- 
 1.7.9.5
 
