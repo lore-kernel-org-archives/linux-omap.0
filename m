@@ -1,63 +1,62 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH 3/3] net: cpsw: implement ioctl for MII
-Date: Mon, 3 Dec 2012 22:34:27 +0530
-Message-ID: <50BCDB9B.80307@ti.com>
-References: <1354542569-6165-1-git-send-email-jlu@pengutronix.de> <1354542569-6165-3-git-send-email-jlu@pengutronix.de>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 4/5] arm: omap2: support port power on lan95xx devices
+Date: Mon, 3 Dec 2012 12:09:58 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1212031154460.1309-100000@iolanthe.rowland.org>
+References: <50BC3003.80608@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1354542569-6165-3-git-send-email-jlu@pengutronix.de>
-Sender: netdev-owner@vger.kernel.org
-To: Jan Luebbe <jlu@pengutronix.de>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:44094 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754918Ab2LCRJ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Dec 2012 12:09:59 -0500
+In-Reply-To: <50BC3003.80608@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andy Green <andy.green@linaro.org>
+Cc: Ming Lei <tom.leiming@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On 12/3/2012 7:19 PM, Jan Luebbe wrote:
-> This allows using tools like mii-diag on CPSW.
->
-> Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-> ---
->   drivers/net/ethernet/ti/cpsw.c |   15 +++++++++++++++
->   1 file changed, 15 insertions(+)
->
-> diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-> index 8de3e92..f476c03 100644
-> --- a/drivers/net/ethernet/ti/cpsw.c
-> +++ b/drivers/net/ethernet/ti/cpsw.c
-> @@ -629,6 +629,20 @@ static void cpsw_ndo_change_rx_flags(struct net_device *ndev, int flags)
->   		dev_err(&ndev->dev, "multicast traffic cannot be filtered!\n");
->   }
->   
-> +static int cpsw_ndo_do_ioctl(struct net_device *ndev, struct ifreq *rq, int cmd)
-> +{
-> +	struct cpsw_priv *priv = netdev_priv(ndev);
-> +	struct phy_device *phy = priv->slaves[0].phy;
-> +
-> +	if (!netif_running(ndev))
-> +		return -EINVAL;
-> +
-> +	if (!phy)
-> +		return -ENODEV;
-> +
-> +	return phy_mii_ioctl(phy, rq, cmd);
-> +}
-> +
->   static void cpsw_ndo_tx_timeout(struct net_device *ndev)
->   {
->   	struct cpsw_priv *priv = netdev_priv(ndev);
-> @@ -670,6 +684,7 @@ static const struct net_device_ops cpsw_netdev_ops = {
->   	.ndo_start_xmit		= cpsw_ndo_start_xmit,
->   	.ndo_change_rx_flags	= cpsw_ndo_change_rx_flags,
->   	.ndo_validate_addr	= eth_validate_addr,
-> +	.ndo_do_ioctl		= cpsw_ndo_do_ioctl,
->   	.ndo_change_mtu		= eth_change_mtu,
->   	.ndo_tx_timeout		= cpsw_ndo_tx_timeout,
->   	.ndo_get_stats		= cpsw_ndo_get_stats,
+On Mon, 3 Dec 2012, Andy Green wrote:
 
-Already ndo_do_ioctl is already implemented. Can you rebase the patch 
-with latest git repo
-and resubmit the patch
+> Unless someone NAKs it for sure already (if you're already sure you're 
+> going to, please do so to avoid wasting time), I'll issue a try#2 of my 
+> code later which demonstrates what I mean.  At least I guess it's useful 
+> for comparative purposes.
 
-Regards
-Mugunthan V N
+Before you go writing a whole lot more code, we should discuss the 
+basics a bit more clearly.  There are several unsettled issues here:
+
+     1. Should the LAN95xx stuff be associated with the ehci-omap.0's
+	driver or with the hub port?  The port would be more flexible,
+	offering the ability to turn the power off and on while the
+	system is running without affecting anything else.  But the 
+	port code is currently in flux, which could cause this new 
+	addition to be delayed.
+
+	(On the other hand, since the LAN95xx is the only thing
+	connected to the root hub, it could be powered off and on by
+	unbinding the ehci-omap.0 device from its driver and rebinding
+	it.)
+
+     2. If we do choose the port, do we want to identify it by matching
+	against a device name string or by matching a sequence of port
+	numbers (in this case, a length-1 sequence)?  The port numbers
+	are fixed by the board design, whereas the device name strings
+	might  get changed in the future.  On the other hand, the port 
+	numbers apply only to USB whereas device names can be used by 
+	any subsystem.
+
+     3. Should the matching mechanism go into the device core or into
+	the USB port code?  (This is related to the previous question.)
+
+     4. Should this be implemented simply as a regulator (or a pair of
+	regulators)?  Or should it be generalized to some sort of PM
+	domain thing?  The generic_pm_domain structure defined in
+	include/linux/pm_domain.h seems like overkill, but maybe it's
+	the most appropriate thing to use.
+
+Until we decide on the answers to these questions, there's no point 
+writing detailed patches.
+
+Alan Stern
+
