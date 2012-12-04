@@ -1,140 +1,69 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/7] OMAPDSS: DISPC: Move DISPC specific dss_reg_fields
- to dispc_features
-Date: Tue, 4 Dec 2012 10:16:28 +0200
-Message-ID: <50BDB15C.9040406@ti.com>
-References: <cover.1354086150.git.cmahapatra@ti.com> <a5bbbc9af3ef5ca2636d3c4dea6cbbe9834e0f62.1354086150.git.cmahapatra@ti.com> <50B7528C.1090507@ti.com> <50BC46C6.3050707@ti.com>
+Subject: Re: [PATCH] da8xx: Fix revision check on the da8xx driver
+Date: Tue, 4 Dec 2012 11:18:21 +0200
+Message-ID: <50BDBFDD.302@ti.com>
+References: <1351698984-4007-1-git-send-email-panto@antoniou-consulting.com> <A73F36158E33644199EB82C5EC81C7BC3E9E10D6@DBDE01.ent.ti.com> <A73F36158E33644199EB82C5EC81C7BC3EA13286@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="------------enig128A40B9E2E9FB3CC5D53A09"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53905 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288Ab2LDIQa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Dec 2012 03:16:30 -0500
-In-Reply-To: <50BC46C6.3050707@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+	boundary="------------enigCF3063E8CEE3ADA48BCD1830"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3EA13286@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, "Porter, Matt" <mporter@ti.com>, "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---------------enig128A40B9E2E9FB3CC5D53A09
+--------------enigCF3063E8CEE3ADA48BCD1830
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-12-03 08:29, Chandrabhanu Mahapatra wrote:
-> On Thursday 29 November 2012 05:48 PM, Tomi Valkeinen wrote:
->> On 2012-11-28 12:41, Chandrabhanu Mahapatra wrote:
->>> The register fields in dss_reg_fields specific to DISPC are moved fro=
-m struct
->>> omap_dss_features to corresponding dispc_reg_fields, initialized in s=
-truct
->>> dispc_features, thereby enabling local access.
+On 2012-12-04 08:36, Manjunathappa, Prakash wrote:
+> Hi Tomi,
+>=20
+> On Wed, Oct 31, 2012 at 09:21:35, Manjunathappa, Prakash wrote:
+>> On Wed, Oct 31, 2012 at 21:26:24, Pantelis Antoniou wrote:
+>>> The revision check fails for the beaglebone; Add new revision ID.
 >>>
->>> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+>>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 >>> ---
->>>  drivers/video/omap2/dss/dispc.c        |   87 ++++++++++++++++++++++=
-++++++----
->>>  drivers/video/omap2/dss/dss.h          |    4 ++
->>>  drivers/video/omap2/dss/dss_features.c |   28 ----------
->>>  drivers/video/omap2/dss/dss_features.h |    7 ---
->>>  4 files changed, 80 insertions(+), 46 deletions(-)
+>>>  drivers/video/da8xx-fb.c | 1 +
+>>>  1 file changed, 1 insertion(+)
 >>>
->>> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/ds=
-s/dispc.c
->>> index 9f259ba..21fc522 100644
->>> --- a/drivers/video/omap2/dss/dispc.c
->>> +++ b/drivers/video/omap2/dss/dispc.c
->>> @@ -80,6 +80,16 @@ struct dispc_irq_stats {
->>>  	unsigned irqs[32];
->>>  };
->>> =20
->>> +enum dispc_feat_reg_field {
->>> +	FEAT_REG_FIRHINC,
->>> +	FEAT_REG_FIRVINC,
->>> +	FEAT_REG_FIFOLOWTHRESHOLD,
->>> +	FEAT_REG_FIFOHIGHTHRESHOLD,
->>> +	FEAT_REG_FIFOSIZE,
->>> +	FEAT_REG_HORIZONTALACCU,
->>> +	FEAT_REG_VERTICALACCU,
->>> +};
->>> +
->>>  struct dispc_features {
->>>  	u8 sw_start;
->>>  	u8 fp_start;
->>> @@ -107,6 +117,8 @@ struct dispc_features {
->>> =20
->>>  	u32 buffer_size_unit;
->>>  	u32 burst_size_unit;
->>> +
->>> +	struct register_field *reg_fields;
->>>  };
+>>> diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+>>> index 80665f6..866d804 100644
+>>> --- a/drivers/video/da8xx-fb.c
+>>> +++ b/drivers/video/da8xx-fb.c
+>>> @@ -1283,6 +1283,7 @@ static int __devinit fb_probe(struct platform_d=
+evice *device)
+>>>  		lcd_revision =3D LCD_VERSION_1;
+>>>  		break;
+>>>  	case 0x4F200800:
+>>> +	case 0x4F201000:
 >>
->> Hmm, would it be simpler to have an explicit struct for the reg fields=
-=2E
->> I mean something like:
+>> Thanks for Correcting. This is the LCDC revision on am335x silicon in =
+comparison
+>> with to one read(0x4F200800) on emulator platform.
 >>
->> struct dispc_reg_fields {
->> 	struct register_field firhinc;
->> 	struct register_field firvinc;
->> 	struct register_field fifo_low_threshold;
->> 	...
->> };
->>
->> Then accessing it would be
->>
->> dispc.feat->reg_fields.firhinc.start;
->>
->> instead of
->>
->> dispc.feat->reg_fields[FEAT_REG_FIFOSIZE].start;
->>
->> Not a big difference, but I don't see any benefit in having an array o=
-f
->> reg fields here.
->>
->>  Tomi
->>
+>> Acked-by: Manjunathappa, Prakash <prakash.pm@ti.com>
 >>
 >=20
-> I was thinking to move reg_fields into the dispc_feats structure as
->=20
-> 	.burst_size_unit	=3D	8,
-> 	.reg_fields		=3D	{
-> 		.firhinc			=3D { 12,  0 },
-> 		.firvinc			=3D { 28, 16 },
-> 		.fifo_low_thresh		=3D { 11,  0 },
-> 		.fifo_high_thresh		=3D { 27, 16 },
-> 		.fifosize			=3D { 10,  0 },
-> 		.hori_accu			=3D {  9,  0 },
-> 		.vert_accu			=3D { 25, 16 },
-> 	},
->=20
-> This would give us dispc.feat->reg_fields.firhinc.start;
-> but at the same time would create duplicate information for
-> omap34xx_rev1_0_dispc_feats and omap34xx_rev3_0_dispc_feats. However,
-> this duplication never occurs anywhere else in dss.c or dsi.c.
->=20
-> If we still go with the older approach of having dispc_reg_fields
-> outside dispc_feats the only way  it works is
->=20
-> .reg_fields		=3D	&omap2_dispc_reg_fields
->=20
-> which changes as dispc.feat->reg_fields->firhinc.start;
->=20
-> but avoids duplicate information. Both approaches seem good enough to m=
-e.
+> This patch is necessary for am335x FB, I could not see in your for-next=
+ branch,
 
-I would keep the pointer approach. We may add support for new DSS
-versions, for AM3xxx or AM4xxx SoCs, which possibly may have the same
-register fields as some other DSS versions.
+I have only applied the patches that have been sent to me.
+
+> could you please consider this patch for 3.8 merge window. There are no=
+ pending
+> review comments on this.
+
+Applied.
 
  Tomi
 
 
 
---------------enig128A40B9E2E9FB3CC5D53A09
+--------------enigCF3063E8CEE3ADA48BCD1830
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -143,19 +72,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQvbFcAAoJEPo9qoy8lh71xTYP/ilYaTEqtaTh6nVczJyA1NDo
-ju1xyI6Nb+ufknh2scs67Fl+Uccpu0Dg8w94qRhUtAf4Gf/J7vBAn9kLGrhBuOxu
-1qdolV6sdiEKdl0W3pKNo2XX26FJ5wcQQhAy/ghSj0aSR1A1nRhIsb7DDfIczbjG
-oFtoOEH274BrHOWZnx65Q0HaNBBdW7H5EGJbPXMJnueNmh/vDMWhzc7LkEBhf7Pz
-Iy7GAp7nhtlOKKGiaHcw8HlD38/39ZfyAxbVSM6ZCMY9C4Rbdx3wtVIfMIPDCXPq
-DSw1K2oA5osXQzeo0D6r3ikI80X9uJ6+h+Y0s3jAtoyUltDbg5bnecRAvGP/3MCU
-lcD53/QRkiValS4eNFST8d1CqTiDz8AlzVsFL+eQ1ssUV3xyMBWTTH6pA3NAkool
-N7x+GY/qtgPlcQgcCvJ79FiaszmQ4tT9vSQ3rTQxL5V246IEXwRrhCS5hw3ZBSWy
-hR2BRtQM4lxi2/s+fjq8u742DlhdRQa8f6QMLlUtEgYdPFVuAPyezhkJnNnW6dxq
-G810PEFP0QhwcTd3dmZVy3xPBAixAJul/MPruw0RPUU2KvI2ohZB98iU2rLNR4Bv
-8in838RGE7kQ3+ZXQiJ47Mk4VnrLv9BF3DvrOgmLHDqcHTSfGp77vrepzJnTCVEd
-PcYtOlEtdiK0i84Hq+ki
-=ul8N
+iQIcBAEBAgAGBQJQvb/gAAoJEPo9qoy8lh7172kP/Rw4A26ddBaPFd0b6ztvU3bo
+KpKmCA3Ny40q88y0ulrawfKqfnbsC7fPfdUm79+ei4YlPqn3hAi8ORdZNMn0kQso
+CRRkAJnCYVeQB+lydCF6FrwFFLRfgFiyK3IRKxpRWcOwRjc/ujUOTIpBm2FuBlJ2
+NCHga7n4blK2OkZNxUrpKsm5+aa5u4ukKMkMfGYL7WIhQ8bOaQbS4fEschPXBPne
+JsklNQG4Un72Yn+dNt6TGD73VwfESF9BGYjZ3oYcGATeFNobEZxT3lEFrRBZ71YP
+EXMO0sUqtP9ngWoW9cZIqVymcdVS3nFjV/KRZX24hSI+Q4Fu0YhVIb4Ua7PDi2XC
+kPctOo0y13XKoRWi5OjhLXoapJgHKKJzYZ5N+eCxMbvI2fa/0MS3SyKlvo10y1Cv
+k/81AhSXa7GfIUciqC3CYwRNtp6wHgQb/Slwz1S4GRDaIgiUs0HBipW/cv+tl+Uw
+0k2tUfHTPmh5cVbBtCYU4MmeJBLgDlWIrmkVoW6O5OMyQKU1vJ2PX3mmIk5FH2Oz
+QdoWCcVcM5uBP4rKN3m0a7JHsdbCTyg6Pvi44iFkwrTqWSjQLR7HgaQl5UJA32nE
+iiD5VXDn9XpV+guYOFcBjFQdfdGu3OGOU8q7VAPGYVvu9KdLVY29gvFUQBRYs9DO
+IyQi7Iy6SklQUXndp/WU
+=hzAr
 -----END PGP SIGNATURE-----
 
---------------enig128A40B9E2E9FB3CC5D53A09--
+--------------enigCF3063E8CEE3ADA48BCD1830--
