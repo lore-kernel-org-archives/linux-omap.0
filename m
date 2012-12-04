@@ -1,111 +1,79 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 11/23] mfd: omap_usb_host: Avoid creating copy of platform_data
-Date: Tue, 4 Dec 2012 16:13:04 +0200
-Message-ID: <1354630396-24545-12-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 10/23] mfd: omap-usb-tll: Add OMAP5 revision and HSIC support
+Date: Tue, 4 Dec 2012 16:13:03 +0200
+Message-ID: <1354630396-24545-11-git-send-email-rogerq@ti.com>
 References: <1354630396-24545-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1354630396-24545-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42352 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754230Ab2LDONo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Dec 2012 09:13:44 -0500
+In-Reply-To: <1354630396-24545-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-We can just hold the pointer to the platform data instead
-of creating a copy of it.
+The TLL module on OMAP5 has 3 channels.
+HSIC mode requires the TLL channel to be in Transparent UTMI mode.
 
-Also get rid of the unnecessary missing platform data checks
-in runtime_suspend/resume. We are already checking for missing
-platform data in probe.
-
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-host.c |   30 ++++++++----------------------
- 1 files changed, 8 insertions(+), 22 deletions(-)
+ drivers/mfd/omap-usb-tll.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index fe7906b..8b8f1da 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -103,7 +103,7 @@ struct usbhs_hcd_omap {
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index 7b4afd0..ecc6a62 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -54,10 +54,13 @@
  
- 	void __iomem			*uhh_base;
+ #define	OMAP_TLL_CHANNEL_CONF(num)			(0x040 + 0x004 * num)
+ #define OMAP_TLL_CHANNEL_CONF_FSLSMODE_SHIFT		24
++#define OMAP_TLL_CHANNEL_CONF_DRVVBUS			(1 << 16)
++#define OMAP_TLL_CHANNEL_CONF_CHRGVBUS			(1 << 15)
+ #define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF		(1 << 11)
+ #define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE		(1 << 10)
+ #define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE		(1 << 9)
+ #define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE		(1 << 8)
++#define OMAP_TLL_CHANNEL_CONF_MODE_TRANSPARENT_UTMI	(2 << 1)
+ #define OMAP_TLL_CHANNEL_CONF_CHANMODE_FSLS		(1 << 1)
+ #define	OMAP_TLL_CHANNEL_CONF_CHANEN			(1 << 0)
  
--	struct usbhs_omap_platform_data	platdata;
-+	struct usbhs_omap_platform_data	*pdata;
+@@ -92,6 +95,7 @@
+ #define OMAP_USBTLL_REV1		0x00000015	/* OMAP3 */
+ #define OMAP_USBTLL_REV2		0x00000018	/* OMAP 3630 */
+ #define OMAP_USBTLL_REV3		0x00000004	/* OMAP4 */
++#define OMAP_USBTLL_REV4		0x00000006	/* OMAP5 */
  
- 	u32				usbhs_rev;
- 	spinlock_t			lock;
-@@ -195,8 +195,8 @@ static int omap_usbhs_alloc_children(struct platform_device *pdev)
- 	int					ret;
+ #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
  
- 	omap = platform_get_drvdata(pdev);
--	ehci_data = omap->platdata.ehci_data;
--	ohci_data = omap->platdata.ohci_data;
-+	ehci_data = omap->pdata->ehci_data;
-+	ohci_data = omap->pdata->ohci_data;
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
- 	if (!res) {
-@@ -279,16 +279,11 @@ static bool is_ohci_port(enum usbhs_omap_port_mode pmode)
- static int usbhs_runtime_resume(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
- 	unsigned long			flags;
-+	struct usbhs_omap_platform_data *pdata = omap->pdata;
- 
- 	dev_dbg(dev, "usbhs_runtime_resume\n");
- 
--	if (!pdata) {
--		dev_dbg(dev, "missing platform_data\n");
--		return  -ENODEV;
--	}
--
- 	omap_tll_enable();
- 	spin_lock_irqsave(&omap->lock, flags);
- 
-@@ -311,16 +306,11 @@ static int usbhs_runtime_resume(struct device *dev)
- static int usbhs_runtime_suspend(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
- 	unsigned long			flags;
-+	struct usbhs_omap_platform_data *pdata = omap->pdata;
- 
- 	dev_dbg(dev, "usbhs_runtime_suspend\n");
- 
--	if (!pdata) {
--		dev_dbg(dev, "missing platform_data\n");
--		return  -ENODEV;
--	}
--
- 	spin_lock_irqsave(&omap->lock, flags);
- 
- 	if (is_ehci_tll_mode(pdata->port_mode[0]))
-@@ -343,7 +333,7 @@ static int usbhs_runtime_suspend(struct device *dev)
- static void omap_usbhs_init(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	struct usbhs_omap_platform_data	*pdata = omap->pdata;
- 	unsigned long			flags;
- 	unsigned			reg;
- 
-@@ -450,7 +440,7 @@ static void omap_usbhs_init(struct device *dev)
- static void omap_usbhs_deinit(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
--	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	struct usbhs_omap_platform_data	*pdata = omap->pdata;
- 
- 	if (pdata->ehci_data->phy_reset) {
- 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-@@ -491,11 +481,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&omap->lock);
- 
--	for (i = 0; i < OMAP3_HS_USB_PORTS; i++)
--		omap->platdata.port_mode[i] = pdata->port_mode[i];
+@@ -242,6 +246,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	ver =  usbtll_read(base, OMAP_USBTLL_REVISION);
+ 	switch (ver) {
+ 	case OMAP_USBTLL_REV1:
++	case OMAP_USBTLL_REV4:
+ 		tll->nch = OMAP_TLL_CHANNEL_COUNT;
+ 		break;
+ 	case OMAP_USBTLL_REV2:
+@@ -310,6 +315,15 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 				reg &= ~(OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE
+ 					| OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF
+ 					| OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE);
++			} else if (pdata->port_mode[i] ==
++					OMAP_EHCI_PORT_MODE_HSIC) {
++				/*
++				 * HSIC Mode requires UTMI port configurations
++				 */
++				reg |= OMAP_TLL_CHANNEL_CONF_DRVVBUS
++				 | OMAP_TLL_CHANNEL_CONF_CHRGVBUS
++				 | OMAP_TLL_CHANNEL_CONF_MODE_TRANSPARENT_UTMI
++				 | OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF;
+ 			} else {
+ 				continue;
+ 			}
+-- 
+1.7.4.1
+
