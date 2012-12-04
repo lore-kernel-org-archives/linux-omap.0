@@ -1,90 +1,29 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] da8xx: Fix revision check on the da8xx driver
-Date: Tue, 4 Dec 2012 11:18:21 +0200
-Message-ID: <50BDBFDD.302@ti.com>
-References: <1351698984-4007-1-git-send-email-panto@antoniou-consulting.com> <A73F36158E33644199EB82C5EC81C7BC3E9E10D6@DBDE01.ent.ti.com> <A73F36158E33644199EB82C5EC81C7BC3EA13286@DBDE01.ent.ti.com>
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+Subject: Re: [PATCH 3/3] net: cpsw: implement ioctl for MII
+Date: Tue, 04 Dec 2012 12:06:24 +0100
+Message-ID: <1354619184.3906.10.camel@coredoba.hi.pengutronix.de>
+References: <1354542569-6165-1-git-send-email-jlu@pengutronix.de>
+	 <1354542569-6165-3-git-send-email-jlu@pengutronix.de>
+	 <50BCDB9B.80307@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigCF3063E8CEE3ADA48BCD1830"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3EA13286@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Manjunathappa, Prakash" <prakash.pm@ti.com>
-Cc: Pantelis Antoniou <panto@antoniou-consulting.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, "Porter, Matt" <mporter@ti.com>, "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <50BCDB9B.80307@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---------------enigCF3063E8CEE3ADA48BCD1830
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Mon, 2012-12-03 at 22:34 +0530, Mugunthan V N wrote:
+> Already ndo_do_ioctl is already implemented. Can you rebase the patch 
+> with latest git repo
+> and resubmit the patch
 
-On 2012-12-04 08:36, Manjunathappa, Prakash wrote:
-> Hi Tomi,
->=20
-> On Wed, Oct 31, 2012 at 09:21:35, Manjunathappa, Prakash wrote:
->> On Wed, Oct 31, 2012 at 21:26:24, Pantelis Antoniou wrote:
->>> The revision check fails for the beaglebone; Add new revision ID.
->>>
->>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->>> ---
->>>  drivers/video/da8xx-fb.c | 1 +
->>>  1 file changed, 1 insertion(+)
->>>
->>> diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
->>> index 80665f6..866d804 100644
->>> --- a/drivers/video/da8xx-fb.c
->>> +++ b/drivers/video/da8xx-fb.c
->>> @@ -1283,6 +1283,7 @@ static int __devinit fb_probe(struct platform_d=
-evice *device)
->>>  		lcd_revision =3D LCD_VERSION_1;
->>>  		break;
->>>  	case 0x4F200800:
->>> +	case 0x4F201000:
->>
->> Thanks for Correcting. This is the LCDC revision on am335x silicon in =
-comparison
->> with to one read(0x4F200800) on emulator platform.
->>
->> Acked-by: Manjunathappa, Prakash <prakash.pm@ti.com>
->>
->=20
-> This patch is necessary for am335x FB, I could not see in your for-next=
- branch,
-
-I have only applied the patches that have been sent to me.
-
-> could you please consider this patch for 3.8 merge window. There are no=
- pending
-> review comments on this.
-
-Applied.
-
- Tomi
-
-
-
---------------enigCF3063E8CEE3ADA48BCD1830
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQvb/gAAoJEPo9qoy8lh7172kP/Rw4A26ddBaPFd0b6ztvU3bo
-KpKmCA3Ny40q88y0ulrawfKqfnbsC7fPfdUm79+ei4YlPqn3hAi8ORdZNMn0kQso
-CRRkAJnCYVeQB+lydCF6FrwFFLRfgFiyK3IRKxpRWcOwRjc/ujUOTIpBm2FuBlJ2
-NCHga7n4blK2OkZNxUrpKsm5+aa5u4ukKMkMfGYL7WIhQ8bOaQbS4fEschPXBPne
-JsklNQG4Un72Yn+dNt6TGD73VwfESF9BGYjZ3oYcGATeFNobEZxT3lEFrRBZ71YP
-EXMO0sUqtP9ngWoW9cZIqVymcdVS3nFjV/KRZX24hSI+Q4Fu0YhVIb4Ua7PDi2XC
-kPctOo0y13XKoRWi5OjhLXoapJgHKKJzYZ5N+eCxMbvI2fa/0MS3SyKlvo10y1Cv
-k/81AhSXa7GfIUciqC3CYwRNtp6wHgQb/Slwz1S4GRDaIgiUs0HBipW/cv+tl+Uw
-0k2tUfHTPmh5cVbBtCYU4MmeJBLgDlWIrmkVoW6O5OMyQKU1vJ2PX3mmIk5FH2Oz
-QdoWCcVcM5uBP4rKN3m0a7JHsdbCTyg6Pvi44iFkwrTqWSjQLR7HgaQl5UJA32nE
-iiD5VXDn9XpV+guYOFcBjFQdfdGu3OGOU8q7VAPGYVvu9KdLVY29gvFUQBRYs9DO
-IyQi7Iy6SklQUXndp/WU
-=hzAr
------END PGP SIGNATURE-----
-
---------------enigCF3063E8CEE3ADA48BCD1830--
+Sorry, I should have checked that before. I'll update the other patches
+and resubmit.
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
