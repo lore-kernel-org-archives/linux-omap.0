@@ -1,126 +1,177 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk into usb_host_hs_utmi_px_clk
-Date: Tue, 4 Dec 2012 16:31:47 +0200
-Message-ID: <1354631514-24815-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 17/23] mfd: omap-usb-host: Manage HSIC clocks for HSIC mode
+Date: Tue, 4 Dec 2012 16:31:48 +0200
+Message-ID: <1354631514-24815-2-git-send-email-rogerq@ti.com>
+References: <1354631514-24815-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43379 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932071Ab2LDOcI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Dec 2012 09:32:08 -0500
+In-Reply-To: <1354631514-24815-1-git-send-email-rogerq@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-There is no such clock as utmi_p1_gfclk. It is only a clock selector
-bit to select th the parent of usb_host_hs_utmi_p1_clk.
-So we get rid of utmi_p1_gfclk and utmi_p2_gfclk by merging them into
-usb_host_hs_utmi_p1_clk and usb_host_hs_utmi_p2_clk respectively.
+Enable the optional HSIC clocks (60MHz and 480MHz) for the ports
+that are configured in HSIC mode.
 
-CC: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-CC: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-CC: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/cclock3xxx_data.c |    2 -
- arch/arm/mach-omap2/cclock44xx_data.c |   47 +++++++++++++++++++++++----------
- 2 files changed, 33 insertions(+), 16 deletions(-)
+ drivers/mfd/omap-usb-host.c |   77 +++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 71 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
-index bdf3948..5655414 100644
---- a/arch/arm/mach-omap2/cclock3xxx_data.c
-+++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-@@ -3392,8 +3392,6 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("usbhs_omap",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK(NULL,	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
--	CLK(NULL,	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-index aa56c3e..74535fe 100644
---- a/arch/arm/mach-omap2/cclock44xx_data.c
-+++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -1366,31 +1366,52 @@ static struct clk_hw_omap usb_host_fs_fck_hw = {
- DEFINE_STRUCT_CLK(usb_host_fs_fck, usb_host_fs_fck_parent_names,
- 		  usb_host_fs_fck_ops);
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 6294f13..90dbd17 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -94,6 +94,8 @@
+ struct usbhs_hcd_omap {
+ 	int				nports;
+ 	struct clk			**utmi_clk;
++	struct clk			**hsic60m_clk;
++	struct clk			**hsic480m_clk;
  
-+static const struct clk_ops utmi_clk_ops = {
-+	.enable		= &omap2_dflt_clk_enable,
-+	.disable	= &omap2_dflt_clk_disable,
-+	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+	.recalc_rate	= &omap2_clksel_recalc,
-+	.get_parent	= &omap2_clksel_find_parent_index,
-+	.set_parent	= &omap2_clksel_set_parent,
-+};
+ 	struct clk			*xclk60mhsp1_ck;
+ 	struct clk			*xclk60mhsp2_ck;
+@@ -291,7 +293,28 @@ static int usbhs_runtime_resume(struct device *dev)
+ 		clk_enable(omap->ehci_logic_fck);
+ 
+ 	for (i = 0; i < omap->nports; i++) {
+-		if (is_ehci_tll_mode(pdata->port_mode[i])) {
++		switch (pdata->port_mode[i]) {
++		case OMAP_EHCI_PORT_MODE_HSIC:
++			if (omap->hsic60m_clk[i]) {
++				r = clk_enable(omap->hsic60m_clk[i]);
++				if (r) {
++					dev_err(dev,
++					 "Can't enable port %d hsic60m clk:%d\n",
++					 i, r);
++				}
++			}
 +
- static const char *utmi_p1_gfclk_parents[] = {
- 	"init_60m_fclk", "xclk60mhsp1_ck",
- };
++			if (omap->hsic480m_clk[i]) {
++				r = clk_enable(omap->hsic480m_clk[i]);
++				if (r) {
++					dev_err(dev,
++					 "Can't enable port %d hsic480m clk:%d\n",
++					 i, r);
++				}
++			}
++		/* Fall through as HSIC mode needs utmi_clk */
++
++		case OMAP_EHCI_PORT_MODE_TLL:
+ 			if (omap->utmi_clk[i]) {
+ 				r = clk_enable(omap->utmi_clk[i]);
+ 				if (r) {
+@@ -300,6 +323,9 @@ static int usbhs_runtime_resume(struct device *dev)
+ 					 i, r);
+ 				}
+ 			}
++			break;
++		default:
++			break;
+ 		}
+ 	}
  
--DEFINE_CLK_MUX(utmi_p1_gfclk, utmi_p1_gfclk_parents, NULL, 0x0,
--	       OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
--	       OMAP4430_CLKSEL_UTMI_P1_SHIFT, OMAP4430_CLKSEL_UTMI_P1_WIDTH,
--	       0x0, NULL);
-+static const struct clksel utmi_p1_clk_mux_sel[] = {
-+	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
-+	{ .parent = &xclk60mhsp1_ck, .rates = div_1_1_rates },
-+	{ .parent = NULL },
-+};
+@@ -320,9 +346,21 @@ static int usbhs_runtime_suspend(struct device *dev)
+ 	spin_lock_irqsave(&omap->lock, flags);
  
--DEFINE_CLK_GATE(usb_host_hs_utmi_p1_clk, "utmi_p1_gfclk", &utmi_p1_gfclk, 0x0,
-+/* Merged utmi_p1_gfclk into usb_host_hs_utmi_p1_clk */
-+DEFINE_CLK_OMAP_MUX_GATE(usb_host_hs_utmi_p1_clk, "l3_init_clkdm",
-+		utmi_p1_clk_mux_sel,
-+		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
-+		OMAP4430_CLKSEL_UTMI_P1_MASK,
- 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
--		OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT, 0x0, NULL);
-+		OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT, NULL,
-+		utmi_p1_gfclk_parents, utmi_clk_ops);
+ 	for (i = 0; i < omap->nports; i++) {
+-		if (is_ehci_tll_mode(pdata->port_mode[i])) {
++		switch (pdata->port_mode[i]) {
++		case OMAP_EHCI_PORT_MODE_HSIC:
++			if (omap->hsic60m_clk[i])
++				clk_disable(omap->hsic60m_clk[i]);
++
++			if (omap->hsic480m_clk[i])
++				clk_disable(omap->hsic480m_clk[i]);
++		/* Fall through as utmi_clks were used in HSIC mode */
++
++		case OMAP_EHCI_PORT_MODE_TLL:
+ 			if (omap->utmi_clk[i])
+ 				clk_disable(omap->utmi_clk[i]);
++			break;
++		default:
++			break;
+ 		}
+ 	}
  
- static const char *utmi_p2_gfclk_parents[] = {
- 	"init_60m_fclk", "xclk60mhsp2_ck",
- };
+@@ -527,7 +565,10 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
  
--DEFINE_CLK_MUX(utmi_p2_gfclk, utmi_p2_gfclk_parents, NULL, 0x0,
--	       OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
--	       OMAP4430_CLKSEL_UTMI_P2_SHIFT, OMAP4430_CLKSEL_UTMI_P2_WIDTH,
--	       0x0, NULL);
-+static const struct clksel utmi_p2_clk_mux_sel[] = {
-+	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
-+	{ .parent = &xclk60mhsp2_ck, .rates = div_1_1_rates },
-+	{ .parent = NULL },
-+};
+ 	i = sizeof(struct clk *) * omap->nports;
+ 	omap->utmi_clk = devm_kzalloc(dev, i, GFP_KERNEL);
+-	if (!omap->utmi_clk) {
++	omap->hsic480m_clk = devm_kzalloc(dev, i, GFP_KERNEL);
++	omap->hsic60m_clk = devm_kzalloc(dev, i, GFP_KERNEL);
++
++	if (!omap->utmi_clk || !omap->hsic480m_clk || !omap->hsic60m_clk) {
+ 		dev_err(dev, "Memory allocation failed\n");
+ 		ret = -ENOMEM;
+ 		goto err_mem;
+@@ -571,7 +612,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
  
--DEFINE_CLK_GATE(usb_host_hs_utmi_p2_clk, "utmi_p2_gfclk", &utmi_p2_gfclk, 0x0,
-+/* Merged utmi_p2_gfclk into usb_host_hs_utmi_p2_clk */
-+DEFINE_CLK_OMAP_MUX_GATE(usb_host_hs_utmi_p2_clk, "l3_init_clkdm",
-+		utmi_p2_clk_mux_sel,
-+		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
-+		OMAP4430_CLKSEL_UTMI_P2_MASK,
- 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
--		OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT, 0x0, NULL);
-+		OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT, NULL,
-+		utmi_p2_gfclk_parents, utmi_clk_ops);
+ 	for (i = 0; i < omap->nports; i++) {
+ 		struct clk *pclk;
+-		char clkname[] = "usb_host_hs_utmi_px_clk";
++		char clkname[] = "usb_host_hs_hsic480m_px_clk";
  
- DEFINE_CLK_GATE(usb_host_hs_utmi_p3_clk, "init_60m_fclk", &init_60m_fclk, 0x0,
- 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
-@@ -1838,9 +1859,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
- 	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
- 	CLK("usbhs_omap",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
--	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
--	CLK(NULL,	"utmi_p2_gfclk",		&utmi_p2_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p2_clk",	&usb_host_hs_utmi_p2_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p3_clk",	&usb_host_hs_utmi_p3_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_hsic480m_p1_clk",	&usb_host_hs_hsic480m_p1_clk,	CK_443X),
+ 		/* clock names are indexed from 1*/
+ 		snprintf(clkname, sizeof(clkname),
+@@ -587,6 +628,24 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ 				clkname, PTR_ERR(pclk));
+ 		else
+ 			omap->utmi_clk[i] = pclk;
++
++		snprintf(clkname, sizeof(clkname),
++				"usb_host_hs_hsic480m_p%d_clk", i + 1);
++		pclk = clk_get(dev, clkname);
++		if (IS_ERR(pclk))
++			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
++				clkname, PTR_ERR(pclk));
++		else
++			omap->hsic480m_clk[i] = pclk;
++
++		snprintf(clkname, sizeof(clkname),
++				"usb_host_hs_hsic60m_p%d_clk", i + 1);
++		pclk = clk_get(dev, clkname);
++		if (IS_ERR(pclk))
++			dev_dbg(dev, "Failed to get clock : %s : %ld\n",
++				clkname, PTR_ERR(pclk));
++		else
++			omap->hsic60m_clk[i] = pclk;
+ 	}
+ 
+ 	if (is_ehci_phy_mode(pdata->port_mode[0])) {
+@@ -630,8 +689,11 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ err_alloc:
+ 	omap_usbhs_deinit(&pdev->dev);
+ 
+-	for (i = 0; i < omap->nports; i++)
++	for (i = 0; i < omap->nports; i++) {
+ 		clk_put(omap->utmi_clk[i]);
++		clk_put(omap->hsic60m_clk[i]);
++		clk_put(omap->hsic480m_clk[i]);
++	}
+ 
+ 	clk_put(omap->init_60m_fclk);
+ 
+@@ -662,8 +724,11 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
+ 
+ 	omap_usbhs_deinit(&pdev->dev);
+ 
+-	for (i = 0; i < omap->nports; i++)
++	for (i = 0; i < omap->nports; i++) {
+ 		clk_put(omap->utmi_clk[i]);
++		clk_put(omap->hsic60m_clk[i]);
++		clk_put(omap->hsic480m_clk[i]);
++	}
+ 
+ 	clk_put(omap->init_60m_fclk);
+ 	clk_put(omap->xclk60mhsp2_ck);
 -- 
 1.7.4.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
