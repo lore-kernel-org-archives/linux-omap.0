@@ -1,108 +1,68 @@
-From: Joel A Fernandes <agnel.joel@gmail.com>
-Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
-Date: Mon, 3 Dec 2012 22:11:56 -0600
-Message-ID: <CAD=GYpY9vcNXKaftjU8ZDzcL0SWphri5JfQNKhzRQNL26GK7Kg@mail.gmail.com>
-References: <k80da6$61d$1@ger.gmane.org>
-	<CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
-	<20121121183809.GZ18567@atomide.com>
-	<CAK0ocyD25pRcQthN90inWy-95Yaa-B94rw724_uS5Y7FRA4qjQ@mail.gmail.com>
-	<50ADBB5B.7090401@ti.com>
-	<CAK0ocyCe3oJ8ynpNWpzcCFHtG3J4u7NBeNPTJK0GikFHaPAXOA@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83EB7F222@DBDE01.ent.ti.com>
-	<CAK0ocyD7fGzj1GuFP7EhFYqmLv66A0phNrxV6rAL9b9ejPYfvg@mail.gmail.com>
-	<CAD=GYparyZ8kB+pX+SptSaNPHD-Ey9vBC1Q4nDcTKJLenpNK=w@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83EB7FB16@DBDE01.ent.ti.com>
-	<87mwxvathj.fsf@deeprootsystems.com>
-	<79CD15C6BA57404B839C016229A409A83EBA3979@DBDE01.ent.ti.com>
+From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Subject: RE: [PATCH] da8xx: Fix revision check on the da8xx driver
+Date: Tue, 4 Dec 2012 06:36:15 +0000
+Message-ID: <A73F36158E33644199EB82C5EC81C7BC3EA13286@DBDE01.ent.ti.com>
+References: <1351698984-4007-1-git-send-email-panto@antoniou-consulting.com>
+ <A73F36158E33644199EB82C5EC81C7BC3E9E10D6@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:53903 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab2LDEL5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Dec 2012 23:11:57 -0500
-Received: by mail-ob0-f174.google.com with SMTP id ta14so3354213obb.19
-        for <linux-omap@vger.kernel.org>; Mon, 03 Dec 2012 20:11:56 -0800 (PST)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EBA3979@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3E9E10D6@DBDE01.ent.ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, "Porter, Matt" <mporter@ti.com>, "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Igor Mazanov <i.mazanov@gmail.com>, Tony Lindgren <tony@atomide.com>, Jean Pihet <jean.pihet@newoldbits.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Dec 3, 2012 at 10:01 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
->
-> On Mon, Dec 03, 2012 at 23:49:36, Kevin Hilman wrote:
-> > "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
-> >
-> > >> >>> +static struct omap_hwmod am33xx_debugss_hwmod = {
-> > >> >>> +       .name           = "debugss",
-> > >> >>> +       .class          = &am33xx_debugss_hwmod_class,
-> > >> >>> +       .clkdm_name     = "l3_aon_clkdm",
-> > >> >>> +       .main_clk       = "debugss_ick",
-> > >> >>> +       .flags          =  (HWMOD_INIT_NO_IDLE |
-> > >> >>> HWMOD_INIT_NO_RESET),
-> > >>
-> > >> Setting these flags would still leave the problem where JTAG clocks
-> > >> are on when its not required no? In that case, what is the advantage
-> > >> of this patch?
-> > >>
-> > >
-> > > I missed to wrap it around #ifdef CONFIG_DEBUG_KERNEL. I will submit
-> > > the
-> > > formal patch shortly.
-> >
-> > IMO, this should not be handled in the data at all (neither clock nor
-> > hwmod), and should be handled at runtime/boot-time, not compile time.
-> >
->
-> Wouldn't that become another interface/control for debug? We already have
-> various (standard) debug kernel parameters available.
->
-> But I see your point, compile-time option will force users to rebuild
-> kernel
-> just in order to disable JTAG/Debug clock.
->
-> > The solution to this is to rather to have a small bit of code that
-> > requests the debugss clocks that are needed for JTAG debug, so the
-> > kernel knows they are in use.
-> >
-> > That code could then be enabled at boot time via command-line or DT
-> > option.
-> >
->
-> In case of command-line, something like below???
->
-> static int __init omap2_debug_clk_enable(char *str)
-> {
->         if (!str)
->                 return 0;
->
->         if (!strcmp(str, "debug"))
->                 <enable debug clock>
->
->         return 0;
-> }
-> early_param("debug", omap2_debug_clk_enable);
->
+Hi Tomi,
 
-This approach looks , I wrote similar code replacing "enable debug clock" with:
+On Wed, Oct 31, 2012 at 09:21:35, Manjunathappa, Prakash wrote:
+> On Wed, Oct 31, 2012 at 21:26:24, Pantelis Antoniou wrote:
+> > The revision check fails for the beaglebone; Add new revision ID.
+> > 
+> > Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+> > ---
+> >  drivers/video/da8xx-fb.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+> > index 80665f6..866d804 100644
+> > --- a/drivers/video/da8xx-fb.c
+> > +++ b/drivers/video/da8xx-fb.c
+> > @@ -1283,6 +1283,7 @@ static int __devinit fb_probe(struct platform_device *device)
+> >  		lcd_revision = LCD_VERSION_1;
+> >  		break;
+> >  	case 0x4F200800:
+> > +	case 0x4F201000:
+> 
+> Thanks for Correcting. This is the LCDC revision on am335x silicon in comparison
+> with to one read(0x4F200800) on emulator platform.
+> 
+> Acked-by: Manjunathappa, Prakash <prakash.pm@ti.com>
+> 
 
-jtag_clk = clk_get(NULL, "debugss_ick");
-if(!IS_ERR_OR_NULL(jtag_clk))
-  clk_enable(jtag_clk);
+This patch is necessary for am335x FB, I could not see in your for-next branch,
+could you please consider this patch for 3.8 merge window. There are no pending
+review comments on this.
 
->
-> In case of DT, one thought,
->
-> It can be part of omap_generic_init() in board-generic.c file,
-> We can parse there for debug node and required property to enable debug
-> module.
->
-> Any thought? Or Other options???
+Thanks,
+Prakash
 
-Not sure, but can we append to bootargs from DT itself thus the above
-cmdline code can be used to enable debugss for both regular bootargs
-as well DT?
-
-Regards,
-Joel
+> >  		lcd_revision = LCD_VERSION_2;
+> >  		break;
+> >  	default:
+> > -- 
+> > 1.7.12
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
