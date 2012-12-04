@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 04/23] mfd: omap-usb-tll: Use devm_kzalloc/ioremap and clean up error path
-Date: Tue, 4 Dec 2012 16:12:57 +0200
-Message-ID: <1354630396-24545-5-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 05/23] mfd: omap-usb-tll: Clean up clock handling
+Date: Tue, 4 Dec 2012 16:12:58 +0200
+Message-ID: <1354630396-24545-6-git-send-email-rogerq@ti.com>
 References: <1354630396-24545-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,85 +12,169 @@ To: balbi-l0cyMroinI0@public.gmane.org
 Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Use devm_ variants of kzalloc() and ioremap(). Simplify the error path.
+Every channel has a functional clock that is similarly named.
+It makes sense to use a for loop to manage these clocks as OMAPs
+can come with up to 3 channels.
+
+Dynamically allocate and get channel clocks depending on the
+number of clocks avaiable on the platform.
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/mfd/omap-usb-tll.c |   37 +++++++++++--------------------------
- 1 files changed, 11 insertions(+), 26 deletions(-)
+ drivers/mfd/omap-usb-tll.c |   93 +++++++++++++++++++++++++++-----------------
+ 1 files changed, 57 insertions(+), 36 deletions(-)
 
 diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index e67cafc..828207f 100644
+index 828207f..7d0f6cf 100644
 --- a/drivers/mfd/omap-usb-tll.c
 +++ b/drivers/mfd/omap-usb-tll.c
-@@ -215,11 +215,10 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+@@ -96,10 +96,9 @@
+ #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
  
- 	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
+ struct usbtll_omap {
+-	struct clk				*usbtll_p1_fck;
+-	struct clk				*usbtll_p2_fck;
+ 	int					nch;	/* num. of channels */
+ 	struct usbtll_omap_platform_data	*pdata;
++	struct clk				**ch_clk;
+ 	/* secure the register updates */
+ 	spinlock_t				lock;
+ };
+@@ -225,26 +224,10 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
  
--	tll = kzalloc(sizeof(struct usbtll_omap), GFP_KERNEL);
-+	tll = devm_kzalloc(dev, sizeof(struct usbtll_omap), GFP_KERNEL);
- 	if (!tll) {
- 		dev_err(dev, "Memory allocation failed\n");
--		ret = -ENOMEM;
--		goto end;
-+		return -ENOMEM;
- 	}
+ 	tll->pdata = pdata;
  
- 	spin_lock_init(&tll->lock);
-@@ -230,28 +229,21 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 	if (IS_ERR(tll->usbtll_p1_fck)) {
- 		ret = PTR_ERR(tll->usbtll_p1_fck);
- 		dev_err(dev, "usbtll_p1_fck failed error:%d\n", ret);
--		goto err_tll;
-+		return ret;
- 	}
- 
- 	tll->usbtll_p2_fck = clk_get(dev, "usb_tll_hs_usb_ch1_clk");
- 	if (IS_ERR(tll->usbtll_p2_fck)) {
- 		ret = PTR_ERR(tll->usbtll_p2_fck);
- 		dev_err(dev, "usbtll_p2_fck failed error:%d\n", ret);
--		goto err_usbtll_p1_fck;
-+		goto err_p2_fck;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		dev_err(dev, "usb tll get resource failed\n");
--		ret = -ENODEV;
--		goto err_usbtll_p2_fck;
+-	tll->usbtll_p1_fck = clk_get(dev, "usb_tll_hs_usb_ch0_clk");
+-	if (IS_ERR(tll->usbtll_p1_fck)) {
+-		ret = PTR_ERR(tll->usbtll_p1_fck);
+-		dev_err(dev, "usbtll_p1_fck failed error:%d\n", ret);
+-		return ret;
 -	}
 -
--	base = ioremap(res->start, resource_size(res));
-+	base = devm_request_and_ioremap(dev, res);
- 	if (!base) {
--		dev_err(dev, "TLL ioremap failed\n");
--		ret = -ENOMEM;
--		goto err_usbtll_p2_fck;
-+		ret = -EADDRNOTAVAIL;
-+		goto err_res;
- 	}
+-	tll->usbtll_p2_fck = clk_get(dev, "usb_tll_hs_usb_ch1_clk");
+-	if (IS_ERR(tll->usbtll_p2_fck)) {
+-		ret = PTR_ERR(tll->usbtll_p2_fck);
+-		dev_err(dev, "usbtll_p2_fck failed error:%d\n", ret);
+-		goto err_p2_fck;
+-	}
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	base = devm_request_and_ioremap(dev, res);
+-	if (!base) {
+-		ret = -EADDRNOTAVAIL;
+-		goto err_res;
+-	}
++	if (!base)
++		return -EADDRNOTAVAIL;
  
  	platform_set_drvdata(pdev, tll);
-@@ -323,23 +315,17 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	pm_runtime_enable(dev);
+@@ -269,6 +252,32 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 		break;
  	}
  
- 	spin_unlock_irqrestore(&tll->lock, flags);
--	iounmap(base);
- 	pm_runtime_put_sync(dev);
- 	tll_pdev = pdev;
--	if (!ret)
--		goto end;
--	pm_runtime_disable(dev);
- 
--err_usbtll_p2_fck:
-+	return 0;
++	spin_unlock_irqrestore(&tll->lock, flags);
 +
-+err_res:
- 	clk_put(tll->usbtll_p2_fck);
++	tll->ch_clk = devm_kzalloc(dev, sizeof(struct clk * [tll->nch]),
++						GFP_KERNEL);
++	if (!tll->ch_clk) {
++		ret = -ENOMEM;
++		dev_err(dev, "Couldn't allocate memory for channel clocks\n");
++		goto err_clk_alloc;
++	}
++
++	spin_lock_irqsave(&tll->lock, flags);
++
++	for (i = 0; i < tll->nch; i++) {
++		char clkname[] = "usb_tll_hs_usb_chx_clk";
++		struct clk *fck;
++
++		snprintf(clkname, sizeof(clkname),
++					"usb_tll_hs_usb_ch%d_clk", i);
++		fck = clk_get(dev, clkname);
++
++		if (IS_ERR(fck))
++			dev_dbg(dev, "can't get clock : %s\n", clkname);
++		else
++			tll->ch_clk[i] = fck;
++	}
++
+ 	if (is_ehci_tll_mode(pdata->port_mode[0]) ||
+ 	    is_ehci_tll_mode(pdata->port_mode[1]) ||
+ 	    is_ehci_tll_mode(pdata->port_mode[2]) ||
+@@ -320,11 +329,9 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
  
--err_usbtll_p1_fck:
-+err_p2_fck:
- 	clk_put(tll->usbtll_p1_fck);
+ 	return 0;
  
--err_tll:
--	kfree(tll);
+-err_res:
+-	clk_put(tll->usbtll_p2_fck);
+-
+-err_p2_fck:
+-	clk_put(tll->usbtll_p1_fck);
++err_clk_alloc:
++	pm_runtime_put_sync(dev);
++	pm_runtime_disable(dev);
+ 
+ 	return ret;
+ }
+@@ -338,9 +345,11 @@ err_p2_fck:
+ static int __devexit usbtll_omap_remove(struct platform_device *pdev)
+ {
+ 	struct usbtll_omap *tll = platform_get_drvdata(pdev);
++	int i;
++
++	for (i = 0; i < tll->nch; i++)
++		clk_put(tll->ch_clk[i]);
+ 
+-	clk_put(tll->usbtll_p2_fck);
+-	clk_put(tll->usbtll_p1_fck);
+ 	pm_runtime_disable(&pdev->dev);
+ 	return 0;
+ }
+@@ -350,6 +359,7 @@ static int usbtll_runtime_resume(struct device *dev)
+ 	struct usbtll_omap			*tll = dev_get_drvdata(dev);
+ 	struct usbtll_omap_platform_data	*pdata = tll->pdata;
+ 	unsigned long				flags;
++	int i;
+ 
+ 	dev_dbg(dev, "usbtll_runtime_resume\n");
+ 
+@@ -360,11 +370,20 @@ static int usbtll_runtime_resume(struct device *dev)
+ 
+ 	spin_lock_irqsave(&tll->lock, flags);
+ 
+-	if (is_ehci_tll_mode(pdata->port_mode[0]))
+-		clk_enable(tll->usbtll_p1_fck);
++	for (i = 0; i < tll->nch; i++) {
++		if (is_ehci_tll_mode(pdata->port_mode[i])) {
++			int r;
+ 
+-	if (is_ehci_tll_mode(pdata->port_mode[1]))
+-		clk_enable(tll->usbtll_p2_fck);
++			if (!tll->ch_clk[i])
++				continue;
++
++			r = clk_enable(tll->ch_clk[i]);
++			if (r) {
++				dev_err(dev,
++				 "Error enabling ch %d clock: %d\n", i, r);
++			}
++		}
++	}
+ 
+ 	spin_unlock_irqrestore(&tll->lock, flags);
+ 
+@@ -376,6 +395,7 @@ static int usbtll_runtime_suspend(struct device *dev)
+ 	struct usbtll_omap			*tll = dev_get_drvdata(dev);
+ 	struct usbtll_omap_platform_data	*pdata = tll->pdata;
+ 	unsigned long				flags;
++	int i;
+ 
+ 	dev_dbg(dev, "usbtll_runtime_suspend\n");
+ 
+@@ -386,11 +406,12 @@ static int usbtll_runtime_suspend(struct device *dev)
+ 
+ 	spin_lock_irqsave(&tll->lock, flags);
+ 
+-	if (is_ehci_tll_mode(pdata->port_mode[0]))
+-		clk_disable(tll->usbtll_p1_fck);
