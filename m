@@ -1,89 +1,122 @@
 From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 03/23] mfd: omap-usb-tll: Fix channel count detection
-Date: Tue, 4 Dec 2012 16:12:56 +0200
-Message-ID: <1354630396-24545-4-git-send-email-rogerq@ti.com>
-References: <1354630396-24545-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v3 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk into usb_host_hs_utmi_px_clk
+Date: Tue, 4 Dec 2012 16:31:47 +0200
+Message-ID: <1354631514-24815-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1354630396-24545-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: balbi-l0cyMroinI0@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Fix channel count detecion for REV2. Also, don't give up
-if we don't recognize the IP Revision. We assume the default
-number of channels (i.e. 3) for unrecognized IPs.
+There is no such clock as utmi_p1_gfclk. It is only a clock selector
+bit to select th the parent of usb_host_hs_utmi_p1_clk.
+So we get rid of utmi_p1_gfclk and utmi_p2_gfclk by merging them into
+usb_host_hs_utmi_p1_clk and usb_host_hs_utmi_p2_clk respectively.
+
+CC: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+CC: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+CC: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 
 Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- drivers/mfd/omap-usb-tll.c |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/cclock3xxx_data.c |    2 -
+ arch/arm/mach-omap2/cclock44xx_data.c |   47 +++++++++++++++++++++++----------
+ 2 files changed, 33 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 18fefdb..e67cafc 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -98,6 +98,7 @@
- struct usbtll_omap {
- 	struct clk				*usbtll_p1_fck;
- 	struct clk				*usbtll_p2_fck;
-+	int					nch;	/* num. of channels */
- 	struct usbtll_omap_platform_data	*pdata;
- 	/* secure the register updates */
- 	spinlock_t				lock;
-@@ -210,7 +211,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 	unsigned				reg;
- 	unsigned long				flags;
- 	int					ret = 0;
--	int					i, ver, count;
-+	int					i, ver;
+diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
+index bdf3948..5655414 100644
+--- a/arch/arm/mach-omap2/cclock3xxx_data.c
++++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+@@ -3392,8 +3392,6 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK("usbhs_omap",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+-	CLK(NULL,	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
+-	CLK(NULL,	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
+ 	CLK(NULL,	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
+ 	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
+ 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
+diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
+index aa56c3e..74535fe 100644
+--- a/arch/arm/mach-omap2/cclock44xx_data.c
++++ b/arch/arm/mach-omap2/cclock44xx_data.c
+@@ -1366,31 +1366,52 @@ static struct clk_hw_omap usb_host_fs_fck_hw = {
+ DEFINE_STRUCT_CLK(usb_host_fs_fck, usb_host_fs_fck_parent_names,
+ 		  usb_host_fs_fck_ops);
  
- 	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
++static const struct clk_ops utmi_clk_ops = {
++	.enable		= &omap2_dflt_clk_enable,
++	.disable	= &omap2_dflt_clk_disable,
++	.is_enabled	= &omap2_dflt_clk_is_enabled,
++	.recalc_rate	= &omap2_clksel_recalc,
++	.get_parent	= &omap2_clksel_find_parent_index,
++	.set_parent	= &omap2_clksel_set_parent,
++};
++
+ static const char *utmi_p1_gfclk_parents[] = {
+ 	"init_60m_fclk", "xclk60mhsp1_ck",
+ };
  
-@@ -262,16 +263,18 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 	ver =  usbtll_read(base, OMAP_USBTLL_REVISION);
- 	switch (ver) {
- 	case OMAP_USBTLL_REV1:
--	case OMAP_USBTLL_REV2:
--		count = OMAP_TLL_CHANNEL_COUNT;
-+		tll->nch = OMAP_TLL_CHANNEL_COUNT;
- 		break;
-+	case OMAP_USBTLL_REV2:
- 	case OMAP_USBTLL_REV3:
--		count = OMAP_REV2_TLL_CHANNEL_COUNT;
-+		tll->nch = OMAP_REV2_TLL_CHANNEL_COUNT;
- 		break;
- 	default:
--		dev_err(dev, "TLL version failed\n");
--		ret = -ENODEV;
--		goto err_ioremap;
-+		tll->nch = OMAP_TLL_CHANNEL_COUNT;
-+		dev_dbg(dev,
-+		 "USB TLL Rev : 0x%x not recognized, assuming %d channels\n",
-+			ver, tll->nch);
-+		break;
- 	}
+-DEFINE_CLK_MUX(utmi_p1_gfclk, utmi_p1_gfclk_parents, NULL, 0x0,
+-	       OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	       OMAP4430_CLKSEL_UTMI_P1_SHIFT, OMAP4430_CLKSEL_UTMI_P1_WIDTH,
+-	       0x0, NULL);
++static const struct clksel utmi_p1_clk_mux_sel[] = {
++	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
++	{ .parent = &xclk60mhsp1_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
  
- 	if (is_ehci_tll_mode(pdata->port_mode[0]) ||
-@@ -291,7 +294,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 		usbtll_write(base, OMAP_TLL_SHARED_CONF, reg);
+-DEFINE_CLK_GATE(usb_host_hs_utmi_p1_clk, "utmi_p1_gfclk", &utmi_p1_gfclk, 0x0,
++/* Merged utmi_p1_gfclk into usb_host_hs_utmi_p1_clk */
++DEFINE_CLK_OMAP_MUX_GATE(usb_host_hs_utmi_p1_clk, "l3_init_clkdm",
++		utmi_p1_clk_mux_sel,
++		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++		OMAP4430_CLKSEL_UTMI_P1_MASK,
+ 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-		OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT, 0x0, NULL);
++		OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT, NULL,
++		utmi_p1_gfclk_parents, utmi_clk_ops);
  
- 		/* Enable channels now */
--		for (i = 0; i < count; i++) {
-+		for (i = 0; i < tll->nch; i++) {
- 			reg = usbtll_read(base,	OMAP_TLL_CHANNEL_CONF(i));
+ static const char *utmi_p2_gfclk_parents[] = {
+ 	"init_60m_fclk", "xclk60mhsp2_ck",
+ };
  
- 			if (is_ohci_port(pdata->port_mode[i])) {
-@@ -319,7 +322,6 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 		}
- 	}
+-DEFINE_CLK_MUX(utmi_p2_gfclk, utmi_p2_gfclk_parents, NULL, 0x0,
+-	       OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-	       OMAP4430_CLKSEL_UTMI_P2_SHIFT, OMAP4430_CLKSEL_UTMI_P2_WIDTH,
+-	       0x0, NULL);
++static const struct clksel utmi_p2_clk_mux_sel[] = {
++	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
++	{ .parent = &xclk60mhsp2_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
  
--err_ioremap:
- 	spin_unlock_irqrestore(&tll->lock, flags);
- 	iounmap(base);
- 	pm_runtime_put_sync(dev);
+-DEFINE_CLK_GATE(usb_host_hs_utmi_p2_clk, "utmi_p2_gfclk", &utmi_p2_gfclk, 0x0,
++/* Merged utmi_p2_gfclk into usb_host_hs_utmi_p2_clk */
++DEFINE_CLK_OMAP_MUX_GATE(usb_host_hs_utmi_p2_clk, "l3_init_clkdm",
++		utmi_p2_clk_mux_sel,
++		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++		OMAP4430_CLKSEL_UTMI_P2_MASK,
+ 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+-		OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT, 0x0, NULL);
++		OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT, NULL,
++		utmi_p2_gfclk_parents, utmi_clk_ops);
+ 
+ DEFINE_CLK_GATE(usb_host_hs_utmi_p3_clk, "init_60m_fclk", &init_60m_fclk, 0x0,
+ 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+@@ -1838,9 +1859,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
+ 	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
+ 	CLK("usbhs_omap",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
+-	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
+-	CLK(NULL,	"utmi_p2_gfclk",		&utmi_p2_gfclk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_utmi_p2_clk",	&usb_host_hs_utmi_p2_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_utmi_p3_clk",	&usb_host_hs_utmi_p3_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_hsic480m_p1_clk",	&usb_host_hs_hsic480m_p1_clk,	CK_443X),
 -- 
 1.7.4.1
 
