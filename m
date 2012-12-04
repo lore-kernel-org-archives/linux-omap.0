@@ -1,78 +1,96 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 01/23] mfd: omap-usb-host: get rid of cpu_is_omap..() macros
-Date: Tue, 4 Dec 2012 16:12:54 +0200
-Message-ID: <1354630396-24545-2-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 04/23] mfd: omap-usb-tll: Use devm_kzalloc/ioremap and clean up error path
+Date: Tue, 4 Dec 2012 16:12:57 +0200
+Message-ID: <1354630396-24545-5-git-send-email-rogerq@ti.com>
 References: <1354630396-24545-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43134 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753121Ab2LDONc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Dec 2012 09:13:32 -0500
-In-Reply-To: <1354630396-24545-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1354630396-24545-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Instead of using cpu_is_omap..() macros in the device driver we
-rely on information provided in the platform data.
+Use devm_ variants of kzalloc() and ioremap(). Simplify the error path.
 
-The only information we need is whether the USB Host module has
-a single ULPI bypass control bit for all ports or individual bypass
-control bits for each port. OMAP3 REV2.1 and earlier have the former.
-
-Signed-off-by: Roger Quadros <rogerq@ti.com>
-CC: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/usb-host.c         |    4 ++++
- drivers/mfd/omap-usb-host.c            |    2 +-
- include/linux/platform_data/usb-omap.h |    3 +++
- 3 files changed, 8 insertions(+), 1 deletions(-)
+ drivers/mfd/omap-usb-tll.c |   37 +++++++++++--------------------------
+ 1 files changed, 11 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index d1dbe12..2e44e8a 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -508,6 +508,10 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- 	if (cpu_is_omap34xx()) {
- 		setup_ehci_io_mux(pdata->port_mode);
- 		setup_ohci_io_mux(pdata->port_mode);
-+
-+		if (omap_rev() <= OMAP3430_REV_ES2_1)
-+			usbhs_data.single_ulpi_bypass = true;
-+
- 	} else if (cpu_is_omap44xx()) {
- 		setup_4430ehci_io_mux(pdata->port_mode);
- 		setup_4430ohci_io_mux(pdata->port_mode);
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index cebfe0a..fe7906b 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -384,7 +384,7 @@ static void omap_usbhs_init(struct device *dev)
- 			reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index e67cafc..828207f 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -215,11 +215,10 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
  
- 		/* Bypass the TLL module for PHY mode operation */
--		if (cpu_is_omap3430() && (omap_rev() <= OMAP3430_REV_ES2_1)) {
-+		if (pdata->single_ulpi_bypass) {
- 			dev_dbg(dev, "OMAP3 ES version <= ES2.1\n");
- 			if (is_ehci_phy_mode(pdata->port_mode[0]) ||
- 				is_ehci_phy_mode(pdata->port_mode[1]) ||
-diff --git a/include/linux/platform_data/usb-omap.h b/include/linux/platform_data/usb-omap.h
-index 8570bcf..ef65b67 100644
---- a/include/linux/platform_data/usb-omap.h
-+++ b/include/linux/platform_data/usb-omap.h
-@@ -59,6 +59,9 @@ struct usbhs_omap_platform_data {
+ 	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
  
- 	struct ehci_hcd_omap_platform_data	*ehci_data;
- 	struct ohci_hcd_omap_platform_data	*ohci_data;
+-	tll = kzalloc(sizeof(struct usbtll_omap), GFP_KERNEL);
++	tll = devm_kzalloc(dev, sizeof(struct usbtll_omap), GFP_KERNEL);
+ 	if (!tll) {
+ 		dev_err(dev, "Memory allocation failed\n");
+-		ret = -ENOMEM;
+-		goto end;
++		return -ENOMEM;
+ 	}
+ 
+ 	spin_lock_init(&tll->lock);
+@@ -230,28 +229,21 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	if (IS_ERR(tll->usbtll_p1_fck)) {
+ 		ret = PTR_ERR(tll->usbtll_p1_fck);
+ 		dev_err(dev, "usbtll_p1_fck failed error:%d\n", ret);
+-		goto err_tll;
++		return ret;
+ 	}
+ 
+ 	tll->usbtll_p2_fck = clk_get(dev, "usb_tll_hs_usb_ch1_clk");
+ 	if (IS_ERR(tll->usbtll_p2_fck)) {
+ 		ret = PTR_ERR(tll->usbtll_p2_fck);
+ 		dev_err(dev, "usbtll_p2_fck failed error:%d\n", ret);
+-		goto err_usbtll_p1_fck;
++		goto err_p2_fck;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(dev, "usb tll get resource failed\n");
+-		ret = -ENODEV;
+-		goto err_usbtll_p2_fck;
+-	}
+-
+-	base = ioremap(res->start, resource_size(res));
++	base = devm_request_and_ioremap(dev, res);
+ 	if (!base) {
+-		dev_err(dev, "TLL ioremap failed\n");
+-		ret = -ENOMEM;
+-		goto err_usbtll_p2_fck;
++		ret = -EADDRNOTAVAIL;
++		goto err_res;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, tll);
+@@ -323,23 +315,17 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	spin_unlock_irqrestore(&tll->lock, flags);
+-	iounmap(base);
+ 	pm_runtime_put_sync(dev);
+ 	tll_pdev = pdev;
+-	if (!ret)
+-		goto end;
+-	pm_runtime_disable(dev);
+ 
+-err_usbtll_p2_fck:
++	return 0;
 +
-+	/* OMAP3 <= ES2.1 have a single ulpi bypass control bit */
-+	unsigned				single_ulpi_bypass:1;
- };
++err_res:
+ 	clk_put(tll->usbtll_p2_fck);
  
- /*-------------------------------------------------------------------------*/
--- 
-1.7.4.1
-
+-err_usbtll_p1_fck:
++err_p2_fck:
+ 	clk_put(tll->usbtll_p1_fck);
+ 
+-err_tll:
+-	kfree(tll);
