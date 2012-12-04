@@ -1,89 +1,111 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v3 06/23] mfd: omap-usb-tll: introduce and use mode_needs_tll()
-Date: Tue, 4 Dec 2012 16:12:59 +0200
-Message-ID: <1354630396-24545-7-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 11/23] mfd: omap_usb_host: Avoid creating copy of platform_data
+Date: Tue, 4 Dec 2012 16:13:04 +0200
+Message-ID: <1354630396-24545-12-git-send-email-rogerq@ti.com>
 References: <1354630396-24545-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42180 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754059Ab2LDONh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Dec 2012 09:13:37 -0500
-In-Reply-To: <1354630396-24545-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1354630396-24545-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-This is a handy macro to check if the port requires the
-USB TLL module or not. Use it to Enable the TLL module and manage
-the clocks.
+We can just hold the pointer to the platform data instead
+of creating a copy of it.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
+Also get rid of the unnecessary missing platform data checks
+in runtime_suspend/resume. We are already checking for missing
+platform data in probe.
+
+Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/mfd/omap-usb-tll.c |   20 ++++++++++++--------
- 1 files changed, 12 insertions(+), 8 deletions(-)
+ drivers/mfd/omap-usb-host.c |   30 ++++++++----------------------
+ 1 files changed, 8 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 7d0f6cf..07370a3 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -95,6 +95,10 @@
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index fe7906b..8b8f1da 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -103,7 +103,7 @@ struct usbhs_hcd_omap {
  
- #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
+ 	void __iomem			*uhh_base;
  
-+/* only PHY and UNUSED modes don't need TLL */
-+#define omap_usb_mode_needs_tll(x)	((x != OMAP_USBHS_PORT_MODE_UNUSED) &&\
-+					 (x != OMAP_EHCI_PORT_MODE_PHY))
-+
- struct usbtll_omap {
- 	int					nch;	/* num. of channels */
- 	struct usbtll_omap_platform_data	*pdata;
-@@ -211,6 +215,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 	unsigned long				flags;
- 	int					ret = 0;
- 	int					i, ver;
-+	bool needs_tll;
+-	struct usbhs_omap_platform_data	platdata;
++	struct usbhs_omap_platform_data	*pdata;
  
- 	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
+ 	u32				usbhs_rev;
+ 	spinlock_t			lock;
+@@ -195,8 +195,8 @@ static int omap_usbhs_alloc_children(struct platform_device *pdev)
+ 	int					ret;
  
-@@ -278,12 +283,11 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 			tll->ch_clk[i] = fck;
- 	}
+ 	omap = platform_get_drvdata(pdev);
+-	ehci_data = omap->platdata.ehci_data;
+-	ohci_data = omap->platdata.ohci_data;
++	ehci_data = omap->pdata->ehci_data;
++	ohci_data = omap->pdata->ohci_data;
  
--	if (is_ehci_tll_mode(pdata->port_mode[0]) ||
--	    is_ehci_tll_mode(pdata->port_mode[1]) ||
--	    is_ehci_tll_mode(pdata->port_mode[2]) ||
--	    is_ohci_port(pdata->port_mode[0]) ||
--	    is_ohci_port(pdata->port_mode[1]) ||
--	    is_ohci_port(pdata->port_mode[2])) {
-+	needs_tll = false;
-+	for (i = 0; i < tll->nch; i++)
-+		needs_tll |= omap_usb_mode_needs_tll(pdata->port_mode[i]);
-+
-+	if (needs_tll) {
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
+ 	if (!res) {
+@@ -279,16 +279,11 @@ static bool is_ohci_port(enum usbhs_omap_port_mode pmode)
+ static int usbhs_runtime_resume(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+ 	unsigned long			flags;
++	struct usbhs_omap_platform_data *pdata = omap->pdata;
  
- 		/* Program Common TLL register */
- 		reg = usbtll_read(base, OMAP_TLL_SHARED_CONF);
-@@ -371,7 +375,7 @@ static int usbtll_runtime_resume(struct device *dev)
- 	spin_lock_irqsave(&tll->lock, flags);
+ 	dev_dbg(dev, "usbhs_runtime_resume\n");
  
- 	for (i = 0; i < tll->nch; i++) {
--		if (is_ehci_tll_mode(pdata->port_mode[i])) {
-+		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
- 			int r;
+-	if (!pdata) {
+-		dev_dbg(dev, "missing platform_data\n");
+-		return  -ENODEV;
+-	}
+-
+ 	omap_tll_enable();
+ 	spin_lock_irqsave(&omap->lock, flags);
  
- 			if (!tll->ch_clk[i])
-@@ -407,7 +411,7 @@ static int usbtll_runtime_suspend(struct device *dev)
- 	spin_lock_irqsave(&tll->lock, flags);
+@@ -311,16 +306,11 @@ static int usbhs_runtime_resume(struct device *dev)
+ static int usbhs_runtime_suspend(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+ 	unsigned long			flags;
++	struct usbhs_omap_platform_data *pdata = omap->pdata;
  
- 	for (i = 0; i < tll->nch; i++) {
--		if (is_ehci_tll_mode(pdata->port_mode[i])) {
-+		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
- 			if (tll->ch_clk[i])
- 				clk_disable(tll->ch_clk[i]);
- 		}
--- 
-1.7.4.1
-
+ 	dev_dbg(dev, "usbhs_runtime_suspend\n");
+ 
+-	if (!pdata) {
+-		dev_dbg(dev, "missing platform_data\n");
+-		return  -ENODEV;
+-	}
+-
+ 	spin_lock_irqsave(&omap->lock, flags);
+ 
+ 	if (is_ehci_tll_mode(pdata->port_mode[0]))
+@@ -343,7 +333,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+ static void omap_usbhs_init(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++	struct usbhs_omap_platform_data	*pdata = omap->pdata;
+ 	unsigned long			flags;
+ 	unsigned			reg;
+ 
+@@ -450,7 +440,7 @@ static void omap_usbhs_init(struct device *dev)
+ static void omap_usbhs_deinit(struct device *dev)
+ {
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+-	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++	struct usbhs_omap_platform_data	*pdata = omap->pdata;
+ 
+ 	if (pdata->ehci_data->phy_reset) {
+ 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+@@ -491,11 +481,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ 
+ 	spin_lock_init(&omap->lock);
+ 
+-	for (i = 0; i < OMAP3_HS_USB_PORTS; i++)
+-		omap->platdata.port_mode[i] = pdata->port_mode[i];
