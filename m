@@ -1,149 +1,60 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 19/23] mfd: omap-usb-host: clean up omap_usbhs_init()
-Date: Tue, 4 Dec 2012 16:31:50 +0200
-Message-ID: <1354631514-24815-4-git-send-email-rogerq@ti.com>
-References: <1354631514-24815-1-git-send-email-rogerq@ti.com>
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/16] OMAP USB Host cleanup
+Date: Tue, 4 Dec 2012 16:46:47 +0200
+Message-ID: <CANOLnONQ_xHDqhiOWxVgHG+sK9ROcqS5xnmoL2V=XtatFHN+jQ@mail.gmail.com>
+References: <1352990054-14680-1-git-send-email-rogerq@ti.com>
+	<87fw49cnvh.fsf@deeprootsystems.com>
+	<50AA05C3.7010003@ti.com>
+	<876251b2kq.fsf@deeprootsystems.com>
+	<50B4D167.4090205@ti.com>
+	<20121127163022.GB24240@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1354631514-24815-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20121127163022.GB24240-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: balbi-l0cyMroinI0@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-We split initializing revision 1 and revision 2 into different
-functions. Initialization is now done dynamically so that only
-the number of ports available on the system are initialized.
+On Tue, Nov 27, 2012 at 6:30 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> On Tue, Nov 27, 2012 at 04:42:47PM +0200, Roger Quadros wrote:
+>> Kevin,
+>>
+>> I gave a quick look at the issue. It seems that the High Speed USB H=
+ost
+>> module is kept in Software forced wakeup mode as a quick fix workaro=
+und
+>> to a bunch of silicon erratas. And we do nothing on USB global suspe=
+nd.
+>> That's why CORE does not hit retention.
+>>
+>> If we runtime_suspend the USB host module on USB global suspend then=
+ it
+>> will be put in Force Idle mode. This will allow CORE to hit retentio=
+n
+>> but then we will no longer be able to detect USB device connect even=
+ts.
+>>
+>> So, till we have a better solution I will suggest to keep EHCI_HCD a=
+s a
+>> module in omap2plus_defconfig.
+>
+> I guess that "better solution" would be I/O pads wakeup interrupts ? =
+But
+> I don't think that's already in mainline, is it ?
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
----
- drivers/mfd/omap-usb-host.c |  122 +++++++++++++++++++++++++-----------------
- 1 files changed, 73 insertions(+), 49 deletions(-)
+I believe there was attempt to mainline that but it was rejected by Ton=
+y:
+http://marc.info/?l=3Dlinux-omap&m=3D134727428329745&w=3D2
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 289b356..0bb54393 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -363,6 +363,75 @@ static int usbhs_runtime_suspend(struct device *dev)
- 	return 0;
- }
- 
-+static unsigned omap_usbhs_rev1_hostconfig(struct usbhs_hcd_omap *omap,
-+						unsigned reg)
-+{
-+	struct usbhs_omap_platform_data	*pdata = omap->pdata;
-+	int i;
-+
-+	for (i = 0; i < omap->nports; i++) {
-+		switch (pdata->port_mode[i]) {
-+		case OMAP_USBHS_PORT_MODE_UNUSED:
-+			reg &= ~(OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS << i);
-+			break;
-+		case OMAP_EHCI_PORT_MODE_PHY:
-+			if (pdata->single_ulpi_bypass)
-+				break;
-+
-+			if (i == 0)
-+				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
-+			else
-+				reg &= ~(OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS
-+								<< (i-1));
-+			break;
-+		default:
-+			if (pdata->single_ulpi_bypass)
-+				break;
-+
-+			if (i == 0)
-+				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
-+			else
-+				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS
-+								<< (i-1);
-+			break;
-+		}
-+	}
-+
-+	if (pdata->single_ulpi_bypass) {
-+		/* bypass ULPI only if none of the ports use PHY mode */
-+		reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
-+
-+		for (i = 0; i < omap->nports; i++) {
-+			if (is_ehci_phy_mode(pdata->port_mode[i])) {
-+				reg &= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
-+				break;
-+			}
-+		}
-+	}
-+
-+	return reg;
-+}
-+
-+static unsigned omap_usbhs_rev2_hostconfig(struct usbhs_hcd_omap *omap,
-+						unsigned reg)
-+{
-+	struct usbhs_omap_platform_data	*pdata = omap->pdata;
-+	int i;
-+
-+	for (i = 0; i < omap->nports; i++) {
-+		/* Clear port mode fields for PHY mode */
-+		reg &= ~(OMAP4_P1_MODE_CLEAR << 2 * i);
-+
-+		if (is_ehci_tll_mode(pdata->port_mode[i]) ||
-+				(is_ohci_port(pdata->port_mode[i])))
-+			reg |= OMAP4_P1_MODE_TLL << 2 * i;
-+		else if (is_ehci_hsic_mode(pdata->port_mode[i]))
-+			reg |= OMAP4_P1_MODE_HSIC << 2 * i;
-+	}
-+
-+	return reg;
-+}
-+
- static void omap_usbhs_init(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-@@ -394,55 +463,10 @@ static void omap_usbhs_init(struct device *dev)
- 	reg |= OMAP4_UHH_HOSTCONFIG_APP_START_CLK;
- 	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
- 
--	if (is_omap_usbhs_rev1(omap)) {
--		if (pdata->port_mode[0] == OMAP_USBHS_PORT_MODE_UNUSED)
--			reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
--		if (pdata->port_mode[1] == OMAP_USBHS_PORT_MODE_UNUSED)
--			reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
--		if (pdata->port_mode[2] == OMAP_USBHS_PORT_MODE_UNUSED)
--			reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
--
--		/* Bypass the TLL module for PHY mode operation */
--		if (pdata->single_ulpi_bypass) {
--			dev_dbg(dev, "OMAP3 ES version <= ES2.1\n");
--			if (is_ehci_phy_mode(pdata->port_mode[0]) ||
--				is_ehci_phy_mode(pdata->port_mode[1]) ||
--					is_ehci_phy_mode(pdata->port_mode[2]))
--				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
--			else
--				reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
--		} else {
--			dev_dbg(dev, "OMAP3 ES version > ES2.1\n");
--			if (is_ehci_phy_mode(pdata->port_mode[0]))
--				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
--			else
--				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
--			if (is_ehci_phy_mode(pdata->port_mode[1]))
--				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
--			else
--				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
--			if (is_ehci_phy_mode(pdata->port_mode[2]))
--				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
--			else
--				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
--		}
--	} else if (is_omap_usbhs_rev2(omap)) {
--		/* Clear port mode fields for PHY mode*/
--		reg &= ~OMAP4_P1_MODE_CLEAR;
--		reg &= ~OMAP4_P2_MODE_CLEAR;
--
--		if (is_ehci_tll_mode(pdata->port_mode[0]) ||
--			(is_ohci_port(pdata->port_mode[0])))
--			reg |= OMAP4_P1_MODE_TLL;
--		else if (is_ehci_hsic_mode(pdata->port_mode[0]))
--			reg |= OMAP4_P1_MODE_HSIC;
+Hopefully someone can come up with a suitable solution, not being able
+to suspend and broken power saving with EHCI sucks :(
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
