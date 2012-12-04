@@ -1,144 +1,94 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [RFC PATCH 4/5] arm: omap2: support port power on lan95xx devices
-Date: Tue, 04 Dec 2012 11:40:05 +0800
-Message-ID: <50BD7095.5090103@linaro.org>
-References: <Pine.LNX.4.44L0.1212031154460.1309-100000@iolanthe.rowland.org>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: AM335x: Beaglebone stops to boot with current git kernel
+Date: Tue, 4 Dec 2012 04:01:30 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EBA3979@DBDE01.ent.ti.com>
+References: <k80da6$61d$1@ger.gmane.org>
+	<CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
+	<20121121183809.GZ18567@atomide.com>
+	<CAK0ocyD25pRcQthN90inWy-95Yaa-B94rw724_uS5Y7FRA4qjQ@mail.gmail.com>
+	<50ADBB5B.7090401@ti.com>
+	<CAK0ocyCe3oJ8ynpNWpzcCFHtG3J4u7NBeNPTJK0GikFHaPAXOA@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83EB7F222@DBDE01.ent.ti.com>
+	<CAK0ocyD7fGzj1GuFP7EhFYqmLv66A0phNrxV6rAL9b9ejPYfvg@mail.gmail.com>
+	<CAD=GYparyZ8kB+pX+SptSaNPHD-Ey9vBC1Q4nDcTKJLenpNK=w@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A83EB7FB16@DBDE01.ent.ti.com>
+ <87mwxvathj.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:52672 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751444Ab2LDDkS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Dec 2012 22:40:18 -0500
-In-Reply-To: <Pine.LNX.4.44L0.1212031154460.1309-100000@iolanthe.rowland.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42339 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751393Ab2LDEBp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Dec 2012 23:01:45 -0500
+In-Reply-To: <87mwxvathj.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Ming Lei <tom.leiming@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Roger Quadros <rogerq@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Joel A Fernandes <agnel.joel@gmail.com>, Igor Mazanov <i.mazanov@gmail.com>, Tony Lindgren <tony@atomide.com>, Jean Pihet <jean.pihet@newoldbits.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 04/12/12 01:09, the mail apparently from Alan Stern included:
-> On Mon, 3 Dec 2012, Andy Green wrote:
->
->> Unless someone NAKs it for sure already (if you're already sure you'=
-re
->> going to, please do so to avoid wasting time), I'll issue a try#2 of=
- my
->> code later which demonstrates what I mean.  At least I guess it's us=
-eful
->> for comparative purposes.
->
-> Before you go writing a whole lot more code, we should discuss the
-> basics a bit more clearly.  There are several unsettled issues here:
+On Mon, Dec 03, 2012 at 23:49:36, Kevin Hilman wrote:
+> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+> 
+> >> >>> +static struct omap_hwmod am33xx_debugss_hwmod = {
+> >> >>> +       .name           = "debugss",
+> >> >>> +       .class          = &am33xx_debugss_hwmod_class,
+> >> >>> +       .clkdm_name     = "l3_aon_clkdm",
+> >> >>> +       .main_clk       = "debugss_ick",
+> >> >>> +       .flags          =  (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
+> >> 
+> >> Setting these flags would still leave the problem where JTAG clocks
+> >> are on when its not required no? In that case, what is the advantage
+> >> of this patch?
+> >> 
+> >
+> > I missed to wrap it around #ifdef CONFIG_DEBUG_KERNEL. I will submit the 
+> > formal patch shortly.
+> 
+> IMO, this should not be handled in the data at all (neither clock nor
+> hwmod), and should be handled at runtime/boot-time, not compile time.
+> 
 
->       1. Should the LAN95xx stuff be associated with the ehci-omap.0'=
-s
-> 	driver or with the hub port?  The port would be more flexible,
-> 	offering the ability to turn the power off and on while the
-> 	system is running without affecting anything else.  But the
-> 	port code is currently in flux, which could cause this new
-> 	addition to be delayed.
+Wouldn't that become another interface/control for debug? We already have 
+various (standard) debug kernel parameters available.
 
-I think associating ULPI PHY reset and SMSC power and reset with the hu=
-b=20
-port power state is good.  Then, you could have the driver in a device=20
-with multiple onboard USB devices, and individually control whether=20
-they're eating power or not.  In the asset case, you'd associate mux=20
-assets with ehci-omap.0.
+But I see your point, compile-time option will force users to rebuild kernel 
+just in order to disable JTAG/Debug clock.
 
-Yesterday I studied the hub port code and have a couple of patches, one=
-=20
-normalizes the hub port device to have a stub driver.
+> The solution to this is to rather to have a small bit of code that
+> requests the debugss clocks that are needed for JTAG debug, so the
+> kernel knows they are in use.
+> 
+> That code could then be enabled at boot time via command-line or DT
+> option.
+> 
 
-The other then puts hub port power state signalling into runtime_pm=20
-handlers in the hub port device.  Until now, actually there's no code i=
-n=20
-hub.c to switch off a port.
+In case of command-line, something like below???
 
-Assuming that's not insane, what should the user interface to disable a=
-=20
-port power look like, something in sysfs?  Until now it doesn't seem to=
-=20
-exist.
+static int __init omap2_debug_clk_enable(char *str)
+{
+	if (!str)
+		return 0;
+	
+	if (!strcmp(str, "debug"))
+		<enable debug clock>
 
-> 	(On the other hand, since the LAN95xx is the only thing
-> 	connected to the root hub, it could be powered off and on by
-> 	unbinding the ehci-omap.0 device from its driver and rebinding
-> 	it.)
+	return 0;
+}
+early_param("debug", omap2_debug_clk_enable);
 
-We shouldn't get to tied up with Panda case, this will be there for all=
-=20
-cases like PCs etc.  It should work well if there are multiple ports=20
-with onboard assets.
 
->       2. If we do choose the port, do we want to identify it by match=
-ing
-> 	against a device name string or by matching a sequence of port
-> 	numbers (in this case, a length-1 sequence)?  The port numbers
-> 	are fixed by the board design, whereas the device name strings
-> 	might  get changed in the future.  On the other hand, the port
-> 	numbers apply only to USB whereas device names can be used by
-> 	any subsystem.
+In case of DT, one thought,
 
-USB device names contain the port information.  The matching scheme I=20
-have currently just uses the right-hand side of the path information an=
-d=20
-nothing that is not defined by the USB subsystem.  It uses a=20
-platform_device ancestor to restrict matches to descendants of the righ=
-t=20
-host controller.  So unlike try#1 the names are as stable as the=20
-subsystem code alone, however stable that is, it's not exposed to=20
-changes from anywhere else.  As you mention it's then workable on any=20
-dynamically probed bus.
+It can be part of omap_generic_init() in board-generic.c file,
+We can parse there for debug node and required property to enable debug 
+module.
 
->       3. Should the matching mechanism go into the device core or int=
-o
-> 	the USB port code?  (This is related to the previous question.)
+Any thought? Or Other options???
 
-Currently I am experimenting with having the asset pointer in struct=20
-device, but migrating the events into runtime_resume and=20
-runtime_suspend.  If it works out that has advantages that assets follo=
-w=20
-not just the logical device existence but the pm state of the device=20
-closely.
+Thanks,
+Vaibhav
 
-It also allows leveraging assets directly to the hub port runtime_pm=20
-state, so they follow enable state of the port without any additional c=
-ode.
 
->       4. Should this be implemented simply as a regulator (or a pair =
-of
-> 	regulators)?  Or should it be generalized to some sort of PM
-> 	domain thing?  The generic_pm_domain structure defined in
-> 	include/linux/pm_domain.h seems like overkill, but maybe it's
-> 	the most appropriate thing to use.
 
-They should be regulators for that I think.  But it's only part the=20
-problem since clocks and mux are also going to be commonly associated=20
-with device power state, and indeed are in Panda case.
-
-I realize restricting the scope is desirable to get something done, but=
-=20
-I'm not sure supporting regulators only is enough of the job.
-
-> Until we decide on the answers to these questions, there's no point
-> writing detailed patches.
-
-I agree, however I can't get insight into and confidence about what to=20
-do without studying and meddling with the code.  Some throwaway code is=
-=20
-probably a reasonable price.
-
--Andy
-
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
