@@ -1,70 +1,81 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 02/23] mfd: omap-usb-tll: Avoid creating copy of platform data
-Date: Tue, 4 Dec 2012 16:12:55 +0200
-Message-ID: <1354630396-24545-3-git-send-email-rogerq@ti.com>
-References: <1354630396-24545-1-git-send-email-rogerq@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v3 00/23] OMAP USB Host cleanup
+Date: Tue, 4 Dec 2012 16:12:53 +0200
+Message-ID: <1354630396-24545-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1354630396-24545-1-git-send-email-rogerq-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, rogerq-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42156 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753121Ab2LDON2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Dec 2012 09:13:28 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Just a pointer to the platform data should suffice.
+Hi,
 
-Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- drivers/mfd/omap-usb-tll.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+This patchset addresses the following
 
-diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
-index 0db0dfa..18fefdb 100644
---- a/drivers/mfd/omap-usb-tll.c
-+++ b/drivers/mfd/omap-usb-tll.c
-@@ -98,7 +98,7 @@
- struct usbtll_omap {
- 	struct clk				*usbtll_p1_fck;
- 	struct clk				*usbtll_p2_fck;
--	struct usbtll_omap_platform_data	platdata;
-+	struct usbtll_omap_platform_data	*pdata;
- 	/* secure the register updates */
- 	spinlock_t				lock;
- };
-@@ -223,8 +223,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&tll->lock);
- 
--	for (i = 0; i < OMAP3_HS_USB_PORTS; i++)
--		tll->platdata.port_mode[i] = pdata->port_mode[i];
-+	tll->pdata = pdata;
- 
- 	tll->usbtll_p1_fck = clk_get(dev, "usb_tll_hs_usb_ch0_clk");
- 	if (IS_ERR(tll->usbtll_p1_fck)) {
-@@ -362,7 +361,7 @@ static int __devexit usbtll_omap_remove(struct platform_device *pdev)
- static int usbtll_runtime_resume(struct device *dev)
- {
- 	struct usbtll_omap			*tll = dev_get_drvdata(dev);
--	struct usbtll_omap_platform_data	*pdata = &tll->platdata;
-+	struct usbtll_omap_platform_data	*pdata = tll->pdata;
- 	unsigned long				flags;
- 
- 	dev_dbg(dev, "usbtll_runtime_resume\n");
-@@ -388,7 +387,7 @@ static int usbtll_runtime_resume(struct device *dev)
- static int usbtll_runtime_suspend(struct device *dev)
- {
- 	struct usbtll_omap			*tll = dev_get_drvdata(dev);
--	struct usbtll_omap_platform_data	*pdata = &tll->platdata;
-+	struct usbtll_omap_platform_data	*pdata = tll->pdata;
- 	unsigned long				flags;
- 
- 	dev_dbg(dev, "usbtll_runtime_suspend\n");
+- Avoid addressing clocks one by one by name and use a for loop + bunch
+  of cleanups.
+- Get number of channels/ports dynamically either from revision register
+  or from platform data. Avoids getting clocks that are not present.
+- Add OMAP5 and HSIC mode (Not tested)
+
+changes in v3:
+- Rebased on arm-soc/for-next commit f979306c4d38d213c6977aaf3b1115e8ded71e3a
+- Rearranged patch that get rids of cpu_is_omap..() macros
+- Coding style fixes
+
+changes in v2:
+- Clocks are allocated dynamically based on number of ports available
+on the platform
+- Reduced console spam if non critical clocks are not found on the platform.
+- Get rid of cpu_is_.. macros from USB host driver.
+
+cheers,
+-roger
+
+--
+Roger Quadros (23):
+  mfd: omap-usb-host: get rid of cpu_is_omap..() macros
+  mfd: omap-usb-tll: Avoid creating copy of platform data
+  mfd: omap-usb-tll: Fix channel count detection
+  mfd: omap-usb-tll: Use devm_kzalloc/ioremap and clean up error path
+  mfd: omap-usb-tll: Clean up clock handling
+  mfd: omap-usb-tll: introduce and use mode_needs_tll()
+  mfd: omap-usb-tll: Check for missing platform data in probe
+  mfd: omap-usb-tll: Fix error message
+  mfd: omap-usb-tll: serialize access to TLL device
+  mfd: omap-usb-tll: Add OMAP5 revision and HSIC support
+  mfd: omap_usb_host: Avoid creating copy of platform_data
+  mfd: omap-usb-host: Use devm_kzalloc() and devm_request_and_ioremap()
+  mfd: omap-usb-host: know about number of ports from revision register
+  mfd: omap-usb-host: override number of ports from platform data
+  mfd: omap-usb-host: cleanup clock management code
+  ARM: OMAP2+: clock data: Merge utmi_px_gfclk into
+    usb_host_hs_utmi_px_clk
+  mfd: omap-usb-host: Manage HSIC clocks for HSIC mode
+  mfd: omap-usb-host: Get rid of unnecessary spinlock
+  mfd: omap-usb-host: clean up omap_usbhs_init()
+  USB: ehci-omap: Don't free gpios that we didn't request
+  ARM: OMAP3: clock data: get rid of unused USB host clock aliases and
+    dummies
+  ARM: OMAP4: clock data: get rid of unused USB host clock aliases
+  mfd: omap-usb-host: Don't spam console on clk_set_parent failure
+
+ arch/arm/mach-omap2/cclock3xxx_data.c  |   13 -
+ arch/arm/mach-omap2/cclock44xx_data.c  |   55 +++--
+ arch/arm/mach-omap2/usb-host.c         |    5 +
+ arch/arm/mach-omap2/usb.h              |    1 +
+ drivers/mfd/omap-usb-host.c            |  474 ++++++++++++++++++--------------
+ drivers/mfd/omap-usb-tll.c             |  244 +++++++++--------
+ drivers/usb/host/ehci-omap.c           |    8 -
+ include/linux/platform_data/usb-omap.h |    4 +
+ 8 files changed, 451 insertions(+), 353 deletions(-)
+
 -- 
 1.7.4.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
