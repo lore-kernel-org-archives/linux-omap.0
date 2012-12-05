@@ -1,70 +1,120 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v6 4/5] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
-Date: Wed, 5 Dec 2012 13:11:14 -0600
-Message-ID: <50BF9C52.8010202@ti.com>
-References: <1354204892-22762-5-git-send-email-zonque@gmail.com> <50B7BE9C.6040506@ti.com> <50B7C677.7090504@ti.com> <50B7C8BE.7050002@gmail.com> <50B7CCB1.6000506@ti.com> <50BF4670.8070602@gmail.com> <20121205171950.GF21682@atomide.com> <50BF83CA.5050007@gmail.com> <20121205174114.GH21682@atomide.com> <50BF9047.6000904@ti.com> <20121205183315.GI21682@atomide.com> <50BF952F.9080406@gmail.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 0/5] OMAP GPMC DT bindings
+Date: Wed, 5 Dec 2012 13:22:32 -0600
+Message-ID: <50BF9EF8.3060507@ti.com>
+References: <1354734571-10774-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47318 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752055Ab2LETLr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Dec 2012 14:11:47 -0500
-In-Reply-To: <50BF952F.9080406@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1354734571-10774-1-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, avinashphilip-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, x0148406@ti.com, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, rob.herring@calxeda.com, avinashphilip@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 
-On 12/05/2012 12:40 PM, Daniel Mack wrote:
-> On 05.12.2012 19:33, Tony Lindgren wrote:
->> * Jon Hunter <jon-hunter@ti.com> [121205 10:22]:
->>>
->>> On 12/05/2012 11:41 AM, Tony Lindgren wrote:
->>>> * Daniel Mack <zonque@gmail.com> [121205 09:29]:
->>>>> On 05.12.2012 18:19, Tony Lindgren wrote:
->>>>>>
->>>>>> The plat/cpu.h file will disappear after the merge window, which means
->>>>>> omap2+ related drivers cannot use cpu_is_omap macros.
->>>>>>
->>>>>> For legacy booting systems, this flag should be just passed in the
->>>>>> platform_data from the platform init code. Then device tree can
->>>>>> deal with it based on the compatible flag.
->>>>>>
->>>>>
->>>>> Ok, thanks for explaining.
->>>>>
->>>>> Does that mean this patch series should be postponed until after the
->>>>> merge window and then build upon that change or should we merge the
->>>>> patch in question here as is and then care for the cleanups after the
->>>>> window?
->>>>
->>>> Well to me it seems that you only have cpu_is_omap usage in
->>>> arch/arm/mach-omap2/gpmc-nand.c, which will be OK. Only the code
->>>> under drivers/* needs to be fixed for that. So your patches may
->>>> be OK, but..
->>>
->>> The real problem here is that drivers/mtd/nand/omap2.c is including
->>> plat/gpmc.h and calling a function in arch/arm/mach-omap/gpmc-nand.c. So
->>> although Daniel's patches are not introducing any new problems for
->>> single zImage, they do highlight a problem that we have with the omap2
->>> nand driver that needs to be addressed for single zImage.
->>>
->>> So either we fix this now or after merging Daniel's changes. Either is
->>> fine with me.
->>
->> Ah I see. Yes it would be good to fix that issue first to avoid
->> adding any new blockers for multiplatform build.
+On 12/05/2012 01:09 PM, Daniel Mack wrote:
+> This is a series of patches to support GPMC peripherals on OMAP boards.
 > 
-> Already fixed by Afzal here:
+> Grant, Rob, could you have a look and give your Acked-by if
+> appropriate?
 > 
-> https://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commitdiff;h=2ef9f3dd
 > 
-> ... which is also in linux-next.
+> Many thanks again,
+> Daniel
+> 
+> 
+> Tested on Linus' master +
+> omap-next (branch omap-for-v3.8/cleanup-headers-gpmc)
+> 
+> Generated from linux-next as of today, resolving one trivial include
+> file rebase conflict.
+> 
+> The only supported peripheral for now is NAND, but other types would be
+> easy to add.
+> 
+> Version 2 addresses details pointed out by Jon Hunter, Afzal Mohammed
+> and Rob Herring:
+> 
+>  - add "reg" and "ti,hwmod" properties to Documentation
+>  - use generic of_mtd functions and the property names defined by them,
+>    namely "nand-bus-width" and "nand-ecc-mode"
+>  - reduce the default register space size in the Documentation to 8K,
+>    as found in the hwmod code
+>  - switch to a DT layout based on ranges and address translation.
+>    Although this property is not currently looked at as long as the
+>    handling code still uses the runtime calculation methods, we now
+>    have these values in the bindings, eventually allowing us to
+>    switch the implementation with less pain.
+> 
+> Version 3 includes fixes pointed out by Jon Hunter:
+> 
+>  - better documentation of the 'ranges' property to describe the
+>    fact that it's representing the CS lines
+>  - GPMC_CS_CONFIGx -> GPMC_CONFIGx in comments
+>  - drop interrupt-parent from example bindings
+>  - add of_node_put() at the end of the child iteration
+> 
+> Version 4 fixes compilation for !CONFIG_MTD_NAND and includes more
+> details from Jon Hunter and Avinash, Philip:
+> 
+>  - Add "num-cs" and "num-waitpins" properties, which will eventually
+>    be used to get rid of GPMC_CS_NUM
+>  - Better description of generic nand DT properties
+>  - Dropped patch 3/4 as an equivalent fix was already merged
+>  - Added ti,nand-ecc-use-elm property
+> 
+> Version 5 with regards to Avinash, Philip and Peter Korsgaard:
+> 
+>  - Re-add accidentially forgotten
+>    Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>  - Rename "software" ecc mode to "sw"
+>  - Initialize gpmc_nand_data->is_elm_used to 'true' rather than 1
+>  - Drop ti,nand-ecc-use-elm binding in favor of a new ecc mode
+>    named "bch8-am335xrbl-compatible"
+>  - Add two more patches for section mismatch fixups
+> 
+> Version 6:
+> 
+>  - Dropped "bch8-am335xrbl-compatible" mode again. As discussed with
+>    Avinash, the ELM issue will be solved subsequently in s separate
+>    series.
+>  - re-added a patch to bail out of automatic GPMC instanciation in
+>    case of DT boot.
+>  - re-added the "of_node" addition in mtd_nand_omap2.h in 2/5
+> 
+> Version 7: comments from Jon Hunter, all affecting the documentation:
+> 
+>  - add num-wait pins properties as they are marked 'required'
+>  - make reg sizes consistent
+>  - AM335x only has 2 wait-pins
+> 
+> Again, many thanks to everybody, in particular Avinash, for the long
+> disussion about how to the these details right in the first place.
+> 
+> 
+> Daniel
+> 
+> Daniel Mack (5):
+>   ARM: OMAP: gpmc: don't create devices from initcall on DT
+>   mtd: omap-nand: pass device_node in platform data
+>   ARM: OMAP: gpmc-nand: drop __init annotation
+>   ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
 
-Great! So we can drop this change.
+Do you still need patch #4 now? Can't we drop this?
+
+May be worth just including what is required for linux-next as this is
+3.9 material.
 
 Cheers
 Jon
