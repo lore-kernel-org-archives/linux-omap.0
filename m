@@ -1,115 +1,90 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Wed, 5 Dec 2012 16:09:55 +0200
-Message-ID: <50BF55B3.1030205@ti.com>
-References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com> <Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org> <20121127170223.GB2687@kroah.com> <CABb+yY3TC3z+jRU91KGX+FKLtJ3ZXUp55-wM_KjxiYuVZ+LL+Q@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v3 23/23] mfd: omap-usb-host: Don't spam console on clk_set_parent
+ failure
+Date: Wed, 5 Dec 2012 16:13:46 +0200
+Message-ID: <50BF569A.1080403@ti.com>
+References: <1354631514-24815-1-git-send-email-rogerq@ti.com> <1354631514-24815-8-git-send-email-rogerq@ti.com> <50BF4F30.4030903@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABb+yY3TC3z+jRU91KGX+FKLtJ3ZXUp55-wM_KjxiYuVZ+LL+Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57551 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753298Ab2LEOOE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Dec 2012 09:14:04 -0500
+In-Reply-To: <50BF4F30.4030903@mvista.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: balbi@ti.com, keshava_mgowda@ti.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Jassi,
-
-On 12/01/2012 09:49 AM, Jassi Brar wrote:
-> On Tue, Nov 27, 2012 at 10:32 PM, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org=
-> wrote:
->> On Tue, Nov 27, 2012 at 11:30:11AM -0500, Alan Stern wrote:
->>>
->>> We should have a more generic solution in a more central location, =
-like
->>> the device core.
->>>
->>> For example, each struct platform_device could have a list of resou=
-rces
->>> to be enabled when the device is bound to a driver and disabled whe=
-n
->>> the device is unbound.  Such a list could include regulators, clock=
-s,
->>> and whatever else people can invent.
->>>
->>> In this case, when it is created the ehci-omap.0 platform device co=
-uld
->>> get an entry pointing to the LAN95xx's regulator.  Then the regulat=
-or
->>> would automatically be turned on when the platform device is bound =
-to
->>> the ehci-omap driver.
->>>
->>> How does this sound?
+On 12/05/2012 03:42 PM, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 04-12-2012 18:31, Roger Quadros wrote:
+> 
+>> clk_set_parent is expected to fail on OMAP3 platforms. We don't
+>> consider that as fatal so don't spam console.
+> 
+>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> ---
+>>   drivers/mfd/omap-usb-host.c |   18 +++++++++---------
+>>   1 files changed, 9 insertions(+), 9 deletions(-)
 >>
->> That sounds much better, and it might come in handy for other types =
-of
->> devices than platform devices, so feel free to put this on the core
->> 'struct device' instead if needed.
+>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+>> index 0bb54393..e5257dc 100644
+>> --- a/drivers/mfd/omap-usb-host.c
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -657,32 +657,32 @@ static int __devinit usbhs_omap_probe(struct
+>> platform_device *pdev)
+>>       }
 >>
-> Isn't enabling/disabling of clocks and regulators what
-> dev.probe()/remove() of any driver already does?
-> If we mean only board specific setup/teardown, still it would mean
-> having the device core to do an extra 'probe' call when the current
-> probe() is already meant to do whatever it takes to bring the device
-> up. To my untrained eyes, it seem like messing with the
-> probe()/remove()'s semantics.
->  IMHO, if we really must implement something like that, may be we
-> should employ some 'broadcast mechanism' so that anything anywhere in
-> kernel knows which new device has been probed()/removed()
-> successfully. I haven't thought exactly how because I am not sure eve=
-n
-> that would be the right way to approach PandaBoard's problem.
->=20
-> Looking at "Figure 15 =E2=80=93 Panda USBB1 Interface Block Diagram" =
-of
-> http://pandaboard.org/sites/default/files/board_reference/pandaboard-=
-es-b/panda-es-b-manual.pdf
-> gives me visions ...
->=20
->  1) OMAP doesn't provide the USB root-hub, but only ULPIPHY. It is
-> USB3320C chip that employs OMAP's ULPIPHY to provide the root-hub. So
-> we should have a platform device for USB3320C, the probe() of which
-> should simply
+>>       if (is_ehci_phy_mode(pdata->port_mode[0])) {
+>> -        /* for OMAP3 , the clk set paretn fails */
+>> +        /* for OMAP3, clk_set_parent fails */
+>>           ret = clk_set_parent(omap->utmi_clk[0],
+>>                       omap->xclk60mhsp1_ck);
+>>           if (ret != 0)
+>> -            dev_err(dev, "xclk60mhsp1_ck set parent"
+>> -                "failed error:%d\n", ret);
+>> +            dev_dbg(dev, "xclk60mhsp1_ck set parent failed : %d\n",
+>> +                    ret);
+>>       } else if (is_ehci_tll_mode(pdata->port_mode[0])) {
+>>           ret = clk_set_parent(omap->utmi_clk[0],
+>>                       omap->init_60m_fclk);
+>>           if (ret != 0)
+>> -            dev_err(dev, "init_60m_fclk set parent"
+>> -                "failed error:%d\n", ret);
+>> +            dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
+>> +                    ret);
+>>       }
+>>
+>>       if (is_ehci_phy_mode(pdata->port_mode[1])) {
+>>           ret = clk_set_parent(omap->utmi_clk[1],
+>>                       omap->xclk60mhsp2_ck);
+>>           if (ret != 0)
+>> -            dev_err(dev, "xclk60mhsp2_ck set parent"
+>> -                    "failed error:%d\n", ret);
+>> +            dev_dbg(dev, "xclk60mhsp2_ck set parent failed : %d\n",
+>> +                    ret);
+>>       } else if (is_ehci_tll_mode(pdata->port_mode[1])) {
+>>           ret = clk_set_parent(omap->utmi_clk[1],
+>>                           omap->init_60m_fclk);
+>>           if (ret != 0)
+>> -            dev_err(dev, "init_60m_fclk set parent"
+>> -                "failed error:%d\n", ret);
+>> +            dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
+>> +                    ret);
+> 
+>    Hm, you sometimes put a space before colon in the error message and
+> sometimes not. Inconsistent. :-)
+> 
 
-Actually the EHCI controller within OMAP provides the root hub with 3
-ports but no PHY. One of them is connected to the USB3320 which is just
-a ULPI PHY.
-
->    a) Enable REFCLK (FREF_CLK3_OUT)
->    b) Reset itself by cycling RESETB (GPIO_62)
->    c) Create one "ehci-omap" platform device
-
-c) is not appropriate. ehci-omap must be created before usb3320.
-
->  (or in appropriate order if the above isn't)
-> That way insmod/rmmod'ing the USB3320C driver would power-up/down the
-> whole subsystem.
-
-Yes, this is where we can think of a generic PHY driver to make sure th=
-y
-PHY has necessary resources enabled. In the Panda case it would be the
-PHY clock and RESET gpio.
-
-The LAN95xx chip still needs to be powered up and the PHY driver isn't
-the right place for that (though it could be done there as a hack). The
-closest we can get to emulating right USB behavior is to map the
-SET/CLEAR PORT_FEATURE of the root hub port to the regulator that power=
-s
-the LAN95xx.
-
-This way, we still don't fall in the dynamically probed space, so we
-could still provide the regulator information to the ehci hub via
-platform data and handle the regulator in ehci_hub_control
-(Set/ClearPortFeature). I'm looking at this as a software workaround fo=
-r
-all platforms not implementing the EHCI set port power feature
-correctly. The same could be repeated for other HCDs as well if require=
-d.
+That was because it fit in 80 characters without the space. I'm not sure
+what is more important, fitting in 80 or consistency in the print
+message. Maybe i should have removed the spaces everywhere so that it is
+consistent as well. :)
 
 cheers,
 -roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
