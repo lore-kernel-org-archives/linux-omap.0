@@ -1,54 +1,45 @@
 From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH v7 4/5] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
-Date: Wed,  5 Dec 2012 20:09:30 +0100
-Message-ID: <1354734571-10774-5-git-send-email-zonque@gmail.com>
+Subject: [PATCH v7 1/5] ARM: OMAP: gpmc: don't create devices from initcall on DT
+Date: Wed,  5 Dec 2012 20:09:27 +0100
+Message-ID: <1354734571-10774-2-git-send-email-zonque@gmail.com>
 References: <1354734571-10774-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:50978 "EHLO mail.zonque.de"
+Received: from svenfoo.org ([82.94.215.22]:50934 "EHLO mail.zonque.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752326Ab2LETJr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Dec 2012 14:09:47 -0500
+	id S1751875Ab2LETJq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Dec 2012 14:09:46 -0500
 In-Reply-To: <1354734571-10774-1-git-send-email-zonque@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, rob.herring@calxeda.com
 Cc: linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, jacmet@sunsite.dk, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>
 
-The am33xx is capable of handling bch error correction modes, so
-enable that feature in the driver.
+On DT driven boards, the gpmc node will match the driver. Hence, there's
+no need to do that unconditionally from the initcall.
 
 Signed-off-by: Daniel Mack <zonque@gmail.com>
 ---
- arch/arm/mach-omap2/gpmc-nand.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/gpmc.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 3059f5e..afc1e8c 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -92,17 +92,18 @@ static int omap2_nand_gpmc_retime(
- static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
- {
- 	/* support only OMAP3 class */
--	if (!cpu_is_omap34xx()) {
-+	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
- 		pr_err("BCH ecc is not supported on this CPU\n");
- 		return 0;
- 	}
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 65468f6..d5cbd29 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1214,6 +1214,13 @@ static int __init omap_gpmc_init(void)
+ 	struct platform_device *pdev;
+ 	char *oh_name = "gpmc";
  
- 	/*
--	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1.
--	 * Other chips may be added if confirmed to work.
-+	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
-+	 * and AM33xx derivates. Other chips may be added if confirmed to work.
- 	 */
- 	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
--	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0))) {
-+	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)) &&
-+	    (!soc_is_am33xx())) {
- 		pr_err("BCH 4-bit mode is not supported on this CPU\n");
- 		return 0;
- 	}
++	/*
++	 * if the board boots up with a populated DT, do not
++	 * manually add the device from this initcall
++	 */
++	if (of_have_populated_dt())
++		return -ENODEV;
++
+ 	oh = omap_hwmod_lookup(oh_name);
+ 	if (!oh) {
+ 		pr_err("Could not look up %s\n", oh_name);
 -- 
 1.7.11.7
 
