@@ -1,90 +1,84 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v3 23/23] mfd: omap-usb-host: Don't spam console on clk_set_parent
- failure
-Date: Wed, 5 Dec 2012 16:13:46 +0200
-Message-ID: <50BF569A.1080403@ti.com>
-References: <1354631514-24815-1-git-send-email-rogerq@ti.com> <1354631514-24815-8-git-send-email-rogerq@ti.com> <50BF4F30.4030903@mvista.com>
+From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 04/23] mfd: omap-usb-tll: Use devm_kzalloc/ioremap
+ and clean up error path
+Date: Wed, 5 Dec 2012 16:17:03 +0200
+Message-ID: <50BF575F.5080602@ti.com>
+References: <1354630396-24545-1-git-send-email-rogerq@ti.com> <1354630396-24545-5-git-send-email-rogerq@ti.com> <50BF5556.4020500@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57551 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753298Ab2LEOOE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Dec 2012 09:14:04 -0500
-In-Reply-To: <50BF4F30.4030903@mvista.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50BF5556.4020500-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, bjorn-yOkvZcmFvRU@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: balbi@ti.com, keshava_mgowda@ti.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 12/05/2012 03:42 PM, Sergei Shtylyov wrote:
+On 12/05/2012 04:08 PM, Sergei Shtylyov wrote:
 > Hello.
 > 
-> On 04-12-2012 18:31, Roger Quadros wrote:
+> On 04-12-2012 18:12, Roger Quadros wrote:
 > 
->> clk_set_parent is expected to fail on OMAP3 platforms. We don't
->> consider that as fatal so don't spam console.
+>> Use devm_ variants of kzalloc() and ioremap(). Simplify the error path.
 > 
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>> Signed-off-by: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
 >> ---
->>   drivers/mfd/omap-usb-host.c |   18 +++++++++---------
->>   1 files changed, 9 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
->> index 0bb54393..e5257dc 100644
->> --- a/drivers/mfd/omap-usb-host.c
->> +++ b/drivers/mfd/omap-usb-host.c
->> @@ -657,32 +657,32 @@ static int __devinit usbhs_omap_probe(struct
->> platform_device *pdev)
->>       }
->>
->>       if (is_ehci_phy_mode(pdata->port_mode[0])) {
->> -        /* for OMAP3 , the clk set paretn fails */
->> +        /* for OMAP3, clk_set_parent fails */
->>           ret = clk_set_parent(omap->utmi_clk[0],
->>                       omap->xclk60mhsp1_ck);
->>           if (ret != 0)
->> -            dev_err(dev, "xclk60mhsp1_ck set parent"
->> -                "failed error:%d\n", ret);
->> +            dev_dbg(dev, "xclk60mhsp1_ck set parent failed : %d\n",
->> +                    ret);
->>       } else if (is_ehci_tll_mode(pdata->port_mode[0])) {
->>           ret = clk_set_parent(omap->utmi_clk[0],
->>                       omap->init_60m_fclk);
->>           if (ret != 0)
->> -            dev_err(dev, "init_60m_fclk set parent"
->> -                "failed error:%d\n", ret);
->> +            dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
->> +                    ret);
->>       }
->>
->>       if (is_ehci_phy_mode(pdata->port_mode[1])) {
->>           ret = clk_set_parent(omap->utmi_clk[1],
->>                       omap->xclk60mhsp2_ck);
->>           if (ret != 0)
->> -            dev_err(dev, "xclk60mhsp2_ck set parent"
->> -                    "failed error:%d\n", ret);
->> +            dev_dbg(dev, "xclk60mhsp2_ck set parent failed : %d\n",
->> +                    ret);
->>       } else if (is_ehci_tll_mode(pdata->port_mode[1])) {
->>           ret = clk_set_parent(omap->utmi_clk[1],
->>                           omap->init_60m_fclk);
->>           if (ret != 0)
->> -            dev_err(dev, "init_60m_fclk set parent"
->> -                "failed error:%d\n", ret);
->> +            dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
->> +                    ret);
+>>   drivers/mfd/omap-usb-tll.c |   37 +++++++++++--------------------------
+>>   1 files changed, 11 insertions(+), 26 deletions(-)
 > 
->    Hm, you sometimes put a space before colon in the error message and
-> sometimes not. Inconsistent. :-)
+>> diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+>> index e67cafc..828207f 100644
+>> --- a/drivers/mfd/omap-usb-tll.c
+>> +++ b/drivers/mfd/omap-usb-tll.c
+> [...]
+>> @@ -230,28 +229,21 @@ static int __devinit usbtll_omap_probe(struct
+>> platform_device *pdev)
+>>       if (IS_ERR(tll->usbtll_p1_fck)) {
+>>           ret = PTR_ERR(tll->usbtll_p1_fck);
+>>           dev_err(dev, "usbtll_p1_fck failed error:%d\n", ret);
+>> -        goto err_tll;
+>> +        return ret;
+>>       }
+>>
+>>       tll->usbtll_p2_fck = clk_get(dev, "usb_tll_hs_usb_ch1_clk");
+>>       if (IS_ERR(tll->usbtll_p2_fck)) {
+>>           ret = PTR_ERR(tll->usbtll_p2_fck);
+>>           dev_err(dev, "usbtll_p2_fck failed error:%d\n", ret);
+>> -        goto err_usbtll_p1_fck;
+>> +        goto err_p2_fck;
+>>       }
+>>
+>>       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> -    if (!res) {
+>> -        dev_err(dev, "usb tll get resource failed\n");
+>> -        ret = -ENODEV;
+>> -        goto err_usbtll_p2_fck;
+>> -    }
+> 
+>    Not clear why you removed the error check...
 > 
 
-That was because it fit in 80 characters without the space. I'm not sure
-what is more important, fitting in 80 or consistency in the print
-message. Maybe i should have removed the spaces everywhere so that it is
-consistent as well. :)
+It is because devm_request_and_ioremap does it for you.
+
+http://lxr.free-electrons.com/source/lib/devres.c#L88
+
+>> -
+>> -    base = ioremap(res->start, resource_size(res));
+>> +    base = devm_request_and_ioremap(dev, res);
+>>       if (!base) {
+>> -        dev_err(dev, "TLL ioremap failed\n");
+>> -        ret = -ENOMEM;
+>> -        goto err_usbtll_p2_fck;
+>> +        ret = -EADDRNOTAVAIL;
+> 
+>    Why you changed this from ENOMEM?
+
+as per the documentation for devm_request_and_ioremap() in the
+same link I sent above.
 
 cheers,
 -roger
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
