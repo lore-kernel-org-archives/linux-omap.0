@@ -1,90 +1,50 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: AM335x: Beaglebone stops to boot with current git kernel
-Date: Tue, 04 Dec 2012 13:39:44 -0800
-Message-ID: <87pq2pa44f.fsf@deeprootsystems.com>
-References: <k80da6$61d$1@ger.gmane.org>
-	<CAORVsuV7y_A4m+pHPoQ9a=Q7b4j-fCutJAFA1L+bqp4BV3kmFg@mail.gmail.com>
-	<20121121183809.GZ18567@atomide.com>
-	<CAK0ocyD25pRcQthN90inWy-95Yaa-B94rw724_uS5Y7FRA4qjQ@mail.gmail.com>
-	<50ADBB5B.7090401@ti.com>
-	<CAK0ocyCe3oJ8ynpNWpzcCFHtG3J4u7NBeNPTJK0GikFHaPAXOA@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83EB7F222@DBDE01.ent.ti.com>
-	<CAK0ocyD7fGzj1GuFP7EhFYqmLv66A0phNrxV6rAL9b9ejPYfvg@mail.gmail.com>
-	<CAD=GYparyZ8kB+pX+SptSaNPHD-Ey9vBC1Q4nDcTKJLenpNK=w@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83EB7FB16@DBDE01.ent.ti.com>
-	<87mwxvathj.fsf@deeprootsystems.com>
-	<79CD15C6BA57404B839C016229A409A83EBA3979@DBDE01.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk
+ into usb_host_hs_utmi_px_clk
+Date: Wed, 5 Dec 2012 05:08:17 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212050506370.11013@utopia.booyaka.com>
+References: <1354631514-24815-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-376312196-1354684097=:11013"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:45906 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752157Ab2LDVjd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Dec 2012 16:39:33 -0500
-Received: by mail-pa0-f46.google.com with SMTP id bh2so3053265pad.19
-        for <linux-omap@vger.kernel.org>; Tue, 04 Dec 2012 13:39:33 -0800 (PST)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EBA3979@DBDE01.ent.ti.com>
-	(Vaibhav Hiremath's message of "Tue, 4 Dec 2012 04:01:30 +0000")
+Received: from utopia.booyaka.com ([74.50.51.50]:56571 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742Ab2LEFIS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Dec 2012 00:08:18 -0500
+In-Reply-To: <1354631514-24815-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Joel A Fernandes <agnel.joel@gmail.com>, Igor Mazanov <i.mazanov@gmail.com>, Tony Lindgren <tony@atomide.com>, Jean Pihet <jean.pihet@newoldbits.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>, Roger Quadros <rogerq@ti.com>, mturquette@gmail.com
+Cc: balbi@ti.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
-"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> On Mon, Dec 03, 2012 at 23:49:36, Kevin Hilman wrote:
->> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
->> 
->> >> >>> +static struct omap_hwmod am33xx_debugss_hwmod = {
->> >> >>> +       .name           = "debugss",
->> >> >>> +       .class          = &am33xx_debugss_hwmod_class,
->> >> >>> +       .clkdm_name     = "l3_aon_clkdm",
->> >> >>> +       .main_clk       = "debugss_ick",
->> >> >>> +       .flags          =  (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
->> >> 
->> >> Setting these flags would still leave the problem where JTAG clocks
->> >> are on when its not required no? In that case, what is the advantage
->> >> of this patch?
->> >> 
->> >
->> > I missed to wrap it around #ifdef CONFIG_DEBUG_KERNEL. I will submit the 
->> > formal patch shortly.
->> 
->> IMO, this should not be handled in the data at all (neither clock nor
->> hwmod), and should be handled at runtime/boot-time, not compile time.
->> 
->
-> Wouldn't that become another interface/control for debug? We already have 
-> various (standard) debug kernel parameters available.
->
-> But I see your point, compile-time option will force users to rebuild kernel 
-> just in order to disable JTAG/Debug clock.
->
->> The solution to this is to rather to have a small bit of code that
->> requests the debugss clocks that are needed for JTAG debug, so the
->> kernel knows they are in use.
->> 
->> That code could then be enabled at boot time via command-line or DT
->> option.
->> 
->
-> In case of command-line, something like below???
->
-> static int __init omap2_debug_clk_enable(char *str)
-> {
-> 	if (!str)
-> 		return 0;
-> 	
-> 	if (!strcmp(str, "debug"))
-> 		<enable debug clock>
->
-> 	return 0;
-> }
-> early_param("debug", omap2_debug_clk_enable);
+--843723315-376312196-1354684097=:11013
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Yes, that's the idea I had in mind.  Though you don't want to override
-"debug" here.  The debug option is specifically about default log levels
-for the console and isn't really related to clocks.
++ Beno=EEt, Mike
 
-Kevin
+Hi Roger,
 
+On Tue, 4 Dec 2012, Roger Quadros wrote:
+
+> There is no such clock as utmi_p1_gfclk. It is only a clock selector
+> bit to select th the parent of usb_host_hs_utmi_p1_clk.
+> So we get rid of utmi_p1_gfclk and utmi_p2_gfclk by merging them into
+> usb_host_hs_utmi_p1_clk and usb_host_hs_utmi_p2_clk respectively.
+>=20
+> CC: Paul Walmsley <paul@pwsan.com>
+> CC: Rajendra Nayak <rnayak@ti.com>
+> CC: Benoit Cousson <b-cousson@ti.com>
+>=20
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
+
+This one needs careful review from Beno=EEt; these were originally=20
+autogenerated, and it would be nice to return to an autogenerated clock=20
+tree for OMAP4...
+
+
+- Paul
+--843723315-376312196-1354684097=:11013--
