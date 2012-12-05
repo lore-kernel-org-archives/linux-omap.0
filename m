@@ -1,363 +1,263 @@
 From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V2 3/6] OMAPDSS: DISPC: Move DISPC specific dss_params to dispc_features
-Date: Wed, 5 Dec 2012 15:46:05 +0530
-Message-ID: <8696421a5bd4032ce250a550e07a75c1b63a0867.1354702077.git.cmahapatra@ti.com>
+Subject: [PATCH V2 4/6] OMAPDSS: DSI: Move DSI specific reg_fields to dsi_feats
+Date: Wed, 5 Dec 2012 15:46:06 +0530
+Message-ID: <55965d940f45ecaf56f5145d7dcc8c28e4c9586f.1354702077.git.cmahapatra@ti.com>
 References: <cover.1354086150.git.cmahapatra@ti.com> <cover.1354702077.git.cmahapatra@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45646 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752101Ab2LEKT5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Dec 2012 05:19:57 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:45621 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752030Ab2LEKUD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Dec 2012 05:20:03 -0500
 In-Reply-To: <cover.1354702077.git.cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-The DISPC specific dss_param_range are moved from struct omap_dss_features to
-corresponding DSS version specific dispc_param_range struct, initialized in
-dispc_features thereby enabling local access. The mgr_width_max and
-mgr_height_max, members of dispc_features, are also moved to dispc_param_range.
+The DSI specific dss_reg_fields are moved to corresponding dsi_reg_fields
+initialized in dsi_feats. The dsi_feats structure is initialized as per
+corresponding DSS version in dsi_init_features().
 
 Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c        |   83 +++++++++++++++++++++++---------
- drivers/video/omap2/dss/dss.h          |    4 ++
- drivers/video/omap2/dss/dss_features.c |   16 ------
- drivers/video/omap2/dss/dss_features.h |    3 --
- 4 files changed, 63 insertions(+), 43 deletions(-)
+ drivers/video/omap2/dss/dsi.c          |  126 +++++++++++++++++++++++++++++---
+ drivers/video/omap2/dss/dss_features.c |   16 ----
+ drivers/video/omap2/dss/dss_features.h |    4 -
+ 3 files changed, 114 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index ee4b152..6a449a5 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -90,6 +90,14 @@ struct dispc_reg_fields {
- 	struct omapdss_reg_field vert_accu;
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index cf32dc7..472cdb4 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -344,6 +344,19 @@ struct dsi_packet_sent_handler_data {
+ 	struct completion *completion;
  };
  
-+struct dispc_param_ranges {
-+	struct omapdss_param_range pcd;
-+	struct omapdss_param_range downscale;
-+	struct omapdss_param_range linewidth;
-+	struct omapdss_param_range mgr_width;
-+	struct omapdss_param_range mgr_height;
++struct dsi_reg_fields {
++	struct omapdss_reg_field regn;
++	struct omapdss_reg_field regm;
++	struct omapdss_reg_field regm_dispc;
++	struct omapdss_reg_field regm_dsi;
 +};
 +
- struct dispc_features {
- 	u8 sw_start;
- 	u8 fp_start;
-@@ -99,8 +107,6 @@ struct dispc_features {
- 	u16 hp_max;
- 	u8 mgr_width_start;
- 	u8 mgr_height_start;
--	u16 mgr_width_max;
--	u16 mgr_height_max;
- 	int (*calc_scaling) (unsigned long pclk, unsigned long lclk,
- 		const struct omap_video_timings *mgr_timings,
- 		u16 width, u16 height, u16 out_width, u16 out_height,
-@@ -122,6 +128,7 @@ struct dispc_features {
- 	u32 burst_size_unit; /* in bytes */
++struct feats {
++	const struct dsi_reg_fields *reg_fields;
++};
++
++static const struct feats *dsi_feat;
++
+ #ifdef DEBUG
+ static bool dsi_perf;
+ module_param(dsi_perf, bool, 0644);
+@@ -1602,8 +1615,8 @@ int dsi_pll_set_clock_div(struct platform_device *dsidev,
+ 	int r = 0;
+ 	u32 l;
+ 	int f = 0;
+-	u8 regn_start, regn_end, regm_start, regm_end;
+-	u8 regm_dispc_start, regm_dispc_end, regm_dsi_start, regm_dsi_end;
++	const struct omapdss_reg_field *regn_field, *regm_field;
++	const struct omapdss_reg_field *regm_dispc_field, *regm_dsi_field;
  
- 	struct dispc_reg_fields *reg_fields;
-+	struct dispc_param_ranges *params;
- };
+ 	DSSDBG("DSI PLL clock config starts");
  
- #define DISPC_MAX_NR_FIFOS 5
-@@ -2159,8 +2166,7 @@ static int dispc_ovl_calc_scaling_24xx(unsigned long pclk, unsigned long lclk,
- 	int error;
- 	u16 in_width, in_height;
- 	int min_factor = min(*decim_x, *decim_y);
--	const int maxsinglelinewidth =
--			dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
-+	const int maxsinglelinewidth = dispc.feat->params->linewidth.max;
+@@ -1645,12 +1658,10 @@ int dsi_pll_set_clock_div(struct platform_device *dsidev,
+ 		dss_feat_get_clk_source_name(OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI),
+ 		cinfo->dsi_pll_hsdiv_dsi_clk);
  
- 	*five_taps = false;
+-	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGN, &regn_start, &regn_end);
+-	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM, &regm_start, &regm_end);
+-	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM_DISPC, &regm_dispc_start,
+-			&regm_dispc_end);
+-	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM_DSI, &regm_dsi_start,
+-			&regm_dsi_end);
++	regn_field = &dsi_feat->reg_fields->regn;
++	regm_field = &dsi_feat->reg_fields->regm;
++	regm_dispc_field = &dsi_feat->reg_fields->regm_dispc;
++	regm_dsi_field = &dsi_feat->reg_fields->regm_dsi;
  
-@@ -2200,8 +2206,7 @@ static int dispc_ovl_calc_scaling_34xx(unsigned long pclk, unsigned long lclk,
- 	int error;
- 	u16 in_width, in_height;
- 	int min_factor = min(*decim_x, *decim_y);
--	const int maxsinglelinewidth =
--			dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
-+	const int maxsinglelinewidth = dispc.feat->params->linewidth.max;
+ 	/* DSI_PLL_AUTOMODE = manual */
+ 	REG_FLD_MOD(dsidev, DSI_PLL_CONTROL, 0, 0, 0);
+@@ -1658,15 +1669,15 @@ int dsi_pll_set_clock_div(struct platform_device *dsidev,
+ 	l = dsi_read_reg(dsidev, DSI_PLL_CONFIGURATION1);
+ 	l = FLD_MOD(l, 1, 0, 0);		/* DSI_PLL_STOPMODE */
+ 	/* DSI_PLL_REGN */
+-	l = FLD_MOD(l, cinfo->regn - 1, regn_start, regn_end);
++	l = FLD_MOD(l, cinfo->regn - 1, regn_field->start, regn_field->end);
+ 	/* DSI_PLL_REGM */
+-	l = FLD_MOD(l, cinfo->regm, regm_start, regm_end);
++	l = FLD_MOD(l, cinfo->regm, regm_field->start, regm_field->end);
+ 	/* DSI_CLOCK_DIV */
+ 	l = FLD_MOD(l, cinfo->regm_dispc > 0 ? cinfo->regm_dispc - 1 : 0,
+-			regm_dispc_start, regm_dispc_end);
++			regm_dispc_field->start, regm_dispc_field->end);
+ 	/* DSIPROTO_CLOCK_DIV */
+ 	l = FLD_MOD(l, cinfo->regm_dsi > 0 ? cinfo->regm_dsi - 1 : 0,
+-			regm_dsi_start, regm_dsi_end);
++			regm_dsi_field->start, regm_dsi_field->end);
+ 	dsi_write_reg(dsidev, DSI_PLL_CONFIGURATION1, l);
  
- 	do {
- 		in_height = DIV_ROUND_UP(height, *decim_y);
-@@ -2266,9 +2271,8 @@ static int dispc_ovl_calc_scaling_44xx(unsigned long pclk, unsigned long lclk,
- 	u16 in_width, in_width_max;
- 	int decim_x_min = *decim_x;
- 	u16 in_height = DIV_ROUND_UP(height, *decim_y);
--	const int maxsinglelinewidth =
--				dss_feat_get_param_max(FEAT_PARAM_LINEWIDTH);
--	const int maxdownscale = dss_feat_get_param_max(FEAT_PARAM_DOWNSCALE);
-+	const int maxsinglelinewidth = dispc.feat->params->linewidth.max;
-+	const int maxdownscale = dispc.feat->params->downscale.max;
- 
- 	if (mem_to_mem) {
- 		in_width_max = out_width * maxdownscale;
-@@ -2306,7 +2310,7 @@ static int dispc_ovl_calc_scaling(unsigned long pclk, unsigned long lclk,
- 		int *x_predecim, int *y_predecim, u16 pos_x,
- 		enum omap_dss_rotation_type rotation_type, bool mem_to_mem)
- {
--	const int maxdownscale = dss_feat_get_param_max(FEAT_PARAM_DOWNSCALE);
-+	const int maxdownscale = dispc.feat->params->downscale.max;
- 	const int max_decim_limit = 16;
- 	unsigned long core_clk = 0;
- 	int decim_x, decim_y, ret;
-@@ -2974,8 +2978,8 @@ void dispc_mgr_set_lcd_config(enum omap_channel channel,
- 
- static bool _dispc_mgr_size_ok(u16 width, u16 height)
- {
--	return width <= dispc.feat->mgr_width_max &&
--		height <= dispc.feat->mgr_height_max;
-+	return width <= dispc.feat->params->mgr_width.max &&
-+		height <= dispc.feat->params->mgr_height.max;
+ 	BUG_ON(cinfo->fint < dsi->fint_min || cinfo->fint > dsi->fint_max);
+@@ -5198,6 +5209,93 @@ static void __exit dsi_uninit_output(struct platform_device *dsidev)
+ 	dss_unregister_output(out);
  }
  
- static bool _dispc_lcd_timings_ok(int hsw, int hfp, int hbp,
-@@ -3547,8 +3551,8 @@ void dispc_find_clk_divs(unsigned long req_pck, unsigned long fck,
- 	u16 best_ld, cur_ld;
- 	u16 best_pd, cur_pd;
- 
--	pcd_min = dss_feat_get_param_min(FEAT_PARAM_DSS_PCD);
--	pcd_max = dss_feat_get_param_max(FEAT_PARAM_DSS_PCD);
-+	pcd_min = dispc.feat->params->pcd.min;
-+	pcd_max = dispc.feat->params->pcd.max;
- 
- 	best_pck = 0;
- 	best_ld = 0;
-@@ -4099,6 +4103,42 @@ static struct dispc_reg_fields omap5_dispc_reg_fields = {
- 	.vert_accu		=	{ 26, 16 },
- };
- 
-+static struct dispc_param_ranges omap2_dispc_param_ranges = {
-+	.pcd			=	{ 2,  255 },
-+	.downscale		=	{ 1,    2 },
-+	/*
-+	 * Assuming the line width buffer to be 768 pixels as OMAP2 DISPC
-+	 * scaler cannot scale a image with width more than 768.
-+	 */
-+	.linewidth		=	{ 1,  768 },
-+	.mgr_width		=	{ 1, 2048 },
-+	.mgr_height		=	{ 1, 2048 },
++static struct dsi_reg_fields omap2_dsi_reg_fields = {
++	.regn			=	{ 0, 0 },
++	.regm			=	{ 0, 0 },
++	.regm_dispc		=	{ 0, 0 },
++	.regm_dsi		=	{ 0, 0 },
 +};
 +
-+static struct dispc_param_ranges omap3_dispc_param_ranges = {
-+	.pcd			=	{ 1,  255 },
-+	.downscale		=	{ 1,    4 },
-+	.linewidth		=	{ 1, 1024 },
-+	.mgr_width		=	{ 1, 2048 },
-+	.mgr_height		=	{ 1, 2048 },
++static struct dsi_reg_fields omap3_dsi_reg_fields = {
++	.regn			=	{  7,  1 },
++	.regm			=	{ 18,  8 },
++	.regm_dispc		=	{ 22, 19 },
++	.regm_dsi		=	{ 26, 23 },
 +};
 +
-+static struct dispc_param_ranges omap4_dispc_param_ranges = {
-+	.pcd			=	{ 1,  255 },
-+	.downscale		=	{ 1,    4 },
-+	.linewidth		=	{ 1, 2048 },
-+	.mgr_width		=	{ 1, 2048 },
-+	.mgr_height		=	{ 1, 2048 },
++static struct dsi_reg_fields omap4_dsi_reg_fields = {
++	.regn			=	{  8,  1 },
++	.regm			=	{ 20,  9 },
++	.regm_dispc		=	{ 25, 21 },
++	.regm_dsi		=	{ 30, 26 },
 +};
 +
-+static struct dispc_param_ranges omap5_dispc_param_ranges = {
-+	.pcd			=	{ 1,  255 },
-+	.downscale		=	{ 1,    4 },
-+	.linewidth		=	{ 1, 2048 },
-+	.mgr_width		=	{ 1, 2048 },
-+	.mgr_height		=	{ 1, 2048 },
++static struct dsi_reg_fields omap5_dsi_reg_fields = {
++	.regn			=	{  8,  1 },
++	.regm			=	{ 20,  9 },
++	.regm_dispc		=	{ 25, 21 },
++	.regm_dsi		=	{ 30, 26 },
 +};
 +
- static const struct dispc_features omap24xx_dispc_feats __initconst = {
- 	.sw_start		=	5,
- 	.fp_start		=	15,
-@@ -4108,8 +4148,6 @@ static const struct dispc_features omap24xx_dispc_feats __initconst = {
- 	.hp_max			=	256,
- 	.mgr_width_start	=	10,
- 	.mgr_height_start	=	26,
--	.mgr_width_max		=	2048,
--	.mgr_height_max		=	2048,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_24xx,
- 	.calc_core_clk		=	calc_core_clk_24xx,
- 	.num_fifos		=	3,
-@@ -4117,6 +4155,7 @@ static const struct dispc_features omap24xx_dispc_feats __initconst = {
- 	.buffer_size_unit	=	1,
- 	.burst_size_unit	=	8,
- 	.reg_fields		=	&omap2_dispc_reg_fields,
-+	.params			=	&omap2_dispc_param_ranges,
- };
- 
- static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
-@@ -4128,8 +4167,6 @@ static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
- 	.hp_max			=	256,
- 	.mgr_width_start	=	10,
- 	.mgr_height_start	=	26,
--	.mgr_width_max		=	2048,
--	.mgr_height_max		=	2048,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
- 	.calc_core_clk		=	calc_core_clk_34xx,
- 	.num_fifos		=	3,
-@@ -4137,6 +4174,7 @@ static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
- 	.buffer_size_unit	=	1,
- 	.burst_size_unit	=	8,
- 	.reg_fields		=	&omap3_dispc_reg_fields,
-+	.params			=	&omap3_dispc_param_ranges,
- };
- 
- static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
-@@ -4148,8 +4186,6 @@ static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
- 	.hp_max			=	4096,
- 	.mgr_width_start	=	10,
- 	.mgr_height_start	=	26,
--	.mgr_width_max		=	2048,
--	.mgr_height_max		=	2048,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
- 	.calc_core_clk		=	calc_core_clk_34xx,
- 	.num_fifos		=	3,
-@@ -4157,6 +4193,7 @@ static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
- 	.buffer_size_unit	=	1,
- 	.burst_size_unit	=	8,
- 	.reg_fields		=	&omap3_dispc_reg_fields,
-+	.params			=	&omap3_dispc_param_ranges,
- };
- 
- static const struct dispc_features omap44xx_dispc_feats __initconst = {
-@@ -4168,8 +4205,6 @@ static const struct dispc_features omap44xx_dispc_feats __initconst = {
- 	.hp_max			=	4096,
- 	.mgr_width_start	=	10,
- 	.mgr_height_start	=	26,
--	.mgr_width_max		=	2048,
--	.mgr_height_max		=	2048,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_44xx,
- 	.calc_core_clk		=	calc_core_clk_44xx,
- 	.num_fifos		=	5,
-@@ -4177,6 +4212,7 @@ static const struct dispc_features omap44xx_dispc_feats __initconst = {
- 	.buffer_size_unit	=	16,
- 	.burst_size_unit	=	16,
- 	.reg_fields		=	&omap4_dispc_reg_fields,
-+	.params			=	&omap4_dispc_param_ranges,
- };
- 
- static const struct dispc_features omap54xx_dispc_feats __initconst = {
-@@ -4188,8 +4224,6 @@ static const struct dispc_features omap54xx_dispc_feats __initconst = {
- 	.hp_max			=	4096,
- 	.mgr_width_start	=	11,
- 	.mgr_height_start	=	27,
--	.mgr_width_max		=	4096,
--	.mgr_height_max		=	4096,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_44xx,
- 	.calc_core_clk		=	calc_core_clk_44xx,
- 	.num_fifos		=	5,
-@@ -4197,6 +4231,7 @@ static const struct dispc_features omap54xx_dispc_feats __initconst = {
- 	.buffer_size_unit	=	16,
- 	.burst_size_unit	=	16,
- 	.reg_fields		=	&omap5_dispc_reg_fields,
-+	.params			=	&omap5_dispc_param_ranges,
- };
- 
- static int __init dispc_init_features(struct platform_device *pdev)
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 18842e2..0b68001 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -147,6 +147,10 @@ struct omapdss_reg_field {
- 	u8 start, end;
- };
- 
-+struct omapdss_param_range {
-+	int min, max;
++static const struct feats omap24xx_dsi_feats __initconst = {
++	.reg_fields		=	&omap2_dsi_reg_fields,
 +};
 +
- struct dss_lcd_mgr_config {
- 	enum dss_io_pad_mode io_pad_mode;
++static const struct feats omap34xx_dsi_feats __initconst = {
++	.reg_fields		=	&omap3_dsi_reg_fields,
++};
++
++static const struct feats omap44xx_dsi_feats __initconst = {
++	.reg_fields		=	&omap4_dsi_reg_fields,
++};
++
++static const struct feats omap54xx_dsi_feats __initconst = {
++	.reg_fields		=	&omap5_dsi_reg_fields,
++};
++
++static int __init dsi_init_features(struct platform_device *dsidev)
++{
++	const struct feats *src;
++	struct feats *dst;
++
++	dst = devm_kzalloc(&dsidev->dev, sizeof(*dst), GFP_KERNEL);
++	if (!dst) {
++		dev_err(&dsidev->dev, "Failed to allocate DISPC Features\n");
++		return -ENOMEM;
++	}
++
++	switch (omapdss_get_version()) {
++	case OMAPDSS_VER_OMAP24xx:
++		src = &omap24xx_dsi_feats;
++		break;
++
++	case OMAPDSS_VER_OMAP34xx_ES1:
++	case OMAPDSS_VER_OMAP34xx_ES3:
++	case OMAPDSS_VER_OMAP3630:
++	case OMAPDSS_VER_AM35xx:
++		src = &omap34xx_dsi_feats;
++		break;
++
++	case OMAPDSS_VER_OMAP4430_ES1:
++	case OMAPDSS_VER_OMAP4430_ES2:
++	case OMAPDSS_VER_OMAP4:
++		src = &omap44xx_dsi_feats;
++		break;
++
++	case OMAPDSS_VER_OMAP5:
++		src = &omap54xx_dsi_feats;
++		break;
++
++	default:
++		return -ENODEV;
++	}
++
++	memcpy(dst, src, sizeof(*dst));
++	dsi_feat = dst;
++
++	return 0;
++}
++
+ /* DSI1 HW IP initialisation */
+ static int __init omap_dsihw_probe(struct platform_device *dsidev)
+ {
+@@ -5206,6 +5304,10 @@ static int __init omap_dsihw_probe(struct platform_device *dsidev)
+ 	struct resource *dsi_mem;
+ 	struct dsi_data *dsi;
  
++	r = dsi_init_features(dsidev);
++	if (r)
++		return r;
++
+ 	dsi = devm_kzalloc(&dsidev->dev, sizeof(*dsi), GFP_KERNEL);
+ 	if (!dsi)
+ 		return -ENOMEM;
 diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index defdfc0..3a9d1df 100644
+index 3a9d1df..8e6defb 100644
 --- a/drivers/video/omap2/dss/dss_features.c
 +++ b/drivers/video/omap2/dss/dss_features.c
-@@ -385,24 +385,16 @@ static const char * const omap5_dss_clk_source_names[] = {
+@@ -61,34 +61,18 @@ static const struct omap_dss_features *omap_current_dss_features;
  
- static const struct dss_param_range omap2_dss_param_range[] = {
- 	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
--	[FEAT_PARAM_DSS_PCD]			= { 2, 255 },
- 	[FEAT_PARAM_DSIPLL_REGN]		= { 0, 0 },
- 	[FEAT_PARAM_DSIPLL_REGM]		= { 0, 0 },
- 	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, 0 },
- 	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, 0 },
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 0, 0 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, 0 },
--	[FEAT_PARAM_DOWNSCALE]			= { 1, 2 },
--	/*
--	 * Assuming the line width buffer to be 768 pixels as OMAP2 DISPC
--	 * scaler cannot scale a image with width more than 768.
--	 */
--	[FEAT_PARAM_LINEWIDTH]			= { 1, 768 },
+ static const struct dss_reg_field omap2_dss_reg_fields[] = {
+ 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 0, 0 },
+-	[FEAT_REG_DSIPLL_REGN]			= { 0, 0 },
+-	[FEAT_REG_DSIPLL_REGM]			= { 0, 0 },
+-	[FEAT_REG_DSIPLL_REGM_DISPC]		= { 0, 0 },
+-	[FEAT_REG_DSIPLL_REGM_DSI]		= { 0, 0 },
  };
  
- static const struct dss_param_range omap3_dss_param_range[] = {
- 	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
--	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
- 	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 7) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 11) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 4) - 1 },
-@@ -410,13 +402,10 @@ static const struct dss_param_range omap3_dss_param_range[] = {
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 750000, 2100000 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 1, (1 << 13) - 1},
- 	[FEAT_PARAM_DSI_FCK]			= { 0, 173000000 },
--	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
--	[FEAT_PARAM_LINEWIDTH]			= { 1, 1024 },
+ static const struct dss_reg_field omap3_dss_reg_fields[] = {
+ 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 0, 0 },
+-	[FEAT_REG_DSIPLL_REGN]			= { 7, 1 },
+-	[FEAT_REG_DSIPLL_REGM]			= { 18, 8 },
+-	[FEAT_REG_DSIPLL_REGM_DISPC]		= { 22, 19 },
+-	[FEAT_REG_DSIPLL_REGM_DSI]		= { 26, 23 },
  };
  
- static const struct dss_param_range omap4_dss_param_range[] = {
- 	[FEAT_PARAM_DSS_FCK]			= { 0, 186000000 },
--	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
- 	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 8) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 12) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 5) - 1 },
-@@ -424,13 +413,10 @@ static const struct dss_param_range omap4_dss_param_range[] = {
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
- 	[FEAT_PARAM_DSI_FCK]			= { 0, 170000000 },
--	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
--	[FEAT_PARAM_LINEWIDTH]			= { 1, 2048 },
+ static const struct dss_reg_field omap4_dss_reg_fields[] = {
+ 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 9, 8 },
+-	[FEAT_REG_DSIPLL_REGN]			= { 8, 1 },
+-	[FEAT_REG_DSIPLL_REGM]			= { 20, 9 },
+-	[FEAT_REG_DSIPLL_REGM_DISPC]		= { 25, 21 },
+-	[FEAT_REG_DSIPLL_REGM_DSI]		= { 30, 26 },
  };
  
- static const struct dss_param_range omap5_dss_param_range[] = {
- 	[FEAT_PARAM_DSS_FCK]			= { 0, 200000000 },
--	[FEAT_PARAM_DSS_PCD]			= { 1, 255 },
- 	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 8) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 12) - 1 },
- 	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 5) - 1 },
-@@ -438,8 +424,6 @@ static const struct dss_param_range omap5_dss_param_range[] = {
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
- 	[FEAT_PARAM_DSI_FCK]			= { 0, 170000000 },
--	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
--	[FEAT_PARAM_LINEWIDTH]			= { 1, 2048 },
+ static const struct dss_reg_field omap5_dss_reg_fields[] = {
+ 	[FEAT_REG_DISPC_CLK_SWITCH]		= { 9, 7 },
+-	[FEAT_REG_DSIPLL_REGN]			= { 8, 1 },
+-	[FEAT_REG_DSIPLL_REGM]			= { 20, 9 },
+-	[FEAT_REG_DSIPLL_REGM_DISPC]		= { 25, 21 },
+-	[FEAT_REG_DSIPLL_REGM_DSI]		= { 30, 26 },
  };
  
- static const enum dss_feat_id omap2_dss_feat_list[] = {
+ static const enum omap_display_type omap2_dss_supported_displays[] = {
 diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 42a1bd1..40b98ff 100644
+index 40b98ff..3e82404 100644
 --- a/drivers/video/omap2/dss/dss_features.h
 +++ b/drivers/video/omap2/dss/dss_features.h
-@@ -81,7 +81,6 @@ enum dss_feat_reg_field {
- 
- enum dss_range_param {
- 	FEAT_PARAM_DSS_FCK,
--	FEAT_PARAM_DSS_PCD,
- 	FEAT_PARAM_DSIPLL_REGN,
- 	FEAT_PARAM_DSIPLL_REGM,
- 	FEAT_PARAM_DSIPLL_REGM_DISPC,
-@@ -89,8 +88,6 @@ enum dss_range_param {
- 	FEAT_PARAM_DSIPLL_FINT,
- 	FEAT_PARAM_DSIPLL_LPDIV,
- 	FEAT_PARAM_DSI_FCK,
--	FEAT_PARAM_DOWNSCALE,
--	FEAT_PARAM_LINEWIDTH,
+@@ -73,10 +73,6 @@ enum dss_feat_id {
+ /* DSS register field id */
+ enum dss_feat_reg_field {
+ 	FEAT_REG_DISPC_CLK_SWITCH,
+-	FEAT_REG_DSIPLL_REGN,
+-	FEAT_REG_DSIPLL_REGM,
+-	FEAT_REG_DSIPLL_REGM_DISPC,
+-	FEAT_REG_DSIPLL_REGM_DSI,
  };
  
- /* DSS Feature Functions */
+ enum dss_range_param {
 -- 
 1.7.10
 
