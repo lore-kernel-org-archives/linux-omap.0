@@ -1,71 +1,84 @@
-From: "Kasatkin, Dmitry" <dmitry.kasatkin@intel.com>
-Subject: Re: [PATCH 0/7] crypto: omap-aes updates
-Date: Wed, 5 Dec 2012 12:28:46 +0200
-Message-ID: <CALLzPKaR8W+T1BfdzYVPE37sMna5OZBLn-JzpF+d5wufNX6_yQ@mail.gmail.com>
-References: <1353351832-6685-1-git-send-email-mgreer@animalcreek.com>
-	<CALLzPKZ20iQXGw9k4sxiVW0VOTdV5pw6Gz8W8V4SRpe=qVY+4w@mail.gmail.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: [PATCH v3 1/3] mtd: nand: omap2: Update nerrors using ecc.strength
+Date: Wed, 5 Dec 2012 17:33:37 +0530
+Message-ID: <50BF3819.9010200@ti.com>
+References: <1354189595-12784-1-git-send-email-avinashphilip@ti.com> <1354189595-12784-2-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <CALLzPKZ20iQXGw9k4sxiVW0VOTdV5pw6Gz8W8V4SRpe=qVY+4w@mail.gmail.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-crypto@vger.kernel.org, herbert@gondor.apana.org.au, davem@davemloft.net, rmk+kernel@arm.linux.org.uk, paul@pwsan.com, khilman@deeprootsystems.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1354189595-12784-2-git-send-email-avinashphilip@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Philip, Avinash" <avinashphilip@ti.com>
+Cc: dwmw2@infradead.org, artem.bityutskiy@linux.intel.com, afzal@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, rmk+kernel@arm.linux.org.uk, gregkh@linuxfoundation.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, gururaja.hebbar@ti.com, ivan.djelic@parrot.com
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+Hi Avinash,
 
-I am not working on OMAP anymore and not able to test anything.
-But in general changes are OK for me.
+On 11/29/2012 5:16 PM, Philip, Avinash wrote:
+> Update number of errors using nand ecc strength.
+> Also add macro definitions BCH8_ERROR_MAX & BCH4_ERROR_MAX
 
-- Dmitry
+Can you please describe why the original method of setting nerrors was
+incorrect? Was it causing any issues in any particular configuration?
+Mentioning this will help maintainers assign priority to your patch. If
+this is a real bug affecting existing platforms, then there is a chance
+this patch can get into v3.7 (or at least into v3.8-rc1).
 
+Like Peter who commented on this before, I am not a fan of using macros
+for self-describing constants - especially when you end up using the
+same numbers inside the macro name itself. No need to resend any thing
+just for this, you can wait to see if the maintainers are okay with it.
 
-On Tue, Nov 20, 2012 at 2:08 PM, Kasatkin, Dmitry
-<dmitry.kasatkin@intel.com> wrote:
-> Great. You also worked on AES...
-> Will take a loos asap.
->
-> On Mon, Nov 19, 2012 at 9:03 PM, Mark A. Greer <mgreer@animalcreek.com> wrote:
->> From: "Mark A. Greer" <mgreer@animalcreek.com>
->>
->> This series updates the crypto omap-aes driver and supporting
->> infrastructure.
->>
->> Notes:
->>
->> a) Based on omap-sham patches recently submitted, XXX
->>
->> b) Since these patches will likely go though the OMAP tree (and not
->>    through the crypto tree), it would be nice if the crypto guy(s)
->>    would ACK or NACK patches 4-7 which modify the
->>    drivers/crypto/omap-sham.c driver.
->>
->> c) These have only been tested on an omap2420 h4 and an am37x evm.
->>
->> d) Many thanks to Jon Hunter for testing on his omap2420 h4.
->>
->> Mark A. Greer (7):
->>   ARM: OMAP2xxx: hwmod: Convert AES crypto devcie data to hwmod
->>   ARM: OMAP3xxx: hwmod: Convert AES crypto device data to hwmod
->>   ARM: OMAP2+: Remove unnecessary message when no AES IP is present
->>   crypto: omap-aes: Remove cpu_is/omap_type check from driver
->>   crypto: omap-aes: Convert to use pm_runtime API
->>   crypto: omap-aes: Add code to use dmaengine API
->>   crypto: omap-aes: Remove usage of private DMA API
->>
->>  arch/arm/mach-omap2/clock2430_data.c               |   1 +
->>  arch/arm/mach-omap2/clock3xxx_data.c               |   1 +
->>  arch/arm/mach-omap2/devices.c                      |  75 +-------
->>  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   1 +
->>  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   1 +
->>  .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |  18 ++
->>  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  38 ++++
->>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  62 +++++++
->>  arch/arm/mach-omap2/omap_hwmod_common_data.h       |   2 +
->>  drivers/crypto/omap-aes.c                          | 202 ++++++++++++---------
->>  10 files changed, 251 insertions(+), 150 deletions(-)
->>
->> --
->> 1.7.12
->>
+Thanks,
+Sekhar
+
+> 
+> Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+> ---
+> :100644 100644 359293e... 7e61dac... M	drivers/mtd/nand/omap2.c
+>  drivers/mtd/nand/omap2.c |   12 ++++++++----
+>  1 files changed, 8 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 359293e..7e61dac 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -118,6 +118,9 @@
+>  
+>  #define OMAP24XX_DMA_GPMC		4
+>  
+> +#define BCH8_MAX_ERROR		8	/* upto 8 bit correctable */
+> +#define BCH4_MAX_ERROR		4	/* upto 4 bit correctable */
+> +
+>  /* oob info generated runtime depending on ecc algorithm and layout selected */
+>  static struct nand_ecclayout omap_oobinfo;
+>  /* Define some generic bad / good block scan pattern which are used
+> @@ -1042,7 +1045,7 @@ static void omap3_enable_hwecc_bch(struct mtd_info *mtd, int mode)
+>  	struct nand_chip *chip = mtd->priv;
+>  	u32 val;
+>  
+> -	nerrors = (info->nand.ecc.bytes == 13) ? 8 : 4;
+> +	nerrors = info->nand.ecc.strength;
+>  	dev_width = (chip->options & NAND_BUSWIDTH_16) ? 1 : 0;
+>  	nsectors = 1;
+>  	/*
+> @@ -1219,13 +1222,14 @@ static int omap3_init_bch(struct mtd_info *mtd, int ecc_opt)
+>  	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
+>  						   mtd);
+>  #ifdef CONFIG_MTD_NAND_OMAP_BCH8
+> -	const int hw_errors = 8;
+> +	const int hw_errors = BCH8_MAX_ERROR;
+>  #else
+> -	const int hw_errors = 4;
+> +	const int hw_errors = BCH4_MAX_ERROR;
+>  #endif
+>  	info->bch = NULL;
+>  
+> -	max_errors = (ecc_opt == OMAP_ECC_BCH8_CODE_HW) ? 8 : 4;
+> +	max_errors = (ecc_opt == OMAP_ECC_BCH8_CODE_HW) ?
+> +		BCH8_MAX_ERROR : BCH4_MAX_ERROR;
+>  	if (max_errors != hw_errors) {
+>  		pr_err("cannot configure %d-bit BCH ecc, only %d-bit supported",
+>  		       max_errors, hw_errors);
+> 
