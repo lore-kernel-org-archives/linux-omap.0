@@ -1,77 +1,62 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: [RFC PATCH 4/5] arm: omap2: support port power on lan95xx devices
-Date: Thu, 06 Dec 2012 02:00:51 +0100
-Message-ID: <4021362.qnrKDZ6JS9@vostro.rjw.lan>
-References: <Pine.LNX.4.44L0.1212041150430.1800-100000@iolanthe.rowland.org>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [RFC PATCH 1/5] Device Power: introduce power controller
+Date: Thu, 6 Dec 2012 09:27:11 +0800
+Message-ID: <CACVXFVOiu5+M3A14Q-U2FiHYrBjAswp4Jv+Aybs_kV9DiWNHZw@mail.gmail.com>
+References: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
+	<1354460467-28006-2-git-send-email-tom.leiming@gmail.com>
+	<50BB7BA9.4090902@linaro.org>
+	<CACVXFVNfGZRE4y0+LpBixiMab2=QhOKCcRG_QEz-u7ZwuPnMvQ@mail.gmail.com>
+	<50BF7B30.9050904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1212041150430.1800-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux-pm mailing list <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <50BF7B30.9050904@ti.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Andy Green <andy.green@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lan Tianyu <tianyu.lan@intel.com>, Sarah Sharp <sarah.a.sharp@linux.intel.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org, Oliver Neukum <oneukum@suse.de>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Dec 6, 2012 at 12:49 AM, Roger Quadros <rogerq@ti.com> wrote:
+> On 12/03/2012 05:00 AM, Ming Lei wrote:
+>> On Mon, Dec 3, 2012 at 12:02 AM, Andy Green <andy.green@linaro.org> wrote:
+>>> On 02/12/12 23:01, the mail apparently from Ming Lei included:
+>>>
+>>>> Power controller is an abstract on simple power on/off switch.
+>>>>
+>>>> One power controller can bind to more than one device, which
+>>>> provides power logically, for example, we can think one usb port
+>>>> in hub provides power to the usb device attached to the port, even
+>>>> though the power is supplied actually by other ways, eg. the usb
+>>>> hub is a self-power device. From hardware view, more than one
+>>>> device can share one power domain, and power controller can power
+>>>> on if one of these devices need to provide power, and power off if
+>>>> all these devices don't need to provide power.
+>>>
+>>>
+>>> What stops us using struct regulator here?  If you have child regulators
+>>> supplied by a parent supply, isn't that the right semantic already without
+>>> introducing a whole new thing?  Apologies if I missed the point.
+>>
+>> There are two purposes:
+>>
+>> One is to hide the implementation details of the power controller because
+>> the user doesn't care how it is implemented, maybe clock, regulator, gpio
+>> and other platform dependent stuffs involved, so the patch simplify the usage
+>> from the view of users.
+>>
+>
+> Which user are you talking about?
 
-Well, I'm not any less busy than yesterday, as it turns out, but I'm expecting
-that to continue tomorrow, so I may as well have a look at it now. :-)
+Here it is the usb port device.
 
-On Tuesday, December 04, 2012 12:10:32 PM Alan Stern wrote:
-> [CC: list trimmed; the people who were on it should be subscribed to at 
-> least one of the lists anyway.]
-> 
+At least, there are many boards which have hardwired and self-powered usb
+devices, so in theory they can benefits from the power controller.  Maybe
+only regulator and clock can't be covered completely for other boards.
 
-[...]
+The patch can make usb port deal with the 'power controller' only, and make it
+avoid to deal with regulators/clocks/... directly.
 
-> 
-> > Not only regulators involved, clock or other things might be involved too.
-> > Also the same power domain might be shared with more than one port,
-> > so it is better to introduce power domain to the problem. Looks
-> > generic_pm_domain is overkill, so I introduced power controller which
-> > only focuses on power on/off and being shared by multiple devices.   
-> 
-> Even though it is overkill, it may be better than introducing a new 
-> abstraction.  After all, this is exactly the sort of thing that PM 
-> domains were originally created to handle.
-> 
-> Rafael, do you have any advice on this?  The generic_pm_domain 
-> structure is fairly complicated, there's a lot of code in 
-> drivers/base/power/domain.c (it's the biggest source file in its 
-> directory), and I'm not aware of any documentation.
-
-Yeah, documentation is missing, which obviously is my fault.
-
-That code is designed to cover the case in which multiple devices share
-a "power switch" that can be used to remove power from all of them at
-once (eg. through a register write).  It also assumes that there will
-be a "stop" operation, such as "disable clock", allowing each device in
-the domain to be put into a shallow low-power state (individually) without
-the necessity to save its state.  Device states only have to be saved
-when the "power switch" is about to be used, which generally happens
-when they all have been "stopped" (their runtime PM status is RPM_SUSPENDED).
-
-The "stop" operation may be defined in a different way for each device in the
-domain (actually, that applies to the "save state", "restore state", and
-"start" - opposite to "stop" - operations too) and PM QoS latency constraints
-are used to decide if and when to turn the whole domain off.  Moreover, it
-supports hierarchies of power domains that may be pretty much arbitarily
-complicated.
-
-A big part of this code is for the handling of system suspend/resume
-in such a way that it is consistent with runtime PM.
-
-For USB ports I'd recommend to use something simpler. :-)
 
 Thanks,
-Rafael
-
-
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ming Lei
