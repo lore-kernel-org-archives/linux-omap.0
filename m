@@ -1,41 +1,121 @@
-From: Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] Device Power: introduce power controller
-Date: Thu, 6 Dec 2012 20:20:04 +0530
-Message-ID: <CAJe_Zhe7f1_esKw3EaNkONcKihv4r-nftr67LRH8mcN=oY6T_Q@mail.gmail.com>
-References: <1354460467-28006-1-git-send-email-tom.leiming@gmail.com>
-	<1354460467-28006-2-git-send-email-tom.leiming@gmail.com>
-	<50BB7BA9.4090902@linaro.org>
-	<CACVXFVNfGZRE4y0+LpBixiMab2=QhOKCcRG_QEz-u7ZwuPnMvQ@mail.gmail.com>
-	<50BF7B30.9050904@ti.com>
-	<CACVXFVOiu5+M3A14Q-U2FiHYrBjAswp4Jv+Aybs_kV9DiWNHZw@mail.gmail.com>
-	<CAJe_ZhcUV7mYaNSEw1kLe8-Ym6RcVEab-1-ZZMT20xsWAb=szQ@mail.gmail.com>
-	<CACVXFVMKYAANsNJKBZ90ThaJ7KNOTzpyvARGnNcHsVVczxyO4A@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC PATCH 4/5] arm: omap2: support port power on lan95xx devices
+Date: Thu, 6 Dec 2012 10:25:25 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1212061012570.1383-100000@iolanthe.rowland.org>
+References: <50BFE159.1010009@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CACVXFVMKYAANsNJKBZ90ThaJ7KNOTzpyvARGnNcHsVVczxyO4A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Lan Tianyu <tianyu.lan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oliver Neukum <oneukum-l3A5Bk7waGM@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <50BFE159.1010009@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Andy Green <andy.green@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ming Lei <tom.leiming@gmail.com>, Linux-pm mailing list <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 6 December 2012 18:48, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Thu, Dec 6, 2012 at 11:46 AM, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
->>> The patch can make usb port deal with the 'power controller' only, and make it
->>> avoid to deal with regulators/clocks/... directly.
->>>
->> I am curious too, except for clocks and voltage supplies (regulators),
->> what other external resources does a chip need ?
->
-> For example, one indicator LED which doesn't connect to the same power
-> domain might need to be triggered after the power switch state is changed.
->
-Hmm.. I am not sure if we could call an indicator LED a resource that
-a chip needs to be functional. Isn't how mmc core manages the
-indicator led, a better way?
+On Thu, 6 Dec 2012, Andy Green wrote:
 
-cheers.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Right.  The question is should it be done in this somewhat roundabout
+> > way (you've got two separate assets for setting up this one thing), or
+> > should the USB port code be responsible for explicitly checking if
+> > there are any applicable assets when the port is created?
+> >
+> > The advantange of the second approach is that it doesn't involve
+> > checking all the ancestors every time a new device is added (and it
+> > involves only one asset).  The disadvantage is that it works only for
+> > USB ports.
+> 
+> It's done in two steps to strongly filter candidate child devices 
+> against being children of a known platform device.  If you go around 
+> that, you will be back to full device path matching with wildcards at 
+> the USB child to determine if he is "the one".  So that's a feature not 
+> an issue I think.
+
+I don't follow.  Suppose an asset is attached to ehci-omap.0 with its
+string set to "-0:1.0/port1" and the other members pointing to the
+regulator, clock and so on.  And suppose the USB port code, when
+creating a new port, checks for a name match against all the assets
+attached to its bus's host controller device structure.  That should
+do exactly what you want while using only one asset.
+
+> I can see doing it generically or not is equally a political issue as a 
+> technical one, but I think if we bother to add this kind of support we 
+> should prefer to do it generally.  It's going to be about the same 
+> amount of code.
+
+Not quite.  If you do it generally then you have to insert hooks at all 
+the places where a subsystem _might_ need it.  If you do it 
+specifically then no hooks are needed at all -- just a match call at 
+the right place in the subsystem that needs it.
+
+> As Tony Lindgren said, even board-omap4panda.c itself is deprecated, to 
+> project platform info into USB stack you either have to add DT code into 
+> usb stack then to go find things directly, or provide a generic 
+> methodology like assets which have the dt bindings done outside of any 
+> subsystem and apply their operations outside the subsystem too.
+
+Assuming DT can be extended to support assets, adding one asset will be 
+simpler than adding two.
+
+> > To answer the question, we need to know how other subsystems might
+> > want to use the asset-matching approach.  My guess is that only a small
+> > number of device types would care about assets (in the same way that
+> > assets matter to USB ports but not to other USB device types).  And it
+> > might not be necessary to check against every ancestor; we might know
+> > beforehand where to check (just as the USB port would know to look for
+> > an asset attached to the host controller device).
+> 
+> Yes I think it boils down to "buses" in general can benefit from this. 
+> They're the thing that dynamically - later - create child devices you 
+> might need to target with what was ultimately platform information.
+> 
+> On Panda the other bus thing that can benefit is the WLAN module on 
+> SDIO.  In fact that's a very illuminating case for your question above. 
+>   Faced with exactly the same problem, that they needed to project 
+> platform info on to SDIO-probed device instance to tell it what clock 
+> rate it had been given, they invented an api which you can see today in 
+> board-omap4panda.c and other boards there, wl12xx_set_platform_data(). 
+> This is from board-4430sdp:
+> 
+> static struct wl12xx_platform_data omap4_sdp4430_wlan_data __initdata = {
+>          .board_ref_clock = WL12XX_REFCLOCK_26,
+>          .board_tcxo_clock = WL12XX_TCXOCLOCK_26,
+> };
+> 
+> ...
+> 
+> 	ret = wl12xx_set_platform_data(&omap4_sdp4430_wlan_data);
+> 
+> You can find the other end of it here in 
+> drivers/net/wireless/ti/wlcore/wl12xx_platform_data.c
+> 
+> static struct wl12xx_platform_data *platform_data;
+> 
+> int __init wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
+> {
+> 	if (platform_data)
+> 		return -EBUSY;
+> 	if (!data)
+> 		return -EINVAL;
+> 
+> 	platform_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
+> 	if (!platform_data)
+> 		return -ENOMEM;
+> 
+> 	return 0;
+> }
+> 
+> when the driver for the device instance wants to "get" its platform data 
+> it reads the static pointer via another api.  Obviously if you want two 
+> modules on your platform that's not so good.
+
+Also it isn't type-safe, although that's probably not a big concern.
+
+> I doubt that's the only SDIO device that wants to know platform info. 
+> So I think by providing a generic way we help other buses and devices.
+
+I agree, assets look like a good way to improve this.  In fact, to some
+extent assets appear to be a generalization or extension of platform
+data.
+
+Alan Stern
+
