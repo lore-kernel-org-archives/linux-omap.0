@@ -1,54 +1,43 @@
-From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
-Subject: RE: [PATCH] da8xx: Allow use by am33xx based devices
-Date: Thu, 6 Dec 2012 08:08:19 +0000
-Message-ID: <A73F36158E33644199EB82C5EC81C7BC3EA1452B@DBDE01.ent.ti.com>
-References: <1351698968-3965-1-git-send-email-panto@antoniou-consulting.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Enric Balletbo i Serra <eballetbo@gmail.com>
+Subject: [PATCH] serial: omap: add the functionality of a 9-bit UART with userspaces CMSPAR
+Date: Thu,  6 Dec 2012 09:45:04 +0100
+Message-ID: <1354783504-7826-1-git-send-email-eballetbo@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56058 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752069Ab2LFIIa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Dec 2012 03:08:30 -0500
-Content-Language: en-US
+Received: from mail-we0-f174.google.com ([74.125.82.174]:42224 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754752Ab2LFIpc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Dec 2012 03:45:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Koen Kooi <koen@dominion.thruhere.net>, "Porter, Matt" <mporter@ti.com>, "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "FlorianSchandinat@gmx.de" <FlorianSchandinat@gmx.de>, Pantelis Antoniou <panto@antoniou-consulting.com>
+To: Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Hi Tomi,
+From: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-On Wed, Oct 31, 2012 at 10:52:59, Manjunathappa, Prakash wrote:
-> Hi,
-> 
-> On Wed, Oct 31, 2012 at 21:26:08, Pantelis Antoniou wrote:
-> > This driver can be used for AM33xx devices, like the popular beaglebone.
-> > 
-> > Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> > ---
-> >  drivers/video/Kconfig | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-> > index 9791d10..e7868d8 100644
-> > --- a/drivers/video/Kconfig
-> > +++ b/drivers/video/Kconfig
-> > @@ -2202,7 +2202,7 @@ config FB_SH7760
-> >  
-> >  config FB_DA8XX
-> >  	tristate "DA8xx/OMAP-L1xx Framebuffer support"
-> > -	depends on FB && ARCH_DAVINCI_DA8XX
-> > +	depends on FB && (ARCH_DAVINCI_DA8XX || SOC_AM33XX)
-> 
-> Agreed this is present on da8xx and am33xx, but moving forward for
-> supporting DT, we should be avoiding these dependencies. So instead
-> change this to remove machine dependencies.
-> 
+Some systems require the additional communication functionality of a
+9-bit UART. For that we could use the "stick" (mark/space) parity
+bit supported on omap serial device. When is set, if PARODD is set the
+parity bit is always 1; if PARODD is not set, then the parity bit is
+always 0.
 
-I could be wrong here, having dependency on platform seems to be right.
-Otherwise may lead to build errors for other platforms. Please ignore my
-comments and accept this patch.
+Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+---
+ drivers/tty/serial/omap-serial.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
-Prakash
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 6d3d26a..197fb71 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -756,6 +756,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 		cval |= UART_LCR_PARITY;
+ 	if (!(termios->c_cflag & PARODD))
+ 		cval |= UART_LCR_EPAR;
++	if (termios->c_cflag & CMSPAR)
++		cval |= UART_LCR_SPAR;
+ 
+ 	/*
+ 	 * Ask the core to calculate the divisor for us.
+-- 
+1.7.10.4
+
