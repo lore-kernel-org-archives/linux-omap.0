@@ -1,97 +1,65 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v7 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
-Date: Wed, 05 Dec 2012 23:24:26 +0000
-Message-ID: <20121205232426.BAD573E0E22@localhost>
-References: <1354734571-10774-1-git-send-email-zonque@gmail.com> <1354734571-10774-6-git-send-email-zonque@gmail.com> <20121205222232.67B2B3E0E22@localhost> <50BFCBCC.6030706@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:41728 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667Ab2LEXYb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Dec 2012 18:24:31 -0500
-Received: by mail-wi0-f174.google.com with SMTP id hm9so43470wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 05 Dec 2012 15:24:30 -0800 (PST)
-In-Reply-To: <50BFCBCC.6030706@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v7 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC
+ timings and NAND
+Date: Wed, 5 Dec 2012 16:03:03 -0800
+Message-ID: <20121206000302.GM21682@atomide.com>
+References: <1354734571-10774-1-git-send-email-zonque@gmail.com>
+ <1354734571-10774-6-git-send-email-zonque@gmail.com>
+ <20121205222232.67B2B3E0E22@localhost> <50BFCBCC.6030706@ti.com>
+ <20121205232426.BAD573E0E22@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20121205232426.BAD573E0E22@localhost>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: paul@pwsan.com, x0148406@ti.com, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, rob.herring@calxeda.com, Daniel Mack <zonque@gmail.com>, tony@atomide.com, jacmet@sunsite.dk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 5 Dec 2012 16:33:48 -0600, Jon Hunter <jon-hunter@ti.com> wrote:
-> Hi Grant,
-> 
-> On 12/05/2012 04:22 PM, Grant Likely wrote:
-> > On Wed,  5 Dec 2012 20:09:31 +0100, Daniel Mack <zonque@gmail.com> wrote:
-> >> This patch adds basic DT bindings for OMAP GPMC.
-> >>
-> >> The actual peripherals are instantiated from child nodes within the GPMC
-> >> node, and the only type of device that is currently supported is NAND.
-> >>
-> >> Code was added to parse the generic GPMC timing parameters and some
-> >> documentation with examples on how to use them.
-> >>
-> >> Successfully tested on an AM33xx board.
-> >>
-> >> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> >> ---
-> >>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  77 ++++++++++
-> >>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  76 +++++++++
-> >>  arch/arm/mach-omap2/gpmc.c                         | 171 ++++++++++++++++++++-
-> >>  3 files changed, 323 insertions(+), 1 deletion(-)
-> >>  create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> >>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> >> new file mode 100644
-> >> index 0000000..7d2a645
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
-> >> @@ -0,0 +1,77 @@
-> >> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
-> >> +
-> >> +The actual devices are instantiated from the child nodes of a GPMC node.
-> >> +
-> >> +Required properties:
-> >> +
-> >> + - compatible:		Should be set to "ti,gpmc"
+* Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> [121205 15:26]:
+> On Wed, 5 Dec 2012 16:33:48 -0600, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org> wrote:
+> > On 12/05/2012 04:22 PM, Grant Likely wrote:
+> > > 
+> > > Please, be specific. Use something like "ti,am3340-gpmc" or
+> > > "ti,omap3430-gpmc". The compatible property is a list so that new
+> > > devices can claim compatibility with old. Compatible strings that are
+> > > overly generic are a pet-peave of mine.
 > > 
-> > Please, be specific. Use something like "ti,am3340-gpmc" or
-> > "ti,omap3430-gpmc". The compatible property is a list so that new
-> > devices can claim compatibility with old. Compatible strings that are
-> > overly generic are a pet-peave of mine.
+> > We aim to use the binding for omap2,3,4,5 as well as the am33xx devices
+> > (which are omap based). Would it be sufficient to have "ti,omap2-gpmc"
+> > implying all omap2+ based devices or should we have a compatible string
+> > for each device supported?
 > 
-> We aim to use the binding for omap2,3,4,5 as well as the am33xx devices
-> (which are omap based). Would it be sufficient to have "ti,omap2-gpmc"
-> implying all omap2+ based devices or should we have a compatible string
-> for each device supported?
-
-Are they each register-level compatible with one another?
-
-The general recommended approach here is to make subsequent silicon
-claim compatibility with the first compatible implementation.
-
-So, for an am3358 board:
-	compatible = "ti,am3358-gpmc", "ti,omap2420-gpmc";
-
-Essentially, what this means is that "ti,omap2420-gpmc" is the generic
-value instead of "omap2-gpmc". The reason for this is so that the value
-is anchored against a specific implementation, and not against something
-completely imaginary or idealized. If a newer version isn't quite
-compatible with the omap2420-gpmc, then it can drop the compatible claim
-and the driver really should be told about the new device.
-
-g.
-
-
-
+> Are they each register-level compatible with one another?
 > 
-> Thanks
-> Jon
+> The general recommended approach here is to make subsequent silicon
+> claim compatibility with the first compatible implementation.
 > 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> So, for an am3358 board:
+> 	compatible = "ti,am3358-gpmc", "ti,omap2420-gpmc";
+> 
+> Essentially, what this means is that "ti,omap2420-gpmc" is the generic
+> value instead of "omap2-gpmc". The reason for this is so that the value
+> is anchored against a specific implementation, and not against something
+> completely imaginary or idealized. If a newer version isn't quite
+> compatible with the omap2420-gpmc, then it can drop the compatible claim
+> and the driver really should be told about the new device.
 
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies, Ltd.
+The compatible property can also be used to figure out which ones
+need the workarounds in patch #4 of this series for the DT case.
+So we should be specific with the compatible.
+
+Regards,
+
+Tony
