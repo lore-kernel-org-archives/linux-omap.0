@@ -1,121 +1,101 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC PATCH 4/5] arm: omap2: support port power on lan95xx devices
-Date: Thu, 6 Dec 2012 10:25:25 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1212061012570.1383-100000@iolanthe.rowland.org>
-References: <50BFE159.1010009@linaro.org>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings
+ and NAND
+Date: Thu, 6 Dec 2012 10:19:55 -0600
+Message-ID: <50C0C5AB.3030201@ti.com>
+References: <1354734571-10774-1-git-send-email-zonque@gmail.com>
+ <1354734571-10774-6-git-send-email-zonque@gmail.com>
+ <20121205222232.67B2B3E0E22@localhost> <50BFCBCC.6030706@ti.com>
+ <20121205232426.BAD573E0E22@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <50BFE159.1010009@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Andy Green <andy.green@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Ming Lei <tom.leiming@gmail.com>, Linux-pm mailing list <linux-pm@vger.kernel.org>, linux-omap@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121205232426.BAD573E0E22@localhost>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 6 Dec 2012, Andy Green wrote:
 
-> > Right.  The question is should it be done in this somewhat roundabout
-> > way (you've got two separate assets for setting up this one thing), or
-> > should the USB port code be responsible for explicitly checking if
-> > there are any applicable assets when the port is created?
-> >
-> > The advantange of the second approach is that it doesn't involve
-> > checking all the ancestors every time a new device is added (and it
-> > involves only one asset).  The disadvantage is that it works only for
-> > USB ports.
+On 12/05/2012 05:24 PM, Grant Likely wrote:
+> On Wed, 5 Dec 2012 16:33:48 -0600, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org> wrote:
+>> Hi Grant,
+>>
+>> On 12/05/2012 04:22 PM, Grant Likely wrote:
+>>> On Wed,  5 Dec 2012 20:09:31 +0100, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>>> This patch adds basic DT bindings for OMAP GPMC.
+>>>>
+>>>> The actual peripherals are instantiated from child nodes within the GPMC
+>>>> node, and the only type of device that is currently supported is NAND.
+>>>>
+>>>> Code was added to parse the generic GPMC timing parameters and some
+>>>> documentation with examples on how to use them.
+>>>>
+>>>> Successfully tested on an AM33xx board.
+>>>>
+>>>> Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>> ---
+>>>>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  77 ++++++++++
+>>>>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  76 +++++++++
+>>>>  arch/arm/mach-omap2/gpmc.c                         | 171 ++++++++++++++++++++-
+>>>>  3 files changed, 323 insertions(+), 1 deletion(-)
+>>>>  create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>>>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>>> new file mode 100644
+>>>> index 0000000..7d2a645
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>>> @@ -0,0 +1,77 @@
+>>>> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
+>>>> +
+>>>> +The actual devices are instantiated from the child nodes of a GPMC node.
+>>>> +
+>>>> +Required properties:
+>>>> +
+>>>> + - compatible:		Should be set to "ti,gpmc"
+>>>
+>>> Please, be specific. Use something like "ti,am3340-gpmc" or
+>>> "ti,omap3430-gpmc". The compatible property is a list so that new
+>>> devices can claim compatibility with old. Compatible strings that are
+>>> overly generic are a pet-peave of mine.
+>>
+>> We aim to use the binding for omap2,3,4,5 as well as the am33xx devices
+>> (which are omap based). Would it be sufficient to have "ti,omap2-gpmc"
+>> implying all omap2+ based devices or should we have a compatible string
+>> for each device supported?
 > 
-> It's done in two steps to strongly filter candidate child devices 
-> against being children of a known platform device.  If you go around 
-> that, you will be back to full device path matching with wildcards at 
-> the USB child to determine if he is "the one".  So that's a feature not 
-> an issue I think.
+> Are they each register-level compatible with one another?
 
-I don't follow.  Suppose an asset is attached to ehci-omap.0 with its
-string set to "-0:1.0/port1" and the other members pointing to the
-regulator, clock and so on.  And suppose the USB port code, when
-creating a new port, checks for a name match against all the assets
-attached to its bus's host controller device structure.  That should
-do exactly what you want while using only one asset.
+They are not 100% register compatible. There are a couple fields in the
+binding that are only applicable to OMAP3+ devices.
 
-> I can see doing it generically or not is equally a political issue as a 
-> technical one, but I think if we bother to add this kind of support we 
-> should prefer to do it generally.  It's going to be about the same 
-> amount of code.
+> The general recommended approach here is to make subsequent silicon
+> claim compatibility with the first compatible implementation.
+> 
+> So, for an am3358 board:
+> 	compatible = "ti,am3358-gpmc", "ti,omap2420-gpmc";
+> 
+> Essentially, what this means is that "ti,omap2420-gpmc" is the generic
+> value instead of "omap2-gpmc". The reason for this is so that the value
+> is anchored against a specific implementation, and not against something
+> completely imaginary or idealized. If a newer version isn't quite
+> compatible with the omap2420-gpmc, then it can drop the compatible claim
+> and the driver really should be told about the new device.
 
-Not quite.  If you do it generally then you have to insert hooks at all 
-the places where a subsystem _might_ need it.  If you do it 
-specifically then no hooks are needed at all -- just a match call at 
-the right place in the subsystem that needs it.
+Ok, gotcha! I will do a register comparison and may be recommend to
+Daniel which compatible strings we will need.
 
-> As Tony Lindgren said, even board-omap4panda.c itself is deprecated, to 
-> project platform info into USB stack you either have to add DT code into 
-> usb stack then to go find things directly, or provide a generic 
-> methodology like assets which have the dt bindings done outside of any 
-> subsystem and apply their operations outside the subsystem too.
-
-Assuming DT can be extended to support assets, adding one asset will be 
-simpler than adding two.
-
-> > To answer the question, we need to know how other subsystems might
-> > want to use the asset-matching approach.  My guess is that only a small
-> > number of device types would care about assets (in the same way that
-> > assets matter to USB ports but not to other USB device types).  And it
-> > might not be necessary to check against every ancestor; we might know
-> > beforehand where to check (just as the USB port would know to look for
-> > an asset attached to the host controller device).
-> 
-> Yes I think it boils down to "buses" in general can benefit from this. 
-> They're the thing that dynamically - later - create child devices you 
-> might need to target with what was ultimately platform information.
-> 
-> On Panda the other bus thing that can benefit is the WLAN module on 
-> SDIO.  In fact that's a very illuminating case for your question above. 
->   Faced with exactly the same problem, that they needed to project 
-> platform info on to SDIO-probed device instance to tell it what clock 
-> rate it had been given, they invented an api which you can see today in 
-> board-omap4panda.c and other boards there, wl12xx_set_platform_data(). 
-> This is from board-4430sdp:
-> 
-> static struct wl12xx_platform_data omap4_sdp4430_wlan_data __initdata = {
->          .board_ref_clock = WL12XX_REFCLOCK_26,
->          .board_tcxo_clock = WL12XX_TCXOCLOCK_26,
-> };
-> 
-> ...
-> 
-> 	ret = wl12xx_set_platform_data(&omap4_sdp4430_wlan_data);
-> 
-> You can find the other end of it here in 
-> drivers/net/wireless/ti/wlcore/wl12xx_platform_data.c
-> 
-> static struct wl12xx_platform_data *platform_data;
-> 
-> int __init wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
-> {
-> 	if (platform_data)
-> 		return -EBUSY;
-> 	if (!data)
-> 		return -EINVAL;
-> 
-> 	platform_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
-> 	if (!platform_data)
-> 		return -ENOMEM;
-> 
-> 	return 0;
-> }
-> 
-> when the driver for the device instance wants to "get" its platform data 
-> it reads the static pointer via another api.  Obviously if you want two 
-> modules on your platform that's not so good.
-
-Also it isn't type-safe, although that's probably not a big concern.
-
-> I doubt that's the only SDIO device that wants to know platform info. 
-> So I think by providing a generic way we help other buses and devices.
-
-I agree, assets look like a good way to improve this.  In fact, to some
-extent assets appear to be a generalization or extension of platform
-data.
-
-Alan Stern
-
+Thanks!
+Jon
