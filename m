@@ -1,48 +1,79 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V3 11/11] ARM: delete struct sys_timer
-Date: Fri, 07 Dec 2012 10:08:20 -0700
-Message-ID: <50C22284.8050704@wwwdotorg.org>
-References: <1353349867-28494-1-git-send-email-swarren@wwwdotorg.org> <1353349867-28494-12-git-send-email-swarren@wwwdotorg.org> <50C1BC10.8000506@compulab.co.il>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] ARM: OMAP4: Fix EMU clock domain always on
+Date: Fri, 7 Dec 2012 14:26:34 -0600
+Message-ID: <1354911994-20045-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <50C1BC10.8000506@compulab.co.il>
-Sender: linux-arch-owner@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49857 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753047Ab2LGU0m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Dec 2012 15:26:42 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Mike Turquette <mturquette@linaro.org>, Jon Hunter <jon-hunter@ti.com>
 
-On 12/07/2012 02:51 AM, Igor Grinberg wrote:
-> Hi Stephen,
-> 
-> I've only now bumped into the patchset (working the back log on linux-arm).
-> Sorry for late reply, but I guess you should have Cc'd the relevant
-> mailing lists with such changes.
-> Cc'd now.
+Commit d043d87 (ARM: OMAP2+: clockdomain: bypass clockdomain handling
+when disabling unused clks) skips the decrementing of a clock-domains
+use count if the clocks use count is zero. However, for OMAP4 devices
+this is causing the EMU clock-domain to be stuck ON as the use count is
+not getting decremented correctly.
 
-Perhaps. There's a trade-off with spamming tens of subarch lists though,
-and the OMAP maintainer and LAKML were CC'd.
+The scenario that leads to this problem is described below ...
 
-> On 11/19/12 20:31, Stephen Warren wrote:
->> Now that the only field in struct sys_timer is .init, delete the struct,
->> and replace the machine descriptor .timer field with the initialization
->> function itself.
->>
->> This will enable moving timer drivers into drivers/clocksource without
->> having to place a public prototype of each struct sys_timer object into
->> include/linux; the intent is to create a single of_clocksource_init()
->> function that determines which timer driver to initialize by scanning
->> the device dtree, much like the proposed irqchip_init() at:
->> http://www.spinics.net/lists/arm-kernel/msg203686.html
-...
->> The patch is very large, so I've trimmed it for the mailing list, leaving
->> only the core ARM changes, changes outside arch/arm, and a single machine
->> example. The full series can be found at:
->>
->> git://nv-tegra.nvidia.com/user/swarren/linux-2.6 arm_timer_rework
-...
-> I've looked at the omap2+ changes and I think OMAP4 and 5 got messed up a bit...
-> the below (compile tested on omap2plus only) should be applied:
+omap_hwmod_setup_all
+--> _setup
+    --> clkdm_hwmod_enable
+    	--> EMU clock domain usecount = 1
+    --> _enable_clocks
+        --> clk_enable
+	    --> trace_clk_div_div usecount = 1
+            --> clkdm_hwmod_enable
+    	        --> EMU clock domain usecount = 2
+--> _idle
+    --> _disable_clocks
+	--> clk_disable
+            --> trace_clk_div_div usecount = 0
+            --> clkdm_hwmod_disable
+                --> skips decrement of EMU clock domain usecount
+		    because trace_clk_div_div is 0!
+    	        --> EMU clock domain usecount = 2
+    --> clkdm_hwmod_disable
+    	--> EMU clock domain usecount = 1
 
-Thanks; your patch looks correct. I'll fold it into my series.
+Hence, due to the order that a clocks use count is decremented and the
+clock domain is disabled, it is possible that the clock domain can have
+a non-zero use count when the actual clock has a use count of 0.
+Therefore, we should only bypass the clock-domain handling when both the
+clock-domain and clock in the clock-domain have a use count of 0 and
+warn when the clock-domain has a zero use count and the clock has a
+non-zero use count.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+
+Based and test on current linux-next tree. This has been boot tested
+on OMAP2420, OMAP3430 and OMAP4430. I have validated suspend is working
+on OMAP3430.
+
+ arch/arm/mach-omap2/clockdomain.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 3848735..0b5452d 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -998,7 +998,8 @@ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	spin_lock_irqsave(&clkdm->lock, flags);
+ 
+ 	/* corner case: disabling unused clocks */
+-	if (__clk_get_enable_count(clk) == 0)
++	if ((__clk_get_enable_count(clk) == 0) &&
++			(atomic_read(&clkdm->usecount) == 0))
+ 		goto ccd_exit;
+ 
+ 	if (atomic_read(&clkdm->usecount) == 0) {
+-- 
+1.7.10.4
+
