@@ -1,95 +1,34 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Thu, 6 Dec 2012 12:11:02 -0600
-Message-ID: <50C0DFB6.9060501@ti.com>
-References: <1354734571-10774-1-git-send-email-zonque@gmail.com>
- <1354734571-10774-6-git-send-email-zonque@gmail.com>
- <20121205222232.67B2B3E0E22@localhost> <50BFCBCC.6030706@ti.com>
- <20121205232426.BAD573E0E22@localhost> <20121206000302.GM21682@atomide.com>
- <50C0C646.9000802@ti.com> <50C0CDB0.5050008@gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 0/3] gpio: twl4030: Correct status reporting for outputs
+Date: Fri, 7 Dec 2012 09:09:47 +0100
+Message-ID: <CACRpkdYZcEpN-BJy=3DPAQL+QgR+EyNeyABtAPE96+2hYxOQwQ@mail.gmail.com>
+References: <1354791127-20545-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <50C0CDB0.5050008-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, x0148406-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1354791127-20545-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Thu, Dec 6, 2012 at 11:52 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
 
-On 12/06/2012 10:54 AM, Daniel Mack wrote:
-> On 06.12.2012 17:22, Jon Hunter wrote:
->>
->> On 12/05/2012 06:03 PM, Tony Lindgren wrote:
->>> * Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org> [121205 15:26]:
->>>> On Wed, 5 Dec 2012 16:33:48 -0600, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org> wrote:
->>>>> On 12/05/2012 04:22 PM, Grant Likely wrote:
->>>>>>
->>>>>> Please, be specific. Use something like "ti,am3340-gpmc" or
->>>>>> "ti,omap3430-gpmc". The compatible property is a list so that new
->>>>>> devices can claim compatibility with old. Compatible strings that are
->>>>>> overly generic are a pet-peave of mine.
->>>>>
->>>>> We aim to use the binding for omap2,3,4,5 as well as the am33xx devices
->>>>> (which are omap based). Would it be sufficient to have "ti,omap2-gpmc"
->>>>> implying all omap2+ based devices or should we have a compatible string
->>>>> for each device supported?
->>>>
->>>> Are they each register-level compatible with one another?
->>>>
->>>> The general recommended approach here is to make subsequent silicon
->>>> claim compatibility with the first compatible implementation.
->>>>
->>>> So, for an am3358 board:
->>>> 	compatible = "ti,am3358-gpmc", "ti,omap2420-gpmc";
->>>>
->>>> Essentially, what this means is that "ti,omap2420-gpmc" is the generic
->>>> value instead of "omap2-gpmc". The reason for this is so that the value
->>>> is anchored against a specific implementation, and not against something
->>>> completely imaginary or idealized. If a newer version isn't quite
->>>> compatible with the omap2420-gpmc, then it can drop the compatible claim
->>>> and the driver really should be told about the new device.
->>>
->>> The compatible property can also be used to figure out which ones
->>> need the workarounds in patch #4 of this series for the DT case.
->>> So we should be specific with the compatible.
->>
->> We should not merged patch #4. Daniel included this here because he is
->> using this on the current mainline, however, this is not needed for
->> linux-next and so we should drop it.
-> 
-> I think we're talking about different things here since awhile.
-> 
-> The patch I pointed you which is in mainline and which removes the
-> reference to <plat/gpmc.h> from drivers/mtd/nand/omap2.c has nothing to
-> do with my patch #4. It just solves Tony's concern that regarding the
-> multi-arch zImages.
+> As Grant commneted on the first version:
+> https://lkml.org/lkml/2012/12/5/53
 >
-> My code in gpmc.c calls gpmc_nand_init() which in turn calls
-> gpmc_hwecc_bch_capable(). Without path #4, gpmc_hwecc_bch_capable() will
-> return 0, and the nand init will fail consequently, in mainline as well
-> as in linux-next.
+> Introduce bitfields to cache the directionand output status of the pins so we
+> can report them correctly.
+> To do this I did some cleanup within the driver to get rid of the global
+> variables and moved them under a private structure, changed the locking as well
+> to protect the bitfield operation.
+> As a last patch I added a note that the PWMA/B handling should not be in this
+> driver at all.
 
-Ok, yes I see that now. I should have looked more closely at linux-next.
+This looks good to me:
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-> I understood Tony that he wanted to remove the entiry function and do
-> the check based on DT properties, which will then solve the problem on a
-> different level. However, that change is planned for *after* the merge
-> window.
+Since Grant was requesting the changes I'll let him decide to merge.
 
-Well now that it is only being called from within the platform code and
-not from drivers, it is ok.
-
-Cheers
-Jon
+Yours,
+Linus Walleij
