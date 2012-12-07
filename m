@@ -1,96 +1,172 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH v2] ARM: OMAP3: cm-t3517: add MMC support
-Date: Fri,  7 Dec 2012 11:05:55 +0200
-Message-ID: <1354871155-32528-1-git-send-email-grinberg@compulab.co.il>
-References: <1354795206-12048-1-git-send-email-grinberg@compulab.co.il>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:39109 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754891Ab2LGJGE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Dec 2012 04:06:04 -0500
-In-Reply-To: <1354795206-12048-1-git-send-email-grinberg@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Subject: Re: [PATCH V3 11/11] ARM: delete struct sys_timer
+Date: Fri, 07 Dec 2012 11:51:12 +0200
+Message-ID: <50C1BC10.8000506@compulab.co.il>
+References: <1353349867-28494-1-git-send-email-swarren@wwwdotorg.org> <1353349867-28494-12-git-send-email-swarren@wwwdotorg.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <1353349867-28494-12-git-send-email-swarren@wwwdotorg.org>
+Sender: linux-arch-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, Stephen Warren <swarren@nvidia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-cm-t3517 uses two MMC interfaces. Add support for both.
+Hi Stephen,
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
----
-v2: Use CONFIG_MMC_OMAP_HS instead of plain CONFIG_MMC, so it will be stubbed
-    out with the same defines as omap_hsmmc_init() function.
-    Fix the !CONFIG_MMC_OMAP_HS case.
+I've only now bumped into the patchset (working the back log on linux-arm).
+Sorry for late reply, but I guess you should have Cc'd the relevant
+mailing lists with such changes.
+Cc'd now.
 
- arch/arm/mach-omap2/board-cm-t3517.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
+On 11/19/12 20:31, Stephen Warren wrote:
+> From: Stephen Warren <swarren@nvidia.com>
+> 
+> Now that the only field in struct sys_timer is .init, delete the struct,
+> and replace the machine descriptor .timer field with the initialization
+> function itself.
+> 
+> This will enable moving timer drivers into drivers/clocksource without
+> having to place a public prototype of each struct sys_timer object into
+> include/linux; the intent is to create a single of_clocksource_init()
+> function that determines which timer driver to initialize by scanning
+> the device dtree, much like the proposed irqchip_init() at:
+> http://www.spinics.net/lists/arm-kernel/msg203686.html
+> 
+> Signed-off-by: Stephen Warren <swarren@nvidia.com>
+> Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+> v3: Minor merge conflicts due to rebasing onto next-20121115.
+> v2: Converted all platforms, not just Tegra.
+> 
+> The patch is very large, so I've trimmed it for the mailing list, leaving
+> only the core ARM changes, changes outside arch/arm, and a single machine
+> example. The full series can be found at:
+> 
+> git://nv-tegra.nvidia.com/user/swarren/linux-2.6 arm_timer_rework
+> ---
 
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index ebbc2ad..792d684 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -32,6 +32,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/mmc/host.h>
- #include <linux/can/platform/ti_hecc.h>
+[...]
+
+>  arch/arm/mach-omap1/board-ams-delta.c          |    2 +-
+>  arch/arm/mach-omap1/board-fsample.c            |    2 +-
+>  arch/arm/mach-omap1/board-generic.c            |    2 +-
+>  arch/arm/mach-omap1/board-h2.c                 |    2 +-
+>  arch/arm/mach-omap1/board-h3.c                 |    2 +-
+>  arch/arm/mach-omap1/board-htcherald.c          |    2 +-
+>  arch/arm/mach-omap1/board-innovator.c          |    2 +-
+>  arch/arm/mach-omap1/board-nokia770.c           |    2 +-
+>  arch/arm/mach-omap1/board-osk.c                |    2 +-
+>  arch/arm/mach-omap1/board-palmte.c             |    2 +-
+>  arch/arm/mach-omap1/board-palmtt.c             |    2 +-
+>  arch/arm/mach-omap1/board-palmz71.c            |    2 +-
+>  arch/arm/mach-omap1/board-perseus2.c           |    2 +-
+>  arch/arm/mach-omap1/board-sx1.c                |    2 +-
+>  arch/arm/mach-omap1/board-voiceblue.c          |    2 +-
+>  arch/arm/mach-omap1/common.h                   |    2 +-
+>  arch/arm/mach-omap1/time.c                     |    6 +-----
+>  arch/arm/mach-omap2/board-2430sdp.c            |    2 +-
+>  arch/arm/mach-omap2/board-3430sdp.c            |    2 +-
+>  arch/arm/mach-omap2/board-3630sdp.c            |    2 +-
+>  arch/arm/mach-omap2/board-4430sdp.c            |    2 +-
+>  arch/arm/mach-omap2/board-am3517crane.c        |    2 +-
+>  arch/arm/mach-omap2/board-am3517evm.c          |    2 +-
+>  arch/arm/mach-omap2/board-apollon.c            |    2 +-
+>  arch/arm/mach-omap2/board-cm-t35.c             |    4 ++--
+>  arch/arm/mach-omap2/board-cm-t3517.c           |    2 +-
+>  arch/arm/mach-omap2/board-devkit8000.c         |    2 +-
+>  arch/arm/mach-omap2/board-generic.c            |   12 ++++++------
+>  arch/arm/mach-omap2/board-h4.c                 |    2 +-
+>  arch/arm/mach-omap2/board-igep0020.c           |    4 ++--
+>  arch/arm/mach-omap2/board-ldp.c                |    2 +-
+>  arch/arm/mach-omap2/board-n8x0.c               |    6 +++---
+>  arch/arm/mach-omap2/board-omap3beagle.c        |    2 +-
+>  arch/arm/mach-omap2/board-omap3evm.c           |    2 +-
+>  arch/arm/mach-omap2/board-omap3logic.c         |    4 ++--
+>  arch/arm/mach-omap2/board-omap3pandora.c       |    2 +-
+>  arch/arm/mach-omap2/board-omap3stalker.c       |    2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c     |    2 +-
+>  arch/arm/mach-omap2/board-omap4panda.c         |    2 +-
+>  arch/arm/mach-omap2/board-overo.c              |    2 +-
+>  arch/arm/mach-omap2/board-rm680.c              |    4 ++--
+>  arch/arm/mach-omap2/board-rx51.c               |    2 +-
+>  arch/arm/mach-omap2/board-ti8168evm.c          |    4 ++--
+>  arch/arm/mach-omap2/board-zoom.c               |    4 ++--
+>  arch/arm/mach-omap2/common.h                   |   12 ++++++------
+>  arch/arm/mach-omap2/timer.c                    |   17 +++--------------
+
+[...]
+
+>  492 files changed, 622 insertions(+), 1199 deletions(-)
+
+I've looked at the omap2+ changes and I think OMAP4 and 5 got messed up a bit...
+the below (compile tested on omap2plus only) should be applied:
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 2e0c446..f5d5f59 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -725,6 +725,6 @@ MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
+ 	.handle_irq	= gic_handle_irq,
+ 	.init_machine	= omap_4430sdp_init,
+ 	.init_late	= omap4430_init_late,
+-	.init_time	= omap4_sync32k_timer_init,
++	.init_time	= omap4_local_timer_init,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 5da84a9..8a5f814 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -159,7 +159,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+ 	.handle_irq	= gic_handle_irq,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap4430_init_late,
+-	.init_time	= omap4_sync32k_timer_init,
++	.init_time	= omap4_local_timer_init,
+ 	.dt_compat	= omap4_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+@@ -179,7 +179,7 @@ DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
+ 	.init_irq	= omap_gic_of_init,
+ 	.handle_irq	= gic_handle_irq,
+ 	.init_machine	= omap_generic_init,
+-	.init_time	= omap5_sync32k_timer_init,
++	.init_time	= omap5_realtime_timer_init,
+ 	.dt_compat	= omap5_boards_compat,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index fcae01e..ed8240c 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -456,6 +456,6 @@ MACHINE_START(OMAP4_PANDA, "OMAP4 Panda board")
+ 	.handle_irq	= gic_handle_irq,
+ 	.init_machine	= omap4_panda_init,
+ 	.init_late	= omap4430_init_late,
+-	.init_time	= omap4_sync32k_timer_init,
++	.init_time	= omap4_local_timer_init,
+ 	.restart	= omap44xx_restart,
+ MACHINE_END
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 56a3281..b435027 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -84,8 +84,8 @@ extern void omap3_sync32k_timer_init(void);
+ extern void omap3_secure_sync32k_timer_init(void);
+ extern void omap3_gp_gptimer_timer_init(void);
+ extern void omap3_am33xx_gptimer_timer_init(void);
+-extern void omap4_sync32k_timer_init(void);
+-extern void omap5_sync32k_timer_init(void);
++extern void omap4_local_timer_init(void);
++extern void omap5_realtime_timer_init(void);
  
- #include <asm/mach-types.h>
-@@ -46,6 +47,7 @@
- 
- #include "mux.h"
- #include "control.h"
-+#include "hsmmc.h"
- #include "common-board-devices.h"
- #include "am35xx-emac.h"
- #include "gpmc-nand.h"
-@@ -121,6 +123,26 @@ static void cm_t3517_init_hecc(void)
- static inline void cm_t3517_init_hecc(void) {}
- #endif
- 
-+#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
-+static struct omap2_hsmmc_info cm_t3517_mmc[] = {
-+	{
-+		.mmc		= 1,
-+		.caps		= MMC_CAP_4_BIT_DATA,
-+		.gpio_cd	= 144,
-+		.gpio_wp	= 59,
-+	},
-+	{
-+		.mmc		= 2,
-+		.caps		= MMC_CAP_4_BIT_DATA,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{}	/* Terminator */
-+};
-+#else
-+#define cm_t3517_mmc NULL
-+#endif
-+
- #if defined(CONFIG_RTC_DRV_V3020) || defined(CONFIG_RTC_DRV_V3020_MODULE)
- #define RTC_IO_GPIO		(153)
- #define RTC_WR_GPIO		(154)
-@@ -271,6 +293,10 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	/* CM-T3517 USB HUB nRESET */
- 	OMAP3_MUX(MCBSP4_CLKX, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
- 
-+	/* CD - GPIO144 and WP - GPIO59 for MMC1 - SB-T35 */
-+	OMAP3_MUX(UART2_CTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
-+	OMAP3_MUX(GPMC_CLK, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
-+
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #endif
-@@ -286,6 +312,7 @@ static void __init cm_t3517_init(void)
- 	cm_t3517_init_usbh();
- 	cm_t3517_init_hecc();
- 	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
-+	omap_hsmmc_init(cm_t3517_mmc);
- }
- 
- MACHINE_START(CM_T3517, "Compulab CM-T3517")
+ void omap2420_init_early(void);
+ void omap2430_init_early(void);
+
+
+
 -- 
-1.7.3.4
-
+Regards,
+Igor.
