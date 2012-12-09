@@ -1,37 +1,29 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V2 0/4] ARM: OMAP4: Clock fixes
-Date: Sun, 9 Dec 2012 20:38:37 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212092038240.351@utopia.booyaka.com>
-References: <1354567275-6447-1-git-send-email-jon-hunter@ti.com>
+Subject: Testing the powerdomain changes
+Date: Sun, 9 Dec 2012 20:45:56 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212092040310.351@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40272 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40285 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934486Ab2LIUii (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:38:38 -0500
-In-Reply-To: <1354567275-6447-1-git-send-email-jon-hunter@ti.com>
+	with ESMTP id S934486Ab2LIUp5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:45:57 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: t-kristo@ti.com, jean.pihet@newoldbits.com, b-cousson@ti.com, rnayak@ti.com, khilman@deeprootsystems.com
 
-On Mon, 3 Dec 2012, Jon Hunter wrote:
 
-> Fixes included, fixing up timer clock aliases for v3.8 and working
-> around ABE DPLL issue seen with latest u-boot bootloader (v2012.10).
-> 
-> Testing includes:
-> - Boot testing on OMAP4460 Panda and verifying that all dmtimers are
->   working.
-> 
-> V2 changes:
-> - Updated series to latest ARM-SoC for-next branch that includes common
->   clock updates for OMAP4.
-> - Added new function table for non-M4X DPLLs which is now required after
->   enhancing support for OMAP4 DPLLs for 4X multiplier.
+Hi,
 
-Thanks, queued for 3.8-rc.
+in case anyone is interested in trying out the recent powerdomain & PM 
+changes, posted for 3.9, there's a temporary branch 
+"TEST_pwrdm_post_fpwrst_devel_a_3.9" in the git tree 
+git://git.pwsan.com/linux-2.6.  It's based on the PRCM cleanup branches 
+for v3.7, plus some old regression workarounds needed since the base is 
+v3.7-rc2.  Once 3.8 comes out, this branch will be rebased there ASAP, 
+assuming we don't have another huge set of regressions...
 
 
 - Paul
