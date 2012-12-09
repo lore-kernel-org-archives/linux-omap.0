@@ -1,120 +1,150 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 08/12] ARM: OMAP2+: powerdomain: cache the powerdomain's
- previous power state
-Date: Sun, 09 Dec 2012 13:03:27 -0700
-Message-ID: <20121209200326.3196.35867.stgit@dusk.lan>
+Subject: [PATCH 02/12] ARM: OMAP2+: PM/powerdomain: move the power state
+ time tracking into the powerdomain code
+Date: Sun, 09 Dec 2012 13:03:17 -0700
+Message-ID: <20121209200259.3196.84569.stgit@dusk.lan>
 References: <20121209200108.3196.12452.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40205 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40187 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758931Ab2LIUFK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:05:10 -0500
+	with ESMTP id S1758920Ab2LIUFG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:05:06 -0500
 In-Reply-To: <20121209200108.3196.12452.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Cache the powerdomain previous power state registers.  The objective
-here is to avoid unneeded reads from the previous power state
-registers.  Reads from these registers can be extremely slow, even by
-I/O device standards.  I no longer recall the exact measurements, but
-my recollection was that they cost several microseconds.
-
-The cache is invalidated as part of the powerdomain pre-transition
-code, which runs shortly before WFI/WFE.
+Move the power state time tracking code into the powerdomain code.
+This code accesses internal powerdomain state, so this change will
+allow us to reduce what is exported from the powerdomain code.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |    9 +++++++++
- arch/arm/mach-omap2/powerdomain.h |   14 ++++++++++++++
- 2 files changed, 23 insertions(+)
+ arch/arm/mach-omap2/pm-debug.c    |   24 ------------------------
+ arch/arm/mach-omap2/pm.h          |    6 ------
+ arch/arm/mach-omap2/powerdomain.c |   22 +++++++++++++++++++++-
+ 3 files changed, 21 insertions(+), 31 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 03da2e3..80c001a 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -53,21 +53,6 @@ enum {
+ 	DEBUG_FILE_TIMERS,
+ };
+ 
+-void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
+-{
+-	s64 t;
+-
+-	if (!pm_dbg_init_done)
+-		return ;
+-
+-	/* Update timer for previous state */
+-	t = sched_clock();
+-
+-	pwrdm->fpwrst_timer[prev - PWRDM_FPWRST_OFFSET] += t - pwrdm->timer;
+-
+-	pwrdm->timer = t;
+-}
+-
+ static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
+ {
+ 	struct seq_file *s = (struct seq_file *)user;
+@@ -197,17 +182,8 @@ DEFINE_SIMPLE_ATTRIBUTE(pwrdm_suspend_fops, pwrdm_suspend_get,
+ 
+ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
+ {
+-	int i;
+-	s64 t;
+ 	struct dentry *d;
+ 
+-	t = sched_clock();
+-
+-	for (i = 0; i < PWRDM_FPWRSTS_COUNT; i++)
+-		pwrdm->fpwrst_timer[i] = 0;
+-
+-	pwrdm->timer = t;
+-
+ 	if (strncmp(pwrdm->name, "dpll", 4) == 0)
+ 		return 0;
+ 
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 19ef376..c496f27 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -59,12 +59,6 @@ extern u32 enable_off_mode;
+ #define enable_off_mode 0
+ #endif
+ 
+-#if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+-extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+-#else
+-#define pm_dbg_update_time(pwrdm, prev) do {} while (0);
+-#endif /* CONFIG_PM_DEBUG */
+-
+ /* 24xx */
+ extern void omap24xx_idle_loop_suspend(void);
+ extern unsigned int omap24xx_idle_loop_suspend_sz;
 diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 425c868..f5e2727 100644
+index b67d721..53bc852 100644
 --- a/arch/arm/mach-omap2/powerdomain.c
 +++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -499,6 +499,9 @@ static int _pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
- 	if (!_pwrdm_pwrst_can_change(pwrdm))
- 		return PWRDM_FUNC_PWRST_ON;
- 
-+	if (pwrdm->_flags & _PWRDM_PREV_FPWRST_IS_VALID)
-+		return pwrdm->prev_fpwrst;
+@@ -20,6 +20,8 @@
+ #include <linux/errno.h>
+ #include <linux/string.h>
+ #include <linux/spinlock.h>
++#include <linux/sched.h>
 +
- 	pwrst = arch_pwrdm->pwrdm_read_prev_pwrst(pwrdm);
- 	if (pwrst < 0)
- 		return pwrst;
-@@ -512,6 +515,10 @@ static int _pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
- 	}
+ #include <trace/events/power.h>
  
- 	ret = _pwrdm_pwrst_to_fpwrst(pwrdm, pwrst, logic_pwrst, &fpwrst);
-+	if (!ret) {
-+		pwrdm->prev_fpwrst = fpwrst;
-+		pwrdm->_flags |= _PWRDM_PREV_FPWRST_IS_VALID;
-+	}
+ #include "cm2xxx_3xxx.h"
+@@ -126,6 +128,9 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	arch_pwrdm->pwrdm_wait_transition(pwrdm);
+ 	pwrdm->fpwrst = pwrdm_read_fpwrst(pwrdm);
+ 	pwrdm->fpwrst_counter[pwrdm->fpwrst - PWRDM_FPWRST_OFFSET] = 1;
++#ifdef CONFIG_PM_DEBUG
++	pwrdm->timer = sched_clock();
++#endif
  
- 	return (ret) ? ret : fpwrst;
+ 	return 0;
  }
-@@ -1017,6 +1024,8 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
- 	pr_debug("powerdomain: %s: clearing previous power state reg\n",
- 		 pwrdm->name);
+@@ -579,6 +584,21 @@ static int _pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ 	return ret;
+ }
  
-+	pwrdm->_flags &= ~_PWRDM_PREV_FPWRST_IS_VALID;
++/* XXX prev is wrong type */
++/* XXX is sched_clock() correct to use here? */
++/* Update timer for previous state */
++static void _pwrdm_update_pwrst_time(struct powerdomain *pwrdm, int prev)
++{
++#ifdef CONFIG_PM_DEBUG
++	s64 t;
 +
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_clear_all_prev_pwrst)
- 		ret = arch_pwrdm->pwrdm_clear_all_prev_pwrst(pwrdm);
++	t = sched_clock();
++
++	pwrdm->fpwrst_timer[prev - PWRDM_FPWRST_OFFSET] += t - pwrdm->timer;
++
++	pwrdm->timer = t;
++#endif
++}
  
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 1fb21f5..f4a189a 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -90,8 +90,17 @@ enum pwrdm_func_state {
-  *    powerdomain's next-functional-power-state -- struct
-  *    powerdomain.next_fpwrst -- is valid.  If this bit is not set,
-  *    the code needs to load the current value from the hardware.
-+ *
-+ * _PWRDM_PREV_FPWRST_IS_VALID: the locally-cached copy of the
-+ *    powerdomain's previous-functional-power-state -- struct
-+ *    powerdomain.prev_fpwrst -- is valid.  If this bit is not set,
-+ *    the code needs to load the current value from the hardware.  The
-+ *    previous-functional-power-state cache for the CORE and MPU needs
-+ *    to be invalidated right before WFI, unless they were not programmed
-+ *    to change power states.
-  */
- #define _PWRDM_NEXT_FPWRST_IS_VALID	BIT(0)
-+#define _PWRDM_PREV_FPWRST_IS_VALID	BIT(1)
+ /* XXX Caller must hold pwrdm->_lock */
+ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+@@ -617,7 +637,7 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ 	if (fpwrst != prev)
+ 		pwrdm->fpwrst_counter[fpwrst - PWRDM_FPWRST_OFFSET]++;
  
- /*
-  * Number of memory banks that are power-controllable.	On OMAP4430, the
-@@ -138,6 +147,7 @@ struct powerdomain;
-  * @fpwrst: current func power state (set in pwrdm_state_switch() or post_trans)
-  * @fpwrst_counter: estimated number of times the pwrdm entered the power states
-  * @next_fpwrst: cache of the powerdomain's next-power-state
-+ * @prev_fpwrst: cache of the powerdomain's previous-power-state bitfield
-  * @timer: sched_clock() timestamp of last pwrdm_state_switch()
-  * @fpwrst_timer: estimated nanoseconds of residency in the various power states
-  * @_lock: spinlock used to serialize powerdomain and some clockdomain ops
-@@ -146,6 +156,9 @@ struct powerdomain;
-  *
-  * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
-  *
-+ * @prev_fpwrst is updated during pwrdm_pre_transition(), but presumably
-+ * should also be updated upon clock/IP block idle transitions.
-+ *
-  * Possible values for @_flags are documented above in the
-  * "Powerdomain internal flags (struct powerdomain._flags)" comments.
-  */
-@@ -165,6 +178,7 @@ struct powerdomain {
- 	const u8 prcm_partition;
- 	u8 fpwrst;
- 	u8 next_fpwrst;
-+	u8 prev_fpwrst;
- 	u8 _flags;
- 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
- 	struct list_head node;
+-	pm_dbg_update_time(pwrdm, prev);
++	_pwrdm_update_pwrst_time(pwrdm, prev);
+ 
+ 	pwrdm->fpwrst = fpwrst;
+ 
 
 
