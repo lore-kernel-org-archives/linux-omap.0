@@ -1,227 +1,32 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 07/12] ARM: OMAP2+: powerdomain: cache the powerdomain next
- power state
-Date: Sun, 09 Dec 2012 13:03:26 -0700
-Message-ID: <20121209200325.3196.52729.stgit@dusk.lan>
-References: <20121209200108.3196.12452.stgit@dusk.lan>
+Subject: Re: [PATCH] ARM: OMAP4: Fix EMU clock domain always on
+Date: Sun, 9 Dec 2012 20:34:42 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212092033450.351@utopia.booyaka.com>
+References: <1354911994-20045-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40201 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40264 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758928Ab2LIUFI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:05:08 -0500
-In-Reply-To: <20121209200108.3196.12452.stgit@dusk.lan>
+	with ESMTP id S934486Ab2LIUen (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:34:43 -0500
+In-Reply-To: <1354911994-20045-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Mike Turquette <mturquette@linaro.org>
 
-Cache the powerdomain next power state registers.  The objective here
-is to avoid unneeded reads and writes to the next power state
-registers, which are slow compared to RAM & CPU cache.
+Hi Jon,
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/powerdomain.c |   64 +++++++++++++++++--------------------
- arch/arm/mach-omap2/powerdomain.h |   17 ++++++++++
- 2 files changed, 46 insertions(+), 35 deletions(-)
+On Fri, 7 Dec 2012, Jon Hunter wrote:
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 62e2f75..425c868 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -376,7 +376,7 @@ static int _pwrdm_pwrst_to_fpwrst(struct powerdomain *pwrdm, u8 pwrst, u8 logic,
-  * software-controllable, returns 0; otherwise, passes along the
-  * return value from pwrdm_set_logic_retst() if there is an error
-  * returned by that function, otherwise, passes along the return value
-- * from pwrdm_set_next_pwrst()
-+ * from pwrdm_set_next_fpwrst()
-  */
- static int _set_logic_retst_and_pwrdm_pwrst(struct powerdomain *pwrdm,
- 					    u8 logic, u8 pwrst)
-@@ -426,6 +426,9 @@ static int _pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
- 	int next_pwrst, next_logic, ret;
- 	u8 fpwrst;
- 
-+	if (pwrdm->_flags & _PWRDM_NEXT_FPWRST_IS_VALID)
-+		return pwrdm->next_fpwrst;
-+
- 	next_pwrst = arch_pwrdm->pwrdm_read_next_pwrst(pwrdm);
- 	if (next_pwrst < 0)
- 		return next_pwrst;
-@@ -438,6 +441,10 @@ static int _pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
- 			return next_logic;
- 	}
- 	ret = _pwrdm_pwrst_to_fpwrst(pwrdm, next_pwrst, next_logic, &fpwrst);
-+	if (!ret) {
-+		pwrdm->next_fpwrst = fpwrst;
-+		pwrdm->_flags |= _PWRDM_NEXT_FPWRST_IS_VALID;
-+	}
- 
- 	return (ret) ? ret : fpwrst;
- }
-@@ -663,7 +670,7 @@ static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm, void *unused)
-  */
- static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
- {
--	int prev, next, fpwrst;
-+	int prev, fpwrst;
- 	int trace_state = 0;
- 
- 	prev = _pwrdm_read_prev_fpwrst(pwrdm);
-@@ -676,10 +683,9 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
- 	 * If the power domain did not hit the desired state,
- 	 * generate a trace event with both the desired and hit states
- 	 */
--	next = _pwrdm_read_next_fpwrst(pwrdm);
--	if (next != prev) {
--		trace_state = (PWRDM_TRACE_STATES_FLAG | next << 8 |
--			       prev);
-+	if (pwrdm->next_fpwrst != prev) {
-+		trace_state = (PWRDM_TRACE_STATES_FLAG |
-+			       pwrdm->next_fpwrst << 8 | prev);
- 		trace_power_domain_target(pwrdm->name, trace_state,
- 					  smp_processor_id());
- 	}
-@@ -1256,6 +1262,10 @@ int pwrdm_set_next_fpwrst(struct powerdomain *pwrdm, u8 fpwrst)
- 	if (ret)
- 		return ret;
- 
-+	if (pwrdm->_flags & _PWRDM_NEXT_FPWRST_IS_VALID &&
-+	    pwrdm->next_fpwrst == fpwrst)
-+		return 0;
-+
- 	pr_debug("%s: set fpwrst %0x to pwrdm %s\n", __func__, fpwrst,
- 		 pwrdm->name);
- 
-@@ -1264,6 +1274,10 @@ int pwrdm_set_next_fpwrst(struct powerdomain *pwrdm, u8 fpwrst)
- 
- 	pwrdm_lock(pwrdm);
- 	ret = _set_logic_retst_and_pwrdm_pwrst(pwrdm, logic, pwrst);
-+	if (!ret) {
-+		pwrdm->next_fpwrst = fpwrst;
-+		pwrdm->_flags |= _PWRDM_NEXT_FPWRST_IS_VALID;
-+	}
- 	pwrdm_unlock(pwrdm);
- 
- 	return ret;
-@@ -1279,36 +1293,16 @@ int pwrdm_set_next_fpwrst(struct powerdomain *pwrdm, u8 fpwrst)
-  */
- int pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
- {
--	int next_pwrst, next_logic, ret;
--	u8 fpwrst;
-+	int ret;
- 
--	if (!arch_pwrdm)
-+	if (!pwrdm)
- 		return -EINVAL;
- 
- 	pwrdm_lock(pwrdm);
--
--	next_pwrst = arch_pwrdm->pwrdm_read_next_pwrst(pwrdm);
--	if (next_pwrst < 0) {
--		ret = next_pwrst;
--		goto prnf_out;
--	}
--
--	next_logic = next_pwrst;
--	if (_pwrdm_logic_retst_can_change(pwrdm) &&
--	    arch_pwrdm->pwrdm_read_logic_pwrst) {
--		next_logic = arch_pwrdm->pwrdm_read_logic_pwrst(pwrdm);
--		if (next_logic < 0) {
--			ret = next_logic;
--			goto prnf_out;
--		}
--	}
--
--	ret = _pwrdm_pwrst_to_fpwrst(pwrdm, next_pwrst, next_logic, &fpwrst);
--
--prnf_out:
-+	ret = _pwrdm_read_next_fpwrst(pwrdm);
- 	pwrdm_unlock(pwrdm);
- 
--	return (ret) ? ret : fpwrst;
-+	return ret;
- }
- 
- /**
-@@ -1344,10 +1338,6 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
- 
- 	pwrdm_lock(pwrdm);
- 
--	/*
--	 * XXX quite heavyweight for what this is intended to do; the
--	 * next fpwrst should simply be cached
--	 */
- 	next_fpwrst = _pwrdm_read_next_fpwrst(pwrdm);
- 	if (next_fpwrst == fpwrst)
- 		goto psf_out;
-@@ -1364,9 +1354,13 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
- 	}
- 
- 	ret = _set_logic_retst_and_pwrdm_pwrst(pwrdm, logic, pwrst);
--	if (ret)
-+	if (ret) {
- 		pr_err("%s: unable to set power state of powerdomain: %s\n",
- 		       __func__, pwrdm->name);
-+	} else {
-+		pwrdm->next_fpwrst = fpwrst;
-+		pwrdm->_flags |= _PWRDM_NEXT_FPWRST_IS_VALID;
-+	}
- 
- 	_pwrdm_restore_clkdm_state(pwrdm, sleep_switch, hwsup);
- 
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index c19bdc3..1fb21f5 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -84,6 +84,16 @@ enum pwrdm_func_state {
- #define PWRDM_HAS_LOWPOWERSTATECHANGE	BIT(2)
- 
- /*
-+ * Powerdomain internal flags (struct powerdomain._flags)
-+ *
-+ * _PWRDM_NEXT_FPWRST_IS_VALID: the locally-cached copy of the
-+ *    powerdomain's next-functional-power-state -- struct
-+ *    powerdomain.next_fpwrst -- is valid.  If this bit is not set,
-+ *    the code needs to load the current value from the hardware.
-+ */
-+#define _PWRDM_NEXT_FPWRST_IS_VALID	BIT(0)
-+
-+/*
-  * Number of memory banks that are power-controllable.	On OMAP4430, the
-  * maximum is 5.
-  */
-@@ -127,12 +137,17 @@ struct powerdomain;
-  *	in @pwrstctrl_offs
-  * @fpwrst: current func power state (set in pwrdm_state_switch() or post_trans)
-  * @fpwrst_counter: estimated number of times the pwrdm entered the power states
-+ * @next_fpwrst: cache of the powerdomain's next-power-state
-  * @timer: sched_clock() timestamp of last pwrdm_state_switch()
-  * @fpwrst_timer: estimated nanoseconds of residency in the various power states
-  * @_lock: spinlock used to serialize powerdomain and some clockdomain ops
-  * @_lock_flags: stored flags when @_lock is taken
-+ * @_flags: flags (for internal use only)
-  *
-  * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
-+ *
-+ * Possible values for @_flags are documented above in the
-+ * "Powerdomain internal flags (struct powerdomain._flags)" comments.
-  */
- struct powerdomain {
- 	const char *name;
-@@ -149,6 +164,8 @@ struct powerdomain {
- 	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
- 	const u8 prcm_partition;
- 	u8 fpwrst;
-+	u8 next_fpwrst;
-+	u8 _flags;
- 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
- 	struct list_head node;
- 	struct list_head voltdm_node;
+> Commit d043d87 (ARM: OMAP2+: clockdomain: bypass clockdomain handling
+> when disabling unused clks) skips the decrementing of a clock-domains
+> use count if the clocks use count is zero. However, for OMAP4 devices
+> this is causing the EMU clock-domain to be stuck ON as the use count is
+> not getting decremented correctly.
+
+Thanks for the fix and the great patch description; queued for v3.8-rc.
 
 
+- Paul
