@@ -1,118 +1,344 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 03/10] ARM: OMAP2xxx: PM: clean up some crufty powerstate
- programming code
-Date: Sat, 08 Dec 2012 18:23:38 -0700
-Message-ID: <20121209012337.19716.8908.stgit@dusk.lan>
+Subject: [PATCH 09/10] ARM: OMAP2+: clockdomain: convert existing atomic
+ usecounts into spinlock-protected shorts/ints
+Date: Sat, 08 Dec 2012 18:23:43 -0700
+Message-ID: <20121209012342.19716.66436.stgit@dusk.lan>
 References: <20121209011755.19716.25244.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38991 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:39012 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756440Ab2LIBYc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Dec 2012 20:24:32 -0500
+	with ESMTP id S964770Ab2LIBYe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Dec 2012 20:24:34 -0500
 In-Reply-To: <20121209011755.19716.25244.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Don't attempt to put clockdomains to sleep; this should be handled by the
-clock framework.  It should be enough to program the next-power-state,
-and then let the code in omap_pm_clkdms_setup() deal with the rest.
-
-Start out by programming the MPU and CORE powerdomains to stay ON.
-Then control the MPU and CORE powerdomain states directly in
-omap2_enter_full_retention() and omap2_enter_mpu_retention().  Not the
-most optimal way to do it, but certainly is the most conservative until
-OMAP2xxx PM is working again.
-
-Get rid of the open-coded PM_PWSTCTRL_MPU writes in
-omap2_enter_mpu_retention(); use the powerdomain code instead.
+The atomic usecounts seem to be confusing, and are no longer needed
+since the operations that they are attached to really should take
+place under lock.  Replace the atomic counters with simple integers,
+protected by the enclosing powerdomain spinlock.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm24xx.c |   30 ++++++++++--------------------
- 1 file changed, 10 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c  |   88 +++++++++++++++++++++++++++++++-----
+ arch/arm/mach-omap2/clockdomain.h  |    6 +-
+ arch/arm/mach-omap2/cm3xxx.c       |    6 +-
+ arch/arm/mach-omap2/cminst44xx.c   |    2 -
+ arch/arm/mach-omap2/pm-debug.c     |    6 +-
+ arch/arm/mach-omap2/pm.c           |    3 +
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |    3 +
+ 7 files changed, 88 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 83815dd..4c06d8a 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -89,11 +89,7 @@ static int omap2_enter_full_retention(void)
- 	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
- 	omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
- 
--	/*
--	 * Set MPU powerdomain's next power state to RETENTION;
--	 * preserve logic state during retention
--	 */
--	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
-+	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
- 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
- 
- 	/* Workaround to kill USB */
-@@ -136,6 +132,9 @@ no_sleep:
- 	/* Mask future PRCM-to-MPU interrupts */
- 	omap2_prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
- 
-+	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
-+	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
-+
- 	return 0;
- }
- 
-@@ -185,17 +184,16 @@ static void omap2_enter_mpu_retention(void)
- 		omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
- 
- 		/* Try to enter MPU retention */
--		omap2_prm_write_mod_reg((0x01 << OMAP_POWERSTATE_SHIFT) |
--				  OMAP_LOGICRETSTATE_MASK,
--				  MPU_MOD, OMAP2_PM_PWSTCTRL);
-+		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
-+
- 	} else {
- 		/* Block MPU retention */
--
--		omap2_prm_write_mod_reg(OMAP_LOGICRETSTATE_MASK, MPU_MOD,
--						 OMAP2_PM_PWSTCTRL);
-+		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 9d5b69f..ed8ac2f 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -210,7 +210,8 @@ static int _clkdm_add_wkdep(struct clockdomain *clkdm1,
+ 		return ret;
  	}
  
- 	omap2_sram_idle();
+-	if (atomic_inc_return(&cd->wkdep_usecount) == 1) {
++	cd->wkdep_usecount++;
++	if (cd->wkdep_usecount == 1) {
+ 		pr_debug("clockdomain: hardware will wake up %s when %s wakes up\n",
+ 			 clkdm1->name, clkdm2->name);
+ 
+@@ -252,7 +253,8 @@ static int _clkdm_del_wkdep(struct clockdomain *clkdm1,
+ 		return ret;
+ 	}
+ 
+-	if (atomic_dec_return(&cd->wkdep_usecount) == 0) {
++	cd->wkdep_usecount--;
++	if (cd->wkdep_usecount == 0) {
+ 		pr_debug("clockdomain: hardware will no longer wake up %s after %s wakes up\n",
+ 			 clkdm1->name, clkdm2->name);
+ 
+@@ -296,7 +298,8 @@ static int _clkdm_add_sleepdep(struct clockdomain *clkdm1,
+ 		return ret;
+ 	}
+ 
+-	if (atomic_inc_return(&cd->sleepdep_usecount) == 1) {
++	cd->sleepdep_usecount++;
++	if (cd->sleepdep_usecount == 1) {
+ 		pr_debug("clockdomain: will prevent %s from sleeping if %s is active\n",
+ 			 clkdm1->name, clkdm2->name);
+ 
+@@ -340,7 +343,8 @@ static int _clkdm_del_sleepdep(struct clockdomain *clkdm1,
+ 		return ret;
+ 	}
+ 
+-	if (atomic_dec_return(&cd->sleepdep_usecount) == 0) {
++	cd->sleepdep_usecount--;
++	if (cd->sleepdep_usecount == 0) {
+ 		pr_debug("clockdomain: will no longer prevent %s from sleeping if %s is active\n",
+ 			 clkdm1->name, clkdm2->name);
+ 
+@@ -567,7 +571,21 @@ struct powerdomain *clkdm_get_pwrdm(struct clockdomain *clkdm)
+  */
+ int clkdm_add_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+ {
+-	return _clkdm_add_wkdep(clkdm1, clkdm2);
++	struct clkdm_dep *cd;
++	int ret;
 +
-+	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
++	if (!clkdm1 || !clkdm2)
++		return -EINVAL;
++
++	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
++	if (IS_ERR(cd))
++		return PTR_ERR(cd);
++
++	pwrdm_lock(cd->clkdm->pwrdm.ptr);
++	ret = _clkdm_add_wkdep(clkdm1, clkdm2);
++	pwrdm_unlock(cd->clkdm->pwrdm.ptr);
++
++	return ret;
  }
  
- static int omap2_can_sleep(void)
-@@ -250,25 +248,17 @@ static void __init prcm_setup_regs(void)
- 	for (i = 0; i < num_mem_banks; i++)
- 		pwrdm_set_mem_retst(core_pwrdm, i, PWRDM_POWER_RET);
+ /**
+@@ -582,7 +600,21 @@ int clkdm_add_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+  */
+ int clkdm_del_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+ {
+-	return _clkdm_del_wkdep(clkdm1, clkdm2);
++	struct clkdm_dep *cd;
++	int ret;
++
++	if (!clkdm1 || !clkdm2)
++		return -EINVAL;
++
++	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
++	if (IS_ERR(cd))
++		return PTR_ERR(cd);
++
++	pwrdm_lock(cd->clkdm->pwrdm.ptr);
++	ret = _clkdm_del_wkdep(clkdm1, clkdm2);
++	pwrdm_unlock(cd->clkdm->pwrdm.ptr);
++
++	return ret;
+ }
  
--	/* Set CORE powerdomain's next power state to RETENTION */
--	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
-+	pwrdm_set_logic_retst(core_pwrdm, PWRDM_POWER_RET);
+ /**
+@@ -620,7 +652,7 @@ int clkdm_read_wkdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+ 		return ret;
+ 	}
  
--	/*
--	 * Set MPU powerdomain's next power state to RETENTION;
--	 * preserve logic state during retention
--	 */
- 	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
--	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
+-	/* XXX It's faster to return the atomic wkdep_usecount */
++	/* XXX It's faster to return the wkdep_usecount */
+ 	return arch_clkdm->clkdm_read_wkdep(clkdm1, clkdm2);
+ }
  
- 	/* Force-power down DSP, GFX powerdomains */
+@@ -659,7 +691,21 @@ int clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
+  */
+ int clkdm_add_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+ {
+-	return _clkdm_add_sleepdep(clkdm1, clkdm2);
++	struct clkdm_dep *cd;
++	int ret;
++
++	if (!clkdm1 || !clkdm2)
++		return -EINVAL;
++
++	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
++	if (IS_ERR(cd))
++		return PTR_ERR(cd);
++
++	pwrdm_lock(cd->clkdm->pwrdm.ptr);
++	ret = _clkdm_add_sleepdep(clkdm1, clkdm2);
++	pwrdm_unlock(cd->clkdm->pwrdm.ptr);
++
++	return ret;
+ }
  
- 	pwrdm = clkdm_get_pwrdm(dsp_clkdm);
- 	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
--	clkdm_sleep(dsp_clkdm);
+ /**
+@@ -676,7 +722,21 @@ int clkdm_add_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+  */
+ int clkdm_del_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+ {
+-	return _clkdm_del_sleepdep(clkdm1, clkdm2);
++	struct clkdm_dep *cd;
++	int ret;
++
++	if (!clkdm1 || !clkdm2)
++		return -EINVAL;
++
++	cd = _clkdm_deps_lookup(clkdm2, clkdm1->wkdep_srcs);
++	if (IS_ERR(cd))
++		return PTR_ERR(cd);
++
++	pwrdm_lock(cd->clkdm->pwrdm.ptr);
++	ret = _clkdm_del_sleepdep(clkdm1, clkdm2);
++	pwrdm_unlock(cd->clkdm->pwrdm.ptr);
++
++	return ret;
+ }
  
- 	pwrdm = clkdm_get_pwrdm(gfx_clkdm);
- 	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
--	clkdm_sleep(gfx_clkdm);
+ /**
+@@ -716,7 +776,7 @@ int clkdm_read_sleepdep(struct clockdomain *clkdm1, struct clockdomain *clkdm2)
+ 		return ret;
+ 	}
  
- 	/* Enable hardware-supervised idle for all clkdms */
- 	clkdm_for_each(omap_pm_clkdms_setup, NULL);
+-	/* XXX It's faster to return the atomic sleepdep_usecount */
++	/* XXX It's faster to return the sleepdep_usecount */
+ 	return arch_clkdm->clkdm_read_sleepdep(clkdm1, clkdm2);
+ }
+ 
+@@ -1063,7 +1123,8 @@ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+ 	 * should be called for every clock instance or hwmod that is
+ 	 * enabled, so the clkdm can be force woken up.
+ 	 */
+-	if ((atomic_inc_return(&clkdm->usecount) > 1) && autodeps) {
++	clkdm->usecount++;
++	if (clkdm->usecount > 1 && autodeps) {
+ 		pwrdm_unlock(clkdm->pwrdm.ptr);
+ 		return 0;
+ 	}
+@@ -1084,13 +1145,14 @@ static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
+ 
+ 	pwrdm_lock(clkdm->pwrdm.ptr);
+ 
+-	if (atomic_read(&clkdm->usecount) == 0) {
++	if (clkdm->usecount == 0) {
+ 		pwrdm_unlock(clkdm->pwrdm.ptr);
+ 		WARN_ON(1); /* underflow */
+ 		return -ERANGE;
+ 	}
+ 
+-	if (atomic_dec_return(&clkdm->usecount) > 0) {
++	clkdm->usecount--;
++	if (clkdm->usecount > 0) {
+ 		pwrdm_unlock(clkdm->pwrdm.ptr);
+ 		return 0;
+ 	}
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 50c3cd8..2da3765 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -91,8 +91,8 @@ struct clkdm_autodep {
+ struct clkdm_dep {
+ 	const char *clkdm_name;
+ 	struct clockdomain *clkdm;
+-	atomic_t wkdep_usecount;
+-	atomic_t sleepdep_usecount;
++	s16 wkdep_usecount;
++	s16 sleepdep_usecount;
+ };
+ 
+ /* Possible flags for struct clockdomain._flags */
+@@ -136,7 +136,7 @@ struct clockdomain {
+ 	const u16 clkdm_offs;
+ 	struct clkdm_dep *wkdep_srcs;
+ 	struct clkdm_dep *sleepdep_srcs;
+-	atomic_t usecount;
++	int usecount;
+ 	struct list_head node;
+ };
+ 
+diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
+index b94af4c..9061c30 100644
+--- a/arch/arm/mach-omap2/cm3xxx.c
++++ b/arch/arm/mach-omap2/cm3xxx.c
+@@ -186,7 +186,7 @@ static int omap3xxx_clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
+ 			continue; /* only happens if data is erroneous */
+ 
+ 		mask |= 1 << cd->clkdm->dep_bit;
+-		atomic_set(&cd->sleepdep_usecount, 0);
++		cd->sleepdep_usecount = 0;
+ 	}
+ 	omap2_cm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
+ 				    OMAP3430_CM_SLEEPDEP);
+@@ -209,7 +209,7 @@ static int omap3xxx_clkdm_wakeup(struct clockdomain *clkdm)
+ 
+ static void omap3xxx_clkdm_allow_idle(struct clockdomain *clkdm)
+ {
+-	if (atomic_read(&clkdm->usecount) > 0)
++	if (clkdm->usecount > 0)
+ 		clkdm_add_autodeps(clkdm);
+ 
+ 	omap3xxx_cm_clkdm_enable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+@@ -221,7 +221,7 @@ static void omap3xxx_clkdm_deny_idle(struct clockdomain *clkdm)
+ 	omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+ 					clkdm->clktrctrl_mask);
+ 
+-	if (atomic_read(&clkdm->usecount) > 0)
++	if (clkdm->usecount > 0)
+ 		clkdm_del_autodeps(clkdm);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
+index 7f9a464..f0290f5 100644
+--- a/arch/arm/mach-omap2/cminst44xx.c
++++ b/arch/arm/mach-omap2/cminst44xx.c
+@@ -393,7 +393,7 @@ static int omap4_clkdm_clear_all_wkup_sleep_deps(struct clockdomain *clkdm)
+ 			continue; /* only happens if data is erroneous */
+ 
+ 		mask |= 1 << cd->clkdm->dep_bit;
+-		atomic_set(&cd->wkdep_usecount, 0);
++		cd->wkdep_usecount = 0;
+ 	}
+ 
+ 	omap4_cminst_clear_inst_reg_bits(mask, clkdm->prcm_partition,
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 3cf4fdf..806a06b 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -84,10 +84,8 @@ static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
+ 		strncmp(clkdm->name, "dpll", 4) == 0)
+ 		return 0;
+ 
+-	seq_printf(s, "%s->%s (%d)", clkdm->name,
+-			clkdm->pwrdm.ptr->name,
+-			atomic_read(&clkdm->usecount));
+-	seq_printf(s, "\n");
++	seq_printf(s, "%s->%s (%d)\n", clkdm->name, clkdm->pwrdm.ptr->name,
++		   clkdm->usecount);
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 2e2a897..6b7cb7c 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -78,11 +78,12 @@ static void __init omap2_init_processor_devices(void)
+ 
+ int __init omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
+ {
++	/* XXX The usecount test is racy */
+ 	if ((clkdm->flags & CLKDM_CAN_ENABLE_AUTO) &&
+ 	    !(clkdm->flags & CLKDM_MISSING_IDLE_REPORTING))
+ 		clkdm_allow_idle(clkdm);
+ 	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
+-		 atomic_read(&clkdm->usecount) == 0)
++		 clkdm->usecount == 0)
+ 		clkdm_sleep(clkdm);
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+index a3e121f..947f6ad 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+@@ -210,6 +210,7 @@ int omap2_clkdm_read_wkdep(struct clockdomain *clkdm1,
+ 					     PM_WKDEP, (1 << clkdm2->dep_bit));
+ }
+ 
++/* XXX Caller must hold the clkdm's powerdomain lock */
+ int omap2_clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
+ {
+ 	struct clkdm_dep *cd;
+@@ -221,7 +222,7 @@ int omap2_clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
+ 
+ 		/* PRM accesses are slow, so minimize them */
+ 		mask |= 1 << cd->clkdm->dep_bit;
+-		atomic_set(&cd->wkdep_usecount, 0);
++		cd->wkdep_usecount = 0;
+ 	}
+ 
+ 	omap2_prm_clear_mod_reg_bits(mask, clkdm->pwrdm.ptr->prcm_offs,
 
 
