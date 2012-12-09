@@ -1,78 +1,141 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 00/12] ARM: OMAP2+: powerdomain updates after the functional
- power state conversion
-Date: Sun, 09 Dec 2012 13:02:57 -0700
-Message-ID: <20121209200108.3196.12452.stgit@dusk.lan>
+Subject: [PATCH 01/12] ARM: OMAP2+: powerdomain: consolidate arch_pwrdm
+ check code
+Date: Sun, 09 Dec 2012 13:02:59 -0700
+Message-ID: <20121209200257.3196.38184.stgit@dusk.lan>
+References: <20121209200108.3196.12452.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40182 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40185 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751608Ab2LIUFG (ORCPT
+	with ESMTP id S1758871Ab2LIUFG (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:05:06 -0500
+In-Reply-To: <20121209200108.3196.12452.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-OMAP powerdomain code updates, implemented on top of the
-functional power state conversion series.  This series fixes the powerdomain
-handling for OMAP2xxx, adds caching for the powerdomain next-power-state
-and previous-power-state register bitfields, and some cleanup that's
-intended to make it easier to move the powerdomain code out to drivers/.
+Check for the presence of some of the arch_pwrdm function pointers
+during powerdomain setup, rather than in the individual functions.
+The primary motivation is to make the code slightly easier to read, but it
+also should avoid a few instructions in some hot paths.
 
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/powerdomain.c |   43 +++++++++++++++----------------------
+ 1 file changed, 18 insertions(+), 25 deletions(-)
 
-vmlinux object size
-(delta in bytes from TEST_func_powerstates_devel_3.9 (6d8345f4177c976eca1a1368cdd68e95f80c3f27)):
-   text     data      bss    total  kernel
-    -68      +48        0      -20  am33xx_only
-   -136      +48        0      -88  n800_multi_omap2xxx
-   -128      +48        0      -80  n800_only_a
-      0        0        0        0  omap1_defconfig
-      0        0        0        0  omap1_defconfig_1510innovator_only
-      0        0        0        0  omap1_defconfig_5912osk_only
-    -32     +368        0     +336  omap2plus_defconfig
-    +20      +16        0      +36  omap2plus_defconfig_2430sdp_only
-    -32     +432        0     +400  omap2plus_defconfig_cpupm
-   +572     +192        0     +764  omap2plus_defconfig_no_pm
-    -20     +208        0     +188  omap2plus_defconfig_omap2_4_only
-    -84     +304        0     +220  omap2plus_defconfig_omap3_4_only
-   +708     +200     -104     +804  rmk_omap3430_ldp_allnoconfig
-   +352     +128        0     +480  rmk_omap3430_ldp_oldconfig
-   +708     +200     -104     +804  rmk_omap4430_sdp_allnoconfig
-   -164       +8        0     -156  rmk_omap4430_sdp_oldconfig
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index f81aee1..b67d721 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -385,9 +385,6 @@ static int _set_logic_retst_and_pwrdm_pwrst(struct powerdomain *pwrdm,
+ 	if (!_pwrdm_pwrst_is_controllable(pwrdm))
+ 		return 0;
+ 
+-	if (!arch_pwrdm || !arch_pwrdm->pwrdm_set_next_pwrst)
+-		return -EINVAL;
+-
+ 	if (!(pwrdm->pwrsts & (1 << pwrst)))
+ 		return -EINVAL;
+ 
+@@ -395,13 +392,11 @@ static int _set_logic_retst_and_pwrdm_pwrst(struct powerdomain *pwrdm,
+ 		if (!(pwrdm->pwrsts_logic_ret & (1 << logic)))
+ 			return -EINVAL;
+ 
+-		if (arch_pwrdm->pwrdm_set_logic_retst) {
+-			ret = arch_pwrdm->pwrdm_set_logic_retst(pwrdm, logic);
+-			if (ret) {
+-				pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
+-				       __func__, logic, pwrdm->name);
+-				return ret;
+-			}
++		ret = arch_pwrdm->pwrdm_set_logic_retst(pwrdm, logic);
++		if (ret) {
++			pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
++			       __func__, logic, pwrdm->name);
++			return ret;
+ 		}
+ 	}
+ 
+@@ -426,9 +421,6 @@ static int _pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
+ 	int next_pwrst, next_logic, ret;
+ 	u8 fpwrst;
+ 
+-	if (!arch_pwrdm || !arch_pwrdm->pwrdm_read_next_pwrst)
+-		return -EINVAL;
+-
+ 	next_pwrst = arch_pwrdm->pwrdm_read_next_pwrst(pwrdm);
+ 	if (next_pwrst < 0)
+ 		return next_pwrst;
+@@ -653,9 +645,12 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+  *
+  * Register the list of function pointers used to implement the
+  * powerdomain functions on different OMAP SoCs.  Should be called
+- * before any other pwrdm_register*() function.  Returns -EINVAL if
+- * @po is null, -EEXIST if platform functions have already been
+- * registered, or 0 upon success.
++ * before any other pwrdm_register*() function.  Several function
++ * pointers in @po are required to be non-null for the powerdomain
++ * code to function: pwrdm_wait_transition, pwrdm_read_next_pwrst,
++ * pwrdm_read_pwrst, pwrdm_set_next_pwrst, pwrdm_set_logic_retst, and
++ * pwrdm_read_prev_pwrst.  Returns -EINVAL if @po is null, -EEXIST if
++ * platform functions have already been registered, or 0 upon success.
+  */
+ int pwrdm_register_platform_funcs(struct pwrdm_ops *po)
+ {
+@@ -665,6 +660,11 @@ int pwrdm_register_platform_funcs(struct pwrdm_ops *po)
+ 	if (arch_pwrdm)
+ 		return -EEXIST;
+ 
++	if (!po->pwrdm_wait_transition || !po->pwrdm_read_next_pwrst ||
++	    !po->pwrdm_read_pwrst || !po->pwrdm_set_next_pwrst ||
++	    !po->pwrdm_set_logic_retst || !po->pwrdm_read_prev_pwrst)
++		return -ENOENT;
++
+ 	arch_pwrdm = po;
+ 
+ 	return 0;
+@@ -1221,7 +1221,7 @@ int pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
+ 	int next_pwrst, next_logic, ret;
+ 	u8 fpwrst;
+ 
+-	if (!arch_pwrdm || !arch_pwrdm->pwrdm_read_next_pwrst)
++	if (!arch_pwrdm)
+ 		return -EINVAL;
+ 
+ 	pwrdm_lock(pwrdm);
+@@ -1264,8 +1264,7 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
+ 	int ret = 0;
+ 	bool hwsup = false;
+ 
+-	if (!pwrdm || IS_ERR(pwrdm) || !arch_pwrdm ||
+-	    !arch_pwrdm->pwrdm_read_pwrst)
++	if (!pwrdm || IS_ERR(pwrdm) || !arch_pwrdm)
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -1334,9 +1333,6 @@ int pwrdm_read_fpwrst(struct powerdomain *pwrdm)
+ 	if (!_pwrdm_pwrst_can_change(pwrdm))
+ 		return PWRDM_FUNC_PWRST_ON;
+ 
+-	if (!arch_pwrdm->pwrdm_read_pwrst)
+-		return -EINVAL;
+-
+ 	pwrdm_lock(pwrdm);
+ 	ret = _pwrdm_read_fpwrst(pwrdm);
+ 	pwrdm_unlock(pwrdm);
+@@ -1362,9 +1358,6 @@ int pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
+ 	if (!_pwrdm_pwrst_can_change(pwrdm))
+ 		return PWRDM_FUNC_PWRST_ON;
+ 
+-	if (!arch_pwrdm->pwrdm_read_prev_pwrst)
+-		return -EINVAL;
+-
+ 	pwrdm_lock(pwrdm);
+ 	ret = _pwrdm_read_prev_fpwrst(pwrdm);
+ 	pwrdm_unlock(pwrdm);
 
-Paul Walmsley (12):
-      ARM: OMAP2+: powerdomain: consolidate arch_pwrdm check code
-      ARM: OMAP2+: PM/powerdomain: move the power state time tracking into the powerdomain code
-      ARM: OMAP2+: powerdomain: split pwrdm_state_switch()
-      ARM: OMAP2+: PM: clean up some debugfs functions
-      ARM: OMAP2+: powerdomain: remove some redundant checks; add some notes
-      ARM: OMAP2+: CM: use the cached copy of the clockdomain's hwsup state
-      ARM: OMAP2+: powerdomain: cache the powerdomain next power state
-      ARM: OMAP2+: powerdomain: cache the powerdomain's previous power state
-      ARM: OMAP2+: powerdomain: skip register reads for powerdomains known to be on
-      ARM: OMAP2+: powerdomain: skip previous-power-state read if next_pwrst is ON
-      ARM: OMAP2xxx: powerdomain: add previous power state tracking
-      ARM: OMAP2xxx: PM: add pwrdm_(pre|post)_transition() calls to the 2xxx PM code
-
-
- arch/arm/mach-omap2/clockdomain.c           |   18 +
- arch/arm/mach-omap2/clockdomain.h           |    2 
- arch/arm/mach-omap2/cm2xxx.c                |   19 -
- arch/arm/mach-omap2/cm3xxx.c                |   14 -
- arch/arm/mach-omap2/pm-debug.c              |  101 --------
- arch/arm/mach-omap2/pm.h                    |    6 
- arch/arm/mach-omap2/pm24xx.c                |    8 +
- arch/arm/mach-omap2/powerdomain.c           |  352 +++++++++++++++++++--------
- arch/arm/mach-omap2/powerdomain.h           |   40 +++
- arch/arm/mach-omap2/powerdomains2xxx_data.c |    2 
- arch/arm/mach-omap2/powerdomains33xx_data.c |    3 
- arch/arm/mach-omap2/powerdomains3xxx_data.c |    9 -
- arch/arm/mach-omap2/powerdomains44xx_data.c |    5 
- arch/arm/mach-omap2/prm2xxx.c               |   12 +
- 14 files changed, 347 insertions(+), 244 deletions(-)
 
