@@ -1,43 +1,113 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 02/10] ARM: OMAP2+: clockdomain: add pwrdm_state_switch()
- call to clkdm_sleep()
-Date: Sat, 08 Dec 2012 18:23:37 -0700
-Message-ID: <20121209012337.19716.98362.stgit@dusk.lan>
+Subject: [PATCH 04/10] ARM: OMAP2: PM/powerdomain: drop unnecessary
+ pwrdm_wait_transition()
+Date: Sat, 08 Dec 2012 18:23:39 -0700
+Message-ID: <20121209012338.19716.64255.stgit@dusk.lan>
 References: <20121209011755.19716.25244.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38990 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38997 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756435Ab2LIBYb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Dec 2012 20:24:31 -0500
+	with ESMTP id S932194Ab2LIBYc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Dec 2012 20:24:32 -0500
 In-Reply-To: <20121209011755.19716.25244.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-In clkdm_sleep(), the powerdomain should be eligible to switch power
-states right after the call to the low-level clockdomain sleep
-function.  We should have been tracking that with the
-pwrdm_state_switch() code, but we weren't, for whatever reason.  Fix that.
+Drop an unnecessary pwrdm_wait_transition() from mach-omap2/pm.c -
+it's called by the subsequent pwrdm_state_switch().
+
+Also get rid of pwrdm_wait_transition() in the powerdomain code - there's
+no longer any need to export this function.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/clockdomain.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/mach-omap2/pm.c          |    1 -
+ arch/arm/mach-omap2/powerdomain.c |   30 +++++-------------------------
+ arch/arm/mach-omap2/powerdomain.h |    2 --
+ 3 files changed, 5 insertions(+), 28 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 64e5046..18f65fd 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -763,6 +763,7 @@ int clkdm_sleep(struct clockdomain *clkdm)
- 	spin_lock_irqsave(&clkdm->lock, flags);
- 	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
- 	ret = arch_clkdm->clkdm_sleep(clkdm);
-+	ret |= pwrdm_state_switch(clkdm->pwrdm.ptr);
- 	spin_unlock_irqrestore(&clkdm->lock, flags);
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 331478f..cc8ed0f 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -139,7 +139,6 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 pwrst)
+ 		break;
+ 	case LOWPOWERSTATE_SWITCH:
+ 		pwrdm_set_lowpwrstchange(pwrdm);
+-		pwrdm_wait_transition(pwrdm);
+ 		pwrdm_state_switch(pwrdm);
+ 		break;
+ 	}
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 92388c0..97b3881 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -112,7 +112,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	for (i = 0; i < pwrdm->banks; i++)
+ 		pwrdm->ret_mem_off_counter[i] = 0;
+ 
+-	pwrdm_wait_transition(pwrdm);
++	arch_pwrdm->pwrdm_wait_transition(pwrdm);
+ 	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+ 	pwrdm->state_counter[pwrdm->state] = 1;
+ 
+@@ -950,34 +950,14 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
  	return ret;
  }
+ 
+-/**
+- * pwrdm_wait_transition - wait for powerdomain power transition to finish
+- * @pwrdm: struct powerdomain * to wait for
+- *
+- * If the powerdomain @pwrdm is in the process of a state transition,
+- * spin until it completes the power transition, or until an iteration
+- * bailout value is reached. Returns -EINVAL if the powerdomain
+- * pointer is null, -EAGAIN if the bailout value was reached, or
+- * returns 0 upon success.
+- */
+-int pwrdm_wait_transition(struct powerdomain *pwrdm)
+-{
+-	int ret = -EINVAL;
+-
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_wait_transition)
+-		ret = arch_pwrdm->pwrdm_wait_transition(pwrdm);
+-
+-	return ret;
+-}
+-
+ int pwrdm_state_switch(struct powerdomain *pwrdm)
+ {
+ 	int ret;
+ 
+-	ret = pwrdm_wait_transition(pwrdm);
++	if (!pwrdm || !arch_pwrdm)
++		return -EINVAL;
++
++	ret = arch_pwrdm->pwrdm_wait_transition(pwrdm);
+ 	if (!ret)
+ 		ret = _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 5277d56eb..7c1534b 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -225,8 +225,6 @@ int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm);
+ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm);
+ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
+ 
+-int pwrdm_wait_transition(struct powerdomain *pwrdm);
+-
+ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_pre_transition(struct powerdomain *pwrdm);
+ int pwrdm_post_transition(struct powerdomain *pwrdm);
 
 
