@@ -1,141 +1,87 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 01/12] ARM: OMAP2+: powerdomain: consolidate arch_pwrdm
- check code
-Date: Sun, 09 Dec 2012 13:02:59 -0700
-Message-ID: <20121209200257.3196.38184.stgit@dusk.lan>
+Subject: [PATCH 05/12] ARM: OMAP2+: powerdomain: remove some redundant
+ checks; add some notes
+Date: Sun, 09 Dec 2012 13:03:24 -0700
+Message-ID: <20121209200322.3196.6345.stgit@dusk.lan>
 References: <20121209200108.3196.12452.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40185 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40197 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758871Ab2LIUFG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:05:06 -0500
+	with ESMTP id S1751608Ab2LIUFH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:05:07 -0500
 In-Reply-To: <20121209200108.3196.12452.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Paul Walmsley <paul@pwsan.com?>
 
-Check for the presence of some of the arch_pwrdm function pointers
-during powerdomain setup, rather than in the individual functions.
-The primary motivation is to make the code slightly easier to read, but it
-also should avoid a few instructions in some hot paths.
+Remove some redundant tests in static functions, and add some comments
+to some code that should have future attention.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com?>
 ---
- arch/arm/mach-omap2/powerdomain.c |   43 +++++++++++++++----------------------
- 1 file changed, 18 insertions(+), 25 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index f81aee1..b67d721 100644
+index 658f4ed..62e2f75 100644
 --- a/arch/arm/mach-omap2/powerdomain.c
 +++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -385,9 +385,6 @@ static int _set_logic_retst_and_pwrdm_pwrst(struct powerdomain *pwrdm,
- 	if (!_pwrdm_pwrst_is_controllable(pwrdm))
- 		return 0;
+@@ -95,7 +95,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	int i;
+ 	struct voltagedomain *voltdm;
  
--	if (!arch_pwrdm || !arch_pwrdm->pwrdm_set_next_pwrst)
--		return -EINVAL;
--
- 	if (!(pwrdm->pwrsts & (1 << pwrst)))
+-	if (!pwrdm || !pwrdm->name)
++	if (!pwrdm->name)
  		return -EINVAL;
  
-@@ -395,13 +392,11 @@ static int _set_logic_retst_and_pwrdm_pwrst(struct powerdomain *pwrdm,
- 		if (!(pwrdm->pwrsts_logic_ret & (1 << logic)))
- 			return -EINVAL;
+ 	if (cpu_is_omap44xx() &&
+@@ -528,9 +528,6 @@ static int _pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ {
+ 	int ret = -EINVAL;
  
--		if (arch_pwrdm->pwrdm_set_logic_retst) {
--			ret = arch_pwrdm->pwrdm_set_logic_retst(pwrdm, logic);
--			if (ret) {
--				pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
--				       __func__, logic, pwrdm->name);
--				return ret;
--			}
-+		ret = arch_pwrdm->pwrdm_set_logic_retst(pwrdm, logic);
-+		if (ret) {
-+			pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
-+			       __func__, logic, pwrdm->name);
-+			return ret;
- 		}
- 	}
- 
-@@ -426,9 +421,6 @@ static int _pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
- 	int next_pwrst, next_logic, ret;
- 	u8 fpwrst;
- 
--	if (!arch_pwrdm || !arch_pwrdm->pwrdm_read_next_pwrst)
+-	if (!pwrdm)
 -		return -EINVAL;
 -
- 	next_pwrst = arch_pwrdm->pwrdm_read_next_pwrst(pwrdm);
- 	if (next_pwrst < 0)
- 		return next_pwrst;
-@@ -653,9 +645,12 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
-  *
-  * Register the list of function pointers used to implement the
-  * powerdomain functions on different OMAP SoCs.  Should be called
-- * before any other pwrdm_register*() function.  Returns -EINVAL if
-- * @po is null, -EEXIST if platform functions have already been
-- * registered, or 0 upon success.
-+ * before any other pwrdm_register*() function.  Several function
-+ * pointers in @po are required to be non-null for the powerdomain
-+ * code to function: pwrdm_wait_transition, pwrdm_read_next_pwrst,
-+ * pwrdm_read_pwrst, pwrdm_set_next_pwrst, pwrdm_set_logic_retst, and
-+ * pwrdm_read_prev_pwrst.  Returns -EINVAL if @po is null, -EEXIST if
-+ * platform functions have already been registered, or 0 upon success.
-  */
- int pwrdm_register_platform_funcs(struct pwrdm_ops *po)
- {
-@@ -665,6 +660,11 @@ int pwrdm_register_platform_funcs(struct pwrdm_ops *po)
- 	if (arch_pwrdm)
+ 	if (pwrdm->banks < (bank + 1))
  		return -EEXIST;
  
-+	if (!po->pwrdm_wait_transition || !po->pwrdm_read_next_pwrst ||
-+	    !po->pwrdm_read_pwrst || !po->pwrdm_set_next_pwrst ||
-+	    !po->pwrdm_set_logic_retst || !po->pwrdm_read_prev_pwrst)
-+		return -ENOENT;
-+
- 	arch_pwrdm = po;
+@@ -566,9 +563,6 @@ static int _pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+ {
+ 	int ret = -EINVAL;
  
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+ 	if (pwrdm->banks < (bank + 1))
+ 		return -EEXIST;
+ 
+@@ -635,6 +629,11 @@ static void _pwrdm_state_switch(struct powerdomain *pwrdm)
+ 
+ static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm, void *unused)
+ {
++	/*
++	 * XXX It should be possible to avoid the clear_all_prev_pwrst
++	 * call for powerdomains if we are programming them to stay on,
++	 * for example.
++	 */
+ 	pwrdm_clear_all_prev_pwrst(pwrdm);
+ 	_pwrdm_state_switch(pwrdm);
  	return 0;
-@@ -1221,7 +1221,7 @@ int pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
- 	int next_pwrst, next_logic, ret;
- 	u8 fpwrst;
- 
--	if (!arch_pwrdm || !arch_pwrdm->pwrdm_read_next_pwrst)
-+	if (!arch_pwrdm)
- 		return -EINVAL;
- 
- 	pwrdm_lock(pwrdm);
-@@ -1264,8 +1264,7 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
- 	int ret = 0;
- 	bool hwsup = false;
- 
--	if (!pwrdm || IS_ERR(pwrdm) || !arch_pwrdm ||
--	    !arch_pwrdm->pwrdm_read_pwrst)
-+	if (!pwrdm || IS_ERR(pwrdm) || !arch_pwrdm)
- 		return -EINVAL;
+@@ -1000,6 +999,11 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
+ 		return ret;
  
  	/*
-@@ -1334,9 +1333,6 @@ int pwrdm_read_fpwrst(struct powerdomain *pwrdm)
- 	if (!_pwrdm_pwrst_can_change(pwrdm))
- 		return PWRDM_FUNC_PWRST_ON;
- 
--	if (!arch_pwrdm->pwrdm_read_pwrst)
--		return -EINVAL;
--
- 	pwrdm_lock(pwrdm);
- 	ret = _pwrdm_read_fpwrst(pwrdm);
- 	pwrdm_unlock(pwrdm);
-@@ -1362,9 +1358,6 @@ int pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
- 	if (!_pwrdm_pwrst_can_change(pwrdm))
- 		return PWRDM_FUNC_PWRST_ON;
- 
--	if (!arch_pwrdm->pwrdm_read_prev_pwrst)
--		return -EINVAL;
--
- 	pwrdm_lock(pwrdm);
- 	ret = _pwrdm_read_prev_fpwrst(pwrdm);
- 	pwrdm_unlock(pwrdm);
++	 * XXX Is there some way for us to skip powerdomains that
++	 * don't have a prev pwrst register?
++	 */
++
++	/*
+ 	 * XXX should get the powerdomain's current state here;
+ 	 * warn & fail if it is not ON.
+ 	 */
 
 
