@@ -1,322 +1,118 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 10/10] ARM: OMAP2+: powerdomain: fix whitespace,
- improve flag comments
-Date: Sat, 08 Dec 2012 18:23:44 -0700
-Message-ID: <20121209012343.19716.48213.stgit@dusk.lan>
+Subject: [PATCH 03/10] ARM: OMAP2xxx: PM: clean up some crufty powerstate
+ programming code
+Date: Sat, 08 Dec 2012 18:23:38 -0700
+Message-ID: <20121209012337.19716.8908.stgit@dusk.lan>
 References: <20121209011755.19716.25244.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39016 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38991 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030279Ab2LIBYf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Dec 2012 20:24:35 -0500
+	with ESMTP id S1756440Ab2LIBYc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Dec 2012 20:24:32 -0500
 In-Reply-To: <20121209011755.19716.25244.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Kevin Hilman <khilman@ti.com>
 
-Fix some whitespace problems introduced by commit
-da03ce65b5431245b9cd20db3edaaa6b9f5c8dc1 ("OMAP3: powerdomain data:
-add voltage domains").  Also, improve the documentation for the struct
-powerdomain.flags field.
+Don't attempt to put clockdomains to sleep; this should be handled by the
+clock framework.  It should be enough to program the next-power-state,
+and then let the code in omap_pm_clkdms_setup() deal with the rest.
+
+Start out by programming the MPU and CORE powerdomains to stay ON.
+Then control the MPU and CORE powerdomain states directly in
+omap2_enter_full_retention() and omap2_enter_mpu_retention().  Not the
+most optimal way to do it, but certainly is the most conservative until
+OMAP2xxx PM is working again.
+
+Get rid of the open-coded PM_PWSTCTRL_MPU writes in
+omap2_enter_mpu_retention(); use the powerdomain code instead.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.h                |   26 +++++++------
- arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |    4 +-
- arch/arm/mach-omap2/powerdomains2xxx_data.c      |    8 ++--
- arch/arm/mach-omap2/powerdomains3xxx_data.c      |   44 +++++++++++-----------
- 4 files changed, 42 insertions(+), 40 deletions(-)
+ arch/arm/mach-omap2/pm24xx.c |   30 ++++++++++--------------------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 83b4892..842ba46 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -43,18 +43,20 @@
- #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 83815dd..4c06d8a 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -89,11 +89,7 @@ static int omap2_enter_full_retention(void)
+ 	omap2_prm_write_mod_reg(0xffffffff, CORE_MOD, OMAP24XX_PM_WKST2);
+ 	omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
  
+-	/*
+-	 * Set MPU powerdomain's next power state to RETENTION;
+-	 * preserve logic state during retention
+-	 */
+-	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
++	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+ 	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
  
--/* Powerdomain flags */
--#define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
--#define PWRDM_HAS_MPU_QUIRK	(1 << 1) /* MPU pwr domain has MEM bank 0 bits
--					  * in MEM bank 1 position. This is
--					  * true for OMAP3430
--					  */
--#define PWRDM_HAS_LOWPOWERSTATECHANGE	(1 << 2) /*
--						  * support to transition from a
--						  * sleep state to a lower sleep
--						  * state without waking up the
--						  * powerdomain
--						  */
-+/*
-+ * Powerdomain flags (struct powerdomain.flags)
-+ *
-+ * PWRDM_HAS_HDWR_SAR - powerdomain has hardware save-and-restore support
-+ *
-+ * PWRDM_HAS_MPU_QUIRK - MPU pwr domain has MEM bank 0 bits in MEM
-+ * bank 1 position. This is true for OMAP3430
-+ *
-+ * PWRDM_HAS_LOWPOWERSTATECHANGE - can transition from a sleep state
-+ * to a lower sleep state without waking up the powerdomain
-+ */
-+#define PWRDM_HAS_HDWR_SAR		BIT(0)
-+#define PWRDM_HAS_MPU_QUIRK		BIT(1)
-+#define PWRDM_HAS_LOWPOWERSTATECHANGE	BIT(2)
+ 	/* Workaround to kill USB */
+@@ -136,6 +132,9 @@ no_sleep:
+ 	/* Mask future PRCM-to-MPU interrupts */
+ 	omap2_prm_write_mod_reg(0x0, OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
  
- /*
-  * Number of memory banks that are power-controllable.	On OMAP4430, the
-diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
-index d3a5399..7b946f1 100644
---- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
-@@ -54,12 +54,12 @@ struct powerdomain gfx_omap2_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
++	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
++	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
++
+ 	return 0;
+ }
  
- struct powerdomain wkup_omap2_pwrdm = {
- 	.name		= "wkup_pwrdm",
- 	.prcm_offs	= WKUP_MOD,
- 	.pwrsts		= PWRSTS_ON,
--	.voltdm         = { .name = "wakeup" },
-+	.voltdm		= { .name = "wakeup" },
- };
-diff --git a/arch/arm/mach-omap2/powerdomains2xxx_data.c b/arch/arm/mach-omap2/powerdomains2xxx_data.c
-index 01abc1e..578eef8 100644
---- a/arch/arm/mach-omap2/powerdomains2xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains2xxx_data.c
-@@ -38,7 +38,7 @@ static struct powerdomain dsp_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
+@@ -185,17 +184,16 @@ static void omap2_enter_mpu_retention(void)
+ 		omap2_prm_write_mod_reg(0xffffffff, WKUP_MOD, PM_WKST);
  
- static struct powerdomain mpu_24xx_pwrdm = {
-@@ -53,7 +53,7 @@ static struct powerdomain mpu_24xx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
+ 		/* Try to enter MPU retention */
+-		omap2_prm_write_mod_reg((0x01 << OMAP_POWERSTATE_SHIFT) |
+-				  OMAP_LOGICRETSTATE_MASK,
+-				  MPU_MOD, OMAP2_PM_PWSTCTRL);
++		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
++
+ 	} else {
+ 		/* Block MPU retention */
+-
+-		omap2_prm_write_mod_reg(OMAP_LOGICRETSTATE_MASK, MPU_MOD,
+-						 OMAP2_PM_PWSTCTRL);
++		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+ 	}
  
- static struct powerdomain core_24xx_pwrdm = {
-@@ -72,7 +72,7 @@ static struct powerdomain core_24xx_pwrdm = {
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 		[2] = PWRSTS_OFF_RET_ON, /* MEM3ONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
+ 	omap2_sram_idle();
++
++	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
+ }
  
+ static int omap2_can_sleep(void)
+@@ -250,25 +248,17 @@ static void __init prcm_setup_regs(void)
+ 	for (i = 0; i < num_mem_banks; i++)
+ 		pwrdm_set_mem_retst(core_pwrdm, i, PWRDM_POWER_RET);
  
-@@ -94,7 +94,7 @@ static struct powerdomain mdm_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
+-	/* Set CORE powerdomain's next power state to RETENTION */
+-	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
++	pwrdm_set_logic_retst(core_pwrdm, PWRDM_POWER_RET);
  
- /*
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index 8b23d23..f0e14e9ef 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -50,7 +50,7 @@ static struct powerdomain iva2_pwrdm = {
- 		[2] = PWRSTS_OFF_ON,
- 		[3] = PWRSTS_ON,
- 	},
--	.voltdm           = { .name = "mpu_iva" },
-+	.voltdm		  = { .name = "mpu_iva" },
- };
+-	/*
+-	 * Set MPU powerdomain's next power state to RETENTION;
+-	 * preserve logic state during retention
+-	 */
+ 	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
+-	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
  
- static struct powerdomain mpu_3xxx_pwrdm = {
-@@ -66,7 +66,7 @@ static struct powerdomain mpu_3xxx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_OFF_ON,
- 	},
--	.voltdm           = { .name = "mpu_iva" },
-+	.voltdm		  = { .name = "mpu_iva" },
- };
+ 	/* Force-power down DSP, GFX powerdomains */
  
- static struct powerdomain mpu_am35x_pwrdm = {
-@@ -82,7 +82,7 @@ static struct powerdomain mpu_am35x_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,
- 	},
--	.voltdm           = { .name = "mpu_iva" },
-+	.voltdm		  = { .name = "mpu_iva" },
- };
+ 	pwrdm = clkdm_get_pwrdm(dsp_clkdm);
+ 	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
+-	clkdm_sleep(dsp_clkdm);
  
- /*
-@@ -109,7 +109,7 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
- 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
+ 	pwrdm = clkdm_get_pwrdm(gfx_clkdm);
+ 	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
+-	clkdm_sleep(gfx_clkdm);
  
- static struct powerdomain core_3xxx_es3_1_pwrdm = {
-@@ -131,7 +131,7 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
- 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain core_am35x_pwrdm = {
-@@ -148,7 +148,7 @@ static struct powerdomain core_am35x_pwrdm = {
- 		[0] = PWRSTS_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_ON, /* MEM2ONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain dss_pwrdm = {
-@@ -163,7 +163,7 @@ static struct powerdomain dss_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain dss_am35x_pwrdm = {
-@@ -178,7 +178,7 @@ static struct powerdomain dss_am35x_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- /*
-@@ -199,7 +199,7 @@ static struct powerdomain sgx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain sgx_am35x_pwrdm = {
-@@ -214,7 +214,7 @@ static struct powerdomain sgx_am35x_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain cam_pwrdm = {
-@@ -229,7 +229,7 @@ static struct powerdomain cam_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain per_pwrdm = {
-@@ -244,7 +244,7 @@ static struct powerdomain per_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain per_am35x_pwrdm = {
-@@ -259,13 +259,13 @@ static struct powerdomain per_am35x_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain emu_pwrdm = {
- 	.name		= "emu_pwrdm",
- 	.prcm_offs	= OMAP3430_EMU_MOD,
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain neon_pwrdm = {
-@@ -273,7 +273,7 @@ static struct powerdomain neon_pwrdm = {
- 	.prcm_offs	  = OMAP3430_NEON_MOD,
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_RET,
--	.voltdm           = { .name = "mpu_iva" },
-+	.voltdm		  = { .name = "mpu_iva" },
- };
- 
- static struct powerdomain neon_am35x_pwrdm = {
-@@ -281,7 +281,7 @@ static struct powerdomain neon_am35x_pwrdm = {
- 	.prcm_offs	  = OMAP3430_NEON_MOD,
- 	.pwrsts		  = PWRSTS_ON,
- 	.pwrsts_logic_ret = PWRSTS_ON,
--	.voltdm           = { .name = "mpu_iva" },
-+	.voltdm		  = { .name = "mpu_iva" },
- };
- 
- static struct powerdomain usbhost_pwrdm = {
-@@ -303,37 +303,37 @@ static struct powerdomain usbhost_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain dpll1_pwrdm = {
- 	.name		= "dpll1_pwrdm",
- 	.prcm_offs	= MPU_MOD,
--	.voltdm           = { .name = "mpu_iva" },
-+	.voltdm		  = { .name = "mpu_iva" },
- };
- 
- static struct powerdomain dpll2_pwrdm = {
- 	.name		= "dpll2_pwrdm",
- 	.prcm_offs	= OMAP3430_IVA2_MOD,
--	.voltdm           = { .name = "mpu_iva" },
-+	.voltdm		  = { .name = "mpu_iva" },
- };
- 
- static struct powerdomain dpll3_pwrdm = {
- 	.name		= "dpll3_pwrdm",
- 	.prcm_offs	= PLL_MOD,
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain dpll4_pwrdm = {
- 	.name		= "dpll4_pwrdm",
- 	.prcm_offs	= PLL_MOD,
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- static struct powerdomain dpll5_pwrdm = {
- 	.name		= "dpll5_pwrdm",
- 	.prcm_offs	= PLL_MOD,
--	.voltdm           = { .name = "core" },
-+	.voltdm		  = { .name = "core" },
- };
- 
- /* As powerdomains are added or removed above, this list must also be changed */
+ 	/* Enable hardware-supervised idle for all clkdms */
+ 	clkdm_for_each(omap_pm_clkdms_setup, NULL);
 
 
