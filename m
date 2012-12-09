@@ -1,159 +1,274 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 01/10] ARM: OMAP3/4: cpuidle: fix sparse and checkpatch
- warnings
-Date: Sat, 08 Dec 2012 18:23:37 -0700
-Message-ID: <20121209012334.19716.44831.stgit@dusk.lan>
+Subject: [PATCH 05/10] ARM: OMAP2+: PM/powerdomain: move
+ omap_set_pwrdm_state() to powerdomain code
+Date: Sat, 08 Dec 2012 18:23:40 -0700
+Message-ID: <20121209012339.19716.10548.stgit@dusk.lan>
 References: <20121209011755.19716.25244.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38988 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:38999 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932172Ab2LIBYb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Dec 2012 20:24:31 -0500
+	with ESMTP id S932240Ab2LIBYc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Dec 2012 20:24:32 -0500
 In-Reply-To: <20121209011755.19716.25244.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Jean Pihet <jean.pihet@newoldbits.com>
 
-Fix the following sparse warnings in the OMAP3/4 CPUIdle code:
-
-arch/arm/mach-omap2/cpuidle34xx.c:272:1: warning: symbol 'omap3_idle_dev' was not declared. Should it be static?
-arch/arm/mach-omap2/cpuidle34xx.c:274:23: warning: symbol 'omap3_idle_driver' was not declared. Should it be static?
-arch/arm/mach-omap2/cpuidle44xx.c:164:1: warning: symbol 'omap4_idle_dev' was not declared. Should it be static?
-arch/arm/mach-omap2/cpuidle44xx.c:166:23: warning: symbol 'omap4_idle_driver' was not declared. Should it be static?
-
-Also fix the following checkpatch warnings:
-
-WARNING: please, no space before tabs
-#44: FILE: arch/arm/mach-omap2/cpuidle34xx.c:105:
-+^I.name = ^I"omap3_idle",$
-
-WARNING: please, no space before tabs
-#45: FILE: arch/arm/mach-omap2/cpuidle34xx.c:106:
-+^I.owner = ^ITHIS_MODULE,$
-
-ERROR: code indent should use tabs where possible
-#211: FILE: arch/arm/mach-omap2/cpuidle44xx.c:74:
-+                        /* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */$
-
+Move omap_set_pwrdm_state() from the PM code to the powerdomain code,
+and refactor it to split it up into several functions.  A subsequent patch
+will rename it to conform with the existing powerdomain function names.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   14 +++++++++-----
- arch/arm/mach-omap2/cpuidle44xx.c |   28 ++++++++++++++++------------
- 2 files changed, 25 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/pm.c          |   61 --------------------
+ arch/arm/mach-omap2/pm.h          |    1 
+ arch/arm/mach-omap2/powerdomain.c |  112 +++++++++++++++++++++++++++----------
+ arch/arm/mach-omap2/powerdomain.h |    3 +
+ 4 files changed, 85 insertions(+), 92 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index ad70220..e6215b5 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -53,6 +53,8 @@ struct omap3_idle_statedata {
-  */
- #define OMAP_CPUIDLE_CX_NO_CLKDM_IDLE		BIT(0)
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index cc8ed0f..2e2a897 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -76,10 +76,6 @@ static void __init omap2_init_processor_devices(void)
+ 	}
+ }
  
-+static struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
-+
+-/* Types of sleep_switch used in omap_set_pwrdm_state */
+-#define FORCEWAKEUP_SWITCH	0
+-#define LOWPOWERSTATE_SWITCH	1
+-
+ int __init omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
+ {
+ 	if ((clkdm->flags & CLKDM_CAN_ENABLE_AUTO) &&
+@@ -92,63 +88,6 @@ int __init omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused)
+ }
+ 
  /*
-  * Prevent PER OFF if CORE is not in RETention or OFF as this would
-  * disable PER wakeups completely.
-@@ -97,7 +99,7 @@ static struct omap3_idle_statedata omap3_idle_data[] = {
- 	},
- };
+- * This sets pwrdm state (other than mpu & core. Currently only ON &
+- * RET are supported.
+- */
+-int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 pwrst)
+-{
+-	u8 curr_pwrst, next_pwrst;
+-	int sleep_switch = -1, ret = 0, hwsup = 0;
+-
+-	if (!pwrdm || IS_ERR(pwrdm))
+-		return -EINVAL;
+-
+-	while (!(pwrdm->pwrsts & (1 << pwrst))) {
+-		if (pwrst == PWRDM_POWER_OFF)
+-			return ret;
+-		pwrst--;
+-	}
+-
+-	next_pwrst = pwrdm_read_next_pwrst(pwrdm);
+-	if (next_pwrst == pwrst)
+-		return ret;
+-
+-	curr_pwrst = pwrdm_read_pwrst(pwrdm);
+-	if (curr_pwrst < PWRDM_POWER_ON) {
+-		if ((curr_pwrst > pwrst) &&
+-			(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
+-			sleep_switch = LOWPOWERSTATE_SWITCH;
+-		} else {
+-			hwsup = clkdm_in_hwsup(pwrdm->pwrdm_clkdms[0]);
+-			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
+-			sleep_switch = FORCEWAKEUP_SWITCH;
+-		}
+-	}
+-
+-	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
+-	if (ret)
+-		pr_err("%s: unable to set power state of powerdomain: %s\n",
+-		       __func__, pwrdm->name);
+-
+-	switch (sleep_switch) {
+-	case FORCEWAKEUP_SWITCH:
+-		if (hwsup)
+-			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+-		else
+-			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
+-		break;
+-	case LOWPOWERSTATE_SWITCH:
+-		pwrdm_set_lowpwrstchange(pwrdm);
+-		pwrdm_state_switch(pwrdm);
+-		break;
+-	}
+-
+-	return ret;
+-}
+-
+-
+-
+-/*
+  * This API is to be called during init to set the various voltage
+  * domains to the voltage as per the opp table. Typically we boot up
+  * at the nominal voltage. So this function finds out the rate of
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 686137d..707e9cb 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -33,7 +33,6 @@ static inline int omap4_idle_init(void)
+ extern void *omap3_secure_ram_storage;
+ extern void omap3_pm_off_mode_enable(int);
+ extern void omap_sram_idle(void);
+-extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
+ extern int (*omap_pm_suspend)(void);
  
--static struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
-+/* Private functions */
- 
- static int __omap3_enter_idle(struct cpuidle_device *dev,
- 				struct cpuidle_driver *drv,
-@@ -269,11 +271,11 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	return ret;
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 97b3881..05f00660 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -921,35 +921,6 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm)
+ 	return (pwrdm && pwrdm->flags & PWRDM_HAS_HDWR_SAR) ? 1 : 0;
  }
  
--DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
-+static DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
- 
--struct cpuidle_driver omap3_idle_driver = {
--	.name = 	"omap3_idle",
--	.owner = 	THIS_MODULE,
-+static struct cpuidle_driver omap3_idle_driver = {
-+	.name =		"omap3_idle",
-+	.owner =	THIS_MODULE,
- 	.states = {
- 		{
- 			.enter		  = omap3_enter_idle_bm,
-@@ -336,6 +338,8 @@ struct cpuidle_driver omap3_idle_driver = {
- 	.safe_state_index = 0,
- };
- 
-+/* Public functions */
-+
- /**
-  * omap3_idle_init - Init routine for OMAP3 idle
-  *
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index 288bee6..d639aef 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -54,6 +54,8 @@ static struct clockdomain *cpu_clkdm[NR_CPUS];
- static atomic_t abort_barrier;
- static bool cpu_done[NR_CPUS];
- 
-+/* Private functions */
-+
- /**
-  * omap4_enter_idle_coupled_[simple/coupled] - OMAP4 cpuidle entry functions
-  * @dev: cpuidle device
-@@ -161,9 +163,19 @@ fail:
- 	return index;
+-/**
+- * pwrdm_set_lowpwrstchange - Request a low power state change
+- * @pwrdm: struct powerdomain *
+- *
+- * Allows a powerdomain to transtion to a lower power sleep state
+- * from an existing sleep state without waking up the powerdomain.
+- * Returns -EINVAL if the powerdomain pointer is null or if the
+- * powerdomain does not support LOWPOWERSTATECHANGE, or returns 0
+- * upon success.
+- */
+-int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+-{
+-	int ret = -EINVAL;
+-
+-	if (!pwrdm)
+-		return -EINVAL;
+-
+-	if (!(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE))
+-		return -EINVAL;
+-
+-	pr_debug("powerdomain: %s: setting LOWPOWERSTATECHANGE bit\n",
+-		 pwrdm->name);
+-
+-	if (arch_pwrdm && arch_pwrdm->pwrdm_set_lowpwrstchange)
+-		ret = arch_pwrdm->pwrdm_set_lowpwrstchange(pwrdm);
+-
+-	return ret;
+-}
+-
+ int pwrdm_state_switch(struct powerdomain *pwrdm)
+ {
+ 	int ret;
+@@ -984,6 +955,89 @@ int pwrdm_post_transition(struct powerdomain *pwrdm)
+ 	return 0;
  }
  
--DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
-+/*
-+ * For each cpu, setup the broadcast timer because local timers
-+ * stops for the states above C1.
-+ */
-+static void omap_setup_broadcast_timer(void *arg)
++/* Types of sleep_switch used in omap_set_pwrdm_state */
++#define ALREADYACTIVE_SWITCH	0
++#define FORCEWAKEUP_SWITCH	1
++#define LOWPOWERSTATE_SWITCH	2
++
++static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
++					       u8 pwrst, bool *hwsup)
 +{
-+	int cpu = smp_processor_id();
-+	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu);
++	u8 curr_pwrst, sleep_switch;
++
++	curr_pwrst = pwrdm_read_pwrst(pwrdm);
++	if (curr_pwrst < PWRDM_POWER_ON) {
++		if (curr_pwrst > pwrst &&
++		    pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE &&
++		    arch_pwrdm->pwrdm_set_lowpwrstchange) {
++			sleep_switch = LOWPOWERSTATE_SWITCH;
++		} else {
++			*hwsup = clkdm_in_hwsup(pwrdm->pwrdm_clkdms[0]);
++			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
++			sleep_switch = FORCEWAKEUP_SWITCH;
++		}
++	} else {
++		sleep_switch = ALREADYACTIVE_SWITCH;
++	}
++
++	return sleep_switch;
 +}
 +
-+static DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
- 
--struct cpuidle_driver omap4_idle_driver = {
-+static struct cpuidle_driver omap4_idle_driver = {
- 	.name				= "omap4_idle",
- 	.owner				= THIS_MODULE,
- 	.en_core_tk_irqen		= 1,
-@@ -178,7 +190,7 @@ struct cpuidle_driver omap4_idle_driver = {
- 			.desc = "MPUSS ON"
- 		},
- 		{
--                        /* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
-+			/* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */
- 			.exit_latency = 328 + 440,
- 			.target_residency = 960,
- 			.flags = CPUIDLE_FLAG_TIME_VALID | CPUIDLE_FLAG_COUPLED,
-@@ -200,15 +212,7 @@ struct cpuidle_driver omap4_idle_driver = {
- 	.safe_state_index = 0,
- };
- 
--/*
-- * For each cpu, setup the broadcast timer because local timers
-- * stops for the states above C1.
-- */
--static void omap_setup_broadcast_timer(void *arg)
--{
--	int cpu = smp_processor_id();
--	clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ON, &cpu);
--}
-+/* Public functions */
- 
++static void _pwrdm_restore_clkdm_state(struct powerdomain *pwrdm,
++				       u8 sleep_switch, bool hwsup)
++{
++	switch (sleep_switch) {
++	case FORCEWAKEUP_SWITCH:
++		if (hwsup)
++			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
++		else
++			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
++		break;
++	case LOWPOWERSTATE_SWITCH:
++		if (pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE &&
++		    arch_pwrdm->pwrdm_set_lowpwrstchange)
++			arch_pwrdm->pwrdm_set_lowpwrstchange(pwrdm);
++		pwrdm_state_switch(pwrdm);
++		break;
++	}
++}
++
++/*
++ * This sets pwrdm state (other than mpu & core. Currently only ON &
++ * RET are supported.
++ */
++int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
++{
++	u8 next_pwrst, sleep_switch;
++	int ret = 0;
++	bool hwsup = false;
++
++	if (!pwrdm || IS_ERR(pwrdm))
++		return -EINVAL;
++
++	while (!(pwrdm->pwrsts & (1 << pwrst))) {
++		if (pwrst == PWRDM_POWER_OFF)
++			return ret;
++		pwrst--;
++	}
++
++	next_pwrst = pwrdm_read_next_pwrst(pwrdm);
++	if (next_pwrst == pwrst)
++		return ret;
++
++	sleep_switch = _pwrdm_save_clkdm_state_and_activate(pwrdm, pwrst,
++							    &hwsup);
++
++	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
++	if (ret)
++		pr_err("%s: unable to set power state of powerdomain: %s\n",
++		       __func__, pwrdm->name);
++
++	_pwrdm_restore_clkdm_state(pwrdm, sleep_switch, hwsup);
++
++	return ret;
++}
++
  /**
-  * omap4_idle_init - Init routine for OMAP4 idle
+  * pwrdm_get_context_loss_count - get powerdomain's context loss count
+  * @pwrdm: struct powerdomain * to wait for
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 7c1534b..1edb3b7 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -228,10 +228,11 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
+ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_pre_transition(struct powerdomain *pwrdm);
+ int pwrdm_post_transition(struct powerdomain *pwrdm);
+-int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+ 
++extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 state);
++
+ extern void omap242x_powerdomains_init(void);
+ extern void omap243x_powerdomains_init(void);
+ extern void omap3xxx_powerdomains_init(void);
 
 
