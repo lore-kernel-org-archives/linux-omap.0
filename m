@@ -1,404 +1,398 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 08/12] ARM: OMAP2+: powerdomain: drop many low-level
- powerdomain funcs
-Date: Sun, 09 Dec 2012 10:53:26 -0700
-Message-ID: <20121209175317.6933.82928.stgit@dusk.lan>
+Subject: [PATCH 07/12] ARM: OMAP2+: PM: use power domain functional state in
+ stats counters
+Date: Sun, 09 Dec 2012 10:53:17 -0700
+Message-ID: <20121209175314.6933.92188.stgit@dusk.lan>
 References: <20121209174545.6933.59371.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39991 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:39988 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934325Ab2LIRyq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 12:54:46 -0500
+	with ESMTP id S932528Ab2LIRyp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 12:54:45 -0500
 In-Reply-To: <20121209174545.6933.59371.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Jean Pihet <j-pihet@ti.com>
 
-The powerdomain code that exported the ability to read or change the
-previous, current, or next powerdomain or logic power states can now
-be removed.  All this is controlled via the powerdomain functional
-power state interface now.
+From: Jean Pihet <jean.pihet@newoldbits.com>
 
+The PM code uses some counters to keep track of the power domains
+transitions, in order to provide the information to drivers (in
+pwrdm_get_context_loss_count) and to expose the information to
+sysfs for debug purpose.
+
+This patch provides the information for each functional state.
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+[paul@pwsan.com: use PWRDM_FPWRSTS_COUNT due to functional power state offset;
+ use powerdomain.c fn to convert func pwrsts to names; rename 'state' to
+ 'fpwrst' to indicate use of func pwrsts; convert remaining users of the
+ non-func pwrst API; add some kerneldoc]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |  270 +++----------------------------------
- arch/arm/mach-omap2/powerdomain.h |    9 -
- 2 files changed, 21 insertions(+), 258 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c    |   42 ++++-----
+ arch/arm/mach-omap2/powerdomain.c |  167 ++++++++++++++++++-------------------
+ arch/arm/mach-omap2/powerdomain.h |   17 ++--
+ 3 files changed, 108 insertions(+), 118 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 3e2e263..86fe84c 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -253,9 +253,6 @@ static int _match_pwrst(u32 pwrsts, int pwrst, int min, int max)
- static int _pwrdm_fpwrst_to_pwrst(struct powerdomain *pwrdm, u8 fpwrst,
- 				  u8 *pwrdm_pwrst, u8 *logic_retst)
- {
--	if (!pwrdm || !pwrdm_pwrst || !logic_retst)
--		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 806a06b..72cf9e0 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -53,13 +53,6 @@ enum {
+ 	DEBUG_FILE_TIMERS,
+ };
+ 
+-static const char pwrdm_state_names[][PWRDM_MAX_PWRSTS] = {
+-	"OFF",
+-	"RET",
+-	"INA",
+-	"ON"
+-};
 -
- 	switch (fpwrst) {
- 	case PWRDM_FUNC_PWRST_ON:
- 		*pwrdm_pwrst = PWRDM_POWER_ON;
-@@ -317,9 +314,6 @@ static int _pwrdm_fpwrst_to_pwrst(struct powerdomain *pwrdm, u8 fpwrst,
- static int _pwrdm_pwrst_to_fpwrst(struct powerdomain *pwrdm, u8 pwrst, u8 logic,
- 				  u8 *fpwrst)
+ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
  {
--	if (!pwrdm || !fpwrst)
--		return -EINVAL;
--
- 	switch (pwrst) {
- 	case PWRDM_POWER_ON:
- 		*fpwrst = PWRDM_FUNC_PWRST_ON;
-@@ -370,16 +364,27 @@ static int _set_logic_retst_and_pwrdm_pwrst(struct powerdomain *pwrdm,
- 	if (!_pwrdm_pwrst_is_controllable(pwrdm))
+ 	s64 t;
+@@ -70,7 +63,7 @@ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
+ 	/* Update timer for previous state */
+ 	t = sched_clock();
+ 
+-	pwrdm->state_timer[prev] += t - pwrdm->timer;
++	pwrdm->fpwrst_timer[prev - PWRDM_FPWRST_OFFSET] += t - pwrdm->timer;
+ 
+ 	pwrdm->timer = t;
+ }
+@@ -79,6 +72,7 @@ static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
+ {
+ 	struct seq_file *s = (struct seq_file *)user;
+ 
++	/* XXX This needs to be implemented in a better way */
+ 	if (strcmp(clkdm->name, "emu_clkdm") == 0 ||
+ 		strcmp(clkdm->name, "wkup_clkdm") == 0 ||
+ 		strncmp(clkdm->name, "dpll", 4) == 0)
+@@ -94,23 +88,26 @@ static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
+ {
+ 	struct seq_file *s = (struct seq_file *)user;
+ 	int i;
++	int curr_fpwrst;
+ 
+ 	if (strcmp(pwrdm->name, "emu_pwrdm") == 0 ||
+ 		strcmp(pwrdm->name, "wkup_pwrdm") == 0 ||
+ 		strncmp(pwrdm->name, "dpll", 4) == 0)
  		return 0;
  
-+	if (!arch_pwrdm || !arch_pwrdm->pwrdm_set_next_pwrst)
-+		return -EINVAL;
-+
-+	if (!(pwrdm->pwrsts & (1 << pwrst)))
-+		return -EINVAL;
-+
- 	if (pwrdm->pwrsts_logic_ret && pwrst == PWRDM_POWER_RET) {
--		ret = pwrdm_set_logic_retst(pwrdm, logic);
--		if (ret) {
--			pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
--			       __func__, logic, pwrdm->name);
--			return ret;
-+		if (!(pwrdm->pwrsts_logic_ret & (1 << logic)))
-+			return -EINVAL;
-+
-+		if (arch_pwrdm->pwrdm_set_logic_retst) {
-+			ret = arch_pwrdm->pwrdm_set_logic_retst(pwrdm, logic);
-+			if (ret) {
-+				pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
-+				       __func__, logic, pwrdm->name);
-+				return ret;
-+			}
- 		}
- 	}
+-	if (pwrdm->state != pwrdm_read_pwrst(pwrdm))
+-		printk(KERN_ERR "pwrdm state mismatch(%s) %d != %d\n",
+-			pwrdm->name, pwrdm->state, pwrdm_read_pwrst(pwrdm));
++	curr_fpwrst = pwrdm_read_fpwrst(pwrdm);
++	if (pwrdm->fpwrst != curr_fpwrst)
++		pr_err("pwrdm state mismatch(%s) %s != %s\n",
++		       pwrdm->name,
++		       pwrdm_convert_fpwrst_to_name(pwrdm->fpwrst),
++		       pwrdm_convert_fpwrst_to_name(curr_fpwrst));
  
--	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
-+	ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
- 	if (ret)
- 		pr_err("%s: unable to set power state %0x of powerdomain: %s\n",
- 		       __func__, pwrst, pwrdm->name);
-@@ -847,133 +852,6 @@ int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm)
- }
+ 	seq_printf(s, "%s (%s)", pwrdm->name,
+-			pwrdm_state_names[pwrdm->state]);
+-	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
+-		seq_printf(s, ",%s:%d", pwrdm_state_names[i],
+-			pwrdm->state_counter[i]);
++		   pwrdm_convert_fpwrst_to_name(pwrdm->fpwrst));
++	for (i = PWRDM_FPWRST_OFFSET; i < PWRDM_MAX_FUNC_PWRSTS; i++)
++		seq_printf(s, ",%s:%d", pwrdm_convert_fpwrst_to_name(i),
++			   pwrdm->fpwrst_counter[i - PWRDM_FPWRST_OFFSET]);
  
- /**
-- * pwrdm_set_next_pwrst - set next powerdomain power state
-- * @pwrdm: struct powerdomain * to set
-- * @pwrst: one of the PWRDM_POWER_* macros
-- *
-- * Set the powerdomain @pwrdm's next power state to @pwrst.  The powerdomain
-- * may not enter this state immediately if the preconditions for this state
-- * have not been satisfied.  Returns -EINVAL if the powerdomain pointer is
-- * null or if the power state is invalid for the powerdomin, or returns 0
-- * upon success.
-- */
--int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
--{
--	int ret = -EINVAL;
--
--	if (!pwrdm)
--		return -EINVAL;
--
--	if (!(pwrdm->pwrsts & (1 << pwrst)))
--		return -EINVAL;
--
--	pr_debug("powerdomain: %s: setting next powerstate to %0x\n",
--		 pwrdm->name, pwrst);
--
--	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
--		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
--
--	return ret;
--}
--
--/**
-- * pwrdm_read_next_pwrst - get next powerdomain power state
-- * @pwrdm: struct powerdomain * to get power state
-- *
-- * Return the powerdomain @pwrdm's next power state.  Returns -EINVAL
-- * if the powerdomain pointer is null or returns the next power state
-- * upon success.
-- */
--int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
--{
--	int ret = -EINVAL;
--
--	if (!pwrdm)
--		return -EINVAL;
--
--	if (arch_pwrdm && arch_pwrdm->pwrdm_read_next_pwrst)
--		ret = arch_pwrdm->pwrdm_read_next_pwrst(pwrdm);
--
--	return ret;
--}
--
--/**
-- * pwrdm_read_pwrst - get current powerdomain power state
-- * @pwrdm: struct powerdomain * to get power state
-- *
-- * Return the powerdomain @pwrdm's current power state.	Returns -EINVAL
-- * if the powerdomain pointer is null or returns the current power state
-- * upon success. Note that if the power domain only supports the ON state
-- * then just return ON as the current state.
-- */
--int pwrdm_read_pwrst(struct powerdomain *pwrdm)
--{
--	int ret = -EINVAL;
--
--	if (!pwrdm)
--		return -EINVAL;
--
--	if (!_pwrdm_pwrst_can_change(pwrdm))
--		return PWRDM_POWER_ON;
--
--	if (arch_pwrdm && arch_pwrdm->pwrdm_read_pwrst)
--		ret = arch_pwrdm->pwrdm_read_pwrst(pwrdm);
--
--	return ret;
--}
--
--/**
-- * pwrdm_read_prev_pwrst - get previous powerdomain power state
-- * @pwrdm: struct powerdomain * to get previous power state
-- *
-- * Return the powerdomain @pwrdm's previous power state.  Returns -EINVAL
-- * if the powerdomain pointer is null or returns the previous power state
-- * upon success.
-- */
--int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
--{
--	int ret = -EINVAL;
--
--	if (!pwrdm)
--		return -EINVAL;
--
--	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_pwrst)
--		ret = arch_pwrdm->pwrdm_read_prev_pwrst(pwrdm);
--
--	return ret;
--}
--
--/**
-- * pwrdm_set_logic_retst - set powerdomain logic power state upon retention
-- * @pwrdm: struct powerdomain * to set
-- * @pwrst: one of the PWRDM_POWER_* macros
-- *
-- * Set the next power state @pwrst that the logic portion of the
-- * powerdomain @pwrdm will enter when the powerdomain enters retention.
-- * This will be either RETENTION or OFF, if supported.  Returns
-- * -EINVAL if the powerdomain pointer is null or the target power
-- * state is not not supported, or returns 0 upon success.
-- */
--int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
--{
--	int ret = -EINVAL;
--
--	if (!pwrdm)
--		return -EINVAL;
--
--	if (!(pwrdm->pwrsts_logic_ret & (1 << pwrst)))
--		return -EINVAL;
--
--	pr_debug("powerdomain: %s: setting next logic powerstate to %0x\n",
--		 pwrdm->name, pwrst);
--
--	if (arch_pwrdm && arch_pwrdm->pwrdm_set_logic_retst)
--		ret = arch_pwrdm->pwrdm_set_logic_retst(pwrdm, pwrst);
--
--	return ret;
--}
--
--/**
-  * pwrdm_set_mem_onst - set memory power state while powerdomain ON
-  * @pwrdm: struct powerdomain * to set
-  * @bank: memory bank number to set (0-3)
-@@ -1049,70 +927,6 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
- }
+-	seq_printf(s, ",RET-LOGIC-OFF:%d", pwrdm->ret_logic_off_counter);
+ 	for (i = 0; i < pwrdm->banks; i++)
+ 		seq_printf(s, ",RET-MEMBANK%d-OFF:%d", i + 1,
+ 				pwrdm->ret_mem_off_counter[i]);
+@@ -133,11 +130,12 @@ static int pwrdm_dbg_show_timer(struct powerdomain *pwrdm, void *user)
+ 	pwrdm_state_switch(pwrdm);
  
- /**
-- * pwrdm_read_logic_pwrst - get current powerdomain logic retention power state
-- * @pwrdm: struct powerdomain * to get current logic retention power state
-- *
-- * Return the power state that the logic portion of powerdomain @pwrdm
-- * will enter when the powerdomain enters retention.  Returns -EINVAL
-- * if the powerdomain pointer is null or returns the logic retention
-- * power state upon success.
-- */
--int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
--{
--	int ret = -EINVAL;
+ 	seq_printf(s, "%s (%s)", pwrdm->name,
+-		pwrdm_state_names[pwrdm->state]);
++		   pwrdm_convert_fpwrst_to_name(pwrdm->fpwrst));
+ 
+-	for (i = 0; i < 4; i++)
+-		seq_printf(s, ",%s:%lld", pwrdm_state_names[i],
+-			pwrdm->state_timer[i]);
++	for (i = 0; i < PWRDM_FPWRSTS_COUNT; i++)
++		seq_printf(s, ",%s:%lld",
++			   pwrdm_convert_fpwrst_to_name(i + PWRDM_FPWRST_OFFSET),
++			   pwrdm->fpwrst_timer[i]);
+ 
+ 	seq_printf(s, "\n");
+ 	return 0;
+@@ -209,8 +207,8 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
+ 
+ 	t = sched_clock();
+ 
+-	for (i = 0; i < 4; i++)
+-		pwrdm->state_timer[i] = 0;
++	for (i = 0; i < PWRDM_FPWRSTS_COUNT; i++)
++		pwrdm->fpwrst_timer[i] = 0;
+ 
+ 	pwrdm->timer = t;
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 2c732b6..3e2e263 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -115,97 +115,16 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	list_add(&pwrdm->node, &pwrdm_list);
+ 
+ 	/* Initialize the powerdomain's state counter */
+-	for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
+-		pwrdm->state_counter[i] = 0;
++	for (i = 0; i < PWRDM_FPWRSTS_COUNT; i++)
++		pwrdm->fpwrst_counter[i] = 0;
+ 
+-	pwrdm->ret_logic_off_counter = 0;
+ 	for (i = 0; i < pwrdm->banks; i++)
+ 		pwrdm->ret_mem_off_counter[i] = 0;
+ 
+ 	arch_pwrdm->pwrdm_wait_transition(pwrdm);
+-	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+-	pwrdm->state_counter[pwrdm->state] = 1;
++	pwrdm->fpwrst = pwrdm_read_fpwrst(pwrdm);
++	pwrdm->fpwrst_counter[pwrdm->fpwrst - PWRDM_FPWRST_OFFSET] = 1;
+ 
+-	pr_debug("powerdomain: registered %s\n", pwrdm->name);
 -
--	if (!pwrdm)
--		return -EINVAL;
--
--	if (arch_pwrdm && arch_pwrdm->pwrdm_read_logic_pwrst)
--		ret = arch_pwrdm->pwrdm_read_logic_pwrst(pwrdm);
--
--	return ret;
+-	return 0;
 -}
 -
--/**
-- * pwrdm_read_prev_logic_pwrst - get previous powerdomain logic power state
-- * @pwrdm: struct powerdomain * to get previous logic power state
-- *
-- * Return the powerdomain @pwrdm's previous logic power state.  Returns
-- * -EINVAL if the powerdomain pointer is null or returns the previous
-- * logic power state upon success.
-- */
--int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
+-static void _update_logic_membank_counters(struct powerdomain *pwrdm)
 -{
--	int ret = -EINVAL;
+-	int i;
+-	u8 prev_logic_pwrst, prev_mem_pwrst;
 -
--	if (!pwrdm)
--		return -EINVAL;
+-	prev_logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
+-	if ((pwrdm->pwrsts_logic_ret == PWRSTS_OFF_RET) &&
+-	    (prev_logic_pwrst == PWRDM_POWER_OFF))
+-		pwrdm->ret_logic_off_counter++;
 -
--	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_logic_pwrst)
--		ret = arch_pwrdm->pwrdm_read_prev_logic_pwrst(pwrdm);
+-	for (i = 0; i < pwrdm->banks; i++) {
+-		prev_mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
 -
--	return ret;
+-		if ((pwrdm->pwrsts_mem_ret[i] == PWRSTS_OFF_RET) &&
+-		    (prev_mem_pwrst == PWRDM_POWER_OFF))
+-			pwrdm->ret_mem_off_counter[i]++;
+-	}
 -}
 -
--/**
-- * pwrdm_read_logic_retst - get next powerdomain logic power state
-- * @pwrdm: struct powerdomain * to get next logic power state
-- *
-- * Return the powerdomain pwrdm's logic power state.  Returns -EINVAL
-- * if the powerdomain pointer is null or returns the next logic
-- * power state upon success.
-- */
--int pwrdm_read_logic_retst(struct powerdomain *pwrdm)
+-static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
 -{
--	int ret = -EINVAL;
+-	int prev, next, state, trace_state = 0;
 -
--	if (!pwrdm)
+-	if (pwrdm == NULL)
 -		return -EINVAL;
 -
--	if (arch_pwrdm && arch_pwrdm->pwrdm_read_logic_retst)
--		ret = arch_pwrdm->pwrdm_read_logic_retst(pwrdm);
+-	state = pwrdm_read_pwrst(pwrdm);
 -
--	return ret;
+-	switch (flag) {
+-	case PWRDM_STATE_NOW:
+-		prev = pwrdm->state;
+-		break;
+-	case PWRDM_STATE_PREV:
+-		prev = pwrdm_read_prev_pwrst(pwrdm);
+-		if (pwrdm->state != prev)
+-			pwrdm->state_counter[prev]++;
+-		if (prev == PWRDM_POWER_RET)
+-			_update_logic_membank_counters(pwrdm);
+-		/*
+-		 * If the power domain did not hit the desired state,
+-		 * generate a trace event with both the desired and hit states
+-		 */
+-		next = pwrdm_read_next_pwrst(pwrdm);
+-		if (next != prev) {
+-			trace_state = (PWRDM_TRACE_STATES_FLAG |
+-				       ((next & OMAP_POWERSTATE_MASK) << 8) |
+-				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+-			trace_power_domain_target(pwrdm->name, trace_state,
+-						  smp_processor_id());
+-		}
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	if (state != prev)
+-		pwrdm->state_counter[state]++;
+-
+-	pm_dbg_update_time(pwrdm, prev);
+-
+-	pwrdm->state = state;
+-
+-	return 0;
 -}
 -
--/**
-  * pwrdm_read_mem_pwrst - get current memory bank power state
-  * @pwrdm: struct powerdomain * to get current memory bank power state
-  * @bank: memory bank number (0-3)
-@@ -1342,7 +1156,7 @@ int pwrdm_post_transition(struct powerdomain *pwrdm)
+-static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm, void *unused)
+-{
+-	pwrdm_clear_all_prev_pwrst(pwrdm);
+-	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
+-	return 0;
+-}
+-
+-static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+-{
+-	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
  	return 0;
  }
  
--/* Types of sleep_switch used in omap_set_pwrdm_state */
-+/* Types of sleep_switch used in pwrdm_set_fpwrst() */
- #define ALREADYACTIVE_SWITCH	0
- #define FORCEWAKEUP_SWITCH	1
- #define LOWPOWERSTATE_SWITCH	2
-@@ -1352,7 +1166,7 @@ static u8 _pwrdm_save_clkdm_state_and_activate(struct powerdomain *pwrdm,
- {
- 	u8 curr_pwrst, sleep_switch;
- 
--	curr_pwrst = pwrdm_read_pwrst(pwrdm);
-+	curr_pwrst = arch_pwrdm->pwrdm_read_pwrst(pwrdm);
- 	if (curr_pwrst < PWRDM_POWER_ON) {
- 		if (curr_pwrst > pwrst &&
- 		    pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE &&
-@@ -1389,48 +1203,6 @@ static void _pwrdm_restore_clkdm_state(struct powerdomain *pwrdm,
- 	}
+@@ -568,6 +487,76 @@ static int _pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
+ 	return (ret) ? ret : fpwrst;
  }
  
--/*
-- * This sets pwrdm state (other than mpu & core. Currently only ON &
-- * RET are supported.
-- */
--int omap_set_pwrdm_state(struct powerdomain *pwrdm, u8 pwrst)
--{
--	u8 next_pwrst, sleep_switch;
--	int ret = 0;
--	bool hwsup = false;
--
--	if (!pwrdm || IS_ERR(pwrdm))
--		return -EINVAL;
--
--	while (!(pwrdm->pwrsts & (1 << pwrst))) {
--		if (pwrst == PWRDM_POWER_OFF)
--			return ret;
--		pwrst--;
--	}
--
--	pwrdm_lock(pwrdm);
--
--	next_pwrst = pwrdm_read_next_pwrst(pwrdm);
--	if (next_pwrst == pwrst) {
--		pwrdm_unlock(pwrdm);
--		return ret;
--	}
--
--	sleep_switch = _pwrdm_save_clkdm_state_and_activate(pwrdm, pwrst,
--							    &hwsup);
--
--	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
--	if (ret)
--		pr_err("%s: unable to set power state of powerdomain: %s\n",
--		       __func__, pwrdm->name);
--
--	_pwrdm_restore_clkdm_state(pwrdm, sleep_switch, hwsup);
--
--	pwrdm_unlock(pwrdm);
--
--	return ret;
--}
--
++/* XXX Caller must hold pwrdm->_lock */
++static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
++{
++	int prev, next, fpwrst, trace_state = 0;
++	int i;
++	u8 prev_mem_pwrst;
++
++	if (pwrdm == NULL)
++		return -EINVAL;
++
++	fpwrst = _pwrdm_read_fpwrst(pwrdm);
++
++	switch (flag) {
++	case PWRDM_STATE_NOW:
++		prev = pwrdm->fpwrst;
++		break;
++	case PWRDM_STATE_PREV:
++		prev = _pwrdm_read_prev_fpwrst(pwrdm);
++		if (pwrdm->fpwrst != prev)
++			pwrdm->fpwrst_counter[prev - PWRDM_FPWRST_OFFSET]++;
++		if (prev == PWRDM_FUNC_PWRST_CSWR ||
++		    prev == PWRDM_FUNC_PWRST_OSWR) {
++			for (i = 0; i < pwrdm->banks; i++) {
++				prev_mem_pwrst =
++					pwrdm_read_prev_mem_pwrst(pwrdm, i);
++				if ((pwrdm->pwrsts_mem_ret[i] ==
++				     PWRSTS_OFF_RET) &&
++				    (prev_mem_pwrst == PWRDM_POWER_OFF))
++					pwrdm->ret_mem_off_counter[i]++;
++			}
++		}
++		/*
++		 * If the power domain did not hit the desired state,
++		 * generate a trace event with both the desired and hit states
++		 */
++		next = _pwrdm_read_next_fpwrst(pwrdm);
++		if (next != prev) {
++			trace_state = (PWRDM_TRACE_STATES_FLAG | next << 8 |
++				       prev);
++			trace_power_domain_target(pwrdm->name, trace_state,
++						  smp_processor_id());
++		}
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	if (fpwrst != prev)
++		pwrdm->fpwrst_counter[fpwrst - PWRDM_FPWRST_OFFSET]++;
++
++	pm_dbg_update_time(pwrdm, prev);
++
++	pwrdm->fpwrst = fpwrst;
++
++	return 0;
++}
++
++static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm, void *unused)
++{
++	pwrdm_clear_all_prev_pwrst(pwrdm);
++	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
++	return 0;
++}
++
++static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
++{
++	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
++	return 0;
++}
++
+ /* Public functions */
+ 
  /**
-  * pwrdm_get_context_loss_count - get powerdomain's context loss count
-  * @pwrdm: struct powerdomain * to wait for
-@@ -1621,7 +1393,7 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
- {
- 	u8 next_fpwrst, pwrst, logic, sleep_switch;
- 	int ret = 0;
--	bool hwsup;
-+	bool hwsup = false;
+@@ -638,7 +627,7 @@ int pwrdm_complete_init(void)
+ 		return -EACCES;
  
- 	if (!pwrdm || IS_ERR(pwrdm) || !arch_pwrdm ||
- 	    !arch_pwrdm->pwrdm_read_pwrst)
-@@ -1651,7 +1423,7 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
- 	trace_power_domain_target(pwrdm->name, next_fpwrst,
- 				  smp_processor_id());
+ 	list_for_each_entry(temp_p, &pwrdm_list, node)
+-		pwrdm_set_next_pwrst(temp_p, PWRDM_POWER_ON);
++		pwrdm_set_next_fpwrst(temp_p, PWRDM_FUNC_PWRST_ON);
  
--	sleep_switch = _pwrdm_save_clkdm_state_and_activate(pwrdm, pwrst,
-+	sleep_switch = _pwrdm_save_clkdm_state_and_activate(pwrdm, fpwrst,
- 							    &hwsup);
+ 	return 0;
+ }
+@@ -1459,8 +1448,10 @@ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
+ 		return -ENODEV;
+ 	}
  
- 	ret = _set_logic_retst_and_pwrdm_pwrst(pwrdm, logic, pwrst);
+-	count = pwrdm->state_counter[PWRDM_POWER_OFF];
+-	count += pwrdm->ret_logic_off_counter;
++	count = pwrdm->fpwrst_counter[PWRDM_FUNC_PWRST_OFF -
++				      PWRDM_FPWRST_OFFSET];
++	count += pwrdm->fpwrst_counter[PWRDM_FUNC_PWRST_OSWR -
++				       PWRDM_FPWRST_OFFSET];
+ 
+ 	for (i = 0; i < pwrdm->banks; i++)
+ 		count += pwrdm->ret_mem_off_counter[i];
 diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 849bc55..aa1c9ae 100644
+index be835ff..849bc55 100644
 --- a/arch/arm/mach-omap2/powerdomain.h
 +++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -232,19 +232,10 @@ struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
+@@ -46,6 +46,8 @@ enum pwrdm_func_state {
+ 	PWRDM_MAX_FUNC_PWRSTS		/* Last value, used as the max value */
+ };
  
- int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
++#define PWRDM_FPWRSTS_COUNT	(PWRDM_MAX_FUNC_PWRSTS - PWRDM_FPWRST_OFFSET)
++
+ /* Powerdomain basic power states */
+ #define PWRDM_POWER_OFF		0x0
+ #define PWRDM_POWER_RET		0x1
+@@ -123,10 +125,10 @@ struct powerdomain;
+  * @mem_pwrst_mask: (AM33XX only) mask for mem state bitfield in @pwrstst_offs
+  * @mem_retst_mask: (AM33XX only) mask for mem retention state bitfield
+  *	in @pwrstctrl_offs
+- * @state:
+- * @state_counter:
+- * @timer:
+- * @state_timer:
++ * @fpwrst: current func power state (set during pwrdm_(pre|post)_transition())
++ * @fpwrst_counter: estimated number of times the pwrdm entered the power states
++ * @timer: sched_clock() timestamp of last pwrdm_state_switch()
++ * @fpwrst_timer: estimated nanoseconds of residency in the various power states
+  * @_lock: spinlock used to serialize powerdomain and some clockdomain ops
+  * @_lock_flags: stored flags when @_lock is taken
+  *
+@@ -146,12 +148,11 @@ struct powerdomain {
+ 	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
+ 	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
+ 	const u8 prcm_partition;
++	u8 fpwrst;
+ 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+ 	struct list_head node;
+ 	struct list_head voltdm_node;
+-	int state;
+-	unsigned state_counter[PWRDM_MAX_PWRSTS];
+-	unsigned ret_logic_off_counter;
++	unsigned fpwrst_counter[PWRDM_FPWRSTS_COUNT];
+ 	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
+ 	spinlock_t _lock;
+ 	unsigned long _lock_flags;
+@@ -165,7 +166,7 @@ struct powerdomain {
  
--int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
--int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
--int pwrdm_read_pwrst(struct powerdomain *pwrdm);
--int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
- int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
+ #ifdef CONFIG_PM_DEBUG
+ 	s64 timer;
+-	s64 state_timer[PWRDM_MAX_PWRSTS];
++	s64 fpwrst_timer[PWRDM_FPWRSTS_COUNT];
+ #endif
+ };
  
--int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
- int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
- int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
--
--int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm);
--int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm);
--int pwrdm_read_logic_retst(struct powerdomain *pwrdm);
- int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
- int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank);
- int pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank);
 
 
