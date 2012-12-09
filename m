@@ -1,208 +1,115 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 03/12] ARM: OMAP2+: powerdomain: split pwrdm_state_switch()
-Date: Sun, 09 Dec 2012 13:03:21 -0700
-Message-ID: <20121209200317.3196.54821.stgit@dusk.lan>
+Subject: [PATCH 06/12] ARM: OMAP2+: CM: use the cached copy of the
+ clockdomain's hwsup state
+Date: Sun, 09 Dec 2012 13:03:25 -0700
+Message-ID: <20121209200324.3196.65545.stgit@dusk.lan>
 References: <20121209200108.3196.12452.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:40190 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:40200 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758923Ab2LIUFH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:05:07 -0500
+	with ESMTP id S1758921Ab2LIUFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Dec 2012 15:05:08 -0500
 In-Reply-To: <20121209200108.3196.12452.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tero Kristo <t-kristo@ti.com>
 
-Move the pwrdm_state_switch() code that deals with previous power
-states into the post-transition callback.  This improves the clarity
-of pwrdm_state_switch() considerably.  Add some sorely-needed
-kerneldoc for these functions.
-
-It should be possible to drop pwrdm_state_switch() completely during
-3.9.
+Avoid some unnecessary CM IP block reads by using the cached copy of
+the clockdomain's hardware-supervised idle state.  This should
+simplify the code slightly and save a few hundred nanoseconds in these
+paths.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |  118 ++++++++++++++++++++++++-------------
- arch/arm/mach-omap2/powerdomain.h |    1 
- 2 files changed, 76 insertions(+), 43 deletions(-)
+ arch/arm/mach-omap2/cm2xxx.c |   19 ++-----------------
+ arch/arm/mach-omap2/cm3xxx.c |   14 ++------------
+ 2 files changed, 4 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 53bc852..d38f493 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -40,11 +40,6 @@
+diff --git a/arch/arm/mach-omap2/cm2xxx.c b/arch/arm/mach-omap2/cm2xxx.c
+index 6774a53..8ca13cd 100644
+--- a/arch/arm/mach-omap2/cm2xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx.c
+@@ -285,14 +285,7 @@ static void omap2xxx_clkdm_deny_idle(struct clockdomain *clkdm)
  
- #define PWRDM_TRACE_STATES_FLAG	(1<<31)
- 
--enum {
--	PWRDM_STATE_NOW = 0,
--	PWRDM_STATE_PREV,
--};
--
- /* Types of sleep_switch used in pwrdm_set_fpwrst() */
- #define ALREADYACTIVE_SWITCH		0
- #define FORCEWAKEUP_SWITCH		1
-@@ -600,60 +595,97 @@ static void _pwrdm_update_pwrst_time(struct powerdomain *pwrdm, int prev)
- #endif
- }
- 
--/* XXX Caller must hold pwrdm->_lock */
--static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
-+/**
-+ * _pwrdm_state_switch - record powerdomain usage data; track power state
-+ * (before powerdomain state transition)
-+ * @pwrdm: struct powerdomain * to observe
-+ *
-+ * If the powerdomain @pwrdm's current power state is not what we last
-+ * observed it to be, then increment the counter for that power state.
-+ * This is used to track context loss events, and for debugging.  Also
-+ * if CONFIG_PM_DEBUG=y, track the amount of time the powerdomain has
-+ * spent in the current power state.  Caller must hold pwrdm->_lock.
-+ * Intended to be called immediately before the powerdomain's power
-+ * state is likely to change.  XXX Note that the counts and durations
-+ * observed by this function may be inaccurate.  Powerdomains can
-+ * transition power states automatically, without the kernel being
-+ * involved -- for example, a device can DMA data from memory while
-+ * the MPU is asleep.  This function does not attempt to account for
-+ * that.  XXX It may be possible to skip this function completely if
-+ * PM debugging is not needed and off-mode and OSWR is disabled (e.g.,
-+ * no context loss events).  No return value.
-+ */
-+static void _pwrdm_state_switch(struct powerdomain *pwrdm)
+ static int omap2xxx_clkdm_clk_enable(struct clockdomain *clkdm)
  {
--	int prev, next, fpwrst, trace_state = 0;
+-	bool hwsup = false;
 -
--	if (pwrdm == NULL)
--		return -EINVAL;
-+	int fpwrst;
- 
- 	fpwrst = _pwrdm_read_fpwrst(pwrdm);
+-	if (!clkdm->clktrctrl_mask)
+-		return 0;
 -
--	switch (flag) {
--	case PWRDM_STATE_NOW:
--		prev = pwrdm->fpwrst;
--		break;
--	case PWRDM_STATE_PREV:
--		prev = _pwrdm_read_prev_fpwrst(pwrdm);
--		if (pwrdm->fpwrst != prev)
--			pwrdm->fpwrst_counter[prev - PWRDM_FPWRST_OFFSET]++;
--		/*
--		 * If the power domain did not hit the desired state,
--		 * generate a trace event with both the desired and hit states
--		 */
--		next = _pwrdm_read_next_fpwrst(pwrdm);
--		if (next != prev) {
--			trace_state = (PWRDM_TRACE_STATES_FLAG | next << 8 |
--				       prev);
--			trace_power_domain_target(pwrdm->name, trace_state,
--						  smp_processor_id());
--		}
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	if (fpwrst != prev)
-+	if (fpwrst != pwrdm->fpwrst)
- 		pwrdm->fpwrst_counter[fpwrst - PWRDM_FPWRST_OFFSET]++;
+-	hwsup = omap2xxx_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-					      clkdm->clktrctrl_mask);
+-	if (!hwsup && clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
++	if (!clkdm_in_hwsup(clkdm) && clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
+ 		omap2xxx_clkdm_wakeup(clkdm);
  
--	_pwrdm_update_pwrst_time(pwrdm, prev);
-+	_pwrdm_update_pwrst_time(pwrdm, pwrdm->fpwrst);
- 
- 	pwrdm->fpwrst = fpwrst;
--
--	return 0;
- }
- 
- static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm, void *unused)
- {
- 	pwrdm_clear_all_prev_pwrst(pwrdm);
--	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+	_pwrdm_state_switch(pwrdm);
  	return 0;
- }
+@@ -300,15 +293,7 @@ static int omap2xxx_clkdm_clk_enable(struct clockdomain *clkdm)
  
-+/**
-+ * _pwrdm_post_transition_cb - record powerdomain usage data; track power state
-+ * (after powerdomain power state transition)
-+ * @pwrdm: struct powerdomain * to observe
-+ *
-+ * If the powerdomain @pwrdm's previous power state doesn't match our
-+ * recollection of the powerdomain's current power state, then
-+ * increment the counter for the previous power state.  And if the
-+ * powerdomain's previous power state doesn't match the current power
-+ * state, increment the counter for the current power state.  This
-+ * function is used to track context loss events, and for debugging.
-+ * Also if CONFIG_PM_DEBUG=y, track the approximate amount of time the
-+ * powerdomain has spent in the previous power state.  Caller must
-+ * hold pwrdm->_lock.  XXX Note that the counts and durations observed
-+ * by this function may be inaccurate.  Powerdomains can transition
-+ * power states automatically, without the kernel being involved --
-+ * for example, a device can DMA data from memory while the MPU is
-+ * asleep.  This function does not attempt to account for that.  XXX
-+ * It may be possible to skip this function completely if PM debugging
-+ * is not needed and off-mode and OSWR is disabled (e.g., no context
-+ * loss events).  No return value.
-+ */
- static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+ static int omap2xxx_clkdm_clk_disable(struct clockdomain *clkdm)
  {
--	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
-+	int prev, next, fpwrst;
-+	int trace_state = 0;
-+
-+	prev = _pwrdm_read_prev_fpwrst(pwrdm);
-+	if (pwrdm->fpwrst != prev)
-+		pwrdm->fpwrst_counter[prev - PWRDM_FPWRST_OFFSET]++;
-+
-+	_pwrdm_update_pwrst_time(pwrdm, prev);
-+
-+	/*
-+	 * If the power domain did not hit the desired state,
-+	 * generate a trace event with both the desired and hit states
-+	 */
-+	next = _pwrdm_read_next_fpwrst(pwrdm);
-+	if (next != prev) {
-+		trace_state = (PWRDM_TRACE_STATES_FLAG | next << 8 |
-+			       prev);
-+		trace_power_domain_target(pwrdm->name, trace_state,
-+					  smp_processor_id());
-+	}
-+
-+	fpwrst = _pwrdm_read_fpwrst(pwrdm);
-+	if (fpwrst != prev)
-+		pwrdm->fpwrst_counter[fpwrst - PWRDM_FPWRST_OFFSET]++;
-+
-+	pwrdm->fpwrst = fpwrst;
-+
+-	bool hwsup = false;
+-
+-	if (!clkdm->clktrctrl_mask)
+-		return 0;
+-
+-	hwsup = omap2xxx_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-					      clkdm->clktrctrl_mask);
+-
+-	if (!hwsup && clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
++	if (!clkdm_in_hwsup(clkdm) && clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
+ 		omap2xxx_clkdm_sleep(clkdm);
+ 
  	return 0;
- }
+diff --git a/arch/arm/mach-omap2/cm3xxx.c b/arch/arm/mach-omap2/cm3xxx.c
+index 9061c30..75872134 100644
+--- a/arch/arm/mach-omap2/cm3xxx.c
++++ b/arch/arm/mach-omap2/cm3xxx.c
+@@ -227,8 +227,6 @@ static void omap3xxx_clkdm_deny_idle(struct clockdomain *clkdm)
  
-@@ -1055,7 +1087,7 @@ int pwrdm_state_switch_nolock(struct powerdomain *pwrdm)
+ static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
+ {
+-	bool hwsup = false;
+-
+ 	if (!clkdm->clktrctrl_mask)
+ 		return 0;
  
- 	ret = arch_pwrdm->pwrdm_wait_transition(pwrdm);
- 	if (!ret)
--		ret = _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+		_pwrdm_state_switch(pwrdm);
+@@ -243,10 +241,7 @@ static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
+ 		return 0;
+ 	}
  
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 48bb325..ef51987b 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -237,6 +237,7 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
+-	hwsup = omap3xxx_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-					      clkdm->clktrctrl_mask);
+-
+-	if (hwsup) {
++	if (clkdm_in_hwsup(clkdm)) {
+ 		/* Disable HW transitions when we are changing deps */
+ 		omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+ 						clkdm->clktrctrl_mask);
+@@ -263,8 +258,6 @@ static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
  
- int pwrdm_state_switch_nolock(struct powerdomain *pwrdm);
- int pwrdm_state_switch(struct powerdomain *pwrdm);
-+int pwrdm_state_switch_nolock(struct powerdomain *pwrdm);
- int pwrdm_pre_transition(struct powerdomain *pwrdm);
- int pwrdm_post_transition(struct powerdomain *pwrdm);
- int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ static int omap3xxx_clkdm_clk_disable(struct clockdomain *clkdm)
+ {
+-	bool hwsup = false;
+-
+ 	if (!clkdm->clktrctrl_mask)
+ 		return 0;
+ 
+@@ -280,10 +273,7 @@ static int omap3xxx_clkdm_clk_disable(struct clockdomain *clkdm)
+ 		return 0;
+ 	}
+ 
+-	hwsup = omap3xxx_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+-					      clkdm->clktrctrl_mask);
+-
+-	if (hwsup) {
++	if (clkdm_in_hwsup(clkdm)) {
+ 		/* Disable HW transitions when we are changing deps */
+ 		omap3xxx_cm_clkdm_disable_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+ 						clkdm->clktrctrl_mask);
 
 
