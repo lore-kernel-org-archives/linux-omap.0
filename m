@@ -1,164 +1,197 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Mon, 10 Dec 2012 11:48:51 +0200
-Message-ID: <50C5B003.9060904@ti.com>
-References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com> <Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org> <20121127170223.GB2687@kroah.com> <CABb+yY3TC3z+jRU91KGX+FKLtJ3ZXUp55-wM_KjxiYuVZ+LL+Q@mail.gmail.com> <50BF55B3.1030205@ti.com> <CABb+yY1xVMGFbedq8Wp2Muz13XAxJUKOk_=Z_UCEBkpzrtVz4A@mail.gmail.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 5/5] OMAPFB: connect ovl managers to all dssdevs
+Date: Mon, 10 Dec 2012 15:24:28 +0530
+Message-ID: <50C5B154.9080305@ti.com>
+References: <1354881309-17625-1-git-send-email-tomi.valkeinen@ti.com> <1354881309-17625-5-git-send-email-tomi.valkeinen@ti.com> <50C5909E.8030800@ti.com> <50C59745.2080604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47128 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53087 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753815Ab2LJJs7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Dec 2012 04:48:59 -0500
-In-Reply-To: <CABb+yY1xVMGFbedq8Wp2Muz13XAxJUKOk_=Z_UCEBkpzrtVz4A@mail.gmail.com>
+	id S1751249Ab2LJJzD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Dec 2012 04:55:03 -0500
+In-Reply-To: <50C59745.2080604@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jassisinghbrar@gmail.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Ming Lei <tom.leiming@gmail.com>, Felipe Balbi <balbi@ti.com>, Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, USB list <linux-usb@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On 12/06/2012 04:34 PM, Jassi Brar wrote:
-> On Wed, Dec 5, 2012 at 7:39 PM, Roger Quadros <rogerq@ti.com> wrote:
->> Hi Jassi,
+On Monday 10 December 2012 01:33 PM, Tomi Valkeinen wrote:
+> On 2012-12-10 09:34, Archit Taneja wrote:
+>> Hi,
 >>
->> On 12/01/2012 09:49 AM, Jassi Brar wrote:
->>> On Tue, Nov 27, 2012 at 10:32 PM, Greg KH <gregkh@linuxfoundation.o=
-rg> wrote:
->>>> On Tue, Nov 27, 2012 at 11:30:11AM -0500, Alan Stern wrote:
->>>>>
->>>>> We should have a more generic solution in a more central location=
-, like
->>>>> the device core.
->>>>>
->>>>> For example, each struct platform_device could have a list of res=
-ources
->>>>> to be enabled when the device is bound to a driver and disabled w=
-hen
->>>>> the device is unbound.  Such a list could include regulators, clo=
-cks,
->>>>> and whatever else people can invent.
->>>>>
->>>>> In this case, when it is created the ehci-omap.0 platform device =
-could
->>>>> get an entry pointing to the LAN95xx's regulator.  Then the regul=
-ator
->>>>> would automatically be turned on when the platform device is boun=
-d to
->>>>> the ehci-omap driver.
->>>>>
->>>>> How does this sound?
->>>>
->>>> That sounds much better, and it might come in handy for other type=
-s of
->>>> devices than platform devices, so feel free to put this on the cor=
-e
->>>> 'struct device' instead if needed.
->>>>
->>> Isn't enabling/disabling of clocks and regulators what
->>> dev.probe()/remove() of any driver already does?
->>> If we mean only board specific setup/teardown, still it would mean
->>> having the device core to do an extra 'probe' call when the current
->>> probe() is already meant to do whatever it takes to bring the devic=
-e
->>> up. To my untrained eyes, it seem like messing with the
->>> probe()/remove()'s semantics.
->>>  IMHO, if we really must implement something like that, may be we
->>> should employ some 'broadcast mechanism' so that anything anywhere =
-in
->>> kernel knows which new device has been probed()/removed()
->>> successfully. I haven't thought exactly how because I am not sure e=
-ven
->>> that would be the right way to approach PandaBoard's problem.
+>> On Friday 07 December 2012 05:25 PM, Tomi Valkeinen wrote:
+>>> Commit 5d89bcc341771d95e3a2996218e5949a6627f59e (OMAPDSS: remove initial
+>>> display code from omapdss) moved setting up the initial overlay, overlay
+>>> manager, output and display connections from omapdss to omapfb.
 >>>
->>> Looking at "Figure 15 =E2=80=93 Panda USBB1 Interface Block Diagram=
-" of
->>> http://pandaboard.org/sites/default/files/board_reference/pandaboar=
-d-es-b/panda-es-b-manual.pdf
->>> gives me visions ...
+>>> However, currently omapfb only handles the connection related to the
+>>> default display, which means that no overlay managers are connected to
+>>> other displays.
 >>>
->>>  1) OMAP doesn't provide the USB root-hub, but only ULPIPHY. It is
->>> USB3320C chip that employs OMAP's ULPIPHY to provide the root-hub. =
-So
->>> we should have a platform device for USB3320C, the probe() of which
->>> should simply
+>>> This patch changes omapfb to go through all dssdevs, and connect an
+>>> overlay manager to them.
+>>>
+>>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+>>> ---
+>>>    drivers/video/omap2/omapfb/omapfb-main.c |   38
+>>> +++++++++++++++++++-----------
+>>>    1 file changed, 24 insertions(+), 14 deletions(-)
+>>>
+>>> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c
+>>> b/drivers/video/omap2/omapfb/omapfb-main.c
+>>> index 1df973e..24739fc 100644
+>>> --- a/drivers/video/omap2/omapfb/omapfb-main.c
+>>> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
+>>> @@ -2353,27 +2353,37 @@ static int omapfb_init_display(struct
+>>> omapfb2_device *fbdev,
+>>>    }
+>>>
+>>>    static int omapfb_init_connections(struct omapfb2_device *fbdev,
+>>> -        struct omap_dss_device *dssdev)
+>>> +        struct omap_dss_device *def_dssdev)
+>>>    {
+>>>        int i, r;
+>>> -    struct omap_overlay_manager *mgr = NULL;
+>>> +    struct omap_overlay_manager *mgr;
+>>>
+>>> -    for (i = 0; i < fbdev->num_managers; i++) {
+>>> -        mgr = fbdev->managers[i];
+>>> -
+>>> -        if (dssdev->channel == mgr->id)
+>>> -            break;
+>>> +    if (!def_dssdev->output) {
+>>> +        dev_err(fbdev->dev, "no output for the default display\n");
+>>> +        return -EINVAL;
+>>>        }
+>>>
+>>> -    if (i == fbdev->num_managers)
+>>> -        return -ENODEV;
+>>> +    for (i = 0; i < fbdev->num_displays; ++i) {
+>>> +        struct omap_dss_device *dssdev = fbdev->displays[i].dssdev;
+>>> +        struct omap_dss_output *out = dssdev->output;
+>>>
+>>> -    if (mgr->output)
+>>> -        mgr->unset_output(mgr);
+>>> +        mgr = omap_dss_get_overlay_manager(dssdev->channel);
 >>
->> Actually the EHCI controller within OMAP provides the root hub with =
-3
->> ports but no PHY. One of them is connected to the USB3320 which is j=
-ust
->> a ULPI PHY.
+>> This dssdev->channel reference is something we would want to get rid of
+>> eventually, right?
+>
+> Yes.
+>
+>> At the point omapfb_init_connections() is called, we would have all the
+>> omap_dss_devices registered, right? So at this point, omapfb will have
+>> an overall view of how the panels need to be connected to DSS.
 >>
->>>    a) Enable REFCLK (FREF_CLK3_OUT)
->>>    b) Reset itself by cycling RESETB (GPIO_62)
->>>    c) Create one "ehci-omap" platform device
+>> I think we can try to find a manager here for dssdev rather than using
+>> dssdev->channel directly. The dssdev's output could connect to a few
+>> managers. We would want to chose managers for each dssdev output in such
+>> a way that all outputs have a manager. I guess there would be multiple
+>> combinations for this, but it would be okay to pick any one of them.
 >>
->> c) is not appropriate. ehci-omap must be created before usb3320.
->>
->>>  (or in appropriate order if the above isn't)
->>> That way insmod/rmmod'ing the USB3320C driver would power-up/down t=
-he
->>> whole subsystem.
->>
->> Yes, this is where we can think of a generic PHY driver to make sure=
- thy
->> PHY has necessary resources enabled. In the Panda case it would be t=
-he
->> PHY clock and RESET gpio.
->>
-> I wonder if ehci-omap should assume, besides regulator, a clock might
-> also be need to setup for the transceiver chip.
-> Maybe "usbhs_bdata" in board-omap4panda.c should have
-> .reset_gpio_port[0]  =3D GPIO_HUB_NRESET ?
->=20
+>> I think we would need some recursive or backtracking sort of approach to
+>> get a desired combination. We can figure about how to make it work
+>> later, but do you agree if this is a right way to get rid of
+>> dssdev->channel?
+>
+> Yes, I think that's a sensible approach. The thing I don't like about it
+> is that it requires omapfb/omapdrm to create the mgr-output connections.
+> They shouldn't really be interested in that. All they want is a display
+> device that works, and a way to get the mgr used for the display.
+>
+> Well, I think we can hide the implementation inside omapdss, so that
+> omapfb/omapdrm will just need to call one omapdss func when they are
+> started, which will connect the mgrs to outputs.
+>
+> A downside with setting up the mgr-output links at one go, when
+> omapfb/omapdrm starts, is that it creates a strict load order
+> restriction between omapdss, panels and omapfb/omapdrm. The drivers will
+> need to be loaded in that order, or things won't work.
 
-Just like the regulator, reset_gpio_port has nothing to do with OMAP
-EHCI. So we would want to get rid of that too from the OMAP USB driver.
+Yes, that's true.
 
->=20
->> The LAN95xx chip still needs to be powered up and the PHY driver isn=
-'t
->> the right place for that (though it could be done there as a hack). =
-The
->> closest we can get to emulating right USB behavior is to map the
->> SET/CLEAR PORT_FEATURE of the root hub port to the regulator that po=
-wers
->> the LAN95xx.
->>
->> This way, we still don't fall in the dynamically probed space, so we
->> could still provide the regulator information to the ehci hub via
->> platform data and handle the regulator in ehci_hub_control
->> (Set/ClearPortFeature). I'm looking at this as a software workaround=
- for
->> all platforms not implementing the EHCI set port power feature
->> correctly. The same could be repeated for other HCDs as well if requ=
-ired.
->>
-> IMHO it's not a matter of platforms not implementing EHCI set port
-> power feature correctly, we should think about onboard devices
-> connected to onboard non-root hubs. Setups like LAN9514 on Panda (HSI=
-C
-> too ?) that don't run on VBUS of USB, would like their local supply t=
-o
-> be treated as if it came from the parent hub's port  i.e, tie togethe=
-r
-> the USB's set port power control with their OOB regulated power suppl=
-y
-> (U9 on PandaBoard).
->=20
+>
+> Another option would be to pass information about mgr-output links from
+> the board files (or DT data) to the omapdss driver, so that omapdss
+> could setup them at probe time. With this option omapfb/omapdrm doesn't
+> need to care about this, and it doesn't create load order restriction.
+> But mgr-output links are something that I'd really like to handle inside
+> the drivers, not something that needs to be passed via platform data.
 
-On Pandaboards we are still talking about root hub ports.
+This would definitely make things simpler, but if this parameter is put 
+in a panel's DT, it would become omap specific. We could add this info 
+to the DT corresponding to omapdss.
 
-Do you know any of such platforms which power their USB devices out of
-band for _non_ root hub ports?
+>
+> Third option, which is the best, but also something I have no idea how
+> to implement, would be to create the mgr-output links dynamically when
+> needed. The problem here is, of course, that a mgr could be allocated to
+> an output, only to be later found out that that particular mgr is needed
+> for another output.
+>
+> But this is something we could study a bit: can we create such mgr
+> allocation system, that no matter what outputs the board uses, it'll
+> just work.
 
-Assuming they do exist, the only solution is to match platform data for
-dynamically probed devices and deal with the regulators in the hub/port
-driver. Something like Andy already proposed.
+Yes, that would be quite useful. But I think we'll hit situations where 
+it is sort of impossible to prevent the above situation.
 
-regards,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When an output needs a manager. We could study the current state of the 
+system by splitting managers into 2 sets:
+
+A: managers which already have outputs connected to them
+B: managers which don't have an output, but might get connected to one 
+in the future.
+
+managers in A are lost, and we can't detach them, we would need to at 
+least disable/reenable the panel with a new manager connected to the output.
+
+we need to find one from B such that maximum outputs(or some other 
+weightage factor) will still be supported after this new link is made.
+
+The system will initially have all managers in B, but eventually 
+managers will move to A. We need to move one manager from B to A for 
+every mgr-output link.
+
+I guess I just described the problem in a more mathematical way, without 
+providing any solution :), but it does look like an optimisation problem.
+
+>
+> So, for example, on omap4, LCD2 mgr can be used for DPI, DSI2, DSI1, and
+> RFBI. LCD1 can be used for RFBI and DSI1. If we know that DSI1 and RFBI
+> cannot be used at the same time, we're free to give LCD1 to either one.
+
+But they can be used together, can't they? LCD1->DSI1 and LCD2->RFBI. 
+Are you creating this constraint by assuming what the board is like? Or 
+is this a constraint of OMAP DSS HW?
+
+
+> And if we know that DPI and DSI2 cannot be used at the same time, we're
+> also free to give LCD2 to either one. And if that's the case, there are
+> no conflicts.
+
+This is also possible at the same time: TV->DPI and LCD2->DSI2
+
+>
+> I don't know if we can find such allocation for all current omaps, and I
+> know it's slightly risky as the next omap could have limitations even if
+> current ones do not.
+
+I don't understand the example so well, but I get your point of taking 
+advantage of such limitations.
+
+>
+>> Also, we would need to do this for omapdrm separately using it's own
+>> encoder/connector entities.
+>
+> Yep. That's also a negative side: both omapfb/omapdrm will need to
+> implement the same stuff, even if neither of them are really interested
+> in that stuff.
+
+Yes. I wonder if crtcs, encoders and connectors already have some sort 
+of helpers for this?
+
+Archit
+
