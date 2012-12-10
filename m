@@ -1,93 +1,83 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: AM335x BeagleBone SPI Issues
-Date: Mon, 10 Dec 2012 15:53:37 +0200
-Message-ID: <20121210135337.GA10219@arwen.pp.htv.fi>
-References: <50C5E23D.5040605@communistcode.co.uk>
-Reply-To: <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
+Date: Mon, 10 Dec 2012 16:36:02 +0200
+Message-ID: <20121210143601.GG11038@arwen.pp.htv.fi>
+References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com>
+ <Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org>
+ <20121127170223.GB2687@kroah.com>
+ <CABb+yY3TC3z+jRU91KGX+FKLtJ3ZXUp55-wM_KjxiYuVZ+LL+Q@mail.gmail.com>
+ <50BF55B3.1030205@ti.com>
+ <CABb+yY1xVMGFbedq8Wp2Muz13XAxJUKOk_=Z_UCEBkpzrtVz4A@mail.gmail.com>
+ <50C5B003.9060904@ti.com>
+Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42758 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752716Ab2LJOAo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Dec 2012 09:00:44 -0500
+	protocol="application/pgp-signature"; boundary="c7hkjup166d4FzgN"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <50C5E23D.5040605@communistcode.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <50C5B003.9060904-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jack Mitchell <ml@communistcode.co.uk>
-Cc: linux-omap@vger.kernel.org
 
---pf9I7BMVVzbSWLtt
+--c7hkjup166d4FzgN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Dec 10, 2012 at 01:23:09PM +0000, Jack Mitchell wrote:
-> Hi,
+On Mon, Dec 10, 2012 at 11:48:51AM +0200, Roger Quadros wrote:
+> >>>  (or in appropriate order if the above isn't)
+> >>> That way insmod/rmmod'ing the USB3320C driver would power-up/down the
+> >>> whole subsystem.
+> >>
+> >> Yes, this is where we can think of a generic PHY driver to make sure t=
+hy
+> >> PHY has necessary resources enabled. In the Panda case it would be the
+> >> PHY clock and RESET gpio.
+> >>
+> > I wonder if ehci-omap should assume, besides regulator, a clock might
+> > also be need to setup for the transceiver chip.
+> > Maybe "usbhs_bdata" in board-omap4panda.c should have
+> > .reset_gpio_port[0]  =3D GPIO_HUB_NRESET ?
+> >=20
 >=20
-> I am currently having issues with the SPI driver on the beaglebone
-> using the 3.7-rc8 kernel[1]. I have probed the SPI pins and I have
-> found that writing works however reading doesn't. When using DMA the
-> program seems to lock hard and no data is sent on the bus. I am
-> testing the bus using spidev and the spidev_test[2] application,
-> however I first came across spi issues with a custom spi driver which
-> stopped working when I transitioned from 3.2-psp to 3.7-rc8.
->=20
-> The current output I am seeing from the spidev_test program is just a
-> series of 0x00 data, which looks to me like no data is getting in at
-> all. The spidev_test program is not using DMA as the buffer size is
-> too low, so I forced the dma on when buffer size is > 1 and the
-> program hangs hard with the system still responding to other
-> commands.I have briged the pins 18 and 21 on the BeagleBone P9
-> header.
->=20
-> Has anyone seen issues like this, or if not if someone could please
-> test the latest 3.7-rc8 from [1] and let me know if it works for them
-> and the issue is at my end.
->=20
-> To get spidev working with devicetree I applied the patch from [3]
-> and changed the dtb as in the patch pasted below.
->=20
-> [1] https://github.com/beagleboard/kernel/tree/3.7
-> [2] http://lxr.linux.no/#linux+v3.6.9/Documentation/spi/spidev_test.c
-> [3] http://www.mail-archive.com/spi-devel-general@lists.sourceforge.net/m=
-sg09958.html
+> Just like the regulator, reset_gpio_port has nothing to do with OMAP
+> EHCI. So we would want to get rid of that too from the OMAP USB driver.
 
-do you have any debugging output from that driver ? It would be cool to
-see if DMA is at least being kicked properly for small transfers.
++1 to that.
 
-It would also be nice to have a clear picture of what "custom spi
-driver" you're talking about.
-
-cheers
+That's a requirement from the LAN95xx hub controller, not OMAP EHCI ;-)
 
 --=20
 balbi
 
---pf9I7BMVVzbSWLtt
+--c7hkjup166d4FzgN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQxelhAAoJEIaOsuA1yqRE0/MP/10eSGtGuHl9MbUNxh5zo64j
-kqwefzgKc8xF6pxWBh+RbJYMaDai5U8NsAf6QAnBeKOw9xEaVM0co6BUuYqM5AEr
-mkXMCpxcqB4Qyc/zZDAEajHUZSLJi5MVJ/dV47SaJUlCldAgeJGSvMCAKmR10VHS
-6J2EsMiww5pWvB93Dwjv9pysPYPCdC9YxUrp6MxYwwAzPVtFEj5BRfvKhVen0JHm
-4G3EzMtre5Aswsel/P6BlNls2a6TN7EP59jn6iJwW0Bm+dbUoGoiLz1sW7Q0rfJB
-ud2l2t2yw0Nut7i9riHfaKF5ydmSWycILbDM5ScNCjneaunPLLjd86DLYdHq7GIq
-xU/qA2w1pfrpjz1xMWLTG/nUUOifO1hKOBwwaSjvnmROSh8KnPDnzsD399S+1KRs
-jqzY/AewiiVhJ2rDB9y4M8tbLlLF913ZeMJlE5L0RZqhSrQa2DKvLOPEEHBL3zVZ
-vKsbDxDUuT6aXlYkqm5jU4Y4rdlSQmYn0jwDcI18f3JCVVGX4L4rlXfqtcEZEcii
-r/XW3y7O3cTTpkEc8YAzE092WIZjK9FoS7uHbTJTl/kJSuIaDsrYmjHjnp8QDbQk
-iWbrnKdj3YEgHKCcgCSHJSNUUlE4Lf0U+8fg1WCbOdxFa4LbsUPQGg2Kr6f9+lua
-Idsnaeqiw3i3y0R0cb7b
-=7Dga
+iQIcBAEBAgAGBQJQxfNRAAoJEIaOsuA1yqREOYYQAJ6pkau8RvRXCrH3RCT3hlWu
+J4OjjaEPRLyX838Eu+n5rIJpwiGzBGU0ftDxeZtv8kTdex2qteX8s5GI1rHEVLBa
+FOCArcPdDVbcxHkGSAzaUKCXUBb/eUKoxXzYA3l9gh2lOodB8q/nRoENSH9ejPNk
+JvIKFPEaibMtugpWqyvfzxx7wQc2YGz24I809+AMDUNztGna+13SNdG4M0njAfD4
+1qy3P+Xw2L1982bCHCVI0RpYld54izNo1kiJSawkuvuwbo489n0kwRe2UNro8uOL
+sHt0OUTuenV7At58QBZ5wv5bbDx5qcxv5/nCoyfiFURYO9Lrs7ypCU1ZL8bqMGRY
+MZlNIMSRxKE7ZuakS1q3JB3cOw/xElplKWhrupOXRaBSQ24R816gAyEhUDNEuxDg
+oHggG9VvI1qcUwHtiGm2YbHfYvzTBO+2JUUU+GyYrAaEAr8cvomepq75+OxqdXeT
+D8Qx6Hq7mXsG8103I1ZlpIMBm3UDhy8ygv4qADs9CfXH8YfJaOYwperr0ovACOgz
+nBd/WDe2lntFwaUU6YjX0ielRwlYnxI02S6SfmZTFHdG1UmJIrmhurb9TghWc72g
+Kp0xN2L6E4IDmWOd0IhdIPtPKy38J9WW+WZxN1pdsuve1n2+gRaPu+WYkggTGerp
+ENBBdhMXascungqbz9nO
+=+wk1
 -----END PGP SIGNATURE-----
 
---pf9I7BMVVzbSWLtt--
+--c7hkjup166d4FzgN--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
