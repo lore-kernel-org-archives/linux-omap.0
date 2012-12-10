@@ -1,75 +1,114 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v4 23/23] mfd: omap-usb-host: Don't spam console on clk_set_parent
- failure
-Date: Mon, 10 Dec 2012 16:54:22 +0530
-Message-ID: <50C5C666.9050105@ti.com>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com> <1355134833-5199-24-git-send-email-rogerq@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: Re: [PATCH 1/1] net: ethernet: davinci_cpdma: Add boundary for rx
+ and tx descriptors
+Date: Mon, 10 Dec 2012 16:58:02 +0530
+Message-ID: <50C5C742.9020708@ti.com>
+References: <1355125052-28448-1-git-send-email-mugunthanvnm@ti.com> <CABkLObp1cZrNR65KJmOJXCB+W_1ZriCJQdL1TEmkJCptXHFDXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1355134833-5199-24-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com, paul@pwsan.com, sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CABkLObp1cZrNR65KJmOJXCB+W_1ZriCJQdL1TEmkJCptXHFDXw@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Christian Riesch <christian.riesch@omicron.at>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s.hauer@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 10 December 2012 03:50 PM, Roger Quadros wrote:
-> clk_set_parent is expected to fail on OMAP3 platforms. We don't
-> consider that as fatal so don't spam console.
+On 12/10/2012 1:41 PM, Christian Riesch wrote:
+> Hi,
+>
+> On Mon, Dec 10, 2012 at 8:37 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
+>> When there is heavy transmission traffic in the CPDMA, then Rx descriptors
+>> memory is also utilized as tx desc memory this leads to reduced rx desc memory
+>> which leads to poor performance.
+>>
+>> This patch adds boundary for tx and rx descriptors in bd ram dividing the
+>> descriptor memory to ensure that during heavy transmission tx doesn't use
+>> rx descriptors.
+>>
+>> This patch is already applied to davinci_emac driver, since CPSW and
+>> davici_dmac uses the same CPDMA, moving the boundry seperation from
+>> Davinci EMAC driver to CPDMA driver which was done in the following
+>> commit
+>>
+>> commit 86d8c07ff2448eb4e860e50f34ef6ee78e45c40c
+>> Author: Sascha Hauer <s.hauer@pengutronix.de>
+>> Date:   Tue Jan 3 05:27:47 2012 +0000
+>>
+>>      net/davinci: do not use all descriptors for tx packets
+>>
+>>      The driver uses a shared pool for both rx and tx descriptors.
+>>      During open it queues fixed number of 128 descriptors for receive
+>>      packets. For each received packet it tries to queue another
+>>      descriptor. If this fails the descriptor is lost for rx.
+>>      The driver has no limitation on tx descriptors to use, so it
+>>      can happen during a nmap / ping -f attack that the driver
+>>      allocates all descriptors for tx and looses all rx descriptors.
+>>      The driver stops working then.
+>>      To fix this limit the number of tx descriptors used to half of
+>>      the descriptors available, the rx path uses the other half.
+>>
+>>      Tested on a custom board using nmap / ping -f to the board from
+>>      two different hosts.
+>>
+>> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+>> ---
+>>   drivers/net/ethernet/ti/davinci_cpdma.c |   20 ++++++++++++++------
+>>   drivers/net/ethernet/ti/davinci_emac.c  |    8 --------
+>>   2 files changed, 14 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+>> index 4995673..d37f546 100644
+>> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
+>> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+>> @@ -105,13 +105,13 @@ struct cpdma_ctlr {
+>>   };
+>>
+>>   struct cpdma_chan {
+>> +       struct cpdma_desc __iomem       *head, *tail;
+>> +       void __iomem                    *hdp, *cp, *rxfree;
+>>          enum cpdma_state                state;
+>>          struct cpdma_ctlr               *ctlr;
+>>          int                             chan_num;
+>>          spinlock_t                      lock;
+>> -       struct cpdma_desc __iomem       *head, *tail;
+>>          int                             count;
+>> -       void __iomem                    *hdp, *cp, *rxfree;
+> Why?
+Its just a code clean-up to have iomem variables at one place.
+>
+>>          u32                             mask;
+>>          cpdma_handler_fn                handler;
+>>          enum dma_data_direction         dir;
+>> @@ -217,7 +217,7 @@ desc_from_phys(struct cpdma_desc_pool *pool, dma_addr_t dma)
+>>   }
+>>
+>>   static struct cpdma_desc __iomem *
+>> -cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc)
+>> +cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc, bool is_rx)
+>>   {
+>>          unsigned long flags;
+>>          int index;
+>> @@ -225,8 +225,14 @@ cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc)
+>>
+>>          spin_lock_irqsave(&pool->lock, flags);
+>>
+>> -       index = bitmap_find_next_zero_area(pool->bitmap, pool->num_desc, 0,
+>> -                                          num_desc, 0);
+>> +       if (is_rx) {
+>> +               index = bitmap_find_next_zero_area(pool->bitmap,
+>> +                               pool->num_desc/2, 0, num_desc, 0);
+>> +        } else {
+>> +               index = bitmap_find_next_zero_area(pool->bitmap,
+>> +                               pool->num_desc, pool->num_desc/2, num_desc, 0);
+>> +       }
+> Would it make sense to use two separate pools for rx and tx instead,
+> struct cpdma_desc_pool *rxpool, *txpool? It would result in using
+> separate spinlocks for rx and tx, could this be an advantage? (I am a
+> newbie in this field...)
+I don't think separating pool will give an advantage, the same is 
+achieved by separating
+the pool into first half and last half.
 
-And what if it fails on a non-OMAP3 platform?
-
->
-> Signed-off-by: Roger Quadros <rogerq@ti.com>
-> ---
->   drivers/mfd/omap-usb-host.c |   18 +++++++++---------
->   1 files changed, 9 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index 0bb54393..344ce09 100644
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -657,32 +657,32 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
->   	}
->
->   	if (is_ehci_phy_mode(pdata->port_mode[0])) {
-> -		/* for OMAP3 , the clk set paretn fails */
-> +		/* for OMAP3, clk_set_parent fails */
->   		ret = clk_set_parent(omap->utmi_clk[0],
->   					omap->xclk60mhsp1_ck);
->   		if (ret != 0)
-> -			dev_err(dev, "xclk60mhsp1_ck set parent"
-> -				"failed error:%d\n", ret);
-> +			dev_dbg(dev, "xclk60mhsp1_ck set parent failed: %d\n",
-> +					ret);
->   	} else if (is_ehci_tll_mode(pdata->port_mode[0])) {
->   		ret = clk_set_parent(omap->utmi_clk[0],
->   					omap->init_60m_fclk);
->   		if (ret != 0)
-> -			dev_err(dev, "init_60m_fclk set parent"
-> -				"failed error:%d\n", ret);
-> +			dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
-> +					ret);
->   	}
->
->   	if (is_ehci_phy_mode(pdata->port_mode[1])) {
->   		ret = clk_set_parent(omap->utmi_clk[1],
->   					omap->xclk60mhsp2_ck);
->   		if (ret != 0)
-> -			dev_err(dev, "xclk60mhsp2_ck set parent"
-> -					"failed error:%d\n", ret);
-> +			dev_dbg(dev, "xclk60mhsp2_ck set parent failed: %d\n",
-> +					ret);
->   	} else if (is_ehci_tll_mode(pdata->port_mode[1])) {
->   		ret = clk_set_parent(omap->utmi_clk[1],
->   						omap->init_60m_fclk);
->   		if (ret != 0)
-> -			dev_err(dev, "init_60m_fclk set parent"
-> -				"failed error:%d\n", ret);
-> +			dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
-> +					ret);
->   	}
->
->   	omap_usbhs_init(dev);
->
+Regards
+Mugunthan V N
