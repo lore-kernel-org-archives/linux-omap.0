@@ -1,124 +1,93 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk into usb_host_hs_utmi_px_clk
-Date: Mon, 10 Dec 2012 12:20:26 +0200
-Message-ID: <1355134833-5199-17-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 06/23] mfd: omap-usb-tll: introduce and use mode_needs_tll()
+Date: Mon, 10 Dec 2012 12:20:16 +0200
+Message-ID: <1355134833-5199-7-git-send-email-rogerq@ti.com>
 References: <1355134833-5199-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1355134833-5199-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
-Cc: paul@pwsan.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Mike Turquette <mturquette@gmail.com>
+Cc: paul@pwsan.com, sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-There is no such clock as utmi_p1_gfclk. It is only a clock selector
-bit to select th the parent of usb_host_hs_utmi_p1_clk.
-So we get rid of utmi_p1_gfclk and utmi_p2_gfclk by merging them into
-usb_host_hs_utmi_p1_clk and usb_host_hs_utmi_p2_clk respectively.
-
-CC: Paul Walmsley <paul@pwsan.com>
-CC: Rajendra Nayak <rnayak@ti.com>
-CC: Benoit Cousson <b-cousson@ti.com>
-CC: Mike Turquette <mturquette@gmail.com>
+This is a handy macro to check if the port requires the
+USB TLL module or not. Use it to Enable the TLL module and manage
+the clocks.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/cclock3xxx_data.c |    2 -
- arch/arm/mach-omap2/cclock44xx_data.c |   47 +++++++++++++++++++++++----------
- 2 files changed, 33 insertions(+), 16 deletions(-)
+ drivers/mfd/omap-usb-tll.c |   20 ++++++++++++--------
+ 1 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
-index bdf3948..5655414 100644
---- a/arch/arm/mach-omap2/cclock3xxx_data.c
-+++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-@@ -3392,8 +3392,6 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("usbhs_omap",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK(NULL,	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
--	CLK(NULL,	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/cclock44xx_data.c b/arch/arm/mach-omap2/cclock44xx_data.c
-index aa56c3e..74535fe 100644
---- a/arch/arm/mach-omap2/cclock44xx_data.c
-+++ b/arch/arm/mach-omap2/cclock44xx_data.c
-@@ -1366,31 +1366,52 @@ static struct clk_hw_omap usb_host_fs_fck_hw = {
- DEFINE_STRUCT_CLK(usb_host_fs_fck, usb_host_fs_fck_parent_names,
- 		  usb_host_fs_fck_ops);
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index 7d0f6cf..07370a3 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -95,6 +95,10 @@
  
-+static const struct clk_ops utmi_clk_ops = {
-+	.enable		= &omap2_dflt_clk_enable,
-+	.disable	= &omap2_dflt_clk_disable,
-+	.is_enabled	= &omap2_dflt_clk_is_enabled,
-+	.recalc_rate	= &omap2_clksel_recalc,
-+	.get_parent	= &omap2_clksel_find_parent_index,
-+	.set_parent	= &omap2_clksel_set_parent,
-+};
+ #define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
+ 
++/* only PHY and UNUSED modes don't need TLL */
++#define omap_usb_mode_needs_tll(x)	((x != OMAP_USBHS_PORT_MODE_UNUSED) &&\
++					 (x != OMAP_EHCI_PORT_MODE_PHY))
 +
- static const char *utmi_p1_gfclk_parents[] = {
- 	"init_60m_fclk", "xclk60mhsp1_ck",
- };
+ struct usbtll_omap {
+ 	int					nch;	/* num. of channels */
+ 	struct usbtll_omap_platform_data	*pdata;
+@@ -211,6 +215,7 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 	unsigned long				flags;
+ 	int					ret = 0;
+ 	int					i, ver;
++	bool needs_tll;
  
--DEFINE_CLK_MUX(utmi_p1_gfclk, utmi_p1_gfclk_parents, NULL, 0x0,
--	       OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
--	       OMAP4430_CLKSEL_UTMI_P1_SHIFT, OMAP4430_CLKSEL_UTMI_P1_WIDTH,
--	       0x0, NULL);
-+static const struct clksel utmi_p1_clk_mux_sel[] = {
-+	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
-+	{ .parent = &xclk60mhsp1_ck, .rates = div_1_1_rates },
-+	{ .parent = NULL },
-+};
+ 	dev_dbg(dev, "starting TI HSUSB TLL Controller\n");
  
--DEFINE_CLK_GATE(usb_host_hs_utmi_p1_clk, "utmi_p1_gfclk", &utmi_p1_gfclk, 0x0,
-+/* Merged utmi_p1_gfclk into usb_host_hs_utmi_p1_clk */
-+DEFINE_CLK_OMAP_MUX_GATE(usb_host_hs_utmi_p1_clk, "l3_init_clkdm",
-+		utmi_p1_clk_mux_sel,
-+		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
-+		OMAP4430_CLKSEL_UTMI_P1_MASK,
- 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
--		OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT, 0x0, NULL);
-+		OMAP4430_OPTFCLKEN_UTMI_P1_CLK_SHIFT, NULL,
-+		utmi_p1_gfclk_parents, utmi_clk_ops);
+@@ -278,12 +283,11 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 			tll->ch_clk[i] = fck;
+ 	}
  
- static const char *utmi_p2_gfclk_parents[] = {
- 	"init_60m_fclk", "xclk60mhsp2_ck",
- };
+-	if (is_ehci_tll_mode(pdata->port_mode[0]) ||
+-	    is_ehci_tll_mode(pdata->port_mode[1]) ||
+-	    is_ehci_tll_mode(pdata->port_mode[2]) ||
+-	    is_ohci_port(pdata->port_mode[0]) ||
+-	    is_ohci_port(pdata->port_mode[1]) ||
+-	    is_ohci_port(pdata->port_mode[2])) {
++	needs_tll = false;
++	for (i = 0; i < tll->nch; i++)
++		needs_tll |= omap_usb_mode_needs_tll(pdata->port_mode[i]);
++
++	if (needs_tll) {
  
--DEFINE_CLK_MUX(utmi_p2_gfclk, utmi_p2_gfclk_parents, NULL, 0x0,
--	       OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
--	       OMAP4430_CLKSEL_UTMI_P2_SHIFT, OMAP4430_CLKSEL_UTMI_P2_WIDTH,
--	       0x0, NULL);
-+static const struct clksel utmi_p2_clk_mux_sel[] = {
-+	{ .parent = &init_60m_fclk, .rates = div_1_0_rates },
-+	{ .parent = &xclk60mhsp2_ck, .rates = div_1_1_rates },
-+	{ .parent = NULL },
-+};
+ 		/* Program Common TLL register */
+ 		reg = usbtll_read(base, OMAP_TLL_SHARED_CONF);
+@@ -371,7 +375,7 @@ static int usbtll_runtime_resume(struct device *dev)
+ 	spin_lock_irqsave(&tll->lock, flags);
  
--DEFINE_CLK_GATE(usb_host_hs_utmi_p2_clk, "utmi_p2_gfclk", &utmi_p2_gfclk, 0x0,
-+/* Merged utmi_p2_gfclk into usb_host_hs_utmi_p2_clk */
-+DEFINE_CLK_OMAP_MUX_GATE(usb_host_hs_utmi_p2_clk, "l3_init_clkdm",
-+		utmi_p2_clk_mux_sel,
-+		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
-+		OMAP4430_CLKSEL_UTMI_P2_MASK,
- 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
--		OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT, 0x0, NULL);
-+		OMAP4430_OPTFCLKEN_UTMI_P2_CLK_SHIFT, NULL,
-+		utmi_p2_gfclk_parents, utmi_clk_ops);
+ 	for (i = 0; i < tll->nch; i++) {
+-		if (is_ehci_tll_mode(pdata->port_mode[i])) {
++		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
+ 			int r;
  
- DEFINE_CLK_GATE(usb_host_hs_utmi_p3_clk, "init_60m_fclk", &init_60m_fclk, 0x0,
- 		OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
-@@ -1838,9 +1859,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
- 	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
- 	CLK("usbhs_omap",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
--	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
--	CLK(NULL,	"utmi_p2_gfclk",		&utmi_p2_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p2_clk",	&usb_host_hs_utmi_p2_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p3_clk",	&usb_host_hs_utmi_p3_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_hsic480m_p1_clk",	&usb_host_hs_hsic480m_p1_clk,	CK_443X),
+ 			if (!tll->ch_clk[i])
+@@ -407,7 +411,7 @@ static int usbtll_runtime_suspend(struct device *dev)
+ 	spin_lock_irqsave(&tll->lock, flags);
+ 
+ 	for (i = 0; i < tll->nch; i++) {
+-		if (is_ehci_tll_mode(pdata->port_mode[i])) {
++		if (omap_usb_mode_needs_tll(pdata->port_mode[i])) {
+ 			if (tll->ch_clk[i])
+ 				clk_disable(tll->ch_clk[i]);
+ 		}
 -- 
 1.7.4.1
