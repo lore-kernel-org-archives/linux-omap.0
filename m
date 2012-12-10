@@ -1,88 +1,91 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 23/23] mfd: omap-usb-host: Don't spam console on clk_set_parent
- failure
-Date: Mon, 10 Dec 2012 13:31:22 +0200
-Message-ID: <50C5C80A.3090307@ti.com>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com> <1355134833-5199-24-git-send-email-rogerq@ti.com> <50C5C666.9050105@ti.com>
+From: Jack Mitchell <ml@communistcode.co.uk>
+Subject: AM335x BeagleBone SPI Issues
+Date: Mon, 10 Dec 2012 13:23:09 +0000
+Message-ID: <50C5E23D.5040605@communistcode.co.uk>
+Reply-To: ml@communistcode.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50C5C666.9050105@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com, paul@pwsan.com, sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eumx.net ([91.82.101.43]:42012 "EHLO eumx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751046Ab2LJNUw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Dec 2012 08:20:52 -0500
+Received: from localhost ([127.0.0.1]:48888 helo=eumx.net)
+	by eumx.net with esmtp (Exim 4.72)
+	(envelope-from <ml@communistcode.co.uk>)
+	id 1Ti3Hv-0007mA-0V
+	for linux-omap@vger.kernel.org; Mon, 10 Dec 2012 13:20:51 +0000
+Received: from [195.171.99.130] (port=22302 helo=[192.168.0.54])
+	by eumx.net with esmtpa (Exim 4.72)
+	(envelope-from <ml@communistcode.co.uk>)
+	id 1Ti3Hu-0007m6-PF
+	for linux-omap@vger.kernel.org; Mon, 10 Dec 2012 13:20:50 +0000
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On 12/10/2012 01:24 PM, Rajendra Nayak wrote:
-> On Monday 10 December 2012 03:50 PM, Roger Quadros wrote:
->> clk_set_parent is expected to fail on OMAP3 platforms. We don't
->> consider that as fatal so don't spam console.
-> 
-> And what if it fails on a non-OMAP3 platform?
+Hi,
 
-The driver just prints a debug message and continues to work just as
-before. The USB port will not work for the user in that case. He will
-have to enable DEBUG flag to see the debug message. I see this behaviour
-better than before where all OMAP3 users see the error message for no
-reason.
+I am currently having issues with the SPI driver on the beaglebone using 
+the 3.7-rc8 kernel[1]. I have probed the SPI pins and I have found that 
+writing works however reading doesn't. When using DMA the program seems 
+to lock hard and no data is sent on the bus. I am testing the bus using 
+spidev and the spidev_test[2] application, however I first came across 
+spi issues with a custom spi driver which stopped working when I 
+transitioned from 3.2-psp to 3.7-rc8.
 
-cheers,
--roger
+The current output I am seeing from the spidev_test program is just a 
+series of 0x00 data, which looks to me like no data is getting in at 
+all. The spidev_test program is not using DMA as the buffer size is too 
+low, so I forced the dma on when buffer size is > 1 and the program 
+hangs hard with the system still responding to other commands.I have 
+briged the pins 18 and 21 on the BeagleBone P9 header.
 
-> 
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>   drivers/mfd/omap-usb-host.c |   18 +++++++++---------
->>   1 files changed, 9 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
->> index 0bb54393..344ce09 100644
->> --- a/drivers/mfd/omap-usb-host.c
->> +++ b/drivers/mfd/omap-usb-host.c
->> @@ -657,32 +657,32 @@ static int __devinit usbhs_omap_probe(struct
->> platform_device *pdev)
->>       }
->>
->>       if (is_ehci_phy_mode(pdata->port_mode[0])) {
->> -        /* for OMAP3 , the clk set paretn fails */
->> +        /* for OMAP3, clk_set_parent fails */
->>           ret = clk_set_parent(omap->utmi_clk[0],
->>                       omap->xclk60mhsp1_ck);
->>           if (ret != 0)
->> -            dev_err(dev, "xclk60mhsp1_ck set parent"
->> -                "failed error:%d\n", ret);
->> +            dev_dbg(dev, "xclk60mhsp1_ck set parent failed: %d\n",
->> +                    ret);
->>       } else if (is_ehci_tll_mode(pdata->port_mode[0])) {
->>           ret = clk_set_parent(omap->utmi_clk[0],
->>                       omap->init_60m_fclk);
->>           if (ret != 0)
->> -            dev_err(dev, "init_60m_fclk set parent"
->> -                "failed error:%d\n", ret);
->> +            dev_dbg(dev, "P0 init_60m_fclk set parent failed: %d\n",
->> +                    ret);
->>       }
->>
->>       if (is_ehci_phy_mode(pdata->port_mode[1])) {
->>           ret = clk_set_parent(omap->utmi_clk[1],
->>                       omap->xclk60mhsp2_ck);
->>           if (ret != 0)
->> -            dev_err(dev, "xclk60mhsp2_ck set parent"
->> -                    "failed error:%d\n", ret);
->> +            dev_dbg(dev, "xclk60mhsp2_ck set parent failed: %d\n",
->> +                    ret);
->>       } else if (is_ehci_tll_mode(pdata->port_mode[1])) {
->>           ret = clk_set_parent(omap->utmi_clk[1],
->>                           omap->init_60m_fclk);
->>           if (ret != 0)
->> -            dev_err(dev, "init_60m_fclk set parent"
->> -                "failed error:%d\n", ret);
->> +            dev_dbg(dev, "P1 init_60m_fclk set parent failed: %d\n",
->> +                    ret);
->>       }
->>
->>       omap_usbhs_init(dev);
->>
-> 
+Has anyone seen issues like this, or if not if someone could please test 
+the latest 3.7-rc8 from [1] and let me know if it works for them and the 
+issue is at my end.
+
+To get spidev working with devicetree I applied the patch from [3] and 
+changed the dtb as in the patch pasted below.
+
+[1] https://github.com/beagleboard/kernel/tree/3.7
+[2] http://lxr.linux.no/#linux+v3.6.9/Documentation/spi/spidev_test.c
+[3] 
+http://www.mail-archive.com/spi-devel-general@lists.sourceforge.net/msg09958.html
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi 
+b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index 543365d..8fff665 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -440,10 +440,19 @@
+  };
+
+  &spi0 {
++  status = "okay";
+         pinctrl-names = "default";
+         pinctrl-0 = <&spi0_pins>;
++
++  spidev: spidev@0 {
++  compatible = "linux,spidev";
++  reg = <0>;
++  spi-max-frequency = <24000000>;
++  };
++
+  };
+
++
+  &spi1 {
+         pinctrl-names = "default";
+         pinctrl-0 = <&spi1_pins>;
+
+
+-- 
+
+   Jack Mitchell (jack@embed.me.uk)
+   Embedded Systems Engineer
+   http://www.embed.me.uk
+
+--
+
