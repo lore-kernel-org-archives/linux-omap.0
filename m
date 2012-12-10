@@ -1,165 +1,74 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 19/23] mfd: omap-usb-host: clean up omap_usbhs_init()
-Date: Mon, 10 Dec 2012 12:20:29 +0200
-Message-ID: <1355134833-5199-20-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 07/23] mfd: omap-usb-tll: Check for missing platform data
+ in probe
+Date: Mon, 10 Dec 2012 12:20:17 +0200
+Message-ID: <1355134833-5199-8-git-send-email-rogerq@ti.com>
 References: <1355134833-5199-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1355134833-5199-1-git-send-email-rogerq@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
-Cc: paul@pwsan.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: paul@pwsan.com, sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no, rogerq@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-We split initializing revision 1 and revision 2 into different
-functions. Initialization is now done dynamically so that only
-the number of ports available on the system are initialized.
+No need to check for missing platform data in runtime_suspend/resume
+as it makes more sense to do it in the probe function.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- drivers/mfd/omap-usb-host.c |  122 +++++++++++++++++++++++++-----------------
- 1 files changed, 73 insertions(+), 49 deletions(-)
+ drivers/mfd/omap-usb-tll.c |   15 +++++----------
+ 1 files changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 289b356..0bb54393 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -363,6 +363,75 @@ static int usbhs_runtime_suspend(struct device *dev)
- 	return 0;
- }
+diff --git a/drivers/mfd/omap-usb-tll.c b/drivers/mfd/omap-usb-tll.c
+index 07370a3..8b596e0 100644
+--- a/drivers/mfd/omap-usb-tll.c
++++ b/drivers/mfd/omap-usb-tll.c
+@@ -225,6 +225,11 @@ static int __devinit usbtll_omap_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
  
-+static unsigned omap_usbhs_rev1_hostconfig(struct usbhs_hcd_omap *omap,
-+						unsigned reg)
-+{
-+	struct usbhs_omap_platform_data	*pdata = omap->pdata;
-+	int i;
-+
-+	for (i = 0; i < omap->nports; i++) {
-+		switch (pdata->port_mode[i]) {
-+		case OMAP_USBHS_PORT_MODE_UNUSED:
-+			reg &= ~(OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS << i);
-+			break;
-+		case OMAP_EHCI_PORT_MODE_PHY:
-+			if (pdata->single_ulpi_bypass)
-+				break;
-+
-+			if (i == 0)
-+				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
-+			else
-+				reg &= ~(OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS
-+								<< (i-1));
-+			break;
-+		default:
-+			if (pdata->single_ulpi_bypass)
-+				break;
-+
-+			if (i == 0)
-+				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
-+			else
-+				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS
-+								<< (i-1);
-+			break;
-+		}
++	if (!pdata) {
++		dev_err(dev, "Platform data missing\n");
++		return -ENODEV;
 +	}
 +
-+	if (pdata->single_ulpi_bypass) {
-+		/* bypass ULPI only if none of the ports use PHY mode */
-+		reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
-+
-+		for (i = 0; i < omap->nports; i++) {
-+			if (is_ehci_phy_mode(pdata->port_mode[i])) {
-+				reg &= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
-+				break;
-+			}
-+		}
-+	}
-+
-+	return reg;
-+}
-+
-+static unsigned omap_usbhs_rev2_hostconfig(struct usbhs_hcd_omap *omap,
-+						unsigned reg)
-+{
-+	struct usbhs_omap_platform_data	*pdata = omap->pdata;
-+	int i;
-+
-+	for (i = 0; i < omap->nports; i++) {
-+		/* Clear port mode fields for PHY mode */
-+		reg &= ~(OMAP4_P1_MODE_CLEAR << 2 * i);
-+
-+		if (is_ehci_tll_mode(pdata->port_mode[i]) ||
-+				(is_ohci_port(pdata->port_mode[i])))
-+			reg |= OMAP4_P1_MODE_TLL << 2 * i;
-+		else if (is_ehci_hsic_mode(pdata->port_mode[i]))
-+			reg |= OMAP4_P1_MODE_HSIC << 2 * i;
-+	}
-+
-+	return reg;
-+}
-+
- static void omap_usbhs_init(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-@@ -394,55 +463,10 @@ static void omap_usbhs_init(struct device *dev)
- 	reg |= OMAP4_UHH_HOSTCONFIG_APP_START_CLK;
- 	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
+ 	spin_lock_init(&tll->lock);
  
--	if (is_omap_usbhs_rev1(omap)) {
--		if (pdata->port_mode[0] == OMAP_USBHS_PORT_MODE_UNUSED)
--			reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
--		if (pdata->port_mode[1] == OMAP_USBHS_PORT_MODE_UNUSED)
--			reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
--		if (pdata->port_mode[2] == OMAP_USBHS_PORT_MODE_UNUSED)
--			reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
--
--		/* Bypass the TLL module for PHY mode operation */
--		if (pdata->single_ulpi_bypass) {
--			dev_dbg(dev, "OMAP3 ES version <= ES2.1\n");
--			if (is_ehci_phy_mode(pdata->port_mode[0]) ||
--				is_ehci_phy_mode(pdata->port_mode[1]) ||
--					is_ehci_phy_mode(pdata->port_mode[2]))
--				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
--			else
--				reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
--		} else {
--			dev_dbg(dev, "OMAP3 ES version > ES2.1\n");
--			if (is_ehci_phy_mode(pdata->port_mode[0]))
--				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
--			else
--				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
--			if (is_ehci_phy_mode(pdata->port_mode[1]))
--				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
--			else
--				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
--			if (is_ehci_phy_mode(pdata->port_mode[2]))
--				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
--			else
--				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
--		}
--	} else if (is_omap_usbhs_rev2(omap)) {
--		/* Clear port mode fields for PHY mode*/
--		reg &= ~OMAP4_P1_MODE_CLEAR;
--		reg &= ~OMAP4_P2_MODE_CLEAR;
--
--		if (is_ehci_tll_mode(pdata->port_mode[0]) ||
--			(is_ohci_port(pdata->port_mode[0])))
--			reg |= OMAP4_P1_MODE_TLL;
--		else if (is_ehci_hsic_mode(pdata->port_mode[0]))
--			reg |= OMAP4_P1_MODE_HSIC;
--
--		if (is_ehci_tll_mode(pdata->port_mode[1]) ||
--			(is_ohci_port(pdata->port_mode[1])))
--			reg |= OMAP4_P2_MODE_TLL;
--		else if (is_ehci_hsic_mode(pdata->port_mode[1]))
--			reg |= OMAP4_P2_MODE_HSIC;
+ 	tll->pdata = pdata;
+@@ -367,11 +372,6 @@ static int usbtll_runtime_resume(struct device *dev)
+ 
+ 	dev_dbg(dev, "usbtll_runtime_resume\n");
+ 
+-	if (!pdata) {
+-		dev_dbg(dev, "missing platform_data\n");
+-		return  -ENODEV;
 -	}
-+	if (is_omap_usbhs_rev1(omap))
-+		reg = omap_usbhs_rev1_hostconfig(omap, reg);
-+	else if (is_omap_usbhs_rev2(omap))
-+		reg = omap_usbhs_rev2_hostconfig(omap, reg);
+-
+ 	spin_lock_irqsave(&tll->lock, flags);
  
- 	usbhs_write(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
- 	dev_dbg(dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
+ 	for (i = 0; i < tll->nch; i++) {
+@@ -403,11 +403,6 @@ static int usbtll_runtime_suspend(struct device *dev)
+ 
+ 	dev_dbg(dev, "usbtll_runtime_suspend\n");
+ 
+-	if (!pdata) {
+-		dev_dbg(dev, "missing platform_data\n");
+-		return  -ENODEV;
+-	}
+-
+ 	spin_lock_irqsave(&tll->lock, flags);
+ 
+ 	for (i = 0; i < tll->nch; i++) {
 -- 
 1.7.4.1
