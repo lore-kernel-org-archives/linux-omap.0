@@ -1,46 +1,44 @@
 From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: [PATCH 1/9] memory: emif: Correct the lpmode timeout calculation
-Date: Mon, 10 Dec 2012 12:39:10 +0530
-Message-ID: <1355123358-5273-2-git-send-email-lokeshvutla@ti.com>
+Subject: [PATCH 7/9] memory: emif: disable phy_fast_dll_lock
+Date: Mon, 10 Dec 2012 12:39:16 +0530
+Message-ID: <1355123358-5273-8-git-send-email-lokeshvutla@ti.com>
 References: <1355123358-5273-1-git-send-email-lokeshvutla@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45115 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752174Ab2LJHJb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Dec 2012 02:09:31 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:50093 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab2LJHJb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Dec 2012 02:09:31 -0500
 In-Reply-To: <1355123358-5273-1-git-send-email-lokeshvutla@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, gregkh@linuxfoundation.org, b-cousson@ti.com, lokeshvutla@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, gregkh@linuxfoundation.org, b-cousson@ti.com, lokeshvutla@ti.com, Nishanth Menon <nm@ti.com>
 
-The driver tries to round up the specified timeout cycles to
-next power of 2 value. But this is done wrongly.
-Correcting this here.
+From: Nishanth Menon <nm@ti.com>
 
-Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+As per OMAP5 TRM, phy_fast_dll_lock is meant for simulations only.
+'0' is supposed to be used for normal operations. So, use 0.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/memory/emif.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/memory/emif.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-index 06d31c9..8589aba 100644
---- a/drivers/memory/emif.c
-+++ b/drivers/memory/emif.c
-@@ -731,9 +731,9 @@ static u32 get_pwr_mgmt_ctrl(u32 freq, struct emif_data *emif, u32 ip_rev)
- 	if (timeout < 16) {
- 		timeout = 0;
- 	} else {
--		timeout = __fls(timeout) - 3;
- 		if (timeout & (timeout - 1))
--			timeout++;
-+			timeout <<= 1;
-+		timeout = __fls(timeout) - 3;
- 	}
+diff --git a/drivers/memory/emif.h b/drivers/memory/emif.h
+index bfe08ba..574fdfb 100644
+--- a/drivers/memory/emif.h
++++ b/drivers/memory/emif.h
+@@ -82,7 +82,7 @@
+ #define EMIF_DLL_SLAVE_DLY_CTRL_100_MHZ_AND_LESS_ATTILAPHY 0xFF
  
- 	switch (lpmode) {
+ /* DDR_PHY_CTRL_1 values for EMIF4D5 INTELLIPHY combination */
+-#define EMIF_DDR_PHY_CTRL_1_BASE_VAL_INTELLIPHY		0x0E084200
++#define EMIF_DDR_PHY_CTRL_1_BASE_VAL_INTELLIPHY		0x0E084000
+ #define EMIF_PHY_TOTAL_READ_LATENCY_INTELLIPHY_PS	10000
+ 
+ /* TEMP_ALERT_CONFIG - corresponding to temp gradient 5 C/s */
 -- 
 1.7.9.5
 
