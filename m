@@ -1,83 +1,68 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Mon, 10 Dec 2012 16:36:02 +0200
-Message-ID: <20121210143601.GG11038@arwen.pp.htv.fi>
-References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com>
- <Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org>
- <20121127170223.GB2687@kroah.com>
- <CABb+yY3TC3z+jRU91KGX+FKLtJ3ZXUp55-wM_KjxiYuVZ+LL+Q@mail.gmail.com>
- <50BF55B3.1030205@ti.com>
- <CABb+yY1xVMGFbedq8Wp2Muz13XAxJUKOk_=Z_UCEBkpzrtVz4A@mail.gmail.com>
- <50C5B003.9060904@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4 23/23] mfd: omap-usb-host: Don't spam console on
+ clk_set_parent failure
+Date: Mon, 10 Dec 2012 16:38:06 +0200
+Message-ID: <20121210143806.GI11038@arwen.pp.htv.fi>
+References: <1355134833-5199-1-git-send-email-rogerq@ti.com>
+ <1355134833-5199-24-git-send-email-rogerq@ti.com>
+ <50C5C666.9050105@ti.com>
+ <50C5C80A.3090307@ti.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="c7hkjup166d4FzgN"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="IR1Y5IvQhrKgS4e6"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <50C5B003.9060904-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50C5C80A.3090307@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, balbi@ti.com, sameo@linux.intel.com, tony@atomide.com, paul@pwsan.com, sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no
 List-Id: linux-omap@vger.kernel.org
 
---c7hkjup166d4FzgN
+--IR1Y5IvQhrKgS4e6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Mon, Dec 10, 2012 at 11:48:51AM +0200, Roger Quadros wrote:
-> >>>  (or in appropriate order if the above isn't)
-> >>> That way insmod/rmmod'ing the USB3320C driver would power-up/down the
-> >>> whole subsystem.
-> >>
-> >> Yes, this is where we can think of a generic PHY driver to make sure t=
-hy
-> >> PHY has necessary resources enabled. In the Panda case it would be the
-> >> PHY clock and RESET gpio.
-> >>
-> > I wonder if ehci-omap should assume, besides regulator, a clock might
-> > also be need to setup for the transceiver chip.
-> > Maybe "usbhs_bdata" in board-omap4panda.c should have
-> > .reset_gpio_port[0]  =3D GPIO_HUB_NRESET ?
+On Mon, Dec 10, 2012 at 01:31:22PM +0200, Roger Quadros wrote:
+> On 12/10/2012 01:24 PM, Rajendra Nayak wrote:
+> > On Monday 10 December 2012 03:50 PM, Roger Quadros wrote:
+> >> clk_set_parent is expected to fail on OMAP3 platforms. We don't
+> >> consider that as fatal so don't spam console.
 > >=20
+> > And what if it fails on a non-OMAP3 platform?
 >=20
-> Just like the regulator, reset_gpio_port has nothing to do with OMAP
-> EHCI. So we would want to get rid of that too from the OMAP USB driver.
+> The driver just prints a debug message and continues to work just as
+> before. The USB port will not work for the user in that case. He will
+> have to enable DEBUG flag to see the debug message. I see this behaviour
+> better than before where all OMAP3 users see the error message for no
+> reason.
 
-+1 to that.
-
-That's a requirement from the LAN95xx hub controller, not OMAP EHCI ;-)
+I agree with Roger here.
 
 --=20
 balbi
 
---c7hkjup166d4FzgN
+--IR1Y5IvQhrKgS4e6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQxfNRAAoJEIaOsuA1yqREOYYQAJ6pkau8RvRXCrH3RCT3hlWu
-J4OjjaEPRLyX838Eu+n5rIJpwiGzBGU0ftDxeZtv8kTdex2qteX8s5GI1rHEVLBa
-FOCArcPdDVbcxHkGSAzaUKCXUBb/eUKoxXzYA3l9gh2lOodB8q/nRoENSH9ejPNk
-JvIKFPEaibMtugpWqyvfzxx7wQc2YGz24I809+AMDUNztGna+13SNdG4M0njAfD4
-1qy3P+Xw2L1982bCHCVI0RpYld54izNo1kiJSawkuvuwbo489n0kwRe2UNro8uOL
-sHt0OUTuenV7At58QBZ5wv5bbDx5qcxv5/nCoyfiFURYO9Lrs7ypCU1ZL8bqMGRY
-MZlNIMSRxKE7ZuakS1q3JB3cOw/xElplKWhrupOXRaBSQ24R816gAyEhUDNEuxDg
-oHggG9VvI1qcUwHtiGm2YbHfYvzTBO+2JUUU+GyYrAaEAr8cvomepq75+OxqdXeT
-D8Qx6Hq7mXsG8103I1ZlpIMBm3UDhy8ygv4qADs9CfXH8YfJaOYwperr0ovACOgz
-nBd/WDe2lntFwaUU6YjX0ielRwlYnxI02S6SfmZTFHdG1UmJIrmhurb9TghWc72g
-Kp0xN2L6E4IDmWOd0IhdIPtPKy38J9WW+WZxN1pdsuve1n2+gRaPu+WYkggTGerp
-ENBBdhMXascungqbz9nO
-=+wk1
+iQIcBAEBAgAGBQJQxfPOAAoJEIaOsuA1yqRERAIQAIa92DSzixbvgeH2NVfmif3J
+CE0KTv+Zl3Rq6k15D/NlwGQUBCem161usptzwgy0uk8yW/TYEpWKTRL1Vut23v4U
+pyVAK/KBBsO1+Z9B8ZOq8gFfs3/8VTk1Co8GPydvcdO+JrzPkw78g0AbmpvmHiWH
+im1o1Cc3mpMKRmZumCSl4S7BBtyPwSPZRpemrgsV9fy2TXumN3gFYLEz891IuVLY
+/2GfLeGNAM9eo6+LI0l+CSTXo44EEHiJSM4AIgP6H6XUx3dPzBcIGCjuGvJRsTX9
+oGDn4OB9EG7oe5hU0OlCeJ3SUImIOvyl4xQ8gnBDK0uC1FA3Db31bDT3LkWYtBub
+YhN9gfE1VfZGDccjM2NBJioyS+0xHKMIZMAI4hf5nBG/3Ybd6moiFcLWaKXxQXHt
+1VecvbRIoMFHzVSL4l83U0eYMyVXP/ylhYbi9F7U7WBFDDzOMTqu8CzLJCtFKRql
+YbW334qoUhvIa/ol3gvpv9eZQ4gNQ7PLJY7r/HRVe+iEqOUhogEQds1jz11aycPB
+Q1wg5LEJqfmbOPGs4CuwEDUju+o5IpRnTpFsdLydg5wGMBLv+JpoVLFjh7jJflzu
+Mlbwoje0V8omZHtduqbn2VyuhJMXyfqkJidasJmAPcNUEScSbNU57P/F5uFa9PZR
+A20JchdhOOZVDayAsLZq
+=Hswt
 -----END PGP SIGNATURE-----
 
---c7hkjup166d4FzgN--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--IR1Y5IvQhrKgS4e6--
