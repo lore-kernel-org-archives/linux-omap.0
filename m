@@ -1,7 +1,7 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 21/23] ARM: OMAP3: clock data: get rid of unused USB host clock aliases and dummies
-Date: Mon, 10 Dec 2012 12:20:31 +0200
-Message-ID: <1355134833-5199-22-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 14/23] mfd: omap-usb-host: override number of ports from platform data
+Date: Mon, 10 Dec 2012 12:20:24 +0200
+Message-ID: <1355134833-5199-15-git-send-email-rogerq@ti.com>
 References: <1355134833-5199-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,59 +9,102 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1355134833-5199-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
-Cc: paul@pwsan.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Mike Turquette <mturquette@gmail.com>
+Cc: paul@pwsan.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We don't need multiple aliases for the OMAP USB host clocks and neither
-the dummy clocks so remove them.
-
-CC: Paul Walmsley <paul@pwsan.com>
-CC: Rajendra Nayak <rnayak@ti.com>
-CC: Benoit Cousson <b-cousson@ti.com>
-CC: Mike Turquette <mturquette@gmail.com>
+Both OMAP4 and 5 exhibit the same revision ID in the REVISION register
+but they have different number of ports i.e. 2 and 3 respectively.
+So we can't rely on REVISION register for number of ports on OMAP5
+and depend on platform data (or device tree) instead.
 
 Signed-off-by: Roger Quadros <rogerq@ti.com>
 ---
- arch/arm/mach-omap2/cclock3xxx_data.c |   11 -----------
- 1 files changed, 0 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/usb-host.c         |    1 +
+ arch/arm/mach-omap2/usb.h              |    1 +
+ drivers/mfd/omap-usb-host.c            |   34 +++++++++++++++++++------------
+ include/linux/platform_data/usb-omap.h |    1 +
+ 4 files changed, 24 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
-index 5655414..8b9d109 100644
---- a/arch/arm/mach-omap2/cclock3xxx_data.c
-+++ b/arch/arm/mach-omap2/cclock3xxx_data.c
-@@ -3289,8 +3289,6 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("usbhs_omap",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("usbhs_tll",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"core_96m_fck",	&core_96m_fck,	CK_3XXX),
- 	CLK(NULL,	"mmchs3_fck",	&mmchs3_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"mmchs2_fck",	&mmchs2_fck,	CK_3XXX),
-@@ -3327,8 +3325,6 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"core_l4_ick",	&core_l4_ick,	CK_3XXX),
- 	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("usbhs_omap",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("usbhs_tll",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("omap_hsmmc.2",	"ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"mmchs3_ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_34XX | CK_36XX),
-@@ -3391,15 +3387,8 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("usbhs_omap",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
--	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
--	CLK(NULL,	"usb_host_hs_utmi_p2_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_tll",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_tll",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"init_60m_fclk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2PLUS | CK_36XX),
- 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 2e44e8a..ee8c473 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -504,6 +504,7 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	ohci_data.es2_compatibility = pdata->es2_compatibility;
+ 	usbhs_data.ehci_data = &ehci_data;
+ 	usbhs_data.ohci_data = &ohci_data;
++	usbhs_data.nports = pdata->nports;
+ 
+ 	if (cpu_is_omap34xx()) {
+ 		setup_ehci_io_mux(pdata->port_mode);
+diff --git a/arch/arm/mach-omap2/usb.h b/arch/arm/mach-omap2/usb.h
+index 9b986ea..7dc0f04 100644
+--- a/arch/arm/mach-omap2/usb.h
++++ b/arch/arm/mach-omap2/usb.h
+@@ -54,6 +54,7 @@
+ #define USBPHY_DATA_POLARITY	(1 << 23)
+ 
+ struct usbhs_omap_board_data {
++	int				nports;
+ 	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+ 
+ 	/* have to be valid if phy_reset is true and portx is in phy mode */
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 9c23a08..714b2f1 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -498,19 +498,27 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ 	 */
+ 	pm_runtime_put_sync(dev);
+ 
+-	switch (omap->usbhs_rev) {
+-	case OMAP_USBHS_REV1:
+-		omap->nports = 3;
+-		break;
+-	case OMAP_USBHS_REV2:
+-		omap->nports = 2;
+-		break;
+-	default:
+-		omap->nports = OMAP3_HS_USB_PORTS;
+-		dev_dbg(dev,
+-		  "USB HOST Rev : 0x%d not recognized, assuming %d ports\n",
+-		   omap->usbhs_rev, omap->nports);
+-		break;
++	/*
++	 * If platform data contains nports then use that
++	 * else make out number of ports from USBHS revision
++	 */
++	if (pdata->nports) {
++		omap->nports = pdata->nports;
++	} else {
++		switch (omap->usbhs_rev) {
++		case OMAP_USBHS_REV1:
++			omap->nports = 3;
++			break;
++		case OMAP_USBHS_REV2:
++			omap->nports = 2;
++			break;
++		default:
++			omap->nports = OMAP3_HS_USB_PORTS;
++			dev_dbg(dev,
++			"USB HOST Rev:0x%d not recognized, assuming %d ports\n",
++				omap->usbhs_rev, omap->nports);
++			break;
++		}
+ 	}
+ 
+ 	for (i = 0; i < omap->nports; i++)
+diff --git a/include/linux/platform_data/usb-omap.h b/include/linux/platform_data/usb-omap.h
+index ef65b67..57707c7 100644
+--- a/include/linux/platform_data/usb-omap.h
++++ b/include/linux/platform_data/usb-omap.h
+@@ -55,6 +55,7 @@ struct ohci_hcd_omap_platform_data {
+ };
+ 
+ struct usbhs_omap_platform_data {
++	int					nports;
+ 	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
+ 
+ 	struct ehci_hcd_omap_platform_data	*ehci_data;
 -- 
 1.7.4.1
