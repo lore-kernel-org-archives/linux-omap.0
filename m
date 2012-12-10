@@ -1,26 +1,26 @@
 From: Jack Mitchell <ml@communistcode.co.uk>
 Subject: AM335x BeagleBone SPI Issues
-Date: Mon, 10 Dec 2012 13:23:09 +0000
-Message-ID: <50C5E23D.5040605@communistcode.co.uk>
+Date: Mon, 10 Dec 2012 13:17:36 +0000
+Message-ID: <50C5E0F0.4030306@communistcode.co.uk>
 Reply-To: ml@communistcode.co.uk
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:42012 "EHLO eumx.net"
+Received: from eumx.net ([91.82.101.43]:42018 "EHLO eumx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751046Ab2LJNUw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Dec 2012 08:20:52 -0500
-Received: from localhost ([127.0.0.1]:48888 helo=eumx.net)
+	id S1751046Ab2LJNVc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Dec 2012 08:21:32 -0500
+Received: from localhost ([127.0.0.1]:35314 helo=eumx.net)
 	by eumx.net with esmtp (Exim 4.72)
 	(envelope-from <ml@communistcode.co.uk>)
-	id 1Ti3Hv-0007mA-0V
-	for linux-omap@vger.kernel.org; Mon, 10 Dec 2012 13:20:51 +0000
-Received: from [195.171.99.130] (port=22302 helo=[192.168.0.54])
+	id 1Ti3CX-0007a7-Ko
+	for linux-omap@vger.kernel.org; Mon, 10 Dec 2012 13:15:17 +0000
+Received: from [195.171.99.130] (port=56624 helo=[192.168.0.54])
 	by eumx.net with esmtpa (Exim 4.72)
 	(envelope-from <ml@communistcode.co.uk>)
-	id 1Ti3Hu-0007m6-PF
-	for linux-omap@vger.kernel.org; Mon, 10 Dec 2012 13:20:50 +0000
+	id 1Ti3CX-0007a3-IV
+	for linux-omap@vger.kernel.org; Mon, 10 Dec 2012 13:15:17 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
