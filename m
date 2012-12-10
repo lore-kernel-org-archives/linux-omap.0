@@ -1,60 +1,120 @@
-From: Lokesh Vutla <lokeshvutla@ti.com>
-Subject: Re: [PATCH 0/9] memory: emif: miscellaneous bug fixes for EMIF driver
-Date: Mon, 10 Dec 2012 12:42:27 +0530
-Message-ID: <50C58B5B.4030606@ti.com>
-References: <1355123324-5228-1-git-send-email-a>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 5/5] OMAPFB: connect ovl managers to all dssdevs
+Date: Mon, 10 Dec 2012 13:04:54 +0530
+Message-ID: <50C5909E.8030800@ti.com>
+References: <1354881309-17625-1-git-send-email-tomi.valkeinen@ti.com> <1354881309-17625-5-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45250 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56227 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751910Ab2LJHMe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Dec 2012 02:12:34 -0500
-In-Reply-To: <1355123324-5228-1-git-send-email-a>
+	id S1752522Ab2LJHf3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Dec 2012 02:35:29 -0500
+In-Reply-To: <1354881309-17625-5-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, gregkh@linuxfoundation.org, b-cousson@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Sorry to Spam you in-box.
-Please discard this message...
+Hi,
 
-Thanks
-Lokesh
+On Friday 07 December 2012 05:25 PM, Tomi Valkeinen wrote:
+> Commit 5d89bcc341771d95e3a2996218e5949a6627f59e (OMAPDSS: remove initial
+> display code from omapdss) moved setting up the initial overlay, overlay
+> manager, output and display connections from omapdss to omapfb.
+>
+> However, currently omapfb only handles the connection related to the
+> default display, which means that no overlay managers are connected to
+> other displays.
+>
+> This patch changes omapfb to go through all dssdevs, and connect an
+> overlay manager to them.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/omapfb/omapfb-main.c |   38 +++++++++++++++++++-----------
+>   1 file changed, 24 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+> index 1df973e..24739fc 100644
+> --- a/drivers/video/omap2/omapfb/omapfb-main.c
+> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
+> @@ -2353,27 +2353,37 @@ static int omapfb_init_display(struct omapfb2_device *fbdev,
+>   }
+>
+>   static int omapfb_init_connections(struct omapfb2_device *fbdev,
+> -		struct omap_dss_device *dssdev)
+> +		struct omap_dss_device *def_dssdev)
+>   {
+>   	int i, r;
+> -	struct omap_overlay_manager *mgr = NULL;
+> +	struct omap_overlay_manager *mgr;
+>
+> -	for (i = 0; i < fbdev->num_managers; i++) {
+> -		mgr = fbdev->managers[i];
+> -
+> -		if (dssdev->channel == mgr->id)
+> -			break;
+> +	if (!def_dssdev->output) {
+> +		dev_err(fbdev->dev, "no output for the default display\n");
+> +		return -EINVAL;
+>   	}
+>
+> -	if (i == fbdev->num_managers)
+> -		return -ENODEV;
+> +	for (i = 0; i < fbdev->num_displays; ++i) {
+> +		struct omap_dss_device *dssdev = fbdev->displays[i].dssdev;
+> +		struct omap_dss_output *out = dssdev->output;
+>
+> -	if (mgr->output)
+> -		mgr->unset_output(mgr);
+> +		mgr = omap_dss_get_overlay_manager(dssdev->channel);
 
-On Monday 10 December 2012 12:38 PM, a@dbdp33.itg.ti.com wrote:
-> From: Lokesh Vutla <lokeshvutla@ti.com>
+This dssdev->channel reference is something we would want to get rid of 
+eventually, right?
+
+At the point omapfb_init_connections() is called, we would have all the 
+omap_dss_devices registered, right? So at this point, omapfb will have 
+an overall view of how the panels need to be connected to DSS.
+
+I think we can try to find a manager here for dssdev rather than using 
+dssdev->channel directly. The dssdev's output could connect to a few 
+managers. We would want to chose managers for each dssdev output in such 
+a way that all outputs have a manager. I guess there would be multiple 
+combinations for this, but it would be okay to pick any one of them.
+
+I think we would need some recursive or backtracking sort of approach to 
+get a desired combination. We can figure about how to make it work 
+later, but do you agree if this is a right way to get rid of 
+dssdev->channel?
+
+Also, we would need to do this for omapdrm separately using it's own 
+encoder/connector entities.
+
+Archit
+
 >
-> This series resolves a few minor issues for EMIF driver.
+> -	r = mgr->set_output(mgr, dssdev->output);
+> -	if (r)
+> -		return r;
+> +		if (!mgr || !out)
+> +			continue;
+> +
+> +		if (mgr->output)
+> +			mgr->unset_output(mgr);
+> +
+> +		mgr->set_output(mgr, out);
+> +	}
+> +
+> +	mgr = def_dssdev->output->manager;
+> +
+> +	if (!mgr) {
+> +		dev_err(fbdev->dev, "no ovl manager for the default display\n");
+> +		return -EINVAL;
+> +	}
 >
-> Tested all the patches on OMAP4-sdp, OMAP5-sevm.
-> Patch : "memory: emif: setup LP settings on freq update"
-> is tested on a local tree, since freq update cannot be
-> tested on mainline.
->
-> Ambresh K (1):
->    memory: emif: use default custom config parameter.
->
-> Lokesh Vutla (1):
->    memory: emif: Correct the lpmode timeout calculation
->
-> Nishanth Menon (5):
->    memory: emif: setup LP settings on freq update
->    memory: emif: handle overflow for timing for LP mode
->    memory: emif: Handle devices which are not rated for >85C
->    memory: emif: use restart if power_off not present when out of spec
->    memory: emif: disable phy_fast_dll_lock
->
-> Oleksandr Dmytryshyn (1):
->    memory: emif: fix timings initialization issue
->
-> Severine Glock (1):
->    memory: emif: debugfs: Remove MR4= string print
->
->   drivers/memory/emif.c                   |   92 +++++++++++++++++++++++++------
->   drivers/memory/emif.h                   |    2 +-
->   include/linux/platform_data/emif_plat.h |    1 +
->   3 files changed, 78 insertions(+), 17 deletions(-)
+>   	for (i = 0; i < fbdev->num_overlays; i++) {
+>   		struct omap_overlay *ovl = fbdev->overlays[i];
 >
 
