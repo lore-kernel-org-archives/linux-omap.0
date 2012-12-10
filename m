@@ -1,120 +1,157 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 5/5] OMAPFB: connect ovl managers to all dssdevs
-Date: Mon, 10 Dec 2012 13:04:54 +0530
-Message-ID: <50C5909E.8030800@ti.com>
-References: <1354881309-17625-1-git-send-email-tomi.valkeinen@ti.com> <1354881309-17625-5-git-send-email-tomi.valkeinen@ti.com>
+From: Mugunthan V N <mugunthanvnm@ti.com>
+Subject: [PATCH 1/1] net: ethernet: davinci_cpdma: Add boundary for rx and tx descriptors
+Date: Mon, 10 Dec 2012 13:07:32 +0530
+Message-ID: <1355125052-28448-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56227 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752522Ab2LJHf3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Dec 2012 02:35:29 -0500
-In-Reply-To: <1354881309-17625-5-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s.hauer@pengutronix.de, Mugunthan V N <mugunthanvnm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
+When there is heavy transmission traffic in the CPDMA, then Rx descriptors
+memory is also utilized as tx desc memory this leads to reduced rx desc memory
+which leads to poor performance.
 
-On Friday 07 December 2012 05:25 PM, Tomi Valkeinen wrote:
-> Commit 5d89bcc341771d95e3a2996218e5949a6627f59e (OMAPDSS: remove initial
-> display code from omapdss) moved setting up the initial overlay, overlay
-> manager, output and display connections from omapdss to omapfb.
->
-> However, currently omapfb only handles the connection related to the
-> default display, which means that no overlay managers are connected to
-> other displays.
->
-> This patch changes omapfb to go through all dssdevs, and connect an
-> overlay manager to them.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/omapfb/omapfb-main.c |   38 +++++++++++++++++++-----------
->   1 file changed, 24 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-> index 1df973e..24739fc 100644
-> --- a/drivers/video/omap2/omapfb/omapfb-main.c
-> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
-> @@ -2353,27 +2353,37 @@ static int omapfb_init_display(struct omapfb2_device *fbdev,
->   }
->
->   static int omapfb_init_connections(struct omapfb2_device *fbdev,
-> -		struct omap_dss_device *dssdev)
-> +		struct omap_dss_device *def_dssdev)
->   {
->   	int i, r;
-> -	struct omap_overlay_manager *mgr = NULL;
-> +	struct omap_overlay_manager *mgr;
->
-> -	for (i = 0; i < fbdev->num_managers; i++) {
-> -		mgr = fbdev->managers[i];
-> -
-> -		if (dssdev->channel == mgr->id)
-> -			break;
-> +	if (!def_dssdev->output) {
-> +		dev_err(fbdev->dev, "no output for the default display\n");
-> +		return -EINVAL;
->   	}
->
-> -	if (i == fbdev->num_managers)
-> -		return -ENODEV;
-> +	for (i = 0; i < fbdev->num_displays; ++i) {
-> +		struct omap_dss_device *dssdev = fbdev->displays[i].dssdev;
-> +		struct omap_dss_output *out = dssdev->output;
->
-> -	if (mgr->output)
-> -		mgr->unset_output(mgr);
-> +		mgr = omap_dss_get_overlay_manager(dssdev->channel);
+This patch adds boundary for tx and rx descriptors in bd ram dividing the
+descriptor memory to ensure that during heavy transmission tx doesn't use
+rx descriptors.
 
-This dssdev->channel reference is something we would want to get rid of 
-eventually, right?
+This patch is already applied to davinci_emac driver, since CPSW and
+davici_dmac uses the same CPDMA, moving the boundry seperation from
+Davinci EMAC driver to CPDMA driver which was done in the following
+commit
 
-At the point omapfb_init_connections() is called, we would have all the 
-omap_dss_devices registered, right? So at this point, omapfb will have 
-an overall view of how the panels need to be connected to DSS.
+commit 86d8c07ff2448eb4e860e50f34ef6ee78e45c40c
+Author: Sascha Hauer <s.hauer@pengutronix.de>
+Date:   Tue Jan 3 05:27:47 2012 +0000
 
-I think we can try to find a manager here for dssdev rather than using 
-dssdev->channel directly. The dssdev's output could connect to a few 
-managers. We would want to chose managers for each dssdev output in such 
-a way that all outputs have a manager. I guess there would be multiple 
-combinations for this, but it would be okay to pick any one of them.
+    net/davinci: do not use all descriptors for tx packets
 
-I think we would need some recursive or backtracking sort of approach to 
-get a desired combination. We can figure about how to make it work 
-later, but do you agree if this is a right way to get rid of 
-dssdev->channel?
+    The driver uses a shared pool for both rx and tx descriptors.
+    During open it queues fixed number of 128 descriptors for receive
+    packets. For each received packet it tries to queue another
+    descriptor. If this fails the descriptor is lost for rx.
+    The driver has no limitation on tx descriptors to use, so it
+    can happen during a nmap / ping -f attack that the driver
+    allocates all descriptors for tx and looses all rx descriptors.
+    The driver stops working then.
+    To fix this limit the number of tx descriptors used to half of
+    the descriptors available, the rx path uses the other half.
 
-Also, we would need to do this for omapdrm separately using it's own 
-encoder/connector entities.
+    Tested on a custom board using nmap / ping -f to the board from
+    two different hosts.
 
-Archit
+Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+---
+ drivers/net/ethernet/ti/davinci_cpdma.c |   20 ++++++++++++++------
+ drivers/net/ethernet/ti/davinci_emac.c  |    8 --------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
->
-> -	r = mgr->set_output(mgr, dssdev->output);
-> -	if (r)
-> -		return r;
-> +		if (!mgr || !out)
-> +			continue;
-> +
-> +		if (mgr->output)
-> +			mgr->unset_output(mgr);
-> +
-> +		mgr->set_output(mgr, out);
-> +	}
-> +
-> +	mgr = def_dssdev->output->manager;
-> +
-> +	if (!mgr) {
-> +		dev_err(fbdev->dev, "no ovl manager for the default display\n");
-> +		return -EINVAL;
-> +	}
->
->   	for (i = 0; i < fbdev->num_overlays; i++) {
->   		struct omap_overlay *ovl = fbdev->overlays[i];
->
-
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index 4995673..d37f546 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -105,13 +105,13 @@ struct cpdma_ctlr {
+ };
+ 
+ struct cpdma_chan {
++	struct cpdma_desc __iomem	*head, *tail;
++	void __iomem			*hdp, *cp, *rxfree;
+ 	enum cpdma_state		state;
+ 	struct cpdma_ctlr		*ctlr;
+ 	int				chan_num;
+ 	spinlock_t			lock;
+-	struct cpdma_desc __iomem	*head, *tail;
+ 	int				count;
+-	void __iomem			*hdp, *cp, *rxfree;
+ 	u32				mask;
+ 	cpdma_handler_fn		handler;
+ 	enum dma_data_direction		dir;
+@@ -217,7 +217,7 @@ desc_from_phys(struct cpdma_desc_pool *pool, dma_addr_t dma)
+ }
+ 
+ static struct cpdma_desc __iomem *
+-cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc)
++cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc, bool is_rx)
+ {
+ 	unsigned long flags;
+ 	int index;
+@@ -225,8 +225,14 @@ cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc)
+ 
+ 	spin_lock_irqsave(&pool->lock, flags);
+ 
+-	index = bitmap_find_next_zero_area(pool->bitmap, pool->num_desc, 0,
+-					   num_desc, 0);
++	if (is_rx) {
++		index = bitmap_find_next_zero_area(pool->bitmap,
++				pool->num_desc/2, 0, num_desc, 0);
++	 } else {
++		index = bitmap_find_next_zero_area(pool->bitmap,
++				pool->num_desc, pool->num_desc/2, num_desc, 0);
++	}
++
+ 	if (index < pool->num_desc) {
+ 		bitmap_set(pool->bitmap, index, num_desc);
+ 		desc = pool->iomap + pool->desc_size * index;
+@@ -660,6 +666,7 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+ 	unsigned long			flags;
+ 	u32				mode;
+ 	int				ret = 0;
++	bool                            is_rx;
+ 
+ 	spin_lock_irqsave(&chan->lock, flags);
+ 
+@@ -668,7 +675,8 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+ 		goto unlock_ret;
+ 	}
+ 
+-	desc = cpdma_desc_alloc(ctlr->pool, 1);
++	is_rx = (chan->rxfree != 0);
++	desc = cpdma_desc_alloc(ctlr->pool, 1, is_rx);
+ 	if (!desc) {
+ 		chan->stats.desc_alloc_fail++;
+ 		ret = -ENOMEM;
+diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+index fce89a0..f349273 100644
+--- a/drivers/net/ethernet/ti/davinci_emac.c
++++ b/drivers/net/ethernet/ti/davinci_emac.c
+@@ -120,7 +120,6 @@ static const char emac_version_string[] = "TI DaVinci EMAC Linux v6.1";
+ #define EMAC_DEF_TX_CH			(0) /* Default 0th channel */
+ #define EMAC_DEF_RX_CH			(0) /* Default 0th channel */
+ #define EMAC_DEF_RX_NUM_DESC		(128)
+-#define EMAC_DEF_TX_NUM_DESC		(128)
+ #define EMAC_DEF_MAX_TX_CH		(1) /* Max TX channels configured */
+ #define EMAC_DEF_MAX_RX_CH		(1) /* Max RX channels configured */
+ #define EMAC_POLL_WEIGHT		(64) /* Default NAPI poll weight */
+@@ -342,7 +341,6 @@ struct emac_priv {
+ 	u32 mac_hash2;
+ 	u32 multicast_hash_cnt[EMAC_NUM_MULTICAST_BITS];
+ 	u32 rx_addr_type;
+-	atomic_t cur_tx;
+ 	const char *phy_id;
+ #ifdef CONFIG_OF
+ 	struct device_node *phy_node;
+@@ -1050,9 +1048,6 @@ static void emac_tx_handler(void *token, int len, int status)
+ {
+ 	struct sk_buff		*skb = token;
+ 	struct net_device	*ndev = skb->dev;
+-	struct emac_priv	*priv = netdev_priv(ndev);
+-
+-	atomic_dec(&priv->cur_tx);
+ 
+ 	if (unlikely(netif_queue_stopped(ndev)))
+ 		netif_start_queue(ndev);
+@@ -1101,9 +1096,6 @@ static int emac_dev_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 		goto fail_tx;
+ 	}
+ 
+-	if (atomic_inc_return(&priv->cur_tx) >= EMAC_DEF_TX_NUM_DESC)
+-		netif_stop_queue(ndev);
+-
+ 	return NETDEV_TX_OK;
+ 
+ fail_tx:
+-- 
+1.7.9.5
