@@ -1,68 +1,107 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 23/23] mfd: omap-usb-host: Don't spam console on
- clk_set_parent failure
-Date: Mon, 10 Dec 2012 16:38:06 +0200
-Message-ID: <20121210143806.GI11038@arwen.pp.htv.fi>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com>
- <1355134833-5199-24-git-send-email-rogerq@ti.com>
- <50C5C666.9050105@ti.com>
- <50C5C80A.3090307@ti.com>
-Reply-To: <balbi@ti.com>
+From: Jack Mitchell <ml@communistcode.co.uk>
+Subject: Re: AM335x BeagleBone SPI Issues
+Date: Mon, 10 Dec 2012 14:50:16 +0000
+Message-ID: <50C5F6A8.5060701@communistcode.co.uk>
+References: <50C5E23D.5040605@communistcode.co.uk> <20121210135337.GA10219@arwen.pp.htv.fi>
+Reply-To: ml@communistcode.co.uk
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IR1Y5IvQhrKgS4e6"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50C5C80A.3090307@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, balbi@ti.com, sameo@linux.intel.com, tony@atomide.com, paul@pwsan.com, sshtylyov@mvista.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, keshava_mgowda@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bjorn@mork.no
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eumx.net ([91.82.101.43]:53312 "EHLO eumx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751490Ab2LJOsA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Dec 2012 09:48:00 -0500
+In-Reply-To: <20121210135337.GA10219@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org
 
---IR1Y5IvQhrKgS4e6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Felipe,
 
-On Mon, Dec 10, 2012 at 01:31:22PM +0200, Roger Quadros wrote:
-> On 12/10/2012 01:24 PM, Rajendra Nayak wrote:
-> > On Monday 10 December 2012 03:50 PM, Roger Quadros wrote:
-> >> clk_set_parent is expected to fail on OMAP3 platforms. We don't
-> >> consider that as fatal so don't spam console.
-> >=20
-> > And what if it fails on a non-OMAP3 platform?
->=20
-> The driver just prints a debug message and continues to work just as
-> before. The USB port will not work for the user in that case. He will
-> have to enable DEBUG flag to see the debug message. I see this behaviour
-> better than before where all OMAP3 users see the error message for no
-> reason.
+On 10/12/12 13:53, Felipe Balbi wrote:
+> Hi,
+>
+> On Mon, Dec 10, 2012 at 01:23:09PM +0000, Jack Mitchell wrote:
+>> Hi,
+>>
+>> I am currently having issues with the SPI driver on the beaglebone
+>> using the 3.7-rc8 kernel[1]. I have probed the SPI pins and I have
+>> found that writing works however reading doesn't. When using DMA the
+>> program seems to lock hard and no data is sent on the bus. I am
+>> testing the bus using spidev and the spidev_test[2] application,
+>> however I first came across spi issues with a custom spi driver which
+>> stopped working when I transitioned from 3.2-psp to 3.7-rc8.
+>>
+>> The current output I am seeing from the spidev_test program is just a
+>> series of 0x00 data, which looks to me like no data is getting in at
+>> all. The spidev_test program is not using DMA as the buffer size is
+>> too low, so I forced the dma on when buffer size is > 1 and the
+>> program hangs hard with the system still responding to other
+>> commands.I have briged the pins 18 and 21 on the BeagleBone P9
+>> header.
+>>
+>> Has anyone seen issues like this, or if not if someone could please
+>> test the latest 3.7-rc8 from [1] and let me know if it works for them
+>> and the issue is at my end.
+>>
+>> To get spidev working with devicetree I applied the patch from [3]
+>> and changed the dtb as in the patch pasted below.
+>>
+>> [1] https://github.com/beagleboard/kernel/tree/3.7
+>> [2] http://lxr.linux.no/#linux+v3.6.9/Documentation/spi/spidev_test.c
+>> [3] http://www.mail-archive.com/spi-devel-general@lists.sourceforge.net/msg09958.html
+> do you have any debugging output from that driver ? It would be cool to
+> see if DMA is at least being kicked properly for small transfers.
 
-I agree with Roger here.
+When I run the spidev program with dma for transfers > 1, the program 
+hangs and the only output in dmesg is:
 
---=20
-balbi
+[   12.613952] libphy: 4a101000.mdio:00 - Link is Up - 100/Full <---- 
+Last line from initial log in [2]
+[   47.669202] spidev spi1.0: setup: speed 24000000, sample leading 
+edge, clk normal
+[   47.669246] spidev spi1.0: setup mode 0, 8 bits/w, 24000000 Hz max --> 0
+[   47.669260] spidev spi1.0: spi mode 00
+[   47.669283] spidev spi1.0: setup: speed 24000000, sample leading 
+edge, clk normal
+[   47.669300] spidev spi1.0: setup mode 0, 16 bits/w, 24000000 Hz max --> 0
+[   47.669312] spidev spi1.0: 16 bits per word
+[   47.669330] spidev spi1.0: setup: speed 24000000, sample leading 
+edge, clk normal
+[   47.669347] spidev spi1.0: setup mode 0, 16 bits/w, 24000000 Hz max --> 0
+[   47.669358] spidev spi1.0: 24000000 Hz (max)
+[   47.673811] spidev spi1.0: setup: speed 24000000, sample leading 
+edge, clk normal
 
---IR1Y5IvQhrKgS4e6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+The initial dmesg statup log is at [2].
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+>
+> It would also be nice to have a clear picture of what "custom spi
+> driver" you're talking about.
 
-iQIcBAEBAgAGBQJQxfPOAAoJEIaOsuA1yqRERAIQAIa92DSzixbvgeH2NVfmif3J
-CE0KTv+Zl3Rq6k15D/NlwGQUBCem161usptzwgy0uk8yW/TYEpWKTRL1Vut23v4U
-pyVAK/KBBsO1+Z9B8ZOq8gFfs3/8VTk1Co8GPydvcdO+JrzPkw78g0AbmpvmHiWH
-im1o1Cc3mpMKRmZumCSl4S7BBtyPwSPZRpemrgsV9fy2TXumN3gFYLEz891IuVLY
-/2GfLeGNAM9eo6+LI0l+CSTXo44EEHiJSM4AIgP6H6XUx3dPzBcIGCjuGvJRsTX9
-oGDn4OB9EG7oe5hU0OlCeJ3SUImIOvyl4xQ8gnBDK0uC1FA3Db31bDT3LkWYtBub
-YhN9gfE1VfZGDccjM2NBJioyS+0xHKMIZMAI4hf5nBG/3Ybd6moiFcLWaKXxQXHt
-1VecvbRIoMFHzVSL4l83U0eYMyVXP/ylhYbi9F7U7WBFDDzOMTqu8CzLJCtFKRql
-YbW334qoUhvIa/ol3gvpv9eZQ4gNQ7PLJY7r/HRVe+iEqOUhogEQds1jz11aycPB
-Q1wg5LEJqfmbOPGs4CuwEDUju+o5IpRnTpFsdLydg5wGMBLv+JpoVLFjh7jJflzu
-Mlbwoje0V8omZHtduqbn2VyuhJMXyfqkJidasJmAPcNUEScSbNU57P/F5uFa9PZR
-A20JchdhOOZVDayAsLZq
-=Hswt
------END PGP SIGNATURE-----
+The custom SPI driver is for connecting and reading registers from an in 
+house FPGA design and can be found at [1]. It's fairly rudimentary and 
+also in the development stages, I'm very new to Linux kernel programming 
+so please take that into account :)
 
---IR1Y5IvQhrKgS4e6--
+However it did work flawlessly with 3.2-psp.
+
+>
+> cheers
+>
+
+[1] http://embed.me.uk/fpgaSPI.c
+[2] http://embed.me.uk/bone-log.1
+
+Cheers,
+
+-- 
+
+   Jack Mitchell (jack@embed.me.uk)
+   Embedded Systems Engineer
+   http://www.embed.me.uk
+
+--
+
