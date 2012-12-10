@@ -1,66 +1,70 @@
-From: Christian Riesch <christian.riesch@omicron.at>
-Subject: Re: [PATCH 1/1] net: ethernet: davinci_cpdma: Add boundary for rx and
- tx descriptors
-Date: Mon, 10 Dec 2012 09:24:50 +0100
-Message-ID: <CABkLObqOEMKMD3df5pEDJWsGPA=oAj34Yz867D7p2hGdTr0WCA@mail.gmail.com>
-References: <1355125052-28448-1-git-send-email-mugunthanvnm@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [PATCH] da8xx: Allow use by am33xx based devices
+Date: Mon, 10 Dec 2012 14:32:06 +0530
+Message-ID: <50C5A50E.4070602@ti.com>
+References: <1351698968-3965-1-git-send-email-panto@antoniou-consulting.com> <A73F36158E33644199EB82C5EC81C7BC3EA1452B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:62319 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820Ab2LJIYv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Dec 2012 03:24:51 -0500
-In-Reply-To: <1355125052-28448-1-git-send-email-mugunthanvnm@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:44429 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751064Ab2LJJCX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Dec 2012 04:02:23 -0500
+In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3EA1452B@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mugunthan V N <mugunthanvnm@ti.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s.hauer@pengutronix.de
+To: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "Porter, Matt" <mporter@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "FlorianSchandinat@gmx.de" <FlorianSchandinat@gmx.de>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi again,
 
-On Mon, Dec 10, 2012 at 8:37 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
-> When there is heavy transmission traffic in the CPDMA, then Rx descriptors
-> memory is also utilized as tx desc memory this leads to reduced rx desc memory
-> which leads to poor performance.
->
 
-"poor performance" is an understatement, see Sascha's description of
-his patch. At initialization of the driver, half of the descriptors in
-the pool are allocated for rx. When a packet arrives, one of the rx
-descriptors is released and a new one is allocated. If tx allocates
-this descriptor in the meantime, it is lost for rx forever! If tx
-consumes all rx descriptors this way, the rx channel is dead!
+On 12/6/2012 1:38 PM, Manjunathappa, Prakash wrote:
+> Hi Tomi,
+> 
+> On Wed, Oct 31, 2012 at 10:52:59, Manjunathappa, Prakash wrote:
+>> Hi,
+>>
+>> On Wed, Oct 31, 2012 at 21:26:08, Pantelis Antoniou wrote:
+>>> This driver can be used for AM33xx devices, like the popular beaglebone.
+>>>
+>>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+>>> ---
+>>>  drivers/video/Kconfig | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+>>> index 9791d10..e7868d8 100644
+>>> --- a/drivers/video/Kconfig
+>>> +++ b/drivers/video/Kconfig
+>>> @@ -2202,7 +2202,7 @@ config FB_SH7760
+>>>  
+>>>  config FB_DA8XX
+>>>  	tristate "DA8xx/OMAP-L1xx Framebuffer support"
+>>> -	depends on FB && ARCH_DAVINCI_DA8XX
+>>> +	depends on FB && (ARCH_DAVINCI_DA8XX || SOC_AM33XX)
+>>
+>> Agreed this is present on da8xx and am33xx, but moving forward for
+>> supporting DT, we should be avoiding these dependencies. So instead
+>> change this to remove machine dependencies.
+>>
+> 
+> I could be wrong here, having dependency on platform seems to be right.
+> Otherwise may lead to build errors for other platforms. 
 
-Regards, Christian
+No, it should not result in to build error unless driver uses some
+platform specific api's.
 
-> This patch adds boundary for tx and rx descriptors in bd ram dividing the
-> descriptor memory to ensure that during heavy transmission tx doesn't use
-> rx descriptors.
->
-> This patch is already applied to davinci_emac driver, since CPSW and
-> davici_dmac uses the same CPDMA, moving the boundry seperation from
-> Davinci EMAC driver to CPDMA driver which was done in the following
-> commit
->
-> commit 86d8c07ff2448eb4e860e50f34ef6ee78e45c40c
-> Author: Sascha Hauer <s.hauer@pengutronix.de>
-> Date:   Tue Jan 3 05:27:47 2012 +0000
->
->     net/davinci: do not use all descriptors for tx packets
->
->     The driver uses a shared pool for both rx and tx descriptors.
->     During open it queues fixed number of 128 descriptors for receive
->     packets. For each received packet it tries to queue another
->     descriptor. If this fails the descriptor is lost for rx.
->     The driver has no limitation on tx descriptors to use, so it
->     can happen during a nmap / ping -f attack that the driver
->     allocates all descriptors for tx and looses all rx descriptors.
->     The driver stops working then.
->     To fix this limit the number of tx descriptors used to half of
->     the descriptors available, the rx path uses the other half.
->
->     Tested on a custom board using nmap / ping -f to the board from
->     two different hosts.
->
-> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+Thanks,
+Vaibhav
+
+> Please ignore my
+> comments and accept this patch.
+> 
+> Thanks,
+> Prakash
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+> 
