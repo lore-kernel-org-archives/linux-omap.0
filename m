@@ -1,188 +1,186 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 5/5] OMAPFB: connect ovl managers to all dssdevs
-Date: Mon, 10 Dec 2012 10:03:17 +0200
-Message-ID: <50C59745.2080604@ti.com>
-References: <1354881309-17625-1-git-send-email-tomi.valkeinen@ti.com> <1354881309-17625-5-git-send-email-tomi.valkeinen@ti.com> <50C5909E.8030800@ti.com>
+From: Christian Riesch <christian.riesch@omicron.at>
+Subject: Re: [PATCH 1/1] net: ethernet: davinci_cpdma: Add boundary for rx and
+ tx descriptors
+Date: Mon, 10 Dec 2012 09:11:06 +0100
+Message-ID: <CABkLObp1cZrNR65KJmOJXCB+W_1ZriCJQdL1TEmkJCptXHFDXw@mail.gmail.com>
+References: <1355125052-28448-1-git-send-email-mugunthanvnm@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig1847D1B47E6E6313216DCD4D"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52709 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751910Ab2LJIDa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Dec 2012 03:03:30 -0500
-In-Reply-To: <50C5909E.8030800@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1355125052-28448-1-git-send-email-mugunthanvnm@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mugunthan V N <mugunthanvnm@ti.com>
+Cc: netdev@vger.kernel.org, s.hauer@pengutronix.de, linux-omap@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---------------enig1847D1B47E6E6313216DCD4D
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On 2012-12-10 09:34, Archit Taneja wrote:
-> Hi,
->=20
-> On Friday 07 December 2012 05:25 PM, Tomi Valkeinen wrote:
->> Commit 5d89bcc341771d95e3a2996218e5949a6627f59e (OMAPDSS: remove initi=
-al
->> display code from omapdss) moved setting up the initial overlay, overl=
-ay
->> manager, output and display connections from omapdss to omapfb.
->>
->> However, currently omapfb only handles the connection related to the
->> default display, which means that no overlay managers are connected to=
+On Mon, Dec 10, 2012 at 8:37 AM, Mugunthan V N <mugunthanvnm@ti.com> wrote:
+> When there is heavy transmission traffic in the CPDMA, then Rx descriptors
+> memory is also utilized as tx desc memory this leads to reduced rx desc memory
+> which leads to poor performance.
+>
+> This patch adds boundary for tx and rx descriptors in bd ram dividing the
+> descriptor memory to ensure that during heavy transmission tx doesn't use
+> rx descriptors.
+>
+> This patch is already applied to davinci_emac driver, since CPSW and
+> davici_dmac uses the same CPDMA, moving the boundry seperation from
+> Davinci EMAC driver to CPDMA driver which was done in the following
+> commit
+>
+> commit 86d8c07ff2448eb4e860e50f34ef6ee78e45c40c
+> Author: Sascha Hauer <s.hauer@pengutronix.de>
+> Date:   Tue Jan 3 05:27:47 2012 +0000
+>
+>     net/davinci: do not use all descriptors for tx packets
+>
+>     The driver uses a shared pool for both rx and tx descriptors.
+>     During open it queues fixed number of 128 descriptors for receive
+>     packets. For each received packet it tries to queue another
+>     descriptor. If this fails the descriptor is lost for rx.
+>     The driver has no limitation on tx descriptors to use, so it
+>     can happen during a nmap / ping -f attack that the driver
+>     allocates all descriptors for tx and looses all rx descriptors.
+>     The driver stops working then.
+>     To fix this limit the number of tx descriptors used to half of
+>     the descriptors available, the rx path uses the other half.
+>
+>     Tested on a custom board using nmap / ping -f to the board from
+>     two different hosts.
+>
+> Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
+> ---
+>  drivers/net/ethernet/ti/davinci_cpdma.c |   20 ++++++++++++++------
+>  drivers/net/ethernet/ti/davinci_emac.c  |    8 --------
+>  2 files changed, 14 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+> index 4995673..d37f546 100644
+> --- a/drivers/net/ethernet/ti/davinci_cpdma.c
+> +++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+> @@ -105,13 +105,13 @@ struct cpdma_ctlr {
+>  };
+>
+>  struct cpdma_chan {
+> +       struct cpdma_desc __iomem       *head, *tail;
+> +       void __iomem                    *hdp, *cp, *rxfree;
+>         enum cpdma_state                state;
+>         struct cpdma_ctlr               *ctlr;
+>         int                             chan_num;
+>         spinlock_t                      lock;
+> -       struct cpdma_desc __iomem       *head, *tail;
+>         int                             count;
+> -       void __iomem                    *hdp, *cp, *rxfree;
 
->> other displays.
->>
->> This patch changes omapfb to go through all dssdevs, and connect an
->> overlay manager to them.
->>
->> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
->> ---
->>   drivers/video/omap2/omapfb/omapfb-main.c |   38
->> +++++++++++++++++++-----------
->>   1 file changed, 24 insertions(+), 14 deletions(-)
->>
->> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c
->> b/drivers/video/omap2/omapfb/omapfb-main.c
->> index 1df973e..24739fc 100644
->> --- a/drivers/video/omap2/omapfb/omapfb-main.c
->> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
->> @@ -2353,27 +2353,37 @@ static int omapfb_init_display(struct
->> omapfb2_device *fbdev,
->>   }
->>
->>   static int omapfb_init_connections(struct omapfb2_device *fbdev,
->> -        struct omap_dss_device *dssdev)
->> +        struct omap_dss_device *def_dssdev)
->>   {
->>       int i, r;
->> -    struct omap_overlay_manager *mgr =3D NULL;
->> +    struct omap_overlay_manager *mgr;
->>
->> -    for (i =3D 0; i < fbdev->num_managers; i++) {
->> -        mgr =3D fbdev->managers[i];
->> -
->> -        if (dssdev->channel =3D=3D mgr->id)
->> -            break;
->> +    if (!def_dssdev->output) {
->> +        dev_err(fbdev->dev, "no output for the default display\n");
->> +        return -EINVAL;
->>       }
->>
->> -    if (i =3D=3D fbdev->num_managers)
->> -        return -ENODEV;
->> +    for (i =3D 0; i < fbdev->num_displays; ++i) {
->> +        struct omap_dss_device *dssdev =3D fbdev->displays[i].dssdev;=
+Why?
 
->> +        struct omap_dss_output *out =3D dssdev->output;
->>
->> -    if (mgr->output)
->> -        mgr->unset_output(mgr);
->> +        mgr =3D omap_dss_get_overlay_manager(dssdev->channel);
->=20
-> This dssdev->channel reference is something we would want to get rid of=
+>         u32                             mask;
+>         cpdma_handler_fn                handler;
+>         enum dma_data_direction         dir;
+> @@ -217,7 +217,7 @@ desc_from_phys(struct cpdma_desc_pool *pool, dma_addr_t dma)
+>  }
+>
+>  static struct cpdma_desc __iomem *
+> -cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc)
+> +cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc, bool is_rx)
+>  {
+>         unsigned long flags;
+>         int index;
+> @@ -225,8 +225,14 @@ cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc)
+>
+>         spin_lock_irqsave(&pool->lock, flags);
+>
+> -       index = bitmap_find_next_zero_area(pool->bitmap, pool->num_desc, 0,
+> -                                          num_desc, 0);
+> +       if (is_rx) {
+> +               index = bitmap_find_next_zero_area(pool->bitmap,
+> +                               pool->num_desc/2, 0, num_desc, 0);
+> +        } else {
+> +               index = bitmap_find_next_zero_area(pool->bitmap,
+> +                               pool->num_desc, pool->num_desc/2, num_desc, 0);
+> +       }
 
-> eventually, right?
+Would it make sense to use two separate pools for rx and tx instead,
+struct cpdma_desc_pool *rxpool, *txpool? It would result in using
+separate spinlocks for rx and tx, could this be an advantage? (I am a
+newbie in this field...)
 
-Yes.
-
-> At the point omapfb_init_connections() is called, we would have all the=
-
-> omap_dss_devices registered, right? So at this point, omapfb will have
-> an overall view of how the panels need to be connected to DSS.
->=20
-> I think we can try to find a manager here for dssdev rather than using
-> dssdev->channel directly. The dssdev's output could connect to a few
-> managers. We would want to chose managers for each dssdev output in suc=
-h
-> a way that all outputs have a manager. I guess there would be multiple
-> combinations for this, but it would be okay to pick any one of them.
->=20
-> I think we would need some recursive or backtracking sort of approach t=
-o
-> get a desired combination. We can figure about how to make it work
-> later, but do you agree if this is a right way to get rid of
-> dssdev->channel?
-
-Yes, I think that's a sensible approach. The thing I don't like about it
-is that it requires omapfb/omapdrm to create the mgr-output connections.
-They shouldn't really be interested in that. All they want is a display
-device that works, and a way to get the mgr used for the display.
-
-Well, I think we can hide the implementation inside omapdss, so that
-omapfb/omapdrm will just need to call one omapdss func when they are
-started, which will connect the mgrs to outputs.
-
-A downside with setting up the mgr-output links at one go, when
-omapfb/omapdrm starts, is that it creates a strict load order
-restriction between omapdss, panels and omapfb/omapdrm. The drivers will
-need to be loaded in that order, or things won't work.
-
-Another option would be to pass information about mgr-output links from
-the board files (or DT data) to the omapdss driver, so that omapdss
-could setup them at probe time. With this option omapfb/omapdrm doesn't
-need to care about this, and it doesn't create load order restriction.
-But mgr-output links are something that I'd really like to handle inside
-the drivers, not something that needs to be passed via platform data.
-
-Third option, which is the best, but also something I have no idea how
-to implement, would be to create the mgr-output links dynamically when
-needed. The problem here is, of course, that a mgr could be allocated to
-an output, only to be later found out that that particular mgr is needed
-for another output.
-
-But this is something we could study a bit: can we create such mgr
-allocation system, that no matter what outputs the board uses, it'll
-just work.
-
-So, for example, on omap4, LCD2 mgr can be used for DPI, DSI2, DSI1, and
-RFBI. LCD1 can be used for RFBI and DSI1. If we know that DSI1 and RFBI
-cannot be used at the same time, we're free to give LCD1 to either one.
-And if we know that DPI and DSI2 cannot be used at the same time, we're
-also free to give LCD2 to either one. And if that's the case, there are
-no conflicts.
-
-I don't know if we can find such allocation for all current omaps, and I
-know it's slightly risky as the next omap could have limitations even if
-current ones do not.
-
-> Also, we would need to do this for omapdrm separately using it's own
-> encoder/connector entities.
-
-Yep. That's also a negative side: both omapfb/omapdrm will need to
-implement the same stuff, even if neither of them are really interested
-in that stuff.
-
- Tomi
-
-
-
---------------enig1847D1B47E6E6313216DCD4D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQxZdPAAoJEPo9qoy8lh71C1IQAJ8ZLDJIU/cOumZcrnSkZ8Si
-jq5k/lQDP3BaeesNexSX5lA3hZtT0ZmzZsWwvQYWXU8cbSoWtqtOOqqIZchEXoHz
-qH2y0z1iam/0jXwiUMXr6qa81OBPAXF+wnjHzRNMt011Wq9Mp7EpRN5/0jZ7J9fQ
-m2FjVjPBLYBVSpv6QalnWPfR2Z46OlyKyBAuGYtsvnkbIKZWJKKX+DGO7g7CAFmm
-BSoAkPaotFDwM+6l+72H0jIMs015XfaevXLeyopIRB1OXmmNK0xgEzr8BWfov4vN
-abrv/v3Ge9gmcIETCc/GuMDnbnAzxlikNosfWFuTzdX2xOibqiIILzxHAfbR2uD0
-gPHz5IUCec9u3PT/q2TcpjxwBTdvofQL89akU+KFHgKf/qztoMvYNqdXiqNsvtet
-ZFI2yN9ISZ90GPdlSopFIhfXPZnCmbt2OxG+Hy2u6HQj5buXmUkB49xeCwJURtGR
-Av26r2x1EQ9V+0HYV7iwM4qSeTeunlD2x/YgJe2xmJiD7zxYBtUadkiGrhuamo4E
-QcxLV1y9OK3vjj06WeaCA8oRvMrKIPwLqhfDkCUrXWDMFIEBztd6rjXJb76WH47r
-ePXA5jL7jux6evUPUgBOWrVLSEcj8Y5sSjLhKWhbs29FgLgKSdGT6jyx6xbTCgoZ
-VNmrnS5YOrg0iFwMGr/i
-=PPdy
------END PGP SIGNATURE-----
-
---------------enig1847D1B47E6E6313216DCD4D--
+> +
+>         if (index < pool->num_desc) {
+>                 bitmap_set(pool->bitmap, index, num_desc);
+>                 desc = pool->iomap + pool->desc_size * index;
+> @@ -660,6 +666,7 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+>         unsigned long                   flags;
+>         u32                             mode;
+>         int                             ret = 0;
+> +       bool                            is_rx;
+>
+>         spin_lock_irqsave(&chan->lock, flags);
+>
+> @@ -668,7 +675,8 @@ int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
+>                 goto unlock_ret;
+>         }
+>
+> -       desc = cpdma_desc_alloc(ctlr->pool, 1);
+> +       is_rx = (chan->rxfree != 0);
+> +       desc = cpdma_desc_alloc(ctlr->pool, 1, is_rx);
+>         if (!desc) {
+>                 chan->stats.desc_alloc_fail++;
+>                 ret = -ENOMEM;
+> diff --git a/drivers/net/ethernet/ti/davinci_emac.c b/drivers/net/ethernet/ti/davinci_emac.c
+> index fce89a0..f349273 100644
+> --- a/drivers/net/ethernet/ti/davinci_emac.c
+> +++ b/drivers/net/ethernet/ti/davinci_emac.c
+> @@ -120,7 +120,6 @@ static const char emac_version_string[] = "TI DaVinci EMAC Linux v6.1";
+>  #define EMAC_DEF_TX_CH                 (0) /* Default 0th channel */
+>  #define EMAC_DEF_RX_CH                 (0) /* Default 0th channel */
+>  #define EMAC_DEF_RX_NUM_DESC           (128)
+> -#define EMAC_DEF_TX_NUM_DESC           (128)
+>  #define EMAC_DEF_MAX_TX_CH             (1) /* Max TX channels configured */
+>  #define EMAC_DEF_MAX_RX_CH             (1) /* Max RX channels configured */
+>  #define EMAC_POLL_WEIGHT               (64) /* Default NAPI poll weight */
+> @@ -342,7 +341,6 @@ struct emac_priv {
+>         u32 mac_hash2;
+>         u32 multicast_hash_cnt[EMAC_NUM_MULTICAST_BITS];
+>         u32 rx_addr_type;
+> -       atomic_t cur_tx;
+>         const char *phy_id;
+>  #ifdef CONFIG_OF
+>         struct device_node *phy_node;
+> @@ -1050,9 +1048,6 @@ static void emac_tx_handler(void *token, int len, int status)
+>  {
+>         struct sk_buff          *skb = token;
+>         struct net_device       *ndev = skb->dev;
+> -       struct emac_priv        *priv = netdev_priv(ndev);
+> -
+> -       atomic_dec(&priv->cur_tx);
+>
+>         if (unlikely(netif_queue_stopped(ndev)))
+>                 netif_start_queue(ndev);
+> @@ -1101,9 +1096,6 @@ static int emac_dev_xmit(struct sk_buff *skb, struct net_device *ndev)
+>                 goto fail_tx;
+>         }
+>
+> -       if (atomic_inc_return(&priv->cur_tx) >= EMAC_DEF_TX_NUM_DESC)
+> -               netif_stop_queue(ndev);
+> -
+>         return NETDEV_TX_OK;
+>
+>  fail_tx:
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
