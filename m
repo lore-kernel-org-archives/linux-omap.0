@@ -1,80 +1,73 @@
 From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v4 00/23] OMAP USB Host cleanup
-Date: Mon, 10 Dec 2012 12:20:10 +0200
-Message-ID: <1355134833-5199-1-git-send-email-rogerq@ti.com>
+Subject: [PATCH v4 01/23] mfd: omap-usb-host: get rid of cpu_is_omap..() macros
+Date: Mon, 10 Dec 2012 12:20:11 +0200
+Message-ID: <1355134833-5199-2-git-send-email-rogerq@ti.com>
+References: <1355134833-5199-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1355134833-5199-1-git-send-email-rogerq@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com
 Cc: paul@pwsan.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, rogerq@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Instead of using cpu_is_omap..() macros in the device driver we
+rely on information provided in the platform data.
 
-This patchset addresses the following
+The only information we need is whether the USB Host module has
+a single ULPI bypass control bit for all ports or individual bypass
+control bits for each port. OMAP3 REV2.1 and earlier have the former.
 
-- Avoid addressing clocks one by one by name and use a for loop + bunch
-  of cleanups.
-- Get number of channels/ports dynamically either from revision register
-  or from platform data. Avoids getting clocks that are not present.
-- Add OMAP5 and HSIC mode (Not tested)
-
-v4:
-- Added appropriate maintainers in to/cc
-- minor print message fix in patch 23 to maintain consistency
-
-v3:
-- Rebased on arm-soc/for-next commit f979306c4d38d213c6977aaf3b1115e8ded71e3a
-- Rearranged patch that get rids of cpu_is_omap..() macros
-- Coding style fixes
-
-v2:
-- Clocks are allocated dynamically based on number of ports available
-on the platform
-- Reduced console spam if non critical clocks are not found on the platform.
-- Get rid of cpu_is_.. macros from USB host driver.
-
-cheers,
--roger
-
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+CC: Tony Lindgren <tony@atomide.com>
 ---
-Roger Quadros (23):
-  mfd: omap-usb-host: get rid of cpu_is_omap..() macros
-  mfd: omap-usb-tll: Avoid creating copy of platform data
-  mfd: omap-usb-tll: Fix channel count detection
-  mfd: omap-usb-tll: Use devm_kzalloc/ioremap and clean up error path
-  mfd: omap-usb-tll: Clean up clock handling
-  mfd: omap-usb-tll: introduce and use mode_needs_tll()
-  mfd: omap-usb-tll: Check for missing platform data in probe
-  mfd: omap-usb-tll: Fix error message
-  mfd: omap-usb-tll: serialize access to TLL device
-  mfd: omap-usb-tll: Add OMAP5 revision and HSIC support
-  mfd: omap_usb_host: Avoid creating copy of platform_data
-  mfd: omap-usb-host: Use devm_kzalloc() and devm_request_and_ioremap()
-  mfd: omap-usb-host: know about number of ports from revision register
-  mfd: omap-usb-host: override number of ports from platform data
-  mfd: omap-usb-host: cleanup clock management code
-  ARM: OMAP2+: clock data: Merge utmi_px_gfclk into
-    usb_host_hs_utmi_px_clk
-  mfd: omap-usb-host: Manage HSIC clocks for HSIC mode
-  mfd: omap-usb-host: Get rid of unnecessary spinlock
-  mfd: omap-usb-host: clean up omap_usbhs_init()
-  USB: ehci-omap: Don't free gpios that we didn't request
-  ARM: OMAP3: clock data: get rid of unused USB host clock aliases and
-    dummies
-  ARM: OMAP4: clock data: get rid of unused USB host clock aliases
-  mfd: omap-usb-host: Don't spam console on clk_set_parent failure
+ arch/arm/mach-omap2/usb-host.c         |    4 ++++
+ drivers/mfd/omap-usb-host.c            |    2 +-
+ include/linux/platform_data/usb-omap.h |    3 +++
+ 3 files changed, 8 insertions(+), 1 deletions(-)
 
- arch/arm/mach-omap2/cclock3xxx_data.c  |   13 -
- arch/arm/mach-omap2/cclock44xx_data.c  |   55 +++--
- arch/arm/mach-omap2/usb-host.c         |    5 +
- arch/arm/mach-omap2/usb.h              |    1 +
- drivers/mfd/omap-usb-host.c            |  474 ++++++++++++++++++--------------
- drivers/mfd/omap-usb-tll.c             |  244 +++++++++--------
- drivers/usb/host/ehci-omap.c           |    8 -
- include/linux/platform_data/usb-omap.h |    4 +
- 8 files changed, 451 insertions(+), 353 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index d1dbe12..2e44e8a 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -508,6 +508,10 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	if (cpu_is_omap34xx()) {
+ 		setup_ehci_io_mux(pdata->port_mode);
+ 		setup_ohci_io_mux(pdata->port_mode);
++
++		if (omap_rev() <= OMAP3430_REV_ES2_1)
++			usbhs_data.single_ulpi_bypass = true;
++
+ 	} else if (cpu_is_omap44xx()) {
+ 		setup_4430ehci_io_mux(pdata->port_mode);
+ 		setup_4430ohci_io_mux(pdata->port_mode);
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index cebfe0a..fe7906b 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -384,7 +384,7 @@ static void omap_usbhs_init(struct device *dev)
+ 			reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+ 
+ 		/* Bypass the TLL module for PHY mode operation */
+-		if (cpu_is_omap3430() && (omap_rev() <= OMAP3430_REV_ES2_1)) {
++		if (pdata->single_ulpi_bypass) {
+ 			dev_dbg(dev, "OMAP3 ES version <= ES2.1\n");
+ 			if (is_ehci_phy_mode(pdata->port_mode[0]) ||
+ 				is_ehci_phy_mode(pdata->port_mode[1]) ||
+diff --git a/include/linux/platform_data/usb-omap.h b/include/linux/platform_data/usb-omap.h
+index 8570bcf..ef65b67 100644
+--- a/include/linux/platform_data/usb-omap.h
++++ b/include/linux/platform_data/usb-omap.h
+@@ -59,6 +59,9 @@ struct usbhs_omap_platform_data {
+ 
+ 	struct ehci_hcd_omap_platform_data	*ehci_data;
+ 	struct ohci_hcd_omap_platform_data	*ohci_data;
++
++	/* OMAP3 <= ES2.1 have a single ulpi bypass control bit */
++	unsigned				single_ulpi_bypass:1;
+ };
+ 
+ /*-------------------------------------------------------------------------*/
 -- 
 1.7.4.1
