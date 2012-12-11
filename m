@@ -1,72 +1,96 @@
-From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [PATCH v3 2/3] mtd: devices: elm: Add support for ELM error
- correction
-Date: Tue, 11 Dec 2012 09:03:56 +0000
-Message-ID: <20121211090356.8D3D93E076D@localhost>
-References: <1354189595-12784-1-git-send-email-avinashphilip@ti.com>
- <1354189595-12784-3-git-send-email-avinashphilip@ti.com>
+From: Jassi Brar <jassisinghbrar@gmail.com>
+Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
+Date: Tue, 11 Dec 2012 14:42:44 +0530
+Message-ID: <CABb+yY3u2QB0JqXrznDGHXqH3crkYk54whC0GTwkBHqjdEzhbg@mail.gmail.com>
+References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com>
+	<Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org>
+	<20121127170223.GB2687@kroah.com>
+	<CABb+yY3TC3z+jRU91KGX+FKLtJ3ZXUp55-wM_KjxiYuVZ+LL+Q@mail.gmail.com>
+	<50BF55B3.1030205@ti.com>
+	<CABb+yY1xVMGFbedq8Wp2Muz13XAxJUKOk_=Z_UCEBkpzrtVz4A@mail.gmail.com>
+	<50C5B003.9060904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1354189595-12784-3-git-send-email-avinashphilip-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, afzal-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
-Cc: linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, gururaja.hebbar-l0cyMroinI0@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>, ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:49199 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752458Ab2LKJMp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Dec 2012 04:12:45 -0500
+In-Reply-To: <50C5B003.9060904@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Alan Stern <stern@rowland.harvard.edu>, Ming Lei <tom.leiming@gmail.com>, Felipe Balbi <balbi@ti.com>, Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, keshava_mgowda@ti.com, USB list <linux-usb@vger.kernel.org>
 
-On Thu, 29 Nov 2012 17:16:33 +0530, "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org> wrote:
-> The ELM hardware module can be used to speedup BCH 4/8/16 ECC scheme
-> error correction.
-> For now only 4 & 8 bit support is added
-> 
-> Signed-off-by: Philip, Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
-> Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-> Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
-> Cc: Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
-> ---
-> Changes since v2:
-> 	- Remove __devinit & __devexit annotations
-> 
-> Changes since v1:
-> 	- Change build attribute to CONFIG_MTD_NAND_OMAP_BCH
-> 	- Reduced indentation using by passing elm_info , offset
-> 	  to elm_read & elm_write
-> 	- Removed syndrome manipulation functions.
-> 
-> :000000 100644 0000000... b88ee83... A	Documentation/devicetree/bindings/mtd/elm.txt
-> :100644 100644 395733a... 369a194... M	drivers/mtd/devices/Makefile
-> :000000 100644 0000000... d2667f3... A	drivers/mtd/devices/elm.c
-> :000000 100644 0000000... d4fce31... A	include/linux/platform_data/elm.h
->  Documentation/devicetree/bindings/mtd/elm.txt |   17 +
->  drivers/mtd/devices/Makefile                  |    4 +-
->  drivers/mtd/devices/elm.c                     |  418 +++++++++++++++++++++++++
->  include/linux/platform_data/elm.h             |   54 ++++
->  4 files changed, 493 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/mtd/elm.txt b/Documentation/devicetree/bindings/mtd/elm.txt
-> new file mode 100644
-> index 0000000..b88ee83
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mtd/elm.txt
-> @@ -0,0 +1,17 @@
-> +Error location module
-> +
-> +Required properties:
-> +- compatible: Must be "ti,elm"
+On Mon, Dec 10, 2012 at 3:18 PM, Roger Quadros <rogerq@ti.com> wrote:
+> On 12/06/2012 04:34 PM, Jassi Brar wrote:
+>>>
+>>> Yes, this is where we can think of a generic PHY driver to make sure thy
+>>> PHY has necessary resources enabled. In the Panda case it would be the
+>>> PHY clock and RESET gpio.
+>>>
+>> I wonder if ehci-omap should assume, besides regulator, a clock might
+>> also be need to setup for the transceiver chip.
+>> Maybe "usbhs_bdata" in board-omap4panda.c should have
+>> .reset_gpio_port[0]  = GPIO_HUB_NRESET ?
+>>
+>
+> Just like the regulator, reset_gpio_port has nothing to do with OMAP
+> EHCI. So we would want to get rid of that too from the OMAP USB driver.
+>
+Looking at the code I realized we already book resources only for
+populated ports. Saving power from LAN9514 chip would come from a
+separate solution. So, for now when our transceiver, USB3320, has
+simple hardwired configuration probably just platform_data/DT would
+do. When we come across some programmable transceiver (like USB3503
+over i2c), that might warrant a separate PHY driver. Still I don't
+think we could have a 'generic' phy driver.
 
-Compatible string is too generic. Need to specify a specific SoC here.
-ie: "ti,omap3430-elm"
+>>
+>>> The LAN95xx chip still needs to be powered up and the PHY driver isn't
+>>> the right place for that (though it could be done there as a hack). The
+>>> closest we can get to emulating right USB behavior is to map the
+>>> SET/CLEAR PORT_FEATURE of the root hub port to the regulator that powers
+>>> the LAN95xx.
+>>>
+>>> This way, we still don't fall in the dynamically probed space, so we
+>>> could still provide the regulator information to the ehci hub via
+>>> platform data and handle the regulator in ehci_hub_control
+>>> (Set/ClearPortFeature). I'm looking at this as a software workaround for
+>>> all platforms not implementing the EHCI set port power feature
+>>> correctly. The same could be repeated for other HCDs as well if required.
+>>>
+>> IMHO it's not a matter of platforms not implementing EHCI set port
+>> power feature correctly, we should think about onboard devices
+>> connected to onboard non-root hubs. Setups like LAN9514 on Panda (HSIC
+>> too ?) that don't run on VBUS of USB, would like their local supply to
+>> be treated as if it came from the parent hub's port  i.e, tie together
+>> the USB's set port power control with their OOB regulated power supply
+>> (U9 on PandaBoard).
+>>
+>
+> On Pandaboards we are still talking about root hub ports.
+>
+> Do you know any of such platforms which power their USB devices out of
+> band for _non_ root hub ports?
+>
+I don't know of any. But I do believe we shouldn't discount that scenario.
+IIANW lan9514 doesn't take in VBUS because it wants to avoid 5V->3.3V
+regulating. What if someone designs an omap4 platform with 3
+high-speed devices and the same concern in mind ?
 
-Otherwise the binding looks fine. I haven't reviewed the code though.
+> Assuming they do exist, the only solution is to match platform data for
+> dynamically probed devices and deal with the regulators in the hub/port
+> driver. Something like Andy already proposed.
+>
+Yes, but I doubt if that is the only implementation.
+One USB specific solution could be to abstract out OOB port power
+control in, say, port-power.c which constructs a regulator topology
+mapped directly onto onboard devices', from a generic DT binding,
+platform_data, ACPI whatever. And then catch any
+set/clear_port_feature(POWER) call to enable/disable the regulator
+corresponding to that port. Where each regulator could be a
+board-specific virtual one, that does all that is necessary (like
+clock/reg hierarchy setup) to power up the device.
 
-g.
+Regards.
