@@ -1,85 +1,154 @@
-From: "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v3 2/3] mtd: devices: elm: Add support for ELM error
- correction
-Date: Tue, 11 Dec 2012 12:55:21 +0000
-Message-ID: <518397C60809E147AF5323E0420B992E3EA285C0@DBDE01.ent.ti.com>
-References: <1354189595-12784-1-git-send-email-avinashphilip@ti.com>
- <1354189595-12784-3-git-send-email-avinashphilip@ti.com>
- <20121211090356.8D3D93E076D@localhost>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: AM335x BeagleBone SPI Issues
+Date: Tue, 11 Dec 2012 16:27:26 +0200
+Message-ID: <20121211142725.GA17708@arwen.pp.htv.fi>
+References: <50C5E23D.5040605@communistcode.co.uk>
+ <20121210135337.GA10219@arwen.pp.htv.fi>
+ <50C5F6A8.5060701@communistcode.co.uk>
+ <20121210145947.GK11038@arwen.pp.htv.fi>
+ <50C5FD73.1000408@communistcode.co.uk>
+ <20121210183500.GB14303@arwen.pp.htv.fi>
+ <50C70846.7010207@communistcode.co.uk>
+ <20121211102011.GG19367@arwen.pp.htv.fi>
+ <50C70D42.8030400@communistcode.co.uk>
+ <20121211114810.GH19367@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20121211090356.8D3D93E076D@localhost>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <artem.bityutskiy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Mohammed, Afzal" <afzal-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org" <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Hebbar,
- Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org" <ivan.djelic-ITF29qwbsa/QT0dZR+AlfA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44663 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753114Ab2LKOef (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Dec 2012 09:34:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20121211114810.GH19367@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Jack Mitchell <ml@communistcode.co.uk>, linux-omap@vger.kernel.org, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
 
-On Tue, Dec 11, 2012 at 14:33:56, Grant Likely wrote:
-> On Thu, 29 Nov 2012 17:16:33 +0530, "Philip, Avinash" <avinashphilip-l0cyMroinI0@public.gmane.org> wrote:
-> > The ELM hardware module can be used to speedup BCH 4/8/16 ECC scheme
-> > error correction.
-> > For now only 4 & 8 bit support is added
-> > 
-> > Signed-off-by: Philip, Avinash <avinashphilip-l0cyMroinI0@public.gmane.org>
-> > Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-> > Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
-> > Cc: Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
-> > ---
-> > Changes since v2:
-> > 	- Remove __devinit & __devexit annotations
-> > 
-> > Changes since v1:
-> > 	- Change build attribute to CONFIG_MTD_NAND_OMAP_BCH
-> > 	- Reduced indentation using by passing elm_info , offset
-> > 	  to elm_read & elm_write
-> > 	- Removed syndrome manipulation functions.
-> > 
-> > :000000 100644 0000000... b88ee83... A	Documentation/devicetree/bindings/mtd/elm.txt
-> > :100644 100644 395733a... 369a194... M	drivers/mtd/devices/Makefile
-> > :000000 100644 0000000... d2667f3... A	drivers/mtd/devices/elm.c
-> > :000000 100644 0000000... d4fce31... A	include/linux/platform_data/elm.h
-> >  Documentation/devicetree/bindings/mtd/elm.txt |   17 +
-> >  drivers/mtd/devices/Makefile                  |    4 +-
-> >  drivers/mtd/devices/elm.c                     |  418 +++++++++++++++++++++++++
-> >  include/linux/platform_data/elm.h             |   54 ++++
-> >  4 files changed, 493 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/mtd/elm.txt b/Documentation/devicetree/bindings/mtd/elm.txt
-> > new file mode 100644
-> > index 0000000..b88ee83
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/mtd/elm.txt
-> > @@ -0,0 +1,17 @@
-> > +Error location module
-> > +
-> > +Required properties:
-> > +- compatible: Must be "ti,elm"
-> 
-> Compatible string is too generic. Need to specify a specific SoC here.
-> ie: "ti,omap3430-elm"
+--6TrnltStXW4iwmi0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I will change to "ti,am33xx-elm" in next version.
+Hi again,
 
-Thanks
-Avinash
+On Tue, Dec 11, 2012 at 01:48:10PM +0200, Felipe Balbi wrote:
+> On Tue, Dec 11, 2012 at 10:38:58AM +0000, Jack Mitchell wrote:
+> > On 11/12/12 10:20, Felipe Balbi wrote:
+> > >Hi,
+> > >
+> > >On Tue, Dec 11, 2012 at 10:17:42AM +0000, Jack Mitchell wrote:
+> > >
+> > ><big snip>
+> > >
+> > >>Shubhro, Felipe,
+> > >>
+> > >>Thank you, the reordering dma patch fixed the dma issue I was having!
+> > >>However, the bad news, I now get the same results for the dma and
+> > >>non-dma spidev test. While the scope shows the SPI clk and data is
+> > >>fine, the reading from the program still shows 0x00 for all words.
+> > ><removed spidev_test output>
+> > >
+> > >>dmesg shows nothing of interest apart from the spi bus setting up.
+> > >>Any ideas?
+> > >>
+> > >>To iterate for my own sanity; I have bridged pins 18 and 21 on the P9
+> > >>header which should be the d0 and d1 spi data pins for spi0. This
+> > >>result of 0x00 usually comes from a result of not joining the pins,
+> > >>but I can assure you they are joined!
+> > >>
+> > >>Thank you for the help so far.
+> > >according to the schematics [1], those pins are muxed as UART2_TXD and
+> > >I2C1_SDA, have you remuxed them properly ? Can you try with pins 29 and
+> > >30 on the same header ? That's SPI1, so you will have to add DT data f=
+or
+> > >spidev on that bus too.
+> > >
+> > >[1] http://beagleboard.org/static/beaglebone/latest/Docs/Hardware/BONE=
+_SCH.pdf
+> > >
+> >=20
+> > No change unfortunately:
+> >=20
+> > root@beaglebone:~# ./spidev
+> > spi mode: 0
+> > bits per word: 16
+> > max speed: 24000000 Hz (24000 KHz)
+> >=20
+> > 00 00 00 00 00 00
+> > 00 00 00 00 00 00
+> > 00 00 00 00 00 00
+> > 00 00 00 00 00 00
+> > 00 00 00 00 00 00
+> > 00 00 00 00 00 00
+> > 00 00
+> >=20
+> > root@beaglebone:~# ./spidev -D /dev/s
+> > shm/       spidev1.0  spidev2.0  stderr     stdin      stdout
+> > root@beaglebone:~# ./spidev -D /dev/spidev2.0
 
+one thing caught my attention, shouldn't you be passing '-l' argument
+here for loopback testing ? That would mean you need to make sure your
+"spi->mode" has SPI_LOOP flag set. Currently there is no way to do that
+via DeviceTree (AFAICT), so please apply ths patch to your tree and set
+spi-loopback; property for your spidev entry:
 
-> 
-> Otherwise the binding looks fine. I haven't reviewed the code though.
-> 
-> g.
-> 
-> 
+diff --git a/Documentation/devicetree/bindings/spi/spi-bus.txt b/Documentat=
+ion/devicetree/bindings/spi/spi-bus.txt
+index 296015e..1949586 100644
+--- a/Documentation/devicetree/bindings/spi/spi-bus.txt
++++ b/Documentation/devicetree/bindings/spi/spi-bus.txt
+@@ -55,6 +55,8 @@ contain the following properties.
+     		chip select active high
+ - spi-3wire       - (optional) Empty property indicating device requires
+     		    3-wire mode.
++- spi-loopback    - (optional) Empty property indicating device requires
++    		    loopback mode.
+=20
+ If a gpio chipselect is used for the SPI slave the gpio number will be pas=
+sed
+ via the cs_gpio
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index 3f1b9ee..6bcdc03 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -868,6 +868,8 @@ static void of_register_spi_devices(struct spi_master *=
+master)
+ 			spi->mode |=3D SPI_CS_HIGH;
+ 		if (of_find_property(nc, "spi-3wire", NULL))
+ 			spi->mode |=3D SPI_3WIRE;
++		if (of_find_property(nc, "spi-loopback", NULL))
++			spi->mode |=3D SPI_LOOP;
+=20
+ 		/* Device speed */
+ 		prop =3D of_get_property(nc, "spi-max-frequency", &len);
+
+--=20
+balbi
+
+--6TrnltStXW4iwmi0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQx0LNAAoJEIaOsuA1yqREk8cP/0ZEINb0JLkZxzCHrYhLu/p8
+MeCPHHBJ4YWP03z2rAVHtFKRUU1XqQhNw3azNnmq/vHtWflWKmp9Ad3LWg47OldI
+SSoLi5Ee4/wZn+sijlk8CgU+bLcbaMCrIDcLf0KSmRQSSsTxmS0EwLyIVwdLRI0G
++htDSob2onJtr/tcoavmHM26PhngNTh0PWE/06fjzTPGpsvM6GPsPGspdx9KR8vq
+/hMXWioGjGlMN1yK1CJA/GB2vHIDA23hybkLQzZcTkuXfw0cnKA5GAfamWd0RLCI
+6bsfGOnpKEuoRavoqwnYoymfLPiRzv/r+qkX3R90ZswsJy2L7e83JriAgivTTB+c
+9U9aO5hu7UGe0590lp3orEPXqlMF5Ter3uYxLUYaG8HUxjMIqthhXfmlR4xibE9s
+DZeK6NzJuOWrDySvv7ZCGI6Mxd5dZnp+YertZKPDMO8hwGwR0FXJYofRng46ZCJu
+ZwlsUwfT3+c8xHtc0YUaCqIYU9Tqi1PDV4YDh/GUPcoI5AS359HFErQupgX64Fbi
+dcXWU1R/V39CMMxVkCeIwGcC0YUNfrShaaar+D4pm0qpawHg2p5seqLJhbeKGJ0w
+Ax2MC3If7E+xhvvchWd3NzOpyc7Rsb7kCtjKPn8E6bnsO290B9rour/C2j8n9b3c
+VTx6Bo3rKbLKUFslr/47
+=e0kp
+-----END PGP SIGNATURE-----
+
+--6TrnltStXW4iwmi0--
