@@ -1,107 +1,442 @@
-From: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Tue, 11 Dec 2012 12:01:57 +0200
-Message-ID: <50C70495.40500@ti.com>
-References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com> <Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org> <20121127170223.GB2687@kroah.com> <CABb+yY3TC3z+jRU91KGX+FKLtJ3ZXUp55-wM_KjxiYuVZ+LL+Q@mail.gmail.com> <50BF55B3.1030205@ti.com> <CABb+yY1xVMGFbedq8Wp2Muz13XAxJUKOk_=Z_UCEBkpzrtVz4A@mail.gmail.com> <50C5B003.9060904@ti.com> <CABb+yY3u2QB0JqXrznDGHXqH3crkYk54whC0GTwkBHqjdEzhbg@mail.gmail.com>
+From: Jack Mitchell <ml@communistcode.co.uk>
+Subject: Re: AM335x BeagleBone SPI Issues
+Date: Tue, 11 Dec 2012 10:17:42 +0000
+Message-ID: <50C70846.7010207@communistcode.co.uk>
+References: <50C5E23D.5040605@communistcode.co.uk> <20121210135337.GA10219@arwen.pp.htv.fi> <50C5F6A8.5060701@communistcode.co.uk> <20121210145947.GK11038@arwen.pp.htv.fi> <50C5FD73.1000408@communistcode.co.uk> <20121210183500.GB14303@arwen.pp.htv.fi>
+Reply-To: ml@communistcode.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABb+yY3u2QB0JqXrznDGHXqH3crkYk54whC0GTwkBHqjdEzhbg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eumx.net ([91.82.101.43]:35656 "EHLO eumx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752108Ab2LKKP3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Dec 2012 05:15:29 -0500
+In-Reply-To: <20121210183500.GB14303@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
 
-On 12/11/2012 11:12 AM, Jassi Brar wrote:
-> On Mon, Dec 10, 2012 at 3:18 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
->> On 12/06/2012 04:34 PM, Jassi Brar wrote:
->>>>
->>>> Yes, this is where we can think of a generic PHY driver to make sure thy
->>>> PHY has necessary resources enabled. In the Panda case it would be the
->>>> PHY clock and RESET gpio.
->>>>
->>> I wonder if ehci-omap should assume, besides regulator, a clock might
->>> also be need to setup for the transceiver chip.
->>> Maybe "usbhs_bdata" in board-omap4panda.c should have
->>> .reset_gpio_port[0]  = GPIO_HUB_NRESET ?
+On 10/12/12 18:35, Felipe Balbi wrote:
+> Hi,
+>
+> On Mon, Dec 10, 2012 at 03:19:15PM +0000, Jack Mitchell wrote:
+>> On 10/12/12 14:59, Felipe Balbi wrote:
+>>> Hi,
 >>>
->>
->> Just like the regulator, reset_gpio_port has nothing to do with OMAP
->> EHCI. So we would want to get rid of that too from the OMAP USB driver.
->>
-> Looking at the code I realized we already book resources only for
-> populated ports. Saving power from LAN9514 chip would come from a
-> separate solution. So, for now when our transceiver, USB3320, has
-> simple hardwired configuration probably just platform_data/DT would
-> do. When we come across some programmable transceiver (like USB3503
-> over i2c), that might warrant a separate PHY driver. Still I don't
-> think we could have a 'generic' phy driver.
-> 
-Yes I2C based Phys might need a different driver. At least we could have
-a generic PHY driver for all ULPI based phys. (NOTE: the USB3320 is also
-configurable and can work in OTG mode)
-ULPI spec has defined a standard register map which could be used by the
-generic driver. As far as OMAP is concerned, the ULPI registers are
-accessed most of the time internally by the USB Host IP. We might only
-need to access them from the driver to cover some erratas.
-
->>>
->>>> The LAN95xx chip still needs to be powered up and the PHY driver isn't
->>>> the right place for that (though it could be done there as a hack). The
->>>> closest we can get to emulating right USB behavior is to map the
->>>> SET/CLEAR PORT_FEATURE of the root hub port to the regulator that powers
->>>> the LAN95xx.
+>>> On Mon, Dec 10, 2012 at 02:50:16PM +0000, Jack Mitchell wrote:
+>>>>> On Mon, Dec 10, 2012 at 01:23:09PM +0000, Jack Mitchell wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> I am currently having issues with the SPI driver on the beaglebo=
+ne
+>>>>>> using the 3.7-rc8 kernel[1]. I have probed the SPI pins and I ha=
+ve
+>>>>>> found that writing works however reading doesn't. When using DMA=
+ the
+>>>>>> program seems to lock hard and no data is sent on the bus. I am
+>>>>>> testing the bus using spidev and the spidev_test[2] application,
+>>>>>> however I first came across spi issues with a custom spi driver =
+which
+>>>>>> stopped working when I transitioned from 3.2-psp to 3.7-rc8.
+>>>>>>
+>>>>>> The current output I am seeing from the spidev_test program is j=
+ust a
+>>>>>> series of 0x00 data, which looks to me like no data is getting i=
+n at
+>>>>>> all. The spidev_test program is not using DMA as the buffer size=
+ is
+>>>>>> too low, so I forced the dma on when buffer size is > 1 and the
+>>>>>> program hangs hard with the system still responding to other
+>>>>>> commands.I have briged the pins 18 and 21 on the BeagleBone P9
+>>>>>> header.
+>>>>>>
+>>>>>> Has anyone seen issues like this, or if not if someone could ple=
+ase
+>>>>>> test the latest 3.7-rc8 from [1] and let me know if it works for=
+ them
+>>>>>> and the issue is at my end.
+>>>>>>
+>>>>>> To get spidev working with devicetree I applied the patch from [=
+3]
+>>>>>> and changed the dtb as in the patch pasted below.
+>>>>>>
+>>>>>> [1] https://github.com/beagleboard/kernel/tree/3.7
+>>>>>> [2] http://lxr.linux.no/#linux+v3.6.9/Documentation/spi/spidev_t=
+est.c
+>>>>>> [3] http://www.mail-archive.com/spi-devel-general@lists.sourcefo=
+rge.net/msg09958.html
+>>>>> do you have any debugging output from that driver ? It would be c=
+ool to
+>>>>> see if DMA is at least being kicked properly for small transfers.
+>>>> When I run the spidev program with dma for transfers > 1, the prog=
+ram
+>>>> hangs and the only output in dmesg is:
 >>>>
->>>> This way, we still don't fall in the dynamically probed space, so we
->>>> could still provide the regulator information to the ehci hub via
->>>> platform data and handle the regulator in ehci_hub_control
->>>> (Set/ClearPortFeature). I'm looking at this as a software workaround for
->>>> all platforms not implementing the EHCI set port power feature
->>>> correctly. The same could be repeated for other HCDs as well if required.
+>>>> [   12.613952] libphy: 4a101000.mdio:00 - Link is Up - 100/Full <-=
+---
+>>>> Last line from initial log in [2]
+>>>> [   47.669202] spidev spi1.0: setup: speed 24000000, sample leadin=
+g
+>>>> edge, clk normal
+>>>> [   47.669246] spidev spi1.0: setup mode 0, 8 bits/w, 24000000 Hz =
+max --> 0
+>>>> [   47.669260] spidev spi1.0: spi mode 00
+>>>> [   47.669283] spidev spi1.0: setup: speed 24000000, sample leadin=
+g
+>>>> edge, clk normal
+>>>> [   47.669300] spidev spi1.0: setup mode 0, 16 bits/w, 24000000 Hz=
+ max --> 0
+>>>> [   47.669312] spidev spi1.0: 16 bits per word
+>>>> [   47.669330] spidev spi1.0: setup: speed 24000000, sample leadin=
+g
+>>>> edge, clk normal
+>>>> [   47.669347] spidev spi1.0: setup mode 0, 16 bits/w, 24000000 Hz=
+ max --> 0
+>>>> [   47.669358] spidev spi1.0: 24000000 Hz (max)
+>>>> [   47.673811] spidev spi1.0: setup: speed 24000000, sample leadin=
+g
+>>>> edge, clk normal
 >>>>
->>> IMHO it's not a matter of platforms not implementing EHCI set port
->>> power feature correctly, we should think about onboard devices
->>> connected to onboard non-root hubs. Setups like LAN9514 on Panda (HSIC
->>> too ?) that don't run on VBUS of USB, would like their local supply to
->>> be treated as if it came from the parent hub's port  i.e, tie together
->>> the USB's set port power control with their OOB regulated power supply
->>> (U9 on PandaBoard).
+>>>> The initial dmesg statup log is at [2].
+>>> can you apply the debugging patch below to spi driver and show me t=
+he
+>>> output again ?
 >>>
+>>> Note that I'm allowing DMA for as small as 1-byte transfers (as you
+>>> needed) and I'm also disabling DMA Request line before calling
+>>> complete() as I think the current way could race, but likely wouldn=
+'t
+>>> cause issues. Anyway, please show me the output.
+>>>
+>>> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-=
+mcspi.c
+>>> index 3542fdc..d2b1af2 100644
+>>> --- a/drivers/spi/spi-omap2-mcspi.c
+>>> +++ b/drivers/spi/spi-omap2-mcspi.c
+>>> @@ -108,7 +108,7 @@ struct omap2_mcspi_dma {
+>>>   /* use PIO for small transfers, avoiding DMA setup/teardown overh=
+ead and
+>>>    * cache operations; better heuristics consider wordsize and bitr=
+ate.
+>>>    */
+>>> -#define DMA_MIN_BYTES			160
+>>> +#define DMA_MIN_BYTES			1
+>>>   /*
+>>> @@ -298,10 +298,11 @@ static void omap2_mcspi_rx_callback(void *dat=
+a)
+>>>   	struct omap2_mcspi *mcspi =3D spi_master_get_devdata(spi->master=
+);
+>>>   	struct omap2_mcspi_dma *mcspi_dma =3D &mcspi->dma_channels[spi->=
+chip_select];
+>>> -	complete(&mcspi_dma->dma_rx_completion);
+>>> -
+>>>   	/* We must disable the DMA RX request */
+>>> +	dev_info(&spi->dev, "Disabling RX Request Line\n");
+>>>   	omap2_mcspi_set_dma_req(spi, 1, 0);
+>>> +
+>>> +	complete(&mcspi_dma->dma_rx_completion);
+>>>   }
+>>>   static void omap2_mcspi_tx_callback(void *data)
+>>> @@ -310,10 +311,11 @@ static void omap2_mcspi_tx_callback(void *dat=
+a)
+>>>   	struct omap2_mcspi *mcspi =3D spi_master_get_devdata(spi->master=
+);
+>>>   	struct omap2_mcspi_dma *mcspi_dma =3D &mcspi->dma_channels[spi->=
+chip_select];
+>>> -	complete(&mcspi_dma->dma_tx_completion);
+>>> -
+>>>   	/* We must disable the DMA TX request */
+>>> +	dev_info(&spi->dev, "Disabling TX Request Line\n");
+>>>   	omap2_mcspi_set_dma_req(spi, 0, 0);
+>>> +
+>>> +	complete(&mcspi_dma->dma_tx_completion);
+>>>   }
+>>>   static void omap2_mcspi_tx_dma(struct spi_device *spi,
+>>> @@ -328,6 +330,7 @@ static void omap2_mcspi_tx_dma(struct spi_devic=
+e *spi,
+>>>   	void __iomem		*chstat_reg;
+>>>   	struct omap2_mcspi_cs	*cs =3D spi->controller_state;
+>>> +	dev_info(&spi->dev, "kicking TX DMA\n");
+>>>   	mcspi =3D spi_master_get_devdata(spi->master);
+>>>   	mcspi_dma =3D &mcspi->dma_channels[spi->chip_select];
+>>>   	count =3D xfer->len;
+>>> @@ -359,7 +362,9 @@ static void omap2_mcspi_tx_dma(struct spi_devic=
+e *spi,
+>>>   	dma_async_issue_pending(mcspi_dma->dma_tx);
+>>>   	omap2_mcspi_set_dma_req(spi, 0, 1);
+>>> +	dev_info(&spi->dev, "Waiting for TX Completion\n");
+>>>   	wait_for_completion(&mcspi_dma->dma_tx_completion);
+>>> +	dev_info(&spi->dev, "TX Completed\n");
+>>>   	dma_unmap_single(mcspi->dev, xfer->tx_dma, count,
+>>>   			 DMA_TO_DEVICE);
+>>> @@ -392,6 +397,7 @@ omap2_mcspi_rx_dma(struct spi_device *spi, stru=
+ct spi_transfer *xfer,
+>>>   	word_len =3D cs->word_len;
+>>>   	l =3D mcspi_cached_chconf0(spi);
+>>> +	dev_info(&spi->dev, "kicking RX DMA\n");
+>>>   	if (word_len <=3D 8)
+>>>   		element_count =3D count;
+>>>   	else if (word_len <=3D 16)
+>>> @@ -428,7 +434,9 @@ omap2_mcspi_rx_dma(struct spi_device *spi, stru=
+ct spi_transfer *xfer,
+>>>   	dma_async_issue_pending(mcspi_dma->dma_rx);
+>>>   	omap2_mcspi_set_dma_req(spi, 1, 1);
+>>> +	dev_info(&spi->dev, "Waiting for RX Completion\n");
+>>>   	wait_for_completion(&mcspi_dma->dma_rx_completion);
+>>> +	dev_info(&spi->dev, "RX Completed\n");
+>>>   	dma_unmap_single(mcspi->dev, xfer->rx_dma, count,
+>>>   			 DMA_FROM_DEVICE);
+>>>   	omap2_mcspi_set_enable(spi, 0);
+>>>
+>>>>> It would also be nice to have a clear picture of what "custom spi
+>>>>> driver" you're talking about.
+>>>> The custom SPI driver is for connecting and reading registers from=
+ an
+>>>> in house FPGA design and can be found at [1]. It's fairly rudiment=
+ary
+>>>> and also in the development stages, I'm very new to Linux kernel
+>>>> programming so please take that into account :)
+>>> no problem ;-)
+>>>
+>>>> However it did work flawlessly with 3.2-psp.
+>>> yeah, it could be some regression introduced somewhere, or just a b=
+ugfix
+>>> which was done on 3.2-psp and was missed upstream... annoying when =
+those
+>>> happen :-p
+>>>
+>> Your patch didn't apply cleanly but I hacked it in and got the follo=
+wing:
 >>
->> On Pandaboards we are still talking about root hub ports.
->>
->> Do you know any of such platforms which power their USB devices out of
->> band for _non_ root hub ports?
->>
-> I don't know of any. But I do believe we shouldn't discount that scenario.
-> IIANW lan9514 doesn't take in VBUS because it wants to avoid 5V->3.3V
-> regulating. What if someone designs an omap4 platform with 3
-> high-speed devices and the same concern in mind ?
-> 
->> Assuming they do exist, the only solution is to match platform data for
->> dynamically probed devices and deal with the regulators in the hub/port
->> driver. Something like Andy already proposed.
->>
-> Yes, but I doubt if that is the only implementation.
-> One USB specific solution could be to abstract out OOB port power
-> control in, say, port-power.c which constructs a regulator topology
-> mapped directly onto onboard devices', from a generic DT binding,
-> platform_data, ACPI whatever. And then catch any
-> set/clear_port_feature(POWER) call to enable/disable the regulator
-> corresponding to that port. Where each regulator could be a
-> board-specific virtual one, that does all that is necessary (like
-> clock/reg hierarchy setup) to power up the device.
-> 
+>> [   40.434566] spidev spi1.0: setup: speed 24000000, sample leading
+>> edge, clk normal
+>> [   40.434609] spidev spi1.0: setup mode 0, 8 bits/w, 24000000 Hz ma=
+x --> 0
+>> [   40.434622] spidev spi1.0: spi mode 00
+>> [   40.434645] spidev spi1.0: setup: speed 24000000, sample leading
+>> edge, clk normal
+>> [   40.434661] spidev spi1.0: setup mode 0, 16 bits/w, 24000000 Hz m=
+ax --> 0
+>> [   40.434673] spidev spi1.0: 16 bits per word
+>> [   40.434692] spidev spi1.0: setup: speed 24000000, sample leading
+>> edge, clk normal
+>> [   40.434708] spidev spi1.0: setup mode 0, 16 bits/w, 24000000 Hz m=
+ax --> 0
+>> [   40.434720] spidev spi1.0: 24000000 Hz (max)
+>> [   40.439300] spidev spi1.0: setup: speed 24000000, sample leading
+>> edge, clk normal
+>> [   40.439397] spidev spi1.0: kicking TX DMA
+>> [   40.443797] spidev spi1.0: Waiting for TX Completion
+> so TX dma never completes... perhaps all you need is Shubhro's commit
+> reordering TX and RX calls ??
+>
+> commit e47a682ace0cd56eb8e09b806c2b0f034b491520
+> Author: Shubhrajyoti D <shubhrajyoti@ti.com>
+> Date:   Tue Nov 6 14:30:19 2012 +0530
+>
+>      spi: omap2-mcspi: Reorder the wait_for_completion for tx
+>     =20
+>      The commit  d7b4394e[Cleanup the omap2_mcspi_txrx_dma function]
+>      changed the wait_for_completion order. Move the wait so that the
+>      rx doesnot wait for the tx to complete.
+>     =20
+>      Reported-and-tested-by: S=F8rensen, Stefan <Sorensen@polycom.com=
+>
+>      Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+>      Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+>
+> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mc=
+spi.c
+> index 3542fdc..b1a651e 100644
+> --- a/drivers/spi/spi-omap2-mcspi.c
+> +++ b/drivers/spi/spi-omap2-mcspi.c
+> @@ -323,18 +323,13 @@ static void omap2_mcspi_tx_dma(struct spi_devic=
+e *spi,
+>   	struct omap2_mcspi	*mcspi;
+>   	struct omap2_mcspi_dma  *mcspi_dma;
+>   	unsigned int		count;
+> -	u8			* rx;
+>   	const u8		* tx;
+> -	void __iomem		*chstat_reg;
+> -	struct omap2_mcspi_cs	*cs =3D spi->controller_state;
+>  =20
+>   	mcspi =3D spi_master_get_devdata(spi->master);
+>   	mcspi_dma =3D &mcspi->dma_channels[spi->chip_select];
+>   	count =3D xfer->len;
+>  =20
+> -	rx =3D xfer->rx_buf;
+>   	tx =3D xfer->tx_buf;
+> -	chstat_reg =3D cs->base + OMAP2_MCSPI_CHSTAT0;
+>  =20
+>   	if (mcspi_dma->dma_tx) {
+>   		struct dma_async_tx_descriptor *tx;
+> @@ -359,19 +354,6 @@ static void omap2_mcspi_tx_dma(struct spi_device=
+ *spi,
+>   	dma_async_issue_pending(mcspi_dma->dma_tx);
+>   	omap2_mcspi_set_dma_req(spi, 0, 1);
+>  =20
+> -	wait_for_completion(&mcspi_dma->dma_tx_completion);
+> -	dma_unmap_single(mcspi->dev, xfer->tx_dma, count,
+> -			 DMA_TO_DEVICE);
+> -
+> -	/* for TX_ONLY mode, be sure all words have shifted out */
+> -	if (rx =3D=3D NULL) {
+> -		if (mcspi_wait_for_reg_bit(chstat_reg,
+> -					OMAP2_MCSPI_CHSTAT_TXS) < 0)
+> -			dev_err(&spi->dev, "TXS timed out\n");
+> -		else if (mcspi_wait_for_reg_bit(chstat_reg,
+> -					OMAP2_MCSPI_CHSTAT_EOT) < 0)
+> -			dev_err(&spi->dev, "EOT timed out\n");
+> -	}
+>   }
+>  =20
+>   static unsigned
+> @@ -492,6 +474,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, stru=
+ct spi_transfer *xfer)
+>   	struct dma_slave_config	cfg;
+>   	enum dma_slave_buswidth width;
+>   	unsigned es;
+> +	void __iomem		*chstat_reg;
+>  =20
+>   	mcspi =3D spi_master_get_devdata(spi->master);
+>   	mcspi_dma =3D &mcspi->dma_channels[spi->chip_select];
+> @@ -526,8 +509,24 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, str=
+uct spi_transfer *xfer)
+>   		omap2_mcspi_tx_dma(spi, xfer, cfg);
+>  =20
+>   	if (rx !=3D NULL)
+> -		return omap2_mcspi_rx_dma(spi, xfer, cfg, es);
+> -
+> +		count =3D omap2_mcspi_rx_dma(spi, xfer, cfg, es);
+> +
+> +	if (tx !=3D NULL) {
+> +		chstat_reg =3D cs->base + OMAP2_MCSPI_CHSTAT0;
+> +		wait_for_completion(&mcspi_dma->dma_tx_completion);
+> +		dma_unmap_single(mcspi->dev, xfer->tx_dma, xfer->len,
+> +				 DMA_TO_DEVICE);
+> +
+> +		/* for TX_ONLY mode, be sure all words have shifted out */
+> +		if (rx =3D=3D NULL) {
+> +			if (mcspi_wait_for_reg_bit(chstat_reg,
+> +						OMAP2_MCSPI_CHSTAT_TXS) < 0)
+> +				dev_err(&spi->dev, "TXS timed out\n");
+> +			else if (mcspi_wait_for_reg_bit(chstat_reg,
+> +						OMAP2_MCSPI_CHSTAT_EOT) < 0)
+> +				dev_err(&spi->dev, "EOT timed out\n");
+> +		}
+> +	}
+>   	return count;
+>   }
+>  =20
+>
+> Shubhro, what do you think ? could this be the case ?
+>
 
-Yes. This is what I too was suggesting earlier. The big question here is
-how to match the regulator to the hub port. One way was matching the
-device paths.
+Shubhro, Felipe,
 
-regards,
--roger
+Thank you, the reordering dma patch fixed the dma issue I was having!=20
+However, the bad news, I now get the same results for the dma and=20
+non-dma spidev test. While the scope shows the SPI clk and data is fine=
+,=20
+the reading from the program still shows 0x00 for all words.
+
+root@beaglebone:~# ./spidev
+spi mode: 0
+bits per word: 16
+max speed: 24000000 Hz (24000 KHz)
+
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00
+
+root@beaglebone:~# ./spidev_dma
+spi mode: 0
+bits per word: 8
+max speed: 500000 Hz (500 KHz)
+
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+00 00 00 00 00 00
+root@beaglebone:~#
+
+dmesg shows nothing of interest apart from the spi bus setting up. Any=20
+ideas?
+
+To iterate for my own sanity; I have bridged pins 18 and 21 on the P9=20
+header which should be the d0 and d1 spi data pins for spi0. This resul=
+t=20
+of 0x00 usually comes from a result of not joining the pins, but I can=20
+assure you they are joined!
+
+Thank you for the help so far.
+
+--=20
+
+   Jack Mitchell (jack@embed.me.uk)
+   Embedded Systems Engineer
+   http://www.embed.me.uk
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
