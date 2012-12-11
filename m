@@ -1,244 +1,79 @@
-From: Jack Mitchell <ml@communistcode.co.uk>
-Subject: Re: AM335x BeagleBone SPI Issues
-Date: Tue, 11 Dec 2012 17:02:19 +0000
-Message-ID: <50C7671B.80504@communistcode.co.uk>
-References: <50C5E23D.5040605@communistcode.co.uk> <20121210135337.GA10219@arwen.pp.htv.fi> <50C5F6A8.5060701@communistcode.co.uk> <20121210145947.GK11038@arwen.pp.htv.fi> <50C5FD73.1000408@communistcode.co.uk> <20121210183500.GB14303@arwen.pp.htv.fi> <50C70846.7010207@communistcode.co.uk> <87y5h4r4ul.fsf@gmail.com> <50C75E54.2080805@communistcode.co.uk>
-Reply-To: ml@communistcode.co.uk
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
+ cache LoUIS operations
+Date: Tue, 11 Dec 2012 18:07:35 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1212111807170.2140@axis700.grange>
+References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
+ <20120919134658.GA2111@linaro.org> <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
+ <20120920110439.GB2117@linaro.org> <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
+ <20121211163313.GG16759@mudshark.cambridge.arm.com>
+ <20121211163843.GH16759@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:34898 "EHLO eumx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752984Ab2LKRAI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Dec 2012 12:00:08 -0500
-In-Reply-To: <50C75E54.2080805@communistcode.co.uk>
+Received: from moutng.kundenserver.de ([212.227.17.10]:59834 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754105Ab2LKRHj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Dec 2012 12:07:39 -0500
+In-Reply-To: <20121211163843.GH16759@mudshark.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ml@communistcode.co.uk
-Cc: Ben Gamari <bgamari.foss@gmail.com>, balbi@ti.com, linux-omap@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Dave Martin <dave.martin@linaro.org>, Nicolas Pitre <nicolas.pitre@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 11/12/12 16:24, Jack Mitchell wrote:
-> On 11/12/12 15:22, Ben Gamari wrote:
->> Jack Mitchell <ml@communistcode.co.uk> writes:
->>
->>> Shubhro, Felipe,
->>>
->>> Thank you, the reordering dma patch fixed the dma issue I was having!
->>> However, the bad news, I now get the same results for the dma and
->>> non-dma spidev test. While the scope shows the SPI clk and data is 
->>> fine,
->>> the reading from the program still shows 0x00 for all words.
->>>
->> Just to make sure this has been thought of: I've seen this sort of
->> behavior in the past when the CLK pin wasn't configured as an input.
->>
->> Cheers,
->>
->> - Ben
->>
->
-> Ok, Ben, well spotted indeed! I changed the dtsi to use INPUT_PULLUP 
-> instead of OUTPUT_PULLUP and wallah!
->
->   am3358_pinmux: pinmux@44e10800 {
->     spi0_pins: pinmux_spi0_pins {
->       pinctrl-single,pins = <
->         0x150 *0x30*      /* spi0_sclk.gpio0_2, INPUT_PULLUP | MODE0 
-> */<------------ changed to INPUT
->         0x154 0x30      /* spi0_d0.gpio0_3, INPUT_PULLUP | MODE0 */
->         0x158 0x10      /* spi0_d1.i2c1_sda, OUTPUT_PULLUP | MODE0 */
->         0x15c 0x10      /* spi0_cs0.i2c1_scl, OUTPUT_PULLUP | MODE0 */
->       >;
->     };
->     spi1_pins: pinmux_spi1_pins {
->       pinctrl-single,pins = <
->         0x190 *0x33*  /* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3 
-> */ <------------ changed to INPUT
->         0x194 0x33  /* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
->         0x198 0x13  /* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
->         0x19c 0x13  /* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 */
->       >;
->     };
->
->
-> root@beaglebone:~# ./spidev
-> spi mode: 0
-> bits per word: 16
-> max speed: 24000000 Hz (24000 KHz)
->
-> FF FF FF FF FF FF
-> 40 00 00 00 00 95
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> DE AD BE EF BA AD
-> F0 0D
-> root@beaglebone:~# ./spidev_dma
-> spi mode: 0
-> bits per word: 8
-> max speed: 500000 Hz (500 KHz)
->
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
-> FF 00 FF 00 FF 00
->
-> We are in business!
->
-> Almost.
->
-> I then tried spi1 and received:
->
-> root@beaglebone:~# ./spidev -D /dev/spidev2.0
-> spi mode: 0
-> bits per word: 16
-> max speed: 24000000 Hz (24000 KHz)
->
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF
-> root@beaglebone:~# ./spidev_dma -D /dev/spidev2.0
-> spi mode: 0
-> bits per word: 8
-> max speed: 500000 Hz (500 KHz)
->
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> FF FF FF FF FF FF
-> root@beaglebone:~#
->
->
+Hi Will
 
-My bad! The jumper bridge had come loose, it works now! Yippee!
+On Tue, 11 Dec 2012, Will Deacon wrote:
 
-root@beaglebone:~# ./spidev -D /dev/spidev2.0
-spi mode: 0
-bits per word: 16
-max speed: 24000000 Hz (24000 KHz)
+> On Tue, Dec 11, 2012 at 04:33:13PM +0000, Will Deacon wrote:
+> > On Tue, Dec 11, 2012 at 04:07:56PM +0000, Guennadi Liakhovetski wrote:
+> > > Git bisect identified this patch, in the mainline as
+> > > 
+> > > commit dbee0c6fb4c1269b2dfc8b0b7a29907ea7fed560
+> > > Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > > Date:   Fri Sep 7 11:06:57 2012 +0530
+> > > 
+> > >     ARM: kernel: update cpu_suspend code to use cache LoUIS operations
+> > > 
+> > > as the culprit of the broken wake up from STR on mackerel, based on an 
+> > > sh7372 A8 SoC. .config attached.
+> > 
+> > My guess is that because Cortex-A8 does not implement the MP extensions,
+> > the LoUIS field of the CLIDR reads as zero, and the cache isn't flushed at
+> > all (I can see an early exit in v7_flush_dcache_louis).
+> > 
+> > Lorenzo -- how is this supposed to work for uniprocessor CPUs?
+> 
+> Bah, forgot to ask you if the following patch helps...
 
-FF FF FF FF FF FF
-40 00 00 00 00 95
-FF FF FF FF FF FF
-FF FF FF FF FF FF
-FF FF FF FF FF FF
-DE AD BE EF BA AD
-F0 0D
-root@beaglebone:~#
+Yes, it does.
 
-Thanks everyone, and do I need to submit any patches to clear this all up?
+Thanks
+Guennadi
 
-Currently all I see is changing the clk pins from output to input (if 
-this is a valid change?).
+> 
+> Will
+> 
+> --->8
+> 
+> diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
+> index cd95664..f58248f 100644
+> --- a/arch/arm/mm/cache-v7.S
+> +++ b/arch/arm/mm/cache-v7.S
+> @@ -44,7 +44,8 @@ ENDPROC(v7_flush_icache_all)
+>  ENTRY(v7_flush_dcache_louis)
+>         dmb                                     @ ensure ordering with previous memory accesses
+>         mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
+> -       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
+> +       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
+> +       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
+>         mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
+>         moveq   pc, lr                          @ return if level == 0
+>         mov     r10, #0                         @ r10 (starting level) = 0
+> 
 
--- 
-
-   Jack Mitchell (jack@embed.me.uk)
-   Embedded Systems Engineer
-   http://www.embed.me.uk
-
---
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
