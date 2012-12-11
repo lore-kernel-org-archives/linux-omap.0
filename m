@@ -1,31 +1,29 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v2 1/1] net: ethernet: davinci_cpdma: Add boundary for
- rx and tx descriptors
-Date: Tue, 11 Dec 2012 11:07:19 -0800
-Message-ID: <1355252839.27891.131.camel@edumazet-glaptop>
-References: <20121211.133058.2238010228178961245.davem@davemloft.net>
-	 <20121211.133426.484976995112519196.davem@davemloft.net>
-	 <1355252096.27891.130.camel@edumazet-glaptop>
-	 <20121211.135759.1010213285970148974.davem@davemloft.net>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: kexec: cpufreq: omap3: hangs in
+ dpll3xxx.c::_omap3_dpll_write_clken()
+Date: Tue, 11 Dec 2012 20:20:13 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212112019320.26612@utopia.booyaka.com>
+References: <20121211150343.GA4261@luxor.wired.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20121211.135759.1010213285970148974.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s.hauer@pengutronix.de
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:47201 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753083Ab2LKUUO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Dec 2012 15:20:14 -0500
+In-Reply-To: <20121211150343.GA4261@luxor.wired.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paolo Pisati <p.pisati@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, 2012-12-11 at 13:57 -0500, David Miller wrote:
-> From: Eric Dumazet <erdnetdev@gmail.com>
-> Date: Tue, 11 Dec 2012 10:54:56 -0800
-> 
-> > Suggested fix : add a TCQ_F_MQSLAVE flag to allow dequeue_skb() to test
-> > the netif_xmit_frozen_or_stopped() status _before_ dequeing packet from
-> > qdisc.
-> 
-> This sounds fine to me.
-> --
+On Tue, 11 Dec 2012, Paolo Pisati wrote:
 
-By the way we also could set this 'flag' for non multi queue devices.
+> I've been experiencing solid hangs on my beaglexm with v3.7 after
+> kexec:
+
+Does it crash if you boot v3.7 directly from the bootloader, i.e., without 
+kexec?
+
+
+- Paul
