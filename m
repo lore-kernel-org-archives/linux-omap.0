@@ -1,51 +1,48 @@
-From: David Miller <davem@davemloft.net>
+From: Eric Dumazet <erdnetdev@gmail.com>
 Subject: Re: [PATCH v2 1/1] net: ethernet: davinci_cpdma: Add boundary for
  rx and tx descriptors
-Date: Tue, 11 Dec 2012 13:34:26 -0500 (EST)
-Message-ID: <20121211.133426.484976995112519196.davem@davemloft.net>
+Date: Tue, 11 Dec 2012 10:54:56 -0800
+Message-ID: <1355252096.27891.130.camel@edumazet-glaptop>
 References: <1355197433-7492-1-git-send-email-mugunthanvnm@ti.com>
-	<20121211.133058.2238010228178961245.davem@davemloft.net>
+	 <20121211.133058.2238010228178961245.davem@davemloft.net>
+	 <20121211.133426.484976995112519196.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:41440 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752948Ab2LKSe2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Dec 2012 13:34:28 -0500
-In-Reply-To: <20121211.133058.2238010228178961245.davem@davemloft.net>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20121211.133426.484976995112519196.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: mugunthanvnm@ti.com, netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s.hauer@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
-To: mugunthanvnm@ti.com
-Cc: netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s.hauer@pengutronix.de
 
-From: David Miller <davem@davemloft.net>
-Date: Tue, 11 Dec 2012 13:30:58 -0500 (EST)
+On Tue, 2012-12-11 at 13:34 -0500, David Miller wrote:
 
 > 
-> You cannot do this.
-> 
-> After your changes the driver no longer does any TX flow control.
-> 
-> It never stops the TX queue and never wakes it up later.
-> 
-> It just drops packets on the floor when it runs out of descriptors.
-> 
-> This breaks everything, and in particular packet schedulers and
-> TCP.
-> 
-> I'm not applying this.
+> You can't signal "out of descriptors" and stop the queue after the
+> fact.  NETDEV_TX_BUSY is for handling exceptional and extraordinary
+> conditions, not for the normal queue full handling.
 
-And yes I mean that the "fail_tx" path of the transmit method
-is bogus too.
+This reminds me an idea I had about MQ/MQPRIO qdisc and BQL interaction
 
-You can't signal "out of descriptors" and stop the queue after the
-fact.  NETDEV_TX_BUSY is for handling exceptional and extraordinary
-conditions, not for the normal queue full handling.
+(BQL btw makes less probable a NETDEV_TX_BUSY event or
+__QUEUE_STATE_DRV_XOFF state, but more probable a
+__QUEUE_STATE_STACK_XOFF)
 
-You have to stop the queue before you run out of descriptors.  When
-the queue is not stopped, you are telling the core networking that you
-absoultely will be able to successfully queue a packet and enough
-descriptors are available.
+We dequeue a packet from qdisc, then we realize tx queue is in XOFF
+state, and we have to hold the skb into gso_skb for later.
 
-This means the other CPDMA driver needs to be reworked too.
+This shows in stats (tc -s qdisc dev eth0) as requeues.
+
+Problem of these requeues is that high priority packets can not be
+dequeued as long as this (possibly low prio and big TSO packet) is not
+removed from gso_skb.
+
+At 1Gbps speed, a full size TSO packet is 500 us of extra latency.
+
+Suggested fix : add a TCQ_F_MQSLAVE flag to allow dequeue_skb() to test
+the netif_xmit_frozen_or_stopped() status _before_ dequeing packet from
+qdisc.
+
+(For other qdiscs, we dont really know which tx queue will use the next
+packet before dequeueing it)
