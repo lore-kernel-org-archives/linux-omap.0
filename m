@@ -1,62 +1,123 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
- cache LoUIS operations
-Date: Tue, 11 Dec 2012 16:38:43 +0000
-Message-ID: <20121211163843.GH16759@mudshark.cambridge.arm.com>
-References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
- <20120919134658.GA2111@linaro.org>
- <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
- <20120920110439.GB2117@linaro.org>
- <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
- <20121211163313.GG16759@mudshark.cambridge.arm.com>
+From: Jack Mitchell <jack.mitchell@eumx.net>
+Subject: Re: AM335x BeagleBone SPI Issues
+Date: Tue, 11 Dec 2012 16:36:02 +0000
+Message-ID: <50C760F2.6060701@eumx.net>
+References: <50C5E23D.5040605@communistcode.co.uk> <20121210135337.GA10219@arwen.pp.htv.fi> <50C5F6A8.5060701@communistcode.co.uk> <20121210145947.GK11038@arwen.pp.htv.fi> <50C5FD73.1000408@communistcode.co.uk> <20121210183500.GB14303@arwen.pp.htv.fi> <50C70846.7010207@communistcode.co.uk> <87y5h4r4ul.fsf@gmail.com> <50C75E54.2080805@communistcode.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121211163313.GG16759@mudshark.cambridge.arm.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Dave Martin <dave.martin@linaro.org>, Nicolas Pitre <nicolas.pitre@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eumx.net ([91.82.101.43]:60775 "EHLO eumx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754022Ab2LKQvc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Dec 2012 11:51:32 -0500
+In-Reply-To: <50C75E54.2080805@communistcode.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ml@communistcode.co.uk
+Cc: Ben Gamari <bgamari.foss@gmail.com>, balbi@ti.com, linux-omap@vger.kernel.org, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
 
-On Tue, Dec 11, 2012 at 04:33:13PM +0000, Will Deacon wrote:
-> On Tue, Dec 11, 2012 at 04:07:56PM +0000, Guennadi Liakhovetski wrote:
-> > Git bisect identified this patch, in the mainline as
-> > 
-> > commit dbee0c6fb4c1269b2dfc8b0b7a29907ea7fed560
-> > Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > Date:   Fri Sep 7 11:06:57 2012 +0530
-> > 
-> >     ARM: kernel: update cpu_suspend code to use cache LoUIS operations
-> > 
-> > as the culprit of the broken wake up from STR on mackerel, based on an 
-> > sh7372 A8 SoC. .config attached.
-> 
-> My guess is that because Cortex-A8 does not implement the MP extensions,
-> the LoUIS field of the CLIDR reads as zero, and the cache isn't flushed at
-> all (I can see an early exit in v7_flush_dcache_louis).
-> 
-> Lorenzo -- how is this supposed to work for uniprocessor CPUs?
+On 11/12/12 16:24, Jack Mitchell wrote:
+> On 11/12/12 15:22, Ben Gamari wrote:
+>> Jack Mitchell <ml@communistcode.co.uk> writes: 
 
-Bah, forgot to ask you if the following patch helps...
+>> <snip>
+>
+> Almost.
+>
+> I then tried spi1 and received:
+>
+> root@beaglebone:~# ./spidev -D /dev/spidev2.0
+> spi mode: 0
+> bits per word: 16
+> max speed: 24000000 Hz (24000 KHz)
+>
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF
+> root@beaglebone:~# ./spidev_dma -D /dev/spidev2.0
+> spi mode: 0
+> bits per word: 8
+> max speed: 500000 Hz (500 KHz)
+>
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> FF FF FF FF FF FF
+> root@beaglebone:~#
+>
+>
 
-Will
+My bad! The jumper bridge had come loose, it works now! Yippee!
 
---->8
+root@beaglebone:~# ./spidev -D /dev/spidev2.0
+spi mode: 0
+bits per word: 16
+max speed: 24000000 Hz (24000 KHz)
 
-diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-index cd95664..f58248f 100644
---- a/arch/arm/mm/cache-v7.S
-+++ b/arch/arm/mm/cache-v7.S
-@@ -44,7 +44,8 @@ ENDPROC(v7_flush_icache_all)
- ENTRY(v7_flush_dcache_louis)
-        dmb                                     @ ensure ordering with previous memory accesses
-        mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
--       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
-+       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
-+       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
-        mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
-        moveq   pc, lr                          @ return if level == 0
-        mov     r10, #0                         @ r10 (starting level) = 0
+FF FF FF FF FF FF
+40 00 00 00 00 95
+FF FF FF FF FF FF
+FF FF FF FF FF FF
+FF FF FF FF FF FF
+DE AD BE EF BA AD
+F0 0D
+root@beaglebone:~#
 
+Thanks everyone, and do I need to submit any patches to clear this all up?
+
+Currently all I see is changing the clk pins from output to input (if 
+this is a valid change?).
