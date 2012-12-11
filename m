@@ -1,94 +1,91 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 1/5] drivers : introduce device_path api
-Date: Tue, 11 Dec 2012 12:09:03 +0200
-Message-ID: <20121211100903.GF19367@arwen.pp.htv.fi>
-References: <CACVXFVNkp0+WmTyG2+YMjTvzCRi3sQZKmG6sG8diqZZj-hwg6g@mail.gmail.com>
- <Pine.LNX.4.44L0.1211271119380.1489-100000@iolanthe.rowland.org>
- <20121127170223.GB2687@kroah.com>
- <CABb+yY3TC3z+jRU91KGX+FKLtJ3ZXUp55-wM_KjxiYuVZ+LL+Q@mail.gmail.com>
- <50BF55B3.1030205@ti.com>
- <CABb+yY1xVMGFbedq8Wp2Muz13XAxJUKOk_=Z_UCEBkpzrtVz4A@mail.gmail.com>
- <50C5B003.9060904@ti.com>
- <CABb+yY3u2QB0JqXrznDGHXqH3crkYk54whC0GTwkBHqjdEzhbg@mail.gmail.com>
- <50C70495.40500@ti.com>
-Reply-To: <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: AM335x BeagleBone SPI Issues
+Date: Tue, 11 Dec 2012 12:20:11 +0200
+Message-ID: <20121211102011.GG19367@arwen.pp.htv.fi>
+References: <50C5E23D.5040605@communistcode.co.uk>
+ <20121210135337.GA10219@arwen.pp.htv.fi>
+ <50C5F6A8.5060701@communistcode.co.uk>
+ <20121210145947.GK11038@arwen.pp.htv.fi>
+ <50C5FD73.1000408@communistcode.co.uk>
+ <20121210183500.GB14303@arwen.pp.htv.fi>
+ <50C70846.7010207@communistcode.co.uk>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="juZjCTNxrMaZdGZC"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="DWg365Y4B18r8evw"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35797 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752726Ab2LKK1U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Dec 2012 05:27:20 -0500
 Content-Disposition: inline
-In-Reply-To: <50C70495.40500-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
-Cc: Jassi Brar <jassisinghbrar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keshava_mgowda-l0cyMroinI0@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <50C70846.7010207@communistcode.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jack Mitchell <ml@communistcode.co.uk>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
 
---juZjCTNxrMaZdGZC
+--DWg365Y4B18r8evw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Dec 11, 2012 at 12:01:57PM +0200, Roger Quadros wrote:
-> On 12/11/2012 11:12 AM, Jassi Brar wrote:
-> > On Mon, Dec 10, 2012 at 3:18 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
-> >> On 12/06/2012 04:34 PM, Jassi Brar wrote:
-> >>>>
-> >>>> Yes, this is where we can think of a generic PHY driver to make sure=
- thy
-> >>>> PHY has necessary resources enabled. In the Panda case it would be t=
-he
-> >>>> PHY clock and RESET gpio.
-> >>>>
-> >>> I wonder if ehci-omap should assume, besides regulator, a clock might
-> >>> also be need to setup for the transceiver chip.
-> >>> Maybe "usbhs_bdata" in board-omap4panda.c should have
-> >>> .reset_gpio_port[0]  =3D GPIO_HUB_NRESET ?
-> >>>
-> >>
-> >> Just like the regulator, reset_gpio_port has nothing to do with OMAP
-> >> EHCI. So we would want to get rid of that too from the OMAP USB driver.
-> >>
-> > Looking at the code I realized we already book resources only for
-> > populated ports. Saving power from LAN9514 chip would come from a
-> > separate solution. So, for now when our transceiver, USB3320, has
-> > simple hardwired configuration probably just platform_data/DT would
-> > do. When we come across some programmable transceiver (like USB3503
-> > over i2c), that might warrant a separate PHY driver. Still I don't
-> > think we could have a 'generic' phy driver.
-> >=20
-> Yes I2C based Phys might need a different driver. At least we could have
-> a generic PHY driver for all ULPI based phys. (NOTE: the USB3320 is also
-> configurable and can work in OTG mode)
+Hi,
 
-we already do, that's what nop-xceiv is for.
+On Tue, Dec 11, 2012 at 10:17:42AM +0000, Jack Mitchell wrote:
+
+<big snip>
+
+> Shubhro, Felipe,
+>=20
+> Thank you, the reordering dma patch fixed the dma issue I was having!
+> However, the bad news, I now get the same results for the dma and
+> non-dma spidev test. While the scope shows the SPI clk and data is
+> fine, the reading from the program still shows 0x00 for all words.
+
+<removed spidev_test output>
+
+> dmesg shows nothing of interest apart from the spi bus setting up.
+> Any ideas?
+>=20
+> To iterate for my own sanity; I have bridged pins 18 and 21 on the P9
+> header which should be the d0 and d1 spi data pins for spi0. This
+> result of 0x00 usually comes from a result of not joining the pins,
+> but I can assure you they are joined!
+>=20
+> Thank you for the help so far.
+
+according to the schematics [1], those pins are muxed as UART2_TXD and
+I2C1_SDA, have you remuxed them properly ? Can you try with pins 29 and
+30 on the same header ? That's SPI1, so you will have to add DT data for
+spidev on that bus too.
+
+[1] http://beagleboard.org/static/beaglebone/latest/Docs/Hardware/BONE_SCH.=
+pdf
 
 --=20
 balbi
 
---juZjCTNxrMaZdGZC
+--DWg365Y4B18r8evw
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQxwY/AAoJEIaOsuA1yqREpi8P+wbOJQJaUnUyYURGICVrlzBl
-4tKNqWULzoScgyEBMIosmBZDTRNk/Yx69SeWDE1R/Bs+d/A7tWUYr3oHzz/cYgRO
-pLw4e24/NUy9WjR5Dsxo1HH7+vxxPzNCEL3NSzIWWditR22bwK27XIEFXXzYk+5S
-TQeTVg9aKy5y6V7lgRDnfAX9nZE6jSac4YuveGBM+IffffNlI07KC6qz+e6pDwPm
-VZydonH0SG4vfPA0Lnr/PvnklYevtfXyEdMABNtjmj9Ta/6OkaXf6oS3FMs1+7XC
-YKgCMuWLpRw9AawO84vaWGzcWwTbsvB/Ta08CeMed61GxcxLNnICgLEC/rTL2VZY
-uRCW5PgK8IxQsLPCjYiS1TpphqHEHyPx62yBmf5OCYtxmkJ5dZlNZObz/ihS1EqW
-lSR8er58vyf4gy6tx5erZOsLV+XSc/CKXnvn099eWkHdDQaU9UCG9ZkNy5F4qrI/
-0FUj5M2K9VGrYdUqsWlYDqIr3rWhQtjIX4crF/quBtGkprjPFRrMaQuSgpytLkgP
-Poo8s1AtAWvqPRpblD7nlTMog1Cq1JzRHGtL8SmyJp8UmgVYspTDqtk7WVAcTqSh
-6zU0MNPWpQDwLzhupDZ9njScsmHMTzlY+UJJXTuK9kDCU+nGblbCEEQoEeY60yx2
-34vnGtB9/oPMnVp/yGSR
-=ctqg
+iQIcBAEBAgAGBQJQxwjbAAoJEIaOsuA1yqRE6gUQAJQFekEdRzSmj0teyuT1IpOn
+UpKO03eRcg/Am8dgWZ6AO43J/aXKRLibqJ5vxVrai43kejwnTjQ1yFKbymeai0FC
+IZrusw9vTinjRy09Sq9Dl9vAqT1ItCWcnr+qaRLDDezvkrdl4E/+Rz6GEE565oJJ
+9n5Wjj59QC2VYOCuTqhIlfcPJ4RtqxH+fn8yFJgjJlhyya7VpDFZt3FCBdU+dqfz
+kOjXzyRXCeEzfGR1gCD1ccYELbIrHBbv0mfJRAQf1+pwbneIGB3A6IpsuR7dPNcB
+edQZ09lZlvXYbEFS0Dnq0eLQU3PjQENNCs2OKyxAuLZVzLc0ZP9mYWBUdHp+M5/j
++SSsNpu0bwNcky2WNwvqIRDvuqJsET6TJiZpc3dEHFwXtUHdXDbAVSYc4tzbd6en
+C37qzckIHMZ1T7xTbkHVdA2Qhzb9CCjUrSzxvJewWHAhQBNksjO7piDP4rIcLD34
+m1zk5kBDfzejp+bQqNUvmGyb+S16qy3X5S77DOCuwzUI/fvnPwvPkhXnJYK2PNMO
+rdp+aVy57nG/HLAY6pSdtUF2rexCssck3cjfoOrg+i4YNTcRCv7d1vKaLoqiqEWr
+AXwiU9WXolt6BLtYzo7X+m83wC6t2oLxu9fKDjWu7vGZucCnQtCEAld0FfGyk/zy
+k9MRzE/iAvZNbWRP2b3q
+=S0yA
 -----END PGP SIGNATURE-----
 
---juZjCTNxrMaZdGZC--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--DWg365Y4B18r8evw--
