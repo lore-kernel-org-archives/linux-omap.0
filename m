@@ -1,42 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: omap: add read permission to mux debugfs files
-Date: Tue, 11 Dec 2012 19:04:56 +0200
-Message-ID: <1355245496-19180-1-git-send-email-balbi@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
+ cache LoUIS operations
+Date: Tue, 11 Dec 2012 17:47:05 +0000
+Message-ID: <20121211174705.GL16759@mudshark.cambridge.arm.com>
+References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
+ <20120919134658.GA2111@linaro.org>
+ <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
+ <20120920110439.GB2117@linaro.org>
+ <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
+ <20121211163313.GG16759@mudshark.cambridge.arm.com>
+ <20121211163843.GH16759@mudshark.cambridge.arm.com>
+ <Pine.LNX.4.64.1212111807170.2140@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52296 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754115Ab2LKRMH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Dec 2012 12:12:07 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1212111807170.2140@axis700.grange>
+Sender: linux-sh-owner@vger.kernel.org
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-All those files provide a ->read() method on their
-file_operations structure.
+On Tue, Dec 11, 2012 at 05:07:35PM +0000, Guennadi Liakhovetski wrote:
+> Hi Will
+> 
+> On Tue, 11 Dec 2012, Will Deacon wrote:
+> 
+> > On Tue, Dec 11, 2012 at 04:33:13PM +0000, Will Deacon wrote:
+> > > On Tue, Dec 11, 2012 at 04:07:56PM +0000, Guennadi Liakhovetski wrote:
+> > > > Git bisect identified this patch, in the mainline as
+> > > > 
+> > > > commit dbee0c6fb4c1269b2dfc8b0b7a29907ea7fed560
+> > > > Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > > > Date:   Fri Sep 7 11:06:57 2012 +0530
+> > > > 
+> > > >     ARM: kernel: update cpu_suspend code to use cache LoUIS operations
+> > > > 
+> > > > as the culprit of the broken wake up from STR on mackerel, based on an 
+> > > > sh7372 A8 SoC. .config attached.
+> > > 
+> > > My guess is that because Cortex-A8 does not implement the MP extensions,
+> > > the LoUIS field of the CLIDR reads as zero, and the cache isn't flushed at
+> > > all (I can see an early exit in v7_flush_dcache_louis).
+> > > 
+> > > Lorenzo -- how is this supposed to work for uniprocessor CPUs?
+> > 
+> > Bah, forgot to ask you if the following patch helps...
+> 
+> Yes, it does.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/mux.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Cracking, can I add you tested-by please?
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 2612634..6701f31 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -742,8 +742,8 @@ static void __init omap_mux_dbg_create_entry(
- 	list_for_each_entry(e, &partition->muxmodes, node) {
- 		struct omap_mux *m = &e->mux;
- 
--		(void)debugfs_create_file(m->muxnames[0], S_IWUSR, mux_dbg_dir,
--					  m, &omap_mux_dbg_signal_fops);
-+		(void)debugfs_create_file(m->muxnames[0], S_IWUSR | S_IRUSR,
-+				mux_dbg_dir, m, &omap_mux_dbg_signal_fops);
- 	}
- }
- 
--- 
-1.8.1.rc1.5.g7e0651a
-
+Will
