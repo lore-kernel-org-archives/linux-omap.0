@@ -1,73 +1,132 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] da8xx: Allow use by am33xx based devices
-Date: Wed, 12 Dec 2012 08:00:56 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EBADC10@DBDE01.ent.ti.com>
-References: <1351698968-3965-1-git-send-email-panto@antoniou-consulting.com>
- <A73F36158E33644199EB82C5EC81C7BC3EA1452B@DBDE01.ent.ti.com>
- <50C5A50E.4070602@ti.com>
- <A73F36158E33644199EB82C5EC81C7BC3EA17E45@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: AM335x BeagleBone SPI Issues
+Date: Wed, 12 Dec 2012 10:07:08 +0200
+Message-ID: <20121212080708.GA2440@arwen.pp.htv.fi>
+References: <20121210135337.GA10219@arwen.pp.htv.fi>
+ <50C5F6A8.5060701@communistcode.co.uk>
+ <20121210145947.GK11038@arwen.pp.htv.fi>
+ <50C5FD73.1000408@communistcode.co.uk>
+ <20121210183500.GB14303@arwen.pp.htv.fi>
+ <50C70846.7010207@communistcode.co.uk>
+ <87y5h4r4ul.fsf@gmail.com>
+ <50C75E54.2080805@communistcode.co.uk>
+ <20121211170314.GG2864@arwen.pp.htv.fi>
+ <20121211175216.GA27012@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3EA17E45@DBDE01.ent.ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Manjunathappa, Prakash" <prakash.pm@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "Porter, Matt" <mporter@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "FlorianSchandinat@gmx.de" <FlorianSchandinat@gmx.de>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="envbJBWh7q8WU6mo"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59109 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751025Ab2LLIOT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Dec 2012 03:14:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20121211175216.GA27012@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Jack Mitchell <ml@communistcode.co.uk>, Ben Gamari <bgamari.foss@gmail.com>, linux-omap@vger.kernel.org, Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
 
-On Wed, Dec 12, 2012 at 12:50:28, Manjunathappa, Prakash wrote:
-> Hi Vaibhav,
-> 
-> On Mon, Dec 10, 2012 at 14:32:06, Hiremath, Vaibhav wrote:
-> > 
-> > 
-> > On 12/6/2012 1:38 PM, Manjunathappa, Prakash wrote:
-> > > Hi Tomi,
-> > > 
-> > > On Wed, Oct 31, 2012 at 10:52:59, Manjunathappa, Prakash wrote:
-> > >> Hi,
-> > >>
-> > >> On Wed, Oct 31, 2012 at 21:26:08, Pantelis Antoniou wrote:
-> > >>> This driver can be used for AM33xx devices, like the popular beaglebone.
-> > >>>
-> > >>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> > >>> ---
-> > >>>  drivers/video/Kconfig | 2 +-
-> > >>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >>>
-> > >>> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-> > >>> index 9791d10..e7868d8 100644
-> > >>> --- a/drivers/video/Kconfig
-> > >>> +++ b/drivers/video/Kconfig
-> > >>> @@ -2202,7 +2202,7 @@ config FB_SH7760
-> > >>>  
-> > >>>  config FB_DA8XX
-> > >>>  	tristate "DA8xx/OMAP-L1xx Framebuffer support"
-> > >>> -	depends on FB && ARCH_DAVINCI_DA8XX
-> > >>> +	depends on FB && (ARCH_DAVINCI_DA8XX || SOC_AM33XX)
-> > >>
-> > >> Agreed this is present on da8xx and am33xx, but moving forward for
-> > >> supporting DT, we should be avoiding these dependencies. So instead
-> > >> change this to remove machine dependencies.
-> > >>
-> > > 
-> > > I could be wrong here, having dependency on platform seems to be right.
-> > > Otherwise may lead to build errors for other platforms. 
-> > 
-> > No, it should not result in to build error unless driver uses some
-> > platform specific api's.
-> > 
-> 
-> Agreed, should not result in build error. But is it ok to show this option
-> on the platforms which do not have this IP?
-> 
+--envbJBWh7q8WU6mo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You can choose to put machine dependency here, as this patch is already 
-doing it. The side-effect of this would be, list may grow and you may have 
-to edit this file everytime.
+Hi,
 
+On Tue, Dec 11, 2012 at 07:52:16PM +0200, Felipe Balbi wrote:
+> Hi,
+>=20
+> On Tue, Dec 11, 2012 at 07:03:14PM +0200, Felipe Balbi wrote:
+> > Hi,
+> >=20
+> > On Tue, Dec 11, 2012 at 04:24:52PM +0000, Jack Mitchell wrote:
+> > > On 11/12/12 15:22, Ben Gamari wrote:
+> > > >Jack Mitchell <ml@communistcode.co.uk> writes:
+> > > >
+> > > >>Shubhro, Felipe,
+> > > >>
+> > > >>Thank you, the reordering dma patch fixed the dma issue I was havin=
+g!
+> > > >>However, the bad news, I now get the same results for the dma and
+> > > >>non-dma spidev test. While the scope shows the SPI clk and data is =
+fine,
+> > > >>the reading from the program still shows 0x00 for all words.
+> > > >>
+> > > >Just to make sure this has been thought of: I've seen this sort of
+> > > >behavior in the past when the CLK pin wasn't configured as an input.
+> > > >
+> > > >Cheers,
+> > > >
+> > > >- Ben
+> > > >
+> > >=20
+> > > Ok, Ben, well spotted indeed! I changed the dtsi to use INPUT_PULLUP
+> > > instead of OUTPUT_PULLUP and wallah!
+> > >=20
+> > >   am3358_pinmux: pinmux@44e10800 {
+> > >     spi0_pins: pinmux_spi0_pins {
+> > >       pinctrl-single,pins =3D <
+> > >         0x150 *0x30*      /* spi0_sclk.gpio0_2, INPUT_PULLUP | MODE0
+> > > */<------------ changed to INPUT
+> > >         0x154 0x30      /* spi0_d0.gpio0_3, INPUT_PULLUP | MODE0 */
+> > >         0x158 0x10      /* spi0_d1.i2c1_sda, OUTPUT_PULLUP | MODE0 */
+> > >         0x15c 0x10      /* spi0_cs0.i2c1_scl, OUTPUT_PULLUP | MODE0 */
+> > >       >;
+> > >     };
+> > >     spi1_pins: pinmux_spi1_pins {
+> > >       pinctrl-single,pins =3D <
+> > >         0x190 *0x33*  /* mcasp0_aclkx.spi1_sclk, INPUT_PULLUP | MODE3
+> > > */ <------------ changed to INPUT
+> > >         0x194 0x33  /* mcasp0_fsx.spi1_d0, INPUT_PULLUP | MODE3 */
+> > >         0x198 0x13  /* mcasp0_axr0.spi1_d1, OUTPUT_PULLUP | MODE3 */
+> > >         0x19c 0x13  /* mcasp0_ahclkr.spi1_cs0, OUTPUT_PULLUP | MODE3 =
+*/
+> > >       >;
+> > >     };
+> >=20
+> > funny, I did the same on my pandaboard and it still didn't work :-s
+> >=20
+> > @@ -321,6 +322,10 @@ static struct omap_board_mux board_mux[] __initdat=
+a =3D {
+> >         OMAP4_MUX(SDMMC5_DAT1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+> >         OMAP4_MUX(SDMMC5_DAT2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+> >         OMAP4_MUX(SDMMC5_DAT3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+> > +
+> > +       /* SPI1 */
+> > +       OMAP4_MUX(MCSPI1_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+>=20
+> hehe, I'll reply to my own nonsense. Of course this won't work, I'm not
+> muxing the other MCSPI pins :-p
+>=20
+> I'll do that tomorrow and test, cheers
 
-Thanks,
-Vaibhav 
+fyi, after muxing all lines correctly it works just fine on my panda.
+
+--=20
+balbi
+
+--envbJBWh7q8WU6mo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQyDssAAoJEIaOsuA1yqREKTMP/3QpL8FOdYIUbAP2VoqR51VV
+n+EdkELN2p18Q/YL/ndl0Sg3Hu2d7TfdMaKV+qWo3YKmBIVXdAsp/BtK8mWtVuhK
+poxHtBTSOVV8RW3toBMWpSmr/5D074GFBKho1KxarkqktANSwP7sb4j0NcFxZ3xX
+WEt6qVt+FJzm0vWhj9NQlDlWo5IHT9Sewxr6Pmr7VWJ5efa7zKYMzYwA7zf+5fNE
+qX7GCEkwEgdm4+IkTEMdKU5ajZ/6ootU3aUC6WHLv0ITzjPx0ZgLFkENqKbCwnCt
+sqaWMtPwZhXzEGc8EfPxm1oFF8ygVfG7BzzwIXY4G11n/KQILtES75ERUik+VnBI
+lHn21CVQ7rpQpHzg5rWGp7dFfkR4ZrU8upHG1OZNPaET5w/IQoL3HI0EKdwWEZp9
+c0NccNaNPZ6Dm/lvJlNhTBQm4puQPmvMcetv9dc+dHZN2SuEQTJ2jdqWZtdC9L6G
+NaUzcXeyA0jDrtCxrz9xh4RFtHz4p5sqaIQQWs3X6Fy0vytyFwv6kpTE6fN5WPA5
+8MMa4hlExGNbdNYhkxpK8Fevo0QluaqBOPbCzkmuhzpTrEeb1rtFqv4ulnXEtiyC
+zQy+UOrN6zfNzDvU5dF5VZ/o/YXcDI7q8/Qc89e4i5fdSCE3xG8mV17d6ty+op+J
+NS+h0rQXnh51/fZpX3J1
+=As6e
+-----END PGP SIGNATURE-----
+
+--envbJBWh7q8WU6mo--
