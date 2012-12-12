@@ -1,28 +1,66 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: Re: [PATCH v2 1/1] net: ethernet: davinci_cpdma: Add boundary for
- rx and tx descriptors
-Date: Wed, 12 Dec 2012 19:08:16 +0530
-Message-ID: <50C888C8.3070708@ti.com>
-References: <20121211.133058.2238010228178961245.davem@davemloft.net> <20121211.133426.484976995112519196.davem@davemloft.net> <1355252096.27891.130.camel@edumazet-glaptop> <20121211.135759.1010213285970148974.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20121211.135759.1010213285970148974.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: erdnetdev@gmail.com, netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s.hauer@pengutronix.de
+From: Matthias Brugger <matthias.bgg@gmail.com>
+Subject: [PATCH] arm: dts: Add uart1 and uart2 to igep boards.
+Date: Wed, 12 Dec 2012 16:33:42 +0100
+Message-ID: <1355326422-12357-1-git-send-email-matthias.bgg@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: b-cousson@ti.com, tony@atomide.com, grant.likely@secretlab.ca, eballetbo@gmail.com, elezegarcia@gmail.com, ebutera@gmail.com, javier.martinez@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 12/12/2012 12:27 AM, David Miller wrote:
-> From: Eric Dumazet <erdnetdev@gmail.com>
-> Date: Tue, 11 Dec 2012 10:54:56 -0800
->
->> Suggested fix : add a TCQ_F_MQSLAVE flag to allow dequeue_skb() to test
->> the netif_xmit_frozen_or_stopped() status _before_ dequeing packet from
->> qdisc.
-> This sounds fine to me.
-I will submit next version with the suggestion
+This patch is a follow-up patch for Javier Martinez effort adding initial
+device tree support to IGEP technology devices. [1]
 
-Regards
-Mugunthan V N
+It adds uart1 and uart2 bindings to the generic dtsi for the IGEP boards.
+
+[1] http://www.spinics.net/lists/linux-omap/msg83409.html
+
+Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
+---
+ arch/arm/boot/dts/omap3-igep.dtsi |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
+index 125fe00..c02e3c0 100644
+--- a/arch/arm/boot/dts/omap3-igep.dtsi
++++ b/arch/arm/boot/dts/omap3-igep.dtsi
+@@ -27,6 +27,20 @@
+ };
+ 
+ &omap3_pmx_core {
++	uart1_pins: pinmux_uart1_pins {
++		pinctrl-single,pins = <
++			0x152 0x100	/* uart1_rx.uart1_rx INPUT | MODE0 */
++			0x14c 0		/* uart1_tx.uart1_tx OUTPUT | MODE0 */
++		>;
++	};
++
++	uart2_pins: pinmux_uart2_pins {
++		pinctrl-single,pins = <
++			0x14a 0x100	/* uart2_rx.uart2_rx INPUT | MODE0 */
++			0x148 0		/* uart2_tx.uart2_tx OUTPUT | MODE0 */
++		>;
++	};
++
+ 	uart3_pins: pinmux_uart3_pins {
+ 		pinctrl-single,pins = <
+ 			0x16e 0x100	/* uart3_rx.uart3_rx INPUT | MODE0 */
+@@ -77,6 +91,16 @@
+ 	status = "disabled";
+ };
+ 
++&uart1 {
++       pinctrl-names = "default";
++       pinctrl-0 = <&uart1_pins>;
++};
++
++&uart2 {
++       pinctrl-names = "default";
++       pinctrl-0 = <&uart2_pins>;
++};
++
+ &uart3 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&uart3_pins>;
+-- 
+1.7.9.5
