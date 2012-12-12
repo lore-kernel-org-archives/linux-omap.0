@@ -1,53 +1,67 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 05/12] ARM: OMAP3xxx: PM: convert to use the functional
- power states API
-Date: Wed, 12 Dec 2012 11:29:11 +0100
-Message-ID: <CAORVsuWzg7es6rv15+-aGBkwXSZ4Pbd4Kz3qp_aej8vk9t=TxA@mail.gmail.com>
-References: <20121209174545.6933.59371.stgit@dusk.lan>
-	<20121209175312.6933.92995.stgit@dusk.lan>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
+ cache LoUIS operations
+Date: Wed, 12 Dec 2012 10:31:20 +0000
+Message-ID: <20121212103119.GA6195@mudshark.cambridge.arm.com>
+References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
+ <20120919134658.GA2111@linaro.org>
+ <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
+ <20120920110439.GB2117@linaro.org>
+ <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
+ <20121211163313.GG16759@mudshark.cambridge.arm.com>
+ <20121211163843.GH16759@mudshark.cambridge.arm.com>
+ <50C7C16B.7050106@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:38703 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152Ab2LLK3L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Dec 2012 05:29:11 -0500
-Received: by mail-ie0-f174.google.com with SMTP id c11so1373368ieb.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 Dec 2012 02:29:11 -0800 (PST)
-In-Reply-To: <20121209175312.6933.92995.stgit@dusk.lan>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <50C7C16B.7050106@codeaurora.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com>
 
-Paul,
+On Tue, Dec 11, 2012 at 11:27:39PM +0000, Stephen Boyd wrote:
+> On 12/11/12 08:38, Will Deacon wrote:
+> > diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
+> > index cd95664..f58248f 100644
+> > --- a/arch/arm/mm/cache-v7.S
+> > +++ b/arch/arm/mm/cache-v7.S
+> > @@ -44,7 +44,8 @@ ENDPROC(v7_flush_icache_all)
+> >  ENTRY(v7_flush_dcache_louis)
+> >         dmb                                     @ ensure ordering with previous memory accesses
+> >         mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
+> > -       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
+> > +       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
+> > +       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
+> >         mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
+> 
+> You need to fix this mov as well, right?
 
--resending in plain text only, sorry about that-
+Ha, nice catch. So the original patch ended up with a ridiculously high
+level number and would've flushed L2, hence we will need to retest with the
+fix below...
 
-On Sun, Dec 9, 2012 at 6:53 PM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> From: Jean Pihet <jean.pihet@newoldbits.com>
->
-> Use the functional power states as the API to control power domains:
->
-> - use the PWRDM_FUNC_PWRST_* macros for the power states and logic
->   settings,
->
-> - the function pwrdm_set_next_fpwrst(), which controls the power domains
->   next power and logic settings, shall be used instead of
->   pwrdm_set_next_pwrst() to program the power domains next states,
->
-> - the function pwrdm_set_fpwrst(), which programs the power domains
->   power and logic settings, shall be used instead of
->   omap_set_pwrdm_state().
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> [paul@pwsan.com: split the original patch into OMAP2/3/4 variants;
->  clean up omap3_save_secure_ram_context(); fix commit message;
->  warn if sets fail; various other changes]
+Will
 
+--->8
 
-There are a lot of 'XXX' comments, can this be fixed by a proper comment?
+diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
+index cd95664..7539ec2 100644
+--- a/arch/arm/mm/cache-v7.S
++++ b/arch/arm/mm/cache-v7.S
+@@ -44,8 +44,10 @@ ENDPROC(v7_flush_icache_all)
+ ENTRY(v7_flush_dcache_louis)
+        dmb                                     @ ensure ordering with previous memory accesses
+        mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
+-       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
+-       mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
++       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
++       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
++       ALT_SMP(mov     r3, r3, lsr #20)        @ r3 = LoUIS * 2
++       ALT_UP(mov      r3, r3, lsr #26)        @ r3 = LoUU * 2
+        moveq   pc, lr                          @ return if level == 0
+        mov     r10, #0                         @ r10 (starting level) = 0
+        b       flush_levels                    @ start flushing cache levels
 
-Regards,
-Jean
