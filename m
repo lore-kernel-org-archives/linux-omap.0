@@ -1,124 +1,83 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/2] OMAPDSS: DISPC: get dss clock rate from dss driver
-Date: Wed, 12 Dec 2012 14:27:08 +0200
-Message-ID: <1355315229-25238-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/2] OMAPDSS: DISPC: remove dispc fck uses
+Date: Wed, 12 Dec 2012 14:27:09 +0200
+Message-ID: <1355315229-25238-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1355315229-25238-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46479 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751517Ab2LLM1N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Dec 2012 07:27:13 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:42924 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751517Ab2LLM1O (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Dec 2012 07:27:14 -0500
+In-Reply-To: <1355315229-25238-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Dispc currently gets dispc's fck with clk_get() and uses clk_get_rate()
-to get the rate for scaling calculations. This causes a problem with
-common clock framework, as omapdss uses the dispc functions inside a
-spinlock, and common clock framework uses a mutex in clk_get_rate().
-
-Looking at the DSS clock tree, the above use of the dispc fck is not
-quite correct. The DSS_FCLK from PRCM goes to DSS core block, which has
-a mux to select the clock for DISPC from various options, so the current
-use of dispc fck bypasses that. Fortunately we never change the dispc
-clock mux for now.
-
-To fix the issue with clk_get_rate(), this patch caches the dss clock
-rate in dss.c when it is set. Dispc will then ask for the clock rate
-from dss. While this is not very elegant, it does fix the issue, and
-it's not totally wrong when considering that the dispc fck actually
-comes via dss.
-
-In the future we should probably look into common clock framework and
-see if that could be used to represent the DSS clock tree properly.
+The previous patch changes dispc to get the dispc fck rate from dss core
+driver. This was the only use of the dispc fck in dispc, and thus we can
+now remove the clock handling.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |    4 ++--
- drivers/video/omap2/dss/dss.c   |   12 ++++++++++++
- drivers/video/omap2/dss/dss.h   |    1 +
- 3 files changed, 15 insertions(+), 2 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index fedbd2c..08137a8 100644
+index 08137a8..05ff2b9 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -2970,7 +2970,7 @@ unsigned long dispc_fclk_rate(void)
+@@ -96,7 +96,6 @@ static struct {
+ 	int		ctx_loss_cnt;
  
- 	switch (dss_get_dispc_clk_source()) {
- 	case OMAP_DSS_CLK_SRC_FCK:
--		r = clk_get_rate(dispc.dss_clk);
-+		r = dss_get_dispc_clk_rate();
- 		break;
- 	case OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
- 		dsidev = dsi_get_dsidev_from_id(0);
-@@ -3002,7 +3002,7 @@ unsigned long dispc_mgr_lclk_rate(enum omap_channel channel)
+ 	int irq;
+-	struct clk *dss_clk;
  
- 		switch (dss_get_lcd_clk_source(channel)) {
- 		case OMAP_DSS_CLK_SRC_FCK:
--			r = clk_get_rate(dispc.dss_clk);
-+			r = dss_get_dispc_clk_rate();
- 			break;
- 		case OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
- 			dsidev = dsi_get_dsidev_from_id(0);
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 833f162..054c2a2 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -77,6 +77,7 @@ static struct {
+ 	u32 fifo_size[DISPC_MAX_NR_FIFOS];
+ 	/* maps which plane is using a fifo. fifo-id -> plane-id */
+@@ -3619,7 +3618,6 @@ static int __init omap_dispchw_probe(struct platform_device *pdev)
+ 	u32 rev;
+ 	int r = 0;
+ 	struct resource *dispc_mem;
+-	struct clk *clk;
  
- 	struct clk	*dpll4_m4_ck;
- 	struct clk	*dss_clk;
-+	unsigned long	dss_clk_rate;
+ 	dispc.pdev = pdev;
  
- 	unsigned long	cache_req_pck;
- 	unsigned long	cache_prate;
-@@ -489,6 +490,10 @@ int dss_set_clock_div(struct dss_clock_info *cinfo)
- 			return -EINVAL;
+@@ -3646,15 +3644,6 @@ static int __init omap_dispchw_probe(struct platform_device *pdev)
+ 		return -ENODEV;
  	}
  
-+	dss.dss_clk_rate = clk_get_rate(dss.dss_clk);
-+
-+	WARN_ONCE(dss.dss_clk_rate != cinfo->fck, "clk rate mismatch");
-+
- 	DSSDBG("fck = %ld (%d)\n", cinfo->fck, cinfo->fck_div);
+-	clk = clk_get(&pdev->dev, "fck");
+-	if (IS_ERR(clk)) {
+-		DSSERR("can't get fck\n");
+-		r = PTR_ERR(clk);
+-		return r;
+-	}
+-
+-	dispc.dss_clk = clk;
+-
+ 	pm_runtime_enable(&pdev->dev);
  
- 	return 0;
-@@ -502,6 +507,11 @@ unsigned long dss_get_dpll4_rate(void)
- 		return 0;
+ 	r = dispc_runtime_get();
+@@ -3675,7 +3664,6 @@ static int __init omap_dispchw_probe(struct platform_device *pdev)
+ 
+ err_runtime_get:
+ 	pm_runtime_disable(&pdev->dev);
+-	clk_put(dispc.dss_clk);
+ 	return r;
  }
  
-+unsigned long dss_get_dispc_clk_rate(void)
-+{
-+	return dss.dss_clk_rate;
-+}
-+
- static int dss_setup_default_clock(void)
+@@ -3683,8 +3671,6 @@ static int __exit omap_dispchw_remove(struct platform_device *pdev)
  {
- 	unsigned long max_dss_fck, prate;
-@@ -953,6 +963,8 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
- 	if (r)
- 		goto err_runtime_get;
+ 	pm_runtime_disable(&pdev->dev);
  
-+	dss.dss_clk_rate = clk_get_rate(dss.dss_clk);
-+
- 	/* Select DPLL */
- 	REG_FLD_MOD(DSS_CONTROL, 0, 0, 0);
+-	clk_put(dispc.dss_clk);
+-
+ 	return 0;
+ }
  
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index ebe9e08..610c8e5 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -237,6 +237,7 @@ void dss_overlay_kobj_uninit(struct omap_overlay *ovl);
- int dss_init_platform_driver(void) __init;
- void dss_uninit_platform_driver(void);
- 
-+unsigned long dss_get_dispc_clk_rate(void);
- int dss_dpi_select_source(enum omap_channel channel);
- void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select);
- enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void);
 -- 
 1.7.10.4
 
