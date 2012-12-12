@@ -1,184 +1,558 @@
-From: =?UTF-8?Q?Adrien_Ferr=C3=A9?= <ferre.adrien-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/1] Fix sprz319 erratum 2.1
-Date: Wed, 12 Dec 2012 03:19:26 -0800 (PST)
-Message-ID: <8f4f87ed-61f7-44ee-9c74-0f57e0f6a930@googlegroups.com>
-References: <4F4289C2.90707@kynesim.co.uk>
- <alpine.DEB.2.00.1202241419580.23504@utopia.booyaka.com>
-Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH] OMAP: add pwm driver using dmtimers.
+Date: Wed, 12 Dec 2012 12:31:45 +0100
+Message-ID: <20121212113145.GA23598@avionic-0098.adnet.avionic-design.de>
+References: <20121212192430.50cea126@notabene.brown>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_75_9961818.1355311166091"
-Return-path: <beagleboard+bncBDB75T4YUEIBBPWQUGDAKGQEZTVAOVQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.00.1202241419580.23504-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-List-Post: <http://groups.google.com/group/beagleboard/post?hl=en>, <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <http://groups.google.com/support/?hl=en>, <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <http://groups.google.com/group/beagleboard?hl=en>
-Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-List-Subscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en>, <mailto:beagleboard+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <http://groups.google.com/group/beagleboard/subscribe?hl=en>,
- <mailto:googlegroups-manage+1035534660134+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Cc: Richard Watts <rrw-XQiHveOWqdgqdlJmJB21zg@public.gmane.org>, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.orgpaul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121212192430.50cea126@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Grant Erickson <marathon96@gmail.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-------=_Part_75_9961818.1355311166091
-Content-Type: text/plain; charset=ISO-8859-1
+
+--x+6KMIRAuhnl3hBn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi
+On Wed, Dec 12, 2012 at 07:24:30PM +1100, NeilBrown wrote:
+>=20
+>=20
+> This patch is based on an earlier patch by Grant Erickson
+> which provided pwm devices using the 'legacy' interface.
+>=20
+> This driver instead uses the new framework interface.
 
-We are facing this kind of issue on several beaglexm and panda es. We are=
-=20
-currently seting up a test case which is:
+I'd prefer some kind of description about the driver here. Also the
+subject should be something like:
 
-Heavy network traffic:
+	pwm: Add OMAP support using dual-mode timers
 
-A ftp server on the LAN serving one file to all boards.
-All boards download the file, remove it, redownload it, ...
+or
 
-Heavy usb traffic:
+	pwm: omap: Add PWM support using dual-mode timers
 
-We have to USB-Serial adapters wired together at 115200 with RTS/CTS=20
-enabled and serving a file to each other simultaneously.
+I take this description to mean that OMAP doesn't have dedicated PWM
+hardware? Otherwise it might be bad to call this pwm-omap.
 
-We'll run the tests for a few days and I'll give the results here.
+Also please use all-caps when referring to PWM devices in prose. A few
+other comments inline below.
 
-OCS: do you have results to provide for your tests please?
+> Cc: Grant Erickson <marathon96@gmail.com>
+> Signed-off-by: NeilBrown <neilb@suse.de>
+>=20
+> diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+> index ed81720..7df573a 100644
+> --- a/drivers/pwm/Kconfig
+> +++ b/drivers/pwm/Kconfig
+> @@ -85,6 +85,15 @@ config PWM_MXS
+>  	  To compile this driver as a module, choose M here: the module
+>  	  will be called pwm-mxs.
+> =20
+> +config PWM_OMAP
+> +	tristate "OMAP pwm support"
 
-Le vendredi 24 f=E9vrier 2012 23:13:57 UTC+1, Paul Walmsley a =E9crit :
->
-> cc'ing beagleboard list, Kevin
->
-> Hi Richard,
->
-> thanks for the patch.  A quick question for you or anyone else who is=20
-> experiencing this problem.
->
-> On Mon, 20 Feb 2012, Richard Watts wrote:
->
-> > There is an erratum in DM3730 which results in the
-> > EHCI USB PLL (DPLL5) not updating sufficiently frequently; this
-> > leads to USB PHY clock drift and once the clock has drifted far
-> > enough, the PHY's ULPI interface stops responding and USB
-> > drops out. This is manifested on a Beagle xM by having the attached
-> > SMSC9514 report 'Cannot enable port 2. Maybe the USB cable is bad?'
-> > or similar.
-> >=20
-> > The fix is to carefully adjust your DPLL5 settings so as to
-> > keep the PHY clock as close as possible to 120MHz over the long
-> > term; TI SPRZ319e gives a table of such settings and this patch
-> > applies that table to systems with a 13MHz or a 26MHz clock,
-> > thus fixing the issue (inasfar as it can be fixed) on Beagle xM
-> > and Overo Firestorm.
-> >=20
-> > Signed-off-by: Richard Watts <r...-XQiHveOWqdgqdlJmJB21zg@public.gmane.org <javascript:>>
->
-> Funny, I just had a conversation with Kevin Hilman about needing to put=
-=20
-> the DPLL rate rounding code back in for the OPP tables.  This looks like=
-=20
-> another reason why...
->
-> Could you, or anyone else who is experiencing this problem on a board wit=
-h=20
-> a 26MHz oscillator try a quick test for me?  I'm a little curious about=
-=20
-> the (M, N) of (443, 12) that SPRZ319E is recommending.  Could you see if=
-=20
-> your USB problems are also solved by using (480, 13) ?
->
-> ...
->
-> Here's the rationale.  Walking through the estimates here based on=20
-> SPRZ319E, (443, 12) results in a frequency error of -166,667 Hz at the VC=
-O=20
-> output.  This is 174 ppm below the desired target rate of 960MHz.  But=20
-> (480, 13) results in no frequency error.
->
-> The downside of using (480, 13) is that the PLL update interval increases=
-=20
-> from 461 ns to 500 ns (+9%).  But if the long-term drift of the DPLL is=
-=20
-> downward, then starting at a -174 ppm error has removed 35% of the total=
-=20
-> margin (+/- 500 ppm).  This might be too na=EFve, but a downward drift,=
-=20
-> seems likely given that gate delay increases as temperature increases.
->
-> Mainline is currently using (120, 13) which results in a VCO output=20
-> frequency of 240MHz -- this presumably results in increased phase noise=
-=20
-> compared to (443, 12) and (480, 13) per SPRZ319E. =20
->
->
-> - Paul
->
->
+"OMAP PWM support"
 
---=20
-For more options, visit http://beagleboard.org/discuss
+> diff --git a/drivers/pwm/pwm-omap.c b/drivers/pwm/pwm-omap.c
+[...]
+> + *    The 'id' number for the device encodes the number of the dm timer
+> + *    to use, and the polarity of the output.
+> + *    lsb is '1' of active-high, and '0' for active low
+> + *    remaining bit a timer number and need to be shifted down before us=
+e.
 
+I don't know if this is such a good idea. Usually you number platform
+devices sequentially, while this would leave gaps in the numbering. I
+know that adding platform data may sound a bit like overkill, but I
+really think the added clarity and consistency is worth it.
 
+> +#define pr_fmt(fmt) "pwm-omap: " fmt
 
-------=_Part_75_9961818.1355311166091
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+You don't seem to be using any of the pr_*() logging functions, so this
+isn't needed.
 
-Hi<div><br></div><div>We are facing this kind of issue on several beaglexm =
-and panda es. We are currently seting up a test case which is:</div><div><b=
-r></div><div>Heavy network traffic:</div><div><br></div><div>A ftp server o=
-n the LAN serving one file to all boards.</div><div>All boards download the=
- file, remove it, redownload it, ...<br></div><div><br></div><div>Heavy usb=
- traffic:</div><div><br></div><div>We have to USB-Serial adapters wired tog=
-ether at 115200 with RTS/CTS enabled and serving a file to each other simul=
-taneously.<br><br>We'll run the tests for a few days and I'll give the resu=
-lts here.<br><br>OCS: do you have results to provide for your tests please?=
-<br><br>Le vendredi 24 f=E9vrier 2012 23:13:57 UTC+1, Paul Walmsley a =E9cr=
-it&nbsp;:<blockquote class=3D"gmail_quote" style=3D"margin: 0;margin-left: =
-0.8ex;border-left: 1px #ccc solid;padding-left: 1ex;">cc'ing beagleboard li=
-st, Kevin<p>Hi Richard,</p><p>thanks for the patch. &nbsp;A quick question =
-for you or anyone else who is <br>experiencing this problem.</p><p>On Mon, =
-20 Feb 2012, Richard Watts wrote:</p><p>&gt; There is an erratum in DM3730 =
-which results in the<br>&gt; EHCI USB PLL (DPLL5) not updating sufficiently=
- frequently; this<br>&gt; leads to USB PHY clock drift and once the clock h=
-as drifted far<br>&gt; enough, the PHY's ULPI interface stops responding an=
-d USB<br>&gt; drops out. This is manifested on a Beagle xM by having the at=
-tached<br>&gt; SMSC9514 report 'Cannot enable port 2. Maybe the USB cable i=
-s bad?'<br>&gt; or similar.<br>&gt; <br>&gt; The fix is to carefully adjust=
- your DPLL5 settings so as to<br>&gt; keep the PHY clock as close as possib=
-le to 120MHz over the long<br>&gt; term; TI SPRZ319e gives a table of such =
-settings and this patch<br>&gt; applies that table to systems with a 13MHz =
-or a 26MHz clock,<br>&gt; thus fixing the issue (inasfar as it can be fixed=
-) on Beagle xM<br>&gt; and Overo Firestorm.<br>&gt; <br>&gt; Signed-off-by:=
- Richard Watts &lt;<a href=3D"javascript:" target=3D"_blank" gdf-obfuscated=
--mailto=3D"RoRpyZE_7dIJ">r...-XQiHveOWqdgqdlJmJB21zg@public.gmane.org</a>&gt;</p><p>Funny, I just had=
- a conversation with Kevin Hilman about needing to put <br>the DPLL rate ro=
-unding code back in for the OPP tables. &nbsp;This looks like <br>another r=
-eason why...</p><p>Could you, or anyone else who is experiencing this probl=
-em on a board with <br>a 26MHz oscillator try a quick test for me? &nbsp;I'=
-m a little curious about <br>the (M, N) of (443, 12) that SPRZ319E is recom=
-mending. &nbsp;Could you see if <br>your USB problems are also solved by us=
-ing (480, 13) ?</p><p>...</p><p>Here's the rationale. &nbsp;Walking through=
- the estimates here based on <br>SPRZ319E, (443, 12) results in a frequency=
- error of -166,667 Hz at the VCO <br>output. &nbsp;This is 174 ppm below th=
-e desired target rate of 960MHz. &nbsp;But <br>(480, 13) results in no freq=
-uency error.</p><p>The downside of using (480, 13) is that the PLL update i=
-nterval increases <br>from 461 ns to 500 ns (+9%). &nbsp;But if the long-te=
-rm drift of the DPLL is <br>downward, then starting at a -174 ppm error has=
- removed 35% of the total <br>margin (+/- 500 ppm). &nbsp;This might be too=
- na=EFve, but a downward drift, <br>seems likely given that gate delay incr=
-eases as temperature increases.</p><p>Mainline is currently using (120, 13)=
- which results in a VCO output <br>frequency of 240MHz -- this presumably r=
-esults in increased phase noise <br>compared to (443, 12) and (480, 13) per=
- SPRZ319E. &nbsp;</p><p><br>- Paul</p><p></p><p></p><p></p><p></p><p></p><p=
-></p><p></p><p></p><p></p><p></p></blockquote></div>
+> +#include <linux/export.h>
+> +#include <linux/kernel.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/err.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +#include <linux/pwm.h>
+> +#include <linux/module.h>
+> +
+> +#include <plat/dmtimer.h>
+> +
+> +#define DM_TIMER_LOAD_MIN		0xFFFFFFFE
+> +
+> +struct omap_chip {
+> +	struct platform_device	*pdev;
 
-<p></p>
+I don't see this field being used anywhere.
 
--- <br />
-For more options, visit <a href=3D"http://beagleboard.org/discuss">http://b=
-eagleboard.org/discuss</a><br />
-&nbsp;<br />
-&nbsp;<br />
+> +	struct omap_dm_timer	*dm_timer;
+> +	unsigned int		polarity;
 
-------=_Part_75_9961818.1355311166091--
+The PWM subsystem already has enum pwm_polarity for this.
+
+> +	const char		*label;
+
+This isn't used anywhere either.
+
+> +
+> +	unsigned int		duty_ns, period_ns;
+> +	struct pwm_chip		chip;
+> +};
+> +
+> +#define to_omap_chip(chip)	container_of(chip, struct omap_chip, chip)
+> +
+> +#define	pwm_dbg(_pwm, msg...) dev_dbg(&(_pwm)->pdev->dev, msg)
+
+This is never used.
+
+> +
+> +/**
+> + * pwm_calc_value - determines the counter value for a clock rate and pe=
+riod.
+
+Nit: You should either start the sentence with a capital or not
+terminate it with a full stop.
+
+> + * @clk_rate: The clock rate, in Hz, of the PWM's clock source to comput=
+e the
+> + *            counter value for.
+> + * @ns: The period, in nanoseconds, to computer the counter value for.
+
+"compute"
+
+> + *
+> + * Returns the PWM counter value for the specified clock rate and period.
+> + */
+> +static inline int pwm_calc_value(unsigned long clk_rate, int ns)
+> +{
+> +	const unsigned long nanoseconds_per_second =3D 1000000000;
+
+Maybe use NSEC_PER_SEC instead?
+
+> +	int cycles;
+> +	__u64 c;
+
+I think for in-kernel use, the custom is to stick with simply u64.
+
+> +
+> +	c =3D (__u64)clk_rate * ns;
+> +	do_div(c, nanoseconds_per_second);
+> +	cycles =3D c;
+> +
+> +	return DM_TIMER_LOAD_MIN - cycles;
+
+Can't you just do "DM_TIMER_LOAD_MIN - c" and get rid of the cycles
+variable altogether?
+
+> +static int omap_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+> +{
+> +	struct omap_chip *omap =3D to_omap_chip(chip);
+> +	int status =3D 0;
+> +
+> +	/* Enable the counter--always--before attempting to write its
+> +	 * registers and then set the timer to its minimum load value to
+> +	 * ensure we get an overflow event right away once we start it.
+> +	 */
+
+Block comments should be in the following format:
+
+	/*
+	 * foo...
+	 * bar...
+	 */
+
+> +
+> +	omap_dm_timer_enable(omap->dm_timer);
+> +	omap_dm_timer_write_counter(omap->dm_timer, DM_TIMER_LOAD_MIN);
+> +	omap_dm_timer_start(omap->dm_timer);
+> +	omap_dm_timer_disable(omap->dm_timer);
+
+So omap_dm_timer_disable() doesn't actually stop the timer? It just
+disables the access to the registers?
+
+> +	return status;
+
+"return 0;" and drop the status variable.
+
+> +static int omap_pwm_config(struct pwm_chip *chip, struct pwm_device *pwm,
+> +			   int duty_ns, int period_ns)
+> +{
+> +	struct omap_chip *omap =3D to_omap_chip(chip);
+> +	int status =3D 0;
+
+This one can be dropped as well.
+
+> +	const bool enable =3D true;
+> +	const bool autoreload =3D true;
+> +	const bool toggle =3D true;
+> +	const int trigger =3D OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE;
+
+I understand that these extra variables are supposed to "document" the
+parameters of the functions below. I'm not a huge fan of this approach
+because instead the API would better be designed to make it obvious what
+the parameters are. Or people can just look at the prototypes to find
+out the meaning. But if you really prefer this way I won't object.
+
+> +	int load_value, match_value;
+> +	unsigned long clk_rate;
+> +
+> +	dev_dbg(chip->dev,
+> +		"duty cycle: %d, period %d\n",
+> +		duty_ns, period_ns);
+
+This all fits on a single line, so no need to break it up.
+
+> +
+> +	if (omap->duty_ns =3D=3D duty_ns &&
+> +	    omap->period_ns =3D=3D period_ns)
+> +		/* No change - don't cause any transients */
+> +		return 0;
+
+Note to self: this might be a candidate to put in the core.
+
+> +	clk_rate =3D clk_get_rate(omap_dm_timer_get_fclk(omap->dm_timer));
+> +
+> +	/* Calculate the appropriate load and match values based on the
+> +	 * specified period and duty cycle. The load value determines the
+> +	 * cycle time and the match value determines the duty cycle.
+> +	 */
+
+Again wrong block comment style.
+
+> +
+> +	load_value =3D pwm_calc_value(clk_rate, period_ns);
+> +	match_value =3D pwm_calc_value(clk_rate, period_ns - duty_ns);
+> +
+> +	/* We MUST enable yet stop the associated dual-mode timer before
+> +	 * attempting to write its registers.  Hopefully it is already
+> +	 * disabled, but call the (idempotent) pwm_disable just in case
+> +	 */
+
+And here as well. While at it you might want to terminate the last
+sentence with a full stop.
+
+> +	pwm_disable(pwm);
+> +
+> +	omap_dm_timer_enable(omap->dm_timer);
+> +
+> +	omap_dm_timer_set_load(omap->dm_timer, autoreload, load_value);
+> +	omap_dm_timer_set_match(omap->dm_timer, enable, match_value);
+> +
+> +	dev_dbg(chip->dev,
+> +			"load value: %#08x (%d), "
+> +			"match value: %#08x (%d)\n",
+> +			load_value, load_value,
+> +			match_value, match_value);
+
+Again this doesn't need so much wrapping.
+
+> +
+> +	omap_dm_timer_set_pwm(omap->dm_timer,
+> +			      !omap->polarity,
+> +			      toggle,
+> +			      trigger);
+
+This doesn't either. Also you should be explicit about the polarity
+parameter, since enum pwm_polarity is an enum and therefore negating it
+isn't very nice (it should work though).
+
+You could solve this by doing something like:
+
+	if (omap->polarity =3D=3D PWM_POLARITY_NORMAL)
+		polarity =3D 1;
+	else
+		polarity =3D 0;
+
+> +	/* Set the counter to generate an overflow event immediately. */
+> +
+> +	omap_dm_timer_write_counter(omap->dm_timer, DM_TIMER_LOAD_MIN);
+> +
+> +	/* Now that we're done configuring the dual-mode timer, disable it
+> +	 * again. We'll enable and start it later, when requested.
+> +	 */
+
+Also wrong style.
+
+> +	omap_dm_timer_disable(omap->dm_timer);
+> +	omap->duty_ns =3D duty_ns;
+> +	omap->period_ns =3D period_ns;
+> +
+> +	return status;
+
+"return 0;"
+
+> +}
+> +
+> +
+
+Gratuitous newline.
+
+> +static struct pwm_ops omap_pwm_ops =3D {
+
+Should be "static const".
+
+> +	.enable	=3D omap_pwm_enable,
+> +	.disable=3D omap_pwm_disable,
+
+There should be a space between .disable and =3D.
+
+> +	.config	=3D omap_pwm_config,
+> +	.owner	=3D THIS_MODULE,
+> +};
+> +
+> +/**
+> + * omap_pwm_probe - check for the PWM and bind it to the driver.
+> + * @pdev: A pointer to the platform device node associated with the
+> + *        PWM instance to be probed for driver binding.
+> + *
+> + * Returns 0 if the PWM instance was successfully bound to the driver;
+> + * otherwise, < 0 on error.
+> + */
+
+I'm not sure how useful this kerneldoc comment really is. It isn't about
+an exported function and developers usually know what the .probe() does.
+
+> +static int __devinit omap_pwm_probe(struct platform_device *pdev)
+
+No more __devinit, please.
+
+> +{
+> +	struct device *dev =3D &pdev->dev;
+> +	struct omap_chip *omap;
+> +	int status =3D 0;
+> +	unsigned int id =3D pdev->id;
+> +	unsigned int timer =3D id >> 1; /* lsb is polarity */
+
+I've said this before, I don't think it's a good idea.
+
+> +
+> +	omap =3D kzalloc(sizeof(struct pwm_device), GFP_KERNEL);
+> +
+
+Gratuituous newline.
+
+> +	if (omap =3D=3D NULL) {
+> +		dev_err(dev, "Could not allocate memory.\n");
+> +		status =3D -ENOMEM;
+> +		goto done;
+> +	}
+> +
+> +	/* Request the OMAP dual-mode timer that will be bound to and
+> +	 * associated with this generic PWM.
+> +	 */
+
+Block comment style again.
+
+> +
+> +	omap->dm_timer =3D omap_dm_timer_request_specific(timer);
+> +
+
+Gratuitous newline.
+
+> +	if (omap->dm_timer =3D=3D NULL) {
+> +		status =3D -EPROBE_DEFER;
+> +		goto err_free;
+> +	}
+> +
+> +	/* Configure the source for the dual-mode timer backing this
+> +	 * generic PWM device. The clock source will ultimately determine
+> +	 * how small or large the PWM frequency can be.
+> +	 *
+> +	 * At some point, it's probably worth revisiting moving this to
+> +	 * the configure method and choosing either the slow- or
+> +	 * system-clock source as appropriate for the desired PWM period.
+> +	 */
+
+And again.
+
+> +
+> +	omap_dm_timer_set_source(omap->dm_timer, OMAP_TIMER_SRC_SYS_CLK);
+> +
+> +	/* Cache away other miscellaneous driver-private data and state
+> +	 * information and add the driver-private data to the platform
+> +	 * device.
+> +	 */
+
+And again. =3D)
+
+> +
+> +	omap->chip.dev =3D dev;
+> +	omap->chip.ops =3D &omap_pwm_ops;
+> +	omap->chip.base =3D -1;
+> +	omap->chip.npwm =3D 1;
+> +	omap->polarity =3D id & 1;
+> +
+> +	status =3D pwmchip_add(&omap->chip);
+> +	if (status < 0) {
+> +		dev_err(dev, "failed to register pwm\n");
+> +		omap_dm_timer_free(omap->dm_timer);
+> +		goto err_free;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, omap);
+> +
+> +	status =3D 0;
+> +	goto done;
+
+This can just be "return 0;".
+
+> +
+> + err_free:
+> +	kfree(omap);
+> + done:
+> +	return status;
+> +}
+> +
+> +/**
+> + * omap_pwm_remove - unbind the specified PWM platform device from the d=
+river.
+> + * @pdev: A pointer to the platform device node associated with the
+> + *        PWM instance to be unbound/removed.
+> + *
+> + * Returns 0 if the PWM was successfully removed as a platform device;
+> + * otherwise, < 0 on error.
+> + */
+> +static int __devexit omap_pwm_remove(struct platform_device *pdev)
+
+No __devexit, please.
+
+> +{
+> +	struct omap_chip *omap =3D platform_get_drvdata(pdev);
+> +	int status =3D 0;
+
+Just drop this.
+
+> +
+> +	status =3D pwmchip_remove(&omap->chip);
+> +	if (status < 0)
+> +		goto done;
+
+"return status;"
+
+> +
+> +	omap_dm_timer_free(omap->dm_timer);
+> +
+> +	kfree(omap);
+> +
+> + done:
+> +	return status;
+
+Just "return 0;". No label required.
+
+> +}
+> +
+> +#if CONFIG_PM
+> +static int omap_pwm_suspend(struct platform_device *pdev, pm_message_t s=
+tate)
+> +{
+> +	struct omap_chip *omap =3D platform_get_drvdata(pdev);
+> +	/* No one preserve these values during suspend so reset them
+> +	 * Otherwise driver leaves PWM unconfigured if same values
+> +	 * passed to pwm_config
+> +	 */
+> +	omap->period_ns =3D 0;
+> +	omap->duty_ns =3D 0;
+> +
+> +	return 0;
+> +}
+> +#else
+> +#define omap_pwm_suspend	NULL
+> +#endif
+
+This doesn't look right. You should implement .resume() if you really
+care, in which case the resume callback would have to reconfigure with
+the cached values. In that case maybe you should switch to dev_pm_ops
+and SIMPLE_DEV_PM_OPS() as well.
+
+If you don't, just resetting these values will not make the PWM work
+properly after resume either since it will have to be explicitly
+reconfigured.
+
+> +static struct platform_driver omap_pwm_driver =3D {
+> +	.driver.name	=3D "omap-pwm",
+> +	.driver.owner	=3D THIS_MODULE,
+
+The more idiomatic way of writing this is:
+
+	.driver =3D {
+		.name =3D "omap-pwm",
+		.owner =3D THIS_MODULE,
+	},
+
+> +	.probe		=3D omap_pwm_probe,
+> +	.remove		=3D __devexit_p(omap_pwm_remove),
+
+No __devexit_p anymore.
+
+> +	.suspend	=3D omap_pwm_suspend,
+> +	.resume		=3D NULL,
+> +};
+> +
+> +static int __init omap_pwm_init(void)
+> +{
+> +	return platform_driver_register(&omap_pwm_driver);
+> +}
+> +
+> +static void __exit omap_pwm_exit(void)
+> +{
+> +	platform_driver_unregister(&omap_pwm_driver);
+> +}
+> +
+> +arch_initcall(omap_pwm_init);
+
+This should probably be module_init() instead. You already return
+-EPROBE_DEFER if the dual-mode timer isn't ready yet so you should bite
+the bullet and get all the dependencies to behave properly as well. New
+code shouldn't be using this kind of dependency handling.
+
+In that case you could also just run module_platform_driver().
+
+Thierry
+
+> +module_exit(omap_pwm_exit);
+> +
+> +MODULE_AUTHOR("Grant Erickson <marathon96@gmail.com>");
+> +MODULE_AUTHOR("NeilBrown <neilb@suse.de>");
+
+Shouldn't this be "Neil Brown"? I noticed you use the concatenated form
+in the email address as well, so maybe that's on purpose?
+
+> +MODULE_LICENSE("GPLv2");
+
+This should be "GPL v2". Maybe MODULE_DESCRIPTION() would be nice too.
+
+Thierry
+
+--x+6KMIRAuhnl3hBn
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQyGshAAoJEN0jrNd/PrOhTmgP/i5F5igXq08vG9PHyUhkI3WX
+/kvWY/tV9UdcaLnjLJl7Do9ZMjk0vaHYldL8YD1MiT7HJpm3G3IijN+UghZnR03D
+468k10ad+OAUez2E9J/XGwk1chc2gXOEiGevAilvlikakuRhbcG7Wlrmc9lxosw7
+reGq9wdwZEIC6IP+f3e+3nbub0MCJ3THin/BExfayhDieTo1uzwWEHfDgAqxpw1F
+iQ9j4Sl06qkBlAhgN9M3bgXG8rQsGEQkNRUu8RuT9Y/9uglRGldAWFHNBveY84GI
+NaZ7TPE9PwgT08Ee4el8kOFSxLRs9HU9wPsts71KYpIqWj1GcT8EYWb/nosRPN1W
+jA3epyu0A/zRll0PsJ4KN8vGkt4YYyMgNfdfw6ryhqqSd0Cl33E6IuAih2gh8X1Z
+91TmPO6O/TUAZJuFglVBCZzEA6gUNntvSDrlw3P299LGcsvkGXS7Lkpp2/rX334+
+4YZQ+cb2JeOp5jDJm75e8o2hCbeMU6cpYKmt1+D003engCD/F3QXIdqo61sP3MVs
+vSf6V5AKObAO/pP9ltFHa4d85gVkf+0Kk4xJxWP2qoBKy44UvnvjJ3gQJkxV6vIe
+yF8AV0w/8OAQEz+gWEDrXQjd5NoFjiidXLYI0F2cO74Talk5VAKGcdokZr576ZH8
+Tf0X3sTM0RSJoIwackTD
+=Oc4m
+-----END PGP SIGNATURE-----
+
+--x+6KMIRAuhnl3hBn--
