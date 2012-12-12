@@ -1,102 +1,49 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v7 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings
- and NAND
-Date: Wed, 12 Dec 2012 10:13:42 +0100
-Message-ID: <50C84AC6.5030307@gmail.com>
-References: <1354734571-10774-1-git-send-email-zonque@gmail.com> <1354734571-10774-6-git-send-email-zonque@gmail.com> <20121205222232.67B2B3E0E22@localhost> <50BFCBCC.6030706@ti.com> <20121205232426.BAD573E0E22@localhost> <50C0C5AB.3030201@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 01/10] ARM: OMAP3/4: cpuidle: fix sparse and checkpatch
+ warnings
+Date: Wed, 12 Dec 2012 10:28:34 +0100
+Message-ID: <50C84E42.2040402@ti.com>
+References: <20121209011755.19716.25244.stgit@dusk.lan> <20121209012334.19716.44831.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:52037 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751494Ab2LLJNw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Dec 2012 04:13:52 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so177307bkw.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 Dec 2012 01:13:50 -0800 (PST)
-In-Reply-To: <50C0C5AB.3030201@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33900 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751152Ab2LLJ2B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Dec 2012 04:28:01 -0500
+In-Reply-To: <20121209012334.19716.44831.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, paul@pwsan.com, x0148406@ti.com, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, rob.herring@calxeda.com, tony@atomide.com, jacmet@sunsite.dk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-On 06.12.2012 17:19, Jon Hunter wrote:
-> 
-> On 12/05/2012 05:24 PM, Grant Likely wrote:
->> On Wed, 5 Dec 2012 16:33:48 -0600, Jon Hunter <jon-hunter@ti.com> wrote:
->>> Hi Grant,
->>>
->>> On 12/05/2012 04:22 PM, Grant Likely wrote:
->>>> On Wed,  5 Dec 2012 20:09:31 +0100, Daniel Mack <zonque@gmail.com> wrote:
->>>>> This patch adds basic DT bindings for OMAP GPMC.
->>>>>
->>>>> The actual peripherals are instantiated from child nodes within the GPMC
->>>>> node, and the only type of device that is currently supported is NAND.
->>>>>
->>>>> Code was added to parse the generic GPMC timing parameters and some
->>>>> documentation with examples on how to use them.
->>>>>
->>>>> Successfully tested on an AM33xx board.
->>>>>
->>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
->>>>> ---
->>>>>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  77 ++++++++++
->>>>>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  76 +++++++++
->>>>>  arch/arm/mach-omap2/gpmc.c                         | 171 ++++++++++++++++++++-
->>>>>  3 files changed, 323 insertions(+), 1 deletion(-)
->>>>>  create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>>>>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>>>> new file mode 100644
->>>>> index 0000000..7d2a645
->>>>> --- /dev/null
->>>>> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
->>>>> @@ -0,0 +1,77 @@
->>>>> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
->>>>> +
->>>>> +The actual devices are instantiated from the child nodes of a GPMC node.
->>>>> +
->>>>> +Required properties:
->>>>> +
->>>>> + - compatible:		Should be set to "ti,gpmc"
->>>>
->>>> Please, be specific. Use something like "ti,am3340-gpmc" or
->>>> "ti,omap3430-gpmc". The compatible property is a list so that new
->>>> devices can claim compatibility with old. Compatible strings that are
->>>> overly generic are a pet-peave of mine.
->>>
->>> We aim to use the binding for omap2,3,4,5 as well as the am33xx devices
->>> (which are omap based). Would it be sufficient to have "ti,omap2-gpmc"
->>> implying all omap2+ based devices or should we have a compatible string
->>> for each device supported?
->>
->> Are they each register-level compatible with one another?
-> 
-> They are not 100% register compatible. There are a couple fields in the
-> binding that are only applicable to OMAP3+ devices.
-> 
->> The general recommended approach here is to make subsequent silicon
->> claim compatibility with the first compatible implementation.
->>
->> So, for an am3358 board:
->> 	compatible = "ti,am3358-gpmc", "ti,omap2420-gpmc";
->>
->> Essentially, what this means is that "ti,omap2420-gpmc" is the generic
->> value instead of "omap2-gpmc". The reason for this is so that the value
->> is anchored against a specific implementation, and not against something
->> completely imaginary or idealized. If a newer version isn't quite
->> compatible with the omap2420-gpmc, then it can drop the compatible claim
->> and the driver really should be told about the new device.
-> 
-> Ok, gotcha! I will do a register comparison and may be recommend to
-> Daniel which compatible strings we will need.
+On Sunday 09 December 2012 02:23 AM, Paul Walmsley wrote:
+> Fix the following sparse warnings in the OMAP3/4 CPUIdle code:
+>
+> arch/arm/mach-omap2/cpuidle34xx.c:272:1: warning: symbol 'omap3_idle_dev' was not declared. Should it be static?
+> arch/arm/mach-omap2/cpuidle34xx.c:274:23: warning: symbol 'omap3_idle_driver' was not declared. Should it be static?
+> arch/arm/mach-omap2/cpuidle44xx.c:164:1: warning: symbol 'omap4_idle_dev' was not declared. Should it be static?
+> arch/arm/mach-omap2/cpuidle44xx.c:166:23: warning: symbol 'omap4_idle_driver' was not declared. Should it be static?
+>
+> Also fix the following checkpatch warnings:
+>
+> WARNING: please, no space before tabs
+> #44: FILE: arch/arm/mach-omap2/cpuidle34xx.c:105:
+> +^I.name = ^I"omap3_idle",$
+>
+> WARNING: please, no space before tabs
+> #45: FILE: arch/arm/mach-omap2/cpuidle34xx.c:106:
+> +^I.owner = ^ITHIS_MODULE,$
+>
+> ERROR: code indent should use tabs where possible
+> #211: FILE: arch/arm/mach-omap2/cpuidle44xx.c:74:
+> +                        /* C2 - CPU0 OFF + CPU1 OFF + MPU CSWR */$
+>
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> ---
 
-Any idea yet how we want to continue on this? I'm asking because I'm
-leaving for a longer trip by the end of this week, and so anything I
-haven't finished until then will have to be postponed until February or
-be taken over by someone else :)
-
-Thanks,
-Daniel
+Acked-by: Santosh Shilimkar@ti.com
 
