@@ -1,66 +1,45 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH v3 0/3] ARM/dts: omap3: Add DT support for IGEP devices
-Date: Wed, 12 Dec 2012 12:42:25 +0100
-Message-ID: <CAAwP0s3gf16hZi6RVhsi7ee0YW_boPRy9--pukRcKJfMiWFKDg@mail.gmail.com>
-References: <1354538503-22671-1-git-send-email-javier.martinez@collabora.co.uk>
- <CAAwP0s2qXuJzwEh-AVORbPApr6XT0JAfsFjrxKDvXArqYk0qXQ@mail.gmail.com> <50C85850.7010906@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 0/3] gpio: twl4030: Correct status reporting for outputs
+Date: Wed, 12 Dec 2012 11:45:59 +0000
+Message-ID: <CACxGe6uMabhuKAW6P+Zow3NoviM2NyYGjDh+--r9ndEyiSkdAg@mail.gmail.com>
+References: <1354791127-20545-1-git-send-email-peter.ujfalusi@ti.com>
+ <CACRpkdYZcEpN-BJy=3DPAQL+QgR+EyNeyABtAPE96+2hYxOQwQ@mail.gmail.com> <50C86691.60005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50C85850.7010906@ti.com>
+In-Reply-To: <50C86691.60005@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Enrico Butera <ebutera@gmail.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 12, 2012 at 11:11 AM, Benoit Cousson <b-cousson@ti.com> wrote:
-> Hi Javier,
+On Wed, Dec 12, 2012 at 11:12 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> Hi Grant,
 >
-> On 12/12/2012 09:25 AM, Javier Martinez Canillas wrote:
->> On Mon, Dec 3, 2012 at 1:41 PM, Javier Martinez Canillas
->> <javier.martinez@collabora.co.uk> wrote:
->>> IGEP technology devices are TI OMAP3 SoC based industrial embedded
->>> and computer-on-module boards. This patch-set adds initial device
->>> tree support for these devices.
->>>
->>> The device trees allows to boot from an MMC and are working all the
->>> components that already have device tree support on OMAP3 SoCs:
->>>
->>> - MMC/SD
->>> - UARTs
->>> - GPIO LEDs
->>> - TWL4030 codec audio
->>> - pinmux/pinconf pinctrl
->>>
->>> Some peripheral are still not working such as Flash storage and
->>> Ethernet but support for these will also be included once the
->>> OMAP GPMC device tree binding patches land on mainline.
->>>
->>> This is a v3 of the patch-set that solves issues pointed out by
->>> Enric Balletbo and Benoit Cousson.
->>>
->>> The patch-set is composed of the following patches:
->>>
->>> [PATCH v3 1/3] ARM/dts: omap3: Add generic DT support for IGEP devices
->>> [PATCH v3 2/3] ARM/dts: omap3: Add support for IGEPv2 board
->>> [PATCH v3 3/3] ARM/dts: omap3: Add support for IGEP COM Module
->>>
->>> Best regards,
->>> Javier
->>> --
+> On 12/07/2012 09:09 AM, Linus Walleij wrote:
+>> On Thu, Dec 6, 2012 at 11:52 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
 >>
->> Hi Benoit and Tony,
+>>> As Grant commneted on the first version:
+>>> https://lkml.org/lkml/2012/12/5/53
+>>>
+>>> Introduce bitfields to cache the directionand output status of the pins so we
+>>> can report them correctly.
+>>> To do this I did some cleanup within the driver to get rid of the global
+>>> variables and moved them under a private structure, changed the locking as well
+>>> to protect the bitfield operation.
+>>> As a last patch I added a note that the PWMA/B handling should not be in this
+>>> driver at all.
 >>
->> Any comments on these?
+>> This looks good to me:
+>> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+>>
+>> Since Grant was requesting the changes I'll let him decide to merge.
 >
-> Nope, that's fine. I'll applied the series for 3.9.
->
-> Thanks,
-> Benoit
->
->
+> Would you have time to take a look at this set?
 
-Great, thanks a lot for!
+I will take a look at it this week, but I cannot pick it up for v3.8
+unless it is a regression bug fix from v3.6. It will have to wait for
+v3.9 and it can be merged into linux-next after the v3.8 merge window
+closes.
 
-Best regards,
-Javier
+g.
