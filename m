@@ -1,69 +1,453 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
- cache LoUIS operations
-Date: Wed, 12 Dec 2012 10:33:38 +0000
-Message-ID: <20121212103338.GB23022@e102568-lin.cambridge.arm.com>
-References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
- <20120919134658.GA2111@linaro.org>
- <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
- <20120920110439.GB2117@linaro.org>
- <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
- <20121211163313.GG16759@mudshark.cambridge.arm.com>
- <20121211163843.GH16759@mudshark.cambridge.arm.com>
- <50C7C16B.7050106@codeaurora.org>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 06/12] ARM: OMAP44xx: PM: convert to use the functional
+ power states API
+Date: Wed, 12 Dec 2012 11:41:12 +0100
+Message-ID: <CAORVsuWggc03wUK006+mxesgcwtYR7vz8ZCa-Ev54MWOOpbeZQ@mail.gmail.com>
+References: <20121209174545.6933.59371.stgit@dusk.lan>
+	<20121209175313.6933.36300.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <50C7C16B.7050106@codeaurora.org>
-Content-Disposition: inline
-Sender: linux-sh-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Will Deacon <Will.Deacon@arm.com>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f170.google.com ([209.85.223.170]:48950 "EHLO
+	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752238Ab2LLKlM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Dec 2012 05:41:12 -0500
+Received: by mail-ie0-f170.google.com with SMTP id k10so1551256iea.29
+        for <linux-omap@vger.kernel.org>; Wed, 12 Dec 2012 02:41:12 -0800 (PST)
+In-Reply-To: <20121209175313.6933.36300.stgit@dusk.lan>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com>
 
-On Tue, Dec 11, 2012 at 11:27:39PM +0000, Stephen Boyd wrote:
-> On 12/11/12 08:38, Will Deacon wrote:
-> > diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-> > index cd95664..f58248f 100644
-> > --- a/arch/arm/mm/cache-v7.S
-> > +++ b/arch/arm/mm/cache-v7.S
-> > @@ -44,7 +44,8 @@ ENDPROC(v7_flush_icache_all)
-> >  ENTRY(v7_flush_dcache_louis)
-> >         dmb                                     @ ensure ordering with previous memory accesses
-> >         mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
-> > -       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
-> > +       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
-> > +       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
-> >         mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
-> 
-> You need to fix this mov as well, right?
+Paul,
 
-And after doing that I think the suspend finisher will still have
-to call flush_cache_all() since LoUU == 1 on A8, L2 is not cleaned
-and that's probably what we want if it can be retained.
+On Sun, Dec 9, 2012 at 6:53 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> From: Jean Pihet <jean.pihet@newoldbits.com>
+>
+> Use the functional power states as the API to control power
+> domains:
+> - use the PWRDM_FUNC_PWRST_* and PWRDM_LOGIC_MEM_PWRST_*
+>   macros for the power states and logic settings,
+> - the function pwrdm_set_next_fpwrst, which controls
+>   the power domains next power and logic settings, shall
+>   be used instead of pwrdm_set_next_pwrst to program the
+>   power domains next states,
+> - the function pwrdm_set_fpwrst, which programs the power
+>   domains power and logic settings, shall be used instead
+>   of omap_set_pwrdm_state.
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> [paul@pwsan.com: split the original patch into OMAP2/3/4 variants;
+>  warn if sets fail; various other changes]
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/common.h              |    7 +--
+>  arch/arm/mach-omap2/cpuidle44xx.c         |   32 +++++--------
+>  arch/arm/mach-omap2/omap-hotplug.c        |    2 -
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   69 +++++++++++++++++------------
+>  arch/arm/mach-omap2/pm44xx.c              |   42 +++++++++---------
+>  5 files changed, 79 insertions(+), 73 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+> index c57eeea..5ad846a 100644
+> --- a/arch/arm/mach-omap2/common.h
+> +++ b/arch/arm/mach-omap2/common.h
+> @@ -235,14 +235,13 @@ extern void omap5_secondary_startup(void);
+>
+>  #if defined(CONFIG_SMP) && defined(CONFIG_PM)
+>  extern int omap4_mpuss_init(void);
+> -extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
+> +extern int omap4_mpuss_enter_lowpower(unsigned int cpu, u8 fpwrst);
+>  extern int omap4_finish_suspend(unsigned long cpu_state);
+>  extern void omap4_cpu_resume(void);
+> -extern int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state);
+> +extern int omap4_mpuss_hotplug_cpu(unsigned int cpu, u8 fpwrst);
+>  extern u32 omap4_mpuss_read_prev_context_state(void);
+>  #else
+> -static inline int omap4_enter_lowpower(unsigned int cpu,
+> -                                       unsigned int power_state)
+> +static inline int omap4_mpuss_enter_lowpower(unsigned int cpu, u8 fpwrst)
+>  {
+>         cpu_do_idle();
+>         return 0;
+> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+> index d639aef..2cb5332 100644
+> --- a/arch/arm/mach-omap2/cpuidle44xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
+> @@ -25,26 +25,22 @@
+>
+>  /* Machine specific information */
+>  struct omap4_idle_statedata {
+> -       u32 cpu_state;
+> -       u32 mpu_logic_state;
+> -       u32 mpu_state;
+> +       u8 cpu_pwrst;
+> +       u8 mpu_pwrst;
 
-What about this (compile tested) ?
+This should be cpu_fpwrst and mpu_fwprst for consistency.
 
-Lorenzo
+>  };
+>
+>  static struct omap4_idle_statedata omap4_idle_data[] = {
+>         {
+> -               .cpu_state = PWRDM_POWER_ON,
+> -               .mpu_state = PWRDM_POWER_ON,
+> -               .mpu_logic_state = PWRDM_POWER_RET,
+> +               .cpu_pwrst = PWRDM_FUNC_PWRST_ON,
+> +               .mpu_pwrst = PWRDM_FUNC_PWRST_ON,
+>         },
+>         {
+> -               .cpu_state = PWRDM_POWER_OFF,
+> -               .mpu_state = PWRDM_POWER_RET,
+> -               .mpu_logic_state = PWRDM_POWER_RET,
+> +               .cpu_pwrst = PWRDM_FUNC_PWRST_OFF,
+> +               .mpu_pwrst = PWRDM_FUNC_PWRST_CSWR,
+>         },
+>         {
+> -               .cpu_state = PWRDM_POWER_OFF,
+> -               .mpu_state = PWRDM_POWER_RET,
+> -               .mpu_logic_state = PWRDM_POWER_OFF,
+> +               .cpu_pwrst = PWRDM_FUNC_PWRST_OFF,
+> +               .mpu_pwrst = PWRDM_FUNC_PWRST_OSWR,
+>         },
+>  };
+>
+> @@ -93,7 +89,7 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
+>          * out of coherency and in OFF mode.
+>          */
+>         if (dev->cpu == 0 && cpumask_test_cpu(1, cpu_online_mask)) {
+> -               while (pwrdm_read_pwrst(cpu_pd[1]) != PWRDM_POWER_OFF) {
+> +               while (pwrdm_read_fpwrst(cpu_pd[1]) != PWRDM_FUNC_PWRST_OFF) {
+>                         cpu_relax();
+>
+>                         /*
+> @@ -118,19 +114,17 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
+>         cpu_pm_enter();
+>
+>         if (dev->cpu == 0) {
+> -               pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
+> -               omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
+> +               WARN_ON(pwrdm_set_fpwrst(mpu_pd, cx->mpu_pwrst));
+>
+>                 /*
+>                  * Call idle CPU cluster PM enter notifier chain
+>                  * to save GIC and wakeupgen context.
+>                  */
+> -               if ((cx->mpu_state == PWRDM_POWER_RET) &&
+> -                       (cx->mpu_logic_state == PWRDM_POWER_OFF))
+> -                               cpu_cluster_pm_enter();
+> +               if (cx->mpu_pwrst == PWRDM_FUNC_PWRST_OSWR)
+> +                       cpu_cluster_pm_enter();
+>         }
+>
+> -       omap4_enter_lowpower(dev->cpu, cx->cpu_state);
+> +       omap4_mpuss_enter_lowpower(dev->cpu, cx->cpu_pwrst);
+>         cpu_done[dev->cpu] = true;
+>
+>         /* Wakeup CPU1 only if it is not offlined */
+> diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
+> index e712d17..d38b12d 100644
+> --- a/arch/arm/mach-omap2/omap-hotplug.c
+> +++ b/arch/arm/mach-omap2/omap-hotplug.c
+> @@ -53,7 +53,7 @@ void __ref omap4_cpu_die(unsigned int cpu)
+>                 /*
+>                  * Enter into low power state
+>                  */
+> -               omap4_hotplug_cpu(cpu, PWRDM_POWER_OFF);
+> +               omap4_mpuss_hotplug_cpu(cpu, PWRDM_FUNC_PWRST_OFF);
+>
+>                 if (omap_secure_apis_support())
+>                         boot_cpu = omap_read_auxcoreboot0();
+> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> index 80d4742..4dcebda 100644
+> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> @@ -82,31 +82,40 @@ static inline void set_cpu_wakeup_addr(unsigned int cpu_id, u32 addr)
+>  {
+>         struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu_id);
+>
+> +       /*
+> +        * XXX should not be writing directly into another IP block's
+> +        * address space!
+> +        */
+>         __raw_writel(addr, pm_info->wkup_sar_addr);
+>  }
+>
+>  /*
+>   * Store the SCU power status value to scratchpad memory
+>   */
+> -static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_state)
+> +static void scu_pwrst_prepare(unsigned int cpu_id, u8 fpwrst)
+>  {
+>         struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu_id);
+>         u32 scu_pwr_st;
+>
+> -       switch (cpu_state) {
+> -       case PWRDM_POWER_RET:
+> +       switch (fpwrst) {
+> +       case PWRDM_FUNC_PWRST_CSWR:
+> +       case PWRDM_FUNC_PWRST_OSWR: /* XXX is this accurate? */
+>                 scu_pwr_st = SCU_PM_DORMANT;
+>                 break;
+> -       case PWRDM_POWER_OFF:
+> +       case PWRDM_FUNC_PWRST_OFF:
+>                 scu_pwr_st = SCU_PM_POWEROFF;
+>                 break;
+> -       case PWRDM_POWER_ON:
+> -       case PWRDM_POWER_INACTIVE:
+> +       case PWRDM_FUNC_PWRST_ON:
+> +       case PWRDM_FUNC_PWRST_INACTIVE:
+>         default:
+>                 scu_pwr_st = SCU_PM_NORMAL;
+>                 break;
+>         }
+>
+> +       /*
+> +        * XXX should not be writing directly into another IP block's
+> +        * address space!
+> +        */
+>         __raw_writel(scu_pwr_st, pm_info->scu_sar_addr);
+>  }
+>
+> @@ -159,6 +168,10 @@ static void l2x0_pwrst_prepare(unsigned int cpu_id, unsigned int save_state)
+>  {
+>         struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu_id);
+>
+> +       /*
+> +        * XXX should not be writing directly into another IP block's
+> +        * address space!
+> +        */
+>         __raw_writel(save_state, pm_info->l2x0_sar_addr);
+>  }
+>
+> @@ -183,11 +196,11 @@ static void save_l2x0_context(void)
+>  #endif
+>
+>  /**
+> - * omap4_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
+> + * omap4_mpuss_enter_lowpower: OMAP4 MPUSS Low Power Entry Function
+>   * The purpose of this function is to manage low power programming
+>   * of OMAP4 MPUSS subsystem
+>   * @cpu : CPU ID
+> - * @power_state: Low power state.
+> + * @fpwrst: functional powerstate for the MPUSS to enter
+>   *
+>   * MPUSS states for the context save:
+>   * save_state =
+> @@ -196,7 +209,7 @@ static void save_l2x0_context(void)
+>   *     2 - CPUx L1 and logic lost + GIC lost: MPUSS OSWR
+>   *     3 - CPUx L1 and logic lost + GIC + L2 lost: DEVICE OFF
+>   */
+> -int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+> +int omap4_mpuss_enter_lowpower(unsigned int cpu, u8 fpwrst)
+>  {
+>         struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
+>         unsigned int save_state = 0;
+> @@ -205,15 +218,16 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>         if (omap_rev() == OMAP4430_REV_ES1_0)
+>                 return -ENXIO;
+>
+> -       switch (power_state) {
+> -       case PWRDM_POWER_ON:
+> -       case PWRDM_POWER_INACTIVE:
+> +       switch (fpwrst) {
+> +       case PWRDM_FUNC_PWRST_ON:
+> +       case PWRDM_FUNC_PWRST_INACTIVE:
+>                 save_state = 0;
+>                 break;
+> -       case PWRDM_POWER_OFF:
+> +       case PWRDM_FUNC_PWRST_OFF:
+>                 save_state = 1;
+>                 break;
+> -       case PWRDM_POWER_RET:
+> +       case PWRDM_FUNC_PWRST_CSWR:
+> +       case PWRDM_FUNC_PWRST_OSWR:
+>         default:
+>                 /*
+>                  * CPUx CSWR is invalid hardware state. Also CPUx OSWR
+> @@ -229,17 +243,16 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>
+>         /*
+>          * Check MPUSS next state and save interrupt controller if needed.
+> -        * In MPUSS OSWR or device OFF, interrupt controller  contest is lost.
+> +        * In MPUSS OSWR or device OFF, interrupt controller context is lost.
+>          */
+>         mpuss_clear_prev_logic_pwrst();
+> -       if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
+> -               (pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF))
+> +       if (pwrdm_read_next_fpwrst(mpuss_pd) == PWRDM_FUNC_PWRST_OSWR)
+>                 save_state = 2;
+>
+>         cpu_clear_prev_logic_pwrst(cpu);
+> -       pwrdm_set_next_pwrst(pm_info->pwrdm, power_state);
+> +       WARN_ON(pwrdm_set_next_fpwrst(pm_info->pwrdm, fpwrst));
+>         set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
+> -       scu_pwrst_prepare(cpu, power_state);
+> +       scu_pwrst_prepare(cpu, fpwrst);
+>         l2x0_pwrst_prepare(cpu, save_state);
+>
+>         /*
+> @@ -255,7 +268,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>          * domain transition
+>          */
+>         wakeup_cpu = smp_processor_id();
+> -       pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
+> +       WARN_ON(pwrdm_set_next_fpwrst(pm_info->pwrdm, PWRDM_FUNC_PWRST_ON));
+>
+>         pwrdm_post_transition(NULL);
+>
+> @@ -265,9 +278,9 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>  /**
+>   * omap4_hotplug_cpu: OMAP4 CPU hotplug entry
+>   * @cpu : CPU ID
+> - * @power_state: CPU low power state.
+> + * @fpwrst: functional power state to program the CPU powerdomain to enter
+>   */
+> -int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+> +int __cpuinit omap4_mpuss_hotplug_cpu(unsigned int cpu, u8 fpwrst)
+>  {
+>         struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
+>         unsigned int cpu_state = 0;
+> @@ -275,13 +288,13 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+>         if (omap_rev() == OMAP4430_REV_ES1_0)
+>                 return -ENXIO;
+>
+> -       if (power_state == PWRDM_POWER_OFF)
+> +       if (fpwrst == PWRDM_FUNC_PWRST_OFF || fpwrst == PWRDM_FUNC_PWRST_OSWR)
+>                 cpu_state = 1;
+>
+>         pwrdm_clear_all_prev_pwrst(pm_info->pwrdm);
+> -       pwrdm_set_next_pwrst(pm_info->pwrdm, power_state);
+> +       WARN_ON(pwrdm_set_next_fpwrst(pm_info->pwrdm, fpwrst));
+>         set_cpu_wakeup_addr(cpu, virt_to_phys(omap_secondary_startup));
+> -       scu_pwrst_prepare(cpu, power_state);
+> +       scu_pwrst_prepare(cpu, fpwrst);
+>
+>         /*
+>          * CPU never retuns back if targeted power state is OFF mode.
+> @@ -290,7 +303,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
+>          */
+>         omap4_finish_suspend(cpu_state);
+>
+> -       pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
+> +       WARN_ON(pwrdm_set_next_fpwrst(pm_info->pwrdm, PWRDM_FUNC_PWRST_ON));
+>         return 0;
+>  }
+>
+> @@ -325,7 +338,7 @@ int __init omap4_mpuss_init(void)
+>         cpu_clear_prev_logic_pwrst(0);
+>
+>         /* Initialise CPU0 power domain state to ON */
+> -       pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
+> +       WARN_ON(pwrdm_set_next_fpwrst(pm_info->pwrdm, PWRDM_FUNC_PWRST_ON));
+>
+>         pm_info = &per_cpu(omap4_pm_info, 0x1);
+>         pm_info->scu_sar_addr = sar_base + SCU_OFFSET1;
+> @@ -342,7 +355,7 @@ int __init omap4_mpuss_init(void)
+>         cpu_clear_prev_logic_pwrst(1);
+>
+>         /* Initialise CPU1 power domain state to ON */
+> -       pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
+> +       WARN_ON(pwrdm_set_next_fpwrst(pm_info->pwrdm, PWRDM_FUNC_PWRST_ON));
+>
+>         mpuss_pd = pwrdm_lookup("mpu_pwrdm");
+>         if (!mpuss_pd) {
+> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+> index 7da75ae..595f84e 100644
+> --- a/arch/arm/mach-omap2/pm44xx.c
+> +++ b/arch/arm/mach-omap2/pm44xx.c
+> @@ -26,10 +26,9 @@
+>
+>  struct power_state {
+>         struct powerdomain *pwrdm;
+> -       u32 next_state;
+> +       u8 next_fpwrst;
+>  #ifdef CONFIG_SUSPEND
+> -       u32 saved_state;
+> -       u32 saved_logic_state;
+> +       u8 saved_fpwrst;
+>  #endif
+>         struct list_head node;
+>  };
+> @@ -40,20 +39,19 @@ static LIST_HEAD(pwrst_list);
+>  static int omap4_pm_suspend(void)
+>  {
+>         struct power_state *pwrst;
+> -       int state, ret = 0;
+> +       int prev_fpwrst;
+> +       int ret = 0;
+>         u32 cpu_id = smp_processor_id();
+>
+> +       /* XXX Seems like these two loops could be combined into one loop? */
+> +
+>         /* Save current powerdomain state */
+> -       list_for_each_entry(pwrst, &pwrst_list, node) {
+> -               pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
+> -               pwrst->saved_logic_state = pwrdm_read_logic_retst(pwrst->pwrdm);
+> -       }
+> +       list_for_each_entry(pwrst, &pwrst_list, node)
+> +               pwrst->saved_fpwrst = pwrdm_read_next_fpwrst(pwrst->pwrdm);
+>
+>         /* Set targeted power domain states by suspend */
+> -       list_for_each_entry(pwrst, &pwrst_list, node) {
+> -               omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+> -               pwrdm_set_logic_retst(pwrst->pwrdm, PWRDM_POWER_OFF);
+> -       }
+> +       list_for_each_entry(pwrst, &pwrst_list, node)
+> +               WARN_ON(pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->next_fpwrst));
+>
+>         /*
+>          * For MPUSS to hit power domain retention(CSWR or OSWR),
+> @@ -64,18 +62,20 @@ static int omap4_pm_suspend(void)
+>          * domain CSWR is not supported by hardware.
+>          * More details can be found in OMAP4430 TRM section 4.3.4.2.
+>          */
+> -       omap4_enter_lowpower(cpu_id, PWRDM_POWER_OFF);
+> +       omap4_mpuss_enter_lowpower(cpu_id, PWRDM_FUNC_PWRST_OFF);
+>
+>         /* Restore next powerdomain state */
+>         list_for_each_entry(pwrst, &pwrst_list, node) {
+> -               state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
+> -               if (state > pwrst->next_state) {
+> -                       pr_info("Powerdomain (%s) didn't enter target state %d\n",
+> -                               pwrst->pwrdm->name, pwrst->next_state);
+> +               prev_fpwrst = pwrdm_read_prev_fpwrst(pwrst->pwrdm);
+> +               /* XXX test below should be != */
+Is a change needed here?
 
---->8
+> +               if (prev_fpwrst > pwrst->next_fpwrst) {
+> +                       pr_info("Powerdomain (%s) didn't enter target state %s - entered state %s instead\n",
+> +                               pwrst->pwrdm->name,
+> +                               pwrdm_convert_fpwrst_to_name(pwrst->next_fpwrst),
+> +                               pwrdm_convert_fpwrst_to_name(prev_fpwrst));
+>                         ret = -1;
+>                 }
+> -               omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
+> -               pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->saved_logic_state);
+> +               WARN_ON(pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->saved_fpwrst));
+>         }
+>         if (ret)
+>                 pr_crit("Could not enter target state in pm_suspend\n");
+> @@ -113,10 +113,10 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+>                 return -ENOMEM;
+>
+>         pwrst->pwrdm = pwrdm;
+> -       pwrst->next_state = PWRDM_POWER_RET;
+> +       pwrst->next_fpwrst = PWRDM_FUNC_PWRST_CSWR;
+>         list_add(&pwrst->node, &pwrst_list);
+>
+> -       return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+> +       return WARN_ON(pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->next_fpwrst));
+>  }
+>
+>  /**
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-index cd95664..036f80f 100644
---- a/arch/arm/mm/cache-v7.S
-+++ b/arch/arm/mm/cache-v7.S
-@@ -44,8 +44,9 @@ ENDPROC(v7_flush_icache_all)
- ENTRY(v7_flush_dcache_louis)
- 	dmb					@ ensure ordering with previous memory accesses
- 	mrc	p15, 1, r0, c0, c0, 1		@ read clidr, r0 = clidr
--	ands	r3, r0, #0xe00000		@ extract LoUIS from clidr
--	mov	r3, r3, lsr #20			@ r3 = LoUIS * 2
-+	ALT_SMP(lsr	r3, r0, #20)		@ r3 = clidr[31:20]
-+	ALT_UP(lsr	r3, r0, #26)		@ r3 = clidr[31:26]
-+	ands	r3, r3, #0xe			@ r3 = LoUIS/LoUU * 2
- 	moveq	pc, lr				@ return if level == 0
- 	mov	r10, #0				@ r10 (starting level) = 0
- 	b	flush_levels			@ start flushing cache levels
-
+Regards,
+Jean
