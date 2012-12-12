@@ -1,79 +1,80 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
- cache LoUIS operations
-Date: Wed, 12 Dec 2012 17:43:45 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.1212121743240.10522@axis700.grange>
-References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
- <20120919134658.GA2111@linaro.org> <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
- <20120920110439.GB2117@linaro.org> <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
- <20121211163313.GG16759@mudshark.cambridge.arm.com>
- <20121211163843.GH16759@mudshark.cambridge.arm.com> <50C7C16B.7050106@codeaurora.org>
- <20121212103119.GA6195@mudshark.cambridge.arm.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
+ original voltage values
+Date: Wed, 12 Dec 2012 12:13:35 -0600
+Message-ID: <CAOCHtYhgQQX5560+bOHJGJ3EWqrE2JtdUfDNzk_R2Pgkw6c9+w@mail.gmail.com>
+References: <1355312753-16514-1-git-send-email-paolo.pisati@canonical.com>
+	<1355312753-16514-2-git-send-email-paolo.pisati@canonical.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20121212103119.GA6195@mudshark.cambridge.arm.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1355312753-16514-2-git-send-email-paolo.pisati@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paolo Pisati <paolo.pisati@canonical.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Will
+On Wed, Dec 12, 2012 at 5:45 AM, Paolo Pisati
+<paolo.pisati@canonical.com> wrote:
+> Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
+> ---
+>  drivers/regulator/core.c |   16 ++++++++++++++--
+>  1 file changed, 14 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+> index e872c8b..c347fd0 100644
+> --- a/drivers/regulator/core.c
+> +++ b/drivers/regulator/core.c
+> @@ -2250,6 +2250,7 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
+>  {
+>         struct regulator_dev *rdev = regulator->rdev;
+>         int ret = 0;
+> +       int old_min_uV, old_max_uV;
+>
+>         mutex_lock(&rdev->mutex);
+>
+> @@ -2271,18 +2272,29 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
+>         ret = regulator_check_voltage(rdev, &min_uV, &max_uV);
+>         if (ret < 0)
+>                 goto out;
+> +
+> +       /* restore original values in case of error */
+> +       old_min_uV = regulator->min_uV;
+> +       old_max_uV = regulator->max_uV;
+>         regulator->min_uV = min_uV;
+>         regulator->max_uV = max_uV;
+>
+>         ret = regulator_check_consumers(rdev, &min_uV, &max_uV);
+>         if (ret < 0)
+> -               goto out;
+> +               goto out2;
+>
+>         ret = _regulator_do_set_voltage(rdev, min_uV, max_uV);
+> -
+> +       if (ret < 0)
+> +               goto out2;
+> +
+>  out:
+>         mutex_unlock(&rdev->mutex);
+>         return ret;
+> +out2:
+> +       regulator->min_uV = old_min_uV;
+> +       regulator->max_uV = old_max_uV;
+> +       mutex_unlock(&rdev->mutex);
+> +       return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(regulator_set_voltage);
+>
+> --
+> 1.7.10.4
 
-On Wed, 12 Dec 2012, Will Deacon wrote:
+Nice! This fixes the 800Mhz lockup on bootup after a software reset we
+were seeing on the Beagle xM's with v3.7.x/v3.6.x...
 
-> On Tue, Dec 11, 2012 at 11:27:39PM +0000, Stephen Boyd wrote:
-> > On 12/11/12 08:38, Will Deacon wrote:
-> > > diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-> > > index cd95664..f58248f 100644
-> > > --- a/arch/arm/mm/cache-v7.S
-> > > +++ b/arch/arm/mm/cache-v7.S
-> > > @@ -44,7 +44,8 @@ ENDPROC(v7_flush_icache_all)
-> > >  ENTRY(v7_flush_dcache_louis)
-> > >         dmb                                     @ ensure ordering with previous memory accesses
-> > >         mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
-> > > -       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
-> > > +       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
-> > > +       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
-> > >         mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
-> > 
-> > You need to fix this mov as well, right?
-> 
-> Ha, nice catch. So the original patch ended up with a ridiculously high
-> level number and would've flushed L2, hence we will need to retest with the
-> fix below...
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
 
-Had to apply manually, but it worked too.
+Regards,
 
-Thanks
-Guennadi
-
-> 
-> Will
-> 
-> --->8
-> 
-> diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-> index cd95664..7539ec2 100644
-> --- a/arch/arm/mm/cache-v7.S
-> +++ b/arch/arm/mm/cache-v7.S
-> @@ -44,8 +44,10 @@ ENDPROC(v7_flush_icache_all)
->  ENTRY(v7_flush_dcache_louis)
->         dmb                                     @ ensure ordering with previous memory accesses
->         mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
-> -       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
-> -       mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
-> +       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
-> +       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
-> +       ALT_SMP(mov     r3, r3, lsr #20)        @ r3 = LoUIS * 2
-> +       ALT_UP(mov      r3, r3, lsr #26)        @ r3 = LoUU * 2
->         moveq   pc, lr                          @ return if level == 0
->         mov     r10, #0                         @ r10 (starting level) = 0
->         b       flush_levels                    @ start flushing cache levels
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Robert Nelson
+http://www.rcn-ee.com/
