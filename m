@@ -1,71 +1,102 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] spi: devicetree: add support for loopback mode
-Date: Wed, 12 Dec 2012 10:46:00 +0200
-Message-ID: <1355301960-21523-2-git-send-email-balbi@ti.com>
-References: <1355301960-21523-1-git-send-email-balbi@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: [PATCH v7 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings
+ and NAND
+Date: Wed, 12 Dec 2012 10:13:42 +0100
+Message-ID: <50C84AC6.5030307@gmail.com>
+References: <1354734571-10774-1-git-send-email-zonque@gmail.com> <1354734571-10774-6-git-send-email-zonque@gmail.com> <20121205222232.67B2B3E0E22@localhost> <50BFCBCC.6030706@ti.com> <20121205232426.BAD573E0E22@localhost> <50C0C5AB.3030201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1355301960-21523-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Balbi <balbi-l0cyMroinI0@public.gmane.org>, FelipeLinux, OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:52037 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751494Ab2LLJNw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Dec 2012 04:13:52 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so177307bkw.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Dec 2012 01:13:50 -0800 (PST)
+In-Reply-To: <50C0C5AB.3030201@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, paul@pwsan.com, x0148406@ti.com, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, rob.herring@calxeda.com, tony@atomide.com, jacmet@sunsite.dk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-there are a few spi master drivers which make
-use of that flag but there is no way to pass it
-through devicetree.
+On 06.12.2012 17:19, Jon Hunter wrote:
+> 
+> On 12/05/2012 05:24 PM, Grant Likely wrote:
+>> On Wed, 5 Dec 2012 16:33:48 -0600, Jon Hunter <jon-hunter@ti.com> wrote:
+>>> Hi Grant,
+>>>
+>>> On 12/05/2012 04:22 PM, Grant Likely wrote:
+>>>> On Wed,  5 Dec 2012 20:09:31 +0100, Daniel Mack <zonque@gmail.com> wrote:
+>>>>> This patch adds basic DT bindings for OMAP GPMC.
+>>>>>
+>>>>> The actual peripherals are instantiated from child nodes within the GPMC
+>>>>> node, and the only type of device that is currently supported is NAND.
+>>>>>
+>>>>> Code was added to parse the generic GPMC timing parameters and some
+>>>>> documentation with examples on how to use them.
+>>>>>
+>>>>> Successfully tested on an AM33xx board.
+>>>>>
+>>>>> Signed-off-by: Daniel Mack <zonque@gmail.com>
+>>>>> ---
+>>>>>  Documentation/devicetree/bindings/bus/ti-gpmc.txt  |  77 ++++++++++
+>>>>>  .../devicetree/bindings/mtd/gpmc-nand.txt          |  76 +++++++++
+>>>>>  arch/arm/mach-omap2/gpmc.c                         | 171 ++++++++++++++++++++-
+>>>>>  3 files changed, 323 insertions(+), 1 deletion(-)
+>>>>>  create mode 100644 Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>>>>  create mode 100644 Documentation/devicetree/bindings/mtd/gpmc-nand.txt
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/bus/ti-gpmc.txt b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>>>> new file mode 100644
+>>>>> index 0000000..7d2a645
+>>>>> --- /dev/null
+>>>>> +++ b/Documentation/devicetree/bindings/bus/ti-gpmc.txt
+>>>>> @@ -0,0 +1,77 @@
+>>>>> +Device tree bindings for OMAP general purpose memory controllers (GPMC)
+>>>>> +
+>>>>> +The actual devices are instantiated from the child nodes of a GPMC node.
+>>>>> +
+>>>>> +Required properties:
+>>>>> +
+>>>>> + - compatible:		Should be set to "ti,gpmc"
+>>>>
+>>>> Please, be specific. Use something like "ti,am3340-gpmc" or
+>>>> "ti,omap3430-gpmc". The compatible property is a list so that new
+>>>> devices can claim compatibility with old. Compatible strings that are
+>>>> overly generic are a pet-peave of mine.
+>>>
+>>> We aim to use the binding for omap2,3,4,5 as well as the am33xx devices
+>>> (which are omap based). Would it be sufficient to have "ti,omap2-gpmc"
+>>> implying all omap2+ based devices or should we have a compatible string
+>>> for each device supported?
+>>
+>> Are they each register-level compatible with one another?
+> 
+> They are not 100% register compatible. There are a couple fields in the
+> binding that are only applicable to OMAP3+ devices.
+> 
+>> The general recommended approach here is to make subsequent silicon
+>> claim compatibility with the first compatible implementation.
+>>
+>> So, for an am3358 board:
+>> 	compatible = "ti,am3358-gpmc", "ti,omap2420-gpmc";
+>>
+>> Essentially, what this means is that "ti,omap2420-gpmc" is the generic
+>> value instead of "omap2-gpmc". The reason for this is so that the value
+>> is anchored against a specific implementation, and not against something
+>> completely imaginary or idealized. If a newer version isn't quite
+>> compatible with the omap2420-gpmc, then it can drop the compatible claim
+>> and the driver really should be told about the new device.
+> 
+> Ok, gotcha! I will do a register comparison and may be recommend to
+> Daniel which compatible strings we will need.
 
-This patch just creates a way to pass SPI_LOOP
-via devicetree.
+Any idea yet how we want to continue on this? I'm asking because I'm
+leaving for a longer trip by the end of this week, and so anything I
+haven't finished until then will have to be postponed until February or
+be taken over by someone else :)
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- Documentation/devicetree/bindings/spi/spi-bus.txt | 2 ++
- drivers/spi/spi.c                                 | 2 ++
- 2 files changed, 4 insertions(+)
+Thanks,
+Daniel
 
-diff --git a/Documentation/devicetree/bindings/spi/spi-bus.txt b/Documentation/devicetree/bindings/spi/spi-bus.txt
-index 296015e..1949586 100644
---- a/Documentation/devicetree/bindings/spi/spi-bus.txt
-+++ b/Documentation/devicetree/bindings/spi/spi-bus.txt
-@@ -55,6 +55,8 @@ contain the following properties.
-     		chip select active high
- - spi-3wire       - (optional) Empty property indicating device requires
-     		    3-wire mode.
-+- spi-loopback    - (optional) Empty property indicating device requires
-+    		    loopback mode.
- 
- If a gpio chipselect is used for the SPI slave the gpio number will be passed
- via the cs_gpio
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 3f1b9ee..6bcdc03 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -868,6 +868,8 @@ static void of_register_spi_devices(struct spi_master *master)
- 			spi->mode |= SPI_CS_HIGH;
- 		if (of_find_property(nc, "spi-3wire", NULL))
- 			spi->mode |= SPI_3WIRE;
-+		if (of_find_property(nc, "spi-loopback", NULL))
-+			spi->mode |= SPI_LOOP;
- 
- 		/* Device speed */
- 		prop = of_get_property(nc, "spi-max-frequency", &len);
--- 
-1.8.1.rc1.5.g7e0651a
-
-
-------------------------------------------------------------------------------
-LogMeIn Rescue: Anywhere, Anytime Remote support for IT. Free Trial
-Remotely access PCs and mobile devices and provide instant support
-Improve your efficiency, and focus on delivering more value-add services
-Discover what IT Professionals Know. Rescue delivers
-http://p.sf.net/sfu/logmein_12329d2d
