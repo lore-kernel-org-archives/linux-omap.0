@@ -1,122 +1,68 @@
-From: Ido Yariv <ido@wizery.com>
-Subject: [PATCH] hwspinlock/core: Add testing capabilities
-Date: Wed, 12 Dec 2012 22:27:06 +0200
-Message-ID: <1355344026-17222-1-git-send-email-ido@wizery.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:43347 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754383Ab2LLU1Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Dec 2012 15:27:16 -0500
-Received: by mail-wg0-f46.google.com with SMTP id dr13so448508wgb.1
-        for <linux-omap@vger.kernel.org>; Wed, 12 Dec 2012 12:27:14 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: [RFC 4/5] ARM: dts: OMAP4: Add CTI nodes
+Date: Wed, 12 Dec 2012 15:43:07 -0600
+Message-ID: <1355348588-22318-5-git-send-email-jon-hunter@ti.com>
+References: <1355348588-22318-1-git-send-email-jon-hunter@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1355348588-22318-1-git-send-email-jon-hunter-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pratik Patel <pratikp-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: Ido Yariv <ido@wizery.com>
 
-Add testing capabilities for verifying correctness of the underlying
-hwspinlock layers. This can be handy especially during development.
-These tests are performed only once as part of the hwspinlock
-registration.
+Add device-tree nodes for the two Cross Trigger Interface (CTI) modules
+in the OMAP4 devices.
 
-Signed-off-by: Ido Yariv <ido@wizery.com>
+Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 ---
- drivers/hwspinlock/Kconfig           |    9 +++++
- drivers/hwspinlock/hwspinlock_core.c |   54 ++++++++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/drivers/hwspinlock/Kconfig b/drivers/hwspinlock/Kconfig
-index c7c3128..ad632cd 100644
---- a/drivers/hwspinlock/Kconfig
-+++ b/drivers/hwspinlock/Kconfig
-@@ -8,6 +8,15 @@ config HWSPINLOCK
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 739bb79..40270c7 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -59,6 +59,29 @@
+ 		interrupts = <1 13 0x304>;
+ 	};
  
- menu "Hardware Spinlock drivers"
- 
-+config HWSPINLOCK_TEST
-+	bool "Verify underlying hwspinlock implementation"
-+	depends on HWSPINLOCK
-+	help
-+	  Say Y here to perform tests on the underlying hwspinlock
-+	  implementation. The tests are only performed once per implementation.
++	amba {
++		compatible = "arm,amba-bus";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
 +
-+	  Say N, unless you absolutely know what you are doing.
++		cti0: cti@0x54148000 {
++			compatible = "arm,primecell";
++			interrupts = <0 1 0x4>;
++			reg = <0x54148000 0x1000>;
++			arm,cti-name = "cti0";
++			arm,primecell-periphid = <0x003bb906>;
++		};
 +
- config HWSPINLOCK_OMAP
- 	tristate "OMAP Hardware Spinlock device"
- 	depends on ARCH_OMAP4
-diff --git a/drivers/hwspinlock/hwspinlock_core.c b/drivers/hwspinlock/hwspinlock_core.c
-index 085e28e..1874e85 100644
---- a/drivers/hwspinlock/hwspinlock_core.c
-+++ b/drivers/hwspinlock/hwspinlock_core.c
-@@ -307,6 +307,53 @@ out:
- 	return hwlock;
- }
- 
-+#ifdef CONFIG_HWSPINLOCK_TEST
-+#define NUM_OF_TEST_ITERATIONS 100
-+static int hwspin_lock_tests(const struct hwspinlock_ops *ops,
-+			     struct hwspinlock *hwlock)
-+{
-+	int i;
-+	int ret;
++		cti1: cti@0x54149000 {
++			compatible = "arm,primecell";
++			interrupts = <0 2 0x4>;
++			reg = <0x54149000 0x1000>;
++			arm,cti-name = "cti1";
++			arm,primecell-periphid = <0x003bb906>;
++		};
++	};
 +
-+	for (i = 0; i < NUM_OF_TEST_ITERATIONS; i++) {
-+		ret = ops->trylock(hwlock);
-+		if (!ret) {
-+			pr_err("%s: Initial lock failed\n", __func__);
-+			return -EFAULT;
-+		}
-+
-+		/* Verify lock actually works - re-acquiring it should fail */
-+		ret = ops->trylock(hwlock);
-+		if (ret) {
-+			/* Keep locks balanced even in failure cases */
-+			ops->unlock(hwlock);
-+			ops->unlock(hwlock);
-+			pr_err("%s: Recursive lock succeeded unexpectedly\n",
-+			       __func__);
-+			return -EFAULT;
-+		}
-+
-+		/* Verify unlock by re-acquiring the lock after releasing it */
-+		ops->unlock(hwlock);
-+		ret = ops->trylock(hwlock);
-+		if (!ret) {
-+			pr_err("%s: Unlock failed\n", __func__);
-+			return -EINVAL;
-+		}
-+
-+		ops->unlock(hwlock);
-+	}
-+
-+	return 0;
-+}
-+#else /* CONFIG_HWSPINLOCK_TEST*/
-+static int hwspin_lock_tests(const struct hwspinlock_ops *ops,
-+			     struct hwspinlock *hwlock)
-+{
-+	return 0;
-+}
-+#endif
-+
- /**
-  * hwspin_lock_register() - register a new hw spinlock device
-  * @bank: the hwspinlock device, which usually provides numerous hw locks
-@@ -345,6 +392,13 @@ int hwspin_lock_register(struct hwspinlock_device *bank, struct device *dev,
- 		spin_lock_init(&hwlock->lock);
- 		hwlock->bank = bank;
- 
-+		ret = hwspin_lock_tests(ops, hwlock);
-+		if (ret) {
-+			pr_err("hwspinlock tests failed on lock %d\n",
-+			       base_id + i);
-+			goto reg_failed;
-+		}
-+
- 		ret = hwspin_lock_register_single(hwlock, base_id + i);
- 		if (ret)
- 			goto reg_failed;
+ 	/*
+ 	 * The soc node represents the soc top level view. It is uses for IPs
+ 	 * that are not memory mapped in the MPU view or for the MPU itself.
 -- 
-1.7.7.6
-
+1.7.10.4
