@@ -1,67 +1,80 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] OMAP: add pwm driver using dmtimers.
-Date: Wed, 12 Dec 2012 10:20:34 -0600
-Message-ID: <50C8AED2.4040204@ti.com>
-References: <20121212192430.50cea126@notabene.brown> <20121212113145.GA23598@avionic-0098.adnet.avionic-design.de>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
+ cache LoUIS operations
+Date: Wed, 12 Dec 2012 17:43:21 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1212121743000.10522@axis700.grange>
+References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
+ <20120919134658.GA2111@linaro.org> <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
+ <20120920110439.GB2117@linaro.org> <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
+ <20121211163313.GG16759@mudshark.cambridge.arm.com>
+ <20121211163843.GH16759@mudshark.cambridge.arm.com> <50C7C16B.7050106@codeaurora.org>
+ <20121212103338.GB23022@e102568-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121212113145.GA23598@avionic-0098.adnet.avionic-design.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: NeilBrown <neilb@suse.de>, Grant Erickson <marathon96@gmail.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <20121212103338.GB23022@e102568-lin.cambridge.arm.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>, Will Deacon <Will.Deacon@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Lorenzo
 
-On 12/12/2012 05:31 AM, Thierry Reding wrote:
-> On Wed, Dec 12, 2012 at 07:24:30PM +1100, NeilBrown wrote:
+On Wed, 12 Dec 2012, Lorenzo Pieralisi wrote:
 
-[snip]
-
->> +static int omap_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
->> +{
->> +	struct omap_chip *omap = to_omap_chip(chip);
->> +	int status = 0;
->> +
->> +	/* Enable the counter--always--before attempting to write its
->> +	 * registers and then set the timer to its minimum load value to
->> +	 * ensure we get an overflow event right away once we start it.
->> +	 */
+> On Tue, Dec 11, 2012 at 11:27:39PM +0000, Stephen Boyd wrote:
+> > On 12/11/12 08:38, Will Deacon wrote:
+> > > diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
+> > > index cd95664..f58248f 100644
+> > > --- a/arch/arm/mm/cache-v7.S
+> > > +++ b/arch/arm/mm/cache-v7.S
+> > > @@ -44,7 +44,8 @@ ENDPROC(v7_flush_icache_all)
+> > >  ENTRY(v7_flush_dcache_louis)
+> > >         dmb                                     @ ensure ordering with previous memory accesses
+> > >         mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
+> > > -       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
+> > > +       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
+> > > +       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
+> > >         mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
+> > 
+> > You need to fix this mov as well, right?
 > 
-> Block comments should be in the following format:
+> And after doing that I think the suspend finisher will still have
+> to call flush_cache_all() since LoUU == 1 on A8, L2 is not cleaned
+> and that's probably what we want if it can be retained.
 > 
-> 	/*
-> 	 * foo...
-> 	 * bar...
-> 	 */
+> What about this (compile tested) ?
+
+Works too.
+
+Thanks
+Guennadi
+
 > 
->> +
->> +	omap_dm_timer_enable(omap->dm_timer);
->> +	omap_dm_timer_write_counter(omap->dm_timer, DM_TIMER_LOAD_MIN);
->> +	omap_dm_timer_start(omap->dm_timer);
->> +	omap_dm_timer_disable(omap->dm_timer);
+> Lorenzo
 > 
-> So omap_dm_timer_disable() doesn't actually stop the timer? It just
-> disables the access to the registers?
+> --->8
+> 
+> diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
+> index cd95664..036f80f 100644
+> --- a/arch/arm/mm/cache-v7.S
+> +++ b/arch/arm/mm/cache-v7.S
+> @@ -44,8 +44,9 @@ ENDPROC(v7_flush_icache_all)
+>  ENTRY(v7_flush_dcache_louis)
+>  	dmb					@ ensure ordering with previous memory accesses
+>  	mrc	p15, 1, r0, c0, c0, 1		@ read clidr, r0 = clidr
+> -	ands	r3, r0, #0xe00000		@ extract LoUIS from clidr
+> -	mov	r3, r3, lsr #20			@ r3 = LoUIS * 2
+> +	ALT_SMP(lsr	r3, r0, #20)		@ r3 = clidr[31:20]
+> +	ALT_UP(lsr	r3, r0, #26)		@ r3 = clidr[31:26]
+> +	ands	r3, r3, #0xe			@ r3 = LoUIS/LoUU * 2
+>  	moveq	pc, lr				@ return if level == 0
+>  	mov	r10, #0				@ r10 (starting level) = 0
+>  	b	flush_levels			@ start flushing cache levels
+> 
 
-I thought this looked odd too ;-)
-
-So what is going on here is that omap_dm_timer_start() calls
-omap_dm_timer_enable() but does not call omap_dm_timer_disable(). So the
-last disable really just complements the first enable (ie. decrements
-the use count), but the timer will not actually be disabled, because the
-start has called an extra enable.
-
-These four function calls can be replaced by one call to
-omap_dm_timer_set_load_start() and I think that will be much clearer and
-concise.
-
-In general, it should not be necessary to call these
-omap_dm_timer_enable/disable APIs directly. I am not sure what the
-history is or if there is a use-case that really requires this. So in
-the future may be I should make them static so they cannot be used
-directly :-)
-
-Cheers
-Jon
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
