@@ -1,83 +1,67 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH] arm: dts: Add uart1 and uart2 to igep boards.
-Date: Wed, 12 Dec 2012 17:09:32 +0100
-Message-ID: <50C8AC3C.9020908@ti.com>
-References: <1355326422-12357-1-git-send-email-matthias.bgg@gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] OMAP: add pwm driver using dmtimers.
+Date: Wed, 12 Dec 2012 10:20:34 -0600
+Message-ID: <50C8AED2.4040204@ti.com>
+References: <20121212192430.50cea126@notabene.brown> <20121212113145.GA23598@avionic-0098.adnet.avionic-design.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55197 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754361Ab2LLQJu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Dec 2012 11:09:50 -0500
-In-Reply-To: <1355326422-12357-1-git-send-email-matthias.bgg@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121212113145.GA23598@avionic-0098.adnet.avionic-design.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: NeilBrown <neilb@suse.de>, Grant Erickson <marathon96@gmail.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: tony@atomide.com, grant.likely@secretlab.ca, eballetbo@gmail.com, elezegarcia@gmail.com, ebutera@gmail.com, javier.martinez@collabora.co.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
 
-Hi Matthias,
 
-On 12/12/2012 04:33 PM, Matthias Brugger wrote:
-> This patch is a follow-up patch for Javier Martinez effort adding initial
-> device tree support to IGEP technology devices. [1]
-> 
-> It adds uart1 and uart2 bindings to the generic dtsi for the IGEP boards.
-> 
-> [1] http://www.spinics.net/lists/linux-omap/msg83409.html
-> 
-> Signed-off-by: Matthias Brugger <matthias.bgg@gmail.com>
-> ---
->  arch/arm/boot/dts/omap3-igep.dtsi |   24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-> index 125fe00..c02e3c0 100644
-> --- a/arch/arm/boot/dts/omap3-igep.dtsi
-> +++ b/arch/arm/boot/dts/omap3-igep.dtsi
-> @@ -27,6 +27,20 @@
->  };
->  
->  &omap3_pmx_core {
-> +	uart1_pins: pinmux_uart1_pins {
-> +		pinctrl-single,pins = <
-> +			0x152 0x100	/* uart1_rx.uart1_rx INPUT | MODE0 */
-> +			0x14c 0		/* uart1_tx.uart1_tx OUTPUT | MODE0 */
-> +		>;
-> +	};
-> +
-> +	uart2_pins: pinmux_uart2_pins {
-> +		pinctrl-single,pins = <
-> +			0x14a 0x100	/* uart2_rx.uart2_rx INPUT | MODE0 */
-> +			0x148 0		/* uart2_tx.uart2_tx OUTPUT | MODE0 */
-> +		>;
-> +	};
-> +
->  	uart3_pins: pinmux_uart3_pins {
->  		pinctrl-single,pins = <
->  			0x16e 0x100	/* uart3_rx.uart3_rx INPUT | MODE0 */
-> @@ -77,6 +91,16 @@
->  	status = "disabled";
->  };
->  
-> +&uart1 {
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&uart1_pins>;
-> +};
-> +
-> +&uart2 {
-> +       pinctrl-names = "default";
-> +       pinctrl-0 = <&uart2_pins>;
-> +};
-> +
->  &uart3 {
->         pinctrl-names = "default";
->         pinctrl-0 = <&uart3_pins>;
-> 
+On 12/12/2012 05:31 AM, Thierry Reding wrote:
+> On Wed, Dec 12, 2012 at 07:24:30PM +1100, NeilBrown wrote:
 
-That looks good to me. I'll apply it on top of javier's series for 3.9.
+[snip]
 
-Thanks,
-Benoit
+>> +static int omap_pwm_enable(struct pwm_chip *chip, struct pwm_device *pwm)
+>> +{
+>> +	struct omap_chip *omap = to_omap_chip(chip);
+>> +	int status = 0;
+>> +
+>> +	/* Enable the counter--always--before attempting to write its
+>> +	 * registers and then set the timer to its minimum load value to
+>> +	 * ensure we get an overflow event right away once we start it.
+>> +	 */
+> 
+> Block comments should be in the following format:
+> 
+> 	/*
+> 	 * foo...
+> 	 * bar...
+> 	 */
+> 
+>> +
+>> +	omap_dm_timer_enable(omap->dm_timer);
+>> +	omap_dm_timer_write_counter(omap->dm_timer, DM_TIMER_LOAD_MIN);
+>> +	omap_dm_timer_start(omap->dm_timer);
+>> +	omap_dm_timer_disable(omap->dm_timer);
+> 
+> So omap_dm_timer_disable() doesn't actually stop the timer? It just
+> disables the access to the registers?
 
+I thought this looked odd too ;-)
+
+So what is going on here is that omap_dm_timer_start() calls
+omap_dm_timer_enable() but does not call omap_dm_timer_disable(). So the
+last disable really just complements the first enable (ie. decrements
+the use count), but the timer will not actually be disabled, because the
+start has called an extra enable.
+
+These four function calls can be replaced by one call to
+omap_dm_timer_set_load_start() and I think that will be much clearer and
+concise.
+
+In general, it should not be necessary to call these
+omap_dm_timer_enable/disable APIs directly. I am not sure what the
+history is or if there is a use-case that really requires this. So in
+the future may be I should make them static so they cannot be used
+directly :-)
+
+Cheers
+Jon
