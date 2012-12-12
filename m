@@ -1,36 +1,69 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
- cache LoUIS operations
-Date: Tue, 11 Dec 2012 15:27:39 -0800
-Message-ID: <50C7C16B.7050106@codeaurora.org>
-References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com> <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com> <20120919134658.GA2111@linaro.org> <20120920102514.GD4588@e102568-lin.cambridge.arm.com> <20120920110439.GB2117@linaro.org> <Pine.LNX.4.64.1212111655050.29758@axis700.grange> <20121211163313.GG16759@mudshark.cambridge.arm.com> <20121211163843.GH16759@mudshark.cambridge.arm.com>
+From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Subject: RE: [PATCH] da8xx: Allow use by am33xx based devices
+Date: Wed, 12 Dec 2012 07:20:28 +0000
+Message-ID: <A73F36158E33644199EB82C5EC81C7BC3EA17E45@DBDE01.ent.ti.com>
+References: <1351698968-3965-1-git-send-email-panto@antoniou-consulting.com>
+ <A73F36158E33644199EB82C5EC81C7BC3EA1452B@DBDE01.ent.ti.com>
+ <50C5A50E.4070602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20121211163843.GH16759@mudshark.cambridge.arm.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56245 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750814Ab2LLHUk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Dec 2012 02:20:40 -0500
+In-Reply-To: <50C5A50E.4070602@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "Porter, Matt" <mporter@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "FlorianSchandinat@gmx.de" <FlorianSchandinat@gmx.de>, Koen Kooi <koen@dominion.thruhere.net>, Pantelis Antoniou <panto@antoniou-consulting.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dill, Russ" <russ.dill@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 12/11/12 08:38, Will Deacon wrote:
-> diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-> index cd95664..f58248f 100644
-> --- a/arch/arm/mm/cache-v7.S
-> +++ b/arch/arm/mm/cache-v7.S
-> @@ -44,7 +44,8 @@ ENDPROC(v7_flush_icache_all)
->  ENTRY(v7_flush_dcache_louis)
->         dmb                                     @ ensure ordering with previous memory accesses
->         mrc     p15, 1, r0, c0, c0, 1           @ read clidr, r0 = clidr
-> -       ands    r3, r0, #0xe00000               @ extract LoUIS from clidr
-> +       ALT_SMP(ands    r3, r0, #(7 << 21))     @ extract LoUIS from clidr
-> +       ALT_UP(ands     r3, r0, #(7 << 27))     @ extract LoUU from clidr
->         mov     r3, r3, lsr #20                 @ r3 = LoUIS * 2
+Hi Vaibhav,
 
-You need to fix this mov as well, right?
+On Mon, Dec 10, 2012 at 14:32:06, Hiremath, Vaibhav wrote:
+> 
+> 
+> On 12/6/2012 1:38 PM, Manjunathappa, Prakash wrote:
+> > Hi Tomi,
+> > 
+> > On Wed, Oct 31, 2012 at 10:52:59, Manjunathappa, Prakash wrote:
+> >> Hi,
+> >>
+> >> On Wed, Oct 31, 2012 at 21:26:08, Pantelis Antoniou wrote:
+> >>> This driver can be used for AM33xx devices, like the popular beaglebone.
+> >>>
+> >>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+> >>> ---
+> >>>  drivers/video/Kconfig | 2 +-
+> >>>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+> >>> index 9791d10..e7868d8 100644
+> >>> --- a/drivers/video/Kconfig
+> >>> +++ b/drivers/video/Kconfig
+> >>> @@ -2202,7 +2202,7 @@ config FB_SH7760
+> >>>  
+> >>>  config FB_DA8XX
+> >>>  	tristate "DA8xx/OMAP-L1xx Framebuffer support"
+> >>> -	depends on FB && ARCH_DAVINCI_DA8XX
+> >>> +	depends on FB && (ARCH_DAVINCI_DA8XX || SOC_AM33XX)
+> >>
+> >> Agreed this is present on da8xx and am33xx, but moving forward for
+> >> supporting DT, we should be avoiding these dependencies. So instead
+> >> change this to remove machine dependencies.
+> >>
+> > 
+> > I could be wrong here, having dependency on platform seems to be right.
+> > Otherwise may lead to build errors for other platforms. 
+> 
+> No, it should not result in to build error unless driver uses some
+> platform specific api's.
+> 
 
--- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
+Agreed, should not result in build error. But is it ok to show this option
+on the platforms which do not have this IP?
 
+Thanks,
+Prakash
