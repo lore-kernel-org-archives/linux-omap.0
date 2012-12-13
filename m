@@ -1,61 +1,45 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 00/23] OMAP USB Host cleanup
-Date: Thu, 13 Dec 2012 12:40:18 +0200
-Message-ID: <20121213104018.GE1916@arwen.pp.htv.fi>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com>
- <50C9B186.1020603@ti.com>
-Reply-To: <balbi@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
+ cache LoUIS operations
+Date: Thu, 13 Dec 2012 10:51:09 +0000
+Message-ID: <20121213105109.GB26540@mudshark.cambridge.arm.com>
+References: <20120919134658.GA2111@linaro.org>
+ <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
+ <20120920110439.GB2117@linaro.org>
+ <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
+ <20121211163313.GG16759@mudshark.cambridge.arm.com>
+ <20121211163843.GH16759@mudshark.cambridge.arm.com>
+ <50C7C16B.7050106@codeaurora.org>
+ <20121212103338.GB23022@e102568-lin.cambridge.arm.com>
+ <20121212133650.GJ6195@mudshark.cambridge.arm.com>
+ <Pine.LNX.4.64.1212130909190.18586@axis700.grange>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gMR3gsNFwZpnI/Ts"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <50C9B186.1020603@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: balbi@ti.com, sameo@linux.intel.com, tony@atomide.com, paul@pwsan.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.1212130909190.18586@axis700.grange>
+Sender: linux-sh-owner@vger.kernel.org
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---gMR3gsNFwZpnI/Ts
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Dec 13, 2012 at 08:09:33AM +0000, Guennadi Liakhovetski wrote:
+> On Wed, 12 Dec 2012, Will Deacon wrote:
+> > Back to the case in hand.... Lorenzo just pointed out to me that the
+> > finished in question (sh7372_do_idle_sysc) calls v7_flush_dcache_all, so
+> > the louis stuff should be irrelevant. The problem may actually be that the
+> > finisher disables the L2 cache prior to cleaning/invalidating it, which is
+> > the opposite order to that described by the A8 TRM.
+> > 
+> > Guennadi -- can you try moving the kernel_flush call before the L2 disable
+> > in sh7372_do_idle_sysc please?
+> 
+> Yes, this works too.
 
-Hi,
+That's good to know. Please can you send a patch for that? The sequence
+currently being used by the finisher *is* buggy, and should be fixed
+independently of the louis stuff.
 
-On Thu, Dec 13, 2012 at 12:44:22PM +0200, Roger Quadros wrote:
-> Hi Samuel & Felipe,
->=20
-> How can we proceed with this patchset?
->=20
-> You can use the below pull request.
+Cheers,
 
-there are patches under arch/arm/ which need Tony's Acked-by, if we get
-those, then sure, go ahead ;-)
-
---=20
-balbi
-
---gMR3gsNFwZpnI/Ts
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQybCSAAoJEIaOsuA1yqRESbUP/0b5ktOnNIEZvTSYW3PWraWG
-6fzqFBnVdQHHvCz+l85TY3PqMPkr5V5l4yJYU4AADYRToqMoKGLPPafPHzjVw/Zg
-j9WNKM93/PdVbfwb9mf639nljd+elMoLpgExNIAeSuQ1lhXZhaTl4QxbbwnW+j2S
-0UjCzEVx08rEbih8f4NSdDeQvpNEQRrVkTqqQRsKL2Gt2YiKEYWASbX0GwK+Aywj
-tZcf7iE14SuCxQqi/QKJ0UZpo1LYd0+XxbqaREWhd0uOlJpbD4nBAqvA/vDbhnRY
-6G0Z4YX8CcMcB2wZM1QGsbCDMIzYQbmlBxg4ID/1LMNRdQtO+gbKDBwFHgbaSlh3
-Zrmj7HFtMxLoysooxxymV/GWAmToEWumIUljlxWcxSCDMCqK9rNBAUTSj1Taojw0
-VCO4Z3IhW+1eIZAg2O8uA/nNk+U6SValUCFYgLSNKAEeOX8SPNRoiMToHzhE61tF
-YG+Vndl9KljEppAB0p0YHQjET4N9LQ8Z16Lo5ccD2A3Qa7WGrQFNIC4VuWZry+Rf
-SKNFD5KH3a025GxqhKyayaMU1UtBKUXyK6ZtcK+whRWGsR9mqSoGv+74CJSWocH9
-F29g16QiLGm1VGsG7AmJINXit75HmdbYO6GzBd8xUxV6XfTxJd1BjVyzjXP2xcmF
-DHvG1XBBwqxc5Q5Rxf8v
-=ZSn2
------END PGP SIGNATURE-----
-
---gMR3gsNFwZpnI/Ts--
+Will
