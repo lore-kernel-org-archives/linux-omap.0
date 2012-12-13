@@ -1,21 +1,31 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
-	original
-Date: Thu, 13 Dec 2012 05:15:33 +0000
-Message-ID: <20121213051533.GB27624@opensource.wolfsonmicro.com>
-References: <1355312753-16514-1-git-send-email-paolo.pisati@canonical.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 01/10] ARM: OMAP3/4: cpuidle: fix sparse and checkpatch
+ warnings
+Date: Thu, 13 Dec 2012 05:41:49 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212130541320.25415@utopia.booyaka.com>
+References: <20121209011755.19716.25244.stgit@dusk.lan> <20121209012334.19716.44831.stgit@dusk.lan> <50C840C9.5000407@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1355312753-16514-1-git-send-email-paolo.pisati@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paolo Pisati <paolo.pisati@canonical.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:52040 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786Ab2LMFlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Dec 2012 00:41:50 -0500
+In-Reply-To: <50C840C9.5000407@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Dec 12, 2012 at 12:45:52PM +0100, Paolo Pisati wrote:
-> And after a second look it's clear what's going on:
+On Wed, 12 Dec 2012, Vaibhav Hiremath wrote:
 
-After a second look at what?  You've not provided any context, I've no
-idea what you're talking about here.
+> I am using your "paul-linux-pwrdm_post_fpwrst_devel_a_3.9" branch, where
+> all the patches which you have posted are present (I believe so) and I
+> am getting following sparse warning -
+
+The branch name to use is:
+
+"TEST_pwrdm_post_fpwrst_devel_a_3.9"
+
+
+- Paul
