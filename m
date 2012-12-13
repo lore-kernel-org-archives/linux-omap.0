@@ -1,59 +1,95 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] OMAP: add pwm driver using dmtimers.
-Date: Thu, 13 Dec 2012 11:42:18 -0600
-Message-ID: <50CA137A.5010304@ti.com>
-References: <20121212192430.50cea126@notabene.brown> <50C8ABFC.3080309@ti.com> <20121213140635.4eda5858@notabene.brown> <20121213153302.05120a6d@notabene.brown>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC 1/5] ARM: CORESIGHT: Add generic lock/unlock helpers
+Date: Thu, 13 Dec 2012 13:18:43 -0600
+Message-ID: <50CA2A13.9090005@ti.com>
+References: <1355348588-22318-1-git-send-email-jon-hunter@ti.com>
+ <1355348588-22318-2-git-send-email-jon-hunter@ti.com>
+ <20121213145803.GL26540@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121213153302.05120a6d@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>, Grant Erickson <marathon96@gmail.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121213145803.GL26540-MRww78TxoiP5vMa5CHWGZ34zcgK1vI+I0E9HWUfgJXw@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pratik Patel <pratikp-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
-On 12/12/2012 10:33 PM, NeilBrown wrote:
-> On Thu, 13 Dec 2012 14:06:35 +1100 NeilBrown <neilb@suse.de> wrote:
+On 12/13/2012 08:58 AM, Will Deacon wrote:
+> Hi Jon,
 > 
->>>> +	omap_dm_timer_enable(omap->dm_timer);
->>>
->>> Do you need to call omap_dm_timer_enable here? _set_load and _set_match
->>> will enable the timer. So this should not be necessary.
+> On Wed, Dec 12, 2012 at 09:43:04PM +0000, Jon Hunter wrote:
+>> The Cross Trigger Interface (CTI) helpers in cti.h include definitions
+>> for the Coresight Lock Access Register (LAR) and Lock Status Register
+>> (LSR). These registers are already defined in coresight.h and so rather
+>> than having multiple definitions, just use the definitions from
+>> coresight.h.
 >>
->> True.  That is what you get for copying someone else's code and not
->> understanding it fully.
+>> Add the following coresight macros ...
+>> - coresight_unlock() --> Unlocks coresight module
+>> - coresight_lock()   --> Locks coresight module
+>>
+>> Use the above macros for ETB, ETM and CTI. The do-while(0) statement
+>> has been removed from the macro as it is not a multi-line macro.
+>>
+>> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  arch/arm/include/asm/cti.h                |   16 +++-------------
+>>  arch/arm/include/asm/hardware/coresight.h |   16 ++++++++--------
+>>  2 files changed, 11 insertions(+), 21 deletions(-)
 > 
-> However .... omap_dm_timer_write_counter *doesn't* enable the timer, and
-> explicitly checks that it is already runtime-enabled.
+> [...]
 > 
-> Does that mean I don't need to call omap_dm_timer_write_counter here?  Or
-> does it mean that I do need the enable/disable pair?
+>> diff --git a/arch/arm/include/asm/hardware/coresight.h b/arch/arm/include/asm/hardware/coresight.h
+>> index 7ecd793..dcd0e66 100644
+>> --- a/arch/arm/include/asm/hardware/coresight.h
+>> +++ b/arch/arm/include/asm/hardware/coresight.h
+>> @@ -141,17 +141,17 @@
+>>  #define ETBFF_TRIGEVT		BIT(9)
+>>  #define ETBFF_TRIGFL		BIT(10)
+>>  
+>> -#define etb_writel(t, v, x) \
+>> -	(__raw_writel((v), (t)->etb_regs + (x)))
+>> +#define etb_writel(t, v, x) (__raw_writel((v), (t)->etb_regs + (x)))
+>>  #define etb_readl(t, x) (__raw_readl((t)->etb_regs + (x)))
+>>  
+>> -#define etm_lock(t) do { etm_writel((t), 0, CSMR_LOCKACCESS); } while (0)
+>> -#define etm_unlock(t) \
+>> -	do { etm_writel((t), UNLOCK_MAGIC, CSMR_LOCKACCESS); } while (0)
+>> +#define etb_lock(t) coresight_lock((t)->etb_regs)
+>> +#define etb_unlock(t) coresight_unlock((t)->etb_regs)
+>> +#define etm_lock(t) coresight_lock((t)->etm_regs)
+>> +#define etm_unlock(t) coresight_unlock((t)->etm_regs)
+>>  
+>> -#define etb_lock(t) do { etb_writel((t), 0, CSMR_LOCKACCESS); } while (0)
+>> -#define etb_unlock(t) \
+>> -	do { etb_writel((t), UNLOCK_MAGIC, CSMR_LOCKACCESS); } while (0)
+>> +#define coresight_lock(base) (__raw_writel(0, base + CSMR_LOCKACCESS))
+>> +#define coresight_unlock(base) \
+>> +	(__raw_writel(UNLOCK_MAGIC, base + CSMR_LOCKACCESS))
+>>  
+>>  #endif /* __ASM_HARDWARE_CORESIGHT_H */
+> 
+> How about we take this opportunity to divorce the more general coresight
+> bits from the etb specific parts, like you've done for the cti. We could
+> move the ETB stuff out into asm/etb.h (although it might be nice to keep all
+> the coresight device headers in one place... answers on a postcard) and just
+> have the architected coresight functionality in this header.
 
-Typically, omap_dm_timer_write_counter() is used to update the counter
-value while the counter is running and hence is enabled.
-
-Looking at the code, some more I now see what they are trying to do. It
-seems that they are trying to force an overflow to occur as soon as they
-enable the timer. This will cause the timer to load the count value from
-the timer load register into the timer counter register. So that does
-make sense to me. However, this should not be necessary as
-omap_dm_timer_set_load should do this for you. Therefore, I think that
-you could accomplish the same thing by doing ...
-
-omap_pwm_config
-	--> omap_dm_timer_set_load()
-	--> omap_dm_timer_set_match()
-	--> omap_dm_timer_set_pwm()
-
-omap_pwm_enable
-	--> omap_dm_timer_start()
-
-If we call _set_load in config then we don't need to call _load_start in
-the enable, we can just call _start.
-
-Can you try this and see if this is working ok?
+Yes I have been wondering about that too. Long term it would be good to
+find a home in the drivers directory for all these coresight devices
+too. For now, we could extract the etb/etm parts from coresight.h into
+etb.h and etm.h, respectively.
 
 Cheers
 Jon
