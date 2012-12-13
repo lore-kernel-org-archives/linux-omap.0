@@ -1,63 +1,61 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 01/10] ARM: OMAP3/4: cpuidle: fix sparse and checkpatch
- warnings
-Date: Thu, 13 Dec 2012 09:18:18 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EBAF7FB@DBDE01.ent.ti.com>
-References: <20121209011755.19716.25244.stgit@dusk.lan>
- <20121209012334.19716.44831.stgit@dusk.lan> <50C840C9.5000407@ti.com>
- <alpine.DEB.2.00.1212130541320.25415@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EBAF47B@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1212130726160.25415@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
+ original voltage values
+Date: Thu, 13 Dec 2012 11:47:15 +0200
+Message-ID: <20121213094715.GA1916@arwen.pp.htv.fi>
+References: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
+ <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EeQfGwPcQSOJBaQU"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45865 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:47589 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010Ab2LMJS2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Dec 2012 04:18:28 -0500
-In-Reply-To: <alpine.DEB.2.00.1212130726160.25415@utopia.booyaka.com>
-Content-Language: en-US
+	with ESMTP id S1751961Ab2LMJy2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Dec 2012 04:54:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paolo Pisati <paolo.pisati@canonical.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org
 
-On Thu, Dec 13, 2012 at 12:59:49, Paul Walmsley wrote:
-> On Thu, 13 Dec 2012, Hiremath, Vaibhav wrote:
-> 
-> > On Thu, Dec 13, 2012 at 11:11:49, Paul Walmsley wrote:
-> > > 
-> > > The branch name to use is:
-> > > 
-> > > "TEST_pwrdm_post_fpwrst_devel_a_3.9"
-> > 
-> > If I am correct, it only includes one additional patch (merge commit), 
-> > right???
-> > 
-> > commit d94831e0005fee743cefd28f4c20b7c435c71236
-> > Merge: 3e885c6 80ab3b2
-> > Author: Paul Walmsley <paul@pwsan.com>
-> > Date:   Sun Dec 9 13:06:51 2012 -0700
-> > 
-> >     build fixes
-> > 
-> > 
-> > 
-> > Does this also fix sparse warnings? 
-> 
-> Just ran a quick sparse check on mach-omap2 at 3e885c6 and d94831e with 
-> 'make -j4 C=2 arch/arm/mach-omap2', and no warnings showed up.  There were 
-> some sparse issues that got fixed at an earlier point, though, so perhaps 
-> you have an older copy of the branches somehow?
-> 
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ignore my earlier comment on sparse warning, it was my wrong sparse tool 
-which was culprit here. I am working on remote server, which has sparse 
-present inside /usr/bin, and somehow my default config using that one 
-instead of what I was building.
+On Thu, Dec 13, 2012 at 10:13:00AM +0100, Paolo Pisati wrote:
+> Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
+> Tested-by: Robert Nelson <robertcnelson@gmail.com>
 
-I fixed this by changing the PATH, and now I do not see any issues/warnings.
+please read Documentation/stable_kernel_rules.txt, you'll see this is
+wrong.
 
-Thanks,
-Vaibhav
+--=20
+balbi
+
+--EeQfGwPcQSOJBaQU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQyaQjAAoJEIaOsuA1yqREL4gP/A+fOc+wfK72PXrFdLPseFzD
+V632DqpylP29pXx5TPiK1fmiwdnA8wGBnD/E6EuExrhTemX3FlXJ6LZm64FrMDwf
+rWZRDHyaHso2me7DfFQBLCzU+uOuNAWqEmolp4WTa8jFqJTwyhvlAtrN/e6X5DbB
+nHNR/z9DE9t9e/2Z3ae6Z0lsXiig8hP49sgb5EumhcS/0Sg8y3mSIkmNm7LNUARF
+gFonnJjUp9V2BDpkbBalhK1jh2aa5ZmyNytp83dRLIxiNYujjwAd5foajhnA8Bqn
+Zt7m8i4ueWxFFy7+E9ddaNTG3Ri1/p3J4sXbaXylX7h5j29k6h6/CZSHymjWK+1Z
+jHXnVy9K3ZxethbAb+6eAmQ5guR4PXDlTsCZ3jGHKm54k0yMBoIzo5Iks51YqmUw
+U2d0JrkSdD9n9J4CGhPTtc9nTsTa9oVX2RU/zJJLOlzaNDjzycX+oPCwjbPbsxmj
+U+1jGmle3RWEWTGSK4SnnHhTqKIzvFXLJ1VopwIo8V5COb9NlJEI850jybB2iu2n
+zArrDzpDNDVzomIiWYnnKjhAcSpX26qUVbQuvkjHCvwz9kuWZejHrMQ4AuMLxFfz
+ORP2Q+opSQeYpkWZi+k5a5otv28nqx3DySxN6qIHw3gvQABSWXG2HfJUS+D1rrPH
++XTPi4kRTwO4WMwZ+/Tg
+=ZObJ
+-----END PGP SIGNATURE-----
+
+--EeQfGwPcQSOJBaQU--
