@@ -1,29 +1,64 @@
 From: Paolo Pisati <paolo.pisati@canonical.com>
-Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
- original
-Date: Thu, 13 Dec 2012 09:58:10 +0100
-Message-ID: <20121213085810.GA4050@luxor.wired.org>
-References: <1355312753-16514-1-git-send-email-paolo.pisati@canonical.com>
- <20121213051533.GB27624@opensource.wolfsonmicro.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] regulator: core: if voltage scaling fails, restore original voltage values
+Date: Thu, 13 Dec 2012 10:13:00 +0100
+Message-ID: <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
+References: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121213051533.GB27624@opensource.wolfsonmicro.com>
+In-Reply-To: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Paolo Pisati <paolo.pisati@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Felipe Balbi <balbi@ti.com>, stable@vger.kernel.org, Paolo Pisati <paolo.pisati@canonical.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 13, 2012 at 05:15:33AM +0000, Mark Brown wrote:
-> On Wed, Dec 12, 2012 at 12:45:52PM +0100, Paolo Pisati wrote:
-> > And after a second look it's clear what's going on:
-> 
-> After a second look at what?  You've not provided any context, I've no
-> idea what you're talking about here.
+Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ drivers/regulator/core.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-forgot the --in-reply-to=..., i'll resend as a new thread.
-
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index e872c8b..c347fd0 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -2250,6 +2250,7 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
+ {
+ 	struct regulator_dev *rdev = regulator->rdev;
+ 	int ret = 0;
++	int old_min_uV, old_max_uV;
+ 
+ 	mutex_lock(&rdev->mutex);
+ 
+@@ -2271,18 +2272,29 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
+ 	ret = regulator_check_voltage(rdev, &min_uV, &max_uV);
+ 	if (ret < 0)
+ 		goto out;
++	
++	/* restore original values in case of error */
++	old_min_uV = regulator->min_uV;
++	old_max_uV = regulator->max_uV;
+ 	regulator->min_uV = min_uV;
+ 	regulator->max_uV = max_uV;
+ 
+ 	ret = regulator_check_consumers(rdev, &min_uV, &max_uV);
+ 	if (ret < 0)
+-		goto out;
++		goto out2;
+ 
+ 	ret = _regulator_do_set_voltage(rdev, min_uV, max_uV);
+-
++	if (ret < 0)
++		goto out2;
++	
+ out:
+ 	mutex_unlock(&rdev->mutex);
+ 	return ret;
++out2:
++	regulator->min_uV = old_min_uV;
++	regulator->max_uV = old_max_uV;
++	mutex_unlock(&rdev->mutex);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(regulator_set_voltage);
+ 
 -- 
-bye,
-p.
+1.7.10.4
