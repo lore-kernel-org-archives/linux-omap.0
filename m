@@ -1,41 +1,83 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: [PATCH 1/1] net: cpts: fix for build break after ARM SoC
- integration
-Date: Thu, 13 Dec 2012 14:03:36 +0100
-Message-ID: <20121213130335.GA10703@netboy.at.omicron.at>
-References: <1354012034-31686-1-git-send-email-mugunthanvnm@ti.com>
- <50C9B6F9.9020300@iki.fi>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
+ cache LoUIS operations
+Date: Thu, 13 Dec 2012 15:32:46 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.1212131522430.18586@axis700.grange>
+References: <20120919134658.GA2111@linaro.org> <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
+ <20120920110439.GB2117@linaro.org> <Pine.LNX.4.64.1212111655050.29758@axis700.grange>
+ <20121211163313.GG16759@mudshark.cambridge.arm.com>
+ <20121211163843.GH16759@mudshark.cambridge.arm.com> <50C7C16B.7050106@codeaurora.org>
+ <20121212103338.GB23022@e102568-lin.cambridge.arm.com>
+ <20121212133650.GJ6195@mudshark.cambridge.arm.com>
+ <Pine.LNX.4.64.1212130909190.18586@axis700.grange>
+ <20121213105109.GB26540@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50C9B6F9.9020300@iki.fi>
-Sender: netdev-owner@vger.kernel.org
-To: Tomi Valkeinen <tomba@iki.fi>
-Cc: Mugunthan V N <mugunthanvnm@ti.com>, netdev@vger.kernel.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <20121213105109.GB26540@mudshark.cambridge.arm.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Dave Martin <dave.martin@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Russell King <linux@arm.linux.org.uk>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Amit Kucheria <amit.kucheria@linaro.org>, Simon Horman <horms@verge.net.au>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Wenzeng Chen <wzch@marvell.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 13, 2012 at 01:07:37PM +0200, Tomi Valkeinen wrote:
-> Hi,
-> 
-> On 2012-11-27 12:27, Mugunthan V N wrote:
-> >   CC      drivers/net/ethernet/ti/cpts.o
-> > drivers/net/ethernet/ti/cpts.c:30:24: fatal error: plat/clock.h: No such file or directory
-> > compilation terminated.
-> > make[4]: *** [drivers/net/ethernet/ti/cpts.o] Error 1
-> > make[3]: *** [drivers/net/ethernet/ti] Error 2
-> > make[2]: *** [drivers/net/ethernet] Error 2
-> > make[1]: *** [drivers/net] Error 2
+On Thu, 13 Dec 2012, Will Deacon wrote:
+
+> On Thu, Dec 13, 2012 at 08:09:33AM +0000, Guennadi Liakhovetski wrote:
+> > On Wed, 12 Dec 2012, Will Deacon wrote:
+> > > Back to the case in hand.... Lorenzo just pointed out to me that the
+> > > finished in question (sh7372_do_idle_sysc) calls v7_flush_dcache_all, so
+> > > the louis stuff should be irrelevant. The problem may actually be that the
+> > > finisher disables the L2 cache prior to cleaning/invalidating it, which is
+> > > the opposite order to that described by the A8 TRM.
+> > > 
+> > > Guennadi -- can you try moving the kernel_flush call before the L2 disable
+> > > in sh7372_do_idle_sysc please?
 > > 
-> > fix for build break as the header file is removed from plat-omap as part of
-> > the below patch
+> > Yes, this works too.
 > 
-> linux-next still has this build problem, I guess this patch is lingering
-> somewhere. Somewhat annoying, as the driver is enabled by default. (btw,
-> why is it "default y"?)
+> That's good to know. Please can you send a patch for that? The sequence
+> currently being used by the finisher *is* buggy, and should be fixed
+> independently of the louis stuff.
 
-Um, in Linus' master, net, and net-next, neither TI_CPSW nor TI_CPTS
-are default y, so I don't know where you are coming from on that.
+Well, the fix is yours, so, it should be "From: you." I can certainly send 
+it just copying your description above, but I'd also need your Sob. 
+Something like the below (feel free to improve the subject line and the 
+description):
 
-Sorry,
-Richard
+From: Will Deacon <will.deacon@arm.com>
+Subject: [PATCH] ARM: sh7372: fix cache clean / invalidate order
+
+According to the Cortex A8 TRM the L2 cache should be first cleaned and 
+then disabled. Fix the swapped order on sh7372.
+
+Signed-off-by: <you>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+(or even just)
+Tested-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+diff --git a/arch/arm/mach-shmobile/sleep-sh7372.S b/arch/arm/mach-shmobile/sleep-sh7372.S
+index 1d56467..df15d8a 100644
+--- a/arch/arm/mach-shmobile/sleep-sh7372.S
++++ b/arch/arm/mach-shmobile/sleep-sh7372.S
+@@ -59,16 +59,16 @@ sh7372_do_idle_sysc:
+ 	mcr	p15, 0, r0, c1, c0, 0
+ 	isb
+ 
+-	/* disable L2 cache in the aux control register */
+-	mrc     p15, 0, r10, c1, c0, 1
+-	bic     r10, r10, #2
+-	mcr     p15, 0, r10, c1, c0, 1
+-
+ 	/*
+ 	 * Invalidate data cache again.
+ 	 */
+ 	ldr	r1, kernel_flush
+ 	blx	r1
++
++	/* disable L2 cache in the aux control register */
++	mrc     p15, 0, r10, c1, c0, 1
++	bic     r10, r10, #2
++	mcr     p15, 0, r10, c1, c0, 1
+ 	/*
+ 	 * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
+ 	 * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
