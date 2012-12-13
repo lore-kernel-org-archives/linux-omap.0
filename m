@@ -1,92 +1,83 @@
-From: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [RFC 1/5] ARM: CORESIGHT: Add generic lock/unlock helpers
-Date: Thu, 13 Dec 2012 14:58:03 +0000
-Message-ID: <20121213145803.GL26540@mudshark.cambridge.arm.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC 3/5] ARM: CTI: Convert CTI helpers to AMBA bus driver
+Date: Thu, 13 Dec 2012 15:08:26 +0000
+Message-ID: <20121213150826.GM26540@mudshark.cambridge.arm.com>
 References: <1355348588-22318-1-git-send-email-jon-hunter@ti.com>
- <1355348588-22318-2-git-send-email-jon-hunter@ti.com>
+ <1355348588-22318-4-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:62361 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755910Ab2LMPIt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Dec 2012 10:08:49 -0500
 Content-Disposition: inline
-In-Reply-To: <1355348588-22318-2-git-send-email-jon-hunter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pratik Patel <pratikp-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1355348588-22318-4-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Pratik Patel <pratikp@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Ming Lei <ming.lei@canonical.com>
 
-Hi Jon,
-
-On Wed, Dec 12, 2012 at 09:43:04PM +0000, Jon Hunter wrote:
-> The Cross Trigger Interface (CTI) helpers in cti.h include definitions
-> for the Coresight Lock Access Register (LAR) and Lock Status Register
-> (LSR). These registers are already defined in coresight.h and so rather
-> than having multiple definitions, just use the definitions from
-> coresight.h.
+On Wed, Dec 12, 2012 at 09:43:06PM +0000, Jon Hunter wrote:
+> Convert the Cross Trigger Interface (CTI) helpers in cti.h into a
+> AMBA bus driver so that we can use device-tree to look-up the hardware
+> specific information such as base address and interrupt number during
+> the device probe. This also add APIs to request, cti_get() and release,
+> cti_put(), a CTI module so that drivers can allocate a module at
+> runtime.
 > 
-> Add the following coresight macros ...
-> - coresight_unlock() --> Unlocks coresight module
-> - coresight_lock()   --> Locks coresight module
+> Currently, the driver only supports looking-up the CTI hardware
+> information via device-tree, however, the driver could be extended to
+> support non-device-tree configurations if needed for a particular
+> architecture.
 > 
-> Use the above macros for ETB, ETM and CTI. The do-while(0) statement
-> has been removed from the macro as it is not a multi-line macro.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/include/asm/cti.h                |   16 +++-------------
->  arch/arm/include/asm/hardware/coresight.h |   16 ++++++++--------
->  2 files changed, 11 insertions(+), 21 deletions(-)
+> The CTI driver only currently supports CTI modules that have a single
+> CPU interrupt, however, could be extended in the future to support more
+> interrupts if a device requires this.
 
-[...]
+Aha, so elaborating on my earlier comments, we basically want to do the same
+thing for ETB I reckon. This does raise the question about namespaces
+though...
 
-> diff --git a/arch/arm/include/asm/hardware/coresight.h b/arch/arm/include/asm/hardware/coresight.h
-> index 7ecd793..dcd0e66 100644
-> --- a/arch/arm/include/asm/hardware/coresight.h
-> +++ b/arch/arm/include/asm/hardware/coresight.h
-> @@ -141,17 +141,17 @@
->  #define ETBFF_TRIGEVT		BIT(9)
->  #define ETBFF_TRIGFL		BIT(10)
->  
-> -#define etb_writel(t, v, x) \
-> -	(__raw_writel((v), (t)->etb_regs + (x)))
-> +#define etb_writel(t, v, x) (__raw_writel((v), (t)->etb_regs + (x)))
->  #define etb_readl(t, x) (__raw_readl((t)->etb_regs + (x)))
->  
-> -#define etm_lock(t) do { etm_writel((t), 0, CSMR_LOCKACCESS); } while (0)
-> -#define etm_unlock(t) \
-> -	do { etm_writel((t), UNLOCK_MAGIC, CSMR_LOCKACCESS); } while (0)
-> +#define etb_lock(t) coresight_lock((t)->etb_regs)
-> +#define etb_unlock(t) coresight_unlock((t)->etb_regs)
-> +#define etm_lock(t) coresight_lock((t)->etm_regs)
-> +#define etm_unlock(t) coresight_unlock((t)->etm_regs)
->  
-> -#define etb_lock(t) do { etb_writel((t), 0, CSMR_LOCKACCESS); } while (0)
-> -#define etb_unlock(t) \
-> -	do { etb_writel((t), UNLOCK_MAGIC, CSMR_LOCKACCESS); } while (0)
-> +#define coresight_lock(base) (__raw_writel(0, base + CSMR_LOCKACCESS))
-> +#define coresight_unlock(base) \
-> +	(__raw_writel(UNLOCK_MAGIC, base + CSMR_LOCKACCESS))
->  
->  #endif /* __ASM_HARDWARE_CORESIGHT_H */
+> +/**
+> + * struct cti - Cross Trigger Interface (CTI) struct
+> + *
+> + * @node:      Connects CTI instance to list of CTI instances
+> + * @dev:       Pointer to device structure
+> + * @base:      Mapped virtual address of the CTI module
+> + * @name:      Name associated with CTI instance
+> + * @irq:       Interrupt associated with CTI instance
+> + * @trig_out:  Trigger output associated with interrupt (@irq)
+> + * @reserved:  Used to indicate if CTI instance has been allocated
+> + * @enabled:   Used to indicate if CTI instance has been enabled
+> + */
+> +struct cti {
+> +       struct list_head node;
+> +       struct device *dev;
+> +       void __iomem *base;
+> +       const char *name;
+> +       int irq;
+> +       int trig_out;
+> +       bool reserved;
+> +       bool enabled;
+> +};
+> +
+> +#ifdef CONFIG_ARM_AMBA_CTI
+> +
+> +int cti_map_trigger(struct cti *cti, int trig_in, int trig_out, int chan);
+> +int cti_enable(struct cti *cti);
+> +int cti_disable(struct cti *cti);
+> +int cti_irq_ack(struct cti *cti);
+> +struct cti *cti_get(const char *name);
+> +void cti_put(struct cti *cti);
 
-How about we take this opportunity to divorce the more general coresight
-bits from the etb specific parts, like you've done for the cti. We could
-move the ETB stuff out into asm/etb.h (although it might be nice to keep all
-the coresight device headers in one place... answers on a postcard) and just
-have the architected coresight functionality in this header.
+I wonder whether we should stick these all into a struct and have a general
+way to see which coresight devices we have and then retrieve their ops
+structures (so things like perf can walk a virtual coresight bus containing
+initialised devices). It might also help if we decide to describe the
+plumbing in the device tree, like Rob suggested.
+
+What do you reckon?
 
 Will
-
-> -- 
-> 1.7.10.4
-> 
-> 
