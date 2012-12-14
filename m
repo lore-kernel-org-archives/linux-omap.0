@@ -1,62 +1,132 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] OMAP: board-files: fix i2c_bus for tfp410
-Date: Fri, 14 Dec 2012 09:23:52 -0800
-Message-ID: <20121214172350.GS4989@atomide.com>
-References: <1353068553-26897-1-git-send-email-tomi.valkeinen@ti.com>
- <1353573596-5550-1-git-send-email-tomi.valkeinen@ti.com>
- <50B87CD2.8010107@ti.com>
+Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
+Date: Fri, 14 Dec 2012 09:28:09 -0800
+Message-ID: <20121214172809.GT4989@atomide.com>
+References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
+ <20121120195755.GM18567@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:61736 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756604Ab2LNR2N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 12:28:13 -0500
 Content-Disposition: inline
-In-Reply-To: <50B87CD2.8010107@ti.com>
-Sender: stable-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, Thomas Weber <thomas@tomweber.eu>, stable@vger.kernel.org
+In-Reply-To: <20121120195755.GM18567@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [121130 01:33]:
-> Hi Tony,
+* Tony Lindgren <tony@atomide.com> [121120 12:00]:
+> Hi,
 > 
-> On 2012-11-22 10:39, Tomi Valkeinen wrote:
-> > The i2c handling in tfp410 driver, which handles converting parallel RGB
-> > to DVI, was changed in 958f2717b84e88bf833d996997fda8f73276f2af
-> > (OMAPDSS: TFP410: pdata rewrite). The patch changed what value the
-> > driver considers as invalid/undefined.  Before the patch, 0 was the
-> > invalid value, but as 0 is a valid bus number, the patch changed this to
-> > -1.
-> > 
-> > However, the fact was missed that many board files do not define the bus
-> > number at all, thus it's left to 0. This causes the driver to fail to
-> > get the i2c bus, exiting from the driver's probe with an error, meaning
-> > that the DVI output does not work for those boards.
-> > 
-> > This patch fixes the issue by changing the i2c_bus number field in the
-> > driver's platform data from u16 to int, and setting the bus number to -1
-> > in the board files for the boards that did not define the bus. The
-> > exception is devkit8000, for which the bus is set to 1, which is the
-> > correct bus for that board.
-> > 
-> > The bug exists in v3.5+ kernels.
-> > 
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > Reported-by: Thomas Weber <thomas@tomweber.eu>
-> > Cc: Thomas Weber <thomas@tomweber.eu>
-> > Cc: <stable@vger.kernel.org> # v3.5+
-> > ---
-> >  arch/arm/mach-omap2/board-3430sdp.c      |    1 +
-> >  arch/arm/mach-omap2/board-am3517evm.c    |    1 +
-> >  arch/arm/mach-omap2/board-cm-t35.c       |    1 +
-> >  arch/arm/mach-omap2/board-devkit8000.c   |    1 +
-> >  arch/arm/mach-omap2/board-omap3evm.c     |    1 +
-> >  arch/arm/mach-omap2/board-omap3stalker.c |    1 +
-> >  include/video/omap-panel-tfp410.h        |    2 +-
-> >  7 files changed, 7 insertions(+), 1 deletion(-)
+> * Timo Kokkonen <timo.t.kokkonen@iki.fi> [121118 07:15]:
+> > --- a/drivers/media/rc/ir-rx51.c
+> > +++ b/drivers/media/rc/ir-rx51.c
+> > @@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+> >  			      OMAP_TIMER_TRIGGER_NONE);
+> >  }
+> >  
+> > +static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
+> > +{
+> > +	if (lirc_rx51->wbuf_index < 0)
+> > +		return;
+> > +
+> > +	lirc_rx51_off(lirc_rx51);
+> > +	lirc_rx51->wbuf_index = -1;
+> > +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> > +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> > +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> > +	wake_up(&lirc_rx51->wqueue);
+> > +}
+> > +
+> >  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+> >  {
+> >  	u32 load, match;
 > 
-> Did this make it into your v3.8 branch?
+> Good fixes in general.. But you won't be able to access the
+> omap_dm_timer functions after we enable ARM multiplatform support
+> for omap2+. That's for v3.9 probably right after v3.8-rc1.
+> 
+> We need to find some Linux generic API to use hardware timers
+> like this, so I've added Thomas Gleixner and linux-arm-kernel
+> mailing list to cc.
+> 
+> If no such API is available, then maybe we can export some of
+> the omap_dm_timer functions if Thomas is OK with that.
 
-Applying now into omap-for-v3.8/fixes-for-merge-window.
-
-Thanks,
-
-Tony
+Just to update the status on this.. It seems that we'll be moving
+parts of plat/dmtimer into a minimal include/linux/timer-omap.h
+unless people have better ideas on what to do with custom
+hardware timers for PWM etc.
+ 
+> The other alternative is to set them up as platform_data
+> function pointers, but that won't work after we make omap2+
+> device tree only. And that really just postpones the problem.
+> 
+> Cheers,
+> 
+> Tony
+> 
+> 
+> > @@ -163,13 +176,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+> >  
+> >  	return IRQ_HANDLED;
+> >  end:
+> > -	/* Stop TX here */
+> > -	lirc_rx51_off(lirc_rx51);
+> > -	lirc_rx51->wbuf_index = -1;
+> > -	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> > -	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> > -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> > -	wake_up_interruptible(&lirc_rx51->wqueue);
+> > +	lirc_rx51_stop_tx(lirc_rx51);
+> >  
+> >  	return IRQ_HANDLED;
+> >  }
+> > @@ -249,8 +256,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+> >  	if ((count > WBUF_LEN) || (count % 2 == 0))
+> >  		return -EINVAL;
+> >  
+> > -	/* Wait any pending transfers to finish */
+> > -	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
+> > +	/* We can have only one transmit at a time */
+> > +	if (lirc_rx51->wbuf_index >= 0)
+> > +		return -EBUSY;
+> >  
+> >  	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+> >  		return -EFAULT;
+> > @@ -276,9 +284,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+> >  
+> >  	/*
+> >  	 * Don't return back to the userspace until the transfer has
+> > -	 * finished
+> > +	 * finished. However, we wish to not spend any more than 500ms
+> > +	 * in kernel. No IR code TX should ever take that long.
+> > +	 */
+> > +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
+> > +			HZ / 2);
+> > +
+> > +	/*
+> > +	 * Ensure transmitting has really stopped, even if the timers
+> > +	 * went mad or something else happened that caused it still
+> > +	 * sending out something.
+> >  	 */
+> > -	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
+> > +	lirc_rx51_stop_tx(lirc_rx51);
+> >  
+> >  	/* We can sleep again */
+> >  	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
+> > -- 
+> > 1.8.0
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
