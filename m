@@ -1,43 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2: Fix a typo - replace regist with register.
-Date: Fri, 14 Dec 2012 10:52:13 -0800
-Message-ID: <20121214185213.GI4989@atomide.com>
-References: <201211021445.qA2EjjI5005838@94.43.138.210.xn.2iij.net>
+Subject: Re: [PATCH 6/8] arch/arm/mach-omap2/dpll3xxx.c: drop if around
+ WARN_ON
+Date: Fri, 14 Dec 2012 10:53:41 -0800
+Message-ID: <20121214185340.GJ4989@atomide.com>
+References: <1351974625-10282-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1351974625-10282-7-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23424 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932106Ab2LNSwP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:52:15 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201211021445.qA2EjjI5005838@94.43.138.210.xn.2iij.net>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1351974625-10282-7-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: kernel-janitors@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Cc: linux-omap@vger.kernel.org
 
-* YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org> [121102 07:57]:
-> Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-> ---
->  arch/arm/mach-omap2/control.h |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+* Julia Lawall <Julia.Lawall@lip6.fr> [121103 13:32]:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
 > 
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index a89e825..5e6886e 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -233,7 +233,7 @@
->  #define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
->  #define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
->  
-> -/* 34xx GENERAL_WKUP regist offsets */
-> +/* 34xx GENERAL_WKUP register offsets */
->  #define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
->  						0x008 + (i))
->  #define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
+> Just use WARN_ON rather than an if containing only WARN_ON(1).
 
-Thanks applying into omap-for-v3.8/fixes-for-merge-window
-with the subject line also as the description.
+Thanks applying this one into omap-for-v3.8/fixes-for-merge-window.
+
+Regards,
 
 Tony
+ 
+> A simplified version of the semantic patch that makes this transformation
+> is as follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @@
+> expression e;
+> @@
+> - if (e) WARN_ON(1);
+> + WARN_ON(e);
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> ---
+>  arch/arm/mach-omap2/dpll3xxx.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+> index eacf51f..ed855b0 100644
+> --- a/arch/arm/mach-omap2/dpll3xxx.c
+> +++ b/arch/arm/mach-omap2/dpll3xxx.c
+> @@ -478,8 +478,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+>  		if (!soc_is_am33xx() && !cpu_is_omap44xx() && !cpu_is_omap3630()) {
+>  			freqsel = _omap3_dpll_compute_freqsel(clk,
+>  						dd->last_rounded_n);
+> -			if (!freqsel)
+> -				WARN_ON(1);
+> +			WARN_ON(!freqsel);
+>  		}
+>  
+>  		pr_debug("clock: %s: set rate: locking rate to %lu.\n",
+> 
