@@ -1,14 +1,14 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: Prepare for device-tree PMU support
-Date: Fri, 14 Dec 2012 15:18:49 -0600
-Message-ID: <1355519930-3851-2-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 2/2] ARM: dts: OMAP2+: Add PMU nodes
+Date: Fri, 14 Dec 2012 15:18:50 -0600
+Message-ID: <1355519930-3851-3-git-send-email-jon-hunter@ti.com>
 References: <1355519930-3851-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50792 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47023 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932367Ab2LNVTE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S932377Ab2LNVTE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 14 Dec 2012 16:19:04 -0500
 In-Reply-To: <1355519930-3851-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,49 +16,106 @@ List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Jon Hunter <jon-hunter@ti.com>
 
-If device-tree is present, then do not create the PMU device from within
-the OMAP specific PMU code. This is required to allow device-tree to
-create the PMU device from the PMU device-tree node.
+Add PMU nodes for OMAP2, OMAP3 and OMAP4460 devices.
 
-PMU is not currently supported for OMAP4430 (due to a dependency on
-having a cross-trigger interface driver) and so ensure that this
-indicated on boot with or without device-tree.
+Please note that the node for OMAP4460 has been placed in a separate
+header file for OMAP4460, because the node is not compatible with
+OMAP4430.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/pmu.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/omap2.dtsi         |    5 +++++
+ arch/arm/boot/dts/omap3.dtsi         |    6 ++++++
+ arch/arm/boot/dts/omap4-panda-es.dts |    2 ++
+ arch/arm/boot/dts/omap4460.dtsi      |   18 ++++++++++++++++++
+ arch/arm/mach-omap2/pmu.c            |    2 ++
+ 5 files changed, 33 insertions(+)
+ create mode 100644 arch/arm/boot/dts/omap4460.dtsi
 
-diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-index eb78ae7..6e620eb 100644
---- a/arch/arm/mach-omap2/pmu.c
-+++ b/arch/arm/mach-omap2/pmu.c
-@@ -64,6 +64,15 @@ static int __init omap_init_pmu(void)
- 	unsigned oh_num;
- 	char **oh_names;
+diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+index 761c4b6..27f5ea1 100644
+--- a/arch/arm/boot/dts/omap2.dtsi
++++ b/arch/arm/boot/dts/omap2.dtsi
+@@ -26,6 +26,11 @@
+ 		};
+ 	};
  
-+	/* XXX Remove this check when the CTI driver is available */
-+	if (cpu_is_omap443x()) {
-+		pr_info("ARM PMU: not yet supported on OMAP4430 due to missing CTI driver\n");
-+		return 0;
-+	}
++	pmu {
++		compatible = "arm,arm1136-pmu";
++		interrupts = <3>;
++	};
 +
-+	if (of_have_populated_dt())
-+		return 0;
+ 	soc {
+ 		compatible = "ti,omap-infra";
+ 		mpu {
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 1acc261..6c63118 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -26,6 +26,12 @@
+ 		};
+ 	};
+ 
++	pmu {
++		compatible = "arm,cortex-a8-pmu";
++		interrupts = <3>;
++		ti,hwmods = "debugss";
++	};
 +
  	/*
- 	 * To create an ARM-PMU device the following HWMODs
- 	 * are required for the various OMAP2+ devices.
-@@ -76,9 +85,6 @@ static int __init omap_init_pmu(void)
- 	if (cpu_is_omap443x()) {
- 		oh_num = ARRAY_SIZE(omap4430_pmu_oh_names);
- 		oh_names = omap4430_pmu_oh_names;
--		/* XXX Remove the next two lines when CTI driver available */
--		pr_info("ARM PMU: not yet supported on OMAP4430 due to missing CTI driver\n");
--		return 0;
- 	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 		oh_num = ARRAY_SIZE(omap3_pmu_oh_names);
- 		oh_names = omap3_pmu_oh_names;
+ 	 * The soc node represents the soc top level view. It is uses for IPs
+ 	 * that are not memory mapped in the MPU view or for the MPU itself.
+diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+index 73bc1a6..2a6e344 100644
+--- a/arch/arm/boot/dts/omap4-panda-es.dts
++++ b/arch/arm/boot/dts/omap4-panda-es.dts
+@@ -5,7 +5,9 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++
+ /include/ "omap4-panda.dts"
++/include/ "omap4460.dtsi"
+ 
+ /* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
+ &sound {
+diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
+new file mode 100644
+index 0000000..1270890
+--- /dev/null
++++ b/arch/arm/boot/dts/omap4460.dtsi
+@@ -0,0 +1,18 @@
++/*
++ * Device Tree Source for OMAP4460 SoC
++ *
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++
++/ {
++	pmu {
++		compatible = "arm,cortex-a9-pmu";
++		interrupts = <0 54 0x4
++			      0 55 0x4>;
++		ti,hwmods = "debugss";
++	};
++};
+diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
+index 6e620eb..1a0799c 100644
+--- a/arch/arm/mach-omap2/pmu.c
++++ b/arch/arm/mach-omap2/pmu.c
+@@ -11,6 +11,8 @@
+  * the Free Software Foundation; either version 2 of the License, or
+  * (at your option) any later version.
+  */
++#include <linux/of.h>
++
+ #include <asm/pmu.h>
+ 
+ #include "soc.h"
 -- 
 1.7.10.4
 
