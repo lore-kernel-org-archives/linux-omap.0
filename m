@@ -1,155 +1,89 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] OMAP2+: mux: Fixed gpio mux mode analysis.
-Date: Fri, 14 Dec 2012 10:15:19 -0800
-Message-ID: <20121214181519.GZ4989@atomide.com>
-References: <1353978123-12936-1-git-send-email-oleg.matcovschi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
+Date: Fri, 14 Dec 2012 20:08:29 +0200
+Message-ID: <20121214180829.GA11582@arwen.pp.htv.fi>
+References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
+ <20121120195755.GM18567@atomide.com>
+ <20121214172809.GT4989@atomide.com>
+ <20121214172616.GC9620@arwen.pp.htv.fi>
+ <20121214174629.GV4989@atomide.com>
+ <20121214174918.GA11029@arwen.pp.htv.fi>
+ <20121214180645.GW4989@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37256 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756648Ab2LNSQC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Dec 2012 13:16:02 -0500
 Content-Disposition: inline
-In-Reply-To: <1353978123-12936-1-git-send-email-oleg.matcovschi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: oleg.matcovschi@ti.com
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20121214180645.GW4989@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 
-* oleg.matcovschi@ti.com <oleg.matcovschi@ti.com> [121126 17:04]:
-> From: Oleg Matcovschi <oleg.matcovschi@ti.com>
-> 
-> OMAP_MODE_GPIO() macro verified only OMAP_MUX_MODE4.
-> It is not correct for following platforms:
->     2430 - gpio mux mode 3
->     44xx - gpio mux mode 3
->     54xx - gpio mux mode 6
-> 
-> Patch reserves first 3 bits in partition flags for storing gpio mux
-> mode in same format as stored in control pad register.
-> Modified OMAP_MODE_GPIO() macro to handle all possible cases of gpio mux mode.
-> Modified omap_mux_init() flags of omap34xx to include OMAP_MUX_GPIO_IN_MODE4.
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks applying into omap-for-v3.8/fixes-for-merge-window.
+Hi,
 
-Regards,
+On Fri, Dec 14, 2012 at 10:06:45AM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [121214 09:59]:
+> > On Fri, Dec 14, 2012 at 09:46:29AM -0800, Tony Lindgren wrote:
+> > > * Felipe Balbi <balbi@ti.com> [121214 09:36]:
+> > > >=20
+> > > > if it's really for PWM, shouldn't we be using drivers/pwm/ ??
+> > > >=20
+> > > > Meaning that $SUBJECT would just request a PWM device and use it. T=
+hat
+> > > > doesn't solve the whole problem, however, as pwm-omap.c would still=
+ need
+> > > > access to timer-omap.h.
+> > >=20
+> > > That would only help with omap_dm_timer_set_pwm() I think.
+> > >=20
+> > > The other functions are also needed by the clocksource and clockevent
+> > > drivers. And tidspbridge too:
+> >=20
+> > well, we _do_ have drivers/clocksource ;-)
+>=20
+> That's where the dmtimer code should live. But still it does not help
+> with the header.
 
-Tony
- 
-> Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
-> ---
->  arch/arm/mach-omap2/mux.c     |   10 ++++------
->  arch/arm/mach-omap2/mux.h     |   20 +++++++++++++++-----
->  arch/arm/mach-omap2/mux34xx.c |    2 +-
->  3 files changed, 20 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index 701e17c..1fa39dc 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -134,10 +134,7 @@ static int __init _omap_mux_init_gpio(struct omap_mux_partition *partition,
->  
->  	old_mode = omap_mux_read(partition, gpio_mux->reg_offset);
->  	mux_mode = val & ~(OMAP_MUX_NR_MODES - 1);
-> -	if (partition->flags & OMAP_MUX_GPIO_IN_MODE3)
-> -		mux_mode |= OMAP_MUX_MODE3;
-> -	else
-> -		mux_mode |= OMAP_MUX_MODE4;
-> +	mux_mode |= partition->gpio;
->  	pr_debug("%s: Setting signal %s.gpio%i 0x%04x -> 0x%04x\n", __func__,
->  		 gpio_mux->muxnames[0], gpio, old_mode, mux_mode);
->  	omap_mux_write(partition, mux_mode, gpio_mux->reg_offset);
-> @@ -799,7 +796,7 @@ int __init omap_mux_late_init(void)
->  			struct omap_mux *m = &e->mux;
->  			u16 mode = omap_mux_read(partition, m->reg_offset);
->  
-> -			if (OMAP_MODE_GPIO(mode))
-> +			if (OMAP_MODE_GPIO(partition, mode))
->  				continue;
->  
->  #ifndef CONFIG_DEBUG_FS
-> @@ -1064,7 +1061,7 @@ static void __init omap_mux_init_list(struct omap_mux_partition *partition,
->  		}
->  #else
->  		/* Skip pins that are not muxed as GPIO by bootloader */
-> -		if (!OMAP_MODE_GPIO(omap_mux_read(partition,
-> +		if (!OMAP_MODE_GPIO(partition, omap_mux_read(partition,
->  				    superset->reg_offset))) {
->  			superset++;
->  			continue;
-> @@ -1131,6 +1128,7 @@ int __init omap_mux_init(const char *name, u32 flags,
->  
->  	partition->name = name;
->  	partition->flags = flags;
-> +	partition->gpio = flags & OMAP_MUX_MODE7;
->  	partition->size = mux_size;
->  	partition->phys = mux_pbase;
->  	partition->base = ioremap(mux_pbase, mux_size);
-> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-> index 76f9b3c..5504e12 100644
-> --- a/arch/arm/mach-omap2/mux.h
-> +++ b/arch/arm/mach-omap2/mux.h
-> @@ -58,7 +58,8 @@
->  #define OMAP_PIN_OFF_INPUT_PULLDOWN	(OMAP_OFF_EN | OMAP_OFF_PULL_EN)
->  #define OMAP_PIN_OFF_WAKEUPENABLE	OMAP_WAKEUP_EN
->  
-> -#define OMAP_MODE_GPIO(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE4)
-> +#define OMAP_MODE_GPIO(partition, x)	(((x) & OMAP_MUX_MODE7) == \
-> +					  partition->gpio)
->  #define OMAP_MODE_UART(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE0)
->  
->  /* Flags for omapX_mux_init */
-> @@ -79,13 +80,20 @@
->  /*
->   * omap_mux_init flags definition:
->   *
-> + * OMAP_GPIO_MUX_MODE, bits 0-2: gpio muxing mode, same like pad control
-> + *      register which includes values from 0-7.
->   * OMAP_MUX_REG_8BIT: Ensure that access to padconf is done in 8 bits.
->   * The default value is 16 bits.
-> - * OMAP_MUX_GPIO_IN_MODE3: The GPIO is selected in mode3.
-> - * The default is mode4.
->   */
-> -#define OMAP_MUX_REG_8BIT		(1 << 0)
-> -#define OMAP_MUX_GPIO_IN_MODE3		(1 << 1)
-> +#define OMAP_MUX_GPIO_IN_MODE0		OMAP_MUX_MODE0
-> +#define OMAP_MUX_GPIO_IN_MODE1		OMAP_MUX_MODE1
-> +#define OMAP_MUX_GPIO_IN_MODE2		OMAP_MUX_MODE2
-> +#define OMAP_MUX_GPIO_IN_MODE3		OMAP_MUX_MODE3
-> +#define OMAP_MUX_GPIO_IN_MODE4		OMAP_MUX_MODE4
-> +#define OMAP_MUX_GPIO_IN_MODE5		OMAP_MUX_MODE5
-> +#define OMAP_MUX_GPIO_IN_MODE6		OMAP_MUX_MODE6
-> +#define OMAP_MUX_GPIO_IN_MODE7		OMAP_MUX_MODE7
-> +#define OMAP_MUX_REG_8BIT		(1 << 3)
->  
->  /**
->   * struct omap_board_data - board specific device data
-> @@ -105,6 +113,7 @@ struct omap_board_data {
->   * struct mux_partition - contain partition related information
->   * @name: name of the current partition
->   * @flags: flags specific to this partition
-> + * @gpio: gpio mux mode 
->   * @phys: physical address
->   * @size: partition size
->   * @base: virtual address after ioremap
-> @@ -114,6 +123,7 @@ struct omap_board_data {
->  struct omap_mux_partition {
->  	const char		*name;
->  	u32			flags;
-> +	u32			gpio;
->  	u32			phys;
->  	u32			size;
->  	void __iomem		*base;
-> diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
-> index c47140b..c53609f4 100644
-> --- a/arch/arm/mach-omap2/mux34xx.c
-> +++ b/arch/arm/mach-omap2/mux34xx.c
-> @@ -2053,7 +2053,7 @@ int __init omap3_mux_init(struct omap_board_mux *board_subset, int flags)
->  		return -EINVAL;
->  	}
->  
-> -	return omap_mux_init("core", 0,
-> +	return omap_mux_init("core", OMAP_MUX_GPIO_IN_MODE4,
->  			     OMAP3_CONTROL_PADCONF_MUX_PBASE,
->  			     OMAP3_CONTROL_PADCONF_MUX_SIZE,
->  			     omap3_muxmodes, package_subset, board_subset,
-> -- 
-> 1.7.4.1
-> 
+yeah, the header should be where you suggested, no doubts. I was
+actually criticizing the current timer code.
+
+cheers
+
+--=20
+balbi
+
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQy2sdAAoJEIaOsuA1yqREonQP/ihIj0ioTVx88CYVULy98Xqc
+w1MCh2HjwXkw6XVSWUEpLM0EE6j/T8M0sNj3jCkpsa4+27o3ekjJZ5Z3Bbutze9H
+NboHc38+MVWfANizzfU58VgB9PbUqr3btAZrSloieYrQu2A1tqkUMJ52WHapcNu2
+LfTIVo5MXqyzEhjZkR/b6vUNKPUxze7eSQud0bG5JH391TT9pL6xG5X7aRiciqbN
+Yxu3evBsEq8gRORiX+54z6sXuWrdaQ6r2RF8yVjojQwlJR2uSe8ALH0qFnkcPTeV
+G46Nw20c47D0GQN2GlacWdfhy/wJw2F1GzFViOcJDMkOiiDH7gejUkA2bL6KR7h/
+zkamCMwTMiPSAu/BwLlSIkhWYA2KM4HXFNrPaICx+R3KxQj0tqQLVkZ9po87Kmal
+6TBSw/1HCnE6K2t4MkKon1q5hjjEHGB5zT2VUBmdTj7SxuA30rMCqiVZ93ENJ6ZS
+aUibS2Nbz3K7PtBz0V5V1AxYXuXd/jML+cx8FBdBO6xIIafWx7vuEqglqBvJMqqM
+EfbUHPqsTLQJLN1pDIh9AWWDqWeMfRS6elNa/RLRTOy5GqOH/kNWxdKl/eBHv8b7
+fhlSrWhAPCcxJMKXYQIoH6O/qafYklC/haLZHTgqZkKssZDSyQ92eYX/EzsD0aCS
++t2U9zGNOdeigMtTB2yU
+=nlkE
+-----END PGP SIGNATURE-----
+
+--LQksG6bCIzRHxTLp--
