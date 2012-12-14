@@ -1,132 +1,85 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
-Date: Fri, 14 Dec 2012 09:28:09 -0800
-Message-ID: <20121214172809.GT4989@atomide.com>
-References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
- <20121120195755.GM18567@atomide.com>
+Subject: Re: [PATCH] OMAP2+: enable TPS65217 support in omap2plus_defconfig
+Date: Fri, 14 Dec 2012 09:32:18 -0800
+Message-ID: <20121214173218.GU4989@atomide.com>
+References: <50AA1BD5.1000002@gmail.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA76FDB@DBDE01.ent.ti.com>
+ <CAK0ocyD+N7t5Tm38p3Qt6fNSUEHuL-=_Pw7twDVPbDJ81K3-Xg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:61736 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:14940 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756604Ab2LNR2N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 12:28:13 -0500
+	with ESMTP id S1752622Ab2LNRcV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 12:32:21 -0500
 Content-Disposition: inline
-In-Reply-To: <20121120195755.GM18567@atomide.com>
+In-Reply-To: <CAK0ocyD+N7t5Tm38p3Qt6fNSUEHuL-=_Pw7twDVPbDJ81K3-Xg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+To: Igor Mazanov <i.mazanov@gmail.com>
+Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Tony Lindgren <tony@atomide.com> [121120 12:00]:
-> Hi,
+* Igor Mazanov <i.mazanov@gmail.com> [121120 09:12]:
+> On Tue, Nov 20, 2012 at 2:15 PM, AnilKumar, Chimata <anilkumar@ti.com> wrote:
+> > On Mon, Nov 19, 2012 at 17:15:25, Igor Mazanov wrote:
+> >> TPS65217 is described in arch/arm/boot/dts/am335x-bone.dts
+> >> but doesn't enabled in arch/arm/configs/omap2plus_defconfig.
+> >>
+> >> Enable TPS65217 support in omap2plus_defconfig.
+> >>
+> >> Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
+> >> ---
+> >>   arch/arm/configs/omap2plus_defconfig |    3 +++
+> >>   1 files changed, 3 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/arch/arm/configs/omap2plus_defconfig
+> >> b/arch/arm/configs/omap2plus_defconfig
+> >> index 6230304..00f2ce3 100644
+> >> --- a/arch/arm/configs/omap2plus_defconfig
+> >> +++ b/arch/arm/configs/omap2plus_defconfig
+> >> @@ -240,3 +240,6 @@ CONFIG_CRC_ITU_T=y
+> >>   CONFIG_CRC7=y
+> >>   CONFIG_LIBCRC32C=y
+> >>   CONFIG_SOC_OMAP5=y
+> >> +CONFIG_MFD_CORE=y
+> >> +CONFIG_MFD_TPS65217=y
+> >> +CONFIG_REGULATOR_TPS65217=y
+> >
+> > Hi Igor,
+> >
+> > Can you try this, MFD_CORE is selected by default and note that
+> > remaining flags should be added at appropriate places.
+> >
+> > Author: AnilKumar Ch <anilkumar@ti.com>
+> > Date:   Tue Nov 20 15:34:51 2012 +0530
+> >
+> >     Custom: ARM: OMAP2+: omap2plus_defconfig: Add tps65217 support
+> >
+> >     Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> >
+> > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> > index 6230304..69ddbf7 100644
+> > --- a/arch/arm/configs/omap2plus_defconfig
+> > +++ b/arch/arm/configs/omap2plus_defconfig
+> > @@ -132,9 +132,11 @@ CONFIG_POWER_SUPPLY=y
+> >  CONFIG_WATCHDOG=y
+> >  CONFIG_OMAP_WATCHDOG=y
+> >  CONFIG_TWL4030_WATCHDOG=y
+> > +CONFIG_MFD_TPS65217=y
+> >  CONFIG_REGULATOR_TWL4030=y
+> >  CONFIG_REGULATOR_TPS65023=y
+> >  CONFIG_REGULATOR_TPS6507X=y
+> > +CONFIG_REGULATOR_TPS65217=y
+> >  CONFIG_FB=y
+> >  CONFIG_FIRMWARE_EDID=y
+> >  CONFIG_FB_MODE_HELPERS=y
+> >
 > 
-> * Timo Kokkonen <timo.t.kokkonen@iki.fi> [121118 07:15]:
-> > --- a/drivers/media/rc/ir-rx51.c
-> > +++ b/drivers/media/rc/ir-rx51.c
-> > @@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
-> >  			      OMAP_TIMER_TRIGGER_NONE);
-> >  }
-> >  
-> > +static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
-> > +{
-> > +	if (lirc_rx51->wbuf_index < 0)
-> > +		return;
-> > +
-> > +	lirc_rx51_off(lirc_rx51);
-> > +	lirc_rx51->wbuf_index = -1;
-> > +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
-> > +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
-> > +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
-> > +	wake_up(&lirc_rx51->wqueue);
-> > +}
-> > +
-> >  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
-> >  {
-> >  	u32 load, match;
-> 
-> Good fixes in general.. But you won't be able to access the
-> omap_dm_timer functions after we enable ARM multiplatform support
-> for omap2+. That's for v3.9 probably right after v3.8-rc1.
-> 
-> We need to find some Linux generic API to use hardware timers
-> like this, so I've added Thomas Gleixner and linux-arm-kernel
-> mailing list to cc.
-> 
-> If no such API is available, then maybe we can export some of
-> the omap_dm_timer functions if Thomas is OK with that.
+> OK, I made changes as you say and it works. Thanks for a tip about
+> default selection of CONFIG_MFD.
 
-Just to update the status on this.. It seems that we'll be moving
-parts of plat/dmtimer into a minimal include/linux/timer-omap.h
-unless people have better ideas on what to do with custom
-hardware timers for PWM etc.
- 
-> The other alternative is to set them up as platform_data
-> function pointers, but that won't work after we make omap2+
-> device tree only. And that really just postpones the problem.
-> 
-> Cheers,
-> 
-> Tony
-> 
-> 
-> > @@ -163,13 +176,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
-> >  
-> >  	return IRQ_HANDLED;
-> >  end:
-> > -	/* Stop TX here */
-> > -	lirc_rx51_off(lirc_rx51);
-> > -	lirc_rx51->wbuf_index = -1;
-> > -	omap_dm_timer_stop(lirc_rx51->pwm_timer);
-> > -	omap_dm_timer_stop(lirc_rx51->pulse_timer);
-> > -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
-> > -	wake_up_interruptible(&lirc_rx51->wqueue);
-> > +	lirc_rx51_stop_tx(lirc_rx51);
-> >  
-> >  	return IRQ_HANDLED;
-> >  }
-> > @@ -249,8 +256,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
-> >  	if ((count > WBUF_LEN) || (count % 2 == 0))
-> >  		return -EINVAL;
-> >  
-> > -	/* Wait any pending transfers to finish */
-> > -	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-> > +	/* We can have only one transmit at a time */
-> > +	if (lirc_rx51->wbuf_index >= 0)
-> > +		return -EBUSY;
-> >  
-> >  	if (copy_from_user(lirc_rx51->wbuf, buf, n))
-> >  		return -EFAULT;
-> > @@ -276,9 +284,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
-> >  
-> >  	/*
-> >  	 * Don't return back to the userspace until the transfer has
-> > -	 * finished
-> > +	 * finished. However, we wish to not spend any more than 500ms
-> > +	 * in kernel. No IR code TX should ever take that long.
-> > +	 */
-> > +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
-> > +			HZ / 2);
-> > +
-> > +	/*
-> > +	 * Ensure transmitting has really stopped, even if the timers
-> > +	 * went mad or something else happened that caused it still
-> > +	 * sending out something.
-> >  	 */
-> > -	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-> > +	lirc_rx51_stop_tx(lirc_rx51);
-> >  
-> >  	/* We can sleep again */
-> >  	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
-> > -- 
-> > 1.8.0
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks applying into omap-for-v3.8/fixes-for-merge-window.
+
+Regards,
+
+Tony
