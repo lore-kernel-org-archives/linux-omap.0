@@ -1,67 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND] [PATCH 3.6.0- 5/6] ARM/omap: use
- module_platform_driver macro
-Date: Fri, 14 Dec 2012 10:50:34 -0800
-Message-ID: <20121214185033.GH4989@atomide.com>
-References: <1350025894-30625-1-git-send-email-srinivas.kandagatla@st.com>
+Subject: Re: [PATCH] OMAP2: Fix a typo - replace regist with register.
+Date: Fri, 14 Dec 2012 10:52:13 -0800
+Message-ID: <20121214185213.GI4989@atomide.com>
+References: <201211021445.qA2EjjI5005838@94.43.138.210.xn.2iij.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:11534 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756687Ab2LNSun (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:50:43 -0500
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:23424 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932106Ab2LNSwP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:52:15 -0500
 Content-Disposition: inline
-In-Reply-To: <1350025894-30625-1-git-send-email-srinivas.kandagatla@st.com>
+In-Reply-To: <201211021445.qA2EjjI5005838@94.43.138.210.xn.2iij.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Cc: paul@pwsan.com, rnayak@ti.com, Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, grinberg@compulab.co.il, eric.y.miao@gmail.com, linux-arm-kernel@lists.infradead.org, juha.yrjola@nokia.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, dsaxena@plexity.net, mpm@selenic.com, herbert@gondor.apana.org.au
+To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Cc: linux-omap@vger.kernel.org
 
-* Srinivas KANDAGATLA <srinivas.kandagatla@st.com> [121012 00:14]:
-> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+* YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org> [121102 07:57]:
+> Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+> ---
+>  arch/arm/mach-omap2/control.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> This patch removes some code duplication by using
-> module_platform_driver.
+> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> index a89e825..5e6886e 100644
+> --- a/arch/arm/mach-omap2/control.h
+> +++ b/arch/arm/mach-omap2/control.h
+> @@ -233,7 +233,7 @@
+>  #define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
+>  #define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
+>  
+> -/* 34xx GENERAL_WKUP regist offsets */
+> +/* 34xx GENERAL_WKUP register offsets */
+>  #define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
+>  						0x008 + (i))
+>  #define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
 
-Thanks, applying this one into omap-for-v3.8/fixes-for-merge-window.
-Skipping the mailbox ones as they are getting moved to live
-under drivers. And the rng one should go via the rng maintainers.
-
-Regards,
+Thanks applying into omap-for-v3.8/fixes-for-merge-window
+with the subject line also as the description.
 
 Tony
- 
-> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> ---
->  arch/arm/plat-omap/dmtimer.c |   13 +------------
->  1 files changed, 1 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index 938b50a..c89fc6a 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -786,19 +786,8 @@ static struct platform_driver omap_dm_timer_driver = {
->  	},
->  };
->  
-> -static int __init omap_dm_timer_driver_init(void)
-> -{
-> -	return platform_driver_register(&omap_dm_timer_driver);
-> -}
-> -
-> -static void __exit omap_dm_timer_driver_exit(void)
-> -{
-> -	platform_driver_unregister(&omap_dm_timer_driver);
-> -}
-> -
->  early_platform_init("earlytimer", &omap_dm_timer_driver);
-> -module_init(omap_dm_timer_driver_init);
-> -module_exit(omap_dm_timer_driver_exit);
-> +module_platform_driver(omap_dm_timer_driver);
->  
->  MODULE_DESCRIPTION("OMAP Dual-Mode Timer Driver");
->  MODULE_LICENSE("GPL");
-> -- 
-> 1.7.0.4
-> 
