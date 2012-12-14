@@ -1,189 +1,209 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH v4 1/4] rtc: OMAP: Add system pm_power_off to rtc driver
-Date: Fri, 14 Dec 2012 11:33:14 +0530
-Message-ID: <1355464997-19367-2-git-send-email-anilkumar@ti.com>
-References: <1355464997-19367-1-git-send-email-anilkumar@ti.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
+Date: Fri, 14 Dec 2012 18:05:53 +1100
+Message-ID: <20121214180553.5eb62c0c@notabene.brown>
+References: <20120825214459.7333a376@notabene.brown>
+	<CAMQu2gz0-U4GxEpZFfmJec+0FRs7ugy8EYS3HyYhb1jwbMBjug@mail.gmail.com>
+	<20120827085312.75957354@notabene.brown>
+	<CAMQu2gwH0O+NHV7H2aF375qmv0=TKb6RweOLohTHtB4UhQ-1gQ@mail.gmail.com>
+	<CAMQu2gw2b8HHDPuSRuHXVYn3sJ5BYi_PuOT=snpa3zD5ert=QQ@mail.gmail.com>
+	<20120906130510.32b0b877@notabene.brown>
+	<CAMQu2gxGNJ+NW_rcRiXNE=OMTq8Hb81_1hDZnNen6mjc2cf6BQ@mail.gmail.com>
+	<20120906170245.10e97bdd@notabene.brown>
+	<87627pldkj.fsf@deeprootsystems.com>
+	<CAMQu2gwSCvw_4gVE-giD6MSzmRCNoNu4NoFBSao_dh9YnojfuA@mail.gmail.com>
+	<87ipblahho.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51056 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751218Ab2LNGEJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Dec 2012 01:04:09 -0500
-In-Reply-To: <1355464997-19367-1-git-send-email-anilkumar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/V=LemLG=vm.KbeFn6aKrMlQ"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87ipblahho.fsf@deeprootsystems.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: a.zummo@towertech.it, sameo@linux.intel.com, tony@atomide.com
-Cc: grant.likely@secretlab.ca, broonie@opensource.wolfsonmicro.com, rob.herring@calxeda.com, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Colin Foe-Parker <colin.foeparker@logicpd.com>, AnilKumar Ch <anilkumar@ti.com>
 
-From: Colin Foe-Parker <colin.foeparker@logicpd.com>
+--Sig_/V=LemLG=vm.KbeFn6aKrMlQ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Add system power off control to rtc driver which is the in-charge
-of controlling the BeagleBone system power. The power_off routine
-can be hooked up to "pm_power_off" system call.
+On Mon, 10 Sep 2012 10:57:07 -0700 Kevin Hilman <khilman@deeprootsystems.co=
+m>
+wrote:
 
-System power off sequence:-
-* Set PMIC STATUS_OFF when PMIC_POWER_EN is pulled low
-* Enable PMIC_POWER_EN in rtc module
-* Set rtc ALARM2 time
-* Enable ALARM2 interrupt
 
-Signed-off-by: Colin Foe-Parker <colin.foeparker@logicpd.com>
-[anilkumar@ti.com: move poweroff additions to rtc driver]
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |    5 ++
- drivers/rtc/rtc-omap.c                             |   74 +++++++++++++++++++-
- 2 files changed, 78 insertions(+), 1 deletion(-)
+> OK thanks, I'll queue this up for v3.6-rc as this should qualify as a
+> regression.
 
-diff --git a/Documentation/devicetree/bindings/rtc/rtc-omap.txt b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-index b47aa41..8d9f4f9 100644
---- a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-+++ b/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-@@ -6,6 +6,10 @@ Required properties:
- - interrupts: rtc timer, alarm interrupts in order
- - interrupt-parent: phandle for the interrupt controller
- 
-+Optional properties:
-+- ti,system-power-controller: Telling whether or not rtc is controlling
-+  the system power.
-+
- Example:
- 
- rtc@1c23000 {
-@@ -14,4 +18,5 @@ rtc@1c23000 {
- 	interrupts = <19
- 		      19>;
- 	interrupt-parent = <&intc>;
-+	ti,system-power-controller;
- };
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 6009714..e6d4878 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -72,6 +72,14 @@
- #define OMAP_RTC_KICK0_REG		0x6c
- #define OMAP_RTC_KICK1_REG		0x70
- 
-+#define OMAP_RTC_ALARM2_SECONDS_REG	0x80
-+#define OMAP_RTC_ALARM2_MINUTES_REG	0x84
-+#define OMAP_RTC_ALARM2_HOURS_REG	0x88
-+#define OMAP_RTC_ALARM2_DAYS_REG	0x8c
-+#define OMAP_RTC_ALARM2_MONTHS_REG	0x90
-+#define OMAP_RTC_ALARM2_YEARS_REG	0x94
-+#define OMAP_RTC_PMIC_REG		0x98
-+
- /* OMAP_RTC_CTRL_REG bit fields: */
- #define OMAP_RTC_CTRL_SPLIT		(1<<7)
- #define OMAP_RTC_CTRL_DISABLE		(1<<6)
-@@ -93,15 +101,21 @@
- #define OMAP_RTC_STATUS_BUSY            (1<<0)
- 
- /* OMAP_RTC_INTERRUPTS_REG bit fields: */
-+#define OMAP_RTC_INTERRUPTS_IT_ALARM2   (1<<4)
- #define OMAP_RTC_INTERRUPTS_IT_ALARM    (1<<3)
- #define OMAP_RTC_INTERRUPTS_IT_TIMER    (1<<2)
- 
-+/* OMAP_RTC_PMIC_REG bit fields: */
-+#define OMAP_RTC_PMIC_POWER_EN_EN       (1<<16)
-+
- /* OMAP_RTC_KICKER values */
- #define	KICK0_VALUE			0x83e70b13
- #define	KICK1_VALUE			0x95a4f1e0
- 
- #define	OMAP_RTC_HAS_KICKER		0x1
- 
-+#define SHUTDOWN_TIME_SEC		2
-+
- static void __iomem	*rtc_base;
- 
- #define rtc_read(addr)		readb(rtc_base + (addr))
-@@ -290,6 +304,56 @@ static int omap_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+I don't think this did actually get queued.  At least I'm still seeing the
+bug in 3.7 and I cannot see a patch in the git history that looks right.
+But then I don't remember what we ended up with - it was 3 months ago!!!
+
+This is the last thing I can find in my email history - it still seems to
+apply and still seems to work.
+
+NeilBrown
+
+
+From: NeilBrown <neilb@suse.de>
+Date: Mon, 10 Sep 2012 14:09:06 +1000
+Subject: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
+
+Current kernel will wake from suspend on an event an any active
+GPIO event if enable_irq_wake() wasn't called.
+
+There are two reasons that the hardware wake-enable bit should be set:
+
+1/ while non-suspended the CPU might go into a deep sleep (off_mode)
+  in which the wake-enable bit is needed for an interrupt to be
+  recognised.
+2/ while suspended the GPIO interrupt should wake from suspend if and
+   only if irq_wake as been enabled.
+
+The code currently doesn't keep these two reasons separate so they get
+confused and sometimes the wakeup flags is set incorrectly.
+
+This patch reverts:
+ commit 9c4ed9e6c01e7a8bd9079da8267e1f03cb4761fc
+    gpio/omap: remove suspend/resume callbacks
+and
+ commit 0aa2727399c0b78225021413022c164cb99fbc5e
+    gpio/omap: remove suspend_wakeup field from struct gpio_bank
+
+and makes some minor changes so that we have separate flags for "GPIO
+should wake from deep idle" and "GPIO should wake from suspend".
+
+With this patch, the GPIO from my touch screen doesn't wake my device
+any more, which is what I want.
+
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 4fbc208..79e1340 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -57,6 +57,7 @@ struct gpio_bank {
+ 	u16 irq;
+ 	int irq_base;
+ 	struct irq_domain *domain;
++	u32 suspend_wakeup;
+ 	u32 non_wakeup_gpios;
+ 	u32 enabled_non_wakeup_gpios;
+ 	struct gpio_regs context;
+@@ -522,11 +523,9 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, in=
+t gpio, int enable)
+=20
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	if (enable)
+-		bank->context.wake_en |=3D gpio_bit;
++		bank->suspend_wakeup |=3D gpio_bit;
+ 	else
+-		bank->context.wake_en &=3D ~gpio_bit;
+-
+-	__raw_writel(bank->context.wake_en, bank->base + bank->regs->wkup_en);
++		bank->suspend_wakeup &=3D ~gpio_bit;
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+=20
  	return 0;
- }
- 
-+/*
-+ * rtc_power_off: Set the pmic power off sequence. The RTC generates
-+ * pmic_pwr_enable control, which can be used to control an external
-+ * PMIC.
-+ */
-+static void rtc_power_off(void)
+@@ -1157,6 +1156,49 @@ static int __devinit omap_gpio_probe(struct platform=
+_device *pdev)
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+=20
+ #if defined(CONFIG_PM_RUNTIME)
++
++#if defined(CONFIG_PM_SLEEP)
++static int omap_gpio_suspend(struct device *dev)
 +{
-+	u32 val;
-+	struct rtc_time tm;
-+	unsigned long time;
++	struct platform_device *pdev =3D to_platform_device(dev);
++	struct gpio_bank *bank =3D platform_get_drvdata(pdev);
++	void __iomem *base =3D bank->base;
++	unsigned long flags;
 +
-+	/* Set PMIC power enable */
-+	val = readl(rtc_base + OMAP_RTC_PMIC_REG);
-+	writel(val | OMAP_RTC_PMIC_POWER_EN_EN, rtc_base + OMAP_RTC_PMIC_REG);
++	if (!bank->mod_usage ||
++	    !bank->regs->wkup_en ||
++	    !bank->context.wake_en)
++		return 0;
 +
-+	/* Read rtc time */
-+	omap_rtc_read_time(NULL, &tm);
++	spin_lock_irqsave(&bank->lock, flags);
++	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
++	_gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeup, 1);
++	spin_unlock_irqrestore(&bank->lock, flags);
 +
-+	/* Convert Gregorian date to seconds since 01-01-1970 00:00:00 */
-+	rtc_tm_to_time(&tm, &time);
-+
-+	/* Add shutdown time to the current value */
-+	time += SHUTDOWN_TIME_SEC;
-+
-+	/* Convert seconds since 01-01-1970 00:00:00 to Gregorian date */
-+	rtc_time_to_tm(time, &tm);
-+
-+	if (tm2bcd(&tm) < 0)
-+		return;
-+
-+	pr_info("System will go to power_off state in approx. %d secs\n",
-+			SHUTDOWN_TIME_SEC);
-+
-+	/*
-+	 * pmic_pwr_enable is controlled by means of ALARM2 event. So here
-+	 * programming alarm2 expiry time and enabling alarm2 interrupt
-+	 */
-+	rtc_write(tm.tm_sec, OMAP_RTC_ALARM2_SECONDS_REG);
-+	rtc_write(tm.tm_min, OMAP_RTC_ALARM2_MINUTES_REG);
-+	rtc_write(tm.tm_hour, OMAP_RTC_ALARM2_HOURS_REG);
-+	rtc_write(tm.tm_mday, OMAP_RTC_ALARM2_DAYS_REG);
-+	rtc_write(tm.tm_mon, OMAP_RTC_ALARM2_MONTHS_REG);
-+	rtc_write(tm.tm_year, OMAP_RTC_ALARM2_YEARS_REG);
-+
-+	/* Enable alarm2 interrupt */
-+	val = readl(rtc_base + OMAP_RTC_INTERRUPTS_REG);
-+	writel(val | OMAP_RTC_INTERRUPTS_IT_ALARM2,
-+				rtc_base + OMAP_RTC_INTERRUPTS_REG);
++	return 0;
 +}
 +
- static struct rtc_class_ops omap_rtc_ops = {
- 	.read_time	= omap_rtc_read_time,
- 	.set_time	= omap_rtc_set_time,
-@@ -327,12 +391,16 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	struct resource		*res, *mem;
- 	struct rtc_device	*rtc;
- 	u8			reg, new_ctrl;
-+	bool			pm_off = false;
- 	const struct platform_device_id *id_entry;
- 	const struct of_device_id *of_id;
- 
- 	of_id = of_match_device(omap_rtc_of_match, &pdev->dev);
--	if (of_id)
-+	if (of_id) {
- 		pdev->id_entry = of_id->data;
-+		pm_off = of_property_read_bool(pdev->dev.of_node,
-+					"ti,system-power-controller");
-+	}
- 
- 	omap_rtc_timer = platform_get_irq(pdev, 0);
- 	if (omap_rtc_timer <= 0) {
-@@ -385,6 +453,10 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, rtc);
- 	dev_set_drvdata(&rtc->dev, mem);
- 
-+	/* RTC power off */
-+	if (pm_off && !pm_power_off)
-+		pm_power_off = rtc_power_off;
++static int omap_gpio_resume(struct device *dev)
++{
++	struct platform_device *pdev =3D to_platform_device(dev);
++	struct gpio_bank *bank =3D platform_get_drvdata(pdev);
++	void __iomem *base =3D bank->base;
++	unsigned long flags;
 +
- 	/* clear pending irqs, and set 1/second periodic,
- 	 * which we'll use instead of update irqs
- 	 */
--- 
-1.7.9.5
++	if (!bank->mod_usage ||
++	    !bank->regs->wkup_en ||
++	    !bank->context.wake_en)
++		return 0;
++
++	spin_lock_irqsave(&bank->lock, flags);
++	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
++	_gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_en, 1);
++	spin_unlock_irqrestore(&bank->lock, flags);
++
++	return 0;
++}
++#endif /* CONFIG_PM_SLEEP */
++
+ static void omap_gpio_restore_context(struct gpio_bank *bank);
+=20
+ static int omap_gpio_runtime_suspend(struct device *dev)
+@@ -1386,11 +1428,14 @@ static void omap_gpio_restore_context(struct gpio_b=
+ank *bank)
+ }
+ #endif /* CONFIG_PM_RUNTIME */
+ #else
++#define omap_gpio_suspend NULL
++#define omap_gpio_resume NULL
+ #define omap_gpio_runtime_suspend NULL
+ #define omap_gpio_runtime_resume NULL
+ #endif
+=20
+ static const struct dev_pm_ops gpio_pm_ops =3D {
++	SET_SYSTEM_SLEEP_PM_OPS(omap_gpio_suspend, omap_gpio_resume)
+ 	SET_RUNTIME_PM_OPS(omap_gpio_runtime_suspend, omap_gpio_runtime_resume,
+ 									NULL)
+ };
 
+[signature.asc  application/pgp-signature (828 bytes)]=20
+
+--Sig_/V=LemLG=vm.KbeFn6aKrMlQ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIVAwUBUMrP2Tnsnt1WYoG5AQK+Vw//X5j3Y/5tShAEe1PbpIdjDuwU4iQyqF29
+c9aIxGjoAQn24uFhMz3xhllfLZbeojnyFNLhX3txLg2bbyHrevBFDaY1doE/MT77
+ye4e1coS90LQguhWTBfwI/jDu4Df669U/95xvRR8/ysflMTENG0NIVQma8hgy2tY
+isdni61MleCjHeRMqet04L2vVvfIHQdIzJDlprvdQGkAlk9Pp8RDPekT0xW8aSpG
+JtN3OZdIziO7ped+5TEPx+bFjG/5GI5XjbBWhF39kQSXfYPW90Ym1ZXkaspuRs2A
+FKqd4Td1RqtRATLM37pil83VGmwe9n2dQSBmIER5Ml8vM0GyDx2+4rcP9GM3RoA/
+oeXfbdei4mlXq2fRXDn9uqiSWy5JRl73wEzxlXsjuztnYVxr8BlGgkyuiyfQmF35
+92PDI8e5RF2nQLxjjdgMIXf+pawdiRftSztqTYDEKhJPi1xeUI6Ly3tP4cW+jjHr
+ymRiMPTaTV5XU8RUSDs44cVj+1yBJmO6yKfD5h6FrIX/S2w3+NX8Wx06+j4m1OU+
+EYb9gZy6pfoNY7/iMXgJOTtEzl+I3fx7z/S/VuztJ7+X1AP066aPQZ/Ogwp/RsHR
+hGoy85D5SMsmgNacdokQsi+aFvv9nb4VK18Cyk7tfeczBWQFGWg4Ds2AMQNZiKCF
+iv5e03LDQnA=
+=Vqut
+-----END PGP SIGNATURE-----
+
+--Sig_/V=LemLG=vm.KbeFn6aKrMlQ--
