@@ -1,85 +1,108 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2+: enable TPS65217 support in omap2plus_defconfig
-Date: Fri, 14 Dec 2012 09:32:18 -0800
-Message-ID: <20121214173218.GU4989@atomide.com>
-References: <50AA1BD5.1000002@gmail.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA76FDB@DBDE01.ent.ti.com>
- <CAK0ocyD+N7t5Tm38p3Qt6fNSUEHuL-=_Pw7twDVPbDJ81K3-Xg@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
+Date: Fri, 14 Dec 2012 19:26:16 +0200
+Message-ID: <20121214172616.GC9620@arwen.pp.htv.fi>
+References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
+ <20121120195755.GM18567@atomide.com>
+ <20121214172809.GT4989@atomide.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E13BgyNx05feLLmH"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:14940 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752622Ab2LNRcV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 12:32:21 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:43681 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752622Ab2LNRds (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Dec 2012 12:33:48 -0500
 Content-Disposition: inline
-In-Reply-To: <CAK0ocyD+N7t5Tm38p3Qt6fNSUEHuL-=_Pw7twDVPbDJ81K3-Xg@mail.gmail.com>
+In-Reply-To: <20121214172809.GT4989@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Mazanov <i.mazanov@gmail.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 
-* Igor Mazanov <i.mazanov@gmail.com> [121120 09:12]:
-> On Tue, Nov 20, 2012 at 2:15 PM, AnilKumar, Chimata <anilkumar@ti.com> wrote:
-> > On Mon, Nov 19, 2012 at 17:15:25, Igor Mazanov wrote:
-> >> TPS65217 is described in arch/arm/boot/dts/am335x-bone.dts
-> >> but doesn't enabled in arch/arm/configs/omap2plus_defconfig.
-> >>
-> >> Enable TPS65217 support in omap2plus_defconfig.
-> >>
-> >> Signed-off-by: Igor Mazanov <i.mazanov@gmail.com>
-> >> ---
-> >>   arch/arm/configs/omap2plus_defconfig |    3 +++
-> >>   1 files changed, 3 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/arch/arm/configs/omap2plus_defconfig
-> >> b/arch/arm/configs/omap2plus_defconfig
-> >> index 6230304..00f2ce3 100644
-> >> --- a/arch/arm/configs/omap2plus_defconfig
-> >> +++ b/arch/arm/configs/omap2plus_defconfig
-> >> @@ -240,3 +240,6 @@ CONFIG_CRC_ITU_T=y
-> >>   CONFIG_CRC7=y
-> >>   CONFIG_LIBCRC32C=y
-> >>   CONFIG_SOC_OMAP5=y
-> >> +CONFIG_MFD_CORE=y
-> >> +CONFIG_MFD_TPS65217=y
-> >> +CONFIG_REGULATOR_TPS65217=y
-> >
-> > Hi Igor,
-> >
-> > Can you try this, MFD_CORE is selected by default and note that
-> > remaining flags should be added at appropriate places.
-> >
-> > Author: AnilKumar Ch <anilkumar@ti.com>
-> > Date:   Tue Nov 20 15:34:51 2012 +0530
-> >
-> >     Custom: ARM: OMAP2+: omap2plus_defconfig: Add tps65217 support
-> >
-> >     Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> >
-> > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> > index 6230304..69ddbf7 100644
-> > --- a/arch/arm/configs/omap2plus_defconfig
-> > +++ b/arch/arm/configs/omap2plus_defconfig
-> > @@ -132,9 +132,11 @@ CONFIG_POWER_SUPPLY=y
-> >  CONFIG_WATCHDOG=y
-> >  CONFIG_OMAP_WATCHDOG=y
-> >  CONFIG_TWL4030_WATCHDOG=y
-> > +CONFIG_MFD_TPS65217=y
-> >  CONFIG_REGULATOR_TWL4030=y
-> >  CONFIG_REGULATOR_TPS65023=y
-> >  CONFIG_REGULATOR_TPS6507X=y
-> > +CONFIG_REGULATOR_TPS65217=y
-> >  CONFIG_FB=y
-> >  CONFIG_FIRMWARE_EDID=y
-> >  CONFIG_FB_MODE_HELPERS=y
-> >
-> 
-> OK, I made changes as you say and it works. Thanks for a tip about
-> default selection of CONFIG_MFD.
+--E13BgyNx05feLLmH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks applying into omap-for-v3.8/fixes-for-merge-window.
+Hi,
 
-Regards,
+On Fri, Dec 14, 2012 at 09:28:09AM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [121120 12:00]:
+> > Hi,
+> >=20
+> > * Timo Kokkonen <timo.t.kokkonen@iki.fi> [121118 07:15]:
+> > > --- a/drivers/media/rc/ir-rx51.c
+> > > +++ b/drivers/media/rc/ir-rx51.c
+> > > @@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_r=
+x51)
+> > >  			      OMAP_TIMER_TRIGGER_NONE);
+> > >  }
+> > > =20
+> > > +static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
+> > > +{
+> > > +	if (lirc_rx51->wbuf_index < 0)
+> > > +		return;
+> > > +
+> > > +	lirc_rx51_off(lirc_rx51);
+> > > +	lirc_rx51->wbuf_index =3D -1;
+> > > +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> > > +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> > > +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> > > +	wake_up(&lirc_rx51->wqueue);
+> > > +}
+> > > +
+> > >  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+> > >  {
+> > >  	u32 load, match;
+> >=20
+> > Good fixes in general.. But you won't be able to access the
+> > omap_dm_timer functions after we enable ARM multiplatform support
+> > for omap2+. That's for v3.9 probably right after v3.8-rc1.
+> >=20
+> > We need to find some Linux generic API to use hardware timers
+> > like this, so I've added Thomas Gleixner and linux-arm-kernel
+> > mailing list to cc.
+> >=20
+> > If no such API is available, then maybe we can export some of
+> > the omap_dm_timer functions if Thomas is OK with that.
+>=20
+> Just to update the status on this.. It seems that we'll be moving
+> parts of plat/dmtimer into a minimal include/linux/timer-omap.h
+> unless people have better ideas on what to do with custom
+> hardware timers for PWM etc.
 
-Tony
+if it's really for PWM, shouldn't we be using drivers/pwm/ ??
+
+Meaning that $SUBJECT would just request a PWM device and use it. That
+doesn't solve the whole problem, however, as pwm-omap.c would still need
+access to timer-omap.h.
+
+--=20
+balbi
+
+--E13BgyNx05feLLmH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQy2E4AAoJEIaOsuA1yqREsesQAK30CFedD1Gas2SmqCJVh/tT
+xsWHwNmBXKf02QuvNkfnNaiEbZF9cEn0Y/hrhHBmeMRBkwwfCXb6cxwm/2yds4Mb
+7/RPnm59BcTa52bc03n0L6RjsW1zMIhtSSL1jphJHDJlvULtKvFv6akQ0UPiXVxO
+rEFgZ7t1To/ZTtbJOYJ28uWsBJ6HhW4HJNORmTl4jgJx1w93KxbI8pF2mwlRMZr0
+Pd2ca4V9zfvXaxEw6JN342ZyaGJhtm2Xm22amPJ2y0+zy8u/OwfthdAgFOR3askD
+oh+74s01dAebTJOTUtxShA8Y/6SW+lhXcbMLlH99m5b1BxOhRtEL7FkO/b4OD3cW
+oKcImVeH8KY/mrXY0yBxe+iOwVWS4UK9OCf6KOv8kU5V+XZp3k6I2PwGCzZWKihw
+5PbxzFVJVUvlL9izH3qap8QP75yVjRYHXQPejj7hgdgpNvk1dKnEzC1lYA/vM7Gq
+rXbF0WLEjBguK5zuxZiKq6/V0OJVVvFP7hKzP5ozQMQTMFZtJ+zRW2Nhm2w0FKwn
+Fk0YPPPRCcGb4EAS4zoRWrL7/kr2J2IbolxeswJI2+dXBFETxFOjvzNLqtlXGJyr
+rLSzH/PeBHgWVkNfBdXUC/wFJT0VQrmXML2EBe6Artg/Ysbj6O0Z59gjhKtTJPo1
+CX0swDnAoGDueuENJ6ma
+=FXYI
+-----END PGP SIGNATURE-----
+
+--E13BgyNx05feLLmH--
