@@ -1,31 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: enable devtmpfs and devtmpfs automount
-Date: Fri, 14 Dec 2012 10:10:51 -0800
-Message-ID: <20121214181051.GY4989@atomide.com>
-References: <1353504411-19811-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: Re: [PATCH v2] OMAP2+: mux: Fixed gpio mux mode analysis.
+Date: Fri, 14 Dec 2012 10:15:19 -0800
+Message-ID: <20121214181519.GZ4989@atomide.com>
+References: <1353978123-12936-1-git-send-email-oleg.matcovschi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48698 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754461Ab2LNSK5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:10:57 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1353504411-19811-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1353978123-12936-1-git-send-email-oleg.matcovschi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: oleg.matcovschi@ti.com
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [121121 05:29]:
-> Since udev-182, udev no longer creates device nodes under /dev
-> and this has to be managed by the kernel devtmpfs filesystem.
+* oleg.matcovschi@ti.com <oleg.matcovschi@ti.com> [121126 17:04]:
+> From: Oleg Matcovschi <oleg.matcovschi@ti.com>
 > 
-> This means that a kernel built with the current OMAP2+ config
-> will not boot on a system with a recent udev.
+> OMAP_MODE_GPIO() macro verified only OMAP_MUX_MODE4.
+> It is not correct for following platforms:
+>     2430 - gpio mux mode 3
+>     44xx - gpio mux mode 3
+>     54xx - gpio mux mode 6
 > 
-> Also, it is good to have /dev automatically mounted since some
-> non-initramfs based setups assumes this and don't manually mount it.
+> Patch reserves first 3 bits in partition flags for storing gpio mux
+> mode in same format as stored in control pad register.
+> Modified OMAP_MODE_GPIO() macro to handle all possible cases of gpio mux mode.
+> Modified omap_mux_init() flags of omap34xx to include OMAP_MUX_GPIO_IN_MODE4.
 
 Thanks applying into omap-for-v3.8/fixes-for-merge-window.
 
@@ -33,28 +33,123 @@ Regards,
 
 Tony
  
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> Signed-off-by: Oleg Matcovschi <oleg.matcovschi@ti.com>
 > ---
->  arch/arm/configs/omap2plus_defconfig |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/mux.c     |   10 ++++------
+>  arch/arm/mach-omap2/mux.h     |   20 +++++++++++++++-----
+>  arch/arm/mach-omap2/mux34xx.c |    2 +-
+>  3 files changed, 20 insertions(+), 12 deletions(-)
 > 
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index 6230304..6333e96 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -65,6 +65,8 @@ CONFIG_MAC80211_RC_PID=y
->  CONFIG_MAC80211_RC_DEFAULT_PID=y
->  CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
->  CONFIG_CONNECTOR=y
-> +CONFIG_DEVTMPFS=y
-> +CONFIG_DEVTMPFS_MOUNT=y
->  CONFIG_MTD=y
->  CONFIG_MTD_CMDLINE_PARTS=y
->  CONFIG_MTD_CHAR=y
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 701e17c..1fa39dc 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -134,10 +134,7 @@ static int __init _omap_mux_init_gpio(struct omap_mux_partition *partition,
+>  
+>  	old_mode = omap_mux_read(partition, gpio_mux->reg_offset);
+>  	mux_mode = val & ~(OMAP_MUX_NR_MODES - 1);
+> -	if (partition->flags & OMAP_MUX_GPIO_IN_MODE3)
+> -		mux_mode |= OMAP_MUX_MODE3;
+> -	else
+> -		mux_mode |= OMAP_MUX_MODE4;
+> +	mux_mode |= partition->gpio;
+>  	pr_debug("%s: Setting signal %s.gpio%i 0x%04x -> 0x%04x\n", __func__,
+>  		 gpio_mux->muxnames[0], gpio, old_mode, mux_mode);
+>  	omap_mux_write(partition, mux_mode, gpio_mux->reg_offset);
+> @@ -799,7 +796,7 @@ int __init omap_mux_late_init(void)
+>  			struct omap_mux *m = &e->mux;
+>  			u16 mode = omap_mux_read(partition, m->reg_offset);
+>  
+> -			if (OMAP_MODE_GPIO(mode))
+> +			if (OMAP_MODE_GPIO(partition, mode))
+>  				continue;
+>  
+>  #ifndef CONFIG_DEBUG_FS
+> @@ -1064,7 +1061,7 @@ static void __init omap_mux_init_list(struct omap_mux_partition *partition,
+>  		}
+>  #else
+>  		/* Skip pins that are not muxed as GPIO by bootloader */
+> -		if (!OMAP_MODE_GPIO(omap_mux_read(partition,
+> +		if (!OMAP_MODE_GPIO(partition, omap_mux_read(partition,
+>  				    superset->reg_offset))) {
+>  			superset++;
+>  			continue;
+> @@ -1131,6 +1128,7 @@ int __init omap_mux_init(const char *name, u32 flags,
+>  
+>  	partition->name = name;
+>  	partition->flags = flags;
+> +	partition->gpio = flags & OMAP_MUX_MODE7;
+>  	partition->size = mux_size;
+>  	partition->phys = mux_pbase;
+>  	partition->base = ioremap(mux_pbase, mux_size);
+> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+> index 76f9b3c..5504e12 100644
+> --- a/arch/arm/mach-omap2/mux.h
+> +++ b/arch/arm/mach-omap2/mux.h
+> @@ -58,7 +58,8 @@
+>  #define OMAP_PIN_OFF_INPUT_PULLDOWN	(OMAP_OFF_EN | OMAP_OFF_PULL_EN)
+>  #define OMAP_PIN_OFF_WAKEUPENABLE	OMAP_WAKEUP_EN
+>  
+> -#define OMAP_MODE_GPIO(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE4)
+> +#define OMAP_MODE_GPIO(partition, x)	(((x) & OMAP_MUX_MODE7) == \
+> +					  partition->gpio)
+>  #define OMAP_MODE_UART(x)	(((x) & OMAP_MUX_MODE7) == OMAP_MUX_MODE0)
+>  
+>  /* Flags for omapX_mux_init */
+> @@ -79,13 +80,20 @@
+>  /*
+>   * omap_mux_init flags definition:
+>   *
+> + * OMAP_GPIO_MUX_MODE, bits 0-2: gpio muxing mode, same like pad control
+> + *      register which includes values from 0-7.
+>   * OMAP_MUX_REG_8BIT: Ensure that access to padconf is done in 8 bits.
+>   * The default value is 16 bits.
+> - * OMAP_MUX_GPIO_IN_MODE3: The GPIO is selected in mode3.
+> - * The default is mode4.
+>   */
+> -#define OMAP_MUX_REG_8BIT		(1 << 0)
+> -#define OMAP_MUX_GPIO_IN_MODE3		(1 << 1)
+> +#define OMAP_MUX_GPIO_IN_MODE0		OMAP_MUX_MODE0
+> +#define OMAP_MUX_GPIO_IN_MODE1		OMAP_MUX_MODE1
+> +#define OMAP_MUX_GPIO_IN_MODE2		OMAP_MUX_MODE2
+> +#define OMAP_MUX_GPIO_IN_MODE3		OMAP_MUX_MODE3
+> +#define OMAP_MUX_GPIO_IN_MODE4		OMAP_MUX_MODE4
+> +#define OMAP_MUX_GPIO_IN_MODE5		OMAP_MUX_MODE5
+> +#define OMAP_MUX_GPIO_IN_MODE6		OMAP_MUX_MODE6
+> +#define OMAP_MUX_GPIO_IN_MODE7		OMAP_MUX_MODE7
+> +#define OMAP_MUX_REG_8BIT		(1 << 3)
+>  
+>  /**
+>   * struct omap_board_data - board specific device data
+> @@ -105,6 +113,7 @@ struct omap_board_data {
+>   * struct mux_partition - contain partition related information
+>   * @name: name of the current partition
+>   * @flags: flags specific to this partition
+> + * @gpio: gpio mux mode 
+>   * @phys: physical address
+>   * @size: partition size
+>   * @base: virtual address after ioremap
+> @@ -114,6 +123,7 @@ struct omap_board_data {
+>  struct omap_mux_partition {
+>  	const char		*name;
+>  	u32			flags;
+> +	u32			gpio;
+>  	u32			phys;
+>  	u32			size;
+>  	void __iomem		*base;
+> diff --git a/arch/arm/mach-omap2/mux34xx.c b/arch/arm/mach-omap2/mux34xx.c
+> index c47140b..c53609f4 100644
+> --- a/arch/arm/mach-omap2/mux34xx.c
+> +++ b/arch/arm/mach-omap2/mux34xx.c
+> @@ -2053,7 +2053,7 @@ int __init omap3_mux_init(struct omap_board_mux *board_subset, int flags)
+>  		return -EINVAL;
+>  	}
+>  
+> -	return omap_mux_init("core", 0,
+> +	return omap_mux_init("core", OMAP_MUX_GPIO_IN_MODE4,
+>  			     OMAP3_CONTROL_PADCONF_MUX_PBASE,
+>  			     OMAP3_CONTROL_PADCONF_MUX_SIZE,
+>  			     omap3_muxmodes, package_subset, board_subset,
 > -- 
-> 1.7.7.6
+> 1.7.4.1
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
