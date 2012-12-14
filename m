@@ -1,56 +1,35 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP3: igep0020: default boot status LED to On
- instead of Heartbeat
-Date: Fri, 14 Dec 2012 19:23:09 +0100
-Message-ID: <CAAwP0s2aTb5QzNopycuUMM=0Vj7OwDR9e1WaVCp5m+GvF-HHZA@mail.gmail.com>
-References: <1353745771-29983-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 1/1] ARM: OMAP2+: omap2plus_defconfig: enable devtmpfs
+ and automount
+Date: Fri, 14 Dec 2012 19:29:15 +0100
+Message-ID: <50CB6FFB.2060600@ti.com>
+References: <1355508168-32565-1-git-send-email-javier.martinez@collabora.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1353745771-29983-1-git-send-email-javier.martinez@collabora.co.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Enric Balletbo i Serra <eballetbo@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37893 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756671Ab2LNS2p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Dec 2012 13:28:45 -0500
+In-Reply-To: <1355508168-32565-1-git-send-email-javier.martinez@collabora.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Sat, Nov 24, 2012 at 9:29 AM, Javier Martinez Canillas
-<javier.martinez@collabora.co.uk> wrote:
-> The IGEPv2 board uses an green GPIO LED to inform the user
-> that the kernel could boot.
+On Friday 14 December 2012 07:02 PM, Javier Martinez Canillas wrote:
+> Since udev-176 [1], udev no longer creates device nodes under
+> /dev and this has to be managed by the kernel devtmpfs filesystem.
 >
-> The green status GPIO LED was default to Heartbeat but On
-> is better to signal that is running correctly.
+> This makes devtmpfs filesystem a requirement on newer systems and
+> a kernel built with the current OMAP2+ config will not boot on them.
+>
+> Also, it is good to have devtmpfs at /dev automount enabled by default.
+>
+> [1]: http://permalink.gmane.org/gmane.linux.hotplug.devel/17230
 >
 > Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  arch/arm/mach-omap2/board-igep0020.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-> index 0f24cb8..e526228 100644
-> --- a/arch/arm/mach-omap2/board-igep0020.c
-> +++ b/arch/arm/mach-omap2/board-igep0020.c
-> @@ -313,7 +313,7 @@ static struct gpio_led igep_gpio_leds[] = {
->         },
->         [3] = {
->                 .name                   = "gpio-led:green:d1",
-> -               .default_trigger        = "heartbeat",
-> +               .default_trigger        = "default-on",
->                 .gpio                   = -EINVAL, /* gets replaced */
->                 .active_low             = 1,
->         },
-> --
 
-Please ignore this patch since another one was sent that supersedes it.
+Acked-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
 
-Thanks a lot and sorry for the noise.
-Javier
