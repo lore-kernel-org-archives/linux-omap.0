@@ -1,53 +1,32 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 01/23] mfd: omap-usb-host: get rid of
- cpu_is_omap..() macros
-Date: Fri, 14 Dec 2012 10:30:28 -0800
-Message-ID: <20121214183027.GC4989@atomide.com>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com>
- <1355134833-5199-2-git-send-email-rogerq@ti.com>
- <20121213214949.GH4989@atomide.com>
- <20121214005450.GO26699@sortiz-mobl>
+Subject: Re: [PATCH 0/2] ARM: OMAP4: clock data fixes for early 3.8-rc
+Date: Fri, 14 Dec 2012 10:34:57 -0800
+Message-ID: <20121214183457.GD4989@atomide.com>
+References: <20121214072028.24383.41000.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:33692 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756683Ab2LNSfA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:35:00 -0500
 Content-Disposition: inline
-In-Reply-To: <20121214005450.GO26699@sortiz-mobl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: balbi@ti.com, paul@pwsan.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Roger Quadros <rogerq@ti.com>
+In-Reply-To: <20121214072028.24383.41000.stgit@dusk.lan>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Samuel Ortiz <sameo@linux.intel.com> [121213 16:57]:
-> Hi Tony,
+* Paul Walmsley <paul@pwsan.com> [121213 23:37]:
+> A few bugs in the OMAP4 common clock framework data caused boot-time
+> warnings on OMAP4460 PandaBoard-ES; these patches fix those.  They
+> apply after the arm-soc merge during pre-3.8-rc1.
 > 
-> On Thu, Dec 13, 2012 at 01:49:49PM -0800, Tony Lindgren wrote:
-> > Hi Samuel,
-> > 
-> > * Roger Quadros <rogerq@ti.com> [121210 02:23]:
-> > > Instead of using cpu_is_omap..() macros in the device driver we
-> > > rely on information provided in the platform data.
-> > > 
-> > > The only information we need is whether the USB Host module has
-> > > a single ULPI bypass control bit for all ports or individual bypass
-> > > control bits for each port. OMAP3 REV2.1 and earlier have the former.
-> > 
-> > I'd like to apply this patch as a fix so I can finally nuke plat/cpu.h
-> > for omaps by -rc1 before more drivers start using it again.
-> > 
-> > That is assuming nobody else is planning on merging this series for
-> > v3.8 presumably. 
-> This should go into 3.9, yes.
+> Also needed are Jon Hunter's clock fixes series; the pull request will
+> combine his patches and this series.
 
-OK looks like you have all the necessary acks except for one
-clock change. I replied to that one. 
- 
-> > Want to ack this one?
-> Looks fine to me:
-> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-
-Thanks, I'll queue that one and then after -rc1 hopefully
-you have all the necessary acks to queue this one via your
-mfd tree.
+OK good to hear, I was wondering about that patch. No need for me to
+reply to that thread then :)
 
 Regards,
 
