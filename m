@@ -1,53 +1,45 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH REBASE 0/6] i2c: omap: misc changes
-Date: Fri, 14 Dec 2012 18:34:03 +0200
-Message-ID: <1355502849-9289-1-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH REBASE 2/6] i2c: omap: also complete() when stat becomes zero
+Date: Fri, 14 Dec 2012 18:34:05 +0200
+Message-ID: <1355502849-9289-3-git-send-email-balbi@ti.com>
+References: <1355502849-9289-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40753 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755599Ab2LNQlc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Dec 2012 11:41:32 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1355502849-9289-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel Mailing List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-Hi,
+In case we loop on IRQ handler until stat is
+finally zero, we would end up in a situation
+where all I2C transfers would misteriously
+timeout because we were not calling complete()
+in that situation.
 
-this is just a rebase of the previous series adding support
-for amount of bytes transferred upon NACK.
+Fix the issue by moving omap_i2c_complete_cmd()
+call inside the 'out' label.
 
-Well, actually the patches implementing transferred bytes
-reporting aren't here because we need to discuss how to move
-forward.
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-This series is just a preparation for that, but it also
-contains a at least one bugfix.
-
-Each and every patch has been tested with pandaboard, it
-would be nice to get Tested-bys from other folks on other
-platforms before pushing this for v3.9 (there's more than
-enough time for that).
-
-Note that we're also dropping b_hw flag since that becomes
-useless since we'll never set STT and STP together anymore.
-
-Give it a good round of test, please.
-
-Felipe Balbi (6):
-  i2c: omap: no need to access platform_device
-  i2c: omap: also complete() when stat becomes zero
-  i2c: omap: improve 'rev' a little bit
-  i2c: omap: in case of VERSION_2 read IRQSTATUS_RAW but write to
-    IRQSTATUS
-  i2c: omap: wait for transfer completion before sending STP bit
-  i2c: omap: get rid of b_hw flag
-
- drivers/i2c/busses/i2c-omap.c | 184 +++++++++++++++++++++---------------------
- 1 file changed, 93 insertions(+), 91 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 9a9cf7c..fcecb0b 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1022,9 +1022,8 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
+ 		}
+ 	} while (stat);
+ 
+-	omap_i2c_complete_cmd(dev, err);
+-
+ out:
++	omap_i2c_complete_cmd(dev, err);
+ 	spin_unlock_irqrestore(&dev->lock, flags);
+ 
+ 	return IRQ_HANDLED;
 -- 
 1.8.1.rc1.5.g7e0651a
-
