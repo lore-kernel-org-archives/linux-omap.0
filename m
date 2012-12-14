@@ -1,102 +1,53 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH REBASE 3/6] i2c: omap: improve 'rev' a little bit
-Date: Fri, 14 Dec 2012 18:34:06 +0200
-Message-ID: <1355502849-9289-4-git-send-email-balbi@ti.com>
-References: <1355502849-9289-1-git-send-email-balbi@ti.com>
+Subject: [PATCH REBASE 0/6] i2c: omap: misc changes
+Date: Fri, 14 Dec 2012 18:34:03 +0200
+Message-ID: <1355502849-9289-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52972 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756641Ab2LNQld (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 11:41:33 -0500
-In-Reply-To: <1355502849-9289-1-git-send-email-balbi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40753 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755599Ab2LNQlc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Dec 2012 11:41:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Wolfram Sang <w.sang@pengutronix.de>
 Cc: linux-i2c@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-a later patch will use scheme detection at
-another part of the code, but current scheme
-detection implementation relies on the fact that
-we still hold scheme on the first 16 bits of our
-rev variable, which won't be true as soon as
-we move away from probe() because we left shift
-it by 16 in case of newer IP versions in order
-to fit other revision data in the lower 16 bits.
+Hi,
 
-To fix that, we are changing scheme implementation
-to assume scheme is always placed on the top 16
-bits.
+this is just a rebase of the previous series adding support
+for amount of bytes transferred upon NACK.
 
-While at that, also move those macro definitions
-to the top of the source file, where they should've
-been to start with, because a later patch will use
-them.
+Well, actually the patches implementing transferred bytes
+reporting aren't here because we need to discuss how to move
+forward.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/i2c/busses/i2c-omap.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+This series is just a preparation for that, but it also
+contains a at least one bugfix.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index fcecb0b..c93eb17 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -60,6 +60,17 @@
- /* timeout for pm runtime autosuspend */
- #define OMAP_I2C_PM_TIMEOUT		1000	/* ms */
- 
-+#define OMAP_I2C_SCHEME(rev)		((rev & 0xc0000000) >> 30)
-+
-+#define OMAP_I2C_SCHEME_0		0
-+#define OMAP_I2C_SCHEME_1		1
-+
-+#define OMAP_I2C_REV_SCHEME_0_MAJOR(rev) (rev >> 4)
-+#define OMAP_I2C_REV_SCHEME_0_MINOR(rev) (rev & 0xf)
-+
-+#define OMAP_I2C_REV_SCHEME_1_MAJOR(rev) ((rev & 0x0700) >> 7)
-+#define OMAP_I2C_REV_SCHEME_1_MINOR(rev) (rev & 0x1f)
-+
- /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
- enum {
- 	OMAP_I2C_REV_REG = 0,
-@@ -1058,16 +1069,6 @@ static const struct of_device_id omap_i2c_of_match[] = {
- MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
- #endif
- 
--#define OMAP_I2C_SCHEME(rev)		((rev & 0xc000) >> 14)
--
--#define OMAP_I2C_REV_SCHEME_0_MAJOR(rev) (rev >> 4)
--#define OMAP_I2C_REV_SCHEME_0_MINOR(rev) (rev & 0xf)
--
--#define OMAP_I2C_REV_SCHEME_1_MAJOR(rev) ((rev & 0x0700) >> 7)
--#define OMAP_I2C_REV_SCHEME_1_MINOR(rev) (rev & 0x1f)
--#define OMAP_I2C_SCHEME_0		0
--#define OMAP_I2C_SCHEME_1		1
--
- static int __devinit
- omap_i2c_probe(struct platform_device *pdev)
- {
-@@ -1158,7 +1159,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	 * Also since the omap_i2c_read_reg uses reg_map_ip_* a
- 	 * raw_readw is done.
- 	 */
--	rev = __raw_readw(dev->base + 0x04);
-+	rev = __raw_readw(dev->base + 0x04) << 16;
- 
- 	scheme = OMAP_I2C_SCHEME(rev);
- 	switch (scheme) {
-@@ -1172,8 +1173,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 		/* FALLTHROUGH */
- 	default:
- 		dev->regs = (u8 *)reg_map_ip_v2;
--		rev = (rev << 16) |
--			omap_i2c_read_reg(dev, OMAP_I2C_IP_V2_REVNB_LO);
-+		rev |= omap_i2c_read_reg(dev, OMAP_I2C_IP_V2_REVNB_LO);
- 		minor = OMAP_I2C_REV_SCHEME_1_MINOR(rev);
- 		major = OMAP_I2C_REV_SCHEME_1_MAJOR(rev);
- 		dev->rev = rev;
+Each and every patch has been tested with pandaboard, it
+would be nice to get Tested-bys from other folks on other
+platforms before pushing this for v3.9 (there's more than
+enough time for that).
+
+Note that we're also dropping b_hw flag since that becomes
+useless since we'll never set STT and STP together anymore.
+
+Give it a good round of test, please.
+
+Felipe Balbi (6):
+  i2c: omap: no need to access platform_device
+  i2c: omap: also complete() when stat becomes zero
+  i2c: omap: improve 'rev' a little bit
+  i2c: omap: in case of VERSION_2 read IRQSTATUS_RAW but write to
+    IRQSTATUS
+  i2c: omap: wait for transfer completion before sending STP bit
+  i2c: omap: get rid of b_hw flag
+
+ drivers/i2c/busses/i2c-omap.c | 184 +++++++++++++++++++++---------------------
+ 1 file changed, 93 insertions(+), 91 deletions(-)
+
 -- 
 1.8.1.rc1.5.g7e0651a
 
