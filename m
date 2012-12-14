@@ -1,37 +1,45 @@
-From: Alessio Igor Bogani <alessio.bogani@elettra.trieste.it>
-Subject: crypto: omap-aes - fix a build error
-Date: Fri, 14 Dec 2012 11:32:35 +0100
-Message-ID: <1355481155-28621-1-git-send-email-alessio.bogani@elettra.trieste.it>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>, "David S. Miller" <davem@davemloft.net>, Tony Lindgren <tony@atomide.com>
-Cc: linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Alessio Igor Bogani <alessio.bogani@elettra.trieste.it>
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH v8 1/5] ARM: OMAP: gpmc: don't create devices from initcall on DT
+Date: Fri, 14 Dec 2012 11:36:40 +0100
+Message-ID: <1355481404-27695-2-git-send-email-zonque@gmail.com>
+References: <1355481404-27695-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from svenfoo.org ([82.94.215.22]:57581 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751439Ab2LNKhN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Dec 2012 05:37:13 -0500
+In-Reply-To: <1355481404-27695-1-git-send-email-zonque@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, jacmet@sunsite.dk, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>
 
-[...]
-  CC      init/version.o
-  LD      init/built-in.o
-drivers/built-in.o:(.data+0xbc6c): undefined reference to `crypto_ablkcipher_type'
-drivers/built-in.o:(.data+0xbd4c): undefined reference to `crypto_ablkcipher_type'
+On DT driven boards, the gpmc node will match the driver. Hence, there's
+no need to do that unconditionally from the initcall.
 
-The omap-aes driver uses crypto_ablkcipher_type symbol without selecting it.
-
-Signed-off-by: Alessio Igor Bogani <alessio.bogani@elettra.trieste.it>
+Signed-off-by: Daniel Mack <zonque@gmail.com>
 ---
- drivers/crypto/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/mach-omap2/gpmc.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
-index f6644f5..b04d78f 100644
---- a/drivers/crypto/Kconfig
-+++ b/drivers/crypto/Kconfig
-@@ -254,6 +254,7 @@ config CRYPTO_DEV_OMAP_AES
- 	tristate "Support for OMAP AES hw engine"
- 	depends on ARCH_OMAP2 || ARCH_OMAP3
- 	select CRYPTO_AES
-+	select CRYPTO_BLKCIPHER
- 	help
- 	  OMAP processors have AES module accelerator. Select this if you
- 	  want to use the OMAP module for AES algorithms.
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 65468f6..d5cbd29 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -1214,6 +1214,13 @@ static int __init omap_gpmc_init(void)
+ 	struct platform_device *pdev;
+ 	char *oh_name = "gpmc";
+ 
++	/*
++	 * if the board boots up with a populated DT, do not
++	 * manually add the device from this initcall
++	 */
++	if (of_have_populated_dt())
++		return -ENODEV;
++
+ 	oh = omap_hwmod_lookup(oh_name);
+ 	if (!oh) {
+ 		pr_err("Could not look up %s\n", oh_name);
 -- 
-1.7.9.5
+1.7.11.7
+
