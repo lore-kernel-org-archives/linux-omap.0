@@ -1,45 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk
- into usb_host_hs_utmi_px_clk
-Date: Fri, 14 Dec 2012 18:44:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212141838130.5915@utopia.booyaka.com>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com> <1355134833-5199-17-git-send-email-rogerq@ti.com> <20121214182855.GB4989@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/1] ARM: OMAP2+: omap2plus_defconfig: enable
+ devtmpfs and automount
+Date: Fri, 14 Dec 2012 10:44:49 -0800
+Message-ID: <20121214184449.GF4989@atomide.com>
+References: <1355508168-32565-1-git-send-email-javier.martinez@collabora.co.uk>
+ <50CB6FFB.2060600@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1894758297-1355510671=:5915"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121214182855.GB4989@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: balbi@ti.com, sameo@linux.intel.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Mike Turquette <mturquette@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18194 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756906Ab2LNSo4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:44:56 -0500
+Content-Disposition: inline
+In-Reply-To: <50CB6FFB.2060600@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Russell King <linux@arm.linux.org.uk>, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [121214 10:31]:
+> On Friday 14 December 2012 07:02 PM, Javier Martinez Canillas wrote:
+> >Since udev-176 [1], udev no longer creates device nodes under
+> >/dev and this has to be managed by the kernel devtmpfs filesystem.
+> >
+> >This makes devtmpfs filesystem a requirement on newer systems and
+> >a kernel built with the current OMAP2+ config will not boot on them.
+> >
+> >Also, it is good to have devtmpfs at /dev automount enabled by default.
+> >
+> >[1]: http://permalink.gmane.org/gmane.linux.hotplug.devel/17230
+> >
+> >Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> 
+> Acked-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
 
---843723315-1894758297-1355510671=:5915
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Thanks, got the previous version of the same patch applied, adding
+your ack. 
 
-Hi
-
-On Fri, 14 Dec 2012, Tony Lindgren wrote:
-
-> Paul, what about this patch? Looks like you've acked the other clock=20
-> patches in this series but not this one?
-
-I commented on it briefly here:
-
-https://patchwork.kernel.org/patch/1838111/
-
-Maybe Beno=EEt could comment here, but it looks to me (based on a=20
-superficial look at the hardware clock tree data) that these clock nodes=20
-should exist.  In an ideal world, we'd be able to get back to the=20
-autogeneration of this clock data.
-
-Roger, is it a requirement for the driver to remove these clock nodes, or=
-=20
-is it possible to stick with the existing nodes?
-
-
-- Paul
---843723315-1894758297-1355510671=:5915--
+Tony
