@@ -1,42 +1,45 @@
-From: Richard Cochran <richardcochran@gmail.com>
-Subject: Re: cpts: Fix build error caused by include of plat/clock.h
-Date: Fri, 14 Dec 2012 12:09:18 +0100
-Message-ID: <20121214110918.GA7982@netboy.at.omicron.at>
-References: <20121213213641.GF4989@atomide.com>
- <20121214071300.GA2253@netboy.at.omicron.at>
- <45364223-10C6-430A-9085-9DE1C79030AF@dominion.thruhere.net>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: MUSB-HDRC Gadget driving VBUS inappropriately
+Date: Fri, 14 Dec 2012 14:13:07 +0200
+Message-ID: <CANOLnONT=dFx581WFRn_b9Q=ngJpfzx+A56b-7po4xVZVqisyw@mail.gmail.com>
+References: <C3E8C797-AE49-4638-B41B-B3AE180D3426@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:57175 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab2LNLJb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 06:09:31 -0500
-Content-Disposition: inline
-In-Reply-To: <45364223-10C6-430A-9085-9DE1C79030AF@dominion.thruhere.net>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:63918 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769Ab2LNMNJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 07:13:09 -0500
+In-Reply-To: <C3E8C797-AE49-4638-B41B-B3AE180D3426@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Tony Lindgren <tony@atomide.com>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+To: Ian Coolidge <iancoolidge@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, balbi@ti.com, felipe.contreras@gmail.com, icoolidge@trellisware.com
 
-On Fri, Dec 14, 2012 at 10:55:56AM +0100, Koen Kooi wrote:
-> 
-> Op 14 dec. 2012, om 08:13 heeft Richard Cochran <richardcochran@gmail.com> het volgende geschreven:
-> 
-> > On Thu, Dec 13, 2012 at 01:36:41PM -0800, Tony Lindgren wrote:
-> >> Commit 87c0e764 (cpts: introduce time stamping code and a PTP hardware clock)
-> >> mistakenly included plat/clock.h that should not be included by drivers
-> >> even if it exists.
-> > 
-> > Hasn't this already been fixed?
-> > 
-> >  https://patchwork.kernel.org/patch/1810481/
-> >  http://www.spinics.net/lists/linux-omap/msg83132.html
-> 
-> That patch didn't get applied, so it's still broken in Linus' tree :(
+On Fri, Dec 14, 2012 at 11:53 AM, Ian Coolidge <iancoolidge@gmail.com> =
+wrote:
+> we find that with about a 2% chance, the gadget comes up in some kind=
+ of firmware failed state, driving VBUS.
+> In this condition, we found that MUSB_DEVCTL_SESSION bit was set.
+> I understand this to be indicative of MUSB thinking it is in host mod=
+e, which agrees with the driven VBUS.
+> Further, in this state, I found that usually, there was one interrupt=
+ from twl4030_usb, but NO interrupts from musb-hdrc.
 
-In netdev's patchwork, this was marked "Not Applicable." Dave, can you
-possibly take this patch? If not, who should I ask next?
+I'm also also often seeing this and don't know any workaround except
+powercycling the board :(
+This was kind or relieved for me after I changed it to deinit musb on
+shutdown/reset (3.3 should have that patch merged), however if you
+randomly reset the board, there is still something like 30-50% chance
+musb will come up dead, and on proper reset it's still something like
+5% chance like you reported.
 
-Thanks,
-Richard
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
