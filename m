@@ -1,89 +1,50 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
-Date: Fri, 14 Dec 2012 20:08:29 +0200
-Message-ID: <20121214180829.GA11582@arwen.pp.htv.fi>
-References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
- <20121120195755.GM18567@atomide.com>
- <20121214172809.GT4989@atomide.com>
- <20121214172616.GC9620@arwen.pp.htv.fi>
- <20121214174629.GV4989@atomide.com>
- <20121214174918.GA11029@arwen.pp.htv.fi>
- <20121214180645.GW4989@atomide.com>
-Reply-To: <balbi@ti.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP2+: enable devtmpfs and devtmpfs automount
+Date: Fri, 14 Dec 2012 19:16:31 +0100
+Message-ID: <CAAwP0s1d4xPfYyaU+Cu=fH6YL5gmyYF+6x0aHOmNVeHshZ1ZeA@mail.gmail.com>
+References: <1353504411-19811-1-git-send-email-javier.martinez@collabora.co.uk>
+ <20121214181051.GY4989@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37256 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756648Ab2LNSQC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Dec 2012 13:16:02 -0500
-Content-Disposition: inline
-In-Reply-To: <20121214180645.GW4989@atomide.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:35371 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756958Ab2LNSQw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:16:52 -0500
+Received: by mail-ob0-f174.google.com with SMTP id ta14so3658677obb.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 Dec 2012 10:16:52 -0800 (PST)
+In-Reply-To: <20121214181051.GY4989@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Cc: Javier Martinez Canillas <javier.martinez@collabora.co.uk>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
---LQksG6bCIzRHxTLp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, Dec 14, 2012 at 7:10 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Javier Martinez Canillas <javier.martinez@collabora.co.uk> [121121 05:29]:
+>> Since udev-182, udev no longer creates device nodes under /dev
+>> and this has to be managed by the kernel devtmpfs filesystem.
+>>
+>> This means that a kernel built with the current OMAP2+ config
+>> will not boot on a system with a recent udev.
+>>
+>> Also, it is good to have /dev automatically mounted since some
+>> non-initramfs based setups assumes this and don't manually mount it.
+>
+> Thanks applying into omap-for-v3.8/fixes-for-merge-window.
+>
+> Regards,
+>
+> Tony
+>
 
-Hi,
+Hi Tony,
 
-On Fri, Dec 14, 2012 at 10:06:45AM -0800, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [121214 09:59]:
-> > On Fri, Dec 14, 2012 at 09:46:29AM -0800, Tony Lindgren wrote:
-> > > * Felipe Balbi <balbi@ti.com> [121214 09:36]:
-> > > >=20
-> > > > if it's really for PWM, shouldn't we be using drivers/pwm/ ??
-> > > >=20
-> > > > Meaning that $SUBJECT would just request a PWM device and use it. T=
-hat
-> > > > doesn't solve the whole problem, however, as pwm-omap.c would still=
- need
-> > > > access to timer-omap.h.
-> > >=20
-> > > That would only help with omap_dm_timer_set_pwm() I think.
-> > >=20
-> > > The other functions are also needed by the clocksource and clockevent
-> > > drivers. And tidspbridge too:
-> >=20
-> > well, we _do_ have drivers/clocksource ;-)
->=20
-> That's where the dmtimer code should live. But still it does not help
-> with the header.
+I resend a v2 today: [PATCH v2 1/1] ARM: OMAP2+: omap2plus_defconfig:
+enable devtmpfs and automount
 
-yeah, the header should be where you suggested, no doubts. I was
-actually criticizing the current timer code.
+That fixes an issue in the patch comments. Sekar Nori pointed out that
+the first udev to make this a requirement was 176 not 182.
+So probably is better if you can apply that one instead.
 
-cheers
-
---=20
-balbi
-
---LQksG6bCIzRHxTLp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQy2sdAAoJEIaOsuA1yqREonQP/ihIj0ioTVx88CYVULy98Xqc
-w1MCh2HjwXkw6XVSWUEpLM0EE6j/T8M0sNj3jCkpsa4+27o3ekjJZ5Z3Bbutze9H
-NboHc38+MVWfANizzfU58VgB9PbUqr3btAZrSloieYrQu2A1tqkUMJ52WHapcNu2
-LfTIVo5MXqyzEhjZkR/b6vUNKPUxze7eSQud0bG5JH391TT9pL6xG5X7aRiciqbN
-Yxu3evBsEq8gRORiX+54z6sXuWrdaQ6r2RF8yVjojQwlJR2uSe8ALH0qFnkcPTeV
-G46Nw20c47D0GQN2GlacWdfhy/wJw2F1GzFViOcJDMkOiiDH7gejUkA2bL6KR7h/
-zkamCMwTMiPSAu/BwLlSIkhWYA2KM4HXFNrPaICx+R3KxQj0tqQLVkZ9po87Kmal
-6TBSw/1HCnE6K2t4MkKon1q5hjjEHGB5zT2VUBmdTj7SxuA30rMCqiVZ93ENJ6ZS
-aUibS2Nbz3K7PtBz0V5V1AxYXuXd/jML+cx8FBdBO6xIIafWx7vuEqglqBvJMqqM
-EfbUHPqsTLQJLN1pDIh9AWWDqWeMfRS6elNa/RLRTOy5GqOH/kNWxdKl/eBHv8b7
-fhlSrWhAPCcxJMKXYQIoH6O/qafYklC/haLZHTgqZkKssZDSyQ92eYX/EzsD0aCS
-+t2U9zGNOdeigMtTB2yU
-=nlkE
------END PGP SIGNATURE-----
-
---LQksG6bCIzRHxTLp--
+Thanks a lot and best regards,
+Javier
