@@ -1,36 +1,32 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] OMAPDSS: reading past end of array in dispc_dump_regs()
-Date: Fri, 14 Dec 2012 18:01:33 +0300
-Message-ID: <20121214150133.GB15839@elgon.mountain>
+From: Paolo Pisati <paolo.pisati@canonical.com>
+Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
+ original voltage values
+Date: Fri, 14 Dec 2012 16:39:43 +0100
+Message-ID: <20121214153943.GA3306@luxor.wired.org>
+References: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
+ <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
+ <20121213094715.GA1916@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:44570 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755876Ab2LNPBv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 10:01:51 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20121213094715.GA1916@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paolo Pisati <paolo.pisati@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Archit Taneja <archit@ti.com>, Chandrabhanu Mahapatra <cmahapatra@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-We added another kind of plane in 66a0f9e4ac "OMAPDSS: Use WB fifo for
-GFX overlay" so this array needs a new entry as well.
+On Thu, Dec 13, 2012 at 11:47:15AM +0200, Felipe Balbi wrote:
+> On Thu, Dec 13, 2012 at 10:13:00AM +0100, Paolo Pisati wrote:
+> > Signed-off-by: Paolo Pisati <paolo.pisati@canonical.com>
+> > Tested-by: Robert Nelson <robertcnelson@gmail.com>
+> 
+> please read Documentation/stable_kernel_rules.txt, you'll see this is
+> wrong.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-Static checker work.  I don't have a way to test this.
+you mean that i should have waited for the commit to hit Linus's tree before
+cc-ing stable?
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index fedbd2c..bfe62cc 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3163,6 +3163,7 @@ static void dispc_dump_regs(struct seq_file *s)
- 		[OMAP_DSS_VIDEO1]	= "VID1",
- 		[OMAP_DSS_VIDEO2]	= "VID2",
- 		[OMAP_DSS_VIDEO3]	= "VID3",
-+		[OMAP_DSS_WB]		= "WB",
- 	};
- 	const char **p_names;
- 
+-- 
+bye,
+p.
