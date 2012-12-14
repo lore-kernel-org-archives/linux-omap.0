@@ -1,79 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: MUSB-HDRC Gadget driving VBUS inappropriately
-Date: Fri, 14 Dec 2012 10:43:11 -0800
-Message-ID: <20121214184309.GE4989@atomide.com>
-References: <C3E8C797-AE49-4638-B41B-B3AE180D3426@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v4 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk
+ into usb_host_hs_utmi_px_clk
+Date: Fri, 14 Dec 2012 18:44:31 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212141838130.5915@utopia.booyaka.com>
+References: <1355134833-5199-1-git-send-email-rogerq@ti.com> <1355134833-5199-17-git-send-email-rogerq@ti.com> <20121214182855.GB4989@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16834 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756964Ab2LNSnO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:43:14 -0500
-Content-Disposition: inline
-In-Reply-To: <C3E8C797-AE49-4638-B41B-B3AE180D3426@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1894758297-1355510671=:5915"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20121214182855.GB4989@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: balbi@ti.com, sameo@linux.intel.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Mike Turquette <mturquette@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ian Coolidge <iancoolidge@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, notasas@gmail.com, balbi@ti.com, felipe.contreras@gmail.com, icoolidge@trellisware.com
 
-* Ian Coolidge <iancoolidge@gmail.com> [121214 01:55]:
-> Hi,
-> 
-> We're using Linux 3.3 on DM3730 with TPS6595xx PMIC for an embedded product.
-> For a particular board, we have musb-hdrc (RTL 1.4) configured in peripheral mode.
-> We use the Ethernet gadget configured for cdc_eem to use Ethernet emulation over USB for this link, and the robustness of the link is mission-critical. To assure this, we have performed some massive reboot testing to ensure that this usb link reliably comes up.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hehehe I've never seen MUSB and mission critical in the same
-sentence before :)
- 
-> After working through an issue which required pulling in the following patch,
-> -----
-> commit b1b552a69b8805e7e338074a9e8b670b4a795218
-> Author: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> Date:   Wed Aug 8 11:48:10 2012 +0200
-> 
->     usb: gadget: u_ether: fix kworker 100% CPU issue with still used interfaces in eth_stop
-> -----
-> 
-> we find that with about a 2% chance, the gadget comes up in some kind of firmware failed state, driving VBUS.
-> In this condition, we found that MUSB_DEVCTL_SESSION bit was set.
-> I understand this to be indicative of MUSB thinking it is in host mode, which agrees with the driven VBUS.
-> Further, in this state, I found that usually, there was one interrupt from twl4030_usb, but NO interrupts from musb-hdrc.
-> 
-> So, as a hack, I cleared MUSB_DEVCTL_SESSION in omap2430.c in the notifier block from the VBUS interrupt.
-> This appears to reduce the frequency of the problem -- I now always at least one instance of the musb-hdrc interrupt.
-> However, sometimes, it looks like the MUSB PHY dies shortly thereafter.
-> So, I don't think this hack is fully effective.
-> 
-> I reviewed commits that post-date 3.3 in omap2430.c, musb_core.c, twl4030-usb.c, musb_gadget.c, and I couldn't find anything interesting -- it looks like mostly reorganization has taken place.
-> 
-> We have also engaged TI to try to get some silicon errata from Mentor Graphics, and maybe a register manual for the MUSB HDRC IP, but this is slow going, and that has little guarantee of paying off anyways.
-> 
-> Are there any ideas, or patches that anyone might suggest?
+--843723315-1894758297-1355510671=:5915
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Don't know if this is related, but it might.
+Hi
 
-I've noticed and issu with MUSB host mode where MUSB with
-USB-A cable plugged in fails to come up properly in host mode.
+On Fri, 14 Dec 2012, Tony Lindgren wrote:
 
-It seems to require replugging the USB cable to get it to
-work in host mode. To reproduce this issue:
+> Paul, what about this patch? Looks like you've acked the other clock=20
+> patches in this series but not this one?
 
-1. Boot system with USB-A cable connected and some devices
+I commented on it briefly here:
 
-2. Load g_ether or some gadget module and notice how the
-   USB devices are not discovered, and reloading g_ether
-   does not help.
+https://patchwork.kernel.org/patch/1838111/
 
-3. Unplug the USB-A cable, plug in USB-B cable, then
-   plug in USB-A cable again, and the devices are discovered.
+Maybe Beno=EEt could comment here, but it looks to me (based on a=20
+superficial look at the hardware clock tree data) that these clock nodes=20
+should exist.  In an ideal world, we'd be able to get back to the=20
+autogeneration of this clock data.
 
-This one is annoying as it means that trying to use Panda
-with USB HID devices connected to the MUSB port does not
-discover them. And the reason to do that is to keep the
-EHCI ports free for other use naturally..
+Roger, is it a requirement for the driver to remove these clock nodes, or=
+=20
+is it possible to stick with the existing nodes?
 
-Regards,
 
-Tony
+- Paul
+--843723315-1894758297-1355510671=:5915--
