@@ -1,54 +1,42 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH v8 4/5] ARM: OMAP: gpmc: enable hwecc for AM33xx SoCs
-Date: Fri, 14 Dec 2012 11:36:43 +0100
-Message-ID: <1355481404-27695-5-git-send-email-zonque@gmail.com>
-References: <1355481404-27695-1-git-send-email-zonque@gmail.com>
+From: Richard Cochran <richardcochran@gmail.com>
+Subject: Re: cpts: Fix build error caused by include of plat/clock.h
+Date: Fri, 14 Dec 2012 12:09:18 +0100
+Message-ID: <20121214110918.GA7982@netboy.at.omicron.at>
+References: <20121213213641.GF4989@atomide.com>
+ <20121214071300.GA2253@netboy.at.omicron.at>
+ <45364223-10C6-430A-9085-9DE1C79030AF@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:57620 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751439Ab2LNKhP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Dec 2012 05:37:15 -0500
-In-Reply-To: <1355481404-27695-1-git-send-email-zonque@gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:57175 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439Ab2LNLJb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 06:09:31 -0500
+Content-Disposition: inline
+In-Reply-To: <45364223-10C6-430A-9085-9DE1C79030AF@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, jon-hunter@ti.com, avinashphilip@ti.com, x0148406@ti.com, tony@atomide.com, paul@pwsan.com, nsekhar@ti.com, jacmet@sunsite.dk, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Daniel Mack <zonque@gmail.com>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: Tony Lindgren <tony@atomide.com>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 
-The am33xx is capable of handling bch error correction modes, so
-enable that feature in the driver.
+On Fri, Dec 14, 2012 at 10:55:56AM +0100, Koen Kooi wrote:
+> 
+> Op 14 dec. 2012, om 08:13 heeft Richard Cochran <richardcochran@gmail.com> het volgende geschreven:
+> 
+> > On Thu, Dec 13, 2012 at 01:36:41PM -0800, Tony Lindgren wrote:
+> >> Commit 87c0e764 (cpts: introduce time stamping code and a PTP hardware clock)
+> >> mistakenly included plat/clock.h that should not be included by drivers
+> >> even if it exists.
+> > 
+> > Hasn't this already been fixed?
+> > 
+> >  https://patchwork.kernel.org/patch/1810481/
+> >  http://www.spinics.net/lists/linux-omap/msg83132.html
+> 
+> That patch didn't get applied, so it's still broken in Linus' tree :(
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
- arch/arm/mach-omap2/gpmc-nand.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+In netdev's patchwork, this was marked "Not Applicable." Dave, can you
+possibly take this patch? If not, who should I ask next?
 
-diff --git a/arch/arm/mach-omap2/gpmc-nand.c b/arch/arm/mach-omap2/gpmc-nand.c
-index 3059f5e..afc1e8c 100644
---- a/arch/arm/mach-omap2/gpmc-nand.c
-+++ b/arch/arm/mach-omap2/gpmc-nand.c
-@@ -92,17 +92,18 @@ static int omap2_nand_gpmc_retime(
- static bool gpmc_hwecc_bch_capable(enum omap_ecc ecc_opt)
- {
- 	/* support only OMAP3 class */
--	if (!cpu_is_omap34xx()) {
-+	if (!cpu_is_omap34xx() && !soc_is_am33xx()) {
- 		pr_err("BCH ecc is not supported on this CPU\n");
- 		return 0;
- 	}
- 
- 	/*
--	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1.
--	 * Other chips may be added if confirmed to work.
-+	 * For now, assume 4-bit mode is only supported on OMAP3630 ES1.x, x>=1
-+	 * and AM33xx derivates. Other chips may be added if confirmed to work.
- 	 */
- 	if ((ecc_opt == OMAP_ECC_BCH4_CODE_HW) &&
--	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0))) {
-+	    (!cpu_is_omap3630() || (GET_OMAP_REVISION() == 0)) &&
-+	    (!soc_is_am33xx())) {
- 		pr_err("BCH 4-bit mode is not supported on this CPU\n");
- 		return 0;
- 	}
--- 
-1.7.11.7
-
+Thanks,
+Richard
