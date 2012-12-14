@@ -1,47 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
-Date: Fri, 14 Dec 2012 11:41:16 -0800
-Message-ID: <20121214194115.GL4989@atomide.com>
-References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
- <20121120195755.GM18567@atomide.com>
- <20121214172809.GT4989@atomide.com>
- <20121214172616.GC9620@arwen.pp.htv.fi>
- <50CB7E88.9050207@iki.fi>
+Subject: [PATCH 0/2] few trivial omap patches
+Date: Fri, 14 Dec 2012 11:44:47 -0800
+Message-ID: <20121214194325.9874.95898.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:60662 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:11726 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932202Ab2LNTlW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 14:41:22 -0500
-Content-Disposition: inline
-In-Reply-To: <50CB7E88.9050207@iki.fi>
+	with ESMTP id S932237Ab2LNTot (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 14:44:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Timo Kokkonen <timo.t.kokkonen@iki.fi> [121214 11:33]:
-> On 12/14/12 19:26, Felipe Balbi wrote:
-> > 
-> > if it's really for PWM, shouldn't we be using drivers/pwm/ ??
-> > 
-> 
-> Now that Neil Brown posted the PWM driver for omap, I've been thinking
-> about whether converting the ir-rx51 into the PWM API would work. Maybe
-> controlling the PWM itself would be sufficient, but the ir-rx51 uses
-> also another dmtimer for creating accurate (enough) timing source for
-> the IR pulse edges.
+Hi all,
 
-OK.
- 
-> I haven't tried whether the default 32kHz clock source is enough for
-> that. Now that I think about it, I don't see why it wouldn't be good
-> enough. I think it would even be possible to just use the PWM api alone
-
-Cool.
+Here's cleanup patch to remove plat/cpu.h usage
+where possible, and to add a .dts file maintainers
+entry for omaps.
 
 Regards,
 
 Tony
+
+---
+
+Tony Lindgren (2):
+      ARM: OMAP2+: Drop remaining plat/cpu.h usage where possible
+      MAINTAINERS: Add an entry for omap related .dts files
+
+
+ MAINTAINERS                      |    9 +++++++++
+ arch/arm/mach-omap2/drm.c        |    1 -
+ arch/arm/mach-omap2/dss-common.c |    3 +--
+ arch/arm/mach-omap2/prm2xxx.c    |    3 +--
+ arch/arm/mach-omap2/prm3xxx.c    |    3 +--
+ drivers/power/avs/smartreflex.c  |    2 --
+ 6 files changed, 12 insertions(+), 9 deletions(-)
+
+-- 
+Signature
