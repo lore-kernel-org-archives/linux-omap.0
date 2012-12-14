@@ -1,71 +1,51 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/1] ARM: OMAP3: igep0020: simplify GPIO LEDs dependencies
-Date: Fri, 14 Dec 2012 18:17:08 +0100
-Message-ID: <1355505428-24302-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap_twl: Change
+ TWL4030_MODULE_PM_RECEIVER to TWL_MODULE_PM_RECEIVER
+Date: Fri, 14 Dec 2012 09:18:00 -0800
+Message-ID: <20121214171800.GO4989@atomide.com>
+References: <1352799152-20980-1-git-send-email-peter.ujfalusi@ti.com>
+ <50A4A376.3020703@ti.com>
+ <20121121215234.GB5279@atomide.com>
+ <50ADFDD3.1080508@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:59080 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756538Ab2LNRRh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 12:17:37 -0500
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:39659 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756538Ab2LNRSE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 12:18:04 -0500
+Content-Disposition: inline
+In-Reply-To: <50ADFDD3.1080508@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Enric Balletbo i Serra <eballetbo@gmail.com>, Matthias Brugger <matthias.bgg@googlemail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@ti.com>
 
-The IGEPv2 board has two user GPIO LEDs and one of them is
-default to "on" to tell the user that the board booted correctly.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [121122 02:28]:
+> Hi Tony,
+> 
+> On 11/21/2012 10:52 PM, Tony Lindgren wrote:
+> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [121115 00:12]:
+> >> Hi Tony,
+> >>
+> >> On 11/13/2012 10:32 AM, Peter Ujfalusi wrote:
+> >>> To facilitate upcoming cleanup in twl stack.
+> >>> No functional change.
+> >>
+> >> Would you please consider this patch for 3.8? It would shorten the time I'll
+> >> need to progress on the cleanup regarding to twl-core greatly.
+> > 
+> > Please go ahead and merge this with your other patches:
+> > 
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > Or let me know if I still need to queue it.
+> 
+> This patch has no dependencies on other patches. It is better to go via
+> linux-omap.
 
-But to use these LEDs the config options CONFIG_LEDS_GPIO,
-CONFIG_LEDS_TRIGGERS and CONFIG_LEDS_TRIGGER_DEFAULT_ON have to
-be enabled.
+Applying into omap-for-v3.8/fixes-for-merge-window.
 
-Since only the default-on and default-off triggers were used
-anyway, it is better to just use .default_state instead of
-.default_trigger and not depend on CONFIG_LEDS_TRIGGER_*
+Regards,
 
-Also, this is consistent with IGEPv2 Device Tree that uses
-default-state instead of linux,default-trigger for the leds
-device nodes. The LED names also have been updated to use the
-same names used on omap3-igep0020.dtb.
-
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- arch/arm/mach-omap2/board-igep0020.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 0f24cb8..1921541 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -300,20 +300,20 @@ static struct omap2_hsmmc_info mmc[] = {
- 
- static struct gpio_led igep_gpio_leds[] = {
- 	[0] = {
--		.name			= "gpio-led:red:d0",
--		.default_trigger	= "default-off"
-+		.name			= "omap3:red:user0",
-+		.default_state		= 0,
- 	},
- 	[1] = {
--		.name			= "gpio-led:green:d0",
--		.default_trigger	= "default-off",
-+		.name			= "omap3:green:boot",
-+		.default_state		= 1,
- 	},
- 	[2] = {
--		.name			= "gpio-led:red:d1",
--		.default_trigger	= "default-off",
-+		.name			= "omap3:red:user1",
-+		.default_state		= 0,
- 	},
- 	[3] = {
--		.name			= "gpio-led:green:d1",
--		.default_trigger	= "heartbeat",
-+		.name			= "omap3:green:user1",
-+		.default_state		= 0,
- 		.gpio			= -EINVAL, /* gets replaced */
- 		.active_low		= 1,
- 	},
--- 
-1.7.7.6
-
+Tony
