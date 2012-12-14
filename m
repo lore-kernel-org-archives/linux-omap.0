@@ -1,60 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/8] arch/arm/mach-omap2/dpll3xxx.c: drop if around
- WARN_ON
-Date: Fri, 14 Dec 2012 10:53:41 -0800
-Message-ID: <20121214185340.GJ4989@atomide.com>
-References: <1351974625-10282-1-git-send-email-Julia.Lawall@lip6.fr>
- <1351974625-10282-7-git-send-email-Julia.Lawall@lip6.fr>
+Subject: Re: [PATCH 0/2] ARM: OMAP2420: Fix ethernet support
+Date: Fri, 14 Dec 2012 11:06:53 -0800
+Message-ID: <20121214190653.GK4989@atomide.com>
+References: <1352844140-11103-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:45089 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932138Ab2LNTG4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 14:06:56 -0500
 Content-Disposition: inline
-In-Reply-To: <1351974625-10282-7-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: kernel-janitors@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1352844140-11103-1-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Julia Lawall <Julia.Lawall@lip6.fr> [121103 13:32]:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> Just use WARN_ON rather than an if containing only WARN_ON(1).
+* Jon Hunter <jon-hunter@ti.com> [121113 14:04]:
+> Fix ethernet support for OMAP2420 and remove legacy code for ethernet
+> configuration.
 
-Thanks applying this one into omap-for-v3.8/fixes-for-merge-window.
+Thanks applying both into omap-for-v3.8/fixes-for-merge-window.
 
 Regards,
 
 Tony
  
-> A simplified version of the semantic patch that makes this transformation
-> is as follows: (http://coccinelle.lip6.fr/)
+> Jon Hunter (2):
+>   ARM: OMAP2420: Fix ethernet support for OMAP2420 H4
+>   ARM: OMAP: Remove debug-devices.c
 > 
-> // <smpl>
-> @@
-> expression e;
-> @@
-> - if (e) WARN_ON(1);
-> + WARN_ON(e);
-> // </smpl>
+>  arch/arm/mach-omap2/board-h4.c      |   80 +++++++-----------------------
+>  arch/arm/mach-omap2/debug-devices.h |    9 ----
+>  arch/arm/plat-omap/Makefile         |    1 -
+>  arch/arm/plat-omap/debug-devices.c  |   93 -----------------------------------
+>  4 files changed, 19 insertions(+), 164 deletions(-)
+>  delete mode 100644 arch/arm/mach-omap2/debug-devices.h
+>  delete mode 100644 arch/arm/plat-omap/debug-devices.c
 > 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> ---
->  arch/arm/mach-omap2/dpll3xxx.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-> index eacf51f..ed855b0 100644
-> --- a/arch/arm/mach-omap2/dpll3xxx.c
-> +++ b/arch/arm/mach-omap2/dpll3xxx.c
-> @@ -478,8 +478,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
->  		if (!soc_is_am33xx() && !cpu_is_omap44xx() && !cpu_is_omap3630()) {
->  			freqsel = _omap3_dpll_compute_freqsel(clk,
->  						dd->last_rounded_n);
-> -			if (!freqsel)
-> -				WARN_ON(1);
-> +			WARN_ON(!freqsel);
->  		}
->  
->  		pr_debug("clock: %s: set rate: locking rate to %lu.\n",
+> -- 
+> 1.7.9.5
 > 
