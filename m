@@ -1,53 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PMU: Remove unused header
-Date: Fri, 14 Dec 2012 10:45:59 -0800
-Message-ID: <20121214184557.GG4989@atomide.com>
-References: <1355508506-21448-1-git-send-email-jon-hunter@ti.com>
+Subject: Re: [RESEND] [PATCH 3.6.0- 5/6] ARM/omap: use
+ module_platform_driver macro
+Date: Fri, 14 Dec 2012 10:50:34 -0800
+Message-ID: <20121214185033.GH4989@atomide.com>
+References: <1350025894-30625-1-git-send-email-srinivas.kandagatla@st.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:57660 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:11534 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756687Ab2LNSqB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:46:01 -0500
+	with ESMTP id S1756687Ab2LNSun (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:50:43 -0500
 Content-Disposition: inline
-In-Reply-To: <1355508506-21448-1-git-send-email-jon-hunter@ti.com>
+In-Reply-To: <1350025894-30625-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+Cc: paul@pwsan.com, rnayak@ti.com, Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, thara@ti.com, grinberg@compulab.co.il, eric.y.miao@gmail.com, linux-arm-kernel@lists.infradead.org, juha.yrjola@nokia.com, linux@arm.linux.org.uk, haojian.zhuang@gmail.com, dsaxena@plexity.net, mpm@selenic.com, herbert@gondor.apana.org.au
 
-* Jon Hunter <jon-hunter@ti.com> [121214 10:10]:
-> Commit 2ac29a1 (ARM: PMU: fix runtime PM enable) moved the call to
-> pm_runtime_enable() from the OMAP2+ PMU code into the ARM PERF core
-> code. However, header for pm_runtime which should have been removed
-> from the OMAP2+ PMU code was not. It is no longer necessary to include
-> this header in the OMAP2+ PMU code and so remove it.
+* Srinivas KANDAGATLA <srinivas.kandagatla@st.com> [121012 00:14]:
+> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+> 
+> This patch removes some code duplication by using
+> module_platform_driver.
 
-Thanks applying into omap-for-v3.8/fixes-for-merge-window.
+Thanks, applying this one into omap-for-v3.8/fixes-for-merge-window.
+Skipping the mailbox ones as they are getting moved to live
+under drivers. And the rng one should go via the rng maintainers.
 
 Regards,
 
 Tony
  
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 > ---
->  arch/arm/mach-omap2/pmu.c |    2 --
->  1 file changed, 2 deletions(-)
+>  arch/arm/plat-omap/dmtimer.c |   13 +------------
+>  1 files changed, 1 insertions(+), 12 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-> index 250d909..eb78ae7 100644
-> --- a/arch/arm/mach-omap2/pmu.c
-> +++ b/arch/arm/mach-omap2/pmu.c
-> @@ -11,8 +11,6 @@
->   * the Free Software Foundation; either version 2 of the License, or
->   * (at your option) any later version.
->   */
-> -#include <linux/pm_runtime.h>
-> -
->  #include <asm/pmu.h>
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index 938b50a..c89fc6a 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -786,19 +786,8 @@ static struct platform_driver omap_dm_timer_driver = {
+>  	},
+>  };
 >  
->  #include "soc.h"
+> -static int __init omap_dm_timer_driver_init(void)
+> -{
+> -	return platform_driver_register(&omap_dm_timer_driver);
+> -}
+> -
+> -static void __exit omap_dm_timer_driver_exit(void)
+> -{
+> -	platform_driver_unregister(&omap_dm_timer_driver);
+> -}
+> -
+>  early_platform_init("earlytimer", &omap_dm_timer_driver);
+> -module_init(omap_dm_timer_driver_init);
+> -module_exit(omap_dm_timer_driver_exit);
+> +module_platform_driver(omap_dm_timer_driver);
+>  
+>  MODULE_DESCRIPTION("OMAP Dual-Mode Timer Driver");
+>  MODULE_LICENSE("GPL");
 > -- 
-> 1.7.10.4
+> 1.7.0.4
 > 
