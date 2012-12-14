@@ -1,50 +1,53 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v2 1/1] ARM: OMAP2+: omap2plus_defconfig: enable devtmpfs and automount
-Date: Fri, 14 Dec 2012 19:02:48 +0100
-Message-ID: <1355508168-32565-1-git-send-email-javier.martinez@collabora.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
+Date: Fri, 14 Dec 2012 10:06:45 -0800
+Message-ID: <20121214180645.GW4989@atomide.com>
+References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
+ <20121120195755.GM18567@atomide.com>
+ <20121214172809.GT4989@atomide.com>
+ <20121214172616.GC9620@arwen.pp.htv.fi>
+ <20121214174629.GV4989@atomide.com>
+ <20121214174918.GA11029@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:59155 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756537Ab2LNSDH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:03:07 -0500
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:32136 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754461Ab2LNSGv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 13:06:51 -0500
+Content-Disposition: inline
+In-Reply-To: <20121214174918.GA11029@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sekhar Nori <nsekhar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 
-Since udev-176 [1], udev no longer creates device nodes under
-/dev and this has to be managed by the kernel devtmpfs filesystem.
+* Felipe Balbi <balbi@ti.com> [121214 09:59]:
+> On Fri, Dec 14, 2012 at 09:46:29AM -0800, Tony Lindgren wrote:
+> > * Felipe Balbi <balbi@ti.com> [121214 09:36]:
+> > > 
+> > > if it's really for PWM, shouldn't we be using drivers/pwm/ ??
+> > > 
+> > > Meaning that $SUBJECT would just request a PWM device and use it. That
+> > > doesn't solve the whole problem, however, as pwm-omap.c would still need
+> > > access to timer-omap.h.
+> > 
+> > That would only help with omap_dm_timer_set_pwm() I think.
+> > 
+> > The other functions are also needed by the clocksource and clockevent
+> > drivers. And tidspbridge too:
+> 
+> well, we _do_ have drivers/clocksource ;-)
 
-This makes devtmpfs filesystem a requirement on newer systems and
-a kernel built with the current OMAP2+ config will not boot on them.
+That's where the dmtimer code should live. But still it does not help
+with the header.
 
-Also, it is good to have devtmpfs at /dev automount enabled by default.
+Thomas, maybe we could use the hrtimer framework for it if there was
+some way to completely leave out the rb tree for the dedicated hardware
+timers? There's no queue needed as there's always just one value tied to
+a specific timer.
 
-[1]: http://permalink.gmane.org/gmane.linux.hotplug.devel/17230
+Regards,
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
-
-Changes since v1:
-    - Point to correct udev version that first this a requirement
-      as suggested by Sekhar Nori
-
- arch/arm/configs/omap2plus_defconfig |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index a1dc5c0..ad41190 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -65,6 +65,8 @@ CONFIG_MAC80211_RC_PID=y
- CONFIG_MAC80211_RC_DEFAULT_PID=y
- CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
- CONFIG_CONNECTOR=y
-+CONFIG_DEVTMPFS=y
-+CONFIG_DEVTMPFS_MOUNT=y
- CONFIG_MTD=y
- CONFIG_MTD_CMDLINE_PARTS=y
- CONFIG_MTD_CHAR=y
--- 
-1.7.7.6
-
+Tony
