@@ -1,33 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: Drop remaining plat/cpu.h usage where
- possible
-Date: Sun, 16 Dec 2012 12:05:34 -0800
-Message-ID: <20121216200533.GQ4989@atomide.com>
-References: <20121214194325.9874.95898.stgit@muffinssi.local>
- <20121214194450.9874.57095.stgit@muffinssi.local>
+From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Subject: Re: [PATCH v8 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings
+ and NAND
+Date: Sat, 15 Dec 2012 07:27:38 +0000
+Message-ID: <20121215072738.882313E0C08@localhost>
+References: <1355481404-27695-1-git-send-email-zonque@gmail.com>
+ <1355481404-27695-6-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:42768 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752010Ab2LPUFh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Dec 2012 15:05:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20121214194450.9874.57095.stgit@muffinssi.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1355481404-27695-6-git-send-email-zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: x0148406-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, nsekhar-l0cyMroinI0@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, avinashphilip-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>
 
-* Tony Lindgren <tony@atomide.com> [121214 11:47]:
-> These macros are now in local soc.h in arch/arm/mach-omap2,
-> and plat/cpu.h is around only until the remaining drivers
-> are fixed.
+On Fri, 14 Dec 2012 11:36:44 +0100, Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> This patch adds basic DT bindings for OMAP GPMC.
 > 
-> Also remove the unused plat/cpu.h from smartreflex.c as it
-> will cause compile errors with ARCH_MULTIPLATFORM enabled.
+> The actual peripherals are instantiated from child nodes within the GPMC
+> node, and the only type of device that is currently supported is NAND.
+> 
+> Code was added to parse the generic GPMC timing parameters and some
+> documentation with examples on how to use them.
+> 
+> Successfully tested on an AM33xx board.
+> 
+> Signed-off-by: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Looks like we can remove it completely, so posted an updated
-patch.
-
-Tony
+For all patches in this series:
+Acked-by: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
