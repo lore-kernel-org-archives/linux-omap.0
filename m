@@ -1,70 +1,58 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH 1/1] ARM: dts: omap3-igep: add mux pins for MMC device node
-Date: Sat, 15 Dec 2012 12:19:01 +0100
-Message-ID: <1355570341-6458-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:60201 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588Ab2LOLTK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Dec 2012 06:19:10 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
+ original voltage values
+Date: Sat, 15 Dec 2012 23:15:20 +0900
+Message-ID: <20121215141519.GA22033@opensource.wolfsonmicro.com>
+References: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
+ <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
+ <20121213094715.GA1916@arwen.pp.htv.fi>
+ <20121214153943.GA3306@luxor.wired.org>
+ <20121214154030.GD18233@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121214154030.GD18233@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paolo Pisati <paolo.pisati@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Jon Hunter <jon-hunter@ti.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-The omap_hsmmc driver now expects that Device Trees will
-set up the SD/MMC pin mux and not doing that leads to the
-mmc not been mounted:
 
-[    1.870300] omap_hsmmc mmc.20: pins are not configured from the driver
-[    2.025634] Waiting for root device /dev/mmcblk0p2...
+--x+6KMIRAuhnl3hBn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
----
- arch/arm/boot/dts/omap3-igep.dtsi |   23 ++++++++++++++++++++---
- 1 files changed, 20 insertions(+), 3 deletions(-)
+On Fri, Dec 14, 2012 at 05:40:30PM +0200, Felipe Balbi wrote:
 
-diff --git a/arch/arm/boot/dts/omap3-igep.dtsi b/arch/arm/boot/dts/omap3-igep.dtsi
-index fdd9154..dd01c46 100644
---- a/arch/arm/boot/dts/omap3-igep.dtsi
-+++ b/arch/arm/boot/dts/omap3-igep.dtsi
-@@ -47,6 +47,21 @@
- 			0x170 0		/* uart3_tx.uart3_tx OUTPUT | MODE0 */
- 		>;
- 	};
-+
-+	mmc1_pins: pinmux_mmc1_pins {
-+		pinctrl-single,pins = <
-+			0x114 0x0118    /* sdmmc1_clk.sdmmc1_clk INPUT PULLUP | MODE 0 */
-+			0x116 0x0118    /* sdmmc1_cmd.sdmmc1_cmd INPUT PULLUP | MODE 0 */
-+			0x118 0x0118 	/* sdmmc1_dat0.sdmmc1_dat0 INPUT PULLUP | MODE 0 */
-+			0x11a 0x0118	/* sdmmc1_dat1.sdmmc1_dat1 INPUT PULLUP | MODE 0 */
-+			0x11c 0x0118	/* sdmmc1_dat2.sdmmc1_dat2 INPUT PULLUP | MODE 0 */
-+			0x11e 0x0118	/* sdmmc1_dat3.sdmmc1_dat3 INPUT PULLUP | MODE 0 */
-+			0x120 0x0100	/* sdmmc1_dat4.sdmmc1_dat4 INPUT | MODE 0 */
-+			0x122 0x0100	/* sdmmc1_dat5.sdmmc1_dat5 INPUT | MODE 0 */
-+			0x124 0x0100	/* sdmmc1_dat6.sdmmc1_dat6 INPUT | MODE 0 */
-+			0x126 0x0100	/* sdmmc1_dat7.sdmmc1_dat7 INPUT | MODE 0 */
-+		>;
-+	};
- };
- 
- &i2c1 {
-@@ -72,9 +87,11 @@
- };
- 
- &mmc1 {
--	vmmc-supply = <&vmmc1>;
--	vmmc_aux-supply = <&vsim>;
--	bus-width = <8>;
-+      pinctrl-names = "default";
-+      pinctrl-0 = <&mmc1_pins>;
-+      vmmc-supply = <&vmmc1>;
-+      vmmc_aux-supply = <&vsim>;
-+      bus-width = <8>;
- };
- 
- &mmc2 {
--- 
-1.7.7.6
+> No no, I mean that before you SoB you should have a:
 
+> Cc: <stable@vger.kernel.org> # v3.x v3.y ...
+
+It's perfectly OK to omit this unless there's an awareness that the
+backport won't work on some kernels.
+
+--x+6KMIRAuhnl3hBn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQzIXwAAoJELSic+t+oim9saoQAInSC8dlZVoyYw10UXMwJZ0a
+GDEYalibcwOvvSxPP04MsZNM06qu4DqhTbfXFxOPb8TcHXNr0Q1oU+cOMaEeYif8
+5O6imOxaY014vqkYtMBtD1EsYFpl5nVU27Voge7fW1wxMb55iYMtCIcitADUD8W8
+i2okhDMG9HAfMBwiI1AB1Q0zaL62la9qQfxrNKQX7Em7ZGTXgyStmqoyP7ucKlSP
+0j5dxpcZk/dtaEku5ZXxCFo7ZbqNgJ5f41FfaRuXsLwjyZGikpoeqfHBV2c0YyMa
+72KIts4jIhItIAZnwiuuD1868JPaf6/80uTRw9LS6hPiTy1AWgLCPeHX7cIT9yG8
++StsbAuMgX2nmN6bH5Li1FDMFoWc2qED72UYDfpsO/OVHQFDoRM0OpPaCGFoMRNe
+XldhrIfzAh64ef/txNs2fbRdGatNhgmsbuhUbkZYVyx5jFRpc5LEpVR9IDwvthNy
+immo6XLkd5yoqmQsIHgcBIkdFKktL648/0hRyQ1Y6qZ+D4IUJADzI5OgEFgfDIIs
+93q7ZVP9qFfuJ3dUZAvwvFufBwlFQSmkGU1+8NrES9UK6pffIZM96PWSimv2dlu4
+Ea72fkjGQhWsGrPnP7Fv7DWQ65FKTIHbWhf95tx+Gyt/fTjkmQwDzEhuQj7aVopK
+i+9JpZ8L+os6ZrE9cy9J
+=JNW9
+-----END PGP SIGNATURE-----
+
+--x+6KMIRAuhnl3hBn--
