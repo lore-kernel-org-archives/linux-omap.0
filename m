@@ -1,61 +1,94 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 4/4] regulator: fixed: Properly use input_supply
- parameter from device tree
-Date: Sat, 15 Dec 2012 23:55:37 +0900
-Message-ID: <20121215145536.GG22033@opensource.wolfsonmicro.com>
-References: <1352991396-19589-1-git-send-email-rogerq@ti.com>
- <1352991396-19589-5-git-send-email-rogerq@ti.com>
- <50A53E7F.6070705@nvidia.com>
- <50A6142F.1070404@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] spi: devicetree: add support for loopback mode
+Date: Sat, 15 Dec 2012 16:55:46 +0200
+Message-ID: <20121215145546.GA15606@arwen.pp.htv.fi>
+References: <1355301960-21523-1-git-send-email-balbi@ti.com>
+ <1355301960-21523-2-git-send-email-balbi@ti.com>
+ <20121215003224.CBFD93E0BEC@localhost>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RMedoP2+Pr6Rq0N2"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38475 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753260Ab2LOOzm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 15 Dec 2012 09:55:42 -0500
-Content-Disposition: inline
-In-Reply-To: <50A6142F.1070404@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7087357056491129637=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20121215003224.CBFD93E0BEC@localhost>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: Laxman Dewangan <ldewangan@nvidia.com>, "tony@atomide.com" <tony@atomide.com>, "b-cousson@ti.com" <b-cousson@ti.com>, "balbi@ti.com" <balbi@ti.com>, "keshava_mgowda@ti.com" <keshava_mgowda@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
+--===============7087357056491129637==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
+Content-Disposition: inline
 
---RMedoP2+Pr6Rq0N2
+--YiEDa0DAkWCtVeE4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 16, 2012 at 12:23:43PM +0200, Roger Quadros wrote:
+On Sat, Dec 15, 2012 at 12:32:24AM +0000, Grant Likely wrote:
+> On Wed, 12 Dec 2012 10:46:00 +0200, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> > there are a few spi master drivers which make
+> > use of that flag but there is no way to pass it
+> > through devicetree.
+> >=20
+> > This patch just creates a way to pass SPI_LOOP
+> > via devicetree.
+>=20
+> I don't understand how this would be useful since loopback mode is
+> really just a test feature. Is there any reason to do loopback for
+> something other than test?
+>=20
+> I think it would be better to add a sysfs or debugfs property to
+> manipulate the SPI_LOOP flag from userspace. What do you think?
 
-> How is this supposed to work? How does phandle supplied in vin-supply
-> map to config->input_supply?
+might be nicer in the long run, indeed. Want me to look into it, or do
+you wanna do it yourself ?
 
-You should provide a separate property to name the supply, or just pick
-a fixed name in the fixed voltage driver.
+--=20
+balbi
 
---RMedoP2+Pr6Rq0N2
+--YiEDa0DAkWCtVeE4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQzI9hAAoJELSic+t+oim9R0YP/iuyzuZ9C/kNOTgKiZOvM96Y
-p2r1l5DhBlyT4EkrGs7Vw56sCndlTU8/Ul5k900K5c0IlN9kUMpXK7igsskPkU6M
-7Sr8xK+tEkouw/zFim+Rk+C1Tc8t73VteOv+l6pjMpGVwD7Vo2Lple4f2a9sEheH
-YxmVVSOVdsWobc9hRTfAugl8BT6ZoKZJ6qpl+/490l/CvB4AUJTJdaxh5c8Rn0pe
-sB5mPX71GtGvFOYPcn1wUk5ebTJR4/MWcHA1LsPP8JdWiOhTE7hofl51hGc8hPCV
-7QuP6hcMZ3mO26ZHcGjSY0rnX7/Vvqd1RKLBPjDMCyJlsarQUWt96PyxK+fHJDFw
-+G39zEHB1iCvL+GPXqOodnANEpOLS3zqWULRi0lFpXL/g2UPWfAE93JT5MevI7w0
-RlWQ1l077BsR3E9KqARDSDi5Wxy23PAblED+wNUZGsCbXq20TMPWN8zzcz4PQ+UI
-gs5fWB15Hgxw4cY4l6b+O1WYWMPLqgaUzlgRXFmy6iJ/YGag/TTDhpDu6GSOR3lf
-+7i1Bqi6MiXYWAWI+ew0X5LAWLzGgGLUHvTdptnvvSMT3aqSdmn3y8NoDEQBdxFs
-8K/yf7aGXzgCzHVZ+vEHgyRLV7dxJz6+TN+bijq3rI/WIyju37PmODme/UssqaUn
-tBBthAdBOSJMdB93tQ6F
-=Bro1
+iQIcBAEBAgAGBQJQzI9xAAoJEIaOsuA1yqREwFgP/RdGkkiBhtfeNQAHXMa/bNxI
+9dUPXPLjMtMLDj0eEgqUOsJWSFhhq7Sh+yenElWQAfyKjtNMqDsm3ZPLb9VRRHue
+a2G1NuD9T86+7NY6FjxglY9XAIqOosIQ3NlwKHnDkNbpwDdVwwQPw8Cw9UJWH/2q
+PM3UHHIWifXqXADKlBiznY5rNnpQVEfY2/zm5U5jcUZDPq4cqfdFMxVneEZOgqtD
+DJpuskr2Udflw17l1rSVDXmNKfGftavMpMTxVN60deZdlNBwkFt/cyfMB8nFewFJ
+RTtKEZNstCkH7AHa/V0fp8s1bB2Zd2zuF00ofGABXx2T7sjqnW082yhFZXPzOgON
+xNRnFThKcF6KkEzO/C/Kl8yXoHC2T1QONDV/quL73xk+5T3eXP723l2U6Qb4d+tf
+hlxPMEIE8HAsspKK6FcYuaNxnKOHLB9pJe1tTEaLIlWFvHL90uzTJz/dEksM+URO
+xFXmEVyN7LDgpDErHUL01daCnHAKF8XiUwa12FEA2Uvn5qw83gTTO0ou3lBjlRaN
+3P6OTxrEvVNaElWW29FRpmjDQ4P7WWzjr6ftIbKtN0SS5BgH81XcLN40XlPx95LK
+mc4jwtxqlcplXOIOks2xfTsTSitJ9aqSwn4mKT00+CWopLXdc7p8NYtX8zOM+05G
+A6cIfq/os96qVbMrQeyI
+=SeZs
 -----END PGP SIGNATURE-----
 
---RMedoP2+Pr6Rq0N2--
+--YiEDa0DAkWCtVeE4--
+
+--===============7087357056491129637==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============7087357056491129637==--
