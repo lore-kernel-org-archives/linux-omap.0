@@ -1,68 +1,79 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
- original voltage values
-Date: Sat, 15 Dec 2012 16:57:38 +0200
-Message-ID: <20121215145738.GB15606@arwen.pp.htv.fi>
-References: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
- <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
- <20121213094715.GA1916@arwen.pp.htv.fi>
- <20121214153943.GA3306@luxor.wired.org>
- <20121214154030.GD18233@arwen.pp.htv.fi>
- <20121215141519.GA22033@opensource.wolfsonmicro.com>
-Reply-To: <balbi@ti.com>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH] OMAP: DSS: add FEAT_DPI_USES_VDDS_DSI to
+ omap3630_dss_feat_list
+Date: Sun, 16 Dec 2012 08:08:03 +1100
+Message-ID: <20121216080803.618a3634@notabene.brown>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tjCHc7DPkfUGtrlw"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121215141519.GA22033@opensource.wolfsonmicro.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Felipe Balbi <balbi@ti.com>, Paolo Pisati <paolo.pisati@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/Df4uZa.2Cvszs7y28n=jmp."; protocol="application/pgp-signature"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:57747 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751995Ab2LOVIV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 15 Dec 2012 16:08:21 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Cc: linux-omap@vger.kernel.org
 
---tjCHc7DPkfUGtrlw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Sig_/Df4uZa.2Cvszs7y28n=jmp.
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
 
-On Sat, Dec 15, 2012 at 11:15:20PM +0900, Mark Brown wrote:
-> On Fri, Dec 14, 2012 at 05:40:30PM +0200, Felipe Balbi wrote:
->=20
-> > No no, I mean that before you SoB you should have a:
->=20
-> > Cc: <stable@vger.kernel.org> # v3.x v3.y ...
->=20
-> It's perfectly OK to omit this unless there's an awareness that the
-> backport won't work on some kernels.
+commit 195e672a76056478cc79f5c48343164c9237852e
+   OMAPDSS: DPI: Remove cpu_is_xxxx checks
 
-that's not what Greg says, but fair enough. Won't discuss it...
+made the mistake of assuming that cpu_is_omap34xx() is exclusive of
+other cpu_is_* predicates whereas it includes cpu_is_omap3630().
 
---=20
-balbi
+So on an omap3630, code that was previously enabled by
+  if (cpu_is_omap34xx())
+is now disabled as
+  dss_has_feature(FEAT_DPI_USES_VDDS_DSI)
+fails.
 
---tjCHc7DPkfUGtrlw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+So add FEAT_DPI_USES_VDDS_DSI to omap3630_dss_feat_list.
+
+Cc: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/d=
+ss/dss_features.c
+index acbc1e1..aaf3c3f 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -546,6 +546,7 @@ static const enum dss_feat_id omap3630_dss_feat_list[] =
+=3D {
+ 	FEAT_ALPHA_FIXED_ZORDER,
+ 	FEAT_FIFO_MERGE,
+ 	FEAT_OMAP3_DSI_FIFO_BUG,
++	FEAT_DPI_USES_VDDS_DSI,
+ };
+=20
+ static const enum dss_feat_id omap4430_es1_0_dss_feat_list[] =3D {
+
+--Sig_/Df4uZa.2Cvszs7y28n=jmp.
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v2.0.19 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQzI/iAAoJEIaOsuA1yqREanMQAIFAwPSW3Tl8np+CMBSWVZHl
-Ul5Cc74INgIezhgx5cFAeN+M8br3EAJoQRXwaGNJ5Vc6UiOxxGs69WgJuoHof1zz
-xYGW8E5Y3JA9iTSiQqAoozUDPpAY/L3VcdWh6v28Lra0PAgZh2bGqFYVEIohk5jT
-974PopIx7d2qiDYqT1KT/pmDm0+oh21y9rVDdy1DmfL6WcHc1HsH6SvkWMorseFK
-Pi/yRosPhvuxk8md+5s5MUVCKdudvomaU3jXjb7gEq59xeulwNQ5Qu50QQ1KbbzI
-ABDDEmPdp2a7RptZlOQLwpDIqwdd6YkML56PRbeCnpphBiSFKGzMKqFiZ5O1EbHe
-/BB129oOUpNntyP/dD9hJqThO84VPFDeMybpnfhTvM11GP29lDbxhIi2xXv7YdK4
-f+RwJMnPQs1x2LLUqC1QZe/PijLPPWECAxTlxCdgR/eW872QaB89sIr5EWgoTEfc
-0uk8MQP121WVFwDk9FnLvzDpQkQeGso8hpdutH4j1gCfLekssJTUyAGhD1Df94Bq
-doDjGjmVUeQBFwRyy4MoKG1dPg5MegZxqRisDDr2nu32dqsQAL/qHry9S7nAYLAd
-RZPA3JGuVUHSAEqTQ9H/u7gYKSEyK130pXn5xaAifH31E6mFJmxyviyNGtk57Hiq
-iBUQI4geGjPrFkhoZ+cv
-=8XM5
+iQIVAwUBUMzmsznsnt1WYoG5AQLmFRAAwV4sBqS6LY3iBuki1eGRvRUBGmKR2G4h
+3WmJSeNetUV3UF2q6dvR45ZgOJb11u2oWIAi7KczOVm4gGnanD2atnoo6VbobalH
+u5N/ZDO8IcLQtp5o+7ygil+/EYM0wYUcTpcOYN7b/OoXlxtTGtWitHQyZ0lxBExK
+nIsAeje2NH2ZszWqqYCeX8n8d7bWnx737PqwCn94eRITn2nsHSjdrjvO29zuzqis
+u7scONPKmAyvmbERwpKCH+8Mh9fgb5wTKTg2Ve3rMTcBqyX7XyWhechZet/NJAa9
+uGfVcPr+HGgizq8aNGaZuX3HQl2EzybK5zOrTfcDZe9B4Uu0tbj2PF9zNDbCFoQ/
+2ErcRt3o0xw91KQeTWh3GiYnUKeDSO4uB2TIqWg23HKzSw8+2zxg2nInJ+rqi9DA
+QQJnebZAynflrl4osfCv1gTwqvtxroLQfwMiDuDQTcCNXv85uwQ4CxOvR7VrfWui
+nex5bNOAOPf+bgJq1si0I9UrGkKpbmhxu2X78LZ5Zd+WT2QDhEBlcy4MqUltB3e/
+ujmSOcYsoDap0zmZXGJsAJ/BQ4t7VroPeA7Y63i5oG+NqNNO1FOcXUolQ2DTGor+
+M3BVuNSG0ATu+4fjaIw1mzS3VWRJOOx8p5+v9OrgKq1bUHGK9qPrZFOLRkNYt7Ci
+iTUsPtiaqkk=
+=Ck4x
 -----END PGP SIGNATURE-----
 
---tjCHc7DPkfUGtrlw--
+--Sig_/Df4uZa.2Cvszs7y28n=jmp.--
