@@ -1,48 +1,69 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v7 5/5] ARM: OMAP: gpmc: add DT bindings for GPMC timings and NAND
-Date: Sat, 15 Dec 2012 00:37:52 +0000
-Message-ID: <20121215003752.D0BE63E0BEF@localhost>
-References: <1354734571-10774-1-git-send-email-zonque@gmail.com> <1354734571-10774-6-git-send-email-zonque@gmail.com> <20121205222232.67B2B3E0E22@localhost> <50BFCBCC.6030706@ti.com> <20121205232426.BAD573E0E22@localhost> <50C0C5AB.3030201@ti.com> <50C84AC6.5030307@gmail.com> <50C90CF2.1090405@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:46277 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932151Ab2LOAiJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Dec 2012 19:38:09 -0500
-Received: by mail-wg0-f46.google.com with SMTP id dr13so1632409wgb.1
-        for <linux-omap@vger.kernel.org>; Fri, 14 Dec 2012 16:38:07 -0800 (PST)
-In-Reply-To: <50C90CF2.1090405@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Subject: Re: [PATCH 2/2] spi: devicetree: add support for loopback mode
+Date: Sat, 15 Dec 2012 00:32:24 +0000
+Message-ID: <20121215003224.CBFD93E0BEC@localhost>
+References: <1355301960-21523-1-git-send-email-balbi@ti.com> <1355301960-21523-2-git-send-email-balbi@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1355301960-21523-2-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: spi-devel-general@lists.sourceforge.net, rob@landley.net, rob.herring@calxeda.com
+Cc: devicetree-discuss@lists.ozlabs.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>, Daniel Mack <zonque@gmail.com>
-Cc: paul@pwsan.com, x0148406@ti.com, devicetree-discuss@lists.ozlabs.org, nsekhar@ti.com, rob.herring@calxeda.com, tony@atomide.com, jacmet@sunsite.dk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 12 Dec 2012 17:02:10 -0600, Jon Hunter <jon-hunter@ti.com> wrote:
+On Wed, 12 Dec 2012 10:46:00 +0200, Felipe Balbi <balbi@ti.com> wrote:
+> there are a few spi master drivers which make
+> use of that flag but there is no way to pass it
+> through devicetree.
 > 
-> So looking at this today, here is what I see when comparing the
-> registers ...
-> 
-> omap2430 != omap2420
-> omap3430 != omap2430
-> omap3630 == omap3430
-> omap4430 != omap3430
-> omap4460 == omap4430
-> omap543x == omap4430
-> am335x != omap4430
-> 
-> Therefore, I believe that we need to have the following compatible
-> strings ...
-> 
-> ti,omap2420-gpmc
-> ti,omap2430-gpmc
-> ti,omap3430-gpmc (omap3430 & omap3630)
-> ti,omap4430-gpmc (omap4430 & omap4460 & omap543x)
-> ti,am3352-gpmc (am335x devices)
-> 
-> Probably worth adding a comment to the Documentation what should be used
-> for which device.
+> This patch just creates a way to pass SPI_LOOP
+> via devicetree.
 
-Yes, it is completely appropriate to add a comment to the documentation
-here so this doesn't get lost.
+I don't understand how this would be useful since loopback mode is
+really just a test feature. Is there any reason to do loopback for
+something other than test?
+
+I think it would be better to add a sysfs or debugfs property to
+manipulate the SPI_LOOP flag from userspace. What do you think?
 
 g.
 
+> 
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  Documentation/devicetree/bindings/spi/spi-bus.txt | 2 ++
+>  drivers/spi/spi.c                                 | 2 ++
+>  2 files changed, 4 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/spi/spi-bus.txt b/Documentation/devicetree/bindings/spi/spi-bus.txt
+> index 296015e..1949586 100644
+> --- a/Documentation/devicetree/bindings/spi/spi-bus.txt
+> +++ b/Documentation/devicetree/bindings/spi/spi-bus.txt
+> @@ -55,6 +55,8 @@ contain the following properties.
+>      		chip select active high
+>  - spi-3wire       - (optional) Empty property indicating device requires
+>      		    3-wire mode.
+> +- spi-loopback    - (optional) Empty property indicating device requires
+> +    		    loopback mode.
+>  
+>  If a gpio chipselect is used for the SPI slave the gpio number will be passed
+>  via the cs_gpio
+> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> index 3f1b9ee..6bcdc03 100644
+> --- a/drivers/spi/spi.c
+> +++ b/drivers/spi/spi.c
+> @@ -868,6 +868,8 @@ static void of_register_spi_devices(struct spi_master *master)
+>  			spi->mode |= SPI_CS_HIGH;
+>  		if (of_find_property(nc, "spi-3wire", NULL))
+>  			spi->mode |= SPI_3WIRE;
+> +		if (of_find_property(nc, "spi-loopback", NULL))
+> +			spi->mode |= SPI_LOOP;
+>  
+>  		/* Device speed */
+>  		prop = of_get_property(nc, "spi-max-frequency", &len);
+> -- 
+> 1.8.1.rc1.5.g7e0651a
+> 
+
+-- 
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies, Ltd.
