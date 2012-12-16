@@ -1,63 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: common: remove use of vram
-Date: Sun, 16 Dec 2012 09:48:25 -0800
-Message-ID: <20121216174824.GB18490@atomide.com>
-References: <1355626132-32117-1-git-send-email-javier.martinez@collabora.co.uk>
+Subject: [PATCH 0/2] drop plat/cpu.h for omap2plus
+Date: Sun, 16 Dec 2012 12:03:11 -0800
+Message-ID: <20121216200236.24238.38151.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1355626132-32117-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Cc: Russell King <linux@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40209 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751569Ab2LPUDN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Dec 2012 15:03:13 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* Javier Martinez Canillas <javier.martinez@collabora.co.uk> [121215 18:52]:
-> commit 966458f OMAP: remove vram allocator
-> 
-> Removed the OMAP specific vram allocator but OMAP2 common was
-> still trying to use it and this lead to the following build error:
-> 
-> CC      arch/arm/mach-omap2/common.o
-> arch/arm/mach-omap2/common.c:19:23: fatal error: plat/vram.h: No such file or directory
-> compilation terminated.
-> make[1]: *** [arch/arm/mach-omap2/common.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
+Hi all,
 
-OK looks like this got missed in the merge notes from Tomi, will
-apply.
+Finally it can be dropped. Thanks for help everybody.
 
-Thanks,
+Regards,
 
-Ton
- 
-> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-> ---
->  arch/arm/mach-omap2/common.c |    3 ---
->  1 files changed, 0 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-> index 5c2fd48..2dabb9e 100644
-> --- a/arch/arm/mach-omap2/common.c
-> +++ b/arch/arm/mach-omap2/common.c
-> @@ -16,8 +16,6 @@
->  #include <linux/init.h>
->  #include <linux/platform_data/dsp-omap.h>
->  
-> -#include <plat/vram.h>
-> -
->  #include "common.h"
->  #include "omap-secure.h"
->  
-> @@ -32,7 +30,6 @@ int __weak omap_secure_ram_reserve_memblock(void)
->  
->  void __init omap_reserve(void)
->  {
-> -	omap_vram_reserve_sdram_memblock();
->  	omap_dsp_reserve_sdram_memblock();
->  	omap_secure_ram_reserve_memblock();
->  	omap_barrier_reserve_memblock();
-> -- 
-> 1.7.7.6
-> 
+Tony
+
+---
+
+Tony Lindgren (2):
+      ARM: OMAP: Split vrfb.c to remove last remaining cpu_is_omap usage
+      ARM: OMAP2+: Drop plat/cpu.h for omap2plus
+
+
+ arch/arm/mach-omap1/Makefile          |    2 -
+ arch/arm/mach-omap1/fb.c              |   80 +++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/Makefile          |    2 -
+ arch/arm/mach-omap2/drm.c             |    1 
+ arch/arm/mach-omap2/dss-common.c      |    3 -
+ arch/arm/mach-omap2/fb.c              |   50 +--------------------
+ arch/arm/mach-omap2/prm2xxx.c         |    3 -
+ arch/arm/mach-omap2/prm3xxx.c         |    3 -
+ arch/arm/plat-omap/Makefile           |    2 -
+ arch/arm/plat-omap/include/plat/cpu.h |    4 --
+ drivers/media/platform/omap3isp/isp.c |    2 -
+ drivers/power/avs/smartreflex.c       |    2 -
+ 12 files changed, 88 insertions(+), 66 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/fb.c
+ rename arch/arm/{plat-omap/fb.c => mach-omap2/fb.c} (76%)
+
+-- 
+Signature
