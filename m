@@ -1,56 +1,49 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [GIT PULL] fbdev changes for 3.8
-Date: Sat, 15 Dec 2012 17:24:32 -0500
-Message-ID: <20121215222431.GA7153@redhat.com>
-References: <50CAFDFF.3070802@ti.com>
- <CA+55aFz9+3mOZcjJ9C-izKkidT9mxeO7xUubJER0OTjcZjE=2A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11939 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752352Ab2LOWYl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 15 Dec 2012 17:24:41 -0500
-Content-Disposition: inline
-In-Reply-To: <CA+55aFz9+3mOZcjJ9C-izKkidT9mxeO7xUubJER0OTjcZjE=2A@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Subject: [PATCH 1/1] ARM: OMAP2+: common: remove use of vram
+Date: Sun, 16 Dec 2012 03:48:52 +0100
+Message-ID: <1355626132-32117-1-git-send-email-javier.martinez@collabora.co.uk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-fbdev <linux-fbdev@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-On Sat, Dec 15, 2012 at 01:11:04PM -0800, Linus Torvalds wrote:
- > On Fri, Dec 14, 2012 at 2:22 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
- > > Hi Linus,
- > >
- > > Florian, the fbdev maintainer, has been very busy lately, so I offered to send
- > > the pull request for fbdev for this merge window.
- > 
- > Pulled. However, with this I get the Kconfig question
- > 
- >    OMAP2+ Display Subsystem support (OMAP2_DSS) [N/m/y/?] (NEW)
- > 
- > which doesn't make a whole lot of sense on x86-64, unless there's
- > something about OMAP2 that I don't know.
- > 
- > So I'd suggest making that OMAP2_DSS be dependent on OMAP2. Or at
- > least ARM. Because showing it to anybody else seems insane.
- > 
- > Same goes for FB_OMAP2 for that matter. I realize that it's likely
- > nice to get compile testing for this on x86-64 too, but if that's the
- > intent, we need to think about it some more. I don't think it's good
- > to ask actual normal users questions like this just for compile
- > coverage.
+commit 966458f OMAP: remove vram allocator
 
-This OMAP stuff has been creeping into x86 builds for a while.
-Grep from my current build config ..
+Removed the OMAP specific vram allocator but OMAP2 common was
+still trying to use it and this lead to the following build error:
 
-# CONFIG_OMAP_OCP2SCP is not set
-# CONFIG_KEYBOARD_OMAP4 is not set
-# CONFIG_OMAP2_DSS is not set
-# CONFIG_OMAP_USB2 is not set
+CC      arch/arm/mach-omap2/common.o
+arch/arm/mach-omap2/common.c:19:23: fatal error: plat/vram.h: No such file or directory
+compilation terminated.
+make[1]: *** [arch/arm/mach-omap2/common.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
-There was some other arm-ism that does the same that I' currently forgetting,
-or maybe that got fixed..
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+ arch/arm/mach-omap2/common.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-	Dave
-
+diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+index 5c2fd48..2dabb9e 100644
+--- a/arch/arm/mach-omap2/common.c
++++ b/arch/arm/mach-omap2/common.c
+@@ -16,8 +16,6 @@
+ #include <linux/init.h>
+ #include <linux/platform_data/dsp-omap.h>
+ 
+-#include <plat/vram.h>
+-
+ #include "common.h"
+ #include "omap-secure.h"
+ 
+@@ -32,7 +30,6 @@ int __weak omap_secure_ram_reserve_memblock(void)
+ 
+ void __init omap_reserve(void)
+ {
+-	omap_vram_reserve_sdram_memblock();
+ 	omap_dsp_reserve_sdram_memblock();
+ 	omap_secure_ram_reserve_memblock();
+ 	omap_barrier_reserve_memblock();
+-- 
+1.7.7.6
