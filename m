@@ -1,44 +1,130 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v4 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk
- into usb_host_hs_utmi_px_clk
-Date: Mon, 17 Dec 2012 09:13:06 +0100
-Message-ID: <50CED412.7060407@ti.com>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com> <1355134833-5199-17-git-send-email-rogerq@ti.com> <20121214182855.GB4989@atomide.com> <alpine.DEB.2.00.1212141838130.5915@utopia.booyaka.com>
+Subject: Re: [PATCH 2/2] ARM: dts: OMAP2+: Add PMU nodes
+Date: Mon, 17 Dec 2012 09:16:19 +0100
+Message-ID: <50CED4D3.9080106@ti.com>
+References: <1355519930-3851-1-git-send-email-jon-hunter@ti.com> <1355519930-3851-3-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1212141838130.5915@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Roger Quadros <rogerq@ti.com>, balbi@ti.com, sameo@linux.intel.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Mike Turquette <mturquette@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40994 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751392Ab2LQIQ3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Dec 2012 03:16:29 -0500
+In-Reply-To: <1355519930-3851-3-git-send-email-jon-hunter@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-Hi,
+Hi Jon,
 
-On 12/14/2012 07:44 PM, Paul Walmsley wrote:
-> Hi
->=20
-> On Fri, 14 Dec 2012, Tony Lindgren wrote:
->=20
->> Paul, what about this patch? Looks like you've acked the other clock=
-=20
->> patches in this series but not this one?
->=20
-> I commented on it briefly here:
->=20
-> https://patchwork.kernel.org/patch/1838111/
->=20
-> Maybe Beno=EEt could comment here, but it looks to me (based on a=20
-> superficial look at the hardware clock tree data) that these clock no=
-des=20
-> should exist.  In an ideal world, we'd be able to get back to the=20
-> autogeneration of this clock data.
+On 12/14/2012 10:18 PM, Jon Hunter wrote:
+> Add PMU nodes for OMAP2, OMAP3 and OMAP4460 devices.
+> 
+> Please note that the node for OMAP4460 has been placed in a separate
+> header file for OMAP4460, because the node is not compatible with
+> OMAP4430.
 
-I'm not sure to understand either the rational for that patch. What the
-point of merging the two nodes?
-I mean, we can do it, but AFAIR, we have always decided to use atomic
-node instead of big nodes that handle everything.
+But where is the omap4430 node then?
 
 Regards,
 Benoit
+
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  arch/arm/boot/dts/omap2.dtsi         |    5 +++++
+>  arch/arm/boot/dts/omap3.dtsi         |    6 ++++++
+>  arch/arm/boot/dts/omap4-panda-es.dts |    2 ++
+>  arch/arm/boot/dts/omap4460.dtsi      |   18 ++++++++++++++++++
+>  arch/arm/mach-omap2/pmu.c            |    2 ++
+>  5 files changed, 33 insertions(+)
+>  create mode 100644 arch/arm/boot/dts/omap4460.dtsi
+> 
+> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+> index 761c4b6..27f5ea1 100644
+> --- a/arch/arm/boot/dts/omap2.dtsi
+> +++ b/arch/arm/boot/dts/omap2.dtsi
+> @@ -26,6 +26,11 @@
+>  		};
+>  	};
+>  
+> +	pmu {
+> +		compatible = "arm,arm1136-pmu";
+> +		interrupts = <3>;
+> +	};
+> +
+>  	soc {
+>  		compatible = "ti,omap-infra";
+>  		mpu {
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 1acc261..6c63118 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -26,6 +26,12 @@
+>  		};
+>  	};
+>  
+> +	pmu {
+> +		compatible = "arm,cortex-a8-pmu";
+> +		interrupts = <3>;
+> +		ti,hwmods = "debugss";
+> +	};
+> +
+>  	/*
+>  	 * The soc node represents the soc top level view. It is uses for IPs
+>  	 * that are not memory mapped in the MPU view or for the MPU itself.
+> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
+> index 73bc1a6..2a6e344 100644
+> --- a/arch/arm/boot/dts/omap4-panda-es.dts
+> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
+> @@ -5,7 +5,9 @@
+>   * it under the terms of the GNU General Public License version 2 as
+>   * published by the Free Software Foundation.
+>   */
+> +
+>  /include/ "omap4-panda.dts"
+> +/include/ "omap4460.dtsi"
+>  
+>  /* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
+>  &sound {
+> diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
+> new file mode 100644
+> index 0000000..1270890
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap4460.dtsi
+> @@ -0,0 +1,18 @@
+> +/*
+> + * Device Tree Source for OMAP4460 SoC
+> + *
+> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2.  This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
+> + */
+> +
+> +/ {
+> +	pmu {
+> +		compatible = "arm,cortex-a9-pmu";
+> +		interrupts = <0 54 0x4
+> +			      0 55 0x4>;
+> +		ti,hwmods = "debugss";
+> +	};
+> +};
+> diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
+> index 6e620eb..1a0799c 100644
+> --- a/arch/arm/mach-omap2/pmu.c
+> +++ b/arch/arm/mach-omap2/pmu.c
+> @@ -11,6 +11,8 @@
+>   * the Free Software Foundation; either version 2 of the License, or
+>   * (at your option) any later version.
+>   */
+> +#include <linux/of.h>
+> +
+>  #include <asm/pmu.h>
+>  
+>  #include "soc.h"
+> 
+
