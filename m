@@ -1,30 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk
- into usb_host_hs_utmi_px_clk
-Date: Mon, 17 Dec 2012 21:03:39 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212172102010.29833@utopia.booyaka.com>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com> <1355134833-5199-17-git-send-email-rogerq@ti.com> <20121214182855.GB4989@atomide.com> <alpine.DEB.2.00.1212141838130.5915@utopia.booyaka.com> <50CED412.7060407@ti.com> <50CF449F.7090708@ti.com>
- <50CF47FF.2010002@ti.com>
+From: Carlos Hernandez <ceh@ti.com>
+Subject: invalid references to vram.h
+Date: Mon, 17 Dec 2012 17:14:47 -0500
+Message-ID: <50CF9957.6030105@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50CF47FF.2010002@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, balbi@ti.com, sameo@linux.intel.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Mike Turquette <mturquette@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:37571 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754535Ab2LQWOt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Dec 2012 17:14:49 -0500
+Received: from dlelxv30.itg.ti.com ([172.17.2.17])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id qBHMEmrr020742
+	for <linux-omap@vger.kernel.org>; Mon, 17 Dec 2012 16:14:48 -0600
+Received: from DFLE72.ent.ti.com (dfle72.ent.ti.com [128.247.5.109])
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id qBHMEmYD032697
+	for <linux-omap@vger.kernel.org>; Mon, 17 Dec 2012 16:14:48 -0600
+Received: from legion.dal.design.ti.com (legion.dal.design.ti.com
+ [128.247.22.53])	by dlelxv24.itg.ti.com (8.13.8/8.13.8) with ESMTP id
+ qBHMEm7i006077	for <linux-omap@vger.kernel.org>; Mon, 17 Dec 2012 16:14:48
+ -0600
+Received: from dta0850405-ubuntu1 (dta0850405-ubuntu1.am.dhcp.ti.com
+ [158.218.103.14])	by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with
+ ESMTP id qBHMEmw18474	for <linux-omap@vger.kernel.org>; Mon, 17 Dec 2012
+ 16:14:48 -0600 (CST)
+Received: from [127.0.0.1] (localhost [127.0.0.1])	by dta0850405-ubuntu1
+ (Postfix) with ESMTP id B82811106048	for <linux-omap@vger.kernel.org>; Mon,
+ 17 Dec 2012 17:14:47 -0500 (EST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Mon, 17 Dec 2012, Benoit Cousson wrote:
+Just an fyi... am335x mainline compilation is broken due to invalid
+references to vram.h
 
-> It was done for legacy reason but should disappear once the modulemode
-> will be be removed from the clock nodes.
+|   CC      arch/arm/mach-omap2/common.o
+| arch/arm/mach-omap2/common.c:19:23: fatal error: plat/vram.h: No such
+file or directory
 
-Here's a start at taking care of the low-hanging fruit:
+Test run against commit fa4c95bfdb85d568ae327d57aa33a4f55bab79c4
 
-http://marc.info/?l=linux-omap&m=135577685007813&w=2
-
-Only lightly tested, so tests with Kconfigs with lots of OMAP drivers 
-enabled would be appreciated.
+Regards,
+Carlos
 
 
-- Paul
+
+
