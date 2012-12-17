@@ -1,126 +1,61 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [RESEND PATCH 2/2] ARM: dts: OMAP2+: Add PMU nodes
-Date: Mon, 17 Dec 2012 10:58:32 -0600
-Message-ID: <50CF4F38.3040500@ti.com>
-References: <1355520397-5759-1-git-send-email-jon-hunter@ti.com> <1355520397-5759-3-git-send-email-jon-hunter@ti.com> <20121217163858.GF16561@e106331-lin.cambridge.arm.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Split vrfb.c to remove last remaining
+ cpu_is_omap usage
+Date: Mon, 17 Dec 2012 09:19:38 -0800
+Message-ID: <20121217171938.GS4989@atomide.com>
+References: <20121216200236.24238.38151.stgit@muffinssi.local>
+ <20121216200314.24238.9481.stgit@muffinssi.local>
+ <50CEE65C.20009@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46975 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751917Ab2LQQ6o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Dec 2012 11:58:44 -0500
-In-Reply-To: <20121217163858.GF16561@e106331-lin.cambridge.arm.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:19412 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752988Ab2LQRTo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 12:19:44 -0500
+Content-Disposition: inline
+In-Reply-To: <50CEE65C.20009@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-
-On 12/17/2012 10:38 AM, Mark Rutland wrote:
-> On Fri, Dec 14, 2012 at 09:26:37PM +0000, Jon Hunter wrote:
->> Add PMU nodes for OMAP2, OMAP3 and OMAP4460 devices.
->>
->> Please note that the node for OMAP4460 has been placed in a separate
->> header file for OMAP4460, because the node is not compatible with
->> OMAP4430.
->>
->> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->> ---
->>  arch/arm/boot/dts/omap2.dtsi         |    5 +++++
->>  arch/arm/boot/dts/omap3.dtsi         |    6 ++++++
->>  arch/arm/boot/dts/omap4-panda-es.dts |    2 ++
->>  arch/arm/boot/dts/omap4460.dtsi      |   18 ++++++++++++++++++
->>  4 files changed, 31 insertions(+)
->>  create mode 100644 arch/arm/boot/dts/omap4460.dtsi
->>
->> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
->> index 761c4b6..27f5ea1 100644
->> --- a/arch/arm/boot/dts/omap2.dtsi
->> +++ b/arch/arm/boot/dts/omap2.dtsi
->> @@ -26,6 +26,11 @@
->>  		};
->>  	};
->>  
->> +	pmu {
->> +		compatible = "arm,arm1136-pmu";
->> +		interrupts = <3>;
->> +	};
->> +
->>  	soc {
->>  		compatible = "ti,omap-infra";
->>  		mpu {
->> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
->> index 1acc261..6c63118 100644
->> --- a/arch/arm/boot/dts/omap3.dtsi
->> +++ b/arch/arm/boot/dts/omap3.dtsi
->> @@ -26,6 +26,12 @@
->>  		};
->>  	};
->>  
->> +	pmu {
->> +		compatible = "arm,cortex-a8-pmu";
->> +		interrupts = <3>;
->> +		ti,hwmods = "debugss";
->> +	};
->> +
->>  	/*
->>  	 * The soc node represents the soc top level view. It is uses for IPs
->>  	 * that are not memory mapped in the MPU view or for the MPU itself.
->> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/omap4-panda-es.dts
->> index 73bc1a6..2a6e344 100644
->> --- a/arch/arm/boot/dts/omap4-panda-es.dts
->> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
->> @@ -5,7 +5,9 @@
->>   * it under the terms of the GNU General Public License version 2 as
->>   * published by the Free Software Foundation.
->>   */
->> +
->>  /include/ "omap4-panda.dts"
->> +/include/ "omap4460.dtsi"
->>  
->>  /* Audio routing is differnet between PandaBoard4430 and PandaBoardES */
->>  &sound {
->> diff --git a/arch/arm/boot/dts/omap4460.dtsi b/arch/arm/boot/dts/omap4460.dtsi
->> new file mode 100644
->> index 0000000..1270890
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/omap4460.dtsi
->> @@ -0,0 +1,18 @@
->> +/*
->> + * Device Tree Source for OMAP4460 SoC
->> + *
->> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
->> + *
->> + * This file is licensed under the terms of the GNU General Public License
->> + * version 2.  This program is licensed "as is" without any warranty of any
->> + * kind, whether express or implied.
->> + */
->> +
->> +/ {
->> +	pmu {
->> +		compatible = "arm,cortex-a9-pmu";
->> +		interrupts = <0 54 0x4
->> +			      0 55 0x4>;
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [121217 01:33]:
+> On 2012-12-16 22:03, Tony Lindgren wrote:
+> > Looks like we missed plat-omap/fb.c for cpu_is_omap usage
+> > mach-omap2. This is the last user of cpu_is_omap, so let's
+> > quickly fix it up so we can finally remove plat/cpu.h for
+> > omap2lus.
+> > 
+> > We want to limit cpu_is_omap macro usage to mach-omap2 only so
+> > we can make plat/cpu.h private. After this we can finally drop
+> > plat/cpu.h for omap2+.
+> > 
+> > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mach-omap1/Makefile |    2 +
+> >  arch/arm/mach-omap1/fb.c     |   80 ++++++++++++++++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/Makefile |    2 +
+> >  arch/arm/mach-omap2/fb.c     |   50 +-------------------------
+> >  arch/arm/plat-omap/Makefile  |    2 +
+> >  5 files changed, 85 insertions(+), 51 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap1/fb.c
+> >  rename arch/arm/{plat-omap/fb.c => mach-omap2/fb.c} (76%)
 > 
-> In other places I've seen interrupts properties written as:
-> 
-> interrupts = < irq1... >,
->              < irq2... >,
-> 	     < irqN... >;
-> 
-> Where each individual interrupt is surrounded by angle brackets. This produces
-> the exact same dtb, but may appear easier to read.
-> 
-> This might not be the right time and place to raise it, but it'd be nice if we
-> used one style consistently.
+> Ok, I didn't realize that plat-omap cannot refer to cpu_is_omap either.
 
-I see that we do define interrupts like that for other OMAP devices and
-so I can update this to be consistent.
+We could, but I'd rather not as what we have left in plat-omap should
+all be just drivers eventually. And in this case the fb code is already
+completely separate for omap1 and omap2+, so it's better just to split
+it up. It makes fixing up the initcalls for omap2+ multiplatform easier
+when booting on other SoCs than omap.
 
-Benoit, let me know if you want me to resend or if you want to update
-locally.
+> The patch looks fine, except the subject should say "split fb.c", not
+> "split vrfb.c".
 
-Cheers
-Jon
+Thanks I'll update the subject.
+
+Regards,
+
+Tony
