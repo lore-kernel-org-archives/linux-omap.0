@@ -1,7 +1,7 @@
 From: Ivan Khoronzhuk <ivan.khoronzhuk@ti.com>
 Subject: [PATCH] ARM: OMAP4: PRM: Correct PRM_RSTST and PRM_RSTTIME registers shifts
-Date: Mon, 17 Dec 2012 21:40:59 +0200
-Message-ID: <1355773259-10952-1-git-send-email-ivan.khoronzhuk@ti.com>
+Date: Mon, 17 Dec 2012 21:52:56 +0200
+Message-ID: <1355773976-30164-1-git-send-email-ivan.khoronzhuk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
