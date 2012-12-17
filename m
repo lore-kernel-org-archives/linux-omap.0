@@ -1,70 +1,92 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Drop plat/cpu.h for omap2plus
-Date: Mon, 17 Dec 2012 11:48:11 +0100
-Message-ID: <CAORVsuXOmzz1cSSrKOy+nCLGJkby+LycqOXXNddJJ4cbnjVGtg@mail.gmail.com>
-References: <20121216200236.24238.38151.stgit@muffinssi.local>
-	<20121216200317.24238.63954.stgit@muffinssi.local>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS: add FEAT_DPI_USES_VDDS_DSI to omap3630_dss_feat_list
+Date: Mon, 17 Dec 2012 13:58:59 +0200
+Message-ID: <50CF0903.8010205@ti.com>
+References: <20121216080803.618a3634@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig939FBE17013E78EDF1ED012F"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:39012 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269Ab2LQKsM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 05:48:12 -0500
-Received: by mail-ie0-f174.google.com with SMTP id c11so8998965ieb.19
-        for <linux-omap@vger.kernel.org>; Mon, 17 Dec 2012 02:48:11 -0800 (PST)
-In-Reply-To: <20121216200317.24238.63954.stgit@muffinssi.local>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43948 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752393Ab2LQL7o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Dec 2012 06:59:44 -0500
+In-Reply-To: <20121216080803.618a3634@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Mauro Carvalho Chehab <mchehab@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: NeilBrown <neilb@suse.de>
+Cc: Chandrabhanu Mahapatra <cmahapatra@ti.com>, linux-omap@vger.kernel.org
 
-Hi Tony,
+--------------enig939FBE17013E78EDF1ED012F
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Sun, Dec 16, 2012 at 9:03 PM, Tony Lindgren <tony@atomide.com> wrote:
-> The cpu_is_omap macros are now local to arch/arm/mach-omap2
-> in soc.h and plat/cpu.h can finally be dropped for omap2+.
-> Thanks everybody for help with fixing the drivers.
-Great!
+On 2012-12-15 23:08, NeilBrown wrote:
+>=20
+> commit 195e672a76056478cc79f5c48343164c9237852e
+>    OMAPDSS: DPI: Remove cpu_is_xxxx checks
+>=20
+> made the mistake of assuming that cpu_is_omap34xx() is exclusive of
+> other cpu_is_* predicates whereas it includes cpu_is_omap3630().
+>=20
+> So on an omap3630, code that was previously enabled by
+>   if (cpu_is_omap34xx())
+> is now disabled as
+>   dss_has_feature(FEAT_DPI_USES_VDDS_DSI)
+> fails.
+>=20
+> So add FEAT_DPI_USES_VDDS_DSI to omap3630_dss_feat_list.
+>=20
+> Cc: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: NeilBrown <neilb@suse.de>
+>=20
+> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/oma=
+p2/dss/dss_features.c
+> index acbc1e1..aaf3c3f 100644
+> --- a/drivers/video/omap2/dss/dss_features.c
+> +++ b/drivers/video/omap2/dss/dss_features.c
+> @@ -546,6 +546,7 @@ static const enum dss_feat_id omap3630_dss_feat_lis=
+t[] =3D {
+>  	FEAT_ALPHA_FIXED_ZORDER,
+>  	FEAT_FIFO_MERGE,
+>  	FEAT_OMAP3_DSI_FIFO_BUG,
+> +	FEAT_DPI_USES_VDDS_DSI,
+>  };
+> =20
+>  static const enum dss_feat_id omap4430_es1_0_dss_feat_list[] =3D {
+>=20
 
-> Note that we can now also remove the unused plat/cpu.h from
-> smartreflex.c and isp.c as they will cause compile errors
-> with ARCH_MULTIPLATFORM enabled.
->
-> Cc: Jean Pihet <jean.pihet@newoldbits.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/drm.c             |    1 -
->  arch/arm/mach-omap2/dss-common.c      |    3 +--
->  arch/arm/mach-omap2/prm2xxx.c         |    3 +--
->  arch/arm/mach-omap2/prm3xxx.c         |    3 +--
->  arch/arm/plat-omap/include/plat/cpu.h |    4 ----
->  drivers/media/platform/omap3isp/isp.c |    2 --
->  drivers/power/avs/smartreflex.c       |    2 --
->  7 files changed, 3 insertions(+), 15 deletions(-)
+Thanks, looks correct. Did you encounter a bug related to this, or just
+happened to notice?
 
-For the smartreflex driver:
-Acked-by: Jean Pihet <j-pihet@ti.com>
+ Tomi
 
-Regards,
-Jean
 
-...
 
-> diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-> index a17d084..6b2238b 100644
-> --- a/drivers/power/avs/smartreflex.c
-> +++ b/drivers/power/avs/smartreflex.c
-> @@ -27,8 +27,6 @@
->  #include <linux/pm_runtime.h>
->  #include <linux/power/smartreflex.h>
->
-> -#include <plat/cpu.h>
-> -
->  #define SMARTREFLEX_NAME_LEN   16
->  #define NVALUE_NAME_LEN                40
->  #define SR_DISABLE_TIMEOUT     200
->
+--------------enig939FBE17013E78EDF1ED012F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQzwkDAAoJEPo9qoy8lh71tlcP/RNynhZQmeI2p1tA1a8weBTf
+nxteeRdkzSt95I17TXiuoGrbMiWBJ0bIbPChszPcCt9jMtiJNFVFLXpR12nOCwW3
+6r09lAYLWcvYTdzBwsAQ1MwsuXil3dv7nKbtDxife/Y9qG9kkkT53y+6rgiTcdd3
+QewnEzUiSEBKSeaO3/tK6cC6eECWGwJOWsfXpULiHsWszFZSj5nWj7lg5vqoMft2
+MW/DXZ2VcKFbJ1BVzmV3zeygwqh/kmpE5ojruyZXxt43E5ye9p+6i0hKSkFVghWp
+I3SyAbBe1PzBBJmgVXvy6Pp9IiwfBEaMNwJoLlDlQg4H7N/CRRaglk2a7rV6IqDe
+Qz3YTqhLf8OLT2mQJdp/1BxBBvt9FTSRAU8bkU9ka/EFxd/LSD3/HB1oOLxGhYaX
+IRbOCwZF5WromJmqGEW7QKgrhiYQU63zv8tetw8fGqII1hGnQnp7/itXz7Cy55iR
+pcW+6aWOKZGUHHIIMCdrDJ56XXxP8hg/JkGl8DgtLZ3z3rOR1yMsaR2L2bRJN2pW
+8CqhL00Y1YbPxY+ls1zFrkg7mIURzMPmlaKmyrcAzdNE7hs109KuWK3I0YiPtpQj
+LE7y7qmRgQvsK5MmDhkh91pAVdafgyOeQzTSYVZnuLpmncwa15UVWo/aNGFx1k5w
+yEMNaqEDwfsJBSzUTK/G
+=xX0l
+-----END PGP SIGNATURE-----
+
+--------------enig939FBE17013E78EDF1ED012F--
