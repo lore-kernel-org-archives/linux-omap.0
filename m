@@ -1,58 +1,118 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk
- into usb_host_hs_utmi_px_clk
-Date: Mon, 17 Dec 2012 18:13:19 +0200
-Message-ID: <50CF449F.7090708@ti.com>
-References: <1355134833-5199-1-git-send-email-rogerq@ti.com> <1355134833-5199-17-git-send-email-rogerq@ti.com> <20121214182855.GB4989@atomide.com> <alpine.DEB.2.00.1212141838130.5915@utopia.booyaka.com> <50CED412.7060407@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: MUSB-HDRC Gadget driving VBUS inappropriately
+Date: Mon, 17 Dec 2012 18:13:03 +0200
+Message-ID: <20121217161302.GD22943@arwen.pp.htv.fi>
+References: <C3E8C797-AE49-4638-B41B-B3AE180D3426@gmail.com>
+ <CANOLnONT=dFx581WFRn_b9Q=ngJpfzx+A56b-7po4xVZVqisyw@mail.gmail.com>
+ <20121214121319.GB16600@arwen.pp.htv.fi>
+ <CACqpBg54RfyyLA-seGegLX0uGpfDDX3GueyFhe12C0OU8N_6oQ@mail.gmail.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50CED412.7060407@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, balbi@ti.com, sameo@linux.intel.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Mike Turquette <mturquette@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="WChQLJJJfbwij+9x"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33707 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752179Ab2LQQUU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Dec 2012 11:20:20 -0500
+Content-Disposition: inline
+In-Reply-To: <CACqpBg54RfyyLA-seGegLX0uGpfDDX3GueyFhe12C0OU8N_6oQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ian coolidge <iancoolidge@gmail.com>
+Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, felipe.contreras@gmail.com, icoolidge@trellisware.com
 
-On 12/17/2012 10:13 AM, Benoit Cousson wrote:
-> Hi,
+--WChQLJJJfbwij+9x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Dec 14, 2012 at 05:38:10PM -0800, ian coolidge wrote:
+> Felipe, Tony, Grazvydas, Thanks for the responses,
 >=20
-> On 12/14/2012 07:44 PM, Paul Walmsley wrote:
->> Hi
->>
->> On Fri, 14 Dec 2012, Tony Lindgren wrote:
->>
->>> Paul, what about this patch? Looks like you've acked the other cloc=
-k=20
->>> patches in this series but not this one?
->>
->> I commented on it briefly here:
->>
->> https://patchwork.kernel.org/patch/1838111/
->>
->> Maybe Beno=EEt could comment here, but it looks to me (based on a=20
->> superficial look at the hardware clock tree data) that these clock n=
-odes=20
->> should exist.  In an ideal world, we'd be able to get back to the=20
->> autogeneration of this clock data.
+> On Fri, Dec 14, 2012 at 4:13 AM, Felipe Balbi <balbi@ti.com> wrote:
 >=20
-> I'm not sure to understand either the rational for that patch. What t=
-he
-> point of merging the two nodes?
-> I mean, we can do it, but AFAIR, we have always decided to use atomic
-> node instead of big nodes that handle everything.
->
+> > Hi,
+> >
+> > On Fri, Dec 14, 2012 at 02:13:07PM +0200, Grazvydas Ignotas wrote:
+> > > On Fri, Dec 14, 2012 at 11:53 AM, Ian Coolidge <iancoolidge@gmail.com>
+> > wrote:
+> > > > we find that with about a 2% chance, the gadget comes up in some ki=
+nd
+> > of firmware failed state, driving VBUS.
+> > > > In this condition, we found that MUSB_DEVCTL_SESSION bit was set.
+> > > > I understand this to be indicative of MUSB thinking it is in host
+> > mode, which agrees with the driven VBUS.
+> > > > Further, in this state, I found that usually, there was one interru=
+pt
+> > from twl4030_usb, but NO interrupts from musb-hdrc.
+> > >
+> > > I'm also also often seeing this and don't know any workaround except
+> > > powercycling the board :(
+> > > This was kind or relieved for me after I changed it to deinit musb on
+> > > shutdown/reset (3.3 should have that patch merged), however if you
+> > > randomly reset the board, there is still something like 30-50% chance
+> > > musb will come up dead, and on proper reset it's still something like
+> > > 5% chance like you reported.
+> >
+> > hehe, then you should've reported earlier :-)
+> >
+> > Anyway, I really think this has something to do with some bogus
+> > set_vbus() calls.
+> >
+> > Likely that looking at probe() path for checks for MUSB_DEVCTL_VBUS will
+> > probably show you something which is wrong. Maybe the driver is assuming
+> > that if VBUS bitfield is zero, then it kicks host side, or something.
+> >
+> > Go over that part of the code and you probably will find something.
+> >
+> > --
+> > balbi
+> >
+>=20
+> So, I did some more testing, just printing out MUSB_DEVCTL each time. At
+> omap2430.c "init",
+> musb_probe()->musb_init_controller()->omap2430_musb_init(),
+> I always saw 0x80. This corresponds to MUSB_DEVCTL_BDEVICE.
+> It appears, then, that the MUSB is initialized correctly, but becomes bad
+> somehow. I'll continue to dig into this, but it would be nice to have some
+> simple abstract description of what the SESSION bit actually does here.
+> It's used as both an input and an output throughout the MUSB Linux driver,
+> and judging by comments, appears to have different behavior in different
+> configurations. Felipe?
 
-I can see a similar thing done for mcbsp clocks (e.g. /* Merged
-func_mcbsp1_gfclk into mcbsp1 */), mmc clocks, timer clocks, mcasp
-clock, and sgx clock. i.e. The clock sel (mux) is combined with clock
-gate. I don't see why USB host has to be done differently.
+Session bit, really means a session, a USB session. It has different
+meanings (to some extent) when working with Host or Gadget. For Gadget
+mode, the session bit also triggers SRP, on host mode, maybe it's used
+to start sourcing VBUS, who knows.
 
-Were exceptions made for the above clocks in the auto generation code?
+Also look at the usage of musb->is_active. That's a flag use for host
+mode. IIRC, it tells other parts of the driver to connect the vbus
+charge pump, but my memory fails now :-s
 
-The problem from driver point of view is that it has to manage an
-additional clock per port. Not a big deal, but I thought it could be
-avoided.
+--=20
+balbi
 
-regards,
--roger
+--WChQLJJJfbwij+9x
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQz0SOAAoJEIaOsuA1yqRE/5sQAIzrHRmS/6q+x9Ou9krBfTat
+gLsgJ5OGZkrVSd0+NGhu2bk3C4OJKGBlUMJ7VZ+gMZ2EIdLoQivW+XEDDGisdK55
+RRttoxpgDJIhslgmg5422vwEXBkfnKaunDizyzI2Aruu/JI2hYZ1QaTlCWr5eEhQ
+aRMB7leMeEWtizSH9YJ6hFv0oBAhb3dzyvXwn74Zrr/kRR8wtRX2ZnCrYCfr0NxQ
+/InjZWwNg8/gvqJzMkm6ey0G4gKWXxMwlPTaEPElZRuvn9WWWTcRhtyYVSlkzw1S
+kSLoJFrDo0IjE5zqDp5PTbmUhyoIDBepaTEo78jRP2WXluZ/dLvLv25yh3jkGjbp
+1VtbhC6rasnwb1V6/GhDKUMEHouWZagb00f/niwh6x1bY0+Qj32KN09GfqvMvFAF
+CU1v5hrVO8Myu69RrZV9PS7MyjuWvZ9z6aunFBygv8DnKl0/SIciFXFI+1SgHBwY
+8ehtvnVtpcLlC88+LRvB+Qon+yO46h27gfGpIWSHtz8jGrr5eV33KbdtzdHfjvXK
+FW7ew2MDtYUcLc5v0kT8el3yiIOw7jDOrQKGEimyFjDw1LRUJs1q27SlMuLUf04z
+GzOrIG7lLzFU8FB2QBcLTBCj4FPlY+t6oyztlXWCbECAsUQR5e8YjAm3Whcvp3wv
+46B9dmszWIBOet2QTPbw
+=I4DW
+-----END PGP SIGNATURE-----
+
+--WChQLJJJfbwij+9x--
