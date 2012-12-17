@@ -1,104 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RFC] drm/lcdc: add TI LCD Controller DRM driver
-Date: Mon, 17 Dec 2012 15:56:27 +0200
-Message-ID: <50CF248B.4010401@ti.com>
-References: <1355443446-8723-1-git-send-email-robdclark@gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
+ original voltage values
+Date: Mon, 17 Dec 2012 14:15:36 +0000
+Message-ID: <20121217141536.GF4985@opensource.wolfsonmicro.com>
+References: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
+ <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
+ <20121213094715.GA1916@arwen.pp.htv.fi>
+ <20121214153943.GA3306@luxor.wired.org>
+ <20121214154030.GD18233@arwen.pp.htv.fi>
+ <20121215141519.GA22033@opensource.wolfsonmicro.com>
+ <20121215145738.GB15606@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig72597C62CF18CA745C8258BF"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36108 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751682Ab2LQN4g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Dec 2012 08:56:36 -0500
-In-Reply-To: <1355443446-8723-1-git-send-email-robdclark@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+	protocol="application/pgp-signature"; boundary="Q8BnQc91gJZX4vDc"
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121215145738.GB15606@arwen.pp.htv.fi>
+Sender: stable-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paolo Pisati <paolo.pisati@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <robdclark@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, patches@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
---------------enig72597C62CF18CA745C8258BF
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On 2012-12-14 02:04, Rob Clark wrote:
-> A simple DRM/KMS driver for the TI LCD Controller found in various
-> smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
-> CMA helpers.  Currently only the TFP410 DVI encoder is supported
-> (tested with beaglebone + DVI cape).  There are also various LCD
-> displays, for which support can be added (as I get hw to test on),
-> and an external i2c HDMI encoder found on some boards.
->=20
-> The display controller supports a single CRTC.  And the encoder+
-> connector are split out into sub-devices.  Depending on which LCD
-> or external encoder is actually present, the appropriate output
-> module(s) will be loaded.
->=20
-> Signed-off-by: Rob Clark <robdclark@gmail.com>
-> ---
->  drivers/gpu/drm/Kconfig            |   2 +
->  drivers/gpu/drm/Makefile           |   1 +
->  drivers/gpu/drm/lcdc/Kconfig       |  11 +
->  drivers/gpu/drm/lcdc/Makefile      |   8 +
->  drivers/gpu/drm/lcdc/lcdc_crtc.c   | 544 +++++++++++++++++++++++++++++=
-++++
->  drivers/gpu/drm/lcdc/lcdc_drv.c    | 604 +++++++++++++++++++++++++++++=
-++++++++
->  drivers/gpu/drm/lcdc/lcdc_drv.h    | 162 ++++++++++
->  drivers/gpu/drm/lcdc/lcdc_regs.h   | 154 ++++++++++
->  drivers/gpu/drm/lcdc/lcdc_tfp410.c | 424 ++++++++++++++++++++++++++
->  drivers/gpu/drm/lcdc/lcdc_tfp410.h |  26 ++
->  10 files changed, 1936 insertions(+)
->  create mode 100644 drivers/gpu/drm/lcdc/Kconfig
->  create mode 100644 drivers/gpu/drm/lcdc/Makefile
->  create mode 100644 drivers/gpu/drm/lcdc/lcdc_crtc.c
->  create mode 100644 drivers/gpu/drm/lcdc/lcdc_drv.c
->  create mode 100644 drivers/gpu/drm/lcdc/lcdc_drv.h
->  create mode 100644 drivers/gpu/drm/lcdc/lcdc_regs.h
->  create mode 100644 drivers/gpu/drm/lcdc/lcdc_tfp410.c
->  create mode 100644 drivers/gpu/drm/lcdc/lcdc_tfp410.h
-
-"lcdc" is quite a common term. The directory should perhaps be something
-like ti-lcdc?
-
-Probably not relevant, but I wonder if the same LCDC was used in
-omap1... It'd be nice to get rid of the omap1 fb driver.
-
-I'm not very enthusiastic about adding ti-lcdc specific panel/chip
-drivers. It's not really a big deal if it's only kernel code, but you
-add device-tree bindings also, which is an external API that you need to
-support after adding it.
-
-I'd rather see the energy put to common display framework, and get this
-whole panel/chip driver issue solved in a generic manner.
-
- Tomi
 
 
+--Q8BnQc91gJZX4vDc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---------------enig72597C62CF18CA745C8258BF
+On Sat, Dec 15, 2012 at 04:57:38PM +0200, Felipe Balbi wrote:
+> On Sat, Dec 15, 2012 at 11:15:20PM +0900, Mark Brown wrote:
+
+> > It's perfectly OK to omit this unless there's an awareness that the
+> > backport won't work on some kernels.
+
+> that's not what Greg says, but fair enough. Won't discuss it...
+
+Uh, no.  Think about this for a minute - we want bug fixes backporting,
+we don't want to be putting process blockers in the way of that
+especially not in the cases where fixes apply to all the stable kernels
+that are currently active.
+
+--Q8BnQc91gJZX4vDc
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQzySMAAoJEPo9qoy8lh71+2QP/jSZxtTPm5YI4NnOaGSSsVm5
-F6K+No8IqBBLwn7D13p6C9ETr29tOf8xT24xvATRgIIkP9wzFPIPrbszrFSLhM5/
-CSgb5gaAbEZ3Sf2ZvWQnnA94Um+Il3vvtag4wdnz64dHupkjm54A+nMKfvmicyn6
-jzjtwumhGU4G493WzoZSHSZuztjoamnB2lJBdR8W2mc9jEHiUpfem7nJDuwEHuc4
-i+fCCoR7claFYo2tUjkFSj+pp6KXYBYVF/QVKLsbhPLjgMYHSOlnXYKonEGEeeHs
-5h1o6o18HJIW2c3YyMn1nRBjCJap5+jF88B8kDPzO8IXB1yeyuxqdxhtuz8nLQei
-bl1vxFoTWtD5UDUFtxQaGkx3a1yGaizvaaOvt/gaMRUOrnZduSU+uBRfyl0yytaf
-wB2qde1upSoeTNULwhd7nGnMIzrSoNjHrTrFGRD4FO4sILjDZOKXnzLgUDbxVbjF
-x93AFxjHebCDyjzMdrhQOCA3yrxDbOUPS7v4/+W7abcsZKGX8kj7Vjf5B9psRScu
-SGwOXfNOJ22FYzymhKnYaSIcZgDwGuOfdfNRwMsKrJSiY8aBCIoHb+C0J4f964ne
-bC6gC8yTOTJYSuj+ObIJzAlhQnvq4YjYWblu7/VbfwIXGLmh/df4lTXeBhwOK0bI
-cXlpj+8KeN1KEAi7KqWn
-=wjOe
+iQIcBAEBAgAGBQJQzyjAAAoJELSic+t+oim9Bu4P/AudxLg/3n0cF4nhx6zREVUu
+T83oRAT3aIsk3V2GTkbNdwyJOG9B9yfZh++rKt2Rn8auT+Uulay9z0A272u0WY05
+cp8wRwqaCpvDwake1TqM9Gv0HtQT1lhx8r7bv2gsbzIsCT4zSt44N50Yt3gZd+Xl
+OlGfj4goFN6t+hFMzjS7zRlgH+WS2vxbcyrIw5hcfuKIpUFoL57kTuveD/BK9lv3
+nLZWDHyNo/Myg843jGJ91y1rjaqoFwuIm4wGbfq3QZEYwV7XXfXVZKnga6fCfKiF
+GvVJnZDA4N6N97/R1ebhornKhUsb5MLmZYPx3Fx0pfcwNj8csfT/LfVX1qW9k6wh
+O3/noulqpl179hCM5OQYUEFw+MNCCojuUQ4K62VbxxWHaMbRNaz9j3cwwBUlucBX
+JTu7sU7/y14Nj8xvCWojsDU2ppCwONDAJl2OlHJ6aNgiqftTH7oyHYEqyYJ1fPuk
+MccqEDzT1s1rw+/p1w7mQFNy+ucpANxz4zu5jntVVS20HoGRP9VhHyFfiFq/DIsm
+hZOrVoBhEnRI0a8kyIUv2YLItA9GOEM0DCdGGWOy02UlUNoYsQzoRFxrN8T/G5oj
+3XMQPIirPrOD4Ylw7QxXRhDeT5n8Xz8tDsgsnlPLHcycuiGs40jFc+8vSrV485qQ
+GU+CMIzMvnpUsEH8W7US
+=HHB+
 -----END PGP SIGNATURE-----
 
---------------enig72597C62CF18CA745C8258BF--
+--Q8BnQc91gJZX4vDc--
