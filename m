@@ -1,100 +1,82 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [RFC 2/5] ARM: dts: Add Cross Trigger Interface binding
-Date: Mon, 17 Dec 2012 10:30:01 -0600
-Message-ID: <50CF4889.5000408@ti.com>
-References: <1355348588-22318-1-git-send-email-jon-hunter@ti.com> <1355348588-22318-3-git-send-email-jon-hunter@ti.com> <20121213174139.GA12946@mudshark.cambridge.arm.com> <50CA2ABA.1050600@ti.com> <20121217162055.GE16561@e106331-lin.cambridge.arm.com>
+From: Rob Clark <robdclark@gmail.com>
+Subject: Re: [RFC] drm/lcdc: add TI LCD Controller DRM driver
+Date: Mon, 17 Dec 2012 10:36:10 -0600
+Message-ID: <CAF6AEGt2hvmjRQoAjeGko_Fxq=B5DcYCRQUsM7POPxqOwja5Lg@mail.gmail.com>
+References: <1355443446-8723-1-git-send-email-robdclark@gmail.com>
+	<50CF248B.4010401@ti.com>
+	<CAF6AEGvm2TmFh7xiYzjt9yGT4kuBFA=_219NkwQAjbBVZ+Z6rg@mail.gmail.com>
+	<CAF6AEGtfeXycZjashi=PenX86m7HLBTZ=U04Q4kLSyqJXwQ1fQ@mail.gmail.com>
+	<CAKG51UAunsckFj9g7EMrX6=uFakEidQv2AJJMXPVzeY77eU+JA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56260 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751900Ab2LQQaZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Dec 2012 11:30:25 -0500
-In-Reply-To: <20121217162055.GE16561@e106331-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+In-Reply-To: <CAKG51UAunsckFj9g7EMrX6=uFakEidQv2AJJMXPVzeY77eU+JA@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+To: Sekhar Nori <nori.sekhar@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: Will Deacon <Will.Deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Grant Likely <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Pratik Patel <pratikp@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Ming Lei <ming.lei@canonical.com>
 
-
-On 12/17/2012 10:20 AM, Mark Rutland wrote:
-> On Thu, Dec 13, 2012 at 07:21:30PM +0000, Jon Hunter wrote:
+On Mon, Dec 17, 2012 at 9:26 AM, Sekhar Nori <nori.sekhar@gmail.com> wrote:
+> Hi Rob,
+>
+>
+> On Monday, December 17, 2012, Rob Clark wrote:
 >>
->> On 12/13/2012 11:41 AM, Will Deacon wrote:
->>> On Wed, Dec 12, 2012 at 09:43:05PM +0000, Jon Hunter wrote:
->>>> Adds a device-tree binding for the ARM Cross Trigger Interface (CTI).
->>>> The ARM Cross Trigger Interface provides a way to route events between
->>>> processor modules. For example, on OMAP4430 we use the CTI module to
->>>> route PMU events to the GIC interrupt module.
->>>>
->>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>>> ---
->>>>  Documentation/devicetree/bindings/arm/cti.txt |   32 +++++++++++++++++++++++++
->>>>  1 file changed, 32 insertions(+)
->>>>  create mode 100644 Documentation/devicetree/bindings/arm/cti.txt
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/arm/cti.txt b/Documentation/devicetree/bindings/arm/cti.txt
->>>> new file mode 100644
->>>> index 0000000..4a0e2d3
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/arm/cti.txt
->>>> @@ -0,0 +1,32 @@
->>>> +* ARM Cross Trigger Interface (CTI)
->>>> +
->>>> +The ARM Cross Trigger Interface provides a way to route events between
->>>> +processor modules. For example, debug events from one processor can be
->>>> +broadcasted to other processors. The events that can be routed between
->>>> +processors are specific to the device.
->>>> +
->>>> +Required properties:
->>>> +
->>>> +- compatible:			Should be "arm,primecell".
->>>> +- interrupts:			Interrupt associated with CTI module.
->>>> +- reg:				Contains timer register address range (base
->>>> +				address and length).
->>>> +- arm,cti-name:			A unique name for the CTI module, that will be
->>>> +				used when requesting the CTI module instance.
->>>> +
->>>> +
->>>> +Optional properties:
->>>> +
->>>> +- arm-primecell-periphid:	Primecell peripheral ID associated with CTI
->>>> +				module.
->>>
->>> For multi-cluster systems, I wouldn't be surprised to see multiple CTI
->>> instances, each with different CPU affinities. Can we include an affinity
->>> property following Mark's proposed binding?
->>>
->>>   http://lists.infradead.org/pipermail/linux-arm-kernel/2012-December/137290.html
+>> On Mon, Dec 17, 2012 at 8:39 AM, Rob Clark <robdclark@gmail.com> wrote:
+>> >> I'm not very enthusiastic about adding ti-lcdc specific panel/chip
+>> >> drivers. It's not really a big deal if it's only kernel code, but you
+>> >> add device-tree bindings also, which is an external API that you need
+>> >> to
+>> >> support after adding it.
+>> >>
+>> >> I'd rather see the energy put to common display framework, and get this
+>> >> whole panel/chip driver issue solved in a generic manner.
+>> >
+>> > yeah, I was expecting to migrate to CDF once it exists, but needed
+>> > something for now.  I'm using the exercise to get my thoughts straight
+>> > on how CDF should fit into KMS.  (One thing I plan to add support for
+>> > is an i2c connected hdmi encoder.. which looks like it would fit well
+>> > in drivers/gpu/drm/i2c.. so the drm encoder-slave stuff might be the
+>> > way.)
+>> >
+>> > If you have any suggestions on the DT bindings, I'd like to hear 'em.
 >>
->> Yes I can take a look. Would something like that be applicable to pmu as
->> well or is that unlikely to have different affinities? I am just
->> wondering if there is something that we should implement in general for
->> the various primecell components.
-> 
-> Do you mean for describing the PMU's affinity to the perf subsystem or its
-> wiring to the CTI?
+>> btw, a little bit of-topic, but speaking of DT...
+>>
+>> Anybody have any clue about how backlight devices are supposed to work
+>> in this brave new DT world?
+>
+>
+> See Runtime interpreted power sequences here:
+>  http://lkml.indiana.edu/hypermail/linux/kernel/1208.2/00029.html
+>
+> It is an attempt to address this need.
 
-Yes the PMU's affinity in general, ignoring CTI for now.
+hmm, I'm not really sure that is what is needed..  or rather, it might
+perhaps make sense to have a generic backlight driver implementation
+that could be used where appropriate, but I'm a bit suspicious about
+that trying to cover absolutely everything.
 
-> It's certainly applicable for the former; I've been working on a series to
-> enable support for the PMUs in both clusters in a A15x2 A7x3 coretile using the
-> binding, and I intend to post a series shortly. I'm not sure about the latter,
-> as I don't have much of an understanding about the CTI.
+>From the drm/display driver we don't even want to care how the
+backlight is implemented.  You could have (just making something up
+hypothetically) a backlight controlled via a uart or some sort of
+other crazy magic.. and eventually the generic interpreter gets out of
+hand.
 
-Ok great. I think that this use-case of PMU+CTI is a special case for
-OMAP. CTI could be used for many things and for some reason TI hooked up
-the PMU interrupt via the CTI on OMAP4430 (which has been giving me
-grief ;-)
+Really I think we just want a way to retrieve a 'struct
+backlight_device *' that is created somewhere else.  We don't care how
+that backlight driver is implemented.  I don't think we want an
+interpreter.. we want a way to lookup backlight device by name or
+phandle or something like that.
 
-So if there is a general way to describe the affinity of a module, such
-as PMU, I could re-use this and add to the CTI binding as Will suggested.
-
-> I'm not sure how many other components have affinity concerns, but the
-> intention is for the binding to be reusable.
-
-Great.
-
-Thanks
-Jon
+BR,
+-R
