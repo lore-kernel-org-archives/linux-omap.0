@@ -1,32 +1,30 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP4: PRM: Correct reset source map
-Date: Mon, 17 Dec 2012 20:52:06 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212172050290.29833@utopia.booyaka.com>
-References: <1355776640-369-1-git-send-email-ivan.khoronzhuk@ti.com>
+Subject: Re: [PATCH v4 16/23] ARM: OMAP2+: clock data: Merge utmi_px_gfclk
+ into usb_host_hs_utmi_px_clk
+Date: Mon, 17 Dec 2012 21:03:39 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1212172102010.29833@utopia.booyaka.com>
+References: <1355134833-5199-1-git-send-email-rogerq@ti.com> <1355134833-5199-17-git-send-email-rogerq@ti.com> <20121214182855.GB4989@atomide.com> <alpine.DEB.2.00.1212141838130.5915@utopia.booyaka.com> <50CED412.7060407@ti.com> <50CF449F.7090708@ti.com>
+ <50CF47FF.2010002@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39401 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752432Ab2LQUwH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 15:52:07 -0500
-In-Reply-To: <1355776640-369-1-git-send-email-ivan.khoronzhuk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <50CF47FF.2010002@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, Tony Lindgren <tony@atomide.com>, balbi@ti.com, sameo@linux.intel.com, keshava_mgowda@ti.com, sshtylyov@mvista.com, bjorn@mork.no, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Mike Turquette <mturquette@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ivan Khoronzhuk <ivan.khoronzhuk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 
-Hi
+On Mon, 17 Dec 2012, Benoit Cousson wrote:
 
-On Mon, 17 Dec 2012, Ivan Khoronzhuk wrote:
+> It was done for legacy reason but should disappear once the modulemode
+> will be be removed from the clock nodes.
 
-> In the map for reset sources register we use defines intended for
-> using with PRM_RSTCTRL register. So fix it.
+Here's a start at taking care of the low-hanging fruit:
 
-your changes look good, but they are missing Signed-off-by: lines.  Could 
-you please either resend with those, or confirm that you intended to add 
-them?  You may wish to read Documentation/SubmittingPatches, particularly 
-item 12.
+http://marc.info/?l=linux-omap&m=135577685007813&w=2
+
+Only lightly tested, so tests with Kconfigs with lots of OMAP drivers 
+enabled would be appreciated.
 
 
 - Paul
