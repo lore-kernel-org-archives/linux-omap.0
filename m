@@ -1,64 +1,92 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
- original voltage values
-Date: Mon, 17 Dec 2012 14:15:36 +0000
-Message-ID: <20121217141536.GF4985@opensource.wolfsonmicro.com>
-References: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
- <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
- <20121213094715.GA1916@arwen.pp.htv.fi>
- <20121214153943.GA3306@luxor.wired.org>
- <20121214154030.GD18233@arwen.pp.htv.fi>
- <20121215141519.GA22033@opensource.wolfsonmicro.com>
- <20121215145738.GB15606@arwen.pp.htv.fi>
+From: Rob Clark <robdclark@gmail.com>
+Subject: Re: [RFC] drm/lcdc: add TI LCD Controller DRM driver
+Date: Mon, 17 Dec 2012 08:39:52 -0600
+Message-ID: <CAF6AEGvm2TmFh7xiYzjt9yGT4kuBFA=_219NkwQAjbBVZ+Z6rg@mail.gmail.com>
+References: <1355443446-8723-1-git-send-email-robdclark@gmail.com>
+	<50CF248B.4010401@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q8BnQc91gJZX4vDc"
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20121215145738.GB15606@arwen.pp.htv.fi>
-Sender: stable-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Paolo Pisati <paolo.pisati@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:41699 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753116Ab2LQOjw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 09:39:52 -0500
+Received: by mail-vb0-f46.google.com with SMTP id b13so7093985vby.19
+        for <linux-omap@vger.kernel.org>; Mon, 17 Dec 2012 06:39:52 -0800 (PST)
+In-Reply-To: <50CF248B.4010401@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "patches@linaro.org" <patches@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+On Mon, Dec 17, 2012 at 7:56 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 2012-12-14 02:04, Rob Clark wrote:
+>> A simple DRM/KMS driver for the TI LCD Controller found in various
+>> smaller TI parts (AM33xx, OMAPL138, etc).  This driver uses the
+>> CMA helpers.  Currently only the TFP410 DVI encoder is supported
+>> (tested with beaglebone + DVI cape).  There are also various LCD
+>> displays, for which support can be added (as I get hw to test on),
+>> and an external i2c HDMI encoder found on some boards.
+>>
+>> The display controller supports a single CRTC.  And the encoder+
+>> connector are split out into sub-devices.  Depending on which LCD
+>> or external encoder is actually present, the appropriate output
+>> module(s) will be loaded.
+>>
+>> Signed-off-by: Rob Clark <robdclark@gmail.com>
+>> ---
+>>  drivers/gpu/drm/Kconfig            |   2 +
+>>  drivers/gpu/drm/Makefile           |   1 +
+>>  drivers/gpu/drm/lcdc/Kconfig       |  11 +
+>>  drivers/gpu/drm/lcdc/Makefile      |   8 +
+>>  drivers/gpu/drm/lcdc/lcdc_crtc.c   | 544 +++++++++++++++++++++++++++++++++
+>>  drivers/gpu/drm/lcdc/lcdc_drv.c    | 604 +++++++++++++++++++++++++++++++++++++
+>>  drivers/gpu/drm/lcdc/lcdc_drv.h    | 162 ++++++++++
+>>  drivers/gpu/drm/lcdc/lcdc_regs.h   | 154 ++++++++++
+>>  drivers/gpu/drm/lcdc/lcdc_tfp410.c | 424 ++++++++++++++++++++++++++
+>>  drivers/gpu/drm/lcdc/lcdc_tfp410.h |  26 ++
+>>  10 files changed, 1936 insertions(+)
+>>  create mode 100644 drivers/gpu/drm/lcdc/Kconfig
+>>  create mode 100644 drivers/gpu/drm/lcdc/Makefile
+>>  create mode 100644 drivers/gpu/drm/lcdc/lcdc_crtc.c
+>>  create mode 100644 drivers/gpu/drm/lcdc/lcdc_drv.c
+>>  create mode 100644 drivers/gpu/drm/lcdc/lcdc_drv.h
+>>  create mode 100644 drivers/gpu/drm/lcdc/lcdc_regs.h
+>>  create mode 100644 drivers/gpu/drm/lcdc/lcdc_tfp410.c
+>>  create mode 100644 drivers/gpu/drm/lcdc/lcdc_tfp410.h
+>
+> "lcdc" is quite a common term. The directory should perhaps be something
+> like ti-lcdc?
 
---Q8BnQc91gJZX4vDc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+yeah.. but not one else was using it (other than internally to the
+driver).. I guess we could call it tilcdc or ti-lcdc
 
-On Sat, Dec 15, 2012 at 04:57:38PM +0200, Felipe Balbi wrote:
-> On Sat, Dec 15, 2012 at 11:15:20PM +0900, Mark Brown wrote:
+> Probably not relevant, but I wonder if the same LCDC was used in
+> omap1... It'd be nice to get rid of the omap1 fb driver.
 
-> > It's perfectly OK to omit this unless there's an awareness that the
-> > backport won't work on some kernels.
+would be interesting if you have any idea where to find hw to test
+with (museum?)
 
-> that's not what Greg says, but fair enough. Won't discuss it...
+> I'm not very enthusiastic about adding ti-lcdc specific panel/chip
+> drivers. It's not really a big deal if it's only kernel code, but you
+> add device-tree bindings also, which is an external API that you need to
+> support after adding it.
+>
+> I'd rather see the energy put to common display framework, and get this
+> whole panel/chip driver issue solved in a generic manner.
 
-Uh, no.  Think about this for a minute - we want bug fixes backporting,
-we don't want to be putting process blockers in the way of that
-especially not in the cases where fixes apply to all the stable kernels
-that are currently active.
+yeah, I was expecting to migrate to CDF once it exists, but needed
+something for now.  I'm using the exercise to get my thoughts straight
+on how CDF should fit into KMS.  (One thing I plan to add support for
+is an i2c connected hdmi encoder.. which looks like it would fit well
+in drivers/gpu/drm/i2c.. so the drm encoder-slave stuff might be the
+way.)
 
---Q8BnQc91gJZX4vDc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+If you have any suggestions on the DT bindings, I'd like to hear 'em.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+BR,
+-R
 
-iQIcBAEBAgAGBQJQzyjAAAoJELSic+t+oim9Bu4P/AudxLg/3n0cF4nhx6zREVUu
-T83oRAT3aIsk3V2GTkbNdwyJOG9B9yfZh++rKt2Rn8auT+Uulay9z0A272u0WY05
-cp8wRwqaCpvDwake1TqM9Gv0HtQT1lhx8r7bv2gsbzIsCT4zSt44N50Yt3gZd+Xl
-OlGfj4goFN6t+hFMzjS7zRlgH+WS2vxbcyrIw5hcfuKIpUFoL57kTuveD/BK9lv3
-nLZWDHyNo/Myg843jGJ91y1rjaqoFwuIm4wGbfq3QZEYwV7XXfXVZKnga6fCfKiF
-GvVJnZDA4N6N97/R1ebhornKhUsb5MLmZYPx3Fx0pfcwNj8csfT/LfVX1qW9k6wh
-O3/noulqpl179hCM5OQYUEFw+MNCCojuUQ4K62VbxxWHaMbRNaz9j3cwwBUlucBX
-JTu7sU7/y14Nj8xvCWojsDU2ppCwONDAJl2OlHJ6aNgiqftTH7oyHYEqyYJ1fPuk
-MccqEDzT1s1rw+/p1w7mQFNy+ucpANxz4zu5jntVVS20HoGRP9VhHyFfiFq/DIsm
-hZOrVoBhEnRI0a8kyIUv2YLItA9GOEM0DCdGGWOy02UlUNoYsQzoRFxrN8T/G5oj
-3XMQPIirPrOD4Ylw7QxXRhDeT5n8Xz8tDsgsnlPLHcycuiGs40jFc+8vSrV485qQ
-GU+CMIzMvnpUsEH8W7US
-=HHB+
------END PGP SIGNATURE-----
-
---Q8BnQc91gJZX4vDc--
+>  Tomi
+>
+>
