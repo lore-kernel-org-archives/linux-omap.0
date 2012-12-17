@@ -1,108 +1,75 @@
-From: Rob Clark <robdclark@gmail.com>
-Subject: Re: [RFC] drm/lcdc: add TI LCD Controller DRM driver
-Date: Mon, 17 Dec 2012 09:02:27 -0600
-Message-ID: <CAF6AEGtfeXycZjashi=PenX86m7HLBTZ=U04Q4kLSyqJXwQ1fQ@mail.gmail.com>
-References: <1355443446-8723-1-git-send-email-robdclark@gmail.com>
-	<50CF248B.4010401@ti.com>
-	<CAF6AEGvm2TmFh7xiYzjt9yGT4kuBFA=_219NkwQAjbBVZ+Z6rg@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] regulator: core: if voltage scaling fails, restore
+ original voltage values
+Date: Mon, 17 Dec 2012 17:18:48 +0200
+Message-ID: <20121217151848.GC22590@arwen.pp.htv.fi>
+References: <1355389980-5532-1-git-send-email-paolo.pisati@canonical.com>
+ <1355389980-5532-2-git-send-email-paolo.pisati@canonical.com>
+ <20121213094715.GA1916@arwen.pp.htv.fi>
+ <20121214153943.GA3306@luxor.wired.org>
+ <20121214154030.GD18233@arwen.pp.htv.fi>
+ <20121215141519.GA22033@opensource.wolfsonmicro.com>
+ <20121215145738.GB15606@arwen.pp.htv.fi>
+ <20121217141536.GF4985@opensource.wolfsonmicro.com>
+Reply-To: <balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <CAF6AEGvm2TmFh7xiYzjt9yGT4kuBFA=_219NkwQAjbBVZ+Z6rg@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "patches@linaro.org" <patches@linaro.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HWvPVVuAAfuRc6SZ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20121217141536.GF4985@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Felipe Balbi <balbi@ti.com>, Paolo Pisati <paolo.pisati@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, stable@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 17, 2012 at 8:39 AM, Rob Clark <robdclark@gmail.com> wrote:
->> I'm not very enthusiastic about adding ti-lcdc specific panel/chip
->> drivers. It's not really a big deal if it's only kernel code, but you
->> add device-tree bindings also, which is an external API that you need to
->> support after adding it.
->>
->> I'd rather see the energy put to common display framework, and get this
->> whole panel/chip driver issue solved in a generic manner.
->
-> yeah, I was expecting to migrate to CDF once it exists, but needed
-> something for now.  I'm using the exercise to get my thoughts straight
-> on how CDF should fit into KMS.  (One thing I plan to add support for
-> is an i2c connected hdmi encoder.. which looks like it would fit well
-> in drivers/gpu/drm/i2c.. so the drm encoder-slave stuff might be the
-> way.)
->
-> If you have any suggestions on the DT bindings, I'd like to hear 'em.
+--HWvPVVuAAfuRc6SZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-btw, a little bit of-topic, but speaking of DT...
+Hi,
 
-Anybody have any clue about how backlight devices are supposed to work
-in this brave new DT world?  In the old days, the board file would
-stuff a fxn ptr to control backlight in pdata for the driver.  But we
-don't have this any more.  I think I need some way to retrieve the
-'struct backlight_device' ptr associated with the panel driver, so
-that the appropriate dpms fxn ptrs can enable/disable the backlight.
+On Mon, Dec 17, 2012 at 02:15:36PM +0000, Mark Brown wrote:
+> On Sat, Dec 15, 2012 at 04:57:38PM +0200, Felipe Balbi wrote:
+> > On Sat, Dec 15, 2012 at 11:15:20PM +0900, Mark Brown wrote:
+>=20
+> > > It's perfectly OK to omit this unless there's an awareness that the
+> > > backport won't work on some kernels.
+>=20
+> > that's not what Greg says, but fair enough. Won't discuss it...
+>=20
+> Uh, no.  Think about this for a minute - we want bug fixes backporting,
+> we don't want to be putting process blockers in the way of that
+> especially not in the cases where fixes apply to all the stable kernels
+> that are currently active.
 
-I'm thinking the dt file should have something that looks roughly like:
+then omit the  # v3.x, v3.y  part, but Cc: stable@vger.kernel.org should
+still be there
 
-                /* Settings for CDTech_S035Q01 / LCD3 cape: */
-                panel {
-                        compatible = "lcdc,panel";
-                        pinctrl-names = "default";
-                        pinctrl-0 = <&bone_lcd3_cape_lcd_pins>;
-                        panel-info {
-                                ac-bias           = <255>;
-                                ac-bias-intrpt    = <0>;
-                                dma-burst-sz      = <16>;
-                                bpp               = <16>;
-                                fdd               = <0x80>;
-                                tft-alt-mode      = <0>;
-                                stn-565-mode      = <0>;
-                                mono-8bit-mode    = <0>;
-                                invert-line-clock = <1>;
-                                invert-frm-clock  = <1>;
-                                sync-edge         = <0>;
-                                sync-ctrl         = <1>;
-                                raster-order      = <0>;
-                                fifo-th           = <0>;
-                        };
-                        display-timings {
-                                native-mode = <&timing0>;
-                                timing0: 320x240 {
-                                        hactive         = <320>;
-                                        vactive         = <240>;
-                                        hback-porch     = <21>;
-                                        hfront-porch    = <58>;
-                                        hsync-len       = <47>;
-                                        vback-porch     = <11>;
-                                        vfront-porch    = <23>;
-                                        vsync-len       = <2>;
-                                        clock-frequency = <8000000>;
-                                };
-                        };
+--=20
+balbi
 
-                        backlight {
-                                compatible = "tps65217-backlight";
-                                isel = <1>;
-                                fdim = <200>;
+--HWvPVVuAAfuRc6SZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-                                tps = <&tps>;   /* link to the tps */
-                                brightness = <100>;
-                        };
-                };
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-display-timings is based on the of-videomode helpers patch..
-panel-info probably needs to be made to be something more generic, but
-we need something to know how to configure the crtc properly..
+iQIcBAEBAgAGBQJQzzfYAAoJEIaOsuA1yqREtEYQALId5AFMrEwxMYtcsqOG299D
+uEwo9i3Pq+GkGDBC7rmPVaXLDIxz1z8y6wobR+tfmbFRNWLwerjNOtbgn+QZcB4R
+yHEvRWZ6ZWfm8NTTPCRMANElfKuPAcKZmypI2EM1uyMy9S+G1qLTdZi8kMyxh+4l
+Rfb0690l3IWRyfNmkXxcTXPsZpeP8CbyUtYQ549L9t/lScBNacSWZP98rkUTM5uj
+eqcI59nieaf7OyzDhB2508OBrTkoXBlsVmyLJtZfmx4dtaEXMcavBWHrImH5mFwk
+5eRu7tDW5c07TM66WUmYUoH9BdI0LZZ44XBcbZGv+9Rf3gDCQxwWmoP8KqdWDobU
+m/pdUYx87/ZmeTqgOaInrDwGFoRtnDOR5bqi0kmQjjs1Zyucro5OQi5NBIxFlSwS
+H8z0+fDGPHMYqJKo5zlzytT1kmBfUsWRKxKfrdgv97PViaFC7PoBQ8N/lm2ygtHs
+S0MLLLv/GYIIPOXtP4gt7HG8t4Mkndlv0iPc2C2tr6usJXQcV3entEZ/fqoy23DQ
+9BZO3kjmoiZ1GUNqAnUi8PLkCKKMkL8TkBNEhEpYvGthEmplW+3EqWyqbYpqPDrD
+RVdrcxT5GygVmg9mXpadYHL2pW3r54XwTY9LlIrrulfz5/bRhrv1NjzxrvJ7ycxj
+1zgelfaXMB+CXmPJ/0LD
+=LpXH
+-----END PGP SIGNATURE-----
 
-but I'm not quite sure what to do with the backlight..
-
-BR,
--R
+--HWvPVVuAAfuRc6SZ--
