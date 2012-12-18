@@ -1,63 +1,73 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: About 1-Wire driver of OMAP4
-Date: Mon, 17 Dec 2012 23:21:13 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1212172250000.29833@utopia.booyaka.com>
-References: <04b23e3459eb3657ab313de044c95c22@127.0.0.1>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: clock/cpuidle: fixes for the v3.8 merge
+ window
+Date: Mon, 17 Dec 2012 16:38:55 -0800
+Message-ID: <20121218003855.GZ4989@atomide.com>
+References: <alpine.DEB.2.00.1212171908460.29833@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:39844 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752491Ab2LQXVO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 18:21:14 -0500
-In-Reply-To: <04b23e3459eb3657ab313de044c95c22@127.0.0.1>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16237 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753458Ab2LRAi6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 19:38:58 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1212171908460.29833@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: herman516@totalbb.net.tw
-Cc: linux-omap@vger.kernel.org, NeilBrown <neilb@suse.de>
+To: Olof Johansson <olof@lixom.net>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi
+Olof,
 
-On Mon, 10 Dec 2012, herman516@totalbb.net.tw wrote:
-
-> I implemented gas gauge driver by 1-Wire interface in OMAP4 CPU, the
-> driver we used is a GPIO pin to simulate 1-Wire bus but it sometimes can't
-> work well of timing issue. So we want to use HDQ/1Wire controller in OMAP4,
-> does anyone have experience of OMAP4 1-Wire driver of using its controller?
-> Our gas gauge is DS2780 and we use "android-omap-3.0" kernel branch. I
-> tried to do below steps but it still can't work. Or do you have any
-> suggestion? Thanks.
+* Paul Walmsley <paul@pwsan.com> [121217 11:12]:
+> Hi Tony
 > 
-> 1. Add hwmod of hdq1w in omap_hwmod_44xx_data.c file
-> 2. Use omap_hdq.c file
-> 3. Select "CONFIG_HDQ_MASTER_OMAP", "CONFIG_W1", "CONFIG_HDQ_MASTER_OMAP"
-> and "CONFIG_BATTERY_DS2780" in menuconfig.
+> The following changes since commit 7a280cf512053137a37da2801eac73a8842fa50d:
+> 
+>   Merge tag 'disintegrate-x86-20121214' of git://git.infradead.org/users/dhowells/linux-headers (2012-12-14 15:48:52 -0800)
+> 
+> are available in the git repository at:
+> 
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-v3.8-window
+> 
+> for you to fetch changes up to 9db316b6bf0234d9391f87dd0d28b23f5a44facb:
+> 
+>   ARM: OMAP3/4: cpuidle: fix sparse and checkpatch warnings (2012-12-15 01:41:24 -0700)
+> 
+> ----------------------------------------------------------------
+> Fix some OMAP4 clock problems, and deal with some sparse warnings from
+> the OMAP CPUIdle code.
 
-HDQ1W should work on OMAP3 in mainline if the 
+Can you please pick up this one too?
 
-hdq_experimental_idle_fix_3.5
+Thanks,
 
-branch of
-
-git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-devel.git
-
-is added in.  (Of course, it will have to be forward-ported to take 
-account of the recent common clock framework changes.)
-
-But that branch won't help the OMAP4 situation, since it doesn't have 
-explicit interface clock autoidle control.  The question here is whether 
-the OMAP4 has the same hardware idle handling bug that the OMAP3 did.  If 
-so, you might have to enable another IP block in the L4_PER clockdomain 
-while the HDQ is active :-( It might also be possible to keep the L4_PER 
-clockdomain in software-supervised mode; not sure.
-
-So.  You might want to try backporting the HDQ driver in current mainline, 
-along with the relevant hwmod integration data and any associated hwmod 
-code, to the 3.0 Android kernel you're using.  Then if that doesn't help, 
-maybe try the l4_per hacks mentioned above.
-
-With regards to OMAP3, we still need to plug in a more permanent fix for 
-mainline.  Unfortunately it's fallen down the priority ladder :-(
-
-
-- Paul
+Tony
+ 
+> ----------------------------------------------------------------
+> Jon Hunter (5):
+>       ARM: OMAP4: Update timer clock aliases
+>       ARM: OMAP4: Add function table for non-M4X dplls
+>       ARM: OMAP4: Enhance support for DPLLs with 4X multiplier
+>       ARM: OMAP4460: Workaround ABE DPLL failing to turn-on
+>       ARM: OMAP4: Fix EMU clock domain always on
+> 
+> Paul Walmsley (3):
+>       ARM: OMAP4: clock data: div_iva_hs_clk is a power-of-two divider
+>       ARM: OMAP4: clock data: DPLLs are missing bypass clocks in their parent lists
+>       ARM: OMAP3/4: cpuidle: fix sparse and checkpatch warnings
+> 
+>  arch/arm/mach-omap2/cclock44xx_data.c |   78 +++++++++++++++++++++++++++------
+>  arch/arm/mach-omap2/clock.h           |   10 +++++
+>  arch/arm/mach-omap2/clockdomain.c     |    3 +-
+>  arch/arm/mach-omap2/cpuidle34xx.c     |   14 +++---
+>  arch/arm/mach-omap2/cpuidle44xx.c     |   28 +++++++-----
+>  arch/arm/mach-omap2/dpll3xxx.c        |   46 +++++++++++++------
+>  arch/arm/mach-omap2/dpll44xx.c        |   64 +++++++++++++++++++++++----
+>  7 files changed, 189 insertions(+), 54 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
