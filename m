@@ -1,79 +1,146 @@
 From: Ricardo Neri <rneri@dextratech.com>
-Subject: [PATCH v3 0/5] ARM: OMAP4+: HDMI: Update platform devices for audio
-Date: Mon, 17 Dec 2012 19:30:38 -0600
-Message-ID: <1355794243-32345-1-git-send-email-rneri@dextratech.com>
+Subject: [PATCH v3 3/5] ARM4: OMAP4+: HDMI: Relocate devices for audio codec and card
+Date: Mon, 17 Dec 2012 19:30:41 -0600
+Message-ID: <1355794243-32345-4-git-send-email-rneri@dextratech.com>
+References: <1355794243-32345-1-git-send-email-rneri@dextratech.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from spamfilter.dextratech.com ([187.141.251.67]:50650 "EHLO
+Received: from spamfilter.dextratech.com ([187.141.251.67]:50652 "EHLO
 	mail.dextratech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753878Ab2LRBhu (ORCPT
+	with ESMTP id S1754042Ab2LRBhu (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 20:37:50 -0500
+In-Reply-To: <1355794243-32345-1-git-send-email-rneri@dextratech.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, tony@atomide.com
 Cc: peter.ujfalusi@ti.com, dzuniga@dextratech.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <rneri@dextratech.com>
 
-Hi Mark, Tomi, Liam, Tony,
+Relocate the creation the platform devices for audio the HDMI audio codec and
+the audio card to display.c. This allows the display code to create the required
+platform devices based on what is wired on the board. Thus, as many devices as
+required are created; or none if the HDMI output is not implemented.
 
-This set aims to be the version 3 of my previous submission[1] and aims to
-address the comments that Mark and Tomi kindly provided on such submission.
+Signed-off-by: Ricardo Neri <rneri@dextratech.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c    |    6 ------
+ arch/arm/mach-omap2/board-omap4panda.c |    6 ------
+ arch/arm/mach-omap2/devices.c          |    7 -------
+ arch/arm/mach-omap2/display.c          |   31 +++++++++++++++++++++++++++++++
+ 4 files changed, 31 insertions(+), 19 deletions(-)
 
-The creation of the platform device for the HDMI audio interface from within the
-OMAPDSS HDMI driver that was previously submitted[2] is resubmitted to be
-complemented with code to relocate to arch/arm/mach-omap2/display.c the
-creation of the platform devices for the HDMI ASoC codec and card drivers. This
-series does not break the HDMI audio functionality in any patch.
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 5a486d9..0830d98 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -383,11 +383,6 @@ static struct platform_device sdp4430_dmic_codec = {
+ 	.id	= -1,
+ };
 
-Also, the names of the platform devices are changed to give them more logical
-and more descriptive names.
+-static struct platform_device sdp4430_hdmi_audio_codec = {
+-	.name	= "hdmi-audio-codec",
+-	.id	= -1,
+-};
+-
+ static struct omap_abe_twl6040_data sdp4430_abe_audio_data = {
+ 	.card_name = "SDP4430",
+ 	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
+@@ -422,7 +417,6 @@ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_vbat,
+ 	&sdp4430_dmic_codec,
+ 	&sdp4430_abe_audio,
+-	&sdp4430_hdmi_audio_codec,
+ };
 
-As the commit
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 9f336a3..561a5a7 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -126,11 +126,6 @@ static struct platform_device panda_abe_audio = {
+ 	},
+ };
 
-commit 14840b9a83c6a56629db2ba0ec247503e975f143
-Author: Ricardo Neri <ricardo.n...@ti.com>
-Date:   Tue Nov 6 00:19:17 2012 -0600
+-static struct platform_device panda_hdmi_audio_codec = {
+-	.name	= "hdmi-audio-codec",
+-	.id	= -1,
+-};
+-
+ static struct platform_device btwilink_device = {
+ 	.name	= "btwilink",
+ 	.id	= -1,
+@@ -140,7 +135,6 @@ static struct platform_device *panda_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&wl1271_device,
+ 	&panda_abe_audio,
+-	&panda_hdmi_audio_codec,
+ 	&btwilink_device,
+ };
 
-    OMAPDSS: HDMI: Create platform device for audio support
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 66518b2..6d37438 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -355,11 +355,6 @@ static inline void omap_init_dmic(void) {}
+ #if defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI) || \
+ 		defined(CONFIG_SND_OMAP_SOC_OMAP_HDMI_MODULE)
 
-is reverted in Tomi's git://gitorious.org/linux-omap-dss2/linux.git master
-branch, this series applies cleanly.
+-static struct platform_device omap_hdmi_audio = {
+-	.name	= "omap-hdmi-audio-card",
+-	.id	= -1,
+-};
+-
+ static void __init omap_init_hdmi_audio(void)
+ {
+ 	struct omap_hwmod *oh;
+@@ -375,8 +370,6 @@ static void __init omap_init_hdmi_audio(void)
+ 		-1, oh, NULL, 0, NULL, 0, 0);
+ 	WARN(IS_ERR(pdev),
+ 	     "Can't build omap_device for omap-hdmi-audio-dai.\n");
+-
+-	platform_device_register(&omap_hdmi_audio);
+ }
+ #else
+ static inline void omap_init_hdmi_audio(void) {}
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 282c814e..6cc9cea 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -414,6 +414,37 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ 		}
+ 	}
 
-Changes from v1:
-*Put in a single series all the patches related to platform device updates.
-*Now HDMI audio works correctly in every patch.
-*Remove reference to the TPD12S015 HDMI companion chip as the ASoC drivers
- are not aware of this and other chips could be used in the future.
-
- Changes from v2:
-*Split in two patches the renaming and the relocation of the platform devices.
-*Create a separate patch to pass only the address offset of the DMA data port
- to the audio interface platform device.
-*Keep the name hdmi-audio-codec to not refer to explicitly to OMAP. The codec
- can be made generic in a different patch series submitted to alsa-devel.
-
- BR,
-
- Ricardo
-
-
-[1]. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg80785.html
-[2]. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg79795.html
-
-Ricardo Neri (5):
-  ARM: OMAP4+: HDMI: Rename platform devices for ASoC drivers
-  ARM: OMAP4: Assign IDs to DSS HDMI devices
-  ARM4: OMAP4+: HDMI: Relocate devices for audio codec and card
-  ARM: OMAP4+: HDMI: Relocate the device for audio interface
-  ARM: OMAP4+: HDMI: Refine the DMA port resource for audio
-
- arch/arm/mach-omap2/board-4430sdp.c    |    9 ++---
- arch/arm/mach-omap2/board-omap4panda.c |    9 ++---
- arch/arm/mach-omap2/devices.c          |   31 ----------------
- arch/arm/mach-omap2/display.c          |   31 ++++++++++++++++
- drivers/video/omap2/dss/hdmi.c         |   62 ++++++++++++++++++++++++++++++++
- sound/soc/omap/omap-hdmi-card.c        |    4 +--
- sound/soc/omap/omap-hdmi.c             |    5 ++-
- sound/soc/omap/omap-hdmi.h             |    2 --
- 8 files changed, 103 insertions(+), 50 deletions(-)
++	/* Create devices for HDMI audio drivers */
++	for (i = 0; i < board_data->num_devices; i++) {
++		struct platform_device *au_pdev;
++		struct omap_dss_device *dssdev = board_data->devices[i];
++		bool card_created = false;
++
++		if (dssdev->type != OMAP_DISPLAY_TYPE_HDMI)
++			continue;
++
++		/* We need only one device for the audio card */
++		if (card_created == false) {
++			au_pdev = create_simple_dss_pdev("omap-hdmi-audio-card",
++							 -1, NULL, 0, dss_pdev);
++			if (IS_ERR(au_pdev)) {
++				pr_err("Could not build platform_device for omap-hdmi-audio-card\n");
++				return PTR_ERR(au_pdev);
++			}
++			card_created = true;
++		}
++
++		/* One device for each HDMI connector in the board */
++		au_pdev = create_simple_dss_pdev("hdmi-audio-codec",
++						  dssdev->dev.id,
++						  NULL, 0, dss_pdev);
++		if (IS_ERR(au_pdev)) {
++			pr_err("Could not build platform_device for hdmi-audio-codec\n");
++			return PTR_ERR(au_pdev);
++		}
++
++	}
++
+ 	return 0;
+ }
 
 --
 1.7.10.4
