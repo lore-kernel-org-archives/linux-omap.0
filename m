@@ -1,72 +1,109 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: clock/cpuidle: fixes for the v3.8 merge
- window
-Date: Mon, 17 Dec 2012 16:38:55 -0800
-Message-ID: <20121218003855.GZ4989@atomide.com>
-References: <alpine.DEB.2.00.1212171908460.29833@utopia.booyaka.com>
+Subject: Re: [GIT PULL 1/2] omap fixes for v3.8 merge window
+Date: Mon, 17 Dec 2012 16:39:47 -0800
+Message-ID: <20121218003946.GA4989@atomide.com>
+References: <pull-1355771447-111279>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16237 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16669 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753458Ab2LRAi6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 19:38:58 -0500
+	with ESMTP id S1753040Ab2LRAjv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 19:39:51 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1212171908460.29833@utopia.booyaka.com>
+In-Reply-To: <pull-1355771447-111279>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Olof,
-
-* Paul Walmsley <paul@pwsan.com> [121217 11:12]:
-> Hi Tony
+* Tony Lindgren <tony@atomide.com> [121217 11:13]:
+> The following changes since commit 2b8318881ddbcb67c5e8d2178b42284749442222:
 > 
-> The following changes since commit 7a280cf512053137a37da2801eac73a8842fa50d:
-> 
->   Merge tag 'disintegrate-x86-20121214' of git://git.infradead.org/users/dhowells/linux-headers (2012-12-14 15:48:52 -0800)
+>   Merge tag 'fbdev-for-3.8' of git://gitorious.org/linux-omap-dss2/linux (2012-12-15 13:03:48 -0800)
 > 
 > are available in the git repository at:
 > 
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-v3.8-window
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/fixes-for-merge-window-v4-signed
 > 
-> for you to fetch changes up to 9db316b6bf0234d9391f87dd0d28b23f5a44facb:
+> for you to fetch changes up to 2cb85a7bd2ca6db3ab3d632d0a1b6ca3770ddcf4:
 > 
->   ARM: OMAP3/4: cpuidle: fix sparse and checkpatch warnings (2012-12-15 01:41:24 -0700)
+>   Merge branch 'omap-for-v3.8/fixes-for-merge-window' into omap-for-v3.8/fixes-for-merge-window-v2 (2012-12-16 11:28:10 -0800)
 > 
 > ----------------------------------------------------------------
-> Fix some OMAP4 clock problems, and deal with some sparse warnings from
-> the OMAP CPUIdle code.
+> 
+> These patches fixes a build error caused by a merge
+> conflict with the fb code, few timer warnings, and longer
+> term regressions for tfp410 and omap h4 ethernet. Also
+> included is a GPIO mode fix for the legacy mux code.
 
-Can you please pick up this one too?
+Also please pick up Paul Walmsley's series "[GIT PULL] ARM: OMAP:
+clock/cpuidle: fixes for the v3.8 merge window" if you have
+a chance.
 
 Thanks,
 
 Tony
  
 > ----------------------------------------------------------------
-> Jon Hunter (5):
->       ARM: OMAP4: Update timer clock aliases
->       ARM: OMAP4: Add function table for non-M4X dplls
->       ARM: OMAP4: Enhance support for DPLLs with 4X multiplier
->       ARM: OMAP4460: Workaround ABE DPLL failing to turn-on
->       ARM: OMAP4: Fix EMU clock domain always on
+> Javier Martinez Canillas (1):
+>       ARM: OMAP2+: common: remove use of vram
 > 
-> Paul Walmsley (3):
->       ARM: OMAP4: clock data: div_iva_hs_clk is a power-of-two divider
->       ARM: OMAP4: clock data: DPLLs are missing bypass clocks in their parent lists
->       ARM: OMAP3/4: cpuidle: fix sparse and checkpatch warnings
+> Jon Hunter (6):
+>       ARM: OMAP2+: Fix realtime_counter_init warning in timer.c
+>       ARM: AM335x: Fix warning in timer.c
+>       ARM: OMAP2420: Fix ethernet support for OMAP2420 H4
+>       ARM: OMAP: Remove debug-devices.c
+>       ARM: dts: OMAP2420: Correct H4 board memory size
+>       ARM: dts: Add build target for omap4-panda-a4
 > 
->  arch/arm/mach-omap2/cclock44xx_data.c |   78 +++++++++++++++++++++++++++------
->  arch/arm/mach-omap2/clock.h           |   10 +++++
->  arch/arm/mach-omap2/clockdomain.c     |    3 +-
->  arch/arm/mach-omap2/cpuidle34xx.c     |   14 +++---
->  arch/arm/mach-omap2/cpuidle44xx.c     |   28 +++++++-----
->  arch/arm/mach-omap2/dpll3xxx.c        |   46 +++++++++++++------
->  arch/arm/mach-omap2/dpll44xx.c        |   64 +++++++++++++++++++++++----
->  7 files changed, 189 insertions(+), 54 deletions(-)
+> Oleg Matcovschi (1):
+>       OMAP2+: mux: Fixed gpio mux mode analysis
+> 
+> Roger Quadros (1):
+>       mfd: omap-usb-host: get rid of cpu_is_omap..() macros
+> 
+> Tomi Valkeinen (1):
+>       OMAP: board-files: fix i2c_bus for tfp410
+> 
+> Tony Lindgren (3):
+>       Merge branch 'fixes-timer-build' of git://github.com/jonhunter/linux into omap-for-v3.8/fixes-for-merge-window
+>       ARM: OMAP: Move plat/omap-serial.h to include/linux/platform_data/serial-omap.h
+>       Merge branch 'omap-for-v3.8/fixes-for-merge-window' into omap-for-v3.8/fixes-for-merge-window-v2
+> 
+> Vaibhav Hiremath (1):
+>       ARM: OMAP2+: Fix sparse warnings in timer.c
+> 
+>  arch/arm/boot/dts/Makefile                         |  1 +
+>  arch/arm/boot/dts/omap2420-h4.dts                  |  2 +-
+>  arch/arm/mach-omap2/Kconfig                        |  3 +-
+>  arch/arm/mach-omap2/board-3430sdp.c                |  1 +
+>  arch/arm/mach-omap2/board-am3517evm.c              |  1 +
+>  arch/arm/mach-omap2/board-cm-t35.c                 |  1 +
+>  arch/arm/mach-omap2/board-devkit8000.c             |  1 +
+>  arch/arm/mach-omap2/board-h4.c                     | 83 +++++--------------
+>  arch/arm/mach-omap2/board-omap3evm.c               |  1 +
+>  arch/arm/mach-omap2/board-omap3stalker.c           |  1 +
+>  arch/arm/mach-omap2/common.c                       |  3 -
+>  arch/arm/mach-omap2/mux.c                          | 10 +--
+>  arch/arm/mach-omap2/mux.h                          | 20 +++--
+>  arch/arm/mach-omap2/mux34xx.c                      |  2 +-
+>  arch/arm/mach-omap2/serial.c                       |  3 +-
+>  arch/arm/mach-omap2/timer.c                        |  6 +-
+>  arch/arm/mach-omap2/usb-host.c                     |  4 +
+>  arch/arm/plat-omap/Makefile                        |  1 -
+>  arch/arm/plat-omap/debug-devices.c                 | 92 ----------------------
+>  arch/arm/plat-omap/include/plat/debug-devices.h    |  2 -
+>  drivers/mfd/omap-usb-host.c                        |  3 +-
+>  drivers/tty/serial/omap-serial.c                   |  3 +-
+>  .../linux/platform_data/serial-omap.h              |  0
+>  include/linux/platform_data/usb-omap.h             |  3 +
+>  include/video/omap-panel-tfp410.h                  |  2 +-
+>  25 files changed, 64 insertions(+), 185 deletions(-)
+>  delete mode 100644 arch/arm/plat-omap/debug-devices.c
+>  delete mode 100644 arch/arm/plat-omap/include/plat/debug-devices.h
+>  rename arch/arm/plat-omap/include/plat/omap-serial.h => include/linux/platform_data/serial-omap.h (100%)
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
