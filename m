@@ -1,87 +1,55 @@
-From: Ricardo Neri <rneri@dextratech.com>
-Subject: [PATCH v3 5/5] ARM: OMAP4+: HDMI: Refine the DMA port resource for audio
-Date: Mon, 17 Dec 2012 19:30:43 -0600
-Message-ID: <1355794243-32345-6-git-send-email-rneri@dextratech.com>
-References: <1355794243-32345-1-git-send-email-rneri@dextratech.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from spamfilter.dextratech.com ([187.141.251.67]:42946 "EHLO
-	mail.dextratech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627Ab2LRBmu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 20:42:50 -0500
-In-Reply-To: <1355794243-32345-1-git-send-email-rneri@dextratech.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] ARM: OMAP: clock/cpuidle: fixes for the v3.8 merge
+ window
+Date: Mon, 17 Dec 2012 18:39:25 -0800
+Message-ID: <20121218023925.GA16947@quad.lixom.net>
+References: <alpine.DEB.2.00.1212171908460.29833@utopia.booyaka.com>
+ <20121218003855.GZ4989@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20121218003855.GZ4989@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, tony@atomide.com
-Cc: peter.ujfalusi@ti.com, dzuniga@dextratech.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <rneri@dextratech.com>
 
-Instead of passing the complete address space to the platform device for audio,
-just pass the address offset of the DMA port for audio samples. Thus, we prevent
-that two drivers try to ioremap the same resources. This is to be safe, as the
-ASoC HDMI CPU-DAI driver will not need to ioremap such resource.
+On Mon, Dec 17, 2012 at 04:38:55PM -0800, Tony Lindgren wrote:
+> Olof,
+> 
+> * Paul Walmsley <paul@pwsan.com> [121217 11:12]:
+> > Hi Tony
+> > 
+> > The following changes since commit 7a280cf512053137a37da2801eac73a8842fa50d:
+> > 
+> >   Merge tag 'disintegrate-x86-20121214' of git://git.infradead.org/users/dhowells/linux-headers (2012-12-14 15:48:52 -0800)
+> > 
+> > are available in the git repository at:
+> > 
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-v3.8-window
+> > 
+> > for you to fetch changes up to 9db316b6bf0234d9391f87dd0d28b23f5a44facb:
+> > 
+> >   ARM: OMAP3/4: cpuidle: fix sparse and checkpatch warnings (2012-12-15 01:41:24 -0700)
+> > 
+> > ----------------------------------------------------------------
+> > Fix some OMAP4 clock problems, and deal with some sparse warnings from
+> > the OMAP CPUIdle code.
+> 
+> Can you please pick up this one too?
 
-Signed-off-by: Ricardo Neri <rneri@dextratech.com>
----
- drivers/video/omap2/dss/hdmi.c |    9 ++++++---
- sound/soc/omap/omap-hdmi.c     |    3 +--
- sound/soc/omap/omap-hdmi.h     |    2 --
- 3 files changed, 7 insertions(+), 7 deletions(-)
+Done, pulled.
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 0dde2b5..b758f83 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -829,6 +829,7 @@ static int hdmi_probe_audio(struct platform_device *pdev)
- {
- 	struct resource *res;
- 	struct platform_device *aud_pdev;
-+	u32 port_offset, port_size;
- 	struct resource aud_res[2] = {
- 		DEFINE_RES_MEM(-1, -1),
- 		DEFINE_RES_DMA(-1),
-@@ -841,11 +842,13 @@ static int hdmi_probe_audio(struct platform_device *pdev)
- 	}
- 
- 	/*
--	 * Pass this resource to audio drivers to find the DMA port address.
-+	 * Pass DMA audio port to audio drivers.
- 	 * Audio drivers should not ioremap it.
- 	 */
--	aud_res[0].start = res->start;
--	aud_res[0].end = res->end;
-+	hdmi.ip_data.ops->audio_get_dma_port(&port_offset, &port_size);
-+
-+	aud_res[0].start = res->start + port_offset;
-+	aud_res[0].end =  aud_res[0].start + port_size - 1;
- 
- 	res = platform_get_resource(hdmi.pdev, IORESOURCE_DMA, 0);
- 	if (!res) {
-diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-index db08501..33418fc 100644
---- a/sound/soc/omap/omap-hdmi.c
-+++ b/sound/soc/omap/omap-hdmi.c
-@@ -281,8 +281,7 @@ static __devinit int omap_hdmi_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start
--		+ OMAP_HDMI_AUDIO_DMA_PORT;
-+	hdmi_data->dma_params.port_addr =  hdmi_rsrc->start;
- 
- 	hdmi_rsrc = platform_get_resource(pdev, IORESOURCE_DMA, 0);
- 	if (!hdmi_rsrc) {
-diff --git a/sound/soc/omap/omap-hdmi.h b/sound/soc/omap/omap-hdmi.h
-index 6ad2bf4..33d7a93 100644
---- a/sound/soc/omap/omap-hdmi.h
-+++ b/sound/soc/omap/omap-hdmi.h
-@@ -25,8 +25,6 @@
- #ifndef __OMAP_HDMI_H__
- #define __OMAP_HDMI_H__
- 
--#define OMAP_HDMI_AUDIO_DMA_PORT 0x8c
--
- #define OMAP_HDMI_RATES	(SNDRV_PCM_RATE_32000 | \
- 				SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | \
- 				SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | \
--- 
-1.7.10.4
 
+-Olof
