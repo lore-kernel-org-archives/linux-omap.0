@@ -1,65 +1,78 @@
-From: Hebbar Gururaja <gururaja.hebbar@ti.com>
-Subject: [PATCH v2] ARM: OMAP2: hwmod: Fix "register offset NULL check" bug
-Date: Tue, 18 Dec 2012 18:26:18 +0530
-Message-ID: <1355835378-23437-1-git-send-email-gururaja.hebbar@ti.com>
+From: Loic Pallardy <loic.pallardy-ext@stericsson.com>
+Subject: [PATCH 0/9] drivers: mailbox: framework creation
+Date: Tue, 18 Dec 2012 14:10:03 +0100
+Message-ID: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48213 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754317Ab2LRM4D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Dec 2012 07:56:03 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic PALLARDY <loic.pallardy@st.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Linus Walleij <linus.walleij@linaro.org>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, Loic Pallardy <loic.pallardy-ext@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, b-cousson@ti.com, paul@pwsan.com, khilman@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, sudhakar.raj@ti.com, gururaja.hebbar@ti.com, linux@arm.linux.org.uk
 
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+OMAP and ST-Ericsson platforms are both using mailbox to communicate
+with some coprocessors.
+Based on OMAP existing mailbox framework, this series proposes a
+generic framework, living under drivers/mailbox.
 
-omap4_cminst_wait_module_ready() checks if register offset is NULL.
+This series:
+- moves omap-mailbox framework to a newly drivers/mailbox folder
+  (part of plat-omap code cleaning)
+- creates API header file
+- replaces "omap" prefix by "mailbox"
+- opens interface and make framework independent from omap HW
+- adapts existing omap1 and omap2 drivers to new changes
+- creates dbx500 mailbox driver for ST-Ericsson platforms
 
-int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs,
-				   u16 clkctrl_offs)
-{
-	int i = 0;
+Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+Signed-off-by: Loic Pallardy <loic.pallardy@st.com>
 
-	if (!clkctrl_offs)
-		return 0;
+Based on 3.7-rc7.
 
-In case of AM33xx, CLKCTRL register offset for different clock domains
-are not uniformly placed. An example of this would be the RTC clock
-domain with CLKCTRL offset at 0x00.
-In such cases the module ready check is skipped which leads to a data
-abort during boot-up when RTC registers is accessed.
+Loic Pallardy (9):
+  mailbox: OMAP: introduce mailbox framework
+  mailbox: split internal header from API header
+  mailbox: rename omap_mbox in mailbox
+  mailbox: create opened message type
+  mailbox: change protection mechanisms
+  mailbox: add shared memory mailbox type
+  mailbox: add IRQF_NO_SUSPEND flag
+  mailbox: add no_irq send message
+  mailbox: create dbx500 mailbox driver
 
-Since the actual base address is verified in
-omap4_cminst_read_inst_reg(), this check here is not required at all
-and hence can be removed.
+ arch/arm/configs/omap1_defconfig                   |   3 +-
+ arch/arm/mach-omap1/Makefile                       |   4 -
+ arch/arm/mach-omap1/mailbox.c                      | 199 -------
+ arch/arm/mach-omap2/Makefile                       |   3 -
+ arch/arm/mach-omap2/devices.c                      |   4 +-
+ arch/arm/plat-omap/Kconfig                         |  16 -
+ arch/arm/plat-omap/Makefile                        |   3 -
+ arch/arm/plat-omap/include/plat/mailbox.h          | 105 ----
+ arch/arm/plat-omap/mailbox.c                       | 435 ---------------
+ drivers/Kconfig                                    |   2 +
+ drivers/Makefile                                   |   1 +
+ drivers/mailbox/Kconfig                            |  51 ++
+ drivers/mailbox/Makefile                           |   5 +
+ drivers/mailbox/mailbox-dbx500.c                   | 601 +++++++++++++++++++++
+ drivers/mailbox/mailbox-omap1.c                    | 222 ++++++++
+ .../mailbox.c => drivers/mailbox/mailbox-omap2.c   | 230 ++++----
+ drivers/mailbox/mailbox.c                          | 551 +++++++++++++++++++
+ drivers/mailbox/mailbox.h                          |  66 +++
+ include/linux/mailbox.h                            |  36 ++
+ include/linux/platform_data/mailbox-dbx500.h       |  13 +
+ 20 files changed, 1672 insertions(+), 878 deletions(-)
+ delete mode 100644 arch/arm/mach-omap1/mailbox.c
+ delete mode 100644 arch/arm/plat-omap/include/plat/mailbox.h
+ delete mode 100644 arch/arm/plat-omap/mailbox.c
+ create mode 100644 drivers/mailbox/Kconfig
+ create mode 100644 drivers/mailbox/Makefile
+ create mode 100644 drivers/mailbox/mailbox-dbx500.c
+ create mode 100644 drivers/mailbox/mailbox-omap1.c
+ rename arch/arm/mach-omap2/mailbox.c => drivers/mailbox/mailbox-omap2.c (56%)
+ create mode 100644 drivers/mailbox/mailbox.c
+ create mode 100644 drivers/mailbox/mailbox.h
+ create mode 100644 include/linux/mailbox.h
+ create mode 100644 include/linux/platform_data/mailbox-dbx500.h
 
-Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
----
-Changes in v2:
-	- update commit message to reflect the actual cause. Previous
-	message conveyed a wrong/opposite message.
-
-:100644 100644 7f9a464... 40545ff... M	arch/arm/mach-omap2/cminst44xx.c
- arch/arm/mach-omap2/cminst44xx.c |    3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cminst44xx.c b/arch/arm/mach-omap2/cminst44xx.c
-index 7f9a464..40545ff 100644
---- a/arch/arm/mach-omap2/cminst44xx.c
-+++ b/arch/arm/mach-omap2/cminst44xx.c
-@@ -271,9 +271,6 @@ int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs,
- {
- 	int i = 0;
- 
--	if (!clkctrl_offs)
--		return 0;
--
- 	omap_test_timeout(_is_module_ready(part, inst, cdoffs, clkctrl_offs),
- 			  MAX_MODULE_READY_TIME, i);
- 
 -- 
-1.7.9.5
-
+1.7.11.1
