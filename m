@@ -1,110 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/2] omap fixes for v3.8 merge window
-Date: Mon, 17 Dec 2012 16:39:47 -0800
-Message-ID: <20121218003946.GA4989@atomide.com>
-References: <pull-1355771447-111279>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ricardo Neri <rneri@dextratech.com>
+Subject: [PATCH v3 0/5] ARM: OMAP4+: HDMI: Update platform devices for audio
+Date: Mon, 17 Dec 2012 19:30:38 -0600
+Message-ID: <1355794243-32345-1-git-send-email-rneri@dextratech.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:16669 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753040Ab2LRAjv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 19:39:51 -0500
-Content-Disposition: inline
-In-Reply-To: <pull-1355771447-111279>
+Received: from spamfilter.dextratech.com ([187.141.251.67]:50650 "EHLO
+	mail.dextratech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753878Ab2LRBhu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Dec 2012 20:37:50 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, tony@atomide.com
+Cc: peter.ujfalusi@ti.com, dzuniga@dextratech.com, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Ricardo Neri <rneri@dextratech.com>
 
-* Tony Lindgren <tony@atomide.com> [121217 11:13]:
-> The following changes since commit 2b8318881ddbcb67c5e8d2178b42284749442222:
-> 
->   Merge tag 'fbdev-for-3.8' of git://gitorious.org/linux-omap-dss2/linux (2012-12-15 13:03:48 -0800)
-> 
-> are available in the git repository at:
-> 
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-for-v3.8/fixes-for-merge-window-v4-signed
-> 
-> for you to fetch changes up to 2cb85a7bd2ca6db3ab3d632d0a1b6ca3770ddcf4:
-> 
->   Merge branch 'omap-for-v3.8/fixes-for-merge-window' into omap-for-v3.8/fixes-for-merge-window-v2 (2012-12-16 11:28:10 -0800)
-> 
-> ----------------------------------------------------------------
-> 
-> These patches fixes a build error caused by a merge
-> conflict with the fb code, few timer warnings, and longer
-> term regressions for tfp410 and omap h4 ethernet. Also
-> included is a GPIO mode fix for the legacy mux code.
+Hi Mark, Tomi, Liam, Tony,
 
-Also please pick up Paul Walmsley's series "[GIT PULL] ARM: OMAP:
-clock/cpuidle: fixes for the v3.8 merge window" if you have
-a chance.
+This set aims to be the version 3 of my previous submission[1] and aims to
+address the comments that Mark and Tomi kindly provided on such submission.
 
-Thanks,
+The creation of the platform device for the HDMI audio interface from within the
+OMAPDSS HDMI driver that was previously submitted[2] is resubmitted to be
+complemented with code to relocate to arch/arm/mach-omap2/display.c the
+creation of the platform devices for the HDMI ASoC codec and card drivers. This
+series does not break the HDMI audio functionality in any patch.
 
-Tony
- 
-> ----------------------------------------------------------------
-> Javier Martinez Canillas (1):
->       ARM: OMAP2+: common: remove use of vram
-> 
-> Jon Hunter (6):
->       ARM: OMAP2+: Fix realtime_counter_init warning in timer.c
->       ARM: AM335x: Fix warning in timer.c
->       ARM: OMAP2420: Fix ethernet support for OMAP2420 H4
->       ARM: OMAP: Remove debug-devices.c
->       ARM: dts: OMAP2420: Correct H4 board memory size
->       ARM: dts: Add build target for omap4-panda-a4
-> 
-> Oleg Matcovschi (1):
->       OMAP2+: mux: Fixed gpio mux mode analysis
-> 
-> Roger Quadros (1):
->       mfd: omap-usb-host: get rid of cpu_is_omap..() macros
-> 
-> Tomi Valkeinen (1):
->       OMAP: board-files: fix i2c_bus for tfp410
-> 
-> Tony Lindgren (3):
->       Merge branch 'fixes-timer-build' of git://github.com/jonhunter/linux into omap-for-v3.8/fixes-for-merge-window
->       ARM: OMAP: Move plat/omap-serial.h to include/linux/platform_data/serial-omap.h
->       Merge branch 'omap-for-v3.8/fixes-for-merge-window' into omap-for-v3.8/fixes-for-merge-window-v2
-> 
-> Vaibhav Hiremath (1):
->       ARM: OMAP2+: Fix sparse warnings in timer.c
-> 
->  arch/arm/boot/dts/Makefile                         |  1 +
->  arch/arm/boot/dts/omap2420-h4.dts                  |  2 +-
->  arch/arm/mach-omap2/Kconfig                        |  3 +-
->  arch/arm/mach-omap2/board-3430sdp.c                |  1 +
->  arch/arm/mach-omap2/board-am3517evm.c              |  1 +
->  arch/arm/mach-omap2/board-cm-t35.c                 |  1 +
->  arch/arm/mach-omap2/board-devkit8000.c             |  1 +
->  arch/arm/mach-omap2/board-h4.c                     | 83 +++++--------------
->  arch/arm/mach-omap2/board-omap3evm.c               |  1 +
->  arch/arm/mach-omap2/board-omap3stalker.c           |  1 +
->  arch/arm/mach-omap2/common.c                       |  3 -
->  arch/arm/mach-omap2/mux.c                          | 10 +--
->  arch/arm/mach-omap2/mux.h                          | 20 +++--
->  arch/arm/mach-omap2/mux34xx.c                      |  2 +-
->  arch/arm/mach-omap2/serial.c                       |  3 +-
->  arch/arm/mach-omap2/timer.c                        |  6 +-
->  arch/arm/mach-omap2/usb-host.c                     |  4 +
->  arch/arm/plat-omap/Makefile                        |  1 -
->  arch/arm/plat-omap/debug-devices.c                 | 92 ----------------------
->  arch/arm/plat-omap/include/plat/debug-devices.h    |  2 -
->  drivers/mfd/omap-usb-host.c                        |  3 +-
->  drivers/tty/serial/omap-serial.c                   |  3 +-
->  .../linux/platform_data/serial-omap.h              |  0
->  include/linux/platform_data/usb-omap.h             |  3 +
->  include/video/omap-panel-tfp410.h                  |  2 +-
->  25 files changed, 64 insertions(+), 185 deletions(-)
->  delete mode 100644 arch/arm/plat-omap/debug-devices.c
->  delete mode 100644 arch/arm/plat-omap/include/plat/debug-devices.h
->  rename arch/arm/plat-omap/include/plat/omap-serial.h => include/linux/platform_data/serial-omap.h (100%)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also, the names of the platform devices are changed to give them more logical
+and more descriptive names.
+
+As the commit
+
+commit 14840b9a83c6a56629db2ba0ec247503e975f143
+Author: Ricardo Neri <ricardo.n...@ti.com>
+Date:   Tue Nov 6 00:19:17 2012 -0600
+
+    OMAPDSS: HDMI: Create platform device for audio support
+
+is reverted in Tomi's git://gitorious.org/linux-omap-dss2/linux.git master
+branch, this series applies cleanly.
+
+Changes from v1:
+*Put in a single series all the patches related to platform device updates.
+*Now HDMI audio works correctly in every patch.
+*Remove reference to the TPD12S015 HDMI companion chip as the ASoC drivers
+ are not aware of this and other chips could be used in the future.
+
+ Changes from v2:
+*Split in two patches the renaming and the relocation of the platform devices.
+*Create a separate patch to pass only the address offset of the DMA data port
+ to the audio interface platform device.
+*Keep the name hdmi-audio-codec to not refer to explicitly to OMAP. The codec
+ can be made generic in a different patch series submitted to alsa-devel.
+
+ BR,
+
+ Ricardo
+
+
+[1]. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg80785.html
+[2]. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg79795.html
+
+Ricardo Neri (5):
+  ARM: OMAP4+: HDMI: Rename platform devices for ASoC drivers
+  ARM: OMAP4: Assign IDs to DSS HDMI devices
+  ARM4: OMAP4+: HDMI: Relocate devices for audio codec and card
+  ARM: OMAP4+: HDMI: Relocate the device for audio interface
+  ARM: OMAP4+: HDMI: Refine the DMA port resource for audio
+
+ arch/arm/mach-omap2/board-4430sdp.c    |    9 ++---
+ arch/arm/mach-omap2/board-omap4panda.c |    9 ++---
+ arch/arm/mach-omap2/devices.c          |   31 ----------------
+ arch/arm/mach-omap2/display.c          |   31 ++++++++++++++++
+ drivers/video/omap2/dss/hdmi.c         |   62 ++++++++++++++++++++++++++++++++
+ sound/soc/omap/omap-hdmi-card.c        |    4 +--
+ sound/soc/omap/omap-hdmi.c             |    5 ++-
+ sound/soc/omap/omap-hdmi.h             |    2 --
+ 8 files changed, 103 insertions(+), 50 deletions(-)
+
+--
+1.7.10.4
+
