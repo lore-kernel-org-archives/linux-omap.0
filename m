@@ -1,82 +1,45 @@
-From: =?big5?B?SGVybWFuTWFvKKTyp7ukryk=?= <Herman516@totalbb.net.tw>
-Subject: RE: About 1-Wire driver of OMAP4
-Date: Tue, 18 Dec 2012 21:47:20 +0800
-Message-ID: <CF179A504B3E42DD8C317D3CE445A231@hermannb>
-References: <04b23e3459eb3657ab313de044c95c22@127.0.0.1> <alpine.DEB.2.00.1212172250000.29833@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/9] mailbox: OMAP: introduce mailbox framework
+Date: Tue, 18 Dec 2012 08:59:09 -0800
+Message-ID: <20121218165909.GF4989@atomide.com>
+References: <1355836212-17956-1-git-send-email-loic.pallardy-ext@stericsson.com>
+ <1355836212-17956-2-git-send-email-loic.pallardy-ext@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="big5"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from msr7.hinet.net ([168.95.4.107]:35708 "EHLO msr7.hinet.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754807Ab2LRNsE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Dec 2012 08:48:04 -0500
-In-Reply-To: <alpine.DEB.2.00.1212172250000.29833@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1355836212-17956-2-git-send-email-loic.pallardy-ext@stericsson.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Loic Pallardy <loic.pallardy-ext@stericsson.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Russell King <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Omar Ramirez Luna <omar.ramirez@copitl.com>, Loic PALLARDY <loic.pallardy@st.com>, Arnd Bergmann <arnd@arndb.de>, Ohad Ben-Cohen <ohad@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dom Cobley <popcornmix@gmail.com>, Wim Van Sebroeck <wim@iguana.be>, Linus Walleij <linus.walleij@linaro.org>, Suman Anna <s-anna@ti.com>, Juan Gutierrez <jgutierrez@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tejun Heo <tj@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, Omar Ramirez Luna <omar.luna@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: 'Paul Walmsley' <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, 'NeilBrown' <neilb@suse.de>
 
-Hi Paul,
-
-Thanks your suggestion, I will take a look.
-
-Regards,
-Herman
-
------Original Message-----
-From: Paul Walmsley [mailto:paul@pwsan.com] 
-Sent: Tuesday, December 18, 2012 7:21 AM
-To: herman516@totalbb.net.tw
-Cc: linux-omap@vger.kernel.org; NeilBrown
-Subject: Re: About 1-Wire driver of OMAP4
-
-Hi
-
-On Mon, 10 Dec 2012, herman516@totalbb.net.tw wrote:
-
-> I implemented gas gauge driver by 1-Wire interface in OMAP4 CPU, the
-> driver we used is a GPIO pin to simulate 1-Wire bus but it sometimes can't
-> work well of timing issue. So we want to use HDQ/1Wire controller in
-OMAP4,
-> does anyone have experience of OMAP4 1-Wire driver of using its
-controller?
-> Our gas gauge is DS2780 and we use "android-omap-3.0" kernel branch. I
-> tried to do below steps but it still can't work. Or do you have any
-> suggestion? Thanks.
+* Loic Pallardy <loic.pallardy-ext@stericsson.com> [121218 05:15]:
+> Actually moving it from plat-omap, as this framework/driver code is
+> supposed to be under drivers/ folder. The framework should work with
+> the current supported OMAP processors (OMAP1+) that have mailbox and
+> can be used as a method of interprocessor communication.
 > 
-> 1. Add hwmod of hdq1w in omap_hwmod_44xx_data.c file
-> 2. Use omap_hdq.c file
-> 3. Select "CONFIG_HDQ_MASTER_OMAP", "CONFIG_W1", "CONFIG_HDQ_MASTER_OMAP"
-> and "CONFIG_BATTERY_DS2780" in menuconfig.
+> The mailbox hardware (in OMAP) uses a queued mailbox-interrupt mechanism
+> that provides a communication channel between processors through a set of
+> registers and their associated interrupt signals by sending and receiving
+> messages.
+> 
+> As part of the migration from plat and mach code:
+> - Kconfig symbols have been renamed to build OMAP1 or OMAP2+ drivers.
+> - mailbox.h has been changed from plat to a dedicated drivers/ folder.
+> - soc.h has been changed for plat/cpu.h, since there are dependencies in
+>   the cpu_is_XXXX() macro.
+> 
+> Module names have changed too, instead of mailbox_mach:
+> - OMAP1: mailbox-omap1.ko
+> - OMAP2+: mailbox-omap2.ko
+> 
+> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
 
-HDQ1W should work on OMAP3 in mainline if the 
+AFAIK the first two patches should have:
+From: Omar Ramirez Luna <omar.luna@linaro.org>
 
-hdq_experimental_idle_fix_3.5
+Once that's fixed, for arch/arm/*omap*/* parts:
 
-branch of
-
-git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-devel.git
-
-is added in.  (Of course, it will have to be forward-ported to take 
-account of the recent common clock framework changes.)
-
-But that branch won't help the OMAP4 situation, since it doesn't have 
-explicit interface clock autoidle control.  The question here is whether 
-the OMAP4 has the same hardware idle handling bug that the OMAP3 did.  If 
-so, you might have to enable another IP block in the L4_PER clockdomain 
-while the HDQ is active :-( It might also be possible to keep the L4_PER 
-clockdomain in software-supervised mode; not sure.
-
-So.  You might want to try backporting the HDQ driver in current mainline, 
-along with the relevant hwmod integration data and any associated hwmod 
-code, to the 3.0 Android kernel you're using.  Then if that doesn't help, 
-maybe try the l4_per hacks mentioned above.
-
-With regards to OMAP3, we still need to plug in a more permanent fix for 
-mainline.  Unfortunately it's fallen down the priority ladder :-(
-
-
-- Paul
-
+Acked-by: Tony Lindgren <tony@atomide.com>
