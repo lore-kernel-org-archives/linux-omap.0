@@ -1,59 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 8/8] ARM: OMAP2+: Add minimal support for booting vexpress
-Date: Wed, 19 Dec 2012 11:26:35 -0800
-Message-ID: <20121219192635.22098.74663.stgit@muffinssi.local>
-References: <20121219192354.22098.33408.stgit@muffinssi.local>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: BUG: spinlock bad magic on CPU#0 on BeagleBone
+Date: Wed, 19 Dec 2012 12:23:42 -0800
+Message-ID: <50D2224E.4060300@codeaurora.org>
+References: <B5906170F1614E41A8A28DE3B8D121433EC9A69C@DBDE01.ent.ti.com> <alpine.DEB.2.00.1212191650430.16873@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:62535 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754307Ab2LST0g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 14:26:36 -0500
-In-Reply-To: <20121219192354.22098.33408.stgit@muffinssi.local>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:3349 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752286Ab2LSUXn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 15:23:43 -0500
+In-Reply-To: <alpine.DEB.2.00.1212191650430.16873@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-With multiplatform support enabled we are now always
-building in vexpress. Let's enable few drivers also as
-this allows us to boot omap2plus zImage in qemu for
-testing multiplaform related changes.
+On 12/19/12 08:53, Paul Walmsley wrote:
+> On Wed, 19 Dec 2012, Bedia, Vaibhav wrote:
+>
+>> Current mainline on Beaglebone using the omap2plus_defconfig + 3 build fixes
+>> is triggering a BUG()
+> ...
+>
+>> [    0.109688] Security Framework initialized
+>> [    0.109889] Mount-cache hash table entries: 512
+>> [    0.112674] BUG: spinlock bad magic on CPU#0, swapper/0/0
+>> [    0.112724]  lock: atomic64_lock+0x240/0x400, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
+>> [    0.112782] [<c001af64>] (unwind_backtrace+0x0/0xf0) from [<c02c2010>] (do_raw_spin_lock+0x158/0x198)
+>> [    0.112813] [<c02c2010>] (do_raw_spin_lock+0x158/0x198) from [<c04d89ec>] (_raw_spin_lock_irqsave+0x4c/0x58)
+>> [    0.112844] [<c04d89ec>] (_raw_spin_lock_irqsave+0x4c/0x58) from [<c02cabf0>] (atomic64_add_return+0x30/0x5c)
+>> [    0.112886] [<c02cabf0>] (atomic64_add_return+0x30/0x5c) from [<c0124564>] (alloc_mnt_ns.clone.14+0x44/0xac)
+>> [    0.112914] [<c0124564>] (alloc_mnt_ns.clone.14+0x44/0xac) from [<c0124f4c>] (create_mnt_ns+0xc/0x54)
+>> [    0.112951] [<c0124f4c>] (create_mnt_ns+0xc/0x54) from [<c06f31a4>] (mnt_init+0x120/0x1d4)
+>> [    0.112978] [<c06f31a4>] (mnt_init+0x120/0x1d4) from [<c06f2d50>] (vfs_caches_init+0xe0/0x10c)
+>> [    0.113005] [<c06f2d50>] (vfs_caches_init+0xe0/0x10c) from [<c06d4798>] (start_kernel+0x29c/0x300)
+>> [    0.113029] [<c06d4798>] (start_kernel+0x29c/0x300) from [<80008078>] (0x80008078)
+>> [    0.118290] CPU: Testing write buffer coherency: ok
+>> [    0.118968] CPU0: thread -1, cpu 0, socket -1, mpidr 0
+>> [    0.119053] Setting up static identity map for 0x804de2c8 - 0x804de338
+>> [    0.120698] Brought up 1 CPUs
+> This is probably a memory corruption bug, there's probably some code 
+> executing early that's writing outside its own data and trashing some 
+> previously-allocated memory.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap2plus_defconfig |    4 ++++
- 1 file changed, 4 insertions(+)
+I'm not so sure. It looks like atomic64s use spinlocks on processors
+that don't have 64-bit atomic instructions (see lib/atomic64.c). And
+those spinlocks are not initialized until a pure initcall runs,
+init_atomic64_lock(). Pure initcalls don't run until after
+vfs_caches_init() and so you get this BUG() warning that the spinlock is
+not initialized.
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index db05745..5be2e4b 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -23,6 +23,7 @@ CONFIG_MODULE_SRCVERSION_ALL=y
- CONFIG_ARCH_OMAP2PLUS=y
- CONFIG_OMAP_RESET_CLOCKS=y
- CONFIG_OMAP_MUX_DEBUG=y
-+CONFIG_ARCH_VEXPRESS_CA9X4=y
- CONFIG_ARM_THUMBEE=y
- CONFIG_ARM_ERRATA_411920=y
- CONFIG_NO_HZ=y
-@@ -121,6 +122,8 @@ CONFIG_SERIAL_8250_MANY_PORTS=y
- CONFIG_SERIAL_8250_SHARE_IRQ=y
- CONFIG_SERIAL_8250_DETECT_IRQ=y
- CONFIG_SERIAL_8250_RSA=y
-+CONFIG_SERIAL_AMBA_PL011=y
-+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
- CONFIG_HW_RANDOM=y
- CONFIG_I2C_CHARDEV=y
- CONFIG_SPI=y
-@@ -194,6 +197,7 @@ CONFIG_USB_ZERO=m
- CONFIG_MMC=y
- CONFIG_MMC_UNSAFE_RESUME=y
- CONFIG_SDIO_UART=y
-+CONFIG_MMC_ARMMMCI=y
- CONFIG_MMC_OMAP=y
- CONFIG_MMC_OMAP_HS=y
- CONFIG_RTC_CLASS=y
+How about we initialize the locks statically? Does that fix your problem?
+
+---->8-----
+
+diff --git a/lib/atomic64.c b/lib/atomic64.c
+index 9785378..08a4f06 100644
+--- a/lib/atomic64.c
++++ b/lib/atomic64.c
+@@ -31,7 +31,11 @@
+ static union {
+        raw_spinlock_t lock;
+        char pad[L1_CACHE_BYTES];
+-} atomic64_lock[NR_LOCKS] __cacheline_aligned_in_smp;
++} atomic64_lock[NR_LOCKS] __cacheline_aligned_in_smp = {
++       [0 ... (NR_LOCKS - 1)] = {
++               .lock =  __RAW_SPIN_LOCK_UNLOCKED(atomic64_lock.lock),
++       },
++};
+ 
+ static inline raw_spinlock_t *lock_addr(const atomic64_t *v)
+ {
+@@ -173,14 +177,3 @@ int atomic64_add_unless(atomic64_t *v, long long a, long long u)
+        return ret;
+ }
+ EXPORT_SYMBOL(atomic64_add_unless);
+-
+-static int init_atomic64_lock(void)
+-{
+-       int i;
+-
+-       for (i = 0; i < NR_LOCKS; ++i)
+-               raw_spin_lock_init(&atomic64_lock[i].lock);
+-       return 0;
+-}
+-
+-pure_initcall(init_atomic64_lock);
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
 
