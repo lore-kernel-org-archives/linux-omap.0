@@ -1,113 +1,60 @@
-From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Subject: [PATCH v4 2/3] ARM/dts: omap3: Add support for IGEPv2 board
-Date: Wed, 19 Dec 2012 14:33:09 +0100
-Message-ID: <1355923990-21240-3-git-send-email-javier.martinez@collabora.co.uk>
-References: <1355923990-21240-1-git-send-email-javier.martinez@collabora.co.uk>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:41667 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752489Ab2LSNdc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 08:33:32 -0500
-In-Reply-To: <1355923990-21240-1-git-send-email-javier.martinez@collabora.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: 32kHz clock removal causes problems omap_hsmmc
+Date: Wed, 19 Dec 2012 14:51:14 +0100
+Message-ID: <50D1C652.3050607@ti.com>
+References: <1352968293.10872.51.camel@cumari.coelho.fi> <20121218095450.GB27751@arwen.pp.htv.fi> <20121219094552.GN4985@opensource.wolfsonmicro.com> <50D19040.5090404@ti.com> <20121219100909.GO4985@opensource.wolfsonmicro.com> <50D19463.5010605@ti.com> <20121219103206.GQ4985@opensource.wolfsonmicro.com> <1355913954.5273.21.camel@cumari.coelho.fi> <50D19D54.2000307@ti.com> <20121219130128.GC17993@arwen.pp.htv.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20121219130128.GC17993@arwen.pp.htv.fi>
+Sender: linux-mmc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Luciano Coelho <coelho@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, r.sricharan@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Enric Balletbo i Serra <eballetbo@gmail.com>, Ezequiel Garcia <elezegarcia@gmail.com>, Jon Hunter <jon-hunter@ti.com>, Matthias Brugger <matthias.bgg@googlemail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier.martinez@collabora.co.uk>
 
-ISEE IGEPv2 is an TI OMAP3 SoC based embedded board.
+On 12/19/2012 02:01 PM, Felipe Balbi wrote:
+> Hi,
+> 
+> +Sricharan who commited that
+> 
+> On Wed, Dec 19, 2012 at 11:56:20AM +0100, Peter Ujfalusi wrote:
+>> On 12/19/2012 11:45 AM, Luciano Coelho wrote:
+>>>> Well, we still haven't got the foggiest idea what the actual problem is
+>>>> beyond that it's probably related to the 32kHz clock in some way (unless
+>>>> it was one of the other reverts that coincidentally made a difference,
+>>>> but we don't know what they were) so it's unlikely that just randomly
+>>>> implementing clock support is going to fix anything immediately here.
+>>>
+>>> This is exactly what I had to revert (as I mentioned in the other email,
+>>> I had to revert the other patches otherwise compilation would break):
+>>>
+>>> 0e8e5c34 "regulator: twl: Remove references to 32kHz clock from DT bindings"
+>>> e76ab829 "regulator: twl: Remove references to the twl4030 regulator"
+>>> 029dd3ce "regulator: twl: Remove another unused variable warning"
+>>
+>> Yeah. 32k clock is not provided by twl.
+>>
+>> As I said I need to take a look at CCF to see if it already there. If it is
+>> clock driver + mapping + patch for wl12xx should fix the issue you are facing.
+>>
+>>> Let me know if you need more info.
+>>
+>> BTW: have you happened to ubdate u-boot recently? There is a nice easter egg
+>> added there:
+>> f3f98bb ARM: OMAP4/5: Do not configure non essential pads, clocks, dplls.
+>>
+>> Which means that _essential_ clocks and pads are no longer configured.
+> 
+> anything essential you can list ?
 
-This patch adds an initial device tree support to boot
-an IGEPv2 from the MMC/SD.
+Yeah, that u-boot version is just unusable at all with any mainline
+kernel, since we are still missing pads conf for every drivers.
 
-Currently is working everything that is supported by DT
-on OMAP3 SoCs (MMC/SD, GPIO LEDs, EEPROM, TWL4030 audio).
+Regarding the 32k clock, I noticed as well that the OMAP4460 panda
+u-boot is the only one to enable it at boot time, and thus this is the
+only board that can probe the wilink chip properly as of today.
 
-Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
-Tested-by: Enric Balletbo i Serra <eballetbo@gmail.com>
----
-
-Changes since v1:
-    - Use default-state = "on" instead default-trigger = "default-on" for LED
-
- arch/arm/boot/dts/Makefile           |    1 +
- arch/arm/boot/dts/omap3-igep0020.dts |   56 ++++++++++++++++++++++++++++++++++
- 2 files changed, 57 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-igep0020.dts
-
-diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 0f44174..24b28ba 100644
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -106,6 +106,7 @@ dtb-$(CONFIG_ARCH_OMAP2PLUS) += omap2420-h4.dtb \
- 	omap3-beagle-xm.dtb \
- 	omap3-evm.dtb \
- 	omap3-tobi.dtb \
-+	omap3-igep0020.dtb \
- 	omap4-panda.dtb \
- 	omap4-panda-es.dtb \
- 	omap4-var-som.dtb \
-diff --git a/arch/arm/boot/dts/omap3-igep0020.dts b/arch/arm/boot/dts/omap3-igep0020.dts
-new file mode 100644
-index 0000000..e2b9849
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-igep0020.dts
-@@ -0,0 +1,56 @@
-+/*
-+ * Device Tree Source for IGEPv2 board
-+ *
-+ * Copyright (C) 2012 Javier Martinez Canillas <javier@collabora.co.uk>
-+ * Copyright (C) 2012 Enric Balletbo i Serra <eballetbo@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/include/ "omap3-igep.dtsi"
-+
-+/ {
-+	model = "IGEPv2";
-+	compatible = "isee,omap3-igep0020", "ti,omap3";
-+
-+	leds {
-+		compatible = "gpio-leds";
-+		boot {
-+			 label = "omap3:green:boot";
-+			 gpios = <&gpio1 26 0>;
-+			 default-state = "on";
-+		};
-+
-+		user0 {
-+			 label = "omap3:red:user0";
-+			 gpios = <&gpio1 27 0>;
-+			 default-state = "off";
-+		};
-+
-+		user1 {
-+			 label = "omap3:red:user1";
-+			 gpios = <&gpio1 28 0>;
-+			 default-state = "off";
-+		};
-+
-+		user2 {
-+			label = "omap3:green:user1";
-+			gpios = <&twl_gpio 19 1>;
-+		};
-+	};
-+};
-+
-+&i2c3 {
-+	clock-frequency = <100000>;
-+
-+	/*
-+	 * Display monitor features are burnt in the EEPROM
-+	 * as EDID data.
-+	 */
-+	eeprom@50 {
-+		compatible = "ti,eeprom";
-+		reg = <0x50>;
-+	};
-+};
--- 
-1.7.7.6
+Regards,
+Benoit
 
