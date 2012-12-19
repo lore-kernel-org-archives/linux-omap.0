@@ -1,95 +1,248 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: BUG: spinlock bad magic on CPU#0 on BeagleBone
-Date: Wed, 19 Dec 2012 12:23:42 -0800
-Message-ID: <50D2224E.4060300@codeaurora.org>
-References: <B5906170F1614E41A8A28DE3B8D121433EC9A69C@DBDE01.ent.ti.com> <alpine.DEB.2.00.1212191650430.16873@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:3349 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286Ab2LSUXn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 15:23:43 -0500
-In-Reply-To: <alpine.DEB.2.00.1212191650430.16873@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 2/3] gpio: twl4030: Cache the direction and output states in private data
+Date: Wed, 19 Dec 2012 17:03:56 +0000
+Message-ID: <20121219170357.0BA403E0C4A@localhost>
+References: <1354791127-20545-1-git-send-email-peter.ujfalusi@ti.com> <1354791127-20545-3-git-send-email-peter.ujfalusi@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1354791127-20545-3-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 12/19/12 08:53, Paul Walmsley wrote:
-> On Wed, 19 Dec 2012, Bedia, Vaibhav wrote:
->
->> Current mainline on Beaglebone using the omap2plus_defconfig + 3 build fixes
->> is triggering a BUG()
-> ...
->
->> [    0.109688] Security Framework initialized
->> [    0.109889] Mount-cache hash table entries: 512
->> [    0.112674] BUG: spinlock bad magic on CPU#0, swapper/0/0
->> [    0.112724]  lock: atomic64_lock+0x240/0x400, .magic: 00000000, .owner: <none>/-1, .owner_cpu: 0
->> [    0.112782] [<c001af64>] (unwind_backtrace+0x0/0xf0) from [<c02c2010>] (do_raw_spin_lock+0x158/0x198)
->> [    0.112813] [<c02c2010>] (do_raw_spin_lock+0x158/0x198) from [<c04d89ec>] (_raw_spin_lock_irqsave+0x4c/0x58)
->> [    0.112844] [<c04d89ec>] (_raw_spin_lock_irqsave+0x4c/0x58) from [<c02cabf0>] (atomic64_add_return+0x30/0x5c)
->> [    0.112886] [<c02cabf0>] (atomic64_add_return+0x30/0x5c) from [<c0124564>] (alloc_mnt_ns.clone.14+0x44/0xac)
->> [    0.112914] [<c0124564>] (alloc_mnt_ns.clone.14+0x44/0xac) from [<c0124f4c>] (create_mnt_ns+0xc/0x54)
->> [    0.112951] [<c0124f4c>] (create_mnt_ns+0xc/0x54) from [<c06f31a4>] (mnt_init+0x120/0x1d4)
->> [    0.112978] [<c06f31a4>] (mnt_init+0x120/0x1d4) from [<c06f2d50>] (vfs_caches_init+0xe0/0x10c)
->> [    0.113005] [<c06f2d50>] (vfs_caches_init+0xe0/0x10c) from [<c06d4798>] (start_kernel+0x29c/0x300)
->> [    0.113029] [<c06d4798>] (start_kernel+0x29c/0x300) from [<80008078>] (0x80008078)
->> [    0.118290] CPU: Testing write buffer coherency: ok
->> [    0.118968] CPU0: thread -1, cpu 0, socket -1, mpidr 0
->> [    0.119053] Setting up static identity map for 0x804de2c8 - 0x804de338
->> [    0.120698] Brought up 1 CPUs
-> This is probably a memory corruption bug, there's probably some code 
-> executing early that's writing outside its own data and trashing some 
-> previously-allocated memory.
+On Thu, 6 Dec 2012 11:52:06 +0100, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> Use more coherent locking in the driver. Use bitfield to store the GPIO
+> direction and if the pin is configured as output store the status also in a
+> bitfiled.
+> In this way we can just look at these bitfields when we need information
+> about the pin status and only reach out to the chip when it is needed.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-I'm not so sure. It looks like atomic64s use spinlocks on processors
-that don't have 64-bit atomic instructions (see lib/atomic64.c). And
-those spinlocks are not initialized until a pure initcall runs,
-init_atomic64_lock(). Pure initcalls don't run until after
-vfs_caches_init() and so you get this BUG() warning that the spinlock is
-not initialized.
+Applied, thanks
 
-How about we initialize the locks statically? Does that fix your problem?
+g.
 
----->8-----
-
-diff --git a/lib/atomic64.c b/lib/atomic64.c
-index 9785378..08a4f06 100644
---- a/lib/atomic64.c
-+++ b/lib/atomic64.c
-@@ -31,7 +31,11 @@
- static union {
-        raw_spinlock_t lock;
-        char pad[L1_CACHE_BYTES];
--} atomic64_lock[NR_LOCKS] __cacheline_aligned_in_smp;
-+} atomic64_lock[NR_LOCKS] __cacheline_aligned_in_smp = {
-+       [0 ... (NR_LOCKS - 1)] = {
-+               .lock =  __RAW_SPIN_LOCK_UNLOCKED(atomic64_lock.lock),
-+       },
-+};
- 
- static inline raw_spinlock_t *lock_addr(const atomic64_t *v)
- {
-@@ -173,14 +177,3 @@ int atomic64_add_unless(atomic64_t *v, long long a, long long u)
-        return ret;
- }
- EXPORT_SYMBOL(atomic64_add_unless);
--
--static int init_atomic64_lock(void)
--{
--       int i;
--
--       for (i = 0; i < NR_LOCKS; ++i)
--               raw_spin_lock_init(&atomic64_lock[i].lock);
--       return 0;
--}
--
--pure_initcall(init_atomic64_lock);
+> ---
+>  drivers/gpio/gpio-twl4030.c | 99 ++++++++++++++++++++++++++++++---------------
+>  1 file changed, 66 insertions(+), 33 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-twl4030.c b/drivers/gpio/gpio-twl4030.c
+> index c092739..a38e6e9c 100644
+> --- a/drivers/gpio/gpio-twl4030.c
+> +++ b/drivers/gpio/gpio-twl4030.c
+> @@ -64,14 +64,15 @@
+>  /* Mask for GPIO registers when aggregated into a 32-bit integer */
+>  #define GPIO_32_MASK			0x0003ffff
+>  
+> -/* Data structures */
+> -static DEFINE_MUTEX(gpio_lock);
+> -
+>  struct gpio_twl4030_priv {
+>  	struct gpio_chip gpio_chip;
+> +	struct mutex mutex;
+>  	int irq_base;
+>  
+> +	/* Bitfields for state caching */
+>  	unsigned int usage_count;
+> +	unsigned int direction;
+> +	unsigned int out_state;
+>  };
+>  
+>  /*----------------------------------------------------------------------*/
+> @@ -130,7 +131,7 @@ static inline int gpio_twl4030_read(u8 address)
+>  
+>  /*----------------------------------------------------------------------*/
+>  
+> -static u8 cached_leden;		/* protected by gpio_lock */
+> +static u8 cached_leden;
+>  
+>  /* The LED lines are open drain outputs ... a FET pulls to GND, so an
+>   * external pullup is needed.  We could also expose the integrated PWM
+> @@ -144,14 +145,12 @@ static void twl4030_led_set_value(int led, int value)
+>  	if (led)
+>  		mask <<= 1;
+>  
+> -	mutex_lock(&gpio_lock);
+>  	if (value)
+>  		cached_leden &= ~mask;
+>  	else
+>  		cached_leden |= mask;
+>  	status = twl_i2c_write_u8(TWL4030_MODULE_LED, cached_leden,
+>  				  TWL4030_LED_LEDEN_REG);
+> -	mutex_unlock(&gpio_lock);
+>  }
+>  
+>  static int twl4030_set_gpio_direction(int gpio, int is_input)
+> @@ -162,7 +161,6 @@ static int twl4030_set_gpio_direction(int gpio, int is_input)
+>  	u8 base = REG_GPIODATADIR1 + d_bnk;
+>  	int ret = 0;
+>  
+> -	mutex_lock(&gpio_lock);
+>  	ret = gpio_twl4030_read(base);
+>  	if (ret >= 0) {
+>  		if (is_input)
+> @@ -172,7 +170,6 @@ static int twl4030_set_gpio_direction(int gpio, int is_input)
+>  
+>  		ret = gpio_twl4030_write(base, reg);
+>  	}
+> -	mutex_unlock(&gpio_lock);
+>  	return ret;
+>  }
+>  
+> @@ -212,7 +209,7 @@ static int twl_request(struct gpio_chip *chip, unsigned offset)
+>  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+>  	int status = 0;
+>  
+> -	mutex_lock(&gpio_lock);
+> +	mutex_lock(&priv->mutex);
+>  
+>  	/* Support the two LED outputs as output-only GPIOs. */
+>  	if (offset >= TWL4030_GPIO_MAX) {
+> @@ -271,7 +268,7 @@ done:
+>  	if (!status)
+>  		priv->usage_count |= BIT(offset);
+>  
+> -	mutex_unlock(&gpio_lock);
+> +	mutex_unlock(&priv->mutex);
+>  	return status;
+>  }
+>  
+> @@ -279,64 +276,98 @@ static void twl_free(struct gpio_chip *chip, unsigned offset)
+>  {
+>  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+>  
+> +	mutex_lock(&priv->mutex);
+>  	if (offset >= TWL4030_GPIO_MAX) {
+>  		twl4030_led_set_value(offset - TWL4030_GPIO_MAX, 1);
+>  		return;
+>  	}
+>  
+> -	mutex_lock(&gpio_lock);
+> -
+>  	priv->usage_count &= ~BIT(offset);
+>  
+>  	/* on last use, switch off GPIO module */
+>  	if (!priv->usage_count)
+>  		gpio_twl4030_write(REG_GPIO_CTRL, 0x0);
+>  
+> -	mutex_unlock(&gpio_lock);
+> +	mutex_unlock(&priv->mutex);
+>  }
+>  
+>  static int twl_direction_in(struct gpio_chip *chip, unsigned offset)
+>  {
+> -	return (offset < TWL4030_GPIO_MAX)
+> -		? twl4030_set_gpio_direction(offset, 1)
+> -		: -EINVAL;
+> +	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+> +	int ret;
+> +
+> +	mutex_lock(&priv->mutex);
+> +	if (offset < TWL4030_GPIO_MAX)
+> +		ret = twl4030_set_gpio_direction(offset, 1);
+> +	else
+> +		ret = -EINVAL;
+> +
+> +	if (!ret)
+> +		priv->direction &= ~BIT(offset);
+> +
+> +	mutex_unlock(&priv->mutex);
+> +
+> +	return ret;
+>  }
+>  
+>  static int twl_get(struct gpio_chip *chip, unsigned offset)
+>  {
+>  	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+> +	int ret;
+>  	int status = 0;
+>  
+> -	if (!(priv->usage_count & BIT(offset)))
+> -		return -EPERM;
+> +	mutex_lock(&priv->mutex);
+> +	if (!(priv->usage_count & BIT(offset))) {
+> +		ret = -EPERM;
+> +		goto out;
+> +	}
+>  
+> -	if (offset < TWL4030_GPIO_MAX)
+> -		status = twl4030_get_gpio_datain(offset);
+> -	else if (offset == TWL4030_GPIO_MAX)
+> -		status = cached_leden & LEDEN_LEDAON;
+> +	if (priv->direction & BIT(offset))
+> +		status = priv->out_state & BIT(offset);
+>  	else
+> -		status = cached_leden & LEDEN_LEDBON;
+> +		status = twl4030_get_gpio_datain(offset);
+>  
+> -	return (status < 0) ? 0 : status;
+> +	ret = (status <= 0) ? 0 : 1;
+> +out:
+> +	mutex_unlock(&priv->mutex);
+> +	dev_err(chip->dev, "%s: offset %d value %d\n", __func__, offset, ret);
+> +	return ret;
+>  }
+>  
+> -static int twl_direction_out(struct gpio_chip *chip, unsigned offset, int value)
+> +static void twl_set(struct gpio_chip *chip, unsigned offset, int value)
+>  {
+> -	if (offset < TWL4030_GPIO_MAX) {
+> +	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+> +
+> +	dev_err(chip->dev, "%s: offset %d value %d\n", __func__, offset, value);
+> +	mutex_lock(&priv->mutex);
+> +	if (offset < TWL4030_GPIO_MAX)
+>  		twl4030_set_gpio_dataout(offset, value);
+> -		return twl4030_set_gpio_direction(offset, 0);
+> -	} else {
+> +	else
+>  		twl4030_led_set_value(offset - TWL4030_GPIO_MAX, value);
+> -		return 0;
+> -	}
+> +
+> +	if (value)
+> +		priv->out_state |= BIT(offset);
+> +	else
+> +		priv->out_state &= ~BIT(offset);
+> +
+> +	mutex_unlock(&priv->mutex);
+>  }
+>  
+> -static void twl_set(struct gpio_chip *chip, unsigned offset, int value)
+> +static int twl_direction_out(struct gpio_chip *chip, unsigned offset, int value)
+>  {
+> +	struct gpio_twl4030_priv *priv = to_gpio_twl4030(chip);
+> +
+> +	dev_err(chip->dev, "%s: offset %d value %d\n", __func__, offset, value);
+> +	mutex_lock(&priv->mutex);
+>  	if (offset < TWL4030_GPIO_MAX)
+>  		twl4030_set_gpio_dataout(offset, value);
+> -	else
+> -		twl4030_led_set_value(offset - TWL4030_GPIO_MAX, value);
+> +
+> +	priv->direction |= BIT(offset);
+> +	mutex_unlock(&priv->mutex);
+> +
+> +	twl_set(chip, offset, value);
+> +
+> +	return 0;
+>  }
+>  
+>  static int twl_to_irq(struct gpio_chip *chip, unsigned offset)
+> @@ -469,6 +500,8 @@ no_irqs:
+>  	priv->gpio_chip.ngpio = TWL4030_GPIO_MAX;
+>  	priv->gpio_chip.dev = &pdev->dev;
+>  
+> +	mutex_init(&priv->mutex);
+> +
+>  	if (node)
+>  		pdata = of_gpio_twl4030(&pdev->dev);
+>  
+> -- 
+> 1.8.0
+> 
 
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
-
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies, Ltd.
