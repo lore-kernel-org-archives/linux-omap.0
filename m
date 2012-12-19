@@ -1,63 +1,41 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: 32kHz clock removal causes problems omap_hsmmc
-Date: Wed, 19 Dec 2012 10:09:09 +0000
-Message-ID: <20121219100909.GO4985@opensource.wolfsonmicro.com>
-References: <1352968293.10872.51.camel@cumari.coelho.fi>
- <20121218095450.GB27751@arwen.pp.htv.fi>
- <20121219094552.GN4985@opensource.wolfsonmicro.com>
- <50D19040.5090404@ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: Fix compillation error in
+ mach-omap2/timer.c
+Date: Wed, 19 Dec 2012 10:16:15 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EC9A56D@DBDE01.ent.ti.com>
+References: <1355910609-31336-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lRF4gxo9Z9M++D0O"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:37921 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751868Ab2LSKJM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Dec 2012 05:09:12 -0500
-Content-Disposition: inline
-In-Reply-To: <50D19040.5090404@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:55838 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750969Ab2LSKQ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Dec 2012 05:16:26 -0500
+In-Reply-To: <1355910609-31336-1-git-send-email-peter.ujfalusi@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Luciano Coelho <coelho@ti.com>, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-
---lRF4gxo9Z9M++D0O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Dec 19, 2012 at 11:00:32AM +0100, Peter Ujfalusi wrote:
-
-> I don't know the state of the common clock framework for OMAPs. Is it already
-> up in 3.7? Or going for 3.8? 3.9? 3.10?...
-> We need CCF to resolve this. I can cook up the clock driver for the 32k clock
-> from twl, but in order to use it we need CCF on OMAP.
-
-Well, we at least ought to make sure it doesn't appear in the regulator
-DT bindings even if it's handled via some OMAP magic - that was the key
-point here.
-
---lRF4gxo9Z9M++D0O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQ0ZIzAAoJELSic+t+oim9f24P/iF5uVDPLt/inTJDhwV5LpLS
-6cc1AClrpDAp48BM/YQ9UlPJKm4+iN5Q5Udy2oAMzsdqFt9+cpGabMQcfwlD5y9k
-NAVcaOa7I46wwAj6q/lN/fvri8VA84N06Ud7NCYksnxr3mWhztpnJMtGnRvNlBO5
-39Tyrs1fONMt8w+qgMOykHb04FcEaCIgKafp97IDEgt31etn365NBFtHxar7qzwR
-JThzrIXV4mRH5htHHj0W/bOXbqyN8nSR2GZogRc5Hl0BK+GIBKKD/IpY92E3sr7M
-S90mA3hIVKHlRaNek7w0YP5NisFPm4DHbjuItmeVN5UleNgyZMANpHhgQca/06LA
-E9KYsJcMPt8z6vQQ0a3iaUyMGbayAU9i7nUD/wiig6Q4mAwWudqVXbaAwgv9FyKs
-+bd016ExH+p5eUBPmi0wsnShC7LjHHB3LXYKuGcbocjSTCmO7QPyfi7fSb4kFHmc
-yUl0yH9ed6Q1lX0cfFZzLueW0nBXOOSsen5g85lSrJJVIvrn7CqLAms5D6acAtHW
-eSdZ3SQR7hsEHiElK+0ThXbeVrSiWJbaeiy7GWhByP1Vl+N+E0h7E1ppKIbciFQL
-P/DOFgrU9ka9wZ8FTZk8ndSHfkh7kri5phc5s/ckBSBXaWHrk3i4PTmSMo6XO6qq
-MFYkD3xor8103n01JSDK
-=Cpss
------END PGP SIGNATURE-----
-
---lRF4gxo9Z9M++D0O--
+SGkgUGV0ZXIsIFRvbnkNCg0KT24gV2VkLCBEZWMgMTksIDIwMTIgYXQgMTU6MjA6MDksIFVqZmFs
+dXNpLCBQZXRlciB3cm90ZToNCj4gcHJvbV9hZGRfcHJvcGVydHkoKSBoYXMgYmVlbiByZW5hbWVk
+IHRvIG9mX2FkZF9wcm9wZXJ0eSgpDQo+IFRoaXMgcGF0Y2ggZml4ZXMgdGhlIGZvbGxvd2luZyBj
+b21pbGF0aW9uIGVycm9yOg0KPiANCj4gYXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci5jOiBJbiBm
+dW5jdGlvbiDigJhvbWFwX2dldF90aW1lcl9kdOKAmToNCj4gYXJjaC9hcm0vbWFjaC1vbWFwMi90
+aW1lci5jOjE3ODozOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24g4oCY
+cHJvbV9hZGRfcHJvcGVydHnigJkgWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRp
+b25dDQo+IGNjMTogc29tZSB3YXJuaW5ncyBiZWluZyB0cmVhdGVkIGFzIGVycm9ycw0KPiBtYWtl
+WzFdOiAqKiogW2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXIub10gRXJyb3IgMQ0KPiBtYWtlWzFd
+OiAqKiogV2FpdGluZyBmb3IgdW5maW5pc2hlZCBqb2JzLi4uLg0KPiANCj4gU2lnbmVkLW9mZi1i
+eTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRpLmNvbT4NCj4gLS0tDQo+IEhpIFRv
+bnksDQo+IA0KPiB0b2RheSdzIG1haW5saW5lIGRvZXMgbm90IGNvbXBpbGUgZHVlIHRvIHRoaXMg
+QVBJIHJlbmFtZSBpbiBvZiBjb3JlLg0KPiBOb3Qgc3VyZSBpZiB3ZSBhbHJlYXN5IGhhdmUgZml4
+IGZvciB0aGlzIHBlbmRpbmcuDQo+IA0KDQpUaGVyZSBmb2xsb3dpbmcgcGF0Y2hlcyBmb3IgbmVl
+ZGVkIHRvIGdldCBvbWFwMnBsdXNfZGVmY29uZmlnIGJ1aWxkIHdvcmtpbmcNCg0KaHR0cHM6Ly9w
+YXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC8xODEwNDgxLyAtIGFkZHJlc3MgdGhlIGJ1aWxkIGJy
+ZWFrYWdlIGR1ZSB0byBoZWFkZXIgZmlsZSBjbGVhbnVwDQpodHRwczovL3BhdGNod29yay5rZXJu
+ZWwub3JnL3BhdGNoLzE4MTA0NDEvIC0gYWRkcmVzcyB0aGUgcHJvbV9hZGRfcHJvcGVydHkoKSBp
+c3N1ZQ0KaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1hcm0ta2VybmVsJm09MTM1NTg5OTY2MDE3
+NjI4Jnc9MiAtIHRoaXMgY3JlcHQgaW4gZHVyaW5nIGEgbWVyZ2UgY29tbWl0Lg0KDQo=
