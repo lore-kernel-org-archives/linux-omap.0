@@ -1,43 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 32kHz clock removal causes problems omap_hsmmc
-Date: Wed, 19 Dec 2012 08:28:11 -0800
-Message-ID: <20121219162811.GL4989@atomide.com>
-References: <1352968293.10872.51.camel@cumari.coelho.fi>
- <20121218095450.GB27751@arwen.pp.htv.fi>
- <20121219094552.GN4985@opensource.wolfsonmicro.com>
- <50D19040.5090404@ti.com>
- <20121219100909.GO4985@opensource.wolfsonmicro.com>
- <50D19463.5010605@ti.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP: Fix build breakage due to missing
+ include in i2c.c
+Date: Wed, 19 Dec 2012 08:38:14 -0800
+Message-ID: <20121219163814.GM4989@atomide.com>
+References: <1355899610-11548-1-git-send-email-vaibhav.bedia@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18550 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751721Ab2LSQiU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Dec 2012 11:38:20 -0500
 Content-Disposition: inline
-In-Reply-To: <50D19463.5010605@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <balbi@ti.com>, Luciano Coelho <coelho@ti.com>, svenkatr@ti.com, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, cjb@laptop.org, lrg@ti.com, linux-kernel@vger.kernel.org
+In-Reply-To: <1355899610-11548-1-git-send-email-vaibhav.bedia@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [121219 02:20]:
-> On 12/19/2012 11:09 AM, Mark Brown wrote:
-> > On Wed, Dec 19, 2012 at 11:00:32AM +0100, Peter Ujfalusi wrote:
-> > 
-> >> I don't know the state of the common clock framework for OMAPs. Is it already
-> >> up in 3.7? Or going for 3.8? 3.9? 3.10?...
-> >> We need CCF to resolve this. I can cook up the clock driver for the 32k clock
-> >> from twl, but in order to use it we need CCF on OMAP.
-> > 
-> > Well, we at least ought to make sure it doesn't appear in the regulator
-> > DT bindings even if it's handled via some OMAP magic - that was the key
-> > point here.
+* Vaibhav Bedia <vaibhav.bedia@ti.com> [121218 22:49]:
+> Merge commit 752451f (Merge branch 'i2c-embedded/for-next' of git://git.pengutronix.de/git/wsa/linux)
+> resulted in a build breakage for OMAP
 > 
-> Sure. It must be a clock driver. I already have similar driver (for McPDM fclk
-> clock) for twl6040.
-> Let me check linux-next, if CCF is there for OMAP I can send the 32k clock
-> driver soon (after writing it and testing it). It is going to be for 3.9 but
-> we can roll it with us I think locally to resolv issues.
+> ...
+> arch/arm/mach-omap2/i2c.c: In function 'omap_pm_set_max_mpu_wakeup_lat_compat':
+> arch/arm/mach-omap2/i2c.c:130:2: error: implicit declaration of function 'omap_pm_set_max_mpu_wakeup_lat'
+> make[1]: *** [arch/arm/mach-omap2/i2c.o] Error 1
+> ...
+> 
+> Fix this by including the appropriate header file with the function prototype
 
-The omap common clock patches are now in mainline kernel as of v3.8
-merge window.
+Thanks applying.
 
 Tony
+ 
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> ---
+>  arch/arm/mach-omap2/i2c.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+> index df6d6ac..b9074dd 100644
+> --- a/arch/arm/mach-omap2/i2c.c
+> +++ b/arch/arm/mach-omap2/i2c.c
+> @@ -22,6 +22,7 @@
+>  #include "soc.h"
+>  #include "omap_hwmod.h"
+>  #include "omap_device.h"
+> +#include "omap-pm.h"
+>  
+>  #include "prm.h"
+>  #include "common.h"
+> -- 
+> 1.7.0.4
+> 
